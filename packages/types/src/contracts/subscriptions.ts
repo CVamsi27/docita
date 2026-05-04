@@ -303,6 +303,7 @@ export const internalAdditionalChargeCategorySchema = z.enum([
   "DATA_MIGRATION",
   "CUSTOM_TRAINING",
   "INTEGRATION",
+  "COMMERCIAL_DISCOUNT",
   "OTHER",
 ]);
 

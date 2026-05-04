@@ -19,3 +19,21 @@ export const userProfileResponseSchema = z.object({
 
 export type UpdateProfileRequest = z.infer<typeof updateProfileRequestSchema>;
 export type UserProfileResponse = z.infer<typeof userProfileResponseSchema>;
+
+export const staffAccountDeletionRequestSchema = z.object({
+  reason: z.string().trim().min(1).max(4000),
+  confirmDeletion: z.literal(true),
+});
+
+export const staffAccountDeletionResponseSchema = z.object({
+  message: z.string(),
+  userId: z.string(),
+  requestedAt: z.string(),
+});
+
+export type StaffAccountDeletionRequest = z.infer<
+  typeof staffAccountDeletionRequestSchema
+>;
+export type StaffAccountDeletionResponse = z.infer<
+  typeof staffAccountDeletionResponseSchema
+>;
