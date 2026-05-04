@@ -166,16 +166,23 @@ export class OnboardingWorkflowService {
     adminData: AdminAccountDto,
     clinicId: string,
     _ipAddress?: string,
+    planTier?: ClinicTier,
   ): Promise<User> {
     const existingUser = await tx.user.findUnique({
       where: { email: adminData.email },
     });
 
-    const resolvedRole =
+    let resolvedRole =
       adminData.role ||
       (existingUser?.role === Role.ADMIN_DOCTOR
         ? Role.ADMIN_DOCTOR
         : Role.ADMIN);
+    if (
+      planTier === ClinicTier.FRONT_DESK &&
+      resolvedRole === Role.ADMIN_DOCTOR
+    ) {
+      resolvedRole = Role.ADMIN;
+    }
 
     if (existingUser) {
       if (existingUser.clinicId) {
@@ -344,6 +351,7 @@ export class OnboardingWorkflowService {
     clinicId: string,
     staffData: StaffSetupDto,
     ipAddress?: string,
+    planTier?: ClinicTier,
   ): Promise<number> {
     if (!staffData.staffMembers?.length) return 0;
 
@@ -361,6 +369,9 @@ export class OnboardingWorkflowService {
       if (!passwordValidation.valid) continue;
 
       const hashedPassword = await bcrypt.hash(member.password, 10);
+      const prismaRole = toStaffRole(member.role);
+      const anchorDoctorOnFrontDeskTier =
+        planTier === ClinicTier.FRONT_DESK && prismaRole === Role.DOCTOR;
 
       const newUser = await tx.user.create({
         data: {
@@ -368,13 +379,14 @@ export class OnboardingWorkflowService {
           email: member.email,
           password: hashedPassword,
           phoneNumber: member.phoneNumber,
-          role: toStaffRole(member.role),
+          role: prismaRole,
           clinicId,
           qualification: member.qualification,
           registrationNumber: member.registrationNumber,
           specialization: this.validation.validateSpecialization(
             member.specialization,
           ),
+          ...(anchorDoctorOnFrontDeskTier ? { appLoginDisabled: true } : {}),
         },
       });
 
@@ -424,6 +436,7 @@ export class OnboardingWorkflowService {
         password: hashedPassword,
         role: Role.DOCTOR,
         clinicId,
+        appLoginDisabled: true,
       },
     });
 

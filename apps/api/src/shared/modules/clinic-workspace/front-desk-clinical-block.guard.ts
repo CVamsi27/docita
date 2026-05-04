@@ -4,6 +4,7 @@ import {
   ForbiddenException,
   Injectable,
 } from '@nestjs/common';
+import { ClinicTier } from '@workspace/db';
 import { PrismaService } from '@/prisma/prisma.service';
 import { isFrontDeskWorkspace, parseWorkspaceProfile } from '@workspace/types';
 
@@ -31,7 +32,7 @@ export class FrontDeskClinicalBlockGuard implements CanActivate {
 
     const clinic = await this.prisma.clinic.findUnique({
       where: { id: clinicId },
-      select: { settings: true },
+      select: { tier: true, settings: true },
     });
     const settings =
       clinic?.settings && typeof clinic.settings === 'object'
@@ -39,6 +40,7 @@ export class FrontDeskClinicalBlockGuard implements CanActivate {
         : {};
 
     if (
+      clinic?.tier !== ClinicTier.FRONT_DESK &&
       !isFrontDeskWorkspace(parseWorkspaceProfile(settings.workspaceProfile))
     ) {
       return true;

@@ -1,6 +1,6 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import { JwtService } from '@nestjs/jwt';
-import { UnauthorizedException } from '@nestjs/common';
+import { ForbiddenException, UnauthorizedException } from '@nestjs/common';
 import { AuthService } from './auth.service';
 import { MfaService } from './mfa.service';
 import { EmailService } from '@/shared/modules/messaging/email/email.service';
@@ -105,6 +105,7 @@ describe('AuthService', () => {
     profilePhotoUrl: null,
     specialization: null,
     yearsOfExperience: null,
+    appLoginDisabled: false,
   };
 
   const mockUserWithoutPassword = {
@@ -282,6 +283,17 @@ describe('AuthService', () => {
       expect(prismaService.user.findUnique).toHaveBeenCalledWith({
         where: { email: 'test@example.com' },
       });
+    });
+
+    it('should reject login when appLoginDisabled is true', async () => {
+      jest.spyOn(prismaService.user, 'findUnique').mockResolvedValue({
+        ...mockUser,
+        appLoginDisabled: true,
+      });
+
+      await expect(
+        service.validateUser('test@example.com', 'password'),
+      ).rejects.toThrow(ForbiddenException);
     });
 
     it('should return null when password is incorrect', async () => {

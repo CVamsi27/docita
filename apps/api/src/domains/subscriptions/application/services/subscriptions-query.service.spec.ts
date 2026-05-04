@@ -131,6 +131,28 @@ describe('SubscriptionsQueryService', () => {
     expect(result).toEqual(['pending-essential']);
   });
 
+  it('keeps pending FRONT_DESK checkout rows when that plan is already active', async () => {
+    findByClinicIdMock.mockResolvedValue({
+      getPlan: () => ({ value: 'FRONT_DESK' }),
+    } as never);
+    findPaymentsByClinicIdMock.mockResolvedValue([
+      {
+        id: 'pending-front-desk',
+        amountCents: 79900,
+        currency: 'INR',
+        status: 'pending',
+        description: 'FRONT_DESK MONTHLY subscription',
+        createdAt: new Date('2026-04-28T12:00:00.000Z'),
+      },
+    ]);
+
+    const result = (await service.getPaymentHistory('clinic-1')).map(
+      (payment) => (payment as unknown as { id: string }).id,
+    );
+
+    expect(result).toEqual(['pending-front-desk']);
+  });
+
   it('hides pending upgrade checkouts that do not match the active subscription tier', async () => {
     findByClinicIdMock.mockResolvedValue({
       getPlan: () => ({ value: 'STARTER' }),

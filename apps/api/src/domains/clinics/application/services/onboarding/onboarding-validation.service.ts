@@ -129,8 +129,10 @@ export class OnboardingValidationService {
     const workspaceProfile = parseWorkspaceProfile(
       data.planSelection?.workspaceProfile,
     );
+    const isFrontDeskTier = data.planSelection?.tier === ClinicTier.FRONT_DESK;
+    const isFrontDeskWorkspaceMode = isFrontDeskWorkspace(workspaceProfile);
     if (
-      isFrontDeskWorkspace(workspaceProfile) &&
+      (isFrontDeskTier || isFrontDeskWorkspaceMode) &&
       data.staffSetup?.staffMembers
     ) {
       let doctorLikeCount = 0;
@@ -145,11 +147,20 @@ export class OnboardingValidationService {
           doctorLikeCount += 1;
         }
       }
-      if (doctorLikeCount > 1) {
+      if (!isFrontDeskTier && doctorLikeCount > 1) {
         errors.push(
           'The front desk workspace allows at most one doctor profile during onboarding.',
         );
       }
+    }
+
+    if (
+      data.planSelection?.tier === ClinicTier.FRONT_DESK &&
+      data.adminAccount?.role === 'ADMIN_DOCTOR'
+    ) {
+      errors.push(
+        'The front desk plan does not support the admin-doctor role for the primary admin account.',
+      );
     }
 
     if (errors.length > 0) {
@@ -278,6 +289,12 @@ export class OnboardingValidationService {
         includedAppointments: 1000,
         includedStorageGB: 10,
         includedUsers: 3,
+      },
+      FRONT_DESK: {
+        includedPatients: 999999,
+        includedAppointments: 500,
+        includedStorageGB: 10,
+        includedUsers: 5,
       },
       PROFESSIONAL: {
         includedPatients: 10000,

@@ -1,6 +1,7 @@
 import {
   Injectable,
   UnauthorizedException,
+  ForbiddenException,
   BadRequestException,
   ConflictException,
   ServiceUnavailableException,
@@ -146,6 +147,10 @@ export class AuthService {
 
       if (!user) {
         return null;
+      }
+
+      if (user.appLoginDisabled) {
+        throw new ForbiddenException('This profile cannot sign in to the app.');
       }
 
       if (user.accountLockedUntil && user.accountLockedUntil > new Date()) {

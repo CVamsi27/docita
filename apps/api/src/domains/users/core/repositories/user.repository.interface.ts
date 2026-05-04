@@ -14,6 +14,7 @@ export interface JwtValidationUserSnapshot {
   clinicId: string | null;
   emailVerified: boolean;
   onboardingStep: OnboardingStep | null;
+  appLoginDisabled: boolean;
 }
 
 export interface IUserRepository {

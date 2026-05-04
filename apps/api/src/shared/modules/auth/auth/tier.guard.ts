@@ -126,6 +126,16 @@ export class TierGuard implements CanActivate {
         );
       }
 
+      if (
+        userTier === Tier.FRONT_DESK &&
+        requiredTier !== Tier.INTELLIGENCE &&
+        requiredTier > Tier.ESSENTIAL
+      ) {
+        throw new ForbiddenException(
+          `This feature requires ${this.getTierName(requiredTier)} tier or higher.`,
+        );
+      }
+
       if (requiredTier !== Tier.INTELLIGENCE && userTier < requiredTier) {
         throw new ForbiddenException(
           `This feature requires ${this.getTierName(requiredTier)} tier or higher.`,
@@ -142,6 +152,7 @@ export class TierGuard implements CanActivate {
       [ClinicTier.ESSENTIAL]: Tier.ESSENTIAL,
       [ClinicTier.PROFESSIONAL]: Tier.PROFESSIONAL,
       [ClinicTier.ENTERPRISE]: Tier.ENTERPRISE,
+      [ClinicTier.FRONT_DESK]: Tier.FRONT_DESK,
     };
 
     return tierMap[dbTier] ?? Tier.STARTER;
@@ -154,6 +165,7 @@ export class TierGuard implements CanActivate {
       [Tier.PROFESSIONAL]: 'Professional',
       [Tier.ENTERPRISE]: 'Enterprise',
       [Tier.INTELLIGENCE]: 'Intelligence',
+      [Tier.FRONT_DESK]: 'Front desk',
     };
     return names[tier] || 'Unknown';
   }

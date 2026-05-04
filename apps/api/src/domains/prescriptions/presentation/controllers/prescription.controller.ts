@@ -50,7 +50,6 @@ interface AuthRequest {
 
 @Controller('prescriptions')
 @UseGuards(TierGuard, FrontDeskClinicalBlockGuard)
-@RequireFeature(Feature.DIGITAL_PRESCRIPTIONS)
 @Roles(Role.ADMIN, Role.DOCTOR, Role.RECEPTIONIST, Role.ADMIN_DOCTOR)
 @UseInterceptors(IdempotencyInterceptor)
 export class PrescriptionsController {
@@ -82,6 +81,7 @@ export class PrescriptionsController {
   }
 
   @Post()
+  @RequireFeature(Feature.DIGITAL_PRESCRIPTIONS)
   @RequiresIdempotency()
   @ZodSerializerDto(PrescriptionResponseDto)
   @UsePipes(new ZodValidationPipe(CreatePrescriptionSchema))
@@ -97,11 +97,13 @@ export class PrescriptionsController {
   }
 
   @Get(':id/pdf/status')
+  @RequireFeature(Feature.DIGITAL_PRESCRIPTIONS)
   getPdfStatus(@Request() req: AuthRequest, @Query('jobId') jobId: string) {
     return this.pdfJobService.getStatus(jobId, req.user.clinicId);
   }
 
   @Get(':id/pdf')
+  @RequireFeature(Feature.DIGITAL_PRESCRIPTIONS)
   async getPdf(
     @Request() req: AuthRequest,
     @Param('id') id: string,

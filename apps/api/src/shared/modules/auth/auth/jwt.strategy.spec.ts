@@ -1,5 +1,5 @@
 import { Test, TestingModule } from '@nestjs/testing';
-import { UnauthorizedException } from '@nestjs/common';
+import { ForbiddenException, UnauthorizedException } from '@nestjs/common';
 import { AppConfigService } from '@/shared/modules/config/app-configuration.service';
 import { JwtStrategy, extractJwtFromRequest } from './jwt.strategy';
 import { Role } from '@workspace/db';
@@ -15,6 +15,7 @@ describe('JwtStrategy', () => {
     name: string;
     clinicId: string | null;
     emailVerified: boolean;
+    appLoginDisabled: boolean;
     onboardingStep:
       | 'NOT_STARTED'
       | 'CHOOSE_PATH'
@@ -66,6 +67,7 @@ describe('JwtStrategy', () => {
     name: 'Test Admin',
     clinicId: 'clinic-456',
     emailVerified: false,
+    appLoginDisabled: false,
     onboardingStep: 'CHOOSE_PATH' as const,
   };
 
@@ -111,6 +113,17 @@ describe('JwtStrategy', () => {
 
       await expect(strategy.validate(validPayload)).rejects.toThrow(
         UnauthorizedException,
+      );
+    });
+
+    it('should throw ForbiddenException when appLoginDisabled is true', async () => {
+      mockFindByIdForJwtValidation.mockResolvedValue({
+        ...mockUser,
+        appLoginDisabled: true,
+      });
+
+      await expect(strategy.validate(validPayload)).rejects.toThrow(
+        ForbiddenException,
       );
     });
 

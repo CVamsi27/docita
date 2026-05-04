@@ -278,13 +278,18 @@ export class OnboardingService {
         }
       }
 
+      const resolvedWorkspaceProfile =
+        completeData.planSelection.tier === ClinicTier.FRONT_DESK
+          ? 'FRONT_DESK'
+          : completeData.planSelection.workspaceProfile;
+
       const result = await this.prisma.runUnrestricted(async () => {
         return this.prisma.$transaction(async (tx) => {
           const clinic = await this.workflowService.createClinic(
             tx,
             completeData.clinicDetails,
             ipAddress,
-            completeData.planSelection.workspaceProfile,
+            resolvedWorkspaceProfile,
           );
           clinicId = clinic.id;
 
@@ -293,6 +298,7 @@ export class OnboardingService {
             completeData.adminAccount,
             clinic.id,
             ipAddress,
+            completeData.planSelection.tier,
           );
           userId = adminUser.id;
 
@@ -324,15 +330,15 @@ export class OnboardingService {
               clinic.id,
               completeData.staffSetup,
               ipAddress,
+              completeData.planSelection.tier,
             );
             this.logger.log(`Created ${staffCount} staff members`);
           }
 
           if (
+            completeData.planSelection.tier === ClinicTier.FRONT_DESK ||
             isFrontDeskWorkspace(
-              parseWorkspaceProfile(
-                completeData.planSelection.workspaceProfile,
-              ),
+              parseWorkspaceProfile(resolvedWorkspaceProfile),
             )
           ) {
             await this.workflowService.ensureFrontDeskScheduleDoctor(

@@ -65,32 +65,26 @@ interface UpdateMemberData {
 export class StaffManagementService {
   constructor(private prisma: PrismaService) {}
 
-  private async getClinicWorkspaceProfile(clinicId: string) {
+  private async isClinicFrontDesk(clinicId: string): Promise<boolean> {
     const clinic = await this.prisma.clinic.findUnique({
       where: { id: clinicId },
-      select: { settings: true },
+      select: { tier: true, settings: true },
     });
+    if (!clinic) {
+      return false;
+    }
+    if (clinic.tier === 'FRONT_DESK') {
+      return true;
+    }
     const raw =
-      clinic?.settings && typeof clinic.settings === 'object'
+      clinic.settings && typeof clinic.settings === 'object'
         ? (clinic.settings as Record<string, unknown>)
         : {};
-    return parseWorkspaceProfile(raw.workspaceProfile);
-  }
-
-  private async countDoctorsInClinic(clinicId: string): Promise<number> {
-    return this.prisma.user.count({
-      where: { clinicId, role: Role.DOCTOR },
-    });
+    return isFrontDeskWorkspace(parseWorkspaceProfile(raw.workspaceProfile));
   }
 
   async createDoctor(clinicId: string, data: CreateDoctorData) {
-    if (isFrontDeskWorkspace(await this.getClinicWorkspaceProfile(clinicId))) {
-      if ((await this.countDoctorsInClinic(clinicId)) >= 1) {
-        throw new BadRequestException(
-          'This workspace already has a schedule doctor profile.',
-        );
-      }
-    }
+    const isFrontDesk = await this.isClinicFrontDesk(clinicId);
 
     const hashedPassword = await bcrypt.hash(data.password, 10);
 
@@ -104,6 +98,7 @@ export class StaffManagementService {
       qualification: data.qualification,
       registrationNumber: data.registrationNumber,
       specialization: data.specialization as Specialization,
+      ...(isFrontDesk ? { appLoginDisabled: true } : {}),
     };
 
     const user = await this.prisma.user.create({
@@ -132,19 +127,11 @@ export class StaffManagementService {
   }
 
   async createMember(clinicId: string, data: CreateClinicMemberData) {
-    const workspaceProfile = await this.getClinicWorkspaceProfile(clinicId);
-    if (isFrontDeskWorkspace(workspaceProfile)) {
+    const isFrontDesk = await this.isClinicFrontDesk(clinicId);
+    if (isFrontDesk) {
       if (data.role === 'NURSE' || data.role === 'ADMIN_DOCTOR') {
         throw new BadRequestException(
           'This role is not available for the front desk workspace.',
-        );
-      }
-      if (
-        data.role === 'DOCTOR' &&
-        (await this.countDoctorsInClinic(clinicId)) >= 1
-      ) {
-        throw new BadRequestException(
-          'Only one doctor profile is allowed for the front desk workspace.',
         );
       }
     }
@@ -179,6 +166,9 @@ export class StaffManagementService {
               registrationNumber: data.registrationNumber,
               specialization: data.specialization as Specialization,
             }
+          : {}),
+        ...(isFrontDesk && prismaRole === Role.DOCTOR
+          ? { appLoginDisabled: true }
           : {}),
       },
       select: {
@@ -231,6 +221,12 @@ export class StaffManagementService {
   }
 
   async createReceptionist(clinicId: string, data: CreateReceptionistData) {
+    const isFrontDesk = await this.isClinicFrontDesk(clinicId);
+    if (isFrontDesk && data.role === 'NURSE') {
+      throw new BadRequestException(
+        'This role is not available for the front desk workspace.',
+      );
+    }
     const hashedPassword = await bcrypt.hash(data.password, 10);
     const user = await this.prisma.user.create({
       data: {
@@ -349,28 +345,23 @@ export class StaffManagementService {
       }
     }
 
+    const isFrontDesk = await this.isClinicFrontDesk(clinicId);
     if (data.role) {
-      const workspaceProfile = await this.getClinicWorkspaceProfile(clinicId);
-      if (isFrontDeskWorkspace(workspaceProfile)) {
+      if (isFrontDesk) {
         if (data.role === 'NURSE' || data.role === 'ADMIN_DOCTOR') {
           throw new BadRequestException(
             'This role is not available for the front desk workspace.',
           );
         }
-        if (data.role === 'DOCTOR') {
-          const otherDoctors = await this.prisma.user.count({
-            where: {
-              clinicId,
-              role: Role.DOCTOR,
-              NOT: { id: memberId },
-            },
-          });
-          if (otherDoctors >= 1) {
-            throw new BadRequestException(
-              'Only one doctor profile is allowed for the front desk workspace.',
-            );
-          }
-        }
+      }
+    }
+
+    let appLoginDisabled: boolean | undefined;
+    if (data.role !== undefined) {
+      if (data.role === 'DOCTOR' && isFrontDesk) {
+        appLoginDisabled = true;
+      } else if (data.role !== 'DOCTOR') {
+        appLoginDisabled = false;
       }
     }
 
@@ -383,6 +374,7 @@ export class StaffManagementService {
           ? { phoneNumber: data.phoneNumber }
           : {}),
         ...(data.role !== undefined ? { role: data.role } : {}),
+        ...(appLoginDisabled !== undefined ? { appLoginDisabled } : {}),
         ...(data.specialization !== undefined
           ? { specialization: data.specialization as Specialization }
           : {}),

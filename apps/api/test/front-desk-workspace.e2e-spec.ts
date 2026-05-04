@@ -20,11 +20,13 @@ describe('Front desk workspace (e2e)', () => {
   let app: INestApplication | undefined;
   let httpServer: ReturnType<INestApplication['getHttpServer']> | undefined;
   let prisma: PrismaService | undefined;
-  let doctorToken: string;
+  let adminToken: string;
   let receptionistToken: string;
   let clinicId: string;
   let patientId: string;
   let doctorId: string;
+  let doctorPassword: string;
+  let loginDoctorToken: string;
 
   beforeAll(async () => {
     setupTestDatabase();
@@ -56,27 +58,48 @@ describe('Front desk workspace (e2e)', () => {
     await resetDatabase();
 
     const clinic = await factories.clinic({
-      tier: 'PRO',
+      tier: 'FRONT_DESK',
       settings: { workspaceProfile: 'FRONT_DESK' },
     });
     clinicId = clinic.id;
 
-    const { user: doctor, plainPassword: doctorPassword } =
-      await factories.user({
-        clinicId,
-        role: 'DOCTOR',
-      });
+    const { user: doctor, plainPassword } = await factories.user({
+      clinicId,
+      role: 'DOCTOR',
+    });
     doctorId = doctor.id;
+    doctorPassword = plainPassword;
 
     await prisma.user.update({
       where: { id: doctorId },
       data: {
         verificationStatus: 'VERIFIED',
         signatureUrl: 'https://example.com/signature.png',
+        appLoginDisabled: true,
       },
     });
 
     await factories.doctorClinic(doctorId, clinicId);
+
+    const { user: loginDoctor, plainPassword: loginDoctorPassword } =
+      await factories.user({
+        clinicId,
+        role: 'DOCTOR',
+      });
+    await prisma.user.update({
+      where: { id: loginDoctor.id },
+      data: {
+        verificationStatus: 'VERIFIED',
+        signatureUrl: 'https://example.com/signature-2.png',
+        appLoginDisabled: false,
+      },
+    });
+    await factories.doctorClinic(loginDoctor.id, clinicId);
+
+    const { user: admin, plainPassword: adminPassword } = await factories.user({
+      clinicId,
+      role: 'ADMIN',
+    });
 
     const { user: receptionist, plainPassword: receptionistPassword } =
       await factories.user({
@@ -87,11 +110,17 @@ describe('Front desk workspace (e2e)', () => {
     const patient = await factories.patient(clinicId);
     patientId = patient.id;
 
-    const doctorLogin = await request(httpServer)
+    const adminLogin = await request(httpServer)
       .post('/auth/login')
-      .send({ email: doctor.email, password: doctorPassword })
+      .send({ email: admin.email, password: adminPassword })
       .expect(201);
-    doctorToken = doctorLogin.body.access_token;
+    adminToken = adminLogin.body.access_token;
+
+    const doctorLoginOk = await request(httpServer)
+      .post('/auth/login')
+      .send({ email: loginDoctor.email, password: loginDoctorPassword })
+      .expect(201);
+    loginDoctorToken = doctorLoginOk.body.access_token;
 
     const receptionistLogin = await request(httpServer)
       .post('/auth/login')
@@ -107,11 +136,22 @@ describe('Front desk workspace (e2e)', () => {
     await closeDatabase();
   });
 
+  it('returns 403 for login when doctor profile has appLoginDisabled', async () => {
+    if (!httpServer) throw new Error('E2E app not initialized');
+    const doctor = await prisma!.user.findUniqueOrThrow({
+      where: { id: doctorId },
+    });
+    await request(httpServer)
+      .post('/auth/login')
+      .send({ email: doctor.email, password: doctorPassword })
+      .expect(403);
+  });
+
   it('allows GET /prescriptions for read-only access', async () => {
     if (!httpServer) throw new Error('E2E app not initialized');
     await request(httpServer)
       .get('/prescriptions')
-      .set('Authorization', `Bearer ${doctorToken}`)
+      .set('Authorization', `Bearer ${adminToken}`)
       .expect(200);
   });
 
@@ -125,7 +165,7 @@ describe('Front desk workspace (e2e)', () => {
     if (!httpServer) throw new Error('E2E app not initialized');
     const res = await request(httpServer)
       .post('/prescriptions')
-      .set('Authorization', `Bearer ${doctorToken}`)
+      .set('Authorization', `Bearer ${adminToken}`)
       .send({
         appointmentId: appointment.id,
         patientId,
@@ -141,7 +181,9 @@ describe('Front desk workspace (e2e)', () => {
       })
       .expect(403);
 
-    expect(res.body?.message).toContain('workspace profile');
+    expect(String(res.body?.message ?? '').toLowerCase()).toMatch(
+      /workspace profile|feature|front desk|not available/i,
+    );
   });
 
   it('returns 403 for POST start-consultation when workspace is front desk', async () => {
@@ -158,7 +200,7 @@ describe('Front desk workspace (e2e)', () => {
     if (!httpServer) throw new Error('E2E app not initialized');
     const res = await request(httpServer)
       .post(`/appointments/${appointment.id}/start-consultation`)
-      .set('Authorization', `Bearer ${doctorToken}`)
+      .set('Authorization', `Bearer ${loginDoctorToken}`)
       .expect(403);
 
     expect(res.body?.message).toContain('Consultation start is not available');

@@ -4,6 +4,7 @@ import {
   Inject,
   Injectable,
   UnauthorizedException,
+  ForbiddenException,
   Logger,
 } from '@nestjs/common';
 import { Role } from '@workspace/db';
@@ -78,6 +79,9 @@ export class JwtStrategy extends PassportStrategy(Strategy) {
         this.logger.warn('User not found for token subject');
         throw new UnauthorizedException('User not found');
       }
+      if (user.appLoginDisabled) {
+        throw new ForbiddenException('This profile cannot sign in to the app.');
+      }
       return {
         id: payload.sub,
         sub: payload.sub,
@@ -91,6 +95,9 @@ export class JwtStrategy extends PassportStrategy(Strategy) {
       };
     } catch (error) {
       if (error instanceof UnauthorizedException) {
+        throw error;
+      }
+      if (error instanceof ForbiddenException) {
         throw error;
       }
 

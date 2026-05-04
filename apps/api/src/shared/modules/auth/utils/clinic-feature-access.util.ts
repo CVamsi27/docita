@@ -2,8 +2,12 @@ import { ForbiddenException } from '@nestjs/common';
 import { ClinicTier, IntelligenceAddon } from '@workspace/db';
 import {
   Feature,
-  FEATURE_TIER_MAP,
+  hasFeatureAccess,
   isFeatureGenerallyAvailable,
+  mapDbClinicTierStringToTierName,
+} from '@workspace/types';
+import {
+  FEATURE_TIER_MAP,
   Tier,
 } from '@/shared/modules/auth/auth/tier.decorator';
 
@@ -13,24 +17,14 @@ export type ClinicFeatureAuthSnapshot = {
   features: unknown;
 };
 
-function mapDbTierToEnum(dbTier: ClinicTier): Tier {
-  const tierMap: Record<string, Tier> = {
-    [ClinicTier.STARTER]: Tier.STARTER,
-    [ClinicTier.ESSENTIAL]: Tier.ESSENTIAL,
-    [ClinicTier.PROFESSIONAL]: Tier.PROFESSIONAL,
-    [ClinicTier.ENTERPRISE]: Tier.ENTERPRISE,
-  };
-
-  return tierMap[dbTier] ?? Tier.STARTER;
-}
-
-function getTierName(tier: Tier): string {
+function getTierDisplayName(tier: Tier): string {
   const names: Record<Tier, string> = {
     [Tier.STARTER]: 'Starter',
     [Tier.ESSENTIAL]: 'Essential',
     [Tier.PROFESSIONAL]: 'Professional',
     [Tier.ENTERPRISE]: 'Enterprise',
     [Tier.INTELLIGENCE]: 'Intelligence',
+    [Tier.FRONT_DESK]: 'Front desk',
   };
   return names[tier] || 'Unknown';
 }
@@ -71,10 +65,11 @@ export function assertClinicHasFeatureOrThrow(
     return;
   }
 
-  const userTier = mapDbTierToEnum(clinic.tier);
-  if (userTier < featureTier) {
+  const tierName = mapDbClinicTierStringToTierName(clinic.tier);
+  const hasIntelligence = clinic.intelligenceAddon === IntelligenceAddon.ACTIVE;
+  if (!hasFeatureAccess(tierName, requiredFeature, hasIntelligence)) {
     throw new ForbiddenException(
-      `This feature requires ${getTierName(featureTier)} tier or higher.`,
+      `This feature requires ${getTierDisplayName(featureTier)} tier or higher.`,
     );
   }
 }

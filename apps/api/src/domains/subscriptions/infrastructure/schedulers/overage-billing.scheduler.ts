@@ -202,7 +202,16 @@ export class OverageBillingScheduler {
         },
       }),
       this.prisma.user.count({
-        where: { clinicId: sub.clinicId },
+        where: {
+          clinicId: sub.clinicId,
+          ...(tier === ClinicTier.FRONT_DESK
+            ? {
+                NOT: {
+                  AND: [{ role: Role.DOCTOR }, { appLoginDisabled: true }],
+                },
+              }
+            : {}),
+        },
       }),
       this.prisma.usageEvent.aggregate({
         where: {
@@ -215,10 +224,17 @@ export class OverageBillingScheduler {
     ]);
 
     const whatsappUsed = whatsappCount._sum.quantity ?? 0;
-    const whatsappIncluded =
-      tier === 'ESSENTIAL' || tier === 'PROFESSIONAL' || tier === 'ENTERPRISE'
-        ? getWhatsAppAddonPricingByCurrency(tier, currency).includedQuota
-        : 0;
+    const whatsappEligibleTier =
+      tier === ClinicTier.ESSENTIAL ||
+      tier === ClinicTier.FRONT_DESK ||
+      tier === ClinicTier.PROFESSIONAL ||
+      tier === ClinicTier.ENTERPRISE
+        ? tier
+        : null;
+    const whatsappIncluded = whatsappEligibleTier
+      ? getWhatsAppAddonPricingByCurrency(whatsappEligibleTier, currency)
+          .includedQuota
+      : 0;
 
     const usageData = {
       period: { start: periodStart, end: periodEnd },

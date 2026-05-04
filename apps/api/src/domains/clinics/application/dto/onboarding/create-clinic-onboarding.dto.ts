@@ -1,10 +1,13 @@
 import { createZodDto } from 'nestjs-zod';
 import { z } from 'zod';
+import { ClinicTier } from '@workspace/db';
 import {
   clinicTypeSchema as importedClinicTypeSchema,
   dayOfWeekSchema,
   workspaceProfileSchema,
 } from '@workspace/types';
+export { ClinicTier };
+export const clinicTierSchema = z.nativeEnum(ClinicTier);
 export enum OnboardingStep {
   CLINIC_DETAILS = 'CLINIC_DETAILS',
   ADMIN_ACCOUNT = 'ADMIN_ACCOUNT',
@@ -16,13 +19,6 @@ export enum OnboardingStep {
   COMPLETED = 'COMPLETED',
 }
 export const onboardingStepSchema = z.nativeEnum(OnboardingStep);
-export enum ClinicTier {
-  STARTER = 'STARTER',
-  ESSENTIAL = 'ESSENTIAL',
-  PROFESSIONAL = 'PROFESSIONAL',
-  ENTERPRISE = 'ENTERPRISE',
-}
-export const clinicTierSchema = z.nativeEnum(ClinicTier);
 export enum BillingCycle {
   MONTHLY = 'MONTHLY',
   YEARLY = 'YEARLY',

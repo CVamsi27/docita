@@ -29,6 +29,7 @@ export class PrismaUserRepository implements IUserRepository {
           clinicId: true,
           emailVerified: true,
           onboardingStep: true,
+          appLoginDisabled: true,
         },
       }),
     );
