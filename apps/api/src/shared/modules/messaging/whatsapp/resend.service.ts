@@ -1,12 +1,11 @@
 import {
   Injectable,
-  Logger,
   BadRequestException,
   NotFoundException,
 } from '@nestjs/common';
 import { PrismaService } from '@/prisma/prisma.service';
 import { TemplatesService } from './templates.service';
-import { WhatsappClientService } from './whatsapp-client.service';
+import { SendMessageUseCase } from '@/domains/whatsapp/application/use-cases/send-message.use-case';
 import {
   WhatsappLogStatus,
   ApprovalStatus,
@@ -14,14 +13,20 @@ import {
 } from '@workspace/db';
 import { DATE_FORMATS, formatCurrency, formatDate } from '@workspace/utils';
 
+function toTemplateVariables(
+  record: Record<string, string | number | boolean | null | undefined>,
+): Record<string, string> {
+  return Object.fromEntries(
+    Object.entries(record).map(([k, v]) => [k, v == null ? '' : String(v)]),
+  );
+}
+
 @Injectable()
 export class WhatsappResendService {
-  private readonly logger = new Logger(WhatsappResendService.name);
-
   constructor(
     private readonly prisma: PrismaService,
     private readonly templatesService: TemplatesService,
-    private readonly whatsappClient: WhatsappClientService,
+    private readonly sendMessage: SendMessageUseCase,
   ) {}
 
   async resendPrescription(
@@ -69,13 +74,13 @@ export class WhatsappResendService {
       .map((m) => `• ${m.name} - ${m.dosage} - ${m.frequency} (${m.duration})`)
       .join('\n');
 
-    const variables = {
+    const variables = toTemplateVariables({
       patientName: `${prescription.patient.firstName} ${prescription.patient.lastName}`,
       clinicName: prescription.appointment?.clinic?.name ?? '',
       medications: medicationsList,
       instructions: prescription.instructions ?? '',
       doctorName: prescription.doctor.name,
-    };
+    });
 
     const resolved = await this.templatesService.resolveTemplate(
       'prescription_ready',
@@ -87,18 +92,20 @@ export class WhatsappResendService {
       throw new BadRequestException('Prescription template not found');
     }
 
-    const message = this.templatesService.getMessageForMode(resolved);
+    const messagePreview = this.templatesService.getMessageForMode(resolved);
 
-    const result = await this.whatsappClient.sendMessage({
-      to: prescription.patient.phoneNumber,
-      message,
+    const sendResult = await this.sendMessage.execute({
+      clinicId,
+      recipientPhone: prescription.patient.phoneNumber,
+      templateName: 'prescription_ready',
+      variables,
     });
 
     await this.prisma.prescription.update({
       where: { id },
       data: {
         whatsappSentAt: new Date(),
-        whatsappMessageId: result.messageId,
+        whatsappMessageId: sendResult.providerMessageId || sendResult.messageId,
         whatsappStatus: WhatsappLogStatus.SENT,
         approvalStatus: isAuthorized
           ? ApprovalStatus.AUTO_APPROVED
@@ -115,13 +122,16 @@ export class WhatsappResendService {
         prescriptionId: id,
         type: 'prescription',
         phoneNumber: prescription.patient.phoneNumber,
-        message,
+        message: messagePreview,
         status: WhatsappLogStatus.SENT,
-        providerMessageId: result.messageId,
+        providerMessageId: sendResult.providerMessageId || sendResult.messageId,
       },
     });
 
-    return { success: true, messageId: result.messageId };
+    return {
+      success: true,
+      messageId: sendResult.providerMessageId || sendResult.messageId,
+    };
   }
 
   async resendInvoice(
@@ -169,7 +179,7 @@ export class WhatsappResendService {
       invoice.paymentSessions[0]?.shortUrl ||
       invoice.paymentSessions[0]?.paymentLink;
 
-    const variables = {
+    const variables = toTemplateVariables({
       patientName: `${invoice.patient.firstName} ${invoice.patient.lastName}`,
       clinicName: invoice.appointment?.clinic?.name ?? '',
       amount: formatCurrency(invoice.total, {
@@ -178,7 +188,7 @@ export class WhatsappResendService {
       invoiceNumber: id.slice(-8).toUpperCase(),
       date: formatDate(invoice.createdAt, DATE_FORMATS.DATE_SHORT),
       paymentLink: paymentLink || '',
-    };
+    });
 
     const resolved = await this.templatesService.resolveTemplate(
       'invoice_ready',
@@ -190,18 +200,20 @@ export class WhatsappResendService {
       throw new BadRequestException('Invoice template not found');
     }
 
-    const message = this.templatesService.getMessageForMode(resolved);
+    const messagePreview = this.templatesService.getMessageForMode(resolved);
 
-    const result = await this.whatsappClient.sendMessage({
-      to: invoice.patient.phoneNumber,
-      message,
+    const sendResult = await this.sendMessage.execute({
+      clinicId,
+      recipientPhone: invoice.patient.phoneNumber,
+      templateName: 'invoice_ready',
+      variables,
     });
 
     await this.prisma.invoice.update({
       where: { id },
       data: {
         whatsappSentAt: new Date(),
-        whatsappMessageId: result.messageId,
+        whatsappMessageId: sendResult.providerMessageId || sendResult.messageId,
         whatsappStatus: WhatsappLogStatus.SENT,
         approvalStatus: isAuthorized
           ? ApprovalStatus.AUTO_APPROVED
@@ -218,12 +230,15 @@ export class WhatsappResendService {
         invoiceId: id,
         type: 'invoice',
         phoneNumber: invoice.patient.phoneNumber,
-        message,
+        message: messagePreview,
         status: WhatsappLogStatus.SENT,
-        providerMessageId: result.messageId,
+        providerMessageId: sendResult.providerMessageId || sendResult.messageId,
       },
     });
 
-    return { success: true, messageId: result.messageId };
+    return {
+      success: true,
+      messageId: sendResult.providerMessageId || sendResult.messageId,
+    };
   }
 }

@@ -78,3 +78,19 @@ export function assertClinicHasFeatureOrThrow(
     );
   }
 }
+
+/**
+ * Same rules as {@link assertClinicHasFeatureOrThrow}, for background jobs
+ * that should skip work instead of throwing.
+ */
+export function clinicHasFeatureForAccess(
+  clinic: ClinicFeatureAuthSnapshot,
+  feature: Feature,
+): boolean {
+  try {
+    assertClinicHasFeatureOrThrow(clinic, feature);
+    return true;
+  } catch {
+    return false;
+  }
+}

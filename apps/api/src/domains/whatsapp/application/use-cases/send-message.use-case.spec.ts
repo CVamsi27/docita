@@ -1,5 +1,9 @@
 import { describe, it, expect, jest, beforeEach } from '@jest/globals';
+import { ForbiddenException } from '@nestjs/common';
+import { EventEmitter2 } from '@nestjs/event-emitter';
+import { ClinicTier, IntelligenceAddon } from '@workspace/db';
 import { AppConfigService } from '@/shared/modules/config/app-configuration.service';
+import { PrismaService } from '@/prisma/prisma.service';
 import { SendMessageUseCase } from './send-message.use-case';
 import { IWhatsAppRepository } from '../ports/whatsapp.repository.port';
 import { IWhatsAppClient } from '../ports/whatsapp-client.port';
@@ -65,6 +69,26 @@ describe('SendMessageUseCase', () => {
   const getMetaConfigMock = jest.fn<AppConfigService['getMetaConfig']>();
   mockConfigService.getMetaConfig = getMetaConfigMock;
 
+  type ClinicFeatureRow = {
+    tier: ClinicTier;
+    intelligenceAddon: IntelligenceAddon;
+    features: Record<string, unknown>;
+  };
+
+  const clinicFindUniqueMock =
+    jest.fn<(args: unknown) => Promise<ClinicFeatureRow | null>>();
+
+  const mockPrisma = {
+    clinic: {
+      findUnique: clinicFindUniqueMock,
+    },
+  };
+
+  const emitMock = jest.fn();
+  const mockEventEmitter = {
+    emit: emitMock,
+  } as unknown as EventEmitter2;
+
   beforeEach(() => {
     jest.clearAllMocks();
 
@@ -94,11 +118,19 @@ describe('SendMessageUseCase', () => {
       productionMode: false,
     });
 
+    clinicFindUniqueMock.mockResolvedValue({
+      tier: ClinicTier.ESSENTIAL,
+      intelligenceAddon: IntelligenceAddon.NONE,
+      features: {},
+    });
+
     useCase = new SendMessageUseCase(
       mockRepository,
       mockClient,
       mockTemplateResolver,
       mockConfigService,
+      mockPrisma as unknown as PrismaService,
+      mockEventEmitter,
     );
   });
 
@@ -116,6 +148,33 @@ describe('SendMessageUseCase', () => {
       });
       expect(saveMessageMock).toHaveBeenCalledTimes(1);
       expect(result.messageId).toBeDefined();
+      expect(result.providerMessageId).toBeDefined();
+      expect(emitMock).toHaveBeenCalledWith(
+        'whatsapp.message.sent',
+        expect.objectContaining({
+          clinicId: 'clinic-123',
+          messageType: 'session',
+        }),
+      );
+    });
+
+    it('throws ForbiddenException when clinic tier does not include WhatsApp', async () => {
+      clinicFindUniqueMock.mockResolvedValueOnce({
+        tier: ClinicTier.STARTER,
+        intelligenceAddon: IntelligenceAddon.NONE,
+        features: {},
+      });
+
+      await expect(
+        useCase.execute({
+          clinicId: 'clinic-123',
+          recipientPhone: '919876543210',
+          text: 'Hello',
+        }),
+      ).rejects.toBeInstanceOf(ForbiddenException);
+
+      expect(sendMessageMock).not.toHaveBeenCalled();
+      expect(emitMock).not.toHaveBeenCalled();
     });
 
     it('should throw when neither templateName nor text provided', async () => {
@@ -199,6 +258,8 @@ describe('SendMessageUseCase', () => {
         mockClient,
         mockTemplateResolver,
         mockConfigService,
+        mockPrisma as unknown as PrismaService,
+        mockEventEmitter,
       );
 
       resolveTemplateMock.mockResolvedValue({

@@ -1,6 +1,6 @@
-import { Injectable, Logger } from '@nestjs/common';
+import { ForbiddenException, Injectable, Logger } from '@nestjs/common';
 import { PrismaService } from '@/prisma/prisma.service';
-import { WhatsappClientService } from './whatsapp-client.service';
+import { SendMessageUseCase } from '@/domains/whatsapp/application/use-cases/send-message.use-case';
 import { TemplatesService } from './templates.service';
 import { StaffNotificationService } from './staff-notification.service';
 import { AppointmentStatus } from '@workspace/db';
@@ -96,10 +96,36 @@ export class ResponseHandlerService {
 
   constructor(
     private readonly prisma: PrismaService,
-    private readonly whatsappClient: WhatsappClientService,
+    private readonly sendMessage: SendMessageUseCase,
     private readonly templatesService: TemplatesService,
     private readonly staffNotification: StaffNotificationService,
   ) {}
+
+  private async sendClinicPatientWhatsApp(params: {
+    clinicId: string;
+    to: string;
+    text?: string;
+    templateName?: string;
+    variables?: Record<string, string>;
+  }): Promise<void> {
+    try {
+      await this.sendMessage.execute({
+        clinicId: params.clinicId,
+        recipientPhone: params.to,
+        text: params.text,
+        templateName: params.templateName,
+        variables: params.variables ?? {},
+      });
+    } catch (error) {
+      if (error instanceof ForbiddenException) {
+        this.logger.log(
+          `Skipped outbound WhatsApp for clinic ${params.clinicId}: ${error.message}`,
+        );
+        return;
+      }
+      throw error;
+    }
+  }
 
   async handlePatientResponse(
     appointmentId: string,
@@ -383,7 +409,7 @@ export class ResponseHandlerService {
     delayContext: DelayContext,
   ): Promise<void> {
     let templateId: string;
-    const variables = {
+    const variables: Record<string, string> = {
       patientName: `${appointment.patient.firstName} ${appointment.patient.lastName}`,
       clinicName: appointment.clinic.name,
       date: formatDate(appointment.startTime, DATE_FORMATS.DATE_MEDIUM, {
@@ -406,17 +432,19 @@ export class ResponseHandlerService {
         break;
       case 'DELAY': {
         if (delayContext.delayMinutesPending) {
-          await this.whatsappClient.sendMessage({
+          await this.sendClinicPatientWhatsApp({
+            clinicId: appointment.clinic.id,
             to: appointment.patient.phoneNumber,
-            message: `*Delay Update* - ${appointment.clinic.name}\n\nThanks ${appointment.patient.firstName}. Please reply with your expected delay in minutes (example: 15).`,
+            text: `*Delay Update* - ${appointment.clinic.name}\n\nThanks ${appointment.patient.firstName}. Please reply with your expected delay in minutes (example: 15).`,
           });
           return;
         }
 
         if (delayContext.conflictDetected) {
-          await this.whatsappClient.sendMessage({
+          await this.sendClinicPatientWhatsApp({
+            clinicId: appointment.clinic.id,
             to: appointment.patient.phoneNumber,
-            message: `*Schedule Impact* - ${appointment.clinic.name}\n\nThanks for the update. This delay may affect the doctor's schedule. Please contact the clinic to reschedule or confirm a revised slot.`,
+            text: `*Schedule Impact* - ${appointment.clinic.name}\n\nThanks for the update. This delay may affect the doctor's schedule. Please contact the clinic to reschedule or confirm a revised slot.`,
           });
           return;
         }
@@ -425,21 +453,24 @@ export class ResponseHandlerService {
         break;
       }
       case 'RESCHEDULE':
-        await this.whatsappClient.sendMessage({
+        await this.sendClinicPatientWhatsApp({
+          clinicId: appointment.clinic.id,
           to: appointment.patient.phoneNumber,
-          message: `*Reschedule Request* - ${appointment.clinic.name}\n\nThank you ${appointment.patient.firstName}. Our staff will contact you shortly to reschedule your appointment.\n\nFor urgent queries, please call us directly.`,
+          text: `*Reschedule Request* - ${appointment.clinic.name}\n\nThank you ${appointment.patient.firstName}. Our staff will contact you shortly to reschedule your appointment.\n\nFor urgent queries, please call us directly.`,
         });
         return;
       case 'CANCEL':
-        await this.whatsappClient.sendMessage({
+        await this.sendClinicPatientWhatsApp({
+          clinicId: appointment.clinic.id,
           to: appointment.patient.phoneNumber,
-          message: `*Appointment Cancelled* - ${appointment.clinic.name}\n\nYour appointment on ${variables.date} at ${variables.time} has been cancelled.\n\nIf you'd like to book a new appointment, please contact us or visit our website.`,
+          text: `*Appointment Cancelled* - ${appointment.clinic.name}\n\nYour appointment on ${variables.date} at ${variables.time} has been cancelled.\n\nIf you'd like to book a new appointment, please contact us or visit our website.`,
         });
         return;
       default:
-        await this.whatsappClient.sendMessage({
+        await this.sendClinicPatientWhatsApp({
+          clinicId: appointment.clinic.id,
           to: appointment.patient.phoneNumber,
-          message: `Thank you for your message. Our staff at ${appointment.clinic.name} will get back to you shortly.`,
+          text: `Thank you for your message. Our staff at ${appointment.clinic.name} will get back to you shortly.`,
         });
         return;
     }
@@ -451,10 +482,11 @@ export class ResponseHandlerService {
     );
 
     if (resolved) {
-      const message = this.templatesService.getMessageForMode(resolved);
-      await this.whatsappClient.sendMessage({
+      await this.sendClinicPatientWhatsApp({
+        clinicId: appointment.clinic.id,
         to: appointment.patient.phoneNumber,
-        message,
+        templateName: templateId,
+        variables,
       });
     }
   }
@@ -465,16 +497,18 @@ export class ResponseHandlerService {
     conflictDetected: boolean,
   ): Promise<void> {
     if (conflictDetected) {
-      await this.whatsappClient.sendMessage({
+      await this.sendClinicPatientWhatsApp({
+        clinicId: appointment.clinic.id,
         to: appointment.patient.phoneNumber,
-        message: `*Schedule Impact* - ${appointment.clinic.name}\n\nNoted: ${delayMinutes} minutes delay. This may affect the doctor's schedule. Please contact the clinic to reschedule or confirm a revised slot.`,
+        text: `*Schedule Impact* - ${appointment.clinic.name}\n\nNoted: ${delayMinutes} minutes delay. This may affect the doctor's schedule. Please contact the clinic to reschedule or confirm a revised slot.`,
       });
       return;
     }
 
-    await this.whatsappClient.sendMessage({
+    await this.sendClinicPatientWhatsApp({
+      clinicId: appointment.clinic.id,
       to: appointment.patient.phoneNumber,
-      message: `*Delay Noted* - ${appointment.clinic.name}\n\nThanks for the update. We have noted your ${delayMinutes} minute delay and informed the clinic team.`,
+      text: `*Delay Noted* - ${appointment.clinic.name}\n\nThanks for the update. We have noted your ${delayMinutes} minute delay and informed the clinic team.`,
     });
   }
 

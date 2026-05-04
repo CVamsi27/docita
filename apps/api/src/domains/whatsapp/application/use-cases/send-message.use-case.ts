@@ -1,5 +1,9 @@
-import { Injectable, Inject, Logger } from '@nestjs/common';
+import { Injectable, Inject, Logger, NotFoundException } from '@nestjs/common';
+import { EventEmitter2 } from '@nestjs/event-emitter';
+import { PrismaService } from '@/prisma/prisma.service';
 import { AppConfigService } from '@/shared/modules/config/app-configuration.service';
+import { Feature } from '@/shared/modules/auth/auth/tier.decorator';
+import { assertClinicHasFeatureOrThrow } from '@/shared/modules/auth/utils/clinic-feature-access.util';
 import {
   WHATSAPP_REPOSITORY_TOKEN,
   IWhatsAppRepository,
@@ -24,6 +28,11 @@ export interface SendMessageRequest {
   metadata?: Record<string, string | number | boolean>;
 }
 
+export type SendMessageResult = {
+  messageId: string;
+  providerMessageId: string;
+};
+
 @Injectable()
 export class SendMessageUseCase {
   private readonly logger = new Logger(SendMessageUseCase.name);
@@ -36,11 +45,13 @@ export class SendMessageUseCase {
     private readonly client: IWhatsAppClient,
     private readonly templateResolver: TemplateResolverService,
     private readonly configService: AppConfigService,
+    private readonly prisma: PrismaService,
+    private readonly eventEmitter: EventEmitter2,
   ) {
     this.useProductionMode = this.configService.getMetaConfig().productionMode;
   }
 
-  async execute(request: SendMessageRequest): Promise<{ messageId: string }> {
+  async execute(request: SendMessageRequest): Promise<SendMessageResult> {
     const {
       clinicId,
       recipientPhone,
@@ -50,6 +61,24 @@ export class SendMessageUseCase {
       variables = {},
       metadata,
     } = request;
+
+    const clinic = await this.prisma.clinic.findUnique({
+      where: { id: clinicId },
+      select: { tier: true, intelligenceAddon: true, features: true },
+    });
+
+    if (!clinic) {
+      throw new NotFoundException('Clinic not found');
+    }
+
+    assertClinicHasFeatureOrThrow(
+      {
+        tier: clinic.tier,
+        intelligenceAddon: clinic.intelligenceAddon,
+        features: clinic.features,
+      },
+      Feature.WHATSAPP_MESSAGING,
+    );
 
     let resolved: ResolvedTemplate | null = null;
     if (templateName) {
@@ -111,7 +140,16 @@ export class SendMessageUseCase {
 
     await this.repository.saveMessage(message);
 
-    return { messageId: message.id };
+    this.eventEmitter.emit('whatsapp.message.sent', {
+      clinicId,
+      messageId: message.id,
+      messageType: templateName ? 'template' : 'session',
+    });
+
+    return {
+      messageId: message.id,
+      providerMessageId: externalId ?? '',
+    };
   }
 
   private parseVariablesIntoComponents(

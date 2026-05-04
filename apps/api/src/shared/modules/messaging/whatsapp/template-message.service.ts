@@ -6,8 +6,8 @@ import {
 } from '@nestjs/common';
 import { PrismaService } from '@/prisma/prisma.service';
 import { TemplatesService } from './templates.service';
-import { WhatsappClientService } from './whatsapp-client.service';
 import { SendTemplateDto } from './dto/send-template.dto';
+import { SendMessageUseCase } from '@/domains/whatsapp/application/use-cases/send-message.use-case';
 import { Prisma, WhatsappLogStatus } from '@workspace/db';
 
 function toJsonValue(value: unknown): Prisma.InputJsonValue {
@@ -21,7 +21,7 @@ export class TemplateMessageService {
   constructor(
     private readonly prisma: PrismaService,
     private readonly templatesService: TemplatesService,
-    private readonly whatsappClient: WhatsappClientService,
+    private readonly sendMessage: SendMessageUseCase,
   ) {}
 
   async handleSendTemplate(
@@ -53,11 +53,15 @@ export class TemplateMessageService {
       throw new BadRequestException(`Template not found: ${dto.templateId}`);
     }
 
-    const message = this.templatesService.getMessageForMode(resolved);
+    const messagePreview = this.templatesService.getMessageForMode(resolved);
 
-    const result = await this.whatsappClient.sendMessage({
-      to: dto.phoneNumber,
-      message,
+    const sendResult = await this.sendMessage.execute({
+      clinicId,
+      recipientPhone: dto.phoneNumber,
+      templateName: dto.templateId,
+      variables: Object.fromEntries(
+        Object.entries(variables).map(([k, v]) => [k, String(v)]),
+      ),
     });
 
     await this.prisma.whatsappLog.create({
@@ -68,16 +72,16 @@ export class TemplateMessageService {
         invoiceId: dto.invoiceId,
         type: dto.templateId,
         phoneNumber: dto.phoneNumber,
-        message,
+        message: messagePreview,
         status: WhatsappLogStatus.SENT,
-        providerMessageId: result.messageId,
+        providerMessageId: sendResult.providerMessageId,
         requestBody: toJsonValue(dto),
       },
     });
 
     return {
       success: true,
-      messageId: result.messageId,
+      messageId: sendResult.providerMessageId || sendResult.messageId,
       templateId: dto.templateId,
     };
   }
