@@ -36,6 +36,7 @@ export function createAPIClient(config: APIClientConfig): APIClient {
     defaultHeaders = {},
     timeout = 30000,
     retries = 0,
+    validateRequest,
     onRequest,
     onResponse,
     onError,
@@ -71,6 +72,10 @@ export function createAPIClient(config: APIClientConfig): APIClient {
           Authorization: `Bearer ${token}`,
         };
       }
+    }
+
+    if (validateRequest) {
+      await validateRequest(endpoint, options);
     }
 
     if (onRequest) {
