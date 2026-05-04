@@ -1,9 +1,10 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import { UnauthorizedException } from '@nestjs/common';
 import { AppConfigService } from '@/shared/modules/config/app-configuration.service';
-import { JwtStrategy } from './jwt.strategy';
+import { JwtStrategy, extractJwtFromRequest } from './jwt.strategy';
 import { PrismaService } from '@/prisma/prisma.service';
 import { Role } from '@workspace/db';
+import type { Request } from 'express';
 import { beforeEach, describe, it, expect, jest } from '@jest/globals';
 
 describe('JwtStrategy', () => {
@@ -147,6 +148,26 @@ describe('JwtStrategy', () => {
 
       expect(result.clinicId).toBeNull();
       expect(result.role).toBe('INTERNAL');
+    });
+  });
+
+  describe('extractJwtFromRequest', () => {
+    it('prefers Authorization Bearer over access_token cookie', () => {
+      const req = {
+        headers: { authorization: 'Bearer bearer-token' },
+        cookies: { access_token: 'cookie-token' },
+      } as unknown as Request;
+
+      expect(extractJwtFromRequest(req)).toBe('bearer-token');
+    });
+
+    it('falls back to access_token cookie when Bearer is absent', () => {
+      const req = {
+        headers: {},
+        cookies: { access_token: 'cookie-token' },
+      } as unknown as Request;
+
+      expect(extractJwtFromRequest(req)).toBe('cookie-token');
     });
   });
 

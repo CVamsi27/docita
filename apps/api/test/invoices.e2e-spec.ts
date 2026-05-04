@@ -203,7 +203,8 @@ describe('Invoices (e2e)', () => {
           items: [{ description: 'Consultation', quantity: 1, price: 500 }],
           status: 'PENDING',
           total: 500,
-        });
+        })
+        .expect(201);
 
       const invoiceId = createRes.body.id;
 

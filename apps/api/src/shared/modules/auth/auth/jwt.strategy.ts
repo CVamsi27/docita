@@ -15,12 +15,23 @@ interface JwtPayload {
   patientId?: string;
 }
 
-function cookieThenBearerExtractor(req: Request): string | null {
+/**
+ * Prefer Authorization Bearer when present so API clients (and E2E using
+ * Bearer) are not overridden by a stale host-only `access_token` cookie from
+ * an earlier browser or supertest session. Cookie-only sessions still work
+ * when no Bearer token is sent.
+ */
+export function extractJwtFromRequest(req: Request): string | null {
+  const bearer = ExtractJwt.fromAuthHeaderAsBearerToken()(req);
+  if (bearer) {
+    return bearer;
+  }
+
   if (req?.cookies?.access_token) {
     return req.cookies.access_token;
   }
 
-  return ExtractJwt.fromAuthHeaderAsBearerToken()(req);
+  return null;
 }
 
 @Injectable()
@@ -38,7 +49,7 @@ export class JwtStrategy extends PassportStrategy(Strategy) {
       );
     }
     super({
-      jwtFromRequest: cookieThenBearerExtractor,
+      jwtFromRequest: extractJwtFromRequest,
       ignoreExpiration: false,
       secretOrKey: jwtSecret,
     });
