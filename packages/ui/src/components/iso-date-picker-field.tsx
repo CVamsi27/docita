@@ -13,7 +13,8 @@ import {
 } from "@workspace/ui/components/popover";
 import { cn } from "@workspace/ui/lib/utils";
 
-function parseIsoDateToLocalDate(iso: string): Date | undefined {
+/** Parse `yyyy-MM-dd` into a local-calendar `Date` at midnight. */
+export function parseIsoDateToLocalDate(iso: string): Date | undefined {
   const m = /^(\d{4})-(\d{2})-(\d{2})$/.exec(iso.trim());
   if (!m) return undefined;
   const y = Number(m[1]);
@@ -23,6 +24,12 @@ function parseIsoDateToLocalDate(iso: string): Date | undefined {
     return undefined;
   }
   return new Date(y, mo - 1, d);
+}
+
+function startOfLocalDay(d: Date): number {
+  const x = new Date(d);
+  x.setHours(0, 0, 0, 0);
+  return x.getTime();
 }
 
 export interface IsoDatePickerFieldProps {
@@ -39,6 +46,8 @@ export interface IsoDatePickerFieldProps {
   labelClassName?: string;
   triggerClassName?: string;
   required?: boolean;
+  /** Disable calendar days before today (local midnight). */
+  disablePastDates?: boolean;
 }
 
 export function IsoDatePickerField({
@@ -53,6 +62,7 @@ export function IsoDatePickerField({
   labelClassName,
   triggerClassName,
   required,
+  disablePastDates,
 }: IsoDatePickerFieldProps) {
   const [open, setOpen] = useState(false);
   const [month, setMonth] = useState<Date>(() => parseIsoDateToLocalDate(value) ?? new Date());
@@ -102,6 +112,11 @@ export function IsoDatePickerField({
             onMonthChange={setMonth}
             selected={selected}
             initialFocus
+            disabled={
+              disablePastDates
+                ? (day) => startOfLocalDay(day) < startOfLocalDay(new Date())
+                : undefined
+            }
             onSelect={(d) => {
               if (d) {
                 onChange(formatPickerIsoDate(d));

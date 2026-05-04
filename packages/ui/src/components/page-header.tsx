@@ -10,6 +10,8 @@ interface PageHeaderProps {
   tabs?: React.ReactNode;
   eyebrow?: React.ReactNode;
   className?: string;
+  /** Merged into the description paragraph (after default subtitle / max-width classes). */
+  descriptionClassName?: string;
   sticky?: boolean;
   size?: "default" | "compact";
   /** When `center`, title and description are centered; actions sit on the next row (end-aligned from md). */
@@ -24,6 +26,7 @@ export function PageHeader({
   tabs,
   eyebrow,
   className,
+  descriptionClassName,
   sticky = false,
   size = "default",
   titleAlign = "start",
@@ -51,6 +54,7 @@ export function PageHeader({
           className={cn(
             titleCentered ? "mx-auto max-w-2xl" : "max-w-2xl",
             size === "compact" ? "ui-section-subtitle" : "ui-page-subtitle",
+            descriptionClassName,
           )}
         >
           {description}
