@@ -15,6 +15,17 @@ describe('BulkImportService', () => {
         {
           provide: PrismaService,
           useValue: {
+            bulkImportJob: {
+              create: jest
+                .fn<(...args: unknown[]) => Promise<unknown>>()
+                .mockResolvedValue({ id: 'job-mock' }),
+              update: jest
+                .fn<(...args: unknown[]) => Promise<unknown>>()
+                .mockResolvedValue({}),
+              findFirst: jest
+                .fn<(...args: unknown[]) => Promise<unknown>>()
+                .mockResolvedValue(null),
+            },
             patient: {
               create: jest
                 .fn<(...args: unknown[]) => Promise<unknown>>()
@@ -27,8 +38,47 @@ describe('BulkImportService', () => {
               findUnique: jest
                 .fn<(...args: unknown[]) => Promise<unknown>>()
                 .mockResolvedValue({ id: 'user-1' }),
+              create: jest
+                .fn<(...args: unknown[]) => Promise<unknown>>()
+                .mockResolvedValue({ id: 'user-new' }),
             },
-          },
+            appointment: {
+              findFirst: jest
+                .fn<(...args: unknown[]) => Promise<unknown>>()
+                .mockResolvedValue({
+                  id: 'appt-1',
+                  patientId: 'patient-1',
+                  doctorId: 'user-1',
+                  clinicId: 'clinic-1',
+                  prescription: null,
+                }),
+            },
+            prescription: {
+              create: jest
+                .fn<(...args: unknown[]) => Promise<unknown>>()
+                .mockResolvedValue({ id: 'rx-1' }),
+            },
+            medication: {
+              create: jest
+                .fn<(...args: unknown[]) => Promise<unknown>>()
+                .mockResolvedValue({ id: 'med-1' }),
+            },
+            labTest: {
+              create: jest
+                .fn<(...args: unknown[]) => Promise<unknown>>()
+                .mockResolvedValue({ id: 'lab-1' }),
+            },
+            inventoryItem: {
+              create: jest
+                .fn<(...args: unknown[]) => Promise<unknown>>()
+                .mockResolvedValue({ id: 'inv-1' }),
+            },
+            invoice: {
+              create: jest
+                .fn<(...args: unknown[]) => Promise<unknown>>()
+                .mockResolvedValue({ id: 'inv-doc-1' }),
+            },
+          } as unknown as PrismaService,
         },
         {
           provide: AppConfigService,
@@ -153,7 +203,7 @@ describe('BulkImportService', () => {
 
     it('should support DOCTOR entity type', async () => {
       const csvContent = Buffer.from(
-        `firstName,lastName,specialization\nJohn,Doe,Cardiology`,
+        `name,email,specialization\nJohn Doe,doc@example.com,CARDIOLOGY`,
       );
 
       const result = await service.startImport(
@@ -168,7 +218,7 @@ describe('BulkImportService', () => {
     });
 
     it('should support LAB_TEST entity type', async () => {
-      const csvContent = Buffer.from(`name,testCode\nBlood Test,BT01`);
+      const csvContent = Buffer.from(`testName,testCode\nBlood Test,BT01`);
 
       const result = await service.startImport(
         'clinic-1',
@@ -199,7 +249,7 @@ describe('BulkImportService', () => {
       await expect(service.processImport(jobData)).resolves.not.toThrow();
     });
 
-    it('should handle prescription import skip gracefully', async () => {
+    it('should import prescription when appointment exists', async () => {
       const jobData = {
         jobId: 'job-1',
         clinicId: 'clinic-1',
@@ -207,7 +257,7 @@ describe('BulkImportService', () => {
         entityType: 'PRESCRIPTION' as const,
         fileName: 'prescriptions.csv',
         fileBuffer: Buffer.from(
-          `patientId,doctorId,instructions\npat-1,doc-1,Take twice daily`,
+          `appointmentId,instructions\nappt-1,Take twice daily`,
         ),
         totalRows: 1,
       };

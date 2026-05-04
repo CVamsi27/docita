@@ -3,9 +3,12 @@ import { EventEmitter2 } from '@nestjs/event-emitter';
 import { PrismaService } from '@/prisma/prisma.service';
 import { unlink, readFile } from 'fs/promises';
 import { extname } from 'path';
-import { Gender } from '@workspace/db';
+import { AppointmentStatus, Gender, InvoiceStatus } from '@workspace/db';
+import { Feature } from '@workspace/types';
+import { clinicHasFeatureForAccess } from '@/shared/modules/auth/utils/clinic-feature-access.util';
+import { AIService } from '@/shared/modules/ai/ai.service';
 import { OCRService } from './ocr.service';
-import { ParsedMedicalFields } from '@workspace/types';
+import type { OcrImportCommitRequest } from '@workspace/types';
 import ExcelJS from 'exceljs';
 import Papa from 'papaparse';
 
@@ -15,7 +18,9 @@ interface OcrExtractionResult {
   text: string;
   documentType: string;
   confidence: number;
-  fields: ParsedMedicalFields & { fieldConfidence: Record<string, number> };
+  fields: Record<string, unknown> & {
+    fieldConfidence: Record<string, number>;
+  };
   suggestedCorrections: Record<string, unknown>;
   message: string;
 }
@@ -65,6 +70,13 @@ interface MappedPatientData {
   Allergies?: string;
   medicalHistory?: string;
   'Medical History'?: string;
+  invoiceTotal?: string | number;
+  'Invoice Total'?: string | number;
+  invoiceGrandTotal?: string | number;
+  'Invoice Grand Total'?: string | number;
+  invoiceLineItems?: string;
+  'Invoice Line Items'?: string;
+  invoiceItems?: string;
 }
 
 @Injectable()
@@ -76,6 +88,7 @@ export class ImportsService {
     private prisma: PrismaService,
     private ocrService: OCRService,
     private eventEmitter: EventEmitter2,
+    private readonly aiService: AIService,
   ) {}
 
   private getCell(
@@ -542,7 +555,7 @@ export class ImportsService {
       throw new BadRequestException('Clinic ID is required for patient import');
     }
 
-    await this.prisma.patient.create({
+    const patient = await this.prisma.patient.create({
       data: {
         firstName,
         lastName,
@@ -565,6 +578,52 @@ export class ImportsService {
         clinicId,
       },
     });
+
+    const invoiceTotalRaw =
+      row['invoiceTotal'] ??
+      row['Invoice Total'] ??
+      row['invoiceGrandTotal'] ??
+      row['Invoice Grand Total'];
+    if (invoiceTotalRaw !== undefined && invoiceTotalRaw !== null) {
+      const total = parseFloat(String(invoiceTotalRaw).trim());
+      if (!Number.isNaN(total) && total > 0) {
+        let items: unknown = [
+          {
+            description: 'Imported charges',
+            quantity: 1,
+            unitPrice: total,
+            total,
+          },
+        ];
+        const rawItems =
+          row['invoiceLineItems'] ??
+          row['Invoice Line Items'] ??
+          row['invoiceItems'];
+        if (rawItems) {
+          try {
+            const parsed = JSON.parse(String(rawItems)) as unknown;
+            if (Array.isArray(parsed) && parsed.length > 0) {
+              items = parsed;
+            }
+          } catch {
+            /* keep default */
+          }
+        }
+        await this.prisma.invoice.create({
+          data: {
+            patientId: patient.id,
+            clinicId,
+            total,
+            subtotal: total,
+            grandTotal: total,
+            taxTotal: 0,
+            discountTotal: 0,
+            status: InvoiceStatus.PENDING,
+            items: items as object,
+          },
+        });
+      }
+    }
   }
 
   private normalizePhoneNumber(phone: string | number | undefined): string {
@@ -637,6 +696,204 @@ export class ImportsService {
     }
 
     return null;
+  }
+
+  async processMedicalDocumentOcr(
+    filePath: string,
+    clinicId?: string,
+  ): Promise<OcrExtractionResult> {
+    let useAi = false;
+    if (clinicId) {
+      const clinic = await this.prisma.clinic.findUnique({
+        where: { id: clinicId },
+        select: {
+          tier: true,
+          intelligenceAddon: true,
+          features: true,
+        },
+      });
+      if (clinic) {
+        useAi = clinicHasFeatureForAccess(clinic, Feature.OCR_ADVANCED);
+      }
+    }
+
+    if (useAi) {
+      try {
+        const ai = await this.aiService.extractFromMedicalDocument(
+          filePath,
+          true,
+        );
+        await unlink(filePath).catch(() => {});
+        if (clinicId) {
+          this.eventEmitter.emit('ocr.page.processed', {
+            clinicId,
+            pageCount: 1,
+          });
+        }
+        const fieldConfidence = ai.fields.fieldConfidence ?? {};
+        return {
+          success: true,
+          method: 'openai-vision',
+          text: ai.text,
+          documentType: ai.documentType,
+          confidence: ai.confidence,
+          fields: {
+            ...ai.fields,
+            fieldConfidence,
+          },
+          suggestedCorrections: ai.suggestedCorrections ?? {},
+          message:
+            'Document processed with AI-assisted extraction. Verify all fields before saving patient data.',
+        };
+      } catch (err) {
+        const msg = err instanceof Error ? err.message : String(err);
+        this.logger.warn(
+          `[IMPORT] AI OCR unavailable, falling back to basic pipeline: ${msg}`,
+        );
+      }
+    }
+
+    return this.extractFromMedicalDocumentBasic(filePath, clinicId);
+  }
+
+  async commitOcrImport(
+    dto: OcrImportCommitRequest,
+  ): Promise<{ patientId: string; appointmentId: string }> {
+    const clinic = await this.prisma.clinic.findUnique({
+      where: { id: dto.clinicId },
+      select: { id: true },
+    });
+    if (!clinic) {
+      throw new BadRequestException('Clinic not found');
+    }
+
+    const doctor = await this.prisma.user.findFirst({
+      where: { id: dto.doctorId, clinicId: dto.clinicId },
+      select: { id: true },
+    });
+    if (!doctor) {
+      throw new BadRequestException('Doctor not found for this clinic');
+    }
+
+    const dob = new Date(dto.dateOfBirth);
+    if (Number.isNaN(dob.getTime())) {
+      throw new BadRequestException('Invalid dateOfBirth');
+    }
+
+    return this.prisma.$transaction(async (tx) => {
+      const patient = await tx.patient.create({
+        data: {
+          firstName: dto.firstName.trim(),
+          lastName: dto.lastName.trim(),
+          phoneNumber: dto.phoneNumber.trim(),
+          gender: dto.gender as Gender,
+          dateOfBirth: dob,
+          address: dto.address?.trim() || undefined,
+          clinicId: dto.clinicId,
+          allergies:
+            dto.allergies && dto.allergies.length > 0
+              ? dto.allergies.join('; ')
+              : undefined,
+          medicalHistory: dto.diagnosis ? [dto.diagnosis] : [],
+          customData: {
+            ocrImport: {
+              acknowledgedReview: dto.acknowledgeReview ?? false,
+            },
+          },
+        },
+      });
+
+      const startTime = new Date();
+      const endTime = new Date(Date.now() + 30 * 60 * 1000);
+
+      const appointment = await tx.appointment.create({
+        data: {
+          patientId: patient.id,
+          doctorId: dto.doctorId,
+          clinicId: dto.clinicId,
+          startTime,
+          endTime,
+          type: 'consultation',
+          status: AppointmentStatus.CONFIRMED,
+          consultationNotes: dto.consultationNotes?.trim() ?? '',
+          notes: '',
+          observations: dto.diagnosis?.trim() ?? '',
+          provisionalDiagnosis: '',
+          differentialDiagnosis: '',
+          clinicalImpression: '',
+          finalDiagnosis: '',
+          treatmentPlan: '',
+          followUpPlan: '',
+        },
+      });
+
+      if (dto.vitals) {
+        const v = dto.vitals;
+        if (
+          v.systolicBP !== undefined ||
+          v.diastolicBP !== undefined ||
+          v.temperature !== undefined ||
+          v.pulse !== undefined
+        ) {
+          await tx.vitalSign.create({
+            data: {
+              appointmentId: appointment.id,
+              systolicBP: v.systolicBP,
+              diastolicBP: v.diastolicBP,
+              temperature: v.temperature,
+              pulse: v.pulse,
+            },
+          });
+        }
+      }
+
+      if (dto.medications && dto.medications.length > 0) {
+        const prescription = await tx.prescription.create({
+          data: {
+            appointmentId: appointment.id,
+            patientId: patient.id,
+            doctorId: dto.doctorId,
+            instructions: dto.consultationNotes?.trim() ?? null,
+          },
+        });
+
+        for (const med of dto.medications) {
+          await tx.medication.create({
+            data: {
+              prescriptionId: prescription.id,
+              name: med.name.trim(),
+              dosage: med.dosage.trim() || '—',
+              frequency: med.frequency.trim() || '—',
+              duration: med.duration?.trim() || '—',
+              route: med.route?.trim() || 'PO',
+            },
+          });
+        }
+      }
+
+      if (dto.invoiceDraft) {
+        const inv = dto.invoiceDraft;
+        await tx.invoice.create({
+          data: {
+            patientId: patient.id,
+            appointmentId: appointment.id,
+            clinicId: dto.clinicId,
+            total: inv.grandTotal,
+            subtotal: inv.subtotal ?? inv.grandTotal,
+            grandTotal: inv.grandTotal,
+            taxTotal: inv.taxTotal ?? 0,
+            discountTotal: 0,
+            status: InvoiceStatus.PENDING,
+            items: inv.items as object,
+          },
+        });
+      }
+
+      return {
+        patientId: patient.id,
+        appointmentId: appointment.id,
+      };
+    });
   }
 
   async extractFromMedicalDocumentBasic(

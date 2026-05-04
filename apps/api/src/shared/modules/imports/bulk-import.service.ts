@@ -1,17 +1,18 @@
-import { Injectable, Logger, BadRequestException } from '@nestjs/common';
+import {
+  Injectable,
+  Logger,
+  BadRequestException,
+  NotFoundException,
+} from '@nestjs/common';
 import { PrismaService } from '@/prisma/prisma.service';
 import * as Papa from 'papaparse';
 import { AppConfigService } from '@/shared/modules/config/app-configuration.service';
-import { Gender, Specialization } from '@workspace/db';
+import { Gender, InvoiceStatus, Specialization } from '@workspace/db';
+import type { BulkImportEntityType } from '@workspace/types';
 import * as bcrypt from 'bcrypt';
 import { nanoid } from 'nanoid';
 
-export type BulkImportEntityType =
-  | 'PATIENT'
-  | 'PRESCRIPTION'
-  | 'DOCTOR'
-  | 'LAB_TEST'
-  | 'INVENTORY';
+export type { BulkImportEntityType };
 
 interface BulkImportJobData {
   jobId: string;
@@ -43,6 +44,52 @@ export class BulkImportService {
     private prisma: PrismaService,
     private configService: AppConfigService,
   ) {}
+
+  async getJobStatus(
+    jobId: string,
+    clinicId: string,
+  ): Promise<{
+    jobId: string;
+    status: string;
+    entityType: string;
+    fileName: string;
+    totalRows: number;
+    processedRows: number;
+    successRows: number;
+    failedRows: number;
+    skippedRows: number;
+    errors: Array<{ rowNumber: number; error: string }>;
+    errorSummary: string | null;
+    startedAt: Date | null;
+    completedAt: Date | null;
+    durationMs: number | null;
+  }> {
+    const job = await this.prisma.bulkImportJob.findFirst({
+      where: { id: jobId, clinicId },
+    });
+    if (!job) {
+      throw new NotFoundException('Import job not found');
+    }
+    const errors = Array.isArray(job.errors)
+      ? (job.errors as Array<{ rowNumber: number; error: string }>)
+      : [];
+    return {
+      jobId: job.id,
+      status: job.status,
+      entityType: job.entityType,
+      fileName: job.fileName,
+      totalRows: job.totalRows,
+      processedRows: job.processedRows,
+      successRows: job.successRows,
+      failedRows: job.failedRows,
+      skippedRows: job.skippedRows,
+      errors,
+      errorSummary: job.errorSummary,
+      startedAt: job.startedAt,
+      completedAt: job.completedAt,
+      durationMs: job.duration,
+    };
+  }
 
   async startImport(
     clinicId: string,
@@ -93,8 +140,26 @@ export class BulkImportService {
         );
       }
 
-      const randomSuffix = Math.random().toString(36).substr(2, 9);
-      const jobId = `import_${Date.now()}_${randomSuffix}`;
+      const jobId = nanoid();
+
+      await this.prisma.bulkImportJob.create({
+        data: {
+          id: jobId,
+          clinicId,
+          userId,
+          entityType,
+          fileName,
+          fileSize: fileBuffer.length,
+          originalKey: `inline:${jobId}`,
+          status: 'QUEUED',
+          totalRows: rows.length,
+          processedRows: 0,
+          successRows: 0,
+          failedRows: 0,
+          skippedRows: 0,
+          errors: [],
+        },
+      });
 
       this.logger.log(
         `Starting bulk import: ${jobId} | Entity: ${entityType} | Rows: ${rows.length} | User: ${userId}`,
@@ -134,33 +199,42 @@ export class BulkImportService {
           `Error processing scheduled import job ${jobData.jobId}: ${error instanceof Error ? error.message : 'Unknown error'}`,
           error instanceof Error ? error.stack : undefined,
         );
+        void this.prisma.bulkImportJob
+          .update({
+            where: { id: jobData.jobId },
+            data: {
+              status: 'FAILED',
+              errorSummary:
+                error instanceof Error ? error.message : 'Unknown error',
+              completedAt: new Date(),
+            },
+          })
+          .catch(() => {});
       });
     });
   }
 
   async processImport(jobData: BulkImportJobData): Promise<void> {
+    const { jobId, clinicId, entityType, fileBuffer, totalRows } = jobData;
+    const startedAtMs = Date.now();
+
+    await this.prisma.bulkImportJob.update({
+      where: { id: jobId },
+      data: {
+        status: 'PROCESSING',
+        startedAt: new Date(),
+      },
+    });
+
+    const errors: ImportError[] = [];
+    let successCount = 0;
+
     try {
-      const {
-        jobId,
-        clinicId,
-        userId: _userId,
-        entityType,
-        fileBuffer,
-        totalRows,
-      } = jobData;
-
-      this.logger.log(
-        `Processing import job ${jobId} for ${entityType} (${totalRows} rows)`,
-      );
-
       const csvData = fileBuffer.toString('utf-8');
       const { data: rows } = Papa.parse(csvData, {
         header: true,
         skipEmptyLines: true,
       });
-
-      const errors: ImportError[] = [];
-      let successCount = 0;
 
       const batchSize = 1000;
       for (let i = 0; i < rows.length; i += batchSize) {
@@ -175,33 +249,66 @@ export class BulkImportService {
         successCount += batchResults.successCount;
         errors.push(...batchResults.errors);
 
-        const progress = Math.round(((i + batch.length) / totalRows) * 100);
-        this.logger.debug(
-          `Import progress: ${progress}% (${i + batch.length}/${totalRows})`,
-        );
+        await this.prisma.bulkImportJob.update({
+          where: { id: jobId },
+          data: {
+            processedRows: Math.min(i + batch.length, totalRows),
+            successRows: successCount,
+            failedRows: errors.length,
+            errors: errors.map((e) => ({
+              rowNumber: e.rowNumber,
+              error: e.error,
+            })),
+          },
+        });
       }
 
-      const failureCount = totalRows - successCount;
+      const failureCount = errors.length;
+      const status =
+        failureCount === totalRows
+          ? 'FAILED'
+          : failureCount > 0
+            ? 'PARTIALLY_COMPLETED'
+            : 'COMPLETED';
+
+      await this.prisma.bulkImportJob.update({
+        where: { id: jobId },
+        data: {
+          status,
+          processedRows: totalRows,
+          successRows: successCount,
+          failedRows: failureCount,
+          errors: errors.map((e) => ({
+            rowNumber: e.rowNumber,
+            error: e.error,
+          })),
+          errorSummary:
+            failureCount > 0
+              ? `${failureCount} row(s) failed during import`
+              : null,
+          completedAt: new Date(),
+          duration: Date.now() - startedAtMs,
+        },
+      });
+
       this.logger.log(
         `Import job ${jobId} completed: ${successCount} success, ${failureCount} failed`,
       );
-
-      const result = {
-        jobId,
-        entityType,
-        totalRows,
-        successRows: successCount,
-        failedRows: failureCount,
-        errors,
-        completedAt: new Date(),
-      };
-
-      this.logger.debug(`Import result: ${JSON.stringify(result)}`);
     } catch (error) {
-      this.logger.error(
-        `Error processing import job: ${error instanceof Error ? error.message : 'Unknown error'}`,
-        error instanceof Error ? error.stack : undefined,
-      );
+      await this.prisma.bulkImportJob.update({
+        where: { id: jobId },
+        data: {
+          status: 'FAILED',
+          errorSummary:
+            error instanceof Error ? error.message : 'Unknown error',
+          completedAt: new Date(),
+          duration: Date.now() - startedAtMs,
+          errors: errors.map((e) => ({
+            rowNumber: e.rowNumber,
+            error: e.error,
+          })),
+        },
+      });
       throw error;
     }
   }
@@ -236,10 +343,10 @@ export class BulkImportService {
             await this.importDoctor(row, clinicId);
             break;
           case 'LAB_TEST':
-            this.importLabTest(row, clinicId);
+            await this.importLabTest(row, clinicId);
             break;
           case 'INVENTORY':
-            this.importInventory(row, clinicId);
+            await this.importInventory(row, clinicId);
             break;
         }
 
@@ -300,35 +407,35 @@ export class BulkImportService {
       BulkImportEntityType,
       (row: BulkImportRow) => { valid: boolean; error?: string }
     > = {
-      PATIENT: (row) => {
-        if (!row.firstName || !row.lastName) {
+      PATIENT: (r) => {
+        if (!r.firstName || !r.lastName) {
           return { valid: false, error: 'Missing firstName or lastName' };
         }
-        if (!row.phoneNumber) {
+        if (!r.phoneNumber) {
           return { valid: false, error: 'Missing phoneNumber' };
         }
         return { valid: true };
       },
-      PRESCRIPTION: (row) => {
-        if (!row.patientId || !row.doctorId) {
-          return { valid: false, error: 'Missing patientId or doctorId' };
+      PRESCRIPTION: (r) => {
+        if (!r.appointmentId) {
+          return { valid: false, error: 'Missing appointmentId' };
         }
         return { valid: true };
       },
-      DOCTOR: (row) => {
-        if (!row.name || !row.email) {
+      DOCTOR: (r) => {
+        if (!r.name || !r.email) {
           return { valid: false, error: 'Missing name or email' };
         }
         return { valid: true };
       },
-      LAB_TEST: (row) => {
-        if (!row.testName || !row.testCode) {
-          return { valid: false, error: 'Missing testName or testCode' };
+      LAB_TEST: (r) => {
+        if (!r.testName) {
+          return { valid: false, error: 'Missing testName' };
         }
         return { valid: true };
       },
-      INVENTORY: (row) => {
-        if (!row.itemName) {
+      INVENTORY: (r) => {
+        if (!r.itemName) {
           return { valid: false, error: 'Missing itemName' };
         }
         return { valid: true };
@@ -361,7 +468,7 @@ export class BulkImportService {
       }
     }
 
-    await this.prisma.patient.create({
+    const patient = await this.prisma.patient.create({
       data: {
         firstName,
         lastName,
@@ -374,32 +481,74 @@ export class BulkImportService {
         clinicId,
       },
     });
+
+    const invoiceTotalRaw = row.invoiceTotal ?? row.invoiceGrandTotal;
+    if (invoiceTotalRaw !== undefined && invoiceTotalRaw !== null) {
+      const total = parseFloat(String(invoiceTotalRaw).trim());
+      if (!Number.isNaN(total) && total > 0) {
+        let items: unknown = [
+          {
+            description: 'Imported charges',
+            quantity: 1,
+            unitPrice: total,
+            amount: total,
+          },
+        ];
+        const rawItems = row.invoiceLineItems ?? row.invoiceItems;
+        if (rawItems) {
+          try {
+            const parsed = JSON.parse(String(rawItems)) as unknown;
+            if (Array.isArray(parsed) && parsed.length > 0) {
+              items = parsed;
+            }
+          } catch {
+            /* keep default single line */
+          }
+        }
+        await this.prisma.invoice.create({
+          data: {
+            patientId: patient.id,
+            clinicId,
+            total,
+            subtotal: total,
+            grandTotal: total,
+            taxTotal: 0,
+            discountTotal: 0,
+            status: InvoiceStatus.PENDING,
+            items: items as object,
+          },
+        });
+      }
+    }
   }
 
   private async importPrescription(
     row: BulkImportRow,
-    _clinicId: string,
+    clinicId: string,
   ): Promise<void> {
-    const patientId = this.getString(row, 'patientId');
-    const doctorId = this.getString(row, 'doctorId');
+    const appointmentId = this.getString(row, 'appointmentId');
 
-    const patient = await this.prisma.patient.findUnique({
-      where: { id: patientId },
+    const apt = await this.prisma.appointment.findFirst({
+      where: { id: appointmentId, clinicId },
+      include: { prescription: true },
     });
-    if (!patient) {
-      throw new Error('Patient not found');
+    if (!apt) {
+      throw new Error('Appointment not found for this clinic');
+    }
+    if (apt.prescription) {
+      throw new Error('Appointment already has a prescription');
     }
 
-    const doctor = await this.prisma.user.findUnique({
-      where: { id: doctorId },
-    });
-    if (!doctor) {
-      throw new Error('Doctor not found');
-    }
+    const instructions = this.getOptionalString(row, 'instructions');
 
-    this.logger.warn(
-      'Skipping prescription import: bulk import requires existing appointments',
-    );
+    await this.prisma.prescription.create({
+      data: {
+        appointmentId: apt.id,
+        patientId: apt.patientId,
+        doctorId: apt.doctorId,
+        instructions: instructions ?? null,
+      },
+    });
   }
 
   private async importDoctor(
@@ -433,24 +582,74 @@ export class BulkImportService {
     });
   }
 
-  private importLabTest(row: BulkImportRow, _clinicId: string): void {
-    this.logger.debug(`Importing lab test: ${row.testName}`);
+  private async importLabTest(
+    row: BulkImportRow,
+    clinicId: string,
+  ): Promise<void> {
+    const name = this.getString(row, 'testName');
+    const code =
+      this.getOptionalString(row, 'testCode')?.trim() ||
+      name.replace(/\s+/g, '-').toUpperCase();
+    const category = this.getOptionalString(row, 'category') ?? 'General';
+    const costRaw = row.cost;
+    const price =
+      typeof costRaw === 'number'
+        ? costRaw
+        : parseFloat(String(costRaw ?? '').trim());
+    await this.prisma.labTest.create({
+      data: {
+        clinicId,
+        name,
+        code,
+        category,
+        description: this.getOptionalString(row, 'description'),
+        price: Number.isFinite(price) ? price : undefined,
+      },
+    });
   }
 
-  private importInventory(row: BulkImportRow, _clinicId: string): void {
-    this.logger.debug(`Importing inventory item: ${row.itemName}`);
+  private async importInventory(
+    row: BulkImportRow,
+    clinicId: string,
+  ): Promise<void> {
+    const name = this.getString(row, 'itemName');
+    const category = this.getOptionalString(row, 'category') ?? 'General';
+    const qtyRaw = row.quantity;
+    const quantity =
+      typeof qtyRaw === 'number'
+        ? qtyRaw
+        : parseInt(String(qtyRaw ?? '0').trim(), 10) || 0;
+    const reorderRaw = row.reorderLevel;
+    const minQuantity =
+      typeof reorderRaw === 'number'
+        ? reorderRaw
+        : parseInt(String(reorderRaw ?? '10').trim(), 10) || 10;
+    const costRaw = row.cost;
+    const purchasePrice =
+      typeof costRaw === 'number'
+        ? costRaw
+        : parseFloat(String(costRaw ?? '').trim());
+
+    await this.prisma.inventoryItem.create({
+      data: {
+        clinicId,
+        name,
+        category,
+        quantity,
+        minQuantity,
+        purchasePrice: Number.isFinite(purchasePrice)
+          ? purchasePrice
+          : undefined,
+      },
+    });
   }
 
   private isValidEntityType(
     entityType: string,
   ): entityType is BulkImportEntityType {
-    return [
-      'PATIENT',
-      'PRESCRIPTION',
-      'DOCTOR',
-      'LAB_TEST',
-      'INVENTORY',
-    ].includes(entityType);
+    return (
+      ['PATIENT', 'PRESCRIPTION', 'DOCTOR', 'LAB_TEST', 'INVENTORY'] as const
+    ).includes(entityType as BulkImportEntityType);
   }
 
   getImportTemplate(entityType: BulkImportEntityType): Record<string, string> {
@@ -464,10 +663,11 @@ export class BulkImportService {
         bloodGroup: '',
         gender: '',
         address: '',
+        invoiceTotal: '',
+        invoiceLineItems: '',
       },
       PRESCRIPTION: {
-        patientId: '',
-        doctorId: '',
+        appointmentId: '',
         instructions: '',
       },
       DOCTOR: {
@@ -480,6 +680,7 @@ export class BulkImportService {
       LAB_TEST: {
         testName: '',
         testCode: '',
+        category: '',
         description: '',
         cost: '',
         turnaroundTime: '',

@@ -9,6 +9,7 @@ import {
   UseGuards,
   Request,
   Param,
+  UsePipes,
 } from '@nestjs/common';
 import { FileInterceptor } from '@nestjs/platform-express';
 import { ImportsService, PATIENT_FIELD_MAPPINGS } from './imports.service';
@@ -28,14 +29,23 @@ import {
   ImportResultResponseDto,
   OcrResultResponseDto,
   ColumnMappingRequestDto,
+  OcrImportCommitResponseDto,
 } from './dto/imports.dto';
+import { ZodValidationPipe } from '@/common/pipes/zod-validation.pipe';
+import type {
+  AuthenticatedRequest,
+  OcrImportCommitRequest,
+} from '@workspace/types';
+import { ocrImportCommitRequestSchema } from '@workspace/types';
 import { ZodSerializerDto } from 'nestjs-zod';
 import { createTempDiskStorage } from '@/common/utils/upload.utils';
 import { unlink } from 'fs/promises';
 
 interface AuthRequest {
   user: {
+    id: string;
     clinicId: string;
+    role: string;
   };
 }
 
@@ -195,12 +205,34 @@ export class ImportsController {
     }
 
     try {
-      return await this.importsService.extractFromMedicalDocumentBasic(
+      return await this.importsService.processMedicalDocumentOcr(
         file.path,
         _req.user?.clinicId,
       );
     } finally {
       await unlink(file.path).catch(() => {});
     }
+  }
+
+  @Post('ocr/commit')
+  @RateLimit({ limit: 20, window: 60000 })
+  @RequireFeature(Feature.OCR_BASIC)
+  @UsePipes(new ZodValidationPipe(ocrImportCommitRequestSchema))
+  @ZodSerializerDto(OcrImportCommitResponseDto)
+  async commitOcrImport(
+    @Body() body: OcrImportCommitRequest,
+    @Request() req: AuthenticatedRequest,
+  ) {
+    if (!req.user.clinicId) {
+      throw new BadRequestException('Clinic ID is required');
+    }
+    if (body.clinicId !== req.user.clinicId) {
+      throw new BadRequestException('Clinic mismatch');
+    }
+    const isInternal = req.user.role === Role.INTERNAL;
+    if (!isInternal && body.doctorId !== req.user.id) {
+      throw new BadRequestException('doctorId must match the signed-in user');
+    }
+    return this.importsService.commitOcrImport(body);
   }
 }
