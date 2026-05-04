@@ -1,5 +1,7 @@
 import { Injectable, Inject } from '@nestjs/common';
 import { Prisma } from '@workspace/db';
+import { fromLocalISOString } from '@workspace/utils';
+import { PrismaService } from '@/prisma/prisma.service';
 import { TimeUtils } from '@/common/utils/time.utils';
 import {
   IDoctorScheduleRepository,
@@ -9,6 +11,7 @@ import {
   IAppointmentRepository,
   APPOINTMENT_REPOSITORY_TOKEN,
 } from '@/domains/appointments/core/repositories/appointment.repository.interface';
+import type { PublicBookingSlotListEmptyReason } from '@workspace/types';
 
 type DayOfWeek =
   | 'SUNDAY'
@@ -28,6 +31,12 @@ interface AvailableSlot {
   isAvailable: boolean;
 }
 
+interface AvailableSlotsWithMeta {
+  slots: AvailableSlot[];
+  /** When `slots` is empty, why the list is empty (for patient-facing copy). */
+  slotListEmptyReason?: PublicBookingSlotListEmptyReason;
+}
+
 @Injectable()
 export class SlotGenerationService {
   constructor(
@@ -35,6 +44,7 @@ export class SlotGenerationService {
     private scheduleRepository: IDoctorScheduleRepository,
     @Inject(APPOINTMENT_REPOSITORY_TOKEN)
     private appointmentRepository: IAppointmentRepository,
+    private readonly prisma: PrismaService,
   ) {}
 
   async getAvailableSlots(
@@ -42,8 +52,26 @@ export class SlotGenerationService {
     date: Date | string,
     doctorId?: string,
   ): Promise<AvailableSlot[]> {
-    const targetDate = new Date(date);
-    const dayOfWeek = this.getDayOfWeek(targetDate);
+    const { slots } = await this.getAvailableSlotsWithMeta(
+      clinicId,
+      date,
+      doctorId,
+    );
+    return slots;
+  }
+
+  /**
+   * Same slot list as {@link getAvailableSlots}, plus an optional reason when
+   * the list is empty (public booking UX).
+   */
+  async getAvailableSlotsWithMeta(
+    clinicId: string,
+    date: Date | string,
+    doctorId?: string,
+  ): Promise<AvailableSlotsWithMeta> {
+    const timezone = await this.resolveClinicTimezone(clinicId);
+    const dateStr = this.normalizeCalendarDateInput(date);
+    const dayOfWeek = this.getDayOfWeekInClinicZone(dateStr, timezone);
 
     const scheduleWhere: Prisma.DoctorScheduleWhereInput = {
       clinicId,
@@ -54,35 +82,79 @@ export class SlotGenerationService {
       scheduleWhere.doctorId = doctorId;
     }
 
-    const schedules =
+    let schedules =
       await this.scheduleRepository.findSchedulesForSlotGeneration(
         scheduleWhere,
       );
 
+    if (schedules.length === 0 && doctorId) {
+      const [clinicRows, doctorUser] = await Promise.all([
+        this.scheduleRepository.findClinicWeeklyForSlotGeneration({
+          clinicId,
+          dayOfWeek,
+        }),
+        this.prisma.user.findFirst({
+          where: { id: doctorId, clinicId },
+          select: { name: true, specialization: true },
+        }),
+      ]);
+      if (clinicRows.length > 0 && doctorUser) {
+        const synthetic = clinicRows.map((row) => ({
+          id: row.id,
+          doctorId,
+          clinicId: row.clinicId,
+          dayOfWeek: row.dayOfWeek,
+          startTime: row.startTime,
+          endTime: row.endTime,
+          slotDuration: row.slotDuration,
+          isActive: row.isActive,
+          createdAt: row.createdAt,
+          updatedAt: row.updatedAt,
+          doctor: {
+            id: doctorId,
+            name: doctorUser.name,
+            specialization: doctorUser.specialization
+              ? String(doctorUser.specialization)
+              : null,
+          },
+        }));
+        schedules = synthetic as typeof schedules;
+      }
+    }
+
     if (schedules.length === 0) {
-      return [];
+      return { slots: [], slotListEmptyReason: 'NO_WEEKLY_HOURS' };
     }
 
     const doctorIds = [...new Set(schedules.map((s) => s.doctorId))];
 
-    const { startOfDay, endOfDay } = this.getDayBoundaries(targetDate);
+    const rangeStart = fromLocalISOString(`${dateStr}T00:00`, { timezone });
+    const rangeEndExclusive = fromLocalISOString(
+      `${this.addOneCalendarDay(dateStr)}T00:00`,
+      { timezone },
+    );
+
+    if (!rangeStart || !rangeEndExclusive) {
+      return { slots: [], slotListEmptyReason: 'DATE_PARSE_ERROR' };
+    }
 
     const [timeOffs, appointments] = await Promise.all([
       this.scheduleRepository.findTimeOffsForSlots({
         doctorId: { in: doctorIds },
-        startDate: { lte: endOfDay },
-        endDate: { gte: startOfDay },
+        startDate: { lt: rangeEndExclusive },
+        endDate: { gt: rangeStart },
         OR: [{ clinicId }, { clinicId: null }],
       }),
       this.appointmentRepository.findAppointmentsForSlots(
         clinicId,
         doctorIds,
-        startOfDay,
-        endOfDay,
+        rangeStart,
+        rangeEndExclusive,
       ),
     ]);
 
     const slots: AvailableSlot[] = [];
+    let fullDayOffScheduleCount = 0;
 
     for (const schedule of schedules) {
       const doctor = schedule.doctor;
@@ -95,13 +167,15 @@ export class SlotGenerationService {
 
       const hasFullDayOff = doctorTimeOffs.some((t) => t.isFullDay);
       if (hasFullDayOff) {
+        fullDayOffScheduleCount += 1;
         continue;
       }
 
       const scheduleSlots = this.generateSlotsForSchedule(
         schedule,
         doctor,
-        targetDate,
+        dateStr,
+        timezone,
         doctorTimeOffs,
         doctorAppointments,
       );
@@ -109,7 +183,81 @@ export class SlotGenerationService {
       slots.push(...scheduleSlots);
     }
 
-    return this.sortSlots(slots);
+    const sorted = this.sortSlots(slots);
+    if (sorted.length > 0) {
+      return { slots: sorted };
+    }
+
+    if (fullDayOffScheduleCount >= schedules.length) {
+      return { slots: [], slotListEmptyReason: 'FULL_DAY_BLOCKED' };
+    }
+
+    return { slots: [], slotListEmptyReason: 'NO_SLOTS_IN_RANGE' };
+  }
+
+  private async resolveClinicTimezone(clinicId: string): Promise<string> {
+    const row = await this.prisma.clinic.findUnique({
+      where: { id: clinicId },
+      select: { timezone: true },
+    });
+    const tz = row?.timezone?.trim();
+    if (!tz) {
+      return 'Asia/Kolkata';
+    }
+    return tz;
+  }
+
+  private normalizeCalendarDateInput(date: Date | string): string {
+    if (typeof date === 'string') {
+      const t = date.trim();
+      if (/^\d{4}-\d{2}-\d{2}$/.test(t)) {
+        return t;
+      }
+      const parsed = new Date(t);
+      if (Number.isNaN(parsed.getTime())) {
+        const m = t.match(/^(\d{4}-\d{2}-\d{2})/);
+        return m?.[1] ?? '1970-01-01';
+      }
+      return parsed.toISOString().slice(0, 10);
+    }
+    if (!(date instanceof Date) || Number.isNaN(date.getTime())) {
+      return '1970-01-01';
+    }
+    return date.toISOString().slice(0, 10);
+  }
+
+  private addOneCalendarDay(dateStr: string): string {
+    const parts = dateStr.split('-').map((x) => parseInt(x, 10));
+    const y = parts[0] ?? 1970;
+    const m = parts[1] ?? 1;
+    const d = parts[2] ?? 1;
+    const next = new Date(Date.UTC(y, m - 1, d));
+    next.setUTCDate(next.getUTCDate() + 1);
+    return next.toISOString().slice(0, 10);
+  }
+
+  private getDayOfWeekInClinicZone(
+    dateStr: string,
+    timezone: string,
+  ): DayOfWeek {
+    const anchor = fromLocalISOString(`${dateStr}T12:00`, { timezone });
+    if (!anchor) {
+      return 'MONDAY';
+    }
+    const long = new Intl.DateTimeFormat('en-US', {
+      weekday: 'long',
+      timeZone: timezone,
+    }).format(anchor);
+    const map: Record<string, DayOfWeek> = {
+      Sunday: 'SUNDAY',
+      Monday: 'MONDAY',
+      Tuesday: 'TUESDAY',
+      Wednesday: 'WEDNESDAY',
+      Thursday: 'THURSDAY',
+      Friday: 'FRIDAY',
+      Saturday: 'SATURDAY',
+    };
+    return map[long] ?? 'MONDAY';
   }
 
   private generateSlotsForSchedule(
@@ -120,7 +268,8 @@ export class SlotGenerationService {
       slotDuration: number;
     },
     doctor: { name: string; specialization: string | null },
-    targetDate: Date,
+    dateStr: string,
+    timezone: string,
     timeOffs: Array<{
       isFullDay: boolean;
       startTime: string | null;
@@ -145,10 +294,11 @@ export class SlotGenerationService {
       const isBooked = this.isSlotBooked(
         currentMinutes,
         schedule.slotDuration,
-        targetDate,
+        dateStr,
+        timezone,
         appointments,
       );
-      const isPast = this.isSlotInPast(currentMinutes, targetDate);
+      const isPast = this.isSlotInPast(currentMinutes, dateStr, timezone);
 
       slots.push({
         time: slotStart,
@@ -185,62 +335,42 @@ export class SlotGenerationService {
   private isSlotBooked(
     currentMinutes: number,
     slotDuration: number,
-    targetDate: Date,
+    dateStr: string,
+    timezone: string,
     appointments: Array<{ startTime: Date; endTime: Date }>,
   ): boolean {
-    const slotStartDate = new Date(targetDate);
-    slotStartDate.setHours(
-      Math.floor(currentMinutes / 60),
-      currentMinutes % 60,
-      0,
-      0,
-    );
-    const slotEndDate = new Date(targetDate);
-    slotEndDate.setHours(
-      Math.floor((currentMinutes + slotDuration) / 60),
-      (currentMinutes + slotDuration) % 60,
-      0,
-      0,
-    );
+    const slotStartLabel = TimeUtils.minutesToTime(currentMinutes);
+    const slotEndLabel = TimeUtils.minutesToTime(currentMinutes + slotDuration);
+    const slotStart = fromLocalISOString(`${dateStr}T${slotStartLabel}`, {
+      timezone,
+    });
+    const slotEnd = fromLocalISOString(`${dateStr}T${slotEndLabel}`, {
+      timezone,
+    });
+    if (!slotStart || !slotEnd) {
+      return false;
+    }
 
     return appointments.some((a) => {
       const apptStart = new Date(a.startTime);
       const apptEnd = new Date(a.endTime);
-      return slotStartDate < apptEnd && slotEndDate > apptStart;
+      return slotStart < apptEnd && slotEnd > apptStart;
     });
   }
 
-  private isSlotInPast(currentMinutes: number, targetDate: Date): boolean {
-    const now = new Date();
-    const slotDateTime = new Date(targetDate);
-    slotDateTime.setHours(
-      Math.floor(currentMinutes / 60),
-      currentMinutes % 60,
-      0,
-      0,
-    );
-    return slotDateTime < now;
-  }
-
-  private getDayBoundaries(date: Date): { startOfDay: Date; endOfDay: Date } {
-    const startOfDay = new Date(date);
-    startOfDay.setHours(0, 0, 0, 0);
-    const endOfDay = new Date(date);
-    endOfDay.setHours(23, 59, 59, 999);
-    return { startOfDay, endOfDay };
-  }
-
-  private getDayOfWeek(date: Date): DayOfWeek {
-    const days: DayOfWeek[] = [
-      'SUNDAY',
-      'MONDAY',
-      'TUESDAY',
-      'WEDNESDAY',
-      'THURSDAY',
-      'FRIDAY',
-      'SATURDAY',
-    ];
-    return days[date.getDay()];
+  private isSlotInPast(
+    currentMinutes: number,
+    dateStr: string,
+    timezone: string,
+  ): boolean {
+    const slotStartLabel = TimeUtils.minutesToTime(currentMinutes);
+    const slotInstant = fromLocalISOString(`${dateStr}T${slotStartLabel}`, {
+      timezone,
+    });
+    if (!slotInstant) {
+      return false;
+    }
+    return slotInstant.getTime() < Date.now();
   }
 
   private sortSlots(slots: AvailableSlot[]): AvailableSlot[] {

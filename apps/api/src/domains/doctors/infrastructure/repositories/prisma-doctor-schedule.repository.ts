@@ -1,10 +1,13 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, Logger } from '@nestjs/common';
 import { PrismaService } from '@/prisma/prisma.service';
 import { IDoctorScheduleRepository } from '@/domains/doctors/core/repositories/doctor-schedule.repository.interface';
 import { Prisma, DayOfWeek } from '@workspace/db';
+import { isPrismaTableDoesNotExistForModel } from '@/common/utils/prisma-missing-table';
 
 @Injectable()
 export class PrismaDoctorScheduleRepository implements IDoctorScheduleRepository {
+  private readonly logger = new Logger(PrismaDoctorScheduleRepository.name);
+
   constructor(private prisma: PrismaService) {}
 
   private getReadClient() {
@@ -72,6 +75,29 @@ export class PrismaDoctorScheduleRepository implements IDoctorScheduleRepository
         },
       },
     });
+  }
+
+  async findClinicWeeklyForSlotGeneration(params: {
+    clinicId: string;
+    dayOfWeek: string;
+  }) {
+    try {
+      return await this.getReadClient().clinicWeeklySchedule.findMany({
+        where: {
+          clinicId: params.clinicId,
+          dayOfWeek: params.dayOfWeek as DayOfWeek,
+          isActive: true,
+        },
+      });
+    } catch (error) {
+      if (isPrismaTableDoesNotExistForModel(error, 'ClinicWeeklySchedule')) {
+        this.logger.warn(
+          'ClinicWeeklySchedule table is missing; apply @workspace/db migrations to enable clinic default hours. Slot generation falls back to doctor schedules only.',
+        );
+        return [];
+      }
+      throw error;
+    }
   }
 
   async createSchedule(data: Prisma.DoctorScheduleCreateInput) {

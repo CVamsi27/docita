@@ -13,6 +13,7 @@ import {
   Specialization as _Specialization,
   Role,
   Prisma,
+  DayOfWeek,
 } from '@workspace/db';
 import * as bcrypt from 'bcrypt';
 import {
@@ -30,6 +31,7 @@ import {
   type WorkspaceProfile,
 } from '@workspace/types';
 import { randomBytes } from 'crypto';
+import { isPrismaTableDoesNotExistForModel } from '@/common/utils/prisma-missing-table';
 
 interface OnboardingPaymentInput {
   razorpayPaymentId?: string;
@@ -446,5 +448,71 @@ export class OnboardingWorkflowService {
     });
 
     this.logger.log(`Initialized clinic settings for: ${clinicId}`);
+  }
+
+  /**
+   * Default Mon–Fri 09:00–17:00 when onboarding does not send explicit rows.
+   */
+  getDefaultClinicWeeklyHoursInput(): Array<{
+    dayOfWeek: DayOfWeek;
+    startTime: string;
+    endTime: string;
+    slotDuration: number;
+    isActive: boolean;
+  }> {
+    const weekend = new Set<DayOfWeek>([DayOfWeek.SATURDAY, DayOfWeek.SUNDAY]);
+    const allDays: DayOfWeek[] = [
+      DayOfWeek.SUNDAY,
+      DayOfWeek.MONDAY,
+      DayOfWeek.TUESDAY,
+      DayOfWeek.WEDNESDAY,
+      DayOfWeek.THURSDAY,
+      DayOfWeek.FRIDAY,
+      DayOfWeek.SATURDAY,
+    ];
+    return allDays.map((dayOfWeek) => ({
+      dayOfWeek,
+      startTime: '09:00',
+      endTime: '17:00',
+      slotDuration: 30,
+      isActive: !weekend.has(dayOfWeek),
+    }));
+  }
+
+  async replaceClinicWeeklySchedules(
+    tx: Prisma.TransactionClient,
+    clinicId: string,
+    rows: Array<{
+      dayOfWeek: DayOfWeek;
+      startTime: string;
+      endTime: string;
+      slotDuration: number;
+      isActive: boolean;
+    }>,
+  ): Promise<void> {
+    try {
+      await tx.clinicWeeklySchedule.deleteMany({ where: { clinicId } });
+      if (rows.length === 0) {
+        return;
+      }
+      await tx.clinicWeeklySchedule.createMany({
+        data: rows.map((r) => ({
+          clinicId,
+          dayOfWeek: r.dayOfWeek,
+          startTime: r.startTime,
+          endTime: r.endTime,
+          slotDuration: r.slotDuration,
+          isActive: r.isActive,
+        })),
+      });
+    } catch (error) {
+      if (isPrismaTableDoesNotExistForModel(error, 'ClinicWeeklySchedule')) {
+        this.logger.warn(
+          'ClinicWeeklySchedule table is missing; skipping clinic weekly hours persistence. Apply @workspace/db migrations.',
+        );
+        return;
+      }
+      throw error;
+    }
   }
 }

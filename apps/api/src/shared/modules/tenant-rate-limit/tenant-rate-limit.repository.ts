@@ -1,19 +1,11 @@
-import { Injectable } from '@nestjs/common';
-import { Prisma } from '@workspace/db';
+import { Injectable, ServiceUnavailableException } from '@nestjs/common';
 
 import { PrismaService } from '@/prisma/prisma.service';
 import {
   QuotaUpsertInput,
   TenantQuota,
 } from '@/shared/modules/tenant-rate-limit/tenant-rate-limit.types';
-
-function isMissingClinicApiQuotaTable(error: unknown): boolean {
-  return (
-    error instanceof Prisma.PrismaClientKnownRequestError &&
-    error.code === 'P2021' &&
-    String(error.message).includes('ClinicApiQuota')
-  );
-}
+import { isPrismaTableDoesNotExistForModel } from '@/common/utils/prisma-missing-table';
 
 const monthlyResetDate = (): Date => {
   const now = new Date();
@@ -41,7 +33,7 @@ export class TenantRateLimitRepository {
           currentMonthResetsAt: row.currentMonthResetsAt,
         } satisfies TenantQuota;
       } catch (error) {
-        if (isMissingClinicApiQuotaTable(error)) {
+        if (isPrismaTableDoesNotExistForModel(error, 'ClinicApiQuota')) {
           return null;
         }
         throw error;
@@ -55,31 +47,40 @@ export class TenantRateLimitRepository {
   ): Promise<TenantQuota> {
     return this.prisma.runUnrestricted(async () => {
       const resetAt = monthlyResetDate();
-      const row = await this.prisma.clinicApiQuota.upsert({
-        where: { clinicId },
-        update: {
-          rps: input.rps,
-          rpm: input.rpm,
-          monthlyBudget: input.monthlyBudget,
-          notes: input.notes ?? null,
-        },
-        create: {
-          clinicId,
-          rps: input.rps,
-          rpm: input.rpm,
-          monthlyBudget: input.monthlyBudget,
-          currentMonthUsed: 0,
-          currentMonthResetsAt: resetAt,
-          notes: input.notes ?? null,
-        },
-      });
-      return {
-        rps: row.rps,
-        rpm: row.rpm,
-        monthlyBudget: row.monthlyBudget,
-        currentMonthUsed: row.currentMonthUsed,
-        currentMonthResetsAt: row.currentMonthResetsAt,
-      };
+      try {
+        const row = await this.prisma.clinicApiQuota.upsert({
+          where: { clinicId },
+          update: {
+            rps: input.rps,
+            rpm: input.rpm,
+            monthlyBudget: input.monthlyBudget,
+            notes: input.notes ?? null,
+          },
+          create: {
+            clinicId,
+            rps: input.rps,
+            rpm: input.rpm,
+            monthlyBudget: input.monthlyBudget,
+            currentMonthUsed: 0,
+            currentMonthResetsAt: resetAt,
+            notes: input.notes ?? null,
+          },
+        });
+        return {
+          rps: row.rps,
+          rpm: row.rpm,
+          monthlyBudget: row.monthlyBudget,
+          currentMonthUsed: row.currentMonthUsed,
+          currentMonthResetsAt: row.currentMonthResetsAt,
+        };
+      } catch (error) {
+        if (isPrismaTableDoesNotExistForModel(error, 'ClinicApiQuota')) {
+          throw new ServiceUnavailableException(
+            'ClinicApiQuota table is missing. Apply @workspace/db migrations before configuring API quotas.',
+          );
+        }
+        throw error;
+      }
     });
   }
 
@@ -121,7 +122,7 @@ export class TenantRateLimitRepository {
           currentMonthResetsAt: updated.currentMonthResetsAt,
         };
       } catch (error) {
-        if (isMissingClinicApiQuotaTable(error)) {
+        if (isPrismaTableDoesNotExistForModel(error, 'ClinicApiQuota')) {
           return null;
         }
         throw error;
