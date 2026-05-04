@@ -1,3 +1,5 @@
+import { parse } from "date-fns";
+import { fromZonedTime } from "date-fns-tz";
 import { z } from "zod";
 import {
   appointmentStatusSchema,
@@ -43,11 +45,38 @@ export const APPOINTMENT_PRIORITY_COLORS: Record<AppointmentPriority, string> =
     EMERGENCY: "badge-danger",
   };
 
+/**
+ * Must stay aligned with `DEFAULT_TIMEZONE` in `@workspace/utils` date-config
+ * (forms use `toLocalISOString` / `fromLocalISOString` with that zone).
+ */
+const APPOINTMENT_FORM_WALL_TIMEZONE = "Asia/Kolkata";
+
 const normalizeAppointmentDate = (
   value: string | Date,
 ): Date | undefined => {
-  const date = value instanceof Date ? value : new Date(value);
-  return Number.isNaN(date.getTime()) ? undefined : date;
+  if (value === "" || value === undefined) {
+    return undefined;
+  }
+  if (value instanceof Date) {
+    return Number.isNaN(value.getTime()) ? undefined : value;
+  }
+  const s = String(value).trim();
+  if (!s) {
+    return undefined;
+  }
+  if (/^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}$/.test(s)) {
+    try {
+      const wall = parse(s, "yyyy-MM-dd'T'HH:mm", new Date());
+      if (Number.isNaN(wall.getTime())) {
+        return undefined;
+      }
+      return fromZonedTime(wall, APPOINTMENT_FORM_WALL_TIMEZONE);
+    } catch {
+      return undefined;
+    }
+  }
+  const parsed = new Date(s);
+  return Number.isNaN(parsed.getTime()) ? undefined : parsed;
 };
 
 export const appointmentSchema = z.object({

@@ -59,6 +59,8 @@ export const queryKeys = {
     list: (params?: QueryParams) =>
       ["invoices", "list", withParams(params)] as const,
     detail: (id: string) => ["invoices", "detail", id] as const,
+    paymentActivity: (id: string) =>
+      ["invoices", id, "payment-activity"] as const,
   },
   analytics: {
     overview: () => ["analytics", "overview"] as const,

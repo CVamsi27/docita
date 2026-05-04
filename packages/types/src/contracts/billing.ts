@@ -78,3 +78,30 @@ export type PaymentSessionContractResponse = z.infer<
   typeof paymentSessionContractResponseSchema
 >;
 export type MarkInvoicePaidRequest = z.infer<typeof markInvoicePaidRequestSchema>;
+
+/** One row of payment / settlement history for an invoice (links, desk capture, etc.). */
+export const invoicePaymentActivityItemSchema = z.object({
+  id: z.string(),
+  provider: z.string(),
+  status: z.string(),
+  amountCents: z.number().int(),
+  currency: z.string(),
+  createdAt: z.string(),
+  updatedAt: z.string(),
+  shortUrl: z.string().nullable().optional(),
+  paymentLink: z.string().nullable().optional(),
+  channel: z.string().optional(),
+  reference: z.string().optional(),
+  notes: z.string().max(500).optional(),
+});
+
+export const invoicePaymentActivityResponseSchema = z.object({
+  items: z.array(invoicePaymentActivityItemSchema),
+});
+
+export type InvoicePaymentActivityItem = z.infer<
+  typeof invoicePaymentActivityItemSchema
+>;
+export type InvoicePaymentActivityResponse = z.infer<
+  typeof invoicePaymentActivityResponseSchema
+>;

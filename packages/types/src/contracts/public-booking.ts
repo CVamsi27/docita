@@ -7,6 +7,15 @@ export const publicBookingClinicResponseSchema = z
     name: z.string(),
     referralCode: z.string(),
     timezone: z.string(),
+    /** Street address shown to patients on the public booking page. */
+    address: z.string().optional(),
+    /** Primary phone shown for this location. */
+    phone: z.string().optional(),
+    /** Contact email for this location (may differ from login accounts). */
+    email: z.string().optional(),
+    website: z.string().nullable().optional(),
+    /** How the organization is labeled in product copy (clinic vs hospital). */
+    facilityLabel: z.enum(["CLINIC", "HOSPITAL"]).optional(),
   })
   .strict();
 
@@ -35,9 +44,26 @@ export const publicBookingSlotItemSchema = z
   })
   .strict();
 
+/** Present only when `slots` is empty; explains why nothing was returned. */
+export const publicBookingSlotListEmptyReasonSchema = z.enum([
+  /** No active DoctorSchedule row for this weekday (clinic timezone). */
+  "NO_WEEKLY_HOURS",
+  /** Weekly hours exist but the doctor has full-day time off overlapping this date. */
+  "FULL_DAY_BLOCKED",
+  /** Calendar date could not be resolved in the clinic timezone. */
+  "DATE_PARSE_ERROR",
+  /** Schedule exists and is not full-day blocked, but no slot windows were produced (misconfigured hours). */
+  "NO_SLOTS_IN_RANGE",
+]);
+
+export type PublicBookingSlotListEmptyReason = z.infer<
+  typeof publicBookingSlotListEmptyReasonSchema
+>;
+
 export const publicBookingSlotsResponseSchema = z
   .object({
     slots: z.array(publicBookingSlotItemSchema),
+    slotListEmptyReason: publicBookingSlotListEmptyReasonSchema.optional(),
   })
   .strict();
 
