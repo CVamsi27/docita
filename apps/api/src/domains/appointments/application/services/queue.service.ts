@@ -67,6 +67,7 @@ export class QueueService {
       doctor: t.doctor ?? null,
       appointmentId: t.appointmentId ?? null,
       appointmentType: t.appointment?.type ?? null,
+      chiefComplaint: t.appointment?.chiefComplaint ?? null,
       estimatedWaitTime: t.estimatedWaitTime ?? null,
       calledAt: t.calledAt?.toISOString() ?? null,
       completedAt: t.completedAt?.toISOString() ?? null,
