@@ -35,7 +35,16 @@ import {
 } from '@/domains/public-booking/application/services/public-booking-token.service';
 import { TurnstileVerifyService } from '@/domains/public-booking/application/services/turnstile-verify.service';
 import { AppConfigService } from '@/shared/modules/config/app-configuration.service';
+import { runWithTenant } from '@/common/middleware/tenant.middleware';
+
 const SLOT_MATCH_TOLERANCE_MS = 120_000;
+
+type ResolvedPublicBookingClinic = {
+  id: string;
+  name: string;
+  referralCode: string;
+  timezone: string;
+};
 
 @Injectable()
 export class PublicBookingService {
@@ -94,6 +103,18 @@ export class PublicBookingService {
     };
   }
 
+  /**
+   * Public booking routes have no authenticated tenant; Prisma tenant
+   * extension still requires clinic scope for clinic-scoped models.
+   */
+  private async withBookingTenant<T>(
+    referralCode: string,
+    fn: (clinic: ResolvedPublicBookingClinic) => Promise<T>,
+  ): Promise<T> {
+    const clinic = await this.resolveClinicByReferralCode(referralCode);
+    return await runWithTenant({ clinicId: clinic.id }, async () => fn(clinic));
+  }
+
   async getClinicSummary(
     referralCode: string,
   ): Promise<PublicBookingClinicResponse> {
@@ -103,15 +124,16 @@ export class PublicBookingService {
   async listDoctors(
     referralCode: string,
   ): Promise<PublicBookingDoctorsResponse> {
-    const clinic = await this.resolveClinicByReferralCode(referralCode);
-    const doctors = await this.doctorsService.findAll(clinic.id);
-    return {
-      doctors: doctors.map((d) => ({
-        id: d.id,
-        name: d.name,
-        specialization: d.specialization ?? undefined,
-      })),
-    };
+    return this.withBookingTenant(referralCode, async (clinic) => {
+      const doctors = await this.doctorsService.findAll(clinic.id);
+      return {
+        doctors: doctors.map((d) => ({
+          id: d.id,
+          name: d.name,
+          specialization: d.specialization ?? undefined,
+        })),
+      };
+    });
   }
 
   private buildSlotStartDate(slotCalendarDate: string, time: string): Date {
@@ -152,27 +174,28 @@ export class PublicBookingService {
     doctorId: string,
     date: string,
   ): Promise<PublicBookingSlotsResponse> {
-    const clinic = await this.resolveClinicByReferralCode(referralCode);
-    const belongs = await this.doctorBelongsToClinic(doctorId, clinic.id);
-    if (!belongs) {
-      throw new BadRequestException('Doctor is not available at this clinic');
-    }
+    return this.withBookingTenant(referralCode, async (clinic) => {
+      const belongs = await this.doctorBelongsToClinic(doctorId, clinic.id);
+      if (!belongs) {
+        throw new BadRequestException('Doctor is not available at this clinic');
+      }
 
-    const slots = await this.slotGeneration.getAvailableSlots(
-      clinic.id,
-      date,
-      doctorId,
-    );
-    return {
-      slots: slots.map((s) => ({
-        doctorId: s.doctorId,
-        doctorName: s.doctorName,
-        specialization: s.specialization,
-        startTime: this.buildSlotIso(date, s.time),
-        endTime: this.buildSlotIso(date, s.endTime),
-        isAvailable: s.isAvailable,
-      })),
-    };
+      const slots = await this.slotGeneration.getAvailableSlots(
+        clinic.id,
+        date,
+        doctorId,
+      );
+      return {
+        slots: slots.map((s) => ({
+          doctorId: s.doctorId,
+          doctorName: s.doctorName,
+          specialization: s.specialization,
+          startTime: this.buildSlotIso(date, s.time),
+          endTime: this.buildSlotIso(date, s.endTime),
+          isAvailable: s.isAvailable,
+        })),
+      };
+    });
   }
 
   async checkPhoneStatus(
@@ -185,13 +208,14 @@ export class PublicBookingService {
     if (this.appConfig.isTurnstileEnforced() && !ok) {
       throw new UnauthorizedException('Verification failed');
     }
-    const clinic = await this.resolveClinicByReferralCode(referralCode);
     const phone = this.normalizePhone(body.phoneNumber);
-    const existing = await this.patientService.findByClinicIdAndPhoneNumber(
-      clinic.id,
-      phone,
-    );
-    return { requiresOtp: Boolean(existing) };
+    return this.withBookingTenant(referralCode, async (clinic) => {
+      const existing = await this.patientService.findByClinicIdAndPhoneNumber(
+        clinic.id,
+        phone,
+      );
+      return { requiresOtp: Boolean(existing) };
+    });
   }
 
   async requestOtp(
@@ -199,48 +223,49 @@ export class PublicBookingService {
     rawBody: unknown,
     remoteIp?: string,
   ): Promise<{ message: string; expiresInSeconds: number }> {
-    const clinic = await this.resolveClinicByReferralCode(referralCode);
     const body = publicBookingPhoneCheckRequestSchema.parse(rawBody);
     const ok = await this.turnstile.verifyToken(body.turnstileToken, remoteIp);
     if (this.appConfig.isTurnstileEnforced() && !ok) {
       throw new UnauthorizedException('Verification failed');
     }
     const phone = this.normalizePhone(body.phoneNumber);
-    const patient = await this.patientService.findByClinicIdAndPhoneNumber(
-      clinic.id,
-      phone,
-    );
+    await this.withBookingTenant(referralCode, async (clinic) => {
+      const patient = await this.patientService.findByClinicIdAndPhoneNumber(
+        clinic.id,
+        phone,
+      );
 
-    if (patient) {
-      const otp = crypto.randomInt(100000, 999999).toString();
-      const otpHash = await bcrypt.hash(otp, 10);
-      const expiresAt = new Date(Date.now() + 10 * 60 * 1000);
+      if (patient) {
+        const otp = crypto.randomInt(100000, 999999).toString();
+        const otpHash = await bcrypt.hash(otp, 10);
+        const expiresAt = new Date(Date.now() + 10 * 60 * 1000);
 
-      await this.prisma.publicBookingOtp.deleteMany({
-        where: { clinicId: clinic.id, phoneNumber: phone, usedAt: null },
-      });
-
-      await this.prisma.publicBookingOtp.create({
-        data: {
-          clinicId: clinic.id,
-          phoneNumber: phone,
-          otpHash,
-          expiresAt,
-        },
-      });
-
-      try {
-        await this.whatsappClient.sendMessage({
-          to: phone,
-          message: `Your verification code for booking at ${clinic.name} is: ${otp}. Valid for 10 minutes.`,
+        await this.prisma.publicBookingOtp.deleteMany({
+          where: { clinicId: clinic.id, phoneNumber: phone, usedAt: null },
         });
-      } catch (error) {
-        this.logger.warn(
-          'Failed to send public booking OTP WhatsApp',
-          error instanceof Error ? error.message : 'unknown',
-        );
+
+        await this.prisma.publicBookingOtp.create({
+          data: {
+            clinicId: clinic.id,
+            phoneNumber: phone,
+            otpHash,
+            expiresAt,
+          },
+        });
+
+        try {
+          await this.whatsappClient.sendMessage({
+            to: phone,
+            message: `Your verification code for booking at ${clinic.name} is: ${otp}. Valid for 10 minutes.`,
+          });
+        } catch (error) {
+          this.logger.warn(
+            'Failed to send public booking OTP WhatsApp',
+            error instanceof Error ? error.message : 'unknown',
+          );
+        }
       }
-    }
+    });
 
     return {
       message:
@@ -253,118 +278,120 @@ export class PublicBookingService {
     referralCode: string,
     rawBody: unknown,
   ): Promise<PublicBookingOtpVerifyResponse> {
-    const clinic = await this.resolveClinicByReferralCode(referralCode);
     const body = publicBookingOtpVerifySchema.parse(rawBody);
     const phone = this.normalizePhone(body.phoneNumber);
-    const now = new Date();
+    return this.withBookingTenant(referralCode, async (clinic) => {
+      const now = new Date();
 
-    const otpRecord = await this.prisma.publicBookingOtp.findFirst({
-      where: {
-        clinicId: clinic.id,
-        phoneNumber: phone,
-        expiresAt: { gt: now },
-        usedAt: null,
-      },
-      orderBy: { createdAt: 'desc' },
-    });
+      const otpRecord = await this.prisma.publicBookingOtp.findFirst({
+        where: {
+          clinicId: clinic.id,
+          phoneNumber: phone,
+          expiresAt: { gt: now },
+          usedAt: null,
+        },
+        orderBy: { createdAt: 'desc' },
+      });
 
-    if (!otpRecord) {
-      throw new UnauthorizedException('Invalid or expired code');
-    }
+      if (!otpRecord) {
+        throw new UnauthorizedException('Invalid or expired code');
+      }
 
-    await this.prisma.publicBookingOtp.update({
-      where: { id: otpRecord.id },
-      data: { attempts: { increment: 1 } },
-    });
+      await this.prisma.publicBookingOtp.update({
+        where: { id: otpRecord.id },
+        data: { attempts: { increment: 1 } },
+      });
 
-    const refreshed = await this.prisma.publicBookingOtp.findUnique({
-      where: { id: otpRecord.id },
-    });
-    if (!refreshed || refreshed.attempts > 3) {
-      throw new UnauthorizedException(
-        'Too many attempts. Please request a new code.',
+      const refreshed = await this.prisma.publicBookingOtp.findUnique({
+        where: { id: otpRecord.id },
+      });
+      if (!refreshed || refreshed.attempts > 3) {
+        throw new UnauthorizedException(
+          'Too many attempts. Please request a new code.',
+        );
+      }
+
+      const isValid = await bcrypt.compare(body.otp, refreshed.otpHash);
+      if (!isValid) {
+        throw new UnauthorizedException('Invalid code');
+      }
+
+      await this.prisma.publicBookingOtp.update({
+        where: { id: otpRecord.id },
+        data: { usedAt: new Date() },
+      });
+
+      const patient = await this.patientService.findByClinicIdAndPhoneNumber(
+        clinic.id,
+        phone,
       );
-    }
+      if (!patient) {
+        throw new UnauthorizedException('Patient not found');
+      }
 
-    const isValid = await bcrypt.compare(body.otp, refreshed.otpHash);
-    if (!isValid) {
-      throw new UnauthorizedException('Invalid code');
-    }
+      const plain = patient.toPlain();
 
-    await this.prisma.publicBookingOtp.update({
-      where: { id: otpRecord.id },
-      data: { usedAt: new Date() },
+      const token = this.bookingTokenService.sign({
+        purpose: PUBLIC_BOOKING_JWT_PURPOSE,
+        clinicId: clinic.id,
+        patientId: patient.id,
+        phoneNumber: phone,
+      });
+
+      return {
+        bookingVerificationToken: token,
+        patient: {
+          firstName: plain.firstName,
+          lastName: plain.lastName,
+          email: plain.email,
+        },
+      };
     });
-
-    const patient = await this.patientService.findByClinicIdAndPhoneNumber(
-      clinic.id,
-      phone,
-    );
-    if (!patient) {
-      throw new UnauthorizedException('Patient not found');
-    }
-
-    const plain = patient.toPlain();
-
-    const token = this.bookingTokenService.sign({
-      purpose: PUBLIC_BOOKING_JWT_PURPOSE,
-      clinicId: clinic.id,
-      patientId: patient.id,
-      phoneNumber: phone,
-    });
-
-    return {
-      bookingVerificationToken: token,
-      patient: {
-        firstName: plain.firstName,
-        lastName: plain.lastName,
-        email: plain.email,
-      },
-    };
   }
 
   async getBookingContext(
     referralCode: string,
     authHeader: string | undefined,
   ): Promise<PublicBookingContextResponse> {
-    const clinic = await this.resolveClinicByReferralCode(referralCode);
     const token = this.extractBearerToken(authHeader);
     if (!token) {
       throw new UnauthorizedException('Verification required');
     }
     const payload = this.bookingTokenService.verify(token);
-    if (payload.clinicId !== clinic.id) {
-      throw new UnauthorizedException('Invalid verification context');
-    }
+    return this.withBookingTenant(referralCode, async (clinic) => {
+      if (payload.clinicId !== clinic.id) {
+        throw new UnauthorizedException('Invalid verification context');
+      }
 
-    const appointments = await this.prisma.appointment.findMany({
-      where: { clinicId: clinic.id, patientId: payload.patientId },
-      orderBy: { startTime: 'desc' },
-      take: 5,
-      select: {
-        id: true,
-        startTime: true,
-        endTime: true,
-        status: true,
-        doctor: { select: { name: true } },
-      },
+      const appointments = await this.prisma.appointment.findMany({
+        where: { clinicId: clinic.id, patientId: payload.patientId },
+        orderBy: { startTime: 'desc' },
+        take: 5,
+        select: {
+          id: true,
+          startTime: true,
+          endTime: true,
+          status: true,
+          doctor: { select: { name: true } },
+        },
+      });
+
+      const patient = await this.prisma.patient.findFirst({
+        where: { id: payload.patientId, clinicId: clinic.id },
+        select: { createdAt: true },
+      });
+
+      return {
+        appointments: appointments.map((a) => ({
+          id: a.id,
+          startTime: a.startTime.toISOString(),
+          endTime: a.endTime.toISOString(),
+          doctorName: a.doctor.name,
+          status: a.status,
+        })),
+        patientSince: patient?.createdAt.toISOString(),
+      };
     });
-
-    const patient = await this.prisma.patient.findFirst({
-      where: { id: payload.patientId, clinicId: clinic.id },
-      select: { createdAt: true },
-    });
-
-    return {
-      appointments: appointments.map((a) => ({
-        id: a.id,
-        startTime: a.startTime.toISOString(),
-        endTime: a.endTime.toISOString(),
-        doctorName: a.doctor.name,
-        status: a.status,
-      })),
-      patientSince: patient?.createdAt.toISOString(),
-    };
   }
 
   private extractBearerToken(header: string | undefined): string | null {
@@ -414,7 +441,6 @@ export class PublicBookingService {
     remoteIp?: string,
   ): Promise<PublicBookingSubmitResponse> {
     const data = publicBookingSubmitRequestSchema.parse(rawBody);
-    const clinic = await this.resolveClinicByReferralCode(referralCode);
 
     const turnstileOk = await this.turnstile.verifyToken(
       data.turnstileToken,
@@ -425,100 +451,102 @@ export class PublicBookingService {
     }
 
     const phone = this.normalizePhone(data.phoneNumber);
-    const existing = await this.patientService.findByClinicIdAndPhoneNumber(
-      clinic.id,
-      phone,
-    );
+    return this.withBookingTenant(referralCode, async (clinic) => {
+      const existing = await this.patientService.findByClinicIdAndPhoneNumber(
+        clinic.id,
+        phone,
+      );
 
-    if (existing) {
-      const token =
-        this.extractBearerToken(authHeader) ?? data.bookingVerificationToken;
-      if (!token) {
-        throw new UnauthorizedException(
-          'Booking verification is required for this phone number',
-        );
+      if (existing) {
+        const token =
+          this.extractBearerToken(authHeader) ?? data.bookingVerificationToken;
+        if (!token) {
+          throw new UnauthorizedException(
+            'Booking verification is required for this phone number',
+          );
+        }
+        const payload = this.bookingTokenService.verify(token);
+        if (
+          payload.clinicId !== clinic.id ||
+          payload.patientId !== existing.id ||
+          payload.phoneNumber !== phone
+        ) {
+          throw new UnauthorizedException('Invalid booking verification');
+        }
+      } else if (data.bookingVerificationToken) {
+        throw new BadRequestException('Unexpected booking verification token');
       }
-      const payload = this.bookingTokenService.verify(token);
+
+      const requestedStart = new Date(data.requestedSlotStart);
+      const requestedEnd = new Date(data.requestedSlotEnd);
       if (
-        payload.clinicId !== clinic.id ||
-        payload.patientId !== existing.id ||
-        payload.phoneNumber !== phone
+        Number.isNaN(requestedStart.getTime()) ||
+        Number.isNaN(requestedEnd.getTime()) ||
+        requestedEnd <= requestedStart
       ) {
-        throw new UnauthorizedException('Invalid booking verification');
+        throw new BadRequestException('Invalid requested slot');
       }
-    } else if (data.bookingVerificationToken) {
-      throw new BadRequestException('Unexpected booking verification token');
-    }
 
-    const requestedStart = new Date(data.requestedSlotStart);
-    const requestedEnd = new Date(data.requestedSlotEnd);
-    if (
-      Number.isNaN(requestedStart.getTime()) ||
-      Number.isNaN(requestedEnd.getTime()) ||
-      requestedEnd <= requestedStart
-    ) {
-      throw new BadRequestException('Invalid requested slot');
-    }
-
-    await this.assertRequestedSlotIsPubliclyBookable(
-      clinic.id,
-      data.preferredDoctorId,
-      data.slotCalendarDate,
-      requestedStart,
-      requestedEnd,
-    );
-
-    let patientId: string;
-    if (existing) {
-      await this.patientService.updatePatient(
-        existing.id,
-        patientDomainUpdateSchema.parse({
-          firstName: data.firstName,
-          lastName: data.lastName,
-          email: data.email,
-          phoneNumber: phone,
-        }),
+      await this.assertRequestedSlotIsPubliclyBookable(
         clinic.id,
-      );
-      patientId = existing.id;
-    } else {
-      const created = await this.patientService.createPatient(
-        patientDomainCreateSchema.parse({
-          clinicId: clinic.id,
-          firstName: data.firstName,
-          lastName: data.lastName,
-          phoneNumber: phone,
-          gender: 'PREFER_NOT_TO_SAY',
-          email: data.email,
-        }),
-      );
-      patientId = created.id;
-    }
-
-    const reason =
-      data.reason && data.reason.trim().length >= 2
-        ? data.reason
-        : 'Online booking request';
-
-    const createdRequest =
-      await this.appointmentRequestService.createPatientRequest(
-        patientId,
-        clinic.id,
-        {
-          preferredDoctorId: data.preferredDoctorId,
-          preferredDate: data.slotCalendarDate,
-          preferredTime: undefined,
-          requestedSlotStart: data.requestedSlotStart,
-          requestedSlotEnd: data.requestedSlotEnd,
-          reason,
-          notes: data.notes,
-        },
+        data.preferredDoctorId,
+        data.slotCalendarDate,
+        requestedStart,
+        requestedEnd,
       );
 
-    return {
-      requestId: createdRequest.id,
-      message:
-        'Your request has been received. The clinic will confirm your appointment.',
-    };
+      let patientId: string;
+      if (existing) {
+        await this.patientService.updatePatient(
+          existing.id,
+          patientDomainUpdateSchema.parse({
+            firstName: data.firstName,
+            lastName: data.lastName,
+            email: data.email,
+            phoneNumber: phone,
+          }),
+          clinic.id,
+        );
+        patientId = existing.id;
+      } else {
+        const created = await this.patientService.createPatient(
+          patientDomainCreateSchema.parse({
+            clinicId: clinic.id,
+            firstName: data.firstName,
+            lastName: data.lastName,
+            phoneNumber: phone,
+            gender: 'PREFER_NOT_TO_SAY',
+            email: data.email,
+          }),
+        );
+        patientId = created.id;
+      }
+
+      const reason =
+        data.reason && data.reason.trim().length >= 2
+          ? data.reason
+          : 'Online booking request';
+
+      const createdRequest =
+        await this.appointmentRequestService.createPatientRequest(
+          patientId,
+          clinic.id,
+          {
+            preferredDoctorId: data.preferredDoctorId,
+            preferredDate: data.slotCalendarDate,
+            preferredTime: undefined,
+            requestedSlotStart: data.requestedSlotStart,
+            requestedSlotEnd: data.requestedSlotEnd,
+            reason,
+            notes: data.notes,
+          },
+        );
+
+      return {
+        requestId: createdRequest.id,
+        message:
+          'Your request has been received. The clinic will confirm your appointment.',
+      };
+    });
   }
 }
