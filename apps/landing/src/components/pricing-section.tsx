@@ -115,6 +115,28 @@ export function PricingSection({ appUrl }: PricingSectionProps) {
           </p>
         </div>
 
+        <p className="mt-6 max-w-3xl text-sm leading-relaxed text-muted-foreground">
+          <span className="font-medium text-foreground">
+            Front desk workspace
+          </span>{" "}
+          uses these tiers for billing but limits the app to appointments plus
+          invoicing.{" "}
+          <a
+            href="#front-desk-workspace"
+            className="font-medium text-primary underline-offset-4 hover:underline"
+          >
+            Jump to the front desk card
+          </a>{" "}
+          or open{" "}
+          <a
+            href={`${appUrl}/onboarding?workspace=front_desk`}
+            className="font-medium text-primary underline-offset-4 hover:underline"
+          >
+            onboarding with this mode pre-selected
+          </a>
+          .
+        </p>
+
         <motion.div
           className="mt-10 r2-price-grid"
           variants={gridVariants}
@@ -186,11 +208,12 @@ export function PricingSection({ appUrl }: PricingSectionProps) {
         </motion.div>
 
         <motion.article
+          id="front-desk-workspace"
           variants={cardVariant}
           initial="hidden"
           whileInView="visible"
           viewport={landingInViewViewport}
-          className="r2-price-card mt-10 max-w-2xl border-primary/30 bg-primary/5"
+          className="r2-price-card mt-10 max-w-2xl scroll-mt-24 border-primary/30 bg-primary/5"
         >
           <h3 className="text-lg font-semibold tracking-tight text-foreground">
             {WORKSPACE_PROFILE_MARKETING.FRONT_DESK.headline}
