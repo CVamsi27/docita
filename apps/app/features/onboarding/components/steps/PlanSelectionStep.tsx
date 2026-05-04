@@ -2,7 +2,8 @@
 
 import { DocitaLoadingIndicator } from "@workspace/ui/components/docita-loading-indicator";
 
-import { useState } from "react";
+import { Suspense, useState } from "react";
+import { useSearchParams } from "next/navigation";
 import { ChevronDown } from "lucide-react";
 import {
   Card,
@@ -14,6 +15,7 @@ import {
 import { Button } from "@workspace/ui/components/button";
 import { Badge } from "@workspace/ui/components/badge";
 import { cn } from "@workspace/ui/lib/utils";
+import { MicroLabel } from "@workspace/ui/components/micro-label";
 import {
   Collapsible,
   CollapsibleContent,
@@ -35,6 +37,9 @@ import {
   SUBSCRIPTION_TRIAL_DAYS,
   TIER_OVERAGE_RATES_BY_CURRENCY,
   type TierName,
+  type WorkspaceProfile,
+  WORKSPACE_PROFILE_LABEL,
+  WORKSPACE_PROFILE_MARKETING,
 } from "@workspace/types";
 import { useLocaleCurrency } from "@/hooks/use-locale-currency";
 import { PLAN_ONBOARDING_KEY_HIGHLIGHTS } from "@/features/subscription/config/plan-onboarding-highlights";
@@ -44,11 +49,12 @@ interface PlanSelectionProps {
     tier: string,
     billingCycle: "MONTHLY" | "YEARLY",
     pricing: { monthly: number | "custom"; yearly: number | "custom" },
-    options?: { currency?: string },
+    options?: { currency?: string; workspaceProfile?: WorkspaceProfile },
   ) => Promise<void>;
   defaultTier?: string;
   defaultBillingCycle?: "MONTHLY" | "YEARLY";
   currency?: string;
+  initialWorkspaceProfile?: WorkspaceProfile;
 }
 
 const DISPLAY_TIERS = ["STARTER", "ESSENTIAL", "PROFESSIONAL", "ENTERPRISE"];
@@ -61,13 +67,21 @@ const PLAN_AUDIENCE: Record<string, string> = {
   ENTERPRISE: "Best for hospitals and chains with custom requirements",
 };
 
-export function PlanSelectionStep({
+function PlanSelectionStepInner({
   onSelect,
   defaultTier = "ESSENTIAL",
   defaultBillingCycle = "MONTHLY",
   currency,
+  initialWorkspaceProfile = "FULL_CLINICAL",
 }: PlanSelectionProps) {
+  const searchParams = useSearchParams();
   const { currency: detectedCurrency } = useLocaleCurrency();
+  const [workspaceProfile, setWorkspaceProfile] = useState<WorkspaceProfile>(
+    () =>
+      searchParams.get("workspace") === "front_desk"
+        ? "FRONT_DESK"
+        : initialWorkspaceProfile,
+  );
   const [selectedTier, setSelectedTier] = useState<string>(defaultTier);
   const [billingCycle, setBillingCycle] = useState<"MONTHLY" | "YEARLY">(
     defaultBillingCycle,
@@ -112,6 +126,7 @@ export function PlanSelectionStep({
     try {
       await onSelect(tier, billingCycle, tierPricingData.pricing, {
         currency: resolvedCurrency,
+        workspaceProfile,
       });
     } finally {
       setIsSubmitting(false);
@@ -178,6 +193,51 @@ Please contact me with deployment and commercial details.`;
         </p>
       </CardHeader>
       <CardContent className="space-y-6">
+        <div className="rounded-lg border border-border/60 bg-card p-4 space-y-3">
+          <MicroLabel>Workspace</MicroLabel>
+          <p className="text-sm text-muted-foreground">
+            Choose how Docita is used at this facility. This is separate from the
+            commercial tier below (quotas and pricing).
+          </p>
+          <div className="flex flex-col gap-2 sm:flex-row">
+            <Button
+              type="button"
+              variant={workspaceProfile === "FULL_CLINICAL" ? "default" : "outline"}
+              className="flex-1 justify-center"
+              onClick={() => setWorkspaceProfile("FULL_CLINICAL")}
+            >
+              {WORKSPACE_PROFILE_LABEL.FULL_CLINICAL}
+            </Button>
+            <Button
+              type="button"
+              variant={workspaceProfile === "FRONT_DESK" ? "default" : "outline"}
+              className="flex-1 justify-center"
+              onClick={() => setWorkspaceProfile("FRONT_DESK")}
+            >
+              {WORKSPACE_PROFILE_LABEL.FRONT_DESK}
+            </Button>
+          </div>
+          <ul className="list-disc space-y-1 pl-5 text-sm text-muted-foreground">
+            {WORKSPACE_PROFILE_MARKETING[workspaceProfile].included.map((line) => (
+              <li key={line}>{line}</li>
+            ))}
+          </ul>
+          {WORKSPACE_PROFILE_MARKETING[workspaceProfile].notIncluded.length > 0 ? (
+            <div>
+              <p className="text-sm font-medium text-foreground">
+                Not included in this workspace
+              </p>
+              <ul className="mt-1 list-disc space-y-1 pl-5 text-sm text-muted-foreground">
+                {WORKSPACE_PROFILE_MARKETING[workspaceProfile].notIncluded.map(
+                  (line) => (
+                    <li key={line}>{line}</li>
+                  ),
+                )}
+              </ul>
+            </div>
+          ) : null}
+        </div>
+
         <div className="flex justify-center">
           <div className="inline-flex items-center gap-2 p-1 bg-muted rounded-lg">
             <Button
@@ -338,5 +398,24 @@ Please contact me with deployment and commercial details.`;
         />
       </CardContent>
     </Card>
+  );
+}
+
+export function PlanSelectionStep(props: PlanSelectionProps) {
+  return (
+    <Suspense
+      fallback={
+        <div
+          className="flex min-h-[240px] flex-col items-center justify-center gap-3 py-8"
+          role="status"
+          aria-live="polite"
+          aria-label="Loading plan options"
+        >
+          <DocitaLoadingIndicator variant="section" withStatusRole={false} />
+        </div>
+      }
+    >
+      <PlanSelectionStepInner {...props} />
+    </Suspense>
   );
 }

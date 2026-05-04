@@ -30,6 +30,7 @@ interface PlanPricing {
 
 interface PlanSelectionOptions {
   currency?: string;
+  workspaceProfile?: "FULL_CLINICAL" | "FRONT_DESK";
 }
 
 interface OnboardingCheckoutResponse {
@@ -313,6 +314,7 @@ export function useClinicRegistrationFlow() {
           price: typeof price === "number" ? price : 0,
           currency: resolvedCurrency,
           isCoreTrial: false,
+          workspaceProfile: options?.workspaceProfile ?? "FULL_CLINICAL",
         },
       }));
 
@@ -493,6 +495,8 @@ export function useClinicRegistrationFlow() {
             tier: formData.planSelection.tier,
             billingCycle: formData.planSelection.billingCycle,
             currency: formData.planSelection.currency,
+            workspaceProfile:
+              formData.planSelection.workspaceProfile ?? "FULL_CLINICAL",
           },
           slaAgreement: {
             acceptedSLA: complianceData.acceptedSLA,
@@ -614,6 +618,7 @@ export function useClinicRegistrationFlow() {
       formData.planSelection.billingCycle,
       formData.planSelection.currency,
       formData.planSelection.tier,
+      formData.planSelection.workspaceProfile,
       formData.teamMembers,
       refreshUser,
       restartOnboarding,

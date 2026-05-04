@@ -13,6 +13,7 @@ export const appSession = createBrowserSessionManager({
     "/forgot-password",
     "/reset-password",
     "/portal/login",
+    "/book",
   ],
   resolveLoginPath: resolveAppLoginPath,
 });

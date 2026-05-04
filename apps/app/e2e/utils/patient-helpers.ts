@@ -270,9 +270,13 @@ export async function fetchPatientByApi(
 async function setupTestUserImpl(
   request: APIRequestContext,
   requestHeaders: Record<string, string> = {},
-  options: { clinicType?: ClinicType } = {},
+  options: {
+    clinicType?: ClinicType;
+    workspaceProfile?: "FULL_CLINICAL" | "FRONT_DESK";
+  } = {},
 ): Promise<UserData> {
   const clinicType = options.clinicType ?? "GENERAL";
+  const workspaceProfile = options.workspaceProfile ?? "FULL_CLINICAL";
   const uniqueId = randomUUID();
   const email = `doctor-${uniqueId}@test.com`;
   const password = TEST_PASSWORD;
@@ -412,6 +416,7 @@ async function setupTestUserImpl(
           tier: "STARTER",
           billingCycle: "MONTHLY",
           currency: "INR",
+          workspaceProfile,
         },
         slaAgreement: {
           acceptedSLA: true,
@@ -544,27 +549,53 @@ export function reuseSharedGeneralClinicUser(
   return sharedGeneralClinicUser;
 }
 
+let sharedFrontDeskClinicUser: Promise<UserData> | null = null;
+
+export function reuseSharedFrontDeskClinicUser(
+  request: APIRequestContext,
+): Promise<UserData> {
+  if (!sharedFrontDeskClinicUser) {
+    sharedFrontDeskClinicUser = setupTestUser(request, {}, {
+      workspaceProfile: "FRONT_DESK",
+    }).catch((err: unknown) => {
+      sharedFrontDeskClinicUser = null;
+      throw err;
+    });
+  }
+  return sharedFrontDeskClinicUser;
+}
+
 export async function setupTestUser(
   request: APIRequestContext,
   requestHeaders: Record<string, string> = {},
-  options: { clinicType?: ClinicType } = {},
+  options: {
+    clinicType?: ClinicType;
+    workspaceProfile?: "FULL_CLINICAL" | "FRONT_DESK";
+  } = {},
 ): Promise<UserData> {
   const clinicType = options.clinicType ?? "GENERAL";
+  const workspaceProfile = options.workspaceProfile ?? "FULL_CLINICAL";
   const shouldCache =
     Object.keys(requestHeaders).length === 0 && clinicType === "GENERAL";
 
   if (!shouldCache) {
-    return await setupTestUserImpl(request, requestHeaders, options);
+    return await setupTestUserImpl(request, requestHeaders, {
+      clinicType,
+      workspaceProfile,
+    });
   }
 
   const cache = getSetupUserCache();
-  const cacheKey = "setupTestUser:GENERAL";
+  const cacheKey = `setupTestUser:GENERAL:${workspaceProfile}`;
   const existing = cache.get(cacheKey);
   if (existing) {
     return await existing;
   }
 
-  const promise = setupTestUserImpl(request, requestHeaders, options);
+  const promise = setupTestUserImpl(request, requestHeaders, {
+    clinicType,
+    workspaceProfile,
+  });
   cache.set(cacheKey, promise);
   return await promise;
 }

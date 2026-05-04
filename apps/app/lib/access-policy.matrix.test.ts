@@ -6,6 +6,7 @@ import {
   FEATURE_TIER_MAP,
   Tier,
   type UserRole,
+  type WorkspaceProfile,
 } from "@workspace/types";
 
 function canAccessFeatureFactory(tier: Tier) {
@@ -23,6 +24,7 @@ describe("canAccessTarget matrix parity (role x tier x target)", () => {
     tier: Tier;
     target: (typeof APP_ACCESS_TARGETS)[keyof typeof APP_ACCESS_TARGETS];
     expectAllowed: boolean;
+    workspaceProfile?: WorkspaceProfile;
   }> = [
     {
       name: "WhatsApp page denied on Starter for receptionist",
@@ -59,13 +61,33 @@ describe("canAccessTarget matrix parity (role x tier x target)", () => {
       target: APP_ACCESS_TARGETS.PAGE_APPOINTMENTS,
       expectAllowed: true,
     },
+    {
+      name: "Consultation blocked on front desk for admin on Essential",
+      role: "ADMIN",
+      tier: Tier.ESSENTIAL,
+      target: APP_ACCESS_TARGETS.PAGE_CONSULTATION,
+      expectAllowed: false,
+      workspaceProfile: "FRONT_DESK",
+    },
+    {
+      name: "Appointments allowed on front desk for receptionist on Starter",
+      role: "RECEPTIONIST",
+      tier: Tier.STARTER,
+      target: APP_ACCESS_TARGETS.PAGE_APPOINTMENTS,
+      expectAllowed: true,
+      workspaceProfile: "FRONT_DESK",
+    },
   ];
 
-  for (const { name, role, tier, target, expectAllowed } of cases) {
+  for (const { name, role, tier, target, expectAllowed, workspaceProfile } of cases) {
     it(name, () => {
       const allowed = canAccessTarget(
         target,
-        { role, canAccessFeature: canAccessFeatureFactory(tier) },
+        {
+          role,
+          canAccessFeature: canAccessFeatureFactory(tier),
+          workspaceProfile,
+        },
         "read",
       );
       expect(allowed).toBe(expectAllowed);

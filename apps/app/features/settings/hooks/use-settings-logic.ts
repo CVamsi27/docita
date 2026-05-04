@@ -7,10 +7,12 @@ import { hasPermission, type Permission } from "@/lib/permissions";
 import { usePermissionStore } from "@/lib/stores/permission-store";
 import {
   APP_ACCESS_TARGETS,
+  DEFAULT_WORKSPACE_PROFILE,
   Feature,
   Tier,
   type AppAccessTarget,
   type UserRole,
+  type WorkspaceProfile,
 } from "@workspace/types";
 
 const SETTINGS_TAB_ACCESS_TARGETS: Partial<Record<string, AppAccessTarget>> = {
@@ -43,6 +45,7 @@ interface VisibleSettingsTabsParams {
   canAccessFeature: (feature: Feature) => boolean;
   canAccessTier: (tier: Tier) => boolean;
   searchQuery?: string;
+  workspaceProfile?: WorkspaceProfile;
 }
 
 export function getVisibleSettingsTabs({
@@ -51,6 +54,7 @@ export function getVisibleSettingsTabs({
   canAccessFeature,
   canAccessTier,
   searchQuery = "",
+  workspaceProfile = DEFAULT_WORKSPACE_PROFILE,
 }: VisibleSettingsTabsParams) {
   const tabs = settingsTabs
     .map((category) => ({
@@ -82,6 +86,7 @@ export function getVisibleSettingsTabs({
               role: userRole,
               canAccessFeature,
               canAccessTier,
+              workspaceProfile,
             },
             "read",
           );
@@ -115,6 +120,7 @@ export const useSettingsLogic = () => {
   const canAccessFeature = usePermissionStore((state) => state.canAccess);
   const canAccessTier = usePermissionStore((state) => state.canAccessTier);
   const currentTier = usePermissionStore((state) => state.currentTier);
+  const workspaceProfile = usePermissionStore((state) => state.workspaceProfile);
   const requestedTab = searchParams.get("tab") || "general";
   const [searchQuery, setSearchQuery] = useState("");
 
@@ -125,8 +131,16 @@ export const useSettingsLogic = () => {
       canAccessFeature,
       canAccessTier,
       searchQuery,
+      workspaceProfile,
     });
-  }, [canAccessFeature, canAccessTier, currentTier, searchQuery, user?.role]);
+  }, [
+    canAccessFeature,
+    canAccessTier,
+    currentTier,
+    searchQuery,
+    user?.role,
+    workspaceProfile,
+  ]);
 
   const firstMatchingTab = filteredTabs[0]?.items[0]?.value;
 

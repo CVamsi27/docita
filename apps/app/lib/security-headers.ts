@@ -11,6 +11,9 @@ const DEFAULT_PUBLIC_SOCKET_URL =
     ? "https://api.docita.work"
     : "http://localhost:3001";
 
+/** Public /book flow loads Turnstile from this origin (see `TurnstileWidget`). */
+const CLOUDFLARE_TURNSTILE_ORIGIN = "https://challenges.cloudflare.com";
+
 function toOrigin(source: string): string {
   try {
     return new URL(source).origin;
@@ -46,6 +49,7 @@ const CONNECT_SOURCES = [
   "'self'",
   "https://api.docita.work",
   "wss://api.docita.work",
+  CLOUDFLARE_TURNSTILE_ORIGIN,
   "https://api.razorpay.com",
   "https://checkout.razorpay.com",
   "https://lumberjack.razorpay.com",
@@ -84,6 +88,7 @@ const IMAGE_SOURCES = [
 
 const FRAME_SOURCES = [
   "'self'",
+  CLOUDFLARE_TURNSTILE_ORIGIN,
   "https://api.razorpay.com",
   "https://checkout.razorpay.com",
 ];
@@ -107,6 +112,7 @@ export function buildContentSecurityPolicy(options: CspOptions = {}): string {
 
   const scriptSources = [
     "'self'",
+    CLOUDFLARE_TURNSTILE_ORIGIN,
     nonce ? `'nonce-${nonce}'` : undefined,
     nonce ? "'strict-dynamic'" : undefined,
     !nonce ? "'unsafe-inline'" : undefined,

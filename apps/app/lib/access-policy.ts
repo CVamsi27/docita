@@ -8,6 +8,8 @@ import {
   getAccessFeature,
   getAccessTier,
   type UserRole,
+  type WorkspaceProfile,
+  shouldDenyAccessForWorkspaceProfile,
 } from "@workspace/types";
 import { hasPermission, type Permission } from "@/lib/permissions";
 
@@ -15,6 +17,7 @@ interface AccessContext {
   role?: UserRole | null;
   canAccessFeature?: (feature: Feature) => boolean;
   canAccessTier?: (tier: Tier) => boolean;
+  workspaceProfile?: WorkspaceProfile | null;
 }
 
 export function canAccessTarget(
@@ -26,8 +29,19 @@ export function canAccessTarget(
   if (!policy) return false;
   if (isAccessComingSoon(target)) return false;
 
-  const requirement = getAccessRequirement(target, mode);
   const role = context.role ?? undefined;
+
+  if (
+    shouldDenyAccessForWorkspaceProfile(
+      target,
+      role ?? null,
+      context.workspaceProfile,
+    )
+  ) {
+    return false;
+  }
+
+  const requirement = getAccessRequirement(target, mode);
 
   if (requirement.roles && requirement.roles.length > 0) {
     if (!role || !requirement.roles.includes(role)) {

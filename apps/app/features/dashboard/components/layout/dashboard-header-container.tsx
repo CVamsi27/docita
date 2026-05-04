@@ -2,6 +2,7 @@ import type { ReactNode } from "react";
 import { useAuth } from "@/lib/auth-context";
 import { useClinic } from "@/lib/clinic-context";
 import { useClinicSettings } from "@/hooks/api/use-settings";
+import { getPublicAppOrigin } from "@/lib/public-app-origin";
 import { DashboardHeaderUI } from "./dashboard-header-ui";
 
 interface DashboardHeaderContainerProps {
@@ -42,13 +43,20 @@ export function DashboardHeaderContainer({
     return name.split(" ")[0];
   })();
 
+  const referralCode =
+    clinicSettings?.referralCode ?? clinic?.referralCode ?? null;
+  const publicOnlineBookingUrl = referralCode
+    ? `${getPublicAppOrigin()}/book/${encodeURIComponent(referralCode)}`
+    : null;
+
   return (
     <DashboardHeaderUI
       userName={displayName}
       greeting={getGreeting()}
       onSearchClick={handleSearchClick}
-      clinicCode={clinicSettings?.referralCode ?? clinic?.referralCode}
+      clinicCode={referralCode}
       clinicName={clinicSettings?.name ?? clinic?.name}
+      publicOnlineBookingUrl={publicOnlineBookingUrl}
       canQuickShareClinicCode={canQuickShareClinicCode}
       summary={summary}
       headerActions={headerActions}

@@ -22,7 +22,7 @@ export const useConsultationDashboard = () => {
   const router = useRouter();
   const { user } = useAuth();
   const { canStartConsultation } = usePermissions();
-  const { canAccess } = usePermissionStore();
+  const { canAccess, workspaceProfile } = usePermissionStore();
   const today = new Date().toISOString().split("T")[0] ?? "";
   const shouldScopeToOwnConsultations = user?.role === "DOCTOR";
   const doctorId = shouldScopeToOwnConsultations ? user?.id : undefined;
@@ -31,6 +31,7 @@ export const useConsultationDashboard = () => {
     {
       role: user?.role,
       canAccessFeature: canAccess,
+      workspaceProfile,
     },
     "read",
   );

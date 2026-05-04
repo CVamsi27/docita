@@ -17,6 +17,8 @@ export interface DashboardHeaderUIProps {
   onSearchClick: () => void;
   clinicCode?: string | null;
   clinicName?: string;
+  /** Public online booking page URL for this clinic (e.g. for Google Maps). */
+  publicOnlineBookingUrl?: string | null;
   canQuickShareClinicCode?: boolean;
   summary?: string;
   /** Extra controls (e.g. refresh) rendered before clinic/search actions. */
@@ -29,11 +31,13 @@ export function DashboardHeaderUI({
   onSearchClick,
   clinicCode,
   clinicName,
+  publicOnlineBookingUrl,
   canQuickShareClinicCode = false,
   summary,
   headerActions,
 }: DashboardHeaderUIProps) {
   const [copied, setCopied] = useState(false);
+  const [copiedBookingLink, setCopiedBookingLink] = useState(false);
   const [shared, setShared] = useState(false);
   const facilityLabel = useFacilityLabel();
 
@@ -44,10 +48,20 @@ export function DashboardHeaderUI({
     setTimeout(() => setCopied(false), 2000);
   };
 
+  const handleCopyBookingLink = async () => {
+    if (!publicOnlineBookingUrl) return;
+    await navigator.clipboard.writeText(publicOnlineBookingUrl);
+    setCopiedBookingLink(true);
+    setTimeout(() => setCopiedBookingLink(false), 2000);
+  };
+
   const handleQuickShare = async () => {
     if (!clinicCode) return;
 
-    const shareText = `Join ${clinicName || `our ${facilityLabel.toLowerCase()}`} on Docita using ${facilityLabel.toLowerCase()} code: ${clinicCode}`;
+    const bookingLine = publicOnlineBookingUrl
+      ? `Book online: ${publicOnlineBookingUrl}\n`
+      : "";
+    const shareText = `${bookingLine}Join ${clinicName || `our ${facilityLabel.toLowerCase()}`} on Docita using ${facilityLabel.toLowerCase()} code: ${clinicCode}`;
 
     try {
       if (navigator.share) {
@@ -146,6 +160,29 @@ export function DashboardHeaderUI({
                   </Button>
                 </TooltipTrigger>
                 <TooltipContent>Copy code</TooltipContent>
+              </Tooltip>
+            ) : null}
+            {publicOnlineBookingUrl ? (
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <Button
+                    type="button"
+                    onClick={() => void handleCopyBookingLink()}
+                    variant="outline"
+                    size="sm"
+                    className="h-9 gap-1.5 px-3 text-xs text-muted-foreground hover:text-foreground touch-manipulation"
+                  >
+                    <span className="max-w-[140px] truncate sm:max-w-[200px]">
+                      Booking link
+                    </span>
+                    {copiedBookingLink ? (
+                      <Check className="h-3.5 w-3.5 shrink-0 text-success" />
+                    ) : (
+                      <Copy className="h-3.5 w-3.5 shrink-0" />
+                    )}
+                  </Button>
+                </TooltipTrigger>
+                <TooltipContent>Copy public booking link</TooltipContent>
               </Tooltip>
             ) : null}
             <Button

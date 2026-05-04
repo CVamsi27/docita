@@ -41,6 +41,16 @@ function addMinutesLocal(value: string, minutes: number) {
   return new Date(date.getTime() - offsetMs).toISOString().slice(0, 16);
 }
 
+function requestedSlotToDatetimeLocal(
+  requestedSlotStart: string | Date | null | undefined,
+): string | null {
+  if (!requestedSlotStart) return null;
+  const d = new Date(requestedSlotStart);
+  if (Number.isNaN(d.getTime())) return null;
+  const offsetMs = d.getTimezoneOffset() * 60 * 1000;
+  return new Date(d.getTime() - offsetMs).toISOString().slice(0, 16);
+}
+
 function patientName(request: AppointmentRequestResponse) {
   const firstName = request.patient?.firstName ?? "";
   const lastName = request.patient?.lastName ?? "";
@@ -85,10 +95,12 @@ export function AppointmentRequestsPanel() {
   const isMutating = approveRequest.isPending || rejectRequest.isPending;
 
   const handleApprove = async (request: AppointmentRequestResponse) => {
-    const defaultStart = toDateTimeLocal(
-      request.preferredDate,
-      request.preferredTime,
+    const fromStructured = requestedSlotToDatetimeLocal(
+      request.requestedSlotStart,
     );
+    const defaultStart =
+      fromStructured ??
+      toDateTimeLocal(request.preferredDate, request.preferredTime);
     const doctorId =
       doctorByRequest[request.id] ??
       request.preferredDoctorId ??
@@ -103,7 +115,7 @@ export function AppointmentRequestsPanel() {
     }
 
     let resolvedDefaultStart = defaultStart;
-    if (!startByRequest[request.id]) {
+    if (!startByRequest[request.id] && !fromStructured) {
       const fromSlots = await fetchFirstAvailableDatetimeLocal(
         request.preferredDate,
         doctorId,
@@ -113,8 +125,15 @@ export function AppointmentRequestsPanel() {
       }
     }
 
+    const requestedEndLocal = requestedSlotToDatetimeLocal(
+      request.requestedSlotEnd,
+    );
     const startTime = startByRequest[request.id] ?? resolvedDefaultStart;
-    const endTime = endByRequest[request.id] ?? addMinutesLocal(startTime, 30);
+    const endTime =
+      endByRequest[request.id] ??
+      (requestedEndLocal && fromStructured
+        ? requestedEndLocal
+        : addMinutesLocal(startTime, 30));
 
     try {
       await approveRequest.mutateAsync({

@@ -32,6 +32,11 @@ import {
 import { AlertTriangle, Clock, Info, XCircle } from "lucide-react";
 import { BillingHistoryTable } from "@/features/subscription/components/billing/BillingHistoryTable";
 import { getDisplayBillingPeriodEndAndDaysLeft } from "@/features/subscription/lib/billing-period-display";
+import { useClinic } from "@/lib/clinic-context";
+import {
+  parseWorkspaceProfile,
+  WORKSPACE_PROFILE_LABEL,
+} from "@workspace/types";
 
 function scrollToBillingPlans() {
   document.getElementById("billing-plans-section")?.scrollIntoView({
@@ -161,6 +166,7 @@ function BillingHistory({
 
 export function SubscriptionSettings() {
   const { isAdmin } = useAuth();
+  const { clinic } = useClinic();
   const { data: subscription, isLoading } = useSubscription();
   const billingHistoryRef = useRef<HTMLDivElement>(null);
 
@@ -195,6 +201,9 @@ export function SubscriptionSettings() {
     ? getTierInfo(subscription.tier).name
     : "Starter";
   const subscriptionStatus = subscription?.subscriptionStatus || "Inactive";
+  const workspaceProfileLabel = WORKSPACE_PROFILE_LABEL[
+    parseWorkspaceProfile(clinic?.workspaceProfile)
+  ];
 
   if (!isAdmin) {
     return (
@@ -210,6 +219,9 @@ export function SubscriptionSettings() {
               {subscriptionStatus}
             </Badge>
           </div>
+          <p className="mt-2 text-sm text-muted-foreground">
+            Workspace: {workspaceProfileLabel}
+          </p>
           <p className="mt-3 text-sm text-muted-foreground">
             Contact your facility administrator to manage subscription.
           </p>
@@ -242,6 +254,26 @@ export function SubscriptionSettings() {
 
   return (
     <div className="space-y-6">
+      <Card>
+        <CardHeader className="pb-2">
+          <CardTitle className="text-[var(--fs-md)]">Plan and workspace</CardTitle>
+          <CardDescription>
+            Subscription tier sets quotas and billing. Workspace sets which product
+            areas are available to your team.
+          </CardDescription>
+        </CardHeader>
+        <CardContent className="flex flex-col gap-3 text-sm sm:flex-row sm:items-start sm:justify-between">
+          <div>
+            <p className="text-muted-foreground">Subscription tier</p>
+            <p className="font-medium text-foreground">{tierName}</p>
+          </div>
+          <div>
+            <p className="text-muted-foreground">Workspace</p>
+            <p className="font-medium text-foreground">{workspaceProfileLabel}</p>
+          </div>
+        </CardContent>
+      </Card>
+
       {trialDaysLeft !== null ? (
         <Alert className="border-info/40 bg-info/10">
           <Clock className="h-4 w-4 text-info" />

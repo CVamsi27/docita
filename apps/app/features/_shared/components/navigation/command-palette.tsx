@@ -13,7 +13,7 @@ import { usePermissions } from "@/hooks/use-permissions";
 import { useAuth } from "@/lib/auth-context";
 import { canAccessTarget } from "@/lib/access-policy";
 import { usePermissionStore } from "@/lib/stores/permission-store";
-import type { UserRole, Feature } from "@workspace/types";
+import type { UserRole, Feature, WorkspaceProfile } from "@workspace/types";
 import {
   CommandPaletteShell,
   type CommandPaletteAction,
@@ -140,13 +140,21 @@ type CanAccessFeatureFn = (feature: Feature) => boolean;
 
 function navItemIsAccessible(
   item: NavItem,
-  args: { role: UserRole | undefined; canAccess: CanAccessFeatureFn },
+  args: {
+    role: UserRole | undefined;
+    canAccess: CanAccessFeatureFn;
+    workspaceProfile: WorkspaceProfile;
+  },
 ): boolean {
   if (item.feature && !args.canAccess(item.feature)) return false;
   if (!item.accessTarget) return true;
   return canAccessTarget(
     item.accessTarget,
-    { role: args.role, canAccessFeature: args.canAccess },
+    {
+      role: args.role,
+      canAccessFeature: args.canAccess,
+      workspaceProfile: args.workspaceProfile,
+    },
     "read",
   );
 }
@@ -156,12 +164,12 @@ export function CommandPalette() {
   const router = useRouter();
   const { user } = useAuth();
   const { canStartConsultation } = usePermissions();
-  const { canAccess } = usePermissionStore();
+  const { canAccess, workspaceProfile } = usePermissionStore();
   const { openOverlay } = useAskAi();
 
   const canAccessQueueApi = canAccessTarget(
     APP_ACCESS_TARGETS.API_QUEUE,
-    { role: user?.role, canAccessFeature: canAccess },
+    { role: user?.role, canAccessFeature: canAccess, workspaceProfile },
     "read",
   );
   const startConsultation = useStartConsultation();
@@ -248,7 +256,14 @@ export function CommandPalette() {
       HELP_NAV_ITEM,
     ];
     for (const item of allNav) {
-      if (!navItemIsAccessible(item, { role: user?.role, canAccess })) continue;
+      if (
+        !navItemIsAccessible(item, {
+          role: user?.role,
+          canAccess,
+          workspaceProfile,
+        })
+      )
+        continue;
       const Icon = item.icon;
       out.push({
         id: `nav-${item.href}`,
@@ -273,7 +288,11 @@ export function CommandPalette() {
       if (action.accessTarget) {
         const ok = canAccessTarget(
           action.accessTarget,
-          { role: user?.role, canAccessFeature: canAccess },
+          {
+            role: user?.role,
+            canAccessFeature: canAccess,
+            workspaceProfile,
+          },
           action.accessMode ?? "write",
         );
         if (!ok) continue;
@@ -305,6 +324,7 @@ export function CommandPalette() {
     openOverlay,
     router,
     user?.role,
+    workspaceProfile,
   ]);
 
   return (

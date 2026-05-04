@@ -16,6 +16,7 @@ describe("buildContentSecurityPolicy", () => {
     });
     expect(csp).toContain("'nonce-abcDEF=='");
     expect(csp).toContain("'strict-dynamic'");
+    expect(csp).toContain("https://challenges.cloudflare.com");
     const scriptSrc = csp
       .split(";")
       .map((d) => d.trim())

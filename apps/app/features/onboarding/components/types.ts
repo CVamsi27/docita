@@ -171,6 +171,8 @@ export interface PlanSelection {
   price: number;
   currency: string;
   isCoreTrial?: boolean;
+  /** Mirrors API `planSelection.workspaceProfile`. */
+  workspaceProfile?: "FULL_CLINICAL" | "FRONT_DESK";
 }
 
 export interface ClinicRegistrationData {
@@ -190,6 +192,7 @@ export const defaultClinicRegistrationData: ClinicRegistrationData = {
     price: 0,
     currency: DEFAULT_CURRENCY,
     isCoreTrial: false,
+    workspaceProfile: "FULL_CLINICAL",
   },
   paymentDetails: {},
   teamMembers: [],

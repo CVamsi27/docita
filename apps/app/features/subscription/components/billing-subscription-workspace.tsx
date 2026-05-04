@@ -24,7 +24,7 @@ import {
   TabsList,
   TabsTrigger,
 } from "@workspace/ui/components/tabs";
-import { Sparkles } from "lucide-react";
+import { Info, Sparkles } from "lucide-react";
 import { ContactSalesModal } from "@/features/dialogs/components/ContactSalesModalContainer";
 import { ComparisonTable } from "@/features/subscription/components/pricing/comparison-table";
 import { CurrentPlanCard } from "@/features/subscription/components/cards/current-plan-card";
@@ -44,6 +44,7 @@ import { useSubscription } from "@/hooks/api/use-settings";
 import {
   ANNUAL_DISCOUNT_PERCENT,
   TIER_PRICING_BY_CURRENCY,
+  isFrontDeskWorkspace,
   type SupportedCurrency,
   type TierName,
 } from "@workspace/types";
@@ -184,7 +185,8 @@ function starterMonthlyAccessTermMismatch(
 }
 
 export function BillingSubscriptionWorkspace() {
-  const { currentTier } = usePermissionStore();
+  const { currentTier, workspaceProfile } = usePermissionStore();
+  const isFrontDeskClinic = isFrontDeskWorkspace(workspaceProfile);
 
   const [showContactSalesModal, setShowContactSalesModal] = useState(false);
   const [showTierChangeDialog, setShowTierChangeDialog] = useState(false);
@@ -411,6 +413,25 @@ export function BillingSubscriptionWorkspace() {
               <span className="font-medium text-foreground">Compare plans</span>{" "}
               below for the full feature matrix.
             </p>
+            {isFrontDeskClinic ? (
+              <Alert className="mt-3 border-border">
+                <Info className="h-4 w-4" aria-hidden />
+                <AlertTitle>Commercial tier vs workspace profile</AlertTitle>
+                <AlertDescription className="text-[var(--fs-sm)] leading-relaxed">
+                  The plans below set subscription limits and pricing. Your
+                  facility is on a{" "}
+                  <span className="font-medium text-foreground">
+                    front desk (appointments and invoices)
+                  </span>{" "}
+                  workspace: clinical EHR modules stay off unless you move to a
+                  full clinical workspace. To change workspace type, use{" "}
+                  <span className="font-medium text-foreground">
+                    Contact sales
+                  </span>{" "}
+                  below so we can align billing and access safely.
+                </AlertDescription>
+              </Alert>
+            ) : null}
           </div>
           <div className="inline-flex shrink-0 items-center gap-1 self-start rounded-lg border bg-background p-1 sm:self-auto">
             <Button
@@ -467,7 +488,9 @@ export function BillingSubscriptionWorkspace() {
                 : 0;
             const overageParts = [
               overageRates?.appointmentRate > 0
-                ? `${currencySymbol}${overageRates.appointmentRate}/consult`
+                ? `${currencySymbol}${overageRates.appointmentRate}${
+                    isFrontDeskClinic ? "/appointment" : "/consult"
+                  }`
                 : null,
               overageRates?.userRate > 0
                 ? `${currencySymbol}${overageRates.userRate}/user`

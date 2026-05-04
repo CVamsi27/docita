@@ -21,6 +21,7 @@ import {
   type AppAccessTarget,
   type Feature,
   type UserRole,
+  type WorkspaceProfile,
 } from "@workspace/types";
 import { hasPermission, type Permission } from "@/lib/permissions";
 
@@ -74,6 +75,7 @@ function isInboxTabVisible(
   tab: InboxTabDef,
   role: UserRole | undefined,
   canAccessFeature: (feature: Feature) => boolean,
+  workspaceProfile: WorkspaceProfile,
 ): boolean {
   if (tab.requiredPermission) {
     if (!role || !hasPermission(role, tab.requiredPermission)) {
@@ -86,7 +88,7 @@ function isInboxTabVisible(
   if (tab.accessTarget) {
     return canAccessTarget(
       tab.accessTarget,
-      { role, canAccessFeature: canAccessFeature },
+      { role, canAccessFeature: canAccessFeature, workspaceProfile },
       "read",
     );
   }
@@ -98,13 +100,19 @@ function InboxContent() {
   const searchParams = useSearchParams();
   const { user } = useAuth();
   const canAccessFeature = usePermissionStore((s) => s.canAccess);
+  const workspaceProfile = usePermissionStore((s) => s.workspaceProfile);
 
   const visibleTabs = useMemo(
     () =>
       ALL_INBOX_TABS.filter((tab) =>
-        isInboxTabVisible(tab, user?.role as UserRole | undefined, canAccessFeature),
+        isInboxTabVisible(
+          tab,
+          user?.role as UserRole | undefined,
+          canAccessFeature,
+          workspaceProfile,
+        ),
       ),
-    [user?.role, canAccessFeature],
+    [user?.role, canAccessFeature, workspaceProfile],
   );
 
   const defaultTab = visibleTabs[0]?.value ?? "follow-ups";
