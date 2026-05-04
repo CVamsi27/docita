@@ -48,13 +48,14 @@ import {
 } from "@workspace/ui/components/form";
 import { Input } from "@workspace/ui/components/input";
 import { Textarea } from "@workspace/ui/components/textarea";
-import { CreditCard, Receipt, TrendingUp } from "lucide-react";
+import { CreditCard, Percent, Receipt, TrendingUp } from "lucide-react";
 import {
   GUIDED_SETUP_LIST_PRICE_BY_CURRENCY,
   recordInternalAdditionalChargeRequestSchema,
   type SupportedCurrency,
 } from "@workspace/types";
 import { useAuth } from "@/lib/auth";
+import { billingAPI, type PricingOfferRow } from "@/lib/api";
 import { client } from "@/lib/api-client";
 import { internalQueryKeys } from "@/lib/query-keys";
 import { useForm } from "react-hook-form";
@@ -93,6 +94,14 @@ interface PaymentFormData {
   amount: string;
   newTier: string;
   paymentNotes?: string;
+}
+
+interface PricingOfferFormData {
+  clinicId: string;
+  percentOff: string;
+  title: string;
+  validUntil: string;
+  notes: string;
 }
 
 interface AdditionalChargeFormData {
@@ -216,6 +225,55 @@ export default function PaymentProcessingPage() {
       paymentMethod: "manual",
       razorpayPaymentId: "",
       notes: "",
+    },
+  });
+
+  const pricingOfferForm = useForm<PricingOfferFormData>({
+    defaultValues: {
+      clinicId: "",
+      percentOff: "10",
+      title: "Commercial discount",
+      validUntil: "",
+      notes: "",
+    },
+  });
+
+  const pricingOffersQuery = useQuery({
+    queryKey: internalQueryKeys.internal.billingPricingOffers(),
+    queryFn: () => billingAPI.getPricingOffers(),
+    enabled: Boolean(isInternal && token),
+  });
+
+  const savePricingOfferMutation = useMutation({
+    mutationFn: (payload: {
+      clinicId: string;
+      title: string;
+      percentOff: number;
+      validUntil?: string;
+      notes?: string;
+    }) => billingAPI.upsertPricingOffer(payload.clinicId, payload),
+    onSuccess: async () => {
+      toast.success("Checkout discount saved");
+      pricingOfferForm.reset({
+        clinicId: "",
+        percentOff: "10",
+        title: "Commercial discount",
+        validUntil: "",
+        notes: "",
+      });
+      await queryClient.invalidateQueries({
+        queryKey: internalQueryKeys.internal.billingPricingOffers(),
+      });
+    },
+  });
+
+  const deletePricingOfferMutation = useMutation({
+    mutationFn: (clinicId: string) => billingAPI.deletePricingOffer(clinicId),
+    onSuccess: async () => {
+      toast.success("Checkout discount removed");
+      await queryClient.invalidateQueries({
+        queryKey: internalQueryKeys.internal.billingPricingOffers(),
+      });
     },
   });
 
@@ -375,6 +433,31 @@ export default function PaymentProcessingPage() {
       );
     }
   };
+
+  const onSavePricingOffer = pricingOfferForm.handleSubmit(async (data) => {
+    const percent = Number.parseFloat(data.percentOff);
+    if (!Number.isFinite(percent) || percent < 0 || percent > 95) {
+      showUserFacingErrorToast(
+        "Percent off must be a number between 0 and 95.",
+      );
+      return;
+    }
+    if (!data.clinicId) {
+      showUserFacingErrorToast("Select a facility.");
+      return;
+    }
+    try {
+      await savePricingOfferMutation.mutateAsync({
+        clinicId: data.clinicId,
+        title: data.title.trim() || "Commercial discount",
+        percentOff: percent,
+        validUntil: data.validUntil.trim() || undefined,
+        notes: data.notes.trim() || undefined,
+      });
+    } catch {
+      showUserFacingErrorToast("Could not save checkout discount.");
+    }
+  });
 
   const getTierBadgeColor = (tier: string) => {
     const colors: Record<string, string> = {
@@ -561,6 +644,206 @@ export default function PaymentProcessingPage() {
                   </TableBody>
                 </Table>
               )}
+            </CardContent>
+          </Card>
+
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <Percent className="h-5 w-5" aria-hidden />
+                Checkout discounts (subscription)
+              </CardTitle>
+              <CardDescription>
+                Apply a percent-off offer to the facility&apos;s next
+                subscription checkout (Razorpay). Separate from add-on charges.
+                Remove the offer when it should no longer apply.
+              </CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-6">
+              {pricingOffersQuery.isLoading ? (
+                <div className="flex justify-center py-6" role="status">
+                  <DocitaLoadingIndicator
+                    variant="section"
+                    withStatusRole={false}
+                    iconClassName="h-6 w-6 text-muted-foreground"
+                  />
+                </div>
+              ) : (pricingOffersQuery.data ?? []).length > 0 ? (
+                <Table>
+                  <TableHeader>
+                    <TableRow>
+                      <TableHead>Facility</TableHead>
+                      <TableHead>Title</TableHead>
+                      <TableHead>Percent off</TableHead>
+                      <TableHead>Valid until</TableHead>
+                      <TableHead className="w-[100px]">Actions</TableHead>
+                    </TableRow>
+                  </TableHeader>
+                  <TableBody>
+                    {(pricingOffersQuery.data ?? []).map(
+                      (row: PricingOfferRow) => (
+                        <TableRow key={row.id}>
+                          <TableCell className="font-medium">
+                            {row.clinic?.name ?? row.clinicId}
+                          </TableCell>
+                          <TableCell className="text-sm">{row.title}</TableCell>
+                          <TableCell className="tabular-nums">
+                            {row.percentOff}%
+                          </TableCell>
+                          <TableCell className="text-sm text-muted-foreground">
+                            {row.validUntil ?? "—"}
+                          </TableCell>
+                          <TableCell>
+                            <Button
+                              type="button"
+                              size="sm"
+                              variant="outline"
+                              disabled={deletePricingOfferMutation.isPending}
+                              onClick={async () => {
+                                try {
+                                  await deletePricingOfferMutation.mutateAsync(
+                                    row.clinicId,
+                                  );
+                                } catch {
+                                  showUserFacingErrorToast(
+                                    "Could not remove checkout discount.",
+                                  );
+                                }
+                              }}
+                            >
+                              Remove
+                            </Button>
+                          </TableCell>
+                        </TableRow>
+                      ),
+                    )}
+                  </TableBody>
+                </Table>
+              ) : (
+                <p className="text-sm text-muted-foreground">
+                  No active checkout discounts.
+                </p>
+              )}
+
+              <Form {...pricingOfferForm}>
+                <form
+                  onSubmit={onSavePricingOffer}
+                  className="space-y-4 border-t border-border/60 pt-4"
+                  noValidate
+                >
+                  <FormField
+                    control={pricingOfferForm.control}
+                    name="clinicId"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Facility</FormLabel>
+                        <Select
+                          value={field.value}
+                          onValueChange={field.onChange}
+                        >
+                          <FormControl>
+                            <SelectTrigger>
+                              <SelectValue placeholder="Select facility" />
+                            </SelectTrigger>
+                          </FormControl>
+                          <SelectContent>
+                            {clinics.map((c) => (
+                              <SelectItem key={c.id} value={c.id}>
+                                {c.name}
+                              </SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                  <FormField
+                    control={pricingOfferForm.control}
+                    name="percentOff"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Percent off checkout</FormLabel>
+                        <FormControl>
+                          <Input
+                            type="number"
+                            inputMode="decimal"
+                            min={0}
+                            max={95}
+                            step={1}
+                            placeholder="Enter percent"
+                            {...field}
+                          />
+                        </FormControl>
+                        <FormDescription>
+                          Applied to list price at subscription checkout (max 95).
+                        </FormDescription>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                  <FormField
+                    control={pricingOfferForm.control}
+                    name="title"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Title</FormLabel>
+                        <FormControl>
+                          <Input placeholder="Commercial discount" {...field} />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                  <FormField
+                    control={pricingOfferForm.control}
+                    name="validUntil"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Valid until (optional)</FormLabel>
+                        <FormControl>
+                          <Input type="date" {...field} />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                  <FormField
+                    control={pricingOfferForm.control}
+                    name="notes"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Internal notes (optional)</FormLabel>
+                        <FormControl>
+                          <Textarea
+                            placeholder="Reason for discount, approval ref, etc."
+                            className="min-h-[80px]"
+                            {...field}
+                          />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                  <div className="flex justify-end">
+                    <Button
+                      type="submit"
+                      disabled={savePricingOfferMutation.isPending}
+                    >
+                      {savePricingOfferMutation.isPending && (
+                        <DocitaLoadingIndicator
+                          variant="inline"
+                          decorative
+                          className="mr-2"
+                        />
+                      )}
+                      {savePricingOfferMutation.isPending
+                        ? "Saving…"
+                        : "Save discount"}
+                    </Button>
+                  </div>
+                </form>
+              </Form>
             </CardContent>
           </Card>
         </>
@@ -824,6 +1107,9 @@ export default function PaymentProcessingPage() {
                           Custom training
                         </SelectItem>
                         <SelectItem value="INTEGRATION">Integration</SelectItem>
+                        <SelectItem value="COMMERCIAL_DISCOUNT">
+                          Commercial discount / adjustment
+                        </SelectItem>
                         <SelectItem value="OTHER">Other service</SelectItem>
                       </SelectContent>
                     </Select>

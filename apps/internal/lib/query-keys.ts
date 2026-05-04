@@ -44,6 +44,8 @@ export const internalQueryKeys = {
     tenantScopeDiagnostics: () =>
       ["internal", "operations", "database", "tenant-scope"] as const,
     pricingTiers: () => ["internal", "pricing", "tiers"] as const,
+    billingPricingOffers: () =>
+      ["internal", "billing", "pricing", "offers"] as const,
     clinicDoctors: (clinicId: string) =>
       ["internal", "clinics", clinicId, "doctors"] as const,
     clinicAdmins: (clinicId: string) =>

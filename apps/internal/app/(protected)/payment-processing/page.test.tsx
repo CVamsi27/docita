@@ -13,6 +13,8 @@ import PaymentProcessingPage from "./page";
 const clientMocks = vi.hoisted(() => ({
   get: vi.fn(),
   post: vi.fn(),
+  put: vi.fn(),
+  delete: vi.fn(),
 }));
 const toastSuccessMock = vi.hoisted(() => vi.fn());
 const showUserFacingErrorToastMock = vi.hoisted(() => vi.fn());
@@ -91,6 +93,8 @@ describe("PaymentProcessingPage", () => {
   beforeEach(() => {
     clientMocks.get.mockReset();
     clientMocks.post.mockReset();
+    clientMocks.put.mockReset();
+    clientMocks.delete.mockReset();
     toastSuccessMock.mockReset();
     showUserFacingErrorToastMock.mockReset();
 
@@ -100,6 +104,9 @@ describe("PaymentProcessingPage", () => {
       }
       if (url === "/internal/tier-pricing") {
         return Promise.resolve({ tiers: tierPricing });
+      }
+      if (url === "/internal/billing/pricing/offers") {
+        return Promise.resolve([]);
       }
       if (url === "/internal/clinics/clinic_1/tier-info") {
         return Promise.resolve({
@@ -116,6 +123,8 @@ describe("PaymentProcessingPage", () => {
       return Promise.reject(new Error(`Unexpected GET ${url}`));
     });
     clientMocks.post.mockResolvedValue({});
+    clientMocks.put.mockResolvedValue({});
+    clientMocks.delete.mockResolvedValue(undefined);
   });
 
   afterEach(() => {
@@ -127,7 +136,9 @@ describe("PaymentProcessingPage", () => {
 
     renderWithQueryClient(<PaymentProcessingPage />);
 
-    expect(await screen.findByText("Care Clinic")).toBeInTheDocument();
+    expect((await screen.findAllByText("Care Clinic")).length).toBeGreaterThan(
+      0,
+    );
     fireEvent.click(
       screen.getByRole("button", { name: /Manage plan payment/i }),
     );
@@ -164,7 +175,9 @@ describe("PaymentProcessingPage", () => {
   it("records an add-on charge without changing tier", async () => {
     renderWithQueryClient(<PaymentProcessingPage />);
 
-    expect(await screen.findByText("Care Clinic")).toBeInTheDocument();
+    expect((await screen.findAllByText("Care Clinic")).length).toBeGreaterThan(
+      0,
+    );
     fireEvent.click(screen.getByRole("button", { name: /Add-on charge/i }));
 
     const dialog = await screen.findByRole("dialog", {
@@ -198,6 +211,9 @@ describe("PaymentProcessingPage", () => {
       if (url === "/internal/tier-pricing") {
         return Promise.resolve({ tiers: tierPricing });
       }
+      if (url === "/internal/billing/pricing/offers") {
+        return Promise.resolve([]);
+      }
       return Promise.reject(new Error(`Unexpected GET ${url}`));
     });
 
@@ -213,6 +229,9 @@ describe("PaymentProcessingPage", () => {
       }
       if (url === "/internal/tier-pricing") {
         return Promise.resolve({ tiers: tierPricing });
+      }
+      if (url === "/internal/billing/pricing/offers") {
+        return Promise.resolve([]);
       }
       if (url === "/internal/clinics/clinic_1/tier-info") {
         return Promise.reject(new Error("Tier info unavailable"));
