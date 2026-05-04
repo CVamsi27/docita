@@ -44,6 +44,7 @@ model Clinic {
   customFields          CustomField[]
   doctorClinics         DoctorClinic[]
   doctorSchedules       DoctorSchedule[]
+  clinicWeeklySchedules ClinicWeeklySchedule[]
   doctorTimeOffs        DoctorTimeOff[]
   feedbacks             Feedback[]
   featureFlags          FeatureFlag[]
@@ -71,6 +72,24 @@ model Clinic {
   usageEvents           UsageEvent[]
   wards                 Ward[]
   facilityType          FacilityType           @default(CLINIC)
+}
+
+/// Default visit windows for the location; used when a doctor has no `DoctorSchedule` row for that weekday.
+model ClinicWeeklySchedule {
+  id           String    @id @default(cuid())
+  clinicId     String
+  dayOfWeek    DayOfWeek
+  startTime    String
+  endTime      String
+  slotDuration Int       @default(30)
+  isActive     Boolean   @default(true)
+  createdAt    DateTime  @default(now())
+  updatedAt    DateTime  @updatedAt
+  clinic       Clinic    @relation(fields: [clinicId], references: [id], onDelete: Cascade)
+
+  @@unique([clinicId, dayOfWeek])
+  @@index([clinicId])
+  @@index([clinicId, dayOfWeek, isActive])
 }
 
 // ============================================================================

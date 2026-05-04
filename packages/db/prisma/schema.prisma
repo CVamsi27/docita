@@ -224,6 +224,23 @@ model DoctorSchedule {
   @@index([clinicId, dayOfWeek, isActive], map: "DoctorSchedule_clinicId_dayOfWeek_isActive_idx")
 }
 
+model ClinicWeeklySchedule {
+  id           String    @id @default(cuid())
+  clinicId     String
+  dayOfWeek    DayOfWeek
+  startTime    String
+  endTime      String
+  slotDuration Int       @default(30)
+  isActive     Boolean   @default(true)
+  createdAt    DateTime  @default(now())
+  updatedAt    DateTime  @updatedAt
+  clinic       Clinic    @relation(fields: [clinicId], references: [id], onDelete: Cascade)
+
+  @@unique([clinicId, dayOfWeek])
+  @@index([clinicId])
+  @@index([clinicId, dayOfWeek, isActive])
+}
+
 model DoctorTimeOff {
   id        String   @id @default(cuid())
   doctorId  String
@@ -1007,6 +1024,7 @@ model Clinic {
   documents                Document[]
   doctorClinics            DoctorClinic[]
   doctorSchedules          DoctorSchedule[]
+  clinicWeeklySchedules    ClinicWeeklySchedule[]
   doctorTimeOffs           DoctorTimeOff[]
   feedbacks                Feedback[]
   feedbackFeatures         FeedbackFeature[]
