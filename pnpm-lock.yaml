@@ -646,6 +646,9 @@ importers:
 
   apps/landing:
     dependencies:
+      '@workspace/types':
+        specifier: workspace:*
+        version: link:../../packages/types
       '@workspace/ui':
         specifier: workspace:*
         version: link:../../packages/ui

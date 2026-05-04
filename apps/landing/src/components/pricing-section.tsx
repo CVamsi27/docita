@@ -7,6 +7,7 @@ import { Button } from "@workspace/ui/components/button";
 import { cn } from "@workspace/ui/lib/utils";
 
 import { FALLBACK_PRICING_CONFIG, formatTierPrice } from "@/lib/landing-data";
+import { WORKSPACE_PROFILE_MARKETING } from "@workspace/types";
 import {
   landingFadeUpVariants,
   landingInViewViewport,
@@ -183,6 +184,36 @@ export function PricingSection({ appUrl }: PricingSectionProps) {
             );
           })}
         </motion.div>
+
+        <motion.article
+          variants={cardVariant}
+          initial="hidden"
+          whileInView="visible"
+          viewport={landingInViewViewport}
+          className="r2-price-card mt-10 max-w-2xl border-primary/30 bg-primary/5"
+        >
+          <h3 className="text-lg font-semibold tracking-tight text-foreground">
+            {WORKSPACE_PROFILE_MARKETING.FRONT_DESK.headline}
+          </h3>
+          <p className="mt-2 text-sm leading-relaxed text-muted-foreground">
+            Same commercial tiers as above, but the product surface is limited to
+            scheduling, queue, patients, and invoicing. Pick this path when you do
+            not need the in-app consultation workspace or prescription tools.
+          </p>
+          <ul className="mt-3 space-y-1.5" role="list">
+            {WORKSPACE_PROFILE_MARKETING.FRONT_DESK.included.map((feature) => (
+              <li key={feature} className="r2-price-feature">
+                <span className="text-foreground">{feature}</span>
+              </li>
+            ))}
+          </ul>
+          <Button asChild className="mt-4 w-full max-w-sm gap-2" variant="outline">
+            <a href={`${appUrl}/onboarding?workspace=front_desk`}>
+              Start front desk setup
+              <ArrowRight className="h-4 w-4" />
+            </a>
+          </Button>
+        </motion.article>
 
         <div className="mt-8 flex flex-wrap items-center gap-4 rounded-2xl border border-border/60 bg-card px-5 py-4 text-sm text-muted-foreground sm:px-6">
           <Check className="h-4 w-4 shrink-0 text-success" aria-hidden />
