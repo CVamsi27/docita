@@ -18,6 +18,17 @@ describe("formatInvoiceDescriptionForDisplay", () => {
     });
   });
 
+  it("maps COMMERCIAL_DISCOUNT internal category", () => {
+    expect(
+      formatInvoiceDescriptionForDisplay(
+        "[INTERNAL:COMMERCIAL_DISCOUNT] Q1 promo",
+      ),
+    ).toEqual({
+      label: "Commercial discount",
+      detail: "Q1 promo",
+    });
+  });
+
   it("maps known INTERNAL categories to human labels and keeps detail", () => {
     expect(
       formatInvoiceDescriptionForDisplay(

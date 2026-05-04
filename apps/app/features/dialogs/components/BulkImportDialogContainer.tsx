@@ -1,7 +1,11 @@
 "use client";
 
-import { useState } from "react";
-import { useBulkImport, useBulkImportTemplate } from "@/hooks/api/use-import";
+import { useEffect, useState, useRef } from "react";
+import {
+  useBulkImport,
+  useBulkImportJobStatus,
+  useBulkImportTemplate,
+} from "@/hooks/api/use-import";
 import { showUserFacingErrorToast } from "@/lib/user-facing-errors";
 import {
   BulkImportDialogUI,
@@ -17,11 +21,58 @@ export function BulkImportDialogContainer({
   onOpenChange,
 }: BulkImportDialogContainerProps) {
   const [isOpen, setIsOpen] = useState(open ?? false);
+  const prevOpenRef = useRef(open);
+
+  useEffect(() => {
+    if (open !== undefined && open !== prevOpenRef.current) {
+      prevOpenRef.current = open;
+      setIsOpen(open);
+    }
+  }, [open]);
   const [step, setStep] = useState<BulkImportStep>("select");
   const [selectedEntity, setSelectedEntity] = useState<EntityType>("PATIENT");
   const [progress, setProgress] = useState(0);
+  const [activeJobId, setActiveJobId] = useState<string | null>(null);
+  const [jobSummary, setJobSummary] = useState<{
+    successRows: number;
+    failedRows: number;
+    totalRows: number;
+    status: string;
+  } | null>(null);
+
   const templateQuery = useBulkImportTemplate(selectedEntity);
   const importMutation = useBulkImport();
+  const jobStatusQuery = useBulkImportJobStatus(
+    step === "progress" ? activeJobId : null,
+  );
+
+  useEffect(() => {
+    if (step !== "progress" || !activeJobId || !jobStatusQuery.data) {
+      return;
+    }
+    const j = jobStatusQuery.data;
+    const pct =
+      j.totalRows > 0
+        ? Math.round((j.processedRows / j.totalRows) * 100)
+        : 0;
+    setProgress(Math.min(100, pct));
+
+    if (
+      j.status === "COMPLETED" ||
+      j.status === "FAILED" ||
+      j.status === "PARTIALLY_COMPLETED"
+    ) {
+      setProgress(100);
+      setJobSummary({
+        successRows: j.successRows,
+        failedRows: j.failedRows,
+        totalRows: j.totalRows,
+        status: j.status,
+      });
+      setStep("result");
+    }
+  }, [step, activeJobId, jobStatusQuery.data]);
+
   const openModal = () => {
     setIsOpen(true);
     onOpenChange?.(true);
@@ -30,6 +81,8 @@ export function BulkImportDialogContainer({
     setIsOpen(false);
     setStep("select");
     setProgress(0);
+    setActiveJobId(null);
+    setJobSummary(null);
     onOpenChange?.(false);
   };
   const handleDownloadTemplate = () => {
@@ -54,28 +107,18 @@ export function BulkImportDialogContainer({
     const file = e.target.files?.[0];
     if (!file) return;
     setStep("progress");
+    setProgress(0);
+    setJobSummary(null);
+    setActiveJobId(null);
     try {
       const buffer = await file.arrayBuffer();
-      await importMutation.mutateAsync({
+      const fileBase64 = Buffer.from(buffer).toString("base64");
+      const result = await importMutation.mutateAsync({
         entityType: selectedEntity,
         fileName: file.name,
-        fileBuffer: Buffer.from(buffer),
+        fileBase64,
       });
-      let currentProgress = 0;
-      const interval = setInterval(() => {
-        currentProgress += Math.random() * 30;
-        if (currentProgress >= 100) {
-          currentProgress = 100;
-          clearInterval(interval);
-          setProgress(100);
-        } else {
-          setProgress(Math.min(currentProgress, 99));
-        }
-      }, 500);
-      setTimeout(() => {
-        setProgress(100);
-        setStep("result");
-      }, 3000);
+      setActiveJobId(result.jobId);
     } catch (error) {
       showUserFacingErrorToast(
         error,
@@ -92,14 +135,21 @@ export function BulkImportDialogContainer({
       selectedEntity={selectedEntity}
       progress={progress}
       isLoadingTemplate={templateQuery.isLoading}
-      isImporting={importMutation.isPending}
+      isImporting={importMutation.isPending || step === "progress"}
+      hideTrigger={open !== undefined}
+      jobSummary={jobSummary}
       onOpen={openModal}
       onClose={closeModal}
       onSelectEntity={setSelectedEntity}
       onContinue={() => setStep("download")}
       onDownloadTemplate={handleDownloadTemplate}
       onFileUpload={handleFileUpload}
-      onImportAnother={() => setStep("select")}
+      onImportAnother={() => {
+        setStep("select");
+        setProgress(0);
+        setActiveJobId(null);
+        setJobSummary(null);
+      }}
     />
   );
 }

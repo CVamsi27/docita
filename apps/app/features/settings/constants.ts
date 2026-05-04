@@ -146,7 +146,7 @@ export const settingsTabs = [
         value: "danger-zone",
         label: "Danger Zone",
         icon: AlertTriangle,
-        description: "Sign out on this device",
+        description: "Sign out and account deletion",
       },
     ],
   },

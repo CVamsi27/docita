@@ -28,6 +28,7 @@ import { Sparkles } from "lucide-react";
 import { ContactSalesModal } from "@/features/dialogs/components/ContactSalesModalContainer";
 import { ComparisonTable } from "@/features/subscription/components/pricing/comparison-table";
 import { CurrentPlanCard } from "@/features/subscription/components/cards/current-plan-card";
+import { UsageDashboard } from "@/features/subscription/components/usage-dashboard";
 import { FaqSection } from "@/features/subscription/components/sections/faq-section";
 import { InvoiceHistoryDialog } from "@/features/subscription/components/dialogs/invoice-history-dialog";
 import { PaymentSuccessModal } from "@/features/subscription/components/modals/payment-success-modal";
@@ -52,7 +53,10 @@ import {
   getWhatsAppAddonPricingByCurrency,
 } from "@workspace/types";
 import { formatLocaleDateShortMonthYear } from "@/lib/formatters";
-import { SUBSCRIPTION_GST_INCLUSIVE_NOTICE } from "@/features/subscription/lib/billing-display-messages";
+import {
+  BILLING_USAGE_AND_OVERAGE_EXPLAINER,
+  SUBSCRIPTION_GST_INCLUSIVE_NOTICE,
+} from "@/features/subscription/lib/billing-display-messages";
 import { PLAN_ONBOARDING_KEY_HIGHLIGHTS } from "@/features/subscription/config/plan-onboarding-highlights";
 import { getDisplayBillingPeriodEndAndDaysLeft } from "@/features/subscription/lib/billing-period-display";
 
@@ -378,7 +382,14 @@ export function BillingSubscriptionWorkspace() {
         isUsageLoading={isUsageLoading}
         hasUsageError={!!usageError}
         statusNotice={currentPlanStatusNotice}
+        showWhatsAppUsageMeter={subscription?.tier !== "STARTER"}
       />
+
+      <p className="text-[var(--fs-2xs)] leading-snug text-muted-foreground max-w-prose">
+        {BILLING_USAGE_AND_OVERAGE_EXPLAINER}
+      </p>
+
+      <UsageDashboard />
 
       <div
         ref={plansRef}

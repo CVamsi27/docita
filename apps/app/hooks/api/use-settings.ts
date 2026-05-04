@@ -11,6 +11,8 @@ import {
   UpdateClinicSettingsRequest,
   UpdateDoctorRequest,
   UpdateProfileRequest,
+  type StaffAccountDeletionRequest,
+  type StaffAccountDeletionResponse,
   User,
   type AppClinicSettings,
   subscriptionCurrentResponseSchema,
@@ -382,3 +384,9 @@ export const useUpdateProfile = () =>
     { id: string; name?: string; email?: string },
     UpdateProfileRequest
   >("/users/profile", "PATCH");
+
+export const useRequestStaffAccountDeletion = () =>
+  useAPIMutation<
+    StaffAccountDeletionResponse,
+    StaffAccountDeletionRequest
+  >("/users/account/delete-request", "POST");

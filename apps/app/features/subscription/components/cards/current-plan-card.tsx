@@ -44,6 +44,8 @@ interface CurrentPlanCardProps {
     onAction?: () => void;
     variant?: "default" | "warning" | "destructive";
   };
+  /** When false, hides the WhatsApp usage row (e.g. Starter has no patient WhatsApp feature). */
+  showWhatsAppUsageMeter?: boolean;
 }
 
 const TIER_COLOR_MAP: Record<string, { gradient: string; badge: string }> = {
@@ -92,6 +94,7 @@ export function CurrentPlanCard({
   isUsageLoading,
   hasUsageError,
   statusNotice,
+  showWhatsAppUsageMeter = true,
 }: CurrentPlanCardProps) {
   const colors = TIER_COLOR_MAP[tierInfo.color] ?? TIER_COLOR_MAP["gray"]!;
   const statusNoticeClassName =
@@ -235,7 +238,10 @@ export function CurrentPlanCard({
             </p>
           ) : usage ? (
             <div className="mt-4 grid gap-4 lg:grid-cols-3">
-              {usageItems.map(({ key, label, unit }) => {
+              {(showWhatsAppUsageMeter
+                ? usageItems
+                : usageItems.filter((row) => row.key !== "whatsappMessages")
+              ).map(({ key, label, unit }) => {
                 const meter = usage.meters[key];
                 const noIncludedQuota = usageMeterHasNoIncludedQuota(
                   meter.included,

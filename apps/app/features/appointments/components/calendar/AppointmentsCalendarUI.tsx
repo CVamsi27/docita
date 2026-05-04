@@ -99,8 +99,8 @@ export function AppointmentsCalendarUI({
         )}
       </CardHeader>
 
-      <CardContent className="space-y-3 p-0 pb-4">
-        <div className="border-b border-border/40 px-4 pt-4">
+      <CardContent className="space-y-5 p-0 pb-2">
+        <div className="border-b border-border/40 pt-4">
           <Calendar
             mode="single"
             required
@@ -122,7 +122,7 @@ export function AppointmentsCalendarUI({
           />
         </div>
         {hasAnyMonthIndicators ? (
-          <div className="flex items-center gap-2 px-5 text-xs text-muted-foreground">
+          <div className="flex items-center gap-2 text-xs text-muted-foreground">
             <span
               className="relative inline-block size-6 shrink-0 rounded-md border border-border/70 bg-muted/30"
               aria-hidden

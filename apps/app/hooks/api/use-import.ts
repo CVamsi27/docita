@@ -1,4 +1,13 @@
-import { useAPIMutation, useAPIQuery } from "@/lib/api-core";
+import {
+  useAPIMutation,
+  useAPIQuery,
+} from "@/lib/api-core";
+import type {
+  BulkImportJobStatusResponse,
+  BulkImportStartResponse,
+  OcrImportCommitRequest,
+  OcrImportCommitResponse,
+} from "@workspace/types";
 
 export const useProcessOCR = () =>
   useAPIMutation<
@@ -6,6 +15,8 @@ export const useProcessOCR = () =>
       text?: string;
       documentType?: "PRESCRIPTION" | "CASE_SHEET" | "LAB_REPORT" | "GENERAL";
       confidence?: number;
+      method?: string;
+      message?: string;
       fields?: {
         firstName?: string;
         lastName?: string;
@@ -47,6 +58,12 @@ export const useProcessOCR = () =>
     FormData
   >("/imports/ocr/process", "POST");
 
+export const useOcrCommitImport = () =>
+  useAPIMutation<OcrImportCommitResponse, OcrImportCommitRequest>(
+    "/imports/ocr/commit",
+    "POST",
+  );
+
 export const useBulkImportTemplate = (entityType: string) =>
   useAPIQuery<{ template: string; format: string }>(
     ["import-template", entityType],
@@ -56,6 +73,27 @@ export const useBulkImportTemplate = (entityType: string) =>
 
 export const useBulkImport = () =>
   useAPIMutation<
-    { jobId: string; status: string; totalRows: number },
-    { entityType: string; fileName: string; fileBuffer: Buffer }
+    BulkImportStartResponse,
+    { entityType: string; fileName: string; fileBase64: string }
   >("/imports/bulk", "POST");
+
+export const useBulkImportJobStatus = (jobId: string | null) =>
+  useAPIQuery<BulkImportJobStatusResponse>(
+    ["bulk-import-job", jobId ?? ""],
+    `/imports/bulk/${jobId ?? "pending"}`,
+    {
+      enabled: !!jobId,
+      staleTime: 0,
+      refetchInterval: (query) => {
+        const status = query.state.data?.status;
+        if (
+          status === "COMPLETED" ||
+          status === "FAILED" ||
+          status === "PARTIALLY_COMPLETED"
+        ) {
+          return false;
+        }
+        return 1000;
+      },
+    },
+  );

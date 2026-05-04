@@ -3,6 +3,7 @@
 import { DocitaLoadingIndicator } from "@workspace/ui/components/docita-loading-indicator";
 
 import { useCurrentUsage } from "@/hooks/api/use-pricing";
+import { useSubscription } from "@/hooks/api/use-settings";
 import {
   PRICING_CURRENCY_CONFIG,
   PRICING_CURRENCY_SYMBOLS,
@@ -106,7 +107,9 @@ function UsageMeter({
 
 export function UsageDashboard() {
   const { usage, isLoading } = useCurrentUsage();
+  const { data: subscription } = useSubscription();
   const { currency, locale } = useClinicCurrency();
+  const showWhatsAppMeter = subscription?.tier !== "STARTER";
   const currencyCfg = PRICING_CURRENCY_CONFIG[currency as SupportedCurrency];
   const amountFractionDigits = currencyCfg?.decimalPlaces ?? 2;
   const amountLocale = currencyCfg?.locale ?? locale;
@@ -197,17 +200,24 @@ export function UsageDashboard() {
           amountLocale={amountLocale}
           amountFractionDigits={amountFractionDigits}
         />
-        <UsageMeter
-          label="WhatsApp Messages"
-          current={usage.meters.whatsappMessages.current}
-          included={usage.meters.whatsappMessages.included}
-          overage={usage.meters.whatsappMessages.overage}
-          unit="msgs"
-          overageRate={usage.rates.whatsappMessages}
-          currencySymbol={symbol}
-          amountLocale={amountLocale}
-          amountFractionDigits={amountFractionDigits}
-        />
+        {showWhatsAppMeter ? (
+          <UsageMeter
+            label="WhatsApp Messages"
+            current={usage.meters.whatsappMessages.current}
+            included={usage.meters.whatsappMessages.included}
+            overage={usage.meters.whatsappMessages.overage}
+            unit="msgs"
+            overageRate={usage.rates.whatsappMessages}
+            currencySymbol={symbol}
+            amountLocale={amountLocale}
+            amountFractionDigits={amountFractionDigits}
+          />
+        ) : (
+          <p className="text-[var(--fs-xs)] text-muted-foreground">
+            Patient WhatsApp messaging is not included on Starter. Upgrade to
+            Essential or higher to enable sends and message metering.
+          </p>
+        )}
         {totalOverageCost === 0 && (
           <p className="text-xs text-center text-muted-foreground pt-1">
             All usage within included quota — no overage charges.

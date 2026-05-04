@@ -5,6 +5,7 @@ export * from "./results/ocr-results";
 export * from "./sections/ocr-upload-section";
 export * from "./sections/OCRClinicalFindings";
 export * from "./sections/OCRHeader";
+export * from "./sections/OCRInvoiceDraft";
 export * from "./sections/OCRLabValues";
 export * from "./sections/OCRMedications";
 export * from "./sections/OCRPatientInfo";

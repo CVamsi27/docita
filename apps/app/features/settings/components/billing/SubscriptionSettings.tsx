@@ -29,7 +29,7 @@ import {
   AlertDescription,
   AlertTitle,
 } from "@workspace/ui/components/alert";
-import { AlertTriangle, Clock, XCircle } from "lucide-react";
+import { AlertTriangle, Clock, Info, XCircle } from "lucide-react";
 import { BillingHistoryTable } from "@/features/subscription/components/billing/BillingHistoryTable";
 import { getDisplayBillingPeriodEndAndDaysLeft } from "@/features/subscription/lib/billing-period-display";
 
@@ -38,6 +38,17 @@ function scrollToBillingPlans() {
     behavior: "smooth",
     block: "start",
   });
+}
+
+function isFreeStarterActive(
+  subscription: SubscriptionCurrentResponse | null | undefined,
+): boolean {
+  if (!subscription) return false;
+  return (
+    subscription.subscriptionStatus === "ACTIVE" &&
+    subscription.tier === "STARTER" &&
+    (subscription.basePriceCents ?? 0) === 0
+  );
 }
 
 function billingHistorySectionActions(
@@ -52,6 +63,14 @@ function billingHistorySectionActions(
   }
 
   const { subscriptionStatus: status } = subscription;
+
+  if (status === "ACTIVE" && isFreeStarterActive(subscription)) {
+    return (
+      <Button variant="outline" size="sm" onClick={scrollToBillingPlans}>
+        View paid plans
+      </Button>
+    );
+  }
 
   if (status === "EXPIRED") {
     return (
@@ -96,6 +115,10 @@ function billingHistorySectionDescription(
     return base;
   }
 
+  if (isFreeStarterActive(subscription)) {
+    return `${base}. Starter at no charge does not create subscription checkout rows, so this list stays empty until you upgrade and pay.`;
+  }
+
   if (subscription.subscriptionStatus === "TRIALING") {
     return `${base}. Add a payment method before the trial ends so renewals can generate invoices here.`;
   }
@@ -108,6 +131,10 @@ function billingHistoryEmptyDescription(
 ): string | undefined {
   if (!subscription) {
     return undefined;
+  }
+
+  if (isFreeStarterActive(subscription)) {
+    return "There is no subscription invoice for Starter at no charge. After you upgrade and complete Razorpay checkout, paid receipts will appear here.";
   }
 
   if (subscription.subscriptionStatus === "TRIALING") {
@@ -211,6 +238,7 @@ export function SubscriptionSettings() {
     subscriptionStatus === "PAYMENT_DUE" || subscriptionStatus === "PAST_DUE";
   const isExpired = subscriptionStatus === "EXPIRED";
   const isInGracePeriod = subscriptionStatus === "GRACE";
+  const freeStarterActive = isFreeStarterActive(subscription ?? undefined);
 
   return (
     <div className="space-y-6">
@@ -232,6 +260,27 @@ export function SubscriptionSettings() {
               className="shrink-0"
             >
               Add payment
+            </Button>
+          </AlertDescription>
+        </Alert>
+      ) : freeStarterActive ? (
+        <Alert className="border-border bg-muted/40">
+          <Info className="h-4 w-4 text-muted-foreground" aria-hidden />
+          <AlertTitle>Starter without a paid subscription</AlertTitle>
+          <AlertDescription className="flex flex-wrap items-center justify-between gap-3">
+            <span>
+              Your clinic is active on Starter at no charge, so there is no
+              Razorpay subscription receipt yet. Billing history only lists
+              completed subscription checkouts (and any one-off charges we record
+              for your clinic). Upgrade when you are ready for paid limits and
+              invoices here.
+            </span>
+            <Button
+              size="sm"
+              onClick={scrollToBillingPlans}
+              className="shrink-0"
+            >
+              View paid plans
             </Button>
           </AlertDescription>
         </Alert>
