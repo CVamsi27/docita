@@ -24,6 +24,7 @@ import {
   PrismaPaymentSessionRepository,
 } from './infrastructure/repositories';
 import {
+  DeskController,
   InvoicesController,
   PaymentsController,
   WebhooksController,
@@ -53,6 +54,7 @@ import { QueueModule } from '@/shared/modules/queue/queue.module';
   ],
   controllers: [
     InvoicesController,
+    DeskController,
     PaymentsController,
     WebhooksController,
     PricingController,

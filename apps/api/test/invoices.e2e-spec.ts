@@ -234,4 +234,57 @@ describe('Invoices (e2e)', () => {
       expect(response.body.status).toBe('CANCELLED');
     });
   });
+
+  describe('POST /desk/invoices/:invoiceId/settlement', () => {
+    it('returns 403 for doctor (desk settlement is reception / admin only)', async () => {
+      const createRes = await postInvoice(app.getHttpServer(), token, {
+        patientId,
+        items: [{ description: 'Consultation', quantity: 1, price: 500 }],
+        status: 'PENDING',
+        total: 500,
+      }).expect(201);
+
+      await request(app.getHttpServer())
+        .post(`/desk/invoices/${createRes.body.id}/settlement`)
+        .set('Authorization', `Bearer ${token}`)
+        .send({ paymentMethod: 'CASH' })
+        .expect(403);
+    });
+
+    it('records desk settlement for receptionist', async () => {
+      const createRes = await postInvoice(app.getHttpServer(), token, {
+        patientId,
+        items: [{ description: 'Consultation', quantity: 1, price: 500 }],
+        status: 'PENDING',
+        total: 500,
+      }).expect(201);
+
+      const invoiceId = createRes.body.id;
+
+      const { user: receptionist, plainPassword } = await factories.user({
+        clinicId,
+        role: 'RECEPTIONIST',
+      });
+
+      const loginRes = await request(app.getHttpServer())
+        .post('/auth/login')
+        .send({ email: receptionist.email, password: plainPassword })
+        .expect(201);
+
+      const receptionistToken = loginRes.body.access_token as string;
+
+      const settleRes = await request(app.getHttpServer())
+        .post(`/desk/invoices/${invoiceId}/settlement`)
+        .set('Authorization', `Bearer ${receptionistToken}`)
+        .send({ paymentMethod: 'CASH', reference: 'RRN-1' })
+        .expect(201);
+
+      expect(settleRes.body.success).toBe(true);
+
+      const invoice = await prisma.invoice.findUnique({
+        where: { id: invoiceId },
+      });
+      expect(invoice?.status).toBe('PAID');
+    });
+  });
 });

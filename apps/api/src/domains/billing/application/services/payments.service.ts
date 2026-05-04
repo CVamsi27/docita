@@ -220,6 +220,7 @@ export class PaymentsService {
     paymentMethod: string;
     amount?: number;
     notes?: string;
+    reference?: string;
   }) {
     const invoice = await this.invoiceRepository.findById(
       data.invoiceId,
@@ -229,17 +230,29 @@ export class PaymentsService {
       throw new NotFoundException('Invoice not found');
     }
 
-    await this.invoiceRepository.update(
-      invoice.id,
-      { status: InvoiceStatus.PAID },
-      data.clinicId,
-    );
-
     if (!invoice.patientId) {
       throw new BadRequestException(
         'Cannot record manual payment: invoice is not linked to a patient',
       );
     }
+
+    if (
+      invoice.status === InvoiceStatus.PAID ||
+      invoice.status === InvoiceStatus.CANCELLED
+    ) {
+      throw new BadRequestException(
+        `Cannot record payment: invoice is already ${invoice.status}`,
+      );
+    }
+
+    const normalizedChannel =
+      data.paymentMethod === 'OTHER' ? 'OTHER_ONLINE' : data.paymentMethod;
+
+    await this.invoiceRepository.update(
+      invoice.id,
+      { status: InvoiceStatus.PAID },
+      data.clinicId,
+    );
 
     const resolvedAmount =
       typeof data.amount === 'number' && data.amount > 0
@@ -256,10 +269,12 @@ export class PaymentsService {
       status: PaymentSessionStatus.CAPTURED,
       expiresAt: new Date(),
       meta: {
-        method: data.paymentMethod,
+        channel: normalizedChannel,
+        method: normalizedChannel,
         performedBy: data.performedByUserId,
         amount: resolvedAmount,
         notes: data.notes,
+        reference: data.reference,
       },
     });
 

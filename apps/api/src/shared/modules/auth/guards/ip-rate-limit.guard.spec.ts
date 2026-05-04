@@ -46,6 +46,25 @@ describe('IpRateLimitGuard', () => {
     expect(request.clientIp).toBe('127.0.0.1');
   });
 
+  it('skips IP limiting when DOCITA_API_E2E is set', () => {
+    const previous = process.env.DOCITA_API_E2E;
+    process.env.DOCITA_API_E2E = 'true';
+    try {
+      const request = { headers: {} } as RequestWithClientIp;
+      service.getClientIp.mockReturnValue('127.0.0.1');
+
+      expect(guard.canActivate(createContext(request))).toBe(true);
+      expect(request.clientIp).toBe('127.0.0.1');
+      expect(service.checkRateLimit).not.toHaveBeenCalled();
+    } finally {
+      if (previous === undefined) {
+        delete process.env.DOCITA_API_E2E;
+      } else {
+        process.env.DOCITA_API_E2E = previous;
+      }
+    }
+  });
+
   it('throws blocked response when IP is currently banned', () => {
     service.getClientIp.mockReturnValue('127.0.0.2');
     service.checkRateLimit.mockReturnValue(false);
