@@ -12,6 +12,7 @@ import {
   APPOINTMENT_REPOSITORY_TOKEN,
 } from '@/domains/appointments/core/repositories/appointment.repository.interface';
 import type { PublicBookingSlotListEmptyReason } from '@workspace/types';
+import type { ClinicWeeklySchedule } from '@workspace/db';
 
 type DayOfWeek =
   | 'SUNDAY'
@@ -88,7 +89,7 @@ export class SlotGenerationService {
       );
 
     if (schedules.length === 0 && doctorId) {
-      const [clinicRows, doctorUser] = await Promise.all([
+      const [clinicRowsInitial, doctorUser] = await Promise.all([
         this.scheduleRepository.findClinicWeeklyForSlotGeneration({
           clinicId,
           dayOfWeek,
@@ -98,6 +99,19 @@ export class SlotGenerationService {
           select: { name: true, specialization: true },
         }),
       ]);
+
+      let clinicRows = clinicRowsInitial;
+      if (
+        clinicRows.length === 0 &&
+        doctorUser &&
+        !(await this.scheduleRepository.hasAnyClinicWeeklySchedule(clinicId))
+      ) {
+        clinicRows = this.implicitClinicWeeklyRowsForSlotFallback(
+          clinicId,
+          dayOfWeek,
+        );
+      }
+
       if (clinicRows.length > 0 && doctorUser) {
         const synthetic = clinicRows.map((row) => ({
           id: row.id,
@@ -193,6 +207,35 @@ export class SlotGenerationService {
     }
 
     return { slots: [], slotListEmptyReason: 'NO_SLOTS_IN_RANGE' };
+  }
+
+  /**
+   * If the clinic has no persisted weekly rows at all, mirror onboarding defaults
+   * (Mon–Fri 09:00–17:00, 30 minutes) so booking works for legacy data or before
+   * the ClinicWeeklySchedule table is populated. When any weekly row exists for
+   * the clinic, this path is not used (closed days stay closed).
+   */
+  private implicitClinicWeeklyRowsForSlotFallback(
+    clinicId: string,
+    dayOfWeek: DayOfWeek,
+  ): ClinicWeeklySchedule[] {
+    if (dayOfWeek === 'SATURDAY' || dayOfWeek === 'SUNDAY') {
+      return [];
+    }
+    const now = new Date();
+    return [
+      {
+        id: `implicit-clinic-weekly-${clinicId}-${dayOfWeek}`,
+        clinicId,
+        dayOfWeek: dayOfWeek as ClinicWeeklySchedule['dayOfWeek'],
+        startTime: '09:00',
+        endTime: '17:00',
+        slotDuration: 30,
+        isActive: true,
+        createdAt: now,
+        updatedAt: now,
+      },
+    ];
   }
 
   private async resolveClinicTimezone(clinicId: string): Promise<string> {

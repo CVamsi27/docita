@@ -100,6 +100,21 @@ export class PrismaDoctorScheduleRepository implements IDoctorScheduleRepository
     }
   }
 
+  async hasAnyClinicWeeklySchedule(clinicId: string): Promise<boolean> {
+    try {
+      const row = await this.getReadClient().clinicWeeklySchedule.findFirst({
+        where: { clinicId },
+        select: { id: true },
+      });
+      return row != null;
+    } catch (error) {
+      if (isPrismaTableDoesNotExistForModel(error, 'ClinicWeeklySchedule')) {
+        return false;
+      }
+      throw error;
+    }
+  }
+
   async createSchedule(data: Prisma.DoctorScheduleCreateInput) {
     return this.prisma.doctorSchedule.create({
       data,

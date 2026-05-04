@@ -47,6 +47,9 @@ export interface IDoctorScheduleRepository {
     dayOfWeek: string;
   }): Promise<ClinicWeeklySchedule[]>;
 
+  /** True when the clinic has at least one persisted clinic weekly row (any day). */
+  hasAnyClinicWeeklySchedule(clinicId: string): Promise<boolean>;
+
   createSchedule(
     data: Prisma.DoctorScheduleCreateInput,
   ): Promise<DoctorSchedule & { doctor: { id: string; name: string } }>;
