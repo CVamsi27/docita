@@ -2,6 +2,7 @@ import { Injectable } from '@nestjs/common';
 import { PrismaService } from '@/prisma/prisma.service';
 import {
   IUserRepository,
+  JwtValidationUserSnapshot,
   UserProfile,
 } from '@/domains/users/core/repositories/user.repository.interface';
 import { OnboardingStep } from '@workspace/db';
@@ -13,6 +14,23 @@ export class PrismaUserRepository implements IUserRepository {
   async findById(id: string) {
     return this.prisma.runUnrestricted(async () =>
       this.prisma.user.findUnique({ where: { id } }),
+    );
+  }
+
+  async findByIdForJwtValidation(
+    id: string,
+  ): Promise<JwtValidationUserSnapshot | null> {
+    return this.prisma.runUnrestricted(async () =>
+      this.prisma.user.findUnique({
+        where: { id },
+        select: {
+          id: true,
+          name: true,
+          clinicId: true,
+          emailVerified: true,
+          onboardingStep: true,
+        },
+      }),
     );
   }
 

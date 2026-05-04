@@ -2,19 +2,16 @@ import { Test, TestingModule } from '@nestjs/testing';
 import { UnauthorizedException } from '@nestjs/common';
 import { AppConfigService } from '@/shared/modules/config/app-configuration.service';
 import { JwtStrategy, extractJwtFromRequest } from './jwt.strategy';
-import { PrismaService } from '@/prisma/prisma.service';
 import { Role } from '@workspace/db';
 import type { Request } from 'express';
 import { beforeEach, describe, it, expect, jest } from '@jest/globals';
+import { USER_REPOSITORY_TOKEN } from '@/domains/users/core/repositories/user.repository.interface';
 
 describe('JwtStrategy', () => {
   let strategy: JwtStrategy;
-  let prisma: typeof mockPrisma;
 
   type MockUser = {
     id: string;
-    email: string;
-    role: string;
     name: string;
     clinicId: string | null;
     emailVerified: boolean;
@@ -26,17 +23,12 @@ describe('JwtStrategy', () => {
       | 'COMPLETED';
   };
 
-  const mockFindFirst = jest.fn() as jest.MockedFunction<
-    () => Promise<MockUser | null>
+  const mockFindByIdForJwtValidation = jest.fn() as jest.MockedFunction<
+    (id: string) => Promise<MockUser | null>
   >;
 
-  const mockPrisma = {
-    runUnrestricted: jest.fn(
-      async <T>(fn: () => Promise<T>): Promise<T> => fn(),
-    ) as jest.MockedFunction<<T>(fn: () => Promise<T>) => Promise<T>>,
-    user: {
-      findFirst: mockFindFirst,
-    },
+  const mockUserRepository = {
+    findByIdForJwtValidation: mockFindByIdForJwtValidation,
   };
 
   const mockAppConfigService = {
@@ -50,13 +42,15 @@ describe('JwtStrategy', () => {
     const module: TestingModule = await Test.createTestingModule({
       providers: [
         JwtStrategy,
-        { provide: PrismaService, useValue: mockPrisma },
+        {
+          provide: USER_REPOSITORY_TOKEN,
+          useValue: mockUserRepository,
+        },
         { provide: AppConfigService, useValue: mockAppConfigService },
       ],
     }).compile();
 
     strategy = module.get<JwtStrategy>(JwtStrategy);
-    prisma = mockPrisma;
   });
 
   const validPayload = {
@@ -69,8 +63,6 @@ describe('JwtStrategy', () => {
 
   const mockUser = {
     id: 'user-123',
-    email: 'test@docita.work',
-    role: 'ADMIN',
     name: 'Test Admin',
     clinicId: 'clinic-456',
     emailVerified: false,
@@ -88,7 +80,7 @@ describe('JwtStrategy', () => {
     });
 
     it('should return user data when valid payload is provided', async () => {
-      mockFindFirst.mockResolvedValue(mockUser);
+      mockFindByIdForJwtValidation.mockResolvedValue(mockUser);
 
       const result = await strategy.validate(validPayload);
 
@@ -106,16 +98,16 @@ describe('JwtStrategy', () => {
     });
 
     it('should query user profile from database', async () => {
-      mockFindFirst.mockResolvedValue(mockUser);
+      mockFindByIdForJwtValidation.mockResolvedValue(mockUser);
 
       await strategy.validate(validPayload);
 
-      expect(mockFindFirst).toHaveBeenCalledTimes(1);
-      expect(prisma.runUnrestricted).toHaveBeenCalledTimes(1);
+      expect(mockFindByIdForJwtValidation).toHaveBeenCalledTimes(1);
+      expect(mockFindByIdForJwtValidation).toHaveBeenCalledWith('user-123');
     });
 
     it('should throw UnauthorizedException when user is not found', async () => {
-      mockFindFirst.mockResolvedValue(null);
+      mockFindByIdForJwtValidation.mockResolvedValue(null);
 
       await expect(strategy.validate(validPayload)).rejects.toThrow(
         UnauthorizedException,
@@ -123,7 +115,7 @@ describe('JwtStrategy', () => {
     });
 
     it('should throw UnauthorizedException when user lookup fails', async () => {
-      mockFindFirst.mockRejectedValue(new Error('db unavailable'));
+      mockFindByIdForJwtValidation.mockRejectedValue(new Error('db unavailable'));
 
       await expect(strategy.validate(validPayload)).rejects.toThrow(
         UnauthorizedException,
@@ -135,7 +127,7 @@ describe('JwtStrategy', () => {
         ...mockUser,
         clinicId: 'different-clinic-id',
       };
-      mockFindFirst.mockResolvedValue(userWithDifferentClinic);
+      mockFindByIdForJwtValidation.mockResolvedValue(userWithDifferentClinic);
 
       const result = await strategy.validate(validPayload);
 
@@ -143,8 +135,8 @@ describe('JwtStrategy', () => {
     });
 
     it('should handle null clinicId for super admin users', async () => {
-      const internal = { ...mockUser, clinicId: null, role: 'INTERNAL' };
-      mockFindFirst.mockResolvedValue(internal);
+      const internal = { ...mockUser, clinicId: null };
+      mockFindByIdForJwtValidation.mockResolvedValue(internal);
 
       const payloadForInternal = {
         ...validPayload,
@@ -189,7 +181,10 @@ describe('JwtStrategy', () => {
         Test.createTestingModule({
           providers: [
             JwtStrategy,
-            { provide: PrismaService, useValue: mockPrisma },
+            {
+              provide: USER_REPOSITORY_TOKEN,
+              useValue: mockUserRepository,
+            },
             { provide: AppConfigService, useValue: noSecretConfig },
           ],
         }).compile(),

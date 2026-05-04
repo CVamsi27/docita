@@ -1,10 +1,18 @@
 import { ExtractJwt, Strategy } from 'passport-jwt';
 import { PassportStrategy } from '@nestjs/passport';
-import { Injectable, UnauthorizedException, Logger } from '@nestjs/common';
+import {
+  Inject,
+  Injectable,
+  UnauthorizedException,
+  Logger,
+} from '@nestjs/common';
 import { Role } from '@workspace/db';
-import { PrismaService } from '@/prisma/prisma.service';
 import { Request } from 'express';
 import { AppConfigService } from '@/shared/modules/config/app-configuration.service';
+import {
+  IUserRepository,
+  USER_REPOSITORY_TOKEN,
+} from '@/domains/users/core/repositories/user.repository.interface';
 
 interface JwtPayload {
   sub: string;
@@ -39,7 +47,8 @@ export class JwtStrategy extends PassportStrategy(Strategy) {
   private readonly logger = new Logger(JwtStrategy.name);
 
   constructor(
-    private prisma: PrismaService,
+    @Inject(USER_REPOSITORY_TOKEN)
+    private readonly userRepository: IUserRepository,
     private configService: AppConfigService,
   ) {
     const jwtSecret = configService.getJwtSecret();
@@ -61,19 +70,8 @@ export class JwtStrategy extends PassportStrategy(Strategy) {
     }
 
     try {
-      // Auth runs before TenantContextInterceptor; never read User under a
-      // stale AsyncLocalStorage tenant from another in-flight request.
-      const user = await this.prisma.runUnrestricted(() =>
-        this.prisma.user.findFirst({
-          where: { id: payload.sub },
-          select: {
-            id: true,
-            name: true,
-            clinicId: true,
-            emailVerified: true,
-            onboardingStep: true,
-          },
-        }),
+      const user = await this.userRepository.findByIdForJwtValidation(
+        payload.sub,
       );
 
       if (!user) {
