@@ -70,8 +70,8 @@ export function AppointmentsPageHeaderUI({
 
       <AddAppointmentDialog
         onAppointmentAdded={onAppointmentAdded}
-        {...(selectedDate && { selectedDate })}
-        {...(onAdjustSchedulingDate && { onAdjustSchedulingDate })}
+        selectedDate={selectedDate}
+        onAdjustSchedulingDate={onAdjustSchedulingDate}
         open={isAddDialogOpen}
         onOpenChange={onOpenChange}
         {...(preselectedPatientId && { preselectedPatientId })}

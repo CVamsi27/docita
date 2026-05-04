@@ -13,12 +13,18 @@ type CreateAppointmentInput = z.infer<typeof createAppointmentSchema>;
 import type { SelectOption } from "@/lib/app-config-context";
 
 import { Button } from "@workspace/ui/components/button";
-import { Form } from "@workspace/ui/components/form";
+import { Form, FormLabel } from "@workspace/ui/components/form";
 import { FormDialog } from "@workspace/ui/components/form-dialog";
+import {
+  IsoDatePickerField,
+  parseIsoDateToLocalDate,
+} from "@workspace/ui/components/iso-date-picker-field";
+import { formatPickerIsoDate } from "@workspace/utils";
 import { AppointmentFormFields } from "@/features/appointments/components/sections/add-dialog/AppointmentFormFields";
 import { PatientSelector } from "@/features/appointments/components/sections/add-dialog/PatientSelector";
 import { DoctorSelector } from "@/features/appointments/components/sections/add-dialog/DoctorSelector";
 import { TimeSlotPicker } from "@/features/appointments/components/sections/add-dialog/TimeSlotPicker";
+import type { SlotBlockingAppointment } from "@/features/appointments/lib/calendar-slot-local-iso";
 import { showUserFacingErrorToast } from "@/lib/user-facing-errors";
 
 interface AddAppointmentDialogUIProps {
@@ -43,8 +49,12 @@ interface AddAppointmentDialogUIProps {
   endHour: number;
   isResolvingDefaultSlot: boolean;
   selectedDate?: Date;
+  /** Updates the calendar day used for slot lookup (syncs with the appointments page date). */
+  onAdjustSchedulingDate?: (next: Date) => void;
   availabilitySlotsReady: boolean;
   availabilitySlots: AvailableSlot[];
+  clinicTimezone: string;
+  blockingAppointmentsForSlots: SlotBlockingAppointment[];
 }
 
 interface SectionHeaderProps {
@@ -82,8 +92,11 @@ export function AddAppointmentDialogUI({
   endHour,
   isResolvingDefaultSlot,
   selectedDate,
+  onAdjustSchedulingDate,
   availabilitySlotsReady,
   availabilitySlots,
+  clinicTimezone,
+  blockingAppointmentsForSlots,
 }: AddAppointmentDialogUIProps) {
   const doctorId = form.watch("doctorId");
   const handleSubmit = form.handleSubmit(
@@ -104,7 +117,7 @@ export function AddAppointmentDialogUI({
       open={open}
       onOpenChange={onOpenChange}
       title="Schedule Appointment"
-      description="Pick the patient, doctor, time, and visit type."
+      description="Pick the patient, doctor, date, time slot, and visit type."
       contentClassName="sm:max-w-[840px]"
     >
       <Form {...form}>
@@ -137,19 +150,43 @@ export function AddAppointmentDialogUI({
           <section className="space-y-4">
             <SectionHeader
               title="Schedule & type"
-              description="Keep the slot within clinic hours."
+              description="Choose the appointment date, then a start time slot (defaults to the next opening)."
             />
             <div className="grid grid-cols-1 gap-5 lg:grid-cols-2">
-              <TimeSlotPicker
-                form={form}
-                startHour={startHour}
-                endHour={endHour}
-                isResolvingDefaultSlot={isResolvingDefaultSlot}
-                selectedDate={selectedDate}
-                doctorId={doctorId}
-                availabilitySlotsReady={availabilitySlotsReady}
-                availabilitySlots={availabilitySlots}
-              />
+              <div className="space-y-4">
+                {selectedDate != null && onAdjustSchedulingDate ? (
+                  <div className="flex flex-col gap-2">
+                    <FormLabel htmlFor="add-appointment-schedule-date">
+                      Date
+                    </FormLabel>
+                    <IsoDatePickerField
+                      id="add-appointment-schedule-date"
+                      label=""
+                      showLabel={false}
+                      value={formatPickerIsoDate(selectedDate)}
+                      onChange={(iso) => {
+                        const next = parseIsoDateToLocalDate(iso);
+                        if (next) onAdjustSchedulingDate(next);
+                      }}
+                      placeholder="Select appointment date"
+                      triggerClassName="w-full max-w-none sm:w-full"
+                      disablePastDates
+                    />
+                  </div>
+                ) : null}
+                <TimeSlotPicker
+                  form={form}
+                  startHour={startHour}
+                  endHour={endHour}
+                  isResolvingDefaultSlot={isResolvingDefaultSlot}
+                  selectedDate={selectedDate}
+                  doctorId={doctorId}
+                  availabilitySlotsReady={availabilitySlotsReady}
+                  availabilitySlots={availabilitySlots}
+                  clinicTimezone={clinicTimezone}
+                  blockingAppointments={blockingAppointmentsForSlots}
+                />
+              </div>
               <AppointmentFormFields
                 form={form}
                 appointmentTypeOptions={appointmentTypeOptions}

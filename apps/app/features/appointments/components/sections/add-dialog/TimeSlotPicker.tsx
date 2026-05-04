@@ -18,7 +18,11 @@ import {
 import { DateTimePicker } from "@workspace/ui/components/date-time-picker";
 import { createAppointmentSchema, type AvailableSlot } from "@workspace/types";
 import { formatScheduleTime } from "@workspace/utils";
-import { calendarSlotTimeToLocalIso } from "@/features/appointments/lib/calendar-slot-local-iso";
+import {
+  calendarSlotTimeToLocalIso,
+  slotOccupiedByAppointments,
+  type SlotBlockingAppointment,
+} from "@/features/appointments/lib/calendar-slot-local-iso";
 
 type CreateAppointmentInput = z.infer<typeof createAppointmentSchema>;
 
@@ -32,6 +36,26 @@ interface TimeSlotPickerProps {
   doctorId?: string;
   availabilitySlotsReady?: boolean;
   availabilitySlots?: AvailableSlot[];
+  clinicTimezone: string;
+  blockingAppointments?: SlotBlockingAppointment[];
+}
+
+function slotSelectableForBooking(
+  selectedDate: Date,
+  slot: AvailableSlot,
+  doctorId: string,
+  clinicTimezone: string,
+  blockingAppointments: SlotBlockingAppointment[],
+): boolean {
+  if (slot.doctorId !== doctorId) return false;
+  if (!slot.isAvailable) return false;
+  return !slotOccupiedByAppointments(
+    selectedDate,
+    slot.time,
+    slot.endTime,
+    clinicTimezone,
+    blockingAppointments,
+  );
 }
 
 export function TimeSlotPicker({
@@ -43,28 +67,46 @@ export function TimeSlotPicker({
   doctorId,
   availabilitySlotsReady = false,
   availabilitySlots = [],
+  clinicTimezone,
+  blockingAppointments = [],
 }: TimeSlotPickerProps) {
   const todayStart = new Date();
   todayStart.setHours(0, 0, 0, 0);
 
+  /** Prefer API slot list whenever slots loaded — even if empty — so we never offer unfiltered times that ignore bookings. */
   const useApiSlotPicker = Boolean(
-    availabilitySlotsReady &&
-      selectedDate &&
-      doctorId &&
-      availabilitySlots.length > 0,
+    availabilitySlotsReady && selectedDate && doctorId,
   );
 
   const apiSlotOptions = useMemo(() => {
     if (!selectedDate || !doctorId) return [];
     return availabilitySlots
-      .filter((s) => s.doctorId === doctorId && s.isAvailable)
+      .filter((s) =>
+        slotSelectableForBooking(
+          selectedDate,
+          s,
+          doctorId,
+          clinicTimezone,
+          blockingAppointments,
+        ),
+      )
       .map((s) => ({
-        value: calendarSlotTimeToLocalIso(selectedDate, s.time),
-        endIso: calendarSlotTimeToLocalIso(selectedDate, s.endTime),
+        value: calendarSlotTimeToLocalIso(selectedDate, s.time, clinicTimezone),
+        endIso: calendarSlotTimeToLocalIso(
+          selectedDate,
+          s.endTime,
+          clinicTimezone,
+        ),
         label: `${formatScheduleTime(s.time)} – ${formatScheduleTime(s.endTime)}`,
       }))
       .sort((a, b) => a.value.localeCompare(b.value));
-  }, [availabilitySlots, doctorId, selectedDate]);
+  }, [
+    availabilitySlots,
+    blockingAppointments,
+    clinicTimezone,
+    doctorId,
+    selectedDate,
+  ]);
 
   if (useApiSlotPicker) {
     return (

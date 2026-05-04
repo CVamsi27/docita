@@ -3,6 +3,7 @@ import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { toast } from "sonner";
 import { Resolver, useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
+import { DEFAULT_TIMEZONE } from "@workspace/utils";
 import { usePatient, usePatients } from "@/hooks/api/use-patients";
 import {
   useDoctors,
@@ -10,7 +11,7 @@ import {
   useUnavailableDoctorIdsForDate,
   useDoctorAvailabilitySlots,
 } from "@/hooks/api/use-settings";
-import { useCreateAppointment } from "@/hooks/api/use-appointments";
+import { useAppointments, useCreateAppointment } from "@/hooks/api/use-appointments";
 import {
   Appointment,
   CreateAppointmentInput,
@@ -21,9 +22,11 @@ import { addDays, formatPickerIsoDate } from "@workspace/utils";
 import {
   calendarSlotTimeToLocalIso,
   defaultStartIsoForSelectedCalendarDay,
+  slotOccupiedByAppointments,
 } from "@/features/appointments/lib/calendar-slot-local-iso";
 import { useAppConfig } from "@/lib/app-config-context";
 import { useAuth } from "@/lib/auth-context";
+import { useClinic } from "@/lib/clinic-context";
 import { showUserFacingErrorToast } from "@/lib/user-facing-errors";
 
 interface UseAppointmentFormProps {
@@ -95,6 +98,12 @@ export function useAppointmentForm({
   );
 
   const queryClient = useQueryClient();
+  const { clinic } = useClinic();
+  const clinicTimezone = useMemo(
+    () => (clinic?.timezone?.trim() || DEFAULT_TIMEZONE) as string,
+    [clinic?.timezone],
+  );
+
   const { mutateAsync: createAppointment, isPending: loading } =
     useCreateAppointment();
   const { config } = useAppConfig();
@@ -110,6 +119,7 @@ export function useAppointmentForm({
         selectedDate,
         startHour,
         endHour,
+        clinicTimezone,
       );
     } else {
       const now = new Date();
@@ -168,6 +178,7 @@ export function useAppointmentForm({
     unavailableIds,
     startHour,
     endHour,
+    clinicTimezone,
   ]);
 
   const form = useForm<CreateAppointmentInput>({
@@ -202,6 +213,30 @@ export function useAppointmentForm({
   const { data: doctorSchedules = [] } = useDoctorSchedules(
     watchedDoctorId || undefined,
   );
+
+  const selectedDateKey = useMemo(
+    () => (selectedDate ? formatPickerIsoDate(selectedDate) : undefined),
+    [selectedDate],
+  );
+
+  const { data: dayAppointmentsResponse } = useAppointments(
+    open && selectedDateKey && watchedDoctorId
+      ? {
+          date: selectedDateKey,
+          doctorId: watchedDoctorId,
+          limit: 200,
+        }
+      : null,
+  );
+
+  const blockingAppointmentsForSlots = useMemo(() => {
+    const items = dayAppointmentsResponse?.items ?? [];
+    return items.map((a) => ({
+      startTime: a.startTime,
+      endTime: a.endTime,
+      status: a.status,
+    }));
+  }, [dayAppointmentsResponse?.items]);
 
   const {
     data: slots = [],
@@ -319,8 +354,20 @@ export function useAppointmentForm({
     const snapKey = `${watchedDoctorId}|${formatPickerIsoDate(selectedDate)}`;
     const doctorSlots = slots.filter((s) => s.doctorId === watchedDoctorId);
     const availableIsos = doctorSlots
-      .filter((s) => s.isAvailable)
-      .map((s) => calendarSlotTimeToLocalIso(selectedDate, s.time));
+      .filter(
+        (s) =>
+          s.isAvailable &&
+          !slotOccupiedByAppointments(
+            selectedDate,
+            s.time,
+            s.endTime,
+            clinicTimezone,
+            blockingAppointmentsForSlots,
+          ),
+      )
+      .map((s) =>
+        calendarSlotTimeToLocalIso(selectedDate, s.time, clinicTimezone),
+      );
 
     const currentRaw = form.getValues("startTime");
     const currentStr =
@@ -342,7 +389,16 @@ export function useAppointmentForm({
       return;
     }
 
-    const firstAvailable = doctorSlots.find((s) => s.isAvailable);
+    const firstAvailable = doctorSlots.find((s) => {
+      if (!s.isAvailable) return false;
+      return !slotOccupiedByAppointments(
+        selectedDate,
+        s.time,
+        s.endTime,
+        clinicTimezone,
+        blockingAppointmentsForSlots,
+      );
+    });
 
     if (firstAvailable) {
       autoAdvanceChainOriginStrRef.current = null;
@@ -352,10 +408,12 @@ export function useAppointmentForm({
       const nextIso = calendarSlotTimeToLocalIso(
         selectedDate,
         firstAvailable.time,
+        clinicTimezone,
       );
       const nextEndIso = calendarSlotTimeToLocalIso(
         selectedDate,
         firstAvailable.endTime,
+        clinicTimezone,
       );
       form.setValue("startTime", nextIso, {
         shouldDirty: false,
@@ -410,6 +468,8 @@ export function useAppointmentForm({
     slots,
     slotsQuerySuccess,
     slotsQueryError,
+    clinicTimezone,
+    blockingAppointmentsForSlots,
     form,
     onAdjustSchedulingDate,
   ]);
@@ -473,6 +533,8 @@ export function useAppointmentForm({
     isResolvingDefaultSlot,
     availabilitySlotsReady,
     availabilitySlots: slots,
+    clinicTimezone,
+    blockingAppointmentsForSlots,
     patients,
     patientsLoading,
     patientSearch,

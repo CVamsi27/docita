@@ -78,6 +78,8 @@ export function AddAppointmentDialogContainer({
     isResolvingDefaultSlot,
     availabilitySlotsReady,
     availabilitySlots,
+    clinicTimezone,
+    blockingAppointmentsForSlots,
     patients,
     patientsLoading,
     patientSearch,
@@ -117,6 +119,9 @@ export function AddAppointmentDialogContainer({
       selectedDate={selectedDate}
       availabilitySlotsReady={availabilitySlotsReady}
       availabilitySlots={availabilitySlots}
+      clinicTimezone={clinicTimezone}
+      blockingAppointmentsForSlots={blockingAppointmentsForSlots}
+      onAdjustSchedulingDate={onAdjustSchedulingDate}
     />
   );
 }
