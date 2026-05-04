@@ -1,12 +1,14 @@
 "use client";
 
 import { useMemo, useState } from "react";
+import { useSearchParams } from "next/navigation";
 import { Pill } from "lucide-react";
 import { AppPageScaffold } from "@workspace/ui/components/app-page-scaffold";
 import { PageHeader } from "@workspace/ui/components/page-header";
 import { EmptyState } from "@workspace/ui/components/empty-state";
 import {
   useDownloadPrescriptionPDF,
+  usePatientPrescriptions,
   usePrescriptions,
 } from "@/hooks/api/use-clinical";
 import { FeatureGate } from "@/features/_shared/components/auth/feature-gate";
@@ -14,6 +16,8 @@ import { Feature } from "@/lib/stores/permission-store";
 import { useDebounce } from "@workspace/hooks/use-debounce";
 
 import { SUBSCRIPTION_SETTINGS_PATH } from "@/lib/subscription-settings-path";
+import { useAuth } from "@/lib/auth-context";
+import { getLocalCalendarDateString } from "@/lib/local-calendar-date";
 import { PrescriptionsFilters } from "@/features/prescriptions/components/list/PrescriptionsFilters";
 import {
   PrescriptionsTable,
@@ -22,11 +26,28 @@ import {
 } from "@/features/prescriptions/components/list/PrescriptionsTable";
 
 export default function PrescriptionsPage() {
+  const searchParams = useSearchParams();
+  const patientIdFromUrl = searchParams.get("patientId") ?? "";
+  const { user } = useAuth();
+  const isDoctorRole =
+    user?.role === "DOCTOR" || user?.role === "ADMIN_DOCTOR";
+  const patientScoped = patientIdFromUrl.length > 0;
+  const todayLocal = getLocalCalendarDateString();
   const [searchQuery, setSearchQuery] = useState("");
   const debouncedSearch = useDebounce(searchQuery, 300);
-  const { data: prescriptions = [], isLoading: loading } = usePrescriptions({
-    search: debouncedSearch,
-  });
+  const { data: clinicPrescriptions = [], isLoading: clinicLoading } =
+    usePrescriptions(
+      {
+        search: debouncedSearch || undefined,
+        ...(isDoctorRole && !patientScoped ? { date: todayLocal } : {}),
+      },
+      { enabled: !patientScoped },
+    );
+  const { data: patientPrescriptions = [], isLoading: patientLoading } =
+    usePatientPrescriptions(patientIdFromUrl, { limit: 100 }, {
+      enabled: patientScoped,
+    });
+  const loading = patientScoped ? patientLoading : clinicLoading;
   const [sortConfig, setSortConfig] = useState<{
     key: SortKey;
     direction: SortDirection;
@@ -43,6 +64,28 @@ export default function PrescriptionsPage() {
       direction: prev.key === key && prev.direction === "asc" ? "desc" : "asc",
     }));
   };
+
+  const prescriptions = useMemo(() => {
+    const rows = patientScoped ? patientPrescriptions : clinicPrescriptions;
+    const q = debouncedSearch.trim().toLowerCase();
+    if (!patientScoped || !q) {
+      return rows;
+    }
+    return rows.filter((p) => {
+      const name =
+        `${p.patient?.firstName ?? ""} ${p.patient?.lastName ?? ""}`.toLowerCase();
+      const dx = (p.diagnosis || "").toLowerCase();
+      const meds = (p.medications || [])
+        .map((m) => (m.name || "").toLowerCase())
+        .join(" ");
+      return name.includes(q) || dx.includes(q) || meds.includes(q);
+    });
+  }, [
+    patientScoped,
+    patientPrescriptions,
+    clinicPrescriptions,
+    debouncedSearch,
+  ]);
 
   const filteredAndSortedPrescriptions = useMemo(() => {
     const result = [...prescriptions];
@@ -102,7 +145,13 @@ export default function PrescriptionsPage() {
         header={
           <PageHeader
             title="Prescriptions"
-            description="View and manage all patient prescriptions."
+            description={
+              patientScoped
+                ? "Prescriptions for the patient from your link. Use search to narrow this list."
+                : isDoctorRole
+                  ? `Showing prescriptions dated today (${todayLocal}) for quick rounds. Add a patient filter from the consultation workspace when needed.`
+                  : "View and manage patient prescriptions."
+            }
           />
         }
       >

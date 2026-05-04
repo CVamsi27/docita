@@ -1,4 +1,4 @@
-import { useMutation } from "@tanstack/react-query";
+import { useMutation, type UseQueryOptions } from "@tanstack/react-query";
 import {
   CreateLabTestOrderRequest,
   CreatePrescriptionRequest,
@@ -18,10 +18,8 @@ import {
   UpdateTemplateRequest,
   VitalSign,
 } from "@workspace/types";
-import {
-  useAPIMutation,
-  useAPIQuery,
-} from "@/lib/api-core";
+import { useAPIMutation, useAPIQuery } from "@/lib/api-core";
+import type { ApiError } from "@/lib/errors";
 import { withQueryString } from "@/lib/http/query-string";
 import { api } from "@/lib/api-client";
 
@@ -44,13 +42,22 @@ export const useSaveVitals = (appointmentId: string) =>
     },
   );
 
-export const usePrescriptions = (filters?: {
-  search?: string;
-  date?: string;
-}) =>
-  useAPIQuery<(Prescription & { patient: Patient })[]>(
+type PrescriptionListRow = Prescription & { patient: Patient };
+
+export const usePrescriptions = (
+  filters?: {
+    search?: string;
+    date?: string;
+  },
+  options?: Omit<
+    UseQueryOptions<PrescriptionListRow[], ApiError>,
+    "queryKey" | "queryFn"
+  >,
+) =>
+  useAPIQuery<PrescriptionListRow[]>(
     ["prescriptions", filters || {}],
     withQueryString("/prescriptions", filters),
+    options,
   );
 
 export const usePatientPrescriptions = (

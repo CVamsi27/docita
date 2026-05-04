@@ -24,6 +24,7 @@ import {
   useClinicSettings,
 } from "@/hooks/api/use-settings";
 import { useState } from "react";
+import Link from "next/link";
 import { WhatsAppBroadcastDialog } from "@/features/dialogs/components/WhatsAppBroadcastDialogContainer";
 import { WhatsAppSettingsDialog } from "@/features/dialogs/components/WhatsAppSettingsDialogContainer";
 import { StatTile } from "@workspace/ui";
@@ -61,8 +62,8 @@ export default function WhatsAppPage() {
 
   const header = (
     <PageHeader
-      title="WhatsApp Integration"
-      description="Manage your facility's WhatsApp Business API settings and automation."
+      title="WhatsApp workspace"
+      description="Templates, consent posture, broadcasts, and per-patient threads — same workflow the front desk uses after visits."
       actions={
         <div className="flex flex-wrap gap-2">
           <Button
@@ -114,6 +115,48 @@ export default function WhatsAppPage() {
         ) : null}
 
         {!isLoading && !isError ? (
+        <div className="space-y-6">
+          <Card className="border-primary/25 bg-primary/[0.04]">
+            <CardHeader>
+              <CardTitle className="text-base">What you can do here</CardTitle>
+              <CardDescription>
+                This page is for facility-level WhatsApp automation. For a
+                single patient thread, open the patient record and use
+                Communication.
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              <ul className="space-y-2 text-sm text-muted-foreground">
+                <li className="flex gap-2">
+                  <span className="font-medium text-foreground">Templates</span>
+                  <span>
+                    Appointment reminders, follow-ups, birthdays — toggles below
+                    reflect your current automation.
+                  </span>
+                </li>
+                <li className="flex gap-2">
+                  <span className="font-medium text-foreground">Consent</span>
+                  <span>
+                    Patient opt-in is enforced before outbound sends; adjust in
+                    Manage Settings when your Meta integration is ready.
+                  </span>
+                </li>
+                <li className="flex gap-2">
+                  <span className="font-medium text-foreground">Inbox</span>
+                  <span>
+                    <Link
+                      className="font-medium text-primary underline-offset-4 hover:underline"
+                      href="/patients"
+                    >
+                      Patients
+                    </Link>{" "}
+                    → open a profile → Communication tab for the live thread.
+                  </span>
+                </li>
+              </ul>
+            </CardContent>
+          </Card>
+
         <div className="grid gap-4 sm:gap-6 md:grid-cols-2">
           <Card>
             <CardHeader>
@@ -213,6 +256,7 @@ export default function WhatsAppPage() {
               </>
             }
           />
+        </div>
         </div>
         ) : null}
 

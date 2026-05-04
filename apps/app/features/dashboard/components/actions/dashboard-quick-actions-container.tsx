@@ -1,7 +1,9 @@
 import {
   Calendar,
-  CalendarCheck,
   ClipboardList,
+  Files,
+  ListChecks,
+  MessageCircle,
   Receipt,
   UserPlus,
 } from "lucide-react";
@@ -22,18 +24,18 @@ export function DashboardQuickActionsContainer({
 
   const allActions = [
     {
+      href: "/consultation",
+      icon: ClipboardList,
+      label: "OPD queue",
+      shortLabel: "Queue",
+      feature: Feature.QUEUE_MANAGEMENT,
+    },
+    {
       href: "/patients?action=new",
       icon: UserPlus,
       label: "New Patient",
       shortLabel: "Patient",
       feature: Feature.BASIC_PATIENT_MANAGEMENT,
-    },
-    {
-      href: "/consultation",
-      icon: CalendarCheck,
-      label: "Today's Patients",
-      shortLabel: "Today",
-      feature: Feature.QUEUE_MANAGEMENT,
     },
     {
       href: "/appointments?action=new",
@@ -43,17 +45,31 @@ export function DashboardQuickActionsContainer({
       feature: Feature.CALENDAR_SLOTS,
     },
     {
+      href: "/documents",
+      icon: Files,
+      label: "Documents",
+      shortLabel: "Docs",
+      feature: Feature.DOCUMENT_ARCHIVAL,
+    },
+    {
+      href: "/whatsapp",
+      icon: MessageCircle,
+      label: "WhatsApp",
+      shortLabel: "WA",
+      feature: Feature.WHATSAPP_MESSAGING,
+    },
+    {
       href: "/coding-queue",
-      icon: ClipboardList,
-      label: "Queue",
-      shortLabel: "Queue",
+      icon: ListChecks,
+      label: "Coding queue",
+      shortLabel: "Coding",
       badge: pendingReports > 0 ? pendingReports : undefined,
       feature: Feature.MEDICAL_CODING,
     },
     {
       href: "/invoices",
       icon: Receipt,
-      label: "Invoice",
+      label: "Invoices",
       shortLabel: "Bill",
       feature: Feature.INVOICING,
     },
@@ -62,7 +78,7 @@ export function DashboardQuickActionsContainer({
   const quickActions: QuickAction[] = allActions
     .filter((action) => canAccess(action.feature))
     .map(({ feature: _feature, ...rest }) => rest)
-    .slice(0, 4);
+    .slice(0, 6);
 
   return <DashboardQuickActionsUI quickActions={quickActions} />;
 }

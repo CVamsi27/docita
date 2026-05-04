@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import { useMemo } from "react";
 import { usePatientPortalDashboard } from "@/hooks/api/use-patient-portal";
 import { usePatientConsentSettings } from "@/hooks/api/use-patient-portal";
 import { AppPageScaffold } from "@workspace/ui/components/app-page-scaffold";
@@ -13,7 +14,19 @@ import {
 import { Button } from "@workspace/ui/components/button";
 import { DataState } from "@workspace/ui/components/data-state";
 import { PageHeader } from "@workspace/ui/components/page-header";
-import { Calendar, FileText, Receipt } from "lucide-react";
+import { MicroLabel } from "@workspace/ui/components/micro-label";
+import {
+  CalendarCheck,
+  Calendar,
+  FileText,
+  Receipt,
+  ShieldCheck,
+} from "lucide-react";
+import { formatDate } from "@/lib/formatters";
+
+function pickString(v: unknown): string | undefined {
+  return typeof v === "string" && v.trim() ? v : undefined;
+}
 
 export default function PortalDashboardPage() {
   const {
@@ -25,19 +38,88 @@ export default function PortalDashboardPage() {
   const { data: consentSettings } = usePatientConsentSettings();
 
   const whatsappConsentStatus = consentSettings?.whatsappConsent
-    ? "Granted"
-    : "Not granted";
+    ? "WhatsApp granted"
+    : "WhatsApp not granted";
 
-  const dataStorageConsentStatus = consentSettings?.dataStorageConsent
-    ? "Granted"
-    : "Not granted";
+  const summaryRows = useMemo(() => {
+    if (!dashboard) return [];
+    const next = dashboard.upcomingAppointments?.[0] as
+      | Record<string, unknown>
+      | undefined;
+    const start = next?.["startTime"];
+    const doctor = (next?.["doctor"] as Record<string, unknown> | undefined)?.[
+      "name"
+    ];
+    const nextVisit =
+      typeof start === "string"
+        ? `Next visit · ${formatDate(start, "en-IN", {
+            weekday: "short",
+            month: "short",
+            day: "numeric",
+            hour: "2-digit",
+            minute: "2-digit",
+          })}${doctor ? ` · ${String(doctor)}` : ""}`
+        : dashboard.summary.upcomingAppointmentsCount > 0
+          ? `Next visit · ${dashboard.summary.upcomingAppointmentsCount} scheduled`
+          : "Next visit · None scheduled";
+
+    const rx = dashboard.activePrescriptions?.[0] as
+      | Record<string, unknown>
+      | undefined;
+    const meds = rx?.["medications"] as unknown[] | undefined;
+    const firstMed =
+      meds?.[0] && typeof meds[0] === "object" && meds[0] !== null
+        ? (meds[0] as Record<string, unknown>)["name"]
+        : undefined;
+    const rxLine =
+      typeof firstMed === "string"
+        ? `Prescription · ${firstMed}`
+        : dashboard.summary.activePrescriptionsCount > 0
+          ? `Prescriptions · ${dashboard.summary.activePrescriptionsCount} active`
+          : "Prescriptions · None on file";
+
+    const inv = dashboard.outstandingInvoices?.[0] as
+      | Record<string, unknown>
+      | undefined;
+    const invStatus = pickString(inv?.["status"]);
+    const total =
+      typeof inv?.["grandTotal"] === "number"
+        ? inv["grandTotal"]
+        : typeof inv?.["total"] === "number"
+          ? inv["total"]
+          : null;
+    const billLine =
+      total != null
+        ? `Receipt · ${total.toLocaleString("en-IN", { style: "currency", currency: "INR" })}${invStatus ? ` · ${invStatus}` : ""}`
+        : dashboard.summary.outstandingInvoicesCount > 0
+          ? `Bills · ${dashboard.summary.outstandingInvoicesCount} open`
+          : "Bills · Nothing outstanding";
+
+    return [
+      { icon: CalendarCheck, label: nextVisit, href: "/portal/appointments" },
+      { icon: FileText, label: rxLine, href: "/portal/prescriptions" },
+      { icon: Receipt, label: billLine, href: "/portal/billing" },
+    ];
+  }, [dashboard]);
+
+  const portalRows = useMemo(
+    () => [
+      ...summaryRows,
+      {
+        icon: ShieldCheck,
+        label: `Consent · ${whatsappConsentStatus}`,
+        href: "/portal/profile",
+      },
+    ],
+    [summaryRows, whatsappConsentStatus],
+  );
 
   return (
     <AppPageScaffold
       header={
         <PageHeader
           title="My Health Dashboard"
-          description="Track appointments, prescriptions, billing, and consent settings"
+          description="Appointments, prescriptions, bills, and consent — one portal surface."
         />
       }
     >
@@ -47,95 +129,97 @@ export default function PortalDashboardPage() {
         errorMessage="We could not load your health overview. Please try again."
         onRetry={() => void refetch()}
       >
-        <div className="grid gap-4 md:grid-cols-3">
-          <Card>
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">
-                Upcoming Appointments
-              </CardTitle>
-              <Calendar className="h-4 w-4 text-muted-foreground" />
-            </CardHeader>
-            <CardContent>
-              <div className="text-[var(--fs-2xl)] font-semibold tabular-nums leading-[var(--lh-tight)]">
-                {dashboard?.summary.upcomingAppointmentsCount || 0}
-              </div>
-            </CardContent>
-          </Card>
+        <Card className="border-primary/25 bg-primary/[0.04]">
+          <CardHeader className="pb-2">
+            <div className="flex items-center justify-between gap-3">
+              <MicroLabel as="p">Portal overview</MicroLabel>
+              <span
+                className="inline-flex h-1.5 w-1.5 shrink-0 rounded-full bg-success"
+                aria-hidden
+              />
+            </div>
+            <CardTitle className="text-base font-semibold text-foreground">
+              At a glance
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <ul className="space-y-2" role="list">
+              {portalRows.map((row, idx) => (
+                <li key={`${row.href}-${idx}`}>
+                  <Link
+                    href={row.href}
+                    className="flex items-center gap-2 rounded-md border border-border/40 bg-muted px-2.5 py-1.5 text-xs text-foreground transition-colors duration-150 hover:bg-muted/80"
+                  >
+                    <row.icon
+                      className="h-3.5 w-3.5 shrink-0 text-primary"
+                      aria-hidden
+                    />
+                    <span className="min-w-0 flex-1 truncate">{row.label}</span>
+                  </Link>
+                </li>
+              ))}
+            </ul>
+          </CardContent>
+        </Card>
 
-          <Card>
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">
-                Active Prescriptions
-              </CardTitle>
-              <FileText className="h-4 w-4 text-muted-foreground" />
-            </CardHeader>
-            <CardContent>
-              <div className="text-[var(--fs-2xl)] font-semibold tabular-nums leading-[var(--lh-tight)]">
-                {dashboard?.summary.activePrescriptionsCount || 0}
-              </div>
-            </CardContent>
-          </Card>
-
-          <Card>
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">
-                Outstanding Invoices
-              </CardTitle>
-              <Receipt className="h-4 w-4 text-muted-foreground" />
-            </CardHeader>
-            <CardContent>
-              <div className="text-[var(--fs-2xl)] font-semibold tabular-nums leading-[var(--lh-tight)]">
-                {dashboard?.summary.outstandingInvoicesCount || 0}
-              </div>
-            </CardContent>
-          </Card>
-        </div>
-
-        <Card>
+        <Card className="mt-6">
           <CardHeader>
-            <CardTitle className="text-base">Consent & Data Privacy</CardTitle>
+            <CardTitle className="text-base">Consent &amp; privacy</CardTitle>
           </CardHeader>
           <CardContent className="space-y-3">
-            <p className="ui-page-subtitle">
-              Review your consent form and privacy preferences.
+            <p className="ui-helper-text">
+              Review consent and messaging preferences any time.
             </p>
             <div className="grid gap-2 text-sm md:grid-cols-2">
               <p>
-                <span className="font-medium">WhatsApp Consent:</span>
-                <span className="ml-1">{whatsappConsentStatus}</span>
+                <span className="font-medium">WhatsApp:</span>
+                <span className="ml-1 text-muted-foreground">
+                  {whatsappConsentStatus}
+                </span>
               </p>
               <p>
-                <span className="font-medium">Data Storage Consent:</span>
-                <span className="ml-1">{dataStorageConsentStatus}</span>
+                <span className="font-medium">Data storage:</span>
+                <span className="ml-1 text-muted-foreground">
+                  {consentSettings?.dataStorageConsent ? "Granted" : "Not granted"}
+                </span>
               </p>
             </div>
-            <div className="flex gap-2">
+            <div className="flex flex-wrap gap-2">
               <Button variant="outline" size="sm" asChild>
-                <Link href="/portal/profile/consent-form">View Consent Form</Link>
+                <Link href="/portal/profile/consent-form">Consent form</Link>
               </Button>
               <Button variant="outline" size="sm" asChild>
-                <Link href="/portal/profile">Privacy Settings</Link>
+                <Link href="/portal/profile">Privacy settings</Link>
               </Button>
             </div>
           </CardContent>
         </Card>
 
-        <Card>
+        <Card className="mt-6">
           <CardHeader>
-            <CardTitle className="text-base">Quick Actions</CardTitle>
+            <CardTitle className="text-base">Quick actions</CardTitle>
           </CardHeader>
           <CardContent className="flex flex-wrap gap-2">
             <Button asChild variant="outline" size="sm">
-              <Link href="/portal/appointments">View Appointments</Link>
+              <Link href="/portal/appointments">
+                <Calendar className="mr-1.5 h-3.5 w-3.5" aria-hidden />
+                Appointments
+              </Link>
             </Button>
             <Button asChild variant="outline" size="sm">
-              <Link href="/portal/prescriptions">View Prescriptions</Link>
+              <Link href="/portal/prescriptions">
+                <FileText className="mr-1.5 h-3.5 w-3.5" aria-hidden />
+                Prescriptions
+              </Link>
             </Button>
             <Button asChild variant="outline" size="sm">
-              <Link href="/portal/billing">View Billing</Link>
+              <Link href="/portal/billing">
+                <Receipt className="mr-1.5 h-3.5 w-3.5" aria-hidden />
+                Billing
+              </Link>
             </Button>
             <Button asChild variant="outline" size="sm">
-              <Link href="/portal/history">Open Health History</Link>
+              <Link href="/portal/history">Visit history</Link>
             </Button>
           </CardContent>
         </Card>

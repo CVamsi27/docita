@@ -109,7 +109,7 @@ export default function TodayPage() {
       title="Today"
       description={
         summaryLine ??
-        "Run today’s shift: queue, schedule, and follow-ups in one place."
+        "Today board: appointments, documents, WhatsApp, and OPD tokens stay in one workspace — the live queue is on Consultation."
       }
       actions={headerActions}
     />

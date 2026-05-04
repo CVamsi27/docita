@@ -5,7 +5,14 @@ import { useRouter } from "next/navigation";
 import { useAuth, type User } from "@/lib/auth-context";
 import { formatLoginLockoutMessage } from "@/lib/auth-lockout";
 import { ApiValidationError } from "@/lib/api-error";
-import { checkEmailSchema, getUserFacingErrorMessage, passwordSchema } from "@workspace/types";
+import {
+  checkEmailSchema,
+  getUserFacingErrorMessage,
+  passwordSchema,
+  type UserRole,
+} from "@workspace/types";
+
+const ROLES_LAND_ON_CONSULTATION = new Set<UserRole>(["DOCTOR", "ADMIN_DOCTOR"]);
 import { PageTransitionLoader } from "@/components/common/loaders/page-transition-loader";
 import { AuthEmailStepUI } from "./AuthEmailStepUI";
 import { AuthLoginStepUI } from "./AuthLoginStepUI";
@@ -41,6 +48,10 @@ function getPostAuthPath(user: User): string {
       default:
         return "/choose-path";
     }
+  }
+
+  if (ROLES_LAND_ON_CONSULTATION.has(user.role as UserRole)) {
+    return "/consultation";
   }
 
   return "/today";

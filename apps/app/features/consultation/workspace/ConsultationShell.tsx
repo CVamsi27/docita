@@ -11,7 +11,15 @@ import {
 import { useParams, useRouter, useSearchParams } from "next/navigation";
 import { Button } from "@workspace/ui/components/button";
 import { cn } from "@workspace/ui/lib/utils";
-import { Command as CommandIcon, HeartPulse, Save } from "lucide-react";
+import {
+  ClipboardList,
+  Command as CommandIcon,
+  FileText,
+  FlaskConical,
+  HeartPulse,
+  Pill,
+  Save,
+} from "lucide-react";
 import { useConsultationDraft } from "@/features/consultation/state/useConsultationDraft";
 import { useConsultationHydrate } from "@/features/consultation/state/useConsultationHydrate";
 import { useConsultationAutosave } from "@/features/consultation/state/useConsultationAutosave";
@@ -42,11 +50,18 @@ import {
 } from "@/features/consultation/workspace/sections";
 import { ConsultationSidebarContainer } from "@/features/consultation/components/ConsultationSidebarContainer";
 import {
+  ConsultationAfterVisitStrip,
+  ConsultationVisitOverviewStrip,
+} from "@/features/consultation/components/ConsultationWorkspaceExtras";
+import {
   CLINIC_TYPE_FEATURES,
+  Feature,
   type Appointment,
   type ClinicType,
   type PatientWithMedicalHistory,
 } from "@workspace/types";
+import { usePermissions } from "@/hooks/use-permissions";
+import { usePermissionStore } from "@/lib/stores/permission-store";
 import { ConsultationWorkspaceProvider } from "@/features/consultation/workspace/consultation-workspace-context";
 
 interface ConsultationShellProps {
@@ -69,6 +84,9 @@ export function ConsultationShell({
   const router = useRouter();
   const searchParams = useSearchParams();
   const { openVitals } = useConsultationVitals();
+  const { canViewPrescriptions, canManageTemplates } = usePermissions();
+  const { canAccess } = usePermissionStore();
+  const patientLinkId = appointmentData.patientId ?? "";
 
   useConsultationHydrate({
     appointmentId,
@@ -354,6 +372,59 @@ export function ConsultationShell({
         };
       }),
       {
+        id: "nav-opd-queue",
+        label: "Back to OPD queue",
+        group: "Navigate",
+        icon: ClipboardList,
+        shortcut: "q",
+        onRun: () => {
+          void router.push("/consultation");
+        },
+      },
+      ...(patientLinkId && canViewPrescriptions
+        ? ([
+            {
+              id: "nav-patient-prescriptions",
+              label: "Patient prescriptions",
+              group: "Navigate" as const,
+              icon: Pill,
+              onRun: () => {
+                void router.push(
+                  `/prescriptions?patientId=${encodeURIComponent(patientLinkId)}`,
+                );
+              },
+            },
+          ] satisfies CommandPaletteAction[])
+        : []),
+      ...(patientLinkId && canAccess(Feature.LAB_TESTS)
+        ? ([
+            {
+              id: "nav-patient-labs",
+              label: "Patient lab tests",
+              group: "Navigate" as const,
+              icon: FlaskConical,
+              onRun: () => {
+                void router.push(
+                  `/patients/${patientLinkId}?tab=records&subtab=labs`,
+                );
+              },
+            },
+          ] satisfies CommandPaletteAction[])
+        : []),
+      ...(canManageTemplates
+        ? ([
+            {
+              id: "nav-templates",
+              label: "Note templates",
+              group: "Navigate" as const,
+              icon: FileText,
+              onRun: () => {
+                void router.push("/templates");
+              },
+            },
+          ] satisfies CommandPaletteAction[])
+        : []),
+      {
         id: "add-complaint",
         label: "Add chief complaint",
         group: "Add",
@@ -395,7 +466,19 @@ export function ConsultationShell({
             },
           ]),
     ],
-    [focusNewItem, onSaveClick, openVitals, readOnly, sections, selectSection],
+    [
+      canAccess,
+      canManageTemplates,
+      canViewPrescriptions,
+      focusNewItem,
+      onSaveClick,
+      openVitals,
+      patientLinkId,
+      readOnly,
+      router,
+      sections,
+      selectSection,
+    ],
   );
 
   useEffect(() => {
@@ -427,6 +510,11 @@ export function ConsultationShell({
       if (e.key.toLowerCase() === "v") {
         e.preventDefault();
         openVitals();
+        return;
+      }
+      if (e.key.toLowerCase() === "q") {
+        e.preventDefault();
+        void router.push("/consultation");
         return;
       }
       if (e.key === "g" || e.key === "n") {
@@ -461,6 +549,7 @@ export function ConsultationShell({
     onSaveClick,
     openVitals,
     readOnly,
+    router,
     sections,
     selectSection,
   ]);
@@ -623,11 +712,19 @@ export function ConsultationShell({
           aria-label="Consultation workspace"
         >
           <div className="mx-auto flex max-w-3xl flex-col gap-4">
+            <ConsultationVisitOverviewStrip
+              appointment={appointmentData}
+              readOnly={readOnly}
+            />
             {sections.map((section) => {
               const Node =
                 sectionComponents[section.id as keyof typeof sectionComponents];
               return Node ?? null;
             })}
+            <ConsultationAfterVisitStrip
+              appointment={appointmentData}
+              onGoToPlan={() => selectSection("plan")}
+            />
           </div>
         </main>
       </div>
