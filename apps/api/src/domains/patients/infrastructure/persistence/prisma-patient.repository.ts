@@ -53,6 +53,19 @@ export class PrismaPatientRepository implements IPatientRepository {
     return PatientMapper.toDomain(item);
   }
 
+  async findByClinicIdAndPhoneNumber(
+    clinicId: string,
+    phoneNumber: string,
+  ): Promise<Patient | null> {
+    const readClient = this.getReadClient();
+    const item = await readClient.patient.findFirst({
+      where: { clinicId, phoneNumber },
+      select: PATIENT_PERSISTENCE_SELECT,
+    });
+    if (!item) return null;
+    return PatientMapper.toDomain(item);
+  }
+
   async findAll(params: PatientSearchParams): Promise<{
     items: Patient[];
     total: number;

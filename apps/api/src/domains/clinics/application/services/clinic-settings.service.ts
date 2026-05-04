@@ -17,7 +17,9 @@ import type {
   AppComplianceSummary,
   CreateDataSubjectRequest,
   UpdateDataSubjectRequest,
+  WorkspaceProfile,
 } from '@workspace/types';
+import { ClinicDataService } from './clinic-data.service';
 
 interface ClinicSettingsData {
   name?: string;
@@ -97,6 +99,8 @@ interface ClinicSettingsData {
     registrationId?: string;
     registrationLabel?: string;
   };
+
+  workspaceProfile?: WorkspaceProfile;
 }
 
 @Injectable()
@@ -105,6 +109,7 @@ export class ClinicSettingsService {
     private prisma: PrismaService,
     private settingsFactory: SettingsFactory,
     private auditService: AuditService,
+    private clinicDataService: ClinicDataService,
   ) {}
 
   private payloadTouchesKeys(
@@ -275,6 +280,7 @@ export class ClinicSettingsService {
       paymentReceivingBankAccount: data.paymentReceivingBankAccount,
       facilityLabel: data.facilityLabel,
       taxSettings: data.taxSettings,
+      workspaceProfile: data.workspaceProfile,
     };
 
     const cleanSettings = Object.fromEntries(
@@ -307,7 +313,7 @@ export class ClinicSettingsService {
         data.subscriptionPaymentBankAccount;
     }
 
-    return this.prisma.clinic.update({
+    await this.prisma.clinic.update({
       where: { id },
       data: {
         name: data.name,
@@ -335,6 +341,12 @@ export class ClinicSettingsService {
         }),
       },
     });
+
+    const mapped = await this.clinicDataService.findOne(id);
+    if (!mapped) {
+      throw new NotFoundException('Clinic not found');
+    }
+    return mapped;
   }
 
   async getComplianceSummary(clinicId: string): Promise<AppComplianceSummary> {

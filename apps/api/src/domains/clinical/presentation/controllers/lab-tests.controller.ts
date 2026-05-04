@@ -16,6 +16,7 @@ import { LabTest } from '@/domains/clinical/core/entities/lab-test.entity';
 import { LabOrder } from '@/domains/clinical/core/entities/lab-order.entity';
 import { LabTestOrderStatus } from '@workspace/db';
 import { TierGuard } from '@/shared/modules/auth/auth/tier.guard';
+import { FrontDeskClinicalBlockGuard } from '@/shared/modules/clinic-workspace/front-desk-clinical-block.guard';
 import { Roles } from '@/shared/modules/auth/auth/roles.decorator';
 import {
   CreateLabTestDto,
@@ -34,7 +35,7 @@ import { RequestWithUser } from '@/common/types/common.types';
 import type { LabStats } from '@/domains/clinical/core/repositories/clinical.repository.interface';
 
 @Controller('clinical/lab-tests')
-@UseGuards(TierGuard)
+@UseGuards(TierGuard, FrontDeskClinicalBlockGuard)
 @RequireFeature(requireFeatureForTarget(APP_ACCESS_TARGETS.API_LAB_TESTS))
 @Roles(...getDbRolesForTarget(APP_ACCESS_TARGETS.API_LAB_TESTS))
 export class LabTestsController {

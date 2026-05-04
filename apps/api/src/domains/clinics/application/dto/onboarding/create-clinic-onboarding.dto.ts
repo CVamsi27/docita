@@ -1,6 +1,9 @@
 import { createZodDto } from 'nestjs-zod';
 import { z } from 'zod';
-import { clinicTypeSchema as importedClinicTypeSchema } from '@workspace/types';
+import {
+  clinicTypeSchema as importedClinicTypeSchema,
+  workspaceProfileSchema,
+} from '@workspace/types';
 export enum OnboardingStep {
   CLINIC_DETAILS = 'CLINIC_DETAILS',
   ADMIN_ACCOUNT = 'ADMIN_ACCOUNT',
@@ -83,6 +86,7 @@ export const planSelectionSchema = z.object({
   whatsappAddon: z.boolean().optional(),
   intelligenceAddon: z.boolean().optional(),
   currency: z.string().optional(),
+  workspaceProfile: workspaceProfileSchema.optional(),
 });
 export class PlanSelectionDto extends createZodDto(planSelectionSchema) {}
 export const paymentDetailsSchema = z.object({

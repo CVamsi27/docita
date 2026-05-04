@@ -19,9 +19,11 @@ import {
   AppointmentStatus as PrismaAppointmentStatus,
   VitalSign,
 } from '@workspace/db';
-import type {
-  DiagnosisSyncItem,
-  UpdateAppointmentRequest,
+import {
+  type DiagnosisSyncItem,
+  isFrontDeskWorkspace,
+  parseWorkspaceProfile,
+  type UpdateAppointmentRequest,
 } from '@workspace/types';
 import {
   CreateAppointmentUseCase,
@@ -109,6 +111,24 @@ export class AppointmentService {
     clinicId: string,
     accessContext?: AppointmentAccessContext,
   ): Promise<{ appointmentId: string; status: string }> {
+    const clinicRow = await this.prisma.clinic.findUnique({
+      where: { id: clinicId },
+      select: { settings: true },
+    });
+    const clinicSettings =
+      clinicRow?.settings && typeof clinicRow.settings === 'object'
+        ? (clinicRow.settings as Record<string, unknown>)
+        : {};
+    if (
+      isFrontDeskWorkspace(
+        parseWorkspaceProfile(clinicSettings.workspaceProfile),
+      )
+    ) {
+      throw new ForbiddenException(
+        'Consultation start is not available for this workspace profile.',
+      );
+    }
+
     const appointment = await this.prisma.appointment.findFirst({
       where: { id, clinicId },
       select: {

@@ -4,6 +4,8 @@ import {
   TIER_PRICING_BY_CURRENCY,
   type MultiCurrencyTierPricing,
   type SupportedCurrency,
+  isFrontDeskWorkspace,
+  parseWorkspaceProfile,
 } from '@workspace/types';
 import {
   CompleteOnboardingDto,
@@ -122,6 +124,32 @@ export class OnboardingValidationService {
       errors.push(
         'WhatsApp business number is required when WhatsApp is enabled',
       );
+    }
+
+    const workspaceProfile = parseWorkspaceProfile(
+      data.planSelection?.workspaceProfile,
+    );
+    if (
+      isFrontDeskWorkspace(workspaceProfile) &&
+      data.staffSetup?.staffMembers
+    ) {
+      let doctorLikeCount = 0;
+      for (const member of data.staffSetup.staffMembers) {
+        if (member.role === 'NURSE' || member.role === 'ADMIN_DOCTOR') {
+          errors.push(
+            'The front desk workspace does not support nurse or admin-doctor staff roles during onboarding.',
+          );
+          break;
+        }
+        if (member.role === 'DOCTOR') {
+          doctorLikeCount += 1;
+        }
+      }
+      if (doctorLikeCount > 1) {
+        errors.push(
+          'The front desk workspace allows at most one doctor profile during onboarding.',
+        );
+      }
     }
 
     if (errors.length > 0) {

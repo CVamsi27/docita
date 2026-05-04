@@ -9,6 +9,7 @@ import type {
   NotificationPriority,
   Role,
 } from '@workspace/db';
+import { isFrontDeskWorkspace, parseWorkspaceProfile } from '@workspace/types';
 
 export interface StaffNotificationPayload {
   clinicId: string;
@@ -138,7 +139,7 @@ export class StaffNotificationService {
     doctorId: string | undefined,
     type: StaffNotificationType,
   ): Promise<Array<{ id: string; phoneNumber: string | null }>> {
-    const targetRoles = this.getTargetRoles(type);
+    const targetRoles = await this.getTargetRolesForClinic(clinicId, type);
 
     const where: Prisma.UserWhereInput = {
       clinicId,
@@ -180,6 +181,30 @@ export class StaffNotificationService {
     };
 
     return routingMap[type] || ['ADMIN', 'ADMIN_DOCTOR'];
+  }
+
+  private async getTargetRolesForClinic(
+    clinicId: string,
+    type: StaffNotificationType,
+  ): Promise<Role[]> {
+    const base = this.getTargetRoles(type);
+    if (type !== 'PRESCRIPTION_PENDING') {
+      return base;
+    }
+
+    const clinic = await this.prisma.clinic.findUnique({
+      where: { id: clinicId },
+      select: { settings: true },
+    });
+    const raw =
+      clinic?.settings && typeof clinic.settings === 'object'
+        ? (clinic.settings as Record<string, unknown>)
+        : {};
+    if (isFrontDeskWorkspace(parseWorkspaceProfile(raw.workspaceProfile))) {
+      return ['ADMIN', 'ADMIN_DOCTOR', 'RECEPTIONIST'];
+    }
+
+    return base;
   }
 
   private async createInAppNotification(

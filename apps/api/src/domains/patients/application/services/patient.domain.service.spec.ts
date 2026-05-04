@@ -29,6 +29,8 @@ describe('PatientService domain safeguards', () => {
   const repository: jest.Mocked<IPatientRepository> = {
     findById: jest.fn<IPatientRepository['findById']>(),
     findByMrn: jest.fn<IPatientRepository['findByMrn']>(),
+    findByClinicIdAndPhoneNumber:
+      jest.fn<IPatientRepository['findByClinicIdAndPhoneNumber']>(),
     findAll: jest.fn<IPatientRepository['findAll']>(),
     save: jest.fn<IPatientRepository['save']>(),
     update: jest.fn<IPatientRepository['update']>(),

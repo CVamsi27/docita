@@ -1,3 +1,5 @@
+import { randomUUID } from 'crypto';
+import cookieParser from 'cookie-parser';
 import { Test, TestingModule } from '@nestjs/testing';
 import { INestApplication } from '@nestjs/common';
 import { ZodValidationPipe } from 'nestjs-zod';
@@ -15,6 +17,18 @@ import { RazorpaySubscriptionGateway } from '@/gateways/razorpay-subscription.ga
 import { mockRazorpayGateway } from './razorpay.provider';
 import { WhatsappService } from '@/shared/modules/messaging/whatsapp/whatsapp.service';
 import { mockWhatsappService } from './whatsapp.provider';
+
+function postInvoice(
+  server: string,
+  authToken: string,
+  body: Record<string, unknown>,
+) {
+  return request(server)
+    .post('/invoices')
+    .set('Authorization', `Bearer ${authToken}`)
+    .set('idempotency-key', randomUUID())
+    .send(body);
+}
 
 describe('Invoices (e2e)', () => {
   let app: INestApplication;
@@ -38,6 +52,7 @@ describe('Invoices (e2e)', () => {
       .compile();
 
     app = moduleFixture.createNestApplication();
+    app.use(cookieParser());
     app.useLogger(false);
     app.useGlobalPipes(new ZodValidationPipe());
     await app.init();
@@ -64,9 +79,16 @@ describe('Invoices (e2e)', () => {
 
     const loginResponse = await request(app.getHttpServer())
       .post('/auth/login')
-      .send({ email: user.email, password: plainPassword });
+      .send({ email: user.email, password: plainPassword })
+      .expect(201);
 
-    token = loginResponse.body.access_token;
+    const accessToken = loginResponse.body.access_token;
+    expect(typeof accessToken).toBe('string');
+    if (typeof accessToken !== 'string') {
+      throw new Error('Login did not return access_token');
+    }
+    expect(accessToken.length).toBeGreaterThan(20);
+    token = accessToken;
   });
 
   afterAll(async () => {
@@ -113,9 +135,15 @@ describe('Invoices (e2e)', () => {
 
       const loginResponse = await request(app.getHttpServer())
         .post('/auth/login')
-        .send({ email: user.email, password: plainPassword });
+        .send({ email: user.email, password: plainPassword })
+        .expect(201);
 
-      starterToken = loginResponse.body.access_token;
+      const accessToken = loginResponse.body.access_token;
+      expect(typeof accessToken).toBe('string');
+      if (typeof accessToken !== 'string') {
+        throw new Error('Login did not return access_token');
+      }
+      starterToken = accessToken;
     });
 
     it('should return 200 with an empty list when patient exists but clinic lacks invoicing', async () => {
@@ -144,36 +172,29 @@ describe('Invoices (e2e)', () => {
         total: 500,
       };
 
-      const response = await request(app.getHttpServer())
-        .post('/invoices')
-        .set('Authorization', `Bearer ${token}`)
-        .send(invoiceData)
-        .expect(201);
+      const response = await postInvoice(
+        app.getHttpServer(),
+        token,
+        invoiceData,
+      ).expect(201);
 
       expect(response.body.id).toBeDefined();
       expect(response.body.patientId).toBe(patientId);
     });
 
     it('should validate required fields', async () => {
-      await request(app.getHttpServer())
-        .post('/invoices')
-        .set('Authorization', `Bearer ${token}`)
-        .send({ patientId })
-        .expect(400);
+      await postInvoice(app.getHttpServer(), token, { patientId }).expect(400);
     });
   });
 
   describe('GET /invoices/:id', () => {
     it('should get invoice details', async () => {
-      const createRes = await request(app.getHttpServer())
-        .post('/invoices')
-        .set('Authorization', `Bearer ${token}`)
-        .send({
-          patientId,
-          items: [{ description: 'Consultation', quantity: 1, price: 500 }],
-          status: 'PENDING',
-          total: 500,
-        });
+      const createRes = await postInvoice(app.getHttpServer(), token, {
+        patientId,
+        items: [{ description: 'Consultation', quantity: 1, price: 500 }],
+        status: 'PENDING',
+        total: 500,
+      }).expect(201);
 
       const invoiceId = createRes.body.id;
 
@@ -195,16 +216,12 @@ describe('Invoices (e2e)', () => {
 
   describe('PATCH /invoices/:id', () => {
     it('should update invoice status', async () => {
-      const createRes = await request(app.getHttpServer())
-        .post('/invoices')
-        .set('Authorization', `Bearer ${token}`)
-        .send({
-          patientId,
-          items: [{ description: 'Consultation', quantity: 1, price: 500 }],
-          status: 'PENDING',
-          total: 500,
-        })
-        .expect(201);
+      const createRes = await postInvoice(app.getHttpServer(), token, {
+        patientId,
+        items: [{ description: 'Consultation', quantity: 1, price: 500 }],
+        status: 'PENDING',
+        total: 500,
+      }).expect(201);
 
       const invoiceId = createRes.body.id;
 

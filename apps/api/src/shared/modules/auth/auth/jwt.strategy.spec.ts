@@ -26,10 +26,17 @@ describe('JwtStrategy', () => {
       | 'COMPLETED';
   };
 
+  const mockFindFirst = jest.fn() as jest.MockedFunction<
+    () => Promise<MockUser | null>
+  >;
+
   const mockPrisma = {
-    $queryRaw: jest.fn() as jest.MockedFunction<
-      (...args: unknown[]) => Promise<MockUser[]>
-    >,
+    runUnrestricted: jest.fn(
+      async <T>(fn: () => Promise<T>): Promise<T> => fn(),
+    ) as jest.MockedFunction<<T>(fn: () => Promise<T>) => Promise<T>>,
+    user: {
+      findFirst: mockFindFirst,
+    },
   };
 
   const mockAppConfigService = {
@@ -81,7 +88,7 @@ describe('JwtStrategy', () => {
     });
 
     it('should return user data when valid payload is provided', async () => {
-      prisma.$queryRaw.mockResolvedValue([mockUser]);
+      mockFindFirst.mockResolvedValue(mockUser);
 
       const result = await strategy.validate(validPayload);
 
@@ -99,15 +106,16 @@ describe('JwtStrategy', () => {
     });
 
     it('should query user profile from database', async () => {
-      prisma.$queryRaw.mockResolvedValue([mockUser]);
+      mockFindFirst.mockResolvedValue(mockUser);
 
       await strategy.validate(validPayload);
 
-      expect(prisma.$queryRaw).toHaveBeenCalledTimes(1);
+      expect(mockFindFirst).toHaveBeenCalledTimes(1);
+      expect(prisma.runUnrestricted).toHaveBeenCalledTimes(1);
     });
 
     it('should throw UnauthorizedException when user is not found', async () => {
-      prisma.$queryRaw.mockResolvedValue([]);
+      mockFindFirst.mockResolvedValue(null);
 
       await expect(strategy.validate(validPayload)).rejects.toThrow(
         UnauthorizedException,
@@ -115,7 +123,7 @@ describe('JwtStrategy', () => {
     });
 
     it('should throw UnauthorizedException when user lookup fails', async () => {
-      prisma.$queryRaw.mockRejectedValue(new Error('db unavailable'));
+      mockFindFirst.mockRejectedValue(new Error('db unavailable'));
 
       await expect(strategy.validate(validPayload)).rejects.toThrow(
         UnauthorizedException,
@@ -127,7 +135,7 @@ describe('JwtStrategy', () => {
         ...mockUser,
         clinicId: 'different-clinic-id',
       };
-      prisma.$queryRaw.mockResolvedValue([userWithDifferentClinic]);
+      mockFindFirst.mockResolvedValue(userWithDifferentClinic);
 
       const result = await strategy.validate(validPayload);
 
@@ -136,7 +144,7 @@ describe('JwtStrategy', () => {
 
     it('should handle null clinicId for super admin users', async () => {
       const internal = { ...mockUser, clinicId: null, role: 'INTERNAL' };
-      prisma.$queryRaw.mockResolvedValue([internal]);
+      mockFindFirst.mockResolvedValue(internal);
 
       const payloadForInternal = {
         ...validPayload,

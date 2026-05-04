@@ -20,6 +20,7 @@ import {
 import type { IcdCode, CptCode, DoctorFavoriteCode } from '@workspace/types';
 import type { Appointment } from '@workspace/db';
 import { TierGuard } from '@/shared/modules/auth/auth/tier.guard';
+import { FrontDeskClinicalBlockGuard } from '@/shared/modules/clinic-workspace/front-desk-clinical-block.guard';
 import { Roles } from '@/shared/modules/auth/auth/roles.decorator';
 import { RequireFeature } from '@/shared/modules/auth/auth/tier.decorator';
 import { APP_ACCESS_TARGETS } from '@workspace/types';
@@ -31,7 +32,7 @@ import { RequestWithUser } from '@/common/types/common.types';
 import { ZodValidationPipe } from '@/common/pipes/zod-validation.pipe';
 
 @Controller('clinical/medical-coding')
-@UseGuards(TierGuard)
+@UseGuards(TierGuard, FrontDeskClinicalBlockGuard)
 @RequireFeature(requireFeatureForTarget(APP_ACCESS_TARGETS.API_MEDICAL_CODING))
 @Roles(...getDbRolesForTarget(APP_ACCESS_TARGETS.API_MEDICAL_CODING))
 export class MedicalCodingController {

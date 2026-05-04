@@ -1,7 +1,7 @@
 import { ExtractJwt, Strategy } from 'passport-jwt';
 import { PassportStrategy } from '@nestjs/passport';
 import { Injectable, UnauthorizedException, Logger } from '@nestjs/common';
-import { OnboardingStep, Role } from '@workspace/db';
+import { Role } from '@workspace/db';
 import { PrismaService } from '@/prisma/prisma.service';
 import { Request } from 'express';
 import { AppConfigService } from '@/shared/modules/config/app-configuration.service';
@@ -61,21 +61,20 @@ export class JwtStrategy extends PassportStrategy(Strategy) {
     }
 
     try {
-      const users = await this.prisma.$queryRaw<
-        Array<{
-          id: string;
-          name: string;
-          clinicId: string | null;
-          emailVerified: boolean;
-          onboardingStep: OnboardingStep;
-        }>
-      >`
-        SELECT "id", "name", "clinicId", "emailVerified", "onboardingStep"
-        FROM "User"
-        WHERE "id" = ${payload.sub}
-        LIMIT 1
-      `;
-      const user = users[0] ?? null;
+      // Auth runs before TenantContextInterceptor; never read User under a
+      // stale AsyncLocalStorage tenant from another in-flight request.
+      const user = await this.prisma.runUnrestricted(() =>
+        this.prisma.user.findFirst({
+          where: { id: payload.sub },
+          select: {
+            id: true,
+            name: true,
+            clinicId: true,
+            emailVerified: true,
+            onboardingStep: true,
+          },
+        }),
+      );
 
       if (!user) {
         this.logger.warn('User not found for token subject');

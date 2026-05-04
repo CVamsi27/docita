@@ -25,6 +25,7 @@ import { OnboardingValidationService } from './onboarding-validation.service';
 import { OnboardingWorkflowService } from './onboarding-workflow.service';
 import { OnboardingComplianceService } from './onboarding-compliance.service';
 import { UploadsService } from '@/domains/documents/application/services/uploads.service';
+import { isFrontDeskWorkspace, parseWorkspaceProfile } from '@workspace/types';
 
 interface OnboardingResult {
   success: boolean;
@@ -283,6 +284,7 @@ export class OnboardingService {
             tx,
             completeData.clinicDetails,
             ipAddress,
+            completeData.planSelection.workspaceProfile,
           );
           clinicId = clinic.id;
 
@@ -324,6 +326,19 @@ export class OnboardingService {
               ipAddress,
             );
             this.logger.log(`Created ${staffCount} staff members`);
+          }
+
+          if (
+            isFrontDeskWorkspace(
+              parseWorkspaceProfile(
+                completeData.planSelection.workspaceProfile,
+              ),
+            )
+          ) {
+            await this.workflowService.ensureFrontDeskScheduleDoctor(
+              tx,
+              clinic.id,
+            );
           }
 
           await this.workflowService.initializeClinicSettings(tx, clinic.id);

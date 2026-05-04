@@ -410,6 +410,15 @@ export class AppConfigService {
     return this.getConfig().JWT_EXPIRATION || '30d';
   }
 
+  getTurnstileSecretKey(): string | undefined {
+    const key = this.getConfig().TURNSTILE_SECRET_KEY;
+    return key && key.length > 0 ? key : undefined;
+  }
+
+  isTurnstileEnforced(): boolean {
+    return Boolean(this.getTurnstileSecretKey());
+  }
+
   getEncryptionKey(): string {
     return this.getConfig().ENCRYPTION_KEY;
   }

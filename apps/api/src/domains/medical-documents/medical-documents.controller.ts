@@ -13,6 +13,7 @@ import {
 } from '@nestjs/common';
 import { MedicalDocumentsService } from './medical-documents.service';
 import { TierGuard } from '@/shared/modules/auth/auth/tier.guard';
+import { FrontDeskClinicalBlockGuard } from '@/shared/modules/clinic-workspace/front-desk-clinical-block.guard';
 import { Roles } from '@/shared/modules/auth/auth/roles.decorator';
 import { RequireFeature } from '@/shared/modules/auth/auth/tier.decorator';
 import { APP_ACCESS_TARGETS } from '@workspace/types';
@@ -23,7 +24,7 @@ import {
 import { RequestWithUser } from '@/common/types/common.types';
 
 @Controller('medical-documents')
-@UseGuards(TierGuard)
+@UseGuards(TierGuard, FrontDeskClinicalBlockGuard)
 @RequireFeature(
   requireFeatureForTarget(APP_ACCESS_TARGETS.API_MEDICAL_DOCUMENTS),
 )

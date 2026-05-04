@@ -7,6 +7,7 @@ import {
 import { PrismaService } from '@/prisma/prisma.service';
 import * as bcrypt from 'bcrypt';
 import { Role, Specialization } from '@workspace/db';
+import { isFrontDeskWorkspace, parseWorkspaceProfile } from '@workspace/types';
 
 type ClinicMemberRole =
   | 'DOCTOR'
@@ -64,7 +65,33 @@ interface UpdateMemberData {
 export class StaffManagementService {
   constructor(private prisma: PrismaService) {}
 
+  private async getClinicWorkspaceProfile(clinicId: string) {
+    const clinic = await this.prisma.clinic.findUnique({
+      where: { id: clinicId },
+      select: { settings: true },
+    });
+    const raw =
+      clinic?.settings && typeof clinic.settings === 'object'
+        ? (clinic.settings as Record<string, unknown>)
+        : {};
+    return parseWorkspaceProfile(raw.workspaceProfile);
+  }
+
+  private async countDoctorsInClinic(clinicId: string): Promise<number> {
+    return this.prisma.user.count({
+      where: { clinicId, role: Role.DOCTOR },
+    });
+  }
+
   async createDoctor(clinicId: string, data: CreateDoctorData) {
+    if (isFrontDeskWorkspace(await this.getClinicWorkspaceProfile(clinicId))) {
+      if ((await this.countDoctorsInClinic(clinicId)) >= 1) {
+        throw new BadRequestException(
+          'This workspace already has a schedule doctor profile.',
+        );
+      }
+    }
+
     const hashedPassword = await bcrypt.hash(data.password, 10);
 
     const userData = {
@@ -105,6 +132,23 @@ export class StaffManagementService {
   }
 
   async createMember(clinicId: string, data: CreateClinicMemberData) {
+    const workspaceProfile = await this.getClinicWorkspaceProfile(clinicId);
+    if (isFrontDeskWorkspace(workspaceProfile)) {
+      if (data.role === 'NURSE' || data.role === 'ADMIN_DOCTOR') {
+        throw new BadRequestException(
+          'This role is not available for the front desk workspace.',
+        );
+      }
+      if (
+        data.role === 'DOCTOR' &&
+        (await this.countDoctorsInClinic(clinicId)) >= 1
+      ) {
+        throw new BadRequestException(
+          'Only one doctor profile is allowed for the front desk workspace.',
+        );
+      }
+    }
+
     const hashedPassword = await bcrypt.hash(data.password, 10);
 
     const prismaRole: Role =
@@ -302,6 +346,31 @@ export class StaffManagementService {
     if (data.role && data.role !== member.role) {
       if (!actorMayAssignMemberRoles(actorRole)) {
         throw new ForbiddenException('Only admins can change member roles');
+      }
+    }
+
+    if (data.role) {
+      const workspaceProfile = await this.getClinicWorkspaceProfile(clinicId);
+      if (isFrontDeskWorkspace(workspaceProfile)) {
+        if (data.role === 'NURSE' || data.role === 'ADMIN_DOCTOR') {
+          throw new BadRequestException(
+            'This role is not available for the front desk workspace.',
+          );
+        }
+        if (data.role === 'DOCTOR') {
+          const otherDoctors = await this.prisma.user.count({
+            where: {
+              clinicId,
+              role: Role.DOCTOR,
+              NOT: { id: memberId },
+            },
+          });
+          if (otherDoctors >= 1) {
+            throw new BadRequestException(
+              'Only one doctor profile is allowed for the front desk workspace.',
+            );
+          }
+        }
       }
     }
 

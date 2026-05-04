@@ -79,6 +79,7 @@ import { MedicalDocumentsModule } from './domains/medical-documents/medical-docu
 import { InventoryModule } from './domains/inventory/inventory.module';
 import { LeaveModule } from './domains/leave/leave.module';
 import { IpdModule } from './domains/ipd/ipd.module';
+import { PublicBookingModule } from './domains/public-booking/public-booking.module';
 
 @Module({
   imports: [
@@ -180,6 +181,7 @@ import { IpdModule } from './domains/ipd/ipd.module';
     InventoryModule,
     LeaveModule,
     IpdModule,
+    PublicBookingModule,
   ],
   controllers: [AppController],
   providers: [

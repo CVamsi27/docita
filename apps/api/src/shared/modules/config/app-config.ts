@@ -102,6 +102,7 @@ export const EnvSchema = z.object({
     .positive()
     .default(5_000_000),
   RLS_ENABLED: z.coerce.boolean().default(false),
+  TURNSTILE_SECRET_KEY: z.string().min(1).optional(),
 });
 
 export type EnvConfig = z.infer<typeof EnvSchema>;

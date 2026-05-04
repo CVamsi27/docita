@@ -11,6 +11,10 @@ export interface PatientSearchParams {
 export interface IPatientRepository {
   findById(id: string, clinicId: string): Promise<Patient | null>;
   findByMrn(mrn: string, clinicId: string): Promise<Patient | null>;
+  findByClinicIdAndPhoneNumber(
+    clinicId: string,
+    phoneNumber: string,
+  ): Promise<Patient | null>;
   findAll(params: PatientSearchParams): Promise<{
     items: Patient[];
     total: number;

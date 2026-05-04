@@ -24,7 +24,12 @@ import {
   ClinicTier,
 } from '@/domains/clinics/application/dto/onboarding/create-clinic-onboarding.dto';
 import { OnboardingValidationService } from './onboarding-validation.service';
-import { SUBSCRIPTION_TRIAL_DAYS } from '@workspace/types';
+import {
+  SUBSCRIPTION_TRIAL_DAYS,
+  parseWorkspaceProfile,
+  type WorkspaceProfile,
+} from '@workspace/types';
+import { randomBytes } from 'crypto';
 
 interface OnboardingPaymentInput {
   razorpayPaymentId?: string;
@@ -97,7 +102,9 @@ export class OnboardingWorkflowService {
     tx: Prisma.TransactionClient,
     clinicData: ClinicDetailsDto,
     ipAddress?: string,
+    workspaceProfileInput?: WorkspaceProfile | null,
   ): Promise<Clinic> {
+    const workspaceProfile = parseWorkspaceProfile(workspaceProfileInput);
     const normalizedEmail = clinicData.email?.trim() ?? '';
 
     const existingClinic = normalizedEmail
@@ -135,6 +142,7 @@ export class OnboardingWorkflowService {
           privacyComplianceVersion: '1.0',
           onboardedAt: new Date().toISOString(),
           onboardedFromIP: ipAddress,
+          workspaceProfile,
         },
       },
     });
@@ -387,6 +395,43 @@ export class OnboardingWorkflowService {
     }
 
     return count;
+  }
+
+  async ensureFrontDeskScheduleDoctor(
+    tx: Prisma.TransactionClient,
+    clinicId: string,
+  ): Promise<void> {
+    const doctorCount = await tx.user.count({
+      where: { clinicId, role: Role.DOCTOR },
+    });
+    if (doctorCount > 0) {
+      return;
+    }
+
+    const token = randomBytes(12).toString('hex');
+    const email = `schedule-${clinicId}-${token}@placeholders.docita.invalid`;
+    const hashedPassword = await bcrypt.hash(
+      randomBytes(32).toString('hex'),
+      10,
+    );
+
+    const user = await tx.user.create({
+      data: {
+        name: 'Clinic schedule',
+        email,
+        password: hashedPassword,
+        role: Role.DOCTOR,
+        clinicId,
+      },
+    });
+
+    await tx.doctorClinic.create({
+      data: { doctorId: user.id, clinicId },
+    });
+
+    this.logger.log(
+      `Created schedule-anchor doctor for front-desk clinic ${clinicId}`,
+    );
   }
 
   async initializeClinicSettings(

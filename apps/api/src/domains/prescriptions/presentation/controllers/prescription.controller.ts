@@ -24,6 +24,7 @@ import {
   type PdfJobServicePort,
 } from '@/shared/modules/queue/pdf-job.service';
 import { TierGuard } from '@/shared/modules/auth/auth/tier.guard';
+import { FrontDeskClinicalBlockGuard } from '@/shared/modules/clinic-workspace/front-desk-clinical-block.guard';
 import {
   RequireFeature,
   Feature,
@@ -48,7 +49,7 @@ interface AuthRequest {
 }
 
 @Controller('prescriptions')
-@UseGuards(TierGuard)
+@UseGuards(TierGuard, FrontDeskClinicalBlockGuard)
 @RequireFeature(Feature.DIGITAL_PRESCRIPTIONS)
 @Roles(Role.ADMIN, Role.DOCTOR, Role.RECEPTIONIST, Role.ADMIN_DOCTOR)
 @UseInterceptors(IdempotencyInterceptor)

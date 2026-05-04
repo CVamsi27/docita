@@ -6,6 +6,7 @@ import { PrismaService } from '@/prisma/prisma.service';
 import { SettingsFactory } from '@/domains/clinics/core/factories/settings.factory';
 import { AuditService } from '@/shared/modules/audit/audit/audit.service';
 import { ClinicSettingsService } from './clinic-settings.service';
+import { ClinicDataService } from './clinic-data.service';
 
 describe('ClinicSettingsService', () => {
   let service: ClinicSettingsService;
@@ -48,6 +49,13 @@ describe('ClinicSettingsService', () => {
   };
   const auditService = {};
 
+  const clinicDataService = {
+    findOne: jest.fn(async () => ({
+      id: 'clinic-1',
+      workspaceProfile: 'FULL_CLINICAL',
+    })),
+  } as unknown as Pick<ClinicDataService, 'findOne'>;
+
   beforeEach(async () => {
     findUniqueMock.mockClear();
     updateMock.mockClear();
@@ -64,6 +72,7 @@ describe('ClinicSettingsService', () => {
         { provide: PrismaService, useValue: prisma },
         { provide: SettingsFactory, useValue: settingsFactory },
         { provide: AuditService, useValue: auditService },
+        { provide: ClinicDataService, useValue: clinicDataService },
       ],
     }).compile();
 
