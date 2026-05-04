@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { useMemo } from "react";
+import { useCallback, useMemo } from "react";
 import { DashboardSharedWorkspace } from "@/features/dashboard/components/layout/dashboard-shared-workspace";
 import { DashboardShortcutsSection } from "@/features/dashboard/components/layout/dashboard-shortcuts-section";
 import { DashboardSkeletonUI } from "@/features/dashboard/components/layout/dashboard-skeleton-ui";
@@ -59,11 +59,11 @@ export default function TodayPage() {
     [todayAppointments.length, waitingCount],
   );
 
-  const handleSearchClick = () => {
+  const handleSearchClick = useCallback(() => {
     document.dispatchEvent(
       new KeyboardEvent("keydown", { key: "k", metaKey: true }),
     );
-  };
+  }, []);
 
   const headerActions = useMemo(
     () => (
@@ -113,6 +113,7 @@ export default function TodayPage() {
       publicOnlineBookingUrl,
       canQuickShareClinicCode,
       clinicName,
+      handleSearchClick,
     ],
   );
 

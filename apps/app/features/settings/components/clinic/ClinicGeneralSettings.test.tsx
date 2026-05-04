@@ -80,9 +80,7 @@ describe("ClinicGeneralSettings", () => {
     expect(screen.getByDisplayValue("Care Clinic")).toBeInTheDocument();
     expect(screen.getByText("DOCITA123")).toBeInTheDocument();
 
-    fireEvent.click(
-      screen.getByRole("button", { name: "Copy clinic code" }),
-    );
+    fireEvent.click(screen.getByRole("button", { name: "Copy staff join code" }));
 
     await waitFor(() => {
       expect(settingsMocks.writeText).toHaveBeenCalledWith("DOCITA123");

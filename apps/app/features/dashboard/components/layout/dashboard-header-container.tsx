@@ -27,19 +27,17 @@ export function DashboardHeaderContainer({
     return "Good evening";
   };
 
-  const handleSearchClick = () => {
-    const event = new KeyboardEvent("keydown", {
-      key: "k",
-      metaKey: true,
-    });
-    document.dispatchEvent(event);
-  };
-
   const displayName = (() => {
     const name = user?.name ?? "";
     if (!name || name.includes("@")) return "Doctor";
     return name.split(" ")[0];
   })();
+
+  const handleSearchClick = () => {
+    document.dispatchEvent(
+      new KeyboardEvent("keydown", { key: "k", metaKey: true }),
+    );
+  };
 
   return (
     <DashboardHeaderUI
