@@ -115,7 +115,9 @@ describe('JwtStrategy', () => {
     });
 
     it('should throw UnauthorizedException when user lookup fails', async () => {
-      mockFindByIdForJwtValidation.mockRejectedValue(new Error('db unavailable'));
+      mockFindByIdForJwtValidation.mockRejectedValue(
+        new Error('db unavailable'),
+      );
 
       await expect(strategy.validate(validPayload)).rejects.toThrow(
         UnauthorizedException,
