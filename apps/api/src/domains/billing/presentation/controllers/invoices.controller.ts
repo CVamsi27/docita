@@ -39,6 +39,7 @@ import {
   InvoiceResponseDto,
   PaginatedInvoiceResponseDto,
   ListInvoicesQueryDto,
+  InvoicePaymentActivityResponseDto,
 } from '@/domains/billing/application/dto/invoices.dto';
 import { ZodSerializerDto } from 'nestjs-zod';
 
@@ -73,6 +74,13 @@ export class InvoicesController {
       date,
       search,
     });
+  }
+
+  @Get(':id/payment-activity')
+  @RequireFeature(Feature.INVOICING)
+  @ZodSerializerDto(InvoicePaymentActivityResponseDto)
+  getPaymentActivity(@Request() req: AuthRequest, @Param('id') id: string) {
+    return this.invoicesService.listPaymentActivity(id, req.user.clinicId);
   }
 
   @Get(':id')

@@ -67,11 +67,12 @@ export interface IAppointmentRepository {
   ): Promise<Appointment[]>;
   exists(id: string, clinicId: string): Promise<boolean>;
 
+  /** Appointments whose interval overlaps `[rangeStart, rangeEndExclusive)` (UTC instants). */
   findAppointmentsForSlots(
     clinicId: string,
     doctorIds: string[],
-    startOfDay: Date,
-    endOfDay: Date,
+    rangeStart: Date,
+    rangeEndExclusive: Date,
   ): Promise<Array<{ doctorId: string; startTime: Date; endTime: Date }>>;
 }
 

@@ -32,6 +32,7 @@ import {
 import { AppointmentCreatedEvent } from '@/domains/appointments/application/events/appointment-created.event';
 import { Appointment } from '@/domains/appointments/core/entities/appointment.entity';
 import { PrismaService } from '@/prisma/prisma.service';
+import { AppointmentSchedulingRulesService } from '@/domains/appointments/core/domain-services/appointment-scheduling-rules.service';
 
 type AppointmentAccessContext = {
   role?: Role;
@@ -59,11 +60,22 @@ export class AppointmentService {
     private readonly createAppointmentUseCase: CreateAppointmentUseCase,
     private readonly prisma: PrismaService,
     private readonly eventEmitter: EventEmitter2,
+    private readonly schedulingRules: AppointmentSchedulingRulesService,
   ) {}
 
   async createAppointment(
     command: CreateAppointmentCommand,
   ): Promise<Appointment> {
+    const overlap = await this.schedulingRules.validateAppointmentOverlap(
+      command.doctorId,
+      command.clinicId,
+      command.startTime,
+      command.endTime,
+    );
+    if (overlap.hasConflict) {
+      throw new BadRequestException('Doctor has conflicting appointment');
+    }
+
     const appointment = await this.createAppointmentUseCase.execute(command);
 
     this.eventEmitter.emit(
@@ -229,8 +241,34 @@ export class AppointmentService {
     accessContext?: AppointmentAccessContext,
   ): Promise<void> {
     const appointment = await this.getAppointment(id, clinicId, accessContext);
+    const overlap = await this.schedulingRules.validateAppointmentOverlap(
+      appointment.doctorId,
+      clinicId,
+      startTime,
+      endTime,
+      id,
+    );
+    if (overlap.hasConflict) {
+      throw new BadRequestException('Doctor has conflicting appointment');
+    }
     appointment.reschedule(startTime, endTime);
     await this.appointmentRepository.update(appointment);
+  }
+
+  private coerceAppointmentDate(candidate: unknown, fallback: Date): Date {
+    if (candidate === undefined || candidate === null) {
+      return new Date(fallback.getTime());
+    }
+    if (candidate instanceof Date) {
+      return new Date(candidate.getTime());
+    }
+    if (typeof candidate === 'string' || typeof candidate === 'number') {
+      const parsed = new Date(candidate);
+      if (!Number.isNaN(parsed.getTime())) {
+        return parsed;
+      }
+    }
+    return new Date(fallback.getTime());
   }
 
   private mapStatusToPrisma(
@@ -280,7 +318,14 @@ export class AppointmentService {
   ): Promise<Appointment> {
     const appointment = await this.prisma.appointment.findFirst({
       where: { id, clinicId },
-      select: { id: true, clinicId: true, patientId: true, doctorId: true },
+      select: {
+        id: true,
+        clinicId: true,
+        patientId: true,
+        doctorId: true,
+        startTime: true,
+        endTime: true,
+      },
     });
 
     if (!appointment) {
@@ -295,6 +340,33 @@ export class AppointmentService {
       throw new ForbiddenException(
         'Doctors can only access their appointments',
       );
+    }
+
+    const touchesSchedule =
+      data.startTime !== undefined || data.endTime !== undefined;
+    if (touchesSchedule) {
+      const nextStart = this.coerceAppointmentDate(
+        data.startTime,
+        appointment.startTime,
+      );
+      const nextEnd = this.coerceAppointmentDate(
+        data.endTime,
+        appointment.endTime,
+      );
+      const nextDoctorId =
+        typeof data.doctorId === 'string' && data.doctorId.trim() !== ''
+          ? data.doctorId
+          : appointment.doctorId;
+      const overlap = await this.schedulingRules.validateAppointmentOverlap(
+        nextDoctorId,
+        clinicId,
+        nextStart,
+        nextEnd,
+        id,
+      );
+      if (overlap.hasConflict) {
+        throw new BadRequestException('Doctor has conflicting appointment');
+      }
     }
 
     const prismaPatch = this.toPrismaAppointmentUpdate(data);

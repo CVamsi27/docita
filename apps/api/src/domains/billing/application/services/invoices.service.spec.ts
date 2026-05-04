@@ -5,6 +5,8 @@ import {
   ClinicTier,
   IntelligenceAddon,
   InvoiceStatus,
+  PaymentSession,
+  PaymentSessionStatus,
   Prisma,
 } from '@workspace/db';
 import { PrismaService } from '@/prisma/prisma.service';
@@ -16,6 +18,7 @@ import {
   IInvoiceRepository,
   InvoiceDetail,
 } from '@/domains/billing/core/repositories/invoice.repository';
+import type { IPaymentSessionRepository } from '@/domains/billing/core/repositories/payment-session.repository';
 import { UsageTrackingService } from '@/domains/billing/core/services/usage-tracking.service';
 import { TaxCalculatorService } from '@/domains/billing/core/services/tax-calculator.service';
 import { StorageProvider } from '@/domains/documents/infrastructure/storage.provider';
@@ -48,6 +51,18 @@ describe('InvoicesService', () => {
     delete: jest.fn<IInvoiceRepository['delete']>(),
     findPatientContext: jest.fn<IInvoiceRepository['findPatientContext']>(),
     nextInvoiceNumber: jest.fn<IInvoiceRepository['nextInvoiceNumber']>(),
+  };
+
+  const paymentSessionRepository: jest.Mocked<IPaymentSessionRepository> = {
+    create: jest.fn<IPaymentSessionRepository['create']>(),
+    findById: jest.fn<IPaymentSessionRepository['findById']>(),
+    findByProviderSessionId:
+      jest.fn<IPaymentSessionRepository['findByProviderSessionId']>(),
+    update: jest.fn<IPaymentSessionRepository['update']>(),
+    delete: jest.fn<IPaymentSessionRepository['delete']>(),
+    findPendingReminders:
+      jest.fn<IPaymentSessionRepository['findPendingReminders']>(),
+    findByInvoiceId: jest.fn<IPaymentSessionRepository['findByInvoiceId']>(),
   };
 
   const pdfService = Object.create(PDFService.prototype) as PDFService;
@@ -187,6 +202,7 @@ describe('InvoicesService', () => {
 
     service = new InvoicesService(
       repository,
+      paymentSessionRepository,
       prisma,
       pdfService,
       taxCalculator,
@@ -485,6 +501,70 @@ describe('InvoicesService', () => {
       await service.findAll('clinic-1', {});
 
       expect(repository.findAll).toHaveBeenCalled();
+    });
+  });
+
+  describe('listPaymentActivity', () => {
+    it('throws NotFoundException when invoice is missing', async () => {
+      repository.findById.mockResolvedValue(null);
+
+      await expect(
+        service.listPaymentActivity('inv-x', 'clinic-1'),
+      ).rejects.toThrow(NotFoundException);
+
+      expect(paymentSessionRepository.findByInvoiceId).not.toHaveBeenCalled();
+    });
+
+    it('returns mapped payment sessions', async () => {
+      repository.findById.mockResolvedValue(buildInvoice('inv-1'));
+      const createdAt = new Date('2026-02-01T12:00:00.000Z');
+      const updatedAt = new Date('2026-02-01T12:30:00.000Z');
+      const session: PaymentSession = {
+        id: 'sess-1',
+        clinicId: 'clinic-1',
+        invoiceId: 'inv-1',
+        patientId: 'patient-inv-1',
+        provider: 'manual',
+        providerSessionId: null,
+        paymentLink: null,
+        shortUrl: null,
+        amount: 50000,
+        currency: 'INR',
+        status: PaymentSessionStatus.CAPTURED,
+        createdAt,
+        updatedAt,
+        paidAt: null,
+        failedAt: null,
+        expiresAt: new Date('2026-02-02T00:00:00.000Z'),
+        webhookPayload: null,
+        meta: {
+          channel: 'CASH',
+          reference: 'RRN-9',
+          notes: 'Paid at desk',
+        },
+        whatsappSentAt: null,
+        whatsappMessageId: null,
+        whatsappStatus: null,
+      };
+      paymentSessionRepository.findByInvoiceId.mockResolvedValue([session]);
+
+      const result = await service.listPaymentActivity('inv-1', 'clinic-1');
+
+      expect(paymentSessionRepository.findByInvoiceId).toHaveBeenCalledWith(
+        'inv-1',
+        'clinic-1',
+      );
+      expect(result.items).toHaveLength(1);
+      expect(result.items[0]).toMatchObject({
+        id: 'sess-1',
+        provider: 'manual',
+        status: PaymentSessionStatus.CAPTURED,
+        amountCents: 50000,
+        currency: 'INR',
+        channel: 'CASH',
+        reference: 'RRN-9',
+        notes: 'Paid at desk',
+      });
     });
   });
 });

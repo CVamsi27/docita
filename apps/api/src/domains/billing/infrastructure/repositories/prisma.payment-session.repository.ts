@@ -107,6 +107,16 @@ export class PrismaPaymentSessionRepository implements IPaymentSessionRepository
     });
   }
 
+  async findByInvoiceId(
+    invoiceId: string,
+    clinicId: string,
+  ): Promise<PaymentSession[]> {
+    return this.getReadClient().paymentSession.findMany({
+      where: { invoiceId, clinicId },
+      orderBy: { createdAt: 'desc' },
+    });
+  }
+
   async findPendingReminders(): Promise<PaymentSessionDetail[]> {
     const sessions = await this.getReadClient().paymentSession.findMany({
       where: {

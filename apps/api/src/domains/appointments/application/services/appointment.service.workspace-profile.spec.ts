@@ -6,6 +6,7 @@ import { IAppointmentRepository } from '@/domains/appointments/core/repositories
 import { PrismaService } from '@/prisma/prisma.service';
 import { EventEmitter2 } from '@nestjs/event-emitter';
 import { Role } from '@workspace/db';
+import { AppointmentSchedulingRulesService } from '@/domains/appointments/core/domain-services/appointment-scheduling-rules.service';
 
 describe('AppointmentService workspace profile', () => {
   const mockRepository = {
@@ -44,6 +45,12 @@ describe('AppointmentService workspace profile', () => {
     .fn<EventEmitter2['emit']>()
     .mockImplementation(() => true);
 
+  const mockSchedulingRules = {
+    validateAppointmentOverlap: jest
+      .fn<AppointmentSchedulingRulesService['validateAppointmentOverlap']>()
+      .mockResolvedValue({ hasConflict: false }),
+  } as unknown as AppointmentSchedulingRulesService;
+
   let service: AppointmentService;
 
   beforeEach(() => {
@@ -53,6 +60,7 @@ describe('AppointmentService workspace profile', () => {
       mockCreateAppointmentUseCase,
       mockPrisma,
       mockEventEmitter,
+      mockSchedulingRules,
     );
   });
 

@@ -29,7 +29,7 @@ RUN pnpm --filter @workspace/types run build && \
     pnpm --filter @workspace/db run build && \
     pnpm --filter @docita/api run build
 
-FROM node:22.12-alpine AS runtime-base
+FROM node:22.12-alpine AS runtime
 WORKDIR /app
 
 RUN apk add --no-cache dumb-init curl && \
@@ -85,14 +85,13 @@ RUN addgroup -S nodejs && adduser -S nodejs -G nodejs && \
 USER nodejs
 
 ENV NODE_ENV=production
-
-ENTRYPOINT ["dumb-init", "--"]
-
-CMD ["sh", "-c", "exec node --max-old-space-size=${NODE_MAX_OLD_SPACE_SIZE_MB:-768} dist/${WORKER_ENTRYPOINT:-main}"]
-
-FROM runtime-base AS runtime-api
 ENV PORT=3001
+
 EXPOSE 3001
 
 HEALTHCHECK --interval=30s --timeout=5s --start-period=10s --retries=3 \
     CMD curl --fail http://localhost:3001/api/health/live || exit 1
+
+ENTRYPOINT ["dumb-init", "--"]
+
+CMD ["sh", "-c", "exec node --max-old-space-size=${NODE_MAX_OLD_SPACE_SIZE_MB:-768} dist/${WORKER_ENTRYPOINT:-main}"]

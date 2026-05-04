@@ -214,6 +214,70 @@ describe('Invoices (e2e)', () => {
     });
   });
 
+  describe('GET /invoices/:id/payment-activity', () => {
+    it('returns empty items when there are no payment sessions', async () => {
+      const createRes = await postInvoice(app.getHttpServer(), token, {
+        patientId,
+        items: [{ description: 'Consultation', quantity: 1, price: 500 }],
+        status: 'PENDING',
+        total: 500,
+      }).expect(201);
+
+      const invoiceId = createRes.body.id as string;
+
+      const response = await request(app.getHttpServer())
+        .get(`/invoices/${invoiceId}/payment-activity`)
+        .set('Authorization', `Bearer ${token}`)
+        .expect(200);
+
+      expect(response.body.items).toEqual([]);
+    });
+
+    it('includes manual desk settlement in activity', async () => {
+      const createRes = await postInvoice(app.getHttpServer(), token, {
+        patientId,
+        items: [{ description: 'Consultation', quantity: 1, price: 500 }],
+        status: 'PENDING',
+        total: 500,
+      }).expect(201);
+
+      const invoiceId = createRes.body.id as string;
+
+      const { user: receptionist, plainPassword } = await factories.user({
+        clinicId,
+        role: 'RECEPTIONIST',
+      });
+
+      const loginRes = await request(app.getHttpServer())
+        .post('/auth/login')
+        .send({ email: receptionist.email, password: plainPassword })
+        .expect(201);
+
+      const receptionistToken = loginRes.body.access_token as string;
+
+      await request(app.getHttpServer())
+        .post(`/desk/invoices/${invoiceId}/settlement`)
+        .set('Authorization', `Bearer ${receptionistToken}`)
+        .send({ paymentMethod: 'CASH', reference: 'RRN-1' })
+        .expect(201);
+
+      const activity = await request(app.getHttpServer())
+        .get(`/invoices/${invoiceId}/payment-activity`)
+        .set('Authorization', `Bearer ${token}`)
+        .expect(200);
+
+      expect(activity.body.items).toHaveLength(1);
+      expect(activity.body.items[0]).toMatchObject({
+        provider: 'manual',
+        status: 'CAPTURED',
+        amountCents: 50000,
+        currency: 'INR',
+        channel: 'CASH',
+        reference: 'RRN-1',
+      });
+    });
+  });
+
   describe('PATCH /invoices/:id', () => {
     it('should update invoice status', async () => {
       const createRes = await postInvoice(app.getHttpServer(), token, {

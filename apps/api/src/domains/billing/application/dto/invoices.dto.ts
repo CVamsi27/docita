@@ -3,6 +3,7 @@ import { z } from 'zod';
 import {
   createInvoiceRequestSchema,
   invoiceResponseSchema,
+  invoicePaymentActivityResponseSchema,
   listInvoicesQuerySchema,
   stripHtmlTags,
   updateInvoiceRequestSchema,
@@ -76,4 +77,8 @@ const PaginatedInvoiceResponseSchema = z.object({
 });
 export class PaginatedInvoiceResponseDto extends createZodDto(
   PaginatedInvoiceResponseSchema,
+) {}
+
+export class InvoicePaymentActivityResponseDto extends createZodDto(
+  invoicePaymentActivityResponseSchema,
 ) {}

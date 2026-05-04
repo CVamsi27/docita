@@ -6,6 +6,7 @@ import { PrismaService } from '@/prisma/prisma.service';
 import { EventEmitter2 } from '@nestjs/event-emitter';
 import { Appointment } from '@/domains/appointments/core/entities/appointment.entity';
 import { AppointmentStatus } from '@/domains/appointments/core/value-objects/appointment-status.value-object';
+import { AppointmentSchedulingRulesService } from '@/domains/appointments/core/domain-services/appointment-scheduling-rules.service';
 
 describe('AppointmentService metric persistence', () => {
   const mockAppointmentRepository = {
@@ -28,6 +29,12 @@ describe('AppointmentService metric persistence', () => {
   const mockEventEmitter = {
     emit: jest.fn<EventEmitter2['emit']>().mockImplementation(() => true),
   };
+
+  const mockSchedulingRules = {
+    validateAppointmentOverlap: jest
+      .fn<AppointmentSchedulingRulesService['validateAppointmentOverlap']>()
+      .mockResolvedValue({ hasConflict: false }),
+  } as unknown as AppointmentSchedulingRulesService;
 
   const mockPrisma = {
     appointment: {
@@ -90,6 +97,7 @@ describe('AppointmentService metric persistence', () => {
       createAppointmentUseCase,
       prisma,
       eventEmitter,
+      mockSchedulingRules,
     );
   });
 

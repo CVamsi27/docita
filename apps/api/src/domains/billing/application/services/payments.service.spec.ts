@@ -70,6 +70,7 @@ describe('PaymentsService', () => {
     delete: jest.fn<IPaymentSessionRepository['delete']>(),
     findPendingReminders:
       jest.fn<IPaymentSessionRepository['findPendingReminders']>(),
+    findByInvoiceId: jest.fn<IPaymentSessionRepository['findByInvoiceId']>(),
   };
 
   const invoiceRepository: jest.Mocked<IInvoiceRepository> = {

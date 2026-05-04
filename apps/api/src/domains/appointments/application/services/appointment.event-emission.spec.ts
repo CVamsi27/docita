@@ -7,6 +7,7 @@ import { PrismaService } from '@/prisma/prisma.service';
 import { EventEmitter2 } from '@nestjs/event-emitter';
 import { AppointmentStatus } from '@/domains/appointments/core/value-objects/appointment-status.value-object';
 import { CreateAppointmentCommand } from '@/domains/appointments/application/use-cases/create-appointment.use-case';
+import { AppointmentSchedulingRulesService } from '@/domains/appointments/core/domain-services/appointment-scheduling-rules.service';
 
 describe('AppointmentService - appointment.created event', () => {
   const mockRepository = {
@@ -38,6 +39,12 @@ describe('AppointmentService - appointment.created event', () => {
     .mockImplementation(() => true);
   mockEventEmitter.emit = emitMock;
 
+  const mockSchedulingRules = {
+    validateAppointmentOverlap: jest
+      .fn<AppointmentSchedulingRulesService['validateAppointmentOverlap']>()
+      .mockResolvedValue({ hasConflict: false }),
+  } as unknown as AppointmentSchedulingRulesService;
+
   const command: CreateAppointmentCommand = {
     clinicId: 'clinic-1',
     patientId: 'patient-1',
@@ -55,6 +62,7 @@ describe('AppointmentService - appointment.created event', () => {
       mockCreateAppointmentUseCase,
       mockPrisma,
       mockEventEmitter,
+      mockSchedulingRules,
     );
   });
 

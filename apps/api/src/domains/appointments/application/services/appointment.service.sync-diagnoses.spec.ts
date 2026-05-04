@@ -1,6 +1,7 @@
 import { describe, expect, it, jest } from '@jest/globals';
 import { EventEmitter2 } from '@nestjs/event-emitter';
 import { AppointmentService } from './appointment.service';
+import { AppointmentSchedulingRulesService } from '@/domains/appointments/core/domain-services/appointment-scheduling-rules.service';
 
 describe('AppointmentService.syncDiagnoses', () => {
   const appointmentRepository = {} as never;
@@ -51,11 +52,18 @@ describe('AppointmentService.syncDiagnoses', () => {
     ),
   } as never;
 
+  const mockSchedulingRules = {
+    validateAppointmentOverlap: jest
+      .fn<AppointmentSchedulingRulesService['validateAppointmentOverlap']>()
+      .mockResolvedValue({ hasConflict: false }),
+  } as unknown as AppointmentSchedulingRulesService;
+
   const service = new AppointmentService(
     appointmentRepository,
     createAppointmentUseCase,
     prisma,
     eventEmitter,
+    mockSchedulingRules,
   );
 
   it('marks the first coded diagnosis as primary after uncoded rows are filtered out', async () => {
