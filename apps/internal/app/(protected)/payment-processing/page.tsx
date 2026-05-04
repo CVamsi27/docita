@@ -455,7 +455,9 @@ export default function PaymentProcessingPage() {
         notes: data.notes.trim() || undefined,
       });
     } catch {
-      showUserFacingErrorToast("Could not save checkout discount.");
+      showUserFacingErrorToast(
+        "We could not save this checkout discount. Please try again.",
+      );
     }
   });
 
