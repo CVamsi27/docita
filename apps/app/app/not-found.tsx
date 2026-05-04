@@ -21,9 +21,9 @@ export default function NotFound() {
           </p>
           <div className="mt-6 flex flex-col gap-2 sm:flex-row sm:justify-center">
             <Button asChild>
-              <Link href="/">
+              <Link href="/today">
                 <Home className="mr-2 h-4 w-4" />
-                Go home
+                Go to workspace
               </Link>
             </Button>
             <BackButton fallback="/login" label="Go back" variant="outline" size="default" />

@@ -120,6 +120,15 @@ const capitalizeFirstLetter = (value?: string | null): string => {
   return value.charAt(0).toUpperCase() + value.slice(1);
 };
 
+function medicationSummaryLine(meds: MedicationMetadata[]): string {
+  if (!meds.length) return "";
+  const names = meds.map((m) => m.name).filter(Boolean);
+  if (!names.length) return "";
+  const head = names.slice(0, 2).join(", ");
+  const extra = names.length > 2 ? ` +${names.length - 2}` : "";
+  return `Meds: ${head}${extra}`;
+}
+
 export function VisitCard({ event, mode, defaultExpanded = false }: VisitCardProps) {
   const [expanded, setExpanded] = useState(defaultExpanded);
   const config = EVENT_TYPE_CONFIG[event.type];
@@ -213,14 +222,36 @@ export function VisitCard({ event, mode, defaultExpanded = false }: VisitCardPro
           <Icon className={cn("h-2.5 w-2.5", config.color)} />
         </div>
         <div className="flex items-start justify-between gap-1">
-          <p className="text-xs font-medium truncate leading-tight">{displayTitle}</p>
+          <p
+            className="text-xs font-medium truncate leading-tight"
+            title={displayTitle}
+          >
+            {displayTitle}
+          </p>
           <span className="text-[var(--fs-2xs)] text-muted-foreground shrink-0">{dateStr}</span>
         </div>
-        {event.type === "APPOINTMENT" && (primaryDiagnosis?.description || doctorName) && (
-          <p className="text-[var(--fs-2xs)] text-muted-foreground mt-0.5 truncate">
-            {displayPrimaryDiagnosis || doctorName}
-          </p>
-        )}
+        {event.type === "APPOINTMENT" && (() => {
+          const medLine = medicationSummaryLine(medications);
+          const summaryParts = [
+            displayPrimaryDiagnosis,
+            medLine,
+          ].filter((s): s is string => Boolean(s && s.trim()));
+          if (summaryParts.length > 0) {
+            return (
+              <p className="text-[var(--fs-2xs)] text-muted-foreground mt-0.5 line-clamp-2 leading-snug">
+                {summaryParts.join(" · ")}
+              </p>
+            );
+          }
+          if (doctorName) {
+            return (
+              <p className="text-[var(--fs-2xs)] text-muted-foreground mt-0.5 truncate">
+                Dr. {doctorName}
+              </p>
+            );
+          }
+          return null;
+        })()}
       </div>
     );
   }

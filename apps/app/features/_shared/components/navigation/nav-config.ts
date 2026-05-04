@@ -63,6 +63,13 @@ const TRACK_ITEMS: NavItem[] = [
     accessTarget: APP_ACCESS_TARGETS.PAGE_DESK_PAYMENT,
   },
   {
+    href: "/invoices",
+    icon: Receipt,
+    label: "Invoices",
+    feature: Feature.INVOICING,
+    accessTarget: APP_ACCESS_TARGETS.PAGE_INVOICES,
+  },
+  {
     href: "/appointments",
     icon: CalendarDays,
     label: "Appointments",
@@ -104,13 +111,6 @@ const SERVICES_ITEMS: NavItem[] = [
     icon: Inbox,
     label: "Inbox",
     accessTarget: APP_ACCESS_TARGETS.PAGE_DASHBOARD,
-  },
-  {
-    href: "/invoices",
-    icon: Receipt,
-    label: "Invoices",
-    feature: Feature.INVOICING,
-    accessTarget: APP_ACCESS_TARGETS.PAGE_INVOICES,
   },
   {
     href: "/inventory",
@@ -179,7 +179,13 @@ export const AI_ASSISTANT_NAV_ITEM: NavItem = {
   feature: Feature.AI_PRESCRIPTION_ASSISTANT,
 };
 
-export const FIXED_NAV_HREFS = new Set(["/today", "/settings"]);
+/** Always shown in the sidebar even when a clinic has customized other items away. */
+export const FIXED_NAV_HREFS = new Set([
+  "/today",
+  "/settings",
+  "/invoices",
+  "/desk/collect-payment",
+]);
 
 export const mobileOnlyNavItems: NavItem[] = [
   {
