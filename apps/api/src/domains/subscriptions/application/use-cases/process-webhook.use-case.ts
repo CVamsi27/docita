@@ -29,6 +29,11 @@ import { PrismaService } from '@/prisma/prisma.service';
 import { computeSubscriptionGraceDeadline } from '@/domains/subscriptions/core/constants/subscription-lockout.constants';
 import { SubscriptionPricingService } from '@/domains/subscriptions/core/services/subscription-pricing.service';
 
+/**
+ * Flow A only: Razorpay webhooks for **clinic pays Docita** (subscriptions and
+ * related platform billing). Not for patient-to-clinic settlement (Flow B);
+ * see docs/PAYMENT_FLOWS.md.
+ */
 @Injectable()
 export class ProcessWebhookUseCase {
   private readonly logger = new Logger(ProcessWebhookUseCase.name);

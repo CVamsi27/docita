@@ -7,6 +7,12 @@ import {
 } from '@/domains/payments/core/ports';
 import { PaymentLinkStatus } from '@/domains/payments/core/entities/payment-link-status.enum';
 
+/**
+ * Razorpay Payment Links using **Docita platform** credentials. Primary use:
+ * Flow A (clinic pays Docita). If injected for patient invoice links (Flow B),
+ * treat as transitional — Flow B should converge on per-clinic plug-in
+ * gateways (docs/PAYMENT_FLOWS.md).
+ */
 @Injectable()
 export class RazorpayPaymentLinkAdapter
   extends BaseRazorpayAdapter

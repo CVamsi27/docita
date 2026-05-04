@@ -25,6 +25,13 @@ import {
   INVOICE_REPOSITORY_TOKEN,
 } from '@/domains/billing/core/repositories/invoice.repository';
 
+/**
+ * Clinic invoice payments: payment sessions (links / cash), manual desk
+ * settlement, and related helpers. Flow B (patient pays clinic) in
+ * docs/PAYMENT_FLOWS.md. Platform Razorpay for clinic-pays-Docita (Flow A)
+ * lives under subscriptions / dedicated gateways — do not conflate webhook
+ * or order semantics between the two flows.
+ */
 @Injectable()
 export class PaymentsService {
   private logger = new Logger(PaymentsService.name);
@@ -90,6 +97,8 @@ export class PaymentsService {
     try {
       const amount = new Money(dto.amount, dto.currency);
 
+      // Patient invoice online link: must move to per-clinic gateway (Flow B);
+      // today may delegate to the shared adapter — see docs/PAYMENT_FLOWS.md.
       paymentLinkResponse = await this.paymentLinkProvider.createPaymentLink({
         amount,
         description: dto.description || `Invoice #${dto.invoiceId.slice(0, 8)}`,

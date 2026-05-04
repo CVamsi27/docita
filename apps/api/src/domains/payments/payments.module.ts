@@ -15,6 +15,7 @@ import {
   REFUND_PROVIDER_TOKEN,
 } from './core/ports';
 
+/** Wires Razorpay adapters for platform billing (Flow A). See docs/PAYMENT_FLOWS.md. */
 @Module({
   imports: [ConfigModule],
   providers: [
@@ -26,6 +27,8 @@ import {
     RazorpayRefundAdapter,
     PaymentGatewayFactory,
     {
+      // Shared token: subscriptions/overage (Flow A) and billing invoice links
+      // (Flow B) — split providers when clinic-scoped link adapters land.
       provide: PAYMENT_LINK_PROVIDER_TOKEN,
       useFactory: (factory: PaymentGatewayFactory) =>
         factory.getPaymentLinkProvider(),

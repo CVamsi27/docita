@@ -1,3 +1,9 @@
+/**
+ * Abstraction for creating hosted payment links. Used by Flow A (Docita
+ * revenue: subscriptions, overage) and, until per-clinic adapters exist, some
+ * Flow B invoice flows — see docs/PAYMENT_FLOWS.md; do not mix webhook or
+ * merchant semantics across flows.
+ */
 import { IPaymentGateway } from '@/domains/payments/core/ports/payment-gateway.port';
 import { PaymentLinkStatus } from '@/domains/payments/core/entities/payment-link-status.enum';
 import { Money } from '@/domains/payments/core/value-objects/money.vo';
