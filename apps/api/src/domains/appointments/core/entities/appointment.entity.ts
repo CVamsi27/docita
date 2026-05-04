@@ -14,11 +14,25 @@ export interface AppointmentProps {
   consultationNotes?: string;
   observations?: string;
   chiefComplaint?: string;
+  historyOfPresentIllness?: string;
+  pastMedicalHistory?: string;
+  reviewOfSystems?: string;
+  provisionalDiagnosis?: string;
   treatmentHistory?: string;
+  treatmentPlan?: string;
   clinicalImpression?: string;
   differentialDiagnosis?: string;
   finalDiagnosis?: string;
   followUpPlan?: string;
+  generalExamination?: unknown;
+  systemicExamination?: unknown;
+  investigations?: unknown;
+  growthData?: unknown;
+  ophthalmologyExam?: unknown;
+  cardiologyExam?: unknown;
+  gynecologyExam?: unknown;
+  dermatologyExam?: unknown;
+  psychiatryExam?: unknown;
   dentalChart?: DentalChartData;
   serviceId?: string;
   type?: string;
@@ -43,11 +57,25 @@ export class Appointment {
   private consultationNotes?: string;
   private observations?: string;
   private chiefComplaint?: string;
+  private historyOfPresentIllness?: string;
+  private pastMedicalHistory?: string;
+  private reviewOfSystems?: string;
+  private provisionalDiagnosis?: string;
   private treatmentHistory?: string;
+  private treatmentPlan?: string;
   private clinicalImpression?: string;
   private differentialDiagnosis?: string;
   private finalDiagnosis?: string;
   private followUpPlan?: string;
+  private generalExamination?: unknown;
+  private systemicExamination?: unknown;
+  private investigations?: unknown;
+  private growthData?: unknown;
+  private ophthalmologyExam?: unknown;
+  private cardiologyExam?: unknown;
+  private gynecologyExam?: unknown;
+  private dermatologyExam?: unknown;
+  private psychiatryExam?: unknown;
   private dentalChart?: DentalChartData;
   private serviceId?: string;
   private type?: string;
@@ -71,11 +99,25 @@ export class Appointment {
     this.consultationNotes = props.consultationNotes;
     this.observations = props.observations;
     this.chiefComplaint = props.chiefComplaint;
+    this.historyOfPresentIllness = props.historyOfPresentIllness;
+    this.pastMedicalHistory = props.pastMedicalHistory;
+    this.reviewOfSystems = props.reviewOfSystems;
+    this.provisionalDiagnosis = props.provisionalDiagnosis;
     this.treatmentHistory = props.treatmentHistory;
+    this.treatmentPlan = props.treatmentPlan;
     this.clinicalImpression = props.clinicalImpression;
     this.differentialDiagnosis = props.differentialDiagnosis;
     this.finalDiagnosis = props.finalDiagnosis;
     this.followUpPlan = props.followUpPlan;
+    this.generalExamination = props.generalExamination;
+    this.systemicExamination = props.systemicExamination;
+    this.investigations = props.investigations;
+    this.growthData = props.growthData;
+    this.ophthalmologyExam = props.ophthalmologyExam;
+    this.cardiologyExam = props.cardiologyExam;
+    this.gynecologyExam = props.gynecologyExam;
+    this.dermatologyExam = props.dermatologyExam;
+    this.psychiatryExam = props.psychiatryExam;
     this.dentalChart = props.dentalChart;
     this.serviceId = props.serviceId;
     this.type = props.type;
@@ -165,6 +207,11 @@ export class Appointment {
     this.updatedAt = new Date();
   }
 
+  /** Ensures Nest/Express JSON responses include all clinical fields (not only enumerable ctor props). */
+  toJSON() {
+    return this.toPlain();
+  }
+
   toPlain() {
     return {
       id: this.id,
@@ -179,11 +226,25 @@ export class Appointment {
       consultationNotes: this.consultationNotes,
       observations: this.observations,
       chiefComplaint: this.chiefComplaint,
+      historyOfPresentIllness: this.historyOfPresentIllness,
+      pastMedicalHistory: this.pastMedicalHistory,
+      reviewOfSystems: this.reviewOfSystems,
+      provisionalDiagnosis: this.provisionalDiagnosis,
       treatmentHistory: this.treatmentHistory,
+      treatmentPlan: this.treatmentPlan,
       clinicalImpression: this.clinicalImpression,
       differentialDiagnosis: this.differentialDiagnosis,
       finalDiagnosis: this.finalDiagnosis,
       followUpPlan: this.followUpPlan,
+      generalExamination: this.generalExamination,
+      systemicExamination: this.systemicExamination,
+      investigations: this.investigations,
+      growthData: this.growthData,
+      ophthalmologyExam: this.ophthalmologyExam,
+      cardiologyExam: this.cardiologyExam,
+      gynecologyExam: this.gynecologyExam,
+      dermatologyExam: this.dermatologyExam,
+      psychiatryExam: this.psychiatryExam,
       dentalChart: this.dentalChart,
       serviceId: this.serviceId,
       type: this.type,

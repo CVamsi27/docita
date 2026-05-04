@@ -13,6 +13,7 @@ export type QueueTokenWithRelations = QueueToken & {
   appointment: {
     id: string;
     type: string;
+    chiefComplaint: string | null;
     doctor: { id: string; name: string } | null;
   } | null;
 };

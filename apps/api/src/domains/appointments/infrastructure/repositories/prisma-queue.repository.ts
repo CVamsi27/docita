@@ -23,6 +23,7 @@ const TOKEN_WITH_RELATIONS_INCLUDE = {
     select: {
       id: true,
       type: true,
+      chiefComplaint: true,
       doctor: { select: { id: true, name: true } },
     },
   },

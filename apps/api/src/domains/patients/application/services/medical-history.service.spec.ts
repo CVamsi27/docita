@@ -35,9 +35,10 @@ describe('MedicalHistoryService', () => {
       delete: jest.fn<(...args: unknown[]) => Promise<unknown>>(),
     },
     patientSocialHistory: {
-      upsert: jest.fn<(...args: unknown[]) => Promise<unknown>>(),
-      findUnique: jest.fn<(...args: unknown[]) => Promise<unknown>>(),
-      delete: jest.fn<(...args: unknown[]) => Promise<unknown>>(),
+      create: jest.fn<(...args: unknown[]) => Promise<unknown>>(),
+      findFirst: jest.fn<(...args: unknown[]) => Promise<unknown>>(),
+      updateMany: jest.fn<(...args: unknown[]) => Promise<unknown>>(),
+      deleteMany: jest.fn<(...args: unknown[]) => Promise<unknown>>(),
     },
     patientSurgicalHistory: {
       create: jest.fn<(...args: unknown[]) => Promise<unknown>>(),
