@@ -95,7 +95,7 @@ export const appointmentSchema = z.object({
   notes: z.string().max(2000).optional().transform(stripHtmlTags),
   observations: z.string().max(2000).optional().transform(stripHtmlTags),
 
-  chiefComplaint: z.string().max(1000).optional().transform(stripHtmlTags),
+  chiefComplaint: z.string().max(20000).optional().transform(stripHtmlTags),
   historyOfPresentIllness: z
     .string()
     .max(5000)

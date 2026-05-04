@@ -549,7 +549,7 @@ export type PsychiatryExamData = z.infer<typeof psychiatryExamDataSchema>;
 
 export const clinicalNoteSchema = z.object({
 
-  chiefComplaint: z.string().max(1000).optional().transform(stripHtmlTags),
+  chiefComplaint: z.string().max(20000).optional().transform(stripHtmlTags),
   treatmentHistory: z.string().max(5000).optional().transform(stripHtmlTags), 
   historyOfPresentIllness: z
     .string()
