@@ -59,6 +59,7 @@ import { DataState } from "@workspace/ui/components/data-state";
 import { StatusBadge } from "@workspace/ui/components/status-badge";
 import { Invoice, Patient } from "@workspace/types";
 import { useClinicCurrency } from "@/hooks/use-clinic-currency";
+import { buildInvoicePaidSummaryLine } from "@/features/invoices/lib/invoice-payment-display";
 
 type InvoiceWithPatient = Invoice & {
   patient?: Pick<Patient, "firstName" | "lastName">;
@@ -222,7 +223,14 @@ export const InvoicesPageUI: FC = () => {
                   </TableRow>
                 </TableHeader>
                 <TableBody>
-                  {filteredInvoices.map((invoice: InvoiceWithPatient) => (
+                  {filteredInvoices.map((invoice: InvoiceWithPatient) => {
+                    const paidSummary = buildInvoicePaidSummaryLine({
+                      status: invoice.status,
+                      paidAt: invoice.paidAt,
+                      paymentMethod: invoice.paymentMethod,
+                      formatDate,
+                    });
+                    return (
                     <TableRow
                       key={invoice.id ?? `invoice-${Math.random()}`}
                       className="cursor-pointer"
@@ -255,20 +263,8 @@ export const InvoicesPageUI: FC = () => {
                       <TableCell>
                         <div className="flex flex-col items-start gap-0.5">
                           <StatusBadge status={invoice.status} />
-                          {invoice.paidAt ? (
-                            <span className="ui-helper-text">
-                              Paid{" "}
-                              {formatDate(
-                                invoice.paidAt,
-                                "en-US",
-                                DATE_FORMAT_OPTIONS_US_LONG,
-                              )}
-                            </span>
-                          ) : null}
-                          {invoice.paymentMethod ? (
-                            <span className="ui-helper-text">
-                              {invoice.paymentMethod.replace(/_/g, " ")}
-                            </span>
+                          {paidSummary ? (
+                            <span className="ui-helper-text">{paidSummary}</span>
                           ) : null}
                         </div>
                       </TableCell>
@@ -328,7 +324,8 @@ export const InvoicesPageUI: FC = () => {
                         </DropdownMenu>
                       </TableCell>
                     </TableRow>
-                  ))}
+                    );
+                  })}
                 </TableBody>
               </Table>
             </div>

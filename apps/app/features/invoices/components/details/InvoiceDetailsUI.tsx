@@ -28,6 +28,7 @@ import { InvoiceBillTo } from "./InvoiceBillTo";
 import { InvoiceItemsTableReadOnly } from "./InvoiceItemsTableReadOnly";
 import { InvoiceTotalsOnly } from "./InvoiceTotalsOnly";
 import { InvoicePaymentActivitySection } from "./InvoicePaymentActivitySection";
+import { buildInvoicePaidSummaryLine } from "@/features/invoices/lib/invoice-payment-display";
 
 interface InvoiceDetailsUIProps {
   invoiceId: string;
@@ -72,6 +73,13 @@ export const InvoiceDetailsUI: FC<InvoiceDetailsUIProps> = ({ invoiceId }) => {
     );
   }
 
+  const paidSummaryLine = buildInvoicePaidSummaryLine({
+    status: invoice.status,
+    paidAt: invoice.paidAt,
+    paymentMethod: invoice.paymentMethod,
+    formatDate,
+  });
+
   const invoiceClinic = invoice.patient?.clinic;
   const authorizedSignatureUrl =
     invoiceClinic?.slaSignatureUrl || clinic?.slaSignatureUrl || null;
@@ -81,12 +89,19 @@ export const InvoiceDetailsUI: FC<InvoiceDetailsUIProps> = ({ invoiceId }) => {
   return (
     <div className="flex flex-col gap-6 max-w-5xl mx-auto">
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 print:hidden">
-        <div className="flex flex-wrap items-center gap-2 min-w-0">
-          <BackButton fallback="/invoices" className="shrink-0" />
-          <h1 className="ui-page-title text-[var(--fs-xl)] sm:text-[var(--fs-2xl)]">
-            Invoice #{(invoice.id ?? "").substring(0, 8).toUpperCase()}
-          </h1>
-          <StatusBadge status={invoice.status} />
+        <div className="min-w-0 flex flex-col gap-1">
+          <div className="flex flex-wrap items-center gap-2 min-w-0">
+            <BackButton fallback="/invoices" className="shrink-0" />
+            <h1 className="ui-page-title text-[var(--fs-xl)] sm:text-[var(--fs-2xl)]">
+              Invoice #{(invoice.id ?? "").substring(0, 8).toUpperCase()}
+            </h1>
+            <StatusBadge status={invoice.status} />
+          </div>
+          {paidSummaryLine ? (
+            <p className="text-[var(--fs-sm)] text-muted-foreground">
+              {paidSummaryLine}
+            </p>
+          ) : null}
         </div>
         <div className="flex flex-wrap gap-2">
           <Button variant="outline" size="sm" onClick={() => handlePrint()}>
