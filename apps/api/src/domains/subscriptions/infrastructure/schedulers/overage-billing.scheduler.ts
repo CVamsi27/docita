@@ -7,7 +7,7 @@ import { EmailService } from '@/shared/modules/messaging/email/email.service';
 import { AppConfigService } from '@/shared/modules/config/app-configuration.service';
 import {
   IPaymentLinkProvider,
-  PAYMENT_LINK_PROVIDER_TOKEN,
+  DOCITA_PLATFORM_PAYMENT_LINK_PROVIDER_TOKEN,
 } from '@/domains/payments/core/ports';
 import { Money } from '@/domains/payments/core/value-objects/money.vo';
 import {
@@ -37,7 +37,7 @@ export class OverageBillingScheduler {
     private readonly usageTrackingService: UsageTrackingService,
     private readonly emailService: EmailService,
     private readonly configService: AppConfigService,
-    @Inject(PAYMENT_LINK_PROVIDER_TOKEN)
+    @Inject(DOCITA_PLATFORM_PAYMENT_LINK_PROVIDER_TOKEN)
     private readonly paymentLinkProvider: IPaymentLinkProvider,
   ) {}
 

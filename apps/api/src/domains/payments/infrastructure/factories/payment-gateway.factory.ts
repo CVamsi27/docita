@@ -17,8 +17,9 @@ import { RazorpayRefundAdapter } from '@/domains/payments/infrastructure/adapter
  * Registry for **Flow A** (clinic pays Docita) Razorpay capabilities: payment
  * links for platform billing, subscriptions, orders, refunds, webhooks.
  * Patient-to-clinic revenue (Flow B) must use clinic-scoped providers per
- * docs/PAYMENT_FLOWS.md — avoid assuming this factory’s default link provider
- * is correct for long-term Flow B online checkout.
+ * docs/PAYMENT_FLOWS.md. Billing injects `CLINIC_INVOICE_PAYMENT_LINK_PROVIDER_TOKEN`;
+ * subscriptions inject `DOCITA_PLATFORM_PAYMENT_LINK_PROVIDER_TOKEN` (same
+ * adapter only until Flow B implementations land).
  */
 @Injectable()
 export class PaymentGatewayFactory {

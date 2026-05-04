@@ -8,7 +8,8 @@ import { RazorpayWebhookAdapter } from './infrastructure/adapters/razorpay/razor
 import { RazorpayRefundAdapter } from './infrastructure/adapters/razorpay/razorpay-refund.adapter';
 import { PaymentGatewayFactory } from './infrastructure/factories/payment-gateway.factory';
 import {
-  PAYMENT_LINK_PROVIDER_TOKEN,
+  CLINIC_INVOICE_PAYMENT_LINK_PROVIDER_TOKEN,
+  DOCITA_PLATFORM_PAYMENT_LINK_PROVIDER_TOKEN,
   SUBSCRIPTION_PROVIDER_TOKEN,
   ORDER_PROVIDER_TOKEN,
   WEBHOOK_HANDLER_TOKEN,
@@ -27,9 +28,13 @@ import {
     RazorpayRefundAdapter,
     PaymentGatewayFactory,
     {
-      // Shared token: subscriptions/overage (Flow A) and billing invoice links
-      // (Flow B) — split providers when clinic-scoped link adapters land.
-      provide: PAYMENT_LINK_PROVIDER_TOKEN,
+      provide: DOCITA_PLATFORM_PAYMENT_LINK_PROVIDER_TOKEN,
+      useFactory: (factory: PaymentGatewayFactory) =>
+        factory.getPaymentLinkProvider(),
+      inject: [PaymentGatewayFactory],
+    },
+    {
+      provide: CLINIC_INVOICE_PAYMENT_LINK_PROVIDER_TOKEN,
       useFactory: (factory: PaymentGatewayFactory) =>
         factory.getPaymentLinkProvider(),
       inject: [PaymentGatewayFactory],
@@ -61,7 +66,8 @@ import {
   ],
   exports: [
     PaymentGatewayFactory,
-    PAYMENT_LINK_PROVIDER_TOKEN,
+    DOCITA_PLATFORM_PAYMENT_LINK_PROVIDER_TOKEN,
+    CLINIC_INVOICE_PAYMENT_LINK_PROVIDER_TOKEN,
     SUBSCRIPTION_PROVIDER_TOKEN,
     ORDER_PROVIDER_TOKEN,
     WEBHOOK_HANDLER_TOKEN,

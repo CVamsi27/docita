@@ -1,8 +1,7 @@
 /**
- * Abstraction for creating hosted payment links. Used by Flow A (Docita
- * revenue: subscriptions, overage) and, until per-clinic adapters exist, some
- * Flow B invoice flows — see docs/PAYMENT_FLOWS.md; do not mix webhook or
- * merchant semantics across flows.
+ * Abstraction for creating hosted payment links. Two Nest tokens bind
+ * implementations separately so Flow A (Docita SaaS) and Flow B (patient pays
+ * clinic) never share an injection site — see docs/PAYMENT_FLOWS.md.
  */
 import { IPaymentGateway } from '@/domains/payments/core/ports/payment-gateway.port';
 import { PaymentLinkStatus } from '@/domains/payments/core/entities/payment-link-status.enum';
@@ -37,4 +36,12 @@ export interface IPaymentLinkProvider extends IPaymentGateway {
   cancelPaymentLink(linkId: string): Promise<void>;
 }
 
-export const PAYMENT_LINK_PROVIDER_TOKEN = Symbol('IPaymentLinkProvider');
+/** Flow A: clinic or hospital pays Docita (subscriptions, platform overage). */
+export const DOCITA_PLATFORM_PAYMENT_LINK_PROVIDER_TOKEN = Symbol(
+  'DocitaPlatformPaymentLinkProvider',
+);
+
+/** Flow B: patient pays clinic (invoice payment links; per-clinic adapters). */
+export const CLINIC_INVOICE_PAYMENT_LINK_PROVIDER_TOKEN = Symbol(
+  'ClinicInvoicePaymentLinkProvider',
+);

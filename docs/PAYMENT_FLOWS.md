@@ -27,4 +27,4 @@ Docita supports **two independent payment domains**. They use different money fl
 
 ## Current implementation note
 
-Some **patient invoice “payment link”** paths historically created links via the shared Razorpay payment-link adapter. That overlaps Flow A’s technology while serving Flow B’s user story and should be **replaced by clinic-configured providers** so Flow B never depends on Docita’s platform merchant for clinic-collected revenue. Desk settlement and manual capture already follow Flow B.
+Nest binds **`DOCITA_PLATFORM_PAYMENT_LINK_PROVIDER_TOKEN`** (Flow A: subscriptions, overage) and **`CLINIC_INVOICE_PAYMENT_LINK_PROVIDER_TOKEN`** (Flow B: patient invoice links) to **separate injection sites**; today both may resolve to the same gateway factory instance until per-clinic adapters exist. Desk settlement already follows Flow B only. Replace the clinic token’s implementation with clinic-scoped providers so Flow B never uses Docita’s platform merchant for clinic-collected revenue.

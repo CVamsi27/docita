@@ -11,7 +11,7 @@ import { SendMessageUseCase } from '@/domains/whatsapp/application/use-cases/sen
 import { PushNotificationService } from '@/shared/modules/messaging/notifications/push-notification.service';
 import {
   IPaymentLinkProvider,
-  PAYMENT_LINK_PROVIDER_TOKEN,
+  CLINIC_INVOICE_PAYMENT_LINK_PROVIDER_TOKEN,
 } from '@/domains/payments/core/ports/payment-link-provider.port';
 import { Money } from '@/domains/payments/core/value-objects/money.vo';
 import { PaymentSessionStatus, Prisma, InvoiceStatus } from '@workspace/db';
@@ -44,7 +44,7 @@ export class PaymentsService {
     private sendMessage: SendMessageUseCase,
     private pushNotifications: PushNotificationService,
     private configService: AppConfigService,
-    @Inject(PAYMENT_LINK_PROVIDER_TOKEN)
+    @Inject(CLINIC_INVOICE_PAYMENT_LINK_PROVIDER_TOKEN)
     private paymentLinkProvider: IPaymentLinkProvider,
   ) {}
 

@@ -13,7 +13,10 @@ import {
 import { factories, setPrismaInstance } from './factories';
 import { Role } from '@workspace/db';
 import cookieParser from 'cookie-parser';
-import { PAYMENT_LINK_PROVIDER_TOKEN } from '@/domains/payments/core/ports/payment-link-provider.port';
+import {
+  CLINIC_INVOICE_PAYMENT_LINK_PROVIDER_TOKEN,
+  DOCITA_PLATFORM_PAYMENT_LINK_PROVIDER_TOKEN,
+} from '@/domains/payments/core/ports/payment-link-provider.port';
 
 describe('Idempotency (e2e)', () => {
   let app: INestApplication;
@@ -37,7 +40,9 @@ describe('Idempotency (e2e)', () => {
     })
       .overrideProvider(PrismaService)
       .useValue(getPrismaInstance())
-      .overrideProvider(PAYMENT_LINK_PROVIDER_TOKEN)
+      .overrideProvider(DOCITA_PLATFORM_PAYMENT_LINK_PROVIDER_TOKEN)
+      .useValue(mockPaymentProvider)
+      .overrideProvider(CLINIC_INVOICE_PAYMENT_LINK_PROVIDER_TOKEN)
       .useValue(mockPaymentProvider)
       .compile();
 
