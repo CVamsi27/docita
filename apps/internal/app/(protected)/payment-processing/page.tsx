@@ -48,6 +48,7 @@ import {
 } from "@workspace/ui/components/form";
 import { Input } from "@workspace/ui/components/input";
 import { Textarea } from "@workspace/ui/components/textarea";
+import { IsoDatePickerField } from "@workspace/ui/components/iso-date-picker-field";
 import { CreditCard, Percent, Receipt, TrendingUp } from "lucide-react";
 import {
   GUIDED_SETUP_LIST_PRICE_BY_CURRENCY,
@@ -802,9 +803,18 @@ export default function PaymentProcessingPage() {
                     name="validUntil"
                     render={({ field }) => (
                       <FormItem>
-                        <FormLabel>Valid until (optional)</FormLabel>
+                        <FormLabel htmlFor="pricing-offer-valid-until">
+                          Valid until (optional)
+                        </FormLabel>
                         <FormControl>
-                          <Input type="date" {...field} />
+                          <IsoDatePickerField
+                            id="pricing-offer-valid-until"
+                            label=""
+                            showLabel={false}
+                            value={typeof field.value === "string" ? field.value : ""}
+                            onChange={field.onChange}
+                            placeholder="Select date"
+                          />
                         </FormControl>
                         <FormMessage />
                       </FormItem>
