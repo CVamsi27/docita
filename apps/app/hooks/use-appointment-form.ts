@@ -1,3 +1,4 @@
+import { useQueryClient } from "@tanstack/react-query";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { toast } from "sonner";
 import { Resolver, useForm } from "react-hook-form";
@@ -16,12 +17,11 @@ import {
   createAppointmentSchema,
   Patient,
 } from "@workspace/types";
+import { addDays, formatPickerIsoDate } from "@workspace/utils";
 import {
-  addDays,
-  DEFAULT_TIMEZONE,
-  formatPickerIsoDate,
-  toLocalISOString,
-} from "@workspace/utils";
+  calendarSlotTimeToLocalIso,
+  defaultStartIsoForSelectedCalendarDay,
+} from "@/features/appointments/lib/calendar-slot-local-iso";
 import { useAppConfig } from "@/lib/app-config-context";
 import { useAuth } from "@/lib/auth-context";
 import { showUserFacingErrorToast } from "@/lib/user-facing-errors";
@@ -43,24 +43,6 @@ function pickerDayDiff(fromIso: string, toIso: string): number {
   const fromT = new Date(fy!, fm! - 1, fd!, 12, 0, 0, 0).getTime();
   const toT = new Date(ty!, tm! - 1, td!, 12, 0, 0, 0).getTime();
   return Math.round((toT - fromT) / 86_400_000);
-}
-
-/** Wall-clock instant for a calendar day + slot time, then clinic-local ISO string for the form. */
-function slotStartToLocalIsoString(
-  selectedDate: Date,
-  slotTimeHHmm: string,
-): string {
-  const [h, m] = slotTimeHHmm.split(":").map((x) => parseInt(x, 10));
-  const wall = new Date(
-    selectedDate.getFullYear(),
-    selectedDate.getMonth(),
-    selectedDate.getDate(),
-    Number.isFinite(h) ? h : 0,
-    Number.isFinite(m) ? m : 0,
-    0,
-    0,
-  );
-  return toLocalISOString(wall, { timezone: DEFAULT_TIMEZONE });
 }
 
 export function useAppointmentForm({
@@ -112,6 +94,7 @@ export function useAppointmentForm({
     [doctors, unavailableIds],
   );
 
+  const queryClient = useQueryClient();
   const { mutateAsync: createAppointment, isPending: loading } =
     useCreateAppointment();
   const { config } = useAppConfig();
@@ -123,8 +106,11 @@ export function useAppointmentForm({
     let defaultStart = "";
 
     if (selectedDate) {
-      // Filled only from `/doctor-availability/slots` so we never default to a booked slot.
-      defaultStart = "";
+      defaultStart = defaultStartIsoForSelectedCalendarDay(
+        selectedDate,
+        startHour,
+        endHour,
+      );
     } else {
       const now = new Date();
 
@@ -194,10 +180,23 @@ export function useAppointmentForm({
   const wasOpenRef = useRef(false);
   useEffect(() => {
     if (open && !wasOpenRef.current) {
-      form.reset(defaultValues);
+      const resetValues =
+        selectedDate != null
+          ? { ...defaultValues, startTime: "", endTime: "" }
+          : defaultValues;
+      form.reset(resetValues);
+      if (selectedDate && defaultValues.doctorId) {
+        void queryClient.invalidateQueries({
+          queryKey: [
+            "doctor-availability-slots",
+            formatPickerIsoDate(selectedDate),
+            defaultValues.doctorId,
+          ],
+        });
+      }
     }
     wasOpenRef.current = Boolean(open);
-  }, [open, defaultValues, form]);
+  }, [open, defaultValues, form, selectedDate, queryClient]);
 
   const watchedDoctorId = form.watch("doctorId");
   const { data: doctorSchedules = [] } = useDoctorSchedules(
@@ -206,11 +205,28 @@ export function useAppointmentForm({
 
   const {
     data: slots = [],
-    isFetching: slotsFetching,
     isSuccess: slotsQuerySuccess,
+    isError: slotsQueryError,
   } = useDoctorAvailabilitySlots(selectedDate, watchedDoctorId, {
     enabled: Boolean(open && selectedDate && watchedDoctorId),
   });
+
+  const availabilitySlotsReady = Boolean(
+    open &&
+      selectedDate &&
+      watchedDoctorId &&
+      slotsQuerySuccess &&
+      !slotsQueryError,
+  );
+
+  /** Only block editing until the first successful slots fetch — not during background refetch. */
+  const isResolvingDefaultSlot = Boolean(
+    open &&
+      selectedDate &&
+      watchedDoctorId &&
+      !slotsQueryError &&
+      !slotsQuerySuccess,
+  );
 
   const autoAdvanceChainOriginStrRef = useRef<string | null>(null);
   const autoAdvanceChainActiveRef = useRef(false);
@@ -298,15 +314,34 @@ export function useAppointmentForm({
 
   useEffect(() => {
     if (!open || !selectedDate || !watchedDoctorId) return;
-    if (!slotsQuerySuccess || slotsFetching) return;
+    if (!slotsQuerySuccess || slotsQueryError) return;
 
     const snapKey = `${watchedDoctorId}|${formatPickerIsoDate(selectedDate)}`;
+    const doctorSlots = slots.filter((s) => s.doctorId === watchedDoctorId);
+    const availableIsos = doctorSlots
+      .filter((s) => s.isAvailable)
+      .map((s) => calendarSlotTimeToLocalIso(selectedDate, s.time));
+
+    const currentRaw = form.getValues("startTime");
+    const currentStr =
+      typeof currentRaw === "string"
+        ? currentRaw
+        : currentRaw instanceof Date
+          ? ""
+          : "";
+
+    const currentPickIsValid =
+      currentStr.length > 0 && availableIsos.includes(currentStr);
+
     const startTimeState = form.getFieldState("startTime");
-    if (startTimeState.isDirty && startSnapContextRef.current === snapKey) {
+    if (
+      startTimeState.isDirty &&
+      startSnapContextRef.current === snapKey &&
+      currentPickIsValid
+    ) {
       return;
     }
 
-    const doctorSlots = slots.filter((s) => s.doctorId === watchedDoctorId);
     const firstAvailable = doctorSlots.find((s) => s.isAvailable);
 
     if (firstAvailable) {
@@ -314,11 +349,19 @@ export function useAppointmentForm({
       autoAdvanceChainActiveRef.current = false;
       lastAutoAdvanceFromDayStrRef.current = null;
 
-      const nextIso = slotStartToLocalIsoString(
+      const nextIso = calendarSlotTimeToLocalIso(
         selectedDate,
         firstAvailable.time,
       );
+      const nextEndIso = calendarSlotTimeToLocalIso(
+        selectedDate,
+        firstAvailable.endTime,
+      );
       form.setValue("startTime", nextIso, {
+        shouldDirty: false,
+        shouldValidate: true,
+      });
+      form.setValue("endTime", nextEndIso, {
         shouldDirty: false,
         shouldValidate: true,
       });
@@ -366,7 +409,7 @@ export function useAppointmentForm({
     watchedDoctorId,
     slots,
     slotsQuerySuccess,
-    slotsFetching,
+    slotsQueryError,
     form,
     onAdjustSchedulingDate,
   ]);
@@ -427,6 +470,9 @@ export function useAppointmentForm({
   return {
     form,
     loading,
+    isResolvingDefaultSlot,
+    availabilitySlotsReady,
+    availabilitySlots: slots,
     patients,
     patientsLoading,
     patientSearch,

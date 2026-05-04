@@ -5,6 +5,7 @@ import {
   Invoice,
   ListInvoicesContractQuery,
   invoiceResponseSchema,
+  invoicePaymentActivityResponseSchema,
   Patient,
   type SubscriptionBillingActivateResponse,
   type SubscriptionBillingCancelResponse,
@@ -21,7 +22,8 @@ import {
   subscriptionBillingPreviewResponseSchema,
   subscriptionBillingStatusResponseSchema,
 } from "@workspace/types";
-import { fetchAPI, useAPIMutation, useAPIQuery } from "@/lib/api-core";
+import { queryKeys } from "@workspace/data-access";
+import { fetchAPI, useAPIMutation, useAPIQuery, useAPIQueryValidated } from "@/lib/api-core";
 import { ApiError } from "@/lib/errors";
 import { fetchWithSession } from "@/lib/fetch-with-session";
 import { withQueryString } from "@/lib/http/query-string";
@@ -77,6 +79,20 @@ export const useInvoice = (id: string) =>
     `/invoices/${id}`,
   );
 
+export const useInvoicePaymentActivity = (
+  invoiceId: string,
+  options?: { enabled?: boolean },
+) =>
+  useAPIQueryValidated(
+    queryKeys.invoices.paymentActivity(invoiceId),
+    `/invoices/${invoiceId}/payment-activity`,
+    invoicePaymentActivityResponseSchema,
+    {
+      enabled: Boolean(invoiceId) && (options?.enabled ?? true),
+      staleTime: 60_000,
+    },
+  );
+
 export const useCreateInvoice = () =>
   useAPIMutation<Invoice, CreateInvoiceRequest>("/invoices", "POST", {
     invalidateKeys: [["invoices"]],
@@ -84,7 +100,11 @@ export const useCreateInvoice = () =>
 
 export const useUpdateInvoice = (id: string) =>
   useAPIMutation<Invoice, UpdateInvoiceRequest>(`/invoices/${id}`, "PATCH", {
-    invalidateKeys: [["invoices"], ["invoices", id]],
+    invalidateKeys: [
+      ["invoices"],
+      ["invoices", id],
+      queryKeys.invoices.paymentActivity(id),
+    ],
   });
 
 export const useDeleteInvoice = (id: string) =>

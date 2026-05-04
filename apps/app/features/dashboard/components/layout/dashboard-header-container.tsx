@@ -33,17 +33,10 @@ export function DashboardHeaderContainer({
     return name.split(" ")[0];
   })();
 
-  const handleSearchClick = () => {
-    document.dispatchEvent(
-      new KeyboardEvent("keydown", { key: "k", metaKey: true }),
-    );
-  };
-
   return (
     <DashboardHeaderUI
       userName={displayName}
       greeting={getGreeting()}
-      onSearchClick={handleSearchClick}
       clinicCode={referralCode}
       clinicName={clinicName}
       publicOnlineBookingUrl={publicOnlineBookingUrl}

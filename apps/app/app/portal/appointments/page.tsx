@@ -17,8 +17,10 @@ import {
 } from "@workspace/ui/components/card";
 import { DataState } from "@workspace/ui/components/data-state";
 import { Input } from "@workspace/ui/components/input";
+import { Label } from "@workspace/ui/components/label";
 import { PageHeader } from "@workspace/ui/components/page-header";
 import { Textarea } from "@workspace/ui/components/textarea";
+import { IsoDatePickerField } from "@workspace/ui/components/iso-date-picker-field";
 import { Calendar } from "lucide-react";
 import { showUserFacingErrorToast } from "@/lib/user-facing-errors";
 
@@ -101,6 +103,14 @@ export default function PortalAppointmentsPage() {
 
   const handleRequestSubmit = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
+    if (!preferredDate.trim()) {
+      showUserFacingErrorToast(
+        null,
+        "Select a preferred date before sending the request.",
+        "form",
+      );
+      return;
+    }
     try {
       await requestAppointment.mutateAsync({
         preferredDate,
@@ -148,13 +158,21 @@ export default function PortalAppointmentsPage() {
               maxLength={500}
               aria-label="Reason for visit"
             />
-            <Input
-              type="date"
-              value={preferredDate}
-              onChange={(event) => setPreferredDate(event.target.value)}
-              required
-              aria-label="Preferred date"
-            />
+            <div className="flex min-w-0 flex-col gap-2">
+              <Label htmlFor="portal-preferred-date" className="text-xs text-muted-foreground">
+                Preferred date
+              </Label>
+              <IsoDatePickerField
+                id="portal-preferred-date"
+                label=""
+                showLabel={false}
+                value={preferredDate}
+                onChange={setPreferredDate}
+                required
+                placeholder="Select preferred date"
+                triggerClassName="h-10 w-full min-w-0 sm:w-full lg:w-[160px]"
+              />
+            </div>
             <Input
               type="time"
               value={preferredTime}

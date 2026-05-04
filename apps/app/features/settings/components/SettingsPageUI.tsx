@@ -291,8 +291,8 @@ export function SettingsPageUI({
             <TabsContent value="availability" className="mt-0 space-y-6">
               <RoleGuard requiredRole="DOCTOR">
                 <div className="space-y-6">
-                  <DoctorAvailabilitySettingsLazy />
                   <DoctorTimeAwaySettingsLazy />
+                  <DoctorAvailabilitySettingsLazy />
                 </div>
               </RoleGuard>
             </TabsContent>

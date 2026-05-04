@@ -1,15 +1,11 @@
 import type { ReactNode } from "react";
 import { Stethoscope } from "lucide-react";
 import { formatDate } from "@/lib/formatters";
-import {
-  ClinicReferralShareSearchButton,
-  ClinicReferralShareToolbar,
-} from "./clinic-referral-share-toolbar";
+import { ClinicReferralShareToolbar } from "./clinic-referral-share-toolbar";
 
 export interface DashboardHeaderUIProps {
   userName: string;
   greeting: string;
-  onSearchClick: () => void;
   clinicCode?: string | null;
   clinicName?: string;
   /** Public online booking page URL for this clinic (e.g. for Google Maps). */
@@ -23,7 +19,6 @@ export interface DashboardHeaderUIProps {
 export function DashboardHeaderUI({
   userName,
   greeting,
-  onSearchClick,
   clinicCode,
   clinicName,
   publicOnlineBookingUrl,
@@ -64,9 +59,6 @@ export function DashboardHeaderUI({
           publicOnlineBookingUrl={publicOnlineBookingUrl}
           canQuickShareClinicCode={canQuickShareClinicCode}
           leadingActions={headerActions}
-          trailingActions={
-            <ClinicReferralShareSearchButton onSearchClick={onSearchClick} />
-          }
         />
       </div>
     </header>

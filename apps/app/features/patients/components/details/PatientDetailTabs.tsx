@@ -20,6 +20,7 @@ import type {
 import { PatientTagManagerContainer as PatientTagManager } from "@/features/patients/components/details/PatientTagManagerContainer";
 import type { PatientStatistics } from "@/hooks/use-patient-data";
 import { PatientCommunicationTab } from "./PatientCommunicationTab";
+import { PatientClinicalChartSummary } from "./patient-clinical-chart-summary";
 
 const OverviewTab = dynamic(
   () =>
@@ -263,6 +264,12 @@ export function PatientDetailTabs({
 
   return (
     <div role="region" aria-label="Patient detail" className="w-full">
+      <PatientClinicalChartSummary
+        patientId={patientId}
+        appointments={appointments}
+        onSeeAllVisits={() => handleSelectTab("visits")}
+      />
+
       <div className="mb-4 flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
         <div
           className="flex flex-col gap-2"
@@ -283,10 +290,10 @@ export function PatientDetailTabs({
 
       {activeTab === "overview" && (
         <OverviewTab
-          patientId={patientId}
           appointments={appointments}
           statistics={statistics}
           onSelectTab={handleSelectTab}
+          onNavigateToRecordsSubTab={handleSelectRecordsSubTab}
           onScheduleVisit={onScheduleVisit}
         />
       )}

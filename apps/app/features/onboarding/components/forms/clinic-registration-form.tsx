@@ -10,6 +10,7 @@ import { useAuth } from "@/lib/auth-context";
 import { useLocaleCurrency } from "@/hooks/use-locale-currency";
 import {
   ClinicDetailsStep,
+  ClinicWeeklyHoursStep,
   ComplianceStep,
   PlanSelectionStep,
   TeamInviteStep,
@@ -35,17 +36,18 @@ import {
 } from "@workspace/ui/components/dialog";
 import { MicroLabel } from "@workspace/ui/components/micro-label";
 import { cn } from "@workspace/ui/lib/utils";
-import { DEFAULT_COUNTRY_CODE } from "@workspace/utils";
+import { DEFAULT_COUNTRY_CODE, getFacilityLabel } from "@workspace/utils";
 import { formatDateTime } from "@/lib/formatters";
 
 const STEPS = [
   { number: 1, label: "Facility Details", estimatedTime: "2 min" },
-  { number: 2, label: "Choose Plan", estimatedTime: "3 min" },
-  { number: 3, label: "Invite Team", estimatedTime: "2 min" },
-  { number: 4, label: "Compliance", estimatedTime: "3 min" },
+  { number: 2, label: "Visit hours", estimatedTime: "2 min" },
+  { number: 3, label: "Choose Plan", estimatedTime: "3 min" },
+  { number: 4, label: "Invite Team", estimatedTime: "2 min" },
+  { number: 5, label: "Compliance", estimatedTime: "3 min" },
 ];
 
-const TOTAL_STEPS = 4;
+const TOTAL_STEPS = 5;
 const DRAFT_KEY = "docita_onboarding_draft";
 const SESSION_ONBOARDING_ID_KEY = "docita_onboarding_id";
 interface OnboardingDraft {
@@ -104,12 +106,14 @@ export function ClinicRegistrationForm({
   const [savedDraft, setSavedDraft] = useState<OnboardingDraft | null>(null);
   const {
     step,
+    setStep,
     formData,
     onboardingId,
     restoreOnboardingId,
     ensureOnboardingId,
     restartOnboarding,
     setClinicDetails,
+    setClinicWeeklyHours,
     setPlanSelection,
     setTeamMembers,
     goBackFromCompliance,
@@ -485,6 +489,20 @@ export function ClinicRegistrationForm({
       )}
 
       {step === 2 && (
+        <ClinicWeeklyHoursStep
+          initialRows={formData.clinicWeeklyHours}
+          facilityWord={getFacilityLabel(
+            formData.clinicDetails.facilityLabel ?? "CLINIC",
+          )}
+          onBack={() => setStep(1)}
+          onContinue={(rows) => {
+            setStepError(null);
+            setClinicWeeklyHours(rows);
+          }}
+        />
+      )}
+
+      {step === 3 && (
         <PlanSelectionStep
           currency={currency}
           defaultTier={formData.planSelection.tier}
@@ -496,7 +514,7 @@ export function ClinicRegistrationForm({
         />
       )}
 
-      {step === 3 && (
+      {step === 4 && (
         <TeamInviteStep
           onSkip={handleSkipTeamStep}
           onComplete={handleSetTeamMembers}
@@ -506,7 +524,7 @@ export function ClinicRegistrationForm({
         />
       )}
 
-      {step === 4 && (
+      {step === 5 && (
         <ComplianceStep
           complianceForm={complianceForm}
           onBack={goBackFromCompliance}

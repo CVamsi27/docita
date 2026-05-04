@@ -37,6 +37,12 @@ vi.mock("@/features/patients/components/details/patient-detail-tab-loading-shell
   PatientDetailTabLoadingShell: () => null,
 }));
 
+vi.mock("./patient-clinical-chart-summary", () => ({
+  PatientClinicalChartSummary: () => (
+    <div data-testid="patient-clinical-chart-summary" />
+  ),
+}));
+
 const baseProps = {
   patient: {
     id: "p-1",
@@ -83,6 +89,9 @@ describe("PatientDetailTabs", () => {
   it("renders the new 5 top-level tab labels", () => {
     render(<PatientDetailTabs {...baseProps} />);
 
+    expect(
+      screen.getByTestId("patient-clinical-chart-summary"),
+    ).toBeInTheDocument();
     expect(screen.getByRole("tab", { name: "Overview" })).toBeInTheDocument();
     expect(
       screen.getByRole("tab", { name: "Visits & notes" }),

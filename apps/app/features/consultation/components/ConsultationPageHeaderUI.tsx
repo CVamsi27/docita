@@ -121,15 +121,15 @@ export function ConsultationPageHeaderUI({
                     <Button
                       variant="ghost"
                       size="icon"
-                      className="md:hidden h-8 w-8 shrink-0"
-                      aria-label="Open consultation menu"
+                      className="xl:hidden h-8 w-8 shrink-0"
+                      aria-label="Open patient chart and history"
                     >
                       <PanelLeft className="h-4 w-4" />
                     </Button>
                   </SheetTrigger>
                 </TooltipTrigger>
                 <TooltipContent side="bottom">
-                  Open consultation menu
+                  Patient chart and history
                 </TooltipContent>
               </Tooltip>
               <SheetContent side="left" className="sm:w-80 p-0">

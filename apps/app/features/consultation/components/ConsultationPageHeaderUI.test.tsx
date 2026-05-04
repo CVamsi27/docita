@@ -77,4 +77,23 @@ describe("ConsultationPageHeaderUI", () => {
 
     expect(screen.getByTestId("consultation-save-status")).toBeInTheDocument();
   });
+
+  it("exposes patient history sheet trigger up to xl breakpoint", () => {
+    renderWithUiProviders(
+      <ConsultationPageHeaderUI
+        patientName="Asha Rao"
+        appointmentDate="2026-04-18T10:00:00.000Z"
+        appointmentId="apt-1"
+        readOnly={false}
+        onBack={vi.fn()}
+        MobileSidebarContent={<div data-testid="consultation-mobile-sidebar" />}
+      />,
+    );
+
+    const trigger = screen.getByRole("button", {
+      name: "Open patient chart and history",
+    });
+    expect(trigger.className).toContain("xl:hidden");
+    expect(trigger.className).not.toContain("md:hidden");
+  });
 });

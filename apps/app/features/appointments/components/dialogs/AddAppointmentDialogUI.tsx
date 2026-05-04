@@ -2,7 +2,12 @@ import { DocitaLoadingIndicator } from "@workspace/ui/components/docita-loading-
 
 import { z } from "zod";
 import type { UseFormReturn } from "react-hook-form";
-import { createAppointmentSchema, Doctor, Patient } from "@workspace/types";
+import {
+  createAppointmentSchema,
+  Doctor,
+  Patient,
+  type AvailableSlot,
+} from "@workspace/types";
 
 type CreateAppointmentInput = z.infer<typeof createAppointmentSchema>;
 import type { SelectOption } from "@/lib/app-config-context";
@@ -36,6 +41,10 @@ interface AddAppointmentDialogUIProps {
   setPatientComboboxOpen: (open: boolean) => void;
   startHour: number;
   endHour: number;
+  isResolvingDefaultSlot: boolean;
+  selectedDate?: Date;
+  availabilitySlotsReady: boolean;
+  availabilitySlots: AvailableSlot[];
 }
 
 interface SectionHeaderProps {
@@ -71,7 +80,12 @@ export function AddAppointmentDialogUI({
   setPatientComboboxOpen,
   startHour,
   endHour,
+  isResolvingDefaultSlot,
+  selectedDate,
+  availabilitySlotsReady,
+  availabilitySlots,
 }: AddAppointmentDialogUIProps) {
+  const doctorId = form.watch("doctorId");
   const handleSubmit = form.handleSubmit(
     (data) => {
       onSubmit(data, () => onOpenChange(false));
@@ -130,6 +144,11 @@ export function AddAppointmentDialogUI({
                 form={form}
                 startHour={startHour}
                 endHour={endHour}
+                isResolvingDefaultSlot={isResolvingDefaultSlot}
+                selectedDate={selectedDate}
+                doctorId={doctorId}
+                availabilitySlotsReady={availabilitySlotsReady}
+                availabilitySlots={availabilitySlots}
               />
               <AppointmentFormFields
                 form={form}
@@ -147,7 +166,10 @@ export function AddAppointmentDialogUI({
             >
               Cancel
             </Button>
-            <Button type="submit" disabled={loading}>
+            <Button
+              type="submit"
+              disabled={loading || isResolvingDefaultSlot}
+            >
               {loading && <DocitaLoadingIndicator variant="inline" decorative className="mr-2" />}
               Schedule
             </Button>

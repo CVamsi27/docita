@@ -2,14 +2,7 @@
 
 import type { ReactNode } from "react";
 import { useState } from "react";
-import {
-  CalendarDays,
-  Check,
-  Copy,
-  Search,
-  Share2,
-  Users,
-} from "lucide-react";
+import { CalendarDays, Check, Copy, Share2, Users } from "lucide-react";
 import { Button } from "@workspace/ui/components/button";
 import { MicroLabel } from "@workspace/ui/components/micro-label";
 import { useFacilityLabel } from "@/lib/facility-label";
@@ -19,15 +12,21 @@ import {
   TooltipProvider,
   TooltipTrigger,
 } from "@workspace/ui/components/tooltip";
+import { cn } from "@workspace/ui/lib/utils";
 
 export interface ClinicReferralShareToolbarProps {
   clinicCode?: string | null;
   clinicName?: string;
   publicOnlineBookingUrl?: string | null;
   canQuickShareClinicCode?: boolean;
+  /**
+   * `rail`: vertical stack, full width of the column (Today page right rail above advisor cards).
+   * `default`: horizontal wrap for dashboard header.
+   */
+  variant?: "default" | "rail";
   /** Rendered first (e.g. refresh controls on the legacy dashboard header). */
   leadingActions?: ReactNode;
-  /** Rendered last (e.g. command palette search). */
+  /** Rendered last (optional extra controls). */
   trailingActions?: ReactNode;
 }
 
@@ -44,6 +43,7 @@ export function ClinicReferralShareToolbar({
   clinicName,
   publicOnlineBookingUrl,
   canQuickShareClinicCode = false,
+  variant = "default",
   leadingActions,
   trailingActions,
 }: ClinicReferralShareToolbarProps) {
@@ -100,29 +100,42 @@ export function ClinicReferralShareToolbar({
     }
   };
 
+  const isRail = variant === "rail";
+
   return (
     <TooltipProvider>
-      <div className="flex w-full min-w-0 flex-col gap-3 sm:w-auto sm:flex-row sm:flex-wrap sm:items-stretch sm:justify-end">
+      <div
+        className={
+          isRail
+            ? "flex w-full min-w-0 flex-col gap-3.5"
+            : "flex w-full min-w-0 flex-col gap-3 sm:w-auto sm:flex-row sm:flex-wrap sm:items-stretch sm:justify-end"
+        }
+      >
         {leadingActions ? (
           <div className="flex flex-wrap items-center gap-2">{leadingActions}</div>
         ) : null}
 
         {showStaffBlock ? (
           <div
-            className="flex min-w-0 max-w-full flex-col gap-2 rounded-md border border-border bg-background px-3 py-2.5 sm:max-w-[min(100%,20rem)]"
+            className={cn(
+              "flex min-w-0 max-w-full flex-col gap-2.5 rounded-[var(--radius-md)] border border-border/70 bg-muted/15 px-3.5 py-3.5 shadow-sm ring-1 ring-border/20 transition-colors duration-150",
+              isRail
+                ? "w-full"
+                : "sm:max-w-[min(100%,20rem)]",
+            )}
             role="group"
             aria-labelledby="clinic-share-staff-label"
           >
-            <div className="space-y-0.5">
+            <div className="space-y-1">
               <MicroLabel as="h3" id="clinic-share-staff-label">
                 Staff workspace
               </MicroLabel>
-              <p className="text-xs text-muted-foreground">
+              <p className="text-[length:var(--fs-xs)] leading-snug text-muted-foreground">
                 For teammates joining this {facilityLabel.toLowerCase()} in Docita.
                 Not for patients.
               </p>
             </div>
-            <div className="flex flex-wrap items-center gap-2">
+            <div className="flex flex-col gap-2 sm:flex-row sm:flex-wrap">
               {canQuickShareClinicCode ? (
                 <Tooltip>
                   <TooltipTrigger asChild>
@@ -132,7 +145,10 @@ export function ClinicReferralShareToolbar({
                       disabled={!clinicCode}
                       variant="outline"
                       size="sm"
-                      className="h-9 gap-1.5 px-3 text-xs touch-manipulation"
+                      className={cn(
+                        "h-10 gap-1.5 px-3 text-[length:var(--fs-xs)] touch-manipulation transition-colors duration-150 sm:h-9",
+                        isRail && "w-full justify-center sm:w-auto sm:justify-start",
+                      )}
                     >
                       {copiedInvite ? (
                         <Check className="h-3.5 w-3.5 shrink-0 text-success" />
@@ -158,7 +174,10 @@ export function ClinicReferralShareToolbar({
                       onClick={() => void handleCopyJoinCode()}
                       variant="outline"
                       size="sm"
-                      className="h-9 min-w-0 max-w-full gap-1.5 px-3 text-xs touch-manipulation"
+                      className={cn(
+                        "h-10 min-w-0 max-w-full gap-1.5 px-3 text-[length:var(--fs-xs)] touch-manipulation transition-colors duration-150 sm:h-9",
+                        isRail && "w-full justify-center sm:w-auto sm:justify-start",
+                      )}
                       title={clinicCode}
                     >
                       <Users className="h-3.5 w-3.5 shrink-0" aria-hidden />
@@ -183,15 +202,18 @@ export function ClinicReferralShareToolbar({
 
         {publicOnlineBookingUrl ? (
           <div
-            className="flex min-w-0 max-w-full flex-col gap-2 rounded-md border border-border bg-background px-3 py-2.5 sm:max-w-[min(100%,20rem)]"
+            className={cn(
+              "flex min-w-0 max-w-full flex-col gap-2.5 rounded-[var(--radius-md)] border border-border/70 bg-muted/15 px-3.5 py-3.5 shadow-sm ring-1 ring-border/20 transition-colors duration-150",
+              isRail ? "w-full" : "sm:max-w-[min(100%,20rem)]",
+            )}
             role="group"
             aria-labelledby="clinic-share-patient-label"
           >
-            <div className="space-y-0.5">
+            <div className="space-y-1">
               <MicroLabel as="h3" id="clinic-share-patient-label">
                 Patient booking
               </MicroLabel>
-              <p className="text-xs text-muted-foreground">
+              <p className="text-[length:var(--fs-xs)] leading-snug text-muted-foreground">
                 Public page to request an appointment. Patients do not use the join
                 code above.
               </p>
@@ -203,7 +225,12 @@ export function ClinicReferralShareToolbar({
                   onClick={() => void handleCopyBookingLink()}
                   variant="outline"
                   size="sm"
-                  className="h-9 w-full min-w-0 justify-start gap-2 px-3 text-xs touch-manipulation sm:w-auto sm:max-w-full"
+                  className={cn(
+                    "h-10 min-w-0 justify-start gap-2 px-3 text-[length:var(--fs-xs)] touch-manipulation transition-colors duration-150 sm:h-9",
+                    isRail
+                      ? "w-full"
+                      : "w-full sm:w-auto sm:max-w-full",
+                  )}
                   title={publicOnlineBookingUrl}
                 >
                   <CalendarDays className="h-3.5 w-3.5 shrink-0" aria-hidden />
@@ -225,33 +252,17 @@ export function ClinicReferralShareToolbar({
         ) : null}
 
         {trailingActions ? (
-          <div className="flex flex-wrap items-center gap-2 sm:ml-auto sm:self-center">
+          <div
+            className={
+              isRail
+                ? "flex w-full flex-wrap items-center gap-2"
+                : "flex flex-wrap items-center gap-2 sm:ml-auto sm:self-center"
+            }
+          >
             {trailingActions}
           </div>
         ) : null}
       </div>
     </TooltipProvider>
-  );
-}
-
-export function ClinicReferralShareSearchButton({
-  onSearchClick,
-}: {
-  onSearchClick: () => void;
-}) {
-  return (
-    <Button
-      variant="outline"
-      size="sm"
-      className="h-10 w-full justify-start touch-manipulation sm:h-9 md:w-auto md:justify-center text-muted-foreground bg-background"
-      onClick={onSearchClick}
-    >
-      <Search className="mr-2 h-4 w-4 shrink-0" aria-hidden />
-      <span className="hidden sm:inline">Search patients…</span>
-      <span className="sm:hidden">Search</span>
-      <kbd className="pointer-events-none ml-auto hidden h-5 select-none items-center gap-1 rounded border bg-muted px-1.5 font-mono text-xs font-medium sm:flex">
-        ⌘K
-      </kbd>
-    </Button>
   );
 }

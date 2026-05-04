@@ -341,7 +341,8 @@ export function useDoctorAvailabilitySlots(
     z.array(doctorAvailabilitySlotRowSchema),
     {
       enabled,
-      staleTime: 30_000,
+      staleTime: 0,
+      refetchOnMount: "always",
     },
   );
 }

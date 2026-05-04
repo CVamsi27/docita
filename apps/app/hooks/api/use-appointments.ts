@@ -1,4 +1,8 @@
-import { keepPreviousData, useInfiniteQuery } from "@tanstack/react-query";
+import {
+  keepPreviousData,
+  useInfiniteQuery,
+  useQueryClient,
+} from "@tanstack/react-query";
 import { queryKeys } from "@workspace/data-access";
 import {
   Appointment,
@@ -131,15 +135,26 @@ export const usePatientAppointments = (patientId: string) =>
     { enabled: !!patientId },
   );
 
-export const useCreateAppointment = () =>
-  useAPIMutation<Appointment, CreateAppointmentRequest>(
+export const useCreateAppointment = () => {
+  const queryClient = useQueryClient();
+  return useAPIMutation<Appointment, CreateAppointmentRequest>(
     "/appointments",
     "POST",
     {
-      invalidateKeys: [queryKeys.appointments.all()],
+      invalidateKeys: [
+        queryKeys.appointments.all(),
+        ["doctor-availability-slots"],
+      ],
+      onSuccess: async () => {
+        await queryClient.refetchQueries({
+          queryKey: ["doctor-availability-slots"],
+          type: "all",
+        });
+      },
       suppressGlobalErrorToast: true,
     },
   );
+};
 
 export const useUpdateAppointment = (id: string) =>
   useAPIMutation<Appointment, UpdateAppointmentRequest>(
@@ -149,6 +164,7 @@ export const useUpdateAppointment = (id: string) =>
       invalidateKeys: [
         queryKeys.appointments.all(),
         queryKeys.appointments.detail(id),
+        ["doctor-availability-slots"],
       ],
       suppressGlobalErrorToast: true,
     },
@@ -162,6 +178,7 @@ export const useCancelAppointment = (id: string) =>
       invalidateKeys: [
         queryKeys.appointments.all(),
         queryKeys.appointments.detail(id),
+        ["doctor-availability-slots"],
       ],
     },
   );

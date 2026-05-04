@@ -9,6 +9,20 @@ vi.mock("next/navigation", () => ({
   }),
 }));
 
+vi.mock("@/hooks/api/use-billing", async (importOriginal) => {
+  const mod = await importOriginal<typeof import("@/hooks/api/use-billing")>();
+  return {
+    ...mod,
+    useInvoicePaymentActivity: () => ({
+      data: { items: [] },
+      isLoading: false,
+      isError: false,
+      error: null,
+      refetch: vi.fn(),
+    }),
+  };
+});
+
 vi.mock("next/image", () => ({
   default: ({
     unoptimized: _unoptimized,

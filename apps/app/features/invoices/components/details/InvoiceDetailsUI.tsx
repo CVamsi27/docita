@@ -22,10 +22,12 @@ import { EmptyState, LoadingState } from "@workspace/ui/components/empty-state";
 import { useInvoiceDetailsLogic } from "@/features/invoices/hooks/use-invoice-details-logic";
 import Link from "next/link";
 import { useSearchParams } from "next/navigation";
+import { Section } from "@workspace/ui/components/section";
 import { InvoiceHeader } from "./InvoiceHeader";
 import { InvoiceBillTo } from "./InvoiceBillTo";
 import { InvoiceItemsTableReadOnly } from "./InvoiceItemsTableReadOnly";
 import { InvoiceTotalsOnly } from "./InvoiceTotalsOnly";
+import { InvoicePaymentActivitySection } from "./InvoicePaymentActivitySection";
 
 interface InvoiceDetailsUIProps {
   invoiceId: string;
@@ -174,6 +176,19 @@ export const InvoiceDetailsUI: FC<InvoiceDetailsUIProps> = ({ invoiceId }) => {
           </CardFooter>
         </Card>
       </div>
+
+      <Section
+        id="invoice-payment-activity"
+        className="print:hidden"
+        title="Payment activity"
+        description="Payment links, online sessions, and desk settlements recorded for this invoice."
+      >
+        <InvoicePaymentActivitySection
+          invoiceId={invoiceId}
+          formatCurrency={formatCurrency}
+          formatDate={formatDate}
+        />
+      </Section>
 
       <style>{`
         @media print {

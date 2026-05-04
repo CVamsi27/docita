@@ -21,6 +21,25 @@ vi.mock("@/lib/user-facing-errors", () => ({
   showUserFacingErrorToast: portalAppointmentMocks.showError,
 }));
 
+vi.mock("@workspace/ui/components/iso-date-picker-field", () => ({
+  IsoDatePickerField: ({
+    id,
+    value,
+    onChange,
+  }: {
+    id: string;
+    value: string;
+    onChange: (v: string) => void;
+  }) => (
+    <input
+      id={id}
+      aria-label="Preferred date"
+      value={value}
+      onChange={(event) => onChange(event.target.value)}
+    />
+  ),
+}));
+
 describe("PortalAppointmentsPage", () => {
   beforeEach(() => {
     portalAppointmentMocks.mutateAsync.mockReset();

@@ -387,7 +387,7 @@ export function BillingSubscriptionWorkspace() {
         showWhatsAppUsageMeter={subscription?.tier !== "STARTER"}
       />
 
-      <p className="text-[var(--fs-2xs)] leading-snug text-muted-foreground max-w-prose">
+      <p className="w-full max-w-none text-pretty text-[var(--fs-2xs)] leading-relaxed text-muted-foreground">
         {BILLING_USAGE_AND_OVERAGE_EXPLAINER}
       </p>
 

@@ -12,7 +12,6 @@ import { appQueryKeys } from "@/lib/query-keys";
 import { Button } from "@workspace/ui/components/button";
 import { SymbolTooltip } from "@workspace/ui/components/tooltip";
 import { Input } from "@workspace/ui/components/input";
-import { Kbd } from "@workspace/ui/components/kbd";
 import {
   Popover,
   PopoverContent,
@@ -80,17 +79,6 @@ export function GlobalSearch({ onResultClick }: GlobalSearchProps) {
       focusInput();
     }
   }, [open, focusInput]);
-
-  useEffect(() => {
-    const handleGlobalKeyDown = (e: KeyboardEvent) => {
-      if ((e.metaKey || e.ctrlKey) && e.key === "k") {
-        e.preventDefault();
-        setOpen(true);
-      }
-    };
-    document.addEventListener("keydown", handleGlobalKeyDown);
-    return () => document.removeEventListener("keydown", handleGlobalKeyDown);
-  }, []);
 
   useEffect(() => {
     setSelectedIndex(-1);
@@ -161,13 +149,18 @@ export function GlobalSearch({ onResultClick }: GlobalSearchProps) {
           type="button"
           variant="outline"
           size="sm"
-          className="h-9 gap-2 px-2.5 font-normal transition-colors duration-150"
+          className={cn(
+            "h-10 min-h-10 w-10 shrink-0 touch-manipulation justify-center p-0 font-normal transition-colors duration-150",
+            "text-muted-foreground md:h-9 md:min-h-0 md:w-auto md:justify-start md:gap-2 md:px-2.5",
+          )}
           aria-expanded={open}
           aria-haspopup="dialog"
-          aria-label="Open global search"
+          aria-label="Search patients, appointments, and prescriptions"
         >
           <Search className="size-4 shrink-0" aria-hidden />
-          <Kbd className="font-sans text-[var(--fs-2xs)]">⌘K</Kbd>
+          <span className="hidden max-w-[min(12rem,calc(100vw-12rem))] truncate text-[length:var(--fs-sm)] font-normal text-foreground md:inline">
+            Search patients…
+          </span>
         </Button>
       </PopoverTrigger>
       <PopoverContent
@@ -196,6 +189,9 @@ export function GlobalSearch({ onResultClick }: GlobalSearchProps) {
               }}
               onKeyDown={handleKeyDown}
               placeholder="Enter patient, appointment, or prescription"
+              autoComplete="off"
+              autoCorrect="off"
+              spellCheck={false}
               className="h-10 pl-10 pr-10 bg-muted/40 transition-colors duration-150 hover:bg-background"
               aria-label="Global search"
               aria-expanded={showResultsPanel}
@@ -254,7 +250,7 @@ export function GlobalSearch({ onResultClick }: GlobalSearchProps) {
                   data-testid="global-search-error"
                 >
                   <AlertTriangle className="h-5 w-5" aria-hidden />
-                  <p className="text-sm">
+                  <p className="text-[length:var(--fs-sm)]">
                     {sanitizeUserFacingMessage(
                       error instanceof Error ? error.message : "",
                       "We could not run this search. Please try again.",
@@ -301,12 +297,12 @@ export function GlobalSearch({ onResultClick }: GlobalSearchProps) {
                             {result.title}
                           </div>
                           {result.subtitle ? (
-                            <div className="truncate text-sm text-muted-foreground">
+                            <div className="truncate text-[length:var(--fs-sm)] text-muted-foreground">
                               {result.subtitle}
                             </div>
                           ) : null}
                         </div>
-                        <span className="text-xs capitalize text-muted-foreground">
+                        <span className="text-[length:var(--fs-2xs)] capitalize text-muted-foreground">
                           {result.type}
                         </span>
                       </li>

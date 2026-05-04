@@ -75,6 +75,9 @@ export function AddAppointmentDialogContainer({
   const {
     form,
     loading,
+    isResolvingDefaultSlot,
+    availabilitySlotsReady,
+    availabilitySlots,
     patients,
     patientsLoading,
     patientSearch,
@@ -110,6 +113,10 @@ export function AddAppointmentDialogContainer({
       setPatientComboboxOpen={setPatientComboboxOpen}
       startHour={startHour}
       endHour={endHour}
+      isResolvingDefaultSlot={isResolvingDefaultSlot}
+      selectedDate={selectedDate}
+      availabilitySlotsReady={availabilitySlotsReady}
+      availabilitySlots={availabilitySlots}
     />
   );
 }

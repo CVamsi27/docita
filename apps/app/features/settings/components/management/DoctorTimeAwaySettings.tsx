@@ -34,6 +34,7 @@ import {
 import { Trash2 } from "lucide-react";
 import { Skeleton } from "@workspace/ui/components/skeleton";
 import { showUserFacingErrorToast } from "@/lib/user-facing-errors";
+import { IsoDatePickerField } from "@workspace/ui/components/iso-date-picker-field";
 
 export function DoctorTimeAwaySettings() {
   const { user, isAdmin } = useAuth();
@@ -167,24 +168,18 @@ export function DoctorTimeAwaySettings() {
         ) : null}
 
         <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-          <div className="space-y-2">
-            <Label htmlFor="time-away-start">Start date</Label>
-            <Input
-              id="time-away-start"
-              type="date"
-              value={startDate}
-              onChange={(e) => setStartDate(e.target.value)}
-            />
-          </div>
-          <div className="space-y-2">
-            <Label htmlFor="time-away-end">End date</Label>
-            <Input
-              id="time-away-end"
-              type="date"
-              value={endDate}
-              onChange={(e) => setEndDate(e.target.value)}
-            />
-          </div>
+          <IsoDatePickerField
+            id="time-away-start"
+            label="Start date"
+            value={startDate}
+            onChange={setStartDate}
+          />
+          <IsoDatePickerField
+            id="time-away-end"
+            label="End date"
+            value={endDate}
+            onChange={setEndDate}
+          />
           <div className="space-y-2 sm:col-span-2 lg:col-span-1">
             <Label htmlFor="time-away-reason">Reason (optional)</Label>
             <Input

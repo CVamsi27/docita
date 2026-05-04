@@ -2,6 +2,8 @@
 
 import { useEffect, useRef } from "react";
 
+import { cn } from "@workspace/ui/lib/utils";
+
 const TURNSTILE_SCRIPT =
   "https://challenges.cloudflare.com/turnstile/v0/api.js";
 
@@ -9,12 +11,14 @@ interface TurnstileWidgetProps {
   siteKey: string | undefined;
   onToken: (token: string) => void;
   onExpire: () => void;
+  className?: string;
 }
 
 export function TurnstileWidget({
   siteKey,
   onToken,
   onExpire,
+  className,
 }: TurnstileWidgetProps) {
   const containerRef = useRef<HTMLDivElement>(null);
   const widgetIdRef = useRef<string | null>(null);
@@ -69,5 +73,10 @@ export function TurnstileWidget({
     return null;
   }
 
-  return <div ref={containerRef} className="min-h-[65px]" />;
+  return (
+    <div
+      ref={containerRef}
+      className={cn("min-h-[65px]", className)}
+    />
+  );
 }

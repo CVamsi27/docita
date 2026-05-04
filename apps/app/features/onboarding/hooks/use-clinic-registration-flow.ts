@@ -76,15 +76,15 @@ function getPersistedStep(): number {
   try {
     const v = sessionStorage.getItem(SESSION_KEY);
     const n = v ? parseInt(v, 10) : 1;
-    const clamped = isNaN(n) ? 1 : Math.max(1, Math.min(n, 4));
+    const clamped = isNaN(n) ? 1 : Math.max(1, Math.min(n, 5));
     const persistedOnboardingId = sessionStorage.getItem(
       SESSION_ONBOARDING_ID_KEY,
     );
 
-    // Step 4 requires an onboarding session ID (used for QR signature flow).
-    // If an older/stale session has step 4 but no ID, recover to step 3.
-    if (clamped >= 4 && !persistedOnboardingId) {
-      return 3;
+    // Step 5 (compliance) requires an onboarding session ID (used for QR signature flow).
+    // If an older/stale session has step 5 but no ID, recover to step 4.
+    if (clamped >= 5 && !persistedOnboardingId) {
+      return 4;
     }
 
     return clamped;
@@ -131,6 +131,11 @@ function getPersistedFormData(): ClinicRegistrationData {
       teamMembers: Array.isArray(parsed.teamMembers)
         ? parsed.teamMembers
         : defaultClinicRegistrationData.teamMembers,
+      clinicWeeklyHours:
+        Array.isArray(parsed.clinicWeeklyHours) &&
+        parsed.clinicWeeklyHours.length === 7
+          ? parsed.clinicWeeklyHours
+          : defaultClinicRegistrationData.clinicWeeklyHours,
     };
   } catch {
     return defaultClinicRegistrationData;
@@ -294,6 +299,14 @@ export function useClinicRegistrationFlow() {
     [setStep],
   );
 
+  const setClinicWeeklyHours = useCallback(
+    (rows: ClinicRegistrationData["clinicWeeklyHours"]) => {
+      setFormData((prev) => ({ ...prev, clinicWeeklyHours: rows }));
+      setStep(3);
+    },
+    [setStep],
+  );
+
   const setPlanSelection = useCallback(
     async (
       tier: string,
@@ -332,7 +345,7 @@ export function useClinicRegistrationFlow() {
           },
         }));
 
-        setStep(3);
+        setStep(4);
         return;
       }
 
@@ -397,7 +410,7 @@ export function useClinicRegistrationFlow() {
                 skipPayment: false,
               },
             }));
-            setStep(3);
+            setStep(4);
           },
           prefill: {
             name: user.name || "Clinic Owner",
@@ -427,13 +440,13 @@ export function useClinicRegistrationFlow() {
     async (members: TeamMember[]) => {
       setFormData((prev) => ({ ...prev, teamMembers: members }));
       await ensureOnboardingId();
-      setStep(4);
+      setStep(5);
     },
     [setStep, ensureOnboardingId],
   );
 
   const goBackFromCompliance = useCallback(() => {
-    setStep(3);
+    setStep(4);
   }, [setStep]);
 
   const submitRegistration = useCallback(
@@ -472,7 +485,7 @@ export function useClinicRegistrationFlow() {
         if (stepOneMissing.length > 0) {
           setStep(1);
         } else {
-          setStep(4);
+          setStep(5);
         }
 
         throw new Error(
@@ -528,6 +541,10 @@ export function useClinicRegistrationFlow() {
           staffSetup: {
             staffMembers: formData.teamMembers,
           },
+          clinicWeeklyHours:
+            formData.clinicWeeklyHours.length === 7
+              ? formData.clinicWeeklyHours
+              : undefined,
         };
 
         const currentOnboardingId = await ensureOnboardingId();
@@ -620,6 +637,7 @@ export function useClinicRegistrationFlow() {
       formData.planSelection.tier,
       formData.planSelection.workspaceProfile,
       formData.teamMembers,
+      formData.clinicWeeklyHours,
       refreshUser,
       restartOnboarding,
       setStep,
@@ -639,6 +657,7 @@ export function useClinicRegistrationFlow() {
     setPlanSelection,
     isProcessingPayment,
     setTeamMembers,
+    setClinicWeeklyHours,
     goBackFromCompliance,
     submitRegistration,
     uploadSlaSignature,

@@ -113,7 +113,7 @@ export function TodayAdvisorRail({
   return (
     <RightRailCardStack
       ariaLabel="Today recommendations"
-      className="w-full max-w-full shrink-0 xl:sticky xl:top-4 xl:w-80"
+      className="w-full max-w-full shrink-0"
     >
       {cards.map((card) => (
         <div key={card.key}>{card.node}</div>

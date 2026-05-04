@@ -6,8 +6,8 @@ import { useMemo, useState } from "react";
 import { Download, FileText } from "lucide-react";
 import { Button } from "@workspace/ui/components/button";
 import { Badge } from "@workspace/ui/components/badge";
-import { Input } from "@workspace/ui/components/input";
 import { Label } from "@workspace/ui/components/label";
+import { IsoDatePickerField } from "@workspace/ui/components/iso-date-picker-field";
 import {
   Select,
   SelectContent,
@@ -285,24 +285,28 @@ export function BillingHistoryTable({
             <Label htmlFor="billing-filter-from" className="text-xs">
               From
             </Label>
-            <Input
+            <IsoDatePickerField
               id="billing-filter-from"
-              type="date"
+              label=""
+              showLabel={false}
               value={dateFrom}
-              onChange={(e) => setDateFrom(e.target.value)}
-              className="h-9"
+              onChange={setDateFrom}
+              placeholder="Any"
+              triggerClassName="h-9 sm:w-auto sm:min-w-[140px]"
             />
           </div>
           <div className="grid w-full gap-2 sm:w-auto sm:min-w-[140px]">
             <Label htmlFor="billing-filter-to" className="text-xs">
               To
             </Label>
-            <Input
+            <IsoDatePickerField
               id="billing-filter-to"
-              type="date"
+              label=""
+              showLabel={false}
               value={dateTo}
-              onChange={(e) => setDateTo(e.target.value)}
-              className="h-9"
+              onChange={setDateTo}
+              placeholder="Any"
+              triggerClassName="h-9 sm:w-auto sm:min-w-[140px]"
             />
           </div>
           <Button

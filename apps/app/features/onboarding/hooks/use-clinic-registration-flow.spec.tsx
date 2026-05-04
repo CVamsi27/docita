@@ -195,7 +195,7 @@ describe("useClinicRegistrationFlow", () => {
       await result.current.setTeamMembers([]);
     });
 
-    expect(result.current.step).toBe(4);
+    expect(result.current.step).toBe(5);
 
     await act(async () => {
       await result.current.submitRegistration(validCompliance, vi.fn());
