@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useQueryClient } from "@tanstack/react-query";
+import { queryKeys } from "@workspace/data-access";
 import {
   useAppointment,
   useStartConsultation,
@@ -109,11 +110,10 @@ export const useConsultationLogic = (appointmentId: string) => {
     async (data: UpdateAppointmentInput) => {
       await updateAppointment.mutateAsync(data);
 
-      await queryClient.invalidateQueries({
-        queryKey: ["appointments", appointmentId],
-      });
+      const detailKey = queryKeys.appointments.detail(appointmentId);
+      await queryClient.invalidateQueries({ queryKey: detailKey });
       await queryClient.refetchQueries({
-        queryKey: ["appointments", appointmentId],
+        queryKey: detailKey,
         type: "active",
       });
     },

@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect } from "react";
+import { parseChiefComplaintsFromAppointmentData } from "@workspace/utils";
 import { logger } from "@/lib/logger";
 import {
   draftSessionStorageKey,
@@ -123,18 +124,38 @@ export function useConsultationHydrate({
   useEffect(() => {
     if (!appointmentId || !appointmentData) return;
 
-    const data = appointmentData;
+    const draft = useConsultationDraft.getState();
+    if (draft.dirty && draft.appointmentId === appointmentId) {
+      return;
+    }
+
+    let cancelled = false;
+    const data = appointmentData as Record<string, unknown>;
     const structured = data["chiefComplaintStructured"] as
       | ChiefComplaintItem[]
       | undefined;
-    const rawComplaint =
-      typeof data["chiefComplaint"] === "string"
-        ? (data["chiefComplaint"] as string)
-        : "";
+    const jsonRows = parseChiefComplaintsFromAppointmentData(data);
 
-    const chiefComplaint: ChiefComplaintItem[] = structured?.length
-      ? normalizeComplaintList(structured)
-      : rawComplaint
+    let chiefComplaint: ChiefComplaintItem[];
+    if (structured?.length) {
+      chiefComplaint = normalizeComplaintList(structured);
+    } else if (jsonRows.length > 0) {
+      chiefComplaint = normalizeComplaintList(
+        jsonRows.map((row) => ({
+          id: row.id ?? crypto.randomUUID(),
+          complaint: row.complaint ?? "",
+          durationValue: row.durationValue?.trim() ? row.durationValue : "1",
+          durationUnit: row.durationUnit ?? "days",
+          severity: row.severity || "moderate",
+          notes: row.notes,
+        })),
+      );
+    } else {
+      const rawComplaint =
+        typeof data["chiefComplaint"] === "string"
+          ? (data["chiefComplaint"] as string).trim()
+          : "";
+      chiefComplaint = rawComplaint
         ? [
             {
               id: "legacy",
@@ -145,6 +166,7 @@ export function useConsultationHydrate({
             },
           ]
         : [];
+    }
 
     const genExam = data["generalExamination"];
     const sysExam = data["systemicExamination"];
@@ -167,11 +189,24 @@ export function useConsultationHydrate({
         .trim();
     }
 
+    const genRecord =
+      genExam && typeof genExam === "object"
+        ? toRecord(genExam as object)
+        : {};
+    const generalNotesFromApi =
+      typeof genRecord["generalNotes"] === "string"
+        ? genRecord["generalNotes"]
+        : "";
+    const generalNotesUi =
+      typeof genRecord["notes"] === "string" ? genRecord["notes"] : "";
+    const { generalNotes: _gn, notes: _n, ...generalRest } = genRecord;
+
     const examination: ExaminationData = {
       general: genExam
         ? {
             ...DEFAULT_EXAMINATION.general,
-            ...(typeof genExam === "object" ? (genExam as object) : {}),
+            ...(generalRest as object),
+            notes: generalNotesUi || generalNotesFromApi,
           }
         : DEFAULT_EXAMINATION.general,
       systemic: sysExam
@@ -227,33 +262,37 @@ export function useConsultationHydrate({
         notes: d.notes,
         isPrimary: idx === 0,
       }));
-    const diagnosesContentHash = hashDiagnosesForSync(codedForHash);
 
-    useConsultationDraft.getState().hydrate(appointmentId, {
-      chiefComplaint,
-      history,
-      examination,
-      diagnosis,
-      treatment,
-      prescriptions: [],
-      dentalChart,
-      eyeExam,
-      growthData,
-      cardiologyExam,
-      dermatologyExam,
-      gynecologyExam,
-      psychiatryExam,
-      investigations,
-      followUpPlan,
-      diagnosesContentHash,
-    });
+    void (async () => {
+      const diagnosesContentHash = await hashDiagnosesForSync(codedForHash);
+      if (cancelled) return;
 
-    if (typeof window !== "undefined") {
+      useConsultationDraft.getState().hydrate(appointmentId, {
+        chiefComplaint,
+        history,
+        examination,
+        diagnosis,
+        treatment,
+        prescriptions: [],
+        dentalChart,
+        eyeExam,
+        growthData,
+        cardiologyExam,
+        dermatologyExam,
+        gynecologyExam,
+        psychiatryExam,
+        investigations,
+        followUpPlan,
+        diagnosesContentHash,
+      });
+
+      if (typeof window === "undefined") return;
       try {
         const stored = window.sessionStorage.getItem(
           draftSessionStorageKey(appointmentId),
         );
         if (!stored) return;
+        if (cancelled) return;
         const parsed = JSON.parse(stored) as
           | {
               savedAt?: number;
@@ -310,6 +349,10 @@ export function useConsultationHydrate({
           error,
         });
       }
-    }
+    })();
+
+    return () => {
+      cancelled = true;
+    };
   }, [appointmentId, appointmentData]);
 }

@@ -103,23 +103,66 @@ export function ConsultationShell({
     () => sections[0]?.id ?? "subjective",
   );
 
+  const mainScrollRef = useRef<HTMLElement | null>(null);
   const sectionRefs = useRef<Record<string, HTMLElement | null>>({});
-  const observerBumpRaf = useRef<number | null>(null);
-  const [observerEpoch, setObserverEpoch] = useState(0);
+  const layoutBumpRaf = useRef<number | null>(null);
+  const [layoutEpoch, setLayoutEpoch] = useState(0);
+  const scrollSpyRaf = useRef<number | null>(null);
+  const [pendingUrlScrollToSectionId, setPendingUrlScrollToSectionId] =
+    useState<string | null>(null);
+  const pendingUrlScrollRef = useRef<string | null>(null);
+  const lastUrlScrollKeyRef = useRef<string>("");
+
   const setSectionRef = useCallback(
     (id: string) => (el: HTMLElement | null) => {
       sectionRefs.current[id] = el;
       if (el === null) return;
-      if (observerBumpRaf.current != null) {
-        cancelAnimationFrame(observerBumpRaf.current);
+      if (layoutBumpRaf.current != null) {
+        cancelAnimationFrame(layoutBumpRaf.current);
       }
-      observerBumpRaf.current = requestAnimationFrame(() => {
-        observerBumpRaf.current = null;
-        setObserverEpoch((n) => n + 1);
+      layoutBumpRaf.current = requestAnimationFrame(() => {
+        layoutBumpRaf.current = null;
+        setLayoutEpoch((n) => n + 1);
       });
     },
     [],
   );
+
+  const computeActiveSectionFromScroll = useCallback(() => {
+    if (pendingUrlScrollRef.current != null) return;
+    const root = mainScrollRef.current;
+    if (!root) return;
+    const rootRect = root.getBoundingClientRect();
+    const activationY = rootRect.top + 48;
+    let chosen = sectionsRef.current[0]?.id ?? "subjective";
+    for (const s of sectionsRef.current) {
+      const el = sectionRefs.current[s.id];
+      if (!el) continue;
+      const top = el.getBoundingClientRect().top;
+      if (top <= activationY) {
+        chosen = s.id;
+      }
+    }
+    setActiveSectionId((prev) => (prev === chosen ? prev : chosen));
+  }, []);
+
+  const scheduleScrollSpy = useCallback(() => {
+    if (scrollSpyRaf.current != null) {
+      cancelAnimationFrame(scrollSpyRaf.current);
+    }
+    scrollSpyRaf.current = requestAnimationFrame(() => {
+      scrollSpyRaf.current = null;
+      computeActiveSectionFromScroll();
+    });
+  }, [computeActiveSectionFromScroll]);
+
+  useEffect(() => {
+    return () => {
+      if (scrollSpyRaf.current != null) {
+        cancelAnimationFrame(scrollSpyRaf.current);
+      }
+    };
+  }, []);
 
   const { flush, submitPrescriptions } = useConsultationAutosave({
     appointmentId,
@@ -173,6 +216,16 @@ export function ConsultationShell({
 
     setActiveSectionId(valid);
 
+    const wantsScrollFromUrl = Boolean(sectionQ?.trim() || tabQ);
+    if (wantsScrollFromUrl) {
+      const urlScrollKey = `${sectionQ ?? ""}|${tabQ ?? ""}|${valid}|${sectionIdsKey}`;
+      if (lastUrlScrollKeyRef.current !== urlScrollKey) {
+        lastUrlScrollKeyRef.current = urlScrollKey;
+        pendingUrlScrollRef.current = valid;
+        setPendingUrlScrollToSectionId(valid);
+      }
+    }
+
     const next = new URLSearchParams(searchParams.toString());
     let changed = false;
     if (tabQ) {
@@ -202,31 +255,55 @@ export function ConsultationShell({
   ]);
 
   useEffect(() => {
-    const observer = new IntersectionObserver(
-      (entries) => {
-        const visible = entries
-          .filter((e) => e.isIntersecting)
-          .sort((a, b) => b.intersectionRatio - a.intersectionRatio);
-        const top = visible[0];
-        if (!top) return;
-        const id = top.target.getAttribute("data-section-id");
-        const matched = id
-          ? sections.find((s) => s.id === id)
-          : undefined;
-        if (matched) {
-          setActiveSectionId((prev) =>
-            prev === matched.id ? prev : matched.id,
-          );
-        }
-      },
-      { threshold: [0.25, 0.5, 0.75], rootMargin: "-120px 0px -60% 0px" },
-    );
-    sections.forEach((s) => {
-      const el = sectionRefs.current[s.id];
-      if (el) observer.observe(el);
+    if (!pendingUrlScrollToSectionId) return;
+    const el = sectionRefs.current[pendingUrlScrollToSectionId];
+    const main = mainScrollRef.current;
+    if (!el || !main) return;
+    setPendingUrlScrollToSectionId(null);
+    el.scrollIntoView({ behavior: "auto", block: "start" });
+    requestAnimationFrame(() => {
+      pendingUrlScrollRef.current = null;
+      computeActiveSectionFromScroll();
     });
-    return () => observer.disconnect();
-  }, [sections, observerEpoch]);
+  }, [
+    pendingUrlScrollToSectionId,
+    layoutEpoch,
+    computeActiveSectionFromScroll,
+  ]);
+
+  useEffect(() => {
+    const root = mainScrollRef.current;
+    if (!root) return;
+
+    scheduleScrollSpy();
+
+    root.addEventListener("scroll", scheduleScrollSpy, { passive: true });
+    window.addEventListener("resize", scheduleScrollSpy, { passive: true });
+
+    return () => {
+      root.removeEventListener("scroll", scheduleScrollSpy);
+      window.removeEventListener("resize", scheduleScrollSpy);
+    };
+  }, [sections, layoutEpoch, scheduleScrollSpy]);
+
+  useEffect(() => {
+    const root = mainScrollRef.current;
+    if (!root) return;
+
+    const onFocusIn = (e: FocusEvent) => {
+      const target = e.target;
+      if (!(target instanceof Element)) return;
+      if (!root.contains(target)) return;
+      const sectionEl = target.closest("[data-section-id]");
+      const id = sectionEl?.getAttribute("data-section-id");
+      if (!id) return;
+      if (!sections.some((s) => s.id === id)) return;
+      setActiveSectionId((prev) => (prev === id ? prev : id));
+    };
+
+    root.addEventListener("focusin", onFocusIn);
+    return () => root.removeEventListener("focusin", onFocusIn);
+  }, [sections, layoutEpoch]);
 
   const isDirty = useConsultationDraft((s) => s.dirty);
   const saveState = useConsultationDraft((s) => s.saveState);
@@ -541,6 +618,7 @@ export function ConsultationShell({
         />
 
         <main
+          ref={mainScrollRef}
           className="flex-1 overflow-y-auto px-3 py-4 md:px-6 md:py-6"
           aria-label="Consultation workspace"
         >

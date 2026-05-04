@@ -16,6 +16,7 @@ import {
   type ConsultationSaveHandles,
 } from "@/features/consultation/workspace/use-consultation-leave-navigation";
 import { isConsultationReadOnlyStatus } from "@/features/appointments/rules/appointmentRules";
+import { formatChiefComplaintSummary } from "@workspace/utils";
 import { Stethoscope } from "lucide-react";
 
 export default function ConsultationPage() {
@@ -138,7 +139,11 @@ export default function ConsultationPage() {
               appointmentType={appointmentData.type}
               appointmentStatus={appointmentData.status}
               readOnly={consultationReadOnly}
-              chiefComplaint={appointmentData.chiefComplaint ?? undefined}
+              chiefComplaint={
+                formatChiefComplaintSummary(
+                  appointmentData.chiefComplaint ?? undefined,
+                ) ?? undefined
+              }
               onBack={tryNavigateAway}
               MobileSidebarContent={MobileSidebar}
               isDesktopSidebarOpen={isSidebarOpen}

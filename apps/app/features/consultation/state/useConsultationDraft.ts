@@ -342,17 +342,17 @@ export const useConsultationDraft = create<ConsultationDraftStore>(
 );
 
 /**
- * Canonical content-hash for the diagnoses array. Uses FNV-1a on a deterministic
- * projection so the hash matches what the backend computes (ordering by
- * icdCodeId, normalized notes + isPrimary flag).
+ * Canonical content-hash for the diagnoses array. Matches
+ * `AppointmentService.hashDiagnosesContent`: SHA-256 of JSON-encoded rows sorted by
+ * `icdCodeId`, with trimmed notes and boolean `isPrimary`, first 32 hex chars.
  */
-export function hashDiagnosesForSync(
+export async function hashDiagnosesForSync(
   items: Array<{
     icdCodeId?: string;
     notes?: string;
     isPrimary?: boolean;
   }>,
-): string {
+): Promise<string> {
   const normalized = items
     .filter((d) => d.icdCodeId)
     .map((d) => ({
@@ -363,12 +363,12 @@ export function hashDiagnosesForSync(
     .sort((a, b) => (a.icdCodeId! > b.icdCodeId! ? 1 : -1));
 
   const json = JSON.stringify(normalized);
-  let hash = 0x811c9dc5;
-  for (let i = 0; i < json.length; i += 1) {
-    hash ^= json.charCodeAt(i);
-    hash = Math.imul(hash, 0x01000193) >>> 0;
-  }
-  return hash.toString(16).padStart(8, "0");
+  const encoded = new TextEncoder().encode(json);
+  const digest = await crypto.subtle.digest("SHA-256", encoded);
+  const hex = Array.from(new Uint8Array(digest))
+    .map((b) => b.toString(16).padStart(2, "0"))
+    .join("");
+  return hex.slice(0, 32);
 }
 
 export function draftSessionStorageKey(appointmentId: string): string {

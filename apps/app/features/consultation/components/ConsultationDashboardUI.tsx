@@ -37,6 +37,8 @@ export const ConsultationDashboardUI: FC = () => {
     stats,
     isLoading,
     handleStartConsultation,
+    goToConsultationWorkspace,
+    canAccessQueue,
     canStartConsultation,
     isStartingConsultation,
     router,
@@ -165,8 +167,8 @@ export const ConsultationDashboardUI: FC = () => {
           <CardHeader>
             <CardTitle>Active consultations</CardTitle>
             <CardDescription>
-              Visits in progress for today&apos;s queue (you have already
-              started or called the patient). Continue the clinical record.
+              Visits already in progress. Continue opens the clinical record
+              without changing appointment status.
             </CardDescription>
           </CardHeader>
           <CardContent>
@@ -211,11 +213,12 @@ export const ConsultationDashboardUI: FC = () => {
                       <Button
                         size="sm"
                         className="shrink-0"
-                        disabled={isStartingConsultation}
+                        disabled={
+                          isStartingConsultation || !item.appointmentId
+                        }
                         onClick={() =>
-                          void handleStartConsultation(
-                            item.appointmentId || item.id,
-                          )
+                          item.appointmentId &&
+                          goToConsultationWorkspace(item.appointmentId)
                         }
                       >
                         Continue
@@ -236,15 +239,31 @@ export const ConsultationDashboardUI: FC = () => {
           <CardHeader>
             <CardTitle>Waiting room</CardTitle>
             <CardDescription>
-              Checked-in patients on today&apos;s queue who have not been
-              called in yet. Start their visit when you are ready.
+              Patients with a queue token in Waiting status (after check-in from
+              the calendar). Open starts the visit when you are ready.
             </CardDescription>
           </CardHeader>
           <CardContent>
             {waitingList.length === 0 ? (
               <div className="ui-card-surface flex flex-col items-center justify-center border-2 border-dashed border-border/60 p-8 text-center">
                 <Users className="mb-2 h-8 w-8 opacity-50 text-muted-foreground" aria-hidden />
-                <p className="ui-helper-text">Waiting room is empty</p>
+                {!canAccessQueue ? (
+                  <>
+                    <p className="ui-helper-text max-w-sm">
+                      Waiting room and queue tokens require the Queue Management
+                      capability on your workspace plan.
+                    </p>
+                    <p className="mt-3 ui-helper-text max-w-sm text-muted-foreground">
+                      Start and continue visits from the calendar without tokens,
+                      or upgrade to use check-in and this waiting list.
+                    </p>
+                  </>
+                ) : (
+                  <p className="ui-helper-text">
+                    No patients waiting. Use Check-in on the calendar for a
+                    confirmed visit to issue a token.
+                  </p>
+                )}
               </div>
             ) : (
               <div className="space-y-4">
@@ -276,11 +295,12 @@ export const ConsultationDashboardUI: FC = () => {
                         size="sm"
                         variant="default"
                         className="shrink-0"
-                        disabled={isStartingConsultation}
+                        disabled={
+                          isStartingConsultation || !item.appointmentId
+                        }
                         onClick={() =>
-                          void handleStartConsultation(
-                            item.appointmentId || item.id,
-                          )
+                          item.appointmentId &&
+                          void handleStartConsultation(item.appointmentId)
                         }
                       >
                         <Play className="mr-2 h-3 w-3" />

@@ -29,6 +29,7 @@ import {
   useAPIQueryValidated,
 } from "@/lib/api-core";
 import { withQueryString, type QueryParams } from "@/lib/http/query-string";
+import { getLocalCalendarDateString } from "@/lib/local-calendar-date";
 
 export type AppointmentListItem = AppointmentListItemContractResponse;
 
@@ -62,7 +63,12 @@ export interface QueueItem {
     phoneNumber: string;
   };
   doctor?: { id: string; name: string };
-  appointment?: { id: string; doctor: { id: string; name: string } };
+  appointment?: {
+    id: string;
+    doctor: { id: string; name: string };
+    type?: string | null;
+    chiefComplaint?: string | null;
+  };
 }
 
 type AppointmentQueryOptions = {
@@ -109,10 +115,7 @@ export const useAppointments = (options?: AppointmentQueryOptions | null) => {
 };
 
 export const useTodayAppointments = (enabled: boolean = true) => {
-  const now = new Date();
-  const offsetMs = now.getTimezoneOffset() * 60 * 1000;
-  const localDate = new Date(now.getTime() - offsetMs);
-  const today = localDate.toISOString().split("T")[0] ?? "";
+  const today = getLocalCalendarDateString();
   return useAPIQueryValidated(
     queryKeys.appointments.list({ date: today }),
     `/appointments?date=${today}`,
@@ -166,6 +169,17 @@ export const useUpdateAppointment = (id: string) =>
         queryKeys.appointments.detail(id),
         ["doctor-availability-slots"],
       ],
+      suppressGlobalErrorToast: true,
+    },
+  );
+
+/** Background consultation draft saves: avoids invalidating detail (prevents refetch/hydrate churn). */
+export const useConsultationAutosaveUpdateAppointment = (id: string) =>
+  useAPIMutation<Appointment, UpdateAppointmentRequest>(
+    `/appointments/${id}`,
+    "PATCH",
+    {
+      invalidateKeys: [],
       suppressGlobalErrorToast: true,
     },
   );

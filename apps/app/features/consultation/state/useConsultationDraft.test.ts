@@ -133,46 +133,54 @@ describe("consultationDraftNeedsLeaveGuard", () => {
 });
 
 describe("hashDiagnosesForSync", () => {
-  it("is stable regardless of input order", () => {
-    const a = hashDiagnosesForSync([
+  it("is stable regardless of input order", async () => {
+    const a = await hashDiagnosesForSync([
       { icdCodeId: "A01", notes: "n1", isPrimary: true },
       { icdCodeId: "A02", notes: "n2", isPrimary: false },
     ]);
-    const b = hashDiagnosesForSync([
+    const b = await hashDiagnosesForSync([
       { icdCodeId: "A02", notes: "n2", isPrimary: false },
       { icdCodeId: "A01", notes: "n1", isPrimary: true },
     ]);
     expect(a).toBe(b);
   });
 
-  it("treats trimmed notes as equivalent", () => {
-    const a = hashDiagnosesForSync([
+  it("treats trimmed notes as equivalent", async () => {
+    const a = await hashDiagnosesForSync([
       { icdCodeId: "A01", notes: "hello", isPrimary: true },
     ]);
-    const b = hashDiagnosesForSync([
+    const b = await hashDiagnosesForSync([
       { icdCodeId: "A01", notes: "  hello  ", isPrimary: true },
     ]);
     expect(a).toBe(b);
   });
 
-  it("changes when diagnoses change", () => {
-    const a = hashDiagnosesForSync([
+  it("changes when diagnoses change", async () => {
+    const a = await hashDiagnosesForSync([
       { icdCodeId: "A01", notes: "hello", isPrimary: true },
     ]);
-    const b = hashDiagnosesForSync([
+    const b = await hashDiagnosesForSync([
       { icdCodeId: "A01", notes: "different", isPrimary: true },
     ]);
     expect(a).not.toBe(b);
   });
 
-  it("ignores entries without icdCodeId", () => {
-    const a = hashDiagnosesForSync([
+  it("ignores entries without icdCodeId", async () => {
+    const a = await hashDiagnosesForSync([
       { icdCodeId: "A01", notes: "", isPrimary: true },
     ]);
-    const b = hashDiagnosesForSync([
+    const b = await hashDiagnosesForSync([
       { icdCodeId: "A01", notes: "", isPrimary: true },
       { notes: "no-icd", isPrimary: false },
     ]);
     expect(a).toBe(b);
+  });
+
+  it("matches backend AppointmentService SHA-256 truncation", async () => {
+    const hash = await hashDiagnosesForSync([
+      { icdCodeId: "A01", notes: "n1", isPrimary: true },
+      { icdCodeId: "A02", notes: "n2", isPrimary: false },
+    ]);
+    expect(hash).toBe("38db951eea963c497338f50ed50a2e4d");
   });
 });
