@@ -42,7 +42,9 @@ export class NotifySubscriptionGraceDeadlineUseCase {
       'Organization admins can update billing in Docita under Settings, Subscription.\n\n' +
       'If you need help, reply to this email.';
 
-    if (reminderType === 'grace_deadline_3d') {
+    if (reminderType === 'grace_deadline_7d') {
+      subject = 'Docita subscription: 7 days left to resolve billing';
+    } else if (reminderType === 'grace_deadline_3d') {
       subject = 'Docita subscription: 3 days left to resolve billing';
     } else if (reminderType === 'grace_deadline_1d') {
       subject = 'Docita subscription: 1 day left to resolve billing';

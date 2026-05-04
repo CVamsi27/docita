@@ -126,6 +126,34 @@ describe('NotifyExpiringSubscriptionsUseCase', () => {
     );
   });
 
+  it('uses same-day subject when reminder type is expiry_0d', async () => {
+    findSubscriptionsMock.mockResolvedValue([
+      {
+        id: 'sub-today',
+        clinicId: 'clinic-today',
+        status: SubscriptionStatus.TRIALING,
+        currentPeriodEnd: new Date('2026-04-10T00:00:00.000Z'),
+        clinic: {
+          name: 'Today Clinic',
+          users: [{ email: 'a@today.test', name: 'A' }],
+        },
+      },
+    ]);
+    findRemindersMock.mockResolvedValue([]);
+    createManyRemindersMock.mockResolvedValue({ count: 1 });
+
+    await useCase.execute({
+      targetDate: new Date('2026-04-10T00:00:00.000Z'),
+      reminderType: 'expiry_0d',
+    });
+
+    expect(emailService.send).toHaveBeenCalledWith(
+      expect.objectContaining({
+        subject: 'Docita trial ends today',
+      }),
+    );
+  });
+
   it('uses trial-specific email copy for TRIALING subscriptions', async () => {
     findSubscriptionsMock.mockResolvedValue([
       {

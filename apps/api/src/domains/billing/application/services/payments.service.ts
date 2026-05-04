@@ -4,6 +4,7 @@ import {
   BadRequestException,
   NotFoundException,
   Inject,
+  ForbiddenException,
 } from '@nestjs/common';
 import { AppConfigService } from '@/shared/modules/config/app-configuration.service';
 import { SendMessageUseCase } from '@/domains/whatsapp/application/use-cases/send-message.use-case';
@@ -156,6 +157,12 @@ export class PaymentsService {
         clinicId: session.clinicId,
       });
     } catch (error) {
+      if (error instanceof ForbiddenException) {
+        this.logger.log(
+          `Payment link WhatsApp skipped for session ${sessionId}: ${error.message}`,
+        );
+        return;
+      }
       this.logger.error(
         `Failed to send payment link WhatsApp for session ${sessionId}`,
         error,

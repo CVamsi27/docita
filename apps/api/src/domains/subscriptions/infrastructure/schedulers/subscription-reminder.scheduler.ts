@@ -3,6 +3,7 @@ import { Cron, CronExpression } from '@nestjs/schedule';
 import { NotifyExpiringSubscriptionsUseCase } from '@/domains/subscriptions/application/use-cases/notify-expiring-subscriptions.use-case';
 import { NotifySubscriptionGraceDeadlineUseCase } from '@/domains/subscriptions/application/use-cases/notify-subscription-grace-deadline.use-case';
 import { EnterGracePeriodUseCase } from '@/domains/subscriptions/application/use-cases/enter-grace-period.use-case';
+import { ExpireSubscriptionUseCase } from '@/domains/subscriptions/application/use-cases/expire-subscription.use-case';
 import { PrismaService } from '@/prisma/prisma.service';
 import { SubscriptionStatus } from '@workspace/db';
 import { isCronDisabledInThisProcess } from '@/shared/schedule/cron-env';
@@ -16,6 +17,7 @@ export class SubscriptionReminderScheduler {
     private readonly notifyUseCase: NotifyExpiringSubscriptionsUseCase,
     private readonly notifyGraceDeadlineUseCase: NotifySubscriptionGraceDeadlineUseCase,
     private readonly graceUseCase: EnterGracePeriodUseCase,
+    private readonly expireSubscriptionUseCase: ExpireSubscriptionUseCase,
     private readonly prisma: PrismaService,
     private readonly adminAlerts: AdminAlertsService,
   ) {}
@@ -70,9 +72,11 @@ export class SubscriptionReminderScheduler {
 
     const schedules = [
       { days: 14, type: 'expiry_14d' },
+      { days: 10, type: 'expiry_10d' },
       { days: 7, type: 'expiry_7d' },
       { days: 3, type: 'expiry_3d' },
       { days: 1, type: 'expiry_1d' },
+      { days: 0, type: 'expiry_0d' },
     ];
 
     try {
@@ -116,6 +120,7 @@ export class SubscriptionReminderScheduler {
       }
 
       const graceSchedules = [
+        { offsetDays: 7, type: 'grace_deadline_7d' },
         { offsetDays: 3, type: 'grace_deadline_3d' },
         { offsetDays: 1, type: 'grace_deadline_1d' },
         { offsetDays: 0, type: 'grace_deadline_today' },
@@ -185,6 +190,26 @@ export class SubscriptionReminderScheduler {
 
         for (const sub of lapsed) {
           await this.graceUseCase.execute(sub.id);
+        }
+
+        const pastGraceDeadline = await this.prisma.subscription.findMany({
+          where: {
+            status: {
+              in: [SubscriptionStatus.GRACE, SubscriptionStatus.PAST_DUE],
+            },
+            graceUntil: { not: null, lt: now },
+          },
+          select: { id: true },
+        });
+
+        for (const sub of pastGraceDeadline) {
+          await this.expireSubscriptionUseCase.execute(sub.id);
+        }
+
+        if (pastGraceDeadline.length > 0) {
+          this.logger.log(
+            `Expired ${pastGraceDeadline.length} subscription(s) after grace deadline (workspace billing lockout)`,
+          );
         }
       });
     } catch (error) {

@@ -275,7 +275,7 @@ export class UsageTrackingService {
 
     await this.recordUsageEvent({
       clinicId,
-      type: 'WHATSAPP_MESSAGES',
+      type: UsageType.WHATSAPP_MESSAGES,
       quantity,
       entityType: 'WhatsappLog',
       entityId: messageId,
@@ -370,5 +370,20 @@ export class UsageTrackingService {
         this.logger.error('Failed to track OCR page usage', err);
       },
     );
+  }
+
+  @OnEvent('whatsapp.message.sent')
+  async handleWhatsAppMessageSent(payload: {
+    clinicId: string;
+    messageId: string;
+    messageType?: 'template' | 'session' | 'media';
+  }) {
+    await this.trackWhatsAppMessage(
+      payload.clinicId,
+      payload.messageId,
+      payload.messageType ?? 'template',
+    ).catch((err) => {
+      this.logger.error('Failed to track WhatsApp message usage', err);
+    });
   }
 }

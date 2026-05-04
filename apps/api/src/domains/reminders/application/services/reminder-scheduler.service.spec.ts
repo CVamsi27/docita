@@ -1,6 +1,10 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import { beforeEach, describe, expect, it, jest } from '@jest/globals';
-import { AppointmentStatus } from '@workspace/db';
+import {
+  AppointmentStatus,
+  ClinicTier,
+  IntelligenceAddon,
+} from '@workspace/db';
 import { PrismaService } from '@/prisma/prisma.service';
 import { ReminderNotificationService } from './reminder-notification.service';
 import { ReminderSchedulerService } from './reminder-scheduler.service';
@@ -18,9 +22,19 @@ describe('ReminderSchedulerService', () => {
     reminderSettings: {
       findMany: jest.fn<(...args: unknown[]) => Promise<unknown[]>>(),
     },
+    clinic: {
+      findUnique: jest.fn<(...args: unknown[]) => Promise<unknown>>(),
+    },
     runUnrestricted: jest.fn<(callback: () => Promise<void> | void) => unknown>(
       (callback) => callback(),
     ),
+  };
+
+  const essentialClinicPolicy = {
+    tier: ClinicTier.ESSENTIAL,
+    intelligenceAddon: IntelligenceAddon.NONE,
+    features: {},
+    whatsappAutomation: null,
   };
 
   const notificationService = {
@@ -57,6 +71,7 @@ describe('ReminderSchedulerService', () => {
     prisma.reminderSettings.findMany.mockResolvedValue([]);
     prisma.appointment.findMany.mockResolvedValue([]);
     prisma.appointmentReminder.findFirst.mockResolvedValue(null);
+    prisma.clinic.findUnique.mockResolvedValue(essentialClinicPolicy);
 
     const module: TestingModule = await Test.createTestingModule({
       providers: [
@@ -185,6 +200,29 @@ describe('ReminderSchedulerService', () => {
         },
       ]);
       prisma.appointmentReminder.findFirst.mockResolvedValue(null);
+
+      await service.checkAndSend30MinReminders();
+
+      expect(notificationService.sendWhatsappReminder).not.toHaveBeenCalled();
+    });
+
+    it('does not send 30-min WhatsApp when clinic tier is Starter', async () => {
+      const settings = {
+        id: 'settings-1',
+        clinicId: 'clinic-1',
+        enabled: true,
+        minutesBefore30: true,
+        whatsappEnabled: true,
+      };
+      prisma.reminderSettings.findMany.mockResolvedValue([settings]);
+      prisma.appointment.findMany.mockResolvedValue([mockAppointment]);
+      prisma.appointmentReminder.findFirst.mockResolvedValue(null);
+      prisma.clinic.findUnique.mockResolvedValue({
+        tier: ClinicTier.STARTER,
+        intelligenceAddon: IntelligenceAddon.NONE,
+        features: {},
+        whatsappAutomation: null,
+      });
 
       await service.checkAndSend30MinReminders();
 

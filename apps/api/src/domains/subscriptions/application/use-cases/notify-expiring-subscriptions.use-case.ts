@@ -51,9 +51,13 @@ export class NotifyExpiringSubscriptionsUseCase {
 
     const subject =
       days !== null
-        ? isTrial
-          ? `Docita trial ends in ${days} day${days === 1 ? '' : 's'}`
-          : `Docita subscription renews in ${days} day${days === 1 ? '' : 's'}`
+        ? days === 0
+          ? isTrial
+            ? 'Docita trial ends today'
+            : 'Docita subscription renews today'
+          : isTrial
+            ? `Docita trial ends in ${days} day${days === 1 ? '' : 's'}`
+            : `Docita subscription renews in ${days} day${days === 1 ? '' : 's'}`
         : isTrial
           ? 'Docita trial ending'
           : 'Docita subscription renewing';
@@ -61,7 +65,9 @@ export class NotifyExpiringSubscriptionsUseCase {
     const intro = isTrial
       ? `Your Docita trial for "${clinicName}" is ending soon.\n` +
         `Trial period end: ${endDate}\n\n` +
-        'Add payment under Settings, Subscription before this date to avoid entering a payment grace period and staff access restrictions.\n'
+        (days !== null && days <= 3
+          ? 'Add payment under Settings, Subscription today. After the trial ends without payment, your workspace enters a billing grace period; staff access may pause when that grace period ends.\n'
+          : 'Add payment under Settings, Subscription before this date to avoid entering a payment grace period and staff access restrictions.\n')
       : `Your Docita subscription for "${clinicName}" has a billing period ending soon.\n` +
         `Current period end: ${endDate}\n\n` +
         'Ensure payment completes before this date to avoid service interruption.\n';

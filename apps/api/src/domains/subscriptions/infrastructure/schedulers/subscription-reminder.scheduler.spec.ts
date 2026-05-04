@@ -2,6 +2,7 @@ import { describe, it, expect, beforeEach, jest } from '@jest/globals';
 import { NotifyExpiringSubscriptionsUseCase } from '@/domains/subscriptions/application/use-cases/notify-expiring-subscriptions.use-case';
 import { NotifySubscriptionGraceDeadlineUseCase } from '@/domains/subscriptions/application/use-cases/notify-subscription-grace-deadline.use-case';
 import { EnterGracePeriodUseCase } from '@/domains/subscriptions/application/use-cases/enter-grace-period.use-case';
+import { ExpireSubscriptionUseCase } from '@/domains/subscriptions/application/use-cases/expire-subscription.use-case';
 import { PrismaService } from '@/prisma/prisma.service';
 import { SubscriptionReminderScheduler } from './subscription-reminder.scheduler';
 import { AdminAlertsService } from '@/shared/modules/messaging/admin-alerts/admin-alerts.service';
@@ -18,6 +19,8 @@ describe('SubscriptionReminderScheduler', () => {
       failed: 0,
     });
   const graceExecuteMock = jest.fn<(subscriptionId: string) => Promise<void>>();
+  const expireExecuteMock =
+    jest.fn<(subscriptionId: string) => Promise<void>>();
   const notifyGraceDeadlineExecuteMock = jest
     .fn<NotifySubscriptionGraceDeadlineUseCase['execute']>()
     .mockResolvedValue({
@@ -50,6 +53,11 @@ describe('SubscriptionReminderScheduler', () => {
     EnterGracePeriodUseCase.prototype,
   ) as EnterGracePeriodUseCase;
   graceUseCase.execute = graceExecuteMock;
+
+  const expireUseCase = Object.create(
+    ExpireSubscriptionUseCase.prototype,
+  ) as ExpireSubscriptionUseCase;
+  expireUseCase.execute = expireExecuteMock;
 
   const prisma = Object.create(PrismaService.prototype) as PrismaService;
   Object.defineProperties(prisma, {
@@ -90,6 +98,7 @@ describe('SubscriptionReminderScheduler', () => {
       notifyUseCase,
       notifyGraceDeadlineUseCase,
       graceUseCase,
+      expireUseCase,
       prisma,
       adminAlerts,
     );
@@ -98,6 +107,7 @@ describe('SubscriptionReminderScheduler', () => {
   it('moves expired trial subscriptions into grace via EnterGracePeriodUseCase', async () => {
     findManyMock
       .mockResolvedValueOnce([{ id: 'sub_trial_1' }])
+      .mockResolvedValueOnce([])
       .mockResolvedValueOnce([]);
 
     await scheduler.handleLapsedSubscriptions();
@@ -105,15 +115,30 @@ describe('SubscriptionReminderScheduler', () => {
     expect(graceExecuteMock).toHaveBeenCalledWith('sub_trial_1');
     expect(subscriptionUpdateMock).not.toHaveBeenCalled();
     expect(clinicUpdateMock).not.toHaveBeenCalled();
+    expect(expireExecuteMock).not.toHaveBeenCalled();
   });
 
   it('still moves lapsed ACTIVE subscriptions into grace period', async () => {
     findManyMock
       .mockResolvedValueOnce([])
-      .mockResolvedValueOnce([{ id: 'sub_active_1' }]);
+      .mockResolvedValueOnce([{ id: 'sub_active_1' }])
+      .mockResolvedValueOnce([]);
 
     await scheduler.handleLapsedSubscriptions();
 
     expect(graceUseCase.execute).toHaveBeenCalledWith('sub_active_1');
+    expect(expireExecuteMock).not.toHaveBeenCalled();
+  });
+
+  it('expires subscriptions past grace deadline via ExpireSubscriptionUseCase', async () => {
+    findManyMock
+      .mockResolvedValueOnce([])
+      .mockResolvedValueOnce([])
+      .mockResolvedValueOnce([{ id: 'sub_grace_expired' }]);
+
+    await scheduler.handleLapsedSubscriptions();
+
+    expect(expireExecuteMock).toHaveBeenCalledWith('sub_grace_expired');
+    expect(graceExecuteMock).not.toHaveBeenCalled();
   });
 });

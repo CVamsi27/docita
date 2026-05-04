@@ -31,6 +31,7 @@ const INTERNAL_ADDITIONAL_CHARGE_CATEGORY_LABELS: Record<
   DATA_MIGRATION: 'Data migration',
   CUSTOM_TRAINING: 'Custom training',
   INTEGRATION: 'Integration',
+  COMMERCIAL_DISCOUNT: 'Commercial discount / adjustment',
   OTHER: 'Other service',
 };
 

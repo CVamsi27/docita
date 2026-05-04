@@ -7,6 +7,7 @@ import {
 } from '@workspace/db';
 import { ReminderNotificationService } from './reminder-notification.service';
 import { isCronDisabledInThisProcess } from '@/shared/schedule/cron-env';
+import { isClinicWhatsAppAutomationSendingAllowed } from '@/shared/modules/messaging/whatsapp/whatsapp-patient-send-policy.util';
 
 interface AppointmentForReminder {
   id: string;
@@ -163,7 +164,14 @@ export class ReminderSchedulerService {
               );
             }
 
-            if (settings.whatsappEnabled && appointment.patient.phoneNumber) {
+            if (
+              settings.whatsappEnabled &&
+              appointment.patient.phoneNumber &&
+              (await isClinicWhatsAppAutomationSendingAllowed(
+                this.prisma,
+                settings.clinicId,
+              ))
+            ) {
               const templateId =
                 settings.hoursBeforeAppt === 1
                   ? 'appointment_reminder_1hr'
@@ -280,7 +288,13 @@ export class ReminderSchedulerService {
             continue;
           }
 
-          if (appointment.patient.phoneNumber) {
+          if (
+            appointment.patient.phoneNumber &&
+            (await isClinicWhatsAppAutomationSendingAllowed(
+              this.prisma,
+              appointment.clinicId,
+            ))
+          ) {
             await this.notificationService.sendWhatsappReminder(
               appointment as AppointmentForReminder,
               settings,
