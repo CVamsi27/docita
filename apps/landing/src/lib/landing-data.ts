@@ -66,6 +66,20 @@ const FALLBACK_TIERS: TierConfig[] = [
     ],
   },
   {
+    id: "FRONT_DESK",
+    name: "Front desk",
+    description:
+      "Reception-first scheduling and billing without full in-app clinical workflows",
+    tagline: "Reception and operations",
+    pricing: { monthly: 799, yearly: 7990, currency: "₹" },
+    features: [
+      "Scheduling and queue",
+      "Patients and invoicing",
+      "WhatsApp within plan limits",
+      "Schedule-only doctor profiles",
+    ],
+  },
+  {
     id: "PROFESSIONAL",
     name: "Professional",
     description: "For multi-doctor clinics with reception-led workflows",

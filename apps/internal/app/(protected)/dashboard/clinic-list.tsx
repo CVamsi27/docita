@@ -32,6 +32,7 @@ function getTierDisplay(tier: string): { name: string; className: string } {
     const tierClassMap: Record<string, string> = {
       gray: "tier-capture",
       blue: "tier-core",
+      teal: "tier-plus",
       purple: "tier-pro",
       orange: "tier-enterprise",
       pink: "tier-intelligence",

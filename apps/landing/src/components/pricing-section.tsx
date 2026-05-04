@@ -21,6 +21,7 @@ interface PricingSectionProps {
 const TIER_ORDER = [
   "STARTER",
   "ESSENTIAL",
+  "FRONT_DESK",
   "PROFESSIONAL",
   "ENTERPRISE",
 ] as const;
@@ -43,6 +44,16 @@ const ESSENTIAL_FEATURES = [
   "Queue management",
   "Audit logs & compliance",
   "Insurance billing",
+];
+
+const FRONT_DESK_FEATURES = [
+  "500 consultations / month",
+  "Up to 5 staff users",
+  "WhatsApp messaging (500 msgs)",
+  "Queue and calendar",
+  "Invoicing and payment links",
+  "Schedule-only doctor profiles (no app login)",
+  "No in-app consultation or prescription workspace",
 ];
 
 const PROFESSIONAL_FEATURES = [
@@ -68,6 +79,7 @@ const ENTERPRISE_FEATURES = [
 function getFeaturesForTier(id: string, fallback: string[]): string[] {
   if (id === "STARTER") return STARTER_FEATURES;
   if (id === "ESSENTIAL") return ESSENTIAL_FEATURES;
+  if (id === "FRONT_DESK") return FRONT_DESK_FEATURES;
   if (id === "PROFESSIONAL") return PROFESSIONAL_FEATURES;
   if (id === "ENTERPRISE") return ENTERPRISE_FEATURES;
   return fallback;
@@ -117,10 +129,10 @@ export function PricingSection({ appUrl }: PricingSectionProps) {
 
         <p className="mt-6 max-w-3xl text-sm leading-relaxed text-muted-foreground">
           <span className="font-medium text-foreground">
-            Front desk workspace
+            Front desk tier
           </span>{" "}
-          uses these tiers for billing but limits the app to appointments plus
-          invoicing.{" "}
+          is a billed SKU alongside Essential and Professional, with the app
+          limited to reception-led workflows.{" "}
           <a
             href="#front-desk-workspace"
             className="font-medium text-primary underline-offset-4 hover:underline"
@@ -129,10 +141,10 @@ export function PricingSection({ appUrl }: PricingSectionProps) {
           </a>{" "}
           or open{" "}
           <a
-            href={`${appUrl}/onboarding?workspace=front_desk`}
+            href={`${appUrl}/onboarding?tier=FRONT_DESK&workspace=front_desk`}
             className="font-medium text-primary underline-offset-4 hover:underline"
           >
-            onboarding with this mode pre-selected
+            onboarding with the front desk tier pre-selected
           </a>
           .
         </p>
@@ -144,8 +156,8 @@ export function PricingSection({ appUrl }: PricingSectionProps) {
           whileInView="visible"
           viewport={landingInViewViewport}
         >
-          {orderedTiers.map((tier, index) => {
-            const isFeatured = index === 2;
+          {orderedTiers.map((tier) => {
+            const isFeatured = tier.id === "ESSENTIAL";
             const features = getFeaturesForTier(tier.id, tier.features);
 
             return (
@@ -197,7 +209,13 @@ export function PricingSection({ appUrl }: PricingSectionProps) {
                   className="mt-auto w-full gap-2"
                   variant={isFeatured ? "primary" : "outline"}
                 >
-                  <a href={`${appUrl}/onboarding`}>
+                  <a
+                    href={
+                      tier.id === "FRONT_DESK"
+                        ? `${appUrl}/onboarding?tier=FRONT_DESK&workspace=front_desk`
+                        : `${appUrl}/onboarding`
+                    }
+                  >
                     Start setup
                     <ArrowRight className="h-4 w-4" />
                   </a>
@@ -231,7 +249,7 @@ export function PricingSection({ appUrl }: PricingSectionProps) {
             ))}
           </ul>
           <Button asChild className="mt-4 w-full max-w-sm gap-2" variant="outline">
-            <a href={`${appUrl}/onboarding?workspace=front_desk`}>
+            <a href={`${appUrl}/onboarding?tier=FRONT_DESK&workspace=front_desk`}>
               Start front desk setup
               <ArrowRight className="h-4 w-4" />
             </a>
