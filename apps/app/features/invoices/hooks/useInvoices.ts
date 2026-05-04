@@ -5,11 +5,13 @@ import { queryKeys } from "@workspace/data-access";
 import { useAppMutation } from "@/lib/query-hooks";
 
 export function useInvoices(
-  params?: Pick<ListInvoicesContractQuery, "patientId" | "status">,
+  params?: Pick<ListInvoicesContractQuery, "patientId" | "status" | "limit">,
+  options?: { enabled?: boolean },
 ) {
   return useQuery({
     queryKey: queryKeys.invoices.list(params),
     queryFn: () => invoicesApi.getAll(params),
+    enabled: options?.enabled ?? true,
   });
 }
 
@@ -29,10 +31,3 @@ export function useCreateInvoice() {
   });
 }
 
-export function useMarkInvoicePaid(id: string) {
-  return useAppMutation({
-    mutationFn: () => invoicesApi.markPaid(id),
-    invalidateKeys: [queryKeys.invoices.all(), queryKeys.invoices.detail(id)],
-    successMessage: "Payment recorded",
-  });
-}

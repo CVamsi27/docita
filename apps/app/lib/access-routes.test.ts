@@ -45,6 +45,9 @@ describe("getAccessTargetForPath", () => {
     expect(getAccessTargetForPath("/patients/123")).toBe(
       APP_ACCESS_TARGETS.PAGE_PATIENTS,
     );
+    expect(getAccessTargetForPath("/desk/collect-payment")).toBe(
+      APP_ACCESS_TARGETS.PAGE_DESK_PAYMENT,
+    );
     expect(getAccessTargetForPath("/consultation/apt-1")).toBe(
       APP_ACCESS_TARGETS.PAGE_CONSULTATION,
     );

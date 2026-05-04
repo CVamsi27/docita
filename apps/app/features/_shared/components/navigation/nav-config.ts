@@ -14,6 +14,7 @@ import {
   MessageCircle,
   Pill,
   Receipt,
+  Banknote,
   Settings2,
   SmilePlus,
   Sparkles,
@@ -53,6 +54,13 @@ const TRACK_ITEMS: NavItem[] = [
     label: "Patients",
     feature: Feature.BASIC_PATIENT_MANAGEMENT,
     accessTarget: APP_ACCESS_TARGETS.PAGE_PATIENTS,
+  },
+  {
+    href: "/desk/collect-payment",
+    icon: Banknote,
+    label: "Payment desk",
+    feature: Feature.INVOICING,
+    accessTarget: APP_ACCESS_TARGETS.PAGE_DESK_PAYMENT,
   },
   {
     href: "/appointments",

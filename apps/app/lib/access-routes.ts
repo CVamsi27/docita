@@ -20,6 +20,7 @@ const ROUTE_ACCESS_RULES: RouteAccessRule[] = [
   { pathPrefix: "/consultation", target: APP_ACCESS_TARGETS.PAGE_CONSULTATION },
   { pathPrefix: "/prescriptions", target: APP_ACCESS_TARGETS.PAGE_PRESCRIPTIONS },
   { pathPrefix: "/lab-tests", target: APP_ACCESS_TARGETS.PAGE_LAB_TESTS },
+  { pathPrefix: "/desk", target: APP_ACCESS_TARGETS.PAGE_DESK_PAYMENT },
   { pathPrefix: "/invoices", target: APP_ACCESS_TARGETS.PAGE_INVOICES },
   { pathPrefix: "/inventory", target: APP_ACCESS_TARGETS.PAGE_INVENTORY },
   { pathPrefix: "/documents", target: APP_ACCESS_TARGETS.PAGE_DOCUMENTS },

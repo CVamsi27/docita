@@ -2,7 +2,14 @@
 
 import { useCallback, useState } from "react";
 import { useRouter } from "next/navigation";
-import { Calendar, FileText, Plus, Stethoscope, UserPlus } from "lucide-react";
+import {
+  Banknote,
+  Calendar,
+  FileText,
+  Plus,
+  Stethoscope,
+  UserPlus,
+} from "lucide-react";
 import { Button } from "@workspace/ui/components/button";
 import {
   Popover,
@@ -22,6 +29,7 @@ const ICONS: Record<string, typeof UserPlus> = {
   "new-patient": UserPlus,
   "new-appointment": Calendar,
   "new-invoice": FileText,
+  "payment-desk": Banknote,
   "start-consultation": Stethoscope,
 };
 

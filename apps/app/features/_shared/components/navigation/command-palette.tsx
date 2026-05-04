@@ -19,6 +19,7 @@ import {
   type CommandPaletteAction,
 } from "@workspace/ui/components/command-palette-shell";
 import {
+  Banknote,
   CalendarClock,
   CheckSquare,
   ClipboardList,
@@ -67,6 +68,9 @@ function quickActionRowIcon(action: QuickAction): ReactNode {
   if (action.id === "follow-ups-board") {
     return <CheckSquare className="size-4" />;
   }
+  if (action.id === "payment-desk") {
+    return <Banknote className="size-4" />;
+  }
   return <PlusCircle className="size-4" />;
 }
 
@@ -107,6 +111,15 @@ export const QUICK_ACTIONS: QuickAction[] = [
     accessTarget: APP_ACCESS_TARGETS.PAGE_INVOICES,
     keywords: ["bill", "create"],
     shortcut: "N I",
+  },
+  {
+    id: "payment-desk",
+    label: "Payment desk",
+    href: "/desk/collect-payment",
+    kind: "navigate",
+    accessTarget: APP_ACCESS_TARGETS.PAGE_DESK_PAYMENT,
+    accessMode: "read",
+    keywords: ["payment", "cash", "pos", "upi", "reception", "desk", "pine"],
   },
   {
     id: "coding-queue",
