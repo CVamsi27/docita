@@ -220,7 +220,11 @@ export function SubscriptionSettings() {
             </Badge>
           </div>
           <p className="mt-2 text-sm text-muted-foreground">
-            Workspace: {workspaceProfileLabel}
+            Workspace mode: {workspaceProfileLabel}
+          </p>
+          <p className="mt-1 text-xs text-muted-foreground">
+            Workspace is not a separate paid tier; it controls which product areas
+            are enabled for your facility.
           </p>
           <p className="mt-3 text-sm text-muted-foreground">
             Contact your facility administrator to manage subscription.
@@ -258,8 +262,10 @@ export function SubscriptionSettings() {
         <CardHeader className="pb-2">
           <CardTitle className="text-[var(--fs-md)]">Plan and workspace</CardTitle>
           <CardDescription>
-            Subscription tier sets quotas and billing. Workspace sets which product
-            areas are available to your team.
+            Your paid plan name (Starter, Essential, and so on) is the
+            subscription tier. Front desk is a workspace mode, not another tier:
+            it limits clinical apps while keeping appointments and billing. Tier
+            and workspace are both shown here.
           </CardDescription>
         </CardHeader>
         <CardContent className="flex flex-col gap-3 text-sm sm:flex-row sm:items-start sm:justify-between">

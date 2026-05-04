@@ -1,5 +1,6 @@
 "use client";
 
+import Link from "next/link";
 import { useEffect } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -41,6 +42,11 @@ import { SettingsAiChips } from "@/features/settings/components/settings-ai-chip
 import { CopyableLinkField } from "@/features/_shared/components/signature/copyable-link-field";
 import { getPublicAppOrigin } from "@/lib/public-app-origin";
 import { MicroLabel } from "@workspace/ui/components/micro-label";
+import {
+  parseWorkspaceProfile,
+  WORKSPACE_PROFILE_LABEL,
+} from "@workspace/types";
+import { SUBSCRIPTION_SETTINGS_PATH } from "@/lib/subscription-settings-path";
 
 const clinicSettingsSchema = z.object({
   name: requiredStringSchema("Facility Name"),
@@ -129,9 +135,35 @@ export function ClinicGeneralSettings() {
     );
   }
 
+  const workspaceLabel = WORKSPACE_PROFILE_LABEL[
+    parseWorkspaceProfile(clinic?.workspaceProfile)
+  ];
+
   return (
     <div className="space-y-4">
       <SettingsAiChips scope="clinic-general" />
+      <Card>
+        <CardHeader className="pb-2">
+          <CardTitle className="text-[var(--fs-md)]">Workspace mode</CardTitle>
+          <CardDescription>
+            This is separate from your subscription tier (Starter, Essential, and
+            so on). It controls which areas of Docita stay available to your team.
+          </CardDescription>
+        </CardHeader>
+        <CardContent className="space-y-2 text-sm">
+          <p className="font-medium text-foreground">{workspaceLabel}</p>
+          <p className="text-muted-foreground">
+            Plan limits, invoices, and upgrades live under{" "}
+            <Link
+              href={SUBSCRIPTION_SETTINGS_PATH}
+              className="font-medium text-primary underline-offset-4 hover:underline"
+            >
+              Billing and subscription
+            </Link>
+            .
+          </p>
+        </CardContent>
+      </Card>
       <Card>
       <CardHeader>
         <CardTitle>{facilityLabel} Information</CardTitle>

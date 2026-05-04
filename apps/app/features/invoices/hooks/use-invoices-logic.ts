@@ -21,10 +21,13 @@ export const useInvoicesLogic = () => {
   const {
     data: invoicesResponse,
     isLoading: loading,
+    isError,
+    error,
     refetch,
   } = useInvoices({
     status: filter !== "all" ? filter : undefined,
     search: debouncedSearch || undefined,
+    limit: 50,
   });
 
   const invoices = useMemo(
@@ -106,6 +109,8 @@ export const useInvoicesLogic = () => {
     invoices,
     filteredInvoices,
     loading,
+    isError,
+    error,
     filter,
     setFilter,
     sortBy,

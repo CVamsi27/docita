@@ -1,12 +1,11 @@
 "use client";
 
 import type { LucideIcon } from "lucide-react";
-import type { ReactNode } from "react";
+import type { ComponentProps, ReactNode } from "react";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import {
   Building2,
   Calendar as CalendarIcon,
-  Check,
   CheckCircle2,
   Clock,
   Globe,
@@ -18,6 +17,7 @@ import {
   Sparkles,
   UserCircle,
 } from "lucide-react";
+import { Alert, AlertDescription, AlertTitle } from "@workspace/ui/components/alert";
 import { AppPageScaffold } from "@workspace/ui/components/app-page-scaffold";
 import { Badge } from "@workspace/ui/components/badge";
 import { Button } from "@workspace/ui/components/button";
@@ -31,15 +31,20 @@ import {
   CardTitle,
 } from "@workspace/ui/components/card";
 import { DataState } from "@workspace/ui/components/data-state";
-import { FloatingInput } from "@workspace/ui/components/floating-input";
-import { LoadingState } from "@workspace/ui/components/empty-state";
+import { DescriptionList } from "@workspace/ui/components/description-list";
+import { DocitaLogo } from "@workspace/ui/components/docita-logo";
+import { EmptyState } from "@workspace/ui/components/empty-state";
+import { Input } from "@workspace/ui/components/input";
+import { Label } from "@workspace/ui/components/label";
 import { MicroLabel } from "@workspace/ui/components/micro-label";
 import { PageHeader } from "@workspace/ui/components/page-header";
 import {
   RightRailCard,
   RightRailCardStack,
 } from "@workspace/ui/components/right-rail-card";
+import { ScrollArea } from "@workspace/ui/components/scroll-area";
 import { Separator } from "@workspace/ui/components/separator";
+import { Skeleton } from "@workspace/ui/components/skeleton";
 import {
   Select,
   SelectContent,
@@ -48,6 +53,7 @@ import {
   SelectValue,
 } from "@workspace/ui/components/select";
 import { Textarea } from "@workspace/ui/components/textarea";
+import { Timeline, type TimelineItem } from "@workspace/ui/components/timeline";
 import {
   formatDate,
   formatPickerIsoDate,
@@ -66,17 +72,66 @@ import {
 import { formatDateTime, formatTime } from "@/lib/formatters";
 import { showUserFacingErrorToast } from "@/lib/user-facing-errors";
 import { TurnstileWidget } from "@/features/public-booking/components/turnstile-widget";
+import { ThemeToggleWithAppearanceSync } from "@/features/_shared/components/layout/theme-toggle-with-appearance-sync";
 import { cn } from "@workspace/ui/lib/utils";
 import type {
   PublicBookingClinicResponse,
   PublicBookingSlotListEmptyReason,
 } from "@workspace/types";
 
+/** Matches consultation-style tiles (e.g. PatientContextCardUI): border + shadow for depth. */
 const contactTileClass =
-  "flex min-w-0 gap-3 rounded-[var(--radius-md)] border border-border/60 bg-surface-1 p-3.5 transition-colors duration-150 hover:border-border hover:bg-surface-2";
+  "flex min-w-0 gap-3 rounded-[var(--radius-md)] border border-border/70 bg-card p-3.5 shadow-sm transition-colors duration-150 hover:bg-muted/30";
 
-const bookingCardClass =
-  "overflow-hidden border-border/70 bg-card shadow-sm ring-1 ring-border/25";
+/** Overrides default Card vertical gap/padding for dense booking sections; keeps `ui-card-surface` from Card. */
+const bookingCardClass = "gap-0 overflow-hidden py-0 sm:gap-0 sm:py-0";
+
+function BookingTextField({
+  id,
+  label,
+  placeholder,
+  className,
+  containerClassName,
+  ...props
+}: Omit<ComponentProps<typeof Input>, "id"> & {
+  id: string;
+  label: string;
+  placeholder?: string;
+  containerClassName?: string;
+}) {
+  return (
+    <div className={cn("grid gap-2", containerClassName)}>
+      <Label
+        htmlFor={id}
+        className="text-[length:var(--fs-sm)] font-normal leading-none text-muted-foreground"
+      >
+        {label}
+      </Label>
+      <Input
+        id={id}
+        placeholder={placeholder ?? `Enter ${label.toLowerCase()}`}
+        className={cn(
+          "h-11 rounded-[var(--radius-md)] px-3 text-[length:var(--fs-sm)] sm:text-[length:var(--fs-sm)]",
+          className,
+        )}
+        {...props}
+      />
+    </div>
+  );
+}
+
+function PublicBookingThemeToggle() {
+  return (
+    <div
+      className="pointer-events-none fixed top-[max(0.75rem,env(safe-area-inset-top))] right-[max(0.75rem,env(safe-area-inset-right))] z-50"
+      role="presentation"
+    >
+      <div className="pointer-events-auto rounded-[var(--radius-md)] border border-border/70 bg-background/90 shadow-sm backdrop-blur-sm">
+        <ThemeToggleWithAppearanceSync />
+      </div>
+    </div>
+  );
+}
 
 function publicBookingSlotEmptyMessage(
   reason: PublicBookingSlotListEmptyReason | undefined,
@@ -90,7 +145,7 @@ function publicBookingSlotEmptyMessage(
       return "Visit hours look incomplete for this day (no time slots could be built from the schedule). Please contact the clinic.";
     case "NO_WEEKLY_HOURS":
     default:
-      return "There are no online visit hours on file for this doctor or for the clinic on this weekday (based on the clinic time zone). The care team can set default clinic hours during onboarding or under staff settings. Try another weekday, or contact the clinic to book.";
+      return "No visit hours are set for this weekday for this doctor or clinic (using the clinic time zone). Try another day, or contact the clinic. Clinic staff can configure facility weekly hours in Docita (onboarding or facility settings) if online booking should be available.";
   }
 }
 
@@ -134,6 +189,111 @@ const bookingSteps = [
   "Send the request for confirmation",
 ] as const;
 
+function appointmentTimelineAccent(status: string): NonNullable<
+  TimelineItem["accent"]
+> {
+  switch (status) {
+    case "COMPLETED":
+    case "CONFIRMED":
+      return "success";
+    case "CANCELLED":
+    case "NO_SHOW":
+      return "danger";
+    case "SCHEDULED":
+    case "RESCHEDULING":
+    case "IN_PROGRESS":
+      return "warning";
+    default:
+      return "default";
+  }
+}
+
+function PublicBookingPoweredByFooter({
+  className,
+}: {
+  className?: string;
+}) {
+  return (
+    <footer
+      className={cn(
+        "mx-auto flex w-full max-w-6xl flex-col items-center justify-center gap-3 border-t border-border/40 pt-6 sm:flex-row sm:gap-4",
+        className,
+      )}
+    >
+      <p className="max-w-md text-center text-[length:var(--fs-xs)] leading-relaxed text-muted-foreground">
+        Secure scheduling — your details are protected in transit.
+      </p>
+      <a
+        href="https://docita.com"
+        target="_blank"
+        rel="noopener noreferrer"
+        className="flex items-center gap-2 rounded-[var(--radius-md)] border border-transparent px-2 py-1 transition-colors duration-150 hover:border-border/60 hover:bg-surface-1"
+      >
+        <MicroLabel className="mt-0">Powered by</MicroLabel>
+        <DocitaLogo showText={false} className="h-7 w-7" iconClassName="h-7 w-7" />
+      </a>
+    </footer>
+  );
+}
+
+function SlotTimesSkeletonGrid({ className }: { className?: string }) {
+  return (
+    <div
+      className={cn(
+        "flex min-h-0 flex-col rounded-[var(--radius-md)] border border-border/70 bg-card p-3 shadow-sm sm:p-4 xl:min-h-0 xl:flex-1",
+        className,
+      )}
+    >
+      <MicroLabel as="p" className="mb-3 mt-0 text-muted-foreground">
+        Loading open times…
+      </MicroLabel>
+      <div className="grid flex-1 auto-rows-min grid-cols-1 content-start gap-2.5 sm:grid-cols-2 sm:gap-3">
+        {Array.from({ length: 6 }).map((_, i) => (
+          <Skeleton
+            key={`slot-sk-${i}`}
+            className="h-[3.25rem] w-full min-w-0 rounded-[var(--radius-md)]"
+          />
+        ))}
+      </div>
+    </div>
+  );
+}
+
+function SlotTimesScrollArea({
+  enabled,
+  children,
+}: {
+  enabled: boolean;
+  children: ReactNode;
+}) {
+  const shell =
+    "rounded-[var(--radius-md)] border border-border/70 bg-background shadow-sm";
+  const pad = "p-2.5 sm:p-3.5";
+  if (!enabled) {
+    return (
+      <div
+        className={cn(
+          shell,
+          pad,
+          "flex min-h-0 flex-1 flex-col xl:min-h-0",
+        )}
+      >
+        {children}
+      </div>
+    );
+  }
+  return (
+    <ScrollArea
+      className={cn(
+        shell,
+        "min-h-[12rem] w-full max-h-[min(17rem,42vh)] xl:flex-1 xl:max-h-none xl:min-h-0 xl:h-full",
+      )}
+    >
+      <div className={pad}>{children}</div>
+    </ScrollArea>
+  );
+}
+
 function PublicBookingHero({
   clinicName,
   facilityLabel,
@@ -142,136 +302,55 @@ function PublicBookingHero({
   facilityLabel: string;
 }) {
   return (
-    <div className="relative overflow-hidden rounded-[var(--radius-lg)] border border-border/70 bg-[linear-gradient(135deg,var(--card),var(--surface-tint))] px-5 py-6 shadow-sm ring-1 ring-border/25 sm:px-7 sm:py-7 lg:px-8 lg:py-8">
-      <div
-        aria-hidden
-        className="pointer-events-none absolute inset-x-0 top-0 h-px bg-primary/30"
+    <div className="space-y-3 sm:space-y-4">
+      <PageHeader
+        eyebrow="Book a visit"
+        title={clinicName}
+        description={`Request a visit at this ${facilityLabel.toLowerCase()} in a few minutes — choose a doctor and time, add your contact details, then send the request for the team to confirm.`}
+        descriptionClassName="max-w-none min-w-0 text-[length:var(--fs-sm)] leading-tight whitespace-nowrap overflow-x-auto pb-0.5 [scrollbar-width:thin]"
+        actions={
+          <Badge
+            variant="secondary"
+            className="normal-case tracking-tight text-[length:var(--fs-xs)] font-medium"
+          >
+            {facilityLabel}
+          </Badge>
+        }
+        className="gap-2 border-b border-border/60 pb-3 sm:gap-2.5 sm:pb-4"
       />
-      <div className="relative grid gap-6 lg:grid-cols-[minmax(0,1fr)_18rem] lg:items-center">
-        <div className="max-w-2xl space-y-3">
-          <div className="space-y-2">
-            <h1 className="font-serif text-[length:var(--fs-4xl)] font-semibold leading-[1.02] tracking-normal text-foreground sm:text-[length:var(--fs-5xl)] lg:text-[length:var(--fs-6xl)]">
-              {clinicName}
-            </h1>
-            <Badge
-              variant="secondary"
-              className="normal-case tracking-tight text-[length:var(--fs-xs)] font-medium"
-            >
-              {facilityLabel}
-            </Badge>
-          </div>
-          <p className="max-w-xl text-pretty text-[length:var(--fs-lg)] leading-relaxed text-muted-foreground">
-            Request a visit at this {facilityLabel.toLowerCase()} in a few
-            minutes. Pick a time, leave your details, and the care team will
-            confirm the appointment.
+      <div className="ui-card-surface rounded-[var(--radius-md)] px-3 py-2 sm:px-3.5 sm:py-2.5">
+        <div className="flex min-w-0 flex-col gap-1.5 sm:flex-row sm:flex-wrap sm:items-baseline sm:gap-x-2.5 sm:gap-y-1">
+          <MicroLabel as="p" className="mt-0 shrink-0 sm:pt-0.5">
+            How this works
+          </MicroLabel>
+          <p className="min-w-0 text-[length:var(--fs-xs)] leading-snug text-muted-foreground sm:flex-1">
+            {bookingSteps.map((step, index) => (
+              <span key={step}>
+                {index > 0 ? (
+                  <span className="text-border/80" aria-hidden>
+                    {" "}
+                    ·{" "}
+                  </span>
+                ) : null}
+                <span className="font-medium text-foreground">{index + 1}.</span>{" "}
+                {step}
+              </span>
+            ))}
           </p>
         </div>
-        <div className="rounded-[var(--radius-md)] border border-border/65 bg-surface-1/90 p-4 shadow-sm ring-1 ring-inset ring-border/20 sm:p-5">
-          <MicroLabel as="h2">Online booking</MicroLabel>
-          <ol className="mt-4 space-y-2.5">
-            {bookingSteps.map((step, index) => (
-              <li
-                key={step}
-                className="flex gap-3 rounded-[var(--radius-md)] border border-border/50 bg-card/80 px-3 py-2.5 shadow-sm sm:gap-3.5 sm:px-3.5 sm:py-3"
-              >
-                <span
-                  className="flex size-7 shrink-0 items-center justify-center rounded-full bg-primary text-[length:var(--fs-xs)] font-semibold text-primary-foreground shadow-sm sm:size-8"
-                  aria-hidden
-                >
-                  {index + 1}
-                </span>
-                <span className="min-w-0 pt-0.5 text-[length:var(--fs-sm)] font-medium leading-snug text-foreground">
-                  {step}
-                </span>
-              </li>
-            ))}
-          </ol>
-        </div>
+        <Separator className="my-2 bg-border/60 sm:my-2.5" />
+        <Alert className="rounded-[var(--radius-md)] border border-border/70 bg-background py-2 shadow-sm [&>svg]:left-3 [&>svg]:top-2.5 [&>svg]:h-3.5 [&>svg]:w-3.5 [&>svg]:text-primary [&>svg~*]:pl-6">
+          <ShieldCheck className="shrink-0" aria-hidden />
+          <AlertTitle className="mb-0.5 text-[length:var(--fs-2xs)] font-semibold tracking-wide">
+            Private booking link
+          </AlertTitle>
+          <AlertDescription className="text-[length:var(--fs-2xs)] leading-snug text-muted-foreground">
+            Only you and this care team see what you enter. Submitting is a request
+            until staff confirms your visit.
+          </AlertDescription>
+        </Alert>
       </div>
     </div>
-  );
-}
-
-function BookingFlowStepper({
-  visitComplete,
-  contactComplete,
-}: {
-  visitComplete: boolean;
-  contactComplete: boolean;
-}) {
-  const currentIndex = !visitComplete ? 0 : !contactComplete ? 1 : 2;
-  const steps = [
-    { title: "Schedule", caption: "Doctor, date, and time" },
-    { title: "Your details", caption: "Name and phone" },
-    { title: "Submit", caption: "Review and send" },
-  ] as const;
-
-  return (
-    <nav
-      aria-label="Booking progress"
-      className="rounded-[var(--radius-lg)] border border-border/60 bg-card px-3 py-4 shadow-sm ring-1 ring-border/25 sm:px-5 sm:py-5"
-    >
-      <MicroLabel className="mb-3 block sm:mb-4">Your progress</MicroLabel>
-      <div className="rounded-[var(--radius-md)] bg-muted/35 p-3 ring-1 ring-inset ring-border/35 sm:p-4">
-        <ol className="grid grid-cols-3 gap-1.5 sm:gap-4">
-        {steps.map((step, i) => {
-          const done =
-            (i === 0 && visitComplete) || (i === 1 && contactComplete);
-          const current = i === currentIndex;
-          const muted = i > currentIndex;
-
-          return (
-            <li
-              key={step.title}
-              className="flex min-w-0 flex-col items-center gap-2 text-center"
-            >
-              <span
-                className={cn(
-                  "flex size-9 shrink-0 items-center justify-center rounded-full border text-[length:var(--fs-xs)] font-semibold sm:size-10 sm:text-[length:var(--fs-sm)]",
-                  done &&
-                    "border-primary bg-primary text-primary-foreground shadow-sm",
-                  current &&
-                    !done &&
-                    "border-primary/70 bg-primary/[0.12] text-primary shadow-sm",
-                  muted &&
-                    "border-border/60 bg-muted/35 text-muted-foreground",
-                )}
-                aria-current={current ? "step" : undefined}
-              >
-                {done ? (
-                  <Check
-                    className="size-[1.05rem] sm:size-[1.125rem]"
-                    strokeWidth={2.25}
-                    aria-hidden
-                  />
-                ) : (
-                  <span aria-hidden>{i + 1}</span>
-                )}
-              </span>
-              <div className="min-w-0 space-y-0.5 px-0.5">
-                <p
-                  className={cn(
-                    "text-[length:var(--fs-2xs)] font-semibold uppercase tracking-wide sm:text-[length:var(--fs-xs)]",
-                    muted && "text-muted-foreground",
-                  )}
-                >
-                  {step.title}
-                </p>
-                <p
-                  className={cn(
-                    "hidden text-[length:var(--fs-2xs)] leading-snug text-muted-foreground sm:block",
-                    muted && "opacity-80",
-                  )}
-                >
-                  {step.caption}
-                </p>
-              </div>
-            </li>
-          );
-        })}
-        </ol>
-      </div>
-    </nav>
   );
 }
 
@@ -318,8 +397,8 @@ function ClinicContactCard({
     : null;
 
   return (
-    <Card className={cn(bookingCardClass, "gap-0")}>
-      <CardHeader className="border-b border-border/60 bg-surface-2 py-4">
+    <Card className={cn(bookingCardClass, "flex flex-col")}>
+      <CardHeader className="border-b border-border/60 bg-muted/30 py-4">
         <div className="flex items-start gap-3">
           <CategoryAvatar
             icon={<MapPin strokeWidth={1.5} />}
@@ -396,8 +475,8 @@ function RequestSummaryCard({
   );
 
   return (
-    <Card className={cn(bookingCardClass, "gap-0")}>
-      <CardHeader className="border-b border-border/60 bg-surface-2 py-4">
+    <Card className={cn(bookingCardClass, "flex flex-col")}>
+      <CardHeader className="border-b border-border/60 bg-muted/30 py-4">
         <div className="flex items-start gap-3">
           <CategoryAvatar
             icon={<CalendarIcon strokeWidth={1.5} />}
@@ -415,9 +494,9 @@ function RequestSummaryCard({
       <CardContent className="space-y-3 px-4 py-4">
         <div
           className={cn(
-            "rounded-[var(--radius-md)] border border-border/60 bg-surface-1 p-3.5 transition-colors duration-150",
+            "rounded-[var(--radius-md)] border border-border/70 bg-card p-3.5 shadow-sm transition-colors duration-150",
             selectedDoctorName &&
-              "border-primary/40 bg-primary/[0.06] ring-1 ring-primary/10",
+              "border-primary/50 bg-primary/[0.06] shadow-md",
           )}
         >
           <MicroLabel as="p" className="mt-0">
@@ -430,9 +509,9 @@ function RequestSummaryCard({
         <div className="grid gap-3 sm:grid-cols-2">
           <div
             className={cn(
-              "rounded-[var(--radius-md)] border border-border/60 bg-surface-1 p-3.5 transition-colors duration-150",
+              "rounded-[var(--radius-md)] border border-border/70 bg-card p-3.5 shadow-sm transition-colors duration-150",
               selectedCalendarDay &&
-                "border-primary/40 bg-primary/[0.06] ring-1 ring-primary/10",
+                "border-primary/50 bg-primary/[0.06] shadow-md",
             )}
           >
             <MicroLabel as="p" className="mt-0">
@@ -446,10 +525,10 @@ function RequestSummaryCard({
           </div>
           <div
             className={cn(
-              "rounded-[var(--radius-md)] border border-border/60 bg-surface-1 p-3.5 transition-colors duration-150",
+              "rounded-[var(--radius-md)] border border-border/70 bg-card p-3.5 shadow-sm transition-colors duration-150",
               selectedStart &&
                 selectedEnd &&
-                "border-primary/40 bg-primary/[0.06] ring-1 ring-primary/10",
+                "border-primary/50 bg-primary/[0.06] shadow-md",
             )}
           >
             <MicroLabel as="p" className="mt-0">
@@ -483,45 +562,39 @@ function BookingActionPanel({
   className?: string;
 }) {
   return (
-    <div
-      className={cn(
-        bookingCardClass,
-        "rounded-[var(--radius-lg)] border-border/70 bg-card p-4 shadow-lg sm:p-5",
-        className,
-      )}
-    >
-      <div className="mb-4 flex gap-3.5 rounded-[var(--radius-md)] border border-border/60 bg-surface-2 p-3.5 text-[length:var(--fs-xs)] leading-relaxed text-muted-foreground">
-        <CategoryAvatar
-          icon={<ShieldCheck strokeWidth={1.5} />}
-          tone="primary"
-          size="sm"
-          className="mt-0.5 shrink-0"
-        />
-        <p className="min-w-0 text-pretty">
-          Submitting sends a request only. The care team still confirms before it
-          is a firm appointment.
-        </p>
-      </div>
-      <div className="flex flex-col gap-2.5">
-        <Button
-          type="button"
-          variant="outline"
-          className="h-11 w-full rounded-[var(--radius-md)] text-[length:var(--fs-sm)]"
-          onClick={onPhoneCheck}
-          disabled={isPhoneCheckPending || !canCheckPhone}
-        >
-          Check phone number
-        </Button>
-        <Button
-          type="button"
-          className="h-12 w-full rounded-[var(--radius-md)] px-6 text-[length:var(--fs-base)] font-semibold shadow-sm"
-          onClick={onSubmit}
-          disabled={isSubmitting}
-        >
-          Submit visit request
-        </Button>
-      </div>
-    </div>
+    <Card className={cn(bookingCardClass, className)}>
+      <CardContent className="space-y-4 py-4 sm:space-y-5 sm:py-5">
+        <Alert className="rounded-[var(--radius-md)] border border-border/70 bg-muted/30 py-3.5 shadow-sm [&>svg]:left-3.5 [&>svg]:top-3.5 [&>svg]:text-primary [&>svg~*]:pl-7">
+          <ShieldCheck className="h-4 w-4 shrink-0" aria-hidden />
+          <AlertTitle className="text-[length:var(--fs-sm)]">
+            Request, not a confirmed visit
+          </AlertTitle>
+          <AlertDescription className="text-[length:var(--fs-xs)] leading-relaxed text-muted-foreground">
+            Submitting sends a request only. The care team still confirms before it
+            is a firm appointment.
+          </AlertDescription>
+        </Alert>
+        <div className="flex flex-col gap-2.5">
+          <Button
+            type="button"
+            variant="outline"
+            className="h-11 w-full rounded-[var(--radius-md)] text-[length:var(--fs-sm)]"
+            onClick={onPhoneCheck}
+            disabled={isPhoneCheckPending || !canCheckPhone}
+          >
+            Check phone number
+          </Button>
+          <Button
+            type="button"
+            className="h-12 w-full rounded-[var(--radius-md)] px-6 text-[length:var(--fs-base)] font-semibold shadow-sm"
+            onClick={onSubmit}
+            disabled={isSubmitting}
+          >
+            Submit visit request
+          </Button>
+        </div>
+      </CardContent>
+    </Card>
   );
 }
 
@@ -753,15 +826,16 @@ export function PublicBookingPage({ referralCode }: PublicBookingPageProps) {
           />
         }
       >
+        <PublicBookingThemeToggle />
         <div className="mx-auto w-full max-w-md">
-          <div className="relative overflow-hidden rounded-[var(--radius-lg)] border border-border/50 bg-card/95 px-5 py-9 text-center shadow-md ring-1 ring-border/30 sm:px-8 sm:py-11">
+          <div className="relative overflow-hidden rounded-[var(--radius-lg)] border border-border/70 bg-card px-5 py-9 text-center shadow-sm sm:px-8 sm:py-11">
             <div
               aria-hidden
               className="pointer-events-none absolute inset-x-0 top-0 h-28 bg-gradient-to-b from-success/[0.12] to-transparent"
             />
             <div className="relative space-y-5">
               <div
-                className="mx-auto flex h-[4.25rem] w-[4.25rem] items-center justify-center rounded-full bg-gradient-to-br from-success/22 to-success/8 text-success ring-4 ring-success/10"
+                className="mx-auto flex h-[4.25rem] w-[4.25rem] items-center justify-center rounded-full border border-success/25 bg-gradient-to-br from-success/22 to-success/8 text-success shadow-md"
                 aria-hidden
               >
                 <CheckCircle2 className="h-11 w-11" strokeWidth={1.5} />
@@ -776,12 +850,26 @@ export function PublicBookingPage({ referralCode }: PublicBookingPageProps) {
                   they use for confirmations.
                 </p>
               </div>
-              <p className="text-[length:var(--fs-sm)] text-muted-foreground">
-                Save this tab if you want a bookmark, or close it anytime.
-              </p>
+              <Separator className="mx-auto max-w-xs bg-border/45" />
+              <Alert className="rounded-[var(--radius-md)] border border-border/70 bg-background text-left shadow-sm [&>svg]:text-primary">
+                <Mail className="h-4 w-4 shrink-0" aria-hidden />
+                <AlertTitle className="text-[length:var(--fs-sm)]">
+                  What happens next
+                </AlertTitle>
+                <AlertDescription className="space-y-2 text-[length:var(--fs-xs)] leading-relaxed text-muted-foreground">
+                  <p>
+                    Watch for a message or call from the clinic — timing depends on
+                    their usual confirmation workflow.
+                  </p>
+                  <p className="text-[length:var(--fs-2xs)] sm:text-[length:var(--fs-xs)]">
+                    Save this tab if you want a bookmark, or close it anytime.
+                  </p>
+                </AlertDescription>
+              </Alert>
             </div>
           </div>
         </div>
+        <PublicBookingPoweredByFooter className="mt-10 max-w-md" />
       </AppPageScaffold>
     );
   }
@@ -819,6 +907,7 @@ export function PublicBookingPage({ referralCode }: PublicBookingPageProps) {
         )
       }
     >
+      <PublicBookingThemeToggle />
       <DataState
         status={pageState}
         loadingMessage="Loading location…"
@@ -833,18 +922,6 @@ export function PublicBookingPage({ referralCode }: PublicBookingPageProps) {
             <PublicBookingHero
               clinicName={clinic.name}
               facilityLabel={facilityWord}
-            />
-
-            <BookingFlowStepper
-              visitComplete={Boolean(
-                doctorId &&
-                  selectedCalendarDay &&
-                  selectedStart &&
-                  selectedEnd,
-              )}
-              contactComplete={Boolean(
-                firstName.trim() && lastName.trim() && phone.trim(),
-              )}
             />
 
             <div className="grid gap-5 lg:grid-cols-[minmax(0,1fr)_21rem] lg:items-start">
@@ -892,8 +969,8 @@ export function PublicBookingPage({ referralCode }: PublicBookingPageProps) {
 
               <div className="order-1 flex min-w-0 flex-col gap-5 sm:gap-6 lg:order-1">
                 {siteKey ? (
-                  <Card className={cn(bookingCardClass, "gap-0")}>
-                    <CardHeader className="border-b border-border/60 bg-surface-2 py-4 sm:py-5">
+                  <Card className={cn(bookingCardClass, "flex flex-col")}>
+                    <CardHeader className="border-b border-border/60 bg-muted/30 py-4 sm:py-5">
                       <BookingSectionHeader
                         icon={Lock}
                         micro="Before you continue"
@@ -902,7 +979,7 @@ export function PublicBookingPage({ referralCode }: PublicBookingPageProps) {
                         tone="neutral"
                       />
                     </CardHeader>
-                    <CardContent className="bg-muted/[0.07] px-4 py-5 sm:px-6">
+                    <CardContent className="bg-muted/30 px-4 py-5 sm:px-6">
                       <TurnstileWidget
                         siteKey={siteKey}
                         onToken={(t) => setTurnstileToken(t)}
@@ -913,8 +990,8 @@ export function PublicBookingPage({ referralCode }: PublicBookingPageProps) {
                   </Card>
                 ) : null}
 
-                <Card className={cn(bookingCardClass, "gap-0")}>
-                  <CardHeader className="border-b border-border/60 bg-surface-2 py-4 sm:py-5">
+                <Card className={cn(bookingCardClass, "flex flex-col")}>
+                  <CardHeader className="border-b border-border/60 bg-muted/30 py-4 sm:py-5">
                     <BookingSectionHeader
                       icon={CalendarIcon}
                       micro="Appointment"
@@ -922,11 +999,14 @@ export function PublicBookingPage({ referralCode }: PublicBookingPageProps) {
                       description="Select who you would like to see, pick a day, then tap an open slot that works for you."
                     />
                   </CardHeader>
-                  <CardContent className="space-y-5 px-4 py-5 sm:px-6 sm:py-6">
-                    <div className="space-y-2">
-                      <MicroLabel as="p" className="mt-0">
+                  <CardContent className="flex min-h-0 flex-1 flex-col gap-5 px-4 py-5 sm:gap-6 sm:px-6 sm:py-6">
+                    <div className="grid gap-2">
+                      <Label
+                        htmlFor="pb-doctor-select"
+                        className="text-[length:var(--fs-sm)] font-normal leading-none text-muted-foreground"
+                      >
                         Doctor
-                      </MicroLabel>
+                      </Label>
                       <Select
                         value={doctorId}
                         onValueChange={(v) => {
@@ -936,7 +1016,8 @@ export function PublicBookingPage({ referralCode }: PublicBookingPageProps) {
                         }}
                       >
                         <SelectTrigger
-                          className="h-12 w-full rounded-[var(--radius-md)] border-border/70 bg-background text-[length:var(--fs-base)] shadow-sm"
+                          id="pb-doctor-select"
+                          className="h-11 w-full rounded-[var(--radius-md)] border-border/70 bg-background text-[length:var(--fs-sm)] shadow-sm sm:h-11"
                           aria-label="Doctor"
                           disabled={doctorsQuery.isLoading}
                         >
@@ -965,12 +1046,12 @@ export function PublicBookingPage({ referralCode }: PublicBookingPageProps) {
 
                     <Separator className="my-1 bg-border/70 sm:my-2" />
 
-                    <div className="grid gap-5 xl:grid-cols-[minmax(0,1fr)_minmax(17rem,0.82fr)] xl:items-start">
-                      <div className="space-y-3">
+                    <div className="grid min-h-0 flex-1 gap-5 xl:grid-cols-[minmax(0,1fr)_minmax(17rem,0.82fr)] xl:items-stretch xl:gap-6">
+                      <div className="flex flex-col gap-3 xl:h-full xl:min-h-0">
                         <MicroLabel as="p" className="mt-0">
                           Preferred day
                         </MicroLabel>
-                        <div className="overflow-hidden rounded-[var(--radius-lg)] border border-border/60 bg-background p-2.5 ring-1 ring-inset ring-border/25 sm:p-3.5">
+                        <div className="overflow-hidden rounded-[var(--radius-lg)] border border-border/70 bg-background p-2.5 shadow-sm sm:p-3.5">
                           <Calendar
                             mode="single"
                             required
@@ -989,7 +1070,7 @@ export function PublicBookingPage({ referralCode }: PublicBookingPageProps) {
                             classNames={{ root: "w-full max-w-full" }}
                           />
                         </div>
-                        <div className="rounded-[var(--radius-md)] border border-border/55 bg-surface-1 px-3 py-2.5 ring-1 ring-inset ring-border/20 sm:px-3.5 sm:py-3">
+                        <div className="rounded-[var(--radius-md)] border border-border/70 bg-muted/30 px-3 py-2.5 shadow-sm sm:px-3.5 sm:py-3">
                           <p className="text-[length:var(--fs-sm)] leading-snug text-muted-foreground">
                             <span className="font-medium text-foreground">
                               Selected
@@ -1005,31 +1086,33 @@ export function PublicBookingPage({ referralCode }: PublicBookingPageProps) {
                         </div>
                       </div>
 
-                      <div className="space-y-3">
-                        <MicroLabel as="p" className="mt-0">
+                      <div className="flex min-h-0 flex-col gap-3 xl:h-full xl:min-h-0">
+                        <MicroLabel as="p" className="mt-0 shrink-0">
                           Open times that day
                         </MicroLabel>
+                        <div className="flex min-h-0 flex-1 flex-col">
                         {!doctorId ? (
-                          <div className="flex gap-3.5 rounded-[var(--radius-md)] border border-dashed border-border/70 bg-surface-2 p-4 sm:p-5">
-                            <CategoryAvatar
-                              icon={<UserCircle strokeWidth={1.5} />}
-                              tone="primary"
-                              size="sm"
-                              className="mt-0.5 shrink-0"
-                            />
-                            <p className="min-w-0 text-[length:var(--fs-sm)] leading-relaxed text-muted-foreground">
-                              Choose a doctor first to see open times here.
-                            </p>
-                          </div>
+                          <EmptyState
+                            icon={UserCircle}
+                            title="Choose a doctor first"
+                            description="Select who you would like to see to load open times for this location."
+                            className="flex flex-1 flex-col justify-center rounded-[var(--radius-md)] border border-dashed border-border/70 bg-muted/10 py-6 shadow-sm sm:py-8 xl:min-h-0 [&_.ui-section-title]:text-[length:var(--fs-base)]"
+                          />
                         ) : slotsQuery.isLoading ? (
-                          <div className="rounded-[var(--radius-md)] border border-dashed border-border/60 bg-surface-1 px-4 py-8 sm:px-6 sm:py-10">
-                            <LoadingState message="Loading open times…" />
-                          </div>
+                          <SlotTimesSkeletonGrid />
                         ) : slotsQuery.isError ? (
-                          <div className="flex flex-col items-stretch gap-3 rounded-[var(--radius-md)] border border-dashed border-border/70 bg-surface-2 p-4 sm:p-5">
-                            <p className="text-[length:var(--fs-sm)] text-muted-foreground">
-                              Open times could not be loaded.
-                            </p>
+                          <div className="flex min-h-0 flex-1 flex-col gap-3 xl:justify-center">
+                            <Alert
+                              variant="destructive"
+                              className="rounded-[var(--radius-md)] text-left [&>svg]:top-3.5"
+                            >
+                              <Clock className="h-4 w-4 shrink-0" aria-hidden />
+                              <AlertTitle>Open times unavailable</AlertTitle>
+                              <AlertDescription>
+                                Open times could not be loaded. Check your
+                                connection and try again.
+                              </AlertDescription>
+                            </Alert>
                             <Button
                               type="button"
                               variant="outline"
@@ -1040,132 +1123,143 @@ export function PublicBookingPage({ referralCode }: PublicBookingPageProps) {
                             </Button>
                           </div>
                         ) : allSlots.length === 0 ? (
-                          <div className="flex gap-3.5 rounded-[var(--radius-md)] border border-dashed border-border/70 bg-surface-2 p-4 sm:p-5">
-                            <CategoryAvatar
-                              icon={<CalendarIcon strokeWidth={1.5} />}
-                              tone="neutral"
-                              size="sm"
-                              className="mt-0.5 shrink-0"
-                            />
-                            <p className="min-w-0 text-[length:var(--fs-sm)] leading-relaxed text-muted-foreground">
-                              {publicBookingSlotEmptyMessage(
-                                slotsQuery.data?.slotListEmptyReason,
-                              )}
-                            </p>
-                          </div>
+                          <EmptyState
+                            icon={CalendarIcon}
+                            title="No times this day"
+                            description={publicBookingSlotEmptyMessage(
+                              slotsQuery.data?.slotListEmptyReason,
+                            )}
+                            className="flex flex-1 flex-col justify-center rounded-[var(--radius-md)] border border-dashed border-border/70 bg-muted/10 py-6 shadow-sm sm:py-8 xl:min-h-0 [&_.ui-section-title]:text-[length:var(--fs-base)]"
+                          />
                         ) : availableSlots.length === 0 ? (
-                          <div className="space-y-3">
-                            <div className="flex gap-3.5 rounded-[var(--radius-md)] border border-dashed border-border/70 bg-surface-2 p-4 sm:p-5">
-                              <CategoryAvatar
-                                icon={<Clock strokeWidth={1.5} />}
-                                tone="warning"
-                                size="sm"
-                                className="mt-0.5 shrink-0"
-                              />
-                              <p className="min-w-0 text-[length:var(--fs-sm)] leading-relaxed text-muted-foreground">
-                                There are no free times left on this date. The
-                                times below are already booked, blocked, or
-                                earlier in the day. Choose another date if you
-                                need an opening.
-                              </p>
-                            </div>
-                            <ul className="grid grid-cols-1 gap-2.5 sm:grid-cols-2 sm:gap-3">
-                              {allSlots.map((s) => (
-                                <li
-                                  key={`${s.startTime}-${s.endTime}-${s.doctorId}`}
-                                >
-                                  <Button
-                                    type="button"
-                                    variant="outline"
-                                    disabled
-                                    className="h-auto min-h-[3.25rem] w-full cursor-not-allowed justify-start rounded-[var(--radius-md)] border-border/50 bg-muted/30 px-4 py-3 text-left opacity-80 shadow-none"
-                                    aria-label={`${formatTime(s.startTime)} to ${formatTime(s.endTime)}, unavailable`}
+                          <div className="flex min-h-0 flex-1 flex-col gap-3">
+                            <EmptyState
+                              icon={Clock}
+                              title="No openings left"
+                              description="There are no free times left on this date. The times below are already booked, blocked, or earlier in the day. Choose another date if you need an opening."
+                              className="shrink-0 rounded-[var(--radius-md)] border border-dashed border-border/70 bg-muted/10 py-5 shadow-sm sm:py-6 [&_.ui-section-title]:text-[length:var(--fs-base)]"
+                            />
+                            <SlotTimesScrollArea enabled={allSlots.length > 6}>
+                              <ul className="grid min-w-0 grid-cols-1 gap-2.5 sm:grid-cols-2 sm:gap-3">
+                                {allSlots.map((s) => (
+                                  <li
+                                    key={`${s.startTime}-${s.endTime}-${s.doctorId}`}
+                                    className="min-w-0"
                                   >
-                                    <span className="flex min-w-0 flex-1 flex-col gap-1">
-                                      <span className="text-[length:var(--fs-sm)] font-semibold tracking-tight text-muted-foreground">
-                                        {formatTime(s.startTime)}{" "}
-                                        <span
-                                          aria-hidden
-                                          className="font-normal text-muted-foreground/80"
-                                        >
-                                          -
-                                        </span>{" "}
-                                        {formatTime(s.endTime)}
-                                      </span>
-                                      <span className="text-[length:var(--fs-xs)] text-muted-foreground">
-                                        Unavailable
-                                        {s.doctorName
-                                          ? ` — ${s.doctorName}`
-                                          : ""}
-                                      </span>
-                                    </span>
-                                  </Button>
-                                </li>
-                              ))}
-                            </ul>
-                          </div>
-                        ) : (
-                          <div className="rounded-[var(--radius-md)] border border-border/50 bg-muted/[0.06] p-2.5 ring-1 ring-inset ring-border/15 sm:p-3.5">
-                            <ul className="grid grid-cols-1 gap-2.5 sm:grid-cols-2 sm:gap-3">
-                            {availableSlots.map((s) => {
-                              const selected = selectedStart === s.startTime;
-                              return (
-                                <li
-                                  key={`${s.startTime}-${s.endTime}-${s.doctorId}`}
-                                >
-                                  <Button
-                                    type="button"
-                                    variant={selected ? "default" : "outline"}
-                                    className={cn(
-                                      "h-auto min-h-[3.25rem] w-full justify-start rounded-[var(--radius-md)] px-4 py-3 text-left shadow-sm outline-none ring-offset-background transition-colors duration-150 focus-visible:ring-2 focus-visible:ring-primary/35 focus-visible:ring-offset-2",
-                                      selected
-                                        ? "ring-2 ring-primary/45 ring-offset-[3px]"
-                                        : "touch-manipulation border-border/65 bg-background hover:border-primary/30 hover:bg-surface-2",
-                                    )}
-                                    onClick={() =>
-                                      handleSelectSlot(s.startTime, s.endTime)
-                                    }
-                                  >
-                                    <span className="flex min-w-0 flex-1 flex-col gap-1">
-                                      <span className="text-[length:var(--fs-sm)] font-semibold tracking-tight">
-                                        {formatTime(s.startTime)}{" "}
-                                        <span
-                                          aria-hidden
-                                          className="font-normal text-muted-foreground/90"
-                                        >
-                                          -
-                                        </span>{" "}
-                                        {formatTime(s.endTime)}
-                                      </span>
-                                      {s.doctorName ? (
-                                        <span className="text-[length:var(--fs-xs)] text-muted-foreground">
-                                          {s.doctorName}
-                                          {s.specialization
-                                            ? ` - ${s.specialization}`
+                                    <Button
+                                      type="button"
+                                      variant="outline"
+                                      disabled
+                                      className="h-auto min-h-[3.25rem] w-full min-w-0 cursor-not-allowed justify-start rounded-[var(--radius-md)] border-border/70 bg-muted/25 px-4 py-3 text-left opacity-80 shadow-sm"
+                                      aria-label={`${formatTime(s.startTime)} to ${formatTime(s.endTime)}, unavailable`}
+                                    >
+                                      <span className="flex min-w-0 flex-1 flex-col gap-1 overflow-hidden">
+                                        <span className="text-[length:var(--fs-sm)] font-medium tracking-tight text-muted-foreground">
+                                          {formatTime(s.startTime)}{" "}
+                                          <span
+                                            aria-hidden
+                                            className="font-normal text-muted-foreground/80"
+                                          >
+                                            -
+                                          </span>{" "}
+                                          {formatTime(s.endTime)}
+                                        </span>
+                                        <span className="truncate text-[length:var(--fs-xs)] text-muted-foreground">
+                                          Unavailable
+                                          {s.doctorName
+                                            ? ` — ${s.doctorName}`
                                             : ""}
                                         </span>
-                                      ) : null}
-                                    </span>
-                                    {selected ? (
-                                      <CheckCircle2
-                                        className="ml-3 h-[1.125rem] w-[1.125rem] shrink-0 text-primary-foreground"
-                                        aria-hidden
-                                      />
-                                    ) : null}
-                                  </Button>
-                                </li>
-                              );
-                            })}
-                            </ul>
+                                      </span>
+                                    </Button>
+                                  </li>
+                                ))}
+                              </ul>
+                            </SlotTimesScrollArea>
                           </div>
+                        ) : (
+                          <SlotTimesScrollArea
+                            enabled={availableSlots.length > 6}
+                          >
+                            <ul className="grid min-w-0 grid-cols-1 gap-2.5 sm:grid-cols-2 sm:gap-3">
+                              {availableSlots.map((s) => {
+                                const selected = selectedStart === s.startTime;
+                                return (
+                                  <li
+                                    key={`${s.startTime}-${s.endTime}-${s.doctorId}`}
+                                    className="min-w-0"
+                                  >
+                                    <Button
+                                      type="button"
+                                      variant={selected ? "default" : "outline"}
+                                      className={cn(
+                                        "h-auto min-h-[3.25rem] w-full min-w-0 justify-start rounded-[var(--radius-md)] px-4 py-3 text-left outline-none ring-offset-background transition-colors duration-150 focus-visible:ring-2 focus-visible:ring-primary/35 focus-visible:ring-offset-2",
+                                        selected
+                                          ? "shadow-md"
+                                          : "touch-manipulation border-border/70 shadow-sm hover:border-primary/35 hover:bg-muted/25 hover:shadow-md",
+                                      )}
+                                      onClick={() =>
+                                        handleSelectSlot(s.startTime, s.endTime)
+                                      }
+                                    >
+                                      <span className="flex min-w-0 flex-1 flex-col gap-1 overflow-hidden">
+                                        <span
+                                          className={cn(
+                                            "text-[length:var(--fs-sm)] font-medium tracking-tight",
+                                            selected && "text-primary-foreground",
+                                          )}
+                                        >
+                                          {formatTime(s.startTime)}{" "}
+                                          <span
+                                            aria-hidden
+                                            className={cn(
+                                              "font-normal",
+                                              selected
+                                                ? "text-primary-foreground/85"
+                                                : "text-muted-foreground/90",
+                                            )}
+                                          >
+                                            -
+                                          </span>{" "}
+                                          {formatTime(s.endTime)}
+                                        </span>
+                                        {s.doctorName ? (
+                                          <span
+                                            className={cn(
+                                              "truncate text-[length:var(--fs-xs)]",
+                                              selected
+                                                ? "text-primary-foreground/90"
+                                                : "text-muted-foreground",
+                                            )}
+                                          >
+                                            {s.doctorName}
+                                            {s.specialization
+                                              ? ` - ${s.specialization}`
+                                              : ""}
+                                          </span>
+                                        ) : null}
+                                      </span>
+                                      {selected ? (
+                                        <CheckCircle2
+                                          className="ml-3 h-[1.125rem] w-[1.125rem] shrink-0 text-primary-foreground"
+                                          aria-hidden
+                                        />
+                                      ) : null}
+                                    </Button>
+                                  </li>
+                                );
+                              })}
+                            </ul>
+                          </SlotTimesScrollArea>
                         )}
+                        </div>
                       </div>
                     </div>
                   </CardContent>
                 </Card>
 
-                <Card className={cn(bookingCardClass, "gap-0")}>
-                  <CardHeader className="border-b border-border/60 bg-surface-2 py-4 sm:py-5">
+                <Card className={cn(bookingCardClass, "flex flex-col")}>
+                  <CardHeader className="border-b border-border/60 bg-muted/30 py-4 sm:py-5">
                     <BookingSectionHeader
                       icon={UserCircle}
                       micro="How we reach you"
@@ -1180,15 +1274,15 @@ export function PublicBookingPage({ referralCode }: PublicBookingPageProps) {
                       tone="info"
                     />
                   </CardHeader>
-                  <CardContent className="grid gap-4 px-4 py-5 sm:grid-cols-2 sm:gap-3.5 sm:px-6 sm:py-6">
-                    <FloatingInput
+                  <CardContent className="grid gap-4 px-4 py-5 sm:grid-cols-2 sm:gap-x-4 sm:gap-y-4 sm:px-6 sm:py-6">
+                    <BookingTextField
                       id="pb-first-name"
                       label="First name"
                       value={firstName}
                       onChange={(e) => setFirstName(e.target.value)}
                       autoComplete="given-name"
                     />
-                    <FloatingInput
+                    <BookingTextField
                       id="pb-last-name"
                       label="Last name"
                       value={lastName}
@@ -1196,9 +1290,10 @@ export function PublicBookingPage({ referralCode }: PublicBookingPageProps) {
                       autoComplete="family-name"
                     />
                     <Separator className="sm:col-span-2 sm:my-0.5" />
-                    <FloatingInput
+                    <BookingTextField
                       id="pb-phone"
                       label="Phone number"
+                      placeholder="Enter phone number"
                       value={phone}
                       onChange={(e) => {
                         setPhone(e.target.value);
@@ -1206,33 +1301,39 @@ export function PublicBookingPage({ referralCode }: PublicBookingPageProps) {
                         setVerificationToken(null);
                       }}
                       autoComplete="tel"
+                      inputMode="tel"
                     />
-                    <FloatingInput
+                    <BookingTextField
                       id="pb-email"
                       label="Email"
+                      placeholder="Enter email"
                       value={email}
                       onChange={(e) => setEmail(e.target.value)}
                       autoComplete="email"
+                      type="email"
                     />
-                    <FloatingInput
+                    <BookingTextField
                       id="pb-reason"
                       label="Reason for visit"
+                      placeholder="Enter reason for visit"
                       value={reason}
                       onChange={(e) => setReason(e.target.value)}
                       containerClassName="sm:col-span-2"
                     />
-                    <div className="grid gap-1.5 sm:col-span-2">
-                      <MicroLabel as="span" id="pb-notes-label" className="mt-0">
+                    <div className="grid gap-2 sm:col-span-2">
+                      <Label
+                        htmlFor="pb-notes"
+                        className="text-[length:var(--fs-sm)] font-normal leading-none text-muted-foreground"
+                      >
                         Notes for the team
-                      </MicroLabel>
+                      </Label>
                       <Textarea
                         id="pb-notes"
                         value={notes}
                         onChange={(e) => setNotes(e.target.value)}
                         placeholder="Enter notes for the team"
                         maxLength={1000}
-                        aria-labelledby="pb-notes-label"
-                        className="min-h-[96px] rounded-[var(--radius-md)] border-border/80 bg-background shadow-sm"
+                        className="min-h-[96px] rounded-[var(--radius-md)] border-border/80 bg-background text-[length:var(--fs-sm)] shadow-sm"
                       />
                     </div>
                   </CardContent>
@@ -1242,7 +1343,7 @@ export function PublicBookingPage({ referralCode }: PublicBookingPageProps) {
               <Card
                 className={cn(
                   bookingCardClass,
-                  "border-muted-foreground/30 bg-muted/[0.55]",
+                  "flex flex-col border-border/70 bg-muted/30 shadow-sm",
                 )}
               >
                 <CardHeader className="space-y-2 py-6 sm:space-y-2.5 sm:py-7">
@@ -1263,7 +1364,7 @@ export function PublicBookingPage({ referralCode }: PublicBookingPageProps) {
               <Card
                 className={cn(
                   bookingCardClass,
-                  "border-primary/25 bg-gradient-to-br from-primary/[0.07] to-transparent ring-primary/20",
+                  "flex flex-col border-primary/35 bg-gradient-to-br from-primary/[0.07] to-transparent shadow-sm",
                 )}
               >
                 <CardHeader className="space-y-2 border-b border-primary/15 pb-4 sm:space-y-2.5 sm:pb-5">
@@ -1287,12 +1388,14 @@ export function PublicBookingPage({ referralCode }: PublicBookingPageProps) {
                   >
                     Send code to WhatsApp
                   </Button>
-                  <FloatingInput
+                  <BookingTextField
                     id="pb-otp"
                     label="Verification code"
+                    placeholder="Enter verification code"
                     value={otp}
                     onChange={(e) => setOtp(e.target.value)}
                     inputMode="numeric"
+                    autoComplete="one-time-code"
                   />
                   <Button
                     type="button"
@@ -1307,8 +1410,13 @@ export function PublicBookingPage({ referralCode }: PublicBookingPageProps) {
             ) : null}
 
             {verificationToken ? (
-              <Card className={cn(bookingCardClass, "transition-colors duration-150")}>
-                <CardHeader className="border-b border-border/50 bg-muted/[0.38] pb-4 pt-5 sm:pb-6 sm:pt-6">
+              <Card
+                className={cn(
+                  bookingCardClass,
+                  "flex flex-col transition-colors duration-150",
+                )}
+              >
+                <CardHeader className="border-b border-border/60 bg-muted/30 pb-4 pt-5 sm:pb-6 sm:pt-6">
                   <BookingSectionHeader
                     icon={Sparkles}
                     micro="Your history here"
@@ -1321,7 +1429,7 @@ export function PublicBookingPage({ referralCode }: PublicBookingPageProps) {
                     }
                   />
                 </CardHeader>
-                <CardContent className="bg-muted/[0.06] px-4 pt-5 sm:px-6 sm:pt-6">
+                <CardContent className="bg-background px-4 pt-5 sm:px-6 sm:pt-6">
                   <DataState
                     status={
                       contextQuery.isLoading
@@ -1335,54 +1443,64 @@ export function PublicBookingPage({ referralCode }: PublicBookingPageProps) {
                     onRetry={() => void contextQuery.refetch()}
                   >
                     {contextQuery.data ? (
-                      <div className="space-y-4">
+                      <div className="space-y-5">
                         {contextQuery.data.patientSince ? (
-                          <div className="flex gap-3 rounded-[var(--radius-md)] border border-border/70 bg-card p-3.5 text-sm shadow-sm">
-                            <div
-                              className="flex h-8 w-8 shrink-0 items-center justify-center rounded-md bg-muted/40 text-muted-foreground"
-                              aria-hidden
-                            >
-                              <Building2 className="h-4 w-4" />
-                            </div>
-                            <div>
-                              <p className="text-xs font-medium uppercase tracking-wide text-muted-foreground">
-                                Patient since
-                              </p>
-                              <p className="mt-0.5 font-medium text-foreground">
-                                {formatDate(
-                                  new Date(contextQuery.data.patientSince),
-                                  "d MMMM yyyy",
-                                )}
-                              </p>
-                            </div>
+                          <div className="rounded-[var(--radius-md)] border border-border/70 bg-card p-3.5 shadow-sm">
+                            <DescriptionList
+                              columns={1}
+                              orientation="vertical"
+                              items={[
+                                {
+                                  term: (
+                                    <span className="inline-flex items-center gap-2 font-medium uppercase tracking-wide">
+                                      <Building2
+                                        className="h-3.5 w-3.5 shrink-0 text-muted-foreground"
+                                        aria-hidden
+                                      />
+                                      Patient since
+                                    </span>
+                                  ),
+                                  description: formatDate(
+                                    new Date(contextQuery.data.patientSince),
+                                    "d MMMM yyyy",
+                                  ),
+                                },
+                              ]}
+                            />
                           </div>
                         ) : null}
                         {contextQuery.data.appointments.length === 0 ? (
-                          <p className="rounded-[var(--radius-md)] border border-dashed border-border/80 bg-background/80 px-4 py-4 text-center text-sm text-muted-foreground">
-                            No prior visits on file for online booking — you are
-                            all set to request a new time.
-                          </p>
+                          <EmptyState
+                            icon={CalendarIcon}
+                            title="No prior visits on file"
+                            description="You are all set to request a new time at this location."
+                            className="rounded-[var(--radius-md)] border border-dashed border-border/80 bg-background/80 py-6 sm:py-7 [&_.ui-section-title]:text-[length:var(--fs-base)]"
+                          />
                         ) : (
-                          <ul className="space-y-2.5">
-                            {contextQuery.data.appointments.map((a) => (
-                              <li
-                                key={a.id}
-                                className="flex flex-col gap-1 rounded-[var(--radius-md)] border border-border/70 bg-card px-3.5 py-3.5 shadow-sm transition-colors duration-150 sm:flex-row sm:items-center sm:justify-between"
-                              >
-                                <div>
-                                  <p className="text-sm font-medium text-foreground">
-                                    {a.doctorName ?? "Doctor"}
-                                  </p>
-                                  <p className="text-xs text-muted-foreground">
-                                    {formatDateTime(a.startTime)}
-                                  </p>
-                                </div>
-                                <Badge variant="secondary" className="w-fit shrink-0">
-                                  {formatAppointmentStatus(a.status)}
-                                </Badge>
-                              </li>
-                            ))}
-                          </ul>
+                          <div className="space-y-3">
+                            <MicroLabel as="p" className="mt-0">
+                              Recent visits
+                            </MicroLabel>
+                            <Timeline
+                              className="space-y-3"
+                              items={contextQuery.data.appointments.map(
+                                (a) => ({
+                                  id: a.id,
+                                  title: a.doctorName ?? "Doctor",
+                                  description: formatDateTime(a.startTime),
+                                  meta: (
+                                    <Badge
+                                      variant="secondary"
+                                      className="w-fit shrink-0"
+                                    >
+                                      {formatAppointmentStatus(a.status)}
+                                    </Badge>
+                                  ),
+                                  accent: appointmentTimelineAccent(a.status),
+                                }),
+                              )}
+                            />
+                          </div>
                         )}
                       </div>
                     ) : null}
@@ -1392,7 +1510,7 @@ export function PublicBookingPage({ referralCode }: PublicBookingPageProps) {
             ) : null}
 
                 <BookingActionPanel
-                  className="sticky bottom-[max(0.75rem,env(safe-area-inset-bottom))] z-10 bg-card/95 backdrop-blur-sm supports-[backdrop-filter]:bg-card/90 lg:hidden"
+                  className="sticky bottom-[max(0.75rem,env(safe-area-inset-bottom))] z-10 border border-border/70 bg-card shadow-lg supports-[backdrop-filter]:backdrop-blur-sm lg:hidden"
                   onPhoneCheck={() => void runPhoneCheck().catch(() => undefined)}
                   onSubmit={() => void handleSubmit()}
                   canCheckPhone={phone.trim().length > 0}
@@ -1401,6 +1519,7 @@ export function PublicBookingPage({ referralCode }: PublicBookingPageProps) {
                 />
               </div>
             </div>
+            <PublicBookingPoweredByFooter className="mt-4 sm:mt-6" />
           </div>
         ) : null}
       </DataState>
