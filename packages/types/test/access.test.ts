@@ -13,6 +13,7 @@ import {
   isAccessComingSoon,
   isFeatureGenerallyAvailable,
   mapClinicTierDbStringToAccessTier,
+  mapDbClinicTierStringToTierName,
   Tier,
 } from "../src";
 
@@ -120,12 +121,28 @@ describe("@workspace/types access contracts", () => {
   it("maps clinic DB tier strings consistently including legacy values", () => {
     expect(mapClinicTierDbStringToAccessTier("STARTER")).toBe(Tier.STARTER);
     expect(mapClinicTierDbStringToAccessTier("ESSENTIAL")).toBe(Tier.ESSENTIAL);
+    expect(mapClinicTierDbStringToAccessTier("FRONT_DESK")).toBe(Tier.FRONT_DESK);
     expect(mapClinicTierDbStringToAccessTier("CORE")).toBe(Tier.ESSENTIAL);
     expect(mapClinicTierDbStringToAccessTier("PLUS")).toBe(Tier.ESSENTIAL);
     expect(mapClinicTierDbStringToAccessTier("CAPTURE")).toBe(Tier.STARTER);
     expect(mapClinicTierDbStringToAccessTier("FREE")).toBe(Tier.STARTER);
     expect(mapClinicTierDbStringToAccessTier("UNKNOWN_TIER")).toBe(
       Tier.STARTER,
+    );
+  });
+
+  it("maps DB tier strings to billing TierName including FRONT_DESK", () => {
+    expect(mapDbClinicTierStringToTierName("FRONT_DESK")).toBe("FRONT_DESK");
+    expect(mapDbClinicTierStringToTierName("ESSENTIAL")).toBe("ESSENTIAL");
+    expect(mapDbClinicTierStringToTierName("CORE")).toBe("ESSENTIAL");
+  });
+
+  it("blocks clinical features for FRONT_DESK tier name", () => {
+    expect(hasFeatureAccess("FRONT_DESK", Feature.DIGITAL_PRESCRIPTIONS)).toBe(
+      false,
+    );
+    expect(hasFeatureAccess("FRONT_DESK", Feature.QUEUE_MANAGEMENT)).toBe(
+      true,
     );
   });
 });
