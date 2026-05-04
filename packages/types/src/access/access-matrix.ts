@@ -92,6 +92,7 @@ export const APP_PERMISSIONS_BY_ROLE: Record<UserRole, AppPermission[]> = {
     "viewAppointments",
     "createAppointment",
     "viewInvoices",
+    "createInvoice",
   ],
   PATIENT: ["viewAppointments"],
 };

@@ -12,6 +12,7 @@ export * from "./lab-tests";
 export * from "./onboarding";
 export * from "./operations";
 export * from "./patients";
+export * from "./public-booking";
 export * from "./prescriptions";
 export * from "./subscriptions";
 export * from "./templates";

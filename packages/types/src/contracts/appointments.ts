@@ -251,6 +251,8 @@ export const patientAppointmentRequestCreateSchema = z.object({
   preferredDoctorId: z.string().min(1).optional(),
   preferredDate: z.string().min(1, "Choose a preferred date."),
   preferredTime: z.string().trim().max(20).optional(),
+  requestedSlotStart: z.string().datetime().optional(),
+  requestedSlotEnd: z.string().datetime().optional(),
   reason: z.string().trim().min(2).max(500).transform(stripHtmlTags),
   notes: z.string().trim().max(1000).transform(stripHtmlTags).optional(),
 });
@@ -288,6 +290,8 @@ export const appointmentRequestResponseSchema = z.object({
   preferredDoctorId: z.string().nullable().optional(),
   preferredDate: z.string().or(z.date()),
   preferredTime: z.string().nullable().optional(),
+  requestedSlotStart: z.string().or(z.date()).nullable().optional(),
+  requestedSlotEnd: z.string().or(z.date()).nullable().optional(),
   reason: z.string(),
   notes: z.string().nullable().optional(),
   status: appointmentRequestStatusSchema,

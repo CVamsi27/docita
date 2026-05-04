@@ -996,6 +996,7 @@ model Clinic {
   referralCreditsMonths    Int                      @default(0)
   appointments             Appointment[]
   appointmentRequests      AppointmentRequest[]
+  publicBookingOtps        PublicBookingOtp[]
   appointmentReminders     AppointmentReminder[]
   auditLogs                AuditLog[]
   analyticsSnapshots       AnalyticsSnapshot[]
@@ -3408,20 +3409,22 @@ enum AppointmentRequestStatus {
 }
 
 model AppointmentRequest {
-  id                String                   @id @default(cuid())
-  patientId         String
-  clinicId          String
-  preferredDoctorId String?
-  preferredDate     DateTime
-  preferredTime     String?
-  reason            String
-  notes             String?
-  status            AppointmentRequestStatus @default(PENDING)
-  reviewedById      String?
-  reviewedAt        DateTime?
-  responseMessage   String?
-  createdAt         DateTime                 @default(now())
-  updatedAt         DateTime                 @updatedAt
+  id                  String                   @id @default(cuid())
+  patientId           String
+  clinicId            String
+  preferredDoctorId   String?
+  preferredDate       DateTime
+  preferredTime       String?
+  requestedSlotStart  DateTime?
+  requestedSlotEnd    DateTime?
+  reason              String
+  notes               String?
+  status              AppointmentRequestStatus @default(PENDING)
+  reviewedById        String?
+  reviewedAt          DateTime?
+  responseMessage     String?
+  createdAt           DateTime                 @default(now())
+  updatedAt           DateTime                 @updatedAt
 
   patient         Patient @relation(fields: [patientId], references: [id], onDelete: Cascade)
   clinic          Clinic  @relation(fields: [clinicId], references: [id], onDelete: Cascade)
@@ -3432,6 +3435,20 @@ model AppointmentRequest {
   @@index([patientId, status])
   @@index([preferredDoctorId])
   @@index([reviewedById])
+}
+
+model PublicBookingOtp {
+  id          String    @id @default(cuid())
+  clinicId  String
+  phoneNumber String
+  otpHash     String
+  expiresAt   DateTime
+  usedAt      DateTime?
+  attempts    Int       @default(0)
+  createdAt   DateTime  @default(now())
+  clinic      Clinic    @relation(fields: [clinicId], references: [id], onDelete: Cascade)
+
+  @@index([clinicId, phoneNumber, expiresAt])
 }
 
 enum LeaveType {

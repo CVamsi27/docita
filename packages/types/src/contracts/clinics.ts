@@ -1,5 +1,6 @@
 import { z } from "zod";
 import { jsonObjectSchema } from "../shared/json-schema";
+import { workspaceProfileSchema } from "../shared/workspace-profile";
 
 const customFieldSchema = z.object({
   name: z.string(),
@@ -103,6 +104,7 @@ export const updateClinicSettingsRequestSchema = z.object({
   paymentReceivingBankAccount: bankAccountSchema.optional(),
   taxSettings: taxSettingsSchema.optional(),
   facilityLabel: z.enum(["CLINIC", "HOSPITAL"]).optional(),
+  workspaceProfile: workspaceProfileSchema.optional(),
 });
 
 export const createClinicDoctorRequestSchema = z.object({
@@ -176,6 +178,7 @@ export const clinicResponseSchema = createClinicRequestSchema.extend({
   slaSignatureUrl: z.union([z.string(), z.null()]).optional(),
   slaSignatureStoredUrl: z.union([z.string(), z.null()]).optional(),
   slaSignatureAcceptedAt: z.union([z.string(), z.date(), z.null()]).optional(),
+  workspaceProfile: workspaceProfileSchema.optional(),
 });
 
 export const listClinicsResponseSchema = z.array(clinicResponseSchema);

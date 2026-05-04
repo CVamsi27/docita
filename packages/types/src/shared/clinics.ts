@@ -2,6 +2,7 @@ import { z } from "zod";
 
 import { clinicTypeSchema } from "./users";
 import { jsonObjectSchema } from "./json-schema";
+import { workspaceProfileSchema } from "./workspace-profile";
 
 export const ClinicTier = z.enum(["FREE", "CAPTURE", "GROWTH", "ENTERPRISE"]);
 
@@ -52,6 +53,8 @@ export const clinicSchema = z.object({
   slaSignatureUrl: z.string().nullable().optional(),
   slaSignatureStoredUrl: z.string().nullable().optional(),
   slaSignatureAcceptedAt: z.date().or(z.string()).nullable().optional(),
+  /** Denormalized from `settings.workspaceProfile` for clients. */
+  workspaceProfile: workspaceProfileSchema.optional(),
 });
 
 export type Clinic = z.infer<typeof clinicSchema>;
