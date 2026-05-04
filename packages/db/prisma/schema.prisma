@@ -39,6 +39,7 @@ model User {
   yearsOfExperience          Int?
   failedLoginAttempts        Int                      @default(0)
   lastFailedLoginAt          DateTime?
+  appLoginDisabled           Boolean                  @default(false)
   accountLockedUntil         DateTime?
   mfaEnabled                 Boolean                  @default(false)
   mfaSecret                  String?
@@ -2178,6 +2179,7 @@ enum ClinicTier {
   ESSENTIAL
   PROFESSIONAL
   ENTERPRISE
+  FRONT_DESK
 }
 
 enum SignaturePurpose {
