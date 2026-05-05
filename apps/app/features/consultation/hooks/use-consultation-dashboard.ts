@@ -21,8 +21,24 @@ import { getLocalCalendarDateString } from "@/lib/local-calendar-date";
 import { useClinicSettings } from "@/hooks/api/use-settings";
 
 export type DoctorNextUpRow =
-  | { kind: "appointment"; appointmentId: string; startTime: string; patientName: string; status: string }
-  | { kind: "queue"; appointmentId?: string; tokenNumber: number; createdAt: string; patientName: string; status: string; tokenType: QueueItem["tokenType"] };
+  | {
+      kind: "appointment";
+      appointmentId: string;
+      startTime: string;
+      patientName: string;
+      status: string;
+      visitSummary?: string;
+    }
+  | {
+      kind: "queue";
+      appointmentId?: string;
+      tokenNumber: number;
+      createdAt: string;
+      patientName: string;
+      status: string;
+      tokenType: QueueItem["tokenType"];
+      visitSummary?: string;
+    };
 
 export const useConsultationDashboard = () => {
   const router = useRouter();
@@ -254,6 +270,10 @@ export const useConsultationDashboard = () => {
       const aptName = apt.patient
         ? `${apt.patient.firstName} ${apt.patient.lastName}`
         : "Patient";
+      const visitSummary =
+        apt.chiefComplaint?.trim() ||
+        apt.type?.trim() ||
+        undefined;
       combinedUpcoming.push({
         kind: "appointment",
         appointmentId: apt.id,
@@ -263,6 +283,7 @@ export const useConsultationDashboard = () => {
             : apt.startTime.toISOString(),
         patientName: aptName,
         status: apt.status,
+        visitSummary,
       });
 
       const next = appts[i + 1];
@@ -283,6 +304,10 @@ export const useConsultationDashboard = () => {
           patientName: name,
           status: q.status,
           tokenType: q.tokenType,
+          visitSummary:
+            q.appointment?.chiefComplaint?.trim() ||
+            q.appointment?.type?.trim() ||
+            undefined,
         });
       }
     }
@@ -301,6 +326,10 @@ export const useConsultationDashboard = () => {
         patientName: name,
         status: q.status,
         tokenType: q.tokenType,
+        visitSummary:
+          q.appointment?.chiefComplaint?.trim() ||
+          q.appointment?.type?.trim() ||
+          undefined,
       });
     }
 

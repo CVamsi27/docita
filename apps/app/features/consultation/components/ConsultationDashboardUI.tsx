@@ -269,7 +269,7 @@ export const ConsultationDashboardUI: FC = () => {
 
                   {doctorNowNext.combinedUpcoming.slice(0, 10).map((row) => {
                     const isQueue = row.kind === "queue";
-                    const subLine = isQueue
+                    const leftMeta = isQueue
                       ? `Token ${row.tokenNumber > 0 ? row.tokenNumber : "—"} • ${row.tokenType}`
                       : `${formatTime(row.startTime)} • appointment`;
                     const canOpen = Boolean(row.appointmentId);
@@ -287,7 +287,8 @@ export const ConsultationDashboardUI: FC = () => {
                             {row.patientName}
                           </p>
                           <p className="text-xs text-muted-foreground truncate">
-                            {subLine}
+                            {leftMeta}
+                            {row.visitSummary ? ` • ${row.visitSummary}` : ""}
                           </p>
                         </div>
                         <Button
@@ -539,18 +540,8 @@ export const ConsultationDashboardUI: FC = () => {
       <Section
         id="consultation-opd-queue"
         title="Waiting room queue"
-        description="Token-based list from check-in. Includes waiting + in-room patients."
       >
         <Card>
-          <CardHeader>
-            <CardTitle className="text-[var(--fs-md)] font-semibold">
-              Waiting room queue
-            </CardTitle>
-            <CardDescription>
-              Use this to see who is waiting vs in-room. Check-in creates the
-              token.
-            </CardDescription>
-          </CardHeader>
           <CardContent>
             {queueEmpty ? (
               <div className="ui-card-surface flex flex-col items-center justify-center border-2 border-dashed border-border/60 p-8 text-center">
