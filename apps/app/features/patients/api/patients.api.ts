@@ -56,51 +56,26 @@ export const patientsApi = {
     limit?: number;
     page?: number;
     search?: string;
-    cursor?: string;
   }) => {
-    const searchParams = new URLSearchParams();
-    if (params?.limit) searchParams.set("limit", String(params.limit));
-    if (params?.page) searchParams.set("page", String(params.page));
-    if (params?.cursor) searchParams.set("cursor", params.cursor);
-    if (params?.search) searchParams.set("search", params.search);
-    const query = searchParams.toString();
-    return api
-      .get<{
-        items: Patient[];
-        nextCursor?: string;
-        hasMore?: boolean;
-        count?: number;
-        total?: number;
-      }>(`/patients${query ? `?${query}` : ""}`)
-      .then((response) => {
-        const total =
-          typeof response.count === "number"
-            ? response.count
-            : typeof response.total === "number"
-              ? response.total
-              : response.items.length;
-        const effectiveLimit = params?.limit ?? 20;
-        const currentPage = params?.page ?? 1;
-        const hasMore =
-          typeof response.hasMore === "boolean"
-            ? response.hasMore
-            : currentPage * effectiveLimit < total;
+    const parsedQuery = params ? { ...params } : undefined;
+    const response = api.validate(
+      "/patients",
+      listPatientsResponseSchema,
+      parsedQuery ? { params: parsedQuery } : undefined,
+    );
 
-        const normalized = {
-          items: response.items,
-          total,
-        };
+    return response.then((parsed) => {
+      const effectiveLimit = params?.limit ?? 20;
+      const currentPage = params?.page ?? 1;
+      const hasMore = currentPage * effectiveLimit < parsed.total;
 
-        const parsed = listPatientsResponseSchema.parse(normalized);
-
-        return {
-          ...response,
-          items: parsed.items,
-          hasMore,
-          total: parsed.total,
-          count: total,
-        };
-      });
+      return {
+        items: parsed.items,
+        total: parsed.total,
+        count: parsed.total,
+        hasMore,
+      };
+    });
   },
 
   getById: (id: string) =>
