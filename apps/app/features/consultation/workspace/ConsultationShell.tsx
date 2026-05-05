@@ -14,6 +14,7 @@ import { cn } from "@workspace/ui/lib/utils";
 import {
   ClipboardList,
   Command as CommandIcon,
+  CheckCircle2,
   FileText,
   FlaskConical,
   HeartPulse,
@@ -70,6 +71,8 @@ interface ConsultationShellProps {
   readOnly?: boolean;
   isSidebarOpen?: boolean;
   saveHandlesRef?: RefObject<ConsultationSaveHandles | null>;
+  onMarkDone?: () => void;
+  isMarkingDone?: boolean;
 }
 
 export function ConsultationShell({
@@ -78,6 +81,8 @@ export function ConsultationShell({
   readOnly,
   isSidebarOpen = true,
   saveHandlesRef,
+  onMarkDone,
+  isMarkingDone = false,
 }: ConsultationShellProps) {
   const params = useParams();
   const appointmentId = params?.["id"] as string;
@@ -359,8 +364,8 @@ export function ConsultationShell({
     return () => root.removeEventListener("focusin", onFocusIn);
   }, []);
 
-  const isDirty = useConsultationDraft((s) => s.dirty);
-  const saveState = useConsultationDraft((s) => s.saveState);
+  const _isDirty = useConsultationDraft((s) => s.dirty);
+  const _saveState = useConsultationDraft((s) => s.saveState);
 
   const [paletteOpen, setPaletteOpen] = useState(false);
 
@@ -721,18 +726,12 @@ export function ConsultationShell({
                 ⌘K
               </kbd>
             </Button>
-            {!readOnly && (
-              <Button
-                size="sm"
-                onClick={onSaveClick}
-                disabled={
-                  saveState === "saving" || (!isDirty && saveState !== "error")
-                }
-              >
-                <Save className="h-3.5 w-3.5" aria-hidden="true" />
-                <span>{saveState === "saving" ? "Saving" : "Save draft"}</span>
+            {!readOnly && onMarkDone ? (
+              <Button size="sm" onClick={onMarkDone} disabled={isMarkingDone}>
+                <CheckCircle2 className="h-3.5 w-3.5" aria-hidden="true" />
+                <span>{isMarkingDone ? "Marking…" : "Mark done"}</span>
               </Button>
-            )}
+            ) : null}
           </div>
         </div>
 

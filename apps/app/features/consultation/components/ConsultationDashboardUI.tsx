@@ -25,6 +25,7 @@ import { Section } from "@workspace/ui/components/section";
 import {
   Activity,
   Calendar,
+  ClipboardCheck,
   Clock,
   Play,
   Stethoscope,
@@ -40,6 +41,9 @@ import { StatGrid } from "@workspace/ui/components/stat-grid";
 import { isQueueTokenInProgress } from "@/lib/queue-token-status";
 import { getOpdQueueSummaryLine } from "@/features/consultation/lib/opd-queue-display";
 import Link from "next/link";
+import { useCheckInAppointment } from "@/hooks/api/use-appointments";
+import { showUserFacingErrorToast } from "@/lib/user-facing-errors";
+import { buildConsultationRoute } from "@/features/consultation/rules/consultationTabRouting";
 
 export const ConsultationDashboardUI: FC = () => {
   const {
@@ -52,7 +56,13 @@ export const ConsultationDashboardUI: FC = () => {
     canStartConsultation,
     isStartingConsultation,
     router,
+    currentUserRole,
+    todayAppointmentsSorted,
+    doctorNowNext,
+    clinicType,
   } = useConsultationDashboard();
+
+  const checkInAppointment = useCheckInAppointment();
 
   const statItems = useMemo(
     () => [
@@ -124,6 +134,11 @@ export const ConsultationDashboardUI: FC = () => {
   }
 
   const queueEmpty = opdQueueRows.length === 0;
+  const role = currentUserRole ?? "RECEPTIONIST";
+  const isDoctor = role === "DOCTOR" || role === "ADMIN_DOCTOR";
+  const isReception =
+    role === "RECEPTIONIST" || role === "ADMIN" || role === "ADMIN_DOCTOR";
+  const isNurse = role === "NURSE";
 
   return (
     <AppPageScaffold
@@ -146,6 +161,229 @@ export const ConsultationDashboardUI: FC = () => {
       }
     >
       <StatGrid items={statItems} columns={4} />
+
+      {isDoctor ? (
+        <Section
+          id="consultation-doctor-next"
+          title="Next patients"
+          description="Continue in-progress visits, then open upcoming slots in schedule order."
+        >
+          <Card>
+            <CardHeader>
+              <CardTitle className="text-[var(--fs-md)] font-semibold">
+                Now & next
+              </CardTitle>
+              <CardDescription>
+                Your in-progress consultations appear first, followed by the
+                next scheduled appointments for today.
+              </CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-2">
+              {(doctorNowNext.inProgress.length === 0 &&
+                doctorNowNext.nextScheduled.length === 0) ||
+              todayAppointmentsSorted.length === 0 ? (
+                <div className="ui-card-surface flex flex-col items-center justify-center border-2 border-dashed border-border/60 p-6 text-center">
+                  <Stethoscope
+                    className="mb-2 h-8 w-8 opacity-50 text-muted-foreground"
+                    aria-hidden
+                  />
+                  <p className="ui-helper-text max-w-md">
+                    No upcoming appointments found for today.
+                  </p>
+                  <p className="mt-3 ui-helper-text max-w-md text-muted-foreground">
+                    Open Appointments to book or check your calendar.
+                  </p>
+                </div>
+              ) : (
+                <>
+                  {doctorNowNext.inProgress.slice(0, 3).map((apt) => (
+                    <div
+                      key={apt.id}
+                      className="flex items-center justify-between gap-3 rounded-[var(--radius-lg)] border border-primary/20 bg-primary/5 p-3 sm:p-4"
+                    >
+                      <div className="min-w-0">
+                        <p className="font-medium truncate">
+                          {apt.patient?.firstName} {apt.patient?.lastName}
+                        </p>
+                        <p className="text-xs text-muted-foreground truncate">
+                          In progress • {formatTime(apt.startTime)}
+                        </p>
+                      </div>
+                      <Button
+                        size="sm"
+                        onClick={() => goToConsultationWorkspace(apt.id)}
+                      >
+                        Continue
+                      </Button>
+                    </div>
+                  ))}
+
+                  {doctorNowNext.nextScheduled.slice(0, 6).map((apt) => (
+                    <div
+                      key={apt.id}
+                      className="flex items-center justify-between gap-3 rounded-[var(--radius-lg)] border border-border/60 bg-card p-3 sm:p-4"
+                    >
+                      <div className="min-w-0">
+                        <p className="font-medium truncate">
+                          {apt.patient?.firstName} {apt.patient?.lastName}
+                        </p>
+                        <p className="text-xs text-muted-foreground truncate">
+                          {formatTime(apt.startTime)} • {apt.status}
+                        </p>
+                      </div>
+                      <Button
+                        size="sm"
+                        disabled={isStartingConsultation}
+                        onClick={() => void handleStartConsultation(apt.id)}
+                      >
+                        <Play className="mr-2 h-3 w-3" />
+                        Open
+                      </Button>
+                    </div>
+                  ))}
+                </>
+              )}
+            </CardContent>
+          </Card>
+        </Section>
+      ) : null}
+
+      {isReception ? (
+        <Section
+          id="consultation-reception-checkin"
+          title="Check-in"
+          description="Mark arrivals and issue queue tokens from today’s appointment list."
+        >
+          <Card>
+            <CardHeader>
+              <CardTitle className="text-[var(--fs-md)] font-semibold">
+                Today’s arrivals
+              </CardTitle>
+              <CardDescription>
+                Check-in adds the patient to the OPD queue when Queue Management
+                is enabled.
+              </CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-2">
+              {todayAppointmentsSorted.length === 0 ? (
+                <div className="ui-card-surface flex flex-col items-center justify-center border-2 border-dashed border-border/60 p-6 text-center">
+                  <Calendar
+                    className="mb-2 h-8 w-8 opacity-50 text-muted-foreground"
+                    aria-hidden
+                  />
+                  <p className="ui-helper-text max-w-md">
+                    No appointments scheduled for today.
+                  </p>
+                  <p className="mt-3 ui-helper-text max-w-md text-muted-foreground">
+                    Go to Appointments to book a visit.
+                  </p>
+                </div>
+              ) : (
+                todayAppointmentsSorted.slice(0, 8).map((apt) => (
+                  <div
+                    key={apt.id}
+                    className="flex items-center justify-between gap-3 rounded-[var(--radius-lg)] border border-border/60 bg-card p-3 sm:p-4"
+                  >
+                    <div className="min-w-0">
+                      <p className="font-medium truncate">
+                        {apt.patient?.firstName} {apt.patient?.lastName}
+                      </p>
+                      <p className="text-xs text-muted-foreground truncate">
+                        {formatTime(apt.startTime)} • {apt.status}
+                      </p>
+                    </div>
+                    <Button
+                      size="sm"
+                      variant="outline"
+                      disabled={checkInAppointment.isPending}
+                      onClick={async () => {
+                        try {
+                          await checkInAppointment.mutateAsync(apt.id);
+                        } catch (err) {
+                          showUserFacingErrorToast(
+                            err,
+                            "We could not check-in this appointment. Please try again.",
+                            "save",
+                          );
+                        }
+                      }}
+                    >
+                      <ClipboardCheck className="mr-2 h-4 w-4" />
+                      Check-in
+                    </Button>
+                  </div>
+                ))
+              )}
+            </CardContent>
+          </Card>
+        </Section>
+      ) : null}
+
+      {isNurse ? (
+        <Section
+          id="consultation-nurse-prep"
+          title="Prep"
+          description="Open waiting patients directly into the vitals/exam section."
+        >
+          <Card>
+            <CardHeader>
+              <CardTitle className="text-[var(--fs-md)] font-semibold">
+                Ready for vitals
+              </CardTitle>
+              <CardDescription>
+                Use the queue list to capture vitals and prep before the doctor
+                starts charting.
+              </CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-2">
+              {opdQueueRows.length === 0 ? (
+                <div className="ui-card-surface flex flex-col items-center justify-center border-2 border-dashed border-border/60 p-6 text-center">
+                  <Users
+                    className="mb-2 h-8 w-8 opacity-50 text-muted-foreground"
+                    aria-hidden
+                  />
+                  <p className="ui-helper-text max-w-md">
+                    No patients are in the queue right now.
+                  </p>
+                </div>
+              ) : (
+                opdQueueRows
+                  .filter((q) => Boolean(q.appointmentId))
+                  .slice(0, 10)
+                  .map((q) => (
+                    <div
+                      key={q.id}
+                      className="flex items-center justify-between gap-3 rounded-[var(--radius-lg)] border border-border/60 bg-card p-3 sm:p-4"
+                    >
+                      <div className="min-w-0">
+                        <p className="font-medium truncate">
+                          {q.patient?.firstName} {q.patient?.lastName}
+                        </p>
+                        <p className="text-xs text-muted-foreground truncate">
+                          {getOpdQueueSummaryLine(q)}
+                        </p>
+                      </div>
+                      <Button
+                        size="sm"
+                        onClick={() => {
+                          if (!q.appointmentId) return;
+                          router.push(
+                            buildConsultationRoute(q.appointmentId, {
+                              tab: "vitals",
+                              clinicType,
+                            }),
+                          );
+                        }}
+                      >
+                        Record vitals
+                      </Button>
+                    </div>
+                  ))
+              )}
+            </CardContent>
+          </Card>
+        </Section>
+      ) : null}
 
       <Section
         id="consultation-opd-queue"

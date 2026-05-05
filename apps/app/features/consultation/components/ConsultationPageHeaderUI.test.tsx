@@ -60,9 +60,7 @@ describe("ConsultationPageHeaderUI", () => {
     expect(
       screen.queryByRole("button", { name: /Vitals/i }),
     ).not.toBeInTheDocument();
-    expect(
-      screen.queryByRole("button", { name: /Invoice/i }),
-    ).not.toBeInTheDocument();
+    expect(screen.getByRole("button", { name: /Invoice/i })).toBeInTheDocument();
     expect(
       screen.queryByTestId("consultation-save-status"),
     ).not.toBeInTheDocument();

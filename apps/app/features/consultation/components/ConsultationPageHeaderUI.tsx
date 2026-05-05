@@ -227,7 +227,7 @@ export function ConsultationPageHeaderUI({
               </Button>
             </SymbolTooltip>
           )}
-          {!readOnly && (
+          {!readOnly ? (
             <>
               <ConsultationTimerContainer
                 appointmentId={appointmentId}
@@ -244,80 +244,82 @@ export function ConsultationPageHeaderUI({
                   <span className="hidden md:inline">Vitals</span>
                 </Button>
               </SymbolTooltip>
-              {canCreateInvoice ? (
-                <SymbolTooltip label="Create invoice" side="bottom">
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    className="hidden sm:flex gap-1.5 h-8"
-                    onClick={() => setBillingOpen(true)}
-                  >
-                    <CreditCard className="h-3.5 w-3.5 text-success" />
-                    <span className="hidden md:inline">Invoice</span>
-                  </Button>
-                </SymbolTooltip>
-              ) : null}
-              <SymbolTooltip label="Ask AI about this consultation" side="bottom">
-                <Button
-                  variant="outline"
-                  size="sm"
-                  className="hidden sm:flex gap-1.5 h-8"
-                  data-testid="consultation-ask-ai"
-                  onClick={() =>
-                    openOverlay({
-                      id: `consultation:${appointmentId}`,
-                      label: `on ${patientName}'s consultation`,
-                      payload: { appointmentId, patientId },
-                    })
-                  }
-                >
-                  <Sparkles className="h-3.5 w-3.5 text-primary" />
-                  <span className="hidden md:inline">Ask AI</span>
-                </Button>
-              </SymbolTooltip>
-              <DropdownMenu>
-                <Tooltip>
-                  <TooltipTrigger asChild>
-                    <DropdownMenuTrigger asChild>
-                      <Button
-                        variant="ghost"
-                        size="icon"
-                        className="sm:hidden h-8 w-8"
-                        aria-label="More actions"
-                      >
-                        <MoreVertical className="h-4 w-4" />
-                      </Button>
-                    </DropdownMenuTrigger>
-                  </TooltipTrigger>
-                  <TooltipContent side="bottom">More actions</TooltipContent>
-                </Tooltip>
-                <DropdownMenuContent align="end">
-                  <DropdownMenuItem onClick={() => openVitals()}>
-                    <HeartPulse className="mr-2 h-4 w-4 text-destructive" />
-                    Vitals
-                  </DropdownMenuItem>
-                  {canCreateInvoice ? (
-                    <DropdownMenuItem onClick={() => setBillingOpen(true)}>
-                      <CreditCard className="mr-2 h-4 w-4 text-success" />
-                      Invoice
-                    </DropdownMenuItem>
-                  ) : null}
-                  <DropdownMenuItem
-                    onClick={() =>
-                      openOverlay({
-                        id: `consultation:${appointmentId}`,
-                        label: `on ${patientName}'s consultation`,
-                        payload: { appointmentId, patientId },
-                      })
-                    }
-                  >
-                    <Sparkles className="mr-2 h-4 w-4 text-primary" />
-                    Ask AI
-                  </DropdownMenuItem>
-                </DropdownMenuContent>
-              </DropdownMenu>
             </>
-          )}
+          ) : null}
+          {canCreateInvoice ? (
+            <SymbolTooltip label="Create invoice" side="bottom">
+              <Button
+                variant="outline"
+                size="sm"
+                className="hidden sm:flex gap-1.5 h-8"
+                onClick={() => setBillingOpen(true)}
+              >
+                <CreditCard className="h-3.5 w-3.5 text-success" />
+                <span className="hidden md:inline">Invoice</span>
+              </Button>
+            </SymbolTooltip>
+          ) : null}
+          <SymbolTooltip label="Ask AI about this consultation" side="bottom">
+            <Button
+              variant="outline"
+              size="sm"
+              className="hidden sm:flex gap-1.5 h-8"
+              data-testid="consultation-ask-ai"
+              onClick={() =>
+                openOverlay({
+                  id: `consultation:${appointmentId}`,
+                  label: `on ${patientName}'s consultation`,
+                  payload: { appointmentId, patientId },
+                })
+              }
+            >
+              <Sparkles className="h-3.5 w-3.5 text-primary" />
+              <span className="hidden md:inline">Ask AI</span>
+            </Button>
+          </SymbolTooltip>
+          <DropdownMenu>
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <DropdownMenuTrigger asChild>
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    className="sm:hidden h-8 w-8"
+                    aria-label="More actions"
+                  >
+                    <MoreVertical className="h-4 w-4" />
+                  </Button>
+                </DropdownMenuTrigger>
+              </TooltipTrigger>
+              <TooltipContent side="bottom">More actions</TooltipContent>
+            </Tooltip>
+            <DropdownMenuContent align="end">
+              {!readOnly ? (
+                <DropdownMenuItem onClick={() => openVitals()}>
+                  <HeartPulse className="mr-2 h-4 w-4 text-destructive" />
+                  Vitals
+                </DropdownMenuItem>
+              ) : null}
+              {canCreateInvoice ? (
+                <DropdownMenuItem onClick={() => setBillingOpen(true)}>
+                  <CreditCard className="mr-2 h-4 w-4 text-success" />
+                  Invoice
+                </DropdownMenuItem>
+              ) : null}
+              <DropdownMenuItem
+                onClick={() =>
+                  openOverlay({
+                    id: `consultation:${appointmentId}`,
+                    label: `on ${patientName}'s consultation`,
+                    payload: { appointmentId, patientId },
+                  })
+                }
+              >
+                <Sparkles className="mr-2 h-4 w-4 text-primary" />
+                Ask AI
+              </DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
           {readOnly && (
             <Badge variant="outline" className="hidden sm:inline-flex h-8 px-3">
               View only

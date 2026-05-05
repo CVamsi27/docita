@@ -150,8 +150,13 @@ export function ExaminationInput({
             General Examination
           </CardTitle>
           <Badge
-            variant={positiveGeneralCount > 0 ? "default" : "secondary"}
-            className="text-[var(--fs-2xs)] font-medium"
+            variant="outline"
+            className={cn(
+              "text-[var(--fs-2xs)] font-medium",
+              positiveGeneralCount > 0
+                ? "border-success/40 bg-success/10 text-success"
+                : "border-border/70 bg-muted/40 text-muted-foreground",
+            )}
           >
             {positiveGeneralCount > 0
               ? `${positiveGeneralCount} positive`

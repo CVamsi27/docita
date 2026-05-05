@@ -18,6 +18,7 @@ import {
   isQueueTokenWaiting,
 } from "@/lib/queue-token-status";
 import { getLocalCalendarDateString } from "@/lib/local-calendar-date";
+import { useClinicSettings } from "@/hooks/api/use-settings";
 
 export const useConsultationDashboard = () => {
   const router = useRouter();
@@ -25,7 +26,8 @@ export const useConsultationDashboard = () => {
   const { canStartConsultation } = usePermissions();
   const { canAccess, workspaceProfile } = usePermissionStore();
   const today = getLocalCalendarDateString();
-  const shouldScopeToOwnConsultations = user?.role === "DOCTOR";
+  const shouldScopeToOwnConsultations =
+    user?.role === "DOCTOR" || user?.role === "ADMIN_DOCTOR";
   const doctorId = shouldScopeToOwnConsultations ? user?.id : undefined;
   const canAccessQueueApi = canAccessTarget(
     APP_ACCESS_TARGETS.API_QUEUE,
@@ -53,6 +55,7 @@ export const useConsultationDashboard = () => {
   const { data: queueData, isLoading: isLoadingQueue } =
     useQueueByDoctor(doctorId, undefined, canAccessQueueApi);
   const startConsultation = useStartConsultation();
+  const { data: clinic } = useClinicSettings();
 
   const stats = useMemo(() => {
     const todayAppts = appointmentsData?.items || [];
@@ -80,6 +83,25 @@ export const useConsultationDashboard = () => {
       completed: queue.filter((q) => isQueueTokenCompleted(q.status)).length,
     };
   }, [appointmentsData, inProgressAppointmentsData, queueData]);
+
+  const todayAppointmentsSorted = useMemo(() => {
+    const items = appointmentsData?.items || [];
+    return [...items].sort((a, b) => {
+      const ta = new Date(a.startTime).getTime();
+      const tb = new Date(b.startTime).getTime();
+      return ta - tb;
+    });
+  }, [appointmentsData?.items]);
+
+  const doctorNowNext = useMemo(() => {
+    const inProgress = (inProgressAppointmentsData?.items ?? []).filter(
+      (a) => a.status === "in-progress",
+    );
+    const nextScheduled = todayAppointmentsSorted.filter((a) =>
+      ["scheduled", "confirmed", "checked-in"].includes(a.status),
+    );
+    return { inProgress, nextScheduled };
+  }, [inProgressAppointmentsData?.items, todayAppointmentsSorted]);
 
   const activeConsultations = useMemo(() => {
     const fromQueue = (queueData || []).filter((q) =>
@@ -197,6 +219,8 @@ export const useConsultationDashboard = () => {
 
   return {
     appointments: appointmentsData?.items || [],
+    todayAppointmentsSorted,
+    doctorNowNext,
     queue: queueData || [],
     stats,
     activeConsultations,
@@ -209,6 +233,8 @@ export const useConsultationDashboard = () => {
     canStartConsultation,
     isStartingConsultation: startConsultation.isPending,
     currentUserId: user?.id,
+    currentUserRole: user?.role,
+    clinicType: clinic?.type ?? null,
     router,
   };
 };
