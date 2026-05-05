@@ -30,7 +30,8 @@ import {
   getAllFeaturesUpToTier,
   PLAN_LIMITS,
   getTierInfo,
-  Tier,
+  getTierPricing,
+  getTierValue,
 } from "@/lib/tier-config";
 import {
   PRICING_CURRENCY_SYMBOLS,
@@ -120,39 +121,46 @@ function PlanSelectionStepInner({
   const { pricingConfig, isLoading, error } =
     usePricingConfig(resolvedCurrency);
 
-  const featuresByTier = Object.values(Tier)
-    .filter((t): t is Tier => typeof t === "number" && t !== Tier.INTELLIGENCE)
-    .map((tier) => ({
+  const featuresByTier = DISPLAY_TIERS.map((name) => {
+    const tierName = name as TierName;
+    const tier = getTierValue(tierName);
+    return {
+      tierName,
       tier,
       info: {
         ...getTierInfo(tier),
-        tagline:
-          PLAN_AUDIENCE[Tier[tier] as string] ?? getTierInfo(tier).tagline,
+        tagline: PLAN_AUDIENCE[name] ?? getTierInfo(tier).tagline,
       },
-      features: getAllFeaturesUpToTier(Tier[tier] as TierName)
+      features: getAllFeaturesUpToTier(tierName)
         .map((feature) => ({
           feature,
           details: getFeatureDetails(feature),
           hasAccess: true,
         }))
         .filter((entry) => entry.details.isGenerallyAvailable),
-    }));
+    };
+  });
 
   const handleSelectTier = async (tier: string) => {
     if (tier === "ENTERPRISE") {
       setShowContactSalesModal(true);
       return;
     }
-    const tierPricingData = pricingConfig?.tiers.find(
+    const tierPricingFromApi = pricingConfig?.tiers.find(
       (t: TierPricing) => t.id === tier,
     );
-    if (!tierPricingData) return;
+    const catalog = getTierPricing(tier as TierName);
+    const pricingPayload = tierPricingFromApi?.pricing ?? {
+      monthly: catalog.monthly,
+      yearly: catalog.yearly,
+    };
 
     setIsSubmitting(true);
     try {
-      await onSelect(tier, billingCycle, tierPricingData.pricing, {
+      await onSelect(tier, billingCycle, pricingPayload, {
         currency: resolvedCurrency,
-        workspaceProfile,
+        workspaceProfile:
+          tier === "FRONT_DESK" ? "FRONT_DESK" : "FULL_CLINICAL",
       });
     } finally {
       setIsSubmitting(false);
@@ -287,13 +295,16 @@ Please contact me with deployment and commercial details.`;
         </div>
 
         <div className="flex flex-wrap justify-center gap-4">
-          {featuresByTier
-            .filter((t) => DISPLAY_TIERS.includes(Tier[t.tier] as string))
-            .map(({ tier, info, features }) => {
-              const tierName = Tier[tier] as TierName;
-              const tierPricingData = pricingConfig.tiers.find(
+          {featuresByTier.map(({ tierName, tier, info, features }) => {
+              const tierPricingFromApi = pricingConfig.tiers.find(
                 (t: TierPricing) => t.id === tierName,
               );
+              const catalogPricing = getTierPricing(tierName);
+              const cardPricing =
+                tierPricingFromApi?.pricing ?? {
+                  monthly: catalogPricing.monthly,
+                  yearly: catalogPricing.yearly,
+                };
               const currencyKey =
                 resolvedCurrency as keyof typeof TIER_OVERAGE_RATES_BY_CURRENCY;
               const currencySymbol =
@@ -369,7 +380,7 @@ Please contact me with deployment and commercial details.`;
                     keyHighlights={
                       PLAN_ONBOARDING_KEY_HIGHLIGHTS[tierName] ?? []
                     }
-                    pricing={tierPricingData?.pricing}
+                    pricing={cardPricing}
                     billingCycle={billingCycle}
                     currencySymbol={currencySymbol}
                     overageHint={tierOverageHint}
@@ -394,6 +405,8 @@ Please contact me with deployment and commercial details.`;
                             setSelectedTier(tierName);
                             if (tierName === "FRONT_DESK") {
                               setWorkspaceProfile("FRONT_DESK");
+                            } else {
+                              setWorkspaceProfile("FULL_CLINICAL");
                             }
                             handleSelectTier(tierName);
                           }
