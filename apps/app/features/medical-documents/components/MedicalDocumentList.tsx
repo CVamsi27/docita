@@ -27,7 +27,9 @@ import {
   DialogTitle,
 } from "@workspace/ui/components/dialog";
 import { FileText, Plus, Check, X } from "lucide-react";
+import { Feature } from "@workspace/types";
 import { api } from "@/lib/api-client";
+import { useTierFeatureEnabled } from "@/hooks/api/tier-feature-guards";
 import { logger } from "@/lib/logger";
 import { toast } from "sonner";
 import { useAuth } from "@/lib/auth-context";
@@ -79,6 +81,7 @@ const DOCUMENT_TYPE_LABELS: Record<
 
 export function MedicalDocumentList({ patientId }: Props) {
   const { user } = useAuth();
+  const docsOk = useTierFeatureEnabled(Feature.DOCUMENT_ARCHIVAL);
   const [documents, setDocuments] = useState<MedicalDocument[]>([]);
   const [loading, setLoading] = useState(true);
   const [showNew, setShowNew] = useState(false);
@@ -90,6 +93,11 @@ export function MedicalDocumentList({ patientId }: Props) {
   const { showQr, setShowQr, qrUrl, startMobileUpload } = useMobileUpload();
 
   const load = useCallback(async () => {
+    if (!docsOk) {
+      setDocuments([]);
+      setLoading(false);
+      return;
+    }
     try {
       const data = await api.get<MedicalDocument[]>(
         `/medical-documents?patientId=${patientId}`,
@@ -103,13 +111,14 @@ export function MedicalDocumentList({ patientId }: Props) {
     } finally {
       setLoading(false);
     }
-  }, [patientId]);
+  }, [patientId, docsOk]);
 
   useEffect(() => {
     load();
   }, [load]);
 
   const handleSign = async (id: string) => {
+    if (!docsOk) return;
     try {
       await api.patch(`/medical-documents/${id}/sign`, {});
       toast.success("Document signed");
@@ -123,6 +132,7 @@ export function MedicalDocumentList({ patientId }: Props) {
   };
 
   const handleRevoke = async (id: string) => {
+    if (!docsOk) return;
     try {
       await api.patch(`/medical-documents/${id}/revoke`, {});
       toast.success("Document revoked");
@@ -136,6 +146,7 @@ export function MedicalDocumentList({ patientId }: Props) {
   };
 
   const handleCreate = async () => {
+    if (!docsOk) return;
     if (!newTitle.trim()) {
       showUserFacingErrorToast("Enter a document title before creating it");
       return;

@@ -1,10 +1,13 @@
+"use client";
+
 import { useCallback, useEffect, useState } from "react";
 import { apiFetch } from "@/lib/api-client";
 import { type PatientTag, PatientTagManagerUI } from "./PatientTagManagerUI";
 import { DEFAULT_TAG_COLOR_VAR } from "./tag-colors";
 import { useClinicSettings } from "@/hooks/api/use-settings";
+import { useTierFeatureEnabled } from "@/hooks/api/tier-feature-guards";
 import { ClinicFeatureService } from "@/lib/services/clinic-feature.service";
-import type { ClinicType } from "@workspace/types";
+import { Feature, type ClinicType } from "@workspace/types";
 import { showUserFacingErrorToast } from "@/lib/user-facing-errors";
 
 interface PatientTagManagerContainerProps {
@@ -21,6 +24,7 @@ export function PatientTagManagerContainer({
   const [newTag, setNewTag] = useState("");
   const [newColor, setNewColor] = useState(DEFAULT_TAG_COLOR_VAR);
   const [loading, setLoading] = useState(false);
+  const tierPatientsOk = useTierFeatureEnabled(Feature.BASIC_PATIENT_MANAGEMENT);
 
   const { data: clinic } = useClinicSettings();
   const presetTags = ClinicFeatureService.getPresetTags(
@@ -28,6 +32,7 @@ export function PatientTagManagerContainer({
   );
 
   const loadTags = useCallback(async () => {
+    if (!tierPatientsOk) return;
     try {
       const data = await apiFetch<PatientTag[]>(`/patients/${patientId}/tags`);
       setTags(data);
@@ -38,14 +43,15 @@ export function PatientTagManagerContainer({
         "generic",
       );
     }
-  }, [patientId]);
+  }, [patientId, tierPatientsOk]);
 
   useEffect(() => {
-    if (!open) return;
+    if (!open || !tierPatientsOk) return;
     void loadTags();
-  }, [open, loadTags]);
+  }, [open, tierPatientsOk, loadTags]);
 
   const addTag = async (tag: string, color: string) => {
+    if (!tierPatientsOk) return;
     setLoading(true);
     try {
       await apiFetch(`/patients/${patientId}/tags`, {
@@ -68,6 +74,7 @@ export function PatientTagManagerContainer({
   };
 
   const removeTag = async (tagId: string) => {
+    if (!tierPatientsOk) return;
     const previousTags = [...tags];
     setTags(tags.filter((t) => t.id !== tagId));
 
@@ -91,6 +98,7 @@ export function PatientTagManagerContainer({
     newName: string,
     newTagColor: string,
   ) => {
+    if (!tierPatientsOk) return;
     const previousTags = [...tags];
     setTags(
       tags.map((t) =>
