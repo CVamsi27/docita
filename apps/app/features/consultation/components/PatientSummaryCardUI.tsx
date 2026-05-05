@@ -127,7 +127,7 @@ export function PatientSummaryCardUI({
           {hasSevereAllergy && (
             <Tooltip>
               <TooltipTrigger asChild>
-                <div className="flex items-center gap-1 text-destructive animate-pulse">
+                <div className="flex items-center gap-1 text-destructive font-semibold">
                   <AlertTriangle className="h-4 w-4" />
                   <span className="text-xs font-medium">ALERT</span>
                 </div>

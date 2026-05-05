@@ -1,12 +1,13 @@
 "use client";
 
-import { Fragment, useEffect, useRef, useState } from "react";
+import { Fragment, useCallback, useEffect, useMemo, useRef, useState } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import {
   Bell,
   ChevronDown,
   ChevronUp,
+  HelpCircle,
   Menu,
   Settings2,
   SlidersHorizontal,
@@ -22,6 +23,7 @@ import {
   SheetTitle,
 } from "@workspace/ui/components/sheet";
 import { DocitaIcon, DocitaLogo } from "@workspace/ui/components/docita-logo";
+import { MicroLabel } from "@workspace/ui/components/micro-label";
 import {
   useUnreadNotificationCount,
   usePendingJoinRequestCount,
@@ -37,8 +39,10 @@ import { CLINIC_ADMIN_ROLES } from "@/lib/permissions";
 import { useClinic } from "@/lib/clinic-context";
 import { SUBSCRIPTION_SETTINGS_PATH } from "@/lib/subscription-settings-path";
 import { useSidebarPreferences } from "@/hooks/use-sidebar-preferences";
+import { useSidebarNavOrder } from "@/hooks/use-sidebar-nav-order";
 import { NotificationPanel } from "./notification-panel";
 import { ThemeToggleWithAppearanceSync } from "@/features/_shared/components/layout/theme-toggle-with-appearance-sync";
+import { AskAiButton } from "@/features/_shared/components/ask-ai/ask-ai-button";
 import {
   SymbolTooltip,
   Tooltip,
@@ -47,12 +51,16 @@ import {
   TooltipTrigger,
 } from "@workspace/ui/components/tooltip";
 import {
-  navItems,
+  AI_ASSISTANT_NAV_ITEM,
+  FIXED_NAV_HREFS,
+  HELP_NAV_ITEM,
+  IPD_NAV_ITEM,
+  navSections,
   SPECIALTY_ICONS,
   SPECIALTY_URLS,
-  IPD_NAV_ITEM,
-  FIXED_NAV_HREFS,
   type NavItem,
+  type NavSection,
+  type NavSectionId,
 } from "./nav-config";
 
 function getIconClasses(isActive: boolean, collapsedRail?: boolean) {
@@ -114,11 +122,11 @@ function SidebarContent({
   const { showTopShadow, showBottomShadow } = useScrollShadow(scrollRef);
 
   const isAdmin = !!user?.role && CLINIC_ADMIN_ROLES.has(user.role);
-  const { canAccess, getTierInfo, clinicType: storeClinicType } =
+  const { canAccess, getTierInfo, clinicType: storeClinicType, workspaceProfile } =
     usePermissionStore();
   const canAccessNotifications = canAccessTarget(
     APP_ACCESS_TARGETS.API_WHATSAPP,
-    { role: user?.role, canAccessFeature: canAccess },
+    { role: user?.role, canAccessFeature: canAccess, workspaceProfile },
     "read",
   );
   const { data: unreadNotificationCount } =
@@ -142,41 +150,62 @@ function SidebarContent({
     accessTarget: APP_ACCESS_TARGETS.PAGE_SPECIALTY,
   }));
 
-  const hospitalNavItems: NavItem[] = [];
-  if (clinicType === "SPECIALTY") {
-    hospitalNavItems.push(IPD_NAV_ITEM);
-  }
+  const hospitalNavItems: NavItem[] =
+    clinicType === "SPECIALTY" ? [IPD_NAV_ITEM] : [];
 
-  const allNavItems = [...navItems, ...specialtyNavItems, ...hospitalNavItems];
-  const accessibleNavItems = allNavItems.filter((item) => {
+  function isItemAccessible(item: NavItem): boolean {
     if (item.accessTarget) {
       return canAccessTarget(
         item.accessTarget,
-        { role: user?.role, canAccessFeature: canAccess },
+        { role: user?.role, canAccessFeature: canAccess, workspaceProfile },
         "read",
       );
     }
     return !item.feature || canAccess(item.feature);
+  }
+
+  const sectionsWithAccess: NavSection[] = navSections.map((section) => ({
+    ...section,
+    items: section.items.filter(isItemAccessible),
+  }));
+
+  const dynamicSection: NavSection | null =
+    specialtyNavItems.length + hospitalNavItems.length > 0
+      ? {
+          id: "services",
+          label: "Specialty",
+          items: [...specialtyNavItems, ...hospitalNavItems].filter(
+            isItemAccessible,
+          ),
+        }
+      : null;
+
+  const aiAssistantAccessible = isItemAccessible(AI_ASSISTANT_NAV_ITEM);
+
+  const filterByPreferences = (items: NavItem[]) =>
+    items.filter((item) => FIXED_NAV_HREFS.has(item.href) || !isHidden(item.href));
+
+  const visibleSections = sectionsWithAccess.map((section) => ({
+    ...section,
+    items: filterByPreferences(section.items),
+  }));
+
+  const navOrder = useSidebarNavOrder({
+    clinicId,
+    userId: user?.id ?? null,
+    canEditClinicDefault: isAdmin,
   });
 
-  const canAccessSettings = canAccessTarget(
-    APP_ACCESS_TARGETS.PAGE_SETTINGS,
-    { role: user?.role, canAccessFeature: canAccess },
-    "read",
-  );
-
-  const visibleNavItems = accessibleNavItems.filter(
-    (item) => FIXED_NAV_HREFS.has(item.href) || !isHidden(item.href),
-  );
-
-  const customizableNavItems = accessibleNavItems.filter(
-    (item) => !FIXED_NAV_HREFS.has(item.href),
-  );
+  const orderedVisibleSections = navOrder.orderSections(visibleSections);
 
   const tierInfo = getTierInfo();
   const collapsedRail = isCollapsed && !isMobile;
-  const canOpenBillingSettings =
-    !!user?.role && canManageBilling(user.role);
+  const canAccessSettings = canAccessTarget(
+    APP_ACCESS_TARGETS.PAGE_SETTINGS,
+    { role: user?.role, canAccessFeature: canAccess, workspaceProfile },
+    "read",
+  );
+  const canOpenBillingSettings = !!user?.role && canManageBilling(user.role);
   const tierDotClass = cn(
     "h-2 w-2 rounded-full shrink-0",
     tierInfo.color === "blue" && "bg-info shadow-[0_0_8px_theme(colors.info)]",
@@ -195,6 +224,42 @@ function SidebarContent({
 
   const showLabels = !isCollapsed || isMobile;
 
+  function renderNavLink(item: NavItem) {
+    const isActive =
+      pathname === item.href || pathname.startsWith(`${item.href}/`);
+    const link = (
+      <Link
+        href={item.href}
+        data-testid={`sidebar-link-${item.href.replace(/\//g, "-")}`}
+        className={cn(
+          "group flex items-center gap-3 px-2.5 py-2 text-sm font-medium transition-colors",
+          collapsedRail ? "rounded-full justify-center px-0" : "rounded-xl",
+          isActive
+            ? "bg-foreground text-background shadow-sm"
+            : "text-muted-foreground hover:bg-muted/60 hover:text-foreground",
+          collapsedRail && "mx-auto w-11 max-w-[2.75rem]",
+        )}
+      >
+        <div className={getIconClasses(isActive, collapsedRail)}>
+          <item.icon className="h-4 w-4 shrink-0" />
+        </div>
+        {showLabels && <span className="flex-1 truncate">{item.label}</span>}
+      </Link>
+    );
+
+    return (
+      <Fragment key={item.href}>
+        {collapsedRail ? (
+          <SymbolTooltip label={item.label} side="right">
+            {link}
+          </SymbolTooltip>
+        ) : (
+          link
+        )}
+      </Fragment>
+    );
+  }
+
   return (
     <>
       {/* Header */}
@@ -212,7 +277,7 @@ function SidebarContent({
       ) : (
         <div className="flex h-14 shrink-0 items-center justify-between border-b border-border/60 px-3">
           <Link
-            href="/dashboard"
+            href="/today"
             className="flex h-9 items-center gap-2 rounded-lg px-1 transition-colors hover:opacity-80"
           >
             <DocitaLogo />
@@ -259,47 +324,61 @@ function SidebarContent({
             scrollRef.current = el;
           }}
           className={cn(
-            "h-full overflow-y-auto overflow-x-hidden py-2 space-y-0.5 scrollbar-none",
-            isCollapsed && !isMobile ? "px-1" : "px-2",
+            "h-full overflow-y-auto overflow-x-hidden py-3 scrollbar-none",
+            isCollapsed && !isMobile ? "px-1 space-y-1" : "px-2 space-y-4",
           )}
+          aria-label="Primary"
         >
-          {visibleNavItems.map((item) => {
-            const isActive =
-              pathname === item.href || pathname.startsWith(`${item.href}/`);
-
-            const link = (
-              <Link
-                href={item.href}
-                className={cn(
-                  "group flex items-center gap-3 px-2.5 py-2 text-sm font-medium transition-colors",
-                  collapsedRail ? "rounded-full justify-center px-0" : "rounded-xl",
-                  isActive
-                    ? "bg-foreground text-background shadow-sm"
-                    : "text-muted-foreground hover:bg-muted/60 hover:text-foreground",
-                  collapsedRail && "mx-auto w-11 max-w-[2.75rem]",
-                )}
-              >
-                <div className={getIconClasses(isActive, collapsedRail)}>
-                  <item.icon className="h-4 w-4 shrink-0" />
-                </div>
-                {showLabels && (
-                  <span className="flex-1 truncate">{item.label}</span>
-                )}
-              </Link>
-            );
-
+          {orderedVisibleSections.map((section) => {
+            if (section.items.length === 0) return null;
             return (
-              <Fragment key={item.href}>
-                {collapsedRail ? (
-                  <SymbolTooltip label={item.label} side="right">
-                    {link}
-                  </SymbolTooltip>
+              <div key={section.id} className="space-y-0.5">
+                {showLabels ? (
+                  <MicroLabel className="px-2.5 pb-1.5 pt-1">
+                    {section.label}
+                  </MicroLabel>
                 ) : (
-                  link
+                  <div
+                    aria-hidden
+                    className="mx-auto my-1 h-px w-6 rounded-full bg-border/70"
+                  />
                 )}
-              </Fragment>
+                {section.items.map((item) => renderNavLink(item))}
+              </div>
             );
           })}
+
+          {dynamicSection && dynamicSection.items.length > 0 ? (
+            <div className="space-y-0.5">
+              {showLabels ? (
+                <MicroLabel className="px-2.5 pb-1.5 pt-1">
+                  {dynamicSection.label}
+                </MicroLabel>
+              ) : (
+                <div
+                  aria-hidden
+                  className="mx-auto my-1 h-px w-6 rounded-full bg-border/70"
+                />
+              )}
+              {dynamicSection.items.map((item) => renderNavLink(item))}
+            </div>
+          ) : null}
+
+          {aiAssistantAccessible ? (
+            <div className="space-y-0.5">
+              {showLabels ? (
+                <MicroLabel className="px-2.5 pb-1.5 pt-1">
+                  Assistant
+                </MicroLabel>
+              ) : (
+                <div
+                  aria-hidden
+                  className="mx-auto my-1 h-px w-6 rounded-full bg-border/70"
+                />
+              )}
+              {renderNavLink(AI_ASSISTANT_NAV_ITEM)}
+            </div>
+          ) : null}
         </nav>
 
         {showBottomShadow && !isCollapsed && (
@@ -316,7 +395,7 @@ function SidebarContent({
                 scrollRef.current?.scrollBy({ top: 120, behavior: "smooth" })
               }
             >
-              <ChevronDown className="h-4 w-4 animate-bounce text-muted-foreground transition-transform group-hover:translate-y-0.5" />
+              <ChevronDown className="h-4 w-4 text-muted-foreground transition-transform group-hover:translate-y-0.5" />
             </button>
           </SymbolTooltip>
         )}
@@ -381,6 +460,26 @@ function SidebarContent({
               </Tooltip>
             )}
 
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  className={cn(
+                    "h-8 w-8 shrink-0 text-muted-foreground hover:text-foreground hover:bg-muted",
+                    pathname.startsWith(HELP_NAV_ITEM.href) &&
+                      "bg-primary/8 text-primary",
+                  )}
+                  asChild
+                >
+                  <Link href={HELP_NAV_ITEM.href} aria-label="Help">
+                    <HelpCircle className="h-4 w-4" />
+                  </Link>
+                </Button>
+              </TooltipTrigger>
+              <TooltipContent side="right">Help</TooltipContent>
+            </Tooltip>
+
             {isAdmin && (
               <Tooltip>
                 <TooltipTrigger asChild>
@@ -404,7 +503,7 @@ function SidebarContent({
         {isAdmin && (
           <div
             className={cn(
-              "pb-3",
+              "pb-2",
               collapsedRail ? "flex flex-col items-center px-1" : "px-3",
             )}
           >
@@ -424,9 +523,7 @@ function SidebarContent({
                     <span className={tierDotClass} />
                     {showLabels && (
                       <div className="min-w-0 flex-1 text-left">
-                        <p className="text-xs font-semibold uppercase tracking-wider text-muted-foreground leading-none">
-                          Plan
-                        </p>
+                        <MicroLabel className="leading-none">Plan</MicroLabel>
                         <p className="text-sm font-medium truncate leading-tight mt-0.5">
                           {tierInfo.name}
                         </p>
@@ -448,9 +545,7 @@ function SidebarContent({
                 <span className={tierDotClass} />
                 {showLabels && (
                   <div className="min-w-0">
-                    <p className="text-xs font-semibold uppercase tracking-wider text-muted-foreground leading-none">
-                      Plan
-                    </p>
+                    <MicroLabel className="leading-none">Plan</MicroLabel>
                     <p className="text-sm font-medium truncate leading-tight mt-0.5">
                       {tierInfo.name}
                     </p>
@@ -460,6 +555,16 @@ function SidebarContent({
             )}
           </div>
         )}
+
+        {/* Pinned Ask AI */}
+        <div
+          className={cn(
+            "border-t border-border/60 pt-3 pb-3",
+            collapsedRail ? "px-1 flex justify-center" : "px-3",
+          )}
+        >
+          <AskAiButton collapsed={collapsedRail} />
+        </div>
       </div>
 
       {/* Notification panel */}
@@ -478,30 +583,159 @@ function SidebarContent({
             <SheetTitle>Customize Sidebar</SheetTitle>
           </SheetHeader>
           <p className="text-sm text-muted-foreground mt-1 mb-4">
-            Toggle which items appear in the sidebar.
+            Drag to reorder items. Toggle to hide items you do not use.
           </p>
-          <div className="space-y-0.5">
-            {customizableNavItems.map((item) => (
-              <div
-                key={item.href}
-                className="flex items-center justify-between rounded-lg px-2 py-2 hover:bg-muted transition-colors"
-              >
-                <div className="flex items-center gap-3 text-sm">
-                  <div className={getIconClasses(false, false)}>
-                    <item.icon className="h-4 w-4 shrink-0" />
-                  </div>
-                  <span className="font-medium">{item.label}</span>
-                </div>
-                <Switch
-                  checked={!isHidden(item.href)}
-                  onCheckedChange={() => toggleItem(item.href)}
-                />
-              </div>
-            ))}
-          </div>
+          <CustomizeSidebarOrderUI
+            sections={sectionsWithAccess}
+            isHidden={isHidden}
+            toggleItem={toggleItem}
+            getIconClasses={getIconClasses}
+            navOrder={navOrder}
+          />
         </SheetContent>
       </Sheet>
     </>
+  );
+}
+
+function CustomizeSidebarOrderUI({
+  sections,
+  isHidden,
+  toggleItem,
+  getIconClasses,
+  navOrder,
+}: {
+  sections: NavSection[];
+  isHidden: (href: string) => boolean;
+  toggleItem: (href: string) => void;
+  getIconClasses: (isActive: boolean, collapsedRail?: boolean) => string;
+  navOrder: ReturnType<typeof useSidebarNavOrder>;
+}) {
+  const [dragging, setDragging] = useState<{ sectionId: NavSectionId; href: string } | null>(
+    null,
+  );
+
+  const ordered = useMemo(() => navOrder.orderSections(sections), [navOrder, sections]);
+
+  const setSectionOrder = useCallback(
+    (sectionId: NavSectionId, hrefs: string[], scope: "clinic" | "user") => {
+      navOrder.setOrder(
+        {
+          ...navOrder.effectiveOrder,
+          [sectionId]: hrefs,
+        },
+        scope,
+      );
+    },
+    [navOrder],
+  );
+
+  const handleDrop = useCallback(
+    (args: { sectionId: NavSectionId; beforeHref: string | null; scope: "clinic" | "user" }) => {
+      if (!dragging) return;
+      if (dragging.sectionId !== args.sectionId) return;
+
+      const current = navOrder.effectiveOrder[args.sectionId];
+      const without = current.filter((h) => h !== dragging.href);
+      const idx = args.beforeHref ? without.indexOf(args.beforeHref) : -1;
+      const next =
+        idx >= 0 ? [...without.slice(0, idx), dragging.href, ...without.slice(idx)] : [...without, dragging.href];
+      setSectionOrder(args.sectionId, next, args.scope);
+      setDragging(null);
+    },
+    [dragging, navOrder.effectiveOrder, setSectionOrder],
+  );
+
+  const canEditClinicDefault = navOrder.canEditClinicDefault;
+
+  return (
+    <div className="space-y-4">
+      {navOrder.hasUserOverride ? (
+        <button
+          type="button"
+          className="text-xs text-muted-foreground underline underline-offset-4 hover:text-foreground"
+          onClick={navOrder.clearUserOverride}
+        >
+          Reset my order to clinic default
+        </button>
+      ) : null}
+
+      {ordered.map((section) => (
+        <div key={section.id} className="space-y-2">
+          <MicroLabel>{section.label}</MicroLabel>
+
+          <div
+            className="space-y-0.5"
+            onDragOver={(e) => {
+              e.preventDefault();
+            }}
+            onDrop={() => handleDrop({ sectionId: section.id, beforeHref: null, scope: "user" })}
+          >
+            {section.items.map((item) => {
+              const fixed = FIXED_NAV_HREFS.has(item.href);
+              return (
+                <div
+                  key={item.href}
+                  draggable
+                  onDragStart={() => setDragging({ sectionId: section.id, href: item.href })}
+                  onDragEnd={() => setDragging(null)}
+                  onDragOver={(e) => {
+                    e.preventDefault();
+                  }}
+                  onDrop={(e) => {
+                    e.preventDefault();
+                    handleDrop({
+                      sectionId: section.id,
+                      beforeHref: item.href,
+                      scope: "user",
+                    });
+                  }}
+                  className={cn(
+                    "flex items-center justify-between rounded-lg px-2 py-2 transition-colors",
+                    "hover:bg-muted",
+                    dragging?.href === item.href && "bg-muted/70",
+                  )}
+                  aria-label={`Reorder ${item.label}`}
+                  title="Drag to reorder"
+                >
+                  <div className="flex items-center gap-3 text-sm min-w-0">
+                    <div className={getIconClasses(false, false)}>
+                      <item.icon className="h-4 w-4 shrink-0" />
+                    </div>
+                    <span className="font-medium truncate">{item.label}</span>
+                  </div>
+
+                  <div className="flex items-center gap-2">
+                    {!fixed ? (
+                      <Switch
+                        checked={!isHidden(item.href)}
+                        onCheckedChange={() => toggleItem(item.href)}
+                        aria-label={`Show ${item.label} in sidebar`}
+                      />
+                    ) : (
+                      <span className="text-xs text-muted-foreground">Fixed</span>
+                    )}
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+
+          {canEditClinicDefault ? (
+            <button
+              type="button"
+              className="text-xs text-muted-foreground underline underline-offset-4 hover:text-foreground"
+              onClick={() => {
+                // Save current effective order as clinic default.
+                navOrder.setOrder(navOrder.effectiveOrder, "clinic");
+              }}
+            >
+              Save this order as clinic default
+            </button>
+          ) : null}
+        </div>
+      ))}
+    </div>
   );
 }
 
@@ -520,14 +754,12 @@ export function Sidebar({
 }: SidebarProps) {
   const pathname = usePathname();
 
-  // Close mobile sidebar on route change
   useEffect(() => {
     onMobileOpenChange?.(false);
   }, [pathname, onMobileOpenChange]);
 
   return (
     <>
-      {/* Desktop sidebar */}
       <aside
         className="relative hidden md:flex flex-col h-full w-full bg-background/70 backdrop-blur border-r border-border/70"
       >
@@ -537,7 +769,6 @@ export function Sidebar({
         />
       </aside>
 
-      {/* Mobile sidebar — Sheet */}
       <Sheet open={mobileOpen} onOpenChange={onMobileOpenChange}>
         <SheetContent
           side="left"
@@ -558,12 +789,7 @@ export function Sidebar({
   );
 }
 
-/** Trigger button rendered in the mobile header to open the sidebar */
-export function SidebarMobileTrigger({
-  onClick,
-}: {
-  onClick: () => void;
-}) {
+export function SidebarMobileTrigger({ onClick }: { onClick: () => void }) {
   return (
     <SymbolTooltip label="Open navigation" side="bottom">
       <Button

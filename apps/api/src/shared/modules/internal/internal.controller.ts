@@ -24,7 +24,10 @@ import {
   UpdateAdminDto,
 } from './dto/clinic-management.dto';
 import { UpdateAIFeaturesDto } from './dto/ai-management.dto';
-import { ProcessPaymentDto } from './dto/payment.dto';
+import {
+  ProcessPaymentDto,
+  RecordInternalAdditionalChargeRequestDto,
+} from './dto/payment.dto';
 import {
   InternalClinicListQueryDto,
   InternalGlobalStatsResponseDto as _InternalGlobalStatsResponseDto,
@@ -63,6 +66,7 @@ import { ContactInquiryListResponseDto } from '@/shared/modules/contact/dto/cont
 import { ZodValidationPipe } from '@/common/pipes/zod-validation.pipe';
 import { UsePipes } from '@nestjs/common';
 import { parsePaginationInt } from '@/common/utils/string.utils';
+import { recordInternalAdditionalChargeRequestSchema } from '@workspace/types';
 
 @Controller('internal')
 @Roles(Role.INTERNAL)
@@ -373,6 +377,17 @@ export class InternalController {
     @Body() data: ProcessPaymentDto,
   ) {
     return this.billingService.processPaymentAndUpdateTier(id, data);
+  }
+
+  @Post('clinics/:id/additional-charge')
+  async recordAdditionalCharge(
+    @Param('id') id: string,
+    @Body() data: RecordInternalAdditionalChargeRequestDto,
+  ) {
+    return this.billingService.recordAdditionalCharge(
+      id,
+      recordInternalAdditionalChargeRequestSchema.parse(data),
+    );
   }
 
   @Get('clinics/:id/tier-info')

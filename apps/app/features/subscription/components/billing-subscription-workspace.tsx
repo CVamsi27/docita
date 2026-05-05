@@ -3,12 +3,7 @@
 import { useCallback, useRef, useState } from "react";
 import { usePermissionStore } from "@/lib/stores/permission-store";
 import { PrivacyPolicyContent, SLAContent } from "@/features/legal";
-import {
-  Feature,
-  FEATURE_TIER_MAP,
-  getTierInfo,
-  Tier,
-} from "@/lib/tier-config";
+import { getTierInfo, getTierPricing, Tier } from "@/lib/tier-config";
 import {
   Alert,
   AlertDescription,
@@ -29,16 +24,16 @@ import {
   TabsList,
   TabsTrigger,
 } from "@workspace/ui/components/tabs";
-import { Sparkles } from "lucide-react";
+import { Info, Sparkles } from "lucide-react";
 import { ContactSalesModal } from "@/features/dialogs/components/ContactSalesModalContainer";
 import { ComparisonTable } from "@/features/subscription/components/pricing/comparison-table";
 import { CurrentPlanCard } from "@/features/subscription/components/cards/current-plan-card";
+import { UsageDashboard } from "@/features/subscription/components/usage-dashboard";
 import { FaqSection } from "@/features/subscription/components/sections/faq-section";
 import { InvoiceHistoryDialog } from "@/features/subscription/components/dialogs/invoice-history-dialog";
 import { PaymentSuccessModal } from "@/features/subscription/components/modals/payment-success-modal";
 import { TierCard } from "@/features/subscription/components/cards/tier-card";
 import { TierChangeDialog } from "@/features/subscription/components/dialogs/tier-change-dialog";
-import { getFeatureDetails } from "@/features/subscription/config/feature-config";
 import {
   type CheckoutSuccessData,
   useSubscriptionCheckout,
@@ -48,38 +43,29 @@ import { useLocaleCurrency } from "@/hooks/use-locale-currency";
 import { useSubscription } from "@/hooks/api/use-settings";
 import {
   ANNUAL_DISCOUNT_PERCENT,
+  PRICING_CURRENCY_SYMBOLS,
+  TIER_OVERAGE_RATES_BY_CURRENCY,
+  TIER_PRICING_BY_CURRENCY,
+  getWhatsAppAddonPricingByCurrency,
+  isFrontDeskWorkspace,
   type SupportedCurrency,
   type TierName,
 } from "@workspace/types";
-import {
-  PRICING_CURRENCY_SYMBOLS,
-  TIER_OVERAGE_RATES_BY_CURRENCY,
-  getWhatsAppAddonPricingByCurrency,
-} from "@workspace/types";
-import { formatCountLocale } from "@workspace/utils";
 import { formatLocaleDateShortMonthYear } from "@/lib/formatters";
+import {
+  BILLING_USAGE_AND_OVERAGE_EXPLAINER,
+  SUBSCRIPTION_GST_INCLUSIVE_NOTICE,
+} from "@/features/subscription/lib/billing-display-messages";
+import { PLAN_ONBOARDING_KEY_HIGHLIGHTS } from "@/features/subscription/config/plan-onboarding-highlights";
+import { getDisplayBillingPeriodEndAndDaysLeft } from "@/features/subscription/lib/billing-period-display";
 
 const PLAN_ORDER = [
   Tier.STARTER,
+  Tier.FRONT_DESK,
   Tier.ESSENTIAL,
   Tier.PROFESSIONAL,
   Tier.ENTERPRISE,
 ] as const;
-
-const PLAN_BEST_FOR: Record<TierName, string> = {
-  STARTER: "Best for testing Docita or very small practices.",
-  ESSENTIAL: "Best for solo clinics ready for billing and messaging.",
-  PROFESSIONAL: "Best for multi-doctor clinics with higher throughput.",
-  ENTERPRISE: "Best for hospitals and multi-location organizations.",
-  INTELLIGENCE: "Best for AI-assisted workflows.",
-};
-
-const PLAN_INCLUDED_LABEL: Partial<Record<TierName, string>> = {
-  STARTER: "Included foundation",
-  ESSENTIAL: "Everything in Starter, plus",
-  PROFESSIONAL: "Everything in Essential, plus",
-  ENTERPRISE: "Everything in Professional, plus",
-};
 
 function formatPlanDate(value?: string | null) {
   if (!value) return "Not scheduled";
@@ -87,38 +73,119 @@ function formatPlanDate(value?: string | null) {
   return formatted.length > 0 ? formatted : "Not scheduled";
 }
 
-function formatLimitValue(value?: number) {
-  if (value === undefined) return undefined;
-  if (value >= 999999 || value === 999) return "Unlimited";
-  return formatCountLocale(value);
-}
-
-function formatLimitLabel(
-  value: number | undefined,
-  singular: string,
-  plural = `${singular}s`,
-) {
-  const formattedValue = formatLimitValue(value);
-  if (!formattedValue) return undefined;
-  const unit = value === 1 ? singular : plural;
-  return `${formattedValue} ${unit}`;
-}
-
 function formatStatusLabel(status?: string) {
-  if (!status) return "Free";
+  if (!status) return "Not set";
   return status
     .replace(/_/g, " ")
     .toLowerCase()
     .replace(/\b\w/g, (letter) => letter.toUpperCase());
 }
 
-function formatBillingCycle(cycle?: "MONTHLY" | "YEARLY") {
-  if (!cycle) return "Free";
-  return cycle === "YEARLY" ? "Yearly" : "Monthly";
+function isStarterActiveZeroBase(
+  subscription: { tier?: string; basePriceCents?: number } | null | undefined,
+  subscriptionStatus: string | undefined,
+): boolean {
+  return (
+    subscription?.tier === "STARTER" &&
+    subscriptionStatus === "ACTIVE" &&
+    (subscription.basePriceCents ?? 0) === 0
+  );
+}
+
+function starterCatalogListMajorUnits(
+  currency: string | undefined,
+  billingCycle?: "MONTHLY" | "YEARLY" | string,
+): number | null {
+  const code = (currency ?? "INR").toUpperCase();
+  if (
+    !Object.prototype.hasOwnProperty.call(TIER_PRICING_BY_CURRENCY, code)
+  ) {
+    return null;
+  }
+  const row =
+    TIER_PRICING_BY_CURRENCY[code as SupportedCurrency].STARTER;
+  const amount =
+    billingCycle === "YEARLY" ? row.yearly : row.monthly;
+  return typeof amount === "number" && Number.isFinite(amount) ? amount : null;
+}
+
+function billingCadenceLabel(cycle?: "MONTHLY" | "YEARLY" | string) {
+  if (!cycle) return "Monthly";
+  return cycle === "YEARLY" ? "Annual" : "Monthly";
+}
+
+function currencySymbolFor(code: string | undefined) {
+  const upper = (code ?? "INR").toUpperCase();
+  return (
+    PRICING_CURRENCY_SYMBOLS[
+      upper as keyof typeof PRICING_CURRENCY_SYMBOLS
+    ] ?? upper
+  );
+}
+
+/**
+ * Platform subscription row: always states cadence (monthly vs annual) and list
+ * price when the subscription carries a non-zero base.
+ */
+function formatPlanBillingDetail(
+  subscription:
+    | {
+        tier?: string;
+        billingCycle?: "MONTHLY" | "YEARLY";
+        basePriceCents?: number;
+        currency?: string;
+      }
+    | null
+    | undefined,
+  subscriptionStatus: string | undefined,
+): string {
+  const cadence = billingCadenceLabel(subscription?.billingCycle);
+  const symbol = currencySymbolFor(subscription?.currency);
+
+  if (isStarterActiveZeroBase(subscription, subscriptionStatus)) {
+    const listMajor = starterCatalogListMajorUnits(
+      subscription?.currency,
+      subscription?.billingCycle,
+    );
+    if (listMajor != null) {
+      const suffix = subscription?.billingCycle === "YEARLY" ? "/yr" : "/mo";
+      return `${cadence} — ${symbol}${listMajor}${suffix}`;
+    }
+    return `${cadence} — ${symbol}0`;
+  }
+
+  const cents = subscription?.basePriceCents ?? 0;
+  if (cents <= 0) {
+    return `${cadence} — ${symbol}0`;
+  }
+
+  const majorUnits = cents / 100;
+  const amountLabel = Number.isInteger(majorUnits)
+    ? String(majorUnits)
+    : majorUnits.toFixed(2);
+  const suffix = subscription?.billingCycle === "YEARLY" ? "/yr" : "/mo";
+  return `${cadence} — ${symbol}${amountLabel}${suffix}`;
+}
+
+/**
+ * Legacy rows set Starter to MONTHLY with a ~365d access window; avoid implying
+ * a monthly renewal cadence from that combination.
+ */
+function starterMonthlyAccessTermMismatch(
+  subscription: { tier?: string; billingCycle?: string } | null | undefined,
+  daysLeftInPeriod: number | null,
+): boolean {
+  return (
+    subscription?.tier === "STARTER" &&
+    subscription?.billingCycle === "MONTHLY" &&
+    daysLeftInPeriod !== null &&
+    daysLeftInPeriod > 45
+  );
 }
 
 export function BillingSubscriptionWorkspace() {
-  const { currentTier } = usePermissionStore();
+  const { currentTier, workspaceProfile } = usePermissionStore();
+  const isFrontDeskClinic = isFrontDeskWorkspace(workspaceProfile);
 
   const [showContactSalesModal, setShowContactSalesModal] = useState(false);
   const [showTierChangeDialog, setShowTierChangeDialog] = useState(false);
@@ -136,7 +203,8 @@ export function BillingSubscriptionWorkspace() {
   );
   const plansRef = useRef<HTMLDivElement>(null);
 
-  const { checkoutTier } = useSubscriptionCheckout((data) => {
+  const { checkoutTier, isProcessing: isCheckoutProcessing } =
+    useSubscriptionCheckout((data) => {
     setSuccessData(data);
     setShowSuccessModal(true);
     setShowTierChangeDialog(false);
@@ -165,6 +233,14 @@ export function BillingSubscriptionWorkspace() {
           ),
         )
       : null;
+  const displayBillingPeriod =
+    subscription?.subscriptionStatus === "ACTIVE"
+      ? getDisplayBillingPeriodEndAndDaysLeft(subscription)
+      : null;
+  const planStripPeriodEnd =
+    displayBillingPeriod?.periodEnd ?? subscriptionPeriodEnd;
+  const planStripDaysLeft =
+    displayBillingPeriod?.daysLeft ?? daysLeftInPeriod;
   const isTrialing = subscriptionStatus === "TRIALING";
   const isTrialExpired =
     isTrialing && subscriptionPeriodEnd !== null
@@ -175,6 +251,12 @@ export function BillingSubscriptionWorkspace() {
     subscriptionStatus === "PAST_DUE" || subscriptionStatus === "PAYMENT_DUE";
   const isInGracePeriod = subscriptionStatus === "GRACE";
   const effectiveCurrentTier = isTrialExpired ? Tier.STARTER : currentTier;
+  const starterLongMonthlyWindow = starterMonthlyAccessTermMismatch(
+    subscription,
+    planStripDaysLeft,
+  );
+  /** Date row label only; do not drive billing copy (paid Starter can have a long prepaid window). */
+  const showStarterAccessThroughLabel = starterLongMonthlyWindow;
 
   const handleSelectTier = useCallback(
     (tier: TierName, cycle: "MONTHLY" | "YEARLY") => {
@@ -200,17 +282,9 @@ export function BillingSubscriptionWorkspace() {
     plansRef.current?.scrollIntoView({ behavior: "smooth", block: "start" });
   }, []);
 
-  const featuresByTier = PLAN_ORDER.map((tier) => ({
+  const planCards = PLAN_ORDER.map((tier) => ({
     tier,
     info: getTierInfo(tier),
-    features: Object.entries(FEATURE_TIER_MAP)
-      .filter(([, requiredTier]) => requiredTier === tier)
-      .map(([feature, requiredTier]) => ({
-        feature: feature as Feature,
-        details: getFeatureDetails(feature as Feature),
-        hasAccess: effectiveCurrentTier >= requiredTier,
-      }))
-      .filter((entry) => entry.details.isGenerallyAvailable),
   }));
 
   const currentPlanStatusNotice = isSubscriptionExpired
@@ -246,29 +320,21 @@ export function BillingSubscriptionWorkspace() {
         : isTrialing || isTrialExpired
           ? {
               title: isTrialExpired ? "Trial Ended" : "Trial In Progress",
-              badgeLabel: isTrialExpired ? "Free Plan" : "Trial Active",
+              badgeLabel: isTrialExpired ? "Starter" : "Trial Active",
               description: isTrialExpired
-                ? "Your trial has ended and your facility is now on the Free plan. Upgrade to continue paid features."
-                : daysLeftInPeriod !== null && daysLeftInPeriod > 0
-                  ? `${daysLeftInPeriod} day${daysLeftInPeriod !== 1 ? "s" : ""} left in your trial. Upgrade anytime to keep paid features active.`
+                ? "Your trial has ended and your facility is now on the Starter plan. Upgrade to continue paid features."
+                : planStripDaysLeft !== null && planStripDaysLeft > 0
+                  ? "Upgrade anytime to keep paid features after the trial."
                   : "Your trial ends today. Upgrade anytime to keep paid features active.",
               variant: isTrialExpired
                 ? ("warning" as const)
                 : ("default" as const),
             }
           : subscriptionStatus === "ACTIVE"
-            ? {
-                title: "Subscription Active",
-                badgeLabel: "Active",
-                description:
-                  daysLeftInPeriod !== null
-                    ? `${daysLeftInPeriod} day${daysLeftInPeriod === 1 ? "" : "s"} remaining in this billing period.`
-                    : "Your paid subscription is active.",
-                variant: "default" as const,
-              }
+            ? undefined
             : {
-                title: "Starter Plan Active",
-                badgeLabel: "Free",
+                title: "Starter plan",
+                badgeLabel: "Starter",
                 description:
                   "Your clinic is on the Starter plan. Choose a paid plan when you need higher limits or advanced workflows.",
                 variant: "default" as const,
@@ -279,7 +345,7 @@ export function BillingSubscriptionWorkspace() {
     { label: "Status", value: formatStatusLabel(subscriptionStatus) },
     {
       label: "Billing",
-      value: formatBillingCycle(subscription?.billingCycle),
+      value: formatPlanBillingDetail(subscription, subscriptionStatus),
     },
     {
       label:
@@ -287,12 +353,14 @@ export function BillingSubscriptionWorkspace() {
           ? "Trial Ends"
           : subscription?.cancelAtPeriodEnd
             ? "Ends On"
-            : "Renews On",
+            : showStarterAccessThroughLabel
+              ? "Access through"
+              : "Renews On",
       value:
-        subscriptionPeriodEnd !== null
-          ? `${formatPlanDate(subscription?.currentPeriodEnd)}${
-              daysLeftInPeriod !== null
-                ? ` (${daysLeftInPeriod} day${daysLeftInPeriod === 1 ? "" : "s"} left)`
+        planStripPeriodEnd !== null
+          ? `${formatPlanDate(planStripPeriodEnd.toISOString())}${
+              planStripDaysLeft !== null
+                ? ` (${planStripDaysLeft} day${planStripDaysLeft === 1 ? "" : "s"} left)`
                 : ""
             }`
           : "Not scheduled",
@@ -315,24 +383,56 @@ export function BillingSubscriptionWorkspace() {
         isUsageLoading={isUsageLoading}
         hasUsageError={!!usageError}
         statusNotice={currentPlanStatusNotice}
+        showWhatsAppUsageMeter={subscription?.tier !== "STARTER"}
       />
+
+      <p className="w-full max-w-none text-pretty text-[var(--fs-2xs)] leading-relaxed text-muted-foreground">
+        {BILLING_USAGE_AND_OVERAGE_EXPLAINER}
+      </p>
+
+      <UsageDashboard />
 
       <div
         ref={plansRef}
         id="billing-plans-section"
         className="scroll-mt-6 space-y-4"
       >
-        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
-          <div>
+        <div className="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between sm:gap-6">
+          <div className="min-w-0 space-y-2">
             <h2 className="ui-section-title text-[var(--fs-xl)]">
               Choose a plan
             </h2>
-            <p className="ui-page-subtitle">
-              Select a plan below. The confirmation step appears only after you
-              choose one.
+            <p className="max-w-prose text-[var(--fs-sm)] leading-relaxed text-muted-foreground">
+              Select a tier to open a short confirmation step before checkout.
+              Each card shows{" "}
+              <span className="font-medium text-foreground">
+                additional usage
+              </span>{" "}
+              rates after included limits. Use{" "}
+              <span className="font-medium text-foreground">Compare plans</span>{" "}
+              below for the full feature matrix.
             </p>
+            {isFrontDeskClinic ? (
+              <Alert className="mt-3 border-border">
+                <Info className="h-4 w-4" aria-hidden />
+                <AlertTitle>Commercial tier vs workspace profile</AlertTitle>
+                <AlertDescription className="text-[var(--fs-sm)] leading-relaxed">
+                  The plans below set subscription limits and pricing. Your
+                  facility is on a{" "}
+                  <span className="font-medium text-foreground">
+                    front desk (appointments and invoices)
+                  </span>{" "}
+                  workspace: clinical EHR modules stay off unless you move to a
+                  full clinical workspace. To change workspace type, use{" "}
+                  <span className="font-medium text-foreground">
+                    Contact sales
+                  </span>{" "}
+                  below so we can align billing and access safely.
+                </AlertDescription>
+              </Alert>
+            ) : null}
           </div>
-          <div className="inline-flex items-center gap-1 rounded-lg border bg-background p-1 self-start sm:self-auto">
+          <div className="inline-flex shrink-0 items-center gap-1 self-start rounded-lg border bg-background p-1 sm:self-auto">
             <Button
               variant={selectedCycle === "MONTHLY" ? "default" : "ghost"}
               size="sm"
@@ -362,23 +462,30 @@ export function BillingSubscriptionWorkspace() {
           </Alert>
         )}
 
-        <div className="grid gap-4 lg:grid-cols-2 xl:grid-cols-4">
-          {featuresByTier.map(({ tier, info, features }) => {
+        <div className="grid gap-4 [grid-template-columns:repeat(auto-fit,minmax(19rem,1fr))]">
+          {planCards.map(({ tier, info }) => {
             const tierName = Tier[tier] as TierName;
             const tierPricingData = pricingConfig?.tiers.find(
               (t) => t.id === tierName,
             );
-            const limits = tierPricingData?.limits;
-            const overageRates =
-              TIER_OVERAGE_RATES_BY_CURRENCY[
-                currency as keyof typeof TIER_OVERAGE_RATES_BY_CURRENCY
-              ]?.[tierName] ?? TIER_OVERAGE_RATES_BY_CURRENCY.INR[tierName];
+            const catalogPricing = getTierPricing(tierName);
+            const resolvedPricing =
+              tierPricingData?.pricing ?? {
+                monthly: catalogPricing.monthly,
+                yearly: catalogPricing.yearly,
+              };
             const currencySymbol =
               PRICING_CURRENCY_SYMBOLS[
                 currency as keyof typeof PRICING_CURRENCY_SYMBOLS
               ] ?? PRICING_CURRENCY_SYMBOLS.INR;
+            const overageRates =
+              TIER_OVERAGE_RATES_BY_CURRENCY[
+                currency as keyof typeof TIER_OVERAGE_RATES_BY_CURRENCY
+              ]?.[tierName] ?? TIER_OVERAGE_RATES_BY_CURRENCY.INR[tierName];
             const whatsappRate =
-              tierName === "ESSENTIAL" || tierName === "PROFESSIONAL"
+              tierName === "ESSENTIAL" ||
+              tierName === "FRONT_DESK" ||
+              tierName === "PROFESSIONAL"
                 ? getWhatsAppAddonPricingByCurrency(
                     tierName,
                     currency as Parameters<
@@ -388,7 +495,9 @@ export function BillingSubscriptionWorkspace() {
                 : 0;
             const overageParts = [
               overageRates?.appointmentRate > 0
-                ? `${currencySymbol}${overageRates.appointmentRate}/consult`
+                ? `${currencySymbol}${overageRates.appointmentRate}${
+                    isFrontDeskClinic ? "/appointment" : "/consult"
+                  }`
                 : null,
               overageRates?.userRate > 0
                 ? `${currencySymbol}${overageRates.userRate}/user`
@@ -397,40 +506,25 @@ export function BillingSubscriptionWorkspace() {
                 ? `${currencySymbol}${whatsappRate}/WA msg`
                 : null,
             ].filter((item): item is string => !!item);
-            const overageHint =
-              overageParts.length > 0
-                ? `Overage meters: ${overageParts.join(", ")}`
-                : undefined;
-            const limitHighlights = [
-              formatLimitLabel(limits?.patients, "patient"),
-              formatLimitLabel(limits?.doctors, "doctor"),
-              limits?.appointments !== undefined
-                ? `${formatLimitValue(limits.appointments)} consults/mo`
-                : undefined,
-              limits?.storage !== undefined
-                ? `${formatLimitValue(limits.storage)} GB storage`
-                : undefined,
-            ].filter((item): item is string => !!item);
-
             return (
               <TierCard
                 key={tier}
                 tier={tier}
                 info={info}
-                features={features}
+                features={[]}
                 isCurrentTier={tier === effectiveCurrentTier}
                 isLocked={false}
                 currentTierValue={effectiveCurrentTier}
-                pricing={tierPricingData?.pricing}
+                keyHighlights={
+                  PLAN_ONBOARDING_KEY_HIGHLIGHTS[tierName] ?? []
+                }
+                pricing={resolvedPricing}
                 billingCycle={selectedCycle}
                 currencySymbol={currencySymbol}
-                overageHint={overageHint}
-                overageItems={overageParts}
-                bestFor={PLAN_BEST_FOR[tierName]}
-                includedLabel={PLAN_INCLUDED_LABEL[tierName]}
-                limitHighlights={limitHighlights}
-                featureDisplay="detailed"
-                maxDisplay={tier === Tier.STARTER ? 4 : 5}
+                overageItems={
+                  overageParts.length > 0 ? overageParts : undefined
+                }
+                density="summary"
                 buttonLabel={
                   tier === Tier.ENTERPRISE ? "Contact Sales" : undefined
                 }
@@ -445,6 +539,9 @@ export function BillingSubscriptionWorkspace() {
             );
           })}
         </div>
+        <p className="text-[var(--fs-2xs)] leading-snug text-muted-foreground max-w-prose">
+          {SUBSCRIPTION_GST_INCLUSIVE_NOTICE}
+        </p>
       </div>
 
       <Tabs defaultValue="compare" className="w-full">
@@ -483,9 +580,6 @@ export function BillingSubscriptionWorkspace() {
             </p>
           </div>
           <div className="flex gap-3">
-            <Button variant="outline" onClick={scrollToPlans}>
-              View plans
-            </Button>
             <Button onClick={() => setShowContactSalesModal(true)}>
               Contact Sales
             </Button>
@@ -551,6 +645,7 @@ export function BillingSubscriptionWorkspace() {
         billingCycle={selectedCycle}
         currency={currency as SupportedCurrency}
         onConfirm={handleConfirmTierChange}
+        checkoutInFlight={isCheckoutProcessing}
       />
       <PaymentSuccessModal
         open={showSuccessModal}

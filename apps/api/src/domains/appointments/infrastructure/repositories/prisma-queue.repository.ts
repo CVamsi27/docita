@@ -23,6 +23,7 @@ const TOKEN_WITH_RELATIONS_INCLUDE = {
     select: {
       id: true,
       type: true,
+      chiefComplaint: true,
       doctor: { select: { id: true, name: true } },
     },
   },
@@ -42,12 +43,30 @@ export class PrismaQueueRepository implements IQueueRepository {
     toDate: Date,
     doctorId?: string,
     statusIn?: string[],
+    search?: string,
   ): Promise<QueueTokenWithRelations[]> {
     const where = {
       clinicId,
       createdAt: { gte: fromDate, lt: toDate },
       ...(statusIn && statusIn.length > 0 && { status: { in: statusIn } }),
       ...(doctorId && { doctorId }),
+      ...(search
+        ? {
+            OR: [
+              {
+                patient: {
+                  firstName: { contains: search, mode: 'insensitive' },
+                },
+              },
+              {
+                patient: {
+                  lastName: { contains: search, mode: 'insensitive' },
+                },
+              },
+              { patient: { phoneNumber: { contains: search } } },
+            ],
+          }
+        : {}),
     } as Prisma.QueueTokenWhereInput;
 
     return this.getReadClient().queueToken.findMany({

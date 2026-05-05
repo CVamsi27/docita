@@ -133,13 +133,13 @@ export default function VerifyDoctorPage() {
 
     if (!isDoctor) {
       setIsRedirecting(true);
-      router.replace("/dashboard");
+      router.replace("/today");
       return;
     }
 
     if (canContinue) {
       setIsRedirecting(true);
-      router.replace("/dashboard");
+      router.replace("/today");
     }
   }, [authLoading, user, isDoctor, canContinue, router]);
 
@@ -246,7 +246,7 @@ export default function VerifyDoctorPage() {
 
       setIsRedirecting(true);
       await refreshUser();
-      router.replace("/dashboard");
+      router.replace("/today");
     } catch {
       setIsRedirecting(false);
       showUserFacingErrorToast(
@@ -258,7 +258,7 @@ export default function VerifyDoctorPage() {
   if (isRedirecting) {
     return (
       <PageTransitionLoader
-        title="Redirecting to dashboard…"
+        title="Redirecting to your workspace…"
         description="Finalizing your verification state"
       />
     );
@@ -307,21 +307,18 @@ export default function VerifyDoctorPage() {
 
   return (
     <PreDashboardShell currentStep="verify-doctor" contentMaxWidth="max-w-lg">
-      <div className="animate-in fade-in slide-in-from-bottom-4 duration-700 space-y-1">
+      <div className="space-y-1">
         <div className="flex items-center gap-2">
           <ShieldCheck className="h-6 w-6 text-primary" />
           <h1 className="ui-page-title">Profile Verification</h1>
         </div>
         <p className="ui-page-subtitle">
-          Complete your profile before accessing the dashboard. This ensures
+          Complete your profile before accessing your workspace. This ensures
           patient safety and regulatory compliance.
         </p>
       </div>
 
-      <div
-        className="space-y-4 animate-in fade-in slide-in-from-bottom-4 duration-700"
-        style={{ animationDelay: "100ms" }}
-      >
+      <div className="space-y-4">
         <div className="ui-card-surface p-4">
           <div className="flex items-center justify-between mb-3">
             <span className="ui-section-title text-[var(--fs-sm)]">
@@ -647,8 +644,8 @@ export default function VerifyDoctorPage() {
             onClick={handleContinue}
           >
             {!hasSavedRegistration && hasDraftRegistration
-              ? "Register and Continue"
-              : "Continue to Dashboard"}
+              ? "Register and continue"
+              : "Continue to your workspace"}
           </Button>
           {!canContinue && (
             <p className="text-center text-xs text-muted-foreground">

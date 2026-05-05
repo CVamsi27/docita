@@ -1,2 +1,0 @@
-
-export { EmptyState, type EmptyStateProps } from "./empty-state";

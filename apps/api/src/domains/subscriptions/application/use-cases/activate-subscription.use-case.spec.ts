@@ -33,6 +33,7 @@ describe('ActivateSubscriptionUseCase', () => {
     })),
     updatePaymentLink: jest.fn(async () => undefined),
     expireDuplicatePendingCheckouts: jest.fn(async () => 0),
+    expireOtherPendingSubscriptionCheckouts: jest.fn(async () => 0),
     findReusablePendingCheckout: jest.fn(async () => null),
   };
 

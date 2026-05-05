@@ -31,9 +31,13 @@ import {
   FormField,
   FormItem,
 } from "@workspace/ui/components/form";
+import Link from "next/link";
+import { usePermissionStore } from "@/lib/stores/permission-store";
+import { Feature } from "@workspace/types";
+import { SUBSCRIPTION_SETTINGS_PATH } from "@/lib/subscription-settings-path";
 
 const notificationSettingsSchema = z.object({
-  whatsappNotifications: z.boolean(),
+  whatsappNotifications: z.boolean().optional(),
   inAppNotifications: z.boolean(),
 });
 
@@ -45,6 +49,9 @@ export function NotificationSettings() {
   const { data: clinic, isLoading } = useClinicSettings();
   const { mutate: updateSettings, isPending: isSaving } =
     useUpdateClinicSettings();
+  const canWhatsApp = usePermissionStore((s) =>
+    s.canAccess(Feature.WHATSAPP_MESSAGING),
+  );
 
   const form = useForm<NotificationSettingsFormValues>({
     resolver: zodResolver(notificationSettingsSchema),
@@ -76,7 +83,9 @@ export function NotificationSettings() {
     updateSettings(
       {
         pushNotifications: data.inAppNotifications,
-        whatsappAppointmentReminders: data.whatsappNotifications,
+        ...(canWhatsApp && data.whatsappNotifications !== undefined
+          ? { whatsappAppointmentReminders: data.whatsappNotifications }
+          : {}),
       },
       {
         onSuccess: () => {
@@ -101,13 +110,13 @@ export function NotificationSettings() {
         aria-label="Loading notification settings"
       >
         <CardHeader>
-          <Skeleton animation="wave" className="h-6 w-56" />
-          <Skeleton animation="wave" className="mt-2 h-4 w-full max-w-md" />
+          <Skeleton className="h-6 w-56" />
+          <Skeleton className="mt-2 h-4 w-full max-w-md" />
         </CardHeader>
         <CardContent className="space-y-4">
-          <Skeleton animation="wave" className="h-12 w-full rounded-lg" />
-          <Skeleton animation="wave" className="h-12 w-full rounded-lg" />
-          <Skeleton animation="wave" className="h-10 w-32" />
+          <Skeleton className="h-12 w-full rounded-lg" />
+          <Skeleton className="h-12 w-full rounded-lg" />
+          <Skeleton className="h-10 w-32" />
         </CardContent>
       </Card>
     );
@@ -134,31 +143,53 @@ export function NotificationSettings() {
               noValidate
               className="space-y-6"
             >
-              <FormField
-                control={form.control}
-                name="whatsappNotifications"
-                render={({ field }) => (
-                  <FormItem className="flex items-center justify-between space-y-0 p-2">
-                    <div className="flex items-center gap-3">
-                      <Smartphone className="h-4 w-4 text-muted-foreground" />
-                      <div className="space-y-1">
-                        <Label className="text-base">
-                          WhatsApp Notifications
-                        </Label>
-                        <CardDescription>
-                          Receive WhatsApp updates and reminders
-                        </CardDescription>
+              {canWhatsApp ? (
+                <FormField
+                  control={form.control}
+                  name="whatsappNotifications"
+                  render={({ field }) => (
+                    <FormItem className="flex items-center justify-between space-y-0 p-2">
+                      <div className="flex items-center gap-3">
+                        <Smartphone className="h-4 w-4 text-muted-foreground" />
+                        <div className="space-y-1">
+                          <Label className="text-base">
+                            WhatsApp Notifications
+                          </Label>
+                          <CardDescription>
+                            Receive WhatsApp updates and reminders
+                          </CardDescription>
+                        </div>
                       </div>
-                    </div>
-                    <FormControl>
-                      <Switch
-                        checked={field.value}
-                        onCheckedChange={field.onChange}
-                      />
-                    </FormControl>
-                  </FormItem>
-                )}
-              />
+                      <FormControl>
+                        <Switch
+                          checked={field.value ?? true}
+                          onCheckedChange={field.onChange}
+                        />
+                      </FormControl>
+                    </FormItem>
+                  )}
+                />
+              ) : (
+                <div className="rounded-lg border border-border/80 bg-muted/30 p-4 space-y-2">
+                  <div className="flex items-center gap-2">
+                    <Smartphone className="h-4 w-4 text-muted-foreground" />
+                    <span className="text-sm font-medium text-foreground">
+                      WhatsApp notifications
+                    </span>
+                  </div>
+                  <p className="text-sm text-muted-foreground">
+                    WhatsApp messaging is available on Essential and higher plans.
+                    Upgrade to enable automated WhatsApp reminders from this
+                    workspace.
+                  </p>
+                  <Link
+                    href={SUBSCRIPTION_SETTINGS_PATH}
+                    className="text-sm font-medium text-primary underline-offset-4 hover:underline"
+                  >
+                    View plans and billing
+                  </Link>
+                </div>
+              )}
 
               <FormField
                 control={form.control}

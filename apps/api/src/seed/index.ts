@@ -12,7 +12,7 @@ import { seedClinicConfigTemplates } from './seed-clinic-config-templates';
 import { seedBillingAndUsage } from './seed-billing-subscriptions';
 
 async function assertSeedSchemaReady(pool: Pool): Promise<void> {
-  const LATEST_MIGRATION = '20260316000000_fix_schema_drift_post_reset';
+  const LATEST_MIGRATION = '20260502180000_starter_list_price_inr_499';
 
   const result = await pool.query<{ count: string }>(
     `

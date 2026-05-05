@@ -6,6 +6,7 @@ export const tierSchema = z.enum([
   "PROFESSIONAL",
   "ENTERPRISE",
   "INTELLIGENCE",
+  "FRONT_DESK",
 ]);
 export type TierName = z.infer<typeof tierSchema>;
 
@@ -15,6 +16,8 @@ export enum Tier {
   PROFESSIONAL = 2,
   ENTERPRISE = 3,
   INTELLIGENCE = 4,
+  /** Billed SKU; feature gating uses {@link hasFeatureAccess} / {@link FRONT_DESK_BLOCKED_FEATURES}, not raw `>=`. */
+  FRONT_DESK = 5,
 }
 
 export enum Feature {
@@ -70,6 +73,38 @@ export enum Feature {
   PATIENT_SEGMENTATION = "PATIENT_SEGMENTATION",
   ANOMALY_DETECTION = "ANOMALY_DETECTION",
 }
+
+/**
+ * Clinical / multi-doctor features blocked for front-desk workspaces and
+ * {@link TierName} `FRONT_DESK`, regardless of numeric tier ordering.
+ */
+export const FRONT_DESK_BLOCKED_FEATURES: ReadonlySet<Feature> = new Set([
+  Feature.DIGITAL_PRESCRIPTIONS,
+  Feature.MEDICINES_LIST,
+  Feature.PRESCRIPTION_TEMPLATES,
+  Feature.DOCTOR_SIGNATURE,
+  Feature.MEDICAL_CODING,
+  Feature.LEAVE_MANAGEMENT,
+  Feature.LAB_TESTS,
+  Feature.INVENTORY,
+  Feature.INSURANCE_BILLING,
+  Feature.OCR_ADVANCED,
+  Feature.FULL_EHR,
+  Feature.API_ACCESS,
+  Feature.MULTI_LOCATION_ANALYTICS,
+  Feature.CUSTOM_BRANDING,
+  Feature.DATA_WAREHOUSE_EXPORT,
+  Feature.SSO,
+  Feature.BULK_IMPORT_SUITE,
+  Feature.AI_PRESCRIPTION_ASSISTANT,
+  Feature.AI_DIAGNOSIS_HINTS,
+  Feature.SMART_TASK_ENGINE,
+  Feature.PREDICTIVE_NO_SHOW,
+  Feature.PATIENT_SEGMENTATION,
+  Feature.ANOMALY_DETECTION,
+  Feature.MULTI_DOCTOR,
+  Feature.MULTI_CLINIC,
+]);
 
 export const featureSchema = z.nativeEnum(Feature);
 
@@ -200,6 +235,25 @@ export const PRICING_CURRENCY_CONFIG: Record<
   },
 };
 
+/** Free-trial length (days) for unpaid Starter/Essential onboarding and copy alignment. */
+export const SUBSCRIPTION_TRIAL_DAYS = 30 as const;
+
+/** Guided setup list price (whole currency units, not cents) for internal presets and marketing. */
+export const GUIDED_SETUP_LIST_PRICE_BY_CURRENCY: Record<
+  SupportedCurrency,
+  number
+> = {
+  INR: 4999,
+  USD: 60,
+  EUR: 55,
+  GBP: 45,
+  AUD: 90,
+  CAD: 85,
+  SGD: 65,
+  AED: 185,
+  ZAR: 999,
+};
+
 export const tierPricingSchema = z.object({
   monthly: z.union([z.number(), z.literal("custom")]),
   yearly: z.union([z.number(), z.literal("custom")]),
@@ -236,6 +290,7 @@ export const TIER_PRICING_BY_CURRENCY: Record<
   INR: {
     STARTER: buildTierPricing(499),
     ESSENTIAL: buildTierPricing(999),
+    FRONT_DESK: buildTierPricing(799),
     PROFESSIONAL: buildTierPricing(2499),
     ENTERPRISE: buildTierPricing("custom"),
     INTELLIGENCE: buildTierPricing(0),
@@ -243,6 +298,7 @@ export const TIER_PRICING_BY_CURRENCY: Record<
   USD: {
     STARTER: buildTierPricing(9),
     ESSENTIAL: buildTierPricing(19),
+    FRONT_DESK: buildTierPricing(15),
     PROFESSIONAL: buildTierPricing(49),
     ENTERPRISE: buildTierPricing("custom"),
     INTELLIGENCE: buildTierPricing(0),
@@ -250,6 +306,7 @@ export const TIER_PRICING_BY_CURRENCY: Record<
   EUR: {
     STARTER: buildTierPricing(8),
     ESSENTIAL: buildTierPricing(17),
+    FRONT_DESK: buildTierPricing(14),
     PROFESSIONAL: buildTierPricing(45),
     ENTERPRISE: buildTierPricing("custom"),
     INTELLIGENCE: buildTierPricing(0),
@@ -257,6 +314,7 @@ export const TIER_PRICING_BY_CURRENCY: Record<
   GBP: {
     STARTER: buildTierPricing(7),
     ESSENTIAL: buildTierPricing(15),
+    FRONT_DESK: buildTierPricing(12),
     PROFESSIONAL: buildTierPricing(39),
     ENTERPRISE: buildTierPricing("custom"),
     INTELLIGENCE: buildTierPricing(0),
@@ -264,6 +322,7 @@ export const TIER_PRICING_BY_CURRENCY: Record<
   AUD: {
     STARTER: buildTierPricing(14),
     ESSENTIAL: buildTierPricing(29),
+    FRONT_DESK: buildTierPricing(24),
     PROFESSIONAL: buildTierPricing(75),
     ENTERPRISE: buildTierPricing("custom"),
     INTELLIGENCE: buildTierPricing(0),
@@ -271,6 +330,7 @@ export const TIER_PRICING_BY_CURRENCY: Record<
   CAD: {
     STARTER: buildTierPricing(12),
     ESSENTIAL: buildTierPricing(25),
+    FRONT_DESK: buildTierPricing(20),
     PROFESSIONAL: buildTierPricing(65),
     ENTERPRISE: buildTierPricing("custom"),
     INTELLIGENCE: buildTierPricing(0),
@@ -278,6 +338,7 @@ export const TIER_PRICING_BY_CURRENCY: Record<
   SGD: {
     STARTER: buildTierPricing(12),
     ESSENTIAL: buildTierPricing(25),
+    FRONT_DESK: buildTierPricing(20),
     PROFESSIONAL: buildTierPricing(65),
     ENTERPRISE: buildTierPricing("custom"),
     INTELLIGENCE: buildTierPricing(0),
@@ -285,6 +346,7 @@ export const TIER_PRICING_BY_CURRENCY: Record<
   AED: {
     STARTER: buildTierPricing(35),
     ESSENTIAL: buildTierPricing(69),
+    FRONT_DESK: buildTierPricing(55),
     PROFESSIONAL: buildTierPricing(179),
     ENTERPRISE: buildTierPricing("custom"),
     INTELLIGENCE: buildTierPricing(0),
@@ -292,6 +354,7 @@ export const TIER_PRICING_BY_CURRENCY: Record<
   ZAR: {
     STARTER: buildTierPricing(179),
     ESSENTIAL: buildTierPricing(349),
+    FRONT_DESK: buildTierPricing(279),
     PROFESSIONAL: buildTierPricing(899),
     ENTERPRISE: buildTierPricing("custom"),
     INTELLIGENCE: buildTierPricing(0),
@@ -301,6 +364,7 @@ export const TIER_PRICING_BY_CURRENCY: Record<
 export const TIER_PRICING: Record<TierName, TierPricing> = {
   STARTER: { monthly: 499, yearly: deriveAnnualPrice(499), currency: "₹" },
   ESSENTIAL: { monthly: 999, yearly: deriveAnnualPrice(999), currency: "₹" },
+  FRONT_DESK: { monthly: 799, yearly: deriveAnnualPrice(799), currency: "₹" },
   PROFESSIONAL: {
     monthly: 2499,
     yearly: deriveAnnualPrice(2499),
@@ -351,6 +415,18 @@ export const TIER_LIMITS: Record<TierName, TierLimits> = {
     appointments: 500,
     users: 5,
     prescriptions: 999999,
+    invoices: 999999,
+    ocrPages: 500,
+    apiCallsPerDay: 0,
+  },
+  FRONT_DESK: {
+    patients: 999999,
+    doctors: 999999,
+    storageGB: 10,
+    branches: 1,
+    appointments: 500,
+    users: 5,
+    prescriptions: 0,
     invoices: 999999,
     ocrPages: 500,
     apiCallsPerDay: 0,
@@ -629,6 +705,7 @@ export const TIER_OVERAGE_RATES: Record<
 > = {
   STARTER: ZERO_OVERAGE,
   ESSENTIAL: PRO_OVERAGE_RATES_BY_CURRENCY.INR,
+  FRONT_DESK: PRO_OVERAGE_RATES_BY_CURRENCY.INR,
   PROFESSIONAL: CLINIC_OVERAGE_RATES_BY_CURRENCY.INR,
   ENTERPRISE: { ...ZERO_OVERAGE, apiCallRate: 0.01 },
   INTELLIGENCE: ZERO_OVERAGE,
@@ -654,6 +731,7 @@ export const TIER_OVERAGE_RATES_BY_CURRENCY: Record<
   USD: {
     STARTER: ZERO_OVERAGE,
     ESSENTIAL: PRO_OVERAGE_RATES_BY_CURRENCY.USD,
+    FRONT_DESK: PRO_OVERAGE_RATES_BY_CURRENCY.USD,
     PROFESSIONAL: CLINIC_OVERAGE_RATES_BY_CURRENCY.USD,
     ENTERPRISE: { ...ZERO_OVERAGE, apiCallRate: 0.0003 },
     INTELLIGENCE: ZERO_OVERAGE,
@@ -661,6 +739,7 @@ export const TIER_OVERAGE_RATES_BY_CURRENCY: Record<
   EUR: {
     STARTER: ZERO_OVERAGE,
     ESSENTIAL: PRO_OVERAGE_RATES_BY_CURRENCY.EUR,
+    FRONT_DESK: PRO_OVERAGE_RATES_BY_CURRENCY.EUR,
     PROFESSIONAL: CLINIC_OVERAGE_RATES_BY_CURRENCY.EUR,
     ENTERPRISE: { ...ZERO_OVERAGE, apiCallRate: 0.00025 },
     INTELLIGENCE: ZERO_OVERAGE,
@@ -668,6 +747,7 @@ export const TIER_OVERAGE_RATES_BY_CURRENCY: Record<
   GBP: {
     STARTER: ZERO_OVERAGE,
     ESSENTIAL: PRO_OVERAGE_RATES_BY_CURRENCY.GBP,
+    FRONT_DESK: PRO_OVERAGE_RATES_BY_CURRENCY.GBP,
     PROFESSIONAL: CLINIC_OVERAGE_RATES_BY_CURRENCY.GBP,
     ENTERPRISE: { ...ZERO_OVERAGE, apiCallRate: 0.0002 },
     INTELLIGENCE: ZERO_OVERAGE,
@@ -675,6 +755,7 @@ export const TIER_OVERAGE_RATES_BY_CURRENCY: Record<
   AUD: {
     STARTER: ZERO_OVERAGE,
     ESSENTIAL: PRO_OVERAGE_RATES_BY_CURRENCY.AUD,
+    FRONT_DESK: PRO_OVERAGE_RATES_BY_CURRENCY.AUD,
     PROFESSIONAL: CLINIC_OVERAGE_RATES_BY_CURRENCY.AUD,
     ENTERPRISE: { ...ZERO_OVERAGE, apiCallRate: 0.0004 },
     INTELLIGENCE: ZERO_OVERAGE,
@@ -682,6 +763,7 @@ export const TIER_OVERAGE_RATES_BY_CURRENCY: Record<
   CAD: {
     STARTER: ZERO_OVERAGE,
     ESSENTIAL: PRO_OVERAGE_RATES_BY_CURRENCY.CAD,
+    FRONT_DESK: PRO_OVERAGE_RATES_BY_CURRENCY.CAD,
     PROFESSIONAL: CLINIC_OVERAGE_RATES_BY_CURRENCY.CAD,
     ENTERPRISE: { ...ZERO_OVERAGE, apiCallRate: 0.00035 },
     INTELLIGENCE: ZERO_OVERAGE,
@@ -689,6 +771,7 @@ export const TIER_OVERAGE_RATES_BY_CURRENCY: Record<
   SGD: {
     STARTER: ZERO_OVERAGE,
     ESSENTIAL: PRO_OVERAGE_RATES_BY_CURRENCY.SGD,
+    FRONT_DESK: PRO_OVERAGE_RATES_BY_CURRENCY.SGD,
     PROFESSIONAL: CLINIC_OVERAGE_RATES_BY_CURRENCY.SGD,
     ENTERPRISE: { ...ZERO_OVERAGE, apiCallRate: 0.00035 },
     INTELLIGENCE: ZERO_OVERAGE,
@@ -696,6 +779,7 @@ export const TIER_OVERAGE_RATES_BY_CURRENCY: Record<
   AED: {
     STARTER: ZERO_OVERAGE,
     ESSENTIAL: PRO_OVERAGE_RATES_BY_CURRENCY.AED,
+    FRONT_DESK: PRO_OVERAGE_RATES_BY_CURRENCY.AED,
     PROFESSIONAL: CLINIC_OVERAGE_RATES_BY_CURRENCY.AED,
     ENTERPRISE: { ...ZERO_OVERAGE, apiCallRate: 0.0004 },
     INTELLIGENCE: ZERO_OVERAGE,
@@ -703,6 +787,7 @@ export const TIER_OVERAGE_RATES_BY_CURRENCY: Record<
   ZAR: {
     STARTER: ZERO_OVERAGE,
     ESSENTIAL: PRO_OVERAGE_RATES_BY_CURRENCY.ZAR,
+    FRONT_DESK: PRO_OVERAGE_RATES_BY_CURRENCY.ZAR,
     PROFESSIONAL: CLINIC_OVERAGE_RATES_BY_CURRENCY.ZAR,
     ENTERPRISE: { ...ZERO_OVERAGE, apiCallRate: 0.0004 },
     INTELLIGENCE: ZERO_OVERAGE,
@@ -720,6 +805,7 @@ export const WHATSAPP_ADDON_PRICING: Record<
   AddOnPricing
 > = {
   ESSENTIAL: { basePrice: 0, includedQuota: 500, overageRate: 0.75 },
+  FRONT_DESK: { basePrice: 0, includedQuota: 500, overageRate: 0.75 },
   PROFESSIONAL: { basePrice: 0, includedQuota: 2000, overageRate: 0.5 },
   ENTERPRISE: { basePrice: 0, includedQuota: 15000, overageRate: 0.2 },
 };
@@ -729,6 +815,7 @@ export const INTELLIGENCE_ADDON_PRICING: Record<
   AddOnPricing
 > = {
   ESSENTIAL: { basePrice: 0, includedQuota: 0, overageRate: 0 },
+  FRONT_DESK: { basePrice: 0, includedQuota: 0, overageRate: 0 },
   PROFESSIONAL: { basePrice: 0, includedQuota: 0, overageRate: 0 },
   ENTERPRISE: { basePrice: 0, includedQuota: 0, overageRate: 0 },
 };
@@ -740,41 +827,49 @@ export const WHATSAPP_ADDON_PRICING_BY_CURRENCY: Record<
   INR: WHATSAPP_ADDON_PRICING,
   USD: {
     ESSENTIAL: { basePrice: 0, includedQuota: 500, overageRate: 0.02 },
+    FRONT_DESK: { basePrice: 0, includedQuota: 500, overageRate: 0.02 },
     PROFESSIONAL: { basePrice: 0, includedQuota: 2000, overageRate: 0.01 },
     ENTERPRISE: { basePrice: 0, includedQuota: 15000, overageRate: 0.005 },
   },
   EUR: {
     ESSENTIAL: { basePrice: 0, includedQuota: 500, overageRate: 0.02 },
+    FRONT_DESK: { basePrice: 0, includedQuota: 500, overageRate: 0.02 },
     PROFESSIONAL: { basePrice: 0, includedQuota: 2000, overageRate: 0.01 },
     ENTERPRISE: { basePrice: 0, includedQuota: 15000, overageRate: 0.004 },
   },
   GBP: {
     ESSENTIAL: { basePrice: 0, includedQuota: 500, overageRate: 0.015 },
+    FRONT_DESK: { basePrice: 0, includedQuota: 500, overageRate: 0.015 },
     PROFESSIONAL: { basePrice: 0, includedQuota: 2000, overageRate: 0.008 },
     ENTERPRISE: { basePrice: 0, includedQuota: 15000, overageRate: 0.004 },
   },
   AUD: {
     ESSENTIAL: { basePrice: 0, includedQuota: 500, overageRate: 0.03 },
+    FRONT_DESK: { basePrice: 0, includedQuota: 500, overageRate: 0.03 },
     PROFESSIONAL: { basePrice: 0, includedQuota: 2000, overageRate: 0.02 },
     ENTERPRISE: { basePrice: 0, includedQuota: 15000, overageRate: 0.008 },
   },
   CAD: {
     ESSENTIAL: { basePrice: 0, includedQuota: 500, overageRate: 0.03 },
+    FRONT_DESK: { basePrice: 0, includedQuota: 500, overageRate: 0.03 },
     PROFESSIONAL: { basePrice: 0, includedQuota: 2000, overageRate: 0.02 },
     ENTERPRISE: { basePrice: 0, includedQuota: 15000, overageRate: 0.008 },
   },
   SGD: {
     ESSENTIAL: { basePrice: 0, includedQuota: 500, overageRate: 0.03 },
+    FRONT_DESK: { basePrice: 0, includedQuota: 500, overageRate: 0.03 },
     PROFESSIONAL: { basePrice: 0, includedQuota: 2000, overageRate: 0.02 },
     ENTERPRISE: { basePrice: 0, includedQuota: 15000, overageRate: 0.008 },
   },
   AED: {
     ESSENTIAL: { basePrice: 0, includedQuota: 500, overageRate: 0.07 },
+    FRONT_DESK: { basePrice: 0, includedQuota: 500, overageRate: 0.07 },
     PROFESSIONAL: { basePrice: 0, includedQuota: 2000, overageRate: 0.04 },
     ENTERPRISE: { basePrice: 0, includedQuota: 15000, overageRate: 0.02 },
   },
   ZAR: {
     ESSENTIAL: { basePrice: 0, includedQuota: 500, overageRate: 0.35 },
+    FRONT_DESK: { basePrice: 0, includedQuota: 500, overageRate: 0.35 },
     PROFESSIONAL: { basePrice: 0, includedQuota: 2000, overageRate: 0.2 },
     ENTERPRISE: { basePrice: 0, includedQuota: 15000, overageRate: 0.1 },
   },
@@ -785,6 +880,7 @@ const INTELLIGENCE_ZERO_PRICING: Record<
   AddOnPricing
 > = {
   ESSENTIAL: { basePrice: 0, includedQuota: 0, overageRate: 0 },
+  FRONT_DESK: { basePrice: 0, includedQuota: 0, overageRate: 0 },
   PROFESSIONAL: { basePrice: 0, includedQuota: 0, overageRate: 0 },
   ENTERPRISE: { basePrice: 0, includedQuota: 0, overageRate: 0 },
 };
@@ -860,6 +956,7 @@ export const DISCOUNT_CONFIG: Record<
 export const REFERRAL_REWARDS: Record<TierName, number> = {
   STARTER: 0,
   ESSENTIAL: 500,
+  FRONT_DESK: 400,
   PROFESSIONAL: 2500,
   ENTERPRISE: 5000,
   INTELLIGENCE: 0,
@@ -873,6 +970,7 @@ export const REFERRAL_REWARDS_BY_CURRENCY: Record<
   USD: {
     STARTER: 0,
     ESSENTIAL: 15,
+    FRONT_DESK: 12,
     PROFESSIONAL: 60,
     ENTERPRISE: 100,
     INTELLIGENCE: 0,
@@ -880,6 +978,7 @@ export const REFERRAL_REWARDS_BY_CURRENCY: Record<
   EUR: {
     STARTER: 0,
     ESSENTIAL: 12,
+    FRONT_DESK: 10,
     PROFESSIONAL: 50,
     ENTERPRISE: 85,
     INTELLIGENCE: 0,
@@ -887,6 +986,7 @@ export const REFERRAL_REWARDS_BY_CURRENCY: Record<
   GBP: {
     STARTER: 0,
     ESSENTIAL: 10,
+    FRONT_DESK: 8,
     PROFESSIONAL: 45,
     ENTERPRISE: 75,
     INTELLIGENCE: 0,
@@ -894,6 +994,7 @@ export const REFERRAL_REWARDS_BY_CURRENCY: Record<
   AUD: {
     STARTER: 0,
     ESSENTIAL: 22,
+    FRONT_DESK: 18,
     PROFESSIONAL: 90,
     ENTERPRISE: 150,
     INTELLIGENCE: 0,
@@ -901,6 +1002,7 @@ export const REFERRAL_REWARDS_BY_CURRENCY: Record<
   CAD: {
     STARTER: 0,
     ESSENTIAL: 20,
+    FRONT_DESK: 16,
     PROFESSIONAL: 70,
     ENTERPRISE: 120,
     INTELLIGENCE: 0,
@@ -908,6 +1010,7 @@ export const REFERRAL_REWARDS_BY_CURRENCY: Record<
   SGD: {
     STARTER: 0,
     ESSENTIAL: 20,
+    FRONT_DESK: 16,
     PROFESSIONAL: 70,
     ENTERPRISE: 120,
     INTELLIGENCE: 0,
@@ -915,6 +1018,7 @@ export const REFERRAL_REWARDS_BY_CURRENCY: Record<
   AED: {
     STARTER: 0,
     ESSENTIAL: 60,
+    FRONT_DESK: 48,
     PROFESSIONAL: 180,
     ENTERPRISE: 300,
     INTELLIGENCE: 0,
@@ -922,6 +1026,7 @@ export const REFERRAL_REWARDS_BY_CURRENCY: Record<
   ZAR: {
     STARTER: 0,
     ESSENTIAL: 280,
+    FRONT_DESK: 220,
     PROFESSIONAL: 900,
     ENTERPRISE: 1500,
     INTELLIGENCE: 0,
@@ -975,7 +1080,7 @@ export const TIER_INFO: Record<TierName, TierInfo> = {
   STARTER: {
     name: "Starter",
     description: "Basic clinical workflow for solo doctors moving off paper",
-    tagline: "Start clinic digitization",
+    tagline: "Go digital from day one",
     color: "gray",
   },
   ESSENTIAL: {
@@ -1003,6 +1108,13 @@ export const TIER_INFO: Record<TierName, TierInfo> = {
     description: "AI-powered features to enhance your clinic",
     tagline: "AI-Powered Add-on",
     color: "pink",
+  },
+  FRONT_DESK: {
+    name: "Front desk",
+    description:
+      "Reception-first scheduling, queue, and billing without full clinical workflows in-app",
+    tagline: "Reception and operations",
+    color: "teal",
   },
 };
 
@@ -1309,14 +1421,28 @@ export const TIER_FEATURES: Record<TierName, string[]> = {
     "Dedicated account manager",
     "Custom SLA guarantee",
   ],
+  FRONT_DESK: [
+    "Appointment scheduling and queue",
+    "Patient check-in and basic profiles",
+    "Invoicing and payment links",
+    "WhatsApp messaging within plan limits",
+    "Admin and receptionist roles",
+    "Schedule-only doctor profiles (no app login)",
+  ],
   INTELLIGENCE: [],
 };
 
 export function getTierValue(tierName: TierName): Tier {
+  if (tierName === "FRONT_DESK") {
+    return Tier.FRONT_DESK;
+  }
   return Tier[tierName];
 }
 
 export function getTierName(tier: Tier): TierName {
+  if (tier === Tier.FRONT_DESK) {
+    return "FRONT_DESK";
+  }
   return Tier[tier] as TierName;
 }
 
@@ -1335,6 +1461,13 @@ export function hasFeatureAccess(
     return hasIntelligence;
   }
 
+  if (tier === "FRONT_DESK") {
+    if (FRONT_DESK_BLOCKED_FEATURES.has(feature)) {
+      return false;
+    }
+    return Tier.ESSENTIAL >= requiredTier;
+  }
+
   return getTierValue(tier) >= requiredTier;
 }
 
@@ -1345,18 +1478,19 @@ export function isFeatureGenerallyAvailable(feature: Feature): boolean {
   return display.comingSoon !== true;
 }
 
+/**
+ * Generally available {@link Feature} values enabled for this billed tier,
+ * derived only from {@link hasFeatureAccess} (same rules as API feature guards).
+ */
 export function getFeaturesForTier(tier: TierName): Feature[] {
-  const tierValue = getTierValue(tier);
-  return Object.entries(FEATURE_TIER_MAP)
-    .filter(([, requiredTier]) => requiredTier === tierValue)
-    .map(([feature]) => feature as Feature);
+  return (Object.keys(FEATURE_TIER_MAP) as Feature[]).filter((feature) =>
+    hasFeatureAccess(tier, feature, false),
+  );
 }
 
+/** Alias of {@link getFeaturesForTier}; cumulative SKUs use the same access set. */
 export function getAllFeaturesUpToTier(tier: TierName): Feature[] {
-  const tierValue = getTierValue(tier);
-  return Object.entries(FEATURE_TIER_MAP)
-    .filter(([, requiredTier]) => requiredTier <= tierValue)
-    .map(([feature]) => feature as Feature);
+  return getFeaturesForTier(tier);
 }
 
 export function getIntelligenceBundlePrice(): number {

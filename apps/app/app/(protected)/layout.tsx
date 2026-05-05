@@ -3,6 +3,8 @@
 import { useState, useEffect, useRef } from "react";
 import { useRouter, usePathname } from "next/navigation";
 import {
+  AskAiOverlay,
+  AskAiProvider,
   FloatingStartConsultation,
   RealtimeProviders,
   Sidebar,
@@ -23,7 +25,7 @@ import { ErrorBoundaryWrapper } from "@/components/common/error-boundary";
 import { useAuth } from "@/lib/auth-context";
 import { useAPIQuery } from "@/lib/api-core";
 import type { TierName, User } from "@workspace/types";
-import { APP_ACCESS_TARGETS } from "@workspace/types";
+import { APP_ACCESS_TARGETS, SUBSCRIPTION_TRIAL_DAYS } from "@workspace/types";
 import { ThemeToggleWithAppearanceSync } from "@/features/_shared/components/layout/theme-toggle-with-appearance-sync";
 import { Skeleton } from "@workspace/ui/components/skeleton";
 import { DocitaLogo } from "@workspace/ui/components/docita-logo";
@@ -51,6 +53,8 @@ import {
   isPastSubscriptionGraceDeadline,
 } from "@/lib/subscription-lockout";
 import { SUBSCRIPTION_SETTINGS_PATH } from "@/lib/subscription-settings-path";
+import { FeatureFlagsProvider } from "@/features/_shared/hooks/use-feature-flag";
+import { persistReturnPathBeforeLogin } from "@/lib/safe-return-path";
 
 const SUBSCRIPTION_ALLOWED_PATHS = ["/settings", "/login", "/billing-locked"];
 const VERIFICATION_ALLOWED_PATHS = ["/verify-doctor", "/login"];
@@ -154,7 +158,7 @@ function SubscriptionGuard({ children }: { children: React.ReactNode }) {
 function PageAccessGuard({ children }: { children: React.ReactNode }) {
   const { user } = useAuth();
   const { clinic } = useClinic();
-  const { canAccess } = usePermissionStore();
+  const { canAccess, workspaceProfile } = usePermissionStore();
   const pathname = usePathname();
   const router = useRouter();
 
@@ -163,7 +167,7 @@ function PageAccessGuard({ children }: { children: React.ReactNode }) {
 
     const target = getAccessTargetForPath(pathname);
     if (!target) {
-      router.replace("/dashboard");
+      router.replace("/today");
       return;
     }
 
@@ -179,14 +183,15 @@ function PageAccessGuard({ children }: { children: React.ReactNode }) {
       {
         role: user.role,
         canAccessFeature: canAccess,
+        workspaceProfile,
       },
       "read",
     );
 
     if (!hasAccess) {
-      router.replace("/dashboard");
+      router.replace("/today");
     }
-  }, [canAccess, clinic, pathname, router, user?.role]);
+  }, [canAccess, clinic, pathname, router, user?.role, workspaceProfile]);
 
   return <>{children}</>;
 }
@@ -206,7 +211,7 @@ function MobileHeader({ onMenuClick }: { onMenuClick: () => void }) {
       {isConsultationDetailRoute ? (
         <div className="min-w-0 flex-1" aria-hidden="true" />
       ) : canGoBack ? (
-        <BackButton fallback="/dashboard" iconOnly className="px-2" />
+        <BackButton fallback="/today" iconOnly className="px-2" />
       ) : (
         <div className="flex h-10 items-center">
           <DocitaLogo />
@@ -242,28 +247,45 @@ function SubscriptionLockNotice() {
     trialEnd && Number.isFinite(trialEnd.getTime())
       ? formatDate(trialEnd, "en-IN")
       : null;
+  const trialDaysLeft =
+    isTrialing && trialEnd && Number.isFinite(trialEnd.getTime())
+      ? Math.max(
+          0,
+          Math.ceil((trialEnd.getTime() - Date.now()) / (1000 * 60 * 60 * 24)),
+        )
+      : null;
+  const graceUntilRaw = clinic?.subscriptionGraceUntil;
+  const graceUntil =
+    graceUntilRaw !== undefined && graceUntilRaw !== null
+      ? new Date(graceUntilRaw)
+      : null;
+  const graceUntilText =
+    graceUntil && Number.isFinite(graceUntil.getTime())
+      ? formatDate(graceUntil, "en-IN")
+      : null;
+  const pastGraceDeadline = clinic
+    ? isPastSubscriptionGraceDeadline(clinic)
+    : false;
   const title = isExpired
     ? "Subscription Expired: Workspace Locked"
-    : isGrace || isPastDue || isPaused
-      ? "Payment Grace Period: Access Restricted"
-      : isTrialing
-        ? "Trial Active: Payment Not Completed"
-        : "Payment Required";
+    : isPaused
+      ? "Subscription Paused"
+      : isGrace || isPastDue
+        ? "Payment Grace Period: Access Restricted"
+        : isTrialing
+          ? trialDaysLeft !== null && trialDaysLeft <= 3
+            ? "Trial ending soon"
+            : "Trial active: payment not completed"
+          : "Payment required";
   const description = isExpired
     ? "This facility is locked until payment is completed. You can still open billing under Settings, Subscription to restore access."
-    : isGrace
-      ? "A missed payment has placed this facility in grace period. Resolve payment now to avoid full lockout."
-      : isPastDue
-        ? "Your payment is overdue. Resolve payment now to keep Docita access active."
-        : isPaused
-          ? "This subscription is paused. Resolve billing to restore full access."
-      : isTrialing
-        ? `Your ${trialTierLabel} trial is active${trialEndText ? ` until ${trialEndText}` : ""}. ${
-            clinic?.tier === "STARTER"
-              ? "Upgrade to a paid plan when you need higher limits."
-              : "Add payment to keep full access after the trial ends."
-          }`
-        : "Your subscription needs billing attention. Resolve payment to keep Docita access active.";
+    : isGrace || isPastDue
+      ? `${isPastDue ? "Your payment is overdue." : "Payment is still unresolved."}${graceUntilText && !pastGraceDeadline ? ` Resolve by ${graceUntilText} or staff access may pause until a billing admin completes payment under Settings, Subscription.` : " Resolve payment now to keep Docita access active."}`
+      : isPaused
+        ? "This subscription is paused. Resolve billing to restore full access."
+        : isTrialing
+          ? `${trialTierLabel} plan: ${trialDaysLeft !== null ? `${trialDaysLeft} day${trialDaysLeft === 1 ? "" : "s"} left in your trial` : "trial active"}${trialEndText ? ` (ends ${trialEndText})` : ""}. Your trial includes a ${SUBSCRIPTION_TRIAL_DAYS}-day evaluation period. Add payment before the trial ends to avoid entering a payment grace period.`
+          : "Your subscription needs billing attention. Resolve payment to keep Docita access active.";
 
   return (
     <div className="border-b bg-background px-4 py-3 md:px-6">
@@ -295,11 +317,9 @@ function SubscriptionLockNotice() {
             onClick={() => router.push(SUBSCRIPTION_SETTINGS_PATH)}
             className="self-start sm:self-auto"
           >
-            {isTrialing && clinic?.tier === "STARTER"
-              ? "View plans"
-              : isTrialing
-                ? "Add Payment"
-                : "Resolve Payment"}
+            {isTrialing
+              ? "Billing & subscription"
+              : "Resolve Payment"}
           </Button>
         </AlertDescription>
       </Alert>
@@ -330,6 +350,7 @@ export default function ProtectedLayout({
     if (isLoading) return;
     if (!user) {
       setRedirectMessage("Your session is missing. Redirecting to login…");
+      persistReturnPathBeforeLogin();
       router.replace("/login");
       return;
     }
@@ -386,12 +407,11 @@ export default function ProtectedLayout({
         aria-label="Loading workspace"
       >
         <div className="hidden md:flex w-[18%] min-w-[200px] flex-col border-r p-4 gap-4">
-          <Skeleton animation="wave" className="h-8 w-32" />
+          <Skeleton className="h-8 w-32" />
           <div className="flex flex-col gap-2 mt-4">
             {Array.from({ length: 8 }).map((_, i) => (
               <Skeleton
                 key={i}
-                animation="wave"
                 className="h-9 w-full rounded-md"
               />
             ))}
@@ -399,21 +419,20 @@ export default function ProtectedLayout({
         </div>
         <div className="flex-1 flex flex-col">
           <div className="h-14 border-b flex items-center px-6 gap-4 md:hidden">
-            <Skeleton animation="wave" className="h-8 w-8 rounded-md" />
-            <Skeleton animation="wave" className="h-6 w-24" />
+            <Skeleton className="h-8 w-8 rounded-md" />
+            <Skeleton className="h-6 w-24" />
           </div>
           <div className="flex-1 p-4 md:p-6 flex flex-col gap-4">
-            <Skeleton animation="wave" className="h-8 w-48" />
+            <Skeleton className="h-8 w-48" />
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
               {Array.from({ length: 4 }).map((_, i) => (
                 <Skeleton
                   key={i}
-                  animation="wave"
                   className="h-28 rounded-lg"
                 />
               ))}
             </div>
-            <Skeleton animation="wave" className="h-64 rounded-lg" />
+            <Skeleton className="h-64 rounded-lg" />
           </div>
         </div>
       </div>
@@ -432,9 +451,11 @@ export default function ProtectedLayout({
   return (
     <RealtimeProviders>
       <ClinicProvider>
+        <FeatureFlagsProvider>
         <DoctorVerificationGuard>
           <SubscriptionGuard>
             <PageAccessGuard>
+             <AskAiProvider>
               <div className="flex h-screen overflow-hidden bg-background">
                 <ResizablePanelGroup direction="horizontal">
                   <ResizablePanel
@@ -522,9 +543,12 @@ export default function ProtectedLayout({
               </div>
               <FloatingStartConsultation />
               <CommandPalette />
+              <AskAiOverlay />
+             </AskAiProvider>
             </PageAccessGuard>
           </SubscriptionGuard>
         </DoctorVerificationGuard>
+        </FeatureFlagsProvider>
       </ClinicProvider>
     </RealtimeProviders>
   );

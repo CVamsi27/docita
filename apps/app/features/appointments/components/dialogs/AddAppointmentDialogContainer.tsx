@@ -13,17 +13,23 @@ type SelectOption = {
 interface AddAppointmentDialogContainerProps {
   onAppointmentAdded: (appointment: Appointment) => void | Promise<void>;
   selectedDate?: Date;
+  onAdjustSchedulingDate?: (next: Date) => void;
   open?: boolean;
   onOpenChange?: (open: boolean) => void;
   preselectedPatientId?: string;
+  defaultDoctorId?: string;
+  mode?: "standard" | "walk-in";
 }
 
 export function AddAppointmentDialogContainer({
   onAppointmentAdded,
   selectedDate,
+  onAdjustSchedulingDate,
   open: controlledOpen,
   onOpenChange: controlledOnOpenChange,
   preselectedPatientId,
+  defaultDoctorId,
+  mode = "standard",
 }: AddAppointmentDialogContainerProps) {
   const [internalOpen, setInternalOpen] = useState(false);
   const [patientComboboxOpen, setPatientComboboxOpen] = useState(false);
@@ -73,6 +79,11 @@ export function AddAppointmentDialogContainer({
   const {
     form,
     loading,
+    isResolvingDefaultSlot,
+    availabilitySlotsReady,
+    availabilitySlots,
+    clinicTimezone,
+    blockingAppointmentsForSlots,
     patients,
     patientsLoading,
     patientSearch,
@@ -83,7 +94,9 @@ export function AddAppointmentDialogContainer({
   } = useAppointmentForm({
     onAppointmentAdded,
     selectedDate,
+    onAdjustSchedulingDate,
     preselectedPatientId,
+    defaultDoctorId,
     startHour,
     endHour,
     open,
@@ -93,6 +106,7 @@ export function AddAppointmentDialogContainer({
     <AddAppointmentDialogUI
       open={open}
       onOpenChange={setOpen}
+      mode={mode}
       form={form}
       loading={loading}
       patients={patients}
@@ -107,6 +121,13 @@ export function AddAppointmentDialogContainer({
       setPatientComboboxOpen={setPatientComboboxOpen}
       startHour={startHour}
       endHour={endHour}
+      isResolvingDefaultSlot={isResolvingDefaultSlot}
+      selectedDate={selectedDate}
+      availabilitySlotsReady={availabilitySlotsReady}
+      availabilitySlots={availabilitySlots}
+      clinicTimezone={clinicTimezone}
+      blockingAppointmentsForSlots={blockingAppointmentsForSlots}
+      onAdjustSchedulingDate={onAdjustSchedulingDate}
     />
   );
 }

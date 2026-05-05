@@ -165,11 +165,12 @@ export class R2StorageProvider extends StorageProvider {
     objectKey: string,
     expiresInSeconds: number,
   ): Promise<string> {
+    const ttl = this.assertSignedUrlTtl(expiresInSeconds);
     const command = new GetObjectCommand({
       Bucket: this.bucket,
       Key: objectKey,
     });
 
-    return getSignedUrl(this.client, command, { expiresIn: expiresInSeconds });
+    return getSignedUrl(this.client, command, { expiresIn: ttl });
   }
 }

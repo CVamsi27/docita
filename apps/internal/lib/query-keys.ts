@@ -10,6 +10,12 @@ export const internalQueryKeys = {
     billingMetrics: () => ["internal", "billing", "metrics"] as const,
     monitoringDashboard: () => ["internal", "monitoring", "dashboard"] as const,
     monitoringHealth: () => ["internal", "monitoring", "health"] as const,
+    monitoringWebVitals: (window: string, variant: string) =>
+      ["internal", "monitoring", "web-vitals", window, variant] as const,
+    monitoringSecuritySummary: (window: string, variant: string) =>
+      ["internal", "monitoring", "security", window, variant] as const,
+    monitoringQueueHealth: () =>
+      ["internal", "monitoring", "queue-health"] as const,
     analytics: (params: string) =>
       ["internal", "analytics", params] as const,
     logs: (params: string) => ["internal", "logs", params] as const,
@@ -38,6 +44,8 @@ export const internalQueryKeys = {
     tenantScopeDiagnostics: () =>
       ["internal", "operations", "database", "tenant-scope"] as const,
     pricingTiers: () => ["internal", "pricing", "tiers"] as const,
+    billingPricingOffers: () =>
+      ["internal", "billing", "pricing", "offers"] as const,
     clinicDoctors: (clinicId: string) =>
       ["internal", "clinics", clinicId, "doctors"] as const,
     clinicAdmins: (clinicId: string) =>

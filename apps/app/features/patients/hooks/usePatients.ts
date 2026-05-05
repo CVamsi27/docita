@@ -1,49 +1,58 @@
+"use client";
+
 import { useQuery } from "@tanstack/react-query";
 import { patientsApi } from "@/features/patients/api/patients.api";
-import type {
-  CreateMetricCategoryInput,
-  CreateMetricDefinitionInput,
-  CreatePatientInput,
-  CreatePatientMetricValueInput,
-  MetricHistoryQueryInput,
-  UpdatePatientInput,
-  UpsertMetricSelectionsInput,
+import {
+  Feature,
+  type CreateMetricCategoryInput,
+  type CreateMetricDefinitionInput,
+  type CreatePatientInput,
+  type CreatePatientMetricValueInput,
+  type MetricHistoryQueryInput,
+  type UpdatePatientInput,
+  type UpsertMetricSelectionsInput,
 } from "@workspace/types";
 import { queryKeys } from "@workspace/data-access";
 import { useAppMutation } from "@/lib/query-hooks";
+import { useTierFeatureEnabled } from "@/hooks/api/tier-feature-guards";
 
 export function usePatients(params?: {
   limit?: number;
   page?: number;
   search?: string;
 }) {
+  const tierPatientsOk = useTierFeatureEnabled(Feature.BASIC_PATIENT_MANAGEMENT);
   return useQuery({
     queryKey: queryKeys.patients.list(params),
     queryFn: () => patientsApi.getAll(params),
+    enabled: tierPatientsOk,
   });
 }
 
 export function usePatient(id: string) {
+  const tierPatientsOk = useTierFeatureEnabled(Feature.BASIC_PATIENT_MANAGEMENT);
   return useQuery({
     queryKey: queryKeys.patients.detail(id),
     queryFn: () => patientsApi.getById(id),
-    enabled: !!id,
+    enabled: tierPatientsOk && !!id,
   });
 }
 
 export function usePatientMedicalHistory(id: string) {
+  const tierPatientsOk = useTierFeatureEnabled(Feature.BASIC_PATIENT_MANAGEMENT);
   return useQuery({
     queryKey: queryKeys.patients.medicalHistory(id),
     queryFn: () => patientsApi.getMedicalHistory(id),
-    enabled: !!id,
+    enabled: tierPatientsOk && !!id,
   });
 }
 
 export function usePatientMetricCategories(id: string) {
+  const tierPatientsOk = useTierFeatureEnabled(Feature.BASIC_PATIENT_MANAGEMENT);
   return useQuery({
     queryKey: queryKeys.patients.metrics.categories(id),
     queryFn: () => patientsApi.getMetricCategories(id),
-    enabled: !!id,
+    enabled: tierPatientsOk && !!id,
   });
 }
 
@@ -51,18 +60,20 @@ export function usePatientMetricHistory(
   id: string,
   query?: MetricHistoryQueryInput,
 ) {
+  const tierPatientsOk = useTierFeatureEnabled(Feature.BASIC_PATIENT_MANAGEMENT);
   return useQuery({
     queryKey: queryKeys.patients.metrics.history(id, query),
     queryFn: () => patientsApi.getMetricHistory(id, query),
-    enabled: !!id,
+    enabled: tierPatientsOk && !!id,
   });
 }
 
 export function usePatientSelectedMetrics(id: string) {
+  const tierPatientsOk = useTierFeatureEnabled(Feature.BASIC_PATIENT_MANAGEMENT);
   return useQuery({
     queryKey: queryKeys.patients.metrics.selected(id),
     queryFn: () => patientsApi.getSelectedMetrics(id),
-    enabled: !!id,
+    enabled: tierPatientsOk && !!id,
   });
 }
 

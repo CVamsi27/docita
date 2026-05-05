@@ -27,8 +27,20 @@ export const createPrescriptionRequestSchema = createPrescriptionSchema.extend({
 export const listPrescriptionsQuerySchema = z.object({
   search: z.string().optional(),
   date: z.string().optional(),
+  startDate: z.string().optional(),
+  endDate: z.string().optional(),
   patientId: z.string().min(1).optional(),
   limit: z.coerce.number().int().positive().max(100).optional(),
+}).superRefine((value, ctx) => {
+  const hasStart = typeof value.startDate === "string" && value.startDate.length > 0;
+  const hasEnd = typeof value.endDate === "string" && value.endDate.length > 0;
+  if (hasStart !== hasEnd) {
+    ctx.addIssue({
+      code: z.ZodIssueCode.custom,
+      message: "startDate and endDate must be provided together",
+      path: hasStart ? ["endDate"] : ["startDate"],
+    });
+  }
 });
 
 export type PrescriptionContractResponse = z.infer<typeof prescriptionResponseSchema>;

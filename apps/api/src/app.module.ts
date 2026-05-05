@@ -60,6 +60,15 @@ import { UserRateLimitGuard } from './shared/modules/auth/guards/user-rate-limit
 import { CsrfInterceptor } from './shared/modules/interceptors/csrf.interceptor';
 import { RateLimitInterceptor } from './common/interceptors/rate-limit.interceptor';
 import { TimeoutInterceptor } from './shared/modules/interceptors/timeout.interceptor';
+import { buildPinoOptions } from './shared/modules/observability/pino-options.factory';
+import { IdempotencyModule } from './shared/modules/idempotency';
+import {
+  TenantRateLimitGuard,
+  TenantRateLimitModule,
+} from './shared/modules/tenant-rate-limit';
+import { WebhooksModule } from './shared/modules/webhooks';
+import { RlsModule } from './shared/modules/rls';
+import { FeatureFlagsModule } from './shared/modules/feature-flags';
 
 import { EventsModule } from './common/events/events.module';
 import { CommonServicesModule } from './shared/modules/services/common-services.module';
@@ -70,6 +79,7 @@ import { MedicalDocumentsModule } from './domains/medical-documents/medical-docu
 import { InventoryModule } from './domains/inventory/inventory.module';
 import { LeaveModule } from './domains/leave/leave.module';
 import { IpdModule } from './domains/ipd/ipd.module';
+import { PublicBookingModule } from './domains/public-booking/public-booking.module';
 
 @Module({
   imports: [
@@ -84,20 +94,9 @@ import { IpdModule } from './domains/ipd/ipd.module';
       imports: [AppConfigModule],
       inject: [AppConfigService],
       useFactory: (configService: AppConfigService) => ({
-        pinoHttp: {
-          level: configService.isProduction() ? 'info' : 'debug',
-          transport: !configService.isProduction()
-            ? { target: 'pino-pretty' }
-            : undefined,
-          autoLogging: false,
-          serializers: {
-            req: (req: Record<string, unknown>) => ({
-              id: req.id,
-              method: req.method,
-              url: req.url,
-            }),
-          },
-        },
+        pinoHttp: buildPinoOptions({
+          isProduction: configService.isProduction(),
+        }),
       }),
     }),
     PrometheusModule.register({
@@ -132,6 +131,11 @@ import { IpdModule } from './domains/ipd/ipd.module';
     EventsModule,
     CommonServicesModule,
     CacheConfigModule,
+    IdempotencyModule,
+    TenantRateLimitModule,
+    WebhooksModule,
+    RlsModule,
+    FeatureFlagsModule,
     ...(process.env.NODE_ENV === 'production'
       ? []
       : [
@@ -177,6 +181,7 @@ import { IpdModule } from './domains/ipd/ipd.module';
     InventoryModule,
     LeaveModule,
     IpdModule,
+    PublicBookingModule,
   ],
   controllers: [AppController],
   providers: [
@@ -193,6 +198,10 @@ import { IpdModule } from './domains/ipd/ipd.module';
     {
       provide: APP_GUARD,
       useClass: TenantGuard,
+    },
+    {
+      provide: APP_GUARD,
+      useClass: TenantRateLimitGuard,
     },
     {
       provide: APP_GUARD,

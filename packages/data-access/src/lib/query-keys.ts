@@ -59,6 +59,8 @@ export const queryKeys = {
     list: (params?: QueryParams) =>
       ["invoices", "list", withParams(params)] as const,
     detail: (id: string) => ["invoices", "detail", id] as const,
+    paymentActivity: (id: string) =>
+      ["invoices", id, "payment-activity"] as const,
   },
   analytics: {
     overview: () => ["analytics", "overview"] as const,
@@ -88,5 +90,21 @@ export const queryKeys = {
       ["top-conditions", clinicId, limit] as const,
     auditLogs: (params?: QueryParams) =>
       ["audit-logs", withParams(params)] as const,
+  },
+  /** Anonymous /book/[referralCode] flow (skipAuth); keep keys stable for invalidation. */
+  publicBooking: {
+    clinic: (referralCode: string) =>
+      ["public-booking", "clinic", referralCode] as const,
+    doctors: (referralCode: string) =>
+      ["public-booking", "doctors", referralCode] as const,
+    slots: (referralCode: string, doctorId: string, date: string) =>
+      ["public-booking", "slots", referralCode, doctorId, date] as const,
+    context: (referralCode: string, bookingVerificationToken: string | null) =>
+      [
+        "public-booking",
+        "context",
+        referralCode,
+        bookingVerificationToken,
+      ] as const,
   },
 } as const;

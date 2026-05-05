@@ -33,7 +33,7 @@ export class TenantContextInterceptor implements NestInterceptor {
       }
 
       return from(
-        tenantStorage.run({ bypassed: true, userId: user.id }, () =>
+        tenantStorage.run({ preTenant: true, userId: user.id }, () =>
           lastValueFrom(next.handle()),
         ),
       );

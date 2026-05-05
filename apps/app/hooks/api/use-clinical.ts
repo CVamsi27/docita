@@ -1,4 +1,4 @@
-import { useMutation } from "@tanstack/react-query";
+import { useMutation, type UseQueryOptions } from "@tanstack/react-query";
 import {
   CreateLabTestOrderRequest,
   CreatePrescriptionRequest,
@@ -6,6 +6,7 @@ import {
   Document,
   DocumentContractResponse,
   enqueuePdfJobResponseSchema,
+  Feature,
   LabTest,
   LabTestOrder,
   ListDocumentsContractQuery,
@@ -18,22 +19,23 @@ import {
   UpdateTemplateRequest,
   VitalSign,
 } from "@workspace/types";
-import {
-  useAPIMutation,
-  useAPIQuery,
-} from "@/lib/api-core";
+import { useAPIMutation, useAPIQuery } from "@/lib/api-core";
+import { useTierFeatureEnabled } from "@/hooks/api/tier-feature-guards";
+import type { ApiError } from "@/lib/errors";
 import { withQueryString } from "@/lib/http/query-string";
 import { api } from "@/lib/api-client";
 
 const POLL_INTERVAL_MS = 2000;
 const POLL_TIMEOUT_MS = 60000;
 
-export const useVitalSigns = (patientId: string) =>
-  useAPIQuery<VitalSign[]>(
+export const useVitalSigns = (patientId: string) => {
+  const tierPatientsOk = useTierFeatureEnabled(Feature.BASIC_PATIENT_MANAGEMENT);
+  return useAPIQuery<VitalSign[]>(
     ["vitals", patientId],
     `/patients/${patientId}/vitals`,
-    { enabled: !!patientId },
+    { enabled: tierPatientsOk && !!patientId },
   );
+};
 
 export const useSaveVitals = (appointmentId: string) =>
   useAPIMutation<VitalSign, Partial<VitalSign>>(
@@ -44,13 +46,26 @@ export const useSaveVitals = (appointmentId: string) =>
     },
   );
 
-export const usePrescriptions = (filters?: {
-  search?: string;
-  date?: string;
-}) =>
-  useAPIQuery<(Prescription & { patient: Patient })[]>(
+type PrescriptionListRow = Prescription & { patient: Patient };
+
+export const usePrescriptions = (
+  filters?: {
+    search?: string;
+    date?: string;
+    startDate?: string;
+    endDate?: string;
+    patientId?: string;
+    limit?: number;
+  },
+  options?: Omit<
+    UseQueryOptions<PrescriptionListRow[], ApiError>,
+    "queryKey" | "queryFn"
+  >,
+) =>
+  useAPIQuery<PrescriptionListRow[]>(
     ["prescriptions", filters || {}],
     withQueryString("/prescriptions", filters),
+    options,
   );
 
 export const usePatientPrescriptions = (
@@ -128,17 +143,23 @@ export const useDownloadPrescriptionPDF = () => {
   });
 };
 
-export const useLabTests = () =>
-  useAPIQuery<{ id: string; status: string; createdAt: Date }[]>(
+export const useLabTests = () => {
+  const labOk = useTierFeatureEnabled(Feature.LAB_TESTS);
+  return useAPIQuery<{ id: string; status: string; createdAt: Date }[]>(
     ["lab-tests"],
     "/clinical/lab-tests/orders",
+    { enabled: labOk },
   );
+};
 
-export const useLabTestsStats = () =>
-  useAPIQuery<{ totalOrders: number; pendingOrders: number }>(
+export const useLabTestsStats = () => {
+  const labOk = useTierFeatureEnabled(Feature.LAB_TESTS);
+  return useAPIQuery<{ totalOrders: number; pendingOrders: number }>(
     ["lab-tests", "stats"],
     "/clinical/lab-tests/stats",
+    { enabled: labOk },
   );
+};
 
 export const useCreateLabTestOrder = () =>
   useAPIMutation<
@@ -161,32 +182,48 @@ export const useLabTestOrders = (filters?: {
   status?: string;
   date?: string;
   patientId?: string;
-}) =>
-  useAPIQuery<LabTestOrder[]>(
+}) => {
+  const labOk = useTierFeatureEnabled(Feature.LAB_TESTS);
+  return useAPIQuery<LabTestOrder[]>(
     ["lab-test-orders", filters || {}],
     withQueryString("/clinical/lab-tests/orders", filters),
+    { enabled: labOk },
   );
+};
 
-export const useLabTestStats = () =>
-  useAPIQuery<{
+export const useLabTestStats = () => {
+  const labOk = useTierFeatureEnabled(Feature.LAB_TESTS);
+  return useAPIQuery<{
     pending: number;
     inProgress: number;
     completed: number;
     urgent: number;
     total: number;
-  }>(["lab-test-stats"], "/clinical/lab-tests/stats");
+  }>(["lab-test-stats"], "/clinical/lab-tests/stats", { enabled: labOk });
+};
 
-export const useLabTestCatalog = () =>
-  useAPIQuery<LabTest[]>(["lab-test-catalog"], "/clinical/lab-tests");
+export const useLabTestCatalog = () => {
+  const labOk = useTierFeatureEnabled(Feature.LAB_TESTS);
+  return useAPIQuery<LabTest[]>(["lab-test-catalog"], "/clinical/lab-tests", {
+    enabled: labOk,
+  });
+};
 
-export const useDocuments = (filters?: ListDocumentsContractQuery) =>
-  useAPIQuery<DocumentContractResponse[]>(
+export const useDocuments = (filters?: ListDocumentsContractQuery) => {
+  const docsOk = useTierFeatureEnabled(Feature.DOCUMENT_ARCHIVAL);
+  return useAPIQuery<DocumentContractResponse[]>(
     ["documents", filters || {}],
     withQueryString("/medical-documents", filters),
+    { enabled: docsOk },
   );
+};
 
-export const useDocument = (id: string) =>
-  useAPIQuery<Document>(["documents", id], `/medical-documents/${id}`);
+export const useDocument = (id: string) => {
+  const docsOk = useTierFeatureEnabled(Feature.DOCUMENT_ARCHIVAL);
+  return useAPIQuery<Document>(["documents", id], `/medical-documents/${id}`, {
+    enabled: docsOk && id.length > 0,
+  });
+};
 
 export const useTemplates = (filters?: ListTemplatesContractQuery) =>
   useAPIQuery<TemplateContractResponse[]>(

@@ -13,6 +13,7 @@ import {
   Specialization as _Specialization,
   Role,
   Prisma,
+  DayOfWeek,
 } from '@workspace/db';
 import * as bcrypt from 'bcrypt';
 import {
@@ -24,6 +25,13 @@ import {
   ClinicTier,
 } from '@/domains/clinics/application/dto/onboarding/create-clinic-onboarding.dto';
 import { OnboardingValidationService } from './onboarding-validation.service';
+import {
+  SUBSCRIPTION_TRIAL_DAYS,
+  parseWorkspaceProfile,
+  type WorkspaceProfile,
+} from '@workspace/types';
+import { randomBytes } from 'crypto';
+import { isPrismaTableDoesNotExistForModel } from '@/common/utils/prisma-missing-table';
 
 interface OnboardingPaymentInput {
   razorpayPaymentId?: string;
@@ -96,7 +104,9 @@ export class OnboardingWorkflowService {
     tx: Prisma.TransactionClient,
     clinicData: ClinicDetailsDto,
     ipAddress?: string,
+    workspaceProfileInput?: WorkspaceProfile | null,
   ): Promise<Clinic> {
+    const workspaceProfile = parseWorkspaceProfile(workspaceProfileInput);
     const normalizedEmail = clinicData.email?.trim() ?? '';
 
     const existingClinic = normalizedEmail
@@ -134,6 +144,7 @@ export class OnboardingWorkflowService {
           privacyComplianceVersion: '1.0',
           onboardedAt: new Date().toISOString(),
           onboardedFromIP: ipAddress,
+          workspaceProfile,
         },
       },
     });
@@ -155,16 +166,23 @@ export class OnboardingWorkflowService {
     adminData: AdminAccountDto,
     clinicId: string,
     _ipAddress?: string,
+    planTier?: ClinicTier,
   ): Promise<User> {
     const existingUser = await tx.user.findUnique({
       where: { email: adminData.email },
     });
 
-    const resolvedRole =
+    let resolvedRole =
       adminData.role ||
       (existingUser?.role === Role.ADMIN_DOCTOR
         ? Role.ADMIN_DOCTOR
         : Role.ADMIN);
+    if (
+      planTier === ClinicTier.FRONT_DESK &&
+      resolvedRole === Role.ADMIN_DOCTOR
+    ) {
+      resolvedRole = Role.ADMIN;
+    }
 
     if (existingUser) {
       if (existingUser.clinicId) {
@@ -232,15 +250,17 @@ export class OnboardingWorkflowService {
     paymentData?: OnboardingPaymentInput,
   ): Promise<Subscription> {
     const now = new Date();
-    const isStarterWithoutPayment =
-      planData.tier === ClinicTier.STARTER && paymentData?.skipPayment === true;
-    const periodEnd = isStarterWithoutPayment
+    const trialMs = SUBSCRIPTION_TRIAL_DAYS * 24 * 60 * 60 * 1000;
+    const isTrialWithoutPayment =
+      planData.tier === ClinicTier.ESSENTIAL &&
+      paymentData?.skipPayment === true;
+    const periodEnd = isTrialWithoutPayment
       ? planData.billingCycle === BillingCycle.YEARLY
         ? new Date(now.getTime() + 365 * 24 * 60 * 60 * 1000)
-        : new Date(now.getTime() + 30 * 24 * 60 * 60 * 1000)
+        : new Date(now.getTime() + trialMs)
       : planData.billingCycle === BillingCycle.YEARLY
         ? new Date(now.getTime() + 365 * 24 * 60 * 60 * 1000)
-        : new Date(now.getTime() + 30 * 24 * 60 * 60 * 1000);
+        : new Date(now.getTime() + trialMs);
 
     const priceCents = this.validation.getTierPricing(
       planData.tier,
@@ -331,6 +351,7 @@ export class OnboardingWorkflowService {
     clinicId: string,
     staffData: StaffSetupDto,
     ipAddress?: string,
+    planTier?: ClinicTier,
   ): Promise<number> {
     if (!staffData.staffMembers?.length) return 0;
 
@@ -348,6 +369,9 @@ export class OnboardingWorkflowService {
       if (!passwordValidation.valid) continue;
 
       const hashedPassword = await bcrypt.hash(member.password, 10);
+      const prismaRole = toStaffRole(member.role);
+      const anchorDoctorOnFrontDeskTier =
+        planTier === ClinicTier.FRONT_DESK && prismaRole === Role.DOCTOR;
 
       const newUser = await tx.user.create({
         data: {
@@ -355,13 +379,14 @@ export class OnboardingWorkflowService {
           email: member.email,
           password: hashedPassword,
           phoneNumber: member.phoneNumber,
-          role: toStaffRole(member.role),
+          role: prismaRole,
           clinicId,
           qualification: member.qualification,
           registrationNumber: member.registrationNumber,
           specialization: this.validation.validateSpecialization(
             member.specialization,
           ),
+          ...(anchorDoctorOnFrontDeskTier ? { appLoginDisabled: true } : {}),
         },
       });
 
@@ -386,6 +411,44 @@ export class OnboardingWorkflowService {
     return count;
   }
 
+  async ensureFrontDeskScheduleDoctor(
+    tx: Prisma.TransactionClient,
+    clinicId: string,
+  ): Promise<void> {
+    const doctorCount = await tx.user.count({
+      where: { clinicId, role: Role.DOCTOR },
+    });
+    if (doctorCount > 0) {
+      return;
+    }
+
+    const token = randomBytes(12).toString('hex');
+    const email = `schedule-${clinicId}-${token}@placeholders.docita.invalid`;
+    const hashedPassword = await bcrypt.hash(
+      randomBytes(32).toString('hex'),
+      10,
+    );
+
+    const user = await tx.user.create({
+      data: {
+        name: 'Clinic schedule',
+        email,
+        password: hashedPassword,
+        role: Role.DOCTOR,
+        clinicId,
+        appLoginDisabled: true,
+      },
+    });
+
+    await tx.doctorClinic.create({
+      data: { doctorId: user.id, clinicId },
+    });
+
+    this.logger.log(
+      `Created schedule-anchor doctor for front-desk clinic ${clinicId}`,
+    );
+  }
+
   async initializeClinicSettings(
     tx: Prisma.TransactionClient,
     clinicId: string,
@@ -398,5 +461,71 @@ export class OnboardingWorkflowService {
     });
 
     this.logger.log(`Initialized clinic settings for: ${clinicId}`);
+  }
+
+  /**
+   * Default Mon–Fri 09:00–17:00 when onboarding does not send explicit rows.
+   */
+  getDefaultClinicWeeklyHoursInput(): Array<{
+    dayOfWeek: DayOfWeek;
+    startTime: string;
+    endTime: string;
+    slotDuration: number;
+    isActive: boolean;
+  }> {
+    const weekend = new Set<DayOfWeek>([DayOfWeek.SATURDAY, DayOfWeek.SUNDAY]);
+    const allDays: DayOfWeek[] = [
+      DayOfWeek.SUNDAY,
+      DayOfWeek.MONDAY,
+      DayOfWeek.TUESDAY,
+      DayOfWeek.WEDNESDAY,
+      DayOfWeek.THURSDAY,
+      DayOfWeek.FRIDAY,
+      DayOfWeek.SATURDAY,
+    ];
+    return allDays.map((dayOfWeek) => ({
+      dayOfWeek,
+      startTime: '09:00',
+      endTime: '17:00',
+      slotDuration: 30,
+      isActive: !weekend.has(dayOfWeek),
+    }));
+  }
+
+  async replaceClinicWeeklySchedules(
+    tx: Prisma.TransactionClient,
+    clinicId: string,
+    rows: Array<{
+      dayOfWeek: DayOfWeek;
+      startTime: string;
+      endTime: string;
+      slotDuration: number;
+      isActive: boolean;
+    }>,
+  ): Promise<void> {
+    try {
+      await tx.clinicWeeklySchedule.deleteMany({ where: { clinicId } });
+      if (rows.length === 0) {
+        return;
+      }
+      await tx.clinicWeeklySchedule.createMany({
+        data: rows.map((r) => ({
+          clinicId,
+          dayOfWeek: r.dayOfWeek,
+          startTime: r.startTime,
+          endTime: r.endTime,
+          slotDuration: r.slotDuration,
+          isActive: r.isActive,
+        })),
+      });
+    } catch (error) {
+      if (isPrismaTableDoesNotExistForModel(error, 'ClinicWeeklySchedule')) {
+        this.logger.warn(
+          'ClinicWeeklySchedule table is missing; skipping clinic weekly hours persistence. Apply @workspace/db migrations.',
+        );
+        return;
+      }
+      throw error;
+    }
   }
 }

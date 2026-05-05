@@ -1,19 +1,19 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
+import { useSearchParams } from "next/navigation";
 import { Pill } from "lucide-react";
 import { AppPageScaffold } from "@workspace/ui/components/app-page-scaffold";
 import { PageHeader } from "@workspace/ui/components/page-header";
 import { EmptyState } from "@workspace/ui/components/empty-state";
-import {
-  useDownloadPrescriptionPDF,
-  usePrescriptions,
-} from "@/hooks/api/use-clinical";
+import { useDownloadPrescriptionPDF, usePrescriptions } from "@/hooks/api/use-clinical";
 import { FeatureGate } from "@/features/_shared/components/auth/feature-gate";
 import { Feature } from "@/lib/stores/permission-store";
 import { useDebounce } from "@workspace/hooks/use-debounce";
 
 import { SUBSCRIPTION_SETTINGS_PATH } from "@/lib/subscription-settings-path";
+import { useAuth } from "@/lib/auth-context";
+import { getLocalCalendarDateString } from "@/lib/local-calendar-date";
 import { PrescriptionsFilters } from "@/features/prescriptions/components/list/PrescriptionsFilters";
 import {
   PrescriptionsTable,
@@ -22,10 +22,28 @@ import {
 } from "@/features/prescriptions/components/list/PrescriptionsTable";
 
 export default function PrescriptionsPage() {
+  const searchParams = useSearchParams();
+  const patientIdFromUrl = searchParams.get("patientId") ?? "";
+  const { user } = useAuth();
+  const isDoctorRole =
+    user?.role === "DOCTOR" || user?.role === "ADMIN_DOCTOR";
+  const todayLocal = getLocalCalendarDateString();
   const [searchQuery, setSearchQuery] = useState("");
+  const [patientId, setPatientId] = useState(patientIdFromUrl);
+  const [startDate, setStartDate] = useState(todayLocal);
+  const [endDate, setEndDate] = useState(todayLocal);
   const debouncedSearch = useDebounce(searchQuery, 300);
-  const { data: prescriptions = [], isLoading: loading } = usePrescriptions({
-    search: debouncedSearch,
+
+  useEffect(() => {
+    setPatientId(patientIdFromUrl);
+  }, [patientIdFromUrl]);
+
+  const hasDateRange = startDate.trim().length > 0 && endDate.trim().length > 0;
+
+  const { data: prescriptionsData = [], isLoading: loading } = usePrescriptions({
+    search: debouncedSearch || undefined,
+    patientId: patientId.trim() ? patientId : undefined,
+    ...(hasDateRange ? { startDate, endDate } : {}),
   });
   const [sortConfig, setSortConfig] = useState<{
     key: SortKey;
@@ -43,6 +61,47 @@ export default function PrescriptionsPage() {
       direction: prev.key === key && prev.direction === "asc" ? "desc" : "asc",
     }));
   };
+
+  const prescriptions = useMemo(() => {
+    const rows = prescriptionsData;
+    const q = debouncedSearch.trim().toLowerCase();
+    if (!q) {
+      return rows;
+    }
+    return rows.filter((p) => {
+      const name =
+        `${p.patient?.firstName ?? ""} ${p.patient?.lastName ?? ""}`.toLowerCase();
+      const dx = (p.diagnosis || "").toLowerCase();
+      const meds = (p.medications || [])
+        .map((m) => (m.name || "").toLowerCase())
+        .join(" ");
+      return name.includes(q) || dx.includes(q) || meds.includes(q);
+    });
+  }, [
+    prescriptionsData,
+    debouncedSearch,
+  ]);
+
+  const headerDescription = useMemo(() => {
+    const dateLabel = (() => {
+      if (!hasDateRange) return "all days";
+      if (startDate === endDate) {
+        return startDate === todayLocal
+          ? `today (${todayLocal})`
+          : `the day (${startDate})`;
+      }
+      return `${startDate} to ${endDate}`;
+    })();
+
+    if (patientId.trim().length > 0) {
+      return `Showing prescriptions for ${dateLabel}, scoped to the selected patient.`;
+    }
+
+    if (isDoctorRole) {
+      return `Showing prescriptions for ${dateLabel}.`;
+    }
+    return `View and manage prescriptions for ${dateLabel}.`;
+  }, [endDate, hasDateRange, isDoctorRole, patientId, startDate, todayLocal]);
 
   const filteredAndSortedPrescriptions = useMemo(() => {
     const result = [...prescriptions];
@@ -102,13 +161,17 @@ export default function PrescriptionsPage() {
         header={
           <PageHeader
             title="Prescriptions"
-            description="View and manage all patient prescriptions."
+            description={headerDescription}
           />
         }
       >
         <PrescriptionsFilters
           searchQuery={searchQuery}
           setSearchQuery={setSearchQuery}
+          startDate={startDate}
+          endDate={endDate}
+          onStartDateChange={setStartDate}
+          onEndDateChange={setEndDate}
         />
 
         <PrescriptionsTable

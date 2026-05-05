@@ -3,6 +3,7 @@ import { ClinicDataService } from './clinic-data.service';
 import { ClinicSettingsService } from './clinic-settings.service';
 import { StaffManagementService } from './staff-management.service';
 import { ClinicTier, ClinicType, Prisma, Role } from '@workspace/db';
+import type { WorkspaceProfile } from '@workspace/types';
 
 interface CreateClinicData {
   name: string;
@@ -77,6 +78,8 @@ interface ClinicSettingsData {
     branchName?: string;
     upiId?: string;
   };
+
+  workspaceProfile?: WorkspaceProfile;
 }
 
 interface CreateDoctorData {

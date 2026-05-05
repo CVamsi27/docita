@@ -12,6 +12,7 @@ import {
   DEFAULT_TIMEZONE,
 } from '@workspace/utils';
 import { SendMessageUseCase } from '@/domains/whatsapp/application/use-cases/send-message.use-case';
+import { isClinicWhatsAppAutomationSendingAllowed } from '@/shared/modules/messaging/whatsapp/whatsapp-patient-send-policy.util';
 
 interface AppointmentForReminder {
   id: string;
@@ -42,23 +43,6 @@ export class ReminderNotificationService {
     private prisma: PrismaService,
     private sendMessage: SendMessageUseCase,
   ) {}
-
-  private async isWhatsappEnabled(clinicId: string): Promise<boolean> {
-    const clinic = await this.prisma.clinic.findUnique({
-      where: { id: clinicId },
-      select: { whatsappAutomation: true },
-    });
-
-    if (
-      !clinic?.whatsappAutomation ||
-      typeof clinic.whatsappAutomation !== 'object'
-    ) {
-      return true;
-    }
-
-    const automation = clinic.whatsappAutomation as { enabled?: boolean };
-    return automation.enabled !== false;
-  }
 
   async sendEmailReminder(
     appointment: AppointmentForReminder,
@@ -145,16 +129,19 @@ export class ReminderNotificationService {
   ): Promise<void> {
     try {
       const clinicId = appointment.clinic?.id || '';
-      if (clinicId && !(await this.isWhatsappEnabled(clinicId))) {
+      if (
+        clinicId &&
+        !(await isClinicWhatsAppAutomationSendingAllowed(this.prisma, clinicId))
+      ) {
         this.logger.log(
-          `[WhatsApp] Disabled for clinic ${clinicId}; skipping ${reminderType} reminder for appointment ${appointment.id}`,
+          `[WhatsApp] Not allowed for clinic ${clinicId}; skipping ${reminderType} reminder for appointment ${appointment.id}`,
         );
         return;
       }
 
       const clinicName = appointment.clinic?.name ?? '';
 
-      const variables = {
+      const variables: Record<string, string> = {
         patientName: `${appointment.patient.firstName} ${appointment.patient.lastName}`,
         doctorName: appointment.doctor.name,
         clinicName,
@@ -165,7 +152,7 @@ export class ReminderNotificationService {
           timezone: DEFAULT_TIMEZONE,
         }),
         appointmentType: appointment.type,
-        appointmentId: appointment.id,
+        appointmentId: String(appointment.id),
       };
 
       const { messageId: _messageId } = await this.sendMessage.execute({

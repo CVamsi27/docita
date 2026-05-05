@@ -2,6 +2,8 @@
 
 Source of truth for tokens, typography, primitives, and keyboard/interaction patterns across every app.
 
+> [`docs/UI_UX_STANDARD_2026.md`](UI_UX_STANDARD_2026.md) is the authoritative UI/UX source going forward and **supersedes any conflicting guidance below**. This document remains as the detailed token, primitive, and accessibility reference. When a rule here disagrees with the Origin-inspired standard (information architecture, AI surface contract, motion policy, modal/wizard patterns, per-page test contract, per-feature compliance checklist), follow the standard.
+
 ## Tokens
 
 All tokens live in [packages/ui/src/styles/globals.css](../packages/ui/src/styles/globals.css). They are exposed as CSS custom properties on `:root` and re-mapped under `@theme inline` so Tailwind v4 can resolve them in arbitrary-value classes without hardcoding.

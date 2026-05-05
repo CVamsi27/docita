@@ -154,6 +154,9 @@ export function usePatientsLogic() {
       setEditingPatient,
       onPatientAdded: refetch,
       onPatientUpdated: refetch,
+      retry: () => {
+        void refetch();
+      },
       goToPatient: (patientId: string) => router.push(`/patients/${patientId}`),
       schedulePatient: (patientId: string) =>
         router.push(`/appointments?action=new&patientId=${patientId}`),

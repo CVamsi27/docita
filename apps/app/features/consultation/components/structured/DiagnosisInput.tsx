@@ -13,7 +13,10 @@ import {
   SelectValue,
 } from "@workspace/ui/components/select";
 import { Plus, Search, Stethoscope, Trash2, X } from "lucide-react";
+import { Feature } from "@workspace/types";
+import { cn } from "@workspace/ui/lib/utils";
 import { useSearchIcdCodes } from "@/hooks/api/use-medical-coding";
+import { usePermissionStore } from "@/lib/stores/permission-store";
 import { useDebounce } from "@workspace/hooks/use-debounce";
 
 export interface DiagnosisItem {
@@ -156,6 +159,9 @@ export function DiagnosisInput({
   onChange,
   readOnly = false,
 }: DiagnosisInputProps) {
+  const medicalCodingEnabled = usePermissionStore((s) =>
+    s.canAccess(Feature.MEDICAL_CODING),
+  );
   const items = value.length > 0 ? value : [];
 
   const addItem = () => {
@@ -208,11 +214,11 @@ export function DiagnosisInput({
                 <span className="text-sm font-medium">
                   Diagnosis #{index + 1}
                 </span>
-                {item.icdCode && (
+                {item.icdCode ? (
                   <Badge variant="outline" className="font-mono text-xs text-primary">
                     {item.icdCode.code}
                   </Badge>
-                )}
+                ) : null}
                 {item.type === "final" && (
                   <Badge
                     variant="default"
@@ -287,19 +293,43 @@ export function DiagnosisInput({
                 </Select>
               </div>
 
-              <div className="col-span-1 md:col-span-6">
-                <label className="text-xs text-muted-foreground mb-1 block">
-                  ICD-10 Code
-                </label>
-                <IcdSearchField
-                  value={item.icdCode}
-                  onSelect={(code) => setIcdCode(index, code)}
-                  onClear={() => setIcdCode(index, undefined)}
-                  readOnly={readOnly}
-                />
-              </div>
+              {medicalCodingEnabled ? (
+                <div className="col-span-1 md:col-span-6">
+                  <label className="text-xs text-muted-foreground mb-1 block">
+                    ICD-10 Code
+                  </label>
+                  <IcdSearchField
+                    value={item.icdCode}
+                    onSelect={(code) => setIcdCode(index, code)}
+                    onClear={() => setIcdCode(index, undefined)}
+                    readOnly={readOnly}
+                  />
+                </div>
+              ) : item.icdCode ? (
+                <div className="col-span-1 md:col-span-6">
+                  <label className="text-xs text-muted-foreground mb-1 block">
+                    ICD-10 Code
+                  </label>
+                  <div className="rounded-md border bg-muted/30 px-3 py-2 text-sm">
+                    <span className="font-mono font-semibold text-primary">
+                      {item.icdCode.code}
+                    </span>
+                    <span className="text-muted-foreground">
+                      {" "}
+                      {item.icdCode.description}
+                    </span>
+                  </div>
+                </div>
+              ) : null}
 
-              <div className="col-span-1 md:col-span-6">
+              <div
+                className={cn(
+                  "col-span-1",
+                  medicalCodingEnabled || item.icdCode
+                    ? "md:col-span-6"
+                    : "md:col-span-12",
+                )}
+              >
                 <label className="text-xs text-muted-foreground mb-1 block">
                   Notes / Remarks
                 </label>

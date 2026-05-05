@@ -1,4 +1,5 @@
 import { Injectable, Inject, Logger } from '@nestjs/common';
+import { SubscriptionStatus } from '@workspace/db';
 import {
   SUBSCRIPTION_REPOSITORY_TOKEN,
   ISubscriptionRepository,
@@ -38,20 +39,40 @@ export class NotifyExpiringSubscriptionsUseCase {
     return Number.isFinite(days) ? days : null;
   }
 
-  private buildEmail(reminderType: string, clinicName: string, end: Date) {
+  private buildEmail(
+    reminderType: string,
+    clinicName: string,
+    end: Date,
+    subscriptionStatus: SubscriptionStatus,
+  ) {
     const days = this.parseDays(reminderType);
     const endDate = formatDate(end, DATE_FORMATS.DATE_WEEKDAY_SHORT_MEDIUM);
+    const isTrial = subscriptionStatus === SubscriptionStatus.TRIALING;
 
     const subject =
       days !== null
-        ? `Docita subscription expires in ${days} day${days === 1 ? '' : 's'}`
-        : 'Docita subscription expiring';
+        ? days === 0
+          ? isTrial
+            ? 'Docita trial ends today'
+            : 'Docita subscription renews today'
+          : isTrial
+            ? `Docita trial ends in ${days} day${days === 1 ? '' : 's'}`
+            : `Docita subscription renews in ${days} day${days === 1 ? '' : 's'}`
+        : isTrial
+          ? 'Docita trial ending'
+          : 'Docita subscription renewing';
 
-    const text =
-      `Your Docita subscription for "${clinicName}" is expiring soon.\n` +
-      `Current period end: ${endDate}\n\n` +
-      'To avoid interruption, please ensure payment is completed before expiry.\n' +
-      'If you need help, reply to this email.';
+    const intro = isTrial
+      ? `Your Docita trial for "${clinicName}" is ending soon.\n` +
+        `Trial period end: ${endDate}\n\n` +
+        (days !== null && days <= 3
+          ? 'Add payment under Settings, Subscription today. After the trial ends without payment, your workspace enters a billing grace period; staff access may pause when that grace period ends.\n'
+          : 'Add payment under Settings, Subscription before this date to avoid entering a payment grace period and staff access restrictions.\n')
+      : `Your Docita subscription for "${clinicName}" has a billing period ending soon.\n` +
+        `Current period end: ${endDate}\n\n` +
+        'Ensure payment completes before this date to avoid service interruption.\n';
+
+    const text = intro + 'If you need help, reply to this email.';
 
     return { subject, text };
   }
@@ -160,6 +181,7 @@ export class NotifyExpiringSubscriptionsUseCase {
         reminderType,
         clinicName,
         sub.currentPeriodEnd,
+        sub.status,
       );
 
       try {

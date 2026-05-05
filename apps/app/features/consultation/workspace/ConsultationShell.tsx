@@ -11,7 +11,16 @@ import {
 import { useParams, useRouter, useSearchParams } from "next/navigation";
 import { Button } from "@workspace/ui/components/button";
 import { cn } from "@workspace/ui/lib/utils";
-import { Command as CommandIcon, HeartPulse, Save } from "lucide-react";
+import {
+  ClipboardList,
+  Command as CommandIcon,
+  CheckCircle2,
+  FileText,
+  FlaskConical,
+  HeartPulse,
+  Pill,
+  Save,
+} from "lucide-react";
 import { useConsultationDraft } from "@/features/consultation/state/useConsultationDraft";
 import { useConsultationHydrate } from "@/features/consultation/state/useConsultationHydrate";
 import { useConsultationAutosave } from "@/features/consultation/state/useConsultationAutosave";
@@ -42,11 +51,18 @@ import {
 } from "@/features/consultation/workspace/sections";
 import { ConsultationSidebarContainer } from "@/features/consultation/components/ConsultationSidebarContainer";
 import {
+  ConsultationAfterVisitStrip,
+  ConsultationVisitOverviewStrip,
+} from "@/features/consultation/components/ConsultationWorkspaceExtras";
+import {
   CLINIC_TYPE_FEATURES,
+  Feature,
   type Appointment,
   type ClinicType,
   type PatientWithMedicalHistory,
 } from "@workspace/types";
+import { usePermissions } from "@/hooks/use-permissions";
+import { usePermissionStore } from "@/lib/stores/permission-store";
 import { ConsultationWorkspaceProvider } from "@/features/consultation/workspace/consultation-workspace-context";
 
 interface ConsultationShellProps {
@@ -55,6 +71,8 @@ interface ConsultationShellProps {
   readOnly?: boolean;
   isSidebarOpen?: boolean;
   saveHandlesRef?: RefObject<ConsultationSaveHandles | null>;
+  onMarkDone?: () => void;
+  isMarkingDone?: boolean;
 }
 
 export function ConsultationShell({
@@ -63,12 +81,17 @@ export function ConsultationShell({
   readOnly,
   isSidebarOpen = true,
   saveHandlesRef,
+  onMarkDone,
+  isMarkingDone = false,
 }: ConsultationShellProps) {
   const params = useParams();
   const appointmentId = params?.["id"] as string;
   const router = useRouter();
   const searchParams = useSearchParams();
   const { openVitals } = useConsultationVitals();
+  const { canViewPrescriptions, canManageTemplates } = usePermissions();
+  const { canAccess } = usePermissionStore();
+  const patientLinkId = appointmentData.patientId ?? "";
 
   useConsultationHydrate({
     appointmentId,
@@ -103,23 +126,68 @@ export function ConsultationShell({
     () => sections[0]?.id ?? "subjective",
   );
 
+  const mainScrollRef = useRef<HTMLElement | null>(null);
   const sectionRefs = useRef<Record<string, HTMLElement | null>>({});
-  const observerBumpRaf = useRef<number | null>(null);
-  const [observerEpoch, setObserverEpoch] = useState(0);
+  const layoutBumpRaf = useRef<number | null>(null);
+  const scrollSpyRaf = useRef<number | null>(null);
+  const [pendingUrlScrollToSectionId, setPendingUrlScrollToSectionId] =
+    useState<string | null>(null);
+  const pendingUrlScrollRef = useRef<string | null>(null);
+  const lastUrlScrollKeyRef = useRef<string>("");
+  /** Scroll spy fights browser scroll-on-focus; suppress briefly after focus moves within main. */
+  const scrollSpySuppressedUntilRef = useRef(0);
+
+  const computeActiveSectionFromScroll = useCallback(() => {
+    if (pendingUrlScrollRef.current != null) return;
+    if (performance.now() < scrollSpySuppressedUntilRef.current) return;
+    const root = mainScrollRef.current;
+    if (!root) return;
+    const rootRect = root.getBoundingClientRect();
+    const activationY = rootRect.top + 48;
+    let chosen = sectionsRef.current[0]?.id ?? "subjective";
+    for (const s of sectionsRef.current) {
+      const el = sectionRefs.current[s.id];
+      if (!el) continue;
+      const top = el.getBoundingClientRect().top;
+      if (top <= activationY) {
+        chosen = s.id;
+      }
+    }
+    setActiveSectionId((prev) => (prev === chosen ? prev : chosen));
+  }, []);
+
+  const scheduleScrollSpy = useCallback(() => {
+    if (scrollSpyRaf.current != null) {
+      cancelAnimationFrame(scrollSpyRaf.current);
+    }
+    scrollSpyRaf.current = requestAnimationFrame(() => {
+      scrollSpyRaf.current = null;
+      computeActiveSectionFromScroll();
+    });
+  }, [computeActiveSectionFromScroll]);
+
   const setSectionRef = useCallback(
     (id: string) => (el: HTMLElement | null) => {
       sectionRefs.current[id] = el;
       if (el === null) return;
-      if (observerBumpRaf.current != null) {
-        cancelAnimationFrame(observerBumpRaf.current);
+      if (layoutBumpRaf.current != null) {
+        cancelAnimationFrame(layoutBumpRaf.current);
       }
-      observerBumpRaf.current = requestAnimationFrame(() => {
-        observerBumpRaf.current = null;
-        setObserverEpoch((n) => n + 1);
+      layoutBumpRaf.current = requestAnimationFrame(() => {
+        layoutBumpRaf.current = null;
+        scheduleScrollSpy();
       });
     },
-    [],
+    [scheduleScrollSpy],
   );
+
+  useEffect(() => {
+    return () => {
+      if (scrollSpyRaf.current != null) {
+        cancelAnimationFrame(scrollSpyRaf.current);
+      }
+    };
+  }, []);
 
   const { flush, submitPrescriptions } = useConsultationAutosave({
     appointmentId,
@@ -173,6 +241,16 @@ export function ConsultationShell({
 
     setActiveSectionId(valid);
 
+    const wantsScrollFromUrl = Boolean(sectionQ?.trim() || tabQ);
+    if (wantsScrollFromUrl) {
+      const urlScrollKey = `${sectionQ ?? ""}|${tabQ ?? ""}|${valid}|${sectionIdsKey}`;
+      if (lastUrlScrollKeyRef.current !== urlScrollKey) {
+        lastUrlScrollKeyRef.current = urlScrollKey;
+        pendingUrlScrollRef.current = valid;
+        setPendingUrlScrollToSectionId(valid);
+      }
+    }
+
     const next = new URLSearchParams(searchParams.toString());
     let changed = false;
     if (tabQ) {
@@ -202,34 +280,92 @@ export function ConsultationShell({
   ]);
 
   useEffect(() => {
-    const observer = new IntersectionObserver(
-      (entries) => {
-        const visible = entries
-          .filter((e) => e.isIntersecting)
-          .sort((a, b) => b.intersectionRatio - a.intersectionRatio);
-        const top = visible[0];
-        if (!top) return;
-        const id = top.target.getAttribute("data-section-id");
-        const matched = id
-          ? sections.find((s) => s.id === id)
-          : undefined;
-        if (matched) {
-          setActiveSectionId((prev) =>
-            prev === matched.id ? prev : matched.id,
-          );
-        }
-      },
-      { threshold: [0.25, 0.5, 0.75], rootMargin: "-120px 0px -60% 0px" },
-    );
-    sections.forEach((s) => {
-      const el = sectionRefs.current[s.id];
-      if (el) observer.observe(el);
-    });
-    return () => observer.disconnect();
-  }, [sections, observerEpoch]);
+    const targetId = pendingUrlScrollToSectionId;
+    if (!targetId) return;
 
-  const isDirty = useConsultationDraft((s) => s.dirty);
-  const saveState = useConsultationDraft((s) => s.saveState);
+    let cancelled = false;
+    let attempts = 0;
+    let rafId = 0;
+    const maxAttempts = 48;
+
+    const tick = () => {
+      if (cancelled) return;
+      const el = sectionRefs.current[targetId];
+      const main = mainScrollRef.current;
+      if (el && main) {
+        setPendingUrlScrollToSectionId(null);
+        el.scrollIntoView({ behavior: "auto", block: "start" });
+        requestAnimationFrame(() => {
+          pendingUrlScrollRef.current = null;
+          computeActiveSectionFromScroll();
+        });
+        return;
+      }
+      attempts += 1;
+      if (attempts < maxAttempts) {
+        rafId = requestAnimationFrame(tick);
+      } else {
+        setPendingUrlScrollToSectionId(null);
+        pendingUrlScrollRef.current = null;
+      }
+    };
+
+    rafId = requestAnimationFrame(tick);
+    return () => {
+      cancelled = true;
+      cancelAnimationFrame(rafId);
+    };
+  }, [pendingUrlScrollToSectionId, computeActiveSectionFromScroll]);
+
+  useEffect(() => {
+    const root = mainScrollRef.current;
+    if (!root) return;
+
+    const clearScrollSpySuppression = () => {
+      scrollSpySuppressedUntilRef.current = 0;
+    };
+
+    scheduleScrollSpy();
+
+    root.addEventListener("scroll", scheduleScrollSpy, { passive: true });
+    window.addEventListener("resize", scheduleScrollSpy, { passive: true });
+    root.addEventListener("wheel", clearScrollSpySuppression, {
+      passive: true,
+    });
+    root.addEventListener("touchstart", clearScrollSpySuppression, {
+      passive: true,
+    });
+
+    return () => {
+      root.removeEventListener("scroll", scheduleScrollSpy);
+      window.removeEventListener("resize", scheduleScrollSpy);
+      root.removeEventListener("wheel", clearScrollSpySuppression);
+      root.removeEventListener("touchstart", clearScrollSpySuppression);
+    };
+  }, [scheduleScrollSpy]);
+
+  useEffect(() => {
+    const root = mainScrollRef.current;
+    if (!root) return;
+
+    const onFocusIn = (e: FocusEvent) => {
+      const target = e.target;
+      if (!(target instanceof Element)) return;
+      if (!root.contains(target)) return;
+      const sectionEl = target.closest("[data-section-id]");
+      const id = sectionEl?.getAttribute("data-section-id");
+      if (!id) return;
+      if (!sectionsRef.current.some((s) => s.id === id)) return;
+      scrollSpySuppressedUntilRef.current = performance.now() + 520;
+      setActiveSectionId((prev) => (prev === id ? prev : id));
+    };
+
+    root.addEventListener("focusin", onFocusIn);
+    return () => root.removeEventListener("focusin", onFocusIn);
+  }, []);
+
+  const _isDirty = useConsultationDraft((s) => s.dirty);
+  const _saveState = useConsultationDraft((s) => s.saveState);
 
   const [paletteOpen, setPaletteOpen] = useState(false);
 
@@ -277,6 +413,59 @@ export function ConsultationShell({
         };
       }),
       {
+        id: "nav-opd-queue",
+        label: "Back to OPD queue",
+        group: "Navigate",
+        icon: ClipboardList,
+        shortcut: "q",
+        onRun: () => {
+          void router.push("/consultation");
+        },
+      },
+      ...(patientLinkId && canViewPrescriptions
+        ? ([
+            {
+              id: "nav-patient-prescriptions",
+              label: "Patient prescriptions",
+              group: "Navigate" as const,
+              icon: Pill,
+              onRun: () => {
+                void router.push(
+                  `/prescriptions?patientId=${encodeURIComponent(patientLinkId)}`,
+                );
+              },
+            },
+          ] satisfies CommandPaletteAction[])
+        : []),
+      ...(patientLinkId && canAccess(Feature.LAB_TESTS)
+        ? ([
+            {
+              id: "nav-patient-labs",
+              label: "Patient lab tests",
+              group: "Navigate" as const,
+              icon: FlaskConical,
+              onRun: () => {
+                void router.push(
+                  `/patients/${patientLinkId}?tab=records&subtab=labs`,
+                );
+              },
+            },
+          ] satisfies CommandPaletteAction[])
+        : []),
+      ...(canManageTemplates
+        ? ([
+            {
+              id: "nav-templates",
+              label: "Note templates",
+              group: "Navigate" as const,
+              icon: FileText,
+              onRun: () => {
+                void router.push("/templates");
+              },
+            },
+          ] satisfies CommandPaletteAction[])
+        : []),
+      {
         id: "add-complaint",
         label: "Add chief complaint",
         group: "Add",
@@ -318,7 +507,19 @@ export function ConsultationShell({
             },
           ]),
     ],
-    [focusNewItem, onSaveClick, openVitals, readOnly, sections, selectSection],
+    [
+      canAccess,
+      canManageTemplates,
+      canViewPrescriptions,
+      focusNewItem,
+      onSaveClick,
+      openVitals,
+      patientLinkId,
+      readOnly,
+      router,
+      sections,
+      selectSection,
+    ],
   );
 
   useEffect(() => {
@@ -350,6 +551,11 @@ export function ConsultationShell({
       if (e.key.toLowerCase() === "v") {
         e.preventDefault();
         openVitals();
+        return;
+      }
+      if (e.key.toLowerCase() === "q") {
+        e.preventDefault();
+        void router.push("/consultation");
         return;
       }
       if (e.key === "g" || e.key === "n") {
@@ -384,6 +590,7 @@ export function ConsultationShell({
     onSaveClick,
     openVitals,
     readOnly,
+    router,
     sections,
     selectSection,
   ]);
@@ -519,18 +726,12 @@ export function ConsultationShell({
                 ⌘K
               </kbd>
             </Button>
-            {!readOnly && (
-              <Button
-                size="sm"
-                onClick={onSaveClick}
-                disabled={
-                  saveState === "saving" || (!isDirty && saveState !== "error")
-                }
-              >
-                <Save className="h-3.5 w-3.5" aria-hidden="true" />
-                <span>{saveState === "saving" ? "Saving" : "Save draft"}</span>
+            {!readOnly && onMarkDone ? (
+              <Button size="sm" onClick={onMarkDone} disabled={isMarkingDone}>
+                <CheckCircle2 className="h-3.5 w-3.5" aria-hidden="true" />
+                <span>{isMarkingDone ? "Marking…" : "Mark done"}</span>
               </Button>
-            )}
+            ) : null}
           </div>
         </div>
 
@@ -541,15 +742,24 @@ export function ConsultationShell({
         />
 
         <main
+          ref={mainScrollRef}
           className="flex-1 overflow-y-auto px-3 py-4 md:px-6 md:py-6"
           aria-label="Consultation workspace"
         >
           <div className="mx-auto flex max-w-3xl flex-col gap-4">
+            <ConsultationVisitOverviewStrip
+              appointment={appointmentData}
+              readOnly={readOnly}
+            />
             {sections.map((section) => {
               const Node =
                 sectionComponents[section.id as keyof typeof sectionComponents];
               return Node ?? null;
             })}
+            <ConsultationAfterVisitStrip
+              appointment={appointmentData}
+              onGoToPlan={() => selectSection("plan")}
+            />
           </div>
         </main>
       </div>

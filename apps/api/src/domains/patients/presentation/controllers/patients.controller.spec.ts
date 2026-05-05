@@ -11,6 +11,10 @@ import { PatientsController } from './patients.controller';
 import { PatientService as PatientsService } from '@/domains/patients/application/services/patient.service';
 import { RolesGuard } from '@/shared/modules/auth/auth/roles.guard';
 import { TierGuard } from '@/shared/modules/auth/auth/tier.guard';
+import {
+  IdempotencyInterceptor,
+  IdempotencyService,
+} from '@/shared/modules/idempotency';
 import { Gender, Role } from '@workspace/db';
 import { RequestWithUser } from '@/common/types/common.types';
 import { ListPatientsQueryDto } from '@/domains/patients/application/dto/patients.dto';
@@ -67,6 +71,18 @@ describe('PatientsController (Authorization)', () => {
         {
           provide: PatientsService,
           useValue: mockPatientsService,
+        },
+        {
+          provide: IdempotencyService,
+          useValue: {},
+        },
+        {
+          provide: IdempotencyInterceptor,
+          useValue: {
+            intercept: jest.fn(
+              (_ctx: unknown, next: { handle: () => unknown }) => next.handle(),
+            ),
+          },
         },
       ],
     })

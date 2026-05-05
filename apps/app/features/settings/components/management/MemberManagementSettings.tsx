@@ -341,13 +341,12 @@ export const MemberManagementUI: FC<MemberManagementUIProps> = ({
             {[1, 2, 3].map((i) => (
               <div key={i} className="flex items-center gap-3 p-3">
                 <Skeleton
-                  animation="wave"
                   variant="circular"
                   className="h-10 w-10 rounded-full"
                 />
                 <div className="space-y-2">
-                  <Skeleton animation="wave" className="h-4 w-32" />
-                  <Skeleton animation="wave" className="h-3 w-48" />
+                  <Skeleton className="h-4 w-32" />
+                  <Skeleton className="h-3 w-48" />
                 </div>
               </div>
             ))}

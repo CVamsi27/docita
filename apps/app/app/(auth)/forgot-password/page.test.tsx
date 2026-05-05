@@ -52,6 +52,5 @@ describe("ForgotPasswordPage", () => {
     expect(screen.getByLabelText(/email address/i)).toHaveValue(
       "typed@example.com",
     );
-    expect(screen.getByPlaceholderText("Email")).toBeInTheDocument();
   });
 });

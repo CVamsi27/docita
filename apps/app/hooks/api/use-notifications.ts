@@ -1,3 +1,5 @@
+import { Feature } from "@workspace/types";
+import { useTierFeatureEnabled } from "@/hooks/api/tier-feature-guards";
 import { useAPIMutation, useAPIQuery } from "@/lib/api-core";
 export type StaffNotificationType = string;
 export type NotificationPriority = "URGENT" | "HIGH" | "NORMAL" | "LOW";
@@ -17,25 +19,29 @@ export interface StaffNotification {
   createdAt: Date;
 }
 
-export const useNotifications = (enabled: boolean = true) =>
-  useAPIQuery<StaffNotification[]>(
+export const useNotifications = (enabled: boolean = true) => {
+  const whatsappOk = useTierFeatureEnabled(Feature.WHATSAPP_MESSAGING);
+  return useAPIQuery<StaffNotification[]>(
     ["notifications"],
     "/staff-notifications",
     {
-      enabled,
+      enabled: whatsappOk && enabled,
       refetchInterval: 30000,
     },
   );
+};
 
-export const useUnreadNotificationCount = (enabled: boolean = true) =>
-  useAPIQuery<{ count: number }>(
+export const useUnreadNotificationCount = (enabled: boolean = true) => {
+  const whatsappOk = useTierFeatureEnabled(Feature.WHATSAPP_MESSAGING);
+  return useAPIQuery<{ count: number }>(
     ["notifications", "unread-count"],
     "/staff-notifications/unread-count",
     {
-      enabled,
+      enabled: whatsappOk && enabled,
       refetchInterval: 10000,
     },
   );
+};
 
 export const useMarkNotificationRead = () =>
   useAPIMutation<void, { id: string }>(

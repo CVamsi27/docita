@@ -2,7 +2,7 @@ import { Test, TestingModule } from '@nestjs/testing';
 import { beforeEach, describe, expect, it, jest } from '@jest/globals';
 import { Logger } from '@nestjs/common';
 import { PrismaService } from '@/prisma/prisma.service';
-import { WhatsappClientService } from './whatsapp-client.service';
+import { SendMessageUseCase } from '@/domains/whatsapp/application/use-cases/send-message.use-case';
 import { TemplatesService } from './templates.service';
 import { StaffNotificationService } from './staff-notification.service';
 import { ResponseHandlerService } from './response-handler.service';
@@ -41,9 +41,13 @@ describe('ResponseHandlerService', () => {
     },
   };
 
-  const mockWhatsappClient = {
-    sendMessage: jest.fn<(...args: unknown[]) => Promise<unknown>>(),
-  };
+  const sendMessageExecute = jest
+    .fn<
+      (
+        ...args: unknown[]
+      ) => Promise<{ messageId: string; providerMessageId: string }>
+    >()
+    .mockResolvedValue({ messageId: 'id-1', providerMessageId: 'wamid-1' });
 
   const mockTemplatesService = {
     resolveTemplate: jest.fn<(...args: unknown[]) => Promise<unknown>>(),
@@ -68,7 +72,6 @@ describe('ResponseHandlerService', () => {
     mockPrisma.appointmentResponse.create.mockResolvedValue({ id: 'resp-1' });
     mockPrisma.appointmentResponse.update.mockResolvedValue({ id: 'resp-1' });
 
-    mockWhatsappClient.sendMessage.mockResolvedValue({ messageId: 'wamid-1' });
     mockTemplatesService.resolveTemplate.mockResolvedValue({
       content: 'Template message',
       textFallback: 'Template message',
@@ -80,7 +83,10 @@ describe('ResponseHandlerService', () => {
       providers: [
         ResponseHandlerService,
         { provide: PrismaService, useValue: mockPrisma },
-        { provide: WhatsappClientService, useValue: mockWhatsappClient },
+        {
+          provide: SendMessageUseCase,
+          useValue: { execute: sendMessageExecute },
+        },
         { provide: TemplatesService, useValue: mockTemplatesService },
         { provide: StaffNotificationService, useValue: mockStaffNotification },
       ],
@@ -163,10 +169,10 @@ describe('ResponseHandlerService', () => {
       }),
     );
 
-    expect(mockWhatsappClient.sendMessage).toHaveBeenCalledWith(
+    expect(sendMessageExecute).toHaveBeenCalledWith(
       expect.objectContaining({
-        to: '919876543210',
-        message: expect.stringContaining(
+        recipientPhone: '919876543210',
+        text: expect.stringContaining(
           'reply with your expected delay in minutes',
         ),
       }),
@@ -223,9 +229,9 @@ describe('ResponseHandlerService', () => {
       'm6',
     );
 
-    expect(mockWhatsappClient.sendMessage).toHaveBeenCalledWith(
+    expect(sendMessageExecute).toHaveBeenCalledWith(
       expect.objectContaining({
-        message: expect.stringContaining('Schedule Impact'),
+        text: expect.stringContaining('Schedule Impact'),
       }),
     );
 

@@ -2,6 +2,7 @@ import { Injectable, Logger, Inject } from '@nestjs/common';
 import { InvoiceStatus } from '@workspace/db';
 import { PrismaService } from '@/prisma/prisma.service';
 import { PaymentsService } from './payments.service';
+import { isClinicWhatsAppAutomationSendingAllowed } from '@/shared/modules/messaging/whatsapp/whatsapp-patient-send-policy.util';
 import {
   IInvoiceRepository,
   INVOICE_REPOSITORY_TOKEN,
@@ -114,7 +115,13 @@ export class SchedulerService {
     for (const invoice of targetInvoices) {
       if (autoSendWhatsApp) {
         const session = sessionByInvoiceId.get(invoice.id);
-        if (session) {
+        if (
+          session &&
+          (await isClinicWhatsAppAutomationSendingAllowed(
+            this.prisma,
+            session.clinicId,
+          ))
+        ) {
           await this.paymentsService.sendPaymentLinkWhatsApp(
             session.id,
             session.clinicId,

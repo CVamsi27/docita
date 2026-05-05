@@ -1,4 +1,5 @@
 import { Injectable, Logger, NotFoundException, Inject } from '@nestjs/common';
+import { formatChiefComplaintSummary } from '@workspace/utils';
 import {
   IPatientTimelineRepository,
   PATIENT_TIMELINE_REPOSITORY_TOKEN,
@@ -328,7 +329,9 @@ export class PatientTimelineService {
       type: 'APPOINTMENT' as TimelineEventType,
       id: a.id,
       date: a.startTime.toISOString(),
-      title: a.chiefComplaint ?? `${a.type} Appointment`,
+      title:
+        formatChiefComplaintSummary(a.chiefComplaint) ??
+        `${a.type} Appointment`,
       description: a.finalDiagnosis ?? null,
       metadata: {
         status: a.status,

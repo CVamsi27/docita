@@ -2,7 +2,10 @@ import { Injectable, BadRequestException } from '@nestjs/common';
 import { Specialization } from '@workspace/db';
 import {
   TIER_PRICING_BY_CURRENCY,
+  type MultiCurrencyTierPricing,
   type SupportedCurrency,
+  isFrontDeskWorkspace,
+  parseWorkspaceProfile,
 } from '@workspace/types';
 import {
   CompleteOnboardingDto,
@@ -13,6 +16,22 @@ import {
   validateClinicTier,
   validateBillingCycle,
 } from './type-helpers';
+
+function billingCycleEnumToCatalogKey(
+  cycle: string,
+): keyof MultiCurrencyTierPricing | null {
+  switch (cycle.toUpperCase()) {
+    case 'MONTHLY':
+      return 'monthly';
+    case 'YEARLY':
+      return 'yearly';
+    case 'QUARTERLY':
+    case 'SEMI_ANNUAL':
+      return 'monthly';
+    default:
+      return null;
+  }
+}
 
 @Injectable()
 export class OnboardingValidationService {
@@ -61,19 +80,32 @@ export class OnboardingValidationService {
       }
     }
 
-    if (data.planSelection && data.planSelection.tier !== ClinicTier.STARTER) {
+    if (data.planSelection) {
       const currency = this.resolveCurrency(data.planSelection.currency);
-
+      const listPricePaise = this.getTierPricing(
+        data.planSelection.tier,
+        data.planSelection.billingCycle,
+        data.planSelection.currency,
+      );
       const hasProcessedPayment =
         !!data.paymentDetails?.razorpayPaymentId ||
         (!!data.paymentDetails?.cardLast4 &&
           data.paymentDetails?.skipPayment !== true);
 
-      if (!hasProcessedPayment) {
+      const unpaidEssentialTrial =
+        data.planSelection.tier === ClinicTier.ESSENTIAL &&
+        data.paymentDetails?.skipPayment === true;
+
+      if (!unpaidEssentialTrial && !hasProcessedPayment) {
         errors.push('Payment details are required for paid plans');
       }
 
-      if (currency === 'INR' && !data.clinicDetails?.gstin) {
+      if (
+        currency === 'INR' &&
+        !data.clinicDetails?.gstin &&
+        listPricePaise > 0 &&
+        !unpaidEssentialTrial
+      ) {
         errors.push(
           'GSTIN is required for paid Indian plans so we can issue GST invoices',
         );
@@ -91,6 +123,43 @@ export class OnboardingValidationService {
     ) {
       errors.push(
         'WhatsApp business number is required when WhatsApp is enabled',
+      );
+    }
+
+    const workspaceProfile = parseWorkspaceProfile(
+      data.planSelection?.workspaceProfile,
+    );
+    const isFrontDeskTier = data.planSelection?.tier === ClinicTier.FRONT_DESK;
+    const isFrontDeskWorkspaceMode = isFrontDeskWorkspace(workspaceProfile);
+    if (
+      (isFrontDeskTier || isFrontDeskWorkspaceMode) &&
+      data.staffSetup?.staffMembers
+    ) {
+      let doctorLikeCount = 0;
+      for (const member of data.staffSetup.staffMembers) {
+        if (member.role === 'NURSE' || member.role === 'ADMIN_DOCTOR') {
+          errors.push(
+            'The front desk workspace does not support nurse or admin-doctor staff roles during onboarding.',
+          );
+          break;
+        }
+        if (member.role === 'DOCTOR') {
+          doctorLikeCount += 1;
+        }
+      }
+      if (!isFrontDeskTier && doctorLikeCount > 1) {
+        errors.push(
+          'The front desk workspace allows at most one doctor profile during onboarding.',
+        );
+      }
+    }
+
+    if (
+      data.planSelection?.tier === ClinicTier.FRONT_DESK &&
+      data.adminAccount?.role === 'ADMIN_DOCTOR'
+    ) {
+      errors.push(
+        'The front desk plan does not support the admin-doctor role for the primary admin account.',
       );
     }
 
@@ -182,8 +251,14 @@ export class OnboardingValidationService {
     const resolvedCurrency = this.resolveCurrency(currency);
     const pricing = TIER_PRICING_BY_CURRENCY[resolvedCurrency];
     const tierPricing = pricing[tier as keyof typeof pricing];
-    const amount = tierPricing?.[cycle as keyof typeof tierPricing];
-    return typeof amount === 'number' ? amount : 0;
+    const pricingKey = billingCycleEnumToCatalogKey(cycle);
+    const amount = pricingKey !== null ? tierPricing?.[pricingKey] : undefined;
+    if (typeof amount !== 'number') {
+      return 0;
+    }
+    // Catalog amounts are in major units (e.g. INR rupees); Razorpay and
+    // Subscription.basePriceCents store smallest currency units (paise).
+    return Math.round(amount * 100);
   }
 
   getTierLimits(tier: string): {
@@ -214,6 +289,12 @@ export class OnboardingValidationService {
         includedAppointments: 1000,
         includedStorageGB: 10,
         includedUsers: 3,
+      },
+      FRONT_DESK: {
+        includedPatients: 999999,
+        includedAppointments: 500,
+        includedStorageGB: 10,
+        includedUsers: 5,
       },
       PROFESSIONAL: {
         includedPatients: 10000,

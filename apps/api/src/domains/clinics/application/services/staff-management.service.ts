@@ -7,6 +7,7 @@ import {
 import { PrismaService } from '@/prisma/prisma.service';
 import * as bcrypt from 'bcrypt';
 import { Role, Specialization } from '@workspace/db';
+import { isFrontDeskWorkspace, parseWorkspaceProfile } from '@workspace/types';
 
 type ClinicMemberRole =
   | 'DOCTOR'
@@ -64,7 +65,27 @@ interface UpdateMemberData {
 export class StaffManagementService {
   constructor(private prisma: PrismaService) {}
 
+  private async isClinicFrontDesk(clinicId: string): Promise<boolean> {
+    const clinic = await this.prisma.clinic.findUnique({
+      where: { id: clinicId },
+      select: { tier: true, settings: true },
+    });
+    if (!clinic) {
+      return false;
+    }
+    if (clinic.tier === 'FRONT_DESK') {
+      return true;
+    }
+    const raw =
+      clinic.settings && typeof clinic.settings === 'object'
+        ? (clinic.settings as Record<string, unknown>)
+        : {};
+    return isFrontDeskWorkspace(parseWorkspaceProfile(raw.workspaceProfile));
+  }
+
   async createDoctor(clinicId: string, data: CreateDoctorData) {
+    const isFrontDesk = await this.isClinicFrontDesk(clinicId);
+
     const hashedPassword = await bcrypt.hash(data.password, 10);
 
     const userData = {
@@ -77,6 +98,7 @@ export class StaffManagementService {
       qualification: data.qualification,
       registrationNumber: data.registrationNumber,
       specialization: data.specialization as Specialization,
+      ...(isFrontDesk ? { appLoginDisabled: true } : {}),
     };
 
     const user = await this.prisma.user.create({
@@ -105,6 +127,15 @@ export class StaffManagementService {
   }
 
   async createMember(clinicId: string, data: CreateClinicMemberData) {
+    const isFrontDesk = await this.isClinicFrontDesk(clinicId);
+    if (isFrontDesk) {
+      if (data.role === 'NURSE' || data.role === 'ADMIN_DOCTOR') {
+        throw new BadRequestException(
+          'This role is not available for the front desk workspace.',
+        );
+      }
+    }
+
     const hashedPassword = await bcrypt.hash(data.password, 10);
 
     const prismaRole: Role =
@@ -135,6 +166,9 @@ export class StaffManagementService {
               registrationNumber: data.registrationNumber,
               specialization: data.specialization as Specialization,
             }
+          : {}),
+        ...(isFrontDesk && prismaRole === Role.DOCTOR
+          ? { appLoginDisabled: true }
           : {}),
       },
       select: {
@@ -187,6 +221,12 @@ export class StaffManagementService {
   }
 
   async createReceptionist(clinicId: string, data: CreateReceptionistData) {
+    const isFrontDesk = await this.isClinicFrontDesk(clinicId);
+    if (isFrontDesk && data.role === 'NURSE') {
+      throw new BadRequestException(
+        'This role is not available for the front desk workspace.',
+      );
+    }
     const hashedPassword = await bcrypt.hash(data.password, 10);
     const user = await this.prisma.user.create({
       data: {
@@ -305,6 +345,26 @@ export class StaffManagementService {
       }
     }
 
+    const isFrontDesk = await this.isClinicFrontDesk(clinicId);
+    if (data.role) {
+      if (isFrontDesk) {
+        if (data.role === 'NURSE' || data.role === 'ADMIN_DOCTOR') {
+          throw new BadRequestException(
+            'This role is not available for the front desk workspace.',
+          );
+        }
+      }
+    }
+
+    let appLoginDisabled: boolean | undefined;
+    if (data.role !== undefined) {
+      if (data.role === 'DOCTOR' && isFrontDesk) {
+        appLoginDisabled = true;
+      } else if (data.role !== 'DOCTOR') {
+        appLoginDisabled = false;
+      }
+    }
+
     const updated = await this.prisma.user.update({
       where: { id: memberId },
       data: {
@@ -314,6 +374,7 @@ export class StaffManagementService {
           ? { phoneNumber: data.phoneNumber }
           : {}),
         ...(data.role !== undefined ? { role: data.role } : {}),
+        ...(appLoginDisabled !== undefined ? { appLoginDisabled } : {}),
         ...(data.specialization !== undefined
           ? { specialization: data.specialization as Specialization }
           : {}),

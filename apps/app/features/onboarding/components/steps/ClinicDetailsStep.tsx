@@ -638,7 +638,7 @@ export function ClinicDetailsStep({
       </CardContent>
       <CardFooter>
         <Button className="w-full" form="step1" type="submit">
-          Next: Choose Plan
+          Next: Visit hours
         </Button>
       </CardFooter>
 

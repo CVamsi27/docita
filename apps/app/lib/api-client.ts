@@ -5,7 +5,12 @@ import {
   type APIError,
   type RequestConfig,
 } from "@workspace/data-access";
-import { API_ROUTES } from "@workspace/types";
+import {
+  API_ROUTES,
+  listPatientsQuerySchema,
+  listPatientsResponseSchema,
+  patientResponseSchema,
+} from "@workspace/types";
 import { appSession } from "./session";
 import { handleApiClientError } from "./api-client-error-handler";
 
@@ -46,9 +51,14 @@ export const apiFetchWithSchema = client.validate;
 
 export const typedApi = {
   patients: {
-    list: (params?: { limit?: number; cursor?: string; search?: string }) =>
-      client.get(API_ROUTES.patients.list, { params }),
-    get: (id: string) => client.get(API_ROUTES.patients.get(id)),
+    list: (params?: { limit?: number; page?: number; search?: string }) =>
+      client.validate(
+        API_ROUTES.patients.list,
+        listPatientsResponseSchema,
+        params ? { params: listPatientsQuerySchema.parse(params) } : undefined,
+      ),
+    get: (id: string) =>
+      client.validate(API_ROUTES.patients.get(id), patientResponseSchema),
     create: (data: Record<string, unknown>) =>
       client.post(API_ROUTES.patients.create, data),
     update: (id: string, data: unknown) =>

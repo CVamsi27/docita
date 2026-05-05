@@ -14,18 +14,32 @@ import {
 import { Button } from "@workspace/ui/components/button";
 import { Alert, AlertDescription } from "@workspace/ui/components/alert";
 import { cn } from "@workspace/ui/lib/utils";
-import { AlertTriangle, ArrowDown, ArrowRight, Building2, CheckCircle, Crown, Rocket, Sparkles, Zap } from "lucide-react";
+import {
+  AlertTriangle,
+  ArrowDown,
+  ArrowRight,
+  Building2,
+  CheckCircle,
+  ClipboardList,
+  Crown,
+  Rocket,
+  Sparkles,
+  Zap,
+} from "lucide-react";
 import {
   PRICING_CURRENCY_CONFIG,
   type SupportedCurrency,
   Tier,
   TIER_INFO,
   type TierName,
+  getTierName,
   getUserFacingErrorMessage,
 } from "@workspace/types";
 import { type TierPricing, usePricingConfig } from "@/hooks/api/use-pricing";
 import { useProrationPreview } from "@/hooks/api/use-billing";
 import { formatCurrency, formatPriceWithCurrency } from "@workspace/utils";
+import { SUBSCRIPTION_GST_INCLUSIVE_NOTICE } from "@/features/subscription/lib/billing-display-messages";
+import { YearlyVsListAnnualPrice } from "@/features/subscription/lib/yearly-vs-list-annual-price";
 
 interface TierChangeDialogProps {
   open: boolean;
@@ -35,14 +49,26 @@ interface TierChangeDialogProps {
   billingCycle: "MONTHLY" | "YEARLY";
   currency: SupportedCurrency;
   onConfirm: () => Promise<void>;
+  /** True while Razorpay or billing API is in flight (parent checkout hook). */
+  checkoutInFlight?: boolean;
 }
 
 const TIER_ICONS: Record<TierName, React.ElementType> = {
   STARTER: Zap,
   ESSENTIAL: Rocket,
+  FRONT_DESK: ClipboardList,
   PROFESSIONAL: Crown,
   ENTERPRISE: Building2,
   INTELLIGENCE: Sparkles,
+};
+
+const PLAN_TIER_RANK: Record<TierName, number> = {
+  STARTER: 10,
+  FRONT_DESK: 18,
+  ESSENTIAL: 20,
+  PROFESSIONAL: 30,
+  ENTERPRISE: 40,
+  INTELLIGENCE: 35,
 };
 
 export function TierChangeDialog({
@@ -53,6 +79,7 @@ export function TierChangeDialog({
   billingCycle,
   currency,
   onConfirm,
+  checkoutInFlight = false,
 }: TierChangeDialogProps) {
   const [isLoading, setIsLoading] = useState(false);
   const [success, setSuccess] = useState(false);
@@ -91,13 +118,14 @@ export function TierChangeDialog({
     );
   }
 
-  const currentTierName = Tier[currentTier] as TierName;
+  const currentTierName = getTierName(currentTier);
   const currentInfo = TIER_INFO[currentTierName];
   const selectedInfo = TIER_INFO[selectedTier];
-  const selectedTierNumeric = Tier[selectedTier as keyof typeof Tier];
+  const currentRank = PLAN_TIER_RANK[currentTierName] ?? 0;
+  const selectedRank = PLAN_TIER_RANK[selectedTier] ?? 0;
 
-  const isUpgrade = selectedTierNumeric > currentTier;
-  const isDowngrade = selectedTierNumeric < currentTier;
+  const isUpgrade = selectedRank > currentRank;
+  const isDowngrade = selectedRank < currentRank;
 
   const currentTierData = pricingConfig.tiers.find(
     (t: TierPricing) => t.id === currentTierName,
@@ -153,8 +181,10 @@ export function TierChangeDialog({
     }
   };
 
+  const busy = isLoading || checkoutInFlight;
+
   const handleClose = () => {
-    if (!isLoading) {
+    if (!busy) {
       setSuccess(false);
       setError(null);
       onOpenChange(false);
@@ -210,9 +240,21 @@ export function TierChangeDialog({
                 </div>
                 <p className="font-semibold">{currentInfo.name}</p>
                 <p className="mt-1 text-sm text-muted-foreground">
-                  {!currentHasCustomPricing && typeof currentPrice === "number"
-                    ? `${formatPrice(currentPrice)}${cycleSuffix}`
-                    : "Custom pricing"}
+                  {billingCycle === "YEARLY" &&
+                  !currentHasCustomPricing &&
+                  currentTierData &&
+                  typeof currentTierData.pricing.monthly === "number" &&
+                  typeof currentPrice === "number" ? (
+                    <YearlyVsListAnnualPrice
+                      monthlyListPrice={currentTierData.pricing.monthly}
+                      discountedAnnualPrice={currentPrice}
+                      formatMoney={formatPrice}
+                    />
+                  ) : !currentHasCustomPricing && typeof currentPrice === "number" ? (
+                    `${formatPrice(currentPrice)}${cycleSuffix}`
+                  ) : (
+                    "Custom pricing"
+                  )}
                 </p>
               </div>
 
@@ -233,9 +275,22 @@ export function TierChangeDialog({
                 </div>
                 <p className="font-semibold">{selectedInfo.name}</p>
                 <p className="mt-1 text-sm text-muted-foreground">
-                  {!selectedHasCustomPricing && typeof selectedPrice === "number"
-                    ? `${formatPrice(selectedPrice)}${cycleSuffix}`
-                    : "Custom pricing"}
+                  {billingCycle === "YEARLY" &&
+                  !selectedHasCustomPricing &&
+                  selectedTierData &&
+                  typeof selectedTierData.pricing.monthly === "number" &&
+                  typeof selectedPrice === "number" ? (
+                    <YearlyVsListAnnualPrice
+                      monthlyListPrice={selectedTierData.pricing.monthly}
+                      discountedAnnualPrice={selectedPrice}
+                      formatMoney={formatPrice}
+                    />
+                  ) : !selectedHasCustomPricing &&
+                    typeof selectedPrice === "number" ? (
+                    `${formatPrice(selectedPrice)}${cycleSuffix}`
+                  ) : (
+                    "Custom pricing"
+                  )}
                 </p>
                 <p className="mt-2 text-xs text-muted-foreground">
                   {billingCycle === "YEARLY" ? "Yearly billing" : "Monthly billing"}
@@ -296,6 +351,10 @@ export function TierChangeDialog({
               </div>
             )}
 
+            <p className="text-[var(--fs-2xs)] leading-snug text-muted-foreground">
+              {SUBSCRIPTION_GST_INCLUSIVE_NOTICE}
+            </p>
+
             {isDowngrade && (
               <Alert className="surface-warning">
                 <AlertTriangle className="h-4 w-4 text-warning" />
@@ -330,18 +389,18 @@ export function TierChangeDialog({
               <Button
                 variant="outline"
                 onClick={handleClose}
-                disabled={isLoading}
+                disabled={busy}
               >
                 Cancel
               </Button>
               <Button
                 onClick={handleConfirm}
-                disabled={isLoading}
+                disabled={busy}
                 className={cn(
                   isUpgrade ? "" : "btn-warning",
                 )}
               >
-                {isLoading ? (
+                {busy ? (
                   <>
                     <DocitaLoadingIndicator variant="inline" decorative className="mr-2" />
                     Processing…

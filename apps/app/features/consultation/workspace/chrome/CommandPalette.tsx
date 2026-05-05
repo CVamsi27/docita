@@ -67,7 +67,20 @@ export function CommandPalette({
           showClearButton
         />
         <CommandList>
-          <CommandEmpty>No matching commands.</CommandEmpty>
+          <CommandEmpty>
+            <span className="block">No matching commands.</span>
+            <span className="mt-2 block text-[var(--fs-xs)] text-muted-foreground">
+              Tip: press{" "}
+              <kbd className="rounded border border-border/70 bg-muted px-1 font-mono text-[var(--fs-2xs)]">
+                g
+              </kbd>{" "}
+              then a SOAP letter, or{" "}
+              <kbd className="rounded border border-border/70 bg-muted px-1 font-mono text-[var(--fs-2xs)]">
+                q
+              </kbd>{" "}
+              for the OPD queue.
+            </span>
+          </CommandEmpty>
           {(["Navigate", "Add", "Action"] as const).map((groupName, idx) => {
             const groupActions = groups[groupName];
             if (!groupActions || groupActions.length === 0) return null;

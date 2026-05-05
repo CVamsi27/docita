@@ -45,9 +45,9 @@ export default function OnboardingPage() {
 
     if (user?.clinicId || user?.onboardingStep === "COMPLETED") {
       setRedirectMessage(
-        "Registration successful. Taking you to your dashboard…",
+        "Registration successful. Taking you to your workspace…",
       );
-      router.replace("/dashboard");
+      router.replace("/today");
       return;
     }
 
@@ -82,19 +82,14 @@ export default function OnboardingPage() {
       contentAlignment="start"
       showSignOut
     >
-      <div className="animate-in fade-in slide-in-from-bottom-4 duration-700 space-y-1">
+      <div className="space-y-1">
         <h1 className="ui-page-title">Set up your facility</h1>
         <p className="ui-page-subtitle">
           Complete your facility registration to get started.
         </p>
       </div>
 
-      <div
-        className="animate-in fade-in slide-in-from-bottom-4 duration-700"
-        style={{ animationDelay: "100ms" }}
-      >
-        <ClinicOnboardingWizard />
-      </div>
+      <ClinicOnboardingWizard />
     </PreDashboardShell>
   );
 }

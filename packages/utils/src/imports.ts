@@ -38,6 +38,19 @@ export const PATIENT_FIELD_MAPPINGS = {
     "history",
     "conditions",
   ],
+  invoiceTotal: [
+    "invoice total",
+    "invoicetotal",
+    "bill total",
+    "grand total",
+    "total amount",
+  ],
+  invoiceLineItems: [
+    "invoice line items",
+    "invoicelineitems",
+    "invoice items",
+    "line items json",
+  ],
 } as const;
 
 export type PatientFieldKey = keyof typeof PATIENT_FIELD_MAPPINGS;

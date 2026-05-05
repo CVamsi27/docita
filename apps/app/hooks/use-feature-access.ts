@@ -1,5 +1,12 @@
 "use client";
 
+/**
+ * Access-control helper layered on {@link AccessControlService} (tier + addon rules).
+ * For route, navigation, and settings visibility, prefer {@link usePermissionStore}
+ * together with {@link canAccessTarget} so UI matches `APP_ACCESS_MATRIX` and
+ * clinic tier data from `/clinic/settings`. Use this hook only where upgrade-path
+ * messaging or add-on-specific evaluation is still required.
+ */
 import { useCallback, useMemo } from "react";
 import { type ClinicType, Feature } from "@workspace/types";
 

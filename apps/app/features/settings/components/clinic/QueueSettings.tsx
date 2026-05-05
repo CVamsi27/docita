@@ -140,12 +140,12 @@ export const QueueSettings = () => {
               aria-label="Loading queue configuration"
             >
               <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
-                <Skeleton animation="wave" className="h-20 w-full rounded-lg" />
-                <Skeleton animation="wave" className="h-20 w-full rounded-lg" />
-                <Skeleton animation="wave" className="h-20 w-full rounded-lg" />
+                <Skeleton className="h-20 w-full rounded-lg" />
+                <Skeleton className="h-20 w-full rounded-lg" />
+                <Skeleton className="h-20 w-full rounded-lg" />
               </div>
-              <Skeleton animation="wave" className="h-16 w-full rounded-lg" />
-              <Skeleton animation="wave" className="h-10 w-full rounded-md" />
+              <Skeleton className="h-16 w-full rounded-lg" />
+              <Skeleton className="h-10 w-full rounded-md" />
             </div>
           ) : (
             <Form {...form}>
@@ -286,12 +286,11 @@ export const QueueSettings = () => {
                 {Array.from({ length: 5 }).map((_, i) => (
                   <Skeleton
                     key={i}
-                    animation="wave"
                     className="h-20 rounded-lg"
                   />
                 ))}
               </div>
-              <Skeleton animation="wave" className="h-10 w-48" />
+              <Skeleton className="h-10 w-48" />
             </div>
           ) : (
             <>

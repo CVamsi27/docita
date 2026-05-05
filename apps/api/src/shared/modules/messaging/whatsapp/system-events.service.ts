@@ -1,7 +1,7 @@
 import { Injectable, Logger } from '@nestjs/common';
 import { PrismaService } from '@/prisma/prisma.service';
-import { TemplatesService } from './templates.service';
-import { WhatsappClientService } from './whatsapp-client.service';
+import { SendMessageUseCase } from '@/domains/whatsapp/application/use-cases/send-message.use-case';
+import { isClinicWhatsAppAutomationSendingAllowed } from './whatsapp-patient-send-policy.util';
 import { DATE_FORMATS, formatDate, formatTime } from '@workspace/utils';
 
 @Injectable()
@@ -10,31 +10,15 @@ export class SystemEventsService {
 
   constructor(
     private readonly prisma: PrismaService,
-    private readonly templatesService: TemplatesService,
-    private readonly whatsappClient: WhatsappClientService,
+    private readonly sendMessage: SendMessageUseCase,
   ) {}
 
-  private async isWhatsappEnabled(clinicId: string): Promise<boolean> {
-    const clinic = await this.prisma.clinic.findUnique({
-      where: { id: clinicId },
-      select: { whatsappAutomation: true },
-    });
-
-    if (
-      !clinic?.whatsappAutomation ||
-      typeof clinic.whatsappAutomation !== 'object'
-    ) {
-      return true;
-    }
-
-    const automation = clinic.whatsappAutomation as { enabled?: boolean };
-    return automation.enabled !== false;
-  }
-
   async sendPrescriptionSystem(prescriptionId: string, clinicId: string) {
-    if (!(await this.isWhatsappEnabled(clinicId))) {
+    if (
+      !(await isClinicWhatsAppAutomationSendingAllowed(this.prisma, clinicId))
+    ) {
       this.logger.log(
-        `WhatsApp disabled for clinic ${clinicId}; skipping prescription notification`,
+        `WhatsApp patient messaging not allowed for clinic ${clinicId}; skipping prescription notification`,
       );
       return;
     }
@@ -59,25 +43,27 @@ export class SystemEventsService {
       link: `https://docita.com/prescription/${prescription.id}`,
     };
 
-    const resolved = await this.templatesService.resolveTemplate(
-      'prescription_created',
-      variables,
-      clinicId,
-    );
-
-    if (resolved) {
-      const message = this.templatesService.getMessageForMode(resolved);
-      await this.whatsappClient.sendMessage({
-        to: prescription.patient.phoneNumber,
-        message,
+    try {
+      await this.sendMessage.execute({
+        clinicId,
+        recipientPhone: prescription.patient.phoneNumber,
+        templateName: 'prescription_created',
+        variables,
       });
+    } catch (error) {
+      this.logger.error(
+        `Failed to send prescription WhatsApp for ${prescriptionId}`,
+        error instanceof Error ? error.stack : error,
+      );
     }
   }
 
   async sendInvoiceSystem(invoiceId: string, clinicId: string) {
-    if (!(await this.isWhatsappEnabled(clinicId))) {
+    if (
+      !(await isClinicWhatsAppAutomationSendingAllowed(this.prisma, clinicId))
+    ) {
       this.logger.log(
-        `WhatsApp disabled for clinic ${clinicId}; skipping invoice notification`,
+        `WhatsApp patient messaging not allowed for clinic ${clinicId}; skipping invoice notification`,
       );
       return;
     }
@@ -101,25 +87,27 @@ export class SystemEventsService {
       link: `https://docita.com/invoice/${invoice.id}`,
     };
 
-    const resolved = await this.templatesService.resolveTemplate(
-      'invoice_created',
-      variables,
-      clinicId,
-    );
-
-    if (resolved) {
-      const message = this.templatesService.getMessageForMode(resolved);
-      await this.whatsappClient.sendMessage({
-        to: invoice.patient.phoneNumber,
-        message,
+    try {
+      await this.sendMessage.execute({
+        clinicId,
+        recipientPhone: invoice.patient.phoneNumber,
+        templateName: 'invoice_created',
+        variables,
       });
+    } catch (error) {
+      this.logger.error(
+        `Failed to send invoice WhatsApp for ${invoiceId}`,
+        error instanceof Error ? error.stack : error,
+      );
     }
   }
 
   async sendAppointmentConfirmation(appointmentId: string, clinicId: string) {
-    if (!(await this.isWhatsappEnabled(clinicId))) {
+    if (
+      !(await isClinicWhatsAppAutomationSendingAllowed(this.prisma, clinicId))
+    ) {
       this.logger.log(
-        `WhatsApp disabled for clinic ${clinicId}; skipping appointment confirmation`,
+        `WhatsApp patient messaging not allowed for clinic ${clinicId}; skipping appointment confirmation`,
       );
       return;
     }
@@ -145,18 +133,18 @@ export class SystemEventsService {
       time: formatTime(appointment.startTime, DATE_FORMATS.TIME_MEDIUM),
     };
 
-    const resolved = await this.templatesService.resolveTemplate(
-      'appointment_confirmation',
-      variables,
-      clinicId,
-    );
-
-    if (resolved) {
-      const message = this.templatesService.getMessageForMode(resolved);
-      await this.whatsappClient.sendMessage({
-        to: appointment.patient.phoneNumber,
-        message,
+    try {
+      await this.sendMessage.execute({
+        clinicId,
+        recipientPhone: appointment.patient.phoneNumber,
+        templateName: 'appointment_confirmation',
+        variables,
       });
+    } catch (error) {
+      this.logger.error(
+        `Failed to send appointment confirmation WhatsApp for ${appointmentId}`,
+        error instanceof Error ? error.stack : error,
+      );
     }
   }
 
@@ -165,9 +153,11 @@ export class SystemEventsService {
     clinicId: string,
     type: 'CANCELLED' | 'RESCHEDULED',
   ) {
-    if (!(await this.isWhatsappEnabled(clinicId))) {
+    if (
+      !(await isClinicWhatsAppAutomationSendingAllowed(this.prisma, clinicId))
+    ) {
       this.logger.log(
-        `WhatsApp disabled for clinic ${clinicId}; skipping appointment update`,
+        `WhatsApp patient messaging not allowed for clinic ${clinicId}; skipping appointment update`,
       );
       return;
     }
@@ -196,18 +186,18 @@ export class SystemEventsService {
       time: formatTime(appointment.startTime, DATE_FORMATS.TIME_MEDIUM),
     };
 
-    const resolved = await this.templatesService.resolveTemplate(
-      templateName,
-      variables,
-      clinicId,
-    );
-
-    if (resolved) {
-      const message = this.templatesService.getMessageForMode(resolved);
-      await this.whatsappClient.sendMessage({
-        to: appointment.patient.phoneNumber,
-        message,
+    try {
+      await this.sendMessage.execute({
+        clinicId,
+        recipientPhone: appointment.patient.phoneNumber,
+        templateName,
+        variables,
       });
+    } catch (error) {
+      this.logger.error(
+        `Failed to send appointment update WhatsApp for ${appointmentId}`,
+        error instanceof Error ? error.stack : error,
+      );
     }
   }
 }

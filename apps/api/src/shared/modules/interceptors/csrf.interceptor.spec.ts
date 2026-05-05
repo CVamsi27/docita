@@ -243,4 +243,13 @@ describe('CsrfInterceptor', () => {
     });
     expect(() => interceptor.intercept(context, next)).not.toThrow();
   });
+
+  it('allows unauthenticated POST to monitoring web-vitals without CSRF', () => {
+    const context = createContext({
+      method: 'POST',
+      url: '/api/v1/monitoring/web-vitals',
+      originalUrl: '/api/v1/monitoring/web-vitals',
+    });
+    expect(() => interceptor.intercept(context, next)).not.toThrow();
+  });
 });

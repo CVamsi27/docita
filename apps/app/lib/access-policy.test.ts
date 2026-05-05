@@ -100,4 +100,30 @@ describe("canAccessTarget", () => {
       }),
     ).toBe(false);
   });
+
+  it("blocks clinical surfaces on front desk workspace while keeping appointments", () => {
+    expect(
+      canAccessTarget(APP_ACCESS_TARGETS.PAGE_CONSULTATION, {
+        role: "ADMIN",
+        canAccessFeature: () => true,
+        workspaceProfile: "FRONT_DESK",
+      }),
+    ).toBe(false);
+
+    expect(
+      canAccessTarget(APP_ACCESS_TARGETS.PAGE_APPOINTMENTS, {
+        role: "RECEPTIONIST",
+        canAccessFeature: () => true,
+        workspaceProfile: "FRONT_DESK",
+      }),
+    ).toBe(true);
+
+    expect(
+      canAccessTarget(APP_ACCESS_TARGETS.PAGE_CONSULTATION, {
+        role: "ADMIN",
+        canAccessFeature: () => true,
+        workspaceProfile: "FULL_CLINICAL",
+      }),
+    ).toBe(true);
+  });
 });

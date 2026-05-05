@@ -9,6 +9,7 @@ import { NlmCodeCatalogProvider } from './infrastructure/external/nlm-code-catal
 import { LicensedCptCodeCatalogProvider } from './infrastructure/external/licensed-cpt-code-catalog.provider';
 import { CompositeCodeCatalogProvider } from './infrastructure/external/composite-code-catalog.provider';
 import { PrismaModule } from '@/prisma/prisma.module';
+import { FrontDeskClinicalBlockGuard } from '@/shared/modules/clinic-workspace/front-desk-clinical-block.guard';
 import { ClinicalFactory } from './application/factories/clinical.factory';
 import { CODE_CATALOG_PROVIDER } from './core/providers/code-catalog.provider';
 
@@ -16,6 +17,7 @@ import { CODE_CATALOG_PROVIDER } from './core/providers/code-catalog.provider';
   imports: [PrismaModule],
   controllers: [LabTestsController, MedicalCodingController],
   providers: [
+    FrontDeskClinicalBlockGuard,
     ClinicalService,
     ClinicalSettingsService,
     ClinicalFactory,

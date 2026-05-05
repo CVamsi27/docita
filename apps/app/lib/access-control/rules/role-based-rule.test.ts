@@ -50,7 +50,7 @@ describe("RoleBasedAccessRule", () => {
       ...baseContext,
       userId: "123",
       userRole: "RECEPTIONIST" as UserRole,
-      requiredPermission: "createInvoice" as Permission,
+      requiredPermission: "startConsultation" as Permission,
     } as IAccessContext;
     expect(rule.canAccess(context)).toBe(false);
   });

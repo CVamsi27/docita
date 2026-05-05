@@ -1,5 +1,6 @@
-import { InventoryItem } from "@workspace/types";
+import { Feature, InventoryItem } from "@workspace/types";
 import { useAPIMutation, useAPIQuery } from "@/lib/api-core";
+import { useTierFeatureEnabled } from "@/hooks/api/tier-feature-guards";
 import { withQueryString } from "@/lib/http/query-string";
 
 interface InventoryMovementInput {
@@ -25,23 +26,29 @@ export const useInventory = (filters?: {
   search?: string;
   category?: string;
   status?: string;
-}) =>
-  useAPIQuery<InventoryItem[]>(
+}) => {
+  const inventoryOk = useTierFeatureEnabled(Feature.INVENTORY);
+  return useAPIQuery<InventoryItem[]>(
     ["inventory", filters || {}],
     withQueryString("/inventory", filters),
+    { enabled: inventoryOk },
   );
+};
 
-export const useInventoryStats = () =>
-  useAPIQuery<{
+export const useInventoryStats = () => {
+  const inventoryOk = useTierFeatureEnabled(Feature.INVENTORY);
+  return useAPIQuery<{
     totalItems: number;
     totalStock: number;
     lowStock: number;
     critical: number;
     expiringSoon: number;
-  }>(["inventory-stats"], "/inventory/stats");
+  }>(["inventory-stats"], "/inventory/stats", { enabled: inventoryOk });
+};
 
-export const useInventoryItem = (id: string) =>
-  useAPIQuery<
+export const useInventoryItem = (id: string) => {
+  const inventoryOk = useTierFeatureEnabled(Feature.INVENTORY);
+  return useAPIQuery<
     InventoryItem & {
       movements: {
         id: string;
@@ -50,7 +57,10 @@ export const useInventoryItem = (id: string) =>
         createdAt: string;
       }[];
     }
-  >(["inventory", id], `/inventory/${id}`);
+  >(["inventory", id], `/inventory/${id}`, {
+    enabled: inventoryOk && id.length > 0,
+  });
+};
 
 export const useCreateInventoryItem = () =>
   useAPIMutation<InventoryItem, Partial<InventoryItem>>("/inventory", "POST");

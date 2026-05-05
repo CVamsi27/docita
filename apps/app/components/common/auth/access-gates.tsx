@@ -218,8 +218,9 @@ function checkPermission(
 
 function getTierDisplayName(tier: Tier): string {
   const names: Record<Tier, string> = {
-    [Tier.STARTER]: "Free",
+    [Tier.STARTER]: "Starter",
     [Tier.ESSENTIAL]: "Essential",
+    [Tier.FRONT_DESK]: "Front desk",
     [Tier.PROFESSIONAL]: "Professional",
     [Tier.ENTERPRISE]: "Enterprise",
     [Tier.INTELLIGENCE]: "Intelligence",

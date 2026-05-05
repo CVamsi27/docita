@@ -13,3 +13,4 @@ export * from "./feedback/offline-status-banner";
 export * from "./layout/providers";
 export * from "./layout/toaster-wrapper";
 export * from "./layout/web-vitals-reporter";
+export * from "./ask-ai";

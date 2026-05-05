@@ -5,20 +5,28 @@ import { AppConfigService } from '@/shared/modules/config/app-configuration.serv
 import { InMemoryQueueService } from './in-memory-queue.service';
 import { PostgresQueueService } from './postgres-queue.service';
 import { PdfJobService } from './pdf-job.service';
+import { WorkerMetricsService } from './worker-metrics.service';
+import { DlqController } from './dlq.controller';
 
 @Module({
   imports: [PrismaModule],
+  controllers: [DlqController],
   providers: [
+    WorkerMetricsService,
     {
       provide: 'queue',
-      useFactory: (prisma: PrismaService, config: AppConfigService) =>
+      useFactory: (
+        prisma: PrismaService,
+        config: AppConfigService,
+        metrics: WorkerMetricsService,
+      ) =>
         config.getQueueBackend() === 'postgres'
-          ? new PostgresQueueService(prisma)
+          ? new PostgresQueueService(prisma, metrics)
           : new InMemoryQueueService(),
-      inject: [PrismaService, AppConfigService],
+      inject: [PrismaService, AppConfigService, WorkerMetricsService],
     },
     PdfJobService,
   ],
-  exports: ['queue', PdfJobService],
+  exports: ['queue', PdfJobService, WorkerMetricsService],
 })
 export class QueueModule {}

@@ -26,6 +26,9 @@ export default function OCRPage() {
     isSaving,
     expandedSections,
     toggleSection,
+    needsReviewAcknowledgement,
+    reviewAcknowledged,
+    setReviewAcknowledged,
   } = useOCR();
 
   const { showQr, setShowQr, qrUrl, startMobileUpload } = useMobileUpload();
@@ -71,6 +74,9 @@ export default function OCRPage() {
           onToggleSection={toggleSection}
           isSaving={isSaving}
           onSave={handleSave}
+          needsReviewAcknowledgement={needsReviewAcknowledgement}
+          reviewAcknowledged={reviewAcknowledged}
+          onReviewAcknowledgedChange={setReviewAcknowledged}
         />
       </div>
 

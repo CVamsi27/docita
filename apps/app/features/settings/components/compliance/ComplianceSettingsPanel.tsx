@@ -43,6 +43,7 @@ import {
 } from "lucide-react";
 import { formatDate } from "@workspace/utils";
 import { ClinicSlaSignatureQR } from "@/features/settings/components/clinic-sla-signature-qr";
+import { IsoDatePickerField } from "@workspace/ui/components/iso-date-picker-field";
 import { useAPIMutation, useAPIQuery } from "@/lib/api-core";
 import { showUserFacingErrorToast } from "@/lib/user-facing-errors";
 import {
@@ -409,22 +410,17 @@ export function ComplianceSettingsPanel() {
                   </SelectContent>
                 </Select>
               </div>
-              <div className="space-y-2">
-                <label className="text-sm font-medium" htmlFor="request-due">
-                  Due date
-                </label>
-                <Input
-                  id="request-due"
-                  type="date"
-                  value={String(requestForm.dueAt ?? "")}
-                  onChange={(event) =>
-                    setRequestForm((current) => ({
-                      ...current,
-                      dueAt: event.target.value,
-                    }))
-                  }
-                />
-              </div>
+              <IsoDatePickerField
+                id="request-due"
+                label="Due date"
+                value={String(requestForm.dueAt ?? "")}
+                onChange={(iso) =>
+                  setRequestForm((current) => ({
+                    ...current,
+                    dueAt: iso,
+                  }))
+                }
+              />
             </div>
             <div className="grid gap-4 sm:grid-cols-2">
               <div className="space-y-2">

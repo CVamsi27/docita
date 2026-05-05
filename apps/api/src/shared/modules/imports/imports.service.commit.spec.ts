@@ -1,0 +1,105 @@
+import { Test, TestingModule } from '@nestjs/testing';
+import { EventEmitter2 } from '@nestjs/event-emitter';
+import { ImportsService } from './imports.service';
+import { PrismaService } from '@/prisma/prisma.service';
+import { AIService } from '@/shared/modules/ai/ai.service';
+import { OCRService } from './ocr.service';
+import { beforeEach, describe, expect, it, jest } from '@jest/globals';
+import type { OcrImportCommitRequest } from '@workspace/types';
+
+describe('ImportsService.commitOcrImport', () => {
+  let service: ImportsService;
+
+  beforeEach(async () => {
+    const tx = {
+      patient: {
+        create: jest
+          .fn<(...args: unknown[]) => Promise<unknown>>()
+          .mockResolvedValue({ id: 'patient-1' }),
+      },
+      appointment: {
+        create: jest
+          .fn<(...args: unknown[]) => Promise<unknown>>()
+          .mockResolvedValue({ id: 'appt-1' }),
+      },
+      vitalSign: {
+        create: jest
+          .fn<(...args: unknown[]) => Promise<unknown>>()
+          .mockResolvedValue({}),
+      },
+      prescription: {
+        create: jest
+          .fn<(...args: unknown[]) => Promise<unknown>>()
+          .mockResolvedValue({ id: 'rx-1' }),
+      },
+      medication: {
+        create: jest
+          .fn<(...args: unknown[]) => Promise<unknown>>()
+          .mockResolvedValue({}),
+      },
+      invoice: {
+        create: jest
+          .fn<(...args: unknown[]) => Promise<unknown>>()
+          .mockResolvedValue({}),
+      },
+    };
+
+    const prismaServiceMock: unknown = {
+      clinic: {
+        findUnique: jest
+          .fn<(...args: unknown[]) => Promise<unknown>>()
+          .mockResolvedValue({ id: 'clinic-1' }),
+      },
+      user: {
+        findFirst: jest
+          .fn<(...args: unknown[]) => Promise<unknown>>()
+          .mockResolvedValue({ id: 'doc-1' }),
+      },
+      $transaction: jest
+        .fn<(...args: unknown[]) => Promise<unknown>>()
+        .mockImplementation(async (fn: unknown) =>
+          (fn as (t: typeof tx) => Promise<unknown>)(tx),
+        ),
+    };
+
+    const module: TestingModule = await Test.createTestingModule({
+      providers: [
+        ImportsService,
+        {
+          provide: PrismaService,
+          useValue: prismaServiceMock as PrismaService,
+        },
+        {
+          provide: OCRService,
+          useValue: {},
+        },
+        {
+          provide: EventEmitter2,
+          useValue: { emit: jest.fn() },
+        },
+        {
+          provide: AIService,
+          useValue: {},
+        },
+      ],
+    }).compile();
+
+    service = module.get(ImportsService);
+  });
+
+  it('creates patient and appointment', async () => {
+    const dto: OcrImportCommitRequest = {
+      clinicId: 'clinic-1',
+      doctorId: 'doc-1',
+      firstName: 'Jane',
+      lastName: 'Doe',
+      phoneNumber: '5551234567',
+      gender: 'FEMALE',
+      dateOfBirth: new Date('1990-01-02').toISOString(),
+    };
+
+    const result = await service.commitOcrImport(dto);
+    expect(result.patientId).toBe('patient-1');
+    expect(result.appointmentId).toBe('appt-1');
+  });
+});

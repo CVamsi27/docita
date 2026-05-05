@@ -1,6 +1,7 @@
 export enum ClinicTierEnum {
   STARTER = 'STARTER',
   ESSENTIAL = 'ESSENTIAL',
+  FRONT_DESK = 'FRONT_DESK',
   PROFESSIONAL = 'PROFESSIONAL',
   ENTERPRISE = 'ENTERPRISE',
 }
@@ -8,6 +9,7 @@ export enum ClinicTierEnum {
 const TIER_HIERARCHY: Record<ClinicTierEnum, number> = {
   [ClinicTierEnum.STARTER]: 1,
   [ClinicTierEnum.ESSENTIAL]: 2,
+  [ClinicTierEnum.FRONT_DESK]: 2,
   [ClinicTierEnum.PROFESSIONAL]: 3,
   [ClinicTierEnum.ENTERPRISE]: 4,
 };
@@ -46,6 +48,10 @@ export class ClinicTier {
 
   isEssential(): boolean {
     return this.value === ClinicTierEnum.ESSENTIAL;
+  }
+
+  isFrontDesk(): boolean {
+    return this.value === ClinicTierEnum.FRONT_DESK;
   }
 
   isProfessional(): boolean {

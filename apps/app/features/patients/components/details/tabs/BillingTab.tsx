@@ -49,18 +49,20 @@ export function BillingTab({ patientId }: BillingTabProps) {
     );
   }
 
-  if (!invoices || invoices.length === 0) {
+  const list = invoices ?? [];
+
+  if (list.length === 0) {
     return (
       <DataState
         status="empty"
         emptyIcon={Receipt}
-        emptyTitle="No invoices yet"
+        emptyTitle="No invoices"
         emptyDescription="Invoices billed to this patient will appear here."
       />
     );
   }
 
-  const sorted = [...invoices].sort((a, b) => {
+  const sorted = [...list].sort((a, b) => {
     const aDate = new Date(a.issuedAt ?? a.createdAt).getTime();
     const bDate = new Date(b.issuedAt ?? b.createdAt).getTime();
     return bDate - aDate;

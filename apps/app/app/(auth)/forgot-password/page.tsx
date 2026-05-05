@@ -9,8 +9,8 @@ import { useForm } from "react-hook-form";
 import { z } from "zod";
 import { CheckCircle } from "lucide-react";
 import { Button } from "@workspace/ui/components/button";
-import { Input } from "@workspace/ui/components/input";
-import { Label } from "@workspace/ui/components/label";
+import { FloatingInput } from "@workspace/ui/components/floating-input";
+import { LoadingState } from "@workspace/ui/components/empty-state";
 import { api } from "@/lib/api-client";
 import { logger } from "@/lib/logger";
 import { PreDashboardShell } from "@/features/auth/components/PreDashboardShell";
@@ -28,21 +28,7 @@ export default function ForgotPasswordPage() {
       fallback={
         <PreDashboardShell currentStep="forgot-password" showProgress={false}>
           <div className="ui-card-surface p-6 sm:p-8">
-            <div
-              className="flex flex-col items-center gap-4 py-4"
-              role="status"
-              aria-live="polite"
-              aria-label="Loading password reset"
-            >
-              <DocitaLoadingIndicator
-                variant="section"
-                withStatusRole={false}
-                iconClassName="h-10 w-10 text-primary"
-              />
-              <p className="text-sm text-muted-foreground">
-                Loading password reset…
-              </p>
-            </div>
+            <LoadingState message="Loading password reset…" />
           </div>
         </PreDashboardShell>
       }
@@ -84,14 +70,14 @@ function ForgotPasswordPageContent() {
 
   return (
     <PreDashboardShell currentStep="forgot-password" showProgress={false}>
-      <div className="animate-in fade-in slide-in-from-bottom-4 duration-700 ui-copy-stack">
+      <div className="ui-copy-stack">
         <h1 className="ui-page-title">Reset Password</h1>
         <p className="ui-page-subtitle">
           Enter your email address to receive a password reset link
         </p>
       </div>
 
-      <div className="ui-card-surface p-6 sm:p-8 animate-in fade-in slide-in-from-bottom-4 duration-700">
+      <div className="ui-card-surface p-6 sm:p-8">
         {submitted ? (
           <div className="space-y-6 text-center">
             <div className="flex justify-center">
@@ -119,22 +105,16 @@ function ForgotPasswordPageContent() {
             noValidate
             className="space-y-5"
           >
-            <div className="space-y-2">
-              <Label htmlFor="email">Email Address</Label>
-              <Input
-                id="email"
-                type="email"
-                placeholder="Email"
-                {...form.register("email")}
-                className="h-11"
-                autoFocus
-              />
-              {form.formState.errors.email && (
-                <p className="text-sm text-destructive">
-                  {form.formState.errors.email.message}
-                </p>
-              )}
-            </div>
+            <FloatingInput
+              id="email"
+              type="email"
+              label="Email address"
+              autoComplete="email"
+              autoFocus
+              {...form.register("email")}
+              errorText={form.formState.errors.email?.message}
+              className="h-12"
+            />
 
             {error && (
               <p className="text-sm text-destructive text-center">{error}</p>

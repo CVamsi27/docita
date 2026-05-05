@@ -111,11 +111,13 @@ test.describe("Clinic Registration Flow", () => {
     if (!completeOnboarding) {
       await page.goto("/onboarding");
       await page.waitForURL(/\/onboarding/, { timeout: 30000 });
-      await expect(page.getByText("Step 1: Clinic Details")).toBeVisible({
+      await expect(
+        page.getByText("Step 1 of 5: Facility Details"),
+      ).toBeVisible({
         timeout: 30000,
       });
       await expect(
-        page.getByRole("button", { name: "Next: Choose Plan" }),
+        page.getByRole("button", { name: "Next: Visit hours" }),
       ).toBeVisible({ timeout: 30000 });
       return;
     }

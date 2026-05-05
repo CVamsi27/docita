@@ -265,7 +265,7 @@ export const ALLERGY_SEVERITY_COLORS: Record<AllergySeverity, string> = {
   MILD: "badge-warning",
   MODERATE: "bg-warning/20 text-warning border-warning/40",
   SEVERE: "badge-danger",
-  LIFE_THREATENING: "badge-danger animate-pulse",
+  LIFE_THREATENING: "badge-danger font-bold uppercase tracking-wide",
 };
 
 export const patientAllergySchema = z.object({

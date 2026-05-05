@@ -20,15 +20,13 @@ import {
 import { humanizeUiLabel } from "@workspace/ui/lib/label-formatters";
 import type { Appointment } from "@workspace/types";
 import { PatientStatsCardsUI } from "@/features/patients/components/profile/PatientStatsCardsUI";
-import { PatientSnapshotStrip } from "@/features/_shared/components/patient-history";
-import { usePatientSnapshot } from "@/hooks/api/use-patient-timeline";
 import type { PatientStatistics } from "@/hooks/use-patient-data";
 
 interface OverviewTabProps {
-  patientId: string;
   appointments: Appointment[];
   statistics: PatientStatistics | null;
   onSelectTab: (tab: string) => void;
+  onNavigateToRecordsSubTab: (subtab: string) => void;
   onScheduleVisit: () => void;
 }
 
@@ -44,14 +42,12 @@ const toDate = (value: string | Date | undefined): Date | null => {
 };
 
 export function OverviewTab({
-  patientId,
   appointments,
   statistics,
   onSelectTab,
+  onNavigateToRecordsSubTab,
   onScheduleVisit,
 }: OverviewTabProps) {
-  const { data: snapshot } = usePatientSnapshot(patientId);
-
   const todaysAppointment = useMemo(() => {
     const today = new Date();
     const todays = appointments
@@ -101,14 +97,6 @@ export function OverviewTab({
 
   return (
     <div className="space-y-6">
-      {snapshot && (
-        <PatientSnapshotStrip
-          snapshot={snapshot}
-          layout="horizontal"
-          showVitals
-        />
-      )}
-
       <PatientStatsCardsUI statistics={statistics} />
 
       <div className="grid gap-4 md:grid-cols-2">
@@ -172,7 +160,7 @@ export function OverviewTab({
             <QuickAction
               icon={Pill}
               label="View prescriptions"
-              onClick={() => onSelectTab("prescriptions")}
+              onClick={() => onNavigateToRecordsSubTab("prescriptions")}
             />
             <QuickAction
               icon={Calendar}

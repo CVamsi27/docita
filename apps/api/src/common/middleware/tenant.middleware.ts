@@ -4,6 +4,12 @@ interface TenantContext {
   clinicId?: string;
   userId?: string;
   bypassed?: boolean;
+  /**
+   * Pre-tenant mode for authenticated users who do not yet belong to a clinic.
+   * This must never allow access to clinic-scoped models; it exists only to
+   * support limited self-scoped account flows (e.g. onboarding step selection).
+   */
+  preTenant?: boolean;
 }
 
 export const tenantStorage = new AsyncLocalStorage<TenantContext>();

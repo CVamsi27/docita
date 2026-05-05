@@ -85,6 +85,22 @@ export default [
           message:
             "Use Card or Section primitives for panel shells instead of repeating border/padding classes.",
         },
+        {
+          selector:
+            "JSXAttribute[name.name='animation'] > Literal[value='wave']",
+          message:
+            "Skeleton animation=\"wave\" is banned by docs/UI_UX_STANDARD_2026.md \u00a75. Drop the prop; Skeleton is now static.",
+        },
+        {
+          selector: "Literal[value=/\\banimate-pulse\\b/]",
+          message:
+            "animate-pulse is banned by docs/UI_UX_STANDARD_2026.md \u00a75. Use static styling for emphasis instead.",
+        },
+        {
+          selector: "TemplateElement[value.cooked=/\\banimate-pulse\\b/]",
+          message:
+            "animate-pulse is banned by docs/UI_UX_STANDARD_2026.md \u00a75. Use static styling for emphasis instead.",
+        },
       ],
     },
   },

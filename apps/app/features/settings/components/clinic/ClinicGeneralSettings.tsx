@@ -1,5 +1,6 @@
 "use client";
 
+import Link from "next/link";
 import { useEffect } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -37,6 +38,15 @@ import {
   SelectValue,
 } from "@workspace/ui/components/select";
 import { getFacilityLabel } from "@workspace/utils";
+import { SettingsAiChips } from "@/features/settings/components/settings-ai-chips";
+import { CopyableLinkField } from "@/features/_shared/components/signature/copyable-link-field";
+import { getPublicAppOrigin } from "@/lib/public-app-origin";
+import { MicroLabel } from "@workspace/ui/components/micro-label";
+import {
+  parseWorkspaceProfile,
+  WORKSPACE_PROFILE_LABEL,
+} from "@workspace/types";
+import { SUBSCRIPTION_SETTINGS_PATH } from "@/lib/subscription-settings-path";
 
 const clinicSettingsSchema = z.object({
   name: requiredStringSchema("Facility Name"),
@@ -113,51 +123,104 @@ export function ClinicGeneralSettings() {
         aria-label="Loading facility information"
       >
         <CardHeader>
-          <Skeleton animation="wave" className="h-6 w-40" />
-          <Skeleton animation="wave" className="h-4 w-64 mt-1" />
+          <Skeleton className="h-6 w-40" />
+          <Skeleton className="h-4 w-64 mt-1" />
         </CardHeader>
         <CardContent className="space-y-4">
           {Array.from({ length: 4 }).map((_, i) => (
-            <Skeleton key={i} animation="wave" className="h-10 w-full" />
+            <Skeleton key={i} className="h-10 w-full" />
           ))}
         </CardContent>
       </Card>
     );
   }
 
+  const workspaceLabel = WORKSPACE_PROFILE_LABEL[
+    parseWorkspaceProfile(clinic?.workspaceProfile)
+  ];
+
   return (
-    <Card>
+    <div className="space-y-4">
+      <SettingsAiChips scope="clinic-general" />
+      <Card>
+        <CardHeader className="pb-2">
+          <CardTitle className="text-[var(--fs-md)]">Workspace mode</CardTitle>
+          <CardDescription>
+            This is separate from your subscription tier (Starter, Essential, and
+            so on). It controls which areas of Docita stay available to your team.
+          </CardDescription>
+        </CardHeader>
+        <CardContent className="space-y-2 text-sm">
+          <p className="font-medium text-foreground">{workspaceLabel}</p>
+          <p className="text-muted-foreground">
+            Plan limits, invoices, and upgrades live under{" "}
+            <Link
+              href={SUBSCRIPTION_SETTINGS_PATH}
+              className="font-medium text-primary underline-offset-4 hover:underline"
+            >
+              Billing and subscription
+            </Link>
+            .
+          </p>
+        </CardContent>
+      </Card>
+      <Card>
       <CardHeader>
         <CardTitle>{facilityLabel} Information</CardTitle>
         <CardDescription>Basic settings and information</CardDescription>
       </CardHeader>
       <CardContent>
         {!!clinic?.referralCode && (
-          <div className="mb-4 rounded-lg border bg-muted/30 p-4">
-            <p className="text-xs font-medium text-muted-foreground mb-1">
-              {facilityLabel} Join Code
-            </p>
-            <div className="flex items-center gap-2">
-              <code className="text-sm font-mono font-semibold tracking-wider text-foreground">
-                {clinic.referralCode}
-              </code>
-              <SymbolTooltip label={`Copy ${facilityLabel.toLowerCase()} code`}>
-                <Button
-                  type="button"
-                  variant="ghost"
-                  size="sm"
-                  className="h-7 w-7 p-0"
-                  onClick={handleCopyCode}
-                  aria-label={`Copy ${facilityLabel.toLowerCase()} code`}
-                >
-                  {copied ? <Check className="h-3.5 w-3.5 text-success" /> : <Copy className="h-3.5 w-3.5" />}
-                </Button>
-              </SymbolTooltip>
+          <div className="mb-6 space-y-4">
+            <div className="rounded-lg border border-border bg-muted/30 p-4">
+              <MicroLabel as="h3">Staff workspace</MicroLabel>
+              <p className="mt-2 text-sm font-medium text-foreground">
+                Join code for Docita
+              </p>
+              <p className="mt-1 text-xs text-muted-foreground">
+                Doctors and staff enter this code in the Docita app to join this{" "}
+                {facilityLabel.toLowerCase()}. Do not send this code to patients
+                for appointments.
+              </p>
+              <div className="mt-3 flex items-center gap-2">
+                <code className="text-sm font-mono font-semibold tracking-wider text-foreground">
+                  {clinic.referralCode}
+                </code>
+                <SymbolTooltip label={`Copy staff join code`}>
+                  <Button
+                    type="button"
+                    variant="ghost"
+                    size="sm"
+                    className="h-7 w-7 p-0"
+                    onClick={handleCopyCode}
+                    aria-label="Copy staff join code"
+                  >
+                    {copied ? (
+                      <Check className="h-3.5 w-3.5 text-success" />
+                    ) : (
+                      <Copy className="h-3.5 w-3.5" />
+                    )}
+                  </Button>
+                </SymbolTooltip>
+              </div>
             </div>
-            <p className="text-xs text-muted-foreground mt-1">
-              Share this code with team members so they can find and join your{" "}
-              {facilityLabel.toLowerCase()}
-            </p>
+
+            <div className="rounded-lg border border-border bg-muted/30 p-4">
+              <MicroLabel as="h3">Patient booking</MicroLabel>
+              <p className="mt-2 text-sm font-medium text-foreground">
+                Public booking page
+              </p>
+              <p className="mt-1 text-xs text-muted-foreground">
+                Send this link to patients so they can request a visit without a
+                Docita account. This is not the staff join code.
+              </p>
+              <div className="mt-3">
+                <CopyableLinkField
+                  value={`${getPublicAppOrigin()}/book/${encodeURIComponent(clinic.referralCode)}`}
+                  helperText="Opens your clinic’s online booking form."
+                />
+              </div>
+            </div>
           </div>
         )}
         <Form {...form}>
@@ -289,6 +352,7 @@ export function ClinicGeneralSettings() {
           </form>
         </Form>
       </CardContent>
-    </Card>
+      </Card>
+    </div>
   );
 }

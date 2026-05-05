@@ -34,6 +34,10 @@ export interface IPaymentSessionRepository {
   ): Promise<PaymentSession>;
   delete(id: string, clinicId: string): Promise<void>;
   findPendingReminders(): Promise<PaymentSessionDetail[]>;
+  findByInvoiceId(
+    invoiceId: string,
+    clinicId: string,
+  ): Promise<PaymentSession[]>;
 }
 
 export const PAYMENT_SESSION_REPOSITORY_TOKEN = Symbol(

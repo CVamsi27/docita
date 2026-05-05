@@ -7,7 +7,7 @@
     "enumMembers": "off",
     "duplicates": "off"
   },
-  "ignoreBinaries": ["printf"],
+  "ignoreBinaries": ["printf", "tsx"],
   "ignoreWorkspaces": ["apps/worker"],
   "workspaces": {
     "apps/api": {
@@ -51,7 +51,9 @@
         "@axe-core/playwright",
         "@workspace/eslint-config",
         "axe-core",
+        "axe-playwright",
         "baseline-browser-mapping",
+        "playwright",
         "ts-node"
       ]
     },

@@ -194,8 +194,8 @@ export default function DentalChartsPage() {
                     aria-live="polite"
                     aria-label="Loading patient search"
                   >
-                    <Skeleton animation="wave" className="h-9 w-full" />
-                    <Skeleton animation="wave" className="h-9 w-full" />
+                    <Skeleton className="h-9 w-full" />
+                    <Skeleton className="h-9 w-full" />
                   </div>
                 )}
 
@@ -243,8 +243,8 @@ export default function DentalChartsPage() {
                       aria-live="polite"
                       aria-label="Loading appointments"
                     >
-                      <Skeleton animation="wave" className="h-16 w-full" />
-                      <Skeleton animation="wave" className="h-16 w-full" />
+                      <Skeleton className="h-16 w-full" />
+                      <Skeleton className="h-16 w-full" />
                     </div>
                   ) : appointments.length === 0 ? (
                     <p className="text-xs text-muted-foreground text-center py-4">

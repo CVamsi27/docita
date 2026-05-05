@@ -1,6 +1,6 @@
 "use client";
 
-import { FC, useMemo } from "react";
+import { FC, useMemo, useState } from "react";
 import {
   Card,
   CardContent,
@@ -10,37 +10,46 @@ import {
 } from "@workspace/ui/components/card";
 import { AppPageScaffold } from "@workspace/ui/components/app-page-scaffold";
 import { Button } from "@workspace/ui/components/button";
-import { Badge } from "@workspace/ui/components/badge";
 import { PageHeader } from "@workspace/ui/components/page-header";
 import { Skeleton } from "@workspace/ui/components/skeleton";
-import {
-  Activity,
-  Calendar,
-  Clock,
-  Play,
-  Stethoscope,
-  Users,
-} from "lucide-react";
+import { Section } from "@workspace/ui/components/section";
+import { Activity, Calendar, Play, Stethoscope, Users } from "lucide-react";
 import { useConsultationDashboard } from "@/features/consultation/hooks/use-consultation-dashboard";
 import { formatTime } from "@/lib/formatters";
-import {
-  Avatar,
-  AvatarFallback,
-} from "@workspace/ui/components/avatar";
-import { humanizeUiLabel } from "@workspace/ui/lib/label-formatters";
 import { StatGrid } from "@workspace/ui/components/stat-grid";
+import { isQueueTokenInProgress } from "@/lib/queue-token-status";
+import Link from "next/link";
+import { useCheckInAppointment } from "@/hooks/api/use-appointments";
+import { showUserFacingErrorToast } from "@/lib/user-facing-errors";
+import { buildConsultationRoute } from "@/features/consultation/rules/consultationTabRouting";
+import type { Appointment } from "@workspace/types";
+import { AddAppointmentDialogContainer } from "@/features/appointments/components/dialogs/AddAppointmentDialogContainer";
+import { usePermissions } from "@/hooks/use-permissions";
 
 export const ConsultationDashboardUI: FC = () => {
   const {
-    activeConsultations,
-    waitingList,
+    opdQueueRows,
     stats,
     isLoading,
     handleStartConsultation,
-    canStartConsultation,
+    goToConsultationWorkspace,
     isStartingConsultation,
     router,
+    currentUserRole,
+    doctorNowNext,
+    clinicType,
   } = useConsultationDashboard();
+
+  const checkInAppointment = useCheckInAppointment();
+  const { canCreateAppointment } = usePermissions();
+  const [walkInOpen, setWalkInOpen] = useState(false);
+
+  const role = currentUserRole ?? "RECEPTIONIST";
+  const isDoctor = role === "DOCTOR" || role === "ADMIN_DOCTOR";
+  const isReception =
+    role === "RECEPTIONIST" || role === "ADMIN" || role === "ADMIN_DOCTOR";
+  const isNurse = role === "NURSE";
+  const canCreateWalkIn = canCreateAppointment && (isReception || isNurse);
 
   const statItems = useMemo(
     () => [
@@ -78,75 +87,35 @@ export const ConsultationDashboardUI: FC = () => {
         header={
           <PageHeader
             title="Consultation"
-            description="Manage your daily consultations and patient queue"
+            description="OPD queue and visits in progress for today — one board for the floor."
           />
         }
       >
         <StatGrid items={[]} columns={4} isLoading />
 
-        <div className="grid gap-6 md:grid-cols-2">
-          <Card className="col-span-1">
-            <CardHeader>
-              <Skeleton animation="wave" className="h-6 w-48 max-w-full" />
-              <div className="mt-2 space-y-2">
-                <Skeleton animation="wave" className="h-4 w-full" />
-                <Skeleton animation="wave" className="h-4 w-[85%]" />
-              </div>
-            </CardHeader>
-            <CardContent className="space-y-3">
-              {Array.from({ length: 3 }).map((_, i) => (
-                <div
-                  key={i}
-                  className="flex items-center justify-between gap-3 rounded-[var(--radius-lg)] border border-border/50 p-3 sm:p-4"
-                >
-                  <div className="flex min-w-0 flex-1 items-center gap-3">
-                    <Skeleton
-                      variant="circular"
-                      animation="wave"
-                      className="h-10 w-10 shrink-0"
-                    />
-                    <div className="min-w-0 flex-1 space-y-2">
-                      <Skeleton animation="wave" className="h-4 w-40" />
-                      <Skeleton animation="wave" className="h-3 w-28" />
-                    </div>
+        <Card className="mt-6">
+          <CardHeader>
+            <Skeleton className="h-6 w-40 max-w-full" />
+            <Skeleton className="mt-2 h-4 w-full max-w-xl" />
+          </CardHeader>
+          <CardContent className="space-y-3">
+            {Array.from({ length: 5 }).map((_, i) => (
+              <div
+                key={i}
+                className="flex items-center justify-between gap-3 rounded-[var(--radius-lg)] border border-border/50 p-3 sm:p-4"
+              >
+                <div className="flex min-w-0 flex-1 items-center gap-3">
+                  <Skeleton className="h-9 w-9 shrink-0 rounded-full" />
+                  <div className="min-w-0 flex-1 space-y-2">
+                    <Skeleton className="h-4 w-48" />
+                    <Skeleton className="h-3 w-full max-w-md" />
                   </div>
-                  <Skeleton animation="wave" className="h-9 w-20 shrink-0 rounded-md" />
                 </div>
-              ))}
-            </CardContent>
-          </Card>
-
-          <Card className="col-span-1">
-            <CardHeader>
-              <Skeleton animation="wave" className="h-6 w-40 max-w-full" />
-              <div className="mt-2 space-y-2">
-                <Skeleton animation="wave" className="h-4 w-full" />
-                <Skeleton animation="wave" className="h-4 w-[75%]" />
+                <Skeleton className="h-9 w-24 shrink-0 rounded-md" />
               </div>
-            </CardHeader>
-            <CardContent className="space-y-3">
-              {Array.from({ length: 4 }).map((_, i) => (
-                <div
-                  key={i}
-                  className="flex items-center justify-between gap-3 rounded-[var(--radius-lg)] border border-border/50 p-3 sm:p-4"
-                >
-                  <div className="flex min-w-0 flex-1 items-center gap-3">
-                    <Skeleton
-                      variant="circular"
-                      animation="wave"
-                      className="h-10 w-10 shrink-0"
-                    />
-                    <div className="min-w-0 flex-1 space-y-2">
-                      <Skeleton animation="wave" className="h-4 w-36" />
-                      <Skeleton animation="wave" className="h-3 w-32" />
-                    </div>
-                  </div>
-                  <Skeleton animation="wave" className="h-9 w-16 shrink-0 rounded-md" />
-                </div>
-              ))}
-            </CardContent>
-          </Card>
-        </div>
+            ))}
+          </CardContent>
+        </Card>
       </AppPageScaffold>
     );
   }
@@ -156,156 +125,234 @@ export const ConsultationDashboardUI: FC = () => {
       header={
         <PageHeader
           title="Consultation"
-          description="Manage your daily consultations and patient queue"
+          description="Continue your current visit, open the next patient, or add a walk-in for today."
           actions={
-            <Button onClick={() => router.push("/appointments")}>
-              <Calendar className="mr-2 h-4 w-4" />
-              View Calendar
-            </Button>
+            <div className="flex flex-wrap gap-2">
+              <Button variant="outline" asChild size="sm">
+                <Link href="/today">Today</Link>
+              </Button>
+              {canCreateWalkIn ? (
+                <Button size="sm" onClick={() => setWalkInOpen(true)}>
+                  Add walk-in
+                </Button>
+              ) : null}
+              <Button size="sm" onClick={() => router.push("/appointments")}>
+                <Calendar className="mr-2 h-4 w-4" />
+                Appointments
+              </Button>
+            </div>
           }
         />
       }
     >
       <StatGrid items={statItems} columns={4} />
 
-      <div className="grid gap-6 md:grid-cols-2">
-        <Card className="col-span-1">
-          <CardHeader>
-            <CardTitle>Active consultations</CardTitle>
-            <CardDescription>
-              Visits in progress for today&apos;s queue (you have already
-              started or called the patient). Continue the clinical record.
-            </CardDescription>
-          </CardHeader>
-          <CardContent>
-            {activeConsultations.length === 0 ? (
-              <div className="ui-card-surface flex flex-col items-center justify-center border-2 border-dashed border-border/60 p-8 text-center">
-                <Stethoscope className="mb-2 h-8 w-8 opacity-50 text-muted-foreground" aria-hidden />
-                <p className="ui-helper-text">No active consultations</p>
-              </div>
-            ) : (
-              <div className="space-y-4">
-                {activeConsultations.map((item) => (
+      {isDoctor ? (
+        <Section
+          id="consultation-doctor-next"
+          title={
+            doctorNowNext.mode === "fcfs"
+              ? "Next patients (FCFS)"
+              : "Next patients (schedule + walk-ins)"
+          }
+          description={
+            doctorNowNext.mode === "fcfs"
+              ? "No appointments today — seeing patients in arrival order."
+              : "Appointments stay in time order. Walk-ins fill the gaps (FCFS)."
+          }
+        >
+          {doctorNowNext.inProgress.length === 0 &&
+          doctorNowNext.combinedUpcoming.length === 0 ? (
+            <div className="ui-card-surface flex flex-col items-center justify-center border-2 border-dashed border-border/60 p-6 text-center">
+              <Stethoscope
+                className="mb-2 h-8 w-8 opacity-50 text-muted-foreground"
+                aria-hidden
+              />
+              <p className="ui-helper-text max-w-md">
+                No patients in the schedule or queue right now.
+              </p>
+              <p className="mt-3 ui-helper-text max-w-md text-muted-foreground">
+                Ask reception to check-in a walk-in, or book an appointment.
+              </p>
+            </div>
+          ) : (
+            <div className="overflow-hidden rounded-[var(--radius-lg)] border border-border/60 bg-card/50 divide-y divide-border/60">
+              {doctorNowNext.inProgress.slice(0, 3).map((apt) => {
+                const visitSummary =
+                  apt.chiefComplaint?.trim() || apt.type?.trim() || "—";
+                return (
                   <div
-                    key={item.id}
-                    className="flex items-center justify-between gap-3 rounded-[var(--radius-lg)] border border-primary/20 bg-primary/5 p-3 sm:p-4"
+                    key={apt.id}
+                    className="flex items-center justify-between gap-3 bg-primary/5 p-3 sm:p-4"
                   >
-                    <div className="flex items-center gap-3 min-w-0">
-                      <Avatar className="shrink-0">
-                        <AvatarFallback>
-                          {item.patient?.firstName?.[0]}
-                          {item.patient?.lastName?.[0]}
-                        </AvatarFallback>
-                      </Avatar>
-                      <div className="min-w-0">
-                        <p className="font-medium truncate">
-                          {item.patient?.firstName} {item.patient?.lastName}
-                        </p>
-                        <div className="flex items-center text-xs sm:text-sm text-muted-foreground">
-                          <Clock className="mr-1 h-3 w-3 shrink-0" aria-hidden />
-                          <span>Started:</span>
-                          <span className="ml-1">
-                          {item.consultationStart
-                            ? formatTime(item.consultationStart, "en-IN", {
-                                hour: "2-digit",
-                                minute: "2-digit",
-                              })
-                            : "Just now"}
-                          </span>
-                        </div>
-                      </div>
+                    <div className="min-w-0">
+                      <p className="font-medium truncate">
+                        {apt.patient?.firstName} {apt.patient?.lastName}
+                      </p>
+                      <p className="text-xs text-muted-foreground truncate">
+                        In progress • {formatTime(apt.startTime)}
+                        {" • "}
+                        {visitSummary}
+                        {" • "}
+                        {String(apt.status).toLowerCase()}
+                      </p>
                     </div>
-                    {canStartConsultation ? (
-                      <Button
-                        size="sm"
-                        className="shrink-0"
-                        disabled={isStartingConsultation}
-                        onClick={() =>
-                          void handleStartConsultation(
-                            item.appointmentId || item.id,
-                          )
-                        }
-                      >
-                        Continue
-                      </Button>
-                    ) : (
-                      <Badge variant="outline" className="shrink-0">
-                        View only
-                      </Badge>
-                    )}
+                    <Button
+                      size="sm"
+                      onClick={() => goToConsultationWorkspace(apt.id)}
+                    >
+                      Continue
+                    </Button>
                   </div>
-                ))}
-              </div>
-            )}
-          </CardContent>
-        </Card>
+                );
+              })}
 
-        <Card className="col-span-1">
-          <CardHeader>
-            <CardTitle>Waiting room</CardTitle>
-            <CardDescription>
-              Checked-in patients on today&apos;s queue who have not been
-              called in yet. Start their visit when you are ready.
-            </CardDescription>
-          </CardHeader>
-          <CardContent>
-            {waitingList.length === 0 ? (
-              <div className="ui-card-surface flex flex-col items-center justify-center border-2 border-dashed border-border/60 p-8 text-center">
-                <Users className="mb-2 h-8 w-8 opacity-50 text-muted-foreground" aria-hidden />
-                <p className="ui-helper-text">Waiting room is empty</p>
-              </div>
-            ) : (
-              <div className="space-y-4">
-                {waitingList.map((item) => (
+              {doctorNowNext.combinedUpcoming.slice(0, 10).map((row) => {
+                const isQueue = row.kind === "queue";
+                const leftMeta = isQueue
+                  ? `Token ${row.tokenNumber > 0 ? row.tokenNumber : "—"} • ${row.tokenType}`
+                  : `${formatTime(row.startTime)}`;
+                const canOpen = Boolean(row.appointmentId);
+                return (
                   <div
-                    key={item.id}
-                    className="flex items-center justify-between gap-3 rounded-[var(--radius-lg)] border border-border/60 bg-card p-3 sm:p-4"
+                    key={
+                      isQueue
+                        ? `q-${row.createdAt}-${row.tokenNumber}-${row.patientName}`
+                        : `a-${row.appointmentId}`
+                    }
+                    className="flex items-center justify-between gap-3 p-3 sm:p-4"
                   >
-                    <div className="flex items-center gap-3 min-w-0">
-                      <div className="flex h-9 w-9 sm:h-10 sm:w-10 shrink-0 items-center justify-center rounded-full bg-muted font-bold text-sm">
-                        {item.tokenNumber}
-                      </div>
+                    <div className="min-w-0">
+                      <p className="font-medium truncate">{row.patientName}</p>
+                      <p className="text-xs text-muted-foreground truncate">
+                        {leftMeta}
+                        {" • "}
+                        {row.visitSummary ?? "—"}
+                        {" • "}
+                        {String(row.status).toLowerCase()}
+                      </p>
+                    </div>
+                    <Button
+                      size="sm"
+                      disabled={isStartingConsultation || !canOpen}
+                      onClick={() => {
+                        if (!row.appointmentId) return;
+                        if (isQueue && isQueueTokenInProgress(row.status)) {
+                          goToConsultationWorkspace(row.appointmentId);
+                          return;
+                        }
+                        void handleStartConsultation(row.appointmentId);
+                      }}
+                    >
+                      <Play className="mr-2 h-3 w-3" />
+                      Open
+                    </Button>
+                  </div>
+                );
+              })}
+            </div>
+          )}
+        </Section>
+      ) : null}
+
+
+
+      {canCreateWalkIn ? (
+        <AddAppointmentDialogContainer
+          open={walkInOpen}
+          onOpenChange={setWalkInOpen}
+          selectedDate={new Date()}
+          mode="walk-in"
+          onAppointmentAdded={async (appointment: Appointment) => {
+            try {
+              if (!appointment.id) {
+                showUserFacingErrorToast(
+                  "Missing appointment id.",
+                  "Appointment created, but we could not check-in the patient. Please refresh and try again from Appointments.",
+                  "save",
+                );
+                return;
+              }
+              await checkInAppointment.mutateAsync(appointment.id);
+            } catch (err) {
+              showUserFacingErrorToast(
+                err,
+                "Appointment created, but we could not check-in the patient. You can check them in from Appointments.",
+                "save",
+              );
+            }
+          }}
+        />
+      ) : null}
+
+      {isNurse ? (
+        <Section
+          id="consultation-nurse-prep"
+          title="Prep"
+          description="Open waiting patients directly into the vitals/exam section."
+        >
+          <Card>
+            <CardHeader>
+              <CardTitle className="text-[var(--fs-md)] font-semibold">
+                Ready for vitals
+              </CardTitle>
+              <CardDescription>
+                Use the queue list to capture vitals and prep before the doctor
+                starts charting.
+              </CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-2">
+              {opdQueueRows.length === 0 ? (
+                <div className="ui-card-surface flex flex-col items-center justify-center border-2 border-dashed border-border/60 p-6 text-center">
+                  <Users
+                    className="mb-2 h-8 w-8 opacity-50 text-muted-foreground"
+                    aria-hidden
+                  />
+                  <p className="ui-helper-text max-w-md">
+                    No patients are in the queue right now.
+                  </p>
+                </div>
+              ) : (
+                opdQueueRows
+                  .filter((q) => Boolean(q.appointmentId))
+                  .slice(0, 10)
+                  .map((q) => (
+                    <div
+                      key={q.id}
+                      className="flex items-center justify-between gap-3 rounded-[var(--radius-lg)] border border-border/60 bg-card p-3 sm:p-4"
+                    >
                       <div className="min-w-0">
                         <p className="font-medium truncate">
-                          {item.patient?.firstName} {item.patient?.lastName}
+                          {q.patient?.firstName} {q.patient?.lastName}
                         </p>
-                        <div className="flex items-center gap-1.5 flex-wrap">
-                          <Badge variant="outline" className="text-xs">
-                            {humanizeUiLabel(item.tokenType)}
-                          </Badge>
-                          <span className="text-xs sm:text-sm text-muted-foreground">
-                            Wait: {item.estimatedWaitTime} min
-                          </span>
-                        </div>
+                        <p className="text-xs text-muted-foreground truncate">
+                          Token {q.tokenNumber > 0 ? q.tokenNumber : "—"} •{" "}
+                          {String(q.status).toLowerCase()}
+                        </p>
                       </div>
-                    </div>
-                    {canStartConsultation ? (
                       <Button
                         size="sm"
-                        variant="default"
-                        className="shrink-0"
-                        disabled={isStartingConsultation}
-                        onClick={() =>
-                          void handleStartConsultation(
-                            item.appointmentId || item.id,
-                          )
-                        }
+                        onClick={() => {
+                          if (!q.appointmentId) return;
+                          router.push(
+                            buildConsultationRoute(q.appointmentId, {
+                              tab: "vitals",
+                              clinicType,
+                            }),
+                          );
+                        }}
                       >
-                        <Play className="mr-2 h-3 w-3" />
-                        Open
+                        Record vitals
                       </Button>
-                    ) : (
-                      <Badge variant="outline" className="shrink-0">
-                        View only
-                      </Badge>
-                    )}
-                  </div>
-                ))}
-              </div>
-            )}
-          </CardContent>
-        </Card>
-      </div>
+                    </div>
+                  ))
+              )}
+            </CardContent>
+          </Card>
+        </Section>
+      ) : null}
+
+
     </AppPageScaffold>
   );
 };

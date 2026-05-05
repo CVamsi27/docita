@@ -11,8 +11,8 @@ import { z } from "zod";
 import { CheckCircle, Eye, EyeOff } from "lucide-react";
 import { Button } from "@workspace/ui/components/button";
 import { SymbolTooltip } from "@workspace/ui/components/tooltip";
-import { Input } from "@workspace/ui/components/input";
-import { Label } from "@workspace/ui/components/label";
+import { FloatingInput } from "@workspace/ui/components/floating-input";
+import { LoadingState } from "@workspace/ui/components/empty-state";
 import { api } from "@/lib/api-client";
 import { logger } from "@/lib/logger";
 import { getUserFacingErrorMessage, passwordSchema } from "@workspace/types";
@@ -70,7 +70,7 @@ function ResetPasswordInner() {
   if (!token) {
     return (
       <PreDashboardShell currentStep="reset-password" showProgress={false}>
-        <div className="ui-card-surface space-y-6 p-6 sm:p-8 animate-in fade-in slide-in-from-bottom-4 duration-700">
+        <div className="ui-card-surface space-y-6 p-6 sm:p-8">
           <div className="text-center ui-copy-stack">
             <h1 className="ui-page-title">Reset Link Expired</h1>
             <p className="text-sm text-destructive">
@@ -87,14 +87,14 @@ function ResetPasswordInner() {
 
   return (
     <PreDashboardShell currentStep="reset-password" showProgress={false}>
-      <div className="animate-in fade-in slide-in-from-bottom-4 duration-700 ui-copy-stack">
+      <div className="ui-copy-stack">
         <h1 className="ui-page-title">Set New Password</h1>
         <p className="ui-page-subtitle">
           Choose a new password below
         </p>
       </div>
 
-      <div className="ui-card-surface p-6 sm:p-8 animate-in fade-in slide-in-from-bottom-4 duration-700">
+      <div className="ui-card-surface p-6 sm:p-8">
         {submitted ? (
           <div className="space-y-6 text-center">
             <div className="flex justify-center">
@@ -118,19 +118,17 @@ function ResetPasswordInner() {
             noValidate
             className="space-y-5"
           >
-            <div className="space-y-2">
-              <Label htmlFor="newPassword">
-                New Password<span className="text-destructive ml-0.5">*</span>
-              </Label>
-              <div className="relative">
-                <Input
-                  id="newPassword"
-                  type={showPassword ? "text" : "password"}
-                  placeholder="Enter new password"
-                  {...form.register("newPassword")}
-                  className="h-11 pr-10"
-                  autoFocus
-                />
+            <FloatingInput
+              id="newPassword"
+              type={showPassword ? "text" : "password"}
+              label="New password"
+              autoComplete="new-password"
+              autoFocus
+              required
+              {...form.register("newPassword")}
+              errorText={form.formState.errors.newPassword?.message}
+              className="h-12"
+              trailing={
                 <SymbolTooltip
                   label={showPassword ? "Hide password" : "Show password"}
                   side="left"
@@ -139,7 +137,7 @@ function ResetPasswordInner() {
                     type="button"
                     variant="ghost"
                     size="icon"
-                    className="absolute right-0 top-0 h-full w-10 text-muted-foreground hover:text-foreground"
+                    className="h-9 w-9 text-muted-foreground hover:text-foreground"
                     onClick={() => setShowPassword((prev) => !prev)}
                     aria-label={showPassword ? "Hide password" : "Show password"}
                   >
@@ -150,31 +148,19 @@ function ResetPasswordInner() {
                     )}
                   </Button>
                 </SymbolTooltip>
-              </div>
-              {form.formState.errors.newPassword && (
-                <p className="text-sm text-destructive">
-                  {form.formState.errors.newPassword.message}
-                </p>
-              )}
-            </div>
+              }
+            />
 
-            <div className="space-y-2">
-              <Label htmlFor="confirmPassword">
-                Confirm Password<span className="text-destructive ml-0.5">*</span>
-              </Label>
-              <Input
-                id="confirmPassword"
-                type={showPassword ? "text" : "password"}
-                placeholder="Enter confirm password"
-                {...form.register("confirmPassword")}
-                className="h-11"
-              />
-              {form.formState.errors.confirmPassword && (
-                <p className="text-sm text-destructive">
-                  {form.formState.errors.confirmPassword.message}
-                </p>
-              )}
-            </div>
+            <FloatingInput
+              id="confirmPassword"
+              type={showPassword ? "text" : "password"}
+              label="Confirm new password"
+              autoComplete="new-password"
+              required
+              {...form.register("confirmPassword")}
+              errorText={form.formState.errors.confirmPassword?.message}
+              className="h-12"
+            />
 
             {error && (
               <p className="text-sm text-destructive text-center">{error}</p>
@@ -214,23 +200,8 @@ export default function ResetPasswordPage() {
     <Suspense
       fallback={
         <PreDashboardShell currentStep="reset-password">
-          <div className="ui-card-surface space-y-6 p-6 sm:p-8">
-            <div className="text-center ui-copy-stack">
-              <h1 className="ui-page-title">Reset Password</h1>
-              <div
-                className="flex flex-col items-center gap-3 py-4"
-                role="status"
-                aria-live="polite"
-                aria-label="Loading password reset"
-              >
-                <DocitaLoadingIndicator
-                  variant="section"
-                  withStatusRole={false}
-                  iconClassName="h-10 w-10 text-primary"
-                />
-                <p className="ui-page-subtitle">Loading…</p>
-              </div>
-            </div>
+          <div className="ui-card-surface p-6 sm:p-8">
+            <LoadingState message="Loading password reset…" />
           </div>
         </PreDashboardShell>
       }

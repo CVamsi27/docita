@@ -1,5 +1,7 @@
 "use client";
 
+import { redactPhi, redactString } from "./sentry-phi-redactor";
+
 type SentryModule = typeof import("@sentry/nextjs");
 type SentrySeverityLevel =
   | "fatal"
@@ -98,12 +100,20 @@ export function captureException(
     return;
   }
 
-  const normalizedError = typeof error === "string" ? new Error(error) : error;
+  const normalizedError =
+    typeof error === "string"
+      ? new Error(redactString(error))
+      : (() => {
+          if (error.message) error.message = redactString(error.message);
+          return error;
+        })();
+
+  const scrubbedContext = context ? redactPhi(context) : undefined;
 
   try {
     if (sentryModule) {
       sentryModule.captureException(normalizedError, {
-        contexts: context ? { custom: context } : undefined,
+        contexts: scrubbedContext ? { custom: scrubbedContext } : undefined,
       });
       return;
     }
@@ -114,7 +124,7 @@ export function captureException(
       }
 
       Sentry.captureException(normalizedError, {
-        contexts: context ? { custom: context } : undefined,
+        contexts: scrubbedContext ? { custom: scrubbedContext } : undefined,
       });
     });
   } catch (captureError) {
@@ -130,14 +140,16 @@ export function captureMessage(
     return;
   }
 
+  const scrubbed = redactString(message);
+
   try {
     if (sentryModule) {
-      sentryModule.captureMessage(message, level);
+      sentryModule.captureMessage(scrubbed, level);
       return;
     }
 
     void loadSentryModule().then((Sentry) => {
-      Sentry?.captureMessage(message, level);
+      Sentry?.captureMessage(scrubbed, level);
     });
   } catch (captureError) {
     void captureError;
@@ -153,13 +165,16 @@ export function addBreadcrumb(
     return;
   }
 
+  const scrubbedMessage = redactString(message);
+  const scrubbedData = data ? redactPhi(data) : undefined;
+
   try {
     if (sentryModule) {
       sentryModule.addBreadcrumb({
-        message,
+        message: scrubbedMessage,
         level: "info",
         category,
-        data,
+        data: scrubbedData,
         timestamp: Date.now() / 1000,
       });
       return;
@@ -167,10 +182,10 @@ export function addBreadcrumb(
 
     void loadSentryModule().then((Sentry) => {
       Sentry?.addBreadcrumb({
-        message,
+        message: scrubbedMessage,
         level: "info",
         category,
-        data,
+        data: scrubbedData,
         timestamp: Date.now() / 1000,
       });
     });

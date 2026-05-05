@@ -114,10 +114,30 @@ export function createBrowserSessionManager(config: BrowserSessionConfig) {
 
   const redirectToLogin = (pathname?: string): void => {
     if (!isBrowser()) return;
-    const currentPath = pathname ?? window.location.pathname;
-    if (!isPublicPath(currentPath)) {
-      sessionStorage.setItem(redirectStorageKey, currentPath);
-      window.location.assign(resolveLoginPath?.(currentPath) ?? loginPath);
+
+    let fullReturnPath: string;
+    let pathOnly: string;
+
+    if (pathname !== undefined) {
+      const queryIndex = pathname.indexOf("?");
+      if (queryIndex === -1) {
+        fullReturnPath = pathname;
+        pathOnly = pathname;
+      } else {
+        fullReturnPath = pathname;
+        pathOnly = pathname.slice(0, queryIndex);
+      }
+    } else {
+      fullReturnPath = `${window.location.pathname}${window.location.search}`;
+      pathOnly = window.location.pathname;
+    }
+
+    if (!isPublicPath(pathOnly)) {
+      const priorRedirect = sessionStorage.getItem(redirectStorageKey)?.trim();
+      if (!priorRedirect) {
+        sessionStorage.setItem(redirectStorageKey, fullReturnPath);
+      }
+      window.location.assign(resolveLoginPath?.(pathOnly) ?? loginPath);
     }
   };
 

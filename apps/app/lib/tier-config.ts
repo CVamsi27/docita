@@ -8,8 +8,8 @@ export {
   TIER_LIMITS,
   TIER_FEATURES,
   FEATURE_DISPLAY,
-  getFeaturesForTier,
   getAllFeaturesUpToTier,
+  getFeaturesForTier,
   getIntelligenceBundlePrice,
   hasFeatureAccess,
   isFeatureGenerallyAvailable,
@@ -29,15 +29,24 @@ export {
 import {
   Feature,
   FEATURE_DISPLAY,
-  FEATURE_TIER_MAP,
   getAllFeaturesUpToTier,
-  getFeaturesForTier,
-  isFeatureGenerallyAvailable,
+  getTierName,
+  hasFeatureAccess,
   Tier,
   TIER_LIMITS,
   TIER_PRICING,
+  WHATSAPP_ADDON_PRICING,
 } from "@workspace/types";
 import { formatCountLocale } from "@workspace/utils";
+
+/** Linear plan ladder for onboarding highlights (excludes INTELLIGENCE add-on). */
+const PLAN_TIER_LADDER: Tier[] = [
+  Tier.STARTER,
+  Tier.FRONT_DESK,
+  Tier.ESSENTIAL,
+  Tier.PROFESSIONAL,
+  Tier.ENTERPRISE,
+];
 
 export interface PlanPricing {
   monthly: number | "custom";
@@ -65,8 +74,13 @@ export const PLAN_DESCRIPTIONS: Record<
   { tagline: string; description: string }
 > = {
   [Tier.STARTER]: {
-    tagline: "Free forever",
-    description: "Basic clinical workflow for free",
+    tagline: "Go digital from day one",
+    description: "Basic clinical workflow for solo doctors moving off paper",
+  },
+  [Tier.FRONT_DESK]: {
+    tagline: "Reception and operations",
+    description:
+      "Scheduling, queue, and billing for front desk teams without full in-app clinical workflows",
   },
   [Tier.ESSENTIAL]: {
     tagline: "For solo clinics",
@@ -93,7 +107,13 @@ export interface FeatureComparisonRow {
 }
 
 export function getFeatureComparisonData(): FeatureComparisonRow[] {
-  const tiers = [Tier.STARTER, Tier.ESSENTIAL, Tier.PROFESSIONAL, Tier.ENTERPRISE];
+  const tiers = [
+    Tier.STARTER,
+    Tier.FRONT_DESK,
+    Tier.ESSENTIAL,
+    Tier.PROFESSIONAL,
+    Tier.ENTERPRISE,
+  ];
   const formatLimitValue = (value?: number): string => {
     if (value === undefined) return "—";
     if (value >= 999999 || value === 999) return "Unlimited";
@@ -178,6 +198,20 @@ export function getFeatureComparisonData(): FeatureComparisonRow[] {
         ]),
       ) as Record<Tier, string>,
     },
+    {
+      name: "WhatsApp messages (incl. / mo)",
+      category: "limit",
+      values: Object.fromEntries(
+        tiers.map((t) => {
+          if (t === Tier.STARTER) return [t, "—"] as const;
+          const tierName = getTierName(t) as keyof typeof WHATSAPP_ADDON_PRICING;
+          return [
+            t,
+            formatLimitValue(WHATSAPP_ADDON_PRICING[tierName].includedQuota),
+          ] as const;
+        }),
+      ) as Record<Tier, string>,
+    },
 
     {
       name: "Prescriptions",
@@ -185,7 +219,7 @@ export function getFeatureComparisonData(): FeatureComparisonRow[] {
       values: Object.fromEntries(
         tiers.map((t) => [
           t,
-          t >= FEATURE_TIER_MAP[Feature.DIGITAL_PRESCRIPTIONS],
+          hasFeatureAccess(getTierName(t), Feature.DIGITAL_PRESCRIPTIONS),
         ]),
       ) as Record<Tier, boolean>,
     },
@@ -193,7 +227,10 @@ export function getFeatureComparisonData(): FeatureComparisonRow[] {
       name: "Appointments",
       category: "feature",
       values: Object.fromEntries(
-        tiers.map((t) => [t, t >= FEATURE_TIER_MAP[Feature.CALENDAR_SLOTS]]),
+        tiers.map((t) => [
+          t,
+          hasFeatureAccess(getTierName(t), Feature.CALENDAR_SLOTS),
+        ]),
       ) as Record<Tier, boolean>,
     },
 
@@ -202,9 +239,10 @@ export function getFeatureComparisonData(): FeatureComparisonRow[] {
       category: "feature",
       values: Object.fromEntries(
         tiers.map((t) => {
-          if (t >= FEATURE_TIER_MAP[Feature.OCR_ADVANCED])
+          const name = getTierName(t);
+          if (hasFeatureAccess(name, Feature.OCR_ADVANCED))
             return [t, "Advanced"];
-          if (t >= FEATURE_TIER_MAP[Feature.OCR_BASIC]) return [t, "Basic"];
+          if (hasFeatureAccess(name, Feature.OCR_BASIC)) return [t, "Basic"];
           return [t, false];
         }),
       ) as Record<Tier, string | boolean>,
@@ -214,9 +252,10 @@ export function getFeatureComparisonData(): FeatureComparisonRow[] {
       category: "feature",
       values: Object.fromEntries(
         tiers.map((t) => {
-          if (t >= FEATURE_TIER_MAP[Feature.ADVANCED_ANALYTICS])
+          const name = getTierName(t);
+          if (hasFeatureAccess(name, Feature.ADVANCED_ANALYTICS))
             return [t, "Advanced"];
-          if (t >= FEATURE_TIER_MAP[Feature.BASIC_ANALYTICS])
+          if (hasFeatureAccess(name, Feature.BASIC_ANALYTICS))
             return [t, "Basic"];
           return [t, false];
         }),
@@ -226,35 +265,50 @@ export function getFeatureComparisonData(): FeatureComparisonRow[] {
       name: "API Access",
       category: "feature",
       values: Object.fromEntries(
-        tiers.map((t) => [t, t >= FEATURE_TIER_MAP[Feature.API_ACCESS]]),
+        tiers.map((t) => [
+          t,
+          hasFeatureAccess(getTierName(t), Feature.API_ACCESS),
+        ]),
       ) as Record<Tier, boolean>,
     },
     {
       name: "Multi-branch",
       category: "feature",
       values: Object.fromEntries(
-        tiers.map((t) => [t, t >= FEATURE_TIER_MAP[Feature.MULTI_CLINIC]]),
+        tiers.map((t) => [
+          t,
+          hasFeatureAccess(getTierName(t), Feature.MULTI_CLINIC),
+        ]),
       ) as Record<Tier, boolean>,
     },
     {
       name: "Inventory",
       category: "feature",
       values: Object.fromEntries(
-        tiers.map((t) => [t, t >= FEATURE_TIER_MAP[Feature.INVENTORY]]),
+        tiers.map((t) => [
+          t,
+          hasFeatureAccess(getTierName(t), Feature.INVENTORY),
+        ]),
       ) as Record<Tier, boolean>,
     },
     {
       name: "Lab Tests",
       category: "feature",
       values: Object.fromEntries(
-        tiers.map((t) => [t, t >= FEATURE_TIER_MAP[Feature.LAB_TESTS]]),
+        tiers.map((t) => [
+          t,
+          hasFeatureAccess(getTierName(t), Feature.LAB_TESTS),
+        ]),
       ) as Record<Tier, boolean>,
     },
     {
       name: "Queue Management",
       category: "feature",
       values: Object.fromEntries(
-        tiers.map((t) => [t, t >= FEATURE_TIER_MAP[Feature.QUEUE_MANAGEMENT]]),
+        tiers.map((t) => [
+          t,
+          hasFeatureAccess(getTierName(t), Feature.QUEUE_MANAGEMENT),
+        ]),
       ) as Record<Tier, boolean>,
     },
   ];
@@ -265,7 +319,7 @@ export function getFeatureComparisonData(): FeatureComparisonRow[] {
 export function getPlanHighlights(
   tier: Tier,
 ): { name: string; included: boolean; highlight?: boolean }[] {
-  const tierName = Tier[tier] as keyof typeof PLAN_LIMITS;
+  const tierName = getTierName(tier);
   const limits = PLAN_LIMITS[tierName];
   const features: { name: string; included: boolean; highlight?: boolean }[] =
     [];
@@ -288,10 +342,22 @@ export function getPlanHighlights(
     included: true,
   });
 
-  const tierFeatures = getFeaturesForTier(tierName).filter(
-    isFeatureGenerallyAvailable,
-  );
-  const highlightFeatures = tierFeatures.slice(0, 3);
+  const currentTierFeatures = getAllFeaturesUpToTier(tierName);
+
+  const ladderIndex = PLAN_TIER_LADDER.indexOf(tier);
+
+  let highlightFeatures: Feature[];
+  if (ladderIndex <= 0) {
+    highlightFeatures = currentTierFeatures.slice(0, 3);
+  } else {
+    const prevTier = PLAN_TIER_LADDER[ladderIndex - 1]!;
+    const prevTierName = getTierName(prevTier);
+    const prevFeatureSet = new Set(getAllFeaturesUpToTier(prevTierName));
+    const newVsPrev = currentTierFeatures.filter((f) => !prevFeatureSet.has(f));
+    highlightFeatures = (
+      newVsPrev.length > 0 ? newVsPrev : currentTierFeatures
+    ).slice(0, 3);
+  }
 
   highlightFeatures.forEach((feature) => {
     features.push({
@@ -301,11 +367,10 @@ export function getPlanHighlights(
     });
   });
 
-  if (tier > Tier.STARTER) {
-    const prevTierName = Tier[tier - 1] as keyof typeof PLAN_LIMITS;
-    const previousFeatures = getAllFeaturesUpToTier(prevTierName).filter(
-      isFeatureGenerallyAvailable,
-    );
+  if (ladderIndex > 0) {
+    const prevTier = PLAN_TIER_LADDER[ladderIndex - 1]!;
+    const prevTierName = getTierName(prevTier);
+    const previousFeatures = getAllFeaturesUpToTier(prevTierName);
     previousFeatures.slice(0, 2).forEach((feature) => {
       features.push({
         name: FEATURE_DISPLAY[feature].name,
@@ -314,12 +379,13 @@ export function getPlanHighlights(
     });
   }
 
-  if (tier < Tier.ENTERPRISE) {
-    const nextTierName = Tier[tier + 1] as keyof typeof PLAN_LIMITS;
-    const nextTierFeatures = getFeaturesForTier(nextTierName).filter(
-      isFeatureGenerallyAvailable,
-    );
-    nextTierFeatures.slice(0, 2).forEach((feature) => {
+  if (ladderIndex >= 0 && ladderIndex < PLAN_TIER_LADDER.length - 1) {
+    const nextTier = PLAN_TIER_LADDER[ladderIndex + 1]!;
+    const nextTierName = getTierName(nextTier);
+    const nextTierFeaturesFull = getAllFeaturesUpToTier(nextTierName);
+    const currentFeatureSet = new Set(currentTierFeatures);
+    const upcoming = nextTierFeaturesFull.filter((f) => !currentFeatureSet.has(f));
+    upcoming.slice(0, 2).forEach((feature) => {
       features.push({
         name: FEATURE_DISPLAY[feature].name,
         included: false,
@@ -327,5 +393,5 @@ export function getPlanHighlights(
     });
   }
 
-  return features.slice(0, 8); 
+  return features.slice(0, 8);
 }

@@ -7,6 +7,9 @@ import { StaffManagementService } from './staff-management.service';
 describe('StaffManagementService', () => {
   let service: StaffManagementService;
   let prisma: {
+    clinic: {
+      findUnique: jest.Mock<(...args: unknown[]) => Promise<unknown>>;
+    };
     user: {
       findFirst: jest.Mock<(...args: unknown[]) => Promise<unknown>>;
       update: jest.Mock<(...args: unknown[]) => Promise<unknown>>;
@@ -15,6 +18,13 @@ describe('StaffManagementService', () => {
 
   beforeEach(() => {
     prisma = {
+      clinic: {
+        findUnique: jest
+          .fn<(...args: unknown[]) => Promise<unknown>>()
+          .mockResolvedValue({
+            settings: { workspaceProfile: 'FULL_CLINICAL' },
+          }),
+      },
       user: {
         findFirst: jest.fn<(...args: unknown[]) => Promise<unknown>>(),
         update: jest.fn<(...args: unknown[]) => Promise<unknown>>(),

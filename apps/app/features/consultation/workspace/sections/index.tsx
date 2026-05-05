@@ -36,7 +36,7 @@ function SectionLoading() {
         withStatusRole={false}
         iconClassName="h-8 w-8"
       />
-      <Skeleton animation="wave" className="h-3 w-40 max-w-full" />
+      <Skeleton className="h-3 w-40 max-w-full" />
     </div>
   );
 }

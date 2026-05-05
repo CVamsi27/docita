@@ -13,6 +13,7 @@ export type QueueTokenWithRelations = QueueToken & {
   appointment: {
     id: string;
     type: string;
+    chiefComplaint: string | null;
     doctor: { id: string; name: string } | null;
   } | null;
 };
@@ -37,6 +38,7 @@ export interface IQueueRepository {
     toDate: Date,
     doctorId?: string,
     statusIn?: string[],
+    search?: string,
   ): Promise<QueueTokenWithRelations[]>;
 
   findAppointmentForCheckIn(

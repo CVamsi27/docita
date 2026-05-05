@@ -39,6 +39,8 @@ describe('MonitoringService', () => {
     getAggregatedPerformance: jest.fn(),
     recordWebVital: jest.fn(),
     getWebVitals: jest.fn(),
+    getSecurityMonitoringSummary: jest.fn(),
+    getQueueHealthSummary: jest.fn(),
     cleanupOldMetrics: jest.fn(),
   };
 
@@ -120,6 +122,41 @@ describe('MonitoringService', () => {
         errorsDeleted: 5,
         metricsDeleted: 20,
       });
+    });
+
+    it('getSecurityMonitoringSummary should delegate to MetricsService', async () => {
+      const start = new Date('2026-01-01T00:00:00.000Z');
+      const end = new Date('2026-01-02T00:00:00.000Z');
+      mockMetricsService.getSecurityMonitoringSummary.mockResolvedValue({
+        windowStart: start.toISOString(),
+        windowEnd: end.toISOString(),
+        totalRequests: 1,
+        status401: 0,
+        status403: 0,
+        status429: 0,
+        status5xx: 0,
+        topAuthFailureRoutes: [],
+      });
+
+      await service.getSecurityMonitoringSummary(start, end);
+
+      expect(metricsService.getSecurityMonitoringSummary).toHaveBeenCalledWith(
+        start,
+        end,
+      );
+    });
+
+    it('getQueueHealthSummary should delegate to MetricsService', async () => {
+      mockMetricsService.getQueueHealthSummary.mockResolvedValue({
+        countsByStatus: [],
+        topQueuesByWaiting: [],
+        topQueuesByFailed: [],
+        deadLetteredLast24h: 0,
+      });
+
+      await service.getQueueHealthSummary();
+
+      expect(metricsService.getQueueHealthSummary).toHaveBeenCalled();
     });
   });
 });

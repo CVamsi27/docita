@@ -1,8 +1,12 @@
-import { useCallback, useRef, useState, useSyncExternalStore } from "react";
+"use client";
+
+import { useCallback, useEffect, useState } from "react";
 import { apiFetch } from "@/lib/api-client";
+import { useTierFeatureEnabled } from "@/hooks/api/tier-feature-guards";
 import {
   Appointment,
   Document,
+  Feature,
   getUserFacingErrorMessage,
   PatientWithMedicalHistory,
 } from "@workspace/types";
@@ -29,6 +33,10 @@ interface UsePatientDataReturn {
 }
 
 export function usePatientData(patientId: string): UsePatientDataReturn {
+  const tierPatientOk = useTierFeatureEnabled(Feature.BASIC_PATIENT_MANAGEMENT);
+  const tierCalendarOk = useTierFeatureEnabled(Feature.CALENDAR_SLOTS);
+  const tierDocsOk = useTierFeatureEnabled(Feature.DOCUMENT_ARCHIVAL);
+
   const [patient, setPatient] = useState<PatientWithMedicalHistory | null>(
     null,
   );
@@ -37,10 +45,27 @@ export function usePatientData(patientId: string): UsePatientDataReturn {
   const [statistics, setStatistics] = useState<PatientStatistics | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const hasFetchedRef = useRef<string | null>(null);
 
   const loadPatientData = useCallback(async () => {
-    if (!patientId) return;
+    if (!patientId) {
+      setPatient(null);
+      setAppointments([]);
+      setDocuments([]);
+      setStatistics(null);
+      setLoading(false);
+      setError(null);
+      return;
+    }
+
+    if (!tierPatientOk) {
+      setPatient(null);
+      setAppointments([]);
+      setDocuments([]);
+      setStatistics(null);
+      setLoading(false);
+      setError(null);
+      return;
+    }
 
     try {
       setLoading(true);
@@ -49,8 +74,16 @@ export function usePatientData(patientId: string): UsePatientDataReturn {
       const [patientData, appointmentsData, documentsData] =
         await Promise.all([
           apiFetch<PatientWithMedicalHistory>(`/patients/${patientId}`),
-          apiFetch<{ items: Appointment[] }>(`/appointments?patientId=${patientId}&limit=100`),
-          apiFetch<Document[]>(`/medical-documents?patientId=${patientId}`),
+          tierCalendarOk
+            ? apiFetch<{ items: Appointment[] }>(
+                `/appointments?patientId=${patientId}&limit=100`,
+              )
+            : Promise.resolve({ items: [] as Appointment[] }),
+          tierDocsOk
+            ? apiFetch<Document[]>(
+                `/medical-documents?patientId=${patientId}`,
+              )
+            : Promise.resolve([] as Document[]),
         ]);
 
       if (
@@ -60,14 +93,18 @@ export function usePatientData(patientId: string): UsePatientDataReturn {
       ) {
         setPatient(patientData);
       } else {
-
         setPatient(null);
         setError("We could not open this patient record. Please try again.");
       }
 
-      const apptItems = appointmentsData && typeof appointmentsData === "object" && "items" in appointmentsData
-        ? (appointmentsData as { items: Appointment[] }).items
-        : Array.isArray(appointmentsData) ? appointmentsData : [];
+      const apptItems =
+        appointmentsData &&
+        typeof appointmentsData === "object" &&
+        "items" in appointmentsData
+          ? (appointmentsData as { items: Appointment[] }).items
+          : Array.isArray(appointmentsData)
+            ? appointmentsData
+            : [];
       const uniqueAppointments = Array.from(
         new Map(apptItems.map((item) => [item.id, item])).values(),
       );
@@ -79,25 +116,45 @@ export function usePatientData(patientId: string): UsePatientDataReturn {
         setDocuments([]);
       }
 
-      const totalVisits = uniqueAppointments.filter((a) => a.status === "completed").length;
-      const lastVisitDate = uniqueAppointments
-        .filter((a) => a.status === "completed")
-        .sort((a, b) => new Date(b.startTime ?? 0).getTime() - new Date(a.startTime ?? 0).getTime())[0]?.startTime ?? null;
-      const nextVisitDate = uniqueAppointments
-        .filter((a) => a.status === "scheduled" && new Date(a.startTime ?? 0) > new Date())
-        .sort((a, b) => new Date(a.startTime ?? 0).getTime() - new Date(b.startTime ?? 0).getTime())[0]?.startTime ?? null;
+      const totalVisits = uniqueAppointments.filter(
+        (a) => a.status === "completed",
+      ).length;
+      const lastVisitDate =
+        uniqueAppointments
+          .filter((a) => a.status === "completed")
+          .sort(
+            (a, b) =>
+              new Date(b.startTime ?? 0).getTime() -
+              new Date(a.startTime ?? 0).getTime(),
+          )[0]?.startTime ?? null;
+      const nextVisitDate =
+        uniqueAppointments
+          .filter(
+            (a) =>
+              a.status === "scheduled" &&
+              new Date(a.startTime ?? 0) > new Date(),
+          )
+          .sort(
+            (a, b) =>
+              new Date(a.startTime ?? 0).getTime() -
+              new Date(b.startTime ?? 0).getTime(),
+          )[0]?.startTime ?? null;
       setStatistics({
         totalVisits,
         lastVisit: lastVisitDate ? String(lastVisitDate) : null,
         nextVisit: nextVisitDate ? String(nextVisitDate) : null,
         adherenceRate: 0,
         totalAppointments: uniqueAppointments.length,
-        scheduledAppointments: uniqueAppointments.filter((a) => a.status === "scheduled").length,
-        noShowCount: uniqueAppointments.filter((a) => a.status === "no-show").length,
-        cancelledCount: uniqueAppointments.filter((a) => a.status === "cancelled").length,
+        scheduledAppointments: uniqueAppointments.filter(
+          (a) => a.status === "scheduled",
+        ).length,
+        noShowCount: uniqueAppointments.filter((a) => a.status === "no-show")
+          .length,
+        cancelledCount: uniqueAppointments.filter(
+          (a) => a.status === "cancelled",
+        ).length,
       });
     } catch (err) {
-
       setError(
         getUserFacingErrorMessage(err, {
           fallback: "We could not open this patient record. Please try again.",
@@ -107,19 +164,11 @@ export function usePatientData(patientId: string): UsePatientDataReturn {
     } finally {
       setLoading(false);
     }
-  }, [patientId]);
+  }, [patientId, tierPatientOk, tierCalendarOk, tierDocsOk]);
 
-  useSyncExternalStore(
-    useCallback(() => {
-      if (patientId && hasFetchedRef.current !== patientId) {
-        hasFetchedRef.current = patientId;
-        loadPatientData();
-      }
-      return () => {};
-    }, [patientId, loadPatientData]),
-    () => patient,
-    () => null,
-  );
+  useEffect(() => {
+    void loadPatientData();
+  }, [loadPatientData]);
 
   return {
     patient,

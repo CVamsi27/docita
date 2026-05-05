@@ -27,6 +27,11 @@ const pricingConfig = {
       features: ["Basic patient records"],
     },
     {
+      id: "FRONT_DESK",
+      pricing: { monthly: 799, yearly: 7990 },
+      features: ["Queue", "Reception-first"],
+    },
+    {
       id: "ESSENTIAL",
       pricing: { monthly: 999, yearly: 9990 },
       features: ["Invoices", "WhatsApp reminders"],
@@ -53,6 +58,11 @@ describe("PricingDialog", () => {
         STARTER: {
           totalMonthly: 0,
           totalYearly: 0,
+          currency: { symbol: "₹" },
+        },
+        FRONT_DESK: {
+          totalMonthly: 799,
+          totalYearly: 7990,
           currency: { symbol: "₹" },
         },
         ESSENTIAL: {
@@ -89,7 +99,7 @@ describe("PricingDialog", () => {
 
     fireEvent.click(screen.getAllByRole("button", { name: "Upgrade" })[0]!);
 
-    expect(onSelectTier).toHaveBeenCalledWith("ESSENTIAL", "MONTHLY");
+    expect(onSelectTier).toHaveBeenCalledWith("FRONT_DESK", "MONTHLY");
   });
 
   it("switches to yearly billing and closes from contact sales", () => {
@@ -110,7 +120,7 @@ describe("PricingDialog", () => {
     expect(screen.getByText("2 months free")).toBeInTheDocument();
 
     fireEvent.click(screen.getAllByRole("button", { name: "Upgrade" })[0]!);
-    expect(onSelectTier).toHaveBeenCalledWith("PROFESSIONAL", "YEARLY");
+    expect(onSelectTier).toHaveBeenCalledWith("FRONT_DESK", "YEARLY");
 
     fireEvent.click(screen.getByRole("button", { name: "Contact sales" }));
     expect(onOpenChange).toHaveBeenCalledWith(false);

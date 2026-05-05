@@ -67,6 +67,16 @@ export class PatientService {
     return patient;
   }
 
+  async findByClinicIdAndPhoneNumber(
+    clinicId: string,
+    phoneNumber: string,
+  ): Promise<Patient | null> {
+    return this.patientRepository.findByClinicIdAndPhoneNumber(
+      clinicId,
+      phoneNumber,
+    );
+  }
+
   async listPatients(params: PatientSearchParams) {
     return this.patientRepository.findAll(params);
   }

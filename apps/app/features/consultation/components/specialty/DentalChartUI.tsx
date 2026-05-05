@@ -39,7 +39,6 @@ export function DentalChartUI({
         aria-label="Loading dental chart"
       >
         <Skeleton
-          animation="wave"
           className="h-[400px] w-full rounded-lg"
         />
       </div>

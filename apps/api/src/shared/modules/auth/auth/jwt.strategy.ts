@@ -1,10 +1,19 @@
 import { ExtractJwt, Strategy } from 'passport-jwt';
 import { PassportStrategy } from '@nestjs/passport';
-import { Injectable, UnauthorizedException, Logger } from '@nestjs/common';
-import { OnboardingStep, Role } from '@workspace/db';
-import { PrismaService } from '@/prisma/prisma.service';
+import {
+  Inject,
+  Injectable,
+  UnauthorizedException,
+  ForbiddenException,
+  Logger,
+} from '@nestjs/common';
+import { Role } from '@workspace/db';
 import { Request } from 'express';
 import { AppConfigService } from '@/shared/modules/config/app-configuration.service';
+import {
+  IUserRepository,
+  USER_REPOSITORY_TOKEN,
+} from '@/domains/users/core/repositories/user.repository.interface';
 
 interface JwtPayload {
   sub: string;
@@ -15,12 +24,23 @@ interface JwtPayload {
   patientId?: string;
 }
 
-function cookieThenBearerExtractor(req: Request): string | null {
+/**
+ * Prefer Authorization Bearer when present so API clients (and E2E using
+ * Bearer) are not overridden by a stale host-only `access_token` cookie from
+ * an earlier browser or supertest session. Cookie-only sessions still work
+ * when no Bearer token is sent.
+ */
+export function extractJwtFromRequest(req: Request): string | null {
+  const bearer = ExtractJwt.fromAuthHeaderAsBearerToken()(req);
+  if (bearer) {
+    return bearer;
+  }
+
   if (req?.cookies?.access_token) {
     return req.cookies.access_token;
   }
 
-  return ExtractJwt.fromAuthHeaderAsBearerToken()(req);
+  return null;
 }
 
 @Injectable()
@@ -28,7 +48,8 @@ export class JwtStrategy extends PassportStrategy(Strategy) {
   private readonly logger = new Logger(JwtStrategy.name);
 
   constructor(
-    private prisma: PrismaService,
+    @Inject(USER_REPOSITORY_TOKEN)
+    private readonly userRepository: IUserRepository,
     private configService: AppConfigService,
   ) {
     const jwtSecret = configService.getJwtSecret();
@@ -38,7 +59,7 @@ export class JwtStrategy extends PassportStrategy(Strategy) {
       );
     }
     super({
-      jwtFromRequest: cookieThenBearerExtractor,
+      jwtFromRequest: extractJwtFromRequest,
       ignoreExpiration: false,
       secretOrKey: jwtSecret,
     });
@@ -50,25 +71,16 @@ export class JwtStrategy extends PassportStrategy(Strategy) {
     }
 
     try {
-      const users = await this.prisma.$queryRaw<
-        Array<{
-          id: string;
-          name: string;
-          clinicId: string | null;
-          emailVerified: boolean;
-          onboardingStep: OnboardingStep;
-        }>
-      >`
-        SELECT "id", "name", "clinicId", "emailVerified", "onboardingStep"
-        FROM "User"
-        WHERE "id" = ${payload.sub}
-        LIMIT 1
-      `;
-      const user = users[0] ?? null;
+      const user = await this.userRepository.findByIdForJwtValidation(
+        payload.sub,
+      );
 
       if (!user) {
         this.logger.warn('User not found for token subject');
         throw new UnauthorizedException('User not found');
+      }
+      if (user.appLoginDisabled) {
+        throw new ForbiddenException('This profile cannot sign in to the app.');
       }
       return {
         id: payload.sub,
@@ -83,6 +95,9 @@ export class JwtStrategy extends PassportStrategy(Strategy) {
       };
     } catch (error) {
       if (error instanceof UnauthorizedException) {
+        throw error;
+      }
+      if (error instanceof ForbiddenException) {
         throw error;
       }
 

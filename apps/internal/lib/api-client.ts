@@ -4,6 +4,7 @@ import {
   type RequestConfig,
 } from "@workspace/data-access";
 import { API_URL } from "@/lib/api-config";
+import { assertInternalPortalApiRequest } from "@/lib/internal-portal-api-paths";
 import { internalSession } from "@/lib/session";
 
 let authLogoutCallback: ((reason: string) => void) | null = null;
@@ -17,6 +18,9 @@ export function setAuthLogoutCallback(
 export const client = getAPIClient({
   baseURL: API_URL,
   getToken: () => internalSession.getToken(),
+  validateRequest: (endpoint, options) => {
+    assertInternalPortalApiRequest(endpoint, options);
+  },
   onRequest: (config: RequestConfig): RequestConfig => {
     const mutating = ["POST", "PUT", "PATCH", "DELETE"];
     if (mutating.includes((config.method ?? "GET").toUpperCase())) {

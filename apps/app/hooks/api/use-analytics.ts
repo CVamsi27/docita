@@ -12,8 +12,10 @@ import {
   AnalyticsRevenueMetricsResponse,
   AnalyticsTopConditionListResponse,
   DiseaseTrend,
+  Feature,
 } from "@workspace/types";
 import { useAPIQuery } from "@/lib/api-core";
+import { useTierFeatureEnabled } from "@/hooks/api/tier-feature-guards";
 import { ApiError } from "@/lib/errors";
 
 type APIQueryOptions<T> = Omit<UseQueryOptions<T, ApiError>, "queryKey" | "queryFn">;
@@ -33,12 +35,19 @@ const buildQueryString = (
   return queryString ? `?${queryString}` : "";
 };
 
-export const useAnalyticsOverview = (options?: APIQueryOptions<AnalyticsOverview>) =>
-  useAPIQuery<AnalyticsOverview>(
+export const useAnalyticsOverview = (
+  options?: APIQueryOptions<AnalyticsOverview>,
+) => {
+  const basicOk = useTierFeatureEnabled(Feature.BASIC_ANALYTICS);
+  return useAPIQuery<AnalyticsOverview>(
     queryKeys.analytics.overview(),
     "/analytics/overview",
-    options,
+    {
+      ...options,
+      enabled: basicOk && (options?.enabled ?? true),
+    },
   );
+};
 
 export const useDiseaseTrends = (
   clinicId: string,
@@ -46,12 +55,18 @@ export const useDiseaseTrends = (
   endDate?: string,
   options?: APIQueryOptions<DiseaseTrend[]>,
 ) => {
+  const basicOk = useTierFeatureEnabled(Feature.BASIC_ANALYTICS);
+  const advancedOk = useTierFeatureEnabled(Feature.ADVANCED_ANALYTICS);
+  const tierOk = basicOk && advancedOk;
   const query: AnalyticsDateRangeQuery = { clinicId, startDate, endDate };
 
   return useAPIQuery<DiseaseTrend[]>(
     queryKeys.analytics.diseaseTrends(clinicId, startDate || "", endDate || ""),
     `/analytics/disease-trends${buildQueryString(query)}`,
-    options,
+    {
+      ...options,
+      enabled: tierOk && (options?.enabled ?? true),
+    },
   );
 };
 
@@ -61,12 +76,18 @@ export const useRevenueByCPT = (
   endDate?: string,
   options?: APIQueryOptions<AnalyticsRevenueByCptListResponse>,
 ) => {
+  const basicOk = useTierFeatureEnabled(Feature.BASIC_ANALYTICS);
+  const advancedOk = useTierFeatureEnabled(Feature.ADVANCED_ANALYTICS);
+  const tierOk = basicOk && advancedOk;
   const query: AnalyticsDateRangeQuery = { clinicId, startDate, endDate };
 
   return useAPIQuery<AnalyticsRevenueByCptListResponse>(
     queryKeys.analytics.revenueByCpt(clinicId, startDate || "", endDate || ""),
     `/analytics/revenue/by-cpt${buildQueryString(query)}`,
-    options,
+    {
+      ...options,
+      enabled: tierOk && (options?.enabled ?? true),
+    },
   );
 };
 
@@ -76,12 +97,18 @@ export const useComplianceMetrics = (
   endDate?: string,
   options?: APIQueryOptions<AnalyticsCodingComplianceMetricsResponse>,
 ) => {
+  const basicOk = useTierFeatureEnabled(Feature.BASIC_ANALYTICS);
+  const advancedOk = useTierFeatureEnabled(Feature.ADVANCED_ANALYTICS);
+  const tierOk = basicOk && advancedOk;
   const query: AnalyticsDateRangeQuery = { clinicId, startDate, endDate };
 
   return useAPIQuery<AnalyticsCodingComplianceMetricsResponse>(
     queryKeys.analytics.complianceMetrics(clinicId, startDate || "", endDate || ""),
     `/analytics/compliance/metrics${buildQueryString(query)}`,
-    options,
+    {
+      ...options,
+      enabled: tierOk && (options?.enabled ?? true),
+    },
   );
 };
 
@@ -90,8 +117,11 @@ export const useRevenueMetrics = (
   period: "daily" | "weekly" | "monthly" = "monthly",
   startDate?: Date,
   endDate?: Date,
-) =>
-  useAPIQuery<AnalyticsRevenueMetricsResponse>(
+) => {
+  const basicOk = useTierFeatureEnabled(Feature.BASIC_ANALYTICS);
+  const advancedOk = useTierFeatureEnabled(Feature.ADVANCED_ANALYTICS);
+  const tierOk = basicOk && advancedOk;
+  return useAPIQuery<AnalyticsRevenueMetricsResponse>(
     queryKeys.analytics.revenueMetrics(
       clinicId,
       period,
@@ -103,16 +133,20 @@ export const useRevenueMetrics = (
       startDate: startDate?.toISOString(),
       endDate: endDate?.toISOString(),
     })}`,
-    { staleTime: 1000 * 60 * 5 },
+    { staleTime: 1000 * 60 * 5, enabled: tierOk },
   );
+};
 
 export const useAppointmentMetrics = (
   clinicId: string,
   period: "daily" | "weekly" | "monthly" = "monthly",
   startDate?: Date,
   endDate?: Date,
-) =>
-  useAPIQuery<AnalyticsAppointmentMetricsResponse>(
+) => {
+  const basicOk = useTierFeatureEnabled(Feature.BASIC_ANALYTICS);
+  const advancedOk = useTierFeatureEnabled(Feature.ADVANCED_ANALYTICS);
+  const tierOk = basicOk && advancedOk;
+  return useAPIQuery<AnalyticsAppointmentMetricsResponse>(
     queryKeys.analytics.appointmentMetrics(
       clinicId,
       period,
@@ -124,15 +158,19 @@ export const useAppointmentMetrics = (
       startDate: startDate?.toISOString(),
       endDate: endDate?.toISOString(),
     })}`,
-    { staleTime: 1000 * 60 * 5 },
+    { staleTime: 1000 * 60 * 5, enabled: tierOk },
   );
+};
 
 export const usePatientDemographics = (
   clinicId: string,
   startDate?: Date,
   endDate?: Date,
-) =>
-  useAPIQuery<AnalyticsPatientDemographicsResponse>(
+) => {
+  const basicOk = useTierFeatureEnabled(Feature.BASIC_ANALYTICS);
+  const advancedOk = useTierFeatureEnabled(Feature.ADVANCED_ANALYTICS);
+  const tierOk = basicOk && advancedOk;
+  return useAPIQuery<AnalyticsPatientDemographicsResponse>(
     queryKeys.analytics.patientDemographics(
       clinicId,
       startDate?.toISOString() || "",
@@ -143,17 +181,20 @@ export const usePatientDemographics = (
       startDate: startDate?.toISOString(),
       endDate: endDate?.toISOString(),
     })}`,
-    { staleTime: 1000 * 60 * 5 },
+    { staleTime: 1000 * 60 * 5, enabled: tierOk },
   );
+};
 
-export const useTopConditions = (clinicId: string, limit: number = 10) =>
-  useAPIQuery<AnalyticsTopConditionListResponse>(
+export const useTopConditions = (clinicId: string, limit: number = 10) => {
+  const basicOk = useTierFeatureEnabled(Feature.BASIC_ANALYTICS);
+  return useAPIQuery<AnalyticsTopConditionListResponse>(
     queryKeys.analytics.topConditions(clinicId, limit),
     `/analytics/top-conditions${buildQueryString({
       ...( { clinicId, limit } as AnalyticsLimitQuery),
     })}`,
-    { staleTime: 1000 * 60 * 5 },
+    { staleTime: 1000 * 60 * 5, enabled: basicOk },
   );
+};
 
 export const useAuditLogs = (
   clinicId?: string,

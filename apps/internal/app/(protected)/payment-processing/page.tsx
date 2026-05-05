@@ -47,8 +47,16 @@ import {
   FormMessage,
 } from "@workspace/ui/components/form";
 import { Input } from "@workspace/ui/components/input";
-import { CreditCard, TrendingUp } from "lucide-react";
+import { Textarea } from "@workspace/ui/components/textarea";
+import { IsoDatePickerField } from "@workspace/ui/components/iso-date-picker-field";
+import { CreditCard, Percent, Receipt, TrendingUp } from "lucide-react";
+import {
+  GUIDED_SETUP_LIST_PRICE_BY_CURRENCY,
+  recordInternalAdditionalChargeRequestSchema,
+  type SupportedCurrency,
+} from "@workspace/types";
 import { useAuth } from "@/lib/auth";
+import { billingAPI, type PricingOfferRow } from "@/lib/api";
 import { client } from "@/lib/api-client";
 import { internalQueryKeys } from "@/lib/query-keys";
 import { useForm } from "react-hook-form";
@@ -87,6 +95,37 @@ interface PaymentFormData {
   amount: string;
   newTier: string;
   paymentNotes?: string;
+}
+
+interface PricingOfferFormData {
+  clinicId: string;
+  percentOff: string;
+  title: string;
+  validUntil: string;
+  notes: string;
+}
+
+interface AdditionalChargeFormData {
+  category: string;
+  amount: string;
+  paymentMethod: string;
+  razorpayPaymentId: string;
+  notes: string;
+}
+
+function guidedSetupPresetAmount(currency: string | undefined): string {
+  const key = (currency ?? DEFAULT_CURRENCY).toUpperCase();
+  if (
+    Object.prototype.hasOwnProperty.call(
+      GUIDED_SETUP_LIST_PRICE_BY_CURRENCY,
+      key,
+    )
+  ) {
+    return String(
+      GUIDED_SETUP_LIST_PRICE_BY_CURRENCY[key as SupportedCurrency],
+    );
+  }
+  return "";
 }
 
 const DEFAULT_TIERS: TierPricing[] = [
@@ -140,6 +179,10 @@ export default function PaymentProcessingPage() {
     [],
   );
   const [showPaymentDialog, setShowPaymentDialog] = useState(false);
+  const [showAdditionalChargeDialog, setShowAdditionalChargeDialog] =
+    useState(false);
+  const [additionalChargeClinic, setAdditionalChargeClinic] =
+    useState<Clinic | null>(null);
 
   const { token, isInternal, isLoading } = useAuth();
   const form = useForm<PaymentFormData>({
@@ -174,6 +217,65 @@ export default function PaymentProcessingPage() {
       }
     },
     enabled: Boolean(isInternal && token),
+  });
+
+  const additionalChargeForm = useForm<AdditionalChargeFormData>({
+    defaultValues: {
+      category: "GUIDED_SETUP",
+      amount: "",
+      paymentMethod: "manual",
+      razorpayPaymentId: "",
+      notes: "",
+    },
+  });
+
+  const pricingOfferForm = useForm<PricingOfferFormData>({
+    defaultValues: {
+      clinicId: "",
+      percentOff: "10",
+      title: "Commercial discount",
+      validUntil: "",
+      notes: "",
+    },
+  });
+
+  const pricingOffersQuery = useQuery({
+    queryKey: internalQueryKeys.internal.billingPricingOffers(),
+    queryFn: () => billingAPI.getPricingOffers(),
+    enabled: Boolean(isInternal && token),
+  });
+
+  const savePricingOfferMutation = useMutation({
+    mutationFn: (payload: {
+      clinicId: string;
+      title: string;
+      percentOff: number;
+      validUntil?: string;
+      notes?: string;
+    }) => billingAPI.upsertPricingOffer(payload.clinicId, payload),
+    onSuccess: async () => {
+      toast.success("Checkout discount saved");
+      pricingOfferForm.reset({
+        clinicId: "",
+        percentOff: "10",
+        title: "Commercial discount",
+        validUntil: "",
+        notes: "",
+      });
+      await queryClient.invalidateQueries({
+        queryKey: internalQueryKeys.internal.billingPricingOffers(),
+      });
+    },
+  });
+
+  const deletePricingOfferMutation = useMutation({
+    mutationFn: (clinicId: string) => billingAPI.deletePricingOffer(clinicId),
+    onSuccess: async () => {
+      toast.success("Checkout discount removed");
+      await queryClient.invalidateQueries({
+        queryKey: internalQueryKeys.internal.billingPricingOffers(),
+      });
+    },
   });
 
   const clinics = clinicsQuery.data ?? [];
@@ -230,6 +332,41 @@ export default function PaymentProcessingPage() {
     }
   };
 
+  const openAdditionalChargeForClinic = (clinic: Clinic) => {
+    setAdditionalChargeClinic(clinic);
+    const defaultAmount = guidedSetupPresetAmount(clinic.currency);
+    additionalChargeForm.reset({
+      category: "GUIDED_SETUP",
+      amount: defaultAmount,
+      paymentMethod: "manual",
+      razorpayPaymentId: "",
+      notes: "",
+    });
+    setShowAdditionalChargeDialog(true);
+  };
+
+  const recordAdditionalChargeMutation = useMutation({
+    mutationFn: (data: Record<string, unknown>) =>
+      client.post(
+        `/internal/clinics/${additionalChargeClinic?.id}/additional-charge`,
+        data,
+      ),
+    onSuccess: async () => {
+      const currencySnapshot = additionalChargeClinic?.currency;
+      toast.success("Additional charge recorded");
+      setShowAdditionalChargeDialog(false);
+      setAdditionalChargeClinic(null);
+      additionalChargeForm.reset({
+        category: "GUIDED_SETUP",
+        amount: guidedSetupPresetAmount(currencySnapshot),
+        paymentMethod: "manual",
+        razorpayPaymentId: "",
+        notes: "",
+      });
+      await clinicsQuery.refetch();
+    },
+  });
+
   const processPaymentMutation = useMutation({
     mutationFn: (data: PaymentFormData) =>
       client.post(`/internal/clinics/${selectedClinic?.id}/process-payment`, {
@@ -264,6 +401,66 @@ export default function PaymentProcessingPage() {
       );
     }
   };
+
+  const onSubmitAdditionalCharge = async (raw: AdditionalChargeFormData) => {
+    if (!additionalChargeClinic || !token) return;
+
+    const amount = Number.parseFloat(raw.amount);
+    const parsed = recordInternalAdditionalChargeRequestSchema.safeParse({
+      category: raw.category,
+      paymentMethod: raw.paymentMethod,
+      amount,
+      currency: additionalChargeClinic.currency || DEFAULT_CURRENCY,
+      razorpayPaymentId: raw.razorpayPaymentId.trim() || undefined,
+      notes: raw.notes.trim() || undefined,
+    });
+
+    if (!parsed.success) {
+      const first = parsed.error.flatten().fieldErrors;
+      const msg =
+        first.amount?.[0] ??
+        first.category?.[0] ??
+        first.paymentMethod?.[0] ??
+        "Check the form and try again.";
+      showUserFacingErrorToast(msg);
+      return;
+    }
+
+    try {
+      await recordAdditionalChargeMutation.mutateAsync(parsed.data);
+    } catch {
+      showUserFacingErrorToast(
+        "We could not record this charge. Please try again.",
+      );
+    }
+  };
+
+  const onSavePricingOffer = pricingOfferForm.handleSubmit(async (data) => {
+    const percent = Number.parseFloat(data.percentOff);
+    if (!Number.isFinite(percent) || percent < 0 || percent > 95) {
+      showUserFacingErrorToast(
+        "Percent off must be a number between 0 and 95.",
+      );
+      return;
+    }
+    if (!data.clinicId) {
+      showUserFacingErrorToast("Select a facility.");
+      return;
+    }
+    try {
+      await savePricingOfferMutation.mutateAsync({
+        clinicId: data.clinicId,
+        title: data.title.trim() || "Commercial discount",
+        percentOff: percent,
+        validUntil: data.validUntil.trim() || undefined,
+        notes: data.notes.trim() || undefined,
+      });
+    } catch {
+      showUserFacingErrorToast(
+        "We could not save this checkout discount. Please try again.",
+      );
+    }
+  });
 
   const getTierBadgeColor = (tier: string) => {
     const colors: Record<string, string> = {
@@ -305,7 +502,7 @@ export default function PaymentProcessingPage() {
     <div className="space-y-6">
       <PageHeader
         title="Payment Processing"
-        description="Process payments and manage clinic tier upgrades"
+        description="Record subscription payments and tier changes, or bill add-on services such as guided setup"
         size="compact"
       />
 
@@ -371,7 +568,8 @@ export default function PaymentProcessingPage() {
                 Facilities Payment Management
               </CardTitle>
               <CardDescription>
-                Select a facility to process payment or upgrade tier
+                Select a facility to change plan and record subscription
+                payment, or record an add-on charge (for example guided setup)
               </CardDescription>
             </CardHeader>
             <CardContent>
@@ -421,20 +619,243 @@ export default function PaymentProcessingPage() {
                             {clinic.currency || DEFAULT_CURRENCY}
                           </TableCell>
                           <TableCell>
-                            <Button
-                              size="sm"
-                              onClick={() => loadClinicTierInfo(clinic)}
-                              className="gap-2"
-                            >
-                              <TrendingUp className="h-4 w-4" />
-                              Manage Payment
-                            </Button>
+                            <div className="flex flex-wrap gap-2">
+                              <Button
+                                size="sm"
+                                onClick={() => loadClinicTierInfo(clinic)}
+                                className="gap-2"
+                              >
+                                <TrendingUp className="h-4 w-4" />
+                                Manage plan payment
+                              </Button>
+                              <Button
+                                size="sm"
+                                type="button"
+                                variant="outline"
+                                onClick={() =>
+                                  openAdditionalChargeForClinic(clinic)
+                                }
+                                className="gap-2"
+                              >
+                                <Receipt className="h-4 w-4" />
+                                Add-on charge
+                              </Button>
+                            </div>
                           </TableCell>
                         </TableRow>
                       ))}
                   </TableBody>
                 </Table>
               )}
+            </CardContent>
+          </Card>
+
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <Percent className="h-5 w-5" aria-hidden />
+                Checkout discounts (subscription)
+              </CardTitle>
+              <CardDescription>
+                Apply a percent-off offer to the facility&apos;s next
+                subscription checkout (Razorpay). Separate from add-on charges.
+                Remove the offer when it should no longer apply.
+              </CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-6">
+              {pricingOffersQuery.isLoading ? (
+                <div className="flex justify-center py-6" role="status">
+                  <DocitaLoadingIndicator
+                    variant="section"
+                    withStatusRole={false}
+                    iconClassName="h-6 w-6 text-muted-foreground"
+                  />
+                </div>
+              ) : (pricingOffersQuery.data ?? []).length > 0 ? (
+                <Table>
+                  <TableHeader>
+                    <TableRow>
+                      <TableHead>Facility</TableHead>
+                      <TableHead>Title</TableHead>
+                      <TableHead>Percent off</TableHead>
+                      <TableHead>Valid until</TableHead>
+                      <TableHead className="w-[100px]">Actions</TableHead>
+                    </TableRow>
+                  </TableHeader>
+                  <TableBody>
+                    {(pricingOffersQuery.data ?? []).map(
+                      (row: PricingOfferRow) => (
+                        <TableRow key={row.id}>
+                          <TableCell className="font-medium">
+                            {row.clinic?.name ?? row.clinicId}
+                          </TableCell>
+                          <TableCell className="text-sm">{row.title}</TableCell>
+                          <TableCell className="tabular-nums">
+                            {row.percentOff}%
+                          </TableCell>
+                          <TableCell className="text-sm text-muted-foreground">
+                            {row.validUntil ?? "—"}
+                          </TableCell>
+                          <TableCell>
+                            <Button
+                              type="button"
+                              size="sm"
+                              variant="outline"
+                              disabled={deletePricingOfferMutation.isPending}
+                              onClick={async () => {
+                                try {
+                                  await deletePricingOfferMutation.mutateAsync(
+                                    row.clinicId,
+                                  );
+                                } catch {
+                                  showUserFacingErrorToast(
+                                    "Could not remove checkout discount.",
+                                  );
+                                }
+                              }}
+                            >
+                              Remove
+                            </Button>
+                          </TableCell>
+                        </TableRow>
+                      ),
+                    )}
+                  </TableBody>
+                </Table>
+              ) : (
+                <p className="text-sm text-muted-foreground">
+                  No active checkout discounts.
+                </p>
+              )}
+
+              <Form {...pricingOfferForm}>
+                <form
+                  onSubmit={onSavePricingOffer}
+                  className="space-y-4 border-t border-border/60 pt-4"
+                  noValidate
+                >
+                  <FormField
+                    control={pricingOfferForm.control}
+                    name="clinicId"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Facility</FormLabel>
+                        <Select
+                          value={field.value}
+                          onValueChange={field.onChange}
+                        >
+                          <FormControl>
+                            <SelectTrigger>
+                              <SelectValue placeholder="Select facility" />
+                            </SelectTrigger>
+                          </FormControl>
+                          <SelectContent>
+                            {clinics.map((c) => (
+                              <SelectItem key={c.id} value={c.id}>
+                                {c.name}
+                              </SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                  <FormField
+                    control={pricingOfferForm.control}
+                    name="percentOff"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Percent off checkout</FormLabel>
+                        <FormControl>
+                          <Input
+                            type="number"
+                            inputMode="decimal"
+                            min={0}
+                            max={95}
+                            step={1}
+                            placeholder="Enter percent"
+                            {...field}
+                          />
+                        </FormControl>
+                        <FormDescription>
+                          Applied to list price at subscription checkout (max 95).
+                        </FormDescription>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                  <FormField
+                    control={pricingOfferForm.control}
+                    name="title"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Title</FormLabel>
+                        <FormControl>
+                          <Input placeholder="Commercial discount" {...field} />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                  <FormField
+                    control={pricingOfferForm.control}
+                    name="validUntil"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel htmlFor="pricing-offer-valid-until">
+                          Valid until (optional)
+                        </FormLabel>
+                        <FormControl>
+                          <IsoDatePickerField
+                            id="pricing-offer-valid-until"
+                            label=""
+                            showLabel={false}
+                            value={typeof field.value === "string" ? field.value : ""}
+                            onChange={field.onChange}
+                            placeholder="Select date"
+                          />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                  <FormField
+                    control={pricingOfferForm.control}
+                    name="notes"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Internal notes (optional)</FormLabel>
+                        <FormControl>
+                          <Textarea
+                            placeholder="Reason for discount, approval ref, etc."
+                            className="min-h-[80px]"
+                            {...field}
+                          />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                  <div className="flex justify-end">
+                    <Button
+                      type="submit"
+                      disabled={savePricingOfferMutation.isPending}
+                    >
+                      {savePricingOfferMutation.isPending && (
+                        <DocitaLoadingIndicator
+                          variant="inline"
+                          decorative
+                          className="mr-2"
+                        />
+                      )}
+                      {savePricingOfferMutation.isPending
+                        ? "Saving…"
+                        : "Save discount"}
+                    </Button>
+                  </div>
+                </form>
+              </Form>
             </CardContent>
           </Card>
         </>
@@ -630,6 +1051,205 @@ export default function PaymentProcessingPage() {
               </form>
             </Form>
           )}
+        </DialogContent>
+      </Dialog>
+
+      <Dialog
+        open={showAdditionalChargeDialog}
+        onOpenChange={(open) => {
+          setShowAdditionalChargeDialog(open);
+          if (!open) {
+            setAdditionalChargeClinic(null);
+          }
+        }}
+      >
+        <DialogContent className="max-w-lg">
+          <DialogHeader>
+            <DialogTitle>
+              Add-on charge — {additionalChargeClinic?.name}
+            </DialogTitle>
+            <DialogDescription>
+              Records a paid one-off charge (for example guided setup) in
+              billing history. This does not change the clinic subscription
+              tier.
+            </DialogDescription>
+          </DialogHeader>
+
+          <Form {...additionalChargeForm}>
+            <form
+              onSubmit={additionalChargeForm.handleSubmit(
+                onSubmitAdditionalCharge,
+              )}
+              noValidate
+              className="space-y-4"
+            >
+              <FormField
+                control={additionalChargeForm.control}
+                name="category"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Charge category</FormLabel>
+                    <Select
+                      value={field.value}
+                      onValueChange={(value) => {
+                        field.onChange(value);
+                        if (value === "GUIDED_SETUP") {
+                          additionalChargeForm.setValue(
+                            "amount",
+                            guidedSetupPresetAmount(
+                              additionalChargeClinic?.currency,
+                            ),
+                          );
+                        }
+                      }}
+                    >
+                      <FormControl>
+                        <SelectTrigger>
+                          <SelectValue />
+                        </SelectTrigger>
+                      </FormControl>
+                      <SelectContent>
+                        <SelectItem value="GUIDED_SETUP">
+                          Guided setup
+                        </SelectItem>
+                        <SelectItem value="DATA_MIGRATION">
+                          Data migration
+                        </SelectItem>
+                        <SelectItem value="CUSTOM_TRAINING">
+                          Custom training
+                        </SelectItem>
+                        <SelectItem value="INTEGRATION">Integration</SelectItem>
+                        <SelectItem value="COMMERCIAL_DISCOUNT">
+                          Commercial discount / adjustment
+                        </SelectItem>
+                        <SelectItem value="OTHER">Other service</SelectItem>
+                      </SelectContent>
+                    </Select>
+                    <FormDescription>
+                      Guided setup is separate from the software subscription.
+                      Default amount follows the list price for the
+                      clinic&apos;s currency; adjust to match your invoice.
+                    </FormDescription>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+
+              <FormField
+                control={additionalChargeForm.control}
+                name="amount"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>
+                      Amount (
+                      {additionalChargeClinic?.currency || DEFAULT_CURRENCY})
+                    </FormLabel>
+                    <FormControl>
+                      <Input
+                        type="number"
+                        inputMode="decimal"
+                        min={0}
+                        step="1"
+                        placeholder="Enter amount"
+                        {...field}
+                      />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+
+              <FormField
+                control={additionalChargeForm.control}
+                name="paymentMethod"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Payment method</FormLabel>
+                    <Select
+                      value={field.value}
+                      onValueChange={field.onChange}
+                    >
+                      <FormControl>
+                        <SelectTrigger>
+                          <SelectValue />
+                        </SelectTrigger>
+                      </FormControl>
+                      <SelectContent>
+                        <SelectItem value="razorpay">Razorpay</SelectItem>
+                        <SelectItem value="stripe">Stripe</SelectItem>
+                        <SelectItem value="bank_transfer">
+                          Bank transfer
+                        </SelectItem>
+                        <SelectItem value="manual">Manual</SelectItem>
+                      </SelectContent>
+                    </Select>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+
+              <FormField
+                control={additionalChargeForm.control}
+                name="razorpayPaymentId"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Razorpay payment ID (optional)</FormLabel>
+                    <FormControl>
+                      <Input
+                        placeholder="Enter Razorpay payment id"
+                        {...field}
+                      />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+
+              <FormField
+                control={additionalChargeForm.control}
+                name="notes"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Notes (optional)</FormLabel>
+                    <FormControl>
+                      <Textarea
+                        placeholder="Scope, invoice reference, or internal note"
+                        rows={3}
+                        {...field}
+                      />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+
+              <div className="flex gap-3 justify-end pt-4 border-t">
+                <Button
+                  type="button"
+                  variant="outline"
+                  onClick={() => setShowAdditionalChargeDialog(false)}
+                  disabled={recordAdditionalChargeMutation.isPending}
+                >
+                  Cancel
+                </Button>
+                <Button
+                  type="submit"
+                  disabled={recordAdditionalChargeMutation.isPending}
+                >
+                  {recordAdditionalChargeMutation.isPending && (
+                    <DocitaLoadingIndicator
+                      variant="inline"
+                      decorative
+                      className="mr-2"
+                    />
+                  )}
+                  {recordAdditionalChargeMutation.isPending
+                    ? "Saving…"
+                    : "Record charge"}
+                </Button>
+              </div>
+            </form>
+          </Form>
         </DialogContent>
       </Dialog>
     </div>

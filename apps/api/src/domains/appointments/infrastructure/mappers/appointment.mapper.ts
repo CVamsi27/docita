@@ -3,7 +3,10 @@ import {
   Appointment as PrismaAppointment,
   AppointmentStatus as PrismaAppointmentStatus,
 } from '@workspace/db';
-import { dentalChartSchema } from '@workspace/types';
+import {
+  appointmentListItemResponseSchema,
+  dentalChartSchema,
+} from '@workspace/types';
 import { Appointment } from '@/domains/appointments/core/entities/appointment.entity';
 import {
   AppointmentStatus,
@@ -37,6 +40,11 @@ const DOMAIN_TO_PRISMA_STATUS: Record<
   [AppointmentStatusEnum.NOSHOW]: PrismaAppointmentStatus.NO_SHOW,
 };
 
+/** Keys allowed on list responses; keeps `appointmentListItemResponseSchema.strict()` in sync. */
+const APPOINTMENT_LIST_ITEM_ROOT_KEYS = Object.keys(
+  appointmentListItemResponseSchema.omit({ patient: true, doctor: true }).shape,
+);
+
 export class AppointmentMapper {
   static toDomain(raw: PrismaAppointment): Appointment {
     return new Appointment({
@@ -52,11 +60,25 @@ export class AppointmentMapper {
       consultationNotes: raw.consultationNotes || undefined,
       observations: raw.observations || undefined,
       chiefComplaint: raw.chiefComplaint || undefined,
+      historyOfPresentIllness: raw.historyOfPresentIllness || undefined,
+      pastMedicalHistory: raw.pastMedicalHistory || undefined,
+      reviewOfSystems: raw.reviewOfSystems || undefined,
+      provisionalDiagnosis: raw.provisionalDiagnosis || undefined,
       treatmentHistory: raw.treatmentHistory || undefined,
+      treatmentPlan: raw.treatmentPlan || undefined,
       clinicalImpression: raw.clinicalImpression || undefined,
       differentialDiagnosis: raw.differentialDiagnosis || undefined,
       finalDiagnosis: raw.finalDiagnosis || undefined,
       followUpPlan: raw.followUpPlan || undefined,
+      generalExamination: raw.generalExamination ?? undefined,
+      systemicExamination: raw.systemicExamination ?? undefined,
+      investigations: raw.investigations ?? undefined,
+      growthData: raw.growthData ?? undefined,
+      ophthalmologyExam: raw.ophthalmologyExam ?? undefined,
+      cardiologyExam: raw.cardiologyExam ?? undefined,
+      gynecologyExam: raw.gynecologyExam ?? undefined,
+      dermatologyExam: raw.dermatologyExam ?? undefined,
+      psychiatryExam: raw.psychiatryExam ?? undefined,
       dentalChart: raw.dentalChart
         ? dentalChartSchema.parse(raw.dentalChart)
         : undefined,
@@ -82,9 +104,15 @@ export class AppointmentMapper {
     },
   ): AppointmentListItem {
     const plain = AppointmentMapper.toDomain(raw).toPlain();
+    const item: Record<string, unknown> = {};
+    for (const key of APPOINTMENT_LIST_ITEM_ROOT_KEYS) {
+      if (!Object.prototype.hasOwnProperty.call(plain, key)) {
+        continue;
+      }
+      item[key] = plain[key as keyof typeof plain];
+    }
     return {
-      ...plain,
-      dentalChart: plain.dentalChart,
+      ...item,
       patient: raw.patient
         ? {
             id: raw.patient.id,
@@ -99,7 +127,7 @@ export class AppointmentMapper {
             name: raw.doctor.name,
           }
         : undefined,
-    };
+    } as AppointmentListItem;
   }
 
   static toPersistence(
@@ -119,7 +147,12 @@ export class AppointmentMapper {
       consultationNotes: plain.consultationNotes || null,
       observations: plain.observations || null,
       chiefComplaint: plain.chiefComplaint || null,
+      historyOfPresentIllness: plain.historyOfPresentIllness || null,
+      pastMedicalHistory: plain.pastMedicalHistory || null,
+      reviewOfSystems: plain.reviewOfSystems || null,
+      provisionalDiagnosis: plain.provisionalDiagnosis || null,
       treatmentHistory: plain.treatmentHistory || null,
+      treatmentPlan: plain.treatmentPlan || null,
       clinicalImpression: plain.clinicalImpression || null,
       differentialDiagnosis: plain.differentialDiagnosis || null,
       finalDiagnosis: plain.finalDiagnosis || null,
@@ -128,6 +161,43 @@ export class AppointmentMapper {
       createdAt: plain.createdAt,
       updatedAt: plain.updatedAt,
       version: plain.version,
+      ...(plain.generalExamination !== undefined
+        ? {
+            generalExamination:
+              plain.generalExamination as Prisma.InputJsonValue,
+          }
+        : {}),
+      ...(plain.systemicExamination !== undefined
+        ? {
+            systemicExamination:
+              plain.systemicExamination as Prisma.InputJsonValue,
+          }
+        : {}),
+      ...(plain.investigations !== undefined
+        ? { investigations: plain.investigations as Prisma.InputJsonValue }
+        : {}),
+      ...(plain.growthData !== undefined
+        ? { growthData: plain.growthData as Prisma.InputJsonValue }
+        : {}),
+      ...(plain.ophthalmologyExam !== undefined
+        ? {
+            ophthalmologyExam: plain.ophthalmologyExam as Prisma.InputJsonValue,
+          }
+        : {}),
+      ...(plain.cardiologyExam !== undefined
+        ? { cardiologyExam: plain.cardiologyExam as Prisma.InputJsonValue }
+        : {}),
+      ...(plain.gynecologyExam !== undefined
+        ? { gynecologyExam: plain.gynecologyExam as Prisma.InputJsonValue }
+        : {}),
+      ...(plain.dermatologyExam !== undefined
+        ? {
+            dermatologyExam: plain.dermatologyExam as Prisma.InputJsonValue,
+          }
+        : {}),
+      ...(plain.psychiatryExam !== undefined
+        ? { psychiatryExam: plain.psychiatryExam as Prisma.InputJsonValue }
+        : {}),
       ...(plain.dentalChart !== undefined
         ? { dentalChart: plain.dentalChart }
         : {}),

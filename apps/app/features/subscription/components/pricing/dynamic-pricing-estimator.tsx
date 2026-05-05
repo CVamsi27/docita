@@ -297,9 +297,7 @@ export function DynamicPricingEstimator({
               </p>
             </div>
             {isLoading ? (
-              <Badge variant="outline" className="animate-pulse">
-                Calculating…
-              </Badge>
+              <Badge variant="outline">Calculating…</Badge>
             ) : shownTotal !== null && estimate ? (
               <div className="text-right">
                 <span className="text-[var(--fs-2xl)] font-semibold tabular-nums leading-[var(--lh-tight)] text-foreground">

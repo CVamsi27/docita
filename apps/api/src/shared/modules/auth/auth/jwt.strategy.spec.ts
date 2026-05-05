@@ -1,22 +1,21 @@
 import { Test, TestingModule } from '@nestjs/testing';
-import { UnauthorizedException } from '@nestjs/common';
+import { ForbiddenException, UnauthorizedException } from '@nestjs/common';
 import { AppConfigService } from '@/shared/modules/config/app-configuration.service';
-import { JwtStrategy } from './jwt.strategy';
-import { PrismaService } from '@/prisma/prisma.service';
+import { JwtStrategy, extractJwtFromRequest } from './jwt.strategy';
 import { Role } from '@workspace/db';
+import type { Request } from 'express';
 import { beforeEach, describe, it, expect, jest } from '@jest/globals';
+import { USER_REPOSITORY_TOKEN } from '@/domains/users/core/repositories/user.repository.interface';
 
 describe('JwtStrategy', () => {
   let strategy: JwtStrategy;
-  let prisma: typeof mockPrisma;
 
   type MockUser = {
     id: string;
-    email: string;
-    role: string;
     name: string;
     clinicId: string | null;
     emailVerified: boolean;
+    appLoginDisabled: boolean;
     onboardingStep:
       | 'NOT_STARTED'
       | 'CHOOSE_PATH'
@@ -25,10 +24,12 @@ describe('JwtStrategy', () => {
       | 'COMPLETED';
   };
 
-  const mockPrisma = {
-    $queryRaw: jest.fn() as jest.MockedFunction<
-      (...args: unknown[]) => Promise<MockUser[]>
-    >,
+  const mockFindByIdForJwtValidation = jest.fn() as jest.MockedFunction<
+    (id: string) => Promise<MockUser | null>
+  >;
+
+  const mockUserRepository = {
+    findByIdForJwtValidation: mockFindByIdForJwtValidation,
   };
 
   const mockAppConfigService = {
@@ -42,13 +43,15 @@ describe('JwtStrategy', () => {
     const module: TestingModule = await Test.createTestingModule({
       providers: [
         JwtStrategy,
-        { provide: PrismaService, useValue: mockPrisma },
+        {
+          provide: USER_REPOSITORY_TOKEN,
+          useValue: mockUserRepository,
+        },
         { provide: AppConfigService, useValue: mockAppConfigService },
       ],
     }).compile();
 
     strategy = module.get<JwtStrategy>(JwtStrategy);
-    prisma = mockPrisma;
   });
 
   const validPayload = {
@@ -61,11 +64,10 @@ describe('JwtStrategy', () => {
 
   const mockUser = {
     id: 'user-123',
-    email: 'test@docita.work',
-    role: 'ADMIN',
     name: 'Test Admin',
     clinicId: 'clinic-456',
     emailVerified: false,
+    appLoginDisabled: false,
     onboardingStep: 'CHOOSE_PATH' as const,
   };
 
@@ -80,7 +82,7 @@ describe('JwtStrategy', () => {
     });
 
     it('should return user data when valid payload is provided', async () => {
-      prisma.$queryRaw.mockResolvedValue([mockUser]);
+      mockFindByIdForJwtValidation.mockResolvedValue(mockUser);
 
       const result = await strategy.validate(validPayload);
 
@@ -98,23 +100,37 @@ describe('JwtStrategy', () => {
     });
 
     it('should query user profile from database', async () => {
-      prisma.$queryRaw.mockResolvedValue([mockUser]);
+      mockFindByIdForJwtValidation.mockResolvedValue(mockUser);
 
       await strategy.validate(validPayload);
 
-      expect(prisma.$queryRaw).toHaveBeenCalledTimes(1);
+      expect(mockFindByIdForJwtValidation).toHaveBeenCalledTimes(1);
+      expect(mockFindByIdForJwtValidation).toHaveBeenCalledWith('user-123');
     });
 
     it('should throw UnauthorizedException when user is not found', async () => {
-      prisma.$queryRaw.mockResolvedValue([]);
+      mockFindByIdForJwtValidation.mockResolvedValue(null);
 
       await expect(strategy.validate(validPayload)).rejects.toThrow(
         UnauthorizedException,
       );
     });
 
+    it('should throw ForbiddenException when appLoginDisabled is true', async () => {
+      mockFindByIdForJwtValidation.mockResolvedValue({
+        ...mockUser,
+        appLoginDisabled: true,
+      });
+
+      await expect(strategy.validate(validPayload)).rejects.toThrow(
+        ForbiddenException,
+      );
+    });
+
     it('should throw UnauthorizedException when user lookup fails', async () => {
-      prisma.$queryRaw.mockRejectedValue(new Error('db unavailable'));
+      mockFindByIdForJwtValidation.mockRejectedValue(
+        new Error('db unavailable'),
+      );
 
       await expect(strategy.validate(validPayload)).rejects.toThrow(
         UnauthorizedException,
@@ -126,7 +142,7 @@ describe('JwtStrategy', () => {
         ...mockUser,
         clinicId: 'different-clinic-id',
       };
-      prisma.$queryRaw.mockResolvedValue([userWithDifferentClinic]);
+      mockFindByIdForJwtValidation.mockResolvedValue(userWithDifferentClinic);
 
       const result = await strategy.validate(validPayload);
 
@@ -134,8 +150,8 @@ describe('JwtStrategy', () => {
     });
 
     it('should handle null clinicId for super admin users', async () => {
-      const internal = { ...mockUser, clinicId: null, role: 'INTERNAL' };
-      prisma.$queryRaw.mockResolvedValue([internal]);
+      const internal = { ...mockUser, clinicId: null };
+      mockFindByIdForJwtValidation.mockResolvedValue(internal);
 
       const payloadForInternal = {
         ...validPayload,
@@ -150,6 +166,26 @@ describe('JwtStrategy', () => {
     });
   });
 
+  describe('extractJwtFromRequest', () => {
+    it('prefers Authorization Bearer over access_token cookie', () => {
+      const req = {
+        headers: { authorization: 'Bearer bearer-token' },
+        cookies: { access_token: 'cookie-token' },
+      } as unknown as Request;
+
+      expect(extractJwtFromRequest(req)).toBe('bearer-token');
+    });
+
+    it('falls back to access_token cookie when Bearer is absent', () => {
+      const req = {
+        headers: {},
+        cookies: { access_token: 'cookie-token' },
+      } as unknown as Request;
+
+      expect(extractJwtFromRequest(req)).toBe('cookie-token');
+    });
+  });
+
   describe('constructor', () => {
     it('should throw if JWT_SECRET is not set', async () => {
       const noSecretConfig = {
@@ -160,7 +196,10 @@ describe('JwtStrategy', () => {
         Test.createTestingModule({
           providers: [
             JwtStrategy,
-            { provide: PrismaService, useValue: mockPrisma },
+            {
+              provide: USER_REPOSITORY_TOKEN,
+              useValue: mockUserRepository,
+            },
             { provide: AppConfigService, useValue: noSecretConfig },
           ],
         }).compile(),

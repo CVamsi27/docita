@@ -1,17 +1,13 @@
 ---
 import MainLayout from "@/layouts/main-layout.astro";
-import { PricingSection } from "@/components/pricing-section";
-import { AiAutomationSection } from "@/components/sections/ai-automation-section";
-import { CtaBottomSection } from "@/components/sections/cta-bottom-section";
-import { FaqSection } from "@/components/sections/faq-section";
+import { ClinicRhythmSection } from "@/components/sections/clinic-rhythm-section";
+import { DifferentiatorsSection } from "@/components/sections/differentiators-section";
+import { FaqCtaSection } from "@/components/sections/faq-cta-section";
 import { HeroSection } from "@/components/sections/hero-section";
-import { HowItWorksSection } from "@/components/sections/how-it-works-section";
-import { MigrationSection } from "@/components/sections/migration-section";
-import { OutcomesStripSection } from "@/components/sections/outcomes-strip-section";
-import { ResourceLinksSection } from "@/components/sections/resource-links-section";
-import { SignatureCapabilitiesSection } from "@/components/sections/signature-capabilities-section";
-import { StatsSection } from "@/components/sections/stats-section";
-import { TrustSecuritySection } from "@/components/sections/trust-security-section";
+import { PricingSection } from "@/components/pricing-section";
+import { ProofStripSection } from "@/components/sections/proof-strip-section";
+import { RolloutSection } from "@/components/sections/rollout-section";
+import { SurfaceMapSection } from "@/components/sections/surface-map-section";
 import { WorkflowCompareSection } from "@/components/sections/workflow-compare-section";
 import { getAppBaseUrl } from "@/lib/public-api";
 import { fetchPlatformStats } from "@/lib/landing-data";
@@ -21,24 +17,55 @@ const platformStats = await fetchPlatformStats(Astro.url.origin);
 ---
 
 <!--
-  Scroll arc: hook (hero) → platform proof (stats) → product surface (signature) → operating facts (outcomes) → rollout (how it works) → control surface (compare) → migration & AI → resources → trust → pricing → FAQ → CTA.
+  R2 arc: hero (live product) -> proof -> day rhythm (signature) ->
+  surface map (breadth) -> compare -> rollout -> differentiators ->
+  pricing -> FAQ + CTA.
 -->
 <MainLayout
   canonicalPath="/"
-  title="Docita — OPD rhythm: queue, chart, bill, WhatsApp | Guided setup"
-  description="One operating rhythm for Indian private clinics—tokens, EMR, prescriptions, billing, and WhatsApp follow-ups in a single layer, with migration support and guided setup."
+  title="Docita - One rhythm for your whole OPD floor | Patient portal, EMR, billing, WhatsApp"
+  description="One operating layer for Indian private clinics: queue, EMR, prescriptions, billing, WhatsApp, lab tests, inventory, analytics, and a real patient portal. Two-week rollout."
 >
   <HeroSection appUrl={appUrl} client:idle />
-  <StatsSection stats={platformStats} />
-  <SignatureCapabilitiesSection appUrl={appUrl} client:visible />
-  <OutcomesStripSection />
-  <HowItWorksSection client:visible />
+  <ProofStripSection stats={platformStats} />
+  <ClinicRhythmSection client:visible />
+  <SurfaceMapSection client:visible />
   <WorkflowCompareSection client:visible />
-  <MigrationSection tone="soft" client:visible />
-  <AiAutomationSection tone="muted" client:visible />
-  <ResourceLinksSection client:visible />
-  <TrustSecuritySection client:visible />
-  <PricingSection appUrl={appUrl} client:visible />
-  <FaqSection />
-  <CtaBottomSection client:visible />
+  <RolloutSection client:visible />
+  <DifferentiatorsSection client:visible />
+  <section
+    class="r2-section border-y border-border/50 bg-muted/25"
+    aria-labelledby="front-desk-landing-teaser-heading"
+  >
+    <div class="ui-page-shell py-8 sm:py-10">
+      <h2
+        id="front-desk-landing-teaser-heading"
+        class="text-base font-semibold tracking-tight text-foreground"
+      >
+        Front desk workspace (not a separate paid tier)
+      </h2>
+      <p class="mt-2 max-w-3xl text-sm leading-relaxed text-muted-foreground">
+        Same subscription plans as below. This path keeps scheduling, queue,
+        patients, and invoicing while turning off in-app consultation and
+        prescription authoring for your facility.
+      </p>
+      <p class="mt-4 flex flex-wrap items-center gap-x-3 gap-y-2 text-sm">
+        <a
+          class="font-medium text-primary underline-offset-4 hover:underline"
+          href={`${appUrl}/onboarding?workspace=front_desk`}
+        >
+          Start front desk onboarding
+        </a>
+        <span class="text-muted-foreground" aria-hidden="true">|</span>
+        <a
+          class="font-medium text-primary underline-offset-4 hover:underline"
+          href="#front-desk-workspace"
+        >
+          Details in pricing
+        </a>
+      </p>
+    </div>
+  </section>
+  <PricingSection appUrl={appUrl} client:idle />
+  <FaqCtaSection appUrl={appUrl} client:visible />
 </MainLayout>

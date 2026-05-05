@@ -8,6 +8,7 @@ import {
 } from "@/features/patients/components";
 import { PatientDetailTabs } from "@/features/patients/components/details/PatientDetailTabs";
 import { PatientHeaderActions } from "@/features/patients/components/details/PatientHeaderActions";
+import { PatientAdvisorRail } from "@/features/patients/components/details/patient-advisor-rail";
 import { AppPageScaffold } from "@workspace/ui/components/app-page-scaffold";
 import { DataState } from "@workspace/ui/components/data-state";
 import { User } from "lucide-react";
@@ -110,25 +111,28 @@ export default function PatientDetailPage() {
         }
       />
 
-      <div className="space-y-6 py-6">
-        <EditPatientDialog
-          patient={patient}
-          open={isEditDialogOpen}
-          onOpenChange={setIsEditDialogOpen}
-          onPatientUpdated={() => handleRefetch()}
-        />
-
-        <Suspense fallback={<PatientDetailTabLoadingShell />}>
-          <PatientDetailTabs
+      <div className="flex flex-col gap-6 py-6 lg:flex-row lg:items-start">
+        <div className="min-w-0 flex-1 space-y-6">
+          <EditPatientDialog
             patient={patient}
-            patientId={patient.id}
-            appointments={appointments}
-            statistics={statistics}
-            canEditPatient={canEditPatient}
-            canRecordPatientVitals={canRecordPatientVitals}
-            onScheduleVisit={handleScheduleVisit}
+            open={isEditDialogOpen}
+            onOpenChange={setIsEditDialogOpen}
+            onPatientUpdated={() => handleRefetch()}
           />
-        </Suspense>
+
+          <Suspense fallback={<PatientDetailTabLoadingShell />}>
+            <PatientDetailTabs
+              patient={patient}
+              patientId={patient.id}
+              appointments={appointments}
+              statistics={statistics}
+              canEditPatient={canEditPatient}
+              canRecordPatientVitals={canRecordPatientVitals}
+              onScheduleVisit={handleScheduleVisit}
+            />
+          </Suspense>
+        </div>
+        <PatientAdvisorRail patient={patient} />
       </div>
     </AppPageScaffold>
   );

@@ -9,10 +9,20 @@ import {
   QueueJobOptions,
   QueueStats,
 } from './queue.interface';
+import { WorkerMetricsService } from './worker-metrics.service';
 
 const POLL_INTERVAL_MS = 2000;
 const STALE_ACTIVE_TIMEOUT_MS = 10 * 60 * 1000;
 const RECOVERY_DELAY_MS = 30 * 1000;
+const DEFAULT_MAX_ATTEMPTS = 5;
+const RETRY_BASE_MS = 1_000;
+const RETRY_MAX_MS = 60_000;
+const IDEMPOTENCY_LOOKBACK_MS = 24 * 60 * 60 * 1000;
+
+const computeBackoffMs = (attempt: number): number => {
+  const exponential = RETRY_BASE_MS * Math.pow(2, attempt - 1);
+  return Math.min(exponential, RETRY_MAX_MS);
+};
 
 interface QueueJobRow {
   id: string;
@@ -27,6 +37,8 @@ interface QueueJobRow {
   delayedUntil: Date | null;
   createdAt: Date;
   updatedAt: Date;
+  idempotencyKey?: string | null;
+  completedAt?: Date | null;
 }
 
 @Injectable()
@@ -35,7 +47,10 @@ export class PostgresQueueService implements IQueueProvider, OnModuleDestroy {
   private readonly handlers = new Map<string, QueueJobHandler>();
   private readonly pollers = new Map<string, ReturnType<typeof setInterval>>();
 
-  constructor(private readonly prisma: PrismaService) {}
+  constructor(
+    private readonly prisma: PrismaService,
+    private readonly metrics?: WorkerMetricsService,
+  ) {}
 
   async enqueue<T extends QueueJobData>(
     name: string,
@@ -46,6 +61,19 @@ export class PostgresQueueService implements IQueueProvider, OnModuleDestroy {
       ? new Date(Date.now() + options.delay)
       : null;
 
+    if (options?.idempotencyKey) {
+      const recent = await this.findRecentCompletedByIdempotency(
+        name,
+        options.idempotencyKey,
+      );
+      if (recent) {
+        this.logger.debug(
+          `Skipping duplicate enqueue for ${name} idempotencyKey=${options.idempotencyKey} (existing job ${recent.id})`,
+        );
+        return this.rowToJob<T>(recent);
+      }
+    }
+
     const row = await this.prisma.runUnrestricted(async () =>
       this.prisma.queueJob.create({
         data: {
@@ -53,13 +81,34 @@ export class PostgresQueueService implements IQueueProvider, OnModuleDestroy {
           data,
           status: delayedUntil ? 'DELAYED' : 'WAITING',
           priority: options?.priority ?? 0,
-          maxAttempts: options?.attempts ?? 3,
+          maxAttempts: options?.attempts ?? DEFAULT_MAX_ATTEMPTS,
           delayedUntil,
+          idempotencyKey: options?.idempotencyKey ?? null,
         },
       }),
     );
 
     return this.rowToJob<T>(row);
+  }
+
+  private async findRecentCompletedByIdempotency(
+    name: string,
+    idempotencyKey: string,
+  ): Promise<QueueJobRow | null> {
+    const cutoff = new Date(Date.now() - IDEMPOTENCY_LOOKBACK_MS);
+    const rows = await this.prisma.runUnrestricted(
+      async () =>
+        this.prisma.$queryRaw<QueueJobRow[]>`
+          SELECT * FROM "QueueJob"
+          WHERE name = ${name}
+            AND "idempotencyKey" = ${idempotencyKey}
+            AND status = 'COMPLETED'
+            AND "completedAt" >= ${cutoff}
+          ORDER BY "completedAt" DESC
+          LIMIT 1
+        `,
+    );
+    return rows && rows[0] ? rows[0] : null;
   }
 
   async process<T extends QueueJobData>(
@@ -113,48 +162,132 @@ export class PostgresQueueService implements IQueueProvider, OnModuleDestroy {
     const row = rows[0];
     const job = this.rowToJob(row);
 
+    if (row.idempotencyKey) {
+      const recent = await this.findRecentCompletedByIdempotency(
+        name,
+        row.idempotencyKey,
+      );
+      if (recent && recent.id !== row.id) {
+        await this.prisma.runUnrestricted(async () =>
+          this.prisma.queueJob.update({
+            where: { id: row.id },
+            data: {
+              status: 'COMPLETED',
+              completedAt: new Date(),
+              failedReason: 'Skipped: idempotency-key already completed',
+            },
+          }),
+        );
+        this.metrics?.observeJobCompletion(name, 'idempotent_skip');
+        return;
+      }
+    }
+
+    const startedAt = Date.now();
     try {
       await handler(job);
 
       await this.prisma.runUnrestricted(async () =>
         this.prisma.queueJob.update({
           where: { id: row.id },
-          data: { status: 'COMPLETED' },
+          data: { status: 'COMPLETED', completedAt: new Date() },
         }),
       );
+      this.metrics?.observeJobCompletion(name, 'completed');
+      this.metrics?.observeJobDuration(name, (Date.now() - startedAt) / 1000);
     } catch (error) {
       const failedReason =
         error instanceof Error ? error.message : String(error);
       const nextAttemptsMade = row.attemptsMade + 1;
 
       if (nextAttemptsMade < row.maxAttempts) {
-        const backoffMs = Math.pow(2, nextAttemptsMade) * 5000;
+        const backoffMs = computeBackoffMs(nextAttemptsMade);
         await this.prisma.runUnrestricted(async () =>
           this.prisma.queueJob.update({
             where: { id: row.id },
             data: {
               status: 'DELAYED',
               attemptsMade: nextAttemptsMade,
+              failedReason,
               delayedUntil: new Date(Date.now() + backoffMs),
             },
           }),
         );
+        this.metrics?.observeJobCompletion(name, 'retried');
       } else {
         await this.prisma.runUnrestricted(async () =>
           this.prisma.queueJob.update({
             where: { id: row.id },
             data: {
-              status: 'FAILED',
+              status: 'DEAD_LETTERED',
               attemptsMade: nextAttemptsMade,
               failedReason,
+              deadLetteredAt: new Date(),
             },
           }),
         );
+        this.metrics?.observeJobCompletion(name, 'dead_lettered');
         this.logger.error(
-          `Job ${row.id} (${name}) permanently failed after ${nextAttemptsMade} attempts: ${failedReason}`,
+          `Job ${row.id} (${name}) dead-lettered after ${nextAttemptsMade} attempts: ${failedReason}`,
         );
       }
+      this.metrics?.observeJobDuration(name, (Date.now() - startedAt) / 1000);
     }
+
+    await this.refreshDlqGauge(name);
+  }
+
+  private async refreshDlqGauge(name: string): Promise<void> {
+    if (!this.metrics) return;
+    try {
+      const count = await this.prisma.runUnrestricted(async () =>
+        this.prisma.queueJob.count({
+          where: { name, status: 'DEAD_LETTERED' },
+        }),
+      );
+      this.metrics.setDlqSize(name, count);
+    } catch {
+      // never let metrics refresh fail the job loop
+    }
+  }
+
+  /**
+   * Returns dead-lettered jobs for a queue, newest first.
+   */
+  async listDeadLettered(
+    name: string,
+    limit = 50,
+  ): Promise<QueueJob<QueueJobData>[]> {
+    const rows = await this.prisma.runUnrestricted(async () =>
+      this.prisma.queueJob.findMany({
+        where: { name, status: 'DEAD_LETTERED' },
+        orderBy: { deadLetteredAt: 'desc' },
+        take: limit,
+      }),
+    );
+    return rows.map((row) => this.rowToJob(row));
+  }
+
+  /**
+   * Replays a dead-lettered job by resetting attempt counts and putting
+   * it back into the WAITING queue. Returns the refreshed job.
+   */
+  async replayDeadLettered(jobId: string): Promise<QueueJob<QueueJobData>> {
+    const row = await this.prisma.runUnrestricted(async () =>
+      this.prisma.queueJob.update({
+        where: { id: jobId },
+        data: {
+          status: 'WAITING',
+          attemptsMade: 0,
+          failedReason: null,
+          deadLetteredAt: null,
+          delayedUntil: null,
+          processedAt: null,
+        },
+      }),
+    );
+    await this.refreshDlqGauge(row.name);
+    return this.rowToJob(row);
   }
 
   private async recoverStaleActiveJobs(name: string): Promise<void> {
@@ -245,7 +378,8 @@ export class PostgresQueueService implements IQueueProvider, OnModuleDestroy {
       waiting: byStatus.get('WAITING') ?? 0,
       active: byStatus.get('ACTIVE') ?? 0,
       processed: byStatus.get('COMPLETED') ?? 0,
-      failed: byStatus.get('FAILED') ?? 0,
+      failed:
+        (byStatus.get('FAILED') ?? 0) + (byStatus.get('DEAD_LETTERED') ?? 0),
       delayed: byStatus.get('DELAYED') ?? 0,
     };
   }

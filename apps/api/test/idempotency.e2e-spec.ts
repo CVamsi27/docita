@@ -1,3 +1,4 @@
+import { randomUUID } from 'crypto';
 import { Test, TestingModule } from '@nestjs/testing';
 import { INestApplication } from '@nestjs/common';
 import request from 'supertest';
@@ -12,7 +13,10 @@ import {
 import { factories, setPrismaInstance } from './factories';
 import { Role } from '@workspace/db';
 import cookieParser from 'cookie-parser';
-import { PAYMENT_LINK_PROVIDER_TOKEN } from '@/domains/payments/core/ports/payment-link-provider.port';
+import {
+  CLINIC_INVOICE_PAYMENT_LINK_PROVIDER_TOKEN,
+  DOCITA_PLATFORM_PAYMENT_LINK_PROVIDER_TOKEN,
+} from '@/domains/payments/core/ports/payment-link-provider.port';
 
 describe('Idempotency (e2e)', () => {
   let app: INestApplication;
@@ -36,7 +40,9 @@ describe('Idempotency (e2e)', () => {
     })
       .overrideProvider(PrismaService)
       .useValue(getPrismaInstance())
-      .overrideProvider(PAYMENT_LINK_PROVIDER_TOKEN)
+      .overrideProvider(DOCITA_PLATFORM_PAYMENT_LINK_PROVIDER_TOKEN)
+      .useValue(mockPaymentProvider)
+      .overrideProvider(CLINIC_INVOICE_PAYMENT_LINK_PROVIDER_TOKEN)
       .useValue(mockPaymentProvider)
       .compile();
 
@@ -75,7 +81,7 @@ describe('Idempotency (e2e)', () => {
     const patient = await factories.patient(testClinicId);
     const invoice = await factories.invoice(patient.id);
 
-    const idempotencyKey = 'unique-test-key-' + Date.now();
+    const idempotencyKey = randomUUID();
     const payload = {
       invoiceId: invoice.id,
       amount: 100,
@@ -107,7 +113,7 @@ describe('Idempotency (e2e)', () => {
     const patient = await factories.patient(testClinicId);
     const invoice = await factories.invoice(patient.id);
 
-    const idempotencyKey = 'concurrent-test-key-' + Date.now();
+    const idempotencyKey = randomUUID();
     const payload = {
       invoiceId: invoice.id,
       amount: 100,

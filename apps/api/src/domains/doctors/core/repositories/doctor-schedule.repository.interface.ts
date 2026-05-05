@@ -1,4 +1,9 @@
-import { DoctorSchedule, DoctorTimeOff, Prisma } from '@workspace/db';
+import {
+  ClinicWeeklySchedule,
+  DoctorSchedule,
+  DoctorTimeOff,
+  Prisma,
+} from '@workspace/db';
 
 export interface IDoctorScheduleRepository {
   findSchedules(
@@ -36,6 +41,14 @@ export interface IDoctorScheduleRepository {
       }
     >
   >;
+
+  findClinicWeeklyForSlotGeneration(params: {
+    clinicId: string;
+    dayOfWeek: string;
+  }): Promise<ClinicWeeklySchedule[]>;
+
+  /** True when the clinic has at least one persisted clinic weekly row (any day). */
+  hasAnyClinicWeeklySchedule(clinicId: string): Promise<boolean>;
 
   createSchedule(
     data: Prisma.DoctorScheduleCreateInput,

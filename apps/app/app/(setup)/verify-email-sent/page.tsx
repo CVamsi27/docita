@@ -30,7 +30,7 @@ function getNextPathForVerifiedUser(user: User | null): string {
   }
 
   if (user.clinicId || user.onboardingStep === "COMPLETED") {
-    return "/dashboard";
+    return "/today";
   }
 
   switch (user.onboardingStep) {
@@ -152,7 +152,7 @@ export default function VerifyEmailSentPage() {
   if (user?.emailVerified === true) {
     return (
       <PreDashboardShell currentStep="verify-email-sent" showSignOut>
-        <div className="ui-card-surface space-y-6 p-8 animate-in fade-in slide-in-from-bottom-4 duration-700">
+        <div className="ui-card-surface space-y-6 p-8">
           <div className="flex justify-center">
             <div className="flex h-16 w-16 items-center justify-center rounded-lg bg-success/10">
               <CheckCircle2 className="h-8 w-8 text-success" />
@@ -223,7 +223,7 @@ export default function VerifyEmailSentPage() {
 
   return (
     <PreDashboardShell currentStep="verify-email-sent" showSignOut>
-      <div className="ui-card-surface space-y-6 p-8 animate-in fade-in slide-in-from-bottom-4 duration-700">
+      <div className="ui-card-surface space-y-6 p-8">
         <div className="flex justify-center">
           <div className="flex h-16 w-16 items-center justify-center rounded-full border border-border/70 bg-background/70">
             <Mail className="h-8 w-8 text-primary" />

@@ -30,7 +30,7 @@ export function FloatingStartConsultation({
   const router = useRouter();
   const { canStartConsultation } = usePermissions();
   const { user } = useAuth();
-  const { canAccess } = usePermissionStore();
+  const { canAccess, workspaceProfile } = usePermissionStore();
   const startConsultation = useStartConsultation();
   const [isMinimized, setIsMinimized] = useState(minimized);
   const canAccessQueueApi = canAccessTarget(
@@ -38,6 +38,7 @@ export function FloatingStartConsultation({
     {
       role: user?.role,
       canAccessFeature: canAccess,
+      workspaceProfile,
     },
     "read",
   );

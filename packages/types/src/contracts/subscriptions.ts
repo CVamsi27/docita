@@ -297,6 +297,45 @@ export const internalBillingPaymentsQuerySchema = z.object({
   endDate: z.string().optional(),
 }).strict();
 
+/** One-off charges recorded from the internal app (e.g. guided setup). */
+export const internalAdditionalChargeCategorySchema = z.enum([
+  "GUIDED_SETUP",
+  "DATA_MIGRATION",
+  "CUSTOM_TRAINING",
+  "INTEGRATION",
+  "COMMERCIAL_DISCOUNT",
+  "OTHER",
+]);
+
+export const recordInternalAdditionalChargeRequestSchema = z
+  .object({
+    amount: z.number().positive("Amount must be greater than zero"),
+    currency: z.string().length(3).optional(),
+    category: internalAdditionalChargeCategorySchema,
+    paymentMethod: z.enum([
+      "razorpay",
+      "stripe",
+      "bank_transfer",
+      "manual",
+    ]),
+    razorpayPaymentId: z.string().min(1).max(128).optional(),
+    notes: z.string().max(2000).optional(),
+  })
+  .strict();
+
+export const internalBillingPaymentItemSchema = z.object({
+  id: z.string(),
+  clinicName: z.string(),
+  planLabel: z.string(),
+  amount: z.number(),
+  currency: z.string(),
+  status: z.string(),
+  gatewayPaymentId: z.string().optional(),
+  description: z.string().optional(),
+  paidAt: z.string().nullable().optional(),
+  createdAt: z.string(),
+});
+
 export const extendGracePeriodRequestSchema = z.object({
   days: z.number().int().positive("Days must be a positive integer"),
 }).strict();
@@ -368,6 +407,15 @@ export type InternalBillingExpiringQuery = z.infer<
 >;
 export type InternalBillingPaymentsQuery = z.infer<
   typeof internalBillingPaymentsQuerySchema
+>;
+export type InternalAdditionalChargeCategory = z.infer<
+  typeof internalAdditionalChargeCategorySchema
+>;
+export type RecordInternalAdditionalChargeRequest = z.infer<
+  typeof recordInternalAdditionalChargeRequestSchema
+>;
+export type InternalBillingPaymentItem = z.infer<
+  typeof internalBillingPaymentItemSchema
 >;
 export type ExtendGracePeriodRequest = z.infer<
   typeof extendGracePeriodRequestSchema

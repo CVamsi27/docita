@@ -15,6 +15,7 @@ const VALID_TRANSITIONS: Record<
   [SubscriptionStatusEnum.TRIALING]: [
     SubscriptionStatusEnum.ACTIVE,
     SubscriptionStatusEnum.PAST_DUE,
+    SubscriptionStatusEnum.GRACE,
     SubscriptionStatusEnum.CANCELLED,
     SubscriptionStatusEnum.EXPIRED,
   ],

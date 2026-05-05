@@ -234,9 +234,15 @@ export class PrismaSubscriptionRepository implements ISubscriptionRepository {
     status: string;
     razorpayOrderId: string;
     description: string;
+    razorpayPaymentId?: string;
+    paidAt?: Date | null;
   }): Promise<void> {
     try {
       const taxFields = await this.calculateSubscriptionTaxFields(payment);
+      const resolvedPaidAt =
+        payment.status === 'paid' || payment.status === 'PAID'
+          ? (payment.paidAt ?? new Date())
+          : undefined;
       await this.prisma.subscriptionPayment.create({
         data: {
           clinicId: payment.clinicId,
@@ -245,6 +251,7 @@ export class PrismaSubscriptionRepository implements ISubscriptionRepository {
           currency: payment.currency,
           status: payment.status,
           razorpayOrderId: payment.razorpayOrderId,
+          razorpayPaymentId: payment.razorpayPaymentId,
           description: payment.description,
           invoiceType: taxFields.invoiceType,
           subtotalCents: taxFields.subtotalCents,
@@ -255,6 +262,7 @@ export class PrismaSubscriptionRepository implements ISubscriptionRepository {
           buyerTaxSnapshot: toPrismaJson(taxFields.buyer),
           placeOfSupplyStateCode: taxFields.taxSummary.placeOfSupply?.stateCode,
           reverseCharge: taxFields.taxSummary.reverseCharge,
+          paidAt: resolvedPaidAt,
         },
       });
     } catch (error) {
@@ -349,6 +357,22 @@ export class PrismaSubscriptionRepository implements ISubscriptionRepository {
         amountCents: params.amountCents,
         currency: params.currency,
         description: params.description,
+        razorpayOrderId: { not: params.keepOrderId },
+      },
+      data: { status: 'expired' },
+    });
+
+    return result.count;
+  }
+
+  async expireOtherPendingSubscriptionCheckouts(params: {
+    clinicId: string;
+    keepOrderId: string;
+  }): Promise<number> {
+    const result = await this.prisma.subscriptionPayment.updateMany({
+      where: {
+        clinicId: params.clinicId,
+        status: { in: ['pending', 'PENDING'] },
         razorpayOrderId: { not: params.keepOrderId },
       },
       data: { status: 'expired' },

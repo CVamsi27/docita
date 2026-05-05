@@ -1,10 +1,11 @@
 "use client";
 
-import React, { ReactNode } from "react";
+import React, { ReactNode, useEffect } from "react";
 import { useAuth } from "@/lib/auth-context";
 import { useRouter } from "next/navigation";
 import type { UserRole } from "@workspace/types";
 import { hasPermission, type Permission } from "@/lib/permissions";
+import { persistReturnPathBeforeLogin } from "@/lib/safe-return-path";
 
 interface RoleGuardProps {
   children: ReactNode;
@@ -40,6 +41,19 @@ export function RoleGuard({
   const { user } = useAuth();
   const router = useRouter();
 
+  const needsLoginRedirect =
+    !!(requiredPermission || requiredRole) &&
+    !user?.role &&
+    !fallback;
+
+  useEffect(() => {
+    if (!needsLoginRedirect) {
+      return;
+    }
+    persistReturnPathBeforeLogin();
+    router.push("/login");
+  }, [needsLoginRedirect, router]);
+
   if (!requiredPermission && !requiredRole) {
     return <>{children}</>;
   }
@@ -48,7 +62,6 @@ export function RoleGuard({
     if (fallback) {
       return <>{fallback}</>;
     }
-    router.push("/login");
     return null;
   }
 

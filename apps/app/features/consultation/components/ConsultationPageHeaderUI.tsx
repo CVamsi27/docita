@@ -4,9 +4,11 @@ import {
   HeartPulse,
   MoreVertical,
   PanelLeft,
+  Sparkles,
   Clock,
   User,
 } from "lucide-react";
+import { useAskAi } from "@/features/_shared/components/ask-ai/ask-ai-context";
 import { Button } from "@workspace/ui/components/button";
 import { Badge } from "@workspace/ui/components/badge";
 import {
@@ -31,10 +33,11 @@ import { formatDate, formatTime } from "@/lib/formatters";
 import { humanizeUiLabel } from "@workspace/ui/lib/label-formatters";
 import { ConsultationTimerContainer } from "./ConsultationTimerContainer";
 import { BillingModal } from "./modals/BillingModal";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useQueryClient } from "@tanstack/react-query";
 import { useConsultationVitals } from "@/features/consultation/workspace/consultation-vitals-context";
 import { SaveStatusChip } from "@/features/consultation/workspace/chrome/SaveStatusChip";
+import { usePermissions } from "@/hooks/use-permissions";
 
 const STATUS_STYLES: Record<string, string> = {
   scheduled: "badge-info",
@@ -74,8 +77,16 @@ export function ConsultationPageHeaderUI({
   onToggleDesktopSidebar,
 }: ConsultationPageHeaderUIProps) {
   const { openVitals } = useConsultationVitals();
+  const { openOverlay } = useAskAi();
+  const { canCreateInvoice } = usePermissions();
   const [billingOpen, setBillingOpen] = useState(false);
   const queryClient = useQueryClient();
+
+  useEffect(() => {
+    if (!canCreateInvoice) {
+      setBillingOpen(false);
+    }
+  }, [canCreateInvoice]);
 
   const handleBillingSaved = () => {
     queryClient.invalidateQueries({
@@ -118,15 +129,15 @@ export function ConsultationPageHeaderUI({
                     <Button
                       variant="ghost"
                       size="icon"
-                      className="md:hidden h-8 w-8 shrink-0"
-                      aria-label="Open consultation menu"
+                      className="xl:hidden h-8 w-8 shrink-0"
+                      aria-label="Open patient chart and history"
                     >
                       <PanelLeft className="h-4 w-4" />
                     </Button>
                   </SheetTrigger>
                 </TooltipTrigger>
                 <TooltipContent side="bottom">
-                  Open consultation menu
+                  Patient chart and history
                 </TooltipContent>
               </Tooltip>
               <SheetContent side="left" className="sm:w-80 p-0">
@@ -216,7 +227,7 @@ export function ConsultationPageHeaderUI({
               </Button>
             </SymbolTooltip>
           )}
-          {!readOnly && (
+          {!readOnly ? (
             <>
               <ConsultationTimerContainer
                 appointmentId={appointmentId}
@@ -233,46 +244,82 @@ export function ConsultationPageHeaderUI({
                   <span className="hidden md:inline">Vitals</span>
                 </Button>
               </SymbolTooltip>
-              <SymbolTooltip label="Create invoice" side="bottom">
-                <Button
-                  variant="outline"
-                  size="sm"
-                  className="hidden sm:flex gap-1.5 h-8"
-                  onClick={() => setBillingOpen(true)}
-                >
-                  <CreditCard className="h-3.5 w-3.5 text-success" />
-                  <span className="hidden md:inline">Invoice</span>
-                </Button>
-              </SymbolTooltip>
-              <DropdownMenu>
-                <Tooltip>
-                  <TooltipTrigger asChild>
-                    <DropdownMenuTrigger asChild>
-                      <Button
-                        variant="ghost"
-                        size="icon"
-                        className="sm:hidden h-8 w-8"
-                        aria-label="More actions"
-                      >
-                        <MoreVertical className="h-4 w-4" />
-                      </Button>
-                    </DropdownMenuTrigger>
-                  </TooltipTrigger>
-                  <TooltipContent side="bottom">More actions</TooltipContent>
-                </Tooltip>
-                <DropdownMenuContent align="end">
-                  <DropdownMenuItem onClick={() => openVitals()}>
-                    <HeartPulse className="mr-2 h-4 w-4 text-destructive" />
-                    Vitals
-                  </DropdownMenuItem>
-                  <DropdownMenuItem onClick={() => setBillingOpen(true)}>
-                    <CreditCard className="mr-2 h-4 w-4 text-success" />
-                    Invoice
-                  </DropdownMenuItem>
-                </DropdownMenuContent>
-              </DropdownMenu>
             </>
-          )}
+          ) : null}
+          {canCreateInvoice ? (
+            <SymbolTooltip label="Create invoice" side="bottom">
+              <Button
+                variant="outline"
+                size="sm"
+                className="hidden sm:flex gap-1.5 h-8"
+                onClick={() => setBillingOpen(true)}
+              >
+                <CreditCard className="h-3.5 w-3.5 text-success" />
+                <span className="hidden md:inline">Invoice</span>
+              </Button>
+            </SymbolTooltip>
+          ) : null}
+          <SymbolTooltip label="Ask AI about this consultation" side="bottom">
+            <Button
+              variant="outline"
+              size="sm"
+              className="hidden sm:flex gap-1.5 h-8"
+              data-testid="consultation-ask-ai"
+              onClick={() =>
+                openOverlay({
+                  id: `consultation:${appointmentId}`,
+                  label: `on ${patientName}'s consultation`,
+                  payload: { appointmentId, patientId },
+                })
+              }
+            >
+              <Sparkles className="h-3.5 w-3.5 text-primary" />
+              <span className="hidden md:inline">Ask AI</span>
+            </Button>
+          </SymbolTooltip>
+          <DropdownMenu>
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <DropdownMenuTrigger asChild>
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    className="sm:hidden h-8 w-8"
+                    aria-label="More actions"
+                  >
+                    <MoreVertical className="h-4 w-4" />
+                  </Button>
+                </DropdownMenuTrigger>
+              </TooltipTrigger>
+              <TooltipContent side="bottom">More actions</TooltipContent>
+            </Tooltip>
+            <DropdownMenuContent align="end">
+              {!readOnly ? (
+                <DropdownMenuItem onClick={() => openVitals()}>
+                  <HeartPulse className="mr-2 h-4 w-4 text-destructive" />
+                  Vitals
+                </DropdownMenuItem>
+              ) : null}
+              {canCreateInvoice ? (
+                <DropdownMenuItem onClick={() => setBillingOpen(true)}>
+                  <CreditCard className="mr-2 h-4 w-4 text-success" />
+                  Invoice
+                </DropdownMenuItem>
+              ) : null}
+              <DropdownMenuItem
+                onClick={() =>
+                  openOverlay({
+                    id: `consultation:${appointmentId}`,
+                    label: `on ${patientName}'s consultation`,
+                    payload: { appointmentId, patientId },
+                  })
+                }
+              >
+                <Sparkles className="mr-2 h-4 w-4 text-primary" />
+                Ask AI
+              </DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
           {readOnly && (
             <Badge variant="outline" className="hidden sm:inline-flex h-8 px-3">
               View only
@@ -281,13 +328,15 @@ export function ConsultationPageHeaderUI({
         </div>
       </header>
 
-      <BillingModal
-        open={billingOpen}
-        onOpenChange={setBillingOpen}
-        appointmentId={appointmentId}
-        patientId={patientId ?? ""}
-        onSaved={handleBillingSaved}
-      />
+      {canCreateInvoice ? (
+        <BillingModal
+          open={billingOpen}
+          onOpenChange={setBillingOpen}
+          appointmentId={appointmentId}
+          patientId={patientId ?? ""}
+          onSaved={handleBillingSaved}
+        />
+      ) : null}
     </>
   );
 }

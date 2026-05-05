@@ -19,6 +19,23 @@ export interface Vitals {
   glucose: string;
 }
 
+/** Editable OCR invoice lines before optional commit as PENDING invoice. */
+export interface OCRInvoiceLineForm {
+  description: string;
+  quantity: string;
+  unitPrice: string;
+  total: string;
+}
+
+export interface OCRInvoiceForm {
+  /** User must opt in; creates a PENDING invoice on the server. */
+  saveAsPending: boolean;
+  grandTotal: string;
+  subtotal: string;
+  taxTotal: string;
+  items: OCRInvoiceLineForm[];
+}
+
 export interface OCRFormData {
   firstName: string;
   lastName: string;
@@ -36,4 +53,5 @@ export interface OCRFormData {
   medications: Medication[];
   labValues: LabValues;
   vitals: Vitals;
+  invoice: OCRInvoiceForm;
 }

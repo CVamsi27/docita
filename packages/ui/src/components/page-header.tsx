@@ -10,8 +10,12 @@ interface PageHeaderProps {
   tabs?: React.ReactNode;
   eyebrow?: React.ReactNode;
   className?: string;
+  /** Merged into the description paragraph (after default subtitle / max-width classes). */
+  descriptionClassName?: string;
   sticky?: boolean;
   size?: "default" | "compact";
+  /** When `center`, title and description are centered; actions sit on the next row (end-aligned from md). */
+  titleAlign?: "start" | "center";
 }
 
 export function PageHeader({
@@ -22,51 +26,78 @@ export function PageHeader({
   tabs,
   eyebrow,
   className,
+  descriptionClassName,
   sticky = false,
   size = "default",
+  titleAlign = "start",
 }: PageHeaderProps) {
+  const titleCentered = titleAlign === "center";
+
+  const copyBlock = (
+    <div
+      className={cn(
+        "min-w-0",
+        titleCentered && "text-center",
+        size === "compact" ? "space-y-0.5" : "ui-copy-stack",
+      )}
+    >
+      {eyebrow ? <div className="ui-eyebrow">{eyebrow}</div> : null}
+      <h1
+        className={cn(
+          size === "compact" ? "ui-section-title" : "ui-page-title",
+        )}
+      >
+        {title}
+      </h1>
+      {description ? (
+        <p
+          className={cn(
+            titleCentered ? "mx-auto max-w-2xl" : "max-w-2xl",
+            size === "compact" ? "ui-section-subtitle" : "ui-page-subtitle",
+            descriptionClassName,
+          )}
+        >
+          {description}
+        </p>
+      ) : null}
+    </div>
+  );
+
+  const actionsRow = actions ? (
+    <div
+      className={cn(
+        "flex flex-wrap items-center gap-2 md:shrink-0",
+        titleCentered
+          ? "justify-center md:justify-end"
+          : "md:justify-end",
+      )}
+    >
+      {actions}
+    </div>
+  ) : null;
+
   return (
     <header
       className={cn(
         "flex flex-col gap-3",
+        titleCentered && "mt-2",
         sticky &&
           "sticky top-0 z-20 -mx-4 border-b border-border/60 bg-background/95 px-4 py-3 backdrop-blur md:-mx-6 md:px-6",
         className,
       )}
     >
       {breadcrumbs ? <div className="min-w-0">{breadcrumbs}</div> : null}
-      <div className="flex flex-col gap-3 md:flex-row md:items-start md:justify-between">
-        <div
-          className={cn(
-            "min-w-0",
-            size === "compact" ? "space-y-0.5" : "ui-copy-stack",
-          )}
-        >
-          {eyebrow ? <div className="ui-eyebrow">{eyebrow}</div> : null}
-          <h1
-            className={cn(
-              size === "compact" ? "ui-section-title" : "ui-page-title",
-            )}
-          >
-            {title}
-          </h1>
-          {description ? (
-            <p
-              className={cn(
-                "max-w-2xl",
-                size === "compact" ? "ui-section-subtitle" : "ui-page-subtitle",
-              )}
-            >
-              {description}
-            </p>
-          ) : null}
+      {titleCentered ? (
+        <div className="flex flex-col gap-3">
+          {copyBlock}
+          {actionsRow}
         </div>
-        {actions ? (
-          <div className="flex flex-wrap items-center gap-2 md:justify-end md:shrink-0">
-            {actions}
-          </div>
-        ) : null}
-      </div>
+      ) : (
+        <div className="flex flex-col gap-3 md:flex-row md:items-start md:justify-between">
+          {copyBlock}
+          {actionsRow}
+        </div>
+      )}
       {tabs ? <div className="min-w-0">{tabs}</div> : null}
     </header>
   );

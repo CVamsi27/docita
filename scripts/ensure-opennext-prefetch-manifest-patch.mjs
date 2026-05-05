@@ -26,7 +26,6 @@ const throwNeedle = "throw new Error(`Unexpected loadManifest(${path2}) call!`)"
 const patchNeedle =
   "if(path2.endsWith(\"/server/prefetch-hints.json\")||path2.endsWith(\"/server/subresource-integrity-manifest.json\")||path2.endsWith(\"/dynamic-css-manifest\"))return{};" +
   throwNeedle;
-const nextWildcardSourcePattern = /((?:"source"|source)\s*:\s*)(["'])\/:path\*\2/g;
 
 function patchHandler(app) {
   const candidateHandlerPaths = [
@@ -98,61 +97,6 @@ function patchHandler(app) {
   );
 }
 
-function patchOpenNextConfigHeaders(app) {
-  const openNextDir = path.join(rootDir, "apps", app, ".open-next");
-
-  if (!fs.existsSync(openNextDir)) {
-    console.log(`[skip] ${app}: no generated OpenNext output found`);
-    return;
-  }
-
-  const filesToPatch = [];
-  const stack = [openNextDir];
-  while (stack.length > 0) {
-    const currentPath = stack.pop();
-    const stats = fs.lstatSync(currentPath);
-    if (stats.isSymbolicLink()) {
-      continue;
-    }
-    if (stats.isDirectory()) {
-      for (const entry of fs.readdirSync(currentPath)) {
-        if (entry === "node_modules") {
-          continue;
-        }
-        stack.push(path.join(currentPath, entry));
-      }
-      continue;
-    }
-    if (currentPath.endsWith(".mjs") || currentPath.endsWith(".js")) {
-      filesToPatch.push(currentPath);
-    }
-  }
-
-  let patchedCount = 0;
-  for (const filePath of filesToPatch) {
-    const source = fs.readFileSync(filePath, "utf8");
-    const originalSource = source;
-    const patchedSource = source.replace(
-      nextWildcardSourcePattern,
-      "$1$2/{*path}$2",
-    );
-    if (patchedSource !== originalSource) {
-      fs.writeFileSync(filePath, patchedSource, "utf8");
-      patchedCount += 1;
-    }
-  }
-
-  if (patchedCount === 0) {
-    console.log(`[ok] ${app}: no Next header wildcard patch needed`);
-    return;
-  }
-
-  console.log(
-    `[patched] ${app}: converted header wildcard for OpenNext (${patchedCount} file(s))`,
-  );
-}
-
 for (const app of appsToProcess) {
   patchHandler(app);
-  patchOpenNextConfigHeaders(app);
 }

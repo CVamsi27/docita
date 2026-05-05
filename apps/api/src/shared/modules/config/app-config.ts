@@ -90,6 +90,19 @@ export const EnvSchema = z.object({
   AI_REQUEST_TIMEOUT: z.coerce.number().default(5000),
   AI_CACHE_ENABLED: z.coerce.boolean().default(true),
   AI_CACHE_TTL: z.coerce.number().default(86400),
+  TENANT_RATE_LIMIT_DEFAULT_RPS: z.coerce.number().int().positive().default(50),
+  TENANT_RATE_LIMIT_DEFAULT_RPM: z.coerce
+    .number()
+    .int()
+    .positive()
+    .default(5000),
+  TENANT_RATE_LIMIT_DEFAULT_MONTHLY_BUDGET: z.coerce
+    .number()
+    .int()
+    .positive()
+    .default(5_000_000),
+  RLS_ENABLED: z.coerce.boolean().default(false),
+  TURNSTILE_SECRET_KEY: z.string().min(1).optional(),
 });
 
 export type EnvConfig = z.infer<typeof EnvSchema>;

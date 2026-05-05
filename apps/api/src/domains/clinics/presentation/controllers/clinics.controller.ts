@@ -266,7 +266,13 @@ export class ClinicsController {
 
 @Controller('clinic')
 @SkipSubscriptionCheck()
-@Roles(Role.ADMIN, Role.DOCTOR, Role.RECEPTIONIST, Role.ADMIN_DOCTOR)
+@Roles(
+  Role.ADMIN,
+  Role.DOCTOR,
+  Role.RECEPTIONIST,
+  Role.ADMIN_DOCTOR,
+  Role.NURSE,
+)
 export class ClinicSettingsController {
   constructor(
     private readonly clinicsService: ClinicsService,

@@ -10,6 +10,7 @@ import { PrescriptionPdfService } from './application/services/prescription-pdf.
 import { PrescriptionPdfProcessor } from './application/services/prescription-pdf.processor';
 import { PrescriptionValidationRulesService } from './core/services/prescription-validation-rules.service';
 import { PrismaPrescriptionRepository } from './infrastructure/repositories/prescription.repository';
+import { FrontDeskClinicalBlockGuard } from '@/shared/modules/clinic-workspace/front-desk-clinical-block.guard';
 
 @Module({
   imports: [
@@ -21,6 +22,7 @@ import { PrismaPrescriptionRepository } from './infrastructure/repositories/pres
   ],
   controllers: [PrescriptionsController],
   providers: [
+    FrontDeskClinicalBlockGuard,
     PrescriptionsService,
     PrescriptionPdfService,
     PrescriptionPdfProcessor,

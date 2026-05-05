@@ -2,6 +2,7 @@
 
 import { useMemo } from "react";
 import { cn } from "@workspace/ui/lib/utils";
+import { MicroLabel } from "@workspace/ui/components/micro-label";
 import { useConsultationDraft } from "@/features/consultation/state/useConsultationDraft";
 import type { ConsultationSection } from "@/features/consultation/workspace/consultation-section-registry";
 
@@ -123,11 +124,11 @@ export function SectionRail({
             onClick={() => onSelect(section.id)}
             aria-current={isActive ? "page" : undefined}
             className={cn(
-              "group flex items-center gap-2.5 rounded-lg px-2.5 py-2 text-left transition-colors",
+              "group flex min-h-[4.5rem] items-center gap-2.5 rounded-lg px-2.5 py-2 text-left transition-colors duration-150",
               "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring",
               isActive
                 ? "bg-primary text-primary-foreground shadow-sm"
-                : "text-muted-foreground hover:bg-muted hover:text-foreground",
+                : "text-muted-foreground hover:bg-muted/80 hover:text-foreground",
             )}
           >
             <span
@@ -159,9 +160,8 @@ export function SectionRail({
                   {section.subtitle}
                 </span>
               ) : null}
-              <span
+              <MicroLabel
                 className={cn(
-                  "text-[var(--fs-2xs)] uppercase tracking-wide",
                   isActive
                     ? "text-primary-foreground/80"
                     : isComplete
@@ -170,7 +170,7 @@ export function SectionRail({
                 )}
               >
                 {isComplete ? "Started" : "Empty"}
-              </span>
+              </MicroLabel>
             </span>
             <Icon
               aria-hidden

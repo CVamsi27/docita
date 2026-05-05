@@ -1,5 +1,7 @@
 import { z } from "zod";
 import { jsonObjectSchema } from "../shared/json-schema";
+import { workspaceProfileSchema } from "../shared/workspace-profile";
+import { sidebarNavOrderSchema } from "../shared/sidebar-nav";
 
 const customFieldSchema = z.object({
   name: z.string(),
@@ -103,6 +105,8 @@ export const updateClinicSettingsRequestSchema = z.object({
   paymentReceivingBankAccount: bankAccountSchema.optional(),
   taxSettings: taxSettingsSchema.optional(),
   facilityLabel: z.enum(["CLINIC", "HOSPITAL"]).optional(),
+  workspaceProfile: workspaceProfileSchema.optional(),
+  sidebarNavOrder: sidebarNavOrderSchema.optional(),
 });
 
 export const createClinicDoctorRequestSchema = z.object({
@@ -176,6 +180,7 @@ export const clinicResponseSchema = createClinicRequestSchema.extend({
   slaSignatureUrl: z.union([z.string(), z.null()]).optional(),
   slaSignatureStoredUrl: z.union([z.string(), z.null()]).optional(),
   slaSignatureAcceptedAt: z.union([z.string(), z.date(), z.null()]).optional(),
+  workspaceProfile: workspaceProfileSchema.optional(),
 });
 
 export const listClinicsResponseSchema = z.array(clinicResponseSchema);
@@ -224,3 +229,29 @@ export type CreateJoinRequest = z.infer<typeof createJoinRequestSchema>;
 export type ApproveJoinRequest = z.infer<typeof approveJoinRequestSchema>;
 export type RejectJoinRequest = z.infer<typeof rejectJoinRequestSchema>;
 export type SearchClinicsQuery = z.infer<typeof searchClinicsQuerySchema>;
+
+export const clinicApiQuotaUpsertSchema = z.object({
+  rps: z.number().int().min(1).max(10_000),
+  rpm: z.number().int().min(1).max(1_000_000),
+  monthlyBudget: z.number().int().min(1).max(1_000_000_000),
+  notes: z.string().max(500).optional(),
+});
+
+export const clinicApiQuotaResponseSchema = z.object({
+  clinicId: z.string(),
+  rps: z.number().int(),
+  rpm: z.number().int(),
+  monthlyBudget: z.number().int(),
+  currentMonthUsed: z.number().int(),
+  currentMonthResetsAt: z.string(),
+  notes: z.string().nullable(),
+  createdAt: z.string(),
+  updatedAt: z.string(),
+});
+
+export type ClinicApiQuotaUpsertRequest = z.infer<
+  typeof clinicApiQuotaUpsertSchema
+>;
+export type ClinicApiQuotaResponse = z.infer<
+  typeof clinicApiQuotaResponseSchema
+>;

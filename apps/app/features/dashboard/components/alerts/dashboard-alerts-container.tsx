@@ -1,3 +1,5 @@
+"use client";
+
 import { useMemo } from "react";
 import {
   Calendar,
@@ -9,7 +11,9 @@ import {
   Zap,
 } from "lucide-react";
 import { useLocalStorage } from "@workspace/hooks";
+import { Feature } from "@workspace/types";
 import { usePermissions } from "@/hooks/use-permissions";
+import { usePermissionStore } from "@/lib/stores/permission-store";
 import { AlertItem, DashboardAlertsUI } from "./dashboard-alerts-ui";
 
 export type DashboardAlertDensity = "full" | "urgent-only";
@@ -40,6 +44,10 @@ export function DashboardAlertsContainer({
   const [dismissedAlerts, setDismissedAlerts] = useLocalStorage<string[]>(
     "dashboard-dismissed-alerts",
     [],
+  );
+
+  const medicalCodingEnabled = usePermissionStore((s) =>
+    s.canAccess(Feature.MEDICAL_CODING),
   );
 
   const progressPercentage =
@@ -94,7 +102,7 @@ export function DashboardAlertsContainer({
       });
     }
 
-    if (pendingReports > 0) {
+    if (pendingReports > 0 && medicalCodingEnabled) {
       items.push({
         id: "pending-reports",
         type: "warning",
@@ -170,6 +178,7 @@ export function DashboardAlertsContainer({
     nextPatientId,
     progressPercentage,
     dismissedAlerts,
+    medicalCodingEnabled,
   ]);
 
   const { canStartConsultation } = usePermissions();

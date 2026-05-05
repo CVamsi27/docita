@@ -18,7 +18,8 @@ export class PrismaPrescriptionRepository implements IPrescriptionRepository {
   }
 
   async findAll(params: PrescriptionSearchParams): Promise<Prescription[]> {
-    const { clinicId, search, date, patientId, limit } = params;
+    const { clinicId, search, date, startDate, endDate, patientId, limit } =
+      params;
 
     if (!clinicId) {
       return [];
@@ -52,15 +53,25 @@ export class PrismaPrescriptionRepository implements IPrescriptionRepository {
       ];
     }
 
-    if (date) {
-      const startDate = new Date(date);
-      startDate.setHours(0, 0, 0, 0);
-      const endDate = new Date(startDate);
-      endDate.setHours(23, 59, 59, 999);
+    if (startDate && endDate) {
+      const start = new Date(startDate);
+      start.setHours(0, 0, 0, 0);
+      const end = new Date(endDate);
+      end.setHours(23, 59, 59, 999);
 
       where.updatedAt = {
-        gte: startDate,
-        lte: endDate,
+        gte: start,
+        lte: end,
+      };
+    } else if (date) {
+      const start = new Date(date);
+      start.setHours(0, 0, 0, 0);
+      const end = new Date(start);
+      end.setHours(23, 59, 59, 999);
+
+      where.updatedAt = {
+        gte: start,
+        lte: end,
       };
     }
 

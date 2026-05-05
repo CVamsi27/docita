@@ -3,7 +3,6 @@ import {
   createPaymentLinkRequestSchema,
   paymentLinkContractResponseSchema,
   paymentSessionContractResponseSchema,
-  markInvoicePaidRequestSchema,
   jsonObjectSchema,
 } from '@workspace/types';
 
@@ -16,9 +15,5 @@ export class PaymentLinkResponseDto extends createZodDto(
 export class PaymentSessionResponseDto extends createZodDto(
   paymentSessionContractResponseSchema,
 ) {}
-
-export const MarkInvoicePaidSchema = markInvoicePaidRequestSchema;
-
-export class MarkInvoicePaidDto extends createZodDto(MarkInvoicePaidSchema) {}
 
 export class AnyResponseDto extends createZodDto(jsonObjectSchema) {}

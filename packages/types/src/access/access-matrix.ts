@@ -92,6 +92,7 @@ export const APP_PERMISSIONS_BY_ROLE: Record<UserRole, AppPermission[]> = {
     "viewAppointments",
     "createAppointment",
     "viewInvoices",
+    "createInvoice",
   ],
   PATIENT: ["viewAppointments"],
 };
@@ -150,6 +151,8 @@ export const APP_ACCESS_TARGETS = {
   PAGE_PRESCRIPTIONS: "page.prescriptions",
   PAGE_LAB_TESTS: "page.lab-tests",
   PAGE_INVOICES: "page.invoices",
+  /** Front-desk cash / POS / UPI recording (not payment links or subscription billing). */
+  PAGE_DESK_PAYMENT: "page.desk-payment",
   PAGE_INVENTORY: "page.inventory",
   PAGE_DOCUMENTS: "page.documents",
   PAGE_ANALYTICS: "page.analytics",
@@ -182,6 +185,8 @@ export const APP_ACCESS_TARGETS = {
   API_PRESCRIPTIONS: "api.prescriptions",
   API_INVOICES: "api.invoices",
   API_PAYMENTS: "api.payments",
+  /** Desk invoice settlement (cash / terminal); separate from `API_PAYMENTS` (links / gateway). */
+  API_DESK_INVOICE_SETTLEMENT: "api.desk.invoice-settlement",
 } as const;
 
 export type AppAccessTarget =
@@ -250,6 +255,10 @@ export const APP_ACCESS_MATRIX: Record<AppAccessTarget, AccessPolicy> = {
     feature: Feature.LAB_TESTS,
   },
   [APP_ACCESS_TARGETS.PAGE_INVOICES]: {
+    read: { roles: ["ADMIN", "ADMIN_DOCTOR", "DOCTOR", "RECEPTIONIST"] },
+    feature: Feature.INVOICING,
+  },
+  [APP_ACCESS_TARGETS.PAGE_DESK_PAYMENT]: {
     read: { roles: ["ADMIN", "ADMIN_DOCTOR", "DOCTOR", "RECEPTIONIST"] },
     feature: Feature.INVOICING,
   },
@@ -387,6 +396,11 @@ export const APP_ACCESS_MATRIX: Record<AppAccessTarget, AccessPolicy> = {
     read: { roles: ["ADMIN", "ADMIN_DOCTOR", "DOCTOR", "RECEPTIONIST"] },
     write: { roles: ["ADMIN", "ADMIN_DOCTOR", "DOCTOR", "RECEPTIONIST"] },
     feature: Feature.PAYMENT_LINKS,
+  },
+  [APP_ACCESS_TARGETS.API_DESK_INVOICE_SETTLEMENT]: {
+    read: { roles: ["ADMIN", "ADMIN_DOCTOR", "DOCTOR", "RECEPTIONIST"] },
+    write: { roles: ["ADMIN", "RECEPTIONIST", "ADMIN_DOCTOR"] },
+    feature: Feature.INVOICING,
   },
 };
 

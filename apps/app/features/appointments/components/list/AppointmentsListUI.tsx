@@ -1,4 +1,3 @@
-import { DocitaLoadingIndicator } from "@workspace/ui/components/docita-loading-indicator";
 import { useMemo } from "react";
 import { formatDate } from "@workspace/utils";
 import { formatLocalHalfHourSlotKey } from "@/features/appointments/hooks/use-appointments-logic";
@@ -9,8 +8,7 @@ import {
   CardHeader,
   CardTitle,
 } from "@workspace/ui/components/card";
-import { EmptyState } from "@workspace/ui/components/empty-state";
-import { ErrorState } from "@workspace/ui/components/error-state";
+import { DataState } from "@workspace/ui/components/data-state";
 import type { AppointmentListItem } from "@/hooks/api/use-appointments";
 import { TimeSlotRow } from "@/features/appointments/components/forms/TimeSlotRow";
 
@@ -32,6 +30,7 @@ interface AppointmentsListUIProps {
   onStartConsultation: (id: string) => void;
   onCancelClick: (id: string) => void;
   onNoShowClick: (id: string) => void;
+  onScheduleFollowUp?: (appointment: AppointmentListItem) => void;
   currentUserId?: string;
 }
 
@@ -53,6 +52,7 @@ export function AppointmentsListUI({
   onStartConsultation,
   onCancelClick,
   onNoShowClick,
+  onScheduleFollowUp,
   currentUserId,
 }: AppointmentsListUIProps) {
   const appointmentsByTime = useMemo(
@@ -69,40 +69,6 @@ export function AppointmentsListUI({
   const emptyStateDescription = selectedDoctorName
     ? `Try another date or clear the Dr. ${selectedDoctorName} filter`
     : "Try another date or schedule the first appointment for this day";
-
-  if (loading) {
-    return (
-      <Card className="border-border/60 bg-card/80 shadow-sm">
-        <CardContent
-          className="py-16 text-center text-muted-foreground"
-          role="status"
-          aria-live="polite"
-          aria-label="Loading appointments"
-        >
-          <DocitaLoadingIndicator
-            variant="section"
-            withStatusRole={false}
-            className="mx-auto mb-3"
-            iconClassName="h-8 w-8 text-primary"
-          />
-          <p className="text-sm">Loading appointments…</p>
-        </CardContent>
-      </Card>
-    );
-  }
-
-  if (isError) {
-    return (
-      <Card className="border-border/60 bg-card/80 shadow-sm">
-        <CardContent className="p-6">
-          <ErrorState
-            message="We could not load these appointments. Please try again."
-            onRetry={onRetry}
-          />
-        </CardContent>
-      </Card>
-    );
-  }
 
   return (
     <Card className="h-fit overflow-hidden border-border/60 bg-card/95 shadow-sm">
@@ -134,14 +100,24 @@ export function AppointmentsListUI({
             </div>
           )}
 
-          {appointmentsByTime.length === 0 ? (
-            <EmptyState
-              icon={CalendarDays}
-              title="No appointments scheduled"
-              description={emptyStateDescription}
-              className="min-h-[220px] rounded-lg border border-dashed border-border bg-muted/20"
-            />
-          ) : (
+          <DataState
+            status={
+              loading
+                ? "loading"
+                : isError
+                  ? "error"
+                  : appointmentsByTime.length === 0
+                    ? "empty"
+                    : "success"
+            }
+            loadingMessage="Loading appointments…"
+            errorMessage="We could not load these appointments. Please try again."
+            onRetry={onRetry}
+            emptyTitle="No appointments scheduled"
+            emptyDescription={emptyStateDescription}
+            emptyIcon={CalendarDays}
+            className="min-h-[220px]"
+          >
             <div className="space-y-2.5">
               {appointmentsByTime.map((apt) => (
                 <div
@@ -164,12 +140,13 @@ export function AppointmentsListUI({
                     onStartConsultation={onStartConsultation}
                     onCancelClick={onCancelClick}
                     onNoShowClick={onNoShowClick}
+                    onScheduleFollowUp={onScheduleFollowUp}
                     currentUserId={currentUserId}
                   />
                 </div>
               ))}
             </div>
-          )}
+          </DataState>
         </div>
       </CardContent>
     </Card>

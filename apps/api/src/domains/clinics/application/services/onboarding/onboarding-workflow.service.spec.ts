@@ -53,7 +53,7 @@ describe('OnboardingWorkflowService', () => {
     jest.useRealTimers();
   });
 
-  it('creates unpaid Starter onboarding as a monthly trial', async () => {
+  it('creates Starter subscription in trialing state when skipPayment is used', async () => {
     await service.createSubscription(
       tx,
       'clinic-1',

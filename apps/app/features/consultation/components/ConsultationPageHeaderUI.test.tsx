@@ -18,6 +18,14 @@ vi.mock("@/features/consultation/workspace/consultation-vitals-context", () => (
   useConsultationVitals: () => ({ openVitals: vi.fn() }),
 }));
 
+vi.mock("@/features/_shared/components/ask-ai/ask-ai-context", () => ({
+  useAskAi: () => ({ openOverlay: vi.fn(), closeOverlay: vi.fn(), open: false, scope: null }),
+}));
+
+vi.mock("@/hooks/use-permissions", () => ({
+  usePermissions: () => ({ canCreateInvoice: true }),
+}));
+
 vi.mock("./modals/BillingModal", () => ({
   BillingModal: () => null,
 }));
@@ -52,9 +60,7 @@ describe("ConsultationPageHeaderUI", () => {
     expect(
       screen.queryByRole("button", { name: /Vitals/i }),
     ).not.toBeInTheDocument();
-    expect(
-      screen.queryByRole("button", { name: /Invoice/i }),
-    ).not.toBeInTheDocument();
+    expect(screen.getByRole("button", { name: /Invoice/i })).toBeInTheDocument();
     expect(
       screen.queryByTestId("consultation-save-status"),
     ).not.toBeInTheDocument();
@@ -72,5 +78,24 @@ describe("ConsultationPageHeaderUI", () => {
     );
 
     expect(screen.getByTestId("consultation-save-status")).toBeInTheDocument();
+  });
+
+  it("exposes patient history sheet trigger up to xl breakpoint", () => {
+    renderWithUiProviders(
+      <ConsultationPageHeaderUI
+        patientName="Asha Rao"
+        appointmentDate="2026-04-18T10:00:00.000Z"
+        appointmentId="apt-1"
+        readOnly={false}
+        onBack={vi.fn()}
+        MobileSidebarContent={<div data-testid="consultation-mobile-sidebar" />}
+      />,
+    );
+
+    const trigger = screen.getByRole("button", {
+      name: "Open patient chart and history",
+    });
+    expect(trigger.className).toContain("xl:hidden");
+    expect(trigger.className).not.toContain("md:hidden");
   });
 });

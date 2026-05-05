@@ -4,11 +4,15 @@ import {
   NotFoundException,
   BadRequestException,
 } from '@nestjs/common';
+import { PrismaService } from '@/prisma/prisma.service';
+import { Feature } from '@/shared/modules/auth/auth/tier.decorator';
+import { assertClinicHasFeatureOrThrow } from '@/shared/modules/auth/utils/clinic-feature-access.util';
 import {
   Prisma,
   InvoiceStatus,
   HospitalRole,
   Specialization,
+  PaymentSession,
 } from '@workspace/db';
 import { PDFService } from './pdf.service';
 import { EventEmitter2 } from '@nestjs/event-emitter';
@@ -22,6 +26,8 @@ import {
   type EnqueuePdfJobResponse,
   type TaxRegistrationSnapshot,
   type TaxSettings,
+  type InvoicePaymentActivityItem,
+  type InvoicePaymentActivityResponse,
   extractPdfTheme,
 } from '@workspace/types';
 import {
@@ -30,6 +36,10 @@ import {
   InvoiceDetail,
   PatientInvoiceContext,
 } from '@/domains/billing/core/repositories/invoice.repository';
+import {
+  IPaymentSessionRepository,
+  PAYMENT_SESSION_REPOSITORY_TOKEN,
+} from '@/domains/billing/core/repositories/payment-session.repository';
 import { UsageTrackingService } from '@/domains/billing/core/services/usage-tracking.service';
 import { StorageProvider } from '@/domains/documents/infrastructure/storage.provider';
 import { StoredFileUrlResolverService } from '@/domains/documents/application/services/stored-file-url-resolver.service';
@@ -169,6 +179,9 @@ export class InvoicesService {
   constructor(
     @Inject(INVOICE_REPOSITORY_TOKEN)
     private readonly repository: IInvoiceRepository,
+    @Inject(PAYMENT_SESSION_REPOSITORY_TOKEN)
+    private readonly paymentSessionRepository: IPaymentSessionRepository,
+    private readonly prisma: PrismaService,
     private readonly pdfService: PDFService,
     private readonly taxCalculator: TaxCalculatorService,
     private readonly eventEmitter: EventEmitter2,
@@ -270,9 +283,42 @@ export class InvoicesService {
       search?: string;
     },
   ) {
+    const patientId = params?.patientId?.trim() || undefined;
+
+    if (patientId) {
+      const patient = await this.repository.findPatientContext(
+        patientId,
+        clinicId,
+      );
+      if (!patient) {
+        throw new NotFoundException(`Patient ${patientId} not found`);
+      }
+    } else {
+      const clinic = await this.prisma.clinic.findUnique({
+        where: { id: clinicId },
+        select: {
+          tier: true,
+          intelligenceAddon: true,
+          features: true,
+        },
+      });
+      if (!clinic) {
+        throw new NotFoundException(`Clinic ${clinicId} not found`);
+      }
+      assertClinicHasFeatureOrThrow(
+        {
+          tier: clinic.tier,
+          intelligenceAddon: clinic.intelligenceAddon,
+          features: clinic.features,
+        },
+        Feature.INVOICING,
+      );
+    }
+
     return this.repository.findAll({
       clinicId,
       ...params,
+      patientId,
     });
   }
 
@@ -282,6 +328,71 @@ export class InvoicesService {
       throw new NotFoundException(`Invoice ${id} not found`);
     }
     return invoice;
+  }
+
+  private extractPaymentActivityMeta(
+    meta: Prisma.JsonValue | null | undefined,
+  ): { channel?: string; reference?: string; notes?: string } {
+    if (!meta || typeof meta !== 'object' || Array.isArray(meta)) {
+      return {};
+    }
+    const m = meta as Record<string, unknown>;
+    const channelRaw =
+      typeof m.channel === 'string'
+        ? m.channel
+        : typeof m.method === 'string'
+          ? m.method
+          : undefined;
+    const referenceRaw =
+      typeof m.reference === 'string' ? m.reference : undefined;
+    let notes: string | undefined;
+    if (typeof m.notes === 'string' && m.notes.trim()) {
+      notes = m.notes.trim().slice(0, 500);
+    }
+    return {
+      channel: channelRaw?.trim() || undefined,
+      reference: referenceRaw?.trim() || undefined,
+      notes,
+    };
+  }
+
+  private toPaymentActivityItem(
+    session: PaymentSession,
+  ): InvoicePaymentActivityItem {
+    const { channel, reference, notes } = this.extractPaymentActivityMeta(
+      session.meta,
+    );
+    return {
+      id: session.id,
+      provider: session.provider,
+      status: session.status,
+      amountCents: session.amount,
+      currency: session.currency,
+      createdAt: session.createdAt.toISOString(),
+      updatedAt: session.updatedAt.toISOString(),
+      shortUrl: session.shortUrl ?? undefined,
+      paymentLink: session.paymentLink ?? undefined,
+      channel,
+      reference,
+      notes,
+    };
+  }
+
+  async listPaymentActivity(
+    invoiceId: string,
+    clinicId: string,
+  ): Promise<InvoicePaymentActivityResponse> {
+    const invoice = await this.repository.findById(invoiceId, clinicId);
+    if (!invoice) {
+      throw new NotFoundException(`Invoice ${invoiceId} not found`);
+    }
+    const sessions = await this.paymentSessionRepository.findByInvoiceId(
+      invoiceId,
+      clinicId,
+    );
+    return {
+      items: sessions.map((s) => this.toPaymentActivityItem(s)),
+    };
   }
 
   async create(data: {

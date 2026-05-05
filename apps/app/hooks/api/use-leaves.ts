@@ -1,5 +1,6 @@
 import { useAPIMutation, useAPIQuery } from "@/lib/api-core";
 import {
+  Feature,
   StaffLeave,
   LeavePlan,
   LeaveBalance,
@@ -7,6 +8,7 @@ import {
   CreateLeavePlan,
   UpdateLeavePlan,
 } from "@workspace/types";
+import { useTierFeatureEnabled } from "@/hooks/api/tier-feature-guards";
 
 export const useLeaves = (options?: {
   staffId?: string;
@@ -20,14 +22,20 @@ export const useLeaves = (options?: {
   if (options?.startDate) params.append("startDate", options.startDate);
   if (options?.endDate) params.append("endDate", options.endDate);
   const qs = params.toString();
+  const leaveOk = useTierFeatureEnabled(Feature.LEAVE_MANAGEMENT);
   return useAPIQuery<StaffLeave[]>(
     ["leaves", "list", options ?? {}] as string[],
     qs ? `/leaves?${qs}` : "/leaves",
+    { enabled: leaveOk },
   );
 };
 
-export const useLeaveBalance = () =>
-  useAPIQuery<LeaveBalance[]>(["leaves", "balance"], "/leaves/balance");
+export const useLeaveBalance = () => {
+  const leaveOk = useTierFeatureEnabled(Feature.LEAVE_MANAGEMENT);
+  return useAPIQuery<LeaveBalance[]>(["leaves", "balance"], "/leaves/balance", {
+    enabled: leaveOk,
+  });
+};
 
 export const useApplyLeave = () =>
   useAPIMutation<StaffLeave, CreateLeaveRequest>("/leaves", "POST", {
@@ -51,8 +59,12 @@ export const useCancelLeave = (id: string) =>
     invalidateKeys: [["leaves"]],
   });
 
-export const useLeavePlans = () =>
-  useAPIQuery<LeavePlan[]>(["leave-plans"], "/leave-plans");
+export const useLeavePlans = () => {
+  const leaveOk = useTierFeatureEnabled(Feature.LEAVE_MANAGEMENT);
+  return useAPIQuery<LeavePlan[]>(["leave-plans"], "/leave-plans", {
+    enabled: leaveOk,
+  });
+};
 
 export const useCreateLeavePlan = () =>
   useAPIMutation<LeavePlan, CreateLeavePlan>("/leave-plans", "POST", {

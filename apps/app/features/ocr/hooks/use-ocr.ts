@@ -1,14 +1,134 @@
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import { toast } from "sonner";
-import { useCreateAppointment } from "@/hooks/api/use-appointments";
-import { useProcessOCR } from "@/hooks/api/use-import";
-import { useCreatePatient } from "@/hooks/api/use-patients";
+import { useProcessOCR, useOcrCommitImport } from "@/hooks/api/use-import";
 import { useAuth } from "@/lib/auth-context";
 import { useClinic } from "@/lib/clinic-context";
 import { useRouter } from "next/navigation";
-import { apiFetch } from "@/lib/api-client";
-import { OCRFormData } from "@/features/ocr/types";
 import { showUserFacingErrorToast } from "@/lib/user-facing-errors";
+import {
+  importInvoiceDraftSchema,
+  type OcrImportCommitRequest,
+} from "@workspace/types";
+import type { OCRFormData, OCRInvoiceForm } from "@/features/ocr/types";
+
+function emptyOcrInvoiceForm(): OCRInvoiceForm {
+  return {
+    saveAsPending: false,
+    grandTotal: "",
+    subtotal: "",
+    taxTotal: "",
+    items: [],
+  };
+}
+
+function parseMoneyInput(raw: string): number {
+  const t = raw.replace(/,/g, "").trim();
+  if (t.length === 0) return Number.NaN;
+  const n = Number.parseFloat(t);
+  return Number.isFinite(n) ? n : Number.NaN;
+}
+
+function mapOcrFieldsToInvoiceForm(fields: unknown): OCRInvoiceForm {
+  const empty = emptyOcrInvoiceForm();
+  if (!fields || typeof fields !== "object") return empty;
+  const invUnknown = (fields as { invoice?: unknown }).invoice;
+  if (!invUnknown || typeof invUnknown !== "object" || invUnknown === null) {
+    return empty;
+  }
+  const inv = invUnknown as Record<string, unknown>;
+  const itemsRaw = inv.items;
+  const items: OCRInvoiceForm["items"] = [];
+  if (Array.isArray(itemsRaw)) {
+    for (const row of itemsRaw) {
+      if (!row || typeof row !== "object") continue;
+      const r = row as Record<string, unknown>;
+      const description =
+        typeof r.description === "string"
+          ? r.description
+          : String(r.description ?? "");
+      const quantity =
+        typeof r.quantity === "number" && Number.isFinite(r.quantity)
+          ? String(r.quantity)
+          : String(r.quantity ?? "");
+      const unitPrice =
+        typeof r.unitPrice === "number" && Number.isFinite(r.unitPrice)
+          ? String(r.unitPrice)
+          : String(r.unitPrice ?? "");
+      const total =
+        typeof r.total === "number" && Number.isFinite(r.total)
+          ? String(r.total)
+          : String(r.total ?? "");
+      items.push({ description, quantity, unitPrice, total });
+    }
+  }
+  const numStr = (v: unknown) =>
+    typeof v === "number" && Number.isFinite(v) ? String(v) : "";
+  let grandTotal = numStr(inv.total);
+  if (!grandTotal && items.length > 0) {
+    let sum = 0;
+    let any = false;
+    for (const it of items) {
+      const t = parseMoneyInput(it.total);
+      if (Number.isFinite(t)) {
+        sum += t;
+        any = true;
+      }
+    }
+    if (any) grandTotal = String(sum);
+  }
+  return {
+    saveAsPending: false,
+    grandTotal,
+    subtotal: numStr(inv.subtotal),
+    taxTotal: numStr(inv.tax),
+    items,
+  };
+}
+
+function buildInvoiceDraftForCommit(
+  invoice: OCRInvoiceForm,
+): OcrImportCommitRequest["invoiceDraft"] | undefined {
+  if (!invoice.saveAsPending) return undefined;
+
+  const parsedItems = invoice.items
+    .map((row) => {
+      const description = row.description.trim();
+      if (description.length === 0) return null;
+      const quantity = parseMoneyInput(row.quantity);
+      const unitPrice = parseMoneyInput(row.unitPrice);
+      let total = parseMoneyInput(row.total);
+      if (!Number.isFinite(total) && Number.isFinite(quantity) && Number.isFinite(unitPrice)) {
+        total = quantity * unitPrice;
+      }
+      if (
+        !Number.isFinite(quantity) ||
+        quantity < 0 ||
+        !Number.isFinite(unitPrice) ||
+        unitPrice < 0 ||
+        !Number.isFinite(total) ||
+        total < 0
+      ) {
+        return null;
+      }
+      return { description, quantity, unitPrice, total };
+    })
+    .filter((x): x is NonNullable<typeof x> => x !== null);
+
+  const grandTotal = parseMoneyInput(invoice.grandTotal);
+  const subtotalRaw = parseMoneyInput(invoice.subtotal);
+  const taxRaw = parseMoneyInput(invoice.taxTotal);
+
+  const draft = {
+    grandTotal,
+    subtotal: Number.isFinite(subtotalRaw) ? subtotalRaw : undefined,
+    taxTotal: Number.isFinite(taxRaw) ? taxRaw : undefined,
+    items: parsedItems,
+  };
+
+  const parsed = importInvoiceDraftSchema.safeParse(draft);
+  if (!parsed.success) return undefined;
+  return parsed.data;
+}
 
 export const useOCR = () => {
   const router = useRouter();
@@ -26,11 +146,12 @@ export const useOCR = () => {
     vitals: true,
     medications: false,
     labValues: false,
+    invoice: false,
   });
 
   const processOCRMutation = useProcessOCR();
-  const createPatientMutation = useCreatePatient();
-  const createAppointmentMutation = useCreateAppointment();
+  const commitOcrMutation = useOcrCommitImport();
+  const [reviewAcknowledged, setReviewAcknowledged] = useState(false);
 
   const [formData, setFormData] = useState<OCRFormData>({
     firstName: "",
@@ -60,6 +181,7 @@ export const useOCR = () => {
       hemoglobin: "",
       creatinine: "",
     },
+    invoice: emptyOcrInvoiceForm(),
   });
 
   const [confidenceScores, setConfidenceScores] = useState<
@@ -87,6 +209,8 @@ export const useOCR = () => {
       formDataObj.append("file", file);
 
       const result = await processOCRMutation.mutateAsync(formDataObj);
+
+      const invoiceFromScan = mapOcrFieldsToInvoiceForm(result.fields);
 
       setFormData({
         firstName: result.fields?.firstName || result.firstName || "",
@@ -116,7 +240,15 @@ export const useOCR = () => {
           hemoglobin: "",
           creatinine: "",
         },
+        invoice: invoiceFromScan,
       });
+
+      setExpandedSections((prev) => ({
+        ...prev,
+        invoice:
+          invoiceFromScan.items.length > 0 ||
+          invoiceFromScan.grandTotal.trim().length > 0,
+      }));
 
       if (result.fields?.fieldConfidence) {
         setConfidenceScores(result.fields.fieldConfidence);
@@ -129,6 +261,7 @@ export const useOCR = () => {
       }
 
       setScanned(true);
+      setReviewAcknowledged(false);
       toast.success("Document scanned successfully");
     } catch {
       showUserFacingErrorToast(
@@ -136,6 +269,15 @@ export const useOCR = () => {
       );
     }
   };
+
+  const needsReviewAcknowledgement = useMemo(
+    () =>
+      scanned &&
+      Object.values(confidenceScores).some(
+        (s) => typeof s === "number" && s < 0.6,
+      ),
+    [scanned, confidenceScores],
+  );
 
   const handleSave = async () => {
     try {
@@ -159,75 +301,96 @@ export const useOCR = () => {
         showUserFacingErrorToast(null, "Enter the patient's phone number", "form");
         return;
       }
+      if (needsReviewAcknowledgement && !reviewAcknowledged) {
+        showUserFacingErrorToast(
+          null,
+          "Confirm you have reviewed low-confidence fields before saving",
+          "form",
+        );
+        return;
+      }
 
-      const patient = await createPatientMutation.mutateAsync({
+      const invoiceDraft = buildInvoiceDraftForCommit(formData.invoice);
+      if (formData.invoice.saveAsPending && !invoiceDraft) {
+        showUserFacingErrorToast(
+          null,
+          "To save a pending invoice, add at least one line with description, quantity, unit price, and total (or leave total blank when quantity and unit price are set), and enter a positive grand total.",
+          "form",
+        );
+        return;
+      }
+
+      const dobDate =
+        formData.dateOfBirth.trim().length > 0
+          ? new Date(formData.dateOfBirth)
+          : new Date(
+              new Date().getFullYear() - (parseInt(formData.age, 10) || 0),
+              0,
+              1,
+            );
+      if (Number.isNaN(dobDate.getTime())) {
+        showUserFacingErrorToast(
+          null,
+          "Enter a valid date of birth or age",
+          "form",
+        );
+        return;
+      }
+      const dobIso = dobDate.toISOString();
+
+      const bpParts = formData.vitals.bp ? formData.vitals.bp.split("/") : [];
+      const vitalsPayload: OcrImportCommitRequest["vitals"] = {};
+      if (bpParts[0]) vitalsPayload.systolicBP = parseInt(bpParts[0], 10);
+      if (bpParts[1]) vitalsPayload.diastolicBP = parseInt(bpParts[1], 10);
+      if (formData.vitals.temp.trim()) {
+        vitalsPayload.temperature = parseFloat(formData.vitals.temp);
+      }
+      if (formData.vitals.pulse.trim()) {
+        vitalsPayload.pulse = parseInt(formData.vitals.pulse, 10);
+      }
+      const hasVitals =
+        vitalsPayload.systolicBP !== undefined ||
+        vitalsPayload.diastolicBP !== undefined ||
+        vitalsPayload.temperature !== undefined ||
+        vitalsPayload.pulse !== undefined;
+
+      const medications =
+        formData.medications.length > 0
+          ? formData.medications.map((m) => ({
+              name: m.name.trim(),
+              dosage: m.dosage.trim() || "—",
+              frequency: m.frequency.trim() || "—",
+              route: "PO",
+              duration: "",
+            }))
+          : undefined;
+
+      const payload: OcrImportCommitRequest = {
+        clinicId,
+        doctorId: user.id,
         firstName: formData.firstName.trim(),
         lastName: formData.lastName.trim(),
         phoneNumber: formData.phoneNumber.trim(),
         gender: formData.gender as "MALE" | "FEMALE" | "OTHER",
-        dateOfBirth: new Date(
-          new Date().getFullYear() - (parseInt(formData.age) || 0),
-        ).toISOString(),
-        address: formData.address || "",
-        metadata: {
-          ocr: {
-            diagnosis: formData.diagnosis,
-            allergies:
-              formData.allergies.length > 0 ? formData.allergies : undefined,
-          },
-        },
-      });
+        dateOfBirth: dobIso,
+        address: formData.address.trim() || undefined,
+        diagnosis: formData.diagnosis.trim() || undefined,
+        allergies:
+          formData.allergies.length > 0 ? formData.allergies : undefined,
+        medications,
+        vitals: hasVitals ? vitalsPayload : undefined,
+        consultationNotes: formData.diagnosis.trim() || undefined,
+        acknowledgeReview: needsReviewAcknowledgement
+          ? reviewAcknowledged
+          : undefined,
+        invoiceDraft,
+      };
 
-      const appointment = await createAppointmentMutation.mutateAsync({
-        patientId: patient.id!,
-        doctorId: user.id,
-        clinicId,
-        startTime: new Date().toISOString(),
-        endTime: new Date(Date.now() + 30 * 60000).toISOString(),
-        type: "consultation",
-        status: "confirmed",
-        consultationNotes: "",
-        notes: "",
-        observations: formData.diagnosis,
-        provisionalDiagnosis: "",
-        differentialDiagnosis: "",
-        clinicalImpression: "",
-        finalDiagnosis: "",
-        treatmentPlan: "",
-        followUpPlan: "",
-      });
-
-      if (
-        appointment.id &&
-        (formData.vitals.bp || formData.vitals.temp || formData.vitals.pulse)
-      ) {
-        try {
-          const bpParts = formData.vitals.bp
-            ? formData.vitals.bp.split("/")
-            : [];
-          const vitalsData = {
-            systolicBP: bpParts[0] ? parseInt(bpParts[0]) : undefined,
-            diastolicBP: bpParts[1] ? parseInt(bpParts[1]) : undefined,
-            temperature: formData.vitals.temp
-              ? parseFloat(formData.vitals.temp)
-              : undefined,
-            pulse: formData.vitals.pulse
-              ? parseInt(formData.vitals.pulse)
-              : undefined,
-          };
-          await apiFetch(`/appointments/${appointment.id}/vitals`, {
-            method: "POST",
-            body: JSON.stringify(vitalsData),
-          });
-        } catch {
-          
-        }
-      }
+      const result = await commitOcrMutation.mutateAsync(payload);
 
       toast.success("Patient and visit created successfully");
-      router.push(`/patients/${patient.id}`);
+      router.push(`/patients/${result.patientId}`);
     } catch (error) {
-
       showUserFacingErrorToast(
         error,
         "We could not save this record. Please try again.",
@@ -261,8 +424,10 @@ export const useOCR = () => {
     toggleSection,
     getCorrection,
     isScanning: processOCRMutation.isPending,
-    isSaving:
-      createPatientMutation.isPending || createAppointmentMutation.isPending,
+    isSaving: commitOcrMutation.isPending,
+    needsReviewAcknowledgement,
+    reviewAcknowledged,
+    setReviewAcknowledged,
     expandedSections,
   };
 };

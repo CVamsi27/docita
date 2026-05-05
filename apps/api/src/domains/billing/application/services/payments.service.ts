@@ -4,13 +4,14 @@ import {
   BadRequestException,
   NotFoundException,
   Inject,
+  ForbiddenException,
 } from '@nestjs/common';
 import { AppConfigService } from '@/shared/modules/config/app-configuration.service';
 import { SendMessageUseCase } from '@/domains/whatsapp/application/use-cases/send-message.use-case';
 import { PushNotificationService } from '@/shared/modules/messaging/notifications/push-notification.service';
 import {
   IPaymentLinkProvider,
-  PAYMENT_LINK_PROVIDER_TOKEN,
+  CLINIC_INVOICE_PAYMENT_LINK_PROVIDER_TOKEN,
 } from '@/domains/payments/core/ports/payment-link-provider.port';
 import { Money } from '@/domains/payments/core/value-objects/money.vo';
 import { PaymentSessionStatus, Prisma, InvoiceStatus } from '@workspace/db';
@@ -24,6 +25,13 @@ import {
   INVOICE_REPOSITORY_TOKEN,
 } from '@/domains/billing/core/repositories/invoice.repository';
 
+/**
+ * Clinic invoice payments: payment sessions (links / cash), manual desk
+ * settlement, and related helpers. **Flow B** (patient pays clinic) in
+ * docs/PAYMENT_FLOWS.md. **Docita SaaS** subscription / platform billing uses
+ * other services and tokens — do not conflate webhooks or Docita merchant
+ * semantics with patient settlement.
+ */
 @Injectable()
 export class PaymentsService {
   private logger = new Logger(PaymentsService.name);
@@ -36,7 +44,7 @@ export class PaymentsService {
     private sendMessage: SendMessageUseCase,
     private pushNotifications: PushNotificationService,
     private configService: AppConfigService,
-    @Inject(PAYMENT_LINK_PROVIDER_TOKEN)
+    @Inject(CLINIC_INVOICE_PAYMENT_LINK_PROVIDER_TOKEN)
     private paymentLinkProvider: IPaymentLinkProvider,
   ) {}
 
@@ -89,6 +97,9 @@ export class PaymentsService {
     try {
       const amount = new Money(dto.amount, dto.currency);
 
+      // Flow B online link: must use clinic gateway creds from settings (Flow A);
+      // interim shared adapter must not be Docita merchant for new work — see
+      // docs/PAYMENT_FLOWS.md.
       paymentLinkResponse = await this.paymentLinkProvider.createPaymentLink({
         amount,
         description: dto.description || `Invoice #${dto.invoiceId.slice(0, 8)}`,
@@ -156,6 +167,12 @@ export class PaymentsService {
         clinicId: session.clinicId,
       });
     } catch (error) {
+      if (error instanceof ForbiddenException) {
+        this.logger.log(
+          `Payment link WhatsApp skipped for session ${sessionId}: ${error.message}`,
+        );
+        return;
+      }
       this.logger.error(
         `Failed to send payment link WhatsApp for session ${sessionId}`,
         error,
@@ -213,6 +230,7 @@ export class PaymentsService {
     paymentMethod: string;
     amount?: number;
     notes?: string;
+    reference?: string;
   }) {
     const invoice = await this.invoiceRepository.findById(
       data.invoiceId,
@@ -222,17 +240,29 @@ export class PaymentsService {
       throw new NotFoundException('Invoice not found');
     }
 
-    await this.invoiceRepository.update(
-      invoice.id,
-      { status: InvoiceStatus.PAID },
-      data.clinicId,
-    );
-
     if (!invoice.patientId) {
       throw new BadRequestException(
         'Cannot record manual payment: invoice is not linked to a patient',
       );
     }
+
+    if (
+      invoice.status === InvoiceStatus.PAID ||
+      invoice.status === InvoiceStatus.CANCELLED
+    ) {
+      throw new BadRequestException(
+        `Cannot record payment: invoice is already ${invoice.status}`,
+      );
+    }
+
+    const normalizedChannel =
+      data.paymentMethod === 'OTHER' ? 'OTHER_ONLINE' : data.paymentMethod;
+
+    await this.invoiceRepository.update(
+      invoice.id,
+      { status: InvoiceStatus.PAID },
+      data.clinicId,
+    );
 
     const resolvedAmount =
       typeof data.amount === 'number' && data.amount > 0
@@ -249,10 +279,12 @@ export class PaymentsService {
       status: PaymentSessionStatus.CAPTURED,
       expiresAt: new Date(),
       meta: {
-        method: data.paymentMethod,
+        channel: normalizedChannel,
+        method: normalizedChannel,
         performedBy: data.performedByUserId,
         amount: resolvedAmount,
         notes: data.notes,
+        reference: data.reference,
       },
     });
 

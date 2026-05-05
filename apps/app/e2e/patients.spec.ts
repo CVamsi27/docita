@@ -280,10 +280,15 @@ test.describe("Patient Management", () => {
     const patientA = page.locator("text=ClinicA-Patient").first();
     await expect(patientA).not.toBeVisible({ timeout: 5000 });
 
-    const noPatients = page.locator("text=No patients found").first();
+    const noPatientsLegacy = page.locator("text=No patients found").first();
+    const noPatientsOrigin = page
+      .getByText(/no patients yet/i)
+      .first();
     const tableRows = page.locator("table tbody tr").count();
     expect(
-      (await noPatients.isVisible()) || (await tableRows) === 0,
+      (await noPatientsLegacy.isVisible()) ||
+        (await noPatientsOrigin.isVisible().catch(() => false)) ||
+        (await tableRows) === 0,
     ).toBeTruthy();
   });
 });

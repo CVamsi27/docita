@@ -2,6 +2,7 @@ import { useInfiniteQuery } from "@tanstack/react-query";
 import { queryKeys } from "@workspace/data-access";
 import {
   CreatePatientRequest,
+  Feature,
   Patient,
   PatientWithMedicalHistory,
   UpdatePatientRequest,
@@ -13,6 +14,7 @@ import {
   useAPIQuery,
 } from "@/lib/api-core";
 import { withQueryString } from "@/lib/http/query-string";
+import { useTierFeatureEnabled } from "@/hooks/api/tier-feature-guards";
 
 type UsePatientsOptions = {
   limit?: number;
@@ -22,9 +24,13 @@ type UsePatientsOptions = {
 } | null;
 
 export const usePatients = (options?: UsePatientsOptions) => {
+  const tierPatientsOk = useTierFeatureEnabled(Feature.BASIC_PATIENT_MANAGEMENT);
   const limit = options?.limit ?? 20;
   const page = options?.page ?? 1;
-  const enabled = options !== null && (options?.enabled ?? true);
+  const enabled =
+    options !== null &&
+    tierPatientsOk &&
+    (options?.enabled ?? true);
   const url = withQueryString("/patients", {
     limit,
     page,
@@ -50,7 +56,9 @@ export const usePatients = (options?: UsePatientsOptions) => {
 export const useInfinitePatients = (options?: {
   limit?: number;
   search?: string;
+  enabled?: boolean;
 }) => {
+  const tierPatientsOk = useTierFeatureEnabled(Feature.BASIC_PATIENT_MANAGEMENT);
   return useInfiniteQuery({
     queryKey: ["patients", "infinite", options?.search ?? ""],
     queryFn: ({ pageParam }) => {
@@ -69,39 +77,46 @@ export const useInfinitePatients = (options?: {
     },
     getNextPageParam: (lastPage) => lastPage.nextCursor,
     initialPageParam: undefined as string | undefined,
+    enabled: tierPatientsOk && (options?.enabled ?? true),
   });
 };
 
 export const useRecentPatients = (limit: number = 5) => {
+  const tierPatientsOk = useTierFeatureEnabled(Feature.BASIC_PATIENT_MANAGEMENT);
   return useAPIQuery<{
     items: Patient[];
     nextCursor?: string;
     hasMore: boolean;
     count: number;
-  }>(
-    ["patients", "recent", limit.toString()],
-    withQueryString("/patients", { limit }),
+  }>(["patients", "recent", limit.toString()], withQueryString("/patients", { limit }), {
+    enabled: tierPatientsOk,
+  });
+};
+
+export const usePatient = (id: string) => {
+  const tierPatientsOk = useTierFeatureEnabled(Feature.BASIC_PATIENT_MANAGEMENT);
+  return useAPIQuery<Patient>(["patients", id], `/patients/${id}`, {
+    enabled: tierPatientsOk && !!id,
+  });
+};
+
+export const usePatientWithMedicalHistory = (id: string) => {
+  const tierPatientsOk = useTierFeatureEnabled(Feature.BASIC_PATIENT_MANAGEMENT);
+  return useAPIQuery<PatientWithMedicalHistory>(
+    ["patients", id, "with-medical-history"],
+    `/patients/${id}`,
+    { enabled: tierPatientsOk && !!id },
   );
 };
 
-export const usePatient = (id: string) =>
-  useAPIQuery<Patient>(["patients", id], `/patients/${id}`, {
-    enabled: !!id,
-  });
-
-export const usePatientWithMedicalHistory = (id: string) =>
-  useAPIQuery<PatientWithMedicalHistory>(
-    ["patients", id, "with-medical-history"],
-    `/patients/${id}`,
-    { enabled: !!id },
-  );
-
-export const usePatientMedicalHistoryTimeline = (patientId: string) =>
-  useAPIQuery<MedicalHistoryTimelineItem[]>(
+export const usePatientMedicalHistoryTimeline = (patientId: string) => {
+  const tierPatientsOk = useTierFeatureEnabled(Feature.BASIC_PATIENT_MANAGEMENT);
+  return useAPIQuery<MedicalHistoryTimelineItem[]>(
     ["patients", patientId, "medical-history-timeline"],
     `/patients/${patientId}/medical-history-timeline`,
-    { enabled: !!patientId },
+    { enabled: tierPatientsOk && !!patientId },
   );
+};
 
 export const useCreatePatient = () =>
   useAPIMutation<Patient, CreatePatientRequest>("/patients", "POST", {
@@ -120,8 +135,9 @@ export const useDeletePatient = (id: string) =>
     invalidateKeys: [["patients"]],
   });
 
-export const useTodaysPatients = (doctorId?: string, search?: string) =>
-  useAPIQuery<{
+export const useTodaysPatients = (doctorId?: string, search?: string) => {
+  const tierQueueOk = useTierFeatureEnabled(Feature.QUEUE_MANAGEMENT);
+  return useAPIQuery<{
     patients: {
       id: string;
       type: "appointment" | "queue";
@@ -161,4 +177,6 @@ export const useTodaysPatients = (doctorId?: string, search?: string) =>
   }>(
     ["todays-patients", doctorId ?? "all", search ?? ""],
     withQueryString("/queue/today", { doctorId, search }),
+    { enabled: tierQueueOk },
   );
+};

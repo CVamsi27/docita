@@ -2,8 +2,8 @@
 import { DocitaWordmark } from "@workspace/ui/components/docita-logo";
 ---
 
-<footer class="bg-muted text-foreground/80 border-t px-6 py-10">
-  <div class="ui-page-shell grid grid-cols-1 gap-8 md:grid-cols-2 lg:grid-cols-4">
+<footer class="landing-footer text-foreground/80 px-6 py-10">
+  <div class="ui-page-shell grid grid-cols-1 gap-8 md:grid-cols-2 lg:grid-cols-5">
     <div class="min-w-0">
       <a href="/" class="inline-flex items-center" aria-label="Docita home">
         <DocitaWordmark className="h-10 w-auto max-w-[11rem]" />
@@ -17,12 +17,21 @@ import { DocitaWordmark } from "@workspace/ui/components/docita-logo";
     <div>
       <h2 class="font-semibold text-foreground">Product</h2>
       <ul class="mt-4 space-y-2 text-sm">
-        <li><a href="/#features" class="text-foreground/80 transition-colors hover:text-primary">Features</a></li>
-        <li><a href="/#workflow" class="text-foreground/80 transition-colors hover:text-primary">Workflow</a></li>
-        <li><a href="/paper-to-cloud" class="text-foreground/80 transition-colors hover:text-primary">Paper to Cloud</a></li>
-        <li><a href="/whatsapp-workflows" class="text-foreground/80 transition-colors hover:text-primary">WhatsApp Workflows</a></li>
+        <li><a href="/#rhythm" class="text-foreground/80 transition-colors hover:text-primary">Clinic day rhythm</a></li>
+        <li><a href="/#surface-map" class="text-foreground/80 transition-colors hover:text-primary">All surfaces</a></li>
+        <li><a href="/#workflow-compare" class="text-foreground/80 transition-colors hover:text-primary">Compare</a></li>
+        <li><a href="/#rollout" class="text-foreground/80 transition-colors hover:text-primary">Rollout playbook</a></li>
         <li><a href="/#pricing" class="text-foreground/80 transition-colors hover:text-primary">Pricing</a></li>
         <li><a href="/#faq" class="text-foreground/80 transition-colors hover:text-primary">FAQ</a></li>
+      </ul>
+    </div>
+
+    <div>
+      <h2 class="font-semibold text-foreground">Deep dives</h2>
+      <ul class="mt-4 space-y-2 text-sm">
+        <li><a href="/paper-to-cloud" class="text-foreground/80 transition-colors hover:text-primary">Paper to cloud</a></li>
+        <li><a href="/whatsapp-workflows" class="text-foreground/80 transition-colors hover:text-primary">WhatsApp workflows</a></li>
+        <li><a href="/trust" class="text-foreground/80 transition-colors hover:text-primary">Trust &amp; hosting</a></li>
       </ul>
     </div>
 
@@ -47,10 +56,10 @@ import { DocitaWordmark } from "@workspace/ui/components/docita-logo";
     </div>
   </div>
 
-  <div class="ui-page-shell mt-8 border-t pt-6 text-center text-xs leading-relaxed text-foreground/75">
+  <div class="ui-page-shell mt-8 border-t pt-6 text-center text-sm leading-relaxed text-foreground/80">
     <p>© {new Date().getFullYear()} Docita. All rights reserved.</p>
     <p class="mt-1">
-      Docita is operated by <strong>CHANDALURI VAMSI KRISHNA</strong>, a registered sole proprietorship in India.
+      Docita is operated by <strong class="font-semibold text-foreground">CHANDALURI VAMSI KRISHNA</strong>, a registered sole proprietorship in India.
     </p>
     <p>GSTIN: 36CJPPC6222C1ZI</p>
     <p>Aparna Cyberscape, Nalagandla, Hyderabad, Telangana 500019</p>

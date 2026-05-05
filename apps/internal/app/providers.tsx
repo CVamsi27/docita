@@ -7,6 +7,7 @@ import { type ReactNode, useState } from "react";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { APIRequestError } from "@workspace/data-access";
 import { NavigationHistoryProvider } from "@/providers/navigation-history-provider";
+import { InternalWebVitalsReporter } from "@/components/internal-web-vitals-reporter";
 import { TooltipProvider } from "@workspace/ui/components/tooltip";
 
 const TOAST_DURATION_MS = 5000;
@@ -43,7 +44,10 @@ export function Providers({ children }: { children: ReactNode }) {
       <QueryClientProvider client={queryClient}>
         <AuthProvider>
           <TooltipProvider delayDuration={300}>
-            <NavigationHistoryProvider>{children}</NavigationHistoryProvider>
+            <NavigationHistoryProvider>
+              <InternalWebVitalsReporter />
+              {children}
+            </NavigationHistoryProvider>
           </TooltipProvider>
           <Toaster
             closeButton

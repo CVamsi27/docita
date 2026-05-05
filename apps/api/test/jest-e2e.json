@@ -29,7 +29,7 @@
     "^@otplib/plugin-crypto-noble$": "<rootDir>/mocks/otplib-crypto.ts",
     "^(\\.{1,2}/.*)\\.js$": "$1"
   },
-  "setupFiles": ["./setup-env.ts"],
+  "setupFiles": ["./setup-env.ts", "./setup-e2e-env.ts"],
   "collectCoverageFrom": [
     "../src/**/*.ts",
     "!../src/main.ts",

@@ -39,6 +39,7 @@ import {
   formatCountLocale,
   formatPriceWithCurrency,
 } from "@workspace/utils";
+import { YearlyVsListAnnualPrice } from "@/features/subscription/lib/yearly-vs-list-annual-price";
 
 interface PricingDialogProps {
   open: boolean;
@@ -58,6 +59,7 @@ export function PricingDialog({
   const TIER_ICON_CLASSES: Record<TierName, string> = {
     STARTER: "tier-capture",
     ESSENTIAL: "tier-core",
+    FRONT_DESK: "tier-core",
     PROFESSIONAL: "tier-pro",
     ENTERPRISE: "tier-enterprise",
     INTELLIGENCE: "tier-intelligence",
@@ -153,7 +155,7 @@ export function PricingDialog({
         </div>
 
         <div className="flex flex-wrap justify-center gap-4 py-4">
-          {tiers.map((tierName, index) => {
+          {tiers.map((tierName) => {
             const info = TIER_INFO[tierName];
             const tierPricing = getTierPricing(tierName);
             const limits = TIER_LIMITS[tierName];
@@ -172,12 +174,10 @@ export function PricingDialog({
             return (
               <div
                 key={tierName}
-                style={{ animationDelay: `${index * 50}ms` }}
                 className={cn(
                   "relative flex w-full max-w-[280px] flex-col rounded-[var(--radius)] border-2 p-4",
                   "bg-card",
-                  "transition-all duration-300 ease-out",
-                  "hover:scale-[1.02] animate-in fade-in slide-in-from-bottom-4",
+                  "transition-colors duration-150",
                   PRICING_DIALOG_TIER_BORDERS[tierName],
                   isCurrentTier &&
                     "ring-2 ring-primary ring-offset-2 ring-offset-background",
@@ -208,7 +208,7 @@ export function PricingDialog({
 
                 <div
                   key={isYearly ? "yearly" : "monthly"}
-                  className="mb-4 animate-in fade-in slide-in-from-left-2 duration-200"
+                  className="mb-4"
                 >
                   {isCustomTier ? (
                     <div className="text-[var(--fs-2xl)] font-semibold leading-[var(--lh-tight)]">
@@ -224,11 +224,17 @@ export function PricingDialog({
                           /mo
                         </span>
                       </div>
-                      {isYearly && (
-                        <p className="text-xs text-muted-foreground">
-                          {formatPrice(price)} billed yearly
-                        </p>
-                      )}
+                      {isYearly &&
+                        typeof tierPricing.monthly === "number" &&
+                        typeof tierPricing.yearly === "number" && (
+                          <p className="mt-1 text-xs text-muted-foreground">
+                            <YearlyVsListAnnualPrice
+                              monthlyListPrice={tierPricing.monthly}
+                              discountedAnnualPrice={tierPricing.yearly}
+                              formatMoney={formatPrice}
+                            />
+                          </p>
+                        )}
                     </>
                   )}
                 </div>

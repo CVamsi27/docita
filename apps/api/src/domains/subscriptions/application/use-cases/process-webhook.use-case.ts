@@ -13,7 +13,10 @@ import {
   IClinicOperations,
 } from '@/domains/subscriptions/application/ports';
 import { ActivateSubscriptionUseCase } from './activate-subscription.use-case';
-import type { RazorpayWebhookPayload } from '@workspace/types';
+import {
+  type RazorpayWebhookPayload,
+  SUBSCRIPTION_TRIAL_DAYS,
+} from '@workspace/types';
 import {
   ClinicTier,
   BillingCycle,
@@ -24,7 +27,13 @@ import { Subscription } from '@/domains/subscriptions/core/entities/subscription
 import { AdminAlertsService } from '@/shared/modules/messaging/admin-alerts/admin-alerts.service';
 import { PrismaService } from '@/prisma/prisma.service';
 import { computeSubscriptionGraceDeadline } from '@/domains/subscriptions/core/constants/subscription-lockout.constants';
+import { SubscriptionPricingService } from '@/domains/subscriptions/core/services/subscription-pricing.service';
 
+/**
+ * **Docita SaaS** only: Razorpay webhooks for subscription and related platform
+ * billing (clinic pays Docita). Not for patient-to-clinic settlement (Flow B)
+ * or clinic payment-settings webhooks; see docs/PAYMENT_FLOWS.md.
+ */
 @Injectable()
 export class ProcessWebhookUseCase {
   private readonly logger = new Logger(ProcessWebhookUseCase.name);
@@ -39,6 +48,7 @@ export class ProcessWebhookUseCase {
     private readonly activateSubscription: ActivateSubscriptionUseCase,
     private readonly adminAlerts: AdminAlertsService,
     private readonly prisma: PrismaService,
+    private readonly subscriptionPricing: SubscriptionPricingService,
   ) {}
   private readNoteString(
     notes: Record<string, unknown> | undefined,
@@ -116,17 +126,21 @@ export class ProcessWebhookUseCase {
       : new Date();
     const periodEnd = sub.current_end
       ? new Date(sub.current_end * 1000)
-      : new Date(Date.now() + 30 * 24 * 60 * 60 * 1000);
+      : new Date(Date.now() + SUBSCRIPTION_TRIAL_DAYS * 24 * 60 * 60 * 1000);
 
     let subscription = await this.subscriptionRepo.findByClinicId(clinicId);
 
     if (!subscription) {
+      const listPricePaise = this.subscriptionPricing.getPricePaise(
+        tier,
+        cycle,
+      );
       subscription = new Subscription({
         id: crypto.randomUUID(),
         clinicId,
         plan: tier,
         billingCycle: cycle,
-        basePriceCents: 0,
+        basePriceCents: listPricePaise,
         status: new SubscriptionStatus(SubscriptionStatusEnum.ACTIVE),
         currentPeriodStart: periodStart,
         currentPeriodEnd: periodEnd,
@@ -182,7 +196,7 @@ export class ProcessWebhookUseCase {
 
     const periodEnd = sub.current_end
       ? new Date(sub.current_end * 1000)
-      : new Date(Date.now() + 30 * 24 * 60 * 60 * 1000);
+      : new Date(Date.now() + SUBSCRIPTION_TRIAL_DAYS * 24 * 60 * 60 * 1000);
 
     const subscription = await this.subscriptionRepo.findByClinicId(clinicId);
     if (subscription) {

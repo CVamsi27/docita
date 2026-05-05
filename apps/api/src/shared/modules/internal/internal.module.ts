@@ -16,6 +16,7 @@ import { GatewaysModule } from '@/gateways/gateways.module';
 import { FeedbackModule } from '@/domains/feedback/feedback.module';
 import { ContactModule } from '@/shared/modules/contact/contact.module';
 import { SupportWhatsAppModule } from '@/shared/modules/support-whatsapp';
+import { SubscriptionsModule } from '@/domains/subscriptions/subscriptions.module';
 
 @Module({
   imports: [
@@ -23,6 +24,7 @@ import { SupportWhatsAppModule } from '@/shared/modules/support-whatsapp';
     ClinicsModule,
     UsersModule,
     BillingModule,
+    SubscriptionsModule,
     FeedbackModule,
     ContactModule,
     SupportWhatsAppModule,

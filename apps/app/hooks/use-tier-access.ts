@@ -2,10 +2,16 @@
 
 import { useCallback, useMemo } from "react";
 import { useAuth } from "@/lib/auth-context";
+import { useOptionalClinic } from "@/lib/clinic-context";
+import {
+  isBillingAdminRole,
+  isPastSubscriptionGraceDeadline,
+} from "@/lib/subscription-lockout";
 import { fetchJsonWithSession } from "@/lib/fetch-with-session";
 import {
   Feature,
   FEATURE_TIER_MAP,
+  mapClinicTierDbStringToAccessTier,
   subscriptionCurrentResponseSchema,
   Tier,
   type SubscriptionCurrentResponse,
@@ -14,30 +20,17 @@ import {
 import { useQuery } from "@tanstack/react-query";
 
 const TIER_NAMES: Record<number, string> = {
-  [Tier.STARTER]: "Free",
+  [Tier.STARTER]: "Starter",
   [Tier.ESSENTIAL]: "Essential",
   [Tier.PROFESSIONAL]: "Professional",
   [Tier.ENTERPRISE]: "Enterprise",
   [Tier.INTELLIGENCE]: "Intelligence",
 };
 
-const TIER_FROM_DB: Record<string, Tier> = {
-  // New tier names
-  STARTER: Tier.STARTER,
-  ESSENTIAL: Tier.ESSENTIAL,
-  PROFESSIONAL: Tier.PROFESSIONAL,
-  ENTERPRISE: Tier.ENTERPRISE,
-  // Legacy DB values
-  CAPTURE: Tier.STARTER,
-  CORE: Tier.ESSENTIAL,
-  PLUS: Tier.ESSENTIAL,
-  PRO: Tier.PROFESSIONAL,
-  CLINIC: Tier.PROFESSIONAL,
-  FREE: Tier.STARTER,
-};
-
 export function useTierAccess() {
   const { user, token } = useAuth();
+  const clinicContext = useOptionalClinic();
+  const clinic = clinicContext?.clinic ?? null;
 
   const { data: subscription } = useQuery<SubscriptionCurrentResponse>({
     queryKey: ["clinic-subscription", user?.clinicId],
@@ -59,20 +52,34 @@ export function useTierAccess() {
     gcTime: 10 * 60 * 1000,
   });
 
+  const subscriptionHardLocked = useMemo(
+    () =>
+      isPastSubscriptionGraceDeadline(clinic) &&
+      !isBillingAdminRole(user?.role),
+    [clinic, user?.role],
+  );
+
   const currentTierValue = useMemo(() => {
     if (!subscription?.tier) return Tier.STARTER;
-    return TIER_FROM_DB[subscription.tier] ?? Tier.STARTER;
-  }, [subscription?.tier]);
+    const mapped = mapClinicTierDbStringToAccessTier(subscription.tier);
+    if (subscriptionHardLocked) {
+      return Math.min(mapped, Tier.STARTER);
+    }
+    return mapped;
+  }, [subscription?.tier, subscriptionHardLocked]);
 
   const hasIntelligence = false;
   const featureOverrides = useMemo<Record<string, boolean>>(() => ({}), []);
 
   const hasTier = useCallback(
     (requiredTier: Tier): boolean => {
+      if (subscriptionHardLocked && requiredTier > Tier.STARTER) {
+        return false;
+      }
       if (requiredTier === Tier.INTELLIGENCE) return hasIntelligence;
       return currentTierValue >= requiredTier;
     },
-    [currentTierValue, hasIntelligence],
+    [currentTierValue, hasIntelligence, subscriptionHardLocked],
   );
 
   const hasFeature = useCallback(
@@ -84,10 +91,13 @@ export function useTierAccess() {
       const requiredTier = FEATURE_TIER_MAP[feature];
       if (requiredTier === undefined) return true;
 
+      if (subscriptionHardLocked && requiredTier > Tier.STARTER) {
+        return false;
+      }
       if (requiredTier === Tier.INTELLIGENCE) return hasIntelligence;
       return currentTierValue >= requiredTier;
     },
-    [currentTierValue, hasIntelligence, featureOverrides],
+    [currentTierValue, hasIntelligence, featureOverrides, subscriptionHardLocked],
   );
 
   const getRequiredTier = useCallback((feature: Feature): string => {
@@ -96,8 +106,11 @@ export function useTierAccess() {
   }, []);
 
   const isSubscriptionActive = useMemo(() => {
+    if (subscriptionHardLocked) {
+      return false;
+    }
     const status = subscription?.subscriptionStatus;
-    // Match backend subscription enforcement + upgrade UX.
+    // Match backend SubscriptionStatusGuard + upgrade UX.
     return (
       status === "ACTIVE" ||
       status === "TRIALING" ||
@@ -106,10 +119,17 @@ export function useTierAccess() {
       status === "GRACE" ||
       status === "PAUSED"
     );
-  }, [subscription?.subscriptionStatus]);
+  }, [subscription?.subscriptionStatus, subscriptionHardLocked]);
+
+  const displayTier = useMemo((): TierName => {
+    if (subscriptionHardLocked) {
+      return "STARTER";
+    }
+    return (subscription?.tier ?? "STARTER") as TierName;
+  }, [subscription?.tier, subscriptionHardLocked]);
 
   return {
-    currentTier: subscription?.tier ?? ("STARTER" as TierName),
+    currentTier: displayTier,
     currentTierValue,
     currentTierName: TIER_NAMES[currentTierValue] || "Free",
     hasIntelligence,

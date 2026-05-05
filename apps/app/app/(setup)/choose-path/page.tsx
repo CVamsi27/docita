@@ -13,6 +13,7 @@ import { useAuth } from "@/lib/auth-context";
 import { PageTransitionLoader } from "@/components/common/loaders/page-transition-loader";
 import { showUserFacingErrorToast } from "@/lib/user-facing-errors";
 import { PreDashboardShell } from "@/features/auth/components/PreDashboardShell";
+import { persistReturnPathBeforeLogin } from "@/lib/safe-return-path";
 
 const CREATE_BULLETS = [
   "Choose subscription plan",
@@ -40,12 +41,13 @@ export default function ChoosePathPage() {
     if (isLoading) return;
     if (!isAuthenticated) {
       setRedirectMessage("Redirecting to login…");
+      persistReturnPathBeforeLogin();
       router.replace("/login");
       return;
     }
     if (user?.clinicId || user?.onboardingStep === "COMPLETED") {
-      setRedirectMessage("Account already linked. Redirecting to dashboard…");
-      router.replace("/dashboard");
+      setRedirectMessage("Account already linked. Redirecting to your workspace…");
+      router.replace("/today");
       return;
     }
     if (user?.onboardingStep === "CREATING_CLINIC") {
@@ -103,7 +105,7 @@ export default function ChoosePathPage() {
       contentMaxWidth="max-w-xl"
       showSignOut
     >
-      <div className="animate-in fade-in slide-in-from-bottom-4 duration-700 ui-copy-stack text-center lg:text-left">
+      <div className="ui-copy-stack text-center lg:text-left">
         <h1 className="ui-page-title">
           {firstName ? `Welcome, ${firstName}!` : "Welcome to Docita!"}
         </h1>
@@ -112,10 +114,7 @@ export default function ChoosePathPage() {
         </p>
       </div>
 
-      <div
-        className="grid sm:grid-cols-2 gap-4 animate-in fade-in slide-in-from-bottom-4 duration-700"
-        style={{ animationDelay: "100ms" }}
-      >
+      <div className="grid sm:grid-cols-2 gap-4">
         <PathCard
           icon={<Building2 className="h-7 w-7 text-primary" />}
           iconBg="border border-border/70 bg-background/70"

@@ -1,43 +1,96 @@
 "use client";
 
-import { useCallback, useEffect, useMemo, useState } from "react";
+import {
+  useCallback,
+  useEffect,
+  useMemo,
+  useState,
+  type ReactNode,
+} from "react";
 import { useRouter } from "next/navigation";
 import { useStartConsultation, useQueueByDoctor } from "@/hooks/api/use-appointments";
 import { usePermissions } from "@/hooks/use-permissions";
 import { useAuth } from "@/lib/auth-context";
 import { canAccessTarget } from "@/lib/access-policy";
 import { usePermissionStore } from "@/lib/stores/permission-store";
-import type { UserRole, Feature } from "@workspace/types";
+import type { UserRole, Feature, WorkspaceProfile } from "@workspace/types";
 import {
   CommandPaletteShell,
   type CommandPaletteAction,
 } from "@workspace/ui/components/command-palette-shell";
-import { PlusCircle, Stethoscope } from "lucide-react";
+import {
+  Banknote,
+  CalendarClock,
+  CheckSquare,
+  ClipboardList,
+  PlusCircle,
+  Sparkles,
+  Stethoscope,
+} from "lucide-react";
 import { APP_ACCESS_TARGETS } from "@workspace/types";
 import { showUserFacingErrorToast } from "@/lib/user-facing-errors";
+import { useAskAi } from "@/features/_shared/components/ask-ai/ask-ai-context";
+import { useSidebarNavOrder } from "@/hooks/use-sidebar-nav-order";
+import { useClinic } from "@/lib/clinic-context";
 import {
-  navItems,
+  AI_ASSISTANT_NAV_ITEM,
+  HELP_NAV_ITEM,
   IPD_NAV_ITEM,
+  navSections,
   SETTINGS_NAV_ITEM,
   type NavItem,
 } from "./nav-config";
 
 const GROUP_NAVIGATION = "Navigation";
 const GROUP_ACTIONS = "Actions";
+const GROUP_AI = "AI";
 
-const QUICK_ACTIONS: Array<{
+export interface QuickAction {
   id: string;
   label: string;
   href?: string;
   kind?: "navigate" | "start-consultation";
   accessTarget?: (typeof APP_ACCESS_TARGETS)[keyof typeof APP_ACCESS_TARGETS];
+  /** Defaults to "write" (create flows); use "read" for navigation-only jumps. */
+  accessMode?: "read" | "write";
   keywords?: string[];
   shortcut?: string;
-}> = [
+}
+
+function quickActionRowIcon(action: QuickAction): ReactNode {
+  if (action.kind === "start-consultation") {
+    return <Stethoscope className="size-4" />;
+  }
+  if (action.id === "today-schedule") {
+    return <CalendarClock className="size-4" />;
+  }
+  if (action.id === "coding-queue") {
+    return <ClipboardList className="size-4" />;
+  }
+  if (action.id === "follow-ups-board") {
+    return <CheckSquare className="size-4" />;
+  }
+  if (action.id === "payment-desk") {
+    return <Banknote className="size-4" />;
+  }
+  return <PlusCircle className="size-4" />;
+}
+
+export const QUICK_ACTIONS: QuickAction[] = [
+  {
+    id: "today-schedule",
+    label: "Today's schedule",
+    href: "/today",
+    kind: "navigate",
+    accessTarget: APP_ACCESS_TARGETS.PAGE_DASHBOARD,
+    accessMode: "read",
+    keywords: ["today", "agenda", "day", "schedule"],
+    shortcut: "G T",
+  },
   {
     id: "new-patient",
     label: "New patient",
-    href: "/patients?new=true",
+    href: "/patients?action=new",
     kind: "navigate",
     accessTarget: APP_ACCESS_TARGETS.PAGE_PATIENTS,
     keywords: ["create", "add", "register"],
@@ -46,7 +99,7 @@ const QUICK_ACTIONS: Array<{
   {
     id: "new-appointment",
     label: "New appointment",
-    href: "/appointments?new=true",
+    href: "/appointments?action=new",
     kind: "navigate",
     accessTarget: APP_ACCESS_TARGETS.PAGE_APPOINTMENTS,
     keywords: ["schedule", "book"],
@@ -62,6 +115,35 @@ const QUICK_ACTIONS: Array<{
     shortcut: "N I",
   },
   {
+    id: "payment-desk",
+    label: "Payment desk",
+    href: "/desk/collect-payment",
+    kind: "navigate",
+    accessTarget: APP_ACCESS_TARGETS.PAGE_DESK_PAYMENT,
+    accessMode: "read",
+    keywords: ["payment", "cash", "pos", "upi", "reception", "desk", "pine"],
+  },
+  {
+    id: "coding-queue",
+    label: "Coding queue",
+    href: "/coding-queue",
+    kind: "navigate",
+    accessTarget: APP_ACCESS_TARGETS.PAGE_CODING_QUEUE,
+    accessMode: "read",
+    keywords: ["medical coding", "claims", "pending", "charts"],
+    shortcut: "G Q",
+  },
+  {
+    id: "follow-ups-board",
+    label: "Follow-ups",
+    href: "/follow-ups",
+    kind: "navigate",
+    accessTarget: APP_ACCESS_TARGETS.PAGE_DASHBOARD,
+    accessMode: "read",
+    keywords: ["tasks", "callbacks", "reminders"],
+    shortcut: "G F",
+  },
+  {
     id: "start-consultation",
     label: "Start consultation",
     kind: "start-consultation",
@@ -73,12 +155,21 @@ type CanAccessFeatureFn = (feature: Feature) => boolean;
 
 function navItemIsAccessible(
   item: NavItem,
-  args: { role: UserRole | undefined; canAccess: CanAccessFeatureFn },
+  args: {
+    role: UserRole | undefined;
+    canAccess: CanAccessFeatureFn;
+    workspaceProfile: WorkspaceProfile;
+  },
 ): boolean {
+  if (item.feature && !args.canAccess(item.feature)) return false;
   if (!item.accessTarget) return true;
   return canAccessTarget(
     item.accessTarget,
-    { role: args.role, canAccessFeature: args.canAccess },
+    {
+      role: args.role,
+      canAccessFeature: args.canAccess,
+      workspaceProfile: args.workspaceProfile,
+    },
     "read",
   );
 }
@@ -87,12 +178,19 @@ export function CommandPalette() {
   const [open, setOpen] = useState(false);
   const router = useRouter();
   const { user } = useAuth();
+  const { clinicId } = useClinic();
   const { canStartConsultation } = usePermissions();
-  const { canAccess } = usePermissionStore();
+  const { canAccess, workspaceProfile } = usePermissionStore();
+  const { openOverlay } = useAskAi();
+  const navOrder = useSidebarNavOrder({
+    clinicId,
+    userId: user?.id ?? null,
+    canEditClinicDefault: false,
+  });
 
   const canAccessQueueApi = canAccessTarget(
     APP_ACCESS_TARGETS.API_QUEUE,
-    { role: user?.role, canAccessFeature: canAccess },
+    { role: user?.role, canAccessFeature: canAccess, workspaceProfile },
     "read",
   );
   const startConsultation = useStartConsultation();
@@ -158,12 +256,39 @@ export function CommandPalette() {
     }
   }, [doctorQueue.data, router, startConsultation]);
 
+  useEffect(() => {
+    const startFromEvent = () => {
+      void handleStartConsultation();
+    };
+    window.addEventListener("docita:start-consultation", startFromEvent);
+    return () => {
+      window.removeEventListener("docita:start-consultation", startFromEvent);
+    };
+  }, [handleStartConsultation]);
+
   const actions = useMemo<CommandPaletteAction[]>(() => {
     const out: CommandPaletteAction[] = [];
 
-    const allNav = [...navItems, IPD_NAV_ITEM, SETTINGS_NAV_ITEM];
+    const primaryNavOrdered = navOrder
+      .orderSections(navSections)
+      .flatMap((s) => s.items);
+
+    const allNav = [
+      ...primaryNavOrdered,
+      AI_ASSISTANT_NAV_ITEM,
+      IPD_NAV_ITEM,
+      SETTINGS_NAV_ITEM,
+      HELP_NAV_ITEM,
+    ];
     for (const item of allNav) {
-      if (!navItemIsAccessible(item, { role: user?.role, canAccess })) continue;
+      if (
+        !navItemIsAccessible(item, {
+          role: user?.role,
+          canAccess,
+          workspaceProfile,
+        })
+      )
+        continue;
       const Icon = item.icon;
       out.push({
         id: `nav-${item.href}`,
@@ -174,12 +299,26 @@ export function CommandPalette() {
       });
     }
 
+    out.push({
+      id: "ai-ask",
+      label: "Ask AI",
+      group: GROUP_AI,
+      icon: <Sparkles className="size-4" />,
+      keywords: ["assistant", "chat", "prompt"],
+      shortcut: "⌘J",
+      onRun: () => openOverlay(),
+    });
+
     for (const action of QUICK_ACTIONS) {
       if (action.accessTarget) {
         const ok = canAccessTarget(
           action.accessTarget,
-          { role: user?.role, canAccessFeature: canAccess },
-          "write",
+          {
+            role: user?.role,
+            canAccessFeature: canAccess,
+            workspaceProfile,
+          },
+          action.accessMode ?? "write",
         );
         if (!ok) continue;
       }
@@ -189,11 +328,7 @@ export function CommandPalette() {
         id: `action-${action.id}`,
         label: action.label,
         group: GROUP_ACTIONS,
-        icon: action.kind === "start-consultation" ? (
-          <Stethoscope className="size-4" />
-        ) : (
-          <PlusCircle className="size-4" />
-        ),
+        icon: quickActionRowIcon(action),
         keywords: action.keywords,
         shortcut: action.shortcut,
         onRun: () => {
@@ -207,7 +342,16 @@ export function CommandPalette() {
     }
 
     return out;
-  }, [canAccess, canStartConsultation, handleStartConsultation, router, user?.role]);
+  }, [
+    canAccess,
+    canStartConsultation,
+    handleStartConsultation,
+    navOrder,
+    openOverlay,
+    router,
+    user?.role,
+    workspaceProfile,
+  ]);
 
   return (
     <CommandPaletteShell
@@ -215,7 +359,7 @@ export function CommandPalette() {
       onOpenChange={setOpen}
       actions={actions}
       placeholder="Enter command"
-      groupOrder={[GROUP_NAVIGATION, GROUP_ACTIONS]}
+      groupOrder={[GROUP_NAVIGATION, GROUP_AI, GROUP_ACTIONS]}
     />
   );
 }

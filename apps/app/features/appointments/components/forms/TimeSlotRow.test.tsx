@@ -87,4 +87,25 @@ describe("TimeSlotRow", () => {
 
     expect(screen.getByRole("button", { name: "View" })).toBeInTheDocument();
   });
+
+  it("renders an actions trigger when onScheduleFollowUp is provided", () => {
+    const onScheduleFollowUp = vi.fn();
+    render(
+      <TimeSlotRow
+        appointment={createAppointment("completed")}
+        checkingIn={null}
+        startingConsultationId={null}
+        onCheckIn={vi.fn()}
+        onStartConsultation={vi.fn()}
+        onCancelClick={vi.fn()}
+        onNoShowClick={vi.fn()}
+        onScheduleFollowUp={onScheduleFollowUp}
+        currentUserId="doctor-1"
+      />,
+    );
+
+    expect(
+      screen.getByRole("button", { name: /more appointment actions/i }),
+    ).toBeInTheDocument();
+  });
 });

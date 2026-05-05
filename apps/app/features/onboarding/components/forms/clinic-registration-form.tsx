@@ -10,6 +10,7 @@ import { useAuth } from "@/lib/auth-context";
 import { useLocaleCurrency } from "@/hooks/use-locale-currency";
 import {
   ClinicDetailsStep,
+  ClinicWeeklyHoursStep,
   ComplianceStep,
   PlanSelectionStep,
   TeamInviteStep,
@@ -33,17 +34,20 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@workspace/ui/components/dialog";
-import { DEFAULT_COUNTRY_CODE } from "@workspace/utils";
+import { MicroLabel } from "@workspace/ui/components/micro-label";
+import { cn } from "@workspace/ui/lib/utils";
+import { DEFAULT_COUNTRY_CODE, getFacilityLabel } from "@workspace/utils";
 import { formatDateTime } from "@/lib/formatters";
 
 const STEPS = [
   { number: 1, label: "Facility Details", estimatedTime: "2 min" },
-  { number: 2, label: "Choose Plan", estimatedTime: "3 min" },
-  { number: 3, label: "Invite Team", estimatedTime: "2 min" },
-  { number: 4, label: "Compliance", estimatedTime: "3 min" },
+  { number: 2, label: "Visit hours", estimatedTime: "2 min" },
+  { number: 3, label: "Choose Plan", estimatedTime: "3 min" },
+  { number: 4, label: "Invite Team", estimatedTime: "2 min" },
+  { number: 5, label: "Compliance", estimatedTime: "3 min" },
 ];
 
-const TOTAL_STEPS = 4;
+const TOTAL_STEPS = 5;
 const DRAFT_KEY = "docita_onboarding_draft";
 const SESSION_ONBOARDING_ID_KEY = "docita_onboarding_id";
 interface OnboardingDraft {
@@ -102,12 +106,14 @@ export function ClinicRegistrationForm({
   const [savedDraft, setSavedDraft] = useState<OnboardingDraft | null>(null);
   const {
     step,
+    setStep,
     formData,
     onboardingId,
     restoreOnboardingId,
     ensureOnboardingId,
     restartOnboarding,
     setClinicDetails,
+    setClinicWeeklyHours,
     setPlanSelection,
     setTeamMembers,
     goBackFromCompliance,
@@ -231,7 +237,10 @@ export function ClinicRegistrationForm({
     tier: string,
     billingCycle: "MONTHLY" | "YEARLY",
     pricing: { monthly: number | "custom"; yearly: number | "custom" },
-    options?: { currency?: string },
+    options?: {
+      currency?: string;
+      workspaceProfile?: "FULL_CLINICAL" | "FRONT_DESK";
+    },
   ) => {
     setStepError(null);
 
@@ -254,7 +263,10 @@ export function ClinicRegistrationForm({
         pricing as PlanSelection["billingCycle"] extends "MONTHLY" | "YEARLY"
           ? { monthly: number | "custom"; yearly: number | "custom" }
           : never,
-        { ...options, currency },
+        {
+          ...options,
+          currency,
+        },
       );
     } catch (error) {
       setStepError(
@@ -416,30 +428,52 @@ export function ClinicRegistrationForm({
       </div>
 
       <div className="ui-card-surface p-4 md:p-5">
-        <div className="flex items-center justify-between text-sm mb-3">
-          <p className="font-medium text-foreground">
-            Step {step} of {TOTAL_STEPS}: {currentStep.label}
-          </p>
-          <p className="text-muted-foreground text-xs">
+        <div className="flex items-start justify-between gap-3">
+          <div className="space-y-1">
+            <MicroLabel>Setup wizard</MicroLabel>
+            <p className="text-base font-semibold text-foreground">
+              Step {step} of {TOTAL_STEPS}: {currentStep.label}
+            </p>
+          </div>
+          <p className="shrink-0 text-xs text-muted-foreground">
             ~{currentStep.estimatedTime} remaining
           </p>
         </div>
-        <div className="h-2 w-full rounded-full bg-muted">
-          <div
-            className="h-2 rounded-full bg-primary transition-all duration-300"
-            style={{ width: `${progressPercent}%` }}
-            role="progressbar"
-            aria-valuenow={progressPercent}
-            aria-valuemin={0}
-            aria-valuemax={100}
-            aria-label={`Onboarding progress: ${progressPercent}%`}
-          />
-        </div>
-        <div className="hidden sm:flex justify-between mt-2">
+        <div
+          className="mt-3 flex items-center gap-2"
+          role="progressbar"
+          aria-valuenow={progressPercent}
+          aria-valuemin={0}
+          aria-valuemax={100}
+          aria-label={`Onboarding progress: ${progressPercent}%`}
+        >
           {STEPS.map((s) => (
             <span
               key={s.number}
-              className={`text-xs ${s.number === step ? "font-semibold text-primary" : s.number < step ? "text-muted-foreground" : "text-muted-foreground/50"}`}
+              className={cn(
+                "h-1.5 flex-1 rounded-full transition-colors",
+                s.number < step
+                  ? "bg-primary"
+                  : s.number === step
+                    ? "bg-primary/80"
+                    : "bg-muted",
+              )}
+              aria-hidden
+            />
+          ))}
+        </div>
+        <div className="mt-2 hidden justify-between sm:flex">
+          {STEPS.map((s) => (
+            <span
+              key={s.number}
+              className={cn(
+                "text-[var(--fs-2xs)] uppercase tracking-wide",
+                s.number === step
+                  ? "font-semibold text-primary"
+                  : s.number < step
+                    ? "text-muted-foreground"
+                    : "text-muted-foreground/50",
+              )}
             >
               {s.label}
             </span>
@@ -455,15 +489,32 @@ export function ClinicRegistrationForm({
       )}
 
       {step === 2 && (
-        <PlanSelectionStep
-          currency={currency}
-          defaultTier={formData.planSelection.tier}
-          defaultBillingCycle={formData.planSelection.billingCycle}
-          onSelect={handleSetPlanSelection}
+        <ClinicWeeklyHoursStep
+          initialRows={formData.clinicWeeklyHours}
+          facilityWord={getFacilityLabel(
+            formData.clinicDetails.facilityLabel ?? "CLINIC",
+          )}
+          onBack={() => setStep(1)}
+          onContinue={(rows) => {
+            setStepError(null);
+            setClinicWeeklyHours(rows);
+          }}
         />
       )}
 
       {step === 3 && (
+        <PlanSelectionStep
+          currency={currency}
+          defaultTier={formData.planSelection.tier}
+          defaultBillingCycle={formData.planSelection.billingCycle}
+          initialWorkspaceProfile={
+            formData.planSelection.workspaceProfile ?? "FULL_CLINICAL"
+          }
+          onSelect={handleSetPlanSelection}
+        />
+      )}
+
+      {step === 4 && (
         <TeamInviteStep
           onSkip={handleSkipTeamStep}
           onComplete={handleSetTeamMembers}
@@ -473,7 +524,7 @@ export function ClinicRegistrationForm({
         />
       )}
 
-      {step === 4 && (
+      {step === 5 && (
         <ComplianceStep
           complianceForm={complianceForm}
           onBack={goBackFromCompliance}

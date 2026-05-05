@@ -23,7 +23,7 @@ vi.mock("@/lib/api-client", () => ({
 }));
 
 describe("PaymentStep", () => {
-  it("calls onComplete immediately for free plans", () => {
+  it("calls onComplete immediately when plan price is zero (no checkout)", () => {
     const onComplete = vi.fn();
 
     render(

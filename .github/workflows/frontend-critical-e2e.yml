@@ -136,7 +136,8 @@ jobs:
             e2e/clinic-registration.spec.ts \
             e2e/verify-doctor.spec.ts \
             e2e/auth.spec.ts \
-            e2e/critical-flows.spec.ts
+            e2e/critical-flows.spec.ts \
+            e2e/front-desk-sidebar.spec.ts
 
       - name: Dump server logs on failure
         if: failure()

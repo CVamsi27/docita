@@ -18,16 +18,16 @@ import {
   Feature,
 } from '@/shared/modules/auth/auth/tier.decorator';
 import {
-  WebVitalDto,
   RequestStatsResponseDto,
   ErrorStatsResponseDto,
   PerformanceMetricsResponseDto,
   SystemHealthResponseDto,
   AggregatedPerformanceResponseDto,
   MonitoringDashboardResponseDto,
-  WebVitalListResponseDto,
+  WebVitalsAggregateListResponseDto,
   AnyResponseDto,
-  WebVitalSchema,
+  SecurityMonitoringSummaryResponseDto,
+  QueueHealthSummaryResponseDto,
 } from './dto/monitoring.dto';
 import {
   ResolveMultipleErrorsSchema,
@@ -179,15 +179,8 @@ export class MonitoringController {
     };
   }
 
-  @Post('web-vitals')
-  @ZodSerializerDto(AnyResponseDto)
-  @UsePipes(new ZodValidationPipe(WebVitalSchema))
-  async reportWebVital(@Body() vital: WebVitalDto) {
-    return this.monitoringService.recordWebVital(vital);
-  }
-
   @Get('web-vitals')
-  @ZodSerializerDto(WebVitalListResponseDto)
+  @ZodSerializerDto(WebVitalsAggregateListResponseDto)
   async getWebVitals(
     @Query('startDate') startDate?: string,
     @Query('endDate') endDate?: string,
@@ -198,5 +191,24 @@ export class MonitoringController {
       endDate ? new Date(endDate) : undefined,
       page,
     );
+  }
+
+  @Get('security-summary')
+  @ZodSerializerDto(SecurityMonitoringSummaryResponseDto)
+  async getSecuritySummary(
+    @Query('startDate') startDate?: string,
+    @Query('endDate') endDate?: string,
+  ) {
+    const end = endDate ? new Date(endDate) : new Date();
+    const start = startDate
+      ? new Date(startDate)
+      : new Date(end.getTime() - 24 * 60 * 60 * 1000);
+    return this.monitoringService.getSecurityMonitoringSummary(start, end);
+  }
+
+  @Get('queue-health')
+  @ZodSerializerDto(QueueHealthSummaryResponseDto)
+  async getQueueHealth() {
+    return this.monitoringService.getQueueHealthSummary();
   }
 }

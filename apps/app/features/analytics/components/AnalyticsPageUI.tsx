@@ -43,8 +43,8 @@ function AnalyticsChartCellLoading() {
         iconClassName="h-9 w-9"
       />
       <div className="w-full space-y-2">
-        <Skeleton animation="wave" className="mx-auto h-3 w-24" />
-        <Skeleton animation="wave" className="h-36 w-full rounded-md" />
+        <Skeleton className="mx-auto h-3 w-24" />
+        <Skeleton className="h-36 w-full rounded-md" />
       </div>
     </div>
   );

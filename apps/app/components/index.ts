@@ -3,7 +3,6 @@ export * from "./common/buttons";
 export * from "./common/inputs";
 export * from "./common/dialogs";
 export * from "./common/loaders";
-export * from "./common/empty-state";
 
 export * from "./common/form-field";
 export * from "./common/error-banner";

@@ -1,5 +1,5 @@
-import { useMemo, useState } from "react";
-import { useSearchParams } from "next/navigation";
+import { useCallback, useMemo, useState } from "react";
+import { useRouter, useSearchParams } from "next/navigation";
 import { settingsTabs } from "@/features/settings/constants";
 import { useAuth } from "@/lib/auth-context";
 import { canAccessTarget } from "@/lib/access-policy";
@@ -7,10 +7,12 @@ import { hasPermission, type Permission } from "@/lib/permissions";
 import { usePermissionStore } from "@/lib/stores/permission-store";
 import {
   APP_ACCESS_TARGETS,
+  DEFAULT_WORKSPACE_PROFILE,
   Feature,
   Tier,
   type AppAccessTarget,
   type UserRole,
+  type WorkspaceProfile,
 } from "@workspace/types";
 
 const SETTINGS_TAB_ACCESS_TARGETS: Partial<Record<string, AppAccessTarget>> = {
@@ -24,9 +26,7 @@ const SETTINGS_TAB_ACCESS_TARGETS: Partial<Record<string, AppAccessTarget>> = {
 const SETTINGS_TAB_REQUIRED_PERMISSIONS: Partial<Record<string, Permission>> = {
   general: "manageClinic",
   members: "manageStaff",
-  "join-requests": "manageStaff",
   subscription: "manageBilling",
-  compliance: "manageClinic",
   queue: "manageClinic",
   prescriptions: "createPrescription",
   reminders: "manageClinic",
@@ -45,6 +45,7 @@ interface VisibleSettingsTabsParams {
   canAccessFeature: (feature: Feature) => boolean;
   canAccessTier: (tier: Tier) => boolean;
   searchQuery?: string;
+  workspaceProfile?: WorkspaceProfile;
 }
 
 export function getVisibleSettingsTabs({
@@ -53,6 +54,7 @@ export function getVisibleSettingsTabs({
   canAccessFeature,
   canAccessTier,
   searchQuery = "",
+  workspaceProfile = DEFAULT_WORKSPACE_PROFILE,
 }: VisibleSettingsTabsParams) {
   const tabs = settingsTabs
     .map((category) => ({
@@ -84,6 +86,7 @@ export function getVisibleSettingsTabs({
               role: userRole,
               canAccessFeature,
               canAccessTier,
+              workspaceProfile,
             },
             "read",
           );
@@ -111,11 +114,13 @@ export function getVisibleSettingsTabs({
 }
 
 export const useSettingsLogic = () => {
+  const router = useRouter();
   const searchParams = useSearchParams();
   const { user } = useAuth();
   const canAccessFeature = usePermissionStore((state) => state.canAccess);
   const canAccessTier = usePermissionStore((state) => state.canAccessTier);
   const currentTier = usePermissionStore((state) => state.currentTier);
+  const workspaceProfile = usePermissionStore((state) => state.workspaceProfile);
   const requestedTab = searchParams.get("tab") || "general";
   const [searchQuery, setSearchQuery] = useState("");
 
@@ -126,8 +131,16 @@ export const useSettingsLogic = () => {
       canAccessFeature,
       canAccessTier,
       searchQuery,
+      workspaceProfile,
     });
-  }, [canAccessFeature, canAccessTier, currentTier, searchQuery, user?.role]);
+  }, [
+    canAccessFeature,
+    canAccessTier,
+    currentTier,
+    searchQuery,
+    user?.role,
+    workspaceProfile,
+  ]);
 
   const firstMatchingTab = filteredTabs[0]?.items[0]?.value;
 
@@ -136,15 +149,27 @@ export const useSettingsLogic = () => {
     ? requestedTab
     : (allVisibleTabValues[0] ?? "notifications");
 
+  const tabValue =
+    searchQuery.trim() && firstMatchingTab ? firstMatchingTab : defaultTab;
+
+  const onTabChange = useCallback(
+    (value: string) => {
+      const params = new URLSearchParams(searchParams.toString());
+      params.set("tab", value);
+      router.replace(`/settings?${params.toString()}`, { scroll: false });
+    },
+    [router, searchParams],
+  );
+
   return {
     state: {
       filteredTabs,
       searchQuery,
-      defaultTab,
-      firstMatchingTab,
+      tabValue,
     },
     handlers: {
       setSearchQuery,
+      onTabChange,
     },
   };
 };

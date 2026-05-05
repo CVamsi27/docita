@@ -93,7 +93,7 @@ export function CancelAppointmentDialog({
       <DialogContent className="sm:max-w-[480px]">
         <DialogHeader>
           <div className="flex items-start gap-4">
-            <AlertCircle className="h-5 w-5 text-destructive" />
+            <AlertCircle className="h-5 w-5 mt-1 text-destructive" />
             <div className="flex-1">
               <DialogTitle>Cancel Appointment</DialogTitle>
               <DialogDescription className="mt-2">
@@ -135,7 +135,7 @@ export function CancelAppointmentDialog({
           {error && <p className="text-sm text-destructive">{error}</p>}
         </div>
 
-        <DialogFooter className="gap-2 sm:gap-0">
+        <DialogFooter className="gap-2">
           <Button
             type="button"
             variant="outline"

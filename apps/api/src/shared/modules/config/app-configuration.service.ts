@@ -410,6 +410,15 @@ export class AppConfigService {
     return this.getConfig().JWT_EXPIRATION || '30d';
   }
 
+  getTurnstileSecretKey(): string | undefined {
+    const key = this.getConfig().TURNSTILE_SECRET_KEY;
+    return key && key.length > 0 ? key : undefined;
+  }
+
+  isTurnstileEnforced(): boolean {
+    return Boolean(this.getTurnstileSecretKey());
+  }
+
   getEncryptionKey(): string {
     return this.getConfig().ENCRYPTION_KEY;
   }
@@ -467,6 +476,23 @@ export class AppConfigService {
 
   getCurrencyCode(acceptLanguage?: string): string {
     return resolveCurrencyFromLocale(acceptLanguage);
+  }
+
+  isRlsEnabled(): boolean {
+    return this.getConfig().RLS_ENABLED;
+  }
+
+  getTenantRateLimitDefaults(): {
+    rps: number;
+    rpm: number;
+    monthlyBudget: number;
+  } {
+    const config = this.getConfig();
+    return {
+      rps: config.TENANT_RATE_LIMIT_DEFAULT_RPS,
+      rpm: config.TENANT_RATE_LIMIT_DEFAULT_RPM,
+      monthlyBudget: config.TENANT_RATE_LIMIT_DEFAULT_MONTHLY_BUDGET,
+    };
   }
 
   getPlatformTaxConfig() {

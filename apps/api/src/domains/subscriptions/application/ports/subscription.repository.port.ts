@@ -16,6 +16,8 @@ export interface ISubscriptionRepository {
     status: string;
     razorpayOrderId: string;
     description: string;
+    razorpayPaymentId?: string;
+    paidAt?: Date | null;
   }): Promise<void>;
   updatePaymentStatus(
     orderId: string,
@@ -42,6 +44,16 @@ export interface ISubscriptionRepository {
     amountCents: number;
     currency: string;
     description: string;
+    keepOrderId: string;
+  }): Promise<number>;
+
+  /**
+   * Marks every other pending subscription checkout for the clinic as expired
+   * so only one active "Pay now" row remains (avoids abandoned Essential vs Pro
+   * orders stacking in billing history).
+   */
+  expireOtherPendingSubscriptionCheckouts(params: {
+    clinicId: string;
     keepOrderId: string;
   }): Promise<number>;
 

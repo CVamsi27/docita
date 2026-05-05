@@ -16,6 +16,12 @@ import { Progress } from "@workspace/ui/components/progress";
 import { cn } from "@workspace/ui/lib/utils";
 import type { CurrentUsage, TierInfo } from "@workspace/types";
 import { formatCountLocale } from "@workspace/utils";
+import { SUBSCRIPTION_GST_INCLUSIVE_NOTICE } from "@/features/subscription/lib/billing-display-messages";
+import {
+  formatUsageMeterCaption,
+  usageMeterHasNoIncludedQuota,
+  usageProgressPercentForBar,
+} from "@/features/subscription/lib/usage-meter-display";
 
 interface CurrentPlanCardProps {
   tierInfo: TierInfo;
@@ -25,6 +31,8 @@ interface CurrentPlanCardProps {
   onChangePlan: () => void;
   onViewBillingHistory: () => void;
   planDetails?: { label: string; value: string }[];
+  /** Optional note under the plan detail strip. */
+  planDetailsFootnote?: string;
   usage?: CurrentUsage | null;
   isUsageLoading?: boolean;
   hasUsageError?: boolean;
@@ -36,6 +44,8 @@ interface CurrentPlanCardProps {
     onAction?: () => void;
     variant?: "default" | "warning" | "destructive";
   };
+  /** When false, hides the WhatsApp usage row (e.g. Starter has no patient WhatsApp feature). */
+  showWhatsAppUsageMeter?: boolean;
 }
 
 const TIER_COLOR_MAP: Record<string, { gradient: string; badge: string }> = {
@@ -79,10 +89,12 @@ export function CurrentPlanCard({
   onChangePlan,
   onViewBillingHistory,
   planDetails,
+  planDetailsFootnote,
   usage,
   isUsageLoading,
   hasUsageError,
   statusNotice,
+  showWhatsAppUsageMeter = true,
 }: CurrentPlanCardProps) {
   const colors = TIER_COLOR_MAP[tierInfo.color] ?? TIER_COLOR_MAP["gray"]!;
   const statusNoticeClassName =
@@ -128,31 +140,42 @@ export function CurrentPlanCard({
       </CardHeader>
       <CardContent className="space-y-5">
         {planDetails && planDetails.length > 0 && (
-          <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
+          <dl className="divide-y divide-border/60 rounded-lg border border-border/70 bg-background/70">
             {planDetails.map((detail, index) => {
               const DetailIcon =
                 index === 0
                   ? Activity
                   : index === 1
                     ? CreditCard
-                    : CalendarClock;
+                    : index === 2
+                      ? Receipt
+                      : CalendarClock;
               return (
                 <div
                   key={`${detail.label}-${detail.value}`}
-                  className="rounded-lg border border-border/70 bg-background/70 p-3"
+                  className="flex items-center justify-between gap-4 px-4 py-3"
                 >
-                  <div className="flex items-center gap-2 text-xs font-medium uppercase text-muted-foreground">
-                    <DetailIcon className="h-3.5 w-3.5" />
+                  <dt className="flex min-w-0 shrink-0 items-center gap-1.5 text-[var(--fs-2xs)] font-medium uppercase tracking-wide text-muted-foreground">
+                    <DetailIcon className="h-3 w-3 shrink-0" aria-hidden />
                     {detail.label}
-                  </div>
-                  <p className="mt-2 text-sm font-semibold text-foreground">
+                  </dt>
+                  <dd className="min-w-0 text-right text-[var(--fs-sm)] font-semibold text-foreground">
                     {detail.value}
-                  </p>
+                  </dd>
                 </div>
               );
             })}
-          </div>
+          </dl>
         )}
+        {planDetailsFootnote ? (
+          <p className="text-[var(--fs-2xs)] leading-snug text-muted-foreground">
+            {planDetailsFootnote}
+          </p>
+        ) : null}
+
+        <p className="text-[var(--fs-2xs)] leading-snug text-muted-foreground">
+          {SUBSCRIPTION_GST_INCLUSIVE_NOTICE}
+        </p>
 
         {statusNotice && (
           <div className={cn("rounded-lg border p-3", statusNoticeClassName)}>
@@ -215,12 +238,24 @@ export function CurrentPlanCard({
             </p>
           ) : usage ? (
             <div className="mt-4 grid gap-4 lg:grid-cols-3">
-              {usageItems.map(({ key, label, unit }) => {
+              {(showWhatsAppUsageMeter
+                ? usageItems
+                : usageItems.filter((row) => row.key !== "whatsappMessages")
+              ).map(({ key, label, unit }) => {
                 const meter = usage.meters[key];
-                const percent =
-                  meter.included > 0
-                    ? Math.min(100, (meter.current / meter.included) * 100)
-                    : 0;
+                const noIncludedQuota = usageMeterHasNoIncludedQuota(
+                  meter.included,
+                );
+                const percent = usageProgressPercentForBar(
+                  meter.current,
+                  meter.included,
+                );
+                const caption = formatUsageMeterCaption(
+                  meter.current,
+                  meter.included,
+                  unit,
+                  formatUsageValue,
+                );
                 return (
                   <div key={key} className="space-y-2">
                     <div className="flex items-center justify-between gap-2">
@@ -228,8 +263,7 @@ export function CurrentPlanCard({
                         {label}
                       </span>
                       <span className="text-xs text-muted-foreground">
-                        {formatUsageValue(meter.current)} /{" "}
-                        {formatUsageValue(meter.included)} {unit}
+                        {caption}
                       </span>
                     </div>
                     <Progress
@@ -237,6 +271,9 @@ export function CurrentPlanCard({
                       className={cn(
                         "h-2",
                         meter.overage > 0 && "[&>div]:bg-destructive",
+                        noIncludedQuota &&
+                          meter.overage === 0 &&
+                          "[&>div]:bg-primary/35",
                       )}
                     />
                   </div>

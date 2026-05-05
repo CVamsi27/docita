@@ -5,6 +5,7 @@ import {
   Body,
   Param,
   UseGuards,
+  UseInterceptors,
   Request,
   Res,
   Query,
@@ -12,6 +13,10 @@ import {
   HttpStatus,
   Inject,
 } from '@nestjs/common';
+import {
+  IdempotencyInterceptor,
+  RequiresIdempotency,
+} from '@/shared/modules/idempotency';
 import type { Response } from 'express';
 import { PrescriptionsService } from '@/domains/prescriptions/application/services/prescription.service';
 import {
@@ -19,6 +24,7 @@ import {
   type PdfJobServicePort,
 } from '@/shared/modules/queue/pdf-job.service';
 import { TierGuard } from '@/shared/modules/auth/auth/tier.guard';
+import { FrontDeskClinicalBlockGuard } from '@/shared/modules/clinic-workspace/front-desk-clinical-block.guard';
 import {
   RequireFeature,
   Feature,
@@ -43,9 +49,9 @@ interface AuthRequest {
 }
 
 @Controller('prescriptions')
-@UseGuards(TierGuard)
-@RequireFeature(Feature.DIGITAL_PRESCRIPTIONS)
+@UseGuards(TierGuard, FrontDeskClinicalBlockGuard)
 @Roles(Role.ADMIN, Role.DOCTOR, Role.RECEPTIONIST, Role.ADMIN_DOCTOR)
+@UseInterceptors(IdempotencyInterceptor)
 export class PrescriptionsController {
   constructor(
     private readonly prescriptionsService: PrescriptionsService,
@@ -59,10 +65,12 @@ export class PrescriptionsController {
     @Request() req: AuthRequest,
     @Query() query?: ListPrescriptionsQueryDto,
   ) {
-    const { search, date, patientId, limit } = query ?? {};
+    const { search, date, startDate, endDate, patientId, limit } = query ?? {};
     return this.prescriptionsService.findAll(req.user.clinicId, {
       search,
       date,
+      startDate,
+      endDate,
       patientId,
       limit,
     });
@@ -75,6 +83,8 @@ export class PrescriptionsController {
   }
 
   @Post()
+  @RequireFeature(Feature.DIGITAL_PRESCRIPTIONS)
+  @RequiresIdempotency()
   @ZodSerializerDto(PrescriptionResponseDto)
   @UsePipes(new ZodValidationPipe(CreatePrescriptionSchema))
   create(@Request() req: AuthRequest, @Body() dto: CreatePrescriptionDto) {
@@ -89,11 +99,13 @@ export class PrescriptionsController {
   }
 
   @Get(':id/pdf/status')
+  @RequireFeature(Feature.DIGITAL_PRESCRIPTIONS)
   getPdfStatus(@Request() req: AuthRequest, @Query('jobId') jobId: string) {
     return this.pdfJobService.getStatus(jobId, req.user.clinicId);
   }
 
   @Get(':id/pdf')
+  @RequireFeature(Feature.DIGITAL_PRESCRIPTIONS)
   async getPdf(
     @Request() req: AuthRequest,
     @Param('id') id: string,

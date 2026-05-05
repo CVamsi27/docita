@@ -46,6 +46,8 @@ export class AppointmentRequestService {
       preferredDoctorId: request.preferredDoctorId,
       preferredDate: request.preferredDate,
       preferredTime: request.preferredTime,
+      requestedSlotStart: request.requestedSlotStart ?? undefined,
+      requestedSlotEnd: request.requestedSlotEnd ?? undefined,
       reason: request.reason,
       notes: request.notes,
       status: request.status,
@@ -69,12 +71,29 @@ export class AppointmentRequestService {
       await this.assertDoctorBelongsToClinic(data.preferredDoctorId, clinicId);
     }
 
+    let preferredDate = this.parseDate(data.preferredDate, 'Preferred date');
+    let requestedSlotStart: Date | undefined;
+    let requestedSlotEnd: Date | undefined;
+    if (data.requestedSlotStart && data.requestedSlotEnd) {
+      requestedSlotStart = this.parseDate(
+        data.requestedSlotStart,
+        'Requested slot start',
+      );
+      requestedSlotEnd = this.parseDate(
+        data.requestedSlotEnd,
+        'Requested slot end',
+      );
+      preferredDate = requestedSlotStart;
+    }
+
     const request = await this.appointmentRequestRepository.create({
       patientId,
       clinicId,
       preferredDoctorId: data.preferredDoctorId,
-      preferredDate: this.parseDate(data.preferredDate, 'Preferred date'),
+      preferredDate,
       preferredTime: data.preferredTime,
+      requestedSlotStart,
+      requestedSlotEnd,
       reason: data.reason,
       notes: data.notes,
     });

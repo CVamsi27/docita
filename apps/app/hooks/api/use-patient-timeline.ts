@@ -1,5 +1,12 @@
+import {
+  Feature,
+  type ActiveMedication,
+  type MedicationAdherenceSummary,
+  type PatientSnapshot,
+  type PatientTimelineResponse,
+} from "@workspace/types";
+import { useTierFeatureEnabled } from "@/hooks/api/tier-feature-guards";
 import { useAPIMutation, useAPIQuery } from "@/lib/api-core";
-import type { PatientTimelineResponse, PatientSnapshot, ActiveMedication, MedicationAdherenceSummary } from "@workspace/types";
 
 export const usePatientTimeline = (
   patientId: string,
@@ -19,39 +26,45 @@ export const usePatientTimeline = (
   if (filters?.limit) params.set("limit", String(filters.limit));
   if (filters?.offset) params.set("offset", String(filters.offset));
   const query = params.toString();
+  const tierPatientsOk = useTierFeatureEnabled(Feature.BASIC_PATIENT_MANAGEMENT);
 
   return useAPIQuery<PatientTimelineResponse>(
     ["patient-timeline", patientId, filters ?? {}],
     `/patients/${patientId}/timeline${query ? `?${query}` : ""}`,
-    { enabled: !!patientId },
+    { enabled: tierPatientsOk && !!patientId },
   );
 };
 
-export const usePatientSnapshot = (patientId: string) =>
-  useAPIQuery<PatientSnapshot>(
+export const usePatientSnapshot = (patientId: string) => {
+  const tierPatientsOk = useTierFeatureEnabled(Feature.BASIC_PATIENT_MANAGEMENT);
+  return useAPIQuery<PatientSnapshot>(
     ["patient-snapshot", patientId],
     `/patients/${patientId}/timeline/snapshot`,
-    { enabled: !!patientId },
+    { enabled: tierPatientsOk && !!patientId },
   );
+};
 
-export const useActiveMedications = (patientId: string) =>
-  useAPIQuery<ActiveMedication[]>(
+export const useActiveMedications = (patientId: string) => {
+  const tierPatientsOk = useTierFeatureEnabled(Feature.BASIC_PATIENT_MANAGEMENT);
+  return useAPIQuery<ActiveMedication[]>(
     ["active-medications", patientId],
     `/patients/${patientId}/medication-doses/active-medications`,
-    { enabled: !!patientId },
+    { enabled: tierPatientsOk && !!patientId },
   );
+};
 
 export const useMedicationAdherence = (
   patientId: string,
   prescriptionId?: string,
 ) => {
+  const tierPatientsOk = useTierFeatureEnabled(Feature.BASIC_PATIENT_MANAGEMENT);
   const params = prescriptionId
     ? `?prescriptionId=${prescriptionId}`
     : "";
   return useAPIQuery<MedicationAdherenceSummary>(
     ["medication-adherence", patientId, prescriptionId ?? ""],
     `/patients/${patientId}/medication-doses/adherence${params}`,
-    { enabled: !!patientId },
+    { enabled: tierPatientsOk && !!patientId },
   );
 };
 

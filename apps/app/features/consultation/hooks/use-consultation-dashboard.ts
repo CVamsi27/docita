@@ -17,20 +17,44 @@ import {
   isQueueTokenInProgress,
   isQueueTokenWaiting,
 } from "@/lib/queue-token-status";
+import { getLocalCalendarDateString } from "@/lib/local-calendar-date";
+import { useClinicSettings } from "@/hooks/api/use-settings";
+
+export type DoctorNextUpRow =
+  | {
+      kind: "appointment";
+      appointmentId: string;
+      startTime: string;
+      patientName: string;
+      status: string;
+      visitSummary?: string;
+    }
+  | {
+      kind: "queue";
+      appointmentId?: string;
+      tokenNumber: number;
+      createdAt: string;
+      patientName: string;
+      status: string;
+      tokenType: QueueItem["tokenType"];
+      visitSummary?: string;
+    };
 
 export const useConsultationDashboard = () => {
   const router = useRouter();
   const { user } = useAuth();
   const { canStartConsultation } = usePermissions();
-  const { canAccess } = usePermissionStore();
-  const today = new Date().toISOString().split("T")[0] ?? "";
-  const shouldScopeToOwnConsultations = user?.role === "DOCTOR";
+  const { canAccess, workspaceProfile } = usePermissionStore();
+  const today = getLocalCalendarDateString();
+  const shouldScopeToOwnConsultations =
+    user?.role === "DOCTOR" || user?.role === "ADMIN_DOCTOR";
   const doctorId = shouldScopeToOwnConsultations ? user?.id : undefined;
   const canAccessQueueApi = canAccessTarget(
     APP_ACCESS_TARGETS.API_QUEUE,
     {
       role: user?.role,
       canAccessFeature: canAccess,
+      workspaceProfile,
     },
     "read",
   );
@@ -41,12 +65,21 @@ export const useConsultationDashboard = () => {
       ...(doctorId ? { doctorId } : {}),
     });
 
+  const { data: inProgressAppointmentsData, isLoading: isLoadingInProgress } =
+    useAppointments({
+      status: "in-progress",
+      limit: 100,
+      ...(doctorId ? { doctorId } : {}),
+    });
+
   const { data: queueData, isLoading: isLoadingQueue } =
     useQueueByDoctor(doctorId, undefined, canAccessQueueApi);
   const startConsultation = useStartConsultation();
+  const { data: clinic } = useClinicSettings();
 
   const stats = useMemo(() => {
     const todayAppts = appointmentsData?.items || [];
+    const inProgressAppts = inProgressAppointmentsData?.items ?? [];
     const queue = queueData || [];
     const appointmentIdsWithQueueToken = new Set(
       queue
@@ -56,7 +89,7 @@ export const useConsultationDashboard = () => {
     const inProgressFromQueue = queue.filter((q) =>
       isQueueTokenInProgress(q.status),
     ).length;
-    const inProgressAppointmentsOnly = todayAppts.filter(
+    const inProgressAppointmentsOnly = inProgressAppts.filter(
       (a) =>
         a.status === "in-progress" &&
         a.id &&
@@ -69,7 +102,16 @@ export const useConsultationDashboard = () => {
       inProgress: inProgressFromQueue + inProgressAppointmentsOnly,
       completed: queue.filter((q) => isQueueTokenCompleted(q.status)).length,
     };
-  }, [appointmentsData, queueData]);
+  }, [appointmentsData, inProgressAppointmentsData, queueData]);
+
+  const todayAppointmentsSorted = useMemo(() => {
+    const items = appointmentsData?.items || [];
+    return [...items].sort((a, b) => {
+      const ta = new Date(a.startTime).getTime();
+      const tb = new Date(b.startTime).getTime();
+      return ta - tb;
+    });
+  }, [appointmentsData?.items]);
 
   const activeConsultations = useMemo(() => {
     const fromQueue = (queueData || []).filter((q) =>
@@ -80,10 +122,10 @@ export const useConsultationDashboard = () => {
         .map((q) => q.appointmentId)
         .filter((id): id is string => Boolean(id)),
     );
-    const todayAppts = appointmentsData?.items ?? [];
+    const inProgressAppts = inProgressAppointmentsData?.items ?? [];
     const withoutQueueToken: QueueItem[] = [];
 
-    for (const a of todayAppts) {
+    for (const a of inProgressAppts) {
       if (
         a.status !== "in-progress" ||
         !a.id ||
@@ -118,20 +160,191 @@ export const useConsultationDashboard = () => {
               phoneNumber: a.patient.phoneNumber ?? "",
             }
           : undefined,
+        appointment: a.id
+          ? {
+              id: a.id,
+              doctor: {
+                id: a.doctor?.id ?? "",
+                name: a.doctor?.name ?? "",
+              },
+              type: a.type ?? null,
+              chiefComplaint: a.chiefComplaint ?? null,
+            }
+          : undefined,
       });
     }
 
     return [...fromQueue, ...withoutQueueToken];
-  }, [queueData, appointmentsData]);
+  }, [queueData, inProgressAppointmentsData]);
+
+  const goToConsultationWorkspace = (appointmentId: string) => {
+    router.push(`/consultation/${appointmentId}`);
+  };
 
   const waitingList = useMemo(() => {
     return (queueData || []).filter((q) => isQueueTokenWaiting(q.status));
   }, [queueData]);
 
+  /** Active (in consult) first, then waiting; sort by token number within each band. */
+  const opdQueueRows = useMemo(() => {
+    const byId = new Map<string, QueueItem>();
+    for (const q of activeConsultations) {
+      byId.set(q.id, q);
+    }
+    for (const q of waitingList) {
+      byId.set(q.id, q);
+    }
+    const patientKey = (q: QueueItem) =>
+      `${q.patient?.lastName ?? ""}\u0000${q.patient?.firstName ?? ""}`;
+    const rank = (q: QueueItem): number => {
+      if (isQueueTokenInProgress(q.status)) return 0;
+      if (isQueueTokenWaiting(q.status)) return 1;
+      return 2;
+    };
+    const tokenSort = (q: QueueItem) =>
+      q.tokenNumber > 0 ? q.tokenNumber : 10_000;
+    return Array.from(byId.values()).sort((a, b) => {
+      const ra = rank(a);
+      const rb = rank(b);
+      if (ra !== rb) return ra - rb;
+      const ta = tokenSort(a);
+      const tb = tokenSort(b);
+      if (ta !== tb) return ta - tb;
+      return patientKey(a).localeCompare(patientKey(b));
+    });
+  }, [activeConsultations, waitingList]);
+
+  const doctorNowNext = useMemo(() => {
+    const inProgress = (inProgressAppointmentsData?.items ?? []).filter(
+      (a) => a.status === "in-progress",
+    );
+    const nextScheduled = todayAppointmentsSorted.filter((a) =>
+      ["scheduled", "confirmed", "checked-in"].includes(a.status),
+    );
+
+    const walkInQueue = opdQueueRows.filter(
+      (q) => q.tokenType !== "scheduled" && isQueueTokenWaiting(q.status),
+    );
+    const walkInSorted = [...walkInQueue].sort((a, b) => {
+      const ta = new Date(a.createdAt).getTime();
+      const tb = new Date(b.createdAt).getTime();
+      if (ta !== tb) return ta - tb;
+      return (a.tokenNumber ?? 0) - (b.tokenNumber ?? 0);
+    });
+
+    const slotMinutes =
+      typeof (clinic as unknown as { slotDuration?: number | null })
+        ?.slotDuration === "number"
+        ? ((clinic as unknown as { slotDuration?: number | null })
+            .slotDuration ?? 15)
+        : 15;
+    const slotMs = Math.max(5, slotMinutes) * 60 * 1000;
+
+    const combinedUpcoming: DoctorNextUpRow[] = [];
+
+    // If there is no schedule today, fall back to FCFS (queue order).
+    if (todayAppointmentsSorted.length === 0) {
+      for (const q of opdQueueRows) {
+        const name = q.patient
+          ? `${q.patient.firstName} ${q.patient.lastName}`
+          : "Patient";
+        combinedUpcoming.push({
+          kind: "queue",
+          appointmentId: q.appointmentId,
+          tokenNumber: q.tokenNumber,
+          createdAt: q.createdAt,
+          patientName: name,
+          status: q.status,
+          tokenType: q.tokenType,
+        });
+      }
+      return { inProgress, combinedUpcoming, mode: "fcfs" as const };
+    }
+
+    // Otherwise: schedule in time order, fill gaps with walk-ins (FCFS).
+    const appts = nextScheduled;
+    let walkInIdx = 0;
+
+    for (let i = 0; i < appts.length; i++) {
+      const apt = appts[i];
+      const aptName = apt.patient
+        ? `${apt.patient.firstName} ${apt.patient.lastName}`
+        : "Patient";
+      const visitSummary =
+        apt.chiefComplaint?.trim() ||
+        apt.type?.trim() ||
+        undefined;
+      combinedUpcoming.push({
+        kind: "appointment",
+        appointmentId: apt.id,
+        startTime:
+          typeof apt.startTime === "string"
+            ? apt.startTime
+            : apt.startTime.toISOString(),
+        patientName: aptName,
+        status: apt.status,
+        visitSummary,
+      });
+
+      const next = appts[i + 1];
+      if (!next) continue;
+      const gapMs =
+        new Date(next.startTime).getTime() - new Date(apt.startTime).getTime();
+      const gapSlots = Math.max(0, Math.floor(gapMs / slotMs) - 1);
+      for (let s = 0; s < gapSlots && walkInIdx < walkInSorted.length; s++) {
+        const q = walkInSorted[walkInIdx++];
+        const name = q.patient
+          ? `${q.patient.firstName} ${q.patient.lastName}`
+          : "Patient";
+        combinedUpcoming.push({
+          kind: "queue",
+          appointmentId: q.appointmentId,
+          tokenNumber: q.tokenNumber,
+          createdAt: q.createdAt,
+          patientName: name,
+          status: q.status,
+          tokenType: q.tokenType,
+          visitSummary:
+            q.appointment?.chiefComplaint?.trim() ||
+            q.appointment?.type?.trim() ||
+            undefined,
+        });
+      }
+    }
+
+    // Add remaining walk-ins after the schedule list (still FCFS).
+    while (walkInIdx < walkInSorted.length) {
+      const q = walkInSorted[walkInIdx++];
+      const name = q.patient
+        ? `${q.patient.firstName} ${q.patient.lastName}`
+        : "Patient";
+      combinedUpcoming.push({
+        kind: "queue",
+        appointmentId: q.appointmentId,
+        tokenNumber: q.tokenNumber,
+        createdAt: q.createdAt,
+        patientName: name,
+        status: q.status,
+        tokenType: q.tokenType,
+        visitSummary:
+          q.appointment?.chiefComplaint?.trim() ||
+          q.appointment?.type?.trim() ||
+          undefined,
+      });
+    }
+
+    return { inProgress, combinedUpcoming, mode: "schedule" as const };
+  }, [
+    clinic,
+    inProgressAppointmentsData?.items,
+    opdQueueRows,
+    todayAppointmentsSorted,
+  ]);
+
   const handleStartConsultation = async (appointmentId: string) => {
     try {
       const result = await startConsultation.mutateAsync({ appointmentId });
-      router.push(`/consultation/${result.appointmentId}`);
+      goToConsultationWorkspace(result.appointmentId);
     } catch (error) {
       showUserFacingErrorToast(
         error,
@@ -143,15 +356,22 @@ export const useConsultationDashboard = () => {
 
   return {
     appointments: appointmentsData?.items || [],
+    todayAppointmentsSorted,
+    doctorNowNext,
     queue: queueData || [],
     stats,
     activeConsultations,
     waitingList,
-    isLoading: isLoadingAppointments || isLoadingQueue,
+    opdQueueRows,
+    isLoading: isLoadingAppointments || isLoadingQueue || isLoadingInProgress,
     handleStartConsultation,
-    canStartConsultation: canStartConsultation && canAccessQueueApi,
+    goToConsultationWorkspace,
+    canAccessQueue: canAccessQueueApi,
+    canStartConsultation,
     isStartingConsultation: startConsultation.isPending,
     currentUserId: user?.id,
+    currentUserRole: user?.role,
+    clinicType: clinic?.type ?? null,
     router,
   };
 };

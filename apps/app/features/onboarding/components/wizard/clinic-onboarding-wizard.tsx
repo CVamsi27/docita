@@ -22,7 +22,7 @@ export function ClinicOnboardingWizard() {
 
     if (user.clinicId) {
       setIsFinalizingRedirect(true);
-      router.replace("/dashboard");
+      router.replace("/today");
     }
   }, [isLoading, router, user]);
 
@@ -51,7 +51,7 @@ export function ClinicOnboardingWizard() {
       onSuccess={() => {
         setIsFinalizingRedirect(true);
         const destination =
-          user?.role === "ADMIN_DOCTOR" ? "/verify-doctor" : "/dashboard";
+          user?.role === "ADMIN_DOCTOR" ? "/verify-doctor" : "/today";
         router.replace(destination);
       }}
     />

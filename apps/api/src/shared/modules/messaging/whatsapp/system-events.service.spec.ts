@@ -1,8 +1,7 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import { SystemEventsService } from './system-events.service';
 import { PrismaService } from '@/prisma/prisma.service';
-import { TemplatesService } from './templates.service';
-import { WhatsappClientService } from './whatsapp-client.service';
+import { SendMessageUseCase } from '@/domains/whatsapp/application/use-cases/send-message.use-case';
 import { Logger } from '@nestjs/common';
 import {
   beforeEach,
@@ -12,25 +11,29 @@ import {
   expect,
   jest,
 } from '@jest/globals';
+import { ClinicTier, IntelligenceAddon } from '@workspace/db';
 
 describe('SystemEventsService', () => {
   let service: SystemEventsService;
   let mockPrisma: ReturnType<typeof buildMockPrisma>;
-  let mockTemplatesService: {
-    resolveTemplate: ReturnType<typeof jest.fn>;
-    getMessageForMode: ReturnType<typeof jest.fn>;
-  };
-  let mockWhatsappClient: { sendMessage: ReturnType<typeof jest.fn> };
+  const sendMessageExecute = jest.fn<SendMessageUseCase['execute']>();
+
+  function essentialClinic(overrides: Record<string, unknown> = {}) {
+    return {
+      tier: ClinicTier.ESSENTIAL,
+      intelligenceAddon: IntelligenceAddon.NONE,
+      features: {},
+      whatsappAutomation: { enabled: true },
+      ...overrides,
+    };
+  }
 
   function buildMockPrisma() {
     return {
       clinic: {
         findUnique: jest
           .fn<(...args: unknown[]) => Promise<unknown>>()
-          .mockImplementation(async () => ({
-            id: 'clinic-123',
-            whatsappAutomation: { enabled: true },
-          })),
+          .mockImplementation(async () => essentialClinic()),
       },
       prescription: {
         findUnique: jest
@@ -80,19 +83,10 @@ describe('SystemEventsService', () => {
 
   beforeEach(async () => {
     mockPrisma = buildMockPrisma();
-    mockTemplatesService = {
-      resolveTemplate: jest.fn().mockImplementation(async () => ({
-        content: 'Resolved template message',
-        buttons: [],
-      })),
-      getMessageForMode: jest.fn().mockReturnValue('Formatted message'),
-    };
-    mockWhatsappClient = {
-      sendMessage: jest.fn().mockImplementation(async () => ({
-        success: true,
-        messageId: 'msg-123',
-      })),
-    };
+    sendMessageExecute.mockResolvedValue({
+      messageId: 'msg-int',
+      providerMessageId: 'wamid.1',
+    });
 
     jest.spyOn(Logger.prototype, 'log').mockImplementation(() => {});
     jest.spyOn(Logger.prototype, 'warn').mockImplementation(() => {});
@@ -102,8 +96,10 @@ describe('SystemEventsService', () => {
       providers: [
         SystemEventsService,
         { provide: PrismaService, useValue: mockPrisma },
-        { provide: TemplatesService, useValue: mockTemplatesService },
-        { provide: WhatsappClientService, useValue: mockWhatsappClient },
+        {
+          provide: SendMessageUseCase,
+          useValue: { execute: sendMessageExecute },
+        },
       ],
     }).compile();
 
@@ -119,33 +115,48 @@ describe('SystemEventsService', () => {
   });
 
   describe('sendPrescriptionSystem', () => {
-    it('should fetch prescription, resolve template, and send message', async () => {
+    it('should send prescription_created via SendMessageUseCase', async () => {
       await service.sendPrescriptionSystem('rx-123', 'clinic-123');
 
       expect(mockPrisma.prescription.findUnique).toHaveBeenCalledWith(
         expect.objectContaining({ where: { id: 'rx-123' } }),
       );
-      expect(mockTemplatesService.resolveTemplate).toHaveBeenCalledWith(
-        'prescription_created',
-        expect.any(Object),
-        'clinic-123',
+      expect(sendMessageExecute).toHaveBeenCalledWith(
+        expect.objectContaining({
+          clinicId: 'clinic-123',
+          recipientPhone: '919876543210',
+          templateName: 'prescription_created',
+          variables: expect.objectContaining({
+            patientName: 'Rahul Sharma',
+            doctorName: 'Dr. Patel',
+            clinicName: 'Test Clinic',
+          }),
+        }),
       );
-      expect(mockWhatsappClient.sendMessage).toHaveBeenCalledWith({
-        to: '919876543210',
-        message: 'Formatted message',
-      });
     });
 
-    it('should skip when WhatsApp is disabled for clinic', async () => {
-      mockPrisma.clinic.findUnique.mockResolvedValue({
-        id: 'clinic-123',
-        whatsappAutomation: { enabled: false },
-      });
+    it('should skip when WhatsApp automation is disabled for clinic', async () => {
+      mockPrisma.clinic.findUnique.mockResolvedValue(
+        essentialClinic({ whatsappAutomation: { enabled: false } }),
+      );
 
       await service.sendPrescriptionSystem('rx-123', 'clinic-123');
 
       expect(mockPrisma.prescription.findUnique).not.toHaveBeenCalled();
-      expect(mockWhatsappClient.sendMessage).not.toHaveBeenCalled();
+      expect(sendMessageExecute).not.toHaveBeenCalled();
+    });
+
+    it('should skip when clinic tier is Starter', async () => {
+      mockPrisma.clinic.findUnique.mockResolvedValue({
+        tier: ClinicTier.STARTER,
+        intelligenceAddon: IntelligenceAddon.NONE,
+        features: {},
+        whatsappAutomation: { enabled: true },
+      });
+
+      await service.sendPrescriptionSystem('rx-123', 'clinic-123');
+
+      expect(sendMessageExecute).not.toHaveBeenCalled();
     });
 
     it('should skip when prescription is not found', async () => {
@@ -153,7 +164,7 @@ describe('SystemEventsService', () => {
 
       await service.sendPrescriptionSystem('nonexistent', 'clinic-123');
 
-      expect(mockWhatsappClient.sendMessage).not.toHaveBeenCalled();
+      expect(sendMessageExecute).not.toHaveBeenCalled();
     });
 
     it('should skip when patient has no phone number', async () => {
@@ -166,45 +177,33 @@ describe('SystemEventsService', () => {
 
       await service.sendPrescriptionSystem('rx-123', 'clinic-123');
 
-      expect(mockWhatsappClient.sendMessage).not.toHaveBeenCalled();
-    });
-
-    it('should not send message when template resolves to null', async () => {
-      mockTemplatesService.resolveTemplate.mockResolvedValue(null);
-
-      await service.sendPrescriptionSystem('rx-123', 'clinic-123');
-
-      expect(mockWhatsappClient.sendMessage).not.toHaveBeenCalled();
+      expect(sendMessageExecute).not.toHaveBeenCalled();
     });
   });
 
   describe('sendInvoiceSystem', () => {
-    it('should fetch invoice, resolve template, and send message', async () => {
+    it('should send invoice_created via SendMessageUseCase', async () => {
       await service.sendInvoiceSystem('inv-123', 'clinic-123');
 
       expect(mockPrisma.invoice.findUnique).toHaveBeenCalledWith(
         expect.objectContaining({ where: { id: 'inv-123' } }),
       );
-      expect(mockTemplatesService.resolveTemplate).toHaveBeenCalledWith(
-        'invoice_created',
-        expect.any(Object),
-        'clinic-123',
+      expect(sendMessageExecute).toHaveBeenCalledWith(
+        expect.objectContaining({
+          templateName: 'invoice_created',
+          recipientPhone: '919876543211',
+        }),
       );
-      expect(mockWhatsappClient.sendMessage).toHaveBeenCalledWith({
-        to: '919876543211',
-        message: 'Formatted message',
-      });
     });
 
     it('should skip when WhatsApp is disabled for clinic', async () => {
-      mockPrisma.clinic.findUnique.mockResolvedValue({
-        id: 'clinic-123',
-        whatsappAutomation: { enabled: false },
-      });
+      mockPrisma.clinic.findUnique.mockResolvedValue(
+        essentialClinic({ whatsappAutomation: { enabled: false } }),
+      );
 
       await service.sendInvoiceSystem('inv-123', 'clinic-123');
 
-      expect(mockWhatsappClient.sendMessage).not.toHaveBeenCalled();
+      expect(sendMessageExecute).not.toHaveBeenCalled();
     });
 
     it('should skip when invoice is not found', async () => {
@@ -212,7 +211,7 @@ describe('SystemEventsService', () => {
 
       await service.sendInvoiceSystem('nonexistent', 'clinic-123');
 
-      expect(mockWhatsappClient.sendMessage).not.toHaveBeenCalled();
+      expect(sendMessageExecute).not.toHaveBeenCalled();
     });
 
     it('should skip when patient has no phone number', async () => {
@@ -225,7 +224,7 @@ describe('SystemEventsService', () => {
 
       await service.sendInvoiceSystem('inv-123', 'clinic-123');
 
-      expect(mockWhatsappClient.sendMessage).not.toHaveBeenCalled();
+      expect(sendMessageExecute).not.toHaveBeenCalled();
     });
   });
 
@@ -233,19 +232,17 @@ describe('SystemEventsService', () => {
     it('should send appointment_confirmation template', async () => {
       await service.sendAppointmentConfirmation('appt-123', 'clinic-123');
 
-      expect(mockTemplatesService.resolveTemplate).toHaveBeenCalledWith(
-        'appointment_confirmation',
+      expect(sendMessageExecute).toHaveBeenCalledWith(
         expect.objectContaining({
-          patientName: 'Sunita Devi',
-          clinicName: 'Test Clinic',
-          doctorName: 'Dr. Sharma',
+          templateName: 'appointment_confirmation',
+          recipientPhone: '919876543212',
+          variables: expect.objectContaining({
+            patientName: 'Sunita Devi',
+            clinicName: 'Test Clinic',
+            doctorName: 'Dr. Sharma',
+          }),
         }),
-        'clinic-123',
       );
-      expect(mockWhatsappClient.sendMessage).toHaveBeenCalledWith({
-        to: '919876543212',
-        message: 'Formatted message',
-      });
     });
 
     it('should skip when appointment not found', async () => {
@@ -253,18 +250,17 @@ describe('SystemEventsService', () => {
 
       await service.sendAppointmentConfirmation('nonexistent', 'clinic-123');
 
-      expect(mockWhatsappClient.sendMessage).not.toHaveBeenCalled();
+      expect(sendMessageExecute).not.toHaveBeenCalled();
     });
 
     it('should skip when WhatsApp is disabled', async () => {
-      mockPrisma.clinic.findUnique.mockResolvedValue({
-        id: 'clinic-123',
-        whatsappAutomation: { enabled: false },
-      });
+      mockPrisma.clinic.findUnique.mockResolvedValue(
+        essentialClinic({ whatsappAutomation: { enabled: false } }),
+      );
 
       await service.sendAppointmentConfirmation('appt-123', 'clinic-123');
 
-      expect(mockWhatsappClient.sendMessage).not.toHaveBeenCalled();
+      expect(sendMessageExecute).not.toHaveBeenCalled();
     });
   });
 
@@ -276,10 +272,10 @@ describe('SystemEventsService', () => {
         'CANCELLED',
       );
 
-      expect(mockTemplatesService.resolveTemplate).toHaveBeenCalledWith(
-        'appointment_cancelled',
-        expect.any(Object),
-        'clinic-123',
+      expect(sendMessageExecute).toHaveBeenCalledWith(
+        expect.objectContaining({
+          templateName: 'appointment_cancelled',
+        }),
       );
     });
 
@@ -290,10 +286,10 @@ describe('SystemEventsService', () => {
         'RESCHEDULED',
       );
 
-      expect(mockTemplatesService.resolveTemplate).toHaveBeenCalledWith(
-        'appointment_rescheduled',
-        expect.any(Object),
-        'clinic-123',
+      expect(sendMessageExecute).toHaveBeenCalledWith(
+        expect.objectContaining({
+          templateName: 'appointment_rescheduled',
+        }),
       );
     });
 
@@ -306,7 +302,7 @@ describe('SystemEventsService', () => {
         'CANCELLED',
       );
 
-      expect(mockWhatsappClient.sendMessage).not.toHaveBeenCalled();
+      expect(sendMessageExecute).not.toHaveBeenCalled();
     });
   });
 });

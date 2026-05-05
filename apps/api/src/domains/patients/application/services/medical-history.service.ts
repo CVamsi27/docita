@@ -270,7 +270,7 @@ export class MedicalHistoryService {
   }
 
   async getSocialHistory(patientId: string) {
-    return this.prisma.patientSocialHistory.findUnique({
+    return this.prisma.patientSocialHistory.findFirst({
       where: { patientId },
     });
   }
@@ -281,44 +281,60 @@ export class MedicalHistoryService {
   ) {
     const validated = this.medicalHistoryFactory.createSocialHistory(dto);
 
-    return this.prisma.patientSocialHistory.upsert({
+    const createData = {
+      patientId,
+      smokingStatus: validated.smokingStatus as SmokingStatus,
+      smokingPackYears: validated.smokingPackYears,
+      smokingQuitDate: validated.smokingQuitDate
+        ? new Date(validated.smokingQuitDate)
+        : null,
+      alcoholUse: validated.alcoholUse as AlcoholUseStatus,
+      alcoholFrequency: validated.alcoholFrequency,
+      substanceUse: validated.substanceUse,
+      occupation: validated.occupation,
+      occupationalHazards: validated.occupationalHazards,
+      exerciseFrequency: validated.exerciseFrequency,
+      dietaryRestrictions: validated.dietaryRestrictions,
+      notes: validated.notes,
+    };
+
+    const updateData = {
+      smokingStatus: validated.smokingStatus as SmokingStatus,
+      smokingPackYears: validated.smokingPackYears,
+      smokingQuitDate: validated.smokingQuitDate
+        ? new Date(validated.smokingQuitDate)
+        : undefined,
+      alcoholUse: validated.alcoholUse as AlcoholUseStatus,
+      alcoholFrequency: validated.alcoholFrequency,
+      substanceUse: validated.substanceUse,
+      occupation: validated.occupation,
+      occupationalHazards: validated.occupationalHazards,
+      exerciseFrequency: validated.exerciseFrequency,
+      dietaryRestrictions: validated.dietaryRestrictions,
+      notes: validated.notes,
+    };
+
+    const existing = await this.prisma.patientSocialHistory.findFirst({
       where: { patientId },
-      create: {
-        patientId,
-        smokingStatus: validated.smokingStatus as SmokingStatus,
-        smokingPackYears: validated.smokingPackYears,
-        smokingQuitDate: validated.smokingQuitDate
-          ? new Date(validated.smokingQuitDate)
-          : null,
-        alcoholUse: validated.alcoholUse as AlcoholUseStatus,
-        alcoholFrequency: validated.alcoholFrequency,
-        substanceUse: validated.substanceUse,
-        occupation: validated.occupation,
-        occupationalHazards: validated.occupationalHazards,
-        exerciseFrequency: validated.exerciseFrequency,
-        dietaryRestrictions: validated.dietaryRestrictions,
-        notes: validated.notes,
-      },
-      update: {
-        smokingStatus: validated.smokingStatus as SmokingStatus,
-        smokingPackYears: validated.smokingPackYears,
-        smokingQuitDate: validated.smokingQuitDate
-          ? new Date(validated.smokingQuitDate)
-          : undefined,
-        alcoholUse: validated.alcoholUse as AlcoholUseStatus,
-        alcoholFrequency: validated.alcoholFrequency,
-        substanceUse: validated.substanceUse,
-        occupation: validated.occupation,
-        occupationalHazards: validated.occupationalHazards,
-        exerciseFrequency: validated.exerciseFrequency,
-        dietaryRestrictions: validated.dietaryRestrictions,
-        notes: validated.notes,
-      },
+    });
+
+    if (existing) {
+      await this.prisma.patientSocialHistory.updateMany({
+        where: { patientId },
+        data: updateData,
+      });
+      return this.prisma.patientSocialHistory.findFirst({
+        where: { patientId },
+      });
+    }
+
+    return this.prisma.patientSocialHistory.create({
+      data: createData,
     });
   }
 
   async deleteSocialHistory(patientId: string) {
-    const existing = await this.prisma.patientSocialHistory.findUnique({
+    const existing = await this.prisma.patientSocialHistory.findFirst({
       where: { patientId },
     });
     if (!existing) {
@@ -327,9 +343,11 @@ export class MedicalHistoryService {
       );
     }
 
-    return this.prisma.patientSocialHistory.delete({
+    await this.prisma.patientSocialHistory.deleteMany({
       where: { patientId },
     });
+
+    return existing;
   }
 
   async getSurgicalHistory(patientId: string) {

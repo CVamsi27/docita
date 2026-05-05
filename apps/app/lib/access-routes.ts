@@ -20,6 +20,7 @@ const ROUTE_ACCESS_RULES: RouteAccessRule[] = [
   { pathPrefix: "/consultation", target: APP_ACCESS_TARGETS.PAGE_CONSULTATION },
   { pathPrefix: "/prescriptions", target: APP_ACCESS_TARGETS.PAGE_PRESCRIPTIONS },
   { pathPrefix: "/lab-tests", target: APP_ACCESS_TARGETS.PAGE_LAB_TESTS },
+  { pathPrefix: "/desk", target: APP_ACCESS_TARGETS.PAGE_DESK_PAYMENT },
   { pathPrefix: "/invoices", target: APP_ACCESS_TARGETS.PAGE_INVOICES },
   { pathPrefix: "/inventory", target: APP_ACCESS_TARGETS.PAGE_INVENTORY },
   { pathPrefix: "/documents", target: APP_ACCESS_TARGETS.PAGE_DOCUMENTS },
@@ -31,6 +32,9 @@ const ROUTE_ACCESS_RULES: RouteAccessRule[] = [
   { pathPrefix: "/specialty", target: APP_ACCESS_TARGETS.PAGE_SPECIALTY },
   { pathPrefix: "/hospital", target: APP_ACCESS_TARGETS.PAGE_HOSPITAL },
   { pathPrefix: "/upgrade", target: APP_ACCESS_TARGETS.PAGE_UPGRADE },
+  { pathPrefix: "/help", target: APP_ACCESS_TARGETS.PAGE_DASHBOARD },
+  { pathPrefix: "/inbox", target: APP_ACCESS_TARGETS.PAGE_DASHBOARD },
+  { pathPrefix: "/templates", target: APP_ACCESS_TARGETS.PAGE_DASHBOARD },
 ];
 
 export function getAccessTargetForPath(pathname?: string | null): AppAccessTarget | null {

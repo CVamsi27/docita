@@ -1,18 +1,21 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { motion, useReducedMotion } from "motion/react";
-import { Button } from "@workspace/ui/components/button";
-import { cn } from "@workspace/ui/lib/utils";
 import {
   ArrowRight,
   CalendarCheck,
-  Sparkles,
+  CheckCircle2,
+  ClipboardList,
+  FileText,
+  MessageSquare,
+  Receipt,
+  Stethoscope,
 } from "lucide-react";
 
-import { HeroWorkflowVisual } from "@/components/sections/hero-workflow-visual";
+import { Button } from "@workspace/ui/components/button";
+
 import {
-  landingBrutalFrameVariants,
   landingFadeUpVariants,
   landingStaggerContainer,
 } from "@/lib/motion-prefs";
@@ -21,97 +24,86 @@ interface HeroSectionProps {
   appUrl: string;
 }
 
+const STATES = ["waiting", "consult", "checkout"] as const;
+type ProductState = (typeof STATES)[number];
+
+const STATE_DURATION_MS = 5200;
+
 export function HeroSection({ appUrl }: HeroSectionProps) {
   const reduce = useReducedMotion();
-  const [motionReady, setMotionReady] = useState(false);
+  const [state, setState] = useState<ProductState>("waiting");
+  const [paused, setPaused] = useState(false);
+  const stateIndexRef = useRef(0);
 
   useEffect(() => {
-    if (reduce === true) {
+    if (reduce === true || paused) {
       return;
     }
-    const id = requestAnimationFrame(() => {
-      setMotionReady(true);
-    });
-    return () => cancelAnimationFrame(id);
-  }, [reduce]);
+    const id = window.setInterval(() => {
+      stateIndexRef.current = (stateIndexRef.current + 1) % STATES.length;
+      setState(STATES[stateIndexRef.current]);
+    }, STATE_DURATION_MS);
+    return () => window.clearInterval(id);
+  }, [reduce, paused]);
 
-  const runHeroMotion = motionReady && reduce !== true;
   const item = landingFadeUpVariants(reduce ?? false);
   const container = landingStaggerContainer(reduce ?? false, 0.07, 0.04);
-  const frameVariants = landingBrutalFrameVariants(reduce ?? false);
-  const h1LineStagger =
-    reduce === true
-      ? {
-          hidden: {},
-          visible: { transition: { staggerChildren: 0, delayChildren: 0 } },
-        }
-      : {
-          hidden: {},
-          visible: {
-            transition: { staggerChildren: 0.055, delayChildren: 0 },
-          },
-        };
 
   return (
-    <section className="landing-hero-origin landing-section-hero landing-hero-editorial relative overflow-hidden">
-      <div className="landing-hero-mesh" aria-hidden />
-      <div className="landing-hero-vignette" aria-hidden />
-
-      <div className="ui-page-shell relative z-10">
+    <section className="r2-hero" aria-labelledby="r2-hero-heading">
+      <div className="ui-page-shell r2-hero-shell">
         <motion.div
-          key={runHeroMotion ? "hero-motion" : "hero-static"}
-          className={cn(
-            "mx-auto flex max-w-6xl flex-col gap-y-8 sm:gap-y-10",
-            "lg:grid lg:max-w-none lg:grid-cols-[minmax(0,1.02fr)_minmax(0,0.98fr)] lg:items-center lg:gap-x-12 lg:gap-y-6 xl:gap-x-16",
-          )}
+          className="r2-grid-12 items-center"
           variants={container}
-          initial={runHeroMotion ? "hidden" : false}
-          animate={runHeroMotion ? "visible" : false}
+          initial="hidden"
+          animate="visible"
         >
-          <motion.p
-            variants={item}
-            className="landing-hero-kicker max-w-fit self-center text-center font-mono text-[10px] font-semibold uppercase tracking-[0.28em] text-primary sm:text-[11px] lg:col-start-1 lg:row-start-1 lg:self-start lg:text-left"
-          >
-            India · private clinics · OPD-first
-          </motion.p>
-
-          <motion.h1
-            variants={h1LineStagger}
-            className={cn(
-              "max-w-[18ch] text-balance text-foreground lg:max-w-[22ch]",
-              "landing-hero-display [font-family:var(--font-display),var(--font-inter),system-ui]",
-              "text-center lg:col-start-1 lg:row-start-2 lg:text-left",
-            )}
-          >
-            <motion.span variants={item} className="landing-hero-display-line1 block">
-              One rhythm for your whole OPD floor.
-            </motion.span>{" "}
-            <motion.span
+          <div className="col-span-12 lg:col-span-7 lg:pr-6 xl:col-span-6">
+            <motion.div
               variants={item}
-              className="landing-hero-display-line2 mt-3 block max-w-[28ch] lg:mt-4"
+              className="flex items-center gap-3 r2-section-marker"
             >
-              Queue, chart, bill, follow up—without the shuffle.
-            </motion.span>
-          </motion.h1>
+              <span aria-hidden>R2 / 01</span>
+              <span
+                aria-hidden
+                className="h-px w-10 bg-current opacity-40"
+              />
+              <span className="r2-eyebrow r2-eyebrow-accent">
+                India · Private clinics · OPD
+              </span>
+            </motion.div>
 
-          <motion.p
-            variants={item}
-            className="landing-hero-lede mx-auto max-w-xl text-pretty text-center text-muted-foreground lg:col-start-1 lg:row-start-3 lg:mx-0 lg:text-left"
-          >
-            A single operating layer for reception and clinicians: tokens,
-            records, prescriptions, invoices, and WhatsApp—tight enough to feel
-            obvious, deep enough for real clinic days.
-          </motion.p>
+            <motion.h1
+              id="r2-hero-heading"
+              variants={item}
+              className="mt-6 r2-display text-foreground"
+            >
+              <span className="block">
+                One <em>rhythm</em> for your whole OPD floor.
+              </span>{" "}
+              <span className="mt-2 block r2-display-sm text-muted-foreground">
+                Queue, chart, bill, follow up&mdash;without the shuffle.
+              </span>
+            </motion.h1>
 
-          <motion.div
-            variants={item}
-            className="flex w-full flex-col items-stretch gap-3 sm:flex-row sm:justify-center lg:col-start-1 lg:row-start-4 lg:justify-start"
-          >
+            <motion.p
+              variants={item}
+              className="mt-6 max-w-xl text-pretty text-base leading-relaxed text-muted-foreground sm:text-lg"
+            >
+              A single operating layer for reception and clinicians: tokens,
+              records, prescriptions, invoices, and WhatsApp&mdash;tight enough
+              to feel obvious, deep enough for real clinic days.
+            </motion.p>
+
+            <motion.div
+              variants={item}
+              className="mt-8 flex flex-col items-stretch gap-3 sm:flex-row sm:items-center"
+            >
               <Button
                 asChild
                 size="lg"
                 variant="primary"
-                className="landing-hero-cta-primary h-12 w-full rounded-xl px-8 text-base font-semibold sm:w-auto"
+                className="h-12 rounded-xl px-7 text-base font-semibold shadow-md"
               >
                 <a href={`${appUrl}/onboarding`}>
                   Start clinic setup
@@ -121,61 +113,294 @@ export function HeroSection({ appUrl }: HeroSectionProps) {
               <Button
                 asChild
                 size="lg"
-                variant="outline"
-                className="landing-hero-cta-secondary h-12 w-full rounded-xl border-2 border-foreground/15 bg-background/70 px-8 text-base font-semibold backdrop-blur-sm sm:w-auto"
+                variant="ghost"
+                className="h-12 rounded-xl px-6 text-base font-semibold"
               >
                 <a href="/contact">
                   <CalendarCheck className="h-5 w-5" />
                   Book guided demo
                 </a>
               </Button>
-          </motion.div>
+            </motion.div>
+
+            <motion.dl
+              variants={item}
+              className="mt-10 grid max-w-md grid-cols-3 gap-x-6 gap-y-2 border-t border-border/60 pt-6"
+            >
+              {[
+                ["48 h", "First workflow live"],
+                ["Mumbai", "India residency"],
+                ["DPDP", "Consent-aware"],
+              ].map(([value, label]) => (
+                <div key={label}>
+                  <dt className="r2-mono text-sm font-semibold text-foreground">
+                    {value}
+                  </dt>
+                  <dd className="mt-0.5 text-[11px] uppercase tracking-[0.14em] text-muted-foreground">
+                    {label}
+                  </dd>
+                </div>
+              ))}
+            </motion.dl>
+          </div>
 
           <motion.div
             variants={item}
-            className={cn(
-              "landing-command-bar-editorial mx-auto flex w-full max-w-xl items-center gap-3 lg:col-start-1 lg:row-start-5 lg:mx-0 lg:max-w-none lg:self-stretch",
-            )}
+            className="col-span-12 lg:col-span-5 xl:col-span-6"
           >
-            <Sparkles className="h-5 w-5 shrink-0 text-primary" />
-            <span className="min-w-0 flex-1 text-left font-mono text-xs font-medium uppercase tracking-wide text-foreground sm:text-sm">
-              Ask what needs attention today
-            </span>
-            <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg border-2 border-foreground/10 bg-foreground text-background shadow-sm">
-              <ArrowRight className="h-4 w-4" />
-            </span>
-          </motion.div>
-
-          <motion.div
-            variants={frameVariants}
-            className="relative mx-auto w-full max-w-lg lg:col-start-2 lg:row-span-5 lg:row-start-1 lg:mx-0 lg:max-w-none"
-          >
-            <div className="landing-hero-brutal-frame relative">
-              <div className="landing-hero-brutal-inner overflow-hidden rounded-[calc(var(--radius)+6px)] border-2 border-foreground/10 bg-card/90 p-4 shadow-inner sm:p-5">
-                <HeroWorkflowVisual className="h-auto w-full" />
-              </div>
-            </div>
-
-            <ul className="landing-hero-stat-strip mt-6 grid grid-cols-3 gap-2 font-mono text-[10px] font-semibold uppercase tracking-wider text-muted-foreground sm:text-xs">
-              {[
-                ["18", "today"],
-                ["₹24k", "outstand."],
-                ["6", "scripts"],
-              ].map(([v, l]) => (
-                <li
-                  key={l}
-                  className="rounded-lg border border-border/60 bg-muted/25 px-2 py-2.5 text-center sm:px-3"
-                >
-                  <span className="block text-lg font-bold tabular-nums tracking-tight text-foreground sm:text-xl">
-                    {v}
-                  </span>
-                  {l}
-                </li>
-              ))}
-            </ul>
+            <HeroProductCard
+              state={state}
+              onHoverStart={() => setPaused(true)}
+              onHoverEnd={() => setPaused(false)}
+              onSelect={(next) => {
+                stateIndexRef.current = STATES.indexOf(next);
+                setState(next);
+              }}
+            />
           </motion.div>
         </motion.div>
       </div>
     </section>
+  );
+}
+
+interface HeroProductCardProps {
+  state: ProductState;
+  onHoverStart: () => void;
+  onHoverEnd: () => void;
+  onSelect: (state: ProductState) => void;
+}
+
+function HeroProductCard({
+  state,
+  onHoverStart,
+  onHoverEnd,
+  onSelect,
+}: HeroProductCardProps) {
+  return (
+    <div
+      className="r2-product"
+      data-state={state}
+      onMouseEnter={onHoverStart}
+      onMouseLeave={onHoverEnd}
+      onFocusCapture={onHoverStart}
+      onBlurCapture={onHoverEnd}
+      role="region"
+      aria-label="Live clinic operations preview"
+    >
+      <div className="r2-product-chrome">
+        <span className="r2-product-chrome-dot" aria-hidden />
+        <span className="r2-product-chrome-dot" aria-hidden />
+        <span className="r2-product-chrome-dot" aria-hidden />
+        <span className="ml-2">SUNDAR CLINIC · MON 10:42</span>
+        <span className="ml-auto inline-flex items-center gap-1.5">
+          <span
+            className="h-1.5 w-1.5 rounded-full bg-success"
+            aria-hidden
+          />
+          <span>Live</span>
+        </span>
+      </div>
+
+      <div className="r2-product-stage">
+        <WaitingFrame />
+        <ConsultFrame />
+        <CheckoutFrame />
+      </div>
+
+      <div
+        className="r2-product-rail"
+        role="tablist"
+        aria-label="Preview state"
+      >
+        {STATES.map((s, i) => (
+          <button
+            key={s}
+            type="button"
+            role="tab"
+            aria-selected={state === s}
+            aria-label={`Show ${s} preview`}
+            onClick={() => onSelect(s)}
+            className="group flex flex-1 items-center gap-2 focus:outline-none"
+          >
+            <span className="r2-product-rail-dot" />
+            <span className="sr-only">{`Step ${i + 1}: ${s}`}</span>
+          </button>
+        ))}
+      </div>
+    </div>
+  );
+}
+
+function WaitingFrame() {
+  return (
+    <div className="r2-product-frame" data-frame="waiting">
+      <div className="flex items-center justify-between">
+        <div>
+          <p className="r2-eyebrow">OPD queue</p>
+          <p className="text-sm font-semibold text-foreground">
+            18 patients · avg wait 12 m
+          </p>
+        </div>
+        <span className="r2-status-pill r2-status-pill--in">
+          <ClipboardList className="h-3 w-3" /> Live
+        </span>
+      </div>
+
+      {[
+        { token: "07", name: "R. Iyer", status: "in", note: "Dr. Mehta" },
+        { token: "08", name: "K. Patel", status: "waiting", note: "Walk-in" },
+        { token: "09", name: "P. Rao", status: "waiting", note: "Follow-up" },
+        { token: "10", name: "S. Khan", status: "waiting", note: "New" },
+      ].map((row, i) => (
+        <div
+          key={row.token}
+          className={i === 0 ? "r2-row r2-row-active" : "r2-row"}
+        >
+          <span className="r2-token">{row.token}</span>
+          <div className="min-w-0 flex-1">
+            <p className="truncate text-sm font-medium text-foreground">
+              {row.name}
+            </p>
+            <p className="truncate text-xs text-muted-foreground">{row.note}</p>
+          </div>
+          <span
+            className={
+              row.status === "in"
+                ? "r2-status-pill r2-status-pill--in"
+                : "r2-status-pill r2-status-pill--waiting"
+            }
+          >
+            {row.status === "in" ? "In room" : "Waiting"}
+          </span>
+        </div>
+      ))}
+    </div>
+  );
+}
+
+function ConsultFrame() {
+  return (
+    <div className="r2-product-frame" data-frame="consult">
+      <div className="flex items-center justify-between">
+        <div>
+          <p className="r2-eyebrow">Consult · Token 07</p>
+          <p className="text-sm font-semibold text-foreground">
+            R. Iyer · 42 · F · Follow-up
+          </p>
+        </div>
+        <span className="r2-status-pill r2-status-pill--in">
+          <Stethoscope className="h-3 w-3" /> In room
+        </span>
+      </div>
+
+      <div className="r2-row">
+        <div className="min-w-0 flex-1">
+          <p className="r2-eyebrow">Last visit · 12 Apr</p>
+          <p className="mt-1 text-sm text-foreground">
+            HbA1c 7.2 · BP 138/86 · Metformin 500mg BD
+          </p>
+        </div>
+      </div>
+
+      <div className="r2-row">
+        <FileText className="h-4 w-4 text-primary" />
+        <div className="min-w-0 flex-1">
+          <p className="text-sm font-medium text-foreground">
+            Prescription draft
+          </p>
+          <p className="text-xs text-muted-foreground">
+            Metformin 500mg · 1-0-1 · 30 days
+          </p>
+        </div>
+        <span className="r2-status-pill r2-status-pill--waiting">
+          Review
+        </span>
+      </div>
+
+      <div className="r2-row">
+        <FileText className="h-4 w-4 text-primary" />
+        <div className="min-w-0 flex-1">
+          <p className="text-sm font-medium text-foreground">
+            Telmisartan 40mg · 1-0-0 · 30 days
+          </p>
+          <p className="text-xs text-muted-foreground">
+            Tied to today&rsquo;s visit
+          </p>
+        </div>
+        <span className="r2-status-pill r2-status-pill--done">Added</span>
+      </div>
+
+      <div className="grid grid-cols-2 gap-2.5">
+        <div className="rounded-lg border border-border/60 bg-muted px-3 py-2 text-xs">
+          <p className="r2-eyebrow">Lab</p>
+          <p className="mt-0.5 text-foreground">HbA1c · 6 weeks</p>
+        </div>
+        <div className="rounded-lg border border-border/60 bg-muted px-3 py-2 text-xs">
+          <p className="r2-eyebrow">Next visit</p>
+          <p className="mt-0.5 text-foreground">28 May · 11:30</p>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function CheckoutFrame() {
+  return (
+    <div className="r2-product-frame" data-frame="checkout">
+      <div className="flex items-center justify-between">
+        <div>
+          <p className="r2-eyebrow">Invoice · Token 07</p>
+          <p className="text-sm font-semibold text-foreground">
+            R. Iyer · paid via UPI
+          </p>
+        </div>
+        <span className="r2-status-pill r2-status-pill--done">
+          <CheckCircle2 className="h-3 w-3" /> Closed
+        </span>
+      </div>
+
+      <div className="rounded-xl border border-border/60 bg-card p-3">
+        <div className="space-y-2 text-sm">
+          {[
+            ["Consultation", "₹500"],
+            ["Procedure · INJ", "₹250"],
+            ["Discount", "−₹50"],
+          ].map(([label, value]) => (
+            <div
+              key={label}
+              className="flex items-center justify-between text-muted-foreground"
+            >
+              <span>{label}</span>
+              <span className="r2-money text-foreground">{value}</span>
+            </div>
+          ))}
+        </div>
+        <div className="mt-3 flex items-center justify-between border-t border-border/50 pt-3">
+          <span className="r2-eyebrow">Total</span>
+          <span className="r2-money text-base text-foreground">₹700</span>
+        </div>
+      </div>
+
+      <div className="r2-row r2-row-active">
+        <Receipt className="h-4 w-4 text-primary" />
+        <div className="min-w-0 flex-1">
+          <p className="text-sm font-medium text-foreground">
+            Receipt sent on WhatsApp
+          </p>
+          <p className="text-xs text-muted-foreground">
+            +91 98••• ••432 · just now
+          </p>
+        </div>
+        <MessageSquare className="h-4 w-4 text-success" />
+      </div>
+
+      <div className="rounded-xl border border-success/30 bg-success/5 p-3 text-xs leading-relaxed text-foreground">
+        <p className="r2-eyebrow text-success">Follow-up scheduled</p>
+        <p className="mt-1">
+          HbA1c reminder &middot; 6 weeks &middot; opt-in confirmed.
+        </p>
+      </div>
+    </div>
   );
 }

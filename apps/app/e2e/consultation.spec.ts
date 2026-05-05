@@ -189,9 +189,9 @@ test.describe("Consultation Flow", () => {
     await expect(hpi).toBeVisible({ timeout: 15000 });
     await hpi.fill("Sidebar leave guard integration test");
 
-    const dashboardLink = page.locator("aside a[href=\"/dashboard\"]").first();
-    await expect(dashboardLink).toBeVisible({ timeout: 10000 });
-    await dashboardLink.click();
+    const todayLink = page.locator("aside a[href=\"/today\"]").first();
+    await expect(todayLink).toBeVisible({ timeout: 10000 });
+    await todayLink.click();
 
     await expect(
       page.getByRole("heading", { name: /Leave consultation/i }),
@@ -199,6 +199,20 @@ test.describe("Consultation Flow", () => {
 
     await page.getByRole("button", { name: "Stay" }).click();
     await expect(page).toHaveURL(new RegExp(`/consultation/${appointmentId}`));
+  });
+
+  test("opens scoped Ask AI overlay from consultation header", async ({
+    page,
+  }) => {
+    await page.setViewportSize({ width: 1280, height: 800 });
+    await openConsultationEditor(page, appointmentId);
+
+    await page.getByTestId("consultation-ask-ai").click();
+
+    await expect(page.getByRole("dialog", { name: /Ask AI/i })).toBeVisible({
+      timeout: 5000,
+    });
+    await expect(page.getByText(/on .* consultation/i).first()).toBeVisible();
   });
 
   test("save and leave navigates away from consultation workspace", async ({

@@ -10,7 +10,6 @@ import { UploadsService } from '@/domains/documents/application/services/uploads
 import { AppConfigService } from '@/shared/modules/config/app-configuration.service';
 import { PAYMENT_GATEWAY_TOKEN } from '@/domains/subscriptions/application/ports';
 import { BadRequestException, Logger, NotFoundException } from '@nestjs/common';
-import { SubscriptionStatus } from '@workspace/db';
 import {
   beforeEach,
   afterEach,
@@ -124,6 +123,13 @@ describe('OnboardingService', () => {
         return { valid: true, errors: [] };
       },
     ),
+    getTierLimits: jest.fn(() => ({
+      includedPatients: 50,
+      includedAppointments: 100,
+      includedStorageGB: 1,
+      includedUsers: 1,
+    })),
+    getTierPricing: jest.fn(() => 49900),
   };
   const mockWorkflowService = {
     createClinic: jest
@@ -140,6 +146,60 @@ describe('OnboardingService', () => {
       .mockImplementation(async () => ({ id: 'sub_123' })),
     createStaffMembers: jest.fn().mockImplementation(async () => 0),
     initializeClinicSettings: jest
+      .fn()
+      .mockImplementation(async () => undefined),
+    getDefaultClinicWeeklyHoursInput: jest.fn(() => [
+      {
+        dayOfWeek: 'SUNDAY',
+        startTime: '09:00',
+        endTime: '17:00',
+        slotDuration: 30,
+        isActive: false,
+      },
+      {
+        dayOfWeek: 'MONDAY',
+        startTime: '09:00',
+        endTime: '17:00',
+        slotDuration: 30,
+        isActive: true,
+      },
+      {
+        dayOfWeek: 'TUESDAY',
+        startTime: '09:00',
+        endTime: '17:00',
+        slotDuration: 30,
+        isActive: true,
+      },
+      {
+        dayOfWeek: 'WEDNESDAY',
+        startTime: '09:00',
+        endTime: '17:00',
+        slotDuration: 30,
+        isActive: true,
+      },
+      {
+        dayOfWeek: 'THURSDAY',
+        startTime: '09:00',
+        endTime: '17:00',
+        slotDuration: 30,
+        isActive: true,
+      },
+      {
+        dayOfWeek: 'FRIDAY',
+        startTime: '09:00',
+        endTime: '17:00',
+        slotDuration: 30,
+        isActive: true,
+      },
+      {
+        dayOfWeek: 'SATURDAY',
+        startTime: '09:00',
+        endTime: '17:00',
+        slotDuration: 30,
+        isActive: false,
+      },
+    ]),
+    replaceClinicWeeklySchedules: jest
       .fn()
       .mockImplementation(async () => undefined),
   };
@@ -159,7 +219,12 @@ describe('OnboardingService', () => {
   };
   const mockPaymentGateway = {
     createOrder: jest.fn(),
-    verifyPayment: jest.fn(),
+    verifyPayment:
+      jest.fn<
+        (
+          ...args: unknown[]
+        ) => Promise<{ verified: boolean; amountCents: number }>
+      >(),
   };
 
   beforeEach(async () => {
@@ -387,17 +452,27 @@ describe('OnboardingService', () => {
 
     it('syncs clinic fields when onboarding completes on STARTER plan', async () => {
       const { onboardingId } = service.initializeOnboarding();
+      mockPaymentGateway.verifyPayment.mockResolvedValue({
+        verified: true,
+        amountCents: 49900,
+      });
       const starterData = {
         ...completeData,
+        clinicDetails: {
+          ...completeData.clinicDetails,
+          gstin: '22AAAAA0000A1Z5',
+        },
         planSelection: {
           ...completeData.planSelection,
           tier: ClinicTier.STARTER,
         },
+        paymentDetails: {
+          razorpayPaymentId: 'pay_starter',
+          razorpayOrderId: 'order_starter',
+          razorpaySignature: 'sig_starter',
+        },
       };
 
-      mockPrismaService.subscription.create.mockImplementation(async () => ({
-        id: 'sub_starter',
-      }));
       mockPrismaService.clinic.update.mockImplementation(async () => ({
         id: 'clinic_123',
       }));
@@ -418,25 +493,15 @@ describe('OnboardingService', () => {
       );
 
       expect(result.success).toBe(true);
-      expect(workflowService.createSubscription).not.toHaveBeenCalled();
-      expect(mockPrismaService.subscription.create).toHaveBeenCalledWith(
+      expect(mockPaymentGateway.verifyPayment).toHaveBeenCalled();
+      expect(workflowService.createSubscription).toHaveBeenCalledWith(
+        expect.anything(),
+        'clinic_123',
         expect.objectContaining({
-          data: expect.objectContaining({
-            clinicId: 'clinic_123',
-            plan: 'STARTER',
-            status: SubscriptionStatus.ACTIVE,
-          }),
+          tier: ClinicTier.STARTER,
+          billingCycle: BillingCycle.MONTHLY,
         }),
-      );
-      expect(mockPrismaService.clinic.update).toHaveBeenCalledWith(
-        expect.objectContaining({
-          where: { id: 'clinic_123' },
-          data: {
-            tier: ClinicTier.STARTER,
-            subscriptionStatus: SubscriptionStatus.ACTIVE,
-            trialEndsAt: null,
-          },
-        }),
+        starterData.paymentDetails,
       );
     });
   });

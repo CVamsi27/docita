@@ -12,7 +12,9 @@ import { Button } from "@workspace/ui/components/button";
 import { SymbolTooltip } from "@workspace/ui/components/tooltip";
 import { Calendar, Check, X } from "lucide-react";
 import { APIRequestError } from "@workspace/data-access";
+import { Feature } from "@workspace/types";
 import { api } from "@/lib/api-client";
+import { useTierFeatureEnabled } from "@/hooks/api/tier-feature-guards";
 import { logger } from "@/lib/logger";
 import { toast } from "sonner";
 import { showUserFacingErrorToast } from "@/lib/user-facing-errors";
@@ -62,12 +64,19 @@ interface FollowUpWidgetProps {
 }
 
 export function FollowUpWidget({ appointmentId }: FollowUpWidgetProps) {
+  const calendarOk = useTierFeatureEnabled(Feature.CALENDAR_SLOTS);
   const [followUps, setFollowUps] = useState<FollowUp[]>([]);
   const [loading, setLoading] = useState(true);
   const [loadError, setLoadError] = useState(false);
   const [actioning, setActioning] = useState<string | null>(null);
 
   const load = useCallback(async () => {
+    if (!calendarOk) {
+      setFollowUps([]);
+      setLoading(false);
+      setLoadError(false);
+      return;
+    }
     setLoading(true);
     setLoadError(false);
     try {
@@ -85,13 +94,14 @@ export function FollowUpWidget({ appointmentId }: FollowUpWidgetProps) {
     } finally {
       setLoading(false);
     }
-  }, [appointmentId]);
+  }, [appointmentId, calendarOk]);
 
   useEffect(() => {
     void load();
   }, [load]);
 
   const handleComplete = async (id: string) => {
+    if (!calendarOk) return;
     setActioning(id);
     try {
       await api.patch(`/follow-ups/${id}/complete`, {});
@@ -108,6 +118,7 @@ export function FollowUpWidget({ appointmentId }: FollowUpWidgetProps) {
   };
 
   const handleCancel = async (id: string) => {
+    if (!calendarOk) return;
     setActioning(id);
     try {
       await api.patch(`/follow-ups/${id}/cancel`, {});

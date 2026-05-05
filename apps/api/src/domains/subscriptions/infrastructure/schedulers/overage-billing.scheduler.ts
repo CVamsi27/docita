@@ -7,7 +7,7 @@ import { EmailService } from '@/shared/modules/messaging/email/email.service';
 import { AppConfigService } from '@/shared/modules/config/app-configuration.service';
 import {
   IPaymentLinkProvider,
-  PAYMENT_LINK_PROVIDER_TOKEN,
+  DOCITA_PLATFORM_PAYMENT_LINK_PROVIDER_TOKEN,
 } from '@/domains/payments/core/ports';
 import { Money } from '@/domains/payments/core/value-objects/money.vo';
 import {
@@ -37,7 +37,7 @@ export class OverageBillingScheduler {
     private readonly usageTrackingService: UsageTrackingService,
     private readonly emailService: EmailService,
     private readonly configService: AppConfigService,
-    @Inject(PAYMENT_LINK_PROVIDER_TOKEN)
+    @Inject(DOCITA_PLATFORM_PAYMENT_LINK_PROVIDER_TOKEN)
     private readonly paymentLinkProvider: IPaymentLinkProvider,
   ) {}
 
@@ -202,7 +202,16 @@ export class OverageBillingScheduler {
         },
       }),
       this.prisma.user.count({
-        where: { clinicId: sub.clinicId },
+        where: {
+          clinicId: sub.clinicId,
+          ...(tier === ClinicTier.FRONT_DESK
+            ? {
+                NOT: {
+                  AND: [{ role: Role.DOCTOR }, { appLoginDisabled: true }],
+                },
+              }
+            : {}),
+        },
       }),
       this.prisma.usageEvent.aggregate({
         where: {
@@ -215,10 +224,17 @@ export class OverageBillingScheduler {
     ]);
 
     const whatsappUsed = whatsappCount._sum.quantity ?? 0;
-    const whatsappIncluded =
-      tier === 'ESSENTIAL' || tier === 'PROFESSIONAL' || tier === 'ENTERPRISE'
-        ? getWhatsAppAddonPricingByCurrency(tier, currency).includedQuota
-        : 0;
+    const whatsappEligibleTier =
+      tier === ClinicTier.ESSENTIAL ||
+      tier === ClinicTier.FRONT_DESK ||
+      tier === ClinicTier.PROFESSIONAL ||
+      tier === ClinicTier.ENTERPRISE
+        ? tier
+        : null;
+    const whatsappIncluded = whatsappEligibleTier
+      ? getWhatsAppAddonPricingByCurrency(whatsappEligibleTier, currency)
+          .includedQuota
+      : 0;
 
     const usageData = {
       period: { start: periodStart, end: periodEnd },
@@ -331,6 +347,15 @@ export class OverageBillingScheduler {
     return `OVG-${periodCode}-${clinicSuffix}`;
   }
 
+  private formatUsageMeterLabel(meterKey: string): string {
+    const labels: Record<string, string> = {
+      consultations: 'Completed consultations',
+      users: 'Team seats',
+      whatsappMessages: 'WhatsApp messages',
+    };
+    return labels[meterKey] ?? meterKey;
+  }
+
   private buildOverageDescription(
     periodStart: Date,
     periodEnd: Date,
@@ -345,7 +370,7 @@ export class OverageBillingScheduler {
       .filter(([, item]) => item.charge > 0)
       .map(
         ([meter, item]) =>
-          `${meter}: ${item.quantity} x ${currencySymbol}${item.rate} = ${currencySymbol}${item.charge.toFixed(2)}`,
+          `${this.formatUsageMeterLabel(meter)}: ${item.quantity} x ${currencySymbol}${item.rate} = ${currencySymbol}${item.charge.toFixed(2)}`,
       )
       .join(' | ');
 
@@ -658,12 +683,13 @@ export class OverageBillingScheduler {
     usage: Awaited<ReturnType<UsageTrackingService['getCurrentUsage']>>,
   ): Promise<void> {
     const isUpgradePrompt = threshold === 100;
+    const meterLabel = this.formatUsageMeterLabel(meter);
     const title = isUpgradePrompt
-      ? `Usage limit reached (${meter})`
-      : `Usage warning (${meter})`;
+      ? `Usage limit reached (${meterLabel})`
+      : `Usage warning (${meterLabel})`;
     const message = isUpgradePrompt
-      ? `You've reached ${Math.round(percentUsed)}% of your ${meter} limit. Service continues without lockout, but overage will be billed at cycle close. Consider upgrading to reduce overage charges.`
-      : `You've reached ${Math.round(percentUsed)}% of your ${meter} limit this billing cycle. Overage billing applies beyond included usage.`;
+      ? `You've reached ${Math.round(percentUsed)}% of your ${meterLabel} limit. Service continues without lockout, but overage will be billed at cycle close. Consider upgrading to reduce overage charges.`
+      : `You've reached ${Math.round(percentUsed)}% of your ${meterLabel} limit this billing cycle. Overage billing applies beyond included usage.`;
 
     await this.prisma.staffNotification.create({
       data: {
@@ -707,14 +733,15 @@ export class OverageBillingScheduler {
 
     const to = admins.map((admin) => admin.email);
     const roundedPercent = Math.round(percentUsed);
+    const meterLabel = this.formatUsageMeterLabel(meter);
     const subject =
       threshold === 100
-        ? `Docita usage alert: ${meter} at ${roundedPercent}%`
-        : `Docita usage warning: ${meter} at ${roundedPercent}%`;
+        ? `Docita usage alert: ${meterLabel} at ${roundedPercent}%`
+        : `Docita usage warning: ${meterLabel} at ${roundedPercent}%`;
     const text =
       threshold === 100
-        ? `Your clinic has reached ${roundedPercent}% of the ${meter} limit. Usage is not blocked; overage will be billed at cycle close.`
-        : `Your clinic has reached ${roundedPercent}% of the ${meter} limit. Please monitor usage to avoid unexpected overage charges.`;
+        ? `Your clinic has reached ${roundedPercent}% of the ${meterLabel} limit. Usage is not blocked; overage will be billed at cycle close.`
+        : `Your clinic has reached ${roundedPercent}% of the ${meterLabel} limit. Please monitor usage to avoid unexpected overage charges.`;
 
     try {
       const result = await this.emailService.send({

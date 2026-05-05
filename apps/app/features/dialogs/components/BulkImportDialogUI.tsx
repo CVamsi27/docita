@@ -28,6 +28,14 @@ export interface BulkImportDialogUIProps {
   progress: number;
   isLoadingTemplate: boolean;
   isImporting: boolean;
+  /** When true, no in-dialog trigger button (caller opens the dialog). */
+  hideTrigger?: boolean;
+  jobSummary?: {
+    successRows: number;
+    failedRows: number;
+    totalRows: number;
+    status: string;
+  } | null;
   onOpen: () => void;
   onClose: () => void;
   onSelectEntity: (entity: EntityType) => void;
@@ -44,6 +52,8 @@ export function BulkImportDialogUI({
   progress,
   isLoadingTemplate,
   isImporting,
+  hideTrigger = false,
+  jobSummary,
   onOpen,
   onClose,
   onSelectEntity,
@@ -59,12 +69,14 @@ export function BulkImportDialogUI({
         if (!open) onClose();
       }}
     >
-      <DialogTrigger asChild>
-        <Button onClick={onOpen} className="gap-2">
-          <Upload className="h-4 w-4" />
-          Bulk Import
-        </Button>
-      </DialogTrigger>
+      {!hideTrigger ? (
+        <DialogTrigger asChild>
+          <Button onClick={onOpen} className="gap-2">
+            <Upload className="h-4 w-4" />
+            Bulk Import
+          </Button>
+        </DialogTrigger>
+      ) : null}
 
       <DialogContent className="sm:max-w-[600px]">
         <DialogHeader>
@@ -131,6 +143,7 @@ export function BulkImportDialogUI({
 
           {step === "result" && (
             <BulkImportStepResult
+              jobSummary={jobSummary}
               onImportAnother={onImportAnother}
               onClose={onClose}
             />

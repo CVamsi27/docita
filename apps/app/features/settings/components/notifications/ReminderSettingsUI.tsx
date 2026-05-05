@@ -295,14 +295,13 @@ export const ReminderSettingsUI: FC = () => {
         aria-label="Loading reminder settings"
       >
         <CardHeader>
-          <Skeleton animation="wave" className="h-6 w-48" />
-          <Skeleton animation="wave" className="mt-2 h-4 w-full max-w-lg" />
+          <Skeleton className="h-6 w-48" />
+          <Skeleton className="mt-2 h-4 w-full max-w-lg" />
         </CardHeader>
         <CardContent className="space-y-3">
           {Array.from({ length: 4 }).map((_, i) => (
             <Skeleton
               key={i}
-              animation="wave"
               className="h-24 w-full rounded-lg"
             />
           ))}

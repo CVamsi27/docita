@@ -4,12 +4,14 @@ import { useTheme } from "next-themes";
 import { Moon, Sun } from "lucide-react";
 import { Button } from "@workspace/ui/components/button";
 import { useMounted } from "@workspace/hooks";
-import {
-  SymbolTooltip,
-  TooltipProvider,
-} from "@workspace/ui/components/tooltip";
+import { SymbolTooltip } from "@workspace/ui/components/tooltip";
 
-export function ThemeToggle() {
+export interface ThemeToggleProps {
+  /** Called after selecting light/dark so app state (e.g. persisted appearance) can stay in sync. */
+  onSelectTheme?: (mode: "light" | "dark") => void;
+}
+
+export function ThemeToggle({ onSelectTheme }: ThemeToggleProps) {
   const mounted = useMounted();
   const { resolvedTheme, setTheme } = useTheme();
 
@@ -23,19 +25,20 @@ export function ThemeToggle() {
   const switchLabel = `Switch to ${nextTheme} mode`;
 
   return (
-    <TooltipProvider delayDuration={300}>
-      <SymbolTooltip label={switchLabel} side="right">
-        <Button
-          variant="ghost"
-          size="icon"
-          className="h-9 w-9"
-          aria-label={switchLabel}
-          onClick={() => setTheme(nextTheme)}
-          type="button"
-        >
-          <Icon className="h-4 w-4" />
-        </Button>
-      </SymbolTooltip>
-    </TooltipProvider>
+    <SymbolTooltip label={switchLabel} side="right">
+      <Button
+        variant="ghost"
+        size="icon"
+        className="h-9 w-9"
+        aria-label={switchLabel}
+        onClick={() => {
+          setTheme(nextTheme);
+          onSelectTheme?.(nextTheme);
+        }}
+        type="button"
+      >
+        <Icon className="h-4 w-4" />
+      </Button>
+    </SymbolTooltip>
   );
 }

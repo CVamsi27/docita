@@ -1,6 +1,7 @@
 "use client";
 
-import { FC } from "react";
+import { FC, useMemo } from "react";
+import { useRouter } from "next/navigation";
 import {
   Card,
   CardContent,
@@ -54,10 +55,11 @@ import {
   formatDate,
 } from "@/lib/formatters";
 import Link from "next/link";
-import { LoadingState } from "@workspace/ui/components/empty-state";
+import { DataState } from "@workspace/ui/components/data-state";
 import { StatusBadge } from "@workspace/ui/components/status-badge";
 import { Invoice, Patient } from "@workspace/types";
 import { useClinicCurrency } from "@/hooks/use-clinic-currency";
+import { buildInvoicePaidSummaryLine } from "@/features/invoices/lib/invoice-payment-display";
 
 type InvoiceWithPatient = Invoice & {
   patient?: Pick<Patient, "firstName" | "lastName">;
@@ -65,10 +67,13 @@ type InvoiceWithPatient = Invoice & {
 };
 
 export const InvoicesPageUI: FC = () => {
+  const router = useRouter();
   const clinicCurrency = useClinicCurrency();
   const {
     filteredInvoices,
     loading,
+    isError,
+    error,
     filter,
     setFilter,
     sortBy,
@@ -77,18 +82,29 @@ export const InvoicesPageUI: FC = () => {
     handleRefresh,
     searchQuery,
     setSearchQuery,
+    refetch,
   } = useInvoicesLogic();
 
   const formatCurrency = (amount: number | undefined) => {
     return clinicCurrency.formatCurrency(amount || 0);
   };
 
+  const listStatus = useMemo((): "loading" | "error" | "empty" | "success" => {
+    if (loading) return "loading";
+    if (isError) return "error";
+    if (filteredInvoices.length === 0) return "empty";
+    return "success";
+  }, [loading, isError, filteredInvoices.length]);
+
+  const hasActiveFilters =
+    filter !== "all" || (searchQuery && searchQuery.trim().length > 0);
+
   return (
     <AppPageScaffold
       header={
         <PageHeader
           title="Invoices"
-          description="Manage patient billing and invoices."
+          description="Recent invoices, newest first, with payment status. Record cash or card at Payment desk when needed."
           actions={
             <div className="flex gap-2">
               <Button variant="outline" className="gap-2" onClick={handleRefresh}>
@@ -175,12 +191,23 @@ export const InvoicesPageUI: FC = () => {
 
       <Card>
         <CardHeader>
-          <CardTitle className="ui-section-title">Invoice History</CardTitle>
+          <CardTitle className="ui-section-title">Recent invoices</CardTitle>
         </CardHeader>
         <CardContent>
-          {loading ? (
-            <LoadingState message="Loading invoices…" />
-          ) : (
+          <DataState
+            status={listStatus}
+            loadingMessage="Loading invoices…"
+            errorMessage={error?.message}
+            onRetry={() => void refetch()}
+            emptyTitle={
+              hasActiveFilters ? "No matching invoices" : "No invoices yet"
+            }
+            emptyDescription={
+              hasActiveFilters
+                ? "Try clearing the status filter or search, then refresh."
+                : "Create an invoice from a visit or use Create Invoice when you are ready to bill."
+            }
+          >
             <div className="ui-card-surface overflow-x-hidden">
               <Table>
                 <TableHeader>
@@ -191,13 +218,26 @@ export const InvoicesPageUI: FC = () => {
                     <TableHead>Patient</TableHead>
                     <TableHead className="hidden sm:table-cell">Date</TableHead>
                     <TableHead>Amount</TableHead>
-                    <TableHead>Status</TableHead>
+                    <TableHead>Payment status</TableHead>
                     <TableHead className="text-right">Actions</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
-                  {filteredInvoices.map((invoice: InvoiceWithPatient) => (
-                    <TableRow key={invoice.id ?? `invoice-${Math.random()}`}>
+                  {filteredInvoices.map((invoice: InvoiceWithPatient) => {
+                    const paidSummary = buildInvoicePaidSummaryLine({
+                      status: invoice.status,
+                      paidAt: invoice.paidAt,
+                      paymentMethod: invoice.paymentMethod,
+                      formatDate,
+                    });
+                    return (
+                    <TableRow
+                      key={invoice.id ?? `invoice-${Math.random()}`}
+                      className="cursor-pointer"
+                      onClick={() => {
+                        if (invoice.id) router.push(`/invoices/${invoice.id}`);
+                      }}
+                    >
                       <TableCell className="hidden font-medium md:table-cell">
                         #{(invoice.id ?? "").substring(0, 8)}
                       </TableCell>
@@ -221,9 +261,17 @@ export const InvoicesPageUI: FC = () => {
                         {formatCurrency(invoice.totalAmount ?? invoice.total)}
                       </TableCell>
                       <TableCell>
-                        <StatusBadge status={invoice.status} />
+                        <div className="flex flex-col items-start gap-0.5">
+                          <StatusBadge status={invoice.status} />
+                          {paidSummary ? (
+                            <span className="ui-helper-text">{paidSummary}</span>
+                          ) : null}
+                        </div>
                       </TableCell>
-                      <TableCell className="text-right">
+                      <TableCell
+                        className="text-right"
+                        onClick={(e) => e.stopPropagation()}
+                      >
                         <DropdownMenu>
                           <Tooltip>
                             <TooltipTrigger asChild>
@@ -276,11 +324,12 @@ export const InvoicesPageUI: FC = () => {
                         </DropdownMenu>
                       </TableCell>
                     </TableRow>
-                  ))}
+                    );
+                  })}
                 </TableBody>
               </Table>
             </div>
-          )}
+          </DataState>
         </CardContent>
       </Card>
     </AppPageScaffold>

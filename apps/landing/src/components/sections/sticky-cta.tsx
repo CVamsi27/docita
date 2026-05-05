@@ -50,16 +50,16 @@ export function StickyCta({ appUrl }: StickyCtaProps) {
   return (
     <div
       ref={ctaRef}
-      className="fixed bottom-0 left-0 right-0 z-50 border-t border-border/70 bg-background/95 px-3 py-2 text-foreground shadow-[0_-18px_50px_rgba(15,23,42,0.14)] backdrop-blur supports-[backdrop-filter]:bg-background/85 animate-in slide-in-from-bottom duration-300 sm:px-4 sm:py-3"
+      className="fixed bottom-0 left-0 right-0 z-50 border-t border-border bg-background px-3 py-2 text-foreground shadow-sm sm:px-4 sm:py-3"
     >
       <div className="mx-auto flex max-w-7xl items-center gap-2 sm:justify-between">
         <div className="flex min-w-0 flex-1 items-center gap-2 sm:gap-3">
-          <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full border border-border/70 bg-background/70 text-primary">
+          <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full border border-border/70 bg-muted text-primary">
             <Sparkles className="h-4 w-4" aria-hidden="true" />
           </span>
           <div className="min-w-0">
             <div className="truncate text-sm font-semibold sm:text-base">
-              14-day free trial is back.
+              30-day free trial is back.
             </div>
             <div className="truncate text-xs leading-5 text-muted-foreground sm:text-sm">
               <span className="sm:hidden">Essential at INR 0, no card.</span>

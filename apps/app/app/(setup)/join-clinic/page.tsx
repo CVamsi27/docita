@@ -65,7 +65,7 @@ export default function JoinClinicPage() {
 
     if (user?.clinicId || user?.onboardingStep === "COMPLETED") {
       setIsRedirecting(true);
-      router.replace("/dashboard");
+      router.replace("/today");
       return;
     }
 
@@ -152,7 +152,7 @@ export default function JoinClinicPage() {
       contentAlignment="start"
       showSignOut
     >
-      <div className="animate-in fade-in slide-in-from-bottom-4 duration-700 ui-copy-stack">
+      <div className="ui-copy-stack">
         <BackButton
           fallback="/choose-path"
           label="Back to Choose Path"
@@ -164,10 +164,7 @@ export default function JoinClinicPage() {
         </p>
       </div>
 
-      <div
-        className="space-y-4 animate-in fade-in slide-in-from-bottom-4 duration-700"
-        style={{ animationDelay: "100ms" }}
-      >
+      <div className="space-y-4">
         <div className="flex gap-2">
           <div className="relative flex-1">
             <Search className="pointer-events-none absolute left-3 top-3 h-4 w-4 text-muted-foreground" aria-hidden />

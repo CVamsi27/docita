@@ -1,5 +1,5 @@
 import * as z from "zod";
-import { clinicTypeSchema } from "@workspace/types";
+import { clinicTypeSchema, type DayOfWeek } from "@workspace/types";
 import {
   DEFAULT_COUNTRY_CODE,
   DEFAULT_CURRENCY,
@@ -171,6 +171,38 @@ export interface PlanSelection {
   price: number;
   currency: string;
   isCoreTrial?: boolean;
+  /** Mirrors API `planSelection.workspaceProfile`. */
+  workspaceProfile?: "FULL_CLINICAL" | "FRONT_DESK";
+}
+
+/** One row per weekday for default clinic visit windows (matches onboarding API). */
+export interface ClinicWeeklyHourRow {
+  dayOfWeek: DayOfWeek;
+  startTime: string;
+  endTime: string;
+  slotDuration: number;
+  isActive: boolean;
+}
+
+const DEFAULT_CLINIC_WEEKLY_ORDER: DayOfWeek[] = [
+  "SUNDAY",
+  "MONDAY",
+  "TUESDAY",
+  "WEDNESDAY",
+  "THURSDAY",
+  "FRIDAY",
+  "SATURDAY",
+];
+
+export function buildDefaultClinicWeeklyHours(): ClinicWeeklyHourRow[] {
+  const weekend = new Set<DayOfWeek>(["SATURDAY", "SUNDAY"]);
+  return DEFAULT_CLINIC_WEEKLY_ORDER.map((dayOfWeek) => ({
+    dayOfWeek,
+    startTime: "09:00",
+    endTime: "17:00",
+    slotDuration: 30,
+    isActive: !weekend.has(dayOfWeek),
+  }));
 }
 
 export interface ClinicRegistrationData {
@@ -179,6 +211,7 @@ export interface ClinicRegistrationData {
   planSelection: PlanSelection;
   paymentDetails: Partial<PaymentDetails>;
   teamMembers: TeamMember[];
+  clinicWeeklyHours: ClinicWeeklyHourRow[];
 }
 
 export const defaultClinicRegistrationData: ClinicRegistrationData = {
@@ -190,7 +223,9 @@ export const defaultClinicRegistrationData: ClinicRegistrationData = {
     price: 0,
     currency: DEFAULT_CURRENCY,
     isCoreTrial: false,
+    workspaceProfile: "FULL_CLINICAL",
   },
   paymentDetails: {},
   teamMembers: [],
+  clinicWeeklyHours: buildDefaultClinicWeeklyHours(),
 };

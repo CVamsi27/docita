@@ -1,6 +1,10 @@
 import { createZodDto } from 'nestjs-zod';
 import { z } from 'zod';
-import { importJobSchema } from '@workspace/types';
+import {
+  importJobSchema,
+  ocrImportCommitRequestSchema,
+  ocrImportCommitResponseSchema,
+} from '@workspace/types';
 
 export const ImportPreviewResponseSchema = z.object({
   sessionId: z.string(),
@@ -48,4 +52,12 @@ export const ColumnMappingRequestSchema = z.object({
 });
 export class ColumnMappingRequestDto extends createZodDto(
   ColumnMappingRequestSchema,
+) {}
+
+export class OcrImportCommitRequestDto extends createZodDto(
+  ocrImportCommitRequestSchema,
+) {}
+
+export class OcrImportCommitResponseDto extends createZodDto(
+  ocrImportCommitResponseSchema,
 ) {}

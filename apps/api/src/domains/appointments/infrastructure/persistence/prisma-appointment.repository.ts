@@ -212,17 +212,17 @@ export class PrismaAppointmentRepository implements IAppointmentRepository {
   async findAppointmentsForSlots(
     clinicId: string,
     doctorIds: string[],
-    startOfDay: Date,
-    endOfDay: Date,
+    rangeStart: Date,
+    rangeEndExclusive: Date,
   ): Promise<Array<{ doctorId: string; startTime: Date; endTime: Date }>> {
     const appointments = await this.getReadClient().appointment.findMany({
       where: {
         clinicId,
         doctorId: { in: doctorIds },
-        startTime: {
-          gte: startOfDay,
-          lte: endOfDay,
-        },
+        AND: [
+          { startTime: { lt: rangeEndExclusive } },
+          { endTime: { gt: rangeStart } },
+        ],
         status: {
           notIn: [
             PrismaAppointmentStatus.CANCELLED,

@@ -2,7 +2,9 @@ import {
   Injectable,
   NotFoundException,
   BadRequestException,
+  Inject,
 } from '@nestjs/common';
+import { randomUUID } from 'node:crypto';
 import { PrismaService } from '@/prisma/prisma.service';
 import {
   Prisma,
@@ -11,8 +13,34 @@ import {
   BillingCycle,
 } from '@workspace/db';
 import { ClinicPricingOffer } from '@/shared/modules/services/feature-flag.service';
+import {
+  SUBSCRIPTION_REPOSITORY_TOKEN,
+  type ISubscriptionRepository,
+} from '@/domains/subscriptions/application/ports';
+import type { InternalAdditionalChargeCategory } from '@workspace/types';
 
 const PRICING_OFFER_FLAG = 'clinic_pricing_offer';
+
+const INTERNAL_ADDITIONAL_CHARGE_PREFIX = '[INTERNAL:';
+
+const INTERNAL_ADDITIONAL_CHARGE_CATEGORY_LABELS: Record<
+  InternalAdditionalChargeCategory,
+  string
+> = {
+  GUIDED_SETUP: 'Guided setup',
+  DATA_MIGRATION: 'Data migration',
+  CUSTOM_TRAINING: 'Custom training',
+  INTEGRATION: 'Integration',
+  COMMERCIAL_DISCOUNT: 'Commercial discount / adjustment',
+  OTHER: 'Other service',
+};
+
+const INTERNAL_PAYMENT_METHOD_LABELS: Record<string, string> = {
+  razorpay: 'Razorpay',
+  stripe: 'Stripe',
+  bank_transfer: 'Bank transfer',
+  manual: 'Manual',
+};
 
 interface BillingTierInfo {
   name: string;
@@ -23,7 +51,11 @@ interface BillingTierInfo {
 
 @Injectable()
 export class InternalBillingService {
-  constructor(private prisma: PrismaService) {}
+  constructor(
+    private prisma: PrismaService,
+    @Inject(SUBSCRIPTION_REPOSITORY_TOKEN)
+    private readonly subscriptionRepository: ISubscriptionRepository,
+  ) {}
 
   private toInputJsonValue(value: unknown): Prisma.InputJsonValue {
     return JSON.parse(JSON.stringify(value)) as Prisma.InputJsonValue;
@@ -73,6 +105,72 @@ export class InternalBillingService {
       return `${months[date.getMonth()]} ${date.getFullYear()}`;
     }
     return date.toISOString();
+  }
+
+  private normalizePaymentGatewayStatus(
+    status: string,
+  ): 'SUCCESS' | 'PENDING' | 'FAILED' {
+    const normalized = status.toLowerCase();
+    if (normalized === 'paid' || normalized === 'success') {
+      return 'SUCCESS';
+    }
+    if (normalized === 'failed' || normalized === 'refunded') {
+      return 'FAILED';
+    }
+    if (normalized === 'pending') {
+      return 'PENDING';
+    }
+    return 'PENDING';
+  }
+
+  private planLabelFromInternalPayment(
+    description: string | null,
+  ): string | null {
+    if (!description?.startsWith(INTERNAL_ADDITIONAL_CHARGE_PREFIX)) {
+      return null;
+    }
+    const end = description.indexOf(
+      ']',
+      INTERNAL_ADDITIONAL_CHARGE_PREFIX.length,
+    );
+    if (end === -1) {
+      return null;
+    }
+    const key = description.slice(
+      INTERNAL_ADDITIONAL_CHARGE_PREFIX.length,
+      end,
+    ) as InternalAdditionalChargeCategory;
+    return INTERNAL_ADDITIONAL_CHARGE_CATEGORY_LABELS[key] ?? key;
+  }
+
+  private mapSubscriptionPaymentRow(
+    p: Prisma.SubscriptionPaymentGetPayload<{
+      include: {
+        subscription: {
+          include: { clinic: { select: { id: true; name: true } } };
+        };
+        clinic: { select: { id: true; name: true } };
+      };
+    }>,
+  ) {
+    const clinicName =
+      p.subscription?.clinic?.name ?? p.clinic?.name ?? 'Unknown clinic';
+    const internalLabel = this.planLabelFromInternalPayment(p.description);
+    const planLabel =
+      internalLabel ??
+      (p.subscription ? String(p.subscription.plan) : 'Recorded payment');
+    return {
+      id: p.id,
+      clinicName,
+      planLabel,
+      amount: p.amountCents / 100,
+      currency: p.currency,
+      status: this.normalizePaymentGatewayStatus(p.status),
+      gatewayPaymentId: p.razorpayPaymentId ?? undefined,
+      description: p.description ?? undefined,
+      paidAt: p.paidAt?.toISOString() ?? null,
+      createdAt: p.createdAt.toISOString(),
+    };
   }
 
   async getMetrics() {
@@ -215,6 +313,7 @@ export class InternalBillingService {
             clinic: { select: { id: true, name: true } },
           },
         },
+        clinic: { select: { id: true, name: true } },
       },
     });
 
@@ -231,22 +330,9 @@ export class InternalBillingService {
       expiringSubscriptions,
       gracePeriodSubscriptions,
       revenueByMonth,
-      recentPayments: recentPayments.map((p) => ({
-        id: p.id,
-        subscriptionId: p.subscriptionId,
-        amount: p.amountCents / 100,
-        currency: p.currency,
-        status: p.status,
-        gatewayPaymentId: p.razorpayPaymentId,
-        paidAt: p.paidAt,
-        createdAt: p.createdAt,
-        subscription: p.subscription
-          ? {
-              clinic: p.subscription.clinic,
-              tier: p.subscription.plan,
-            }
-          : null,
-      })),
+      recentPayments: recentPayments.map((p) =>
+        this.mapSubscriptionPaymentRow(p),
+      ),
     };
   }
 
@@ -351,27 +437,13 @@ export class InternalBillingService {
             clinic: { select: { id: true, name: true } },
           },
         },
+        clinic: { select: { id: true, name: true } },
       },
       orderBy: { createdAt: 'desc' },
       take: 100,
     });
 
-    return payments.map((p) => ({
-      id: p.id,
-      subscriptionId: p.subscriptionId,
-      amount: p.amountCents / 100,
-      currency: p.currency,
-      status: p.status,
-      gatewayPaymentId: p.razorpayPaymentId,
-      paidAt: p.paidAt,
-      createdAt: p.createdAt,
-      subscription: p.subscription
-        ? {
-            clinic: p.subscription.clinic,
-            tier: p.subscription.plan,
-          }
-        : null,
-    }));
+    return payments.map((p) => this.mapSubscriptionPaymentRow(p));
   }
 
   async sendReminder(subscriptionId: string) {
@@ -462,6 +534,69 @@ export class InternalBillingService {
         timestamp: new Date(),
       },
       clinic: updatedClinic,
+    };
+  }
+
+  async recordAdditionalCharge(
+    clinicId: string,
+    data: {
+      amount: number;
+      currency?: string;
+      category: InternalAdditionalChargeCategory;
+      paymentMethod: string;
+      razorpayPaymentId?: string;
+      notes?: string;
+    },
+  ) {
+    const clinic = await this.prisma.clinic.findUnique({
+      where: { id: clinicId },
+      select: { id: true, currency: true },
+    });
+    if (!clinic) {
+      throw new BadRequestException('Clinic not found');
+    }
+
+    const amountCents = Math.round(data.amount * 100);
+    if (!Number.isFinite(amountCents) || amountCents < 1) {
+      throw new BadRequestException('Invalid amount');
+    }
+
+    const subscription = await this.prisma.subscription.findFirst({
+      where: { clinicId },
+      orderBy: { createdAt: 'desc' },
+      select: { id: true },
+    });
+
+    const orderId = `int_addl_${randomUUID().replace(/-/g, '')}`;
+    const categoryLabel =
+      INTERNAL_ADDITIONAL_CHARGE_CATEGORY_LABELS[data.category];
+    const methodLabel =
+      INTERNAL_PAYMENT_METHOD_LABELS[data.paymentMethod] ?? data.paymentMethod;
+    const descriptionHead = `${INTERNAL_ADDITIONAL_CHARGE_PREFIX}${data.category}] ${categoryLabel} (${methodLabel})`;
+    const description = [descriptionHead, data.notes]
+      .filter((part) => typeof part === 'string' && part.trim().length > 0)
+      .join(' · ')
+      .slice(0, 500);
+
+    const currency = (data.currency ?? clinic.currency ?? 'INR').toUpperCase();
+
+    await this.subscriptionRepository.savePayment({
+      clinicId,
+      subscriptionId: subscription?.id,
+      amountCents,
+      currency,
+      status: 'paid',
+      razorpayOrderId: orderId,
+      description,
+      razorpayPaymentId: data.razorpayPaymentId,
+      paidAt: new Date(),
+    });
+
+    return {
+      success: true,
+      internalOrderId: orderId,
+      amount: data.amount,
+      currency,
     };
   }
 

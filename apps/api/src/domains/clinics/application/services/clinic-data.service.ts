@@ -13,6 +13,7 @@ import {
   CLINIC_DATA_REPOSITORY_TOKEN,
   ClinicSearchResult,
 } from '@/domains/clinics/core/repositories/clinic-data.repository.interface';
+import { parseWorkspaceProfile } from '@workspace/types';
 
 interface CreateClinicData {
   name: string;
@@ -199,6 +200,7 @@ export class ClinicDataService {
             settings,
             'consultationDuration',
           ),
+          workspaceProfile: parseWorkspaceProfile(settings.workspaceProfile),
         });
       }),
     );
@@ -220,6 +222,7 @@ export class ClinicDataService {
       closingTime: this.readString(settings, 'closingTime'),
       workingDays: this.readStringArray(settings, 'workingDays'),
       consultationDuration: this.readNumber(settings, 'consultationDuration'),
+      workspaceProfile: parseWorkspaceProfile(settings.workspaceProfile),
     });
   }
 
@@ -245,6 +248,7 @@ export class ClinicDataService {
       closingTime: this.readString(settings, 'closingTime'),
       workingDays: this.readStringArray(settings, 'workingDays'),
       consultationDuration: this.readNumber(settings, 'consultationDuration'),
+      workspaceProfile: parseWorkspaceProfile(settings.workspaceProfile),
     });
   }
 
@@ -271,6 +275,7 @@ export class ClinicDataService {
             settings,
             'consultationDuration',
           ),
+          workspaceProfile: parseWorkspaceProfile(settings.workspaceProfile),
         });
       }),
     );

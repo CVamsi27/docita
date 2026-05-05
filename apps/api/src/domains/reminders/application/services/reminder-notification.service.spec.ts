@@ -2,7 +2,15 @@ import { Test, TestingModule } from '@nestjs/testing';
 import { ReminderNotificationService } from './reminder-notification.service';
 import { PrismaService } from '@/prisma/prisma.service';
 import { SendMessageUseCase } from '@/domains/whatsapp/application/use-cases/send-message.use-case';
-import { beforeEach, describe, it, expect, jest } from '@jest/globals';
+import { ClinicTier, IntelligenceAddon } from '@workspace/db';
+import {
+  afterEach,
+  beforeEach,
+  describe,
+  it,
+  expect,
+  jest,
+} from '@jest/globals';
 
 describe('ReminderNotificationService', () => {
   type ReminderAppointment = Parameters<
@@ -37,7 +45,7 @@ describe('ReminderNotificationService', () => {
 
   type ClinicFindUniqueInput = {
     where: { id: string };
-    select: { whatsappAutomation: true };
+    select: Record<string, boolean>;
   };
 
   let service: ReminderNotificationService;
@@ -54,7 +62,7 @@ describe('ReminderNotificationService', () => {
       findUnique: jest.Mock<
         (
           _args: ClinicFindUniqueInput,
-        ) => Promise<{ whatsappAutomation: object | null } | null>
+        ) => Promise<Record<string, unknown> | null>
       >;
     };
   };
@@ -67,7 +75,10 @@ describe('ReminderNotificationService', () => {
   const sendMessageMock = {
     execute: jest
       .fn<(_request: SendMessageRequest) => Promise<SendMessageResponse>>()
-      .mockResolvedValue({ messageId: 'msg-1' }),
+      .mockResolvedValue({
+        messageId: 'msg-1',
+        providerMessageId: 'wamid.ext',
+      }),
   };
 
   const mockAppointment: ReminderAppointment = {
@@ -127,9 +138,14 @@ describe('ReminderNotificationService', () => {
           .fn<
             (
               _args: ClinicFindUniqueInput,
-            ) => Promise<{ whatsappAutomation: object | null } | null>
+            ) => Promise<Record<string, unknown> | null>
           >()
-          .mockResolvedValue({ whatsappAutomation: null }),
+          .mockResolvedValue({
+            tier: ClinicTier.ESSENTIAL,
+            intelligenceAddon: IntelligenceAddon.NONE,
+            features: {},
+            whatsappAutomation: null,
+          }),
       },
     };
 
@@ -152,6 +168,10 @@ describe('ReminderNotificationService', () => {
     );
     prisma = module.get(PrismaService);
     sendMessage = module.get(SendMessageUseCase);
+  });
+
+  afterEach(() => {
+    jest.clearAllMocks();
   });
 
   describe('sendEmailReminder', () => {
@@ -312,6 +332,23 @@ describe('ReminderNotificationService', () => {
       );
 
       expect(sendMessage.execute).toHaveBeenCalled();
+    });
+
+    it('should not send WhatsApp when clinic tier is Starter', async () => {
+      prisma.clinic.findUnique.mockResolvedValueOnce({
+        tier: ClinicTier.STARTER,
+        intelligenceAddon: IntelligenceAddon.NONE,
+        features: {},
+        whatsappAutomation: null,
+      });
+
+      await service.sendWhatsappReminder(
+        mockAppointment,
+        mockSettings,
+        'appointment_reminder_24hr',
+      );
+
+      expect(sendMessage.execute).not.toHaveBeenCalled();
     });
   });
 

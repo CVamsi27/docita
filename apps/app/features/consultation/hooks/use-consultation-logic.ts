@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useQueryClient } from "@tanstack/react-query";
+import { queryKeys } from "@workspace/data-access";
 import {
   useAppointment,
   useStartConsultation,
@@ -23,6 +24,7 @@ export const useConsultationLogic = (appointmentId: string) => {
     data: appointmentData,
     isLoading: loading,
     isError,
+    refetch: refetchAppointment,
   } = useAppointment(appointmentId);
 
   const { data: clinic } = useClinicSettings();
@@ -108,11 +110,10 @@ export const useConsultationLogic = (appointmentId: string) => {
     async (data: UpdateAppointmentInput) => {
       await updateAppointment.mutateAsync(data);
 
-      await queryClient.invalidateQueries({
-        queryKey: ["appointments", appointmentId],
-      });
+      const detailKey = queryKeys.appointments.detail(appointmentId);
+      await queryClient.invalidateQueries({ queryKey: detailKey });
       await queryClient.refetchQueries({
-        queryKey: ["appointments", appointmentId],
+        queryKey: detailKey,
         type: "active",
       });
     },
@@ -137,6 +138,9 @@ export const useConsultationLogic = (appointmentId: string) => {
     handlers: {
       handleBack,
       handleSave,
+      retry: () => {
+        void refetchAppointment();
+      },
       toggleSidebar: () => setIsSidebarOpen((prev) => !prev),
       setIsSidebarOpen,
     },

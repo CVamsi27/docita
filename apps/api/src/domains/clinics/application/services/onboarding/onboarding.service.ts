@@ -7,7 +7,6 @@ import {
 } from '@nestjs/common';
 import { PrismaService } from '@/prisma/prisma.service';
 import { AuthService } from '@/shared/modules/auth/auth/auth.service';
-import { SubscriptionStatus } from '@workspace/db';
 import { UploadSessionPurpose } from '@workspace/db';
 import { AppConfigService } from '@/shared/modules/config/app-configuration.service';
 import {
@@ -26,6 +25,7 @@ import { OnboardingValidationService } from './onboarding-validation.service';
 import { OnboardingWorkflowService } from './onboarding-workflow.service';
 import { OnboardingComplianceService } from './onboarding-compliance.service';
 import { UploadsService } from '@/domains/documents/application/services/uploads.service';
+import { isFrontDeskWorkspace, parseWorkspaceProfile } from '@workspace/types';
 
 interface OnboardingResult {
   success: boolean;
@@ -250,17 +250,17 @@ export class OnboardingService {
         !!completeData.paymentDetails?.razorpayOrderId &&
         !!completeData.paymentDetails?.razorpaySignature;
 
-      if (
-        completeData.planSelection.tier !== ClinicTier.STARTER &&
-        !completeData.paymentDetails?.skipPayment &&
-        hasRazorpayPayment
-      ) {
-        const expectedAmountCents = this.validationService.getTierPricing(
-          completeData.planSelection.tier,
-          completeData.planSelection.billingCycle,
-          completeData.planSelection.currency,
-        );
+      const listPriceCents = this.validationService.getTierPricing(
+        completeData.planSelection.tier,
+        completeData.planSelection.billingCycle,
+        completeData.planSelection.currency,
+      );
 
+      const isUnpaidEssentialTrial =
+        completeData.planSelection.tier === ClinicTier.ESSENTIAL &&
+        completeData.paymentDetails?.skipPayment === true;
+
+      if (listPriceCents > 0 && !isUnpaidEssentialTrial && hasRazorpayPayment) {
         const verification = await this.paymentGateway.verifyPayment({
           razorpayPaymentId: completeData.paymentDetails!.razorpayPaymentId!,
           razorpayOrderId: completeData.paymentDetails!.razorpayOrderId!,
@@ -271,12 +271,17 @@ export class OnboardingService {
           throw new BadRequestException('Unable to verify payment');
         }
 
-        if (verification.amountCents !== expectedAmountCents) {
+        if (verification.amountCents !== listPriceCents) {
           throw new BadRequestException(
             'Payment amount does not match selected plan',
           );
         }
       }
+
+      const resolvedWorkspaceProfile =
+        completeData.planSelection.tier === ClinicTier.FRONT_DESK
+          ? 'FRONT_DESK'
+          : completeData.planSelection.workspaceProfile;
 
       const result = await this.prisma.runUnrestricted(async () => {
         return this.prisma.$transaction(async (tx) => {
@@ -284,6 +289,7 @@ export class OnboardingService {
             tx,
             completeData.clinicDetails,
             ipAddress,
+            resolvedWorkspaceProfile,
           );
           clinicId = clinic.id;
 
@@ -292,42 +298,17 @@ export class OnboardingService {
             completeData.adminAccount,
             clinic.id,
             ipAddress,
+            completeData.planSelection.tier,
           );
           userId = adminUser.id;
 
-          let subscriptionId: string;
-          if (completeData.planSelection.tier !== ClinicTier.STARTER) {
-            const subscription = await this.workflowService.createSubscription(
-              tx,
-              clinic.id,
-              completeData.planSelection,
-              completeData.paymentDetails,
-            );
-            subscriptionId = subscription.id;
-          } else {
-            const subscription = await tx.subscription.create({
-              data: {
-                clinicId: clinic.id,
-                plan: 'STARTER',
-                billingCycle: 'MONTHLY',
-                basePriceCents: 0,
-                status: SubscriptionStatus.ACTIVE,
-                currentPeriodStart: new Date(),
-                currentPeriodEnd: new Date(
-                  Date.now() + 365 * 24 * 60 * 60 * 1000,
-                ),
-              },
-            });
-            await tx.clinic.update({
-              where: { id: clinic.id },
-              data: {
-                tier: ClinicTier.STARTER,
-                subscriptionStatus: SubscriptionStatus.ACTIVE,
-                trialEndsAt: null,
-              },
-            });
-            subscriptionId = subscription.id;
-          }
+          const subscription = await this.workflowService.createSubscription(
+            tx,
+            clinic.id,
+            completeData.planSelection,
+            completeData.paymentDetails,
+          );
+          const subscriptionId = subscription.id;
 
           await this.complianceService.recordSLAAgreement(
             tx,
@@ -349,11 +330,35 @@ export class OnboardingService {
               clinic.id,
               completeData.staffSetup,
               ipAddress,
+              completeData.planSelection.tier,
             );
             this.logger.log(`Created ${staffCount} staff members`);
           }
 
+          if (
+            completeData.planSelection.tier === ClinicTier.FRONT_DESK ||
+            isFrontDeskWorkspace(
+              parseWorkspaceProfile(resolvedWorkspaceProfile),
+            )
+          ) {
+            await this.workflowService.ensureFrontDeskScheduleDoctor(
+              tx,
+              clinic.id,
+            );
+          }
+
           await this.workflowService.initializeClinicSettings(tx, clinic.id);
+
+          const weeklyRows =
+            completeData.clinicWeeklyHours &&
+            completeData.clinicWeeklyHours.length === 7
+              ? completeData.clinicWeeklyHours
+              : this.workflowService.getDefaultClinicWeeklyHoursInput();
+          await this.workflowService.replaceClinicWeeklySchedules(
+            tx,
+            clinic.id,
+            weeklyRows,
+          );
 
           return {
             clinic,

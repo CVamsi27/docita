@@ -39,6 +39,7 @@ model User {
   yearsOfExperience          Int?
   failedLoginAttempts        Int                      @default(0)
   lastFailedLoginAt          DateTime?
+  appLoginDisabled           Boolean                  @default(false)
   accountLockedUntil         DateTime?
   mfaEnabled                 Boolean                  @default(false)
   mfaSecret                  String?
@@ -222,6 +223,23 @@ model DoctorSchedule {
   @@index([clinicId])
   @@index([dayOfWeek])
   @@index([clinicId, dayOfWeek, isActive], map: "DoctorSchedule_clinicId_dayOfWeek_isActive_idx")
+}
+
+model ClinicWeeklySchedule {
+  id           String    @id @default(cuid())
+  clinicId     String
+  dayOfWeek    DayOfWeek
+  startTime    String
+  endTime      String
+  slotDuration Int       @default(30)
+  isActive     Boolean   @default(true)
+  createdAt    DateTime  @default(now())
+  updatedAt    DateTime  @updatedAt
+  clinic       Clinic    @relation(fields: [clinicId], references: [id], onDelete: Cascade)
+
+  @@unique([clinicId, dayOfWeek])
+  @@index([clinicId])
+  @@index([clinicId, dayOfWeek, isActive])
 }
 
 model DoctorTimeOff {
@@ -996,6 +1014,7 @@ model Clinic {
   referralCreditsMonths    Int                      @default(0)
   appointments             Appointment[]
   appointmentRequests      AppointmentRequest[]
+  publicBookingOtps        PublicBookingOtp[]
   appointmentReminders     AppointmentReminder[]
   auditLogs                AuditLog[]
   analyticsSnapshots       AnalyticsSnapshot[]
@@ -1006,6 +1025,7 @@ model Clinic {
   documents                Document[]
   doctorClinics            DoctorClinic[]
   doctorSchedules          DoctorSchedule[]
+  clinicWeeklySchedules    ClinicWeeklySchedule[]
   doctorTimeOffs           DoctorTimeOff[]
   feedbacks                Feedback[]
   feedbackFeatures         FeedbackFeature[]
@@ -1057,6 +1077,34 @@ model Clinic {
   prescriptions            Prescription[]
   prescriptionTemplates    PrescriptionTemplate[]
   inventoryMovements       InventoryMovement[]
+  apiQuota                 ClinicApiQuota?
+}
+
+model ClinicApiQuota {
+  clinicId             String   @id
+  rps                  Int      @default(50)
+  rpm                  Int      @default(5000)
+  monthlyBudget        Int      @default(5000000)
+  currentMonthUsed     Int      @default(0)
+  currentMonthResetsAt DateTime
+  notes                String?
+  createdAt            DateTime @default(now())
+  updatedAt            DateTime @updatedAt
+
+  clinic Clinic @relation(fields: [clinicId], references: [id], onDelete: Cascade)
+
+  @@index([currentMonthResetsAt])
+}
+
+model FeatureFlagDefinition {
+  key               String   @id
+  description       String
+  defaultEnabled    Boolean  @default(false)
+  clinicOverrides   Json?
+  userOverrides     Json?
+  percentageRollout Int?
+  createdAt         DateTime @default(now())
+  updatedAt         DateTime @updatedAt
 }
 
 model MetricCategory {
@@ -2131,6 +2179,7 @@ enum ClinicTier {
   ESSENTIAL
   PROFESSIONAL
   ENTERPRISE
+  FRONT_DESK
 }
 
 enum SignaturePurpose {
@@ -2718,7 +2767,7 @@ model Subscription {
   paymentMethodType      String?
   lastFailedPaymentDate  DateTime?
   failureRetryCount      Int                @default(0)
-  graceUntil             DateTime?
+  graceUntil             DateTime? // Payment resolution deadline; length from SUBSCRIPTION_LOCKOUT_GRACE_DAYS (API) when status is GRACE or PAST_DUE
   scheduledChange        Json?
 
   createdAt DateTime @default(now())
@@ -3380,20 +3429,22 @@ enum AppointmentRequestStatus {
 }
 
 model AppointmentRequest {
-  id                String                   @id @default(cuid())
-  patientId         String
-  clinicId          String
-  preferredDoctorId String?
-  preferredDate     DateTime
-  preferredTime     String?
-  reason            String
-  notes             String?
-  status            AppointmentRequestStatus @default(PENDING)
-  reviewedById      String?
-  reviewedAt        DateTime?
-  responseMessage   String?
-  createdAt         DateTime                 @default(now())
-  updatedAt         DateTime                 @updatedAt
+  id                  String                   @id @default(cuid())
+  patientId           String
+  clinicId            String
+  preferredDoctorId   String?
+  preferredDate       DateTime
+  preferredTime       String?
+  requestedSlotStart  DateTime?
+  requestedSlotEnd    DateTime?
+  reason              String
+  notes               String?
+  status              AppointmentRequestStatus @default(PENDING)
+  reviewedById        String?
+  reviewedAt          DateTime?
+  responseMessage     String?
+  createdAt           DateTime                 @default(now())
+  updatedAt           DateTime                 @updatedAt
 
   patient         Patient @relation(fields: [patientId], references: [id], onDelete: Cascade)
   clinic          Clinic  @relation(fields: [clinicId], references: [id], onDelete: Cascade)
@@ -3404,6 +3455,20 @@ model AppointmentRequest {
   @@index([patientId, status])
   @@index([preferredDoctorId])
   @@index([reviewedById])
+}
+
+model PublicBookingOtp {
+  id          String    @id @default(cuid())
+  clinicId  String
+  phoneNumber String
+  otpHash     String
+  expiresAt   DateTime
+  usedAt      DateTime?
+  attempts    Int       @default(0)
+  createdAt   DateTime  @default(now())
+  clinic      Clinic    @relation(fields: [clinicId], references: [id], onDelete: Cascade)
+
+  @@index([clinicId, phoneNumber, expiresAt])
 }
 
 enum LeaveType {
@@ -3560,24 +3625,61 @@ enum QueueJobStatus {
   COMPLETED
   FAILED
   DELAYED
+  DEAD_LETTERED
 }
 
 model QueueJob {
-  id           String         @id @default(cuid())
-  name         String
-  data         Json
-  status       QueueJobStatus @default(WAITING)
-  priority     Int            @default(0)
-  attemptsMade Int            @default(0)
-  maxAttempts  Int            @default(3)
-  failedReason String?
-  processedAt  DateTime?
-  delayedUntil DateTime?
-  createdAt    DateTime       @default(now())
-  updatedAt    DateTime       @default(now()) @updatedAt
+  id             String         @id @default(cuid())
+  name           String
+  data           Json
+  status         QueueJobStatus @default(WAITING)
+  priority       Int            @default(0)
+  attemptsMade   Int            @default(0)
+  maxAttempts    Int            @default(5)
+  failedReason   String?
+  processedAt    DateTime?
+  delayedUntil   DateTime?
+  idempotencyKey String?
+  completedAt    DateTime?
+  deadLetteredAt DateTime?
+  createdAt      DateTime       @default(now())
+  updatedAt      DateTime       @default(now()) @updatedAt
 
   @@index([name, status])
   @@index([name, status, priority(sort: Desc), createdAt], map: "QueueJob_name_status_priority_createdAt_idx")
   @@index([status, delayedUntil])
   @@index([createdAt])
+  @@index([name, idempotencyKey, completedAt(sort: Desc)], map: "QueueJob_idempotency_lookup_idx")
+}
+
+enum ApiHttpIdempotencyStatus {
+  PROCESSING
+  COMPLETED
+}
+
+/// Cross-replica HTTP idempotency for POST mutations (Idempotency-Key header).
+/// Rows are purged after recordExpiresAt by EphemeralStoreCleanupScheduler.
+model ApiHttpIdempotencyRecord {
+  id                    String                   @id @default(cuid())
+  scopedKey             String                   @unique
+  bodyHash              String
+  status                ApiHttpIdempotencyStatus
+  response              Json?
+  processingExpiresAt   DateTime
+  recordExpiresAt       DateTime
+  createdAt             DateTime                 @default(now())
+  updatedAt             DateTime                 @updatedAt
+
+  @@index([recordExpiresAt])
+  @@index([status, processingExpiresAt])
+}
+
+/// Short-lived dedupe for verified webhook deliveries (replay protection).
+model WebhookReplayDedupe {
+  id            String   @id @default(cuid())
+  dedupeKeyHash String   @unique
+  expiresAt     DateTime
+  createdAt     DateTime @default(now())
+
+  @@index([expiresAt])
 }

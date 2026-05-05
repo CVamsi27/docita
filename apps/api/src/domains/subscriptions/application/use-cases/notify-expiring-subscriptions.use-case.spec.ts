@@ -1,4 +1,5 @@
 import { describe, it, expect, beforeEach, jest } from '@jest/globals';
+import { SubscriptionStatus } from '@workspace/db';
 import { NotifyExpiringSubscriptionsUseCase } from './notify-expiring-subscriptions.use-case';
 import { PrismaService } from '@/prisma/prisma.service';
 import { ISubscriptionRepository } from '@/domains/subscriptions/application/ports';
@@ -35,6 +36,7 @@ describe('NotifyExpiringSubscriptionsUseCase', () => {
     findPaymentByOrderId: jest.fn(async () => null),
     updatePaymentLink: jest.fn(async () => undefined),
     expireDuplicatePendingCheckouts: jest.fn(async () => 0),
+    expireOtherPendingSubscriptionCheckouts: jest.fn(async () => 0),
     findReusablePendingCheckout: jest.fn(async () => null),
   };
 
@@ -71,6 +73,7 @@ describe('NotifyExpiringSubscriptionsUseCase', () => {
       {
         id: 'sub-1',
         clinicId: 'clinic-1',
+        status: SubscriptionStatus.ACTIVE,
         currentPeriodEnd: new Date('2026-04-10T00:00:00.000Z'),
         clinic: {
           name: 'Clinic 1',
@@ -80,6 +83,7 @@ describe('NotifyExpiringSubscriptionsUseCase', () => {
       {
         id: 'sub-2',
         clinicId: 'clinic-1',
+        status: SubscriptionStatus.ACTIVE,
         currentPeriodEnd: new Date('2026-04-10T00:00:00.000Z'),
         clinic: {
           name: 'Clinic 1',
@@ -89,6 +93,7 @@ describe('NotifyExpiringSubscriptionsUseCase', () => {
       {
         id: 'sub-3',
         clinicId: 'clinic-2',
+        status: SubscriptionStatus.ACTIVE,
         currentPeriodEnd: new Date('2026-04-10T00:00:00.000Z'),
         clinic: {
           name: 'Clinic 2',
@@ -117,6 +122,63 @@ describe('NotifyExpiringSubscriptionsUseCase', () => {
             status: 'sent',
           }),
         ],
+      }),
+    );
+  });
+
+  it('uses same-day subject when reminder type is expiry_0d', async () => {
+    findSubscriptionsMock.mockResolvedValue([
+      {
+        id: 'sub-today',
+        clinicId: 'clinic-today',
+        status: SubscriptionStatus.TRIALING,
+        currentPeriodEnd: new Date('2026-04-10T00:00:00.000Z'),
+        clinic: {
+          name: 'Today Clinic',
+          users: [{ email: 'a@today.test', name: 'A' }],
+        },
+      },
+    ]);
+    findRemindersMock.mockResolvedValue([]);
+    createManyRemindersMock.mockResolvedValue({ count: 1 });
+
+    await useCase.execute({
+      targetDate: new Date('2026-04-10T00:00:00.000Z'),
+      reminderType: 'expiry_0d',
+    });
+
+    expect(emailService.send).toHaveBeenCalledWith(
+      expect.objectContaining({
+        subject: 'Docita trial ends today',
+      }),
+    );
+  });
+
+  it('uses trial-specific email copy for TRIALING subscriptions', async () => {
+    findSubscriptionsMock.mockResolvedValue([
+      {
+        id: 'sub-trial',
+        clinicId: 'clinic-trial',
+        status: SubscriptionStatus.TRIALING,
+        currentPeriodEnd: new Date('2026-04-10T00:00:00.000Z'),
+        clinic: {
+          name: 'Trial Clinic',
+          users: [{ email: 'admin@trial.test', name: 'Admin' }],
+        },
+      },
+    ]);
+    findRemindersMock.mockResolvedValue([]);
+    createManyRemindersMock.mockResolvedValue({ count: 1 });
+
+    await useCase.execute({
+      targetDate: new Date('2026-04-10T00:00:00.000Z'),
+      reminderType: 'expiry_14d',
+    });
+
+    expect(emailService.send).toHaveBeenCalledWith(
+      expect.objectContaining({
+        subject: 'Docita trial ends in 14 days',
+        text: expect.stringContaining('trial for "Trial Clinic"'),
       }),
     );
   });

@@ -64,6 +64,8 @@ export class PrescriptionsService {
     params?: {
       search?: string;
       date?: string;
+      startDate?: string;
+      endDate?: string;
       patientId?: string;
       limit?: number;
     },

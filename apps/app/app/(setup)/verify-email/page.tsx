@@ -101,7 +101,7 @@ function VerifyEmailInner() {
 
   return (
     <PreDashboardShell currentStep="verify-email">
-      <div className="ui-card-surface space-y-6 p-8 animate-in fade-in slide-in-from-bottom-4 duration-700">
+      <div className="ui-card-surface space-y-6 p-8">
         {state === "loading" && (
           <div
             className="flex flex-col items-center gap-4 py-4"

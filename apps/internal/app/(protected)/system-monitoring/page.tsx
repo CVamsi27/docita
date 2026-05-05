@@ -1,5 +1,6 @@
 "use client";
 
+import Link from "next/link";
 import { useMemo, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { sanitizeUserFacingMessage } from "@workspace/types";
@@ -13,6 +14,7 @@ import {
 } from "@workspace/ui/components/card";
 import { Badge } from "@workspace/ui/components/badge";
 import { Button } from "@workspace/ui/components/button";
+import { DataState } from "@workspace/ui/components/data-state";
 import { DocitaLoadingIndicator } from "@workspace/ui/components/docita-loading-indicator";
 import { PageHeader } from "@workspace/ui/components/page-header";
 import { Progress } from "@workspace/ui/components/progress";
@@ -45,6 +47,7 @@ import {
   Clock,
   Cpu,
   Database,
+  ExternalLink,
   RefreshCw,
   Server,
   ShieldAlert,
@@ -55,6 +58,21 @@ import {
 
 function formatBytesToMb(value: number): string {
   return `${value} MB`;
+}
+
+function buildPrometheusMetricsUrl(): string | null {
+  const base = process.env.NEXT_PUBLIC_API_URL;
+  if (!base) {
+    return null;
+  }
+  try {
+    const parsed = new URL(base);
+    parsed.pathname = "/metrics";
+    parsed.search = "";
+    return parsed.toString();
+  } catch {
+    return null;
+  }
 }
 
 export default function SystemMonitoringPage() {
@@ -100,6 +118,41 @@ export default function SystemMonitoringPage() {
   const tenantScopeQuery = useQuery({
     queryKey: internalQueryKeys.internal.tenantScopeDiagnostics(),
     queryFn: () => operationsAPI.getTenantScopeDiagnostics(),
+    enabled: Boolean(token),
+    refetchInterval: autoRefresh && token ? 30000 : false,
+  });
+
+  const webVitalsQuery = useQuery({
+    queryKey: internalQueryKeys.internal.monitoringWebVitals("24h", "rolling"),
+    queryFn: () => {
+      const end = new Date();
+      const start = new Date(end.getTime() - 24 * 60 * 60 * 1000);
+      return monitoringAPI.getWebVitalsAggregates(
+        start.toISOString(),
+        end.toISOString(),
+      );
+    },
+    enabled: Boolean(token),
+    refetchInterval: autoRefresh && token ? 60000 : false,
+  });
+
+  const securitySummaryQuery = useQuery({
+    queryKey: internalQueryKeys.internal.monitoringSecuritySummary("24h", "rolling"),
+    queryFn: () => {
+      const end = new Date();
+      const start = new Date(end.getTime() - 24 * 60 * 60 * 1000);
+      return monitoringAPI.getSecuritySummary(
+        start.toISOString(),
+        end.toISOString(),
+      );
+    },
+    enabled: Boolean(token),
+    refetchInterval: autoRefresh && token ? 60000 : false,
+  });
+
+  const queueHealthQuery = useQuery({
+    queryKey: internalQueryKeys.internal.monitoringQueueHealth(),
+    queryFn: () => monitoringAPI.getQueueHealth(),
     enabled: Boolean(token),
     refetchInterval: autoRefresh && token ? 30000 : false,
   });
@@ -172,6 +225,9 @@ export default function SystemMonitoringPage() {
       performanceQuery.refetch(),
       databaseQuery.refetch(),
       tenantScopeQuery.refetch(),
+      webVitalsQuery.refetch(),
+      securitySummaryQuery.refetch(),
+      queueHealthQuery.refetch(),
     ]).finally(() => {
       setRefreshing(false);
     });
@@ -305,6 +361,10 @@ export default function SystemMonitoringPage() {
         <TabsList>
           <TabsTrigger value="overview">Overview</TabsTrigger>
           <TabsTrigger value="performance">Performance</TabsTrigger>
+          <TabsTrigger value="experience">Experience</TabsTrigger>
+          <TabsTrigger value="security">Security</TabsTrigger>
+          <TabsTrigger value="queues">Queues</TabsTrigger>
+          <TabsTrigger value="ops">Ops</TabsTrigger>
           <TabsTrigger value="tenant-scope">Tenant Scope</TabsTrigger>
           <TabsTrigger value="health">Health Checks</TabsTrigger>
         </TabsList>
@@ -685,6 +745,427 @@ export default function SystemMonitoringPage() {
                       {bucket.range}
                     </p>
                     <p className="mt-2 text-[var(--fs-xl)] font-semibold tabular-nums leading-[var(--lh-tight)]">{bucket.count}</p>
+                  </div>
+                ))}
+              </div>
+            </CardContent>
+          </Card>
+        </TabsContent>
+
+        <TabsContent value="experience" className="space-y-6">
+          <DataState
+            status={
+              webVitalsQuery.isLoading
+                ? "loading"
+                : webVitalsQuery.isError
+                  ? "error"
+                  : "success"
+            }
+            loadingMessage="Loading Core Web Vitals aggregates…"
+            errorMessage={
+              webVitalsQuery.error instanceof Error
+                ? webVitalsQuery.error.message
+                : "Could not load web vitals."
+            }
+            onRetry={() => void webVitalsQuery.refetch()}
+          >
+            <Card>
+              <CardHeader>
+                <CardTitle>Core Web Vitals (24h)</CardTitle>
+                <CardDescription>
+                  Browser RUM aggregated from production beacons (LCP, INP, CLS,
+                  FCP, TTFB). Values use the same thresholds as the API rating
+                  helper.
+                </CardDescription>
+              </CardHeader>
+              <CardContent>
+                {(webVitalsQuery.data?.length ?? 0) === 0 ? (
+                  <p className="text-sm text-muted-foreground">
+                    No vitals recorded in this window yet.
+                  </p>
+                ) : (
+                  <div className="overflow-x-auto rounded-md border">
+                    <Table>
+                      <TableHeader>
+                        <TableRow>
+                          <TableHead>Metric</TableHead>
+                          <TableHead className="text-right">Count</TableHead>
+                          <TableHead className="text-right">Avg</TableHead>
+                          <TableHead className="text-right">p95</TableHead>
+                          <TableHead className="text-right">Rating</TableHead>
+                        </TableRow>
+                      </TableHeader>
+                      <TableBody>
+                        {(webVitalsQuery.data ?? []).map((row) => (
+                          <TableRow key={row.name}>
+                            <TableCell className="font-medium">
+                              {row.name}
+                            </TableCell>
+                            <TableCell className="text-right tabular-nums">
+                              {formatCountLocale(row.count)}
+                            </TableCell>
+                            <TableCell className="text-right tabular-nums">
+                              {row.avg.toFixed(2)}
+                            </TableCell>
+                            <TableCell className="text-right tabular-nums">
+                              {row.p95.toFixed(2)}
+                            </TableCell>
+                            <TableCell>
+                              <Badge variant="outline">{row.rating}</Badge>
+                            </TableCell>
+                          </TableRow>
+                        ))}
+                      </TableBody>
+                    </Table>
+                  </div>
+                )}
+              </CardContent>
+            </Card>
+          </DataState>
+        </TabsContent>
+
+        <TabsContent value="security" className="space-y-6">
+          <DataState
+            status={
+              securitySummaryQuery.isLoading
+                ? "loading"
+                : securitySummaryQuery.isError
+                  ? "error"
+                  : "success"
+            }
+            loadingMessage="Loading API security signals…"
+            errorMessage={
+              securitySummaryQuery.error instanceof Error
+                ? securitySummaryQuery.error.message
+                : "Could not load security summary."
+            }
+            onRetry={() => void securitySummaryQuery.refetch()}
+          >
+            {securitySummaryQuery.data ? (
+              <>
+                <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
+                  <Card>
+                    <CardHeader className="pb-2">
+                      <CardTitle className="text-sm font-medium">
+                        401 Unauthorized
+                      </CardTitle>
+                    </CardHeader>
+                    <CardContent>
+                      <div className="text-[var(--fs-2xl)] font-semibold tabular-nums leading-[var(--lh-tight)]">
+                        {formatCountLocale(
+                          securitySummaryQuery.data.status401,
+                        )}
+                      </div>
+                      <p className="text-xs text-muted-foreground">
+                        Rolling 24h from request logs
+                      </p>
+                    </CardContent>
+                  </Card>
+                  <Card>
+                    <CardHeader className="pb-2">
+                      <CardTitle className="text-sm font-medium">
+                        403 Forbidden
+                      </CardTitle>
+                    </CardHeader>
+                    <CardContent>
+                      <div className="text-[var(--fs-2xl)] font-semibold tabular-nums leading-[var(--lh-tight)]">
+                        {formatCountLocale(
+                          securitySummaryQuery.data.status403,
+                        )}
+                      </div>
+                      <p className="text-xs text-muted-foreground">
+                        Rolling 24h from request logs
+                      </p>
+                    </CardContent>
+                  </Card>
+                  <Card>
+                    <CardHeader className="pb-2">
+                      <CardTitle className="text-sm font-medium">
+                        429 Rate limited
+                      </CardTitle>
+                    </CardHeader>
+                    <CardContent>
+                      <div className="text-[var(--fs-2xl)] font-semibold tabular-nums leading-[var(--lh-tight)]">
+                        {formatCountLocale(
+                          securitySummaryQuery.data.status429,
+                        )}
+                      </div>
+                      <p className="text-xs text-muted-foreground">
+                        Rolling 24h from request logs
+                      </p>
+                    </CardContent>
+                  </Card>
+                  <Card>
+                    <CardHeader className="pb-2">
+                      <CardTitle className="text-sm font-medium">
+                        5xx errors
+                      </CardTitle>
+                    </CardHeader>
+                    <CardContent>
+                      <div className="text-[var(--fs-2xl)] font-semibold tabular-nums leading-[var(--lh-tight)]">
+                        {formatCountLocale(
+                          securitySummaryQuery.data.status5xx,
+                        )}
+                      </div>
+                      <p className="text-xs text-muted-foreground">
+                        Server errors in window
+                      </p>
+                    </CardContent>
+                  </Card>
+                </div>
+
+                <Card>
+                  <CardHeader className="flex flex-row flex-wrap items-start justify-between gap-4">
+                    <div>
+                      <CardTitle>Top auth and rate-limit routes</CardTitle>
+                      <CardDescription>
+                        Paths with 401, 403, or 429 in the selected window (counts
+                        only, no request bodies).
+                      </CardDescription>
+                    </div>
+                    <Button variant="outline" size="sm" asChild>
+                      <Link href="/audits">Open audit log</Link>
+                    </Button>
+                  </CardHeader>
+                  <CardContent>
+                    {securitySummaryQuery.data.topAuthFailureRoutes.length ===
+                    0 ? (
+                      <p className="text-sm text-muted-foreground">
+                        No matching responses in this window.
+                      </p>
+                    ) : (
+                      <div className="max-h-[360px] overflow-auto rounded-md border">
+                        <Table>
+                          <TableHeader>
+                            <TableRow>
+                              <TableHead>Path</TableHead>
+                              <TableHead>Method</TableHead>
+                              <TableHead>Status</TableHead>
+                              <TableHead className="text-right">Count</TableHead>
+                            </TableRow>
+                          </TableHeader>
+                          <TableBody>
+                            {securitySummaryQuery.data.topAuthFailureRoutes.map(
+                              (row) => (
+                                <TableRow
+                                  key={`${row.method}-${row.path}-${row.statusCode}`}
+                                >
+                                  <TableCell className="max-w-[280px] truncate font-mono text-xs">
+                                    {row.path}
+                                  </TableCell>
+                                  <TableCell>{row.method}</TableCell>
+                                  <TableCell>{row.statusCode}</TableCell>
+                                  <TableCell className="text-right tabular-nums">
+                                    {formatCountLocale(row.count)}
+                                  </TableCell>
+                                </TableRow>
+                              ),
+                            )}
+                          </TableBody>
+                        </Table>
+                      </div>
+                    )}
+                  </CardContent>
+                </Card>
+              </>
+            ) : null}
+          </DataState>
+        </TabsContent>
+
+        <TabsContent value="queues" className="space-y-6">
+          <DataState
+            status={
+              queueHealthQuery.isLoading
+                ? "loading"
+                : queueHealthQuery.isError
+                  ? "error"
+                  : "success"
+            }
+            loadingMessage="Loading queue health…"
+            errorMessage={
+              queueHealthQuery.error instanceof Error
+                ? queueHealthQuery.error.message
+                : "Could not load queue health."
+            }
+            onRetry={() => void queueHealthQuery.refetch()}
+          >
+            {queueHealthQuery.data ? (
+              <>
+                <Card>
+                  <CardHeader>
+                    <CardTitle>Background queue snapshot</CardTitle>
+                    <CardDescription>
+                      Live counts from the{" "}
+                      <span className="font-mono text-xs">QueueJob</span> table.
+                      Worker Prometheus histograms run in the worker process; scrape
+                      them separately if you expose a metrics port on Fly.
+                    </CardDescription>
+                  </CardHeader>
+                  <CardContent>
+                    <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
+                      {queueHealthQuery.data.countsByStatus.map((row) => (
+                        <div
+                          key={row.status}
+                          className="rounded-[var(--radius)] border border-border/70 p-3"
+                        >
+                          <p className="text-xs text-muted-foreground">
+                            {row.status}
+                          </p>
+                          <p className="text-[var(--fs-xl)] font-semibold tabular-nums leading-[var(--lh-tight)]">
+                            {formatCountLocale(row.count)}
+                          </p>
+                        </div>
+                      ))}
+                    </div>
+                    <p className="mt-4 text-sm text-muted-foreground">
+                      Dead-lettered (last 24h):{" "}
+                      <span className="font-medium text-foreground">
+                        {formatCountLocale(
+                          queueHealthQuery.data.deadLetteredLast24h,
+                        )}
+                      </span>
+                    </p>
+                  </CardContent>
+                </Card>
+
+                <div className="grid gap-4 md:grid-cols-2">
+                  <Card>
+                    <CardHeader>
+                      <CardTitle>Top waiting queues</CardTitle>
+                      <CardDescription>By job name</CardDescription>
+                    </CardHeader>
+                    <CardContent>
+                      {queueHealthQuery.data.topQueuesByWaiting.length === 0 ? (
+                        <p className="text-sm text-muted-foreground">None</p>
+                      ) : (
+                        <ul className="space-y-2 text-sm">
+                          {queueHealthQuery.data.topQueuesByWaiting.map(
+                            (row) => (
+                              <li
+                                key={row.name}
+                                className="flex justify-between gap-2"
+                              >
+                                <span className="truncate font-mono text-xs">
+                                  {row.name}
+                                </span>
+                                <span className="tabular-nums">
+                                  {formatCountLocale(row.count)}
+                                </span>
+                              </li>
+                            ),
+                          )}
+                        </ul>
+                      )}
+                    </CardContent>
+                  </Card>
+                  <Card>
+                    <CardHeader>
+                      <CardTitle>Top failed queues</CardTitle>
+                      <CardDescription>By job name</CardDescription>
+                    </CardHeader>
+                    <CardContent>
+                      {queueHealthQuery.data.topQueuesByFailed.length === 0 ? (
+                        <p className="text-sm text-muted-foreground">None</p>
+                      ) : (
+                        <ul className="space-y-2 text-sm">
+                          {queueHealthQuery.data.topQueuesByFailed.map((row) => (
+                            <li
+                              key={row.name}
+                              className="flex justify-between gap-2"
+                            >
+                              <span className="truncate font-mono text-xs">
+                                {row.name}
+                              </span>
+                              <span className="tabular-nums">
+                                {formatCountLocale(row.count)}
+                              </span>
+                            </li>
+                          ))}
+                        </ul>
+                      )}
+                    </CardContent>
+                  </Card>
+                </div>
+              </>
+            ) : null}
+          </DataState>
+        </TabsContent>
+
+        <TabsContent value="ops" className="space-y-6">
+          <Card>
+            <CardHeader>
+              <CardTitle>Operations links</CardTitle>
+              <CardDescription>
+                Non-secret URLs only. Configure via{" "}
+                <span className="font-mono text-xs">NEXT_PUBLIC_OPS_*</span>{" "}
+                environment variables.
+              </CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <div className="rounded-[var(--radius)] border border-border/70 p-4">
+                <p className="text-sm font-medium">API Prometheus scrape</p>
+                <p className="mt-1 text-xs text-muted-foreground">
+                  The Nest API exposes unversioned metrics at{" "}
+                  <span className="font-mono">/metrics</span> on the API origin
+                  (protect at the edge in production).
+                </p>
+                {buildPrometheusMetricsUrl() ? (
+                  <a
+                    href={buildPrometheusMetricsUrl() ?? "#"}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="mt-2 inline-flex items-center gap-1 text-sm text-primary hover:underline"
+                  >
+                    Open metrics endpoint
+                    <ExternalLink className="h-3.5 w-3.5" />
+                  </a>
+                ) : (
+                  <p className="mt-2 text-xs text-muted-foreground">
+                    Set <span className="font-mono">NEXT_PUBLIC_API_URL</span> to
+                    derive the metrics URL.
+                  </p>
+                )}
+              </div>
+
+              <div className="grid gap-3 sm:grid-cols-2">
+                {[
+                  {
+                    label: "Prometheus",
+                    url: process.env.NEXT_PUBLIC_OPS_PROMETHEUS_URL,
+                  },
+                  {
+                    label: "Grafana",
+                    url: process.env.NEXT_PUBLIC_OPS_GRAFANA_URL,
+                  },
+                  {
+                    label: "Fly.io dashboard",
+                    url: process.env.NEXT_PUBLIC_OPS_FLY_DASHBOARD_URL,
+                  },
+                  {
+                    label: "Sentry (org or project)",
+                    url: process.env.NEXT_PUBLIC_OPS_SENTRY_URL,
+                  },
+                ].map((item) => (
+                  <div
+                    key={item.label}
+                    className="rounded-[var(--radius)] border border-border/70 p-4"
+                  >
+                    <p className="text-sm font-medium">{item.label}</p>
+                    {item.url ? (
+                      <a
+                        href={item.url}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="mt-2 inline-flex items-center gap-1 text-sm text-primary hover:underline break-all"
+                      >
+                        {item.url}
+                        <ExternalLink className="h-3.5 w-3.5 shrink-0" />
+                      </a>
+                    ) : (
+                      <p className="mt-2 text-xs text-muted-foreground">
+                        Not configured for this deployment.
+                      </p>
+                    )}
                   </div>
                 ))}
               </div>

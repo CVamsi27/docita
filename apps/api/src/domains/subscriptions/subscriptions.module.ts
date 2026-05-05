@@ -92,6 +92,7 @@ import { AdminAlertsModule } from '@/shared/modules/messaging/admin-alerts/admin
     ProcessWebhookUseCase,
     SubscriptionsQueryService,
     PAYMENT_GATEWAY_TOKEN,
+    SUBSCRIPTION_REPOSITORY_TOKEN,
   ],
 })
 export class SubscriptionsModule {}

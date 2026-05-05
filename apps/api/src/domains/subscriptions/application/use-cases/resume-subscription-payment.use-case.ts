@@ -3,7 +3,7 @@ import { PrismaService } from '@/prisma/prisma.service';
 import { AppConfigService } from '@/shared/modules/config/app-configuration.service';
 import {
   IPaymentLinkProvider,
-  PAYMENT_LINK_PROVIDER_TOKEN,
+  DOCITA_PLATFORM_PAYMENT_LINK_PROVIDER_TOKEN,
 } from '@/domains/payments/core/ports';
 import { Money } from '@/domains/payments/core/value-objects/money.vo';
 import { Role } from '@workspace/db';
@@ -28,7 +28,7 @@ export class ResumeSubscriptionPaymentUseCase {
   constructor(
     private readonly prisma: PrismaService,
     private readonly configService: AppConfigService,
-    @Inject(PAYMENT_LINK_PROVIDER_TOKEN)
+    @Inject(DOCITA_PLATFORM_PAYMENT_LINK_PROVIDER_TOKEN)
     private readonly paymentLinkProvider: IPaymentLinkProvider,
     @Inject(SUBSCRIPTION_REPOSITORY_TOKEN)
     private readonly subscriptionRepo: ISubscriptionRepository,

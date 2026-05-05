@@ -1,18 +1,20 @@
 import { client } from "./api-client";
 import { API_URL } from "./api-config";
 import {
-  Appointment,
   AppPerformanceMetrics,
   DatabaseStats,
+  InternalBillingPaymentItem,
   InternalBillingPaymentsQuery,
   InternalBillingSubscriptionsQuery,
-  Patient,
+  queueHealthSummarySchema,
+  securityMonitoringSummarySchema,
   SupportInquiry,
   SupportWhatsAppMessage,
   SupportWhatsAppReplyRequest,
   SupportWhatsAppThreadSummary,
   type TenantScopeDiagnostics,
   tenantScopeDiagnosticsSchema,
+  WebVitalsAggregateListSchema,
 } from "@workspace/types";
 type PerformanceHealthCheck = import("@workspace/types").HealthCheck;
 
@@ -158,6 +160,24 @@ export const monitoringAPI = {
     errorsDeleted: number;
     metricsDeleted: number;
   }> => client.post("/monitoring/cleanup", { daysToKeep }),
+  getWebVitalsAggregates: async (
+    startDate?: string,
+    endDate?: string,
+    page?: string,
+  ) =>
+    WebVitalsAggregateListSchema.parse(
+      await client.get("/monitoring/web-vitals", {
+        params: { startDate, endDate, page },
+      }),
+    ),
+  getSecuritySummary: async (startDate?: string, endDate?: string) =>
+    securityMonitoringSummarySchema.parse(
+      await client.get("/monitoring/security-summary", {
+        params: { startDate, endDate },
+      }),
+    ),
+  getQueueHealth: async () =>
+    queueHealthSummarySchema.parse(await client.get("/monitoring/queue-health")),
 };
 
 export const performanceAPI = {
@@ -174,33 +194,6 @@ export const operationsAPI = {
     tenantScopeDiagnosticsSchema.parse(
       await client.get("/operations/database/tenant-scope"),
     ),
-};
-
-export const patientsAPI = {
-  getAll: (): Promise<Patient[]> => client.get("/patients"),
-  getOne: (id: string): Promise<Patient> => client.get(`/patients/${id}`),
-  create: (
-    data: Omit<Patient, "id" | "createdAt" | "updatedAt">,
-  ): Promise<Patient> => client.post("/patients", data),
-  update: (
-    id: string,
-    data: Partial<Omit<Patient, "id" | "createdAt" | "updatedAt">>,
-  ): Promise<Patient> => client.patch(`/patients/${id}`, data),
-  delete: (id: string): Promise<void> => client.delete(`/patients/${id}`),
-};
-
-export const appointmentsAPI = {
-  getAll: (): Promise<Appointment[]> => client.get("/appointments"),
-  getOne: (id: string): Promise<Appointment> =>
-    client.get(`/appointments/${id}`),
-  create: (
-    data: Omit<Appointment, "id" | "createdAt" | "updatedAt">,
-  ): Promise<Appointment> => client.post("/appointments", data),
-  update: (
-    id: string,
-    data: Partial<Omit<Appointment, "id" | "createdAt" | "updatedAt">>,
-  ): Promise<Appointment> => client.patch(`/appointments/${id}`, data),
-  delete: (id: string): Promise<void> => client.delete(`/appointments/${id}`),
 };
 
 export interface Feedback {
@@ -309,19 +302,7 @@ export interface SubscriptionOverview {
   currentPeriodEnd: string;
 }
 
-export interface PaymentRecord {
-  id: string;
-  amount: number;
-  currency: string;
-  status: "SUCCESS" | "PENDING" | "FAILED";
-  gatewayPaymentId?: string;
-  paidAt?: string;
-  createdAt: string;
-  subscription: {
-    clinic: { name: string };
-    tier: string;
-  };
-}
+export type PaymentRecord = InternalBillingPaymentItem;
 
 export interface BillingMetrics {
   mrr: number;

@@ -129,9 +129,7 @@ export class AppointmentSchedulingRulesService implements AppointmentSchedulingR
             AppointmentStatus.IN_PROGRESS,
           ],
         },
-        NOT: {
-          id: excludeAppointmentId,
-        },
+        ...(excludeAppointmentId ? { NOT: { id: excludeAppointmentId } } : {}),
 
         AND: [{ startTime: { lt: endTime } }, { endTime: { gt: startTime } }],
       },

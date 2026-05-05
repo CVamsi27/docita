@@ -43,13 +43,27 @@ const FALLBACK_TIERS: TierConfig[] = [
     id: "STARTER",
     name: "Starter",
     description: "Core clinical workflows for solo doctors moving off paper",
-    tagline: "Start clinic digitization",
+    tagline: "Go digital from day one",
     pricing: { monthly: 499, yearly: 4990, currency: "₹" },
     features: [
       "50 patients",
       "Digital prescriptions",
       "Basic appointment queue",
       "Single doctor",
+    ],
+  },
+  {
+    id: "FRONT_DESK",
+    name: "Front desk",
+    description:
+      "Reception-first scheduling and billing without full in-app clinical workflows",
+    tagline: "Reception and operations",
+    pricing: { monthly: 799, yearly: 7990, currency: "₹" },
+    features: [
+      "Scheduling and queue",
+      "Patients and invoicing",
+      "WhatsApp within plan limits",
+      "Schedule-only doctor profiles",
     ],
   },
   {

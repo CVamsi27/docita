@@ -4,6 +4,8 @@ export * from "./common-types";
 export * from "./users";
 export * from "./doctor-verification-messages";
 export * from "./clinics";
+export * from "./workspace-profile";
+export * from "./sidebar-nav";
 export * from "./doctor-clinics";
 export * from "./contact";
 export * from "./custom-fields";

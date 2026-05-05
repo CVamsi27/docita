@@ -106,4 +106,41 @@ test.describe("Appointments", () => {
     const pageContent = page.locator("body");
     await expect(pageContent).toBeVisible({ timeout: 10000 });
   });
+
+  test("inline follow-up dropdown opens add appointment with patient pre-selected", async ({
+    page,
+    request,
+  }) => {
+    const startTime = new Date(Date.now() + 90 * 60 * 1000);
+    const endTime = new Date(startTime);
+    endTime.setMinutes(startTime.getMinutes() + 30);
+
+    const appointmentRes = await request.post(`${API_URL}/appointments`, {
+      headers: { Authorization: `Bearer ${cachedUser!.accessToken}` },
+      data: {
+        patientId: cachedPatient!.id,
+        doctorId: cachedUser!.id,
+        clinicId: cachedUser!.clinicId,
+        startTime: startTime.toISOString(),
+        endTime: endTime.toISOString(),
+        status: "scheduled",
+        type: "consultation",
+      },
+    });
+    expect(appointmentRes.ok()).toBeTruthy();
+
+    await page.goto("/appointments", { waitUntil: "load" });
+
+    const moreButton = page
+      .getByRole("button", { name: /more appointment actions/i })
+      .first();
+    await expect(moreButton).toBeVisible({ timeout: 15_000 });
+    await moreButton.click();
+
+    await page.getByTestId("schedule-follow-up").click();
+
+    await expect(page).toHaveURL(/action=new/);
+    await expect(page).toHaveURL(new RegExp(`patientId=${cachedPatient!.id}`));
+    await expect(page.getByRole("dialog")).toBeVisible();
+  });
 });

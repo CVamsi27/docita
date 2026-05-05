@@ -1,7 +1,9 @@
+import { useQueryClient } from "@tanstack/react-query";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { toast } from "sonner";
 import { Resolver, useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
+import { DEFAULT_TIMEZONE } from "@workspace/utils";
 import { usePatient, usePatients } from "@/hooks/api/use-patients";
 import {
   useDoctors,
@@ -9,60 +11,50 @@ import {
   useUnavailableDoctorIdsForDate,
   useDoctorAvailabilitySlots,
 } from "@/hooks/api/use-settings";
-import { useCreateAppointment } from "@/hooks/api/use-appointments";
+import { useAppointments, useCreateAppointment } from "@/hooks/api/use-appointments";
 import {
   Appointment,
   CreateAppointmentInput,
   createAppointmentSchema,
   Patient,
 } from "@workspace/types";
-import { DEFAULT_TIMEZONE, toLocalISOString } from "@workspace/utils";
+import { addDays, formatPickerIsoDate } from "@workspace/utils";
+import {
+  calendarSlotTimeToLocalIso,
+  defaultStartIsoForSelectedCalendarDay,
+  slotOccupiedByAppointments,
+} from "@/features/appointments/lib/calendar-slot-local-iso";
 import { useAppConfig } from "@/lib/app-config-context";
 import { useAuth } from "@/lib/auth-context";
+import { useClinic } from "@/lib/clinic-context";
 import { showUserFacingErrorToast } from "@/lib/user-facing-errors";
 
 interface UseAppointmentFormProps {
   onAppointmentAdded: (appointment: Appointment) => void | Promise<void>;
   selectedDate?: Date;
+  /** Move appointments page calendar when the picked day has no bookable slots (e.g. advance from today). */
+  onAdjustSchedulingDate?: (next: Date) => void;
   preselectedPatientId?: string;
+  defaultDoctorId?: string;
   startHour?: number;
   endHour?: number;
   open?: boolean;
 }
 
-function mergeCalendarDateWithScheduleStart(
-  selectedDate: Date,
-  doctorSchedules: Array<{ dayOfWeek: string; startTime: string; isActive: boolean }>,
-  fallbackHour: number,
-): string {
-  const days = [
-    "SUNDAY",
-    "MONDAY",
-    "TUESDAY",
-    "WEDNESDAY",
-    "THURSDAY",
-    "FRIDAY",
-    "SATURDAY",
-  ] as const;
-  const dayName = days[selectedDate.getDay()];
-  const schedule = doctorSchedules.find(
-    (s) => s.dayOfWeek === dayName && s.isActive,
-  );
-  const hourMinute = schedule?.startTime.split(":").map(Number) ?? [
-    fallbackHour,
-    0,
-  ];
-  const h = hourMinute[0] ?? fallbackHour;
-  const m = hourMinute[1] ?? 0;
-  const d = new Date(selectedDate);
-  d.setHours(h, m, 0, 0);
-  return toLocalISOString(d, { timezone: DEFAULT_TIMEZONE });
+function pickerDayDiff(fromIso: string, toIso: string): number {
+  const [fy, fm, fd] = fromIso.split("-").map(Number);
+  const [ty, tm, td] = toIso.split("-").map(Number);
+  const fromT = new Date(fy!, fm! - 1, fd!, 12, 0, 0, 0).getTime();
+  const toT = new Date(ty!, tm! - 1, td!, 12, 0, 0, 0).getTime();
+  return Math.round((toT - fromT) / 86_400_000);
 }
 
 export function useAppointmentForm({
   onAppointmentAdded,
   selectedDate,
+  onAdjustSchedulingDate,
   preselectedPatientId,
+  defaultDoctorId,
   startHour = 9,
   endHour = 17,
   open,
@@ -107,6 +99,13 @@ export function useAppointmentForm({
     [doctors, unavailableIds],
   );
 
+  const queryClient = useQueryClient();
+  const { clinic } = useClinic();
+  const clinicTimezone = useMemo(
+    () => (clinic?.timezone?.trim() || DEFAULT_TIMEZONE) as string,
+    [clinic?.timezone],
+  );
+
   const { mutateAsync: createAppointment, isPending: loading } =
     useCreateAppointment();
   const { config } = useAppConfig();
@@ -118,11 +117,12 @@ export function useAppointmentForm({
     let defaultStart = "";
 
     if (selectedDate) {
-      const interim = new Date(selectedDate);
-      interim.setHours(startHour, 0, 0, 0);
-      defaultStart = toLocalISOString(interim, {
-        timezone: DEFAULT_TIMEZONE,
-      });
+      defaultStart = defaultStartIsoForSelectedCalendarDay(
+        selectedDate,
+        startHour,
+        endHour,
+        clinicTimezone,
+      );
     } else {
       const now = new Date();
 
@@ -152,17 +152,18 @@ export function useAppointmentForm({
       defaultStart = localDate.toISOString().slice(0, 16);
     }
 
-    let defaultDoctorId = "";
-    if (user?.role === "DOCTOR" || user?.role === "ADMIN_DOCTOR") {
-      defaultDoctorId =
-        user.id && !unavailableIds.has(user.id) ? user.id : "";
+    let resolvedDoctorId = "";
+    if (defaultDoctorId && !unavailableIds.has(defaultDoctorId)) {
+      resolvedDoctorId = defaultDoctorId;
+    } else if (user?.role === "DOCTOR" || user?.role === "ADMIN_DOCTOR") {
+      resolvedDoctorId = user.id && !unavailableIds.has(user.id) ? user.id : "";
     } else if (filteredDoctors.length > 0) {
-      defaultDoctorId = filteredDoctors[0]?.id || "";
+      resolvedDoctorId = filteredDoctors[0]?.id || "";
     }
 
     return {
       patientId: preselectedPatientId || "",
-      doctorId: defaultDoctorId,
+      doctorId: resolvedDoctorId,
       clinicId: user?.clinicId || "",
       startTime: defaultStart,
       endTime: "",
@@ -172,6 +173,7 @@ export function useAppointmentForm({
     };
   }, [
     preselectedPatientId,
+    defaultDoctorId,
     selectedDate,
     user?.id,
     user?.clinicId,
@@ -180,6 +182,7 @@ export function useAppointmentForm({
     unavailableIds,
     startHour,
     endHour,
+    clinicTimezone,
   ]);
 
   const form = useForm<CreateAppointmentInput>({
@@ -189,14 +192,95 @@ export function useAppointmentForm({
     defaultValues,
   });
 
+  const wasOpenRef = useRef(false);
+  useEffect(() => {
+    if (open && !wasOpenRef.current) {
+      const resetValues =
+        selectedDate != null
+          ? { ...defaultValues, startTime: "", endTime: "" }
+          : defaultValues;
+      form.reset(resetValues);
+      if (selectedDate && defaultValues.doctorId) {
+        void queryClient.invalidateQueries({
+          queryKey: [
+            "doctor-availability-slots",
+            formatPickerIsoDate(selectedDate),
+            defaultValues.doctorId,
+          ],
+        });
+      }
+    }
+    wasOpenRef.current = Boolean(open);
+  }, [open, defaultValues, form, selectedDate, queryClient]);
+
   const watchedDoctorId = form.watch("doctorId");
   const { data: doctorSchedules = [] } = useDoctorSchedules(
     watchedDoctorId || undefined,
   );
 
-  const { data: slots } = useDoctorAvailabilitySlots(selectedDate, watchedDoctorId, {
+  const selectedDateKey = useMemo(
+    () => (selectedDate ? formatPickerIsoDate(selectedDate) : undefined),
+    [selectedDate],
+  );
+
+  const { data: dayAppointmentsResponse } = useAppointments(
+    open && selectedDateKey && watchedDoctorId
+      ? {
+          date: selectedDateKey,
+          doctorId: watchedDoctorId,
+          limit: 200,
+        }
+      : null,
+  );
+
+  const blockingAppointmentsForSlots = useMemo(() => {
+    const items = dayAppointmentsResponse?.items ?? [];
+    return items.map((a) => ({
+      startTime: a.startTime,
+      endTime: a.endTime,
+      status: a.status,
+    }));
+  }, [dayAppointmentsResponse?.items]);
+
+  const {
+    data: slots = [],
+    isSuccess: slotsQuerySuccess,
+    isError: slotsQueryError,
+  } = useDoctorAvailabilitySlots(selectedDate, watchedDoctorId, {
     enabled: Boolean(open && selectedDate && watchedDoctorId),
   });
+
+  const availabilitySlotsReady = Boolean(
+    open &&
+      selectedDate &&
+      watchedDoctorId &&
+      slotsQuerySuccess &&
+      !slotsQueryError,
+  );
+
+  /** Only block editing until the first successful slots fetch — not during background refetch. */
+  const isResolvingDefaultSlot = Boolean(
+    open &&
+      selectedDate &&
+      watchedDoctorId &&
+      !slotsQueryError &&
+      !slotsQuerySuccess,
+  );
+
+  const autoAdvanceChainOriginStrRef = useRef<string | null>(null);
+  const autoAdvanceChainActiveRef = useRef(false);
+  const lastAutoAdvanceFromDayStrRef = useRef<string | null>(null);
+  /** When set, startTime was auto-filled for this doctor+day; skip overwriting if user edits time for same context. */
+  const startSnapContextRef = useRef<string | null>(null);
+
+  useEffect(() => {
+    if (!open) {
+      autoAdvanceChainOriginStrRef.current = null;
+      autoAdvanceChainActiveRef.current = false;
+      lastAutoAdvanceFromDayStrRef.current = null;
+      startSnapContextRef.current = null;
+    }
+  }, [open]);
 
   const hasAutoSelectedTimeRef = useRef(false);
 
@@ -269,45 +353,129 @@ export function useAppointmentForm({
 
   useEffect(() => {
     if (!open || !selectedDate || !watchedDoctorId) return;
+    if (!slotsQuerySuccess || slotsQueryError) return;
+
+    const snapKey = `${watchedDoctorId}|${formatPickerIsoDate(selectedDate)}`;
+    const doctorSlots = slots.filter((s) => s.doctorId === watchedDoctorId);
+    const availableIsos = doctorSlots
+      .filter(
+        (s) =>
+          s.isAvailable &&
+          !slotOccupiedByAppointments(
+            selectedDate,
+            s.time,
+            s.endTime,
+            clinicTimezone,
+            blockingAppointmentsForSlots,
+          ),
+      )
+      .map((s) =>
+        calendarSlotTimeToLocalIso(selectedDate, s.time, clinicTimezone),
+      );
+
+    const currentRaw = form.getValues("startTime");
+    const currentStr =
+      typeof currentRaw === "string"
+        ? currentRaw
+        : currentRaw instanceof Date
+          ? ""
+          : "";
+
+    const currentPickIsValid =
+      currentStr.length > 0 && availableIsos.includes(currentStr);
 
     const startTimeState = form.getFieldState("startTime");
-    if (startTimeState.isDirty) return;
+    if (
+      startTimeState.isDirty &&
+      startSnapContextRef.current === snapKey &&
+      currentPickIsValid
+    ) {
+      return;
+    }
 
-    if (slots && slots.length > 0) {
-      const first = slots.find(
-        (s) => s.doctorId === watchedDoctorId && s.isAvailable,
+    const firstAvailable = doctorSlots.find((s) => {
+      if (!s.isAvailable) return false;
+      return !slotOccupiedByAppointments(
+        selectedDate,
+        s.time,
+        s.endTime,
+        clinicTimezone,
+        blockingAppointmentsForSlots,
       );
-      if (first) {
-        const parts = first.time.split(":").map((x) => parseInt(x, 10));
-        const h = parts[0] ?? startHour;
-        const mi = parts[1] ?? 0;
-        const d = new Date(selectedDate);
-        d.setHours(h, mi, 0, 0);
-        form.setValue(
-          "startTime",
-          toLocalISOString(d, { timezone: DEFAULT_TIMEZONE }),
-          { shouldDirty: false },
-        );
+    });
+
+    if (firstAvailable) {
+      autoAdvanceChainOriginStrRef.current = null;
+      autoAdvanceChainActiveRef.current = false;
+      lastAutoAdvanceFromDayStrRef.current = null;
+
+      const nextIso = calendarSlotTimeToLocalIso(
+        selectedDate,
+        firstAvailable.time,
+        clinicTimezone,
+      );
+      const nextEndIso = calendarSlotTimeToLocalIso(
+        selectedDate,
+        firstAvailable.endTime,
+        clinicTimezone,
+      );
+      form.setValue("startTime", nextIso, {
+        shouldDirty: false,
+        shouldValidate: true,
+      });
+      form.setValue("endTime", nextEndIso, {
+        shouldDirty: false,
+        shouldValidate: true,
+      });
+      startSnapContextRef.current = snapKey;
+      return;
+    }
+
+    const todayStr = formatPickerIsoDate(new Date());
+    const selectedStr = formatPickerIsoDate(selectedDate);
+
+    if (!autoAdvanceChainActiveRef.current && onAdjustSchedulingDate) {
+      if (selectedStr === todayStr) {
+        autoAdvanceChainActiveRef.current = true;
+        autoAdvanceChainOriginStrRef.current = todayStr;
+      }
+    }
+
+    if (
+      autoAdvanceChainActiveRef.current &&
+      autoAdvanceChainOriginStrRef.current &&
+      onAdjustSchedulingDate
+    ) {
+      const origin = autoAdvanceChainOriginStrRef.current;
+      const daysFromOrigin = pickerDayDiff(origin, selectedStr);
+      if (daysFromOrigin >= 14) {
+        autoAdvanceChainActiveRef.current = false;
+        autoAdvanceChainOriginStrRef.current = null;
+        lastAutoAdvanceFromDayStrRef.current = null;
+      } else {
+        if (lastAutoAdvanceFromDayStrRef.current === selectedStr) {
+          return;
+        }
+        lastAutoAdvanceFromDayStrRef.current = selectedStr;
+        onAdjustSchedulingDate(addDays(selectedDate, 1));
         return;
       }
     }
 
-    const fallback = mergeCalendarDateWithScheduleStart(
-      selectedDate,
-      doctorSchedules,
-      startHour,
-    );
-    if (fallback) {
-      form.setValue("startTime", fallback, { shouldDirty: false });
-    }
+    // Slots returned this doctor's day but nothing is bookable (or no rows): never guess schedule open time.
+    form.setValue("startTime", "", { shouldDirty: false, shouldValidate: true });
+    startSnapContextRef.current = null;
   }, [
     open,
     selectedDate,
     watchedDoctorId,
     slots,
-    doctorSchedules,
-    startHour,
+    slotsQuerySuccess,
+    slotsQueryError,
+    clinicTimezone,
+    blockingAppointmentsForSlots,
     form,
+    onAdjustSchedulingDate,
   ]);
 
   useEffect(() => {
@@ -366,6 +534,11 @@ export function useAppointmentForm({
   return {
     form,
     loading,
+    isResolvingDefaultSlot,
+    availabilitySlotsReady,
+    availabilitySlots: slots,
+    clinicTimezone,
+    blockingAppointmentsForSlots,
     patients,
     patientsLoading,
     patientSearch,

@@ -11,6 +11,7 @@
     "format": "prettier --write \"src/**/*.ts\" \"test/**/*.ts\"",
     "seed": "DOTENV_CONFIG_PATH=../../.env ts-node -r tsconfig-paths/register src/seed/index.ts",
     "seed:local": "pnpm run seed",
+    "seed:prod": "ts-node -r tsconfig-paths/register scripts/seed-prod-users.local.ts",
     "start": "nest start",
     "prestart": "pnpm --filter @workspace/types run build && pnpm --filter @workspace/utils run build && pnpm --filter @workspace/db run build",
     "dev": "nest start --watch",

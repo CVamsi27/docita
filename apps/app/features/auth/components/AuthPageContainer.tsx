@@ -5,13 +5,22 @@ import { useRouter } from "next/navigation";
 import { useAuth, type User } from "@/lib/auth-context";
 import { formatLoginLockoutMessage } from "@/lib/auth-lockout";
 import { ApiValidationError } from "@/lib/api-error";
-import { checkEmailSchema, getUserFacingErrorMessage, passwordSchema } from "@workspace/types";
+import {
+  checkEmailSchema,
+  getUserFacingErrorMessage,
+  passwordSchema,
+  type UserRole,
+} from "@workspace/types";
+
+const ROLES_LAND_ON_CONSULTATION = new Set<UserRole>(["DOCTOR", "ADMIN_DOCTOR"]);
 import { PageTransitionLoader } from "@/components/common/loaders/page-transition-loader";
 import { AuthEmailStepUI } from "./AuthEmailStepUI";
 import { AuthLoginStepUI } from "./AuthLoginStepUI";
 import { AuthSignupStepUI } from "./AuthSignupStepUI";
 import { PreDashboardShell } from "./PreDashboardShell";
 import type { AuthStep, FieldErrors } from "@/features/auth/types/auth";
+import { sanitizeAppReturnPath } from "@/lib/safe-return-path";
+import { APP_REDIRECT_AFTER_LOGIN_KEY } from "@/lib/session";
 
 const STEP_TITLES: Record<AuthStep, string> = {
   email: "Welcome to Docita",
@@ -43,7 +52,28 @@ function getPostAuthPath(user: User): string {
     }
   }
 
-  return "/dashboard";
+  if (ROLES_LAND_ON_CONSULTATION.has(user.role as UserRole)) {
+    return "/consultation";
+  }
+
+  return "/today";
+}
+
+function getAuthenticatedLandingPath(user: User): string {
+  const fallback = getPostAuthPath(user);
+
+  if (user.emailVerified === false || !user.clinicId) {
+    return fallback;
+  }
+
+  if (typeof window === "undefined") {
+    return fallback;
+  }
+
+  const stored = sessionStorage.getItem(APP_REDIRECT_AFTER_LOGIN_KEY);
+  sessionStorage.removeItem(APP_REDIRECT_AFTER_LOGIN_KEY);
+  const safe = sanitizeAppReturnPath(stored);
+  return safe ?? fallback;
 }
 
 export function AuthPageContainer() {
@@ -78,7 +108,7 @@ export function AuthPageContainer() {
     }
 
     setIsRedirecting(true);
-    router.replace(getPostAuthPath(user));
+    router.replace(getAuthenticatedLandingPath(user));
   }, [isAuthenticated, router, user]);
 
   const lockoutMessage = isLoginLocked
@@ -281,7 +311,7 @@ export function AuthPageContainer() {
     >
       <div
         className={[
-          "animate-in fade-in slide-in-from-bottom-4 duration-700 ui-copy-stack",
+          "ui-copy-stack",
           step === "signup" ? "text-center lg:text-left" : "text-center",
         ].join(" ")}
       >
@@ -292,10 +322,7 @@ export function AuthPageContainer() {
       </div>
 
       <div className="ui-card-surface p-6 sm:p-8">
-        <div
-          key={step}
-          className="animate-in fade-in slide-in-from-right-4 duration-500"
-        >
+        <div key={step}>
           {step === "email" && (
             <AuthEmailStepUI
               email={email}

@@ -1,7 +1,7 @@
 import { Injectable, Logger } from '@nestjs/common';
 import { OnEvent } from '@nestjs/event-emitter';
 import { PrismaService } from '@/prisma/prisma.service';
-import { UsageType, ClinicTier, Prisma } from '@workspace/db';
+import { UsageType, ClinicTier, Prisma, Role } from '@workspace/db';
 import { DEFAULT_CURRENCY } from '@workspace/utils';
 import {
   PRICING_CURRENCY_CONFIG,
@@ -93,6 +93,11 @@ export class UsageTrackingService {
       },
     });
 
+    const clinic = await this.prisma.clinic.findUnique({
+      where: { id: clinicId },
+      select: { tier: true },
+    });
+
     const [
       consultations,
       whatsappMessages,
@@ -116,7 +121,16 @@ export class UsageTrackingService {
         _sum: { quantity: true },
       }),
       this.prisma.user.count({
-        where: { clinicId },
+        where: {
+          clinicId,
+          ...(clinic?.tier === ClinicTier.FRONT_DESK
+            ? {
+                NOT: {
+                  AND: [{ role: Role.DOCTOR }, { appLoginDisabled: true }],
+                },
+              }
+            : {}),
+        },
       }),
       this.prisma.usageEvent.aggregate({
         where: {
@@ -146,12 +160,19 @@ export class UsageTrackingService {
     const includedUsers = subscription?.includedUsers ?? tierLimits.users ?? 1;
     const tierRates =
       TIER_OVERAGE_RATES_BY_CURRENCY[resolvedCurrency][tierKey as TierName];
-    const whatsappPlan =
+    const whatsappEligibleTier =
       tierKey === 'ESSENTIAL' ||
+      tierKey === 'FRONT_DESK' ||
       tierKey === 'PROFESSIONAL' ||
       tierKey === 'ENTERPRISE'
-        ? getWhatsAppAddonPricingByCurrency(tierKey, resolvedCurrency)
+        ? tierKey
         : null;
+    const whatsappPlan = whatsappEligibleTier
+      ? getWhatsAppAddonPricingByCurrency(
+          whatsappEligibleTier,
+          resolvedCurrency,
+        )
+      : null;
     const includedWhatsapp = whatsappPlan?.includedQuota ?? 0;
     const consultationOverage = Math.max(
       0,
@@ -275,7 +296,7 @@ export class UsageTrackingService {
 
     await this.recordUsageEvent({
       clinicId,
-      type: 'WHATSAPP_MESSAGES',
+      type: UsageType.WHATSAPP_MESSAGES,
       quantity,
       entityType: 'WhatsappLog',
       entityId: messageId,
@@ -370,5 +391,20 @@ export class UsageTrackingService {
         this.logger.error('Failed to track OCR page usage', err);
       },
     );
+  }
+
+  @OnEvent('whatsapp.message.sent')
+  async handleWhatsAppMessageSent(payload: {
+    clinicId: string;
+    messageId: string;
+    messageType?: 'template' | 'session' | 'media';
+  }) {
+    await this.trackWhatsAppMessage(
+      payload.clinicId,
+      payload.messageId,
+      payload.messageType ?? 'template',
+    ).catch((err) => {
+      this.logger.error('Failed to track WhatsApp message usage', err);
+    });
   }
 }

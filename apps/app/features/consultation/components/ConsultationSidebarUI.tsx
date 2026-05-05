@@ -1,10 +1,16 @@
 "use client";
 
-import React, { FC } from "react";
+import React, { FC, useState } from "react";
+import Link from "next/link";
 import { Card, CardContent } from "@workspace/ui/components/card";
 import { Button } from "@workspace/ui/components/button";
 import { SymbolTooltip } from "@workspace/ui/components/tooltip";
-import { Clock, User, X } from "lucide-react";
+import {
+  Collapsible,
+  CollapsibleContent,
+  CollapsibleTrigger,
+} from "@workspace/ui/components/collapsible";
+import { Clock, ChevronDown, ChevronRight, FileText, Receipt, User, X } from "lucide-react";
 import {
   Appointment,
   Patient as BasePatient,
@@ -17,6 +23,7 @@ import {
 import { PatientSnapshotStrip } from "@/features/_shared/components/patient-history/PatientSnapshotStrip";
 import { PatientTimeline } from "@/features/_shared/components/patient-history/PatientTimeline";
 import { FollowUpWidget } from "./FollowUpWidget";
+import { usePermissions } from "@/hooks/use-permissions";
 
 interface Patient extends BasePatient {
   age?: string;
@@ -50,6 +57,8 @@ export const ConsultationSidebarUI: FC<ConsultationSidebarProps> = ({
   snapshot,
   onClose,
 }) => {
+  const [historyOpen, setHistoryOpen] = useState(false);
+  const { canViewInvoices, canViewPrescriptions } = usePermissions();
   const rawData = appointmentData ?? appointment;
 
   const patient =
@@ -76,6 +85,8 @@ export const ConsultationSidebarUI: FC<ConsultationSidebarProps> = ({
     rawData && "appointment" in rawData
       ? (rawData as AppointmentWrapper).appointment.id
       : (rawData as Appointment)?.id;
+
+  const patientRecordId = patient.id;
 
   return (
     <div className="h-full overflow-y-auto p-4 space-y-6 bg-background">
@@ -138,50 +149,96 @@ export const ConsultationSidebarUI: FC<ConsultationSidebarProps> = ({
         </div>
       )}
 
+      {patientRecordId && (canViewPrescriptions || canViewInvoices) ? (
+        <div className="flex flex-wrap gap-2 border-t border-border/60 pt-3">
+          {canViewPrescriptions ? (
+            <Button variant="outline" size="sm" asChild>
+              <Link
+                href={`/prescriptions?patientId=${encodeURIComponent(patientRecordId)}`}
+              >
+                <FileText className="mr-1.5 h-3.5 w-3.5" aria-hidden />
+                Prescriptions
+              </Link>
+            </Button>
+          ) : null}
+          {canViewInvoices ? (
+            <Button variant="outline" size="sm" asChild>
+              <Link href={`/patients/${patientRecordId}?tab=billing`}>
+                <Receipt className="mr-1.5 h-3.5 w-3.5" aria-hidden />
+                Billing
+              </Link>
+            </Button>
+          ) : null}
+        </div>
+      ) : null}
+
       {appointmentId ? (
         <FollowUpWidget appointmentId={appointmentId} />
       ) : null}
 
       {(surgicalHistory.length > 0 || familyHistory.length > 0) && (
-        <div className="space-y-4 pt-2 border-t">
-          {surgicalHistory.length > 0 && (
-            <div className="space-y-2">
-              <h3 className="text-xs font-medium text-muted-foreground">
-                Surgical History
-              </h3>
-              <ul className="space-y-1">
-                {surgicalHistory.map((s, i) => (
-                  <li key={i} className="text-xs grid grid-cols-[1fr_auto] gap-2">
-                    <span>{s.procedureName}</span>
-                    {s.procedureDate && (
-                      <span className="text-muted-foreground">
-                        {new Date(s.procedureDate).getFullYear()}
-                      </span>
-                    )}
-                  </li>
-                ))}
-              </ul>
-            </div>
-          )}
+        <Collapsible open={historyOpen} onOpenChange={setHistoryOpen}>
+          <CollapsibleTrigger asChild>
+            <Button
+              type="button"
+              variant="ghost"
+              size="sm"
+              className="h-auto w-full justify-start gap-1 px-0 py-1 text-xs font-medium text-muted-foreground hover:text-foreground"
+            >
+              {historyOpen ? (
+                <ChevronDown className="h-3.5 w-3.5 shrink-0" aria-hidden />
+              ) : (
+                <ChevronRight className="h-3.5 w-3.5 shrink-0" aria-hidden />
+              )}
+              Full structured history
+            </Button>
+          </CollapsibleTrigger>
+          <CollapsibleContent className="space-y-4 pt-2 data-[state=open]:border-t data-[state=open]:border-border/60">
+            {surgicalHistory.length > 0 && (
+              <div className="space-y-2">
+                <h3 className="text-xs font-medium text-muted-foreground">
+                  Surgical History
+                </h3>
+                <ul className="space-y-1">
+                  {surgicalHistory.map((s, i) => (
+                    <li
+                      key={i}
+                      className="text-xs grid grid-cols-[1fr_auto] gap-2"
+                    >
+                      <span>{s.procedureName}</span>
+                      {s.procedureDate && (
+                        <span className="text-muted-foreground">
+                          {new Date(s.procedureDate).getFullYear()}
+                        </span>
+                      )}
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            )}
 
-          {familyHistory.length > 0 && (
-            <div className="space-y-2">
-              <h3 className="text-xs font-medium text-muted-foreground">
-                Family History
-              </h3>
-              <ul className="space-y-1">
-                {familyHistory.map((h, i) => (
-                  <li key={i} className="text-xs grid grid-cols-[1fr_auto] gap-2">
-                    <span>{h.condition}</span>
-                    <span className="text-muted-foreground italic">
-                      {h.relationship}
-                    </span>
-                  </li>
-                ))}
-              </ul>
-            </div>
-          )}
-        </div>
+            {familyHistory.length > 0 && (
+              <div className="space-y-2">
+                <h3 className="text-xs font-medium text-muted-foreground">
+                  Family History
+                </h3>
+                <ul className="space-y-1">
+                  {familyHistory.map((h, i) => (
+                    <li
+                      key={i}
+                      className="text-xs grid grid-cols-[1fr_auto] gap-2"
+                    >
+                      <span>{h.condition}</span>
+                      <span className="text-muted-foreground italic">
+                        {h.relationship}
+                      </span>
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            )}
+          </CollapsibleContent>
+        </Collapsible>
       )}
     </div>
   );

@@ -73,6 +73,7 @@ export class PricingService {
   ): { includedQuota: number; overageRate: number } {
     if (
       tier === 'ESSENTIAL' ||
+      tier === 'FRONT_DESK' ||
       tier === 'PROFESSIONAL' ||
       tier === 'ENTERPRISE'
     ) {
@@ -231,6 +232,17 @@ export class PricingService {
         },
         {
           ...this.toPricingTierPayload({
+            tier: 'FRONT_DESK',
+            validCurrency,
+            monthly: tierPricing.FRONT_DESK.monthly,
+            yearly: tierPricing.FRONT_DESK.yearly,
+            includedAppointments: TIER_LIMITS.FRONT_DESK.appointments ?? 0,
+            includedUsers: TIER_LIMITS.FRONT_DESK.users ?? 1,
+            features: TIER_FEATURES.FRONT_DESK,
+          }),
+        },
+        {
+          ...this.toPricingTierPayload({
             tier: 'ESSENTIAL',
             validCurrency,
             monthly: tierPricing.ESSENTIAL.monthly,
@@ -339,7 +351,9 @@ export class PricingService {
     const userOverage =
       Math.max(0, users - (limits.users || 1)) * overageRates.userRate;
     const whatsappPricing =
-      tierKey === 'ESSENTIAL' || tierKey === 'PROFESSIONAL'
+      tierKey === 'ESSENTIAL' ||
+      tierKey === 'FRONT_DESK' ||
+      tierKey === 'PROFESSIONAL'
         ? getWhatsAppAddonPricingByCurrency(tierKey, validCurrency)
         : null;
     const whatsappOverage =

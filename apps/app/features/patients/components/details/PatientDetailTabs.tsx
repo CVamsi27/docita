@@ -1,22 +1,15 @@
 "use client";
 
-import { useCallback, useMemo } from "react";
+import { useCallback, useEffect, useMemo } from "react";
 import dynamic from "next/dynamic";
 import { useRouter, useSearchParams, usePathname } from "next/navigation";
-import {
-  Tabs,
-  TabsContent,
-  TabsList,
-  TabsTrigger,
-} from "@workspace/ui/components/tabs";
+import { PageTabs, type PageTabItem } from "@workspace/ui/components/page-tabs";
+import { MicroLabel } from "@workspace/ui/components/micro-label";
 import { PatientDetailTabLoadingShell } from "@/features/patients/components/details/patient-detail-tab-loading-shell";
 import {
-  Activity,
   ClipboardList,
-  FileText,
-  FlaskConical,
   LayoutDashboard,
-  Pill,
+  MessageSquare,
   Receipt,
   Stethoscope,
 } from "lucide-react";
@@ -26,6 +19,9 @@ import type {
 } from "@workspace/types";
 import { PatientTagManagerContainer as PatientTagManager } from "@/features/patients/components/details/PatientTagManagerContainer";
 import type { PatientStatistics } from "@/hooks/use-patient-data";
+import { PatientCommunicationTab } from "./PatientCommunicationTab";
+import { PatientClinicalChartSummary } from "./patient-clinical-chart-summary";
+import { usePermissions } from "@/hooks/use-permissions";
 
 const OverviewTab = dynamic(
   () =>
@@ -91,18 +87,40 @@ const BillingTab = dynamic(
   { loading: () => <PatientDetailTabLoadingShell />, ssr: false },
 );
 
+/** Top-level tabs after WS11f consolidation (5 instead of 8). */
 export const PATIENT_DETAIL_TAB_VALUES = [
   "overview",
   "visits",
   "records",
-  "prescriptions",
-  "vitals",
-  "labs",
-  "documents",
   "billing",
+  "communication",
 ] as const;
 
 export type PatientDetailTabValue = (typeof PATIENT_DETAIL_TAB_VALUES)[number];
+
+export const PATIENT_RECORDS_SUB_TABS = [
+  "history",
+  "vitals",
+  "prescriptions",
+  "labs",
+  "documents",
+] as const;
+
+export type PatientRecordsSubTab = (typeof PATIENT_RECORDS_SUB_TABS)[number];
+
+/**
+ * Maps legacy `?tab=` values from the 8-tab era to the new tab + sub-tab
+ * structure so deep links and bookmarks keep working.
+ */
+export const LEGACY_PATIENT_TAB_REDIRECTS: Record<
+  string,
+  { tab: PatientDetailTabValue; subtab?: PatientRecordsSubTab }
+> = {
+  vitals: { tab: "records", subtab: "vitals" },
+  prescriptions: { tab: "records", subtab: "prescriptions" },
+  labs: { tab: "records", subtab: "labs" },
+  documents: { tab: "records", subtab: "documents" },
+};
 
 const TAB_DEFINITIONS: Array<{
   value: PatientDetailTabValue;
@@ -110,20 +128,31 @@ const TAB_DEFINITIONS: Array<{
   icon: React.ComponentType<{ className?: string }>;
 }> = [
   { value: "overview", label: "Overview", icon: LayoutDashboard },
-  { value: "visits", label: "Visits", icon: Stethoscope },
+  { value: "visits", label: "Visits & notes", icon: Stethoscope },
   { value: "records", label: "Records", icon: ClipboardList },
-  { value: "prescriptions", label: "Prescriptions", icon: Pill },
-  { value: "vitals", label: "Vitals", icon: Activity },
-  { value: "labs", label: "Lab Tests", icon: FlaskConical },
-  { value: "documents", label: "Documents", icon: FileText },
   { value: "billing", label: "Billing", icon: Receipt },
+  { value: "communication", label: "Communication", icon: MessageSquare },
 ];
+
+const RECORDS_SUB_TAB_LABELS: Record<PatientRecordsSubTab, string> = {
+  history: "History & allergies",
+  vitals: "Vitals",
+  prescriptions: "Prescriptions",
+  labs: "Labs",
+  documents: "Documents",
+};
 
 const isPatientDetailTabValue = (
   value: string | null,
 ): value is PatientDetailTabValue =>
   !!value &&
   (PATIENT_DETAIL_TAB_VALUES as readonly string[]).includes(value);
+
+const isPatientRecordsSubTab = (
+  value: string | null,
+): value is PatientRecordsSubTab =>
+  !!value &&
+  (PATIENT_RECORDS_SUB_TABS as readonly string[]).includes(value);
 
 interface PatientDetailTabsProps {
   patient: PatientWithMedicalHistory;
@@ -147,11 +176,52 @@ export function PatientDetailTabs({
   const router = useRouter();
   const pathname = usePathname();
   const searchParams = useSearchParams();
+  const { canViewInvoices } = usePermissions();
 
   const tabFromUrl = searchParams.get("tab");
-  const activeTab: PatientDetailTabValue = isPatientDetailTabValue(tabFromUrl)
-    ? tabFromUrl
-    : "overview";
+  const subtabFromUrl = searchParams.get("subtab");
+
+  const legacyRedirect = tabFromUrl
+    ? LEGACY_PATIENT_TAB_REDIRECTS[tabFromUrl]
+    : undefined;
+
+  // Back-compat: if the URL still points at one of the retired tabs,
+  // rewrite to the new tab + sub-tab so bookmarks and external links
+  // keep working.
+  useEffect(() => {
+    if (!legacyRedirect) return;
+    const params = new URLSearchParams(searchParams.toString());
+    params.set("tab", legacyRedirect.tab);
+    if (legacyRedirect.subtab) {
+      params.set("subtab", legacyRedirect.subtab);
+    }
+    const query = params.toString();
+    router.replace(query ? `${pathname}?${query}` : pathname, {
+      scroll: false,
+    });
+  }, [legacyRedirect, pathname, router, searchParams]);
+
+  const activeTab: PatientDetailTabValue = legacyRedirect
+    ? legacyRedirect.tab
+    : isPatientDetailTabValue(tabFromUrl)
+      ? tabFromUrl
+      : "overview";
+
+  const activeRecordsSubTab: PatientRecordsSubTab = legacyRedirect?.subtab
+    ? legacyRedirect.subtab
+    : isPatientRecordsSubTab(subtabFromUrl)
+      ? subtabFromUrl
+      : "history";
+
+  useEffect(() => {
+    if (activeTab !== "billing") return;
+    if (canViewInvoices) return;
+    const params = new URLSearchParams(searchParams.toString());
+    params.delete("tab");
+    params.delete("subtab");
+    const query = params.toString();
+    router.replace(query ? `${pathname}?${query}` : pathname, { scroll: false });
+  }, [activeTab, canViewInvoices, pathname, router, searchParams]);
 
   const handleSelectTab = useCallback(
     (next: string) => {
@@ -161,6 +231,7 @@ export function PatientDetailTabs({
       } else {
         params.set("tab", next);
       }
+      params.delete("subtab");
       const query = params.toString();
       router.replace(query ? `${pathname}?${query}` : pathname, {
         scroll: false,
@@ -169,74 +240,114 @@ export function PatientDetailTabs({
     [pathname, router, searchParams],
   );
 
-  const tabsList = useMemo(
-    () => (
-      <TabsList className="w-full sm:w-auto h-auto flex-wrap gap-1">
-        {TAB_DEFINITIONS.map(({ value, label, icon: Icon }) => (
-          <TabsTrigger
-            key={value}
-            value={value}
-            className="flex-1 sm:flex-none whitespace-nowrap"
-          >
-            <Icon className="mr-1.5 h-4 w-4" aria-hidden />
-            {label}
-          </TabsTrigger>
-        ))}
-      </TabsList>
-    ),
+  const handleSelectRecordsSubTab = useCallback(
+    (next: string) => {
+      const params = new URLSearchParams(searchParams.toString());
+      params.set("tab", "records");
+      if (next === "history") {
+        params.delete("subtab");
+      } else {
+        params.set("subtab", next);
+      }
+      const query = params.toString();
+      router.replace(query ? `${pathname}?${query}` : pathname, {
+        scroll: false,
+      });
+    },
+    [pathname, router, searchParams],
+  );
+
+  const items = useMemo<PageTabItem[]>(
+    () =>
+      TAB_DEFINITIONS.filter(
+        ({ value }) => value !== "billing" || canViewInvoices,
+      ).map(({ value, label }) => ({ id: value, label })),
+    [canViewInvoices],
+  );
+
+  const recordsSubItems = useMemo<PageTabItem[]>(
+    () =>
+      (PATIENT_RECORDS_SUB_TABS as readonly PatientRecordsSubTab[]).map(
+        (value) => ({ id: value, label: RECORDS_SUB_TAB_LABELS[value] }),
+      ),
     [],
   );
 
+  const patientName =
+    `${patient.firstName ?? ""} ${patient.lastName ?? ""}`.trim();
+
   return (
-    <Tabs value={activeTab} onValueChange={handleSelectTab} className="w-full">
-      <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between mb-4">
-        {tabsList}
+    <div role="region" aria-label="Patient detail" className="w-full">
+      <PatientClinicalChartSummary
+        patientId={patientId}
+        appointments={appointments}
+        onSeeAllVisits={() => handleSelectTab("visits")}
+      />
+
+      <div className="mb-4 flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
+        <div
+          className="flex flex-col gap-2"
+          data-testid="patient-detail-tab-bar"
+        >
+          <MicroLabel className="px-1">Sections</MicroLabel>
+          <PageTabs
+            items={items}
+            activeId={activeTab}
+            onSelect={handleSelectTab}
+            ariaLabel="Patient sections"
+          />
+        </div>
         <div className="flex items-center gap-2 self-end sm:self-auto">
           <PatientTagManager patientId={patientId} />
         </div>
       </div>
 
-      <TabsContent value="overview" className="mt-0">
+      {activeTab === "overview" && (
         <OverviewTab
-          patientId={patientId}
           appointments={appointments}
           statistics={statistics}
           onSelectTab={handleSelectTab}
+          onNavigateToRecordsSubTab={handleSelectRecordsSubTab}
           onScheduleVisit={onScheduleVisit}
         />
-      </TabsContent>
-
-      <TabsContent value="visits" className="mt-0">
-        <VisitsTab patientId={patientId} />
-      </TabsContent>
-
-      <TabsContent value="records" className="mt-0">
-        <RecordsTab patient={patient} canEditPatient={canEditPatient} />
-      </TabsContent>
-
-      <TabsContent value="prescriptions" className="mt-0">
-        <PrescriptionsTab patientId={patientId} />
-      </TabsContent>
-
-      <TabsContent value="vitals" className="mt-0">
-        <VitalsTab
-          patientId={patientId}
-          appointments={appointments}
-          canRecordPatientVitals={canRecordPatientVitals}
-        />
-      </TabsContent>
-
-      <TabsContent value="labs" className="mt-0">
-        <LabsTab patientId={patientId} />
-      </TabsContent>
-
-      <TabsContent value="documents" className="mt-0">
-        <DocumentsTab patientId={patientId} />
-      </TabsContent>
-
-      <TabsContent value="billing" className="mt-0">
+      )}
+      {activeTab === "visits" && <VisitsTab patientId={patientId} />}
+      {activeTab === "records" && (
+        <div className="space-y-4" data-testid="patient-records-subtabs">
+          <PageTabs
+            items={recordsSubItems}
+            activeId={activeRecordsSubTab}
+            onSelect={handleSelectRecordsSubTab}
+            ariaLabel="Records sub-sections"
+          />
+          {activeRecordsSubTab === "history" && (
+            <RecordsTab patient={patient} canEditPatient={canEditPatient} />
+          )}
+          {activeRecordsSubTab === "vitals" && (
+            <VitalsTab
+              patientId={patientId}
+              appointments={appointments}
+              canRecordPatientVitals={canRecordPatientVitals}
+            />
+          )}
+          {activeRecordsSubTab === "prescriptions" && (
+            <PrescriptionsTab patientId={patientId} />
+          )}
+          {activeRecordsSubTab === "labs" && <LabsTab patientId={patientId} />}
+          {activeRecordsSubTab === "documents" && (
+            <DocumentsTab patientId={patientId} />
+          )}
+        </div>
+      )}
+      {activeTab === "billing" && canViewInvoices ? (
         <BillingTab patientId={patientId} />
-      </TabsContent>
-    </Tabs>
+      ) : null}
+      {activeTab === "communication" && (
+        <PatientCommunicationTab
+          patientId={patientId}
+          patientName={patientName || undefined}
+        />
+      )}
+    </div>
   );
 }

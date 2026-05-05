@@ -38,7 +38,7 @@ const nonClaims = [
       </div>
 
       <div class="mt-10 grid gap-8 lg:grid-cols-[1fr_0.95fr]">
-        <article class="rounded-[var(--radius)] border border-border/70 bg-background p-8">
+        <article class="landing-surface-panel rounded-[var(--radius)] border border-border/70 p-8">
           <h2 class="text-2xl font-semibold">Current hosting posture</h2>
           <ul class="mt-4 list-disc space-y-2 pl-6 text-sm text-muted-foreground">
             <li>Backend API and worker infrastructure run in the Mumbai region.</li>
@@ -55,7 +55,7 @@ const nonClaims = [
           </ul>
         </article>
 
-        <article class="rounded-[var(--radius)] border border-primary/20 bg-primary/5 p-8">
+        <article class="landing-surface-panel--accent rounded-[var(--radius)] border border-primary/20 p-8">
           <h2 class="text-2xl font-semibold">Important non-claims</h2>
           <ul class="mt-4 list-disc space-y-2 pl-6 text-sm text-muted-foreground">
             {nonClaims.map((item) => (

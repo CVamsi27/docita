@@ -2,7 +2,8 @@
 
 import { DocitaLoadingIndicator } from "@workspace/ui/components/docita-loading-indicator";
 
-import { useState } from "react";
+import { Suspense, useEffect, useState } from "react";
+import { useSearchParams } from "next/navigation";
 import { ChevronDown } from "lucide-react";
 import {
   Card,
@@ -14,6 +15,7 @@ import {
 import { Button } from "@workspace/ui/components/button";
 import { Badge } from "@workspace/ui/components/badge";
 import { cn } from "@workspace/ui/lib/utils";
+import { MicroLabel } from "@workspace/ui/components/micro-label";
 import {
   Collapsible,
   CollapsibleContent,
@@ -28,45 +30,78 @@ import {
   getAllFeaturesUpToTier,
   PLAN_LIMITS,
   getTierInfo,
-  Tier,
+  getTierPricing,
+  getTierValue,
 } from "@/lib/tier-config";
 import {
   PRICING_CURRENCY_SYMBOLS,
+  SUBSCRIPTION_TRIAL_DAYS,
   TIER_OVERAGE_RATES_BY_CURRENCY,
   type TierName,
+  type WorkspaceProfile,
+  WORKSPACE_PROFILE_LABEL,
+  WORKSPACE_PROFILE_MARKETING,
 } from "@workspace/types";
 import { useLocaleCurrency } from "@/hooks/use-locale-currency";
+import { PLAN_ONBOARDING_KEY_HIGHLIGHTS } from "@/features/subscription/config/plan-onboarding-highlights";
 
 interface PlanSelectionProps {
   onSelect: (
     tier: string,
     billingCycle: "MONTHLY" | "YEARLY",
     pricing: { monthly: number | "custom"; yearly: number | "custom" },
-    options?: { currency?: string },
+    options?: { currency?: string; workspaceProfile?: WorkspaceProfile },
   ) => Promise<void>;
   defaultTier?: string;
   defaultBillingCycle?: "MONTHLY" | "YEARLY";
   currency?: string;
+  initialWorkspaceProfile?: WorkspaceProfile;
 }
 
-const DISPLAY_TIERS = ["STARTER", "ESSENTIAL", "PROFESSIONAL", "ENTERPRISE"];
+const DISPLAY_TIERS = [
+  "STARTER",
+  "FRONT_DESK",
+  "ESSENTIAL",
+  "PROFESSIONAL",
+  "ENTERPRISE",
+];
 
 const PLAN_AUDIENCE: Record<string, string> = {
-  STARTER: "Best for solo doctors wanting to start free",
+  STARTER: "Best for solo doctors starting with full clinic workflows",
   ESSENTIAL:
     "Best for small facilities needing clear limits and simple billing",
+  FRONT_DESK:
+    "Best for reception-led facilities that need scheduling and billing without full clinical workflows in-app",
   PROFESSIONAL: "Best for multi-doctor facilities and growing practices",
   ENTERPRISE: "Best for hospitals and chains with custom requirements",
 };
 
-export function PlanSelectionStep({
+function PlanSelectionStepInner({
   onSelect,
   defaultTier = "ESSENTIAL",
   defaultBillingCycle = "MONTHLY",
   currency,
+  initialWorkspaceProfile = "FULL_CLINICAL",
 }: PlanSelectionProps) {
+  const searchParams = useSearchParams();
   const { currency: detectedCurrency } = useLocaleCurrency();
-  const [selectedTier, setSelectedTier] = useState<string>(defaultTier);
+  const [workspaceProfile, setWorkspaceProfile] = useState<WorkspaceProfile>(
+    () => {
+      if (searchParams.get("workspace") === "front_desk") {
+        return "FRONT_DESK";
+      }
+      if (searchParams.get("tier") === "FRONT_DESK") {
+        return "FRONT_DESK";
+      }
+      return initialWorkspaceProfile;
+    },
+  );
+  const [selectedTier, setSelectedTier] = useState<string>(() => {
+    if (searchParams.get("tier") === "FRONT_DESK") {
+      return "FRONT_DESK";
+    }
+    return defaultTier;
+  });
   const [billingCycle, setBillingCycle] = useState<"MONTHLY" | "YEARLY">(
     defaultBillingCycle,
   );
@@ -74,42 +109,58 @@ export function PlanSelectionStep({
   const [showContactSalesModal, setShowContactSalesModal] = useState(false);
   const [comparisonOpen, setComparisonOpen] = useState(false);
 
+  useEffect(() => {
+    if (workspaceProfile === "FRONT_DESK") {
+      setSelectedTier("FRONT_DESK");
+      return;
+    }
+    setSelectedTier((prev) => (prev === "FRONT_DESK" ? "ESSENTIAL" : prev));
+  }, [workspaceProfile]);
+
   const resolvedCurrency = currency ?? detectedCurrency;
   const { pricingConfig, isLoading, error } =
     usePricingConfig(resolvedCurrency);
 
-  const featuresByTier = Object.values(Tier)
-    .filter((t): t is Tier => typeof t === "number" && t !== Tier.INTELLIGENCE)
-    .map((tier) => ({
+  const featuresByTier = DISPLAY_TIERS.map((name) => {
+    const tierName = name as TierName;
+    const tier = getTierValue(tierName);
+    return {
+      tierName,
       tier,
       info: {
         ...getTierInfo(tier),
-        tagline:
-          PLAN_AUDIENCE[Tier[tier] as string] ?? getTierInfo(tier).tagline,
+        tagline: PLAN_AUDIENCE[name] ?? getTierInfo(tier).tagline,
       },
-      features: getAllFeaturesUpToTier(Tier[tier] as TierName)
+      features: getAllFeaturesUpToTier(tierName)
         .map((feature) => ({
           feature,
           details: getFeatureDetails(feature),
           hasAccess: true,
         }))
         .filter((entry) => entry.details.isGenerallyAvailable),
-    }));
+    };
+  });
 
   const handleSelectTier = async (tier: string) => {
     if (tier === "ENTERPRISE") {
       setShowContactSalesModal(true);
       return;
     }
-    const tierPricingData = pricingConfig?.tiers.find(
+    const tierPricingFromApi = pricingConfig?.tiers.find(
       (t: TierPricing) => t.id === tier,
     );
-    if (!tierPricingData) return;
+    const catalog = getTierPricing(tier as TierName);
+    const pricingPayload = tierPricingFromApi?.pricing ?? {
+      monthly: catalog.monthly,
+      yearly: catalog.yearly,
+    };
 
     setIsSubmitting(true);
     try {
-      await onSelect(tier, billingCycle, tierPricingData.pricing, {
+      await onSelect(tier, billingCycle, pricingPayload, {
         currency: resolvedCurrency,
+        workspaceProfile:
+          tier === "FRONT_DESK" ? "FRONT_DESK" : "FULL_CLINICAL",
       });
     } finally {
       setIsSubmitting(false);
@@ -176,6 +227,51 @@ Please contact me with deployment and commercial details.`;
         </p>
       </CardHeader>
       <CardContent className="space-y-6">
+        <div className="rounded-lg border border-border/60 bg-card p-4 space-y-3">
+          <MicroLabel>Workspace</MicroLabel>
+          <p className="text-sm text-muted-foreground">
+            Choose how Docita is used at this facility. This is separate from the
+            commercial tier below (quotas and pricing).
+          </p>
+          <div className="flex flex-col gap-2 sm:flex-row">
+            <Button
+              type="button"
+              variant={workspaceProfile === "FULL_CLINICAL" ? "default" : "outline"}
+              className="flex-1 justify-center"
+              onClick={() => setWorkspaceProfile("FULL_CLINICAL")}
+            >
+              {WORKSPACE_PROFILE_LABEL.FULL_CLINICAL}
+            </Button>
+            <Button
+              type="button"
+              variant={workspaceProfile === "FRONT_DESK" ? "default" : "outline"}
+              className="flex-1 justify-center"
+              onClick={() => setWorkspaceProfile("FRONT_DESK")}
+            >
+              {WORKSPACE_PROFILE_LABEL.FRONT_DESK}
+            </Button>
+          </div>
+          <ul className="list-disc space-y-1 pl-5 text-sm text-muted-foreground">
+            {WORKSPACE_PROFILE_MARKETING[workspaceProfile].included.map((line) => (
+              <li key={line}>{line}</li>
+            ))}
+          </ul>
+          {WORKSPACE_PROFILE_MARKETING[workspaceProfile].notIncluded.length > 0 ? (
+            <div>
+              <p className="text-sm font-medium text-foreground">
+                Not included in this workspace
+              </p>
+              <ul className="mt-1 list-disc space-y-1 pl-5 text-sm text-muted-foreground">
+                {WORKSPACE_PROFILE_MARKETING[workspaceProfile].notIncluded.map(
+                  (line) => (
+                    <li key={line}>{line}</li>
+                  ),
+                )}
+              </ul>
+            </div>
+          ) : null}
+        </div>
+
         <div className="flex justify-center">
           <div className="inline-flex items-center gap-2 p-1 bg-muted rounded-lg">
             <Button
@@ -199,13 +295,16 @@ Please contact me with deployment and commercial details.`;
         </div>
 
         <div className="flex flex-wrap justify-center gap-4">
-          {featuresByTier
-            .filter((t) => DISPLAY_TIERS.includes(Tier[t.tier] as string))
-            .map(({ tier, info, features }) => {
-              const tierName = Tier[tier] as TierName;
-              const tierPricingData = pricingConfig.tiers.find(
+          {featuresByTier.map(({ tierName, tier, info, features }) => {
+              const tierPricingFromApi = pricingConfig.tiers.find(
                 (t: TierPricing) => t.id === tierName,
               );
+              const catalogPricing = getTierPricing(tierName);
+              const cardPricing =
+                tierPricingFromApi?.pricing ?? {
+                  monthly: catalogPricing.monthly,
+                  yearly: catalogPricing.yearly,
+                };
               const currencyKey =
                 resolvedCurrency as keyof typeof TIER_OVERAGE_RATES_BY_CURRENCY;
               const currencySymbol =
@@ -215,16 +314,50 @@ Please contact me with deployment and commercial details.`;
               const overageRates = (TIER_OVERAGE_RATES_BY_CURRENCY[
                 currencyKey
               ] ?? TIER_OVERAGE_RATES_BY_CURRENCY.INR)[tierName];
-              const overageHint =
+              const overageFromRates =
                 overageRates?.appointmentRate > 0
                   ? `then ${currencySymbol}${overageRates.appointmentRate}/extra consultation`
                   : undefined;
+              const tierOverageHint =
+                tierName === "ESSENTIAL"
+                  ? `${currencySymbol}0 for the first ${SUBSCRIPTION_TRIAL_DAYS} days, then regular billing`
+                  : tierName === "STARTER"
+                    ? [
+                        "Payment at signup (Razorpay). No unpaid trial on Starter.",
+                        overageFromRates,
+                      ]
+                        .filter(Boolean)
+                        .join(" ")
+                    : tierName === "FRONT_DESK"
+                      ? [
+                          "Payment required at signup. Clinical workflows stay disabled in-app.",
+                          overageFromRates,
+                        ]
+                          .filter(Boolean)
+                          .join(" ")
+                    : tierName === "PROFESSIONAL"
+                      ? [
+                          "Payment required at signup. Unpaid trial is only on Essential.",
+                          overageFromRates,
+                        ]
+                          .filter(Boolean)
+                          .join(" ")
+                      : tierName === "ENTERPRISE"
+                        ? "Custom pricing and deployment. Contact sales to continue."
+                        : overageFromRates;
+
+              const tierButtonLabel =
+                tierName === "ESSENTIAL"
+                  ? `Start free ${SUBSCRIPTION_TRIAL_DAYS}-day trial`
+                  : tierName === "ENTERPRISE"
+                    ? "Contact sales"
+                    : "Select and pay";
 
               return (
                 <div
                   key={tier}
                   className={cn(
-                    "relative flex w-full max-w-[340px] flex-col",
+                    "relative flex w-full max-w-[22rem] flex-col sm:max-w-[24rem]",
                     tierName === "ESSENTIAL" && "order-first md:order-none",
                   )}
                 >
@@ -244,19 +377,14 @@ Please contact me with deployment and commercial details.`;
                       selectedTier === tierName &&
                         "border-primary ring-2 ring-primary/20 shadow-lg",
                     )}
-                    pricing={tierPricingData?.pricing}
+                    keyHighlights={
+                      PLAN_ONBOARDING_KEY_HIGHLIGHTS[tierName] ?? []
+                    }
+                    pricing={cardPricing}
                     billingCycle={billingCycle}
                     currencySymbol={currencySymbol}
-                    overageHint={
-                      tierName === "ESSENTIAL"
-                        ? `${currencySymbol}0 for first 14 days, then regular billing`
-                        : overageHint
-                    }
-                    buttonLabel={
-                      tierName === "ESSENTIAL"
-                        ? "Start Free 14-Day Trial"
-                        : "Select Plan"
-                    }
+                    overageHint={tierOverageHint}
+                    buttonLabel={tierButtonLabel}
                     maxDisplay={8}
                     usageHints={
                       PLAN_LIMITS[tierName as keyof typeof PLAN_LIMITS]
@@ -275,6 +403,11 @@ Please contact me with deployment and commercial details.`;
                         ? undefined
                         : () => {
                             setSelectedTier(tierName);
+                            if (tierName === "FRONT_DESK") {
+                              setWorkspaceProfile("FRONT_DESK");
+                            } else {
+                              setWorkspaceProfile("FULL_CLINICAL");
+                            }
                             handleSelectTier(tierName);
                           }
                     }
@@ -314,5 +447,24 @@ Please contact me with deployment and commercial details.`;
         />
       </CardContent>
     </Card>
+  );
+}
+
+export function PlanSelectionStep(props: PlanSelectionProps) {
+  return (
+    <Suspense
+      fallback={
+        <div
+          className="flex min-h-[240px] flex-col items-center justify-center gap-3 py-8"
+          role="status"
+          aria-live="polite"
+          aria-label="Loading plan options"
+        >
+          <DocitaLoadingIndicator variant="section" withStatusRole={false} />
+        </div>
+      }
+    >
+      <PlanSelectionStepInner {...props} />
+    </Suspense>
   );
 }

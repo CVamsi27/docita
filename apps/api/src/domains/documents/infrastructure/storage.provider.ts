@@ -1,4 +1,13 @@
-import { Injectable as _Injectable } from '@nestjs/common';
+import {
+  Injectable as _Injectable,
+  Logger as _Logger,
+  BadRequestException,
+} from '@nestjs/common';
+
+/** Hard ceiling on signed URL lifetimes. Tighter than R2/S3 max (7d). */
+export const MAX_SIGNED_URL_TTL_SECONDS = 24 * 60 * 60;
+/** Floor: anything shorter has no operational use. */
+export const MIN_SIGNED_URL_TTL_SECONDS = 30;
 
 export interface StorageFile {
   fieldname: string;
@@ -58,5 +67,28 @@ export abstract class StorageProvider {
       .replace(/[^a-zA-Z0-9.\-_]/g, '_')
       .replace(/\.\./g, '')
       .toLowerCase();
+  }
+
+  /**
+   * Clamps the requested signed URL TTL into the
+   * [MIN_SIGNED_URL_TTL_SECONDS, MAX_SIGNED_URL_TTL_SECONDS] band.
+   *
+   * Throws BadRequestException for non-finite or non-positive inputs to
+   * surface caller bugs early; otherwise silently clamps so operational
+   * defaults can drift without exception storms in production.
+   */
+  protected assertSignedUrlTtl(expiresInSeconds: number): number {
+    if (!Number.isFinite(expiresInSeconds) || expiresInSeconds <= 0) {
+      throw new BadRequestException(
+        `Signed URL TTL must be a positive finite number, received ${String(expiresInSeconds)}`,
+      );
+    }
+    if (expiresInSeconds < MIN_SIGNED_URL_TTL_SECONDS) {
+      return MIN_SIGNED_URL_TTL_SECONDS;
+    }
+    if (expiresInSeconds > MAX_SIGNED_URL_TTL_SECONDS) {
+      return MAX_SIGNED_URL_TTL_SECONDS;
+    }
+    return Math.floor(expiresInSeconds);
   }
 }

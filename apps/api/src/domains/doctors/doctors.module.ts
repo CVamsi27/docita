@@ -56,6 +56,7 @@ import { PrismaSignatureUploadRepository } from './infrastructure/repositories/p
     DoctorsService,
     DoctorAvailabilityService,
     DoctorVerificationService,
+    SlotGenerationService,
   ],
 })
 export class DoctorsModule {}

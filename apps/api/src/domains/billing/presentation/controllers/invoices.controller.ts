@@ -7,12 +7,17 @@ import {
   Param,
   Delete as _Delete,
   UseGuards,
+  UseInterceptors,
   Request,
   Query,
   Res,
   HttpStatus,
   Inject,
 } from '@nestjs/common';
+import {
+  IdempotencyInterceptor,
+  RequiresIdempotency,
+} from '@/shared/modules/idempotency';
 import { InvoicesService } from '@/domains/billing/application/services/invoices.service';
 import {
   PdfJobService,
@@ -22,7 +27,9 @@ import type { Response } from 'express';
 import { TierGuard } from '@/shared/modules/auth/auth/tier.guard';
 import {
   RequireFeature,
+  RequireTier,
   Feature,
+  Tier,
 } from '@/shared/modules/auth/auth/tier.decorator';
 import { Roles } from '@/shared/modules/auth/auth/roles.decorator';
 import { Role, InvoiceStatus } from '@workspace/db';
@@ -32,6 +39,7 @@ import {
   InvoiceResponseDto,
   PaginatedInvoiceResponseDto,
   ListInvoicesQueryDto,
+  InvoicePaymentActivityResponseDto,
 } from '@/domains/billing/application/dto/invoices.dto';
 import { ZodSerializerDto } from 'nestjs-zod';
 
@@ -43,8 +51,8 @@ interface AuthRequest {
 
 @Controller('invoices')
 @UseGuards(TierGuard)
-@RequireFeature(Feature.INVOICING)
 @Roles(Role.ADMIN, Role.DOCTOR, Role.RECEPTIONIST, Role.ADMIN_DOCTOR)
+@UseInterceptors(IdempotencyInterceptor)
 export class InvoicesController {
   constructor(
     private readonly invoicesService: InvoicesService,
@@ -53,6 +61,7 @@ export class InvoicesController {
   ) {}
 
   @Get()
+  @RequireTier(Tier.STARTER)
   @ZodSerializerDto(PaginatedInvoiceResponseDto)
   findAll(@Request() req: AuthRequest, @Query() query?: ListInvoicesQueryDto) {
     const { cursor, limit, patientId, status, date, search } = query ?? {};
@@ -67,13 +76,23 @@ export class InvoicesController {
     });
   }
 
+  @Get(':id/payment-activity')
+  @RequireFeature(Feature.INVOICING)
+  @ZodSerializerDto(InvoicePaymentActivityResponseDto)
+  getPaymentActivity(@Request() req: AuthRequest, @Param('id') id: string) {
+    return this.invoicesService.listPaymentActivity(id, req.user.clinicId);
+  }
+
   @Get(':id')
+  @RequireFeature(Feature.INVOICING)
   @ZodSerializerDto(InvoiceResponseDto)
   findOne(@Request() req: AuthRequest, @Param('id') id: string) {
     return this.invoicesService.findOne(id, req.user.clinicId);
   }
 
   @Post()
+  @RequiresIdempotency()
+  @RequireFeature(Feature.INVOICING)
   @ZodSerializerDto(InvoiceResponseDto)
   create(@Request() req: AuthRequest, @Body() dto: CreateInvoiceDto) {
     return this.invoicesService.create({
@@ -83,6 +102,7 @@ export class InvoicesController {
   }
 
   @Patch(':id')
+  @RequireFeature(Feature.INVOICING)
   @ZodSerializerDto(InvoiceResponseDto)
   update(
     @Request() req: AuthRequest,
@@ -93,21 +113,25 @@ export class InvoicesController {
   }
 
   @Get(':id/claim-readiness')
+  @RequireFeature(Feature.INVOICING)
   getClaimReadiness(@Request() req: AuthRequest, @Param('id') id: string) {
     return this.invoicesService.getClaimReadiness(id, req.user.clinicId);
   }
 
   @Post(':id/submit-claim')
+  @RequireFeature(Feature.INVOICING)
   submitClaim(@Request() req: AuthRequest, @Param('id') id: string) {
     return this.invoicesService.submitClaim(id, req.user.clinicId);
   }
 
   @Get(':id/pdf/status')
+  @RequireFeature(Feature.INVOICING)
   getPdfStatus(@Request() req: AuthRequest, @Query('jobId') jobId: string) {
     return this.pdfJobService.getStatus(jobId, req.user.clinicId);
   }
 
   @Get(':id/pdf')
+  @RequireFeature(Feature.INVOICING)
   async generatePDF(
     @Request() req: AuthRequest,
     @Param('id') id: string,

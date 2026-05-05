@@ -1,15 +1,19 @@
 import { DocitaLoadingIndicator } from "@workspace/ui/components/docita-loading-indicator";
 import { Card, CardContent } from "@workspace/ui/components/card";
 import { Button } from "@workspace/ui/components/button";
+import { Checkbox } from "@workspace/ui/components/checkbox";
+import { Label } from "@workspace/ui/components/label";
 import { CheckCircle2 } from "lucide-react";
 import { OCRHeader } from "@/features/ocr/components/sections/OCRHeader";
 import { OCRPatientInfo } from "@/features/ocr/components/sections/OCRPatientInfo";
 import { OCRClinicalFindings } from "@/features/ocr/components/sections/OCRClinicalFindings";
 import { OCRVitals } from "@/features/ocr/components/sections/OCRVitals";
 import { OCRMedications } from "@/features/ocr/components/sections/OCRMedications";
+import { OCRInvoiceDraft } from "@/features/ocr/components/sections/OCRInvoiceDraft";
 import { OCRLabValues } from "@/features/ocr/components/sections/OCRLabValues";
 import { type Dispatch, type SetStateAction } from "react";
 import { OCRFormData } from "@/features/ocr/types";
+import { cn } from "@workspace/ui/lib/utils";
 
 interface OCRResultsProps {
   scanned: boolean;
@@ -22,6 +26,9 @@ interface OCRResultsProps {
   onToggleSection: (section: string) => void;
   isSaving: boolean;
   onSave: () => void;
+  needsReviewAcknowledgement?: boolean;
+  reviewAcknowledged?: boolean;
+  onReviewAcknowledgedChange?: (value: boolean) => void;
 }
 
 export const OCRResults = ({
@@ -35,6 +42,9 @@ export const OCRResults = ({
   onToggleSection,
   isSaving,
   onSave,
+  needsReviewAcknowledgement = false,
+  reviewAcknowledged = false,
+  onReviewAcknowledgedChange,
 }: OCRResultsProps) => {
 
   const getScore = (key: string): number | undefined => confidenceScores[key];
@@ -50,7 +60,12 @@ export const OCRResults = ({
 
   return (
     <div className="space-y-6">
-      <Card className={!scanned ? "opacity-50 pointer-events-none" : ""}>
+      <Card
+        className={cn(
+          !scanned &&
+            "pointer-events-none select-none border border-dashed border-muted-foreground/35 bg-muted text-muted-foreground",
+        )}
+      >
         <OCRHeader
           documentType={documentType}
           confidenceScores={confidenceScores}
@@ -97,7 +112,41 @@ export const OCRResults = ({
             onToggle={() => onToggleSection("labValues")}
           />
 
-          <Button className="w-full mt-4" onClick={onSave} disabled={isSaving}>
+          <OCRInvoiceDraft
+            formData={formData}
+            setFormData={setFormData}
+            isOpen={getSection("invoice")}
+            onToggle={() => onToggleSection("invoice")}
+          />
+
+          {needsReviewAcknowledgement && scanned && (
+            <div className="flex items-start gap-3 rounded-lg border border-border bg-muted/40 p-4 mt-4">
+              <Checkbox
+                id="ocr-review-ack"
+                checked={reviewAcknowledged}
+                onCheckedChange={(v) =>
+                  onReviewAcknowledgedChange?.(v === true)
+                }
+                className="mt-0.5"
+              />
+              <Label
+                htmlFor="ocr-review-ack"
+                className="text-sm font-normal leading-snug cursor-pointer"
+              >
+                I have reviewed fields flagged as low confidence and corrected
+                any errors before creating this patient record.
+              </Label>
+            </div>
+          )}
+
+          <Button
+            className="w-full mt-4"
+            onClick={onSave}
+            disabled={
+              isSaving ||
+              (needsReviewAcknowledgement && scanned && !reviewAcknowledged)
+            }
+          >
             {isSaving ? (
               <>
                 <DocitaLoadingIndicator variant="inline" decorative className="mr-2" />
