@@ -14,6 +14,7 @@ import { useRouter } from "next/navigation";
 import { usePermissionStore } from "@/lib/stores/permission-store";
 import { apiFetch } from "@/lib/api-client";
 import { appSession } from "@/lib/session";
+import { clearStoredReturnPathBeforeLogin } from "@/lib/safe-return-path";
 import {
   formatLoginLockoutMessage,
   parseLoginLockoutUntil,
@@ -463,11 +464,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         }
         return;
       }
-
-      const redirectUrl =
-        sessionStorage.getItem("redirectAfterLogin") || "/dashboard";
-      sessionStorage.removeItem("redirectAfterLogin");
-      router.push(redirectUrl);
     } catch (error) {
       const status =
         typeof error === "object" && error !== null && "status" in error
@@ -570,6 +566,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   const logout = useCallback(async () => {
     clearSession();
+    clearStoredReturnPathBeforeLogin();
     try {
       await logoutMutation.mutateAsync();
     } catch {}

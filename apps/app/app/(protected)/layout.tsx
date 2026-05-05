@@ -54,6 +54,7 @@ import {
 } from "@/lib/subscription-lockout";
 import { SUBSCRIPTION_SETTINGS_PATH } from "@/lib/subscription-settings-path";
 import { FeatureFlagsProvider } from "@/features/_shared/hooks/use-feature-flag";
+import { persistReturnPathBeforeLogin } from "@/lib/safe-return-path";
 
 const SUBSCRIPTION_ALLOWED_PATHS = ["/settings", "/login", "/billing-locked"];
 const VERIFICATION_ALLOWED_PATHS = ["/verify-doctor", "/login"];
@@ -349,6 +350,7 @@ export default function ProtectedLayout({
     if (isLoading) return;
     if (!user) {
       setRedirectMessage("Your session is missing. Redirecting to login…");
+      persistReturnPathBeforeLogin();
       router.replace("/login");
       return;
     }

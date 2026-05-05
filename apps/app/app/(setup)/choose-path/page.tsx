@@ -13,6 +13,7 @@ import { useAuth } from "@/lib/auth-context";
 import { PageTransitionLoader } from "@/components/common/loaders/page-transition-loader";
 import { showUserFacingErrorToast } from "@/lib/user-facing-errors";
 import { PreDashboardShell } from "@/features/auth/components/PreDashboardShell";
+import { persistReturnPathBeforeLogin } from "@/lib/safe-return-path";
 
 const CREATE_BULLETS = [
   "Choose subscription plan",
@@ -40,6 +41,7 @@ export default function ChoosePathPage() {
     if (isLoading) return;
     if (!isAuthenticated) {
       setRedirectMessage("Redirecting to login…");
+      persistReturnPathBeforeLogin();
       router.replace("/login");
       return;
     }

@@ -19,6 +19,8 @@ import { AuthLoginStepUI } from "./AuthLoginStepUI";
 import { AuthSignupStepUI } from "./AuthSignupStepUI";
 import { PreDashboardShell } from "./PreDashboardShell";
 import type { AuthStep, FieldErrors } from "@/features/auth/types/auth";
+import { sanitizeAppReturnPath } from "@/lib/safe-return-path";
+import { APP_REDIRECT_AFTER_LOGIN_KEY } from "@/lib/session";
 
 const STEP_TITLES: Record<AuthStep, string> = {
   email: "Welcome to Docita",
@@ -57,6 +59,23 @@ function getPostAuthPath(user: User): string {
   return "/today";
 }
 
+function getAuthenticatedLandingPath(user: User): string {
+  const fallback = getPostAuthPath(user);
+
+  if (user.emailVerified === false || !user.clinicId) {
+    return fallback;
+  }
+
+  if (typeof window === "undefined") {
+    return fallback;
+  }
+
+  const stored = sessionStorage.getItem(APP_REDIRECT_AFTER_LOGIN_KEY);
+  sessionStorage.removeItem(APP_REDIRECT_AFTER_LOGIN_KEY);
+  const safe = sanitizeAppReturnPath(stored);
+  return safe ?? fallback;
+}
+
 export function AuthPageContainer() {
   const [step, setStep] = useState<AuthStep>("email");
   const [email, setEmail] = useState("");
@@ -89,7 +108,7 @@ export function AuthPageContainer() {
     }
 
     setIsRedirecting(true);
-    router.replace(getPostAuthPath(user));
+    router.replace(getAuthenticatedLandingPath(user));
   }, [isAuthenticated, router, user]);
 
   const lockoutMessage = isLoginLocked
