@@ -53,19 +53,6 @@ const FALLBACK_TIERS: TierConfig[] = [
     ],
   },
   {
-    id: "ESSENTIAL",
-    name: "Essential",
-    description: "Built for solo clinics running OPD, billing, and follow-ups",
-    tagline: "Best for solo practices",
-    pricing: { monthly: 999, yearly: 9990, currency: "₹" },
-    features: [
-      "Unlimited patients",
-      "Billing workflows",
-      "WhatsApp reminders",
-      "Analytics dashboard",
-    ],
-  },
-  {
     id: "FRONT_DESK",
     name: "Front desk",
     description:
@@ -77,6 +64,19 @@ const FALLBACK_TIERS: TierConfig[] = [
       "Patients and invoicing",
       "WhatsApp within plan limits",
       "Schedule-only doctor profiles",
+    ],
+  },
+  {
+    id: "ESSENTIAL",
+    name: "Essential",
+    description: "Built for solo clinics running OPD, billing, and follow-ups",
+    tagline: "Best for solo practices",
+    pricing: { monthly: 999, yearly: 9990, currency: "₹" },
+    features: [
+      "Unlimited patients",
+      "Billing workflows",
+      "WhatsApp reminders",
+      "Analytics dashboard",
     ],
   },
   {

@@ -37,7 +37,7 @@ export class PricingController {
     name: 'tier',
     required: true,
     description:
-      'Tier ID (STARTER, ESSENTIAL, FRONT_DESK, PROFESSIONAL, ENTERPRISE)',
+      'Tier ID (STARTER, FRONT_DESK, ESSENTIAL, PROFESSIONAL, ENTERPRISE)',
   })
   @ApiQuery({
     name: 'currency',

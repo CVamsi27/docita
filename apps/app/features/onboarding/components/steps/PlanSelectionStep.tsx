@@ -60,8 +60,8 @@ interface PlanSelectionProps {
 
 const DISPLAY_TIERS = [
   "STARTER",
-  "ESSENTIAL",
   "FRONT_DESK",
+  "ESSENTIAL",
   "PROFESSIONAL",
   "ENTERPRISE",
 ];

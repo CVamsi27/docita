@@ -20,8 +20,8 @@ interface PricingSectionProps {
 
 const TIER_ORDER = [
   "STARTER",
-  "ESSENTIAL",
   "FRONT_DESK",
+  "ESSENTIAL",
   "PROFESSIONAL",
   "ENTERPRISE",
 ] as const;

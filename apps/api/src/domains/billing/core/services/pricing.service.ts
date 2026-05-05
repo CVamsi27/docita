@@ -232,17 +232,6 @@ export class PricingService {
         },
         {
           ...this.toPricingTierPayload({
-            tier: 'ESSENTIAL',
-            validCurrency,
-            monthly: tierPricing.ESSENTIAL.monthly,
-            yearly: tierPricing.ESSENTIAL.yearly,
-            includedAppointments: TIER_LIMITS.ESSENTIAL.appointments ?? 0,
-            includedUsers: TIER_LIMITS.ESSENTIAL.users ?? 1,
-            features: TIER_FEATURES.ESSENTIAL,
-          }),
-        },
-        {
-          ...this.toPricingTierPayload({
             tier: 'FRONT_DESK',
             validCurrency,
             monthly: tierPricing.FRONT_DESK.monthly,
@@ -250,6 +239,17 @@ export class PricingService {
             includedAppointments: TIER_LIMITS.FRONT_DESK.appointments ?? 0,
             includedUsers: TIER_LIMITS.FRONT_DESK.users ?? 1,
             features: TIER_FEATURES.FRONT_DESK,
+          }),
+        },
+        {
+          ...this.toPricingTierPayload({
+            tier: 'ESSENTIAL',
+            validCurrency,
+            monthly: tierPricing.ESSENTIAL.monthly,
+            yearly: tierPricing.ESSENTIAL.yearly,
+            includedAppointments: TIER_LIMITS.ESSENTIAL.appointments ?? 0,
+            includedUsers: TIER_LIMITS.ESSENTIAL.users ?? 1,
+            features: TIER_FEATURES.ESSENTIAL,
           }),
         },
         {

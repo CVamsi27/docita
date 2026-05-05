@@ -64,8 +64,8 @@ export class SubscriptionsQueryService {
   async getTierConfig() {
     const tiers = [
       'STARTER',
-      'ESSENTIAL',
       'FRONT_DESK',
+      'ESSENTIAL',
       'PROFESSIONAL',
       'ENTERPRISE',
     ];

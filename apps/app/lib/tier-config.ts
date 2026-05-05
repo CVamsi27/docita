@@ -44,8 +44,8 @@ import { formatCountLocale } from "@workspace/utils";
 /** Linear plan ladder for onboarding highlights (excludes INTELLIGENCE add-on). */
 const PLAN_TIER_LADDER: Tier[] = [
   Tier.STARTER,
-  Tier.ESSENTIAL,
   Tier.FRONT_DESK,
+  Tier.ESSENTIAL,
   Tier.PROFESSIONAL,
   Tier.ENTERPRISE,
 ];
@@ -79,6 +79,11 @@ export const PLAN_DESCRIPTIONS: Record<
     tagline: "Go digital from day one",
     description: "Basic clinical workflow for solo doctors moving off paper",
   },
+  [Tier.FRONT_DESK]: {
+    tagline: "Reception and operations",
+    description:
+      "Scheduling, queue, and billing for front desk teams without full in-app clinical workflows",
+  },
   [Tier.ESSENTIAL]: {
     tagline: "For solo clinics",
     description: "Clear limits, WhatsApp messaging, and simple billing",
@@ -95,11 +100,6 @@ export const PLAN_DESCRIPTIONS: Record<
     tagline: "AI-Powered Add-on",
     description: "Enhance your clinic with AI-powered features",
   },
-  [Tier.FRONT_DESK]: {
-    tagline: "Reception and operations",
-    description:
-      "Scheduling, queue, and billing for front desk teams without full in-app clinical workflows",
-  },
 };
 
 export interface FeatureComparisonRow {
@@ -111,8 +111,8 @@ export interface FeatureComparisonRow {
 export function getFeatureComparisonData(): FeatureComparisonRow[] {
   const tiers = [
     Tier.STARTER,
-    Tier.ESSENTIAL,
     Tier.FRONT_DESK,
+    Tier.ESSENTIAL,
     Tier.PROFESSIONAL,
     Tier.ENTERPRISE,
   ];

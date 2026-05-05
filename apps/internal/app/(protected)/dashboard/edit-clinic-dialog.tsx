@@ -23,8 +23,8 @@ import { resolveCountryCodeOrDefault } from "@workspace/utils";
 
 const AVAILABLE_TIERS: TierName[] = [
   "STARTER",
-  "ESSENTIAL",
   "FRONT_DESK",
+  "ESSENTIAL",
   "PROFESSIONAL",
   "ENTERPRISE",
 ];
