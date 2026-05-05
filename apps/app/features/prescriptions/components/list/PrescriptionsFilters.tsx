@@ -128,21 +128,28 @@ export function PrescriptionsFilters({
           />
         </div>
 
-        <SymbolTooltip label="Show all days (no date filter)">
-          <Button
-            type="button"
-            variant="outline"
-            size="sm"
-            className="w-full sm:w-auto"
-            disabled={clearDaysDisabled}
-            onClick={() => {
-              onStartDateChange("");
-              onEndDateChange("");
-            }}
+        <div className="grid w-full gap-2 sm:w-auto sm:shrink-0">
+          <Label
+            className="text-xs text-muted-foreground invisible select-none pointer-events-none"
+            aria-hidden
           >
-            All days
-          </Button>
-        </SymbolTooltip>
+            From
+          </Label>
+          <SymbolTooltip label="Show all days (no date filter)">
+            <Button
+              type="button"
+              variant="outline"
+              className="h-10 w-full px-4 font-normal sm:w-auto"
+              disabled={clearDaysDisabled}
+              onClick={() => {
+                onStartDateChange("");
+                onEndDateChange("");
+              }}
+            >
+              All days
+            </Button>
+          </SymbolTooltip>
+        </div>
 
         <div className="grid w-full gap-2 sm:w-[260px]">
           <Label className="text-xs text-muted-foreground">Patient</Label>
@@ -155,7 +162,7 @@ export function PrescriptionsFilters({
               <Button
                 type="button"
                 variant="outline"
-                className="w-full justify-between font-normal"
+                className="h-10 w-full justify-between font-normal"
                 aria-label="Patient filter"
               >
                 <span className="truncate">
