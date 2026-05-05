@@ -93,12 +93,25 @@ describe('QueueService', () => {
         expect.any(Date),
         undefined,
         ['WAITING', 'IN_PROGRESS'],
+        undefined,
       );
       expect(result).toHaveLength(1);
     });
 
     it('filters results by search term', async () => {
-      queueRepository.findTodayTokens.mockResolvedValue([mockToken]);
+      queueRepository.findTodayTokens.mockImplementation(
+        async (
+          _clinicId: unknown,
+          _from: unknown,
+          _to: unknown,
+          _doctorId: unknown,
+          _statusIn: unknown,
+          search: unknown,
+        ) => {
+          if (search === 'John') return [mockToken];
+          return [];
+        },
+      );
 
       const result = await service.getQueue('clinic-1', undefined, 'John');
       expect(result).toHaveLength(1);

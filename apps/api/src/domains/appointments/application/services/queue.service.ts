@@ -23,10 +23,10 @@ export class QueueService {
       tomorrow,
       doctorId,
       ['WAITING', 'IN_PROGRESS'],
+      search,
     );
 
-    const filtered = this.filterBySearch(tokens, search);
-    return filtered.map(this.mapToken);
+    return tokens.map(this.mapToken);
   }
 
   async getTodayQueue(clinicId: string, doctorId?: string, search?: string) {
@@ -37,11 +37,11 @@ export class QueueService {
       today,
       tomorrow,
       doctorId,
+      undefined,
+      search,
     );
 
-    const filtered = this.filterBySearch(tokens, search);
-
-    const patients = filtered.map((t) => ({
+    const patients = tokens.map((t) => ({
       id: t.id,
       type: t.appointmentId
         ? 'appointment'
@@ -169,18 +169,6 @@ export class QueueService {
     const tomorrow = new Date(today);
     tomorrow.setDate(tomorrow.getDate() + 1);
     return { today, tomorrow };
-  }
-
-  private filterBySearch(
-    tokens: QueueTokenWithRelations[],
-    search?: string,
-  ): QueueTokenWithRelations[] {
-    if (!search) return tokens;
-    const lower = search.toLowerCase();
-    return tokens.filter((t) => {
-      const name = `${t.patient.firstName} ${t.patient.lastName}`.toLowerCase();
-      return name.includes(lower);
-    });
   }
 
   private mapToken(t: QueueTokenWithRelations) {

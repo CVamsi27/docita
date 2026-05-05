@@ -38,6 +38,7 @@ export interface IQueueRepository {
     toDate: Date,
     doctorId?: string,
     statusIn?: string[],
+    search?: string,
   ): Promise<QueueTokenWithRelations[]>;
 
   findAppointmentForCheckIn(
