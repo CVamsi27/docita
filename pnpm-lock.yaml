@@ -18,7 +18,7 @@ overrides:
   flatted: ^3.4.2
   file-type: 21.3.2
   fast-xml-parser: ^5.5.6
-  basic-ftp: ^5.3.0
+  basic-ftp: ^5.2.2
   defu: ^6.1.5
   diff: ^4.0.4
   handlebars: ^4.7.9
@@ -66,9 +66,6 @@ importers:
       axe-core:
         specifier: ^4.11.1
         version: 4.11.1
-      axe-playwright:
-        specifier: ^2.2.2
-        version: 2.2.2(playwright@1.57.0)
       baseline-browser-mapping:
         specifier: ^2.9.19
         version: 2.9.19
@@ -78,9 +75,6 @@ importers:
       eslint-plugin-import:
         specifier: ^2.32.0
         version: 2.32.0(eslint-import-resolver-typescript@4.4.4)(eslint@9.39.1(jiti@2.6.1))
-      playwright:
-        specifier: ^1.48.2
-        version: 1.57.0
       prettier:
         specifier: ^3.6.2
         version: 3.7.1
@@ -90,9 +84,6 @@ importers:
       ts-node:
         specifier: ^10.9.2
         version: 10.9.2(@types/node@25.2.3)(typescript@5.7.3)
-      tsx:
-        specifier: ^4.19.2
-        version: 4.21.0
       turbo:
         specifier: ^2.9.0
         version: 2.9.0
@@ -25286,6 +25277,7 @@ snapshots:
       get-tsconfig: 4.13.6
     optionalDependencies:
       fsevents: 2.3.3
+    optional: true
 
   turbo@2.9.0:
     optionalDependencies:
