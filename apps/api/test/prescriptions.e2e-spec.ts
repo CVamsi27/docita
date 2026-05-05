@@ -161,6 +161,63 @@ describe('Prescriptions (e2e)', () => {
         ),
       ).toBe(true);
     });
+
+    it('should filter prescriptions by updatedAt date range', async () => {
+      const appointment = await factories.appointment(
+        patientId,
+        doctorId,
+        clinicId,
+      );
+
+      const createRes = await request(app.getHttpServer())
+        .post('/prescriptions')
+        .set('Authorization', `Bearer ${token}`)
+        .send({
+          appointmentId: appointment.id,
+          patientId,
+          doctorId,
+          medications: [
+            {
+              name: 'Azithromycin',
+              dosage: '500mg',
+              frequency: 'once daily',
+              duration: '3 days',
+            },
+          ],
+        })
+        .expect(201);
+
+      const createdId = createRes.body.id as string;
+      expect(typeof createdId).toBe('string');
+
+      // Force updatedAt to a known date (2026-05-01) so range queries are deterministic.
+      await prisma.prescription.update({
+        where: { id: createdId },
+        data: {
+          updatedAt: new Date('2026-05-01T10:00:00.000Z'),
+        },
+      });
+
+      const inRange = await request(app.getHttpServer())
+        .get('/prescriptions?startDate=2026-05-01&endDate=2026-05-03')
+        .set('Authorization', `Bearer ${token}`)
+        .expect(200);
+
+      const inRangeIds = (inRange.body as Array<{ id: string }>).map(
+        (p) => p.id,
+      );
+      expect(inRangeIds).toContain(createdId);
+
+      const outOfRange = await request(app.getHttpServer())
+        .get('/prescriptions?startDate=2026-05-02&endDate=2026-05-03')
+        .set('Authorization', `Bearer ${token}`)
+        .expect(200);
+
+      const outOfRangeIds = (outOfRange.body as Array<{ id: string }>).map(
+        (p) => p.id,
+      );
+      expect(outOfRangeIds).not.toContain(createdId);
+    });
   });
 
   describe('POST /prescriptions', () => {

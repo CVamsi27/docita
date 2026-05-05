@@ -65,10 +65,12 @@ export class PrescriptionsController {
     @Request() req: AuthRequest,
     @Query() query?: ListPrescriptionsQueryDto,
   ) {
-    const { search, date, patientId, limit } = query ?? {};
+    const { search, date, startDate, endDate, patientId, limit } = query ?? {};
     return this.prescriptionsService.findAll(req.user.clinicId, {
       search,
       date,
+      startDate,
+      endDate,
       patientId,
       limit,
     });

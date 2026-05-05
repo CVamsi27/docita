@@ -4,6 +4,8 @@ export interface PrescriptionSearchParams {
   clinicId: string;
   search?: string;
   date?: string;
+  startDate?: string;
+  endDate?: string;
   patientId?: string;
   cursor?: string;
   limit?: number;
