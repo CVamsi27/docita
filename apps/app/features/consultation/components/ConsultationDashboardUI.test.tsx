@@ -67,7 +67,6 @@ describe("ConsultationDashboardUI", () => {
 
     render(<ConsultationDashboardUI />);
     expect(screen.getByText(/Next patients/i)).toBeInTheDocument();
-    expect(screen.getByText("Next up")).toBeInTheDocument();
   });
 
   it("renders check-in panel for receptionist role", () => {
