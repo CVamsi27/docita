@@ -1478,28 +1478,19 @@ export function isFeatureGenerallyAvailable(feature: Feature): boolean {
   return display.comingSoon !== true;
 }
 
+/**
+ * Generally available {@link Feature} values enabled for this billed tier,
+ * derived only from {@link hasFeatureAccess} (same rules as API feature guards).
+ */
 export function getFeaturesForTier(tier: TierName): Feature[] {
-  if (tier === "FRONT_DESK") {
-    return (Object.keys(FEATURE_TIER_MAP) as Feature[]).filter((f) =>
-      hasFeatureAccess(tier, f, false),
-    );
-  }
-  const tierValue = getTierValue(tier);
-  return Object.entries(FEATURE_TIER_MAP)
-    .filter(([, requiredTier]) => requiredTier === tierValue)
-    .map(([feature]) => feature as Feature);
+  return (Object.keys(FEATURE_TIER_MAP) as Feature[]).filter((feature) =>
+    hasFeatureAccess(tier, feature, false),
+  );
 }
 
+/** Alias of {@link getFeaturesForTier}; cumulative SKUs use the same access set. */
 export function getAllFeaturesUpToTier(tier: TierName): Feature[] {
-  if (tier === "FRONT_DESK") {
-    return (Object.keys(FEATURE_TIER_MAP) as Feature[]).filter((f) =>
-      hasFeatureAccess(tier, f, false),
-    );
-  }
-  const tierValue = getTierValue(tier);
-  return Object.entries(FEATURE_TIER_MAP)
-    .filter(([, requiredTier]) => requiredTier <= tierValue)
-    .map(([feature]) => feature as Feature);
+  return getFeaturesForTier(tier);
 }
 
 export function getIntelligenceBundlePrice(): number {

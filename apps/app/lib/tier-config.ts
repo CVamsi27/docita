@@ -8,8 +8,8 @@ export {
   TIER_LIMITS,
   TIER_FEATURES,
   FEATURE_DISPLAY,
-  getFeaturesForTier,
   getAllFeaturesUpToTier,
+  getFeaturesForTier,
   getIntelligenceBundlePrice,
   hasFeatureAccess,
   isFeatureGenerallyAvailable,
@@ -30,10 +30,8 @@ import {
   Feature,
   FEATURE_DISPLAY,
   getAllFeaturesUpToTier,
-  getFeaturesForTier,
   getTierName,
   hasFeatureAccess,
-  isFeatureGenerallyAvailable,
   Tier,
   TIER_LIMITS,
   TIER_PRICING,
@@ -344,10 +342,22 @@ export function getPlanHighlights(
     included: true,
   });
 
-  const tierFeatures = getFeaturesForTier(tierName).filter(
-    isFeatureGenerallyAvailable,
-  );
-  const highlightFeatures = tierFeatures.slice(0, 3);
+  const currentTierFeatures = getAllFeaturesUpToTier(tierName);
+
+  const ladderIndex = PLAN_TIER_LADDER.indexOf(tier);
+
+  let highlightFeatures: Feature[];
+  if (ladderIndex <= 0) {
+    highlightFeatures = currentTierFeatures.slice(0, 3);
+  } else {
+    const prevTier = PLAN_TIER_LADDER[ladderIndex - 1]!;
+    const prevTierName = getTierName(prevTier);
+    const prevFeatureSet = new Set(getAllFeaturesUpToTier(prevTierName));
+    const newVsPrev = currentTierFeatures.filter((f) => !prevFeatureSet.has(f));
+    highlightFeatures = (
+      newVsPrev.length > 0 ? newVsPrev : currentTierFeatures
+    ).slice(0, 3);
+  }
 
   highlightFeatures.forEach((feature) => {
     features.push({
@@ -357,13 +367,10 @@ export function getPlanHighlights(
     });
   });
 
-  const ladderIndex = PLAN_TIER_LADDER.indexOf(tier);
   if (ladderIndex > 0) {
     const prevTier = PLAN_TIER_LADDER[ladderIndex - 1]!;
     const prevTierName = getTierName(prevTier);
-    const previousFeatures = getAllFeaturesUpToTier(prevTierName).filter(
-      isFeatureGenerallyAvailable,
-    );
+    const previousFeatures = getAllFeaturesUpToTier(prevTierName);
     previousFeatures.slice(0, 2).forEach((feature) => {
       features.push({
         name: FEATURE_DISPLAY[feature].name,
@@ -375,10 +382,10 @@ export function getPlanHighlights(
   if (ladderIndex >= 0 && ladderIndex < PLAN_TIER_LADDER.length - 1) {
     const nextTier = PLAN_TIER_LADDER[ladderIndex + 1]!;
     const nextTierName = getTierName(nextTier);
-    const nextTierFeatures = getFeaturesForTier(nextTierName).filter(
-      isFeatureGenerallyAvailable,
-    );
-    nextTierFeatures.slice(0, 2).forEach((feature) => {
+    const nextTierFeaturesFull = getAllFeaturesUpToTier(nextTierName);
+    const currentFeatureSet = new Set(currentTierFeatures);
+    const upcoming = nextTierFeaturesFull.filter((f) => !currentFeatureSet.has(f));
+    upcoming.slice(0, 2).forEach((feature) => {
       features.push({
         name: FEATURE_DISPLAY[feature].name,
         included: false,
@@ -386,5 +393,5 @@ export function getPlanHighlights(
     });
   }
 
-  return features.slice(0, 8); 
+  return features.slice(0, 8);
 }
