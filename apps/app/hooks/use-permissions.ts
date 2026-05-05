@@ -2,6 +2,7 @@
 
 import { useMemo } from "react";
 import { useAuth } from "@/lib/auth-context";
+import { usePermissionStore } from "@/lib/stores/permission-store";
 import {
   canCreateAppointment,
   canCreateInvoice,
@@ -27,18 +28,20 @@ import {
   isAdmin,
   isDoctor as isDoctorRole,
 } from "@/lib/permissions";
-import type { UserRole } from "@workspace/types";
+import { Feature, type UserRole } from "@workspace/types";
 
 export function usePermissions() {
   const { user } = useAuth();
   const role = (user?.role || "RECEPTIONIST") as UserRole;
+  const tierCanAccess = usePermissionStore((s) => s.canAccess);
+  const invoicingOk = tierCanAccess(Feature.INVOICING);
 
   return useMemo(
     () => ({
       canStartConsultation: canStartConsultation(role),
       canManageStaff: canManageStaff(role),
       canManageClinic: canManageClinic(role),
-      canManageBilling: canManageBilling(role),
+      canManageBilling: canManageBilling(role) && invoicingOk,
       canViewReports: canViewReports(role),
       canManageInventory: canManageInventory(role),
       canExportData: canExportData(role),
@@ -50,8 +53,8 @@ export function usePermissions() {
       canDeletePatient: canDeletePatient(role),
       canViewAppointments: canViewAppointments(role),
       canCreateAppointment: canCreateAppointment(role),
-      canViewInvoices: canViewInvoices(role),
-      canCreateInvoice: canCreateInvoice(role),
+      canViewInvoices: canViewInvoices(role) && invoicingOk,
+      canCreateInvoice: canCreateInvoice(role) && invoicingOk,
       canViewPrescriptions: canViewPrescriptions(role),
       canManageTemplates: canManageTemplates(role),
       canViewPlatformAnalytics: canViewPlatformAnalytics(role),
@@ -63,6 +66,6 @@ export function usePermissions() {
 
       role,
     }),
-    [role],
+    [role, invoicingOk],
   );
 }

@@ -21,6 +21,7 @@ import { PatientTagManagerContainer as PatientTagManager } from "@/features/pati
 import type { PatientStatistics } from "@/hooks/use-patient-data";
 import { PatientCommunicationTab } from "./PatientCommunicationTab";
 import { PatientClinicalChartSummary } from "./patient-clinical-chart-summary";
+import { usePermissions } from "@/hooks/use-permissions";
 
 const OverviewTab = dynamic(
   () =>
@@ -175,6 +176,7 @@ export function PatientDetailTabs({
   const router = useRouter();
   const pathname = usePathname();
   const searchParams = useSearchParams();
+  const { canViewInvoices } = usePermissions();
 
   const tabFromUrl = searchParams.get("tab");
   const subtabFromUrl = searchParams.get("subtab");
@@ -210,6 +212,16 @@ export function PatientDetailTabs({
     : isPatientRecordsSubTab(subtabFromUrl)
       ? subtabFromUrl
       : "history";
+
+  useEffect(() => {
+    if (activeTab !== "billing") return;
+    if (canViewInvoices) return;
+    const params = new URLSearchParams(searchParams.toString());
+    params.delete("tab");
+    params.delete("subtab");
+    const query = params.toString();
+    router.replace(query ? `${pathname}?${query}` : pathname, { scroll: false });
+  }, [activeTab, canViewInvoices, pathname, router, searchParams]);
 
   const handleSelectTab = useCallback(
     (next: string) => {
@@ -247,8 +259,10 @@ export function PatientDetailTabs({
 
   const items = useMemo<PageTabItem[]>(
     () =>
-      TAB_DEFINITIONS.map(({ value, label }) => ({ id: value, label })),
-    [],
+      TAB_DEFINITIONS.filter(
+        ({ value }) => value !== "billing" || canViewInvoices,
+      ).map(({ value, label }) => ({ id: value, label })),
+    [canViewInvoices],
   );
 
   const recordsSubItems = useMemo<PageTabItem[]>(
@@ -325,7 +339,9 @@ export function PatientDetailTabs({
           )}
         </div>
       )}
-      {activeTab === "billing" && <BillingTab patientId={patientId} />}
+      {activeTab === "billing" && canViewInvoices ? (
+        <BillingTab patientId={patientId} />
+      ) : null}
       {activeTab === "communication" && (
         <PatientCommunicationTab
           patientId={patientId}

@@ -43,6 +43,10 @@ vi.mock("./patient-clinical-chart-summary", () => ({
   ),
 }));
 
+vi.mock("@/hooks/use-permissions", () => ({
+  usePermissions: () => ({ canViewInvoices: true }),
+}));
+
 const baseProps = {
   patient: {
     id: "p-1",

@@ -33,10 +33,11 @@ import { formatDate, formatTime } from "@/lib/formatters";
 import { humanizeUiLabel } from "@workspace/ui/lib/label-formatters";
 import { ConsultationTimerContainer } from "./ConsultationTimerContainer";
 import { BillingModal } from "./modals/BillingModal";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useQueryClient } from "@tanstack/react-query";
 import { useConsultationVitals } from "@/features/consultation/workspace/consultation-vitals-context";
 import { SaveStatusChip } from "@/features/consultation/workspace/chrome/SaveStatusChip";
+import { usePermissions } from "@/hooks/use-permissions";
 
 const STATUS_STYLES: Record<string, string> = {
   scheduled: "badge-info",
@@ -77,8 +78,15 @@ export function ConsultationPageHeaderUI({
 }: ConsultationPageHeaderUIProps) {
   const { openVitals } = useConsultationVitals();
   const { openOverlay } = useAskAi();
+  const { canCreateInvoice } = usePermissions();
   const [billingOpen, setBillingOpen] = useState(false);
   const queryClient = useQueryClient();
+
+  useEffect(() => {
+    if (!canCreateInvoice) {
+      setBillingOpen(false);
+    }
+  }, [canCreateInvoice]);
 
   const handleBillingSaved = () => {
     queryClient.invalidateQueries({
@@ -236,17 +244,19 @@ export function ConsultationPageHeaderUI({
                   <span className="hidden md:inline">Vitals</span>
                 </Button>
               </SymbolTooltip>
-              <SymbolTooltip label="Create invoice" side="bottom">
-                <Button
-                  variant="outline"
-                  size="sm"
-                  className="hidden sm:flex gap-1.5 h-8"
-                  onClick={() => setBillingOpen(true)}
-                >
-                  <CreditCard className="h-3.5 w-3.5 text-success" />
-                  <span className="hidden md:inline">Invoice</span>
-                </Button>
-              </SymbolTooltip>
+              {canCreateInvoice ? (
+                <SymbolTooltip label="Create invoice" side="bottom">
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    className="hidden sm:flex gap-1.5 h-8"
+                    onClick={() => setBillingOpen(true)}
+                  >
+                    <CreditCard className="h-3.5 w-3.5 text-success" />
+                    <span className="hidden md:inline">Invoice</span>
+                  </Button>
+                </SymbolTooltip>
+              ) : null}
               <SymbolTooltip label="Ask AI about this consultation" side="bottom">
                 <Button
                   variant="outline"
@@ -286,10 +296,12 @@ export function ConsultationPageHeaderUI({
                     <HeartPulse className="mr-2 h-4 w-4 text-destructive" />
                     Vitals
                   </DropdownMenuItem>
-                  <DropdownMenuItem onClick={() => setBillingOpen(true)}>
-                    <CreditCard className="mr-2 h-4 w-4 text-success" />
-                    Invoice
-                  </DropdownMenuItem>
+                  {canCreateInvoice ? (
+                    <DropdownMenuItem onClick={() => setBillingOpen(true)}>
+                      <CreditCard className="mr-2 h-4 w-4 text-success" />
+                      Invoice
+                    </DropdownMenuItem>
+                  ) : null}
                   <DropdownMenuItem
                     onClick={() =>
                       openOverlay({
@@ -314,13 +326,15 @@ export function ConsultationPageHeaderUI({
         </div>
       </header>
 
-      <BillingModal
-        open={billingOpen}
-        onOpenChange={setBillingOpen}
-        appointmentId={appointmentId}
-        patientId={patientId ?? ""}
-        onSaved={handleBillingSaved}
-      />
+      {canCreateInvoice ? (
+        <BillingModal
+          open={billingOpen}
+          onOpenChange={setBillingOpen}
+          appointmentId={appointmentId}
+          patientId={patientId ?? ""}
+          onSaved={handleBillingSaved}
+        />
+      ) : null}
     </>
   );
 }

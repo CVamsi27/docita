@@ -22,6 +22,10 @@ vi.mock("@/features/_shared/components/ask-ai/ask-ai-context", () => ({
   useAskAi: () => ({ openOverlay: vi.fn(), closeOverlay: vi.fn(), open: false, scope: null }),
 }));
 
+vi.mock("@/hooks/use-permissions", () => ({
+  usePermissions: () => ({ canCreateInvoice: true }),
+}));
+
 vi.mock("./modals/BillingModal", () => ({
   BillingModal: () => null,
 }));
