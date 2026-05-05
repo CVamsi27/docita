@@ -125,7 +125,7 @@ export const ConsultationDashboardUI: FC = () => {
       header={
         <PageHeader
           title="Consultation"
-          description="Two views: your schedule (time-based) and the waiting-room queue (token-based)."
+          description="Continue your current visit, open the next patient, or add a walk-in for today."
           actions={
             <div className="flex flex-wrap gap-2">
               <Button variant="outline" asChild size="sm">
