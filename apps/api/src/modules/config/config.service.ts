@@ -192,6 +192,10 @@ export class ConfigService {
               'facilityLabel',
               'CLINIC',
             ),
+            sidebarNavOrder:
+              typeof clinicSettings['sidebarNavOrder'] === 'object'
+                ? clinicSettings['sidebarNavOrder']
+                : undefined,
           },
         };
       }

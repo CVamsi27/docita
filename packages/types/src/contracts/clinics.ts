@@ -1,6 +1,7 @@
 import { z } from "zod";
 import { jsonObjectSchema } from "../shared/json-schema";
 import { workspaceProfileSchema } from "../shared/workspace-profile";
+import { sidebarNavOrderSchema } from "../shared/sidebar-nav";
 
 const customFieldSchema = z.object({
   name: z.string(),
@@ -105,6 +106,7 @@ export const updateClinicSettingsRequestSchema = z.object({
   taxSettings: taxSettingsSchema.optional(),
   facilityLabel: z.enum(["CLINIC", "HOSPITAL"]).optional(),
   workspaceProfile: workspaceProfileSchema.optional(),
+  sidebarNavOrder: sidebarNavOrderSchema.optional(),
 });
 
 export const createClinicDoctorRequestSchema = z.object({

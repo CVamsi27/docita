@@ -12,6 +12,7 @@ import {
 interface UpdateProfileDto {
   name?: string;
   email?: string;
+  sidebarNavOrderOverride?: unknown | null;
 }
 
 @Injectable()
@@ -45,6 +46,10 @@ export class UsersService {
     }
 
     return this.repository.updateProfile(userId, data);
+  }
+
+  async getProfile(userId: string) {
+    return this.repository.getProfile(userId);
   }
 
   async requestAccountDeletion(userId: string) {

@@ -101,6 +101,8 @@ interface ClinicSettingsData {
   };
 
   workspaceProfile?: WorkspaceProfile;
+
+  sidebarNavOrder?: unknown;
 }
 
 @Injectable()
@@ -299,6 +301,9 @@ export class ClinicSettingsService {
     const resolvedSettings = {
       ...existingSettings,
       ...validatedSettings,
+      ...(data.sidebarNavOrder !== undefined && {
+        sidebarNavOrder: data.sidebarNavOrder,
+      }),
     };
 
     const useSameBankAccount =

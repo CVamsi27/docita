@@ -15,6 +15,7 @@ import {
   type StaffAccountDeletionRequest,
   type StaffAccountDeletionResponse,
   User,
+  type UserProfileResponse,
   type AppClinicSettings,
   subscriptionCurrentResponseSchema,
   availableSlotSchema,
@@ -400,9 +401,29 @@ export const useSubscription = (queryOptions?: { enabled?: boolean }) => {
 
 export const useUpdateProfile = () =>
   useAPIMutation<
-    { id: string; name?: string; email?: string },
+    UserProfileResponse,
     UpdateProfileRequest
-  >("/users/profile", "PATCH");
+  >("/users/profile", "PUT");
+
+export const useUserProfile = () =>
+  useAPIQueryValidated(
+    ["users", "profile"],
+    "/users/profile",
+    z.object({
+      id: z.string(),
+      email: z.string().email(),
+      name: z.string(),
+      createdAt: z.union([z.string(), z.date()]),
+      updatedAt: z.union([z.string(), z.date()]),
+      sidebarNavOrderOverride: z
+        .object({
+          track: z.array(z.string()),
+          services: z.array(z.string()),
+        })
+        .nullable()
+        .optional(),
+    }),
+  );
 
 export const useRequestStaffAccountDeletion = () =>
   useAPIMutation<

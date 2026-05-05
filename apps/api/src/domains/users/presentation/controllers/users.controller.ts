@@ -1,5 +1,6 @@
 import {
   Controller,
+  Get,
   Put,
   Post,
   Body,
@@ -26,6 +27,21 @@ import { RequestWithUser } from '@/common/types/common.types';
 @Controller('users')
 export class UsersController {
   constructor(private usersService: UsersService) {}
+
+  @SkipSubscriptionCheck()
+  @Roles(Role.ADMIN, Role.DOCTOR, Role.RECEPTIONIST, Role.ADMIN_DOCTOR)
+  @Get('profile')
+  @ZodSerializerDto(UserResponseDto)
+  async getProfile(@Request() req: RequestWithUser) {
+    if (!req.user?.id) {
+      throw new BadRequestException('User ID not found in token');
+    }
+    const profile = await this.usersService.getProfile(req.user.id);
+    if (!profile) {
+      throw new BadRequestException('User not found');
+    }
+    return profile;
+  }
 
   @SkipSubscriptionCheck()
   @Roles(Role.ADMIN, Role.DOCTOR, Role.RECEPTIONIST, Role.ADMIN_DOCTOR)

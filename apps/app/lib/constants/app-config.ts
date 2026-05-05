@@ -61,6 +61,7 @@ export interface ClinicSettings {
   appointmentType?: string;
   clinicType?: string;
   facilityLabel?: "CLINIC" | "HOSPITAL";
+  sidebarNavOrder?: unknown;
 }
 
 export interface AppConfig {

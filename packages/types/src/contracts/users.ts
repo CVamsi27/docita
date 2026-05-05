@@ -1,11 +1,13 @@
 import { z } from "zod";
+import { sidebarNavOrderSchema } from "../shared/sidebar-nav";
 
 export const updateProfileRequestSchema = z
   .object({
     name: z.string().min(1).optional(),
     email: z.string().email().optional(),
+    sidebarNavOrderOverride: sidebarNavOrderSchema.nullable().optional(),
   })
-  .refine((data) => data.name || data.email, {
+  .refine((data) => data.name || data.email || data.sidebarNavOrderOverride !== undefined, {
     message: "Update at least one field before saving.",
   });
 
@@ -15,6 +17,7 @@ export const userProfileResponseSchema = z.object({
   name: z.string(),
   createdAt: z.union([z.string(), z.date()]),
   updatedAt: z.union([z.string(), z.date()]),
+  sidebarNavOrderOverride: sidebarNavOrderSchema.nullable().optional(),
 });
 
 export type UpdateProfileRequest = z.infer<typeof updateProfileRequestSchema>;
