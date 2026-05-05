@@ -20,6 +20,10 @@ import {
 import { getLocalCalendarDateString } from "@/lib/local-calendar-date";
 import { useClinicSettings } from "@/hooks/api/use-settings";
 
+export type DoctorNextUpRow =
+  | { kind: "appointment"; appointmentId: string; startTime: string; patientName: string; status: string }
+  | { kind: "queue"; appointmentId?: string; tokenNumber: number; createdAt: string; patientName: string; status: string; tokenType: QueueItem["tokenType"] };
+
 export const useConsultationDashboard = () => {
   const router = useRouter();
   const { user } = useAuth();
@@ -92,16 +96,6 @@ export const useConsultationDashboard = () => {
       return ta - tb;
     });
   }, [appointmentsData?.items]);
-
-  const doctorNowNext = useMemo(() => {
-    const inProgress = (inProgressAppointmentsData?.items ?? []).filter(
-      (a) => a.status === "in-progress",
-    );
-    const nextScheduled = todayAppointmentsSorted.filter((a) =>
-      ["scheduled", "confirmed", "checked-in"].includes(a.status),
-    );
-    return { inProgress, nextScheduled };
-  }, [inProgressAppointmentsData?.items, todayAppointmentsSorted]);
 
   const activeConsultations = useMemo(() => {
     const fromQueue = (queueData || []).filter((q) =>
@@ -203,6 +197,117 @@ export const useConsultationDashboard = () => {
       return patientKey(a).localeCompare(patientKey(b));
     });
   }, [activeConsultations, waitingList]);
+
+  const doctorNowNext = useMemo(() => {
+    const inProgress = (inProgressAppointmentsData?.items ?? []).filter(
+      (a) => a.status === "in-progress",
+    );
+    const nextScheduled = todayAppointmentsSorted.filter((a) =>
+      ["scheduled", "confirmed", "checked-in"].includes(a.status),
+    );
+
+    const walkInQueue = opdQueueRows.filter(
+      (q) => q.tokenType !== "scheduled" && isQueueTokenWaiting(q.status),
+    );
+    const walkInSorted = [...walkInQueue].sort((a, b) => {
+      const ta = new Date(a.createdAt).getTime();
+      const tb = new Date(b.createdAt).getTime();
+      if (ta !== tb) return ta - tb;
+      return (a.tokenNumber ?? 0) - (b.tokenNumber ?? 0);
+    });
+
+    const slotMinutes =
+      typeof (clinic as unknown as { slotDuration?: number | null })
+        ?.slotDuration === "number"
+        ? ((clinic as unknown as { slotDuration?: number | null })
+            .slotDuration ?? 15)
+        : 15;
+    const slotMs = Math.max(5, slotMinutes) * 60 * 1000;
+
+    const combinedUpcoming: DoctorNextUpRow[] = [];
+
+    // If there is no schedule today, fall back to FCFS (queue order).
+    if (todayAppointmentsSorted.length === 0) {
+      for (const q of opdQueueRows) {
+        const name = q.patient
+          ? `${q.patient.firstName} ${q.patient.lastName}`
+          : "Patient";
+        combinedUpcoming.push({
+          kind: "queue",
+          appointmentId: q.appointmentId,
+          tokenNumber: q.tokenNumber,
+          createdAt: q.createdAt,
+          patientName: name,
+          status: q.status,
+          tokenType: q.tokenType,
+        });
+      }
+      return { inProgress, combinedUpcoming, mode: "fcfs" as const };
+    }
+
+    // Otherwise: schedule in time order, fill gaps with walk-ins (FCFS).
+    const appts = nextScheduled;
+    let walkInIdx = 0;
+
+    for (let i = 0; i < appts.length; i++) {
+      const apt = appts[i];
+      const aptName = apt.patient
+        ? `${apt.patient.firstName} ${apt.patient.lastName}`
+        : "Patient";
+      combinedUpcoming.push({
+        kind: "appointment",
+        appointmentId: apt.id,
+        startTime: apt.startTime,
+        patientName: aptName,
+        status: apt.status,
+      });
+
+      const next = appts[i + 1];
+      if (!next) continue;
+      const gapMs =
+        new Date(next.startTime).getTime() - new Date(apt.startTime).getTime();
+      const gapSlots = Math.max(0, Math.floor(gapMs / slotMs) - 1);
+      for (let s = 0; s < gapSlots && walkInIdx < walkInSorted.length; s++) {
+        const q = walkInSorted[walkInIdx++];
+        const name = q.patient
+          ? `${q.patient.firstName} ${q.patient.lastName}`
+          : "Patient";
+        combinedUpcoming.push({
+          kind: "queue",
+          appointmentId: q.appointmentId,
+          tokenNumber: q.tokenNumber,
+          createdAt: q.createdAt,
+          patientName: name,
+          status: q.status,
+          tokenType: q.tokenType,
+        });
+      }
+    }
+
+    // Add remaining walk-ins after the schedule list (still FCFS).
+    while (walkInIdx < walkInSorted.length) {
+      const q = walkInSorted[walkInIdx++];
+      const name = q.patient
+        ? `${q.patient.firstName} ${q.patient.lastName}`
+        : "Patient";
+      combinedUpcoming.push({
+        kind: "queue",
+        appointmentId: q.appointmentId,
+        tokenNumber: q.tokenNumber,
+        createdAt: q.createdAt,
+        patientName: name,
+        status: q.status,
+        tokenType: q.tokenType,
+      });
+    }
+
+    return { inProgress, combinedUpcoming, mode: "schedule" as const };
+  }, [
+    clinic,
+    inProgressAppointmentsData?.items,
+    opdQueueRows,
+    todayAppointmentsSorted,
+  ]);
 
   const handleStartConsultation = async (appointmentId: string) => {
     try {

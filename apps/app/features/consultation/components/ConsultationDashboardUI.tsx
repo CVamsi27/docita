@@ -165,8 +165,16 @@ export const ConsultationDashboardUI: FC = () => {
       {isDoctor ? (
         <Section
           id="consultation-doctor-next"
-          title="Your schedule"
-          description="Time-based list from today’s appointments."
+          title={
+            doctorNowNext.mode === "fcfs"
+              ? "Next patients (FCFS)"
+              : "Next patients (schedule + walk-ins)"
+          }
+          description={
+            doctorNowNext.mode === "fcfs"
+              ? "No appointments today — seeing patients in arrival order."
+              : "Appointments stay in time order. Walk-ins fill the gaps (FCFS)."
+          }
         >
           <Card>
             <CardHeader>
@@ -174,24 +182,23 @@ export const ConsultationDashboardUI: FC = () => {
                 Next up
               </CardTitle>
               <CardDescription>
-                Continue your current visit, or open the next appointment from
-                your schedule.
+                Continue your current visit, or open the next patient in this
+                combined list.
               </CardDescription>
             </CardHeader>
             <CardContent className="space-y-2">
-              {(doctorNowNext.inProgress.length === 0 &&
-                doctorNowNext.nextScheduled.length === 0) ||
-              todayAppointmentsSorted.length === 0 ? (
+              {doctorNowNext.inProgress.length === 0 &&
+              doctorNowNext.combinedUpcoming.length === 0 ? (
                 <div className="ui-card-surface flex flex-col items-center justify-center border-2 border-dashed border-border/60 p-6 text-center">
                   <Stethoscope
                     className="mb-2 h-8 w-8 opacity-50 text-muted-foreground"
                     aria-hidden
                   />
                   <p className="ui-helper-text max-w-md">
-                    No upcoming appointments found for today.
+                    No patients in the schedule or queue right now.
                   </p>
                   <p className="mt-3 ui-helper-text max-w-md text-muted-foreground">
-                    Open Appointments to book or check your calendar.
+                    Ask reception to check-in a walk-in, or book an appointment.
                   </p>
                 </div>
               ) : (
@@ -218,29 +225,47 @@ export const ConsultationDashboardUI: FC = () => {
                     </div>
                   ))}
 
-                  {doctorNowNext.nextScheduled.slice(0, 6).map((apt) => (
-                    <div
-                      key={apt.id}
-                      className="flex items-center justify-between gap-3 rounded-[var(--radius-lg)] border border-border/60 bg-card p-3 sm:p-4"
-                    >
-                      <div className="min-w-0">
-                        <p className="font-medium truncate">
-                          {apt.patient?.firstName} {apt.patient?.lastName}
-                        </p>
-                        <p className="text-xs text-muted-foreground truncate">
-                          {formatTime(apt.startTime)} • {apt.status}
-                        </p>
-                      </div>
-                      <Button
-                        size="sm"
-                        disabled={isStartingConsultation}
-                        onClick={() => void handleStartConsultation(apt.id)}
+                  {doctorNowNext.combinedUpcoming.slice(0, 10).map((row) => {
+                    const isQueue = row.kind === "queue";
+                    const subLine = isQueue
+                      ? `Token ${row.tokenNumber > 0 ? row.tokenNumber : "—"} • ${row.tokenType}`
+                      : `${formatTime(row.startTime)} • appointment`;
+                    const canOpen = Boolean(row.appointmentId);
+                    return (
+                      <div
+                        key={
+                          isQueue
+                            ? `q-${row.createdAt}-${row.tokenNumber}-${row.patientName}`
+                            : `a-${row.appointmentId}`
+                        }
+                        className="flex items-center justify-between gap-3 rounded-[var(--radius-lg)] border border-border/60 bg-card p-3 sm:p-4"
                       >
-                        <Play className="mr-2 h-3 w-3" />
-                        Open
-                      </Button>
-                    </div>
-                  ))}
+                        <div className="min-w-0">
+                          <p className="font-medium truncate">
+                            {row.patientName}
+                          </p>
+                          <p className="text-xs text-muted-foreground truncate">
+                            {subLine}
+                          </p>
+                        </div>
+                        <Button
+                          size="sm"
+                          disabled={isStartingConsultation || !canOpen}
+                          onClick={() => {
+                            if (!row.appointmentId) return;
+                            if (isQueue && isQueueTokenInProgress(row.status)) {
+                              goToConsultationWorkspace(row.appointmentId);
+                              return;
+                            }
+                            void handleStartConsultation(row.appointmentId);
+                          }}
+                        >
+                          <Play className="mr-2 h-3 w-3" />
+                          Open
+                        </Button>
+                      </div>
+                    );
+                  })}
                 </>
               )}
             </CardContent>

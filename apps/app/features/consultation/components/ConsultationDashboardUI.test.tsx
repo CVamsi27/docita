@@ -40,12 +40,12 @@ describe("ConsultationDashboardUI", () => {
       router: { push: vi.fn() },
       currentUserRole: "DOCTOR",
       todayAppointmentsSorted: [],
-      doctorNowNext: { inProgress: [], nextScheduled: [] },
+      doctorNowNext: { inProgress: [], combinedUpcoming: [], mode: "fcfs" },
       clinicType: "GENERAL",
     });
 
     render(<ConsultationDashboardUI />);
-    expect(screen.getByText("Your schedule")).toBeInTheDocument();
+    expect(screen.getByText(/Next patients/i)).toBeInTheDocument();
     expect(screen.getByText("Next up")).toBeInTheDocument();
   });
 
