@@ -1,11 +1,15 @@
+"use client";
+
 import { useMemo, useState } from "react";
 import { useAPIMutation, useAPIQuery } from "@/lib/api-core";
+import { useTierFeatureEnabled } from "@/hooks/api/tier-feature-guards";
 import { useDebounce } from "@workspace/hooks/use-debounce";
 import {
   type Admission,
   type AdmitPatientRequest,
   type Bed as BedType,
   type DischargePatientRequest,
+  Feature,
   type Room,
   type TransferPatientRequest,
   type Ward,
@@ -16,6 +20,7 @@ export interface WardWithRooms extends Ward {
 }
 
 export const useIpdLogic = () => {
+  const ipdOk = useTierFeatureEnabled(Feature.FULL_EHR);
   const [searchQuery, setSearchQuery] = useState("");
   const debouncedSearch = useDebounce(searchQuery, 300);
   const [showAdmissionModal, setShowAdmissionModal] = useState(false);
@@ -23,13 +28,13 @@ export const useIpdLogic = () => {
   const { data: wards, isLoading } = useAPIQuery<WardWithRooms[]>(
     ["ipd", "wards", debouncedSearch],
     `/ipd/wards${debouncedSearch ? `?search=${encodeURIComponent(debouncedSearch)}` : ""}`,
-    { staleTime: 15 * 1000 },
+    { staleTime: 15 * 1000, enabled: ipdOk },
   );
 
   const { data: activeAdmissions } = useAPIQuery<Admission[]>(
     ["ipd", "admissions", "active"],
     "/ipd/admissions?status=ADMITTED",
-    { staleTime: 15 * 1000 },
+    { staleTime: 15 * 1000, enabled: ipdOk },
   );
 
   const admitPatientMutation = useAPIMutation<Admission, AdmitPatientRequest>(

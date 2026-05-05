@@ -124,30 +124,17 @@ export function ConsultationShell({
   const mainScrollRef = useRef<HTMLElement | null>(null);
   const sectionRefs = useRef<Record<string, HTMLElement | null>>({});
   const layoutBumpRaf = useRef<number | null>(null);
-  const [layoutEpoch, setLayoutEpoch] = useState(0);
   const scrollSpyRaf = useRef<number | null>(null);
   const [pendingUrlScrollToSectionId, setPendingUrlScrollToSectionId] =
     useState<string | null>(null);
   const pendingUrlScrollRef = useRef<string | null>(null);
   const lastUrlScrollKeyRef = useRef<string>("");
-
-  const setSectionRef = useCallback(
-    (id: string) => (el: HTMLElement | null) => {
-      sectionRefs.current[id] = el;
-      if (el === null) return;
-      if (layoutBumpRaf.current != null) {
-        cancelAnimationFrame(layoutBumpRaf.current);
-      }
-      layoutBumpRaf.current = requestAnimationFrame(() => {
-        layoutBumpRaf.current = null;
-        setLayoutEpoch((n) => n + 1);
-      });
-    },
-    [],
-  );
+  /** Scroll spy fights browser scroll-on-focus; suppress briefly after focus moves within main. */
+  const scrollSpySuppressedUntilRef = useRef(0);
 
   const computeActiveSectionFromScroll = useCallback(() => {
     if (pendingUrlScrollRef.current != null) return;
+    if (performance.now() < scrollSpySuppressedUntilRef.current) return;
     const root = mainScrollRef.current;
     if (!root) return;
     const rootRect = root.getBoundingClientRect();
@@ -173,6 +160,21 @@ export function ConsultationShell({
       computeActiveSectionFromScroll();
     });
   }, [computeActiveSectionFromScroll]);
+
+  const setSectionRef = useCallback(
+    (id: string) => (el: HTMLElement | null) => {
+      sectionRefs.current[id] = el;
+      if (el === null) return;
+      if (layoutBumpRaf.current != null) {
+        cancelAnimationFrame(layoutBumpRaf.current);
+      }
+      layoutBumpRaf.current = requestAnimationFrame(() => {
+        layoutBumpRaf.current = null;
+        scheduleScrollSpy();
+      });
+    },
+    [scheduleScrollSpy],
+  );
 
   useEffect(() => {
     return () => {
@@ -273,36 +275,69 @@ export function ConsultationShell({
   ]);
 
   useEffect(() => {
-    if (!pendingUrlScrollToSectionId) return;
-    const el = sectionRefs.current[pendingUrlScrollToSectionId];
-    const main = mainScrollRef.current;
-    if (!el || !main) return;
-    setPendingUrlScrollToSectionId(null);
-    el.scrollIntoView({ behavior: "auto", block: "start" });
-    requestAnimationFrame(() => {
-      pendingUrlScrollRef.current = null;
-      computeActiveSectionFromScroll();
-    });
-  }, [
-    pendingUrlScrollToSectionId,
-    layoutEpoch,
-    computeActiveSectionFromScroll,
-  ]);
+    const targetId = pendingUrlScrollToSectionId;
+    if (!targetId) return;
+
+    let cancelled = false;
+    let attempts = 0;
+    let rafId = 0;
+    const maxAttempts = 48;
+
+    const tick = () => {
+      if (cancelled) return;
+      const el = sectionRefs.current[targetId];
+      const main = mainScrollRef.current;
+      if (el && main) {
+        setPendingUrlScrollToSectionId(null);
+        el.scrollIntoView({ behavior: "auto", block: "start" });
+        requestAnimationFrame(() => {
+          pendingUrlScrollRef.current = null;
+          computeActiveSectionFromScroll();
+        });
+        return;
+      }
+      attempts += 1;
+      if (attempts < maxAttempts) {
+        rafId = requestAnimationFrame(tick);
+      } else {
+        setPendingUrlScrollToSectionId(null);
+        pendingUrlScrollRef.current = null;
+      }
+    };
+
+    rafId = requestAnimationFrame(tick);
+    return () => {
+      cancelled = true;
+      cancelAnimationFrame(rafId);
+    };
+  }, [pendingUrlScrollToSectionId, computeActiveSectionFromScroll]);
 
   useEffect(() => {
     const root = mainScrollRef.current;
     if (!root) return;
 
+    const clearScrollSpySuppression = () => {
+      scrollSpySuppressedUntilRef.current = 0;
+    };
+
     scheduleScrollSpy();
 
     root.addEventListener("scroll", scheduleScrollSpy, { passive: true });
     window.addEventListener("resize", scheduleScrollSpy, { passive: true });
+    root.addEventListener("wheel", clearScrollSpySuppression, {
+      passive: true,
+    });
+    root.addEventListener("touchstart", clearScrollSpySuppression, {
+      passive: true,
+    });
 
     return () => {
       root.removeEventListener("scroll", scheduleScrollSpy);
       window.removeEventListener("resize", scheduleScrollSpy);
+      root.removeEventListener("wheel", clearScrollSpySuppression);
+      root.removeEventListener("touchstart", clearScrollSpySuppression);
     };
-  }, [sections, layoutEpoch, scheduleScrollSpy]);
+  }, [scheduleScrollSpy]);
 
   useEffect(() => {
     const root = mainScrollRef.current;
@@ -315,13 +350,14 @@ export function ConsultationShell({
       const sectionEl = target.closest("[data-section-id]");
       const id = sectionEl?.getAttribute("data-section-id");
       if (!id) return;
-      if (!sections.some((s) => s.id === id)) return;
+      if (!sectionsRef.current.some((s) => s.id === id)) return;
+      scrollSpySuppressedUntilRef.current = performance.now() + 520;
       setActiveSectionId((prev) => (prev === id ? prev : id));
     };
 
     root.addEventListener("focusin", onFocusIn);
     return () => root.removeEventListener("focusin", onFocusIn);
-  }, [sections, layoutEpoch]);
+  }, []);
 
   const isDirty = useConsultationDraft((s) => s.dirty);
   const saveState = useConsultationDraft((s) => s.saveState);
