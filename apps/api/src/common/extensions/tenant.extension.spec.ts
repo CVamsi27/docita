@@ -174,4 +174,8 @@ describe('tenant extension scope rules', () => {
       ),
     ).toThrow(/not allowed on indirectly tenant-scoped model/);
   });
+
+  it('treats User as tenant-scoped (pre-tenant flows must not bypass this implicitly)', () => {
+    expect(getTenantScopeRule('User')).toEqual({ kind: 'direct' });
+  });
 });
