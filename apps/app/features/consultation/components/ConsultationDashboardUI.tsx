@@ -1,6 +1,6 @@
 "use client";
 
-import { FC, useMemo } from "react";
+import { FC, useMemo, useState } from "react";
 import {
   Card,
   CardContent,
@@ -44,6 +44,18 @@ import Link from "next/link";
 import { useCheckInAppointment } from "@/hooks/api/use-appointments";
 import { showUserFacingErrorToast } from "@/lib/user-facing-errors";
 import { buildConsultationRoute } from "@/features/consultation/rules/consultationTabRouting";
+import type { Appointment } from "@workspace/types";
+import { AddAppointmentDialogContainer } from "@/features/appointments/components/dialogs/AddAppointmentDialogContainer";
+import { usePermissions } from "@/hooks/use-permissions";
+import { useDoctors } from "@/hooks/api/use-settings";
+import { Label } from "@workspace/ui/components/label";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@workspace/ui/components/select";
 
 export const ConsultationDashboardUI: FC = () => {
   const {
@@ -63,6 +75,43 @@ export const ConsultationDashboardUI: FC = () => {
   } = useConsultationDashboard();
 
   const checkInAppointment = useCheckInAppointment();
+  const { canCreateAppointment } = usePermissions();
+  const [walkInOpen, setWalkInOpen] = useState(false);
+  const { data: doctors = [] } = useDoctors();
+
+  const role = currentUserRole ?? "RECEPTIONIST";
+  const isDoctor = role === "DOCTOR" || role === "ADMIN_DOCTOR";
+  const isReception =
+    role === "RECEPTIONIST" || role === "ADMIN" || role === "ADMIN_DOCTOR";
+  const isNurse = role === "NURSE";
+  const canCreateWalkIn = canCreateAppointment && (isReception || isNurse);
+
+  const [selectedDoctorId, setSelectedDoctorId] = useState<string>(
+    isDoctor ? "me" : "all",
+  );
+
+  const resolvedDoctorId =
+    selectedDoctorId === "me"
+      ? null
+      : selectedDoctorId === "all"
+        ? null
+        : selectedDoctorId;
+
+  const visibleTodayAppointments = useMemo(() => {
+    if (!resolvedDoctorId) return todayAppointmentsSorted;
+    return todayAppointmentsSorted.filter((a) => a.doctorId === resolvedDoctorId);
+  }, [resolvedDoctorId, todayAppointmentsSorted]);
+
+  const visibleQueueRows = useMemo(() => {
+    if (!resolvedDoctorId) return opdQueueRows;
+    return opdQueueRows.filter((q) => {
+      const qDoctorId =
+        q.doctorId ?? q.doctor?.id ?? q.appointment?.doctor?.id;
+      return qDoctorId === resolvedDoctorId;
+    });
+  }, [opdQueueRows, resolvedDoctorId]);
+
+  const queueEmpty = visibleQueueRows.length === 0;
 
   const statItems = useMemo(
     () => [
@@ -132,13 +181,6 @@ export const ConsultationDashboardUI: FC = () => {
       </AppPageScaffold>
     );
   }
-
-  const queueEmpty = opdQueueRows.length === 0;
-  const role = currentUserRole ?? "RECEPTIONIST";
-  const isDoctor = role === "DOCTOR" || role === "ADMIN_DOCTOR";
-  const isReception =
-    role === "RECEPTIONIST" || role === "ADMIN" || role === "ADMIN_DOCTOR";
-  const isNurse = role === "NURSE";
 
   return (
     <AppPageScaffold
@@ -280,31 +322,76 @@ export const ConsultationDashboardUI: FC = () => {
           description="Mark arrivals and issue queue tokens from today’s appointment list."
         >
           <Card>
-            <CardHeader>
-              <CardTitle className="text-[var(--fs-md)] font-semibold">
-                Today’s arrivals
-              </CardTitle>
-              <CardDescription>
-                Check-in adds the patient to the OPD queue when Queue Management
-                is enabled.
-              </CardDescription>
+            <CardHeader className="space-y-3">
+              <div className="flex flex-col gap-2 sm:flex-row sm:items-start sm:justify-between">
+                <div className="min-w-0">
+                  <CardTitle className="text-[var(--fs-md)] font-semibold">
+                    Today’s arrivals
+                  </CardTitle>
+                  <CardDescription>
+                    Check-in adds the patient to the queue when Queue Management
+                    is enabled.
+                  </CardDescription>
+                </div>
+
+                <div className="w-full sm:w-[220px]">
+                  <Label className="text-xs text-muted-foreground">
+                    Doctor
+                  </Label>
+                  <Select
+                    value={selectedDoctorId}
+                    onValueChange={setSelectedDoctorId}
+                  >
+                    <SelectTrigger className="mt-1 w-full">
+                      <SelectValue placeholder="All doctors" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {isDoctor ? (
+                        <SelectItem value="me">Me</SelectItem>
+                      ) : (
+                        <SelectItem value="all">All doctors</SelectItem>
+                      )}
+                      {doctors.map((d) => (
+                        <SelectItem key={d.id} value={d.id}>
+                          {d.name}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+              </div>
             </CardHeader>
             <CardContent className="space-y-2">
-              {todayAppointmentsSorted.length === 0 ? (
+              {canCreateWalkIn ? (
+                <div className="flex flex-wrap gap-2">
+                  <Button
+                    size="sm"
+                    onClick={() => setWalkInOpen(true)}
+                    aria-label="Add walk-in and check-in"
+                  >
+                    Add walk-in
+                  </Button>
+                  <p className="ui-helper-text text-muted-foreground">
+                    Schedules an appointment and checks the patient in to the
+                    queue.
+                  </p>
+                </div>
+              ) : null}
+              {visibleTodayAppointments.length === 0 ? (
                 <div className="ui-card-surface flex flex-col items-center justify-center border-2 border-dashed border-border/60 p-6 text-center">
                   <Calendar
                     className="mb-2 h-8 w-8 opacity-50 text-muted-foreground"
                     aria-hidden
                   />
                   <p className="ui-helper-text max-w-md">
-                    No appointments scheduled for today.
+                    No appointments scheduled for today for this doctor.
                   </p>
                   <p className="mt-3 ui-helper-text max-w-md text-muted-foreground">
                     Go to Appointments to book a visit.
                   </p>
                 </div>
               ) : (
-                todayAppointmentsSorted.slice(0, 8).map((apt) => (
+                visibleTodayAppointments.slice(0, 8).map((apt) => (
                   <div
                     key={apt.id}
                     className="flex items-center justify-between gap-3 rounded-[var(--radius-lg)] border border-border/60 bg-card p-3 sm:p-4"
@@ -344,6 +431,35 @@ export const ConsultationDashboardUI: FC = () => {
         </Section>
       ) : null}
 
+      {canCreateWalkIn ? (
+        <AddAppointmentDialogContainer
+          open={walkInOpen}
+          onOpenChange={setWalkInOpen}
+          selectedDate={new Date()}
+          mode="walk-in"
+          defaultDoctorId={resolvedDoctorId ?? undefined}
+          onAppointmentAdded={async (appointment: Appointment) => {
+            try {
+              if (!appointment.id) {
+                showUserFacingErrorToast(
+                  "Missing appointment id.",
+                  "Appointment created, but we could not check-in the patient. Please refresh and try again from Appointments.",
+                  "save",
+                );
+                return;
+              }
+              await checkInAppointment.mutateAsync(appointment.id);
+            } catch (err) {
+              showUserFacingErrorToast(
+                err,
+                "Appointment created, but we could not check-in the patient. You can check them in from Appointments.",
+                "save",
+              );
+            }
+          }}
+        />
+      ) : null}
+
       {isNurse ? (
         <Section
           id="consultation-nurse-prep"
@@ -361,6 +477,21 @@ export const ConsultationDashboardUI: FC = () => {
               </CardDescription>
             </CardHeader>
             <CardContent className="space-y-2">
+              {canCreateWalkIn ? (
+                <div className="flex flex-wrap gap-2">
+                  <Button
+                    size="sm"
+                    onClick={() => setWalkInOpen(true)}
+                    aria-label="Add walk-in and check-in"
+                  >
+                    Add walk-in
+                  </Button>
+                  <p className="ui-helper-text text-muted-foreground">
+                    Schedules an appointment and checks the patient in to the
+                    queue.
+                  </p>
+                </div>
+              ) : null}
               {opdQueueRows.length === 0 ? (
                 <div className="ui-card-surface flex flex-col items-center justify-center border-2 border-dashed border-border/60 p-6 text-center">
                   <Users
@@ -418,11 +549,11 @@ export const ConsultationDashboardUI: FC = () => {
         <Card>
           <CardHeader>
             <CardTitle className="text-[var(--fs-md)] font-semibold">
-              Queue board
+              Waiting room queue
             </CardTitle>
             <CardDescription>
-              Reception uses this to call patients; doctors use it to see what
-              is waiting vs in room.
+              Use this to see who is waiting vs in-room. Check-in creates the
+              token.
             </CardDescription>
           </CardHeader>
           <CardContent>
@@ -470,7 +601,7 @@ export const ConsultationDashboardUI: FC = () => {
                       </TableRow>
                     </TableHeader>
                     <TableBody>
-                      {opdQueueRows.map((item) => {
+                      {visibleQueueRows.map((item) => {
                         const active = isQueueTokenInProgress(item.status);
                         return (
                           <TableRow key={item.id}>
@@ -543,7 +674,7 @@ export const ConsultationDashboardUI: FC = () => {
                 </div>
 
                 <div className="space-y-3 md:hidden">
-                  {opdQueueRows.map((item) => {
+                  {visibleQueueRows.map((item) => {
                     const active = isQueueTokenInProgress(item.status);
                     return (
                       <div

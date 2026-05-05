@@ -257,7 +257,10 @@ export const useConsultationDashboard = () => {
       combinedUpcoming.push({
         kind: "appointment",
         appointmentId: apt.id,
-        startTime: apt.startTime,
+        startTime:
+          typeof apt.startTime === "string"
+            ? apt.startTime
+            : apt.startTime.toISOString(),
         patientName: aptName,
         status: apt.status,
       });

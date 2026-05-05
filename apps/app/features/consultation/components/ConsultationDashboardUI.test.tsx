@@ -18,6 +18,27 @@ vi.mock("@/hooks/api/use-appointments", () => ({
   useCheckInAppointment: () => mockCheckIn,
 }));
 
+vi.mock("@/hooks/use-permissions", () => ({
+  usePermissions: () => ({ canCreateAppointment: true }),
+}));
+
+vi.mock("@/hooks/api/use-settings", async () => {
+  const actual = await vi.importActual<typeof import("@/hooks/api/use-settings")>(
+    "@/hooks/api/use-settings",
+  );
+  return {
+    ...actual,
+    useDoctors: () => ({ data: [], isLoading: false }),
+  };
+});
+
+vi.mock(
+  "@/features/appointments/components/dialogs/AddAppointmentDialogContainer",
+  () => ({
+    AddAppointmentDialogContainer: () => null,
+  }),
+);
+
 vi.mock("@/lib/user-facing-errors", () => ({
   showUserFacingErrorToast: vi.fn(),
 }));
@@ -76,7 +97,10 @@ describe("ConsultationDashboardUI", () => {
     render(<ConsultationDashboardUI />);
     expect(screen.getAllByText("Check-in").length).toBeGreaterThan(0);
     expect(screen.getByText("Today’s arrivals")).toBeInTheDocument();
-    expect(screen.getByRole("button", { name: /Check-in/i })).toBeInTheDocument();
+    expect(
+      screen.getAllByRole("button", { name: /Check-in/i }).length,
+    ).toBeGreaterThan(0);
+    expect(screen.getByRole("button", { name: /Add walk-in/i })).toBeInTheDocument();
   });
 
   it("renders prep panel for nurse role", () => {
@@ -107,6 +131,7 @@ describe("ConsultationDashboardUI", () => {
     render(<ConsultationDashboardUI />);
     expect(screen.getByText("Prep")).toBeInTheDocument();
     expect(screen.getByText("Ready for vitals")).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: /Add walk-in/i })).toBeInTheDocument();
     expect(screen.getByRole("button", { name: /Record vitals/i })).toBeInTheDocument();
   });
 });
