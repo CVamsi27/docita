@@ -174,7 +174,7 @@ export function PricingSection({ appUrl }: PricingSectionProps) {
                     {tier.name}
                   </h3>
                   {isFeatured ? (
-                    <span className="r2-mono text-[10px] font-semibold uppercase tracking-[0.14em] text-primary">
+                    <span className="r2-mono text-[var(--fs-2xs)] font-semibold uppercase tracking-[0.14em] text-primary">
                       Most chosen
                     </span>
                   ) : null}

@@ -113,7 +113,7 @@ export function FaqCtaSection({ appUrl }: FaqCtaSectionProps) {
                 </Button>
               </div>
 
-              <dl className="mt-8 grid grid-cols-3 gap-4 border-t border-background/15 pt-6">
+              <dl className="mt-8 grid grid-cols-3 gap-x-3 gap-y-4 border-t border-background/15 pt-6 sm:gap-x-4">
                 {[
                   ["48 h", "First workflow"],
                   ["₹499", "Software plan"],
@@ -121,7 +121,7 @@ export function FaqCtaSection({ appUrl }: FaqCtaSectionProps) {
                 ].map(([value, label]) => (
                   <div key={label}>
                     <dt className="r2-mono text-sm font-semibold">{value}</dt>
-                    <dd className="mt-0.5 text-[11px] uppercase tracking-[0.14em] text-background/65">
+                    <dd className="mt-0.5 text-[var(--fs-2xs)] uppercase tracking-[0.14em] text-background/65">
                       {label}
                     </dd>
                   </div>

@@ -52,7 +52,7 @@ export function OutcomesStripSection() {
         >
           Outcomes and operating facts
         </h2>
-        <p className="mb-8 text-center font-mono text-[10px] font-semibold uppercase tracking-[0.22em] text-muted-foreground sm:text-[11px]">
+        <p className="mb-8 text-center font-mono text-[var(--fs-2xs)] font-semibold uppercase tracking-[0.22em] text-muted-foreground">
           Operating facts
         </p>
         <ul className="grid gap-6 sm:grid-cols-2 lg:grid-cols-4">
@@ -61,7 +61,7 @@ export function OutcomesStripSection() {
               key={item.label}
               className="rounded-2xl border border-border/70 bg-card px-5 py-5 text-center shadow-sm"
             >
-              <p className="font-mono text-[10px] font-semibold uppercase tracking-wider text-muted-foreground">
+              <p className="font-mono text-[var(--fs-2xs)] font-semibold uppercase tracking-wider text-muted-foreground">
                 {item.label}
               </p>
               <p className="mt-3 text-lg font-semibold tracking-tight text-foreground sm:text-xl">
