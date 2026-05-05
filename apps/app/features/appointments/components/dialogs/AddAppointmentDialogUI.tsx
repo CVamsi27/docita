@@ -136,7 +136,7 @@ export function AddAppointmentDialogUI({
       title={mode === "walk-in" ? "Add walk-in" : "Schedule Appointment"}
       description={
         mode === "walk-in"
-          ? "Select a patient and doctor — we’ll use the next available slot and check the patient in."
+          ? "Pick patient + doctor. We’ll use the next available slot."
           : "Pick the patient, doctor, date, time slot, and visit type."
       }
       contentClassName="sm:max-w-[840px]"
@@ -172,7 +172,7 @@ export function AddAppointmentDialogUI({
             <section className="space-y-4">
               <SectionHeader
                 title="Next available slot"
-                description="We’ll auto-pick the earliest available slot for the selected doctor."
+                description="Auto-selected from the doctor’s availability."
               />
               <div className="ui-card-surface flex flex-col gap-2 rounded-[var(--radius-lg)] border border-border/60 bg-card p-4">
                 <div className="flex flex-wrap items-center gap-2">
@@ -259,7 +259,7 @@ export function AddAppointmentDialogUI({
               }
             >
               {loading && <DocitaLoadingIndicator variant="inline" decorative className="mr-2" />}
-              {mode === "walk-in" ? "Add & check-in" : "Schedule"}
+              {mode === "walk-in" ? "Add walk-in" : "Schedule"}
             </Button>
           </div>
         </form>

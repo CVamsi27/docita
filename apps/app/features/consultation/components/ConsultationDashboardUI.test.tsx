@@ -96,7 +96,7 @@ describe("ConsultationDashboardUI", () => {
 
     render(<ConsultationDashboardUI />);
     expect(screen.getAllByText("Check-in").length).toBeGreaterThan(0);
-    expect(screen.getByText("Today’s arrivals")).toBeInTheDocument();
+    expect(screen.getAllByText("Today").length).toBeGreaterThan(0);
     expect(
       screen.getAllByRole("button", { name: /Check-in/i }).length,
     ).toBeGreaterThan(0);

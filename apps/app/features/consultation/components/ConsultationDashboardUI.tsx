@@ -318,19 +318,18 @@ export const ConsultationDashboardUI: FC = () => {
       {isReception ? (
         <Section
           id="consultation-reception-checkin"
-          title="Check-in"
-          description="Mark arrivals and issue queue tokens from today’s appointment list."
+          title="Arrivals"
+          description="Today’s scheduled patients. Check-in issues the queue token."
         >
           <Card>
             <CardHeader className="space-y-3">
               <div className="flex flex-col gap-2 sm:flex-row sm:items-start sm:justify-between">
                 <div className="min-w-0">
                   <CardTitle className="text-[var(--fs-md)] font-semibold">
-                    Today’s arrivals
+                    Today
                   </CardTitle>
                   <CardDescription>
-                    Check-in adds the patient to the queue when Queue Management
-                    is enabled.
+                    Use “Add walk-in” for unscheduled arrivals.
                   </CardDescription>
                 </div>
 
@@ -363,7 +362,7 @@ export const ConsultationDashboardUI: FC = () => {
             </CardHeader>
             <CardContent className="space-y-2">
               {canCreateWalkIn ? (
-                <div className="flex flex-wrap gap-2">
+                <div className="flex flex-wrap items-center justify-between gap-2">
                   <Button
                     size="sm"
                     onClick={() => setWalkInOpen(true)}
@@ -371,10 +370,6 @@ export const ConsultationDashboardUI: FC = () => {
                   >
                     Add walk-in
                   </Button>
-                  <p className="ui-helper-text text-muted-foreground">
-                    Schedules an appointment and checks the patient in to the
-                    queue.
-                  </p>
                 </div>
               ) : null}
               {visibleTodayAppointments.length === 0 ? (
@@ -384,10 +379,10 @@ export const ConsultationDashboardUI: FC = () => {
                     aria-hidden
                   />
                   <p className="ui-helper-text max-w-md">
-                    No appointments scheduled for today for this doctor.
+                    No appointments for today for this doctor.
                   </p>
                   <p className="mt-3 ui-helper-text max-w-md text-muted-foreground">
-                    Go to Appointments to book a visit.
+                    Use “Add walk-in” or schedule from Appointments.
                   </p>
                 </div>
               ) : (
