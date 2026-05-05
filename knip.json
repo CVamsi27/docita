@@ -7,7 +7,7 @@
     "enumMembers": "off",
     "duplicates": "off"
   },
-  "ignoreBinaries": ["printf", "knip", "tsx"],
+  "ignoreBinaries": ["printf", "tsx"],
   "ignoreWorkspaces": ["apps/worker"],
   "workspaces": {
     "apps/api": {
