@@ -68,7 +68,7 @@ export function WhatsappSection() {
                   </div>
                   <div>
                     <div className="font-semibold text-sm">Docita</div>
-                    <div className="text-[10px] text-primary-foreground/95">
+                    <div className="text-[var(--fs-2xs)] text-primary-foreground/95">
                       Business Account
                     </div>
                   </div>
@@ -79,13 +79,13 @@ export function WhatsappSection() {
                       Hello Ananya, your appointment is confirmed for tomorrow at
                       10:00 AM.
                     </p>
-                    <div className="text-[10px] text-muted-foreground text-right mt-1">
+                    <div className="text-[var(--fs-2xs)] text-muted-foreground text-right mt-1">
                       09:30 AM
                     </div>
                   </div>
                   <div className="bg-success/15 p-3 rounded-[var(--radius)] rounded-tr-none shadow-sm max-w-[85%] ml-auto text-xs border border-success/20">
                     <p>Thank you doctor! I&apos;ll be there</p>
-                    <div className="mt-1 text-[10px] text-foreground/80 text-right">
+                    <div className="mt-1 text-[var(--fs-2xs)] text-foreground/80 text-right">
                       09:32 AM
                     </div>
                   </div>
@@ -94,7 +94,7 @@ export function WhatsappSection() {
                       <FileText className="h-8 w-8 text-destructive" />
                       <div>
                         <div className="font-medium">Prescription.pdf</div>
-                        <div className="text-[10px] text-foreground/80">
+                        <div className="text-[var(--fs-2xs)] text-foreground/80">
                           1 page • 120 KB
                         </div>
                       </div>
@@ -102,7 +102,7 @@ export function WhatsappSection() {
                     <p>
                       Here is your digital prescription from today&apos;s visit.
                     </p>
-                    <div className="text-[10px] text-muted-foreground text-right mt-1">
+                    <div className="text-[var(--fs-2xs)] text-muted-foreground text-right mt-1">
                       10:45 AM
                     </div>
                   </div>

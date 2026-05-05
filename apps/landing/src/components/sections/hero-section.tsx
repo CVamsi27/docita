@@ -125,7 +125,7 @@ export function HeroSection({ appUrl }: HeroSectionProps) {
 
             <motion.dl
               variants={item}
-              className="mt-10 grid max-w-md grid-cols-3 gap-x-6 gap-y-2 border-t border-border/60 pt-6"
+              className="mt-10 grid max-w-md grid-cols-3 gap-x-3 gap-y-2 border-t border-border/60 pt-6 sm:gap-x-6"
             >
               {[
                 ["48 h", "First workflow live"],
@@ -136,7 +136,7 @@ export function HeroSection({ appUrl }: HeroSectionProps) {
                   <dt className="r2-mono text-sm font-semibold text-foreground">
                     {value}
                   </dt>
-                  <dd className="mt-0.5 text-[11px] uppercase tracking-[0.14em] text-muted-foreground">
+                  <dd className="mt-0.5 text-[var(--fs-2xs)] uppercase tracking-[0.14em] text-muted-foreground">
                     {label}
                   </dd>
                 </div>

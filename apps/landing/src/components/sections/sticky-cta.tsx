@@ -50,7 +50,10 @@ export function StickyCta({ appUrl }: StickyCtaProps) {
   return (
     <div
       ref={ctaRef}
-      className="fixed bottom-0 left-0 right-0 z-50 border-t border-border bg-background px-3 py-2 text-foreground shadow-sm sm:px-4 sm:py-3"
+      className="fixed bottom-0 left-0 right-0 z-50 border-t border-border bg-background px-3 pt-2 text-foreground shadow-sm sm:px-4 sm:pt-3"
+      style={{
+        paddingBottom: "calc(0.5rem + env(safe-area-inset-bottom, 0px))",
+      }}
     >
       <div className="mx-auto flex max-w-7xl items-center gap-2 sm:justify-between">
         <div className="flex min-w-0 flex-1 items-center gap-2 sm:gap-3">

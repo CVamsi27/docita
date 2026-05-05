@@ -179,7 +179,10 @@ async function createDoctorWithSignature(
     "base64",
   );
 
-  const authHeaders = (token: string) => ({ Authorization: `Bearer ${token}` });
+  const authHeaders = (token: string) => ({
+    Authorization: `Bearer ${token}`,
+    ...e2eHeaders,
+  });
   const csrfHeaders = {
     Cookie: "XSRF-TOKEN=e2e-csrf-token",
     "X-XSRF-TOKEN": "e2e-csrf-token",
@@ -336,6 +339,24 @@ async function createDoctorWithSignature(
   const completeData = asRecord(await completeRes.json());
   accessToken = readAccessToken(completeData) ?? accessToken;
 
+  const loginRes = await request.post(`${API_URL}/auth/login`, {
+    headers: {
+      ...e2eHeaders,
+      ...csrfHeaders,
+    },
+    data: {
+      email,
+      password: TEST_PASSWORD,
+    },
+  });
+  if (!loginRes.ok()) {
+    throw new Error(
+      `Post-onboarding login failed: ${loginRes.status()} ${await loginRes.text()}`,
+    );
+  }
+  const loginData = asRecord(await loginRes.json());
+  accessToken = readAccessToken(loginData) ?? accessToken;
+
   if (uploadDoctorSignature) {
     const tokenRes = await request.post(
       `${API_URL}/doctors/signature/generate-token`,
@@ -488,13 +509,18 @@ test.describe("Doctor Verification Flow", () => {
       {
         headers: {
           Authorization: `Bearer ${doctor.accessToken}`,
+          "x-docita-e2e": "true",
         },
         data: {
           registrationNumber,
         },
       },
     );
-    expect(updateRes.ok()).toBeTruthy();
+    if (!updateRes.ok()) {
+      throw new Error(
+        `Doctor registration update failed: ${updateRes.status()} ${await updateRes.text()}`,
+      );
+    }
 
     await page.goto("/dashboard");
     await page.waitForURL(/\/dashboard/, { timeout: 30000 });
@@ -513,13 +539,18 @@ test.describe("Doctor Verification Flow", () => {
       {
         headers: {
           Authorization: `Bearer ${doctor.accessToken}`,
+          "x-docita-e2e": "true",
         },
         data: {
           registrationNumber,
         },
       },
     );
-    expect(updateRes.ok()).toBeTruthy();
+    if (!updateRes.ok()) {
+      throw new Error(
+        `Doctor registration update failed: ${updateRes.status()} ${await updateRes.text()}`,
+      );
+    }
 
     const clinicSettingsRes = await request.get(`${API_URL}/clinic/settings`, {
       headers: {

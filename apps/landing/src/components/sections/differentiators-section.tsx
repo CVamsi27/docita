@@ -85,7 +85,7 @@ export function DifferentiatorsSection() {
             </p>
             <div className="r2-diff-surface">
               <div className="mb-3 flex items-center justify-between">
-                <p className="r2-mono text-[11px] uppercase tracking-[0.12em] text-muted-foreground">
+                <p className="r2-mono text-[var(--fs-2xs)] uppercase tracking-[0.12em] text-muted-foreground">
                   PORTAL · R. IYER
                 </p>
                 <span className="inline-flex h-1.5 w-1.5 rounded-full bg-success" aria-hidden />
@@ -197,7 +197,7 @@ export function DifferentiatorsSection() {
               every WhatsApp send, and full data export.
             </p>
             <div className="r2-diff-surface">
-              <ul className="grid grid-cols-2 gap-1.5 text-[11px]">
+              <ul className="grid grid-cols-2 gap-1.5 text-[var(--fs-2xs)]">
                 {TRUST_BADGES.map((b) => (
                   <li
                     key={b}
