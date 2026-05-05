@@ -245,70 +245,72 @@ export const ConsultationDashboardUI: FC = () => {
                 </div>
               ) : (
                 <>
-                  {doctorNowNext.inProgress.slice(0, 3).map((apt) => (
-                    <div
-                      key={apt.id}
-                      className="flex items-center justify-between gap-3 rounded-[var(--radius-lg)] border border-primary/20 bg-primary/5 p-3 sm:p-4"
-                    >
-                      <div className="min-w-0">
-                        <p className="font-medium truncate">
-                          {apt.patient?.firstName} {apt.patient?.lastName}
-                        </p>
-                        <p className="text-xs text-muted-foreground truncate">
-                          In progress • {formatTime(apt.startTime)}
-                        </p>
-                      </div>
-                      <Button
-                        size="sm"
-                        onClick={() => goToConsultationWorkspace(apt.id)}
-                      >
-                        Continue
-                      </Button>
-                    </div>
-                  ))}
-
-                  {doctorNowNext.combinedUpcoming.slice(0, 10).map((row) => {
-                    const isQueue = row.kind === "queue";
-                    const leftMeta = isQueue
-                      ? `Token ${row.tokenNumber > 0 ? row.tokenNumber : "—"} • ${row.tokenType}`
-                      : `${formatTime(row.startTime)} • appointment`;
-                    const canOpen = Boolean(row.appointmentId);
-                    return (
+                  <div className="overflow-hidden rounded-[var(--radius-lg)] border border-border/60 bg-card/50 divide-y divide-border/60">
+                    {doctorNowNext.inProgress.slice(0, 3).map((apt) => (
                       <div
-                        key={
-                          isQueue
-                            ? `q-${row.createdAt}-${row.tokenNumber}-${row.patientName}`
-                            : `a-${row.appointmentId}`
-                        }
-                        className="flex items-center justify-between gap-3 rounded-[var(--radius-lg)] border border-border/60 bg-card p-3 sm:p-4"
+                        key={apt.id}
+                        className="flex items-center justify-between gap-3 bg-primary/5 p-3 sm:p-4"
                       >
                         <div className="min-w-0">
                           <p className="font-medium truncate">
-                            {row.patientName}
+                            {apt.patient?.firstName} {apt.patient?.lastName}
                           </p>
                           <p className="text-xs text-muted-foreground truncate">
-                            {leftMeta}
-                            {row.visitSummary ? ` • ${row.visitSummary}` : ""}
+                            In progress • {formatTime(apt.startTime)}
                           </p>
                         </div>
                         <Button
                           size="sm"
-                          disabled={isStartingConsultation || !canOpen}
-                          onClick={() => {
-                            if (!row.appointmentId) return;
-                            if (isQueue && isQueueTokenInProgress(row.status)) {
-                              goToConsultationWorkspace(row.appointmentId);
-                              return;
-                            }
-                            void handleStartConsultation(row.appointmentId);
-                          }}
+                          onClick={() => goToConsultationWorkspace(apt.id)}
                         >
-                          <Play className="mr-2 h-3 w-3" />
-                          Open
+                          Continue
                         </Button>
                       </div>
-                    );
-                  })}
+                    ))}
+
+                    {doctorNowNext.combinedUpcoming.slice(0, 10).map((row) => {
+                      const isQueue = row.kind === "queue";
+                      const leftMeta = isQueue
+                        ? `Token ${row.tokenNumber > 0 ? row.tokenNumber : "—"} • ${row.tokenType}`
+                        : `${formatTime(row.startTime)} • appointment`;
+                      const canOpen = Boolean(row.appointmentId);
+                      return (
+                        <div
+                          key={
+                            isQueue
+                              ? `q-${row.createdAt}-${row.tokenNumber}-${row.patientName}`
+                              : `a-${row.appointmentId}`
+                          }
+                          className="flex items-center justify-between gap-3 p-3 sm:p-4"
+                        >
+                          <div className="min-w-0">
+                            <p className="font-medium truncate">
+                              {row.patientName}
+                            </p>
+                            <p className="text-xs text-muted-foreground truncate">
+                              {leftMeta}
+                              {row.visitSummary ? ` • ${row.visitSummary}` : ""}
+                            </p>
+                          </div>
+                          <Button
+                            size="sm"
+                            disabled={isStartingConsultation || !canOpen}
+                            onClick={() => {
+                              if (!row.appointmentId) return;
+                              if (isQueue && isQueueTokenInProgress(row.status)) {
+                                goToConsultationWorkspace(row.appointmentId);
+                                return;
+                              }
+                              void handleStartConsultation(row.appointmentId);
+                            }}
+                          >
+                            <Play className="mr-2 h-3 w-3" />
+                            Open
+                          </Button>
+                        </div>
+                      );
+                    })}
+                  </div>
                 </>
               )}
             </CardContent>
@@ -387,40 +389,42 @@ export const ConsultationDashboardUI: FC = () => {
                   </p>
                 </div>
               ) : (
-                visibleTodayAppointments.slice(0, 8).map((apt) => (
-                  <div
-                    key={apt.id}
-                    className="flex items-center justify-between gap-3 rounded-[var(--radius-lg)] border border-border/60 bg-card p-3 sm:p-4"
-                  >
-                    <div className="min-w-0">
-                      <p className="font-medium truncate">
-                        {apt.patient?.firstName} {apt.patient?.lastName}
-                      </p>
-                      <p className="text-xs text-muted-foreground truncate">
-                        {formatTime(apt.startTime)} • {apt.status}
-                      </p>
-                    </div>
-                    <Button
-                      size="sm"
-                      variant="outline"
-                      disabled={checkInAppointment.isPending}
-                      onClick={async () => {
-                        try {
-                          await checkInAppointment.mutateAsync(apt.id);
-                        } catch (err) {
-                          showUserFacingErrorToast(
-                            err,
-                            "We could not check-in this appointment. Please try again.",
-                            "save",
-                          );
-                        }
-                      }}
+                <div className="overflow-hidden rounded-[var(--radius-lg)] border border-border/60 bg-card/50 divide-y divide-border/60">
+                  {visibleTodayAppointments.slice(0, 8).map((apt) => (
+                    <div
+                      key={apt.id}
+                      className="flex items-center justify-between gap-3 p-3 sm:p-4"
                     >
-                      <ClipboardCheck className="mr-2 h-4 w-4" />
-                      Check-in
-                    </Button>
-                  </div>
-                ))
+                      <div className="min-w-0">
+                        <p className="font-medium truncate">
+                          {apt.patient?.firstName} {apt.patient?.lastName}
+                        </p>
+                        <p className="text-xs text-muted-foreground truncate">
+                          {formatTime(apt.startTime)} • {apt.status}
+                        </p>
+                      </div>
+                      <Button
+                        size="sm"
+                        variant="outline"
+                        disabled={checkInAppointment.isPending}
+                        onClick={async () => {
+                          try {
+                            await checkInAppointment.mutateAsync(apt.id);
+                          } catch (err) {
+                            showUserFacingErrorToast(
+                              err,
+                              "We could not check-in this appointment. Please try again.",
+                              "save",
+                            );
+                          }
+                        }}
+                      >
+                        <ClipboardCheck className="mr-2 h-4 w-4" />
+                        Check-in
+                      </Button>
+                    </div>
+                  ))}
+                </div>
               )}
             </CardContent>
           </Card>
