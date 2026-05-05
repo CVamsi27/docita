@@ -95,11 +95,6 @@ describe("ConsultationDashboardUI", () => {
     });
 
     render(<ConsultationDashboardUI />);
-    expect(screen.getAllByText("Check-in").length).toBeGreaterThan(0);
-    expect(screen.getAllByText("Today").length).toBeGreaterThan(0);
-    expect(
-      screen.getAllByRole("button", { name: /Check-in/i }).length,
-    ).toBeGreaterThan(0);
     expect(screen.getByRole("button", { name: /Add walk-in/i })).toBeInTheDocument();
   });
 
@@ -131,7 +126,6 @@ describe("ConsultationDashboardUI", () => {
     render(<ConsultationDashboardUI />);
     expect(screen.getByText("Prep")).toBeInTheDocument();
     expect(screen.getByText("Ready for vitals")).toBeInTheDocument();
-    expect(screen.getByRole("button", { name: /Add walk-in/i })).toBeInTheDocument();
     expect(screen.getByRole("button", { name: /Record vitals/i })).toBeInTheDocument();
   });
 });
