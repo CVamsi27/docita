@@ -145,7 +145,7 @@ export const ConsultationDashboardUI: FC = () => {
       header={
         <PageHeader
           title="Consultation"
-          description="OPD queue and visits in progress for today — one board for the floor."
+          description="Two views: your schedule (time-based) and the waiting-room queue (token-based)."
           actions={
             <div className="flex flex-wrap gap-2">
               <Button variant="outline" asChild size="sm">
@@ -165,17 +165,17 @@ export const ConsultationDashboardUI: FC = () => {
       {isDoctor ? (
         <Section
           id="consultation-doctor-next"
-          title="Next patients"
-          description="Continue in-progress visits, then open upcoming slots in schedule order."
+          title="Your schedule"
+          description="Time-based list from today’s appointments."
         >
           <Card>
             <CardHeader>
               <CardTitle className="text-[var(--fs-md)] font-semibold">
-                Now & next
+                Next up
               </CardTitle>
               <CardDescription>
-                Your in-progress consultations appear first, followed by the
-                next scheduled appointments for today.
+                Continue your current visit, or open the next appointment from
+                your schedule.
               </CardDescription>
             </CardHeader>
             <CardContent className="space-y-2">
@@ -387,17 +387,17 @@ export const ConsultationDashboardUI: FC = () => {
 
       <Section
         id="consultation-opd-queue"
-        title="OPD queue"
-        description="Tokens and in-room visits together. Summary line uses chief complaint when check-in captured it."
+        title="Waiting room queue"
+        description="Token-based list from check-in. Includes waiting + in-room patients."
       >
         <Card>
           <CardHeader>
             <CardTitle className="text-[var(--fs-md)] font-semibold">
-              Live queue
+              Queue board
             </CardTitle>
             <CardDescription>
-              Active consultations and waiting tokens share one list — same
-              status reception and doctors see on the floor.
+              Reception uses this to call patients; doctors use it to see what
+              is waiting vs in room.
             </CardDescription>
           </CardHeader>
           <CardContent>
