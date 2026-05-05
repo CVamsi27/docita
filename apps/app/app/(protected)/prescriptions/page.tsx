@@ -93,12 +93,14 @@ export default function PrescriptionsPage() {
       return `${startDate} to ${endDate}`;
     })();
 
-    const patientLabel = patientId.trim().length > 0 ? "Filtered to a patient." : "All patients.";
+    if (patientId.trim().length > 0) {
+      return `Showing prescriptions for ${dateLabel}, scoped to the selected patient.`;
+    }
 
     if (isDoctorRole) {
-      return `Showing prescriptions for ${dateLabel}. ${patientLabel}`;
+      return `Showing prescriptions for ${dateLabel}.`;
     }
-    return `Showing prescriptions for ${dateLabel}. ${patientLabel}`;
+    return `View and manage prescriptions for ${dateLabel}.`;
   }, [endDate, hasDateRange, isDoctorRole, patientId, startDate, todayLocal]);
 
   const filteredAndSortedPrescriptions = useMemo(() => {
@@ -170,8 +172,6 @@ export default function PrescriptionsPage() {
           endDate={endDate}
           onStartDateChange={setStartDate}
           onEndDateChange={setEndDate}
-          patientId={patientId}
-          onPatientIdChange={setPatientId}
         />
 
         <PrescriptionsTable
