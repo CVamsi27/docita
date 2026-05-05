@@ -1,4 +1,3 @@
-import { useAPIMutation, useAPIQuery } from "@/lib/api-core";
 import type {
   CreateMedicineReminderRequest,
   CreateWhatsAppBroadcastRequest,
@@ -9,15 +8,30 @@ import type {
   WhatsAppStatsDetailedResponse,
   WhatsAppUnreadCountResponse,
 } from "@workspace/types";
+import { Feature } from "@workspace/types";
+import { useAPIMutation, useAPIQuery } from "@/lib/api-core";
+import { useTierFeatureEnabled } from "@/hooks/api/tier-feature-guards";
 
 export type WhatsappLogEntry = WhatsAppLogListResponse[number];
 export type NotificationUnreadCountResponse = WhatsAppUnreadCountResponse;
 
-export const useWhatsappStats = () =>
-  useAPIQuery<WhatsAppStatsDetailedResponse>(["whatsapp", "stats"], "/whatsapp/stats");
+export const useWhatsappStats = () => {
+  const whatsappOk = useTierFeatureEnabled(Feature.WHATSAPP_MESSAGING);
+  return useAPIQuery<WhatsAppStatsDetailedResponse>(
+    ["whatsapp", "stats"],
+    "/whatsapp/stats",
+    { enabled: whatsappOk },
+  );
+};
 
-export const useWhatsAppSettings = () =>
-  useAPIQuery<WhatsAppSettingsResponse>(["whatsapp", "settings"], "/whatsapp/settings");
+export const useWhatsAppSettings = () => {
+  const whatsappOk = useTierFeatureEnabled(Feature.WHATSAPP_MESSAGING);
+  return useAPIQuery<WhatsAppSettingsResponse>(
+    ["whatsapp", "settings"],
+    "/whatsapp/settings",
+    { enabled: whatsappOk },
+  );
+};
 
 export const useUpdateWhatsAppSettings = () =>
   useAPIMutation<void, UpdateWhatsAppSettingsRequest>("/whatsapp/settings", "PUT");
@@ -40,26 +54,35 @@ export const useSendInvoiceWhatsApp = () =>
     "POST",
   );
 
-export const useWhatsappLogs = (limit: number = 50) =>
-  useAPIQuery<WhatsappLogEntry[]>(
+export const useWhatsappLogs = (limit: number = 50) => {
+  const whatsappOk = useTierFeatureEnabled(Feature.WHATSAPP_MESSAGING);
+  return useAPIQuery<WhatsappLogEntry[]>(
     ["whatsapp", "logs", limit],
     `/whatsapp/logs?limit=${limit}`,
+    { enabled: whatsappOk },
   );
+};
 
-export const useUnreadNotificationCount = () =>
-  useAPIQuery<NotificationUnreadCountResponse>(
+export const useUnreadNotificationCount = () => {
+  const whatsappOk = useTierFeatureEnabled(Feature.WHATSAPP_MESSAGING);
+  return useAPIQuery<NotificationUnreadCountResponse>(
     ["whatsapp", "notifications", "unread-count"],
     "/whatsapp/notifications/unread-count",
     {
+      enabled: whatsappOk,
       refetchInterval: 30_000,
     },
   );
+};
 
-export const useUnreadNotifications = (limit: number = 50) =>
-  useAPIQuery<StaffNotificationEntry[]>(
+export const useUnreadNotifications = (limit: number = 50) => {
+  const whatsappOk = useTierFeatureEnabled(Feature.WHATSAPP_MESSAGING);
+  return useAPIQuery<StaffNotificationEntry[]>(
     ["whatsapp", "notifications", "unread", limit],
     `/whatsapp/notifications/unread?limit=${limit}`,
+    { enabled: whatsappOk },
   );
+};
 
 export const useDeleteNotification = () =>
   useAPIMutation<void, { notificationId: string }>(

@@ -13,6 +13,7 @@ import {
   AppointmentCancelRequest,
   AppointmentListItemContractResponse,
   CreateAppointmentRequest,
+  Feature,
   FollowUpResponse,
   ListAppointmentRequestsQuery,
   ListFollowUpsQuery,
@@ -28,6 +29,7 @@ import {
   useAPIQuery,
   useAPIQueryValidated,
 } from "@/lib/api-core";
+import { useTierFeatureEnabled } from "@/hooks/api/tier-feature-guards";
 import { withQueryString, type QueryParams } from "@/lib/http/query-string";
 import { getLocalCalendarDateString } from "@/lib/local-calendar-date";
 
@@ -103,6 +105,7 @@ const normalizeQueryOptions = <T extends QueryParams>(
 };
 
 export const useAppointments = (options?: AppointmentQueryOptions | null) => {
+  const calendarOk = useTierFeatureEnabled(Feature.CALENDAR_SLOTS);
   const normalizedOptions = normalizeAppointmentQueryOptions(options);
   const url = withQueryString("/appointments", normalizedOptions);
 
@@ -110,33 +113,42 @@ export const useAppointments = (options?: AppointmentQueryOptions | null) => {
     queryKeys.appointments.list(normalizedOptions),
     url,
     listAppointmentsResponseSchema,
-    { enabled: options !== null, placeholderData: keepPreviousData },
+    {
+      enabled: calendarOk && options !== null,
+      placeholderData: keepPreviousData,
+    },
   );
 };
 
 export const useTodayAppointments = (enabled: boolean = true) => {
+  const calendarOk = useTierFeatureEnabled(Feature.CALENDAR_SLOTS);
   const today = getLocalCalendarDateString();
   return useAPIQueryValidated(
     queryKeys.appointments.list({ date: today }),
     `/appointments?date=${today}`,
     listAppointmentsResponseSchema,
-    { enabled },
+    { enabled: calendarOk && enabled },
   );
 };
 
-export const useAppointment = (id: string) =>
-  useAPIQuery<AppointmentWithRelations>(
+export const useAppointment = (id: string) => {
+  const calendarOk = useTierFeatureEnabled(Feature.CALENDAR_SLOTS);
+  return useAPIQuery<AppointmentWithRelations>(
     queryKeys.appointments.detail(id),
     `/appointments/${id}`,
+    { enabled: calendarOk && id.length > 0 },
   );
+};
 
-export const usePatientAppointments = (patientId: string) =>
-  useAPIQueryValidated(
+export const usePatientAppointments = (patientId: string) => {
+  const calendarOk = useTierFeatureEnabled(Feature.CALENDAR_SLOTS);
+  return useAPIQueryValidated(
     queryKeys.appointments.byPatient(patientId),
     `/appointments?patientId=${patientId}`,
     listAppointmentsResponseSchema,
-    { enabled: !!patientId },
+    { enabled: calendarOk && !!patientId },
   );
+};
 
 export const useCreateAppointment = () => {
   const queryClient = useQueryClient();
@@ -244,6 +256,7 @@ export const useInfiniteAppointments = (options?: {
   search?: string;
 }) => {
   const normalizedOptions = normalizeAppointmentQueryOptions(options);
+  const calendarOk = useTierFeatureEnabled(Feature.CALENDAR_SLOTS);
 
   return useInfiniteQuery({
     queryKey: queryKeys.appointments.infinite(normalizedOptions),
@@ -259,6 +272,7 @@ export const useInfiniteAppointments = (options?: {
     getNextPageParam: (lastPage) => lastPage.nextCursor,
     initialPageParam: undefined as string | undefined,
     staleTime: 1000 * 60 * 2,
+    enabled: calendarOk,
   });
 };
 
@@ -272,11 +286,15 @@ export const useCheckInAppointment = () =>
   );
 
 export const useFollowUps = (options?: ListFollowUpsQuery | null) => {
+  const calendarOk = useTierFeatureEnabled(Feature.CALENDAR_SLOTS);
   const normalizedOptions = normalizeAppointmentQueryOptions(options);
   return useAPIQuery<FollowUpResponse[]>(
     ["follow-ups", normalizedOptions ?? {}],
     withQueryString("/follow-ups", normalizedOptions),
-    { enabled: options !== null, placeholderData: keepPreviousData },
+    {
+      enabled: calendarOk && options !== null,
+      placeholderData: keepPreviousData,
+    },
   );
 };
 
@@ -310,11 +328,15 @@ export const useBookFollowUp = () =>
 export const useAppointmentRequests = (
   options?: ListAppointmentRequestsQuery | null,
 ) => {
+  const calendarOk = useTierFeatureEnabled(Feature.CALENDAR_SLOTS);
   const normalizedOptions = normalizeAppointmentQueryOptions(options);
   return useAPIQuery<AppointmentRequestListResponse>(
     ["appointment-requests", normalizedOptions ?? {}],
     withQueryString("/appointment-requests", normalizedOptions),
-    { enabled: options !== null, placeholderData: keepPreviousData },
+    {
+      enabled: calendarOk && options !== null,
+      placeholderData: keepPreviousData,
+    },
   );
 };
 
@@ -339,12 +361,14 @@ export const useRejectAppointmentRequest = () =>
   });
 
 export const useQueue = (options?: { search?: string }) => {
+  const queueOk = useTierFeatureEnabled(Feature.QUEUE_MANAGEMENT);
   const params = options?.search ? { search: options.search } : undefined;
   return useAPIQuery<QueueItem[]>(
     queryKeys.queue.list(params),
     withQueryString("/queue", {
       search: options?.search,
     }),
+    { enabled: queueOk },
   );
 };
 
@@ -353,6 +377,7 @@ export const useQueueByDoctor = (
   search?: string,
   enabled: boolean = true,
 ) => {
+  const queueOk = useTierFeatureEnabled(Feature.QUEUE_MANAGEMENT);
   const params =
     doctorId || search
       ? {
@@ -363,7 +388,7 @@ export const useQueueByDoctor = (
   return useAPIQuery<QueueItem[]>(
     queryKeys.queue.list(params),
     withQueryString("/queue", { doctorId, search }),
-    { enabled },
+    { enabled: queueOk && enabled },
   );
 };
 

@@ -2,6 +2,7 @@ import { useInfiniteQuery, useQuery } from "@tanstack/react-query";
 import { z } from "zod";
 import {
   CreateInvoiceRequest,
+  Feature,
   Invoice,
   ListInvoicesContractQuery,
   invoiceResponseSchema,
@@ -24,6 +25,7 @@ import {
 } from "@workspace/types";
 import { queryKeys } from "@workspace/data-access";
 import { fetchAPI, useAPIMutation, useAPIQuery, useAPIQueryValidated } from "@/lib/api-core";
+import { useTierFeatureEnabled } from "@/hooks/api/tier-feature-guards";
 import { ApiError } from "@/lib/errors";
 import { fetchWithSession } from "@/lib/fetch-with-session";
 import { withQueryString } from "@/lib/http/query-string";
@@ -49,13 +51,16 @@ export function normalizeInvoicesListResponse<T>(data: unknown): T[] {
   return [];
 }
 
-export const useInvoices = (filters?: ListInvoicesContractQuery) =>
-  useQuery<unknown, ApiError, InvoiceListRow[]>({
+export const useInvoices = (filters?: ListInvoicesContractQuery) => {
+  const invoicingOk = useTierFeatureEnabled(Feature.INVOICING);
+  return useQuery<unknown, ApiError, InvoiceListRow[]>({
     queryKey: ["invoices", filters || {}],
     queryFn: () => fetchAPI<unknown>(withQueryString("/invoices", filters)),
     select: (raw) => normalizeInvoicesListResponse<InvoiceListRow>(raw),
     staleTime: 60 * 1000,
+    enabled: invoicingOk,
   });
+};
 
 const infiniteInvoicesResponseSchema = z.object({
   items: z.array(invoiceResponseSchema),
@@ -64,8 +69,9 @@ const infiniteInvoicesResponseSchema = z.object({
   count: z.number(),
 });
 
-export const useInvoice = (id: string) =>
-  useAPIQuery<
+export const useInvoice = (id: string) => {
+  const invoicingOk = useTierFeatureEnabled(Feature.INVOICING);
+  return useAPIQuery<
     Invoice & {
       patient: Patient & {
         clinic?: {
@@ -74,24 +80,29 @@ export const useInvoice = (id: string) =>
         };
       };
     }
-  >(
-    ["invoices", id],
-    `/invoices/${id}`,
-  );
+  >(["invoices", id], `/invoices/${id}`, {
+    enabled: invoicingOk && id.length > 0,
+  });
+};
 
 export const useInvoicePaymentActivity = (
   invoiceId: string,
   options?: { enabled?: boolean },
-) =>
-  useAPIQueryValidated(
+) => {
+  const invoicingOk = useTierFeatureEnabled(Feature.INVOICING);
+  return useAPIQueryValidated(
     queryKeys.invoices.paymentActivity(invoiceId),
     `/invoices/${invoiceId}/payment-activity`,
     invoicePaymentActivityResponseSchema,
     {
-      enabled: Boolean(invoiceId) && (options?.enabled ?? true),
+      enabled:
+        invoicingOk &&
+        Boolean(invoiceId) &&
+        (options?.enabled ?? true),
       staleTime: 60_000,
     },
   );
+};
 
 export const useCreateInvoice = () =>
   useAPIMutation<Invoice, CreateInvoiceRequest>("/invoices", "POST", {
@@ -177,6 +188,7 @@ export const useInfiniteInvoices = (options?: {
   date?: string;
   search?: string;
 }) => {
+  const invoicingOk = useTierFeatureEnabled(Feature.INVOICING);
   return useInfiniteQuery({
     queryKey: ["invoices", "infinite", options],
     queryFn: async ({ pageParam }) => {
@@ -199,5 +211,6 @@ export const useInfiniteInvoices = (options?: {
     getNextPageParam: (lastPage) => lastPage.nextCursor ?? undefined,
     initialPageParam: "",
     staleTime: 1000 * 60 * 5,
+    enabled: invoicingOk,
   });
 };

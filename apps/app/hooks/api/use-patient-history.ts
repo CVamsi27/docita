@@ -8,6 +8,7 @@ import { logger } from "@/lib/logger";
 import { patientsApi } from "@/features/patients/api/patients.api";
 import {
   CreatePatientSocialHistoryInput,
+  Feature,
   PatientAllergy,
   PatientFamilyHistory,
   PatientMedicalCondition,
@@ -15,6 +16,7 @@ import {
   PatientSurgicalHistory,
   PatientWithMedicalHistory,
 } from "@workspace/types";
+import { useTierFeatureEnabled } from "@/hooks/api/tier-feature-guards";
 
 interface FullMedicalHistoryResponse {
   conditions?: PatientMedicalCondition[];
@@ -90,6 +92,7 @@ const HISTORY_ERROR_MESSAGE =
 
 export function usePatientHistory(patientId: string): UsePatientHistoryResult {
   const queryClient = useQueryClient();
+  const tierPatientsOk = useTierFeatureEnabled(Feature.BASIC_PATIENT_MANAGEMENT);
   const {
     data: patientData,
     isLoading: isPatientLoading,
@@ -102,7 +105,7 @@ export function usePatientHistory(patientId: string): UsePatientHistoryResult {
   } = useAPIQuery<FullMedicalHistoryResponse>(
     medicalHistoryQueryKey(patientId),
     `/patients/${patientId}/medical-history`,
-    { enabled: !!patientId },
+    { enabled: tierPatientsOk && !!patientId },
   );
   const { mutate: updatePatient } = useUpdatePatient(patientId);
 
