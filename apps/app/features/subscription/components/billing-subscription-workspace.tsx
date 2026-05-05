@@ -3,7 +3,7 @@
 import { useCallback, useRef, useState } from "react";
 import { usePermissionStore } from "@/lib/stores/permission-store";
 import { PrivacyPolicyContent, SLAContent } from "@/features/legal";
-import { getTierInfo, Tier } from "@/lib/tier-config";
+import { getTierInfo, getTierPricing, Tier } from "@/lib/tier-config";
 import {
   Alert,
   AlertDescription,
@@ -43,15 +43,13 @@ import { useLocaleCurrency } from "@/hooks/use-locale-currency";
 import { useSubscription } from "@/hooks/api/use-settings";
 import {
   ANNUAL_DISCOUNT_PERCENT,
+  PRICING_CURRENCY_SYMBOLS,
+  TIER_OVERAGE_RATES_BY_CURRENCY,
   TIER_PRICING_BY_CURRENCY,
+  getWhatsAppAddonPricingByCurrency,
   isFrontDeskWorkspace,
   type SupportedCurrency,
   type TierName,
-} from "@workspace/types";
-import {
-  PRICING_CURRENCY_SYMBOLS,
-  TIER_OVERAGE_RATES_BY_CURRENCY,
-  getWhatsAppAddonPricingByCurrency,
 } from "@workspace/types";
 import { formatLocaleDateShortMonthYear } from "@/lib/formatters";
 import {
@@ -63,6 +61,7 @@ import { getDisplayBillingPeriodEndAndDaysLeft } from "@/features/subscription/l
 
 const PLAN_ORDER = [
   Tier.STARTER,
+  Tier.FRONT_DESK,
   Tier.ESSENTIAL,
   Tier.PROFESSIONAL,
   Tier.ENTERPRISE,
@@ -469,6 +468,12 @@ export function BillingSubscriptionWorkspace() {
             const tierPricingData = pricingConfig?.tiers.find(
               (t) => t.id === tierName,
             );
+            const catalogPricing = getTierPricing(tierName);
+            const resolvedPricing =
+              tierPricingData?.pricing ?? {
+                monthly: catalogPricing.monthly,
+                yearly: catalogPricing.yearly,
+              };
             const currencySymbol =
               PRICING_CURRENCY_SYMBOLS[
                 currency as keyof typeof PRICING_CURRENCY_SYMBOLS
@@ -478,7 +483,9 @@ export function BillingSubscriptionWorkspace() {
                 currency as keyof typeof TIER_OVERAGE_RATES_BY_CURRENCY
               ]?.[tierName] ?? TIER_OVERAGE_RATES_BY_CURRENCY.INR[tierName];
             const whatsappRate =
-              tierName === "ESSENTIAL" || tierName === "PROFESSIONAL"
+              tierName === "ESSENTIAL" ||
+              tierName === "FRONT_DESK" ||
+              tierName === "PROFESSIONAL"
                 ? getWhatsAppAddonPricingByCurrency(
                     tierName,
                     currency as Parameters<
@@ -511,7 +518,7 @@ export function BillingSubscriptionWorkspace() {
                 keyHighlights={
                   PLAN_ONBOARDING_KEY_HIGHLIGHTS[tierName] ?? []
                 }
-                pricing={tierPricingData?.pricing}
+                pricing={resolvedPricing}
                 billingCycle={selectedCycle}
                 currencySymbol={currencySymbol}
                 overageItems={
