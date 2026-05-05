@@ -136,7 +136,7 @@ export const ConsultationDashboardUI: FC = () => {
                   Add walk-in
                 </Button>
               ) : null}
-              <Button onClick={() => router.push("/appointments")}>
+              <Button size="sm" onClick={() => router.push("/appointments")}>
                 <Calendar className="mr-2 h-4 w-4" />
                 Appointments
               </Button>
