@@ -22,7 +22,7 @@
     "lint": "eslint",
     "lint:fix": "eslint . --fix",
     "typecheck": "tsc --noEmit",
-    "check-types": "node ./scripts/ensure-workspace-ui-built.mjs && node ./scripts/clean-next.mjs --if-production && next typegen && tsc --noEmit",
+    "check-types": "node ./scripts/ensure-workspace-ui-built.mjs && node ./scripts/ensure-workspace-types-built.mjs && node ./scripts/clean-next.mjs --if-production && next typegen && tsc --noEmit",
     "test": "vitest run",
     "test:cov": "vitest run --coverage",
     "test:e2e": "playwright test e2e",

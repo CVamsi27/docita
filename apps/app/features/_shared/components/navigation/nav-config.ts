@@ -49,6 +49,19 @@ const TRACK_ITEMS: NavItem[] = [
     accessTarget: APP_ACCESS_TARGETS.PAGE_DASHBOARD,
   },
   {
+    href: "/consultation",
+    icon: Stethoscope,
+    label: "Consultation",
+    accessTarget: APP_ACCESS_TARGETS.PAGE_CONSULTATION,
+  },
+  {
+    href: "/appointments",
+    icon: CalendarDays,
+    label: "Appointments",
+    feature: Feature.CALENDAR_SLOTS,
+    accessTarget: APP_ACCESS_TARGETS.PAGE_APPOINTMENTS,
+  },
+  {
     href: "/patients",
     icon: Users,
     label: "Patients",
@@ -68,19 +81,6 @@ const TRACK_ITEMS: NavItem[] = [
     label: "Invoices",
     feature: Feature.INVOICING,
     accessTarget: APP_ACCESS_TARGETS.PAGE_INVOICES,
-  },
-  {
-    href: "/appointments",
-    icon: CalendarDays,
-    label: "Appointments",
-    feature: Feature.CALENDAR_SLOTS,
-    accessTarget: APP_ACCESS_TARGETS.PAGE_APPOINTMENTS,
-  },
-  {
-    href: "/consultation",
-    icon: Stethoscope,
-    label: "Consultation",
-    accessTarget: APP_ACCESS_TARGETS.PAGE_CONSULTATION,
   },
   {
     href: "/prescriptions",

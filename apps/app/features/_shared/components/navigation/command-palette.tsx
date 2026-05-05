@@ -30,11 +30,13 @@ import {
 import { APP_ACCESS_TARGETS } from "@workspace/types";
 import { showUserFacingErrorToast } from "@/lib/user-facing-errors";
 import { useAskAi } from "@/features/_shared/components/ask-ai/ask-ai-context";
+import { useSidebarNavOrder } from "@/hooks/use-sidebar-nav-order";
+import { useClinic } from "@/lib/clinic-context";
 import {
   AI_ASSISTANT_NAV_ITEM,
   HELP_NAV_ITEM,
   IPD_NAV_ITEM,
-  navItems,
+  navSections,
   SETTINGS_NAV_ITEM,
   type NavItem,
 } from "./nav-config";
@@ -176,9 +178,15 @@ export function CommandPalette() {
   const [open, setOpen] = useState(false);
   const router = useRouter();
   const { user } = useAuth();
+  const { clinicId } = useClinic();
   const { canStartConsultation } = usePermissions();
   const { canAccess, workspaceProfile } = usePermissionStore();
   const { openOverlay } = useAskAi();
+  const navOrder = useSidebarNavOrder({
+    clinicId,
+    userId: user?.id ?? null,
+    canEditClinicDefault: false,
+  });
 
   const canAccessQueueApi = canAccessTarget(
     APP_ACCESS_TARGETS.API_QUEUE,
@@ -261,8 +269,12 @@ export function CommandPalette() {
   const actions = useMemo<CommandPaletteAction[]>(() => {
     const out: CommandPaletteAction[] = [];
 
+    const primaryNavOrdered = navOrder
+      .orderSections(navSections)
+      .flatMap((s) => s.items);
+
     const allNav = [
-      ...navItems,
+      ...primaryNavOrdered,
       AI_ASSISTANT_NAV_ITEM,
       IPD_NAV_ITEM,
       SETTINGS_NAV_ITEM,
@@ -334,6 +346,7 @@ export function CommandPalette() {
     canAccess,
     canStartConsultation,
     handleStartConsultation,
+    navOrder,
     openOverlay,
     router,
     user?.role,

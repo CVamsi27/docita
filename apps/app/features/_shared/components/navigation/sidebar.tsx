@@ -1,6 +1,6 @@
 "use client";
 
-import { Fragment, useEffect, useRef, useState } from "react";
+import { Fragment, useCallback, useEffect, useMemo, useRef, useState } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import {
@@ -39,6 +39,7 @@ import { CLINIC_ADMIN_ROLES } from "@/lib/permissions";
 import { useClinic } from "@/lib/clinic-context";
 import { SUBSCRIPTION_SETTINGS_PATH } from "@/lib/subscription-settings-path";
 import { useSidebarPreferences } from "@/hooks/use-sidebar-preferences";
+import { useSidebarNavOrder } from "@/hooks/use-sidebar-nav-order";
 import { NotificationPanel } from "./notification-panel";
 import { ThemeToggleWithAppearanceSync } from "@/features/_shared/components/layout/theme-toggle-with-appearance-sync";
 import { AskAiButton } from "@/features/_shared/components/ask-ai/ask-ai-button";
@@ -59,6 +60,7 @@ import {
   SPECIALTY_URLS,
   type NavItem,
   type NavSection,
+  type NavSectionId,
 } from "./nav-config";
 
 function getIconClasses(isActive: boolean, collapsedRail?: boolean) {
@@ -180,10 +182,6 @@ function SidebarContent({
 
   const aiAssistantAccessible = isItemAccessible(AI_ASSISTANT_NAV_ITEM);
 
-  const allItemsForCustomize: NavItem[] = sectionsWithAccess.flatMap(
-    (section) => section.items,
-  );
-
   const filterByPreferences = (items: NavItem[]) =>
     items.filter((item) => FIXED_NAV_HREFS.has(item.href) || !isHidden(item.href));
 
@@ -192,9 +190,13 @@ function SidebarContent({
     items: filterByPreferences(section.items),
   }));
 
-  const customizableNavItems = allItemsForCustomize.filter(
-    (item) => !FIXED_NAV_HREFS.has(item.href),
-  );
+  const navOrder = useSidebarNavOrder({
+    clinicId,
+    userId: user?.id ?? null,
+    canEditClinicDefault: isAdmin,
+  });
+
+  const orderedVisibleSections = navOrder.orderSections(visibleSections);
 
   const tierInfo = getTierInfo();
   const collapsedRail = isCollapsed && !isMobile;
@@ -327,7 +329,7 @@ function SidebarContent({
           )}
           aria-label="Primary"
         >
-          {visibleSections.map((section) => {
+          {orderedVisibleSections.map((section) => {
             if (section.items.length === 0) return null;
             return (
               <div key={section.id} className="space-y-0.5">
@@ -581,30 +583,159 @@ function SidebarContent({
             <SheetTitle>Customize Sidebar</SheetTitle>
           </SheetHeader>
           <p className="text-sm text-muted-foreground mt-1 mb-4">
-            Toggle which items appear in the sidebar.
+            Drag to reorder items. Toggle to hide items you do not use.
           </p>
-          <div className="space-y-0.5">
-            {customizableNavItems.map((item) => (
-              <div
-                key={item.href}
-                className="flex items-center justify-between rounded-lg px-2 py-2 hover:bg-muted transition-colors"
-              >
-                <div className="flex items-center gap-3 text-sm">
-                  <div className={getIconClasses(false, false)}>
-                    <item.icon className="h-4 w-4 shrink-0" />
-                  </div>
-                  <span className="font-medium">{item.label}</span>
-                </div>
-                <Switch
-                  checked={!isHidden(item.href)}
-                  onCheckedChange={() => toggleItem(item.href)}
-                />
-              </div>
-            ))}
-          </div>
+          <CustomizeSidebarOrderUI
+            sections={sectionsWithAccess}
+            isHidden={isHidden}
+            toggleItem={toggleItem}
+            getIconClasses={getIconClasses}
+            navOrder={navOrder}
+          />
         </SheetContent>
       </Sheet>
     </>
+  );
+}
+
+function CustomizeSidebarOrderUI({
+  sections,
+  isHidden,
+  toggleItem,
+  getIconClasses,
+  navOrder,
+}: {
+  sections: NavSection[];
+  isHidden: (href: string) => boolean;
+  toggleItem: (href: string) => void;
+  getIconClasses: (isActive: boolean, collapsedRail?: boolean) => string;
+  navOrder: ReturnType<typeof useSidebarNavOrder>;
+}) {
+  const [dragging, setDragging] = useState<{ sectionId: NavSectionId; href: string } | null>(
+    null,
+  );
+
+  const ordered = useMemo(() => navOrder.orderSections(sections), [navOrder, sections]);
+
+  const setSectionOrder = useCallback(
+    (sectionId: NavSectionId, hrefs: string[], scope: "clinic" | "user") => {
+      navOrder.setOrder(
+        {
+          ...navOrder.effectiveOrder,
+          [sectionId]: hrefs,
+        },
+        scope,
+      );
+    },
+    [navOrder],
+  );
+
+  const handleDrop = useCallback(
+    (args: { sectionId: NavSectionId; beforeHref: string | null; scope: "clinic" | "user" }) => {
+      if (!dragging) return;
+      if (dragging.sectionId !== args.sectionId) return;
+
+      const current = navOrder.effectiveOrder[args.sectionId];
+      const without = current.filter((h) => h !== dragging.href);
+      const idx = args.beforeHref ? without.indexOf(args.beforeHref) : -1;
+      const next =
+        idx >= 0 ? [...without.slice(0, idx), dragging.href, ...without.slice(idx)] : [...without, dragging.href];
+      setSectionOrder(args.sectionId, next, args.scope);
+      setDragging(null);
+    },
+    [dragging, navOrder.effectiveOrder, setSectionOrder],
+  );
+
+  const canEditClinicDefault = navOrder.canEditClinicDefault;
+
+  return (
+    <div className="space-y-4">
+      {navOrder.hasUserOverride ? (
+        <button
+          type="button"
+          className="text-xs text-muted-foreground underline underline-offset-4 hover:text-foreground"
+          onClick={navOrder.clearUserOverride}
+        >
+          Reset my order to clinic default
+        </button>
+      ) : null}
+
+      {ordered.map((section) => (
+        <div key={section.id} className="space-y-2">
+          <MicroLabel>{section.label}</MicroLabel>
+
+          <div
+            className="space-y-0.5"
+            onDragOver={(e) => {
+              e.preventDefault();
+            }}
+            onDrop={() => handleDrop({ sectionId: section.id, beforeHref: null, scope: "user" })}
+          >
+            {section.items.map((item) => {
+              const fixed = FIXED_NAV_HREFS.has(item.href);
+              return (
+                <div
+                  key={item.href}
+                  draggable
+                  onDragStart={() => setDragging({ sectionId: section.id, href: item.href })}
+                  onDragEnd={() => setDragging(null)}
+                  onDragOver={(e) => {
+                    e.preventDefault();
+                  }}
+                  onDrop={(e) => {
+                    e.preventDefault();
+                    handleDrop({
+                      sectionId: section.id,
+                      beforeHref: item.href,
+                      scope: "user",
+                    });
+                  }}
+                  className={cn(
+                    "flex items-center justify-between rounded-lg px-2 py-2 transition-colors",
+                    "hover:bg-muted",
+                    dragging?.href === item.href && "bg-muted/70",
+                  )}
+                  aria-label={`Reorder ${item.label}`}
+                  title="Drag to reorder"
+                >
+                  <div className="flex items-center gap-3 text-sm min-w-0">
+                    <div className={getIconClasses(false, false)}>
+                      <item.icon className="h-4 w-4 shrink-0" />
+                    </div>
+                    <span className="font-medium truncate">{item.label}</span>
+                  </div>
+
+                  <div className="flex items-center gap-2">
+                    {!fixed ? (
+                      <Switch
+                        checked={!isHidden(item.href)}
+                        onCheckedChange={() => toggleItem(item.href)}
+                        aria-label={`Show ${item.label} in sidebar`}
+                      />
+                    ) : (
+                      <span className="text-xs text-muted-foreground">Fixed</span>
+                    )}
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+
+          {canEditClinicDefault ? (
+            <button
+              type="button"
+              className="text-xs text-muted-foreground underline underline-offset-4 hover:text-foreground"
+              onClick={() => {
+                // Save current effective order as clinic default.
+                navOrder.setOrder(navOrder.effectiveOrder, "clinic");
+              }}
+            >
+              Save this order as clinic default
+            </button>
+          ) : null}
+        </div>
+      ))}
+    </div>
   );
 }
 
