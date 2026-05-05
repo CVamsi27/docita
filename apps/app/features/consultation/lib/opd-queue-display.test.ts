@@ -34,6 +34,28 @@ describe("getOpdQueueSummaryLine", () => {
     expect(getOpdQueueSummaryLine(item)).toContain("Fever");
   });
 
+  it("formats structured chief complaint JSON instead of showing raw payload", () => {
+    const item = baseItem({
+      appointment: {
+        id: "a1",
+        doctor: { id: "d1", name: "Dr" },
+        chiefComplaint: JSON.stringify([
+          {
+            id: "legacy",
+            complaint: "Fever",
+            durationValue: "3",
+            durationUnit: "days",
+            notes: "high grade",
+          },
+        ]),
+        type: "walk-in",
+      },
+    });
+    const summary = getOpdQueueSummaryLine(item);
+    expect(summary).toContain("Fever");
+    expect(summary).not.toContain("[{");
+  });
+
   it("falls back to appointment type", () => {
     const item = baseItem({
       appointment: {
