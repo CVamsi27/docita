@@ -13,6 +13,7 @@ type CreateAppointmentInput = z.infer<typeof createAppointmentSchema>;
 import type { SelectOption } from "@/lib/app-config-context";
 
 import { Button } from "@workspace/ui/components/button";
+import { Badge } from "@workspace/ui/components/badge";
 import { Form, FormLabel } from "@workspace/ui/components/form";
 import { FormDialog } from "@workspace/ui/components/form-dialog";
 import {
@@ -26,10 +27,12 @@ import { DoctorSelector } from "@/features/appointments/components/sections/add-
 import { TimeSlotPicker } from "@/features/appointments/components/sections/add-dialog/TimeSlotPicker";
 import type { SlotBlockingAppointment } from "@/features/appointments/lib/calendar-slot-local-iso";
 import { showUserFacingErrorToast } from "@/lib/user-facing-errors";
+import { formatLocaleDateShortMonth, formatTime } from "@/lib/formatters";
 
 interface AddAppointmentDialogUIProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
+  mode?: "standard" | "walk-in";
   form: UseFormReturn<CreateAppointmentInput>;
   loading: boolean;
   patients: Patient[];
@@ -76,6 +79,7 @@ function SectionHeader({ title, description }: SectionHeaderProps) {
 export function AddAppointmentDialogUI({
   open,
   onOpenChange,
+  mode = "standard",
   form,
   loading,
   patients,
@@ -99,6 +103,19 @@ export function AddAppointmentDialogUI({
   blockingAppointmentsForSlots,
 }: AddAppointmentDialogUIProps) {
   const doctorId = form.watch("doctorId");
+  const startTime = form.watch("startTime");
+  const endTime = form.watch("endTime");
+  const slotReady = typeof startTime === "string" && startTime.length > 0;
+  const slotLabel = (() => {
+    if (!slotReady) return "";
+    const start = new Date(startTime);
+    if (Number.isNaN(start.getTime())) return "";
+    const end =
+      typeof endTime === "string" && endTime.length ? new Date(endTime) : null;
+    return `${formatLocaleDateShortMonth(start)} • ${formatTime(start)}${
+      end && !Number.isNaN(end.getTime()) ? ` – ${formatTime(end)}` : ""
+    }`;
+  })();
   const handleSubmit = form.handleSubmit(
     (data) => {
       onSubmit(data, () => onOpenChange(false));
@@ -116,8 +133,12 @@ export function AddAppointmentDialogUI({
     <FormDialog
       open={open}
       onOpenChange={onOpenChange}
-      title="Schedule Appointment"
-      description="Pick the patient, doctor, date, time slot, and visit type."
+      title={mode === "walk-in" ? "Add walk-in" : "Schedule Appointment"}
+      description={
+        mode === "walk-in"
+          ? "Select a patient and doctor — we’ll use the next available slot and check the patient in."
+          : "Pick the patient, doctor, date, time slot, and visit type."
+      }
       contentClassName="sm:max-w-[840px]"
     >
       <Form {...form}>
@@ -147,52 +168,78 @@ export function AddAppointmentDialogUI({
 
           <div className="border-t border-border/60" />
 
-          <section className="space-y-4">
-            <SectionHeader
-              title="Schedule & type"
-              description="Choose the appointment date, then a start time slot (defaults to the next opening)."
-            />
-            <div className="grid grid-cols-1 gap-5 lg:grid-cols-2">
-              <div className="space-y-4">
-                {selectedDate != null && onAdjustSchedulingDate ? (
-                  <div className="flex flex-col gap-2">
-                    <FormLabel htmlFor="add-appointment-schedule-date">
-                      Date
-                    </FormLabel>
-                    <IsoDatePickerField
-                      id="add-appointment-schedule-date"
-                      label=""
-                      showLabel={false}
-                      value={formatPickerIsoDate(selectedDate)}
-                      onChange={(iso) => {
-                        const next = parseIsoDateToLocalDate(iso);
-                        if (next) onAdjustSchedulingDate(next);
-                      }}
-                      placeholder="Select appointment date"
-                      triggerClassName="w-full max-w-none sm:w-full"
-                      disablePastDates
-                    />
-                  </div>
-                ) : null}
-                <TimeSlotPicker
+          {mode === "walk-in" ? (
+            <section className="space-y-4">
+              <SectionHeader
+                title="Next available slot"
+                description="We’ll auto-pick the earliest available slot for the selected doctor."
+              />
+              <div className="ui-card-surface flex flex-col gap-2 rounded-[var(--radius-lg)] border border-border/60 bg-card p-4">
+                <div className="flex flex-wrap items-center gap-2">
+                  <span className="text-xs font-medium uppercase tracking-wide text-muted-foreground">
+                    Slot
+                  </span>
+                  <Badge variant="secondary">
+                    {slotReady ? "Ready" : "Finding…"}
+                  </Badge>
+                </div>
+                <p className="text-sm text-foreground">
+                  {slotReady
+                    ? slotLabel
+                    : doctorId
+                      ? "Looking up availability for this doctor."
+                      : "Select a doctor to find the next slot."}
+                </p>
+              </div>
+            </section>
+          ) : (
+            <section className="space-y-4">
+              <SectionHeader
+                title="Schedule & type"
+                description="Choose the appointment date, then a start time slot (defaults to the next opening)."
+              />
+              <div className="grid grid-cols-1 gap-5 lg:grid-cols-2">
+                <div className="space-y-4">
+                  {selectedDate != null && onAdjustSchedulingDate ? (
+                    <div className="flex flex-col gap-2">
+                      <FormLabel htmlFor="add-appointment-schedule-date">
+                        Date
+                      </FormLabel>
+                      <IsoDatePickerField
+                        id="add-appointment-schedule-date"
+                        label=""
+                        showLabel={false}
+                        value={formatPickerIsoDate(selectedDate)}
+                        onChange={(iso) => {
+                          const next = parseIsoDateToLocalDate(iso);
+                          if (next) onAdjustSchedulingDate(next);
+                        }}
+                        placeholder="Select appointment date"
+                        triggerClassName="w-full max-w-none sm:w-full"
+                        disablePastDates
+                      />
+                    </div>
+                  ) : null}
+                  <TimeSlotPicker
+                    form={form}
+                    startHour={startHour}
+                    endHour={endHour}
+                    isResolvingDefaultSlot={isResolvingDefaultSlot}
+                    selectedDate={selectedDate}
+                    doctorId={doctorId}
+                    availabilitySlotsReady={availabilitySlotsReady}
+                    availabilitySlots={availabilitySlots}
+                    clinicTimezone={clinicTimezone}
+                    blockingAppointments={blockingAppointmentsForSlots}
+                  />
+                </div>
+                <AppointmentFormFields
                   form={form}
-                  startHour={startHour}
-                  endHour={endHour}
-                  isResolvingDefaultSlot={isResolvingDefaultSlot}
-                  selectedDate={selectedDate}
-                  doctorId={doctorId}
-                  availabilitySlotsReady={availabilitySlotsReady}
-                  availabilitySlots={availabilitySlots}
-                  clinicTimezone={clinicTimezone}
-                  blockingAppointments={blockingAppointmentsForSlots}
+                  appointmentTypeOptions={appointmentTypeOptions}
                 />
               </div>
-              <AppointmentFormFields
-                form={form}
-                appointmentTypeOptions={appointmentTypeOptions}
-              />
-            </div>
-          </section>
+            </section>
+          )}
 
           <div className="flex flex-col-reverse gap-2 border-t border-border/60 pt-4 sm:flex-row sm:justify-end">
             <Button
@@ -205,10 +252,14 @@ export function AddAppointmentDialogUI({
             </Button>
             <Button
               type="submit"
-              disabled={loading || isResolvingDefaultSlot}
+              disabled={
+                loading ||
+                isResolvingDefaultSlot ||
+                (mode === "walk-in" && !slotReady)
+              }
             >
               {loading && <DocitaLoadingIndicator variant="inline" decorative className="mr-2" />}
-              Schedule
+              {mode === "walk-in" ? "Add & check-in" : "Schedule"}
             </Button>
           </div>
         </form>

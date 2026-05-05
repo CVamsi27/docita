@@ -35,6 +35,7 @@ interface UseAppointmentFormProps {
   /** Move appointments page calendar when the picked day has no bookable slots (e.g. advance from today). */
   onAdjustSchedulingDate?: (next: Date) => void;
   preselectedPatientId?: string;
+  defaultDoctorId?: string;
   startHour?: number;
   endHour?: number;
   open?: boolean;
@@ -53,6 +54,7 @@ export function useAppointmentForm({
   selectedDate,
   onAdjustSchedulingDate,
   preselectedPatientId,
+  defaultDoctorId,
   startHour = 9,
   endHour = 17,
   open,
@@ -150,17 +152,18 @@ export function useAppointmentForm({
       defaultStart = localDate.toISOString().slice(0, 16);
     }
 
-    let defaultDoctorId = "";
-    if (user?.role === "DOCTOR" || user?.role === "ADMIN_DOCTOR") {
-      defaultDoctorId =
-        user.id && !unavailableIds.has(user.id) ? user.id : "";
+    let resolvedDoctorId = "";
+    if (defaultDoctorId && !unavailableIds.has(defaultDoctorId)) {
+      resolvedDoctorId = defaultDoctorId;
+    } else if (user?.role === "DOCTOR" || user?.role === "ADMIN_DOCTOR") {
+      resolvedDoctorId = user.id && !unavailableIds.has(user.id) ? user.id : "";
     } else if (filteredDoctors.length > 0) {
-      defaultDoctorId = filteredDoctors[0]?.id || "";
+      resolvedDoctorId = filteredDoctors[0]?.id || "";
     }
 
     return {
       patientId: preselectedPatientId || "",
-      doctorId: defaultDoctorId,
+      doctorId: resolvedDoctorId,
       clinicId: user?.clinicId || "",
       startTime: defaultStart,
       endTime: "",
@@ -170,6 +173,7 @@ export function useAppointmentForm({
     };
   }, [
     preselectedPatientId,
+    defaultDoctorId,
     selectedDate,
     user?.id,
     user?.clinicId,

@@ -17,6 +17,8 @@ interface AddAppointmentDialogContainerProps {
   open?: boolean;
   onOpenChange?: (open: boolean) => void;
   preselectedPatientId?: string;
+  defaultDoctorId?: string;
+  mode?: "standard" | "walk-in";
 }
 
 export function AddAppointmentDialogContainer({
@@ -26,6 +28,8 @@ export function AddAppointmentDialogContainer({
   open: controlledOpen,
   onOpenChange: controlledOnOpenChange,
   preselectedPatientId,
+  defaultDoctorId,
+  mode = "standard",
 }: AddAppointmentDialogContainerProps) {
   const [internalOpen, setInternalOpen] = useState(false);
   const [patientComboboxOpen, setPatientComboboxOpen] = useState(false);
@@ -92,6 +96,7 @@ export function AddAppointmentDialogContainer({
     selectedDate,
     onAdjustSchedulingDate,
     preselectedPatientId,
+    defaultDoctorId,
     startHour,
     endHour,
     open,
@@ -101,6 +106,7 @@ export function AddAppointmentDialogContainer({
     <AddAppointmentDialogUI
       open={open}
       onOpenChange={setOpen}
+      mode={mode}
       form={form}
       loading={loading}
       patients={patients}
