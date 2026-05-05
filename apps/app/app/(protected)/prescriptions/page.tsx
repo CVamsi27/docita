@@ -1,16 +1,12 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useSearchParams } from "next/navigation";
 import { Pill } from "lucide-react";
 import { AppPageScaffold } from "@workspace/ui/components/app-page-scaffold";
 import { PageHeader } from "@workspace/ui/components/page-header";
 import { EmptyState } from "@workspace/ui/components/empty-state";
-import {
-  useDownloadPrescriptionPDF,
-  usePatientPrescriptions,
-  usePrescriptions,
-} from "@/hooks/api/use-clinical";
+import { useDownloadPrescriptionPDF, usePrescriptions } from "@/hooks/api/use-clinical";
 import { FeatureGate } from "@/features/_shared/components/auth/feature-gate";
 import { Feature } from "@/lib/stores/permission-store";
 import { useDebounce } from "@workspace/hooks/use-debounce";
@@ -31,23 +27,24 @@ export default function PrescriptionsPage() {
   const { user } = useAuth();
   const isDoctorRole =
     user?.role === "DOCTOR" || user?.role === "ADMIN_DOCTOR";
-  const patientScoped = patientIdFromUrl.length > 0;
   const todayLocal = getLocalCalendarDateString();
   const [searchQuery, setSearchQuery] = useState("");
+  const [patientId, setPatientId] = useState(patientIdFromUrl);
+  const [startDate, setStartDate] = useState(todayLocal);
+  const [endDate, setEndDate] = useState(todayLocal);
   const debouncedSearch = useDebounce(searchQuery, 300);
-  const { data: clinicPrescriptions = [], isLoading: clinicLoading } =
-    usePrescriptions(
-      {
-        search: debouncedSearch || undefined,
-        ...(isDoctorRole && !patientScoped ? { date: todayLocal } : {}),
-      },
-      { enabled: !patientScoped },
-    );
-  const { data: patientPrescriptions = [], isLoading: patientLoading } =
-    usePatientPrescriptions(patientIdFromUrl, { limit: 100 }, {
-      enabled: patientScoped,
-    });
-  const loading = patientScoped ? patientLoading : clinicLoading;
+
+  useEffect(() => {
+    setPatientId(patientIdFromUrl);
+  }, [patientIdFromUrl]);
+
+  const hasDateRange = startDate.trim().length > 0 && endDate.trim().length > 0;
+
+  const { data: prescriptionsData = [], isLoading: loading } = usePrescriptions({
+    search: debouncedSearch || undefined,
+    patientId: patientId.trim() ? patientId : undefined,
+    ...(hasDateRange ? { startDate, endDate } : {}),
+  });
   const [sortConfig, setSortConfig] = useState<{
     key: SortKey;
     direction: SortDirection;
@@ -66,9 +63,9 @@ export default function PrescriptionsPage() {
   };
 
   const prescriptions = useMemo(() => {
-    const rows = patientScoped ? patientPrescriptions : clinicPrescriptions;
+    const rows = prescriptionsData;
     const q = debouncedSearch.trim().toLowerCase();
-    if (!patientScoped || !q) {
+    if (!q) {
       return rows;
     }
     return rows.filter((p) => {
@@ -81,11 +78,28 @@ export default function PrescriptionsPage() {
       return name.includes(q) || dx.includes(q) || meds.includes(q);
     });
   }, [
-    patientScoped,
-    patientPrescriptions,
-    clinicPrescriptions,
+    prescriptionsData,
     debouncedSearch,
   ]);
+
+  const headerDescription = useMemo(() => {
+    const dateLabel = (() => {
+      if (!hasDateRange) return "all days";
+      if (startDate === endDate) {
+        return startDate === todayLocal
+          ? `today (${todayLocal})`
+          : `the day (${startDate})`;
+      }
+      return `${startDate} to ${endDate}`;
+    })();
+
+    const patientLabel = patientId.trim().length > 0 ? "Filtered to a patient." : "All patients.";
+
+    if (isDoctorRole) {
+      return `Showing prescriptions for ${dateLabel}. ${patientLabel}`;
+    }
+    return `Showing prescriptions for ${dateLabel}. ${patientLabel}`;
+  }, [endDate, hasDateRange, isDoctorRole, patientId, startDate, todayLocal]);
 
   const filteredAndSortedPrescriptions = useMemo(() => {
     const result = [...prescriptions];
@@ -145,19 +159,19 @@ export default function PrescriptionsPage() {
         header={
           <PageHeader
             title="Prescriptions"
-            description={
-              patientScoped
-                ? "Prescriptions for the patient from your link. Use search to narrow this list."
-                : isDoctorRole
-                  ? `Showing prescriptions dated today (${todayLocal}) for quick rounds. Add a patient filter from the consultation workspace when needed.`
-                  : "View and manage patient prescriptions."
-            }
+            description={headerDescription}
           />
         }
       >
         <PrescriptionsFilters
           searchQuery={searchQuery}
           setSearchQuery={setSearchQuery}
+          startDate={startDate}
+          endDate={endDate}
+          onStartDateChange={setStartDate}
+          onEndDateChange={setEndDate}
+          patientId={patientId}
+          onPatientIdChange={setPatientId}
         />
 
         <PrescriptionsTable

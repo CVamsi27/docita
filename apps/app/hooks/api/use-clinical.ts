@@ -52,6 +52,10 @@ export const usePrescriptions = (
   filters?: {
     search?: string;
     date?: string;
+    startDate?: string;
+    endDate?: string;
+    patientId?: string;
+    limit?: number;
   },
   options?: Omit<
     UseQueryOptions<PrescriptionListRow[], ApiError>,
