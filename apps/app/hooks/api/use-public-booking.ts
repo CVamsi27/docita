@@ -43,14 +43,18 @@ export function usePublicBookingSlots(
   doctorId: string,
   date: string,
 ) {
+  const doctorParam =
+    doctorId && doctorId !== "any"
+      ? `doctorId=${encodeURIComponent(doctorId)}&`
+      : "";
   return useQuery({
     queryKey: queryKeys.publicBooking.slots(referralCode, doctorId, date),
     queryFn: () =>
       fetchAPI<PublicBookingSlotsResponse>(
-        `${clinicsBase(referralCode)}/slots?doctorId=${encodeURIComponent(doctorId)}&date=${encodeURIComponent(date)}`,
+        `${clinicsBase(referralCode)}/slots?${doctorParam}date=${encodeURIComponent(date)}`,
         { skipAuth: true },
       ),
-    enabled: referralCode.length > 0 && !!doctorId && !!date,
+    enabled: referralCode.length > 0 && doctorId !== "" && !!date,
   });
 }
 

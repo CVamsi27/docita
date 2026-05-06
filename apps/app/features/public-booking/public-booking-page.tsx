@@ -627,6 +627,8 @@ interface PublicBookingPageProps {
   referralCode: string;
 }
 
+const ANY_DOCTOR_ID = "__ANY__";
+
 export function PublicBookingPage({ referralCode }: PublicBookingPageProps) {
   const siteKey = process.env.NEXT_PUBLIC_TURNSTILE_SITE_KEY;
   const [turnstileToken, setTurnstileToken] = useState<string | null>(null);
@@ -638,7 +640,11 @@ export function PublicBookingPage({ referralCode }: PublicBookingPageProps) {
   const [slotDate, setSlotDate] = useState(() => formatPickerIsoDate(new Date()));
   const [calendarMonth, setCalendarMonth] = useState(() => new Date());
 
-  const slotsQuery = usePublicBookingSlots(referralCode, doctorId, slotDate);
+  const slotsQuery = usePublicBookingSlots(
+    referralCode,
+    doctorId === ANY_DOCTOR_ID ? "any" : doctorId,
+    slotDate,
+  );
 
   const [firstName, setFirstName] = useState("");
   const [lastName, setLastName] = useState("");
@@ -649,6 +655,11 @@ export function PublicBookingPage({ referralCode }: PublicBookingPageProps) {
 
   const [selectedStart, setSelectedStart] = useState<string | null>(null);
   const [selectedEnd, setSelectedEnd] = useState<string | null>(null);
+  const [selectedSlotDoctorId, setSelectedSlotDoctorId] = useState<string | null>(
+    null,
+  );
+  const [timeRangeStart, setTimeRangeStart] = useState<string>("");
+  const [timeRangeEnd, setTimeRangeEnd] = useState<string>("");
 
   const [requiresOtp, setRequiresOtp] = useState<boolean | null>(null);
   const [otp, setOtp] = useState("");
@@ -680,6 +691,11 @@ export function PublicBookingPage({ referralCode }: PublicBookingPageProps) {
     }
   }, [slotDate]);
 
+  useEffect(() => {
+    setTimeRangeStart("");
+    setTimeRangeEnd("");
+  }, [slotDate, doctorId]);
+
   const pageState = useMemo(() => {
     if (clinicQuery.isLoading) return "loading" as const;
     if (clinicQuery.isError) return "error" as const;
@@ -689,7 +705,17 @@ export function PublicBookingPage({ referralCode }: PublicBookingPageProps) {
   const handleSelectSlot = useCallback((startIso: string, endIso: string) => {
     setSelectedStart(startIso);
     setSelectedEnd(endIso);
+    setSelectedSlotDoctorId(null);
   }, []);
+
+  const handleSelectSlotWithDoctor = useCallback(
+    (startIso: string, endIso: string, slotDoctorId: string) => {
+      setSelectedStart(startIso);
+      setSelectedEnd(endIso);
+      setSelectedSlotDoctorId(slotDoctorId);
+    },
+    [],
+  );
 
   const runPhoneCheck = useCallback(async () => {
     try {
@@ -744,10 +770,21 @@ export function PublicBookingPage({ referralCode }: PublicBookingPageProps) {
   };
 
   const handleSubmit = async () => {
-    if (!doctorId || !slotDate || !selectedStart || !selectedEnd) {
+    const resolvedDoctorId =
+      doctorId === ANY_DOCTOR_ID ? selectedSlotDoctorId : doctorId;
+
+    if (
+      !resolvedDoctorId ||
+      !slotDate ||
+      !selectedStart ||
+      !selectedEnd ||
+      (doctorId === ANY_DOCTOR_ID && !selectedSlotDoctorId)
+    ) {
       showUserFacingErrorToast(
         null,
-        "Choose a doctor, date, and available time slot.",
+        doctorId === ANY_DOCTOR_ID
+          ? "Choose a date and available time slot (we’ll assign an available doctor)."
+          : "Choose a doctor, date, and available time slot.",
         "form",
       );
       return;
@@ -782,7 +819,7 @@ export function PublicBookingPage({ referralCode }: PublicBookingPageProps) {
           firstName: firstName.trim(),
           lastName: lastName.trim(),
           email: email.trim() || undefined,
-          preferredDoctorId: doctorId,
+          preferredDoctorId: resolvedDoctorId,
           slotCalendarDate: slotDate,
           requestedSlotStart: selectedStart,
           requestedSlotEnd: selectedEnd,
@@ -807,7 +844,41 @@ export function PublicBookingPage({ referralCode }: PublicBookingPageProps) {
     () => (doctorsQuery.data?.doctors ?? []).find((d) => d.id === doctorId),
     [doctorId, doctorsQuery.data?.doctors],
   );
-  const selectedDoctorName = selectedDoctor?.name ?? null;
+  const selectedDoctorName =
+    doctorId === ANY_DOCTOR_ID ? "Any available doctor" : selectedDoctor?.name ?? null;
+
+  const clinic = clinicQuery.data;
+  const allSlots = useMemo(() => slotsQuery.data?.slots ?? [], [slotsQuery.data?.slots]);
+  const availableSlots = useMemo(
+    () => allSlots.filter((s) => s.isAvailable),
+    [allSlots],
+  );
+  const timeRangeOptions = useMemo(() => {
+    const uniq = (values: string[]) => Array.from(new Set(values)).filter(Boolean);
+    const sortIso = (a: string, b: string) =>
+      new Date(a).getTime() - new Date(b).getTime();
+
+    const starts = uniq(allSlots.map((s) => s.startTime)).sort(sortIso);
+    const ends = uniq(allSlots.map((s) => s.endTime)).sort(sortIso);
+
+    return { starts, ends };
+  }, [allSlots]);
+
+  const filteredAvailableSlots = useMemo(() => {
+    if (!timeRangeStart && !timeRangeEnd) return availableSlots;
+
+    const startMs = timeRangeStart ? new Date(timeRangeStart).getTime() : null;
+    const endMs = timeRangeEnd ? new Date(timeRangeEnd).getTime() : null;
+
+    return availableSlots.filter((s) => {
+      const sStart = new Date(s.startTime).getTime();
+      const sEnd = new Date(s.endTime).getTime();
+      if (Number.isNaN(sStart) || Number.isNaN(sEnd)) return false;
+      if (startMs !== null && sStart < startMs) return false;
+      if (endMs !== null && sEnd > endMs) return false;
+      return true;
+    });
+  }, [availableSlots, timeRangeEnd, timeRangeStart]);
 
   if (done) {
     return (
@@ -873,10 +944,6 @@ export function PublicBookingPage({ referralCode }: PublicBookingPageProps) {
       </AppPageScaffold>
     );
   }
-
-  const clinic = clinicQuery.data;
-  const allSlots = slotsQuery.data?.slots ?? [];
-  const availableSlots = allSlots.filter((s) => s.isAvailable);
   const facilityWord = clinic
     ? getFacilityLabel(clinic.facilityLabel ?? "CLINIC")
     : "Clinic";
@@ -1013,6 +1080,7 @@ export function PublicBookingPage({ referralCode }: PublicBookingPageProps) {
                           setDoctorId(v);
                           setSelectedStart(null);
                           setSelectedEnd(null);
+                          setSelectedSlotDoctorId(null);
                         }}
                       >
                         <SelectTrigger
@@ -1024,6 +1092,11 @@ export function PublicBookingPage({ referralCode }: PublicBookingPageProps) {
                           <SelectValue placeholder="Select a doctor" />
                         </SelectTrigger>
                         <SelectContent>
+                          {(doctorsQuery.data?.doctors ?? []).length > 1 ? (
+                            <SelectItem value={ANY_DOCTOR_ID}>
+                              Any available doctor
+                            </SelectItem>
+                          ) : null}
                           {(doctorsQuery.data?.doctors ?? []).map((d) => (
                             <SelectItem key={d.id} value={d.id}>
                               {d.name ?? "Doctor"}
@@ -1179,77 +1252,157 @@ export function PublicBookingPage({ referralCode }: PublicBookingPageProps) {
                           </div>
                         ) : (
                           <SlotTimesScrollArea
-                            enabled={availableSlots.length > 6}
+                            enabled={filteredAvailableSlots.length > 6}
                           >
-                            <ul className="grid min-w-0 grid-cols-1 gap-2.5 sm:grid-cols-2 sm:gap-3">
-                              {availableSlots.map((s) => {
-                                const selected = selectedStart === s.startTime;
-                                return (
-                                  <li
-                                    key={`${s.startTime}-${s.endTime}-${s.doctorId}`}
-                                    className="min-w-0"
-                                  >
-                                    <Button
-                                      type="button"
-                                      variant={selected ? "default" : "outline"}
-                                      className={cn(
-                                        "h-auto min-h-[3.25rem] w-full min-w-0 justify-start rounded-[var(--radius-md)] px-4 py-3 text-left outline-none ring-offset-background transition-colors duration-150 focus-visible:ring-2 focus-visible:ring-primary/35 focus-visible:ring-offset-2",
-                                        selected
-                                          ? "shadow-md"
-                                          : "touch-manipulation border-border/70 shadow-sm hover:border-primary/35 hover:bg-muted/25 hover:shadow-md",
-                                      )}
-                                      onClick={() =>
-                                        handleSelectSlot(s.startTime, s.endTime)
+                            <div className="mb-3 grid gap-3 rounded-[var(--radius-md)] border border-border/70 bg-card p-3 shadow-sm sm:grid-cols-2 sm:items-end sm:p-4">
+                              <div className="grid gap-2">
+                                <Label className="text-[length:var(--fs-xs)] font-normal text-muted-foreground">
+                                  Time range (from)
+                                </Label>
+                                <Select
+                                  value={timeRangeStart}
+                                  onValueChange={(v) => {
+                                    setTimeRangeStart(v);
+                                    if (timeRangeEnd) {
+                                      const s = new Date(v).getTime();
+                                      const e = new Date(timeRangeEnd).getTime();
+                                      if (
+                                        Number.isFinite(s) &&
+                                        Number.isFinite(e) &&
+                                        e <= s
+                                      ) {
+                                        setTimeRangeEnd("");
                                       }
+                                    }
+                                  }}
+                                >
+                                  <SelectTrigger className="h-11 rounded-[var(--radius-md)] border-border/70 bg-background shadow-sm">
+                                    <SelectValue placeholder="Any time" />
+                                  </SelectTrigger>
+                                  <SelectContent>
+                                    <SelectItem value="">Any time</SelectItem>
+                                    {timeRangeOptions.starts.map((t) => (
+                                      <SelectItem key={t} value={t}>
+                                        {formatTime(t)}
+                                      </SelectItem>
+                                    ))}
+                                  </SelectContent>
+                                </Select>
+                              </div>
+                              <div className="grid gap-2">
+                                <Label className="text-[length:var(--fs-xs)] font-normal text-muted-foreground">
+                                  Time range (to)
+                                </Label>
+                                <Select
+                                  value={timeRangeEnd}
+                                  onValueChange={setTimeRangeEnd}
+                                >
+                                  <SelectTrigger className="h-11 rounded-[var(--radius-md)] border-border/70 bg-background shadow-sm">
+                                    <SelectValue placeholder="Any time" />
+                                  </SelectTrigger>
+                                  <SelectContent>
+                                    <SelectItem value="">Any time</SelectItem>
+                                    {timeRangeOptions.ends.map((t) => (
+                                      <SelectItem key={t} value={t}>
+                                        {formatTime(t)}
+                                      </SelectItem>
+                                    ))}
+                                  </SelectContent>
+                                </Select>
+                              </div>
+                            </div>
+
+                            {filteredAvailableSlots.length === 0 ? (
+                              <EmptyState
+                                icon={Clock}
+                                title="No openings in this time range"
+                                description="Try a wider window or clear the time range to see all openings for this day."
+                                className="flex flex-1 flex-col justify-center rounded-[var(--radius-md)] border border-dashed border-border/70 bg-muted/10 py-6 shadow-sm sm:py-8 xl:min-h-0 [&_.ui-section-title]:text-[length:var(--fs-base)]"
+                              />
+                            ) : (
+                              <ul className="grid min-w-0 grid-cols-1 gap-2.5 sm:grid-cols-2 sm:gap-3">
+                                {filteredAvailableSlots.map((s) => {
+                                  const selected =
+                                    selectedStart === s.startTime &&
+                                    (doctorId !== ANY_DOCTOR_ID ||
+                                      selectedSlotDoctorId === s.doctorId);
+                                  return (
+                                    <li
+                                      key={`${s.startTime}-${s.endTime}-${s.doctorId}`}
+                                      className="min-w-0"
                                     >
-                                      <span className="flex min-w-0 flex-1 flex-col gap-1 overflow-hidden">
-                                        <span
-                                          className={cn(
-                                            "text-[length:var(--fs-sm)] font-medium tracking-tight",
-                                            selected && "text-primary-foreground",
-                                          )}
-                                        >
-                                          {formatTime(s.startTime)}{" "}
+                                      <Button
+                                        type="button"
+                                        variant={selected ? "default" : "outline"}
+                                        className={cn(
+                                          "h-auto min-h-[3.25rem] w-full min-w-0 justify-start rounded-[var(--radius-md)] px-4 py-3 text-left outline-none ring-offset-background transition-colors duration-150 focus-visible:ring-2 focus-visible:ring-primary/35 focus-visible:ring-offset-2",
+                                          selected
+                                            ? "shadow-md ring-2 ring-primary/45 ring-offset-2 ring-offset-background border border-primary/40"
+                                            : "touch-manipulation border-border/70 shadow-sm hover:border-primary/35 hover:bg-muted/25 hover:shadow-md",
+                                        )}
+                                        onClick={() =>
+                                          doctorId === ANY_DOCTOR_ID
+                                            ? handleSelectSlotWithDoctor(
+                                                s.startTime,
+                                                s.endTime,
+                                                s.doctorId,
+                                              )
+                                            : handleSelectSlot(
+                                                s.startTime,
+                                                s.endTime,
+                                              )
+                                        }
+                                      >
+                                        <span className="flex min-w-0 flex-1 flex-col gap-1 overflow-hidden">
                                           <span
-                                            aria-hidden
                                             className={cn(
-                                              "font-normal",
-                                              selected
-                                                ? "text-primary-foreground/85"
-                                                : "text-muted-foreground/90",
+                                              "text-[length:var(--fs-sm)] font-medium tracking-tight",
+                                              selected &&
+                                                "text-primary-foreground",
                                             )}
                                           >
-                                            -
-                                          </span>{" "}
-                                          {formatTime(s.endTime)}
-                                        </span>
-                                        {s.doctorName ? (
-                                          <span
-                                            className={cn(
-                                              "truncate text-[length:var(--fs-xs)]",
-                                              selected
-                                                ? "text-primary-foreground/90"
-                                                : "text-muted-foreground",
-                                            )}
-                                          >
-                                            {s.doctorName}
-                                            {s.specialization
-                                              ? ` - ${s.specialization}`
-                                              : ""}
+                                            {formatTime(s.startTime)}{" "}
+                                            <span
+                                              aria-hidden
+                                              className={cn(
+                                                "font-normal",
+                                                selected
+                                                  ? "text-primary-foreground/85"
+                                                  : "text-muted-foreground/90",
+                                              )}
+                                            >
+                                              -
+                                            </span>{" "}
+                                            {formatTime(s.endTime)}
                                           </span>
+                                          {s.doctorName ? (
+                                            <span
+                                              className={cn(
+                                                "truncate text-[length:var(--fs-xs)]",
+                                                selected
+                                                  ? "text-primary-foreground/90"
+                                                  : "text-muted-foreground",
+                                              )}
+                                            >
+                                              {s.doctorName}
+                                              {s.specialization
+                                                ? ` - ${s.specialization}`
+                                                : ""}
+                                            </span>
+                                          ) : null}
+                                        </span>
+                                        {selected ? (
+                                          <CheckCircle2
+                                            className="ml-3 h-[1.125rem] w-[1.125rem] shrink-0 text-primary-foreground"
+                                            aria-hidden
+                                          />
                                         ) : null}
-                                      </span>
-                                      {selected ? (
-                                        <CheckCircle2
-                                          className="ml-3 h-[1.125rem] w-[1.125rem] shrink-0 text-primary-foreground"
-                                          aria-hidden
-                                        />
-                                      ) : null}
-                                    </Button>
-                                  </li>
-                                );
-                              })}
-                            </ul>
+                                      </Button>
+                                    </li>
+                                  );
+                                })}
+                              </ul>
+                            )}
                           </SlotTimesScrollArea>
                         )}
                         </div>
