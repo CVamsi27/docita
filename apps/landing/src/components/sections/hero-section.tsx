@@ -58,7 +58,7 @@ export function HeroSection({ appUrl }: HeroSectionProps) {
           initial="hidden"
           animate="visible"
         >
-          <div className="col-span-12 mt-0 sm:mt-6 lg:col-span-7 lg:mt-0 lg:pr-6 xl:col-span-6">
+          <div className="col-span-12 mt-0 sm:mt-4 lg:col-span-7 lg:mt-0 lg:pr-6 xl:col-span-6">
             <motion.div variants={item}>
               <span className="r2-eyebrow r2-eyebrow-accent">
                 India · Private clinics · OPD
