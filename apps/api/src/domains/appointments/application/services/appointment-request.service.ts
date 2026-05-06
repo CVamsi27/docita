@@ -20,6 +20,7 @@ import {
 } from '@/domains/appointments/core/repositories/appointment-request.repository.interface';
 import { AppointmentService } from '@/domains/appointments/application/services/appointment.service';
 import { SystemEventsService } from '@/shared/modules/messaging/whatsapp/system-events.service';
+import { StaffNotificationService } from '@/shared/modules/messaging/whatsapp/staff-notification.service';
 
 @Injectable()
 export class AppointmentRequestService {
@@ -28,6 +29,7 @@ export class AppointmentRequestService {
     private readonly appointmentRequestRepository: IAppointmentRequestRepository,
     private readonly appointmentService: AppointmentService,
     private readonly systemEvents: SystemEventsService,
+    private readonly staffNotifications: StaffNotificationService,
   ) {}
 
   private parseDate(value: string, fieldName: string): Date {
@@ -100,6 +102,26 @@ export class AppointmentRequestService {
       notes: data.notes,
     });
 
+    await this.staffNotifications.notifyStaff({
+      clinicId,
+      doctorId: data.preferredDoctorId ?? undefined,
+      type: 'APPOINTMENT_REQUEST_CREATED',
+      title: 'New appointment request',
+      message: 'A patient requested an appointment via the booking portal.',
+      data: {
+        appointmentRequestId: request.id,
+        patientId,
+        preferredDoctorId: data.preferredDoctorId ?? null,
+        preferredDate: preferredDate.toISOString(),
+        preferredTime: data.preferredTime ?? null,
+        requestedSlotStart: requestedSlotStart?.toISOString() ?? null,
+        requestedSlotEnd: requestedSlotEnd?.toISOString() ?? null,
+      },
+      priority: 'HIGH',
+      sendWhatsApp: false,
+      sendInApp: true,
+    });
+
     return this.mapRequest(request);
   }
 
@@ -160,6 +182,22 @@ export class AppointmentRequestService {
       responseMessage: `Booked appointment ${appointment.id}`,
     });
 
+    await this.staffNotifications.notifyStaff({
+      clinicId,
+      doctorId: data.doctorId,
+      type: 'APPOINTMENT_REQUEST_APPROVED',
+      title: 'Appointment request approved',
+      message: 'A patient appointment request was approved and booked.',
+      data: {
+        appointmentRequestId: updated.id,
+        appointmentId: appointment.id,
+        patientId: updated.patientId,
+      },
+      priority: 'NORMAL',
+      sendWhatsApp: false,
+      sendInApp: true,
+    });
+
     return this.mapRequest(updated);
   }
 
@@ -175,6 +213,20 @@ export class AppointmentRequestService {
       reviewedBy: { connect: { id: reviewedById } },
       reviewedAt: new Date(),
       responseMessage: data.responseMessage,
+    });
+
+    await this.staffNotifications.notifyStaff({
+      clinicId,
+      type: 'APPOINTMENT_REQUEST_REJECTED',
+      title: 'Appointment request rejected',
+      message: 'A patient appointment request was rejected.',
+      data: {
+        appointmentRequestId: updated.id,
+        patientId: updated.patientId,
+      },
+      priority: 'LOW',
+      sendWhatsApp: false,
+      sendInApp: true,
     });
 
     return this.mapRequest(updated);
