@@ -1,5 +1,5 @@
 import { describe, expect, it, vi, beforeEach } from "vitest";
-import { render, screen } from "@testing-library/react";
+import { fireEvent, render, screen, waitFor } from "@testing-library/react";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { TooltipProvider } from "@workspace/ui/components/tooltip";
 import { NotificationPanel } from "./notification-panel";
@@ -59,19 +59,26 @@ describe("NotificationPanel", () => {
     vi.clearAllMocks();
   });
 
-  it("renders notifications and supports closing", async () => {
+  it("filters to Appointment requests tab", async () => {
     renderWithQuery(<NotificationPanel open onOpenChange={() => {}} enabled />);
-
-    expect(
-      await screen.findByRole("heading", { name: /notifications/i }),
-    ).toBeVisible();
 
     expect(
       await screen.findByText(/new appointment request/i),
     ).toBeVisible();
     expect(await screen.findByText(/invoice approval required/i)).toBeVisible();
 
-    expect(screen.getAllByRole("button", { name: /close/i }).length).toBeGreaterThan(0);
+    const appointmentRequestsTab = await screen.findByRole("tab", {
+      name: /appointment requests/i,
+    });
+    fireEvent.mouseDown(appointmentRequestsTab);
+    fireEvent.click(appointmentRequestsTab);
+
+    expect(
+      await screen.findByText(/new appointment request/i),
+    ).toBeVisible();
+    await waitFor(() => {
+      expect(screen.queryByText(/invoice approval required/i)).toBeNull();
+    });
   });
 });
 

@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useQueryClient } from "@tanstack/react-query";
 import {
   Sheet,
@@ -12,6 +12,12 @@ import { Button } from "@workspace/ui/components/button";
 import { SymbolTooltip } from "@workspace/ui/components/tooltip";
 import { Badge } from "@workspace/ui/components/badge";
 import { ScrollArea } from "@workspace/ui/components/scroll-area";
+import {
+  Tabs,
+  TabsContent,
+  TabsList,
+  TabsTrigger,
+} from "@workspace/ui/components/tabs";
 import { BellIcon, CheckIcon, TrashIcon, XIcon } from "lucide-react";
 import { cn } from "@workspace/ui/lib/utils";
 import { PriorityBadge } from "@workspace/ui/components/status-badge";
@@ -36,6 +42,10 @@ function NotificationItem({ notification, onMarkRead }: NotificationItemProps) {
     NORMAL: "medium",
     LOW: "low",
   } as const;
+  const mappedPriority =
+    notification.priority in priorityMap
+      ? priorityMap[notification.priority as keyof typeof priorityMap]
+      : "medium";
 
   return (
     <div
@@ -50,7 +60,7 @@ function NotificationItem({ notification, onMarkRead }: NotificationItemProps) {
             <h4 className="text-sm font-medium">{notification.title}</h4>
             {notification.priority !== "NORMAL" && (
               <PriorityBadge
-                priority={priorityMap[notification.priority]}
+                priority={mappedPriority}
                 showDot={false}
               />
             )}
@@ -109,6 +119,76 @@ function categorizeNotifications(
   return { today, yesterday, older };
 }
 
+type NotificationTabId =
+  | "all"
+  | "appointment-requests"
+  | "appointments"
+  | "prescriptions"
+  | "invoices"
+  | "payments-plan"
+  | "system";
+
+type NotificationTabDef = {
+  id: NotificationTabId;
+  label: string;
+  typeAllowList?: readonly string[];
+};
+
+const NOTIFICATION_TABS: readonly NotificationTabDef[] = [
+  { id: "all", label: "All" },
+  {
+    id: "appointment-requests",
+    label: "Appointment requests",
+    typeAllowList: [
+      "APPOINTMENT_REQUEST_CREATED",
+      "APPOINTMENT_REQUEST_APPROVED",
+      "APPOINTMENT_REQUEST_REJECTED",
+    ],
+  },
+  {
+    id: "appointments",
+    label: "Appointments",
+    typeAllowList: [
+      "APPOINTMENT_CANCEL",
+      "APPOINTMENT_DELAY",
+      "APPOINTMENT_RESCHEDULED",
+      "APPOINTMENT_NO_SHOW",
+      "APPOINTMENT_CONFIRMED",
+    ],
+  },
+  {
+    id: "prescriptions",
+    label: "Prescriptions",
+    typeAllowList: ["PRESCRIPTION_PENDING", "PRESCRIPTION_SENT", "PRESCRIPTION_FAILED"],
+  },
+  {
+    id: "invoices",
+    label: "Invoices",
+    typeAllowList: ["INVOICE_PENDING", "INVOICE_SENT", "INVOICE_FAILED"],
+  },
+  {
+    id: "payments-plan",
+    label: "Payments & plan",
+    typeAllowList: [
+      "SUBSCRIPTION_PAYMENT_DUE_SOON",
+      "SUBSCRIPTION_PAYMENT_OVERDUE",
+      "SUBSCRIPTION_PAYMENT_SUCCESS",
+      "SUBSCRIPTION_PAYMENT_FAILED",
+      "PAYMENT_PROVIDER_STATUS_UPDATE",
+    ],
+  },
+  { id: "system", label: "System", typeAllowList: ["SYSTEM_ALERT"] },
+] as const;
+
+function filterNotificationsForTab(
+  notifications: StaffNotification[],
+  tab: NotificationTabDef,
+): StaffNotification[] {
+  if (!tab.typeAllowList) return notifications;
+  const allowed = new Set(tab.typeAllowList);
+  return notifications.filter((n) => allowed.has(n.type));
+}
+
 interface NotificationPanelProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
@@ -127,6 +207,7 @@ export function NotificationPanel({
   const queryClient = useQueryClient();
   const { socket } = useSocket();
   const [isDeleting, setIsDeleting] = useState(false);
+  const [activeTab, setActiveTab] = useState<NotificationTabId>("all");
 
   useEffect(() => {
     if (!socket || !enabled) return;
@@ -185,8 +266,22 @@ export function NotificationPanel({
   };
 
   const activeNotifications = notifications.filter((n) => !n.deletedAt);
-  const categorized = categorizeNotifications(activeNotifications);
   const unreadCount = activeNotifications.filter((n) => !n.isRead).length;
+
+  const notificationsByTab = useMemo(() => {
+    return Object.fromEntries(
+      NOTIFICATION_TABS.map((tab) => [tab.id, filterNotificationsForTab(activeNotifications, tab)]),
+    ) as Record<NotificationTabId, StaffNotification[]>;
+  }, [activeNotifications]);
+
+  const unreadCountByTab = useMemo(() => {
+    return Object.fromEntries(
+      NOTIFICATION_TABS.map((tab) => [
+        tab.id,
+        (notificationsByTab[tab.id] ?? []).filter((n) => !n.isRead).length,
+      ]),
+    ) as Record<NotificationTabId, number>;
+  }, [notificationsByTab]);
 
   return (
     <Sheet open={open} onOpenChange={handleOpenChange}>
@@ -246,56 +341,104 @@ export function NotificationPanel({
                   Clear all
                 </Button>
               </div>
-              {categorized.today.length > 0 && (
-                <div>
-                  <h3 className="mb-2 px-4 text-xs font-semibold uppercase text-muted-foreground">
-                    Today
-                  </h3>
-                  <div>
-                    {categorized.today.map((notification) => (
-                      <NotificationItem
-                        key={notification.id}
-                        notification={notification}
-                        onMarkRead={handleMarkRead}
-                      />
-                    ))}
-                  </div>
-                </div>
-              )}
 
-              {categorized.yesterday.length > 0 && (
-                <div>
-                  <h3 className="mb-2 px-4 text-xs font-semibold uppercase text-muted-foreground">
-                    Yesterday
-                  </h3>
-                  <div>
-                    {categorized.yesterday.map((notification) => (
-                      <NotificationItem
-                        key={notification.id}
-                        notification={notification}
-                        onMarkRead={handleMarkRead}
-                      />
-                    ))}
-                  </div>
-                </div>
-              )}
+              <div className="px-4">
+                <Tabs
+                  value={activeTab}
+                  onValueChange={(next) => setActiveTab(next as NotificationTabId)}
+                >
+                  <TabsList className="w-full justify-start overflow-x-auto">
+                    {NOTIFICATION_TABS.map((tab) => {
+                      const count = unreadCountByTab[tab.id] ?? 0;
+                      return (
+                        <TabsTrigger key={tab.id} value={tab.id} className="gap-2">
+                          <span>{tab.label}</span>
+                          {count > 0 && (
+                            <Badge variant="secondary" className="h-5 px-1.5">
+                              {count}
+                            </Badge>
+                          )}
+                        </TabsTrigger>
+                      );
+                    })}
+                  </TabsList>
 
-              {categorized.older.length > 0 && (
-                <div>
-                  <h3 className="mb-2 px-4 text-xs font-semibold uppercase text-muted-foreground">
-                    Older
-                  </h3>
-                  <div>
-                    {categorized.older.map((notification) => (
-                      <NotificationItem
-                        key={notification.id}
-                        notification={notification}
-                        onMarkRead={handleMarkRead}
-                      />
-                    ))}
-                  </div>
-                </div>
-              )}
+                  {NOTIFICATION_TABS.map((tab) => {
+                    const items = notificationsByTab[tab.id] ?? [];
+                    const categorized = categorizeNotifications(items);
+                    const isEmpty =
+                      categorized.today.length === 0 &&
+                      categorized.yesterday.length === 0 &&
+                      categorized.older.length === 0;
+
+                    return (
+                      <TabsContent key={tab.id} value={tab.id} className="mt-4">
+                        {isEmpty ? (
+                          <div className="flex flex-col items-center justify-center py-10 text-center">
+                            <BellIcon className="mb-3 h-10 w-10 text-muted-foreground" />
+                            <p className="text-sm text-muted-foreground">
+                              No {tab.label.toLowerCase()} notifications
+                            </p>
+                          </div>
+                        ) : (
+                          <div className="space-y-4">
+                            {categorized.today.length > 0 && (
+                              <div>
+                                <h3 className="mb-2 text-xs font-semibold uppercase text-muted-foreground">
+                                  Today
+                                </h3>
+                                <div className="rounded-md border">
+                                  {categorized.today.map((notification) => (
+                                    <NotificationItem
+                                      key={notification.id}
+                                      notification={notification}
+                                      onMarkRead={handleMarkRead}
+                                    />
+                                  ))}
+                                </div>
+                              </div>
+                            )}
+
+                            {categorized.yesterday.length > 0 && (
+                              <div>
+                                <h3 className="mb-2 text-xs font-semibold uppercase text-muted-foreground">
+                                  Yesterday
+                                </h3>
+                                <div className="rounded-md border">
+                                  {categorized.yesterday.map((notification) => (
+                                    <NotificationItem
+                                      key={notification.id}
+                                      notification={notification}
+                                      onMarkRead={handleMarkRead}
+                                    />
+                                  ))}
+                                </div>
+                              </div>
+                            )}
+
+                            {categorized.older.length > 0 && (
+                              <div>
+                                <h3 className="mb-2 text-xs font-semibold uppercase text-muted-foreground">
+                                  Older
+                                </h3>
+                                <div className="rounded-md border">
+                                  {categorized.older.map((notification) => (
+                                    <NotificationItem
+                                      key={notification.id}
+                                      notification={notification}
+                                      onMarkRead={handleMarkRead}
+                                    />
+                                  ))}
+                                </div>
+                              </div>
+                            )}
+                          </div>
+                        )}
+                      </TabsContent>
+                    );
+                  })}
+                </Tabs>
+              </div>
             </div>
           )}
         </ScrollArea>
