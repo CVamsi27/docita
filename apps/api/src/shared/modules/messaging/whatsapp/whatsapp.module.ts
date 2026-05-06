@@ -56,6 +56,7 @@ import { SupportWhatsAppModule } from '@/shared/modules/support-whatsapp';
     WhatsappWebhookService,
     ResponseHandlerService,
     StaffNotificationService,
+    SystemEventsService,
   ],
 })
 export class WhatsappModule {}

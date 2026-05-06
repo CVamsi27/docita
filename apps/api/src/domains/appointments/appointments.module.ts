@@ -17,9 +17,10 @@ import { PrismaAppointmentRequestRepository } from './infrastructure/repositorie
 import { QUEUE_REPOSITORY_TOKEN } from './core/repositories/queue.repository.interface';
 import { FOLLOW_UP_REPOSITORY_TOKEN } from './core/repositories/follow-up.repository.interface';
 import { APPOINTMENT_REQUEST_REPOSITORY_TOKEN } from './core/repositories/appointment-request.repository.interface';
+import { WhatsappModule } from '@/shared/modules/messaging/whatsapp/whatsapp.module';
 
 @Module({
-  imports: [PatientsModule],
+  imports: [PatientsModule, WhatsappModule],
   controllers: [
     AppointmentsController,
     AppointmentRequestController,

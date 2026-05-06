@@ -75,7 +75,12 @@ describe('SystemEventsService', () => {
               phoneNumber: '919876543212',
             },
             doctor: { name: 'Dr. Sharma' },
-            clinic: { name: 'Test Clinic' },
+            clinic: {
+              name: 'Test Clinic',
+              settings: {
+                mapsLocation: { lat: 12.9716, lng: 77.5946 },
+              },
+            },
           })),
       },
     };
@@ -240,6 +245,7 @@ describe('SystemEventsService', () => {
             patientName: 'Sunita Devi',
             clinicName: 'Test Clinic',
             doctorName: 'Dr. Sharma',
+            mapsLink: 'https://www.google.com/maps?q=12.9716,77.5946',
           }),
         }),
       );

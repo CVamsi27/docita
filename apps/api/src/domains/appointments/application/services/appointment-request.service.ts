@@ -19,6 +19,7 @@ import {
   IAppointmentRequestRepository,
 } from '@/domains/appointments/core/repositories/appointment-request.repository.interface';
 import { AppointmentService } from '@/domains/appointments/application/services/appointment.service';
+import { SystemEventsService } from '@/shared/modules/messaging/whatsapp/system-events.service';
 
 @Injectable()
 export class AppointmentRequestService {
@@ -26,6 +27,7 @@ export class AppointmentRequestService {
     @Inject(APPOINTMENT_REQUEST_REPOSITORY_TOKEN)
     private readonly appointmentRequestRepository: IAppointmentRequestRepository,
     private readonly appointmentService: AppointmentService,
+    private readonly systemEvents: SystemEventsService,
   ) {}
 
   private parseDate(value: string, fieldName: string): Date {
@@ -145,6 +147,11 @@ export class AppointmentRequestService {
       reason: data.notes ?? request.notes ?? request.reason,
       type: data.type ?? 'Standard',
     });
+
+    await this.systemEvents.sendAppointmentConfirmation(
+      appointment.id,
+      clinicId,
+    );
 
     const updated = await this.appointmentRequestRepository.update(id, {
       status: AppointmentRequestStatus.APPROVED,
