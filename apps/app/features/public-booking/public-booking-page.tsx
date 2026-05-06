@@ -184,7 +184,7 @@ function BookingSectionHeader({
 }
 
 const bookingSteps = [
-  "Choose a doctor and time",
+  "Choose a preferred day (optionally doctor/time)",
   "Share your contact details",
   "Send the request for confirmation",
 ] as const;
@@ -306,7 +306,7 @@ function PublicBookingHero({
       <PageHeader
         eyebrow="Book a visit"
         title={clinicName}
-        description={`Request a visit at this ${facilityLabel.toLowerCase()} in a few minutes — choose a doctor and time, add your contact details, then send the request for the team to confirm.`}
+        description={`Request a visit at this ${facilityLabel.toLowerCase()} in a few minutes — pick a day (and optionally a doctor/time), add your contact details, then send the request for the team to confirm.`}
         descriptionClassName="max-w-none min-w-0 text-[length:var(--fs-sm)] leading-tight whitespace-nowrap overflow-x-auto pb-0.5 [scrollbar-width:thin]"
         actions={
           <Badge
@@ -828,7 +828,7 @@ export function PublicBookingPage({ referralCode }: PublicBookingPageProps) {
       showUserFacingErrorToast(
         error,
         "We could not submit your request. Please try again.",
-        "form",
+        "generic",
       );
     }
   };
