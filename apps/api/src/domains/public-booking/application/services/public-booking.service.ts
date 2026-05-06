@@ -21,6 +21,7 @@ import {
   patientDomainUpdateSchema,
   publicBookingOtpVerifySchema,
   publicBookingPhoneCheckRequestSchema,
+  publicBookingSlotsQuerySchema,
   publicBookingSubmitRequestSchema,
 } from '@workspace/types';
 import { PrismaService } from '@/prisma/prisma.service';
@@ -183,22 +184,42 @@ export class PublicBookingService {
 
   async listSlots(
     referralCode: string,
-    doctorId: string,
-    date: string,
+    rawQuery: unknown,
   ): Promise<PublicBookingSlotsResponse> {
     return this.withBookingTenant(referralCode, async (clinic) => {
-      const belongs = await this.doctorBelongsToClinic(doctorId, clinic.id);
-      if (!belongs) {
-        throw new BadRequestException('Doctor is not available at this clinic');
+      const parsed = publicBookingSlotsQuerySchema.safeParse(rawQuery);
+      if (!parsed.success) {
+        throw new BadRequestException('Invalid slot query');
+      }
+
+      const { doctorId, date, rangeStart, rangeEnd } = parsed.data;
+      const resolvedDoctorId = doctorId === 'any' ? undefined : doctorId;
+
+      if (resolvedDoctorId) {
+        const belongs = await this.doctorBelongsToClinic(
+          resolvedDoctorId,
+          clinic.id,
+        );
+        if (!belongs) {
+          throw new BadRequestException(
+            'Doctor is not available at this clinic',
+          );
+        }
       }
 
       const { slots, slotListEmptyReason } =
         await this.slotGeneration.getAvailableSlotsWithMeta(
           clinic.id,
           date,
-          doctorId,
+          resolvedDoctorId,
         );
-      const mapped = slots.map((s) => ({
+      const filtered = slots.filter((s) => {
+        if (rangeStart && s.time < rangeStart) return false;
+        if (rangeEnd && s.endTime > rangeEnd) return false;
+        return true;
+      });
+
+      const mapped = filtered.map((s) => ({
         doctorId: s.doctorId,
         doctorName: s.doctorName,
         specialization: s.specialization,
