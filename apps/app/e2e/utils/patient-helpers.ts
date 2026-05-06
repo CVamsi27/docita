@@ -413,10 +413,13 @@ async function setupTestUserImpl(
           role: "ADMIN_DOCTOR",
         },
         planSelection: {
-          tier: "STARTER",
+          tier: "ESSENTIAL",
           billingCycle: "MONTHLY",
           currency: "INR",
           workspaceProfile,
+        },
+        paymentDetails: {
+          skipPayment: true,
         },
         slaAgreement: {
           acceptedSLA: true,
@@ -444,10 +447,40 @@ async function setupTestUserImpl(
   }
 
   const completeData = await completeRes.json();
-  accessToken =
-    completeData.access_token || completeData.accessToken || accessToken;
   const userFromComplete = completeData.user ?? registerData.user;
   const clinicId = userFromComplete.clinicId || completeData.clinicId;
+
+  // Always perform a fresh login after onboarding completion.
+  // The API associates the user to the clinic during onboarding; using a fresh
+  // login avoids relying on onboarding response token shapes and ensures JWT
+  // validation sees the latest persisted clinic association.
+  const postOnboardingLoginRes = await request.post(`${API_URL}/auth/login`, {
+    headers: {
+      ...requestHeadersWithClientIp,
+      Cookie: "XSRF-TOKEN=e2e-csrf-token",
+      "X-XSRF-TOKEN": "e2e-csrf-token",
+    },
+    data: {
+      email,
+      password,
+    },
+  });
+
+  if (!postOnboardingLoginRes.ok()) {
+    throw new Error(
+      `Post-onboarding login failed: ${await postOnboardingLoginRes.text()}`,
+    );
+  }
+
+  const postOnboardingLoginData = await postOnboardingLoginRes.json();
+  accessToken =
+    postOnboardingLoginData.access_token ||
+    postOnboardingLoginData.accessToken ||
+    accessToken;
+  const userId =
+    postOnboardingLoginData.user?.id ??
+    postOnboardingLoginData.userId ??
+    registerData.user.id;
 
   const tokenRes = await request.post(
     `${API_URL}/doctors/signature/generate-token`,
@@ -502,25 +535,6 @@ async function setupTestUserImpl(
       `Doctor registration number update failed: ${await regNumberRes.text()}`,
     );
   }
-
-  const loginRes = await request.post(`${API_URL}/auth/login`, {
-    headers: {
-      ...requestHeadersWithClientIp,
-      Cookie: "XSRF-TOKEN=e2e-csrf-token",
-      "X-XSRF-TOKEN": "e2e-csrf-token",
-    },
-    data: {
-      email,
-      password,
-    },
-  });
-
-  if (!loginRes.ok()) {
-    throw new Error(`Post-onboarding login failed: ${await loginRes.text()}`);
-  }
-
-  const loginData = await loginRes.json();
-  accessToken = loginData.access_token || loginData.accessToken || accessToken;
 
   return {
     id: userId,
