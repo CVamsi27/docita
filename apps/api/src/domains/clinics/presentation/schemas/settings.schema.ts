@@ -22,6 +22,13 @@ const TaxSettingsSchema = z.object({
   registrationLabel: z.string().trim().optional(),
 });
 
+const MapsLocationSchema = z
+  .object({
+    lat: z.number(),
+    lng: z.number(),
+  })
+  .strict();
+
 export const ClinicSettingsSchema = z.object({
   description: z.string().optional(),
   openingTime: z.string().optional(),
@@ -79,6 +86,9 @@ export const ClinicSettingsSchema = z.object({
   taxSettings: TaxSettingsSchema.optional(),
 
   workspaceProfile: workspaceProfileSchema.optional(),
+
+  /** Used for patient-facing directions (e.g., WhatsApp confirmations). */
+  mapsLocation: MapsLocationSchema.optional(),
 });
 
 export type ClinicSettings = z.infer<typeof ClinicSettingsSchema>;

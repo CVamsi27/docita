@@ -121,6 +121,12 @@ function applyClinicAddressSelection(
     shouldTouch: true,
     shouldValidate: true,
   });
+
+  clinicForm.setValue("mapsLocation", selection.location, {
+    shouldDirty: true,
+    shouldTouch: true,
+    shouldValidate: false,
+  });
 }
 
 interface ClinicDetailsStepProps {
