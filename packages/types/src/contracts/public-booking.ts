@@ -67,6 +67,17 @@ export const publicBookingSlotsResponseSchema = z
   })
   .strict();
 
+export const publicBookingSlotsQuerySchema = z
+  .object({
+    doctorId: z.string().min(1).optional(),
+    date: z.string().regex(/^\d{4}-\d{2}-\d{2}$/),
+    /** Optional time window in clinic timezone (HH:mm). */
+    rangeStart: z.string().regex(/^\d{2}:\d{2}$/).optional(),
+    /** Optional time window in clinic timezone (HH:mm). */
+    rangeEnd: z.string().regex(/^\d{2}:\d{2}$/).optional(),
+  })
+  .strict();
+
 export const publicBookingPhoneCheckRequestSchema = z
   .object({
     phoneNumber: z.string().min(8).max(32),
@@ -167,6 +178,7 @@ export type PublicBookingDoctorsResponse = z.infer<
 export type PublicBookingSlotsResponse = z.infer<
   typeof publicBookingSlotsResponseSchema
 >;
+export type PublicBookingSlotsQuery = z.infer<typeof publicBookingSlotsQuerySchema>;
 export type PublicBookingPhoneCheckRequest = z.infer<
   typeof publicBookingPhoneCheckRequestSchema
 >;
