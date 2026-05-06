@@ -1,5 +1,71 @@
 # Essential Staff Notifications Taxonomy
 
+Defines the **in-app staff notifications** contract: which notifications exist, who should receive them, and what payloads are allowed.
+
+## Safety constraints (healthcare-grade)
+- **Do not include PHI** in notification `data` unless strictly required for staff action.
+- Prefer `data.{entityId}` references over embedding full entities.
+- Keep messages generic; the UI can fetch details by ID where needed.
+
+## Routing principles
+- **Front desk**: `RECEPTIONIST`, `ADMIN`, `ADMIN_DOCTOR`
+- **Clinical**: `DOCTOR`, `ADMIN_DOCTOR`
+- **Financial**: `ADMIN`, `ADMIN_DOCTOR`
+- **System/platform**: `ADMIN`, `ADMIN_DOCTOR`
+
+Routing is centralized in:
+- [`apps/api/src/shared/modules/messaging/whatsapp/staff-notification.service.ts`](../apps/api/src/shared/modules/messaging/whatsapp/staff-notification.service.ts)
+
+## Priority definitions
+- `URGENT`: immediate, patient-impacting workflows.
+- `HIGH`: staff action needed soon.
+- `NORMAL`: actionable but not time-critical.
+- `LOW`: FYI.
+
+## Essential notification categories
+
+### Appointment requests
+- `APPOINTMENT_REQUEST_CREATED` (HIGH): patient submits a request.
+  - **data**: `appointmentRequestId`, `patientId`, `preferredDoctorId`, `preferredDate`, `requestedSlotStart`, `requestedSlotEnd`
+- `APPOINTMENT_REQUEST_APPROVED` (NORMAL): request approved and booked.
+  - **data**: `appointmentRequestId`, `appointmentId`, `patientId`
+- `APPOINTMENT_REQUEST_REJECTED` (LOW): request rejected.
+  - **data**: `appointmentRequestId`, `patientId`
+
+### Appointments (status + disruptions)
+- `APPOINTMENT_CANCEL` (HIGH)
+- `APPOINTMENT_DELAY` (HIGH)
+- `APPOINTMENT_RESCHEDULED` (NORMAL)
+- `APPOINTMENT_NO_SHOW` (NORMAL)
+- `APPOINTMENT_CONFIRMED` (LOW, optional to avoid spam)
+
+### Consultations (only when staff action changes)
+- `CONSULTATION_STARTED` (LOW)
+- `CONSULTATION_SIGNED` (LOW)
+- `CONSULTATION_PENDING_ACTION` (HIGH, must be actionable)
+
+### Prescriptions
+- `PRESCRIPTION_PENDING` (HIGH): approval required.
+- `PRESCRIPTION_SENT` (LOW, optional)
+- `PRESCRIPTION_FAILED` (HIGH)
+
+### Invoices
+- `INVOICE_PENDING` (HIGH): approval required.
+- `INVOICE_SENT` (LOW, optional)
+- `INVOICE_FAILED` (HIGH)
+
+### Payments & plan
+- `SUBSCRIPTION_PAYMENT_DUE_SOON` (NORMAL): within a due window; coalesce to avoid spam.
+- `SUBSCRIPTION_PAYMENT_OVERDUE` (HIGH)
+- `SUBSCRIPTION_PAYMENT_SUCCESS` (LOW)
+- `SUBSCRIPTION_PAYMENT_FAILED` (HIGH)
+- `PAYMENT_PROVIDER_STATUS_UPDATE` (NORMAL)
+
+### System
+- `SYSTEM_ALERT` (varies)
+
+# Essential Staff Notifications Taxonomy
+
 This document defines the **in-app staff notifications** contract: what notifications exist, **who receives them**, **when they fire**, and **how they should be prioritized**.
 
 Constraints:
