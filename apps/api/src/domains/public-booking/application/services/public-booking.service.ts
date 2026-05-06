@@ -515,23 +515,38 @@ export class PublicBookingService {
         throw new BadRequestException('Unexpected booking verification token');
       }
 
-      const requestedStart = new Date(data.requestedSlotStart);
-      const requestedEnd = new Date(data.requestedSlotEnd);
-      if (
-        Number.isNaN(requestedStart.getTime()) ||
-        Number.isNaN(requestedEnd.getTime()) ||
-        requestedEnd <= requestedStart
-      ) {
-        throw new BadRequestException('Invalid requested slot');
-      }
+      const requestedStart = data.requestedSlotStart
+        ? new Date(data.requestedSlotStart)
+        : null;
+      const requestedEnd = data.requestedSlotEnd
+        ? new Date(data.requestedSlotEnd)
+        : null;
 
-      await this.assertRequestedSlotIsPubliclyBookable(
-        clinic.id,
-        data.preferredDoctorId,
-        data.slotCalendarDate,
-        requestedStart,
-        requestedEnd,
-      );
+      if (requestedStart || requestedEnd) {
+        if (!requestedStart || !requestedEnd) {
+          throw new BadRequestException('Invalid requested slot');
+        }
+        if (
+          Number.isNaN(requestedStart.getTime()) ||
+          Number.isNaN(requestedEnd.getTime()) ||
+          requestedEnd <= requestedStart
+        ) {
+          throw new BadRequestException('Invalid requested slot');
+        }
+        if (!data.preferredDoctorId) {
+          throw new BadRequestException(
+            'preferredDoctorId is required when selecting a time slot',
+          );
+        }
+
+        await this.assertRequestedSlotIsPubliclyBookable(
+          clinic.id,
+          data.preferredDoctorId,
+          data.slotCalendarDate,
+          requestedStart,
+          requestedEnd,
+        );
+      }
 
       let patientId: string;
       if (existing) {

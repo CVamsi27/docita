@@ -770,21 +770,10 @@ export function PublicBookingPage({ referralCode }: PublicBookingPageProps) {
   };
 
   const handleSubmit = async () => {
-    const resolvedDoctorId =
-      doctorId === ANY_DOCTOR_ID ? selectedSlotDoctorId : doctorId;
-
-    if (
-      !resolvedDoctorId ||
-      !slotDate ||
-      !selectedStart ||
-      !selectedEnd ||
-      (doctorId === ANY_DOCTOR_ID && !selectedSlotDoctorId)
-    ) {
+    if (!slotDate) {
       showUserFacingErrorToast(
         null,
-        doctorId === ANY_DOCTOR_ID
-          ? "Choose a date and available time slot (we’ll assign an available doctor)."
-          : "Choose a doctor, date, and available time slot.",
+        "Choose a date for your appointment request.",
         "form",
       );
       return;
@@ -813,16 +802,20 @@ export function PublicBookingPage({ referralCode }: PublicBookingPageProps) {
         return;
       }
 
+      const resolvedDoctorId =
+        doctorId === ANY_DOCTOR_ID ? selectedSlotDoctorId : doctorId || null;
+      const includeSlot = Boolean(selectedStart && selectedEnd);
+
       await submit.mutateAsync({
         body: {
           phoneNumber: phone,
           firstName: firstName.trim(),
           lastName: lastName.trim(),
           email: email.trim() || undefined,
-          preferredDoctorId: resolvedDoctorId,
+          preferredDoctorId: resolvedDoctorId ?? undefined,
           slotCalendarDate: slotDate,
-          requestedSlotStart: selectedStart,
-          requestedSlotEnd: selectedEnd,
+          requestedSlotStart: includeSlot ? selectedStart ?? undefined : undefined,
+          requestedSlotEnd: includeSlot ? selectedEnd ?? undefined : undefined,
           reason: reason.trim() || undefined,
           notes: notes.trim() || undefined,
           turnstileToken: turnstileToken ?? undefined,
@@ -1156,6 +1149,10 @@ export function PublicBookingPage({ referralCode }: PublicBookingPageProps) {
                                 )
                               : "Tap a date on the calendar"}
                           </p>
+                          <p className="mt-1 text-[length:var(--fs-xs)] leading-snug text-muted-foreground">
+                            Pick a day now. The clinic will confirm the exact
+                            time after approval.
+                          </p>
                         </div>
                       </div>
 
@@ -1167,8 +1164,8 @@ export function PublicBookingPage({ referralCode }: PublicBookingPageProps) {
                         {!doctorId ? (
                           <EmptyState
                             icon={UserCircle}
-                            title="Choose a doctor first"
-                            description="Select who you would like to see to load open times for this location."
+                            title="Doctor selection is optional"
+                            description="If you choose a doctor, you can pick an exact time. Otherwise, you can request a date only and the clinic will assign a doctor and time."
                             className="flex flex-1 flex-col justify-center rounded-[var(--radius-md)] border border-dashed border-border/70 bg-muted/10 py-6 shadow-sm sm:py-8 xl:min-h-0 [&_.ui-section-title]:text-[length:var(--fs-base)]"
                           />
                         ) : slotsQuery.isLoading ? (
