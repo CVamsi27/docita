@@ -35,9 +35,7 @@ export function FaqCtaSection({ appUrl }: FaqCtaSectionProps) {
       aria-labelledby="r2-faq-heading"
     >
       <div className="ui-page-shell">
-        <div className="flex items-center gap-3 r2-section-marker">
-          <span aria-hidden>R2 / 09</span>
-          <span aria-hidden className="h-px w-10 bg-current opacity-40" />
+        <div className="flex items-center gap-3">
           <span className="r2-eyebrow">Last things, then start</span>
         </div>
 

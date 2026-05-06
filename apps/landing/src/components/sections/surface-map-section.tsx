@@ -108,9 +108,7 @@ export function SurfaceMapSection() {
       aria-labelledby="r2-surface-heading"
     >
       <div className="ui-page-shell">
-        <div className="flex items-center gap-3 r2-section-marker">
-          <span aria-hidden>R2 / 04</span>
-          <span aria-hidden className="h-px w-10 bg-current opacity-40" />
+        <div className="flex items-center gap-3">
           <span className="r2-eyebrow">Built for the whole clinic</span>
         </div>
 

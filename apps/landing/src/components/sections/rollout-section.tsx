@@ -79,9 +79,7 @@ export function RolloutSection() {
       <div className="ui-page-shell">
         <div className="grid gap-10 lg:grid-cols-[minmax(0,5fr)_minmax(0,7fr)] lg:gap-16">
           <div className="lg:sticky lg:top-28 lg:self-start">
-            <div className="flex items-center gap-3 r2-section-marker">
-              <span aria-hidden>R2 / 06</span>
-              <span aria-hidden className="h-px w-10 bg-current opacity-40" />
+            <div className="flex items-center gap-3">
               <span className="r2-eyebrow">Rollout</span>
             </div>
             <h2

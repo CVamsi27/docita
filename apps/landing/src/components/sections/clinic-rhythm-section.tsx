@@ -84,9 +84,7 @@ export function ClinicRhythmSection() {
       id="rhythm"
     >
       <div className="ui-page-shell">
-        <div className="flex items-center gap-3 r2-section-marker">
-          <span aria-hidden>R2 / 03</span>
-          <span aria-hidden className="h-px w-10 bg-current opacity-40" />
+        <div className="flex items-center gap-3">
           <span className="r2-eyebrow">A clinic day, in rhythm</span>
         </div>
 

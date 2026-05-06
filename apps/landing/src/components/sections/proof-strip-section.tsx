@@ -28,9 +28,7 @@ export function ProofStripSection({ stats }: ProofStripSectionProps) {
       aria-labelledby="r2-proof-heading"
     >
       <div className="ui-page-shell">
-        <div className="flex items-center gap-3 r2-section-marker">
-          <span aria-hidden>R2 / 02</span>
-          <span aria-hidden className="h-px w-10 bg-current opacity-30" />
+        <div className="flex items-center gap-3">
           <span className="r2-eyebrow">Operating proof</span>
         </div>
 
