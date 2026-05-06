@@ -4,7 +4,7 @@ import {
   useQueueByDoctor,
   useStartConsultation,
 } from "@/hooks/api/use-appointments";
-import { useMemo } from "react";
+import { useCallback, useMemo } from "react";
 import { useRouter } from "next/navigation";
 import { useAuth } from "@/lib/auth-context";
 import { usePermissions } from "@/hooks/use-permissions";
@@ -46,6 +46,35 @@ export const useConsultationDashboard = () => {
   const { canStartConsultation } = usePermissions();
   const { canAccess, workspaceProfile } = usePermissionStore();
   const today = getLocalCalendarDateString();
+
+  const isLocalToday = useCallback(
+    (value?: string | Date | null): boolean => {
+      if (!value) return true;
+      const date =
+        typeof value === "string"
+          ? new Date(value)
+          : value instanceof Date
+            ? value
+            : new Date(value);
+      if (Number.isNaN(date.getTime())) return true;
+      return getLocalCalendarDateString(date) === today;
+    },
+    [today],
+  );
+
+  const isQueueItemForToday = useCallback(
+    (q: QueueItem): boolean => {
+    const appointmentStart =
+        typeof (q as unknown as { appointment?: { startTime?: unknown } })
+          ?.appointment?.startTime === "string"
+          ? ((q as unknown as { appointment?: { startTime?: string } })
+              .appointment?.startTime ?? null)
+          : null;
+
+      return isLocalToday(appointmentStart) || isLocalToday(q.createdAt);
+    },
+    [isLocalToday],
+  );
   const shouldScopeToOwnConsultations =
     user?.role === "DOCTOR" || user?.role === "ADMIN_DOCTOR";
   const doctorId = shouldScopeToOwnConsultations ? user?.id : undefined;
@@ -80,7 +109,7 @@ export const useConsultationDashboard = () => {
   const stats = useMemo(() => {
     const todayAppts = appointmentsData?.items || [];
     const inProgressAppts = inProgressAppointmentsData?.items ?? [];
-    const queue = queueData || [];
+    const queue = (queueData || []).filter(isQueueItemForToday);
     const appointmentIdsWithQueueToken = new Set(
       queue
         .map((q) => q.appointmentId)
@@ -102,7 +131,12 @@ export const useConsultationDashboard = () => {
       inProgress: inProgressFromQueue + inProgressAppointmentsOnly,
       completed: queue.filter((q) => isQueueTokenCompleted(q.status)).length,
     };
-  }, [appointmentsData, inProgressAppointmentsData, queueData]);
+  }, [
+    appointmentsData,
+    inProgressAppointmentsData,
+    isQueueItemForToday,
+    queueData,
+  ]);
 
   const todayAppointmentsSorted = useMemo(() => {
     const items = appointmentsData?.items || [];
@@ -114,9 +148,9 @@ export const useConsultationDashboard = () => {
   }, [appointmentsData?.items]);
 
   const activeConsultations = useMemo(() => {
-    const fromQueue = (queueData || []).filter((q) =>
-      isQueueTokenInProgress(q.status),
-    );
+    const fromQueue = (queueData || [])
+      .filter(isQueueItemForToday)
+      .filter((q) => isQueueTokenInProgress(q.status));
     const coveredAppointmentIds = new Set(
       fromQueue
         .map((q) => q.appointmentId)
@@ -129,7 +163,8 @@ export const useConsultationDashboard = () => {
       if (
         a.status !== "in-progress" ||
         !a.id ||
-        coveredAppointmentIds.has(a.id)
+        coveredAppointmentIds.has(a.id) ||
+        !isLocalToday(a.startTime)
       ) {
         continue;
       }
@@ -175,15 +210,17 @@ export const useConsultationDashboard = () => {
     }
 
     return [...fromQueue, ...withoutQueueToken];
-  }, [queueData, inProgressAppointmentsData]);
+  }, [inProgressAppointmentsData, isLocalToday, isQueueItemForToday, queueData]);
 
   const goToConsultationWorkspace = (appointmentId: string) => {
     router.push(`/consultation/${appointmentId}`);
   };
 
   const waitingList = useMemo(() => {
-    return (queueData || []).filter((q) => isQueueTokenWaiting(q.status));
-  }, [queueData]);
+    return (queueData || [])
+      .filter(isQueueItemForToday)
+      .filter((q) => isQueueTokenWaiting(q.status));
+  }, [isQueueItemForToday, queueData]);
 
   /** Active (in consult) first, then waiting; sort by token number within each band. */
   const opdQueueRows = useMemo(() => {
@@ -216,13 +253,15 @@ export const useConsultationDashboard = () => {
 
   const doctorNowNext = useMemo(() => {
     const inProgress = (inProgressAppointmentsData?.items ?? []).filter(
-      (a) => a.status === "in-progress",
+      (a) => a.status === "in-progress" && isLocalToday(a.startTime),
     );
     const nextScheduled = todayAppointmentsSorted.filter((a) =>
       ["scheduled", "confirmed", "checked-in"].includes(a.status),
     );
 
-    const walkInQueue = opdQueueRows.filter(
+    const todayQueueRows = opdQueueRows.filter(isQueueItemForToday);
+
+    const walkInQueue = todayQueueRows.filter(
       (q) => q.tokenType !== "scheduled" && isQueueTokenWaiting(q.status),
     );
     const walkInSorted = [...walkInQueue].sort((a, b) => {
@@ -244,7 +283,7 @@ export const useConsultationDashboard = () => {
 
     // If there is no schedule today, fall back to FCFS (queue order).
     if (todayAppointmentsSorted.length === 0) {
-      for (const q of opdQueueRows) {
+      for (const q of todayQueueRows) {
         const name = q.patient
           ? `${q.patient.firstName} ${q.patient.lastName}`
           : "Patient";
@@ -337,6 +376,8 @@ export const useConsultationDashboard = () => {
   }, [
     clinic,
     inProgressAppointmentsData?.items,
+    isLocalToday,
+    isQueueItemForToday,
     opdQueueRows,
     todayAppointmentsSorted,
   ]);
