@@ -120,10 +120,37 @@ export function isDevelopment(): boolean {
 }
 
 export function getCorsOrigins(): (string | RegExp)[] {
-  return validateEnv()
-    .CORS_ORIGINS.split(',')
+  const env = validateEnv();
+  const parsed = env.CORS_ORIGINS.split(',')
     .map((origin) => origin.trim())
     .filter(Boolean);
+
+  if (!isDevelopment()) {
+    return parsed;
+  }
+
+  // In local dev it's common to run the app on localhost/127.0.0.1 (or alternate ports).
+  // Keep strict allowlisting in non-dev environments.
+  const devFallbacks: (string | RegExp)[] = [
+    env.NEXT_PUBLIC_APP_URL,
+    'http://localhost:3000',
+    /^http:\/\/localhost:\d+$/,
+    /^http:\/\/127\.0\.0\.1:\d+$/,
+  ];
+
+  const merged: (string | RegExp)[] = [...parsed];
+  for (const candidate of devFallbacks) {
+    if (typeof candidate === 'string') {
+      if (!candidate.trim()) continue;
+      if (!merged.some((o) => typeof o === 'string' && o === candidate)) {
+        merged.push(candidate);
+      }
+      continue;
+    }
+    merged.push(candidate);
+  }
+
+  return merged;
 }
 
 export function getWebSocketCorsOrigins(): (string | RegExp)[] {
