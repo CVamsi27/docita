@@ -307,7 +307,7 @@ export default function VerifyEmailSentPage() {
             type="button"
             variant="link"
             size="sm"
-            onClick={logout}
+            onClick={() => void logout()}
             className="ml-1 h-auto px-0 text-xs text-muted-foreground hover:text-foreground"
           >
             Sign out and try again

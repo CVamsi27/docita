@@ -10,7 +10,7 @@ import React, {
   useState,
 } from "react";
 import { useMutation } from "@tanstack/react-query";
-import { useRouter } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
 import { usePermissionStore } from "@/lib/stores/permission-store";
 import { apiFetch } from "@/lib/api-client";
 import { appSession } from "@/lib/session";
@@ -59,7 +59,7 @@ interface AuthContextType {
     clinicName?: string,
   ) => Promise<void>;
   checkEmail: (email: string) => Promise<boolean>;
-  logout: () => Promise<void>;
+  logout: (options?: { redirect?: boolean }) => Promise<void>;
   token: string | null;
 }
 
@@ -187,6 +187,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const isAuthenticated = !!user;
   const isLoginLocked = !!loginLockoutUntil && loginLockoutUntil > Date.now();
   const router = useRouter();
+  const pathname = usePathname();
   const { setUserRole } = usePermissionStore();
   const hasSetRoleRef = useRef(false);
   const hasInitializedSessionRef = useRef(false);
@@ -564,14 +565,17 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     router.push("/dashboard");
   };
 
-  const logout = useCallback(async () => {
+  const logout = useCallback(async (options?: { redirect?: boolean }) => {
+    const shouldRedirect = options?.redirect ?? true;
     clearSession();
     clearStoredReturnPathBeforeLogin();
     try {
       await logoutMutation.mutateAsync();
     } catch {}
 
-    router.push("/login");
+    if (shouldRedirect) {
+      router.push("/login");
+    }
   }, [clearSession, logoutMutation, router]);
 
   useEffect(() => {
@@ -583,7 +587,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       if (timeoutId) clearTimeout(timeoutId);
       timeoutId = setTimeout(
         () => {
-          logout();
+          const isPublicRoute = !!pathname && appSession.isPublicPath(pathname);
+          void logout({ redirect: !isPublicRoute });
         },
         30 * 60 * 1000,
       );
@@ -609,7 +614,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         window.removeEventListener(event, resetTimer);
       });
     };
-  }, [isAuthenticated, logout]);
+  }, [isAuthenticated, logout, pathname]);
 
   return (
     <AuthContext.Provider
