@@ -146,6 +146,7 @@ export class OnboardingWorkflowService {
           onboardedFromIP: ipAddress,
           workspaceProfile,
           mapsLocation: clinicData.mapsLocation ?? undefined,
+          mapsLink: clinicData.mapsLink?.trim() || undefined,
         },
       },
     });

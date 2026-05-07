@@ -103,6 +103,8 @@ interface ClinicSettingsData {
   workspaceProfile?: WorkspaceProfile;
 
   sidebarNavOrder?: unknown;
+
+  mapsLink?: string;
 }
 
 @Injectable()
@@ -283,6 +285,7 @@ export class ClinicSettingsService {
       facilityLabel: data.facilityLabel,
       taxSettings: data.taxSettings,
       workspaceProfile: data.workspaceProfile,
+      mapsLink: data.mapsLink,
     };
 
     const cleanSettings = Object.fromEntries(

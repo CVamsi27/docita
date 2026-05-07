@@ -69,6 +69,12 @@ export const clinicDetailsSchema = z.object({
       lng: z.number(),
     })
     .optional(),
+  mapsLink: z
+    .string()
+    .trim()
+    .url('Invalid Google Maps link')
+    .or(z.literal(''))
+    .optional(),
 });
 export class ClinicDetailsDto extends createZodDto(clinicDetailsSchema) {}
 export const adminAccountSchema = z.object({

@@ -132,9 +132,14 @@ export class SystemEventsService {
     const mapsLocation = settingsParsed.success
       ? settingsParsed.data.mapsLocation
       : undefined;
-    const mapsLink = mapsLocation
-      ? `https://www.google.com/maps?q=${mapsLocation.lat},${mapsLocation.lng}`
-      : '';
+    const customMapsLink = settingsParsed.success
+      ? settingsParsed.data.mapsLink?.trim()
+      : undefined;
+    const mapsLink =
+      customMapsLink ||
+      (mapsLocation
+        ? `https://www.google.com/maps?q=${mapsLocation.lat},${mapsLocation.lng}`
+        : '');
 
     const variables = {
       patientName: `${appointment.patient.firstName} ${appointment.patient.lastName}`,

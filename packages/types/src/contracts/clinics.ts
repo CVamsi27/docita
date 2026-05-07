@@ -115,6 +115,7 @@ export const updateClinicSettingsRequestSchema = z.object({
   workspaceProfile: workspaceProfileSchema.optional(),
   sidebarNavOrder: sidebarNavOrderSchema.optional(),
   mapsLocation: mapsLocationSchema.optional(),
+  mapsLink: z.union([z.string().url(), z.literal("")]).optional(),
 });
 
 export const createClinicDoctorRequestSchema = z.object({

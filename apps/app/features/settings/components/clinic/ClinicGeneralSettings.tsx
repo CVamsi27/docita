@@ -27,7 +27,7 @@ import {
   phoneSchema,
   requiredStringSchema,
 } from "@/features/_shared/schemas/common.schemas";
-import { Copy, Check } from "lucide-react";
+import { Copy, Check, ExternalLink } from "lucide-react";
 import { useState } from "react";
 import { showUserFacingErrorToast } from "@/lib/user-facing-errors";
 import {
@@ -54,6 +54,12 @@ const clinicSettingsSchema = z.object({
   phone: phoneSchema,
   gstin: z.union([z.string().trim(), z.literal("")]).optional(),
   facilityLabel: z.enum(["CLINIC", "HOSPITAL"]).optional(),
+  mapsLink: z
+    .union([
+      z.string().trim().url({ message: "Enter a valid Google Maps URL" }),
+      z.literal(""),
+    ])
+    .optional(),
 });
 
 type ClinicSettingsFormValues = z.infer<typeof clinicSettingsSchema>;
@@ -83,22 +89,28 @@ export function ClinicGeneralSettings() {
       phone: "",
       gstin: "",
       facilityLabel: "CLINIC",
+      mapsLink: "",
     },
   });
 
   useEffect(() => {
     if (clinic) {
+      const settings = clinic.settings as
+        | { facilityLabel?: "CLINIC" | "HOSPITAL"; mapsLink?: string }
+        | null
+        | undefined;
       form.reset({
         name: clinic.name || "",
         address: clinic.address || "",
         phone: clinic.phone || "",
         gstin: clinic.gstin || "",
-        facilityLabel:
-          (clinic.settings?.facilityLabel as "CLINIC" | "HOSPITAL" | undefined) ??
-          "CLINIC",
+        facilityLabel: settings?.facilityLabel ?? "CLINIC",
+        mapsLink: settings?.mapsLink ?? "",
       });
     }
   }, [clinic, form]);
+
+  const watchedMapsLink = form.watch("mapsLink")?.trim() ?? "";
 
   const handleSubmit = (data: ClinicSettingsFormValues) => {
     updateClinic(data, {
@@ -227,57 +239,59 @@ export function ClinicGeneralSettings() {
           <form
             onSubmit={form.handleSubmit(handleSubmit)}
             noValidate
-            className="space-y-4"
+            className="space-y-6"
           >
-            <FormField
-              control={form.control}
-              name="name"
-              render={({ field }) => (
-                <FormFieldGroup
-                  label={`${facilityLabel} Name`}
-                  htmlFor="clinic-name"
-                  required
-                  error={form.formState.errors.name?.message}
-                >
-                  <FormControl id="clinic-name">
-                    <Input
-                      id="clinic-name"
-                      autoComplete="organization"
-                      placeholder={`Enter ${facilityLabel.toLowerCase()} name`}
-                      {...field}
-                    />
-                  </FormControl>
-                </FormFieldGroup>
-              )}
-            />
+            <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
+              <FormField
+                control={form.control}
+                name="name"
+                render={({ field }) => (
+                  <FormFieldGroup
+                    label={`${facilityLabel} Name`}
+                    htmlFor="clinic-name"
+                    required
+                    error={form.formState.errors.name?.message}
+                  >
+                    <FormControl id="clinic-name">
+                      <Input
+                        id="clinic-name"
+                        autoComplete="organization"
+                        placeholder={`Enter ${facilityLabel.toLowerCase()} name`}
+                        {...field}
+                      />
+                    </FormControl>
+                  </FormFieldGroup>
+                )}
+              />
 
-            <FormField
-              control={form.control}
-              name="facilityLabel"
-              render={({ field }) => (
-                <FormFieldGroup
-                  label="Facility type (how we refer to your organization)"
-                  hint="Shown in navigation and join flows. Default is Clinic unless you choose Hospital."
-                >
-                  <FormControl>
-                    <Select
-                      value={field.value ?? "CLINIC"}
-                      onValueChange={(value) =>
-                        field.onChange(value as "CLINIC" | "HOSPITAL")
-                      }
-                    >
-                      <SelectTrigger className="w-full">
-                        <SelectValue placeholder="Clinic or Hospital" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="CLINIC">Clinic</SelectItem>
-                        <SelectItem value="HOSPITAL">Hospital</SelectItem>
-                      </SelectContent>
-                    </Select>
-                  </FormControl>
-                </FormFieldGroup>
-              )}
-            />
+              <FormField
+                control={form.control}
+                name="facilityLabel"
+                render={({ field }) => (
+                  <FormFieldGroup
+                    label="Facility type"
+                    hint="Used in navigation, headings, and join flows."
+                  >
+                    <FormControl>
+                      <Select
+                        value={field.value ?? "CLINIC"}
+                        onValueChange={(value) =>
+                          field.onChange(value as "CLINIC" | "HOSPITAL")
+                        }
+                      >
+                        <SelectTrigger className="w-full">
+                          <SelectValue placeholder="Clinic or Hospital" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="CLINIC">Clinic</SelectItem>
+                          <SelectItem value="HOSPITAL">Hospital</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    </FormControl>
+                  </FormFieldGroup>
+                )}
+              />
+            </div>
 
             <FormField
               control={form.control}
@@ -303,52 +317,97 @@ export function ClinicGeneralSettings() {
 
             <FormField
               control={form.control}
-              name="phone"
+              name="mapsLink"
               render={({ field }) => (
                 <FormFieldGroup
-                  label="Phone Number"
-                  htmlFor="clinic-phone"
-                  required
-                  error={form.formState.errors.phone?.message}
+                  label="Google Maps link"
+                  htmlFor="clinic-maps-link"
+                  error={form.formState.errors.mapsLink?.message}
+                  hint="Patients see this in appointment notifications next to the date and time. Paste a Google Maps share URL or Plus code link."
                 >
-                  <FormControl id="clinic-phone">
+                  <FormControl id="clinic-maps-link">
                     <Input
-                      id="clinic-phone"
-                      autoComplete="tel"
-                      placeholder="Enter phone number"
+                      id="clinic-maps-link"
+                      type="url"
+                      inputMode="url"
+                      autoComplete="url"
+                      placeholder="https://maps.google.com/..."
                       {...field}
+                      value={field.value ?? ""}
                     />
                   </FormControl>
+                  {watchedMapsLink &&
+                  !form.formState.errors.mapsLink ? (
+                    <a
+                      href={watchedMapsLink}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="mt-1 inline-flex items-center gap-1.5 text-xs font-medium text-primary underline-offset-4 hover:underline"
+                    >
+                      <ExternalLink className="h-3.5 w-3.5" aria-hidden />
+                      Preview link
+                    </a>
+                  ) : null}
                 </FormFieldGroup>
               )}
             />
 
-            <FormField
-              control={form.control}
-              name="gstin"
-              render={({ field }) => (
-                <FormFieldGroup
-                  label="GSTIN"
-                  htmlFor="clinic-gstin"
-                  error={form.formState.errors.gstin?.message}
-                  hint="Needed for GST invoices on paid Indian plans. Keep this aligned with your tax registration."
-                >
-                  <FormControl id="clinic-gstin">
-                    <Input
-                      id="clinic-gstin"
-                      autoComplete="off"
-                      placeholder="GST number"
-                      {...field}
-                      value={field.value || ""}
-                    />
-                  </FormControl>
-                </FormFieldGroup>
-              )}
-            />
+            <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
+              <FormField
+                control={form.control}
+                name="phone"
+                render={({ field }) => (
+                  <FormFieldGroup
+                    label="Phone Number"
+                    htmlFor="clinic-phone"
+                    required
+                    error={form.formState.errors.phone?.message}
+                  >
+                    <FormControl id="clinic-phone">
+                      <Input
+                        id="clinic-phone"
+                        autoComplete="tel"
+                        placeholder="Enter phone number"
+                        {...field}
+                      />
+                    </FormControl>
+                  </FormFieldGroup>
+                )}
+              />
 
-            <Button className="w-full" type="submit" disabled={isPending}>
-              {isPending ? "Saving…" : "Save Changes"}
-            </Button>
+              <FormField
+                control={form.control}
+                name="gstin"
+                render={({ field }) => (
+                  <FormFieldGroup
+                    label="GSTIN"
+                    htmlFor="clinic-gstin"
+                    error={form.formState.errors.gstin?.message}
+                    hint="Needed for GST invoices on paid Indian plans."
+                  >
+                    <FormControl id="clinic-gstin">
+                      <Input
+                        id="clinic-gstin"
+                        autoComplete="off"
+                        placeholder="GST number"
+                        {...field}
+                        value={field.value || ""}
+                      />
+                    </FormControl>
+                  </FormFieldGroup>
+                )}
+              />
+            </div>
+
+            <div className="flex justify-end pt-2">
+              <Button
+                type="submit"
+                disabled={isPending}
+                className="w-full sm:w-auto"
+              >
+                {isPending ? "Saving…" : "Save Changes"}
+              </Button>
+            </div>
           </form>
         </Form>
       </CardContent>

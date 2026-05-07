@@ -32,6 +32,12 @@ const clinicDetailsBaseSchema = z.object({
       lng: z.number().optional(),
     })
     .optional(),
+  mapsLink: z
+    .string()
+    .trim()
+    .url("Enter a valid Google Maps URL")
+    .optional()
+    .or(z.literal("")),
   type: clinicTypeSchema,
   facilityLabel: z.enum(["CLINIC", "HOSPITAL"]),
   countryCode: z

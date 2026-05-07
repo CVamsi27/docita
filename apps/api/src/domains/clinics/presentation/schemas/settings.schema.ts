@@ -89,6 +89,17 @@ export const ClinicSettingsSchema = z.object({
 
   /** Used for patient-facing directions (e.g., WhatsApp confirmations). */
   mapsLocation: MapsLocationSchema.optional(),
+  /**
+   * User-attached Google Maps link for the facility. Preferred over
+   * `mapsLocation` when present, since clinics may want a custom
+   * Plus-code, share-link, or business listing URL on notifications.
+   */
+  mapsLink: z
+    .string()
+    .trim()
+    .url('mapsLink must be a valid URL')
+    .or(z.literal(''))
+    .optional(),
 });
 
 export type ClinicSettings = z.infer<typeof ClinicSettingsSchema>;
