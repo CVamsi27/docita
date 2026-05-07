@@ -123,7 +123,12 @@ describe('AppointmentsController', () => {
         date: '2025-11-28',
       });
 
-      expect(mockAppointmentsService.listAppointments).toHaveBeenCalled();
+      expect(mockAppointmentsService.listAppointments).toHaveBeenCalledWith(
+        expect.objectContaining({
+          calendarPickerDate: '2025-11-28',
+          clinicId: mockAuthRequest.user.clinicId,
+        }),
+      );
     });
 
     it('should force doctor access to their own appointments when a different doctorId is requested', async () => {

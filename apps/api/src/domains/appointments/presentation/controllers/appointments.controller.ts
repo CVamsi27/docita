@@ -135,10 +135,6 @@ export class AppointmentsController {
       limit,
     } = query;
 
-    const effectiveStartDate = startDate ?? date;
-    const effectiveEndDate =
-      endDate ?? (date ? `${date}T23:59:59.999Z` : undefined);
-
     const statuses = status
       ?.split(',')
       .map(parseAppointmentStatus)
@@ -157,8 +153,9 @@ export class AppointmentsController {
 
     const result = await this.appointmentService.listAppointments({
       clinicId: req.user!.clinicId!,
-      startDate: effectiveStartDate ? new Date(effectiveStartDate) : undefined,
-      endDate: effectiveEndDate ? new Date(effectiveEndDate) : undefined,
+      calendarPickerDate: date,
+      startDate: startDate ? new Date(startDate) : undefined,
+      endDate: endDate ? new Date(endDate) : undefined,
       patientId,
       doctorId: doctorScope.scopedDoctorId,
       search,
