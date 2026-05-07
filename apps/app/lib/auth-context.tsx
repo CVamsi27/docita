@@ -582,16 +582,34 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     if (!isAuthenticated) return;
 
     let timeoutId: NodeJS.Timeout;
+    let deadlineMs = 0;
+
+    const MAX_TIMEOUT_MS = 2_147_483_647; // setTimeout uses a 32-bit signed int
+
+    const scheduleLogout = () => {
+      if (!deadlineMs) return;
+      if (timeoutId) clearTimeout(timeoutId);
+      const remaining = deadlineMs - Date.now();
+      const nextDelay = Math.min(Math.max(remaining, 0), MAX_TIMEOUT_MS);
+
+      timeoutId = setTimeout(() => {
+        const stillRemaining = deadlineMs - Date.now();
+        if (stillRemaining > 0) {
+          scheduleLogout();
+          return;
+        }
+        const isPublicRoute =
+          !!pathname &&
+          typeof appSession.isPublicPath === "function" &&
+          appSession.isPublicPath(pathname);
+        void logout({ redirect: !isPublicRoute });
+      }, nextDelay);
+    };
 
     const resetTimer = () => {
       if (timeoutId) clearTimeout(timeoutId);
-      timeoutId = setTimeout(
-        () => {
-          const isPublicRoute = !!pathname && appSession.isPublicPath(pathname);
-          void logout({ redirect: !isPublicRoute });
-        },
-        30 * 24 * 60 * 60 * 1000,
-      );
+      deadlineMs = Date.now() + 30 * 24 * 60 * 60 * 1000;
+      scheduleLogout();
     };
 
     const events = [

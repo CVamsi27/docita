@@ -6,6 +6,7 @@ import { useQueryClient } from "@tanstack/react-query";
 import {
   Sheet,
   SheetContent,
+  SheetDescription,
   SheetHeader,
   SheetTitle,
 } from "@workspace/ui/components/sheet";
@@ -379,6 +380,9 @@ export function NotificationPanel({
               </Button>
             )}
           </SheetTitle>
+          <SheetDescription className="sr-only">
+            Manage staff notifications and jump to relevant pages.
+          </SheetDescription>
         </SheetHeader>
 
         <ScrollArea className="h-[calc(100vh-8rem)] pr-4">

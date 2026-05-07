@@ -693,7 +693,7 @@ export function PublicBookingDoneCard({
             Request sent
           </MicroLabel>
           <h2 className="font-serif text-[length:var(--fs-2xl)] font-semibold tracking-tight text-foreground sm:text-[length:var(--fs-3xl)]">
-            You're all set
+            You&apos;re all set
           </h2>
           <p className="mx-auto max-w-sm text-[length:var(--fs-sm)] leading-relaxed text-muted-foreground">
             The care team will reach out to confirm your visit using the contact method they have on file.
