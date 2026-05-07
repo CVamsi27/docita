@@ -245,7 +245,7 @@ function SubscriptionLockNotice() {
   const trialEnd = clinic?.trialEndsAt ? new Date(clinic.trialEndsAt) : null;
   const trialEndText =
     trialEnd && Number.isFinite(trialEnd.getTime())
-      ? formatDate(trialEnd, "en-IN")
+      ? formatDate(trialEnd)
       : null;
   const trialDaysLeft =
     isTrialing && trialEnd && Number.isFinite(trialEnd.getTime())
@@ -261,7 +261,7 @@ function SubscriptionLockNotice() {
       : null;
   const graceUntilText =
     graceUntil && Number.isFinite(graceUntil.getTime())
-      ? formatDate(graceUntil, "en-IN")
+      ? formatDate(graceUntil)
       : null;
   const pastGraceDeadline = clinic
     ? isPastSubscriptionGraceDeadline(clinic)

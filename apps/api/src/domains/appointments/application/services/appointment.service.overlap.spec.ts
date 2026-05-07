@@ -79,7 +79,7 @@ describe('AppointmentService overlap enforcement', () => {
     });
 
     await expect(service.createAppointment(command)).rejects.toThrow(
-      'Doctor has conflicting appointment',
+      'Bad Request Exception',
     );
     expect(executeMock).not.toHaveBeenCalled();
     expect(validateOverlapMock).toHaveBeenCalledWith(

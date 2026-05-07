@@ -590,7 +590,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
           const isPublicRoute = !!pathname && appSession.isPublicPath(pathname);
           void logout({ redirect: !isPublicRoute });
         },
-        30 * 60 * 1000,
+        30 * 24 * 60 * 60 * 1000,
       );
     };
 

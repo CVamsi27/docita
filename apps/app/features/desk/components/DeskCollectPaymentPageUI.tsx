@@ -288,7 +288,6 @@ export function DeskCollectPaymentPageUI() {
                             {inv.createdAt
                               ? formatDate(
                                   inv.createdAt,
-                                  "en-US",
                                   DATE_FORMAT_OPTIONS_US_LONG,
                                 )
                               : ""}

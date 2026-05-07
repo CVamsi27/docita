@@ -1,102 +1,70 @@
 import {
   DEFAULT_CURRENCY,
   formatCurrency as formatCurrencyWithContext,
+  formatDate as wsFormatDate,
+  formatTime as wsFormatTime,
+  formatDateTime as wsFormatDateTime,
+  DEFAULT_TIMEZONE,
+  DATE_FORMATS,
 } from "@workspace/utils";
 export { humanizeUiLabel } from "@workspace/ui/lib/label-formatters";
+export { DATE_FORMATS } from "@workspace/utils";
 
 export function formatDate(
-  date: Date | string,
-  locale: string = "en-IN",
-  options?: Intl.DateTimeFormatOptions,
+  date: Date | string | null | undefined,
+  pattern: string = DATE_FORMATS.DATE_MEDIUM,
+  timezone: string = DEFAULT_TIMEZONE,
 ): string {
-  const d = typeof date === "string" ? new Date(date) : date;
-  if (Number.isNaN(d.getTime())) return "";
-  return options !== undefined
-    ? d.toLocaleDateString(locale, options)
-    : d.toLocaleDateString(locale);
+  return wsFormatDate(date, pattern, { timezone });
 }
 
 /** Calendar-style label when an invalid or missing date should show as "-". */
 export function formatDateSafe(
   date: Date | string | null | undefined,
-  locale: string = "en-IN",
-  options?: Intl.DateTimeFormatOptions,
+  pattern: string = DATE_FORMATS.DATE_MEDIUM,
+  timezone: string = DEFAULT_TIMEZONE,
 ): string {
   if (date === null || date === undefined) return "-";
-  const formatted = formatDate(date, locale, options);
+  const formatted = wsFormatDate(date, pattern, { timezone });
   return formatted.length > 0 ? formatted : "-";
 }
 
-export function formatLocaleDateShortMonth(
-  date: Date | string,
-  locale: string = "en-IN",
-): string {
-  return formatDate(date, locale, { day: "numeric", month: "short" });
+export function formatLocaleDateShortMonth(date: Date | string): string {
+  return wsFormatDate(date, "d MMM", { timezone: DEFAULT_TIMEZONE });
 }
 
-export function formatLocaleDateShortMonthYear(
-  date: Date | string,
-  locale: string = "en-IN",
-): string {
-  return formatDate(date, locale, {
-    day: "numeric",
-    month: "short",
-    year: "numeric",
-  });
+export function formatLocaleDateShortMonthYear(date: Date | string): string {
+  return wsFormatDate(date, "d MMM yyyy", { timezone: DEFAULT_TIMEZONE });
 }
 
 export function formatTime(
-  date: Date | string,
-  locale: string = "en-IN",
-  options: Intl.DateTimeFormatOptions = {
-    hour: "2-digit",
-    minute: "2-digit",
-  },
+  date: Date | string | null | undefined,
+  pattern: string = DATE_FORMATS.TIME_MEDIUM,
+  timezone: string = DEFAULT_TIMEZONE,
 ): string {
-  const d = typeof date === "string" ? new Date(date) : date;
-  if (Number.isNaN(d.getTime())) return "";
-  return d.toLocaleTimeString(locale, options);
+  return wsFormatTime(date, pattern, { timezone });
 }
-
-/** Shared 12-hour wall-clock format used by appointments + consultation rows ("2:30 PM"). */
-export const CLOCK_TIME_OPTIONS: Intl.DateTimeFormatOptions = {
-  hour: "numeric",
-  minute: "2-digit",
-  hour12: true,
-};
 
 export function formatClockTime(
   date: Date | string,
-  locale: string = "en-IN",
+  timezone: string = DEFAULT_TIMEZONE,
 ): string {
-  return formatTime(date, locale, CLOCK_TIME_OPTIONS);
+  return wsFormatTime(date, "h:mm a", { timezone });
 }
 
 export function formatDateTime(
-  date: Date | string,
-  locale: string = "en-IN",
-  options?: Intl.DateTimeFormatOptions,
+  date: Date | string | null | undefined,
+  pattern: string = DATE_FORMATS.DATETIME_MEDIUM,
+  timezone: string = DEFAULT_TIMEZONE,
 ): string {
-  const d = typeof date === "string" ? new Date(date) : date;
-  if (Number.isNaN(d.getTime())) return "";
-  return options !== undefined
-    ? d.toLocaleString(locale, options)
-    : d.toLocaleString(locale);
+  return wsFormatDateTime(date, pattern, { timezone });
 }
 
-/** en-US long month (invoices, printable invoice details). */
-export const DATE_FORMAT_OPTIONS_US_LONG: Intl.DateTimeFormatOptions = {
-  year: "numeric",
-  month: "long",
-  day: "numeric",
-};
+/** "MMMM d, yyyy" — invoices and printable invoice details. */
+export const DATE_FORMAT_OPTIONS_US_LONG = "MMMM d, yyyy";
 
-/** en-US short month (inventory, lab orders). */
-export const DATE_FORMAT_OPTIONS_US_SHORT: Intl.DateTimeFormatOptions = {
-  year: "numeric",
-  month: "short",
-  day: "numeric",
-};
+/** "MMM d, yyyy" — inventory, lab orders. */
+export const DATE_FORMAT_OPTIONS_US_SHORT = "MMM d, yyyy";
 
 export interface FormatCurrencyOptions {
   locale?: string;

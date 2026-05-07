@@ -100,7 +100,7 @@ export function PatientClinicalChartSummary({
             <ul className="space-y-2">
               {recentAppointments.map((a) => {
                 const label = a.startTime
-                  ? formatLocaleDateShortMonthYear(a.startTime, "en-IN")
+                  ? formatLocaleDateShortMonthYear(a.startTime)
                   : "";
                 const snippet = a.chiefComplaint ?? a.notes ?? null;
                 return (

@@ -23,7 +23,6 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@work
 import { CategoryAvatar } from "@workspace/ui/components/category-avatar";
 import { DocitaLogo, DocitaWordmark } from "@workspace/ui/components/docita-logo";
 import { MicroLabel } from "@workspace/ui/components/micro-label";
-import { PageHeader } from "@workspace/ui/components/page-header";
 import { Progress } from "@workspace/ui/components/progress";
 import { ScrollArea } from "@workspace/ui/components/scroll-area";
 import {
@@ -51,8 +50,6 @@ import type { TimelineItem } from "@workspace/ui/components/timeline";
 import type { PublicBookingMobileStep } from "@/features/public-booking/public-booking-constants";
 import type { PublicBookingPageController } from "@/features/public-booking/use-public-booking-page-state";
 
-export const contactTileClass =
-  "flex min-w-0 gap-3 rounded-[var(--radius-md)] border border-border/70 bg-card p-3.5 shadow-sm transition-colors duration-150 hover:bg-muted/30";
 
 export const bookingCardClass = "gap-0 overflow-hidden py-0 sm:gap-0 sm:py-0";
 
@@ -140,14 +137,18 @@ export function PublicBookingTopChrome() {
   return (
     <header
       className={cn(
-        "sticky top-0 z-30 border-b-2 border-b-primary/12 bg-background/95 backdrop-blur-sm supports-[backdrop-filter]:backdrop-blur-sm",
+        "sticky top-0 z-30 border-b border-b-border/40 bg-background/95 backdrop-blur-sm supports-[backdrop-filter]:backdrop-blur-sm",
         "pb-1.5 pt-[max(0.625rem,env(safe-area-inset-top))] sm:pb-2",
       )}
       aria-label="Booking page"
     >
-      <div className="mx-auto grid h-9 w-full max-w-6xl grid-cols-[minmax(0,1fr)_auto] items-center gap-x-3 px-4 sm:px-6">
+      <div className="mx-auto grid h-9 w-full max-w-6xl grid-cols-[minmax(0,1fr)_auto_auto] items-center gap-x-3 px-4 sm:px-6">
         <div className="flex min-h-0 min-w-0 items-center leading-none">
           <DocitaWordmark className="block h-[26px] max-h-[26px] w-auto max-w-[min(100%,11rem)] object-contain object-left sm:h-7 sm:max-h-7 sm:max-w-[12.5rem] md:h-8 md:max-h-8" />
+        </div>
+        <div className="hidden items-center gap-1.5 text-[length:var(--fs-2xs)] text-muted-foreground sm:flex" aria-hidden>
+          <Lock className="h-3 w-3 shrink-0" />
+          <span>Private booking</span>
         </div>
         <div className="flex items-center justify-end">
           <ThemeToggleWithAppearanceSync />
@@ -282,7 +283,7 @@ export function BookingSectionHeader({
   );
 }
 
-/** Desktop/tablet hero: title + facility badge; how-it-works opens from a compact inline control. */
+/** Desktop hero card: gradient banner with clinic name, badges, and trust indicators. */
 export function PublicBookingHeroCompact({
   clinicName,
   facilityLabel,
@@ -291,32 +292,44 @@ export function PublicBookingHeroCompact({
   facilityLabel: string;
 }) {
   return (
-    <div className="space-y-2 sm:space-y-3">
-      <PageHeader
-        eyebrow="Book a visit"
-        title={
-          <span className="font-serif tracking-tight text-balance">{clinicName}</span>
-        }
-        description={
-          <>
-            <span className="text-pretty">
-              {`Request a visit at this ${facilityLabel.toLowerCase()} in a few minutes.`}
-            </span>{" "}
-            <PublicBookingHowItWorksSheet appearance="inline" />
-          </>
-        }
-        descriptionClassName="min-w-0 max-w-prose text-pretty text-[length:var(--fs-sm)] leading-snug sm:text-[length:var(--fs-base)] sm:leading-relaxed flex flex-wrap items-center gap-x-2 gap-y-1"
-        actions={
-          <Badge
-            variant="secondary"
-            className="normal-case tracking-tight text-[length:var(--fs-2xs)] font-medium sm:text-[length:var(--fs-xs)]"
-          >
-            {facilityLabel}
-          </Badge>
-        }
-        className="gap-2 border-b border-border/60 pb-2 sm:gap-2 sm:pb-3"
-        splitRowClassName="md:items-center"
+    <div className="relative overflow-hidden rounded-[var(--radius-xl)] border border-border/50 bg-card shadow-sm">
+      {/* Accent bar */}
+      <div
+        className="h-1 w-full bg-gradient-to-r from-primary/50 via-primary to-primary/50"
+        aria-hidden
       />
+      {/* Background tint */}
+      <div
+        className="pointer-events-none absolute inset-0 bg-gradient-to-br from-primary/[0.045] via-transparent to-transparent"
+        aria-hidden
+      />
+      <div className="relative grid grid-cols-[1fr_auto] items-start gap-x-8 gap-y-4 px-7 py-6 lg:px-8 lg:py-7">
+        <div className="min-w-0 space-y-3">
+          <div className="flex flex-wrap items-center gap-2">
+            <span className="inline-flex items-center gap-1.5 rounded-full border border-primary/25 bg-primary/[0.08] px-2.5 py-0.5 text-[length:var(--fs-2xs)] font-semibold tracking-wide text-primary">
+              Online booking
+            </span>
+            <Badge
+              variant="secondary"
+              className="normal-case text-[length:var(--fs-2xs)] font-medium"
+            >
+              {facilityLabel}
+            </Badge>
+          </div>
+          <h1 className="font-serif text-[length:var(--fs-3xl)] font-semibold leading-tight tracking-tight text-foreground">
+            {clinicName}
+          </h1>
+          <p className="flex flex-wrap items-center gap-2 text-[length:var(--fs-sm)] leading-relaxed text-muted-foreground">
+            <span>
+              Fill in the steps below to request a visit. Staff confirm before it&apos;s final.
+            </span>
+            <PublicBookingHowItWorksSheet appearance="inline" />
+          </p>
+        </div>
+        <div className="flex shrink-0 flex-col items-end gap-1.5 pt-0.5">
+          <PublicBookingTrustRow className="flex-col items-end gap-x-0 gap-y-1.5" />
+        </div>
+      </div>
     </div>
   );
 }
@@ -338,36 +351,46 @@ export function PublicBookingProgressChrome({
     <header
       className={cn(
         PUBLIC_BOOKING_MOBILE_WIZARD_HEADER_STICKY_CLASS,
-        "z-20 mx-0 overflow-hidden rounded-b-[var(--radius-lg)] border-x border-b border-border/50 border-t border-t-primary/20 bg-card/98 px-3 pb-2 pt-1.5 shadow-xs ring-1 ring-border/25 supports-[backdrop-filter]:backdrop-blur-md sm:mx-1 sm:px-4 sm:pb-2.5 sm:pt-2 sm:shadow-sm sm:ring-0",
+        "z-20 mx-0 overflow-hidden rounded-b-[var(--radius-lg)] border-x border-b border-border/50 border-t border-t-primary/20 bg-card/98 px-3 pb-2.5 pt-2 shadow-xs ring-1 ring-border/25 supports-[backdrop-filter]:backdrop-blur-md sm:mx-1 sm:px-4 sm:pb-3 sm:pt-2.5",
       )}
     >
       <div
         aria-hidden
         className="pointer-events-none absolute inset-x-0 top-0 h-8 bg-gradient-to-b from-primary/[0.06] to-transparent"
       />
-      <div className="relative grid min-h-9 min-w-0 grid-cols-[1fr_auto_1fr] items-center gap-2">
-        <h1 className="flex min-h-9 min-w-0 items-center truncate text-left font-serif text-[length:var(--fs-lg)] font-semibold leading-none tracking-tight text-foreground">
-          {clinicName}
-        </h1>
-        <span
-          className="flex h-9 items-center justify-center tabular-nums text-[length:var(--fs-2xs)] leading-none text-muted-foreground sm:text-[length:var(--fs-xs)]"
-          aria-hidden
-        >
-          {stepIndex + 1}/{stepCount}
-        </span>
-        <div className="flex min-h-9 items-center justify-end">
-          <Badge
-            variant="secondary"
-            className="shrink-0 border-0 normal-case tracking-tight px-2 py-0 text-[length:var(--fs-2xs)] font-medium leading-none sm:text-[length:var(--fs-xs)]"
-          >
+      <div className="relative flex min-h-9 min-w-0 items-center justify-between gap-3">
+        <div className="min-w-0 flex-1">
+          <h1 className="truncate font-serif text-[length:var(--fs-base)] font-semibold leading-snug tracking-tight text-foreground sm:text-[length:var(--fs-lg)]">
+            {clinicName}
+          </h1>
+          <p className="text-[length:var(--fs-2xs)] leading-none text-muted-foreground sm:text-[length:var(--fs-xs)]">
             {facilityWord}
-          </Badge>
+          </p>
+        </div>
+        <div
+          className="flex shrink-0 items-center gap-1.5"
+          aria-label={`Step ${stepIndex + 1} of ${stepCount}`}
+        >
+          {Array.from({ length: stepCount }).map((_, i) => (
+            <div
+              key={i}
+              aria-hidden
+              className={cn(
+                "rounded-full transition-all duration-300",
+                i < stepIndex
+                  ? "h-2 w-2 bg-primary/60"
+                  : i === stepIndex
+                    ? "h-2 w-5 bg-primary sm:w-6"
+                    : "h-2 w-2 bg-border",
+              )}
+            />
+          ))}
         </div>
       </div>
       <Progress
         value={pct}
-        className="relative mt-2 h-1 w-full overflow-hidden rounded-full sm:mt-2.5"
-        aria-label={`Booking step ${stepIndex + 1} of ${stepCount}`}
+        className="relative mt-2.5 h-1.5 w-full overflow-hidden rounded-full"
+        aria-label={`Booking progress: step ${stepIndex + 1} of ${stepCount}`}
       />
     </header>
   );
@@ -463,13 +486,17 @@ export function PublicBookingSummaryPeek({
   selectedStart: string | null;
   selectedEnd: string | null;
 }) {
-  const hasLine =
-    Boolean(selectedDoctorName) &&
-    Boolean(selectedCalendarDay) &&
-    Boolean(selectedStart && selectedEnd);
-  const line = hasLine
+  const hasSlot = Boolean(selectedCalendarDay && selectedStart && selectedEnd);
+  const hasAll = Boolean(selectedDoctorName) && hasSlot;
+  const hasAny = Boolean(selectedDoctorName) || hasSlot;
+
+  const line = hasAll
     ? `${selectedDoctorName} · ${formatDate(selectedCalendarDay!, "EEE d MMM")} · ${formatTime(selectedStart!)}–${formatTime(selectedEnd!)}`
-    : "Pick doctor, day, and time";
+    : hasSlot
+      ? `${formatDate(selectedCalendarDay!, "EEE d MMM")} · ${formatTime(selectedStart!)}–${formatTime(selectedEnd!)}`
+      : selectedDoctorName
+        ? selectedDoctorName
+        : null;
 
   return (
     <Sheet>
@@ -477,23 +504,34 @@ export function PublicBookingSummaryPeek({
         <button
           type="button"
           className={cn(
-            "flex w-full min-w-0 items-center justify-between gap-2 rounded-[var(--radius-md)] border border-border/70 bg-muted/25 px-2.5 py-2 text-left shadow-sm transition-colors duration-150 hover:bg-muted/40 sm:px-3 sm:py-2.5",
-            "touch-manipulation",
+            "flex w-full min-w-0 items-center justify-between gap-2 rounded-[var(--radius-md)] border px-2.5 py-2 text-left shadow-sm transition-colors duration-150 touch-manipulation sm:px-3 sm:py-2",
+            hasAny
+              ? "border-primary/40 bg-primary/[0.06] hover:bg-primary/[0.09]"
+              : "border-border/70 bg-muted/25 hover:bg-muted/40",
           )}
           aria-label="Your request summary"
         >
           <span className="min-w-0 flex-1">
             <MicroLabel
               as="span"
-              className="mt-0 block text-[length:var(--fs-2xs)] font-medium text-muted-foreground"
+              className={cn(
+                "mt-0 block text-[length:var(--fs-2xs)] font-medium",
+                hasAny ? "text-primary/80" : "text-muted-foreground",
+              )}
             >
-              Summary
+              Your visit
             </MicroLabel>
-            <span className="block truncate text-[length:var(--fs-xs)] font-medium leading-snug text-foreground sm:text-[length:var(--fs-sm)]">
-              {line}
+            <span className={cn(
+              "block truncate text-[length:var(--fs-xs)] font-medium leading-snug sm:text-[length:var(--fs-sm)]",
+              hasAny ? "text-foreground" : "text-muted-foreground/80",
+            )}>
+              {line ?? "No day or slot selected yet"}
             </span>
           </span>
-          <ChevronDown className="size-3.5 shrink-0 text-muted-foreground sm:size-4" aria-hidden />
+          <ChevronDown className={cn(
+            "size-3.5 shrink-0 sm:size-4",
+            hasAny ? "text-primary/70" : "text-muted-foreground",
+          )} aria-hidden />
         </button>
       </SheetTrigger>
       <SheetContent side="bottom" className="gap-0 px-0 pb-[max(1rem,env(safe-area-inset-bottom))]">
@@ -610,7 +648,7 @@ export function PublicBookingReviewBlock({
           label="Patient"
           value={patient}
           editStep="contact"
-          fieldId={PUBLIC_BOOKING_STEP_FIELD_FOCUS_IDS.firstName}
+          fieldId={PUBLIC_BOOKING_STEP_FIELD_FOCUS_IDS.phone}
         />
         <Row
           label="Phone"
@@ -641,91 +679,82 @@ export function PublicBookingDoneCard({
   address?: string | null;
 }) {
   return (
-    <Card className={cn(bookingCardClass, bookingSectionShell, "mx-auto w-full max-w-md text-center")}>
-      <CardContent className="space-y-5 px-5 py-8 sm:px-8 sm:py-10">
-        <div
-          className="mx-auto flex h-14 w-14 items-center justify-center rounded-full border border-success/30 bg-success/[0.12] text-success shadow-sm"
-          aria-hidden
-        >
-          <CheckCircle2 className="h-8 w-8" strokeWidth={1.5} />
+    <Card className={cn(bookingCardClass, bookingSectionShell, "mx-auto w-full max-w-md overflow-hidden text-center")}>
+      <div className="pointer-events-none h-1.5 w-full bg-gradient-to-r from-success/60 via-success to-success/60" aria-hidden />
+      <CardContent className="space-y-6 px-5 py-8 sm:px-8 sm:py-10">
+        <div className="relative mx-auto w-fit" aria-hidden>
+          <div className="absolute inset-0 scale-110 rounded-full bg-success/20 blur-md" />
+          <div className="relative flex h-16 w-16 items-center justify-center rounded-full border border-success/25 bg-success/[0.1] text-success shadow-sm sm:h-[4.5rem] sm:w-[4.5rem]">
+            <CheckCircle2 className="h-8 w-8 sm:h-9 sm:w-9" strokeWidth={1.5} />
+          </div>
         </div>
         <div className="space-y-2">
-          <MicroLabel as="p" className="mt-0">
+          <MicroLabel as="p" className="mt-0 text-success/80">
             Request sent
           </MicroLabel>
-          <h2 className="font-serif text-[length:var(--fs-2xl)] font-semibold tracking-tight text-foreground">
-            Thank you
+          <h2 className="font-serif text-[length:var(--fs-2xl)] font-semibold tracking-tight text-foreground sm:text-[length:var(--fs-3xl)]">
+            You're all set
           </h2>
           <p className="mx-auto max-w-sm text-[length:var(--fs-sm)] leading-relaxed text-muted-foreground">
-            The care team will reach out using the phone or WhatsApp channel they use for
-            confirmations.
+            The care team will reach out to confirm your visit using the contact method they have on file.
           </p>
         </div>
-        <div className="rounded-[var(--radius-md)] border border-border/60 bg-muted/20 px-4 py-3 text-left shadow-sm">
-          <p className="text-[length:var(--fs-2xs)] font-semibold uppercase tracking-wide text-muted-foreground">
-            {facilityWord}
-          </p>
-          <p className="mt-1 font-medium text-[length:var(--fs-base)] text-foreground">{clinicName}</p>
+
+        <div className="rounded-[var(--radius-lg)] border border-border/60 bg-muted/15 px-4 py-4 text-left shadow-sm">
+          <div className="flex items-start gap-3">
+            <CategoryAvatar
+              icon={<MapPin strokeWidth={1.5} />}
+              tone="primary"
+              size="sm"
+              className="mt-0.5 shrink-0"
+            />
+            <div className="min-w-0 flex-1 space-y-1">
+              <MicroLabel as="p" className="mt-0">
+                {facilityWord}
+              </MicroLabel>
+              <p className="font-medium text-[length:var(--fs-base)] text-foreground leading-snug">{clinicName}</p>
+              {address ? (
+                <p className="text-[length:var(--fs-xs)] leading-relaxed text-muted-foreground">
+                  {address}
+                </p>
+              ) : null}
+            </div>
+          </div>
           {phone ? (
-            <Button variant="outline" className="mt-3 h-10 w-full rounded-[var(--radius-md)]" asChild>
+            <Button variant="outline" className="mt-4 h-10 w-full rounded-[var(--radius-md)]" asChild>
               <a
                 href={`tel:${phone.replace(/\s+/g, "")}`}
                 className="inline-flex items-center justify-center gap-2 transition-colors duration-150"
               >
                 <Phone className="h-4 w-4 shrink-0" aria-hidden />
-                Call clinic
+                Call {clinicName}
               </a>
             </Button>
           ) : null}
-          {address ? (
-            <p className="mt-3 text-[length:var(--fs-xs)] leading-relaxed text-muted-foreground">
-              {address}
-            </p>
-          ) : null}
         </div>
-        <Alert className="rounded-[var(--radius-md)] border border-border/70 bg-background text-left shadow-sm [&>svg]:text-primary">
-          <Mail className="h-4 w-4 shrink-0" aria-hidden />
-          <AlertTitle className="text-[length:var(--fs-sm)]">What happens next</AlertTitle>
-          <AlertDescription className="text-[length:var(--fs-xs)] leading-relaxed text-muted-foreground">
-            Watch for a message or call from the clinic — timing depends on their usual confirmation
-            workflow.
-          </AlertDescription>
-        </Alert>
+
+        <div className="rounded-[var(--radius-md)] border border-border/50 bg-background px-4 py-3 text-left shadow-sm">
+          <p className="text-[length:var(--fs-2xs)] font-semibold uppercase tracking-wide text-muted-foreground">
+            What happens next
+          </p>
+          <ul className="mt-2 space-y-1.5">
+            {[
+              "The clinic reviews your request",
+              "They contact you to confirm the time",
+              "Your visit is confirmed once they reach out",
+            ].map((step) => (
+              <li key={step} className="flex items-start gap-2 text-[length:var(--fs-xs)] leading-snug text-muted-foreground">
+                <CheckCircle2 className="mt-0.5 h-3.5 w-3.5 shrink-0 text-success/70" aria-hidden />
+                {step}
+              </li>
+            ))}
+          </ul>
+        </div>
       </CardContent>
     </Card>
   );
 }
 
-export function ContactTile({
-  icon: Icon,
-  label,
-  children,
-  className,
-}: {
-  icon: LucideIcon;
-  label: string;
-  children: ReactNode;
-  className?: string;
-}) {
-  return (
-    <div className={cn(contactTileClass, className)}>
-      <CategoryAvatar
-        icon={<Icon strokeWidth={1.5} />}
-        tone="neutral"
-        size="sm"
-        className="mt-0.5 bg-background"
-      />
-      <div className="min-w-0">
-        <MicroLabel as="p" className="mt-0">
-          {label}
-        </MicroLabel>
-        <div className="mt-0.5 min-w-0 text-[length:var(--fs-sm)] font-medium text-foreground">
-          {children}
-        </div>
-      </div>
-    </div>
-  );
-}
 
 export function ClinicContactCard({
   clinic,
@@ -744,68 +773,69 @@ export function ClinicContactCard({
     <Card
       className={cn(bookingCardClass, bookingSectionShell, "flex flex-col", className)}
     >
-      <CardHeader className={cn(bookingSectionHeaderBar, "py-4")}>
+      <CardHeader className={cn(bookingSectionHeaderBar, "py-3.5 sm:py-4")}>
         <div className="flex items-start gap-3">
-          <CategoryAvatar
-            icon={<MapPin strokeWidth={1.5} />}
-            tone="primary"
-            size="md"
-          />
-          <div className="min-w-0 space-y-1">
-            <MicroLabel as="h2">Location</MicroLabel>
-            <CardTitle className="text-[length:var(--fs-lg)]">
-              Visit details
+          <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-[var(--radius-md)] border border-primary/20 bg-primary/[0.08] text-primary">
+            <MapPin className="h-4 w-4" strokeWidth={1.75} />
+          </div>
+          <div className="min-w-0 flex-1">
+            <MicroLabel as="h2" className="mt-0">Your location</MicroLabel>
+            <CardTitle className="mt-0.5 truncate text-[length:var(--fs-base)] leading-snug tracking-tight">
+              {clinic.name}
             </CardTitle>
           </div>
         </div>
       </CardHeader>
-      <CardContent className="space-y-3 px-4 py-4">
+      <CardContent className="space-y-2.5 px-4 py-3.5 sm:px-4 sm:py-4">
         {clinic.address ? (
-          <ContactTile icon={Building2} label="Address">
-            {clinic.address}
-          </ContactTile>
+          <div className="flex items-start gap-2.5">
+            <Building2 className="mt-0.5 h-3.5 w-3.5 shrink-0 text-muted-foreground" strokeWidth={1.5} aria-hidden />
+            <p className="text-[length:var(--fs-xs)] leading-relaxed text-muted-foreground">
+              {clinic.address}
+            </p>
+          </div>
         ) : null}
         {clinic.phone ? (
-          <ContactTile icon={Phone} label="Phone">
-            <Button variant="link" asChild className="h-auto min-h-0 justify-start p-0 font-medium">
-              <a
-                className="break-words text-[length:var(--fs-sm)] text-foreground"
-                href={`tel:${clinic.phone.replace(/\s+/g, "")}`}
-              >
-                {clinic.phone}
-              </a>
-            </Button>
-          </ContactTile>
+          <div className="flex items-center gap-2.5">
+            <Phone className="h-3.5 w-3.5 shrink-0 text-muted-foreground" strokeWidth={1.5} aria-hidden />
+            <a
+              href={`tel:${clinic.phone.replace(/\s+/g, "")}`}
+              className="text-[length:var(--fs-xs)] font-medium text-foreground underline-offset-4 hover:underline"
+            >
+              {clinic.phone}
+            </a>
+          </div>
         ) : null}
         {clinic.email ? (
-          <ContactTile icon={Mail} label="Email">
-            <Button variant="link" asChild className="h-auto min-h-0 justify-start p-0 font-medium">
-              <a
-                className="break-words text-[length:var(--fs-sm)] text-foreground"
-                href={`mailto:${clinic.email}`}
-              >
-                {clinic.email}
-              </a>
-            </Button>
-          </ContactTile>
+          <div className="flex items-center gap-2.5">
+            <Mail className="h-3.5 w-3.5 shrink-0 text-muted-foreground" strokeWidth={1.5} aria-hidden />
+            <a
+              href={`mailto:${clinic.email}`}
+              className="min-w-0 truncate text-[length:var(--fs-xs)] font-medium text-foreground underline-offset-4 hover:underline"
+            >
+              {clinic.email}
+            </a>
+          </div>
         ) : null}
         {clinic.website && websiteHref ? (
-          <ContactTile icon={Globe} label="Website">
-            <Button variant="link" asChild className="h-auto min-h-0 justify-start p-0 font-medium">
-              <a
-                className="break-words text-[length:var(--fs-sm)] text-foreground"
-                href={websiteHref}
-                target="_blank"
-                rel="noopener noreferrer"
-              >
-                {clinic.website}
-              </a>
-            </Button>
-          </ContactTile>
+          <div className="flex items-center gap-2.5">
+            <Globe className="h-3.5 w-3.5 shrink-0 text-muted-foreground" strokeWidth={1.5} aria-hidden />
+            <a
+              href={websiteHref}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="min-w-0 truncate text-[length:var(--fs-xs)] font-medium text-foreground underline-offset-4 hover:underline"
+            >
+              {clinic.website}
+            </a>
+          </div>
         ) : null}
-        <ContactTile icon={Clock} label="Local time zone">
-          {clinic.timezone}
-        </ContactTile>
+        <div className="flex items-center gap-2.5">
+          <Clock className="h-3.5 w-3.5 shrink-0 text-muted-foreground" strokeWidth={1.5} aria-hidden />
+          <p className="text-[length:var(--fs-xs)] text-muted-foreground">
+            {clinic.timezone}
+          </p>
+        </div>
       </CardContent>
     </Card>
   );
@@ -833,30 +863,63 @@ export function RequestSummaryCard({
   const scheduleComplete = Boolean(
     selectedCalendarDay && selectedStart && selectedEnd,
   );
+  const anyFilled = Boolean(selectedDoctorName || selectedCalendarDay);
 
   return (
     <Card
-      className={cn(bookingCardClass, bookingSectionShell, "flex flex-col", className)}
+      className={cn(
+        bookingCardClass,
+        bookingSectionShell,
+        "flex flex-col transition-shadow duration-200",
+        hasVisitSelection && "shadow-md ring-1 ring-primary/15",
+        className,
+      )}
     >
-      <CardHeader className={cn(bookingSectionHeaderBar, compact ? "py-3" : "py-4")}>
-        <div className="flex items-start gap-2.5 sm:gap-3">
-          <CategoryAvatar
-            icon={<CalendarIcon strokeWidth={1.5} />}
-            tone={hasVisitSelection ? "success" : "neutral"}
-            size={compact ? "sm" : "md"}
-          />
-          <div className="min-w-0 space-y-0.5">
-            <MicroLabel as="h2">Your request</MicroLabel>
-            <CardTitle
+      <CardHeader
+        className={cn(
+          bookingSectionHeaderBar,
+          compact ? "py-3" : "py-3.5 sm:py-4",
+          hasVisitSelection && "border-b-primary/20 bg-primary/[0.04]",
+        )}
+      >
+        <div className="flex items-center justify-between gap-3">
+          <div className="flex items-center gap-2.5 sm:gap-3">
+            <div
               className={cn(
-                compact
-                  ? "text-[length:var(--fs-base)]"
-                  : "text-[length:var(--fs-lg)]",
+                "flex shrink-0 items-center justify-center rounded-[var(--radius-md)] border transition-colors duration-200",
+                compact ? "h-8 w-8" : "h-9 w-9",
+                hasVisitSelection
+                  ? "border-success/25 bg-success/[0.1] text-success"
+                  : "border-border/60 bg-muted/30 text-muted-foreground",
               )}
             >
-              {hasVisitSelection ? "Ready to review" : "Build your visit"}
-            </CardTitle>
+              <CalendarIcon
+                className={compact ? "h-3.5 w-3.5" : "h-4 w-4"}
+                strokeWidth={1.75}
+              />
+            </div>
+            <div className="min-w-0 space-y-0.5">
+              <MicroLabel as="h2" className={cn("mt-0", hasVisitSelection && "text-success/80")}>
+                {hasVisitSelection ? "Ready to send" : "Your request"}
+              </MicroLabel>
+              <CardTitle
+                className={cn(
+                  compact
+                    ? "text-[length:var(--fs-base)]"
+                    : "text-[length:var(--fs-base)] sm:text-[length:var(--fs-lg)]",
+                )}
+              >
+                {hasVisitSelection ? "Visit summary" : anyFilled ? "In progress" : "Not started"}
+              </CardTitle>
+            </div>
           </div>
+          {hasVisitSelection && (
+            <CheckCircle2
+              className="h-5 w-5 shrink-0 text-success"
+              strokeWidth={1.5}
+              aria-hidden
+            />
+          )}
         </div>
       </CardHeader>
       <CardContent className={cn("px-4", compact ? "space-y-2 py-3" : "space-y-3 py-4")}>
@@ -985,48 +1048,9 @@ export function BookingActionPanel({
     >
       <CardContent
         className={cn(
-          "space-y-4 sm:space-y-5",
-          isCompact ? "space-y-3 py-3 sm:py-4" : "py-4 sm:py-5",
+          isCompact ? "space-y-2.5 py-3 sm:py-3.5" : "space-y-3 py-4 sm:py-5",
         )}
       >
-        <Alert
-          className={cn(
-            "rounded-[var(--radius-md)] border border-border/70 bg-muted/30 shadow-sm [&>svg]:left-3.5 [&>svg]:text-primary [&>svg~*]:pl-7",
-            isCompact
-              ? "py-2.5 [&>svg]:top-2.5"
-              : "py-3.5 [&>svg]:top-3.5",
-          )}
-        >
-          <ShieldCheck
-            className={cn("shrink-0", isCompact ? "h-3.5 w-3.5" : "h-4 w-4")}
-            aria-hidden
-          />
-          <AlertTitle
-            className={cn(isCompact ? "text-[length:var(--fs-xs)]" : "text-[length:var(--fs-sm)]")}
-          >
-            Request, not a confirmed visit
-          </AlertTitle>
-          <AlertDescription
-            className={cn(
-              "leading-snug text-muted-foreground",
-              isCompact
-                ? "text-[length:var(--fs-2xs)]"
-                : "text-[length:var(--fs-xs)] leading-relaxed",
-            )}
-          >
-            {isCompact ? (
-              <>
-                Submitting is only a request — staff confirm before it is a firm
-                appointment.
-              </>
-            ) : (
-              <>
-                Submitting sends a request only. The care team still confirms before it
-                is a firm appointment.
-              </>
-            )}
-          </AlertDescription>
-        </Alert>
         <Button
           type="button"
           className={cn(
@@ -1038,8 +1062,25 @@ export function BookingActionPanel({
           onClick={onSubmit}
           disabled={submitBlocked}
         >
-          Submit visit request
+          {isSubmitting ? "Sending…" : "Send visit request"}
         </Button>
+        <div className="flex items-start gap-2">
+          <ShieldCheck
+            className={cn(
+              "mt-0.5 shrink-0 text-primary/60",
+              isCompact ? "h-3 w-3" : "h-3.5 w-3.5",
+            )}
+            aria-hidden
+          />
+          <p
+            className={cn(
+              "leading-snug text-muted-foreground",
+              isCompact ? "text-[length:var(--fs-2xs)]" : "text-[length:var(--fs-xs)]",
+            )}
+          >
+            Submitting sends a request only — the care team confirms before it is a firm appointment.
+          </p>
+        </div>
       </CardContent>
     </Card>
   );

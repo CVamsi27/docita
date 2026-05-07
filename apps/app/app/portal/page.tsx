@@ -22,7 +22,7 @@ import {
   Receipt,
   ShieldCheck,
 } from "lucide-react";
-import { formatDate } from "@/lib/formatters";
+import { formatDateTime } from "@/lib/formatters";
 
 function pickString(v: unknown): string | undefined {
   return typeof v === "string" && v.trim() ? v : undefined;
@@ -52,13 +52,7 @@ export default function PortalDashboardPage() {
     ];
     const nextVisit =
       typeof start === "string"
-        ? `Next visit · ${formatDate(start, "en-IN", {
-            weekday: "short",
-            month: "short",
-            day: "numeric",
-            hour: "2-digit",
-            minute: "2-digit",
-          })}${doctor ? ` · ${String(doctor)}` : ""}`
+        ? `Next visit · ${formatDateTime(start, "EEE, d MMM, HH:mm")}${doctor ? ` · ${String(doctor)}` : ""}`
         : dashboard.summary.upcomingAppointmentsCount > 0
           ? `Next visit · ${dashboard.summary.upcomingAppointmentsCount} scheduled`
           : "Next visit · None scheduled";

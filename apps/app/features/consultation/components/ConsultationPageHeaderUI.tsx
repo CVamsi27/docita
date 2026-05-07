@@ -202,11 +202,7 @@ export function ConsultationPageHeaderUI({
               <div className="flex items-center gap-2 text-xs text-muted-foreground mt-0.5">
                 <Clock className="h-3 w-3 shrink-0" />
                 <span>
-                  {formatDate(appointmentDate, "en-IN", {
-                    weekday: "short",
-                    month: "short",
-                    day: "numeric",
-                  })}{" "}
+                  {formatDate(appointmentDate, "EEE, d MMM")}{" "}
                   &middot;{" "}
                   {formatClockTime(appointmentDate)}
                 </span>

@@ -17,8 +17,12 @@ import {
   isQueueTokenInProgress,
   isQueueTokenWaiting,
 } from "@/lib/queue-token-status";
-import { getLocalCalendarDateString } from "@/lib/local-calendar-date";
 import { useClinicSettings } from "@/hooks/api/use-settings";
+import {
+  DEFAULT_TIMEZONE,
+  formatClinicTodayPickerIso,
+  formatUtcInstantAsClinicPickerIso,
+} from "@workspace/utils";
 
 export type DoctorNextUpRow =
   | {
@@ -47,7 +51,9 @@ export const useConsultationDashboard = () => {
   const { user } = useAuth();
   const { canStartConsultation } = usePermissions();
   const { canAccess, workspaceProfile } = usePermissionStore();
-  const today = getLocalCalendarDateString();
+  const { data: clinic } = useClinicSettings();
+  const clinicTz = clinic?.timezone?.trim() || DEFAULT_TIMEZONE;
+  const today = formatClinicTodayPickerIso(clinicTz);
 
   const isLocalToday = useCallback(
     (value?: string | Date | null): boolean => {
@@ -59,9 +65,9 @@ export const useConsultationDashboard = () => {
             ? value
             : new Date(value);
       if (Number.isNaN(date.getTime())) return true;
-      return getLocalCalendarDateString(date) === today;
+      return formatUtcInstantAsClinicPickerIso(date, clinicTz) === today;
     },
-    [today],
+    [clinicTz, today],
   );
 
   const isQueueItemForToday = useCallback(
@@ -106,7 +112,6 @@ export const useConsultationDashboard = () => {
   const { data: queueData, isLoading: isLoadingQueue } =
     useQueueByDoctor(doctorId, undefined, canAccessQueueApi);
   const startConsultation = useStartConsultation();
-  const { data: clinic } = useClinicSettings();
 
   const stats = useMemo(() => {
     const todayAppts = appointmentsData?.items || [];

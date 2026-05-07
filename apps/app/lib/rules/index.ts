@@ -1,5 +1,7 @@
 import {
   calculateAge as getAgeInYears,
+  clinicWallHourMinuteFromUtcInstant,
+  DEFAULT_TIMEZONE,
   formatCurrency,
   isFuture,
   isPast,
@@ -17,8 +19,9 @@ export const dateRules = {
     date: Date,
     openingHour: number = 9,
     closingHour: number = 18,
+    timezone: string = DEFAULT_TIMEZONE,
   ): boolean => {
-    const hour = date.getHours();
+    const { hour } = clinicWallHourMinuteFromUtcInstant(date, timezone);
     return hour >= openingHour && hour < closingHour;
   },
 };

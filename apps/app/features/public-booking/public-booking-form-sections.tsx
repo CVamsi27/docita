@@ -32,6 +32,7 @@ import {
   SelectValue,
 } from "@workspace/ui/components/select";
 import { Separator } from "@workspace/ui/components/separator";
+import { Skeleton } from "@workspace/ui/components/skeleton";
 import { Textarea } from "@workspace/ui/components/textarea";
 import { Timeline } from "@workspace/ui/components/timeline";
 import { formatDate, formatPickerIsoDate } from "@workspace/utils";
@@ -200,15 +201,103 @@ export function PublicBookingTurnstileSection({
   );
 }
 
+function DoctorChips({
+  c,
+}: {
+  c: PublicBookingPageController;
+}) {
+  const doctors = c.doctorsQuery.data?.doctors ?? [];
+  const activeId = c.doctorId;
+
+  function selectDoctor(id: string) {
+    c.setDoctorId(id);
+    c.clearSlotSelection();
+    c.setSubmitFieldErrors((prev) => {
+      const next = { ...prev };
+      delete next.preferredDoctorId;
+      return next;
+    });
+  }
+
+  return (
+    <div className="grid gap-2">
+      <Label className="text-[length:var(--fs-sm)] font-normal leading-none text-muted-foreground">
+        Doctor
+        <span className="ml-1 font-normal text-muted-foreground/70">(optional)</span>
+      </Label>
+      {c.doctorsQuery.isLoading ? (
+        <div className="flex gap-2 overflow-x-auto pb-0.5 scrollbar-none">
+          {Array.from({ length: 3 }).map((_, i) => (
+            <Skeleton key={i} className="h-8 w-24 shrink-0 rounded-full" />
+          ))}
+        </div>
+      ) : (
+        <div className="flex gap-2 overflow-x-auto pb-0.5 scrollbar-none">
+          {doctors.length > 1 ? (
+            <button
+              type="button"
+              onClick={() => selectDoctor(ANY_DOCTOR_ID)}
+              className={cn(
+                "h-9 shrink-0 rounded-full border px-3.5 text-[length:var(--fs-xs)] font-medium transition-colors duration-150 touch-manipulation",
+                !activeId || activeId === ANY_DOCTOR_ID
+                  ? "border-primary bg-primary text-primary-foreground shadow-sm"
+                  : "border-border/70 bg-background text-muted-foreground hover:border-primary/35 hover:bg-muted/20 hover:text-foreground",
+              )}
+            >
+              Any doctor
+            </button>
+          ) : null}
+          {doctors.map((d) => (
+            <button
+              key={d.id}
+              type="button"
+              onClick={() => selectDoctor(d.id)}
+              className={cn(
+                "h-9 shrink-0 rounded-full border px-3.5 text-[length:var(--fs-xs)] font-medium transition-colors duration-150 touch-manipulation",
+                activeId === d.id
+                  ? "border-primary bg-primary text-primary-foreground shadow-sm"
+                  : "border-border/70 bg-background text-muted-foreground hover:border-primary/35 hover:bg-muted/20 hover:text-foreground",
+              )}
+            >
+              {d.name ?? "Doctor"}
+              {d.specialization ? (
+                <span className="ml-1 opacity-70">· {d.specialization}</span>
+              ) : null}
+            </button>
+          ))}
+        </div>
+      )}
+      {c.submitFieldErrors.preferredDoctorId ? (
+        <p role="alert" className="text-[length:var(--fs-xs)] leading-snug text-destructive">
+          {c.submitFieldErrors.preferredDoctorId}
+        </p>
+      ) : null}
+      {c.doctorsQuery.isError ? (
+        <Button
+          type="button"
+          variant="outline"
+          size="sm"
+          onClick={() => void c.doctorsQuery.refetch()}
+        >
+          Retry loading doctors
+        </Button>
+      ) : null}
+    </div>
+  );
+}
+
 export function PublicBookingAppointmentSection({
   c,
   compactHeader = false,
   collapseTimeRange = false,
+  doctorPickerVariant = "toggle",
 }: {
   c: PublicBookingPageController;
   compactHeader?: boolean;
   /** When true, time-of-day filters render inside a collapsed-by-default `details` (mobile). */
   collapseTimeRange?: boolean;
+  /** "chips": always-visible horizontal chip row; "toggle": existing show/hide select (default). */
+  doctorPickerVariant?: "chips" | "toggle";
 }) {
   const [doctorPickerOpen, setDoctorPickerOpen] = useState(false);
 
@@ -226,7 +315,10 @@ export function PublicBookingAppointmentSection({
         />
       </CardHeader>
       <CardContent className="flex min-h-0 flex-1 flex-col gap-5 px-4 py-5 sm:gap-6 sm:px-6 sm:py-6 xl:gap-8">
-        <div className="grid gap-2">
+        {doctorPickerVariant === "chips" ? (
+          <DoctorChips c={c} />
+        ) : (
+          <div className="grid gap-2">
           <div className="flex items-center justify-between gap-3">
             <Label className="text-[length:var(--fs-sm)] font-normal leading-none text-muted-foreground">
               Doctor (optional)
@@ -324,6 +416,7 @@ export function PublicBookingAppointmentSection({
             </Button>
           ) : null}
         </div>
+        )}
 
         <Separator className="my-1 bg-border/70 sm:my-2" />
 
@@ -421,8 +514,12 @@ export function PublicBookingAppointmentSection({
               {!c.doctorId ? (
                 <EmptyState
                   icon={UserCircle}
-                  title="Doctor selection is optional"
-                  description="If you choose a doctor, you can pick an exact time. Otherwise, you can request a date only and the clinic will assign a doctor and time."
+                  title={doctorPickerVariant === "chips" ? "Select a doctor above" : "Doctor selection is optional"}
+                  description={
+                    doctorPickerVariant === "chips"
+                      ? "Tap a doctor to see open times for the day you picked, or tap 'Any doctor' to see all available slots."
+                      : "If you choose a doctor, you can pick an exact time. Otherwise, you can request a date only and the clinic will assign a doctor and time."
+                  }
                   className="flex flex-1 flex-col justify-center rounded-[var(--radius-md)] border border-dashed border-border/60 bg-muted/10 px-3 py-6 shadow-sm sm:py-8 xl:min-h-0 [&_.ui-section-title]:text-[length:var(--fs-base)]"
                 />
               ) : c.slotsQuery.isLoading ? (
@@ -524,11 +621,12 @@ export function PublicBookingAppointmentSection({
                               Time range (from)
                             </Label>
                             <Select
-                              value={c.timeRangeStart}
+                              value={c.timeRangeStart || "__none__"}
                               onValueChange={(v) => {
-                                c.setTimeRangeStart(v);
+                                const val = v === "__none__" ? "" : v;
+                                c.setTimeRangeStart(val);
                                 if (c.timeRangeEnd) {
-                                  const s = new Date(v).getTime();
+                                  const s = new Date(val).getTime();
                                   const e = new Date(c.timeRangeEnd).getTime();
                                   if (
                                     Number.isFinite(s) &&
@@ -544,7 +642,7 @@ export function PublicBookingAppointmentSection({
                                 <SelectValue placeholder="Any time" />
                               </SelectTrigger>
                               <SelectContent>
-                                <SelectItem value="">Any time</SelectItem>
+                                <SelectItem value="__none__">Any time</SelectItem>
                                 {c.timeRangeOptions.starts.map((t) => (
                                   <SelectItem key={t} value={t}>
                                     {formatTime(t)}
@@ -558,14 +656,14 @@ export function PublicBookingAppointmentSection({
                               Time range (to)
                             </Label>
                             <Select
-                              value={c.timeRangeEnd}
-                              onValueChange={c.setTimeRangeEnd}
+                              value={c.timeRangeEnd || "__none__"}
+                              onValueChange={(v) => c.setTimeRangeEnd(v === "__none__" ? "" : v)}
                             >
                               <SelectTrigger className="h-11 rounded-[var(--radius-md)] border-border/70 bg-background shadow-sm">
                                 <SelectValue placeholder="Any time" />
                               </SelectTrigger>
                               <SelectContent>
-                                <SelectItem value="">Any time</SelectItem>
+                                <SelectItem value="__none__">Any time</SelectItem>
                                 {c.timeRangeOptions.ends.map((t) => (
                                   <SelectItem key={t} value={t}>
                                     {formatTime(t)}
@@ -754,6 +852,9 @@ export function PublicBookingContactSection({
     </span>
   );
 
+  const phoneChecked = c.requiresOtp !== null;
+  const isNewPatient = c.requiresOtp === false;
+
   return (
     <Card className={cn(bookingCardClass, bookingSectionShell, "flex flex-col")}>
       <CardHeader
@@ -775,58 +876,6 @@ export function PublicBookingContactSection({
         />
       </CardHeader>
       <CardContent className="grid gap-4 px-4 py-5 sm:grid-cols-2 sm:gap-x-4 sm:gap-y-4 sm:px-6 sm:py-6">
-        <div className="grid gap-2">
-          <Label htmlFor="pb-first-name" className="text-[length:var(--fs-sm)] font-normal text-muted-foreground">
-            First name{requiredMark}
-          </Label>
-          <Input
-            id="pb-first-name"
-            value={c.firstName}
-            onChange={(e) => {
-              c.setFirstName(e.target.value);
-              c.setSubmitFieldErrors((prev) => {
-                const next = { ...prev };
-                delete next.firstName;
-                return next;
-              });
-            }}
-            autoComplete="given-name"
-            aria-invalid={c.submitFieldErrors.firstName ? true : undefined}
-            aria-describedby={c.submitFieldErrors.firstName ? "pb-first-name-error" : undefined}
-          />
-          {c.submitFieldErrors.firstName ? (
-            <p id="pb-first-name-error" role="alert" className="text-[length:var(--fs-xs)] leading-snug text-destructive">
-              {c.submitFieldErrors.firstName}
-            </p>
-          ) : null}
-        </div>
-
-        <div className="grid gap-2">
-          <Label htmlFor="pb-last-name" className="text-[length:var(--fs-sm)] font-normal text-muted-foreground">
-            Last name{requiredMark}
-          </Label>
-          <Input
-            id="pb-last-name"
-            value={c.lastName}
-            onChange={(e) => {
-              c.setLastName(e.target.value);
-              c.setSubmitFieldErrors((prev) => {
-                const next = { ...prev };
-                delete next.lastName;
-                return next;
-              });
-            }}
-            autoComplete="family-name"
-            aria-invalid={c.submitFieldErrors.lastName ? true : undefined}
-            aria-describedby={c.submitFieldErrors.lastName ? "pb-last-name-error" : undefined}
-          />
-          {c.submitFieldErrors.lastName ? (
-            <p id="pb-last-name-error" role="alert" className="text-[length:var(--fs-xs)] leading-snug text-destructive">
-              {c.submitFieldErrors.lastName}
-            </p>
-          ) : null}
-        </div>
-
         <div className="grid gap-2 sm:col-span-2">
           <Label htmlFor="pb-phone" className="text-[length:var(--fs-sm)] font-normal text-muted-foreground">
             Phone number{requiredMark}
@@ -839,6 +888,9 @@ export function PublicBookingContactSection({
               c.setRequiresOtp(null);
               c.setVerificationToken(null);
               c.setDateOfBirth("");
+              c.setFirstName("");
+              c.setLastName("");
+              c.setEmail("");
               c.setSubmitFieldErrors((prev) => {
                 const next = { ...prev };
                 delete next.phoneNumber;
@@ -855,6 +907,16 @@ export function PublicBookingContactSection({
             <p id="pb-phone-error" role="alert" className="text-[length:var(--fs-xs)] leading-snug text-destructive">
               {c.submitFieldErrors.phoneNumber}
             </p>
+          ) : null}
+          {!phoneChecked ? (
+            <Button
+              type="button"
+              className="mt-2 h-11 w-full rounded-[var(--radius-md)] text-[length:var(--fs-base)] font-semibold"
+              onClick={() => void c.runPhoneCheck()}
+              disabled={!c.phone.trim() || c.phoneCheck.isPending}
+            >
+              Continue
+            </Button>
           ) : null}
         </div>
 
@@ -881,6 +943,24 @@ export function PublicBookingContactSection({
                   This phone matches records at this location. Request a one-time code via WhatsApp,
                   then enter it so we can show your recent visits.
                 </p>
+                <Button
+                  type="button"
+                  variant="ghost"
+                  size="sm"
+                  className="-ml-2 h-8 justify-start px-2 text-[length:var(--fs-xs)] text-muted-foreground"
+                  onClick={() => {
+                    c.setRequiresOtp(false);
+                    c.setVerificationToken(null);
+                    c.setOtp("");
+                    c.setSubmitFieldErrors((prev) => {
+                      const next = { ...prev };
+                      delete next.bookingVerificationToken;
+                      return next;
+                    });
+                  }}
+                >
+                  New patient / can’t receive WhatsApp? Continue without code
+                </Button>
               </div>
               <Button
                 type="button"
@@ -929,7 +1009,78 @@ export function PublicBookingContactSection({
           ) : null}
         </div>
 
-        {c.requiresOtp !== true ? (
+        {isNewPatient ? (
+          <>
+            <div className="grid gap-2">
+              <Label
+                htmlFor="pb-first-name"
+                className="text-[length:var(--fs-sm)] font-normal text-muted-foreground"
+              >
+                First name{requiredMark}
+              </Label>
+              <Input
+                id="pb-first-name"
+                value={c.firstName}
+                onChange={(e) => {
+                  c.setFirstName(e.target.value);
+                  c.setSubmitFieldErrors((prev) => {
+                    const next = { ...prev };
+                    delete next.firstName;
+                    return next;
+                  });
+                }}
+                autoComplete="given-name"
+                aria-invalid={c.submitFieldErrors.firstName ? true : undefined}
+                aria-describedby={
+                  c.submitFieldErrors.firstName ? "pb-first-name-error" : undefined
+                }
+              />
+              {c.submitFieldErrors.firstName ? (
+                <p
+                  id="pb-first-name-error"
+                  role="alert"
+                  className="text-[length:var(--fs-xs)] leading-snug text-destructive"
+                >
+                  {c.submitFieldErrors.firstName}
+                </p>
+              ) : null}
+            </div>
+
+            <div className="grid gap-2">
+              <Label
+                htmlFor="pb-last-name"
+                className="text-[length:var(--fs-sm)] font-normal text-muted-foreground"
+              >
+                Last name{requiredMark}
+              </Label>
+              <Input
+                id="pb-last-name"
+                value={c.lastName}
+                onChange={(e) => {
+                  c.setLastName(e.target.value);
+                  c.setSubmitFieldErrors((prev) => {
+                    const next = { ...prev };
+                    delete next.lastName;
+                    return next;
+                  });
+                }}
+                autoComplete="family-name"
+                aria-invalid={c.submitFieldErrors.lastName ? true : undefined}
+                aria-describedby={
+                  c.submitFieldErrors.lastName ? "pb-last-name-error" : undefined
+                }
+              />
+              {c.submitFieldErrors.lastName ? (
+                <p
+                  id="pb-last-name-error"
+                  role="alert"
+                  className="text-[length:var(--fs-xs)] leading-snug text-destructive"
+                >
+                  {c.submitFieldErrors.lastName}
+                </p>
+              ) : null}
+            </div>
+
           <div className="sm:col-span-2">
             <IsoDatePickerField
               id="pb-date-of-birth"
@@ -961,34 +1112,46 @@ export function PublicBookingContactSection({
               </p>
             ) : null}
           </div>
+          </>
         ) : null}
 
-        <div className="grid gap-2 sm:col-span-2">
-          <Label htmlFor="pb-email" className="text-[length:var(--fs-sm)] font-normal text-muted-foreground">
-            Email
-          </Label>
-          <Input
-            id="pb-email"
-            value={c.email}
-            onChange={(e) => {
-              c.setEmail(e.target.value);
-              c.setSubmitFieldErrors((prev) => {
-                const next = { ...prev };
-                delete next.email;
-                return next;
-              });
-            }}
-            autoComplete="email"
-            type="email"
-            aria-invalid={c.submitFieldErrors.email ? true : undefined}
-            aria-describedby={c.submitFieldErrors.email ? "pb-email-error" : undefined}
-          />
-          {c.submitFieldErrors.email ? (
-            <p id="pb-email-error" role="alert" className="text-[length:var(--fs-xs)] leading-snug text-destructive">
-              {c.submitFieldErrors.email}
-            </p>
-          ) : null}
-        </div>
+        {isNewPatient ? (
+          <div className="grid gap-2 sm:col-span-2">
+            <Label
+              htmlFor="pb-email"
+              className="text-[length:var(--fs-sm)] font-normal text-muted-foreground"
+            >
+              Email
+            </Label>
+            <Input
+              id="pb-email"
+              value={c.email}
+              onChange={(e) => {
+                c.setEmail(e.target.value);
+                c.setSubmitFieldErrors((prev) => {
+                  const next = { ...prev };
+                  delete next.email;
+                  return next;
+                });
+              }}
+              autoComplete="email"
+              type="email"
+              aria-invalid={c.submitFieldErrors.email ? true : undefined}
+              aria-describedby={
+                c.submitFieldErrors.email ? "pb-email-error" : undefined
+              }
+            />
+            {c.submitFieldErrors.email ? (
+              <p
+                id="pb-email-error"
+                role="alert"
+                className="text-[length:var(--fs-xs)] leading-snug text-destructive"
+              >
+                {c.submitFieldErrors.email}
+              </p>
+            ) : null}
+          </div>
+        ) : null}
 
         <div className="grid gap-2 sm:col-span-2">
           <Label htmlFor="pb-reason" className="text-[length:var(--fs-sm)] font-normal text-muted-foreground">

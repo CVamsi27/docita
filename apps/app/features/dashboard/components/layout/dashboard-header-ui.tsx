@@ -38,11 +38,7 @@ export function DashboardHeaderUI({
           </div>
           <div className="ui-copy-stack min-w-0">
             <p className="ui-helper-text">
-              {formatDate(new Date(), "en-IN", {
-                weekday: "long",
-                month: "long",
-                day: "numeric",
-              })}
+              {formatDate(new Date(), "EEEE, MMMM d")}
             </p>
             <h1 className="ui-page-title">
               {greeting}, {userName}!

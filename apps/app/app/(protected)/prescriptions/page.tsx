@@ -13,7 +13,8 @@ import { useDebounce } from "@workspace/hooks/use-debounce";
 
 import { SUBSCRIPTION_SETTINGS_PATH } from "@/lib/subscription-settings-path";
 import { useAuth } from "@/lib/auth-context";
-import { getLocalCalendarDateString } from "@/lib/local-calendar-date";
+import { useClinic } from "@/lib/clinic-context";
+import { DEFAULT_TIMEZONE, formatClinicTodayPickerIso } from "@workspace/utils";
 import { PrescriptionsFilters } from "@/features/prescriptions/components/list/PrescriptionsFilters";
 import {
   PrescriptionsTable,
@@ -25,13 +26,15 @@ export default function PrescriptionsPage() {
   const searchParams = useSearchParams();
   const patientIdFromUrl = searchParams.get("patientId") ?? "";
   const { user } = useAuth();
+  const { clinic } = useClinic();
   const isDoctorRole =
     user?.role === "DOCTOR" || user?.role === "ADMIN_DOCTOR";
-  const todayLocal = getLocalCalendarDateString();
+  const clinicTz = clinic?.timezone?.trim() || DEFAULT_TIMEZONE;
+  const clinicToday = formatClinicTodayPickerIso(clinicTz);
   const [searchQuery, setSearchQuery] = useState("");
   const [patientId, setPatientId] = useState(patientIdFromUrl);
-  const [startDate, setStartDate] = useState(todayLocal);
-  const [endDate, setEndDate] = useState(todayLocal);
+  const [startDate, setStartDate] = useState(clinicToday);
+  const [endDate, setEndDate] = useState(clinicToday);
   const debouncedSearch = useDebounce(searchQuery, 300);
 
   useEffect(() => {
@@ -86,8 +89,8 @@ export default function PrescriptionsPage() {
     const dateLabel = (() => {
       if (!hasDateRange) return "all days";
       if (startDate === endDate) {
-        return startDate === todayLocal
-          ? `today (${todayLocal})`
+        return startDate === clinicToday
+          ? `today (${clinicToday})`
           : `the day (${startDate})`;
       }
       return `${startDate} to ${endDate}`;
@@ -101,7 +104,7 @@ export default function PrescriptionsPage() {
       return `Showing prescriptions for ${dateLabel}.`;
     }
     return `View and manage prescriptions for ${dateLabel}.`;
-  }, [endDate, hasDateRange, isDoctorRole, patientId, startDate, todayLocal]);
+  }, [endDate, hasDateRange, isDoctorRole, patientId, startDate, clinicToday]);
 
   const filteredAndSortedPrescriptions = useMemo(() => {
     const result = [...prescriptions];

@@ -11,11 +11,20 @@ import {
   CardTitle,
 } from "@workspace/ui/components/card";
 import { DataState } from "@workspace/ui/components/data-state";
-import { Input } from "@workspace/ui/components/input";
-import { Label } from "@workspace/ui/components/label";
-import { MicroLabel } from "@workspace/ui/components/micro-label";
-import { Separator } from "@workspace/ui/components/separator";
 import { Textarea } from "@workspace/ui/components/textarea";
+import { Calendar } from "@workspace/ui/components/calendar";
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "@workspace/ui/components/popover";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@workspace/ui/components/select";
 import type { AppointmentRequestResponse } from "@workspace/types";
 import {
   addMinutesToClinicWallDatetimeLocal,
@@ -25,6 +34,7 @@ import {
   formatClinicFriendlyDateTime,
   formatClinicPickerDayIsoFromSelection,
   formatDistanceToNow,
+  formatScheduleTime,
   utcInstantToClinicWallDatetimeLocal,
 } from "@workspace/utils";
 import {
@@ -32,7 +42,7 @@ import {
   useApproveAppointmentRequest,
   useRejectAppointmentRequest,
 } from "@/hooks/api/use-appointments";
-import { useDoctors } from "@/hooks/api/use-settings";
+import { useDoctorAvailabilitySlots, useDoctors } from "@/hooks/api/use-settings";
 import { showUserFacingErrorToast } from "@/lib/user-facing-errors";
 import { fetchNextAvailableSlotWindow } from "@/lib/doctor-availability-first-slot";
 import {
@@ -47,6 +57,25 @@ import { extractProblemDetail } from "@/lib/utils/api-validation-errors";
 import { cn } from "@workspace/ui/lib/utils";
 import { getSafeUserMessage } from "@/lib/user-facing-errors";
 import { useClinic } from "@/lib/clinic-context";
+
+const REJECT_REASON_CUSTOM = "CUSTOM";
+const REJECT_REASON_OPTIONS: { value: string; label: string }[] = [
+  {
+    value: "Please call the front desk to confirm a time.",
+    label: "Call the front desk to confirm",
+  },
+  {
+    value:
+      "No slots are available at the requested time. We can offer the next available slot.",
+    label: "No slots at requested time",
+  },
+  {
+    value:
+      "Doctor is unavailable. We can offer another doctor or a different time.",
+    label: "Doctor unavailable",
+  },
+  { value: REJECT_REASON_CUSTOM, label: "Custom message…" },
+];
 
 function utcRequestedSlotToWallLocal(
   requestedSlotStart: string | Date | null | undefined,
@@ -90,6 +119,30 @@ function patientPhone(request: AppointmentRequestResponse): string | null {
   return typeof raw === "string" && raw.trim().length > 0 ? raw.trim() : null;
 }
 
+function pickerIsoToLocalNoonDate(pickerIso: string): Date | null {
+  const m = /^(\d{4})-(\d{2})-(\d{2})$/.exec(pickerIso.trim());
+  if (!m) return null;
+  const y = Number(m[1]);
+  const mo = Number(m[2]);
+  const d = Number(m[3]);
+  if (!Number.isFinite(y) || !Number.isFinite(mo) || !Number.isFinite(d)) {
+    return null;
+  }
+  return new Date(y, mo - 1, d, 12, 0, 0, 0);
+}
+
+function parsePickerIsoToLocalDate(pickerIso: string): Date | null {
+  const m = /^(\d{4})-(\d{2})-(\d{2})$/.exec(pickerIso.trim());
+  if (!m) return null;
+  const y = Number(m[1]);
+  const mo = Number(m[2]);
+  const d = Number(m[3]);
+  if (!Number.isFinite(y) || !Number.isFinite(mo) || !Number.isFinite(d)) {
+    return null;
+  }
+  return new Date(y, mo - 1, d, 0, 0, 0, 0);
+}
+
 function schedulingSummaryLines(request: AppointmentRequestResponse): {
   primary: string;
 } {
@@ -119,7 +172,7 @@ function schedulingSummaryLines(request: AppointmentRequestResponse): {
     ? `Preferred date · ${formatLocaleDateShortMonthYear(pref)}`
     : "Preferred date not set";
   if (request.preferredTime && /^\d{2}:\d{2}$/.test(request.preferredTime)) {
-    primary += ` at ${request.preferredTime}`;
+    primary += ` at ${formatScheduleTime(request.preferredTime)}`;
   }
   return { primary };
 }
@@ -137,12 +190,12 @@ interface AppointmentRequestRowProps {
   setStartByRequest: React.Dispatch<
     React.SetStateAction<Record<string, string>>
   >;
-  endByRequest: Record<string, string>;
-  setEndByRequest: React.Dispatch<
+  rejectReasonByRequest: Record<string, string>;
+  setRejectReasonByRequest: React.Dispatch<
     React.SetStateAction<Record<string, string>>
   >;
-  responseByRequest: Record<string, string>;
-  setResponseByRequest: React.Dispatch<
+  rejectCustomByRequest: Record<string, string>;
+  setRejectCustomByRequest: React.Dispatch<
     React.SetStateAction<Record<string, string>>
   >;
   onApprove: (request: AppointmentRequestResponse) => void | Promise<void>;
@@ -161,10 +214,10 @@ function AppointmentRequestRow({
   setDoctorByRequest,
   startByRequest,
   setStartByRequest,
-  endByRequest,
-  setEndByRequest,
-  responseByRequest,
-  setResponseByRequest,
+  rejectReasonByRequest,
+  setRejectReasonByRequest,
+  rejectCustomByRequest,
+  setRejectCustomByRequest,
   onApprove,
   onReject,
   isMutating,
@@ -209,10 +262,6 @@ function AppointmentRequestRow({
         ...prev,
         [request.id]: win.startLocal,
       }));
-      setEndByRequest((prev) => ({
-        ...prev,
-        [request.id]: win.endLocal,
-      }));
     })();
 
     return () => {
@@ -226,7 +275,6 @@ function AppointmentRequestRow({
     request.requestedSlotStart,
     request.requestedSlotEnd,
     setStartByRequest,
-    setEndByRequest,
     clinicTimezone,
     slotSuggestionGeneration,
   ]);
@@ -247,11 +295,44 @@ function AppointmentRequestRow({
 
   const startValue =
     startByRequest[request.id] ?? structuredStart ?? fallbackStart;
-  const endValue =
-    endByRequest[request.id] ??
-    structuredEnd ??
-    addMinutesToClinicWallDatetimeLocal(startValue, 30, clinicTimezone) ??
-    startValue;
+  const endValue = addMinutesToClinicWallDatetimeLocal(
+    startValue,
+    30,
+    clinicTimezone,
+  );
+  const endDisplay = endValue ?? structuredEnd ?? startValue;
+
+  const startDayIso = startValue.slice(0, 10);
+  const startTimeHHmm = startValue.slice(11, 16);
+  const startDaySelection = pickerIsoToLocalNoonDate(startDayIso);
+  const { data: availabilitySlots = [] } = useDoctorAvailabilitySlots(
+    startDaySelection ?? undefined,
+    effectiveDoctorId || undefined,
+    { enabled: Boolean(startDaySelection && effectiveDoctorId) },
+  );
+  const availableStartTimes = useMemo(() => {
+    return availabilitySlots
+      .filter(
+        (s) =>
+          s.isAvailable === true &&
+          s.doctorId === effectiveDoctorId &&
+          typeof s.time === "string" &&
+          typeof s.endTime === "string",
+      )
+      .map((s) => ({ time: s.time, endTime: s.endTime }));
+  }, [availabilitySlots, effectiveDoctorId]);
+
+  const nowWallLocal = utcInstantToClinicWallDatetimeLocal(
+    new Date(),
+    clinicTimezone,
+  );
+  const isPast = Boolean(nowWallLocal && startValue < nowWallLocal);
+  const endHHmm = endDisplay.slice(11, 16);
+  const matchesAvailableSlot = availableStartTimes.some(
+    (s) => s.time === startTimeHHmm && s.endTime === endHHmm,
+  );
+  const isStartAllowed =
+    !isPast && (availableStartTimes.length === 0 || matchesAvailableSlot);
 
   const summary = schedulingSummaryLines(request);
   const phone = patientPhone(request);
@@ -263,258 +344,237 @@ function AppointmentRequestRow({
   );
   const arrivalRelative = formatDistanceToNow(request.createdAt);
 
+  const hasApproveFieldErrors = Boolean(
+    approveFieldErrors &&
+      (approveFieldErrors.doctorId ||
+        approveFieldErrors.startTime ||
+        approveFieldErrors.endTime),
+  );
+  const approveBlocked = isMutating || !isStartAllowed || hasApproveFieldErrors;
+
+  const approveError =
+    approveFieldErrors?.doctorId ??
+    approveFieldErrors?.startTime ??
+    approveFieldErrors?.endTime ??
+    (isPast ? "Start time is in the past." : null) ??
+    (!isStartAllowed ? "Not available for this doctor." : null);
+
   return (
-    <div className="rounded-md border border-border/70 bg-card/40 p-3 shadow-sm">
-      <div className="flex flex-wrap items-start justify-between gap-2 border-b border-border/50 pb-2">
-        <div className="min-w-0 flex-1 space-y-1">
-          <div className="flex flex-wrap items-baseline gap-x-2 gap-y-0.5">
-            <p className="text-[length:var(--fs-sm)] font-medium leading-snug text-foreground">
+    <div className="rounded-lg border border-border/60 bg-card shadow-sm">
+      {/* Patient info — two tight lines */}
+      <div className="flex items-start justify-between gap-2 px-3 pt-2 pb-1.5">
+        <div className="min-w-0 flex-1">
+          <div className="flex flex-wrap items-baseline gap-x-1.5 gap-y-0">
+            <span className="text-[length:var(--fs-sm)] font-semibold leading-snug text-foreground">
               {patientName(request)}
-            </p>
+            </span>
             {phone ? (
-              <span className="text-[length:var(--fs-xs)] text-muted-foreground">
+              <span className="text-[length:var(--fs-xs)] tabular-nums text-muted-foreground">
                 {phone}
               </span>
             ) : null}
-          </div>
-          <p className="text-[length:var(--fs-xs)] text-muted-foreground">
-            <span className="font-medium text-foreground/85">Received</span>
-            {arrivalClinic ? (
-              <>
-                {" "}
-                <span className="tabular-nums">{arrivalClinic}</span>
-                {arrivalRelative ? (
-                  <span className="text-muted-foreground">
-                    {" "}
-                    ({arrivalRelative})
-                  </span>
-                ) : null}
-              </>
-            ) : null}
-          </p>
-          <p className="line-clamp-2 text-[length:var(--fs-xs)] leading-snug text-muted-foreground">
-            {request.reason}
-          </p>
-          {request.notes ? (
-            <p className="line-clamp-1 text-[length:var(--fs-xs)] text-muted-foreground">
-              <span className="font-medium text-foreground/80">Notes</span>
-              {": "}
-              {request.notes}
-            </p>
-          ) : null}
-          <p className="text-[length:var(--fs-xs)] leading-snug text-muted-foreground">
-            {summary.primary}
-            {preferredDoctorLabel ? (
-              <span className="block sm:inline sm:before:content-['·_'] sm:before:font-normal">
-                Preferred doctor · {preferredDoctorLabel}
+            {arrivalRelative ? (
+              <span className="text-[length:var(--fs-xs)] text-muted-foreground/60">
+                · {arrivalRelative}
               </span>
             ) : null}
+          </div>
+          <p className="line-clamp-1 text-[length:var(--fs-xs)] text-muted-foreground">
+            {request.reason?.trim() ? request.reason : "No reason"}
+            {" · "}
+            {summary.primary}
+            {preferredDoctorLabel ? ` · Dr. ${preferredDoctorLabel}` : ""}
+            {request.notes ? ` · ${request.notes}` : ""}
           </p>
         </div>
-        <Badge variant="outline" className="h-5 shrink-0 px-1.5 text-[length:var(--fs-2xs)]">
+        <Badge
+          variant="secondary"
+          className="mt-0.5 h-4 shrink-0 px-1.5 text-[length:var(--fs-2xs)] uppercase tracking-wide"
+        >
           {request.status}
         </Badge>
       </div>
 
-      <div className="space-y-2 pt-2">
-        <MicroLabel as="p" className="text-[length:var(--fs-2xs)]">
-          Approve booking
-        </MicroLabel>
-        <p className="text-[length:var(--fs-xs)] leading-snug text-muted-foreground">
-          Suggested start/end refresh when another request is approved or slot
-          availability changes.
-        </p>
-        <div className="flex flex-col gap-2 lg:flex-row lg:flex-wrap lg:items-end">
-          <div className="min-w-[11rem] flex-1 space-y-1">
-            <Label
-              htmlFor={`apr-doctor-${request.id}`}
-              className="text-[length:var(--fs-xs)] font-normal text-muted-foreground"
-            >
-              Doctor
-            </Label>
-            <select
+      {/* Action bar */}
+      <div className="border-t border-border/40 bg-muted/20 px-2 py-1.5 space-y-1.5">
+        {/* Approve row */}
+        <div className="flex flex-wrap items-center gap-1.5">
+          <Select
+            value={
+              doctorByRequest[request.id] ??
+              request.preferredDoctorId ??
+              doctorOptions[0]?.id ??
+              ""
+            }
+            onValueChange={(value) => {
+              onClearApproveFieldErrors();
+              setDoctorByRequest((prev) => ({ ...prev, [request.id]: value }));
+              setStartByRequest((prev) => {
+                const next = { ...prev };
+                delete next[request.id];
+                return next;
+              });
+            }}
+          >
+            <SelectTrigger
               id={`apr-doctor-${request.id}`}
+              size="sm"
               className={cn(
-                "flex h-8 w-full rounded-md border bg-background px-2 text-[length:var(--fs-xs)] shadow-sm",
-                approveFieldErrors?.doctorId
-                  ? "border-destructive aria-invalid:border-destructive"
-                  : "border-input",
+                "h-7 w-[9rem] px-2 text-[length:var(--fs-xs)]",
+                approveFieldErrors?.doctorId && "border-destructive",
               )}
               aria-invalid={approveFieldErrors?.doctorId ? true : undefined}
-              aria-describedby={
-                approveFieldErrors?.doctorId
-                  ? `apr-doctor-err-${request.id}`
-                  : undefined
-              }
-              value={
-                doctorByRequest[request.id] ??
-                request.preferredDoctorId ??
-                doctorOptions[0]?.id ??
-                ""
-              }
-              onChange={(event) => {
-                onClearApproveFieldErrors();
-                const value = event.target.value;
-                setDoctorByRequest((prev) => ({
-                  ...prev,
-                  [request.id]: value,
-                }));
-                setStartByRequest((prev) => {
-                  const next = { ...prev };
-                  delete next[request.id];
-                  return next;
-                });
-                setEndByRequest((prev) => {
-                  const next = { ...prev };
-                  delete next[request.id];
-                  return next;
-                });
-              }}
             >
+              <SelectValue placeholder="Doctor" />
+            </SelectTrigger>
+            <SelectContent>
               {doctorOptions.map((doctor) => (
-                <option key={doctor.id} value={doctor.id}>
-                  {doctor.name}
-                </option>
+                <SelectItem key={doctor.id} value={doctor.id}>
+                  {doctor.name ?? "Doctor"}
+                </SelectItem>
               ))}
-            </select>
-            {approveFieldErrors?.doctorId ? (
-              <p
-                id={`apr-doctor-err-${request.id}`}
-                className="text-[length:var(--fs-xs)] text-destructive"
-              >
-                {approveFieldErrors.doctorId}
-              </p>
-            ) : null}
-          </div>
-          <div className="min-w-[10.5rem] flex-1 space-y-1">
-            <Label
-              htmlFor={`apr-start-${request.id}`}
-              className="text-[length:var(--fs-xs)] font-normal text-muted-foreground"
-            >
-              Start
-            </Label>
-            <Input
-              id={`apr-start-${request.id}`}
-              type="datetime-local"
-              value={startValue}
-              onChange={(event) => {
-                onClearApproveFieldErrors();
-                setStartByRequest((prev) => ({
-                  ...prev,
-                  [request.id]: event.target.value,
-                }));
-              }}
-              aria-invalid={approveFieldErrors?.startTime ? true : undefined}
-              aria-describedby={
-                approveFieldErrors?.startTime
-                  ? `apr-start-err-${request.id}`
-                  : undefined
-              }
-              className={cn(
-                "h-8 px-2 text-[length:var(--fs-xs)]",
-                approveFieldErrors?.startTime &&
-                  "border-destructive aria-invalid:border-destructive",
-              )}
-            />
-            {approveFieldErrors?.startTime ? (
-              <p
-                id={`apr-start-err-${request.id}`}
-                className="text-[length:var(--fs-xs)] text-destructive"
-              >
-                {approveFieldErrors.startTime}
-              </p>
-            ) : null}
-          </div>
-          <div className="min-w-[10.5rem] flex-1 space-y-1">
-            <Label
-              htmlFor={`apr-end-${request.id}`}
-              className="text-[length:var(--fs-xs)] font-normal text-muted-foreground"
-            >
-              End
-            </Label>
-            <Input
-              id={`apr-end-${request.id}`}
-              type="datetime-local"
-              value={endValue}
-              onChange={(event) => {
-                onClearApproveFieldErrors();
-                setEndByRequest((prev) => ({
-                  ...prev,
-                  [request.id]: event.target.value,
-                }));
-              }}
-              aria-invalid={approveFieldErrors?.endTime ? true : undefined}
-              aria-describedby={
-                approveFieldErrors?.endTime
-                  ? `apr-end-err-${request.id}`
-                  : undefined
-              }
-              className={cn(
-                "h-8 px-2 text-[length:var(--fs-xs)]",
-                approveFieldErrors?.endTime &&
-                  "border-destructive aria-invalid:border-destructive",
-              )}
-            />
-            {approveFieldErrors?.endTime ? (
-              <p
-                id={`apr-end-err-${request.id}`}
-                className="text-[length:var(--fs-xs)] text-destructive"
-              >
-                {approveFieldErrors.endTime}
-              </p>
-            ) : null}
-          </div>
-          <div className="flex w-full shrink-0 lg:w-auto lg:max-w-[9rem]">
-            <Button
-              size="sm"
-              className="h-8 w-full gap-1.5"
-              disabled={isMutating}
-              onClick={() => void onApprove(request)}
-            >
-              <Check className="h-3.5 w-3.5 shrink-0" aria-hidden />
-              Approve
-            </Button>
-          </div>
-        </div>
-      </div>
+            </SelectContent>
+          </Select>
 
-      <Separator className="my-2 bg-border/60" />
+          <Popover>
+            <PopoverTrigger asChild>
+              <Button
+                type="button"
+                variant="outline"
+                size="sm"
+                className="h-7 w-[8rem] justify-start px-2 text-[length:var(--fs-xs)] font-normal"
+              >
+                {startDayIso || "Date"}
+              </Button>
+            </PopoverTrigger>
+            <PopoverContent className="w-auto p-0" align="start">
+              <Calendar
+                mode="single"
+                selected={parsePickerIsoToLocalDate(startDayIso) ?? undefined}
+                onSelect={(d) => {
+                  if (!d) return;
+                  onClearApproveFieldErrors();
+                  const nextIso = formatClinicPickerDayIsoFromSelection(d, clinicTimezone);
+                  setStartByRequest((prev) => ({
+                    ...prev,
+                    [request.id]: `${nextIso}T${startTimeHHmm}`,
+                  }));
+                }}
+                initialFocus
+              />
+            </PopoverContent>
+          </Popover>
 
-      <div className="flex flex-col gap-2 sm:flex-row sm:items-end">
-        <div className="min-w-0 flex-1 space-y-1">
-          <MicroLabel as="p" className="text-[length:var(--fs-2xs)]">
-            Reject
-          </MicroLabel>
-          <Label
-            htmlFor={`apr-reject-${request.id}`}
-            className="text-[length:var(--fs-xs)] font-normal text-muted-foreground"
-          >
-            Message to patient
-          </Label>
-          <Textarea
-            id={`apr-reject-${request.id}`}
-            value={responseByRequest[request.id] ?? ""}
-            onChange={(event) =>
-              setResponseByRequest((prev) => ({
+          <Select
+            value={startTimeHHmm}
+            onValueChange={(value) => {
+              onClearApproveFieldErrors();
+              setStartByRequest((prev) => ({
                 ...prev,
-                [request.id]: event.target.value,
-              }))
-            }
-            placeholder="Reason for rejection (sent to patient)"
-            rows={2}
-            className="min-h-[68px] resize-y text-[length:var(--fs-xs)]"
-          />
+                [request.id]: `${startDayIso}T${value}`,
+              }));
+            }}
+          >
+            <SelectTrigger
+              id={`apr-start-${request.id}`}
+              size="sm"
+              className={cn(
+                "h-7 w-[5.5rem] px-2 text-[length:var(--fs-xs)]",
+                (approveFieldErrors?.startTime || !isStartAllowed) && "border-destructive",
+              )}
+              aria-invalid={
+                approveFieldErrors?.startTime || !isStartAllowed ? true : undefined
+              }
+            >
+              <SelectValue placeholder="Time" />
+            </SelectTrigger>
+            <SelectContent>
+              {availableStartTimes.length > 0 ? (
+                availableStartTimes.map((s) => (
+                  <SelectItem key={s.time} value={s.time}>
+                    {formatScheduleTime(s.time)}
+                  </SelectItem>
+                ))
+              ) : (
+                <SelectItem value={startTimeHHmm}>
+                  {formatScheduleTime(startTimeHHmm)}
+                </SelectItem>
+              )}
+            </SelectContent>
+          </Select>
+
+          <span className="text-[length:var(--fs-xs)] tabular-nums text-muted-foreground/60">
+            → {formatScheduleTime(endHHmm)}
+          </span>
+
+          <Button
+            size="sm"
+            className="h-7 gap-1 px-3 text-[length:var(--fs-xs)]"
+            disabled={approveBlocked}
+            onClick={() => void onApprove(request)}
+          >
+            <Check className="h-3 w-3 shrink-0" aria-hidden />
+            Approve
+          </Button>
+
+          {approveError ? (
+            <span className="text-[length:var(--fs-xs)] text-destructive">
+              {approveError}
+            </span>
+          ) : null}
         </div>
-        <Button
-          variant="outline"
-          size="sm"
-          className="h-8 w-full shrink-0 gap-1.5 sm:w-auto sm:min-w-[6.5rem]"
-          disabled={isMutating}
-          onClick={() => void onReject(request)}
-        >
-          <X className="h-3.5 w-3.5 shrink-0" aria-hidden />
-          Reject
-        </Button>
+
+        {/* Reject row */}
+        <div className="flex flex-wrap items-start gap-1.5">
+          <Select
+            value={rejectReasonByRequest[request.id] ?? ""}
+            onValueChange={(value) =>
+              setRejectReasonByRequest((prev) => ({ ...prev, [request.id]: value }))
+            }
+          >
+            <SelectTrigger
+              id={`apr-reject-reason-${request.id}`}
+              size="sm"
+              className="h-7 w-[13rem] px-2 text-[length:var(--fs-xs)]"
+            >
+              <SelectValue placeholder="Reject reason…" />
+            </SelectTrigger>
+            <SelectContent>
+              {REJECT_REASON_OPTIONS.map((o) => (
+                <SelectItem key={o.value} value={o.value}>
+                  {o.label}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+
+          {rejectReasonByRequest[request.id] === REJECT_REASON_CUSTOM ? (
+            <Textarea
+              id={`apr-reject-${request.id}`}
+              value={rejectCustomByRequest[request.id] ?? ""}
+              onChange={(event) =>
+                setRejectCustomByRequest((prev) => ({
+                  ...prev,
+                  [request.id]: event.target.value,
+                }))
+              }
+              placeholder="Message for the patient"
+              rows={2}
+              className="min-h-[36px] flex-1 resize-y text-[length:var(--fs-xs)]"
+            />
+          ) : null}
+
+          <Button
+            variant="outline"
+            size="sm"
+            className="h-7 shrink-0 gap-1 px-3 text-[length:var(--fs-xs)]"
+            disabled={isMutating}
+            onClick={() => void onReject(request)}
+          >
+            <X className="h-3 w-3 shrink-0" aria-hidden />
+            Reject
+          </Button>
+        </div>
       </div>
     </div>
   );
@@ -536,8 +596,10 @@ export function AppointmentRequestsPanel() {
   const [startByRequest, setStartByRequest] = useState<Record<string, string>>(
     {},
   );
-  const [endByRequest, setEndByRequest] = useState<Record<string, string>>({});
-  const [responseByRequest, setResponseByRequest] = useState<
+  const [rejectReasonByRequest, setRejectReasonByRequest] = useState<
+    Record<string, string>
+  >({});
+  const [rejectCustomByRequest, setRejectCustomByRequest] = useState<
     Record<string, string>
   >({});
   const [approveFieldErrorsByRequest, setApproveFieldErrorsByRequest] =
@@ -545,6 +607,9 @@ export function AppointmentRequestsPanel() {
       Record<string, Partial<Record<ApproveScheduleFieldKey, string>>>
     >({});
   const [slotSuggestionGeneration, setSlotSuggestionGeneration] = useState(0);
+  const [hiddenRequestIds, setHiddenRequestIds] = useState<Set<string>>(
+    () => new Set(),
+  );
 
   const doctorOptions = useMemo(
     () =>
@@ -556,11 +621,13 @@ export function AppointmentRequestsPanel() {
 
   const sortedRequests = useMemo(() => {
     const items = data?.items ?? [];
-    return [...items].sort(
+    return [...items]
+      .filter((r) => !hiddenRequestIds.has(r.id))
+      .sort(
       (a, b) =>
         new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime(),
     );
-  }, [data?.items]);
+  }, [data?.items, hiddenRequestIds]);
 
   const requests = sortedRequests;
   const state = isLoading
@@ -604,7 +671,7 @@ export function AppointmentRequestsPanel() {
 
     let startLocal =
       startByRequest[request.id] ?? structuredStart ?? null;
-    let endLocal = endByRequest[request.id] ?? structuredEnd ?? null;
+    let endLocal = structuredEnd ?? null;
 
     if (!startLocal || !endLocal) {
       const fromSchedule = await fetchNextAvailableSlotWindow(
@@ -651,9 +718,16 @@ export function AppointmentRequestsPanel() {
         type: "Consultation",
         notes: request.notes ?? request.reason,
       });
+      setHiddenRequestIds((prev) => {
+        const next = new Set(prev);
+        next.add(request.id);
+        return next;
+      });
       setSlotSuggestionGeneration((g) => g + 1);
       setStartByRequest({});
-      setEndByRequest({});
+      setRejectReasonByRequest({});
+      setRejectCustomByRequest({});
+      void refetch();
     } catch (error) {
       const fieldErrors = extractApproveAppointmentRequestFieldErrors(error);
       if (Object.keys(fieldErrors).length > 0) {
@@ -677,7 +751,11 @@ export function AppointmentRequestsPanel() {
   };
 
   const handleReject = async (request: AppointmentRequestResponse) => {
-    const responseMessage = responseByRequest[request.id]?.trim();
+    const reason = rejectReasonByRequest[request.id]?.trim();
+    const responseMessage =
+      reason === REJECT_REASON_CUSTOM
+        ? (rejectCustomByRequest[request.id] ?? "").trim()
+        : reason;
     if (!responseMessage) {
       showUserFacingErrorToast(
         null,
@@ -692,9 +770,16 @@ export function AppointmentRequestsPanel() {
         id: request.id,
         responseMessage,
       });
+      setHiddenRequestIds((prev) => {
+        const next = new Set(prev);
+        next.add(request.id);
+        return next;
+      });
       setSlotSuggestionGeneration((g) => g + 1);
       setStartByRequest({});
-      setEndByRequest({});
+      setRejectReasonByRequest({});
+      setRejectCustomByRequest({});
+      void refetch();
     } catch (error) {
       showUserFacingErrorToast(
         error,
@@ -706,19 +791,17 @@ export function AppointmentRequestsPanel() {
 
   return (
     <Card>
-      <CardHeader className="space-y-1 py-3 pb-2">
+      <CardHeader className="py-3 pb-2">
         <div className="flex flex-wrap items-center justify-between gap-2">
           <CardTitle className="text-[length:var(--fs-sm)] font-semibold">
             Appointment requests
           </CardTitle>
-          <Badge variant="secondary" className="h-5 px-2 text-[length:var(--fs-2xs)]">
-            {data?.count ?? 0} pending · newest first
-          </Badge>
+          {(data?.count ?? 0) > 0 ? (
+            <Badge variant="secondary" className="h-5 px-2 text-[length:var(--fs-2xs)]">
+              {data?.count} pending
+            </Badge>
+          ) : null}
         </div>
-        <p className="text-[length:var(--fs-xs)] text-muted-foreground">
-          Latest portal requests appear at the top. Suggested slots update after
-          each approval.
-        </p>
       </CardHeader>
       <CardContent className="pb-4 pt-0">
         <DataState
@@ -740,10 +823,10 @@ export function AppointmentRequestsPanel() {
                 setDoctorByRequest={setDoctorByRequest}
                 startByRequest={startByRequest}
                 setStartByRequest={setStartByRequest}
-                endByRequest={endByRequest}
-                setEndByRequest={setEndByRequest}
-                responseByRequest={responseByRequest}
-                setResponseByRequest={setResponseByRequest}
+                rejectReasonByRequest={rejectReasonByRequest}
+                setRejectReasonByRequest={setRejectReasonByRequest}
+                rejectCustomByRequest={rejectCustomByRequest}
+                setRejectCustomByRequest={setRejectCustomByRequest}
                 onApprove={handleApprove}
                 onReject={handleReject}
                 isMutating={isMutating}

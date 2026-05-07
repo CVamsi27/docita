@@ -74,7 +74,14 @@ export class AppointmentService {
       command.endTime,
     );
     if (overlap.hasConflict) {
-      throw new BadRequestException('Doctor has conflicting appointment');
+      throw new BadRequestException({
+        detail: 'Doctor has conflicting appointment',
+        validationErrors: overlap.conflict
+          ? {
+              startTime: `Overlaps with appointment ${overlap.conflict.id} (${overlap.conflict.startTime.toISOString()}–${overlap.conflict.endTime.toISOString()})`,
+            }
+          : undefined,
+      });
     }
 
     const appointment = await this.createAppointmentUseCase.execute(command);

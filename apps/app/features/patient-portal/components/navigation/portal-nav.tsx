@@ -42,11 +42,7 @@ export function PortalNav() {
       : pathname === href || pathname.startsWith(`${href}/`);
 
   const consentUpdatedOn = consentSettings?.whatsappConsentAt
-    ? formatDate(consentSettings.whatsappConsentAt, "en-IN", {
-        day: "2-digit",
-        month: "short",
-        year: "numeric",
-      })
+    ? formatDate(consentSettings.whatsappConsentAt, "dd MMM yyyy")
     : null;
 
   return (

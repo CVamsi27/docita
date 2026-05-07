@@ -1,8 +1,12 @@
+import { formatUtcInstantAsClinicPickerIso, DEFAULT_TIMEZONE } from "@workspace/utils";
+
 /**
- * Calendar yyyy-MM-dd in the user's local timezone.
- * Matches `/appointments?date=` UX elsewhere (e.g. today's calendar strip).
+ * Calendar yyyy-MM-dd in the clinic timezone.
+ * Used for `/appointments?date=` and today's calendar strip.
  */
-export function getLocalCalendarDateString(date: Date = new Date()): string {
-  const offsetMs = date.getTimezoneOffset() * 60 * 1000;
-  return new Date(date.getTime() - offsetMs).toISOString().split("T")[0] ?? "";
+export function getLocalCalendarDateString(
+  date: Date = new Date(),
+  timezone: string = DEFAULT_TIMEZONE,
+): string {
+  return formatUtcInstantAsClinicPickerIso(date, timezone);
 }

@@ -78,11 +78,7 @@ export function OverviewTab({
     if (!todaysAppointment) return null;
     const start = toDate(todaysAppointment.startTime);
     if (!start) return null;
-    return formatTime(start, "en-IN", {
-      hour: "numeric",
-      minute: "2-digit",
-      hour12: true,
-    });
+    return formatTime(start, "h:mm a");
   })();
 
   const statusBadgeVariant: "default" | "secondary" | "destructive" | "outline" =

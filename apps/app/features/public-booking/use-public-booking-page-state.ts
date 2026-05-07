@@ -116,29 +116,36 @@ export function usePublicBookingPageState(referralCode: string) {
 
   const contactCanContinue = useMemo(
     () =>
-      Boolean(firstName.trim()) &&
-      Boolean(lastName.trim()) &&
       Boolean(phone.trim()) &&
-      (requiresOtp !== true || Boolean(verificationToken)),
-    [firstName, lastName, phone, requiresOtp, verificationToken],
+      requiresOtp !== null &&
+      (requiresOtp !== true || Boolean(verificationToken)) &&
+      (requiresOtp === true ||
+        (Boolean(firstName.trim()) &&
+          Boolean(lastName.trim()) &&
+          Boolean(dateOfBirth.trim()))),
+    [dateOfBirth, firstName, lastName, phone, requiresOtp, verificationToken],
   );
 
   /** Desktop + review submit: mirrors `handleSubmit` guards so the CTA stays disabled until ready. */
   const submitRequestReady = useMemo(() => {
     if (!slotDate?.trim()) return false;
     if (!visitCanContinue) return false;
-    if (!firstName.trim() || !lastName.trim() || !phone.trim()) return false;
-    if (requiresOtp === true && !verificationToken) return false;
-    if (requiresOtp === false && !dateOfBirth.trim()) return false;
+    if (!phone.trim()) return false;
+    if (requiresOtp === null) return false;
+    if (requiresOtp === true) {
+      if (!verificationToken) return false;
+    } else {
+      if (!firstName.trim() || !lastName.trim() || !dateOfBirth.trim()) return false;
+    }
     return true;
   }, [
     slotDate,
     visitCanContinue,
-    firstName,
-    lastName,
     phone,
     requiresOtp,
     verificationToken,
+    firstName,
+    lastName,
     dateOfBirth,
   ]);
 
@@ -294,10 +301,10 @@ export function usePublicBookingPageState(referralCode: string) {
       );
       return;
     }
-    if (!firstName.trim() || !lastName.trim() || !phone.trim()) {
+    if (!phone.trim()) {
       showUserFacingErrorToast(
         null,
-        "Enter your first name, last name, and phone number.",
+        "Enter your phone number before submitting.",
         "generic",
       );
       return;
@@ -318,10 +325,10 @@ export function usePublicBookingPageState(referralCode: string) {
         return;
       }
 
-      if (!otpRequired && !dateOfBirth.trim()) {
+      if (!otpRequired && (!firstName.trim() || !lastName.trim() || !dateOfBirth.trim())) {
         showUserFacingErrorToast(
           null,
-          "Enter your date of birth before submitting.",
+          "Enter your name and date of birth before submitting.",
           "generic",
         );
         return;

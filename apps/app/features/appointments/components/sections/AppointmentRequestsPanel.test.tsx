@@ -32,6 +32,9 @@ vi.mock("@/hooks/api/use-settings", () => ({
   useDoctors: () => ({
     data: appointmentMocks.doctors,
   }),
+  useDoctorAvailabilitySlots: () => ({
+    data: [],
+  }),
 }));
 
 vi.mock("@/lib/user-facing-errors", async (importOriginal) => {
@@ -106,6 +109,7 @@ describe("AppointmentRequestsPanel", () => {
     expect(screen.getByText("Asha Rao")).toBeInTheDocument();
     expect(screen.getByText("Fever and cough")).toBeInTheDocument();
     expect(screen.getByText(/1 pending/)).toBeInTheDocument();
+    expect(screen.getByText(/10:00 AM/i)).toBeInTheDocument();
 
     fireEvent.click(screen.getByRole("button", { name: /Approve/i }));
 
@@ -133,7 +137,9 @@ describe("AppointmentRequestsPanel", () => {
     );
     expect(appointmentMocks.rejectMutateAsync).not.toHaveBeenCalled();
 
-    fireEvent.change(screen.getByLabelText("Message to patient"), {
+    fireEvent.click(screen.getByRole("combobox", { name: "Reason" }));
+    fireEvent.click(screen.getByRole("option", { name: /Custom message/i }));
+    fireEvent.change(screen.getByLabelText("Custom message"), {
       target: { value: "  Please call the front desk for a safer slot.  " },
     });
     fireEvent.click(screen.getByRole("button", { name: /Reject/i }));
