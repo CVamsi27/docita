@@ -1,6 +1,7 @@
 "use client";
 
 import { useMemo } from "react";
+import { Check } from "lucide-react";
 import { cn } from "@workspace/ui/lib/utils";
 import { MicroLabel } from "@workspace/ui/components/micro-label";
 import { useConsultationDraft } from "@/features/consultation/state/useConsultationDraft";
@@ -160,17 +161,17 @@ export function SectionRail({
                   {section.subtitle}
                 </span>
               ) : null}
-              <MicroLabel
-                className={cn(
-                  isActive
-                    ? "text-primary-foreground/80"
-                    : isComplete
-                      ? "text-success"
-                      : "text-muted-foreground/70",
-                )}
-              >
-                {isComplete ? "Started" : "Empty"}
-              </MicroLabel>
+              {isComplete ? (
+                <MicroLabel
+                  className={cn(
+                    "inline-flex items-center gap-1",
+                    isActive ? "text-primary-foreground/80" : "text-success",
+                  )}
+                >
+                  <Check className="h-3 w-3" aria-hidden="true" />
+                  Started
+                </MicroLabel>
+              ) : null}
             </span>
             <Icon
               aria-hidden

@@ -84,7 +84,7 @@ describe("SectionRail", () => {
     const subj = screen.getByRole("button", { name: /Subjective/i });
     expect(subj.textContent).toMatch(/Started/i);
     const assess = screen.getByRole("button", { name: /Assessment/i });
-    expect(assess.textContent).toMatch(/Empty/i);
+    expect(assess.textContent).not.toMatch(/Started/i);
   });
 
   it("marks Plan documented when follow-up plan is entered", () => {

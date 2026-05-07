@@ -37,6 +37,7 @@ export default function ConsultationPage() {
   const sendPrescription = useSendPrescriptionWhatsApp();
   const canAccess = usePermissionStore((s) => s.canAccess);
   const [isMarkingDone, setIsMarkingDone] = useState(false);
+  const [paletteOpen, setPaletteOpen] = useState(false);
 
   const { state, handlers } = useConsultationLogic(appointmentId);
 
@@ -242,6 +243,9 @@ export default function ConsultationPage() {
               MobileSidebarContent={MobileSidebar}
               isDesktopSidebarOpen={isSidebarOpen}
               onToggleDesktopSidebar={toggleSidebar}
+              onOpenCommandPalette={() => setPaletteOpen(true)}
+              onMarkDone={handleMarkDone}
+              isMarkingDone={isMarkingDone}
             />
 
             <ConsultationShell
@@ -250,8 +254,8 @@ export default function ConsultationPage() {
               readOnly={consultationReadOnly}
               isSidebarOpen={isSidebarOpen}
               saveHandlesRef={saveHandlesRef}
-              onMarkDone={handleMarkDone}
-              isMarkingDone={isMarkingDone}
+              paletteOpen={paletteOpen}
+              onPaletteOpenChange={setPaletteOpen}
             />
           </div>
         </div>
