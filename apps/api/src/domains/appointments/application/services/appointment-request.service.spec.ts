@@ -5,6 +5,8 @@ import { AppointmentRequestStatus } from '@workspace/db';
 import { AppointmentRequestService } from './appointment-request.service';
 import { AppointmentService } from './appointment.service';
 import { APPOINTMENT_REQUEST_REPOSITORY_TOKEN } from '@/domains/appointments/core/repositories/appointment-request.repository.interface';
+import { SystemEventsService } from '@/shared/modules/messaging/whatsapp/system-events.service';
+import { StaffNotificationService } from '@/shared/modules/messaging/whatsapp/staff-notification.service';
 
 describe('AppointmentRequestService', () => {
   let service: AppointmentRequestService;
@@ -14,6 +16,14 @@ describe('AppointmentRequestService', () => {
   >;
   let appointmentService: {
     createAppointment: jest.Mock<(...args: unknown[]) => Promise<unknown>>;
+  };
+  let systemEvents: {
+    sendAppointmentConfirmation: jest.Mock<
+      (...args: unknown[]) => Promise<unknown>
+    >;
+  };
+  let staffNotifications: {
+    notifyStaff: jest.Mock<(...args: unknown[]) => Promise<unknown>>;
   };
 
   const mockRequest = {
@@ -53,6 +63,13 @@ describe('AppointmentRequestService', () => {
     appointmentService = {
       createAppointment: jest.fn<(...args: unknown[]) => Promise<unknown>>(),
     };
+    systemEvents = {
+      sendAppointmentConfirmation:
+        jest.fn<(...args: unknown[]) => Promise<unknown>>(),
+    };
+    staffNotifications = {
+      notifyStaff: jest.fn<(...args: unknown[]) => Promise<unknown>>(),
+    };
 
     const module: TestingModule = await Test.createTestingModule({
       providers: [
@@ -62,6 +79,8 @@ describe('AppointmentRequestService', () => {
           useValue: appointmentRequestRepository,
         },
         { provide: AppointmentService, useValue: appointmentService },
+        { provide: SystemEventsService, useValue: systemEvents },
+        { provide: StaffNotificationService, useValue: staffNotifications },
       ],
     }).compile();
 
@@ -85,6 +104,15 @@ describe('AppointmentRequestService', () => {
         reason: 'Fever',
       }),
     );
+    expect(staffNotifications.notifyStaff).toHaveBeenCalledWith(
+      expect.objectContaining({
+        clinicId: 'clinic-1',
+        type: 'APPOINTMENT_REQUEST_CREATED',
+        priority: 'HIGH',
+        sendWhatsApp: false,
+        sendInApp: true,
+      }),
+    );
     expect(result.status).toBe(AppointmentRequestStatus.PENDING);
   });
 
@@ -106,6 +134,7 @@ describe('AppointmentRequestService', () => {
     );
     appointmentRequestRepository.doctorBelongsToClinic.mockResolvedValue(true);
     appointmentService.createAppointment.mockResolvedValue({ id: 'appt-1' });
+    systemEvents.sendAppointmentConfirmation.mockResolvedValue(undefined);
     appointmentRequestRepository.update.mockResolvedValue({
       ...mockRequest,
       status: AppointmentRequestStatus.APPROVED,
@@ -135,6 +164,18 @@ describe('AppointmentRequestService', () => {
       expect.objectContaining({
         status: AppointmentRequestStatus.APPROVED,
         reviewedBy: { connect: { id: 'user-1' } },
+      }),
+    );
+    expect(systemEvents.sendAppointmentConfirmation).toHaveBeenCalledWith(
+      'appt-1',
+      'clinic-1',
+    );
+    expect(staffNotifications.notifyStaff).toHaveBeenCalledWith(
+      expect.objectContaining({
+        clinicId: 'clinic-1',
+        type: 'APPOINTMENT_REQUEST_APPROVED',
+        sendWhatsApp: false,
+        sendInApp: true,
       }),
     );
     expect(result.status).toBe(AppointmentRequestStatus.APPROVED);

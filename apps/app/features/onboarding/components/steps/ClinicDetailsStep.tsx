@@ -121,6 +121,25 @@ function applyClinicAddressSelection(
     shouldTouch: true,
     shouldValidate: true,
   });
+
+  clinicForm.setValue("mapsLocation", selection.location, {
+    shouldDirty: true,
+    shouldTouch: true,
+    shouldValidate: false,
+  });
+
+  const existingLink = clinicForm.getValues("mapsLink")?.trim() ?? "";
+  if (!existingLink) {
+    clinicForm.setValue(
+      "mapsLink",
+      `https://www.google.com/maps?q=${selection.location.lat},${selection.location.lng}`,
+      {
+        shouldDirty: true,
+        shouldTouch: true,
+        shouldValidate: true,
+      },
+    );
+  }
 }
 
 interface ClinicDetailsStepProps {
@@ -580,6 +599,40 @@ export function ClinicDetailsStep({
                 <p className="mt-2 text-sm leading-6 text-foreground">
                   {addressSummary || "Your structured address will appear here"}
                 </p>
+              </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="mapsLink">Google Maps link</Label>
+                <Input
+                  id="mapsLink"
+                  type="url"
+                  inputMode="url"
+                  autoComplete="url"
+                  {...clinicForm.register("mapsLink")}
+                  placeholder="https://maps.google.com/..."
+                  aria-invalid={!!clinicForm.formState.errors.mapsLink}
+                  aria-describedby={
+                    clinicForm.formState.errors.mapsLink
+                      ? "clinic-maps-link-error"
+                      : "clinic-maps-link-help"
+                  }
+                />
+                {clinicForm.formState.errors.mapsLink ? (
+                  <p
+                    id="clinic-maps-link-error"
+                    className="text-sm text-destructive"
+                  >
+                    {clinicForm.formState.errors.mapsLink.message}
+                  </p>
+                ) : (
+                  <p
+                    id="clinic-maps-link-help"
+                    className="text-xs text-muted-foreground"
+                  >
+                    Paste a Google Maps share link (or Plus code URL). Patients see
+                    this in appointment confirmations next to the date and time.
+                  </p>
+                )}
               </div>
             </div>
           </div>

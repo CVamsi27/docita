@@ -10,7 +10,7 @@ import React, {
   useState,
 } from "react";
 import { useMutation } from "@tanstack/react-query";
-import { useRouter } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
 import { usePermissionStore } from "@/lib/stores/permission-store";
 import { apiFetch } from "@/lib/api-client";
 import { appSession } from "@/lib/session";
@@ -59,7 +59,7 @@ interface AuthContextType {
     clinicName?: string,
   ) => Promise<void>;
   checkEmail: (email: string) => Promise<boolean>;
-  logout: () => Promise<void>;
+  logout: (options?: { redirect?: boolean }) => Promise<void>;
   token: string | null;
 }
 
@@ -187,6 +187,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const isAuthenticated = !!user;
   const isLoginLocked = !!loginLockoutUntil && loginLockoutUntil > Date.now();
   const router = useRouter();
+  const pathname = usePathname();
   const { setUserRole } = usePermissionStore();
   const hasSetRoleRef = useRef(false);
   const hasInitializedSessionRef = useRef(false);
@@ -564,29 +565,51 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     router.push("/dashboard");
   };
 
-  const logout = useCallback(async () => {
+  const logout = useCallback(async (options?: { redirect?: boolean }) => {
+    const shouldRedirect = options?.redirect ?? true;
     clearSession();
     clearStoredReturnPathBeforeLogin();
     try {
       await logoutMutation.mutateAsync();
     } catch {}
 
-    router.push("/login");
+    if (shouldRedirect) {
+      router.push("/login");
+    }
   }, [clearSession, logoutMutation, router]);
 
   useEffect(() => {
     if (!isAuthenticated) return;
 
     let timeoutId: NodeJS.Timeout;
+    let deadlineMs = 0;
+
+    const MAX_TIMEOUT_MS = 2_147_483_647; // setTimeout uses a 32-bit signed int
+
+    const scheduleLogout = () => {
+      if (!deadlineMs) return;
+      if (timeoutId) clearTimeout(timeoutId);
+      const remaining = deadlineMs - Date.now();
+      const nextDelay = Math.min(Math.max(remaining, 0), MAX_TIMEOUT_MS);
+
+      timeoutId = setTimeout(() => {
+        const stillRemaining = deadlineMs - Date.now();
+        if (stillRemaining > 0) {
+          scheduleLogout();
+          return;
+        }
+        const isPublicRoute =
+          !!pathname &&
+          typeof appSession.isPublicPath === "function" &&
+          appSession.isPublicPath(pathname);
+        void logout({ redirect: !isPublicRoute });
+      }, nextDelay);
+    };
 
     const resetTimer = () => {
       if (timeoutId) clearTimeout(timeoutId);
-      timeoutId = setTimeout(
-        () => {
-          logout();
-        },
-        30 * 60 * 1000,
-      );
+      deadlineMs = Date.now() + 30 * 24 * 60 * 60 * 1000;
+      scheduleLogout();
     };
 
     const events = [
@@ -609,7 +632,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         window.removeEventListener(event, resetTimer);
       });
     };
-  }, [isAuthenticated, logout]);
+  }, [isAuthenticated, logout, pathname]);
 
   return (
     <AuthContext.Provider

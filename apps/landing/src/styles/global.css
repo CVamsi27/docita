@@ -1467,15 +1467,6 @@ canvas {
   color: var(--primary);
 }
 
-.r2-section-marker {
-  font-family: var(--font-jetbrains-mono), ui-monospace, monospace;
-  font-size: 0.6875rem;
-  font-weight: 600;
-  letter-spacing: 0.18em;
-  text-transform: uppercase;
-  color: color-mix(in oklch, var(--muted-foreground) 70%, transparent);
-}
-
 .r2-mono {
   font-family: var(--font-jetbrains-mono), ui-monospace, monospace;
   font-feature-settings: "tnum" 1, "ss01" 1;

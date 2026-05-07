@@ -7,7 +7,7 @@ import { buildContentSecurityPolicy } from "./lib/security-headers";
  * lets us drop `'unsafe-inline'` from `script-src` in production
  * without breaking the framework.
  *
- * This middleware deliberately does NOTHING in development to keep
+ * This proxy deliberately does NOTHING in development to keep
  * hot-reload functional (HMR uses inline scripts that we cannot
  * sign without invasive changes).
  */
@@ -22,7 +22,7 @@ const generateNonce = (): string => {
   return btoa(binary);
 };
 
-export function middleware(request: NextRequest): NextResponse {
+export function proxy(request: NextRequest): NextResponse {
   if (!isProduction) return NextResponse.next();
 
   const nonce = generateNonce();
@@ -55,3 +55,4 @@ export const config = {
     },
   ],
 };
+

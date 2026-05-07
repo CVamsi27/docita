@@ -35,6 +35,11 @@ export interface AppointmentSearchParams {
   clinicId: string;
   startDate?: Date;
   endDate?: Date;
+  /**
+   * When true with both dates set, match appointments whose interval intersects
+   * `[startDate, endDate)` (end exclusive). Used for clinic-local calendar days.
+   */
+  intersectCalendarRange?: boolean;
   patientId?: string;
   doctorId?: string;
   status?: AppointmentStatusEnum[];

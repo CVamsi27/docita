@@ -1,5 +1,6 @@
-import { render, screen } from "@testing-library/react";
+import { screen } from "@testing-library/react";
 import { describe, expect, it, vi, beforeEach } from "vitest";
+import { render } from "@/test/render-with-tooltip";
 import { ConsultationDashboardUI } from "./ConsultationDashboardUI";
 import type { AppointmentListItem, QueueItem } from "@/hooks/api/use-appointments";
 
@@ -17,6 +18,32 @@ const mockCheckIn = {
 vi.mock("@/hooks/api/use-appointments", () => ({
   useCheckInAppointment: () => mockCheckIn,
 }));
+
+vi.mock("@/features/appointments/hooks/use-appointment-row-actions", () => ({
+  useAppointmentRowActions: () => ({
+    onCancelClick: vi.fn(),
+    onNoShowClick: vi.fn(),
+    handleCancelAppointment: vi.fn(),
+    handleNoShowAppointment: vi.fn(),
+    isPending: false,
+    dialogProps: {
+      cancelDialogOpen: false,
+      setCancelDialogOpen: vi.fn(),
+      noShowDialogOpen: false,
+      setNoShowDialogOpen: vi.fn(),
+      isPending: false,
+      onCancelConfirm: vi.fn(),
+      onNoShowConfirm: vi.fn(),
+    },
+  }),
+}));
+
+vi.mock(
+  "@/features/appointments/components/dialogs/AppointmentRowActionDialogs",
+  () => ({
+    AppointmentRowActionDialogs: () => null,
+  }),
+);
 
 vi.mock("@/hooks/use-permissions", () => ({
   usePermissions: () => ({ canCreateAppointment: true }),

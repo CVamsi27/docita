@@ -96,7 +96,6 @@ export function InventoryTable({
                       <TableCell className="hidden md:table-cell text-muted-foreground">
                         {formatDateSafe(
                           item.expiryDate,
-                          "en-US",
                           DATE_FORMAT_OPTIONS_US_SHORT,
                         )}
                       </TableCell>

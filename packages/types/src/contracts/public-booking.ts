@@ -1,5 +1,6 @@
 import { z } from "zod";
 import { stripHtmlTags } from "../api/sanitization";
+import { pastDateOfBirthSchema } from "./patients";
 
 export const publicBookingClinicResponseSchema = z
   .object({
@@ -64,6 +65,17 @@ export const publicBookingSlotsResponseSchema = z
   .object({
     slots: z.array(publicBookingSlotItemSchema),
     slotListEmptyReason: publicBookingSlotListEmptyReasonSchema.optional(),
+  })
+  .strict();
+
+export const publicBookingSlotsQuerySchema = z
+  .object({
+    doctorId: z.string().min(1).optional(),
+    date: z.string().regex(/^\d{4}-\d{2}-\d{2}$/),
+    /** Optional time window in clinic timezone (HH:mm). */
+    rangeStart: z.string().regex(/^\d{2}:\d{2}$/).optional(),
+    /** Optional time window in clinic timezone (HH:mm). */
+    rangeEnd: z.string().regex(/^\d{2}:\d{2}$/).optional(),
   })
   .strict();
 
@@ -138,12 +150,14 @@ export const publicBookingSubmitRequestSchema = z
     phoneNumber: z.string().min(8).max(32),
     firstName: z.string().trim().min(1).max(100).transform(stripHtmlTags),
     lastName: z.string().trim().min(1).max(100).transform(stripHtmlTags),
+    /** Required when creating a new patient record (phone not on file at this clinic). */
+    dateOfBirth: pastDateOfBirthSchema.optional(),
     email: z.string().trim().max(320).email().optional(),
-    preferredDoctorId: z.string().min(1, "Select a doctor."),
+    preferredDoctorId: z.string().min(1).optional(),
     /** Calendar day used when fetching slots (YYYY-MM-DD); must match requested slot instants. */
     slotCalendarDate: z.string().regex(/^\d{4}-\d{2}-\d{2}$/),
-    requestedSlotStart: z.string().datetime(),
-    requestedSlotEnd: z.string().datetime(),
+    requestedSlotStart: z.string().datetime().optional(),
+    requestedSlotEnd: z.string().datetime().optional(),
     reason: z.string().trim().max(500).transform(stripHtmlTags).optional(),
     notes: z.string().trim().max(1000).transform(stripHtmlTags).optional(),
     turnstileToken: z.string().min(1).optional(),
@@ -167,6 +181,7 @@ export type PublicBookingDoctorsResponse = z.infer<
 export type PublicBookingSlotsResponse = z.infer<
   typeof publicBookingSlotsResponseSchema
 >;
+export type PublicBookingSlotsQuery = z.infer<typeof publicBookingSlotsQuerySchema>;
 export type PublicBookingPhoneCheckRequest = z.infer<
   typeof publicBookingPhoneCheckRequestSchema
 >;

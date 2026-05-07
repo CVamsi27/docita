@@ -13,10 +13,7 @@ function humanizeSavedAt(timestamp: number): string {
   if (diff < 5_000) return "just now";
   if (diff < 60_000) return `${Math.floor(diff / 1000)}s ago`;
   if (diff < 3_600_000) return `${Math.floor(diff / 60_000)}m ago`;
-  return formatTime(new Date(timestamp), "en-IN", {
-    hour: "2-digit",
-    minute: "2-digit",
-  });
+  return formatTime(new Date(timestamp), "HH:mm");
 }
 
 interface SaveStatusChipProps {

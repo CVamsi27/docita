@@ -29,6 +29,13 @@ const taxSettingsSchema = z.object({
   registrationLabel: z.string().optional(),
 });
 
+const mapsLocationSchema = z
+  .object({
+    lat: z.number(),
+    lng: z.number(),
+  })
+  .strict();
+
 export const createClinicRequestSchema = z.object({
   name: z.string().min(1),
   address: z.string().min(1),
@@ -107,6 +114,8 @@ export const updateClinicSettingsRequestSchema = z.object({
   facilityLabel: z.enum(["CLINIC", "HOSPITAL"]).optional(),
   workspaceProfile: workspaceProfileSchema.optional(),
   sidebarNavOrder: sidebarNavOrderSchema.optional(),
+  mapsLocation: mapsLocationSchema.optional(),
+  mapsLink: z.union([z.string().url(), z.literal("")]).optional(),
 });
 
 export const createClinicDoctorRequestSchema = z.object({

@@ -1,6 +1,6 @@
 "use client";
 
-import { FC, useMemo, useState } from "react";
+import { FC, useCallback, useMemo, useState } from "react";
 import {
   Card,
   CardContent,
@@ -15,7 +15,7 @@ import { Skeleton } from "@workspace/ui/components/skeleton";
 import { Section } from "@workspace/ui/components/section";
 import { Activity, Calendar, Play, Stethoscope, Users } from "lucide-react";
 import { useConsultationDashboard } from "@/features/consultation/hooks/use-consultation-dashboard";
-import { formatTime } from "@/lib/formatters";
+import { formatClockTime } from "@/lib/formatters";
 import { StatGrid } from "@workspace/ui/components/stat-grid";
 import { isQueueTokenInProgress } from "@/lib/queue-token-status";
 import Link from "next/link";
@@ -24,6 +24,9 @@ import { showUserFacingErrorToast } from "@/lib/user-facing-errors";
 import { buildConsultationRoute } from "@/features/consultation/rules/consultationTabRouting";
 import type { Appointment } from "@workspace/types";
 import { AddAppointmentDialogContainer } from "@/features/appointments/components/dialogs/AddAppointmentDialogContainer";
+import { AppointmentRowActionDialogs } from "@/features/appointments/components/dialogs/AppointmentRowActionDialogs";
+import { AppointmentRowActionsMenu } from "@/features/appointments/components/forms/AppointmentRowActionsMenu";
+import { useAppointmentRowActions } from "@/features/appointments/hooks/use-appointment-row-actions";
 import { usePermissions } from "@/hooks/use-permissions";
 
 export const ConsultationDashboardUI: FC = () => {
@@ -43,6 +46,19 @@ export const ConsultationDashboardUI: FC = () => {
   const checkInAppointment = useCheckInAppointment();
   const { canCreateAppointment } = usePermissions();
   const [walkInOpen, setWalkInOpen] = useState(false);
+
+  const rowActions = useAppointmentRowActions();
+  const handleScheduleFollowUp = useCallback(
+    (patientId?: string | null) => {
+      const params = new URLSearchParams();
+      params.set("action", "new");
+      if (patientId) {
+        params.set("patientId", patientId);
+      }
+      router.push(`/appointments?${params.toString()}`);
+    },
+    [router],
+  );
 
   const role = currentUserRole ?? "RECEPTIONIST";
   const isDoctor = role === "DOCTOR" || role === "ADMIN_DOCTOR";
@@ -190,19 +206,33 @@ export const ConsultationDashboardUI: FC = () => {
                         {apt.patient?.firstName} {apt.patient?.lastName}
                       </p>
                       <p className="text-xs text-muted-foreground truncate">
-                        In progress • {formatTime(apt.startTime)}
+                        In progress • {formatClockTime(apt.startTime)}
                         {" • "}
                         {visitSummary}
                         {" • "}
                         {String(apt.status).toLowerCase()}
                       </p>
                     </div>
-                    <Button
-                      size="sm"
-                      onClick={() => goToConsultationWorkspace(apt.id)}
-                    >
-                      Continue
-                    </Button>
+                    <div className="flex items-center gap-1.5 shrink-0">
+                      <Button
+                        size="sm"
+                        onClick={() => goToConsultationWorkspace(apt.id)}
+                      >
+                        Continue
+                      </Button>
+                      <AppointmentRowActionsMenu
+                        appointmentId={apt.id ?? null}
+                        patientId={apt.patientId ?? apt.patient?.id ?? null}
+                        status={apt.status}
+                        onCancelClick={rowActions.onCancelClick}
+                        onNoShowClick={rowActions.onNoShowClick}
+                        onScheduleFollowUp={() =>
+                          handleScheduleFollowUp(
+                            apt.patientId ?? apt.patient?.id,
+                          )
+                        }
+                      />
+                    </div>
                   </div>
                 );
               })}
@@ -211,7 +241,7 @@ export const ConsultationDashboardUI: FC = () => {
                 const isQueue = row.kind === "queue";
                 const leftMeta = isQueue
                   ? `Token ${row.tokenNumber > 0 ? row.tokenNumber : "—"} • ${row.tokenType}`
-                  : `${formatTime(row.startTime)}`;
+                  : `${formatClockTime(row.startTime)}`;
                 const canOpen = Boolean(row.appointmentId);
                 return (
                   <div
@@ -232,21 +262,33 @@ export const ConsultationDashboardUI: FC = () => {
                         {String(row.status).toLowerCase()}
                       </p>
                     </div>
-                    <Button
-                      size="sm"
-                      disabled={isStartingConsultation || !canOpen}
-                      onClick={() => {
-                        if (!row.appointmentId) return;
-                        if (isQueue && isQueueTokenInProgress(row.status)) {
-                          goToConsultationWorkspace(row.appointmentId);
-                          return;
+                    <div className="flex items-center gap-1.5 shrink-0">
+                      <Button
+                        size="sm"
+                        disabled={isStartingConsultation || !canOpen}
+                        onClick={() => {
+                          if (!row.appointmentId) return;
+                          if (isQueue && isQueueTokenInProgress(row.status)) {
+                            goToConsultationWorkspace(row.appointmentId);
+                            return;
+                          }
+                          void handleStartConsultation(row.appointmentId);
+                        }}
+                      >
+                        <Play className="mr-2 h-3 w-3" />
+                        Open
+                      </Button>
+                      <AppointmentRowActionsMenu
+                        appointmentId={row.appointmentId ?? null}
+                        patientId={row.patientId ?? null}
+                        status={row.status}
+                        onCancelClick={rowActions.onCancelClick}
+                        onNoShowClick={rowActions.onNoShowClick}
+                        onScheduleFollowUp={() =>
+                          handleScheduleFollowUp(row.patientId)
                         }
-                        void handleStartConsultation(row.appointmentId);
-                      }}
-                    >
-                      <Play className="mr-2 h-3 w-3" />
-                      Open
-                    </Button>
+                      />
+                    </div>
                   </div>
                 );
               })}
@@ -285,6 +327,8 @@ export const ConsultationDashboardUI: FC = () => {
         />
       ) : null}
 
+      <AppointmentRowActionDialogs {...rowActions.dialogProps} />
+
       {isNurse ? (
         <Section
           id="consultation-nurse-prep"
@@ -316,36 +360,51 @@ export const ConsultationDashboardUI: FC = () => {
                 opdQueueRows
                   .filter((q) => Boolean(q.appointmentId))
                   .slice(0, 10)
-                  .map((q) => (
-                    <div
-                      key={q.id}
-                      className="flex items-center justify-between gap-3 rounded-[var(--radius-lg)] border border-border/60 bg-card p-3 sm:p-4"
-                    >
-                      <div className="min-w-0">
-                        <p className="font-medium truncate">
-                          {q.patient?.firstName} {q.patient?.lastName}
-                        </p>
-                        <p className="text-xs text-muted-foreground truncate">
-                          Token {q.tokenNumber > 0 ? q.tokenNumber : "—"} •{" "}
-                          {String(q.status).toLowerCase()}
-                        </p>
-                      </div>
-                      <Button
-                        size="sm"
-                        onClick={() => {
-                          if (!q.appointmentId) return;
-                          router.push(
-                            buildConsultationRoute(q.appointmentId, {
-                              tab: "vitals",
-                              clinicType,
-                            }),
-                          );
-                        }}
+                  .map((q) => {
+                    const queuePatientId = q.patient?.id ?? q.patientId ?? null;
+                    return (
+                      <div
+                        key={q.id}
+                        className="flex items-center justify-between gap-3 rounded-[var(--radius-lg)] border border-border/60 bg-card p-3 sm:p-4"
                       >
-                        Record vitals
-                      </Button>
-                    </div>
-                  ))
+                        <div className="min-w-0">
+                          <p className="font-medium truncate">
+                            {q.patient?.firstName} {q.patient?.lastName}
+                          </p>
+                          <p className="text-xs text-muted-foreground truncate">
+                            Token {q.tokenNumber > 0 ? q.tokenNumber : "—"} •{" "}
+                            {String(q.status).toLowerCase()}
+                          </p>
+                        </div>
+                        <div className="flex items-center gap-1.5 shrink-0">
+                          <Button
+                            size="sm"
+                            onClick={() => {
+                              if (!q.appointmentId) return;
+                              router.push(
+                                buildConsultationRoute(q.appointmentId, {
+                                  tab: "vitals",
+                                  clinicType,
+                                }),
+                              );
+                            }}
+                          >
+                            Record vitals
+                          </Button>
+                          <AppointmentRowActionsMenu
+                            appointmentId={q.appointmentId ?? null}
+                            patientId={queuePatientId}
+                            status={q.status}
+                            onCancelClick={rowActions.onCancelClick}
+                            onNoShowClick={rowActions.onNoShowClick}
+                            onScheduleFollowUp={() =>
+                              handleScheduleFollowUp(queuePatientId)
+                            }
+                          />
+                        </div>
+                      </div>
+                    );
+                  })
               )}
             </CardContent>
           </Card>

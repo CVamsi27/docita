@@ -1,7 +1,7 @@
 import { z } from "zod";
 import { genderSchema } from "../shared/users";
 
-const pastDateOfBirthSchema = z
+export const pastDateOfBirthSchema = z
   .union([z.string(), z.date()])
   .refine(
     (value) => {

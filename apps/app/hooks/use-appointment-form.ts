@@ -3,7 +3,18 @@ import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { toast } from "sonner";
 import { Resolver, useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { DEFAULT_TIMEZONE } from "@workspace/utils";
+import {
+  addDays,
+  addDaysToPickerIsoDate,
+  clinicDateAndTimeToWallDatetimeLocal,
+  clinicWallDatetimeLocalToUtcIso,
+  clinicWallHourMinuteFromUtcInstant,
+  DEFAULT_TIMEZONE,
+  formatClinicPickerDayIsoFromSelection,
+  formatClinicTodayPickerIso,
+  formatPickerIsoAsWeekdayUpper,
+  utcInstantToClinicWallDatetimeLocal,
+} from "@workspace/utils";
 import { usePatient, usePatients } from "@/hooks/api/use-patients";
 import {
   useDoctors,
@@ -15,10 +26,10 @@ import { useAppointments, useCreateAppointment } from "@/hooks/api/use-appointme
 import {
   Appointment,
   CreateAppointmentInput,
-  createAppointmentSchema,
+  createAppointmentBaseSchema,
   Patient,
+  refineCreateAppointmentDateTimes,
 } from "@workspace/types";
-import { addDays, formatPickerIsoDate } from "@workspace/utils";
 import {
   calendarSlotTimeToLocalIso,
   defaultStartIsoForSelectedCalendarDay,
@@ -124,32 +135,13 @@ export function useAppointmentForm({
         clinicTimezone,
       );
     } else {
-      const now = new Date();
-
-      if (now.getHours() < startHour) {
-        now.setHours(startHour, 0, 0, 0);
-      } else if (now.getHours() >= endHour) {
-        now.setDate(now.getDate() + 1);
-        now.setHours(startHour, 0, 0, 0);
-      } else {
-        const remainder = 30 - (now.getMinutes() % 30);
-        if (remainder === 0) {
-          now.setMinutes(now.getMinutes() + 30);
-        } else {
-          now.setMinutes(now.getMinutes() + remainder);
-        }
-        now.setSeconds(0);
-        now.setMilliseconds(0);
-
-        if (now.getHours() >= endHour) {
-          now.setDate(now.getDate() + 1);
-          now.setHours(startHour, 0, 0, 0);
-        }
-      }
-
-      const offsetMs = now.getTimezoneOffset() * 60 * 1000;
-      const localDate = new Date(now.getTime() - offsetMs);
-      defaultStart = localDate.toISOString().slice(0, 16);
+      const todayStr = formatClinicTodayPickerIso(clinicTimezone);
+      defaultStart = defaultStartIsoForSelectedCalendarDay(
+        todayStr,
+        startHour,
+        endHour,
+        clinicTimezone,
+      );
     }
 
     let resolvedDoctorId = "";
@@ -185,6 +177,14 @@ export function useAppointmentForm({
     clinicTimezone,
   ]);
 
+  const createAppointmentSchema = useMemo(
+    () =>
+      createAppointmentBaseSchema.superRefine(
+        refineCreateAppointmentDateTimes(clinicTimezone),
+      ),
+    [clinicTimezone],
+  );
+
   const form = useForm<CreateAppointmentInput>({
     resolver: zodResolver(
       createAppointmentSchema,
@@ -204,14 +204,17 @@ export function useAppointmentForm({
         void queryClient.invalidateQueries({
           queryKey: [
             "doctor-availability-slots",
-            formatPickerIsoDate(selectedDate),
+            formatClinicPickerDayIsoFromSelection(
+              selectedDate,
+              clinicTimezone,
+            ),
             defaultValues.doctorId,
           ],
         });
       }
     }
     wasOpenRef.current = Boolean(open);
-  }, [open, defaultValues, form, selectedDate, queryClient]);
+  }, [open, defaultValues, form, selectedDate, queryClient, clinicTimezone]);
 
   const watchedDoctorId = form.watch("doctorId");
   const { data: doctorSchedules = [] } = useDoctorSchedules(
@@ -219,8 +222,14 @@ export function useAppointmentForm({
   );
 
   const selectedDateKey = useMemo(
-    () => (selectedDate ? formatPickerIsoDate(selectedDate) : undefined),
-    [selectedDate],
+    () =>
+      selectedDate
+        ? formatClinicPickerDayIsoFromSelection(
+            selectedDate,
+            clinicTimezone,
+          )
+        : undefined,
+    [selectedDate, clinicTimezone],
   );
 
   const { data: dayAppointmentsResponse } = useAppointments(
@@ -292,70 +301,83 @@ export function useAppointmentForm({
     if (hasAutoSelectedTimeRef.current || selectedDate) return;
     if (!watchedDoctorId || doctorSchedules.length === 0) return;
 
-    const days = [
-      "SUNDAY",
-      "MONDAY",
-      "TUESDAY",
-      "WEDNESDAY",
-      "THURSDAY",
-      "FRIDAY",
-      "SATURDAY",
-    ];
+    const todayStr = formatClinicTodayPickerIso(clinicTimezone);
 
-    const tryDate = new Date();
     for (let attempt = 0; attempt < 7; attempt++) {
-      const dayName = days[tryDate.getDay()];
+      const dayStr = addDaysToPickerIsoDate(todayStr, attempt);
+      const dayName = formatPickerIsoAsWeekdayUpper(dayStr, clinicTimezone);
+      if (!dayName) {
+        continue;
+      }
       const schedule = doctorSchedules.find(
         (s) => s.dayOfWeek === dayName && s.isActive,
       );
-      if (schedule) {
-        const scheduleStartHour = parseInt(
-          schedule.startTime.split(":")[0] ?? "9",
-          10,
-        );
-        const scheduleEndHour = parseInt(
-          schedule.endTime.split(":")[0] ?? "18",
-          10,
-        );
-        const now = new Date();
-        const candidate = new Date(tryDate);
-        if (
-          attempt === 0 &&
-          now.getHours() >= scheduleStartHour &&
-          now.getHours() < scheduleEndHour
-        ) {
-          const remainder = 30 - (now.getMinutes() % 30);
-          candidate.setHours(
-            now.getHours(),
-            now.getMinutes() + (remainder === 30 ? 0 : remainder),
-            0,
-            0,
-          );
-          if (candidate.getHours() < scheduleEndHour) {
-            const offsetMs = candidate.getTimezoneOffset() * 60 * 1000;
-            const localDate = new Date(candidate.getTime() - offsetMs);
-            form.setValue("startTime", localDate.toISOString().slice(0, 16));
-            hasAutoSelectedTimeRef.current = true;
-            return;
-          }
-        } else if (attempt > 0 || now.getHours() < scheduleStartHour) {
-          candidate.setHours(scheduleStartHour, 0, 0, 0);
-          const offsetMs = candidate.getTimezoneOffset() * 60 * 1000;
-          const localDate = new Date(candidate.getTime() - offsetMs);
-          form.setValue("startTime", localDate.toISOString().slice(0, 16));
-          hasAutoSelectedTimeRef.current = true;
-          return;
-        }
+      if (!schedule) {
+        continue;
       }
-      tryDate.setDate(tryDate.getDate() + 1);
+
+      const scheduleStartHour = parseInt(
+        schedule.startTime.split(":")[0] ?? "9",
+        10,
+      );
+      const scheduleEndHour = parseInt(
+        schedule.endTime.split(":")[0] ?? "18",
+        10,
+      );
+
+      const now = new Date();
+      const { hour: nowH, minute: nowM } = clinicWallHourMinuteFromUtcInstant(
+        now,
+        clinicTimezone,
+      );
+      let totalMin = nowH * 60 + nowM;
+      const openMin = scheduleStartHour * 60;
+      const closeMin = scheduleEndHour * 60;
+
+      if (attempt === 0) {
+        if (totalMin < openMin) {
+          totalMin = openMin;
+        } else if (totalMin >= closeMin) {
+          continue;
+        } else {
+          const remainder = 30 - (totalMin % 30);
+          totalMin += remainder === 30 ? 30 : remainder;
+          if (totalMin >= closeMin) {
+            totalMin = Math.max(openMin, closeMin - 30);
+          }
+        }
+      } else {
+        totalMin = openMin;
+      }
+
+      const h = Math.floor(totalMin / 60);
+      const m = totalMin % 60;
+      const hhmm = `${String(h).padStart(2, "0")}:${String(m).padStart(2, "0")}`;
+      const wall = clinicDateAndTimeToWallDatetimeLocal(
+        dayStr,
+        hhmm,
+        clinicTimezone,
+      );
+      if (wall) {
+        form.setValue("startTime", wall);
+        hasAutoSelectedTimeRef.current = true;
+        return;
+      }
     }
-  }, [open, watchedDoctorId, doctorSchedules, selectedDate, form]);
+  }, [
+    open,
+    watchedDoctorId,
+    doctorSchedules,
+    selectedDate,
+    form,
+    clinicTimezone,
+  ]);
 
   useEffect(() => {
     if (!open || !selectedDate || !watchedDoctorId) return;
     if (!slotsQuerySuccess || slotsQueryError) return;
 
-    const snapKey = `${watchedDoctorId}|${formatPickerIsoDate(selectedDate)}`;
+    const snapKey = `${watchedDoctorId}|${formatClinicPickerDayIsoFromSelection(selectedDate, clinicTimezone)}`;
     const doctorSlots = slots.filter((s) => s.doctorId === watchedDoctorId);
     const availableIsos = doctorSlots
       .filter(
@@ -431,8 +453,11 @@ export function useAppointmentForm({
       return;
     }
 
-    const todayStr = formatPickerIsoDate(new Date());
-    const selectedStr = formatPickerIsoDate(selectedDate);
+    const todayStr = formatClinicTodayPickerIso(clinicTimezone);
+    const selectedStr = formatClinicPickerDayIsoFromSelection(
+      selectedDate,
+      clinicTimezone,
+    );
 
     if (!autoAdvanceChainActiveRef.current && onAdjustSchedulingDate) {
       if (selectedStr === todayStr) {
@@ -505,13 +530,38 @@ export function useAppointmentForm({
       try {
         const durationMs = defaultDuration * 60000;
 
+        const startWall =
+          typeof data.startTime === "string"
+            ? data.startTime.trim()
+            : utcInstantToClinicWallDatetimeLocal(data.startTime, clinicTimezone);
+        const startUtc = clinicWallDatetimeLocalToUtcIso(
+          startWall,
+          clinicTimezone,
+        );
+        const endWallRaw =
+          typeof data.endTime === "string" && data.endTime.trim().length > 0
+            ? data.endTime.trim()
+            : data.endTime instanceof Date
+              ? utcInstantToClinicWallDatetimeLocal(data.endTime, clinicTimezone)
+              : null;
+        const endUtc =
+          endWallRaw && endWallRaw.length > 0
+            ? clinicWallDatetimeLocalToUtcIso(endWallRaw, clinicTimezone)
+            : null;
+
+        if (!startUtc) {
+          showUserFacingErrorToast(null, "Enter a valid start time.", "form");
+          return;
+        }
+
+        const endFinal =
+          endUtc ??
+          new Date(new Date(startUtc).getTime() + durationMs).toISOString();
+
         const createdAppointment = await createAppointment({
           ...data,
-          startTime: new Date(data.startTime).toISOString(),
-          endTime: new Date(
-            data.endTime ||
-              new Date(new Date(data.startTime).getTime() + durationMs),
-          ).toISOString(),
+          startTime: startUtc,
+          endTime: endFinal,
         });
 
         form.reset();
@@ -528,7 +578,13 @@ export function useAppointmentForm({
         );
       }
     },
-    [form, onAppointmentAdded, createAppointment, defaultDuration],
+    [
+      form,
+      onAppointmentAdded,
+      createAppointment,
+      defaultDuration,
+      clinicTimezone,
+    ],
   );
 
   return {

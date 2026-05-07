@@ -9,12 +9,9 @@ import {
   type RefObject,
 } from "react";
 import { useParams, useRouter, useSearchParams } from "next/navigation";
-import { Button } from "@workspace/ui/components/button";
 import { cn } from "@workspace/ui/lib/utils";
 import {
   ClipboardList,
-  Command as CommandIcon,
-  CheckCircle2,
   FileText,
   FlaskConical,
   HeartPulse,
@@ -25,7 +22,6 @@ import { useConsultationDraft } from "@/features/consultation/state/useConsultat
 import { useConsultationHydrate } from "@/features/consultation/state/useConsultationHydrate";
 import { useConsultationAutosave } from "@/features/consultation/state/useConsultationAutosave";
 import { usePatientWithMedicalHistory } from "@/hooks/api/use-patients";
-import { SaveStatusChip } from "@/features/consultation/workspace/chrome/SaveStatusChip";
 import {
   CommandPalette,
   type CommandPaletteAction,
@@ -50,10 +46,7 @@ import {
   VisionSpecialtySection,
 } from "@/features/consultation/workspace/sections";
 import { ConsultationSidebarContainer } from "@/features/consultation/components/ConsultationSidebarContainer";
-import {
-  ConsultationAfterVisitStrip,
-  ConsultationVisitOverviewStrip,
-} from "@/features/consultation/components/ConsultationWorkspaceExtras";
+import { ConsultationAfterVisitStrip } from "@/features/consultation/components/ConsultationWorkspaceExtras";
 import {
   CLINIC_TYPE_FEATURES,
   Feature,
@@ -71,8 +64,8 @@ interface ConsultationShellProps {
   readOnly?: boolean;
   isSidebarOpen?: boolean;
   saveHandlesRef?: RefObject<ConsultationSaveHandles | null>;
-  onMarkDone?: () => void;
-  isMarkingDone?: boolean;
+  paletteOpen: boolean;
+  onPaletteOpenChange: (open: boolean) => void;
 }
 
 export function ConsultationShell({
@@ -81,8 +74,8 @@ export function ConsultationShell({
   readOnly,
   isSidebarOpen = true,
   saveHandlesRef,
-  onMarkDone,
-  isMarkingDone = false,
+  paletteOpen,
+  onPaletteOpenChange,
 }: ConsultationShellProps) {
   const params = useParams();
   const appointmentId = params?.["id"] as string;
@@ -367,8 +360,6 @@ export function ConsultationShell({
   const _isDirty = useConsultationDraft((s) => s.dirty);
   const _saveState = useConsultationDraft((s) => s.saveState);
 
-  const [paletteOpen, setPaletteOpen] = useState(false);
-
   const onSaveClick = useCallback(async () => {
     await flush({ force: true });
     await submitPrescriptions();
@@ -529,7 +520,7 @@ export function ConsultationShell({
       const modKey = isMac ? e.metaKey : e.ctrlKey;
       if (modKey && e.key.toLowerCase() === "k") {
         e.preventDefault();
-        setPaletteOpen((prev) => !prev);
+        onPaletteOpenChange(!paletteOpen);
         return;
       }
       if (modKey && e.key.toLowerCase() === "s") {
@@ -545,7 +536,7 @@ export function ConsultationShell({
       }
       if (e.key === "?") {
         e.preventDefault();
-        setPaletteOpen(true);
+        onPaletteOpenChange(true);
         return;
       }
       if (e.key.toLowerCase() === "v") {
@@ -587,8 +578,10 @@ export function ConsultationShell({
   }, [
     focusNewItem,
     letterNavMap,
+    onPaletteOpenChange,
     onSaveClick,
     openVitals,
+    paletteOpen,
     readOnly,
     router,
     sections,
@@ -701,40 +694,6 @@ export function ConsultationShell({
       />
 
       <div className="flex min-w-0 flex-1 flex-col">
-        <div
-          className={cn(
-            "sticky top-0 z-10 flex items-center gap-3 border-b bg-background/95 px-3 py-2 backdrop-blur md:px-6",
-            readOnly ? "justify-end" : "justify-between md:justify-end",
-          )}
-        >
-          {!readOnly ? (
-            <div className="flex min-w-0 items-center md:hidden">
-              <SaveStatusChip />
-            </div>
-          ) : null}
-          <div className="flex items-center gap-2 shrink-0">
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={() => setPaletteOpen(true)}
-              aria-label="Open command palette"
-              className="gap-1.5"
-            >
-              <CommandIcon className="h-3.5 w-3.5" aria-hidden="true" />
-              <span className="hidden md:inline">Quick actions</span>
-              <kbd className="hidden md:inline-flex items-center gap-0.5 rounded border border-border/70 bg-muted/40 px-1.5 py-0.5 text-[var(--fs-2xs)] font-mono text-muted-foreground">
-                ⌘K
-              </kbd>
-            </Button>
-            {!readOnly && onMarkDone ? (
-              <Button size="sm" onClick={onMarkDone} disabled={isMarkingDone}>
-                <CheckCircle2 className="h-3.5 w-3.5" aria-hidden="true" />
-                <span>{isMarkingDone ? "Marking…" : "Mark done"}</span>
-              </Button>
-            ) : null}
-          </div>
-        </div>
-
         <SectionTabs
           sections={sections}
           activeSectionId={activeSectionId}
@@ -747,10 +706,6 @@ export function ConsultationShell({
           aria-label="Consultation workspace"
         >
           <div className="mx-auto flex max-w-3xl flex-col gap-4">
-            <ConsultationVisitOverviewStrip
-              appointment={appointmentData}
-              readOnly={readOnly}
-            />
             {sections.map((section) => {
               const Node =
                 sectionComponents[section.id as keyof typeof sectionComponents];
@@ -778,7 +733,7 @@ export function ConsultationShell({
 
       <CommandPalette
         open={paletteOpen}
-        onOpenChange={setPaletteOpen}
+        onOpenChange={onPaletteOpenChange}
         actions={paletteActions}
       />
       </div>

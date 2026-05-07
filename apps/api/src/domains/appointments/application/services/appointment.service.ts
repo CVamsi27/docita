@@ -33,6 +33,7 @@ import { AppointmentCreatedEvent } from '@/domains/appointments/application/even
 import { Appointment } from '@/domains/appointments/core/entities/appointment.entity';
 import { PrismaService } from '@/prisma/prisma.service';
 import { AppointmentSchedulingRulesService } from '@/domains/appointments/core/domain-services/appointment-scheduling-rules.service';
+import { getClinicLocalDayUtcBounds } from '@/common/utils/clinic-calendar-bounds';
 
 type AppointmentAccessContext = {
   role?: Role;
@@ -73,7 +74,14 @@ export class AppointmentService {
       command.endTime,
     );
     if (overlap.hasConflict) {
-      throw new BadRequestException('Doctor has conflicting appointment');
+      throw new BadRequestException({
+        detail: 'Doctor has conflicting appointment',
+        validationErrors: overlap.conflict
+          ? {
+              startTime: `Overlaps with appointment ${overlap.conflict.id} (${overlap.conflict.startTime.toISOString()}–${overlap.conflict.endTime.toISOString()})`,
+            }
+          : undefined,
+      });
     }
 
     const appointment = await this.createAppointmentUseCase.execute(command);
@@ -114,8 +122,40 @@ export class AppointmentService {
     return appointment;
   }
 
-  async listAppointments(params: AppointmentSearchParams) {
-    return this.appointmentRepository.findAll(params);
+  async listAppointments(
+    params: AppointmentSearchParams & { calendarPickerDate?: string },
+  ) {
+    const { calendarPickerDate, ...rest } = params;
+    let repoParams: AppointmentSearchParams = { ...rest };
+
+    if (calendarPickerDate && !rest.startDate && !rest.endDate) {
+      const bounds = await this.resolveCalendarPickerDayUtcBounds(
+        rest.clinicId,
+        calendarPickerDate,
+      );
+      if (bounds) {
+        repoParams = {
+          ...repoParams,
+          startDate: bounds.rangeStart,
+          endDate: bounds.rangeEndExclusive,
+          intersectCalendarRange: true,
+        };
+      }
+    }
+
+    return this.appointmentRepository.findAll(repoParams);
+  }
+
+  private async resolveCalendarPickerDayUtcBounds(
+    clinicId: string,
+    pickerDateStr: string,
+  ): Promise<{ rangeStart: Date; rangeEndExclusive: Date } | null> {
+    const row = await this.prisma.clinic.findUnique({
+      where: { id: clinicId },
+      select: { timezone: true },
+    });
+    const timezone = row?.timezone?.trim() || 'Asia/Kolkata';
+    return getClinicLocalDayUtcBounds(pickerDateStr, timezone);
   }
 
   async startConsultation(

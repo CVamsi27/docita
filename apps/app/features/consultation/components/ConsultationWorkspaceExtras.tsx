@@ -34,7 +34,6 @@ export function ConsultationVisitOverviewStrip({
   const when = appointment.startTime
     ? formatDate(
         appointment.startTime,
-        "en-IN",
         DATE_FORMAT_OPTIONS_US_LONG,
       )
     : null;

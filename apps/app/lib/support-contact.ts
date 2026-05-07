@@ -8,6 +8,10 @@ export const SUPPORT_WHATSAPP_MESSAGE_DEFAULT =
 export const SUPPORT_WHATSAPP_MESSAGE_ONBOARDING =
   "Hi Docita team, I need help with facility onboarding and pricing for my hospital";
 
+/** Prefilled text when patients use the public online booking link. */
+export const SUPPORT_WHATSAPP_MESSAGE_PUBLIC_BOOKING =
+  "Hi Docita team, I need help completing my visit request from an online booking link";
+
 const FALLBACK_SUPPORT_PHONE = "918790311010";
 
 export function getSupportPhoneNumber(): string {

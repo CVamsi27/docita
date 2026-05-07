@@ -14,6 +14,7 @@ import { ApiOperation, ApiTags } from '@nestjs/swagger';
 import type { Request } from 'express';
 import { Public } from '@/shared/modules/auth/auth/public.decorator';
 import { PublicBookingService } from '@/domains/public-booking/application/services/public-booking.service';
+import { publicBookingSlotsQuerySchema } from '@workspace/types';
 
 @ApiTags('public-booking')
 @Controller('public/booking/clinics')
@@ -37,13 +38,13 @@ export class PublicBookingController {
   @ApiOperation({ summary: 'Available slots for a doctor on a calendar date' })
   listSlots(
     @Param('referralCode') referralCode: string,
-    @Query('doctorId') doctorId: string,
-    @Query('date') date: string,
+    @Query() query: Record<string, unknown>,
   ) {
-    if (!doctorId?.trim() || !date?.trim()) {
-      throw new BadRequestException('doctorId and date are required');
+    const parsed = publicBookingSlotsQuerySchema.safeParse(query);
+    if (!parsed.success) {
+      throw new BadRequestException('Invalid slot query');
     }
-    return this.publicBookingService.listSlots(referralCode, doctorId, date);
+    return this.publicBookingService.listSlots(referralCode, parsed.data);
   }
 
   @Post(':referralCode/phone-check')

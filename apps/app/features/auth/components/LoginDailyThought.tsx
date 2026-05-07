@@ -18,9 +18,11 @@ export function LoginDailyThought() {
 
     async function load() {
       try {
-        const response = await fetch("/api/daily-thought", {
+        // Key the request by UTC day so the browser doesn't keep
+        // serving a prior day's cached response indefinitely.
+        const dayKey = new Date().toISOString().slice(0, 10);
+        const response = await fetch(`/api/daily-thought?day=${dayKey}`, {
           method: "GET",
-          cache: "force-cache",
         });
         if (!response.ok) {
           throw new Error(String(response.status));

@@ -120,7 +120,7 @@ export function PreDashboardShell({
               <Button
                 variant="ghost"
                 size="sm"
-                onClick={logout}
+                onClick={() => void logout()}
                 className="text-muted-foreground hover:text-foreground"
               >
                 <LogOut className="h-4 w-4 mr-1.5" />

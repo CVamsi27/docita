@@ -145,6 +145,8 @@ export class OnboardingWorkflowService {
           onboardedAt: new Date().toISOString(),
           onboardedFromIP: ipAddress,
           workspaceProfile,
+          mapsLocation: clinicData.mapsLocation ?? undefined,
+          mapsLink: clinicData.mapsLink?.trim() || undefined,
         },
       },
     });

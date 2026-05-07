@@ -123,10 +123,9 @@ export const useInvoiceDetailsLogic = (
       formatCurrency(amount, invoice?.currency ?? clinicCurrency.currency, {
         locale: clinicCurrency.locale,
       }),
-    formatDate: (dateString?: string | Date) =>
+    formatDate: (dateString?: string | Date | null) =>
       formatDateSafe(
         dateString ?? null,
-        "en-US",
         DATE_FORMAT_OPTIONS_US_LONG,
       ),
     numberToWords,

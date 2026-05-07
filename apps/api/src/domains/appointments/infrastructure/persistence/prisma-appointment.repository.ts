@@ -42,6 +42,7 @@ export class PrismaAppointmentRepository implements IAppointmentRepository {
       clinicId,
       startDate,
       endDate,
+      intersectCalendarRange,
       patientId,
       doctorId,
       status,
@@ -62,7 +63,16 @@ export class PrismaAppointmentRepository implements IAppointmentRepository {
       };
     }
 
-    if (startDate || endDate) {
+    if (
+      intersectCalendarRange &&
+      startDate !== undefined &&
+      endDate !== undefined
+    ) {
+      where.AND = [
+        { startTime: { lt: endDate } },
+        { endTime: { gt: startDate } },
+      ];
+    } else if (startDate || endDate) {
       where.startTime = {};
       if (startDate) where.startTime.gte = startDate;
       if (endDate) where.startTime.lte = endDate;

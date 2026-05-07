@@ -3,6 +3,7 @@ import { PrismaService } from '@/prisma/prisma.service';
 import { SendMessageUseCase } from '@/domains/whatsapp/application/use-cases/send-message.use-case';
 import { isClinicWhatsAppAutomationSendingAllowed } from './whatsapp-patient-send-policy.util';
 import { DATE_FORMATS, formatDate, formatTime } from '@workspace/utils';
+import { ClinicSettingsSchema } from '@/domains/clinics/presentation/schemas/settings.schema';
 
 @Injectable()
 export class SystemEventsService {
@@ -119,11 +120,26 @@ export class SystemEventsService {
           select: { firstName: true, lastName: true, phoneNumber: true },
         },
         doctor: { select: { name: true } },
-        clinic: { select: { name: true } },
+        clinic: { select: { name: true, settings: true } },
       },
     });
 
     if (!appointment || !appointment.patient.phoneNumber) return;
+
+    const settingsParsed = ClinicSettingsSchema.safeParse(
+      appointment.clinic?.settings,
+    );
+    const mapsLocation = settingsParsed.success
+      ? settingsParsed.data.mapsLocation
+      : undefined;
+    const customMapsLink = settingsParsed.success
+      ? settingsParsed.data.mapsLink?.trim()
+      : undefined;
+    const mapsLink =
+      customMapsLink ||
+      (mapsLocation
+        ? `https://www.google.com/maps?q=${mapsLocation.lat},${mapsLocation.lng}`
+        : '');
 
     const variables = {
       patientName: `${appointment.patient.firstName} ${appointment.patient.lastName}`,
@@ -131,6 +147,7 @@ export class SystemEventsService {
       doctorName: appointment.doctor.name,
       date: formatDate(appointment.startTime, DATE_FORMATS.DATE_MEDIUM),
       time: formatTime(appointment.startTime, DATE_FORMATS.TIME_MEDIUM),
+      mapsLink,
     };
 
     try {

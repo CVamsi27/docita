@@ -28,10 +28,7 @@ function formatQueueDate(value: Appointment["startTime"]): string {
     return "Date unavailable";
   }
 
-  const formatted = formatDateTime(date, "en-IN", {
-    dateStyle: "medium",
-    timeStyle: "short",
-  });
+  const formatted = formatDateTime(date);
   return formatted.length > 0 ? formatted : "Date unavailable";
 }
 

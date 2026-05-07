@@ -125,7 +125,6 @@ export const LabTestsOrders: FC<LabTestsOrdersProps> = ({
                       <TableCell className="hidden sm:table-cell text-muted-foreground">
                         {formatDate(
                           test.createdAt,
-                          "en-US",
                           DATE_FORMAT_OPTIONS_US_SHORT,
                         )}
                       </TableCell>

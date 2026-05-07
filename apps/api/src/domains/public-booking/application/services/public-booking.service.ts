@@ -21,6 +21,7 @@ import {
   patientDomainUpdateSchema,
   publicBookingOtpVerifySchema,
   publicBookingPhoneCheckRequestSchema,
+  publicBookingSlotsQuerySchema,
   publicBookingSubmitRequestSchema,
 } from '@workspace/types';
 import { PrismaService } from '@/prisma/prisma.service';
@@ -183,22 +184,42 @@ export class PublicBookingService {
 
   async listSlots(
     referralCode: string,
-    doctorId: string,
-    date: string,
+    rawQuery: unknown,
   ): Promise<PublicBookingSlotsResponse> {
     return this.withBookingTenant(referralCode, async (clinic) => {
-      const belongs = await this.doctorBelongsToClinic(doctorId, clinic.id);
-      if (!belongs) {
-        throw new BadRequestException('Doctor is not available at this clinic');
+      const parsed = publicBookingSlotsQuerySchema.safeParse(rawQuery);
+      if (!parsed.success) {
+        throw new BadRequestException('Invalid slot query');
+      }
+
+      const { doctorId, date, rangeStart, rangeEnd } = parsed.data;
+      const resolvedDoctorId = doctorId === 'any' ? undefined : doctorId;
+
+      if (resolvedDoctorId) {
+        const belongs = await this.doctorBelongsToClinic(
+          resolvedDoctorId,
+          clinic.id,
+        );
+        if (!belongs) {
+          throw new BadRequestException(
+            'Doctor is not available at this clinic',
+          );
+        }
       }
 
       const { slots, slotListEmptyReason } =
         await this.slotGeneration.getAvailableSlotsWithMeta(
           clinic.id,
           date,
-          doctorId,
+          resolvedDoctorId,
         );
-      const mapped = slots.map((s) => ({
+      const filtered = slots.filter((s) => {
+        if (rangeStart && s.time < rangeStart) return false;
+        if (rangeEnd && s.endTime > rangeEnd) return false;
+        return true;
+      });
+
+      const mapped = filtered.map((s) => ({
         doctorId: s.doctorId,
         doctorName: s.doctorName,
         specialization: s.specialization,
@@ -494,23 +515,38 @@ export class PublicBookingService {
         throw new BadRequestException('Unexpected booking verification token');
       }
 
-      const requestedStart = new Date(data.requestedSlotStart);
-      const requestedEnd = new Date(data.requestedSlotEnd);
-      if (
-        Number.isNaN(requestedStart.getTime()) ||
-        Number.isNaN(requestedEnd.getTime()) ||
-        requestedEnd <= requestedStart
-      ) {
-        throw new BadRequestException('Invalid requested slot');
-      }
+      const requestedStart = data.requestedSlotStart
+        ? new Date(data.requestedSlotStart)
+        : null;
+      const requestedEnd = data.requestedSlotEnd
+        ? new Date(data.requestedSlotEnd)
+        : null;
 
-      await this.assertRequestedSlotIsPubliclyBookable(
-        clinic.id,
-        data.preferredDoctorId,
-        data.slotCalendarDate,
-        requestedStart,
-        requestedEnd,
-      );
+      if (requestedStart || requestedEnd) {
+        if (!requestedStart || !requestedEnd) {
+          throw new BadRequestException('Invalid requested slot');
+        }
+        if (
+          Number.isNaN(requestedStart.getTime()) ||
+          Number.isNaN(requestedEnd.getTime()) ||
+          requestedEnd <= requestedStart
+        ) {
+          throw new BadRequestException('Invalid requested slot');
+        }
+        if (!data.preferredDoctorId) {
+          throw new BadRequestException(
+            'preferredDoctorId is required when selecting a time slot',
+          );
+        }
+
+        await this.assertRequestedSlotIsPubliclyBookable(
+          clinic.id,
+          data.preferredDoctorId,
+          data.slotCalendarDate,
+          requestedStart,
+          requestedEnd,
+        );
+      }
 
       let patientId: string;
       if (existing) {
@@ -526,6 +562,11 @@ export class PublicBookingService {
         );
         patientId = existing.id;
       } else {
+        if (!data.dateOfBirth) {
+          throw new BadRequestException(
+            'Date of birth is required when this phone number is not already on file at this clinic',
+          );
+        }
         const created = await this.patientService.createPatient(
           patientDomainCreateSchema.parse({
             clinicId: clinic.id,
@@ -534,6 +575,7 @@ export class PublicBookingService {
             phoneNumber: phone,
             gender: 'PREFER_NOT_TO_SAY',
             email: data.email,
+            dateOfBirth: data.dateOfBirth,
           }),
         );
         patientId = created.id;

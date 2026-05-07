@@ -125,7 +125,7 @@ export function PaymentSuccessModal({
           <div className="flex justify-between items-center text-sm">
             <span className="text-muted-foreground">Date</span>
             <span>
-              {formatDate(new Date(), "en-IN", { dateStyle: "medium" })}
+              {formatDate(new Date())}
             </span>
           </div>
         </div>

@@ -106,11 +106,7 @@ export function DoctorDashboardCardsUI({
                 </p>
                 <p className="text-xs sm:text-sm text-muted-foreground capitalize truncate">
                   {humanizeUiLabel(currentPatient.type)} •{" "}
-                  {formatTime(currentPatient.startTime, "en-IN", {
-                    hour: "numeric",
-                    minute: "2-digit",
-                    hour12: true,
-                  })}
+                  {formatTime(currentPatient.startTime, "h:mm a")}
                 </p>
               </div>
               <Button

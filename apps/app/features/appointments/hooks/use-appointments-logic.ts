@@ -2,8 +2,12 @@ import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import {
   addDays,
+  DEFAULT_TIMEZONE,
   endOfMonth,
-  formatPickerIsoDate,
+  formatClinicHalfHourSlotKey,
+  formatClinicPickerDayIsoFromSelection,
+  formatClinicTodayPickerIso,
+  formatUtcInstantAsClinicPickerIso,
   startOfMonth,
   subDays,
 } from "@workspace/utils";
@@ -12,10 +16,8 @@ import { useDoctors, useUnavailableDoctorIdsForDate } from "@/hooks/api/use-sett
 import {
   type AppointmentListItem,
   useAppointments,
-  useCancelAppointment,
   useCheckInAppointment,
   useStartConsultation,
-  useUpdateAppointment,
 } from "@/hooks/api/use-appointments";
 import { useAuth } from "@/lib/auth-context";
 import { showUserFacingErrorToast } from "@/lib/user-facing-errors";
@@ -24,6 +26,8 @@ import {
   isClinicWideAppointmentRole,
   resolveDoctorScopedAppointmentFilter,
 } from "@workspace/types";
+import { useAppointmentRowActions } from "@/features/appointments/hooks/use-appointment-row-actions";
+import { useClinic } from "@/lib/clinic-context";
 
 export const generateTimeSlots = () => {
   const slots = [];
@@ -38,16 +42,6 @@ export const generateTimeSlots = () => {
 
 export const TIME_SLOTS = generateTimeSlots();
 
-/** Local wall-clock half-hour key (`HH:mm`) for matching `TIME_SLOTS` and scroll-to-current. */
-export function formatLocalHalfHourSlotKey(d: Date): string {
-  const hours = d.getHours();
-  const minutes = d.getMinutes();
-  const slotMinutes = Math.floor(minutes / 30) * 30;
-  return `${hours.toString().padStart(2, "0")}:${slotMinutes.toString().padStart(2, "0")}`;
-}
-
-const getCurrentTimeSlot = () => formatLocalHalfHourSlotKey(new Date());
-
 export const useAppointmentsLogic = () => {
   const NON_CANCELLED_APPOINTMENT_STATUSES =
     "scheduled,confirmed,in_progress,completed,no-show";
@@ -57,10 +51,6 @@ export const useAppointmentsLogic = () => {
   );
   const [checkingIn, setCheckingIn] = useState<string | null>(null);
 
-  const [cancelDialogOpen, setCancelDialogOpen] = useState(false);
-  const [cancellingAptId, setCancellingAptId] = useState<string | null>(null);
-  const [noShowDialogOpen, setNoShowDialogOpen] = useState(false);
-  const [noShowAptId, setNoShowAptId] = useState<string | null>(null);
   const [isAddDialogOpen, setIsAddDialogOpen] = useState(false);
   const [startingConsultationId, setStartingConsultationId] = useState<
     string | null
@@ -72,12 +62,20 @@ export const useAppointmentsLogic = () => {
   const debouncedSearch = useDebounce(searchQuery, 300);
 
   const { user } = useAuth();
+  const { clinic } = useClinic();
+  const clinicTz = useMemo(
+    () => (clinic?.timezone?.trim() || DEFAULT_TIMEZONE) as string,
+    [clinic?.timezone],
+  );
   const searchParams = useSearchParams();
   const router = useRouter();
   const currentTimeSlotRef = useRef<HTMLDivElement>(null);
 
-  // Use local calendar day (not UTC) to avoid off-by-one-day queries.
-  const selectedDateStr = date ? formatPickerIsoDate(date) : undefined;
+  const selectedDateStr = useMemo(
+    () =>
+      date ? formatClinicPickerDayIsoFromSelection(date, clinicTz) : undefined,
+    [date, clinicTz],
+  );
 
   const handleDateSelect = useCallback((next: Date | undefined) => {
     const selected = next ?? new Date();
@@ -129,8 +127,8 @@ export const useAppointmentsLogic = () => {
   const rangeEnd = addDays(endOfMonth(calendarMonth), 7);
 
   const { data: monthRangeAppointmentsResponse } = useAppointments({
-    startDate: formatPickerIsoDate(rangeStart),
-    endDate: formatPickerIsoDate(rangeEnd),
+    startDate: formatClinicPickerDayIsoFromSelection(rangeStart, clinicTz),
+    endDate: formatClinicPickerDayIsoFromSelection(rangeEnd, clinicTz),
     ...(doctorScope.scopedDoctorId
       ? { doctorId: doctorScope.scopedDoctorId }
       : {}),
@@ -141,11 +139,14 @@ export const useAppointmentsLogic = () => {
   const appointmentCountsByDay = useMemo(() => {
     const map = new Map<string, number>();
     for (const apt of monthRangeAppointmentsResponse?.items ?? []) {
-      const key = formatPickerIsoDate(new Date(apt.startTime));
+      const key = formatUtcInstantAsClinicPickerIso(apt.startTime, clinicTz);
+      if (!key) {
+        continue;
+      }
       map.set(key, (map.get(key) ?? 0) + 1);
     }
     return map;
-  }, [monthRangeAppointmentsResponse?.items]);
+  }, [monthRangeAppointmentsResponse?.items, clinicTz]);
 
   const {
     data: appointmentsResponse,
@@ -169,8 +170,11 @@ export const useAppointmentsLogic = () => {
   const checkInMutation = useCheckInAppointment();
   const startConsultationMutation = useStartConsultation();
 
-  const cancelAppointmentMutation = useCancelAppointment(cancellingAptId || "");
-  const updateAppointmentMutation = useUpdateAppointment(noShowAptId || "");
+  const rowActions = useAppointmentRowActions({
+    onMutated: () => {
+      void refetch();
+    },
+  });
 
   const currentAction = searchParams.get("action");
   useEffect(() => {
@@ -212,16 +216,14 @@ export const useAppointmentsLogic = () => {
     [uniqueAppointments],
   );
 
-  const currentTimeSlot = useMemo(() => getCurrentTimeSlot(), []);
+  const currentTimeSlot = useMemo(
+    () => formatClinicHalfHourSlotKey(new Date(), clinicTz),
+    [clinicTz],
+  );
   const isToday = useMemo(() => {
-    if (!date) return false;
-    const today = new Date();
-    return (
-      date.getDate() === today.getDate() &&
-      date.getMonth() === today.getMonth() &&
-      date.getFullYear() === today.getFullYear()
-    );
-  }, [date]);
+    if (!date || !selectedDateStr) return false;
+    return selectedDateStr === formatClinicTodayPickerIso(clinicTz);
+  }, [date, selectedDateStr, clinicTz]);
 
   useEffect(() => {
     if (isToday && currentTimeSlotRef.current) {
@@ -284,38 +286,6 @@ export const useAppointmentsLogic = () => {
     await refetch();
   }, [refetch]);
 
-  const handleCancelAppointment = async (reason: string) => {
-    if (!cancellingAptId) return;
-    try {
-      await cancelAppointmentMutation.mutateAsync({ reason });
-      toast.success("Appointment cancelled successfully");
-      setCancellingAptId(null);
-      setCancelDialogOpen(false);
-      await refetch();
-    } catch {
-      showUserFacingErrorToast(
-        "We could not cancel this appointment. Please try again.",
-      );
-    }
-  };
-
-  const handleNoShowAppointment = async () => {
-    if (!noShowAptId) return;
-    try {
-      await updateAppointmentMutation.mutateAsync({
-        status: "no-show",
-      });
-      toast.success("Appointment marked as no-show");
-      setNoShowAptId(null);
-      setNoShowDialogOpen(false);
-      await refetch();
-    } catch {
-      showUserFacingErrorToast(
-        "We could not mark this appointment as missed. Please try again.",
-      );
-    }
-  };
-
   return {
     state: {
       date,
@@ -325,10 +295,7 @@ export const useAppointmentsLogic = () => {
       appointmentCountsByDay,
       checkingIn,
       startingConsultationId,
-      cancelDialogOpen,
-      setCancelDialogOpen,
-      noShowDialogOpen,
-      setNoShowDialogOpen,
+      rowActionDialogProps: rowActions.dialogProps,
       isAddDialogOpen,
       handleDialogChange,
       selectedDoctorId,
@@ -347,17 +314,13 @@ export const useAppointmentsLogic = () => {
       currentTimeSlotRef,
       preselectedPatientId,
       user,
-      isPendingMutation:
-        cancelAppointmentMutation.isPending || updateAppointmentMutation.isPending,
     },
     handlers: {
       handleCheckIn,
       handleStartConsultation,
       handleAppointmentAdded,
-      handleCancelAppointment,
-      handleNoShowAppointment,
-      setCancellingAptId,
-      setNoShowAptId,
+      onCancelClick: rowActions.onCancelClick,
+      onNoShowClick: rowActions.onNoShowClick,
       refetch,
     },
   };

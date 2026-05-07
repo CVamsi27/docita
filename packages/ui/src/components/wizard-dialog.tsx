@@ -63,6 +63,7 @@ export function WizardDialog({
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent
+        {...(description ? {} : { "aria-describedby": undefined })}
         className={cn(
           "sm:max-w-[480px] gap-4 p-0 overflow-hidden",
           contentClassName,
@@ -119,7 +120,7 @@ export function WizardDialog({
                   key={step.id}
                   aria-current={isActive ? "step" : undefined}
                   className={cn(
-                    "h-1.5 rounded-full transition-all",
+                    "h-1.5 rounded-full transition-[background-color,width] duration-150",
                     isActive
                       ? "w-6 bg-foreground"
                       : isComplete

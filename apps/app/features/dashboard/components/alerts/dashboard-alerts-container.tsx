@@ -12,6 +12,7 @@ import {
 } from "lucide-react";
 import { useLocalStorage } from "@workspace/hooks";
 import { Feature } from "@workspace/types";
+import { clinicWallHourMinuteFromUtcInstant, DEFAULT_TIMEZONE } from "@workspace/utils";
 import { usePermissions } from "@/hooks/use-permissions";
 import { usePermissionStore } from "@/lib/stores/permission-store";
 import { AlertItem, DashboardAlertsUI } from "./dashboard-alerts-ui";
@@ -58,7 +59,7 @@ export function DashboardAlertsContainer({
   const alerts = useMemo<AlertItem[]>(() => {
     const items: AlertItem[] = [];
     const now = new Date();
-    const hour = now.getHours();
+    const { hour } = clinicWallHourMinuteFromUtcInstant(now, DEFAULT_TIMEZONE);
 
     if (density === "full") {
       if (hour < 12 && todayAppointments > 0) {

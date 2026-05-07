@@ -31,7 +31,11 @@ import {
 } from "@/lib/api-core";
 import { useTierFeatureEnabled } from "@/hooks/api/tier-feature-guards";
 import { withQueryString, type QueryParams } from "@/lib/http/query-string";
-import { getLocalCalendarDateString } from "@/lib/local-calendar-date";
+import {
+  DEFAULT_TIMEZONE,
+  formatClinicTodayPickerIso,
+} from "@workspace/utils";
+import { useClinic } from "@/lib/clinic-context";
 
 export type AppointmentListItem = AppointmentListItemContractResponse;
 
@@ -122,7 +126,9 @@ export const useAppointments = (options?: AppointmentQueryOptions | null) => {
 
 export const useTodayAppointments = (enabled: boolean = true) => {
   const calendarOk = useTierFeatureEnabled(Feature.CALENDAR_SLOTS);
-  const today = getLocalCalendarDateString();
+  const { clinic } = useClinic();
+  const tz = clinic?.timezone?.trim() || DEFAULT_TIMEZONE;
+  const today = formatClinicTodayPickerIso(tz);
   return useAPIQueryValidated(
     queryKeys.appointments.list({ date: today }),
     `/appointments?date=${today}`,
@@ -349,6 +355,7 @@ export const useApproveAppointmentRequest = () =>
       ["appointment-requests"],
       queryKeys.appointments.all(),
       ["patient-portal", "appointments"],
+      ["doctor-availability-slots"],
     ],
   });
 

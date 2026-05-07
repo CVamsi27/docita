@@ -23,9 +23,9 @@ export function formatInvoicePaymentMethodLabel(
 }
 
 export type InvoicePaymentSummaryFormatDate = (
-  value: string | Date,
-  locale: string,
-  options: Intl.DateTimeFormatOptions,
+  value: string | Date | null | undefined,
+  pattern?: string,
+  timezone?: string,
 ) => string;
 
 /**
@@ -45,13 +45,7 @@ export function buildInvoicePaidSummaryLine(input: {
   const parts: string[] = [];
   parts.push(st === "PAID" ? "Paid" : "Partially paid");
   if (input.paidAt) {
-    parts.push(
-      input.formatDate(input.paidAt, "en-IN", {
-        year: "numeric",
-        month: "short",
-        day: "numeric",
-      }),
-    );
+    parts.push(input.formatDate(input.paidAt, "d MMM yyyy"));
   }
   const methodLabel = formatInvoicePaymentMethodLabel(input.paymentMethod);
   if (methodLabel) {

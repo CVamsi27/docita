@@ -1,6 +1,10 @@
 import { useMemo } from "react";
-import { formatDate } from "@workspace/utils";
-import { formatLocalHalfHourSlotKey } from "@/features/appointments/hooks/use-appointments-logic";
+import {
+  DEFAULT_TIMEZONE,
+  formatClinicHalfHourSlotKey,
+  formatDate,
+} from "@workspace/utils";
+import { useClinic } from "@/lib/clinic-context";
 import { CalendarDays } from "lucide-react";
 import {
   Card,
@@ -55,6 +59,9 @@ export function AppointmentsListUI({
   onScheduleFollowUp,
   currentUserId,
 }: AppointmentsListUIProps) {
+  const { clinic } = useClinic();
+  const clinicTz = clinic?.timezone?.trim() || DEFAULT_TIMEZONE;
+
   const appointmentsByTime = useMemo(
     () =>
       [...filteredAppointments].sort(
@@ -126,8 +133,10 @@ export function AppointmentsListUI({
                     isToday &&
                     currentTimeSlotRef &&
                     currentTimeSlot &&
-                    formatLocalHalfHourSlotKey(new Date(apt.startTime)) ===
-                      currentTimeSlot
+                    formatClinicHalfHourSlotKey(
+                      new Date(apt.startTime),
+                      clinicTz,
+                    ) === currentTimeSlot
                       ? currentTimeSlotRef
                       : undefined
                   }

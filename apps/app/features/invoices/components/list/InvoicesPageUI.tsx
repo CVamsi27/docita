@@ -252,7 +252,6 @@ export const InvoicesPageUI: FC = () => {
                         {invoice.createdAt
                           ? formatDate(
                               invoice.createdAt,
-                              "en-US",
                               DATE_FORMAT_OPTIONS_US_LONG,
                             )
                           : "N/A"}

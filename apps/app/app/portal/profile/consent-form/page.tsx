@@ -16,13 +16,7 @@ import { formatDate, formatDateTime } from "@/lib/formatters";
 
 const formatConsentDateTime = (date?: string | null) => {
   if (!date) return "Not available";
-  const formatted = formatDateTime(date, "en-IN", {
-    day: "2-digit",
-    month: "short",
-    year: "numeric",
-    hour: "2-digit",
-    minute: "2-digit",
-  });
+  const formatted = formatDateTime(date, "dd MMM yyyy, HH:mm");
   return formatted.length > 0 ? formatted : "Not available";
 };
 
@@ -32,11 +26,7 @@ export default function ConsentFormPage() {
 
   const today = useMemo(
     () =>
-      formatDate(new Date(), "en-IN", {
-        day: "2-digit",
-        month: "long",
-        year: "numeric",
-      }),
+      formatDate(new Date(), "dd MMMM yyyy"),
     [],
   );
 

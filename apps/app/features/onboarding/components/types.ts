@@ -26,6 +26,18 @@ const clinicDetailsBaseSchema = z.object({
   city: optionalTextSchema,
   state: optionalTextSchema,
   pincode: optionalTextSchema,
+  mapsLocation: z
+    .object({
+      lat: z.number().optional(),
+      lng: z.number().optional(),
+    })
+    .optional(),
+  mapsLink: z
+    .string()
+    .trim()
+    .url("Enter a valid Google Maps URL")
+    .optional()
+    .or(z.literal("")),
   type: clinicTypeSchema,
   facilityLabel: z.enum(["CLINIC", "HOSPITAL"]),
   countryCode: z
@@ -108,6 +120,17 @@ export const clinicDetailsSchema = clinicDetailsBaseSchema.superRefine(
         path: ["state"],
         message: "Enter the state or province",
       });
+    }
+
+    if (data.mapsLocation) {
+      const { lat, lng } = data.mapsLocation;
+      if (typeof lat !== "number" || typeof lng !== "number") {
+        ctx.addIssue({
+          code: z.ZodIssueCode.custom,
+          path: ["mapsLocation"],
+          message: "Choose the clinic location on the map",
+        });
+      }
     }
   },
 );

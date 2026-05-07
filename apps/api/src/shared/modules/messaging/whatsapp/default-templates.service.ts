@@ -83,13 +83,15 @@ Your appointment at *{{clinicName}}* is confirmed!
 
 Date: {{date}}
 Time: {{time}}
-Doctor: Dr. {{doctorName}}`,
+Doctor: Dr. {{doctorName}}
+Location: {{mapsLink}}`,
       variables: [
         { name: 'patientName', required: true },
         { name: 'clinicName', required: true },
         { name: 'date', required: true },
         { name: 'time', required: true },
         { name: 'doctorName', required: true },
+        { name: 'mapsLink', required: false, defaultValue: '—' },
       ],
       buttonType: 'QUICK_REPLY',
       buttons: [
@@ -104,6 +106,7 @@ Your appointment at *{{clinicName}}* is confirmed!
 Date: {{date}}
 Time: {{time}}
 Doctor: Dr. {{doctorName}}
+Location: {{mapsLink}}
 
 Reply:
 1. Confirm

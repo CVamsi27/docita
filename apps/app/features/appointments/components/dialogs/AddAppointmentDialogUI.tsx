@@ -20,14 +20,17 @@ import {
   IsoDatePickerField,
   parseIsoDateToLocalDate,
 } from "@workspace/ui/components/iso-date-picker-field";
-import { formatPickerIsoDate } from "@workspace/utils";
+import {
+  clinicWallDatetimeLocalToUtcIso,
+  formatClinicPickerDayIsoFromSelection,
+} from "@workspace/utils";
 import { AppointmentFormFields } from "@/features/appointments/components/sections/add-dialog/AppointmentFormFields";
 import { PatientSelector } from "@/features/appointments/components/sections/add-dialog/PatientSelector";
 import { DoctorSelector } from "@/features/appointments/components/sections/add-dialog/DoctorSelector";
 import { TimeSlotPicker } from "@/features/appointments/components/sections/add-dialog/TimeSlotPicker";
 import type { SlotBlockingAppointment } from "@/features/appointments/lib/calendar-slot-local-iso";
 import { showUserFacingErrorToast } from "@/lib/user-facing-errors";
-import { formatLocaleDateShortMonth, formatTime } from "@/lib/formatters";
+import { formatClockTime, formatLocaleDateShortMonth } from "@/lib/formatters";
 
 interface AddAppointmentDialogUIProps {
   open: boolean;
@@ -107,13 +110,21 @@ export function AddAppointmentDialogUI({
   const endTime = form.watch("endTime");
   const slotReady = typeof startTime === "string" && startTime.length > 0;
   const slotLabel = (() => {
-    if (!slotReady) return "";
-    const start = new Date(startTime);
+    if (!slotReady || typeof startTime !== "string") return "";
+    const startUtc = clinicWallDatetimeLocalToUtcIso(
+      startTime.trim(),
+      clinicTimezone,
+    );
+    if (!startUtc) return "";
+    const start = new Date(startUtc);
     if (Number.isNaN(start.getTime())) return "";
-    const end =
-      typeof endTime === "string" && endTime.length ? new Date(endTime) : null;
-    return `${formatLocaleDateShortMonth(start)} • ${formatTime(start)}${
-      end && !Number.isNaN(end.getTime()) ? ` – ${formatTime(end)}` : ""
+    const endUtc =
+      typeof endTime === "string" && endTime.trim().length > 0
+        ? clinicWallDatetimeLocalToUtcIso(endTime.trim(), clinicTimezone)
+        : null;
+    const end = endUtc ? new Date(endUtc) : null;
+    return `${formatLocaleDateShortMonth(start)} • ${formatClockTime(start)}${
+      end && !Number.isNaN(end.getTime()) ? ` – ${formatClockTime(end)}` : ""
     }`;
   })();
   const handleSubmit = form.handleSubmit(
@@ -209,7 +220,10 @@ export function AddAppointmentDialogUI({
                         id="add-appointment-schedule-date"
                         label=""
                         showLabel={false}
-                        value={formatPickerIsoDate(selectedDate)}
+                        value={formatClinicPickerDayIsoFromSelection(
+                          selectedDate,
+                          clinicTimezone,
+                        )}
                         onChange={(iso) => {
                           const next = parseIsoDateToLocalDate(iso);
                           if (next) onAdjustSchedulingDate(next);

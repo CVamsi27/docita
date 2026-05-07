@@ -2,6 +2,7 @@ import type { ReactNode } from "react";
 import { useAuth } from "@/lib/auth-context";
 import { useClinicReferralShare } from "@/features/dashboard/hooks/use-clinic-referral-share";
 import { DashboardHeaderUI } from "./dashboard-header-ui";
+import { clinicWallHourMinuteFromUtcInstant, DEFAULT_TIMEZONE } from "@workspace/utils";
 
 interface DashboardHeaderContainerProps {
   summary?: string;
@@ -21,7 +22,7 @@ export function DashboardHeaderContainer({
   } = useClinicReferralShare();
 
   const getGreeting = () => {
-    const hour = new Date().getHours();
+    const { hour } = clinicWallHourMinuteFromUtcInstant(new Date(), DEFAULT_TIMEZONE);
     if (hour < 12) return "Good morning";
     if (hour < 17) return "Good afternoon";
     return "Good evening";

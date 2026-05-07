@@ -12,6 +12,8 @@ import {
 const PUBLIC_AUDIT_PAGES = [
   { path: "/", name: "Home" },
   { path: "/login", name: "Login" },
+  /** Referral segment is arbitrary; page resolves to error DataState when API has no clinic. */
+  { path: "/book/accessibility-audit-placeholder", name: "Public booking" },
 ] as const;
 
 const violationsByPage: Record<

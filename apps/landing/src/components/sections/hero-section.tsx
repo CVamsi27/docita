@@ -51,23 +51,15 @@ export function HeroSection({ appUrl }: HeroSectionProps) {
 
   return (
     <section className="r2-hero" aria-labelledby="r2-hero-heading">
-      <div className="ui-page-shell r2-hero-shell">
+      <div className="ui-page-shell r2-hero-shell px-4 sm:px-6 lg:px-0">
         <motion.div
           className="r2-grid-12 items-center"
           variants={container}
           initial="hidden"
           animate="visible"
         >
-          <div className="col-span-12 lg:col-span-7 lg:pr-6 xl:col-span-6">
-            <motion.div
-              variants={item}
-              className="flex items-center gap-3 r2-section-marker"
-            >
-              <span aria-hidden>R2 / 01</span>
-              <span
-                aria-hidden
-                className="h-px w-10 bg-current opacity-40"
-              />
+          <div className="col-span-12 mt-0 sm:mt-4 lg:col-span-7 lg:mt-0 lg:pr-6 xl:col-span-6">
+            <motion.div variants={item}>
               <span className="r2-eyebrow r2-eyebrow-accent">
                 India · Private clinics · OPD
               </span>

@@ -48,6 +48,22 @@ describe("SupportContact", () => {
       container.querySelector(".rounded-lg.border.border-border\\/60"),
     ).toBeInTheDocument();
   });
+
+  it("minimalLinks shows compact help row with accessible mailto/call labels", () => {
+    vi.stubEnv("NEXT_PUBLIC_WHATSAPP_SUPPORT_NUMBER", "918790311010");
+
+    render(<SupportContact minimalLinks />);
+
+    expect(screen.getByRole("link", { name: /Email/i })).toHaveAttribute(
+      "href",
+      `mailto:${SUPPORT_EMAIL}`,
+    );
+    expect(screen.getByRole("link", { name: /Call/i })).toHaveAttribute(
+      "href",
+      "tel:+918790311010",
+    );
+    expect(screen.getByRole("button", { name: "WhatsApp" })).toBeInTheDocument();
+  });
 });
 
 describe("getSupportContactText", () => {
