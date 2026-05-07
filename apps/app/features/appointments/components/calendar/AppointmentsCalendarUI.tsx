@@ -14,10 +14,12 @@ import {
   SelectValue,
 } from "@workspace/ui/components/select";
 import {
+  DEFAULT_TIMEZONE,
+  formatClinicPickerDayIsoFromSelection,
+  formatClinicTodayPickerIso,
   formatDate,
-  formatPickerIsoDate,
-  isSameLocalCalendarDay,
 } from "@workspace/utils";
+import { useClinic } from "@/lib/clinic-context";
 
 interface Doctor {
   id: string;
@@ -48,8 +50,12 @@ export function AppointmentsCalendarUI({
   selectedDoctorId,
   onDoctorSelect,
 }: AppointmentsCalendarUIProps) {
+  const { clinic } = useClinic();
+  const clinicTz = clinic?.timezone?.trim() || DEFAULT_TIMEZONE;
   const selectedDate = date ?? new Date();
-  const isTodaySelected = isSameLocalCalendarDay(selectedDate, new Date());
+  const isTodaySelected =
+    formatClinicPickerDayIsoFromSelection(selectedDate, clinicTz) ===
+    formatClinicTodayPickerIso(clinicTz);
 
   const hasAnyMonthIndicators = appointmentCountsByDay.size > 0;
 
@@ -110,7 +116,9 @@ export function AppointmentsCalendarUI({
             onSelect={onDateSelect}
             modifiers={{
               hasAppointments: (day) =>
-                (appointmentCountsByDay.get(formatPickerIsoDate(day)) ?? 0) > 0,
+                (appointmentCountsByDay.get(
+                  formatClinicPickerDayIsoFromSelection(day, clinicTz),
+                ) ?? 0) > 0,
             }}
             modifiersClassNames={{
               hasAppointments:

@@ -45,40 +45,6 @@ export const APPOINTMENT_PRIORITY_COLORS: Record<AppointmentPriority, string> =
     EMERGENCY: "badge-danger",
   };
 
-/**
- * Must stay aligned with `DEFAULT_TIMEZONE` in `@workspace/utils` date-config
- * (forms use `toLocalISOString` / `fromLocalISOString` with that zone).
- */
-const APPOINTMENT_FORM_WALL_TIMEZONE = "Asia/Kolkata";
-
-const normalizeAppointmentDate = (
-  value: string | Date,
-): Date | undefined => {
-  if (value === "" || value === undefined) {
-    return undefined;
-  }
-  if (value instanceof Date) {
-    return Number.isNaN(value.getTime()) ? undefined : value;
-  }
-  const s = String(value).trim();
-  if (!s) {
-    return undefined;
-  }
-  if (/^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}$/.test(s)) {
-    try {
-      const wall = parse(s, "yyyy-MM-dd'T'HH:mm", new Date());
-      if (Number.isNaN(wall.getTime())) {
-        return undefined;
-      }
-      return fromZonedTime(wall, APPOINTMENT_FORM_WALL_TIMEZONE);
-    } catch {
-      return undefined;
-    }
-  }
-  const parsed = new Date(s);
-  return Number.isNaN(parsed.getTime()) ? undefined : parsed;
-};
-
 export const appointmentSchema = z.object({
   id: z.string().optional(),
   patientId: z.string().min(1, "Select a patient."),
@@ -193,40 +159,82 @@ export const createAppointmentBaseSchema = appointmentSchema.omit({
   psychiatryExam: true,
 });
 
+/**
+ * Fallback wall timezone for generated `createAppointmentSchema` only.
+ * Clinician scheduling forms should super-refine with `refineCreateAppointmentDateTimes(clinicTz)`.
+ */
+const APPOINTMENT_FORM_WALL_TIMEZONE = "Asia/Kolkata";
+
+function normalizeAppointmentDate(
+  value: string | Date,
+  wallTimezone: string,
+): Date | undefined {
+  if (value === "" || value === undefined) {
+    return undefined;
+  }
+  if (value instanceof Date) {
+    return Number.isNaN(value.getTime()) ? undefined : value;
+  }
+  const s = String(value).trim();
+  if (!s) {
+    return undefined;
+  }
+  if (/^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}$/.test(s)) {
+    try {
+      const wall = parse(s, "yyyy-MM-dd'T'HH:mm", new Date());
+      if (Number.isNaN(wall.getTime())) {
+        return undefined;
+      }
+      return fromZonedTime(wall, wallTimezone);
+    } catch {
+      return undefined;
+    }
+  }
+  const parsed = new Date(s);
+  return Number.isNaN(parsed.getTime()) ? undefined : parsed;
+}
+
+export function refineCreateAppointmentDateTimes(wallTimezone: string) {
+  return (
+    data: z.infer<typeof createAppointmentBaseSchema>,
+    ctx: z.RefinementCtx,
+  ): void => {
+    const startTime = normalizeAppointmentDate(data.startTime, wallTimezone);
+    const endTime =
+      typeof data.endTime === "string" && data.endTime.trim() === ""
+        ? undefined
+        : normalizeAppointmentDate(data.endTime, wallTimezone);
+    const now = new Date();
+
+    if (!startTime) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        path: ["startTime"],
+        message: "Enter a valid start time.",
+      });
+      return;
+    }
+
+    if (startTime.getTime() < now.getTime()) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        path: ["startTime"],
+        message: "Start time cannot be in the past.",
+      });
+    }
+
+    if (endTime && endTime.getTime() <= startTime.getTime()) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        path: ["endTime"],
+        message: "End time must be after the start time.",
+      });
+    }
+  };
+}
+
 export const createAppointmentSchema = createAppointmentBaseSchema.superRefine(
-  (data, ctx) => {
-  const startTime = normalizeAppointmentDate(data.startTime);
-  const endTime =
-    typeof data.endTime === "string" && data.endTime.trim() === ""
-      ? undefined
-      : normalizeAppointmentDate(data.endTime);
-  const now = new Date();
-
-  if (!startTime) {
-    ctx.addIssue({
-      code: z.ZodIssueCode.custom,
-      path: ["startTime"],
-      message: "Enter a valid start time.",
-    });
-    return;
-  }
-
-  if (startTime.getTime() < now.getTime()) {
-    ctx.addIssue({
-      code: z.ZodIssueCode.custom,
-      path: ["startTime"],
-      message: "Start time cannot be in the past.",
-    });
-  }
-
-  if (endTime && endTime.getTime() <= startTime.getTime()) {
-    ctx.addIssue({
-      code: z.ZodIssueCode.custom,
-      path: ["endTime"],
-      message: "End time must be after the start time.",
-    });
-  }
-  },
+  refineCreateAppointmentDateTimes(APPOINTMENT_FORM_WALL_TIMEZONE),
 );
 export type CreateAppointmentInput = z.infer<typeof createAppointmentSchema>;
 

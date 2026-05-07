@@ -1,8 +1,10 @@
 import {
   DEFAULT_TIMEZONE,
-  formatPickerIsoDate,
+  clinicDateAndTimeToWallDatetimeLocal,
+  clinicWallHourMinuteFromUtcInstant,
+  formatClinicPickerDayIsoFromSelection,
+  formatClinicTodayPickerIso,
   fromLocalISOString,
-  toLocalISOString,
 } from "@workspace/utils";
 
 export type SlotBlockingAppointment = {
@@ -19,7 +21,7 @@ export function slotOccupiedByAppointments(
   timezone: string,
   appointments: ReadonlyArray<SlotBlockingAppointment>,
 ): boolean {
-  const dateStr = formatPickerIsoDate(selectedDate);
+  const dateStr = formatClinicPickerDayIsoFromSelection(selectedDate, timezone);
   const slotStart = fromLocalISOString(`${dateStr}T${slotStartHHmm}`, {
     timezone,
   });
@@ -29,82 +31,75 @@ export function slotOccupiedByAppointments(
   if (!slotStart || !slotEnd) return false;
 
   const blocking = appointments.filter(
-    (a) =>
-      a.status !== "cancelled" &&
-      a.status !== "no-show",
+    (a) => a.status !== "cancelled" && a.status !== "no-show",
   );
 
   return blocking.some((a) => {
     const apptStartMs = new Date(a.startTime).getTime();
     const apptEndMs = new Date(a.endTime).getTime();
-    return slotStart.getTime() < apptEndMs && slotEnd.getTime() > apptStartMs;
+    return (
+      slotStart.getTime() < apptEndMs && slotEnd.getTime() > apptStartMs
+    );
   });
 }
 
-/** Wall-clock instant for a calendar day + HH:mm slot segment, as `yyyy-MM-dd'T'HH:mm` in the clinic zone. */
+/** Wall-clock instant for a calendar day + HH:mm slot segment, as clinic-wall `yyyy-MM-dd'T'HH:mm`. */
 export function calendarSlotTimeToLocalIso(
   selectedDate: Date,
   slotTimeHHmm: string,
   timezone: string = DEFAULT_TIMEZONE,
 ): string {
-  const [h, m] = slotTimeHHmm.split(":").map((x) => parseInt(x, 10));
-  const wall = new Date(
-    selectedDate.getFullYear(),
-    selectedDate.getMonth(),
-    selectedDate.getDate(),
-    Number.isFinite(h) ? h : 0,
-    Number.isFinite(m) ? m : 0,
-    0,
-    0,
-  );
-  return toLocalISOString(wall, { timezone });
+  const dateStr = formatClinicPickerDayIsoFromSelection(selectedDate, timezone);
+  return clinicDateAndTimeToWallDatetimeLocal(dateStr, slotTimeHHmm, timezone);
 }
 
 /**
  * Default start for the schedule dialog when a calendar day is pre-selected.
- * Uses clinic-local wall time (same as slot strings). Overwritten by the first
- * API-available slot when `/doctor-availability/slots` returns.
+ * Uses clinic-local wall time (aligned with `/doctor-availability/slots`).
  */
 export function defaultStartIsoForSelectedCalendarDay(
-  selectedDate: Date,
+  selectedDate: Date | string,
   startHour: number,
   endHour: number,
   timezone: string = DEFAULT_TIMEZONE,
 ): string {
-  const now = new Date();
-  const y = selectedDate.getFullYear();
-  const mo = selectedDate.getMonth();
-  const d = selectedDate.getDate();
+  const selectedStr =
+    typeof selectedDate === "string" &&
+    /^\d{4}-\d{2}-\d{2}$/.test(selectedDate.trim())
+      ? selectedDate.trim()
+      : formatClinicPickerDayIsoFromSelection(selectedDate as Date, timezone);
 
-  const selectedStr = formatPickerIsoDate(selectedDate);
-  const todayStr = formatPickerIsoDate(now);
+  const todayStr = formatClinicTodayPickerIso(timezone);
 
-  let wall: Date;
+  let hhmm: string;
   if (selectedStr !== todayStr) {
-    wall = new Date(y, mo, d, startHour, 0, 0, 0);
+    hhmm = `${String(startHour).padStart(2, "0")}:00`;
   } else {
-    wall = new Date(y, mo, d, now.getHours(), now.getMinutes(), 0, 0);
-    const open = new Date(y, mo, d, startHour, 0, 0, 0);
-    const close = new Date(y, mo, d, endHour, 0, 0, 0);
-    if (wall < open) {
-      wall = open;
-    }
-    if (wall >= close) {
-      wall = new Date(open);
+    const now = new Date();
+    const { hour: nowH, minute: nowM } = clinicWallHourMinuteFromUtcInstant(
+      now,
+      timezone,
+    );
+    let totalMin = nowH * 60 + nowM;
+    const openMin = startHour * 60;
+    const closeMin = endHour * 60;
+
+    if (totalMin < openMin) {
+      totalMin = openMin;
+    } else if (totalMin >= closeMin) {
+      totalMin = openMin;
     } else {
-      const remainder = 30 - (wall.getMinutes() % 30);
-      wall.setMinutes(
-        wall.getMinutes() + (remainder === 30 ? 30 : remainder),
-        0,
-        0,
-      );
-      if (wall >= close) {
-        wall = new Date(
-          Math.max(open.getTime(), close.getTime() - 30 * 60 * 1000),
-        );
+      const remainder = 30 - (totalMin % 30);
+      totalMin += remainder === 30 ? 30 : remainder;
+      if (totalMin >= closeMin) {
+        totalMin = Math.max(openMin, closeMin - 30);
       }
     }
+
+    const h = Math.floor(totalMin / 60);
+    const m = totalMin % 60;
+    hhmm = `${String(h).padStart(2, "0")}:${String(m).padStart(2, "0")}`;
   }
 
-  return toLocalISOString(wall, { timezone });
+  return clinicDateAndTimeToWallDatetimeLocal(selectedStr, hhmm, timezone);
 }
