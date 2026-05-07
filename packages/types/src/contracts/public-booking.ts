@@ -1,5 +1,6 @@
 import { z } from "zod";
 import { stripHtmlTags } from "../api/sanitization";
+import { pastDateOfBirthSchema } from "./patients";
 
 export const publicBookingClinicResponseSchema = z
   .object({
@@ -149,6 +150,8 @@ export const publicBookingSubmitRequestSchema = z
     phoneNumber: z.string().min(8).max(32),
     firstName: z.string().trim().min(1).max(100).transform(stripHtmlTags),
     lastName: z.string().trim().min(1).max(100).transform(stripHtmlTags),
+    /** Required when creating a new patient record (phone not on file at this clinic). */
+    dateOfBirth: pastDateOfBirthSchema.optional(),
     email: z.string().trim().max(320).email().optional(),
     preferredDoctorId: z.string().min(1).optional(),
     /** Calendar day used when fetching slots (YYYY-MM-DD); must match requested slot instants. */

@@ -21,6 +21,7 @@ export function usePublicBookingClinic(referralCode: string) {
     queryFn: () =>
       fetchAPI<PublicBookingClinicResponse>(clinicsBase(referralCode), {
         skipAuth: true,
+        suppressGlobalErrorToast: true,
       }),
     enabled: referralCode.length > 0,
   });
@@ -32,7 +33,7 @@ export function usePublicBookingDoctors(referralCode: string) {
     queryFn: () =>
       fetchAPI<PublicBookingDoctorsResponse>(
         `${clinicsBase(referralCode)}/doctors`,
-        { skipAuth: true },
+        { skipAuth: true, suppressGlobalErrorToast: true },
       ),
     enabled: referralCode.length > 0,
   });
@@ -52,7 +53,7 @@ export function usePublicBookingSlots(
     queryFn: () =>
       fetchAPI<PublicBookingSlotsResponse>(
         `${clinicsBase(referralCode)}/slots?${doctorParam}date=${encodeURIComponent(date)}`,
-        { skipAuth: true },
+        { skipAuth: true, suppressGlobalErrorToast: true },
       ),
     enabled: referralCode.length > 0 && doctorId !== "" && !!date,
   });
@@ -72,6 +73,7 @@ export function usePublicBookingContext(
         `${clinicsBase(referralCode)}/context`,
         {
           skipAuth: true,
+          suppressGlobalErrorToast: true,
           headers: {
             Authorization: `Bearer ${bookingVerificationToken}`,
           },
@@ -93,6 +95,7 @@ export function usePublicBookingPhoneCheck(referralCode: string) {
           method: "POST",
           body: JSON.stringify(body),
           skipAuth: true,
+          suppressGlobalErrorToast: true,
         },
       ),
   });
@@ -103,7 +106,12 @@ export function usePublicBookingOtpRequest(referralCode: string) {
     mutationFn: (body: { phoneNumber: string; turnstileToken?: string }) =>
       fetchAPI<{ message: string; expiresInSeconds: number }>(
         `${clinicsBase(referralCode)}/otp/request`,
-        { method: "POST", body: JSON.stringify(body), skipAuth: true },
+        {
+          method: "POST",
+          body: JSON.stringify(body),
+          skipAuth: true,
+          suppressGlobalErrorToast: true,
+        },
       ),
   });
 }
@@ -113,7 +121,12 @@ export function usePublicBookingOtpVerify(referralCode: string) {
     mutationFn: (body: { phoneNumber: string; otp: string }) =>
       fetchAPI<PublicBookingOtpVerifyResponse>(
         `${clinicsBase(referralCode)}/otp/verify`,
-        { method: "POST", body: JSON.stringify(body), skipAuth: true },
+        {
+          method: "POST",
+          body: JSON.stringify(body),
+          skipAuth: true,
+          suppressGlobalErrorToast: true,
+        },
       ),
   });
 }
@@ -130,6 +143,7 @@ export function usePublicBookingSubmit(referralCode: string) {
           method: "POST",
           body: JSON.stringify(args.body),
           skipAuth: true,
+          suppressGlobalErrorToast: true,
           headers: args.authorization
             ? { Authorization: `Bearer ${args.authorization}` }
             : undefined,

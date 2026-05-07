@@ -562,6 +562,11 @@ export class PublicBookingService {
         );
         patientId = existing.id;
       } else {
+        if (!data.dateOfBirth) {
+          throw new BadRequestException(
+            'Date of birth is required when this phone number is not already on file at this clinic',
+          );
+        }
         const created = await this.patientService.createPatient(
           patientDomainCreateSchema.parse({
             clinicId: clinic.id,
@@ -570,6 +575,7 @@ export class PublicBookingService {
             phoneNumber: phone,
             gender: 'PREFER_NOT_TO_SAY',
             email: data.email,
+            dateOfBirth: data.dateOfBirth,
           }),
         );
         patientId = created.id;
