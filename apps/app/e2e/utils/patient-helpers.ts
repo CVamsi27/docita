@@ -320,7 +320,7 @@ async function setupTestUserImpl(
 
   const registerData = await registerRes.json();
   let accessToken = registerData.access_token || registerData.accessToken;
-  const userId = registerData.user.id;
+  const registeredUserId = registerData.user.id;
 
   await verifyEmailIfNeeded(request, email, registerData.user?.emailVerified);
 
@@ -480,7 +480,7 @@ async function setupTestUserImpl(
   const userId =
     postOnboardingLoginData.user?.id ??
     postOnboardingLoginData.userId ??
-    registerData.user.id;
+    registeredUserId;
 
   const tokenRes = await request.post(
     `${API_URL}/doctors/signature/generate-token`,

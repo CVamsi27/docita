@@ -135,6 +135,7 @@ export function FeatureTierBadge({
     [Tier.ESSENTIAL]: "tier-core",
     [Tier.FRONT_DESK]: "tier-core",
     [Tier.PROFESSIONAL]: "tier-pro",
+    [Tier.HOSPITAL]: "tier-hospital",
     [Tier.ENTERPRISE]: "tier-enterprise",
     [Tier.INTELLIGENCE]: "tier-intelligence",
   };
@@ -157,6 +158,7 @@ export function TierBadge({ tier, className }: TierBadgeProps) {
     [Tier.ESSENTIAL]: "tier-core",
     [Tier.FRONT_DESK]: "tier-core",
     [Tier.PROFESSIONAL]: "tier-pro",
+    [Tier.HOSPITAL]: "tier-hospital",
     [Tier.ENTERPRISE]: "tier-enterprise",
     [Tier.INTELLIGENCE]: "tier-intelligence",
   };

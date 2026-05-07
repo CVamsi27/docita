@@ -61,6 +61,7 @@ export function PricingDialog({
     ESSENTIAL: "tier-core",
     FRONT_DESK: "tier-core",
     PROFESSIONAL: "tier-pro",
+    HOSPITAL: "tier-hospital",
     ENTERPRISE: "tier-enterprise",
     INTELLIGENCE: "tier-intelligence",
   };

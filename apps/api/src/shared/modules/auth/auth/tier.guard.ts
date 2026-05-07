@@ -151,6 +151,7 @@ export class TierGuard implements CanActivate {
       [ClinicTier.STARTER]: Tier.STARTER,
       [ClinicTier.ESSENTIAL]: Tier.ESSENTIAL,
       [ClinicTier.PROFESSIONAL]: Tier.PROFESSIONAL,
+      [ClinicTier.HOSPITAL]: Tier.HOSPITAL,
       [ClinicTier.ENTERPRISE]: Tier.ENTERPRISE,
       [ClinicTier.FRONT_DESK]: Tier.FRONT_DESK,
     };
@@ -163,6 +164,7 @@ export class TierGuard implements CanActivate {
       [Tier.STARTER]: 'Starter',
       [Tier.ESSENTIAL]: 'Essential',
       [Tier.PROFESSIONAL]: 'Professional',
+      [Tier.HOSPITAL]: 'Hospital',
       [Tier.ENTERPRISE]: 'Enterprise',
       [Tier.INTELLIGENCE]: 'Intelligence',
       [Tier.FRONT_DESK]: 'Front desk',

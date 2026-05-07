@@ -73,6 +73,7 @@ function hasMeaningfulClinicDraftData(
     "pincode",
     "website",
     "gstin",
+    "legalName",
   ];
 
   const hasMeaningfulString = meaningfulStringFields.some((field) => {
@@ -140,6 +141,7 @@ export function ClinicRegistrationForm({
       countryCode: DEFAULT_COUNTRY_CODE,
       website: "",
       gstin: "",
+      legalName: "",
       ...(formData.clinicDetails as Partial<ClinicDetails>),
     } as ClinicDetails,
   });

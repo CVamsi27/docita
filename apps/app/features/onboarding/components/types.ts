@@ -53,6 +53,12 @@ const clinicDetailsBaseSchema = z.object({
     .regex(/^[0-9]{2}[A-Z0-9]{13}$/, "Enter a valid 15-character GSTIN")
     .optional()
     .or(z.literal("")),
+  legalName: z
+    .string()
+    .trim()
+    .max(160, "Legal name is too long")
+    .optional()
+    .or(z.literal("")),
 });
 
 export const clinicDetailsSchema = clinicDetailsBaseSchema.superRefine(

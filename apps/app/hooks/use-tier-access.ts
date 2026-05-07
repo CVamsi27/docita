@@ -22,7 +22,9 @@ import { useQuery } from "@tanstack/react-query";
 const TIER_NAMES: Record<number, string> = {
   [Tier.STARTER]: "Starter",
   [Tier.ESSENTIAL]: "Essential",
+  [Tier.FRONT_DESK]: "Front desk",
   [Tier.PROFESSIONAL]: "Professional",
+  [Tier.HOSPITAL]: "Hospital",
   [Tier.ENTERPRISE]: "Enterprise",
   [Tier.INTELLIGENCE]: "Intelligence",
 };

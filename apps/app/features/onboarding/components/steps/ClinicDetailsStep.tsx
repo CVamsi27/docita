@@ -686,6 +686,25 @@ export function ClinicDetailsStep({
                 </p>
               )}
             </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="legalName">
+                Legal name on tax invoice (optional)
+              </Label>
+              <Input
+                id="legalName"
+                {...clinicForm.register("legalName")}
+                placeholder="Registered legal name (e.g. Apollo Multispecialty Pvt. Ltd.)"
+                aria-describedby="clinic-legal-name-help"
+              />
+              <p
+                id="clinic-legal-name-help"
+                className="text-xs text-muted-foreground"
+              >
+                Used as the bill-to name on Docita tax invoices. Leave blank to
+                use your facility name.
+              </p>
+            </div>
           </div>
         </form>
       </CardContent>

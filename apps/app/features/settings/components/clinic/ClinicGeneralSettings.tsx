@@ -53,6 +53,9 @@ const clinicSettingsSchema = z.object({
   address: requiredStringSchema("Address"),
   phone: phoneSchema,
   gstin: z.union([z.string().trim(), z.literal("")]).optional(),
+  legalName: z
+    .union([z.string().trim().max(160), z.literal("")])
+    .optional(),
   facilityLabel: z.enum(["CLINIC", "HOSPITAL"]).optional(),
   mapsLink: z
     .union([
@@ -88,6 +91,7 @@ export function ClinicGeneralSettings() {
       address: "",
       phone: "",
       gstin: "",
+      legalName: "",
       facilityLabel: "CLINIC",
       mapsLink: "",
     },
@@ -96,7 +100,11 @@ export function ClinicGeneralSettings() {
   useEffect(() => {
     if (clinic) {
       const settings = clinic.settings as
-        | { facilityLabel?: "CLINIC" | "HOSPITAL"; mapsLink?: string }
+        | {
+            facilityLabel?: "CLINIC" | "HOSPITAL";
+            mapsLink?: string;
+            taxSettings?: { legalName?: string };
+          }
         | null
         | undefined;
       form.reset({
@@ -104,6 +112,7 @@ export function ClinicGeneralSettings() {
         address: clinic.address || "",
         phone: clinic.phone || "",
         gstin: clinic.gstin || "",
+        legalName: settings?.taxSettings?.legalName ?? "",
         facilityLabel: settings?.facilityLabel ?? "CLINIC",
         mapsLink: settings?.mapsLink ?? "",
       });
@@ -113,7 +122,15 @@ export function ClinicGeneralSettings() {
   const watchedMapsLink = form.watch("mapsLink")?.trim() ?? "";
 
   const handleSubmit = (data: ClinicSettingsFormValues) => {
-    updateClinic(data, {
+    const { legalName, ...rest } = data;
+    const trimmedLegalName = (legalName ?? "").trim();
+    const payload: Parameters<typeof updateClinic>[0] = {
+      ...rest,
+      ...(trimmedLegalName.length > 0
+        ? { taxSettings: { legalName: trimmedLegalName } }
+        : {}),
+    };
+    updateClinic(payload, {
       onSuccess: () => {
         toast.success("Facility settings updated successfully");
       },
@@ -398,6 +415,29 @@ export function ClinicGeneralSettings() {
                 )}
               />
             </div>
+
+            <FormField
+              control={form.control}
+              name="legalName"
+              render={({ field }) => (
+                <FormFieldGroup
+                  label="Legal name (for tax invoice)"
+                  htmlFor="clinic-legal-name"
+                  error={form.formState.errors.legalName?.message}
+                  hint="Registered legal name as printed on your GST certificate. Leave blank to use the facility name on invoices."
+                >
+                  <FormControl id="clinic-legal-name">
+                    <Input
+                      id="clinic-legal-name"
+                      autoComplete="organization"
+                      placeholder="e.g. Apollo Multispecialty Pvt. Ltd."
+                      {...field}
+                      value={field.value || ""}
+                    />
+                  </FormControl>
+                </FormFieldGroup>
+              )}
+            />
 
             <div className="flex justify-end pt-2">
               <Button

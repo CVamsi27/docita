@@ -20,6 +20,7 @@ import { ResponseHandlerService } from './response-handler.service';
 import { StaffNotificationService } from './staff-notification.service';
 import { PrismaModule } from '@/prisma/prisma.module';
 import { WhatsappEventListener } from './listeners/whatsapp.listener';
+import { StaffNotificationListener } from './listeners/staff-notification.listener';
 import { SupportWhatsAppModule } from '@/shared/modules/support-whatsapp';
 
 @Module({
@@ -48,6 +49,7 @@ import { SupportWhatsAppModule } from '@/shared/modules/support-whatsapp';
     ResponseHandlerService,
     StaffNotificationService,
     WhatsappEventListener,
+    StaffNotificationListener,
   ],
   exports: [
     WhatsappService,

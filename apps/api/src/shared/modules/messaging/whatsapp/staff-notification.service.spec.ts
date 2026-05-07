@@ -13,6 +13,7 @@ import {
   expect,
   jest,
 } from '@jest/globals';
+import { ClinicTier } from '@workspace/db';
 
 describe('StaffNotificationService', () => {
   let service: StaffNotificationService;
@@ -31,6 +32,7 @@ describe('StaffNotificationService', () => {
           .fn<(...args: unknown[]) => Promise<unknown>>()
           .mockImplementation(async () => ({
             id: 'clinic-123',
+            tier: ClinicTier.ESSENTIAL,
             whatsappAutomation: { enabled: true },
           })),
       },
@@ -144,6 +146,7 @@ describe('StaffNotificationService', () => {
     it('should skip WhatsApp when clinic has whatsappAutomation disabled', async () => {
       mockPrisma.clinic.findUnique.mockResolvedValue({
         id: 'clinic-123',
+        tier: ClinicTier.ESSENTIAL,
         whatsappAutomation: { enabled: false },
       });
 
@@ -345,6 +348,93 @@ describe('StaffNotificationService', () => {
       expect(mockPrisma.staffNotification.count).toHaveBeenCalledWith({
         where: { userId: 'user-1', isRead: false, deletedAt: null },
       });
+    });
+  });
+
+  describe('tier gating', () => {
+    it('skips INVOICE_PENDING for clinics below ESSENTIAL', async () => {
+      mockPrisma.clinic.findUnique.mockResolvedValue({
+        id: 'clinic-123',
+        tier: ClinicTier.STARTER,
+        whatsappAutomation: { enabled: false },
+      });
+
+      await service.notifyStaff({
+        clinicId: 'clinic-123',
+        type: 'INVOICE_PENDING',
+        title: 't',
+        message: 'm',
+      });
+
+      expect(mockPrisma.staffNotification.create).not.toHaveBeenCalled();
+    });
+
+    it('delivers INVOICE_PENDING for clinics on ESSENTIAL or above', async () => {
+      mockPrisma.clinic.findUnique.mockResolvedValue({
+        id: 'clinic-123',
+        tier: ClinicTier.ESSENTIAL,
+        whatsappAutomation: { enabled: false },
+      });
+
+      await service.notifyStaff({
+        clinicId: 'clinic-123',
+        type: 'INVOICE_PENDING',
+        title: 't',
+        message: 'm',
+      });
+
+      expect(mockPrisma.staffNotification.create).toHaveBeenCalled();
+    });
+
+    it('skips PAYMENT_PROVIDER_STATUS_UPDATE below PROFESSIONAL', async () => {
+      mockPrisma.clinic.findUnique.mockResolvedValue({
+        id: 'clinic-123',
+        tier: ClinicTier.ESSENTIAL,
+        whatsappAutomation: { enabled: false },
+      });
+
+      await service.notifyStaff({
+        clinicId: 'clinic-123',
+        type: 'PAYMENT_PROVIDER_STATUS_UPDATE',
+        title: 't',
+        message: 'm',
+      });
+
+      expect(mockPrisma.staffNotification.create).not.toHaveBeenCalled();
+    });
+
+    it('delivers types without a tier requirement at any tier', async () => {
+      mockPrisma.clinic.findUnique.mockResolvedValue({
+        id: 'clinic-123',
+        tier: ClinicTier.STARTER,
+        whatsappAutomation: { enabled: false },
+      });
+
+      await service.notifyStaff({
+        clinicId: 'clinic-123',
+        type: 'APPOINTMENT_REQUEST_CREATED',
+        title: 't',
+        message: 'm',
+      });
+
+      expect(mockPrisma.staffNotification.create).toHaveBeenCalled();
+    });
+
+    it('treats FRONT_DESK as STARTER-equivalent for ordering', async () => {
+      mockPrisma.clinic.findUnique.mockResolvedValue({
+        id: 'clinic-123',
+        tier: ClinicTier.FRONT_DESK,
+        whatsappAutomation: { enabled: false },
+      });
+
+      await service.notifyStaff({
+        clinicId: 'clinic-123',
+        type: 'INVOICE_PENDING',
+        title: 't',
+        message: 'm',
+      });
+
+      expect(mockPrisma.staffNotification.create).not.toHaveBeenCalled();
     });
   });
 

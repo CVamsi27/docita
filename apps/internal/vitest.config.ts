@@ -1,4 +1,4 @@
-import { defineConfig } from "vitest/config";
+import { configDefaults, defineConfig } from "vitest/config";
 import react from "@vitejs/plugin-react";
 import path from "path";
 
@@ -10,7 +10,13 @@ export default defineConfig({
     setupFiles: ["./vitest.setup.ts"],
     css: true,
     testTimeout: 30000,
-    exclude: ["e2e*", "node_modules*"],
+    exclude: [
+      ...configDefaults.exclude,
+      "e2e/**",
+      ".next/**",
+      ".open-next/**",
+      "test-results/**",
+    ],
     coverage: {
       reporter: ["text", "html"],
       include: [
@@ -18,7 +24,13 @@ export default defineConfig({
         "app/(protected)/dashboard/page.tsx",
         "features/users/users.utils.ts",
       ],
-      exclude: ["e2e/**", "**/*.d.ts", "**/*.config.*", "**/.next/**"],
+      exclude: [
+        "e2e/**",
+        "**/*.d.ts",
+        "**/*.config.*",
+        "**/.next/**",
+        "**/.open-next/**",
+      ],
       thresholds: {
         lines: 30,
         statements: 30,

@@ -222,6 +222,7 @@ function getTierDisplayName(tier: Tier): string {
     [Tier.ESSENTIAL]: "Essential",
     [Tier.FRONT_DESK]: "Front desk",
     [Tier.PROFESSIONAL]: "Professional",
+    [Tier.HOSPITAL]: "Hospital",
     [Tier.ENTERPRISE]: "Enterprise",
     [Tier.INTELLIGENCE]: "Intelligence",
   };
