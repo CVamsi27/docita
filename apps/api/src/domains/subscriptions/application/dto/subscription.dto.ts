@@ -7,6 +7,7 @@ export const CreateSubscriptionDtoSchema = z.object({
     'ESSENTIAL',
     'FRONT_DESK',
     'PROFESSIONAL',
+    'HOSPITAL',
     'ENTERPRISE',
   ]),
   billingCycle: z.enum(['MONTHLY', 'YEARLY']),
@@ -37,7 +38,13 @@ export interface SubscriptionResponseDto {
 
 export const UpgradeSubscriptionDtoSchema = z.object({
   subscriptionId: z.string().cuid(),
-  newPlan: z.enum(['ESSENTIAL', 'FRONT_DESK', 'PROFESSIONAL', 'ENTERPRISE']),
+  newPlan: z.enum([
+    'ESSENTIAL',
+    'FRONT_DESK',
+    'PROFESSIONAL',
+    'HOSPITAL',
+    'ENTERPRISE',
+  ]),
   immediate: z.boolean().default(true),
 });
 

@@ -70,6 +70,11 @@ export const DEFAULT_PRICING: Record<Tier, PlanPricing> = {
     yearly: TIER_PRICING.PROFESSIONAL.yearly,
     currency: DEFAULT_CURRENCY_SYMBOL,
   },
+  [Tier.HOSPITAL]: {
+    monthly: TIER_PRICING.HOSPITAL.monthly,
+    yearly: TIER_PRICING.HOSPITAL.yearly,
+    currency: DEFAULT_CURRENCY_SYMBOL,
+  },
   [Tier.ENTERPRISE]: {
     monthly: TIER_PRICING.ENTERPRISE.monthly,
     yearly: TIER_PRICING.ENTERPRISE.yearly,
@@ -92,6 +97,7 @@ export const DEFAULT_LIMITS: Record<Tier, PlanLimits> = {
   },
   [Tier.ESSENTIAL]: TIER_LIMITS.ESSENTIAL,
   [Tier.PROFESSIONAL]: TIER_LIMITS.PROFESSIONAL,
+  [Tier.HOSPITAL]: TIER_LIMITS.HOSPITAL,
   [Tier.ENTERPRISE]: TIER_LIMITS.ENTERPRISE,
   [Tier.INTELLIGENCE]: TIER_LIMITS.INTELLIGENCE,
 };
@@ -115,6 +121,10 @@ export const DEFAULT_DESCRIPTIONS: Record<
   [Tier.PROFESSIONAL]: {
     tagline: TIER_INFO.PROFESSIONAL.tagline,
     description: TIER_INFO.PROFESSIONAL.description,
+  },
+  [Tier.HOSPITAL]: {
+    tagline: TIER_INFO.HOSPITAL.tagline,
+    description: TIER_INFO.HOSPITAL.description,
   },
   [Tier.ENTERPRISE]: {
     tagline: TIER_INFO.ENTERPRISE.tagline,

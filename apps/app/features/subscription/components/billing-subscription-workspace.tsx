@@ -44,8 +44,10 @@ import { useSubscription } from "@/hooks/api/use-settings";
 import {
   ANNUAL_DISCOUNT_PERCENT,
   PRICING_CURRENCY_SYMBOLS,
+  TIER_INFO,
   TIER_OVERAGE_RATES_BY_CURRENCY,
   TIER_PRICING_BY_CURRENCY,
+  getTierName,
   getWhatsAppAddonPricingByCurrency,
   isFrontDeskWorkspace,
   type SupportedCurrency,
@@ -58,12 +60,15 @@ import {
 } from "@/features/subscription/lib/billing-display-messages";
 import { PLAN_ONBOARDING_KEY_HIGHLIGHTS } from "@/features/subscription/config/plan-onboarding-highlights";
 import { getDisplayBillingPeriodEndAndDaysLeft } from "@/features/subscription/lib/billing-period-display";
+import { recommendTier } from "@/features/subscription/lib/recommend-tier";
+import { Lightbulb } from "lucide-react";
 
 const PLAN_ORDER = [
   Tier.STARTER,
   Tier.FRONT_DESK,
   Tier.ESSENTIAL,
   Tier.PROFESSIONAL,
+  Tier.HOSPITAL,
   Tier.ENTERPRISE,
 ] as const;
 
@@ -287,6 +292,8 @@ export function BillingSubscriptionWorkspace() {
     info: getTierInfo(tier),
   }));
 
+  const recommendation = recommendTier(getTierName(effectiveCurrentTier), usage);
+
   const currentPlanStatusNotice = isSubscriptionExpired
     ? {
         title: "Subscription Expired",
@@ -462,6 +469,40 @@ export function BillingSubscriptionWorkspace() {
           </Alert>
         )}
 
+        {recommendation ? (
+          <Alert className="border-primary/40 bg-primary/5">
+            <Lightbulb className="h-4 w-4 text-primary" />
+            <AlertTitle>
+              We suggest {TIER_INFO[recommendation.tier].name} for your usage
+            </AlertTitle>
+            <AlertDescription className="space-y-2">
+              <p className="leading-relaxed">
+                Based on this period&apos;s usage we recommend{" "}
+                <span className="font-medium text-foreground">
+                  {TIER_INFO[recommendation.tier].name}
+                </span>
+                . Reasons:
+              </p>
+              <ul className="list-disc space-y-0.5 pl-5 leading-relaxed">
+                {recommendation.reasons.map((reason) => (
+                  <li key={reason}>{reason}</li>
+                ))}
+              </ul>
+              <div className="pt-1">
+                <Button
+                  size="sm"
+                  onClick={() =>
+                    handleSelectTier(recommendation.tier, selectedCycle)
+                  }
+                  disabled={!billingAllowed}
+                >
+                  Review {TIER_INFO[recommendation.tier].name}
+                </Button>
+              </div>
+            </AlertDescription>
+          </Alert>
+        ) : null}
+
         <div className="grid gap-4 [grid-template-columns:repeat(auto-fit,minmax(19rem,1fr))]">
           {planCards.map(({ tier, info }) => {
             const tierName = Tier[tier] as TierName;
@@ -485,7 +526,8 @@ export function BillingSubscriptionWorkspace() {
             const whatsappRate =
               tierName === "ESSENTIAL" ||
               tierName === "FRONT_DESK" ||
-              tierName === "PROFESSIONAL"
+              tierName === "PROFESSIONAL" ||
+              tierName === "HOSPITAL"
                 ? getWhatsAppAddonPricingByCurrency(
                     tierName,
                     currency as Parameters<

@@ -5,11 +5,37 @@ import { WhatsappClientService } from './whatsapp-client.service';
 import { TemplatesService } from './templates.service';
 import { Prisma } from '@workspace/db';
 import type {
+  ClinicTier,
   StaffNotificationType,
   NotificationPriority,
   Role,
 } from '@workspace/db';
 import { isFrontDeskWorkspace, parseWorkspaceProfile } from '@workspace/types';
+
+/**
+ * Minimum clinic tier required for a notification type to be delivered.
+ * Types absent from this map deliver at every tier. FRONT_DESK is treated as
+ * STARTER-equivalent for ordering — feature availability is enforced
+ * separately by the workspace profile / role map.
+ */
+const NOTIFICATION_TYPE_MIN_TIER: Partial<
+  Record<StaffNotificationType, ClinicTier>
+> = {
+  PATIENT_RESPONSE: 'ESSENTIAL',
+  INVOICE_PENDING: 'ESSENTIAL',
+  INVOICE_SENT: 'ESSENTIAL',
+  INVOICE_FAILED: 'ESSENTIAL',
+  PAYMENT_PROVIDER_STATUS_UPDATE: 'PROFESSIONAL',
+};
+
+const TIER_RANK: Record<ClinicTier, number> = {
+  STARTER: 0,
+  FRONT_DESK: 0,
+  ESSENTIAL: 1,
+  PROFESSIONAL: 2,
+  HOSPITAL: 3,
+  ENTERPRISE: 4,
+};
 
 export interface StaffNotificationPayload {
   clinicId: string;
@@ -55,6 +81,22 @@ export class StaffNotificationService {
     private readonly eventEmitter: EventEmitter2,
   ) {}
 
+  private async isTierAllowed(
+    clinicId: string,
+    type: StaffNotificationType,
+  ): Promise<boolean> {
+    const required = NOTIFICATION_TYPE_MIN_TIER[type];
+    if (!required) return true;
+
+    const clinic = await this.prisma.clinic.findUnique({
+      where: { id: clinicId },
+      select: { tier: true },
+    });
+    if (!clinic) return false;
+
+    return TIER_RANK[clinic.tier] >= TIER_RANK[required];
+  }
+
   private async isWhatsappEnabled(clinicId: string): Promise<boolean> {
     const clinic = await this.prisma.clinic.findUnique({
       where: { id: clinicId },
@@ -85,6 +127,13 @@ export class StaffNotificationService {
       sendWhatsApp = true,
       sendInApp = true,
     } = payload;
+
+    if (!(await this.isTierAllowed(clinicId, type))) {
+      this.logger.debug(
+        `Skipping notification ${type} for clinic ${clinicId}: tier below required minimum`,
+      );
+      return;
+    }
 
     const isWhatsappEnabled = await this.isWhatsappEnabled(clinicId);
 

@@ -228,6 +228,7 @@ export class OverageBillingScheduler {
       tier === ClinicTier.ESSENTIAL ||
       tier === ClinicTier.FRONT_DESK ||
       tier === ClinicTier.PROFESSIONAL ||
+      tier === ClinicTier.HOSPITAL ||
       tier === ClinicTier.ENTERPRISE
         ? tier
         : null;

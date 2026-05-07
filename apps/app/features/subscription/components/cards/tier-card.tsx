@@ -19,6 +19,7 @@ import {
   ClipboardList,
   Crown,
   HardDrive,
+  Hospital,
   Rocket,
   Sparkles,
   Stethoscope,
@@ -68,6 +69,7 @@ const TIER_ICONS: Record<string, React.ElementType> = {
   ESSENTIAL: Rocket,
   FRONT_DESK: ClipboardList,
   PROFESSIONAL: Crown,
+  HOSPITAL: Hospital,
   ENTERPRISE: Building2,
   INTELLIGENCE: Sparkles,
 };
@@ -99,6 +101,12 @@ const TIER_GRADIENTS: Record<
     icon: "tier-pro",
     badge: "tier-pro",
     accent: "bg-primary",
+  },
+  HOSPITAL: {
+    card: "from-card via-card to-info/10",
+    icon: "tier-hospital",
+    badge: "tier-hospital",
+    accent: "bg-info",
   },
   ENTERPRISE: {
     card: "from-card via-card to-warning/10",
@@ -189,6 +197,21 @@ export function TierCard({
           Current Plan
         </Badge>
       )}
+      {!isCurrentTier &&
+        billingCycle === "YEARLY" &&
+        pricing &&
+        typeof pricing.monthly === "number" &&
+        typeof pricing.yearly === "number" &&
+        pricing.monthly > 0 &&
+        pricing.monthly * 12 > pricing.yearly && (
+          <Badge
+            variant="outline"
+            className="absolute right-4 top-4 border-success/40 bg-success/10 text-success shadow-sm"
+          >
+            Save {currencySymbol ?? ""}
+            {formatAmountLocale(pricing.monthly * 12 - pricing.yearly)}/yr
+          </Badge>
+        )}
 
       <CardHeader className={cn("pb-4 text-left", isSummary && "pb-3")}>
         <div

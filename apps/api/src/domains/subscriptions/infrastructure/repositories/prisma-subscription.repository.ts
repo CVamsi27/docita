@@ -446,7 +446,9 @@ export class PrismaSubscriptionRepository implements ISubscriptionRepository {
       regime: taxSettings.regime,
       registrationId: taxSettings.registrationId,
       registrationLabel: taxSettings.registrationLabel,
-      legalName: clinic?.name,
+      // Prefer the registered legal name from clinic tax settings; fall back to
+      // the trade/facility name when the clinic has not provided one.
+      legalName: taxSettings.legalName?.trim() || clinic?.name,
       address: clinic?.address ?? undefined,
       stateCode: taxSettings.stateCode,
       stateName: taxSettings.stateName,
@@ -500,15 +502,25 @@ export class PrismaSubscriptionRepository implements ISubscriptionRepository {
       ? taxSettings
       : undefined;
 
+    const registrationId =
+      readJsonString(settingsObject, 'gstin') ??
+      readJsonString(taxSettingsObject, 'registrationId');
+    const explicitStateCode = readJsonString(taxSettingsObject, 'stateCode');
+    // GSTIN bytes [0..2) are the GST state code; auto-derive when not set
+    // explicitly so place-of-supply (CGST+SGST vs IGST) resolves correctly.
+    const derivedStateCode =
+      registrationId && /^[0-9]{2}/.test(registrationId)
+        ? registrationId.slice(0, 2)
+        : undefined;
+
     return {
-      registrationId:
-        readJsonString(settingsObject, 'gstin') ??
-        readJsonString(taxSettingsObject, 'registrationId'),
+      registrationId,
       registrationLabel: readJsonString(taxSettingsObject, 'registrationLabel'),
       countryCode: readJsonString(taxSettingsObject, 'countryCode'),
       regime: readJsonString(taxSettingsObject, 'regime'),
-      stateCode: readJsonString(taxSettingsObject, 'stateCode'),
+      stateCode: explicitStateCode ?? derivedStateCode,
       stateName: readJsonString(taxSettingsObject, 'stateName'),
+      legalName: readJsonString(taxSettingsObject, 'legalName'),
     };
   }
 }

@@ -3,6 +3,7 @@ export enum ClinicTierEnum {
   ESSENTIAL = 'ESSENTIAL',
   FRONT_DESK = 'FRONT_DESK',
   PROFESSIONAL = 'PROFESSIONAL',
+  HOSPITAL = 'HOSPITAL',
   ENTERPRISE = 'ENTERPRISE',
 }
 
@@ -11,7 +12,8 @@ const TIER_HIERARCHY: Record<ClinicTierEnum, number> = {
   [ClinicTierEnum.ESSENTIAL]: 2,
   [ClinicTierEnum.FRONT_DESK]: 2,
   [ClinicTierEnum.PROFESSIONAL]: 3,
-  [ClinicTierEnum.ENTERPRISE]: 4,
+  [ClinicTierEnum.HOSPITAL]: 4,
+  [ClinicTierEnum.ENTERPRISE]: 5,
 };
 
 // Map legacy DB enum values to the canonical tier enum
@@ -56,6 +58,10 @@ export class ClinicTier {
 
   isProfessional(): boolean {
     return this.value === ClinicTierEnum.PROFESSIONAL;
+  }
+
+  isHospital(): boolean {
+    return this.value === ClinicTierEnum.HOSPITAL;
   }
 
   isEnterprise(): boolean {

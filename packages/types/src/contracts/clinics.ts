@@ -23,10 +23,16 @@ const taxSettingsSchema = z.object({
     .string()
     .trim()
     .toUpperCase()
-    .regex(/^[A-Z]{2}$/),
+    .regex(/^[A-Z]{2}$/)
+    .optional(),
   regime: z.enum(["IN_GST", "VAT", "SALES_TAX", "NONE"]).optional(),
   registrationId: z.string().optional(),
   registrationLabel: z.string().optional(),
+  /** Registered legal name for tax invoices, separate from the trade/facility name. */
+  legalName: z.string().max(160).optional(),
+  /** GST state code (first 2 chars of GSTIN) when set explicitly. */
+  stateCode: z.string().max(8).optional(),
+  stateName: z.string().max(120).optional(),
 });
 
 const mapsLocationSchema = z

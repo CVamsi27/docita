@@ -45,6 +45,7 @@ const PLAN_TIER_LADDER: Tier[] = [
   Tier.FRONT_DESK,
   Tier.ESSENTIAL,
   Tier.PROFESSIONAL,
+  Tier.HOSPITAL,
   Tier.ENTERPRISE,
 ];
 
@@ -90,6 +91,11 @@ export const PLAN_DESCRIPTIONS: Record<
     tagline: "Built for growing clinics",
     description: "Multi-doctor clinics with advanced workflows",
   },
+  [Tier.HOSPITAL]: {
+    tagline: "Multi-branch and multi-specialty",
+    description:
+      "Multi-doctor multi-branch hospitals with pooled WhatsApp, multi-location analytics, and dedicated CSM",
+  },
   [Tier.ENTERPRISE]: {
     tagline: "Hospital-Grade System",
     description: "Hospital-grade solution with full customization",
@@ -112,6 +118,7 @@ export function getFeatureComparisonData(): FeatureComparisonRow[] {
     Tier.FRONT_DESK,
     Tier.ESSENTIAL,
     Tier.PROFESSIONAL,
+    Tier.HOSPITAL,
     Tier.ENTERPRISE,
   ];
   const formatLimitValue = (value?: number): string => {

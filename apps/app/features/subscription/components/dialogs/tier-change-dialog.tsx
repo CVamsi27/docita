@@ -22,6 +22,7 @@ import {
   CheckCircle,
   ClipboardList,
   Crown,
+  Hospital,
   Rocket,
   Sparkles,
   Zap,
@@ -58,6 +59,7 @@ const TIER_ICONS: Record<TierName, React.ElementType> = {
   ESSENTIAL: Rocket,
   FRONT_DESK: ClipboardList,
   PROFESSIONAL: Crown,
+  HOSPITAL: Hospital,
   ENTERPRISE: Building2,
   INTELLIGENCE: Sparkles,
 };
@@ -67,8 +69,9 @@ const PLAN_TIER_RANK: Record<TierName, number> = {
   FRONT_DESK: 18,
   ESSENTIAL: 20,
   PROFESSIONAL: 30,
+  HOSPITAL: 35,
   ENTERPRISE: 40,
-  INTELLIGENCE: 35,
+  INTELLIGENCE: 36,
 };
 
 export function TierChangeDialog({

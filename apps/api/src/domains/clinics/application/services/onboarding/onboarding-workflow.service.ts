@@ -147,6 +147,13 @@ export class OnboardingWorkflowService {
           workspaceProfile,
           mapsLocation: clinicData.mapsLocation ?? undefined,
           mapsLink: clinicData.mapsLink?.trim() || undefined,
+          ...(clinicData.legalName && clinicData.legalName.trim().length > 0
+            ? {
+                taxSettings: {
+                  legalName: clinicData.legalName.trim(),
+                },
+              }
+            : {}),
         },
       },
     });
