@@ -1,6 +1,7 @@
 import { fireEvent, render, screen, waitFor } from "@testing-library/react";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import type { AppointmentRequestResponse } from "@workspace/types";
+import { ApiError } from "@/lib/errors";
 import { AppointmentRequestsPanel } from "./AppointmentRequestsPanel";
 
 const appointmentMocks = vi.hoisted(() => ({
@@ -33,14 +34,29 @@ vi.mock("@/hooks/api/use-settings", () => ({
   }),
 }));
 
-vi.mock("@/lib/user-facing-errors", () => ({
-  showUserFacingErrorToast: appointmentMocks.showError,
+vi.mock("@/lib/user-facing-errors", async (importOriginal) => {
+  const mod =
+    await importOriginal<typeof import("@/lib/user-facing-errors")>();
+  return {
+    ...mod,
+    showUserFacingErrorToast: appointmentMocks.showError,
+  };
+});
+
+vi.mock("@/lib/clinic-context", () => ({
+  useClinic: () => ({
+    clinicId: "clinic_1",
+    clinic: { timezone: "Asia/Kolkata" },
+    setClinic: vi.fn(),
+    userClinics: [],
+    setUserClinics: vi.fn(),
+    refreshClinic: vi.fn(),
+  }),
 }));
 
 vi.mock("@/lib/doctor-availability-first-slot", () => ({
-  fetchFirstAvailableDatetimeLocal: vi
-    .fn()
-    .mockResolvedValue(null),
+  fetchFirstAvailableDatetimeLocal: vi.fn().mockResolvedValue(null),
+  fetchNextAvailableSlotWindow: vi.fn().mockResolvedValue(null),
 }));
 
 const appointmentRequest: AppointmentRequestResponse = {
@@ -89,7 +105,7 @@ describe("AppointmentRequestsPanel", () => {
 
     expect(screen.getByText("Asha Rao")).toBeInTheDocument();
     expect(screen.getByText("Fever and cough")).toBeInTheDocument();
-    expect(screen.getByText("1 pending")).toBeInTheDocument();
+    expect(screen.getByText(/1 pending/)).toBeInTheDocument();
 
     fireEvent.click(screen.getByRole("button", { name: /Approve/i }));
 
@@ -113,11 +129,11 @@ describe("AppointmentRequestsPanel", () => {
     expect(appointmentMocks.showError).toHaveBeenCalledWith(
       null,
       "Enter a response before rejecting this request.",
-      "form",
+      "generic",
     );
     expect(appointmentMocks.rejectMutateAsync).not.toHaveBeenCalled();
 
-    fireEvent.change(screen.getByLabelText("Reject response"), {
+    fireEvent.change(screen.getByLabelText("Message to patient"), {
       target: { value: "  Please call the front desk for a safer slot.  " },
     });
     fireEvent.click(screen.getByRole("button", { name: /Reject/i }));
@@ -128,6 +144,25 @@ describe("AppointmentRequestsPanel", () => {
         responseMessage: "Please call the front desk for a safer slot.",
       });
     });
+  });
+
+  it("highlights schedule fields when approve fails with a conflicting slot", async () => {
+    appointmentMocks.approveMutateAsync.mockRejectedValueOnce(
+      new ApiError("ignored", 400, "VALIDATION_ERROR", {
+        detail: "Doctor has conflicting appointment",
+      }),
+    );
+
+    render(<AppointmentRequestsPanel />);
+
+    fireEvent.click(screen.getByRole("button", { name: /Approve/i }));
+
+    await waitFor(() => {
+      expect(
+        screen.getByText(/overlaps another visit/i),
+      ).toBeInTheDocument();
+    });
+    expect(appointmentMocks.showError).not.toHaveBeenCalled();
   });
 
   it("shows empty, loading, and error states", () => {

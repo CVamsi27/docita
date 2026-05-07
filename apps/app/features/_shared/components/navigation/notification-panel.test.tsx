@@ -4,6 +4,12 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { TooltipProvider } from "@workspace/ui/components/tooltip";
 import { NotificationPanel } from "./notification-panel";
 
+const mockPush = vi.fn();
+
+vi.mock("next/navigation", () => ({
+  useRouter: () => ({ push: mockPush }),
+}));
+
 vi.mock("@/hooks/api/use-notifications", () => {
   const now = new Date("2026-05-06T10:00:00.000Z");
   return {
@@ -57,6 +63,18 @@ function renderWithQuery(ui: React.ReactNode) {
 describe("NotificationPanel", () => {
   beforeEach(() => {
     vi.clearAllMocks();
+    mockPush.mockReset();
+  });
+
+  it("navigates to appointment requests when an appointment-request notification is activated", async () => {
+    renderWithQuery(<NotificationPanel open onOpenChange={() => {}} enabled />);
+
+    const row = await screen.findByRole("button", {
+      name: /new appointment request\. open appointment requests queue\./i,
+    });
+    fireEvent.click(row);
+
+    expect(mockPush).toHaveBeenCalledWith("/appointments?requestsPanel=1");
   });
 
   it("filters to Appointment requests tab", async () => {

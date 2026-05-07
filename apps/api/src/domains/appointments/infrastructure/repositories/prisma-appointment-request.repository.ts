@@ -59,7 +59,7 @@ export class PrismaAppointmentRequestRepository implements IAppointmentRequestRe
       readClient.appointmentRequest.findMany({
         where,
         include: APPOINTMENT_REQUEST_INCLUDE,
-        orderBy: [{ status: 'asc' }, { createdAt: 'desc' }],
+        orderBy: { createdAt: 'desc' },
         take,
         skip,
       }),

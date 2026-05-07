@@ -1,7 +1,7 @@
 "use client";
 
 import dynamicImport from "next/dynamic";
-import { Suspense, useCallback, useMemo } from "react";
+import { Suspense, useCallback, useEffect, useMemo, useRef } from "react";
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
 import { CalendarDays } from "lucide-react";
@@ -17,6 +17,7 @@ import { Feature } from "@/lib/stores/permission-store";
 
 import { useAppointmentsLogic } from "@/features/appointments/hooks/use-appointments-logic";
 import {
+  AppointmentRowActionDialogs,
   AppointmentsCalendarUI,
   AppointmentsListUI,
   AppointmentsPageHeaderUI,
@@ -24,21 +25,7 @@ import {
 import type { AppointmentListItem } from "@/hooks/api/use-appointments";
 import { SUBSCRIPTION_SETTINGS_PATH } from "@/lib/subscription-settings-path";
 
-const CancelAppointmentDialog = dynamicImport(
-  () =>
-    import(
-      "@/features/appointments/components/dialogs/CancelAppointmentDialog"
-    ).then((m) => ({ default: m.CancelAppointmentDialog })),
-  { ssr: false },
-);
-
-const ConfirmationDialog = dynamicImport(
-  () =>
-    import("@workspace/ui/components/confirmation-dialog").then((m) => ({
-      default: m.ConfirmationDialog,
-    })),
-  { ssr: false },
-);
+const REQUESTS_PANEL_FOCUS_PARAM = "requestsPanel";
 
 const AppointmentRequestsPanel = dynamicImport(
   () =>
@@ -57,6 +44,25 @@ function AppointmentsContent() {
   const { state, handlers } = useAppointmentsLogic();
   const router = useRouter();
   const searchParams = useSearchParams();
+  const appointmentRequestsRef = useRef<HTMLDivElement>(null);
+  const focusRequestsPanel = searchParams.get(REQUESTS_PANEL_FOCUS_PARAM);
+
+  useEffect(() => {
+    if (focusRequestsPanel !== "1") return;
+    const timer = window.setTimeout(() => {
+      appointmentRequestsRef.current?.scrollIntoView({
+        behavior: "smooth",
+        block: "start",
+      });
+      const next = new URLSearchParams(searchParams.toString());
+      next.delete(REQUESTS_PANEL_FOCUS_PARAM);
+      const qs = next.toString();
+      router.replace(qs.length > 0 ? `/appointments?${qs}` : "/appointments", {
+        scroll: false,
+      });
+    }, 150);
+    return () => window.clearTimeout(timer);
+  }, [focusRequestsPanel, router, searchParams]);
 
   const handleScheduleFollowUp = useCallback(
     (appointment: AppointmentListItem) => {
@@ -77,10 +83,7 @@ function AppointmentsContent() {
     onCalendarMonthChange,
     appointmentCountsByDay,
     checkingIn,
-    cancelDialogOpen,
-    setCancelDialogOpen,
-    noShowDialogOpen,
-    setNoShowDialogOpen,
+    rowActionDialogProps,
     isAddDialogOpen,
     handleDialogChange,
     selectedDoctorId,
@@ -99,17 +102,14 @@ function AppointmentsContent() {
     preselectedPatientId,
     startingConsultationId,
     user,
-    isPendingMutation,
   } = state;
 
   const {
     handleCheckIn,
     handleAppointmentAdded,
     handleStartConsultation,
-    handleCancelAppointment,
-    handleNoShowAppointment,
-    setCancellingAptId,
-    setNoShowAptId,
+    onCancelClick,
+    onNoShowClick,
     refetch,
   } = handlers;
 
@@ -224,39 +224,23 @@ function AppointmentsContent() {
             startingConsultationId={startingConsultationId}
             onCheckIn={handleCheckIn}
             onStartConsultation={handleStartConsultation}
-            onCancelClick={(id) => {
-              setCancellingAptId(id);
-              setCancelDialogOpen(true);
-            }}
-            onNoShowClick={(id) => {
-              setNoShowAptId(id);
-              setNoShowDialogOpen(true);
-            }}
+            onCancelClick={onCancelClick}
+            onNoShowClick={onNoShowClick}
             onScheduleFollowUp={handleScheduleFollowUp}
             currentUserId={user?.id}
           />
         </div>
 
-        <AppointmentRequestsPanel />
+        <div
+          ref={appointmentRequestsRef}
+          id="appointment-requests-panel"
+          className="scroll-mt-6"
+        >
+          <AppointmentRequestsPanel />
+        </div>
       </AppPageScaffold>
 
-      <CancelAppointmentDialog
-        open={cancelDialogOpen}
-        onOpenChange={setCancelDialogOpen}
-        isLoading={isPendingMutation}
-        onConfirm={handleCancelAppointment}
-      />
-      <ConfirmationDialog
-        open={noShowDialogOpen}
-        onOpenChange={setNoShowDialogOpen}
-        title="Mark as No Show"
-        description="Are you sure you want to mark this appointment as no-show?"
-        confirmText="Mark as No Show"
-        cancelText="Cancel"
-        type="danger"
-        isLoading={isPendingMutation}
-        onConfirm={handleNoShowAppointment}
-      />
+      <AppointmentRowActionDialogs {...rowActionDialogProps} />
     </FeatureGate>
   );
 }

@@ -23,8 +23,10 @@ import {
 
 @Controller('staff-notifications')
 @UseGuards(JwtAuthGuard, RolesGuard, TierGuard)
-@RequireFeature(requireFeatureForTarget(APP_ACCESS_TARGETS.API_WHATSAPP))
-@Roles(...getDbRolesForTarget(APP_ACCESS_TARGETS.API_WHATSAPP))
+@RequireFeature(
+  requireFeatureForTarget(APP_ACCESS_TARGETS.API_STAFF_NOTIFICATIONS),
+)
+@Roles(...getDbRolesForTarget(APP_ACCESS_TARGETS.API_STAFF_NOTIFICATIONS))
 export class StaffNotificationController {
   constructor(private readonly notificationService: StaffNotificationService) {}
 

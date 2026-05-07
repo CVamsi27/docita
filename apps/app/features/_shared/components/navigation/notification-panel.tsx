@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
+import { useRouter } from "next/navigation";
 import { useQueryClient } from "@tanstack/react-query";
 import {
   Sheet,
@@ -30,12 +31,36 @@ import {
 } from "@/hooks/api/use-notifications";
 import { useSocket } from "@/lib/socket-context";
 
+const APPOINTMENT_REQUEST_NOTIFICATION_TYPES = new Set([
+  "APPOINTMENT_REQUEST_CREATED",
+  "APPOINTMENT_REQUEST_APPROVED",
+  "APPOINTMENT_REQUEST_REJECTED",
+]);
+
+function staffNotificationNavigateHref(
+  notification: StaffNotification,
+): string | null {
+  const type = String(notification.type);
+  if (APPOINTMENT_REQUEST_NOTIFICATION_TYPES.has(type)) {
+    return "/appointments?requestsPanel=1";
+  }
+  return null;
+}
+
 interface NotificationItemProps {
   notification: StaffNotification;
   onMarkRead: (id: string) => void;
+  onCloseSheet: () => void;
 }
 
-function NotificationItem({ notification, onMarkRead }: NotificationItemProps) {
+function NotificationItem({
+  notification,
+  onMarkRead,
+  onCloseSheet,
+}: NotificationItemProps) {
+  const router = useRouter();
+  const navigateHref = staffNotificationNavigateHref(notification);
+
   const priorityMap = {
     URGENT: "urgent",
     HIGH: "high",
@@ -47,17 +72,53 @@ function NotificationItem({ notification, onMarkRead }: NotificationItemProps) {
       ? priorityMap[notification.priority as keyof typeof priorityMap]
       : "medium";
 
+  const handleOpenDestination = () => {
+    if (!navigateHref) return;
+    router.push(navigateHref);
+    onCloseSheet();
+    if (!notification.isRead) {
+      void onMarkRead(notification.id);
+    }
+  };
+
   return (
     <div
       className={cn(
-        "border-b p-4 transition-colors hover:bg-muted/50",
+        "border-b transition-colors",
         !notification.isRead && "bg-primary/5",
+        navigateHref && "hover:bg-muted/40",
       )}
     >
-      <div className="flex items-start justify-between gap-3">
-        <div className="flex-1 space-y-1">
-          <div className="flex items-center gap-2">
-            <h4 className="text-sm font-medium">{notification.title}</h4>
+      <div className="flex items-start justify-between gap-2 p-3">
+        <div
+          className={cn(
+            "min-w-0 flex-1 space-y-1 rounded-sm outline-none",
+            navigateHref &&
+              "cursor-pointer focus-visible:ring-2 focus-visible:ring-ring",
+          )}
+          role={navigateHref ? "button" : undefined}
+          tabIndex={navigateHref ? 0 : undefined}
+          aria-label={
+            navigateHref
+              ? `${notification.title}. Open appointment requests queue.`
+              : undefined
+          }
+          onClick={navigateHref ? handleOpenDestination : undefined}
+          onKeyDown={
+            navigateHref
+              ? (event) => {
+                  if (event.key === "Enter" || event.key === " ") {
+                    event.preventDefault();
+                    handleOpenDestination();
+                  }
+                }
+              : undefined
+          }
+        >
+          <div className="flex flex-wrap items-center gap-2">
+            <h4 className="text-[length:var(--fs-sm)] font-medium">
+              {notification.title}
+            </h4>
             {notification.priority !== "NORMAL" && (
               <PriorityBadge
                 priority={mappedPriority}
@@ -65,22 +126,31 @@ function NotificationItem({ notification, onMarkRead }: NotificationItemProps) {
               />
             )}
             {!notification.isRead && (
-              <div className="h-2 w-2 rounded-full bg-primary" />
+              <div className="h-2 w-2 rounded-full bg-primary" aria-hidden />
             )}
           </div>
-          <p className="text-sm text-muted-foreground">
+          <p className="text-[length:var(--fs-xs)] text-muted-foreground">
             {notification.message}
           </p>
-          <p className="text-xs text-muted-foreground">
+          <p className="text-[length:var(--fs-xs)] text-muted-foreground">
             {formatTime(notification.createdAt)}
           </p>
+          {navigateHref ? (
+            <p className="text-[length:var(--fs-2xs)] text-muted-foreground">
+              Click to open appointment requests
+            </p>
+          ) : null}
         </div>
         {!notification.isRead && (
           <SymbolTooltip label="Mark as read">
             <Button
               variant="ghost"
               size="icon-sm"
-              onClick={() => onMarkRead(notification.id)}
+              type="button"
+              onClick={(event) => {
+                event.stopPropagation();
+                void onMarkRead(notification.id);
+              }}
               aria-label="Mark as read"
             >
               <CheckIcon className="h-4 w-4" />
@@ -393,6 +463,7 @@ export function NotificationPanel({
                                       key={notification.id}
                                       notification={notification}
                                       onMarkRead={handleMarkRead}
+                                      onCloseSheet={() => handleOpenChange(false)}
                                     />
                                   ))}
                                 </div>
@@ -410,6 +481,7 @@ export function NotificationPanel({
                                       key={notification.id}
                                       notification={notification}
                                       onMarkRead={handleMarkRead}
+                                      onCloseSheet={() => handleOpenChange(false)}
                                     />
                                   ))}
                                 </div>
@@ -427,6 +499,7 @@ export function NotificationPanel({
                                       key={notification.id}
                                       notification={notification}
                                       onMarkRead={handleMarkRead}
+                                      onCloseSheet={() => handleOpenChange(false)}
                                     />
                                   ))}
                                 </div>

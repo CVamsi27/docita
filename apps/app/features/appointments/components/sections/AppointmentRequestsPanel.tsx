@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { Inbox, Check, X } from "lucide-react";
 import { Badge } from "@workspace/ui/components/badge";
 import { Button } from "@workspace/ui/components/button";
@@ -12,8 +12,21 @@ import {
 } from "@workspace/ui/components/card";
 import { DataState } from "@workspace/ui/components/data-state";
 import { Input } from "@workspace/ui/components/input";
+import { Label } from "@workspace/ui/components/label";
+import { MicroLabel } from "@workspace/ui/components/micro-label";
+import { Separator } from "@workspace/ui/components/separator";
 import { Textarea } from "@workspace/ui/components/textarea";
 import type { AppointmentRequestResponse } from "@workspace/types";
+import {
+  addMinutesToClinicWallDatetimeLocal,
+  clinicDateAndTimeToWallDatetimeLocal,
+  clinicWallDatetimeLocalToUtcIso,
+  DEFAULT_TIMEZONE,
+  formatClinicFriendlyDateTime,
+  formatClinicPickerDayIsoFromSelection,
+  formatDistanceToNow,
+  utcInstantToClinicWallDatetimeLocal,
+} from "@workspace/utils";
 import {
   useAppointmentRequests,
   useApproveAppointmentRequest,
@@ -21,34 +34,49 @@ import {
 } from "@/hooks/api/use-appointments";
 import { useDoctors } from "@/hooks/api/use-settings";
 import { showUserFacingErrorToast } from "@/lib/user-facing-errors";
-import { fetchFirstAvailableDatetimeLocal } from "@/lib/doctor-availability-first-slot";
-import { formatDate } from "@/lib/formatters";
+import { fetchNextAvailableSlotWindow } from "@/lib/doctor-availability-first-slot";
+import {
+  formatClockTime,
+  formatLocaleDateShortMonthYear,
+} from "@/lib/formatters";
+import {
+  extractApproveAppointmentRequestFieldErrors,
+  type ApproveScheduleFieldKey,
+} from "@/lib/utils/appointment-request-approve-errors";
+import { extractProblemDetail } from "@/lib/utils/api-validation-errors";
+import { cn } from "@workspace/ui/lib/utils";
+import { getSafeUserMessage } from "@/lib/user-facing-errors";
+import { useClinic } from "@/lib/clinic-context";
 
-function toDateTimeLocal(value: string | Date, preferredTime?: string | null) {
-  const date = new Date(value);
-  if (preferredTime && /^\d{2}:\d{2}$/.test(preferredTime)) {
-    const [hours, minutes] = preferredTime.split(":").map(Number);
-    date.setHours(hours ?? 9, minutes ?? 0, 0, 0);
-  }
-  const offsetMs = date.getTimezoneOffset() * 60 * 1000;
-  return new Date(date.getTime() - offsetMs).toISOString().slice(0, 16);
-}
-
-function addMinutesLocal(value: string, minutes: number) {
-  const date = new Date(value);
-  date.setMinutes(date.getMinutes() + minutes);
-  const offsetMs = date.getTimezoneOffset() * 60 * 1000;
-  return new Date(date.getTime() - offsetMs).toISOString().slice(0, 16);
-}
-
-function requestedSlotToDatetimeLocal(
+function utcRequestedSlotToWallLocal(
   requestedSlotStart: string | Date | null | undefined,
+  timezone: string,
 ): string | null {
   if (!requestedSlotStart) return null;
-  const d = new Date(requestedSlotStart);
+  const d =
+    typeof requestedSlotStart === "string"
+      ? new Date(requestedSlotStart)
+      : requestedSlotStart;
   if (Number.isNaN(d.getTime())) return null;
-  const offsetMs = d.getTimezoneOffset() * 60 * 1000;
-  return new Date(d.getTime() - offsetMs).toISOString().slice(0, 16);
+  const wall = utcInstantToClinicWallDatetimeLocal(d, timezone);
+  return wall.length > 0 ? wall : null;
+}
+
+function preferredDateTimeWallLocal(
+  preferredDate: string | Date,
+  preferredTime: string | null | undefined,
+  timezone: string,
+): string {
+  const dateStr =
+    typeof preferredDate === "string" &&
+    /^\d{4}-\d{2}-\d{2}$/.test(preferredDate.trim())
+      ? preferredDate.trim()
+      : formatClinicPickerDayIsoFromSelection(new Date(preferredDate), timezone);
+  const hhmm =
+    preferredTime && /^\d{2}:\d{2}$/.test(preferredTime.trim())
+      ? preferredTime.trim()
+      : "09:00";
+  return clinicDateAndTimeToWallDatetimeLocal(dateStr, hhmm, timezone);
 }
 
 function patientName(request: AppointmentRequestResponse) {
@@ -57,10 +85,447 @@ function patientName(request: AppointmentRequestResponse) {
   return `${firstName} ${lastName}`.trim() || "Patient";
 }
 
+function patientPhone(request: AppointmentRequestResponse): string | null {
+  const raw = request.patient?.phoneNumber;
+  return typeof raw === "string" && raw.trim().length > 0 ? raw.trim() : null;
+}
+
+function schedulingSummaryLines(request: AppointmentRequestResponse): {
+  primary: string;
+} {
+  const slotStart = request.requestedSlotStart
+    ? new Date(request.requestedSlotStart)
+    : null;
+  const slotEnd = request.requestedSlotEnd
+    ? new Date(request.requestedSlotEnd)
+    : null;
+  const hasSlot =
+    slotStart &&
+    slotEnd &&
+    !Number.isNaN(slotStart.getTime()) &&
+    !Number.isNaN(slotEnd.getTime());
+
+  if (hasSlot) {
+    const dayLabel = formatLocaleDateShortMonthYear(slotStart);
+    const range = `${formatClockTime(slotStart)} – ${formatClockTime(slotEnd)}`;
+    return {
+      primary: `Requested slot · ${dayLabel} · ${range}`,
+    };
+  }
+
+  const pref = new Date(request.preferredDate);
+  const prefOk = !Number.isNaN(pref.getTime());
+  let primary = prefOk
+    ? `Preferred date · ${formatLocaleDateShortMonthYear(pref)}`
+    : "Preferred date not set";
+  if (request.preferredTime && /^\d{2}:\d{2}$/.test(request.preferredTime)) {
+    primary += ` at ${request.preferredTime}`;
+  }
+  return { primary };
+}
+
+type SchedulableDoctor = { id: string; name: string | null; role: string };
+
+interface AppointmentRequestRowProps {
+  request: AppointmentRequestResponse;
+  doctorOptions: SchedulableDoctor[];
+  doctorByRequest: Record<string, string>;
+  setDoctorByRequest: React.Dispatch<
+    React.SetStateAction<Record<string, string>>
+  >;
+  startByRequest: Record<string, string>;
+  setStartByRequest: React.Dispatch<
+    React.SetStateAction<Record<string, string>>
+  >;
+  endByRequest: Record<string, string>;
+  setEndByRequest: React.Dispatch<
+    React.SetStateAction<Record<string, string>>
+  >;
+  responseByRequest: Record<string, string>;
+  setResponseByRequest: React.Dispatch<
+    React.SetStateAction<Record<string, string>>
+  >;
+  onApprove: (request: AppointmentRequestResponse) => void | Promise<void>;
+  onReject: (request: AppointmentRequestResponse) => void | Promise<void>;
+  isMutating: boolean;
+  approveFieldErrors?: Partial<Record<ApproveScheduleFieldKey, string>>;
+  onClearApproveFieldErrors: () => void;
+  clinicTimezone: string;
+  slotSuggestionGeneration: number;
+}
+
+function AppointmentRequestRow({
+  request,
+  doctorOptions,
+  doctorByRequest,
+  setDoctorByRequest,
+  startByRequest,
+  setStartByRequest,
+  endByRequest,
+  setEndByRequest,
+  responseByRequest,
+  setResponseByRequest,
+  onApprove,
+  onReject,
+  isMutating,
+  approveFieldErrors,
+  onClearApproveFieldErrors,
+  clinicTimezone,
+  slotSuggestionGeneration,
+}: AppointmentRequestRowProps) {
+  const effectiveDoctorId =
+    doctorByRequest[request.id] ??
+    request.preferredDoctorId ??
+    doctorOptions[0]?.id ??
+    "";
+
+  const hasStructuredSlot = Boolean(
+    request.requestedSlotStart &&
+      request.requestedSlotEnd &&
+      utcRequestedSlotToWallLocal(
+        request.requestedSlotStart,
+        clinicTimezone,
+      ) &&
+      utcRequestedSlotToWallLocal(request.requestedSlotEnd, clinicTimezone),
+  );
+
+  useEffect(() => {
+    if (!effectiveDoctorId || hasStructuredSlot) {
+      return;
+    }
+
+    let cancelled = false;
+
+    void (async () => {
+      const win = await fetchNextAvailableSlotWindow(
+        request.preferredDate,
+        effectiveDoctorId,
+        clinicTimezone,
+      );
+      if (cancelled || !win) {
+        return;
+      }
+      setStartByRequest((prev) => ({
+        ...prev,
+        [request.id]: win.startLocal,
+      }));
+      setEndByRequest((prev) => ({
+        ...prev,
+        [request.id]: win.endLocal,
+      }));
+    })();
+
+    return () => {
+      cancelled = true;
+    };
+  }, [
+    request.id,
+    request.preferredDate,
+    effectiveDoctorId,
+    hasStructuredSlot,
+    request.requestedSlotStart,
+    request.requestedSlotEnd,
+    setStartByRequest,
+    setEndByRequest,
+    clinicTimezone,
+    slotSuggestionGeneration,
+  ]);
+
+  const structuredStart = utcRequestedSlotToWallLocal(
+    request.requestedSlotStart,
+    clinicTimezone,
+  );
+  const structuredEnd = utcRequestedSlotToWallLocal(
+    request.requestedSlotEnd,
+    clinicTimezone,
+  );
+  const fallbackStart = preferredDateTimeWallLocal(
+    request.preferredDate,
+    request.preferredTime,
+    clinicTimezone,
+  );
+
+  const startValue =
+    startByRequest[request.id] ?? structuredStart ?? fallbackStart;
+  const endValue =
+    endByRequest[request.id] ??
+    structuredEnd ??
+    addMinutesToClinicWallDatetimeLocal(startValue, 30, clinicTimezone) ??
+    startValue;
+
+  const summary = schedulingSummaryLines(request);
+  const phone = patientPhone(request);
+  const preferredDoctorLabel =
+    request.preferredDoctor?.name?.trim() || null;
+  const arrivalClinic = formatClinicFriendlyDateTime(
+    request.createdAt,
+    clinicTimezone,
+  );
+  const arrivalRelative = formatDistanceToNow(request.createdAt);
+
+  return (
+    <div className="rounded-md border border-border/70 bg-card/40 p-3 shadow-sm">
+      <div className="flex flex-wrap items-start justify-between gap-2 border-b border-border/50 pb-2">
+        <div className="min-w-0 flex-1 space-y-1">
+          <div className="flex flex-wrap items-baseline gap-x-2 gap-y-0.5">
+            <p className="text-[length:var(--fs-sm)] font-medium leading-snug text-foreground">
+              {patientName(request)}
+            </p>
+            {phone ? (
+              <span className="text-[length:var(--fs-xs)] text-muted-foreground">
+                {phone}
+              </span>
+            ) : null}
+          </div>
+          <p className="text-[length:var(--fs-xs)] text-muted-foreground">
+            <span className="font-medium text-foreground/85">Received</span>
+            {arrivalClinic ? (
+              <>
+                {" "}
+                <span className="tabular-nums">{arrivalClinic}</span>
+                {arrivalRelative ? (
+                  <span className="text-muted-foreground">
+                    {" "}
+                    ({arrivalRelative})
+                  </span>
+                ) : null}
+              </>
+            ) : null}
+          </p>
+          <p className="line-clamp-2 text-[length:var(--fs-xs)] leading-snug text-muted-foreground">
+            {request.reason}
+          </p>
+          {request.notes ? (
+            <p className="line-clamp-1 text-[length:var(--fs-xs)] text-muted-foreground">
+              <span className="font-medium text-foreground/80">Notes</span>
+              {": "}
+              {request.notes}
+            </p>
+          ) : null}
+          <p className="text-[length:var(--fs-xs)] leading-snug text-muted-foreground">
+            {summary.primary}
+            {preferredDoctorLabel ? (
+              <span className="block sm:inline sm:before:content-['·_'] sm:before:font-normal">
+                Preferred doctor · {preferredDoctorLabel}
+              </span>
+            ) : null}
+          </p>
+        </div>
+        <Badge variant="outline" className="h-5 shrink-0 px-1.5 text-[length:var(--fs-2xs)]">
+          {request.status}
+        </Badge>
+      </div>
+
+      <div className="space-y-2 pt-2">
+        <MicroLabel as="p" className="text-[length:var(--fs-2xs)]">
+          Approve booking
+        </MicroLabel>
+        <p className="text-[length:var(--fs-xs)] leading-snug text-muted-foreground">
+          Suggested start/end refresh when another request is approved or slot
+          availability changes.
+        </p>
+        <div className="flex flex-col gap-2 lg:flex-row lg:flex-wrap lg:items-end">
+          <div className="min-w-[11rem] flex-1 space-y-1">
+            <Label
+              htmlFor={`apr-doctor-${request.id}`}
+              className="text-[length:var(--fs-xs)] font-normal text-muted-foreground"
+            >
+              Doctor
+            </Label>
+            <select
+              id={`apr-doctor-${request.id}`}
+              className={cn(
+                "flex h-8 w-full rounded-md border bg-background px-2 text-[length:var(--fs-xs)] shadow-sm",
+                approveFieldErrors?.doctorId
+                  ? "border-destructive aria-invalid:border-destructive"
+                  : "border-input",
+              )}
+              aria-invalid={approveFieldErrors?.doctorId ? true : undefined}
+              aria-describedby={
+                approveFieldErrors?.doctorId
+                  ? `apr-doctor-err-${request.id}`
+                  : undefined
+              }
+              value={
+                doctorByRequest[request.id] ??
+                request.preferredDoctorId ??
+                doctorOptions[0]?.id ??
+                ""
+              }
+              onChange={(event) => {
+                onClearApproveFieldErrors();
+                const value = event.target.value;
+                setDoctorByRequest((prev) => ({
+                  ...prev,
+                  [request.id]: value,
+                }));
+                setStartByRequest((prev) => {
+                  const next = { ...prev };
+                  delete next[request.id];
+                  return next;
+                });
+                setEndByRequest((prev) => {
+                  const next = { ...prev };
+                  delete next[request.id];
+                  return next;
+                });
+              }}
+            >
+              {doctorOptions.map((doctor) => (
+                <option key={doctor.id} value={doctor.id}>
+                  {doctor.name}
+                </option>
+              ))}
+            </select>
+            {approveFieldErrors?.doctorId ? (
+              <p
+                id={`apr-doctor-err-${request.id}`}
+                className="text-[length:var(--fs-xs)] text-destructive"
+              >
+                {approveFieldErrors.doctorId}
+              </p>
+            ) : null}
+          </div>
+          <div className="min-w-[10.5rem] flex-1 space-y-1">
+            <Label
+              htmlFor={`apr-start-${request.id}`}
+              className="text-[length:var(--fs-xs)] font-normal text-muted-foreground"
+            >
+              Start
+            </Label>
+            <Input
+              id={`apr-start-${request.id}`}
+              type="datetime-local"
+              value={startValue}
+              onChange={(event) => {
+                onClearApproveFieldErrors();
+                setStartByRequest((prev) => ({
+                  ...prev,
+                  [request.id]: event.target.value,
+                }));
+              }}
+              aria-invalid={approveFieldErrors?.startTime ? true : undefined}
+              aria-describedby={
+                approveFieldErrors?.startTime
+                  ? `apr-start-err-${request.id}`
+                  : undefined
+              }
+              className={cn(
+                "h-8 px-2 text-[length:var(--fs-xs)]",
+                approveFieldErrors?.startTime &&
+                  "border-destructive aria-invalid:border-destructive",
+              )}
+            />
+            {approveFieldErrors?.startTime ? (
+              <p
+                id={`apr-start-err-${request.id}`}
+                className="text-[length:var(--fs-xs)] text-destructive"
+              >
+                {approveFieldErrors.startTime}
+              </p>
+            ) : null}
+          </div>
+          <div className="min-w-[10.5rem] flex-1 space-y-1">
+            <Label
+              htmlFor={`apr-end-${request.id}`}
+              className="text-[length:var(--fs-xs)] font-normal text-muted-foreground"
+            >
+              End
+            </Label>
+            <Input
+              id={`apr-end-${request.id}`}
+              type="datetime-local"
+              value={endValue}
+              onChange={(event) => {
+                onClearApproveFieldErrors();
+                setEndByRequest((prev) => ({
+                  ...prev,
+                  [request.id]: event.target.value,
+                }));
+              }}
+              aria-invalid={approveFieldErrors?.endTime ? true : undefined}
+              aria-describedby={
+                approveFieldErrors?.endTime
+                  ? `apr-end-err-${request.id}`
+                  : undefined
+              }
+              className={cn(
+                "h-8 px-2 text-[length:var(--fs-xs)]",
+                approveFieldErrors?.endTime &&
+                  "border-destructive aria-invalid:border-destructive",
+              )}
+            />
+            {approveFieldErrors?.endTime ? (
+              <p
+                id={`apr-end-err-${request.id}`}
+                className="text-[length:var(--fs-xs)] text-destructive"
+              >
+                {approveFieldErrors.endTime}
+              </p>
+            ) : null}
+          </div>
+          <div className="flex w-full shrink-0 lg:w-auto lg:max-w-[9rem]">
+            <Button
+              size="sm"
+              className="h-8 w-full gap-1.5"
+              disabled={isMutating}
+              onClick={() => void onApprove(request)}
+            >
+              <Check className="h-3.5 w-3.5 shrink-0" aria-hidden />
+              Approve
+            </Button>
+          </div>
+        </div>
+      </div>
+
+      <Separator className="my-2 bg-border/60" />
+
+      <div className="flex flex-col gap-2 sm:flex-row sm:items-end">
+        <div className="min-w-0 flex-1 space-y-1">
+          <MicroLabel as="p" className="text-[length:var(--fs-2xs)]">
+            Reject
+          </MicroLabel>
+          <Label
+            htmlFor={`apr-reject-${request.id}`}
+            className="text-[length:var(--fs-xs)] font-normal text-muted-foreground"
+          >
+            Message to patient
+          </Label>
+          <Textarea
+            id={`apr-reject-${request.id}`}
+            value={responseByRequest[request.id] ?? ""}
+            onChange={(event) =>
+              setResponseByRequest((prev) => ({
+                ...prev,
+                [request.id]: event.target.value,
+              }))
+            }
+            placeholder="Reason for rejection (sent to patient)"
+            rows={2}
+            className="min-h-[68px] resize-y text-[length:var(--fs-xs)]"
+          />
+        </div>
+        <Button
+          variant="outline"
+          size="sm"
+          className="h-8 w-full shrink-0 gap-1.5 sm:w-auto sm:min-w-[6.5rem]"
+          disabled={isMutating}
+          onClick={() => void onReject(request)}
+        >
+          <X className="h-3.5 w-3.5 shrink-0" aria-hidden />
+          Reject
+        </Button>
+      </div>
+    </div>
+  );
+}
+
 export function AppointmentRequestsPanel() {
+  const { clinic } = useClinic();
+  const clinicTz = clinic?.timezone?.trim() || DEFAULT_TIMEZONE;
   const { data, isLoading, isError, refetch } = useAppointmentRequests({
     status: "PENDING",
-    limit: 10,
+    limit: 50,
   });
   const { data: doctors = [] } = useDoctors();
   const approveRequest = useApproveAppointmentRequest();
@@ -75,6 +540,11 @@ export function AppointmentRequestsPanel() {
   const [responseByRequest, setResponseByRequest] = useState<
     Record<string, string>
   >({});
+  const [approveFieldErrorsByRequest, setApproveFieldErrorsByRequest] =
+    useState<
+      Record<string, Partial<Record<ApproveScheduleFieldKey, string>>>
+    >({});
+  const [slotSuggestionGeneration, setSlotSuggestionGeneration] = useState(0);
 
   const doctorOptions = useMemo(
     () =>
@@ -84,7 +554,15 @@ export function AppointmentRequestsPanel() {
     [doctors],
   );
 
-  const requests = data?.items ?? [];
+  const sortedRequests = useMemo(() => {
+    const items = data?.items ?? [];
+    return [...items].sort(
+      (a, b) =>
+        new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime(),
+    );
+  }, [data?.items]);
+
+  const requests = sortedRequests;
   const state = isLoading
     ? "loading"
     : isError
@@ -95,60 +573,105 @@ export function AppointmentRequestsPanel() {
   const isMutating = approveRequest.isPending || rejectRequest.isPending;
 
   const handleApprove = async (request: AppointmentRequestResponse) => {
-    const fromStructured = requestedSlotToDatetimeLocal(
-      request.requestedSlotStart,
-    );
-    const defaultStart =
-      fromStructured ??
-      toDateTimeLocal(request.preferredDate, request.preferredTime);
+    setApproveFieldErrorsByRequest((prev) => {
+      const next = { ...prev };
+      delete next[request.id];
+      return next;
+    });
+
     const doctorId =
       doctorByRequest[request.id] ??
       request.preferredDoctorId ??
       doctorOptions[0]?.id;
     if (!doctorId) {
-      showUserFacingErrorToast(
-        null,
-        "Select a doctor before approving this request.",
-        "form",
-      );
+      setApproveFieldErrorsByRequest((prev) => ({
+        ...prev,
+        [request.id]: {
+          doctorId: "Select a doctor before approving this request.",
+        },
+      }));
       return;
     }
 
-    let resolvedDefaultStart = defaultStart;
-    if (!startByRequest[request.id] && !fromStructured) {
-      const fromSlots = await fetchFirstAvailableDatetimeLocal(
+    const structuredStart = utcRequestedSlotToWallLocal(
+      request.requestedSlotStart,
+      clinicTz,
+    );
+    const structuredEnd = utcRequestedSlotToWallLocal(
+      request.requestedSlotEnd,
+      clinicTz,
+    );
+
+    let startLocal =
+      startByRequest[request.id] ?? structuredStart ?? null;
+    let endLocal = endByRequest[request.id] ?? structuredEnd ?? null;
+
+    if (!startLocal || !endLocal) {
+      const fromSchedule = await fetchNextAvailableSlotWindow(
         request.preferredDate,
         doctorId,
+        clinicTz,
       );
-      if (fromSlots) {
-        resolvedDefaultStart = fromSlots;
+      if (fromSchedule) {
+        startLocal = startLocal ?? fromSchedule.startLocal;
+        endLocal = endLocal ?? fromSchedule.endLocal;
       }
     }
 
-    const requestedEndLocal = requestedSlotToDatetimeLocal(
-      request.requestedSlotEnd,
-    );
-    const startTime = startByRequest[request.id] ?? resolvedDefaultStart;
-    const endTime =
-      endByRequest[request.id] ??
-      (requestedEndLocal && fromStructured
-        ? requestedEndLocal
-        : addMinutesLocal(startTime, 30));
+    startLocal =
+      startLocal ??
+      preferredDateTimeWallLocal(
+        request.preferredDate,
+        request.preferredTime,
+        clinicTz,
+      );
+    endLocal =
+      endLocal ??
+      addMinutesToClinicWallDatetimeLocal(startLocal, 30, clinicTz) ??
+      startLocal;
+
+    const startUtc = clinicWallDatetimeLocalToUtcIso(startLocal, clinicTz);
+    const endUtc = clinicWallDatetimeLocalToUtcIso(endLocal, clinicTz);
+
+    if (!startUtc || !endUtc) {
+      showUserFacingErrorToast(
+        null,
+        "Enter valid start and end times before approving.",
+        "generic",
+      );
+      return;
+    }
 
     try {
       await approveRequest.mutateAsync({
         id: request.id,
         doctorId,
-        startTime: new Date(startTime).toISOString(),
-        endTime: new Date(endTime).toISOString(),
+        startTime: startUtc,
+        endTime: endUtc,
         type: "Consultation",
         notes: request.notes ?? request.reason,
       });
+      setSlotSuggestionGeneration((g) => g + 1);
+      setStartByRequest({});
+      setEndByRequest({});
     } catch (error) {
+      const fieldErrors = extractApproveAppointmentRequestFieldErrors(error);
+      if (Object.keys(fieldErrors).length > 0) {
+        setApproveFieldErrorsByRequest((prev) => ({
+          ...prev,
+          [request.id]: fieldErrors,
+        }));
+        return;
+      }
+
+      const detail = extractProblemDetail(error);
       showUserFacingErrorToast(
-        error,
-        "We could not approve this appointment request. Please try again.",
-        "form",
+        null,
+        getSafeUserMessage(
+          detail,
+          "We could not approve this appointment request. Please try again.",
+        ),
+        "generic",
       );
     }
   };
@@ -159,7 +682,7 @@ export function AppointmentRequestsPanel() {
       showUserFacingErrorToast(
         null,
         "Enter a response before rejecting this request.",
-        "form",
+        "generic",
       );
       return;
     }
@@ -169,24 +692,35 @@ export function AppointmentRequestsPanel() {
         id: request.id,
         responseMessage,
       });
+      setSlotSuggestionGeneration((g) => g + 1);
+      setStartByRequest({});
+      setEndByRequest({});
     } catch (error) {
       showUserFacingErrorToast(
         error,
         "We could not reject this appointment request. Please try again.",
-        "form",
+        "generic",
       );
     }
   };
 
   return (
     <Card>
-      <CardHeader>
-        <div className="flex items-center justify-between gap-3">
-          <CardTitle className="text-base">Patient Requests</CardTitle>
-          <Badge variant="secondary">{data?.count ?? 0} pending</Badge>
+      <CardHeader className="space-y-1 py-3 pb-2">
+        <div className="flex flex-wrap items-center justify-between gap-2">
+          <CardTitle className="text-[length:var(--fs-sm)] font-semibold">
+            Appointment requests
+          </CardTitle>
+          <Badge variant="secondary" className="h-5 px-2 text-[length:var(--fs-2xs)]">
+            {data?.count ?? 0} pending · newest first
+          </Badge>
         </div>
+        <p className="text-[length:var(--fs-xs)] text-muted-foreground">
+          Latest portal requests appear at the top. Suggested slots update after
+          each approval.
+        </p>
       </CardHeader>
-      <CardContent>
+      <CardContent className="pb-4 pt-0">
         <DataState
           status={state}
           loadingMessage="Loading appointment requests…"
@@ -196,113 +730,36 @@ export function AppointmentRequestsPanel() {
           emptyTitle="No pending requests"
           emptyDescription="Patient portal appointment requests will appear here"
         >
-          <div className="space-y-3">
-            {requests.map((request) => {
-              const defaultStart = toDateTimeLocal(
-                request.preferredDate,
-                request.preferredTime,
-              );
-              const startValue = startByRequest[request.id] ?? defaultStart;
-              const endValue =
-                endByRequest[request.id] ?? addMinutesLocal(startValue, 30);
-
-              return (
-                <div key={request.id} className="rounded-md border p-3">
-                  <div className="flex flex-col gap-2 md:flex-row md:items-start md:justify-between">
-                    <div className="space-y-1">
-                      <div className="font-medium">{patientName(request)}</div>
-                      <p className="text-sm text-muted-foreground">
-                        {request.reason}
-                      </p>
-                      <p className="text-xs text-muted-foreground">
-                        Preferred{" "}
-                        {formatDate(request.preferredDate)}
-                        {request.preferredTime
-                          ? ` at ${request.preferredTime}`
-                          : ""}
-                      </p>
-                    </div>
-                    <Badge variant="outline">{request.status}</Badge>
-                  </div>
-
-                  <div className="mt-3 grid gap-2 md:grid-cols-4">
-                    <select
-                      className="h-10 rounded-md border border-input bg-background px-3 text-sm"
-                      value={
-                        doctorByRequest[request.id] ??
-                        request.preferredDoctorId ??
-                        doctorOptions[0]?.id ??
-                        ""
-                      }
-                      onChange={(event) =>
-                        setDoctorByRequest((prev) => ({
-                          ...prev,
-                          [request.id]: event.target.value,
-                        }))
-                      }
-                      aria-label="Doctor"
-                    >
-                      {doctorOptions.map((doctor) => (
-                        <option key={doctor.id} value={doctor.id}>
-                          {doctor.name}
-                        </option>
-                      ))}
-                    </select>
-                    <Input
-                      type="datetime-local"
-                      value={startValue}
-                      onChange={(event) =>
-                        setStartByRequest((prev) => ({
-                          ...prev,
-                          [request.id]: event.target.value,
-                        }))
-                      }
-                      aria-label="Start time"
-                    />
-                    <Input
-                      type="datetime-local"
-                      value={endValue}
-                      onChange={(event) =>
-                        setEndByRequest((prev) => ({
-                          ...prev,
-                          [request.id]: event.target.value,
-                        }))
-                      }
-                      aria-label="End time"
-                    />
-                    <Button
-                      disabled={isMutating}
-                      onClick={() => void handleApprove(request)}
-                    >
-                      <Check className="h-4 w-4" />
-                      Approve
-                    </Button>
-                  </div>
-
-                  <div className="mt-2 grid gap-2 md:grid-cols-[minmax(0,1fr)_auto]">
-                    <Textarea
-                      value={responseByRequest[request.id] ?? ""}
-                      onChange={(event) =>
-                        setResponseByRequest((prev) => ({
-                          ...prev,
-                          [request.id]: event.target.value,
-                        }))
-                      }
-                      placeholder="Rejection message"
-                      aria-label="Reject response"
-                    />
-                    <Button
-                      variant="outline"
-                      disabled={isMutating}
-                      onClick={() => void handleReject(request)}
-                    >
-                      <X className="h-4 w-4" />
-                      Reject
-                    </Button>
-                  </div>
-                </div>
-              );
-            })}
+          <div className="space-y-2">
+            {requests.map((request) => (
+              <AppointmentRequestRow
+                key={request.id}
+                request={request}
+                doctorOptions={doctorOptions}
+                doctorByRequest={doctorByRequest}
+                setDoctorByRequest={setDoctorByRequest}
+                startByRequest={startByRequest}
+                setStartByRequest={setStartByRequest}
+                endByRequest={endByRequest}
+                setEndByRequest={setEndByRequest}
+                responseByRequest={responseByRequest}
+                setResponseByRequest={setResponseByRequest}
+                onApprove={handleApprove}
+                onReject={handleReject}
+                isMutating={isMutating}
+                approveFieldErrors={approveFieldErrorsByRequest[request.id]}
+                onClearApproveFieldErrors={() =>
+                  setApproveFieldErrorsByRequest((prev) => {
+                    if (!(request.id in prev)) return prev;
+                    const next = { ...prev };
+                    delete next[request.id];
+                    return next;
+                  })
+                }
+                clinicTimezone={clinicTz}
+                slotSuggestionGeneration={slotSuggestionGeneration}
+              />
+            ))}
           </div>
         </DataState>
       </CardContent>

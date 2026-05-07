@@ -2,6 +2,17 @@ import { fireEvent, render, screen } from "@testing-library/react";
 import { describe, expect, it, vi } from "vitest";
 import { FollowUpSchedulerUI } from "./FollowUpSchedulerUI";
 
+vi.mock("@/lib/clinic-context", () => ({
+  useClinic: () => ({
+    clinicId: "clinic_1",
+    clinic: { timezone: "Asia/Kolkata" },
+    setClinic: vi.fn(),
+    userClinics: [],
+    setUserClinics: vi.fn(),
+    refreshClinic: vi.fn(),
+  }),
+}));
+
 const followUpTypes = [
   { value: "follow_up", label: "Follow-up" },
   { value: "lab_review", label: "Lab review" },

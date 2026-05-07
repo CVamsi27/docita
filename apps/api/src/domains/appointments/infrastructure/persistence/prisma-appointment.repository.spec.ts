@@ -138,4 +138,27 @@ describe('PrismaAppointmentRepository', () => {
     expect(result.hasMore).toBe(false);
     expect(result.nextCursor).toBeUndefined();
   });
+
+  it('uses interval overlap when intersectCalendarRange is set', async () => {
+    mockAppointmentCount.mockResolvedValue(0);
+    mockAppointmentFindMany.mockResolvedValue([]);
+    const startDate = new Date('2026-05-06T18:30:00.000Z');
+    const endDate = new Date('2026-05-07T18:30:00.000Z');
+
+    await repository.findAll({
+      clinicId: 'clinic-1',
+      startDate,
+      endDate,
+      intersectCalendarRange: true,
+      limit: 20,
+    });
+
+    expect(mockAppointmentFindMany).toHaveBeenCalledWith(
+      expect.objectContaining({
+        where: expect.objectContaining({
+          AND: [{ startTime: { lt: endDate } }, { endTime: { gt: startDate } }],
+        }),
+      }),
+    );
+  });
 });
