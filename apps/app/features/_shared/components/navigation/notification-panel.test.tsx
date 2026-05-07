@@ -41,6 +41,7 @@ vi.mock("@/hooks/api/use-notifications", () => {
       refetch: vi.fn(),
     }),
     useMarkNotificationRead: () => ({ mutateAsync: vi.fn() }),
+    useDeleteNotification: () => ({ mutateAsync: vi.fn() }),
     useDeleteAllNotifications: () => ({ mutateAsync: vi.fn() }),
   };
 });

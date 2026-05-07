@@ -1,12 +1,13 @@
 "use client";
 
-import { Suspense, useEffect, useMemo } from "react";
+import { Suspense, useEffect, useMemo, type ReactNode } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { AppPageScaffold } from "@workspace/ui/components/app-page-scaffold";
 import { PageHeader } from "@workspace/ui/components/page-header";
 import { PageTabs, type PageTabItem } from "@workspace/ui/components/page-tabs";
 import { DataState } from "@workspace/ui/components/data-state";
 import {
+  Bell,
   CalendarClock,
   MessageSquare,
   Stethoscope,
@@ -24,12 +25,16 @@ import {
   type WorkspaceProfile,
 } from "@workspace/types";
 import { hasPermission, type Permission } from "@/lib/permissions";
+import { NotificationsInboxView } from "@/features/inbox/components/NotificationsInboxView";
 
 type InboxTabDef = {
   value: string;
   label: string;
   description: string;
-  href: string;
+  /** External target page. When set, the tab acts as a shortcut. */
+  href?: string;
+  /** Inline content. When set, the tab renders inside /inbox. */
+  renderInline?: () => ReactNode;
   icon: LucideIcon;
   accessTarget?: AppAccessTarget;
   feature?: Feature;
@@ -37,6 +42,14 @@ type InboxTabDef = {
 };
 
 const ALL_INBOX_TABS: InboxTabDef[] = [
+  {
+    value: "notifications",
+    label: "Notifications",
+    description: "Alerts and activity across your clinic.",
+    renderInline: () => <NotificationsInboxView />,
+    icon: Bell,
+    accessTarget: APP_ACCESS_TARGETS.API_STAFF_NOTIFICATIONS,
+  },
   {
     value: "messages",
     label: "Messages",
@@ -115,7 +128,7 @@ function InboxContent() {
     [user?.role, canAccessFeature, workspaceProfile],
   );
 
-  const defaultTab = visibleTabs[0]?.value ?? "follow-ups";
+  const defaultTab = visibleTabs[0]?.value ?? "notifications";
   const currentTab = searchParams?.get("tab") ?? defaultTab;
   const activeTab =
     visibleTabs.find((t) => t.value === currentTab) ?? visibleTabs[0];
@@ -142,24 +155,15 @@ function InboxContent() {
 
   const pageDescription = useMemo(() => {
     if (visibleTabs.length === 0) {
-      return "Shortcuts to workspaces you can access from this clinic.";
+      return "Notifications and shortcuts to workspaces you can access.";
     }
-    const parts = visibleTabs.map((t) => t.label.toLowerCase());
-    if (parts.length === 1) {
-      return `Open ${parts[0]} from this hub.`;
-    }
-    return `${parts.slice(0, -1).join(", ")} and ${parts[parts.length - 1]} in one place.`;
-  }, [visibleTabs]);
+    return activeTab?.description ?? "";
+  }, [visibleTabs, activeTab]);
 
   if (!activeTab || visibleTabs.length === 0) {
     return (
       <AppPageScaffold
-        header={
-          <PageHeader
-            title="Inbox"
-            description={pageDescription}
-          />
-        }
+        header={<PageHeader title="Inbox" description={pageDescription} />}
       >
         <DataState
           status="empty"
@@ -175,9 +179,7 @@ function InboxContent() {
 
   return (
     <AppPageScaffold
-      header={
-        <PageHeader title="Inbox" description={pageDescription} />
-      }
+      header={<PageHeader title="Inbox" description={pageDescription} />}
     >
       <PageTabs
         items={tabs}
@@ -189,17 +191,25 @@ function InboxContent() {
         }}
       />
 
-      <DataState
-        status="empty"
-        emptyIcon={ActiveIcon}
-        emptyTitle={`${activeTab.label} live in their dedicated workspace`}
-        emptyDescription={activeTab.description}
-        emptyAction={{
-          label: `Open ${activeTab.label.toLowerCase()}`,
-          href: activeTab.href,
-        }}
-        className="min-h-[40vh]"
-      />
+      {activeTab.renderInline ? (
+        <div className="mt-4">{activeTab.renderInline()}</div>
+      ) : (
+        <DataState
+          status="empty"
+          emptyIcon={ActiveIcon}
+          emptyTitle={`${activeTab.label} live in their dedicated workspace`}
+          emptyDescription={activeTab.description}
+          emptyAction={
+            activeTab.href
+              ? {
+                  label: `Open ${activeTab.label.toLowerCase()}`,
+                  href: activeTab.href,
+                }
+              : undefined
+          }
+          className="min-h-[40vh]"
+        />
+      )}
     </AppPageScaffold>
   );
 }

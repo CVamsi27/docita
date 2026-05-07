@@ -27,40 +27,32 @@ import { formatTime, isToday, isYesterday } from "@workspace/utils";
 import {
   useNotifications,
   useMarkNotificationRead,
+  useDeleteNotification,
   useDeleteAllNotifications,
   type StaffNotification,
 } from "@/hooks/api/use-notifications";
 import { useSocket } from "@/lib/socket-context";
-
-const APPOINTMENT_REQUEST_NOTIFICATION_TYPES = new Set([
-  "APPOINTMENT_REQUEST_CREATED",
-  "APPOINTMENT_REQUEST_APPROVED",
-  "APPOINTMENT_REQUEST_REJECTED",
-]);
-
-function staffNotificationNavigateHref(
-  notification: StaffNotification,
-): string | null {
-  const type = String(notification.type);
-  if (APPOINTMENT_REQUEST_NOTIFICATION_TYPES.has(type)) {
-    return "/appointments?requestsPanel=1";
-  }
-  return null;
-}
+import {
+  NOTIFICATION_CATEGORIES,
+  notificationHref,
+  type NotificationCategoryId,
+} from "./notification-href";
 
 interface NotificationItemProps {
   notification: StaffNotification;
   onMarkRead: (id: string) => void;
+  onDelete: (id: string) => void;
   onCloseSheet: () => void;
 }
 
 function NotificationItem({
   notification,
   onMarkRead,
+  onDelete,
   onCloseSheet,
 }: NotificationItemProps) {
   const router = useRouter();
-  const navigateHref = staffNotificationNavigateHref(notification);
+  const navigateHref = notificationHref(notification);
 
   const priorityMap = {
     URGENT: "urgent",
@@ -82,6 +74,17 @@ function NotificationItem({
     }
   };
 
+  // Preserve aria-label phrasing for appointment-request notifications so the
+  // existing e2e/integration tests that locate the row by name keep working.
+  const isAppointmentRequest = String(notification.type).startsWith(
+    "APPOINTMENT_REQUEST_",
+  );
+  const ariaLabel = navigateHref
+    ? isAppointmentRequest
+      ? `${notification.title}. Open appointment requests queue.`
+      : `${notification.title}. Open related page.`
+    : undefined;
+
   return (
     <div
       className={cn(
@@ -99,11 +102,7 @@ function NotificationItem({
           )}
           role={navigateHref ? "button" : undefined}
           tabIndex={navigateHref ? 0 : undefined}
-          aria-label={
-            navigateHref
-              ? `${notification.title}. Open appointment requests queue.`
-              : undefined
-          }
+          aria-label={ariaLabel}
           onClick={navigateHref ? handleOpenDestination : undefined}
           onKeyDown={
             navigateHref
@@ -121,10 +120,7 @@ function NotificationItem({
               {notification.title}
             </h4>
             {notification.priority !== "NORMAL" && (
-              <PriorityBadge
-                priority={mappedPriority}
-                showDot={false}
-              />
+              <PriorityBadge priority={mappedPriority} showDot={false} />
             )}
             {!notification.isRead && (
               <div className="h-2 w-2 rounded-full bg-primary" aria-hidden />
@@ -136,28 +132,39 @@ function NotificationItem({
           <p className="text-[length:var(--fs-xs)] text-muted-foreground">
             {formatTime(notification.createdAt)}
           </p>
-          {navigateHref ? (
-            <p className="text-[length:var(--fs-2xs)] text-muted-foreground">
-              Click to open appointment requests
-            </p>
-          ) : null}
         </div>
-        {!notification.isRead && (
-          <SymbolTooltip label="Mark as read">
+        <div className="flex items-center gap-0.5">
+          {!notification.isRead && (
+            <SymbolTooltip label="Mark as read">
+              <Button
+                variant="ghost"
+                size="icon-sm"
+                type="button"
+                onClick={(event) => {
+                  event.stopPropagation();
+                  void onMarkRead(notification.id);
+                }}
+                aria-label="Mark as read"
+              >
+                <CheckIcon className="h-4 w-4" />
+              </Button>
+            </SymbolTooltip>
+          )}
+          <SymbolTooltip label="Dismiss">
             <Button
               variant="ghost"
               size="icon-sm"
               type="button"
               onClick={(event) => {
                 event.stopPropagation();
-                void onMarkRead(notification.id);
+                void onDelete(notification.id);
               }}
-              aria-label="Mark as read"
+              aria-label="Dismiss notification"
             >
-              <CheckIcon className="h-4 w-4" />
+              <XIcon className="h-4 w-4" />
             </Button>
           </SymbolTooltip>
-        )}
+        </div>
       </div>
     </div>
   );
@@ -190,74 +197,13 @@ function categorizeNotifications(
   return { today, yesterday, older };
 }
 
-type NotificationTabId =
-  | "all"
-  | "appointment-requests"
-  | "appointments"
-  | "prescriptions"
-  | "invoices"
-  | "payments-plan"
-  | "system";
-
-type NotificationTabDef = {
-  id: NotificationTabId;
-  label: string;
-  typeAllowList?: readonly string[];
-};
-
-const NOTIFICATION_TABS: readonly NotificationTabDef[] = [
-  { id: "all", label: "All" },
-  {
-    id: "appointment-requests",
-    label: "Appointment requests",
-    typeAllowList: [
-      "APPOINTMENT_REQUEST_CREATED",
-      "APPOINTMENT_REQUEST_APPROVED",
-      "APPOINTMENT_REQUEST_REJECTED",
-    ],
-  },
-  {
-    id: "appointments",
-    label: "Appointments",
-    typeAllowList: [
-      "APPOINTMENT_CANCEL",
-      "APPOINTMENT_DELAY",
-      "APPOINTMENT_RESCHEDULED",
-      "APPOINTMENT_NO_SHOW",
-      "APPOINTMENT_CONFIRMED",
-    ],
-  },
-  {
-    id: "prescriptions",
-    label: "Prescriptions",
-    typeAllowList: ["PRESCRIPTION_PENDING", "PRESCRIPTION_SENT", "PRESCRIPTION_FAILED"],
-  },
-  {
-    id: "invoices",
-    label: "Invoices",
-    typeAllowList: ["INVOICE_PENDING", "INVOICE_SENT", "INVOICE_FAILED"],
-  },
-  {
-    id: "payments-plan",
-    label: "Payments & plan",
-    typeAllowList: [
-      "SUBSCRIPTION_PAYMENT_DUE_SOON",
-      "SUBSCRIPTION_PAYMENT_OVERDUE",
-      "SUBSCRIPTION_PAYMENT_SUCCESS",
-      "SUBSCRIPTION_PAYMENT_FAILED",
-      "PAYMENT_PROVIDER_STATUS_UPDATE",
-    ],
-  },
-  { id: "system", label: "System", typeAllowList: ["SYSTEM_ALERT"] },
-] as const;
-
-function filterNotificationsForTab(
+function filterByCategory(
   notifications: StaffNotification[],
-  tab: NotificationTabDef,
+  types: readonly string[] | undefined,
 ): StaffNotification[] {
-  if (!tab.typeAllowList) return notifications;
-  const allowed = new Set(tab.typeAllowList);
-  return notifications.filter((n) => allowed.has(n.type));
+  if (!types) return notifications;
+  const allowed = new Set(types);
+  return notifications.filter((n) => allowed.has(String(n.type)));
 }
 
 interface NotificationPanelProps {
@@ -274,11 +220,12 @@ export function NotificationPanel({
   const queryEnabled = enabled && open;
   const { data: notifications = [], refetch } = useNotifications(queryEnabled);
   const markRead = useMarkNotificationRead();
+  const deleteOne = useDeleteNotification();
   const deleteAll = useDeleteAllNotifications();
   const queryClient = useQueryClient();
   const { socket } = useSocket();
   const [isDeleting, setIsDeleting] = useState(false);
-  const [activeTab, setActiveTab] = useState<NotificationTabId>("all");
+  const [activeTab, setActiveTab] = useState<NotificationCategoryId>("all");
 
   useEffect(() => {
     if (!socket || !enabled) return;
@@ -332,6 +279,10 @@ export function NotificationPanel({
     await markRead.mutateAsync({ id });
   };
 
+  const handleDelete = async (id: string) => {
+    await deleteOne.mutateAsync({ id });
+  };
+
   const handleOpenChange = (newOpen: boolean) => {
     onOpenChange(newOpen);
   };
@@ -339,20 +290,40 @@ export function NotificationPanel({
   const activeNotifications = notifications.filter((n) => !n.deletedAt);
   const unreadCount = activeNotifications.filter((n) => !n.isRead).length;
 
+  // Only show tabs that actually have at least one notification (except "All",
+  // which is always shown).
+  const visibleCategories = useMemo(() => {
+    return NOTIFICATION_CATEGORIES.filter((cat) => {
+      if (cat.id === "all") return true;
+      return filterByCategory(activeNotifications, cat.types).length > 0;
+    });
+  }, [activeNotifications]);
+
   const notificationsByTab = useMemo(() => {
     return Object.fromEntries(
-      NOTIFICATION_TABS.map((tab) => [tab.id, filterNotificationsForTab(activeNotifications, tab)]),
-    ) as Record<NotificationTabId, StaffNotification[]>;
-  }, [activeNotifications]);
+      visibleCategories.map((cat) => [
+        cat.id,
+        filterByCategory(activeNotifications, cat.types),
+      ]),
+    ) as Record<NotificationCategoryId, StaffNotification[]>;
+  }, [activeNotifications, visibleCategories]);
 
   const unreadCountByTab = useMemo(() => {
     return Object.fromEntries(
-      NOTIFICATION_TABS.map((tab) => [
-        tab.id,
-        (notificationsByTab[tab.id] ?? []).filter((n) => !n.isRead).length,
+      visibleCategories.map((cat) => [
+        cat.id,
+        (notificationsByTab[cat.id] ?? []).filter((n) => !n.isRead).length,
       ]),
-    ) as Record<NotificationTabId, number>;
-  }, [notificationsByTab]);
+    ) as Record<NotificationCategoryId, number>;
+  }, [notificationsByTab, visibleCategories]);
+
+  // If the active tab is no longer visible (e.g. last notification of that
+  // category was dismissed), fall back to "all".
+  useEffect(() => {
+    if (!visibleCategories.some((c) => c.id === activeTab)) {
+      setActiveTab("all");
+    }
+  }, [visibleCategories, activeTab]);
 
   return (
     <Sheet open={open} onOpenChange={handleOpenChange}>
@@ -362,11 +333,7 @@ export function NotificationPanel({
             <span className="flex items-center gap-2">
               <BellIcon className="h-5 w-5" />
               Notifications
-              {unreadCount > 0 && (
-                <Badge variant="default">
-                  {unreadCount}
-                </Badge>
-              )}
+              {unreadCount > 0 && <Badge variant="default">{unreadCount}</Badge>}
             </span>
             {activeNotifications.length > 0 && (
               <Button
@@ -419,16 +386,25 @@ export function NotificationPanel({
               <div className="px-4">
                 <Tabs
                   value={activeTab}
-                  onValueChange={(next) => setActiveTab(next as NotificationTabId)}
+                  onValueChange={(next) =>
+                    setActiveTab(next as NotificationCategoryId)
+                  }
                 >
                   <TabsList className="w-full justify-start overflow-x-auto">
-                    {NOTIFICATION_TABS.map((tab) => {
-                      const count = unreadCountByTab[tab.id] ?? 0;
+                    {visibleCategories.map((cat) => {
+                      const count = unreadCountByTab[cat.id] ?? 0;
                       return (
-                        <TabsTrigger key={tab.id} value={tab.id} className="gap-2">
-                          <span>{tab.label}</span>
+                        <TabsTrigger
+                          key={cat.id}
+                          value={cat.id}
+                          className="gap-2"
+                        >
+                          <span>{cat.label}</span>
                           {count > 0 && (
-                            <Badge variant="secondary" className="h-5 px-1.5">
+                            <Badge
+                              variant="secondary"
+                              className="h-5 px-1.5"
+                            >
                               {count}
                             </Badge>
                           )}
@@ -437,8 +413,8 @@ export function NotificationPanel({
                     })}
                   </TabsList>
 
-                  {NOTIFICATION_TABS.map((tab) => {
-                    const items = notificationsByTab[tab.id] ?? [];
+                  {visibleCategories.map((cat) => {
+                    const items = notificationsByTab[cat.id] ?? [];
                     const categorized = categorizeNotifications(items);
                     const isEmpty =
                       categorized.today.length === 0 &&
@@ -446,12 +422,16 @@ export function NotificationPanel({
                       categorized.older.length === 0;
 
                     return (
-                      <TabsContent key={tab.id} value={tab.id} className="mt-4">
+                      <TabsContent
+                        key={cat.id}
+                        value={cat.id}
+                        className="mt-4"
+                      >
                         {isEmpty ? (
                           <div className="flex flex-col items-center justify-center py-10 text-center">
                             <BellIcon className="mb-3 h-10 w-10 text-muted-foreground" />
                             <p className="text-sm text-muted-foreground">
-                              No {tab.label.toLowerCase()} notifications
+                              No {cat.label.toLowerCase()} notifications
                             </p>
                           </div>
                         ) : (
@@ -467,6 +447,7 @@ export function NotificationPanel({
                                       key={notification.id}
                                       notification={notification}
                                       onMarkRead={handleMarkRead}
+                                      onDelete={handleDelete}
                                       onCloseSheet={() => handleOpenChange(false)}
                                     />
                                   ))}
@@ -485,6 +466,7 @@ export function NotificationPanel({
                                       key={notification.id}
                                       notification={notification}
                                       onMarkRead={handleMarkRead}
+                                      onDelete={handleDelete}
                                       onCloseSheet={() => handleOpenChange(false)}
                                     />
                                   ))}
@@ -503,6 +485,7 @@ export function NotificationPanel({
                                       key={notification.id}
                                       notification={notification}
                                       onMarkRead={handleMarkRead}
+                                      onDelete={handleDelete}
                                       onCloseSheet={() => handleOpenChange(false)}
                                     />
                                   ))}
