@@ -10,12 +10,14 @@ interface PageHeaderProps {
   tabs?: React.ReactNode;
   eyebrow?: React.ReactNode;
   className?: string;
-  /** Merged into the description paragraph (after default subtitle / max-width classes). */
+  /** Merged into the description container (after default subtitle / max-width classes). */
   descriptionClassName?: string;
   sticky?: boolean;
   size?: "default" | "compact";
   /** When `center`, title and description are centered; actions sit on the next row (end-aligned from md). */
   titleAlign?: "start" | "center";
+  /** Merged into the `md:flex` row that holds the title block and actions (default `md:items-start`). */
+  splitRowClassName?: string;
 }
 
 export function PageHeader({
@@ -30,6 +32,7 @@ export function PageHeader({
   sticky = false,
   size = "default",
   titleAlign = "start",
+  splitRowClassName,
 }: PageHeaderProps) {
   const titleCentered = titleAlign === "center";
 
@@ -50,7 +53,7 @@ export function PageHeader({
         {title}
       </h1>
       {description ? (
-        <p
+        <div
           className={cn(
             titleCentered ? "mx-auto max-w-2xl" : "max-w-2xl",
             size === "compact" ? "ui-section-subtitle" : "ui-page-subtitle",
@@ -58,7 +61,7 @@ export function PageHeader({
           )}
         >
           {description}
-        </p>
+        </div>
       ) : null}
     </div>
   );
@@ -93,7 +96,12 @@ export function PageHeader({
           {actionsRow}
         </div>
       ) : (
-        <div className="flex flex-col gap-3 md:flex-row md:items-start md:justify-between">
+        <div
+          className={cn(
+            "flex flex-col gap-3 md:flex-row md:items-start md:justify-between",
+            splitRowClassName,
+          )}
+        >
           {copyBlock}
           {actionsRow}
         </div>

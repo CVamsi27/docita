@@ -4,7 +4,6 @@ import { Fragment, useCallback, useEffect, useMemo, useRef, useState } from "rea
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import {
-  Bell,
   ChevronDown,
   ChevronUp,
   HelpCircle,
@@ -41,6 +40,7 @@ import { SUBSCRIPTION_SETTINGS_PATH } from "@/lib/subscription-settings-path";
 import { useSidebarPreferences } from "@/hooks/use-sidebar-preferences";
 import { useSidebarNavOrder } from "@/hooks/use-sidebar-nav-order";
 import { NotificationPanel } from "./notification-panel";
+import { NotificationBellWithBadges } from "./notification-bell-with-badges";
 import { ThemeToggleWithAppearanceSync } from "@/features/_shared/components/layout/theme-toggle-with-appearance-sync";
 import { AskAiButton } from "@/features/_shared/components/ask-ai/ask-ai-button";
 import {
@@ -125,7 +125,7 @@ function SidebarContent({
   const { canAccess, getTierInfo, clinicType: storeClinicType, workspaceProfile } =
     usePermissionStore();
   const canAccessNotifications = canAccessTarget(
-    APP_ACCESS_TARGETS.API_WHATSAPP,
+    APP_ACCESS_TARGETS.API_STAFF_NOTIFICATIONS,
     { role: user?.role, canAccessFeature: canAccess, workspaceProfile },
     "read",
   );
@@ -421,14 +421,15 @@ function SidebarContent({
                   <Button
                     variant="ghost"
                     size="icon"
-                    className="relative h-8 w-8 shrink-0 text-muted-foreground hover:text-foreground hover:bg-muted"
+                    className="relative h-8 w-8 shrink-0 overflow-visible text-muted-foreground hover:text-foreground hover:bg-muted"
                     onClick={() => setNotificationPanelOpen(true)}
-                    aria-label="Notifications"
+                    aria-label={
+                      notificationCount > 0
+                        ? `Notifications, ${notificationCount} unread`
+                        : "Notifications"
+                    }
                   >
-                    <Bell className="h-4 w-4" />
-                    {notificationCount > 0 && (
-                      <span className="pointer-events-none absolute top-1 right-1 h-2 w-2 rounded-full bg-primary" />
-                    )}
+                    <NotificationBellWithBadges count={notificationCount} />
                   </Button>
                 </TooltipTrigger>
                 <TooltipContent side="right">Notifications</TooltipContent>

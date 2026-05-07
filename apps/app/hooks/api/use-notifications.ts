@@ -1,38 +1,32 @@
 import {
-  Feature,
   staffNotificationsListResponseSchema,
   whatsappUnreadCountResponseSchema,
 } from "@workspace/types";
-import { useTierFeatureEnabled } from "@/hooks/api/tier-feature-guards";
 import { useAPIMutation, useAPIQuery, useAPIQueryValidated } from "@/lib/api-core";
 
 export type StaffNotification = typeof staffNotificationsListResponseSchema._type[number];
 
-export const useNotifications = (enabled: boolean = true) => {
-  const whatsappOk = useTierFeatureEnabled(Feature.WHATSAPP_MESSAGING);
-  return useAPIQueryValidated(
+export const useNotifications = (enabled: boolean = true) =>
+  useAPIQueryValidated(
     ["notifications"],
     "/staff-notifications",
     staffNotificationsListResponseSchema,
     {
-      enabled: whatsappOk && enabled,
+      enabled,
       refetchInterval: 30000,
     },
   );
-};
 
-export const useUnreadNotificationCount = (enabled: boolean = true) => {
-  const whatsappOk = useTierFeatureEnabled(Feature.WHATSAPP_MESSAGING);
-  return useAPIQueryValidated(
+export const useUnreadNotificationCount = (enabled: boolean = true) =>
+  useAPIQueryValidated(
     ["notifications", "unread-count"],
     "/staff-notifications/unread-count",
     whatsappUnreadCountResponseSchema,
     {
-      enabled: whatsappOk && enabled,
+      enabled,
       refetchInterval: 10000,
     },
   );
-};
 
 export const useMarkNotificationRead = () =>
   useAPIMutation<void, { id: string }>(

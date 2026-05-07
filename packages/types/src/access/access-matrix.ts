@@ -170,6 +170,8 @@ export const APP_ACCESS_TARGETS = {
   API_SUBSCRIPTION_BILLING: "api.subscription.billing",
   API_ANALYTICS: "api.analytics",
   API_APPOINTMENTS: "api.appointments",
+  /** In-app staff notifications (appointments, requests, etc.); not WhatsApp-only. */
+  API_STAFF_NOTIFICATIONS: "api.staff-notifications",
   API_MEDICAL_CODING: "api.medical-coding",
   API_INVENTORY: "api.inventory",
   API_QUEUE: "api.queue",
@@ -317,6 +319,11 @@ export const APP_ACCESS_MATRIX: Record<AppAccessTarget, AccessPolicy> = {
     feature: Feature.BASIC_ANALYTICS,
   },
   [APP_ACCESS_TARGETS.API_APPOINTMENTS]: {
+    read: { roles: CARE_COORDINATION_ROLES },
+    write: { roles: CARE_COORDINATION_ROLES },
+    feature: Feature.CALENDAR_SLOTS,
+  },
+  [APP_ACCESS_TARGETS.API_STAFF_NOTIFICATIONS]: {
     read: { roles: CARE_COORDINATION_ROLES },
     write: { roles: CARE_COORDINATION_ROLES },
     feature: Feature.CALENDAR_SLOTS,

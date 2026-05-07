@@ -1,26 +1,15 @@
 import { DocitaLoadingIndicator } from "@workspace/ui/components/docita-loading-indicator";
-import { memo } from "react";
+import { memo, useCallback } from "react";
 import { formatDate } from "@workspace/utils";
-import { formatTime } from "@/lib/formatters";
-import { CalendarPlus, Check, Clock, ExternalLink, MoreVertical, Stethoscope, User, UserCheck } from "lucide-react";
-import Link from "next/link";
+import { formatClockTime } from "@/lib/formatters";
+import { Check, Clock, Stethoscope, User, UserCheck } from "lucide-react";
 import type { AppointmentListItem } from "@/hooks/api/use-appointments";
 import { Button } from "@workspace/ui/components/button";
 import { Badge } from "@workspace/ui/components/badge";
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuTrigger,
-} from "@workspace/ui/components/dropdown-menu";
-import {
-  SymbolTooltip,
-  Tooltip,
-  TooltipContent,
-  TooltipTrigger,
-} from "@workspace/ui/components/tooltip";
+import { SymbolTooltip } from "@workspace/ui/components/tooltip";
 import { usePermissions } from "@/hooks/use-permissions";
 import { humanizeUiLabel } from "@workspace/ui/lib/label-formatters";
+import { AppointmentRowActionsMenu } from "./AppointmentRowActionsMenu";
 
 interface TimeSlotRowProps {
   appointment: AppointmentListItem;
@@ -71,6 +60,10 @@ export const TimeSlotRow = memo<TimeSlotRowProps>(
         ? "Continue consultation"
         : "Start consultation";
 
+    const handleScheduleFollowUp = useCallback(() => {
+      onScheduleFollowUp?.(apt);
+    }, [apt, onScheduleFollowUp]);
+
     return (
       <div className="group relative @container/apt overflow-hidden rounded-lg border border-border/60 bg-card/95 pl-3 pr-3 py-3 transition-colors duration-150 hover:border-border hover:bg-card">
         <div
@@ -93,18 +86,10 @@ export const TimeSlotRow = memo<TimeSlotRowProps>(
             <div className="flex shrink-0 flex-col items-start">
               <div className="flex items-center gap-1.5 text-sm font-semibold text-foreground tabular-nums">
                 <Clock className="h-3.5 w-3.5 text-muted-foreground" />
-                {formatTime(aptStart, "en-IN", {
-                  hour: "numeric",
-                  minute: "2-digit",
-                  hour12: true,
-                })}
+                {formatClockTime(aptStart)}
               </div>
               <span className="mt-0.5 pl-5 text-xs text-muted-foreground tabular-nums">
-                {formatTime(aptEnd, "en-IN", {
-                  hour: "numeric",
-                  minute: "2-digit",
-                  hour12: true,
-                })}
+                {formatClockTime(aptEnd)}
               </span>
             </div>
 
@@ -191,52 +176,16 @@ export const TimeSlotRow = memo<TimeSlotRowProps>(
                 </Button>
               </SymbolTooltip>
             )}
-            <DropdownMenu>
-              <Tooltip>
-                <TooltipTrigger asChild>
-                  <DropdownMenuTrigger asChild>
-                    <Button
-                      variant="ghost"
-                      size="sm"
-                      className="h-8 w-8 shrink-0 rounded-full p-0"
-                      aria-label="More appointment actions"
-                    >
-                      <MoreVertical className="h-3.5 w-3.5" />
-                    </Button>
-                  </DropdownMenuTrigger>
-                </TooltipTrigger>
-                <TooltipContent side="bottom">More actions</TooltipContent>
-              </Tooltip>
-              <DropdownMenuContent align="end" className="min-w-[200px]">
-                <DropdownMenuItem asChild>
-                  <Link
-                    href={`/patients/${apt.patientId}`}
-                    className="flex items-center gap-2"
-                  >
-                    <ExternalLink className="h-4 w-4" />
-                    View Patient
-                  </Link>
-                </DropdownMenuItem>
-                {onScheduleFollowUp && (
-                  <DropdownMenuItem
-                    onClick={() => onScheduleFollowUp(apt)}
-                    data-testid="schedule-follow-up"
-                  >
-                    <CalendarPlus className="mr-2 h-4 w-4" />
-                    Schedule follow-up
-                  </DropdownMenuItem>
-                )}
-                <DropdownMenuItem
-                  onClick={() => onCancelClick(apt.id || "")}
-                  className="text-destructive focus:text-destructive"
-                >
-                  Cancel Appointment
-                </DropdownMenuItem>
-                <DropdownMenuItem onClick={() => onNoShowClick(apt.id || "")}>
-                  Mark as No Show
-                </DropdownMenuItem>
-              </DropdownMenuContent>
-            </DropdownMenu>
+            <AppointmentRowActionsMenu
+              appointmentId={apt.id ?? null}
+              patientId={apt.patientId ?? null}
+              status={apt.status}
+              onCancelClick={onCancelClick}
+              onNoShowClick={onNoShowClick}
+              onScheduleFollowUp={
+                onScheduleFollowUp ? handleScheduleFollowUp : undefined
+              }
+            />
           </div>
         </div>
       </div>

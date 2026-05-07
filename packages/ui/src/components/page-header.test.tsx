@@ -36,4 +36,16 @@ describe("PageHeader", () => {
       screen.getByRole("heading", { level: 1, name: /empty/i }),
     ).toBeInTheDocument();
   });
+
+  it("applies splitRowClassName to the title/actions row", () => {
+    const { container } = render(
+      <PageHeader
+        title="T"
+        actions={<span data-testid="act">A</span>}
+        splitRowClassName="md:items-center"
+      />,
+    );
+    const row = container.querySelector(".md\\:flex-row");
+    expect(row).toHaveClass("md:items-center");
+  });
 });

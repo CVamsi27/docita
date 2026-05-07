@@ -8,6 +8,8 @@ interface FloatingInputProps
   extends Omit<React.ComponentProps<typeof Input>, "id" | "placeholder"> {
   id: string;
   label: string;
+  /** Renders a trailing asterisk on the label and sets `aria-required` on the input. */
+  requiredMark?: boolean;
   helperText?: React.ReactNode;
   errorText?: React.ReactNode;
   containerClassName?: string;
@@ -28,6 +30,7 @@ export const FloatingInput = React.forwardRef<HTMLInputElement, FloatingInputPro
     {
       id,
       label,
+      requiredMark,
       helperText,
       errorText,
       containerClassName,
@@ -58,7 +61,6 @@ export const FloatingInput = React.forwardRef<HTMLInputElement, FloatingInputPro
             value={isControlled ? value : internalValue}
             defaultValue={isControlled ? undefined : defaultValue}
             placeholder=" "
-            aria-invalid={!!errorText || rest["aria-invalid"]}
             aria-describedby={
               [errorId, helperId].filter(Boolean).join(" ") || undefined
             }
@@ -70,17 +72,27 @@ export const FloatingInput = React.forwardRef<HTMLInputElement, FloatingInputPro
             }}
             className={cn("peer pt-5 pb-1", trailing && "pr-10", className)}
             {...rest}
+            aria-invalid={!!errorText || rest["aria-invalid"]}
+            aria-required={
+              requiredMark ? true : (rest["aria-required"] as boolean | undefined)
+            }
           />
           <label
             htmlFor={id}
             className={cn(
-              "pointer-events-none absolute left-4 top-1/2 -translate-y-1/2 origin-left text-sm text-muted-foreground transition-all",
+              "pointer-events-none absolute left-4 top-1/2 -translate-y-1/2 origin-left text-sm text-muted-foreground transition-[color,font-size,font-weight,letter-spacing,text-transform,top,transform] duration-150",
               "peer-focus:top-2 peer-focus:translate-y-0 peer-focus:text-[var(--fs-2xs)] peer-focus:font-semibold peer-focus:uppercase peer-focus:tracking-wide peer-focus:text-foreground",
               hasValue &&
                 "top-2 translate-y-0 text-[var(--fs-2xs)] font-semibold uppercase tracking-wide text-foreground",
             )}
           >
             {label}
+            {requiredMark ? (
+              <span aria-hidden className="text-destructive">
+                {" "}
+                *
+              </span>
+            ) : null}
           </label>
           {trailing ? (
             <div className="absolute right-0 top-0 flex h-full items-center pr-1">

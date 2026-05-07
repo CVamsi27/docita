@@ -120,7 +120,7 @@ export function WizardDialog({
                   key={step.id}
                   aria-current={isActive ? "step" : undefined}
                   className={cn(
-                    "h-1.5 rounded-full transition-all",
+                    "h-1.5 rounded-full transition-[background-color,width] duration-150",
                     isActive
                       ? "w-6 bg-foreground"
                       : isComplete

@@ -58,6 +58,20 @@ export function formatTime(
   return d.toLocaleTimeString(locale, options);
 }
 
+/** Shared 12-hour wall-clock format used by appointments + consultation rows ("2:30 PM"). */
+export const CLOCK_TIME_OPTIONS: Intl.DateTimeFormatOptions = {
+  hour: "numeric",
+  minute: "2-digit",
+  hour12: true,
+};
+
+export function formatClockTime(
+  date: Date | string,
+  locale: string = "en-IN",
+): string {
+  return formatTime(date, locale, CLOCK_TIME_OPTIONS);
+}
+
 export function formatDateTime(
   date: Date | string,
   locale: string = "en-IN",

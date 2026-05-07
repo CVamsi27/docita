@@ -29,7 +29,7 @@ import {
   SheetTrigger,
 } from "@workspace/ui/components/sheet";
 import { cn } from "@workspace/ui/lib/utils";
-import { formatDate, formatTime } from "@/lib/formatters";
+import { formatClockTime, formatDate } from "@/lib/formatters";
 import { humanizeUiLabel } from "@workspace/ui/lib/label-formatters";
 import { ConsultationTimerContainer } from "./ConsultationTimerContainer";
 import { BillingModal } from "./modals/BillingModal";
@@ -186,10 +186,7 @@ export function ConsultationPageHeaderUI({
                     day: "numeric",
                   })}{" "}
                   &middot;{" "}
-                  {formatTime(appointmentDate, "en-IN", {
-                    hour: "2-digit",
-                    minute: "2-digit",
-                  })}
+                  {formatClockTime(appointmentDate)}
                 </span>
                 {chiefComplaint && (
                   <span className="hidden md:inline truncate max-w-[150px] lg:max-w-[250px]">

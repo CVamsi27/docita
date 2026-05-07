@@ -48,6 +48,8 @@ export interface IsoDatePickerFieldProps {
   required?: boolean;
   /** Disable calendar days before today (local midnight). */
   disablePastDates?: boolean;
+  /** Shows an asterisk after the visible label (with `showLabel`). */
+  requiredMark?: boolean;
 }
 
 export function IsoDatePickerField({
@@ -63,6 +65,7 @@ export function IsoDatePickerField({
   triggerClassName,
   required,
   disablePastDates,
+  requiredMark,
 }: IsoDatePickerFieldProps) {
   const [open, setOpen] = useState(false);
   const [month, setMonth] = useState<Date>(() => parseIsoDateToLocalDate(value) ?? new Date());
@@ -82,6 +85,12 @@ export function IsoDatePickerField({
       {showLabel && label ? (
         <Label htmlFor={id} className={labelClassName}>
           {label}
+          {requiredMark ? (
+            <span aria-hidden className="text-destructive">
+              {" "}
+              *
+            </span>
+          ) : null}
         </Label>
       ) : null}
       <Popover open={open} onOpenChange={setOpen}>
@@ -91,7 +100,7 @@ export function IsoDatePickerField({
             type="button"
             variant="outline"
             disabled={disabled}
-            aria-required={required ? true : undefined}
+            aria-required={required || requiredMark ? true : undefined}
             className={cn(
               "h-10 w-full justify-start font-normal sm:w-72",
               !selected && "text-muted-foreground",

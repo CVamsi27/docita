@@ -19,6 +19,11 @@ export interface SupportContactProps {
   variant?: SupportContactVariant;
   /** Overrides default prefilled WhatsApp message. */
   whatsappMessage?: string;
+  /**
+   * Single dense row (email / call / WhatsApp) for narrow public surfaces — avoids multi-line
+   * marketing-style copy.
+   */
+  minimalLinks?: boolean;
 }
 
 export function SupportContact({
@@ -26,6 +31,7 @@ export function SupportContact({
   layout = "inline",
   variant = "compact",
   whatsappMessage = SUPPORT_WHATSAPP_MESSAGE_DEFAULT,
+  minimalLinks = false,
 }: SupportContactProps) {
   const supportPhone = getSupportPhoneNumber();
   const supportPhoneDigits = getPhoneDigits(supportPhone);
@@ -65,6 +71,17 @@ export function SupportContact({
     />
   ) : null;
 
+  const whatsappBlockDense = hasPhoneSupport ? (
+    <WhatsAppButton
+      phoneNumber={supportPhone}
+      message={whatsappMessage}
+      label="WhatsApp"
+      variant="outline"
+      size="sm"
+      className="h-7 shrink-0 gap-1 rounded-full px-2 py-0 text-[length:var(--fs-2xs)] [&_svg]:h-3 [&_svg]:w-3"
+    />
+  ) : null;
+
   if (isStack) {
     return (
       <div
@@ -85,6 +102,41 @@ export function SupportContact({
             </span>
             {whatsappBlock}
           </div>
+        ) : null}
+      </div>
+    );
+  }
+
+  if (minimalLinks) {
+    return (
+      <div
+        className={cn(
+          "flex flex-wrap items-center justify-center gap-x-2 gap-y-1 text-center text-[length:var(--fs-2xs)] leading-snug text-muted-foreground",
+          className,
+        )}
+      >
+        <span className="font-medium text-foreground/80">Help</span>
+        <a
+          href={`mailto:${SUPPORT_EMAIL}`}
+          className="underline underline-offset-2 transition-colors hover:text-foreground"
+        >
+          Email
+          <span className="sr-only">{` (${SUPPORT_EMAIL})`}</span>
+        </a>
+        {hasPhoneSupport ? (
+          <>
+            <span aria-hidden className="select-none text-muted-foreground/45">
+              ·
+            </span>
+            <a
+              href={`tel:+${supportPhoneDigits}`}
+              className="underline underline-offset-2 transition-colors hover:text-foreground"
+            >
+              Call
+              <span className="sr-only">{` ${supportPhoneDisplay}`}</span>
+            </a>
+            {whatsappBlockDense}
+          </>
         ) : null}
       </div>
     );
