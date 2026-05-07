@@ -31,7 +31,6 @@ import {
   clinicDateAndTimeToWallDatetimeLocal,
   clinicWallDatetimeLocalToUtcIso,
   DEFAULT_TIMEZONE,
-  formatClinicFriendlyDateTime,
   formatClinicPickerDayIsoFromSelection,
   formatDistanceToNow,
   formatScheduleTime,
@@ -338,10 +337,6 @@ function AppointmentRequestRow({
   const phone = patientPhone(request);
   const preferredDoctorLabel =
     request.preferredDoctor?.name?.trim() || null;
-  const arrivalClinic = formatClinicFriendlyDateTime(
-    request.createdAt,
-    clinicTimezone,
-  );
   const arrivalRelative = formatDistanceToNow(request.createdAt);
 
   const hasApproveFieldErrors = Boolean(
@@ -536,6 +531,7 @@ function AppointmentRequestRow({
               id={`apr-reject-reason-${request.id}`}
               size="sm"
               className="h-7 w-[13rem] px-2 text-[length:var(--fs-xs)]"
+              aria-label="Reject reason"
             >
               <SelectValue placeholder="Reject reason…" />
             </SelectTrigger>
@@ -551,6 +547,7 @@ function AppointmentRequestRow({
           {rejectReasonByRequest[request.id] === REJECT_REASON_CUSTOM ? (
             <Textarea
               id={`apr-reject-${request.id}`}
+              aria-label="Custom message"
               value={rejectCustomByRequest[request.id] ?? ""}
               onChange={(event) =>
                 setRejectCustomByRequest((prev) => ({

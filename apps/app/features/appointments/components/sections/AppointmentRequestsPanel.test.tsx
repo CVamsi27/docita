@@ -107,9 +107,9 @@ describe("AppointmentRequestsPanel", () => {
     render(<AppointmentRequestsPanel />);
 
     expect(screen.getByText("Asha Rao")).toBeInTheDocument();
-    expect(screen.getByText("Fever and cough")).toBeInTheDocument();
+    expect(screen.getByText(/Fever and cough/i)).toBeInTheDocument();
     expect(screen.getByText(/1 pending/)).toBeInTheDocument();
-    expect(screen.getByText(/10:00 AM/i)).toBeInTheDocument();
+    expect(screen.getAllByText(/9:30 AM/i).length).toBeGreaterThan(0);
 
     fireEvent.click(screen.getByRole("button", { name: /Approve/i }));
 
@@ -137,7 +137,7 @@ describe("AppointmentRequestsPanel", () => {
     );
     expect(appointmentMocks.rejectMutateAsync).not.toHaveBeenCalled();
 
-    fireEvent.click(screen.getByRole("combobox", { name: "Reason" }));
+    fireEvent.click(screen.getByRole("combobox", { name: "Reject reason" }));
     fireEvent.click(screen.getByRole("option", { name: /Custom message/i }));
     fireEvent.change(screen.getByLabelText("Custom message"), {
       target: { value: "  Please call the front desk for a safer slot.  " },
