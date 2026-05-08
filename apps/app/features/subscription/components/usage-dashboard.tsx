@@ -172,7 +172,7 @@ export function UsageDashboard() {
       </CardHeader>
       <CardContent className="space-y-5">
         {warningEntries.length > 0 && (
-          <div className="rounded-md border border-warning/40 bg-warning/10 px-3 py-2 text-xs text-warning-foreground">
+          <div className="surface-warning rounded-md px-3 py-2 text-xs">
             {warningEntries.some(([, warning]) => warning.threshold === 100)
               ? "You have reached 100% of one or more limits. You can continue using the app; overage will be billed at cycle close."
               : "You are above 80% of one or more limits. Consider upgrading to avoid overage charges this cycle."}
