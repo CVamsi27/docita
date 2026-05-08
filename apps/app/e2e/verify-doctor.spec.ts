@@ -163,7 +163,7 @@ async function createDoctorWithSignature(
   request: import("@playwright/test").APIRequestContext,
   options: { uploadDoctorSignature?: boolean } = {},
 ) {
-  const uploadDoctorSignature = options.uploadDoctorSignature ?? true;
+  const uploadDoctorSignature = options.uploadDoctorSignature ?? false;
   const uniqueId = randomUUID();
   const email = `doctor-verify-${uniqueId}@test.com`;
   const clinicName = `Verify Clinic ${uniqueId}`;
@@ -310,12 +310,16 @@ async function createDoctorWithSignature(
         adminAccount: {
           name: "Verify Doctor",
           email,
+          password: TEST_PASSWORD,
           role: "ADMIN_DOCTOR",
         },
         planSelection: {
-          tier: "STARTER",
+          tier: "ESSENTIAL",
           billingCycle: "MONTHLY",
           currency: "INR",
+        },
+        paymentDetails: {
+          skipPayment: true,
         },
         slaAgreement: {
           acceptedSLA: true,
@@ -337,6 +341,11 @@ async function createDoctorWithSignature(
   );
   expect(completeRes.ok()).toBeTruthy();
   const completeData = asRecord(await completeRes.json());
+  if (completeData.success !== true) {
+    throw new Error(
+      `Onboarding completion failed: ${JSON.stringify(completeData)}`,
+    );
+  }
   accessToken = readAccessToken(completeData) ?? accessToken;
 
   const loginRes = await request.post(`${API_URL}/auth/login`, {
@@ -415,11 +424,19 @@ async function createDoctorWithSignature(
 }
 
 test.describe("Doctor Verification Flow", () => {
+  let sharedDoctor: Awaited<ReturnType<typeof createDoctorWithSignature>>;
+
+  test.beforeAll(async ({ request }) => {
+    sharedDoctor = await createDoctorWithSignature(request, {
+      uploadDoctorSignature: false,
+    });
+  });
+
   test("redirects to verify-doctor and then continues to dashboard after registration save", async ({
     page,
     request,
   }) => {
-    const doctor = await createDoctorWithSignature(request);
+    const doctor = sharedDoctor;
 
     await addAuthCookies(page, doctor);
     await page.context().addInitScript(
@@ -529,9 +546,7 @@ test.describe("Doctor Verification Flow", () => {
   test("lets admin doctors reuse the onboarding signature during verification", async ({
     request,
   }) => {
-    const doctor = await createDoctorWithSignature(request, {
-      uploadDoctorSignature: false,
-    });
+    const doctor = sharedDoctor;
 
     const registrationNumber = `REG-${Date.now()}`;
     const updateRes = await request.put(
