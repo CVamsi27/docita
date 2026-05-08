@@ -53,6 +53,11 @@ const sidebarItems = [
     icon: CreditCard,
   },
   {
+    title: "Enterprise Contracts",
+    href: "/enterprise-contracts",
+    icon: FileText,
+  },
+  {
     title: "Analytics",
     href: "/analytics",
     icon: BarChart3,
