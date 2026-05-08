@@ -163,9 +163,18 @@ export function ComparisonTable({
   currentTier,
   keyFeaturesOnly,
 }: ComparisonTableProps) {
-  const tiers = Object.values(Tier)
-    .filter((t): t is number => typeof t === "number" && t !== Tier.INTELLIGENCE)
-    .sort((a, b) => a - b);
+  // Sort by the published upgrade ladder, NOT the raw enum values. The
+  // numeric Tier enum is for cumulative feature-access comparisons; UI
+  // should always render columns in the order customers see in marketing.
+  const PUBLISHED_LADDER: Tier[] = [
+    Tier.STARTER,
+    Tier.FRONT_DESK,
+    Tier.ESSENTIAL,
+    Tier.PROFESSIONAL,
+    Tier.HOSPITAL,
+    Tier.ENTERPRISE,
+  ];
+  const tiers = PUBLISHED_LADDER;
 
   const limitRows = useMemo(
     () =>

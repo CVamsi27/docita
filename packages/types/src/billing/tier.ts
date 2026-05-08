@@ -15,12 +15,13 @@ export enum Tier {
   STARTER = 0,
   ESSENTIAL = 1,
   PROFESSIONAL = 2,
-  ENTERPRISE = 3,
-  INTELLIGENCE = 4,
+  /** Multi-doctor multi-branch hospital SKU; ranked between Professional and Enterprise so any feature gated to ENTERPRISE remains gated to HOSPITAL too. */
+  HOSPITAL = 3,
+  ENTERPRISE = 4,
+  /** Add-on, not a billed tier. Checked separately via the intelligence flag, never via raw `>=` comparison. */
+  INTELLIGENCE = 5,
   /** Billed SKU; feature gating uses {@link hasFeatureAccess} / {@link FRONT_DESK_BLOCKED_FEATURES}, not raw `>=`. */
-  FRONT_DESK = 5,
-  /** Multi-doctor multi-branch hospital SKU; positioned between Professional and Enterprise on rank, but feature access uses {@link hasFeatureAccess}. */
-  HOSPITAL = 6,
+  FRONT_DESK = 6,
 }
 
 export enum Feature {
