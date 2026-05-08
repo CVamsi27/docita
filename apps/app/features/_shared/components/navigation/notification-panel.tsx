@@ -20,7 +20,8 @@ import {
   TabsList,
   TabsTrigger,
 } from "@workspace/ui/components/tabs";
-import { BellIcon, CheckIcon, TrashIcon, XIcon } from "lucide-react";
+import Link from "next/link";
+import { BellIcon, CheckIcon, ExternalLinkIcon, TrashIcon, XIcon } from "lucide-react";
 import { cn } from "@workspace/ui/lib/utils";
 import { PriorityBadge } from "@workspace/ui/components/status-badge";
 import { formatTime, isToday, isYesterday } from "@workspace/utils";
@@ -354,11 +355,22 @@ export function NotificationPanel({
 
         <ScrollArea className="h-[calc(100vh-8rem)] pr-4">
           {activeNotifications.length === 0 ? (
-            <div className="flex flex-col items-center justify-center py-12 text-center">
-              <BellIcon className="mb-4 h-12 w-12 text-muted-foreground" />
+            <div className="flex flex-col items-center justify-center gap-3 py-12 text-center">
+              <BellIcon className="h-12 w-12 text-muted-foreground" />
               <p className="text-sm text-muted-foreground">
-                No notifications yet
+                You&apos;re all caught up
               </p>
+              <Button
+                asChild
+                variant="outline"
+                size="sm"
+                onClick={() => handleOpenChange(false)}
+              >
+                <Link href="/inbox?tab=notifications">
+                  <ExternalLinkIcon className="mr-2 h-4 w-4" />
+                  View notification history
+                </Link>
+              </Button>
             </div>
           ) : (
             <div className="space-y-4">
@@ -498,6 +510,21 @@ export function NotificationPanel({
                     );
                   })}
                 </Tabs>
+              </div>
+
+              <div className="px-4 pb-4">
+                <Button
+                  asChild
+                  variant="ghost"
+                  size="sm"
+                  className="w-full"
+                  onClick={() => handleOpenChange(false)}
+                >
+                  <Link href="/inbox?tab=notifications">
+                    <ExternalLinkIcon className="mr-2 h-4 w-4" />
+                    View all in inbox
+                  </Link>
+                </Button>
               </div>
             </div>
           )}

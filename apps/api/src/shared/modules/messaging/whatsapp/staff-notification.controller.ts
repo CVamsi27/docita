@@ -38,6 +38,18 @@ export class StaffNotificationController {
     return this.notificationService.getUnreadNotifications(req.user!.id, limit);
   }
 
+  @Get('all')
+  async getAllNotifications(
+    @Req() req: RequestWithUser,
+    @Query('limit') limit?: number,
+    @Query('offset') offset?: number,
+  ) {
+    return this.notificationService.getAllNotifications(req.user!.id, {
+      limit: limit ? Number(limit) : undefined,
+      offset: offset ? Number(offset) : undefined,
+    });
+  }
+
   @Get('unread-count')
   async getUnreadCount(@Req() req: RequestWithUser) {
     const count = await this.notificationService.getUnreadCount(req.user!.id);
