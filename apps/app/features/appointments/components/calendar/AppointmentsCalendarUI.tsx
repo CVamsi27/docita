@@ -59,25 +59,29 @@ export function AppointmentsCalendarUI({
 
   const hasAnyMonthIndicators = appointmentCountsByDay.size > 0;
 
+  const headlineDate = formatDate(selectedDate, "EEEE");
+  const headlineSub = formatDate(selectedDate, "d MMM yyyy");
+
   return (
-    <Card className="h-fit overflow-hidden border-border/60 bg-card/95 shadow-sm">
-      <CardHeader className="space-y-3 border-b border-border/60 px-5 py-4">
-        <div className="flex flex-wrap items-start justify-between gap-x-3 gap-y-2">
+    <Card className="h-fit overflow-hidden border-border/60 bg-card shadow-sm">
+      <CardHeader className="space-y-3 border-b border-border/60 px-4 py-3.5">
+        <div className="flex items-center justify-between gap-3">
           <div className="min-w-0">
-            <p className="text-xs font-medium uppercase tracking-wide text-muted-foreground">
-              Selected date
-            </p>
-            <CardTitle className="mt-1 truncate text-xl font-semibold tracking-tight">
-              {formatDate(selectedDate, "EEE, d MMM yyyy")}
+            <CardTitle className="truncate text-lg font-semibold leading-tight tracking-tight">
+              {headlineDate}
             </CardTitle>
+            <p className="mt-0.5 truncate text-xs tabular-nums text-muted-foreground">
+              {headlineSub}
+            </p>
           </div>
           <Button
             type="button"
-            variant="outline"
+            variant={isTodaySelected ? "secondary" : "outline"}
             size="sm"
             className="h-8 shrink-0 px-3"
             onClick={() => onDateSelect(new Date())}
             disabled={isTodaySelected}
+            aria-label="Jump to today"
           >
             Today
           </Button>
@@ -90,11 +94,14 @@ export function AppointmentsCalendarUI({
               onDoctorSelect(value === "all" ? undefined : value)
             }
           >
-            <SelectTrigger className="h-9 w-full text-sm">
+            <SelectTrigger
+              className="h-9 w-full text-sm"
+              aria-label="Filter by doctor"
+            >
               <SelectValue placeholder="Doctor" />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="all">All Doctors</SelectItem>
+              <SelectItem value="all">All doctors</SelectItem>
               {doctorsList.map((doctor) => (
                 <SelectItem key={doctor.id} value={doctor.id}>
                   Dr. {doctor.name}
@@ -105,8 +112,8 @@ export function AppointmentsCalendarUI({
         )}
       </CardHeader>
 
-      <CardContent className="space-y-5 p-0 pb-2">
-        <div className="border-b border-border/40 pt-4">
+      <CardContent className="p-0">
+        <div className="px-2 py-3">
           <Calendar
             mode="single"
             required
@@ -114,6 +121,7 @@ export function AppointmentsCalendarUI({
             onMonthChange={onCalendarMonthChange}
             selected={selectedDate}
             onSelect={onDateSelect}
+            aria-label="Appointment calendar"
             modifiers={{
               hasAppointments: (day) =>
                 (appointmentCountsByDay.get(
@@ -122,22 +130,22 @@ export function AppointmentsCalendarUI({
             }}
             modifiersClassNames={{
               hasAppointments:
-                "relative after:pointer-events-none after:absolute after:top-0.5 after:end-0.5 after:z-20 after:size-2 after:rounded-full after:bg-primary after:ring-2 after:ring-background after:content-[''] aria-selected:after:bg-primary-foreground",
+                "relative after:pointer-events-none after:absolute after:bottom-1 after:left-1/2 after:-translate-x-1/2 after:z-20 after:h-1 after:w-1 after:rounded-full after:bg-primary after:content-[''] aria-selected:after:bg-primary-foreground",
             }}
             captionLayout="dropdown"
-            className="w-full max-w-full bg-transparent p-0 [--cell-size:--spacing(8)] [&_[data-day]]:!size-auto [&_[data-day]]:!min-h-0 [&_[data-day]]:!min-w-0 [&_[data-day]]:!h-full [&_[data-day]]:!w-full [&_table]:w-full [&_td]:p-0.5"
+            className="w-full max-w-full bg-transparent p-0 [--cell-size:--spacing(9)] [&_[data-day]]:!size-auto [&_[data-day]]:!min-h-0 [&_[data-day]]:!min-w-0 [&_[data-day]]:!h-full [&_[data-day]]:!w-full [&_[data-day]]:tabular-nums [&_table]:w-full [&_td]:p-0.5"
             classNames={{ root: "w-full max-w-full" }}
           />
         </div>
         {hasAnyMonthIndicators ? (
-          <div className="flex items-center gap-2 text-xs text-muted-foreground">
+          <div className="flex items-center gap-2 border-t border-border/40 px-4 py-2.5 text-xs text-muted-foreground">
             <span
-              className="relative inline-block size-6 shrink-0 rounded-md border border-border/70 bg-muted/30"
+              className="inline-flex size-5 shrink-0 items-center justify-center rounded-md border border-border/60 bg-muted/40"
               aria-hidden
             >
-              <span className="absolute top-0.5 end-0.5 size-2 rounded-full bg-primary ring-2 ring-background" />
+              <span className="size-1 rounded-full bg-primary" />
             </span>
-            <span>Day has scheduled appointments</span>
+            <span>Has appointments</span>
           </div>
         ) : null}
       </CardContent>

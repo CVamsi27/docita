@@ -111,7 +111,7 @@ describe("AppointmentRequestsPanel", () => {
     expect(screen.getByText(/1 pending/)).toBeInTheDocument();
     expect(screen.getAllByText(/9:30 AM/i).length).toBeGreaterThan(0);
 
-    fireEvent.click(screen.getByRole("button", { name: /Approve/i }));
+    fireEvent.click(screen.getByRole("button", { name: /Approve at/i }));
 
     await waitFor(() => {
       expect(appointmentMocks.approveMutateAsync).toHaveBeenCalledWith(
@@ -126,23 +126,22 @@ describe("AppointmentRequestsPanel", () => {
     expect(appointmentMocks.rejectMutateAsync).not.toHaveBeenCalled();
   });
 
-  it("requires a rejection response before rejecting and submits trimmed text", async () => {
+  it("disables submit until a reject reason is provided and submits trimmed text", async () => {
     render(<AppointmentRequestsPanel />);
 
-    fireEvent.click(screen.getByRole("button", { name: /Reject/i }));
-    expect(appointmentMocks.showError).toHaveBeenCalledWith(
-      null,
-      "Enter a response before rejecting this request.",
-      "generic",
-    );
+    fireEvent.click(screen.getByRole("button", { name: "Reject" }));
+    const submitButton = screen.getByRole("button", {
+      name: /Reject request/i,
+    });
+    expect(submitButton).toBeDisabled();
     expect(appointmentMocks.rejectMutateAsync).not.toHaveBeenCalled();
 
-    fireEvent.click(screen.getByRole("combobox", { name: "Reject reason" }));
+    fireEvent.click(screen.getByRole("combobox", { name: /Reason/i }));
     fireEvent.click(screen.getByRole("option", { name: /Custom message/i }));
-    fireEvent.change(screen.getByLabelText("Custom message"), {
+    fireEvent.change(screen.getByLabelText(/Message for patient/i), {
       target: { value: "  Please call the front desk for a safer slot.  " },
     });
-    fireEvent.click(screen.getByRole("button", { name: /Reject/i }));
+    fireEvent.click(screen.getByRole("button", { name: /Reject request/i }));
 
     await waitFor(() => {
       expect(appointmentMocks.rejectMutateAsync).toHaveBeenCalledWith({
@@ -161,7 +160,7 @@ describe("AppointmentRequestsPanel", () => {
 
     render(<AppointmentRequestsPanel />);
 
-    fireEvent.click(screen.getByRole("button", { name: /Approve/i }));
+    fireEvent.click(screen.getByRole("button", { name: /Approve at/i }));
 
     await waitFor(() => {
       expect(
