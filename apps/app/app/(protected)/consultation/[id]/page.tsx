@@ -26,8 +26,17 @@ import { useQueryClient } from "@tanstack/react-query";
 import { useSendPrescriptionWhatsApp } from "@/hooks/api/use-whatsapp";
 import { usePermissionStore } from "@/lib/stores/permission-store";
 import { Feature } from "@workspace/types";
+import { FeatureGate } from "@/features/_shared/components/auth/feature-gate";
 
 export default function ConsultationPage() {
+  return (
+    <FeatureGate feature={Feature.CALENDAR_SLOTS} showLockedCard>
+      <ConsultationPageContent />
+    </FeatureGate>
+  );
+}
+
+function ConsultationPageContent() {
   const params = useParams();
   const router = useRouter();
   const appointmentId = params["id"] as string;

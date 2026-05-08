@@ -1315,10 +1315,12 @@ export const FEATURE_DISPLAY: Record<Feature, FeatureDisplay> = {
   [Feature.INSURANCE_BILLING]: {
     name: "Insurance Billing",
     description: "Insurance claim management",
+    availability: "PLANNED",
   },
   [Feature.DIGITAL_INTAKE_FORMS]: {
     name: "Digital Intake Forms",
     description: "Patient intake forms online",
+    availability: "PLANNED",
   },
   [Feature.BROADCAST_CAMPAIGNS]: {
     name: "Broadcast Campaigns",
@@ -1465,11 +1467,11 @@ export const TIER_FEATURES: Record<TierName, string[]> = {
     "Queue management",
     "Advanced analytics & reporting",
     "ICD-10/CPT medical coding",
-    "Digital intake forms",
+    "Digital intake forms (planned)",
     "Audit logs & compliance",
     "Prescription templates & doctor signature",
     "Automated reminders & payment links",
-    "Insurance billing",
+    "Insurance billing (planned)",
     "Leave management",
   ],
   PROFESSIONAL: [
