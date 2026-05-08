@@ -1,6 +1,6 @@
 import { Module } from '@nestjs/common';
 import { APP_GUARD, APP_INTERCEPTOR } from '@nestjs/core';
-import { ThrottlerModule, ThrottlerGuard } from '@nestjs/throttler';
+import { ThrottlerModule } from '@nestjs/throttler';
 import { LoggerModule } from 'nestjs-pino';
 import { SentryModule } from '@sentry/nestjs/setup';
 import { PrometheusModule } from '@willsoto/nestjs-prometheus';
@@ -57,6 +57,7 @@ import { SubscriptionStatusGuard } from './shared/modules/auth/guards/subscripti
 import { PasswordExpiredGuard } from './shared/modules/auth/guards/password-expired.guard';
 import { EmailVerifiedGuard } from './shared/modules/auth/guards/email-verified.guard';
 import { UserRateLimitGuard } from './shared/modules/auth/guards/user-rate-limit.guard';
+import { E2EThrottlerGuard } from './shared/modules/auth/guards/e2e-throttler.guard';
 import { CsrfInterceptor } from './shared/modules/interceptors/csrf.interceptor';
 import { RateLimitInterceptor } from './common/interceptors/rate-limit.interceptor';
 import { TimeoutInterceptor } from './shared/modules/interceptors/timeout.interceptor';
@@ -189,7 +190,7 @@ import { PublicBookingModule } from './domains/public-booking/public-booking.mod
 
     {
       provide: APP_GUARD,
-      useClass: ThrottlerGuard,
+      useClass: E2EThrottlerGuard,
     },
     {
       provide: APP_GUARD,
