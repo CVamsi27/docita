@@ -15,6 +15,17 @@ interface UsageData {
   usage: Record<string, { current: number; included: number; overage: number }>;
   tier: ClinicTier;
   currency?: string;
+  /**
+   * Per-clinic override rates (cents per unit). When present, these shadow the
+   * tier defaults — used for Enterprise contracts where rates are negotiated
+   * per customer.
+   */
+  rateOverridesCents?: {
+    consultation?: number;
+    user?: number;
+    whatsapp?: number;
+    storage?: number;
+  };
 }
 
 interface OverageBreakdown {
@@ -67,42 +78,53 @@ export class OverageCalculationService {
             .overageRate
         : 0;
     const canUseTierPricingTable = tierPricing && resolvedCurrency === 'INR';
+    const overrides = usageData.rateOverridesCents ?? {};
 
-    if (canUseTierPricingTable) {
-      this.addOverage(
-        breakdown,
-        'consultations',
-        usageData.usage.consultations?.overage || 0,
-        tierPricing!.overageAppointmentCents,
-      );
-      this.addOverage(
-        breakdown,
-        'users',
-        usageData.usage.users?.overage || 0,
-        tierPricing!.overageUserCents,
-      );
-    } else {
-      this.addOverage(
-        breakdown,
-        'consultations',
-        usageData.usage.consultations?.overage || 0,
-        baseRates.appointmentRate * 100,
-      );
-      this.addOverage(
-        breakdown,
-        'users',
-        usageData.usage.users?.overage || 0,
-        baseRates.userRate * 100,
-      );
-    }
+    const consultationRateCents =
+      overrides.consultation ??
+      (canUseTierPricingTable
+        ? tierPricing!.overageAppointmentCents
+        : baseRates.appointmentRate * 100);
+
+    const userRateCents =
+      overrides.user ??
+      (canUseTierPricingTable
+        ? tierPricing!.overageUserCents
+        : baseRates.userRate * 100);
+
+    this.addOverage(
+      breakdown,
+      'consultations',
+      usageData.usage.consultations?.overage || 0,
+      consultationRateCents,
+    );
+    this.addOverage(
+      breakdown,
+      'users',
+      usageData.usage.users?.overage || 0,
+      userRateCents,
+    );
 
     const whatsappUsage = usageData.usage.whatsappMessages;
-    if (whatsappUsage && whatsappUsage.overage > 0 && whatsappRate > 0) {
+    const whatsappRateCents =
+      overrides.whatsapp ?? (whatsappRate > 0 ? whatsappRate * 100 : 0);
+    if (whatsappUsage && whatsappUsage.overage > 0 && whatsappRateCents > 0) {
       this.addOverage(
         breakdown,
         'whatsappMessages',
         whatsappUsage.overage,
-        whatsappRate * 100,
+        whatsappRateCents,
+      );
+    }
+
+    const storageUsage = usageData.usage.storageGB;
+    const storageRateCents = overrides.storage ?? 0;
+    if (storageUsage && storageUsage.overage > 0 && storageRateCents > 0) {
+      this.addOverage(
+        breakdown,
+        'storageGB',
+        storageUsage.overage,
+        storageRateCents,
       );
     }
 

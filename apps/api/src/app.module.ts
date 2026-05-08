@@ -29,6 +29,7 @@ import { join } from 'path';
 import { WhatsAppModule } from './domains/whatsapp/whatsapp.module';
 import { InternalModule } from './shared/modules/internal/internal.module';
 import { SubscriptionsModule } from './domains/subscriptions/subscriptions.module';
+import { EnterpriseContractsModule } from './domains/enterprise-contracts/enterprise-contracts.module';
 import { PrescriptionTemplatesModule } from './domains/prescriptions/prescription-templates/prescription-templates.module';
 import { ClinicalModule } from './domains/clinical/clinical.module';
 import { AppConfigModule } from './shared/modules/config/config.module';
@@ -164,6 +165,7 @@ import { PublicBookingModule } from './domains/public-booking/public-booking.mod
     InternalModule,
     PaymentsModule,
     SubscriptionsModule,
+    EnterpriseContractsModule,
     BillingModule,
     PrescriptionTemplatesModule,
     ClinicalModule,

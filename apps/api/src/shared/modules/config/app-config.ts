@@ -103,6 +103,15 @@ export const EnvSchema = z.object({
     .default(5_000_000),
   RLS_ENABLED: z.coerce.boolean().default(false),
   TURNSTILE_SECRET_KEY: z.string().min(1).optional(),
+  /**
+   * Comma-separated list of email addresses allowed to authenticate as
+   * Role.INTERNAL. Empty/unset = allow any user with the INTERNAL role
+   * (legacy behaviour). Recommended in production: lock down to the
+   * Docita owner/team.
+   */
+  INTERNAL_ALLOWED_EMAILS: z
+    .string()
+    .default('admin@docita.work,vkc@docita.work'),
 });
 
 export type EnvConfig = z.infer<typeof EnvSchema>;

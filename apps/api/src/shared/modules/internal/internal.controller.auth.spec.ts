@@ -100,11 +100,19 @@ describe('InternalController - Authorization', () => {
     }).compile();
 
     controller = module.get<InternalController>(InternalController);
-    rolesGuard = new RolesGuard(module.get<Reflector>(Reflector));
+    rolesGuard = new RolesGuard(module.get<Reflector>(Reflector), {
+      getInternalAllowedEmails: () => [],
+    } as never);
   });
 
   const createMockExecutionContext = (userRole: Role): ExecutionContext => {
-    const request = { user: { role: userRole, clinicId: 'clinic-123' } };
+    const request = {
+      user: {
+        role: userRole,
+        clinicId: 'clinic-123',
+        email: 'admin@docita.work',
+      },
+    };
     const context = new ExecutionContextHost(
       [request, undefined, undefined],
       InternalController,
