@@ -198,17 +198,15 @@ async function bootstrap() {
 
   const apiUrl = appConfigService.getApiUrl();
 
-  const swaggerCdnSrc = isDevelopment() ? ['https://cdn.jsdelivr.net'] : [];
-
   app.use(
     helmet({
       contentSecurityPolicy: {
         directives: {
           defaultSrc: ["'self'"],
-          scriptSrc: ["'self'", "'unsafe-inline'", ...swaggerCdnSrc],
-          styleSrc: ["'self'", "'unsafe-inline'", ...swaggerCdnSrc],
+          scriptSrc: ["'self'"],
+          styleSrc: ["'self'"],
           imgSrc: ["'self'", 'data:', 'https:'],
-          fontSrc: ["'self'", 'data:', ...swaggerCdnSrc],
+          fontSrc: ["'self'", 'data:'],
           connectSrc: ["'self'", apiUrl],
           frameSrc: ["'none'"],
           objectSrc: ["'none'"],
@@ -226,6 +224,30 @@ async function bootstrap() {
       crossOriginResourcePolicy: { policy: 'cross-origin' },
     }),
   );
+
+  if (isDevelopment()) {
+    app.use(
+      '/docs',
+      helmet({
+        contentSecurityPolicy: {
+          directives: {
+            defaultSrc: ["'self'"],
+            scriptSrc: [
+              "'self'",
+              "'unsafe-inline'",
+              'https://cdn.jsdelivr.net',
+            ],
+            styleSrc: ["'self'", "'unsafe-inline'", 'https://cdn.jsdelivr.net'],
+            imgSrc: ["'self'", 'data:', 'https:'],
+            fontSrc: ["'self'", 'data:', 'https://cdn.jsdelivr.net'],
+            connectSrc: ["'self'", apiUrl],
+            frameSrc: ["'none'"],
+            objectSrc: ["'none'"],
+          },
+        },
+      }),
+    );
+  }
 
   app.use(cookieParser());
 

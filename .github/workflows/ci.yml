@@ -395,7 +395,7 @@ jobs:
   app-bundle-analysis:
     name: App Bundle Analysis
     needs: changes
-    if: github.event_name == 'push' && github.ref == 'refs/heads/main' && needs.changes.outputs.app == 'true'
+    if: needs.changes.outputs.app == 'true'
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v5
@@ -414,14 +414,32 @@ jobs:
       - name: Install dependencies
         run: pnpm install --frozen-lockfile
 
+      - name: Restore perf baseline from prior main runs
+        if: github.event_name == 'pull_request'
+        uses: actions/cache/restore@v4
+        with:
+          path: logs/performance/baseline.json
+          key: perf-baseline-${{ github.sha }}
+          restore-keys: |
+            perf-baseline-
+
       - name: Analyze app bundle
         env:
           ANALYZE: "true"
           NEXT_TELEMETRY_DISABLED: 1
         run: pnpm --filter @docita/app run build:analyze
 
-      - name: Capture perf baseline
+      - name: Enforce perf budget against prior baseline
+        if: github.event_name == 'pull_request'
+        run: pnpm perf:budget:enforce
+
+      - name: Capture and persist perf baseline
+        if: github.event_name == 'push' && github.ref == 'refs/heads/main'
         run: pnpm perf:baseline
 
-      - name: Enforce perf budget
-        run: pnpm perf:budget:enforce
+      - name: Save perf baseline cache
+        if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+        uses: actions/cache/save@v4
+        with:
+          path: logs/performance/baseline.json
+          key: perf-baseline-${{ github.sha }}
