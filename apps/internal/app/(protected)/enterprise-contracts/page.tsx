@@ -240,7 +240,7 @@ export default function EnterpriseContractsPage() {
       const list = await enterpriseContractsAPI.list();
       setRows(list);
     } catch (e) {
-      setError((e as Error).message ?? "Failed to load");
+      setError("We couldn’t load enterprise contracts. Please try again.");
     } finally {
       setLoading(false);
       setRefreshing(false);
@@ -313,7 +313,7 @@ export default function EnterpriseContractsPage() {
       setEditorOpen(false);
       await load();
     } catch (e) {
-      setError((e as Error).message ?? "Failed to save");
+      setError("We couldn’t save the contract. Please try again.");
     } finally {
       setBusy(false);
     }
@@ -327,7 +327,7 @@ export default function EnterpriseContractsPage() {
       const est = await enterpriseContractsAPI.estimate(contractId);
       setEstimate(est);
     } catch (e) {
-      setError((e as Error).message ?? "Failed to load estimate");
+      setError("We couldn’t load the estimate. Please try again.");
     } finally {
       setEstimateLoading(false);
     }
@@ -340,7 +340,7 @@ export default function EnterpriseContractsPage() {
       const list = await enterpriseContractsAPI.listRevisions(contractId);
       setRevisions(list);
     } catch (e) {
-      setError((e as Error).message ?? "Failed to load revisions");
+      setError("We couldn’t load revisions. Please try again.");
     }
   };
 
@@ -363,7 +363,7 @@ export default function EnterpriseContractsPage() {
       setNewMemberClinicId("");
       await load();
     } catch (e) {
-      setError((e as Error).message ?? "Failed to add member");
+      setError("We couldn’t add that clinic. Please try again.");
     } finally {
       setBusy(false);
     }
@@ -385,7 +385,7 @@ export default function EnterpriseContractsPage() {
       setActiveContract(updated);
       await load();
     } catch (e) {
-      setError((e as Error).message ?? "Failed to remove member");
+      setError("We couldn’t remove that clinic. Please try again.");
     } finally {
       setBusy(false);
     }
@@ -408,7 +408,7 @@ export default function EnterpriseContractsPage() {
       );
       await load();
     } catch (e) {
-      setError((e as Error).message ?? "Failed to generate prepay invoice");
+      setError("We couldn’t generate the prepay invoice. Please try again.");
     } finally {
       setBusy(false);
     }
@@ -421,7 +421,7 @@ export default function EnterpriseContractsPage() {
       const list = await enterpriseContractsAPI.listInvoices(contractId);
       setInvoices(list);
     } catch (e) {
-      setError((e as Error).message ?? "Failed to load invoices");
+      setError("We couldn’t load invoices. Please try again.");
     }
   };
 
@@ -437,7 +437,7 @@ export default function EnterpriseContractsPage() {
       );
       await load();
     } catch (e) {
-      setError((e as Error).message ?? "Failed to evaluate true-up");
+      setError("We couldn’t evaluate true-up. Please try again.");
     } finally {
       setBusy(false);
     }
@@ -450,7 +450,7 @@ export default function EnterpriseContractsPage() {
       const list = await enterpriseContractsAPI.listTrueUpAlerts(contractId);
       setAlerts(list);
     } catch (e) {
-      setError((e as Error).message ?? "Failed to load alerts");
+      setError("We couldn’t load alerts. Please try again.");
     }
   };
 
