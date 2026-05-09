@@ -17,6 +17,10 @@ function canAccessFeatureFactory(tier: Tier) {
   };
 }
 
+function canAccessTierFactory(currentTier: Tier) {
+  return (tier: Tier): boolean => currentTier >= tier;
+}
+
 describe("canAccessTarget matrix parity (role x tier x target)", () => {
   const cases: Array<{
     name: string;
@@ -77,6 +81,41 @@ describe("canAccessTarget matrix parity (role x tier x target)", () => {
       expectAllowed: true,
       workspaceProfile: "FRONT_DESK",
     },
+    {
+      name: "Desk floor denied on Essential for receptionist (tier-gated)",
+      role: "RECEPTIONIST",
+      tier: Tier.ESSENTIAL,
+      target: APP_ACCESS_TARGETS.PAGE_DESK_FLOOR,
+      expectAllowed: false,
+    },
+    {
+      name: "Desk floor denied on Professional for receptionist (tier-gated)",
+      role: "RECEPTIONIST",
+      tier: Tier.PROFESSIONAL,
+      target: APP_ACCESS_TARGETS.PAGE_DESK_FLOOR,
+      expectAllowed: false,
+    },
+    {
+      name: "Desk floor allowed on Enterprise for receptionist",
+      role: "RECEPTIONIST",
+      tier: Tier.ENTERPRISE,
+      target: APP_ACCESS_TARGETS.PAGE_DESK_FLOOR,
+      expectAllowed: true,
+    },
+    {
+      name: "Desk floor allowed on Hospital for admin",
+      role: "ADMIN",
+      tier: Tier.HOSPITAL,
+      target: APP_ACCESS_TARGETS.PAGE_DESK_FLOOR,
+      expectAllowed: true,
+    },
+    {
+      name: "Desk floor denied on Enterprise for nurse (role-gated)",
+      role: "NURSE",
+      tier: Tier.ENTERPRISE,
+      target: APP_ACCESS_TARGETS.PAGE_DESK_FLOOR,
+      expectAllowed: false,
+    },
   ];
 
   for (const { name, role, tier, target, expectAllowed, workspaceProfile } of cases) {
@@ -86,6 +125,7 @@ describe("canAccessTarget matrix parity (role x tier x target)", () => {
         {
           role,
           canAccessFeature: canAccessFeatureFactory(tier),
+          canAccessTier: canAccessTierFactory(tier),
           workspaceProfile,
         },
         "read",

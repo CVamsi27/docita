@@ -153,6 +153,9 @@ export const APP_ACCESS_TARGETS = {
   PAGE_INVOICES: "page.invoices",
   /** Front-desk cash / POS / UPI recording (not payment links or subscription billing). */
   PAGE_DESK_PAYMENT: "page.desk-payment",
+  /** Live OPD floor panel for the front desk: now-serving token, queue, recently completed.
+      Multi-doctor/multi-branch readout — gated to Hospital/Enterprise. */
+  PAGE_DESK_FLOOR: "page.desk-floor",
   PAGE_INVENTORY: "page.inventory",
   PAGE_DOCUMENTS: "page.documents",
   PAGE_ANALYTICS: "page.analytics",
@@ -263,6 +266,11 @@ export const APP_ACCESS_MATRIX: Record<AppAccessTarget, AccessPolicy> = {
   [APP_ACCESS_TARGETS.PAGE_DESK_PAYMENT]: {
     read: { roles: ["ADMIN", "ADMIN_DOCTOR", "DOCTOR", "RECEPTIONIST"] },
     feature: Feature.INVOICING,
+  },
+  [APP_ACCESS_TARGETS.PAGE_DESK_FLOOR]: {
+    read: { roles: ["ADMIN", "ADMIN_DOCTOR", "DOCTOR", "RECEPTIONIST"] },
+    feature: Feature.QUEUE_MANAGEMENT,
+    tier: Tier.ENTERPRISE,
   },
   [APP_ACCESS_TARGETS.PAGE_INVENTORY]: {
     read: { roles: ["ADMIN", "ADMIN_DOCTOR", "DOCTOR", "RECEPTIONIST"] },
