@@ -88,7 +88,6 @@ export const FRONT_DESK_BLOCKED_FEATURES: ReadonlySet<Feature> = new Set([
   Feature.DOCTOR_SIGNATURE,
   Feature.MEDICAL_CODING,
   Feature.LEAVE_MANAGEMENT,
-  Feature.LAB_TESTS,
   Feature.INVENTORY,
   Feature.INSURANCE_BILLING,
   Feature.OCR_ADVANCED,

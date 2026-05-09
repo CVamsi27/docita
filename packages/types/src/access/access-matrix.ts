@@ -256,7 +256,9 @@ export const APP_ACCESS_MATRIX: Record<AppAccessTarget, AccessPolicy> = {
     feature: Feature.DIGITAL_PRESCRIPTIONS,
   },
   [APP_ACCESS_TARGETS.PAGE_LAB_TESTS]: {
-    read: { roles: CLINICAL_SUPPORT_ROLES },
+    read: {
+      roles: ["ADMIN", "ADMIN_DOCTOR", "DOCTOR", "NURSE", "RECEPTIONIST"],
+    },
     feature: Feature.LAB_TESTS,
   },
   [APP_ACCESS_TARGETS.PAGE_INVOICES]: {
@@ -362,8 +364,12 @@ export const APP_ACCESS_MATRIX: Record<AppAccessTarget, AccessPolicy> = {
     feature: Feature.WHATSAPP_MESSAGING,
   },
   [APP_ACCESS_TARGETS.API_LAB_TESTS]: {
-    read: { roles: CLINICAL_SUPPORT_ROLES },
-    write: { roles: CLINICAL_SUPPORT_ROLES },
+    read: {
+      roles: ["ADMIN", "ADMIN_DOCTOR", "DOCTOR", "NURSE", "RECEPTIONIST"],
+    },
+    write: {
+      roles: ["ADMIN", "ADMIN_DOCTOR", "DOCTOR", "NURSE", "RECEPTIONIST"],
+    },
     feature: Feature.LAB_TESTS,
   },
   [APP_ACCESS_TARGETS.API_PATIENTS]: {
