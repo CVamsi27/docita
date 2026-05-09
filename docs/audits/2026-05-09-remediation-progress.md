@@ -52,9 +52,25 @@ Updates:
 - `.github/workflows/ci.yml`: parses as valid YAML
 - `apps/api/src/main.ts` re-formatted by `eslint --fix` to match prettier rules
 
+## Dependency Advisory Burn-down (refresh after 2026-04-02 snapshot)
+
+A fresh `pnpm audit --prod` against the post-remediation tree from 2026-04-02 returned 11 advisories (3 high, 7 moderate, 1 low). Most are transitive through `@prisma/client > prisma > @prisma/dev > hono` (developer tooling) and Next/Sentry build-time dependencies; one path (`@aws-sdk/client-s3 > fast-xml-builder/fast-xml-parser`) reaches production runtime.
+
+Root `pnpm.overrides` updated:
+
+| Package | Before | After | Why |
+|---|---|---|---|
+| `fast-uri` | (none) | `^3.1.2` | Path traversal + host confusion (HIGH × 2) — via Sentry webpack plugin |
+| `fast-xml-builder` | (none) | `^1.1.7` | Quote-bypass in attribute values (HIGH) — via AWS S3 SDK at runtime |
+| `fast-xml-parser` | `^5.5.6` | `^5.7.0` | XML comment / CDATA injection (MODERATE) — via AWS S3 SDK at runtime |
+| `hono` | `^4.12.12` | `^4.12.18` | JSX HTML injection, body-limit bypass, CSS injection, JWT validation, cache cross-user leak |
+| `postcss` | (none) | `^8.5.10` | XSS via unescaped `</style>` (MODERATE) — via Next |
+| `basic-ftp` | `^5.2.2` | `^5.3.1` | Pulled along with other override refresh |
+
+Post-fix `pnpm audit --prod`: `info=0 low=0 moderate=0 high=0 critical=0`.
+
 ## Items not addressed in this pass
 
 Out of scope for this audit-remediation branch:
 - Broader refactoring (SOLID/DRY/KISS) of the wider codebase.
 - Repo-wide unification of frontend/backend response types (recommended to handle per-route as part of normal feature work, with API contract assertions in `apps/api/test/contract-assertions.ts`).
-- Re-running `pnpm audit` to refresh the dependency snapshot.
