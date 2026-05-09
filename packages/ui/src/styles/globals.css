@@ -86,6 +86,12 @@
   --tag-pink: oklch(0.7 0.19 350);
   --tag-slate: oklch(0.55 0.04 260);
 
+  /* Brand pop — cyan accent reserved for live indicators in dark surfaces.
+     Pairs with --brand-ink (deep navy) on Now-serving boards, queue tokens,
+     and pulse dots. Do not use on light chrome. */
+  --brand-cyan: oklch(0.85 0.115 185);
+  --brand-ink: oklch(0.155 0.018 240);
+
   /* Typography scale */
   --font-sans:
     var(--font-inter), ui-sans-serif, system-ui, -apple-system, "Segoe UI",
@@ -281,6 +287,11 @@ html.dark[data-accent="slate"] {
   --tag-violet: oklch(0.68 0.17 300);
   --tag-pink: oklch(0.76 0.18 350);
   --tag-slate: oklch(0.7 0.04 260);
+
+  /* Brand pop — same cyan in dark mode; ink lifts slightly so the
+     Now-serving board still reads as a distinct surface. */
+  --brand-cyan: oklch(0.86 0.12 185);
+  --brand-ink: oklch(0.18 0.02 240);
 }
 
 .dark {
@@ -648,6 +659,17 @@ html.dark[data-accent="slate"] {
   }
   100% {
     transform: translateX(200%);
+  }
+}
+
+@keyframes docita-live-pulse {
+  0% {
+    transform: scale(1);
+    opacity: 0.5;
+  }
+  100% {
+    transform: scale(2.4);
+    opacity: 0;
   }
 }
 
