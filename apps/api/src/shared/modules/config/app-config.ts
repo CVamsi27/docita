@@ -109,9 +109,7 @@ export const EnvSchema = z.object({
    * (legacy behaviour). Recommended in production: lock down to the
    * Docita owner/team.
    */
-  INTERNAL_ALLOWED_EMAILS: z
-    .string()
-    .default('admin@docita.work,vkc@docita.work'),
+  INTERNAL_ALLOWED_EMAILS: z.string().default(''),
 });
 
 export type EnvConfig = z.infer<typeof EnvSchema>;
