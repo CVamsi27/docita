@@ -21,7 +21,7 @@
     "dev": "tsc -w",
     "lint": "eslint . --max-warnings 0",
     "type-check": "tsc --noEmit",
-    "test": "vitest run"
+    "test": "vitest run --pool=forks --maxWorkers=1"
   },
   "peerDependencies": {
     "react": "^18.0.0"

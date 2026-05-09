@@ -15,6 +15,7 @@ import { RemindersSchedulerModule } from '@/domains/reminders/reminders.schedule
 import { ComplianceSchedulerModule } from '@/shared/modules/compliance/compliance.scheduler.module';
 import { MonitoringSchedulerModule } from '@/shared/modules/monitoring/monitoring/monitoring.scheduler.module';
 import { SubscriptionsWorkerModule } from '@/domains/subscriptions/subscriptions.worker.module';
+import { EnterpriseContractsWorkerModule } from '@/domains/enterprise-contracts/enterprise-contracts.worker.module';
 import { DoctorsVerificationWorkerModule } from '@/domains/doctors/doctors-verification.worker.module';
 import { AdminAlertsSchedulerModule } from '@/shared/modules/messaging/admin-alerts/admin-alerts.scheduler.module';
 import { EphemeralStoreSchedulerModule } from '@/shared/modules/ephemeral-store/ephemeral-store.scheduler.module';
@@ -55,6 +56,7 @@ const ENABLE_SCHEDULERS = process.env.ENABLE_SCHEDULERS !== 'false';
     MonitoringSchedulerModule,
     AdminAlertsSchedulerModule,
     SubscriptionsWorkerModule,
+    EnterpriseContractsWorkerModule,
     DoctorsVerificationWorkerModule,
   ],
 })

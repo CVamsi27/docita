@@ -11,11 +11,12 @@ import { usePrescription } from "@/hooks/api/use-clinical";
 import { useFeatureAccess } from "@/hooks/use-feature-access";
 import { useClinic } from "@/lib/clinic-context";
 import { useAuth } from "@/lib/auth-context";
-import type { Medication } from "@workspace/types";
+import { Feature, type Medication } from "@workspace/types";
 import { PrescriptionHeader } from "@/features/prescriptions/components/view/PrescriptionHeader";
 import { PrescriptionDocument } from "@/features/prescriptions/components/view/PrescriptionDocument";
 import { buildConsultationRoute } from "@/features/consultation/rules/consultationTabRouting";
 import { showUserFacingErrorToast } from "@/lib/user-facing-errors";
+import { FeatureGate } from "@/features/_shared/components/auth/feature-gate";
 
 interface DoctorInfo {
   name?: string;
@@ -34,6 +35,14 @@ interface ClinicInfo {
 }
 
 export default function PrescriptionViewPage() {
+  return (
+    <FeatureGate feature={Feature.DIGITAL_PRESCRIPTIONS} showLockedCard>
+      <PrescriptionViewPageContent />
+    </FeatureGate>
+  );
+}
+
+function PrescriptionViewPageContent() {
   const params = useParams();
   const router = useRouter();
   const searchParams = useSearchParams();

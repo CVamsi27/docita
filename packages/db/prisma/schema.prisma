@@ -1042,6 +1042,8 @@ model Clinic {
   vitalSigns               VitalSign[]
   whatsappLogs             WhatsappLog[]
   subscription             Subscription?
+  enterpriseContractsAsPrimary EnterpriseContract[] @relation("EnterprisePrimaryClinic")
+  enterpriseContractMembership EnterpriseContractMember?
   subscriptionPayments     SubscriptionPayment[]
   subscriptionReminders    SubscriptionReminder[]
   referralsGiven           Referral[]               @relation("ReferrerClinic")
@@ -2801,6 +2803,116 @@ model Subscription {
   @@index([razorpaySubscriptionId])
 }
 
+model EnterpriseContract {
+  id              String                   @id @default(cuid())
+  primaryClinicId String
+  groupName       String?
+  contractNumber  String                   @unique
+  status          EnterpriseContractStatus @default(DRAFT)
+  startDate       DateTime
+  endDate         DateTime
+  billingCycle    BillingCycle             @default(MONTHLY)
+  currency        String                   @default("INR")
+
+  platformFeeCents         Int
+  includedUsers            Int @default(0)
+  includedConsultations    Int @default(0)
+  includedWhatsappMessages Int @default(0)
+  includedStorageGB        Int @default(0)
+  includedBranches         Int @default(1)
+
+  overageUserCents         Int @default(0)
+  overageConsultationCents Int @default(0)
+  overageWhatsappCents     Int @default(0)
+  overageStorageCents      Int @default(0)
+
+  annualPrepayDiscountPercent Int     @default(0)
+  trueUpThresholdPercent      Int     @default(130)
+  notes                       String?
+  signedDocumentUrl           String?
+  lastTrueUpAlertAt           DateTime?
+  annualPrepayInvoiceId       String?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  primaryClinic Clinic                       @relation("EnterprisePrimaryClinic", fields: [primaryClinicId], references: [id], onDelete: Restrict)
+  members       EnterpriseContractMember[]
+  revisions     EnterpriseContractRevision[]
+  invoices      EnterpriseContractInvoice[]
+  trueUpAlerts  EnterpriseTrueUpAlert[]
+
+  @@index([primaryClinicId])
+  @@index([status])
+  @@index([endDate])
+}
+
+model EnterpriseContractMember {
+  id         String    @id @default(cuid())
+  contractId String
+  clinicId   String    @unique
+  joinedAt   DateTime  @default(now())
+  removedAt  DateTime?
+
+  contract EnterpriseContract @relation(fields: [contractId], references: [id], onDelete: Cascade)
+  clinic   Clinic             @relation(fields: [clinicId], references: [id], onDelete: Cascade)
+
+  @@index([contractId])
+}
+
+model EnterpriseContractRevision {
+  id            String   @id @default(cuid())
+  contractId    String
+  effectiveDate DateTime
+  changeSummary String
+  snapshot      Json
+  createdById   String?
+  createdAt     DateTime @default(now())
+
+  contract EnterpriseContract @relation(fields: [contractId], references: [id], onDelete: Cascade)
+
+  @@index([contractId])
+  @@index([effectiveDate])
+}
+
+model EnterpriseContractInvoice {
+  id                    String                @id @default(cuid())
+  contractId            String
+  kind                  EnterpriseInvoiceKind
+  subscriptionPaymentId String?               @unique
+  amountCents           Int
+  currency              String
+  periodStart           DateTime
+  periodEnd             DateTime
+  discountPercent       Int                   @default(0)
+  metadata              Json?
+  createdAt             DateTime              @default(now())
+  updatedAt             DateTime              @updatedAt
+
+  contract           EnterpriseContract   @relation(fields: [contractId], references: [id], onDelete: Cascade)
+  subscriptionPayment SubscriptionPayment? @relation(fields: [subscriptionPaymentId], references: [id], onDelete: SetNull)
+
+  @@index([contractId])
+  @@index([kind])
+}
+
+model EnterpriseTrueUpAlert {
+  id               String   @id @default(cuid())
+  contractId       String
+  alertedAt        DateTime @default(now())
+  thresholdPercent Int
+  observedPercent  Int
+  ytdOverageCents  Int
+  ytdPlatformCents Int
+  recipients       String[] @default([])
+  metadata         Json?
+
+  contract EnterpriseContract @relation(fields: [contractId], references: [id], onDelete: Cascade)
+
+  @@index([contractId])
+  @@index([alertedAt])
+}
+
 model SubscriptionPayment {
   id             String  @id @default(cuid())
   clinicId       String
@@ -2835,8 +2947,9 @@ model SubscriptionPayment {
   createdAt DateTime  @default(now())
   updatedAt DateTime  @updatedAt
 
-  clinic       Clinic        @relation(fields: [clinicId], references: [id])
-  subscription Subscription? @relation(fields: [subscriptionId], references: [id])
+  clinic                    Clinic                     @relation(fields: [clinicId], references: [id])
+  subscription              Subscription?              @relation(fields: [subscriptionId], references: [id])
+  enterpriseContractInvoice EnterpriseContractInvoice?
 
   @@unique([clinicId, invoiceNumber], map: "SubscriptionPayment_clinicId_invoiceNumber_key")
   @@index([clinicId])
@@ -3077,6 +3190,19 @@ enum BillingCycle {
   QUARTERLY
   SEMI_ANNUAL
   YEARLY
+}
+
+enum EnterpriseContractStatus {
+  DRAFT
+  ACTIVE
+  EXPIRED
+  TERMINATED
+}
+
+enum EnterpriseInvoiceKind {
+  ANNUAL_PREPAY
+  TRUE_UP
+  ADJUSTMENT
 }
 
 enum AddOnType {

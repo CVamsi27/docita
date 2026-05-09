@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
-import { Inbox, Check, X } from "lucide-react";
+import { Inbox, Check, X, SlidersHorizontal, AlertCircle } from "lucide-react";
 import { Badge } from "@workspace/ui/components/badge";
 import { Button } from "@workspace/ui/components/button";
 import {
@@ -354,13 +354,29 @@ function AppointmentRequestRow({
     (isPast ? "Start time is in the past." : null) ??
     (!isStartAllowed ? "Not available for this doctor." : null);
 
+  const slotLabel = `${formatScheduleTime(startTimeHHmm)}–${formatScheduleTime(endHHmm)}`;
+  const slotDayLabel = (() => {
+    const d = parsePickerIsoToLocalDate(startDayIso);
+    return d ? formatLocaleDateShortMonthYear(d) : startDayIso;
+  })();
+  const selectedDoctorName =
+    doctorOptions.find((doc) => doc.id === effectiveDoctorId)?.name ??
+    preferredDoctorLabel ??
+    null;
+
+  const rejectReason = rejectReasonByRequest[request.id] ?? "";
+  const rejectCustom = rejectCustomByRequest[request.id] ?? "";
+  const canSubmitReject =
+    rejectReason.length > 0 &&
+    (rejectReason !== REJECT_REASON_CUSTOM || rejectCustom.trim().length > 0);
+
   return (
-    <div className="rounded-lg border border-border/60 bg-card shadow-sm">
-      {/* Patient info — two tight lines */}
-      <div className="flex items-start justify-between gap-2 px-3 pt-2 pb-1.5">
+    <div className="group/req rounded-md border border-border/60 bg-card transition-colors hover:bg-muted/20">
+      <div className="flex items-center gap-3 px-3 py-2">
+        {/* Patient + context — two tight lines */}
         <div className="min-w-0 flex-1">
-          <div className="flex flex-wrap items-baseline gap-x-1.5 gap-y-0">
-            <span className="text-[length:var(--fs-sm)] font-semibold leading-snug text-foreground">
+          <div className="flex flex-wrap items-baseline gap-x-2 gap-y-0">
+            <span className="truncate text-[length:var(--fs-sm)] font-semibold leading-tight text-foreground">
               {patientName(request)}
             </span>
             {phone ? (
@@ -369,208 +385,314 @@ function AppointmentRequestRow({
               </span>
             ) : null}
             {arrivalRelative ? (
-              <span className="text-[length:var(--fs-xs)] text-muted-foreground/60">
-                · {arrivalRelative}
+              <span className="text-[length:var(--fs-2xs)] text-muted-foreground/70">
+                {arrivalRelative}
               </span>
             ) : null}
           </div>
           <p className="line-clamp-1 text-[length:var(--fs-xs)] text-muted-foreground">
-            {request.reason?.trim() ? request.reason : "No reason"}
-            {" · "}
+            <span className="text-foreground/80">
+              {request.reason?.trim() ? request.reason : "No reason"}
+            </span>
+            <span className="mx-1.5 text-muted-foreground/40">·</span>
             {summary.primary}
-            {preferredDoctorLabel ? ` · Dr. ${preferredDoctorLabel}` : ""}
-            {request.notes ? ` · ${request.notes}` : ""}
+            {preferredDoctorLabel ? (
+              <>
+                <span className="mx-1.5 text-muted-foreground/40">·</span>
+                {`Dr. ${preferredDoctorLabel}`}
+              </>
+            ) : null}
+            {request.notes ? (
+              <>
+                <span className="mx-1.5 text-muted-foreground/40">·</span>
+                {request.notes}
+              </>
+            ) : null}
           </p>
-        </div>
-        <Badge
-          variant="secondary"
-          className="mt-0.5 h-4 shrink-0 px-1.5 text-[length:var(--fs-2xs)] uppercase tracking-wide"
-        >
-          {request.status}
-        </Badge>
-      </div>
-
-      {/* Action bar */}
-      <div className="border-t border-border/40 bg-muted/20 px-2 py-1.5 space-y-1.5">
-        {/* Approve row */}
-        <div className="flex flex-wrap items-center gap-1.5">
-          <Select
-            value={
-              doctorByRequest[request.id] ??
-              request.preferredDoctorId ??
-              doctorOptions[0]?.id ??
-              ""
-            }
-            onValueChange={(value) => {
-              onClearApproveFieldErrors();
-              setDoctorByRequest((prev) => ({ ...prev, [request.id]: value }));
-              setStartByRequest((prev) => {
-                const next = { ...prev };
-                delete next[request.id];
-                return next;
-              });
-            }}
-          >
-            <SelectTrigger
-              id={`apr-doctor-${request.id}`}
-              size="sm"
-              className={cn(
-                "h-7 w-[9rem] px-2 text-[length:var(--fs-xs)]",
-                approveFieldErrors?.doctorId && "border-destructive",
-              )}
-              aria-invalid={approveFieldErrors?.doctorId ? true : undefined}
+          {approveError ? (
+            <p
+              role="alert"
+              className="mt-0.5 flex items-center gap-1 text-[length:var(--fs-2xs)] text-destructive"
             >
-              <SelectValue placeholder="Doctor" />
-            </SelectTrigger>
-            <SelectContent>
-              {doctorOptions.map((doctor) => (
-                <SelectItem key={doctor.id} value={doctor.id}>
-                  {doctor.name ?? "Doctor"}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
+              <AlertCircle className="h-3 w-3 shrink-0" aria-hidden />
+              <span className="truncate">{approveError}</span>
+            </p>
+          ) : null}
+        </div>
+
+        {/* Actions */}
+        <div className="flex shrink-0 items-center gap-1">
+          {/* Adjust popover (doctor / date / time) */}
+          <Popover>
+            <PopoverTrigger asChild>
+              <Button
+                type="button"
+                variant="ghost"
+                size="sm"
+                aria-label="Adjust slot"
+                className={cn(
+                  "h-8 gap-1.5 px-2 text-[length:var(--fs-xs)] font-normal text-muted-foreground hover:text-foreground",
+                  (hasApproveFieldErrors || !isStartAllowed) &&
+                    "text-destructive hover:text-destructive",
+                )}
+              >
+                <SlidersHorizontal className="h-3.5 w-3.5" aria-hidden />
+                <span className="hidden tabular-nums sm:inline">
+                  {slotLabel}
+                </span>
+                {!isStartAllowed || hasApproveFieldErrors ? (
+                  <AlertCircle className="h-3.5 w-3.5" aria-hidden />
+                ) : null}
+              </Button>
+            </PopoverTrigger>
+            <PopoverContent
+              align="end"
+              className="w-72 space-y-2.5 p-3"
+              onOpenAutoFocus={(event) => event.preventDefault()}
+            >
+              <div className="space-y-1">
+                <label
+                  htmlFor={`apr-doctor-${request.id}`}
+                  className="text-[length:var(--fs-2xs)] font-medium uppercase tracking-wide text-muted-foreground"
+                >
+                  Doctor
+                </label>
+                <Select
+                  value={effectiveDoctorId}
+                  onValueChange={(value) => {
+                    onClearApproveFieldErrors();
+                    setDoctorByRequest((prev) => ({
+                      ...prev,
+                      [request.id]: value,
+                    }));
+                    setStartByRequest((prev) => {
+                      const next = { ...prev };
+                      delete next[request.id];
+                      return next;
+                    });
+                  }}
+                >
+                  <SelectTrigger
+                    id={`apr-doctor-${request.id}`}
+                    size="sm"
+                    className={cn(
+                      "h-8 w-full text-[length:var(--fs-xs)]",
+                      approveFieldErrors?.doctorId && "border-destructive",
+                    )}
+                    aria-invalid={
+                      approveFieldErrors?.doctorId ? true : undefined
+                    }
+                  >
+                    <SelectValue placeholder="Doctor" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {doctorOptions.map((doctor) => (
+                      <SelectItem key={doctor.id} value={doctor.id}>
+                        {doctor.name ?? "Doctor"}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+
+              <div className="grid grid-cols-2 gap-2">
+                <div className="space-y-1">
+                  <span className="text-[length:var(--fs-2xs)] font-medium uppercase tracking-wide text-muted-foreground">
+                    Date
+                  </span>
+                  <Popover>
+                    <PopoverTrigger asChild>
+                      <Button
+                        type="button"
+                        variant="outline"
+                        size="sm"
+                        className="h-8 w-full justify-start px-2 text-[length:var(--fs-xs)] font-normal"
+                      >
+                        {slotDayLabel}
+                      </Button>
+                    </PopoverTrigger>
+                    <PopoverContent className="w-auto p-0" align="start">
+                      <Calendar
+                        mode="single"
+                        selected={
+                          parsePickerIsoToLocalDate(startDayIso) ?? undefined
+                        }
+                        onSelect={(d) => {
+                          if (!d) return;
+                          onClearApproveFieldErrors();
+                          const nextIso =
+                            formatClinicPickerDayIsoFromSelection(
+                              d,
+                              clinicTimezone,
+                            );
+                          setStartByRequest((prev) => ({
+                            ...prev,
+                            [request.id]: `${nextIso}T${startTimeHHmm}`,
+                          }));
+                        }}
+                        initialFocus
+                      />
+                    </PopoverContent>
+                  </Popover>
+                </div>
+
+                <div className="space-y-1">
+                  <label
+                    htmlFor={`apr-start-${request.id}`}
+                    className="text-[length:var(--fs-2xs)] font-medium uppercase tracking-wide text-muted-foreground"
+                  >
+                    Time
+                  </label>
+                  <Select
+                    value={startTimeHHmm}
+                    onValueChange={(value) => {
+                      onClearApproveFieldErrors();
+                      setStartByRequest((prev) => ({
+                        ...prev,
+                        [request.id]: `${startDayIso}T${value}`,
+                      }));
+                    }}
+                  >
+                    <SelectTrigger
+                      id={`apr-start-${request.id}`}
+                      size="sm"
+                      className={cn(
+                        "h-8 w-full text-[length:var(--fs-xs)]",
+                        (approveFieldErrors?.startTime || !isStartAllowed) &&
+                          "border-destructive",
+                      )}
+                      aria-invalid={
+                        approveFieldErrors?.startTime || !isStartAllowed
+                          ? true
+                          : undefined
+                      }
+                    >
+                      <SelectValue placeholder="Time" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {availableStartTimes.length > 0 ? (
+                        availableStartTimes.map((s) => (
+                          <SelectItem key={s.time} value={s.time}>
+                            {formatScheduleTime(s.time)}
+                          </SelectItem>
+                        ))
+                      ) : (
+                        <SelectItem value={startTimeHHmm}>
+                          {formatScheduleTime(startTimeHHmm)}
+                        </SelectItem>
+                      )}
+                    </SelectContent>
+                  </Select>
+                </div>
+              </div>
+
+              <p className="text-[length:var(--fs-2xs)] text-muted-foreground">
+                Ends {formatScheduleTime(endHHmm)}
+                {selectedDoctorName ? ` · Dr. ${selectedDoctorName}` : ""}
+              </p>
+            </PopoverContent>
+          </Popover>
+
+          <Button
+            size="sm"
+            className="h-8 gap-1 px-3 text-[length:var(--fs-xs)]"
+            disabled={approveBlocked}
+            onClick={() => void onApprove(request)}
+            aria-label={`Approve at ${slotLabel}`}
+          >
+            <Check className="h-3.5 w-3.5 shrink-0" aria-hidden />
+            Approve
+          </Button>
 
           <Popover>
             <PopoverTrigger asChild>
               <Button
                 type="button"
-                variant="outline"
+                variant="ghost"
                 size="sm"
-                className="h-7 w-[8rem] justify-start px-2 text-[length:var(--fs-xs)] font-normal"
+                aria-label="Reject"
+                className="h-8 gap-1 px-2 text-[length:var(--fs-xs)] text-muted-foreground hover:text-destructive"
               >
-                {startDayIso || "Date"}
+                <X className="h-3.5 w-3.5 shrink-0" aria-hidden />
+                <span className="hidden sm:inline">Reject</span>
               </Button>
             </PopoverTrigger>
-            <PopoverContent className="w-auto p-0" align="start">
-              <Calendar
-                mode="single"
-                selected={parsePickerIsoToLocalDate(startDayIso) ?? undefined}
-                onSelect={(d) => {
-                  if (!d) return;
-                  onClearApproveFieldErrors();
-                  const nextIso = formatClinicPickerDayIsoFromSelection(d, clinicTimezone);
-                  setStartByRequest((prev) => ({
-                    ...prev,
-                    [request.id]: `${nextIso}T${startTimeHHmm}`,
-                  }));
-                }}
-                initialFocus
-              />
+            <PopoverContent
+              align="end"
+              className="w-80 space-y-2.5 p-3"
+              onOpenAutoFocus={(event) => event.preventDefault()}
+            >
+              <div className="space-y-1">
+                <label
+                  htmlFor={`apr-reject-reason-${request.id}`}
+                  className="text-[length:var(--fs-2xs)] font-medium uppercase tracking-wide text-muted-foreground"
+                >
+                  Reason
+                </label>
+                <Select
+                  value={rejectReason}
+                  onValueChange={(value) =>
+                    setRejectReasonByRequest((prev) => ({
+                      ...prev,
+                      [request.id]: value,
+                    }))
+                  }
+                >
+                  <SelectTrigger
+                    id={`apr-reject-reason-${request.id}`}
+                    size="sm"
+                    className="h-8 w-full text-[length:var(--fs-xs)]"
+                  >
+                    <SelectValue placeholder="Choose a reason…" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {REJECT_REASON_OPTIONS.map((o) => (
+                      <SelectItem key={o.value} value={o.value}>
+                        {o.label}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+
+              {rejectReason === REJECT_REASON_CUSTOM ? (
+                <div className="space-y-1">
+                  <label
+                    htmlFor={`apr-reject-${request.id}`}
+                    className="text-[length:var(--fs-2xs)] font-medium uppercase tracking-wide text-muted-foreground"
+                  >
+                    Message for patient
+                  </label>
+                  <Textarea
+                    id={`apr-reject-${request.id}`}
+                    value={rejectCustom}
+                    onChange={(event) =>
+                      setRejectCustomByRequest((prev) => ({
+                        ...prev,
+                        [request.id]: event.target.value,
+                      }))
+                    }
+                    placeholder="Write a short message…"
+                    rows={3}
+                    className="min-h-[60px] resize-y text-[length:var(--fs-xs)]"
+                  />
+                </div>
+              ) : null}
+
+              <div className="flex justify-end">
+                <Button
+                  variant="destructive"
+                  size="sm"
+                  className="h-8 gap-1 px-3 text-[length:var(--fs-xs)]"
+                  disabled={isMutating || !canSubmitReject}
+                  onClick={() => void onReject(request)}
+                >
+                  <X className="h-3.5 w-3.5 shrink-0" aria-hidden />
+                  Reject request
+                </Button>
+              </div>
             </PopoverContent>
           </Popover>
-
-          <Select
-            value={startTimeHHmm}
-            onValueChange={(value) => {
-              onClearApproveFieldErrors();
-              setStartByRequest((prev) => ({
-                ...prev,
-                [request.id]: `${startDayIso}T${value}`,
-              }));
-            }}
-          >
-            <SelectTrigger
-              id={`apr-start-${request.id}`}
-              size="sm"
-              className={cn(
-                "h-7 w-[5.5rem] px-2 text-[length:var(--fs-xs)]",
-                (approveFieldErrors?.startTime || !isStartAllowed) && "border-destructive",
-              )}
-              aria-invalid={
-                approveFieldErrors?.startTime || !isStartAllowed ? true : undefined
-              }
-            >
-              <SelectValue placeholder="Time" />
-            </SelectTrigger>
-            <SelectContent>
-              {availableStartTimes.length > 0 ? (
-                availableStartTimes.map((s) => (
-                  <SelectItem key={s.time} value={s.time}>
-                    {formatScheduleTime(s.time)}
-                  </SelectItem>
-                ))
-              ) : (
-                <SelectItem value={startTimeHHmm}>
-                  {formatScheduleTime(startTimeHHmm)}
-                </SelectItem>
-              )}
-            </SelectContent>
-          </Select>
-
-          <span className="text-[length:var(--fs-xs)] tabular-nums text-muted-foreground/60">
-            → {formatScheduleTime(endHHmm)}
-          </span>
-
-          <Button
-            size="sm"
-            className="h-7 gap-1 px-3 text-[length:var(--fs-xs)]"
-            disabled={approveBlocked}
-            onClick={() => void onApprove(request)}
-          >
-            <Check className="h-3 w-3 shrink-0" aria-hidden />
-            Approve
-          </Button>
-
-          {approveError ? (
-            <span className="text-[length:var(--fs-xs)] text-destructive">
-              {approveError}
-            </span>
-          ) : null}
-        </div>
-
-        {/* Reject row */}
-        <div className="flex flex-wrap items-start gap-1.5">
-          <Select
-            value={rejectReasonByRequest[request.id] ?? ""}
-            onValueChange={(value) =>
-              setRejectReasonByRequest((prev) => ({ ...prev, [request.id]: value }))
-            }
-          >
-            <SelectTrigger
-              id={`apr-reject-reason-${request.id}`}
-              size="sm"
-              className="h-7 w-[13rem] px-2 text-[length:var(--fs-xs)]"
-              aria-label="Reject reason"
-            >
-              <SelectValue placeholder="Reject reason…" />
-            </SelectTrigger>
-            <SelectContent>
-              {REJECT_REASON_OPTIONS.map((o) => (
-                <SelectItem key={o.value} value={o.value}>
-                  {o.label}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
-
-          {rejectReasonByRequest[request.id] === REJECT_REASON_CUSTOM ? (
-            <Textarea
-              id={`apr-reject-${request.id}`}
-              aria-label="Custom message"
-              value={rejectCustomByRequest[request.id] ?? ""}
-              onChange={(event) =>
-                setRejectCustomByRequest((prev) => ({
-                  ...prev,
-                  [request.id]: event.target.value,
-                }))
-              }
-              placeholder="Message for the patient"
-              rows={2}
-              className="min-h-[36px] flex-1 resize-y text-[length:var(--fs-xs)]"
-            />
-          ) : null}
-
-          <Button
-            variant="outline"
-            size="sm"
-            className="h-7 shrink-0 gap-1 px-3 text-[length:var(--fs-xs)]"
-            disabled={isMutating}
-            onClick={() => void onReject(request)}
-          >
-            <X className="h-3 w-3 shrink-0" aria-hidden />
-            Reject
-          </Button>
         </div>
       </div>
     </div>

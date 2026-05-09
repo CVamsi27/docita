@@ -271,6 +271,72 @@ describe('StaffNotificationService', () => {
     });
   });
 
+  describe('getAllNotifications', () => {
+    it('returns read + unread, excluding soft-deleted, ordered by createdAt desc', async () => {
+      const now = new Date();
+      mockPrisma.staffNotification.findMany.mockResolvedValue([
+        {
+          id: 'notif-1',
+          clinicId: 'clinic-123',
+          userId: 'user-1',
+          type: 'PATIENT_RESPONSE',
+          title: 'Test',
+          message: 'Test',
+          data: '{"key":"value"}',
+          priority: 'NORMAL',
+          isRead: true,
+          readAt: now,
+          deletedAt: null,
+          createdAt: now,
+        },
+        {
+          id: 'notif-2',
+          clinicId: 'clinic-123',
+          userId: 'user-1',
+          type: 'INVOICE_PENDING',
+          title: 'Test',
+          message: 'Test',
+          data: '{}',
+          priority: 'NORMAL',
+          isRead: false,
+          readAt: null,
+          deletedAt: null,
+          createdAt: now,
+        },
+      ]);
+
+      const result = await service.getAllNotifications('user-1');
+
+      expect(result).toHaveLength(2);
+      expect(mockPrisma.staffNotification.findMany).toHaveBeenCalledWith(
+        expect.objectContaining({
+          where: { userId: 'user-1', deletedAt: null },
+          orderBy: [{ createdAt: 'desc' }],
+        }),
+      );
+    });
+
+    it('respects limit and offset options', async () => {
+      mockPrisma.staffNotification.findMany.mockResolvedValue([]);
+
+      await service.getAllNotifications('user-1', { limit: 25, offset: 50 });
+
+      expect(mockPrisma.staffNotification.findMany).toHaveBeenCalledWith(
+        expect.objectContaining({ take: 25, skip: 50 }),
+      );
+    });
+
+    it('uses default limit/offset when none provided', async () => {
+      mockPrisma.staffNotification.findMany.mockResolvedValue([]);
+
+      await service.getAllNotifications('user-1');
+
+      expect(mockPrisma.staffNotification.findMany).toHaveBeenCalledWith(
+        expect.objectContaining({ take: 100, skip: 0 }),
+      );
+    });
+  });
+
   describe('markNotificationRead', () => {
     it('should mark a notification as read and emit event', async () => {
       mockPrisma.staffNotification.findFirst.mockResolvedValue({

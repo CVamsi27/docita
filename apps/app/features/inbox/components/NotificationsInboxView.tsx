@@ -18,7 +18,7 @@ import { cn } from "@workspace/ui/lib/utils";
 import { PriorityBadge } from "@workspace/ui/components/status-badge";
 import { formatTime, isToday, isYesterday } from "@workspace/utils";
 import {
-  useNotifications,
+  useAllNotifications,
   useMarkNotificationRead,
   useDeleteNotification,
   useDeleteAllNotifications,
@@ -163,7 +163,11 @@ function NotificationRow({ notification, onMarkRead, onDelete }: RowProps) {
 }
 
 export function NotificationsInboxView() {
-  const { data: notifications = [], refetch, isLoading } = useNotifications(true);
+  const {
+    data: notifications = [],
+    refetch,
+    isLoading,
+  } = useAllNotifications(true);
   const markRead = useMarkNotificationRead();
   const deleteOne = useDeleteNotification();
   const deleteAll = useDeleteAllNotifications();
@@ -176,14 +180,14 @@ export function NotificationsInboxView() {
     if (!socket) return;
     const onNew = (n: StaffNotification) => {
       queryClient.setQueryData<StaffNotification[]>(
-        ["notifications"],
+        ["notifications", "all"],
         (old = []) => [n, ...old],
       );
       queryClient.invalidateQueries({ queryKey: ["notifications", "unread-count"] });
     };
     const onRead = (data: { id: string; readAt: Date }) => {
       queryClient.setQueryData<StaffNotification[]>(
-        ["notifications"],
+        ["notifications", "all"],
         (old = []) =>
           old.map((n) =>
             n.id === data.id ? { ...n, isRead: true, readAt: data.readAt } : n,
@@ -193,7 +197,7 @@ export function NotificationsInboxView() {
     };
     const onDeleted = (data: { id: string }) => {
       queryClient.setQueryData<StaffNotification[]>(
-        ["notifications"],
+        ["notifications", "all"],
         (old = []) => old.filter((n) => n.id !== data.id),
       );
       queryClient.invalidateQueries({ queryKey: ["notifications", "unread-count"] });
@@ -270,8 +274,8 @@ export function NotificationsInboxView() {
       <DataState
         status="empty"
         emptyIcon={BellIcon}
-        emptyTitle="You're all caught up"
-        emptyDescription="New notifications will appear here as they arrive."
+        emptyTitle="No notifications yet"
+        emptyDescription="Activity from appointments, prescriptions, invoices, payments, consultations, and your team will appear here."
         className="min-h-[40vh]"
       />
     );

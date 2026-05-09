@@ -23,6 +23,7 @@ const TIER_ORDER = [
   "FRONT_DESK",
   "ESSENTIAL",
   "PROFESSIONAL",
+  "HOSPITAL",
   "ENTERPRISE",
 ] as const;
 
@@ -67,9 +68,20 @@ const PROFESSIONAL_FEATURES = [
   "Priority support with SLA",
 ];
 
+const HOSPITAL_FEATURES = [
+  "Everything in Professional",
+  "Up to 25 doctors and 5 branches",
+  "75 staff users included",
+  "8,000 consultations / month",
+  "WhatsApp messaging (6,000 msgs pooled)",
+  "Multi-branch analytics dashboards",
+  "Dedicated customer success manager",
+  "Higher API throughput for integrations",
+];
+
 const ENTERPRISE_FEATURES = [
   "Unlimited patients, users & branches",
-  "Everything in Professional",
+  "Everything in Hospital",
   "Data warehouse export (BI tools)",
   "Custom contract & invoicing",
   "Dedicated account manager",
@@ -81,6 +93,7 @@ function getFeaturesForTier(id: string, fallback: string[]): string[] {
   if (id === "ESSENTIAL") return ESSENTIAL_FEATURES;
   if (id === "FRONT_DESK") return FRONT_DESK_FEATURES;
   if (id === "PROFESSIONAL") return PROFESSIONAL_FEATURES;
+  if (id === "HOSPITAL") return HOSPITAL_FEATURES;
   if (id === "ENTERPRISE") return ENTERPRISE_FEATURES;
   return fallback;
 }

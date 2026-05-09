@@ -395,6 +395,19 @@ export class AppConfigService {
     return this.getConfig().SECRETS_PROVIDER;
   }
 
+  /**
+   * Allowlist of emails permitted to authenticate as Role.INTERNAL.
+   * Returns lowercased entries. Empty array means no restriction (legacy).
+   */
+  getInternalAllowedEmails(): string[] {
+    const raw = this.getConfig().INTERNAL_ALLOWED_EMAILS;
+    if (!raw) return [];
+    return raw
+      .split(',')
+      .map((s) => s.trim().toLowerCase())
+      .filter((s) => s.length > 0);
+  }
+
   getJwtSecret(): string {
     const config = this.getConfig();
     if (config.JWT_SECRET) {

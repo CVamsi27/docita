@@ -20,8 +20,10 @@ interface SeedBillingAndUsageParams {
 
 const CANONICAL_TIERS: ClinicTier[] = [
   ClinicTier.STARTER,
+  ClinicTier.FRONT_DESK,
   ClinicTier.ESSENTIAL,
   ClinicTier.PROFESSIONAL,
+  ClinicTier.HOSPITAL,
   ClinicTier.ENTERPRISE,
 ];
 

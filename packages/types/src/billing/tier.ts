@@ -15,12 +15,13 @@ export enum Tier {
   STARTER = 0,
   ESSENTIAL = 1,
   PROFESSIONAL = 2,
-  ENTERPRISE = 3,
-  INTELLIGENCE = 4,
+  /** Multi-doctor multi-branch hospital SKU; ranked between Professional and Enterprise so any feature gated to ENTERPRISE remains gated to HOSPITAL too. */
+  HOSPITAL = 3,
+  ENTERPRISE = 4,
+  /** Add-on, not a billed tier. Checked separately via the intelligence flag, never via raw `>=` comparison. */
+  INTELLIGENCE = 5,
   /** Billed SKU; feature gating uses {@link hasFeatureAccess} / {@link FRONT_DESK_BLOCKED_FEATURES}, not raw `>=`. */
-  FRONT_DESK = 5,
-  /** Multi-doctor multi-branch hospital SKU; positioned between Professional and Enterprise on rank, but feature access uses {@link hasFeatureAccess}. */
-  HOSPITAL = 6,
+  FRONT_DESK = 6,
 }
 
 export enum Feature {
@@ -1314,10 +1315,12 @@ export const FEATURE_DISPLAY: Record<Feature, FeatureDisplay> = {
   [Feature.INSURANCE_BILLING]: {
     name: "Insurance Billing",
     description: "Insurance claim management",
+    availability: "PLANNED",
   },
   [Feature.DIGITAL_INTAKE_FORMS]: {
     name: "Digital Intake Forms",
     description: "Patient intake forms online",
+    availability: "PLANNED",
   },
   [Feature.BROADCAST_CAMPAIGNS]: {
     name: "Broadcast Campaigns",
@@ -1464,11 +1467,11 @@ export const TIER_FEATURES: Record<TierName, string[]> = {
     "Queue management",
     "Advanced analytics & reporting",
     "ICD-10/CPT medical coding",
-    "Digital intake forms",
+    "Digital intake forms (planned)",
     "Audit logs & compliance",
     "Prescription templates & doctor signature",
     "Automated reminders & payment links",
-    "Insurance billing",
+    "Insurance billing (planned)",
     "Leave management",
   ],
   PROFESSIONAL: [
@@ -1485,16 +1488,17 @@ export const TIER_FEATURES: Record<TierName, string[]> = {
     "75 staff users included",
     "8,000 consultations/mo included",
     "WhatsApp messaging (6,000 msgs/mo pooled)",
-    "Multi-location analytics & multi-branch dashboards",
+    "Multi-location analytics & multi-branch dashboards (planned)",
     "Dedicated customer success manager",
-    "Higher API throughput for hospital integrations",
+    "Higher API throughput for hospital integrations (planned)",
   ],
   ENTERPRISE: [
-    "Everything in Professional",
+    "Everything in Hospital",
     "Unlimited patients, users & branches",
     "Custom contract & invoicing",
     "Dedicated account manager",
     "Custom SLA guarantee",
+    "Data warehouse export (planned)",
   ],
   FRONT_DESK: [
     "Appointment scheduling and queue",

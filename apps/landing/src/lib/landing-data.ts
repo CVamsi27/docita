@@ -93,6 +93,20 @@ const FALLBACK_TIERS: TierConfig[] = [
     ],
   },
   {
+    id: "HOSPITAL",
+    name: "Hospital",
+    description:
+      "For multi-doctor multi-branch hospitals: pooled WhatsApp, multi-branch analytics, dedicated CSM",
+    tagline: "Multi-branch and multi-specialty",
+    pricing: { monthly: 7999, yearly: 79990, currency: "₹" },
+    features: [
+      "Up to 25 doctors and 5 branches",
+      "8,000 consultations / month",
+      "Pooled WhatsApp (6,000 msgs)",
+      "Multi-location analytics",
+    ],
+  },
+  {
     id: "ENTERPRISE",
     name: "Enterprise",
     description: "Custom SLAs and pricing for large groups and hospitals",

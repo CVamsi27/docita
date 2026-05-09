@@ -366,6 +366,56 @@ export class StaffNotificationService {
     }
   }
 
+  async getAllNotifications(
+    userId: string,
+    options: { limit?: number; offset?: number } = {},
+  ): Promise<
+    Array<{
+      id: string;
+      clinicId: string;
+      userId: string | null;
+      type: StaffNotificationType;
+      title: string;
+      message: string;
+      data: unknown;
+      priority: NotificationPriority;
+      isRead: boolean;
+      readAt: Date | null;
+      deletedAt: Date | null;
+      createdAt: Date;
+    }>
+  > {
+    const { limit = 100, offset = 0 } = options;
+    const notifications = await this.prisma.staffNotification.findMany({
+      where: {
+        userId,
+        deletedAt: null,
+      },
+      orderBy: [{ createdAt: 'desc' }],
+      take: limit,
+      skip: offset,
+      select: {
+        id: true,
+        clinicId: true,
+        userId: true,
+        type: true,
+        title: true,
+        message: true,
+        data: true,
+        priority: true,
+        isRead: true,
+        readAt: true,
+        deletedAt: true,
+        createdAt: true,
+      },
+    });
+
+    return notifications.map((n) => ({
+      ...n,
+      data: parseNotificationData(n.data),
+    }));
+  }
+
   async getUnreadNotifications(
     userId: string,
     limit = 20,

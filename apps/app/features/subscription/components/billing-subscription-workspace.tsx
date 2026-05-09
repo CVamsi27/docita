@@ -28,6 +28,7 @@ import { Info, Sparkles } from "lucide-react";
 import { ContactSalesModal } from "@/features/dialogs/components/ContactSalesModalContainer";
 import { ComparisonTable } from "@/features/subscription/components/pricing/comparison-table";
 import { CurrentPlanCard } from "@/features/subscription/components/cards/current-plan-card";
+import { EnterpriseContractCard } from "@/features/subscription/components/cards/enterprise-contract-card";
 import { UsageDashboard } from "@/features/subscription/components/usage-dashboard";
 import { FaqSection } from "@/features/subscription/components/sections/faq-section";
 import { InvoiceHistoryDialog } from "@/features/subscription/components/dialogs/invoice-history-dialog";
@@ -378,6 +379,7 @@ export function BillingSubscriptionWorkspace() {
 
   return (
     <div className="space-y-6">
+      {subscription?.tier === "ENTERPRISE" && <EnterpriseContractCard />}
       <CurrentPlanCard
         tierInfo={currentTierInfo}
         currentTier={effectiveCurrentTier}

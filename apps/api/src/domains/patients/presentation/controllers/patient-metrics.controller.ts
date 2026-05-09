@@ -9,8 +9,9 @@ import {
   Request,
   NotFoundException,
 } from '@nestjs/common';
-import { APP_ACCESS_TARGETS } from '@workspace/types';
+import { APP_ACCESS_TARGETS, Feature } from '@workspace/types';
 import { Roles } from '@/shared/modules/auth/auth/roles.decorator';
+import { RequireFeature } from '@/shared/modules/auth/auth/tier.decorator';
 import { RequestWithUser } from '@/common/types/common.types';
 import { PatientService } from '@/domains/patients/application/services/patient.service';
 import { PatientMetricsService } from '@/domains/patients/application/services/patientMetrics.service';
@@ -25,6 +26,7 @@ import { getDbRolesForTarget } from '@/shared/modules/auth/auth/access-matrix.ut
 
 @Controller('patients/:patientId/metrics')
 @Roles(...getDbRolesForTarget(APP_ACCESS_TARGETS.API_PATIENT_METRICS))
+@RequireFeature(Feature.BASIC_PATIENT_MANAGEMENT)
 export class PatientMetricsController {
   constructor(
     private readonly patientService: PatientService,

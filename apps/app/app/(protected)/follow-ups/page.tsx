@@ -14,7 +14,8 @@ import {
 } from "@workspace/ui/components/card";
 import { DataState } from "@workspace/ui/components/data-state";
 import { PageHeader } from "@workspace/ui/components/page-header";
-import type { FollowUpResponse, FollowUpStatus } from "@workspace/types";
+import { Feature, type FollowUpResponse, type FollowUpStatus } from "@workspace/types";
+import { FeatureGate } from "@/features/_shared/components/auth/feature-gate";
 import {
   useCancelFollowUp,
   useCompleteFollowUp,
@@ -145,6 +146,7 @@ export default function FollowUpsPage() {
   };
 
   return (
+    <FeatureGate feature={Feature.AUTO_REMINDERS} showLockedCard>
     <AppPageScaffold
       header={
         <PageHeader
@@ -198,5 +200,6 @@ export default function FollowUpsPage() {
         </div>
       </DataState>
     </AppPageScaffold>
+    </FeatureGate>
   );
 }

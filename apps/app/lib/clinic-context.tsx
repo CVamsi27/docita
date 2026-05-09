@@ -94,6 +94,7 @@ export function ClinicProvider({ children }: { children: React.ReactNode }) {
     setFeatureOverrides,
     setClinicType,
     setFacilityType,
+    setWorkspaceProfile,
   } = usePermissionStore();
   const hasFetchedRef = useRef(false);
   const isFetchingRef = useRef(false);
@@ -116,6 +117,18 @@ export function ClinicProvider({ children }: { children: React.ReactNode }) {
         setClinicType(clinicData.type);
       }
 
+      const settingsWorkspaceProfile =
+        clinicData.settings &&
+        typeof clinicData.settings === "object" &&
+        !Array.isArray(clinicData.settings)
+          ? (clinicData.settings as Record<string, unknown>).workspaceProfile
+          : undefined;
+      if (clinicData.tier === "FRONT_DESK") {
+        setWorkspaceProfile("FRONT_DESK");
+      } else {
+        setWorkspaceProfile(clinicData.workspaceProfile ?? settingsWorkspaceProfile);
+      }
+
       const facilityType =
         clinicData.facilityType ??
         getFacilityLabelFromSettings(clinicData.settings);
@@ -129,6 +142,7 @@ export function ClinicProvider({ children }: { children: React.ReactNode }) {
       setFeatureOverrides,
       setClinicType,
       setFacilityType,
+      setWorkspaceProfile,
     ],
   );
 
