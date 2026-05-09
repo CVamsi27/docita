@@ -11,6 +11,7 @@ import { usePrescription } from "@/hooks/api/use-clinical";
 import { useFeatureAccess } from "@/hooks/use-feature-access";
 import { useClinic } from "@/lib/clinic-context";
 import { useAuth } from "@/lib/auth-context";
+import { canCreatePrescription } from "@/lib/permissions";
 import type { Medication } from "@workspace/types";
 import { PrescriptionHeader } from "@/features/prescriptions/components/view/PrescriptionHeader";
 import { PrescriptionDocument } from "@/features/prescriptions/components/view/PrescriptionDocument";
@@ -148,7 +149,8 @@ export default function PrescriptionViewPage() {
     undefined;
 
   const canEdit =
-    !(user?.role && ["ADMIN", "RECEPTIONIST"].includes(user.role)) &&
+    !!user?.role &&
+    canCreatePrescription(user.role) &&
     !!prescription.appointmentId;
 
   return (

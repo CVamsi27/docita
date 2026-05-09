@@ -86,6 +86,7 @@ export class PrescriptionsController {
 
   @Post()
   @RequireFeature(Feature.DIGITAL_PRESCRIPTIONS)
+  @Roles(...getDbRolesForTarget(APP_ACCESS_TARGETS.API_PRESCRIPTIONS, 'write'))
   @RequiresIdempotency()
   @ZodSerializerDto(PrescriptionResponseDto)
   @UsePipes(new ZodValidationPipe(CreatePrescriptionSchema))

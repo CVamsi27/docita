@@ -29,6 +29,7 @@ describe("canAccessTarget matrix parity (role x tier x target)", () => {
     target: (typeof APP_ACCESS_TARGETS)[keyof typeof APP_ACCESS_TARGETS];
     expectAllowed: boolean;
     workspaceProfile?: WorkspaceProfile;
+    mode?: "read" | "write";
   }> = [
     {
       name: "WhatsApp page denied on Starter for receptionist",
@@ -156,18 +157,42 @@ describe("canAccessTarget matrix parity (role x tier x target)", () => {
       workspaceProfile: "FRONT_DESK",
     },
     {
-      name: "Receptionist denied PAGE_PRESCRIPTIONS even on Enterprise",
+      name: "Receptionist allowed PAGE_PRESCRIPTIONS read (for printing handoff)",
       role: "RECEPTIONIST",
-      tier: Tier.ENTERPRISE,
+      tier: Tier.ESSENTIAL,
       target: APP_ACCESS_TARGETS.PAGE_PRESCRIPTIONS,
-      expectAllowed: false,
+      expectAllowed: true,
     },
     {
-      name: "Receptionist denied API_PRESCRIPTIONS read even on Enterprise",
+      name: "Receptionist allowed API_PRESCRIPTIONS read (list/detail/PDF)",
       role: "RECEPTIONIST",
-      tier: Tier.ENTERPRISE,
+      tier: Tier.ESSENTIAL,
+      target: APP_ACCESS_TARGETS.API_PRESCRIPTIONS,
+      expectAllowed: true,
+      mode: "read",
+    },
+    {
+      name: "Receptionist denied API_PRESCRIPTIONS write (cannot author)",
+      role: "RECEPTIONIST",
+      tier: Tier.ESSENTIAL,
       target: APP_ACCESS_TARGETS.API_PRESCRIPTIONS,
       expectAllowed: false,
+      mode: "write",
+    },
+    {
+      name: "Nurse allowed PAGE_PRESCRIPTIONS read (clinical reference)",
+      role: "NURSE",
+      tier: Tier.ESSENTIAL,
+      target: APP_ACCESS_TARGETS.PAGE_PRESCRIPTIONS,
+      expectAllowed: true,
+    },
+    {
+      name: "Nurse denied API_PRESCRIPTIONS write (cannot author)",
+      role: "NURSE",
+      tier: Tier.ESSENTIAL,
+      target: APP_ACCESS_TARGETS.API_PRESCRIPTIONS,
+      expectAllowed: false,
+      mode: "write",
     },
     {
       name: "Doctor allowed PAGE_PRESCRIPTIONS on Essential",
@@ -177,11 +202,12 @@ describe("canAccessTarget matrix parity (role x tier x target)", () => {
       expectAllowed: true,
     },
     {
-      name: "Nurse denied PAGE_PRESCRIPTIONS",
-      role: "NURSE",
+      name: "Doctor allowed API_PRESCRIPTIONS write",
+      role: "DOCTOR",
       tier: Tier.ESSENTIAL,
-      target: APP_ACCESS_TARGETS.PAGE_PRESCRIPTIONS,
-      expectAllowed: false,
+      target: APP_ACCESS_TARGETS.API_PRESCRIPTIONS,
+      expectAllowed: true,
+      mode: "write",
     },
     {
       name: "Receptionist denied PAGE_CODING_QUEUE",
@@ -199,7 +225,15 @@ describe("canAccessTarget matrix parity (role x tier x target)", () => {
     },
   ];
 
-  for (const { name, role, tier, target, expectAllowed, workspaceProfile } of cases) {
+  for (const {
+    name,
+    role,
+    tier,
+    target,
+    expectAllowed,
+    workspaceProfile,
+    mode,
+  } of cases) {
     it(name, () => {
       const allowed = canAccessTarget(
         target,
@@ -209,7 +243,7 @@ describe("canAccessTarget matrix parity (role x tier x target)", () => {
           canAccessTier: canAccessTierFactory(tier),
           workspaceProfile,
         },
-        "read",
+        mode ?? "read",
       );
       expect(allowed).toBe(expectAllowed);
     });

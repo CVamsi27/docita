@@ -87,12 +87,15 @@ describe("canAccessTarget", () => {
       }),
     ).toBe(true);
 
+    // Nurse can read prescriptions (clinical reference + medication admin)
+    // but cannot author them; the matrix split is exercised in
+    // access-policy.matrix.test.ts.
     expect(
       canAccessTarget(APP_ACCESS_TARGETS.PAGE_PRESCRIPTIONS, {
         role: "NURSE",
         canAccessFeature: () => true,
       }),
-    ).toBe(false);
+    ).toBe(true);
 
     expect(
       canAccessTarget(APP_ACCESS_TARGETS.PAGE_UPGRADE, {

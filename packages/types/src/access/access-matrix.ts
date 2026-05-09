@@ -84,6 +84,7 @@ export const APP_PERMISSIONS_BY_ROLE: Record<UserRole, AppPermission[]> = {
     "editPatient",
     "viewAppointments",
     "createAppointment",
+    "viewPrescriptions",
   ],
   RECEPTIONIST: [
     "viewPatients",
@@ -93,6 +94,7 @@ export const APP_PERMISSIONS_BY_ROLE: Record<UserRole, AppPermission[]> = {
     "createAppointment",
     "viewInvoices",
     "createInvoice",
+    "viewPrescriptions",
   ],
   PATIENT: ["viewAppointments"],
 };
@@ -252,7 +254,9 @@ export const APP_ACCESS_MATRIX: Record<AppAccessTarget, AccessPolicy> = {
     feature: Feature.CALENDAR_SLOTS,
   },
   [APP_ACCESS_TARGETS.PAGE_PRESCRIPTIONS]: {
-    read: { roles: PRESCRIPTION_ROLES },
+    read: {
+      roles: ["ADMIN", "ADMIN_DOCTOR", "DOCTOR", "NURSE", "RECEPTIONIST"],
+    },
     feature: Feature.DIGITAL_PRESCRIPTIONS,
   },
   [APP_ACCESS_TARGETS.PAGE_LAB_TESTS]: {
@@ -404,7 +408,12 @@ export const APP_ACCESS_MATRIX: Record<AppAccessTarget, AccessPolicy> = {
     write: { roles: ADMIN_BILLING_ROLES },
   },
   [APP_ACCESS_TARGETS.API_PRESCRIPTIONS]: {
-    read: { roles: PRESCRIPTION_ROLES },
+    /** Read = list, detail, PDF print. Receptionists hand printed Rx to
+        patients; nurses reference Rx during patient prep. */
+    read: {
+      roles: ["ADMIN", "ADMIN_DOCTOR", "DOCTOR", "NURSE", "RECEPTIONIST"],
+    },
+    /** Authoring (create / edit / sign) is clinical-only. */
     write: { roles: PRESCRIPTION_ROLES },
     feature: Feature.DIGITAL_PRESCRIPTIONS,
   },
