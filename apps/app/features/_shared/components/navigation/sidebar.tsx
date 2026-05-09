@@ -122,11 +122,21 @@ function SidebarContent({
   const { showTopShadow, showBottomShadow } = useScrollShadow(scrollRef);
 
   const isAdmin = !!user?.role && CLINIC_ADMIN_ROLES.has(user.role);
-  const { canAccess, getTierInfo, clinicType: storeClinicType, workspaceProfile } =
-    usePermissionStore();
+  const {
+    canAccess,
+    canAccessTier,
+    getTierInfo,
+    clinicType: storeClinicType,
+    workspaceProfile,
+  } = usePermissionStore();
   const canAccessNotifications = canAccessTarget(
     APP_ACCESS_TARGETS.API_STAFF_NOTIFICATIONS,
-    { role: user?.role, canAccessFeature: canAccess, workspaceProfile },
+    {
+      role: user?.role,
+      canAccessFeature: canAccess,
+      canAccessTier,
+      workspaceProfile,
+    },
     "read",
   );
   const { data: unreadNotificationCount } =
@@ -157,7 +167,12 @@ function SidebarContent({
     if (item.accessTarget) {
       return canAccessTarget(
         item.accessTarget,
-        { role: user?.role, canAccessFeature: canAccess, workspaceProfile },
+        {
+          role: user?.role,
+          canAccessFeature: canAccess,
+          canAccessTier,
+          workspaceProfile,
+        },
         "read",
       );
     }
@@ -202,7 +217,12 @@ function SidebarContent({
   const collapsedRail = isCollapsed && !isMobile;
   const canAccessSettings = canAccessTarget(
     APP_ACCESS_TARGETS.PAGE_SETTINGS,
-    { role: user?.role, canAccessFeature: canAccess, workspaceProfile },
+    {
+      role: user?.role,
+      canAccessFeature: canAccess,
+      canAccessTier,
+      workspaceProfile,
+    },
     "read",
   );
   const canOpenBillingSettings = !!user?.role && canManageBilling(user.role);

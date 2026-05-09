@@ -155,6 +155,48 @@ describe("canAccessTarget matrix parity (role x tier x target)", () => {
       expectAllowed: false,
       workspaceProfile: "FRONT_DESK",
     },
+    {
+      name: "Receptionist denied PAGE_PRESCRIPTIONS even on Enterprise",
+      role: "RECEPTIONIST",
+      tier: Tier.ENTERPRISE,
+      target: APP_ACCESS_TARGETS.PAGE_PRESCRIPTIONS,
+      expectAllowed: false,
+    },
+    {
+      name: "Receptionist denied API_PRESCRIPTIONS read even on Enterprise",
+      role: "RECEPTIONIST",
+      tier: Tier.ENTERPRISE,
+      target: APP_ACCESS_TARGETS.API_PRESCRIPTIONS,
+      expectAllowed: false,
+    },
+    {
+      name: "Doctor allowed PAGE_PRESCRIPTIONS on Essential",
+      role: "DOCTOR",
+      tier: Tier.ESSENTIAL,
+      target: APP_ACCESS_TARGETS.PAGE_PRESCRIPTIONS,
+      expectAllowed: true,
+    },
+    {
+      name: "Nurse denied PAGE_PRESCRIPTIONS",
+      role: "NURSE",
+      tier: Tier.ESSENTIAL,
+      target: APP_ACCESS_TARGETS.PAGE_PRESCRIPTIONS,
+      expectAllowed: false,
+    },
+    {
+      name: "Receptionist denied PAGE_CODING_QUEUE",
+      role: "RECEPTIONIST",
+      tier: Tier.ESSENTIAL,
+      target: APP_ACCESS_TARGETS.PAGE_CODING_QUEUE,
+      expectAllowed: false,
+    },
+    {
+      name: "Receptionist denied PAGE_DOCUMENTS",
+      role: "RECEPTIONIST",
+      tier: Tier.ESSENTIAL,
+      target: APP_ACCESS_TARGETS.PAGE_DOCUMENTS,
+      expectAllowed: false,
+    },
   ];
 
   for (const { name, role, tier, target, expectAllowed, workspaceProfile } of cases) {

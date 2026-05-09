@@ -13,7 +13,12 @@ import { usePermissions } from "@/hooks/use-permissions";
 import { useAuth } from "@/lib/auth-context";
 import { canAccessTarget } from "@/lib/access-policy";
 import { usePermissionStore } from "@/lib/stores/permission-store";
-import type { UserRole, Feature, WorkspaceProfile } from "@workspace/types";
+import type {
+  UserRole,
+  Feature,
+  Tier,
+  WorkspaceProfile,
+} from "@workspace/types";
 import {
   CommandPaletteShell,
   type CommandPaletteAction,
@@ -158,6 +163,7 @@ function navItemIsAccessible(
   args: {
     role: UserRole | undefined;
     canAccess: CanAccessFeatureFn;
+    canAccessTier: (tier: Tier) => boolean;
     workspaceProfile: WorkspaceProfile;
   },
 ): boolean {
@@ -168,6 +174,7 @@ function navItemIsAccessible(
     {
       role: args.role,
       canAccessFeature: args.canAccess,
+      canAccessTier: args.canAccessTier,
       workspaceProfile: args.workspaceProfile,
     },
     "read",
@@ -180,7 +187,7 @@ export function CommandPalette() {
   const { user } = useAuth();
   const { clinicId } = useClinic();
   const { canStartConsultation } = usePermissions();
-  const { canAccess, workspaceProfile } = usePermissionStore();
+  const { canAccess, canAccessTier, workspaceProfile } = usePermissionStore();
   const { openOverlay } = useAskAi();
   const navOrder = useSidebarNavOrder({
     clinicId,
@@ -190,7 +197,12 @@ export function CommandPalette() {
 
   const canAccessQueueApi = canAccessTarget(
     APP_ACCESS_TARGETS.API_QUEUE,
-    { role: user?.role, canAccessFeature: canAccess, workspaceProfile },
+    {
+      role: user?.role,
+      canAccessFeature: canAccess,
+      canAccessTier,
+      workspaceProfile,
+    },
     "read",
   );
   const startConsultation = useStartConsultation();
@@ -285,6 +297,7 @@ export function CommandPalette() {
         !navItemIsAccessible(item, {
           role: user?.role,
           canAccess,
+          canAccessTier,
           workspaceProfile,
         })
       )
@@ -316,6 +329,7 @@ export function CommandPalette() {
           {
             role: user?.role,
             canAccessFeature: canAccess,
+            canAccessTier,
             workspaceProfile,
           },
           action.accessMode ?? "write",
@@ -344,6 +358,7 @@ export function CommandPalette() {
     return out;
   }, [
     canAccess,
+    canAccessTier,
     canStartConsultation,
     handleStartConsultation,
     navOrder,
