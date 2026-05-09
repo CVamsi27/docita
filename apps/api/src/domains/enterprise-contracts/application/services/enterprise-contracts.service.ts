@@ -46,7 +46,7 @@ export class EnterpriseContractsService {
   }
 
   async list(): Promise<ContractWithMembers[]> {
-    return this.prisma.runUnrestricted(() =>
+    return this.prisma.runUnrestricted(async () =>
       this.prisma.enterpriseContract.findMany({
         orderBy: { updatedAt: 'desc' },
         include: { members: true },
@@ -74,7 +74,7 @@ export class EnterpriseContractsService {
   }
 
   async getByContractId(id: string): Promise<ContractWithMembers | null> {
-    return this.prisma.runUnrestricted(() =>
+    return this.prisma.runUnrestricted(async () =>
       this.prisma.enterpriseContract.findUnique({
         where: { id },
         include: { members: true },
@@ -105,7 +105,7 @@ export class EnterpriseContractsService {
       throw new BadRequestException('endDate must be after startDate');
     }
 
-    const clinic = await this.prisma.runUnrestricted(() =>
+    const clinic = await this.prisma.runUnrestricted(async () =>
       this.prisma.clinic.findUnique({ where: { id: primaryClinicId } }),
     );
     if (!clinic) {
@@ -340,7 +340,7 @@ export class EnterpriseContractsService {
     if (!contract) {
       throw new NotFoundException(`Contract ${contractId} not found`);
     }
-    return this.prisma.runUnrestricted(() =>
+    return this.prisma.runUnrestricted(async () =>
       this.prisma.enterpriseContractRevision.findMany({
         where: { contractId },
         orderBy: { effectiveDate: 'desc' },
@@ -349,7 +349,7 @@ export class EnterpriseContractsService {
   }
 
   async listInvoices(contractId: string) {
-    return this.prisma.runUnrestricted(() =>
+    return this.prisma.runUnrestricted(async () =>
       this.prisma.enterpriseContractInvoice.findMany({
         where: { contractId },
         orderBy: { createdAt: 'desc' },
@@ -359,7 +359,7 @@ export class EnterpriseContractsService {
   }
 
   async listTrueUpAlerts(contractId: string) {
-    return this.prisma.runUnrestricted(() =>
+    return this.prisma.runUnrestricted(async () =>
       this.prisma.enterpriseTrueUpAlert.findMany({
         where: { contractId },
         orderBy: { alertedAt: 'desc' },
