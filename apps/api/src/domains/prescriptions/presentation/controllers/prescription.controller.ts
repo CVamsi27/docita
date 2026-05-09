@@ -30,7 +30,9 @@ import {
   Feature,
 } from '@/shared/modules/auth/auth/tier.decorator';
 import { Roles } from '@/shared/modules/auth/auth/roles.decorator';
-import { Role, Specialization, HospitalRole } from '@workspace/db';
+import { getDbRolesForTarget } from '@/shared/modules/auth/auth/access-matrix.util';
+import { APP_ACCESS_TARGETS } from '@workspace/types';
+import { Specialization, HospitalRole } from '@workspace/db';
 import {
   CreatePrescriptionDto,
   ListPrescriptionsQueryDto,
@@ -50,7 +52,7 @@ interface AuthRequest {
 
 @Controller('prescriptions')
 @UseGuards(TierGuard, FrontDeskClinicalBlockGuard)
-@Roles(Role.ADMIN, Role.DOCTOR, Role.RECEPTIONIST, Role.ADMIN_DOCTOR)
+@Roles(...getDbRolesForTarget(APP_ACCESS_TARGETS.API_PRESCRIPTIONS))
 @UseInterceptors(IdempotencyInterceptor)
 export class PrescriptionsController {
   constructor(
