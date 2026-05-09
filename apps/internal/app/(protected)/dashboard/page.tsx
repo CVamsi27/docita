@@ -1,7 +1,6 @@
 "use client";
 
 import { useCallback } from "react";
-import { useQuery } from "@tanstack/react-query";
 import { getUserFacingErrorMessage } from "@workspace/types";
 import {
   Card,
@@ -15,6 +14,7 @@ import { Input } from "@workspace/ui/components/input";
 import { useAuth } from "@/lib/auth";
 import { client } from "@/lib/api-client";
 import { internalQueryKeys } from "@/lib/query-keys";
+import { useInternalQuery } from "@/lib/use-internal-query";
 import { ClinicList } from "./clinic-list";
 import {
   BarChart3,
@@ -81,7 +81,7 @@ export default function InternalDashboard() {
   };
   const { token, isLoading } = useAuth();
 
-  const clinicsQuery = useQuery({
+  const clinicsQuery = useInternalQuery({
     queryKey: internalQueryKeys.internal.clinics(),
     queryFn: async () => {
       const data = await client.get<Clinic[] | { items?: Clinic[] }>(
@@ -89,19 +89,16 @@ export default function InternalDashboard() {
       );
       return Array.isArray(data) ? data : (data.items ?? []);
     },
-    enabled: Boolean(token),
   });
 
-  const statsQuery = useQuery({
+  const statsQuery = useInternalQuery({
     queryKey: internalQueryKeys.internal.stats(),
     queryFn: () => client.get<StatsData>("/internal/stats"),
-    enabled: Boolean(token),
   });
 
-  const billingQuery = useQuery({
+  const billingQuery = useInternalQuery({
     queryKey: internalQueryKeys.internal.billingMetrics(),
     queryFn: () => client.get<BillingMetrics>("/internal/billing/metrics"),
-    enabled: Boolean(token),
   });
 
   const clinics = clinicsQuery.data ?? [];

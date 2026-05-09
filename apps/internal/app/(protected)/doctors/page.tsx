@@ -3,7 +3,7 @@
 import { DocitaLoadingIndicator } from "@workspace/ui/components/docita-loading-indicator";
 
 import { useEffect, useMemo, useState } from "react";
-import { useQuery } from "@tanstack/react-query";
+import { useInternalQuery } from "@/lib/use-internal-query";
 import { Button } from "@workspace/ui/components/button";
 import {
   Card,
@@ -140,7 +140,7 @@ export default function DoctorsPage() {
     return status.charAt(0) + status.slice(1).toLowerCase();
   };
 
-  const clinicsQuery = useQuery({
+  const clinicsQuery = useInternalQuery({
     queryKey: internalQueryKeys.internal.clinics(),
     queryFn: async () => {
       const data = await client.get<Clinic[] | { items?: Clinic[] }>(
@@ -148,7 +148,6 @@ export default function DoctorsPage() {
       );
       return Array.isArray(data) ? data : (data.items ?? []);
     },
-    enabled: Boolean(token),
   });
 
   const clinics = useMemo(
@@ -164,8 +163,13 @@ export default function DoctorsPage() {
     }
   }, [clinics, selectedClinic, setSelectedClinic]);
 
-  const doctorsQuery = useQuery({
-    queryKey: ["internal", "doctors", selectedClinic || "none", clinics.length],
+  const doctorsQuery = useInternalQuery({
+    queryKey: [
+      "internal",
+      "doctors",
+      selectedClinic || "none",
+      clinics.length,
+    ] as const,
     queryFn: async () => {
       if (selectedClinic === "all") {
         const allDoctorsArrays = await Promise.all(
@@ -188,7 +192,7 @@ export default function DoctorsPage() {
       );
       return Array.isArray(data) ? data : [];
     },
-    enabled: Boolean(token && selectedClinic),
+    enabled: Boolean(selectedClinic),
   });
   const doctors = doctorsQuery.data ?? [];
   const loading = clinicsQuery.isLoading || doctorsQuery.isLoading;

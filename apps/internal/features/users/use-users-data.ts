@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useState } from "react";
-import { useQuery } from "@tanstack/react-query";
 import { getUserFacingErrorMessage } from "@workspace/types";
 import { useAuth } from "@/lib/auth";
+import { useInternalQuery } from "@/lib/use-internal-query";
 import { fetchClinics, fetchUsersForSelection } from "./api";
 import { calculateRoleStats, filterUsers } from "./utils";
 import type { RoleFilter, User } from "./types";
@@ -16,24 +16,22 @@ export function useUsersData() {
   const [selectedUser, setSelectedUser] = useState<User | null>(null);
   const [isViewOpen, setIsViewOpen] = useState(false);
 
-  const clinicsQuery = useQuery({
-    queryKey: ["internal", "users", "clinics", token],
+  const clinicsQuery = useInternalQuery({
+    queryKey: ["internal", "users", "clinics", token] as const,
     queryFn: fetchClinics,
-    enabled: Boolean(token),
   });
 
-  const usersQuery = useQuery({
+  const usersQuery = useInternalQuery({
     queryKey: [
       "internal",
       "users",
       token,
       selectedClinic,
       clinicsQuery.data?.length ?? 0,
-    ],
+    ] as const,
     queryFn: () =>
       fetchUsersForSelection(selectedClinic, clinicsQuery.data ?? []),
     enabled:
-      Boolean(token) &&
       Boolean(selectedClinic) &&
       (selectedClinic === "all" ? (clinicsQuery.data?.length ?? 0) > 0 : true),
   });

@@ -2,7 +2,6 @@
 
 import Link from "next/link";
 import { useMemo, useState } from "react";
-import { useQuery } from "@tanstack/react-query";
 import { sanitizeUserFacingMessage } from "@workspace/types";
 import { DATE_FORMATS, formatCountLocale, formatDate } from "@workspace/utils";
 import {
@@ -18,6 +17,10 @@ import { DataState } from "@workspace/ui/components/data-state";
 import { DocitaLoadingIndicator } from "@workspace/ui/components/docita-loading-indicator";
 import { PageHeader } from "@workspace/ui/components/page-header";
 import { Progress } from "@workspace/ui/components/progress";
+import {
+  SystemHealthBadge,
+  SystemHealthIcon,
+} from "@workspace/ui/components/system-health-indicator";
 import {
   Tabs,
   TabsContent,
@@ -38,12 +41,11 @@ import {
   TableHeader,
   TableRow,
 } from "@workspace/ui/components/table";
-import { useAuth } from "@/lib/auth";
 import { internalQueryKeys } from "@/lib/query-keys";
+import { useInternalQuery } from "@/lib/use-internal-query";
 import {
   Activity,
   AlertTriangle,
-  CheckCircle2,
   Clock,
   Cpu,
   Database,
@@ -53,7 +55,6 @@ import {
   ShieldAlert,
   ShieldCheck,
   Wifi,
-  XCircle,
 } from "lucide-react";
 
 function formatBytesToMb(value: number): string {
@@ -78,51 +79,46 @@ function buildPrometheusMetricsUrl(): string | null {
 export default function SystemMonitoringPage() {
   const [refreshing, setRefreshing] = useState(false);
   const [autoRefresh, setAutoRefresh] = useState(true);
-  const { token } = useAuth();
+  const fastInterval = autoRefresh ? 30000 : false;
+  const slowInterval = autoRefresh ? 60000 : false;
 
-  const dashboardQuery = useQuery({
+  const dashboardQuery = useInternalQuery({
     queryKey: internalQueryKeys.internal.monitoringDashboard(),
     queryFn: () => monitoringAPI.getDashboard(),
-    enabled: Boolean(token),
-    refetchInterval: autoRefresh && token ? 30000 : false,
+    refetchInterval: fastInterval,
   });
 
-  const monitoringHealthQuery = useQuery({
+  const monitoringHealthQuery = useInternalQuery({
     queryKey: internalQueryKeys.internal.monitoringHealth(),
     queryFn: () => monitoringAPI.getHealth(),
-    enabled: Boolean(token),
-    refetchInterval: autoRefresh && token ? 30000 : false,
+    refetchInterval: fastInterval,
   });
 
-  const appHealthQuery = useQuery({
-    queryKey: ["health", "system-monitoring"],
+  const appHealthQuery = useInternalQuery({
+    queryKey: ["health", "system-monitoring"] as const,
     queryFn: () => healthAPI.getHealth(),
-    enabled: Boolean(token),
-    refetchInterval: autoRefresh && token ? 30000 : false,
+    refetchInterval: fastInterval,
   });
 
-  const performanceQuery = useQuery({
+  const performanceQuery = useInternalQuery({
     queryKey: internalQueryKeys.internal.performanceMetrics(),
     queryFn: () => performanceAPI.getMetrics(),
-    enabled: Boolean(token),
-    refetchInterval: autoRefresh && token ? 30000 : false,
+    refetchInterval: fastInterval,
   });
 
-  const databaseQuery = useQuery({
+  const databaseQuery = useInternalQuery({
     queryKey: internalQueryKeys.internal.performanceDatabase(),
     queryFn: () => performanceAPI.getDatabaseStats(),
-    enabled: Boolean(token),
-    refetchInterval: autoRefresh && token ? 30000 : false,
+    refetchInterval: fastInterval,
   });
 
-  const tenantScopeQuery = useQuery({
+  const tenantScopeQuery = useInternalQuery({
     queryKey: internalQueryKeys.internal.tenantScopeDiagnostics(),
     queryFn: () => operationsAPI.getTenantScopeDiagnostics(),
-    enabled: Boolean(token),
-    refetchInterval: autoRefresh && token ? 30000 : false,
+    refetchInterval: fastInterval,
   });
 
-  const webVitalsQuery = useQuery({
+  const webVitalsQuery = useInternalQuery({
     queryKey: internalQueryKeys.internal.monitoringWebVitals("24h", "rolling"),
     queryFn: () => {
       const end = new Date();
@@ -132,12 +128,14 @@ export default function SystemMonitoringPage() {
         end.toISOString(),
       );
     },
-    enabled: Boolean(token),
-    refetchInterval: autoRefresh && token ? 60000 : false,
+    refetchInterval: slowInterval,
   });
 
-  const securitySummaryQuery = useQuery({
-    queryKey: internalQueryKeys.internal.monitoringSecuritySummary("24h", "rolling"),
+  const securitySummaryQuery = useInternalQuery({
+    queryKey: internalQueryKeys.internal.monitoringSecuritySummary(
+      "24h",
+      "rolling",
+    ),
     queryFn: () => {
       const end = new Date();
       const start = new Date(end.getTime() - 24 * 60 * 60 * 1000);
@@ -146,15 +144,13 @@ export default function SystemMonitoringPage() {
         end.toISOString(),
       );
     },
-    enabled: Boolean(token),
-    refetchInterval: autoRefresh && token ? 60000 : false,
+    refetchInterval: slowInterval,
   });
 
-  const queueHealthQuery = useQuery({
+  const queueHealthQuery = useInternalQuery({
     queryKey: internalQueryKeys.internal.monitoringQueueHealth(),
     queryFn: () => monitoringAPI.getQueueHealth(),
-    enabled: Boolean(token),
-    refetchInterval: autoRefresh && token ? 30000 : false,
+    refetchInterval: fastInterval,
   });
 
   const loading =
@@ -233,43 +229,13 @@ export default function SystemMonitoringPage() {
     });
   };
 
-  const getStatusIcon = (status: string) => {
-    switch (status) {
-      case "healthy":
-      case "ok":
-        return <CheckCircle2 className="h-5 w-5 text-success" />;
-      case "degraded":
-      case "warning":
-        return <AlertTriangle className="h-5 w-5 text-warning" />;
-      case "unhealthy":
-      case "critical":
-      case "error":
-        return <XCircle className="h-5 w-5 text-destructive" />;
-      default:
-        return <Activity className="h-5 w-5 text-muted-foreground" />;
-    }
-  };
+  const getStatusIcon = (status: string) => (
+    <SystemHealthIcon status={status} />
+  );
 
-  const getStatusBadge = (status: string) => {
-    switch (status) {
-      case "healthy":
-      case "ok":
-        return <Badge className="badge-success">Healthy</Badge>;
-      case "degraded":
-      case "warning":
-        return (
-          <Badge className="badge-warning">
-            {status === "degraded" ? "Degraded" : "Warning"}
-          </Badge>
-        );
-      case "unhealthy":
-      case "critical":
-      case "error":
-        return <Badge variant="destructive">Unhealthy</Badge>;
-      default:
-        return <Badge variant="outline">{status}</Badge>;
-    }
-  };
+  const getStatusBadge = (status: string) => (
+    <SystemHealthBadge status={status} />
+  );
 
   const healthSummary = useMemo(() => {
     if (!monitoringHealth) {

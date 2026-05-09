@@ -1,11 +1,10 @@
 "use client";
 
 import { useCallback, useEffect, useMemo, useState } from "react";
-import { useQuery } from "@tanstack/react-query";
+import { useInternalQuery } from "@/lib/use-internal-query";
 import { formatDate } from "@workspace/utils";
 import { RefreshCw } from "lucide-react";
 import { getUserFacingErrorMessage } from "@workspace/types";
-import { useAuth } from "@/lib/auth";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { client } from "@/lib/api-client";
 import { internalQueryKeys } from "@/lib/query-keys";
@@ -59,7 +58,6 @@ export function SystemLogsPage({
     defaultLimit,
   );
   const [selectedOffset, setSelectedOffset] = useState(0);
-  const { token } = useAuth();
 
   useEffect(() => {
     const level = searchParams.get("level");
@@ -159,7 +157,7 @@ export function SystemLogsPage({
     searchText,
   ]);
 
-  const logsQuery = useQuery({
+  const logsQuery = useInternalQuery({
     queryKey: internalQueryKeys.internal.logs(logsParams),
     queryFn: async () => {
       const json = await client.get<
@@ -178,7 +176,6 @@ export function SystemLogsPage({
 
       return { logs: logsData, total };
     },
-    enabled: Boolean(token),
   });
 
   const logs = useMemo(

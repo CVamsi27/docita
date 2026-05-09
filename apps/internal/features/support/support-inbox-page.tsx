@@ -3,7 +3,7 @@
 import { DocitaLoadingIndicator } from "@workspace/ui/components/docita-loading-indicator";
 
 import { type FormEvent, useDeferredValue, useEffect, useMemo, useState } from "react";
-import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { DATE_FORMATS, formatDate, formatDistanceToNow } from "@workspace/utils";
 import { Badge } from "@workspace/ui/components/badge";
 import { Button } from "@workspace/ui/components/button";
@@ -21,7 +21,7 @@ import {
 } from "@workspace/types";
 import { internalQueryKeys } from "@/lib/query-keys";
 import { supportAPI } from "@/lib/api";
-import { useAuth } from "@/lib/auth";
+import { useInternalQuery } from "@/lib/use-internal-query";
 import { Inbox, MessageSquare, Phone, Search, Send } from "lucide-react";
 
 const THREAD_LIMIT = 100;
@@ -69,7 +69,6 @@ function getMessageAuthor(
 }
 
 export function SupportInboxPage() {
-  const { token } = useAuth();
   const queryClient = useQueryClient();
   const [search, setSearch] = useState("");
   const [selectedThreadPhoneNumber, setSelectedThreadPhoneNumber] = useState<
@@ -88,20 +87,21 @@ export function SupportInboxPage() {
       )
     : null;
 
-  const threadsQuery = useQuery({
+  const threadsQuery = useInternalQuery({
     queryKey: threadsQueryKey,
     queryFn: () => supportAPI.getWhatsAppThreads(THREAD_LIMIT),
-    enabled: Boolean(token),
   });
 
-  const threadMessagesQuery = useQuery({
-    queryKey: selectedThreadKey ?? ["internal", "support", "whatsapp", "thread", ""],
+  const threadMessagesQuery = useInternalQuery({
+    queryKey:
+      selectedThreadKey ??
+      (["internal", "support", "whatsapp", "thread", ""] as const),
     queryFn: () =>
       supportAPI.getWhatsAppThreadMessages(
         selectedThreadPhoneNumber ?? "",
         THREAD_MESSAGES_LIMIT,
       ),
-    enabled: Boolean(token && selectedThreadPhoneNumber),
+    enabled: Boolean(selectedThreadPhoneNumber),
   });
 
   const { mutate: markThreadRead } = useMutation({

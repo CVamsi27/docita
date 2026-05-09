@@ -3,7 +3,7 @@
 import { DocitaLoadingIndicator } from "@workspace/ui/components/docita-loading-indicator";
 
 import { useEffect, useMemo, useState } from "react";
-import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { Button } from "@workspace/ui/components/button";
 import {
   Card,
@@ -41,6 +41,7 @@ import { Label } from "@workspace/ui/components/label";
 import { Edit2, Eye, Plus, Search, Shield, Trash2, Users } from "lucide-react";
 import { useAuth } from "@/lib/auth";
 import { client } from "@/lib/api-client";
+import { useInternalQuery } from "@/lib/use-internal-query";
 import {
   formatInternalListDate,
   formatInternalTimestamp,
@@ -94,7 +95,7 @@ export default function AdminsPage() {
   });
   const { token } = useAuth();
 
-  const clinicsQuery = useQuery({
+  const clinicsQuery = useInternalQuery({
     queryKey: internalQueryKeys.internal.clinics(),
     queryFn: async () => {
       const data = await client.get<Clinic[] | { items?: Clinic[] }>(
@@ -102,7 +103,6 @@ export default function AdminsPage() {
       );
       return Array.isArray(data) ? data : (data.items ?? []);
     },
-    enabled: Boolean(token),
   });
 
   const clinics = useMemo(
@@ -118,11 +118,11 @@ export default function AdminsPage() {
     }
   }, [clinics, selectedClinic, setSelectedClinic]);
 
-  const adminsQuery = useQuery({
+  const adminsQuery = useInternalQuery({
     queryKey: internalQueryKeys.internal.clinicAdmins(selectedClinic || "none"),
     queryFn: () =>
       client.get<Admin[]>(`/internal/clinics/${selectedClinic}/admins`),
-    enabled: Boolean(token && selectedClinic && selectedClinic !== "all"),
+    enabled: Boolean(selectedClinic && selectedClinic !== "all"),
   });
 
   const admins = adminsQuery.data ?? [];
