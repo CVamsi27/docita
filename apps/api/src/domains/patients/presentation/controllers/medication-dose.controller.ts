@@ -19,7 +19,7 @@ import { parsePaginationInt } from '@/common/utils/string.utils';
 
 @ApiTags('medication-doses')
 @Controller('patients/:patientId/medication-doses')
-@Roles(Role.ADMIN, Role.DOCTOR, Role.RECEPTIONIST, Role.ADMIN_DOCTOR)
+@Roles(Role.ADMIN, Role.ADMIN_DOCTOR, Role.DOCTOR, Role.NURSE)
 @ApiBearerAuth('JWT-auth')
 export class MedicationDoseController {
   constructor(
