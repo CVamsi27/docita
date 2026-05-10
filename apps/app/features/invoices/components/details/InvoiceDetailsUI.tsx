@@ -3,20 +3,8 @@
 import { FC } from "react";
 import { Card, CardContent, CardFooter } from "@workspace/ui/components/card";
 import { Button } from "@workspace/ui/components/button";
-import {
-  Download,
-  Edit,
-  FileText,
-  Printer,
-  Share2,
-} from "lucide-react";
+import { Download, Edit, FileText, Printer } from "lucide-react";
 import { BackButton } from "@/components/common/navigation/back-button";
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuTrigger,
-} from "@workspace/ui/components/dropdown-menu";
 import { StatusBadge } from "@workspace/ui/components/status-badge";
 import { EmptyState, LoadingState } from "@workspace/ui/components/empty-state";
 import { useInvoiceDetailsLogic } from "@/features/invoices/hooks/use-invoice-details-logic";
@@ -46,7 +34,6 @@ export const InvoiceDetailsUI: FC<InvoiceDetailsUIProps> = ({ invoiceId }) => {
     handlePrint,
     handleDownload,
     isDownloading,
-    handleShareWhatsApp,
     calculateSubtotal,
     formatCurrency,
     formatDate,
@@ -117,20 +104,6 @@ export const InvoiceDetailsUI: FC<InvoiceDetailsUIProps> = ({ invoiceId }) => {
             <Download className="h-4 w-4 mr-2" />
             {isDownloading ? "Preparing…" : "Download"}
           </Button>
-          <DropdownMenu>
-            <DropdownMenuTrigger asChild>
-              <Button variant="outline" size="sm">
-                <Share2 className="h-4 w-4 mr-2" />
-                Share
-              </Button>
-            </DropdownMenuTrigger>
-            <DropdownMenuContent align="end">
-              <DropdownMenuItem onClick={handleShareWhatsApp}>
-                Share via WhatsApp
-              </DropdownMenuItem>
-              <DropdownMenuItem>Send via Email</DropdownMenuItem>
-            </DropdownMenuContent>
-          </DropdownMenu>
           <Button size="sm" asChild>
             <Link href={`/invoices/${invoiceId}/edit`}>
               <Edit className="h-4 w-4 mr-2" />

@@ -80,24 +80,6 @@ export const useInvoiceDetailsLogic = (
     }
   };
 
-  const handleShareWhatsApp = () => {
-    if (!invoice?.patient?.phoneNumber) {
-      showUserFacingErrorToast(
-        "Add this patient's phone number before sharing the invoice on WhatsApp",
-      );
-      return;
-    }
-
-    const clinicName = clinic?.name?.trim() || "our facility";
-    const total =
-      invoice.grandTotal || invoice.totalAmount || invoice.total || 0;
-    const message = `Hello ${invoice.patient.firstName}, here is your invoice ${invoice.invoiceNumber ?? invoice.id} for ${clinicCurrency.formatCurrency(total, { currency: invoice.currency })}. Thank you for visiting ${clinicName}.`;
-    const encodedMessage = encodeURIComponent(message);
-    const whatsappUrl = `https://wa.me/${invoice.patient.phoneNumber}?text=${encodedMessage}`;
-
-    window.open(whatsappUrl, "_blank");
-  };
-
   const calculateSubtotal = (items: InvoiceItem[]) => {
     return items.reduce(
       (sum, item) => sum + item.quantity * (item.unitPrice ?? item.price),
@@ -117,7 +99,6 @@ export const useInvoiceDetailsLogic = (
     handlePrint,
     handleDownload,
     isDownloading,
-    handleShareWhatsApp,
     calculateSubtotal,
     formatCurrency: (amount: number) =>
       formatCurrency(amount, invoice?.currency ?? clinicCurrency.currency, {
