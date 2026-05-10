@@ -28,7 +28,13 @@ import { ZodSerializerDto } from 'nestjs-zod';
 import { ZodValidationPipe } from '@/common/pipes/zod-validation.pipe';
 
 @Controller('feedback')
-@Roles(Role.ADMIN, Role.DOCTOR, Role.RECEPTIONIST, Role.ADMIN_DOCTOR)
+@Roles(
+  Role.ADMIN,
+  Role.ADMIN_DOCTOR,
+  Role.DOCTOR,
+  Role.NURSE,
+  Role.RECEPTIONIST,
+)
 export class FeedbackController {
   constructor(private readonly feedbackService: FeedbackService) {}
 

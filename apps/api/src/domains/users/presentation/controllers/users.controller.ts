@@ -29,7 +29,13 @@ export class UsersController {
   constructor(private usersService: UsersService) {}
 
   @SkipSubscriptionCheck()
-  @Roles(Role.ADMIN, Role.DOCTOR, Role.RECEPTIONIST, Role.ADMIN_DOCTOR)
+  @Roles(
+    Role.ADMIN,
+    Role.ADMIN_DOCTOR,
+    Role.DOCTOR,
+    Role.NURSE,
+    Role.RECEPTIONIST,
+  )
   @Get('profile')
   @ZodSerializerDto(UserResponseDto)
   async getProfile(@Request() req: RequestWithUser) {
@@ -44,7 +50,13 @@ export class UsersController {
   }
 
   @SkipSubscriptionCheck()
-  @Roles(Role.ADMIN, Role.DOCTOR, Role.RECEPTIONIST, Role.ADMIN_DOCTOR)
+  @Roles(
+    Role.ADMIN,
+    Role.ADMIN_DOCTOR,
+    Role.DOCTOR,
+    Role.NURSE,
+    Role.RECEPTIONIST,
+  )
   @Put('profile')
   @ZodSerializerDto(UserResponseDto)
   @UsePipes(new ZodValidationPipe(UpdateProfileSchema))
@@ -60,7 +72,13 @@ export class UsersController {
   }
 
   @SkipSubscriptionCheck()
-  @Roles(Role.ADMIN, Role.DOCTOR, Role.RECEPTIONIST, Role.ADMIN_DOCTOR)
+  @Roles(
+    Role.ADMIN,
+    Role.ADMIN_DOCTOR,
+    Role.DOCTOR,
+    Role.NURSE,
+    Role.RECEPTIONIST,
+  )
   @Post('account/delete-request')
   @ZodSerializerDto(StaffAccountDeletionResponseDto)
   async requestAccountDeletion(
