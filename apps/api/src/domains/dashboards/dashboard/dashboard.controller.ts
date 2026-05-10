@@ -13,7 +13,13 @@ import { Role } from '@workspace/db';
 import { RequestWithUser } from '@/common/types/common.types';
 
 @Controller('dashboard')
-@Roles(Role.ADMIN, Role.DOCTOR, Role.RECEPTIONIST, Role.ADMIN_DOCTOR)
+@Roles(
+  Role.ADMIN,
+  Role.ADMIN_DOCTOR,
+  Role.DOCTOR,
+  Role.NURSE,
+  Role.RECEPTIONIST,
+)
 export class DashboardController {
   constructor(private readonly dashboardService: DashboardService) {}
 

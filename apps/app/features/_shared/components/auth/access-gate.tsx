@@ -37,11 +37,16 @@ export function AccessGate({
   hideWhenDenied = false,
 }: AccessGateProps) {
   const { user } = useAuth();
-  const { canAccess, workspaceProfile } = usePermissionStore();
+  const { canAccess, canAccessTier, workspaceProfile } = usePermissionStore();
 
   const allowed = canAccessTarget(
     target,
-    { role: user?.role, canAccessFeature: canAccess, workspaceProfile },
+    {
+      role: user?.role,
+      canAccessFeature: canAccess,
+      canAccessTier,
+      workspaceProfile,
+    },
     mode,
   );
 

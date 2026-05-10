@@ -57,8 +57,14 @@ describe('Front desk workspace (e2e)', () => {
     if (!prisma || !httpServer) throw new Error('E2E app not initialized');
     await resetDatabase();
 
+    // The test exercises the FRONT_DESK *workspace profile* — the
+    // clinic-wide guard that blocks clinical mutations regardless of
+    // billing tier. We deliberately use a non-FRONT_DESK SKU (which
+    // would also block doctor sign-in at the auth boundary, see the
+    // dedicated SKU test below) so doctors can authenticate and we can
+    // verify the workspace-profile guard still 403s their writes.
     const clinic = await factories.clinic({
-      tier: 'FRONT_DESK',
+      tier: 'PROFESSIONAL',
       settings: { workspaceProfile: 'FRONT_DESK' },
     });
     clinicId = clinic.id;
@@ -215,5 +221,102 @@ describe('Front desk workspace (e2e)', () => {
 
     expect(res.body).toHaveProperty('items');
     expect(Array.isArray(res.body.items)).toBe(true);
+  });
+
+  // SKU-level (clinic.tier) gate, independent of workspaceProfile.
+  // The Front Desk plan is a reception-only SKU; clinical-role
+  // sign-in is blocked at the auth boundary so a clinical user can
+  // never even obtain a token, while admins and receptionists keep
+  // working as expected.
+  describe('FRONT_DESK SKU sign-in gate', () => {
+    let frontDeskClinicId: string;
+    let skuDoctorEmail: string;
+    let skuDoctorPassword: string;
+    let skuAdminDoctorEmail: string;
+    let skuAdminDoctorPassword: string;
+    let skuReceptionistEmail: string;
+    let skuReceptionistPassword: string;
+    let skuAdminEmail: string;
+    let skuAdminPassword: string;
+
+    beforeEach(async () => {
+      if (!prisma) throw new Error('E2E prisma not initialized');
+      const skuClinic = await factories.clinic({
+        tier: 'FRONT_DESK',
+        settings: { workspaceProfile: 'FRONT_DESK' },
+      });
+      frontDeskClinicId = skuClinic.id;
+
+      const { user: skuDoctor, plainPassword: skuDoctorPlain } =
+        await factories.user({
+          clinicId: frontDeskClinicId,
+          role: 'DOCTOR',
+        });
+      skuDoctorEmail = skuDoctor.email;
+      skuDoctorPassword = skuDoctorPlain;
+
+      const { user: skuAdminDoctor, plainPassword: skuAdminDoctorPlain } =
+        await factories.user({
+          clinicId: frontDeskClinicId,
+          role: 'ADMIN_DOCTOR',
+        });
+      skuAdminDoctorEmail = skuAdminDoctor.email;
+      skuAdminDoctorPassword = skuAdminDoctorPlain;
+
+      const { user: skuRec, plainPassword: skuRecPlain } = await factories.user(
+        {
+          clinicId: frontDeskClinicId,
+          role: 'RECEPTIONIST',
+        },
+      );
+      skuReceptionistEmail = skuRec.email;
+      skuReceptionistPassword = skuRecPlain;
+
+      const { user: skuAdmin, plainPassword: skuAdminPlain } =
+        await factories.user({
+          clinicId: frontDeskClinicId,
+          role: 'ADMIN',
+        });
+      skuAdminEmail = skuAdmin.email;
+      skuAdminPassword = skuAdminPlain;
+    });
+
+    it('blocks DOCTOR sign-in', async () => {
+      if (!httpServer) throw new Error('E2E app not initialized');
+      await request(httpServer)
+        .post('/auth/login')
+        .send({ email: skuDoctorEmail, password: skuDoctorPassword })
+        .expect(403);
+    });
+
+    it('blocks ADMIN_DOCTOR sign-in', async () => {
+      if (!httpServer) throw new Error('E2E app not initialized');
+      await request(httpServer)
+        .post('/auth/login')
+        .send({
+          email: skuAdminDoctorEmail,
+          password: skuAdminDoctorPassword,
+        })
+        .expect(403);
+    });
+
+    it('allows RECEPTIONIST sign-in', async () => {
+      if (!httpServer) throw new Error('E2E app not initialized');
+      await request(httpServer)
+        .post('/auth/login')
+        .send({
+          email: skuReceptionistEmail,
+          password: skuReceptionistPassword,
+        })
+        .expect(201);
+    });
+
+    it('allows ADMIN sign-in', async () => {
+      if (!httpServer) throw new Error('E2E app not initialized');
+      await request(httpServer)
+        .post('/auth/login')
+        .send({ email: skuAdminEmail, password: skuAdminPassword })
+        .expect(201);
+    });
   });
 });

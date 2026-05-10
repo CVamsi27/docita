@@ -1,6 +1,5 @@
 "use client";
 
-import { useQuery } from "@tanstack/react-query";
 import {
   Card,
   CardContent,
@@ -8,89 +7,50 @@ import {
   CardHeader,
   CardTitle,
 } from "@workspace/ui/components/card";
-import { Badge } from "@workspace/ui/components/badge";
 import { DocitaLoadingIndicator } from "@workspace/ui/components/docita-loading-indicator";
 import { PageHeader } from "@workspace/ui/components/page-header";
 import { Progress } from "@workspace/ui/components/progress";
+import {
+  SystemHealthBadge,
+  SystemHealthIcon,
+} from "@workspace/ui/components/system-health-indicator";
 import { formatCountLocale } from "@workspace/utils";
-import { useAuth } from "@/lib/auth";
 import { healthAPI, monitoringAPI, performanceAPI } from "@/lib/api";
 import { internalQueryKeys } from "@/lib/query-keys";
+import { useInternalQuery } from "@/lib/use-internal-query";
 import {
   Activity,
   AlertTriangle,
-  CheckCircle2,
   Clock,
   Cpu,
   Database,
   Server,
   Wifi,
-  XCircle,
 } from "lucide-react";
 
-function getStatusIcon(status: string) {
-  switch (status) {
-    case "healthy":
-    case "ok":
-      return <CheckCircle2 className="h-4 w-4 text-success" />;
-    case "warning":
-    case "degraded":
-      return <AlertTriangle className="h-4 w-4 text-warning" />;
-    case "critical":
-    case "error":
-    case "unhealthy":
-      return <XCircle className="h-4 w-4 text-destructive" />;
-    default:
-      return null;
-  }
-}
-
-function getStatusBadge(status: string) {
-  switch (status) {
-    case "healthy":
-    case "ok":
-      return <Badge className="badge-success">Healthy</Badge>;
-    case "warning":
-    case "degraded":
-      return <Badge className="badge-warning">Warning</Badge>;
-    case "critical":
-    case "error":
-    case "unhealthy":
-      return <Badge variant="destructive">Unhealthy</Badge>;
-    default:
-      return <Badge variant="outline">{status}</Badge>;
-  }
-}
-
 export default function PerformancePage() {
-  const { token } = useAuth();
-
-  const runtimeQuery = useQuery({
+  const runtimeQuery = useInternalQuery({
     queryKey: internalQueryKeys.internal.performanceMetrics(),
     queryFn: () => performanceAPI.getMetrics(),
-    enabled: Boolean(token),
-    refetchInterval: token ? 30000 : false,
+    refetchInterval: 30000,
   });
 
-  const databaseQuery = useQuery({
+  const databaseQuery = useInternalQuery({
     queryKey: internalQueryKeys.internal.performanceDatabase(),
     queryFn: () => performanceAPI.getDatabaseStats(),
-    enabled: Boolean(token),
-    refetchInterval: token ? 30000 : false,
+    refetchInterval: 30000,
   });
 
-  const healthQuery = useQuery({
+  const healthQuery = useInternalQuery({
     queryKey: internalQueryKeys.internal.monitoringHealth(),
     queryFn: () => monitoringAPI.getHealth(),
-    enabled: Boolean(token),
-    refetchInterval: token ? 30000 : false,
+    refetchInterval: 30000,
   });
 
-  const appHealthQuery = useQuery({
-    queryKey: ["health", "performance"],
+  const appHealthQuery = useInternalQuery({
+    queryKey: ["health", "performance"] as const,
     queryFn: () => healthAPI.getHealth(),
-    enabled: Boolean(token),
-    refetchInterval: token ? 30000 : false,
+    refetchInterval: 30000,
   });
 
   const runtime = runtimeQuery.data;
@@ -262,8 +222,8 @@ export default function PerformancePage() {
               {database.queryResponseTimeMs}ms
             </div>
             <div className="flex items-center gap-2">
-              {getStatusIcon(database.status)}
-              {getStatusBadge(database.status)}
+              <SystemHealthIcon size="sm" status={database.status} />
+              <SystemHealthBadge status={database.status} />
             </div>
           </CardContent>
         </Card>
@@ -281,7 +241,10 @@ export default function PerformancePage() {
             <div className="rounded-[var(--radius)] border border-border/70 p-4">
               <div className="flex items-center justify-between gap-3">
                 <div className="flex items-center gap-3">
-                  {getStatusIcon(appHealth?.status ?? "unknown")}
+                  <SystemHealthIcon
+                    size="sm"
+                    status={appHealth?.status ?? "unknown"}
+                  />
                   <div>
                     <p className="font-medium">API Health</p>
                     <p className="text-sm text-muted-foreground">
@@ -289,15 +252,16 @@ export default function PerformancePage() {
                     </p>
                   </div>
                 </div>
-                {getStatusBadge(appHealth?.status ?? "unknown")}
+                <SystemHealthBadge status={appHealth?.status ?? "unknown"} />
               </div>
             </div>
             <div className="rounded-[var(--radius)] border border-border/70 p-4">
               <div className="flex items-center justify-between gap-3">
                 <div className="flex items-center gap-3">
-                  {getStatusIcon(
-                    health.databaseConnected ? "healthy" : "critical",
-                  )}
+                  <SystemHealthIcon
+                    size="sm"
+                    status={health.databaseConnected ? "healthy" : "critical"}
+                  />
                   <div>
                     <p className="font-medium">Monitoring DB</p>
                     <p className="text-sm text-muted-foreground">
@@ -305,9 +269,9 @@ export default function PerformancePage() {
                     </p>
                   </div>
                 </div>
-                {getStatusBadge(
-                  health.databaseConnected ? "healthy" : "critical",
-                )}
+                <SystemHealthBadge
+                  status={health.databaseConnected ? "healthy" : "critical"}
+                />
               </div>
             </div>
           </div>

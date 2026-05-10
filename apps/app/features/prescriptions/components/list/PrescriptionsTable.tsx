@@ -28,9 +28,7 @@ import {
   CardHeader,
   CardTitle,
 } from "@workspace/ui/components/card";
-import { WhatsAppButton } from "@/features/_shared/components";
 import type { Prescription } from "@workspace/types";
-import { useClinic } from "@/lib/clinic-context";
 
 export type SortKey = "date" | "patient" | "diagnosis" | "medications";
 export type SortDirection = "asc" | "desc";
@@ -55,8 +53,6 @@ export function PrescriptionsTable({
   onSort,
   onDownloadPDF,
 }: PrescriptionsTableProps) {
-  const { clinic } = useClinic();
-
   const SortableHeader = ({
     column,
     label,
@@ -200,19 +196,6 @@ export function PrescriptionsTable({
                         <span className="hidden sm:inline">Print</span>
                       </Button>
                     </SymbolTooltip>
-                    {prescription.patient?.phoneNumber && (
-                      <SymbolTooltip label="Send via WhatsApp">
-                        <WhatsAppButton
-                          phoneNumber={prescription.patient.phoneNumber}
-                          message={`Hello ${prescription.patient.firstName}, here is your prescription from ${
-                            clinic?.name || "your clinic"
-                          }.`}
-                          variant="ghost"
-                          label=""
-                          className="h-8 w-8 p-0"
-                        />
-                      </SymbolTooltip>
-                    )}
                   </TableCell>
                 </TableRow>
               ))

@@ -6,24 +6,16 @@ import { PrintSheet } from "@workspace/ui/components/print-sheet";
 import { LoadingState, EmptyState } from "@workspace/ui/components/empty-state";
 import { FileX } from "lucide-react";
 import { useBackNavigation } from "@/hooks/use-back-navigation";
-import { DATE_FORMATS, formatDate } from "@workspace/utils";
 import { usePrescription } from "@/hooks/api/use-clinical";
-import { useFeatureAccess } from "@/hooks/use-feature-access";
 import { useClinic } from "@/lib/clinic-context";
 import { useAuth } from "@/lib/auth-context";
-import { Feature, type Medication } from "@workspace/types";
+import { canCreatePrescription } from "@/lib/permissions";
+import { Feature } from "@workspace/types";
 import { PrescriptionHeader } from "@/features/prescriptions/components/view/PrescriptionHeader";
 import { PrescriptionDocument } from "@/features/prescriptions/components/view/PrescriptionDocument";
 import { buildConsultationRoute } from "@/features/consultation/rules/consultationTabRouting";
 import { showUserFacingErrorToast } from "@/lib/user-facing-errors";
 import { FeatureGate } from "@/features/_shared/components/auth/feature-gate";
-
-interface DoctorInfo {
-  name?: string;
-  qualification?: string;
-  registrationNumber?: string;
-  signatureUrl?: string;
-}
 
 interface ClinicInfo {
   id?: string;
@@ -49,10 +41,8 @@ function PrescriptionViewPageContent() {
   const shouldAutoPrint = searchParams.get("print") === "true";
   const hasAutoPrinted = useRef(false);
   const prescriptionId = params["id"] as string;
-  const { canAccess } = useFeatureAccess();
   const { clinic: contextClinic } = useClinic();
   const { user } = useAuth();
-  const hasWhatsAppAccess = canAccess("WHATSAPP_MESSAGING"); 
   const goBack = useBackNavigation("/prescriptions");
 
   const {
@@ -81,49 +71,6 @@ function PrescriptionViewPageContent() {
 
   const handlePrint = () => {
     window.print();
-  };
-
-  const handleShareWhatsApp = () => {
-    if (!prescription) return;
-
-    const patientName = prescription.patient
-      ? `${prescription.patient.firstName} ${prescription.patient.lastName}`
-      : "Patient";
-
-    const doctorInfo = prescription.doctor as DoctorInfo;
-    const doctorName = doctorInfo?.name?.trim() ?? "";
-    const date = formatDate(prescription.createdAt, DATE_FORMATS.DATE_SHORT);
-
-    let message = `*Prescription for ${patientName}*\n\n`;
-    message += `Date: ${date}\n`;
-    if (doctorName) {
-      message += `Doctor: Dr. ${doctorName}\n`;
-    }
-    if (doctorInfo?.registrationNumber) {
-      message += `Reg. No: ${doctorInfo.registrationNumber}\n`;
-    }
-    message += `\n*Rx*\n`;
-
-    prescription.medications?.forEach((med: Medication, index: number) => {
-      message += `${index + 1}. ${med.name}\n`;
-      message += `   Dosage: ${med.dosage}\n`;
-      message += `   Frequency: ${med.frequency}\n`;
-      message += `   Duration: ${med.duration}\n\n`;
-    });
-
-    if (prescription.instructions) {
-      message += `*Instructions:*\n${prescription.instructions}\n`;
-    }
-
-    const phoneNumber = prescription.patient?.phoneNumber?.replace(
-      /[^0-9]/g,
-      "",
-    );
-    const whatsappUrl = phoneNumber
-      ? `https://wa.me/${phoneNumber}?text=${encodeURIComponent(message)}`
-      : `https://wa.me/?text=${encodeURIComponent(message)}`;
-
-    window.open(whatsappUrl, "_blank");
   };
 
   if (error) {
@@ -157,7 +104,8 @@ function PrescriptionViewPageContent() {
     undefined;
 
   const canEdit =
-    !(user?.role && ["ADMIN", "RECEPTIONIST"].includes(user.role)) &&
+    !!user?.role &&
+    canCreatePrescription(user.role) &&
     !!prescription.appointmentId;
 
   return (
@@ -166,10 +114,8 @@ function PrescriptionViewPageContent() {
         <PrescriptionHeader
           createdAt={new Date(prescription.createdAt).toISOString()}
           canEdit={canEdit}
-          hasWhatsAppAccess={hasWhatsAppAccess}
           onBack={goBack}
           onEdit={handleEdit}
-          onShareWhatsApp={handleShareWhatsApp}
           onPrint={handlePrint}
         />
       </div>

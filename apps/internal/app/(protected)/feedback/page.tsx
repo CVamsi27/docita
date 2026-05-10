@@ -3,7 +3,7 @@
 import { DocitaLoadingIndicator } from "@workspace/ui/components/docita-loading-indicator";
 
 import { useCallback, useMemo, useState } from "react";
-import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
 import {
   Card,
   CardContent,
@@ -35,8 +35,8 @@ import { Label } from "@workspace/ui/components/label";
 import { AlertCircle, CheckCircle, Clock, Eye, Filter, Lightbulb, MessageSquare, RefreshCw, Star, ThumbsDown, ThumbsUp, Trash2 } from "lucide-react";
 import { formatDate } from "@workspace/utils";
 import { Feedback, feedbackAPI, FeedbackFilters } from "@/lib/api";
-import { useAuth } from "@/lib/auth";
 import { internalQueryKeys } from "@/lib/query-keys";
+import { useInternalQuery } from "@/lib/use-internal-query";
 
 const STATUS_OPTIONS = [
   { value: "NEW", label: "New", color: "badge-info" },
@@ -63,23 +63,20 @@ export default function FeedbackPage() {
   const [showFilters, setShowFilters] = useState(false);
   const [filters, setFilters] = useState<FeedbackFilters>({});
   const [adminNotes, setAdminNotes] = useState("");
-  const { token } = useAuth();
   const queryClient = useQueryClient();
 
   const filtersKey = useMemo(() => JSON.stringify(filters), [filters]);
-  const feedbacksQuery = useQuery({
+  const feedbacksQuery = useInternalQuery({
     queryKey: internalQueryKeys.internal.feedback(filtersKey),
     queryFn: () =>
       feedbackAPI.getAll(
         filters as Record<string, string | number | boolean | undefined>,
       ),
-    enabled: Boolean(token),
   });
 
-  const statsQuery = useQuery({
+  const statsQuery = useInternalQuery({
     queryKey: internalQueryKeys.internal.feedbackStats(),
     queryFn: () => feedbackAPI.getStats(filters.clinicId),
-    enabled: Boolean(token),
   });
 
   const feedbacks = feedbacksQuery.data ?? [];

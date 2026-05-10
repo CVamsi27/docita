@@ -138,6 +138,35 @@ export class AuthService {
     }
   }
 
+  /**
+   * Block clinical-role sign-in (DOCTOR / ADMIN_DOCTOR) for clinics on the
+   * FRONT_DESK SKU. The SKU is for reception-only operations: doctor records
+   * still exist for appointment / lab-order / invoice assignment, but the
+   * clinical workspace is not part of the bundle, so those users cannot sign
+   * in. Admin and Receptionist sign-ins are unaffected.
+   */
+  private async assertClinicTierAllowsRole(
+    clinicId: string | null,
+    role: Role,
+  ): Promise<void> {
+    if (!clinicId) return;
+    if (role !== Role.DOCTOR && role !== Role.ADMIN_DOCTOR) return;
+
+    const clinic = await this.prisma.runUnrestricted(async () =>
+      this.prisma.clinic.findUnique({
+        where: { id: clinicId },
+        select: { tier: true },
+      }),
+    );
+
+    if (clinic?.tier === 'FRONT_DESK') {
+      throw new ForbiddenException(
+        'Doctor and admin-doctor sign-in is not available on the Front Desk plan. ' +
+          'Ask an admin to upgrade the clinic to enable clinical sign-in.',
+      );
+    }
+  }
+
   async validateUser(
     email: string,
     pass: string,
@@ -152,6 +181,8 @@ export class AuthService {
       if (user.appLoginDisabled) {
         throw new ForbiddenException('This profile cannot sign in to the app.');
       }
+
+      await this.assertClinicTierAllowsRole(user.clinicId, user.role);
 
       if (user.accountLockedUntil && user.accountLockedUntil > new Date()) {
         const minutesRemaining = Math.ceil(

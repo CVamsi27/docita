@@ -4,7 +4,7 @@ import { DocitaLoadingIndicator } from "@workspace/ui/components/docita-loading-
 
 import dynamic from "next/dynamic";
 import React, { useCallback, useEffect, useMemo, useState } from "react";
-import { useQuery } from "@tanstack/react-query";
+import { useInternalQuery } from "@/lib/use-internal-query";
 import { Activity, BarChart3, Calendar, DollarSign, Download, TrendingUp, Users } from "lucide-react";
 import { API_URL } from "@/lib/api";
 import { useAuth } from "@/lib/auth";
@@ -111,17 +111,15 @@ export function AnalyticsDashboard() {
     return params.toString();
   }, [endDate, period, startDate]);
 
-  const analyticsQuery = useQuery({
+  const analyticsQuery = useInternalQuery({
     queryKey: internalQueryKeys.internal.analytics(analyticsParams),
     queryFn: () =>
       client.get<AnalyticsData>(`/internal/analytics?${analyticsParams}`),
-    enabled: Boolean(token),
   });
 
-  const billingQuery = useQuery({
+  const billingQuery = useInternalQuery({
     queryKey: internalQueryKeys.internal.billingMetrics(),
     queryFn: () => client.get<BillingMetrics>("/internal/billing/metrics"),
-    enabled: Boolean(token),
   });
 
   const data = analyticsQuery.data ?? null;

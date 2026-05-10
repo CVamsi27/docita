@@ -13,6 +13,7 @@ import {
 import { Button } from "@workspace/ui/components/button";
 import { Avatar, AvatarFallback } from "@workspace/ui/components/avatar";
 import { Badge } from "@workspace/ui/components/badge";
+import { LiveDot } from "@workspace/ui/components/live-dot";
 import { cn } from "@workspace/ui/lib/utils";
 import { humanizeUiLabel } from "@workspace/ui/lib/label-formatters";
 import { Clock, Play, Stethoscope, Users } from "lucide-react";
@@ -175,8 +176,11 @@ export function DoctorDashboardCardsUI({
               <p className="text-[var(--fs-2xl)] font-semibold tabular-nums text-info">
                 {queueStats.inProgress}
               </p>
-              <p className="text-xs text-muted-foreground uppercase tracking-wider">
-                Active
+              <p className="flex items-center justify-center gap-1.5 text-xs text-muted-foreground uppercase tracking-wider">
+                {queueStats.inProgress > 0 ? (
+                  <LiveDot tone="cyan" ariaLabel="Active consultation" />
+                ) : null}
+                <span>Active</span>
               </p>
             </div>
             <div className="p-3 rounded-[var(--radius)] bg-success/10">

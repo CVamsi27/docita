@@ -158,7 +158,7 @@ function SubscriptionGuard({ children }: { children: React.ReactNode }) {
 function PageAccessGuard({ children }: { children: React.ReactNode }) {
   const { user } = useAuth();
   const { clinic } = useClinic();
-  const { canAccess, workspaceProfile } = usePermissionStore();
+  const { canAccess, canAccessTier, workspaceProfile } = usePermissionStore();
   const pathname = usePathname();
   const router = useRouter();
 
@@ -183,6 +183,7 @@ function PageAccessGuard({ children }: { children: React.ReactNode }) {
       {
         role: user.role,
         canAccessFeature: canAccess,
+        canAccessTier,
         workspaceProfile,
       },
       "read",
@@ -191,7 +192,15 @@ function PageAccessGuard({ children }: { children: React.ReactNode }) {
     if (!hasAccess) {
       router.replace("/today");
     }
-  }, [canAccess, clinic, pathname, router, user?.role, workspaceProfile]);
+  }, [
+    canAccess,
+    canAccessTier,
+    clinic,
+    pathname,
+    router,
+    user?.role,
+    workspaceProfile,
+  ]);
 
   return <>{children}</>;
 }

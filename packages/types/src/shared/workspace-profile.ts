@@ -46,11 +46,13 @@ export const WORKSPACE_PROFILE_MARKETING: Record<
     included: [
       "Patient scheduling, queue, and appointments",
       "Invoicing and payment links",
-      "Admin and receptionist operations (one schedule doctor profile)",
+      "Lab order intake and lab-test invoicing",
+      "Admin and receptionist operations (doctor profiles for assignment only)",
     ],
     notIncluded: [
       "Consultation workspace and structured clinical documentation apps",
-      "Prescription authoring, lab orders, and medical coding apps",
+      "Prescription authoring and medical coding apps",
+      "Doctor and admin-doctor sign-in (clinical staff use other tools)",
     ],
   },
 };

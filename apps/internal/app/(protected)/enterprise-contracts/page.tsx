@@ -239,7 +239,7 @@ export default function EnterpriseContractsPage() {
     try {
       const list = await enterpriseContractsAPI.list();
       setRows(list);
-    } catch (e) {
+    } catch {
       setError("We couldn’t load enterprise contracts. Please try again.");
     } finally {
       setLoading(false);
@@ -312,7 +312,7 @@ export default function EnterpriseContractsPage() {
       } as Partial<EnterpriseContractRow> & { changeSummary?: string });
       setEditorOpen(false);
       await load();
-    } catch (e) {
+    } catch {
       setError("We couldn’t save the contract. Please try again.");
     } finally {
       setBusy(false);
@@ -326,7 +326,7 @@ export default function EnterpriseContractsPage() {
     try {
       const est = await enterpriseContractsAPI.estimate(contractId);
       setEstimate(est);
-    } catch (e) {
+    } catch {
       setError("We couldn’t load the estimate. Please try again.");
     } finally {
       setEstimateLoading(false);
@@ -339,7 +339,7 @@ export default function EnterpriseContractsPage() {
     try {
       const list = await enterpriseContractsAPI.listRevisions(contractId);
       setRevisions(list);
-    } catch (e) {
+    } catch {
       setError("We couldn’t load revisions. Please try again.");
     }
   };
@@ -362,7 +362,7 @@ export default function EnterpriseContractsPage() {
       setActiveContract(updated);
       setNewMemberClinicId("");
       await load();
-    } catch (e) {
+    } catch {
       setError("We couldn’t add that clinic. Please try again.");
     } finally {
       setBusy(false);
@@ -384,7 +384,7 @@ export default function EnterpriseContractsPage() {
       );
       setActiveContract(updated);
       await load();
-    } catch (e) {
+    } catch {
       setError("We couldn’t remove that clinic. Please try again.");
     } finally {
       setBusy(false);
@@ -407,7 +407,7 @@ export default function EnterpriseContractsPage() {
         `Prepay invoice generated: ${inv.id}\nAmount: ₹${(inv.amountCents / 100).toFixed(2)}\nDiscount: ${inv.discountPercent}%`,
       );
       await load();
-    } catch (e) {
+    } catch {
       setError("We couldn’t generate the prepay invoice. Please try again.");
     } finally {
       setBusy(false);
@@ -420,7 +420,7 @@ export default function EnterpriseContractsPage() {
     try {
       const list = await enterpriseContractsAPI.listInvoices(contractId);
       setInvoices(list);
-    } catch (e) {
+    } catch {
       setError("We couldn’t load invoices. Please try again.");
     }
   };
@@ -436,7 +436,7 @@ export default function EnterpriseContractsPage() {
           : `No alert: usage at ${res.observedPercent}% (below threshold or already alerted this month).`,
       );
       await load();
-    } catch (e) {
+    } catch {
       setError("We couldn’t evaluate true-up. Please try again.");
     } finally {
       setBusy(false);
@@ -449,7 +449,7 @@ export default function EnterpriseContractsPage() {
     try {
       const list = await enterpriseContractsAPI.listTrueUpAlerts(contractId);
       setAlerts(list);
-    } catch (e) {
+    } catch {
       setError("We couldn’t load alerts. Please try again.");
     }
   };

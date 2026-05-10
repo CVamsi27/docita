@@ -50,7 +50,7 @@ export const useConsultationDashboard = () => {
   const router = useRouter();
   const { user } = useAuth();
   const { canStartConsultation } = usePermissions();
-  const { canAccess, workspaceProfile } = usePermissionStore();
+  const { canAccess, canAccessTier, workspaceProfile } = usePermissionStore();
   const { data: clinic } = useClinicSettings();
   const clinicTz = clinic?.timezone?.trim() || DEFAULT_TIMEZONE;
   const today = formatClinicTodayPickerIso(clinicTz);
@@ -91,6 +91,7 @@ export const useConsultationDashboard = () => {
     {
       role: user?.role,
       canAccessFeature: canAccess,
+      canAccessTier,
       workspaceProfile,
     },
     "read",

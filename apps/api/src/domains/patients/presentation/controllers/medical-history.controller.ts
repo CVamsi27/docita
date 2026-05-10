@@ -32,7 +32,7 @@ import {
 } from '@/domains/patients/application/dto/medical-history.dto';
 
 @Controller('patients/:patientId/medical-history')
-@Roles(Role.ADMIN, Role.DOCTOR, Role.ADMIN_DOCTOR, Role.PATIENT)
+@Roles(Role.ADMIN, Role.ADMIN_DOCTOR, Role.DOCTOR, Role.NURSE, Role.PATIENT)
 @RequireFeature(Feature.BASIC_PATIENT_MANAGEMENT)
 export class MedicalHistoryController {
   constructor(

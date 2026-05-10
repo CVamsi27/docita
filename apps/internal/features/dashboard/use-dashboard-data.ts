@@ -1,5 +1,5 @@
-import { useQuery } from "@tanstack/react-query";
 import { useAuth } from "@/lib/auth";
+import { useInternalQuery } from "@/lib/use-internal-query";
 import { fetchDashboardClinics, fetchDashboardStats } from "./api";
 import {
   type DashboardClinic,
@@ -10,16 +10,14 @@ import {
 export function useDashboardData() {
   const { token } = useAuth();
 
-  const clinicsQuery = useQuery({
-    queryKey: ["internal", "dashboard", "clinics", token],
+  const clinicsQuery = useInternalQuery({
+    queryKey: ["internal", "dashboard", "clinics", token] as const,
     queryFn: fetchDashboardClinics,
-    enabled: Boolean(token),
   });
 
-  const statsQuery = useQuery({
-    queryKey: ["internal", "dashboard", "stats", token],
+  const statsQuery = useInternalQuery({
+    queryKey: ["internal", "dashboard", "stats", token] as const,
     queryFn: fetchDashboardStats,
-    enabled: Boolean(token),
   });
 
   return {

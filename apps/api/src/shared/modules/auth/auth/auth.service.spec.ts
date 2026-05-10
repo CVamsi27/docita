@@ -296,6 +296,81 @@ describe('AuthService', () => {
       ).rejects.toThrow(ForbiddenException);
     });
 
+    it('should reject DOCTOR sign-in for FRONT_DESK clinics', async () => {
+      jest.spyOn(prismaService.user, 'findUnique').mockResolvedValue({
+        ...mockUser,
+        role: Role.DOCTOR,
+      });
+      jest
+        .spyOn(prismaService.clinic, 'findUnique')
+        .mockResolvedValue({ tier: 'FRONT_DESK' } as never);
+      jest.mocked(bcrypt.compare).mockImplementation(async () => true);
+
+      await expect(
+        service.validateUser('test@example.com', 'password'),
+      ).rejects.toThrow(ForbiddenException);
+    });
+
+    it('should reject ADMIN_DOCTOR sign-in for FRONT_DESK clinics', async () => {
+      jest.spyOn(prismaService.user, 'findUnique').mockResolvedValue({
+        ...mockUser,
+        role: Role.ADMIN_DOCTOR,
+      });
+      jest
+        .spyOn(prismaService.clinic, 'findUnique')
+        .mockResolvedValue({ tier: 'FRONT_DESK' } as never);
+      jest.mocked(bcrypt.compare).mockImplementation(async () => true);
+
+      await expect(
+        service.validateUser('test@example.com', 'password'),
+      ).rejects.toThrow(ForbiddenException);
+    });
+
+    it('should allow RECEPTIONIST sign-in for FRONT_DESK clinics', async () => {
+      jest.spyOn(prismaService.user, 'findUnique').mockResolvedValue({
+        ...mockUser,
+        role: Role.RECEPTIONIST,
+      });
+      jest
+        .spyOn(prismaService.clinic, 'findUnique')
+        .mockResolvedValue({ tier: 'FRONT_DESK' } as never);
+      jest.mocked(bcrypt.compare).mockImplementation(async () => true);
+
+      const result = await service.validateUser('test@example.com', 'password');
+      expect(result).not.toBeNull();
+      expect(result?.role).toBe(Role.RECEPTIONIST);
+    });
+
+    it('should allow ADMIN sign-in for FRONT_DESK clinics', async () => {
+      jest.spyOn(prismaService.user, 'findUnique').mockResolvedValue({
+        ...mockUser,
+        role: Role.ADMIN,
+      });
+      jest
+        .spyOn(prismaService.clinic, 'findUnique')
+        .mockResolvedValue({ tier: 'FRONT_DESK' } as never);
+      jest.mocked(bcrypt.compare).mockImplementation(async () => true);
+
+      const result = await service.validateUser('test@example.com', 'password');
+      expect(result).not.toBeNull();
+      expect(result?.role).toBe(Role.ADMIN);
+    });
+
+    it('should allow DOCTOR sign-in for non-FRONT_DESK clinics', async () => {
+      jest.spyOn(prismaService.user, 'findUnique').mockResolvedValue({
+        ...mockUser,
+        role: Role.DOCTOR,
+      });
+      jest
+        .spyOn(prismaService.clinic, 'findUnique')
+        .mockResolvedValue({ tier: 'PROFESSIONAL' } as never);
+      jest.mocked(bcrypt.compare).mockImplementation(async () => true);
+
+      const result = await service.validateUser('test@example.com', 'password');
+      expect(result).not.toBeNull();
+      expect(result?.role).toBe(Role.DOCTOR);
+    });
+
     it('should return null when password is incorrect', async () => {
       jest.spyOn(prismaService.user, 'findUnique').mockResolvedValue(mockUser);
       jest.mocked(bcrypt.compare).mockImplementation(async () => false);
