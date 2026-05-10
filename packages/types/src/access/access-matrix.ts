@@ -276,7 +276,11 @@ export const APP_ACCESS_MATRIX: Record<AppAccessTarget, AccessPolicy> = {
   [APP_ACCESS_TARGETS.PAGE_DESK_FLOOR]: {
     read: { roles: ["ADMIN", "ADMIN_DOCTOR", "DOCTOR", "RECEPTIONIST"] },
     feature: Feature.QUEUE_MANAGEMENT,
-    tier: Tier.ENTERPRISE,
+    /** Hospital and Enterprise SKUs only. With the current Tier rank
+        (HOSPITAL=3, ENTERPRISE=4) gating at HOSPITAL admits both, plus
+        the INTELLIGENCE addon which sits above. FRONT_DESK is special-
+        cased in canAccessTier to cap at ESSENTIAL, so it is excluded. */
+    tier: Tier.HOSPITAL,
   },
   [APP_ACCESS_TARGETS.PAGE_INVENTORY]: {
     read: { roles: ["ADMIN", "ADMIN_DOCTOR", "DOCTOR", "RECEPTIONIST"] },

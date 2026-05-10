@@ -15,6 +15,7 @@ const BILLABLE_PLAN_SKUS = [
   "FRONT_DESK",
   "ESSENTIAL",
   "PROFESSIONAL",
+  "HOSPITAL",
   "ENTERPRISE",
 ] as const satisfies readonly TierName[];
 

@@ -23,6 +23,7 @@ import {
   StaffNotificationType,
   NotificationPriority,
   Role,
+  EnterpriseContractStatus,
 } from '@workspace/db';
 import { isCronDisabledInThisProcess } from '@/shared/schedule/cron-env';
 
@@ -185,13 +186,42 @@ export class OverageBillingScheduler {
     periodEnd: Date,
   ): Promise<void> {
     const tier = sub.plan;
-    const currency = this.resolveCurrency(sub.currency);
+
+    let activeContract: Awaited<
+      ReturnType<typeof this.prisma.enterpriseContract.findUnique>
+    > = null;
+    if (tier === ClinicTier.ENTERPRISE) {
+      const member = await this.prisma.enterpriseContractMember.findUnique({
+        where: { clinicId: sub.clinicId },
+      });
+      const candidate = member
+        ? await this.prisma.enterpriseContract.findUnique({
+            where: { id: member.contractId },
+          })
+        : await this.prisma.enterpriseContract.findFirst({
+            where: { primaryClinicId: sub.clinicId },
+          });
+      if (candidate?.status === EnterpriseContractStatus.ACTIVE) {
+        activeContract = candidate;
+      }
+    }
+
+    const currency = this.resolveCurrency(
+      activeContract?.currency ?? sub.currency,
+    );
     const tierKey = tier as keyof typeof TIER_LIMITS;
     const tierLimits = TIER_LIMITS[tierKey];
 
     const includedConsultations =
-      sub.includedAppointments ?? tierLimits.appointments ?? 0;
-    const includedUsers = sub.includedUsers ?? tierLimits.users ?? 0;
+      activeContract?.includedConsultations ??
+      sub.includedAppointments ??
+      tierLimits.appointments ??
+      0;
+    const includedUsers =
+      activeContract?.includedUsers ??
+      sub.includedUsers ??
+      tierLimits.users ??
+      0;
 
     const [consultationCount, userCount, whatsappCount] = await Promise.all([
       this.prisma.appointment.count({
@@ -232,10 +262,12 @@ export class OverageBillingScheduler {
       tier === ClinicTier.ENTERPRISE
         ? tier
         : null;
-    const whatsappIncluded = whatsappEligibleTier
-      ? getWhatsAppAddonPricingByCurrency(whatsappEligibleTier, currency)
-          .includedQuota
-      : 0;
+    const whatsappIncluded =
+      activeContract?.includedWhatsappMessages ??
+      (whatsappEligibleTier
+        ? getWhatsAppAddonPricingByCurrency(whatsappEligibleTier, currency)
+            .includedQuota
+        : 0);
 
     const usageData = {
       period: { start: periodStart, end: periodEnd },
@@ -258,6 +290,14 @@ export class OverageBillingScheduler {
       },
       tier,
       currency,
+      rateOverridesCents: activeContract
+        ? {
+            consultation: activeContract.overageConsultationCents,
+            user: activeContract.overageUserCents,
+            whatsapp: activeContract.overageWhatsappCents,
+            storage: activeContract.overageStorageCents,
+          }
+        : undefined,
     };
 
     const result = await this.overageCalculationService.calculateOverageCharges(

@@ -443,7 +443,7 @@ html.dark[data-accent="slate"] {
   }
 
   .surface-warning {
-    @apply border border-warning/30 bg-warning/10 text-warning-foreground;
+    @apply border border-warning/30 bg-warning/10 text-warning;
   }
 
   .surface-danger {

@@ -297,11 +297,17 @@ test.describe("Critical Business Flows", () => {
     const updateRes = await request.patch(`${API_URL}/patients/${patient.id}`, {
       headers: { Authorization: `Bearer ${doctor.accessToken}` },
       data: {
-        notes: `Updated notes at ${new Date().toISOString()} - Critical flow test`,
+        metadata: {
+          e2eNote: `Updated at ${new Date().toISOString()} - Critical flow test`,
+        },
       },
     });
 
-    expect(updateRes.ok()).toBeTruthy();
+    if (!updateRes.ok()) {
+      throw new Error(
+        `Patient notes update failed: ${updateRes.status()} ${await updateRes.text()}`,
+      );
+    }
 
     const verifyRes = await request.get(`${API_URL}/patients/${patient.id}`, {
       headers: { Authorization: `Bearer ${doctor.accessToken}` },

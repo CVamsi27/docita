@@ -9,7 +9,7 @@ import { DeskFloorPanelContainer } from "@/features/desk/components/DeskFloorPan
 
 export default function DeskFloorPage() {
   return (
-    <TierGate tier={Tier.ENTERPRISE} showLockedCard>
+    <TierGate tier={Tier.HOSPITAL} showLockedCard>
       <FeatureGate feature={Feature.QUEUE_MANAGEMENT} showLockedCard>
         <DeskFloorPanelContainer />
       </FeatureGate>

@@ -396,3 +396,145 @@ export const billingAPI = {
   deletePricingOffer: (clinicId: string): Promise<void> =>
     client.delete(`/internal/billing/pricing/offers/${clinicId}`),
 };
+
+export interface EnterpriseContractRow {
+  id: string;
+  primaryClinicId: string;
+  groupName: string | null;
+  memberClinicIds: string[];
+  contractNumber: string;
+  status: "DRAFT" | "ACTIVE" | "EXPIRED" | "TERMINATED";
+  startDate: string;
+  endDate: string;
+  billingCycle: "MONTHLY" | "QUARTERLY" | "SEMI_ANNUAL" | "YEARLY";
+  currency: string;
+  platformFeeCents: number;
+  includedUsers: number;
+  includedConsultations: number;
+  includedWhatsappMessages: number;
+  includedStorageGB: number;
+  includedBranches: number;
+  overageUserCents: number;
+  overageConsultationCents: number;
+  overageWhatsappCents: number;
+  overageStorageCents: number;
+  annualPrepayDiscountPercent: number;
+  trueUpThresholdPercent: number;
+  notes: string | null;
+  signedDocumentUrl: string | null;
+  lastTrueUpAlertAt: string | null;
+  annualPrepayInvoiceId: string | null;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface EnterpriseContractInvoiceRow {
+  id: string;
+  contractId: string;
+  kind: "ANNUAL_PREPAY" | "TRUE_UP" | "ADJUSTMENT";
+  subscriptionPaymentId: string | null;
+  amountCents: number;
+  currency: string;
+  periodStart: string;
+  periodEnd: string;
+  discountPercent: number;
+  metadata: Record<string, unknown> | null;
+  createdAt: string;
+  updatedAt: string;
+  subscriptionPayment?: { invoiceUrl: string | null; status: string } | null;
+}
+
+export interface EnterpriseTrueUpAlertRow {
+  id: string;
+  contractId: string;
+  alertedAt: string;
+  thresholdPercent: number;
+  observedPercent: number;
+  ytdOverageCents: number;
+  ytdPlatformCents: number;
+  recipients: string[];
+}
+
+export interface EnterpriseContractEstimate {
+  contract: EnterpriseContractRow & { memberClinicIds: string[] };
+  period: { start: string; end: string };
+  meters: {
+    users: { current: number; included: number; overage: number; chargeCents: number };
+    consultations: { current: number; included: number; overage: number; chargeCents: number };
+    whatsappMessages: { current: number; included: number; overage: number; chargeCents: number };
+    storageGB: { current: number; included: number; overage: number; chargeCents: number };
+  };
+  platformFeeCents: number;
+  overageTotalCents: number;
+  projectedMonthTotalCents: number;
+  currency: string;
+}
+
+export interface EnterpriseContractRevisionRow {
+  id: string;
+  contractId: string;
+  effectiveDate: string;
+  changeSummary: string;
+  createdById: string | null;
+  createdAt: string;
+}
+
+export const enterpriseContractsAPI = {
+  list: (): Promise<EnterpriseContractRow[]> =>
+    client.get("/internal/enterprise-contracts"),
+  get: (contractId: string): Promise<EnterpriseContractRow> =>
+    client.get(`/internal/enterprise-contracts/${contractId}`),
+  getByClinic: (clinicId: string): Promise<EnterpriseContractRow> =>
+    client.get(`/internal/enterprise-contracts/by-clinic/${clinicId}`),
+  upsert: (
+    primaryClinicId: string,
+    payload: Partial<EnterpriseContractRow> & { changeSummary?: string },
+  ): Promise<EnterpriseContractRow> =>
+    client.put(
+      `/internal/enterprise-contracts/by-primary-clinic/${primaryClinicId}`,
+      payload,
+    ),
+  setStatus: (
+    contractId: string,
+    status: EnterpriseContractRow["status"],
+  ): Promise<EnterpriseContractRow> =>
+    client.post(`/internal/enterprise-contracts/${contractId}/status`, {
+      status,
+    }),
+  addMember: (
+    contractId: string,
+    clinicId: string,
+  ): Promise<EnterpriseContractRow> =>
+    client.post(`/internal/enterprise-contracts/${contractId}/members`, {
+      clinicId,
+    }),
+  removeMember: (
+    contractId: string,
+    clinicId: string,
+  ): Promise<EnterpriseContractRow> =>
+    client.delete(
+      `/internal/enterprise-contracts/${contractId}/members/${clinicId}`,
+    ),
+  listRevisions: (contractId: string): Promise<EnterpriseContractRevisionRow[]> =>
+    client.get(`/internal/enterprise-contracts/${contractId}/revisions`),
+  listInvoices: (contractId: string): Promise<EnterpriseContractInvoiceRow[]> =>
+    client.get(`/internal/enterprise-contracts/${contractId}/invoices`),
+  listTrueUpAlerts: (
+    contractId: string,
+  ): Promise<EnterpriseTrueUpAlertRow[]> =>
+    client.get(`/internal/enterprise-contracts/${contractId}/true-up-alerts`),
+  generateAnnualPrepayInvoice: (
+    contractId: string,
+  ): Promise<EnterpriseContractInvoiceRow> =>
+    client.post(
+      `/internal/enterprise-contracts/${contractId}/annual-prepay-invoice`,
+    ),
+  evaluateTrueUp: (
+    contractId: string,
+  ): Promise<{ alerted: boolean; observedPercent: number }> =>
+    client.post(`/internal/enterprise-contracts/${contractId}/evaluate-true-up`),
+  estimate: (contractId: string): Promise<EnterpriseContractEstimate> =>
+    client.get(`/internal/enterprise-contracts/${contractId}/estimate`),
+  terminate: (contractId: string): Promise<void> =>
+    client.delete(`/internal/enterprise-contracts/${contractId}`),
+};

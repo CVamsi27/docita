@@ -12,7 +12,9 @@ import {
 } from '@nestjs/common';
 import { MedicalHistoryService } from '@/domains/patients/application/services/medical-history.service';
 import { Role } from '@workspace/db';
+import { Feature } from '@workspace/types';
 import { Roles } from '@/shared/modules/auth/auth/roles.decorator';
+import { RequireFeature } from '@/shared/modules/auth/auth/tier.decorator';
 import { AuditService } from '@/shared/modules/audit/audit/audit.service';
 import { RequestWithUser } from '@/common/types/common.types';
 import { PatientService } from '@/domains/patients/application/services/patient.service';
@@ -31,6 +33,7 @@ import {
 
 @Controller('patients/:patientId/medical-history')
 @Roles(Role.ADMIN, Role.ADMIN_DOCTOR, Role.DOCTOR, Role.NURSE, Role.PATIENT)
+@RequireFeature(Feature.BASIC_PATIENT_MANAGEMENT)
 export class MedicalHistoryController {
   constructor(
     private readonly medicalHistoryService: MedicalHistoryService,

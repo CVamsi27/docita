@@ -14,8 +14,18 @@ import { DataState } from "@workspace/ui/components/data-state";
 import { User } from "lucide-react";
 import { PatientDetailTabLoadingShell } from "@/features/patients/components/details/patient-detail-tab-loading-shell";
 import { usePatientDetailLogic } from "@/features/patients/hooks/use-patient-detail-logic";
+import { Feature } from "@workspace/types";
+import { FeatureGate } from "@/features/_shared/components/auth/feature-gate";
 
 export default function PatientDetailPage() {
+  return (
+    <FeatureGate feature={Feature.BASIC_PATIENT_MANAGEMENT} showLockedCard>
+      <PatientDetailPageContent />
+    </FeatureGate>
+  );
+}
+
+function PatientDetailPageContent() {
   const params = useParams();
   const patientId = (params["id"] as string) ?? "";
 

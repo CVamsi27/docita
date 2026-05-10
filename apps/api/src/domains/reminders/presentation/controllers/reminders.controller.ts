@@ -13,7 +13,9 @@ import {
 } from '@nestjs/common';
 import { RemindersService } from '@/domains/reminders/application/services/reminders.service';
 import { Role } from '@workspace/db';
+import { Feature } from '@workspace/types';
 import { Roles } from '@/shared/modules/auth/auth/roles.decorator';
+import { RequireFeature } from '@/shared/modules/auth/auth/tier.decorator';
 import {
   ReminderSettingsDto,
   SendReminderDto,
@@ -29,6 +31,7 @@ import { RequestWithUser } from '@/common/types/common.types';
 
 @Controller('reminders')
 @Roles(Role.ADMIN, Role.DOCTOR, Role.RECEPTIONIST, Role.ADMIN_DOCTOR)
+@RequireFeature(Feature.AUTO_REMINDERS)
 export class RemindersController {
   constructor(private readonly remindersService: RemindersService) {}
 

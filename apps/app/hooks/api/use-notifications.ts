@@ -17,6 +17,22 @@ export const useNotifications = (enabled: boolean = true) =>
     },
   );
 
+/**
+ * Full history of staff notifications (read + unread, excluding soft-deleted).
+ * Use for the /inbox notifications view; the bell popover continues to use
+ * `useNotifications` for unread-only.
+ */
+export const useAllNotifications = (enabled: boolean = true) =>
+  useAPIQueryValidated(
+    ["notifications", "all"],
+    "/staff-notifications/all",
+    staffNotificationsListResponseSchema,
+    {
+      enabled,
+      refetchInterval: 60000,
+    },
+  );
+
 export const useUnreadNotificationCount = (enabled: boolean = true) =>
   useAPIQueryValidated(
     ["notifications", "unread-count"],
@@ -33,7 +49,11 @@ export const useMarkNotificationRead = () =>
     (vars) => `/staff-notifications/mark-read/${vars.id}`,
     "PATCH",
     {
-      invalidateKeys: [["notifications"], ["notifications", "unread-count"]],
+      invalidateKeys: [
+        ["notifications"],
+        ["notifications", "all"],
+        ["notifications", "unread-count"],
+      ],
     },
   );
 
@@ -42,7 +62,11 @@ export const useDeleteNotification = () =>
     (vars) => `/staff-notifications/delete/${vars.id}`,
     "DELETE",
     {
-      invalidateKeys: [["notifications"], ["notifications", "unread-count"]],
+      invalidateKeys: [
+        ["notifications"],
+        ["notifications", "all"],
+        ["notifications", "unread-count"],
+      ],
     },
   );
 
@@ -51,7 +75,11 @@ export const useDeleteAllNotifications = () =>
     "/staff-notifications/delete-all",
     "DELETE",
     {
-      invalidateKeys: [["notifications"], ["notifications", "unread-count"]],
+      invalidateKeys: [
+        ["notifications"],
+        ["notifications", "all"],
+        ["notifications", "unread-count"],
+      ],
     },
   );
 
