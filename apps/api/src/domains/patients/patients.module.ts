@@ -17,6 +17,7 @@ import { PrismaPatientMetricsRepository } from './infrastructure/persistence/pri
 import { PrismaModule } from '@/prisma/prisma.module';
 import { AuthModule } from '@/shared/modules/auth/auth/auth.module';
 import { AuditModule } from '@/shared/modules/audit/audit/audit.module';
+import { ComplianceModule } from '@/shared/modules/compliance/compliance.module';
 import { MedicalHistoryFactory } from './core/factories/medical-history.factory';
 import { VitalsFactory } from './core/factories/vitals.factory';
 import { AiModule } from '@/shared/modules/ai-core/ai.module';
@@ -26,7 +27,7 @@ import { PATIENT_METRICS_REPOSITORY_TOKEN } from './core/repositories/patient-me
 import { PatientTagsController } from './presentation/controllers/patient-tags.controller';
 
 @Module({
-  imports: [PrismaModule, AuthModule, AuditModule, AiModule],
+  imports: [PrismaModule, AuthModule, AuditModule, AiModule, ComplianceModule],
   controllers: [
     PatientsController,
     PatientTagsController,

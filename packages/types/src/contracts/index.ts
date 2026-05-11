@@ -8,6 +8,7 @@ export * from "./billing";
 export * from "./clinics";
 export * from "./documents";
 export * from "./desk";
+export * from "./dpdp";
 export * from "./doctors";
 export * from "./inventory";
 export * from "./lab-tests";

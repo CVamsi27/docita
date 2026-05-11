@@ -17,6 +17,7 @@ import type {
   PublicBookingSubmitResponse,
 } from '@workspace/types';
 import {
+  DPDP_NOTICE_VERSION,
   patientDomainCreateSchema,
   patientDomainUpdateSchema,
   publicBookingOtpVerifySchema,
@@ -28,6 +29,7 @@ import { PrismaService } from '@/prisma/prisma.service';
 import { DoctorsService } from '@/domains/doctors/application/services/doctors.service';
 import { SlotGenerationService } from '@/domains/doctors/application/services/slot-generation.service';
 import { PatientService } from '@/domains/patients/application/services/patient.service';
+import { DPDPComplianceService } from '@/shared/modules/compliance/dpdp-compliance.service';
 import { AppointmentRequestService } from '@/domains/appointments/application/services/appointment-request.service';
 import { WhatsappClientService } from '@/shared/modules/messaging/whatsapp/whatsapp-client.service';
 import {
@@ -56,6 +58,7 @@ export class PublicBookingService {
     private readonly bookingTokenService: PublicBookingTokenService,
     private readonly turnstile: TurnstileVerifyService,
     private readonly appConfig: AppConfigService,
+    private readonly dpdpService: DPDPComplianceService,
   ) {}
 
   private normalizePhone(phone: string): string {
@@ -477,6 +480,7 @@ export class PublicBookingService {
     rawBody: unknown,
     authHeader: string | undefined,
     remoteIp?: string,
+    userAgent?: string,
   ): Promise<PublicBookingSubmitResponse> {
     const data = publicBookingSubmitRequestSchema.parse(rawBody);
 
@@ -567,6 +571,16 @@ export class PublicBookingService {
             'Date of birth is required when this phone number is not already on file at this clinic',
           );
         }
+        if (!data.dpdpConsent || data.dpdpConsent.accepted !== true) {
+          throw new BadRequestException(
+            'Consent to process your personal data under the DPDP Act, 2023 is required to register at this clinic.',
+          );
+        }
+        if (data.dpdpConsent.noticeVersion !== DPDP_NOTICE_VERSION) {
+          throw new BadRequestException(
+            'The privacy notice has been updated. Please refresh the page and accept the new notice before submitting.',
+          );
+        }
         const created = await this.patientService.createPatient(
           patientDomainCreateSchema.parse({
             clinicId: clinic.id,
@@ -579,6 +593,20 @@ export class PublicBookingService {
           }),
         );
         patientId = created.id;
+
+        await this.dpdpService.recordDpdpNoticeConsent({
+          patientId: created.id,
+          clinicId: clinic.id,
+          noticeVersion: data.dpdpConsent.noticeVersion,
+          givenByName:
+            data.dpdpConsent.givenByName ??
+            `${data.firstName} ${data.lastName}`.trim(),
+          givenByRelation: data.dpdpConsent.relation ?? 'SELF',
+          createdBy: undefined,
+          ipAddress: remoteIp,
+          userAgent,
+          notes: 'Collected by patient via public /book page',
+        });
       }
 
       const reason =

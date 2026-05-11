@@ -19,6 +19,7 @@ import { Gender, Role } from '@workspace/db';
 import { RequestWithUser } from '@/common/types/common.types';
 import { ListPatientsQueryDto } from '@/domains/patients/application/dto/patients.dto';
 import { Patient } from '@/domains/patients/core/entities/patient.entity';
+import { DPDPComplianceService } from '@/shared/modules/compliance/dpdp-compliance.service';
 
 describe('PatientsController (Authorization)', () => {
   let controller: PatientsController;
@@ -83,6 +84,10 @@ describe('PatientsController (Authorization)', () => {
               (_ctx: unknown, next: { handle: () => unknown }) => next.handle(),
             ),
           },
+        },
+        {
+          provide: DPDPComplianceService,
+          useValue: { recordDpdpNoticeConsent: jest.fn() },
         },
       ],
     })

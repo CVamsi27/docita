@@ -13,6 +13,7 @@ import { Patient } from "@workspace/types";
 import { useClinic } from "@/lib/clinic-context";
 import { useCreatePatient, useUpdatePatient } from "@/hooks/api/use-patients";
 import { Button } from "@workspace/ui/components/button";
+import { Checkbox } from "@workspace/ui/components/checkbox";
 import { DatePicker } from "@workspace/ui/components/date-picker";
 import { FormDialog } from "@workspace/ui/components/form-dialog";
 import { showUserFacingErrorToast } from "@/lib/user-facing-errors";
@@ -34,6 +35,9 @@ import {
 } from "@workspace/ui/components/select";
 import {
   createPatientRequestSchema,
+  DPDP_NOTICE_TEXT_STAFF,
+  DPDP_NOTICE_TITLE,
+  DPDP_NOTICE_VERSION,
   updatePatientRequestSchema,
 } from "@workspace/types";
 import { validatePatientPhoneNumberForCountry } from "@/features/patients/rules/patientRules";
@@ -85,6 +89,14 @@ export const AddPatientDialog: FC<AddPatientDialogProps> = ({
           message: "Date of birth is required",
         });
       }
+      if (val.dpdpConsent?.accepted !== true) {
+        ctx.addIssue({
+          code: z.ZodIssueCode.custom,
+          path: ["dpdpConsent", "accepted"],
+          message:
+            "Confirm DPDP consent has been obtained from the patient before saving",
+        });
+      }
     },
   );
 
@@ -100,8 +112,11 @@ export const AddPatientDialog: FC<AddPatientDialogProps> = ({
       gender: "MALE",
       dateOfBirth: "",
       address: null,
+      dpdpConsent: undefined,
     },
   });
+
+  const dpdpAccepted = form.watch("dpdpConsent")?.accepted === true;
 
   const handleInvalidSubmit = () => {
     showUserFacingErrorToast(
@@ -296,6 +311,46 @@ export const AddPatientDialog: FC<AddPatientDialogProps> = ({
             />
           </div>
 
+          <FormField
+            control={form.control}
+            name="dpdpConsent"
+            render={({ field, fieldState }) => (
+              <FormItem className="rounded-md border border-border/70 bg-muted/30 p-4">
+                <FormLabel className="text-sm font-semibold">
+                  {DPDP_NOTICE_TITLE}
+                </FormLabel>
+                <p className="mt-1 text-xs leading-relaxed text-muted-foreground">
+                  {DPDP_NOTICE_TEXT_STAFF}
+                </p>
+                <FormControl>
+                  <label className="mt-3 flex cursor-pointer items-start gap-2 text-sm">
+                    <Checkbox
+                      checked={field.value?.accepted === true}
+                      onCheckedChange={(checked) => {
+                        field.onChange(
+                          checked === true
+                            ? {
+                                accepted: true,
+                                noticeVersion: DPDP_NOTICE_VERSION,
+                                relation: "SELF",
+                              }
+                            : undefined,
+                        );
+                      }}
+                      aria-invalid={fieldState.error ? true : undefined}
+                    />
+                    <span>
+                      I confirm DPDP Act, 2023 consent has been obtained from
+                      the patient (or their authorised representative).
+                      <span className="text-destructive ml-0.5">*</span>
+                    </span>
+                  </label>
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+
           <div className="flex flex-col-reverse gap-2 border-t border-border/60 pt-4 sm:flex-row sm:justify-end">
             <Button
               type="button"
@@ -305,7 +360,10 @@ export const AddPatientDialog: FC<AddPatientDialogProps> = ({
             >
               Cancel
             </Button>
-            <Button type="submit" disabled={createPatient.isPending}>
+            <Button
+              type="submit"
+              disabled={createPatient.isPending || !dpdpAccepted}
+            >
               {createPatient.isPending && (
                 <DocitaLoadingIndicator variant="inline" decorative className="mr-2" />
               )}

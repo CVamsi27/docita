@@ -11,12 +11,17 @@ import {
   UserCircle,
 } from "lucide-react";
 import { useState } from "react";
+import {
+  DPDP_NOTICE_TEXT_PATIENT,
+  DPDP_NOTICE_TITLE,
+} from "@workspace/types";
 import { Alert, AlertDescription, AlertTitle } from "@workspace/ui/components/alert";
 import { Badge } from "@workspace/ui/components/badge";
 import { Button } from "@workspace/ui/components/button";
 import { Calendar } from "@workspace/ui/components/calendar";
 import { CategoryAvatar } from "@workspace/ui/components/category-avatar";
 import { Card, CardContent, CardHeader } from "@workspace/ui/components/card";
+import { Checkbox } from "@workspace/ui/components/checkbox";
 import { DataState } from "@workspace/ui/components/data-state";
 import { DescriptionList } from "@workspace/ui/components/description-list";
 import { EmptyState } from "@workspace/ui/components/empty-state";
@@ -1150,6 +1155,36 @@ export function PublicBookingContactSection({
                 {c.submitFieldErrors.email}
               </p>
             ) : null}
+          </div>
+        ) : null}
+
+        {isNewPatient ? (
+          <div className="grid gap-2 rounded-[var(--radius-md)] border border-border/70 bg-muted/30 p-4 sm:col-span-2">
+            <p className="text-[length:var(--fs-sm)] font-semibold text-foreground">
+              {DPDP_NOTICE_TITLE}
+              <span aria-hidden className="ml-0.5 text-destructive">
+                *
+              </span>
+            </p>
+            <p className="text-[length:var(--fs-xs)] leading-relaxed text-muted-foreground">
+              {DPDP_NOTICE_TEXT_PATIENT}
+            </p>
+            <label
+              htmlFor="pb-dpdp-consent"
+              className="mt-2 flex cursor-pointer items-start gap-2 text-[length:var(--fs-sm)]"
+            >
+              <Checkbox
+                id="pb-dpdp-consent"
+                checked={c.dpdpConsentAccepted}
+                onCheckedChange={(checked) => {
+                  c.setDpdpConsentAccepted(checked === true);
+                }}
+              />
+              <span>
+                I have read this notice and consent to my personal and health
+                data being processed as described.
+              </span>
+            </label>
           </div>
         ) : null}
 

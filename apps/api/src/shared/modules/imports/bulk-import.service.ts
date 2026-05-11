@@ -7,12 +7,25 @@ import {
 import { PrismaService } from '@/prisma/prisma.service';
 import * as Papa from 'papaparse';
 import { AppConfigService } from '@/shared/modules/config/app-configuration.service';
-import { Gender, InvoiceStatus, Specialization } from '@workspace/db';
+import {
+  ConsentType,
+  ConsentStatus,
+  Gender,
+  InvoiceStatus,
+  Specialization,
+} from '@workspace/db';
 import type { BulkImportEntityType } from '@workspace/types';
 import * as bcrypt from 'bcrypt';
 import { nanoid } from 'nanoid';
 
 export type { BulkImportEntityType };
+
+export interface BulkImportAuditContext {
+  ipAddress?: string;
+  userAgent?: string;
+  /** Required when importing PATIENT rows. Persisted on every created Consent. */
+  dpdpNoticeVersion?: string;
+}
 
 interface BulkImportJobData {
   jobId: string;
@@ -22,6 +35,7 @@ interface BulkImportJobData {
   fileName: string;
   fileBuffer: Buffer;
   totalRows: number;
+  audit?: BulkImportAuditContext;
 }
 
 type BulkImportValue = string | number | boolean | null | undefined;
@@ -97,6 +111,7 @@ export class BulkImportService {
     entityType: BulkImportEntityType,
     fileName: string,
     fileBuffer: Buffer,
+    audit: BulkImportAuditContext = {},
   ): Promise<{ jobId: string; status: string; totalRows: number }> {
     try {
       const lastImportTime = this.lastImportTimes.get(clinicId);
@@ -173,6 +188,7 @@ export class BulkImportService {
         fileName,
         fileBuffer,
         totalRows: rows.length,
+        audit,
       };
 
       this.lastImportTimes.set(clinicId, Date.now());
@@ -215,7 +231,9 @@ export class BulkImportService {
   }
 
   async processImport(jobData: BulkImportJobData): Promise<void> {
-    const { jobId, clinicId, entityType, fileBuffer, totalRows } = jobData;
+    const { jobId, clinicId, userId, entityType, fileBuffer, totalRows } =
+      jobData;
+    const audit: BulkImportAuditContext = jobData.audit ?? {};
     const startedAtMs = Date.now();
 
     await this.prisma.bulkImportJob.update({
@@ -244,6 +262,7 @@ export class BulkImportService {
           batch,
           clinicId,
           i,
+          { userId, jobId, audit },
         );
 
         successCount += batchResults.successCount;
@@ -318,6 +337,7 @@ export class BulkImportService {
     rows: BulkImportRow[],
     clinicId: string,
     startRowNumber: number,
+    ctx: { userId: string; jobId: string; audit: BulkImportAuditContext },
   ): Promise<{ successCount: number; errors: ImportError[] }> {
     const errors: ImportError[] = [];
     let successCount = 0;
@@ -334,7 +354,7 @@ export class BulkImportService {
 
         switch (entityType) {
           case 'PATIENT':
-            await this.importPatient(row, clinicId);
+            await this.importPatient(row, clinicId, ctx);
             break;
           case 'PRESCRIPTION':
             await this.importPrescription(row, clinicId);
@@ -448,6 +468,7 @@ export class BulkImportService {
   private async importPatient(
     row: BulkImportRow,
     clinicId: string,
+    ctx: { userId: string; jobId: string; audit: BulkImportAuditContext },
   ): Promise<void> {
     const firstName = this.getString(row, 'firstName');
     const lastName = this.getString(row, 'lastName');
@@ -468,18 +489,42 @@ export class BulkImportService {
       }
     }
 
-    const patient = await this.prisma.patient.create({
-      data: {
-        firstName,
-        lastName,
-        phoneNumber,
-        email,
-        dateOfBirth,
-        bloodGroup: this.getOptionalString(row, 'bloodGroup'),
-        address: this.getOptionalString(row, 'address'),
-        gender: this.getGender(row),
-        clinicId,
-      },
+    if (!ctx.audit.dpdpNoticeVersion) {
+      throw new Error('Missing DPDP attestation context for patient import');
+    }
+
+    const patient = await this.prisma.$transaction(async (tx) => {
+      const created = await tx.patient.create({
+        data: {
+          firstName,
+          lastName,
+          phoneNumber,
+          email,
+          dateOfBirth,
+          bloodGroup: this.getOptionalString(row, 'bloodGroup'),
+          address: this.getOptionalString(row, 'address'),
+          gender: this.getGender(row),
+          clinicId,
+        },
+      });
+      await tx.consent.create({
+        data: {
+          patientId: created.id,
+          clinicId,
+          consentType: ConsentType.DPDP_NOTICE,
+          status: ConsentStatus.ACTIVE,
+          givenBy: `${firstName} ${lastName}`.trim(),
+          givenByRelation: 'SELF',
+          givenAt: new Date(),
+          validFrom: new Date(),
+          templateVersion: ctx.audit.dpdpNoticeVersion,
+          ipAddress: ctx.audit.ipAddress,
+          userAgent: ctx.audit.userAgent,
+          createdBy: ctx.userId,
+          notes: `Operator attestation via bulk import job ${ctx.jobId}`,
+        },
+      });
+      return created;
     });
 
     const invoiceTotalRaw = row.invoiceTotal ?? row.invoiceGrandTotal;
