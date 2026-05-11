@@ -89,6 +89,10 @@ export const invoiceSchema = z.object({
   doctorRole: z.string().optional(),
   doctorRegistrationNumber: z.string().optional(),
   doctorLicenseNumber: z.string().optional(),
+
+  whatsappStatus: z.string().nullable().optional(),
+  whatsappSentAt: z.string().or(z.date()).nullable().optional(),
+  whatsappMessageId: z.string().nullable().optional(),
 });
 export type Invoice = z.infer<typeof invoiceSchema>;
 
