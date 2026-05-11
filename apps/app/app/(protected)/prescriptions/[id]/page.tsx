@@ -2,11 +2,13 @@
 
 import { useEffect, useRef } from "react";
 import { useParams, useRouter, useSearchParams } from "next/navigation";
+import { useQueryClient } from "@tanstack/react-query";
 import { PrintSheet } from "@workspace/ui/components/print-sheet";
 import { LoadingState, EmptyState } from "@workspace/ui/components/empty-state";
 import { FileX } from "lucide-react";
 import { useBackNavigation } from "@/hooks/use-back-navigation";
 import { usePrescription } from "@/hooks/api/use-clinical";
+import { useResendPrescriptionWhatsApp } from "@/hooks/api/use-whatsapp";
 import { useClinic } from "@/lib/clinic-context";
 import { useAuth } from "@/lib/auth-context";
 import { canCreatePrescription } from "@/lib/permissions";
@@ -16,6 +18,7 @@ import { PrescriptionDocument } from "@/features/prescriptions/components/view/P
 import { buildConsultationRoute } from "@/features/consultation/rules/consultationTabRouting";
 import { showUserFacingErrorToast } from "@/lib/user-facing-errors";
 import { FeatureGate } from "@/features/_shared/components/auth/feature-gate";
+import { toast } from "sonner";
 
 interface ClinicInfo {
   id?: string;
@@ -43,6 +46,7 @@ function PrescriptionViewPageContent() {
   const prescriptionId = params["id"] as string;
   const { clinic: contextClinic } = useClinic();
   const { user } = useAuth();
+  const queryClient = useQueryClient();
   const goBack = useBackNavigation("/prescriptions");
 
   const {
@@ -50,6 +54,24 @@ function PrescriptionViewPageContent() {
     isLoading,
     error,
   } = usePrescription(prescriptionId);
+
+  const resendWhatsApp = useResendPrescriptionWhatsApp(prescriptionId);
+
+  const handleWhatsappRetry = async () => {
+    try {
+      await resendWhatsApp.mutateAsync();
+      toast.success("Prescription re-sent on WhatsApp");
+      await queryClient.invalidateQueries({
+        queryKey: ["prescriptions", prescriptionId],
+      });
+    } catch (err) {
+      showUserFacingErrorToast(
+        err,
+        "We could not resend the prescription. Please try again.",
+        "save",
+      );
+    }
+  };
 
   useEffect(() => {
     if (shouldAutoPrint && prescription && !hasAutoPrinted.current) {
@@ -117,6 +139,10 @@ function PrescriptionViewPageContent() {
           onBack={goBack}
           onEdit={handleEdit}
           onPrint={handlePrint}
+          whatsappStatus={prescription.whatsappStatus ?? null}
+          whatsappSentAt={prescription.whatsappSentAt ?? null}
+          onWhatsappRetry={handleWhatsappRetry}
+          isWhatsappRetrying={resendWhatsApp.isPending}
         />
       </div>
 
