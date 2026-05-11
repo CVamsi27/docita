@@ -57,6 +57,13 @@ import {
   SupportWhatsAppThreadsQueryDto,
 } from '@/shared/modules/support-whatsapp';
 import {
+  CreateWhatsAppBroadcastDto,
+  WhatsAppBroadcastJobDetailDto,
+  WhatsAppBroadcastJobListResponseDto,
+  WhatsAppBroadcastJobSummaryDto,
+  WhatsAppBroadcastService,
+} from '@/shared/modules/whatsapp-broadcast';
+import {
   FeedbackListResponseDto,
   FeedbackResponseDto,
   UpdateFeedbackStatusDto,
@@ -80,6 +87,7 @@ export class InternalController {
     private readonly feedbackService: FeedbackService,
     private readonly contactService: ContactService,
     private readonly supportWhatsAppInboxService: SupportWhatsAppInboxService,
+    private readonly whatsAppBroadcastService: WhatsAppBroadcastService,
   ) {}
 
   @Get('clinics')
@@ -287,6 +295,25 @@ export class InternalController {
       dto.message,
       dto.replyToProviderMessageId,
     );
+  }
+
+  @Get('broadcasts')
+  @ZodSerializerDto(WhatsAppBroadcastJobListResponseDto)
+  async listBroadcasts(@Query('limit') limit?: string) {
+    const parsedLimit = parsePaginationInt(limit, { min: 1, max: 200 }) ?? 50;
+    return this.whatsAppBroadcastService.listJobs(parsedLimit);
+  }
+
+  @Get('broadcasts/:id')
+  @ZodSerializerDto(WhatsAppBroadcastJobDetailDto)
+  async getBroadcast(@Param('id') id: string) {
+    return this.whatsAppBroadcastService.getJob(id);
+  }
+
+  @Post('broadcasts')
+  @ZodSerializerDto(WhatsAppBroadcastJobSummaryDto)
+  async createBroadcast(@Body() dto: CreateWhatsAppBroadcastDto) {
+    return this.whatsAppBroadcastService.createBroadcast(dto);
   }
 
   @Get('performance')
