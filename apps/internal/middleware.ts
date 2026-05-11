@@ -27,7 +27,7 @@ function isPortalPath(pathname: string): boolean {
   );
 }
 
-export function proxy(request: NextRequest): NextResponse {
+export function middleware(request: NextRequest): NextResponse {
   const { pathname } = request.nextUrl;
 
   if (
