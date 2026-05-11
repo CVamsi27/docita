@@ -136,10 +136,17 @@ describe('PublicBookingController (e2e)', () => {
       expect.objectContaining({
         phoneNumber: '+919876543210',
         firstName: 'Ada',
+        lastName: 'Lovelace',
         preferredDoctorId: 'doc-1',
+        slotCalendarDate: '2026-05-10',
+        requestedSlotStart: '2026-05-10T10:00:00.000Z',
+        requestedSlotEnd: '2026-05-10T10:30:00.000Z',
+        turnstileToken: 'turnstile-token',
+        bookingVerificationToken: 'booking.jwt',
       }),
       'Bearer booking.jwt',
       expect.any(String),
+      undefined,
     );
   });
 });
