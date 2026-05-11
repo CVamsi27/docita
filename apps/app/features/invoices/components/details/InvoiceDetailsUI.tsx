@@ -10,6 +10,11 @@ import { EmptyState, LoadingState } from "@workspace/ui/components/empty-state";
 import { useInvoiceDetailsLogic } from "@/features/invoices/hooks/use-invoice-details-logic";
 import Link from "next/link";
 import { useSearchParams } from "next/navigation";
+import { useQueryClient } from "@tanstack/react-query";
+import { toast } from "sonner";
+import { useResendInvoiceWhatsApp } from "@/hooks/api/use-whatsapp";
+import { showUserFacingErrorToast } from "@/lib/user-facing-errors";
+import { WhatsAppDeliveryBadge } from "@/features/_shared/components/whatsapp/whatsapp-delivery-badge";
 import { Section } from "@workspace/ui/components/section";
 import { InvoiceHeader } from "./InvoiceHeader";
 import { InvoiceBillTo } from "./InvoiceBillTo";
@@ -41,6 +46,23 @@ export const InvoiceDetailsUI: FC<InvoiceDetailsUIProps> = ({ invoiceId }) => {
     router,
     clinic,
   } = useInvoiceDetailsLogic(invoiceId, { autoPrint: shouldAutoPrint });
+
+  const queryClient = useQueryClient();
+  const resendInvoice = useResendInvoiceWhatsApp(invoiceId);
+
+  const handleWhatsappRetry = async () => {
+    try {
+      await resendInvoice.mutateAsync();
+      toast.success("Invoice re-sent on WhatsApp");
+      await queryClient.invalidateQueries({ queryKey: ["invoices", invoiceId] });
+    } catch (err) {
+      showUserFacingErrorToast(
+        err,
+        "We could not resend the invoice. Please try again.",
+        "save",
+      );
+    }
+  };
 
   if (isLoading) {
     return <LoadingState message="Loading invoice details…" />;
@@ -90,7 +112,15 @@ export const InvoiceDetailsUI: FC<InvoiceDetailsUIProps> = ({ invoiceId }) => {
             </p>
           ) : null}
         </div>
-        <div className="flex flex-wrap gap-2">
+        <div className="flex flex-wrap items-center gap-2">
+          {invoice.whatsappStatus !== undefined && invoice.whatsappStatus !== null ? (
+            <WhatsAppDeliveryBadge
+              status={invoice.whatsappStatus}
+              sentAt={invoice.whatsappSentAt ?? null}
+              onRetry={handleWhatsappRetry}
+              isRetrying={resendInvoice.isPending}
+            />
+          ) : null}
           <Button variant="outline" size="sm" onClick={() => handlePrint()}>
             <Printer className="h-4 w-4 mr-2" />
             Print
