@@ -396,6 +396,9 @@ export const INVOICE_DETAIL_SELECT = {
   pdfUrl: true,
   pdfGeneratedAt: true,
   pdfTemplateVersion: true,
+  whatsappStatus: true,
+  whatsappSentAt: true,
+  whatsappMessageId: true,
   patient: {
     select: {
       id: true,
@@ -528,6 +531,8 @@ export const PRESCRIPTION_CARD_SELECT = {
   instructions: true,
   medications: true,
   createdAt: true,
+  whatsappStatus: true,
+  whatsappSentAt: true,
   patient: {
     select: {
       id: true,
@@ -554,6 +559,9 @@ export const PRESCRIPTION_DETAIL_SELECT = {
   diagnosisNotes: true,
   createdAt: true,
   updatedAt: true,
+  whatsappStatus: true,
+  whatsappSentAt: true,
+  whatsappMessageId: true,
   patient: {
     select: {
       id: true,
