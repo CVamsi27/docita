@@ -30,7 +30,12 @@ export class DoctorImportStrategy implements IImportStrategy {
     return { valid: true };
   }
 
-  async import(row: Record<string, unknown>, clinicId: string): Promise<void> {
+  async import(
+    row: Record<string, unknown>,
+    clinicId: string,
+    _audit: import('./import-strategy.interface').ImportStrategyAuditContext,
+  ): Promise<void> {
+    void _audit;
     const email = this.readString(row, 'email');
     const name = this.readString(row, 'name');
     if (!email || !name) {

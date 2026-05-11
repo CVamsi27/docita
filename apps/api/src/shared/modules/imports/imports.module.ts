@@ -14,9 +14,10 @@ import { ConfidenceScorerService } from './confidence-scorer.service';
 import { ImportSessionService } from './import-session.service';
 import { PrismaModule } from '@/prisma/prisma.module';
 import { AIModule } from '@/shared/modules/ai/ai.module';
+import { ComplianceModule } from '@/shared/modules/compliance/compliance.module';
 
 @Module({
-  imports: [PrismaModule, AIModule],
+  imports: [PrismaModule, AIModule, ComplianceModule],
   controllers: [ImportsController, BulkImportController],
   providers: [
     ImportsService,

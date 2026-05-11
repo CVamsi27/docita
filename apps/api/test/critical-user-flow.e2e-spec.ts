@@ -97,6 +97,11 @@ describe('Critical User Flow (e2e)', () => {
           gender: 'MALE',
           dateOfBirth: '1990-05-15',
           email: 'john@example.com',
+          dpdpConsent: {
+            accepted: true,
+            noticeVersion: 'dpdp-notice-v1-2026-05-11',
+            givenByName: 'John Doe',
+          },
         })
         .expect(201);
 

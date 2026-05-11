@@ -3,7 +3,13 @@ import { EventEmitter2 } from '@nestjs/event-emitter';
 import { PrismaService } from '@/prisma/prisma.service';
 import { unlink, readFile } from 'fs/promises';
 import { extname } from 'path';
-import { AppointmentStatus, Gender, InvoiceStatus } from '@workspace/db';
+import {
+  AppointmentStatus,
+  ConsentStatus,
+  ConsentType,
+  Gender,
+  InvoiceStatus,
+} from '@workspace/db';
 import { Feature } from '@workspace/types';
 import { clinicHasFeatureForAccess } from '@/shared/modules/auth/utils/clinic-feature-access.util';
 import { AIService } from '@/shared/modules/ai/ai.service';
@@ -77,6 +83,13 @@ interface MappedPatientData {
   invoiceLineItems?: string;
   'Invoice Line Items'?: string;
   invoiceItems?: string;
+}
+
+export interface ImportAuditContext {
+  ipAddress?: string;
+  userAgent?: string;
+  createdBy?: string;
+  dpdpNoticeVersion?: string;
 }
 
 @Injectable()
@@ -335,9 +348,15 @@ export class ImportsService {
 
   async processPatientImport(
     filePath: string,
-    clinicId?: string,
-    columnMapping?: Record<string, string>,
+    clinicId: string | undefined,
+    columnMapping: Record<string, string> | undefined,
+    audit: ImportAuditContext,
   ): Promise<ImportResult> {
+    if (!audit.dpdpNoticeVersion) {
+      throw new BadRequestException(
+        'DPDP consent attestation is required for patient imports',
+      );
+    }
     try {
       const tableRows = await this.parseTabularRows(filePath);
       if (tableRows.length < 2) {
@@ -383,7 +402,7 @@ export class ImportsService {
             continue;
           }
 
-          await this.importSinglePatient(mapped, clinicId);
+          await this.importSinglePatient(mapped, clinicId, audit);
           results.success++;
         } catch (error) {
           results.failed++;
@@ -520,7 +539,11 @@ export class ImportsService {
     return { isDuplicate: false, reason: '' };
   }
 
-  private async importSinglePatient(row: MappedPatientData, clinicId?: string) {
+  private async importSinglePatient(
+    row: MappedPatientData,
+    clinicId: string | undefined,
+    audit: ImportAuditContext,
+  ) {
     const firstName = this.cleanName(
       row['firstName'] || row['First Name'] || row['name'],
     );
@@ -554,29 +577,54 @@ export class ImportsService {
     if (!clinicId) {
       throw new BadRequestException('Clinic ID is required for patient import');
     }
+    if (!audit.dpdpNoticeVersion) {
+      throw new BadRequestException(
+        'DPDP consent attestation is required for patient imports',
+      );
+    }
 
-    const patient = await this.prisma.patient.create({
-      data: {
-        firstName,
-        lastName,
-        phoneNumber: phone,
-        gender,
-        dateOfBirth: dob || new Date(),
-        email,
-        address: (row['address'] || row['Address'] || '').toString().trim(),
-        bloodGroup: (row['bloodGroup'] || row['Blood Group'] || '')
-          .toString()
-          .trim()
-          .toUpperCase(),
-        allergies: (row['allergies'] || row['Allergies'] || '')
-          .toString()
-          .trim(),
-        medicalHistory:
-          row['medicalHistory'] || row['Medical History']
-            ? [(row['medicalHistory'] ?? row['Medical History'])!.toString()]
-            : [],
-        clinicId,
-      },
+    const patient = await this.prisma.$transaction(async (tx) => {
+      const created = await tx.patient.create({
+        data: {
+          firstName,
+          lastName,
+          phoneNumber: phone,
+          gender,
+          dateOfBirth: dob || new Date(),
+          email,
+          address: (row['address'] || row['Address'] || '').toString().trim(),
+          bloodGroup: (row['bloodGroup'] || row['Blood Group'] || '')
+            .toString()
+            .trim()
+            .toUpperCase(),
+          allergies: (row['allergies'] || row['Allergies'] || '')
+            .toString()
+            .trim(),
+          medicalHistory:
+            row['medicalHistory'] || row['Medical History']
+              ? [(row['medicalHistory'] ?? row['Medical History'])!.toString()]
+              : [],
+          clinicId,
+        },
+      });
+      await tx.consent.create({
+        data: {
+          patientId: created.id,
+          clinicId,
+          consentType: ConsentType.DPDP_NOTICE,
+          status: ConsentStatus.ACTIVE,
+          givenBy: `${firstName} ${lastName}`.trim(),
+          givenByRelation: 'SELF',
+          givenAt: new Date(),
+          validFrom: new Date(),
+          templateVersion: audit.dpdpNoticeVersion,
+          ipAddress: audit.ipAddress,
+          userAgent: audit.userAgent,
+          createdBy: audit.createdBy,
+          notes: 'Operator attestation via Excel /imports/patients',
+        },
+      });
+      return created;
     });
 
     const invoiceTotalRaw =
@@ -758,6 +806,7 @@ export class ImportsService {
 
   async commitOcrImport(
     dto: OcrImportCommitRequest,
+    audit: ImportAuditContext,
   ): Promise<{ patientId: string; appointmentId: string }> {
     const clinic = await this.prisma.clinic.findUnique({
       where: { id: dto.clinicId },
@@ -780,6 +829,23 @@ export class ImportsService {
       throw new BadRequestException('Invalid dateOfBirth');
     }
 
+    if (!dto.dpdpConsent || dto.dpdpConsent.accepted !== true) {
+      throw new BadRequestException(
+        'DPDP consent is required to commit an OCR-extracted patient record',
+      );
+    }
+    if (!audit.dpdpNoticeVersion) {
+      throw new BadRequestException(
+        'Missing DPDP consent context for OCR commit',
+      );
+    }
+    if (dto.dpdpConsent.noticeVersion !== audit.dpdpNoticeVersion) {
+      throw new BadRequestException(
+        'The DPDP notice has been updated. Refresh and re-collect consent before committing.',
+      );
+    }
+    const consentSnapshot = dto.dpdpConsent;
+
     return this.prisma.$transaction(async (tx) => {
       const patient = await tx.patient.create({
         data: {
@@ -800,6 +866,25 @@ export class ImportsService {
               acknowledgedReview: dto.acknowledgeReview ?? false,
             },
           },
+        },
+      });
+      await tx.consent.create({
+        data: {
+          patientId: patient.id,
+          clinicId: dto.clinicId,
+          consentType: ConsentType.DPDP_NOTICE,
+          status: ConsentStatus.ACTIVE,
+          givenBy:
+            consentSnapshot.givenByName ??
+            `${dto.firstName} ${dto.lastName}`.trim(),
+          givenByRelation: consentSnapshot.relation ?? 'SELF',
+          givenAt: new Date(),
+          validFrom: new Date(),
+          templateVersion: consentSnapshot.noticeVersion,
+          ipAddress: audit.ipAddress,
+          userAgent: audit.userAgent,
+          createdBy: audit.createdBy,
+          notes: 'Collected by staff via OCR import commit',
         },
       });
 

@@ -49,6 +49,16 @@ export class ImportJobResponseDto extends createZodDto(importJobSchema) {}
 
 export const ColumnMappingRequestSchema = z.object({
   columnMapping: z.record(z.string(), z.string()).optional(),
+  /**
+   * Per-batch DPDP attestation. Required for patient imports — the operator
+   * confirms each row in the source file has prior signed/verbal consent.
+   */
+  dpdpAttestation: z
+    .object({
+      confirmedByOperator: z.literal(true),
+      noticeVersion: z.string().min(1).max(80),
+    })
+    .strict(),
 });
 export class ColumnMappingRequestDto extends createZodDto(
   ColumnMappingRequestSchema,

@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState, useRef } from "react";
+import { DPDP_NOTICE_VERSION } from "@workspace/types";
 import {
   useBulkImport,
   useBulkImportJobStatus,
@@ -39,6 +40,8 @@ export function BulkImportDialogContainer({
     totalRows: number;
     status: string;
   } | null>(null);
+  const [dpdpAttestationConfirmed, setDpdpAttestationConfirmed] =
+    useState(false);
 
   const templateQuery = useBulkImportTemplate(selectedEntity);
   const importMutation = useBulkImport();
@@ -83,8 +86,13 @@ export function BulkImportDialogContainer({
     setProgress(0);
     setActiveJobId(null);
     setJobSummary(null);
+    setDpdpAttestationConfirmed(false);
     onOpenChange?.(false);
   };
+
+  useEffect(() => {
+    setDpdpAttestationConfirmed(false);
+  }, [selectedEntity]);
   const handleDownloadTemplate = () => {
     if (!templateQuery.data) return;
     const element = document.createElement("a");
@@ -106,6 +114,15 @@ export function BulkImportDialogContainer({
   const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
+    if (selectedEntity === "PATIENT" && !dpdpAttestationConfirmed) {
+      showUserFacingErrorToast(
+        null,
+        "Confirm DPDP consent attestation before uploading.",
+        "upload",
+      );
+      e.target.value = "";
+      return;
+    }
     setStep("progress");
     setProgress(0);
     setJobSummary(null);
@@ -117,6 +134,13 @@ export function BulkImportDialogContainer({
         entityType: selectedEntity,
         fileName: file.name,
         fileBase64,
+        dpdpAttestation:
+          selectedEntity === "PATIENT"
+            ? {
+                confirmedByOperator: true,
+                noticeVersion: DPDP_NOTICE_VERSION,
+              }
+            : undefined,
       });
       setActiveJobId(result.jobId);
     } catch (error) {
@@ -138,6 +162,8 @@ export function BulkImportDialogContainer({
       isImporting={importMutation.isPending || step === "progress"}
       hideTrigger={open !== undefined}
       jobSummary={jobSummary}
+      dpdpAttestationConfirmed={dpdpAttestationConfirmed}
+      onDpdpAttestationChange={setDpdpAttestationConfirmed}
       onOpen={openModal}
       onClose={closeModal}
       onSelectEntity={setSelectedEntity}
@@ -149,6 +175,7 @@ export function BulkImportDialogContainer({
         setProgress(0);
         setActiveJobId(null);
         setJobSummary(null);
+        setDpdpAttestationConfirmed(false);
       }}
     />
   );

@@ -1,6 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useMemo, useState } from "react";
+import { DPDP_NOTICE_VERSION } from "@workspace/types";
 import { formatPickerIsoDate } from "@workspace/utils";
 import {
   usePublicBookingClinic,
@@ -71,6 +72,7 @@ export function usePublicBookingPageState(referralCode: string) {
   const [verificationToken, setVerificationToken] = useState<string | null>(
     null,
   );
+  const [dpdpConsentAccepted, setDpdpConsentAccepted] = useState(false);
 
   const [submitFieldErrors, setSubmitFieldErrors] = useState<
     Record<string, string>
@@ -122,8 +124,17 @@ export function usePublicBookingPageState(referralCode: string) {
       (requiresOtp === true ||
         (Boolean(firstName.trim()) &&
           Boolean(lastName.trim()) &&
-          Boolean(dateOfBirth.trim()))),
-    [dateOfBirth, firstName, lastName, phone, requiresOtp, verificationToken],
+          Boolean(dateOfBirth.trim()) &&
+          dpdpConsentAccepted)),
+    [
+      dateOfBirth,
+      dpdpConsentAccepted,
+      firstName,
+      lastName,
+      phone,
+      requiresOtp,
+      verificationToken,
+    ],
   );
 
   /** Desktop + review submit: mirrors `handleSubmit` guards so the CTA stays disabled until ready. */
@@ -136,6 +147,7 @@ export function usePublicBookingPageState(referralCode: string) {
       if (!verificationToken) return false;
     } else {
       if (!firstName.trim() || !lastName.trim() || !dateOfBirth.trim()) return false;
+      if (!dpdpConsentAccepted) return false;
     }
     return true;
   }, [
@@ -147,6 +159,7 @@ export function usePublicBookingPageState(referralCode: string) {
     firstName,
     lastName,
     dateOfBirth,
+    dpdpConsentAccepted,
   ]);
 
   const goToStep = useCallback(
@@ -185,6 +198,7 @@ export function usePublicBookingPageState(referralCode: string) {
   useEffect(() => {
     if (requiresOtp === true) {
       setDateOfBirth("");
+      setDpdpConsentAccepted(false);
       setSubmitFieldErrors((prev) => {
         const next = { ...prev };
         delete next.dateOfBirth;
@@ -334,6 +348,15 @@ export function usePublicBookingPageState(referralCode: string) {
         return;
       }
 
+      if (!otpRequired && !dpdpConsentAccepted) {
+        showUserFacingErrorToast(
+          null,
+          "Please accept the data processing notice (DPDP Act, 2023) before submitting.",
+          "generic",
+        );
+        return;
+      }
+
       const resolvedDoctorId =
         doctorId === ANY_DOCTOR_ID ? selectedSlotDoctorId : doctorId || null;
       const includeSlot = Boolean(selectedStart && selectedEnd);
@@ -353,6 +376,14 @@ export function usePublicBookingPageState(referralCode: string) {
           notes: notes.trim() || undefined,
           turnstileToken: turnstileToken ?? undefined,
           bookingVerificationToken: verificationToken ?? undefined,
+          dpdpConsent: otpRequired
+            ? undefined
+            : {
+                accepted: true,
+                noticeVersion: DPDP_NOTICE_VERSION,
+                relation: "SELF",
+                givenByName: `${firstName.trim()} ${lastName.trim()}`.trim(),
+              },
         },
         authorization: verificationToken ?? undefined,
       });
@@ -397,6 +428,7 @@ export function usePublicBookingPageState(referralCode: string) {
     }
   }, [
     doctorId,
+    dpdpConsentAccepted,
     firstName,
     lastName,
     phone,
@@ -530,6 +562,8 @@ export function usePublicBookingPageState(referralCode: string) {
     visitCanContinue,
     contactCanContinue,
     submitRequestReady,
+    dpdpConsentAccepted,
+    setDpdpConsentAccepted,
   };
 }
 

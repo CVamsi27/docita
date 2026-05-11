@@ -109,6 +109,11 @@ describe('Patients (e2e)', () => {
           gender: 'FEMALE',
           dateOfBirth: '1990-05-15',
           email: 'jane@test.com',
+          dpdpConsent: {
+            accepted: true,
+            noticeVersion: 'dpdp-notice-v1-2026-05-11',
+            givenByName: 'Jane Doe',
+          },
         })
         .expect(201);
 

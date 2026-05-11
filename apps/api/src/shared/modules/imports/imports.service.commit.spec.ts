@@ -42,6 +42,11 @@ describe('ImportsService.commitOcrImport', () => {
           .fn<(...args: unknown[]) => Promise<unknown>>()
           .mockResolvedValue({}),
       },
+      consent: {
+        create: jest
+          .fn<(...args: unknown[]) => Promise<unknown>>()
+          .mockResolvedValue({ id: 'consent-1' }),
+      },
     };
 
     const prismaServiceMock: unknown = {
@@ -88,6 +93,7 @@ describe('ImportsService.commitOcrImport', () => {
   });
 
   it('creates patient and appointment', async () => {
+    const noticeVersion = 'dpdp-notice-test-v1';
     const dto: OcrImportCommitRequest = {
       clinicId: 'clinic-1',
       doctorId: 'doc-1',
@@ -96,9 +102,19 @@ describe('ImportsService.commitOcrImport', () => {
       phoneNumber: '5551234567',
       gender: 'FEMALE',
       dateOfBirth: new Date('1990-01-02').toISOString(),
+      dpdpConsent: {
+        accepted: true,
+        noticeVersion,
+        relation: 'SELF',
+      },
     };
 
-    const result = await service.commitOcrImport(dto);
+    const result = await service.commitOcrImport(dto, {
+      ipAddress: '127.0.0.1',
+      userAgent: 'jest',
+      createdBy: 'user-1',
+      dpdpNoticeVersion: noticeVersion,
+    });
     expect(result.patientId).toBe('patient-1');
     expect(result.appointmentId).toBe('appt-1');
   });

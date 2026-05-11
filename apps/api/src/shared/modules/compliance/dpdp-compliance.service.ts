@@ -102,6 +102,60 @@ export class DPDPComplianceService {
     return consent;
   }
 
+  /**
+   * Record a DPDP Act, 2023 notice consent at point of patient capture.
+   *
+   * Persists the full audit set (templateVersion, ipAddress, userAgent,
+   * createdBy, givenBy/Relation) so the clinic can always prove which
+   * notice the patient agreed to, when, and over what network context.
+   */
+  async recordDpdpNoticeConsent(input: {
+    patientId: string;
+    clinicId: string;
+    noticeVersion: string;
+    givenByName?: string;
+    givenByRelation?: string;
+    createdBy?: string;
+    ipAddress?: string;
+    userAgent?: string;
+    notes?: string;
+  }): Promise<{ id: string }> {
+    const consent = await this.prisma.consent.create({
+      data: {
+        patientId: input.patientId,
+        clinicId: input.clinicId,
+        consentType: ConsentType.DPDP_NOTICE,
+        status: ConsentStatus.ACTIVE,
+        givenBy: input.givenByName,
+        givenByRelation: input.givenByRelation,
+        givenAt: new Date(),
+        validFrom: new Date(),
+        templateVersion: input.noticeVersion,
+        ipAddress: input.ipAddress,
+        userAgent: input.userAgent,
+        createdBy: input.createdBy,
+        notes: input.notes,
+      },
+      select: { id: true },
+    });
+
+    await this.auditService.logAction({
+      userId: input.createdBy ?? input.patientId,
+      clinicId: input.clinicId,
+      actionType: 'CONSENT_RECORDED',
+      resourceType: 'Consent',
+      resourceId: consent.id,
+      metadata: {
+        consentType: ConsentType.DPDP_NOTICE,
+        noticeVersion: input.noticeVersion,
+        givenByRelation: input.givenByRelation,
+      },
+      ipAddress: input.ipAddress,
+    });
+
+    return consent;
+  }
+
   async withdrawConsent(
     consentId: string,
     reason: string,

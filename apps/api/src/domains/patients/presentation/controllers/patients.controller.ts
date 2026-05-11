@@ -1,4 +1,5 @@
 import {
+  BadRequestException,
   Controller,
   Get,
   Post,
@@ -17,9 +18,11 @@ import {
   RequiresIdempotency,
 } from '@/shared/modules/idempotency';
 import { PatientService } from '@/domains/patients/application/services/patient.service';
+import { DPDPComplianceService } from '@/shared/modules/compliance/dpdp-compliance.service';
 import { ApiTags, ApiOperation, ApiQuery } from '@nestjs/swagger';
 import {
   APP_ACCESS_TARGETS,
+  DPDP_NOTICE_VERSION,
   type PatientDomainCreateInput,
   type PatientDomainUpdateInput,
   patientDomainCreateSchema,
@@ -48,7 +51,10 @@ import {
 @Roles(...getDbRolesForTarget(APP_ACCESS_TARGETS.API_PATIENTS_READ))
 @UseInterceptors(IdempotencyInterceptor)
 export class PatientsController {
-  constructor(private readonly patientService: PatientService) {}
+  constructor(
+    private readonly patientService: PatientService,
+    private readonly dpdpService: DPDPComplianceService,
+  ) {}
 
   private toPatientResponse(value: unknown) {
     const candidate =
@@ -82,9 +88,35 @@ export class PatientsController {
     @Request() req: RequestWithUser,
     @Body() body: CreatePatientDto,
   ) {
+    const consent = body.dpdpConsent;
+    if (!consent || consent.accepted !== true) {
+      throw new BadRequestException(
+        'DPDP consent is required to add a patient',
+      );
+    }
+    if (consent.noticeVersion !== DPDP_NOTICE_VERSION) {
+      throw new BadRequestException(
+        'The DPDP notice has been updated. Please refresh and re-collect consent before saving.',
+      );
+    }
+
+    const clinicId = req.user!.clinicId!;
     const created = await this.patientService.createPatient(
-      this.normalizeCreateBody(body, req.user!.clinicId!),
+      this.normalizeCreateBody(body, clinicId),
     );
+
+    await this.dpdpService.recordDpdpNoticeConsent({
+      patientId: created.id,
+      clinicId,
+      noticeVersion: consent.noticeVersion,
+      givenByName: consent.givenByName,
+      givenByRelation: consent.relation,
+      createdBy: req.user?.id,
+      ipAddress: req.ip,
+      userAgent: req.headers?.['user-agent'] as string | undefined,
+      notes: 'Collected by staff via Add Patient modal',
+    });
+
     return this.toPatientResponse(created);
   }
 

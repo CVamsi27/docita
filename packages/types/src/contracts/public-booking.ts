@@ -1,6 +1,7 @@
 import { z } from "zod";
 import { stripHtmlTags } from "../api/sanitization";
 import { pastDateOfBirthSchema } from "./patients";
+import { dpdpConsentPayloadSchema } from "./dpdp";
 
 export const publicBookingClinicResponseSchema = z
   .object({
@@ -162,6 +163,12 @@ export const publicBookingSubmitRequestSchema = z
     notes: z.string().trim().max(1000).transform(stripHtmlTags).optional(),
     turnstileToken: z.string().min(1).optional(),
     bookingVerificationToken: z.string().min(1).optional(),
+    /**
+     * DPDP Act, 2023 consent. Required when this submission creates a new
+     * patient record (phone not on file at this clinic). Returning patients
+     * who already consented at first registration do not need to re-consent.
+     */
+    dpdpConsent: dpdpConsentPayloadSchema.optional(),
   })
   .strict();
 

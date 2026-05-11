@@ -110,6 +110,7 @@ export class PublicBookingController {
       body,
       authorization,
       req.ip,
+      req.headers['user-agent'],
     );
   }
 }

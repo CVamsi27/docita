@@ -2111,6 +2111,7 @@ enum ConsentType {
   MINOR_GUARDIAN
   BLOOD_TRANSFUSION
   VACCINATION
+  DPDP_NOTICE
 }
 
 enum ConsentStatus {

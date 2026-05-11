@@ -36,6 +36,8 @@ export interface BulkImportDialogUIProps {
     totalRows: number;
     status: string;
   } | null;
+  dpdpAttestationConfirmed: boolean;
+  onDpdpAttestationChange: (confirmed: boolean) => void;
   onOpen: () => void;
   onClose: () => void;
   onSelectEntity: (entity: EntityType) => void;
@@ -54,6 +56,8 @@ export function BulkImportDialogUI({
   isImporting,
   hideTrigger = false,
   jobSummary,
+  dpdpAttestationConfirmed,
+  onDpdpAttestationChange,
   onOpen,
   onClose,
   onSelectEntity,
@@ -134,6 +138,9 @@ export function BulkImportDialogUI({
             <BulkImportStepUpload
               isImporting={isImporting}
               onFileUpload={onFileUpload}
+              requireDpdpAttestation={selectedEntity === "PATIENT"}
+              dpdpAttestationConfirmed={dpdpAttestationConfirmed}
+              onDpdpAttestationChange={onDpdpAttestationChange}
             />
           )}
 

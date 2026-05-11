@@ -241,10 +241,10 @@ describe('Front desk workspace (e2e)', () => {
 
     beforeEach(async () => {
       if (!prisma) throw new Error('E2E prisma not initialized');
-      const skuClinic = await factories.clinic({
-        tier: 'FRONT_DESK',
-        settings: { workspaceProfile: 'FRONT_DESK' },
-      });
+      // Auth-time gate keys off clinic.tier alone — workspaceProfile
+      // is a separate concern enforced by route-level guards. Leaving
+      // the profile unset here proves the SKU is sufficient.
+      const skuClinic = await factories.clinic({ tier: 'FRONT_DESK' });
       frontDeskClinicId = skuClinic.id;
 
       const { user: skuDoctor, plainPassword: skuDoctorPlain } =

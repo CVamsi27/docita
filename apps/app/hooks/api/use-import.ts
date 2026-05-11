@@ -74,7 +74,12 @@ export const useBulkImportTemplate = (entityType: string) =>
 export const useBulkImport = () =>
   useAPIMutation<
     BulkImportStartResponse,
-    { entityType: string; fileName: string; fileBase64: string }
+    {
+      entityType: string;
+      fileName: string;
+      fileBase64: string;
+      dpdpAttestation?: { confirmedByOperator: true; noticeVersion: string };
+    }
   >("/imports/bulk", "POST");
 
 export const useBulkImportJobStatus = (jobId: string | null) =>

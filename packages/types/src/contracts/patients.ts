@@ -1,5 +1,6 @@
 import { z } from "zod";
 import { genderSchema } from "../shared/users";
+import { dpdpConsentPayloadSchema } from "./dpdp";
 
 export const pastDateOfBirthSchema = z
   .union([z.string(), z.date()])
@@ -48,6 +49,13 @@ export const createPatientRequestSchema = z
   address: z.string().max(500).nullable().optional(),
   metadata: z.record(z.unknown()).nullable().optional(),
   clinicId: z.string().optional(),
+  /**
+   * DPDP Act, 2023 consent payload. Optional at the contract level so internal
+   * tooling (system migrations, test fixtures, admin scripts) can still create
+   * patients, but every user-facing API surface (POST /patients, /book,
+   * bulk import) MUST require it via controller-level enforcement.
+   */
+  dpdpConsent: dpdpConsentPayloadSchema.optional(),
   })
   .strict();
 
