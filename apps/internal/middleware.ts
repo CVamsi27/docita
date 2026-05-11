@@ -15,6 +15,7 @@ const PORTAL_ROUTE_PREFIXES = [
   "/system-monitoring",
   "/feedback",
   "/support",
+  "/broadcasts",
   "/logs",
   "/audits",
   "/performance",

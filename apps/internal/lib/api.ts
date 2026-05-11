@@ -8,10 +8,13 @@ import {
   InternalBillingSubscriptionsQuery,
   queueHealthSummarySchema,
   securityMonitoringSummarySchema,
+  CreateWhatsAppBroadcastJobRequest,
   SupportInquiry,
   SupportWhatsAppMessage,
   SupportWhatsAppReplyRequest,
   SupportWhatsAppThreadSummary,
+  WhatsAppBroadcastJobDetail,
+  WhatsAppBroadcastJobSummary,
   type TenantScopeDiagnostics,
   tenantScopeDiagnosticsSchema,
   WebVitalsAggregateListSchema,
@@ -285,6 +288,17 @@ export const supportAPI = {
       `/internal/support/whatsapp/${encodeURIComponent(threadPhoneNumber)}/reply`,
       data,
     ),
+};
+
+export const broadcastsAPI = {
+  list: (limit = 50): Promise<WhatsAppBroadcastJobSummary[]> =>
+    client.get(`/internal/broadcasts?limit=${limit}`),
+  get: (id: string): Promise<WhatsAppBroadcastJobDetail> =>
+    client.get(`/internal/broadcasts/${encodeURIComponent(id)}`),
+  create: (
+    data: CreateWhatsAppBroadcastJobRequest,
+  ): Promise<WhatsAppBroadcastJobSummary> =>
+    client.post("/internal/broadcasts", data),
 };
 
 export interface SubscriptionOverview {

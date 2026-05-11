@@ -26,6 +26,7 @@ import {
   Inbox,
   LayoutDashboard,
   LogOut,
+  Megaphone,
   Menu,
   MessageSquare,
   Shield,
@@ -83,6 +84,11 @@ const sidebarItems = [
     title: "Support WhatsApp",
     href: "/support",
     icon: Inbox,
+  },
+  {
+    title: "WhatsApp Broadcasts",
+    href: "/broadcasts",
+    icon: Megaphone,
   },
   {
     title: "System Logs",
