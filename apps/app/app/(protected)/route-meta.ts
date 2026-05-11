@@ -27,7 +27,6 @@ export const ROUTE_META: Record<string, RouteMeta> = {
   "/ai-assistant": { label: "AI assistant" },
   "/hospital/beds": { label: "Hospital beds", parentPath: "/hospital" },
   "/hospital": { label: "Hospital" },
-  "/whatsapp": { label: "WhatsApp" },
   "/specialty/dental-charts": { label: "Dental charts", parentPath: "/specialty" },
   "/specialty": { label: "Specialty" },
   "/settings": { label: "Settings" },

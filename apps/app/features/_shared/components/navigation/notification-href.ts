@@ -169,8 +169,13 @@ export function notificationHref(n: StaffNotification): string | null {
     case "MEMBER_JOIN_REJECTED":
       return "/settings/team/join-requests";
 
-    case "PATIENT_RESPONSE":
-      return "/whatsapp";
+    case "PATIENT_RESPONSE": {
+      const date = readString(data, "appointmentDate") ?? readString(data, "date");
+      if (date) {
+        return `/appointments?date=${encodeURIComponent(date.slice(0, 10))}`;
+      }
+      return "/appointments";
+    }
 
     case "SYSTEM_ALERT": {
       const url = readString(data, "url");

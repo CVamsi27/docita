@@ -1,46 +1,12 @@
 import type {
-  CreateMedicineReminderRequest,
-  CreateWhatsAppBroadcastRequest,
   StaffNotificationEntry,
-  UpdateWhatsAppSettingsRequest,
-  WhatsAppLogListResponse,
-  WhatsAppSettingsResponse,
-  WhatsAppStatsDetailedResponse,
   WhatsAppUnreadCountResponse,
 } from "@workspace/types";
 import { Feature } from "@workspace/types";
 import { useAPIMutation, useAPIQuery } from "@/lib/api-core";
 import { useTierFeatureEnabled } from "@/hooks/api/tier-feature-guards";
 
-export type WhatsappLogEntry = WhatsAppLogListResponse[number];
 export type NotificationUnreadCountResponse = WhatsAppUnreadCountResponse;
-
-export const useWhatsappStats = () => {
-  const whatsappOk = useTierFeatureEnabled(Feature.WHATSAPP_MESSAGING);
-  return useAPIQuery<WhatsAppStatsDetailedResponse>(
-    ["whatsapp", "stats"],
-    "/whatsapp/stats",
-    { enabled: whatsappOk },
-  );
-};
-
-export const useWhatsAppSettings = () => {
-  const whatsappOk = useTierFeatureEnabled(Feature.WHATSAPP_MESSAGING);
-  return useAPIQuery<WhatsAppSettingsResponse>(
-    ["whatsapp", "settings"],
-    "/whatsapp/settings",
-    { enabled: whatsappOk },
-  );
-};
-
-export const useUpdateWhatsAppSettings = () =>
-  useAPIMutation<void, UpdateWhatsAppSettingsRequest>("/whatsapp/settings", "PUT");
-
-export const useCreateMedicineReminder = () =>
-  useAPIMutation<void, CreateMedicineReminderRequest>("/whatsapp/medicine-reminder", "POST");
-
-export const useCreateWhatsAppBroadcast = () =>
-  useAPIMutation<void, CreateWhatsAppBroadcastRequest>("/whatsapp/broadcast", "POST");
 
 export const useSendPrescriptionWhatsApp = () =>
   useAPIMutation<void, { id: string }>(
@@ -53,15 +19,6 @@ export const useSendInvoiceWhatsApp = () =>
     ({ id }) => `/whatsapp/resend-invoice/${id}`,
     "POST",
   );
-
-export const useWhatsappLogs = (limit: number = 50) => {
-  const whatsappOk = useTierFeatureEnabled(Feature.WHATSAPP_MESSAGING);
-  return useAPIQuery<WhatsappLogEntry[]>(
-    ["whatsapp", "logs", limit],
-    `/whatsapp/logs?limit=${limit}`,
-    { enabled: whatsappOk },
-  );
-};
 
 export const useUnreadNotificationCount = () => {
   const whatsappOk = useTierFeatureEnabled(Feature.WHATSAPP_MESSAGING);

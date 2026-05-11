@@ -11,7 +11,6 @@ import {
   HelpCircle,
   Inbox,
   type LucideIcon,
-  MessageCircle,
   Pill,
   Receipt,
   Banknote,
@@ -124,13 +123,6 @@ const SERVICES_ITEMS: NavItem[] = [
     icon: CheckSquare,
     label: "Follow-ups",
     accessTarget: APP_ACCESS_TARGETS.PAGE_DASHBOARD,
-  },
-  {
-    href: "/whatsapp",
-    icon: MessageCircle,
-    label: "WhatsApp",
-    feature: Feature.WHATSAPP_MESSAGING,
-    accessTarget: APP_ACCESS_TARGETS.PAGE_WHATSAPP,
   },
   {
     href: "/analytics",
