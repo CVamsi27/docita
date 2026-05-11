@@ -170,11 +170,7 @@ export function notificationHref(n: StaffNotification): string | null {
       return "/settings/team/join-requests";
 
     case "PATIENT_RESPONSE": {
-      const date = readString(data, "appointmentDate") ?? readString(data, "date");
-      if (date) {
-        return `/appointments?date=${encodeURIComponent(date.slice(0, 10))}`;
-      }
-      return "/appointments";
+      return "/whatsapp";
     }
 
     case "SYSTEM_ALERT": {

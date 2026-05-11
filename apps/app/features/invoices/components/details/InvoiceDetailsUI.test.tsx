@@ -1,6 +1,7 @@
 import { render, screen } from "@testing-library/react";
+import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { describe, expect, it, vi, beforeEach } from "vitest";
-import type { ImgHTMLAttributes } from "react";
+import type { ImgHTMLAttributes, ReactElement } from "react";
 import { InvoiceDetailsUI } from "./InvoiceDetailsUI";
 
 vi.mock("next/navigation", () => ({
@@ -41,6 +42,19 @@ vi.mock("@/features/invoices/hooks/use-invoice-details-logic", () => ({
   useInvoiceDetailsLogic: (...args: unknown[]) =>
     useInvoiceDetailsLogicMock(...args),
 }));
+
+function renderWithQueryClient(ui: ReactElement) {
+  const queryClient = new QueryClient({
+    defaultOptions: {
+      queries: { retry: false },
+      mutations: { retry: false },
+    },
+  });
+
+  return render(
+    <QueryClientProvider client={queryClient}>{ui}</QueryClientProvider>,
+  );
+}
 
 const baseHookState = {
   invoice: {
@@ -98,7 +112,7 @@ describe("InvoiceDetailsUI signature block", () => {
       },
     });
 
-    render(<InvoiceDetailsUI invoiceId="inv-1" />);
+    renderWithQueryClient(<InvoiceDetailsUI invoiceId="inv-1" />);
 
     expect(screen.getByText("Authorized Signature")).toBeInTheDocument();
     expect(
@@ -109,7 +123,7 @@ describe("InvoiceDetailsUI signature block", () => {
   it("renders fallback text when clinic signature is missing", () => {
     useInvoiceDetailsLogicMock.mockReturnValue(baseHookState);
 
-    render(<InvoiceDetailsUI invoiceId="inv-1" />);
+    renderWithQueryClient(<InvoiceDetailsUI invoiceId="inv-1" />);
 
     expect(screen.getByText("Authorized Signature")).toBeInTheDocument();
     expect(screen.getByText("Signature on file pending")).toBeInTheDocument();
