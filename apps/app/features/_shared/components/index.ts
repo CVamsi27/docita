@@ -8,6 +8,7 @@ export * from "./navigation/command-palette";
 export * from "./layout/desktop-top-bar";
 export * from "./consultation/floating-start-consultation";
 export * from "./whatsapp/whatsapp-button";
+export * from "./whatsapp/whatsapp-delivery-badge";
 export * from "./patient/PatientHistorySummaryCard";
 export * from "./feedback/offline-status-banner";
 export * from "./layout/providers";
