@@ -17,6 +17,7 @@ import {
   Phone,
   User,
 } from "lucide-react";
+import { formatGenderLabel } from "@/lib/formatters";
 
 interface PatientBadgeUIProps {
   fullName: string;
@@ -136,7 +137,7 @@ export function PatientBadgeUI({
               {gender && (
                 <span className="flex items-center gap-1">
                   <User className="h-3 w-3" />
-                  {gender}
+                  {formatGenderLabel(gender)}
                 </span>
               )}
             </div>

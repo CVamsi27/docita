@@ -149,3 +149,109 @@ export const whatsappStatsSchema = z.object({
   failed: z.number(),
   templates: z.number(),
 });
+
+export const whatsappBroadcastJobStatusSchema = z.enum([
+  "PENDING",
+  "RUNNING",
+  "COMPLETED",
+  "FAILED",
+  "CANCELLED",
+]);
+
+export const whatsappBroadcastRecipientStatusSchema = z.enum([
+  "PENDING",
+  "SENT",
+  "FAILED",
+  "SKIPPED",
+]);
+
+export const whatsappBroadcastRecipientInputSchema = z
+  .object({
+    phoneNumber: z.string().trim().min(7).max(20),
+    name: z.string().trim().max(120).optional(),
+    variables: z.record(z.string(), z.string()).optional(),
+  })
+  .strict();
+
+export const createWhatsAppBroadcastJobRequestSchema = z
+  .object({
+    title: z.string().trim().min(1).max(200),
+    audienceLabel: z.string().trim().max(120).optional(),
+    templateName: z.string().trim().max(200).optional(),
+    languageCode: z.string().trim().min(2).max(10).default("en"),
+    messageText: z.string().trim().max(4000).optional(),
+    recipients: z
+      .array(whatsappBroadcastRecipientInputSchema)
+      .min(1)
+      .max(10000),
+  })
+  .strict()
+  .refine(
+    (data) => Boolean(data.templateName) || Boolean(data.messageText),
+    {
+      message: "Either templateName or messageText must be provided",
+      path: ["templateName"],
+    },
+  );
+
+export const whatsappBroadcastJobSummarySchema = z.object({
+  id: z.string(),
+  title: z.string(),
+  audienceLabel: z.string().nullable().optional(),
+  templateName: z.string().nullable().optional(),
+  languageCode: z.string(),
+  messageText: z.string().nullable().optional(),
+  totalCount: z.number().int().min(0),
+  sentCount: z.number().int().min(0),
+  failedCount: z.number().int().min(0),
+  status: whatsappBroadcastJobStatusSchema,
+  createdBy: z.string().nullable().optional(),
+  startedAt: z.date().or(z.string()).nullable().optional(),
+  completedAt: z.date().or(z.string()).nullable().optional(),
+  errorMessage: z.string().nullable().optional(),
+  createdAt: z.date().or(z.string()),
+  updatedAt: z.date().or(z.string()),
+});
+
+export const whatsappBroadcastRecipientSchema = z.object({
+  id: z.string(),
+  broadcastJobId: z.string(),
+  phoneNumber: z.string(),
+  name: z.string().nullable().optional(),
+  status: whatsappBroadcastRecipientStatusSchema,
+  providerMessageId: z.string().nullable().optional(),
+  errorMessage: z.string().nullable().optional(),
+  sentAt: z.date().or(z.string()).nullable().optional(),
+  createdAt: z.date().or(z.string()),
+});
+
+export const whatsappBroadcastJobDetailSchema =
+  whatsappBroadcastJobSummarySchema.extend({
+    recipients: z.array(whatsappBroadcastRecipientSchema),
+  });
+
+export const whatsappBroadcastJobListResponseSchema = z.array(
+  whatsappBroadcastJobSummarySchema,
+);
+
+export type WhatsAppBroadcastJobStatus = z.infer<
+  typeof whatsappBroadcastJobStatusSchema
+>;
+export type WhatsAppBroadcastRecipientStatus = z.infer<
+  typeof whatsappBroadcastRecipientStatusSchema
+>;
+export type WhatsAppBroadcastRecipientInput = z.infer<
+  typeof whatsappBroadcastRecipientInputSchema
+>;
+export type CreateWhatsAppBroadcastJobRequest = z.infer<
+  typeof createWhatsAppBroadcastJobRequestSchema
+>;
+export type WhatsAppBroadcastJobSummary = z.infer<
+  typeof whatsappBroadcastJobSummarySchema
+>;
+export type WhatsAppBroadcastRecipient = z.infer<
+  typeof whatsappBroadcastRecipientSchema
+>;
+export type WhatsAppBroadcastJobDetail = z.infer<
+  typeof whatsappBroadcastJobDetailSchema
+>;

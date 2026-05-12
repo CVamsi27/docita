@@ -9,7 +9,7 @@ import { PatientDetailTabLoadingShell } from "@/features/patients/components/det
 import {
   ClipboardList,
   LayoutDashboard,
-  MessageSquare,
+  // MessageCircle,
   Receipt,
   Stethoscope,
 } from "lucide-react";
@@ -19,8 +19,8 @@ import type {
 } from "@workspace/types";
 import { PatientTagManagerContainer as PatientTagManager } from "@/features/patients/components/details/PatientTagManagerContainer";
 import type { PatientStatistics } from "@/hooks/use-patient-data";
-import { PatientCommunicationTab } from "./PatientCommunicationTab";
 import { PatientClinicalChartSummary } from "./patient-clinical-chart-summary";
+// import { PatientCommunicationTab } from "./PatientCommunicationTab";
 import { usePermissions } from "@/hooks/use-permissions";
 
 const OverviewTab = dynamic(
@@ -93,7 +93,7 @@ export const PATIENT_DETAIL_TAB_VALUES = [
   "visits",
   "records",
   "billing",
-  "communication",
+  // "communication",
 ] as const;
 
 export type PatientDetailTabValue = (typeof PATIENT_DETAIL_TAB_VALUES)[number];
@@ -131,7 +131,7 @@ const TAB_DEFINITIONS: Array<{
   { value: "visits", label: "Visits & notes", icon: Stethoscope },
   { value: "records", label: "Records", icon: ClipboardList },
   { value: "billing", label: "Billing", icon: Receipt },
-  { value: "communication", label: "Communication", icon: MessageSquare },
+  // { value: "communication", label: "Communication", icon: MessageCircle },
 ];
 
 const RECORDS_SUB_TAB_LABELS: Record<PatientRecordsSubTab, string> = {
@@ -273,9 +273,6 @@ export function PatientDetailTabs({
     [],
   );
 
-  const patientName =
-    `${patient.firstName ?? ""} ${patient.lastName ?? ""}`.trim();
-
   return (
     <div role="region" aria-label="Patient detail" className="w-full">
       <PatientClinicalChartSummary
@@ -342,12 +339,9 @@ export function PatientDetailTabs({
       {activeTab === "billing" && canViewInvoices ? (
         <BillingTab patientId={patientId} />
       ) : null}
-      {activeTab === "communication" && (
-        <PatientCommunicationTab
-          patientId={patientId}
-          patientName={patientName || undefined}
-        />
-      )}
+      {/* {activeTab === "communication" ? (
+        <PatientCommunicationTab patientId={patientId} />
+      ) : null} */}
     </div>
   );
 }

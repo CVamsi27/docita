@@ -3,7 +3,6 @@ import {
   ClipboardList,
   Files,
   ListChecks,
-  MessageCircle,
   Receipt,
   UserPlus,
 } from "lucide-react";
@@ -50,13 +49,6 @@ export function DashboardQuickActionsContainer({
       label: "Documents",
       shortLabel: "Docs",
       feature: Feature.DOCUMENT_ARCHIVAL,
-    },
-    {
-      href: "/whatsapp",
-      icon: MessageCircle,
-      label: "WhatsApp",
-      shortLabel: "WA",
-      feature: Feature.WHATSAPP_MESSAGING,
     },
     {
       href: "/coding-queue",

@@ -15,6 +15,7 @@ const PORTAL_ROUTE_PREFIXES = [
   "/system-monitoring",
   "/feedback",
   "/support",
+  "/broadcasts",
   "/logs",
   "/audits",
   "/performance",
@@ -27,7 +28,7 @@ function isPortalPath(pathname: string): boolean {
   );
 }
 
-export function proxy(request: NextRequest): NextResponse {
+export function middleware(request: NextRequest): NextResponse {
   const { pathname } = request.nextUrl;
 
   if (
@@ -75,4 +76,3 @@ export const config = {
     },
   ],
 };
-

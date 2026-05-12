@@ -18,7 +18,6 @@ import {
   NotificationSettings,
   ReminderSettings,
   SecuritySettings,
-  WhatsAppAutomationSettings,
 } from "@/features/settings/components";
 import {
   PrescriptionDefaultsSettingsContainer,
@@ -318,14 +317,6 @@ export function SettingsPageUI({
             <TabsContent value="reminders" className="mt-0">
               <RoleGuard requiredPermission="manageClinic">
                 <ReminderSettings />
-              </RoleGuard>
-            </TabsContent>
-          )}
-
-          {visibleTabValues.has("whatsapp") && (
-            <TabsContent value="whatsapp" className="mt-0">
-              <RoleGuard requiredPermission="manageClinic">
-                <WhatsAppAutomationSettings />
               </RoleGuard>
             </TabsContent>
           )}

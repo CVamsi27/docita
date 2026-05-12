@@ -164,7 +164,7 @@ export function DoctorDashboardCardsUI({
         </CardHeader>
         <CardContent className="pt-0">
           <div className="grid grid-cols-3 gap-3 text-center">
-            <div className="p-3 rounded-[var(--radius)] bg-warning/10">
+            <div className="p-3 rounded-[var(--radius)] bg-warning/10 flex flex-col justify-center items-center">
               <p className="text-[var(--fs-2xl)] font-semibold tabular-nums text-warning">
                 {queueStats.waiting}
               </p>
@@ -172,7 +172,7 @@ export function DoctorDashboardCardsUI({
                 Waiting
               </p>
             </div>
-            <div className="p-3 rounded-[var(--radius)] bg-info/10">
+            <div className="p-3 rounded-[var(--radius)] bg-info/10 flex flex-col justify-center items-center">
               <p className="text-[var(--fs-2xl)] font-semibold tabular-nums text-info">
                 {queueStats.inProgress}
               </p>
@@ -183,7 +183,7 @@ export function DoctorDashboardCardsUI({
                 <span>Active</span>
               </p>
             </div>
-            <div className="p-3 rounded-[var(--radius)] bg-success/10">
+            <div className="p-3 rounded-[var(--radius)] bg-success/10 flex flex-col justify-center items-center">
               <p className="text-[var(--fs-2xl)] font-semibold tabular-nums text-success">
                 {queueStats.completed}
               </p>

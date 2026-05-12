@@ -14,6 +14,7 @@ import {
 } from "lucide-react";
 import { cn } from "@workspace/ui/lib/utils";
 import { Button } from "@workspace/ui/components/button";
+import { Badge } from "@workspace/ui/components/badge";
 import { Switch } from "@workspace/ui/components/switch";
 import {
   Sheet,
@@ -427,9 +428,9 @@ function SidebarContent({
         <TooltipProvider>
           <div
             className={cn(
-              "flex items-center gap-1 py-2",
+              "flex items-center justify-between gap-1 py-2",
               isCollapsed && !isMobile
-                ? "flex-col items-center px-1 py-3"
+                ? "flex-col items-center justify-center px-1 py-3"
                 : "px-2",
             )}
           >
@@ -534,7 +535,7 @@ function SidebarContent({
                   <Link
                     href={SUBSCRIPTION_SETTINGS_PATH}
                     className={cn(
-                      "flex items-center gap-2 min-w-0 rounded-xl px-1 py-1 transition-colors hover:bg-muted/50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring/40",
+                      "flex items-center justify-center gap-2 min-w-0 rounded-xl px-1 py-1 transition-colors hover:bg-muted/50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring/40",
                       collapsedRail &&
                         "size-11 flex-col justify-center rounded-full p-0 hover:bg-muted/60",
                       !collapsedRail && "w-full",
@@ -543,11 +544,9 @@ function SidebarContent({
                   >
                     <span className={tierDotClass} />
                     {showLabels && (
-                      <div className="min-w-0 flex-1 text-left">
+                      <div className="min-w-0 flex items-center gap-2">
                         <MicroLabel className="leading-none">Plan</MicroLabel>
-                        <p className="text-sm font-medium truncate leading-tight mt-0.5">
-                          {tierInfo.name}
-                        </p>
+                        <Badge variant="default">{tierInfo.name}</Badge>
                       </div>
                     )}
                   </Link>

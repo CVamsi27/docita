@@ -10,8 +10,8 @@ import {
   FlaskConical,
   HelpCircle,
   Inbox,
-  type LucideIcon,
   MessageCircle,
+  type LucideIcon,
   Pill,
   Receipt,
   Banknote,
@@ -107,6 +107,13 @@ const TRACK_ITEMS: NavItem[] = [
 
 const SERVICES_ITEMS: NavItem[] = [
   {
+    href: "/whatsapp",
+    icon: MessageCircle,
+    label: "WhatsApp",
+    feature: Feature.WHATSAPP_MESSAGING,
+    accessTarget: APP_ACCESS_TARGETS.PAGE_WHATSAPP,
+  },
+  {
     href: "/inbox",
     icon: Inbox,
     label: "Inbox",
@@ -124,13 +131,6 @@ const SERVICES_ITEMS: NavItem[] = [
     icon: CheckSquare,
     label: "Follow-ups",
     accessTarget: APP_ACCESS_TARGETS.PAGE_DASHBOARD,
-  },
-  {
-    href: "/whatsapp",
-    icon: MessageCircle,
-    label: "WhatsApp",
-    feature: Feature.WHATSAPP_MESSAGING,
-    accessTarget: APP_ACCESS_TARGETS.PAGE_WHATSAPP,
   },
   {
     href: "/analytics",

@@ -9,7 +9,6 @@ import { DataState } from "@workspace/ui/components/data-state";
 import {
   Bell,
   CalendarClock,
-  MessageSquare,
   Stethoscope,
   UserPlus,
   type LucideIcon,
@@ -50,14 +49,6 @@ const ALL_INBOX_TABS: InboxTabDef[] = [
     renderInline: () => <NotificationsInboxView />,
     icon: Bell,
     accessTarget: APP_ACCESS_TARGETS.API_STAFF_NOTIFICATIONS,
-  },
-  {
-    value: "messages",
-    label: "Messages",
-    description: "WhatsApp conversations and broadcasts.",
-    href: "/whatsapp",
-    icon: MessageSquare,
-    accessTarget: APP_ACCESS_TARGETS.PAGE_WHATSAPP,
   },
   {
     value: "follow-ups",

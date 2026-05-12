@@ -50,5 +50,9 @@ export const internalQueryKeys = {
       ["internal", "clinics", clinicId, "doctors"] as const,
     clinicAdmins: (clinicId: string) =>
       ["internal", "clinics", clinicId, "admins"] as const,
+    broadcasts: (limit: number) =>
+      ["internal", "broadcasts", "list", limit] as const,
+    broadcastDetail: (id: string) =>
+      ["internal", "broadcasts", "detail", id] as const,
   },
 } as const;

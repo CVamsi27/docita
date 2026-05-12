@@ -2,6 +2,7 @@ import { client } from "./api-client";
 import { API_URL } from "./api-config";
 import {
   AppPerformanceMetrics,
+  CreateWhatsAppBroadcastJobRequest,
   DatabaseStats,
   InternalBillingPaymentItem,
   InternalBillingPaymentsQuery,
@@ -15,6 +16,8 @@ import {
   type TenantScopeDiagnostics,
   tenantScopeDiagnosticsSchema,
   WebVitalsAggregateListSchema,
+  WhatsAppBroadcastJobDetail,
+  WhatsAppBroadcastJobSummary,
 } from "@workspace/types";
 type PerformanceHealthCheck = import("@workspace/types").HealthCheck;
 
@@ -285,6 +288,17 @@ export const supportAPI = {
       `/internal/support/whatsapp/${encodeURIComponent(threadPhoneNumber)}/reply`,
       data,
     ),
+};
+
+export const broadcastsAPI = {
+  list: (limit = 50): Promise<WhatsAppBroadcastJobSummary[]> =>
+    client.get(`/internal/broadcasts?limit=${limit}`),
+  get: (id: string): Promise<WhatsAppBroadcastJobDetail> =>
+    client.get(`/internal/broadcasts/${encodeURIComponent(id)}`),
+  create: (
+    data: CreateWhatsAppBroadcastJobRequest,
+  ): Promise<WhatsAppBroadcastJobSummary> =>
+    client.post("/internal/broadcasts", data),
 };
 
 export interface SubscriptionOverview {

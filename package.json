@@ -89,6 +89,7 @@
   "pnpm": {
     "overrides": {
       "@hono/node-server": "^1.19.13",
+      "ip-address": ">=10.1.1",
       "@rollup/plugin-commonjs>picomatch": "4.0.4",
       "@angular-devkit/core>ajv": "8.18.0",
       "schema-utils>ajv": "^8.18.0",

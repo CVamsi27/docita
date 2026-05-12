@@ -49,6 +49,7 @@ export const useMarkNotificationRead = () =>
     (vars) => `/staff-notifications/mark-read/${vars.id}`,
     "PATCH",
     {
+      body: () => undefined,
       invalidateKeys: [
         ["notifications"],
         ["notifications", "all"],
@@ -62,6 +63,7 @@ export const useDeleteNotification = () =>
     (vars) => `/staff-notifications/delete/${vars.id}`,
     "DELETE",
     {
+      body: () => undefined,
       invalidateKeys: [
         ["notifications"],
         ["notifications", "all"],

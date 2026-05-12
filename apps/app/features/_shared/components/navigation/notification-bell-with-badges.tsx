@@ -31,10 +31,6 @@ export function NotificationBellWithBadges({
       {show && (
         <>
           <span
-            className="pointer-events-none absolute left-0 top-0 z-[1] h-2 w-2 rounded-full bg-primary shadow-[0_0_0_2px_hsl(var(--background))]"
-            aria-hidden
-          />
-          <span
             className={cn(
               "pointer-events-none absolute right-0 top-0 z-[1] flex min-h-4 min-w-4 translate-x-1/2 -translate-y-1/2 items-center justify-center rounded-full bg-primary px-0.5 font-semibold tabular-nums text-[var(--fs-2xs)] text-primary-foreground leading-none",
               label.length > 1 ? "min-w-[1.125rem]" : undefined,

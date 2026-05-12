@@ -1,13 +1,4 @@
-import { expect, type Page, test } from "@playwright/test";
-
-async function waitForContactFormHydration(page: Page) {
-  await page.waitForFunction(() => {
-    const island = document.querySelector(
-      'astro-island[component-export="ContactInquiryForm"]',
-    );
-    return island ? !island.hasAttribute("ssr") : false;
-  });
-}
+import { expect, test } from "@playwright/test";
 
 test("homepage renders primary CTA", async ({ page }) => {
   await page.goto("/");
@@ -63,7 +54,8 @@ test("contact inquiry form validation and submit path", async ({ page }) => {
   });
 
   await page.goto("/contact");
-  await waitForContactFormHydration(page);
+  await page.waitForLoadState("networkidle");
+  await expect(page.getByRole("button", { name: "Request setup" })).toBeVisible();
   await page.evaluate(() => {
     document.cookie = "XSRF-TOKEN=e2e-csrf-token; path=/";
   });
@@ -126,7 +118,8 @@ test("contact inquiry form handles failure and reset after success", async ({
   });
 
   await page.goto("/contact");
-  await waitForContactFormHydration(page);
+  await page.waitForLoadState("networkidle");
+  await expect(page.getByRole("button", { name: "Request setup" })).toBeVisible();
   await page.evaluate(() => {
     document.cookie = "XSRF-TOKEN=e2e-csrf-token; path=/";
   });

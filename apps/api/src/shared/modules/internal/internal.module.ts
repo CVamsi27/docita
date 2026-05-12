@@ -16,6 +16,7 @@ import { GatewaysModule } from '@/gateways/gateways.module';
 import { FeedbackModule } from '@/domains/feedback/feedback.module';
 import { ContactModule } from '@/shared/modules/contact/contact.module';
 import { SupportWhatsAppModule } from '@/shared/modules/support-whatsapp';
+import { WhatsAppBroadcastModule } from '@/shared/modules/whatsapp-broadcast';
 import { SubscriptionsModule } from '@/domains/subscriptions/subscriptions.module';
 
 @Module({
@@ -28,6 +29,7 @@ import { SubscriptionsModule } from '@/domains/subscriptions/subscriptions.modul
     FeedbackModule,
     ContactModule,
     SupportWhatsAppModule,
+    WhatsAppBroadcastModule,
     AuthModule,
     GatewaysModule,
   ],

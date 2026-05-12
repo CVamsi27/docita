@@ -22,6 +22,7 @@ import {
 } from "@workspace/types";
 import { PatientSnapshotStrip } from "@/features/_shared/components/patient-history/PatientSnapshotStrip";
 import { PatientTimeline } from "@/features/_shared/components/patient-history/PatientTimeline";
+import { formatGenderLabel } from "@/lib/formatters";
 import { FollowUpWidget } from "./FollowUpWidget";
 import { usePermissions } from "@/hooks/use-permissions";
 
@@ -99,9 +100,7 @@ export const ConsultationSidebarUI: FC<ConsultationSidebarProps> = ({
           <div className="flex items-center gap-2 text-xs text-muted-foreground">
             <span>{patient.age}</span>
             {patient.gender && (
-              <span className="capitalize">
-                &middot; {patient.gender.toLowerCase()}
-              </span>
+              <span>&middot; {formatGenderLabel(patient.gender)}</span>
             )}
             {patient.mrn && <span>&middot; MRN: {patient.mrn}</span>}
           </div>

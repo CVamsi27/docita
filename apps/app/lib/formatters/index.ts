@@ -7,6 +7,7 @@ import {
   DEFAULT_TIMEZONE,
   DATE_FORMATS,
 } from "@workspace/utils";
+import { GENDER_LABELS, type Gender } from "@workspace/types";
 export { humanizeUiLabel } from "@workspace/ui/lib/label-formatters";
 export { DATE_FORMATS } from "@workspace/utils";
 
@@ -108,4 +109,13 @@ export function toTitleCase(text: string): string {
     .split(" ")
     .map((word) => capitalize(word))
     .join(" ");
+}
+
+function isKnownGender(value: string): value is Gender {
+  return value in GENDER_LABELS;
+}
+
+export function formatGenderLabel(gender: string | null | undefined): string {
+  if (!gender) return "";
+  return isKnownGender(gender) ? GENDER_LABELS[gender] : gender;
 }

@@ -1440,6 +1440,63 @@ model WhatsappTemplate {
   @@index([isActive])
 }
 
+model WhatsAppBroadcastJob {
+  id              String                       @id @default(cuid())
+  title           String
+  audienceLabel   String?
+  templateName    String?
+  languageCode    String                       @default("en")
+  messageText     String?
+  totalCount      Int                          @default(0)
+  sentCount       Int                          @default(0)
+  failedCount     Int                          @default(0)
+  status          WhatsAppBroadcastJobStatus   @default(PENDING)
+  createdBy       String?
+  startedAt       DateTime?
+  completedAt     DateTime?
+  errorMessage    String?
+  createdAt       DateTime                     @default(now())
+  updatedAt       DateTime                     @updatedAt
+  recipients      WhatsAppBroadcastRecipient[]
+
+  @@index([status])
+  @@index([createdAt])
+}
+
+model WhatsAppBroadcastRecipient {
+  id                String                            @id @default(cuid())
+  broadcastJobId    String
+  phoneNumber       String
+  name              String?
+  variables         Json?
+  status            WhatsAppBroadcastRecipientStatus  @default(PENDING)
+  providerMessageId String?
+  errorMessage      String?
+  sentAt            DateTime?
+  createdAt         DateTime                          @default(now())
+  updatedAt         DateTime                          @updatedAt
+  broadcastJob      WhatsAppBroadcastJob              @relation(fields: [broadcastJobId], references: [id], onDelete: Cascade)
+
+  @@index([broadcastJobId])
+  @@index([status])
+  @@index([phoneNumber])
+}
+
+enum WhatsAppBroadcastJobStatus {
+  PENDING
+  RUNNING
+  COMPLETED
+  FAILED
+  CANCELLED
+}
+
+enum WhatsAppBroadcastRecipientStatus {
+  PENDING
+  SENT
+  FAILED
+  SKIPPED
+}
+
 model AppointmentResponse {
   id              String              @id @default(cuid())
   appointmentId   String

@@ -110,7 +110,7 @@ const faqs = [
         </aside>
 
         <div>
-          <ContactInquiryForm client:load />
+          <ContactInquiryForm />
         </div>
       </div>
 
@@ -128,3 +128,190 @@ const faqs = [
     </div>
   </section>
 </MainLayout>
+
+<script is:inline>
+  const root = document.querySelector("[data-contact-inquiry-root]");
+
+  if (root) {
+    const form = root.querySelector("[data-contact-form]");
+    const submitButton = root.querySelector("[data-contact-submit]");
+    const submitLabel = root.querySelector("[data-contact-submit-label]");
+    const successView = root.querySelector("[data-contact-success]");
+    const submitError = root.querySelector("[data-contact-submit-error]");
+    const resetButton = root.querySelector("[data-contact-reset]");
+    const fields = ["name", "email", "clinic", "message"];
+
+    if (form && submitButton && submitLabel && successView && submitError) {
+      const errorNodes = new Map();
+
+      for (const field of fields) {
+        const errorNode = root.querySelector(`[data-contact-error="${field}"]`);
+        if (errorNode) {
+          errorNodes.set(field, errorNode);
+        }
+      }
+
+      const getField = (field) => form.querySelector(`[name="${field}"]`);
+
+      const clearError = (field) => {
+        const node = errorNodes.get(field);
+        const control = getField(field);
+
+        if (node) {
+          node.hidden = true;
+          node.textContent = "";
+        }
+
+        if (control) {
+          control.setAttribute("aria-invalid", "false");
+        }
+      };
+
+      const showError = (field, message) => {
+        const node = errorNodes.get(field);
+        const control = getField(field);
+
+        if (node) {
+          node.textContent = message;
+          node.hidden = false;
+        }
+
+        if (control) {
+          control.setAttribute("aria-invalid", "true");
+        }
+      };
+
+      const clearSubmitError = () => {
+        submitError.textContent = "";
+        submitError.classList.add("hidden");
+      };
+
+      const showSubmitError = (message) => {
+        submitError.textContent = message;
+        submitError.classList.remove("hidden");
+      };
+
+      const validate = () => {
+        let isValid = true;
+
+        for (const field of fields) {
+          clearError(field);
+        }
+        clearSubmitError();
+
+        const formData = new FormData(form);
+        const name = String(formData.get("name") ?? "").trim();
+        const email = String(formData.get("email") ?? "").trim();
+        const clinic = String(formData.get("clinic") ?? "").trim();
+        const message = String(formData.get("message") ?? "").trim();
+
+        if (!name) {
+          showError("name", "Enter your name");
+          isValid = false;
+        }
+
+        if (!email) {
+          showError("email", "Enter your email address");
+          isValid = false;
+        } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+          showError("email", "Please enter a valid email address");
+          isValid = false;
+        }
+
+        if (!clinic) {
+          showError("clinic", "Enter your facility name");
+          isValid = false;
+        }
+
+        if (!message) {
+          showError("message", "Enter your message");
+          isValid = false;
+        }
+
+        return isValid;
+      };
+
+      const setBusy = (busy) => {
+        submitButton.disabled = busy;
+        submitLabel.textContent = busy ? "Sending..." : "Request setup";
+      };
+
+      const showSuccess = () => {
+        form.hidden = true;
+        successView.hidden = false;
+      };
+
+      const resetForm = () => {
+        form.reset();
+        form.hidden = false;
+        successView.hidden = true;
+        clearSubmitError();
+
+        for (const field of fields) {
+          clearError(field);
+        }
+
+        setBusy(false);
+      };
+
+      for (const field of fields) {
+        const control = getField(field);
+        control?.addEventListener("input", () => clearError(field));
+      }
+
+      form.addEventListener("submit", async (event) => {
+        event.preventDefault();
+
+        if (!validate()) {
+          return;
+        }
+
+        setBusy(true);
+
+        try {
+          const payload = new FormData(form);
+          const response = await fetch("/api/v1/contact/inquiry", {
+            method: "POST",
+            credentials: "include",
+            headers: {
+              "Content-Type": "application/json",
+              "X-XSRF-TOKEN": getCookie("XSRF-TOKEN") ?? "",
+            },
+            body: JSON.stringify({
+              name: String(payload.get("name") ?? "").trim(),
+              email: String(payload.get("email") ?? "").trim(),
+              clinic: String(payload.get("clinic") ?? "").trim(),
+              message: String(payload.get("message") ?? "").trim(),
+            }),
+          });
+
+          if (!response.ok) {
+            showSubmitError(
+              "We could not send your message right now. Please try again in a few minutes.",
+            );
+            return;
+          }
+
+          showSuccess();
+        } catch {
+          showSubmitError(
+            "We could not send your message right now. Please try again in a few minutes.",
+          );
+        } finally {
+          setBusy(false);
+        }
+      });
+
+      resetButton?.addEventListener("click", resetForm);
+    }
+  }
+
+  function getCookie(name) {
+    const row = document.cookie
+      .split(";")
+      .map((value) => value.trim())
+      .find((value) => value.startsWith(`${name}=`));
+
+    return row ? decodeURIComponent(row.slice(name.length + 1)) : null;
+  }
+</script>

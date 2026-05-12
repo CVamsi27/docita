@@ -3,6 +3,7 @@ import { Badge } from "@workspace/ui/components/badge";
 import { Button } from "@workspace/ui/components/button";
 import { Calendar, Edit, Mail, MapPin, Phone, Shield } from "lucide-react";
 import { formatDate } from "@workspace/utils";
+import { formatGenderLabel } from "@/lib/formatters";
 
 interface PatientProfileHeaderUIProps {
   firstName: string;
@@ -52,7 +53,7 @@ export function PatientProfileHeaderUI({
                     variant={gender === "MALE" ? "default" : "secondary"}
                     className="rounded-full px-2 sm:px-3 text-xs"
                   >
-                    {gender}
+                    {formatGenderLabel(gender)}
                   </Badge>
                   <Badge
                     variant="outline"

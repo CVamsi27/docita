@@ -23,6 +23,7 @@ import {
   Pencil,
 } from "lucide-react";
 import { toast } from "sonner";
+import { formatGenderLabel } from "@/lib/formatters";
 
 interface PatientsTableProps {
   patients: Patient[];
@@ -132,7 +133,9 @@ export function PatientsTable({
                       </span>
                     </div>
                   </TableCell>
-                  <TableCell className="hidden sm:table-cell capitalize">{patient.gender}</TableCell>
+                  <TableCell className="hidden sm:table-cell">
+                    {formatGenderLabel(patient.gender)}
+                  </TableCell>
                   <TableCell
                     className="text-right"
                     onClick={(e) => e.stopPropagation()}

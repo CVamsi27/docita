@@ -4,6 +4,7 @@ import { Button } from "@workspace/ui/components/button";
 import { SymbolTooltip } from "@workspace/ui/components/tooltip";
 import { ArrowLeft, Edit, Printer } from "lucide-react";
 import { formatDate } from "@workspace/utils";
+import { WhatsAppDeliveryBadge } from "@/features/_shared/components/whatsapp/whatsapp-delivery-badge";
 
 interface PrescriptionHeaderProps {
   createdAt: string;
@@ -11,6 +12,10 @@ interface PrescriptionHeaderProps {
   onBack: () => void;
   onEdit: () => void;
   onPrint: () => void;
+  whatsappStatus?: string | null;
+  whatsappSentAt?: string | Date | null;
+  onWhatsappRetry?: () => void;
+  isWhatsappRetrying?: boolean;
 }
 
 export function PrescriptionHeader({
@@ -19,9 +24,13 @@ export function PrescriptionHeader({
   onBack,
   onEdit,
   onPrint,
+  whatsappStatus,
+  whatsappSentAt,
+  onWhatsappRetry,
+  isWhatsappRetrying,
 }: PrescriptionHeaderProps) {
   return (
-    <div className="flex items-center justify-between print:hidden">
+    <div className="flex flex-wrap items-center justify-between gap-3 print:hidden">
       <div className="flex items-center gap-4">
         <SymbolTooltip label="Back to prescriptions">
           <Button
@@ -40,7 +49,15 @@ export function PrescriptionHeader({
           </p>
         </div>
       </div>
-      <div className="flex items-center gap-2">
+      <div className="flex flex-wrap items-center gap-2">
+        {whatsappStatus !== undefined && whatsappStatus !== null ? (
+          <WhatsAppDeliveryBadge
+            status={whatsappStatus}
+            sentAt={whatsappSentAt ?? null}
+            onRetry={onWhatsappRetry}
+            isRetrying={isWhatsappRetrying}
+          />
+        ) : null}
         {canEdit && (
           <Button variant="outline" size="sm" onClick={onEdit}>
             <Edit className="mr-2 h-4 w-4" />
