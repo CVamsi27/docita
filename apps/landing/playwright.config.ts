@@ -28,7 +28,7 @@ export default defineConfig({
     },
   ],
   webServer: {
-    command: "pnpm build && pnpm exec wrangler dev dist/_worker.js/index.js --port 3003 --assets=dist",
+    command: "pnpm exec astro dev --port 3003 --host 127.0.0.1",
     url: APP_URL,
     reuseExistingServer: !process.env["CI"],
     timeout: 120000,

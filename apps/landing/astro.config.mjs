@@ -10,17 +10,19 @@ export default defineConfig({
   build: {
     inlineStylesheets: "always",
   },
-  session: {
-    driver: "cloudflare-kv-binding",
-    options: {
-      binding: "SESSION",
-    },
-  },
-  adapter: cloudflare({ imageService: "compile" }),
+  adapter: cloudflare({
+    imageService: "compile",
+    inspectorPort: false,
+    prerenderEnvironment: "node",
+  }),
   integrations: [react()],
   vite: {
+    ssr: {
+      noExternal: true,
+    },
     plugins: [tailwindcss()],
     resolve: {
+      dedupe: ["react", "react-dom"],
       alias: {
         "@": fileURLToPath(new URL("./src", import.meta.url)),
       },
