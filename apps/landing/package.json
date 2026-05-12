@@ -4,12 +4,12 @@
   "private": true,
   "type": "module",
   "scripts": {
-    "dev": "astro dev --port 3003 --host 127.0.0.1",
-    "build": "node ./scripts/clean-dist.mjs && astro build",
-    "build:cloudflare": "DOCITA_CLOUDFLARE=1 turbo build --filter=@workspace/ui && node ./scripts/clean-dist.mjs && astro build",
-    "preview:cloudflare": "node ./scripts/clean-dist.mjs && astro build && printf \"_worker.js\\n\" > dist/.assetsignore && wrangler dev",
-    "deploy:cloudflare": "node ./scripts/clean-dist.mjs && astro build && printf \"_worker.js\\n\" > dist/.assetsignore && wrangler deploy",
-    "lint": "eslint \"src/**/*.{ts,tsx}\" \"e2e/**/*.{ts,tsx}\" astro.config.mjs playwright.config.ts",
+    "dev": "astro dev --port 3003",
+    "build": "astro build",
+    "build:cloudflare": "DOCITA_CLOUDFLARE=1 turbo build --filter=@workspace/ui && astro build",
+    "preview:cloudflare": "astro build && printf \"_worker.js\\n\" > dist/.assetsignore && wrangler dev",
+    "deploy:cloudflare": "astro build && printf \"_worker.js\\n\" > dist/.assetsignore && wrangler deploy",
+    "lint": "eslint src e2e astro.config.mjs playwright.config.ts --ext .ts,.tsx,.js,.mjs",
     "check-types": "astro check",
     "audit:accessibility": "env -u NO_COLOR FORCE_COLOR=0 playwright test e2e/accessibility.spec.ts",
     "test:critical-flows": "env -u NO_COLOR FORCE_COLOR=0 playwright test e2e/critical-flows.spec.ts"
@@ -25,19 +25,21 @@
   },
   "devDependencies": {
     "@astrojs/check": "^0.9.4",
-    "@astrojs/cloudflare": "^13.1.10",
+    "@astrojs/cloudflare": "12.6.13",
     "@astrojs/react": "^4.4.0",
     "@playwright/test": "^1.48.2",
     "@tailwindcss/vite": "~4.1.11",
     "@types/node": "^20.19.9",
     "@types/react": "^19.1.9",
     "@types/react-dom": "^19.1.7",
+    "@typescript-eslint/parser": "^8.56.0",
     "@workspace/eslint-config": "workspace:^",
-    "astro": "^6.1.6",
+    "astro": "5.18.1",
+    "astro-eslint-parser": "^1.4.0",
     "eslint": "^9.32.0",
     "tailwindcss": "~4.1.11",
     "typescript": "^5.9.2",
     "vite": "^6.4.2",
-    "wrangler": "^4.90.0"
+    "wrangler": "4.71.0"
   }
 }
