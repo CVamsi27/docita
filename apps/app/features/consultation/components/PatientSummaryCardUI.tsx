@@ -15,6 +15,7 @@ import {
 import { AlertTriangle, Droplet, User } from "lucide-react";
 import { cn } from "@workspace/ui/lib/utils";
 import { formatDate } from "@workspace/utils";
+import { formatGenderLabel } from "@/lib/formatters";
 import { CodeStatus, CodeStatusAlertUI } from "./summary/CodeStatusAlertUI";
 import { AllergyAlertUI } from "./summary/AllergyAlertUI";
 import { SummaryVitals } from "./shared/SummaryVitals";
@@ -109,7 +110,7 @@ export function PatientSummaryCardUI({
                 {patient.gender && (
                   <>
                     <span>•</span>
-                    <span className="capitalize">{patient.gender}</span>
+                    <span>{formatGenderLabel(patient.gender)}</span>
                   </>
                 )}
                 {patient.bloodGroup && (

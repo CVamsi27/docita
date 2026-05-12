@@ -56,7 +56,7 @@ export async function GET() {
       try {
         return await fetchZenQuotesToday();
       } catch (error) {
-        logger.error("daily-thought upstream failed", {
+        logger.warn("daily-thought upstream failed; using fallback quote", {
           dayKey,
           error,
         });

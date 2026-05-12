@@ -2,6 +2,7 @@ import {
   BadRequestException,
   Inject,
   Injectable,
+  Logger,
   NotFoundException,
 } from '@nestjs/common';
 import { AppointmentRequestStatus } from '@workspace/db';
@@ -19,16 +20,17 @@ import {
   IAppointmentRequestRepository,
 } from '@/domains/appointments/core/repositories/appointment-request.repository.interface';
 import { AppointmentService } from '@/domains/appointments/application/services/appointment.service';
-import { SystemEventsService } from '@/shared/modules/messaging/whatsapp/system-events.service';
 import { StaffNotificationService } from '@/shared/modules/messaging/whatsapp/staff-notification.service';
+import type { StaffNotificationPayload } from '@/shared/modules/messaging/whatsapp/staff-notification.service';
 
 @Injectable()
 export class AppointmentRequestService {
+  private readonly logger = new Logger(AppointmentRequestService.name);
+
   constructor(
     @Inject(APPOINTMENT_REQUEST_REPOSITORY_TOKEN)
     private readonly appointmentRequestRepository: IAppointmentRequestRepository,
     private readonly appointmentService: AppointmentService,
-    private readonly systemEvents: SystemEventsService,
     private readonly staffNotifications: StaffNotificationService,
   ) {}
 
@@ -102,7 +104,7 @@ export class AppointmentRequestService {
       notes: data.notes,
     });
 
-    await this.staffNotifications.notifyStaff({
+    await this.notifyStaffBestEffort({
       clinicId,
       doctorId: data.preferredDoctorId ?? undefined,
       type: 'APPOINTMENT_REQUEST_CREATED',
@@ -159,30 +161,43 @@ export class AppointmentRequestService {
   ): Promise<AppointmentRequestResponse> {
     const request = await this.findPendingRequest(id, clinicId);
     await this.assertDoctorBelongsToClinic(data.doctorId, clinicId);
+    const startTime = this.parseDate(data.startTime, 'Start time');
+    const endTime = this.parseDate(data.endTime, 'End time');
+    const appointmentReason = data.notes ?? request.notes ?? request.reason;
 
-    const appointment = await this.appointmentService.createAppointment({
+    const appointment =
+      await this.appointmentRequestRepository.findMatchingAppointment({
+        clinicId,
+        patientId: request.patientId,
+        doctorId: data.doctorId,
+        startTime,
+        endTime,
+        reason: appointmentReason,
+        requestCreatedAt: request.createdAt,
+      });
+    const appointmentId =
+      appointment?.id ??
+      (
+        await this.appointmentService.createAppointment({
+          clinicId,
+          patientId: request.patientId,
+          doctorId: data.doctorId,
+          startTime,
+          endTime,
+          reason: appointmentReason,
+          type: data.type ?? 'Standard',
+        })
+      ).id;
+
+    const updated = await this.appointmentRequestRepository.markReviewed({
+      id,
       clinicId,
-      patientId: request.patientId,
-      doctorId: data.doctorId,
-      startTime: this.parseDate(data.startTime, 'Start time'),
-      endTime: this.parseDate(data.endTime, 'End time'),
-      reason: data.notes ?? request.notes ?? request.reason,
-      type: data.type ?? 'Standard',
-    });
-
-    await this.systemEvents.sendAppointmentConfirmation(
-      appointment.id,
-      clinicId,
-    );
-
-    const updated = await this.appointmentRequestRepository.update(id, {
       status: AppointmentRequestStatus.APPROVED,
-      reviewedBy: { connect: { id: reviewedById } },
-      reviewedAt: new Date(),
-      responseMessage: `Booked appointment ${appointment.id}`,
+      reviewedById,
+      responseMessage: `Booked appointment ${appointmentId}`,
     });
 
-    await this.staffNotifications.notifyStaff({
+    await this.notifyStaffBestEffort({
       clinicId,
       doctorId: data.doctorId,
       type: 'APPOINTMENT_REQUEST_APPROVED',
@@ -190,7 +205,7 @@ export class AppointmentRequestService {
       message: 'A patient appointment request was approved and booked.',
       data: {
         appointmentRequestId: updated.id,
-        appointmentId: appointment.id,
+        appointmentId,
         patientId: updated.patientId,
       },
       priority: 'NORMAL',
@@ -208,14 +223,15 @@ export class AppointmentRequestService {
     data: RejectAppointmentRequest,
   ): Promise<AppointmentRequestResponse> {
     await this.findPendingRequest(id, clinicId);
-    const updated = await this.appointmentRequestRepository.update(id, {
+    const updated = await this.appointmentRequestRepository.markReviewed({
+      id,
+      clinicId,
       status: AppointmentRequestStatus.REJECTED,
-      reviewedBy: { connect: { id: reviewedById } },
-      reviewedAt: new Date(),
+      reviewedById,
       responseMessage: data.responseMessage,
     });
 
-    await this.staffNotifications.notifyStaff({
+    await this.notifyStaffBestEffort({
       clinicId,
       type: 'APPOINTMENT_REQUEST_REJECTED',
       title: 'Appointment request rejected',
@@ -230,6 +246,19 @@ export class AppointmentRequestService {
     });
 
     return this.mapRequest(updated);
+  }
+
+  private async notifyStaffBestEffort(
+    payload: StaffNotificationPayload,
+  ): Promise<void> {
+    try {
+      await this.staffNotifications.notifyStaff(payload);
+    } catch (error) {
+      this.logger.warn(
+        `Failed to send ${payload.type} notification for clinic ${payload.clinicId}`,
+        error instanceof Error ? error.stack : String(error),
+      );
+    }
   }
 
   private async findPendingRequest(

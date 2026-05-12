@@ -3,8 +3,8 @@
   "version": "0.1.0",
   "private": true,
   "scripts": {
-    "dev": "next dev --port 3002",
-    "build": "next build --webpack",
+    "dev": "node ./scripts/clean-next.mjs --if-production && next dev --port 3002",
+    "build": "node ./scripts/clean-next.mjs && next build --webpack",
     "build:cloudflare": "pnpm run build:cloudflare:production",
     "build:cloudflare:base": "DOCITA_CLOUDFLARE=1 turbo build --filter=@workspace/ui --filter=@workspace/types --filter=@workspace/utils --filter=@workspace/data-access && node -e \"require('fs').rmSync('.open-next', { recursive: true, force: true })\" && DOCITA_CLOUDFLARE=1 opennextjs-cloudflare build && node ../../scripts/ensure-opennext-prefetch-manifest-patch.mjs --app=internal && node ../../scripts/check-worker-size.mjs .open-next/worker.js @docita/internal",
     "build:cloudflare:production": "DOCITA_ENV=production APP_URL=https://internal.docita.work API_URL=https://api.docita.work/api/v1 API_PROXY_TARGET=https://api.docita.work NEXT_PUBLIC_API_URL=https://api.docita.work/api/v1 pnpm run build:cloudflare:base",
@@ -15,13 +15,16 @@
     "deploy:cloudflare:production": "pnpm run build:cloudflare:production && wrangler deploy --env production",
     "start": "next start",
     "lint": "eslint",
-    "check-types": "tsc --noEmit",
+    "check-types": "node ./scripts/clean-next.mjs --if-production && next typegen && tsc --noEmit",
     "test": "vitest run",
     "test:cov": "vitest run --coverage",
     "audit:accessibility": "env -u NO_COLOR FORCE_COLOR=0 playwright test e2e/accessibility.spec.ts",
     "test:critical-flows": "playwright test e2e/critical-flows.spec.ts"
   },
   "dependencies": {
+    "@fontsource/fraunces": "^5.1.1",
+    "@fontsource/inter": "^5.1.1",
+    "@fontsource/jetbrains-mono": "^5.1.1",
     "@sentry/nextjs": "^10.47.0",
     "@tanstack/react-query": "^5.90.10",
     "@workspace/data-access": "workspace:*",

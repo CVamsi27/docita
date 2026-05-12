@@ -9,7 +9,7 @@ import { PatientDetailTabLoadingShell } from "@/features/patients/components/det
 import {
   ClipboardList,
   LayoutDashboard,
-  MessageCircle,
+  // MessageCircle,
   Receipt,
   Stethoscope,
 } from "lucide-react";
@@ -20,7 +20,7 @@ import type {
 import { PatientTagManagerContainer as PatientTagManager } from "@/features/patients/components/details/PatientTagManagerContainer";
 import type { PatientStatistics } from "@/hooks/use-patient-data";
 import { PatientClinicalChartSummary } from "./patient-clinical-chart-summary";
-import { PatientCommunicationTab } from "./PatientCommunicationTab";
+// import { PatientCommunicationTab } from "./PatientCommunicationTab";
 import { usePermissions } from "@/hooks/use-permissions";
 
 const OverviewTab = dynamic(
@@ -93,7 +93,7 @@ export const PATIENT_DETAIL_TAB_VALUES = [
   "visits",
   "records",
   "billing",
-  "communication",
+  // "communication",
 ] as const;
 
 export type PatientDetailTabValue = (typeof PATIENT_DETAIL_TAB_VALUES)[number];
@@ -131,7 +131,7 @@ const TAB_DEFINITIONS: Array<{
   { value: "visits", label: "Visits & notes", icon: Stethoscope },
   { value: "records", label: "Records", icon: ClipboardList },
   { value: "billing", label: "Billing", icon: Receipt },
-  { value: "communication", label: "Communication", icon: MessageCircle },
+  // { value: "communication", label: "Communication", icon: MessageCircle },
 ];
 
 const RECORDS_SUB_TAB_LABELS: Record<PatientRecordsSubTab, string> = {
@@ -339,9 +339,9 @@ export function PatientDetailTabs({
       {activeTab === "billing" && canViewInvoices ? (
         <BillingTab patientId={patientId} />
       ) : null}
-      {activeTab === "communication" ? (
+      {/* {activeTab === "communication" ? (
         <PatientCommunicationTab patientId={patientId} />
-      ) : null}
+      ) : null} */}
     </div>
   );
 }

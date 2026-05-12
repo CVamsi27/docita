@@ -230,6 +230,7 @@ export function useAPIMutation<TData, TVariables>(
       | number
       | Record<string, unknown>
     )[])[];
+    body?: (variables: TVariables) => unknown;
     suppressGlobalErrorToast?: boolean;
   },
 ) {
@@ -241,9 +242,12 @@ export function useAPIMutation<TData, TVariables>(
         typeof endpointOrFn === "function"
           ? endpointOrFn(variables)
           : endpointOrFn;
+      const requestBody = options?.body ? options.body(variables) : variables;
       return fetchAPI<TData>(endpoint, {
         method,
-        body: variables ? JSON.stringify(variables) : undefined,
+        body:
+          requestBody === undefined ? undefined : JSON.stringify(requestBody),
+        retries: 0,
         suppressGlobalErrorToast: options?.suppressGlobalErrorToast,
       });
     },

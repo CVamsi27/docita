@@ -41,6 +41,9 @@
     "test:visual:report": "playwright show-report"
   },
   "dependencies": {
+    "@fontsource/fraunces": "^5.1.1",
+    "@fontsource/inter": "^5.1.1",
+    "@fontsource/jetbrains-mono": "^5.1.1",
     "@hookform/resolvers": "^5.2.2",
     "@react-google-maps/api": "^2.20.8",
     "@sentry/nextjs": "^10.47.0",

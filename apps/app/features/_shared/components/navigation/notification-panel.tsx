@@ -328,7 +328,7 @@ export function NotificationPanel({
 
   return (
     <Sheet open={open} onOpenChange={handleOpenChange}>
-      <SheetContent className="w-full sm:max-w-md">
+      <SheetContent className="w-full sm:max-w-md" showCloseButton={false}>
         <SheetHeader>
           <SheetTitle className="flex items-center justify-between">
             <span className="flex items-center gap-2">

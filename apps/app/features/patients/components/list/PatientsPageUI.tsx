@@ -25,6 +25,7 @@ import {
 } from "lucide-react";
 import { Avatar, AvatarFallback } from "@workspace/ui/components/avatar";
 import { SymbolTooltip } from "@workspace/ui/components/tooltip";
+import { formatGenderLabel } from "@/lib/formatters";
 
 type PatientsSortConfig = {
   key: keyof Patient | "fullName";
@@ -293,8 +294,8 @@ export function PatientsPageUI({
                           </span>
                         </div>
                       </TableCell>
-                      <TableCell className="hidden sm:table-cell capitalize">
-                        {patient.gender}
+                      <TableCell className="hidden sm:table-cell">
+                        {formatGenderLabel(patient.gender)}
                       </TableCell>
                       <TableCell className="text-right">
                         <div className="flex items-center justify-end gap-1.5">

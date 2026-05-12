@@ -12,12 +12,14 @@ export const useSendPrescriptionWhatsApp = () =>
   useAPIMutation<void, { id: string }>(
     ({ id }) => `/whatsapp/resend-prescription/${id}`,
     "POST",
+    { body: () => undefined },
   );
 
 export const useSendInvoiceWhatsApp = () =>
   useAPIMutation<void, { id: string }>(
     ({ id }) => `/whatsapp/resend-invoice/${id}`,
     "POST",
+    { body: () => undefined },
   );
 
 export const useUnreadNotificationCount = () => {

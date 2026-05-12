@@ -309,6 +309,7 @@ export const useCompleteFollowUp = () =>
     ({ id }) => `/follow-ups/${id}/complete`,
     "PATCH",
     {
+      body: () => undefined,
       invalidateKeys: [["follow-ups"]],
     },
   );
@@ -318,6 +319,7 @@ export const useCancelFollowUp = () =>
     ({ id }) => `/follow-ups/${id}/cancel`,
     "PATCH",
     {
+      body: () => undefined,
       invalidateKeys: [["follow-ups"]],
     },
   );
@@ -327,6 +329,7 @@ export const useBookFollowUp = () =>
     ({ id }) => `/follow-ups/${id}/book`,
     "PATCH",
     {
+      body: ({ id: _id, ...body }) => body,
       invalidateKeys: [["follow-ups"], queryKeys.appointments.all()],
     },
   );
@@ -351,12 +354,14 @@ export const useApproveAppointmentRequest = () =>
     AppointmentRequestResponse,
     ApproveAppointmentRequest & { id: string }
   >(({ id }) => `/appointment-requests/${id}/approve`, "PATCH", {
+    body: ({ id: _id, ...body }) => body,
     invalidateKeys: [
       ["appointment-requests"],
       queryKeys.appointments.all(),
       ["patient-portal", "appointments"],
       ["doctor-availability-slots"],
     ],
+    suppressGlobalErrorToast: true,
   });
 
 export const useRejectAppointmentRequest = () =>
@@ -364,7 +369,9 @@ export const useRejectAppointmentRequest = () =>
     AppointmentRequestResponse,
     RejectAppointmentRequest & { id: string }
   >(({ id }) => `/appointment-requests/${id}/reject`, "PATCH", {
+    body: ({ id: _id, ...body }) => body,
     invalidateKeys: [["appointment-requests"]],
+    suppressGlobalErrorToast: true,
   });
 
 export const useQueue = (options?: { search?: string }) => {

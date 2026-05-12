@@ -248,6 +248,7 @@ export const useUpdateTemplate = () =>
     (template) => `/templates/${template.id}`,
     "PATCH",
     {
+      body: ({ id: _id, ...body }) => body,
       invalidateKeys: [["templates"]],
     },
   );
@@ -257,6 +258,7 @@ export const useDeleteTemplate = () =>
     (variables) => `/templates/${variables.id}`,
     "DELETE",
     {
+      body: () => undefined,
       invalidateKeys: [["templates"]],
     },
   );

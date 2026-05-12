@@ -13,7 +13,7 @@ import {
   Phone,
   ShieldAlert,
 } from "lucide-react";
-import { formatDate } from "@/lib/formatters";
+import { formatDate, formatGenderLabel } from "@/lib/formatters";
 
 interface PatientFaceSheetHeaderUIProps {
   firstName: string;
@@ -100,7 +100,7 @@ export function PatientFaceSheetHeaderUI(props: PatientFaceSheetHeaderUIProps) {
             <div className="text-sm text-muted-foreground flex items-center gap-2 mt-1">
               <span className="font-medium text-foreground">{age}</span>
               <span className="text-muted-foreground/40">•</span>
-              <span className="capitalize">{gender?.toLowerCase()}</span>
+              <span>{formatGenderLabel(gender)}</span>
               <span className="text-muted-foreground/40">•</span>
               <span>DOB: {formatDate(dateOfBirth)}</span>
             </div>
