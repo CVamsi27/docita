@@ -38,7 +38,7 @@
       ]
     },
     "apps/internal": {
-      "ignoreDependencies": ["@axe-core/playwright", "eslint-config-next"]
+      "ignoreDependencies": ["@axe-core/playwright", "eslint-config-next", "@fontsource/fraunces", "@fontsource/inter", "@fontsource/jetbrains-mono"]
     },
     "apps/landing": {
       "ignoreDependencies": ["tailwindcss"]
