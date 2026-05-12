@@ -286,7 +286,10 @@ const faqs = [
           });
 
           if (!response.ok) {
-            throw new Error("request failed");
+            showSubmitError(
+              "We could not send your message right now. Please try again in a few minutes.",
+            );
+            return;
           }
 
           showSuccess();
