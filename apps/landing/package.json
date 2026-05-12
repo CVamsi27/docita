@@ -25,7 +25,7 @@
   },
   "devDependencies": {
     "@astrojs/check": "^0.9.4",
-    "@astrojs/cloudflare": "^12.6.0",
+    "@astrojs/cloudflare": "^13.1.10",
     "@astrojs/react": "^4.4.0",
     "@playwright/test": "^1.48.2",
     "@tailwindcss/vite": "~4.1.11",
@@ -33,11 +33,11 @@
     "@types/react": "^19.1.9",
     "@types/react-dom": "^19.1.7",
     "@workspace/eslint-config": "workspace:^",
-    "astro": "^5.8.1",
+    "astro": "^6.1.6",
     "eslint": "^9.32.0",
     "tailwindcss": "~4.1.11",
     "typescript": "^5.9.2",
     "vite": "^6.4.2",
-    "wrangler": "^4.71.0"
+    "wrangler": "^4.90.0"
   }
 }
