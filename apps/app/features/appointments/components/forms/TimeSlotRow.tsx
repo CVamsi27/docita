@@ -1,5 +1,7 @@
 import { DocitaLoadingIndicator } from "@workspace/ui/components/docita-loading-indicator";
 import { memo, useCallback } from "react";
+import { useQueryClient } from "@tanstack/react-query";
+import { toast } from "sonner";
 import { formatClockTime } from "@/lib/formatters";
 import { Check, Play, UserCheck } from "lucide-react";
 import type { AppointmentListItem } from "@/hooks/api/use-appointments";
@@ -9,6 +11,9 @@ import { SymbolTooltip } from "@workspace/ui/components/tooltip";
 import { usePermissions } from "@/hooks/use-permissions";
 import { humanizeUiLabel } from "@workspace/ui/lib/label-formatters";
 import { AppointmentRowActionsMenu } from "./AppointmentRowActionsMenu";
+import { WhatsAppDeliveryBadge } from "@/features/_shared/components/whatsapp/whatsapp-delivery-badge";
+import { useResendAppointmentReminder } from "@/hooks/api/use-whatsapp";
+import { showUserFacingErrorToast } from "@/lib/user-facing-errors";
 
 interface TimeSlotRowProps {
   appointment: AppointmentListItem;
@@ -67,6 +72,25 @@ export const TimeSlotRow = memo<TimeSlotRowProps>(
     const handleScheduleFollowUp = useCallback(() => {
       onScheduleFollowUp?.(apt);
     }, [apt, onScheduleFollowUp]);
+
+    const queryClient = useQueryClient();
+    const resendReminder = useResendAppointmentReminder();
+    const lastReminder = apt.reminders?.[0] ?? null;
+
+    const handleReminderRetry = useCallback(async () => {
+      if (!apt.id) return;
+      try {
+        await resendReminder.mutateAsync({ appointmentId: apt.id });
+        toast.success("Reminder re-sent on WhatsApp");
+        await queryClient.invalidateQueries({ queryKey: ["appointments"] });
+      } catch (err) {
+        showUserFacingErrorToast(
+          err,
+          "We could not resend the reminder. Please try again.",
+          "save",
+        );
+      }
+    }, [apt.id, resendReminder, queryClient]);
 
     return (
       <div className="group relative @container/apt overflow-hidden rounded-lg border border-border/60 bg-card/95 pl-3 pr-3 py-2.5 transition-colors duration-150 hover:border-border hover:bg-card">
@@ -130,6 +154,16 @@ export const TimeSlotRow = memo<TimeSlotRowProps>(
                   </>
                 ) : null}
               </div>
+              {lastReminder ? (
+                <div className="mt-1">
+                  <WhatsAppDeliveryBadge
+                    status={lastReminder.status}
+                    sentAt={lastReminder.sentAt ?? null}
+                    onRetry={handleReminderRetry}
+                    isRetrying={resendReminder.isPending}
+                  />
+                </div>
+              ) : null}
             </div>
           </div>
 
