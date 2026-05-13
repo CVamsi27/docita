@@ -114,7 +114,12 @@ function isApiChange(file) {
 }
 
 function isDeployApiChange(file) {
-  return isApiChange(file);
+  return (
+    isApiChange(file) ||
+    file === ".github/workflows/deploy.yml" ||
+    file === "scripts/detect-workflow-scope.mjs" ||
+    file === "scripts/test-api-startup.sh"
+  );
 }
 
 function isDeployWorkerChange(file) {
