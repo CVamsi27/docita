@@ -21,7 +21,7 @@ export class ReminderSettingsDto extends createZodDto(
 ) {}
 
 export const sendReminderSchema = z.object({
-  type: z.enum(['email', 'sms']),
+  type: z.enum(['email', 'sms', 'whatsapp']),
 });
 
 export class SendReminderDto extends createZodDto(sendReminderSchema) {}
