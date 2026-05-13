@@ -73,6 +73,7 @@ It adapts and consolidates guidance from `CONTRIBUTING.md` and `.github/copilot-
 - Always handle loading, error, and empty states.
 - Keep components accessible and keyboard-friendly.
 - Never import `@prisma/client` or `@workspace/db` in frontend code.
+- For `apps/app` Cloudflare builds, keep the route guard file as `middleware.ts`; Next 16 may warn about the newer `proxy` convention, but this deployment path does not use it.
 
 ### 4.1 Import path standards
 
