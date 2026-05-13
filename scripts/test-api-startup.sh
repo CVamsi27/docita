@@ -18,6 +18,10 @@
 #   NEXT_PUBLIC_API_URL
 #   CORS_ORIGINS
 #   STORAGE_PROVIDER
+#   R2_ACCOUNT_ID
+#   R2_ACCESS_KEY_ID
+#   R2_SECRET_ACCESS_KEY
+#   R2_BUCKET_NAME
 #   QUEUE_BACKEND
 #   ENABLE_SCHEDULERS
 #   NODE_ENV (defaults to production)
@@ -57,6 +61,10 @@ export NEXT_PUBLIC_APP_URL="${NEXT_PUBLIC_APP_URL:-https://app.docita.work}"
 export NEXT_PUBLIC_API_URL="${NEXT_PUBLIC_API_URL:-https://api.docita.work/api/v1}"
 export CORS_ORIGINS="${CORS_ORIGINS:-https://app.docita.work,https://internal.docita.work}"
 export STORAGE_PROVIDER="${STORAGE_PROVIDER:-r2}"
+export R2_ACCOUNT_ID="${R2_ACCOUNT_ID:-ci-startup-smoke-account}"
+export R2_ACCESS_KEY_ID="${R2_ACCESS_KEY_ID:-ci-startup-smoke-access-key}"
+export R2_SECRET_ACCESS_KEY="${R2_SECRET_ACCESS_KEY:-ci-startup-smoke-secret-key}"
+export R2_BUCKET_NAME="${R2_BUCKET_NAME:-docita-startup-smoke}"
 export QUEUE_BACKEND="${QUEUE_BACKEND:-postgres}"
 export ENABLE_SCHEDULERS="${ENABLE_SCHEDULERS:-false}"
 export PORT

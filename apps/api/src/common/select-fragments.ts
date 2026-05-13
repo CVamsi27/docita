@@ -150,6 +150,18 @@ export const APPOINTMENT_CARD_SELECT = {
       specialization: true,
     },
   },
+  reminders: {
+    select: {
+      id: true,
+      type: true,
+      status: true,
+      sentAt: true,
+      error: true,
+      createdAt: true,
+    },
+    orderBy: { createdAt: 'desc' as const },
+    take: 1,
+  },
 } as const;
 
 export const APPOINTMENT_DETAIL_SELECT = {
@@ -257,6 +269,18 @@ export const APPOINTMENT_DETAIL_SELECT = {
       total: true,
       status: true,
     },
+  },
+  reminders: {
+    select: {
+      id: true,
+      type: true,
+      status: true,
+      sentAt: true,
+      error: true,
+      createdAt: true,
+    },
+    orderBy: { createdAt: 'desc' as const },
+    take: 1,
   },
 } as const;
 

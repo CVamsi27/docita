@@ -117,6 +117,18 @@ export const appointmentSchema = z.object({
       }),
     )
     .optional(),
+  reminders: z
+    .array(
+      z.object({
+        id: z.string(),
+        type: z.string(),
+        status: z.string(),
+        sentAt: z.string().or(z.date()).nullable().optional(),
+        error: z.string().nullable().optional(),
+        createdAt: z.string().or(z.date()),
+      }),
+    )
+    .optional(),
   procedures: z
     .array(
       z.object({
@@ -143,6 +155,7 @@ export const createAppointmentBaseSchema = appointmentSchema.omit({
   invoice: true,
   diagnoses: true,
   procedures: true,
+  reminders: true,
 
   chiefComplaint: true,
   historyOfPresentIllness: true,

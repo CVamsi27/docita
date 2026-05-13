@@ -83,6 +83,18 @@ export const appointmentListItemResponseSchema = z
     prescription: prescriptionSchema.nullable().optional(),
     invoice: invoiceSchema.nullable().optional(),
     vitalSign: vitalSignSchema.optional(),
+    reminders: z
+      .array(
+        z.object({
+          id: z.string(),
+          type: z.string(),
+          status: z.string(),
+          sentAt: z.string().or(z.date()).nullable().optional(),
+          error: z.string().nullable().optional(),
+          createdAt: z.string().or(z.date()),
+        }),
+      )
+      .optional(),
   })
   .strict();
 

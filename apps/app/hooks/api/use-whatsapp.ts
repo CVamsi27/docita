@@ -74,3 +74,13 @@ export const useApprovePrescriptionWhatsApp = (id: string) =>
 
 export const useApproveInvoiceWhatsApp = (id: string) =>
   useAPIMutation<void, void>(`/whatsapp/approve-invoice/${id}`, "POST");
+
+export const useResendAppointmentReminder = () =>
+  useAPIMutation<
+    { success: boolean; message: string },
+    { appointmentId: string }
+  >(
+    ({ appointmentId }) => `/reminders/send/${appointmentId}`,
+    "POST",
+    { body: () => ({ type: "whatsapp" as const }) },
+  );
