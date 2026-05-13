@@ -5,11 +5,31 @@ import { usePathname } from "next/navigation";
 import type { Metric } from "web-vitals";
 import { API_URL } from "@/lib/api-config";
 
+const PUBLIC_AUTH_PATHS = new Set([
+  "/login",
+  "/register",
+  "/forgot-password",
+  "/reset-password",
+  "/portal/login",
+]);
+
+export function shouldReportWebVitals(pathname: string | null): boolean {
+  if (!pathname) {
+    return false;
+  }
+
+  return !PUBLIC_AUTH_PATHS.has(pathname);
+}
+
 export function WebVitalsReporter() {
   const pathname = usePathname();
 
   useEffect(() => {
     if (process.env.NODE_ENV !== "production") {
+      return;
+    }
+
+    if (!shouldReportWebVitals(pathname)) {
       return;
     }
 
