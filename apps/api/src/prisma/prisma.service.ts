@@ -55,23 +55,22 @@ export class PrismaService
     return this;
   }
 
-  async onModuleInit() {
-    try {
-      await this.$connect();
+  onModuleInit(): void {
+    const extended = this.$extends(
+      createEncryptionExtension(this.encryptionService),
+    )
+      .$extends(auditImmutabilityExtension)
+      .$extends(tenantExtension)
+      .$extends(slowQueryExtension);
+    Object.assign(this, extended);
 
-      const extended = this.$extends(
-        createEncryptionExtension(this.encryptionService),
-      )
-        .$extends(auditImmutabilityExtension)
-        .$extends(tenantExtension)
-        .$extends(slowQueryExtension);
-      Object.assign(this, extended);
-
-      this.logger.log('Primary database connection established');
-    } catch (error: unknown) {
-      this.logger.error('Failed to connect to database', error);
-      throw error;
-    }
+    void this.$connect()
+      .then(() => {
+        this.logger.log('Primary database connection established');
+      })
+      .catch((error: unknown) => {
+        this.logger.error('Failed to connect to database', error);
+      });
   }
 
   async onModuleDestroy() {

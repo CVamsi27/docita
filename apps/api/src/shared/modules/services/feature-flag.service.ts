@@ -128,8 +128,8 @@ export class FeatureFlagService implements OnModuleInit {
 
   constructor(private readonly prisma: PrismaService) {}
 
-  async onModuleInit() {
-    await this.initializeDefaultFlags();
+  onModuleInit(): void {
+    void this.initializeDefaultFlags();
   }
 
   private async initializeDefaultFlags(): Promise<void> {

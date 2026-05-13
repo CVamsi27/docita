@@ -87,16 +87,14 @@ export class PrismaClinicalRepository
     return `${query.trim().toLowerCase()}|${limit}`;
   }
 
-  async onModuleInit(): Promise<void> {
+  onModuleInit(): void {
     // Best-effort pre-warm: load the top-N favorited ICD/CPT codes. Failures
     // must never block startup.
-    try {
-      await this.prewarmFromFavorites();
-    } catch (error) {
+    void this.prewarmFromFavorites().catch((error: unknown) => {
       this.logger.warn(
-        `Failed to prewarm medical-coding cache: ${(error as Error).message}`,
+        `Failed to prewarm medical-coding cache: ${error instanceof Error ? error.message : String(error)}`,
       );
-    }
+    });
   }
 
   private async prewarmFromFavorites(): Promise<void> {

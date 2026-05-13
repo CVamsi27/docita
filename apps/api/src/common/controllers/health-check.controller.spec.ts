@@ -35,17 +35,13 @@ describe('HealthCheckController', () => {
   });
 
   it('returns liveness payload', async () => {
-    mockObservabilityService.getSystemHealth.mockResolvedValueOnce({
-      status: 'healthy',
-      checks: {},
-    });
-
-    const result = await controller.liveness();
+    const result = controller.liveness();
 
     expect(result.status).toBe('ok');
     expect(result.service).toBe('docita-api');
     expect(typeof result.timestamp).toBe('string');
     expect(typeof result.uptime).toBe('number');
+    expect(mockObservabilityService.getSystemHealth).not.toHaveBeenCalled();
   });
 
   it('returns readiness payload', async () => {
