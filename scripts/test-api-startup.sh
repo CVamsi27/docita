@@ -9,10 +9,10 @@
 #
 # Required environment:
 #   DATABASE_URL
-#   JWT_SECRET
-#   ENCRYPTION_KEY
 #
 # Optional environment:
+#   JWT_SECRET
+#   ENCRYPTION_KEY
 #   APP_URL
 #   NEXT_PUBLIC_APP_URL
 #   NEXT_PUBLIC_API_URL
@@ -49,10 +49,9 @@ require_var() {
 }
 
 require_var DATABASE_URL
-require_var JWT_SECRET
-require_var ENCRYPTION_KEY
-
 export NODE_ENV="${NODE_ENV:-production}"
+export JWT_SECRET="${JWT_SECRET:-ci-startup-smoke-jwt-secret-0123456789abcdef}"
+export ENCRYPTION_KEY="${ENCRYPTION_KEY:-a1b2c3d4e5f60123456789abcdef0123456789abcdef0123456789abcdef0123}"
 export APP_URL="${APP_URL:-https://app.docita.work}"
 export NEXT_PUBLIC_APP_URL="${NEXT_PUBLIC_APP_URL:-https://app.docita.work}"
 export NEXT_PUBLIC_API_URL="${NEXT_PUBLIC_API_URL:-https://api.docita.work/api/v1}"
