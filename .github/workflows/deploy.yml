@@ -10,6 +10,8 @@ on:
       - "packages/db/**"
       - "packages/types/**"
       - "packages/utils/**"
+      - "scripts/detect-workflow-scope.mjs"
+      - "scripts/test-api-startup.sh"
       - "package.json"
       - "pnpm-lock.yaml"
       - "pnpm-workspace.yaml"
