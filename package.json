@@ -24,6 +24,7 @@
     "preview:internal:cloudflare": "pnpm --filter @docita/internal run preview:cloudflare",
     "deploy:internal:cloudflare": "pnpm --filter @docita/internal run deploy:cloudflare",
     "build:api": "turbo build --filter=@docita/api",
+    "test:api-startup": "bash scripts/test-api-startup.sh",
     "test": "turbo test --concurrency=1",
     "test:unit:local": "pnpm --filter @workspace/utils run test && pnpm --filter @workspace/ui run test && pnpm --filter @docita/internal run test && pnpm --filter @docita/app run test && pnpm --filter @docita/api run test",
     "test:api": "turbo test --filter=@docita/api",

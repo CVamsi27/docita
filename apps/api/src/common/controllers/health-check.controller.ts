@@ -17,21 +17,14 @@ export class HealthCheckController {
 
   @Public()
   @Get('/live')
-  async liveness(): Promise<{
-    status: 'ok' | 'degraded' | 'error';
+  liveness(): {
+    status: 'ok';
     service: string;
     uptime: number;
     timestamp: string;
-  }> {
-    const health = await this.observability.getSystemHealth();
-
+  } {
     return {
-      status:
-        health.status === 'healthy'
-          ? 'ok'
-          : health.status === 'degraded'
-            ? 'degraded'
-            : 'error',
+      status: 'ok',
       service: 'docita-api',
       uptime: process.uptime(),
       timestamp: new Date().toISOString(),

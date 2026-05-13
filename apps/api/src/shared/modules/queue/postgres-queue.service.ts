@@ -127,6 +127,7 @@ export class PostgresQueueService implements IQueueProvider, OnModuleDestroy {
           );
         });
       }, POLL_INTERVAL_MS);
+      interval.unref?.();
 
       this.pollers.set(name, interval);
     }
