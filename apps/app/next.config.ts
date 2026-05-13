@@ -2,8 +2,6 @@ import { createRequire } from "module";
 import type { NextConfig } from "next";
 import { withSentryConfig } from "@sentry/nextjs";
 import bundleAnalyzer from "@next/bundle-analyzer";
-import { SECURITY_HEADERS } from "./lib/security-headers";
-
 const require = createRequire(import.meta.url);
 const nextCloudflareEmptyStub = require.resolve(
   "@workspace/ui/next-cloudflare/empty-module.cjs",
@@ -140,14 +138,6 @@ const nextConfig: NextConfig = {
     return rewrites;
   },
 
-  async headers() {
-    return [
-      {
-        source: "/:path*",
-        headers: [...SECURITY_HEADERS],
-      },
-    ];
-  },
 };
 
 let config: NextConfig = withBundleAnalyzer(nextConfig);

@@ -1,5 +1,8 @@
 import { NextResponse, type NextRequest } from "next/server";
-import { buildContentSecurityPolicy } from "./lib/security-headers";
+import {
+  SECURITY_HEADERS,
+  buildContentSecurityPolicy,
+} from "./lib/security-headers";
 
 /**
  * Per-request CSP nonce. Next.js will pick up the `x-nonce` request
@@ -33,6 +36,11 @@ export function middleware(request: NextRequest): NextResponse {
   requestHeaders.set("Content-Security-Policy", csp);
 
   const response = NextResponse.next({ request: { headers: requestHeaders } });
+  for (const { key, value } of SECURITY_HEADERS) {
+    if (key !== "Content-Security-Policy") {
+      response.headers.set(key, value);
+    }
+  }
   response.headers.set("Content-Security-Policy", csp);
   return response;
 }
@@ -55,4 +63,3 @@ export const config = {
     },
   ],
 };
-
