@@ -74,4 +74,22 @@ describe("createBrowserSessionManager", () => {
     expect(fetchMock).toHaveBeenCalledTimes(1);
     expect(session.getToken()).toBe("next-token");
   });
+
+  it("skips refresh on public auth routes", async () => {
+    const fetchMock = vi.fn();
+    vi.stubGlobal("fetch", fetchMock);
+    window.history.pushState({}, "", "/login");
+
+    const session = createBrowserSessionManager({
+      apiUrl: "http://localhost:3001/api/v1",
+      tokenStorageKey: "docita_token",
+      userStorageKey: "docita_user",
+      publicPaths: ["/login", "/register", "/forgot-password", "/reset-password"],
+    });
+
+    const refreshed = await session.refreshAccessToken();
+
+    expect(refreshed).toBe(false);
+    expect(fetchMock).not.toHaveBeenCalled();
+  });
 });

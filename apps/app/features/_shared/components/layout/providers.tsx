@@ -13,7 +13,13 @@ import { DialogStackProvider } from "@workspace/ui/components/dialog-stack";
 import { NavigationHistoryProvider } from "@/providers/navigation-history-provider";
 import { AppearanceController } from "@/features/_shared/components/layout/appearance-controller";
 
-export function Providers({ children }: { children: React.ReactNode }) {
+export function Providers({
+  children,
+  nonce,
+}: {
+  children: React.ReactNode;
+  nonce?: string;
+}) {
   return (
     <NextThemesProvider
       attribute="class"
@@ -21,6 +27,7 @@ export function Providers({ children }: { children: React.ReactNode }) {
       enableSystem
       disableTransitionOnChange
       enableColorScheme
+      nonce={nonce}
     >
       <AppearanceController />
       <TierConfigProvider>

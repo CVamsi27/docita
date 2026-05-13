@@ -37,6 +37,13 @@ const AUTH_RESPONSE_ERROR_MESSAGE =
   "We could not sign you in right now. Please try again.";
 export const VERIFICATION_EMAIL_STATUS_STORAGE_KEY =
   "docita_verification_email_status";
+const PUBLIC_AUTH_PATHS = new Set([
+  "/login",
+  "/register",
+  "/forgot-password",
+  "/reset-password",
+  "/portal/login",
+]);
 
 export type User = AppAuthUser;
 
@@ -160,6 +167,10 @@ function isAuthFailure(error: unknown): boolean {
       : undefined;
 
   return status === 401 || status === 403;
+}
+
+function isPublicAuthPath(pathname: string | null): boolean {
+  return pathname ? PUBLIC_AUTH_PATHS.has(pathname) : false;
 }
 
 function persistVerificationEmailStatus(status: "pending" | "failed" | null) {
@@ -324,6 +335,11 @@ export function AuthProvider({ children }: { children: ReactNode }) {
           return;
         }
 
+        if (isPublicAuthPath(pathname)) {
+          clearSession();
+          return;
+        }
+
         const refreshed = await refreshAccessToken();
         if (!refreshed) {
           clearSession();
@@ -350,7 +366,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     };
 
     void validateSession();
-  }, [clearSession, refreshAccessToken, setUserRole, validateAuth]);
+  }, [clearSession, pathname, refreshAccessToken, setUserRole, validateAuth]);
 
   // Listen for auth changes in other tabs/windows and update in-memory state
   useEffect(() => {

@@ -9,6 +9,7 @@ const mocks = vi.hoisted(() => ({
     push: vi.fn(),
     replace: vi.fn(),
   },
+  pathname: "/login",
   setUserRole: vi.fn(),
   apiFetch: vi.fn(),
   session: {
@@ -22,7 +23,7 @@ const mocks = vi.hoisted(() => ({
 
 vi.mock("next/navigation", () => ({
   useRouter: () => mocks.router,
-  usePathname: () => "/login",
+  usePathname: () => mocks.pathname,
 }));
 
 vi.mock("@/lib/api-client", () => ({
@@ -60,6 +61,7 @@ describe("AuthProvider", () => {
   beforeEach(() => {
     localStorage.clear();
     sessionStorage.clear();
+    mocks.pathname = "/login";
     mocks.router.push.mockReset();
     mocks.router.replace.mockReset();
     mocks.setUserRole.mockReset();
@@ -77,9 +79,8 @@ describe("AuthProvider", () => {
     });
   });
 
-  it("clears an invalid cached session when validate and refresh both fail", async () => {
+  it("clears an invalid cached session on public auth routes without refreshing", async () => {
     mocks.apiFetch.mockRejectedValue({ status: 403 });
-    mocks.session.refreshAccessToken.mockResolvedValue(false);
 
     const { result } = renderHook(() => useAuth(), {
       wrapper: createWrapper(),
@@ -93,8 +94,26 @@ describe("AuthProvider", () => {
     expect(result.current.isAuthenticated).toBe(false);
     expect(mocks.session.setToken).toHaveBeenCalledWith(null);
     expect(mocks.session.clearSession).toHaveBeenCalledTimes(1);
+    expect(mocks.session.refreshAccessToken).not.toHaveBeenCalled();
     expect(mocks.setUserRole).toHaveBeenLastCalledWith("");
     expect(localStorage.getItem("docita_user")).toBeNull();
+  });
+
+  it("still refreshes invalid cached sessions on protected routes", async () => {
+    mocks.pathname = "/dashboard";
+    mocks.apiFetch.mockRejectedValue({ status: 401 });
+    mocks.session.refreshAccessToken.mockResolvedValue(false);
+
+    const { result } = renderHook(() => useAuth(), {
+      wrapper: createWrapper(),
+    });
+
+    await waitFor(() => {
+      expect(result.current.isLoading).toBe(false);
+    });
+
+    expect(mocks.session.refreshAccessToken).toHaveBeenCalledTimes(1);
+    expect(mocks.session.clearSession).toHaveBeenCalledTimes(1);
   });
 
   it("hydrates the latest onboarding step from validate", async () => {
