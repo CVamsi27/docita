@@ -112,6 +112,11 @@ export function createBrowserSessionManager(config: BrowserSessionConfig) {
   const isPublicPath = (pathname: string): boolean =>
     publicPaths.some((path) => pathname.startsWith(path));
 
+  const isPublicRoute = (): boolean => {
+    if (!isBrowser()) return false;
+    return isPublicPath(window.location.pathname);
+  };
+
   const redirectToLogin = (pathname?: string): void => {
     if (!isBrowser()) return;
 
@@ -143,6 +148,7 @@ export function createBrowserSessionManager(config: BrowserSessionConfig) {
 
   const refreshAccessToken = async (): Promise<boolean> => {
     if (!isBrowser()) return false;
+    if (isPublicRoute()) return false;
 
     const inFlight = refreshInFlight.get(refreshKey);
     if (inFlight) {
