@@ -107,3 +107,6 @@ eng.traineddata
 
 # Generated audit reports
 lighthouse-audit*.json
+
+# Local planning scratch docs
+docs/UpcomingPlans/

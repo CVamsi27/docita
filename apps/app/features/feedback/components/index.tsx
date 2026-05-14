@@ -60,6 +60,7 @@ export const FeedbackForm: FC<{
             {[1, 2, 3, 4, 5].map((star) => (
               <button
                 key={star}
+                type="button"
                 onClick={() => setRating(star)}
                 className="p-1 hover:scale-110 transition-transform"
               >

@@ -14,6 +14,7 @@ export const SectionToggle = ({
   badge?: string;
 }) => (
   <button
+    type="button"
     onClick={onToggle}
     className="flex items-center justify-between w-full p-3 bg-muted rounded-lg hover:bg-muted/80 transition-colors"
   >

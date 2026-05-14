@@ -86,6 +86,7 @@ export function PatientTimeline({
             return (
               <button
                 key={type}
+                type="button"
                 onClick={() => onTypeToggle(type)}
                 className={cn(
                   "inline-flex items-center gap-1 rounded-full px-2.5 py-1 text-xs font-medium border transition-colors",
