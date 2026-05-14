@@ -64,10 +64,9 @@ import {
   type NavSectionId,
 } from "./nav-config";
 
-function getIconClasses(isActive: boolean, collapsedRail?: boolean) {
+function getIconClasses(isActive: boolean, _collapsedRail?: boolean) {
   return cn(
-    "relative flex h-8 w-8 shrink-0 items-center justify-center ring-1 ring-transparent transition-colors",
-    collapsedRail ? "rounded-full" : "rounded-xl",
+    "relative flex h-8 w-8 shrink-0 items-center justify-center rounded-xl ring-1 ring-transparent transition-colors",
     isActive
       ? "bg-foreground text-background ring-border/40"
       : "bg-background/60 text-muted-foreground ring-border/40",
@@ -253,18 +252,30 @@ function SidebarContent({
         href={item.href}
         data-testid={`sidebar-link-${item.href.replace(/\//g, "-")}`}
         className={cn(
-          "group flex items-center gap-3 px-2.5 py-2 text-sm font-medium transition-colors",
-          collapsedRail ? "rounded-full justify-center px-0" : "rounded-xl",
+          "group relative flex items-center gap-3 rounded-xl px-2.5 py-2 text-sm font-medium transition-colors duration-200",
+          collapsedRail && "justify-center px-0 mx-auto w-11 max-w-[2.75rem]",
           isActive
             ? "bg-foreground text-background shadow-sm"
             : "text-muted-foreground hover:bg-muted/60 hover:text-foreground",
-          collapsedRail && "mx-auto w-11 max-w-[2.75rem]",
         )}
       >
+        {isActive && (
+          <span
+            aria-hidden
+            className={cn(
+              "pointer-events-none absolute left-0 top-1/2 -translate-y-1/2 w-[3px] rounded-r-full bg-foreground transition-all duration-200",
+              collapsedRail ? "h-6" : "h-5",
+            )}
+          />
+        )}
         <div className={getIconClasses(isActive, collapsedRail)}>
           <item.icon className="h-4 w-4 shrink-0" />
         </div>
-        {showLabels && <span className="flex-1 truncate">{item.label}</span>}
+        {showLabels && (
+          <span className="flex-1 truncate transition-opacity duration-200">
+            {item.label}
+          </span>
+        )}
       </Link>
     );
 
@@ -537,7 +548,7 @@ function SidebarContent({
                     className={cn(
                       "flex items-center justify-center gap-2 min-w-0 rounded-xl px-1 py-1 transition-colors hover:bg-muted/50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring/40",
                       collapsedRail &&
-                        "size-11 flex-col justify-center rounded-full p-0 hover:bg-muted/60",
+                        "size-11 flex-col justify-center p-0 hover:bg-muted/60",
                       !collapsedRail && "w-full",
                     )}
                     aria-label={`Billing and subscription, ${tierInfo.name}`}

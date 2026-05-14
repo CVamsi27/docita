@@ -96,6 +96,7 @@ describe('SubscriptionStatusGuard', () => {
         tier: ClinicTier.STARTER,
         subscriptionStatus: SubscriptionStatus.ACTIVE,
         subscriptionGraceUntil: null,
+        subscriptionTrialEnd: null,
         hasIntelligence: false,
         features: {},
       })
@@ -103,6 +104,7 @@ describe('SubscriptionStatusGuard', () => {
         tier: ClinicTier.STARTER,
         subscriptionStatus: SubscriptionStatus.TRIALING,
         subscriptionGraceUntil: null,
+        subscriptionTrialEnd: null,
         hasIntelligence: false,
         features: {},
       })
@@ -110,6 +112,7 @@ describe('SubscriptionStatusGuard', () => {
         tier: ClinicTier.STARTER,
         subscriptionStatus: SubscriptionStatus.PAST_DUE,
         subscriptionGraceUntil: null,
+        subscriptionTrialEnd: null,
         hasIntelligence: false,
         features: {},
       })
@@ -117,6 +120,7 @@ describe('SubscriptionStatusGuard', () => {
         tier: ClinicTier.STARTER,
         subscriptionStatus: SubscriptionStatus.GRACE,
         subscriptionGraceUntil: null,
+        subscriptionTrialEnd: null,
         hasIntelligence: false,
         features: {},
       })
@@ -124,6 +128,7 @@ describe('SubscriptionStatusGuard', () => {
         tier: ClinicTier.STARTER,
         subscriptionStatus: SubscriptionStatus.PAUSED,
         subscriptionGraceUntil: null,
+        subscriptionTrialEnd: null,
         hasIntelligence: false,
         features: {},
       });
@@ -150,6 +155,7 @@ describe('SubscriptionStatusGuard', () => {
       tier: ClinicTier.STARTER,
       subscriptionStatus: SubscriptionStatus.CANCELLED,
       subscriptionGraceUntil: null,
+      subscriptionTrialEnd: null,
       hasIntelligence: false,
       features: {},
     });
@@ -172,6 +178,7 @@ describe('SubscriptionStatusGuard', () => {
       tier: ClinicTier.STARTER,
       subscriptionStatus: SubscriptionStatus.GRACE,
       subscriptionGraceUntil: new Date('2020-01-01T00:00:00.000Z'),
+      subscriptionTrialEnd: null,
       hasIntelligence: false,
       features: {},
     });
@@ -191,6 +198,7 @@ describe('SubscriptionStatusGuard', () => {
       tier: ClinicTier.STARTER,
       subscriptionStatus: SubscriptionStatus.PAST_DUE,
       subscriptionGraceUntil: new Date('2020-01-01T00:00:00.000Z'),
+      subscriptionTrialEnd: null,
       hasIntelligence: false,
       features: {},
     });

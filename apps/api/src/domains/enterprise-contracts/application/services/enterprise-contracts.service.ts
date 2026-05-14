@@ -17,6 +17,7 @@ import {
 import {
   type UpsertEnterpriseContractRequest,
   type EnterpriseContractEstimate,
+  enterpriseCustomLineItemSchema,
 } from '@workspace/types';
 import { EmailService } from '@/shared/modules/messaging/email/email.service';
 import { AppConfigService } from '@/shared/modules/config/app-configuration.service';
@@ -134,10 +135,20 @@ export class EnterpriseContractsService {
         includedWhatsappMessages: payload.includedWhatsappMessages,
         includedStorageGB: payload.includedStorageGB,
         includedBranches: payload.includedBranches,
+        includedDoctors: payload.includedDoctors ?? 0,
+        includedPrescriptions: payload.includedPrescriptions ?? 0,
+        includedInvoices: payload.includedInvoices ?? 0,
         overageUserCents: payload.overageUserCents,
         overageConsultationCents: payload.overageConsultationCents,
         overageWhatsappCents: payload.overageWhatsappCents,
         overageStorageCents: payload.overageStorageCents,
+        overageDoctorCents: payload.overageDoctorCents ?? 0,
+        overagePrescriptionCents: payload.overagePrescriptionCents ?? 0,
+        overageInvoiceCents: payload.overageInvoiceCents ?? 0,
+        setupFeeCents: payload.setupFeeCents ?? 0,
+        dedicatedSupportCents: payload.dedicatedSupportCents ?? 0,
+        customLineItems: (payload.customLineItems ??
+          []) as Prisma.InputJsonValue,
         annualPrepayDiscountPercent: payload.annualPrepayDiscountPercent ?? 0,
         trueUpThresholdPercent: payload.trueUpThresholdPercent ?? 130,
         notes: payload.notes ?? null,
@@ -395,43 +406,74 @@ export class EnterpriseContractsService {
     );
 
     return this.prisma.runUnrestricted(async () => {
-      const [consultationCount, userCount, whatsappAgg, storageAgg] =
-        await Promise.all([
-          this.prisma.appointment.count({
-            where: {
-              clinicId: { in: memberIds },
-              status: 'COMPLETED',
-              updatedAt: { gte: periodStart, lte: periodEnd },
+      const [
+        consultationCount,
+        userCount,
+        doctorCount,
+        whatsappAgg,
+        storageAgg,
+        prescriptionAgg,
+        invoiceAgg,
+      ] = await Promise.all([
+        this.prisma.appointment.count({
+          where: {
+            clinicId: { in: memberIds },
+            status: 'COMPLETED',
+            updatedAt: { gte: periodStart, lte: periodEnd },
+          },
+        }),
+        this.prisma.user.count({
+          where: {
+            clinicId: { in: memberIds },
+            NOT: {
+              AND: [{ role: Role.DOCTOR }, { appLoginDisabled: true }],
             },
-          }),
-          this.prisma.user.count({
-            where: {
-              clinicId: { in: memberIds },
-              NOT: {
-                AND: [{ role: Role.DOCTOR }, { appLoginDisabled: true }],
-              },
-            },
-          }),
-          this.prisma.usageEvent.aggregate({
-            where: {
-              clinicId: { in: memberIds },
-              type: UsageType.WHATSAPP_MESSAGES,
-              timestamp: { gte: periodStart, lte: periodEnd },
-            },
-            _sum: { quantity: true },
-          }),
-          this.prisma.usageEvent.aggregate({
-            where: {
-              clinicId: { in: memberIds },
-              type: UsageType.STORAGE_GB,
-              timestamp: { gte: periodStart, lte: periodEnd },
-            },
-            _sum: { quantity: true },
-          }),
-        ]);
+          },
+        }),
+        this.prisma.doctorClinic.count({
+          where: {
+            clinicId: { in: memberIds },
+            active: true,
+          },
+        }),
+        this.prisma.usageEvent.aggregate({
+          where: {
+            clinicId: { in: memberIds },
+            type: UsageType.WHATSAPP_MESSAGES,
+            timestamp: { gte: periodStart, lte: periodEnd },
+          },
+          _sum: { quantity: true },
+        }),
+        this.prisma.usageEvent.aggregate({
+          where: {
+            clinicId: { in: memberIds },
+            type: UsageType.STORAGE_GB,
+            timestamp: { gte: periodStart, lte: periodEnd },
+          },
+          _sum: { quantity: true },
+        }),
+        this.prisma.usageEvent.aggregate({
+          where: {
+            clinicId: { in: memberIds },
+            type: UsageType.PRESCRIPTIONS,
+            timestamp: { gte: periodStart, lte: periodEnd },
+          },
+          _sum: { quantity: true },
+        }),
+        this.prisma.usageEvent.aggregate({
+          where: {
+            clinicId: { in: memberIds },
+            type: UsageType.INVOICES,
+            timestamp: { gte: periodStart, lte: periodEnd },
+          },
+          _sum: { quantity: true },
+        }),
+      ]);
 
       const whatsappUsed = whatsappAgg._sum.quantity ?? 0;
       const storageUsed = storageAgg._sum.quantity ?? 0;
+      const prescriptionsUsed = prescriptionAgg._sum.quantity ?? 0;
+      const invoicesUsed = invoiceAgg._sum.quantity ?? 0;
 
       const buildMeter = (
         current: number,
@@ -468,13 +510,31 @@ export class EnterpriseContractsService {
           contract.includedStorageGB,
           contract.overageStorageCents,
         ),
+        doctors: buildMeter(
+          doctorCount,
+          contract.includedDoctors,
+          contract.overageDoctorCents,
+        ),
+        prescriptions: buildMeter(
+          prescriptionsUsed,
+          contract.includedPrescriptions,
+          contract.overagePrescriptionCents,
+        ),
+        invoices: buildMeter(
+          invoicesUsed,
+          contract.includedInvoices,
+          contract.overageInvoiceCents,
+        ),
       };
 
       const overageTotalCents =
         meters.users.chargeCents +
         meters.consultations.chargeCents +
         meters.whatsappMessages.chargeCents +
-        meters.storageGB.chargeCents;
+        meters.storageGB.chargeCents +
+        meters.doctors.chargeCents +
+        meters.prescriptions.chargeCents +
+        meters.invoices.chargeCents;
 
       return {
         contract: this.toJsonContract(contract),
@@ -484,11 +544,72 @@ export class EnterpriseContractsService {
         },
         meters,
         platformFeeCents: contract.platformFeeCents,
+        setupFeeCents: contract.setupFeeCents,
+        dedicatedSupportCents: contract.dedicatedSupportCents,
         overageTotalCents,
-        projectedMonthTotalCents: contract.platformFeeCents + overageTotalCents,
+        projectedMonthTotalCents:
+          contract.platformFeeCents +
+          contract.dedicatedSupportCents +
+          overageTotalCents,
         currency: contract.currency,
       };
     });
+  }
+
+  async previewCurrentPeriodInvoice(contractId: string) {
+    const estimate = await this.estimateCurrentPeriod(contractId);
+    if (!estimate) {
+      return null;
+    }
+
+    const lines = [
+      {
+        key: 'platform_fee',
+        label: 'Enterprise platform fee',
+        quantity: 1,
+        included: 0,
+        overage: 1,
+        unitCents: estimate.platformFeeCents,
+        chargeCents: estimate.platformFeeCents,
+        source: 'SYSTEM' as const,
+      },
+      {
+        key: 'dedicated_support',
+        label: 'Dedicated support retainer',
+        quantity: estimate.dedicatedSupportCents > 0 ? 1 : 0,
+        included: 0,
+        overage: estimate.dedicatedSupportCents > 0 ? 1 : 0,
+        unitCents: estimate.dedicatedSupportCents,
+        chargeCents: estimate.dedicatedSupportCents,
+        source: 'SYSTEM' as const,
+      },
+      ...Object.entries(estimate.meters).map(([key, meter]) => ({
+        key,
+        label: key
+          .replace(/([A-Z])/g, ' $1')
+          .replace(/^./, (char) => char.toUpperCase()),
+        quantity: meter.current,
+        included: meter.included,
+        overage: meter.overage,
+        unitCents: meter.overage > 0 ? meter.chargeCents / meter.overage : 0,
+        chargeCents: meter.chargeCents,
+        source: 'SYSTEM' as const,
+      })),
+    ].filter((line) => line.chargeCents > 0 || line.key === 'platform_fee');
+
+    const subtotalCents = lines.reduce(
+      (total, line) => total + line.chargeCents,
+      0,
+    );
+
+    return {
+      period: estimate.period,
+      currency: estimate.currency,
+      lines,
+      subtotalCents,
+      taxCents: 0,
+      totalCents: subtotalCents,
+    };
   }
 
   /**
@@ -746,10 +867,19 @@ export class EnterpriseContractsService {
       includedWhatsappMessages: contract.includedWhatsappMessages,
       includedStorageGB: contract.includedStorageGB,
       includedBranches: contract.includedBranches,
+      includedDoctors: contract.includedDoctors,
+      includedPrescriptions: contract.includedPrescriptions,
+      includedInvoices: contract.includedInvoices,
       overageUserCents: contract.overageUserCents,
       overageConsultationCents: contract.overageConsultationCents,
       overageWhatsappCents: contract.overageWhatsappCents,
       overageStorageCents: contract.overageStorageCents,
+      overageDoctorCents: contract.overageDoctorCents,
+      overagePrescriptionCents: contract.overagePrescriptionCents,
+      overageInvoiceCents: contract.overageInvoiceCents,
+      setupFeeCents: contract.setupFeeCents,
+      dedicatedSupportCents: contract.dedicatedSupportCents,
+      customLineItems: this.parseCustomLineItems(contract.customLineItems),
       annualPrepayDiscountPercent: contract.annualPrepayDiscountPercent,
       trueUpThresholdPercent: contract.trueUpThresholdPercent,
       notes: contract.notes,
@@ -759,5 +889,10 @@ export class EnterpriseContractsService {
       createdAt: contract.createdAt.toISOString(),
       updatedAt: contract.updatedAt.toISOString(),
     };
+  }
+
+  private parseCustomLineItems(value: Prisma.JsonValue) {
+    const parsed = enterpriseCustomLineItemSchema.array().safeParse(value);
+    return parsed.success ? parsed.data : [];
   }
 }

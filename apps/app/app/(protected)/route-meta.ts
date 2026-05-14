@@ -25,6 +25,7 @@ export const ROUTE_META: Record<string, RouteMeta> = {
   "/import/ocr": { label: "OCR", parentPath: "/import" },
   "/import/excel": { label: "Excel", parentPath: "/import" },
   "/ai-assistant": { label: "AI assistant" },
+  "/whatsapp": { label: "WhatsApp", parentPath: "/inbox" },
   "/hospital/beds": { label: "Hospital beds", parentPath: "/hospital" },
   "/hospital": { label: "Hospital" },
   "/specialty/dental-charts": { label: "Dental charts", parentPath: "/specialty" },

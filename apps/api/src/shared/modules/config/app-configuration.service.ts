@@ -331,6 +331,14 @@ export class AppConfigService {
     };
   }
 
+  isPerClinicWhatsappSenderEnabled(): boolean {
+    return this.getConfig().WHATSAPP_PER_CLINIC_SENDER_ENABLED;
+  }
+
+  isEnterpriseContractDynamicPricingEnabled(): boolean {
+    return this.getConfig().ENTERPRISE_CONTRACT_DYNAMIC_PRICING_ENABLED;
+  }
+
   getSmtpConfig() {
     return {
       host: this.getConfig().SMTP_HOST,

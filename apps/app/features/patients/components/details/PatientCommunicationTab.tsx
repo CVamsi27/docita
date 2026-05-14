@@ -12,7 +12,7 @@ interface PatientCommunicationTabProps {
 export function PatientCommunicationTab({
   patientId,
 }: PatientCommunicationTabProps) {
-  const whatsappHref = `/whatsapp?patientId=${encodeURIComponent(patientId)}`;
+  const whatsappHref = `/inbox?tab=notifications&patientId=${encodeURIComponent(patientId)}`;
 
   return (
     <div data-testid="patient-communication-tab">

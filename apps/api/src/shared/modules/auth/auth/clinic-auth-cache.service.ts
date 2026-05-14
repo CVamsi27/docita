@@ -12,6 +12,7 @@ interface ClinicAuthCache {
   tier: ClinicTier;
   subscriptionStatus: SubscriptionStatus;
   subscriptionGraceUntil: Date | null;
+  subscriptionTrialEnd: Date | null;
   hasIntelligence: boolean;
   features: Record<string, boolean>;
   cachedAt: number;
@@ -31,6 +32,7 @@ export class ClinicAuthCacheService {
     tier: ClinicTier;
     subscriptionStatus: SubscriptionStatus;
     subscriptionGraceUntil: Date | null;
+    subscriptionTrialEnd: Date | null;
     hasIntelligence: boolean;
     features: Record<string, boolean>;
   }> {
@@ -40,6 +42,7 @@ export class ClinicAuthCacheService {
         tier: cached.tier,
         subscriptionStatus: cached.subscriptionStatus,
         subscriptionGraceUntil: cached.subscriptionGraceUntil,
+        subscriptionTrialEnd: cached.subscriptionTrialEnd,
         hasIntelligence: cached.hasIntelligence,
         features: cached.features,
       };
@@ -55,6 +58,7 @@ export class ClinicAuthCacheService {
         subscription: {
           select: {
             graceUntil: true,
+            trialEnd: true,
           },
         },
       },
@@ -68,6 +72,7 @@ export class ClinicAuthCacheService {
       tier: clinic.tier,
       subscriptionStatus: clinic.subscriptionStatus,
       subscriptionGraceUntil: clinic.subscription?.graceUntil ?? null,
+      subscriptionTrialEnd: clinic.subscription?.trialEnd ?? null,
       hasIntelligence: clinic.intelligenceAddon === IntelligenceAddon.ACTIVE,
       features: (clinic.features as Record<string, boolean>) || {},
     };
@@ -113,6 +118,7 @@ export class ClinicAuthCacheService {
       tier: ClinicTier;
       subscriptionStatus: SubscriptionStatus;
       subscriptionGraceUntil: Date | null;
+      subscriptionTrialEnd: Date | null;
       hasIntelligence: boolean;
       features: Record<string, boolean>;
     },

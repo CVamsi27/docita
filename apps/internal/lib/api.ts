@@ -428,10 +428,19 @@ export interface EnterpriseContractRow {
   includedWhatsappMessages: number;
   includedStorageGB: number;
   includedBranches: number;
+  includedDoctors: number;
+  includedPrescriptions: number;
+  includedInvoices: number;
   overageUserCents: number;
   overageConsultationCents: number;
   overageWhatsappCents: number;
   overageStorageCents: number;
+  overageDoctorCents: number;
+  overagePrescriptionCents: number;
+  overageInvoiceCents: number;
+  setupFeeCents: number;
+  dedicatedSupportCents: number;
+  customLineItems: EnterpriseCustomLineItem[];
   annualPrepayDiscountPercent: number;
   trueUpThresholdPercent: number;
   notes: string | null;
@@ -440,6 +449,21 @@ export interface EnterpriseContractRow {
   annualPrepayInvoiceId: string | null;
   createdAt: string;
   updatedAt: string;
+}
+
+export interface EnterpriseCustomLineItem {
+  key: string;
+  label: string;
+  includedQty: number;
+  unitCents: number;
+  usageType?:
+    | "DOCTORS"
+    | "CONSULTATIONS"
+    | "WHATSAPP_MESSAGES"
+    | "PRESCRIPTIONS"
+    | "INVOICES";
+  source: "USAGE_RECORD" | "MANUAL";
+  enabled: boolean;
 }
 
 export interface EnterpriseContractInvoiceRow {
@@ -477,11 +501,34 @@ export interface EnterpriseContractEstimate {
     consultations: { current: number; included: number; overage: number; chargeCents: number };
     whatsappMessages: { current: number; included: number; overage: number; chargeCents: number };
     storageGB: { current: number; included: number; overage: number; chargeCents: number };
+    doctors: { current: number; included: number; overage: number; chargeCents: number };
+    prescriptions: { current: number; included: number; overage: number; chargeCents: number };
+    invoices: { current: number; included: number; overage: number; chargeCents: number };
   };
   platformFeeCents: number;
+  setupFeeCents: number;
+  dedicatedSupportCents: number;
   overageTotalCents: number;
   projectedMonthTotalCents: number;
   currency: string;
+}
+
+export interface EnterpriseContractInvoicePreview {
+  period: { start: string; end: string };
+  currency: string;
+  lines: Array<{
+    key: string;
+    label: string;
+    quantity: number;
+    included: number;
+    overage: number;
+    unitCents: number;
+    chargeCents: number;
+    source: "SYSTEM" | "CUSTOM";
+  }>;
+  subtotalCents: number;
+  taxCents: number;
+  totalCents: number;
 }
 
 export interface EnterpriseContractRevisionRow {
@@ -549,6 +596,12 @@ export const enterpriseContractsAPI = {
     client.post(`/internal/enterprise-contracts/${contractId}/evaluate-true-up`),
   estimate: (contractId: string): Promise<EnterpriseContractEstimate> =>
     client.get(`/internal/enterprise-contracts/${contractId}/estimate`),
+  previewInvoice: (
+    contractId: string,
+  ): Promise<EnterpriseContractInvoicePreview> =>
+    client.post(
+      `/internal/enterprise-contracts/${contractId}/invoice-preview`,
+    ),
   terminate: (contractId: string): Promise<void> =>
     client.delete(`/internal/enterprise-contracts/${contractId}`),
 };

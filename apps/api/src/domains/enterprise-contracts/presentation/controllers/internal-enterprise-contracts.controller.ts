@@ -194,6 +194,18 @@ export class InternalEnterpriseContractsController {
     return estimate;
   }
 
+  @Post(':contractId/invoice-preview')
+  @HttpCode(HttpStatus.OK)
+  @ApiOperation({ summary: 'Preview current period enterprise invoice' })
+  async previewInvoice(@Param('contractId') contractId: string) {
+    const preview =
+      await this.contractsService.previewCurrentPeriodInvoice(contractId);
+    if (!preview) {
+      throw new NotFoundException('No active contract');
+    }
+    return preview;
+  }
+
   @Delete(':contractId')
   @HttpCode(HttpStatus.NO_CONTENT)
   @ApiOperation({ summary: 'Terminate a contract (soft)' })

@@ -20,6 +20,10 @@ import {
 import { DEFAULT_CURRENCY } from '@workspace/utils';
 import { PricingService as BillingPricingService } from '@/domains/billing/core/services/pricing.service';
 import { FeatureFlagService } from '@/shared/modules/services/feature-flag.service';
+import {
+  getTrialGraceEndsAt,
+  getTrialWindowState,
+} from '@/shared/modules/auth/utils/trial-window.util';
 
 type PaymentHistoryRecord = {
   amountCents: number;
@@ -163,6 +167,15 @@ export class SubscriptionsQueryService {
       : [];
     const lastPayment = payments[0];
 
+    const trialEnd = subscription?.trialEnd ?? null;
+    const trialWindowState = subscription
+      ? getTrialWindowState({
+          subscriptionStatus: subscription.getStatus().value,
+          trialEnd,
+        })
+      : null;
+    const trialGraceEndsAt = getTrialGraceEndsAt(trialEnd);
+
     return {
       subscription: subscription
         ? {
@@ -174,6 +187,11 @@ export class SubscriptionsQueryService {
             currentPeriodStart: subscription.currentPeriodStart.toISOString(),
             currentPeriodEnd: subscription.currentPeriodEnd.toISOString(),
             cancelAtPeriodEnd: subscription.cancelAtPeriodEnd ?? false,
+            trialEnd: trialEnd ? trialEnd.toISOString() : null,
+            trialWindowState,
+            trialGraceEndsAt: trialGraceEndsAt
+              ? trialGraceEndsAt.toISOString()
+              : null,
           }
         : null,
       referralCredits: 0,

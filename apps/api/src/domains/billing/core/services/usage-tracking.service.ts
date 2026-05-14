@@ -345,7 +345,7 @@ export class UsageTrackingService {
   async trackPrescription(clinicId: string, prescriptionId: string) {
     await this.recordUsageEvent({
       clinicId,
-      type: 'PRESCRIPTION',
+      type: UsageType.PRESCRIPTIONS,
       quantity: 1,
       entityType: 'Prescription',
       entityId: prescriptionId,
@@ -355,10 +355,20 @@ export class UsageTrackingService {
   async trackInvoice(clinicId: string, invoiceId: string) {
     await this.recordUsageEvent({
       clinicId,
-      type: 'INVOICE',
+      type: UsageType.INVOICES,
       quantity: 1,
       entityType: 'Invoice',
       entityId: invoiceId,
+    });
+  }
+
+  async trackConsultation(clinicId: string, appointmentId: string) {
+    await this.recordUsageEvent({
+      clinicId,
+      type: UsageType.CONSULTATIONS,
+      quantity: 1,
+      entityType: 'Appointment',
+      entityId: appointmentId,
     });
   }
 
@@ -406,5 +416,42 @@ export class UsageTrackingService {
     ).catch((err) => {
       this.logger.error('Failed to track WhatsApp message usage', err);
     });
+  }
+
+  @OnEvent('prescription.created')
+  async handlePrescriptionCreated(payload: {
+    clinicId: string;
+    prescriptionId: string;
+  }) {
+    await this.trackPrescription(
+      payload.clinicId,
+      payload.prescriptionId,
+    ).catch((err) => {
+      this.logger.error('Failed to track prescription usage', err);
+    });
+  }
+
+  @OnEvent('invoice.generated')
+  async handleInvoiceGenerated(payload: {
+    clinicId: string;
+    invoiceId: string;
+  }) {
+    await this.trackInvoice(payload.clinicId, payload.invoiceId).catch(
+      (err) => {
+        this.logger.error('Failed to track invoice usage', err);
+      },
+    );
+  }
+
+  @OnEvent('appointment.completed')
+  async handleAppointmentCompleted(payload: {
+    clinicId: string;
+    appointmentId: string;
+  }) {
+    await this.trackConsultation(payload.clinicId, payload.appointmentId).catch(
+      (err) => {
+        this.logger.error('Failed to track consultation usage', err);
+      },
+    );
   }
 }

@@ -164,6 +164,7 @@ export const APP_ACCESS_TARGETS = {
   PAGE_CODING_QUEUE: "page.coding-queue",
   PAGE_IMPORT: "page.import",
   PAGE_WHATSAPP: "page.whatsapp",
+  PAGE_WHATSAPP_SENDER: "page.whatsapp.sender",
   PAGE_AI_ASSISTANT: "page.ai-assistant",
   PAGE_SPECIALTY: "page.specialty",
   PAGE_HOSPITAL: "page.hospital",
@@ -182,6 +183,7 @@ export const APP_ACCESS_TARGETS = {
   API_QUEUE: "api.queue",
   API_MEDICAL_DOCUMENTS: "api.medical-documents",
   API_WHATSAPP: "api.whatsapp",
+  API_WHATSAPP_SENDER: "api.whatsapp.sender",
   API_LAB_TESTS: "api.lab-tests",
   API_PATIENTS: "api.patients",
   API_PATIENTS_READ: "api.patients.read",
@@ -306,6 +308,10 @@ export const APP_ACCESS_MATRIX: Record<AppAccessTarget, AccessPolicy> = {
     read: { roles: ["ADMIN", "ADMIN_DOCTOR", "DOCTOR", "RECEPTIONIST"] },
     feature: Feature.WHATSAPP_MESSAGING,
   },
+  [APP_ACCESS_TARGETS.PAGE_WHATSAPP_SENDER]: {
+    read: { roles: ["ADMIN", "ADMIN_DOCTOR"] },
+    feature: Feature.WHATSAPP_OWN_NUMBER,
+  },
   [APP_ACCESS_TARGETS.PAGE_SPECIALTY]: {
     read: { roles: CLINICAL_SUPPORT_ROLES },
     feature: Feature.CALENDAR_SLOTS,
@@ -370,6 +376,11 @@ export const APP_ACCESS_MATRIX: Record<AppAccessTarget, AccessPolicy> = {
     read: { roles: ["ADMIN", "ADMIN_DOCTOR", "DOCTOR", "RECEPTIONIST"] },
     write: { roles: ["ADMIN", "ADMIN_DOCTOR", "DOCTOR", "RECEPTIONIST"] },
     feature: Feature.WHATSAPP_MESSAGING,
+  },
+  [APP_ACCESS_TARGETS.API_WHATSAPP_SENDER]: {
+    read: { roles: ["ADMIN", "ADMIN_DOCTOR"] },
+    write: { roles: ["ADMIN", "ADMIN_DOCTOR"] },
+    feature: Feature.WHATSAPP_OWN_NUMBER,
   },
   [APP_ACCESS_TARGETS.API_LAB_TESTS]: {
     read: {

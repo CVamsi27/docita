@@ -215,6 +215,8 @@ const subscriptionCurrentItemSchema = z
 export const subscriptionCurrentResponseSchema =
   subscriptionCurrentItemSchema.nullable();
 
+const trialWindowStateSchema = z.enum(['ACTIVE', 'GRACE', 'EXPIRED']);
+
 const subscriptionBillingStatusItemSchema = z
   .object({
     id: z.string(),
@@ -225,6 +227,9 @@ const subscriptionBillingStatusItemSchema = z
     currentPeriodStart: z.string(),
     currentPeriodEnd: z.string(),
     cancelAtPeriodEnd: z.boolean(),
+    trialEnd: z.string().nullable().optional(),
+    trialWindowState: trialWindowStateSchema.nullable().optional(),
+    trialGraceEndsAt: z.string().nullable().optional(),
   })
   .strict();
 

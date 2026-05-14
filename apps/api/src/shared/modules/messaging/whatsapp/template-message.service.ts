@@ -75,6 +75,8 @@ export class TemplateMessageService {
         message: messagePreview,
         status: WhatsappLogStatus.SENT,
         providerMessageId: sendResult.providerMessageId,
+        senderMode: sendResult.senderMode ?? 'SHARED',
+        senderPhoneNumberId: sendResult.senderPhoneNumberId ?? null,
         requestBody: toJsonValue(dto),
       },
     });

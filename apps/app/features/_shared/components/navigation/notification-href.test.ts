@@ -92,8 +92,10 @@ describe("notificationHref", () => {
     );
   });
 
-  it("routes patient responses to the WhatsApp page", () => {
-    expect(notificationHref(notif("PATIENT_RESPONSE"))).toBe("/whatsapp");
+  it("routes patient responses to the inbox notifications view", () => {
+    expect(notificationHref(notif("PATIENT_RESPONSE"))).toBe(
+      "/inbox?tab=notifications",
+    );
   });
 
   it("treats SYSTEM_ALERT.url as opt-in but rejects unsafe values", () => {

@@ -37,6 +37,7 @@ const INTENTIONAL_GA_SUBFEATURES = new Set<Feature>([
   Feature.DIGITAL_INTAKE_FORMS,
   Feature.OCR_ADVANCED,
   Feature.ADVANCED_ANALYTICS,
+  Feature.WHATSAPP_MANAGED_NUMBER,
 ]);
 
 describe("@workspace/types access contracts", () => {

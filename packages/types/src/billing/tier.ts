@@ -49,6 +49,8 @@ export enum Feature {
   DOCTOR_SIGNATURE = "DOCTOR_SIGNATURE",
   LEAVE_MANAGEMENT = "LEAVE_MANAGEMENT",
   WHATSAPP_MESSAGING = "WHATSAPP_MESSAGING",
+  WHATSAPP_OWN_NUMBER = "WHATSAPP_OWN_NUMBER",
+  WHATSAPP_MANAGED_NUMBER = "WHATSAPP_MANAGED_NUMBER",
 
   MULTI_DOCTOR = "MULTI_DOCTOR",
   MULTI_CLINIC = "MULTI_CLINIC",
@@ -67,6 +69,7 @@ export enum Feature {
   MULTI_LOCATION_ANALYTICS = "MULTI_LOCATION_ANALYTICS",
   CUSTOM_BRANDING = "CUSTOM_BRANDING",
   DATA_WAREHOUSE_EXPORT = "DATA_WAREHOUSE_EXPORT",
+  DEDICATED_DEPLOYMENT = "DEDICATED_DEPLOYMENT",
   SSO = "SSO",
   BULK_IMPORT_SUITE = "BULK_IMPORT_SUITE",
 
@@ -136,6 +139,8 @@ export const FEATURE_TIER_MAP: Record<Feature, Tier> = {
   [Feature.DOCTOR_SIGNATURE]: Tier.ESSENTIAL,
   [Feature.LEAVE_MANAGEMENT]: Tier.ESSENTIAL,
   [Feature.WHATSAPP_MESSAGING]: Tier.ESSENTIAL,
+  [Feature.WHATSAPP_OWN_NUMBER]: Tier.PROFESSIONAL,
+  [Feature.WHATSAPP_MANAGED_NUMBER]: Tier.HOSPITAL,
 
   [Feature.MULTI_DOCTOR]: Tier.ESSENTIAL,
   [Feature.MULTI_CLINIC]: Tier.ESSENTIAL,
@@ -163,6 +168,7 @@ export const FEATURE_TIER_MAP: Record<Feature, Tier> = {
   [Feature.BULK_IMPORT_SUITE]: Tier.PROFESSIONAL,
 
   [Feature.DATA_WAREHOUSE_EXPORT]: Tier.ENTERPRISE,
+  [Feature.DEDICATED_DEPLOYMENT]: Tier.ENTERPRISE,
 };
 
 export type SupportedCurrency =
@@ -240,6 +246,16 @@ export const PRICING_CURRENCY_CONFIG: Record<
 
 /** Free-trial length (days) for unpaid Starter/Essential onboarding and copy alignment. */
 export const SUBSCRIPTION_TRIAL_DAYS = 30 as const;
+
+/**
+ * Grace window (days) after a trial ends before access is hard-locked.
+ * During this window the clinic can still access the app but sees a
+ * persistent "trial ended — pay now" banner.
+ */
+export const TRIAL_GRACE_DAYS = 3 as const;
+
+/** Discriminated value for where the clinic is in the trial lifecycle. */
+export type TrialWindowState = "ACTIVE" | "GRACE" | "EXPIRED";
 
 /** Guided setup list price (whole currency units, not cents) for internal presets and marketing. */
 export const GUIDED_SETUP_LIST_PRICE_BY_CURRENCY: Record<
@@ -1285,6 +1301,14 @@ export const FEATURE_DISPLAY: Record<Feature, FeatureDisplay> = {
     name: "WhatsApp Messaging",
     description: "Send messages and reminders via WhatsApp",
   },
+  [Feature.WHATSAPP_OWN_NUMBER]: {
+    name: "Own WhatsApp Number",
+    description: "Send clinic WhatsApp messages from a verified clinic number",
+  },
+  [Feature.WHATSAPP_MANAGED_NUMBER]: {
+    name: "Managed WhatsApp Number",
+    description: "Docita-assisted WhatsApp sender onboarding",
+  },
 
   [Feature.MULTI_DOCTOR]: {
     name: "Multi-Doctor",
@@ -1358,6 +1382,11 @@ export const FEATURE_DISPLAY: Record<Feature, FeatureDisplay> = {
   [Feature.DATA_WAREHOUSE_EXPORT]: {
     name: "Data Warehouse Export",
     description: "Export to data warehouse",
+    availability: "PLANNED",
+  },
+  [Feature.DEDICATED_DEPLOYMENT]: {
+    name: "Dedicated Deployment",
+    description: "Dedicated infrastructure and deployment support",
     availability: "PLANNED",
   },
   [Feature.SSO]: {

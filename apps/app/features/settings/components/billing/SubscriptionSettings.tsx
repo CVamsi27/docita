@@ -12,6 +12,8 @@ import { WhatsAppButton } from "@/features/_shared/components/whatsapp/whatsapp-
 import { getSupportPhoneNumber } from "@/lib/support-contact";
 import { BillingSubscriptionWorkspace } from "@/features/subscription/components/billing-subscription-workspace";
 import { TrialOfferBanner } from "@/features/subscription/components";
+import { PaymentRecoveryCard } from "@/features/subscription/components/cards/payment-recovery-card";
+import { getTrialState } from "@/lib/subscription-lockout";
 import { DocitaLoadingIndicator } from "@workspace/ui/components/docita-loading-indicator";
 import { Skeleton } from "@workspace/ui/components/skeleton";
 import {
@@ -255,9 +257,13 @@ export function SubscriptionSettings() {
   const isExpired = subscriptionStatus === "EXPIRED";
   const isInGracePeriod = subscriptionStatus === "GRACE";
   const freeStarterActive = isFreeStarterActive(subscription ?? undefined);
+  const trialState = getTrialState(clinic);
+  const showRecoveryCard =
+    isPaymentDue || isInGracePeriod || trialState === "GRACE";
 
   return (
     <div className="space-y-6">
+      <PaymentRecoveryCard show={showRecoveryCard} />
       <p className="text-[var(--fs-xs)] leading-relaxed text-muted-foreground">
         Subscription tier{" "}
         <span className="font-medium text-foreground">{tierName}</span> ·

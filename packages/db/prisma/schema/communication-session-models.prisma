@@ -43,6 +43,8 @@ model WhatsappLog {
   phoneNumber       String
   message           String
   status            WhatsappLogStatus @default(QUEUED)
+  senderPhoneNumberId String?
+  senderMode          WhatsappSenderMode @default(SHARED)
   requestBody       Json?
   responseBody      Json?
   errorMessage      String?
@@ -58,6 +60,7 @@ model WhatsappLog {
   @@index([invoiceId])
   @@index([prescriptionId])
   @@index([status])
+  @@index([senderPhoneNumberId])
 }
 
 // WhatsApp Message Templates (for button-first approach)

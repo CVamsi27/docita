@@ -46,6 +46,10 @@ export const EnvSchema = z.object({
   META_APP_SECRET: z.string().optional(),
   META_VERIFY_TOKEN: z.string().optional(),
   WHATSAPP_PRODUCTION_MODE: z.coerce.boolean().default(false),
+  WHATSAPP_PER_CLINIC_SENDER_ENABLED: z.coerce.boolean().default(false),
+  ENTERPRISE_CONTRACT_DYNAMIC_PRICING_ENABLED: z.coerce
+    .boolean()
+    .default(false),
   ZEPTOMAIL_SENDMAIL_TOKEN: z.string().optional(),
   ZEPTOMAIL_API_URL: z.string().default('https://api.zeptomail.in/v1.1/email'),
   EMAIL_FROM: z.string().default('Docita <notifications@docita.work>'),

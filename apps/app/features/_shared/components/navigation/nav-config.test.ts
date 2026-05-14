@@ -19,7 +19,8 @@ describe("navSections", () => {
     expect(track?.items.some((item) => item.href === "/today")).toBe(true);
     expect(track?.items.some((item) => item.href === "/patients")).toBe(true);
     expect(track?.items.some((item) => item.href === "/invoices")).toBe(true);
-    expect(services?.items.some((item) => item.href === "/whatsapp")).toBe(true);
+    expect(services?.items.some((item) => item.href === "/inbox")).toBe(true);
+    expect(services?.items.some((item) => item.href === "/whatsapp")).toBe(false);
   });
 
   it("exports flat navItems that match the union of section items", () => {
