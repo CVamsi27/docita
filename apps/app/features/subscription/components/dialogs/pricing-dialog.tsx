@@ -357,6 +357,7 @@ export function PricingDialog({
           <p className="mt-1">
             Need help choosing?{" "}
             <button
+              type="button"
               className="text-primary hover:underline font-medium"
               onClick={() => onOpenChange(false)}
             >

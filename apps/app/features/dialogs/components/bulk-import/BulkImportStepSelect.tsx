@@ -22,6 +22,7 @@ export function BulkImportStepSelect({
         {ENTITIES.map((entity) => (
           <button
             key={entity}
+            type="button"
             onClick={() => onSelectEntity(entity)}
             className={cn(
               "flex items-center justify-center p-4 rounded-lg border-2 text-sm font-medium transition-all hover:border-primary/50",

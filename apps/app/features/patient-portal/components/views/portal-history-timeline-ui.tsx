@@ -115,6 +115,7 @@ export function PortalHistoryTimelineUI({
       {medicalHistory && (
         <div className="border rounded-lg">
           <button
+            type="button"
             className="w-full flex items-center justify-between p-4 text-left"
             onClick={() => setShowMedHistory((v) => !v)}
           >
