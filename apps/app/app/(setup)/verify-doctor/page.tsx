@@ -26,6 +26,13 @@ import { PhoneSignatureQrPanel } from "@/features/_shared/components/signature/p
 import { showUserFacingErrorToast } from "@/lib/user-facing-errors";
 import { PreDashboardShell } from "@/features/auth/components/PreDashboardShell";
 
+export function shouldRedirectToWorkspace(
+  hasSignature: boolean,
+  hasSavedRegistration: boolean,
+) {
+  return hasSignature && hasSavedRegistration;
+}
+
 export default function VerifyDoctorPage() {
   const { user, refreshUser, isLoading: authLoading } = useAuth();
   const router = useRouter();
@@ -82,6 +89,10 @@ export default function VerifyDoctorPage() {
   const hasDraftRegistration = registrationNumber.trim().length > 0;
   const hasRegistrationProgress = hasSavedRegistration || hasDraftRegistration;
   const canContinue = hasSignature && hasRegistrationProgress;
+  const canAutoRedirect = shouldRedirectToWorkspace(
+    hasSignature,
+    hasSavedRegistration,
+  );
   const onboardingSignatureUrl = clinic?.slaSignatureUrl ?? null;
   const onboardingSignatureStoredUrl = clinic?.slaSignatureStoredUrl ?? null;
   const onboardingSignatureSourceUrl =
@@ -137,11 +148,11 @@ export default function VerifyDoctorPage() {
       return;
     }
 
-    if (canContinue) {
+    if (canAutoRedirect) {
       setIsRedirecting(true);
       router.replace("/today");
     }
-  }, [authLoading, user, isDoctor, canContinue, router]);
+  }, [authLoading, user, isDoctor, canAutoRedirect, router]);
 
   const handleUseOnboardingSignature = async () => {
     if (!onboardingSignatureSourceUrl) return;
@@ -269,7 +280,7 @@ export default function VerifyDoctorPage() {
     (user?.id && isDoctor && profileLoading && !doctorProfile) ||
     !user ||
     !isDoctor ||
-    canContinue
+    canAutoRedirect
   ) {
     return (
       <div
