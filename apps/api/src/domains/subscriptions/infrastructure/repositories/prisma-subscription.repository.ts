@@ -279,6 +279,8 @@ export class PrismaSubscriptionRepository implements ISubscriptionRepository {
       paymentId?: string;
       signature?: string;
       subscriptionId?: string;
+      invoiceUrl?: string;
+      invoiceNumber?: string;
     },
   ): Promise<void> {
     try {
@@ -290,6 +292,8 @@ export class PrismaSubscriptionRepository implements ISubscriptionRepository {
           razorpaySignature: details?.signature,
           subscriptionId: details?.subscriptionId,
           paidAt: status === 'paid' ? new Date() : undefined,
+          invoiceUrl: details?.invoiceUrl,
+          invoiceNumber: details?.invoiceNumber,
         },
       });
     } catch (error) {

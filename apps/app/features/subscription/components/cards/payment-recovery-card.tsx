@@ -9,6 +9,7 @@ import { DEFAULT_CURRENCY, formatCurrency } from "@workspace/utils";
 import { useBillingHistory } from "@/hooks/api/use-billing-history";
 import { useResumeSubscriptionPayment } from "@/hooks/api/use-resume-subscription-payment";
 import { formatDate } from "@/lib/formatters";
+import { showUserFacingErrorToast } from "@/lib/user-facing-errors";
 
 type RecoverableStatus =
   | "failed"
@@ -71,10 +72,10 @@ export function PaymentRecoveryCard({ show = true }: PaymentRecoveryCardProps) {
         toast.success("Payment retry started — check your inbox for the link.");
       }
     } catch (err) {
-      toast.error(
-        err instanceof Error
-          ? err.message
-          : "Could not resume payment. Please try again or contact support.",
+      showUserFacingErrorToast(
+        err,
+        "Could not resume payment. Please try again or contact support.",
+        "payment",
       );
     }
   }

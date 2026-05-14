@@ -30,6 +30,33 @@ interface CurrentPlanCardProps {
   canChangeTier: boolean;
   onChangePlan: () => void;
   onViewBillingHistory: () => void;
+  /**
+   * Render a banner for a scheduled plan change (e.g. "Downgrades to
+   * Essential on Dec 1") with an Undo action.
+   */
+  scheduledChange?: {
+    planName: string;
+    effectiveAt: string;
+    onCancel: () => void;
+    isCancelling?: boolean;
+  } | null;
+  /**
+   * Show the account credit balance the user has accumulated (held credit
+   * is applied against the next invoice).
+   */
+  accountCreditCents?: number;
+  accountCreditCurrency?: string;
+  /**
+   * Pay for the next billing cycle immediately (renew current plan).
+   * Only rendered when provided AND the plan is renewable (paid tier).
+   */
+  onRenewNow?: () => void;
+  /** Label override for the renew CTA, e.g. "Add payment method" when trialing. */
+  renewActionLabel?: string;
+  /** Shows the renew button with prominent styling (e.g. renewal imminent). */
+  emphasizeRenew?: boolean;
+  /** Disable renew while a checkout request is in flight. */
+  isRenewProcessing?: boolean;
   planDetails?: { label: string; value: string }[];
   /** Optional note under the plan detail strip. */
   planDetailsFootnote?: string;
@@ -88,6 +115,13 @@ export function CurrentPlanCard({
   canChangeTier,
   onChangePlan,
   onViewBillingHistory,
+  onRenewNow,
+  renewActionLabel,
+  emphasizeRenew = false,
+  isRenewProcessing = false,
+  scheduledChange,
+  accountCreditCents = 0,
+  accountCreditCurrency,
   planDetails,
   planDetailsFootnote,
   usage,
@@ -139,6 +173,92 @@ export function CurrentPlanCard({
         </div>
       </CardHeader>
       <CardContent className="space-y-5">
+        {/* Action row pinned to the top of the card so payment CTAs are
+            always visible without scrolling past usage meters. */}
+        {canChangeTier ? (
+          <div className="flex flex-wrap gap-2 sm:gap-3">
+            {onRenewNow ? (
+              <Button
+                onClick={onRenewNow}
+                disabled={isRenewProcessing}
+                size="lg"
+                className={cn(
+                  "h-11 gap-2",
+                  emphasizeRenew &&
+                    "bg-primary text-primary-foreground shadow-md shadow-primary/20 hover:bg-primary/90",
+                )}
+              >
+                <CreditCard className="h-4 w-4" />
+                {isRenewProcessing
+                  ? "Opening checkout…"
+                  : (renewActionLabel ?? "Pay for next cycle")}
+              </Button>
+            ) : null}
+            <Button
+              variant={onRenewNow ? "outline" : "default"}
+              onClick={onChangePlan}
+              size="lg"
+              className="h-11 gap-2"
+            >
+              <TrendingUp className="h-4 w-4" />
+              {onRenewNow ? "Change plan" : "Choose a plan"}
+            </Button>
+            <Button variant="outline" size="lg" className="h-11" onClick={onViewBillingHistory}>
+              <Receipt className="mr-2 h-4 w-4" />
+              Billing History
+            </Button>
+          </div>
+        ) : (
+          <p className="text-sm text-muted-foreground">
+            Contact your facility administrator to change plans.
+          </p>
+        )}
+
+        {scheduledChange ? (
+          <div className="flex flex-col gap-3 rounded-lg border border-info/40 bg-info/5 p-3 sm:flex-row sm:items-center sm:justify-between">
+            <div className="flex items-start gap-2 text-sm">
+              <CalendarClock className="mt-0.5 h-4 w-4 shrink-0 text-info" aria-hidden />
+              <div>
+                <p className="font-medium text-foreground">
+                  Scheduled to switch to {scheduledChange.planName}
+                </p>
+                <p className="text-xs text-muted-foreground">
+                  Applies on{" "}
+                  {new Date(scheduledChange.effectiveAt).toLocaleDateString(
+                    undefined,
+                    { day: "numeric", month: "short", year: "numeric" },
+                  )}
+                  . Your current plan stays active until then.
+                </p>
+              </div>
+            </div>
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={scheduledChange.onCancel}
+              disabled={scheduledChange.isCancelling}
+              className="shrink-0"
+            >
+              {scheduledChange.isCancelling ? "Undoing…" : "Undo"}
+            </Button>
+          </div>
+        ) : null}
+
+        {accountCreditCents > 0 ? (
+          <div className="flex items-center justify-between gap-3 rounded-lg border border-success/40 bg-success/5 px-3 py-2 text-sm">
+            <div className="flex items-center gap-2">
+              <Sparkles className="h-4 w-4 shrink-0 text-success" aria-hidden />
+              <span className="font-medium text-foreground">
+                Account credit available
+              </span>
+            </div>
+            <span className="font-semibold tabular-nums text-success">
+              {(accountCreditCurrency === "USD" ? "$" : "₹")}
+              {(accountCreditCents / 100).toFixed(2)}
+            </span>
+          </div>
+        ) : null}
+
         {planDetails && planDetails.length > 0 && (
           <dl className="divide-y divide-border/60 rounded-lg border border-border/70 bg-background/70">
             {planDetails.map((detail, index) => {
@@ -216,9 +336,6 @@ export function CurrentPlanCard({
               <p className="text-sm font-semibold text-foreground">
                 Current usage
               </p>
-              <p className="text-xs text-muted-foreground">
-                Compact view of this billing period&apos;s included meters.
-              </p>
             </div>
             {usage && usage.total > 0 && (
               <Badge variant="destructive" className="self-start sm:self-auto">
@@ -294,22 +411,6 @@ export function CurrentPlanCard({
           </div>
         )}
 
-        {canChangeTier ? (
-          <div className="flex flex-wrap gap-3 pt-2">
-            <Button onClick={onChangePlan} className="gap-2">
-              <TrendingUp className="h-4 w-4" />
-              Change plan
-            </Button>
-            <Button variant="outline" onClick={onViewBillingHistory}>
-              <Receipt className="mr-2 h-4 w-4" />
-              Billing History
-            </Button>
-          </div>
-        ) : (
-          <p className="text-sm text-muted-foreground">
-            Contact your facility administrator to change plans.
-          </p>
-        )}
       </CardContent>
     </Card>
   );

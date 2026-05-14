@@ -5,7 +5,10 @@ import {
   BillingCycle as PrismaBillingCycle,
   SubscriptionStatus as PrismaSubscriptionStatus,
 } from '@workspace/db';
-import { Subscription } from '@/domains/subscriptions/core/entities';
+import {
+  Subscription,
+  type ScheduledPlanChange,
+} from '@/domains/subscriptions/core/entities/subscription.entity';
 import {
   SubscriptionStatus,
   SubscriptionStatusEnum,
@@ -71,10 +74,32 @@ export class SubscriptionMapper {
       discounts: discountAggregate,
       creditsCents: raw.creditsCents,
       graceUntil: raw.graceUntil ?? null,
+      scheduledChange: this.parseScheduledChange(raw.scheduledChange),
       createdAt: raw.createdAt,
       updatedAt: raw.updatedAt,
       version: raw.version,
     });
+  }
+
+  private static parseScheduledChange(
+    json: Prisma.JsonValue | null,
+  ): ScheduledPlanChange | null {
+    if (!json || typeof json !== 'object' || Array.isArray(json)) {
+      return null;
+    }
+    const raw = json as Record<string, unknown>;
+    if (
+      typeof raw.plan !== 'string' ||
+      typeof raw.billingCycle !== 'string' ||
+      typeof raw.effectiveAt !== 'string'
+    ) {
+      return null;
+    }
+    return {
+      plan: raw.plan,
+      billingCycle: raw.billingCycle,
+      effectiveAt: raw.effectiveAt,
+    };
   }
 
   static toPersistence(
@@ -107,7 +132,11 @@ export class SubscriptionMapper {
       updatedAt: new Date(),
       version: subscription.version,
 
-      scheduledChange: Prisma.JsonNull,
+      scheduledChange: subscription.scheduledChange
+        ? (this.toInputJsonValue(
+            subscription.scheduledChange as unknown as Record<string, unknown>,
+          ) as Prisma.InputJsonValue)
+        : Prisma.JsonNull,
     };
   }
 

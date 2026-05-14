@@ -24,8 +24,8 @@ import {
   TabsList,
   TabsTrigger,
 } from "@workspace/ui/components/tabs";
-import { Info, Sparkles } from "lucide-react";
-import { ContactSalesModal } from "@/features/dialogs/components/ContactSalesModalContainer";
+import { X } from "lucide-react";
+import { ContactSalesModal } from "@/features/dialogs";
 import { ComparisonTable } from "@/features/subscription/components/pricing/comparison-table";
 import { CurrentPlanCard } from "@/features/subscription/components/cards/current-plan-card";
 import { EnterpriseContractCard } from "@/features/subscription/components/cards/enterprise-contract-card";
@@ -39,6 +39,10 @@ import {
   type CheckoutSuccessData,
   useSubscriptionCheckout,
 } from "@/hooks/use-subscription-checkout";
+import {
+  useCancelScheduledPlanChange,
+  useSchedulePlanChange,
+} from "@/hooks/api/use-schedule-plan-change";
 import { useCurrentUsage, usePricingConfig } from "@/hooks/api/use-pricing";
 import { useLocaleCurrency } from "@/hooks/use-locale-currency";
 import { useSubscription } from "@/hooks/api/use-settings";
@@ -55,14 +59,11 @@ import {
   type TierName,
 } from "@workspace/types";
 import { formatLocaleDateShortMonthYear } from "@/lib/formatters";
-import {
-  BILLING_USAGE_AND_OVERAGE_EXPLAINER,
-  SUBSCRIPTION_GST_INCLUSIVE_NOTICE,
-} from "@/features/subscription/lib/billing-display-messages";
 import { PLAN_ONBOARDING_KEY_HIGHLIGHTS } from "@/features/subscription/config/plan-onboarding-highlights";
 import { getDisplayBillingPeriodEndAndDaysLeft } from "@/features/subscription/lib/billing-period-display";
 import { recommendTier } from "@/features/subscription/lib/recommend-tier";
 import { Lightbulb } from "lucide-react";
+import { cn } from "@workspace/ui/lib/utils";
 
 const PLAN_ORDER = [
   Tier.STARTER,
@@ -209,8 +210,12 @@ export function BillingSubscriptionWorkspace() {
   );
   const plansRef = useRef<HTMLDivElement>(null);
 
-  const { checkoutTier, isProcessing: isCheckoutProcessing } =
-    useSubscriptionCheckout((data) => {
+  const {
+    checkoutTier,
+    isProcessing: isCheckoutProcessing,
+    closeCheckout,
+    isCheckoutOpen,
+  } = useSubscriptionCheckout((data) => {
     setSuccessData(data);
     setShowSuccessModal(true);
     setShowTierChangeDialog(false);
@@ -282,6 +287,17 @@ export function BillingSubscriptionWorkspace() {
     }
     await checkoutTier({ tier: selectedTier, billingCycle: selectedCycle });
   }, [selectedTier, selectedCycle, checkoutTier]);
+
+  const scheduleMutation = useSchedulePlanChange();
+  const cancelScheduledMutation = useCancelScheduledPlanChange();
+  const handleScheduleTierChange = useCallback(async () => {
+    if (!selectedTier) return;
+    await scheduleMutation.mutateAsync({
+      tier: selectedTier,
+      billingCycle: selectedCycle,
+    });
+    setShowTierChangeDialog(false);
+  }, [selectedTier, selectedCycle, scheduleMutation]);
 
   const currentTierInfo = getTierInfo(effectiveCurrentTier);
   const scrollToPlans = useCallback(() => {
@@ -379,6 +395,24 @@ export function BillingSubscriptionWorkspace() {
 
   return (
     <div className="space-y-6">
+      {isCheckoutOpen ? (
+        <div
+          className="fixed inset-x-0 top-4 z-[60] flex justify-center px-4 sm:top-6"
+          role="region"
+          aria-label="Razorpay checkout in progress"
+        >
+          <Button
+            type="button"
+            variant="secondary"
+            size="sm"
+            className="gap-2 rounded-full shadow-lg ring-1 ring-border/60 backdrop-blur"
+            onClick={closeCheckout}
+          >
+            <X className="h-4 w-4" aria-hidden />
+            Cancel checkout
+          </Button>
+        </div>
+      ) : null}
       {subscription?.tier === "ENTERPRISE" && <EnterpriseContractCard />}
       <CurrentPlanCard
         tierInfo={currentTierInfo}
@@ -387,6 +421,48 @@ export function BillingSubscriptionWorkspace() {
         canChangeTier={billingAllowed}
         onChangePlan={scrollToPlans}
         onViewBillingHistory={() => setShowInvoiceHistory(true)}
+        onRenewNow={
+          subscription &&
+          subscription.tier !== "ENTERPRISE" &&
+          (subscription.basePriceCents ?? 0) > 0 &&
+          !isSubscriptionExpired
+            ? () =>
+                checkoutTier({
+                  tier: subscription.tier as TierName,
+                  billingCycle: subscription.billingCycle ?? "MONTHLY",
+                })
+            : undefined
+        }
+        renewActionLabel={
+          subscriptionStatus === "TRIALING"
+            ? "Add payment method"
+            : daysLeftInPeriod !== null && daysLeftInPeriod <= 7
+              ? "Renew now"
+              : "Pay for next cycle"
+        }
+        emphasizeRenew={
+          subscriptionStatus === "TRIALING" ||
+          (daysLeftInPeriod !== null && daysLeftInPeriod <= 7)
+        }
+        isRenewProcessing={isCheckoutProcessing}
+        scheduledChange={
+          subscription?.scheduledChange
+            ? {
+                planName:
+                  getTierInfo(
+                    Tier[
+                      subscription.scheduledChange
+                        .plan as keyof typeof Tier
+                    ] as number,
+                  )?.name ?? subscription.scheduledChange.plan,
+                effectiveAt: subscription.scheduledChange.effectiveAt,
+                onCancel: () => cancelScheduledMutation.mutate(),
+                isCancelling: cancelScheduledMutation.isPending,
+              }
+            : null
+        }
+        accountCreditCents={subscription?.accountCreditCents ?? 0}
+        accountCreditCurrency={subscription?.currency}
         planDetails={planDetails}
         usage={usage}
         isUsageLoading={isUsageLoading}
@@ -395,10 +471,6 @@ export function BillingSubscriptionWorkspace() {
         showWhatsAppUsageMeter={subscription?.tier !== "STARTER"}
       />
 
-      <p className="w-full max-w-none text-pretty text-[var(--fs-2xs)] leading-relaxed text-muted-foreground">
-        {BILLING_USAGE_AND_OVERAGE_EXPLAINER}
-      </p>
-
       <UsageDashboard />
 
       <div
@@ -406,45 +478,21 @@ export function BillingSubscriptionWorkspace() {
         id="billing-plans-section"
         className="scroll-mt-6 space-y-4"
       >
-        <div className="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between sm:gap-6">
-          <div className="min-w-0 space-y-2">
-            <h2 className="ui-section-title text-[var(--fs-xl)]">
+        <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between sm:gap-6">
+          <div className="min-w-0">
+            <h2 className="ui-section-title text-[var(--fs-2xl)] leading-[var(--lh-tight)]">
               Choose a plan
             </h2>
-            <p className="max-w-prose text-[var(--fs-sm)] leading-relaxed text-muted-foreground">
-              Select a tier to open a short confirmation step before checkout.
-              Each card shows{" "}
-              <span className="font-medium text-foreground">
-                additional usage
-              </span>{" "}
-              rates after included limits. Use{" "}
-              <span className="font-medium text-foreground">Compare plans</span>{" "}
-              below for the full feature matrix.
+            <p className="mt-1 text-[var(--fs-sm)] text-muted-foreground">
+              Click any plan to start checkout. Yearly billing saves{" "}
+              {ANNUAL_DISCOUNT_PERCENT}%.
             </p>
-            {isFrontDeskClinic ? (
-              <Alert className="mt-3 border-border">
-                <Info className="h-4 w-4" aria-hidden />
-                <AlertTitle>Commercial tier vs workspace profile</AlertTitle>
-                <AlertDescription className="text-[var(--fs-sm)] leading-relaxed">
-                  The plans below set subscription limits and pricing. Your
-                  facility is on a{" "}
-                  <span className="font-medium text-foreground">
-                    front desk (appointments and invoices)
-                  </span>{" "}
-                  workspace: clinical EHR modules stay off unless you move to a
-                  full clinical workspace. To change workspace type, use{" "}
-                  <span className="font-medium text-foreground">
-                    Contact sales
-                  </span>{" "}
-                  below so we can align billing and access safely.
-                </AlertDescription>
-              </Alert>
-            ) : null}
           </div>
-          <div className="inline-flex shrink-0 items-center gap-1 self-start rounded-lg border bg-background p-1 sm:self-auto">
+          <div className="inline-flex shrink-0 items-center gap-1 self-start rounded-full border bg-muted/40 p-1 sm:self-auto">
             <Button
               variant={selectedCycle === "MONTHLY" ? "default" : "ghost"}
               size="sm"
+              className="rounded-full"
               onClick={() => setSelectedCycle("MONTHLY")}
             >
               Monthly
@@ -452,60 +500,47 @@ export function BillingSubscriptionWorkspace() {
             <Button
               variant={selectedCycle === "YEARLY" ? "default" : "ghost"}
               size="sm"
+              className="gap-1.5 rounded-full"
               onClick={() => setSelectedCycle("YEARLY")}
             >
               Yearly
+              <span
+                className={cn(
+                  "rounded-full px-1.5 py-0.5 text-[10px] font-semibold leading-none",
+                  selectedCycle === "YEARLY"
+                    ? "bg-primary-foreground/20 text-primary-foreground"
+                    : "bg-success/15 text-success",
+                )}
+              >
+                {`Save ${ANNUAL_DISCOUNT_PERCENT}%`}
+              </span>
             </Button>
           </div>
         </div>
 
-        {selectedCycle === "YEARLY" && (
-          <Alert className="border-success/40 bg-success/10">
-            <Sparkles className="h-4 w-4 text-success" />
-            <AlertTitle>Save with yearly billing</AlertTitle>
-            <AlertDescription>
-              Annual plans include roughly {ANNUAL_DISCOUNT_PERCENT}% savings
-              compared to twelve monthly payments at list prices (before
-              credits or promotions).
-            </AlertDescription>
-          </Alert>
-        )}
-
         {recommendation ? (
           <Alert className="border-primary/40 bg-primary/5">
             <Lightbulb className="h-4 w-4 text-primary" />
-            <AlertTitle>
-              We suggest {TIER_INFO[recommendation.tier].name} for your usage
+            <AlertTitle className="text-[var(--fs-sm)]">
+              {TIER_INFO[recommendation.tier].name} fits your usage best
             </AlertTitle>
-            <AlertDescription className="space-y-2">
-              <p className="leading-relaxed">
-                Based on this period&apos;s usage we recommend{" "}
-                <span className="font-medium text-foreground">
-                  {TIER_INFO[recommendation.tier].name}
-                </span>
-                . Reasons:
-              </p>
-              <ul className="list-disc space-y-0.5 pl-5 leading-relaxed">
-                {recommendation.reasons.map((reason) => (
-                  <li key={reason}>{reason}</li>
-                ))}
-              </ul>
-              <div className="pt-1">
-                <Button
-                  size="sm"
-                  onClick={() =>
-                    handleSelectTier(recommendation.tier, selectedCycle)
-                  }
-                  disabled={!billingAllowed}
-                >
-                  Review {TIER_INFO[recommendation.tier].name}
-                </Button>
-              </div>
+            <AlertDescription className="flex flex-col gap-2 text-[var(--fs-xs)] leading-relaxed sm:flex-row sm:items-center sm:justify-between sm:gap-4">
+              <span>{recommendation.reasons.join(" · ")}</span>
+              <Button
+                size="sm"
+                onClick={() =>
+                  handleSelectTier(recommendation.tier, selectedCycle)
+                }
+                disabled={!billingAllowed}
+                className="shrink-0"
+              >
+                Review {TIER_INFO[recommendation.tier].name}
+              </Button>
             </AlertDescription>
           </Alert>
         ) : null}
 
-        <div className="grid gap-4 [grid-template-columns:repeat(auto-fit,minmax(19rem,1fr))]">
+        <div className="grid auto-rows-fr items-stretch gap-4 sm:grid-cols-2 lg:grid-cols-3">
           {planCards.map(({ tier, info }) => {
             const tierName = Tier[tier] as TierName;
             const tierPricingData = pricingConfig?.tiers.find(
@@ -557,6 +592,9 @@ export function BillingSubscriptionWorkspace() {
                 info={info}
                 features={[]}
                 isCurrentTier={tier === effectiveCurrentTier}
+                isRecommended={
+                  !!recommendation && recommendation.tier === tierName
+                }
                 isLocked={false}
                 currentTierValue={effectiveCurrentTier}
                 keyHighlights={
@@ -583,9 +621,6 @@ export function BillingSubscriptionWorkspace() {
             );
           })}
         </div>
-        <p className="text-[var(--fs-2xs)] leading-snug text-muted-foreground max-w-prose">
-          {SUBSCRIPTION_GST_INCLUSIVE_NOTICE}
-        </p>
       </div>
 
       <Tabs defaultValue="compare" className="w-full">
@@ -689,7 +724,9 @@ export function BillingSubscriptionWorkspace() {
         billingCycle={selectedCycle}
         currency={currency as SupportedCurrency}
         onConfirm={handleConfirmTierChange}
-        checkoutInFlight={isCheckoutProcessing}
+        onSchedule={handleScheduleTierChange}
+        currentPeriodEnd={subscription?.currentPeriodEnd ?? null}
+        checkoutInFlight={isCheckoutProcessing || scheduleMutation.isPending}
       />
       <PaymentSuccessModal
         open={showSuccessModal}

@@ -30,6 +30,7 @@ import {
   SubscriptionCheckoutPricingService,
 } from '@/domains/subscriptions/application/services/subscription-checkout-pricing.service';
 import { AppConfigService } from '@/shared/modules/config/app-configuration.service';
+import { RazorpayInvoiceAdapter } from '@/domains/payments/infrastructure/adapters/razorpay/razorpay-invoice.adapter';
 
 export interface ActivateSubscriptionRequest {
   clinicId: string;
@@ -73,6 +74,7 @@ export class ActivateSubscriptionUseCase {
     private readonly featureFlagService: FeatureFlagService,
     private readonly checkoutPricing: SubscriptionCheckoutPricingService,
     private readonly configService: AppConfigService,
+    private readonly razorpayInvoiceAdapter: RazorpayInvoiceAdapter,
   ) {}
 
   async applyPlanChangeWithoutPayment(
@@ -112,6 +114,10 @@ export class ActivateSubscriptionUseCase {
       offerPercent,
     );
 
+    const isSameTier = subscription && subscription.getPlan().equals(tier);
+    const isSameCycle =
+      subscription && subscription.getBillingCycle().equals(cycle);
+
     await this.persistActivatedSubscription({
       clinicId: params.clinicId,
       tier,
@@ -119,6 +125,9 @@ export class ActivateSubscriptionUseCase {
       listPriceCents,
       subscription,
       creditsConsumed: breakdown.accountCreditsAppliedCents,
+      preserveCurrentPeriodEnd:
+        !!subscription && isSameCycle === true && !isSameTier,
+      surplusCreditCents: breakdown.surplusCreditCents,
     });
 
     const featureUpdates: Record<string, boolean> = {};
@@ -221,6 +230,15 @@ export class ActivateSubscriptionUseCase {
       );
     }
 
+    // Mid-cycle change on the same billing cycle (upgrade or same-tier renewal):
+    // preserve the original currentPeriodEnd so the user's billing rhythm
+    // doesn't drift. A renewal of the exact same tier resets it (full cycle).
+    const isSameTier = subscription && subscription.getPlan().equals(tier);
+    const isSameCycle =
+      subscription && subscription.getBillingCycle().equals(cycle);
+    const preserveCurrentPeriodEnd =
+      !!subscription && isSameCycle === true && !isSameTier;
+
     const saved = await this.persistActivatedSubscription({
       clinicId: request.clinicId,
       tier,
@@ -228,6 +246,18 @@ export class ActivateSubscriptionUseCase {
       listPriceCents,
       subscription,
       creditsConsumed: breakdown.accountCreditsAppliedCents,
+      preserveCurrentPeriodEnd,
+      surplusCreditCents: breakdown.surplusCreditCents,
+    });
+
+    const razorpayInvoice = await this.createHostedInvoice({
+      clinicId: request.clinicId,
+      amountCents: payment.amountCents,
+      currency: payment.currency,
+      orderId: request.razorpayOrderId,
+      paymentId: request.razorpayPaymentId,
+      tier: tier.value,
+      cycle: cycle.value,
     });
 
     await this.subscriptionRepo.updatePaymentStatus(
@@ -237,6 +267,8 @@ export class ActivateSubscriptionUseCase {
         paymentId: request.razorpayPaymentId,
         signature: request.razorpaySignature,
         subscriptionId: saved.id,
+        invoiceUrl: razorpayInvoice?.shortUrl ?? undefined,
+        invoiceNumber: razorpayInvoice?.invoiceNumber ?? undefined,
       },
     );
 
@@ -273,6 +305,10 @@ export class ActivateSubscriptionUseCase {
     listPriceCents: number;
     subscription: Subscription | null;
     creditsConsumed: number;
+    /** When true (mid-cycle upgrade on same cycle), keep the current period end. */
+    preserveCurrentPeriodEnd?: boolean;
+    /** Surplus from a downgrade where credit > charge; held as account credit. */
+    surplusCreditCents?: number;
   }): Promise<Subscription> {
     let subscription = params.subscription;
     const { tier, cycle, listPriceCents } = params;
@@ -294,7 +330,14 @@ export class ActivateSubscriptionUseCase {
       });
     } else {
       subscription.deductCreditsApplied(params.creditsConsumed);
-      subscription.activatePaidPlan(tier, cycle, listPriceCents);
+      subscription.activatePaidPlan(tier, cycle, listPriceCents, new Date(), {
+        preserveCurrentPeriodEnd: params.preserveCurrentPeriodEnd,
+      });
+      if (params.surplusCreditCents && params.surplusCreditCents > 0) {
+        subscription.addAccountCredit(params.surplusCreditCents);
+      }
+      // Once we apply this activation, any pending scheduled change is moot.
+      subscription.clearScheduledPlanChange();
     }
 
     await this.subscriptionRepo.save(subscription);
@@ -313,5 +356,47 @@ export class ActivateSubscriptionUseCase {
       end.setMonth(end.getMonth() + 1);
     }
     return end;
+  }
+
+  /**
+   * Creates a Razorpay-hosted invoice for an activated subscription payment.
+   * Razorpay generates a GST-compliant PDF + short_url customers can use to
+   * download. Best-effort: failures here must not block activation.
+   */
+  private async createHostedInvoice(params: {
+    clinicId: string;
+    amountCents: number;
+    currency: string;
+    orderId: string;
+    paymentId: string;
+    tier: string;
+    cycle: string;
+  }) {
+    try {
+      const clinic = await this.clinicOps.getClinicDetails(params.clinicId);
+      if (!clinic.razorpayCustomerId) {
+        return null;
+      }
+      return await this.razorpayInvoiceAdapter.createInvoice({
+        customerId: clinic.razorpayCustomerId,
+        amountCents: params.amountCents,
+        currency: params.currency,
+        description: `Docita ${params.tier} ${params.cycle} subscription`,
+        orderId: params.orderId,
+        paymentId: params.paymentId,
+        notes: {
+          clinicId: params.clinicId,
+          tier: params.tier,
+          cycle: params.cycle,
+        },
+      });
+    } catch (err) {
+      this.logger.warn(
+        `Hosted invoice creation failed for clinic ${params.clinicId}: ${
+          err instanceof Error ? err.message : 'unknown error'
+        }`,
+      );
+      return null;
+    }
   }
 }

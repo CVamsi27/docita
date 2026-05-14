@@ -9,6 +9,7 @@ import { ProratingService } from '@/domains/subscriptions/core/services/proratio
 import { SubscriptionCheckoutPricingService } from '@/domains/subscriptions/application/services/subscription-checkout-pricing.service';
 import { FeatureFlagService } from '@/shared/modules/services/feature-flag.service';
 import { AppConfigService } from '@/shared/modules/config/app-configuration.service';
+import type { RazorpayInvoiceAdapter } from '@/domains/payments/infrastructure/adapters/razorpay/razorpay-invoice.adapter';
 
 describe('ActivateSubscriptionUseCase', () => {
   const subscriptionRepo: ISubscriptionRepository = {
@@ -77,6 +78,11 @@ describe('ActivateSubscriptionUseCase', () => {
     getCurrencyCode: jest.fn(() => 'INR'),
   } as unknown as AppConfigService;
 
+  const razorpayInvoiceAdapter = {
+    createInvoice: jest.fn(async () => null),
+    listInvoicesByCustomer: jest.fn(async () => []),
+  } as unknown as RazorpayInvoiceAdapter;
+
   let useCase: ActivateSubscriptionUseCase;
 
   beforeEach(() => {
@@ -89,6 +95,7 @@ describe('ActivateSubscriptionUseCase', () => {
       featureFlagService,
       checkoutPricing,
       configService,
+      razorpayInvoiceAdapter,
     );
   });
 

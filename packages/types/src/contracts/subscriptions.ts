@@ -209,6 +209,16 @@ const subscriptionCurrentItemSchema = z
     currentPeriodStart: z.string(),
     currentPeriodEnd: z.string(),
     daysRemaining: z.number().int().min(0),
+    scheduledChange: z
+      .object({
+        plan: z.string(),
+        billingCycle: z.string(),
+        effectiveAt: z.string(),
+      })
+      .strict()
+      .nullable()
+      .optional(),
+    accountCreditCents: z.number().int().min(0).optional(),
   })
   .strict();
 
@@ -216,6 +226,14 @@ export const subscriptionCurrentResponseSchema =
   subscriptionCurrentItemSchema.nullable();
 
 const trialWindowStateSchema = z.enum(['ACTIVE', 'GRACE', 'EXPIRED']);
+
+const scheduledPlanChangeSchema = z
+  .object({
+    plan: z.string(),
+    billingCycle: z.string(),
+    effectiveAt: z.string(),
+  })
+  .strict();
 
 const subscriptionBillingStatusItemSchema = z
   .object({
@@ -230,6 +248,8 @@ const subscriptionBillingStatusItemSchema = z
     trialEnd: z.string().nullable().optional(),
     trialWindowState: trialWindowStateSchema.nullable().optional(),
     trialGraceEndsAt: z.string().nullable().optional(),
+    scheduledChange: scheduledPlanChangeSchema.nullable().optional(),
+    accountCreditCents: z.number().int().min(0).optional(),
   })
   .strict();
 

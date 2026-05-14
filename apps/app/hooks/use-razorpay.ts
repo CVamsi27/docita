@@ -1,4 +1,4 @@
-import { useCallback, useState } from "react";
+import { useCallback, useRef, useState } from "react";
 import { logger } from "@/lib/logger";
 
 interface RazorpayInstance {
@@ -36,6 +36,14 @@ interface RazorpayOptions {
   };
   modal?: {
     ondismiss?: () => void;
+    /** Show a built-in close (X) on the modal (Razorpay default: true). */
+    escape?: boolean;
+    /** Allow clicking outside to dismiss (Razorpay default: false). */
+    backdropclose?: boolean;
+    /** Ask the user before closing (Razorpay default: false). */
+    confirm_close?: boolean;
+    /** Razorpay modal animation. */
+    animation?: boolean;
   };
 }
 
@@ -78,6 +86,10 @@ export function isPaymentCanceledError(
 
 export function useRazorpay() {
   const [isLoaded, setIsLoaded] = useState(false);
+  // Tracks the currently-open Razorpay instance so callers can dismiss it
+  // programmatically (e.g. from a "Cancel checkout" button rendered in the app).
+  const activeInstanceRef = useRef<RazorpayInstance | null>(null);
+  const [isCheckoutOpen, setIsCheckoutOpen] = useState(false);
 
   const isRazorpayConstructible = useCallback((): boolean => {
     const RazorpayCtor = window.Razorpay as unknown;
@@ -185,15 +197,27 @@ export function useRazorpay() {
           handler: async (response: RazorpayResponse) => {
             try {
               await options.handler(response);
+              activeInstanceRef.current = null;
+              setIsCheckoutOpen(false);
               resolve();
             } catch (error: unknown) {
+              activeInstanceRef.current = null;
+              setIsCheckoutOpen(false);
               reject(error);
             }
           },
           modal: {
+            // Sensible defaults so the modal is easy to dismiss without
+            // hunting for Razorpay's small built-in X.
+            escape: true,
+            backdropclose: true,
+            confirm_close: false,
+            animation: true,
             ...options.modal,
             ondismiss: () => {
               options.modal?.ondismiss?.();
+              activeInstanceRef.current = null;
+              setIsCheckoutOpen(false);
               reject(createPaymentCanceledError());
             },
           },
@@ -203,15 +227,32 @@ export function useRazorpay() {
           "payment.failed",
           (...args: unknown[]) => {
             void args;
+            activeInstanceRef.current = null;
+            setIsCheckoutOpen(false);
             reject(createPaymentFailedError());
           },
         );
 
+        activeInstanceRef.current = rzp;
+        setIsCheckoutOpen(true);
         rzp.open();
       });
     },
     [isRazorpayConstructible, loadRazorpay],
   );
 
-  return { isLoaded, openCheckout };
+  /** Programmatically close the active Razorpay modal, if any. */
+  const closeCheckout = useCallback(() => {
+    const rzp = activeInstanceRef.current;
+    if (!rzp) return;
+    try {
+      rzp.close();
+    } catch {
+      // Razorpay throws if already closed; ignore.
+    }
+    activeInstanceRef.current = null;
+    setIsCheckoutOpen(false);
+  }, []);
+
+  return { isLoaded, openCheckout, closeCheckout, isCheckoutOpen };
 }

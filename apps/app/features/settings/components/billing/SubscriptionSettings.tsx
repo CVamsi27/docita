@@ -1,6 +1,5 @@
 "use client";
 
-import Link from "next/link";
 import { useRef } from "react";
 import type { ReactNode } from "react";
 import type { SubscriptionCurrentResponse } from "@workspace/types";
@@ -10,9 +9,11 @@ import { getTierInfo } from "@/lib/tier-config";
 import { useSubscription } from "@/hooks/api/use-settings";
 import { WhatsAppButton } from "@/features/_shared/components/whatsapp/whatsapp-button";
 import { getSupportPhoneNumber } from "@/lib/support-contact";
-import { BillingSubscriptionWorkspace } from "@/features/subscription/components/billing-subscription-workspace";
-import { TrialOfferBanner } from "@/features/subscription/components";
-import { PaymentRecoveryCard } from "@/features/subscription/components/cards/payment-recovery-card";
+import {
+  BillingHistoryTable,
+  BillingSubscriptionWorkspace,
+  PaymentRecoveryCard,
+} from "@/features/subscription";
 import { getTrialState } from "@/lib/subscription-lockout";
 import { DocitaLoadingIndicator } from "@workspace/ui/components/docita-loading-indicator";
 import { Skeleton } from "@workspace/ui/components/skeleton";
@@ -32,13 +33,7 @@ import {
   AlertTitle,
 } from "@workspace/ui/components/alert";
 import { AlertTriangle, Clock, Info, XCircle } from "lucide-react";
-import { BillingHistoryTable } from "@/features/subscription/components/billing/BillingHistoryTable";
-import { getDisplayBillingPeriodEndAndDaysLeft } from "@/features/subscription/lib/billing-period-display";
 import { useClinic } from "@/lib/clinic-context";
-import {
-  parseWorkspaceProfile,
-  WORKSPACE_PROFILE_LABEL,
-} from "@workspace/types";
 
 function scrollToBillingPlans() {
   document.getElementById("billing-plans-section")?.scrollIntoView({
@@ -123,11 +118,11 @@ function billingHistorySectionDescription(
   }
 
   if (isFreeStarterActive(subscription)) {
-    return `${base}. Starter at no charge does not create subscription checkout rows, so this list stays empty until you upgrade and pay.`;
+    return base;
   }
 
   if (subscription.subscriptionStatus === "TRIALING") {
-    return `${base}. Add a payment method before the trial ends so renewals can generate invoices here.`;
+    return base;
   }
 
   return base;
@@ -137,18 +132,18 @@ function billingHistoryEmptyDescription(
   subscription: SubscriptionCurrentResponse | null | undefined,
 ): string | undefined {
   if (!subscription) {
-    return undefined;
+    return "Invoices appear after your first completed payment.";
   }
 
   if (isFreeStarterActive(subscription)) {
-    return "There is no subscription invoice for Starter at no charge. After you upgrade and complete Razorpay checkout, paid receipts will appear here.";
+    return "Invoices appear after you upgrade and complete payment.";
   }
 
   if (subscription.subscriptionStatus === "TRIALING") {
-    return "Invoices appear after you add a payment method and your first paid charge completes.";
+    return "Invoices appear after the first paid cycle.";
   }
 
-  return undefined;
+  return "Invoices appear after completed payments.";
 }
 
 function BillingHistory({
@@ -203,10 +198,6 @@ export function SubscriptionSettings() {
     ? getTierInfo(subscription.tier).name
     : "Starter";
   const subscriptionStatus = subscription?.subscriptionStatus || "Inactive";
-  const workspaceProfileLabel = WORKSPACE_PROFILE_LABEL[
-    parseWorkspaceProfile(clinic?.workspaceProfile)
-  ];
-
   if (!isAdmin) {
     return (
       <Card>
@@ -221,13 +212,6 @@ export function SubscriptionSettings() {
               {subscriptionStatus}
             </Badge>
           </div>
-          <p className="mt-2 text-sm text-muted-foreground">
-            Workspace mode: {workspaceProfileLabel}
-          </p>
-          <p className="mt-1 text-xs text-muted-foreground">
-            Workspace is not a separate paid tier; it controls which product areas
-            are enabled for your facility.
-          </p>
           <p className="mt-3 text-sm text-muted-foreground">
             Contact your facility administrator to manage subscription.
           </p>
@@ -247,11 +231,6 @@ export function SubscriptionSettings() {
         )
       : null;
 
-  const paidPeriodDaysLeft =
-    subscriptionStatus === "ACTIVE" && subscription
-      ? (getDisplayBillingPeriodEndAndDaysLeft(subscription)?.daysLeft ?? null)
-      : null;
-
   const isPaymentDue =
     subscriptionStatus === "PAYMENT_DUE" || subscriptionStatus === "PAST_DUE";
   const isExpired = subscriptionStatus === "EXPIRED";
@@ -264,17 +243,6 @@ export function SubscriptionSettings() {
   return (
     <div className="space-y-6">
       <PaymentRecoveryCard show={showRecoveryCard} />
-      <p className="text-[var(--fs-xs)] leading-relaxed text-muted-foreground">
-        Subscription tier{" "}
-        <span className="font-medium text-foreground">{tierName}</span> ·
-        Workspace{" "}
-        <span className="font-medium text-foreground">
-          {workspaceProfileLabel}
-        </span>
-        . Workspace is not a separate paid tier; it controls which product
-        areas are enabled for your facility.
-      </p>
-
       {trialDaysLeft !== null ? (
         <Alert className="border-info/40 bg-info/10">
           <Clock className="h-4 w-4 text-info" />
@@ -301,13 +269,7 @@ export function SubscriptionSettings() {
           <Info className="h-4 w-4 text-muted-foreground" aria-hidden />
           <AlertTitle>Starter without a paid subscription</AlertTitle>
           <AlertDescription className="flex flex-wrap items-center justify-between gap-3">
-            <span>
-              Your clinic is active on Starter at no charge, so there is no
-              Razorpay subscription receipt yet. Billing history only lists
-              completed subscription checkouts (and any one-off charges we record
-              for your clinic). Upgrade when you are ready for paid limits and
-              invoices here.
-            </span>
+            <span>Your clinic is active on Starter at no charge.</span>
             <Button
               size="sm"
               onClick={scrollToBillingPlans}
@@ -317,37 +279,9 @@ export function SubscriptionSettings() {
             </Button>
           </AlertDescription>
         </Alert>
-      ) : (
-        <TrialOfferBanner
-          actionLabel="View plans"
-          onAction={scrollToBillingPlans}
-        />
-      )}
+      ) : null}
 
-      {paidPeriodDaysLeft !== null && paidPeriodDaysLeft <= 7 && (
-        <Alert className="border-warning/40 bg-warning/10">
-          <Clock className="h-4 w-4 text-warning" />
-          <AlertTitle>Subscription renewal coming up</AlertTitle>
-          <AlertDescription className="flex flex-wrap items-center justify-between gap-3">
-            <span>
-              {paidPeriodDaysLeft > 0
-                ? `${paidPeriodDaysLeft} day${paidPeriodDaysLeft !== 1 ? "s" : ""} left in the current billing period.`
-                : "Your billing period ends today."}{" "}
-              Ensure payment is completed to avoid interruption.
-            </span>
-            <Button
-              size="sm"
-              variant="outline"
-              onClick={scrollToBillingPlans}
-              className="shrink-0"
-            >
-              Manage billing
-            </Button>
-          </AlertDescription>
-        </Alert>
-      )}
-
-      {isPaymentDue && (
+      {isPaymentDue && !showRecoveryCard && (
         <Alert variant="destructive">
           <AlertTriangle className="h-4 w-4" />
           <AlertTitle>Payment Due</AlertTitle>
@@ -368,7 +302,7 @@ export function SubscriptionSettings() {
         </Alert>
       )}
 
-      {isInGracePeriod && (
+      {isInGracePeriod && !showRecoveryCard && (
         <Alert className="border-warning/40 bg-warning/10">
           <AlertTriangle className="h-4 w-4 text-warning" />
           <AlertTitle>Payment Grace Period</AlertTitle>
@@ -418,16 +352,6 @@ export function SubscriptionSettings() {
         <BillingSubscriptionWorkspace />
 
         <div className="flex flex-col gap-3 border-t border-border/60 pt-4">
-          <p className="text-[var(--fs-2xs)] text-muted-foreground">
-            General product help (email and WhatsApp) is under{" "}
-            <Link
-              href="/settings?tab=help-support"
-              className="font-medium text-foreground underline underline-offset-4 hover:text-primary"
-            >
-              Help & support
-            </Link>
-            .
-          </p>
           <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
             <p className="text-[var(--fs-sm)] text-muted-foreground">
               Need help with billing or onboarding?

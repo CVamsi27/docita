@@ -61,7 +61,7 @@ describe("BillingHistoryTable", () => {
             currency: "INR",
             status: "paid",
             description: "ESSENTIAL MONTHLY subscription",
-            receiptUrl: "/subscription/billing/payments/paid-1/invoice.pdf",
+            receiptUrl: "https://rzp.io/i/abc123",
             createdAt: "2026-04-28T00:00:00.000Z",
           },
         ]}

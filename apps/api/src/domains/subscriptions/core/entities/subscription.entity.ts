@@ -7,6 +7,13 @@ import {
   DiscountAggregate,
 } from '@/domains/subscriptions/core/value-objects';
 
+/** Persistent shape for a scheduled plan change (downgrade or cycle swap). */
+export interface ScheduledPlanChange {
+  plan: string;
+  billingCycle: string;
+  effectiveAt: string; // ISO-8601
+}
+
 export interface SubscriptionProps {
   id: string;
   clinicId: string;
@@ -24,6 +31,7 @@ export interface SubscriptionProps {
   discounts?: DiscountAggregate;
   creditsCents?: number;
   graceUntil?: Date | null;
+  scheduledChange?: ScheduledPlanChange | null;
   createdAt: Date;
   updatedAt: Date;
   version: number;
@@ -46,6 +54,7 @@ export class Subscription {
   private discounts: DiscountAggregate;
   private creditsCents: number;
   private graceUntil: Date | null;
+  public scheduledChange: ScheduledPlanChange | null;
   readonly createdAt: Date;
   public updatedAt: Date;
   public version: number;
@@ -67,6 +76,7 @@ export class Subscription {
     this.discounts = props.discounts || new DiscountAggregate();
     this.creditsCents = props.creditsCents || 0;
     this.graceUntil = props.graceUntil ?? null;
+    this.scheduledChange = props.scheduledChange ?? null;
     this.createdAt = props.createdAt;
     this.updatedAt = props.updatedAt;
     this.version = props.version;
@@ -208,24 +218,77 @@ export class Subscription {
     billingCycle: BillingCycle,
     basePriceCents: number,
     start: Date = new Date(),
+    options: { preserveCurrentPeriodEnd?: boolean } = {},
   ) {
+    const isSameCycle = this.billingCycle.equals(billingCycle);
+    const keepExistingPeriodEnd =
+      options.preserveCurrentPeriodEnd === true &&
+      isSameCycle &&
+      this.currentPeriodEnd > start;
+
     this.plan = plan;
     this.billingCycle = billingCycle;
     this.basePriceCents = basePriceCents;
-    this.currentPeriodStart = start;
-    const nextEnd = new Date(start);
-    if (billingCycle.isYearly()) {
-      nextEnd.setFullYear(nextEnd.getFullYear() + 1);
-    } else if (billingCycle.isSemiAnnual()) {
-      nextEnd.setMonth(nextEnd.getMonth() + 6);
-    } else if (billingCycle.isQuarterly()) {
-      nextEnd.setMonth(nextEnd.getMonth() + 3);
+
+    if (keepExistingPeriodEnd) {
+      // Mid-cycle upgrade: keep the original renewal date so the user's
+      // billing rhythm doesn't drift with every plan change.
+      this.currentPeriodStart = start;
     } else {
-      nextEnd.setMonth(nextEnd.getMonth() + 1);
+      this.currentPeriodStart = start;
+      const nextEnd = new Date(start);
+      if (billingCycle.isYearly()) {
+        nextEnd.setFullYear(nextEnd.getFullYear() + 1);
+      } else if (billingCycle.isSemiAnnual()) {
+        nextEnd.setMonth(nextEnd.getMonth() + 6);
+      } else if (billingCycle.isQuarterly()) {
+        nextEnd.setMonth(nextEnd.getMonth() + 3);
+      } else {
+        nextEnd.setMonth(nextEnd.getMonth() + 1);
+      }
+      this.currentPeriodEnd = nextEnd;
     }
-    this.currentPeriodEnd = nextEnd;
+
     this.status = new SubscriptionStatus(SubscriptionStatusEnum.ACTIVE);
     this.graceUntil = null;
+    this.updatedAt = new Date();
+  }
+
+  /**
+   * Schedules a plan change to apply at a future date (typically the next
+   * renewal). Used for downgrades so the user keeps current-tier features
+   * for the remaining paid time.
+   */
+  schedulePlanChange(
+    plan: ClinicTier,
+    billingCycle: BillingCycle,
+    effectiveAt: Date,
+  ) {
+    this.scheduledChange = {
+      plan: plan.value,
+      billingCycle: billingCycle.value,
+      effectiveAt: effectiveAt.toISOString(),
+    };
+    this.updatedAt = new Date();
+  }
+
+  clearScheduledPlanChange() {
+    this.scheduledChange = null;
+    this.updatedAt = new Date();
+  }
+
+  /** Returns true if a scheduled change exists and its effectiveAt is in the past. */
+  isScheduledChangeDue(now: Date = new Date()): boolean {
+    if (!this.scheduledChange) return false;
+    return (
+      new Date(this.scheduledChange.effectiveAt).getTime() <= now.getTime()
+    );
+  }
+
+  /** Adds a positive amount to the account credit balance. */
+  addAccountCredit(amountCents: number) {
+    if (amountCents <= 0) return;
+    this.creditsCents += amountCents;
     this.updatedAt = new Date();
   }
 }

@@ -8,7 +8,6 @@ import {
   Request,
   BadRequestException,
   Param,
-  Res,
 } from '@nestjs/common';
 import { JwtAuthGuard } from '@/shared/modules/auth/auth/jwt-auth.guard';
 import { Roles } from '@/shared/modules/auth/auth/roles.decorator';
@@ -20,6 +19,7 @@ import {
   CreateCheckoutUseCase,
   ResumeSubscriptionPaymentUseCase,
   ProcessWebhookUseCase,
+  SchedulePlanChangeUseCase,
 } from '@/domains/subscriptions/application/use-cases';
 import { SubscriptionsQueryService } from '@/domains/subscriptions/application/services/subscriptions-query.service';
 import {
@@ -63,8 +63,6 @@ import {
 } from '@workspace/types';
 import { getDbRolesForTarget } from '@/shared/modules/auth/auth/access-matrix.util';
 import { ZodSerializerDto } from 'nestjs-zod';
-import { Response } from 'express';
-import { SubscriptionPaymentPdfService } from '@/domains/subscriptions/application/services/subscription-payment-pdf.service';
 
 @Controller(['subscriptions', 'subscription'])
 @SkipSubscriptionCheck()
@@ -81,7 +79,7 @@ export class SubscriptionsController {
     private readonly checkoutPricingService: SubscriptionCheckoutPricingService,
     private readonly configService: AppConfigService,
     private readonly usageTrackingService: UsageTrackingService,
-    private readonly subscriptionPaymentPdfService: SubscriptionPaymentPdfService,
+    private readonly schedulePlanChangeUseCase: SchedulePlanChangeUseCase,
   ) {}
 
   @Public()
@@ -210,6 +208,12 @@ export class SubscriptionsController {
       const status = (
         p.status ?? String(p.getStatus?.() ?? 'pending')
       ).toLowerCase();
+      // Razorpay is the source of truth for invoice PDFs. We surface its
+      // hosted short_url as the receipt link; in-house PDF generation is gone.
+      const receiptUrl =
+        status === 'paid' && typeof p.invoiceUrl === 'string'
+          ? p.invoiceUrl
+          : undefined;
       return {
         id: p.id,
         amountCents: p.amountCents,
@@ -221,10 +225,7 @@ export class SubscriptionsController {
         status,
         description: p.description ?? undefined,
         payUrl: status === 'paid' ? undefined : (p.invoiceUrl ?? undefined),
-        receiptUrl:
-          status === 'paid'
-            ? `/subscription/billing/payments/${p.id}/invoice.pdf`
-            : undefined,
+        receiptUrl,
         invoiceUrl: p.invoiceUrl ?? undefined,
         invoiceNumber: p.invoiceNumber ?? undefined,
         invoiceType: p.invoiceType ?? undefined,
@@ -248,27 +249,6 @@ export class SubscriptionsController {
       clinicId: req.user.clinicId,
       paymentId: id,
     });
-  }
-
-  @UseGuards(JwtAuthGuard)
-  @Roles(...getDbRolesForTarget(APP_ACCESS_TARGETS.API_SUBSCRIPTION_BILLING))
-  @Get('billing/payments/:id/invoice.pdf')
-  async getPaymentInvoicePdf(
-    @Request() req: RequestWithUser,
-    @Param('id') id: string,
-    @Res() res: Response,
-  ) {
-    if (!req.user?.clinicId) throw new Error('Clinic ID not found');
-    const buffer = await this.subscriptionPaymentPdfService.generate(
-      id,
-      req.user.clinicId,
-    );
-    res.setHeader('Content-Type', 'application/pdf');
-    res.setHeader(
-      'Content-Disposition',
-      `attachment; filename="subscription-invoice-${id.slice(0, 8)}.pdf"`,
-    );
-    res.send(buffer);
   }
 
   @UseGuards(JwtAuthGuard)
@@ -375,5 +355,35 @@ export class SubscriptionsController {
       cancelAtPeriodEnd: !body.immediate,
     });
     return subscriptionBillingCancelResponseSchema.parse({ success: true });
+  }
+
+  /**
+   * Schedules a plan change (typically a downgrade) to apply at the current
+   * period end. No payment is taken now; current tier features remain until
+   * the scheduled date.
+   */
+  @UseGuards(JwtAuthGuard)
+  @Roles(...getDbRolesForTarget(APP_ACCESS_TARGETS.API_SUBSCRIPTION_BILLING))
+  @Post('billing/schedule-change')
+  async scheduleChange(
+    @Request() req: RequestWithUser,
+    @Body() body: { tier: string; billingCycle: string },
+  ) {
+    if (!req.user?.clinicId) throw new Error('Clinic ID not found');
+    return this.schedulePlanChangeUseCase.execute({
+      clinicId: req.user.clinicId,
+      tier: body.tier,
+      cycle: body.billingCycle,
+    });
+  }
+
+  /** Cancels a previously scheduled plan change. */
+  @UseGuards(JwtAuthGuard)
+  @Roles(...getDbRolesForTarget(APP_ACCESS_TARGETS.API_SUBSCRIPTION_BILLING))
+  @Post('billing/schedule-change/cancel')
+  async cancelScheduledChange(@Request() req: RequestWithUser) {
+    if (!req.user?.clinicId) throw new Error('Clinic ID not found');
+    await this.schedulePlanChangeUseCase.cancel(req.user.clinicId);
+    return { success: true };
   }
 }
