@@ -16,7 +16,7 @@ import { usePermissions } from "@/hooks/use-permissions";
 import { usePermissionStore } from "@/lib/stores/permission-store";
 import { useAuth } from "@/lib/auth-context";
 import { canAccessTarget } from "@/lib/access-policy";
-import { isConsultationReadOnlyStatus } from "@/features/appointments/rules/appointmentRules";
+import { isConsultationReadOnlyStatus } from "@/features/appointments";
 
 interface ConsultationVisitOverviewStripProps {
   appointment: Appointment;

@@ -18,7 +18,7 @@ import { Form, FormControl, FormField } from "@workspace/ui/components/form";
 import { FormFieldGroup } from "@workspace/ui/components";
 import { requiredStringSchema } from "@/features/_shared/schemas/common.schemas";
 import { settingsApi } from "@/features/settings/api/settings.api";
-import { PasswordStrengthIndicator } from "@/features/auth/components/AuthSharedFields";
+import { PasswordStrengthIndicator } from "@/features/auth";
 
 const changePasswordSchema = z
   .object({

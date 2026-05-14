@@ -6,7 +6,7 @@ import { Breadcrumbs, type BreadcrumbItem } from "@workspace/ui/components/bread
 import { TopBar } from "@workspace/ui/components/top-bar";
 import { Button } from "@workspace/ui/components/button";
 import { Sparkles } from "lucide-react";
-import { GlobalSearch } from "@/features/search/components/GlobalSearch";
+import { GlobalSearch } from "@/features/search";
 import { breadcrumbsFor } from "@/app/(protected)/route-meta";
 import { useAskAi } from "@/features/_shared/components/ask-ai/ask-ai-context";
 import { QuickAddPopover } from "@/features/_shared/components/navigation/quick-add-popover";

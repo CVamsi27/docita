@@ -3,7 +3,7 @@ import { AppPageScaffold } from "@workspace/ui/components/app-page-scaffold";
 import { PageHeader } from "@workspace/ui/components/page-header";
 import { StatGrid, type StatItem } from "@workspace/ui/components/stat-grid";
 import { Button } from "@workspace/ui/components/button";
-import { InventoryAddItemDialog } from "@/features/dialogs/components/InventoryAddItemDialogContainer";
+import { InventoryAddItemDialog } from "@/features/dialogs";
 import { InventoryItemDetailsContainer as InventoryItemDetails } from "@/features/inventory/components";
 import {
   AlertTriangle,
