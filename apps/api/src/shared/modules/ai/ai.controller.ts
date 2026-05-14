@@ -3,13 +3,17 @@ import {
   Post,
   Body,
   UseGuards,
-  Req as _Req,
+  Req,
+  Res,
   UploadedFile,
   UseInterceptors,
   BadRequestException,
+  Logger,
 } from '@nestjs/common';
 import { FileInterceptor } from '@nestjs/platform-express';
+import type { Request, Response } from 'express';
 import { AIService } from './ai.service';
+import { AskAiService } from './ask-ai.service';
 import { Role } from '@workspace/db';
 import { Roles } from '@/shared/modules/auth/auth/roles.decorator';
 import { TierGuard } from '@/shared/modules/auth/auth/tier.guard';
@@ -26,6 +30,7 @@ import {
   MedicationRecommendationRequestDto,
   ExtractionResultResponseDto,
   AnalyzePrescriptionDto,
+  AskAiRequestDto,
 } from './dto/ai.dto';
 import { ZodSerializerDto } from 'nestjs-zod';
 import { createTempDiskStorage } from '@/common/utils/upload.utils';
@@ -35,7 +40,63 @@ import { unlink } from 'fs/promises';
 @Roles(Role.ADMIN, Role.DOCTOR, Role.ADMIN_DOCTOR)
 @UseGuards(TierGuard)
 export class AIController {
-  constructor(private readonly aiService: AIService) {}
+  private readonly logger = new Logger(AIController.name);
+
+  constructor(
+    private readonly aiService: AIService,
+    private readonly askAiService: AskAiService,
+  ) {}
+
+  @Post('ask')
+  @RateLimit({ limit: 30, window: 60000 })
+  @RequireFeature(Feature.AI_PRESCRIPTION_ASSISTANT)
+  async ask(
+    @Body() dto: AskAiRequestDto,
+    @Req() req: Request,
+    @Res() res: Response,
+  ): Promise<void> {
+    res.setHeader('Content-Type', 'text/event-stream');
+    res.setHeader('Cache-Control', 'no-cache, no-transform');
+    res.setHeader('Connection', 'keep-alive');
+    res.setHeader('X-Accel-Buffering', 'no');
+    res.flushHeaders?.();
+
+    const controller = new AbortController();
+    const cleanup = () => controller.abort();
+    req.on('close', cleanup);
+    req.on('aborted', cleanup);
+
+    const send = (event: string, data: unknown) => {
+      res.write(`event: ${event}\n`);
+      res.write(`data: ${JSON.stringify(data)}\n\n`);
+    };
+
+    try {
+      for await (const delta of this.askAiService.stream({
+        prompt: dto.prompt,
+        history: dto.history,
+        scope: dto.scope ?? null,
+        signal: controller.signal,
+      })) {
+        if (controller.signal.aborted) break;
+        send('delta', { text: delta });
+      }
+      send('done', { ok: true });
+    } catch (err) {
+      if (controller.signal.aborted) {
+        send('done', { ok: true, aborted: true });
+      } else {
+        const message =
+          err instanceof Error ? err.message : 'AI request failed';
+        this.logger.error(`Ask AI stream failed: ${message}`);
+        send('error', { message });
+      }
+    } finally {
+      req.off('close', cleanup);
+      req.off('aborted', cleanup);
+      res.end();
+    }
+  }
 
   @Post('prescription-analysis')
   @RateLimit({ limit: 20, window: 60000 })
