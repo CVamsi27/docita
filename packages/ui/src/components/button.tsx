@@ -51,12 +51,18 @@ function Button({
     asChild?: boolean;
   }) {
   const Comp = asChild ? Slot : "button";
+  const resolvedProps = asChild
+    ? props
+    : {
+        type: "button" as const,
+        ...props,
+      };
 
   return (
     <Comp
       data-slot="button"
       className={cn(buttonVariants({ variant, size }), className)}
-      {...props}
+      {...resolvedProps}
     />
   );
 }
