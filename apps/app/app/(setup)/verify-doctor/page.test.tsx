@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { shouldRedirectToWorkspace } from "./page";
+import { shouldRedirectToWorkspace } from "./redirect-logic";
 
 describe("shouldRedirectToWorkspace", () => {
   it("redirects only after signature and saved registration are both present", () => {

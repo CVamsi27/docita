@@ -25,13 +25,7 @@ import { usePhoneSignatureQrFlow } from "@/features/_shared/hooks/use-phone-sign
 import { PhoneSignatureQrPanel } from "@/features/_shared/components/signature/phone-signature-qr-panel";
 import { showUserFacingErrorToast } from "@/lib/user-facing-errors";
 import { PreDashboardShell } from "@/features/auth/components/PreDashboardShell";
-
-export function shouldRedirectToWorkspace(
-  hasSignature: boolean,
-  hasSavedRegistration: boolean,
-) {
-  return hasSignature && hasSavedRegistration;
-}
+import { shouldRedirectToWorkspace } from "./redirect-logic";
 
 export default function VerifyDoctorPage() {
   const { user, refreshUser, isLoading: authLoading } = useAuth();
