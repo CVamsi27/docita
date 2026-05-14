@@ -21,6 +21,12 @@ export function shouldReportWebVitals(pathname: string | null): boolean {
   return !PUBLIC_AUTH_PATHS.has(pathname);
 }
 
+export function createWebVitalsBeaconBody(payload: Record<string, unknown>) {
+  return new Blob([JSON.stringify(payload)], {
+    type: "application/json",
+  });
+}
+
 export function WebVitalsReporter() {
   const pathname = usePathname();
 
@@ -36,19 +42,23 @@ export function WebVitalsReporter() {
     const sessionId = `session-${Date.now()}-${Math.random()}`;
 
     function sendToAnalytics(metric: Metric) {
-      const body = JSON.stringify({
+      const payload = {
         name: metric.name,
         value: metric.value,
         rating: metric.rating,
         page: pathname,
         feature: "clinician-app",
         sessionId,
-      });
+      };
+      const body = JSON.stringify(payload);
 
       if (navigator.sendBeacon) {
-        navigator.sendBeacon(`${API_URL}/monitoring/web-vitals`, body);
+        navigator.sendBeacon(
+          `${API_URL}/monitoring/web-vitals`,
+          createWebVitalsBeaconBody(payload),
+        );
       } else {
-        fetch(`${API_URL}/monitoring/web-vitals`, {
+        void fetch(`${API_URL}/monitoring/web-vitals`, {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body,
@@ -57,7 +67,7 @@ export function WebVitalsReporter() {
       }
     }
 
-    import("web-vitals").then(({ onCLS, onINP, onFCP, onLCP, onTTFB }) => {
+    void import("web-vitals").then(({ onCLS, onINP, onFCP, onLCP, onTTFB }) => {
       onCLS(sendToAnalytics);
       onINP(sendToAnalytics);
       onFCP(sendToAnalytics);
