@@ -25,7 +25,11 @@ const files = execSync("git ls-files apps packages", {
 })
   .split("\n")
   .filter(Boolean)
-  .filter((file) => /sentry|client-error-reporting|error-handling/i.test(file))
+  .filter((file) =>
+    /sentry|client-error-reporting|error-handling|phi-redactor|observability/i.test(
+      file,
+    ),
+  )
   .filter((file) => /\.(ts|tsx)$/.test(file));
 
 const sourceByFile = new Map(
@@ -35,7 +39,10 @@ const sourceByFile = new Map(
   ]),
 );
 const combined = Array.from(sourceByFile.values()).join("\n");
-const missing = piiFields.filter((field) => !combined.includes(field));
+const missing = piiFields.filter((field) => {
+  const escaped = field.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+  return !new RegExp(`\\b${escaped}\\b`, "i").test(combined);
+});
 const hasBeforeSendOrScrubber = /\b(beforeSend|sanitize|scrub|redact)\b/i.test(
   combined,
 );

@@ -33,7 +33,10 @@ import {
   AskAiRequestDto,
 } from './dto/ai.dto';
 import { ZodSerializerDto } from 'nestjs-zod';
-import { createTempDiskStorage } from '@/common/utils/upload.utils';
+import {
+  assertAllowedFileSignature,
+  createTempDiskStorage,
+} from '@/common/utils/upload.utils';
 import { unlink } from 'fs/promises';
 
 @Controller('ai')
@@ -156,6 +159,7 @@ export class AIController {
     }
 
     try {
+      await assertAllowedFileSignature(file, ['png', 'jpeg', 'webp', 'gif']);
       return await this.aiService.extractFromMedicalDocument(file.path, true);
     } finally {
       if (file.path) {

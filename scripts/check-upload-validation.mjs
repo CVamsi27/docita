@@ -14,35 +14,40 @@ const files = execSync("git ls-files apps/api/src", {
 })
   .split("\n")
   .filter(Boolean)
-  .filter(
-    (file) =>
-      /upload|signature/i.test(file) &&
-      /\.(controller|service|guard|utils)\.ts$/.test(file),
-  );
+  .filter((file) => /\.controller\.ts$/.test(file));
 
 const findings = [];
 
 for (const file of files) {
   const source = fs.readFileSync(path.join(repoRoot, file), "utf8");
-  const isUploadBoundary = /@Post|upload|Upload/i.test(source);
+  const isUploadBoundary = /\bFileInterceptor\s*\(/.test(source);
   if (!isUploadBoundary) continue;
 
   const validatesMime =
-    /\b(mime|contentType|allowedTypes|allowedMime|fileType)\b/i.test(source);
-  const validatesSize = /\b(maxSize|maxBytes|fileSize|sizeBytes|size)\b/i.test(
+    /\b(fileFilter|allowedMimes|mimetype|contentType|allowedTypes|allowedMime|fileType)\b/i.test(
+      source,
+    );
+  const validatesSize = /\b(fileSize|MAX_FILE_SIZE|maxSize|maxBytes)\b/i.test(
     source,
   );
+  const validatesSignature = /\bassertAllowedFileSignature\b/.test(source);
   const sanitizesName =
-    /\b(sanitize|safeFileName|basename|normalizeUploadFileName|null byte|\.\.)\b/i.test(
+    /\b(createTempDiskStorage|sanitize|safeFileName|basename|normalizeUploadFileName|null byte|\.\.)\b/i.test(
       source,
     );
 
-  if (!validatesMime || !validatesSize || !sanitizesName) {
+  if (
+    !validatesMime ||
+    !validatesSize ||
+    !validatesSignature ||
+    !sanitizesName
+  ) {
     findings.push({
       file,
       reason: [
         !validatesMime ? "mime/content-type validation" : null,
         !validatesSize ? "size validation" : null,
+        !validatesSignature ? "content signature validation" : null,
         !sanitizesName ? "filename sanitization" : null,
       ]
         .filter(Boolean)

@@ -23,14 +23,41 @@ const packageTypeFiles = execSync("git ls-files packages/types/src", {
   .filter(Boolean)
   .filter((file) => /\.(ts|tsx)$/.test(file));
 
-const sharedNames = new Set();
-const declarationPattern =
-  /\bexport\s+(?:declare\s+)?(?:interface|type)\s+([A-Z][A-Za-z0-9_]*)\b/g;
+const sharedShapes = new Map();
+
+function normalizeShape(source) {
+  return source
+    .replace(/\/\/.*$/gm, "")
+    .replace(/\/\*[\s\S]*?\*\//g, "")
+    .replace(/\s+/g, " ")
+    .replace(/\s*([{}:;?,|&<>=()[\]])\s*/g, "$1")
+    .trim();
+}
+
+function collectDeclarations(source) {
+  const declarations = [];
+  const interfacePattern =
+    /\bexport\s+(?:declare\s+)?interface\s+([A-Z][A-Za-z0-9_]*)\b[^{]*({[\s\S]*?^})/gm;
+  const objectTypePattern =
+    /\bexport\s+type\s+([A-Z][A-Za-z0-9_]*)\s*=\s*({[\s\S]*?});/gm;
+
+  for (const match of source.matchAll(interfacePattern)) {
+    declarations.push({ name: match[1], shape: normalizeShape(match[2]) });
+  }
+  for (const match of source.matchAll(objectTypePattern)) {
+    declarations.push({ name: match[1], shape: normalizeShape(match[2]) });
+  }
+
+  return declarations;
+}
 
 for (const file of packageTypeFiles) {
   const source = fs.readFileSync(path.join(repoRoot, file), "utf8");
-  for (const match of source.matchAll(declarationPattern)) {
-    sharedNames.add(match[1]);
+  for (const declaration of collectDeclarations(source)) {
+    if (!sharedShapes.has(declaration.shape)) {
+      sharedShapes.set(declaration.shape, []);
+    }
+    sharedShapes.get(declaration.shape).push({ file, name: declaration.name });
   }
 }
 
@@ -44,17 +71,20 @@ const appFiles = appRoots.flatMap((root) =>
 const findings = [];
 
 for (const file of appFiles) {
-  const lines = fs
-    .readFileSync(path.join(repoRoot, file), "utf8")
-    .split(/\r?\n/);
-  lines.forEach((line, index) => {
-    for (const match of line.matchAll(declarationPattern)) {
-      const name = match[1];
-      if (sharedNames.has(name)) {
-        findings.push({ file, line: index + 1, name });
-      }
-    }
-  });
+  const source = fs.readFileSync(path.join(repoRoot, file), "utf8");
+  for (const declaration of collectDeclarations(source)) {
+    const matches = sharedShapes.get(declaration.shape);
+    if (!matches) continue;
+    const line = source
+      .slice(0, source.indexOf(declaration.name))
+      .split(/\r?\n/).length;
+    findings.push({
+      file,
+      line,
+      name: declaration.name,
+      matches: matches.map((match) => `${match.name} (${match.file})`),
+    });
+  }
 }
 
 if (findings.length > 0) {
@@ -67,7 +97,9 @@ if (findings.length > 0) {
     "App-local exported types should not mirror names already exported from packages/types.",
   );
   for (const finding of findings) {
-    console.error(`- ${finding.file}:${finding.line} ${finding.name}`);
+    console.error(
+      `- ${finding.file}:${finding.line} ${finding.name} duplicates ${finding.matches.join(", ")}`,
+    );
   }
   if (enforce) process.exit(1);
   console.log(
