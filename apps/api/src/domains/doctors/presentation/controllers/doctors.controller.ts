@@ -8,9 +8,17 @@ import {
   Param,
   Request,
   UseGuards,
+  UseInterceptors,
+  UploadedFile,
   BadRequestException,
   ForbiddenException,
 } from '@nestjs/common';
+import { FileInterceptor } from '@nestjs/platform-express';
+import { unlink } from 'fs/promises';
+import {
+  assertAllowedFileSignature,
+  createTempDiskStorage,
+} from '@/common/utils/upload.utils';
 import { DoctorsService } from '@/domains/doctors/application/services/doctors.service';
 import { Roles } from '@/shared/modules/auth/auth/roles.decorator';
 import { TierGuard } from '@/shared/modules/auth/auth/tier.guard';
@@ -152,6 +160,55 @@ export class DoctorsController {
       id,
       req.user?.clinicId || undefined,
     );
+  }
+
+  @Post(':id/registration-certificate')
+  @Roles(Role.ADMIN, Role.ADMIN_DOCTOR, Role.DOCTOR)
+  @UseInterceptors(
+    FileInterceptor('file', {
+      storage: createTempDiskStorage(),
+      limits: { fileSize: 5 * 1024 * 1024 },
+      fileFilter: (_req, file, cb) => {
+        const allowedMimes = [
+          'application/pdf',
+          'image/jpeg',
+          'image/jpg',
+          'image/png',
+        ];
+        if (!allowedMimes.includes(file.mimetype)) {
+          return cb(
+            new BadRequestException(
+              'Only PDF, JPEG, and PNG files are allowed',
+            ),
+            false,
+          );
+        }
+        cb(null, true);
+      },
+    }),
+  )
+  async uploadRegistrationCertificate(
+    @Request() req: RequestWithUser,
+    @Param('id') id: string,
+    @UploadedFile() file: Express.Multer.File,
+  ) {
+    if (req.user?.role === Role.DOCTOR && req.user.id !== id) {
+      throw new ForbiddenException(
+        'Doctors can only upload their own registration certificate',
+      );
+    }
+    if (!file) {
+      throw new BadRequestException('File is required');
+    }
+    try {
+      await assertAllowedFileSignature(file, ['pdf', 'png', 'jpeg']);
+      return await this.doctorsService.uploadRegistrationCertificate(id, file);
+    } catch (error) {
+      if (file.path) {
+        await unlink(file.path).catch(() => {});
+      }
+      throw error;
+    }
   }
 
   @Get(':id/education')

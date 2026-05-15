@@ -33,6 +33,9 @@ model User {
   verificationReason         String?
   verificationData           Json?
   verificationCheckedAt      DateTime?
+  registrationCertificateUrl String?
+  verifiedByAdminId          String?
+  verifiedByAdminAt          DateTime?
   phoneNumber                String?
   profilePhotoUrl            String?
   specialization             Specialization?
@@ -96,6 +99,7 @@ model User {
   @@index([clinicId])
   @@index([specialization])
   @@index([clinicId, role, createdAt], map: "User_clinicId_role_createdAt_idx")
+  @@index([verificationStatus])
 }
 
 model NotificationPreferences {

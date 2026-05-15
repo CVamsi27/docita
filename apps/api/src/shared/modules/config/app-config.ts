@@ -71,6 +71,8 @@ export const EnvSchema = z.object({
   WORKER_ENTRYPOINT: z.enum(['main', 'worker']).default('main'),
   DOCTOR_VERIFICATION_API_URL: z.string().optional(),
   DOCTOR_VERIFICATION_API_KEY: z.string().optional(),
+  HPR_API_URL: z.string().optional(),
+  HPR_API_KEY: z.string().optional(),
   META_BUSINESS_ACCOUNT_ID: z.string().optional(),
   SMTP_HOST: z.string().default('localhost'),
   SMTP_PORT: z.coerce.number().default(587),

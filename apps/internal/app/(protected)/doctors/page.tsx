@@ -38,7 +38,19 @@ import {
   SelectValue,
 } from "@workspace/ui/components/select";
 import { Label } from "@workspace/ui/components/label";
-import { Award, Building2, Eye, GraduationCap, Search, ShieldCheck, ShieldX, Stethoscope } from "lucide-react";
+import { Textarea } from "@workspace/ui/components/textarea";
+import {
+  Award,
+  Building2,
+  Eye,
+  FileText,
+  GraduationCap,
+  Search,
+  ShieldCheck,
+  ShieldX,
+  Stethoscope,
+} from "lucide-react";
+import { toast } from "sonner";
 import { useAuth } from "@/lib/auth";
 import { client } from "@/lib/api-client";
 import { formatInternalListDate } from "@/lib/format-display-date";
@@ -79,6 +91,12 @@ interface Doctor {
     | "FAILED";
   verificationReason?: string;
   verificationCheckedAt?: string;
+  verificationSource?: string;
+  registrationCouncil?: string;
+  registrationStateCode?: string;
+  registrationCertificateUrl?: string | null;
+  verifiedByAdminId?: string | null;
+  verifiedByAdminAt?: string | null;
   createdAt: string;
   educationHistory?: Education[];
   certifications?: Certification[];
@@ -124,6 +142,11 @@ export default function DoctorsPage() {
     useInternalFiltersStore();
   const [selectedDoctor, setSelectedDoctor] = useState<Doctor | null>(null);
   const [isViewOpen, setIsViewOpen] = useState(false);
+  const [adminActionBusy, setAdminActionBusy] = useState<
+    "verify" | "reject" | null
+  >(null);
+  const [rejectionReasonDraft, setRejectionReasonDraft] = useState("");
+  const [showRejectForm, setShowRejectForm] = useState(false);
   const { token } = useAuth();
 
   const getVerificationBadgeVariant = (
@@ -222,7 +245,70 @@ export default function DoctorsPage() {
     }
 
     await fetchDoctorDetails(clinicId, doctor.id);
+    setShowRejectForm(false);
+    setRejectionReasonDraft("");
     setIsViewOpen(true);
+  };
+
+  const refreshSelectedDoctor = async (doctorId: string) => {
+    const clinicId = selectedDoctor?.clinicId;
+    if (clinicId) {
+      await fetchDoctorDetails(clinicId, doctorId);
+    }
+    await doctorsQuery.refetch();
+  };
+
+  const handleAdminVerify = async () => {
+    if (!selectedDoctor) return;
+    setAdminActionBusy("verify");
+    try {
+      await client.post(
+        `/internal/doctors/${selectedDoctor.id}/admin-verify`,
+        {},
+      );
+      toast.success("Doctor verified");
+      await refreshSelectedDoctor(selectedDoctor.id);
+      setShowRejectForm(false);
+    } catch (error) {
+      showUserFacingErrorToast(
+        error,
+        "We could not verify this doctor. Please try again.",
+        "verification",
+      );
+    } finally {
+      setAdminActionBusy(null);
+    }
+  };
+
+  const handleAdminReject = async () => {
+    if (!selectedDoctor) return;
+    const reason = rejectionReasonDraft.trim();
+    if (reason.length < 3) {
+      showUserFacingErrorToast(
+        null,
+        "Enter a rejection reason before continuing.",
+        "form",
+      );
+      return;
+    }
+    setAdminActionBusy("reject");
+    try {
+      await client.post(`/internal/doctors/${selectedDoctor.id}/admin-reject`, {
+        reason,
+      });
+      toast.success("Doctor rejected with reason");
+      await refreshSelectedDoctor(selectedDoctor.id);
+      setShowRejectForm(false);
+      setRejectionReasonDraft("");
+    } catch (error) {
+      showUserFacingErrorToast(
+        error,
+        "We could not reject this doctor. Please try again.",
+        "verification",
+      );
+    } finally {
+      setAdminActionBusy(null);
+    }
   };
 
   const filteredDoctors = doctors.filter(
@@ -479,7 +565,9 @@ export default function DoctorsPage() {
                     Last Verification
                   </Label>
                   <p className="font-medium">
-                    {formatInternalListDate(selectedDoctor.verificationCheckedAt)}
+                    {formatInternalListDate(
+                      selectedDoctor.verificationCheckedAt,
+                    )}
                   </p>
                 </div>
                 <div>
@@ -537,6 +625,137 @@ export default function DoctorsPage() {
                   </div>
                 );
               })()}
+
+              {(selectedDoctor.registrationCouncil ||
+                selectedDoctor.registrationStateCode ||
+                selectedDoctor.registrationCertificateUrl) && (
+                <div className="rounded-lg border bg-muted/30 p-4 space-y-2">
+                  <Label className="text-muted-foreground text-xs uppercase tracking-wide">
+                    Registration evidence
+                  </Label>
+                  {(selectedDoctor.registrationCouncil ||
+                    selectedDoctor.registrationStateCode) && (
+                    <p className="text-sm">
+                      {selectedDoctor.registrationCouncil && (
+                        <>
+                          Issuing council:{" "}
+                          <span className="font-medium">
+                            {selectedDoctor.registrationCouncil}
+                          </span>
+                        </>
+                      )}
+                      {selectedDoctor.registrationStateCode && (
+                        <>
+                          {selectedDoctor.registrationCouncil ? " · " : null}
+                          Region:{" "}
+                          <span className="font-medium">
+                            {selectedDoctor.registrationStateCode}
+                          </span>
+                        </>
+                      )}
+                    </p>
+                  )}
+                  {selectedDoctor.registrationCertificateUrl ? (
+                    <a
+                      href={selectedDoctor.registrationCertificateUrl}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="inline-flex items-center gap-2 text-sm text-primary hover:underline"
+                    >
+                      <FileText className="h-4 w-4" />
+                      View uploaded registration certificate
+                    </a>
+                  ) : (
+                    <p className="text-xs text-muted-foreground">
+                      No registration certificate uploaded.
+                    </p>
+                  )}
+                </div>
+              )}
+
+              {selectedDoctor.registrationNumber &&
+                (selectedDoctor.verificationStatus === "PENDING" ||
+                  selectedDoctor.verificationStatus === "FAILED" ||
+                  selectedDoctor.verificationStatus === "UNVERIFIED") && (
+                  <div className="rounded-lg border border-primary/30 bg-primary/5 p-4 space-y-3">
+                    <div>
+                      <Label className="text-sm font-semibold">
+                        Admin review
+                      </Label>
+                      <p className="text-xs text-muted-foreground mt-1">
+                        Confirm this doctor&apos;s registration against the
+                        council portal or the uploaded certificate, then verify
+                        or reject with a reason.
+                      </p>
+                    </div>
+
+                    {!showRejectForm ? (
+                      <div className="flex flex-wrap gap-2">
+                        <Button
+                          size="sm"
+                          onClick={handleAdminVerify}
+                          disabled={adminActionBusy !== null}
+                        >
+                          <ShieldCheck className="mr-2 h-4 w-4" />
+                          {adminActionBusy === "verify"
+                            ? "Verifying…"
+                            : "Verify Doctor"}
+                        </Button>
+                        <Button
+                          size="sm"
+                          variant="outline"
+                          onClick={() => setShowRejectForm(true)}
+                          disabled={adminActionBusy !== null}
+                        >
+                          <ShieldX className="mr-2 h-4 w-4" />
+                          Reject
+                        </Button>
+                      </div>
+                    ) : (
+                      <div className="space-y-2">
+                        <Label
+                          htmlFor="reject-reason"
+                          className="text-xs text-muted-foreground"
+                        >
+                          Rejection reason (visible to the doctor)
+                        </Label>
+                        <Textarea
+                          id="reject-reason"
+                          value={rejectionReasonDraft}
+                          onChange={(e) =>
+                            setRejectionReasonDraft(e.target.value)
+                          }
+                          placeholder="e.g. Registration number not found on the Maharashtra Medical Council portal. Please re-check the number and resubmit."
+                          rows={3}
+                          maxLength={500}
+                        />
+                        <div className="flex flex-wrap gap-2 justify-end">
+                          <Button
+                            size="sm"
+                            variant="ghost"
+                            onClick={() => {
+                              setShowRejectForm(false);
+                              setRejectionReasonDraft("");
+                            }}
+                            disabled={adminActionBusy !== null}
+                          >
+                            Cancel
+                          </Button>
+                          <Button
+                            size="sm"
+                            variant="destructive"
+                            onClick={handleAdminReject}
+                            disabled={adminActionBusy !== null}
+                          >
+                            {adminActionBusy === "reject"
+                              ? "Rejecting…"
+                              : "Submit Rejection"}
+                          </Button>
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                )}
 
               <div>
                 <div className="flex items-center gap-2 mb-3">

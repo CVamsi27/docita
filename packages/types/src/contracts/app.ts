@@ -15,6 +15,7 @@ export const appAuthUserSchema = userSchema
     registrationStateCode: true,
     verificationStatus: true,
     verificationReason: true,
+    registrationCertificateUrl: true,
   })
   .extend({
     clinicId: z.string().nullable().optional(),

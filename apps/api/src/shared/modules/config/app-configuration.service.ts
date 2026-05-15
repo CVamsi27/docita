@@ -481,6 +481,13 @@ export class AppConfigService {
     };
   }
 
+  getHprVerificationConfig() {
+    return {
+      hprApiUrl: this.getConfig().HPR_API_URL,
+      hprApiKey: this.getConfig().HPR_API_KEY,
+    };
+  }
+
   getOpenAiConfig() {
     return {
       apiKey: this.getConfig().OPENAI_API_KEY,

@@ -1,5 +1,6 @@
 import { Module } from '@nestjs/common';
 import { DoctorsController } from './presentation/controllers/doctors.controller';
+import { InternalDoctorsVerificationController } from './presentation/controllers/internal-doctors-verification.controller';
 import { DoctorsService } from './application/services/doctors.service';
 import { DoctorAvailabilityController } from './presentation/controllers/doctor-availability.controller';
 import { DoctorAvailabilityService } from './application/services/doctor-availability.service';
@@ -24,6 +25,7 @@ import { PrismaSignatureUploadRepository } from './infrastructure/repositories/p
   imports: [PrismaModule, DocumentsModule],
   controllers: [
     DoctorsController,
+    InternalDoctorsVerificationController,
     DoctorAvailabilityController,
     SignatureUploadController,
     ClinicSignatureController,
