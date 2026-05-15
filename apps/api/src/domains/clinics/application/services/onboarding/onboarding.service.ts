@@ -260,6 +260,22 @@ export class OnboardingService {
         completeData.planSelection.tier === ClinicTier.ESSENTIAL &&
         completeData.paymentDetails?.skipPayment === true;
 
+      // Trial re-use prevention: a free trial is a one-shot offer per
+      // person. If the admin email is associated with ANY clinic that has
+      // ever had a `paid` subscription payment, deny the trial path and
+      // force the user to complete a real Razorpay checkout.
+      if (isUnpaidEssentialTrial) {
+        const hasPriorPaidSubscription =
+          await this.hasPriorPaidSubscriptionForEmail(
+            completeData.adminAccount.email,
+          );
+        if (hasPriorPaidSubscription) {
+          throw new BadRequestException(
+            'The 30-day free trial is only available to new customers. Please choose a paid plan to continue.',
+          );
+        }
+      }
+
       if (listPriceCents > 0 && !isUnpaidEssentialTrial && hasRazorpayPayment) {
         const verification = await this.paymentGateway.verifyPayment({
           razorpayPaymentId: completeData.paymentDetails!.razorpayPaymentId!,
@@ -430,5 +446,32 @@ export class OnboardingService {
         errors: [error instanceof Error ? error.message : 'Unknown error'],
       };
     }
+  }
+
+  /**
+   * Returns true if any clinic linked to a user with the given email has
+   * a `paid` SubscriptionPayment on record. Used to gate the free-trial
+   * offer so each customer can only consume it once.
+   */
+  private async hasPriorPaidSubscriptionForEmail(
+    email: string,
+  ): Promise<boolean> {
+    const normalized = email.trim().toLowerCase();
+    if (!normalized) return false;
+    return this.prisma.runUnrestricted(async () => {
+      const users = await this.prisma.user.findMany({
+        where: { email: normalized },
+        select: { clinicId: true },
+      });
+      const clinicIds = users
+        .map((u) => u.clinicId)
+        .filter((id): id is string => !!id);
+      if (clinicIds.length === 0) return false;
+      const paid = await this.prisma.subscriptionPayment.findFirst({
+        where: { clinicId: { in: clinicIds }, status: 'paid' },
+        select: { id: true },
+      });
+      return !!paid;
+    });
   }
 }

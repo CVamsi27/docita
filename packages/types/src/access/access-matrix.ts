@@ -228,8 +228,10 @@ const CLINICAL_SUPPORT_ROLES: UserRole[] = [
   "NURSE",
 ];
 const ADMIN_BILLING_ROLES: UserRole[] = ["ADMIN", "ADMIN_DOCTOR"];
-const PRESCRIPTION_ROLES: UserRole[] = ["ADMIN", "ADMIN_DOCTOR", "DOCTOR"];
-const CLINICAL_CODING_ROLES: UserRole[] = ["ADMIN", "ADMIN_DOCTOR", "DOCTOR"];
+// Prescription authorship is a clinical act — non-clinical ADMIN cannot
+// author Rx. ADMIN_DOCTOR can because they are also a practicing doctor.
+const PRESCRIPTION_ROLES: UserRole[] = ["ADMIN_DOCTOR", "DOCTOR"];
+const CLINICAL_CODING_ROLES: UserRole[] = ["ADMIN_DOCTOR", "DOCTOR"];
 const ANALYTICS_ROLES: UserRole[] = ["ADMIN", "ADMIN_DOCTOR", "DOCTOR"];
 const IMPORT_ROLES: UserRole[] = ["ADMIN", "ADMIN_DOCTOR", "INTERNAL"];
 

@@ -89,6 +89,7 @@ export class SubscriptionsController {
   }
 
   @UseGuards(JwtAuthGuard)
+  @Roles(...getDbRolesForTarget(APP_ACCESS_TARGETS.API_SUBSCRIPTION_BILLING))
   @Get('current')
   async getCurrent(@Request() req: RequestWithUser) {
     if (!req.user?.clinicId) {
@@ -100,6 +101,7 @@ export class SubscriptionsController {
   }
 
   @UseGuards(JwtAuthGuard)
+  @Roles(...getDbRolesForTarget(APP_ACCESS_TARGETS.API_SUBSCRIPTION_BILLING))
   @Get('usage')
   async getCurrentUsage(@Request() req: RequestWithUser) {
     if (!req.user?.clinicId) {
