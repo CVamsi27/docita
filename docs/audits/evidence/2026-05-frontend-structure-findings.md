@@ -81,10 +81,11 @@
 | apps/app/features/settings/components/compliance/ComplianceSettingsPanel.tsx | split | component is 663 lines; split into sections/hooks | split after characterization tests |
 | apps/app/features/settings/components/leave/LeaveManagementSettings.tsx | split | component is 798 lines; split into sections/hooks | split after characterization tests |
 | apps/app/features/settings/components/management/MemberManagementSettings.tsx | split | component is 529 lines; split into sections/hooks | split after characterization tests |
-| apps/app/features/subscription/components/billing-subscription-workspace.tsx | split | component is 712 lines; split into sections/hooks | split after characterization tests |
+| apps/app/features/subscription/components/billing-subscription-workspace.tsx | split | component is 747 lines; split into sections/hooks | split after characterization tests |
 | apps/app/features/subscription/components/billing/BillingHistoryTable.tsx | split | component is 508 lines; split into sections/hooks | split after characterization tests |
+| apps/app/features/subscription/components/cards/current-plan-card.tsx | split | component is 418 lines; split into sections/hooks | split after characterization tests |
 | apps/app/features/subscription/components/cards/tier-card.tsx | split | component is 495 lines; split into sections/hooks | split after characterization tests |
-| apps/app/features/subscription/components/dialogs/tier-change-dialog.tsx | split | component is 424 lines; split into sections/hooks | split after characterization tests |
+| apps/app/features/subscription/components/dialogs/tier-change-dialog.tsx | split | component is 549 lines; split into sections/hooks | split after characterization tests |
 | apps/app/features/subscription/components/pricing/comparison-table.tsx | split | component is 561 lines; split into sections/hooks | split after characterization tests |
 | apps/internal/components/analytics/analytics-dashboard.tsx | move | app-level components are transitional; move to a feature, _shared, or packages/ui | review target folder and move behind index.ts re-export |
 | apps/internal/components/analytics/analytics-detailed-metrics-table.tsx | move | app-level components are transitional; move to a feature, _shared, or packages/ui | review target folder and move behind index.ts re-export |

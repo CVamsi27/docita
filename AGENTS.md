@@ -412,3 +412,34 @@ Before finalizing changes:
 - `pnpm lint`, targeted `check-types`, tests, and Knip (when applicable) pass before push.
 - Relevant local tests/builds were run and passed before the final push.
 - If CI was red, the corresponding local workflow commands were run and passed before the final push.
+
+## 15) Pattern Catalogue
+
+When this file says to follow existing patterns, use these concrete references before adding a new instance.
+
+### 15.1 Backend Patterns
+
+- **Domain layout**: `apps/api/src/domains/<domain>/{application,core,infrastructure,presentation}`. Reference: `apps/api/src/domains/appointments`.
+- **Controller posture**: every route declares `@Public`, `@Roles`, `@RequireFeature`, or inherits an explicit controller-level posture. Enforced by `scripts/check-controller-rbac.mjs`.
+- **DTOs**: schemas originate in `packages/types` and API DTOs wrap them with `createZodDto`.
+- **Persistence**: repositories isolate Prisma access and map database rows to application/domain objects.
+- **Tier/feature gates**: never compare `Tier.INTELLIGENCE` or `Tier.FRONT_DESK` numerically. Use `hasFeatureAccess`, `getMinimumTierForFeature`, and the feature guards.
+- **Pure rules/calculators**: keep deterministic business math free of NestJS decorators and dependency injection.
+
+### 15.2 Frontend Patterns
+
+- **Feature layout**: `apps/app/features/<feature>/{components,hooks,rules,lib,types,index.ts}` with public imports through `index.ts`.
+- **Pages**: route files compose feature shells; business logic belongs in feature components/hooks.
+- **Data fetching**: feature code consumes `packages/data-access` hooks or approved app API wrappers. Inline `fetch` in client features is blocked by `scripts/check-frontend-fetch.mjs`.
+- **State**: React Query for server state, established stores for cross-cutting client state, and local state only for view-local behavior.
+- **UI**: assemble from `@workspace/ui` primitives and follow `docs/UI_UX_STANDARD_2026.md`.
+
+### 15.3 Shared Package Boundaries
+
+- `packages/types`: Zod schemas and inferred types only.
+- `packages/data-access`: API clients, query keys, React Query hooks, and response parsing. No UI.
+- `packages/ui`: presentational primitives. No data fetching or business rules.
+- `packages/hooks`: framework-agnostic React hooks. No Next.js imports.
+- `packages/utils`: framework-agnostic helpers. No React or Next.js imports.
+- `packages/auth`: cross-app access and permission semantics.
+- `packages/db`: Prisma schema/client and database scripts only.
