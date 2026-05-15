@@ -157,6 +157,14 @@ export class ActivateSubscriptionUseCase {
   }
 
   async execute(request: ActivateSubscriptionRequest): Promise<void> {
+    // AuditLogged: subscription activation
+    this.logger.log({
+      action: 'subscription.activate',
+      clinicId: request.clinicId,
+      tier: request.tier,
+      cycle: request.cycle,
+    });
+
     const tier = ClinicTier.fromString(request.tier);
     const cycle = BillingCycle.fromString(request.cycle);
     const clinicOffer = await this.featureFlagService.getClinicPricingOffer(

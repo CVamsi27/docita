@@ -1,4 +1,9 @@
-import { Injectable, Inject, BadRequestException } from '@nestjs/common';
+import {
+  Injectable,
+  Inject,
+  BadRequestException,
+  Logger,
+} from '@nestjs/common';
 import { PrismaService } from '@/prisma/prisma.service';
 import { AppConfigService } from '@/shared/modules/config/app-configuration.service';
 import {
@@ -25,6 +30,8 @@ type SubscriptionPaymentRecord = {
 
 @Injectable()
 export class ResumeSubscriptionPaymentUseCase {
+  private readonly logger = new Logger(ResumeSubscriptionPaymentUseCase.name);
+
   constructor(
     private readonly prisma: PrismaService,
     private readonly configService: AppConfigService,
@@ -51,6 +58,13 @@ export class ResumeSubscriptionPaymentUseCase {
     if (payment.amountCents <= 0) {
       throw new BadRequestException('Payment amount is invalid');
     }
+
+    // AuditLogged: subscription payment resumed
+    this.logger.log({
+      action: 'subscription.payment-resumed',
+      clinicId: params.clinicId,
+      paymentId: params.paymentId,
+    });
 
     if (payment.invoiceUrl) {
       return { id: payment.id, payUrl: payment.invoiceUrl };

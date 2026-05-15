@@ -322,4 +322,3 @@ export function GlobalSearch({ onResultClick }: GlobalSearchProps) {
   );
 }
 
-export default GlobalSearch;

@@ -344,5 +344,3 @@ export const ClinicFeatureService = {
 };
 
 export { MEDICATION_ROUTES };
-
-export default ClinicFeatureService;

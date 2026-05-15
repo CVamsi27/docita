@@ -1,4 +1,9 @@
-import { Injectable, BadRequestException, Inject } from '@nestjs/common';
+import {
+  Injectable,
+  BadRequestException,
+  Logger,
+  Inject,
+} from '@nestjs/common';
 import { Subscription } from '@/domains/subscriptions/core/entities';
 import {
   SubscriptionStatus,
@@ -18,6 +23,8 @@ import {
 
 @Injectable()
 export class CreateSubscriptionUseCase {
+  private readonly logger = new Logger(CreateSubscriptionUseCase.name);
+
   constructor(
     @Inject(SUBSCRIPTION_REPOSITORY_TOKEN)
     private subscriptionRepository: ISubscriptionRepository,
@@ -36,6 +43,14 @@ export class CreateSubscriptionUseCase {
         `Clinic ${dto.clinicId} already has an active subscription`,
       );
     }
+
+    // AuditLogged: subscription creation
+    this.logger.log({
+      action: 'subscription.create',
+      clinicId: dto.clinicId,
+      plan: dto.plan,
+      billingCycle: dto.billingCycle,
+    });
 
     const plan = ClinicTier.fromString(dto.plan);
     const cycle = BillingCycle.fromString(dto.billingCycle);

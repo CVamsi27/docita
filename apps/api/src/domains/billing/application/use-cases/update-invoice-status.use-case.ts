@@ -1,6 +1,7 @@
 import {
   Injectable,
   BadRequestException,
+  Logger,
   NotFoundException,
 } from '@nestjs/common';
 import { InvoiceStatusEnum } from '@/domains/billing/core/value-objects';
@@ -13,6 +14,8 @@ export interface UpdateInvoiceStatusCommand {
 
 @Injectable()
 export class UpdateInvoiceStatusUseCase {
+  private readonly logger = new Logger(UpdateInvoiceStatusUseCase.name);
+
   constructor(private invoiceRepository: IInvoiceRepository) {}
 
   async execute(command: UpdateInvoiceStatusCommand): Promise<void> {
@@ -22,6 +25,13 @@ export class UpdateInvoiceStatusUseCase {
     }
 
     const currentStatus = invoice.getStatus();
+
+    // AuditLogged: invoice status update
+    this.logger.log({
+      action: 'invoice.status-update',
+      invoiceId: command.invoiceId,
+      targetStatus: command.targetStatus,
+    });
     if (!currentStatus.canTransitionTo(command.targetStatus)) {
       throw new BadRequestException(
         `Cannot transition from ${currentStatus.value} to ${command.targetStatus}`,

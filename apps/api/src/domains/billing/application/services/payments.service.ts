@@ -57,6 +57,14 @@ export class PaymentsService {
     description?: string;
     paymentMode?: 'ONLINE' | 'CASH';
   }) {
+    // AuditLogged: payment processing
+    this.logger.log({
+      action: 'payment.process',
+      clinicId: dto.clinicId,
+      invoiceId: dto.invoiceId,
+      paymentMode: dto.paymentMode ?? 'ONLINE',
+    });
+
     const expiresAt = new Date();
     expiresAt.setMinutes(
       expiresAt.getMinutes() + this.configService.getPaymentLinkTtlMinutes(),

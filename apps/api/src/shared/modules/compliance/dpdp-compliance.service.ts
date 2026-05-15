@@ -16,12 +16,7 @@ import { AnonymizationFactory } from './factories/anonymization.factory';
 import { DataExportFactory } from './factories/data-export.factory';
 
 export enum DataSubjectRight {
-  ACCESS = 'ACCESS',
-  CORRECTION = 'CORRECTION',
   ERASURE = 'ERASURE',
-  PORTABILITY = 'PORTABILITY',
-  OBJECTION = 'OBJECTION',
-  RESTRICTION = 'RESTRICTION',
 }
 
 interface ConsentRecord {

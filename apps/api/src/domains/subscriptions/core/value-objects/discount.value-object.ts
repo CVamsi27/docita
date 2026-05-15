@@ -1,10 +1,5 @@
 export enum DiscountType {
-  REFERRAL = 'REFERRAL',
-  ANNUAL = 'ANNUAL',
-  LOYALTY = 'LOYALTY',
   PROMOTIONAL = 'PROMOTIONAL',
-  PARTNER = 'PARTNER',
-  EARLY_BIRD = 'EARLY_BIRD',
 }
 
 export interface DiscountProps {

@@ -24,7 +24,14 @@ const files = execSync("git ls-files", { cwd: repoRoot, encoding: "utf8" })
   .split("\n")
   .filter(Boolean);
 
-const missing = files.filter((file) => !coverage.includes(`| \`${file.split("/")[0]}/**\``));
+const missing = files.filter((file) => {
+  const prefix = file.split("/")[0];
+  if (!file.includes("/")) {
+    // root-level file: accept either bare name or /** form
+    return !coverage.includes(`| \`${prefix}\``) && !coverage.includes(`| \`${prefix}/**\``);
+  }
+  return !coverage.includes(`| \`${prefix}/**\``);
+});
 
 if (missing.length > 0) {
   console.log(

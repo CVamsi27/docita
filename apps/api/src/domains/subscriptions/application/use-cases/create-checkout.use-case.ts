@@ -56,6 +56,14 @@ export class CreateCheckoutUseCase {
   ) {}
 
   async execute(request: CreateCheckoutRequest): Promise<CheckoutResponse> {
+    // AuditLogged: subscription checkout created
+    this.logger.log({
+      action: 'subscription.checkout-created',
+      clinicId: request.clinicId,
+      tier: request.tier,
+      cycle: request.cycle,
+    });
+
     const tier = ClinicTier.fromString(request.tier);
     const cycle = BillingCycle.fromString(request.cycle);
 

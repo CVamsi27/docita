@@ -67,7 +67,7 @@ export interface RequestStats {
   requestsByHour: { hour: number; count: number }[];
 }
 
-export interface ErrorStats {
+interface ErrorStats {
   totalErrors: number;
   unresolvedErrors: number;
   errorsBySeverity: { severity: string; count: number }[];
@@ -83,7 +83,7 @@ export interface ErrorStats {
   errorTrend: { date: string; count: number }[];
 }
 
-export interface PerformanceMetrics {
+interface PerformanceMetrics {
   slowestEndpoints: {
     path: string;
     method: string;
@@ -95,7 +95,7 @@ export interface PerformanceMetrics {
   throughputByMinute: { minute: string; count: number }[];
 }
 
-export interface MonitoringDashboard {
+interface MonitoringDashboard {
   health: SystemHealth;
   last24Hours: {
     requests: RequestStats;
@@ -231,7 +231,7 @@ export interface FeedbackFilters {
   maxRating?: number;
 }
 
-export interface FeedbackStats {
+interface FeedbackStats {
   total: number;
   byStatus: Record<string, number>;
   byCategory: Record<string, number>;
@@ -513,7 +513,7 @@ export interface EnterpriseContractEstimate {
   currency: string;
 }
 
-export interface EnterpriseContractInvoicePreview {
+interface EnterpriseContractInvoicePreview {
   period: { start: string; end: string };
   currency: string;
   lines: Array<{

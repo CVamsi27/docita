@@ -181,5 +181,4 @@ export function BulkImportDialogContainer({
   );
 }
 
-export default BulkImportDialogContainer;
 export { BulkImportDialogContainer as BulkImportDialog };

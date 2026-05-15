@@ -34,7 +34,7 @@ import {
   type PrescriptionDefaultsFormValues,
 } from "@/features/settings/schemas/prescription-defaults-form.schema";
 
-export function PrescriptionDefaultsSettings() {
+function PrescriptionDefaultsSettings() {
   const {
     data: initialSettings,
     isLoading: loading,

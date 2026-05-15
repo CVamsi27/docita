@@ -7,8 +7,6 @@ import {
   type UserFacingErrorContext,
 } from "@workspace/types";
 
-export type { UserFacingErrorContext };
-
 const ERROR_TOAST_DURATION_MS = 8000;
 
 export function getSafeUserMessage(
