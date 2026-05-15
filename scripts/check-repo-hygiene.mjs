@@ -28,6 +28,18 @@ const blockedPatterns = [
     pattern: /^\.gitleaks-report\.json$/,
     reason: "Gitleaks reports are generated outputs.",
   },
+  {
+    pattern: /(^|\/)[^/]+\.(bak|old|tmp)$/,
+    reason: "Backup and temporary files must not be committed.",
+  },
+  {
+    pattern: /(^|\/)[^/]+\.log$/,
+    reason: "Log files must not be committed.",
+  },
+  {
+    pattern: /(^|\/)(scratch|tmp|temp|notes)\.txt$/,
+    reason: "Scratch text files must not be committed.",
+  },
 ];
 
 const violations = [];

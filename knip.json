@@ -2,10 +2,10 @@
   "$schema": "https://unpkg.com/knip@5/schema.json",
   "rules": {
     "files": "off",
-    "exports": "off",
-    "types": "off",
-    "enumMembers": "off",
-    "duplicates": "off"
+    "exports": "warn",
+    "types": "warn",
+    "enumMembers": "warn",
+    "duplicates": "warn"
   },
   "ignoreBinaries": ["printf", "tsx"],
   "ignoreWorkspaces": ["apps/worker"],
@@ -38,7 +38,13 @@
       ]
     },
     "apps/internal": {
-      "ignoreDependencies": ["@axe-core/playwright", "eslint-config-next", "@fontsource/fraunces", "@fontsource/inter", "@fontsource/jetbrains-mono"]
+      "ignoreDependencies": [
+        "@axe-core/playwright",
+        "eslint-config-next",
+        "@fontsource/fraunces",
+        "@fontsource/inter",
+        "@fontsource/jetbrains-mono"
+      ]
     },
     "apps/landing": {
       "ignoreDependencies": ["tailwindcss"]
@@ -73,4 +79,3 @@
     }
   }
 }
-
