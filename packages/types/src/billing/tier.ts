@@ -24,6 +24,15 @@ export enum Tier {
   FRONT_DESK = 6,
 }
 
+export const BILLED_TIERS = [
+  Tier.STARTER,
+  Tier.ESSENTIAL,
+  Tier.PROFESSIONAL,
+  Tier.HOSPITAL,
+  Tier.ENTERPRISE,
+  Tier.FRONT_DESK,
+] as const;
+
 export enum Feature {
   PAPER_SCANNING = "PAPER_SCANNING",
   EXCEL_IMPORT = "EXCEL_IMPORT",
@@ -170,6 +179,18 @@ export const FEATURE_TIER_MAP: Record<Feature, Tier> = {
   [Feature.DATA_WAREHOUSE_EXPORT]: Tier.ENTERPRISE,
   [Feature.DEDICATED_DEPLOYMENT]: Tier.ENTERPRISE,
 };
+
+export function getMinimumTierForFeature(feature: Feature): Tier {
+  return FEATURE_TIER_MAP[feature];
+}
+
+export function assertNotIntelligenceComparison(tier: Tier): void {
+  if (tier === Tier.INTELLIGENCE || tier === Tier.FRONT_DESK) {
+    throw new Error(
+      "Tier.INTELLIGENCE and Tier.FRONT_DESK must use feature access checks, not numeric tier comparisons.",
+    );
+  }
+}
 
 export type SupportedCurrency =
   | "INR"
