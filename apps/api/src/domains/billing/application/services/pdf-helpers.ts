@@ -3,7 +3,7 @@ import { PDFInvoiceItem, type InvoiceTaxSummary } from '@workspace/types';
 import PDFDocument from 'pdfkit';
 import { InvoiceData } from './pdf.service';
 
-export const STATUS_COLORS: Record<string, { bg: string; text: string }> = {
+const STATUS_COLORS: Record<string, { bg: string; text: string }> = {
   PAID: { bg: '#dcfce7', text: '#166534' },
   PENDING: { bg: '#fef9c3', text: '#854d0e' },
   OVERDUE: { bg: '#fee2e2', text: '#991b1b' },

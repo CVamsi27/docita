@@ -119,7 +119,7 @@ export function getTenantScopeRule(
   return model ? TENANT_SCOPE_RULES.get(model) : undefined;
 }
 
-export function getTenantScopeRuleSnapshots(): TenantScopeRuleSnapshot[] {
+function getTenantScopeRuleSnapshots(): TenantScopeRuleSnapshot[] {
   return Array.from(TENANT_SCOPE_RULES.entries())
     .map(([model, rule]) => ({
       model,

@@ -99,7 +99,7 @@ function extractCursorId(item: unknown): string | undefined {
   return typeof id === 'string' ? id : undefined;
 }
 
-export function createPaginationMeta(
+function createPaginationMeta(
   result: CursorPaginationResult<unknown>,
   limit: number,
 ): PaginationMeta {
@@ -121,7 +121,7 @@ export interface OffsetPaginationOptions<T> {
   include?: PrismaQuery;
 }
 
-export async function paginateWithOffset<T>(
+async function paginateWithOffset<T>(
   options: OffsetPaginationOptions<T>,
 ): Promise<OffsetPaginationResult<T>> {
   const {

@@ -16,7 +16,7 @@ export function normalizePhone(phone: string): string {
   return phone.startsWith('+') ? phone : `+${digits}`;
 }
 
-export function readFacilityLabelFromSettings(
+function readFacilityLabelFromSettings(
   settings: unknown,
 ): 'CLINIC' | 'HOSPITAL' | undefined {
   if (!settings || typeof settings !== 'object' || Array.isArray(settings)) {

@@ -25,7 +25,7 @@ export function coerceAppointmentDate(
 }
 
 /** Map a domain status string to the Prisma enum value. */
-export function mapStatusToPrisma(
+function mapStatusToPrisma(
   status: UpdateAppointmentRequest['status'] | undefined,
 ): PrismaAppointmentStatus | undefined {
   switch (status) {

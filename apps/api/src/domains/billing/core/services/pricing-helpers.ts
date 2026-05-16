@@ -20,7 +20,7 @@ export function resolveCurrency(
   return supportedCurrencies[0];
 }
 
-export function parseJsonValue(value: unknown): unknown {
+function parseJsonValue(value: unknown): unknown {
   if (typeof value === 'string') {
     try {
       return JSON.parse(value);
@@ -36,7 +36,7 @@ export function readNumber(value: unknown, fallback = 0): number {
   return typeof value === 'number' && Number.isFinite(value) ? value : fallback;
 }
 
-export function parseStringArray(value: unknown): string[] {
+function parseStringArray(value: unknown): string[] {
   const parsed = parseJsonValue(value);
   if (!Array.isArray(parsed)) {
     return [];
@@ -47,7 +47,7 @@ export function parseStringArray(value: unknown): string[] {
   );
 }
 
-export function getWhatsappBillableConfig(
+function getWhatsappBillableConfig(
   tier: keyof typeof TIER_LIMITS,
   currency: SupportedCurrency,
 ): { includedQuota: number; overageRate: number } {

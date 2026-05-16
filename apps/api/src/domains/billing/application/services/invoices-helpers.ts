@@ -19,12 +19,12 @@ export const DEFAULT_INVOICE_DUE_DAYS = 30;
 
 // ── JSON helpers ───────────────────────────────────────────────────────────────
 
-export const isJsonObject = (
+const isJsonObject = (
   value: Prisma.JsonValue | null | undefined,
 ): value is Prisma.JsonObject =>
   !!value && typeof value === 'object' && !Array.isArray(value);
 
-export const readJsonString = (
+const readJsonString = (
   object: Prisma.JsonObject | undefined,
   key: string,
 ): string | undefined => {

@@ -37,7 +37,7 @@ export function normalizePaymentHistory<T extends PaymentHistoryRecord>(
   return normalized;
 }
 
-export function isPendingLikeStatus(status: string): boolean {
+function isPendingLikeStatus(status: string): boolean {
   const s = status.toLowerCase().trim();
   return (
     s === 'pending' ||
@@ -49,7 +49,7 @@ export function isPendingLikeStatus(status: string): boolean {
   );
 }
 
-export function isTierUpgradeSubscriptionDescription(
+function isTierUpgradeSubscriptionDescription(
   description: string | null | undefined,
 ): boolean {
   if (!description || typeof description !== 'string') return false;
@@ -58,7 +58,7 @@ export function isTierUpgradeSubscriptionDescription(
   );
 }
 
-export function parseTierFromUpgradeDescription(
+function parseTierFromUpgradeDescription(
   description: string | null | undefined,
 ): string | null {
   if (!description || typeof description !== 'string') return null;

@@ -2,11 +2,11 @@ import { Prisma } from '@workspace/db';
 import { AsyncLocalStorage } from 'async_hooks';
 import { ForbiddenException } from '@nestjs/common';
 
-export const auditArchivalStorage = new AsyncLocalStorage<{
+const auditArchivalStorage = new AsyncLocalStorage<{
   archivalMode: boolean;
 }>();
 
-export const IMMUTABLE_MODELS = ['AuditLog', 'AuditLogArchive'] as const;
+const IMMUTABLE_MODELS = ['AuditLog', 'AuditLogArchive'] as const;
 
 export const auditImmutabilityExtension = Prisma.defineExtension({
   name: 'audit-immutability',

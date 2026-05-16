@@ -12,7 +12,7 @@ type InvoiceTotals = {
 export const toPrismaJson = <T>(value: T): Prisma.InputJsonValue =>
   JSON.parse(JSON.stringify(value)) as Prisma.InputJsonValue;
 
-export const toCents = (amount: number | null | undefined): number =>
+const toCents = (amount: number | null | undefined): number =>
   Math.round((amount ?? 0) * 100);
 
 export const toInvoiceCentCreateFields = (

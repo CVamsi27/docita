@@ -142,7 +142,7 @@ export function generateSlotsForSchedule(
   return slots;
 }
 
-export function isSlotDuringTimeOff(
+function isSlotDuringTimeOff(
   currentMinutes: number,
   timeOffs: Array<{
     isFullDay: boolean;
@@ -159,7 +159,7 @@ export function isSlotDuringTimeOff(
   });
 }
 
-export function isSlotBooked(
+function isSlotBooked(
   currentMinutes: number,
   slotDuration: number,
   dateStr: string,
@@ -180,7 +180,7 @@ export function isSlotBooked(
   );
 }
 
-export function isSlotInPast(
+function isSlotInPast(
   currentMinutes: number,
   dateStr: string,
   timezone: string,
