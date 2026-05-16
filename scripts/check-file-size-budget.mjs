@@ -8,16 +8,21 @@ import process from "node:process";
 const repoRoot = process.cwd();
 const enforce = process.argv.includes("--enforce");
 
+/** Patterns excluded from size budgets — test/spec files legitimately grow large. */
+const EXCLUDED_PATTERN = /\.(test|spec)\.(ts|tsx)$/;
+
 const budgets = [
   {
     root: "apps/api/src/domains",
     pattern: /\/services\/.*\.service\.ts$/,
+    exclude: EXCLUDED_PATTERN,
     max: 400,
     label: "API domain service",
   },
   {
     root: "apps/app/features",
     pattern: /\.(ts|tsx)$/,
+    exclude: EXCLUDED_PATTERN,
     max: 400,
     label: "frontend feature file",
   },
@@ -32,7 +37,8 @@ for (const budget of budgets) {
   })
     .split("\n")
     .filter(Boolean)
-    .filter((file) => budget.pattern.test(file));
+    .filter((file) => budget.pattern.test(file))
+    .filter((file) => !budget.exclude.test(file));
 
   for (const file of files) {
     const lineCount = fs
