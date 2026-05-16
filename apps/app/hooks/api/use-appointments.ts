@@ -133,7 +133,7 @@ export const useTodayAppointments = (enabled: boolean = true) => {
     queryKeys.appointments.list({ date: today }),
     `/appointments?date=${today}`,
     listAppointmentsResponseSchema,
-    { enabled: calendarOk && enabled },
+    { enabled: calendarOk && enabled, staleTime: 30_000, gcTime: 5 * 60 * 1000 },
   );
 };
 
@@ -382,7 +382,7 @@ export const useQueue = (options?: { search?: string }) => {
     withQueryString("/queue", {
       search: options?.search,
     }),
-    { enabled: queueOk },
+    { enabled: queueOk, staleTime: 30_000, gcTime: 5 * 60 * 1000 },
   );
 };
 
@@ -402,7 +402,7 @@ export const useQueueByDoctor = (
   return useAPIQuery<QueueItem[]>(
     queryKeys.queue.list(params),
     withQueryString("/queue", { doctorId, search }),
-    { enabled: queueOk && enabled },
+    { enabled: queueOk && enabled, staleTime: 30_000, gcTime: 5 * 60 * 1000 },
   );
 };
 

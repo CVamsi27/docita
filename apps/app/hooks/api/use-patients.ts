@@ -49,7 +49,7 @@ export const usePatients = (options?: UsePatientsOptions) => {
       search: options?.search ?? "",
     }),
     url,
-    { enabled },
+    { enabled, gcTime: 5 * 60 * 1000 },
   );
 };
 

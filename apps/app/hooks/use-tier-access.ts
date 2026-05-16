@@ -51,7 +51,7 @@ export function useTierAccess() {
     },
     enabled: !!user?.clinicId && !!token,
     staleTime: 5 * 60 * 1000,
-    gcTime: 10 * 60 * 1000,
+    gcTime: 30 * 60 * 1000,
   });
 
   const subscriptionHardLocked = useMemo(

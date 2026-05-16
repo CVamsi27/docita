@@ -65,7 +65,7 @@ export const usePrescriptions = (
   useAPIQuery<PrescriptionListRow[]>(
     ["prescriptions", filters || {}],
     withQueryString("/prescriptions", filters),
-    options,
+    { gcTime: 5 * 60 * 1000, ...options },
   );
 
 export const usePatientPrescriptions = (

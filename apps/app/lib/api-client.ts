@@ -47,7 +47,6 @@ export const api: AppApiClient = {
 };
 
 export const apiFetch: APIClient["request"] = client.request;
-export const apiFetchWithSchema = client.validate;
 
 export const typedApi = {
   patients: {
@@ -113,12 +112,3 @@ export const typedApi = {
   },
 };
 
-export const handleApiError = (error: unknown, fallbackMessage?: string) => {
-  void error;
-  return (
-    fallbackMessage ||
-    "Please review the information on this screen and try again"
-  );
-};
-
-export { API_ROUTES };

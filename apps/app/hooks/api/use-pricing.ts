@@ -142,7 +142,8 @@ export function useCurrentUsage() {
         await fetchJsonWithSession<unknown>("/subscriptions/usage"),
       ),
     enabled: !!token,
-    staleTime: 60000,
+    staleTime: 5 * 60 * 1000,
+    gcTime: 30 * 60 * 1000,
     refetchOnWindowFocus: false,
   });
 

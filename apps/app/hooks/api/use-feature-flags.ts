@@ -9,6 +9,7 @@ export const useResolvedFeatureFlags = () =>
     ["feature-flags", "me"],
     "/feature-flags/me",
     {
-      staleTime: 1000 * 30,
+      staleTime: 10 * 60 * 1000,
+      gcTime: 30 * 60 * 1000,
     },
   );

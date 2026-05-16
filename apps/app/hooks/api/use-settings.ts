@@ -78,6 +78,8 @@ export interface SignatureUploadSessionResponse {
 export const useClinicSettings = (queryOptions?: { enabled?: boolean }) =>
   useAPIQuery<Clinic>(["clinic", "settings"], "/clinic/settings", {
     enabled: queryOptions?.enabled,
+    staleTime: 10 * 60 * 1000,
+    gcTime: 30 * 60 * 1000,
   });
 
 export const useClinicMembers = () =>
@@ -405,6 +407,8 @@ export const useSubscription = (queryOptions?: { enabled?: boolean }) => {
     ["clinic", "subscription"],
     "/subscription/current",
     {
+      staleTime: 5 * 60 * 1000,
+      gcTime: 30 * 60 * 1000,
       ...queryOptions,
       select: (data) => subscriptionCurrentResponseSchema.parse(data),
     },
