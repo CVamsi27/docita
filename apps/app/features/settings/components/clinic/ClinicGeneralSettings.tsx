@@ -1,16 +1,13 @@
 "use client";
 
-import Link from "next/link";
 import { useEffect } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
-import * as z from "zod";
 import { toast } from "sonner";
 import {
   useClinicSettings,
   useUpdateClinicSettings,
 } from "@/hooks/api/use-settings";
-import { Skeleton } from "@workspace/ui/components/skeleton";
 import {
   Card,
   CardContent,
@@ -23,10 +20,6 @@ import { Button } from "@workspace/ui/components/button";
 import { SymbolTooltip } from "@workspace/ui/components/tooltip";
 import { Form, FormControl, FormField } from "@workspace/ui/components/form";
 import { Input } from "@workspace/ui/components/input";
-import {
-  phoneSchema,
-  requiredStringSchema,
-} from "@/features/_shared/schemas/common.schemas";
 import { Copy, Check, ExternalLink } from "lucide-react";
 import { useState } from "react";
 import { showUserFacingErrorToast } from "@/lib/user-facing-errors";
@@ -42,30 +35,12 @@ import { SettingsAiChips } from "@/features/settings/components/settings-ai-chip
 import { CopyableLinkField } from "@/features/_shared/components/signature/copyable-link-field";
 import { getPublicAppOrigin } from "@/lib/public-app-origin";
 import { MicroLabel } from "@workspace/ui/components/micro-label";
+import { ClinicGeneralSettingsSkeleton } from "./ClinicGeneralSettingsSkeleton";
+import { WorkspaceModeCard } from "./WorkspaceModeCard";
 import {
-  parseWorkspaceProfile,
-  WORKSPACE_PROFILE_LABEL,
-} from "@workspace/types";
-import { SUBSCRIPTION_SETTINGS_PATH } from "@/lib/subscription-settings-path";
-
-const clinicSettingsSchema = z.object({
-  name: requiredStringSchema("Facility Name"),
-  address: requiredStringSchema("Address"),
-  phone: phoneSchema,
-  gstin: z.union([z.string().trim(), z.literal("")]).optional(),
-  legalName: z
-    .union([z.string().trim().max(160), z.literal("")])
-    .optional(),
-  facilityLabel: z.enum(["CLINIC", "HOSPITAL"]).optional(),
-  mapsLink: z
-    .union([
-      z.string().trim().url({ message: "Enter a valid Google Maps URL" }),
-      z.literal(""),
-    ])
-    .optional(),
-});
-
-type ClinicSettingsFormValues = z.infer<typeof clinicSettingsSchema>;
+  clinicSettingsSchema,
+  type ClinicSettingsFormValues,
+} from "./clinic-settings-schema";
 
 export function ClinicGeneralSettings() {
   const { data: clinic, isLoading } = useClinicSettings();
@@ -144,55 +119,12 @@ export function ClinicGeneralSettings() {
     });
   };
 
-  if (isLoading) {
-    return (
-      <Card
-        role="status"
-        aria-live="polite"
-        aria-label="Loading facility information"
-      >
-        <CardHeader>
-          <Skeleton className="h-6 w-40" />
-          <Skeleton className="h-4 w-64 mt-1" />
-        </CardHeader>
-        <CardContent className="space-y-4">
-          {Array.from({ length: 4 }).map((_, i) => (
-            <Skeleton key={i} className="h-10 w-full" />
-          ))}
-        </CardContent>
-      </Card>
-    );
-  }
-
-  const workspaceLabel = WORKSPACE_PROFILE_LABEL[
-    parseWorkspaceProfile(clinic?.workspaceProfile)
-  ];
+  if (isLoading) return <ClinicGeneralSettingsSkeleton />;
 
   return (
     <div className="space-y-4">
       <SettingsAiChips scope="clinic-general" />
-      <Card>
-        <CardHeader className="pb-2">
-          <CardTitle className="text-[var(--fs-md)]">Workspace mode</CardTitle>
-          <CardDescription>
-            This is separate from your subscription tier (Starter, Essential, and
-            so on). It controls which areas of Docita stay available to your team.
-          </CardDescription>
-        </CardHeader>
-        <CardContent className="space-y-2 text-sm">
-          <p className="font-medium text-foreground">{workspaceLabel}</p>
-          <p className="text-muted-foreground">
-            Plan limits, invoices, and upgrades live under{" "}
-            <Link
-              href={SUBSCRIPTION_SETTINGS_PATH}
-              className="font-medium text-primary underline-offset-4 hover:underline"
-            >
-              Billing and subscription
-            </Link>
-            .
-          </p>
-        </CardContent>
-      </Card>
+      <WorkspaceModeCard workspaceProfile={clinic?.workspaceProfile} />
       <Card>
       <CardHeader>
         <CardTitle>{facilityLabel} Information</CardTitle>
