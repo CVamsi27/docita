@@ -24,6 +24,15 @@ interface JwtPayload {
   patientId?: string;
 }
 
+// TODO(WS-11 security): Patient portal tokens (role=PATIENT) are signed with the
+// same JWT secret and have no `aud` claim to separate them from staff tokens.
+// A PATIENT-role token can technically be presented to staff endpoints and will
+// pass signature validation — it is only rejected later by @Roles guards.
+// Recommended fix: add `audience: 'staff'` to JwtModule options and issue
+// patient-portal tokens with `audience: 'patient-portal'` via a dedicated
+// PatientPortalAuthService.login that calls jwtService.sign with { audience: 'patient-portal' }.
+// The strategy should then validate aud matches the expected audience for each guard context.
+
 /**
  * Prefer Authorization Bearer when present so API clients (and E2E using
  * Bearer) are not overridden by a stale host-only `access_token` cookie from

@@ -47,6 +47,7 @@ export class PublicBookingController {
     return this.publicBookingService.listSlots(referralCode, parsed.data);
   }
 
+  @Throttle({ short: { ttl: 60000, limit: 10 } })
   @Post(':referralCode/phone-check')
   @ApiOperation({ summary: 'Whether WhatsApp OTP is required for this phone' })
   checkPhone(

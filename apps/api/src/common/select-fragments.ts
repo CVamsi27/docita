@@ -1,4 +1,4 @@
-export const PATIENT_LIST_SELECT = {
+const PATIENT_LIST_SELECT = {
   id: true,
   mrn: true,
   firstName: true,
@@ -9,7 +9,7 @@ export const PATIENT_LIST_SELECT = {
   createdAt: true,
 } as const;
 
-export const PATIENT_CARD_SELECT = {
+const PATIENT_CARD_SELECT = {
   id: true,
   mrn: true,
   firstName: true,
@@ -23,7 +23,7 @@ export const PATIENT_CARD_SELECT = {
   createdAt: true,
 } as const;
 
-export const PATIENT_DETAIL_SELECT = {
+const PATIENT_DETAIL_SELECT = {
   id: true,
   mrn: true,
   firstName: true,
@@ -115,7 +115,7 @@ export const PATIENT_DETAIL_SELECT = {
   },
 } as const;
 
-export const APPOINTMENT_LIST_SELECT = {
+const APPOINTMENT_LIST_SELECT = {
   id: true,
   startTime: true,
   endTime: true,
@@ -125,7 +125,7 @@ export const APPOINTMENT_LIST_SELECT = {
   updatedAt: true,
 } as const;
 
-export const APPOINTMENT_CARD_SELECT = {
+const APPOINTMENT_CARD_SELECT = {
   id: true,
   startTime: true,
   endTime: true,
@@ -164,7 +164,7 @@ export const APPOINTMENT_CARD_SELECT = {
   },
 } as const;
 
-export const APPOINTMENT_DETAIL_SELECT = {
+const APPOINTMENT_DETAIL_SELECT = {
   id: true,
   startTime: true,
   endTime: true,
@@ -318,7 +318,7 @@ export const DOCTOR_CARD_SELECT = {
   createdAt: true,
 } as const;
 
-export const DOCTOR_DETAIL_SELECT = {
+const DOCTOR_DETAIL_SELECT = {
   id: true,
   name: true,
   email: true,
@@ -339,7 +339,7 @@ export const DOCTOR_DETAIL_SELECT = {
   updatedAt: true,
 } as const;
 
-export const INVOICE_LIST_SELECT = {
+const INVOICE_LIST_SELECT = {
   id: true,
   clinicId: true,
   invoiceNumber: true,
@@ -480,7 +480,7 @@ export const INVOICE_DETAIL_SELECT = {
   },
 } as const;
 
-export const CLINIC_LIST_SELECT = {
+const CLINIC_LIST_SELECT = {
   id: true,
   name: true,
   email: true,
@@ -510,7 +510,7 @@ export const CLINIC_CARD_SELECT = {
   },
 } as const;
 
-export const CLINIC_DETAIL_SELECT = {
+const CLINIC_DETAIL_SELECT = {
   id: true,
   name: true,
   email: true,
@@ -527,7 +527,7 @@ export const CLINIC_DETAIL_SELECT = {
   updatedAt: true,
 } as const;
 
-export const INVOICE_ANALYTICS_SELECT = {
+const INVOICE_ANALYTICS_SELECT = {
   total: true,
   createdAt: true,
 } as const;
@@ -536,20 +536,20 @@ export const PATIENT_ANALYTICS_SELECT = {
   createdAt: true,
 } as const;
 
-export const APPOINTMENT_ANALYTICS_SELECT = {
+const APPOINTMENT_ANALYTICS_SELECT = {
   status: true,
   type: true,
   createdAt: true,
 } as const;
 
-export const PRESCRIPTION_LIST_SELECT = {
+const PRESCRIPTION_LIST_SELECT = {
   id: true,
   date: true,
   instructions: true,
   createdAt: true,
 } as const;
 
-export const PRESCRIPTION_CARD_SELECT = {
+const PRESCRIPTION_CARD_SELECT = {
   id: true,
   date: true,
   instructions: true,
@@ -574,7 +574,7 @@ export const PRESCRIPTION_CARD_SELECT = {
   },
 } as const;
 
-export const PRESCRIPTION_DETAIL_SELECT = {
+const PRESCRIPTION_DETAIL_SELECT = {
   id: true,
   date: true,
   instructions: true,
@@ -617,14 +617,14 @@ export const PRESCRIPTION_DETAIL_SELECT = {
   },
 } as const;
 
-export const USER_MINIMAL_SELECT = {
+const USER_MINIMAL_SELECT = {
   id: true,
   email: true,
   name: true,
   role: true,
 } as const;
 
-export const USER_LIST_SELECT = {
+const USER_LIST_SELECT = {
   id: true,
   email: true,
   name: true,
@@ -634,7 +634,7 @@ export const USER_LIST_SELECT = {
   createdAt: true,
 } as const;
 
-export const USER_DETAIL_SELECT = {
+const USER_DETAIL_SELECT = {
   id: true,
   email: true,
   name: true,
@@ -654,7 +654,7 @@ export const USER_DETAIL_SELECT = {
   },
 } as const;
 
-export const VITAL_SIGN_SELECT = {
+const VITAL_SIGN_SELECT = {
   id: true,
   systolicBP: true,
   diastolicBP: true,
