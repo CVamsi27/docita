@@ -5,11 +5,14 @@ import {
 } from '@nestjs/common';
 import { PrismaService } from '@/prisma/prisma.service';
 import {
-  Prisma,
   FeedbackCategory,
   FeedbackFeatureType,
   FeedbackStatus,
 } from '@workspace/db';
+import {
+  buildFeedbackWhereClause,
+  type FeedbackFilters,
+} from './feedback-helpers';
 
 interface CreateFeedbackDto {
   overallRating: number;
@@ -27,17 +30,6 @@ interface CreateFeedbackDto {
 interface UpdateFeedbackStatusDto {
   status: string;
   adminNotes?: string;
-}
-
-interface FeedbackFilters {
-  status?: string;
-  category?: string;
-  clinicId?: string;
-  startDate?: string;
-  endDate?: string;
-  minRating?: number;
-  maxRating?: number;
-  search?: string;
 }
 
 @Injectable()
@@ -126,56 +118,7 @@ export class FeedbackService {
   }
 
   async findAll(filters: FeedbackFilters = {}) {
-    const where: Prisma.FeedbackWhereInput = {};
-
-    if (filters.status) {
-      where.status = filters.status as FeedbackStatus;
-    }
-
-    if (filters.category) {
-      where.category = filters.category as FeedbackCategory;
-    }
-
-    if (filters.clinicId) {
-      where.clinicId = filters.clinicId;
-    }
-
-    if (filters.minRating || filters.maxRating) {
-      where.overallRating = {};
-      if (filters.minRating) {
-        where.overallRating.gte = filters.minRating;
-      }
-      if (filters.maxRating) {
-        where.overallRating.lte = filters.maxRating;
-      }
-    }
-
-    if (filters.startDate || filters.endDate) {
-      where.createdAt = {};
-      if (filters.startDate) {
-        where.createdAt.gte = new Date(filters.startDate);
-      }
-      if (filters.endDate) {
-        where.createdAt.lte = new Date(filters.endDate);
-      }
-    }
-
-    if (filters.search) {
-      where.OR = [
-        { featureRequests: { contains: filters.search, mode: 'insensitive' } },
-        { generalComments: { contains: filters.search, mode: 'insensitive' } },
-        {
-          goodFeaturesReason: { contains: filters.search, mode: 'insensitive' },
-        },
-        {
-          badFeaturesReason: { contains: filters.search, mode: 'insensitive' },
-        },
-        {
-          improvementReason: { contains: filters.search, mode: 'insensitive' },
-        },
-      ];
-    }
-
+    const where = buildFeedbackWhereClause(filters);
     return this.prisma.feedback.findMany({
       where,
       include: {

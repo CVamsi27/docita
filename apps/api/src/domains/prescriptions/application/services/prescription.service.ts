@@ -5,7 +5,6 @@ import {
   BadRequestException,
   Inject,
 } from '@nestjs/common';
-import { PrescriptionPdfService } from './prescription-pdf.service';
 import {
   IPrescriptionRepository,
   PrescriptionDetail,
@@ -13,10 +12,7 @@ import {
 import { EventEmitter2 } from '@nestjs/event-emitter';
 import { PrescriptionCreatedEvent } from '@/domains/prescriptions/core/events/prescription-created.event';
 import { UsageTrackingService } from '@/domains/billing/core/services/usage-tracking.service';
-import { StorageProvider } from '@/domains/documents/infrastructure/storage.provider';
 import {
-  calculateAge,
-  DEFAULT_TIMEZONE as _DEFAULT_TIMEZONE,
   DEFAULT_LOCALE,
   checkPrescriptionAllergies,
   validateDosage,
@@ -25,19 +21,9 @@ import {
   Specialization,
   HospitalRole,
   type EnqueuePdfJobResponse,
-  extractPdfTheme,
 } from '@workspace/types';
-import { StoredFileUrlResolverService } from '@/domains/documents/application/services/stored-file-url-resolver.service';
-import { PdfJobService } from '@/shared/modules/queue/pdf-job.service';
-import type { PdfJobServicePort } from '@/shared/modules/queue/pdf-job.service';
-import {
-  Prescription as _Prescription,
-  DosageForm,
-  SigCode,
-} from '@workspace/db';
-
-const CURRENT_PDF_TEMPLATE_VERSION = 1;
-const PDF_SIGNED_URL_TTL_SECONDS = 3600;
+import { DosageForm, SigCode } from '@workspace/db';
+import { PrescriptionPdfOrchestratorService } from './prescription-pdf-orchestrator.service';
 
 @Injectable()
 export class PrescriptionsService {
@@ -46,17 +32,9 @@ export class PrescriptionsService {
   constructor(
     @Inject('IPrescriptionRepository')
     private readonly repository: IPrescriptionRepository,
-    private pdfService: PrescriptionPdfService,
     private eventEmitter: EventEmitter2,
     private usageTracking: UsageTrackingService,
-    private readonly storageProvider: StorageProvider,
-    @Inject(StoredFileUrlResolverService)
-    private readonly storedFileUrlResolver: Pick<
-      StoredFileUrlResolverService,
-      'resolveWithStoredUrl'
-    >,
-    @Inject(PdfJobService)
-    private readonly pdfJobService: PdfJobServicePort,
+    private readonly pdfOrchestrator: PrescriptionPdfOrchestratorService,
   ) {}
 
   async findAll(
@@ -270,85 +248,9 @@ export class PrescriptionsService {
   async generatePDF(
     id: string,
     clinicIdOrTimezone: string,
-    _locale: string = DEFAULT_LOCALE,
+    locale: string = DEFAULT_LOCALE,
   ): Promise<Buffer> {
-    const isClinicId = !clinicIdOrTimezone.includes('/');
-    if (!isClinicId) {
-      throw new BadRequestException(
-        'Prescription PDF generation requires a clinic context',
-      );
-    }
-    const clinicId = clinicIdOrTimezone;
-    const prescription = await this.findOne(id, clinicId);
-
-    const patientAge = calculateAge(prescription.patient.dateOfBirth);
-    const clinic = prescription.patient.clinic;
-
-    if (!clinic?.name) {
-      throw new BadRequestException(
-        'Clinic details are required to generate prescription PDF',
-      );
-    }
-    if (!prescription.doctorName) {
-      throw new BadRequestException(
-        'Doctor details are required to generate prescription PDF',
-      );
-    }
-
-    const diagnoses = prescription.appointment?.diagnoses
-      ?.filter((d) => d.icdCode)
-      .map((d) => ({
-        icdCode: d.icdCode!.code,
-        description: d.icdCode!.description,
-        version: d.icdCode!.version,
-        isPrimary: d.isPrimary,
-      }));
-
-    const resolvedDoctorSignature = prescription.doctor?.signatureUrl
-      ? ((
-          await this.storedFileUrlResolver.resolveWithStoredUrl(
-            prescription.doctor.signatureUrl,
-          )
-        ).url ?? undefined)
-      : undefined;
-
-    return this.pdfService.generate({
-      prescriptionId: prescription.id.slice(0, 8).toUpperCase(),
-      clinic: {
-        name: clinic.name,
-        address: clinic.address || undefined,
-        phone: clinic.phoneNumber || undefined,
-        email: clinic.email || undefined,
-        logo: clinic.logo || undefined,
-        currency: clinic.currency || undefined,
-        branding: extractPdfTheme(clinic.branding),
-      },
-      doctor: {
-        name: prescription.doctorName,
-        qualification: prescription.doctor?.qualification || undefined,
-        registrationNumber: prescription.doctorRegistrationNumber || undefined,
-        signatureUrl: resolvedDoctorSignature,
-      },
-      patient: {
-        name: `${prescription.patient.firstName} ${prescription.patient.lastName}`,
-        phoneNumber: prescription.patient.phoneNumber,
-        email: prescription.patient.email || undefined,
-        gender: prescription.patient.gender || undefined,
-        age: patientAge ?? undefined,
-        patientId: prescription.patient.id.slice(0, 8).toUpperCase(),
-      },
-      medications: prescription.medications.map((med) => ({
-        name: med.name,
-        dosage: med.dosage,
-        route: med.route || 'PO',
-        frequency: med.frequency,
-        duration: med.duration,
-      })),
-      diagnoses: diagnoses?.length ? diagnoses : undefined,
-      instructions: prescription.instructions || undefined,
-      date: new Date(),
-      validityDays: 30,
-    });
+    return this.pdfOrchestrator.generatePDF(id, clinicIdOrTimezone, locale);
   }
 
   async getPdf(
@@ -357,41 +259,14 @@ export class PrescriptionsService {
   ): Promise<
     { type: 'url'; url: string } | { type: 'buffer'; buffer: Buffer }
   > {
-    if (this.storageProvider.supportsSignedUrls) {
-      const prescription = await this.findOne(id, clinicId);
-
-      if (prescription.pdfUrl) {
-        const url = await this.storageProvider.generateSignedUrl(
-          prescription.pdfUrl,
-          PDF_SIGNED_URL_TTL_SECONDS,
-        );
-        return { type: 'url', url };
-      }
-
-      const buffer = await this.generatePDF(id, clinicId);
-      const { storedKey } = await this.uploadAndPersist(
-        id,
-        clinicId,
-        buffer,
-        prescription,
-      );
-
-      const url = await this.storageProvider.generateSignedUrl(
-        storedKey,
-        PDF_SIGNED_URL_TTL_SECONDS,
-      );
-      return { type: 'url', url };
-    }
-
-    const buffer = await this.generatePDF(id, clinicId);
-    return { type: 'buffer', buffer };
+    return this.pdfOrchestrator.getPdf(id, clinicId);
   }
 
   async generatePdfAsync(
     id: string,
     clinicId: string,
   ): Promise<EnqueuePdfJobResponse> {
-    return this.pdfJobService.enqueue(id, 'prescription', clinicId);
+    return this.pdfOrchestrator.generatePdfAsync(id, clinicId);
   }
 
   async uploadAndPersist(
@@ -400,36 +275,11 @@ export class PrescriptionsService {
     buffer: Buffer,
     prescription: PrescriptionDetail,
   ): Promise<{ storedKey: string; generatedAt: Date }> {
-    const objectKey = `pdfs/prescriptions/${id}.pdf`;
-    const generatedAt = new Date();
-    const storedKey = await this.storageProvider.uploadBuffer(
-      buffer,
-      objectKey,
-      'application/pdf',
-      {
-        metadata: {
-          asset_type: 'prescription-pdf',
-          resource_type: 'Prescription',
-          resource_id: id,
-          clinic_id: prescription.patient?.clinic?.id,
-          doctor_id: prescription.doctor?.id,
-          modified_at: generatedAt.toISOString(),
-          modified_by: prescription.doctor?.id || 'system',
-          auth_method: 'prescription-service',
-        },
-      },
-    );
-
-    await this.repository.update(
+    return this.pdfOrchestrator.uploadAndPersist(
       id,
-      {
-        pdfUrl: storedKey,
-        pdfGeneratedAt: generatedAt,
-        pdfTemplateVersion: CURRENT_PDF_TEMPLATE_VERSION,
-      },
       clinicId,
+      buffer,
+      prescription,
     );
-
-    return { storedKey, generatedAt };
   }
 }

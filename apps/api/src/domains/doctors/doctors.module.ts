@@ -2,6 +2,9 @@ import { Module } from '@nestjs/common';
 import { DoctorsController } from './presentation/controllers/doctors.controller';
 import { InternalDoctorsVerificationController } from './presentation/controllers/internal-doctors-verification.controller';
 import { DoctorsService } from './application/services/doctors.service';
+import { DoctorsQueryService } from './application/services/doctors-query.service';
+import { DoctorsCommandService } from './application/services/doctors-command.service';
+import { DoctorProfileService } from './application/services/doctor-profile.service';
 import { DoctorAvailabilityController } from './presentation/controllers/doctor-availability.controller';
 import { DoctorAvailabilityService } from './application/services/doctor-availability.service';
 import { AvailabilityScheduleService } from './application/services/availability-schedule.service';
@@ -32,6 +35,9 @@ import { PrismaSignatureUploadRepository } from './infrastructure/repositories/p
   ],
   providers: [
     DoctorsService,
+    DoctorsQueryService,
+    DoctorsCommandService,
+    DoctorProfileService,
     DoctorAvailabilityService,
     AvailabilityScheduleService,
     SlotGenerationService,

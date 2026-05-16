@@ -9,6 +9,9 @@ import { WhatsappModule } from '@/shared/modules/messaging/whatsapp/whatsapp.mod
 import { ComplianceModule } from '@/shared/modules/compliance/compliance.module';
 import { PublicBookingController } from '@/domains/public-booking/presentation/controllers/public-booking.controller';
 import { PublicBookingService } from '@/domains/public-booking/application/services/public-booking.service';
+import { PublicBookingSlotsService } from '@/domains/public-booking/application/services/public-booking-slots.service';
+import { PublicBookingCreationService } from '@/domains/public-booking/application/services/public-booking-creation.service';
+import { PublicBookingSubmitService } from '@/domains/public-booking/application/services/public-booking-submit.service';
 import { TurnstileVerifyService } from '@/domains/public-booking/application/services/turnstile-verify.service';
 import { PublicBookingTokenService } from '@/domains/public-booking/application/services/public-booking-token.service';
 
@@ -26,6 +29,9 @@ import { PublicBookingTokenService } from '@/domains/public-booking/application/
   controllers: [PublicBookingController],
   providers: [
     PublicBookingService,
+    PublicBookingSlotsService,
+    PublicBookingCreationService,
+    PublicBookingSubmitService,
     TurnstileVerifyService,
     PublicBookingTokenService,
   ],

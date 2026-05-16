@@ -7,6 +7,8 @@ import { PrismaService } from '@/prisma/prisma.service';
 import { EventEmitter2 } from '@nestjs/event-emitter';
 import { Role } from '@workspace/db';
 import { AppointmentSchedulingRulesService } from '@/domains/appointments/core/domain-services/appointment-scheduling-rules.service';
+import { AppointmentMetricsService } from './appointment-metrics.service';
+import { AppointmentDiagnosisService } from './appointment-diagnosis.service';
 
 describe('AppointmentService workspace profile', () => {
   const mockRepository = {
@@ -61,6 +63,12 @@ describe('AppointmentService workspace profile', () => {
       mockPrisma,
       mockEventEmitter,
       mockSchedulingRules,
+      Object.create(
+        AppointmentMetricsService.prototype,
+      ) as AppointmentMetricsService,
+      Object.create(
+        AppointmentDiagnosisService.prototype,
+      ) as AppointmentDiagnosisService,
     );
   });
 

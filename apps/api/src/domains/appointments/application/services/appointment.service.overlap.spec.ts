@@ -10,6 +10,8 @@ import { PrismaService } from '@/prisma/prisma.service';
 import { Appointment } from '@/domains/appointments/core/entities/appointment.entity';
 import { AppointmentStatus } from '@/domains/appointments/core/value-objects/appointment-status.value-object';
 import { AppointmentSchedulingRulesService } from '@/domains/appointments/core/domain-services/appointment-scheduling-rules.service';
+import { AppointmentMetricsService } from './appointment-metrics.service';
+import { AppointmentDiagnosisService } from './appointment-diagnosis.service';
 
 describe('AppointmentService overlap enforcement', () => {
   const mockRepository = {
@@ -65,6 +67,12 @@ describe('AppointmentService overlap enforcement', () => {
       mockPrisma,
       mockEventEmitter,
       schedulingRules,
+      Object.create(
+        AppointmentMetricsService.prototype,
+      ) as AppointmentMetricsService,
+      Object.create(
+        AppointmentDiagnosisService.prototype,
+      ) as AppointmentDiagnosisService,
     );
   });
 

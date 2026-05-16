@@ -13,6 +13,8 @@ import { OverageCalculationService } from './core/services/overage-calculation.s
 import { UsageAggregationService } from './core/services/usage-aggregation.service';
 import {
   InvoicesService,
+  InvoicesQueryService,
+  InvoicesCommandService,
   PaymentsService,
   RetryService,
   SchedulerService,
@@ -51,6 +53,8 @@ import { BillingUsageAggregationCron } from './application/cron/billing-usage-ag
     UsageTrackingService,
     OverageCalculationService,
     UsageAggregationService,
+    InvoicesQueryService,
+    InvoicesCommandService,
     InvoicesService,
     PaymentsService,
     RetryService,

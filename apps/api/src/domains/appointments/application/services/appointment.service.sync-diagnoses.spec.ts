@@ -2,6 +2,8 @@ import { describe, expect, it, jest } from '@jest/globals';
 import { EventEmitter2 } from '@nestjs/event-emitter';
 import { AppointmentService } from './appointment.service';
 import { AppointmentSchedulingRulesService } from '@/domains/appointments/core/domain-services/appointment-scheduling-rules.service';
+import { AppointmentMetricsService } from './appointment-metrics.service';
+import { AppointmentDiagnosisService } from './appointment-diagnosis.service';
 
 describe('AppointmentService.syncDiagnoses', () => {
   const appointmentRepository = {} as never;
@@ -64,6 +66,12 @@ describe('AppointmentService.syncDiagnoses', () => {
     prisma,
     eventEmitter,
     mockSchedulingRules,
+    Object.create(
+      AppointmentMetricsService.prototype,
+    ) as AppointmentMetricsService,
+    Object.create(
+      AppointmentDiagnosisService.prototype,
+    ) as AppointmentDiagnosisService,
   );
 
   it('marks the first coded diagnosis as primary after uncoded rows are filtered out', async () => {

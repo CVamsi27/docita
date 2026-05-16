@@ -8,6 +8,8 @@ import { EventEmitter2 } from '@nestjs/event-emitter';
 import { AppointmentStatus } from '@/domains/appointments/core/value-objects/appointment-status.value-object';
 import { CreateAppointmentCommand } from '@/domains/appointments/application/use-cases/create-appointment.use-case';
 import { AppointmentSchedulingRulesService } from '@/domains/appointments/core/domain-services/appointment-scheduling-rules.service';
+import { AppointmentMetricsService } from './appointment-metrics.service';
+import { AppointmentDiagnosisService } from './appointment-diagnosis.service';
 
 describe('AppointmentService - appointment.created event', () => {
   const mockRepository = {
@@ -63,6 +65,12 @@ describe('AppointmentService - appointment.created event', () => {
       mockPrisma,
       mockEventEmitter,
       mockSchedulingRules,
+      Object.create(
+        AppointmentMetricsService.prototype,
+      ) as AppointmentMetricsService,
+      Object.create(
+        AppointmentDiagnosisService.prototype,
+      ) as AppointmentDiagnosisService,
     );
   });
 

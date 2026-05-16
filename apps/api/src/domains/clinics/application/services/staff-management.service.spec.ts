@@ -3,6 +3,7 @@ import { PrismaService } from '@/prisma/prisma.service';
 import { Role } from '@workspace/db';
 import { beforeEach, describe, expect, it, jest } from '@jest/globals';
 import { StaffManagementService } from './staff-management.service';
+import { StaffInviteService } from './staff-invite.service';
 
 describe('StaffManagementService', () => {
   let service: StaffManagementService;
@@ -30,7 +31,10 @@ describe('StaffManagementService', () => {
         update: jest.fn<(...args: unknown[]) => Promise<unknown>>(),
       },
     };
-    service = new StaffManagementService(prisma as unknown as PrismaService);
+    service = new StaffManagementService(
+      prisma as unknown as PrismaService,
+      Object.create(StaffInviteService.prototype) as StaffInviteService,
+    );
   });
 
   describe('updateMember', () => {

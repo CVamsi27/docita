@@ -2,12 +2,10 @@ import {
   Injectable,
   Logger,
   BadRequestException,
-  NotFoundException,
   Inject,
 } from '@nestjs/common';
 import { PrismaService } from '@/prisma/prisma.service';
 import { AuthService } from '@/shared/modules/auth/auth/auth.service';
-import { UploadSessionPurpose } from '@workspace/db';
 import { AppConfigService } from '@/shared/modules/config/app-configuration.service';
 import {
   PAYMENT_GATEWAY_TOKEN,
@@ -26,6 +24,12 @@ import { OnboardingWorkflowService } from './onboarding-workflow.service';
 import { OnboardingComplianceService } from './onboarding-compliance.service';
 import { UploadsService } from '@/domains/documents/application/services/uploads.service';
 import { isFrontDeskWorkspace, parseWorkspaceProfile } from '@workspace/types';
+import {
+  hasPriorPaidSubscriptionForEmail,
+  createSlaSignatureSession,
+  uploadSlaSignature,
+  getSlaSignatureSessionStatus,
+} from './onboarding-helpers';
 
 interface OnboardingResult {
   success: boolean;
@@ -120,11 +124,7 @@ export class OnboardingService {
     if (!sessionData) {
       throw new BadRequestException('Onboarding session not found or expired');
     }
-
-    return this.uploadsService.createSession({
-      expiresInMinutes: 20,
-      purpose: UploadSessionPurpose.GENERAL,
-    });
+    return createSlaSignatureSession(onboardingId, this.uploadsService);
   }
 
   async uploadSlaSignature(
@@ -139,67 +139,19 @@ export class OnboardingService {
       userAgent?: string;
     },
   ) {
-    const session = await this.prisma.uploadSession.findUnique({
-      where: { id: sessionId },
-    });
-
-    if (!session) {
-      throw new NotFoundException('Signature session not found');
-    }
-
-    if (session.expiresAt < new Date()) {
-      throw new BadRequestException(
-        'This signature link has expired. Please generate a new link from onboarding.',
-      );
-    }
-
-    if (session.status === 'uploaded' && session.fileUrl) {
-      throw new BadRequestException(
-        'This signature link has already been used.',
-      );
-    }
-
-    const updated = await this.uploadsService.updateSession(sessionId, file, {
+    return uploadSlaSignature(
+      this.prisma,
+      this.uploadsService,
       onboardingId,
-      modifiedBy: context?.modifiedBy,
-      modifiedByRole: context?.modifiedByRole,
-      authMethod: context?.modifiedBy ? 'session-auth' : 'onboarding-session',
-      ipAddress: context?.ipAddress,
-      userAgent: context?.userAgent,
+      sessionId,
+      file,
       uploadSecret,
-    });
-
-    // One-time onboarding signature links should not be reused after upload.
-    await this.prisma.uploadSession.update({
-      where: { id: sessionId },
-      data: { expiresAt: new Date() },
-    });
-
-    return updated;
+      context,
+    );
   }
 
-  async getSlaSignatureSessionStatus(
-    onboardingId: string,
-    sessionId: string,
-  ): Promise<{ status: string; uploaded: boolean; fileUrl: string | null }> {
-    void onboardingId;
-
-    const session = await this.prisma.uploadSession.findUnique({
-      where: { id: sessionId },
-    });
-    if (!session) {
-      throw new NotFoundException('Signature session not found');
-    }
-
-    if (session.purpose !== UploadSessionPurpose.GENERAL) {
-      throw new NotFoundException('Signature session not found');
-    }
-
-    return {
-      status: session.status,
-      uploaded: session.status === 'uploaded' || !!session.fileUrl,
-      fileUrl: session.fileUrl,
-    };
+  async getSlaSignatureSessionStatus(onboardingId: string, sessionId: string) {
+    return getSlaSignatureSessionStatus(this.prisma, onboardingId, sessionId);
   }
 
   initializeOnboarding(): { onboardingId: string } {
@@ -265,11 +217,11 @@ export class OnboardingService {
       // ever had a `paid` subscription payment, deny the trial path and
       // force the user to complete a real Razorpay checkout.
       if (isUnpaidEssentialTrial) {
-        const hasPriorPaidSubscription =
-          await this.hasPriorPaidSubscriptionForEmail(
-            completeData.adminAccount.email,
-          );
-        if (hasPriorPaidSubscription) {
+        const hasPriorPaid = await hasPriorPaidSubscriptionForEmail(
+          this.prisma,
+          completeData.adminAccount.email,
+        );
+        if (hasPriorPaid) {
           throw new BadRequestException(
             'The 30-day free trial is only available to new customers. Please choose a paid plan to continue.',
           );
@@ -376,11 +328,7 @@ export class OnboardingService {
             weeklyRows,
           );
 
-          return {
-            clinic,
-            adminUser,
-            subscriptionId,
-          };
+          return { clinic, adminUser, subscriptionId };
         });
       });
 
@@ -446,32 +394,5 @@ export class OnboardingService {
         errors: [error instanceof Error ? error.message : 'Unknown error'],
       };
     }
-  }
-
-  /**
-   * Returns true if any clinic linked to a user with the given email has
-   * a `paid` SubscriptionPayment on record. Used to gate the free-trial
-   * offer so each customer can only consume it once.
-   */
-  private async hasPriorPaidSubscriptionForEmail(
-    email: string,
-  ): Promise<boolean> {
-    const normalized = email.trim().toLowerCase();
-    if (!normalized) return false;
-    return this.prisma.runUnrestricted(async () => {
-      const users = await this.prisma.user.findMany({
-        where: { email: normalized },
-        select: { clinicId: true },
-      });
-      const clinicIds = users
-        .map((u) => u.clinicId)
-        .filter((id): id is string => !!id);
-      if (clinicIds.length === 0) return false;
-      const paid = await this.prisma.subscriptionPayment.findFirst({
-        where: { clinicId: { in: clinicIds }, status: 'paid' },
-        select: { id: true },
-      });
-      return !!paid;
-    });
   }
 }

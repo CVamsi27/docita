@@ -1,29 +1,23 @@
 import { Injectable, Logger, NotFoundException, Inject } from '@nestjs/common';
-import { formatChiefComplaintSummary } from '@workspace/utils';
 import {
   IPatientTimelineRepository,
   PATIENT_TIMELINE_REPOSITORY_TOKEN,
 } from '@/domains/patients/core/repositories/patient-timeline.repository.interface';
-
-type TimelineEventType =
-  | 'APPOINTMENT'
-  | 'PRESCRIPTION'
-  | 'METRIC_RECORD'
-  | 'LAB_TEST'
-  | 'MEDICAL_DOCUMENT'
-  | 'FOLLOW_UP'
-  | 'IMMUNIZATION'
-  | 'ADMISSION'
-  | 'MEDICATION_DOSE';
-
-interface TimelineEvent {
-  type: TimelineEventType;
-  id: string;
-  date: string;
-  title: string;
-  description: string | null;
-  metadata: Record<string, unknown>;
-}
+import {
+  TimelineEventType,
+  TimelineEvent,
+  mapAppointments,
+  mapPrescriptions,
+  mapMetricRecords,
+  mapLabTests,
+  mapMedicalDocuments,
+  mapFollowUps,
+  mapImmunizations,
+  mapAdmissions,
+  mapMedicationDoses,
+  sortAndSummarize,
+  buildAdherenceMap,
+} from './patient-timeline-aggregator';
 
 interface TimelineQuery {
   eventTypes?: TimelineEventType[];
@@ -66,47 +60,47 @@ export class PatientTimelineService {
       types.includes('APPOINTMENT')
         ? this.repository
             .fetchAppointments(patientId, clinicId, fromDate, toDate)
-            .then((items) => this.mapAppointments(items))
+            .then((items) => mapAppointments(items))
         : Promise.resolve([]),
       types.includes('PRESCRIPTION')
         ? this.repository
             .fetchPrescriptions(patientId, fromDate, toDate)
-            .then((items) => this.mapPrescriptions(items))
+            .then((items) => mapPrescriptions(items))
         : Promise.resolve([]),
       types.includes('METRIC_RECORD')
         ? this.repository
             .fetchMetricRecords(patientId, clinicId, fromDate, toDate)
-            .then((items) => this.mapMetricRecords(items))
+            .then((items) => mapMetricRecords(items))
         : Promise.resolve([]),
       types.includes('LAB_TEST')
         ? this.repository
             .fetchLabTests(patientId, clinicId, fromDate, toDate)
-            .then((items) => this.mapLabTests(items))
+            .then((items) => mapLabTests(items))
         : Promise.resolve([]),
       types.includes('MEDICAL_DOCUMENT')
         ? this.repository
             .fetchMedicalDocuments(patientId, clinicId, fromDate, toDate)
-            .then((items) => this.mapMedicalDocuments(items))
+            .then((items) => mapMedicalDocuments(items))
         : Promise.resolve([]),
       types.includes('FOLLOW_UP')
         ? this.repository
             .fetchFollowUps(patientId, clinicId, fromDate, toDate)
-            .then((items) => this.mapFollowUps(items))
+            .then((items) => mapFollowUps(items))
         : Promise.resolve([]),
       types.includes('IMMUNIZATION')
         ? this.repository
             .fetchImmunizations(patientId, clinicId, fromDate, toDate)
-            .then((items) => this.mapImmunizations(items))
+            .then((items) => mapImmunizations(items))
         : Promise.resolve([]),
       types.includes('ADMISSION')
         ? this.repository
             .fetchAdmissions(patientId, fromDate, toDate)
-            .then((items) => this.mapAdmissions(items))
+            .then((items) => mapAdmissions(items))
         : Promise.resolve([]),
       types.includes('MEDICATION_DOSE')
         ? this.repository
             .fetchMedicationDoses(patientId, clinicId, fromDate, toDate)
-            .then((items) => this.mapMedicationDoses(items))
+            .then((items) => mapMedicationDoses(items))
         : Promise.resolve([]),
     ]);
 
@@ -119,20 +113,12 @@ export class PatientTimelineService {
       }
     }
 
-    allEvents.sort(
-      (a, b) => new Date(b.date).getTime() - new Date(a.date).getTime(),
-    );
-
-    const summary: Partial<Record<TimelineEventType, number>> = {};
-    for (const event of allEvents) {
-      summary[event.type] = (summary[event.type] ?? 0) + 1;
-    }
-
-    const paginatedEvents = allEvents.slice(offset, offset + limit);
+    const { sorted, summary } = sortAndSummarize(allEvents);
+    const paginatedEvents = sorted.slice(offset, offset + limit);
 
     return {
       events: paginatedEvents,
-      total: allEvents.length,
+      total: sorted.length,
       summary,
     };
   }
@@ -199,30 +185,9 @@ export class PatientTimelineService {
             uniqueNonPrnMedicationIds,
           );
 
-        const aggregateMap = new Map<
-          string,
-          { taken: number; total: number }
-        >();
-        for (const row of groupedCounts) {
-          const current = aggregateMap.get(row.medicationId) ?? {
-            taken: 0,
-            total: 0,
-          };
-
-          const count = row._count.status;
-          current.total += count;
-          if (row.status === 'TAKEN' || row.status === 'ADMINISTERED') {
-            current.taken += count;
-          }
-
-          aggregateMap.set(row.medicationId, current);
-        }
-
-        for (const [medicationId, counts] of aggregateMap.entries()) {
-          adherenceByMedicationId.set(
-            medicationId,
-            counts.total > 0 ? (counts.taken / counts.total) * 100 : null,
-          );
+        const adherenceMap = buildAdherenceMap(groupedCounts);
+        for (const [medicationId, rate] of adherenceMap.entries()) {
+          adherenceByMedicationId.set(medicationId, rate);
         }
       } catch {
         this.logger.warn(
@@ -289,241 +254,6 @@ export class PatientTimelineService {
           })()
         : null,
     };
-  }
-
-  private mapAppointments(items: unknown[]): TimelineEvent[] {
-    return (
-      items as Array<{
-        id: string;
-        startTime: Date;
-        chiefComplaint: string | null;
-        finalDiagnosis: string | null;
-        status: string;
-        type: string;
-        treatmentPlan: string | null;
-        observations: string | null;
-        doctor?: { name: string } | null;
-        vitalSign?: {
-          systolicBP: number | null;
-          diastolicBP: number | null;
-          pulse: number | null;
-          temperature: number | null;
-          spo2: number | null;
-          weight: number | null;
-          height: number | null;
-        } | null;
-        prescription?: {
-          medications?: Array<{
-            name: string;
-            dosage: string;
-            frequency: string;
-          }>;
-        } | null;
-        diagnoses?: Array<{
-          icdCode?: { code: string; description: string } | null;
-          notes: string | null;
-          isPrimary: boolean;
-        }>;
-      }>
-    ).map((a) => ({
-      type: 'APPOINTMENT' as TimelineEventType,
-      id: a.id,
-      date: a.startTime.toISOString(),
-      title:
-        formatChiefComplaintSummary(a.chiefComplaint) ??
-        `${a.type} Appointment`,
-      description: a.finalDiagnosis ?? null,
-      metadata: {
-        status: a.status,
-        type: a.type,
-        doctorName: a.doctor?.name ?? null,
-        observations: a.observations ?? null,
-        treatmentPlan: a.treatmentPlan ?? null,
-        vitals: a.vitalSign
-          ? {
-              bp:
-                a.vitalSign.systolicBP && a.vitalSign.diastolicBP
-                  ? `${a.vitalSign.systolicBP}/${a.vitalSign.diastolicBP}`
-                  : null,
-              pulse: a.vitalSign.pulse,
-              temp: a.vitalSign.temperature,
-              spo2: a.vitalSign.spo2,
-              weight: a.vitalSign.weight,
-              height: a.vitalSign.height,
-            }
-          : null,
-        medications:
-          a.prescription?.medications?.map((m) => ({
-            name: m.name,
-            dosage: m.dosage,
-            frequency: m.frequency,
-          })) ?? [],
-        diagnoses:
-          a.diagnoses?.map((d) => ({
-            code: d.icdCode?.code,
-            description: d.icdCode?.description ?? d.notes,
-            isPrimary: d.isPrimary,
-          })) ?? [],
-      },
-    }));
-  }
-
-  private mapPrescriptions(items: unknown[]): TimelineEvent[] {
-    return (
-      items as Array<{
-        id: string;
-        date: Date;
-        medications: Array<{ name: string }>;
-      }>
-    ).map((p) => ({
-      type: 'PRESCRIPTION' as TimelineEventType,
-      id: p.id,
-      date: p.date.toISOString(),
-      title: `Prescription (${p.medications.length} medication${p.medications.length !== 1 ? 's' : ''})`,
-      description: p.medications.map((m) => m.name).join(', ') || null,
-      metadata: {
-        medicationCount: p.medications.length,
-        medications: p.medications.map((m) => m.name),
-      },
-    }));
-  }
-
-  private mapMetricRecords(items: unknown[]): TimelineEvent[] {
-    return (
-      items as Array<{
-        id: string;
-        recordedAt: Date;
-        values: Array<{ definition: { label: string } }>;
-      }>
-    ).map((r) => ({
-      type: 'METRIC_RECORD' as TimelineEventType,
-      id: r.id,
-      date: r.recordedAt.toISOString(),
-      title: 'Health Metrics Recorded',
-      description: r.values.map((v) => v.definition.label).join(', ') || null,
-      metadata: { metricsCount: r.values.length },
-    }));
-  }
-
-  private mapLabTests(items: unknown[]): TimelineEvent[] {
-    return (
-      items as Array<{
-        id: string;
-        createdAt: Date;
-        status: string;
-        completedAt: Date | null;
-        labTest: { name: string; category: string | null };
-      }>
-    ).map((l) => ({
-      type: 'LAB_TEST' as TimelineEventType,
-      id: l.id,
-      date: l.createdAt.toISOString(),
-      title: l.labTest.name,
-      description: l.labTest.category ?? null,
-      metadata: { status: l.status, completedAt: l.completedAt },
-    }));
-  }
-
-  private mapMedicalDocuments(items: unknown[]): TimelineEvent[] {
-    return (
-      items as Array<{
-        id: string;
-        title: string;
-        type: string;
-        status: string;
-        createdAt: Date;
-      }>
-    ).map((d) => ({
-      type: 'MEDICAL_DOCUMENT' as TimelineEventType,
-      id: d.id,
-      date: d.createdAt.toISOString(),
-      title: d.title,
-      description: d.type.replace(/_/g, ' '),
-      metadata: { documentType: d.type, status: d.status },
-    }));
-  }
-
-  private mapFollowUps(items: unknown[]): TimelineEvent[] {
-    return (
-      items as Array<{
-        id: string;
-        reason: string;
-        scheduledDate: Date;
-        status: string;
-      }>
-    ).map((f) => ({
-      type: 'FOLLOW_UP' as TimelineEventType,
-      id: f.id,
-      date: f.scheduledDate.toISOString(),
-      title: `Follow-up: ${f.reason}`,
-      description: null,
-      metadata: { status: f.status },
-    }));
-  }
-
-  private mapImmunizations(items: unknown[]): TimelineEvent[] {
-    return (
-      items as Array<{
-        id: string;
-        vaccineName: string;
-        administeredDate: Date;
-        lotNumber: string | null;
-        notes: string | null;
-      }>
-    ).map((i) => ({
-      type: 'IMMUNIZATION' as TimelineEventType,
-      id: i.id,
-      date: i.administeredDate.toISOString(),
-      title: `Immunization: ${i.vaccineName}`,
-      description: i.notes ?? null,
-      metadata: { lotNumber: i.lotNumber },
-    }));
-  }
-
-  private mapAdmissions(items: unknown[]): TimelineEvent[] {
-    return (
-      items as Array<{
-        id: string;
-        admittedAt: Date;
-        dischargedAt: Date | null;
-        reason: string | null;
-        diagnosis: string | null;
-        status: string;
-      }>
-    ).map((a) => ({
-      type: 'ADMISSION' as TimelineEventType,
-      id: a.id,
-      date: a.admittedAt.toISOString(),
-      title: `Admission: ${a.reason ?? 'Hospital Admission'}`,
-      description: a.diagnosis ?? null,
-      metadata: { status: a.status, dischargedAt: a.dischargedAt },
-    }));
-  }
-
-  private mapMedicationDoses(items: unknown[]): TimelineEvent[] {
-    return (
-      items as Array<{
-        id: string;
-        takenAt: Date | null;
-        scheduledAt: Date;
-        status: string;
-        notes: string | null;
-        doseAmount: string | null;
-        source: string;
-        medication: { name: string };
-      }>
-    ).map((d) => ({
-      type: 'MEDICATION_DOSE' as TimelineEventType,
-      id: d.id,
-      date: (d.takenAt ?? d.scheduledAt).toISOString(),
-      title: `${d.medication.name} - ${d.status.toLowerCase()}`,
-      description: d.notes ?? null,
-      metadata: {
-        status: d.status,
-        doseAmount: d.doseAmount,
-        source: d.source,
-      },
-    }));
   }
 
   private async verifyPatientAccess(

@@ -14,6 +14,7 @@ import {
 } from './prescription-pdf.service';
 import { PrescriptionsService } from './prescription.service';
 import type { PdfJobServicePort } from '@/shared/modules/queue/pdf-job.service';
+import { PrescriptionPdfOrchestratorService } from './prescription-pdf-orchestrator.service';
 
 describe('PrescriptionsService', () => {
   const findAllMock = jest.fn<IPrescriptionRepository['findAll']>();
@@ -73,29 +74,34 @@ describe('PrescriptionsService', () => {
       })),
   };
 
+  const pdfOrchestrator = new PrescriptionPdfOrchestratorService(
+    repository,
+    pdfService,
+    storageProvider,
+    storedFileUrlResolver,
+    {
+      enqueue: async () => ({
+        jobId: 'job-1',
+        status: 'PENDING' as const,
+        pollUrl: '/api/v1/prescriptions/rx-1/pdf/status?jobId=job-1',
+      }),
+      getStatus: async () => ({
+        jobId: 'job-1',
+        status: 'PENDING' as const,
+        createdAt: new Date('2026-01-01T00:00:00.000Z'),
+      }),
+    } satisfies PdfJobServicePort,
+  );
+
   let service: PrescriptionsService;
 
   beforeEach(() => {
     jest.clearAllMocks();
     service = new PrescriptionsService(
       repository,
-      pdfService,
       eventEmitter,
       usageTracking,
-      storageProvider,
-      storedFileUrlResolver,
-      {
-        enqueue: async () => ({
-          jobId: 'job-1',
-          status: 'PENDING' as const,
-          pollUrl: '/api/v1/prescriptions/rx-1/pdf/status?jobId=job-1',
-        }),
-        getStatus: async () => ({
-          jobId: 'job-1',
-          status: 'PENDING' as const,
-          createdAt: new Date('2026-01-01T00:00:00.000Z'),
-        }),
-      } satisfies PdfJobServicePort,
+      pdfOrchestrator,
     );
   });
 

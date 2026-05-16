@@ -1,5 +1,9 @@
 import { Module } from '@nestjs/common';
 import { AppointmentService } from './application/services/appointment.service';
+import { AppointmentQueryService } from './application/services/appointment-query.service';
+import { AppointmentCommandService } from './application/services/appointment-command.service';
+import { AppointmentMetricsService } from './application/services/appointment-metrics.service';
+import { AppointmentDiagnosisService } from './application/services/appointment-diagnosis.service';
 import { AppointmentsController } from './presentation/controllers/appointments.controller';
 import { AppointmentRequestController } from './presentation/controllers/appointment-request.controller';
 import { PrismaAppointmentRepository } from './infrastructure/persistence/prisma-appointment.repository';
@@ -29,6 +33,10 @@ import { WhatsappModule } from '@/shared/modules/messaging/whatsapp/whatsapp.mod
   ],
   providers: [
     AppointmentService,
+    AppointmentQueryService,
+    AppointmentCommandService,
+    AppointmentMetricsService,
+    AppointmentDiagnosisService,
     AppointmentRequestService,
     CreateAppointmentUseCase,
     PrismaAppointmentRepository,
