@@ -14,71 +14,32 @@ import {
 import { Button } from "@workspace/ui/components/button";
 import { Alert, AlertDescription } from "@workspace/ui/components/alert";
 import { cn } from "@workspace/ui/lib/utils";
-import {
-  AlertTriangle,
-  ArrowDown,
-  ArrowRight,
-  Building2,
-  CheckCircle,
-  ClipboardList,
-  Crown,
-  Hospital,
-  Rocket,
-  Sparkles,
-  Zap,
-} from "lucide-react";
+import { AlertTriangle, ArrowDown, ArrowRight, Building2, CheckCircle } from "lucide-react";
 import {
   PRICING_CURRENCY_CONFIG,
-  type SupportedCurrency,
-  Tier,
   TIER_INFO,
-  type TierName,
   getTierName,
   getUserFacingErrorMessage,
 } from "@workspace/types";
+import {
+  type TierChangeDialogProps,
+  TIER_ICONS,
+  PLAN_TIER_RANK,
+} from "./tier-change-dialog-types";
+
+export type { TierChangeDialogProps } from "./tier-change-dialog-types";
 import { type TierPricing, usePricingConfig } from "@/hooks/api/use-pricing";
 import { useProrationPreview } from "@/hooks/api/use-billing";
-import { formatCurrency, formatPriceWithCurrency } from "@workspace/utils";
+import { formatPriceWithCurrency } from "@workspace/utils";
 import { SUBSCRIPTION_GST_INCLUSIVE_NOTICE } from "@/features/subscription/lib/billing-display-messages";
 import { YearlyVsListAnnualPrice } from "@/features/subscription/lib/yearly-vs-list-annual-price";
 import { getTierFeatureDelta } from "@/features/subscription/lib/feature-delta";
-import { Check, Minus, CalendarClock } from "lucide-react";
+import {
+  FeatureDeltaGrid,
+  DowngradeTimingChooser,
+  ProrationPreview,
+} from "./tier-change-dialog-sections";
 
-interface TierChangeDialogProps {
-  open: boolean;
-  onOpenChange: (open: boolean) => void;
-  currentTier: Tier;
-  selectedTier: TierName | null;
-  billingCycle: "MONTHLY" | "YEARLY";
-  currency: SupportedCurrency;
-  onConfirm: () => Promise<void>;
-  /** Schedule the downgrade for current-period-end (no charge today). */
-  onSchedule?: () => Promise<void>;
-  /** ISO timestamp of the current period end (renewal anchor for scheduled). */
-  currentPeriodEnd?: string | null;
-  /** True while Razorpay or billing API is in flight (parent checkout hook). */
-  checkoutInFlight?: boolean;
-}
-
-const TIER_ICONS: Record<TierName, React.ElementType> = {
-  STARTER: Zap,
-  ESSENTIAL: Rocket,
-  FRONT_DESK: ClipboardList,
-  PROFESSIONAL: Crown,
-  HOSPITAL: Hospital,
-  ENTERPRISE: Building2,
-  INTELLIGENCE: Sparkles,
-};
-
-const PLAN_TIER_RANK: Record<TierName, number> = {
-  STARTER: 10,
-  FRONT_DESK: 18,
-  ESSENTIAL: 20,
-  PROFESSIONAL: 30,
-  HOSPITAL: 35,
-  ENTERPRISE: 40,
-  INTELLIGENCE: 36,
-};
 
 export function TierChangeDialog({
   open,
@@ -345,138 +306,25 @@ export function TierChangeDialog({
             )}
 
             {/* Feature delta — concrete view of what changes. */}
-            {(featureDelta.gained.length > 0 || featureDelta.lost.length > 0) && (
-              <div className="grid gap-3 sm:grid-cols-2">
-                {featureDelta.gained.length > 0 ? (
-                  <div className="rounded-lg border border-success/40 bg-success/5 p-3">
-                    <p className="mb-2 text-[var(--fs-2xs)] font-semibold uppercase tracking-wide text-success">
-                      You&apos;ll gain
-                    </p>
-                    <ul className="space-y-1 text-sm">
-                      {featureDelta.gained.slice(0, 6).map((f) => (
-                        <li
-                          key={f.feature}
-                          className="flex items-start gap-2 leading-snug"
-                        >
-                          <Check className="mt-0.5 h-3.5 w-3.5 shrink-0 text-success" aria-hidden />
-                          <span>{f.name}</span>
-                        </li>
-                      ))}
-                      {featureDelta.gained.length > 6 ? (
-                        <li className="pl-5 text-xs text-muted-foreground">
-                          + {featureDelta.gained.length - 6} more
-                        </li>
-                      ) : null}
-                    </ul>
-                  </div>
-                ) : null}
-                {featureDelta.lost.length > 0 ? (
-                  <div className="rounded-lg border border-warning/40 bg-warning/5 p-3">
-                    <p className="mb-2 text-[var(--fs-2xs)] font-semibold uppercase tracking-wide text-warning">
-                      You&apos;ll lose
-                    </p>
-                    <ul className="space-y-1 text-sm">
-                      {featureDelta.lost.slice(0, 6).map((f) => (
-                        <li
-                          key={f.feature}
-                          className="flex items-start gap-2 leading-snug"
-                        >
-                          <Minus
-                            className="mt-0.5 h-3.5 w-3.5 shrink-0 text-warning"
-                            aria-hidden
-                          />
-                          <span>{f.name}</span>
-                        </li>
-                      ))}
-                      {featureDelta.lost.length > 6 ? (
-                        <li className="pl-5 text-xs text-muted-foreground">
-                          + {featureDelta.lost.length - 6} more
-                        </li>
-                      ) : null}
-                    </ul>
-                  </div>
-                ) : null}
-              </div>
-            )}
+            <FeatureDeltaGrid gained={featureDelta.gained} lost={featureDelta.lost} />
 
             {/* Timing chooser — only for downgrades when scheduling is wired. */}
             {isDowngrade && onSchedule ? (
-              <div className="rounded-lg border bg-muted/20 p-3 space-y-2">
-                <p className="text-[var(--fs-2xs)] font-semibold uppercase tracking-wide text-muted-foreground">
-                  When should this take effect?
-                </p>
-                <div className="grid gap-2 sm:grid-cols-2">
-                  <button
-                    type="button"
-                    onClick={() => setTiming("at-renewal")}
-                    className={cn(
-                      "flex flex-col gap-1 rounded-md border px-3 py-2 text-left text-sm transition-colors",
-                      timing === "at-renewal"
-                        ? "border-primary bg-primary/5 ring-1 ring-primary/30"
-                        : "border-border hover:bg-muted/40",
-                    )}
-                  >
-                    <span className="flex items-center gap-2 font-medium">
-                      <CalendarClock className="h-4 w-4 shrink-0" aria-hidden />
-                      At next renewal{formattedRenewalDate ? ` (${formattedRenewalDate})` : ""}
-                    </span>
-                    <span className="text-xs text-muted-foreground">
-                      Keep {currentInfo.name} features for the rest of the paid
-                      period. No charge today.
-                    </span>
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => setTiming("now")}
-                    className={cn(
-                      "flex flex-col gap-1 rounded-md border px-3 py-2 text-left text-sm transition-colors",
-                      timing === "now"
-                        ? "border-warning bg-warning/5 ring-1 ring-warning/30"
-                        : "border-border hover:bg-muted/40",
-                    )}
-                  >
-                    <span className="font-medium">Apply immediately</span>
-                    <span className="text-xs text-muted-foreground">
-                      Lose higher-tier features now. Unused time becomes account
-                      credit toward your next invoice.
-                    </span>
-                  </button>
-                </div>
-              </div>
+              <DowngradeTimingChooser
+                timing={timing}
+                onTimingChange={setTiming}
+                currentPlanName={currentInfo.name}
+                formattedRenewalDate={formattedRenewalDate}
+              />
             ) : null}
 
-            {selectedTier !== "ENTERPRISE" && (prorationLoading || prorationPreview) && (
-              <div className="rounded-lg border bg-muted/25 p-3 text-sm space-y-2">
-                {prorationLoading ? (
-                  <p className="text-muted-foreground">Calculating checkout amount…</p>
-                ) : prorationPreview ? (
-                  <>
-                    {prorationPreview.creditCents > 0 ? (
-                      <p className="text-muted-foreground">
-                        Credit from unused period:{" "}
-                        <span className="font-medium text-foreground">
-                          {formatCurrency(prorationPreview.creditCents / 100, {
-                            currency,
-                            locale: currencyConfig.locale,
-                            fractionDigits: currencyConfig.decimalPlaces,
-                          })}
-                        </span>
-                      </p>
-                    ) : null}
-                    <p className="font-semibold">
-                      Due today:{" "}
-                      {formatCurrency(
-                        prorationPreview.finalAmountCents / 100,
-                        {
-                          currency,
-                          locale: currencyConfig.locale,
-                          fractionDigits: currencyConfig.decimalPlaces,
-                        },
-                      )}
-                    </p>
-                  </>
-                ) : null}
-              </div>
+            {selectedTier !== "ENTERPRISE" && (
+              <ProrationPreview
+                prorationLoading={prorationLoading}
+                prorationPreview={prorationPreview}
+                currency={currency}
+                currencyConfig={currencyConfig}
+              />
             )}
 
             <p className="text-[var(--fs-2xs)] leading-snug text-muted-foreground">

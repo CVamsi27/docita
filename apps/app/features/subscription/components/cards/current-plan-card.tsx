@@ -1,7 +1,6 @@
 "use client";
 
 import { DocitaLoadingIndicator } from "@workspace/ui/components/docita-loading-indicator";
-
 import { Activity, CalendarClock, Crown, CreditCard, LockKeyhole, Receipt, Sparkles, TrendingUp } from "lucide-react";
 import {
   Card,
@@ -14,99 +13,20 @@ import { Badge } from "@workspace/ui/components/badge";
 import { Button } from "@workspace/ui/components/button";
 import { Progress } from "@workspace/ui/components/progress";
 import { cn } from "@workspace/ui/lib/utils";
-import type { CurrentUsage, TierInfo } from "@workspace/types";
-import { formatCountLocale } from "@workspace/utils";
 import { SUBSCRIPTION_GST_INCLUSIVE_NOTICE } from "@/features/subscription/lib/billing-display-messages";
 import {
   formatUsageMeterCaption,
   usageMeterHasNoIncludedQuota,
   usageProgressPercentForBar,
 } from "@/features/subscription/lib/usage-meter-display";
+import {
+  type CurrentPlanCardProps,
+  TIER_COLOR_MAP,
+  USAGE_ITEMS,
+  formatUsageValue,
+} from "./current-plan-card-types";
 
-interface CurrentPlanCardProps {
-  tierInfo: TierInfo;
-  currentTier: number;
-  hasIntelligence: boolean;
-  canChangeTier: boolean;
-  onChangePlan: () => void;
-  onViewBillingHistory: () => void;
-  /**
-   * Render a banner for a scheduled plan change (e.g. "Downgrades to
-   * Essential on Dec 1") with an Undo action.
-   */
-  scheduledChange?: {
-    planName: string;
-    effectiveAt: string;
-    onCancel: () => void;
-    isCancelling?: boolean;
-  } | null;
-  /**
-   * Show the account credit balance the user has accumulated (held credit
-   * is applied against the next invoice).
-   */
-  accountCreditCents?: number;
-  accountCreditCurrency?: string;
-  /**
-   * Pay for the next billing cycle immediately (renew current plan).
-   * Only rendered when provided AND the plan is renewable (paid tier).
-   */
-  onRenewNow?: () => void;
-  /** Label override for the renew CTA, e.g. "Add payment method" when trialing. */
-  renewActionLabel?: string;
-  /** Shows the renew button with prominent styling (e.g. renewal imminent). */
-  emphasizeRenew?: boolean;
-  /** Disable renew while a checkout request is in flight. */
-  isRenewProcessing?: boolean;
-  planDetails?: { label: string; value: string }[];
-  /** Optional note under the plan detail strip. */
-  planDetailsFootnote?: string;
-  usage?: CurrentUsage | null;
-  isUsageLoading?: boolean;
-  hasUsageError?: boolean;
-  statusNotice?: {
-    title: string;
-    description: string;
-    badgeLabel?: string;
-    actionLabel?: string;
-    onAction?: () => void;
-    variant?: "default" | "warning" | "destructive";
-  };
-  /** When false, hides the WhatsApp usage row (e.g. Starter has no patient WhatsApp feature). */
-  showWhatsAppUsageMeter?: boolean;
-}
-
-const TIER_COLOR_MAP: Record<string, { gradient: string; badge: string }> = {
-  gray: {
-    gradient: "tier-capture",
-    badge: "tier-capture",
-  },
-  blue: {
-    gradient: "tier-core",
-    badge: "tier-core",
-  },
-  green: {
-    gradient: "tier-plus",
-    badge: "tier-plus",
-  },
-  purple: {
-    gradient: "tier-pro",
-    badge: "tier-pro",
-  },
-  orange: {
-    gradient: "tier-enterprise",
-    badge: "tier-enterprise",
-  },
-};
-
-const usageItems = [
-  { key: "consultations", label: "Consultations", unit: "consults" },
-  { key: "users", label: "Team members", unit: "users" },
-  { key: "whatsappMessages", label: "WhatsApp", unit: "msgs" },
-] as const;
-
-function formatUsageValue(value: number) {
-  return value >= 999999 ? "Unlimited" : formatCountLocale(value);
-}
+export type { CurrentPlanCardProps } from "./current-plan-card-types";
 
 export function CurrentPlanCard({
   tierInfo,
@@ -356,8 +276,8 @@ export function CurrentPlanCard({
           ) : usage ? (
             <div className="mt-4 grid gap-4 lg:grid-cols-3">
               {(showWhatsAppUsageMeter
-                ? usageItems
-                : usageItems.filter((row) => row.key !== "whatsappMessages")
+                ? USAGE_ITEMS
+                : USAGE_ITEMS.filter((row) => row.key !== "whatsappMessages")
               ).map(({ key, label, unit }) => {
                 const meter = usage.meters[key];
                 const noIncludedQuota = usageMeterHasNoIncludedQuota(

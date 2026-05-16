@@ -2,38 +2,15 @@
 
 import { useCallback, useRef, useState } from "react";
 import { usePermissionStore } from "@/lib/stores/permission-store";
-import { PrivacyPolicyContent, SLAContent } from "@/features/legal";
-import { getTierInfo, getTierPricing, Tier } from "@/lib/tier-config";
-import {
-  Alert,
-  AlertDescription,
-  AlertTitle,
-} from "@workspace/ui/components/alert";
-import { Card, CardContent } from "@workspace/ui/components/card";
+import { getTierInfo, Tier } from "@/lib/tier-config";
 import { Button } from "@workspace/ui/components/button";
-import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-} from "@workspace/ui/components/dialog";
-import { ScrollArea } from "@workspace/ui/components/scroll-area";
-import {
-  Tabs,
-  TabsContent,
-  TabsList,
-  TabsTrigger,
-} from "@workspace/ui/components/tabs";
 import { X } from "lucide-react";
 import { ContactSalesModal } from "@/features/dialogs";
-import { ComparisonTable } from "@/features/subscription/components/pricing/comparison-table";
 import { CurrentPlanCard } from "@/features/subscription/components/cards/current-plan-card";
 import { EnterpriseContractCard } from "@/features/subscription/components/cards/enterprise-contract-card";
 import { UsageDashboard } from "@/features/subscription/components/usage-dashboard";
-import { FaqSection } from "@/features/subscription/components/sections/faq-section";
 import { InvoiceHistoryDialog } from "@/features/subscription/components/dialogs/invoice-history-dialog";
 import { PaymentSuccessModal } from "@/features/subscription/components/modals/payment-success-modal";
-import { TierCard } from "@/features/subscription/components/cards/tier-card";
 import { TierChangeDialog } from "@/features/subscription/components/dialogs/tier-change-dialog";
 import {
   type CheckoutSuccessData,
@@ -47,152 +24,28 @@ import { useCurrentUsage, usePricingConfig } from "@/hooks/api/use-pricing";
 import { useLocaleCurrency } from "@/hooks/use-locale-currency";
 import { useSubscription } from "@/hooks/api/use-settings";
 import {
-  ANNUAL_DISCOUNT_PERCENT,
-  PRICING_CURRENCY_SYMBOLS,
-  TIER_INFO,
-  TIER_OVERAGE_RATES_BY_CURRENCY,
-  TIER_PRICING_BY_CURRENCY,
-  getTierName,
-  getWhatsAppAddonPricingByCurrency,
-  isFrontDeskWorkspace,
   type SupportedCurrency,
   type TierName,
 } from "@workspace/types";
-import { formatLocaleDateShortMonthYear } from "@/lib/formatters";
-import { PLAN_ONBOARDING_KEY_HIGHLIGHTS } from "@/features/subscription/config/plan-onboarding-highlights";
 import { getDisplayBillingPeriodEndAndDaysLeft } from "@/features/subscription/lib/billing-period-display";
 import { recommendTier } from "@/features/subscription/lib/recommend-tier";
-import { Lightbulb } from "lucide-react";
-import { cn } from "@workspace/ui/lib/utils";
-
-const PLAN_ORDER = [
-  Tier.STARTER,
-  Tier.FRONT_DESK,
-  Tier.ESSENTIAL,
-  Tier.PROFESSIONAL,
-  Tier.HOSPITAL,
-  Tier.ENTERPRISE,
-] as const;
-
-function formatPlanDate(value?: string | null) {
-  if (!value) return "Not scheduled";
-  const formatted = formatLocaleDateShortMonthYear(value);
-  return formatted.length > 0 ? formatted : "Not scheduled";
-}
-
-function formatStatusLabel(status?: string) {
-  if (!status) return "Not set";
-  return status
-    .replace(/_/g, " ")
-    .toLowerCase()
-    .replace(/\b\w/g, (letter) => letter.toUpperCase());
-}
-
-function isStarterActiveZeroBase(
-  subscription: { tier?: string; basePriceCents?: number } | null | undefined,
-  subscriptionStatus: string | undefined,
-): boolean {
-  return (
-    subscription?.tier === "STARTER" &&
-    subscriptionStatus === "ACTIVE" &&
-    (subscription.basePriceCents ?? 0) === 0
-  );
-}
-
-function starterCatalogListMajorUnits(
-  currency: string | undefined,
-  billingCycle?: "MONTHLY" | "YEARLY" | string,
-): number | null {
-  const code = (currency ?? "INR").toUpperCase();
-  if (
-    !Object.prototype.hasOwnProperty.call(TIER_PRICING_BY_CURRENCY, code)
-  ) {
-    return null;
-  }
-  const row =
-    TIER_PRICING_BY_CURRENCY[code as SupportedCurrency].STARTER;
-  const amount =
-    billingCycle === "YEARLY" ? row.yearly : row.monthly;
-  return typeof amount === "number" && Number.isFinite(amount) ? amount : null;
-}
-
-function billingCadenceLabel(cycle?: "MONTHLY" | "YEARLY" | string) {
-  if (!cycle) return "Monthly";
-  return cycle === "YEARLY" ? "Annual" : "Monthly";
-}
-
-function currencySymbolFor(code: string | undefined) {
-  const upper = (code ?? "INR").toUpperCase();
-  return (
-    PRICING_CURRENCY_SYMBOLS[
-      upper as keyof typeof PRICING_CURRENCY_SYMBOLS
-    ] ?? upper
-  );
-}
-
-/**
- * Platform subscription row: always states cadence (monthly vs annual) and list
- * price when the subscription carries a non-zero base.
- */
-function formatPlanBillingDetail(
-  subscription:
-    | {
-        tier?: string;
-        billingCycle?: "MONTHLY" | "YEARLY";
-        basePriceCents?: number;
-        currency?: string;
-      }
-    | null
-    | undefined,
-  subscriptionStatus: string | undefined,
-): string {
-  const cadence = billingCadenceLabel(subscription?.billingCycle);
-  const symbol = currencySymbolFor(subscription?.currency);
-
-  if (isStarterActiveZeroBase(subscription, subscriptionStatus)) {
-    const listMajor = starterCatalogListMajorUnits(
-      subscription?.currency,
-      subscription?.billingCycle,
-    );
-    if (listMajor != null) {
-      const suffix = subscription?.billingCycle === "YEARLY" ? "/yr" : "/mo";
-      return `${cadence} — ${symbol}${listMajor}${suffix}`;
-    }
-    return `${cadence} — ${symbol}0`;
-  }
-
-  const cents = subscription?.basePriceCents ?? 0;
-  if (cents <= 0) {
-    return `${cadence} — ${symbol}0`;
-  }
-
-  const majorUnits = cents / 100;
-  const amountLabel = Number.isInteger(majorUnits)
-    ? String(majorUnits)
-    : majorUnits.toFixed(2);
-  const suffix = subscription?.billingCycle === "YEARLY" ? "/yr" : "/mo";
-  return `${cadence} — ${symbol}${amountLabel}${suffix}`;
-}
-
-/**
- * Legacy rows set Starter to MONTHLY with a ~365d access window; avoid implying
- * a monthly renewal cadence from that combination.
- */
-function starterMonthlyAccessTermMismatch(
-  subscription: { tier?: string; billingCycle?: string } | null | undefined,
-  daysLeftInPeriod: number | null,
-): boolean {
-  return (
-    subscription?.tier === "STARTER" &&
-    subscription?.billingCycle === "MONTHLY" &&
-    daysLeftInPeriod !== null &&
-    daysLeftInPeriod > 45
-  );
-}
+import { getTierName } from "@workspace/types";
+import {
+  formatPlanDate,
+  formatStatusLabel,
+  formatPlanBillingDetail,
+  starterMonthlyAccessTermMismatch,
+} from "./billing-subscription-helpers";
+import {
+  PlansSection,
+  PlanTabsSection,
+  ContactSalesCard,
+  LegalFooter,
+  LegalDialog,
+} from "./billing-subscription-sections";
 
 export function BillingSubscriptionWorkspace() {
   const { currentTier, workspaceProfile } = usePermissionStore();
-  const isFrontDeskClinic = isFrontDeskWorkspace(workspaceProfile);
 
   const [showContactSalesModal, setShowContactSalesModal] = useState(false);
   const [showTierChangeDialog, setShowTierChangeDialog] = useState(false);
@@ -303,11 +156,6 @@ export function BillingSubscriptionWorkspace() {
   const scrollToPlans = useCallback(() => {
     plansRef.current?.scrollIntoView({ behavior: "smooth", block: "start" });
   }, []);
-
-  const planCards = PLAN_ORDER.map((tier) => ({
-    tier,
-    info: getTierInfo(tier),
-  }));
 
   const recommendation = recommendTier(getTierName(effectiveCurrentTier), usage);
 
@@ -473,243 +321,33 @@ export function BillingSubscriptionWorkspace() {
 
       <UsageDashboard />
 
-      <div
-        ref={plansRef}
-        id="billing-plans-section"
-        className="scroll-mt-6 space-y-4"
-      >
-        <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between sm:gap-6">
-          <div className="min-w-0">
-            <h2 className="ui-section-title text-[var(--fs-2xl)] leading-[var(--lh-tight)]">
-              Choose a plan
-            </h2>
-            <p className="mt-1 text-[var(--fs-sm)] text-muted-foreground">
-              Click any plan to start checkout. Yearly billing saves{" "}
-              {ANNUAL_DISCOUNT_PERCENT}%.
-            </p>
-          </div>
-          <div className="inline-flex shrink-0 items-center gap-1 self-start rounded-full border bg-muted/40 p-1 sm:self-auto">
-            <Button
-              variant={selectedCycle === "MONTHLY" ? "default" : "ghost"}
-              size="sm"
-              className="rounded-full"
-              onClick={() => setSelectedCycle("MONTHLY")}
-            >
-              Monthly
-            </Button>
-            <Button
-              variant={selectedCycle === "YEARLY" ? "default" : "ghost"}
-              size="sm"
-              className="gap-1.5 rounded-full"
-              onClick={() => setSelectedCycle("YEARLY")}
-            >
-              Yearly
-              <span
-                className={cn(
-                  "rounded-full px-1.5 py-0.5 text-[10px] font-semibold leading-none",
-                  selectedCycle === "YEARLY"
-                    ? "bg-primary-foreground/20 text-primary-foreground"
-                    : "bg-success/15 text-success",
-                )}
-              >
-                {`Save ${ANNUAL_DISCOUNT_PERCENT}%`}
-              </span>
-            </Button>
-          </div>
-        </div>
+      <PlansSection
+        effectiveCurrentTier={effectiveCurrentTier}
+        selectedCycle={selectedCycle}
+        setSelectedCycle={setSelectedCycle}
+        recommendation={recommendation}
+        billingAllowed={billingAllowed}
+        handleSelectTier={handleSelectTier}
+        setShowContactSalesModal={setShowContactSalesModal}
+        pricingConfig={pricingConfig}
+        currency={currency}
+        workspaceProfile={workspaceProfile}
+        plansRef={plansRef}
+      />
 
-        {recommendation ? (
-          <Alert className="border-primary/40 bg-primary/5">
-            <Lightbulb className="h-4 w-4 text-primary" />
-            <AlertTitle className="text-[var(--fs-sm)]">
-              {TIER_INFO[recommendation.tier].name} fits your usage best
-            </AlertTitle>
-            <AlertDescription className="flex flex-col gap-2 text-[var(--fs-xs)] leading-relaxed sm:flex-row sm:items-center sm:justify-between sm:gap-4">
-              <span>{recommendation.reasons.join(" · ")}</span>
-              <Button
-                size="sm"
-                onClick={() =>
-                  handleSelectTier(recommendation.tier, selectedCycle)
-                }
-                disabled={!billingAllowed}
-                className="shrink-0"
-              >
-                Review {TIER_INFO[recommendation.tier].name}
-              </Button>
-            </AlertDescription>
-          </Alert>
-        ) : null}
+      <PlanTabsSection effectiveCurrentTier={effectiveCurrentTier} />
 
-        <div className="grid auto-rows-fr items-stretch gap-4 sm:grid-cols-2 lg:grid-cols-3">
-          {planCards.map(({ tier, info }) => {
-            const tierName = Tier[tier] as TierName;
-            const tierPricingData = pricingConfig?.tiers.find(
-              (t) => t.id === tierName,
-            );
-            const catalogPricing = getTierPricing(tierName);
-            const resolvedPricing =
-              tierPricingData?.pricing ?? {
-                monthly: catalogPricing.monthly,
-                yearly: catalogPricing.yearly,
-              };
-            const currencySymbol =
-              PRICING_CURRENCY_SYMBOLS[
-                currency as keyof typeof PRICING_CURRENCY_SYMBOLS
-              ] ?? PRICING_CURRENCY_SYMBOLS.INR;
-            const overageRates =
-              TIER_OVERAGE_RATES_BY_CURRENCY[
-                currency as keyof typeof TIER_OVERAGE_RATES_BY_CURRENCY
-              ]?.[tierName] ?? TIER_OVERAGE_RATES_BY_CURRENCY.INR[tierName];
-            const whatsappRate =
-              tierName === "ESSENTIAL" ||
-              tierName === "FRONT_DESK" ||
-              tierName === "PROFESSIONAL" ||
-              tierName === "HOSPITAL"
-                ? getWhatsAppAddonPricingByCurrency(
-                    tierName,
-                    currency as Parameters<
-                      typeof getWhatsAppAddonPricingByCurrency
-                    >[1],
-                  ).overageRate
-                : 0;
-            const overageParts = [
-              overageRates?.appointmentRate > 0
-                ? `${currencySymbol}${overageRates.appointmentRate}${
-                    isFrontDeskClinic ? "/appointment" : "/consult"
-                  }`
-                : null,
-              overageRates?.userRate > 0
-                ? `${currencySymbol}${overageRates.userRate}/user`
-                : null,
-              whatsappRate > 0
-                ? `${currencySymbol}${whatsappRate}/WA msg`
-                : null,
-            ].filter((item): item is string => !!item);
-            return (
-              <TierCard
-                key={tier}
-                tier={tier}
-                info={info}
-                features={[]}
-                isCurrentTier={tier === effectiveCurrentTier}
-                isRecommended={
-                  !!recommendation && recommendation.tier === tierName
-                }
-                isLocked={false}
-                currentTierValue={effectiveCurrentTier}
-                keyHighlights={
-                  PLAN_ONBOARDING_KEY_HIGHLIGHTS[tierName] ?? []
-                }
-                pricing={resolvedPricing}
-                billingCycle={selectedCycle}
-                currencySymbol={currencySymbol}
-                overageItems={
-                  overageParts.length > 0 ? overageParts : undefined
-                }
-                density="summary"
-                buttonLabel={
-                  tier === Tier.ENTERPRISE ? "Contact Sales" : undefined
-                }
-                onSelect={
-                  billingAllowed && tier === Tier.ENTERPRISE
-                    ? () => setShowContactSalesModal(true)
-                    : billingAllowed
-                      ? () => handleSelectTier(tierName, selectedCycle)
-                      : undefined
-                }
-              />
-            );
-          })}
-        </div>
-      </div>
+      <ContactSalesCard onContactSales={() => setShowContactSalesModal(true)} />
 
-      <Tabs defaultValue="compare" className="w-full">
-        <TabsList className="w-full justify-start border-b rounded-none bg-transparent h-auto p-0 gap-1 flex flex-wrap overflow-x-hidden">
-          <TabsTrigger
-            value="compare"
-            className="rounded-none border-b-2 border-transparent data-[state=active]:border-primary data-[state=active]:bg-transparent pb-2"
-          >
-            Compare Plans
-          </TabsTrigger>
-          <TabsTrigger
-            value="faq"
-            className="rounded-none border-b-2 border-transparent data-[state=active]:border-primary data-[state=active]:bg-transparent pb-2"
-          >
-            FAQ
-          </TabsTrigger>
-        </TabsList>
+      <LegalFooter
+        onOpenTerms={() => setLegalDialog("terms")}
+        onOpenPrivacy={() => setLegalDialog("privacy")}
+      />
 
-        <TabsContent value="compare" className="pt-4">
-          <ComparisonTable currentTier={effectiveCurrentTier} />
-        </TabsContent>
-
-        <TabsContent value="faq" className="pt-4">
-          <FaqSection />
-        </TabsContent>
-      </Tabs>
-
-      <Card className="border-border/70 bg-card">
-        <CardContent className="flex flex-col md:flex-row items-center justify-between gap-4 py-6">
-          <div>
-            <h3 className="ui-section-title text-[var(--fs-lg)]">
-              Need help choosing?
-            </h3>
-            <p className="ui-page-subtitle">
-              Our team can help you find the perfect plan for your practice
-            </p>
-          </div>
-          <div className="flex gap-3">
-            <Button onClick={() => setShowContactSalesModal(true)}>
-              Contact Sales
-            </Button>
-          </div>
-        </CardContent>
-      </Card>
-
-      <div className="text-center text-xs text-muted-foreground pt-2 pb-6">
-        <p>
-          By upgrading, you agree to our
-          <button
-            type="button"
-            className="ml-1 underline underline-offset-2 hover:text-foreground"
-            onClick={() => setLegalDialog("terms")}
-          >
-            Terms of Service
-          </button>
-          <span className="mx-1">and</span>
-          <button
-            type="button"
-            className="underline underline-offset-2 hover:text-foreground"
-            onClick={() => setLegalDialog("privacy")}
-          >
-            Privacy Policy
-          </button>
-          . All prices are inclusive of GST and applicable taxes.
-        </p>
-      </div>
-
-      <Dialog
-        open={legalDialog !== null}
-        onOpenChange={(open) => {
-          if (!open) setLegalDialog(null);
-        }}
-      >
-        <DialogContent className="max-w-3xl max-h-[85vh] p-0">
-          <DialogHeader className="px-6 pt-6">
-            <DialogTitle className="text-xl">
-              {legalDialog === "privacy" ? "Privacy Policy" : "Terms"}
-            </DialogTitle>
-          </DialogHeader>
-          <ScrollArea className="max-h-[calc(85vh-84px)] px-6 pb-6">
-            <div className="pt-2">
-              {legalDialog === "privacy" ? (
-                <PrivacyPolicyContent />
-              ) : null}
-              {legalDialog === "terms" ? <SLAContent /> : null}
-            </div>
-          </ScrollArea>
-        </DialogContent>
-      </Dialog>
+      <LegalDialog
+        legalDialog={legalDialog}
+        onClose={() => setLegalDialog(null)}
+      />
 
       <ContactSalesModal
         open={showContactSalesModal}
