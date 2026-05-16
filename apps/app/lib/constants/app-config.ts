@@ -1,75 +1,25 @@
 import { DEFAULT_CURRENCY } from "@workspace/utils";
+import type {
+  SelectOption,
+  DurationOption,
+  CurrencyOption,
+  PatientImportField,
+  FormOptions,
+  DefaultValues,
+  ClinicSettings,
+  AppConfig,
+} from "@workspace/types";
 
-export interface SelectOption {
-  value: string;
-  label: string;
-  color?: string;
-  short?: string;
-}
-
-export interface DurationOption {
-  value: number;
-  label: string;
-}
-
-export interface PatientImportField {
-  field: string;
-  label: string;
-  required: boolean;
-  type: string;
-  options?: SelectOption[];
-}
-
-export interface CurrencyOption {
-  value: string;
-  label: string;
-  symbol: string;
-}
-
-export interface FormOptions {
-  gender: SelectOption[];
-  bloodGroup: SelectOption[];
-  appointmentType: SelectOption[];
-  appointmentStatus: SelectOption[];
-  invoiceStatus: SelectOption[];
-  paymentStatus: SelectOption[];
-  userRole: SelectOption[];
-  weekday: SelectOption[];
-  customFieldType: SelectOption[];
-  templateFieldType: SelectOption[];
-  specialty: SelectOption[];
-  documentType: SelectOption[];
-  appointmentDuration: DurationOption[];
-  whatsappMessageType: SelectOption[];
-  currency: CurrencyOption[];
-  timezone: SelectOption[];
-}
-
-export interface DefaultValues {
-  appointmentDuration: number;
-  consultationFee: number;
-  currency: string;
-  timezone: string;
-  invoiceItems: Array<{ description: string; quantity: number; price: number }>;
-}
-
-export interface ClinicSettings {
-  consultationFee: number;
-  currency: string;
-  timezone: string;
-  appointmentDuration: number;
-  appointmentType?: string;
-  clinicType?: string;
-  facilityLabel?: "CLINIC" | "HOSPITAL";
-  sidebarNavOrder?: unknown;
-}
-
-export interface AppConfig {
-  formOptions: FormOptions;
-  patientImportFields: PatientImportField[];
-  defaults: DefaultValues;
-  clinicSettings?: ClinicSettings;
-}
+export type {
+  SelectOption,
+  DurationOption,
+  CurrencyOption,
+  PatientImportField,
+  FormOptions,
+  DefaultValues,
+  ClinicSettings,
+  AppConfig,
+};
 
 export const DEFAULT_FORM_OPTIONS: FormOptions = {
   gender: [

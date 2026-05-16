@@ -1,22 +1,25 @@
-import { Tier, TIER_INFO, TIER_LIMITS, TIER_PRICING } from "@workspace/types";
+import {
+  Tier,
+  TIER_INFO,
+  TIER_LIMITS,
+  TIER_PRICING,
+  type FeatureDisplay,
+  type TierPricing,
+  type TierLimits,
+} from "@workspace/types";
 import { CURRENCY_OPTIONS, DEFAULT_CURRENCY } from "@workspace/utils";
 
 const DEFAULT_CURRENCY_SYMBOL =
   CURRENCY_OPTIONS.find((option) => option.value === DEFAULT_CURRENCY)?.symbol ??
   DEFAULT_CURRENCY;
 
-export interface PlanPricing {
-  monthly: number | "custom";
-  yearly: number | "custom";
-  currency: string;
-}
+/** @alias TierPricing — renamed for backwards-compat with context consumers */
+export type PlanPricing = TierPricing;
 
-export interface PlanLimits {
-  patients: number;
-  doctors: number;
-  storageGB: number;
-  branches: number;
-}
+/** @alias TierLimits — renamed for backwards-compat with context consumers */
+export type PlanLimits = TierLimits;
+
+export type { FeatureDisplay };
 
 export interface TierConfig {
   id: string;
@@ -28,11 +31,6 @@ export interface TierConfig {
   pricing: PlanPricing;
   limits: PlanLimits;
   features: string[];
-}
-
-export interface FeatureDisplay {
-  name: string;
-  description: string;
 }
 
 export interface TierConfigData {

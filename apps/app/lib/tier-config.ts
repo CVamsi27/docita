@@ -36,6 +36,8 @@ import {
   TIER_LIMITS,
   TIER_PRICING,
   WHATSAPP_ADDON_PRICING,
+  type TierPricing,
+  type TierLimits,
 } from "@workspace/types";
 import { formatCountLocale } from "@workspace/utils";
 
@@ -49,24 +51,13 @@ const PLAN_TIER_LADDER: Tier[] = [
   Tier.ENTERPRISE,
 ];
 
-export interface PlanPricing {
-  monthly: number | "custom";
-  yearly: number | "custom";
-  currency: string;
-}
+/** @alias TierPricing */
+export type PlanPricing = TierPricing;
 
 export const PLAN_PRICING = TIER_PRICING;
 
-export interface PlanLimits {
-  patients: number;
-  doctors: number;
-  storageGB: number;
-  branches: number;
-  appointments?: number;
-  users?: number;
-  prescriptions?: number;
-  invoices?: number;
-}
+/** @alias TierLimits */
+export type PlanLimits = TierLimits;
 
 export const PLAN_LIMITS = TIER_LIMITS;
 

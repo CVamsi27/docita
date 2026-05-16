@@ -10,16 +10,9 @@ import {
   useLabTestStats,
 } from "@/hooks/api/use-clinical";
 import { usePatients } from "@/hooks/api/use-patients";
-import { Patient } from "@workspace/types";
+import { Patient, type PaginatedResponse } from "@workspace/types";
 import { useDebounce } from "@workspace/hooks/use-debounce";
 import { showUserFacingErrorToast } from "@/lib/user-facing-errors";
-
-export interface PaginatedResponse<T> {
-  items: T[];
-  nextCursor?: string;
-  hasMore: boolean;
-  count: number;
-}
 
 export const createLabTestOrderSchema = z.object({
   patientId: z.string().min(1, "Select a patient"),

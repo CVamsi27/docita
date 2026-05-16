@@ -6,13 +6,14 @@ import {
   UseQueryOptions,
 } from "@tanstack/react-query";
 import { APIRequestError, type RequestConfig } from "@workspace/data-access";
-import { getUserFacingErrorMessage } from "@workspace/types";
+import { getUserFacingErrorMessage, type PaginatedResponse } from "@workspace/types";
 import { API_URL } from "./api-config";
 import { apiFetch } from "./api-client";
 import { ApiError } from "./errors";
 import type { z } from "zod";
 
 export { API_URL };
+export type { PaginatedResponse };
 
 export interface AppConstants {
   followUpTypes: Array<{ value: string; label: string }>;
@@ -25,31 +26,7 @@ export interface AppConstants {
   toothConditions: Array<{ value: string; label: string; color: string }>;
 }
 
-export interface FormOptions {
-  gender: { value: string; label: string }[];
-  bloodGroup: { value: string; label: string }[];
-  appointmentType: { value: string; label: string }[];
-  appointmentStatus: { value: string; label: string }[];
-  invoiceStatus: { value: string; label: string }[];
-  paymentStatus: { value: string; label: string }[];
-  userRole: { value: string; label: string }[];
-  weekday: { value: string; label: string }[];
-  customFieldType: { value: string; label: string }[];
-  templateFieldType: { value: string; label: string }[];
-  specialty: { value: string; label: string }[];
-  documentType: { value: string; label: string }[];
-  appointmentDuration: { value: number; label: string }[];
-  whatsappMessageType: { value: string; label: string }[];
-  currency: { value: string; label: string }[];
-  timezone: { value: string; label: string }[];
-}
-
-export interface PaginatedResponse<T> {
-  items: T[];
-  count: number;
-  hasMore: boolean;
-  nextCursor?: string | null;
-}
+export type { FormOptions } from "@workspace/types";
 
 export interface MedicalHistoryTimelineItem {
   id: string;
