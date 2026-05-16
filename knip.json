@@ -2,10 +2,10 @@
   "$schema": "https://unpkg.com/knip@5/schema.json",
   "rules": {
     "files": "off",
-    "exports": "warn",
-    "types": "warn",
+    "exports": "error",
+    "duplicates": "error",
     "enumMembers": "warn",
-    "duplicates": "warn"
+    "types": "warn"
   },
   "ignoreBinaries": ["printf", "tsx"],
   "ignoreWorkspaces": ["apps/worker"],
@@ -47,7 +47,9 @@
       ]
     },
     "apps/landing": {
-      "ignoreDependencies": ["tailwindcss"]
+      "ignoreDependencies": ["tailwindcss"],
+      // Astro routing causes false-positive export/duplicate detections — ignore all exports from landing pages
+      "ignore": ["apps/landing/src/pages/**", "apps/landing/src/layouts/**"]
     },
     "packages/data-access": {
       "ignoreDependencies": ["@workspace/types"]

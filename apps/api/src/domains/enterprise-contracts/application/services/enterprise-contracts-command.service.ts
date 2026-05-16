@@ -42,7 +42,7 @@ export class EnterpriseContractsCommandService {
     if (endDate.getTime() <= startDate.getTime())
       throw new BadRequestException('endDate must be after startDate');
 
-    const clinic = await this.prisma.runUnrestricted(() =>
+    const clinic = await this.prisma.runUnrestricted(async () =>
       this.prisma.clinic.findUnique({ where: { id: primaryClinicId } }),
     );
     if (!clinic)

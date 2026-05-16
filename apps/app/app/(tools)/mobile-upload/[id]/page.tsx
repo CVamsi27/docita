@@ -165,7 +165,7 @@ function MobileUploadPageInner() {
         )}
 
         <Button
-          className={`w-full h-14 text-base font-medium rounded-lg shadow-lg transition-all ${
+          className={`w-full h-14 text-base font-medium rounded-lg shadow-lg transition-colors duration-200 ${
             file && !uploadMutation.isPending
               ? "bg-primary text-primary-foreground hover:bg-primary/90 shadow-primary/25"
               : ""

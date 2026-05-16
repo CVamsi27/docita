@@ -155,7 +155,7 @@ export function PreDashboardShell({
                     <div
                       key={i}
                       className={[
-                        "h-1 flex-1 rounded-full transition-all duration-500",
+                        "h-1 flex-1 rounded-full transition-colors duration-500",
                         i < meta.index
                           ? "bg-success"
                           : i === meta.index

@@ -176,7 +176,7 @@ function PathCard({
   return (
     <div
       className={cn(
-        "ui-card-surface group relative flex flex-col p-6 transition-all duration-200",
+        "ui-card-surface group relative flex flex-col p-6 transition-transform duration-200",
         "hover:-translate-y-0.5 hover:shadow-md",
         highlight
           ? "border-primary/30 hover:border-primary"
