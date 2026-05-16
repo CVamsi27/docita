@@ -21,30 +21,14 @@ import { useClinicSettings } from "@/hooks/api/use-settings";
 import {
   DEFAULT_TIMEZONE,
   formatClinicTodayPickerIso,
-  formatUtcInstantAsClinicPickerIso,
 } from "@workspace/utils";
+import {
+  type DoctorNextUpRow,
+  isDateLocalToday,
+  isQueueItemForTodayFn,
+} from "./consultation-dashboard-helpers";
 
-export type DoctorNextUpRow =
-  | {
-      kind: "appointment";
-      appointmentId: string;
-      patientId?: string;
-      startTime: string;
-      patientName: string;
-      status: string;
-      visitSummary?: string;
-    }
-  | {
-      kind: "queue";
-      appointmentId?: string;
-      patientId?: string;
-      tokenNumber: number;
-      createdAt: string;
-      patientName: string;
-      status: string;
-      tokenType: QueueItem["tokenType"];
-      visitSummary?: string;
-    };
+export type { DoctorNextUpRow } from "./consultation-dashboard-helpers";
 
 export const useConsultationDashboard = () => {
   const router = useRouter();
@@ -56,32 +40,13 @@ export const useConsultationDashboard = () => {
   const today = formatClinicTodayPickerIso(clinicTz);
 
   const isLocalToday = useCallback(
-    (value?: string | Date | null): boolean => {
-      if (!value) return true;
-      const date =
-        typeof value === "string"
-          ? new Date(value)
-          : value instanceof Date
-            ? value
-            : new Date(value);
-      if (Number.isNaN(date.getTime())) return true;
-      return formatUtcInstantAsClinicPickerIso(date, clinicTz) === today;
-    },
+    (value?: string | Date | null): boolean => isDateLocalToday(value, clinicTz, today),
     [clinicTz, today],
   );
 
   const isQueueItemForToday = useCallback(
-    (q: QueueItem): boolean => {
-    const appointmentStart =
-        typeof (q as unknown as { appointment?: { startTime?: unknown } })
-          ?.appointment?.startTime === "string"
-          ? ((q as unknown as { appointment?: { startTime?: string } })
-              .appointment?.startTime ?? null)
-          : null;
-
-      return isLocalToday(appointmentStart) || isLocalToday(q.createdAt);
-    },
-    [isLocalToday],
+    (q: QueueItem): boolean => isQueueItemForTodayFn(q, clinicTz, today),
+    [clinicTz, today],
   );
   const shouldScopeToOwnConsultations =
     user?.role === "DOCTOR" || user?.role === "ADMIN_DOCTOR";
