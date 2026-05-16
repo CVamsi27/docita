@@ -33,7 +33,7 @@ describe('DoctorsCommandService', () => {
     doctorVerificationService.verifyAndPersistDoctorVerification = jest.fn();
 
     signatureUploadService = Object.create(SignatureUploadService.prototype) as jest.Mocked<SignatureUploadService>;
-    signatureUploadService.generateUploadToken = jest.fn();
+    signatureUploadService.generateUploadToken = jest.fn() as never;
 
     storedFileUrlResolver = Object.create(StoredFileUrlResolverService.prototype) as jest.Mocked<StoredFileUrlResolverService>;
 
@@ -41,7 +41,7 @@ describe('DoctorsCommandService', () => {
 
     queryService = Object.create(DoctorsQueryService.prototype) as jest.Mocked<DoctorsQueryService>;
     queryService.findOne = jest.fn();
-    queryService.resolveDoctorSignatureUrl = jest.fn();
+    queryService.resolveDoctorSignatureUrl = jest.fn() as never;
 
     profileService = Object.create(DoctorProfileService.prototype) as jest.Mocked<DoctorProfileService>;
 
@@ -59,9 +59,9 @@ describe('DoctorsCommandService', () => {
   describe('create', () => {
     it('should create a doctor and trigger verification', async () => {
       const user = { id: 'doc-1', email: 'doc@example.com', name: 'Dr. Smith', role: Role.DOCTOR, specialization: null, hospitalRole: null, qualification: null };
-      (prisma.user.create as jest.Mock).mockResolvedValueOnce(user);
-      (prisma.doctorClinic.create as jest.Mock).mockResolvedValueOnce({});
-      (doctorVerificationService.verifyAndPersistDoctorVerification as jest.Mock).mockResolvedValueOnce(undefined);
+      (prisma.user.create as jest.Mock).mockResolvedValueOnce(user as never);
+      (prisma.doctorClinic.create as jest.Mock).mockResolvedValueOnce({} as never);
+      (doctorVerificationService.verifyAndPersistDoctorVerification as jest.Mock).mockResolvedValueOnce(undefined as never);
 
       const result = await service.create('clinic-1', {
         email: 'doc@example.com',
@@ -75,10 +75,10 @@ describe('DoctorsCommandService', () => {
 
     it('should create a doctor with specialization', async () => {
       const user = { id: 'doc-2', email: 'doc@example.com', name: 'Dr. Jones', role: Role.DOCTOR, specialization: 'CARDIOLOGY', hospitalRole: null, qualification: null };
-      (prisma.user.create as jest.Mock).mockResolvedValueOnce(user);
-      (prisma.doctorClinic.create as jest.Mock).mockResolvedValueOnce({});
-      (prisma.doctorSpecialization.create as jest.Mock).mockResolvedValueOnce({});
-      (doctorVerificationService.verifyAndPersistDoctorVerification as jest.Mock).mockResolvedValueOnce(undefined);
+      (prisma.user.create as jest.Mock).mockResolvedValueOnce(user as never);
+      (prisma.doctorClinic.create as jest.Mock).mockResolvedValueOnce({} as never);
+      (prisma.doctorSpecialization.create as jest.Mock).mockResolvedValueOnce({} as never);
+      (doctorVerificationService.verifyAndPersistDoctorVerification as jest.Mock).mockResolvedValueOnce(undefined as never);
 
       const result = await service.create('clinic-1', {
         email: 'doc@example.com',
@@ -94,9 +94,9 @@ describe('DoctorsCommandService', () => {
 
   describe('adminVerifyDoctor', () => {
     it('should manually verify a doctor', async () => {
-      (prisma.user.findUnique as jest.Mock).mockResolvedValueOnce({ id: 'doc-1', role: Role.DOCTOR, registrationNumber: 'REG123' });
-      (prisma.user.update as jest.Mock).mockResolvedValueOnce({});
-      (queryService.findOne as jest.Mock).mockResolvedValueOnce({ id: 'doc-1', verificationStatus: DoctorVerificationStatus.VERIFIED });
+      (prisma.user.findUnique as jest.Mock).mockResolvedValueOnce({ id: 'doc-1', role: Role.DOCTOR, registrationNumber: 'REG123' } as never);
+      (prisma.user.update as jest.Mock).mockResolvedValueOnce({} as never);
+      (queryService.findOne as jest.Mock).mockResolvedValueOnce({ id: 'doc-1', verificationStatus: DoctorVerificationStatus.VERIFIED } as never);
 
       const result = await service.adminVerifyDoctor('doc-1', 'admin-1', 'looks good');
 
@@ -108,13 +108,13 @@ describe('DoctorsCommandService', () => {
     });
 
     it('should throw BadRequestException when doctor has no registration number', async () => {
-      (prisma.user.findUnique as jest.Mock).mockResolvedValueOnce({ id: 'doc-1', role: Role.DOCTOR, registrationNumber: null });
+      (prisma.user.findUnique as jest.Mock).mockResolvedValueOnce({ id: 'doc-1', role: Role.DOCTOR, registrationNumber: null } as never);
 
       await expect(service.adminVerifyDoctor('doc-1', 'admin-1')).rejects.toThrow(BadRequestException);
     });
 
     it('should throw NotFoundException when doctor does not exist', async () => {
-      (prisma.user.findUnique as jest.Mock).mockResolvedValueOnce(null);
+      (prisma.user.findUnique as jest.Mock).mockResolvedValueOnce(null as never);
 
       await expect(service.adminVerifyDoctor('missing', 'admin-1')).rejects.toThrow(NotFoundException);
     });
@@ -122,11 +122,11 @@ describe('DoctorsCommandService', () => {
 
   describe('remove', () => {
     it('should remove doctor and all related records', async () => {
-      (prisma.doctorEducation.deleteMany as jest.Mock).mockResolvedValueOnce({});
-      (prisma.doctorCertification.deleteMany as jest.Mock).mockResolvedValueOnce({});
-      (prisma.doctorSpecialization.deleteMany as jest.Mock).mockResolvedValueOnce({});
-      (prisma.doctorClinic.deleteMany as jest.Mock).mockResolvedValueOnce({});
-      (prisma.user.deleteMany as jest.Mock).mockResolvedValueOnce({ count: 1 });
+      (prisma.doctorEducation.deleteMany as jest.Mock).mockResolvedValueOnce({} as never);
+      (prisma.doctorCertification.deleteMany as jest.Mock).mockResolvedValueOnce({} as never);
+      (prisma.doctorSpecialization.deleteMany as jest.Mock).mockResolvedValueOnce({} as never);
+      (prisma.doctorClinic.deleteMany as jest.Mock).mockResolvedValueOnce({} as never);
+      (prisma.user.deleteMany as jest.Mock).mockResolvedValueOnce({ count: 1 } as never);
 
       const result = await service.remove('doc-1');
 

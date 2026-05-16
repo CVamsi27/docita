@@ -75,18 +75,18 @@ describe('InvoicesCommandService', () => {
 
   describe('create', () => {
     it('should create an invoice and emit event', async () => {
-      repository.findPatientContext.mockResolvedValueOnce(mockPatient);
-      repository.nextInvoiceNumber.mockResolvedValueOnce('INV-001');
+      repository.findPatientContext.mockResolvedValueOnce(mockPatient as never);
+      repository.nextInvoiceNumber.mockResolvedValueOnce('INV-001' as never);
       (taxCalculator.calculateInvoice as jest.Mock).mockReturnValueOnce(mockCalculation);
-      const created = { id: 'inv-1', invoiceNumber: 'INV-001', status: InvoiceStatus.DRAFT };
-      repository.create.mockResolvedValueOnce(created);
-      (usageTracking.trackInvoice as jest.Mock).mockResolvedValueOnce(undefined);
+      const created = { id: 'inv-1', invoiceNumber: 'INV-001', status: InvoiceStatus.PENDING };
+      repository.create.mockResolvedValueOnce(created as never);
+      (usageTracking.trackInvoice as jest.Mock).mockResolvedValueOnce(undefined as never);
 
       const result = await service.create({
         patientId: 'patient-1',
         clinicId: 'clinic-1',
         total: 1000,
-        status: InvoiceStatus.DRAFT,
+        status: InvoiceStatus.PENDING,
         items: [{ description: 'Consultation', quantity: 1, price: 1000 }],
       });
 
@@ -95,17 +95,17 @@ describe('InvoicesCommandService', () => {
     });
 
     it('should throw NotFoundException when patient is not found', async () => {
-      repository.findPatientContext.mockResolvedValueOnce(null);
+      repository.findPatientContext.mockResolvedValueOnce(null as never);
 
       await expect(
-        service.create({ patientId: 'missing', clinicId: 'clinic-1', total: 0, status: InvoiceStatus.DRAFT, items: [] }),
+        service.create({ patientId: 'missing', clinicId: 'clinic-1', total: 0, status: InvoiceStatus.PENDING, items: [] }),
       ).rejects.toThrow(NotFoundException);
     });
   });
 
   describe('remove', () => {
     it('should delete the invoice', async () => {
-      repository.delete.mockResolvedValueOnce(undefined);
+      repository.delete.mockResolvedValueOnce(undefined as never);
 
       await service.remove('inv-1', 'clinic-1');
 
@@ -115,9 +115,9 @@ describe('InvoicesCommandService', () => {
 
   describe('submitClaim', () => {
     it('should submit claim after validating readiness', async () => {
-      (claimValidationService.assertClaimReady as jest.Mock).mockResolvedValueOnce(undefined);
+      (claimValidationService.assertClaimReady as jest.Mock).mockResolvedValueOnce(undefined as never);
       const invoice = { id: 'inv-1', status: InvoiceStatus.PAID };
-      (queryService.findOne as jest.Mock).mockResolvedValueOnce(invoice);
+      (queryService.findOne as jest.Mock).mockResolvedValueOnce(invoice as never);
 
       const result = await service.submitClaim('inv-1', 'clinic-1');
 

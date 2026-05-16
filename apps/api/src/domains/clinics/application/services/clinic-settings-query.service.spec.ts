@@ -22,11 +22,11 @@ describe('ClinicSettingsQueryService', () => {
       (prisma.clinic.findUnique as jest.Mock).mockResolvedValueOnce({
         slaSignatureUrl: 'https://example.com/sla.pdf',
         slaSignatureAcceptedAt: new Date('2026-01-01'),
-      });
+      } as never);
       (prisma.consentTemplate.findFirst as jest.Mock).mockResolvedValueOnce({
         updatedAt: new Date('2026-01-15'),
-      });
-      (prisma.dataSubjectRequest.groupBy as jest.Mock).mockResolvedValueOnce([]);
+      } as never);
+      (prisma.dataSubjectRequest.groupBy as jest.Mock).mockResolvedValueOnce([] as never);
 
       const result = await service.getComplianceSummary('clinic-1');
 
@@ -39,9 +39,9 @@ describe('ClinicSettingsQueryService', () => {
       (prisma.clinic.findUnique as jest.Mock).mockResolvedValueOnce({
         slaSignatureUrl: null,
         slaSignatureAcceptedAt: null,
-      });
-      (prisma.consentTemplate.findFirst as jest.Mock).mockResolvedValueOnce(null);
-      (prisma.dataSubjectRequest.groupBy as jest.Mock).mockResolvedValueOnce([]);
+      } as never);
+      (prisma.consentTemplate.findFirst as jest.Mock).mockResolvedValueOnce(null as never);
+      (prisma.dataSubjectRequest.groupBy as jest.Mock).mockResolvedValueOnce([] as never);
 
       const result = await service.getComplianceSummary('clinic-1');
 
@@ -51,12 +51,12 @@ describe('ClinicSettingsQueryService', () => {
     });
 
     it('should count open data subject requests by type', async () => {
-      (prisma.clinic.findUnique as jest.Mock).mockResolvedValueOnce({ slaSignatureUrl: null, slaSignatureAcceptedAt: null });
-      (prisma.consentTemplate.findFirst as jest.Mock).mockResolvedValueOnce(null);
+      (prisma.clinic.findUnique as jest.Mock).mockResolvedValueOnce({ slaSignatureUrl: null, slaSignatureAcceptedAt: null } as never);
+      (prisma.consentTemplate.findFirst as jest.Mock).mockResolvedValueOnce(null as never);
       (prisma.dataSubjectRequest.groupBy as jest.Mock).mockResolvedValueOnce([
         { requestType: 'CONSENT_WITHDRAWAL', _count: { _all: 3 } },
         { requestType: 'DELETION', _count: { _all: 1 } },
-      ]);
+      ] as never);
 
       const result = await service.getComplianceSummary('clinic-1');
 
@@ -68,7 +68,7 @@ describe('ClinicSettingsQueryService', () => {
   describe('listDataSubjectRequests', () => {
     it('should list all data subject requests for a clinic', async () => {
       const requests = [{ id: 'req-1', clinicId: 'clinic-1', status: DataSubjectRequestStatus.OPEN }];
-      (prisma.dataSubjectRequest.findMany as jest.Mock).mockResolvedValueOnce(requests);
+      (prisma.dataSubjectRequest.findMany as jest.Mock).mockResolvedValueOnce(requests as never);
 
       const result = await service.listDataSubjectRequests('clinic-1');
 
@@ -77,7 +77,7 @@ describe('ClinicSettingsQueryService', () => {
     });
 
     it('should filter by status when provided', async () => {
-      (prisma.dataSubjectRequest.findMany as jest.Mock).mockResolvedValueOnce([]);
+      (prisma.dataSubjectRequest.findMany as jest.Mock).mockResolvedValueOnce([] as never);
 
       await service.listDataSubjectRequests('clinic-1', DataSubjectRequestStatus.OPEN);
 

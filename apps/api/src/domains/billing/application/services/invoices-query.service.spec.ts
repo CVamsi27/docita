@@ -60,8 +60,8 @@ describe('InvoicesQueryService', () => {
 
   describe('findOne', () => {
     it('should return invoice when found', async () => {
-      const invoice = { id: 'inv-1', clinicId: 'clinic-1', status: InvoiceStatus.DRAFT };
-      repository.findById.mockResolvedValueOnce(invoice);
+      const invoice = { id: 'inv-1', clinicId: 'clinic-1', status: InvoiceStatus.PENDING };
+      repository.findById.mockResolvedValueOnce(invoice as never);
 
       const result = await service.findOne('inv-1', 'clinic-1');
 
@@ -69,7 +69,7 @@ describe('InvoicesQueryService', () => {
     });
 
     it('should throw NotFoundException when invoice does not exist', async () => {
-      repository.findById.mockResolvedValueOnce(null);
+      repository.findById.mockResolvedValueOnce(null as never);
 
       await expect(service.findOne('missing', 'clinic-1')).rejects.toThrow(NotFoundException);
     });
@@ -81,9 +81,9 @@ describe('InvoicesQueryService', () => {
         tier: 'PRO',
         intelligenceAddon: false,
         features: ['INVOICING'],
-      });
+      } as never);
       const invoices = [{ id: 'inv-1' }, { id: 'inv-2' }];
-      repository.findAll.mockResolvedValueOnce(invoices);
+      repository.findAll.mockResolvedValueOnce(invoices as never);
 
       const result = await service.findAll('clinic-1');
 
@@ -91,14 +91,14 @@ describe('InvoicesQueryService', () => {
     });
 
     it('should throw NotFoundException when clinic does not exist', async () => {
-      (prisma.clinic.findUnique as jest.Mock).mockResolvedValueOnce(null);
+      (prisma.clinic.findUnique as jest.Mock).mockResolvedValueOnce(null as never);
 
       await expect(service.findAll('nonexistent')).rejects.toThrow(NotFoundException);
     });
 
     it('should filter by patientId when provided', async () => {
-      repository.findPatientContext.mockResolvedValueOnce({ id: 'patient-1' });
-      repository.findAll.mockResolvedValueOnce([{ id: 'inv-1', patientId: 'patient-1' }]);
+      repository.findPatientContext.mockResolvedValueOnce({ id: 'patient-1' } as never);
+      repository.findAll.mockResolvedValueOnce([{ id: 'inv-1', patientId: 'patient-1' }] as never);
 
       const result = await service.findAll('clinic-1', { patientId: 'patient-1' });
 
@@ -110,7 +110,7 @@ describe('InvoicesQueryService', () => {
   describe('listPaymentActivity', () => {
     it('should return payment sessions for an invoice', async () => {
       const invoice = { id: 'inv-1' };
-      repository.findById.mockResolvedValueOnce(invoice);
+      repository.findById.mockResolvedValueOnce(invoice as never);
       paymentSessionRepository.findByInvoiceId.mockResolvedValueOnce([
         {
           id: 'sess-1',
@@ -124,7 +124,7 @@ describe('InvoicesQueryService', () => {
           paymentLink: null,
           meta: null,
         },
-      ]);
+      ] as never);
 
       const result = await service.listPaymentActivity('inv-1', 'clinic-1');
 

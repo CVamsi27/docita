@@ -25,7 +25,7 @@ describe('AppointmentQueryService', () => {
   describe('getAppointment', () => {
     it('should return appointment when found', async () => {
       const appointment = { id: 'appt-1', clinicId: 'clinic-1', doctorId: 'doc-1' };
-      appointmentRepository.findById.mockResolvedValueOnce(appointment);
+      appointmentRepository.findById.mockResolvedValueOnce(appointment as never);
 
       const result = await service.getAppointment('appt-1', 'clinic-1');
 
@@ -33,14 +33,14 @@ describe('AppointmentQueryService', () => {
     });
 
     it('should throw NotFoundException when appointment does not exist', async () => {
-      appointmentRepository.findById.mockResolvedValueOnce(null);
+      appointmentRepository.findById.mockResolvedValueOnce(null as never);
 
       await expect(service.getAppointment('missing', 'clinic-1')).rejects.toThrow(NotFoundException);
     });
 
     it('should throw ForbiddenException when doctor accesses another doctors appointment', async () => {
       const appointment = { id: 'appt-1', clinicId: 'clinic-1', doctorId: 'doc-2' };
-      appointmentRepository.findById.mockResolvedValueOnce(appointment);
+      appointmentRepository.findById.mockResolvedValueOnce(appointment as never);
 
       await expect(
         service.getAppointment('appt-1', 'clinic-1', { role: Role.DOCTOR, userId: 'doc-1' }),
@@ -54,7 +54,7 @@ describe('AppointmentQueryService', () => {
         { id: 'appt-1', clinicId: 'clinic-1' },
         { id: 'appt-2', clinicId: 'clinic-1' },
       ];
-      appointmentRepository.findAll.mockResolvedValueOnce(appointments);
+      appointmentRepository.findAll.mockResolvedValueOnce(appointments as never);
 
       const result = await service.listAppointments({ clinicId: 'clinic-1' });
 
@@ -63,8 +63,8 @@ describe('AppointmentQueryService', () => {
     });
 
     it('should resolve calendar picker date to UTC bounds', async () => {
-      appointmentRepository.findAll.mockResolvedValueOnce([]);
-      (prisma.clinic.findUnique as jest.Mock).mockResolvedValueOnce({ timezone: 'Asia/Kolkata' });
+      appointmentRepository.findAll.mockResolvedValueOnce([] as never);
+      (prisma.clinic.findUnique as jest.Mock).mockResolvedValueOnce({ timezone: 'Asia/Kolkata' } as never);
 
       await service.listAppointments({ clinicId: 'clinic-1', calendarPickerDate: '2026-05-16' });
 
@@ -75,7 +75,7 @@ describe('AppointmentQueryService', () => {
 
     it('should skip calendar bounds resolution when explicit date range is provided', async () => {
       const appointments = [{ id: 'appt-1', clinicId: 'clinic-1' }];
-      appointmentRepository.findAll.mockResolvedValueOnce(appointments);
+      appointmentRepository.findAll.mockResolvedValueOnce(appointments as never);
 
       await service.listAppointments({
         clinicId: 'clinic-1',

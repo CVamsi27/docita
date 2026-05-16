@@ -64,7 +64,7 @@ describe('AppointmentCommandService', () => {
         startTime: new Date('2026-05-16T09:00:00Z'),
         endTime: new Date('2026-05-16T09:30:00Z'),
       };
-      const created = { id: 'appt-1', clinicId: 'clinic-1', patientId: 'patient-1', ...command };
+      const created = { id: 'appt-1', ...command };
 
       (schedulingRules.validateAppointmentOverlap as jest.MockedFunction<typeof schedulingRules.validateAppointmentOverlap>)
         .mockResolvedValueOnce({ hasConflict: false } as never);
@@ -107,7 +107,7 @@ describe('AppointmentCommandService', () => {
         .mockResolvedValueOnce(appointment as never);
 
       const repo = (service as unknown as { appointmentRepository: { update: jest.Mock } }).appointmentRepository;
-      repo.update = jest.fn().mockResolvedValueOnce(appointment);
+      repo.update = jest.fn().mockResolvedValueOnce(appointment as never);
 
       const result = await service.cancelAppointment('appt-1', 'reason', 'clinic-1');
 
