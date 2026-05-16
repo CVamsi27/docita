@@ -1,5 +1,6 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import { DoctorsService } from './doctors.service';
+import { DoctorProfileService } from './doctor-profile.service';
 import { PrismaService } from '@/prisma/prisma.service';
 import { DoctorVerificationService } from './doctor-verification.service';
 import { SignatureUploadService } from './signature-upload.service';
@@ -118,6 +119,7 @@ describe('DoctorsService', () => {
     const module: TestingModule = await Test.createTestingModule({
       providers: [
         DoctorsService,
+        DoctorProfileService,
         {
           provide: PrismaService,
           useValue: mockPrismaService,

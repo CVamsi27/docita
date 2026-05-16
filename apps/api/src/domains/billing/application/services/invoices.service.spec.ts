@@ -195,12 +195,52 @@ describe('InvoicesService', () => {
 
   let service: InvoicesService;
 
+  const pdfJobService: PdfJobServicePort = {
+    enqueue: async () => ({
+      jobId: 'job-1',
+      status: 'PENDING' as const,
+      pollUrl: '/api/v1/invoices/inv-1/pdf/status?jobId=job-1',
+    }),
+    getStatus: async () => ({
+      jobId: 'job-1',
+      status: 'PENDING' as const,
+      createdAt: new Date('2026-01-01T00:00:00.000Z'),
+    }),
+  };
+
   beforeEach(() => {
     jest.clearAllMocks();
 
     evaluateClaimReadinessMock.mockResolvedValue(
       buildClaimReadinessResult('invoice-default', true),
     );
+
+    const queryService = Object.create(
+      InvoicesQueryService.prototype,
+    ) as InvoicesQueryService;
+    Object.assign(queryService, {
+      repository,
+      paymentSessionRepository,
+      prisma,
+      pdfService,
+      claimValidationService,
+      storageProvider,
+      storedFileUrlResolver,
+      pdfJobService,
+    });
+
+    const commandService = Object.create(
+      InvoicesCommandService.prototype,
+    ) as InvoicesCommandService;
+    Object.assign(commandService, {
+      repository,
+      taxCalculator,
+      eventEmitter,
+      usageTracking,
+      storageProvider,
+      claimValidationService,
+      queryService,
+    });
 
     service = new InvoicesService(
       repository,
@@ -213,20 +253,9 @@ describe('InvoicesService', () => {
       storageProvider,
       claimValidationService,
       storedFileUrlResolver,
-      {
-        enqueue: async () => ({
-          jobId: 'job-1',
-          status: 'PENDING' as const,
-          pollUrl: '/api/v1/invoices/inv-1/pdf/status?jobId=job-1',
-        }),
-        getStatus: async () => ({
-          jobId: 'job-1',
-          status: 'PENDING' as const,
-          createdAt: new Date('2026-01-01T00:00:00.000Z'),
-        }),
-      } satisfies PdfJobServicePort,
-      Object.create(InvoicesQueryService.prototype) as InvoicesQueryService,
-      Object.create(InvoicesCommandService.prototype) as InvoicesCommandService,
+      pdfJobService,
+      queryService,
+      commandService,
     );
   });
 

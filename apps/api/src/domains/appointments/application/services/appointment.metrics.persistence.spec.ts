@@ -94,18 +94,30 @@ describe('AppointmentService metric persistence', () => {
       $transaction: { value: mockPrisma.$transaction, writable: true },
     });
 
+    const metricsService = Object.create(
+      AppointmentMetricsService.prototype,
+    ) as AppointmentMetricsService;
+    Object.defineProperty(metricsService, 'prisma', {
+      value: prisma,
+      writable: true,
+    });
+
+    const diagnosisService = Object.create(
+      AppointmentDiagnosisService.prototype,
+    ) as AppointmentDiagnosisService;
+    Object.defineProperty(diagnosisService, 'prisma', {
+      value: prisma,
+      writable: true,
+    });
+
     service = new AppointmentService(
       appointmentRepository,
       createAppointmentUseCase,
       prisma,
       eventEmitter,
       mockSchedulingRules,
-      Object.create(
-        AppointmentMetricsService.prototype,
-      ) as AppointmentMetricsService,
-      Object.create(
-        AppointmentDiagnosisService.prototype,
-      ) as AppointmentDiagnosisService,
+      metricsService,
+      diagnosisService,
     );
   });
 

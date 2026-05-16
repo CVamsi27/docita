@@ -60,18 +60,30 @@ describe('AppointmentService.syncDiagnoses', () => {
       .mockResolvedValue({ hasConflict: false }),
   } as unknown as AppointmentSchedulingRulesService;
 
+  const metricsService = Object.create(
+    AppointmentMetricsService.prototype,
+  ) as AppointmentMetricsService;
+  Object.defineProperty(metricsService, 'prisma', {
+    value: prisma,
+    writable: true,
+  });
+
+  const diagnosisService = Object.create(
+    AppointmentDiagnosisService.prototype,
+  ) as AppointmentDiagnosisService;
+  Object.defineProperty(diagnosisService, 'prisma', {
+    value: prisma,
+    writable: true,
+  });
+
   const service = new AppointmentService(
     appointmentRepository,
     createAppointmentUseCase,
     prisma,
     eventEmitter,
     mockSchedulingRules,
-    Object.create(
-      AppointmentMetricsService.prototype,
-    ) as AppointmentMetricsService,
-    Object.create(
-      AppointmentDiagnosisService.prototype,
-    ) as AppointmentDiagnosisService,
+    metricsService,
+    diagnosisService,
   );
 
   it('marks the first coded diagnosis as primary after uncoded rows are filtered out', async () => {
