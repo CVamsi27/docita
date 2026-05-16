@@ -60,7 +60,7 @@ export function MobileFileUploader({
           onDragLeave={handleDrag}
           onDragOver={handleDrag}
           onDrop={handleDrop}
-          className={`relative transition-all duration-200 ${
+          className={`relative transition-colors duration-200 ${
             dragActive
               ? "surface-info ring-2 ring-info ring-inset"
               : "bg-muted/40"

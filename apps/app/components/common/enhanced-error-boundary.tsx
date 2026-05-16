@@ -198,7 +198,7 @@ export class EnhancedErrorBoundary extends Component<Props, State> {
                     key={index}
                     onClick={action.action}
                     variant={action.variant || "default"}
-                    className="w-full gap-2 transition-all duration-200"
+                    className="w-full gap-2 transition-colors duration-200"
                   >
                     {action.icon}
                     {action.label}

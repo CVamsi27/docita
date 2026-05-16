@@ -112,7 +112,7 @@ export function PlansSection({
             Yearly
             <span
               className={cn(
-                "rounded-full px-1.5 py-0.5 text-[10px] font-semibold leading-none",
+                "rounded-full px-1.5 py-0.5 text-[0.625rem] font-semibold leading-none",
                 selectedCycle === "YEARLY"
                   ? "bg-primary-foreground/20 text-primary-foreground"
                   : "bg-success/15 text-success",

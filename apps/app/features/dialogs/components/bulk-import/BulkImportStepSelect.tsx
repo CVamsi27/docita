@@ -25,7 +25,7 @@ export function BulkImportStepSelect({
             type="button"
             onClick={() => onSelectEntity(entity)}
             className={cn(
-              "flex items-center justify-center p-4 rounded-lg border-2 text-sm font-medium transition-all hover:border-primary/50",
+              "flex items-center justify-center p-4 rounded-lg border-2 text-sm font-medium transition-colors duration-150 hover:border-primary/50",
               selectedEntity === entity
                 ? "border-primary bg-primary/5 text-primary"
                 : "border-muted bg-background hover:bg-muted/50",

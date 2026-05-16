@@ -271,7 +271,7 @@ export function ComparisonTable({
                           {info.name}
                         </span>
                         {isCurrent ? (
-                          <Badge variant="secondary" className="h-5 px-2 text-[10px]">
+                          <Badge variant="secondary" className="h-5 px-2 text-[0.625rem]">
                             Current
                           </Badge>
                         ) : null}

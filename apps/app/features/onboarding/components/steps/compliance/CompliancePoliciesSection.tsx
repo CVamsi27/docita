@@ -51,7 +51,7 @@ function LegalCard({
   return (
     <div
       className={cn(
-        "rounded-[var(--radius)] border p-4 md:p-5 transition-all",
+        "rounded-[var(--radius)] border p-4 md:p-5 transition-colors duration-150",
         accepted
           ? "border-primary/40 bg-primary/5 shadow-sm"
           : "border-border bg-card hover:border-primary/30 hover:bg-muted/20",

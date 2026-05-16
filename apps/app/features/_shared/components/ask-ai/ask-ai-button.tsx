@@ -50,7 +50,7 @@ export function AskAiButton({ collapsed = false, className }: AskAiButtonProps) 
       <span className="flex-1 truncate text-left text-muted-foreground">
         Ask AI
       </span>
-      <Kbd className="text-[10px]">⌘J</Kbd>
+      <Kbd className="text-[0.625rem]">⌘J</Kbd>
     </Button>
   );
 }

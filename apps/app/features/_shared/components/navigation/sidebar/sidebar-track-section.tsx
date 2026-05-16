@@ -44,7 +44,7 @@ function SidebarNavLink({ item, collapsedRail, showLabels }: SidebarNavLinkProps
         <span
           aria-hidden
           className={cn(
-            "pointer-events-none absolute left-0 top-1/2 -translate-y-1/2 w-[3px] rounded-r-full bg-foreground transition-all duration-200",
+            "pointer-events-none absolute left-0 top-1/2 -translate-y-1/2 w-[3px] rounded-r-full bg-foreground transition-[height,width] duration-200",
             collapsedRail ? "h-6" : "h-5",
           )}
         />

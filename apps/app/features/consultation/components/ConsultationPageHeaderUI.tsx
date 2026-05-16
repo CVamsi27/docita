@@ -304,7 +304,7 @@ export function ConsultationPageHeaderUI({
                 aria-label="Open quick actions"
               >
                 <CommandIcon className="h-3.5 w-3.5" aria-hidden="true" />
-                <kbd className="hidden md:inline-flex items-center gap-0.5 rounded border border-border/70 bg-muted/40 px-1 py-0 text-[10px] font-mono text-muted-foreground">
+                <kbd className="hidden md:inline-flex items-center gap-0.5 rounded border border-border/70 bg-muted/40 px-1 py-0 text-[0.625rem] font-mono text-muted-foreground">
                   ⌘K
                 </kbd>
               </Button>

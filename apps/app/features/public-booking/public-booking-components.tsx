@@ -376,7 +376,7 @@ export function PublicBookingProgressChrome({
               key={i}
               aria-hidden
               className={cn(
-                "rounded-full transition-all duration-300",
+                "rounded-full transition-[width,height] duration-300",
                 i < stepIndex
                   ? "h-2 w-2 bg-primary/60"
                   : i === stepIndex

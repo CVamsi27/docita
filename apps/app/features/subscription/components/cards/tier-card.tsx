@@ -68,7 +68,7 @@ export function TierCard({
   return (
     <Card
       className={cn(
-        "group relative flex h-full flex-col overflow-hidden rounded-lg border bg-card transition-all duration-200 hover:-translate-y-0.5 hover:shadow-md",
+        "group relative flex h-full flex-col overflow-hidden rounded-lg border bg-card transition-transform duration-200 hover:-translate-y-0.5 hover:shadow-md",
         isSummary && "min-h-[26rem]",
         gradient.card,
         isCurrentTier && "border-primary ring-2 ring-primary/20 shadow-lg",

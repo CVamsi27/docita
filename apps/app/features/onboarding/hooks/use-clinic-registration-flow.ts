@@ -8,6 +8,7 @@ import {
   type RazorpayResponse,
 } from "@/hooks/use-razorpay";
 import { apiFetch } from "@/lib/api-client";
+import { BRAND_FOREGROUND_HEX } from "@/lib/branding";
 import { useAuth } from "@/lib/auth-context";
 import { buildCsrfHeaders, buildJsonHeaders } from "@/lib/csrf";
 import { ApiError } from "@/lib/errors";
@@ -417,7 +418,7 @@ export function useClinicRegistrationFlow() {
             email: user.email,
             contact: formData.clinicDetails.phone || undefined,
           },
-          theme: { color: "#0F172A" },
+          theme: { color: BRAND_FOREGROUND_HEX },
         });
       } catch (error) {
         if (isPaymentCanceledError(error)) {
