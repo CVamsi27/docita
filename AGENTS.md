@@ -415,7 +415,7 @@ Before finalizing changes:
 
 ## 15) Pattern Catalogue
 
-When this file says to follow existing patterns, use these concrete references before adding a new instance.
+When this file says to follow existing patterns, use these concrete references before adding a new instance. Subsections 15.1–15.3 are stable references; subsections 15.4–15.10 codify patterns validated during the 2026-05 audit sprint.
 
 ### 15.1 Backend Patterns
 
@@ -443,3 +443,61 @@ When this file says to follow existing patterns, use these concrete references b
 - `packages/utils`: framework-agnostic helpers. No React or Next.js imports.
 - `packages/auth`: cross-app access and permission semantics.
 - `packages/db`: Prisma schema/client and database scripts only.
+
+### 15.4 SOLID Principles Applied (2026-05 audit)
+
+- **Single Responsibility**: each service/component has one reason to change. Large services split into Command/Query/pure-calculator trios. Large components split into orchestrator + sub-sections + custom hooks.
+- **Open/Closed**: `Feature` enum + `FEATURE_TIER_MAP` are the extension point — add features without modifying guards. New tier capabilities extend the matrix, not existing code.
+- **Liskov Substitution**: repository interfaces (`IAppointmentRepository`, etc.) allow DI swapping. The `StorageProvider` abstraction lets R2/S3 swap without touching service logic.
+- **Interface Segregation**: controllers depend on split services (Command vs Query), not fat facades. React components receive only the props they render.
+- **Dependency Inversion**: NestJS `@Inject('IAppointmentRepository')` tokens bind interfaces, not concretions. React hooks (`usePatientMetricsUI`, `useOnboardingDraft`) abstract data from render.
+
+### 15.5 Decomposition Rules (enforced patterns)
+
+- **Backend services >400 lines**: split into `XCommandService` (mutations) + `XQueryService` (reads) + optional `XCalculator` (pure math). Register all three in the module. A facade `XService` may keep the original constructor signature for test compatibility.
+- **Frontend components >400 lines**: extract to `orchestrator.tsx` (state wiring only) + `component-sections.tsx` (JSX blocks, accepts props) + `component-helpers.ts` (pure functions and constants, no React) + `use-component.ts` (data + mutations).
+- **Custom hooks own data**: `useState`, `useMemo`, `useEffect`, mutations, and derived values live in hooks. Components only render JSX.
+- **No parent-relative imports**: cross-directory imports use `@/` alias. Sibling imports (`./`) are allowed; parent traversal (`../`) is banned by ESLint.
+
+### 15.6 Design Patterns in Use
+
+- **Facade**: `AppointmentService`, `InvoicesService`, `UsageTrackingService` keep a stable public API while delegating to split internals.
+- **Command/Query Separation (CQS)**: backend services split on the read vs. mutate axis. Query services must not be imported into command chains.
+- **Repository Pattern**: every domain has an `IXRepository` interface + `PrismaXRepository` implementation. Controllers never touch Prisma directly.
+- **Strategy Pattern**: `StorageProvider` abstraction; `OnboardingStepEngine` (pure state machine callable with any persistence strategy).
+- **Observer Pattern**: `EventEmitter2` for `appointment.created`, `invoice.paid`, etc. — producers and consumers are decoupled.
+- **Decorator Pattern**: `@AuditLogged`, `@RequireFeature`, `@Roles` — cross-cutting concerns added without modifying method logic.
+- **Template Method**: `BasePdfService` defines the PDF render pipeline; `InvoicePdfRenderer`/`PrescriptionPdfRenderer` fill in the steps.
+
+### 15.7 Frontend Component Architecture
+
+- **Page shell**: `AppPageScaffold → PageHeader → DataState → Content` is the mandatory pattern for every new page.
+- **Colocation rule**: types used only within one feature stay in `features/<feature>/types.ts`. Shared types go to `packages/types`. Never duplicate.
+- **Draft pattern**: `useOnboardingDraft` is the canonical pattern for localStorage persistence — hook encapsulates read/write/expiry; component only calls handlers.
+- **Sections file** (`*-sections.tsx`): sub-components that accept props from the orchestrator. Pure render, no data fetching.
+- **Helpers file** (`*-helpers.ts`): pure functions and constants. No React imports. Fully unit-testable without DI.
+
+### 15.8 Tier/Feature Gating Contract (critical)
+
+- `Tier.INTELLIGENCE` and `Tier.FRONT_DESK` are **never** compared with `>=`. Use the `hasIntelligence` flag or `hasFeatureAccess(Feature.X)`.
+- All 56 `Feature` enum values map to tiers via `FEATURE_TIER_MAP`. Both backend (`assertClinicHasFeatureOrThrow`) and frontend (`<FeatureGate>`) derive from this single source of truth.
+- `FRONT_DESK_BLOCKED_FEATURES` is the exhaustive blocklist for workspace-profile gating. Do not gate by ad-hoc `workspaceProfile === "FRONT_DESK"` conditionals anywhere else.
+
+### 15.9 Import Discipline
+
+| Package | Allowed contents | Banned |
+|---|---|---|
+| `packages/types` | Zod schemas + `z.infer` types | Runtime logic, React |
+| `packages/data-access` | React Query hooks | Direct `fetch()`, UI |
+| `packages/ui` | Presentational primitives | Data fetching, business logic |
+| `packages/hooks` | Framework-agnostic React hooks | Next.js-specific imports |
+| `packages/utils` | Pure functions | React, Next.js |
+
+Relative parent imports (`../`) are ESLint-banned across all apps. Use `@/` absolute paths for cross-directory references.
+
+### 15.10 Testing Expectations (2026-05 audit)
+
+- Service constructor changes require test mock updates. Use `Object.create(X.prototype) as X` to create mock instances of NestJS services without invoking the constructor.
+- Spec files live next to the service file. Integration specs for controllers go in `apps/api/test/`.
+- Pure helpers (`XCalculator`, `*-helpers.ts`) must have standalone unit tests — no DI container required.
+- When a service is split into Command/Query/Calculator, each file gets its own spec. The facade spec covers only delegation and module wiring.
