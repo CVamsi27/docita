@@ -19,13 +19,22 @@ describe('AppointmentQueryService', () => {
       clinic: { findUnique: jest.fn() },
     } as unknown as jest.Mocked<PrismaService>;
 
-    service = new AppointmentQueryService(appointmentRepository as never, prisma);
+    service = new AppointmentQueryService(
+      appointmentRepository as never,
+      prisma,
+    );
   });
 
   describe('getAppointment', () => {
     it('should return appointment when found', async () => {
-      const appointment = { id: 'appt-1', clinicId: 'clinic-1', doctorId: 'doc-1' };
-      appointmentRepository.findById.mockResolvedValueOnce(appointment as never);
+      const appointment = {
+        id: 'appt-1',
+        clinicId: 'clinic-1',
+        doctorId: 'doc-1',
+      };
+      appointmentRepository.findById.mockResolvedValueOnce(
+        appointment as never,
+      );
 
       const result = await service.getAppointment('appt-1', 'clinic-1');
 
@@ -35,15 +44,26 @@ describe('AppointmentQueryService', () => {
     it('should throw NotFoundException when appointment does not exist', async () => {
       appointmentRepository.findById.mockResolvedValueOnce(null as never);
 
-      await expect(service.getAppointment('missing', 'clinic-1')).rejects.toThrow(NotFoundException);
+      await expect(
+        service.getAppointment('missing', 'clinic-1'),
+      ).rejects.toThrow(NotFoundException);
     });
 
     it('should throw ForbiddenException when doctor accesses another doctors appointment', async () => {
-      const appointment = { id: 'appt-1', clinicId: 'clinic-1', doctorId: 'doc-2' };
-      appointmentRepository.findById.mockResolvedValueOnce(appointment as never);
+      const appointment = {
+        id: 'appt-1',
+        clinicId: 'clinic-1',
+        doctorId: 'doc-2',
+      };
+      appointmentRepository.findById.mockResolvedValueOnce(
+        appointment as never,
+      );
 
       await expect(
-        service.getAppointment('appt-1', 'clinic-1', { role: Role.DOCTOR, userId: 'doc-1' }),
+        service.getAppointment('appt-1', 'clinic-1', {
+          role: Role.DOCTOR,
+          userId: 'doc-1',
+        }),
       ).rejects.toThrow(ForbiddenException);
     });
   });
@@ -54,28 +74,42 @@ describe('AppointmentQueryService', () => {
         { id: 'appt-1', clinicId: 'clinic-1' },
         { id: 'appt-2', clinicId: 'clinic-1' },
       ];
-      appointmentRepository.findAll.mockResolvedValueOnce(appointments as never);
+      appointmentRepository.findAll.mockResolvedValueOnce(
+        appointments as never,
+      );
 
       const result = await service.listAppointments({ clinicId: 'clinic-1' });
 
       expect(result).toEqual(appointments);
-      expect(appointmentRepository.findAll).toHaveBeenCalledWith(expect.objectContaining({ clinicId: 'clinic-1' }));
+      expect(appointmentRepository.findAll).toHaveBeenCalledWith(
+        expect.objectContaining({ clinicId: 'clinic-1' }),
+      );
     });
 
     it('should resolve calendar picker date to UTC bounds', async () => {
       appointmentRepository.findAll.mockResolvedValueOnce([] as never);
-      (prisma.clinic.findUnique as jest.Mock).mockResolvedValueOnce({ timezone: 'Asia/Kolkata' } as never);
+      (prisma.clinic.findUnique as jest.Mock).mockResolvedValueOnce({
+        timezone: 'Asia/Kolkata',
+      } as never);
 
-      await service.listAppointments({ clinicId: 'clinic-1', calendarPickerDate: '2026-05-16' });
+      await service.listAppointments({
+        clinicId: 'clinic-1',
+        calendarPickerDate: '2026-05-16',
+      });
 
       expect(appointmentRepository.findAll).toHaveBeenCalledWith(
-        expect.objectContaining({ clinicId: 'clinic-1', intersectCalendarRange: true }),
+        expect.objectContaining({
+          clinicId: 'clinic-1',
+          intersectCalendarRange: true,
+        }),
       );
     });
 
     it('should skip calendar bounds resolution when explicit date range is provided', async () => {
       const appointments = [{ id: 'appt-1', clinicId: 'clinic-1' }];
-      appointmentRepository.findAll.mockResolvedValueOnce(appointments as never);
+      appointmentRepository.findAll.mockResolvedValueOnce(
+        appointments as never,
+      );
 
       await service.listAppointments({
         clinicId: 'clinic-1',

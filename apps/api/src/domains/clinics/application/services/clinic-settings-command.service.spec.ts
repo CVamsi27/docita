@@ -16,27 +16,52 @@ describe('ClinicSettingsCommandService', () => {
   beforeEach(() => {
     prisma = {
       clinic: { findUnique: jest.fn(), update: jest.fn() },
-      dataSubjectRequest: { create: jest.fn(), findUnique: jest.fn(), update: jest.fn() },
+      dataSubjectRequest: {
+        create: jest.fn(),
+        findUnique: jest.fn(),
+        update: jest.fn(),
+      },
     } as unknown as jest.Mocked<PrismaService>;
 
-    settingsFactory = Object.create(SettingsFactory.prototype) as jest.Mocked<SettingsFactory>;
+    settingsFactory = Object.create(
+      SettingsFactory.prototype,
+    ) as jest.Mocked<SettingsFactory>;
     settingsFactory.partialValidate = jest.fn();
 
-    auditService = Object.create(AuditService.prototype) as jest.Mocked<AuditService>;
+    auditService = Object.create(
+      AuditService.prototype,
+    ) as jest.Mocked<AuditService>;
     auditService.logAction = jest.fn();
 
-    clinicDataService = Object.create(ClinicDataService.prototype) as jest.Mocked<ClinicDataService>;
+    clinicDataService = Object.create(
+      ClinicDataService.prototype,
+    ) as jest.Mocked<ClinicDataService>;
     clinicDataService.findOne = jest.fn();
 
-    service = new ClinicSettingsCommandService(prisma, settingsFactory, auditService, clinicDataService);
+    service = new ClinicSettingsCommandService(
+      prisma,
+      settingsFactory,
+      auditService,
+      clinicDataService,
+    );
   });
 
   describe('updateSettings', () => {
     it('should update clinic settings for a valid clinic', async () => {
-      const clinicRow = { id: 'clinic-1', settings: { openingTime: '09:00', closingTime: '18:00' } };
-      (settingsFactory.partialValidate as jest.Mock).mockReturnValueOnce({ openingTime: '09:00', closingTime: '18:00' });
-      (prisma.clinic.update as jest.Mock).mockResolvedValueOnce(clinicRow as never);
-      (clinicDataService.findOne as jest.Mock).mockResolvedValueOnce(clinicRow as never);
+      const clinicRow = {
+        id: 'clinic-1',
+        settings: { openingTime: '09:00', closingTime: '18:00' },
+      };
+      (settingsFactory.partialValidate as jest.Mock).mockReturnValueOnce({
+        openingTime: '09:00',
+        closingTime: '18:00',
+      });
+      (prisma.clinic.update as jest.Mock).mockResolvedValueOnce(
+        clinicRow as never,
+      );
+      (clinicDataService.findOne as jest.Mock).mockResolvedValueOnce(
+        clinicRow as never,
+      );
 
       const result = await service.updateSettings('clinic-1', {
         openingTime: '09:00',
@@ -49,17 +74,33 @@ describe('ClinicSettingsCommandService', () => {
     it('should throw NotFoundException when clinic is not found after update', async () => {
       (settingsFactory.partialValidate as jest.Mock).mockReturnValueOnce({});
       (prisma.clinic.update as jest.Mock).mockResolvedValueOnce({} as never);
-      (clinicDataService.findOne as jest.Mock).mockResolvedValueOnce(null as never);
+      (clinicDataService.findOne as jest.Mock).mockResolvedValueOnce(
+        null as never,
+      );
 
-      await expect(service.updateSettings('missing', { name: 'Test' })).rejects.toThrow(NotFoundException);
+      await expect(
+        service.updateSettings('missing', { name: 'Test' }),
+      ).rejects.toThrow(NotFoundException);
     });
 
     it('should preserve existing settings when doing a partial update', async () => {
-      const existing = { openingTime: '08:00', closingTime: '17:00', consultationDuration: 15 };
+      const existing = {
+        openingTime: '08:00',
+        closingTime: '17:00',
+        consultationDuration: 15,
+      };
       const updated = { ...existing, closingTime: '18:00' };
-      (settingsFactory.partialValidate as jest.Mock).mockReturnValueOnce(updated);
-      (prisma.clinic.update as jest.Mock).mockResolvedValueOnce({ id: 'clinic-1', settings: updated } as never);
-      (clinicDataService.findOne as jest.Mock).mockResolvedValueOnce({ id: 'clinic-1', settings: updated } as never);
+      (settingsFactory.partialValidate as jest.Mock).mockReturnValueOnce(
+        updated,
+      );
+      (prisma.clinic.update as jest.Mock).mockResolvedValueOnce({
+        id: 'clinic-1',
+        settings: updated,
+      } as never);
+      (clinicDataService.findOne as jest.Mock).mockResolvedValueOnce({
+        id: 'clinic-1',
+        settings: updated,
+      } as never);
 
       await service.updateSettings('clinic-1', { closingTime: '18:00' });
 

@@ -11,7 +11,13 @@ import { InvoiceStatus } from '@workspace/db';
 
 describe('InvoicesCommandService', () => {
   let service: InvoicesCommandService;
-  let repository: { findPatientContext: jest.Mock; nextInvoiceNumber: jest.Mock; create: jest.Mock; update: jest.Mock; delete: jest.Mock };
+  let repository: {
+    findPatientContext: jest.Mock;
+    nextInvoiceNumber: jest.Mock;
+    create: jest.Mock;
+    update: jest.Mock;
+    delete: jest.Mock;
+  };
   let taxCalculator: jest.Mocked<TaxCalculatorService>;
   let eventEmitter: jest.Mocked<EventEmitter2>;
   let usageTracking: jest.Mocked<UsageTrackingService>;
@@ -24,7 +30,13 @@ describe('InvoicesCommandService', () => {
     firstName: 'Jane',
     lastName: 'Doe',
     address: null,
-    clinic: { id: 'clinic-1', name: 'Test Clinic', currency: 'INR', address: null, settings: {} },
+    clinic: {
+      id: 'clinic-1',
+      name: 'Test Clinic',
+      currency: 'INR',
+      address: null,
+      settings: {},
+    },
   };
 
   const mockCalculation = {
@@ -33,7 +45,12 @@ describe('InvoicesCommandService', () => {
     subtotal: 900,
     discountTotal: 0,
     taxTotal: 100,
-    summary: { currency: 'INR', placeOfSupply: null, reverseCharge: false, eInvoice: null },
+    summary: {
+      currency: 'INR',
+      placeOfSupply: null,
+      reverseCharge: false,
+      eInvoice: null,
+    },
     items: [],
   };
 
@@ -46,20 +63,31 @@ describe('InvoicesCommandService', () => {
       delete: jest.fn(),
     };
 
-    taxCalculator = Object.create(TaxCalculatorService.prototype) as jest.Mocked<TaxCalculatorService>;
+    taxCalculator = Object.create(
+      TaxCalculatorService.prototype,
+    ) as jest.Mocked<TaxCalculatorService>;
     taxCalculator.calculateInvoice = jest.fn();
 
     eventEmitter = { emit: jest.fn() } as unknown as jest.Mocked<EventEmitter2>;
 
-    usageTracking = Object.create(UsageTrackingService.prototype) as jest.Mocked<UsageTrackingService>;
+    usageTracking = Object.create(
+      UsageTrackingService.prototype,
+    ) as jest.Mocked<UsageTrackingService>;
     usageTracking.trackInvoice = jest.fn();
 
-    storageProvider = { uploadBuffer: jest.fn(), supportsSignedUrls: false } as unknown as jest.Mocked<StorageProvider>;
+    storageProvider = {
+      uploadBuffer: jest.fn(),
+      supportsSignedUrls: false,
+    } as unknown as jest.Mocked<StorageProvider>;
 
-    claimValidationService = Object.create(ClaimValidationService.prototype) as jest.Mocked<ClaimValidationService>;
+    claimValidationService = Object.create(
+      ClaimValidationService.prototype,
+    ) as jest.Mocked<ClaimValidationService>;
     claimValidationService.assertClaimReady = jest.fn();
 
-    queryService = Object.create(InvoicesQueryService.prototype) as jest.Mocked<InvoicesQueryService>;
+    queryService = Object.create(
+      InvoicesQueryService.prototype,
+    ) as jest.Mocked<InvoicesQueryService>;
     queryService.findOne = jest.fn();
 
     service = new InvoicesCommandService(
@@ -77,10 +105,18 @@ describe('InvoicesCommandService', () => {
     it('should create an invoice and emit event', async () => {
       repository.findPatientContext.mockResolvedValueOnce(mockPatient as never);
       repository.nextInvoiceNumber.mockResolvedValueOnce('INV-001' as never);
-      (taxCalculator.calculateInvoice as jest.Mock).mockReturnValueOnce(mockCalculation);
-      const created = { id: 'inv-1', invoiceNumber: 'INV-001', status: InvoiceStatus.PENDING };
+      (taxCalculator.calculateInvoice as jest.Mock).mockReturnValueOnce(
+        mockCalculation,
+      );
+      const created = {
+        id: 'inv-1',
+        invoiceNumber: 'INV-001',
+        status: InvoiceStatus.PENDING,
+      };
       repository.create.mockResolvedValueOnce(created as never);
-      (usageTracking.trackInvoice as jest.Mock).mockResolvedValueOnce(undefined as never);
+      (usageTracking.trackInvoice as jest.Mock).mockResolvedValueOnce(
+        undefined as never,
+      );
 
       const result = await service.create({
         patientId: 'patient-1',
@@ -91,14 +127,23 @@ describe('InvoicesCommandService', () => {
       });
 
       expect(result).toEqual(created);
-      expect(eventEmitter.emit).toHaveBeenCalledWith('invoice.generated', expect.objectContaining({ invoiceId: 'inv-1' }));
+      expect(eventEmitter.emit).toHaveBeenCalledWith(
+        'invoice.generated',
+        expect.objectContaining({ invoiceId: 'inv-1' }),
+      );
     });
 
     it('should throw NotFoundException when patient is not found', async () => {
       repository.findPatientContext.mockResolvedValueOnce(null as never);
 
       await expect(
-        service.create({ patientId: 'missing', clinicId: 'clinic-1', total: 0, status: InvoiceStatus.PENDING, items: [] }),
+        service.create({
+          patientId: 'missing',
+          clinicId: 'clinic-1',
+          total: 0,
+          status: InvoiceStatus.PENDING,
+          items: [],
+        }),
       ).rejects.toThrow(NotFoundException);
     });
   });
@@ -115,9 +160,13 @@ describe('InvoicesCommandService', () => {
 
   describe('submitClaim', () => {
     it('should submit claim after validating readiness', async () => {
-      (claimValidationService.assertClaimReady as jest.Mock).mockResolvedValueOnce(undefined as never);
+      (
+        claimValidationService.assertClaimReady as jest.Mock
+      ).mockResolvedValueOnce(undefined as never);
       const invoice = { id: 'inv-1', status: InvoiceStatus.PAID };
-      (queryService.findOne as jest.Mock).mockResolvedValueOnce(invoice as never);
+      (queryService.findOne as jest.Mock).mockResolvedValueOnce(
+        invoice as never,
+      );
 
       const result = await service.submitClaim('inv-1', 'clinic-1');
 

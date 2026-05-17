@@ -1,4 +1,8 @@
-import { NotFoundException, BadRequestException, ForbiddenException } from '@nestjs/common';
+import {
+  NotFoundException,
+  BadRequestException,
+  ForbiddenException,
+} from '@nestjs/common';
 import { beforeEach, describe, it, expect, jest } from '@jest/globals';
 import { AppointmentCommandService } from './appointment-command.service';
 import { AppointmentQueryService } from './appointment-query.service';
@@ -20,10 +24,14 @@ describe('AppointmentCommandService', () => {
   let diagnosisService: jest.Mocked<AppointmentDiagnosisService>;
 
   beforeEach(() => {
-    queryService = Object.create(AppointmentQueryService.prototype) as jest.Mocked<AppointmentQueryService>;
+    queryService = Object.create(
+      AppointmentQueryService.prototype,
+    ) as jest.Mocked<AppointmentQueryService>;
     queryService.getAppointment = jest.fn();
 
-    createUseCase = Object.create(CreateAppointmentUseCase.prototype) as jest.Mocked<CreateAppointmentUseCase>;
+    createUseCase = Object.create(
+      CreateAppointmentUseCase.prototype,
+    ) as jest.Mocked<CreateAppointmentUseCase>;
     createUseCase.execute = jest.fn();
 
     prisma = {
@@ -34,13 +42,19 @@ describe('AppointmentCommandService', () => {
 
     eventEmitter = { emit: jest.fn() } as unknown as jest.Mocked<EventEmitter2>;
 
-    schedulingRules = Object.create(AppointmentSchedulingRulesService.prototype) as jest.Mocked<AppointmentSchedulingRulesService>;
+    schedulingRules = Object.create(
+      AppointmentSchedulingRulesService.prototype,
+    ) as jest.Mocked<AppointmentSchedulingRulesService>;
     schedulingRules.validateAppointmentOverlap = jest.fn();
 
-    metricsService = Object.create(AppointmentMetricsService.prototype) as jest.Mocked<AppointmentMetricsService>;
+    metricsService = Object.create(
+      AppointmentMetricsService.prototype,
+    ) as jest.Mocked<AppointmentMetricsService>;
     metricsService.recordObservationMetrics = jest.fn();
 
-    diagnosisService = Object.create(AppointmentDiagnosisService.prototype) as jest.Mocked<AppointmentDiagnosisService>;
+    diagnosisService = Object.create(
+      AppointmentDiagnosisService.prototype,
+    ) as jest.Mocked<AppointmentDiagnosisService>;
     diagnosisService.syncDiagnoses = jest.fn();
 
     service = new AppointmentCommandService(
@@ -66,15 +80,24 @@ describe('AppointmentCommandService', () => {
       };
       const created = { id: 'appt-1', ...command };
 
-      (schedulingRules.validateAppointmentOverlap as jest.MockedFunction<typeof schedulingRules.validateAppointmentOverlap>)
-        .mockResolvedValueOnce({ hasConflict: false } as never);
-      (createUseCase.execute as jest.MockedFunction<typeof createUseCase.execute>)
-        .mockResolvedValueOnce(created as never);
+      (
+        schedulingRules.validateAppointmentOverlap as jest.MockedFunction<
+          typeof schedulingRules.validateAppointmentOverlap
+        >
+      ).mockResolvedValueOnce({ hasConflict: false } as never);
+      (
+        createUseCase.execute as jest.MockedFunction<
+          typeof createUseCase.execute
+        >
+      ).mockResolvedValueOnce(created as never);
 
       const result = await service.createAppointment(command as never);
 
       expect(result).toEqual(created);
-      expect(eventEmitter.emit).toHaveBeenCalledWith('appointment.created', expect.anything());
+      expect(eventEmitter.emit).toHaveBeenCalledWith(
+        'appointment.created',
+        expect.anything(),
+      );
     });
 
     it('should throw BadRequestException when scheduling conflict exists', async () => {
@@ -86,13 +109,22 @@ describe('AppointmentCommandService', () => {
         endTime: new Date('2026-05-16T09:30:00Z'),
       };
 
-      (schedulingRules.validateAppointmentOverlap as jest.MockedFunction<typeof schedulingRules.validateAppointmentOverlap>)
-        .mockResolvedValueOnce({
-          hasConflict: true,
-          conflict: { id: 'appt-existing', startTime: new Date(), endTime: new Date() },
-        } as never);
+      (
+        schedulingRules.validateAppointmentOverlap as jest.MockedFunction<
+          typeof schedulingRules.validateAppointmentOverlap
+        >
+      ).mockResolvedValueOnce({
+        hasConflict: true,
+        conflict: {
+          id: 'appt-existing',
+          startTime: new Date(),
+          endTime: new Date(),
+        },
+      } as never);
 
-      await expect(service.createAppointment(command as never)).rejects.toThrow(BadRequestException);
+      await expect(service.createAppointment(command as never)).rejects.toThrow(
+        BadRequestException,
+      );
     });
   });
 
@@ -103,36 +135,68 @@ describe('AppointmentCommandService', () => {
         clinicId: 'clinic-1',
         cancel: jest.fn(),
       };
-      (queryService.getAppointment as jest.MockedFunction<typeof queryService.getAppointment>)
-        .mockResolvedValueOnce(appointment as never);
+      (
+        queryService.getAppointment as jest.MockedFunction<
+          typeof queryService.getAppointment
+        >
+      ).mockResolvedValueOnce(appointment as never);
 
-      const repo = (service as unknown as { appointmentRepository: { update: jest.Mock } }).appointmentRepository;
+      const repo = (
+        service as unknown as { appointmentRepository: { update: jest.Mock } }
+      ).appointmentRepository;
       repo.update = jest.fn().mockResolvedValueOnce(appointment as never);
 
-      const result = await service.cancelAppointment('appt-1', 'reason', 'clinic-1');
+      const result = await service.cancelAppointment(
+        'appt-1',
+        'reason',
+        'clinic-1',
+      );
 
       expect(appointment.cancel).toHaveBeenCalledWith('reason');
       expect(result).toEqual(appointment);
     });
 
     it('should throw NotFoundException when appointment does not exist', async () => {
-      (queryService.getAppointment as jest.MockedFunction<typeof queryService.getAppointment>)
-        .mockRejectedValueOnce(new NotFoundException());
+      (
+        queryService.getAppointment as jest.MockedFunction<
+          typeof queryService.getAppointment
+        >
+      ).mockRejectedValueOnce(new NotFoundException());
 
-      await expect(service.cancelAppointment('missing', 'reason', 'clinic-1')).rejects.toThrow(NotFoundException);
+      await expect(
+        service.cancelAppointment('missing', 'reason', 'clinic-1'),
+      ).rejects.toThrow(NotFoundException);
     });
   });
 
   describe('rescheduleAppointment', () => {
     it('should throw BadRequestException on scheduling conflict during reschedule', async () => {
-      const appointment = { id: 'appt-1', doctorId: 'doc-1', reschedule: jest.fn() };
-      (queryService.getAppointment as jest.MockedFunction<typeof queryService.getAppointment>)
-        .mockResolvedValueOnce(appointment as never);
-      (schedulingRules.validateAppointmentOverlap as jest.MockedFunction<typeof schedulingRules.validateAppointmentOverlap>)
-        .mockResolvedValueOnce({ hasConflict: true, conflict: { id: 'other' } } as never);
+      const appointment = {
+        id: 'appt-1',
+        doctorId: 'doc-1',
+        reschedule: jest.fn(),
+      };
+      (
+        queryService.getAppointment as jest.MockedFunction<
+          typeof queryService.getAppointment
+        >
+      ).mockResolvedValueOnce(appointment as never);
+      (
+        schedulingRules.validateAppointmentOverlap as jest.MockedFunction<
+          typeof schedulingRules.validateAppointmentOverlap
+        >
+      ).mockResolvedValueOnce({
+        hasConflict: true,
+        conflict: { id: 'other' },
+      } as never);
 
       await expect(
-        service.rescheduleAppointment('appt-1', new Date(), new Date(), 'clinic-1'),
+        service.rescheduleAppointment(
+          'appt-1',
+          new Date(),
+          new Date(),
+          'clinic-1',
+        ),
       ).rejects.toThrow(BadRequestException);
     });
   });

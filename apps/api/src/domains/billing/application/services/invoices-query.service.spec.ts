@@ -11,12 +11,18 @@ import { InvoiceStatus } from '@workspace/db';
 
 describe('InvoicesQueryService', () => {
   let service: InvoicesQueryService;
-  let repository: { findById: jest.Mock; findAll: jest.Mock; findPatientContext: jest.Mock };
+  let repository: {
+    findById: jest.Mock;
+    findAll: jest.Mock;
+    findPatientContext: jest.Mock;
+  };
   let paymentSessionRepository: { findByInvoiceId: jest.Mock };
   let prisma: jest.Mocked<PrismaService>;
   let claimValidationService: jest.Mocked<ClaimValidationService>;
   let storageProvider: jest.Mocked<StorageProvider>;
-  let storedFileUrlResolver: jest.Mocked<Pick<StoredFileUrlResolverService, 'resolveWithStoredUrl'>>;
+  let storedFileUrlResolver: jest.Mocked<
+    Pick<StoredFileUrlResolverService, 'resolveWithStoredUrl'>
+  >;
   let pdfJobService: jest.Mocked<PdfJobService>;
   let pdfService: jest.Mocked<PDFService>;
 
@@ -33,14 +39,25 @@ describe('InvoicesQueryService', () => {
       clinic: { findUnique: jest.fn() },
     } as unknown as jest.Mocked<PrismaService>;
 
-    claimValidationService = Object.create(ClaimValidationService.prototype) as jest.Mocked<ClaimValidationService>;
+    claimValidationService = Object.create(
+      ClaimValidationService.prototype,
+    ) as jest.Mocked<ClaimValidationService>;
     claimValidationService.evaluateClaimReadiness = jest.fn();
 
-    storageProvider = { supportsSignedUrls: false, generateSignedUrl: jest.fn() } as unknown as jest.Mocked<StorageProvider>;
+    storageProvider = {
+      supportsSignedUrls: false,
+      generateSignedUrl: jest.fn(),
+    } as unknown as jest.Mocked<StorageProvider>;
 
-    storedFileUrlResolver = { resolveWithStoredUrl: jest.fn() } as unknown as jest.Mocked<Pick<StoredFileUrlResolverService, 'resolveWithStoredUrl'>>;
+    storedFileUrlResolver = {
+      resolveWithStoredUrl: jest.fn(),
+    } as unknown as jest.Mocked<
+      Pick<StoredFileUrlResolverService, 'resolveWithStoredUrl'>
+    >;
 
-    pdfJobService = Object.create(PdfJobService.prototype) as jest.Mocked<PdfJobService>;
+    pdfJobService = Object.create(
+      PdfJobService.prototype,
+    ) as jest.Mocked<PdfJobService>;
     pdfJobService.enqueue = jest.fn();
 
     pdfService = Object.create(PDFService.prototype) as jest.Mocked<PDFService>;
@@ -60,7 +77,11 @@ describe('InvoicesQueryService', () => {
 
   describe('findOne', () => {
     it('should return invoice when found', async () => {
-      const invoice = { id: 'inv-1', clinicId: 'clinic-1', status: InvoiceStatus.PENDING };
+      const invoice = {
+        id: 'inv-1',
+        clinicId: 'clinic-1',
+        status: InvoiceStatus.PENDING,
+      };
       repository.findById.mockResolvedValueOnce(invoice as never);
 
       const result = await service.findOne('inv-1', 'clinic-1');
@@ -71,7 +92,9 @@ describe('InvoicesQueryService', () => {
     it('should throw NotFoundException when invoice does not exist', async () => {
       repository.findById.mockResolvedValueOnce(null as never);
 
-      await expect(service.findOne('missing', 'clinic-1')).rejects.toThrow(NotFoundException);
+      await expect(service.findOne('missing', 'clinic-1')).rejects.toThrow(
+        NotFoundException,
+      );
     });
   });
 
@@ -91,18 +114,30 @@ describe('InvoicesQueryService', () => {
     });
 
     it('should throw NotFoundException when clinic does not exist', async () => {
-      (prisma.clinic.findUnique as jest.Mock).mockResolvedValueOnce(null as never);
+      (prisma.clinic.findUnique as jest.Mock).mockResolvedValueOnce(
+        null as never,
+      );
 
-      await expect(service.findAll('nonexistent')).rejects.toThrow(NotFoundException);
+      await expect(service.findAll('nonexistent')).rejects.toThrow(
+        NotFoundException,
+      );
     });
 
     it('should filter by patientId when provided', async () => {
-      repository.findPatientContext.mockResolvedValueOnce({ id: 'patient-1' } as never);
-      repository.findAll.mockResolvedValueOnce([{ id: 'inv-1', patientId: 'patient-1' }] as never);
+      repository.findPatientContext.mockResolvedValueOnce({
+        id: 'patient-1',
+      } as never);
+      repository.findAll.mockResolvedValueOnce([
+        { id: 'inv-1', patientId: 'patient-1' },
+      ] as never);
 
-      const result = await service.findAll('clinic-1', { patientId: 'patient-1' });
+      const result = await service.findAll('clinic-1', {
+        patientId: 'patient-1',
+      });
 
-      expect(repository.findAll).toHaveBeenCalledWith(expect.objectContaining({ patientId: 'patient-1' }));
+      expect(repository.findAll).toHaveBeenCalledWith(
+        expect.objectContaining({ patientId: 'patient-1' }),
+      );
       expect(result).toHaveLength(1);
     });
   });
