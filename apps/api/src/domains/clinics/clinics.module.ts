@@ -8,6 +8,9 @@ import { JoinRequestsController } from './presentation/controllers/join-requests
 import { ClinicsService } from './application/services/clinics.service';
 import { ClinicDataService } from './application/services/clinic-data.service';
 import { ClinicSettingsService } from './application/services/clinic-settings.service';
+import { ClinicSettingsQueryService } from './application/services/clinic-settings-query.service';
+import { ClinicSettingsCommandService } from './application/services/clinic-settings-command.service';
+import { ClinicDataSubjectRequestService } from './application/services/clinic-data-subject-request.service';
 import { StaffManagementService } from './application/services/staff-management.service';
 import { JoinRequestService } from './application/services/join-request.service';
 import { OnboardingService } from './application/services/onboarding/onboarding.service';
@@ -52,6 +55,9 @@ import { DocumentsModule } from '@/domains/documents/documents.module';
   providers: [
     ClinicDataService,
     ClinicSettingsService,
+    ClinicSettingsQueryService,
+    ClinicSettingsCommandService,
+    ClinicDataSubjectRequestService,
     StaffManagementService,
     ClinicsService,
     JoinRequestService,

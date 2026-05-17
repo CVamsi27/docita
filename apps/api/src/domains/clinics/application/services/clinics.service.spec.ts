@@ -7,6 +7,7 @@ import { ClinicDataService } from './clinic-data.service';
 import { ClinicSettingsService } from './clinic-settings.service';
 import { ClinicSettingsQueryService } from './clinic-settings-query.service';
 import { ClinicSettingsCommandService } from './clinic-settings-command.service';
+import { ClinicDataSubjectRequestService } from './clinic-data-subject-request.service';
 import { StaffManagementService } from './staff-management.service';
 import { StaffInviteService } from './staff-invite.service';
 import { AppConfigService } from '@/shared/modules/config/app-configuration.service';
@@ -149,6 +150,7 @@ describe('ClinicsService', () => {
         ClinicDataService,
         ClinicSettingsService,
         ClinicSettingsCommandService,
+        { provide: ClinicDataSubjectRequestService, useValue: {} },
         StaffManagementService,
         StaffInviteService,
         { provide: ClinicSettingsQueryService, useValue: {} },

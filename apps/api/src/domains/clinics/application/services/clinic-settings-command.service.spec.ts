@@ -3,24 +3,19 @@ import { beforeEach, describe, it, expect, jest } from '@jest/globals';
 import { ClinicSettingsCommandService } from './clinic-settings-command.service';
 import { PrismaService } from '@/prisma/prisma.service';
 import { SettingsFactory } from '@/domains/clinics/core/factories/settings.factory';
-import { AuditService } from '@/shared/modules/audit/audit/audit.service';
 import { ClinicDataService } from './clinic-data.service';
+import { ClinicDataSubjectRequestService } from './clinic-data-subject-request.service';
 
 describe('ClinicSettingsCommandService', () => {
   let service: ClinicSettingsCommandService;
   let prisma: jest.Mocked<PrismaService>;
   let settingsFactory: jest.Mocked<SettingsFactory>;
-  let auditService: jest.Mocked<AuditService>;
   let clinicDataService: jest.Mocked<ClinicDataService>;
+  let dataSubjectRequestService: jest.Mocked<ClinicDataSubjectRequestService>;
 
   beforeEach(() => {
     prisma = {
       clinic: { findUnique: jest.fn(), update: jest.fn() },
-      dataSubjectRequest: {
-        create: jest.fn(),
-        findUnique: jest.fn(),
-        update: jest.fn(),
-      },
     } as unknown as jest.Mocked<PrismaService>;
 
     settingsFactory = Object.create(
@@ -28,21 +23,20 @@ describe('ClinicSettingsCommandService', () => {
     ) as jest.Mocked<SettingsFactory>;
     settingsFactory.partialValidate = jest.fn();
 
-    auditService = Object.create(
-      AuditService.prototype,
-    ) as jest.Mocked<AuditService>;
-    auditService.logAction = jest.fn();
-
     clinicDataService = Object.create(
       ClinicDataService.prototype,
     ) as jest.Mocked<ClinicDataService>;
     clinicDataService.findOne = jest.fn();
 
+    dataSubjectRequestService = Object.create(
+      ClinicDataSubjectRequestService.prototype,
+    ) as jest.Mocked<ClinicDataSubjectRequestService>;
+
     service = new ClinicSettingsCommandService(
       prisma,
       settingsFactory,
-      auditService,
       clinicDataService,
+      dataSubjectRequestService,
     );
   });
 

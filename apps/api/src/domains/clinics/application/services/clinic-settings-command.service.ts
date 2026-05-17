@@ -1,20 +1,16 @@
-import {
-  BadRequestException,
-  Injectable,
-  NotFoundException,
-} from '@nestjs/common';
+import { Injectable, NotFoundException } from '@nestjs/common';
 import { PrismaService } from '@/prisma/prisma.service';
-import { DataSubjectRequestStatus, Prisma } from '@workspace/db';
+import { Prisma } from '@workspace/db';
 import { Feature } from '@workspace/types';
 import { assertClinicHasFeatureOrThrow } from '@/shared/modules/auth/utils/clinic-feature-access.util';
 import { SettingsFactory } from '@/domains/clinics/core/factories/settings.factory';
-import { AuditService } from '@/shared/modules/audit/audit/audit.service';
 import type {
   CreateDataSubjectRequest,
   UpdateDataSubjectRequest,
   WorkspaceProfile,
 } from '@workspace/types';
 import { ClinicDataService } from './clinic-data.service';
+import { ClinicDataSubjectRequestService } from './clinic-data-subject-request.service';
 
 interface ClinicSettingsData {
   name?: string;
@@ -102,13 +98,17 @@ interface ClinicSettingsData {
   mapsLink?: string;
 }
 
+/**
+ * Manages clinic settings mutations: updating clinic configuration and prescription defaults.
+ * Data-subject request operations are delegated to ClinicDataSubjectRequestService.
+ */
 @Injectable()
 export class ClinicSettingsCommandService {
   constructor(
     private prisma: PrismaService,
     private settingsFactory: SettingsFactory,
-    private auditService: AuditService,
     private clinicDataService: ClinicDataService,
+    private dataSubjectRequestService: ClinicDataSubjectRequestService,
   ) {}
 
   private payloadTouchesKeys(
@@ -333,124 +333,34 @@ export class ClinicSettingsCommandService {
     return mapped;
   }
 
-  async createDataSubjectRequest(
+  createDataSubjectRequest(
     clinicId: string,
     input: CreateDataSubjectRequest,
     actorUserId: string,
     ipAddress?: string,
   ) {
-    if (input.patientId) {
-      const patient = await this.prisma.patient.findFirst({
-        where: { id: input.patientId, clinicId, deletedAt: null },
-        select: { id: true },
-      });
-
-      if (!patient) {
-        throw new NotFoundException('Patient was not found in this clinic');
-      }
-    }
-
-    const dueAt = input.dueAt
-      ? new Date(input.dueAt)
-      : new Date(Date.now() + 30 * 24 * 60 * 60 * 1000);
-
-    if (Number.isNaN(dueAt.getTime())) {
-      throw new BadRequestException('Invalid due date');
-    }
-
-    const request = await this.prisma.dataSubjectRequest.create({
-      data: {
-        clinicId,
-        patientId: input.patientId || undefined,
-        requestType: input.requestType,
-        requestedByName: input.requestedByName,
-        requestedByRelation: input.requestedByRelation,
-        requestChannel: input.requestChannel,
-        requestDetails: input.requestDetails,
-        dueAt,
-      },
-    });
-
-    await this.auditService.logAction({
+    return this.dataSubjectRequestService.createDataSubjectRequest(
       clinicId,
-      userId: actorUserId,
-      actionType: 'DATA_SUBJECT_REQUEST_CREATED',
-      resourceType: 'DataSubjectRequest',
-      resourceId: request.id,
+      input,
+      actorUserId,
       ipAddress,
-      metadata: {
-        requestType: request.requestType,
-        status: request.status,
-        patientId: request.patientId,
-      },
-    });
-
-    return request;
+    );
   }
 
-  async updateDataSubjectRequest(
+  updateDataSubjectRequest(
     clinicId: string,
     requestId: string,
     input: UpdateDataSubjectRequest,
     actorUserId: string,
     ipAddress?: string,
   ) {
-    const existing = await this.prisma.dataSubjectRequest.findFirst({
-      where: { id: requestId, clinicId },
-      select: { id: true, status: true },
-    });
-
-    if (!existing) {
-      throw new NotFoundException('Data subject request was not found');
-    }
-
-    const dueAt =
-      input.dueAt === null
-        ? null
-        : input.dueAt
-          ? new Date(input.dueAt)
-          : undefined;
-
-    if (dueAt instanceof Date && Number.isNaN(dueAt.getTime())) {
-      throw new BadRequestException('Invalid due date');
-    }
-
-    const closedStatuses = new Set<DataSubjectRequestStatus>([
-      DataSubjectRequestStatus.FULFILLED,
-      DataSubjectRequestStatus.REJECTED,
-      DataSubjectRequestStatus.CANCELLED,
-    ]);
-    const nextStatus = input.status;
-    const completedAt =
-      nextStatus && closedStatuses.has(nextStatus) ? new Date() : undefined;
-
-    const request = await this.prisma.dataSubjectRequest.update({
-      where: { id: requestId },
-      data: {
-        status: nextStatus,
-        dueAt,
-        resolutionNotes: input.resolutionNotes,
-        completedAt,
-        handledAt: nextStatus ? new Date() : undefined,
-        handledById: nextStatus ? actorUserId : undefined,
-      },
-    });
-
-    await this.auditService.logAction({
+    return this.dataSubjectRequestService.updateDataSubjectRequest(
       clinicId,
-      userId: actorUserId,
-      actionType: 'DATA_SUBJECT_REQUEST_UPDATED',
-      resourceType: 'DataSubjectRequest',
-      resourceId: request.id,
+      requestId,
+      input,
+      actorUserId,
       ipAddress,
-      metadata: {
-        previousStatus: existing.status,
-        nextStatus: request.status,
-        requestType: request.requestType,
-      },
-    });
-
-    return request;
+    );
   }
 
   async updatePrescriptionDefaults(
