@@ -28,7 +28,7 @@ vi.mock("next/navigation", () => ({
   useRouter: () => mocks.router,
 }));
 
-vi.mock("@/lib/auth-context", () => ({
+vi.mock("@/lib/auth/auth-context", () => ({
   useAuth: () => ({
     user: mocks.user,
     isAuthenticated: mocks.isAuthenticated,

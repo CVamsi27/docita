@@ -28,7 +28,7 @@ vi.mock("next/dynamic", () => ({
   },
 }));
 
-vi.mock("@/lib/auth-context", () => ({
+vi.mock("@/lib/auth/auth-context", () => ({
   useAuth: () => mocks.auth,
 }));
 

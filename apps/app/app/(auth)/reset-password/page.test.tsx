@@ -24,13 +24,13 @@ vi.mock("next/navigation", () => ({
   useRouter: () => mocks.router,
 }));
 
-vi.mock("@/lib/api-client", () => ({
+vi.mock("@/lib/api/api-client", () => ({
   api: {
     post: (...args: unknown[]) => mocks.apiPost(...args),
   },
 }));
 
-vi.mock("@/lib/logger", () => ({
+vi.mock("@/lib/monitoring/logger", () => ({
   logger: {
     error: (...args: unknown[]) => mocks.loggerError(...args),
   },

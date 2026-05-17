@@ -16,7 +16,7 @@ import {
   SelectValue,
 } from "@workspace/ui/components/select";
 import type { CreateAppointmentInput } from "@workspace/types";
-import type { SelectOption } from "@/lib/app-config-context";
+import type { SelectOption } from "@/lib/contexts/app-config-context";
 
 interface AppointmentFormFieldsProps {
   form: UseFormReturn<CreateAppointmentInput>;

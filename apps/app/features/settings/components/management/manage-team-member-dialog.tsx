@@ -33,7 +33,7 @@ import { Badge } from "@workspace/ui/components/badge";
 import { ShieldCheck, ShieldX } from "lucide-react";
 import { User } from "@workspace/types";
 import { getDoctorVerificationPublicNote } from "@/lib/doctor-verification-display";
-import { showUserFacingErrorToast } from "@/lib/user-facing-errors";
+import { showUserFacingErrorToast } from "@/lib/errors/user-facing-errors";
 import {
   MEMBER_ROLE_LABELS,
   type MemberFormValues,

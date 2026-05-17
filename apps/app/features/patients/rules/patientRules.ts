@@ -4,7 +4,7 @@ import {
   DEFAULT_COUNTRY_CODE,
   normalizeCountryCode,
 } from "@workspace/utils";
-import { CLINIC_ADMIN_ROLES, hasPermission } from "@/lib/permissions";
+import { CLINIC_ADMIN_ROLES, hasPermission } from "@/lib/auth/permissions";
 import {
   getCountryCallingCode,
   isPossiblePhoneNumber,

@@ -6,7 +6,7 @@ interface SkeletonProps {
   /**
    * @deprecated Skeleton no longer animates. The prop is retained for
    * backward compatibility but produces no motion. UI/UX 2026 standard
-   * (docs/UI_UX_STANDARD_2026.md §5) bans skeleton animation on chrome.
+   * (docs/ui/UI_UX_STANDARD_2026.md §5) bans skeleton animation on chrome.
    */
   animation?: "pulse" | "wave";
 }

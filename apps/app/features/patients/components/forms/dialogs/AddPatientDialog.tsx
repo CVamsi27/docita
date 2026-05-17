@@ -8,13 +8,13 @@ import { useForm } from "react-hook-form";
 import { z } from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
 
-import { useClinic } from "@/lib/clinic-context";
+import { useClinic } from "@/lib/contexts/clinic-context";
 import { useCreatePatient } from "@/hooks/api/use-patients";
 import { Button } from "@workspace/ui/components/button";
 import { Checkbox } from "@workspace/ui/components/checkbox";
 import { DatePicker } from "@workspace/ui/components/date-picker";
 import { FormDialog } from "@workspace/ui/components/form-dialog";
-import { showUserFacingErrorToast } from "@/lib/user-facing-errors";
+import { showUserFacingErrorToast } from "@/lib/errors/user-facing-errors";
 import { Input } from "@workspace/ui/components/input";
 import {
   Form,

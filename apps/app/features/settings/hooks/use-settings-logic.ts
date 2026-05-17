@@ -1,9 +1,9 @@
 import { useCallback, useMemo, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { settingsTabs } from "@/features/settings/constants";
-import { useAuth } from "@/lib/auth-context";
-import { canAccessTarget } from "@/lib/access-policy";
-import { hasPermission, type Permission } from "@/lib/permissions";
+import { useAuth } from "@/lib/auth/auth-context";
+import { canAccessTarget } from "@/lib/access-control/access-policy";
+import { hasPermission, type Permission } from "@/lib/auth/permissions";
 import { usePermissionStore } from "@/lib/stores/permission-store";
 import {
   APP_ACCESS_TARGETS,

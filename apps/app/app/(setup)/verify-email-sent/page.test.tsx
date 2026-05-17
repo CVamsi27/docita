@@ -26,7 +26,7 @@ vi.mock("next/navigation", () => ({
   useRouter: () => mocks.router,
 }));
 
-vi.mock("@/lib/auth-context", () => ({
+vi.mock("@/lib/auth/auth-context", () => ({
   VERIFICATION_EMAIL_STATUS_STORAGE_KEY: "docita_verification_email_status",
   useAuth: () => ({
     user: mocks.user,
@@ -34,17 +34,17 @@ vi.mock("@/lib/auth-context", () => ({
   }),
 }));
 
-vi.mock("@/lib/api-client", () => ({
+vi.mock("@/lib/api/api-client", () => ({
   apiFetch: mocks.apiFetch,
 }));
 
-vi.mock("@/lib/logger", () => ({
+vi.mock("@/lib/monitoring/logger", () => ({
   logger: {
     error: mocks.loggerError,
   },
 }));
 
-vi.mock("@/lib/user-facing-errors", () => ({
+vi.mock("@/lib/errors/user-facing-errors", () => ({
   showUserFacingErrorToast: mocks.showUserFacingErrorToast,
 }));
 

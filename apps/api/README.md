@@ -24,7 +24,7 @@ Additional optional guards: `FeatureFlagGuard` (tier/feature gating), `EmailVeri
 1. Define or update the Zod request/response schema in `packages/types/src/`.
 2. Create or update the domain module in `apps/api/src/domains/<domain>/`.
    - DTO wraps the Zod schema: `export class MyDto extends createZodDto(mySchema) {}`.
-   - Controller declares explicit auth posture (`@Public`, `@Roles(...)`, `@RequireFeature(...)`). Enforced by `scripts/check-controller-rbac.mjs`.
+   - Controller declares explicit auth posture (`@Public`, `@Roles(...)`, `@RequireFeature(...)`). Enforced by `scripts/checks/check-controller-rbac.mjs`.
    - Application service orchestrates the use case.
    - Repository isolates Prisma; maps DB rows to domain objects.
 3. Register the module in the domain's NestJS module file.

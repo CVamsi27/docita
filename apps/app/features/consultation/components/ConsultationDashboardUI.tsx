@@ -19,7 +19,7 @@ import { StatGrid } from "@workspace/ui/components/stat-grid";
 import { isQueueTokenInProgress } from "@/lib/queue-token-status";
 import Link from "next/link";
 import { useCheckInAppointment } from "@/hooks/api/use-appointments";
-import { showUserFacingErrorToast } from "@/lib/user-facing-errors";
+import { showUserFacingErrorToast } from "@/lib/errors/user-facing-errors";
 import { buildConsultationRoute } from "@/features/consultation/rules/consultationTabRouting";
 import type { Appointment } from "@workspace/types";
 import {

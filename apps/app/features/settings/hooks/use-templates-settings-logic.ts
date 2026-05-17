@@ -7,7 +7,7 @@ import {
 } from "@/hooks/api/use-clinical";
 import { ClinicalTemplate } from "@workspace/types";
 import { toast } from "sonner";
-import { showUserFacingErrorToast } from "@/lib/user-facing-errors";
+import { showUserFacingErrorToast } from "@/lib/errors/user-facing-errors";
 
 export const useTemplatesSettingsLogic = () => {
   const { data: templates, isLoading } = useTemplates();

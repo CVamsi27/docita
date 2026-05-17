@@ -112,12 +112,12 @@ pnpm test
 
 ## Documentation
 
-- [Deployment Strategy](docs/DEPLOYMENT.md) - Current production path, Render runbook, and future AWS migration target
-- [API Documentation](docs/API_DOCUMENTATION.md) - API reference
-- [Testing Guide](docs/TESTING.md) - Testing strategies and best practices
-- [Zod Architecture](docs/zod-first-architecture.md) - Type system guide
-- [Turborepo Structure](docs/TURBOREPO_STANDARD_STRUCTURE.md) - Monorepo standards
-- [UI/UX Contract](docs/UI_UX_CONTRACT.md) - Shared page/state/motion standards for doctor app and portal
+- [Deployment Strategy](docs/operations/DEPLOYMENT.md) - Current production path, Render runbook, and future AWS migration target
+- [API Documentation](docs/architecture/API_DOCUMENTATION.md) - API reference
+- [Testing Guide](docs/testing/TESTING.md) - Testing strategies and best practices
+- [Zod Architecture](docs/architecture/zod-first-architecture.md) - Type system guide
+- [Turborepo Structure](docs/architecture/TURBOREPO_STANDARD_STRUCTURE.md) - Monorepo standards
+- [UI/UX Contract](docs/ui/UI_UX_CONTRACT.md) - Shared page/state/motion standards for doctor app and portal
 - [AGENTS.md](AGENTS.md) - Mandatory rules for agents and contributors (typing, security, CI parity)
 
 ## Deployment
@@ -126,12 +126,12 @@ pnpm test
 2. **Backend**: Deploy `apps/api` as a Render Web Service
 3. **Frontend**: Deploy `apps/app`, `apps/landing`, and `apps/internal` to Cloudflare Workers
 
-See [Deployment Strategy](docs/DEPLOYMENT.md) for current and future deployment direction.
+See [Deployment Strategy](docs/operations/DEPLOYMENT.md) for current and future deployment direction.
 
 ## Staging
 
 - **`staging` mirrors `main`**: it should match production-bound code; feature work merges via PR into `main`, then automation fast-forwards `staging`.
-- Use staging deploy targets to validate the same tree as `main` (see [Staging Setup](docs/STAGING.md) for API, Cloudflare, and database configuration).
+- Use staging deploy targets to validate the same tree as `main` (see [Staging Setup](docs/operations/STAGING.md) for API, Cloudflare, and database configuration).
 
 ## License
 

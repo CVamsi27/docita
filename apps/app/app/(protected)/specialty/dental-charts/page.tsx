@@ -21,7 +21,7 @@ import { SymbolTooltip } from "@workspace/ui/components/tooltip";
 import { Badge } from "@workspace/ui/components/badge";
 import { Skeleton } from "@workspace/ui/components/skeleton";
 import { toast } from "sonner";
-import { useClinic } from "@/lib/clinic-context";
+import { useClinic } from "@/lib/contexts/clinic-context";
 import { formatDate } from "@/lib/formatters";
 import { usePatients } from "@/hooks/api/use-patients";
 import {
@@ -33,7 +33,7 @@ import {
   type DentalChartValue,
 } from "@/features/consultation/components/specialty/DentalChartUI";
 import type { Patient, UpdateAppointmentRequest } from "@workspace/types";
-import { showUserFacingErrorToast } from "@/lib/user-facing-errors";
+import { showUserFacingErrorToast } from "@/lib/errors/user-facing-errors";
 
 export default function DentalChartsPage() {
   const { clinic } = useClinic();

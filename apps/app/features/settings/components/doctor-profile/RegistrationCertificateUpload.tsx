@@ -13,9 +13,9 @@ import {
 import { Button } from "@workspace/ui/components/button";
 import { Badge } from "@workspace/ui/components/badge";
 import { FileText, Upload, CheckCircle2 } from "lucide-react";
-import { fetchAPI } from "@/lib/api-core";
+import { fetchAPI } from "@/lib/api/api-core";
 import { toAbsoluteApiUrl } from "@/lib/url";
-import { showUserFacingErrorToast } from "@/lib/user-facing-errors";
+import { showUserFacingErrorToast } from "@/lib/errors/user-facing-errors";
 
 const ALLOWED_MIMES = [
   "application/pdf",

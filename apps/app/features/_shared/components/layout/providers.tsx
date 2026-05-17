@@ -4,9 +4,9 @@ import * as React from "react";
 import { usePathname } from "next/navigation";
 import { ThemeProvider as NextThemesProvider } from "next-themes";
 
-import { SocketProvider } from "@/lib/socket-context";
-import { TierConfigProvider } from "@/lib/tier-config-context";
-import { AppConfigProvider } from "@/lib/app-config-context";
+import { SocketProvider } from "@/lib/contexts/socket-context";
+import { TierConfigProvider } from "@/lib/contexts/tier-config-context";
+import { AppConfigProvider } from "@/lib/contexts/app-config-context";
 import { ConfirmProvider } from "@/hooks/use-confirm";
 import { TooltipProvider } from "@workspace/ui/components/tooltip";
 import { DialogStackProvider } from "@workspace/ui/components/dialog-stack";

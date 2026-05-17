@@ -20,7 +20,7 @@ import { formatChiefComplaintSummary } from "@workspace/utils";
 import { Stethoscope } from "lucide-react";
 import { useConfirm } from "@/hooks/use-confirm";
 import { toast } from "sonner";
-import { showUserFacingErrorToast } from "@/lib/user-facing-errors";
+import { showUserFacingErrorToast } from "@/lib/errors/user-facing-errors";
 import { consultationApi } from "@/features/consultation/api/consultation.api";
 import { useQueryClient } from "@tanstack/react-query";
 import { useSendPrescriptionWhatsApp } from "@/hooks/api/use-whatsapp";

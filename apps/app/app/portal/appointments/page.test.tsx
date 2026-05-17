@@ -17,7 +17,7 @@ vi.mock("@/hooks/api/use-patient-portal", () => ({
   }),
 }));
 
-vi.mock("@/lib/user-facing-errors", () => ({
+vi.mock("@/lib/errors/user-facing-errors", () => ({
   showUserFacingErrorToast: portalAppointmentMocks.showError,
 }));
 

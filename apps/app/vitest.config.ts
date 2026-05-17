@@ -22,9 +22,9 @@ export default defineConfig({
       reporter: ["text", "html"],
       include: [
         "features/**/rules/**/*.ts",
-        "lib/rules/**/*.ts",
-        "lib/access-control/rules/**/*.ts",
-        "lib/errors/**/*.ts",
+        "shared/lib/rules/**/*.ts",
+        "shared/lib/access-control/rules/**/*.ts",
+        "shared/lib/errors/**/*.ts",
         "features/_shared/components/whatsapp/whatsapp-button.tsx",
         "features/_shared/components/feedback/delete-confirm-dialog.tsx",
         "features/appointments/components/sections/add-dialog/AppointmentFormFields.tsx",
@@ -52,6 +52,9 @@ export default defineConfig({
   resolve: {
     alias: {
       "@": path.resolve(__dirname, "./"),
+      "@/components": path.resolve(__dirname, "./shared/components"),
+      "@/hooks": path.resolve(__dirname, "./shared/hooks"),
+      "@/lib": path.resolve(__dirname, "./shared/lib"),
       "@workspace/ui": path.resolve(__dirname, "../../packages/ui/src"),
       "@workspace/types": path.resolve(__dirname, "../../packages/types/src"),
       "@workspace/utils": path.resolve(__dirname, "../../packages/utils/src"),

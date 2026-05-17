@@ -10,10 +10,10 @@ import { PageHeader } from "@workspace/ui/components/page-header";
 import { DEFAULT_TIMEZONE, formatClinicTodayPickerIso } from "@workspace/utils";
 import { FeatureGate } from "@/features/_shared/components/auth/feature-gate";
 import { useDownloadPrescriptionPDF, usePrescriptions } from "@/hooks/api/use-clinical";
-import { useAuth } from "@/lib/auth-context";
-import { useClinic } from "@/lib/clinic-context";
+import { useAuth } from "@/lib/auth/auth-context";
+import { useClinic } from "@/lib/contexts/clinic-context";
 import { Feature } from "@/lib/stores/permission-store";
-import { SUBSCRIPTION_SETTINGS_PATH } from "@/lib/subscription-settings-path";
+import { SUBSCRIPTION_SETTINGS_PATH } from "@/lib/subscription/subscription-settings-path";
 import { PrescriptionsFilters } from "./list/PrescriptionsFilters";
 import {
   PrescriptionsTable,

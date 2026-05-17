@@ -12,7 +12,7 @@ import {
 import { usePatients } from "@/hooks/api/use-patients";
 import { Patient, type PaginatedResponse } from "@workspace/types";
 import { useDebounce } from "@workspace/hooks/use-debounce";
-import { showUserFacingErrorToast } from "@/lib/user-facing-errors";
+import { showUserFacingErrorToast } from "@/lib/errors/user-facing-errors";
 
 export const createLabTestOrderSchema = z.object({
   patientId: z.string().min(1, "Select a patient"),

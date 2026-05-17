@@ -28,12 +28,12 @@ import {
 } from "@workspace/ui/components/dialog";
 import { FileText, Plus, Check, X } from "lucide-react";
 import { Feature } from "@workspace/types";
-import { api } from "@/lib/api-client";
+import { api } from "@/lib/api/api-client";
 import { useTierFeatureEnabled } from "@/hooks/api/tier-feature-guards";
-import { logger } from "@/lib/logger";
+import { logger } from "@/lib/monitoring/logger";
 import { toast } from "sonner";
-import { useAuth } from "@/lib/auth-context";
-import { showUserFacingErrorToast } from "@/lib/user-facing-errors";
+import { useAuth } from "@/lib/auth/auth-context";
+import { showUserFacingErrorToast } from "@/lib/errors/user-facing-errors";
 import { useMobileUpload } from "@/features/ocr";
 
 interface MedicalDocument {

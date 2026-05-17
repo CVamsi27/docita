@@ -9,7 +9,7 @@ import {
   useDeleteDoctorTimeOffMutation,
   useDoctorTimeOffs,
 } from "@/hooks/api/use-settings";
-import { useAuth } from "@/lib/auth-context";
+import { useAuth } from "@/lib/auth/auth-context";
 import { toast } from "sonner";
 import { formatDate } from "@workspace/utils";
 import {
@@ -33,7 +33,7 @@ import {
 } from "@workspace/ui/components/select";
 import { Trash2 } from "lucide-react";
 import { Skeleton } from "@workspace/ui/components/skeleton";
-import { showUserFacingErrorToast } from "@/lib/user-facing-errors";
+import { showUserFacingErrorToast } from "@/lib/errors/user-facing-errors";
 import { IsoDatePickerField } from "@workspace/ui/components/iso-date-picker-field";
 
 export function DoctorTimeAwaySettings() {

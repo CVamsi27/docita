@@ -26,8 +26,8 @@ import { useCreateInvoice } from "@/hooks/api/use-billing";
 import { useLocaleCurrency } from "@/hooks/use-locale-currency";
 import { CreditCard } from "lucide-react";
 import { ModalProps } from "./PrescriptionModal";
-import { showUserFacingErrorToast } from "@/lib/user-facing-errors";
-import { useDefaultValue } from "@/lib/app-config-context";
+import { showUserFacingErrorToast } from "@/lib/errors/user-facing-errors";
+import { useDefaultValue } from "@/lib/contexts/app-config-context";
 import { BillingLineItemsEditor } from "./BillingLineItemsEditor";
 
 export interface LineItem {

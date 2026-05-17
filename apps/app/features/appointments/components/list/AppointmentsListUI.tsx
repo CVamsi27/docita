@@ -4,7 +4,7 @@ import {
   formatClinicHalfHourSlotKey,
   formatDate,
 } from "@workspace/utils";
-import { useClinic } from "@/lib/clinic-context";
+import { useClinic } from "@/lib/contexts/clinic-context";
 import { CalendarDays } from "lucide-react";
 import {
   Card,

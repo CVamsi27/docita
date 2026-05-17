@@ -11,7 +11,7 @@ import {
   useCancelLeave,
 } from "@/hooks/api/use-leaves";
 import type { StaffLeave } from "@workspace/types";
-import { showUserFacingErrorToast } from "@/lib/user-facing-errors";
+import { showUserFacingErrorToast } from "@/lib/errors/user-facing-errors";
 import { humanizeUiLabel } from "@workspace/ui/lib/label-formatters";
 import { LEAVE_TYPE_LABELS } from "./LeaveBalanceCard";
 

@@ -2,7 +2,7 @@
 
 import { FormEvent, useState } from "react";
 import { toast } from "sonner";
-import { useAuth } from "@/lib/auth-context";
+import { useAuth } from "@/lib/auth/auth-context";
 import { Alert, AlertDescription } from "@workspace/ui/components/alert";
 import {
   Card,
@@ -14,8 +14,8 @@ import {
 import { FileText, CheckCircle2 } from "lucide-react";
 import { formatDate } from "@workspace/utils";
 import { ClinicSlaSignatureQR } from "@/features/settings/components/clinic-sla-signature-qr";
-import { useAPIMutation, useAPIQuery } from "@/lib/api-core";
-import { showUserFacingErrorToast } from "@/lib/user-facing-errors";
+import { useAPIMutation, useAPIQuery } from "@/lib/api/api-core";
+import { showUserFacingErrorToast } from "@/lib/errors/user-facing-errors";
 import {
   createDataSubjectRequestSchema,
   type CreateDataSubjectRequest,

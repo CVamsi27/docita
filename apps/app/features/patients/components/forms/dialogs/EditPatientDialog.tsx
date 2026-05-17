@@ -9,12 +9,12 @@ import { z } from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
 
 import { Patient } from "@workspace/types";
-import { useClinic } from "@/lib/clinic-context";
+import { useClinic } from "@/lib/contexts/clinic-context";
 import { useUpdatePatient } from "@/hooks/api/use-patients";
 import { Button } from "@workspace/ui/components/button";
 import { DatePicker } from "@workspace/ui/components/date-picker";
 import { FormDialog } from "@workspace/ui/components/form-dialog";
-import { showUserFacingErrorToast } from "@/lib/user-facing-errors";
+import { showUserFacingErrorToast } from "@/lib/errors/user-facing-errors";
 import { Input } from "@workspace/ui/components/input";
 import {
   Form,

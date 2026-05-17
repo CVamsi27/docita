@@ -13,11 +13,11 @@ import { SymbolTooltip } from "@workspace/ui/components/tooltip";
 import { Calendar, Check, X } from "lucide-react";
 import { APIRequestError } from "@workspace/data-access";
 import { Feature } from "@workspace/types";
-import { api } from "@/lib/api-client";
+import { api } from "@/lib/api/api-client";
 import { useTierFeatureEnabled } from "@/hooks/api/tier-feature-guards";
-import { logger } from "@/lib/logger";
+import { logger } from "@/lib/monitoring/logger";
 import { toast } from "sonner";
-import { showUserFacingErrorToast } from "@/lib/user-facing-errors";
+import { showUserFacingErrorToast } from "@/lib/errors/user-facing-errors";
 import { humanizeUiLabel } from "@workspace/ui/lib/label-formatters";
 import { formatDate } from "@/lib/formatters";
 

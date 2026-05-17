@@ -5,7 +5,7 @@ import { DocitaLoadingIndicator } from "@workspace/ui/components/docita-loading-
 import { useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { Card, CardContent, CardHeader, CardTitle } from "@workspace/ui/components/card";
-import { useAuth } from "@/lib/auth-context";
+import { useAuth } from "@/lib/auth/auth-context";
 import { PageTransitionLoader } from "@/components/common/loaders/page-transition-loader";
 import { PreDashboardShell } from "@/features/auth/components/PreDashboardShell";
 

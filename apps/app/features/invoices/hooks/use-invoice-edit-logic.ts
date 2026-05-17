@@ -6,7 +6,7 @@ import { toast } from "sonner";
 import { useInvoice, useUpdateInvoice } from "@/hooks/api/use-billing";
 import { useRouter } from "next/navigation";
 import { Invoice } from "@workspace/types";
-import { showUserFacingErrorToast } from "@/lib/user-facing-errors";
+import { showUserFacingErrorToast } from "@/lib/errors/user-facing-errors";
 import {
   applyInvoiceDiscountToFirstLine,
   calculateInvoiceTotals,

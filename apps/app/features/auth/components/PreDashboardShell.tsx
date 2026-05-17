@@ -13,7 +13,7 @@ import {
   SUPPORT_WHATSAPP_MESSAGE_ONBOARDING,
 } from "@/lib/support-contact";
 import { AuthBrandingPanel } from "./AuthBrandingPanel";
-import { useAuth } from "@/lib/auth-context";
+import { useAuth } from "@/lib/auth/auth-context";
 import type { AuthBrandingStep } from "@/features/auth/types/auth";
 
 // Derives the user's position in the 4-step pre-dashboard journey

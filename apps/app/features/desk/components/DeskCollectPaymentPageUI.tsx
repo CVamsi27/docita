@@ -47,7 +47,7 @@ import { usePatients } from "@/hooks/api/use-patients";
 import { useInvoices } from "@/features/invoices";
 import { useDeskRecordInvoiceSettlement } from "@/features/desk/hooks/use-desk-record-invoice-settlement";
 import { useClinicCurrency } from "@/hooks/use-clinic-currency";
-import { useAuth } from "@/lib/auth-context";
+import { useAuth } from "@/lib/auth/auth-context";
 import {
   DATE_FORMAT_OPTIONS_US_LONG,
   formatDate,

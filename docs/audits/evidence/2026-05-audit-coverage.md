@@ -44,15 +44,15 @@ Generated for `security-and-performance-audit-merry-lobster.md`.
 
 | Script                                    | Status       | Notes                                                                                               |
 | ----------------------------------------- | ------------ | --------------------------------------------------------------------------------------------------- |
-| `scripts/check-type-duplicates.mjs`       | report-first | Promotable with `--enforce` after app-local duplicate type findings are resolved.                   |
-| `scripts/check-webhook-signatures.mjs`    | strict       | Public webhook POST handlers must use raw body and signature verification.                          |
-| `scripts/check-upload-validation.mjs`     | report-first | Promotable with `--enforce` after all upload endpoints declare mime, size, and filename validation. |
-| `scripts/check-job-idempotency.mjs`       | report-first | Worker/API processors must declare retry, backoff, lock duration, idempotency, and failure policy.  |
-| `scripts/check-sentry-scrubbing.mjs`      | report-first | Promotable after client and server Sentry configs share the same scrubber.                          |
-| `scripts/check-audit-logging.mjs`         | report-first | Promotable after command services/use-cases have explicit audit markers.                            |
-| `scripts/check-a11y-budget.mjs`           | report-first | Uses `artifacts/a11y-baseline.json` when present.                                                   |
-| `scripts/check-contrast.mjs`              | strict       | Ensures core semantic foreground/background token pairs exist.                                      |
-| `scripts/verify-app-security-headers.mjs` | strict       | Ensures app middleware applies CSP, HSTS, nosniff, Referrer-Policy, and Permissions-Policy.         |
+| `scripts/checks/check-type-duplicates.mjs`       | report-first | Promotable with `--enforce` after app-local duplicate type findings are resolved.                   |
+| `scripts/checks/check-webhook-signatures.mjs`    | strict       | Public webhook POST handlers must use raw body and signature verification.                          |
+| `scripts/checks/check-upload-validation.mjs`     | report-first | Promotable with `--enforce` after all upload endpoints declare mime, size, and filename validation. |
+| `scripts/checks/check-job-idempotency.mjs`       | report-first | Worker/API processors must declare retry, backoff, lock duration, idempotency, and failure policy.  |
+| `scripts/checks/check-sentry-scrubbing.mjs`      | report-first | Promotable after client and server Sentry configs share the same scrubber.                          |
+| `scripts/checks/check-audit-logging.mjs`         | report-first | Promotable after command services/use-cases have explicit audit markers.                            |
+| `scripts/perf/check-a11y-budget.mjs`           | report-first | Uses `artifacts/a11y-baseline.json` when present.                                                   |
+| `scripts/ui/check-contrast.mjs`              | strict       | Ensures core semantic foreground/background token pairs exist.                                      |
+| `scripts/deploy/verify-app-security-headers.mjs` | strict       | Ensures app middleware applies CSP, HSTS, nosniff, Referrer-Policy, and Permissions-Policy.         |
 
 ## Current State
 

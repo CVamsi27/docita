@@ -7,7 +7,7 @@ import { useCreateInvoice } from "@/hooks/api/use-billing";
 import { usePatients } from "@/hooks/api/use-patients";
 import { useRouter } from "next/navigation";
 import { invoiceItemSchema } from "./use-invoice-edit-logic";
-import { showUserFacingErrorToast } from "@/lib/user-facing-errors";
+import { showUserFacingErrorToast } from "@/lib/errors/user-facing-errors";
 import {
   applyInvoiceDiscountToFirstLine,
   calculateInvoiceTotals,

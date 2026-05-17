@@ -3,7 +3,7 @@
 import dynamic from "next/dynamic";
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
-import { useAuth } from "@/lib/auth-context";
+import { useAuth } from "@/lib/auth/auth-context";
 import { PageTransitionLoader } from "@/components/common/loaders/page-transition-loader";
 import { PreDashboardShell } from "@/features/auth/components/PreDashboardShell";
 import { DocitaLoadingIndicator } from "@workspace/ui/components/docita-loading-indicator";

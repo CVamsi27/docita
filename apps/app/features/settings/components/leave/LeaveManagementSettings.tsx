@@ -1,7 +1,7 @@
 "use client";
 
 import { useMemo } from "react";
-import { useAuth } from "@/lib/auth-context";
+import { useAuth } from "@/lib/auth/auth-context";
 import { useClinicMembers } from "@/hooks/api/use-settings";
 import { useLeaveBalance } from "@/hooks/api/use-leaves";
 import { LeaveBalanceCard } from "./LeaveBalanceCard";

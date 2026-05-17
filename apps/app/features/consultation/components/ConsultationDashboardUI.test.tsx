@@ -66,7 +66,7 @@ vi.mock(
   }),
 );
 
-vi.mock("@/lib/user-facing-errors", () => ({
+vi.mock("@/lib/errors/user-facing-errors", () => ({
   showUserFacingErrorToast: vi.fn(),
 }));
 

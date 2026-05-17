@@ -10,7 +10,7 @@ import {
 } from "@/hooks/api/use-public-booking";
 import { ApiError } from "@/lib/errors";
 import { buildPublicBookingSubmitErrors } from "@/lib/utils/api-validation-errors";
-import { showUserFacingErrorToast } from "@/lib/user-facing-errors";
+import { showUserFacingErrorToast } from "@/lib/errors/user-facing-errors";
 import { ANY_DOCTOR_ID } from "@/features/public-booking/public-booking-constants";
 
 interface SubmitActionsState {

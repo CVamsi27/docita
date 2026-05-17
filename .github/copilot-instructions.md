@@ -5,7 +5,7 @@ Apply these rules when generating or editing code in this repository.
 ## 0) Authoritative Sources
 
 - Engineering rules (typing, security, hygiene, SOLID/KISS/DRY/patterns, final checklist): [`AGENTS.md`](../AGENTS.md), especially §3 (architecture), §7 (hygiene), §12 (design principles), §14 (final checklist).
-- UI/UX rules for `apps/app`, `apps/internal`, `apps/landing`: [`docs/UI_UX_STANDARD_2026.md`](../docs/UI_UX_STANDARD_2026.md). It supersedes [`docs/DESIGN_SYSTEM.md`](../docs/DESIGN_SYSTEM.md) and [`docs/UI_UX_CONTRACT.md`](../docs/UI_UX_CONTRACT.md) where they conflict.
+- UI/UX rules for `apps/app`, `apps/internal`, `apps/landing`: [`docs/ui/UI_UX_STANDARD_2026.md`](../docs/ui/UI_UX_STANDARD_2026.md). It supersedes [`docs/ui/DESIGN_SYSTEM.md`](../docs/ui/DESIGN_SYSTEM.md) and [`docs/ui/UI_UX_CONTRACT.md`](../docs/ui/UI_UX_CONTRACT.md) where they conflict.
 - SOLID, KISS, and DRY are mandatory; do not invent abstractions without a current consumer, and do not duplicate Zod schemas, API clients, UI primitives, or tokens.
 
 ## 1) Architecture First
@@ -17,8 +17,8 @@ Apply these rules when generating or editing code in this repository.
 ## 2) Frontend Rules
 
 - Use shared UI from `@workspace/ui` whenever possible. Required primitives for new pages: `AppPageScaffold`, `PageHeader`, `DataState`, `PageTabs`, `MicroLabel`, `WizardDialog`, `RightRailCardStack`, `PromptInput`, `CategoryAvatar`, `ProgressGauge`, `EmptyState`, `ErrorState`, `LoadingState`. Do not introduce app-local duplicates.
-- Sidebar IA: TRACK / SERVICES sections, Settings / Help / Theme / Plan footer, Ask AI pinned at the bottom; command palette stays in lockstep with the sidebar (see [`docs/UI_UX_STANDARD_2026.md`](../docs/UI_UX_STANDARD_2026.md) §1).
-- AI surfaces follow the contract in [`docs/UI_UX_STANDARD_2026.md`](../docs/UI_UX_STANDARD_2026.md) §4 (`AskAiButton`, `AskAiOverlay`, scope chip, "AI suggestions are not medical advice" footer).
+- Sidebar IA: TRACK / SERVICES sections, Settings / Help / Theme / Plan footer, Ask AI pinned at the bottom; command palette stays in lockstep with the sidebar (see [`docs/ui/UI_UX_STANDARD_2026.md`](../docs/ui/UI_UX_STANDARD_2026.md) §1).
+- AI surfaces follow the contract in [`docs/ui/UI_UX_STANDARD_2026.md`](../docs/ui/UI_UX_STANDARD_2026.md) §4 (`AskAiButton`, `AskAiOverlay`, scope chip, "AI suggestions are not medical advice" footer).
 - Motion: no `animate-pulse` on chrome, no skeleton `animation="wave"`, no decorative `animate-in fade-in slide-in-from-bottom-*`, no `transition-all`. Only `animate-spin` for loading and `transition-colors duration-150` for hover/focus.
 - Use React Query for server data.
 - Use `router.push` / `Link` for internal navigation.
@@ -51,7 +51,7 @@ Apply these rules when generating or editing code in this repository.
 - Add/adjust tests for changed behavior.
 - Prefer focused tests nearest the changed code.
 - For user flows, update E2E when applicable.
-- API guard specs: stub `Reflector#getAllAndOverride` via `@/test-utils` keyed helpers (`docs/TESTING.md`, Backend unit tests).
+- API guard specs: stub `Reflector#getAllAndOverride` via `@/test-utils` keyed helpers (`docs/testing/TESTING.md`, Backend unit tests).
 
 ## 7) Documentation Rules
 

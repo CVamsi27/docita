@@ -2,7 +2,7 @@ import { NextResponse, type NextRequest } from "next/server";
 import {
   SECURITY_HEADERS,
   buildContentSecurityPolicy,
-} from "./lib/security-headers";
+} from "./shared/lib/security/security-headers";
 
 /**
  * Per-request CSP nonce. Next.js will pick up the `x-nonce` request

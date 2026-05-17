@@ -8,7 +8,7 @@ Shared presentational primitives and global styles.
 
 - No data fetching, API clients, tenant logic, or business rules.
 - Use CSS custom-property tokens from `src/styles/globals.css`; do not hardcode product colors in components.
-- Motion policy (from `docs/UI_UX_STANDARD_2026.md §5`): no `animate-pulse` on chrome, no `animate-in fade-in slide-in-from-bottom-*`, no `transition-all`, no skeleton `animation="wave"`.
+- Motion policy (from `docs/ui/UI_UX_STANDARD_2026.md §5`): no `animate-pulse` on chrome, no `animate-in fade-in slide-in-from-bottom-*`, no `transition-all`, no skeleton `animation="wave"`.
 - Export reusable primitives from `src/components`; do not duplicate them in apps.
 
 Promote a component here only when it has at least two independent consumers. App-specific composition stays in `apps/*/features`.

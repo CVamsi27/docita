@@ -14,7 +14,7 @@ type Tx = Prisma.TransactionClient;
  * connection. This service centralizes the GUC handshake so callers that opt
  * into RLS can do so via a single `runScopedTransaction` entry point.
  *
- * The flag defaults to OFF in every environment. See `docs/RLS_ROLLOUT.md`
+ * The flag defaults to OFF in every environment. See `docs/compliance/RLS_ROLLOUT.md`
  * for the staged enablement plan.
  */
 @Injectable()

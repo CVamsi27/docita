@@ -7,13 +7,13 @@ import { useRouter } from "next/navigation";
 import { Building2, Check, Users } from "lucide-react";
 import { Button } from "@workspace/ui/components/button";
 import { cn } from "@workspace/ui/lib/utils";
-import { typedApi } from "@/lib/api-client";
-import { logger } from "@/lib/logger";
-import { useAuth } from "@/lib/auth-context";
+import { typedApi } from "@/lib/api/api-client";
+import { logger } from "@/lib/monitoring/logger";
+import { useAuth } from "@/lib/auth/auth-context";
 import { PageTransitionLoader } from "@/components/common/loaders/page-transition-loader";
-import { showUserFacingErrorToast } from "@/lib/user-facing-errors";
+import { showUserFacingErrorToast } from "@/lib/errors/user-facing-errors";
 import { PreDashboardShell } from "@/features/auth/components/PreDashboardShell";
-import { persistReturnPathBeforeLogin } from "@/lib/safe-return-path";
+import { persistReturnPathBeforeLogin } from "@/lib/auth/safe-return-path";
 
 const CREATE_BULLETS = [
   "Choose subscription plan",

@@ -4,9 +4,9 @@
     "baseUrl": ".",
     "paths": {
       "@/*": ["./*"],
-      "@/lib/*": ["./lib/*"],
-      "@/hooks/*": ["./hooks/*"],
-      "@/components/*": ["./components/*"],
+      "@/lib/*": ["./shared/lib/*"],
+      "@/hooks/*": ["./shared/hooks/*"],
+      "@/components/*": ["./shared/components/*"],
       "@workspace/auth": ["../../packages/auth/dist/index"],
       "@workspace/auth/*": ["../../packages/auth/dist/*"],
       "@workspace/data-access": ["../../packages/data-access/dist/index"],

@@ -1,7 +1,7 @@
 import { useCallback, useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
 import { usePatientData } from "@/hooks/use-patient-data";
-import { useAuth } from "@/lib/auth-context";
+import { useAuth } from "@/lib/auth/auth-context";
 import { useBackNavigation } from "@/hooks/use-back-navigation";
 import { useRepeatPrescription } from "@/hooks/use-repeat-prescription";
 import { usePermissionStore } from "@/lib/stores/permission-store";

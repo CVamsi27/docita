@@ -1,14 +1,14 @@
 "use client";
 
 import { useCallback, useEffect, useState } from "react";
-import { apiFetch } from "@/lib/api-client";
+import { apiFetch } from "@/lib/api/api-client";
 import { type PatientTag, PatientTagManagerUI } from "./PatientTagManagerUI";
 import { DEFAULT_TAG_COLOR_VAR } from "./tag-colors";
 import { useClinicSettings } from "@/hooks/api/use-settings";
 import { useTierFeatureEnabled } from "@/hooks/api/tier-feature-guards";
 import { ClinicFeatureService } from "@/lib/services/clinic-feature.service";
 import { Feature, type ClinicType } from "@workspace/types";
-import { showUserFacingErrorToast } from "@/lib/user-facing-errors";
+import { showUserFacingErrorToast } from "@/lib/errors/user-facing-errors";
 
 interface PatientTagManagerContainerProps {
   patientId: string;

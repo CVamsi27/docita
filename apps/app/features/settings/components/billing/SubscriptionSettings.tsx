@@ -3,7 +3,7 @@
 import { useRef } from "react";
 import type { ReactNode } from "react";
 import type { SubscriptionCurrentResponse } from "@workspace/types";
-import { useAuth } from "@/lib/auth-context";
+import { useAuth } from "@/lib/auth/auth-context";
 import { useBillingHistory } from "@/hooks/api/use-billing-history";
 import { getTierInfo } from "@/lib/tier-config";
 import { useSubscription } from "@/hooks/api/use-settings";
@@ -14,7 +14,7 @@ import {
   BillingSubscriptionWorkspace,
   PaymentRecoveryCard,
 } from "@/features/subscription";
-import { getTrialState } from "@/lib/subscription-lockout";
+import { getTrialState } from "@/lib/subscription/subscription-lockout";
 import { DocitaLoadingIndicator } from "@workspace/ui/components/docita-loading-indicator";
 import { Skeleton } from "@workspace/ui/components/skeleton";
 import {
@@ -33,7 +33,7 @@ import {
   AlertTitle,
 } from "@workspace/ui/components/alert";
 import { AlertTriangle, Clock, Info, XCircle } from "lucide-react";
-import { useClinic } from "@/lib/clinic-context";
+import { useClinic } from "@/lib/contexts/clinic-context";
 
 function scrollToBillingPlans() {
   document.getElementById("billing-plans-section")?.scrollIntoView({

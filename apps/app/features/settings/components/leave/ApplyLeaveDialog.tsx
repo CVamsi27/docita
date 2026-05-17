@@ -36,7 +36,7 @@ import {
 } from "@workspace/types";
 import type { User } from "@workspace/types";
 import type { z } from "zod";
-import { showUserFacingErrorToast } from "@/lib/user-facing-errors";
+import { showUserFacingErrorToast } from "@/lib/errors/user-facing-errors";
 import { LEAVE_TYPE_LABELS } from "./LeaveBalanceCard";
 
 type ApplyLeaveFormValues = z.infer<typeof createLeaveRequestSchema>;

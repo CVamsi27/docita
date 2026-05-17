@@ -46,7 +46,7 @@ vi.mock("@/hooks/api/use-notifications", () => {
   };
 });
 
-vi.mock("@/lib/socket-context", () => ({
+vi.mock("@/lib/contexts/socket-context", () => ({
   useSocket: () => ({ socket: null }),
 }));
 

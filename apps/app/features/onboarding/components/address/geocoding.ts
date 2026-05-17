@@ -1,4 +1,4 @@
-import { browserRequest } from "@/lib/browser-request";
+import { browserRequest } from "@/lib/auth/browser-request";
 import {
   type ClinicAddressSelection,
   type LatLng,

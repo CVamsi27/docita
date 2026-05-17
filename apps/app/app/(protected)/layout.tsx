@@ -14,7 +14,7 @@ import { BackButton } from "@/components/common/navigation/back-button";
 import { useCanGoBack } from "@/hooks/use-can-go-back";
 import { CommandPalette } from "@/features/_shared/components/navigation/command-palette";
 import { DesktopTopBar } from "@/features/_shared/components/layout/desktop-top-bar";
-import { ClinicProvider, useClinic } from "@/lib/clinic-context";
+import { ClinicProvider, useClinic } from "@/lib/contexts/clinic-context";
 import {
   ResizableHandle,
   ResizablePanel,
@@ -22,8 +22,8 @@ import {
 } from "@workspace/ui/components/resizable";
 import type { ImperativePanelHandle } from "@workspace/ui/components/resizable";
 import { ErrorBoundaryWrapper } from "@/components/common/error-boundary";
-import { useAuth } from "@/lib/auth-context";
-import { useAPIQuery } from "@/lib/api-core";
+import { useAuth } from "@/lib/auth/auth-context";
+import { useAPIQuery } from "@/lib/api/api-core";
 import type { TierName, User } from "@workspace/types";
 import { APP_ACCESS_TARGETS, SUBSCRIPTION_TRIAL_DAYS } from "@workspace/types";
 import { ThemeToggleWithAppearanceSync } from "@/features/_shared/components/layout/theme-toggle-with-appearance-sync";
@@ -42,20 +42,20 @@ import {
   AlertDescription,
   AlertTitle,
 } from "@workspace/ui/components/alert";
-import { canAccessTarget } from "@/lib/access-policy";
+import { canAccessTarget } from "@/lib/access-control/access-policy";
 import { getTierInfo } from "@/lib/tier-config";
 import { formatDate } from "@/lib/formatters";
-import { getAccessTargetForPath } from "@/lib/access-routes";
+import { getAccessTargetForPath } from "@/lib/access-control/access-routes";
 import { usePermissionStore } from "@/lib/stores/permission-store";
 import { PageTransitionLoader } from "@/components/common/loaders/page-transition-loader";
 import {
   getTrialState,
   isBillingAdminRole,
   isPastSubscriptionGraceDeadline,
-} from "@/lib/subscription-lockout";
-import { SUBSCRIPTION_SETTINGS_PATH } from "@/lib/subscription-settings-path";
+} from "@/lib/subscription/subscription-lockout";
+import { SUBSCRIPTION_SETTINGS_PATH } from "@/lib/subscription/subscription-settings-path";
 import { FeatureFlagsProvider } from "@/features/_shared/hooks/use-feature-flag";
-import { persistReturnPathBeforeLogin } from "@/lib/safe-return-path";
+import { persistReturnPathBeforeLogin } from "@/lib/auth/safe-return-path";
 
 const SUBSCRIPTION_ALLOWED_PATHS = ["/settings", "/login", "/billing-locked"];
 const VERIFICATION_ALLOWED_PATHS = ["/verify-doctor", "/login"];

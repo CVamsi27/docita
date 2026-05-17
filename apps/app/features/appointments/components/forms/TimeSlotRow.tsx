@@ -13,7 +13,7 @@ import { humanizeUiLabel } from "@workspace/ui/lib/label-formatters";
 import { AppointmentRowActionsMenu } from "./AppointmentRowActionsMenu";
 import { WhatsAppDeliveryBadge } from "@/features/_shared/components/whatsapp/whatsapp-delivery-badge";
 import { useResendAppointmentReminder } from "@/hooks/api/use-whatsapp";
-import { showUserFacingErrorToast } from "@/lib/user-facing-errors";
+import { showUserFacingErrorToast } from "@/lib/errors/user-facing-errors";
 
 interface TimeSlotRowProps {
   appointment: AppointmentListItem;

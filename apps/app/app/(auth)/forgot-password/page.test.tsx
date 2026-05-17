@@ -21,13 +21,13 @@ vi.mock("next/navigation", () => ({
   useRouter: () => mocks.router,
 }));
 
-vi.mock("@/lib/api-client", () => ({
+vi.mock("@/lib/api/api-client", () => ({
   api: {
     post: vi.fn(),
   },
 }));
 
-vi.mock("@/lib/logger", () => ({
+vi.mock("@/lib/monitoring/logger", () => ({
   logger: {
     error: vi.fn(),
   },

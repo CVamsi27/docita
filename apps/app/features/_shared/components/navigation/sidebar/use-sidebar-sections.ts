@@ -2,14 +2,14 @@
 
 import { useCallback, useMemo } from "react";
 import { usePermissionStore } from "@/lib/stores/permission-store";
-import { useAuth } from "@/lib/auth-context";
-import { useAppConfig } from "@/lib/app-config-context";
-import { canAccessTarget } from "@/lib/access-policy";
-import { canManageBilling } from "@/lib/permissions";
+import { useAuth } from "@/lib/auth/auth-context";
+import { useAppConfig } from "@/lib/contexts/app-config-context";
+import { canAccessTarget } from "@/lib/access-control/access-policy";
+import { canManageBilling } from "@/lib/auth/permissions";
 import { ClinicFeatureService } from "@/lib/services/clinic-feature.service";
 import { APP_ACCESS_TARGETS, type ClinicType } from "@workspace/types";
-import { CLINIC_ADMIN_ROLES } from "@/lib/permissions";
-import { useClinic } from "@/lib/clinic-context";
+import { CLINIC_ADMIN_ROLES } from "@/lib/auth/permissions";
+import { useClinic } from "@/lib/contexts/clinic-context";
 import { useSidebarPreferences } from "@/hooks/use-sidebar-preferences";
 import { useSidebarNavOrder } from "@/hooks/use-sidebar-nav-order";
 import {

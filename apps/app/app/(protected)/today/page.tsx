@@ -14,7 +14,7 @@ import { useDashboardLogic } from "@/features/dashboard/hooks/use-dashboard-logi
 import { useClinicReferralShare } from "@/features/dashboard/hooks/use-clinic-referral-share";
 import { ClinicReferralShareToolbar } from "@/features/dashboard/components/layout/clinic-referral-share-toolbar";
 import { Feature } from "@/lib/stores/permission-store";
-import { useClinic } from "@/lib/clinic-context";
+import { useClinic } from "@/lib/contexts/clinic-context";
 import { usePermissions } from "@/hooks/use-permissions";
 import { useAskAi } from "@/features/_shared/components/ask-ai/ask-ai-context";
 import { AppPageScaffold } from "@workspace/ui/components/app-page-scaffold";

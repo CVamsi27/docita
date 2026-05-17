@@ -16,7 +16,7 @@ if (!globalThis.ResizeObserver) {
   ).ResizeObserver = ResizeObserverMock;
 }
 
-vi.mock("@/lib/api-client", () => ({
+vi.mock("@/lib/api/api-client", () => ({
   api: {
     post: vi.fn().mockRejectedValue(new Error("no backend in test")),
   },

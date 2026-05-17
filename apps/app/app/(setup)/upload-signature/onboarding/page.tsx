@@ -15,9 +15,9 @@ import {
   CardTitle,
 } from "@workspace/ui/components/card";
 import { AlertCircle, CheckCircle2 } from "lucide-react";
-import { buildCsrfHeaders } from "@/lib/csrf";
-import { apiFetch } from "@/lib/api-client";
-import { appQueryKeys } from "@/lib/query-keys";
+import { buildCsrfHeaders } from "@/lib/auth/csrf";
+import { apiFetch } from "@/lib/api/api-client";
+import { appQueryKeys } from "@/lib/api/query-keys";
 import { SignatureUploadWorkflow } from "@/features/_shared/components/signature/signature-upload-workflow";
 import { getUserFacingErrorMessage } from "@workspace/types";
 

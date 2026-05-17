@@ -3,7 +3,7 @@
 import { useRef, useState } from "react";
 import { toast } from "sonner";
 import { useUpdateInvoice } from "@/hooks/api/use-billing";
-import { useFormOptions } from "@/lib/app-config-context";
+import { useFormOptions } from "@/lib/contexts/app-config-context";
 import { CRUDDialog } from "@workspace/ui/components/crud-dialog";
 import { Button } from "@workspace/ui/components/button";
 import { SymbolTooltip } from "@workspace/ui/components/tooltip";
@@ -18,7 +18,7 @@ import {
 } from "@workspace/ui/components/select";
 import { Plus, X } from "lucide-react";
 import type { Invoice, InvoiceItem, Patient } from "@workspace/types";
-import { showUserFacingErrorToast } from "@/lib/user-facing-errors";
+import { showUserFacingErrorToast } from "@/lib/errors/user-facing-errors";
 import { useClinicCurrency } from "@/hooks/use-clinic-currency";
 
 type InvoiceWithPatient = Invoice & { patient: Patient };

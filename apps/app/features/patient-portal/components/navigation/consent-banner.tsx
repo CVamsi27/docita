@@ -18,7 +18,7 @@ import {
   useUpdatePatientConsent,
 } from "@/hooks/api/use-patient-portal";
 import { toast } from "sonner";
-import { showUserFacingErrorToast } from "@/lib/user-facing-errors";
+import { showUserFacingErrorToast } from "@/lib/errors/user-facing-errors";
 
 export function ConsentBanner() {
   const [dismissed, setDismissed] = useState(false);

@@ -20,7 +20,7 @@ import { formatAmountLocale, formatCountLocale } from "@workspace/utils";
 import { Calculator, ArrowRight } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useLocaleCurrency } from "@/hooks/use-locale-currency";
-import { subscriptionSettingsHref } from "@/lib/subscription-settings-path";
+import { subscriptionSettingsHref } from "@/lib/subscription/subscription-settings-path";
 
 interface UsagePricingCalculatorProps {
   currency?: SupportedCurrency;

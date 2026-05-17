@@ -1,7 +1,7 @@
 import "./globals.css";
 import "leaflet/dist/leaflet.css";
 import { headers } from "next/headers";
-import { AuthProvider } from "@/lib/auth-context";
+import { AuthProvider } from "@/lib/auth/auth-context";
 import { Providers, ToasterWrapper } from "@/features/_shared/components";
 import { ReactQueryProvider } from "@/providers/react-query-provider";
 import { SentryInitializer } from "@/components/common/monitoring/sentry-initializer";

@@ -10,8 +10,8 @@ on:
       - "packages/db/**"
       - "packages/types/**"
       - "packages/utils/**"
-      - "scripts/detect-workflow-scope.mjs"
-      - "scripts/test-api-startup.sh"
+      - "scripts/workflow/detect-workflow-scope.mjs"
+      - "scripts/deploy/test-api-startup.sh"
       - "package.json"
       - "pnpm-lock.yaml"
       - "pnpm-workspace.yaml"
@@ -47,7 +47,7 @@ jobs:
 
       - name: Detect changed deploy targets
         id: detect
-        run: node scripts/detect-workflow-scope.mjs deploy
+        run: node scripts/workflow/detect-workflow-scope.mjs deploy
 
   migrate-db:
     name: Apply Prisma Migrations
@@ -132,7 +132,7 @@ jobs:
         run: pnpm install --frozen-lockfile
 
       - name: Run API startup smoke test
-        run: scripts/test-api-startup.sh
+        run: scripts/deploy/test-api-startup.sh
 
   deploy-api:
     name: Deploy API (Fly.io)

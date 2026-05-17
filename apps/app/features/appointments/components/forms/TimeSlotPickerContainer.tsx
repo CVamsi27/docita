@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import { TimeSlotPickerUI } from "./TimeSlotPickerUI";
-import { api } from "@/lib/api-client";
-import { logger } from "@/lib/logger";
+import { api } from "@/lib/api/api-client";
+import { logger } from "@/lib/monitoring/logger";
 
 interface TimeSlotPickerContainerProps {
   date: Date;

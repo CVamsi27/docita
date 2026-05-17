@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from "react";
-import { useClinic } from "@/lib/clinic-context";
+import { useClinic } from "@/lib/contexts/clinic-context";
 
 import { useInvoice } from "@/hooks/api/use-billing";
 import { toast } from "sonner";
@@ -11,7 +11,7 @@ import {
   formatDateSafe,
 } from "@/lib/formatters";
 import { useClinicCurrency } from "@/hooks/use-clinic-currency";
-import { showUserFacingErrorToast } from "@/lib/user-facing-errors";
+import { showUserFacingErrorToast } from "@/lib/errors/user-facing-errors";
 import { invoicesApi } from "@/features/invoices/api/invoices.api";
 
 const POLL_INTERVAL_MS = 2000;

@@ -20,7 +20,7 @@ import { Clock, Play, Stethoscope, Users } from "lucide-react";
 
 import type { AppointmentListItem } from "@/hooks/api/use-appointments";
 import { useStartConsultation } from "@/hooks/api/use-appointments";
-import { showUserFacingErrorToast } from "@/lib/user-facing-errors";
+import { showUserFacingErrorToast } from "@/lib/errors/user-facing-errors";
 
 interface QueueStats {
   waiting: number;

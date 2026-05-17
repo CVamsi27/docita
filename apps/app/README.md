@@ -42,6 +42,6 @@ Reference: `apps/app/features/patients/components/list/PatientsPageUI.tsx`.
 - Server state comes from `@workspace/data-access` hooks or approved API wrappers (`apps/app/hooks/api/`).
 - Shared UI primitives come from `@workspace/ui`.
 - Loading, error, and empty page states use `DataState` patterns.
-- Inline `fetch` in client features is blocked by `scripts/check-frontend-fetch.mjs`.
+- Inline `fetch` in client features is blocked by `scripts/checks/check-frontend-fetch.mjs`.
 
 The Cloudflare deployment path intentionally keeps `middleware.ts`; Next.js may warn about the newer proxy convention.

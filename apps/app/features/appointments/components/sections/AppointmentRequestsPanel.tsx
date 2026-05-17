@@ -24,15 +24,15 @@ import {
   useRejectAppointmentRequest,
 } from "@/hooks/api/use-appointments";
 import { useDoctors } from "@/hooks/api/use-settings";
-import { showUserFacingErrorToast } from "@/lib/user-facing-errors";
+import { showUserFacingErrorToast } from "@/lib/errors/user-facing-errors";
 import { fetchNextAvailableSlotWindow } from "@/lib/doctor-availability-first-slot";
 import {
   extractApproveAppointmentRequestFieldErrors,
   type ApproveScheduleFieldKey,
 } from "@/lib/utils/appointment-request-approve-errors";
 import { extractProblemDetail } from "@/lib/utils/api-validation-errors";
-import { getSafeUserMessage } from "@/lib/user-facing-errors";
-import { useClinic } from "@/lib/clinic-context";
+import { getSafeUserMessage } from "@/lib/errors/user-facing-errors";
+import { useClinic } from "@/lib/contexts/clinic-context";
 import { AppointmentRequestRow } from "./requests/AppointmentRequestRow";
 import {
   patientName,

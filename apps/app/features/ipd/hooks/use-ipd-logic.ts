@@ -1,7 +1,7 @@
 "use client";
 
 import { useMemo, useState } from "react";
-import { useAPIMutation, useAPIQuery } from "@/lib/api-core";
+import { useAPIMutation, useAPIQuery } from "@/lib/api/api-core";
 import { useTierFeatureEnabled } from "@/hooks/api/tier-feature-guards";
 import { useDebounce } from "@workspace/hooks/use-debounce";
 import {

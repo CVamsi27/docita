@@ -2,8 +2,8 @@
 
 import { useEffect, useState } from "react";
 import { Skeleton } from "@workspace/ui/components/skeleton";
-import { browserJson } from "@/lib/browser-request";
-import { logger } from "@/lib/logger";
+import { browserJson } from "@/lib/auth/browser-request";
+import { logger } from "@/lib/monitoring/logger";
 
 type DailyThoughtPayload = {
   quote: string;

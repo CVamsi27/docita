@@ -13,7 +13,7 @@ import {
 import { Label } from "@workspace/ui/components/label";
 import { Textarea } from "@workspace/ui/components/textarea";
 import { useRejectLeave } from "@/hooks/api/use-leaves";
-import { showUserFacingErrorToast } from "@/lib/user-facing-errors";
+import { showUserFacingErrorToast } from "@/lib/errors/user-facing-errors";
 
 function RejectButton({
   leaveId,

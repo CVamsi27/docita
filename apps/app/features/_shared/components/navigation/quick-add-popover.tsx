@@ -17,9 +17,9 @@ import {
   PopoverTrigger,
 } from "@workspace/ui/components/popover";
 import { Kbd } from "@workspace/ui/components/kbd";
-import { canAccessTarget } from "@/lib/access-policy";
+import { canAccessTarget } from "@/lib/access-control/access-policy";
 import { usePermissionStore } from "@/lib/stores/permission-store";
-import { useAuth } from "@/lib/auth-context";
+import { useAuth } from "@/lib/auth/auth-context";
 import {
   QUICK_ACTIONS,
   type QuickAction,

@@ -1,11 +1,11 @@
 "use client";
 
 import React, { ReactNode, useEffect } from "react";
-import { useAuth } from "@/lib/auth-context";
+import { useAuth } from "@/lib/auth/auth-context";
 import { useRouter } from "next/navigation";
 import type { UserRole } from "@workspace/types";
-import { hasPermission, type Permission } from "@/lib/permissions";
-import { persistReturnPathBeforeLogin } from "@/lib/safe-return-path";
+import { hasPermission, type Permission } from "@/lib/auth/permissions";
+import { persistReturnPathBeforeLogin } from "@/lib/auth/safe-return-path";
 
 interface RoleGuardProps {
   children: ReactNode;

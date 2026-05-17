@@ -30,7 +30,7 @@ import {
 import { Plus } from "lucide-react";
 import { useCreateLeavePlan, useLeavePlans } from "@/hooks/api/use-leaves";
 import { LeaveType, LeavePlan } from "@workspace/types";
-import { showUserFacingErrorToast } from "@/lib/user-facing-errors";
+import { showUserFacingErrorToast } from "@/lib/errors/user-facing-errors";
 import {
   Form,
   FormControl,

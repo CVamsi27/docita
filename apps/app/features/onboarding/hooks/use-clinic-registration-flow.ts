@@ -7,12 +7,12 @@ import {
   useRazorpay,
   type RazorpayResponse,
 } from "@/hooks/use-razorpay";
-import { apiFetch } from "@/lib/api-client";
+import { apiFetch } from "@/lib/api/api-client";
 import { BRAND_FOREGROUND_HEX } from "@/lib/branding";
-import { useAuth } from "@/lib/auth-context";
-import { buildCsrfHeaders, buildJsonHeaders } from "@/lib/csrf";
+import { useAuth } from "@/lib/auth/auth-context";
+import { buildCsrfHeaders, buildJsonHeaders } from "@/lib/auth/csrf";
 import { ApiError } from "@/lib/errors";
-import { appSession } from "@/lib/session";
+import { appSession } from "@/lib/auth/session";
 import {
   type ClinicDetails,
   type ClinicRegistrationData,
@@ -22,7 +22,7 @@ import {
 } from "@/features/onboarding/components/types";
 import { getUserFacingErrorMessage } from "@workspace/types";
 import { DEFAULT_CURRENCY } from "@workspace/utils";
-import { showUserFacingErrorToast } from "@/lib/user-facing-errors";
+import { showUserFacingErrorToast } from "@/lib/errors/user-facing-errors";
 import {
   clearOnboardingSession,
   getPersistedFormData,

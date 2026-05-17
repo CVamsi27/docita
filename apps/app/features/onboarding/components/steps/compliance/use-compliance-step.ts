@@ -2,12 +2,12 @@ import { useState, useEffect, useCallback } from "react";
 import { toast } from "sonner";
 import type { UseFormReturn } from "react-hook-form";
 import { APIRequestError } from "@workspace/data-access";
-import { apiFetch } from "@/lib/api-client";
-import { API_URL } from "@/lib/api-config";
-import { buildJsonHeaders } from "@/lib/csrf";
+import { apiFetch } from "@/lib/api/api-client";
+import { API_URL } from "@/lib/api/api-config";
+import { buildJsonHeaders } from "@/lib/auth/csrf";
 import { toAbsoluteAppUrl } from "@/lib/url";
 import { usePhoneSignatureQrFlow } from "@/features/_shared/hooks/use-phone-signature-qr-flow";
-import { showUserFacingErrorToast } from "@/lib/user-facing-errors";
+import { showUserFacingErrorToast } from "@/lib/errors/user-facing-errors";
 import type { ComplianceSettings } from "@/features/onboarding/components/types";
 
 export type LegalDocumentType = "sla" | "privacy" | "dpa";

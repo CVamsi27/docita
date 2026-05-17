@@ -1,4 +1,4 @@
-import { browserJson } from "@/lib/browser-request";
+import { browserJson } from "@/lib/auth/browser-request";
 
 export interface SearchResult {
   id: string;

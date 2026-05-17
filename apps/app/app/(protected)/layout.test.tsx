@@ -29,7 +29,7 @@ vi.mock("next/navigation", () => ({
   useRouter: () => mocks.router,
 }));
 
-vi.mock("@/lib/auth-context", () => ({
+vi.mock("@/lib/auth/auth-context", () => ({
   useAuth: () => mocks.auth,
 }));
 
@@ -70,7 +70,7 @@ vi.mock("@/providers/navigation-history-provider", () => ({
   readInAppNavEntry: () => null,
 }));
 
-vi.mock("@/lib/clinic-context", () => ({
+vi.mock("@/lib/contexts/clinic-context", () => ({
   ClinicProvider: ({ children }: { children: React.ReactNode }) => <>{children}</>,
   useClinic: () => ({ clinic: null }),
 }));
@@ -102,15 +102,15 @@ vi.mock("@/lib/stores/permission-store", () => ({
   }),
 }));
 
-vi.mock("@/lib/api-core", () => ({
+vi.mock("@/lib/api/api-core", () => ({
   useAPIQuery: () => ({ data: null, isLoading: false, isFetching: false, isError: false }),
 }));
 
-vi.mock("@/lib/access-policy", () => ({
+vi.mock("@/lib/access-control/access-policy", () => ({
   canAccessTarget: () => true,
 }));
 
-vi.mock("@/lib/access-routes", () => ({
+vi.mock("@/lib/access-control/access-routes", () => ({
   getAccessTargetForPath: () => null,
 }));
 

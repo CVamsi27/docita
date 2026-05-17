@@ -9,7 +9,7 @@ import {
   CardTitle,
 } from "@workspace/ui/components/card";
 import { parseWorkspaceProfile, WORKSPACE_PROFILE_LABEL } from "@workspace/types";
-import { SUBSCRIPTION_SETTINGS_PATH } from "@/lib/subscription-settings-path";
+import { SUBSCRIPTION_SETTINGS_PATH } from "@/lib/subscription/subscription-settings-path";
 
 interface WorkspaceModeCardProps {
   workspaceProfile?: string | null;

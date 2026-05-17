@@ -4,7 +4,7 @@ import { useCallback, useState } from "react";
 import { getUserFacingErrorMessage } from "@workspace/types";
 import { useMutation } from "@tanstack/react-query";
 import type { OnboardingData } from "@/features/onboarding/schemas/onboarding.schemas";
-import { apiFetch } from "@/lib/api-client";
+import { apiFetch } from "@/lib/api/api-client";
 
 interface UseOnboardingReturn {
   step: number;

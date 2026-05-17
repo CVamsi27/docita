@@ -3,8 +3,8 @@
 import { useEffect } from "react";
 import { usePathname } from "next/navigation";
 import type { Metric } from "web-vitals";
-import { API_URL } from "@/lib/api-config";
-import { browserRequest } from "@/lib/browser-request";
+import { API_URL } from "@/lib/api/api-config";
+import { browserRequest } from "@/lib/auth/browser-request";
 
 const PUBLIC_AUTH_PATHS = new Set([
   "/login",

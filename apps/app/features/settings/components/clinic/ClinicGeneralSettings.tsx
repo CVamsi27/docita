@@ -22,7 +22,7 @@ import { Form, FormControl, FormField } from "@workspace/ui/components/form";
 import { Input } from "@workspace/ui/components/input";
 import { Copy, Check, ExternalLink } from "lucide-react";
 import { useState } from "react";
-import { showUserFacingErrorToast } from "@/lib/user-facing-errors";
+import { showUserFacingErrorToast } from "@/lib/errors/user-facing-errors";
 import {
   Select,
   SelectContent,

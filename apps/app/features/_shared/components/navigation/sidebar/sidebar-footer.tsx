@@ -22,7 +22,7 @@ import { NotificationPanel } from "@/features/_shared/components/navigation/noti
 import { NotificationBellWithBadges } from "@/features/_shared/components/navigation/notification-bell-with-badges";
 import { ThemeToggleWithAppearanceSync } from "@/features/_shared/components/layout/theme-toggle-with-appearance-sync";
 import { AskAiButton } from "@/features/_shared/components/ask-ai/ask-ai-button";
-import { SUBSCRIPTION_SETTINGS_PATH } from "@/lib/subscription-settings-path";
+import { SUBSCRIPTION_SETTINGS_PATH } from "@/lib/subscription/subscription-settings-path";
 import {
   HELP_NAV_ITEM,
   type NavSection,

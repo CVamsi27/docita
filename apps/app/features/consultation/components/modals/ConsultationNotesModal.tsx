@@ -14,7 +14,7 @@ import { toast } from "sonner";
 import { useUpdateAppointment } from "@/hooks/api/use-appointments";
 import { StickyNote } from "lucide-react";
 import { ModalProps } from "./PrescriptionModal";
-import { showUserFacingErrorToast } from "@/lib/user-facing-errors";
+import { showUserFacingErrorToast } from "@/lib/errors/user-facing-errors";
 
 export interface ConsultationNotesModalProps extends Omit<
   ModalProps,

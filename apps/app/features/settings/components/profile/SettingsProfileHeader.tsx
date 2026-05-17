@@ -2,7 +2,7 @@
 
 import { Avatar, AvatarFallback } from "@workspace/ui/components/avatar";
 import { Badge } from "@workspace/ui/components/badge";
-import { useAuth } from "@/lib/auth-context";
+import { useAuth } from "@/lib/auth/auth-context";
 import { SettingsAiChips } from "@/features/settings/components/settings-ai-chips";
 
 const ROLE_LABELS: Record<string, string> = {

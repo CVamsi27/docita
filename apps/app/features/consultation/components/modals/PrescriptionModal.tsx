@@ -19,7 +19,7 @@ import {
 } from "@/hooks/api/use-clinical";
 import { Pill, Plus, RotateCcw, X } from "lucide-react";
 import { ApiError } from "@/lib/errors";
-import { showUserFacingErrorToast } from "@/lib/user-facing-errors";
+import { showUserFacingErrorToast } from "@/lib/errors/user-facing-errors";
 
 const getPrescriptionComplianceErrorMessage = (error: unknown): string | null => {
   if (!(error instanceof ApiError)) {

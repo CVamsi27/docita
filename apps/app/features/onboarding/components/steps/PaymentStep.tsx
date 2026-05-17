@@ -18,9 +18,9 @@ import {
   Alert,
   AlertDescription,
 } from "@workspace/ui/components/alert";
-import { api } from "@/lib/api-client";
+import { api } from "@/lib/api/api-client";
 import { getSupportContactText } from "@/lib/support-contact";
-import { showUserFacingErrorToast } from "@/lib/user-facing-errors";
+import { showUserFacingErrorToast } from "@/lib/errors/user-facing-errors";
 import { isPaymentCanceledError, useRazorpay } from "@/hooks/use-razorpay";
 import { BRAND_PRIMARY_HEX } from "@/lib/branding";
 import type { TierName } from "@workspace/types";

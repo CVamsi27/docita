@@ -23,7 +23,7 @@ import {
   AppointmentsPageHeaderUI,
 } from "@/features/appointments/components";
 import type { AppointmentListItem } from "@/hooks/api/use-appointments";
-import { SUBSCRIPTION_SETTINGS_PATH } from "@/lib/subscription-settings-path";
+import { SUBSCRIPTION_SETTINGS_PATH } from "@/lib/subscription/subscription-settings-path";
 
 const REQUESTS_PANEL_FOCUS_PARAM = "requestsPanel";
 

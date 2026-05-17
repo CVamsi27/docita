@@ -37,7 +37,7 @@ vi.mock("@tanstack/react-query", () => ({
   }),
 }));
 
-vi.mock("@/lib/api-client", () => ({
+vi.mock("@/lib/api/api-client", () => ({
   typedApi: {
     joinRequests: {
       list: joinRequestMocks.list,
@@ -47,7 +47,7 @@ vi.mock("@/lib/api-client", () => ({
   },
 }));
 
-vi.mock("@/lib/user-facing-errors", () => ({
+vi.mock("@/lib/errors/user-facing-errors", () => ({
   showUserFacingErrorToast: joinRequestMocks.showError,
 }));
 

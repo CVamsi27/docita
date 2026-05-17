@@ -30,7 +30,7 @@ import {
   useFollowUps,
 } from "@/hooks/api/use-appointments";
 import { formatDate } from "@/lib/formatters";
-import { showUserFacingErrorToast } from "@/lib/user-facing-errors";
+import { showUserFacingErrorToast } from "@/lib/errors/user-facing-errors";
 
 const VIEW_OPTIONS: Array<{ value: FollowUpListView; label: string }> = [
   { value: "overdue", label: "Overdue" },

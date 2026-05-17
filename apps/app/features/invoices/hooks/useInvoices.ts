@@ -5,7 +5,7 @@ import { invoicesApi } from "@/features/invoices/api/invoices.api";
 import { Feature, type ListInvoicesContractQuery } from "@workspace/types";
 import { queryKeys } from "@workspace/data-access";
 import { useTierFeatureEnabled } from "@/hooks/api/tier-feature-guards";
-import { useAppMutation } from "@/lib/query-hooks";
+import { useAppMutation } from "@/lib/api/query-hooks";
 
 /** Mirrors {@link useInvoices} in `@/hooks/api/use-billing` (API detail routes require invoicing). */
 export function useInvoices(

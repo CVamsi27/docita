@@ -1,10 +1,10 @@
 import { useMemo, useState } from "react";
 import { toast } from "sonner";
 import { useProcessOCR, useOcrCommitImport } from "@/hooks/api/use-import";
-import { useAuth } from "@/lib/auth-context";
-import { useClinic } from "@/lib/clinic-context";
+import { useAuth } from "@/lib/auth/auth-context";
+import { useClinic } from "@/lib/contexts/clinic-context";
 import { useRouter } from "next/navigation";
-import { showUserFacingErrorToast } from "@/lib/user-facing-errors";
+import { showUserFacingErrorToast } from "@/lib/errors/user-facing-errors";
 import type { OcrImportCommitRequest } from "@workspace/types";
 import type { OCRFormData } from "@/features/ocr/types";
 import {

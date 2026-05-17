@@ -42,6 +42,9 @@ export default defineConfig({
   resolve: {
     alias: {
       "@": path.resolve(__dirname, "./"),
+      "@/components": path.resolve(__dirname, "./shared/components"),
+      "@/hooks": path.resolve(__dirname, "./shared/hooks"),
+      "@/lib": path.resolve(__dirname, "./shared/lib"),
       "@workspace/ui": path.resolve(__dirname, "../../packages/ui/src"),
       "@workspace/types": path.resolve(__dirname, "../../packages/types/src"),
       "@workspace/utils": path.resolve(__dirname, "../../packages/utils/src"),

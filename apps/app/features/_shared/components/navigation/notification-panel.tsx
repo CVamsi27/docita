@@ -15,7 +15,7 @@ import {
   useNotifications, useMarkNotificationRead, useDeleteNotification,
   useDeleteAllNotifications, type StaffNotification,
 } from "@/hooks/api/use-notifications";
-import { useSocket } from "@/lib/socket-context";
+import { useSocket } from "@/lib/contexts/socket-context";
 import { NOTIFICATION_CATEGORIES, type NotificationCategoryId } from "./notification-href";
 import {
   NotificationItem, categorizeNotifications, filterByCategory,

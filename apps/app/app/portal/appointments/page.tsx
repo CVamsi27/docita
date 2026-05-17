@@ -22,7 +22,7 @@ import { PageHeader } from "@workspace/ui/components/page-header";
 import { Textarea } from "@workspace/ui/components/textarea";
 import { IsoDatePickerField } from "@workspace/ui/components/iso-date-picker-field";
 import { Calendar } from "lucide-react";
-import { showUserFacingErrorToast } from "@/lib/user-facing-errors";
+import { showUserFacingErrorToast } from "@/lib/errors/user-facing-errors";
 
 function mapAppointmentStatus(status: unknown): PatientAppointmentStatus {
   if (typeof status !== "string") {

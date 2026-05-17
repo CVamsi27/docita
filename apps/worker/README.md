@@ -49,4 +49,4 @@ Processors must check `job.attemptsMade + 1 >= job.maxAttempts` to detect the fi
 - Logs must be structured and PHI-safe.
 - Shared helpers must be worker-safe and must not rely on Next.js or request-only API state.
 
-`scripts/check-job-idempotency.mjs` enforces idempotency key declarations on processors.
+`scripts/checks/check-job-idempotency.mjs` enforces idempotency key declarations on processors.

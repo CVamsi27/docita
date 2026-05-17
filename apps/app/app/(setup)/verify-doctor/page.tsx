@@ -9,8 +9,8 @@ import { Button } from "@workspace/ui/components/button";
 import { Input } from "@workspace/ui/components/input";
 import { Label } from "@workspace/ui/components/label";
 import { toast } from "sonner";
-import { useAuth } from "@/lib/auth-context";
-import { useAPIQuery, useAPIMutation } from "@/lib/api-core";
+import { useAuth } from "@/lib/auth/auth-context";
+import { useAPIQuery, useAPIMutation } from "@/lib/api/api-core";
 import { useGenerateSignatureToken } from "@/hooks/api/use-signature-upload";
 import { ApiError } from "@/lib/errors";
 import {
@@ -23,7 +23,7 @@ import { PageTransitionLoader } from "@/components/common/loaders/page-transitio
 import { toAbsoluteApiUrl, toAbsoluteAppUrl } from "@/lib/url";
 import { usePhoneSignatureQrFlow } from "@/features/_shared/hooks/use-phone-signature-qr-flow";
 import { PhoneSignatureQrPanel } from "@/features/_shared/components/signature/phone-signature-qr-panel";
-import { showUserFacingErrorToast } from "@/lib/user-facing-errors";
+import { showUserFacingErrorToast } from "@/lib/errors/user-facing-errors";
 import { PreDashboardShell } from "@/features/auth/components/PreDashboardShell";
 import { shouldRedirectToWorkspace } from "./redirect-logic";
 
