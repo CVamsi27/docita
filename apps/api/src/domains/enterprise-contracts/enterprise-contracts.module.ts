@@ -4,6 +4,7 @@ import { EmailModule } from '@/shared/modules/messaging/email/email.module';
 import { EnterpriseContractsService } from './application/services/enterprise-contracts.service';
 import { EnterpriseContractsQueryService } from './application/services/enterprise-contracts-query.service';
 import { EnterpriseContractsCommandService } from './application/services/enterprise-contracts-command.service';
+import { EnterpriseContractInvoiceCommandService } from './application/services/enterprise-contract-invoice-command.service';
 import { InternalEnterpriseContractsController } from './presentation/controllers/internal-enterprise-contracts.controller';
 import { ClinicEnterpriseContractController } from './presentation/controllers/clinic-enterprise-contract.controller';
 
@@ -17,6 +18,7 @@ import { ClinicEnterpriseContractController } from './presentation/controllers/c
     EnterpriseContractsService,
     EnterpriseContractsQueryService,
     EnterpriseContractsCommandService,
+    EnterpriseContractInvoiceCommandService,
   ],
   exports: [EnterpriseContractsService],
 })

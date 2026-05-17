@@ -5,20 +5,18 @@ import {
   Logger,
 } from '@nestjs/common';
 import { PrismaService } from '@/prisma/prisma.service';
-import {
-  EnterpriseContractStatus,
-  EnterpriseInvoiceKind,
-  Prisma,
-  ClinicTier,
-} from '@workspace/db';
+import { EnterpriseContractStatus, Prisma, ClinicTier } from '@workspace/db';
 import { type UpsertEnterpriseContractRequest } from '@workspace/types';
-import { EmailService } from '@/shared/modules/messaging/email/email.service';
-import { AppConfigService } from '@/shared/modules/config/app-configuration.service';
 import {
   EnterpriseContractsQueryService,
   type ContractWithMembers,
 } from './enterprise-contracts-query.service';
+import { EnterpriseContractInvoiceCommandService } from './enterprise-contract-invoice-command.service';
 
+/**
+ * Handles enterprise-contract lifecycle mutations: upsert, status transitions,
+ * and member add/remove. Invoice and true-up operations live in EnterpriseContractInvoiceCommandService.
+ */
 @Injectable()
 export class EnterpriseContractsCommandService {
   private readonly logger = new Logger(EnterpriseContractsCommandService.name);
@@ -26,8 +24,7 @@ export class EnterpriseContractsCommandService {
   constructor(
     private readonly query: EnterpriseContractsQueryService,
     private readonly prisma: PrismaService,
-    private readonly emailService: EmailService,
-    private readonly configService: AppConfigService,
+    private readonly invoiceService: EnterpriseContractInvoiceCommandService,
   ) {}
 
   async upsert(
@@ -263,180 +260,13 @@ export class EnterpriseContractsCommandService {
     });
   }
 
-  async generateAnnualPrepayInvoice(contractId: string) {
-    return this.prisma.runUnrestricted(async () => {
-      const contract = await this.prisma.enterpriseContract.findUnique({
-        where: { id: contractId },
-      });
-      if (!contract)
-        throw new NotFoundException(`Contract ${contractId} not found`);
-      if (contract.status !== EnterpriseContractStatus.ACTIVE)
-        throw new BadRequestException(
-          'Annual prepay only available for ACTIVE contracts',
-        );
-
-      const existing = await this.prisma.enterpriseContractInvoice.findFirst({
-        where: {
-          contractId,
-          kind: EnterpriseInvoiceKind.ANNUAL_PREPAY,
-          periodStart: contract.startDate,
-        },
-        include: { subscriptionPayment: true },
-      });
-      if (existing) return existing;
-
-      const grossCents = contract.platformFeeCents * 12;
-      const discountCents = Math.round(
-        (grossCents * contract.annualPrepayDiscountPercent) / 100,
-      );
-      const netCents = grossCents - discountCents;
-      const { startDate: periodStart, endDate: periodEnd } = contract;
-      const invoiceNumber = `ENT-PREPAY-${contract.contractNumber}-${periodStart.getFullYear()}`;
-      const description = `Annual platform fee prepay for contract ${contract.contractNumber} (${periodStart.toISOString().slice(0, 10)} → ${periodEnd.toISOString().slice(0, 10)})${contract.annualPrepayDiscountPercent ? `, discount ${contract.annualPrepayDiscountPercent}%` : ''}`;
-
-      const payment = await this.prisma.subscriptionPayment.upsert({
-        where: {
-          clinicId_invoiceNumber: {
-            clinicId: contract.primaryClinicId,
-            invoiceNumber,
-          },
-        },
-        update: {
-          amountCents: netCents,
-          currency: contract.currency,
-          description,
-        },
-        create: {
-          clinicId: contract.primaryClinicId,
-          amountCents: netCents,
-          currency: contract.currency,
-          status: 'pending',
-          invoiceNumber,
-          description,
-        },
-      });
-
-      const invoice = await this.prisma.enterpriseContractInvoice.upsert({
-        where: { subscriptionPaymentId: payment.id },
-        update: {
-          amountCents: netCents,
-          currency: contract.currency,
-          discountPercent: contract.annualPrepayDiscountPercent,
-          metadata: { grossCents, discountCents, netCents },
-        },
-        create: {
-          contractId,
-          kind: EnterpriseInvoiceKind.ANNUAL_PREPAY,
-          subscriptionPaymentId: payment.id,
-          amountCents: netCents,
-          currency: contract.currency,
-          periodStart,
-          periodEnd,
-          discountPercent: contract.annualPrepayDiscountPercent,
-          metadata: { grossCents, discountCents, netCents },
-        },
-        include: { subscriptionPayment: true },
-      });
-
-      await this.prisma.enterpriseContract.update({
-        where: { id: contractId },
-        data: { annualPrepayInvoiceId: invoice.id },
-      });
-      this.logger.log(
-        `Annual prepay invoice generated for contract ${contract.contractNumber}: net ${netCents / 100} ${contract.currency}`,
-      );
-      return invoice;
-    });
+  generateAnnualPrepayInvoice(contractId: string) {
+    return this.invoiceService.generateAnnualPrepayInvoice(contractId);
   }
 
-  async evaluateAndAlertTrueUp(
+  evaluateAndAlertTrueUp(
     contractId: string,
   ): Promise<{ alerted: boolean; observedPercent: number }> {
-    return this.prisma.runUnrestricted(async () => {
-      const contract = await this.prisma.enterpriseContract.findUnique({
-        where: { id: contractId },
-      });
-      if (!contract || contract.status !== EnterpriseContractStatus.ACTIVE)
-        return { alerted: false, observedPercent: 0 };
-
-      const now = new Date();
-      const yearStart =
-        contract.startDate > new Date(now.getFullYear(), 0, 1)
-          ? contract.startDate
-          : new Date(now.getFullYear(), 0, 1);
-      const monthsElapsed = Math.max(
-        1,
-        (now.getFullYear() - yearStart.getFullYear()) * 12 +
-          (now.getMonth() - yearStart.getMonth()) +
-          1,
-      );
-
-      const members = await this.prisma.enterpriseContractMember.findMany({
-        where: { contractId, removedAt: null },
-      });
-      const ytdOverageAgg = await this.prisma.usageRecord.aggregate({
-        where: {
-          clinicId: { in: members.map((m) => m.clinicId) },
-          periodStart: { gte: yearStart, lte: now },
-        },
-        _sum: { overageChargeCents: true },
-      });
-
-      const ytdOverageCents = ytdOverageAgg._sum.overageChargeCents ?? 0;
-      const ytdPlatformCents = contract.platformFeeCents * monthsElapsed;
-      const observedPercent =
-        ytdPlatformCents > 0
-          ? Math.round(
-              ((ytdOverageCents + ytdPlatformCents) * 100) / ytdPlatformCents,
-            )
-          : 0;
-
-      if (observedPercent < contract.trueUpThresholdPercent)
-        return { alerted: false, observedPercent };
-
-      const monthStart = new Date(now.getFullYear(), now.getMonth(), 1);
-      const alreadyAlerted = await this.prisma.enterpriseTrueUpAlert.findFirst({
-        where: { contractId, alertedAt: { gte: monthStart } },
-      });
-      if (alreadyAlerted) return { alerted: false, observedPercent };
-
-      const recipients = this.configService.getInternalAllowedEmails();
-      await this.prisma.enterpriseTrueUpAlert.create({
-        data: {
-          contractId,
-          thresholdPercent: contract.trueUpThresholdPercent,
-          observedPercent,
-          ytdOverageCents,
-          ytdPlatformCents,
-          recipients,
-        },
-      });
-      await this.prisma.enterpriseContract.update({
-        where: { id: contractId },
-        data: { lastTrueUpAlertAt: now },
-      });
-
-      if (recipients.length > 0) {
-        const subject = `[Docita] True-up alert: ${contract.contractNumber} at ${observedPercent}% of commit`;
-        const body = `Contract ${contract.contractNumber} (primary clinic ${contract.primaryClinicId}) has reached ${observedPercent}% of its annual commitment (threshold: ${contract.trueUpThresholdPercent}%).\n\nYTD platform fees: ${(ytdPlatformCents / 100).toFixed(2)} ${contract.currency}\nYTD overages: ${(ytdOverageCents / 100).toFixed(2)} ${contract.currency}\nMonths elapsed in term: ${monthsElapsed}\n\nAction: open the Docita Internal app → Enterprise Contracts → ${contract.contractNumber} and schedule a renegotiation conversation with the customer's account manager.`;
-        try {
-          await Promise.all(
-            recipients.map((email) =>
-              this.emailService.send({ to: email, subject, text: body }),
-            ),
-          );
-        } catch (err) {
-          this.logger.warn(
-            `True-up alert email send failed for ${contract.contractNumber}`,
-            err as Error,
-          );
-        }
-      }
-
-      this.logger.log(
-        `True-up alert raised for ${contract.contractNumber}: ${observedPercent}% (threshold ${contract.trueUpThresholdPercent}%)`,
-      );
-      return { alerted: true, observedPercent };
-    });
+    return this.invoiceService.evaluateAndAlertTrueUp(contractId);
   }
 }

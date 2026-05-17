@@ -6,6 +6,7 @@ import { EmailService } from '@/shared/modules/messaging/email/email.service';
 import { AppConfigService } from '@/shared/modules/config/app-configuration.service';
 import { EnterpriseContractsQueryService } from './enterprise-contracts-query.service';
 import { EnterpriseContractsCommandService } from './enterprise-contracts-command.service';
+import { EnterpriseContractInvoiceCommandService } from './enterprise-contract-invoice-command.service';
 
 /**
  * Facade that preserves the original public API while delegating to focused
@@ -22,11 +23,15 @@ export class EnterpriseContractsService {
     private readonly configService: AppConfigService,
   ) {
     this.queryService = new EnterpriseContractsQueryService(prisma);
-    this.commandService = new EnterpriseContractsCommandService(
-      this.queryService,
+    const invoiceService = new EnterpriseContractInvoiceCommandService(
       prisma,
       emailService,
       configService,
+    );
+    this.commandService = new EnterpriseContractsCommandService(
+      this.queryService,
+      prisma,
+      invoiceService,
     );
   }
 
