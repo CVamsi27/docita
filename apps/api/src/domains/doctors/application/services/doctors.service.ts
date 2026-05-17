@@ -9,6 +9,7 @@ import { StorageProvider } from '@/domains/documents/infrastructure/storage.prov
 import { DoctorsQueryService } from './doctors-query.service';
 import { DoctorsCommandService } from './doctors-command.service';
 import { DoctorProfileService } from './doctor-profile.service';
+import { DoctorAdminVerificationCommandService } from './doctor-admin-verification-command.service';
 
 /**
  * Facade — keeps the original constructor signature so existing consumers
@@ -29,6 +30,10 @@ export class DoctorsService {
     profileService: DoctorProfileService,
   ) {
     this.queryService = new DoctorsQueryService(prisma, storedFileUrlResolver);
+    const adminVerificationService = new DoctorAdminVerificationCommandService(
+      prisma,
+      this.queryService,
+    );
     this.commandService = new DoctorsCommandService(
       prisma,
       doctorVerificationService,
@@ -37,6 +42,7 @@ export class DoctorsService {
       storageProvider,
       this.queryService,
       profileService,
+      adminVerificationService,
     );
   }
 

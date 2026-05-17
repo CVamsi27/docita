@@ -11,6 +11,7 @@ import { AvailabilityScheduleService } from './application/services/availability
 import { SlotGenerationService } from './application/services/slot-generation.service';
 import { DoctorVerificationService } from './application/services/doctor-verification.service';
 import { SignatureUploadService } from './application/services/signature-upload.service';
+import { DoctorAdminVerificationCommandService } from './application/services/doctor-admin-verification-command.service';
 import { SignatureUploadController } from './presentation/controllers/signature-upload.controller';
 import { ClinicSignatureController } from '@/domains/clinics/presentation/controllers/clinic-signature.controller';
 import { PrismaModule } from '@/prisma/prisma.module';
@@ -37,6 +38,7 @@ import { PrismaSignatureUploadRepository } from './infrastructure/repositories/p
     DoctorsService,
     DoctorsQueryService,
     DoctorsCommandService,
+    DoctorAdminVerificationCommandService,
     DoctorProfileService,
     DoctorAvailabilityService,
     AvailabilityScheduleService,

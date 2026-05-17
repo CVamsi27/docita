@@ -1,4 +1,3 @@
-import { NotFoundException, BadRequestException } from '@nestjs/common';
 import { beforeEach, describe, it, expect, jest } from '@jest/globals';
 import { DoctorsCommandService } from './doctors-command.service';
 import { PrismaService } from '@/prisma/prisma.service';
@@ -8,6 +7,7 @@ import { StoredFileUrlResolverService } from '@/domains/documents/application/se
 import { StorageProvider } from '@/domains/documents/infrastructure/storage.provider';
 import { DoctorsQueryService } from './doctors-query.service';
 import { DoctorProfileService } from './doctor-profile.service';
+import { DoctorAdminVerificationCommandService } from './doctor-admin-verification-command.service';
 import { DoctorVerificationStatus, Role } from '@workspace/db';
 
 describe('DoctorsCommandService', () => {
@@ -19,6 +19,7 @@ describe('DoctorsCommandService', () => {
   let storageProvider: jest.Mocked<StorageProvider>;
   let queryService: jest.Mocked<DoctorsQueryService>;
   let profileService: jest.Mocked<DoctorProfileService>;
+  let adminVerificationService: jest.Mocked<DoctorAdminVerificationCommandService>;
 
   beforeEach(() => {
     prisma = {
@@ -66,6 +67,12 @@ describe('DoctorsCommandService', () => {
       DoctorProfileService.prototype,
     ) as jest.Mocked<DoctorProfileService>;
 
+    adminVerificationService = Object.create(
+      DoctorAdminVerificationCommandService.prototype,
+    ) as jest.Mocked<DoctorAdminVerificationCommandService>;
+    adminVerificationService.adminVerifyDoctor = jest.fn();
+    adminVerificationService.adminRejectDoctor = jest.fn();
+
     service = new DoctorsCommandService(
       prisma,
       doctorVerificationService,
@@ -74,6 +81,7 @@ describe('DoctorsCommandService', () => {
       storageProvider,
       queryService,
       profileService,
+      adminVerificationService,
     );
   });
 
@@ -142,17 +150,14 @@ describe('DoctorsCommandService', () => {
   });
 
   describe('adminVerifyDoctor', () => {
-    it('should manually verify a doctor', async () => {
-      (prisma.user.findUnique as jest.Mock).mockResolvedValueOnce({
-        id: 'doc-1',
-        role: Role.DOCTOR,
-        registrationNumber: 'REG123',
-      } as never);
-      (prisma.user.update as jest.Mock).mockResolvedValueOnce({} as never);
-      (queryService.findOne as jest.Mock).mockResolvedValueOnce({
+    it('should delegate to DoctorAdminVerificationCommandService', async () => {
+      const expected = {
         id: 'doc-1',
         verificationStatus: DoctorVerificationStatus.VERIFIED,
-      } as never);
+      };
+      (
+        adminVerificationService.adminVerifyDoctor as jest.Mock
+      ).mockResolvedValueOnce(expected as never);
 
       const result = await service.adminVerifyDoctor(
         'doc-1',
@@ -160,37 +165,12 @@ describe('DoctorsCommandService', () => {
         'looks good',
       );
 
+      expect(adminVerificationService.adminVerifyDoctor).toHaveBeenCalledWith(
+        'doc-1',
+        'admin-1',
+        'looks good',
+      );
       expect(result).toMatchObject({ id: 'doc-1' });
-      expect(prisma.user.update).toHaveBeenCalledWith(
-        expect.objectContaining({
-          where: { id: 'doc-1' },
-          data: expect.objectContaining({
-            verificationStatus: DoctorVerificationStatus.VERIFIED,
-          }),
-        }),
-      );
-    });
-
-    it('should throw BadRequestException when doctor has no registration number', async () => {
-      (prisma.user.findUnique as jest.Mock).mockResolvedValueOnce({
-        id: 'doc-1',
-        role: Role.DOCTOR,
-        registrationNumber: null,
-      } as never);
-
-      await expect(
-        service.adminVerifyDoctor('doc-1', 'admin-1'),
-      ).rejects.toThrow(BadRequestException);
-    });
-
-    it('should throw NotFoundException when doctor does not exist', async () => {
-      (prisma.user.findUnique as jest.Mock).mockResolvedValueOnce(
-        null as never,
-      );
-
-      await expect(
-        service.adminVerifyDoctor('missing', 'admin-1'),
-      ).rejects.toThrow(NotFoundException);
     });
   });
 
