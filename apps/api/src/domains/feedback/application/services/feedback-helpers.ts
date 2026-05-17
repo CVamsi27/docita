@@ -53,4 +53,3 @@ export function buildFeedbackWhereClause(
 
   return where;
 }
-

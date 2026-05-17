@@ -1,6 +1,5 @@
 import {
   CursorPaginationResult,
-  OffsetPaginationResult,
   PaginationMeta,
   PrismaQuery,
 } from '@workspace/types';
@@ -97,77 +96,4 @@ function extractCursorId(item: unknown): string | undefined {
 
   const id = (item as { id?: unknown }).id;
   return typeof id === 'string' ? id : undefined;
-}
-
-function createPaginationMeta(
-  result: CursorPaginationResult<unknown>,
-  limit: number,
-): PaginationMeta {
-  return {
-    cursor: result.nextCursor,
-    hasMore: result.hasMore,
-    count: result.count,
-    limit,
-  };
-}
-
-export interface OffsetPaginationOptions<T> {
-  model: PrismaModelDelegate<T>;
-  page?: number;
-  limit?: number;
-  where?: PrismaQuery;
-  orderBy?: PrismaQuery;
-  select?: PrismaQuery;
-  include?: PrismaQuery;
-}
-
-async function paginateWithOffset<T>(
-  options: OffsetPaginationOptions<T>,
-): Promise<OffsetPaginationResult<T>> {
-  const {
-    model,
-    page = 1,
-    limit = 50,
-    where = {},
-    orderBy = {},
-    select,
-    include,
-  } = options;
-
-  const safeLimit = Math.min(limit, 100);
-  const safePage = Math.max(page, 1);
-  const skip = (safePage - 1) * safeLimit;
-
-  const findManyOptions: {
-    skip: number;
-    take: number;
-    where: PrismaQuery;
-    orderBy: PrismaQuery;
-    select?: PrismaQuery;
-    include?: PrismaQuery;
-  } = {
-    skip,
-    take: safeLimit,
-    where,
-    orderBy,
-  };
-
-  if (select) findManyOptions.select = select;
-  if (include) findManyOptions.include = include;
-
-  const [items, total] = await Promise.all([
-    model.findMany(findManyOptions),
-    model.count({ where }),
-  ]);
-
-  const totalPages = Math.ceil(total / safeLimit);
-
-  return {
-    items,
-    total,
-    page: safePage,
-    limit: safeLimit,
-    totalPages,
-    hasMore: safePage < totalPages,
-  };
 }

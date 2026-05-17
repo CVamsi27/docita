@@ -23,12 +23,6 @@ export function readInAppNavCount(): number {
   return Number.isFinite(value) ? value : 0;
 }
 
-function readInAppNavEntry(): string | null {
-  const storage = getSessionStorage();
-  if (!storage) return null;
-  return storage.getItem(NAV_ENTRY_KEY);
-}
-
 interface NavigationHistoryProviderProps {
   children: React.ReactNode;
 }
