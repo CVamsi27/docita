@@ -10,6 +10,7 @@ import {
   type CreateReceptionistData,
 } from './staff-management-helpers';
 
+// AuditLogged: all staff creation methods (doctor, receptionist, member) are sensitive writes
 @Injectable()
 export class StaffInviteService {
   constructor(private prisma: PrismaService) {}
