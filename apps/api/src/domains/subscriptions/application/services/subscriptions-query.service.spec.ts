@@ -5,6 +5,8 @@ import type { IClinicOperations } from '@/domains/subscriptions/application/port
 import { SubscriptionPricingService } from '@/domains/subscriptions/core/services/subscription-pricing.service';
 import { PricingService as BillingPricingService } from '@/domains/billing/core/services/pricing.service';
 import { FeatureFlagService } from '@/shared/modules/services/feature-flag.service';
+import type { RazorpayInvoiceAdapter } from '@/domains/payments/infrastructure/adapters/razorpay/razorpay-invoice.adapter';
+import type { ActivateSubscriptionUseCase } from '@/domains/subscriptions/application/use-cases/activate-subscription.use-case';
 
 describe('SubscriptionsQueryService', () => {
   const findPaymentsByClinicIdMock =
@@ -31,13 +33,29 @@ describe('SubscriptionsQueryService', () => {
     findReusablePendingCheckout: jest.fn(async () => null),
   };
 
-  const clinicOps = {} as IClinicOperations;
+  const clinicOps = {
+    getClinicDetails: jest.fn(async () => ({
+      id: 'clinic-1',
+      name: 'Clinic',
+      email: 'c@x.com',
+      phone: '+91',
+      // No customer id -> mergeRazorpayInvoices short-circuits.
+      razorpayCustomerId: undefined,
+    })),
+  } as unknown as IClinicOperations;
   const billingPricingService = {
     getPricingConfig: jest.fn(async () => ({ tiers: [] })),
   } as unknown as BillingPricingService;
   const featureFlagService = {
     getClinicPricingOffer: jest.fn(async () => null),
   } as unknown as FeatureFlagService;
+  const razorpayInvoiceAdapter = {
+    listInvoicesByCustomer: jest.fn(async () => []),
+    createInvoice: jest.fn(async () => null),
+  } as unknown as RazorpayInvoiceAdapter;
+  const activateSubscriptionUseCase = {
+    applyPlanChangeWithoutPayment: jest.fn(async () => undefined),
+  } as unknown as ActivateSubscriptionUseCase;
 
   let service: SubscriptionsQueryService;
 
@@ -50,6 +68,8 @@ describe('SubscriptionsQueryService', () => {
       new SubscriptionPricingService(),
       billingPricingService,
       featureFlagService,
+      razorpayInvoiceAdapter,
+      activateSubscriptionUseCase,
     );
   });
 

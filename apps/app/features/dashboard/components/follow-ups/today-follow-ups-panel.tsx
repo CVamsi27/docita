@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { formatDate } from "@/lib/formatters";
-import { getFollowUpListQuery } from "@/features/follow-ups/lib/follow-up-list-query";
+import { getFollowUpListQuery } from "@/features/follow-ups";
 import { useFollowUps } from "@/hooks/api/use-appointments";
 import type { FollowUpResponse, FollowUpStatus } from "@workspace/types";
 import {

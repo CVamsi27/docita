@@ -34,6 +34,7 @@ const ROUTE_ACCESS_RULES: RouteAccessRule[] = [
   { pathPrefix: "/upgrade", target: APP_ACCESS_TARGETS.PAGE_UPGRADE },
   { pathPrefix: "/help", target: APP_ACCESS_TARGETS.PAGE_DASHBOARD },
   { pathPrefix: "/inbox", target: APP_ACCESS_TARGETS.PAGE_DASHBOARD },
+  { pathPrefix: "/whatsapp", target: APP_ACCESS_TARGETS.PAGE_DASHBOARD },
   { pathPrefix: "/templates", target: APP_ACCESS_TARGETS.PAGE_DASHBOARD },
 ];
 

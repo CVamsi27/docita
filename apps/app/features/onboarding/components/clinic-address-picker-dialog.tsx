@@ -36,10 +36,8 @@ import markerShadow from "leaflet/dist/images/marker-shadow.png";
 import type { LeafletMouseEvent, LatLngExpression } from "leaflet";
 import type { LatLng as LeafletLatLng } from "leaflet";
 import type { Map as LeafletMapInstance } from "leaflet";
-import {
-  DEFAULT_COUNTRY_CODE,
-  normalizeCountryCode,
-} from "@workspace/utils";
+import { DEFAULT_COUNTRY_CODE, normalizeCountryCode } from "@workspace/utils";
+import { browserRequest } from "@/lib/browser-request";
 import styles from "./clinic-address-picker-dialog.module.css";
 
 type LatLng = { lat: number; lng: number };
@@ -60,7 +58,7 @@ export type ClinicAddressSelection = {
 };
 
 const DEFAULT_CENTER: LatLng = { lat: 20.5937, lng: 78.9629 }; // India
-const GOOGLE_LIBRARIES: ("places")[] = ["places"];
+const GOOGLE_LIBRARIES: "places"[] = ["places"];
 const NOMINATIM_BASE = "https://nominatim.openstreetmap.org";
 const SEARCH_DEBOUNCE_MS = 250;
 
@@ -179,7 +177,9 @@ function formatAddressDetails(details: ClinicAddressDetails): string {
   ]);
 }
 
-function parseOSMAddressDetails(address?: OSMAddress): ClinicAddressDetails | null {
+function parseOSMAddressDetails(
+  address?: OSMAddress,
+): ClinicAddressDetails | null {
   if (!address) return null;
 
   const line1 = joinAddress([address.house_number, address.road]);
@@ -213,7 +213,9 @@ function getGoogleAddressComponent(
   shortName = false,
 ): string {
   const component = components?.find((entry) => entry.types.includes(type));
-  return shortName ? component?.short_name ?? "" : component?.long_name ?? "";
+  return shortName
+    ? (component?.short_name ?? "")
+    : (component?.long_name ?? "");
 }
 
 function parseGoogleAddressDetails(
@@ -236,18 +238,17 @@ function parseGoogleAddressDetails(
         getGoogleAddressComponent(components, "locality") ||
         getGoogleAddressComponent(components, "postal_town") ||
         getGoogleAddressComponent(components, "administrative_area_level_2"),
-      state: getGoogleAddressComponent(components, "administrative_area_level_1"),
+      state: getGoogleAddressComponent(
+        components,
+        "administrative_area_level_1",
+      ),
       pincode: getGoogleAddressComponent(components, "postal_code"),
       countryCode: getGoogleAddressComponent(components, "country", true),
     }) ?? null
   );
 }
 
-function ClickToPick({
-  onPick,
-}: {
-  onPick: (value: LatLng) => void;
-}) {
+function ClickToPick({ onPick }: { onPick: (value: LatLng) => void }) {
   useMapEvents({
     click(e: LeafletMouseEvent) {
       onPick({ lat: e.latlng.lat, lng: e.latlng.lng });
@@ -311,7 +312,7 @@ async function reverseGeocodeOSM(
   url.searchParams.set("zoom", "18");
   url.searchParams.set("addressdetails", "1");
 
-  const res = await fetch(url.toString(), {
+  const res = await browserRequest(url.toString(), {
     headers: {
       Accept: "application/json",
     },
@@ -324,8 +325,9 @@ async function reverseGeocodeOSM(
     address?: OSMAddress;
   };
   const details = parseOSMAddressDetails(data.address);
-  const address =
-    details ? formatAddressDetails(details) : data.display_name?.trim() || "";
+  const address = details
+    ? formatAddressDetails(details)
+    : data.display_name?.trim() || "";
 
   if (!address) return null;
 
@@ -346,7 +348,7 @@ async function searchOSM(query: string): Promise<PlaceSuggestion[]> {
   url.searchParams.set("addressdetails", "1");
   url.searchParams.set("limit", "6");
 
-  const res = await fetch(url.toString(), {
+  const res = await browserRequest(url.toString(), {
     headers: { Accept: "application/json" },
   });
 
@@ -392,8 +394,9 @@ async function reverseGeocodeGoogle(
   if (!first) return null;
 
   const details = parseGoogleAddressDetails(first.address_components);
-  const address =
-    details ? formatAddressDetails(details) : first.formatted_address?.trim() || "";
+  const address = details
+    ? formatAddressDetails(details)
+    : first.formatted_address?.trim() || "";
 
   if (!address) return null;
 
@@ -418,7 +421,8 @@ export function ClinicAddressPickerDialog({
   const [picked, setPicked] = useState<LatLng | null>(null);
   const [resolvedAddress, setResolvedAddress] = useState("");
   const [addressDraft, setAddressDraft] = useState(initialAddress);
-  const [addressDetails, setAddressDetails] = useState<ClinicAddressDetails | null>(null);
+  const [addressDetails, setAddressDetails] =
+    useState<ClinicAddressDetails | null>(null);
   const [isResolving, setIsResolving] = useState(false);
   const [autocomplete, setAutocomplete] =
     useState<google.maps.places.Autocomplete | null>(null);
@@ -542,10 +546,18 @@ export function ClinicAddressPickerDialog({
     return () => {
       timeouts.forEach((id) => window.clearTimeout(id));
     };
-  }, [centerExpression, mapZoom, leafletMap, open, shouldUseGoogle, mapLayoutVersion]);
+  }, [
+    centerExpression,
+    mapZoom,
+    leafletMap,
+    open,
+    shouldUseGoogle,
+    mapLayoutVersion,
+  ]);
 
   useEffect(() => {
-    if (!open || shouldUseGoogle || !isMapViewportReady || isLeafletPainted) return;
+    if (!open || shouldUseGoogle || !isMapViewportReady || isLeafletPainted)
+      return;
     if (leafletRetryCount >= 2) return;
 
     const timer = window.setTimeout(() => {
@@ -645,13 +657,15 @@ export function ClinicAddressPickerDialog({
     if (!navigator.geolocation) return;
     setIsResolving(true);
     try {
-      const coords = await new Promise<GeolocationCoordinates>((resolve, reject) => {
-        navigator.geolocation.getCurrentPosition(
-          (pos) => resolve(pos.coords),
-          (err) => reject(err),
-          { enableHighAccuracy: true, timeout: 8000 },
-        );
-      });
+      const coords = await new Promise<GeolocationCoordinates>(
+        (resolve, reject) => {
+          navigator.geolocation.getCurrentPosition(
+            (pos) => resolve(pos.coords),
+            (err) => reject(err),
+            { enableHighAccuracy: true, timeout: 8000 },
+          );
+        },
+      );
       const pos = { lat: coords.latitude, lng: coords.longitude };
       if (shouldUseGoogle) {
         await handlePickWithGoogle(pos);
@@ -723,7 +737,8 @@ export function ClinicAddressPickerDialog({
               id="clinic-location-dialog-description"
               className="text-sm text-muted-foreground"
             >
-              Search an address, then click the map or drag the pin to refine the location.
+              Search an address, then click the map or drag the pin to refine
+              the location.
             </DialogDescription>
           </DialogHeader>
 
@@ -740,13 +755,17 @@ export function ClinicAddressPickerDialog({
                         const location = place?.geometry?.location;
                         if (!location) return;
 
-                        const pos = { lat: location.lat(), lng: location.lng() };
+                        const pos = {
+                          lat: location.lat(),
+                          lng: location.lng(),
+                        };
                         const formatted = place?.formatted_address?.trim();
                         const details = parseGoogleAddressDetails(
                           place?.address_components,
                         );
                         const address =
-                          formatted || (details ? formatAddressDetails(details) : "");
+                          formatted ||
+                          (details ? formatAddressDetails(details) : "");
 
                         setPicked(pos);
                         setResolvedAddress(address);
@@ -755,7 +774,10 @@ export function ClinicAddressPickerDialog({
                       }}
                     >
                       <div className="relative">
-                        <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" aria-hidden />
+                        <Search
+                          className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground"
+                          aria-hidden
+                        />
                         <Input
                           id="place-search"
                           placeholder="Facility location"
@@ -766,7 +788,10 @@ export function ClinicAddressPickerDialog({
                     </Autocomplete>
                   ) : (
                     <div className="relative">
-                      <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" aria-hidden />
+                      <Search
+                        className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground"
+                        aria-hidden
+                      />
                       <Input
                         id="place-search"
                         value={searchQuery}
@@ -776,14 +801,21 @@ export function ClinicAddressPickerDialog({
                         }}
                         onFocus={() => setShowSuggestions(true)}
                         onBlur={() => {
-                          window.setTimeout(() => setShowSuggestions(false), 120);
+                          window.setTimeout(
+                            () => setShowSuggestions(false),
+                            120,
+                          );
                         }}
                         placeholder="Facility location"
                         className={`h-11 pl-9${searchQuery.trim() || isSearching ? " pr-10" : ""}`}
                         aria-label="Search facility location"
                       />
                       {isSearching ? (
-                        <DocitaLoadingIndicator variant="inline" decorative className="absolute right-3 top-1/2 -translate-y-1/2" />
+                        <DocitaLoadingIndicator
+                          variant="inline"
+                          decorative
+                          className="absolute right-3 top-1/2 -translate-y-1/2"
+                        />
                       ) : searchQuery.trim() ? (
                         <div className="absolute right-3 top-1/2 -translate-y-1/2">
                           <SymbolTooltip label="Clear search">
@@ -798,7 +830,10 @@ export function ClinicAddressPickerDialog({
                               }}
                               aria-label="Clear search"
                             >
-                              <X className="h-4 w-4 text-muted-foreground" aria-hidden />
+                              <X
+                                className="h-4 w-4 text-muted-foreground"
+                                aria-hidden
+                              />
                             </Button>
                           </SymbolTooltip>
                         </div>
@@ -821,7 +856,9 @@ export function ClinicAddressPickerDialog({
                                 setShowSuggestions(false);
                               }}
                             >
-                              <div className="line-clamp-2">{suggestion.label}</div>
+                              <div className="line-clamp-2">
+                                {suggestion.label}
+                              </div>
                             </button>
                           ))}
                         </div>
@@ -850,12 +887,20 @@ export function ClinicAddressPickerDialog({
               <div className={styles.mapRoot}>
                 {!isMapViewportReady ? (
                   <div className="flex h-full items-center justify-center rounded-lg border bg-muted/30 p-6 text-sm text-muted-foreground">
-                    <DocitaLoadingIndicator variant="inline" decorative className="mr-2" />
+                    <DocitaLoadingIndicator
+                      variant="inline"
+                      decorative
+                      className="mr-2"
+                    />
                     Preparing map…
                   </div>
                 ) : hasGoogleKey && !isGoogleLoaded && !googleLoadError ? (
                   <div className="flex h-full items-center justify-center rounded-lg border bg-muted/30 p-6 text-sm text-muted-foreground">
-                    <DocitaLoadingIndicator variant="inline" decorative className="mr-2" />
+                    <DocitaLoadingIndicator
+                      variant="inline"
+                      decorative
+                      className="mr-2"
+                    />
                     Loading map…
                   </div>
                 ) : shouldUseGoogle ? (
@@ -876,7 +921,8 @@ export function ClinicAddressPickerDialog({
                     onClick={(event) => {
                       const lat = event.latLng?.lat();
                       const lng = event.latLng?.lng();
-                      if (typeof lat !== "number" || typeof lng !== "number") return;
+                      if (typeof lat !== "number" || typeof lng !== "number")
+                        return;
                       void handlePickWithGoogle({ lat, lng });
                     }}
                   >
@@ -887,7 +933,10 @@ export function ClinicAddressPickerDialog({
                         onDragEnd={(event) => {
                           const lat = event.latLng?.lat();
                           const lng = event.latLng?.lng();
-                          if (typeof lat !== "number" || typeof lng !== "number") {
+                          if (
+                            typeof lat !== "number" ||
+                            typeof lng !== "number"
+                          ) {
                             return;
                           }
                           void handlePickWithGoogle({ lat, lng });
@@ -961,7 +1010,11 @@ export function ClinicAddressPickerDialog({
                     onChange={(event) => setAddressDraft(event.target.value)}
                   />
                   {isResolving ? (
-                    <DocitaLoadingIndicator variant="inline" decorative className="absolute right-3 top-1/2 -translate-y-1/2" />
+                    <DocitaLoadingIndicator
+                      variant="inline"
+                      decorative
+                      className="absolute right-3 top-1/2 -translate-y-1/2"
+                    />
                   ) : null}
                 </div>
               </div>

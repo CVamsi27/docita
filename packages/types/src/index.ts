@@ -3,6 +3,7 @@ export * from "./ai";
 export * from "./clinical";
 export * from "./patient";
 export * from "./billing";
+export { TRIAL_GRACE_DAYS, type TrialWindowState } from "./billing/tier";
 export * from "./operations";
 export * from "./admin";
 export * from "./shared";

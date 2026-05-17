@@ -22,10 +22,12 @@ import {
   CollapsibleTrigger,
 } from "@workspace/ui/components/collapsible";
 import { type TierPricing, usePricingConfig } from "@/hooks/api/use-pricing";
-import { ContactSalesModal } from "@/features/dialogs/components/ContactSalesModalContainer";
-import { TierCard } from "@/features/subscription/components/cards/tier-card";
-import { ComparisonTable } from "@/features/subscription/components/pricing/comparison-table";
-import { getFeatureDetails } from "@/features/subscription/config/feature-config";
+import { ContactSalesModal } from "@/features/dialogs";
+import {
+  ComparisonTable,
+  TierCard,
+  getFeatureDetails,
+} from "@/features/subscription";
 import {
   getAllFeaturesUpToTier,
   PLAN_LIMITS,
@@ -43,7 +45,7 @@ import {
   WORKSPACE_PROFILE_MARKETING,
 } from "@workspace/types";
 import { useLocaleCurrency } from "@/hooks/use-locale-currency";
-import { PLAN_ONBOARDING_KEY_HIGHLIGHTS } from "@/features/subscription/config/plan-onboarding-highlights";
+import { PLAN_ONBOARDING_KEY_HIGHLIGHTS } from "@/features/subscription";
 
 interface PlanSelectionProps {
   onSelect: (

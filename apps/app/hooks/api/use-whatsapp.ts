@@ -1,5 +1,7 @@
 import type {
   StaffNotificationEntry,
+  UpdateWhatsappSenderRequest,
+  WhatsappSenderConfigResponse,
   WhatsAppUnreadCountResponse,
 } from "@workspace/types";
 import { Feature } from "@workspace/types";
@@ -83,4 +85,42 @@ export const useResendAppointmentReminder = () =>
     ({ appointmentId }) => `/reminders/send/${appointmentId}`,
     "POST",
     { body: () => ({ type: "whatsapp" as const }) },
+  );
+
+export const useWhatsappSender = () =>
+  useAPIQuery<WhatsappSenderConfigResponse>(
+    ["whatsapp", "sender"],
+    "/whatsapp/sender",
+  );
+
+export const useUpdateWhatsappSender = () =>
+  useAPIMutation<WhatsappSenderConfigResponse, UpdateWhatsappSenderRequest>(
+    "/whatsapp/sender",
+    "PUT",
+    { invalidateKeys: [["whatsapp", "sender"]] },
+  );
+
+export const useVerifyWhatsappSender = () =>
+  useAPIMutation<
+    {
+      status: "NOT_CONFIGURED" | "PENDING_VERIFICATION" | "VERIFIED" | "FAILED" | "REVOKED";
+      displayName: string | null;
+      phoneNumberId: string | null;
+      tokenExpiresAt: string | null;
+      error: string | null;
+    },
+    void
+  >("/whatsapp/sender/verify", "POST", {
+    body: () => undefined,
+    invalidateKeys: [["whatsapp", "sender"]],
+  });
+
+export const useRevokeWhatsappSender = () =>
+  useAPIMutation<{ mode: "SHARED"; status: "REVOKED" }, void>(
+    "/whatsapp/sender",
+    "DELETE",
+    {
+      body: () => undefined,
+      invalidateKeys: [["whatsapp", "sender"]],
+    },
   );

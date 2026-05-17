@@ -11,3 +11,4 @@ export * from "./forms/TimeSlotPickerUI";
 export * from "./forms/TimeSlotRow";
 export * from "./header/AppointmentsPageHeaderUI";
 export * from "./list/AppointmentsListUI";
+export * from "./sections/add-dialog/PatientSelector";

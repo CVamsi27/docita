@@ -69,13 +69,19 @@ export async function fetchJsonWithSession<T>(
       details = undefined;
     }
 
+    const rawMessage =
+      typeof details === "object" && details !== null && "message" in details
+        ? (details as { message?: unknown }).message
+        : undefined;
+    // NestJS validation errors put an array in `message`; flatten it.
     const message =
-      typeof details === "object" &&
-      details !== null &&
-      "message" in details &&
-      typeof (details as { message?: unknown }).message === "string"
-        ? (details as { message: string }).message
-        : "We could not load the requested details. Please try again.";
+      typeof rawMessage === "string"
+        ? rawMessage
+        : Array.isArray(rawMessage)
+          ? rawMessage.filter((m) => typeof m === "string").join(". ")
+          : typeof details === "string" && details.length > 0
+            ? details
+            : "We could not load the requested details. Please try again.";
 
     throw new Error(message);
   }

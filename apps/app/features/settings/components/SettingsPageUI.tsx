@@ -230,14 +230,18 @@ export function SettingsPageUI({
                         key={item.value}
                         value={item.value}
                         className={cn(
-                          "shrink-0 md:shrink md:w-full justify-start px-3 py-2.5 gap-2 md:gap-3",
+                          "group relative shrink-0 md:shrink md:w-full justify-start px-3 py-2.5 gap-2 md:gap-3",
                           "data-[state=active]:bg-foreground data-[state=active]:text-background data-[state=active]:shadow-sm",
-                          "rounded-[var(--radius)] whitespace-normal",
+                          "rounded-[var(--radius)] whitespace-normal transition-colors",
                           isDangerItem
-                            ? "hover:bg-destructive/5 hover:text-destructive transition-colors"
-                            : "hover:bg-muted/50 transition-colors",
+                            ? "hover:bg-destructive/5 hover:text-destructive"
+                            : "hover:bg-muted/50",
                         )}
                       >
+                        <span
+                          aria-hidden
+                          className="pointer-events-none absolute left-0 top-1/2 hidden h-5 w-[3px] -translate-y-1/2 rounded-r-full bg-foreground opacity-0 transition-opacity duration-200 md:block group-data-[state=active]:opacity-100"
+                        />
                         <Icon
                           className={cn(
                             "h-4 w-4 shrink-0",

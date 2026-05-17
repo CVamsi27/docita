@@ -5,6 +5,7 @@ import {
   HttpException,
 } from '@nestjs/common';
 import { AppConfigService } from '@/shared/modules/config/app-configuration.service';
+import type { ResolvedWhatsappSender } from '@/domains/whatsapp/application/ports/whatsapp-client.port';
 
 @Injectable()
 export class WhatsappClientService {
@@ -38,8 +39,19 @@ export class WhatsappClientService {
     return this.verifyToken;
   }
 
-  async sendMessage({ to, message }: { to: string; message: string }) {
-    if (!this.phoneNumberId || !this.accessToken) {
+  async sendMessage({
+    to,
+    message,
+    sender,
+  }: {
+    to: string;
+    message: string;
+    sender?: ResolvedWhatsappSender;
+  }) {
+    const phoneNumberId = sender?.phoneNumberId || this.phoneNumberId;
+    const accessToken = sender?.accessToken || this.accessToken;
+
+    if (!phoneNumberId || !accessToken) {
       this.logger.warn('WhatsApp not configured, skipping send');
       return { success: false, messageId: 'skipped-no-config' };
     }
@@ -48,11 +60,11 @@ export class WhatsappClientService {
 
     try {
       const response = await fetch(
-        `${this.baseUrl}/${this.apiVersion}/${this.phoneNumberId}/messages`,
+        `${this.baseUrl}/${this.apiVersion}/${phoneNumberId}/messages`,
         {
           method: 'POST',
           headers: {
-            Authorization: `Bearer ${this.accessToken}`,
+            Authorization: `Bearer ${accessToken}`,
             'Content-Type': 'application/json',
           },
           body: JSON.stringify({
@@ -102,6 +114,7 @@ export class WhatsappClientService {
     templateName,
     languageCode = 'en',
     components,
+    sender,
   }: {
     to: string;
     templateName: string;
@@ -127,8 +140,12 @@ export class WhatsappClientService {
       sub_type?: 'quick_reply' | 'url';
       index?: number;
     }>;
+    sender?: ResolvedWhatsappSender;
   }) {
-    if (!this.phoneNumberId || !this.accessToken) {
+    const phoneNumberId = sender?.phoneNumberId || this.phoneNumberId;
+    const accessToken = sender?.accessToken || this.accessToken;
+
+    if (!phoneNumberId || !accessToken) {
       this.logger.warn('WhatsApp not configured, skipping template send');
       return { success: false, messageId: 'skipped-no-config' };
     }
@@ -178,11 +195,11 @@ export class WhatsappClientService {
       }
 
       const response = await fetch(
-        `${this.baseUrl}/${this.apiVersion}/${this.phoneNumberId}/messages`,
+        `${this.baseUrl}/${this.apiVersion}/${phoneNumberId}/messages`,
         {
           method: 'POST',
           headers: {
-            Authorization: `Bearer ${this.accessToken}`,
+            Authorization: `Bearer ${accessToken}`,
             'Content-Type': 'application/json',
           },
           body: JSON.stringify(payload),
@@ -226,14 +243,19 @@ export class WhatsappClientService {
     buttons,
     headerText,
     footerText,
+    sender,
   }: {
     to: string;
     bodyText: string;
     buttons: Array<{ id: string; title: string }>;
     headerText?: string;
     footerText?: string;
+    sender?: ResolvedWhatsappSender;
   }) {
-    if (!this.phoneNumberId || !this.accessToken) {
+    const phoneNumberId = sender?.phoneNumberId || this.phoneNumberId;
+    const accessToken = sender?.accessToken || this.accessToken;
+
+    if (!phoneNumberId || !accessToken) {
       this.logger.warn('WhatsApp not configured, skipping interactive message');
       return { success: false, messageId: 'skipped-no-config' };
     }
@@ -264,11 +286,11 @@ export class WhatsappClientService {
       }
 
       const response = await fetch(
-        `${this.baseUrl}/${this.apiVersion}/${this.phoneNumberId}/messages`,
+        `${this.baseUrl}/${this.apiVersion}/${phoneNumberId}/messages`,
         {
           method: 'POST',
           headers: {
-            Authorization: `Bearer ${this.accessToken}`,
+            Authorization: `Bearer ${accessToken}`,
             'Content-Type': 'application/json',
           },
           body: JSON.stringify({

@@ -2,6 +2,7 @@ import {
   getUserFacingErrorMessage,
   sanitizeUserFacingMessage,
 } from "@workspace/types";
+import { browserRequest } from "@/lib/browser-request";
 
 export interface ValidationResult {
   isValid: boolean;
@@ -37,9 +38,7 @@ interface ApiErrorResponse {
   message?: string | string[];
 }
 
-function sanitizeValidationResult(
-  result: ValidationResult,
-): ValidationResult {
+function sanitizeValidationResult(result: ValidationResult): ValidationResult {
   return {
     ...result,
     message: result.message
@@ -106,7 +105,7 @@ async function postMedicationValidation<T>(
   fallbackMessage: string,
   sanitizeResult?: (result: T) => T,
 ): Promise<T> {
-  const response = await fetch(endpoint, {
+  const response = await browserRequest(endpoint, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify(payload),

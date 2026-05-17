@@ -4,6 +4,7 @@ import { PrismaService } from '@/prisma/prisma.service';
 import { DoctorVerificationService } from './doctor-verification.service';
 import { SignatureUploadService } from './signature-upload.service';
 import { StoredFileUrlResolverService } from '@/domains/documents/application/services/stored-file-url-resolver.service';
+import { StorageProvider } from '@/domains/documents/infrastructure/storage.provider';
 import { NotFoundException } from '@nestjs/common';
 import { Specialization } from '@workspace/db';
 import { beforeEach, describe, it, expect, jest } from '@jest/globals';
@@ -105,6 +106,14 @@ describe('DoctorsService', () => {
       })),
   };
 
+  const mockStorageProvider = {
+    supportsSignedUrls: true,
+    upload: jest.fn<(...args: unknown[]) => Promise<string>>(),
+    delete: jest.fn<(...args: unknown[]) => Promise<void>>(),
+    uploadBuffer: jest.fn<(...args: unknown[]) => Promise<string>>(),
+    generateSignedUrl: jest.fn<(...args: unknown[]) => Promise<string>>(),
+  };
+
   beforeEach(async () => {
     const module: TestingModule = await Test.createTestingModule({
       providers: [
@@ -124,6 +133,10 @@ describe('DoctorsService', () => {
         {
           provide: StoredFileUrlResolverService,
           useValue: mockStoredFileUrlResolver,
+        },
+        {
+          provide: StorageProvider,
+          useValue: mockStorageProvider,
         },
       ],
     }).compile();

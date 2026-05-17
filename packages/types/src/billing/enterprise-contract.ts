@@ -17,6 +17,29 @@ export type EnterpriseContractStatusName = z.infer<
   typeof enterpriseContractStatusSchema
 >;
 
+export const enterpriseCustomLineItemSchema = z
+  .object({
+    key: z.string().regex(/^[a-z0-9_:-]+$/).max(80),
+    label: z.string().min(1).max(120),
+    includedQty: z.number().int().nonnegative(),
+    unitCents: z.number().int().nonnegative(),
+    usageType: z
+      .enum([
+        "DOCTORS",
+        "CONSULTATIONS",
+        "WHATSAPP_MESSAGES",
+        "PRESCRIPTIONS",
+        "INVOICES",
+      ])
+      .optional(),
+    source: z.enum(["USAGE_RECORD", "MANUAL"]).default("USAGE_RECORD"),
+    enabled: z.boolean().default(true),
+  })
+  .strict();
+export type EnterpriseCustomLineItem = z.infer<
+  typeof enterpriseCustomLineItemSchema
+>;
+
 export const enterpriseContractSchema = z.object({
   id: z.string(),
   primaryClinicId: z.string(),
@@ -35,11 +58,20 @@ export const enterpriseContractSchema = z.object({
   includedWhatsappMessages: z.number().int().nonnegative(),
   includedStorageGB: z.number().int().nonnegative(),
   includedBranches: z.number().int().nonnegative(),
+  includedDoctors: z.number().int().nonnegative().default(0),
+  includedPrescriptions: z.number().int().nonnegative().default(0),
+  includedInvoices: z.number().int().nonnegative().default(0),
 
   overageUserCents: z.number().int().nonnegative(),
   overageConsultationCents: z.number().int().nonnegative(),
   overageWhatsappCents: z.number().int().nonnegative(),
   overageStorageCents: z.number().int().nonnegative(),
+  overageDoctorCents: z.number().int().nonnegative().default(0),
+  overagePrescriptionCents: z.number().int().nonnegative().default(0),
+  overageInvoiceCents: z.number().int().nonnegative().default(0),
+  setupFeeCents: z.number().int().nonnegative().default(0),
+  dedicatedSupportCents: z.number().int().nonnegative().default(0),
+  customLineItems: z.array(enterpriseCustomLineItemSchema).default([]),
 
   annualPrepayDiscountPercent: z.number().int().min(0).max(100),
   trueUpThresholdPercent: z.number().int().min(100).max(300),
@@ -68,11 +100,20 @@ export const upsertEnterpriseContractRequestSchema = z.object({
   includedWhatsappMessages: z.number().int().nonnegative(),
   includedStorageGB: z.number().int().nonnegative(),
   includedBranches: z.number().int().nonnegative(),
+  includedDoctors: z.number().int().nonnegative().optional(),
+  includedPrescriptions: z.number().int().nonnegative().optional(),
+  includedInvoices: z.number().int().nonnegative().optional(),
 
   overageUserCents: z.number().int().nonnegative(),
   overageConsultationCents: z.number().int().nonnegative(),
   overageWhatsappCents: z.number().int().nonnegative(),
   overageStorageCents: z.number().int().nonnegative(),
+  overageDoctorCents: z.number().int().nonnegative().optional(),
+  overagePrescriptionCents: z.number().int().nonnegative().optional(),
+  overageInvoiceCents: z.number().int().nonnegative().optional(),
+  setupFeeCents: z.number().int().nonnegative().optional(),
+  dedicatedSupportCents: z.number().int().nonnegative().optional(),
+  customLineItems: z.array(enterpriseCustomLineItemSchema).optional(),
 
   annualPrepayDiscountPercent: z.number().int().min(0).max(100).optional(),
   trueUpThresholdPercent: z.number().int().min(100).max(300).optional(),
@@ -171,12 +212,58 @@ export const enterpriseContractEstimateSchema = z.object({
       overage: z.number(),
       chargeCents: z.number(),
     }),
+    doctors: z.object({
+      current: z.number(),
+      included: z.number(),
+      overage: z.number(),
+      chargeCents: z.number(),
+    }),
+    prescriptions: z.object({
+      current: z.number(),
+      included: z.number(),
+      overage: z.number(),
+      chargeCents: z.number(),
+    }),
+    invoices: z.object({
+      current: z.number(),
+      included: z.number(),
+      overage: z.number(),
+      chargeCents: z.number(),
+    }),
   }),
   platformFeeCents: z.number(),
+  setupFeeCents: z.number().default(0),
+  dedicatedSupportCents: z.number().default(0),
   overageTotalCents: z.number(),
   projectedMonthTotalCents: z.number(),
   currency: z.string(),
 });
 export type EnterpriseContractEstimate = z.infer<
   typeof enterpriseContractEstimateSchema
+>;
+
+export const enterpriseContractInvoicePreviewSchema = z.object({
+  period: z.object({
+    start: z.string(),
+    end: z.string(),
+  }),
+  currency: z.string(),
+  lines: z.array(
+    z.object({
+      key: z.string(),
+      label: z.string(),
+      quantity: z.number(),
+      included: z.number(),
+      overage: z.number(),
+      unitCents: z.number(),
+      chargeCents: z.number(),
+      source: z.enum(["SYSTEM", "CUSTOM"]),
+    }),
+  ),
+  subtotalCents: z.number(),
+  taxCents: z.number(),
+  totalCents: z.number(),
+});
+export type EnterpriseContractInvoicePreview = z.infer<
+  typeof enterpriseContractInvoicePreviewSchema
 >;

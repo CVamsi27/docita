@@ -17,10 +17,10 @@ import {
   ProcessWebhookUseCase,
   NotifyExpiringSubscriptionsUseCase,
   NotifySubscriptionGraceDeadlineUseCase,
+  SchedulePlanChangeUseCase,
 } from './application/use-cases';
 import { SubscriptionsQueryService } from './application/services/subscriptions-query.service';
 import { SubscriptionCheckoutPricingService } from './application/services/subscription-checkout-pricing.service';
-import { SubscriptionPaymentPdfService } from './application/services/subscription-payment-pdf.service';
 import {
   SUBSCRIPTION_REPOSITORY_TOKEN,
   PAYMENT_GATEWAY_TOKEN,
@@ -63,8 +63,8 @@ import { AdminAlertsModule } from '@/shared/modules/messaging/admin-alerts/admin
     ProcessWebhookUseCase,
     NotifyExpiringSubscriptionsUseCase,
     NotifySubscriptionGraceDeadlineUseCase,
+    SchedulePlanChangeUseCase,
     SubscriptionsQueryService,
-    SubscriptionPaymentPdfService,
     {
       provide: SUBSCRIPTION_REPOSITORY_TOKEN,
       useClass: PrismaSubscriptionRepository,
@@ -90,6 +90,7 @@ import { AdminAlertsModule } from '@/shared/modules/messaging/admin-alerts/admin
     ExpireSubscriptionUseCase,
     EnterGracePeriodUseCase,
     ProcessWebhookUseCase,
+    SchedulePlanChangeUseCase,
     SubscriptionsQueryService,
     PAYMENT_GATEWAY_TOKEN,
     SUBSCRIPTION_REPOSITORY_TOKEN,

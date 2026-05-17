@@ -75,6 +75,9 @@ export const FEATURE_ICONS: Record<Feature, LucideIcon> = {
 
   [Feature.LEAVE_MANAGEMENT]: CalendarOff,
   [Feature.WHATSAPP_MESSAGING]: MessageSquare,
+  [Feature.WHATSAPP_OWN_NUMBER]: MessageSquare,
+  [Feature.WHATSAPP_MANAGED_NUMBER]: MessageSquare,
+  [Feature.DEDICATED_DEPLOYMENT]: Building2,
 };
 
 export function getFeatureDetails(feature: Feature) {

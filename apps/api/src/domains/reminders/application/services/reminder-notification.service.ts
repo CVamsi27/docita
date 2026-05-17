@@ -155,7 +155,7 @@ export class ReminderNotificationService {
         appointmentId: String(appointment.id),
       };
 
-      const { messageId: _messageId } = await this.sendMessage.execute({
+      const sendResult = await this.sendMessage.execute({
         clinicId: clinicId || '',
         recipientPhone: appointment.patient.phoneNumber,
         templateName: templateId,
@@ -170,6 +170,8 @@ export class ReminderNotificationService {
           message: `Sent template: ${templateId}`,
           type: 'reminder',
           status: WhatsappLogStatus.SENT,
+          senderMode: sendResult.senderMode ?? 'SHARED',
+          senderPhoneNumberId: sendResult.senderPhoneNumberId ?? null,
         },
       });
 

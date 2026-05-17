@@ -1,4 +1,5 @@
 import { API_URL } from "@/lib/api-config";
+import { browserRequest } from "@/lib/browser-request";
 import { appSession } from "@/lib/session";
 
 export interface ClientErrorPayload {
@@ -16,7 +17,8 @@ const MAX_STRING_LENGTH = 1000;
 const AUTH_BACKOFF_MS = 15 * 60 * 1000;
 const RATE_LIMIT_BACKOFF_MS = 60 * 1000;
 const NETWORK_BACKOFF_MS = 30 * 1000;
-const DISABLED_UNTIL_STORAGE_KEY = "docita_client_error_reporting_disabled_until";
+const DISABLED_UNTIL_STORAGE_KEY =
+  "docita_client_error_reporting_disabled_until";
 
 let disabledUntil = 0;
 
@@ -96,17 +98,20 @@ export const reportClientError = async (
   };
 
   try {
-    const response = await fetch(`${API_URL}/monitoring/client-errors`, {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        Authorization: `Bearer ${token}`,
+    const response = await browserRequest(
+      `${API_URL}/monitoring/client-errors`,
+      {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
+        credentials: "include",
+        keepalive: true,
+        cache: "no-store",
+        body: JSON.stringify(body),
       },
-      credentials: "include",
-      keepalive: true,
-      cache: "no-store",
-      body: JSON.stringify(body),
-    });
+    );
 
     if (response.ok) {
       return;

@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { Skeleton } from "@workspace/ui/components/skeleton";
+import { browserJson } from "@/lib/browser-request";
 import { logger } from "@/lib/logger";
 
 type DailyThoughtPayload = {
@@ -21,13 +22,12 @@ export function LoginDailyThought() {
         // Key the request by UTC day so the browser doesn't keep
         // serving a prior day's cached response indefinitely.
         const dayKey = new Date().toISOString().slice(0, 10);
-        const response = await fetch(`/api/daily-thought?day=${dayKey}`, {
-          method: "GET",
-        });
-        if (!response.ok) {
-          throw new Error(String(response.status));
-        }
-        const body: unknown = await response.json();
+        const body = await browserJson<unknown>(
+          `/api/daily-thought?day=${dayKey}`,
+          {
+            method: "GET",
+          },
+        );
         if (
           !cancelled &&
           body &&
@@ -83,8 +83,12 @@ export function LoginDailyThought() {
         </div>
       ) : data ? (
         <blockquote className="space-y-2 border-l-2 border-primary/40 pl-3">
-          <p className="text-sm leading-relaxed text-foreground">{data.quote}</p>
-          <footer className="text-xs text-muted-foreground">— {data.author}</footer>
+          <p className="text-sm leading-relaxed text-foreground">
+            {data.quote}
+          </p>
+          <footer className="text-xs text-muted-foreground">
+            — {data.author}
+          </footer>
         </blockquote>
       ) : null}
     </section>

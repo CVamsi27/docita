@@ -1,7 +1,16 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import {
+  Injectable,
+  NotFoundException,
+  BadRequestException,
+} from '@nestjs/common';
 import { PrismaService } from '@/prisma/prisma.service';
 import * as bcrypt from 'bcrypt';
-import { Specialization, HospitalRole, Role } from '@workspace/db';
+import {
+  Specialization,
+  HospitalRole,
+  Role,
+  DoctorVerificationStatus,
+} from '@workspace/db';
 import {
   DOCTOR_LIST_SELECT,
   DOCTOR_CARD_SELECT,
@@ -9,6 +18,10 @@ import {
 import { DoctorVerificationService } from './doctor-verification.service';
 import { SignatureUploadService } from './signature-upload.service';
 import { StoredFileUrlResolverService } from '@/domains/documents/application/services/stored-file-url-resolver.service';
+import {
+  StorageProvider,
+  StorageFile,
+} from '@/domains/documents/infrastructure/storage.provider';
 
 interface CreateDoctorData {
   email: string;
@@ -85,23 +98,39 @@ export class DoctorsService {
     private doctorVerificationService: DoctorVerificationService,
     private readonly signatureUploadService: SignatureUploadService,
     private readonly storedFileUrlResolver: StoredFileUrlResolverService,
+    private readonly storageProvider: StorageProvider,
   ) {}
 
   private async resolveDoctorSignatureUrl<
-    T extends { signatureUrl?: string | null },
+    T extends {
+      signatureUrl?: string | null;
+      registrationCertificateUrl?: string | null;
+    },
   >(
     doctor: T,
   ): Promise<
-    T & { signatureUrl?: string | null; signatureStoredUrl?: string | null }
+    T & {
+      signatureUrl?: string | null;
+      signatureStoredUrl?: string | null;
+      registrationCertificateUrl?: string | null;
+      registrationCertificateStoredUrl?: string | null;
+    }
   > {
-    const resolved = await this.storedFileUrlResolver.resolveWithStoredUrl(
-      doctor.signatureUrl ?? null,
-    );
+    const [signature, certificate] = await Promise.all([
+      this.storedFileUrlResolver.resolveWithStoredUrl(
+        doctor.signatureUrl ?? null,
+      ),
+      this.storedFileUrlResolver.resolveWithStoredUrl(
+        doctor.registrationCertificateUrl ?? null,
+      ),
+    ]);
 
     return {
       ...doctor,
-      signatureUrl: resolved.url ?? undefined,
-      signatureStoredUrl: resolved.storedUrl ?? undefined,
+      signatureUrl: signature.url ?? undefined,
+      signatureStoredUrl: signature.storedUrl ?? undefined,
+      registrationCertificateUrl: certificate.url ?? undefined,
+      registrationCertificateStoredUrl: certificate.storedUrl ?? undefined,
     };
   }
 
@@ -227,6 +256,9 @@ export class DoctorsService {
         verificationReason: true,
         verificationData: true,
         verificationCheckedAt: true,
+        registrationCertificateUrl: true,
+        verifiedByAdminId: true,
+        verifiedByAdminAt: true,
         profilePhotoUrl: true,
         phoneNumber: true,
         bio: true,
@@ -456,6 +488,155 @@ export class DoctorsService {
     return this.doctorVerificationService.verifyAndPersistDoctorVerification(
       id,
     );
+  }
+
+  async adminVerifyDoctor(doctorId: string, adminId: string, note?: string) {
+    const doctor = await this.prisma.user.findUnique({
+      where: { id: doctorId },
+      select: { id: true, role: true, registrationNumber: true },
+    });
+    if (!doctor) throw new NotFoundException('Doctor not found');
+    if (doctor.role !== Role.DOCTOR && doctor.role !== Role.ADMIN_DOCTOR) {
+      throw new BadRequestException('Only doctor accounts can be verified');
+    }
+    if (!doctor.registrationNumber) {
+      throw new BadRequestException(
+        'Doctor must submit a registration number before verification',
+      );
+    }
+
+    await this.prisma.user.update({
+      where: { id: doctorId },
+      data: {
+        verificationStatus: DoctorVerificationStatus.VERIFIED,
+        verificationSource: 'MANUAL_ADMIN',
+        verificationReason: note?.trim() || null,
+        verificationCheckedAt: new Date(),
+        verifiedByAdminId: adminId,
+        verifiedByAdminAt: new Date(),
+      },
+    });
+
+    return this.findOne(doctorId);
+  }
+
+  async adminRejectDoctor(doctorId: string, adminId: string, reason: string) {
+    const trimmed = reason?.trim();
+    if (!trimmed) {
+      throw new BadRequestException(
+        'A rejection reason is required so the doctor knows what to fix',
+      );
+    }
+
+    const doctor = await this.prisma.user.findUnique({
+      where: { id: doctorId },
+      select: { id: true, role: true },
+    });
+    if (!doctor) throw new NotFoundException('Doctor not found');
+    if (doctor.role !== Role.DOCTOR && doctor.role !== Role.ADMIN_DOCTOR) {
+      throw new BadRequestException('Only doctor accounts can be rejected');
+    }
+
+    await this.prisma.user.update({
+      where: { id: doctorId },
+      data: {
+        verificationStatus: DoctorVerificationStatus.REJECTED,
+        verificationSource: 'MANUAL_ADMIN',
+        verificationReason: trimmed,
+        verificationCheckedAt: new Date(),
+        verifiedByAdminId: adminId,
+        verifiedByAdminAt: new Date(),
+      },
+    });
+
+    return this.findOne(doctorId);
+  }
+
+  async uploadRegistrationCertificate(doctorId: string, file: StorageFile) {
+    const doctor = await this.prisma.user.findUnique({
+      where: { id: doctorId },
+      select: { id: true, role: true, verificationStatus: true },
+    });
+    if (!doctor) throw new NotFoundException('Doctor not found');
+    if (doctor.role !== Role.DOCTOR && doctor.role !== Role.ADMIN_DOCTOR) {
+      throw new BadRequestException(
+        'Only doctor accounts can upload a registration certificate',
+      );
+    }
+
+    const fileUrl = await this.storageProvider.upload(
+      file,
+      'registration-certificates',
+      {
+        metadata: {
+          asset_type: 'registration_certificate',
+          doctor_id: doctorId,
+          modified_at: new Date().toISOString(),
+          modified_by: doctorId,
+        },
+      },
+    );
+
+    const shouldRequeue =
+      doctor.verificationStatus === DoctorVerificationStatus.REJECTED ||
+      doctor.verificationStatus === DoctorVerificationStatus.FAILED ||
+      doctor.verificationStatus === DoctorVerificationStatus.UNVERIFIED;
+
+    await this.prisma.user.update({
+      where: { id: doctorId },
+      data: {
+        registrationCertificateUrl: fileUrl,
+        ...(shouldRequeue
+          ? {
+              verificationStatus: DoctorVerificationStatus.PENDING,
+              verificationSource: 'MANUAL_ADMIN',
+              verificationReason:
+                'Certificate uploaded — pending admin review.',
+              verificationCheckedAt: new Date(),
+              verifiedByAdminId: null,
+              verifiedByAdminAt: null,
+            }
+          : {}),
+      },
+    });
+
+    const resolved =
+      await this.storedFileUrlResolver.resolveWithStoredUrl(fileUrl);
+    return {
+      success: true,
+      registrationCertificateUrl: resolved.url ?? fileUrl,
+      registrationCertificateStoredUrl: resolved.storedUrl ?? fileUrl,
+    };
+  }
+
+  async listDoctorsForAdminReview() {
+    const doctors = await this.prisma.user.findMany({
+      where: {
+        role: { in: [Role.DOCTOR, Role.ADMIN_DOCTOR] },
+        verificationStatus: {
+          in: [
+            DoctorVerificationStatus.PENDING,
+            DoctorVerificationStatus.FAILED,
+          ],
+        },
+      },
+      select: {
+        id: true,
+        name: true,
+        email: true,
+        registrationNumber: true,
+        registrationCouncil: true,
+        registrationStateCode: true,
+        registrationCertificateUrl: true,
+        verificationStatus: true,
+        verificationReason: true,
+        verificationSource: true,
+        verificationCheckedAt: true,
+        clinic: { select: { id: true, name: true } },
+      },
+      orderBy: { verificationCheckedAt: 'asc' },
+    });
+    return doctors;
   }
 
   async remove(id: string, clinicId?: string) {

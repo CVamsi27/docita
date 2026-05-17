@@ -2,6 +2,7 @@ import { useState } from "react";
 import { useDocuments } from "@/hooks/api/use-clinical";
 import type { Document } from "@workspace/types";
 import { useDebounce } from "@workspace/hooks/use-debounce";
+import { browserRequest } from "@/lib/browser-request";
 
 export type SortKey = "date" | "patient" | "type" | "filename";
 export type SortDirection = "asc" | "desc";
@@ -39,7 +40,7 @@ export const useDocumentsLogic = () => {
   const handleDownload = async (document: Document) => {
     if (document.url) {
       try {
-        const response = await fetch(document.url);
+        const response = await browserRequest(document.url);
         const blob = await response.blob();
         const url = window.URL.createObjectURL(blob);
         const a = window.document.createElement("a");
@@ -50,9 +51,7 @@ export const useDocumentsLogic = () => {
         a.click();
         window.URL.revokeObjectURL(url);
         window.document.body.removeChild(a);
-      } catch {
-
-      }
+      } catch {}
     }
   };
 

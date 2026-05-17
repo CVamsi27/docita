@@ -331,6 +331,14 @@ export class AppConfigService {
     };
   }
 
+  isPerClinicWhatsappSenderEnabled(): boolean {
+    return this.getConfig().WHATSAPP_PER_CLINIC_SENDER_ENABLED;
+  }
+
+  isEnterpriseContractDynamicPricingEnabled(): boolean {
+    return this.getConfig().ENTERPRISE_CONTRACT_DYNAMIC_PRICING_ENABLED;
+  }
+
   getSmtpConfig() {
     return {
       host: this.getConfig().SMTP_HOST,
@@ -470,6 +478,13 @@ export class AppConfigService {
     return {
       apiUrl: this.getConfig().DOCTOR_VERIFICATION_API_URL,
       apiKey: this.getConfig().DOCTOR_VERIFICATION_API_KEY,
+    };
+  }
+
+  getHprVerificationConfig() {
+    return {
+      hprApiUrl: this.getConfig().HPR_API_URL,
+      hprApiKey: this.getConfig().HPR_API_KEY,
     };
   }
 

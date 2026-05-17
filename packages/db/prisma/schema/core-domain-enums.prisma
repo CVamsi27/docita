@@ -204,11 +204,26 @@ enum DayOfWeek {
 }
 
 enum ClinicTier {
-  CAPTURE
-  CORE
-  PLUS
-  PRO
+  STARTER
+  ESSENTIAL
+  PROFESSIONAL
+  HOSPITAL
   ENTERPRISE
+  FRONT_DESK
+}
+
+enum WhatsappSenderMode {
+  SHARED
+  BYO
+  MANAGED
+}
+
+enum WhatsappSenderStatus {
+  NOT_CONFIGURED
+  PENDING_VERIFICATION
+  VERIFIED
+  FAILED
+  REVOKED
 }
 
 enum ClinicType {

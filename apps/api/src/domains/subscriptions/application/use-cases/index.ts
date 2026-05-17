@@ -9,3 +9,4 @@ export { EnterGracePeriodUseCase } from './enter-grace-period.use-case';
 export { ExpireSubscriptionUseCase } from './expire-subscription.use-case';
 export { NotifyExpiringSubscriptionsUseCase } from './notify-expiring-subscriptions.use-case';
 export { NotifySubscriptionGraceDeadlineUseCase } from './notify-subscription-grace-deadline.use-case';
+export { SchedulePlanChangeUseCase } from './schedule-plan-change.use-case';

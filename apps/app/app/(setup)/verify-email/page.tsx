@@ -13,6 +13,7 @@ import {
 } from "@/lib/auth-context";
 import { logger } from "@/lib/logger";
 import { API_URL } from "@/lib/api-config";
+import { browserRequest } from "@/lib/browser-request";
 import { PreDashboardShell } from "@/features/auth/components/PreDashboardShell";
 import { BackButton } from "@/components/common/navigation/back-button";
 
@@ -37,7 +38,7 @@ function VerifyEmailInner() {
 
     async function verifyEmail() {
       try {
-        const res = await fetch(`${base}auth/verify-email`, {
+        const res = await browserRequest(`${base}auth/verify-email`, {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({ token }),

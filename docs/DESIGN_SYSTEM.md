@@ -1,5 +1,7 @@
 # Docita Design System
 
+`@deprecated` Use `docs/UI_UX_STANDARD_2026.md` as the authoritative UI/UX standard. This file remains only as a historical token and primitive reference.
+
 Source of truth for tokens, typography, primitives, and keyboard/interaction patterns across every app.
 
 > [`docs/UI_UX_STANDARD_2026.md`](UI_UX_STANDARD_2026.md) is the authoritative UI/UX source going forward and **supersedes any conflicting guidance below**. This document remains as the detailed token, primitive, and accessibility reference. When a rule here disagrees with the Origin-inspired standard (information architecture, AI surface contract, motion policy, modal/wizard patterns, per-page test contract, per-feature compliance checklist), follow the standard.
@@ -57,21 +59,21 @@ Exports from `@workspace/ui/components`:
 
 Scoped to authenticated `apps/app` shell.
 
-| Shortcut | Action |
-| --- | --- |
+| Shortcut     | Action               |
+| ------------ | -------------------- |
 | `Cmd/Ctrl+K` | Open command palette |
-| `/` | Focus global search |
-| `?` | Open keyboard help |
-| `Esc` | Close top overlay |
-| `g d` | Go to dashboard |
-| `g p` | Go to patients |
-| `g a` | Go to appointments |
-| `g i` | Go to invoices |
-| `g r` | Go to prescriptions |
-| `g x` | Go to inventory |
-| `n p` | New patient |
-| `n a` | New appointment |
-| `n i` | New invoice |
+| `/`          | Focus global search  |
+| `?`          | Open keyboard help   |
+| `Esc`        | Close top overlay    |
+| `g d`        | Go to dashboard      |
+| `g p`        | Go to patients       |
+| `g a`        | Go to appointments   |
+| `g i`        | Go to invoices       |
+| `g r`        | Go to prescriptions  |
+| `g x`        | Go to inventory      |
+| `n p`        | New patient          |
+| `n a`        | New appointment      |
+| `n i`        | New invoice          |
 
 Consultation route adds its own scoped shortcuts (documented in [apps/app/features/consultation/workspace/ConsultationShell.tsx](../apps/app/features/consultation/workspace/ConsultationShell.tsx)).
 

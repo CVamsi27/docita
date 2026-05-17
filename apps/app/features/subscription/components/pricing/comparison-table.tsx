@@ -191,6 +191,19 @@ export function ComparisonTable({
     return tiers.includes(currentTier) ? currentTier : (tiers[0] ?? Tier.STARTER);
   });
 
+  /**
+   * On mobile we compare two tiers side-by-side: the user's current tier on
+   * the left, and a target tier on the right that they pick. Single-tier
+   * view is useless because the whole point is comparison.
+   */
+  const validCurrentTier = tiers.includes(currentTier)
+    ? currentTier
+    : (tiers[0] ?? Tier.STARTER);
+  const compareWithTier: Tier =
+    mobileTier !== validCurrentTier
+      ? (mobileTier as Tier)
+      : ((tiers.find((t) => t !== validCurrentTier) ?? validCurrentTier) as Tier);
+
   const availableFeatures = useMemo(() => {
     return categories.flatMap<AvailableFeatureItem>((category) => {
       const validFeatures = category.features.filter(
@@ -225,40 +238,67 @@ export function ComparisonTable({
         </p>
       </div>
       <div className="block md:hidden p-4 space-y-4">
-        <div className="flex flex-wrap items-center justify-center gap-2">
-          {tiers.map((tier) => {
-            const info = getTierInfo(tier);
-            const isActive = mobileTier === tier;
-            return (
-              <button
-                key={tier}
-                type="button"
-                onClick={() => setMobileTier(tier)}
-                className={cn(
-                  "rounded-full border px-3 py-1.5 text-sm font-medium transition-colors",
-                  isActive
-                    ? "bg-foreground text-background border-foreground"
-                    : "bg-background text-foreground border-border hover:bg-muted/50",
-                )}
-              >
-                {info.name}
-              </button>
-            );
-          })}
+        {/* Tier picker — shows which tier we're comparing against the current */}
+        <div className="space-y-2">
+          <p className="text-[var(--fs-2xs)] font-semibold uppercase tracking-wide text-muted-foreground">
+            Compare {getTierInfo(validCurrentTier).name} with
+          </p>
+          <div className="flex flex-wrap gap-1.5">
+            {tiers
+              .filter((tier) => tier !== validCurrentTier)
+              .map((tier) => {
+                const info = getTierInfo(tier);
+                const isActive = compareWithTier === tier;
+                return (
+                  <button
+                    key={tier}
+                    type="button"
+                    onClick={() => setMobileTier(tier)}
+                    className={cn(
+                      "rounded-full border px-3 py-1.5 text-sm font-medium transition-colors",
+                      isActive
+                        ? "border-primary bg-primary text-primary-foreground shadow-sm"
+                        : "border-border bg-background text-foreground hover:bg-muted/50",
+                    )}
+                  >
+                    {info.name}
+                  </button>
+                );
+              })}
+          </div>
+        </div>
+
+        {/* Side-by-side header */}
+        <div className="grid grid-cols-[minmax(0,1fr)_auto_auto] items-baseline gap-3 rounded-lg border bg-muted/30 px-3 py-2 text-[var(--fs-2xs)] font-semibold uppercase tracking-wide">
+          <span className="text-muted-foreground">Feature</span>
+          <span className="text-right text-foreground">
+            {getTierInfo(validCurrentTier).name}
+          </span>
+          <span className="text-right text-primary">
+            {getTierInfo(compareWithTier).name}
+          </span>
         </div>
 
         <div className="rounded-lg border bg-background/50">
-          <div className="p-4 border-b">
-            <p className="text-sm font-semibold text-foreground">Plan Limits</p>
+          <div className="border-b px-3 py-2">
+            <p className="text-[var(--fs-xs)] font-semibold text-foreground">
+              Plan limits
+            </p>
           </div>
-          <div className="p-4 space-y-3">
+          <div className="divide-y divide-border/60">
             {limitRows.map((row) => (
-              <div key={row.name} className="flex items-start justify-between gap-4">
-                <p className="text-sm text-muted-foreground min-w-0 break-words">
+              <div
+                key={row.name}
+                className="grid grid-cols-[minmax(0,1fr)_auto_auto] items-baseline gap-3 px-3 py-2.5"
+              >
+                <p className="min-w-0 break-words text-[var(--fs-xs)] text-muted-foreground">
                   {row.name}
                 </p>
-                <p className="text-sm font-medium text-foreground text-right">
-                  {String(row.values[mobileTier as Tier])}
+                <p className="text-right text-[var(--fs-sm)] font-medium tabular-nums text-foreground">
+                  {String(row.values[validCurrentTier as Tier])}
+                </p>
+                <p className="text-right text-[var(--fs-sm)] font-semibold tabular-nums text-primary">
+                  {String(row.values[compareWithTier as Tier])}
                 </p>
               </div>
             ))}
@@ -266,34 +306,44 @@ export function ComparisonTable({
         </div>
 
         <div className="rounded-lg border bg-background/50">
-          <div className="p-4 border-b">
-            <p className="text-sm font-semibold text-foreground">Features</p>
+          <div className="border-b px-3 py-2">
+            <p className="text-[var(--fs-xs)] font-semibold text-foreground">
+              Features
+            </p>
           </div>
-          <div className="p-4 space-y-2">
+          <div className="divide-y divide-border/60">
             {availableFeatures.map((item, index) => {
               if (item.kind === "header") {
                 return (
                   <p
                     key={`${item.label}-${index}`}
-                    className="pt-3 text-xs font-semibold uppercase tracking-wider text-muted-foreground"
+                    className="bg-muted/30 px-3 py-1.5 text-[var(--fs-2xs)] font-semibold uppercase tracking-wider text-muted-foreground"
                   >
                     {item.label}
                   </p>
                 );
               }
 
-              const hasAccess = mobileTier >= item.requiredTier;
+              const inCurrent = validCurrentTier >= item.requiredTier;
+              const inCompare = compareWithTier >= item.requiredTier;
               return (
                 <div
                   key={item.feature}
-                  className="flex items-start justify-between gap-3 rounded-md border border-border/60 bg-background/70 px-3 py-2"
+                  className="grid grid-cols-[minmax(0,1fr)_auto_auto] items-baseline gap-3 px-3 py-2"
                 >
-                  <p className="text-sm text-foreground min-w-0 break-words">
+                  <p className="min-w-0 break-words text-[var(--fs-xs)] text-foreground">
                     {item.label}
                   </p>
-                  <div className="shrink-0 pt-0.5">
-                    {hasAccess ? (
+                  <div className="flex justify-end">
+                    {inCurrent ? (
                       <Check className="h-4 w-4 text-success" />
+                    ) : (
+                      <Minus className="h-4 w-4 text-muted-foreground/40" />
+                    )}
+                  </div>
+                  <div className="flex justify-end">
+                    {inCompare ? (
+                      <Check className="h-4 w-4 text-primary" />
                     ) : (
                       <Minus className="h-4 w-4 text-muted-foreground/40" />
                     )}
@@ -305,11 +355,11 @@ export function ComparisonTable({
         </div>
       </div>
 
-      <div className="hidden md:block">
+      <div className="hidden overflow-x-auto md:block">
         <Table className="text-sm">
             <TableHeader>
               <TableRow className="hover:bg-transparent">
-                <TableHead className="w-[260px] min-w-[200px] sticky left-0 z-10 bg-card border-r">
+                <TableHead className="sticky left-0 z-10 w-[200px] min-w-[180px] border-r bg-card lg:w-[240px]">
                   <span className="sr-only">Features</span>
                 </TableHead>
                 {tiers.map((tier) => {
@@ -319,17 +369,19 @@ export function ComparisonTable({
                     <TableHead
                       key={tier}
                       className={cn(
-                        "text-center min-w-[110px] px-3 py-5 align-top",
+                        "min-w-[120px] px-3 py-4 align-top text-center",
                         isCurrent && "bg-primary/5",
                       )}
                     >
                       <div className="flex flex-col items-center gap-1.5">
-                        <span className="font-bold text-sm">{info.name}</span>
-                        {isCurrent && (
-                          <Badge variant="secondary" className="text-xs">
+                        <span className="text-sm font-bold tracking-tight">
+                          {info.name}
+                        </span>
+                        {isCurrent ? (
+                          <Badge variant="secondary" className="h-5 px-2 text-[10px]">
                             Current
                           </Badge>
-                        )}
+                        ) : null}
                       </div>
                     </TableHead>
                   );
@@ -340,7 +392,7 @@ export function ComparisonTable({
               <SectionHeader label="Plan Limits" colSpan={tiers.length + 1} />
               {limitRows.map((row: FeatureComparisonRow) => (
                 <TableRow key={row.name} className="hover:bg-muted/50">
-                  <TableCell className="sticky left-0 z-10 bg-card border-r w-[260px] min-w-[200px] text-sm font-medium py-2.5 hover:bg-muted/50 transition-colors">
+                  <TableCell className="sticky left-0 z-10 w-[200px] min-w-[180px] border-r bg-card py-2.5 text-sm font-medium transition-colors hover:bg-muted/50 lg:w-[240px]">
                     <div className="flex items-center gap-2">
                       <SymbolTooltip
                         label={row.name}

@@ -8,15 +8,6 @@ import { StaffNotificationService } from '../staff-notification.service';
  * system. Domain services that don't yet emit events (prescriptions, payment
  * webhooks, consultation lifecycle, appointment status changes) need to start
  * emitting before listeners can be added here.
- *
- * TODO: extend with handlers for:
- *   - prescription.created    -> PRESCRIPTION_PENDING
- *   - prescription.sent       -> PRESCRIPTION_SENT (or FAILED)
- *   - invoice.sent / failed   -> INVOICE_SENT / INVOICE_FAILED
- *   - subscription.payment.*  -> SUBSCRIPTION_PAYMENT_*
- *   - payment.provider.status -> PAYMENT_PROVIDER_STATUS_UPDATE
- *   - appointment.cancelled / .rescheduled / .no_show / .confirmed
- *   - consultation.started / .signed / .pending_action
  */
 @Injectable()
 export class StaffNotificationListener {

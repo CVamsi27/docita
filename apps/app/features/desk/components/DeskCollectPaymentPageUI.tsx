@@ -42,7 +42,7 @@ import { MicroLabel } from "@workspace/ui/components/micro-label";
 import { StatusBadge } from "@workspace/ui/components/status-badge";
 import { FloatingInput } from "@workspace/ui/components/floating-input";
 import { usePatients } from "@/hooks/api/use-patients";
-import { useInvoices } from "@/features/invoices/hooks/useInvoices";
+import { useInvoices } from "@/features/invoices";
 import { useDeskRecordInvoiceSettlement } from "@/features/desk/hooks/use-desk-record-invoice-settlement";
 import { useClinicCurrency } from "@/hooks/use-clinic-currency";
 import { useAuth } from "@/lib/auth-context";

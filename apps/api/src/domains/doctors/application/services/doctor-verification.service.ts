@@ -156,17 +156,22 @@ export class DoctorVerificationService {
       };
     }
 
+    const hprResult = await this.tryHprVerification(input);
+    if (hprResult) {
+      return hprResult;
+    }
+
     const { apiUrl, apiKey } = this.configService.getDoctorVerificationConfig();
 
     if (!apiUrl) {
-      this.logger.warn(
-        'Doctor verification skipped: DOCTOR_VERIFICATION_API_URL is not configured',
+      this.logger.log(
+        `Doctor verification queued for admin review (no automated provider configured) for ${input.id}`,
       );
       return {
-        status: DoctorVerificationStatus.FAILED,
-        source: 'NMC',
+        status: DoctorVerificationStatus.PENDING,
+        source: 'MANUAL_ADMIN',
         reason:
-          'Registration verification is temporarily unavailable. Please try again later.',
+          'Your registration is being reviewed by our team. This usually takes 1–2 business days.',
       };
     }
 
@@ -236,6 +241,70 @@ export class DoctorVerificationService {
         reason:
           'Registration verification is temporarily unavailable. Please try again later.',
       };
+    }
+  }
+
+  // ABDM Healthcare Professionals Registry integration stub.
+  // Wire up the real call once production HPR credentials are issued; until then
+  // we fall through to the admin review queue.
+  private async tryHprVerification(input: {
+    id: string;
+    registrationNumber: string;
+    registrationCouncil?: string;
+    registrationStateCode?: string;
+  }): Promise<VerificationResult | null> {
+    const { hprApiUrl, hprApiKey } =
+      this.configService.getHprVerificationConfig();
+    if (!hprApiUrl || !hprApiKey) {
+      return null;
+    }
+
+    try {
+      const controller = new AbortController();
+      const timeoutId = setTimeout(() => controller.abort(), 10000);
+
+      const response = await fetch(`${hprApiUrl}/v1/practitioner/search`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${hprApiKey}`,
+        },
+        body: JSON.stringify({
+          registrationNumber: input.registrationNumber,
+          stateMedicalCouncil:
+            input.registrationCouncil ?? input.registrationStateCode,
+        }),
+        signal: controller.signal,
+      });
+
+      clearTimeout(timeoutId);
+
+      if (!response.ok) {
+        this.logger.warn(`HPR lookup HTTP ${response.status} for ${input.id}`);
+        return null;
+      }
+
+      const payload = (await response.json()) as {
+        matched?: boolean;
+        hpid?: string;
+        data?: JsonValue;
+      };
+
+      if (!payload.matched) {
+        return null;
+      }
+
+      return {
+        status: DoctorVerificationStatus.VERIFIED,
+        source: 'HPR',
+        reference: payload.hpid,
+        data: payload.data,
+      };
+    } catch (error) {
+      this.logger.warn(
+        `HPR lookup failed for ${input.id}: ${error instanceof Error ? error.message : 'unknown error'}`,
+      );
+      return null;
     }
   }
 }

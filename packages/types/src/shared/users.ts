@@ -451,6 +451,22 @@ export const specializationSchema = z.enum([
 ]);
 export type Specialization = z.infer<typeof specializationSchema>;
 
+export const ACTIVE_SPECIALIZATIONS = [
+  "DENTAL",
+  "OTHER",
+  "CARDIOLOGY",
+  "ENT",
+  "OPHTHALMOLOGY",
+  "DERMATOLOGY",
+  "GYNECOLOGY",
+  "PSYCHIATRY",
+  "GENERAL_PRACTICE",
+  "PEDIATRICS",
+] as const satisfies readonly Specialization[];
+
+export const activeSpecializationSchema = z.enum(ACTIVE_SPECIALIZATIONS);
+export type ActiveSpecialization = z.infer<typeof activeSpecializationSchema>;
+
 export const SPECIALIZATION_LABELS: Record<Specialization, string> = {
   GENERAL_PRACTICE: "General Practice",
   DENTAL: "Dental / Dentistry",
@@ -496,6 +512,9 @@ export const hospitalRoleSchema = z.enum([
   "FELLOW",
 ]);
 export type HospitalRole = z.infer<typeof hospitalRoleSchema>;
+
+export const SUPPORTED_HOSPITAL_ROLES = [] as const satisfies readonly HospitalRole[];
+export const supportedHospitalRoleSchema = z.never();
 
 export const HOSPITAL_ROLE_LABELS: Record<HospitalRole, string> = {
   CONSULTANT: "Consultant",
@@ -689,6 +708,10 @@ export const userSchema = z.object({
   verificationReason: z.string().optional(),
   verificationData: z.unknown().optional(),
   verificationCheckedAt: z.string().or(z.date()).optional(),
+  registrationCertificateUrl: z.string().nullable().optional(),
+  registrationCertificateStoredUrl: z.string().nullable().optional(),
+  verifiedByAdminId: z.string().nullable().optional(),
+  verifiedByAdminAt: z.string().or(z.date()).nullable().optional(),
   profilePhotoUrl: z.string().optional(),
   bio: z.string().optional(),
   yearsOfExperience: z.number().optional(),

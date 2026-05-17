@@ -49,9 +49,30 @@ export class RazorpayOrderAdapter
         metadata: order.notes,
       };
     } catch (error) {
-      this.logger.error('Failed to create order', error);
-      throw new BadRequestException('Failed to create order');
+      this.logger.error('Failed to create Razorpay order', error);
+      // Surface the actual Razorpay error message (or the SDK's) instead of
+      // a generic "Failed to create order" — devs need to see auth failures,
+      // invalid amounts, key mismatches, etc.
+      const message = this.extractRazorpayErrorMessage(error);
+      throw new BadRequestException(
+        message
+          ? `Razorpay order creation failed: ${message}`
+          : 'Razorpay order creation failed. Check RAZORPAY_KEY_ID / RAZORPAY_KEY_SECRET and try again.',
+      );
     }
+  }
+
+  private extractRazorpayErrorMessage(error: unknown): string | null {
+    if (!error || typeof error !== 'object') return null;
+    const err = error as {
+      error?: { description?: string; reason?: string; code?: string };
+      message?: string;
+      statusCode?: number;
+    };
+    if (err.error?.description) return err.error.description;
+    if (err.error?.reason) return err.error.reason;
+    if (err.message) return err.message;
+    return null;
   }
 
   async getOrder(orderId: string): Promise<PaymentGatewayOrder | null> {

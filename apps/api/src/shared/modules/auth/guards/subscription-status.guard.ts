@@ -13,6 +13,7 @@ import {
   isBillingAdminRole,
   isSubscriptionPastGraceDeadline,
 } from '@/shared/modules/auth/utils/subscription-hard-lock.util';
+import { getTrialWindowState } from '@/shared/modules/auth/utils/trial-window.util';
 
 export { IS_PUBLIC_KEY };
 export const SKIP_SUBSCRIPTION_CHECK_KEY = 'skipSubscriptionCheck';
@@ -76,6 +77,28 @@ export class SubscriptionStatusGuard implements CanActivate {
           action: 'BILLING_REQUIRED',
           billingSettingsUrl: '/settings?tab=subscription',
         });
+      }
+
+      const trialWindowState = getTrialWindowState({
+        subscriptionStatus: clinicAuth.subscriptionStatus,
+        trialEnd: clinicAuth.subscriptionTrialEnd,
+      });
+
+      if (trialWindowState === 'EXPIRED' && !isBillingAdminRole(user.role)) {
+        throw new ForbiddenException({
+          message:
+            'Your free trial has ended. An organization admin needs to add a paid plan to keep using Docita.',
+          code: 'TRIAL_EXPIRED',
+          action: 'BILLING_REQUIRED',
+          billingSettingsUrl: '/settings?tab=subscription',
+        });
+      }
+
+      if (trialWindowState === 'EXPIRED') {
+        // Billing admin: allow access so they can pay, but signal the state.
+        request.subscriptionEffectiveStatus = 'TRIAL_EXPIRED';
+      } else if (trialWindowState === 'GRACE') {
+        request.subscriptionEffectiveStatus = 'TRIAL_GRACE';
       }
 
       const allowedStatuses: SubscriptionStatus[] = [

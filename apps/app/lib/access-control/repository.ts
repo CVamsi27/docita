@@ -1,6 +1,5 @@
-
-
 import { Feature, Tier } from "@workspace/types";
+import { browserRequest } from "@/lib/browser-request";
 import type {
   IAccessContext,
   IAddOn,
@@ -44,7 +43,7 @@ export class SubscriptionRepository implements ISubscriptionRepository {
   >();
 
   constructor(cacheTTL = 60000, apiBaseUrl = "/api") {
-    this.cacheTTL = cacheTTL; 
+    this.cacheTTL = cacheTTL;
     this.apiBaseUrl = apiBaseUrl;
   }
 
@@ -52,7 +51,6 @@ export class SubscriptionRepository implements ISubscriptionRepository {
     userId: string,
     clinicId?: string,
   ): Promise<Partial<IAccessContext>> {
-
     const [subscription, addOns, overrides] = await Promise.all([
       this.getSubscription(userId, clinicId),
       this.getAddOns(userId, clinicId),
@@ -83,10 +81,12 @@ export class SubscriptionRepository implements ISubscriptionRepository {
       ? `${this.apiBaseUrl}/clinics/${clinicId}/subscription`
       : `${this.apiBaseUrl}/users/${userId}/subscription`;
 
-    const response = await fetch(url);
+    const response = await browserRequest(url);
 
     if (!response.ok) {
-      throw new Error("We could not load your subscription details. Please try again.");
+      throw new Error(
+        "We could not load your subscription details. Please try again.",
+      );
     }
 
     const data = (await response.json()) as RawSubscriptionData;
@@ -114,14 +114,15 @@ export class SubscriptionRepository implements ISubscriptionRepository {
       ? `${this.apiBaseUrl}/clinics/${clinicId}/add-ons`
       : `${this.apiBaseUrl}/users/${userId}/add-ons`;
 
-    const response = await fetch(url);
+    const response = await browserRequest(url);
 
     if (!response.ok) {
-
       if (response.status === 404) {
         return [];
       }
-      throw new Error("We could not load your subscription details. Please try again.");
+      throw new Error(
+        "We could not load your subscription details. Please try again.",
+      );
     }
 
     const data = (await response.json()) as IAddOn[];
@@ -144,14 +145,15 @@ export class SubscriptionRepository implements ISubscriptionRepository {
     }
 
     const url = `${this.apiBaseUrl}/users/${userId}/overrides`;
-    const response = await fetch(url);
+    const response = await browserRequest(url);
 
     if (!response.ok) {
-
       if (response.status === 404) {
         return [];
       }
-      throw new Error("We could not load your subscription details. Please try again.");
+      throw new Error(
+        "We could not load your subscription details. Please try again.",
+      );
     }
 
     const data = (await response.json()) as RawOverrideData[];

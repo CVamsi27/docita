@@ -20,6 +20,12 @@ import {
 import { DEFAULT_CURRENCY } from '@workspace/utils';
 import { PricingService as BillingPricingService } from '@/domains/billing/core/services/pricing.service';
 import { FeatureFlagService } from '@/shared/modules/services/feature-flag.service';
+import {
+  getTrialGraceEndsAt,
+  getTrialWindowState,
+} from '@/shared/modules/auth/utils/trial-window.util';
+import { RazorpayInvoiceAdapter } from '@/domains/payments/infrastructure/adapters/razorpay/razorpay-invoice.adapter';
+import { ActivateSubscriptionUseCase } from '@/domains/subscriptions/application/use-cases/activate-subscription.use-case';
 
 type PaymentHistoryRecord = {
   amountCents: number;
@@ -40,7 +46,30 @@ export class SubscriptionsQueryService {
     private readonly pricingService: SubscriptionPricingService,
     private readonly billingPricingService: BillingPricingService,
     private readonly featureFlagService: FeatureFlagService,
+    private readonly razorpayInvoiceAdapter: RazorpayInvoiceAdapter,
+    private readonly activateSubscriptionUseCase: ActivateSubscriptionUseCase,
   ) {}
+
+  /**
+   * Applies any scheduled plan change whose effectiveAt is in the past.
+   * Called from read paths so users see the new plan as soon as their period
+   * rolls over, without requiring a dedicated cron.
+   */
+  private async maybeApplyDueScheduledChange(clinicId: string): Promise<void> {
+    const subscription = await this.subscriptionRepo.findByClinicId(clinicId);
+    if (!subscription || !subscription.isScheduledChangeDue()) return;
+    const scheduled = subscription.scheduledChange!;
+    try {
+      await this.activateSubscriptionUseCase.applyPlanChangeWithoutPayment({
+        clinicId,
+        tier: scheduled.plan,
+        cycle: scheduled.billingCycle,
+      });
+    } catch {
+      // Best-effort. Don't break the read if the scheduled change can't apply
+      // (e.g. tier requires payment); we'll surface the issue via UI next time.
+    }
+  }
 
   private getTierData<T extends Record<string, V>, V>(
     source: T,
@@ -108,6 +137,7 @@ export class SubscriptionsQueryService {
   }
 
   async getSubscriptionDetails(clinicId: string) {
+    await this.maybeApplyDueScheduledChange(clinicId);
     const subscription = await this.subscriptionRepo.findByClinicId(clinicId);
     if (!subscription) {
       return null;
@@ -127,6 +157,8 @@ export class SubscriptionsQueryService {
       currentPeriodStart: subscription.currentPeriodStart.toISOString(),
       currentPeriodEnd: subscription.currentPeriodEnd.toISOString(),
       daysRemaining: subscription.getDaysRemaining(),
+      scheduledChange: subscription.scheduledChange ?? null,
+      accountCreditCents: subscription.getCredits().paise,
     };
   }
 
@@ -144,10 +176,74 @@ export class SubscriptionsQueryService {
       collapsed,
       currentPlan,
     );
-    return withoutStalePending.slice(0, limit);
+
+    const merged = await this.mergeRazorpayInvoices(
+      clinicId,
+      withoutStalePending,
+    );
+
+    return merged.slice(0, limit);
+  }
+
+  /**
+   * Razorpay is the source of truth for invoices. When our local
+   * `SubscriptionPayment` table is missing rows (e.g. webhook never landed in
+   * dev), we still want to surface anything Razorpay has on file for the
+   * clinic's customer. Anything Razorpay shows that we have not already
+   * persisted gets appended as a synthetic history row pointing at the
+   * Razorpay-hosted invoice URL.
+   */
+  private async mergeRazorpayInvoices(
+    clinicId: string,
+    localRecords: PaymentHistoryRecord[],
+  ): Promise<PaymentHistoryRecord[]> {
+    const clinic = await this.clinicOps.getClinicDetails(clinicId);
+    if (!clinic.razorpayCustomerId) {
+      return localRecords;
+    }
+
+    const invoices = await this.razorpayInvoiceAdapter.listInvoicesByCustomer(
+      clinic.razorpayCustomerId,
+    );
+    if (!invoices.length) {
+      return localRecords;
+    }
+
+    const knownInvoiceIds = new Set(
+      localRecords
+        .map((r) => (r as Record<string, unknown>)['invoiceNumber'])
+        .filter((v): v is string => typeof v === 'string'),
+    );
+
+    const synthesized: PaymentHistoryRecord[] = [];
+    for (const inv of invoices) {
+      if (inv.invoiceNumber && knownInvoiceIds.has(inv.invoiceNumber)) continue;
+      if (inv.id && knownInvoiceIds.has(inv.id)) continue;
+      synthesized.push({
+        amountCents: inv.amountCents,
+        currency: inv.currency,
+        status: inv.status === 'paid' ? 'paid' : inv.status,
+        description: 'Razorpay subscription invoice',
+        createdAt: inv.createdAt,
+        // Carry through identifiers + hosted URL so the controller can
+        // render `invoiceUrl` / `receiptUrl` from Razorpay's hosted PDF.
+        ...({
+          id: inv.id,
+          invoiceUrl: inv.shortUrl ?? undefined,
+          invoiceNumber: inv.invoiceNumber ?? undefined,
+          paidAt: inv.paidAt ?? undefined,
+        } as Partial<PaymentHistoryRecord>),
+      });
+    }
+
+    return [...localRecords, ...synthesized].sort(
+      (a, b) =>
+        new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime(),
+    );
   }
 
   async getBillingStatus(clinicId: string) {
+    await this.maybeApplyDueScheduledChange(clinicId);
     const subscription = await this.subscriptionRepo.findByClinicId(clinicId);
     const payments = subscription
       ? ((await this.subscriptionRepo.findPaymentsByClinicId(
@@ -163,6 +259,15 @@ export class SubscriptionsQueryService {
       : [];
     const lastPayment = payments[0];
 
+    const trialEnd = subscription?.trialEnd ?? null;
+    const trialWindowState = subscription
+      ? getTrialWindowState({
+          subscriptionStatus: subscription.getStatus().value,
+          trialEnd,
+        })
+      : null;
+    const trialGraceEndsAt = getTrialGraceEndsAt(trialEnd);
+
     return {
       subscription: subscription
         ? {
@@ -174,6 +279,13 @@ export class SubscriptionsQueryService {
             currentPeriodStart: subscription.currentPeriodStart.toISOString(),
             currentPeriodEnd: subscription.currentPeriodEnd.toISOString(),
             cancelAtPeriodEnd: subscription.cancelAtPeriodEnd ?? false,
+            trialEnd: trialEnd ? trialEnd.toISOString() : null,
+            trialWindowState,
+            trialGraceEndsAt: trialGraceEndsAt
+              ? trialGraceEndsAt.toISOString()
+              : null,
+            scheduledChange: subscription.scheduledChange ?? null,
+            accountCreditCents: subscription.getCredits().paise,
           }
         : null,
       referralCredits: 0,

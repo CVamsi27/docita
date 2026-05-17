@@ -74,13 +74,16 @@ export class WhatsAppApiAdapter implements IWhatsAppClient {
 
   private async callApi(
     payload: Record<string, unknown>,
+    sender?: { phoneNumberId: string; accessToken: string },
   ): Promise<Record<string, unknown>> {
+    const phoneNumberId = sender?.phoneNumberId || this.phoneNumberId;
+    const accessToken = sender?.accessToken || this.accessToken;
     const response = await fetch(
-      `${this.baseUrl}/${this.apiVersion}/${this.phoneNumberId}/messages`,
+      `${this.baseUrl}/${this.apiVersion}/${phoneNumberId}/messages`,
       {
         method: 'POST',
         headers: {
-          Authorization: `Bearer ${this.accessToken}`,
+          Authorization: `Bearer ${accessToken}`,
           'Content-Type': 'application/json',
         },
         body: JSON.stringify(payload),
@@ -110,7 +113,10 @@ export class WhatsAppApiAdapter implements IWhatsAppClient {
   async sendMessage(request: SendMessageRequest): Promise<SendMessageResponse> {
     const { to, templateName, languageCode, components, text } = request;
 
-    if (!this.phoneNumberId || !this.accessToken) {
+    const phoneNumberId = request.sender?.phoneNumberId || this.phoneNumberId;
+    const accessToken = request.sender?.accessToken || this.accessToken;
+
+    if (!phoneNumberId || !accessToken) {
       this.logger.warn('WhatsApp not configured, skipping send');
       return { externalId: `skipped-${Date.now()}` };
     }
@@ -141,7 +147,7 @@ export class WhatsAppApiAdapter implements IWhatsAppClient {
     }
 
     try {
-      const data = await this.callApi(payload);
+      const data = await this.callApi(payload, { phoneNumberId, accessToken });
       return { externalId: this.extractFirstMessageId(data) };
     } catch (error: unknown) {
       if (error instanceof ServiceUnavailableException) {
@@ -158,7 +164,10 @@ export class WhatsAppApiAdapter implements IWhatsAppClient {
   async sendInteractiveMessage(
     request: SendInteractiveRequest,
   ): Promise<SendMessageResponse> {
-    if (!this.phoneNumberId || !this.accessToken) {
+    const phoneNumberId = request.sender?.phoneNumberId || this.phoneNumberId;
+    const accessToken = request.sender?.accessToken || this.accessToken;
+
+    if (!phoneNumberId || !accessToken) {
       return { externalId: `skipped-${Date.now()}` };
     }
 
@@ -186,13 +195,16 @@ export class WhatsAppApiAdapter implements IWhatsAppClient {
     if (request.footerText) interactive.footer = { text: request.footerText };
 
     try {
-      const data = await this.callApi({
-        messaging_product: 'whatsapp',
-        recipient_type: 'individual',
-        to: cleanPhone,
-        type: 'interactive',
-        interactive,
-      });
+      const data = await this.callApi(
+        {
+          messaging_product: 'whatsapp',
+          recipient_type: 'individual',
+          to: cleanPhone,
+          type: 'interactive',
+          interactive,
+        },
+        { phoneNumberId, accessToken },
+      );
       return { externalId: this.extractFirstMessageId(data) };
     } catch (error: unknown) {
       if (error instanceof ServiceUnavailableException) {

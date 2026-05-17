@@ -1,6 +1,6 @@
 "use client";
 
-import { MedicalDocumentList } from "@/features/medical-documents/components/MedicalDocumentList";
+import { MedicalDocumentList } from "@/features/medical-documents";
 
 interface DocumentsTabProps {
   patientId: string;

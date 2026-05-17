@@ -50,6 +50,34 @@ export class OpenaiService {
     };
   }
 
+  async *streamChatCompletion(params: {
+    systemPrompt: string;
+    messages: Array<{ role: 'user' | 'assistant'; content: string }>;
+    temperature?: number;
+    signal?: AbortSignal;
+  }): AsyncGenerator<string, void, void> {
+    const { systemPrompt, messages, temperature = 0.4, signal } = params;
+    if (!this.openai) {
+      throw new ServiceUnavailableException('OpenAI client not initialized');
+    }
+    const stream = await this.openai.chat.completions.create(
+      {
+        model: this.modelType,
+        stream: true,
+        temperature,
+        messages: [
+          { role: 'system', content: systemPrompt },
+          ...messages.map((m) => ({ role: m.role, content: m.content })),
+        ],
+      },
+      { signal },
+    );
+    for await (const chunk of stream) {
+      const delta = chunk.choices?.[0]?.delta?.content;
+      if (delta) yield delta;
+    }
+  }
+
   async callChatCompletion<T = never>(params: {
     systemPrompt: string;
     userPrompt: string;

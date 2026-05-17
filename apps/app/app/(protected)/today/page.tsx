@@ -193,7 +193,7 @@ export default function TodayPage() {
               "flex w-full min-w-0 shrink-0 flex-col gap-4",
               "rounded-[var(--radius-lg)] border border-border/70 bg-card p-4 shadow-sm ring-1 ring-border/30",
               "sm:p-5",
-              "xl:sticky xl:top-4 xl:w-80 xl:max-w-sm xl:self-start xl:bg-card/95 xl:backdrop-blur-sm",
+              "xl:sticky xl:top-4 xl:w-72 xl:max-w-[20rem] xl:self-start xl:bg-card/95 xl:backdrop-blur-sm 2xl:w-80",
             )}
           >
             <h2 className="sr-only" id="today-rail-heading">

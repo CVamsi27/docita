@@ -13,6 +13,7 @@ import { useAuth } from "@/lib/auth-context";
 import { useAPIQuery } from "@/lib/api-core";
 import type { User } from "@workspace/types";
 import { SignatureUploadQR } from "@/features/settings/components/signature-upload-qr";
+import { RegistrationCertificateUpload } from "@/features/settings/components/doctor-profile/RegistrationCertificateUpload";
 import Link from "next/link";
 import {
   AlertTriangle,
@@ -104,7 +105,7 @@ export function DoctorProfileSettings() {
         </CardHeader>
         <CardContent className="space-y-4">
           {hasSignature && resolvedSignatureUrl && (
-            <div className="flex min-h-[100px] items-center justify-center rounded-lg border bg-background p-4">
+            <div className="flex min-h-[100px] items-center justify-center rounded-lg border bg-white p-4">
               <img
                 src={resolvedSignatureUrl}
                 alt="Your current signature"
@@ -196,8 +197,25 @@ export function DoctorProfileSettings() {
               </Button>
             </div>
           )}
+          {hasRegistration &&
+            (verificationStatus === "REJECTED" ||
+              verificationStatus === "FAILED") && (
+              <div className="mt-3 flex items-center justify-end">
+                <Button variant="outline" size="sm" asChild>
+                  <Link href="/verify-doctor">Update Registration Details</Link>
+                </Button>
+              </div>
+            )}
         </CardContent>
       </Card>
+
+      {hasRegistration && profile?.id && (
+        <RegistrationCertificateUpload
+          doctorId={profile.id}
+          certificateUrl={profile.registrationCertificateUrl}
+          verificationStatus={verificationStatus}
+        />
+      )}
     </div>
   );
 }

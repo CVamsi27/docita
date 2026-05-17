@@ -49,6 +49,7 @@ import { getAccessTargetForPath } from "@/lib/access-routes";
 import { usePermissionStore } from "@/lib/stores/permission-store";
 import { PageTransitionLoader } from "@/components/common/loaders/page-transition-loader";
 import {
+  getTrialState,
   isBillingAdminRole,
   isPastSubscriptionGraceDeadline,
 } from "@/lib/subscription-lockout";
@@ -130,9 +131,11 @@ function SubscriptionGuard({ children }: { children: React.ReactNode }) {
     if (!clinic) return;
     const pastGrace = isPastSubscriptionGraceDeadline(clinic);
     const billingAdmin = isBillingAdminRole(user?.role);
+    const trialState = getTrialState(clinic);
+    const trialFullyExpired = trialState === "EXPIRED";
 
     if (
-      pastGrace &&
+      (pastGrace || trialFullyExpired) &&
       !billingAdmin &&
       !pathname?.startsWith("/billing-locked") &&
       !pathname?.startsWith("/login")
@@ -143,7 +146,7 @@ function SubscriptionGuard({ children }: { children: React.ReactNode }) {
 
     const status = clinic.subscriptionStatus;
     const isExpired = status === "EXPIRED";
-    const isBlocked = isExpired;
+    const isBlocked = isExpired || trialFullyExpired;
     if (
       isBlocked &&
       !SUBSCRIPTION_ALLOWED_PATHS.some((p) => pathname?.startsWith(p))
@@ -247,6 +250,8 @@ function SubscriptionLockNotice() {
   const isPastDue = status === "PAST_DUE";
   const isPaused = status === "PAUSED";
   const isTrialing = status === "TRIALING";
+  const trialState = getTrialState(clinic);
+  const isTrialGrace = trialState === "GRACE";
   const trialTierLabel =
     clinic?.tier && typeof clinic.tier === "string"
       ? getTierInfo(clinic.tier as TierName).name
@@ -263,6 +268,16 @@ function SubscriptionLockNotice() {
           Math.ceil((trialEnd.getTime() - Date.now()) / (1000 * 60 * 60 * 24)),
         )
       : null;
+  const trialGraceDaysLeft = (() => {
+    if (!isTrialGrace || !trialEnd || !Number.isFinite(trialEnd.getTime())) {
+      return null;
+    }
+    const graceEnds = trialEnd.getTime() + 3 * 24 * 60 * 60 * 1000;
+    return Math.max(
+      0,
+      Math.ceil((graceEnds - Date.now()) / (1000 * 60 * 60 * 24)),
+    );
+  })();
   const graceUntilRaw = clinic?.subscriptionGraceUntil;
   const graceUntil =
     graceUntilRaw !== undefined && graceUntilRaw !== null
@@ -281,34 +296,38 @@ function SubscriptionLockNotice() {
       ? "Subscription Paused"
       : isGrace || isPastDue
         ? "Payment Grace Period: Access Restricted"
-        : isTrialing
-          ? trialDaysLeft !== null && trialDaysLeft <= 3
-            ? "Trial ending soon"
-            : "Trial active: payment not completed"
-          : "Payment required";
+        : isTrialGrace
+          ? "Trial ended — payment required"
+          : isTrialing
+            ? trialDaysLeft !== null && trialDaysLeft <= 3
+              ? "Trial ending soon"
+              : "Trial active: payment not completed"
+            : "Payment required";
   const description = isExpired
     ? "This facility is locked until payment is completed. You can still open billing under Settings, Subscription to restore access."
     : isGrace || isPastDue
       ? `${isPastDue ? "Your payment is overdue." : "Payment is still unresolved."}${graceUntilText && !pastGraceDeadline ? ` Resolve by ${graceUntilText} or staff access may pause until a billing admin completes payment under Settings, Subscription.` : " Resolve payment now to keep Docita access active."}`
       : isPaused
         ? "This subscription is paused. Resolve billing to restore full access."
-        : isTrialing
-          ? `${trialTierLabel} plan: ${trialDaysLeft !== null ? `${trialDaysLeft} day${trialDaysLeft === 1 ? "" : "s"} left in your trial` : "trial active"}${trialEndText ? ` (ends ${trialEndText})` : ""}. Your trial includes a ${SUBSCRIPTION_TRIAL_DAYS}-day evaluation period. Add payment before the trial ends to avoid entering a payment grace period.`
-          : "Your subscription needs billing attention. Resolve payment to keep Docita access active.";
+        : isTrialGrace
+          ? `Your free trial has ended${trialGraceDaysLeft !== null ? `. You have ${trialGraceDaysLeft} day${trialGraceDaysLeft === 1 ? "" : "s"} to complete payment` : ""} before access is blocked. Open Settings → Subscription to pay now.`
+          : isTrialing
+            ? `${trialTierLabel} plan: ${trialDaysLeft !== null ? `${trialDaysLeft} day${trialDaysLeft === 1 ? "" : "s"} left in your trial` : "trial active"}${trialEndText ? ` (ends ${trialEndText})` : ""}. Your trial includes a ${SUBSCRIPTION_TRIAL_DAYS}-day evaluation period. Add payment before the trial ends to avoid entering a payment grace period.`
+            : "Your subscription needs billing attention. Resolve payment to keep Docita access active.";
 
   return (
     <div className="border-b bg-background px-4 py-3 md:px-6">
       <Alert
-        variant={isExpired ? "destructive" : "default"}
+        variant={isExpired || isTrialGrace ? "destructive" : "default"}
         className={
-          isExpired
+          isExpired || isTrialGrace
             ? undefined
             : isTrialing
               ? "border-info/40 bg-info/10"
               : "border-warning/40 bg-warning/10"
         }
       >
-        {isExpired ? (
+        {isExpired || isTrialGrace ? (
           <LockKeyhole className="h-4 w-4" />
         ) : (
           <AlertTriangle
@@ -322,13 +341,15 @@ function SubscriptionLockNotice() {
           <span>{description}</span>
           <Button
             size="sm"
-            variant={isExpired ? "secondary" : "outline"}
+            variant={isExpired || isTrialGrace ? "secondary" : "outline"}
             onClick={() => router.push(SUBSCRIPTION_SETTINGS_PATH)}
             className="self-start sm:self-auto"
           >
-            {isTrialing
-              ? "Billing & subscription"
-              : "Resolve Payment"}
+            {isTrialGrace
+              ? "Pay now"
+              : isTrialing
+                ? "Billing & subscription"
+                : "Resolve Payment"}
           </Button>
         </AlertDescription>
       </Alert>
@@ -478,7 +499,9 @@ export default function ProtectedLayout({
                     onCollapse={() => setIsCollapsed(true)}
                     onExpand={() => setIsCollapsed(false)}
                     style={{
-                      transition: isDragging ? "none" : "flex 180ms ease-out",
+                      transition: isDragging
+                        ? "none"
+                        : "flex 220ms cubic-bezier(0.16, 1, 0.3, 1)",
                     }}
                   >
                     <Sidebar

@@ -72,10 +72,18 @@ type ContractFormState = {
   includedWhatsappMessages: string;
   includedStorageGB: string;
   includedBranches: string;
+  includedDoctors: string;
+  includedPrescriptions: string;
+  includedInvoices: string;
   overageUserINR: string;
   overageConsultationINR: string;
   overageWhatsappINR: string;
   overageStorageINR: string;
+  overageDoctorINR: string;
+  overagePrescriptionINR: string;
+  overageInvoiceINR: string;
+  setupFeeINR: string;
+  dedicatedSupportINR: string;
   annualPrepayDiscountPercent: string;
   trueUpThresholdPercent: string;
   notes: string;
@@ -98,10 +106,18 @@ const BLANK_FORM: ContractFormState = {
   includedWhatsappMessages: "0",
   includedStorageGB: "0",
   includedBranches: "1",
+  includedDoctors: "0",
+  includedPrescriptions: "0",
+  includedInvoices: "0",
   overageUserINR: "0",
   overageConsultationINR: "0",
   overageWhatsappINR: "0",
   overageStorageINR: "0",
+  overageDoctorINR: "0",
+  overagePrescriptionINR: "0",
+  overageInvoiceINR: "0",
+  setupFeeINR: "0",
+  dedicatedSupportINR: "0",
   annualPrepayDiscountPercent: "0",
   trueUpThresholdPercent: "130",
   notes: "",
@@ -118,10 +134,18 @@ const QUOTE_PRESETS = {
     includedWhatsappMessages: "30000",
     includedStorageGB: "250",
     includedBranches: "5",
+    includedDoctors: "10",
+    includedPrescriptions: "10000",
+    includedInvoices: "10000",
     overageUserINR: "199",
     overageConsultationINR: "1.5",
     overageWhatsappINR: "0.30",
     overageStorageINR: "0",
+    overageDoctorINR: "499",
+    overagePrescriptionINR: "0.25",
+    overageInvoiceINR: "0.25",
+    setupFeeINR: "50000",
+    dedicatedSupportINR: "0",
   },
   MULTI_SITE: {
     label: "Multi-site (10–30 branches)",
@@ -131,10 +155,18 @@ const QUOTE_PRESETS = {
     includedWhatsappMessages: "100000",
     includedStorageGB: "750",
     includedBranches: "30",
+    includedDoctors: "30",
+    includedPrescriptions: "40000",
+    includedInvoices: "40000",
     overageUserINR: "149",
     overageConsultationINR: "1.25",
     overageWhatsappINR: "0.25",
     overageStorageINR: "0",
+    overageDoctorINR: "399",
+    overagePrescriptionINR: "0.20",
+    overageInvoiceINR: "0.20",
+    setupFeeINR: "150000",
+    dedicatedSupportINR: "0",
   },
   NETWORK: {
     label: "Network/Group (>30 branches)",
@@ -144,10 +176,18 @@ const QUOTE_PRESETS = {
     includedWhatsappMessages: "300000",
     includedStorageGB: "2000",
     includedBranches: "100",
+    includedDoctors: "100",
+    includedPrescriptions: "125000",
+    includedInvoices: "125000",
     overageUserINR: "99",
     overageConsultationINR: "1.0",
     overageWhatsappINR: "0.20",
     overageStorageINR: "0",
+    overageDoctorINR: "299",
+    overagePrescriptionINR: "0.15",
+    overageInvoiceINR: "0.15",
+    setupFeeINR: "500000",
+    dedicatedSupportINR: "0",
   },
 } as const;
 
@@ -177,10 +217,18 @@ function rowToForm(row: EnterpriseContractRow): ContractFormState {
     includedWhatsappMessages: String(row.includedWhatsappMessages),
     includedStorageGB: String(row.includedStorageGB),
     includedBranches: String(row.includedBranches),
+    includedDoctors: String(row.includedDoctors ?? 0),
+    includedPrescriptions: String(row.includedPrescriptions ?? 0),
+    includedInvoices: String(row.includedInvoices ?? 0),
     overageUserINR: centsToInr(row.overageUserCents),
     overageConsultationINR: centsToInr(row.overageConsultationCents),
     overageWhatsappINR: centsToInr(row.overageWhatsappCents),
     overageStorageINR: centsToInr(row.overageStorageCents),
+    overageDoctorINR: centsToInr(row.overageDoctorCents ?? 0),
+    overagePrescriptionINR: centsToInr(row.overagePrescriptionCents ?? 0),
+    overageInvoiceINR: centsToInr(row.overageInvoiceCents ?? 0),
+    setupFeeINR: centsToInr(row.setupFeeCents ?? 0),
+    dedicatedSupportINR: centsToInr(row.dedicatedSupportCents ?? 0),
     annualPrepayDiscountPercent: String(row.annualPrepayDiscountPercent),
     trueUpThresholdPercent: String(row.trueUpThresholdPercent),
     notes: row.notes ?? "",
@@ -299,10 +347,19 @@ export default function EnterpriseContractsPage() {
         includedWhatsappMessages: Number(form.includedWhatsappMessages) || 0,
         includedStorageGB: Number(form.includedStorageGB) || 0,
         includedBranches: Number(form.includedBranches) || 1,
+        includedDoctors: Number(form.includedDoctors) || 0,
+        includedPrescriptions: Number(form.includedPrescriptions) || 0,
+        includedInvoices: Number(form.includedInvoices) || 0,
         overageUserCents: inrToCents(form.overageUserINR),
         overageConsultationCents: inrToCents(form.overageConsultationINR),
         overageWhatsappCents: inrToCents(form.overageWhatsappINR),
         overageStorageCents: inrToCents(form.overageStorageINR),
+        overageDoctorCents: inrToCents(form.overageDoctorINR),
+        overagePrescriptionCents: inrToCents(form.overagePrescriptionINR),
+        overageInvoiceCents: inrToCents(form.overageInvoiceINR),
+        setupFeeCents: inrToCents(form.setupFeeINR),
+        dedicatedSupportCents: inrToCents(form.dedicatedSupportINR),
+        customLineItems: [],
         annualPrepayDiscountPercent:
           Number(form.annualPrepayDiscountPercent) || 0,
         trueUpThresholdPercent: Number(form.trueUpThresholdPercent) || 130,
@@ -874,6 +931,36 @@ export default function EnterpriseContractsPage() {
               />
             </div>
             <div>
+              <Label>Inc. doctors</Label>
+              <Input
+                value={form.includedDoctors}
+                onChange={(e) =>
+                  setForm((f) => ({ ...f, includedDoctors: e.target.value }))
+                }
+              />
+            </div>
+            <div>
+              <Label>Inc. prescriptions</Label>
+              <Input
+                value={form.includedPrescriptions}
+                onChange={(e) =>
+                  setForm((f) => ({
+                    ...f,
+                    includedPrescriptions: e.target.value,
+                  }))
+                }
+              />
+            </div>
+            <div>
+              <Label>Inc. invoices</Label>
+              <Input
+                value={form.includedInvoices}
+                onChange={(e) =>
+                  setForm((f) => ({ ...f, includedInvoices: e.target.value }))
+                }
+              />
+            </div>
+            <div>
               <Label>Overage / user</Label>
               <Input
                 value={form.overageUserINR}
@@ -902,6 +989,57 @@ export default function EnterpriseContractsPage() {
                   setForm((f) => ({
                     ...f,
                     overageWhatsappINR: e.target.value,
+                  }))
+                }
+              />
+            </div>
+            <div>
+              <Label>Overage / doctor</Label>
+              <Input
+                value={form.overageDoctorINR}
+                onChange={(e) =>
+                  setForm((f) => ({ ...f, overageDoctorINR: e.target.value }))
+                }
+              />
+            </div>
+            <div>
+              <Label>Overage / prescription</Label>
+              <Input
+                value={form.overagePrescriptionINR}
+                onChange={(e) =>
+                  setForm((f) => ({
+                    ...f,
+                    overagePrescriptionINR: e.target.value,
+                  }))
+                }
+              />
+            </div>
+            <div>
+              <Label>Overage / invoice</Label>
+              <Input
+                value={form.overageInvoiceINR}
+                onChange={(e) =>
+                  setForm((f) => ({ ...f, overageInvoiceINR: e.target.value }))
+                }
+              />
+            </div>
+            <div>
+              <Label>Setup fee</Label>
+              <Input
+                value={form.setupFeeINR}
+                onChange={(e) =>
+                  setForm((f) => ({ ...f, setupFeeINR: e.target.value }))
+                }
+              />
+            </div>
+            <div>
+              <Label>Support retainer</Label>
+              <Input
+                value={form.dedicatedSupportINR}
+                onChange={(e) =>
+                  setForm((f) => ({
+                    ...f,
+                    dedicatedSupportINR: e.target.value,
                   }))
                 }
               />

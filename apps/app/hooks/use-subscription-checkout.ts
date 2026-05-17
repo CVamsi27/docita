@@ -34,7 +34,7 @@ export function useSubscriptionCheckout(
   const { token, user } = useAuth();
   const { setTier } = usePermissionStore();
   const queryClient = useQueryClient();
-  const { openCheckout } = useRazorpay();
+  const { openCheckout, closeCheckout, isCheckoutOpen } = useRazorpay();
   const [isProcessing, setIsProcessing] = useState(false);
   const [processingId, setProcessingId] = useState<string | null>(null);
   const checkoutInFlightRef = useRef(false);
@@ -135,11 +135,11 @@ export function useSubscriptionCheckout(
         if (isPaymentCanceledError(error)) {
           toast.info("Payment was canceled. No charge was made.");
         } else {
-          showUserFacingErrorToast(
-            error,
-            "We could not finish this plan change. Please try again.",
-            "payment",
-          );
+          const apiMessage =
+            error instanceof Error && error.message
+              ? error.message
+              : "We could not finish this plan change. Please try again.";
+          showUserFacingErrorToast(error, apiMessage, "payment");
         }
         throw error;
       } finally {
@@ -158,5 +158,11 @@ export function useSubscriptionCheckout(
     ],
   );
 
-  return { checkoutTier, isProcessing, processingId };
+  return {
+    checkoutTier,
+    isProcessing,
+    processingId,
+    closeCheckout,
+    isCheckoutOpen,
+  };
 }

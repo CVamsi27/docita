@@ -45,10 +45,11 @@ async function readFileSignature(
 
 export async function assertAllowedFileSignature(
   file: Pick<StorageFile, 'buffer' | 'path'>,
-  allowedTypes: Array<'pdf' | 'png' | 'jpeg' | 'webp'>,
+  allowedTypes: Array<'pdf' | 'png' | 'jpeg' | 'webp' | 'gif'>,
 ): Promise<void> {
   const signature = await readFileSignature(file);
   const header = signature.toString('hex', 0, 4).toUpperCase();
+  const shortHeader = signature.toString('hex', 0, 3).toUpperCase();
   const webpHeader = signature.toString('hex', 8, 12).toUpperCase();
 
   const allowed = new Set(allowedTypes);
@@ -56,17 +57,42 @@ export async function assertAllowedFileSignature(
   const isPng = header === '89504E47';
   const isJpeg = header.startsWith('FFD8FF');
   const isWebp = header === '52494646' && webpHeader === '57454250';
+  const isGif = shortHeader === '474946';
 
   if (
     (allowed.has('pdf') && isPdf) ||
     (allowed.has('png') && isPng) ||
     (allowed.has('jpeg') && isJpeg) ||
-    (allowed.has('webp') && isWebp)
+    (allowed.has('webp') && isWebp) ||
+    (allowed.has('gif') && isGif)
   ) {
     return;
   }
 
   throw new BadRequestException(
     'Invalid file content. The file type does not match its extension/MIME type.',
+  );
+}
+
+export async function assertAllowedImportFileSignature(
+  file: Pick<StorageFile, 'buffer' | 'path'> & { originalname?: string },
+): Promise<void> {
+  const extension = extname(file.originalname ?? '').toLowerCase();
+  const signature = await readFileSignature(file);
+  const header = signature.toString('hex', 0, 4).toUpperCase();
+
+  if (extension === '.xlsx') {
+    const isZipContainer =
+      header === '504B0304' || header === '504B0506' || header === '504B0708';
+    if (isZipContainer) return;
+  }
+
+  if (extension === '.csv') {
+    const hasNullByte = signature.includes(0);
+    if (!hasNullByte) return;
+  }
+
+  throw new BadRequestException(
+    'Invalid import file content. The file content does not match its extension.',
   );
 }

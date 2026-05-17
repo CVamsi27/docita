@@ -42,7 +42,11 @@ import {
   ocrImportCommitRequestSchema,
 } from '@workspace/types';
 import { ZodSerializerDto } from 'nestjs-zod';
-import { createTempDiskStorage } from '@/common/utils/upload.utils';
+import {
+  assertAllowedFileSignature,
+  assertAllowedImportFileSignature,
+  createTempDiskStorage,
+} from '@/common/utils/upload.utils';
 import { unlink } from 'fs/promises';
 
 interface AuthRequest extends ExpressRequest {
@@ -136,6 +140,7 @@ export class ImportsController {
     }
 
     try {
+      await assertAllowedImportFileSignature(file);
       const preview = await this.importsService.previewImport(file.path);
       const sessionId = this.sessionService.createSession(file.path);
       return { sessionId, ...preview };
@@ -215,6 +220,7 @@ export class ImportsController {
     }
     const attestation = assertDpdpAttestation(parsedAttestation);
     try {
+      await assertAllowedImportFileSignature(file);
       return await this.importsService.processPatientImport(
         file.path,
         req.user.clinicId,
@@ -261,6 +267,7 @@ export class ImportsController {
     }
 
     try {
+      await assertAllowedFileSignature(file, ['png', 'jpeg', 'webp', 'gif']);
       return await this.importsService.processMedicalDocumentOcr(
         file.path,
         _req.user?.clinicId,

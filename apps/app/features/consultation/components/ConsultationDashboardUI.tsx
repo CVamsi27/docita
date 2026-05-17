@@ -23,10 +23,12 @@ import { useCheckInAppointment } from "@/hooks/api/use-appointments";
 import { showUserFacingErrorToast } from "@/lib/user-facing-errors";
 import { buildConsultationRoute } from "@/features/consultation/rules/consultationTabRouting";
 import type { Appointment } from "@workspace/types";
-import { AddAppointmentDialogContainer } from "@/features/appointments/components/dialogs/AddAppointmentDialogContainer";
-import { AppointmentRowActionDialogs } from "@/features/appointments/components/dialogs/AppointmentRowActionDialogs";
-import { AppointmentRowActionsMenu } from "@/features/appointments/components/forms/AppointmentRowActionsMenu";
-import { useAppointmentRowActions } from "@/features/appointments/hooks/use-appointment-row-actions";
+import {
+  AddAppointmentDialogContainer,
+  AppointmentRowActionDialogs,
+  AppointmentRowActionsMenu,
+  useAppointmentRowActions,
+} from "@/features/appointments";
 import { usePermissions } from "@/hooks/use-permissions";
 
 export const ConsultationDashboardUI: FC = () => {

@@ -26,6 +26,8 @@ export interface ISubscriptionRepository {
       paymentId?: string;
       signature?: string;
       subscriptionId?: string;
+      invoiceUrl?: string;
+      invoiceNumber?: string;
     },
   ): Promise<void>;
   findPaymentsByClinicId(clinicId: string, limit: number): Promise<unknown[]>;

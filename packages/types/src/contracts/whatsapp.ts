@@ -137,6 +137,78 @@ export const whatsappTemplateListResponseSchema = z.object({
 
 export const whatsappDefaultTemplatesResponseSchema = z.array(z.string());
 
+export const whatsappSenderModeSchema = z.enum(["SHARED", "BYO", "MANAGED"]);
+export const whatsappSenderStatusSchema = z.enum([
+  "NOT_CONFIGURED",
+  "PENDING_VERIFICATION",
+  "VERIFIED",
+  "FAILED",
+  "REVOKED",
+]);
+
+export const whatsappSenderConfigResponseSchema = z.object({
+  mode: whatsappSenderModeSchema,
+  status: whatsappSenderStatusSchema,
+  phoneNumberId: z.string().nullable(),
+  wabaId: z.string().nullable(),
+  displayName: z.string().nullable(),
+  verifiedAt: z.string().nullable(),
+  tokenExpiresAt: z.string().nullable(),
+  lastVerifyError: z.string().nullable(),
+  allowedModes: z.array(whatsappSenderModeSchema),
+  fallbackActive: z.boolean(),
+});
+
+export const updateWhatsappSenderRequestSchema = z
+  .object({
+    mode: whatsappSenderModeSchema,
+    phoneNumberId: z.string().trim().min(3).max(80).optional(),
+    wabaId: z.string().trim().min(3).max(80).optional(),
+    accessToken: z.string().trim().min(40).max(4096).optional(),
+  })
+  .strict()
+  .superRefine((value, ctx) => {
+    if (value.mode !== "BYO") {
+      return;
+    }
+    if (!value.phoneNumberId) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        path: ["phoneNumberId"],
+        message: "Phone number ID is required for BYO sender mode",
+      });
+    }
+    if (!value.accessToken) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        path: ["accessToken"],
+        message: "Access token is required for BYO sender mode",
+      });
+    }
+  });
+
+export const verifyWhatsappSenderResponseSchema = z.object({
+  status: whatsappSenderStatusSchema,
+  displayName: z.string().nullable(),
+  phoneNumberId: z.string().nullable(),
+  tokenExpiresAt: z.string().nullable(),
+  error: z.string().nullable(),
+});
+
+export const revokeWhatsappSenderResponseSchema = z.object({
+  mode: z.literal("SHARED"),
+  status: z.literal("REVOKED"),
+});
+
+export type WhatsappSenderMode = z.infer<typeof whatsappSenderModeSchema>;
+export type WhatsappSenderStatus = z.infer<typeof whatsappSenderStatusSchema>;
+export type WhatsappSenderConfigResponse = z.infer<
+  typeof whatsappSenderConfigResponseSchema
+>;
+export type UpdateWhatsappSenderRequest = z.infer<
+  typeof updateWhatsappSenderRequestSchema
+>;
+
 export const whatsappLogsQuerySchema = z.object({
   limit: z.coerce.number().int().min(1).max(500).optional(),
   patientId: z.string().optional(),

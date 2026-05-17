@@ -8,7 +8,7 @@ import {
   isQueueTokenInProgress,
   isQueueTokenWaiting,
 } from "@/lib/queue-token-status";
-import { getOpdQueueSummaryLine } from "@/features/consultation/lib/opd-queue-display";
+import { getOpdQueueSummaryLine } from "@/features/consultation";
 import {
   DeskFloorPanelUI,
   type DeskFloorCurrent,

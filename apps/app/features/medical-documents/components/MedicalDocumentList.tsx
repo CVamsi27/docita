@@ -34,7 +34,7 @@ import { logger } from "@/lib/logger";
 import { toast } from "sonner";
 import { useAuth } from "@/lib/auth-context";
 import { showUserFacingErrorToast } from "@/lib/user-facing-errors";
-import { useMobileUpload } from "@/features/ocr/hooks/use-mobile-upload";
+import { useMobileUpload } from "@/features/ocr";
 
 interface MedicalDocument {
   id: string;

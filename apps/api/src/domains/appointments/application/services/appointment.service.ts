@@ -422,6 +422,13 @@ export class AppointmentService {
       throw new NotFoundException(`Appointment with ID ${id} not found`);
     }
 
+    if (data.status === 'completed') {
+      this.eventEmitter.emit('appointment.completed', {
+        appointmentId: id,
+        clinicId,
+      });
+    }
+
     const observations =
       typeof data.observations === 'string' ? data.observations.trim() : '';
     const consultationNotes =

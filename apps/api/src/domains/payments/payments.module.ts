@@ -6,6 +6,7 @@ import { RazorpaySubscriptionAdapter } from './infrastructure/adapters/razorpay/
 import { RazorpayOrderAdapter } from './infrastructure/adapters/razorpay/razorpay-order.adapter';
 import { RazorpayWebhookAdapter } from './infrastructure/adapters/razorpay/razorpay-webhook.adapter';
 import { RazorpayRefundAdapter } from './infrastructure/adapters/razorpay/razorpay-refund.adapter';
+import { RazorpayInvoiceAdapter } from './infrastructure/adapters/razorpay/razorpay-invoice.adapter';
 import { PaymentGatewayFactory } from './infrastructure/factories/payment-gateway.factory';
 import {
   CLINIC_INVOICE_PAYMENT_LINK_PROVIDER_TOKEN,
@@ -26,6 +27,7 @@ import {
     RazorpayOrderAdapter,
     RazorpayWebhookAdapter,
     RazorpayRefundAdapter,
+    RazorpayInvoiceAdapter,
     PaymentGatewayFactory,
     {
       provide: DOCITA_PLATFORM_PAYMENT_LINK_PROVIDER_TOKEN,
@@ -66,6 +68,7 @@ import {
   ],
   exports: [
     PaymentGatewayFactory,
+    RazorpayInvoiceAdapter,
     DOCITA_PLATFORM_PAYMENT_LINK_PROVIDER_TOKEN,
     CLINIC_INVOICE_PAYMENT_LINK_PROVIDER_TOKEN,
     SUBSCRIPTION_PROVIDER_TOKEN,

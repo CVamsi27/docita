@@ -2,8 +2,12 @@ import { createZodDto } from 'nestjs-zod';
 import {
   sendWhatsAppMessageRequestSchema,
   whatsappSendMessageResponseSchema,
+  whatsappSenderConfigResponseSchema,
   whatsappWebhookAckResponseSchema,
   whatsappWebhookPayloadSchema,
+  updateWhatsappSenderRequestSchema,
+  verifyWhatsappSenderResponseSchema,
+  revokeWhatsappSenderResponseSchema,
 } from '@workspace/types';
 
 export class SendWhatsAppMessageDto extends createZodDto(
@@ -20,4 +24,20 @@ export class HandleWhatsAppWebhookDto extends createZodDto(
 
 export class WhatsAppWebhookAckResponseDto extends createZodDto(
   whatsappWebhookAckResponseSchema,
+) {}
+
+export class WhatsappSenderConfigResponseDto extends createZodDto(
+  whatsappSenderConfigResponseSchema,
+) {}
+
+export class UpdateWhatsappSenderDto extends createZodDto(
+  updateWhatsappSenderRequestSchema,
+) {}
+
+export class VerifyWhatsappSenderResponseDto extends createZodDto(
+  verifyWhatsappSenderResponseSchema,
+) {}
+
+export class RevokeWhatsappSenderResponseDto extends createZodDto(
+  revokeWhatsappSenderResponseSchema,
 ) {}

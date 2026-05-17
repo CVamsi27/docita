@@ -33,6 +33,9 @@ model User {
   verificationReason         String?
   verificationData           Json?
   verificationCheckedAt      DateTime?
+  registrationCertificateUrl String?
+  verifiedByAdminId          String?
+  verifiedByAdminAt          DateTime?
   phoneNumber                String?
   profilePhotoUrl            String?
   specialization             Specialization?
@@ -96,6 +99,7 @@ model User {
   @@index([clinicId])
   @@index([specialization])
   @@index([clinicId, role, createdAt], map: "User_clinicId_role_createdAt_idx")
+  @@index([verificationStatus])
 }
 
 model NotificationPreferences {
@@ -1001,6 +1005,14 @@ model Clinic {
   branding                 Json?
   features                 Json?
   whatsappAutomation       Json?
+  whatsappSenderMode       WhatsappSenderMode       @default(SHARED)
+  whatsappSenderStatus     WhatsappSenderStatus     @default(NOT_CONFIGURED)
+  whatsappPhoneNumberId    String?                  @unique
+  whatsappWabaId           String?
+  whatsappDisplayName      String?
+  whatsappVerifiedAt       DateTime?
+  whatsappTokenExpiresAt   DateTime?
+  whatsappLastVerifyError  String?
   intelligenceAddon        IntelligenceAddon        @default(NONE)
   trialEndsAt              DateTime?
   avgConsultationMinutes   Int                      @default(15)
@@ -1041,6 +1053,7 @@ model Clinic {
   users                    User[]
   vitalSigns               VitalSign[]
   whatsappLogs             WhatsappLog[]
+  clinicSecrets            ClinicSecret[]
   subscription             Subscription?
   enterpriseContractsAsPrimary EnterpriseContract[] @relation("EnterprisePrimaryClinic")
   enterpriseContractMembership EnterpriseContractMember?
@@ -1080,6 +1093,19 @@ model Clinic {
   prescriptionTemplates    PrescriptionTemplate[]
   inventoryMovements       InventoryMovement[]
   apiQuota                 ClinicApiQuota?
+}
+
+model ClinicSecret {
+  id         String    @id @default(cuid())
+  clinicId   String
+  kind       String
+  ciphertext String
+  createdAt  DateTime  @default(now())
+  rotatedAt  DateTime?
+  clinic     Clinic    @relation(fields: [clinicId], references: [id], onDelete: Cascade)
+
+  @@unique([clinicId, kind])
+  @@index([clinicId])
 }
 
 model ClinicApiQuota {
@@ -1350,6 +1376,8 @@ model WhatsappLog {
   phoneNumber       String
   message           String
   status            WhatsappLogStatus @default(QUEUED)
+  senderPhoneNumberId String?
+  senderMode          WhatsappSenderMode @default(SHARED)
   requestBody       Json?
   responseBody      Json?
   errorMessage      String?
@@ -1365,6 +1393,7 @@ model WhatsappLog {
   @@index([invoiceId])
   @@index([prescriptionId])
   @@index([status])
+  @@index([senderPhoneNumberId])
   @@index([clinicId, status, createdAt], map: "WhatsappLog_clinicId_status_createdAt_idx")
 }
 
@@ -2261,6 +2290,20 @@ enum ClinicTier {
   FRONT_DESK
 }
 
+enum WhatsappSenderMode {
+  SHARED
+  BYO
+  MANAGED
+}
+
+enum WhatsappSenderStatus {
+  NOT_CONFIGURED
+  PENDING_VERIFICATION
+  VERIFIED
+  FAILED
+  REVOKED
+}
+
 enum SignaturePurpose {
   DOCTOR_PRESCRIPTION
   SLA_ACCEPTANCE
@@ -2878,11 +2921,20 @@ model EnterpriseContract {
   includedWhatsappMessages Int @default(0)
   includedStorageGB        Int @default(0)
   includedBranches         Int @default(1)
+  includedDoctors          Int @default(0)
+  includedPrescriptions    Int @default(0)
+  includedInvoices         Int @default(0)
 
   overageUserCents         Int @default(0)
   overageConsultationCents Int @default(0)
   overageWhatsappCents     Int @default(0)
   overageStorageCents      Int @default(0)
+  overageDoctorCents       Int @default(0)
+  overagePrescriptionCents Int @default(0)
+  overageInvoiceCents      Int @default(0)
+  setupFeeCents            Int @default(0)
+  dedicatedSupportCents    Int @default(0)
+  customLineItems          Json @default("[]")
 
   annualPrepayDiscountPercent Int     @default(0)
   trueUpThresholdPercent      Int     @default(130)
@@ -3282,6 +3334,10 @@ enum UsageType {
   USERS
   WHATSAPP_MESSAGES
   AI_CREDITS
+  DOCTORS
+  CONSULTATIONS
+  PRESCRIPTIONS
+  INVOICES
   PRESCRIPTION
   INVOICE
   OCR_PAGE

@@ -4,6 +4,7 @@ import { useEffect } from "react";
 import { usePathname } from "next/navigation";
 import type { Metric } from "web-vitals";
 import { API_URL } from "@/lib/api-config";
+import { browserRequest } from "@/lib/browser-request";
 
 const PUBLIC_AUTH_PATHS = new Set([
   "/login",
@@ -58,7 +59,7 @@ export function WebVitalsReporter() {
           createWebVitalsBeaconBody(payload),
         );
       } else {
-        void fetch(`${API_URL}/monitoring/web-vitals`, {
+        void browserRequest(`${API_URL}/monitoring/web-vitals`, {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body,

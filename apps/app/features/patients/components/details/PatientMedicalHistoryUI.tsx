@@ -17,9 +17,9 @@ import {
 import {
   DentalChartUI,
   DentalChartValue,
-} from "@/features/consultation/components/specialty/DentalChartUI";
-import { VisionExamUI } from "@/features/consultation/components/specialty/VisionExamUI";
-import { GrowthChartUI } from "@/features/consultation/components/specialty/GrowthChartUI";
+  GrowthChartUI,
+  VisionExamUI,
+} from "@/features/consultation";
 
 import { PatientConditions } from "./history/PatientConditions";
 import { PatientAllergies } from "./history/PatientAllergies";
