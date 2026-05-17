@@ -171,7 +171,7 @@ describe('Front desk workspace (e2e)', () => {
     if (!httpServer) throw new Error('E2E app not initialized');
     const res = await request(httpServer)
       .post('/prescriptions')
-      .set('Authorization', `Bearer ${adminToken}`)
+      .set('Authorization', `Bearer ${loginDoctorToken}`)
       .send({
         appointmentId: appointment.id,
         patientId,
