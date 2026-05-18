@@ -36,7 +36,6 @@ import {
   isPublicAuthPath,
   parseValidatedUser,
   persistVerificationEmailStatus,
-  type AuthPayload,
   type User,
 } from "./auth-context-helpers";
 

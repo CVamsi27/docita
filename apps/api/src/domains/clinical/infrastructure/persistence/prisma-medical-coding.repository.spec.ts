@@ -1,8 +1,8 @@
 import { describe, expect, it, jest } from '@jest/globals';
-import { PrismaClinicalRepository } from './prisma-clinical.repository';
+import { PrismaMedicalCodingRepository } from './prisma-medical-coding.repository';
 import type { PrismaService } from '@/prisma/prisma.service';
 
-describe('PrismaClinicalRepository.onModuleInit', () => {
+describe('PrismaMedicalCodingRepository.onModuleInit', () => {
   it('prewarms medical-code caches without blocking bootstrap', () => {
     const readClient = {
       icdCode: {
@@ -18,7 +18,7 @@ describe('PrismaClinicalRepository.onModuleInit', () => {
       getReadClient: jest.Mock;
     };
 
-    const repository = new PrismaClinicalRepository(prisma);
+    const repository = new PrismaMedicalCodingRepository(prisma);
     const result = repository.onModuleInit();
 
     expect(result).toBeUndefined();
