@@ -101,16 +101,19 @@ export default function TodayPage() {
         </div>
       </div>
     ),
-    [lastDataUpdatedAtMs, isRefreshing, refetchAll, canStartConsultation, openOverlay],
+    [
+      lastDataUpdatedAtMs,
+      isRefreshing,
+      refetchAll,
+      canStartConsultation,
+      openOverlay,
+    ],
   );
 
   const header = (
     <PageHeader
       title="Today"
-      description={
-        summaryLine ??
-        "Today board: appointments, documents, WhatsApp, and OPD tokens stay in one workspace — the live queue is on Consultation."
-      }
+      description={summaryLine ?? undefined}
       actions={headerActions}
     />
   );
@@ -158,14 +161,12 @@ export default function TodayPage() {
 
   const hasShareRailContent = Boolean(referralCode || publicOnlineBookingUrl);
   const hasAdvisorRailContent =
-    pendingJoinRequests > 0 ||
-    stats.pendingReports > 0 ||
-    waitingCount > 0;
+    pendingJoinRequests > 0 || stats.pendingReports > 0 || waitingCount > 0;
   const showTodayRightColumn = hasShareRailContent || hasAdvisorRailContent;
 
   return (
     <AppPageScaffold header={header}>
-      <div className="flex flex-col gap-6 xl:flex-row xl:items-start xl:gap-8">
+      <div className="grid min-w-0 gap-6 xl:grid-cols-[minmax(0,1fr)_18rem] xl:items-start xl:gap-8 2xl:grid-cols-[minmax(0,1fr)_20rem]">
         <div className="min-w-0 flex-1">
           <DashboardSharedWorkspace
             mode="today"
@@ -193,7 +194,7 @@ export default function TodayPage() {
               "flex w-full min-w-0 shrink-0 flex-col gap-4",
               "rounded-[var(--radius-lg)] border border-border/70 bg-card p-4 shadow-sm ring-1 ring-border/30",
               "sm:p-5",
-              "xl:sticky xl:top-4 xl:w-72 xl:max-w-[20rem] xl:self-start xl:bg-card/95 xl:backdrop-blur-sm 2xl:w-80",
+              "xl:sticky xl:top-4 xl:w-full xl:self-start xl:bg-card/95 xl:backdrop-blur-sm",
             )}
           >
             <h2 className="sr-only" id="today-rail-heading">
