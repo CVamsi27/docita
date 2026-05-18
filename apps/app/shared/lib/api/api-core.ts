@@ -8,7 +8,8 @@ import {
 } from "@workspace/data-access";
 import type { UseMutationOptions, UseQueryOptions } from "@tanstack/react-query";
 import type { z } from "zod";
-import { getUserFacingErrorMessage, type PaginatedResponse } from "@workspace/types";
+import { type PaginatedResponse } from "@workspace/types";
+import { getUserFacingErrorMessage } from "@workspace/utils";
 import { API_URL } from "./api-config";
 import { apiFetch } from "./api-client";
 import { ApiError } from "@/lib/errors";

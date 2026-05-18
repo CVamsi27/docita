@@ -1,11 +1,7 @@
 "use client";
 
 import { toast } from "sonner";
-import {
-  getUserFacingErrorMessage,
-  sanitizeUserFacingMessage,
-  type UserFacingErrorContext,
-} from "@workspace/types";
+import { getUserFacingErrorMessage, sanitizeUserFacingMessage, type UserFacingErrorContext } from "@workspace/utils";
 
 export type { UserFacingErrorContext };
 

@@ -1,6 +1,6 @@
 
 
-import { getUserFacingErrorMessage } from "@workspace/types";
+import { getUserFacingErrorMessage } from "@workspace/utils";
 
 export interface ApiError {
   message: string;

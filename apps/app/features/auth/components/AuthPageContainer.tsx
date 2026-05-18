@@ -5,12 +5,8 @@ import { useRouter } from "next/navigation";
 import { useAuth, type User } from "@/lib/auth/auth-context";
 import { formatLoginLockoutMessage } from "@/lib/auth/auth-lockout";
 import { ApiValidationError } from "@/lib/api/api-error";
-import {
-  checkEmailSchema,
-  getUserFacingErrorMessage,
-  passwordSchema,
-  type UserRole,
-} from "@workspace/types";
+import { checkEmailSchema, passwordSchema, type UserRole } from "@workspace/types";
+import { getUserFacingErrorMessage } from "@workspace/utils";
 
 const ROLES_LAND_ON_CONSULTATION = new Set<UserRole>(["DOCTOR", "ADMIN_DOCTOR"]);
 import { PageTransitionLoader } from "@/components/loaders/page-transition-loader";

@@ -1,6 +1,7 @@
 import { ReactNode } from "react";
 import { act, renderHook, waitFor } from "@testing-library/react";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
+import { DataAccessProvider } from "@workspace/data-access";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
 vi.mock("sonner", () => ({
@@ -107,7 +108,16 @@ function createWrapper() {
   });
   function Wrapper({ children }: { children: ReactNode }) {
     return (
-      <QueryClientProvider client={queryClient}>{children}</QueryClientProvider>
+      <DataAccessProvider
+        config={{
+          fetcher: () => Promise.resolve({ ok: true } as never),
+          getClinicId: () => "clinic-1",
+          getClinicTimezone: () => "UTC",
+          isTierFeatureEnabled: () => true,
+        }}
+      >
+        <QueryClientProvider client={queryClient}>{children}</QueryClientProvider>
+      </DataAccessProvider>
     );
   }
   return Wrapper;

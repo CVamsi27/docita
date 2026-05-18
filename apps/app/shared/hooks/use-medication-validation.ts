@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { useMutation } from "@tanstack/react-query";
-import { getUserFacingErrorMessage } from "@workspace/types";
+import { getUserFacingErrorMessage } from "@workspace/utils";
 import {
   checkMedicationContraindications,
   checkMedicationInteractions,

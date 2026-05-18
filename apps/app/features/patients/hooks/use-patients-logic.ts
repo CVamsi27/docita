@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import type { Patient } from "@workspace/types";
-import { getUserFacingErrorMessage } from "@workspace/types";
+import { getUserFacingErrorMessage } from "@workspace/utils";
 
 import { usePatients } from "@workspace/data-access";
 

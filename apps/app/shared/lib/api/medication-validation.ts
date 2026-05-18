@@ -1,7 +1,4 @@
-import {
-  getUserFacingErrorMessage,
-  sanitizeUserFacingMessage,
-} from "@workspace/types";
+import { getUserFacingErrorMessage, sanitizeUserFacingMessage } from "@workspace/utils";
 import { browserRequest } from "@/lib/auth/browser-request";
 
 export interface ValidationResult {

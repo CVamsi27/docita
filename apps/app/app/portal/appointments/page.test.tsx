@@ -9,13 +9,21 @@ const portalAppointmentMocks = vi.hoisted(() => ({
   showError: vi.fn(),
 }));
 
-vi.mock("@workspace/data-access", () => ({
-  usePatientPortalAppointments: portalAppointmentMocks.usePatientPortalAppointments,
-  useRequestAppointment: () => ({
-    mutateAsync: portalAppointmentMocks.mutateAsync,
-    isPending: false,
-  }),
-}));
+vi.mock("@workspace/data-access", async () => {
+  const actual =
+    await vi.importActual<typeof import("@workspace/data-access")>(
+      "@workspace/data-access",
+    );
+  return {
+    ...actual,
+    usePatientPortalAppointments:
+      portalAppointmentMocks.usePatientPortalAppointments,
+    useRequestAppointment: () => ({
+      mutateAsync: portalAppointmentMocks.mutateAsync,
+      isPending: false,
+    }),
+  };
+});
 
 vi.mock("@/lib/errors/user-facing-errors", () => ({
   showUserFacingErrorToast: portalAppointmentMocks.showError,

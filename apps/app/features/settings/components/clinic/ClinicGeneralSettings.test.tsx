@@ -17,16 +17,23 @@ const settingsMocks = vi.hoisted(() => ({
   },
 }));
 
-vi.mock("@workspace/data-access", () => ({
-  useClinicSettings: () => ({
-    isLoading: false,
-    data: settingsMocks.clinic,
-  }),
-  useUpdateClinicSettings: () => ({
-    mutate: settingsMocks.updateClinic,
-    isPending: false,
-  }),
-}));
+vi.mock("@workspace/data-access", async () => {
+  const actual =
+    await vi.importActual<typeof import("@workspace/data-access")>(
+      "@workspace/data-access",
+    );
+  return {
+    ...actual,
+    useClinicSettings: () => ({
+      isLoading: false,
+      data: settingsMocks.clinic,
+    }),
+    useUpdateClinicSettings: () => ({
+      mutate: settingsMocks.updateClinic,
+      isPending: false,
+    }),
+  };
+});
 
 vi.mock("sonner", () => ({
   toast: {

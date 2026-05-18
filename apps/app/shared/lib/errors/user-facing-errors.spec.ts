@@ -1,8 +1,5 @@
 import { describe, expect, it, vi } from "vitest";
-import {
-  getUserFacingErrorMessage,
-  isTechnicalErrorMessage,
-} from "@workspace/types";
+import { getUserFacingErrorMessage, isTechnicalErrorMessage } from "@workspace/utils";
 import { showUserFacingErrorToast } from "./user-facing-errors";
 
 vi.mock("sonner", () => ({

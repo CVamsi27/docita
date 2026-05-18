@@ -1,7 +1,7 @@
 "use client";
 
 import { useCallback } from "react";
-import { getUserFacingErrorMessage } from "@workspace/types";
+import { getUserFacingErrorMessage } from "@workspace/utils";
 import {
   Card,
   CardContent,

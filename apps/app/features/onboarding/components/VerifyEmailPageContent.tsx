@@ -5,7 +5,7 @@ import { DocitaLoadingIndicator } from "@workspace/ui/components/feedback/docita
 import { Suspense, useEffect, useMemo, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { CheckCircle, XCircle } from "lucide-react";
-import { sanitizeUserFacingMessage } from "@workspace/types";
+import { sanitizeUserFacingMessage } from "@workspace/utils";
 import { Button } from "@workspace/ui/components/form/button";
 import {
   useAuth,

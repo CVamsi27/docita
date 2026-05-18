@@ -1,10 +1,11 @@
 "use client";
 
+import { DATE_FORMATS, formatDate, formatDistanceToNow, getUserFacingErrorMessage } from "@workspace/utils";
+
 import { DocitaLoadingIndicator } from "@workspace/ui/components/feedback/docita-loading-indicator";
 
 import { type FormEvent, useDeferredValue, useEffect, useMemo, useState } from "react";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
-import { DATE_FORMATS, formatDate, formatDistanceToNow } from "@workspace/utils";
 import { Badge } from "@workspace/ui/components/indicators/badge";
 import { Button } from "@workspace/ui/components/form/button";
 import {
@@ -15,10 +16,7 @@ import {
 } from "@workspace/ui/components/indicators/card";
 import { Input } from "@workspace/ui/components/form/input";
 import { Textarea } from "@workspace/ui/components/form/textarea";
-import {
-  getUserFacingErrorMessage,
-  SupportWhatsAppMessage,
-} from "@workspace/types";
+import { SupportWhatsAppMessage } from "@workspace/types";
 import { internalQueryKeys } from "@/lib/api/query-keys";
 import { supportAPI } from "@/lib/api/api";
 import { useInternalQuery } from "@/lib/api/use-internal-query";

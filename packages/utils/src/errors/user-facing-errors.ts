@@ -135,25 +135,25 @@ function toRecord(value: unknown): Record<string, unknown> | null {
 
 function extractStatus(error: unknown): number | undefined {
   const record = toRecord(error);
-  const directStatus = record?.status ?? record?.statusCode;
+  const directStatus = record?.['status'] ?? record?.['statusCode'];
   if (typeof directStatus === "number") return directStatus;
 
-  const data = toRecord(record?.data);
-  const dataStatus = data?.status ?? data?.statusCode;
+  const data = toRecord(record?.['data']);
+  const dataStatus = data?.['status'] ?? data?.['statusCode'];
   return typeof dataStatus === "number" ? dataStatus : undefined;
 }
 
 function extractCode(error: unknown): string | undefined {
   const record = toRecord(error);
-  const directCode = record?.code;
+  const directCode = record?.['code'];
   if (typeof directCode === "string") return directCode;
 
-  const data = toRecord(record?.data);
-  const dataCode = data?.code;
+  const data = toRecord(record?.['data']);
+  const dataCode = data?.['code'];
   if (typeof dataCode === "string") return dataCode;
 
-  const nestedError = toRecord(data?.error ?? record?.error);
-  const nestedCode = nestedError?.code;
+  const nestedError = toRecord(data?.['error'] ?? record?.['error']);
+  const nestedCode = nestedError?.['code'];
   return typeof nestedCode === "string" ? nestedCode : undefined;
 }
 
@@ -162,15 +162,15 @@ function extractMessage(error: unknown): string | undefined {
   if (error instanceof Error) return error.message;
 
   const record = toRecord(error);
-  const directMessage = record?.message;
+  const directMessage = record?.['message'];
   if (typeof directMessage === "string") return directMessage;
 
-  const data = toRecord(record?.data);
-  const dataMessage = data?.message ?? data?.detail;
+  const data = toRecord(record?.['data']);
+  const dataMessage = data?.['message'] ?? data?.['detail'];
   if (typeof dataMessage === "string") return dataMessage;
 
-  const nestedError = toRecord(data?.error ?? record?.error);
-  const nestedMessage = nestedError?.message;
+  const nestedError = toRecord(data?.['error'] ?? record?.['error']);
+  const nestedMessage = nestedError?.['message'];
   return typeof nestedMessage === "string" ? nestedMessage : undefined;
 }
 

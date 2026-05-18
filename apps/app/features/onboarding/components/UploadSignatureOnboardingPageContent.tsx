@@ -19,7 +19,7 @@ import { buildCsrfHeaders } from "@/lib/auth/csrf";
 import { apiFetch } from "@/lib/api/api-client";
 import { appQueryKeys } from "@/lib/api/query-keys";
 import { SignatureUploadWorkflow } from "@/components/signature/signature-upload-workflow";
-import { getUserFacingErrorMessage } from "@workspace/types";
+import { getUserFacingErrorMessage } from "@workspace/utils";
 
 function OnboardingSlaUploadInner() {
   const searchParams = useSearchParams();

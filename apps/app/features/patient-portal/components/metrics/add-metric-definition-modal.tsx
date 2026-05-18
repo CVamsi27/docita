@@ -21,7 +21,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@workspace/ui/components/form/select";
-import { getUserFacingErrorMessage } from "@workspace/types";
+import { getUserFacingErrorMessage } from "@workspace/utils";
 
 import { useCreatePortalMetricDefinition } from "@workspace/data-access";
 

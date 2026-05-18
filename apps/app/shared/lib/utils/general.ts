@@ -1,4 +1,4 @@
-import { getUserFacingErrorMessage } from "@workspace/types";
+import { getUserFacingErrorMessage } from "@workspace/utils";
 export { cn } from "@workspace/ui";
 
 export function debounce<T extends (...args: never[]) => unknown>(

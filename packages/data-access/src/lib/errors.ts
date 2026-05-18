@@ -1,7 +1,4 @@
-import {
-  getUserFacingErrorMessage,
-  sanitizeUserFacingMessage,
-} from "@workspace/types";
+import { getUserFacingErrorMessage, sanitizeUserFacingMessage } from "@workspace/utils";
 import type { APIError } from "./types";
 
 export class APIRequestError extends Error implements APIError {

@@ -23,7 +23,7 @@ export function render(
     return (
       <DataAccessProvider
         config={{
-          fetcher: () => Promise.resolve({ ok: true }),
+          fetcher: () => Promise.resolve({ ok: true } as never),
           getClinicId: () => "clinic-1",
           getClinicTimezone: () => "UTC",
           isTierFeatureEnabled: () => true,

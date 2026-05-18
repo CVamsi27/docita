@@ -1,5 +1,7 @@
 "use client";
 
+import { DEFAULT_CURRENCY, formatCurrency, getDoctorVerificationPublicNote } from "@workspace/utils";
+
 import { DocitaLoadingIndicator } from "@workspace/ui/components/feedback/docita-loading-indicator";
 
 import { useEffect, useMemo, useState } from "react";
@@ -56,15 +58,8 @@ import { client } from "@/lib/api/api-client";
 import { formatInternalListDate } from "@/lib/formatters/format-display-date";
 import { internalQueryKeys } from "@/lib/api/query-keys";
 import { useInternalFiltersStore } from "@/lib/stores/internal-filters-store";
-import { DEFAULT_CURRENCY, formatCurrency } from "@workspace/utils";
 import { showUserFacingErrorToast } from "@/lib/errors/user-facing-errors";
-import {
-  getDoctorVerificationPublicNote,
-  HOSPITAL_ROLE_LABELS,
-  type HospitalRole,
-  type Specialization,
-  SPECIALIZATION_LABELS,
-} from "@workspace/types";
+import { HOSPITAL_ROLE_LABELS, type HospitalRole, type Specialization, SPECIALIZATION_LABELS } from "@workspace/types";
 
 interface Doctor {
   id: string;

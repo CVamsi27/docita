@@ -1,7 +1,7 @@
 "use client";
 
 import { useMemo } from "react";
-import { getUserFacingErrorMessage } from "@workspace/types";
+import { getUserFacingErrorMessage } from "@workspace/utils";
 import {
   type AppointmentListItem,
   usePatientAppointments,

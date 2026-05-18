@@ -1,4 +1,4 @@
 export {
   getDoctorVerificationPublicNote,
   type DoctorVerificationStatusValue,
-} from "@workspace/types";
+} from "@workspace/utils";

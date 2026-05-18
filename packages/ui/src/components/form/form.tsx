@@ -13,7 +13,7 @@ import {
   useFormState,
 } from "react-hook-form";
 
-import { sanitizeUserFacingMessage } from "@workspace/types";
+import { sanitizeUserFacingMessage } from "@workspace/utils";
 import { cn } from "@workspace/ui/lib/utils";
 import { Label } from "@workspace/ui/components/form/label";
 

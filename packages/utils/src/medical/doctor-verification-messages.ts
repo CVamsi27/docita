@@ -1,4 +1,4 @@
-import { sanitizeUserFacingMessage } from "../api/user-facing-errors";
+import { sanitizeUserFacingMessage } from "../errors/user-facing-errors.js";
 
 export type DoctorVerificationStatusValue =
   | "UNVERIFIED"

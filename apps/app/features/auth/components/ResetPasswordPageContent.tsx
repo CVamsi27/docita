@@ -12,7 +12,8 @@ import { DocitaLoadingIndicator } from "@workspace/ui/components/feedback/docita
 import { LoadingState } from "@workspace/ui/components/feedback/empty-state";
 import { FloatingInput } from "@workspace/ui/components/form/floating-input";
 import { SymbolTooltip } from "@workspace/ui/components/overlay/tooltip";
-import { getUserFacingErrorMessage, passwordSchema } from "@workspace/types";
+import { passwordSchema } from "@workspace/types";
+import { getUserFacingErrorMessage } from "@workspace/utils";
 import { BackButton } from "@/components/navigation/back-button";
 import { api } from "@/lib/api/api-client";
 import { logger } from "@/lib/monitoring/logger";

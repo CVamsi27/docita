@@ -20,7 +20,7 @@ import {
   defaultClinicRegistrationData,
   type TeamMember,
 } from "@/features/onboarding/components/types";
-import { getUserFacingErrorMessage } from "@workspace/types";
+import { getUserFacingErrorMessage } from "@workspace/utils";
 import { DEFAULT_CURRENCY } from "@workspace/utils";
 import { showUserFacingErrorToast } from "@/lib/errors/user-facing-errors";
 import {

@@ -1,4 +1,4 @@
-import { sanitizeUserFacingMessage } from "@workspace/types";
+import { sanitizeUserFacingMessage } from "@workspace/utils";
 import { ApiError } from "@/lib/errors";
 
 /**

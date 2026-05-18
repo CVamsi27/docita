@@ -1,7 +1,30 @@
-import type { ReactElement } from "react";
+import type { ReactElement, ReactNode } from "react";
 import { render, screen, waitFor } from "@testing-library/react";
 import { beforeEach, describe, expect, it, vi } from "vitest";
+import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
+import { DataAccessProvider } from "@workspace/data-access";
 import ProtectedLayout from "./layout";
+
+function withDataAccess(ui: ReactNode) {
+  const queryClient = new QueryClient({
+    defaultOptions: {
+      queries: { retry: false, gcTime: 0 },
+      mutations: { retry: false },
+    },
+  });
+  return (
+    <DataAccessProvider
+      config={{
+        fetcher: () => Promise.resolve({ ok: true } as never),
+        getClinicId: () => "clinic-1",
+        getClinicTimezone: () => "UTC",
+        isTierFeatureEnabled: () => true,
+      }}
+    >
+      <QueryClientProvider client={queryClient}>{ui}</QueryClientProvider>
+    </DataAccessProvider>
+  );
+}
 
 vi.mock("@workspace/ui/components/overlay/tooltip", () => ({
   SymbolTooltip: ({ children }: { children: ReactElement }) => children,
@@ -150,9 +173,11 @@ describe("ProtectedLayout", () => {
 
   it("redirects unverified users to verification before loading workspace chrome", async () => {
     render(
-      <ProtectedLayout>
-        <div>child</div>
-      </ProtectedLayout>,
+      withDataAccess(
+        <ProtectedLayout>
+          <div>child</div>
+        </ProtectedLayout>,
+      ),
     );
 
     await waitFor(() => {
@@ -169,9 +194,11 @@ describe("ProtectedLayout", () => {
     mocks.auth.user.emailVerified = true;
 
     render(
-      <ProtectedLayout>
-        <div>child</div>
-      </ProtectedLayout>,
+      withDataAccess(
+        <ProtectedLayout>
+          <div>child</div>
+        </ProtectedLayout>,
+      ),
     );
 
     expect(screen.getByTestId("desktop-top-bar")).toBeInTheDocument();

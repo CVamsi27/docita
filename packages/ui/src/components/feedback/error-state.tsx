@@ -1,7 +1,7 @@
 "use client";
 
 import { AlertCircle } from "lucide-react";
-import { sanitizeUserFacingMessage } from "@workspace/types";
+import { sanitizeUserFacingMessage } from "@workspace/utils";
 import { Button } from "@workspace/ui/components/form/button";
 import { cn } from "@workspace/ui/lib/utils";
 

@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from "react";
-import { getUserFacingErrorMessage } from "@workspace/types";
+import { getUserFacingErrorMessage } from "@workspace/utils";
 import { useAuth } from "@/lib/auth/auth";
 import { useInternalQuery } from "@/lib/api/use-internal-query";
 import { fetchClinics, fetchUsersForSelection } from "./api";

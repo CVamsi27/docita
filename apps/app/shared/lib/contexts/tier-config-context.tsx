@@ -8,7 +8,8 @@ import React, {
 } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { usePathname } from "next/navigation";
-import { getUserFacingErrorMessage, Tier, TIER_INFO } from "@workspace/types";
+import { Tier, TIER_INFO } from "@workspace/types";
+import { getUserFacingErrorMessage } from "@workspace/utils";
 import { Feature, FEATURE_TIER_MAP } from "@/lib/stores/permission-store";
 
 import {

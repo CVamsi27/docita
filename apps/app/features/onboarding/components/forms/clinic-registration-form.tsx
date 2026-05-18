@@ -4,7 +4,7 @@ import { useEffect, useState } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { AlertCircle } from "lucide-react";
-import { getUserFacingErrorMessage } from "@workspace/types";
+import { getUserFacingErrorMessage } from "@workspace/utils";
 import { useClinicRegistrationFlow } from "@/features/onboarding/hooks/use-clinic-registration-flow";
 import { useAuth } from "@/lib/auth/auth-context";
 import { useLocaleCurrency } from "@/hooks/use-locale-currency";

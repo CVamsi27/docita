@@ -19,7 +19,7 @@ import {
   validateToken,
 } from "@/lib/api/signature-helpers";
 import { SignatureUploadWorkflow } from "@/components/signature/signature-upload-workflow";
-import { getUserFacingErrorMessage } from "@workspace/types";
+import { getUserFacingErrorMessage } from "@workspace/utils";
 import { SupportContact } from "@/components/support-contact/support-contact";
 
 function UploadPageShell({ children }: { children: ReactNode }) {

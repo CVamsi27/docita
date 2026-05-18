@@ -15,7 +15,7 @@ import { Button } from "@workspace/ui/components/form/button";
 import { Input } from "@workspace/ui/components/form/input";
 import { Label } from "@workspace/ui/components/form/label";
 import { Textarea } from "@workspace/ui/components/form/textarea";
-import { getUserFacingErrorMessage } from "@workspace/types";
+import { getUserFacingErrorMessage } from "@workspace/utils";
 
 import { useRecordPortalMetricValue } from "@workspace/data-access";
 

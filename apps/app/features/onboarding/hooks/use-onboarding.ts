@@ -1,7 +1,7 @@
 "use client";
 
 import { useCallback, useState } from "react";
-import { getUserFacingErrorMessage } from "@workspace/types";
+import { getUserFacingErrorMessage } from "@workspace/utils";
 import { useMutation } from "@tanstack/react-query";
 import type { OnboardingData } from "@/features/onboarding/schemas/onboarding.schemas";
 import { apiFetch } from "@/lib/api/api-client";

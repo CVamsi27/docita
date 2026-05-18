@@ -1,6 +1,6 @@
 import type React from "react";
 import { Inbox, type LucideIcon } from "lucide-react";
-import { sanitizeUserFacingMessage } from "@workspace/types";
+import { sanitizeUserFacingMessage } from "@workspace/utils";
 
 import { EmptyState, LoadingState } from "@workspace/ui/components/feedback/empty-state";
 import { ErrorState } from "@workspace/ui/components/feedback/error-state";
