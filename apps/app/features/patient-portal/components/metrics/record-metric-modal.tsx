@@ -17,7 +17,7 @@ import { Label } from "@workspace/ui/components/form/label";
 import { Textarea } from "@workspace/ui/components/form/textarea";
 import { getUserFacingErrorMessage } from "@workspace/types";
 
-import { useRecordPortalMetricValue } from "@/hooks/api/use-patient-portal";
+import { useRecordPortalMetricValue } from "@workspace/data-access";
 
 interface MetricDefinition {
   id: string;

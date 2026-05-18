@@ -10,7 +10,7 @@ import {
   CardTitle,
 } from "@workspace/ui/components/indicators/card";
 import { Printer } from "lucide-react";
-import { usePatientConsentSettings } from "@/hooks/api/use-patient-portal";
+import { usePatientConsentSettings } from "@workspace/data-access";
 import { BackButton } from "@/components/navigation/back-button";
 import { formatDate, formatDateTime } from "@/lib/formatters";
 

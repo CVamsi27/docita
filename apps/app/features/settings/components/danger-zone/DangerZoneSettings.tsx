@@ -20,7 +20,7 @@ import {
 import { AlertCircle, LogOut, Trash2 } from "lucide-react";
 import { useAuth } from "@/lib/auth/auth-context";
 import { useConfirm } from "@/hooks/use-confirm";
-import { useRequestStaffAccountDeletion } from "@/hooks/api/use-settings";
+import { useRequestStaffAccountDeletion } from "@workspace/data-access";
 import { toast } from "sonner";
 import { showUserFacingErrorToast } from "@/lib/errors/user-facing-errors";
 

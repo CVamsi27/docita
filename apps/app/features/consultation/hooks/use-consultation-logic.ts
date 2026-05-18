@@ -6,8 +6,8 @@ import {
   useAppointment,
   useStartConsultation,
   useUpdateAppointment,
-} from "@/hooks/api/use-appointments";
-import { useClinicSettings } from "@/hooks/api/use-settings";
+} from "@workspace/data-access";
+import { useClinicSettings } from "@workspace/data-access";
 import { useBackNavigation } from "@/hooks/use-back-navigation";
 import { useAuth } from "@/lib/auth/auth-context";
 import { usePermissions } from "@/hooks/use-permissions";

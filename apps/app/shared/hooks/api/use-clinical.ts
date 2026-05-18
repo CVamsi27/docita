@@ -20,9 +20,9 @@ import {
   VitalSign,
 } from "@workspace/types";
 import { useAPIMutation, useAPIQuery } from "@/lib/api/api-core";
-import { useTierFeatureEnabled } from "@/hooks/api/tier-feature-guards";
+import { useTierFeatureEnabled } from "@/lib/access-control/use-tier-feature-enabled";
 import type { ApiError } from "@/lib/errors";
-import { withQueryString } from "@/lib/http/query-string";
+import { withQueryString } from "@workspace/data-access";
 import { api } from "@/lib/api/api-client";
 
 const POLL_INTERVAL_MS = 2000;

@@ -14,7 +14,7 @@ import { BellIcon, ExternalLinkIcon, TrashIcon, XIcon } from "lucide-react";
 import {
   useNotifications, useMarkNotificationRead, useDeleteNotification,
   useDeleteAllNotifications, type StaffNotification,
-} from "@/hooks/api/use-notifications";
+} from "@workspace/data-access";
 import { useSocket } from "@/lib/contexts/socket-context";
 import { NOTIFICATION_CATEGORIES, type NotificationCategoryId } from "./notification-href";
 import {

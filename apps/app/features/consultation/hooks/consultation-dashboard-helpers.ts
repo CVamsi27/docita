@@ -1,4 +1,4 @@
-import type { QueueItem } from "@/hooks/api/use-appointments";
+import type { QueueItem } from "@workspace/data-access";
 import { formatUtcInstantAsClinicPickerIso } from "@workspace/utils";
 import { isQueueTokenWaiting } from "@/lib/utils/queue-token-status";
 

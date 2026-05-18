@@ -14,7 +14,7 @@ import {
 } from "@workspace/types";
 import { queryKeys } from "@workspace/data-access";
 import { useAppMutation } from "@/lib/api/query-hooks";
-import { useTierFeatureEnabled } from "@/hooks/api/tier-feature-guards";
+import { useTierFeatureEnabled } from "@/lib/access-control/use-tier-feature-enabled";
 
 export function usePatients(params?: {
   limit?: number;

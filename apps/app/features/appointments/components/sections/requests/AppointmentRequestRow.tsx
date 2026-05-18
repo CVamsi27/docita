@@ -10,7 +10,7 @@ import {
   utcInstantToClinicWallDatetimeLocal,
   formatDistanceToNow,
 } from "@workspace/utils";
-import { useDoctorAvailabilitySlots } from "@/hooks/api/use-settings";
+import { useDoctorAvailabilitySlots } from "@workspace/data-access";
 import { fetchNextAvailableSlotWindow } from "@/lib/utils/doctor-availability-first-slot";
 import { formatLocaleDateShortMonthYear } from "@/lib/formatters";
 import type { ApproveScheduleFieldKey } from "@/lib/utils/appointment-request-approve-errors";

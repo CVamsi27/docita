@@ -7,7 +7,7 @@ import { CheckIcon, XIcon } from "lucide-react";
 import { cn } from "@workspace/ui/lib/utils";
 import { PriorityBadge } from "@workspace/ui/components/indicators/status-badge";
 import { formatTime, isToday, isYesterday } from "@workspace/utils";
-import type { StaffNotification } from "@/hooks/api/use-notifications";
+import type { StaffNotification } from "@workspace/data-access";
 import { notificationHref } from "@/components/navigation/notification-href";
 
 interface RowProps {

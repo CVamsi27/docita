@@ -1,7 +1,8 @@
 import { Feature, InventoryItem } from "@workspace/types";
-import { useAPIMutation, useAPIQuery } from "@/lib/api/api-core";
-import { useTierFeatureEnabled } from "@/hooks/api/tier-feature-guards";
-import { withQueryString } from "@/lib/http/query-string";
+import { useAPIMutation } from "../core/use-api-mutation";
+import { useAPIQuery } from "../core/use-api-query";
+import { withQueryString } from "../lib/query-string";
+import { useDataAccessContext } from "../provider/hooks";
 
 interface InventoryMovementInput {
   type: string;
@@ -27,7 +28,7 @@ export const useInventory = (filters?: {
   category?: string;
   status?: string;
 }) => {
-  const inventoryOk = useTierFeatureEnabled(Feature.INVENTORY);
+  const inventoryOk = useDataAccessContext().isTierFeatureEnabled(Feature.INVENTORY);
   return useAPIQuery<InventoryItem[]>(
     ["inventory", filters || {}],
     withQueryString("/inventory", filters),
@@ -36,7 +37,7 @@ export const useInventory = (filters?: {
 };
 
 export const useInventoryStats = () => {
-  const inventoryOk = useTierFeatureEnabled(Feature.INVENTORY);
+  const inventoryOk = useDataAccessContext().isTierFeatureEnabled(Feature.INVENTORY);
   return useAPIQuery<{
     totalItems: number;
     totalStock: number;
@@ -47,7 +48,7 @@ export const useInventoryStats = () => {
 };
 
 export const useInventoryItem = (id: string) => {
-  const inventoryOk = useTierFeatureEnabled(Feature.INVENTORY);
+  const inventoryOk = useDataAccessContext().isTierFeatureEnabled(Feature.INVENTORY);
   return useAPIQuery<
     InventoryItem & {
       movements: {

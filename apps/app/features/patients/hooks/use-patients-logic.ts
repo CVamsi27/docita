@@ -3,7 +3,7 @@ import { useRouter, useSearchParams } from "next/navigation";
 import type { Patient } from "@workspace/types";
 import { getUserFacingErrorMessage } from "@workspace/types";
 
-import { usePatients } from "@/hooks/api/use-patients";
+import { usePatients } from "@workspace/data-access";
 
 type PatientsSortConfig = {
   key: keyof Patient | "fullName";

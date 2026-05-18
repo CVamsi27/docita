@@ -2,8 +2,8 @@
 
 import { useMemo } from "react";
 import { useAuth } from "@/lib/auth/auth-context";
-import { useClinicMembers } from "@/hooks/api/use-settings";
-import { useLeaveBalance } from "@/hooks/api/use-leaves";
+import { useClinicMembers } from "@workspace/data-access";
+import { useLeaveBalance } from "@workspace/data-access";
 import { LeaveBalanceCard } from "./LeaveBalanceCard";
 import { LeavePolicyEditor } from "./LeavePolicyEditor";
 import { LeaveSettingsForm } from "./LeaveSettingsForm";

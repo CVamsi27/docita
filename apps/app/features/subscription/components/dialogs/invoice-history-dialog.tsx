@@ -10,7 +10,7 @@ import {
 } from "@workspace/ui/components/overlay/dialog";
 import { Button } from "@workspace/ui/components/form/button";
 import { FileText } from "lucide-react";
-import { useBillingHistory } from "@/hooks/api/use-billing-history";
+import { useBillingHistory } from "@workspace/data-access";
 import { BillingHistoryTable } from "@/features/subscription/components/billing/BillingHistoryTable";
 
 interface InvoiceHistoryDialogProps {

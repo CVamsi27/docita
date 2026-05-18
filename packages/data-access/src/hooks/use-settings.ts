@@ -23,15 +23,12 @@ import {
   subscriptionCurrentResponseSchema,
   availableSlotSchema,
 } from "@workspace/types";
-import {
-  useAPIMutation,
-  useAPIQuery,
-  useAPIQueryValidated,
-} from "@/lib/api/api-core";
-import { useTierFeatureEnabled } from "@/hooks/api/tier-feature-guards";
-import { withQueryString } from "@/lib/http/query-string";
-import { useClinic } from "@/lib/contexts/clinic-context";
-
+import { useAPIMutation } from "../core/use-api-mutation";
+import { useAPIQuery } from "../core/use-api-query";
+import { useAPIQueryValidated } from "../core/use-api-query-validated";
+// FIXME: remove or substitute: 
+import { withQueryString } from "../lib/query-string";
+import { useDataAccessContext } from "../provider/hooks";
 export type ClinicAppSettings = AppClinicSettings;
 
 export interface DoctorSchedule {
@@ -211,7 +208,7 @@ export const useReverifyDoctorRegistration = () =>
   );
 
 export const useDoctorSchedules = (doctorId?: string) => {
-  const calendarOk = useTierFeatureEnabled(Feature.CALENDAR_SLOTS);
+  const calendarOk = useDataAccessContext().isTierFeatureEnabled(Feature.CALENDAR_SLOTS);
   return useAPIQuery<DoctorSchedule[]>(
     ["doctor-schedules", doctorId || "me"],
     `/doctor-availability/schedules${doctorId ? `?doctorId=${doctorId}` : ""}`,
@@ -220,7 +217,7 @@ export const useDoctorSchedules = (doctorId?: string) => {
 };
 
 export const useClinicSchedules = () => {
-  const calendarOk = useTierFeatureEnabled(Feature.CALENDAR_SLOTS);
+  const calendarOk = useDataAccessContext().isTierFeatureEnabled(Feature.CALENDAR_SLOTS);
   return useAPIQuery<DoctorSchedule[]>(
     ["clinic-schedules"],
     "/doctor-availability/schedules/clinic",
@@ -274,7 +271,7 @@ export const useDeleteDoctorSchedule = (id: string) =>
   );
 
 export const useDoctorTimeOffs = (doctorId?: string, upcoming?: boolean) => {
-  const calendarOk = useTierFeatureEnabled(Feature.CALENDAR_SLOTS);
+  const calendarOk = useDataAccessContext().isTierFeatureEnabled(Feature.CALENDAR_SLOTS);
   return useAPIQuery<DoctorTimeOff[]>(
     ["doctor-time-offs", doctorId || "me", upcoming ? "upcoming" : "all"],
     `/doctor-availability/time-off${doctorId ? `?doctorId=${doctorId}` : ""}${upcoming ? "&upcoming=true" : ""}`,
@@ -325,9 +322,9 @@ export function useUnavailableDoctorIdsForDate(
   date: Date | undefined,
   queryOptions?: { enabled?: boolean },
 ) {
-  const { clinic } = useClinic();
-  const clinicTz = clinic?.timezone?.trim() || DEFAULT_TIMEZONE;
-  const calendarOk = useTierFeatureEnabled(Feature.CALENDAR_SLOTS);
+  const { getClinicTimezone, isTierFeatureEnabled } = useDataAccessContext();
+  const clinicTz = getClinicTimezone()?.trim() || DEFAULT_TIMEZONE;
+  const calendarOk = isTierFeatureEnabled(Feature.CALENDAR_SLOTS);
   const dateStr = date
     ? formatClinicPickerDayIsoFromSelection(date, clinicTz)
     : "";
@@ -351,9 +348,9 @@ export function useDoctorAvailabilitySlots(
   doctorId: string | undefined,
   queryOptions?: { enabled?: boolean },
 ) {
-  const { clinic } = useClinic();
-  const clinicTz = clinic?.timezone?.trim() || DEFAULT_TIMEZONE;
-  const calendarOk = useTierFeatureEnabled(Feature.CALENDAR_SLOTS);
+  const { getClinicTimezone, isTierFeatureEnabled } = useDataAccessContext();
+  const clinicTz = getClinicTimezone()?.trim() || DEFAULT_TIMEZONE;
+  const calendarOk = isTierFeatureEnabled(Feature.CALENDAR_SLOTS);
   const enabled =
     calendarOk &&
     Boolean(date && doctorId) &&
@@ -380,7 +377,7 @@ export function useDoctorAvailabilitySlots(
 }
 
 export const useMedicalCodingSettings = () => {
-  const codingOk = useTierFeatureEnabled(Feature.MEDICAL_CODING);
+  const codingOk = useDataAccessContext().isTierFeatureEnabled(Feature.MEDICAL_CODING);
   return useAPIQuery<{
     enabled: boolean;
     provider: string;

@@ -12,7 +12,7 @@ import { Label } from "@workspace/ui/components/form/label";
 import { cn } from "@workspace/ui/lib/utils";
 import { useState } from "react";
 import type { DentalChartData } from "@workspace/types";
-import { useConstants } from "@/hooks/api/use-common";
+import { useConstants } from "@workspace/data-access";
 import { Skeleton } from "@workspace/ui/components/feedback/skeleton";
 
 export type DentalChartValue = DentalChartData;

@@ -23,7 +23,7 @@ import {
   usePatientConsentSettings,
   useRequestDataDeletion,
   useUpdatePatientConsent,
-} from "@/hooks/api/use-patient-portal";
+} from "@workspace/data-access";
 import { PageHeader } from "@workspace/ui/components/layout/page-header";
 import { toast } from "sonner";
 import { Textarea } from "@workspace/ui/components/form/textarea";

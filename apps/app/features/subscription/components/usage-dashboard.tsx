@@ -3,7 +3,7 @@
 import { DocitaLoadingIndicator } from "@workspace/ui/components/feedback/docita-loading-indicator";
 
 import { useCurrentUsage } from "@/hooks/api/use-pricing";
-import { useSubscription } from "@/hooks/api/use-settings";
+import { useSubscription } from "@workspace/data-access";
 import {
   PRICING_CURRENCY_CONFIG,
   PRICING_CURRENCY_SYMBOLS,

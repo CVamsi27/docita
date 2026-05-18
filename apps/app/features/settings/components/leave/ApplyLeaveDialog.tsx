@@ -29,7 +29,7 @@ import {
   SelectValue,
 } from "@workspace/ui/components/form/select";
 import { Textarea } from "@workspace/ui/components/form/textarea";
-import { useApplyLeave } from "@/hooks/api/use-leaves";
+import { useApplyLeave } from "@workspace/data-access";
 import {
   LeaveType,
   createLeaveRequestSchema,

@@ -3,7 +3,7 @@
 import {
   usePortalActiveMedications,
   usePortalAdherence,
-} from "@/hooks/api/use-patient-portal";
+} from "@workspace/data-access";
 import { ActiveMedicationsCard } from "@/features/patient-portal/components/medications/active-medications-card";
 import { DoseTracker } from "@/features/patient-portal/components/medications/dose-tracker";
 import { AdherenceChart } from "@/features/patient-portal/components/medications/adherence-chart";

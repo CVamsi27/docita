@@ -10,7 +10,7 @@ import { BellIcon, TrashIcon } from "lucide-react";
 import {
   useAllNotifications, useMarkNotificationRead, useDeleteNotification,
   useDeleteAllNotifications, type StaffNotification,
-} from "@/hooks/api/use-notifications";
+} from "@workspace/data-access";
 import { useSocket } from "@/lib/contexts/socket-context";
 import { NOTIFICATION_CATEGORIES, type NotificationCategoryId } from "@/components/navigation/notification-href";
 import { NotificationRow, categorize, filterByCategory } from "./notification-inbox-row";

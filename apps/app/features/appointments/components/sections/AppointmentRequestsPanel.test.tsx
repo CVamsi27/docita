@@ -16,7 +16,7 @@ const appointmentMocks = vi.hoisted(() => ({
   refetch: vi.fn(),
 }));
 
-vi.mock("@/hooks/api/use-appointments", () => ({
+vi.mock("@workspace/data-access", () => ({
   useAppointmentRequests: appointmentMocks.useAppointmentRequests,
   useApproveAppointmentRequest: () => ({
     isPending: false,
@@ -28,7 +28,7 @@ vi.mock("@/hooks/api/use-appointments", () => ({
   }),
 }));
 
-vi.mock("@/hooks/api/use-settings", () => ({
+vi.mock("@workspace/data-access", () => ({
   useDoctors: () => ({
     data: appointmentMocks.doctors,
   }),

@@ -9,17 +9,18 @@ import type {
   PublicBookingSubmitResponse,
 } from "@workspace/types";
 import { queryKeys } from "@workspace/data-access";
-import { fetchAPI } from "@/lib/api/api-core";
+import { useDataAccessContext } from "../provider/hooks";
 
 function clinicsBase(referralCode: string) {
   return `/public/booking/clinics/${encodeURIComponent(referralCode)}`;
 }
 
 export function usePublicBookingClinic(referralCode: string) {
+  const { fetcher } = useDataAccessContext();
   return useQuery({
     queryKey: queryKeys.publicBooking.clinic(referralCode),
     queryFn: () =>
-      fetchAPI<PublicBookingClinicResponse>(clinicsBase(referralCode), {
+      fetcher<PublicBookingClinicResponse>(clinicsBase(referralCode), {
         skipAuth: true,
         suppressGlobalErrorToast: true,
       }),
@@ -28,10 +29,11 @@ export function usePublicBookingClinic(referralCode: string) {
 }
 
 export function usePublicBookingDoctors(referralCode: string) {
+  const { fetcher } = useDataAccessContext();
   return useQuery({
     queryKey: queryKeys.publicBooking.doctors(referralCode),
     queryFn: () =>
-      fetchAPI<PublicBookingDoctorsResponse>(
+      fetcher<PublicBookingDoctorsResponse>(
         `${clinicsBase(referralCode)}/doctors`,
         { skipAuth: true, suppressGlobalErrorToast: true },
       ),
@@ -44,6 +46,7 @@ export function usePublicBookingSlots(
   doctorId: string,
   date: string,
 ) {
+  const { fetcher } = useDataAccessContext();
   const doctorParam =
     doctorId && doctorId !== "any"
       ? `doctorId=${encodeURIComponent(doctorId)}&`
@@ -51,7 +54,7 @@ export function usePublicBookingSlots(
   return useQuery({
     queryKey: queryKeys.publicBooking.slots(referralCode, doctorId, date),
     queryFn: () =>
-      fetchAPI<PublicBookingSlotsResponse>(
+      fetcher<PublicBookingSlotsResponse>(
         `${clinicsBase(referralCode)}/slots?${doctorParam}date=${encodeURIComponent(date)}`,
         { skipAuth: true, suppressGlobalErrorToast: true },
       ),
@@ -63,13 +66,14 @@ export function usePublicBookingContext(
   referralCode: string,
   bookingVerificationToken: string | null,
 ) {
+  const { fetcher } = useDataAccessContext();
   return useQuery({
     queryKey: queryKeys.publicBooking.context(
       referralCode,
       bookingVerificationToken,
     ),
     queryFn: () =>
-      fetchAPI<PublicBookingContextResponse>(
+      fetcher<PublicBookingContextResponse>(
         `${clinicsBase(referralCode)}/context`,
         {
           skipAuth: true,
@@ -87,9 +91,10 @@ export function usePublicBookingContext(
 }
 
 export function usePublicBookingPhoneCheck(referralCode: string) {
+  const { fetcher } = useDataAccessContext();
   return useMutation({
     mutationFn: (body: { phoneNumber: string; turnstileToken?: string }) =>
-      fetchAPI<PublicBookingPhoneCheckResponse>(
+      fetcher<PublicBookingPhoneCheckResponse>(
         `${clinicsBase(referralCode)}/phone-check`,
         {
           method: "POST",
@@ -102,9 +107,10 @@ export function usePublicBookingPhoneCheck(referralCode: string) {
 }
 
 export function usePublicBookingOtpRequest(referralCode: string) {
+  const { fetcher } = useDataAccessContext();
   return useMutation({
     mutationFn: (body: { phoneNumber: string; turnstileToken?: string }) =>
-      fetchAPI<{ message: string; expiresInSeconds: number }>(
+      fetcher<{ message: string; expiresInSeconds: number }>(
         `${clinicsBase(referralCode)}/otp/request`,
         {
           method: "POST",
@@ -117,9 +123,10 @@ export function usePublicBookingOtpRequest(referralCode: string) {
 }
 
 export function usePublicBookingOtpVerify(referralCode: string) {
+  const { fetcher } = useDataAccessContext();
   return useMutation({
     mutationFn: (body: { phoneNumber: string; otp: string }) =>
-      fetchAPI<PublicBookingOtpVerifyResponse>(
+      fetcher<PublicBookingOtpVerifyResponse>(
         `${clinicsBase(referralCode)}/otp/verify`,
         {
           method: "POST",
@@ -132,12 +139,13 @@ export function usePublicBookingOtpVerify(referralCode: string) {
 }
 
 export function usePublicBookingSubmit(referralCode: string) {
+  const { fetcher } = useDataAccessContext();
   return useMutation({
     mutationFn: (args: {
       body: Record<string, unknown>;
       authorization?: string;
     }) =>
-      fetchAPI<PublicBookingSubmitResponse>(
+      fetcher<PublicBookingSubmitResponse>(
         `${clinicsBase(referralCode)}/requests`,
         {
           method: "POST",

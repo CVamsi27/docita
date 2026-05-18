@@ -1,6 +1,6 @@
 import { useMemo, useState } from "react";
 import { toast } from "sonner";
-import { useProcessOCR, useOcrCommitImport } from "@/hooks/api/use-import";
+import { useProcessOCR, useOcrCommitImport } from "@workspace/data-access";
 import { useAuth } from "@/lib/auth/auth-context";
 import { useClinic } from "@/lib/contexts/clinic-context";
 import { useRouter } from "next/navigation";

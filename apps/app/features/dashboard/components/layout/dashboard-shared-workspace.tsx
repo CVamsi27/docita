@@ -8,7 +8,7 @@ import {
   DashboardAlertsContainer,
 } from "@/features/dashboard/components/alerts/dashboard-alerts-container";
 import { DoctorDashboardCards } from "@/features/dashboard/components/stats/doctor-dashboard-cards";
-import type { AppointmentListItem } from "@/hooks/api/use-appointments";
+import type { AppointmentListItem } from "@workspace/data-access";
 
 export type DashboardWorkspaceMode = "dashboard" | "today";
 

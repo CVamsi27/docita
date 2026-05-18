@@ -9,7 +9,7 @@ import {
   useDeleteClinicMember,
   useReverifyDoctorRegistration,
   useUpdateClinicMember,
-} from "@/hooks/api/use-settings";
+} from "@workspace/data-access";
 import { Card, CardContent } from "@workspace/ui/components/indicators/card";
 import { User } from "@workspace/types";
 import { useMemberManagementLogic } from "@/features/settings/hooks/use-member-management-logic";

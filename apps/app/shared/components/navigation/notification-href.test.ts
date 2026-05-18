@@ -4,7 +4,7 @@ import {
   categoryForType,
   notificationHref,
 } from "./notification-href";
-import type { StaffNotification } from "@/hooks/api/use-notifications";
+import type { StaffNotification } from "@workspace/data-access";
 
 function notif(
   type: string,

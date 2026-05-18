@@ -13,7 +13,7 @@ import { Label } from "@workspace/ui/components/form/label";
 import { AppPageScaffold } from "@workspace/ui/components/layout/app-page-scaffold";
 import { PageHeader } from "@workspace/ui/components/layout/page-header";
 import { useAuth } from "@/lib/auth/auth-context";
-import { useUpdateProfile } from "@/hooks/api/use-settings";
+import { useUpdateProfile } from "@workspace/data-access";
 import { toast } from "sonner";
 import { ChangePasswordSettings } from "@/features/settings/components";
 import { showUserFacingErrorToast } from "@/lib/errors/user-facing-errors";

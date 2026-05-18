@@ -6,7 +6,7 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import {
   usePrescriptionDefaults,
   useUpdatePrescriptionDefaults,
-} from "@/hooks/api/use-settings";
+} from "@workspace/data-access";
 import { toast } from "sonner";
 import {
   Card,

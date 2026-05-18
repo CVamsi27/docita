@@ -5,8 +5,8 @@ import { getUserFacingErrorMessage } from "@workspace/types";
 import {
   type AppointmentListItem,
   usePatientAppointments,
-} from "@/hooks/api/use-appointments";
-import { usePatient } from "@/hooks/api/use-patients";
+} from "@workspace/data-access";
+import { usePatient } from "@workspace/data-access";
 
 import type {
   PatientPortalSnapshot,

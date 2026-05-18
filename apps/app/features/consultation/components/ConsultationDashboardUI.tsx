@@ -18,7 +18,7 @@ import { formatClockTime } from "@/lib/formatters";
 import { StatGrid } from "@workspace/ui/components/data-display/stat-grid";
 import { isQueueTokenInProgress } from "@/lib/utils/queue-token-status";
 import Link from "next/link";
-import { useCheckInAppointment } from "@/hooks/api/use-appointments";
+import { useCheckInAppointment } from "@workspace/data-access";
 import { showUserFacingErrorToast } from "@/lib/errors/user-facing-errors";
 import { buildConsultationRoute } from "@/features/consultation/rules/consultationTabRouting";
 import type { Appointment } from "@workspace/types";

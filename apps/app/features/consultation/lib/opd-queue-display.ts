@@ -1,4 +1,4 @@
-import type { QueueItem } from "@/hooks/api/use-appointments";
+import type { QueueItem } from "@workspace/data-access";
 import { humanizeUiLabel } from "@workspace/ui/lib/label-formatters";
 import { formatChiefComplaintSummary } from "@workspace/utils";
 

@@ -6,7 +6,7 @@ import type { PatientAppointmentStatus } from "@/features/patient-portal/types/p
 import {
   usePatientPortalAppointments,
   useRequestAppointment,
-} from "@/hooks/api/use-patient-portal";
+} from "@workspace/data-access";
 import { AppPageScaffold } from "@workspace/ui/components/layout/app-page-scaffold";
 import { Button } from "@workspace/ui/components/form/button";
 import {

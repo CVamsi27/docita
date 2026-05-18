@@ -4,7 +4,7 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import { toast } from "sonner";
 import { useCreateInvoice } from "@/hooks/api/use-billing";
-import { usePatients } from "@/hooks/api/use-patients";
+import { usePatients } from "@workspace/data-access";
 import { useRouter } from "next/navigation";
 import { invoiceItemSchema } from "./use-invoice-edit-logic";
 import { showUserFacingErrorToast } from "@/lib/errors/user-facing-errors";

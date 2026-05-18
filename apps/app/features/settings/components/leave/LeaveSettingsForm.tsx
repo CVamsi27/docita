@@ -17,7 +17,7 @@ import {
   SelectValue,
 } from "@workspace/ui/components/form/select";
 import { Skeleton } from "@workspace/ui/components/feedback/skeleton";
-import { useLeaves } from "@/hooks/api/use-leaves";
+import { useLeaves } from "@workspace/data-access";
 import type { StaffLeave, User } from "@workspace/types";
 import { ApplyLeaveDialog } from "./ApplyLeaveDialog";
 import { LeaveRequestRow } from "./LeaveRequestRow";

@@ -11,7 +11,7 @@ import { Button } from "@workspace/ui/components/form/button";
 import { Label } from "@workspace/ui/components/form/label";
 import { Textarea } from "@workspace/ui/components/form/textarea";
 import { toast } from "sonner";
-import { useUpdateAppointment } from "@/hooks/api/use-appointments";
+import { useUpdateAppointment } from "@workspace/data-access";
 import { StickyNote } from "lucide-react";
 import { ModalProps } from "./PrescriptionModal";
 import { showUserFacingErrorToast } from "@/lib/errors/user-facing-errors";

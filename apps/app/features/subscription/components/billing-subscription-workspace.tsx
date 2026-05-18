@@ -22,7 +22,7 @@ import {
 } from "@/hooks/api/use-schedule-plan-change";
 import { useCurrentUsage, usePricingConfig } from "@/hooks/api/use-pricing";
 import { useLocaleCurrency } from "@/hooks/use-locale-currency";
-import { useSubscription } from "@/hooks/api/use-settings";
+import { useSubscription } from "@workspace/data-access";
 import {
   type SupportedCurrency,
   type TierName,

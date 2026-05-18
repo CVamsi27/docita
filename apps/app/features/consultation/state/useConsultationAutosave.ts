@@ -7,7 +7,7 @@ import { serializeChiefComplaintsForPatch } from "@workspace/utils";
 import {
   useConsultationAutosaveUpdateAppointment,
   useSyncDiagnoses,
-} from "@/hooks/api/use-appointments";
+} from "@workspace/data-access";
 import { useCreatePrescription } from "@/hooks/api/use-clinical";
 import { logger } from "@/lib/monitoring/logger";
 import { showUserFacingErrorToast } from "@/lib/errors/user-facing-errors";

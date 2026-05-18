@@ -10,7 +10,7 @@ import { zodResolver } from "@hookform/resolvers/zod";
 
 import { Patient } from "@workspace/types";
 import { useClinic } from "@/lib/contexts/clinic-context";
-import { useUpdatePatient } from "@/hooks/api/use-patients";
+import { useUpdatePatient } from "@workspace/data-access";
 import { Button } from "@workspace/ui/components/form/button";
 import { DatePicker } from "@workspace/ui/components/form/date-picker";
 import { FormDialog } from "@workspace/ui/components/form/form-dialog";

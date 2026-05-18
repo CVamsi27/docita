@@ -10,7 +10,7 @@ import type {
 } from "@workspace/types";
 import { useAuth } from "@/lib/auth/auth-context";
 import { useAPIQuery, useAPIMutation } from "@/lib/api/api-core";
-import { useGenerateSignatureToken } from "@/hooks/api/use-signature-upload";
+import { useGenerateSignatureToken } from "@workspace/data-access";
 import { toAbsoluteApiUrl, toAbsoluteAppUrl } from "@/lib/utils/url";
 import { usePhoneSignatureQrFlow } from "@/hooks/use-phone-signature-qr-flow";
 import { showUserFacingErrorToast } from "@/lib/errors/user-facing-errors";

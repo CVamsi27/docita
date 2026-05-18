@@ -15,7 +15,7 @@ import { Activity, Plus, RefreshCw } from "lucide-react";
 import {
   usePortalMetricCategories,
   usePortalMetricHistory,
-} from "@/hooks/api/use-patient-portal";
+} from "@workspace/data-access";
 import { MetricCategorySection } from "@/features/patient-portal/components/metrics/metric-category-section";
 import { AddMetricDefinitionModal } from "@/features/patient-portal/components/metrics/add-metric-definition-modal";
 import { useQueryClient } from "@tanstack/react-query";

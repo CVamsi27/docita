@@ -3,7 +3,7 @@ import {
   useAppointments,
   useQueueByDoctor,
   useStartConsultation,
-} from "@/hooks/api/use-appointments";
+} from "@workspace/data-access";
 import { useCallback, useMemo } from "react";
 import { useRouter } from "next/navigation";
 import { useAuth } from "@/lib/auth/auth-context";
@@ -17,7 +17,7 @@ import {
   isQueueTokenInProgress,
   isQueueTokenWaiting,
 } from "@/lib/utils/queue-token-status";
-import { useClinicSettings } from "@/hooks/api/use-settings";
+import { useClinicSettings } from "@workspace/data-access";
 import {
   DEFAULT_TIMEZONE,
   formatClinicTodayPickerIso,

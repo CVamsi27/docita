@@ -2,8 +2,8 @@
 
 import Link from "next/link";
 import { useMemo } from "react";
-import { usePatientPortalDashboard } from "@/hooks/api/use-patient-portal";
-import { usePatientConsentSettings } from "@/hooks/api/use-patient-portal";
+import { usePatientPortalDashboard } from "@workspace/data-access";
+import { usePatientConsentSettings } from "@workspace/data-access";
 import { AppPageScaffold } from "@workspace/ui/components/layout/app-page-scaffold";
 import {
   Card,

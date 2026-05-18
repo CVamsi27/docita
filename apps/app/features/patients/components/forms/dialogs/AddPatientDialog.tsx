@@ -9,7 +9,7 @@ import { z } from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
 
 import { useClinic } from "@/lib/contexts/clinic-context";
-import { useCreatePatient } from "@/hooks/api/use-patients";
+import { useCreatePatient } from "@workspace/data-access";
 import { Button } from "@workspace/ui/components/form/button";
 import { Checkbox } from "@workspace/ui/components/form/checkbox";
 import { DatePicker } from "@workspace/ui/components/form/date-picker";

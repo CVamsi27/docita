@@ -17,8 +17,8 @@ import {
   useAppointmentRequests,
   useApproveAppointmentRequest,
   useRejectAppointmentRequest,
-} from "@/hooks/api/use-appointments";
-import { useDoctors } from "@/hooks/api/use-settings";
+} from "@workspace/data-access";
+import { useDoctors } from "@workspace/data-access";
 import { showUserFacingErrorToast } from "@/lib/errors/user-facing-errors";
 import {
   extractApproveAppointmentRequestFieldErrors,

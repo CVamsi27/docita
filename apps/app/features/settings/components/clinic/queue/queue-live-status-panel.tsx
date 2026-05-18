@@ -3,7 +3,7 @@
 import { useMemo, useState } from "react";
 import { toast } from "sonner";
 import { RefreshCw, RotateCcw } from "lucide-react";
-import { useQueue, useResetQueue } from "@/hooks/api/use-appointments";
+import { useQueue, useResetQueue } from "@workspace/data-access";
 import { showUserFacingErrorToast } from "@/lib/errors/user-facing-errors";
 import {
   isQueueTokenCompleted,

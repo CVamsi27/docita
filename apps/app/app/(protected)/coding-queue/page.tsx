@@ -18,7 +18,7 @@ import { PageHeader } from "@workspace/ui/components/layout/page-header";
 import { useDebounce } from "@workspace/hooks/use-debounce";
 import { FeatureGate } from "@/components/auth/feature-gate";
 import { CodingQueue } from "@/features/medical-coding/components";
-import { useCodingQueue } from "@/hooks/api/use-medical-coding";
+import { useCodingQueue } from "@workspace/data-access";
 import { formatDateTime } from "@/lib/formatters";
 
 function formatQueueDate(value: Appointment["startTime"]): string {

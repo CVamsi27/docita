@@ -1,4 +1,4 @@
-import { useAPIMutation } from "@/lib/api/api-core";
+import { useAPIMutation } from "../core/use-api-mutation";
 
 export const useCreateContactInquiry = () =>
   useAPIMutation<

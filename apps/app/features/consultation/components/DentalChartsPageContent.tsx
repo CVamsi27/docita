@@ -23,11 +23,11 @@ import { Skeleton } from "@workspace/ui/components/feedback/skeleton";
 import { toast } from "sonner";
 import { useClinic } from "@/lib/contexts/clinic-context";
 import { formatDate } from "@/lib/formatters";
-import { usePatients } from "@/hooks/api/use-patients";
+import { usePatients } from "@workspace/data-access";
 import {
   usePatientAppointments,
   useUpdateAppointment,
-} from "@/hooks/api/use-appointments";
+} from "@workspace/data-access";
 import {
   DentalChartUI,
   type DentalChartValue,

@@ -10,11 +10,11 @@ import {
   startOfMonth,
   subDays,
 } from "@workspace/utils";
-import { useDoctors, useUnavailableDoctorIdsForDate } from "@/hooks/api/use-settings";
+import { useDoctors, useUnavailableDoctorIdsForDate } from "@workspace/data-access";
 import {
   type AppointmentListItem,
   useAppointments,
-} from "@/hooks/api/use-appointments";
+} from "@workspace/data-access";
 import { useAuth } from "@/lib/auth/auth-context";
 import { useDebounce } from "@workspace/hooks/use-debounce";
 import {

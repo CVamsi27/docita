@@ -47,7 +47,7 @@ vi.mock("@/hooks/use-clinic-currency", () => ({
   }),
 }));
 
-vi.mock("@/hooks/api/use-settings", () => ({
+vi.mock("@workspace/data-access", () => ({
   useSubscription: () => useSubscriptionMock(),
 }));
 

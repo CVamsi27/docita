@@ -15,7 +15,7 @@ import { useSidebarNavOrder } from "@/hooks/use-sidebar-nav-order";
 import {
   useUnreadNotificationCount,
   usePendingJoinRequestCount,
-} from "@/hooks/api/use-notifications";
+} from "@workspace/data-access";
 import {
   AI_ASSISTANT_NAV_ITEM,
   FIXED_NAV_HREFS,

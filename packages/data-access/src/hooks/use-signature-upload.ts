@@ -1,4 +1,5 @@
-import { useAPIMutation, useAPIQuery, fetchAPI } from "@/lib/api/api-core";
+import { useAPIMutation } from "../core/use-api-mutation";
+import { useAPIQuery } from "../core/use-api-query";
 
 export interface SignatureUploadToken {
   token: string;
@@ -73,44 +74,3 @@ export const useRevokeClinicSignatureToken = (clinicId: string) =>
     },
   );
 
-export const uploadSignature = async (
-  token: string,
-  file: File,
-  purpose: "doctor" | "sla" = "doctor",
-): Promise<UploadResult> => {
-  const formData = new FormData();
-  formData.append("file", file);
-
-  const endpoint =
-    purpose === "sla"
-      ? `/clinics/signature/upload/${token}`
-      : `/doctors/signature/upload/${token}`;
-
-  return await fetchAPI<UploadResult>(endpoint, {
-    method: "POST",
-    body: formData,
-    suppressGlobalErrorToast: true,
-  });
-};
-
-export const validateToken = async (token: string) => {
-  return fetchAPI<{
-    tokenId: string;
-    purpose: string;
-    doctor: {
-      id: string;
-      name: string;
-      email: string;
-      signatureUrl: string | null;
-      signatureStoredUrl?: string | null;
-    } | null;
-    clinic: {
-      id: string;
-      name: string;
-      slaSignatureUrl: string | null;
-      slaSignatureStoredUrl?: string | null;
-    } | null;
-  }>(`/doctors/signature/validate-token/${token}`, {
-    suppressGlobalErrorToast: true,
-  });
-};

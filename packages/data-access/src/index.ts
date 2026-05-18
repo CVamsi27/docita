@@ -5,8 +5,54 @@ export { getAPIClient } from "./lib/singleton";
 export { createCRUDResource } from "./lib/crud-resource";
 export * from "./lib/browser-session";
 export * from "./lib/query-keys";
+export { toQueryString, withQueryString } from "./lib/query-string";
+export type {
+  QueryPrimitive,
+  QueryValue,
+  QueryParams as QueryStringParams,
+} from "./lib/query-string";
 export {
   IDEMPOTENCY_HEADER,
   generateIdempotencyKey,
   withIdempotencyKey,
 } from "./lib/idempotency";
+
+export { DataAccessProvider } from "./provider/data-access-provider";
+export type { DataAccessConfig } from "./provider/context";
+export {
+  useDataAccessContext,
+  useDataAccessFetcher,
+} from "./provider/hooks";
+
+export { useAPIQuery } from "./core/use-api-query";
+export { useAPIQueryValidated } from "./core/use-api-query-validated";
+export {
+  useAPIMutation,
+  type UseAPIMutationOptions,
+} from "./core/use-api-mutation";
+
+export type {
+  AppConstants,
+  MedicalHistoryTimelineItem,
+} from "./types/app-types";
+
+// hooks barrel
+export * from "./hooks/use-analytics";
+export * from "./hooks/use-appointments";
+export * from "./hooks/use-billing-history";
+export * from "./hooks/use-common";
+export * from "./hooks/use-contact";
+export * from "./hooks/use-dashboard";
+export * from "./hooks/use-feature-flags";
+export * from "./hooks/use-import";
+export * from "./hooks/use-inventory";
+export * from "./hooks/use-leaves";
+export * from "./hooks/use-medical-coding";
+export * from "./hooks/use-notifications";
+export * from "./hooks/use-patient-portal";
+export * from "./hooks/use-patient-timeline";
+export * from "./hooks/use-patients";
+export * from "./hooks/use-public-booking";
+export * from "./hooks/use-settings";
+export * from "./hooks/use-signature-upload";
+export * from "./hooks/use-whatsapp";

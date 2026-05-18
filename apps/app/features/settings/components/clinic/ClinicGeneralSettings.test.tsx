@@ -17,7 +17,7 @@ const settingsMocks = vi.hoisted(() => ({
   },
 }));
 
-vi.mock("@/hooks/api/use-settings", () => ({
+vi.mock("@workspace/data-access", () => ({
   useClinicSettings: () => ({
     isLoading: false,
     data: settingsMocks.clinic,

@@ -8,7 +8,7 @@ import {
   CardTitle,
 } from "@workspace/ui/components/indicators/card";
 import { Button } from "@workspace/ui/components/form/button";
-import { useDoctors } from "@/hooks/api/use-settings";
+import { useDoctors } from "@workspace/data-access";
 import type { AdmitPatientRequest } from "@workspace/types";
 import type { WardInfo } from "@/features/ipd/components/beds/bed-management-ui";
 

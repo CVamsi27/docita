@@ -15,7 +15,7 @@ import { Clock, QrCode, Smartphone, X } from "lucide-react";
 import {
   type SignatureUploadToken,
   type ActiveToken,
-} from "@/hooks/api/use-signature-upload";
+} from "@workspace/data-access";
 import { DATE_FORMATS, formatDate } from "@workspace/utils";
 import { QrCodeCard } from "@/components/signature/qr-code-card";
 import { CopyableLinkField } from "@/components/signature/copyable-link-field";

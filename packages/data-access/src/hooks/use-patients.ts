@@ -7,15 +7,11 @@ import {
   PatientWithMedicalHistory,
   UpdatePatientRequest,
 } from "@workspace/types";
-import {
-  fetchAPI,
-  MedicalHistoryTimelineItem,
-  useAPIMutation,
-  useAPIQuery,
-} from "@/lib/api/api-core";
-import { withQueryString } from "@/lib/http/query-string";
-import { useTierFeatureEnabled } from "@/hooks/api/tier-feature-guards";
-
+import { useAPIMutation } from "../core/use-api-mutation";
+import { useAPIQuery } from "../core/use-api-query";
+import { withQueryString } from "../lib/query-string";
+import { useDataAccessContext } from "../provider/hooks";
+import type { MedicalHistoryTimelineItem } from "../types/app-types";
 type UsePatientsOptions = {
   limit?: number;
   page?: number;
@@ -24,7 +20,7 @@ type UsePatientsOptions = {
 } | null;
 
 export const usePatients = (options?: UsePatientsOptions) => {
-  const tierPatientsOk = useTierFeatureEnabled(Feature.BASIC_PATIENT_MANAGEMENT);
+  const tierPatientsOk = useDataAccessContext().isTierFeatureEnabled(Feature.BASIC_PATIENT_MANAGEMENT);
   const limit = options?.limit ?? 20;
   const page = options?.page ?? 1;
   const enabled =
@@ -58,11 +54,12 @@ export const useInfinitePatients = (options?: {
   search?: string;
   enabled?: boolean;
 }) => {
-  const tierPatientsOk = useTierFeatureEnabled(Feature.BASIC_PATIENT_MANAGEMENT);
+  const { fetcher, isTierFeatureEnabled } = useDataAccessContext();
+  const tierPatientsOk = isTierFeatureEnabled(Feature.BASIC_PATIENT_MANAGEMENT);
   return useInfiniteQuery({
     queryKey: ["patients", "infinite", options?.search ?? ""],
     queryFn: ({ pageParam }) => {
-      return fetchAPI<{
+      return fetcher<{
         items: Patient[];
         nextCursor?: string;
         hasMore: boolean;
@@ -82,7 +79,7 @@ export const useInfinitePatients = (options?: {
 };
 
 export const useRecentPatients = (limit: number = 5) => {
-  const tierPatientsOk = useTierFeatureEnabled(Feature.BASIC_PATIENT_MANAGEMENT);
+  const tierPatientsOk = useDataAccessContext().isTierFeatureEnabled(Feature.BASIC_PATIENT_MANAGEMENT);
   return useAPIQuery<{
     items: Patient[];
     nextCursor?: string;
@@ -94,14 +91,14 @@ export const useRecentPatients = (limit: number = 5) => {
 };
 
 export const usePatient = (id: string) => {
-  const tierPatientsOk = useTierFeatureEnabled(Feature.BASIC_PATIENT_MANAGEMENT);
+  const tierPatientsOk = useDataAccessContext().isTierFeatureEnabled(Feature.BASIC_PATIENT_MANAGEMENT);
   return useAPIQuery<Patient>(["patients", id], `/patients/${id}`, {
     enabled: tierPatientsOk && !!id,
   });
 };
 
 export const usePatientWithMedicalHistory = (id: string) => {
-  const tierPatientsOk = useTierFeatureEnabled(Feature.BASIC_PATIENT_MANAGEMENT);
+  const tierPatientsOk = useDataAccessContext().isTierFeatureEnabled(Feature.BASIC_PATIENT_MANAGEMENT);
   return useAPIQuery<PatientWithMedicalHistory>(
     ["patients", id, "with-medical-history"],
     `/patients/${id}`,
@@ -110,7 +107,7 @@ export const usePatientWithMedicalHistory = (id: string) => {
 };
 
 export const usePatientMedicalHistoryTimeline = (patientId: string) => {
-  const tierPatientsOk = useTierFeatureEnabled(Feature.BASIC_PATIENT_MANAGEMENT);
+  const tierPatientsOk = useDataAccessContext().isTierFeatureEnabled(Feature.BASIC_PATIENT_MANAGEMENT);
   return useAPIQuery<MedicalHistoryTimelineItem[]>(
     ["patients", patientId, "medical-history-timeline"],
     `/patients/${patientId}/medical-history-timeline`,
@@ -136,7 +133,7 @@ export const useDeletePatient = (id: string) =>
   });
 
 export const useTodaysPatients = (doctorId?: string, search?: string) => {
-  const tierQueueOk = useTierFeatureEnabled(Feature.QUEUE_MANAGEMENT);
+  const tierQueueOk = useDataAccessContext().isTierFeatureEnabled(Feature.QUEUE_MANAGEMENT);
   return useAPIQuery<{
     patients: {
       id: string;

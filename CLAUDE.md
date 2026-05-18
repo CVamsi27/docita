@@ -70,6 +70,7 @@ Never use parent-relative imports (`../`). They are ESLint-banned across all app
 - **A feature surface** (a page, modal, flow) → `apps/<app>/features/<feature>/...`. Owns its components, hooks, rules, and local types. Public API through `index.ts`.
 - **Cross-feature primitive** used by ≥2 apps → `packages/ui` (presentational) or `packages/hooks` / `packages/utils`.
 - **Cross-feature primitive** used by 1 app only → `apps/<app>/shared/{components,hooks,lib}`. Promote to a package once a second app needs it.
+- **Per-domain data hook** (`use-appointments`, `use-patients`, etc.) → `packages/data-access/src/hooks/`. Get the fetcher / clinic id / tier guard via `useDataAccessContext()`. The app wires the provider in `apps/app/providers/data-access-bridge.tsx`. See [`docs/architecture/DATA_ACCESS_MIGRATION_PLAN.md`](./docs/architecture/DATA_ACCESS_MIGRATION_PLAN.md) for the contract.
 - **Schema, type, or DTO** → `packages/types` (Zod first; infer types with `z.infer`).
 - **Backend domain** → `apps/api/src/domains/<domain>/...` following the DDD layout in AGENTS.md §15.1.
 - **Repo-wide invariant check** → `scripts/checks/check-*.mjs` and wire into CI via `scripts/workflow/detect-workflow-scope.mjs`.

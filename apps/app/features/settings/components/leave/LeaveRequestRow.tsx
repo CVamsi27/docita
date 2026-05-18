@@ -9,7 +9,7 @@ import { formatDate } from "@workspace/utils";
 import {
   useApproveLeave,
   useCancelLeave,
-} from "@/hooks/api/use-leaves";
+} from "@workspace/data-access";
 import type { StaffLeave } from "@workspace/types";
 import { showUserFacingErrorToast } from "@/lib/errors/user-facing-errors";
 import { humanizeUiLabel } from "@workspace/ui/lib/label-formatters";

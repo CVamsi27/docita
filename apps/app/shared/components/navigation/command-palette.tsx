@@ -8,7 +8,7 @@ import {
   type ReactNode,
 } from "react";
 import { useRouter } from "next/navigation";
-import { useStartConsultation, useQueueByDoctor } from "@/hooks/api/use-appointments";
+import { useStartConsultation, useQueueByDoctor } from "@workspace/data-access";
 import { usePermissions } from "@/hooks/use-permissions";
 import { useAuth } from "@/lib/auth/auth-context";
 import { canAccessTarget } from "@/lib/access-control/access-policy";

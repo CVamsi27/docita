@@ -1,4 +1,4 @@
-import type { StaffNotification } from "@/hooks/api/use-notifications";
+import type { StaffNotification } from "@workspace/data-access";
 
 export type NotificationCategoryId =
   | "all"

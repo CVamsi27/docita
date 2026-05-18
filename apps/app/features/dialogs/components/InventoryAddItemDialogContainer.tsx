@@ -5,7 +5,7 @@ import {
   InventoryAddItemDialogUI,
   InventoryItemFormData,
 } from "./InventoryAddItemDialogUI";
-import { useCreateInventoryItem } from "@/hooks/api/use-inventory";
+import { useCreateInventoryItem } from "@workspace/data-access";
 import { useConstants } from "@/hooks/use-constants";
 import { showUserFacingErrorToast } from "@/lib/errors/user-facing-errors";
 

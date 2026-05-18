@@ -15,7 +15,7 @@ import {
 import { Plus, Search, Stethoscope, Trash2, X } from "lucide-react";
 import { Feature } from "@workspace/types";
 import { cn } from "@workspace/ui/lib/utils";
-import { useSearchIcdCodes } from "@/hooks/api/use-medical-coding";
+import { useSearchIcdCodes } from "@workspace/data-access";
 import { usePermissionStore } from "@/lib/stores/permission-store";
 import { useDebounce } from "@workspace/hooks/use-debounce";
 

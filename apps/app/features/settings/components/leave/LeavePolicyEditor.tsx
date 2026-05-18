@@ -28,7 +28,7 @@ import {
   SelectValue,
 } from "@workspace/ui/components/form/select";
 import { Plus } from "lucide-react";
-import { useCreateLeavePlan, useLeavePlans } from "@/hooks/api/use-leaves";
+import { useCreateLeavePlan, useLeavePlans } from "@workspace/data-access";
 import { LeaveType, LeavePlan } from "@workspace/types";
 import { showUserFacingErrorToast } from "@/lib/errors/user-facing-errors";
 import {

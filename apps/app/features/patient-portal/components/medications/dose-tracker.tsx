@@ -12,7 +12,7 @@ import { Badge } from "@workspace/ui/components/indicators/badge";
 import { Check, Clock, X } from "lucide-react";
 import { toast } from "sonner";
 import { formatDate } from "@workspace/utils";
-import { usePortalDoseHistory, useRecordPortalDose } from "@/hooks/api/use-patient-portal";
+import { usePortalDoseHistory, useRecordPortalDose } from "@workspace/data-access";
 import { showUserFacingErrorToast } from "@/lib/errors/user-facing-errors";
 
 interface DoseTrackerProps {

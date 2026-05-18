@@ -5,9 +5,9 @@ import type {
   WhatsAppUnreadCountResponse,
 } from "@workspace/types";
 import { Feature } from "@workspace/types";
-import { useAPIMutation, useAPIQuery } from "@/lib/api/api-core";
-import { useTierFeatureEnabled } from "@/hooks/api/tier-feature-guards";
-
+import { useAPIMutation } from "../core/use-api-mutation";
+import { useAPIQuery } from "../core/use-api-query";
+import { useDataAccessContext } from "../provider/hooks";
 export type NotificationUnreadCountResponse = WhatsAppUnreadCountResponse;
 
 export const useSendPrescriptionWhatsApp = () =>
@@ -24,8 +24,8 @@ export const useSendInvoiceWhatsApp = () =>
     { body: () => undefined },
   );
 
-export const useUnreadNotificationCount = () => {
-  const whatsappOk = useTierFeatureEnabled(Feature.WHATSAPP_MESSAGING);
+export const useWhatsappUnreadNotificationCount = () => {
+  const whatsappOk = useDataAccessContext().isTierFeatureEnabled(Feature.WHATSAPP_MESSAGING);
   return useAPIQuery<NotificationUnreadCountResponse>(
     ["whatsapp", "notifications", "unread-count"],
     "/whatsapp/notifications/unread-count",
@@ -37,7 +37,7 @@ export const useUnreadNotificationCount = () => {
 };
 
 export const useUnreadNotifications = (limit: number = 50) => {
-  const whatsappOk = useTierFeatureEnabled(Feature.WHATSAPP_MESSAGING);
+  const whatsappOk = useDataAccessContext().isTierFeatureEnabled(Feature.WHATSAPP_MESSAGING);
   return useAPIQuery<StaffNotificationEntry[]>(
     ["whatsapp", "notifications", "unread", limit],
     `/whatsapp/notifications/unread?limit=${limit}`,
@@ -45,7 +45,7 @@ export const useUnreadNotifications = (limit: number = 50) => {
   );
 };
 
-export const useDeleteNotification = () =>
+export const useWhatsappDeleteNotification = () =>
   useAPIMutation<void, { notificationId: string }>(
     ({ notificationId }) => `/whatsapp/notifications/${notificationId}`,
     "DELETE",
@@ -57,7 +57,7 @@ export const useDeleteNotification = () =>
     },
   );
 
-export const useDeleteAllNotifications = () =>
+export const useWhatsappDeleteAllNotifications = () =>
   useAPIMutation<void, void>("/whatsapp/notifications", "DELETE", {
     invalidateKeys: [
       ["whatsapp", "notifications", "unread-count"],

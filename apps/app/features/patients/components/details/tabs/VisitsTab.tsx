@@ -4,7 +4,7 @@ import { useState } from "react";
 import { DataState } from "@workspace/ui/components/data-display/data-state";
 import { Clock3 } from "lucide-react";
 import type { TimelineEventType } from "@workspace/types";
-import { usePatientTimeline } from "@/hooks/api/use-patient-timeline";
+import { usePatientTimeline } from "@workspace/data-access";
 import { PatientTimeline } from "@/components/patient-history";
 
 interface VisitsTabProps {

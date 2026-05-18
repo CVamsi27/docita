@@ -2,7 +2,7 @@
 
 import { PatientPortalBillingUI } from "@/features/patient-portal/components";
 import type { PatientInvoiceStatus } from "@/features/patient-portal/types/patient-portal-types";
-import { usePatientPortalInvoices } from "@/hooks/api/use-patient-portal";
+import { usePatientPortalInvoices } from "@workspace/data-access";
 import { AppPageScaffold } from "@workspace/ui/components/layout/app-page-scaffold";
 import { DataState } from "@workspace/ui/components/data-display/data-state";
 import { PageHeader } from "@workspace/ui/components/layout/page-header";

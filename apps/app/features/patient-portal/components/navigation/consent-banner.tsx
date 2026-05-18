@@ -16,7 +16,7 @@ import { Bell, Shield, X } from "lucide-react";
 import {
   usePatientConsentSettings,
   useUpdatePatientConsent,
-} from "@/hooks/api/use-patient-portal";
+} from "@workspace/data-access";
 import { toast } from "sonner";
 import { showUserFacingErrorToast } from "@/lib/errors/user-facing-errors";
 

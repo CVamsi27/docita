@@ -9,7 +9,7 @@ import { TodayScheduleUI } from "@/features/dashboard/components/schedule/today-
 import { DailyProgressUI } from "@/features/dashboard/components/progress/daily-progress-ui";
 import { DashboardActivityFeed } from "@/features/dashboard/components/overview/dashboard-activity-feed";
 import { DashboardUpcomingCard } from "@/features/dashboard/components/overview/dashboard-upcoming-card";
-import type { AppointmentListItem } from "@/hooks/api/use-appointments";
+import type { AppointmentListItem } from "@workspace/data-access";
 import type { DashboardPatient, DashboardStats } from "@workspace/types";
 import { AppPageScaffold } from "@workspace/ui/components/layout/app-page-scaffold";
 import { DataState } from "@workspace/ui/components/data-display/data-state";

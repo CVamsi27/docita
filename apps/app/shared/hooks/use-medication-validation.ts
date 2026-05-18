@@ -11,7 +11,7 @@ import {
   type ComprehensiveCheckResult,
   type ContraindicationResult,
   type ValidationResult,
-} from "@/hooks/api/medication-validation-api";
+} from "@/lib/api/medication-validation";
 
 export function useMedicationValidation() {
   const [error, setError] = useState<string | null>(null);

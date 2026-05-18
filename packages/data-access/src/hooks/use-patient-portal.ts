@@ -1,4 +1,5 @@
-import { useAPIMutation, useAPIQuery } from "@/lib/api/api-core";
+import { useAPIMutation } from "../core/use-api-mutation";
+import { useAPIQuery } from "../core/use-api-query";
 import type {
   ActiveMedication,
   AppointmentRequestResponse,

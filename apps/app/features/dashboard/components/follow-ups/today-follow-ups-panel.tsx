@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { formatDate } from "@/lib/formatters";
 import { getFollowUpListQuery } from "@/features/follow-ups";
-import { useFollowUps } from "@/hooks/api/use-appointments";
+import { useFollowUps } from "@workspace/data-access";
 import type { FollowUpResponse, FollowUpStatus } from "@workspace/types";
 import {
   Card,

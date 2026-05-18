@@ -8,7 +8,7 @@ import {
   useCreateDoctorTimeOff,
   useDeleteDoctorTimeOffMutation,
   useDoctorTimeOffs,
-} from "@/hooks/api/use-settings";
+} from "@workspace/data-access";
 import { useAuth } from "@/lib/auth/auth-context";
 import { toast } from "sonner";
 import { formatDate } from "@workspace/utils";

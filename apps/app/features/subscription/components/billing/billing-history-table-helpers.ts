@@ -1,5 +1,5 @@
 import { DEFAULT_CURRENCY, formatCurrency } from "@workspace/utils";
-import type { BillingHistoryItem } from "@/hooks/api/use-billing-history";
+import type { BillingHistoryItem } from "@workspace/data-access";
 
 export function formatMoney(amountCents: number, currency: string | undefined) {
   return formatCurrency(amountCents / 100, {

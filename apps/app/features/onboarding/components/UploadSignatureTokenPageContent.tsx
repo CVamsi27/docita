@@ -13,11 +13,11 @@ import {
   CardTitle,
 } from "@workspace/ui/components/indicators/card";
 import { AlertCircle, CheckCircle2 } from "lucide-react";
+import type { UploadResult } from "@workspace/data-access";
 import {
-  type UploadResult,
   uploadSignature,
   validateToken,
-} from "@/hooks/api/use-signature-upload";
+} from "@/lib/api/signature-helpers";
 import { SignatureUploadWorkflow } from "@/components/signature/signature-upload-workflow";
 import { getUserFacingErrorMessage } from "@workspace/types";
 import { SupportContact } from "@/components/support-contact/support-contact";

@@ -7,7 +7,7 @@ import { toast } from "sonner";
 import {
   useClinicSettings,
   useUpdateClinicSettings,
-} from "@/hooks/api/use-settings";
+} from "@workspace/data-access";
 import { showUserFacingErrorToast } from "@/lib/errors/user-facing-errors";
 import { Button } from "@workspace/ui/components/form/button";
 import {

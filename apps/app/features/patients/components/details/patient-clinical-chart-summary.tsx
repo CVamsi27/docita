@@ -12,7 +12,7 @@ import {
 import { Button } from "@workspace/ui/components/form/button";
 import { ChevronRight, History } from "lucide-react";
 import { PatientSnapshotStrip } from "@/components/patient-history";
-import { usePatientSnapshot } from "@/hooks/api/use-patient-timeline";
+import { usePatientSnapshot } from "@workspace/data-access";
 import { formatLocaleDateShortMonthYear } from "@/lib/formatters";
 
 function toStartMs(value: string | Date | undefined): number {

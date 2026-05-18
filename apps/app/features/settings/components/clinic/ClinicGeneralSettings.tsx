@@ -7,7 +7,7 @@ import { toast } from "sonner";
 import {
   useClinicSettings,
   useUpdateClinicSettings,
-} from "@/hooks/api/use-settings";
+} from "@workspace/data-access";
 import {
   Card,
   CardContent,

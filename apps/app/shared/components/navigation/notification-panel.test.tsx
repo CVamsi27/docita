@@ -10,7 +10,7 @@ vi.mock("next/navigation", () => ({
   useRouter: () => ({ push: mockPush }),
 }));
 
-vi.mock("@/hooks/api/use-notifications", () => {
+vi.mock("@workspace/data-access", () => {
   const now = new Date("2026-05-06T10:00:00.000Z");
   return {
     useNotifications: () => ({

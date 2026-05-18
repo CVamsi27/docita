@@ -7,14 +7,14 @@ import {
   formatClinicPickerDayIsoFromSelection,
   formatClinicTodayPickerIso,
 } from "@workspace/utils";
-import { usePatient, usePatients } from "@/hooks/api/use-patients";
+import { usePatient, usePatients } from "@workspace/data-access";
 import {
   useDoctors,
   useDoctorSchedules,
   useUnavailableDoctorIdsForDate,
   useDoctorAvailabilitySlots,
-} from "@/hooks/api/use-settings";
-import { useAppointments } from "@/hooks/api/use-appointments";
+} from "@workspace/data-access";
+import { useAppointments } from "@workspace/data-access";
 import {
   Appointment,
   CreateAppointmentInput,

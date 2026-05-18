@@ -1,6 +1,6 @@
 "use client";
 
-import { useInventoryItem } from "@/hooks/api/use-inventory";
+import { useInventoryItem } from "@workspace/data-access";
 import {
   InventoryItem,
   InventoryItemDetailsUI,

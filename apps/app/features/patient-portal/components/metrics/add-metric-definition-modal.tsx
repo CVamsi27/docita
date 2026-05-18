@@ -23,7 +23,7 @@ import {
 } from "@workspace/ui/components/form/select";
 import { getUserFacingErrorMessage } from "@workspace/types";
 
-import { useCreatePortalMetricDefinition } from "@/hooks/api/use-patient-portal";
+import { useCreatePortalMetricDefinition } from "@workspace/data-access";
 
 interface MetricCategory {
   id: string;

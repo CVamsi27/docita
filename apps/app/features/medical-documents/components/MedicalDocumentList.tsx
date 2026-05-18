@@ -35,7 +35,7 @@ import {
   useRevokeMedicalDocument,
   useSignMedicalDocument,
 } from "@/hooks/api/use-clinical";
-import { useTierFeatureEnabled } from "@/hooks/api/tier-feature-guards";
+import { useTierFeatureEnabled } from "@/lib/access-control/use-tier-feature-enabled";
 import { logger } from "@/lib/monitoring/logger";
 import { toast } from "sonner";
 import { useAuth } from "@/lib/auth/auth-context";

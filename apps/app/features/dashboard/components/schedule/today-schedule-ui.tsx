@@ -19,7 +19,7 @@ import { StatusBadge } from "@workspace/ui/components/indicators/status-badge";
 import { ViewAllLinkUI } from "@/features/dashboard/components/layout/view-all-link-ui";
 import { humanizeUiLabel } from "@workspace/ui/lib/label-formatters";
 
-import type { AppointmentListItem } from "@/hooks/api/use-appointments";
+import type { AppointmentListItem } from "@workspace/data-access";
 
 export interface TodayScheduleUIProps {
   appointments: AppointmentListItem[];

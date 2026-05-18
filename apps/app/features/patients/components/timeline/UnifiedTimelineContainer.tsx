@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { usePatientTimeline } from "@/hooks/api/use-patient-timeline";
+import { usePatientTimeline } from "@workspace/data-access";
 import { UnifiedTimelineUI } from "./UnifiedTimelineUI";
 import { DataState } from "@workspace/ui/components/data-display/data-state";
 import { Clock3 } from "lucide-react";

@@ -7,7 +7,7 @@ import {
   usePublicBookingContext,
   usePublicBookingDoctors,
   usePublicBookingSlots,
-} from "@/hooks/api/use-public-booking";
+} from "@workspace/data-access";
 import {
   ANY_DOCTOR_ID,
   type PublicBookingMobileStep,

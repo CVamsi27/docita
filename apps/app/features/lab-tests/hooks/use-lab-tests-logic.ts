@@ -9,7 +9,7 @@ import {
   useLabTestOrders,
   useLabTestStats,
 } from "@/hooks/api/use-clinical";
-import { usePatients } from "@/hooks/api/use-patients";
+import { usePatients } from "@workspace/data-access";
 import { Patient, type PaginatedResponse } from "@workspace/types";
 import { useDebounce } from "@workspace/hooks/use-debounce";
 import { showUserFacingErrorToast } from "@/lib/errors/user-facing-errors";

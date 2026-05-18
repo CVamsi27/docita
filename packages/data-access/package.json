@@ -19,11 +19,19 @@
     },
     "dependencies": {
         "@workspace/types": "workspace:*",
+        "@workspace/utils": "workspace:*",
         "zod": "^3.25.76"
+    },
+    "peerDependencies": {
+        "@tanstack/react-query": "^5.90.10",
+        "react": "^19.2.1"
     },
     "devDependencies": {
         "@workspace/typescript-config": "workspace:*",
+        "@tanstack/react-query": "^5.90.10",
         "@types/node": "20.19.9",
+        "@types/react": "^19.2.1",
+        "react": "^19.2.1",
         "typescript": "^5.9.2"
     }
 }

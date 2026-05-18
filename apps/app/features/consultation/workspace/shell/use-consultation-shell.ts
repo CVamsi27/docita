@@ -18,7 +18,7 @@ import {
 import { useConsultationDraft } from "@/features/consultation/state/useConsultationDraft";
 import { useConsultationHydrate } from "@/features/consultation/state/useConsultationHydrate";
 import { useConsultationAutosave } from "@/features/consultation/state/useConsultationAutosave";
-import { usePatientWithMedicalHistory } from "@/hooks/api/use-patients";
+import { usePatientWithMedicalHistory } from "@workspace/data-access";
 import { type CommandPaletteAction } from "@/features/consultation/workspace/chrome/CommandPalette";
 import { resolveConsultationSectionFromUrl } from "@/features/consultation/rules/consultationTabRouting";
 import { getConsultationSectionsForClinic } from "@/features/consultation/workspace/consultation-section-registry";

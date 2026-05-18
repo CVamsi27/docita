@@ -4,9 +4,9 @@ import { useRef } from "react";
 import type { ReactNode } from "react";
 import type { SubscriptionCurrentResponse } from "@workspace/types";
 import { useAuth } from "@/lib/auth/auth-context";
-import { useBillingHistory } from "@/hooks/api/use-billing-history";
+import { useBillingHistory } from "@workspace/data-access";
 import { getTierInfo } from "@/lib/subscription/tier-access";
-import { useSubscription } from "@/hooks/api/use-settings";
+import { useSubscription } from "@workspace/data-access";
 import { WhatsAppButton } from "@/components/whatsapp/whatsapp-button";
 import { getSupportPhoneNumber } from "@/lib/constants/support-contact";
 import {

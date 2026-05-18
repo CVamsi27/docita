@@ -25,10 +25,10 @@ import {
 } from "@workspace/types";
 import { queryKeys } from "@workspace/data-access";
 import { fetchAPI, useAPIMutation, useAPIQuery, useAPIQueryValidated } from "@/lib/api/api-core";
-import { useTierFeatureEnabled } from "@/hooks/api/tier-feature-guards";
+import { useTierFeatureEnabled } from "@/lib/access-control/use-tier-feature-enabled";
 import { ApiError } from "@/lib/errors";
 import { fetchWithSession } from "@/lib/auth/fetch-with-session";
-import { withQueryString } from "@/lib/http/query-string";
+import { withQueryString } from "@workspace/data-access";
 
 export type InvoiceListRow = Invoice & {
   patient: Patient;

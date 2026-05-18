@@ -1,4 +1,4 @@
-import { useConstants as useApiConstants } from "@/hooks/api/use-common";
+import { useConstants as useApiConstants } from "@workspace/data-access";
 
 export const useConstants = () => {
   return useApiConstants();

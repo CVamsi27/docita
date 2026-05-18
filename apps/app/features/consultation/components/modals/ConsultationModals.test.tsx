@@ -17,7 +17,7 @@ vi.mock("@/hooks/api/use-clinical", () => ({
   }),
 }));
 
-vi.mock("@/hooks/api/use-appointments", () => ({
+vi.mock("@workspace/data-access", () => ({
   useUpdateAppointment: () => ({
     mutateAsync: clinicalMocks.updateAppointment,
     isPending: false,

@@ -4,7 +4,7 @@ import { toast } from "sonner";
 import {
   useCheckInAppointment,
   useStartConsultation,
-} from "@/hooks/api/use-appointments";
+} from "@workspace/data-access";
 import { showUserFacingErrorToast } from "@/lib/errors/user-facing-errors";
 
 interface UseAppointmentActionsParams {

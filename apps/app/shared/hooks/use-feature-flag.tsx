@@ -1,7 +1,7 @@
 "use client";
 
 import { createContext, ReactNode, useContext, useMemo } from "react";
-import { useResolvedFeatureFlags } from "@/hooks/api/use-feature-flags";
+import { useResolvedFeatureFlags } from "@workspace/data-access";
 
 interface FeatureFlagsContextValue {
   flags: Record<string, boolean>;

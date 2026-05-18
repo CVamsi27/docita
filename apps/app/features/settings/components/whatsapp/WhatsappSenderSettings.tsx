@@ -18,7 +18,7 @@ import {
   useUpdateWhatsappSender,
   useVerifyWhatsappSender,
   useWhatsappSender,
-} from "@/hooks/api/use-whatsapp";
+} from "@workspace/data-access";
 
 type SenderMode = "SHARED" | "BYO" | "MANAGED";
 

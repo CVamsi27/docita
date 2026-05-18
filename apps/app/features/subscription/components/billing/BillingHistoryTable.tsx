@@ -33,7 +33,7 @@ import {
 import { EmptyState } from "@workspace/ui/components/feedback/empty-state";
 import { humanizeUiLabel } from "@workspace/ui/lib/label-formatters";
 import { cn } from "@workspace/ui/lib/utils";
-import type { BillingHistoryItem } from "@/hooks/api/use-billing-history";
+import type { BillingHistoryItem } from "@workspace/data-access";
 import { formatDate, formatDateTime } from "@/lib/formatters";
 import { useResumeSubscriptionPayment } from "@/hooks/api/use-resume-subscription-payment";
 import {

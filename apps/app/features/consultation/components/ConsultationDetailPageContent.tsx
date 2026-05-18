@@ -23,7 +23,7 @@ import { toast } from "sonner";
 import { showUserFacingErrorToast } from "@/lib/errors/user-facing-errors";
 import { consultationApi } from "@/features/consultation/api/consultation.api";
 import { useQueryClient } from "@tanstack/react-query";
-import { useSendPrescriptionWhatsApp } from "@/hooks/api/use-whatsapp";
+import { useSendPrescriptionWhatsApp } from "@workspace/data-access";
 import { usePermissionStore } from "@/lib/stores/permission-store";
 import { Feature } from "@workspace/types";
 import { FeatureGate } from "@/components/auth/feature-gate";

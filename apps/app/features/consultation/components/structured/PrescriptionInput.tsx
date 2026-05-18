@@ -12,7 +12,7 @@ import {
   SelectValue,
 } from "@workspace/ui/components/form/select";
 import { Pill, Plus, Trash2 } from "lucide-react";
-import { useClinicSettings } from "@/hooks/api/use-settings";
+import { useClinicSettings } from "@workspace/data-access";
 import {
   ClinicFeatureService,
   MEDICATION_ROUTES,

@@ -9,7 +9,7 @@ import type {
   Appointment,
   CreateAppointmentInput,
 } from "@workspace/types";
-import { useCreateAppointment } from "@/hooks/api/use-appointments";
+import { useCreateAppointment } from "@workspace/data-access";
 import { showUserFacingErrorToast } from "@/lib/errors/user-facing-errors";
 
 interface UseCreateAppointmentSubmitParams {

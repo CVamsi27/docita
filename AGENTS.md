@@ -520,6 +520,7 @@ When this file says to follow existing patterns, use these concrete references b
 
 - **Feature layout**: `apps/app/features/<feature>/{components,hooks,rules,lib,types,index.ts}` with public imports through `index.ts`.
 - **Non-feature code** (shared across features) lives in `apps/<app>/shared/{components,hooks,lib}` and is reached via `@/components/...`, `@/hooks/...`, `@/lib/...` (the aliases now resolve into `shared/`). Promote into `packages/ui`, `packages/hooks`, or `packages/utils` once a second app needs it.
+- **Per-domain data hooks** live in `packages/data-access/src/hooks/` (e.g. `useAppointments`, `usePatients`, `useBillingHistory`). The package owns the React Query wrappers; the app injects the session-aware fetcher via `<DataAccessProvider>` (mounted by `apps/app/providers/data-access-bridge.tsx`). Add new data hooks here, not in `apps/app/shared/hooks/api/`. Six legacy hooks (`use-billing`, `use-clinical`, `use-patient-history`, `use-pricing`, `use-resume-subscription-payment`, `use-schedule-plan-change`) still live in app pending a follow-up to drop their direct `fetch-with-session` / `api-client` calls.
 - **Pages**: route files compose feature shells; business logic belongs in feature components/hooks.
 - **Data fetching**: feature code consumes `packages/data-access` hooks or approved app API wrappers. Inline `fetch` in client features is blocked by `scripts/checks/check-frontend-fetch.mjs`.
 - **State**: React Query for server state, established stores for cross-cutting client state, and local state only for view-local behavior.

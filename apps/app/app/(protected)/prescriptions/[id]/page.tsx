@@ -8,7 +8,7 @@ import { LoadingState, EmptyState } from "@workspace/ui/components/feedback/empt
 import { FileX } from "lucide-react";
 import { useBackNavigation } from "@/hooks/use-back-navigation";
 import { usePrescription } from "@/hooks/api/use-clinical";
-import { useResendPrescriptionWhatsApp } from "@/hooks/api/use-whatsapp";
+import { useResendPrescriptionWhatsApp } from "@workspace/data-access";
 import { useClinic } from "@/lib/contexts/clinic-context";
 import { useAuth } from "@/lib/auth/auth-context";
 import { canCreatePrescription } from "@/lib/auth/permissions";

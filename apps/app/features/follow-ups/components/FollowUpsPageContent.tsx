@@ -28,7 +28,7 @@ import {
   useCancelFollowUp,
   useCompleteFollowUp,
   useFollowUps,
-} from "@/hooks/api/use-appointments";
+} from "@workspace/data-access";
 import { formatDate } from "@/lib/formatters";
 import { showUserFacingErrorToast } from "@/lib/errors/user-facing-errors";
 

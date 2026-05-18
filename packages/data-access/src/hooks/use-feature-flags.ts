@@ -1,4 +1,4 @@
-import { useAPIQuery } from "@/lib/api/api-core";
+import { useAPIQuery } from "../core/use-api-query";
 
 export interface ResolvedFeatureFlagsResponse {
   flags: Record<string, boolean>;

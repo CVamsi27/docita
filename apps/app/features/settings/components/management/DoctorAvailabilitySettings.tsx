@@ -7,7 +7,7 @@ import {
   useBulkDoctorSchedules,
   useClinicMembers,
   useDoctorSchedules,
-} from "@/hooks/api/use-settings";
+} from "@workspace/data-access";
 import { useAuth } from "@/lib/auth/auth-context";
 import { toast } from "sonner";
 import {

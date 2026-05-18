@@ -13,7 +13,7 @@ import {
   CardTitle,
 } from "@workspace/ui/components/indicators/card";
 import { DataState } from "@workspace/ui/components/data-display/data-state";
-import type { AppointmentListItem } from "@/hooks/api/use-appointments";
+import type { AppointmentListItem } from "@workspace/data-access";
 import { TimeSlotRow } from "@/features/appointments/components/forms/TimeSlotRow";
 
 interface AppointmentsListUIProps {

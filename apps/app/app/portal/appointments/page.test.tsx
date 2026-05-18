@@ -9,7 +9,7 @@ const portalAppointmentMocks = vi.hoisted(() => ({
   showError: vi.fn(),
 }));
 
-vi.mock("@/hooks/api/use-patient-portal", () => ({
+vi.mock("@workspace/data-access", () => ({
   usePatientPortalAppointments: portalAppointmentMocks.usePatientPortalAppointments,
   useRequestAppointment: () => ({
     mutateAsync: portalAppointmentMocks.mutateAsync,

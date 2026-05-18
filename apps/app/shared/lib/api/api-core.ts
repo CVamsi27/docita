@@ -1,96 +1,76 @@
 import {
-  useMutation,
-  UseMutationOptions,
-  useQuery,
-  useQueryClient,
-  UseQueryOptions,
-} from "@tanstack/react-query";
-import { APIRequestError, type RequestConfig } from "@workspace/data-access";
+  APIRequestError,
+  useAPIMutation as useAPIMutationBase,
+  useAPIQuery as useAPIQueryBase,
+  useAPIQueryValidated as useAPIQueryValidatedBase,
+  type RequestConfig,
+  type UseAPIMutationOptions,
+} from "@workspace/data-access";
+import type { UseMutationOptions, UseQueryOptions } from "@tanstack/react-query";
+import type { z } from "zod";
 import { getUserFacingErrorMessage, type PaginatedResponse } from "@workspace/types";
 import { API_URL } from "./api-config";
 import { apiFetch } from "./api-client";
 import { ApiError } from "@/lib/errors";
-import type { z } from "zod";
 
 export { API_URL };
 export type { PaginatedResponse };
 
-export interface AppConstants {
-  followUpTypes: Array<{ value: string; label: string }>;
-  reminderDays: Array<{ value: number; label: string }>;
-  inventoryCategories: Array<{ value: string; label: string }>;
-  queueStatuses: Array<{ value: string; label: string }>;
-  wardTypes: Array<{ value: string; label: string }>;
-  availableBeds: Array<{ value: string; label: string }>;
-  teethQuadrants: Record<string, number[]>;
-  toothConditions: Array<{ value: string; label: string; color: string }>;
+// React Query wrappers live in @workspace/data-access (transport-agnostic,
+// fetcher injected via <DataAccessProvider>). The thin wrappers below pin
+// TError to ApiError so the 30+ existing app hooks keep their familiar error
+// type without rewrites. See docs/architecture/DATA_ACCESS_MIGRATION_PLAN.md.
+type QueryKey = readonly (string | number | Record<string, unknown>)[];
+
+export function useAPIQuery<T>(
+  key: QueryKey,
+  endpoint: string,
+  options?: Omit<UseQueryOptions<T, ApiError>, "queryKey" | "queryFn">,
+) {
+  return useAPIQueryBase<T, ApiError>(key, endpoint, options);
 }
+
+export function useAPIQueryValidated<TSchema extends z.ZodTypeAny>(
+  key: QueryKey,
+  endpoint: string,
+  schema: TSchema,
+  options?: Omit<
+    UseQueryOptions<z.infer<TSchema>, ApiError>,
+    "queryKey" | "queryFn"
+  >,
+) {
+  return useAPIQueryValidatedBase<TSchema, ApiError>(
+    key,
+    endpoint,
+    schema,
+    options,
+  );
+}
+
+export function useAPIMutation<TData, TVariables>(
+  endpointOrFn: string | ((vars: TVariables) => string),
+  method: "POST" | "PUT" | "PATCH" | "DELETE" = "POST",
+  options?: Omit<
+    UseMutationOptions<TData, ApiError, TVariables>,
+    "mutationFn"
+  > &
+    Pick<
+      UseAPIMutationOptions<TData, TVariables, ApiError>,
+      "invalidateKeys" | "body" | "suppressGlobalErrorToast"
+    >,
+) {
+  return useAPIMutationBase<TData, TVariables, ApiError>(
+    endpointOrFn,
+    method,
+    options,
+  );
+}
+
+export type { AppConstants } from "@workspace/data-access";
+export type { MedicalHistoryTimelineItem } from "@workspace/data-access";
 
 export type { FormOptions } from "@workspace/types";
 
-export interface MedicalHistoryTimelineItem {
-  id: string;
-  startTime: string;
-  endTime: string;
-  status: string;
-  type: string;
-  chiefComplaint: string | null;
-  encounterSummary: string | null;
-  provisionalDiagnosis: string | null;
-  finalDiagnosis: string | null;
-  clinicalImpression: string | null;
-  treatmentPlan: string | null;
-  observations: string | null;
-  notes: string | null;
-  doctor: {
-    id: string;
-    name: string;
-    specialization: string | null;
-  } | null;
-  diagnoses: Array<{
-    id: string;
-    isPrimary: boolean;
-    notes: string | null;
-    icdCode: {
-      id: string;
-      code: string;
-      description: string;
-    } | null;
-  }>;
-  vitalSign: {
-    id: string;
-    systolicBP: number | null;
-    diastolicBP: number | null;
-    bloodPressure: string | null;
-    pulse: number | null;
-    temperature: number | null;
-    spo2: number | null;
-    weight: number | null;
-    height: number | null;
-  } | null;
-  prescription: {
-    id: string;
-    medications: Array<{
-      id: string;
-      name: string;
-      dosage: string;
-      frequency: string;
-      duration: string;
-    }>;
-  } | null;
-  issueSummary: string;
-  primaryDiagnosis: {
-    id: string;
-    isPrimary: boolean;
-    notes: string | null;
-    icdCode: {
-      id: string;
-      code: string;
-      description: string;
-    } | null;
-  } | null;
-  yearMonth: string;
-}
 
 function toRecord(value: unknown): Record<string, unknown> | null {
   if (!value || typeof value !== "object" || Array.isArray(value)) {
@@ -131,118 +111,4 @@ export async function fetchAPI<T>(
       "NETWORK_ERROR",
     );
   }
-}
-
-const STALE_TIME_BY_KEY_PREFIX: Record<string, number> = {
-  patients: 60 * 1000,
-  appointments: 60 * 1000,
-  invoices: 60 * 1000,
-  prescriptions: 60 * 1000,
-  dashboard: 30 * 1000,
-  analytics: 30 * 1000,
-  "appointment-queue": 15 * 1000,
-  doctors: 5 * 60 * 1000,
-  clinic: 5 * 60 * 1000,
-  "doctor-profile": 5 * 60 * 1000,
-  settings: 5 * 60 * 1000,
-  permissions: 5 * 60 * 1000,
-};
-
-function inferStaleTime(
-  key: readonly (string | number | Record<string, unknown>)[],
-): number | undefined {
-  const prefix = typeof key[0] === "string" ? key[0] : undefined;
-  if (!prefix) return undefined;
-  return STALE_TIME_BY_KEY_PREFIX[prefix];
-}
-
-export function useAPIQuery<T>(
-  key: readonly (string | number | Record<string, unknown>)[],
-  endpoint: string,
-  options?: Omit<UseQueryOptions<T, ApiError>, "queryKey" | "queryFn">,
-) {
-  const inferredStaleTime =
-    options?.staleTime === undefined ? inferStaleTime(key) : undefined;
-  return useQuery<T, ApiError>({
-    queryKey: key,
-    queryFn: () => fetchAPI<T>(endpoint),
-    ...(inferredStaleTime !== undefined
-      ? { staleTime: inferredStaleTime }
-      : {}),
-    ...options,
-  });
-}
-
-export function useAPIQueryValidated<TSchema extends z.ZodTypeAny>(
-  key: readonly (string | number | Record<string, unknown>)[],
-  endpoint: string,
-  schema: TSchema,
-  options?: Omit<
-    UseQueryOptions<z.infer<TSchema>, ApiError>,
-    "queryKey" | "queryFn"
-  >,
-) {
-  const inferredStaleTime =
-    options?.staleTime === undefined ? inferStaleTime(key) : undefined;
-
-  return useQuery<z.infer<TSchema>, ApiError>({
-    queryKey: key,
-    queryFn: async () => schema.parse(await fetchAPI(endpoint)),
-    ...(inferredStaleTime !== undefined
-      ? { staleTime: inferredStaleTime }
-      : {}),
-    ...options,
-  });
-}
-
-export function useAPIMutation<TData, TVariables>(
-  endpointOrFn: string | ((vars: TVariables) => string),
-  method: "POST" | "PUT" | "PATCH" | "DELETE" = "POST",
-  options?: Omit<
-    UseMutationOptions<TData, ApiError, TVariables>,
-    "mutationFn"
-  > & {
-    invalidateKeys?: readonly (readonly (
-      | string
-      | number
-      | Record<string, unknown>
-    )[])[];
-    body?: (variables: TVariables) => unknown;
-    suppressGlobalErrorToast?: boolean;
-  },
-) {
-  const queryClient = useQueryClient();
-
-  return useMutation<TData, ApiError, TVariables>({
-    mutationFn: (variables: TVariables) => {
-      const endpoint =
-        typeof endpointOrFn === "function"
-          ? endpointOrFn(variables)
-          : endpointOrFn;
-      const requestBody = options?.body ? options.body(variables) : variables;
-      return fetchAPI<TData>(endpoint, {
-        method,
-        body:
-          requestBody === undefined ? undefined : JSON.stringify(requestBody),
-        retries: 0,
-        suppressGlobalErrorToast: options?.suppressGlobalErrorToast,
-      });
-    },
-    ...options,
-    onSuccess: (data, variables, context) => {
-      if (options?.invalidateKeys) {
-        options.invalidateKeys.forEach((key) => {
-          queryClient.invalidateQueries({ queryKey: key });
-        });
-      }
-      if (options?.onSuccess) {
-        const typedOnSuccess = options.onSuccess as (
-          data: TData,
-          variables: TVariables,
-          context?: unknown,
-        ) => Promise<void> | void;
-        typedOnSuccess(data, variables, context);
-      }
-    },
-  });
 }

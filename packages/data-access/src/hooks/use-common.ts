@@ -1,4 +1,6 @@
-import { AppConstants, FormOptions, useAPIQuery } from "@/lib/api/api-core";
+import type { FormOptions } from "@workspace/types";
+import { useAPIQuery } from "../core/use-api-query";
+import type { AppConstants } from "../types/app-types";
 
 export const useConstants = () =>
   useAPIQuery<AppConstants>(["constants"], "/config/constants", {

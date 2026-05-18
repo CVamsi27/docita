@@ -8,7 +8,7 @@ vi.mock("@/lib/contexts/clinic-context", () => ({
   }),
 }));
 
-vi.mock("@/hooks/api/use-patients", () => ({
+vi.mock("@workspace/data-access", () => ({
   useCreatePatient: () => ({
     mutateAsync: vi.fn().mockResolvedValue(undefined),
     isPending: false,

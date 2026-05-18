@@ -4,7 +4,7 @@ import {
   useGenerateSlaSignatureToken,
   useClinicActiveSignatureTokens,
   useRevokeClinicSignatureToken,
-} from "@/hooks/api/use-signature-upload";
+} from "@workspace/data-access";
 import { QrSignatureUpload } from "@/features/settings/components/shared/qr-signature-upload";
 
 interface ClinicSlaSignatureQRProps {

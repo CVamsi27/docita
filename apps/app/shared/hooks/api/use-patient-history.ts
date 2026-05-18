@@ -1,7 +1,7 @@
 import { useCallback, useMemo } from "react";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
-import { usePatient, useUpdatePatient } from "./use-patients";
+import { usePatient, useUpdatePatient } from "@workspace/data-access";
 import { useAPIQuery } from "@/lib/api/api-core";
 import { showUserFacingErrorToast } from "@/lib/errors/user-facing-errors";
 import { logger } from "@/lib/monitoring/logger";
@@ -16,7 +16,7 @@ import {
   PatientSurgicalHistory,
   PatientWithMedicalHistory,
 } from "@workspace/types";
-import { useTierFeatureEnabled } from "@/hooks/api/tier-feature-guards";
+import { useTierFeatureEnabled } from "@/lib/access-control/use-tier-feature-enabled";
 
 interface FullMedicalHistoryResponse {
   conditions?: PatientMedicalCondition[];

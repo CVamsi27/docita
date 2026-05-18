@@ -953,16 +953,28 @@ importers:
       '@workspace/types':
         specifier: workspace:*
         version: link:../types
+      '@workspace/utils':
+        specifier: workspace:*
+        version: link:../utils
       zod:
         specifier: ^3.25.76
         version: 3.25.76
     devDependencies:
+      '@tanstack/react-query':
+        specifier: ^5.90.10
+        version: 5.90.11(react@19.2.1)
       '@types/node':
         specifier: 20.19.9
         version: 20.19.9
+      '@types/react':
+        specifier: ^19.2.1
+        version: 19.2.7
       '@workspace/typescript-config':
         specifier: workspace:*
         version: link:../typescript-config
+      react:
+        specifier: ^19.2.1
+        version: 19.2.1
       typescript:
         specifier: ^5.9.2
         version: 5.9.3
