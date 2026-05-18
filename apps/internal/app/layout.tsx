@@ -12,6 +12,19 @@ export const metadata = {
   },
 };
 
+const themeBootstrapScript = `
+try {
+  var theme = localStorage.getItem("theme");
+  if (theme !== "dark" && theme !== "light") theme = "light";
+  document.documentElement.classList.remove("light", "dark");
+  document.documentElement.classList.add(theme);
+  document.documentElement.style.colorScheme = theme;
+} catch {
+  document.documentElement.classList.add("light");
+  document.documentElement.style.colorScheme = "light";
+}
+`;
+
 export default function RootLayout({
   children,
 }: {
@@ -19,6 +32,12 @@ export default function RootLayout({
 }) {
   return (
     <html lang="en" suppressHydrationWarning>
+      <head>
+        <script
+          suppressHydrationWarning
+          dangerouslySetInnerHTML={{ __html: themeBootstrapScript }}
+        />
+      </head>
       <body className="app-shell-bg font-sans bg-background text-foreground antialiased">
         <OptionalSentryInitializer
           enabled={process.env.DOCITA_CLOUDFLARE !== "1"}

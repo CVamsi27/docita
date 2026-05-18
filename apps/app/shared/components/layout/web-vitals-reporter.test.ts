@@ -2,6 +2,7 @@ import { describe, expect, it } from "vitest";
 import {
   createWebVitalsBeaconBody,
   shouldReportWebVitals,
+  WEB_VITALS_REPORTING_PATH,
 } from "./web-vitals-reporter";
 
 describe("shouldReportWebVitals", () => {
@@ -17,6 +18,10 @@ describe("shouldReportWebVitals", () => {
     expect(shouldReportWebVitals("/dashboard")).toBe(true);
     expect(shouldReportWebVitals("/patients")).toBe(true);
     expect(shouldReportWebVitals("/settings/profile")).toBe(true);
+  });
+
+  it("reports through the same-origin app route to avoid browser CORS", () => {
+    expect(WEB_VITALS_REPORTING_PATH).toBe("/api/v1/monitoring/web-vitals");
   });
 
   it("creates an application/json beacon body", async () => {
