@@ -1,8 +1,6 @@
 import { Module, forwardRef } from '@nestjs/common';
-import {
-  ClinicsController,
-  ClinicSettingsController,
-} from './presentation/controllers/clinics.controller';
+import { ClinicsController } from './presentation/controllers/clinics.controller';
+import { ClinicSettingsController } from './presentation/controllers/clinic-settings.controller';
 import { OnboardingController } from './presentation/controllers/onboarding.controller';
 import { JoinRequestsController } from './presentation/controllers/join-requests.controller';
 import { ClinicsService } from './application/services/clinics.service';

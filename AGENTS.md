@@ -27,7 +27,6 @@ It adapts and consolidates guidance from `CONTRIBUTING.md` and `.github/copilot-
   - `packages/data-access` (API clients + React Query)
   - `packages/ui` (shared UI)
   - `packages/db` (Prisma)
-  - `packages/auth` (cross-app access semantics)
   - `packages/hooks` (framework-agnostic React hooks)
   - `packages/utils` (framework-agnostic helpers)
   - `packages/eslint-config`, `packages/typescript-config` (shared configs)
@@ -536,7 +535,6 @@ When this file says to follow existing patterns, use these concrete references b
 - `packages/ui`: presentational primitives. No data fetching or business rules.
 - `packages/hooks`: framework-agnostic React hooks. No Next.js imports.
 - `packages/utils`: framework-agnostic helpers. No React or Next.js imports.
-- `packages/auth`: cross-app access and permission semantics.
 - `packages/db`: Prisma schema/client and database scripts only.
 
 ### 15.4 SOLID Principles Applied (2026-05 audit)

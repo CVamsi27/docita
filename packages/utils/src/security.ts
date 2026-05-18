@@ -1,4 +1,3 @@
-
 export function escapeHtml(unsafe: string): string {
   if (typeof unsafe !== "string") return "";
   return unsafe
@@ -7,9 +6,4 @@ export function escapeHtml(unsafe: string): string {
     .replace(/>/g, "&gt;")
     .replace(/"/g, "&quot;")
     .replace(/'/g, "&#039;");
-}
-
-export function stripHtmlTags(unsafe: string): string {
-  if (typeof unsafe !== "string") return "";
-  return unsafe.replace(/<[^>]*>?/gm, "");
 }

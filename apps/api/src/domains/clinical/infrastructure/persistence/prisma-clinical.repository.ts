@@ -1,5 +1,6 @@
 import { Injectable, Logger, OnModuleInit } from '@nestjs/common';
 import { PrismaService } from '@/prisma/prisma.service';
+import { LruCache } from '@/shared/common/utils/lru-cache';
 import { LabTest } from '@/domains/clinical/core/entities/lab-test.entity';
 import { LabOrder } from '@/domains/clinical/core/entities/lab-order.entity';
 import {
@@ -17,49 +18,6 @@ import {
   Appointment,
 } from '@workspace/db';
 
-/**
- * Lightweight LRU cache for medical-coding searches. Typeahead input drives a
- * high query volume, so caching the normalized query → rows mapping dramatically
- * cuts DB load during active consultation documentation.
- */
-class MedicalCodeLruCache<T> {
-  private readonly store = new Map<string, { value: T[]; expiresAt: number }>();
-
-  constructor(
-    private readonly capacity: number,
-    private readonly ttlMs: number,
-  ) {}
-
-  get(key: string): T[] | undefined {
-    const entry = this.store.get(key);
-    if (!entry) return undefined;
-    if (entry.expiresAt < Date.now()) {
-      this.store.delete(key);
-      return undefined;
-    }
-    this.store.delete(key);
-    this.store.set(key, entry);
-    return entry.value;
-  }
-
-  set(key: string, value: T[]): void {
-    if (this.store.has(key)) {
-      this.store.delete(key);
-    } else if (this.store.size >= this.capacity) {
-      const oldestKey = this.store.keys().next().value;
-      if (oldestKey) this.store.delete(oldestKey);
-    }
-    this.store.set(key, {
-      value,
-      expiresAt: Date.now() + this.ttlMs,
-    });
-  }
-
-  clear(): void {
-    this.store.clear();
-  }
-}
-
 const CODE_CACHE_TTL_MS = 5 * 60 * 1000;
 const CODE_CACHE_CAPACITY = 512;
 
@@ -68,11 +26,11 @@ export class PrismaClinicalRepository
   implements ILabRepository, IMedicalCodingRepository, OnModuleInit
 {
   private readonly logger = new Logger(PrismaClinicalRepository.name);
-  private readonly icdSearchCache = new MedicalCodeLruCache<IcdCode>(
+  private readonly icdSearchCache = new LruCache<IcdCode[]>(
     CODE_CACHE_CAPACITY,
     CODE_CACHE_TTL_MS,
   );
-  private readonly cptSearchCache = new MedicalCodeLruCache<CptCode>(
+  private readonly cptSearchCache = new LruCache<CptCode[]>(
     CODE_CACHE_CAPACITY,
     CODE_CACHE_TTL_MS,
   );

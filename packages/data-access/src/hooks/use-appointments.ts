@@ -3,7 +3,7 @@ import {
   useInfiniteQuery,
   useQueryClient,
 } from "@tanstack/react-query";
-import { queryKeys } from "@workspace/data-access";
+import { queryKeys } from "../lib/query-keys";
 import {
   Appointment,
   AppointmentRequestListResponse,

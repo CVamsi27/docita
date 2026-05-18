@@ -19,8 +19,20 @@ const prismaClientImportPattern =
 const workspaceDbImportPattern =
   /from\s+['"]@workspace\/db['"]|require\(\s*['"]@workspace\/db['"]\s*\)/;
 const workspaceDbTokenPattern = /@workspace\/db/;
+/**
+ * PrismaService is the DI wrapper around the Prisma client. Importing it
+ * into application/ or presentation/ layers bypasses the repository pattern
+ * just as cleanly as a raw `@prisma/client` import would, so we ban it
+ * there too. Allowed layers: core/ (rare — for transaction interface),
+ * infrastructure/ (where repositories live), and shared/ (for tenant
+ * middleware / extensions).
+ */
+const prismaServiceImportPattern =
+  /from\s+['"]@\/prisma\/prisma\.service['"]/;
 
 const violations = [];
+const prismaServiceLeaks = [];
+const enforcePrismaService = process.argv.includes('--enforce-prisma-service');
 
 for (const file of files) {
   if (file.startsWith('node_modules/') || file.includes('/dist/') || file.includes('.next/') || file.endsWith('.tsbuildinfo') || file.endsWith('.js.map') || file.endsWith('.md') || file === 'pnpm-lock.yaml' || file === 'scripts/checks/check-prisma-boundary.js') continue;
@@ -70,6 +82,18 @@ for (const file of files) {
     }
   }
 
+  if (prismaServiceImportPattern.test(content)) {
+    const isApi = file.startsWith('apps/api/src/');
+    const inForbiddenLayer =
+      isApi &&
+      (file.includes('/application/') ||
+        file.includes('/presentation/')) &&
+      !file.includes('/infrastructure/');
+    if (inForbiddenLayer) {
+      prismaServiceLeaks.push(file);
+    }
+  }
+
   const isFrontendConfigFile =
     (file === 'apps/app/package.json' ||
       file === 'apps/app/tsconfig.json' ||
@@ -89,6 +113,19 @@ for (const file of files) {
 
 if (violations.length === 0) {
   log('OK: No boundary violations found');
+  if (prismaServiceLeaks.length > 0) {
+    log('');
+    log(
+      `WARN: ${prismaServiceLeaks.length} file(s) import PrismaService in application/ or presentation/ layers.`,
+    );
+    log(
+      'These should migrate behind I*Repository interfaces per §15.1. Run with --enforce-prisma-service to fail CI on these.',
+    );
+    if (enforcePrismaService) {
+      for (const f of prismaServiceLeaks) error(` - ${f}`);
+      process.exit(2);
+    }
+  }
   process.exit(0);
 }
 
