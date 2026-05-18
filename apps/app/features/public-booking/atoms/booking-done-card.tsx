@@ -1,10 +1,10 @@
 "use client";
 
 import { CheckCircle2, MapPin, Phone } from "lucide-react";
-import { Button } from "@workspace/ui/components/button";
-import { Card, CardContent } from "@workspace/ui/components/card";
-import { CategoryAvatar } from "@workspace/ui/components/category-avatar";
-import { MicroLabel } from "@workspace/ui/components/micro-label";
+import { Button } from "@workspace/ui/components/form/button";
+import { Card, CardContent } from "@workspace/ui/components/indicators/card";
+import { CategoryAvatar } from "@workspace/ui/components/indicators/category-avatar";
+import { MicroLabel } from "@workspace/ui/components/indicators/micro-label";
 import { bookingCardClass, bookingSectionShell } from "./booking-constants";
 import { cn } from "@workspace/ui/lib/utils";
 

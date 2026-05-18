@@ -1,19 +1,19 @@
 "use client";
 
 import React, { useState } from "react";
-import { Button } from "@workspace/ui/components/button";
-import { SymbolTooltip } from "@workspace/ui/components/tooltip";
-import { Input } from "@workspace/ui/components/input";
-import { Label } from "@workspace/ui/components/label";
+import { Button } from "@workspace/ui/components/form/button";
+import { SymbolTooltip } from "@workspace/ui/components/overlay/tooltip";
+import { Input } from "@workspace/ui/components/form/input";
+import { Label } from "@workspace/ui/components/form/label";
 import {
   Select,
   SelectContent,
   SelectItem,
   SelectTrigger,
   SelectValue,
-} from "@workspace/ui/components/select";
-import { Textarea } from "@workspace/ui/components/textarea";
-import { MicButton } from "@workspace/ui/components/mic-button";
+} from "@workspace/ui/components/form/select";
+import { Textarea } from "@workspace/ui/components/form/textarea";
+import { MicButton } from "@workspace/ui/components/form/mic-button";
 import { useSpeechToText } from "@workspace/hooks";
 import { Activity, Plus, Trash2 } from "lucide-react";
 

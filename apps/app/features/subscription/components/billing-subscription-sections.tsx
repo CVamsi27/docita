@@ -1,26 +1,26 @@
 "use client";
 
-import { Tier, getTierInfo, getTierPricing } from "@/lib/tier-config";
+import { Tier, getTierInfo, getTierPricing } from "@/lib/subscription/tier-access";
 import {
   Alert,
   AlertDescription,
   AlertTitle,
-} from "@workspace/ui/components/alert";
-import { Card, CardContent } from "@workspace/ui/components/card";
-import { Button } from "@workspace/ui/components/button";
+} from "@workspace/ui/components/feedback/alert";
+import { Card, CardContent } from "@workspace/ui/components/indicators/card";
+import { Button } from "@workspace/ui/components/form/button";
 import {
   Dialog,
   DialogContent,
   DialogHeader,
   DialogTitle,
-} from "@workspace/ui/components/dialog";
-import { ScrollArea } from "@workspace/ui/components/scroll-area";
+} from "@workspace/ui/components/overlay/dialog";
+import { ScrollArea } from "@workspace/ui/components/layout/scroll-area";
 import {
   Tabs,
   TabsContent,
   TabsList,
   TabsTrigger,
-} from "@workspace/ui/components/tabs";
+} from "@workspace/ui/components/navigation/tabs";
 import { Lightbulb } from "lucide-react";
 import { cn } from "@workspace/ui/lib/utils";
 import { PrivacyPolicyContent, SLAContent } from "@/features/legal";

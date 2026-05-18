@@ -1,4 +1,4 @@
-import { client } from "@/lib/api-client";
+import { client } from "@/lib/api/api-client";
 import type { Clinic, User } from "./types";
 
 export async function fetchClinics(): Promise<Clinic[]> {

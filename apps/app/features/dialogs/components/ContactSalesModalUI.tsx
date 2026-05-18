@@ -8,18 +8,18 @@ import {
   DialogDescription,
   DialogHeader,
   DialogTitle,
-} from "@workspace/ui/components/dialog";
-import { Button } from "@workspace/ui/components/button";
-import { Input } from "@workspace/ui/components/input";
-import { Textarea } from "@workspace/ui/components/textarea";
-import { Alert, AlertDescription } from "@workspace/ui/components/alert";
+} from "@workspace/ui/components/overlay/dialog";
+import { Button } from "@workspace/ui/components/form/button";
+import { Input } from "@workspace/ui/components/form/input";
+import { Textarea } from "@workspace/ui/components/form/textarea";
+import { Alert, AlertDescription } from "@workspace/ui/components/feedback/alert";
 import { AlertCircle, CheckCircle, Mail } from "lucide-react";
-import { Form, FormControl, FormField } from "@workspace/ui/components/form";
+import { Form, FormControl, FormField } from "@workspace/ui/components/form/form";
 import { FormFieldGroup } from "@workspace/ui/components";
 import {
   emailSchema,
   requiredStringSchema,
-} from "@/features/_shared/schemas/common.schemas";
+} from "@/lib/validation/common.schemas";
 
 const contactSalesSchema = z.object({
   name: requiredStringSchema("Name"),

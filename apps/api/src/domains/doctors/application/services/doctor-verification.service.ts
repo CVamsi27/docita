@@ -3,7 +3,7 @@ import { DoctorVerificationStatus, Role } from '@workspace/db';
 import { JsonValue } from '@workspace/types';
 import { DATE_FORMATS, formatDate } from '@workspace/utils';
 import { AppConfigService } from '@/shared/modules/config/app-configuration.service';
-import { runWithTenant } from '@/common/middleware/tenant.middleware';
+import { runWithTenant } from '@/shared/common/middleware/tenant.middleware';
 import {
   IDoctorVerificationRepository,
   DOCTOR_VERIFICATION_REPOSITORY_TOKEN,

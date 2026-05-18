@@ -1,10 +1,10 @@
-import { Checkbox } from "@workspace/ui/components/checkbox";
+import { Checkbox } from "@workspace/ui/components/form/checkbox";
 import {
   Card,
   CardContent,
   CardHeader,
   CardTitle,
-} from "@workspace/ui/components/card";
+} from "@workspace/ui/components/indicators/card";
 import { Layers } from "lucide-react";
 
 interface MetricsTrackingCardProps {

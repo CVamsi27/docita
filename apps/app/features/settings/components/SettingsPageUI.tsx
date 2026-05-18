@@ -1,17 +1,17 @@
 import dynamic from "next/dynamic";
-import { DocitaLoadingIndicator } from "@workspace/ui/components/docita-loading-indicator";
-import { Skeleton } from "@workspace/ui/components/skeleton";
+import { DocitaLoadingIndicator } from "@workspace/ui/components/feedback/docita-loading-indicator";
+import { Skeleton } from "@workspace/ui/components/feedback/skeleton";
 import { cn } from "@workspace/ui/lib/utils";
-import { BackButton } from "@/components/common/navigation/back-button";
-import { AppPageScaffold } from "@workspace/ui/components/app-page-scaffold";
-import { PageHeader } from "@workspace/ui/components/page-header";
+import { BackButton } from "@/components/navigation/back-button";
+import { AppPageScaffold } from "@workspace/ui/components/layout/app-page-scaffold";
+import { PageHeader } from "@workspace/ui/components/layout/page-header";
 import {
   Tabs,
   TabsContent,
   TabsList,
   TabsTrigger,
-} from "@workspace/ui/components/tabs";
-import { RoleGuard } from "@/features/_shared/components";
+} from "@workspace/ui/components/navigation/tabs";
+import { RoleGuard } from "@/components";
 import {
   AppearanceSettings,
   ClinicGeneralSettings,

@@ -1,6 +1,6 @@
 "use client";
 
-import { DocitaLoadingIndicator } from "@workspace/ui/components/docita-loading-indicator";
+import { DocitaLoadingIndicator } from "@workspace/ui/components/feedback/docita-loading-indicator";
 
 import { Suspense, useEffect, useMemo, useState } from "react";
 import { useSearchParams } from "next/navigation";
@@ -8,13 +8,13 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
 import { CheckCircle } from "lucide-react";
-import { Button } from "@workspace/ui/components/button";
-import { FloatingInput } from "@workspace/ui/components/floating-input";
-import { LoadingState } from "@workspace/ui/components/empty-state";
+import { Button } from "@workspace/ui/components/form/button";
+import { FloatingInput } from "@workspace/ui/components/form/floating-input";
+import { LoadingState } from "@workspace/ui/components/feedback/empty-state";
 import { api } from "@/lib/api/api-client";
 import { logger } from "@/lib/monitoring/logger";
 import { PreDashboardShell } from "@/features/auth/components/PreDashboardShell";
-import { BackButton } from "@/components/common/navigation/back-button";
+import { BackButton } from "@/components/navigation/back-button";
 
 const forgotPasswordSchema = z.object({
   email: z.string().email("Please enter a valid email address"),

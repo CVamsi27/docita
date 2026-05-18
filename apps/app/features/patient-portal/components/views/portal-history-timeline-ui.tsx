@@ -4,9 +4,9 @@ import { useState } from "react";
 import { ChevronDown, ChevronUp, History } from "lucide-react";
 import { usePortalTimeline, usePortalSnapshot } from "@/hooks/api/use-patient-portal";
 import { usePatientMedicalHistory, usePatientPortalDashboard } from "@/hooks/api/use-patient-portal";
-import { PatientSnapshotStrip } from "@/features/_shared/components/patient-history/PatientSnapshotStrip";
-import { PatientTimeline } from "@/features/_shared/components/patient-history/PatientTimeline";
-import { DataState } from "@workspace/ui/components/data-state";
+import { PatientSnapshotStrip } from "@/components/patient-history/PatientSnapshotStrip";
+import { PatientTimeline } from "@/components/patient-history/PatientTimeline";
+import { DataState } from "@workspace/ui/components/data-display/data-state";
 import type { TimelineEventType } from "@workspace/types";
 
 const ALL_EVENT_TYPES: TimelineEventType[] = [

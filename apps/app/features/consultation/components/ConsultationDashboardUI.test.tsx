@@ -1,6 +1,6 @@
 import { screen } from "@testing-library/react";
 import { describe, expect, it, vi, beforeEach } from "vitest";
-import { render } from "@/test/render-with-tooltip";
+import { render } from "@/test-utils/render-with-tooltip";
 import { ConsultationDashboardUI } from "./ConsultationDashboardUI";
 import type { AppointmentListItem, QueueItem } from "@/hooks/api/use-appointments";
 

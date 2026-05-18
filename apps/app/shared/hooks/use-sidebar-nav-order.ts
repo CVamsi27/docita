@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
-import type { NavItem, NavSection, NavSectionId } from "@/features/_shared/components/navigation/nav-config";
-import { FIXED_NAV_HREFS, navSections } from "@/features/_shared/components/navigation/nav-config";
+import type { NavItem, NavSection, NavSectionId } from "@/components/navigation/nav-config";
+import { FIXED_NAV_HREFS, navSections } from "@/components/navigation/nav-config";
 import { sidebarNavOrderSchema } from "@workspace/types";
 import { useOptionalAppConfig } from "@/lib/contexts/app-config-context";
 import { useUpdateClinicSettings, useUpdateProfile, useUserProfile } from "@/hooks/api/use-settings";

@@ -1,5 +1,5 @@
-import { AppPageScaffold } from "@workspace/ui/components/app-page-scaffold";
-import { PageHeader } from "@workspace/ui/components/page-header";
+import { AppPageScaffold } from "@workspace/ui/components/layout/app-page-scaffold";
+import { PageHeader } from "@workspace/ui/components/layout/page-header";
 import { WhatsappSenderSettings } from "@/features/settings/components/whatsapp/WhatsappSenderSettings";
 
 export default function WhatsappSenderSettingsPage() {

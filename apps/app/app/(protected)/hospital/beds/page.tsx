@@ -1,7 +1,7 @@
 "use client";
 
 import { Feature } from "@workspace/types";
-import { FeatureGate } from "@/features/_shared/components/auth/feature-gate";
+import { FeatureGate } from "@/components/auth/feature-gate";
 import { useIpdLogic } from "@/features/ipd/hooks/use-ipd-logic";
 import { BedManagementUI, type WardInfo } from "@/features/ipd/components";
 

@@ -5,8 +5,8 @@ import { APIRequestError } from "@workspace/data-access";
 import { apiFetch } from "@/lib/api/api-client";
 import { API_URL } from "@/lib/api/api-config";
 import { buildJsonHeaders } from "@/lib/auth/csrf";
-import { toAbsoluteAppUrl } from "@/lib/url";
-import { usePhoneSignatureQrFlow } from "@/features/_shared/hooks/use-phone-signature-qr-flow";
+import { toAbsoluteAppUrl } from "@/lib/utils/url";
+import { usePhoneSignatureQrFlow } from "@/hooks/use-phone-signature-qr-flow";
 import { showUserFacingErrorToast } from "@/lib/errors/user-facing-errors";
 import type { ComplianceSettings } from "@/features/onboarding/components/types";
 

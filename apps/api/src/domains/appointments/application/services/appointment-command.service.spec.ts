@@ -61,7 +61,6 @@ describe('AppointmentCommandService', () => {
       queryService,
       { findById: jest.fn(), update: jest.fn() } as never,
       createUseCase,
-      prisma,
       eventEmitter,
       schedulingRules,
       metricsService,

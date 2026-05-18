@@ -1,27 +1,28 @@
 import {
+  Inject,
   Injectable,
   NotFoundException,
   BadRequestException,
 } from '@nestjs/common';
-import { PrismaService } from '@/prisma/prisma.service';
+
+import {
+  type IPatientTagsRepository,
+  PATIENT_TAGS_REPOSITORY_TOKEN,
+} from '@/domains/patients/core/repositories/patient-tags.repository.interface';
 
 @Injectable()
 export class PatientTagsService {
-  constructor(private readonly prisma: PrismaService) {}
+  constructor(
+    @Inject(PATIENT_TAGS_REPOSITORY_TOKEN)
+    private readonly patientTagsRepository: IPatientTagsRepository,
+  ) {}
 
   async list(params: { clinicId: string; patientId: string }) {
-    const patient = await this.prisma.patient.findFirst({
-      where: { id: params.patientId, clinicId: params.clinicId },
-      select: { id: true },
-    });
-    if (!patient) {
+    if (!(await this.patientTagsRepository.patientExists(params))) {
       throw new NotFoundException('Patient not found');
     }
 
-    return this.prisma.patientTag.findMany({
-      where: { patientId: params.patientId },
-      orderBy: { tag: 'asc' },
-    });
+    return this.patientTagsRepository.list({ patientId: params.patientId });
   }
 
   async create(params: {
@@ -30,11 +31,7 @@ export class PatientTagsService {
     tag: string;
     color: string;
   }) {
-    const patient = await this.prisma.patient.findFirst({
-      where: { id: params.patientId, clinicId: params.clinicId },
-      select: { id: true },
-    });
-    if (!patient) {
+    if (!(await this.patientTagsRepository.patientExists(params))) {
       throw new NotFoundException('Patient not found');
     }
 
@@ -43,12 +40,10 @@ export class PatientTagsService {
       throw new BadRequestException('Tag is required');
     }
 
-    return this.prisma.patientTag.create({
-      data: {
-        patientId: params.patientId,
-        tag: normalizedTag,
-        color: params.color,
-      },
+    return this.patientTagsRepository.create({
+      patientId: params.patientId,
+      tag: normalizedTag,
+      color: params.color,
     });
   }
 
@@ -59,47 +54,38 @@ export class PatientTagsService {
     tag?: string;
     color?: string;
   }) {
-    const patient = await this.prisma.patient.findFirst({
-      where: { id: params.patientId, clinicId: params.clinicId },
-      select: { id: true },
-    });
-    if (!patient) {
+    if (!(await this.patientTagsRepository.patientExists(params))) {
       throw new NotFoundException('Patient not found');
     }
 
-    const existing = await this.prisma.patientTag.findFirst({
-      where: { id: params.tagId, patientId: params.patientId },
+    const existing = await this.patientTagsRepository.findTag({
+      patientId: params.patientId,
+      tagId: params.tagId,
     });
     if (!existing) {
       throw new NotFoundException('Tag not found');
     }
 
-    return this.prisma.patientTag.update({
-      where: { id: params.tagId },
-      data: {
-        ...(params.tag !== undefined ? { tag: params.tag.trim() } : {}),
-        ...(params.color !== undefined ? { color: params.color } : {}),
-      },
+    return this.patientTagsRepository.update({
+      tagId: params.tagId,
+      ...(params.tag !== undefined ? { tag: params.tag.trim() } : {}),
+      ...(params.color !== undefined ? { color: params.color } : {}),
     });
   }
 
   async remove(params: { clinicId: string; patientId: string; tagId: string }) {
-    const patient = await this.prisma.patient.findFirst({
-      where: { id: params.patientId, clinicId: params.clinicId },
-      select: { id: true },
-    });
-    if (!patient) {
+    if (!(await this.patientTagsRepository.patientExists(params))) {
       throw new NotFoundException('Patient not found');
     }
 
-    const existing = await this.prisma.patientTag.findFirst({
-      where: { id: params.tagId, patientId: params.patientId },
-      select: { id: true },
+    const existing = await this.patientTagsRepository.findTag({
+      patientId: params.patientId,
+      tagId: params.tagId,
     });
     if (!existing) {
       throw new NotFoundException('Tag not found');
     }
 
-    await this.prisma.patientTag.delete({ where: { id: params.tagId } });
+    await this.patientTagsRepository.remove({ tagId: params.tagId });
   }
 }

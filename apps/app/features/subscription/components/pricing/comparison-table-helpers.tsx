@@ -1,20 +1,20 @@
 "use client";
 
 import { Check, Info, Minus } from "lucide-react";
-import { FEATURE_TIER_MAP } from "@/lib/tier-config";
+import { FEATURE_TIER_MAP } from "@/lib/subscription/tier-access";
 import { getFeatureDetails } from "@/features/subscription/config/feature-config";
 import {
   TableCell,
   TableRow,
-} from "@workspace/ui/components/table";
-import { Badge } from "@workspace/ui/components/badge";
+} from "@workspace/ui/components/data-display/table";
+import { Badge } from "@workspace/ui/components/indicators/badge";
 import { cn } from "@workspace/ui/lib/utils";
 import {
   SymbolTooltip,
   Tooltip,
   TooltipContent,
   TooltipTrigger,
-} from "@workspace/ui/components/tooltip";
+} from "@workspace/ui/components/overlay/tooltip";
 import { Feature } from "@workspace/types";
 
 export const FEATURE_CATEGORIES: { label: string; features: Feature[] }[] = [

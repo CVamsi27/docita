@@ -1,6 +1,6 @@
 "use client";
 
-import { DocitaLoadingIndicator } from "@workspace/ui/components/docita-loading-indicator";
+import { DocitaLoadingIndicator } from "@workspace/ui/components/feedback/docita-loading-indicator";
 import { Suspense, useEffect, useState } from "react";
 import { useSearchParams } from "next/navigation";
 import {
@@ -9,8 +9,8 @@ import {
   CardDescription,
   CardHeader,
   CardTitle,
-} from "@workspace/ui/components/card";
-import { Badge } from "@workspace/ui/components/badge";
+} from "@workspace/ui/components/indicators/card";
+import { Badge } from "@workspace/ui/components/indicators/badge";
 import { cn } from "@workspace/ui/lib/utils";
 import { type TierPricing, usePricingConfig } from "@/hooks/api/use-pricing";
 import { ContactSalesModal } from "@/features/dialogs";
@@ -20,7 +20,7 @@ import {
   PLAN_LIMITS,
   getTierInfo,
   getTierValue,
-} from "@/lib/tier-config";
+} from "@/lib/subscription/tier-access";
 import {
   type TierName,
   type WorkspaceProfile,

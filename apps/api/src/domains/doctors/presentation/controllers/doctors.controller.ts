@@ -18,7 +18,7 @@ import { unlink } from 'fs/promises';
 import {
   assertAllowedFileSignature,
   createTempDiskStorage,
-} from '@/common/utils/upload.utils';
+} from '@/shared/common/utils/upload.utils';
 import { DoctorsService } from '@/domains/doctors/application/services/doctors.service';
 import { Roles } from '@/shared/modules/auth/auth/roles.decorator';
 import { TierGuard } from '@/shared/modules/auth/auth/tier.guard';
@@ -45,8 +45,8 @@ import {
   AddSpecializationSchema,
 } from '@/domains/doctors/application/dto/doctors.dto';
 import { ZodSerializerDto } from 'nestjs-zod';
-import { ZodValidationPipe } from '@/common/pipes/zod-validation.pipe';
-import { RequestWithUser } from '@/common/types/common.types';
+import { ZodValidationPipe } from '@/shared/common/pipes/zod-validation.pipe';
+import { RequestWithUser } from '@/shared/common/types/common.types';
 import { Specialization } from '@workspace/db';
 
 @Controller('doctors')

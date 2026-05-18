@@ -1,4 +1,4 @@
-import { client } from "@/lib/api-client";
+import { client } from "@/lib/api/api-client";
 import type { DashboardClinic, DashboardStats } from "./types";
 
 export async function fetchDashboardClinics(

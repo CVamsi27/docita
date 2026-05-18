@@ -14,7 +14,7 @@ import {
   Feature,
   RequireFeature,
 } from '@/shared/modules/auth/auth/tier.decorator';
-import { RequestWithUser } from '@/common/types/common.types';
+import { RequestWithUser } from '@/shared/common/types/common.types';
 import { PaymentsService } from '@/domains/billing/application/services/payments.service';
 import { DeskRecordInvoiceSettlementBodyDto } from '@/domains/billing/application/dto/desk.dto';
 import { AnyResponseDto } from '@/domains/billing/application/dto/payments.dto';

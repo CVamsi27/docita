@@ -5,7 +5,7 @@ import {
   QuotaUpsertInput,
   TenantQuota,
 } from '@/shared/modules/tenant-rate-limit/tenant-rate-limit.types';
-import { isPrismaTableDoesNotExistForModel } from '@/common/utils/prisma-missing-table';
+import { isPrismaTableDoesNotExistForModel } from '@/shared/common/utils/prisma-missing-table';
 
 const monthlyResetDate = (): Date => {
   const now = new Date();

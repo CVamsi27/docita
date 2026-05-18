@@ -16,7 +16,7 @@ import { Feature } from '@workspace/types';
 import { Roles } from '@/shared/modules/auth/auth/roles.decorator';
 import { RequireFeature } from '@/shared/modules/auth/auth/tier.decorator';
 import { AuditService } from '@/shared/modules/audit/audit/audit.service';
-import { RequestWithUser } from '@/common/types/common.types';
+import { RequestWithUser } from '@/shared/common/types/common.types';
 import { PatientService } from '@/domains/patients/application/services/patient.service';
 
 import {

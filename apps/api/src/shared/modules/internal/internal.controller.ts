@@ -70,9 +70,9 @@ import {
   UpdateFeedbackStatusSchema,
 } from '@/domains/feedback/dto/feedback.dto';
 import { ContactInquiryListResponseDto } from '@/shared/modules/contact/dto/contact.dto';
-import { ZodValidationPipe } from '@/common/pipes/zod-validation.pipe';
+import { ZodValidationPipe } from '@/shared/common/pipes/zod-validation.pipe';
 import { UsePipes } from '@nestjs/common';
-import { parsePaginationInt } from '@/common/utils/string.utils';
+import { parsePaginationInt } from '@/shared/common/utils/string.utils';
 import { recordInternalAdditionalChargeRequestSchema } from '@workspace/types';
 
 @Controller('internal')

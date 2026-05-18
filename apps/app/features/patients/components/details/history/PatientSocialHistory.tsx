@@ -1,18 +1,18 @@
-import { Input } from "@workspace/ui/components/input";
-import { Label } from "@workspace/ui/components/label";
+import { Input } from "@workspace/ui/components/form/input";
+import { Label } from "@workspace/ui/components/form/label";
 import {
   Card,
   CardContent,
   CardHeader,
   CardTitle,
-} from "@workspace/ui/components/card";
+} from "@workspace/ui/components/indicators/card";
 import {
   Select,
   SelectContent,
   SelectItem,
   SelectTrigger,
   SelectValue,
-} from "@workspace/ui/components/select";
+} from "@workspace/ui/components/form/select";
 import { Coffee } from "lucide-react";
 import {
   ALCOHOL_USE_STATUS_LABELS,

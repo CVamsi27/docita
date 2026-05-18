@@ -1,6 +1,6 @@
 "use client";
 
-import { DocitaLoadingIndicator } from "@workspace/ui/components/docita-loading-indicator";
+import { DocitaLoadingIndicator } from "@workspace/ui/components/feedback/docita-loading-indicator";
 
 import { useCurrentUsage } from "@/hooks/api/use-pricing";
 import { useSubscription } from "@/hooks/api/use-settings";
@@ -16,9 +16,9 @@ import {
   formatLocaleDateShortMonthYear,
 } from "@/lib/formatters";
 import { AlertTriangle, TrendingUp } from "lucide-react";
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@workspace/ui/components/card";
-import { Progress } from "@workspace/ui/components/progress";
-import { Badge } from "@workspace/ui/components/badge";
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@workspace/ui/components/indicators/card";
+import { Progress } from "@workspace/ui/components/feedback/progress";
+import { Badge } from "@workspace/ui/components/indicators/badge";
 import { cn } from "@workspace/ui/lib/utils";
 import {
   formatUsageMeterCaption,

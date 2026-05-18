@@ -19,7 +19,7 @@ import { Role, JoinRequestStatus } from '@workspace/db';
 import { SkipSubscriptionCheck } from '@/shared/modules/auth/decorators/skip-subscription-check.decorator';
 import { JoinRequestService } from '@/domains/clinics/application/services/join-request.service';
 import { StaffNotificationService } from '@/shared/modules/messaging/whatsapp/staff-notification.service';
-import { RequestWithUser } from '@/common/types/common.types';
+import { RequestWithUser } from '@/shared/common/types/common.types';
 import {
   CreateJoinRequestDto,
   ApproveJoinRequestDto,

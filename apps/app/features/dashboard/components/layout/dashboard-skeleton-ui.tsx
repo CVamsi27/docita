@@ -1,4 +1,4 @@
-import { Skeleton } from "@workspace/ui/components/skeleton";
+import { Skeleton } from "@workspace/ui/components/feedback/skeleton";
 
 export type DashboardSkeletonVariant = "full" | "today";
 

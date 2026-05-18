@@ -37,7 +37,7 @@ import {
   RequireFeature,
 } from '@/shared/modules/auth/auth/tier.decorator';
 import { getDbRolesForTarget } from '@/shared/modules/auth/auth/access-matrix.util';
-import { RequestWithUser } from '@/common/types/common.types';
+import { RequestWithUser } from '@/shared/common/types/common.types';
 import {
   CreatePatientDto,
   ListPatientsQueryDto,

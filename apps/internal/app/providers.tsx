@@ -1,6 +1,6 @@
 "use client";
 
-import { AuthProvider } from "@/lib/auth";
+import { AuthProvider } from "@/lib/auth/auth";
 import { Toaster } from "sonner";
 import { ThemeProvider } from "next-themes";
 import { type ReactNode, useState } from "react";
@@ -8,7 +8,7 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { APIRequestError } from "@workspace/data-access";
 import { NavigationHistoryProvider } from "@/providers/navigation-history-provider";
 import { InternalWebVitalsReporter } from "@/components/internal-web-vitals-reporter";
-import { TooltipProvider } from "@workspace/ui/components/tooltip";
+import { TooltipProvider } from "@workspace/ui/components/overlay/tooltip";
 
 const TOAST_DURATION_MS = 5000;
 const TOAST_VISIBLE_COUNT = Number.POSITIVE_INFINITY;

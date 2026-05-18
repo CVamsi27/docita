@@ -7,7 +7,7 @@ import {
   usePatientSnapshot,
 } from "@/hooks/api/use-patient-timeline";
 import { Appointment } from "@workspace/types";
-import { LoadingState } from "@workspace/ui/components/empty-state";
+import { LoadingState } from "@workspace/ui/components/feedback/empty-state";
 import { ConsultationSidebarUI } from "./ConsultationSidebarUI";
 
 interface ConsultationSidebarContainerProps {

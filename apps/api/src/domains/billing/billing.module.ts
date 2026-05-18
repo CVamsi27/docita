@@ -18,7 +18,6 @@ import {
   InvoicesQueryService,
   InvoicesCommandService,
   PaymentsService,
-  RetryService,
   SchedulerService,
   PDFService,
 } from './application/services';
@@ -78,7 +77,6 @@ import { QueueModule } from '@/shared/modules/queue/queue.module';
     InvoicesCommandService,
     InvoicesService,
     PaymentsService,
-    RetryService,
     SchedulerService,
     PDFService,
     InvoicePdfProcessor,

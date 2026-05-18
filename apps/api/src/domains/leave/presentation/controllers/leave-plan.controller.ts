@@ -14,13 +14,13 @@ import { Role } from '@workspace/db';
 import { Roles } from '@/shared/modules/auth/auth/roles.decorator';
 import { TierGuard } from '@/shared/modules/auth/auth/tier.guard';
 import { RequireFeature } from '@/shared/modules/auth/auth/tier.decorator';
-import { RequestWithUser } from '@/common/types/common.types';
+import { RequestWithUser } from '@/shared/common/types/common.types';
 import { LeavePlanService } from '@/domains/leave/application/services/leave-plan.service';
 import { Feature } from '@workspace/types';
 import {
   ALL_STAFF_ROLES,
   CLINIC_ADMIN_ROLES as ADMIN_ROLES,
-} from '@/common/constants/role-groups';
+} from '@/shared/common/constants/role-groups';
 
 @ApiTags('leave-plans')
 @Controller('leave-plans')

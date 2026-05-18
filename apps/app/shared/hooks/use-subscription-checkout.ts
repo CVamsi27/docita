@@ -7,7 +7,7 @@ import {
   useRazorpay,
 } from "@/hooks/use-razorpay";
 import { useAuth } from "@/lib/auth/auth-context";
-import { BRAND_FOREGROUND_HEX } from "@/lib/branding";
+import { BRAND_FOREGROUND_HEX } from "@/lib/constants/branding";
 import { fetchJsonWithSession } from "@/lib/auth/fetch-with-session";
 import { usePermissionStore } from "@/lib/stores/permission-store";
 import { showUserFacingErrorToast } from "@/lib/errors/user-facing-errors";

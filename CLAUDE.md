@@ -27,13 +27,13 @@ Everything in this file is shorthand — defer to AGENTS.md when in doubt.
 apps/
   api/          NestJS — src/domains/<domain>/{application,core,infrastructure,presentation}
   worker/       NestJS background worker
-  app/          Next.js main app — features/<feature>/* + shared/{components,hooks,lib}
-  internal/     Next.js admin app — same shape as app/
+  app/          Next.js main app — features/<feature>/* + shared/{components,hooks,lib/{auth,contexts,api,monitoring,security,access-control,subscription,errors,formatters,...}}
+  internal/     Next.js admin app — same shape as app/ (smaller shared/lib: auth, api, monitoring, errors, formatters)
   landing/      Astro marketing
 packages/
   types/        Zod schemas + inferred types (single source of truth)
   data-access/  API clients + React Query hooks
-  ui/           Presentational primitives + design tokens
+  ui/           Presentational primitives + design tokens — components grouped under form/, overlay/, layout/, feedback/, data-display/, navigation/, indicators/
   db/           Prisma client + migrations
   auth/         Access + token semantics
   hooks/        Framework-agnostic React hooks
@@ -61,6 +61,7 @@ docs/
 | `@/features/...`   | `apps/<app>/features/...` |
 | `@/app/...`        | `apps/<app>/app/...` |
 | `@workspace/<pkg>` | `packages/<pkg>` |
+| `@workspace/ui/components/<group>/<name>` | grouped UI primitive (form, overlay, layout, feedback, data-display, navigation, indicators) |
 
 Never use parent-relative imports (`../`). They are ESLint-banned across all apps.
 
@@ -75,7 +76,8 @@ Never use parent-relative imports (`../`). They are ESLint-banned across all app
 
 ## Things that will trip you up
 
-- The `@/components/...` alias does **not** point at `apps/<app>/components/` anymore — that folder no longer exists. It resolves through tsconfig into `apps/<app>/shared/components/`. Imports do not need to change; the path alias does the work.
+- The `@/components/...`, `@/hooks/...`, and `@/lib/...` aliases do **not** point at `apps/<app>/{components,hooks,lib}/` anymore — those folders no longer exist. They resolve through tsconfig into `apps/<app>/shared/{components,hooks,lib}/`. The `@/lib/` tree is further grouped into subfolders by concern (`@/lib/auth/...`, `@/lib/contexts/...`, `@/lib/api/...`, `@/lib/monitoring/...`, `@/lib/security/...`, `@/lib/access-control/...`, `@/lib/subscription/...`, `@/lib/errors/...`). Look there before adding a new top-level file.
+- Feature-specific code belongs in `apps/<app>/features/<feature>/`, not `shared/`. Promote into `packages/` once a second app needs it.
 - `@workspace/db` is allowed only in `apps/api/**`, `packages/db/**`, and `scripts/**`. Frontend apps must stay DB-agnostic ([`scripts/checks/check-prisma-boundary.js`](./scripts/checks/check-prisma-boundary.js)).
 - Inline `fetch()` in client features is blocked. Use `packages/data-access` hooks ([`scripts/checks/check-frontend-fetch.mjs`](./scripts/checks/check-frontend-fetch.mjs)).
 - Tier comparisons (`tier >= Tier.INTELLIGENCE`) are banned. Use `hasFeatureAccess(Feature.X)` (AGENTS.md §15.8).

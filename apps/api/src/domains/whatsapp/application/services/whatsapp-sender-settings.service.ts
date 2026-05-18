@@ -15,7 +15,7 @@ import {
   WhatsappSenderConfigResponse,
 } from '@workspace/types';
 import { PrismaService } from '@/prisma/prisma.service';
-import { EncryptionService } from '@/common/encryption.service';
+import { EncryptionService } from '@/shared/common/encryption.service';
 import { AppConfigService } from '@/shared/modules/config/app-configuration.service';
 import {
   assertClinicHasFeatureOrThrow,

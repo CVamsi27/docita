@@ -2,21 +2,21 @@
 
 import { useState } from "react";
 import { Plus } from "lucide-react";
-import { Button } from "@workspace/ui/components/button";
+import { Button } from "@workspace/ui/components/form/button";
 import {
   Card,
   CardContent,
   CardHeader,
   CardTitle,
-} from "@workspace/ui/components/card";
+} from "@workspace/ui/components/indicators/card";
 import {
   Select,
   SelectContent,
   SelectItem,
   SelectTrigger,
   SelectValue,
-} from "@workspace/ui/components/select";
-import { Skeleton } from "@workspace/ui/components/skeleton";
+} from "@workspace/ui/components/form/select";
+import { Skeleton } from "@workspace/ui/components/feedback/skeleton";
 import { useLeaves } from "@/hooks/api/use-leaves";
 import type { StaffLeave, User } from "@workspace/types";
 import { ApplyLeaveDialog } from "./ApplyLeaveDialog";

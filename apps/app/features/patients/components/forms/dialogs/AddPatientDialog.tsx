@@ -1,6 +1,6 @@
 "use client";
 
-import { DocitaLoadingIndicator } from "@workspace/ui/components/docita-loading-indicator";
+import { DocitaLoadingIndicator } from "@workspace/ui/components/feedback/docita-loading-indicator";
 
 import React, { FC } from "react";
 import { toast } from "sonner";
@@ -10,12 +10,12 @@ import { zodResolver } from "@hookform/resolvers/zod";
 
 import { useClinic } from "@/lib/contexts/clinic-context";
 import { useCreatePatient } from "@/hooks/api/use-patients";
-import { Button } from "@workspace/ui/components/button";
-import { Checkbox } from "@workspace/ui/components/checkbox";
-import { DatePicker } from "@workspace/ui/components/date-picker";
-import { FormDialog } from "@workspace/ui/components/form-dialog";
+import { Button } from "@workspace/ui/components/form/button";
+import { Checkbox } from "@workspace/ui/components/form/checkbox";
+import { DatePicker } from "@workspace/ui/components/form/date-picker";
+import { FormDialog } from "@workspace/ui/components/form/form-dialog";
 import { showUserFacingErrorToast } from "@/lib/errors/user-facing-errors";
-import { Input } from "@workspace/ui/components/input";
+import { Input } from "@workspace/ui/components/form/input";
 import {
   Form,
   FormControl,
@@ -23,14 +23,14 @@ import {
   FormItem,
   FormLabel,
   FormMessage,
-} from "@workspace/ui/components/form";
+} from "@workspace/ui/components/form/form";
 import {
   Select,
   SelectContent,
   SelectItem,
   SelectTrigger,
   SelectValue,
-} from "@workspace/ui/components/select";
+} from "@workspace/ui/components/form/select";
 import {
   createPatientRequestSchema,
   DPDP_NOTICE_TEXT_STAFF,

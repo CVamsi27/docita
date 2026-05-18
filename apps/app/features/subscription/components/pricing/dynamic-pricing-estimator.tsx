@@ -7,17 +7,17 @@ import {
   CardDescription,
   CardHeader,
   CardTitle,
-} from "@workspace/ui/components/card";
-import { Input } from "@workspace/ui/components/input";
-import { Label } from "@workspace/ui/components/label";
+} from "@workspace/ui/components/indicators/card";
+import { Input } from "@workspace/ui/components/form/input";
+import { Label } from "@workspace/ui/components/form/label";
 import {
   Select,
   SelectContent,
   SelectItem,
   SelectTrigger,
   SelectValue,
-} from "@workspace/ui/components/select";
-import { Badge } from "@workspace/ui/components/badge";
+} from "@workspace/ui/components/form/select";
+import { Badge } from "@workspace/ui/components/indicators/badge";
 import { cn } from "@workspace/ui/lib/utils";
 import { useDebounce } from "@workspace/hooks";
 import {

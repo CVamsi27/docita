@@ -9,12 +9,12 @@ import {
   CardDescription,
   CardHeader,
   CardTitle,
-} from "@workspace/ui/components/card";
-import { Button } from "@workspace/ui/components/button";
-import { Badge } from "@workspace/ui/components/badge";
+} from "@workspace/ui/components/indicators/card";
+import { Button } from "@workspace/ui/components/form/button";
+import { Badge } from "@workspace/ui/components/indicators/badge";
 import { FileText, Upload, CheckCircle2 } from "lucide-react";
 import { fetchAPI } from "@/lib/api/api-core";
-import { toAbsoluteApiUrl } from "@/lib/url";
+import { toAbsoluteApiUrl } from "@/lib/utils/url";
 import { showUserFacingErrorToast } from "@/lib/errors/user-facing-errors";
 
 const ALLOWED_MIMES = [

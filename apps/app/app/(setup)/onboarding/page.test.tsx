@@ -32,7 +32,7 @@ vi.mock("@/lib/auth/auth-context", () => ({
   useAuth: () => mocks.auth,
 }));
 
-vi.mock("@/components/common/loaders/page-transition-loader", () => ({
+vi.mock("@/components/loaders/page-transition-loader", () => ({
   PageTransitionLoader: ({
     title,
     description,

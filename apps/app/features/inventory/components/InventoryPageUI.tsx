@@ -1,8 +1,8 @@
 import { FC } from "react";
-import { AppPageScaffold } from "@workspace/ui/components/app-page-scaffold";
-import { PageHeader } from "@workspace/ui/components/page-header";
-import { StatGrid, type StatItem } from "@workspace/ui/components/stat-grid";
-import { Button } from "@workspace/ui/components/button";
+import { AppPageScaffold } from "@workspace/ui/components/layout/app-page-scaffold";
+import { PageHeader } from "@workspace/ui/components/layout/page-header";
+import { StatGrid, type StatItem } from "@workspace/ui/components/data-display/stat-grid";
+import { Button } from "@workspace/ui/components/form/button";
 import { InventoryAddItemDialog } from "@/features/dialogs";
 import { InventoryItemDetailsContainer as InventoryItemDetails } from "@/features/inventory/components";
 import {

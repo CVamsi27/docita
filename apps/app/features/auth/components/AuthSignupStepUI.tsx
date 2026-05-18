@@ -1,18 +1,18 @@
 "use client";
 
-import { DocitaLoadingIndicator } from "@workspace/ui/components/docita-loading-indicator";
+import { DocitaLoadingIndicator } from "@workspace/ui/components/feedback/docita-loading-indicator";
 import { Eye, EyeOff } from "lucide-react";
-import { ErrorBanner } from "@/components/common/error-banner";
-import { FormField } from "@/components/common/form-field";
-import { Badge } from "@workspace/ui/components/badge";
-import { Button } from "@workspace/ui/components/button";
-import { SymbolTooltip } from "@workspace/ui/components/tooltip";
-import { Input } from "@workspace/ui/components/input";
-import { Label } from "@workspace/ui/components/label";
+import { ErrorBanner } from "@/components/errors/error-banner";
+import { FormField } from "@/components/form-field";
+import { Badge } from "@workspace/ui/components/indicators/badge";
+import { Button } from "@workspace/ui/components/form/button";
+import { SymbolTooltip } from "@workspace/ui/components/overlay/tooltip";
+import { Input } from "@workspace/ui/components/form/input";
+import { Label } from "@workspace/ui/components/form/label";
 import {
   RadioGroup,
   RadioGroupItem,
-} from "@workspace/ui/components/radio-group";
+} from "@workspace/ui/components/form/radio-group";
 import { cn } from "@workspace/ui/lib/utils";
 import {
   BackEmailField,

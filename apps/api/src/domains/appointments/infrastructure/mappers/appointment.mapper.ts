@@ -14,7 +14,7 @@ import {
 } from '@/domains/appointments/core/value-objects/appointment-status.value-object';
 import { AppointmentListItem } from '@/domains/appointments/core/repositories/appointment.repository.interface';
 
-const PRISMA_TO_DOMAIN_STATUS: Record<
+export const PRISMA_TO_DOMAIN_STATUS: Record<
   PrismaAppointmentStatus,
   AppointmentStatusEnum
 > = {

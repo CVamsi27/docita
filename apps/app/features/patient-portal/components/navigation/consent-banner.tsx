@@ -1,8 +1,8 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { Button } from "@workspace/ui/components/button";
-import { SymbolTooltip } from "@workspace/ui/components/tooltip";
+import { Button } from "@workspace/ui/components/form/button";
+import { SymbolTooltip } from "@workspace/ui/components/overlay/tooltip";
 import {
   Card,
   CardContent,
@@ -10,8 +10,8 @@ import {
   CardFooter,
   CardHeader,
   CardTitle,
-} from "@workspace/ui/components/card";
-import { Checkbox } from "@workspace/ui/components/checkbox";
+} from "@workspace/ui/components/indicators/card";
+import { Checkbox } from "@workspace/ui/components/form/checkbox";
 import { Bell, Shield, X } from "lucide-react";
 import {
   usePatientConsentSettings,

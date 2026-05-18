@@ -1,9 +1,9 @@
 "use client";
 
 import { useEffect } from "react";
-import { Button } from "@workspace/ui/components/button";
+import { Button } from "@workspace/ui/components/form/button";
 import { AlertCircle, Home, RefreshCw } from "lucide-react";
-import { captureException } from "@/lib/sentry.client.config";
+import { captureException } from "@/lib/monitoring/sentry.client.config";
 
 export default function RootError({
   error,

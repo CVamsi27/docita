@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect } from "react";
-import { DocitaLoadingIndicator } from "@workspace/ui/components/docita-loading-indicator";
+import { DocitaLoadingIndicator } from "@workspace/ui/components/feedback/docita-loading-indicator";
 import {
   GoogleMap,
   Marker,

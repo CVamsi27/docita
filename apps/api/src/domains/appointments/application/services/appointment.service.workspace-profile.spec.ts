@@ -22,6 +22,14 @@ describe('AppointmentService workspace profile', () => {
     exists: jest.fn<IAppointmentRepository['exists']>(),
     findAppointmentsForSlots:
       jest.fn<IAppointmentRepository['findAppointmentsForSlots']>(),
+    findClinicWorkspaceProfile:
+      jest.fn<IAppointmentRepository['findClinicWorkspaceProfile']>(),
+    findForConsultationStart:
+      jest.fn<IAppointmentRepository['findForConsultationStart']>(),
+    startConsultationTx:
+      jest.fn<IAppointmentRepository['startConsultationTx']>(),
+    findForUpdate: jest.fn<IAppointmentRepository['findForUpdate']>(),
+    applyPatch: jest.fn<IAppointmentRepository['applyPatch']>(),
   } satisfies IAppointmentRepository;
 
   const mockCreateAppointmentUseCase = Object.create(
@@ -73,7 +81,7 @@ describe('AppointmentService workspace profile', () => {
   });
 
   it('forbids startConsultation when clinic workspace is FRONT_DESK', async () => {
-    mockClinicFindUnique.mockImplementation(async () => ({
+    mockRepository.findClinicWorkspaceProfile.mockImplementation(async () => ({
       settings: { workspaceProfile: 'FRONT_DESK' },
     }));
 

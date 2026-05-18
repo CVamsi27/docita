@@ -1,5 +1,5 @@
 import { Patient } from "@workspace/types";
-import { Button } from "@workspace/ui/components/button";
+import { Button } from "@workspace/ui/components/form/button";
 import {
   Table,
   TableBody,
@@ -7,13 +7,13 @@ import {
   TableHead,
   TableHeader,
   TableRow,
-} from "@workspace/ui/components/table";
+} from "@workspace/ui/components/data-display/table";
 import {
   Tooltip,
   TooltipContent,
   TooltipTrigger,
-} from "@workspace/ui/components/tooltip";
-import { Avatar, AvatarFallback } from "@workspace/ui/components/avatar";
+} from "@workspace/ui/components/overlay/tooltip";
+import { Avatar, AvatarFallback } from "@workspace/ui/components/indicators/avatar";
 import {
   ArrowDown,
   ArrowUp,

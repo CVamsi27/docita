@@ -1,7 +1,7 @@
 "use client";
 
 import { memo } from "react";
-import { Badge } from "@workspace/ui/components/badge";
+import { Badge } from "@workspace/ui/components/indicators/badge";
 import {
   Table,
   TableBody,
@@ -9,7 +9,7 @@ import {
   TableHead,
   TableHeader,
   TableRow,
-} from "@workspace/ui/components/table";
+} from "@workspace/ui/components/data-display/table";
 import { formatAmountLocale } from "@workspace/utils";
 
 export interface DetailedMetricsRow {

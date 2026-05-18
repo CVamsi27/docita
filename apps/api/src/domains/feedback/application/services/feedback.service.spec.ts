@@ -3,6 +3,12 @@ import { FeedbackService } from './feedback.service';
 import { PrismaService } from '@/prisma/prisma.service';
 import { NotFoundException } from '@nestjs/common';
 import { beforeEach, describe, it, expect, jest } from '@jest/globals';
+import {
+  FEEDBACK_REPOSITORY_TOKEN,
+  CreateFeedbackData,
+  IFeedbackRepository,
+} from '@/domains/feedback/core/repositories/feedback.repository.interface';
+import type { FeedbackFilters } from './feedback-helpers';
 
 describe('FeedbackService', () => {
   let service: FeedbackService;
@@ -21,6 +27,148 @@ describe('FeedbackService', () => {
     feedbackFeature: {
       groupBy: jest.fn<(...args: unknown[]) => Promise<unknown>>(),
     },
+  };
+
+  const buildWhere = (filters: {
+    status?: string;
+    category?: string;
+    clinicId?: string;
+    minRating?: number;
+    maxRating?: number;
+    search?: string;
+  }) => {
+    const where: Record<string, unknown> = {};
+    if (filters.status) where.status = filters.status;
+    if (filters.category) where.category = filters.category;
+    if (filters.clinicId) where.clinicId = filters.clinicId;
+    if (filters.minRating || filters.maxRating) {
+      where.overallRating = {
+        ...(filters.minRating ? { gte: filters.minRating } : {}),
+        ...(filters.maxRating ? { lte: filters.maxRating } : {}),
+      };
+    }
+    if (filters.search) {
+      where.OR = [
+        { featureRequests: { contains: filters.search } },
+        { generalComments: { contains: filters.search } },
+      ];
+    }
+    return where;
+  };
+
+  const mockFeedbackRepository: IFeedbackRepository = {
+    create: jest.fn(async (data: CreateFeedbackData) =>
+      mockPrismaService.feedback.create({
+        data: {
+          ...data,
+          status: 'NEW',
+          feedbackFeatures: { create: data.feedbackFeatures },
+        },
+        include: {},
+      }),
+    ),
+    findAllForClinic: jest.fn(
+      (clinicId) =>
+        mockPrismaService.feedback.findMany({
+          where: { clinicId },
+          include: {},
+          orderBy: { createdAt: 'desc' },
+        }) as Promise<unknown[]>,
+    ),
+    findAll: jest.fn(
+      (filters: FeedbackFilters) =>
+        mockPrismaService.feedback.findMany({
+          where: buildWhere(filters),
+          include: {},
+          orderBy: { createdAt: 'desc' },
+        }) as Promise<unknown[]>,
+    ),
+    findOneRaw: jest.fn((id) =>
+      mockPrismaService.feedback.findUnique({
+        where: { id },
+        include: {},
+      }),
+    ),
+    findByUser: jest.fn(
+      (userId) =>
+        mockPrismaService.feedback.findMany({
+          where: { userId },
+          include: {},
+          orderBy: { createdAt: 'desc' },
+        }) as Promise<unknown[]>,
+    ),
+    updateStatus: jest.fn((id, data) =>
+      mockPrismaService.feedback.update({
+        where: { id },
+        data,
+        include: {},
+      }),
+    ),
+    delete: jest.fn((id) =>
+      mockPrismaService.feedback.update({
+        where: { id },
+        data: { deletedAt: expect.any(Date) },
+      }),
+    ),
+    computeStats: jest.fn(async (clinicId) => {
+      const where = clinicId ? { clinicId } : {};
+      const total = (await mockPrismaService.feedback.count({
+        where,
+      })) as number;
+      const byStatus = (await mockPrismaService.feedback.groupBy({
+        by: ['status'],
+        where,
+        _count: true,
+      })) as Array<{ status: never; _count: number }>;
+      const byCategory = (await mockPrismaService.feedback.groupBy({
+        by: ['category'],
+        where,
+        _count: true,
+      })) as Array<{ category: never; _count: number }>;
+      const rating = (await mockPrismaService.feedback.aggregate({
+        where,
+        _avg: { overallRating: true },
+      })) as { _avg: { overallRating: number | null } };
+      const recentCount = (await mockPrismaService.feedback.count({
+        where,
+      })) as number;
+      const topGood = (await mockPrismaService.feedbackFeature.groupBy({
+        by: ['feature'],
+        where,
+        _count: { feature: true },
+      })) as Array<{ feature: string; _count: { feature: number } }>;
+      const topBad = (await mockPrismaService.feedbackFeature.groupBy({
+        by: ['feature'],
+        where,
+        _count: { feature: true },
+      })) as Array<{ feature: string; _count: { feature: number } }>;
+      const topImprovement = (await mockPrismaService.feedbackFeature.groupBy({
+        by: ['feature'],
+        where,
+        _count: { feature: true },
+      })) as Array<{ feature: string; _count: { feature: number } }>;
+
+      return {
+        total,
+        byStatus,
+        byCategory,
+        avgRating: rating._avg.overallRating,
+        recentCount,
+        topGood: topGood.map((item) => ({
+          feature: item.feature,
+          count: item._count.feature,
+        })),
+        topBad: topBad.map((item) => ({
+          feature: item.feature,
+          count: item._count.feature,
+        })),
+        topImprovement: topImprovement.map((item) => ({
+          feature: item.feature,
+          count: item._count.feature,
+        })),
+      };
+    }),
+    hasFeedbackInWindow: jest.fn(async () => false),
   };
 
   const mockFeedback = {
@@ -50,6 +198,10 @@ describe('FeedbackService', () => {
         {
           provide: PrismaService,
           useValue: mockPrismaService,
+        },
+        {
+          provide: FEEDBACK_REPOSITORY_TOKEN,
+          useValue: mockFeedbackRepository,
         },
       ],
     }).compile();

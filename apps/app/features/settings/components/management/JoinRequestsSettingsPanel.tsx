@@ -10,18 +10,18 @@ import {
   CheckCircle2,
   XCircle,
 } from "lucide-react";
-import { Card } from "@workspace/ui/components/card";
-import { Button } from "@workspace/ui/components/button";
-import { Badge } from "@workspace/ui/components/badge";
-import { LoadingState } from "@workspace/ui/components/empty-state";
+import { Card } from "@workspace/ui/components/indicators/card";
+import { Button } from "@workspace/ui/components/form/button";
+import { Badge } from "@workspace/ui/components/indicators/badge";
+import { LoadingState } from "@workspace/ui/components/feedback/empty-state";
 import {
   Select,
   SelectContent,
   SelectItem,
   SelectTrigger,
   SelectValue,
-} from "@workspace/ui/components/select";
-import { Textarea } from "@workspace/ui/components/textarea";
+} from "@workspace/ui/components/form/select";
+import { Textarea } from "@workspace/ui/components/form/textarea";
 import {
   Dialog,
   DialogContent,
@@ -29,7 +29,7 @@ import {
   DialogTitle,
   DialogDescription,
   DialogFooter,
-} from "@workspace/ui/components/dialog";
+} from "@workspace/ui/components/overlay/dialog";
 import { toast } from "sonner";
 import { typedApi } from "@/lib/api/api-client";
 import { formatDistanceToNow } from "@workspace/utils";

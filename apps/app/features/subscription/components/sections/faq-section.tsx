@@ -3,7 +3,7 @@ import {
   AccordionContent,
   AccordionItem,
   AccordionTrigger,
-} from "@workspace/ui/components/accordion";
+} from "@workspace/ui/components/overlay/accordion";
 import { GUIDED_SETUP_LIST_PRICE_BY_CURRENCY } from "@workspace/types";
 import { formatCurrency } from "@workspace/utils";
 

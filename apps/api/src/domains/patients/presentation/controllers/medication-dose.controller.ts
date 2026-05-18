@@ -14,10 +14,10 @@ import { Role } from '@workspace/db';
 import { Feature } from '@workspace/types';
 import { Roles } from '@/shared/modules/auth/auth/roles.decorator';
 import { RequireFeature } from '@/shared/modules/auth/auth/tier.decorator';
-import { RequestWithUser } from '@/common/types/common.types';
+import { RequestWithUser } from '@/shared/common/types/common.types';
 import { MedicationDoseService } from '@/domains/patients/application/services/medication-dose.service';
 import { PatientService } from '@/domains/patients/application/services/patient.service';
-import { parsePaginationInt } from '@/common/utils/string.utils';
+import { parsePaginationInt } from '@/shared/common/utils/string.utils';
 
 @ApiTags('medication-doses')
 @Controller('patients/:patientId/medication-doses')

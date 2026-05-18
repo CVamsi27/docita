@@ -7,7 +7,10 @@ import {
   PaginatedResult,
 } from '@/domains/appointments/core/repositories/appointment.repository.interface';
 import { Appointment } from '@/domains/appointments/core/entities/appointment.entity';
-import { AppointmentMapper } from '@/domains/appointments/infrastructure/mappers/appointment.mapper';
+import {
+  AppointmentMapper,
+  PRISMA_TO_DOMAIN_STATUS,
+} from '@/domains/appointments/infrastructure/mappers/appointment.mapper';
 import { AppointmentStatusEnum } from '@/domains/appointments/core/value-objects/appointment-status.value-object';
 import {
   Prisma,
@@ -248,5 +251,104 @@ export class PrismaAppointmentRepository implements IAppointmentRepository {
     });
 
     return appointments;
+  }
+
+  async findClinicWorkspaceProfile(
+    clinicId: string,
+  ): Promise<{ settings: unknown } | null> {
+    return this.getReadClient().clinic.findUnique({
+      where: { id: clinicId },
+      select: { settings: true },
+    });
+  }
+
+  async findForConsultationStart(id: string, clinicId: string) {
+    const row = await this.getReadClient().appointment.findFirst({
+      where: { id, clinicId },
+      select: {
+        id: true,
+        clinicId: true,
+        doctorId: true,
+        status: true,
+        queueToken: {
+          select: {
+            id: true,
+            status: true,
+            calledAt: true,
+            consultationStart: true,
+          },
+        },
+      },
+    });
+    if (!row) return null;
+    return {
+      ...row,
+      status: PRISMA_TO_DOMAIN_STATUS[row.status],
+    };
+  }
+
+  async startConsultationTx(
+    id: string,
+    clinicId: string,
+    queueToken: {
+      id: string;
+      calledAt: Date | null;
+      consultationStart: Date | null;
+    } | null,
+    currentStatus: AppointmentStatusEnum,
+  ): Promise<void> {
+    await this.prisma.$transaction(async (tx) => {
+      if (currentStatus !== AppointmentStatusEnum.IN_PROGRESS) {
+        const result = await tx.appointment.updateMany({
+          where: { id, clinicId },
+          data: {
+            status: PrismaAppointmentStatus.IN_PROGRESS,
+            version: { increment: 1 },
+          },
+        });
+        if (result.count === 0) {
+          throw new Error(`Appointment with ID ${id} not found`);
+        }
+      }
+
+      if (queueToken) {
+        const startTime = queueToken.consultationStart ?? new Date();
+        const calledAt = queueToken.calledAt ?? new Date();
+        await tx.queueToken.update({
+          where: { id: queueToken.id },
+          data: {
+            status: 'IN_PROGRESS',
+            calledAt,
+            consultationStart: startTime,
+          },
+        });
+      }
+    });
+  }
+
+  async findForUpdate(id: string, clinicId: string) {
+    return this.getReadClient().appointment.findFirst({
+      where: { id, clinicId },
+      select: {
+        id: true,
+        clinicId: true,
+        patientId: true,
+        doctorId: true,
+        startTime: true,
+        endTime: true,
+      },
+    });
+  }
+
+  async applyPatch(
+    id: string,
+    clinicId: string,
+    patch: Prisma.AppointmentUpdateInput,
+  ): Promise<number> {
+    const result = await this.prisma.appointment.updateMany({
+      where: { id, clinicId },
+      data: { ...patch, version: { increment: 1 } },
+    });
+    return result.count;
   }
 }

@@ -1,12 +1,12 @@
-import { Button } from "@workspace/ui/components/button";
-import { Input } from "@workspace/ui/components/input";
-import { SymbolTooltip } from "@workspace/ui/components/tooltip";
+import { Button } from "@workspace/ui/components/form/button";
+import { Input } from "@workspace/ui/components/form/input";
+import { SymbolTooltip } from "@workspace/ui/components/overlay/tooltip";
 import {
   Card,
   CardContent,
   CardHeader,
   CardTitle,
-} from "@workspace/ui/components/card";
+} from "@workspace/ui/components/indicators/card";
 import { Users, X } from "lucide-react";
 import { PatientWithMedicalHistory } from "@workspace/types";
 

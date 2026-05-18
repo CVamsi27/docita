@@ -52,6 +52,8 @@ describe('InvoicesService', () => {
     update: jest.fn<IInvoiceRepository['update']>(),
     delete: jest.fn<IInvoiceRepository['delete']>(),
     findPatientContext: jest.fn<IInvoiceRepository['findPatientContext']>(),
+    findClinicFeatureContext:
+      jest.fn<IInvoiceRepository['findClinicFeatureContext']>(),
     nextInvoiceNumber: jest.fn<IInvoiceRepository['nextInvoiceNumber']>(),
   };
 
@@ -506,7 +508,7 @@ describe('InvoicesService', () => {
     });
 
     it('requires invoicing feature for clinic-wide listing', async () => {
-      clinicFindUniqueMock.mockResolvedValue({
+      repository.findClinicFeatureContext.mockResolvedValue({
         tier: ClinicTier.STARTER,
         intelligenceAddon: IntelligenceAddon.NONE,
         features: {},
@@ -520,7 +522,7 @@ describe('InvoicesService', () => {
     });
 
     it('allows clinic-wide listing when clinic has invoicing access', async () => {
-      clinicFindUniqueMock.mockResolvedValue({
+      repository.findClinicFeatureContext.mockResolvedValue({
         tier: ClinicTier.ESSENTIAL,
         intelligenceAddon: IntelligenceAddon.NONE,
         features: {},

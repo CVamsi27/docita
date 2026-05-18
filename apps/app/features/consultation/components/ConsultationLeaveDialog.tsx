@@ -1,7 +1,7 @@
 "use client";
 
-import { DocitaLoadingIndicator } from "@workspace/ui/components/docita-loading-indicator";
-import { Button } from "@workspace/ui/components/button";
+import { DocitaLoadingIndicator } from "@workspace/ui/components/feedback/docita-loading-indicator";
+import { Button } from "@workspace/ui/components/form/button";
 import {
   Dialog,
   DialogContent,
@@ -9,7 +9,7 @@ import {
   DialogFooter,
   DialogHeader,
   DialogTitle,
-} from "@workspace/ui/components/dialog";
+} from "@workspace/ui/components/overlay/dialog";
 import {
   consultationDraftNeedsLeaveGuard,
   useConsultationDraft,

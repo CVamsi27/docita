@@ -1,9 +1,6 @@
 import { config } from "@workspace/eslint-config/react-internal";
 
 export default [
-	{
-		ignores: ["src/next-cloudflare/**"],
-	},
 	...config,
 	{
 		files: ["tailwind.config.ts"],

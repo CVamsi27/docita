@@ -9,7 +9,7 @@ import { APIRequestError, type RequestConfig } from "@workspace/data-access";
 import { getUserFacingErrorMessage, type PaginatedResponse } from "@workspace/types";
 import { API_URL } from "./api-config";
 import { apiFetch } from "./api-client";
-import { ApiError } from "./errors";
+import { ApiError } from "@/lib/errors";
 import type { z } from "zod";
 
 export { API_URL };

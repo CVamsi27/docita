@@ -1,17 +1,17 @@
 "use client";
 
 import React, { useState } from "react";
-import { Button } from "@workspace/ui/components/button";
-import { SymbolTooltip } from "@workspace/ui/components/tooltip";
-import { Input } from "@workspace/ui/components/input";
-import { Badge } from "@workspace/ui/components/badge";
+import { Button } from "@workspace/ui/components/form/button";
+import { SymbolTooltip } from "@workspace/ui/components/overlay/tooltip";
+import { Input } from "@workspace/ui/components/form/input";
+import { Badge } from "@workspace/ui/components/indicators/badge";
 import {
   Select,
   SelectContent,
   SelectItem,
   SelectTrigger,
   SelectValue,
-} from "@workspace/ui/components/select";
+} from "@workspace/ui/components/form/select";
 import { Plus, Search, Stethoscope, Trash2, X } from "lucide-react";
 import { Feature } from "@workspace/types";
 import { cn } from "@workspace/ui/lib/utils";

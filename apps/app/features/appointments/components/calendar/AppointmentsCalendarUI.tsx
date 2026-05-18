@@ -1,18 +1,18 @@
-import { Calendar } from "@workspace/ui/components/calendar";
+import { Calendar } from "@workspace/ui/components/form/calendar";
 import {
   Card,
   CardContent,
   CardHeader,
   CardTitle,
-} from "@workspace/ui/components/card";
-import { Button } from "@workspace/ui/components/button";
+} from "@workspace/ui/components/indicators/card";
+import { Button } from "@workspace/ui/components/form/button";
 import {
   Select,
   SelectContent,
   SelectItem,
   SelectTrigger,
   SelectValue,
-} from "@workspace/ui/components/select";
+} from "@workspace/ui/components/form/select";
 import {
   DEFAULT_TIMEZONE,
   formatClinicPickerDayIsoFromSelection,

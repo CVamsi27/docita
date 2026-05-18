@@ -1,19 +1,19 @@
-import { Button } from "@workspace/ui/components/button";
+import { Button } from "@workspace/ui/components/form/button";
 import {
   Card,
   CardContent,
   CardHeader,
   CardTitle,
-} from "@workspace/ui/components/card";
-import { Input } from "@workspace/ui/components/input";
-import { Label } from "@workspace/ui/components/label";
+} from "@workspace/ui/components/indicators/card";
+import { Input } from "@workspace/ui/components/form/input";
+import { Label } from "@workspace/ui/components/form/label";
 import {
   Select,
   SelectContent,
   SelectItem,
   SelectTrigger,
   SelectValue,
-} from "@workspace/ui/components/select";
+} from "@workspace/ui/components/form/select";
 import { Settings2 } from "lucide-react";
 
 interface FlatDefinition {

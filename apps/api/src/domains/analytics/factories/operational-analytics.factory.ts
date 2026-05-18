@@ -1,41 +1,44 @@
 import { Injectable, Inject, Logger } from '@nestjs/common';
 import { CACHE_MANAGER } from '@nestjs/cache-manager';
 import { Cache } from 'cache-manager';
-import { PrismaService } from '@/prisma/prisma.service';
 import { AppConfigService } from '@/shared/modules/config/app-configuration.service';
-import { Prisma, AppointmentStatus } from '@workspace/db';
+import { Prisma } from '@workspace/db';
 import {
   getMonthRange,
   getLastNDaysRange,
   toISODateString,
   DEFAULT_TIMEZONE,
 } from '@workspace/utils';
-import { PATIENT_ANALYTICS_SELECT } from '@/common/select-fragments';
 import {
-  OverviewMetrics,
-  PatientGrowthPoint,
   AppointmentSnapshot,
   DemographicsSnapshot,
+  OverviewMetrics,
+  PatientGrowthPoint,
 } from '@workspace/types';
+import {
+  ANALYTICS_REPOSITORY_TOKEN,
+  IAnalyticsRepository,
+} from '@/domains/analytics/core/repositories/analytics.repository.interface';
 
+/**
+ * Orchestrates analytics queries: caching, DTO shaping, and growth-rate math.
+ * Prisma access lives in {@link IAnalyticsRepository}. Class name is kept for
+ * backward DI compatibility — its concern is operational dashboards.
+ */
 @Injectable()
 export class OperationalAnalyticsFactory {
   private readonly logger = new Logger(OperationalAnalyticsFactory.name);
 
   constructor(
-    private prisma: PrismaService,
-    private configService: AppConfigService,
-    @Inject(CACHE_MANAGER) private cacheManager: Cache,
+    @Inject(ANALYTICS_REPOSITORY_TOKEN)
+    private readonly repository: IAnalyticsRepository,
+    private readonly configService: AppConfigService,
+    @Inject(CACHE_MANAGER) private readonly cacheManager: Cache,
   ) {}
-
-  private getReadClient() {
-    return this.prisma.getReadClient();
-  }
 
   async getOverview(clinicId: string, timezone: string = DEFAULT_TIMEZONE) {
     const cacheKey = `dashboard-overview-${clinicId}-${timezone}`;
     const cachedResult = await this.cacheManager.get<OverviewMetrics>(cacheKey);
-
     if (cachedResult) {
       return cachedResult;
     }
@@ -45,69 +48,33 @@ export class OperationalAnalyticsFactory {
     lastMonthDate.setMonth(lastMonthDate.getMonth() - 1);
     const lastMonthRange = getMonthRange(lastMonthDate, { timezone });
 
-    const readClient = this.getReadClient();
-
-    const [
-      totalPatients,
-      newPatientsThisMonth,
-      newPatientsLastMonth,
-      totalAppointments,
-      appointmentsThisMonth,
-      invoicesThisMonth,
-      invoicesLastMonth,
-    ] = await Promise.all([
-      readClient.patient.count({ where: { clinicId } }),
-      readClient.patient.count({
-        where: { clinicId, createdAt: { gte: thisMonthRange.start } },
-      }),
-      readClient.patient.count({
-        where: {
-          clinicId,
-          createdAt: { gte: lastMonthRange.start, lte: lastMonthRange.end },
-        },
-      }),
-      readClient.appointment.count({ where: { clinicId } }),
-      readClient.appointment.count({
-        where: { clinicId, createdAt: { gte: thisMonthRange.start } },
-      }),
-      readClient.invoice.aggregate({
-        where: {
-          patient: { clinicId },
-          createdAt: { gte: thisMonthRange.start },
-        },
-        _sum: { total: true },
-      }),
-      readClient.invoice.aggregate({
-        where: {
-          patient: { clinicId },
-          createdAt: { gte: lastMonthRange.start, lte: lastMonthRange.end },
-        },
-        _sum: { total: true },
-      }),
-    ]);
-
-    const revenueThisMonth = invoicesThisMonth._sum?.total || 0;
-    const revenueLastMonth = invoicesLastMonth._sum?.total || 0;
+    const aggregates = await this.repository.getOverviewAggregates(
+      clinicId,
+      thisMonthRange,
+      lastMonthRange,
+    );
 
     const patientGrowth =
-      newPatientsLastMonth > 0
-        ? ((newPatientsThisMonth - newPatientsLastMonth) /
-            newPatientsLastMonth) *
+      aggregates.newPatientsLastMonth > 0
+        ? ((aggregates.newPatientsThisMonth - aggregates.newPatientsLastMonth) /
+            aggregates.newPatientsLastMonth) *
           100
         : 0;
 
     const revenueGrowth =
-      revenueLastMonth > 0
-        ? ((revenueThisMonth - revenueLastMonth) / revenueLastMonth) * 100
+      aggregates.revenueLastMonth > 0
+        ? ((aggregates.revenueThisMonth - aggregates.revenueLastMonth) /
+            aggregates.revenueLastMonth) *
+          100
         : 0;
 
     const result = {
-      totalPatients,
-      newPatientsThisMonth,
+      totalPatients: aggregates.totalPatients,
+      newPatientsThisMonth: aggregates.newPatientsThisMonth,
       patientGrowth: Math.round(patientGrowth * 10) / 10,
-      totalAppointments,
-      appointmentsThisMonth,
-      revenueThisMonth,
+      totalAppointments: aggregates.totalAppointments,
+      appointmentsThisMonth: aggregates.appointmentsThisMonth,
+      revenueThisMonth: aggregates.revenueThisMonth,
       revenueGrowth: Math.round(revenueGrowth * 10) / 10,
     };
 
@@ -127,24 +94,16 @@ export class OperationalAnalyticsFactory {
     }
 
     const dateRange = getLastNDaysRange(days, { timezone });
-    const readClient = this.getReadClient();
-
-    const patients = await readClient.patient.findMany({
-      where: {
-        clinicId,
-        createdAt: { gte: dateRange.start },
-      },
-      select: PATIENT_ANALYTICS_SELECT,
-      orderBy: { createdAt: 'asc' },
-    });
+    const timestamps = await this.repository.getPatientCreationTimestamps(
+      clinicId,
+      dateRange.start,
+    );
 
     const patientsByDate = new Map<string, number>();
-
-    patients.forEach((patient) => {
-      const dateKey = toISODateString(patient.createdAt, { timezone });
-      const current = patientsByDate.get(dateKey) || 0;
-      patientsByDate.set(dateKey, current + 1);
-    });
+    for (const createdAt of timestamps) {
+      const dateKey = toISODateString(createdAt, { timezone });
+      patientsByDate.set(dateKey, (patientsByDate.get(dateKey) ?? 0) + 1);
+    }
 
     let cumulative = 0;
     const data = Array.from(patientsByDate.entries()).map(([date, count]) => {
@@ -153,7 +112,6 @@ export class OperationalAnalyticsFactory {
     });
 
     await this.cacheManager.set(cacheKey, data, 3600 * 1000);
-
     return data;
   }
 
@@ -162,45 +120,28 @@ export class OperationalAnalyticsFactory {
     timezone: string = DEFAULT_TIMEZONE,
   ) {
     const monthRange = getMonthRange(new Date(), { timezone });
-    const readClient = this.getReadClient();
-    const where = { clinicId, createdAt: { gte: monthRange.start } };
+    const breakdown = await this.repository.getAppointmentStatusBreakdown(
+      clinicId,
+      monthRange.start,
+    );
 
-    const [total, statusCounts, typeCounts] = await Promise.all([
-      readClient.appointment.count({ where }),
-      readClient.appointment.groupBy({
-        by: ['status'],
-        where,
-        _count: { id: true },
-      }),
-      readClient.appointment.groupBy({
-        by: ['type'],
-        where,
-        _count: { id: true },
-      }),
-    ]);
-
-    const byStatus = (
-      statusCounts as Array<{ status: string; _count: { id: number } }>
-    ).reduce(
-      (acc, apt) => {
-        acc[apt.status] = apt._count.id;
+    const byStatus = breakdown.statusCounts.reduce(
+      (acc, { status, count }) => {
+        acc[status] = count;
         return acc;
       },
       {} as Record<string, number>,
     );
-
-    const byType = (
-      typeCounts as Array<{ type: string; _count: { id: number } }>
-    ).reduce(
-      (acc, apt) => {
-        acc[apt.type] = apt._count.id;
+    const byType = breakdown.typeCounts.reduce(
+      (acc, { type, count }) => {
+        acc[type] = count;
         return acc;
       },
       {} as Record<string, number>,
     );
 
     return {
-      total,
+      total: breakdown.total,
       byStatus,
       byType,
     };
@@ -223,32 +164,20 @@ export class OperationalAnalyticsFactory {
       if (endDate) where.startTime.lte = endDate;
     }
 
-    const readClient = this.getReadClient();
-
-    const [total, booked, completed, cancelled, noShow] = await Promise.all([
-      readClient.appointment.count({ where }),
-      readClient.appointment.count({
-        where: { ...where, status: AppointmentStatus.CONFIRMED },
-      }),
-      readClient.appointment.count({
-        where: { ...where, status: AppointmentStatus.COMPLETED },
-      }),
-      readClient.appointment.count({
-        where: { ...where, status: AppointmentStatus.CANCELLED },
-      }),
-      readClient.appointment.count({
-        where: { ...where, status: AppointmentStatus.NO_SHOW },
-      }),
-    ]);
-
+    const aggregates =
+      await this.repository.getAppointmentMetricsAggregates(where);
     const result: AppointmentSnapshot = {
-      total,
-      booked,
-      completed,
-      cancelled,
-      noShow,
-      fillRate: total > 0 ? (booked / total) * 100 : 0,
-      completionRate: total > 0 ? (completed / total) * 100 : 0,
+      total: aggregates.total,
+      booked: aggregates.booked,
+      completed: aggregates.completed,
+      cancelled: aggregates.cancelled,
+      noShow: aggregates.noShow,
+      fillRate:
+        aggregates.total > 0 ? (aggregates.booked / aggregates.total) * 100 : 0,
+      completionRate:
+        aggregates.total > 0
+          ? (aggregates.completed / aggregates.total) * 100
+          : 0,
     };
 
     await this.cacheManager.set(
@@ -275,88 +204,36 @@ export class OperationalAnalyticsFactory {
       if (endDate) where.createdAt.lte = endDate;
     }
 
-    const readClient = this.getReadClient();
-
     const now = new Date();
-    const age18Cutoff = new Date(
-      now.getFullYear() - 18,
-      now.getMonth(),
-      now.getDate(),
-    );
-    const age35Cutoff = new Date(
-      now.getFullYear() - 35,
-      now.getMonth(),
-      now.getDate(),
-    );
-    const age50Cutoff = new Date(
-      now.getFullYear() - 50,
-      now.getMonth(),
-      now.getDate(),
-    );
-    const age65Cutoff = new Date(
-      now.getFullYear() - 65,
-      now.getMonth(),
-      now.getDate(),
-    );
-
-    const [
-      totalPatients,
-      genders,
-      age0to18,
-      age18to35,
-      age35to50,
-      age50to65,
-      age65plus,
-    ] = await Promise.all([
-      readClient.patient.count({ where }),
-      readClient.patient.groupBy({
-        by: ['gender'],
-        where,
-        _count: { _all: true },
-      }),
-      readClient.patient.count({
-        where: { ...where, dateOfBirth: { gt: age18Cutoff } },
-      }),
-      readClient.patient.count({
-        where: { ...where, dateOfBirth: { gt: age35Cutoff, lte: age18Cutoff } },
-      }),
-      readClient.patient.count({
-        where: { ...where, dateOfBirth: { gt: age50Cutoff, lte: age35Cutoff } },
-      }),
-      readClient.patient.count({
-        where: { ...where, dateOfBirth: { gt: age65Cutoff, lte: age50Cutoff } },
-      }),
-      readClient.patient.count({
-        where: { ...where, dateOfBirth: { lte: age65Cutoff } },
-      }),
-    ]);
-
-    const genderDistribution = {
-      MALE: 0,
-      FEMALE: 0,
-      OTHER: 0,
+    const cutoffs = {
+      age18: new Date(now.getFullYear() - 18, now.getMonth(), now.getDate()),
+      age35: new Date(now.getFullYear() - 35, now.getMonth(), now.getDate()),
+      age50: new Date(now.getFullYear() - 50, now.getMonth(), now.getDate()),
+      age65: new Date(now.getFullYear() - 65, now.getMonth(), now.getDate()),
     };
-    for (const row of genders as Array<{
-      gender: 'MALE' | 'FEMALE' | 'OTHER' | null;
-      _count: { _all: number };
-    }>) {
+
+    const aggregates = await this.repository.getPatientDemographicsAggregates(
+      where,
+      cutoffs,
+    );
+
+    const genderDistribution = { MALE: 0, FEMALE: 0, OTHER: 0 };
+    for (const row of aggregates.genders) {
       if (row.gender && row.gender in genderDistribution) {
-        genderDistribution[row.gender] = row._count._all;
+        genderDistribution[row.gender] = row.count;
       }
     }
 
-    const ageDistribution = {
-      '0-18': age0to18,
-      '18-35': age18to35,
-      '35-50': age35to50,
-      '50-65': age50to65,
-      '65+': age65plus,
-    };
-
     const result = {
-      totalPatients,
-      newPatients: totalPatients,
-      ageDistribution,
+      totalPatients: aggregates.totalPatients,
+      newPatients: aggregates.totalPatients,
+      ageDistribution: {
+        '0-18': aggregates.age0to18,
+        '18-35': aggregates.age18to35,
+        '35-50': aggregates.age35to50,
+        '50-65': aggregates.age50to65,
+        '65+': aggregates.age65plus,
+      },
       genderDistribution,
     };
 
@@ -373,26 +250,8 @@ export class OperationalAnalyticsFactory {
     const sevenDaysAgo = new Date(now);
     sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 7);
 
-    const readClient = this.getReadClient();
-    const uncodedWhere: Prisma.AppointmentWhereInput = {
-      clinicId,
-      status: AppointmentStatus.COMPLETED,
-      diagnoses: {
-        none: {},
-      },
-    };
-
-    const [totalUncoded, uncodedOlderThan7Days] = await Promise.all([
-      readClient.appointment.count({
-        where: uncodedWhere,
-      }),
-      readClient.appointment.count({
-        where: {
-          ...uncodedWhere,
-          createdAt: { lt: sevenDaysAgo },
-        },
-      }),
-    ]);
+    const { totalUncoded, uncodedOlderThan7Days } =
+      await this.repository.getUncodedVisitsAggregates(clinicId, sevenDaysAgo);
 
     return {
       totalUncoded,

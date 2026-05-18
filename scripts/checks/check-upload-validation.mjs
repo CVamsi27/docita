@@ -19,7 +19,9 @@ const files = execSync("git ls-files apps/api/src", {
 const findings = [];
 
 for (const file of files) {
-  const source = fs.readFileSync(path.join(repoRoot, file), "utf8");
+  const absolutePath = path.join(repoRoot, file);
+  if (!fs.existsSync(absolutePath)) continue;
+  const source = fs.readFileSync(absolutePath, "utf8");
   const isUploadBoundary = /\bFileInterceptor\s*\(/.test(source);
   if (!isUploadBoundary) continue;
 

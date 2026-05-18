@@ -2,7 +2,7 @@ import type { LucideIcon } from "lucide-react";
 import {
   EmptyState as SharedEmptyState,
   LoadingState as SharedLoadingState,
-} from "@workspace/ui/components/empty-state";
+} from "@workspace/ui/components/feedback/empty-state";
 import { cn } from "@workspace/ui/lib/utils";
 
 export const LoadingSpinner = ({ className }: { className?: string }) => (

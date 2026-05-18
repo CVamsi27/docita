@@ -1,15 +1,15 @@
 import { cn } from "@workspace/ui/lib/utils";
-import { Badge } from "@workspace/ui/components/badge";
+import { Badge } from "@workspace/ui/components/indicators/badge";
 import {
   Avatar,
   AvatarFallback,
   AvatarImage,
-} from "@workspace/ui/components/avatar";
+} from "@workspace/ui/components/indicators/avatar";
 import {
   Tooltip,
   TooltipContent,
   TooltipTrigger,
-} from "@workspace/ui/components/tooltip";
+} from "@workspace/ui/components/overlay/tooltip";
 import {
   AlertTriangle,
   Calendar,

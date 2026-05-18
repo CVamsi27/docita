@@ -8,8 +8,8 @@ import {
   EnterpriseContractRow,
   enterpriseContractsAPI,
   EnterpriseTrueUpAlertRow,
-} from "@/lib/api";
-import { useAuth } from "@/lib/auth";
+} from "@/lib/api/api";
+import { useAuth } from "@/lib/auth/auth";
 import { formatCurrency, formatDate } from "@workspace/utils";
 import {
   Card,
@@ -17,10 +17,10 @@ import {
   CardDescription,
   CardHeader,
   CardTitle,
-} from "@workspace/ui/components/card";
-import { Button } from "@workspace/ui/components/button";
-import { Badge } from "@workspace/ui/components/badge";
-import { PageHeader } from "@workspace/ui/components/page-header";
+} from "@workspace/ui/components/indicators/card";
+import { Button } from "@workspace/ui/components/form/button";
+import { Badge } from "@workspace/ui/components/indicators/badge";
+import { PageHeader } from "@workspace/ui/components/layout/page-header";
 import {
   Table,
   TableBody,
@@ -28,7 +28,7 @@ import {
   TableHead,
   TableHeader,
   TableRow,
-} from "@workspace/ui/components/table";
+} from "@workspace/ui/components/data-display/table";
 import {
   Dialog,
   DialogContent,
@@ -36,17 +36,17 @@ import {
   DialogFooter,
   DialogHeader,
   DialogTitle,
-} from "@workspace/ui/components/dialog";
-import { Input } from "@workspace/ui/components/input";
-import { Label } from "@workspace/ui/components/label";
-import { Textarea } from "@workspace/ui/components/textarea";
+} from "@workspace/ui/components/overlay/dialog";
+import { Input } from "@workspace/ui/components/form/input";
+import { Label } from "@workspace/ui/components/form/label";
+import { Textarea } from "@workspace/ui/components/form/textarea";
 import {
   Select,
   SelectContent,
   SelectItem,
   SelectTrigger,
   SelectValue,
-} from "@workspace/ui/components/select";
+} from "@workspace/ui/components/form/select";
 import {
   AlertTriangle,
   FileText,

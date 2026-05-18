@@ -9,11 +9,11 @@ import {
   SelectItem,
   SelectTrigger,
   SelectValue,
-} from "@workspace/ui/components/select";
-import { Input } from "@workspace/ui/components/input";
-import { DatePicker } from "@workspace/ui/components/date-picker";
-import { Form, FormControl, FormField } from "@workspace/ui/components/form";
-import { requiredStringSchema } from "@/features/_shared/schemas/common.schemas";
+} from "@workspace/ui/components/form/select";
+import { Input } from "@workspace/ui/components/form/input";
+import { DatePicker } from "@workspace/ui/components/form/date-picker";
+import { Form, FormControl, FormField } from "@workspace/ui/components/form/form";
+import { requiredStringSchema } from "@/lib/validation/common.schemas";
 
 const inventoryItemSchema = z.object({
   name: requiredStringSchema("Item Name"),

@@ -17,17 +17,17 @@ import {
   TableHead,
   TableHeader,
   TableRow,
-} from "@workspace/ui/components/table";
-import { Button } from "@workspace/ui/components/button";
-import { SymbolTooltip } from "@workspace/ui/components/tooltip";
-import { Badge } from "@workspace/ui/components/badge";
+} from "@workspace/ui/components/data-display/table";
+import { Button } from "@workspace/ui/components/form/button";
+import { SymbolTooltip } from "@workspace/ui/components/overlay/tooltip";
+import { Badge } from "@workspace/ui/components/indicators/badge";
 import {
   Card,
   CardContent,
   CardDescription,
   CardHeader,
   CardTitle,
-} from "@workspace/ui/components/card";
+} from "@workspace/ui/components/indicators/card";
 import type { Prescription } from "@workspace/types";
 
 export type SortKey = "date" | "patient" | "diagnosis" | "medications";

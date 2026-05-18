@@ -4,7 +4,7 @@ import { useEffect, useRef } from "react";
 import { useParams, useRouter, useSearchParams } from "next/navigation";
 import { useQueryClient } from "@tanstack/react-query";
 import { PrintSheet } from "@workspace/ui/components/print-sheet";
-import { LoadingState, EmptyState } from "@workspace/ui/components/empty-state";
+import { LoadingState, EmptyState } from "@workspace/ui/components/feedback/empty-state";
 import { FileX } from "lucide-react";
 import { useBackNavigation } from "@/hooks/use-back-navigation";
 import { usePrescription } from "@/hooks/api/use-clinical";
@@ -17,7 +17,7 @@ import { PrescriptionHeader } from "@/features/prescriptions/components/view/Pre
 import { PrescriptionDocument } from "@/features/prescriptions/components/view/PrescriptionDocument";
 import { buildConsultationRoute } from "@/features/consultation/rules/consultationTabRouting";
 import { showUserFacingErrorToast } from "@/lib/errors/user-facing-errors";
-import { FeatureGate } from "@/features/_shared/components/auth/feature-gate";
+import { FeatureGate } from "@/components/auth/feature-gate";
 import { toast } from "sonner";
 
 interface ClinicInfo {

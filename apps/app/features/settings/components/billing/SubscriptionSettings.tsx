@@ -5,33 +5,33 @@ import type { ReactNode } from "react";
 import type { SubscriptionCurrentResponse } from "@workspace/types";
 import { useAuth } from "@/lib/auth/auth-context";
 import { useBillingHistory } from "@/hooks/api/use-billing-history";
-import { getTierInfo } from "@/lib/tier-config";
+import { getTierInfo } from "@/lib/subscription/tier-access";
 import { useSubscription } from "@/hooks/api/use-settings";
-import { WhatsAppButton } from "@/features/_shared/components/whatsapp/whatsapp-button";
-import { getSupportPhoneNumber } from "@/lib/support-contact";
+import { WhatsAppButton } from "@/components/whatsapp/whatsapp-button";
+import { getSupportPhoneNumber } from "@/lib/constants/support-contact";
 import {
   BillingHistoryTable,
   BillingSubscriptionWorkspace,
   PaymentRecoveryCard,
 } from "@/features/subscription";
 import { getTrialState } from "@/lib/subscription/subscription-lockout";
-import { DocitaLoadingIndicator } from "@workspace/ui/components/docita-loading-indicator";
-import { Skeleton } from "@workspace/ui/components/skeleton";
+import { DocitaLoadingIndicator } from "@workspace/ui/components/feedback/docita-loading-indicator";
+import { Skeleton } from "@workspace/ui/components/feedback/skeleton";
 import {
   Card,
   CardContent,
   CardDescription,
   CardHeader,
   CardTitle,
-} from "@workspace/ui/components/card";
-import { Section } from "@workspace/ui/components/section";
-import { Button } from "@workspace/ui/components/button";
-import { Badge } from "@workspace/ui/components/badge";
+} from "@workspace/ui/components/indicators/card";
+import { Section } from "@workspace/ui/components/layout/section";
+import { Button } from "@workspace/ui/components/form/button";
+import { Badge } from "@workspace/ui/components/indicators/badge";
 import {
   Alert,
   AlertDescription,
   AlertTitle,
-} from "@workspace/ui/components/alert";
+} from "@workspace/ui/components/feedback/alert";
 import { AlertTriangle, Clock, Info, XCircle } from "lucide-react";
 import { useClinic } from "@/lib/contexts/clinic-context";
 

@@ -15,10 +15,10 @@ import {
   DEFAULT_CONFIG,
   DefaultValues,
   FormOptions,
-} from "../constants/app-config";
-import { apiFetch } from "./api-client";
-import { isNetworkError } from "./network-error";
-import { appQueryKeys } from "./query-keys";
+} from "@/lib/constants/app-config";
+import { apiFetch } from "@/lib/api/api-client";
+import { isNetworkError } from "@/lib/api/network-error";
+import { appQueryKeys } from "@/lib/api/query-keys";
 
 export type {
   SelectOption,
@@ -29,7 +29,7 @@ export type {
   DefaultValues,
   ClinicSettings,
   AppConfig,
-} from "../constants/app-config";
+} from "@/lib/constants/app-config";
 
 interface AppConfigContextType {
   config: AppConfig;

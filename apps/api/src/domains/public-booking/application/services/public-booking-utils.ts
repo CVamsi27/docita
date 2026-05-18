@@ -1,7 +1,7 @@
 import { NotFoundException } from '@nestjs/common';
 import type { PublicBookingClinicResponse } from '@workspace/types';
 import { PrismaService } from '@/prisma/prisma.service';
-import { runWithTenant } from '@/common/middleware/tenant.middleware';
+import { runWithTenant } from '@/shared/common/middleware/tenant.middleware';
 
 export type ResolvedPublicBookingClinic = PublicBookingClinicResponse;
 

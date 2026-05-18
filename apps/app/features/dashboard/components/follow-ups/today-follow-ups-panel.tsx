@@ -11,9 +11,9 @@ import {
   CardDescription,
   CardHeader,
   CardTitle,
-} from "@workspace/ui/components/card";
-import { Badge } from "@workspace/ui/components/badge";
-import { EmptyState } from "@workspace/ui/components/empty-state";
+} from "@workspace/ui/components/indicators/card";
+import { Badge } from "@workspace/ui/components/indicators/badge";
+import { EmptyState } from "@workspace/ui/components/feedback/empty-state";
 import { CalendarCheck } from "lucide-react";
 import { ViewAllLinkUI } from "@/features/dashboard/components/layout/view-all-link-ui";
 

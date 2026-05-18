@@ -8,7 +8,7 @@ import {
   type RazorpayResponse,
 } from "@/hooks/use-razorpay";
 import { apiFetch } from "@/lib/api/api-client";
-import { BRAND_FOREGROUND_HEX } from "@/lib/branding";
+import { BRAND_FOREGROUND_HEX } from "@/lib/constants/branding";
 import { useAuth } from "@/lib/auth/auth-context";
 import { buildCsrfHeaders, buildJsonHeaders } from "@/lib/auth/csrf";
 import { ApiError } from "@/lib/errors";

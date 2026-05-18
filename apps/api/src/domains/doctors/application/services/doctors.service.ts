@@ -1,7 +1,11 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, Inject } from '@nestjs/common';
 import { Specialization } from '@workspace/db';
 import { StorageFile } from '@/domains/documents/infrastructure/storage.provider';
 import { PrismaService } from '@/prisma/prisma.service';
+import {
+  DOCTOR_REPOSITORY_TOKEN,
+  IDoctorRepository,
+} from '@/domains/doctors/core/repositories/doctor.repository.interface';
 import { DoctorVerificationService } from './doctor-verification.service';
 import { SignatureUploadService } from './signature-upload.service';
 import { StoredFileUrlResolverService } from '@/domains/documents/application/services/stored-file-url-resolver.service';
@@ -28,6 +32,8 @@ export class DoctorsService {
     storedFileUrlResolver: StoredFileUrlResolverService,
     storageProvider: StorageProvider,
     profileService: DoctorProfileService,
+    @Inject(DOCTOR_REPOSITORY_TOKEN)
+    doctorRepository: IDoctorRepository,
   ) {
     this.queryService = new DoctorsQueryService(prisma, storedFileUrlResolver);
     const adminVerificationService = new DoctorAdminVerificationCommandService(
@@ -35,7 +41,7 @@ export class DoctorsService {
       this.queryService,
     );
     this.commandService = new DoctorsCommandService(
-      prisma,
+      doctorRepository,
       doctorVerificationService,
       signatureUploadService,
       storedFileUrlResolver,

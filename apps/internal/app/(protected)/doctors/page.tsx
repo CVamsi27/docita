@@ -1,20 +1,20 @@
 "use client";
 
-import { DocitaLoadingIndicator } from "@workspace/ui/components/docita-loading-indicator";
+import { DocitaLoadingIndicator } from "@workspace/ui/components/feedback/docita-loading-indicator";
 
 import { useEffect, useMemo, useState } from "react";
-import { useInternalQuery } from "@/lib/use-internal-query";
-import { Button } from "@workspace/ui/components/button";
+import { useInternalQuery } from "@/lib/api/use-internal-query";
+import { Button } from "@workspace/ui/components/form/button";
 import {
   Card,
   CardContent,
   CardHeader,
   CardTitle,
-} from "@workspace/ui/components/card";
-import { Input } from "@workspace/ui/components/input";
-import { Badge } from "@workspace/ui/components/badge";
-import { EmptyState } from "@workspace/ui/components/empty-state";
-import { PageHeader } from "@workspace/ui/components/page-header";
+} from "@workspace/ui/components/indicators/card";
+import { Input } from "@workspace/ui/components/form/input";
+import { Badge } from "@workspace/ui/components/indicators/badge";
+import { EmptyState } from "@workspace/ui/components/feedback/empty-state";
+import { PageHeader } from "@workspace/ui/components/layout/page-header";
 import {
   Table,
   TableBody,
@@ -22,23 +22,23 @@ import {
   TableHead,
   TableHeader,
   TableRow,
-} from "@workspace/ui/components/table";
+} from "@workspace/ui/components/data-display/table";
 import {
   Dialog,
   DialogContent,
   DialogDescription,
   DialogHeader,
   DialogTitle,
-} from "@workspace/ui/components/dialog";
+} from "@workspace/ui/components/overlay/dialog";
 import {
   Select,
   SelectContent,
   SelectItem,
   SelectTrigger,
   SelectValue,
-} from "@workspace/ui/components/select";
-import { Label } from "@workspace/ui/components/label";
-import { Textarea } from "@workspace/ui/components/textarea";
+} from "@workspace/ui/components/form/select";
+import { Label } from "@workspace/ui/components/form/label";
+import { Textarea } from "@workspace/ui/components/form/textarea";
 import {
   Award,
   Building2,
@@ -51,13 +51,13 @@ import {
   Stethoscope,
 } from "lucide-react";
 import { toast } from "sonner";
-import { useAuth } from "@/lib/auth";
-import { client } from "@/lib/api-client";
-import { formatInternalListDate } from "@/lib/format-display-date";
-import { internalQueryKeys } from "@/lib/query-keys";
+import { useAuth } from "@/lib/auth/auth";
+import { client } from "@/lib/api/api-client";
+import { formatInternalListDate } from "@/lib/formatters/format-display-date";
+import { internalQueryKeys } from "@/lib/api/query-keys";
 import { useInternalFiltersStore } from "@/lib/stores/internal-filters-store";
 import { DEFAULT_CURRENCY, formatCurrency } from "@workspace/utils";
-import { showUserFacingErrorToast } from "@/lib/user-facing-errors";
+import { showUserFacingErrorToast } from "@/lib/errors/user-facing-errors";
 import {
   getDoctorVerificationPublicNote,
   HOSPITAL_ROLE_LABELS,

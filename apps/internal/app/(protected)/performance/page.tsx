@@ -6,18 +6,18 @@ import {
   CardDescription,
   CardHeader,
   CardTitle,
-} from "@workspace/ui/components/card";
-import { DocitaLoadingIndicator } from "@workspace/ui/components/docita-loading-indicator";
-import { PageHeader } from "@workspace/ui/components/page-header";
-import { Progress } from "@workspace/ui/components/progress";
+} from "@workspace/ui/components/indicators/card";
+import { DocitaLoadingIndicator } from "@workspace/ui/components/feedback/docita-loading-indicator";
+import { PageHeader } from "@workspace/ui/components/layout/page-header";
+import { Progress } from "@workspace/ui/components/feedback/progress";
 import {
   SystemHealthBadge,
   SystemHealthIcon,
-} from "@workspace/ui/components/system-health-indicator";
+} from "@workspace/ui/components/feedback/system-health-indicator";
 import { formatCountLocale } from "@workspace/utils";
-import { healthAPI, monitoringAPI, performanceAPI } from "@/lib/api";
-import { internalQueryKeys } from "@/lib/query-keys";
-import { useInternalQuery } from "@/lib/use-internal-query";
+import { healthAPI, monitoringAPI, performanceAPI } from "@/lib/api/api";
+import { internalQueryKeys } from "@/lib/api/query-keys";
+import { useInternalQuery } from "@/lib/api/use-internal-query";
 import {
   Activity,
   AlertTriangle,

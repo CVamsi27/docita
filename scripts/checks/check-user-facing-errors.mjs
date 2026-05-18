@@ -10,7 +10,6 @@ const SCAN_ROOTS = [
   "apps/app",
   "apps/internal",
   "apps/landing/src",
-  "packages/auth/src",
   "packages/ui/src",
 ];
 
@@ -24,8 +23,8 @@ const SOURCE_EXTENSIONS = new Set([
 ]);
 
 const APPROVED_TOAST_WRAPPERS = new Set([
-  "apps/app/lib/user-facing-errors.ts",
-  "apps/internal/lib/user-facing-errors.ts",
+  "apps/app/shared/lib/errors/user-facing-errors.ts",
+  "apps/internal/shared/lib/errors/user-facing-errors.ts",
 ]);
 
 const EXCLUDED_SEGMENTS = [

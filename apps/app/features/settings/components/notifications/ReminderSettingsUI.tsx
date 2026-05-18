@@ -1,6 +1,6 @@
 "use client";
 
-import { DocitaLoadingIndicator } from "@workspace/ui/components/docita-loading-indicator";
+import { DocitaLoadingIndicator } from "@workspace/ui/components/feedback/docita-loading-indicator";
 
 import { FC, useEffect } from "react";
 import { useForm } from "react-hook-form";
@@ -12,12 +12,12 @@ import {
   CardDescription,
   CardHeader,
   CardTitle,
-} from "@workspace/ui/components/card";
-import { Skeleton } from "@workspace/ui/components/skeleton";
-import { Button } from "@workspace/ui/components/button";
-import { Input } from "@workspace/ui/components/input";
-import { Label } from "@workspace/ui/components/label";
-import { Switch } from "@workspace/ui/components/switch";
+} from "@workspace/ui/components/indicators/card";
+import { Skeleton } from "@workspace/ui/components/feedback/skeleton";
+import { Button } from "@workspace/ui/components/form/button";
+import { Input } from "@workspace/ui/components/form/input";
+import { Label } from "@workspace/ui/components/form/label";
+import { Switch } from "@workspace/ui/components/form/switch";
 import { Bell } from "lucide-react";
 import {
   ClinicAppSettings,
@@ -32,8 +32,8 @@ import {
   SelectItem,
   SelectTrigger,
   SelectValue,
-} from "@workspace/ui/components/select";
-import { Form, FormControl, FormField, FormItem, FormMessage } from "@workspace/ui/components/form";
+} from "@workspace/ui/components/form/select";
+import { Form, FormControl, FormField, FormItem, FormMessage } from "@workspace/ui/components/form/form";
 
 const TIME_UNITS = [
   { value: "minute", label: "Minutes" },

@@ -2,7 +2,7 @@
 
 import { useEffect, useMemo } from "react";
 import { AlertCircle, Check } from "lucide-react";
-import { Button } from "@workspace/ui/components/button";
+import { Button } from "@workspace/ui/components/form/button";
 import type { AppointmentRequestResponse } from "@workspace/types";
 import {
   addMinutesToClinicWallDatetimeLocal,
@@ -11,7 +11,7 @@ import {
   formatDistanceToNow,
 } from "@workspace/utils";
 import { useDoctorAvailabilitySlots } from "@/hooks/api/use-settings";
-import { fetchNextAvailableSlotWindow } from "@/lib/doctor-availability-first-slot";
+import { fetchNextAvailableSlotWindow } from "@/lib/utils/doctor-availability-first-slot";
 import { formatLocaleDateShortMonthYear } from "@/lib/formatters";
 import type { ApproveScheduleFieldKey } from "@/lib/utils/appointment-request-approve-errors";
 import {

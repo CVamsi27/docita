@@ -1,4 +1,4 @@
-import { DocitaLoadingIndicator } from "@workspace/ui/components/docita-loading-indicator";
+import { DocitaLoadingIndicator } from "@workspace/ui/components/feedback/docita-loading-indicator";
 
 import { z } from "zod";
 import type { UseFormReturn } from "react-hook-form";
@@ -12,14 +12,14 @@ import {
 type CreateAppointmentInput = z.infer<typeof createAppointmentSchema>;
 import type { SelectOption } from "@/lib/contexts/app-config-context";
 
-import { Button } from "@workspace/ui/components/button";
-import { Badge } from "@workspace/ui/components/badge";
-import { Form, FormLabel } from "@workspace/ui/components/form";
-import { FormDialog } from "@workspace/ui/components/form-dialog";
+import { Button } from "@workspace/ui/components/form/button";
+import { Badge } from "@workspace/ui/components/indicators/badge";
+import { Form, FormLabel } from "@workspace/ui/components/form/form";
+import { FormDialog } from "@workspace/ui/components/form/form-dialog";
 import {
   IsoDatePickerField,
   parseIsoDateToLocalDate,
-} from "@workspace/ui/components/iso-date-picker-field";
+} from "@workspace/ui/components/form/iso-date-picker-field";
 import {
   clinicWallDatetimeLocalToUtcIso,
   formatClinicPickerDayIsoFromSelection,

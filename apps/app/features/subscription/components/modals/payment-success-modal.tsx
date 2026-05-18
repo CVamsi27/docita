@@ -9,9 +9,9 @@ import {
   DialogFooter,
   DialogHeader,
   DialogTitle,
-} from "@workspace/ui/components/dialog";
-import { Button } from "@workspace/ui/components/button";
-import { SymbolTooltip } from "@workspace/ui/components/tooltip";
+} from "@workspace/ui/components/overlay/dialog";
+import { Button } from "@workspace/ui/components/form/button";
+import { SymbolTooltip } from "@workspace/ui/components/overlay/tooltip";
 import { CheckCircle2, ExternalLink, X } from "lucide-react";
 import confetti from "canvas-confetti";
 import { useRouter } from "next/navigation";

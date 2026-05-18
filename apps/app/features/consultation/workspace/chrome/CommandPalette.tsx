@@ -11,7 +11,7 @@ import {
   CommandList,
   CommandSeparator,
   CommandShortcut,
-} from "@workspace/ui/components/command";
+} from "@workspace/ui/components/overlay/command";
 import {
   ClipboardList,
   Eye,

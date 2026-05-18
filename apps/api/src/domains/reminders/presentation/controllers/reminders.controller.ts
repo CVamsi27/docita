@@ -26,8 +26,8 @@ import {
   sendReminderSchema,
 } from '@/domains/reminders/dto/reminder-settings.dto';
 import { ZodSerializerDto } from 'nestjs-zod';
-import { ZodValidationPipe } from '@/common/pipes/zod-validation.pipe';
-import { RequestWithUser } from '@/common/types/common.types';
+import { ZodValidationPipe } from '@/shared/common/pipes/zod-validation.pipe';
+import { RequestWithUser } from '@/shared/common/types/common.types';
 
 @Controller('reminders')
 @Roles(Role.ADMIN, Role.DOCTOR, Role.RECEPTIONIST, Role.ADMIN_DOCTOR)

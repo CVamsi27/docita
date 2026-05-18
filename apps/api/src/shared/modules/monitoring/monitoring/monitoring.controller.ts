@@ -36,7 +36,7 @@ import {
   ArchiveErrorsDto,
 } from './dto/monitoring-admin.dto';
 import { ZodSerializerDto } from 'nestjs-zod';
-import { ZodValidationPipe } from '@/common/pipes/zod-validation.pipe';
+import { ZodValidationPipe } from '@/shared/common/pipes/zod-validation.pipe';
 
 import { ArchivalService } from '@/shared/modules/compliance/archival.service';
 

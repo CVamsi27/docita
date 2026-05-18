@@ -4,7 +4,7 @@ import { ScheduleModule } from '@nestjs/schedule';
 import { LoggerModule } from 'nestjs-pino';
 import { AppConfigModule } from '@/shared/modules/config/config.module';
 import { AppConfigService } from '@/shared/modules/config/app-configuration.service';
-import { EventsModule } from '@/common/events/events.module';
+import { EventsModule } from '@/shared/common/events/events.module';
 import { CacheConfigModule } from '@/cache/cache.module';
 import { PrismaWorkerModule } from '@/prisma/prisma.worker.module';
 import { DocumentsWorkerModule } from '@/domains/documents/documents.worker.module';

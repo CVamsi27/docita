@@ -24,8 +24,7 @@
       "@/hooks/*": ["./shared/hooks/*"],
       "@/lib/*": ["./shared/lib/*"],
       "@workspace/ui/*": ["../../packages/ui/src/*"],
-      "@workspace/types": ["../../packages/types/src/index.ts"],
-      "@workspace/auth": ["../../packages/auth/src/index.ts"]
+      "@workspace/types": ["../../packages/types/src/index.ts"]
     }
   },
   "include": [

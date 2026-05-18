@@ -5,8 +5,8 @@ import {
   CardDescription,
   CardHeader,
   CardTitle,
-} from "@workspace/ui/components/card";
-import { EmptyState, LoadingState } from "@workspace/ui/components/empty-state";
+} from "@workspace/ui/components/indicators/card";
+import { EmptyState, LoadingState } from "@workspace/ui/components/feedback/empty-state";
 import {
   Table,
   TableBody,
@@ -14,7 +14,7 @@ import {
   TableHead,
   TableHeader,
   TableRow,
-} from "@workspace/ui/components/table";
+} from "@workspace/ui/components/data-display/table";
 import { FlaskConical } from "lucide-react";
 
 import { LabTest } from "@workspace/types";

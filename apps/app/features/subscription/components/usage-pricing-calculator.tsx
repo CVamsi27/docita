@@ -1,12 +1,12 @@
 "use client";
 
 import { useState } from "react";
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@workspace/ui/components/card";
-import { Label } from "@workspace/ui/components/label";
-import { Slider } from "@workspace/ui/components/slider";
-import { Badge } from "@workspace/ui/components/badge";
-import { Separator } from "@workspace/ui/components/separator";
-import { Button } from "@workspace/ui/components/button";
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@workspace/ui/components/indicators/card";
+import { Label } from "@workspace/ui/components/form/label";
+import { Slider } from "@workspace/ui/components/form/slider";
+import { Badge } from "@workspace/ui/components/indicators/badge";
+import { Separator } from "@workspace/ui/components/layout/separator";
+import { Button } from "@workspace/ui/components/form/button";
 import {
   PRICING_CURRENCY_CONFIG,
   TIER_PRICING_BY_CURRENCY,

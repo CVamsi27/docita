@@ -1,5 +1,5 @@
 import { fireEvent, screen, waitFor } from "@testing-library/react";
-import { render } from "@/test/render-with-tooltip";
+import { render } from "@/test-utils/render-with-tooltip";
 import type { ReactNode } from "react";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { ClinicGeneralSettings } from "./ClinicGeneralSettings";
@@ -38,7 +38,7 @@ vi.mock("@/features/settings/components/settings-ai-chips", () => ({
   SettingsAiChips: () => null,
 }));
 
-vi.mock("@workspace/ui/components/select", () => ({
+vi.mock("@workspace/ui/components/form/select", () => ({
   Select: ({
     children,
   }: {

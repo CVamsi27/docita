@@ -1,8 +1,8 @@
 import type { Patient } from "@workspace/types";
-import { AppPageScaffold } from "@workspace/ui/components/app-page-scaffold";
-import { Button } from "@workspace/ui/components/button";
-import { DataState } from "@workspace/ui/components/data-state";
-import { DebouncedSearchInput } from "@workspace/ui/components/debounced-search-input";
+import { AppPageScaffold } from "@workspace/ui/components/layout/app-page-scaffold";
+import { Button } from "@workspace/ui/components/form/button";
+import { DataState } from "@workspace/ui/components/data-display/data-state";
+import { DebouncedSearchInput } from "@workspace/ui/components/form/debounced-search-input";
 import {
   Table,
   TableBody,
@@ -10,9 +10,9 @@ import {
   TableHead,
   TableHeader,
   TableRow,
-} from "@workspace/ui/components/table";
-import { PageHeader } from "@workspace/ui/components/page-header";
-import { Skeleton } from "@workspace/ui/components/skeleton";
+} from "@workspace/ui/components/data-display/table";
+import { PageHeader } from "@workspace/ui/components/layout/page-header";
+import { Skeleton } from "@workspace/ui/components/feedback/skeleton";
 import {
   ArrowDown,
   ArrowUp,
@@ -23,8 +23,8 @@ import {
   UserPlus,
   Users,
 } from "lucide-react";
-import { Avatar, AvatarFallback } from "@workspace/ui/components/avatar";
-import { SymbolTooltip } from "@workspace/ui/components/tooltip";
+import { Avatar, AvatarFallback } from "@workspace/ui/components/indicators/avatar";
+import { SymbolTooltip } from "@workspace/ui/components/overlay/tooltip";
 import { formatGenderLabel } from "@/lib/formatters";
 
 type PatientsSortConfig = {

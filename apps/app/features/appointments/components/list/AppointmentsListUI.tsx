@@ -11,8 +11,8 @@ import {
   CardContent,
   CardHeader,
   CardTitle,
-} from "@workspace/ui/components/card";
-import { DataState } from "@workspace/ui/components/data-state";
+} from "@workspace/ui/components/indicators/card";
+import { DataState } from "@workspace/ui/components/data-display/data-state";
 import type { AppointmentListItem } from "@/hooks/api/use-appointments";
 import { TimeSlotRow } from "@/features/appointments/components/forms/TimeSlotRow";
 

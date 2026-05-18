@@ -1,7 +1,7 @@
 import { fireEvent, render, screen } from "@testing-library/react";
 import { describe, expect, it, vi } from "vitest";
 import type { Patient } from "@workspace/types";
-import { AskAiProvider, useAskAi } from "@/features/_shared/components/ask-ai/ask-ai-context";
+import { AskAiProvider, useAskAi } from "@/components/ask-ai/ask-ai-context";
 import { PatientPageHeaderUI } from "./PatientPageHeaderUI";
 
 vi.mock("next/link", () => ({

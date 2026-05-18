@@ -8,13 +8,13 @@ import {
   CardDescription,
   CardHeader,
   CardTitle,
-} from "@workspace/ui/components/card";
-import { Button } from "@workspace/ui/components/button";
-import { Input } from "@workspace/ui/components/input";
-import { useAuth } from "@/lib/auth";
-import { client } from "@/lib/api-client";
-import { internalQueryKeys } from "@/lib/query-keys";
-import { useInternalQuery } from "@/lib/use-internal-query";
+} from "@workspace/ui/components/indicators/card";
+import { Button } from "@workspace/ui/components/form/button";
+import { Input } from "@workspace/ui/components/form/input";
+import { useAuth } from "@/lib/auth/auth";
+import { client } from "@/lib/api/api-client";
+import { internalQueryKeys } from "@/lib/api/query-keys";
+import { useInternalQuery } from "@/lib/api/use-internal-query";
 import { ClinicList } from "./clinic-list";
 import {
   BarChart3,

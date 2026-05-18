@@ -4,10 +4,10 @@ import {
   CardDescription,
   CardHeader,
   CardTitle,
-} from "@workspace/ui/components/card";
+} from "@workspace/ui/components/indicators/card";
 import { Clinic, Invoice } from "@workspace/types";
 import Image from "next/image";
-import { useFacilityLabel } from "@/lib/facility-label";
+import { useFacilityLabel } from "@/lib/formatters/facility-label";
 
 interface InvoiceHeaderProps {
   invoice: Invoice;

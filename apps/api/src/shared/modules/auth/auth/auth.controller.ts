@@ -32,7 +32,7 @@ import { IpRateLimitGuard } from '@/shared/modules/auth/guards/ip-rate-limit.gua
 import { SkipSubscriptionCheck } from '@/shared/modules/auth/decorators/skip-subscription-check.decorator';
 import { SkipPasswordExpiry } from '@/shared/modules/auth/guards/password-expired.guard';
 import { SkipEmailVerification } from '@/shared/modules/auth/guards/email-verified.guard';
-import { RequestWithUser } from '@/common/types/common.types';
+import { RequestWithUser } from '@/shared/common/types/common.types';
 import { Prisma, Role } from '@workspace/db';
 import {
   LoginDto,
@@ -51,7 +51,7 @@ import {
 import { ZodSerializerDto } from 'nestjs-zod';
 import { AuthenticatedRequest } from '@workspace/types';
 import { AppConfigService } from '@/shared/modules/config/app-configuration.service';
-import { ZodValidationPipe } from '@/common/pipes/zod-validation.pipe';
+import { ZodValidationPipe } from '@/shared/common/pipes/zod-validation.pipe';
 import { AUTH_CONSTANTS } from '@/shared/modules/config/app-constants';
 
 @ApiTags('auth')

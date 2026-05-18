@@ -1,11 +1,11 @@
-import { Badge } from "@workspace/ui/components/badge";
-import { Button } from "@workspace/ui/components/button";
+import { Badge } from "@workspace/ui/components/indicators/badge";
+import { Button } from "@workspace/ui/components/form/button";
 import {
   SymbolTooltip,
   Tooltip,
   TooltipContent,
   TooltipTrigger,
-} from "@workspace/ui/components/tooltip";
+} from "@workspace/ui/components/overlay/tooltip";
 import {
   AlertTriangle,
   Building2,

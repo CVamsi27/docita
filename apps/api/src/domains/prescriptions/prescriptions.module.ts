@@ -7,8 +7,8 @@ import { QueueModule } from '@/shared/modules/queue/queue.module';
 import { PrescriptionsController } from './presentation/controllers/prescription.controller';
 import { PrescriptionsService } from './application/services/prescription.service';
 import { PrescriptionPdfService } from './application/services/prescription-pdf.service';
+import { PrescriptionPdfOrchestratorService } from './application/services/prescription-pdf-orchestrator.service';
 import { PrescriptionPdfProcessor } from './application/services/prescription-pdf.processor';
-import { PrescriptionValidationRulesService } from './core/services/prescription-validation-rules.service';
 import { PrismaPrescriptionRepository } from './infrastructure/repositories/prescription.repository';
 import { FrontDeskClinicalBlockGuard } from '@/shared/modules/clinic-workspace/front-desk-clinical-block.guard';
 
@@ -25,8 +25,8 @@ import { FrontDeskClinicalBlockGuard } from '@/shared/modules/clinic-workspace/f
     FrontDeskClinicalBlockGuard,
     PrescriptionsService,
     PrescriptionPdfService,
+    PrescriptionPdfOrchestratorService,
     PrescriptionPdfProcessor,
-    PrescriptionValidationRulesService,
     {
       provide: 'IPrescriptionRepository',
       useClass: PrismaPrescriptionRepository,
@@ -35,7 +35,7 @@ import { FrontDeskClinicalBlockGuard } from '@/shared/modules/clinic-workspace/f
   exports: [
     PrescriptionsService,
     PrescriptionPdfService,
-    PrescriptionValidationRulesService,
+    PrescriptionPdfOrchestratorService,
   ],
 })
 export class PrescriptionsModule {}

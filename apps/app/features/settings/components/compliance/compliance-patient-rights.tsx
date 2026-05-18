@@ -7,9 +7,9 @@ import {
   CardDescription,
   CardHeader,
   CardTitle,
-} from "@workspace/ui/components/card";
-import { Badge } from "@workspace/ui/components/badge";
-import { Button } from "@workspace/ui/components/button";
+} from "@workspace/ui/components/indicators/card";
+import { Badge } from "@workspace/ui/components/indicators/badge";
+import { Button } from "@workspace/ui/components/form/button";
 import {
   Dialog,
   DialogContent,
@@ -17,19 +17,19 @@ import {
   DialogFooter,
   DialogHeader,
   DialogTitle,
-} from "@workspace/ui/components/dialog";
-import { Input } from "@workspace/ui/components/input";
+} from "@workspace/ui/components/overlay/dialog";
+import { Input } from "@workspace/ui/components/form/input";
 import {
   Select,
   SelectContent,
   SelectItem,
   SelectTrigger,
   SelectValue,
-} from "@workspace/ui/components/select";
-import { Textarea } from "@workspace/ui/components/textarea";
+} from "@workspace/ui/components/form/select";
+import { Textarea } from "@workspace/ui/components/form/textarea";
 import { Inbox } from "lucide-react";
 import { formatDate } from "@workspace/utils";
-import { IsoDatePickerField } from "@workspace/ui/components/iso-date-picker-field";
+import { IsoDatePickerField } from "@workspace/ui/components/form/iso-date-picker-field";
 import type {
   AppComplianceSummary,
   AppDataSubjectRequest,

@@ -10,8 +10,8 @@ import * as bcrypt from 'bcrypt';
 import {
   CLINIC_CARD_SELECT,
   DOCTOR_CARD_SELECT,
-} from '@/common/select-fragments';
-import { paginateWithCursor } from '@/common/pagination.helper';
+} from '@/shared/common/select-fragments';
+import { paginateWithCursor } from '@/shared/common/pagination.helper';
 import type { CreateAdminDto, UpdateAdminDto } from '@workspace/types';
 import {
   InternalCreateClinicDto,

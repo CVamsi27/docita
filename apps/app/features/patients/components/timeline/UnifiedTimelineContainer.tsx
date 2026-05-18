@@ -3,7 +3,7 @@
 import { useState } from "react";
 import { usePatientTimeline } from "@/hooks/api/use-patient-timeline";
 import { UnifiedTimelineUI } from "./UnifiedTimelineUI";
-import { DataState } from "@workspace/ui/components/data-state";
+import { DataState } from "@workspace/ui/components/data-display/data-state";
 import { Clock3 } from "lucide-react";
 import type { TimelineEventType } from "@workspace/types";
 

@@ -2,22 +2,17 @@
 
 import { useMemo, useState } from "react";
 import { Inbox } from "lucide-react";
-import { Badge } from "@workspace/ui/components/badge";
-import { Button } from "@workspace/ui/components/button";
+import { Badge } from "@workspace/ui/components/indicators/badge";
+import { Button } from "@workspace/ui/components/form/button";
 import {
   Card,
   CardContent,
   CardHeader,
   CardTitle,
-} from "@workspace/ui/components/card";
-import { DataState } from "@workspace/ui/components/data-state";
+} from "@workspace/ui/components/indicators/card";
+import { DataState } from "@workspace/ui/components/data-display/data-state";
 import type { AppointmentRequestResponse } from "@workspace/types";
-import {
-  addMinutesToClinicWallDatetimeLocal,
-  clinicWallDatetimeLocalToUtcIso,
-  DEFAULT_TIMEZONE,
-  formatDistanceToNow,
-} from "@workspace/utils";
+import { DEFAULT_TIMEZONE, formatDistanceToNow } from "@workspace/utils";
 import {
   useAppointmentRequests,
   useApproveAppointmentRequest,
@@ -25,7 +20,6 @@ import {
 } from "@/hooks/api/use-appointments";
 import { useDoctors } from "@/hooks/api/use-settings";
 import { showUserFacingErrorToast } from "@/lib/errors/user-facing-errors";
-import { fetchNextAvailableSlotWindow } from "@/lib/doctor-availability-first-slot";
 import {
   extractApproveAppointmentRequestFieldErrors,
   type ApproveScheduleFieldKey,
@@ -34,11 +28,8 @@ import { extractProblemDetail } from "@/lib/utils/api-validation-errors";
 import { getSafeUserMessage } from "@/lib/errors/user-facing-errors";
 import { useClinic } from "@/lib/contexts/clinic-context";
 import { AppointmentRequestRow } from "./requests/AppointmentRequestRow";
-import {
-  patientName,
-  preferredDateTimeWallLocal,
-  utcRequestedSlotToWallLocal,
-} from "./requests/request-row-helpers";
+import { patientName } from "./requests/request-row-helpers";
+import { resolveApprovalWindow } from "./requests/approval-window-helpers";
 
 function PastRequestRow({
   request,
@@ -175,44 +166,22 @@ export function AppointmentRequestsPanel() {
       doctorByRequest[request.id] ??
       request.preferredDoctorId ??
       doctorOptions[0]?.id;
-    if (!doctorId) {
+
+    const window = await resolveApprovalWindow({
+      request,
+      doctorId,
+      manualStartLocal: startByRequest[request.id],
+      clinicTz,
+    });
+
+    if (window.kind === "missing-doctor") {
       setApproveFieldErrorsByRequest((prev) => ({
         ...prev,
         [request.id]: { doctorId: "Select a doctor before approving this request." },
       }));
       return;
     }
-
-    const structuredStart = utcRequestedSlotToWallLocal(request.requestedSlotStart, clinicTz);
-    const structuredEnd = utcRequestedSlotToWallLocal(request.requestedSlotEnd, clinicTz);
-
-    let startLocal = startByRequest[request.id] ?? structuredStart ?? null;
-    let endLocal = structuredEnd ?? null;
-
-    if (!startLocal || !endLocal) {
-      const fromSchedule = await fetchNextAvailableSlotWindow(
-        request.preferredDate,
-        doctorId,
-        clinicTz,
-      );
-      if (fromSchedule) {
-        startLocal = startLocal ?? fromSchedule.startLocal;
-        endLocal = endLocal ?? fromSchedule.endLocal;
-      }
-    }
-
-    startLocal =
-      startLocal ??
-      preferredDateTimeWallLocal(request.preferredDate, request.preferredTime, clinicTz);
-    endLocal =
-      endLocal ??
-      addMinutesToClinicWallDatetimeLocal(startLocal, 30, clinicTz) ??
-      startLocal;
-
-    const startUtc = clinicWallDatetimeLocalToUtcIso(startLocal, clinicTz);
-    const endUtc = clinicWallDatetimeLocalToUtcIso(endLocal, clinicTz);
-
-    if (!startUtc || !endUtc) {
+    if (window.kind === "invalid-window") {
       showUserFacingErrorToast(
         null,
         "Enter valid start and end times before approving.",
@@ -224,9 +193,9 @@ export function AppointmentRequestsPanel() {
     try {
       await approveRequest.mutateAsync({
         id: request.id,
-        doctorId,
-        startTime: startUtc,
-        endTime: endUtc,
+        doctorId: doctorId!,
+        startTime: window.startUtc,
+        endTime: window.endUtc,
         type: "Consultation",
         notes: request.notes ?? request.reason,
       });

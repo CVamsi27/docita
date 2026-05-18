@@ -10,27 +10,27 @@ import {
   Sparkles,
   Clock,
 } from "lucide-react";
-import { useAskAi } from "@/features/_shared/components/ask-ai/ask-ai-context";
-import { Avatar, AvatarFallback } from "@workspace/ui/components/avatar";
-import { Button } from "@workspace/ui/components/button";
-import { Badge } from "@workspace/ui/components/badge";
+import { useAskAi } from "@/components/ask-ai/ask-ai-context";
+import { Avatar, AvatarFallback } from "@workspace/ui/components/indicators/avatar";
+import { Button } from "@workspace/ui/components/form/button";
+import { Badge } from "@workspace/ui/components/indicators/badge";
 import {
   SymbolTooltip,
   Tooltip,
   TooltipContent,
   TooltipTrigger,
-} from "@workspace/ui/components/tooltip";
+} from "@workspace/ui/components/overlay/tooltip";
 import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuTrigger,
-} from "@workspace/ui/components/dropdown-menu";
+} from "@workspace/ui/components/overlay/dropdown-menu";
 import {
   Sheet,
   SheetContent,
   SheetTrigger,
-} from "@workspace/ui/components/sheet";
+} from "@workspace/ui/components/overlay/sheet";
 import { cn } from "@workspace/ui/lib/utils";
 import { formatClockTime, formatDate } from "@/lib/formatters";
 import { humanizeUiLabel } from "@workspace/ui/lib/label-formatters";
@@ -41,7 +41,7 @@ import { useQueryClient } from "@tanstack/react-query";
 import { useConsultationVitals } from "@/features/consultation/workspace/consultation-vitals-context";
 import { SaveStatusChip } from "@/features/consultation/workspace/chrome/SaveStatusChip";
 import { usePermissions } from "@/hooks/use-permissions";
-import { getInitials } from "@/features/_shared/utils";
+import { getInitials } from "@/lib/formatters/text-helpers";
 
 const STATUS_STYLES: Record<string, string> = {
   scheduled: "badge-info",

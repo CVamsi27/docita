@@ -8,9 +8,9 @@ import {
   TableHead,
   TableHeader,
   TableRow,
-} from "@workspace/ui/components/table";
-import { DataState } from "@workspace/ui/components/data-state";
-import { StatusBadge } from "@workspace/ui/components/status-badge";
+} from "@workspace/ui/components/data-display/table";
+import { DataState } from "@workspace/ui/components/data-display/data-state";
+import { StatusBadge } from "@workspace/ui/components/indicators/status-badge";
 import { CreditCard } from "lucide-react";
 import { useInvoicePaymentActivity } from "@/hooks/api/use-billing";
 import type { InvoicePaymentActivityItem } from "@workspace/types";

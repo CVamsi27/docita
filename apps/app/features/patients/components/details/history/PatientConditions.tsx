@@ -1,6 +1,6 @@
-import { Button } from "@workspace/ui/components/button";
-import { Badge } from "@workspace/ui/components/badge";
-import { Input } from "@workspace/ui/components/input";
+import { Button } from "@workspace/ui/components/form/button";
+import { Badge } from "@workspace/ui/components/indicators/badge";
+import { Input } from "@workspace/ui/components/form/input";
 import { Heart, Plus, X } from "lucide-react";
 import { PatientWithMedicalHistory } from "@workspace/types";
 

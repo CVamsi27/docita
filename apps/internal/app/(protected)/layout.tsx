@@ -3,8 +3,8 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { cn } from "@workspace/ui/lib/utils";
-import { Button } from "@workspace/ui/components/button";
-import { DocitaIcon } from "@workspace/ui/components/docita-logo";
+import { Button } from "@workspace/ui/components/form/button";
+import { DocitaIcon } from "@workspace/ui/components/indicators/docita-logo";
 import {
   Activity,
   BarChart3,
@@ -19,7 +19,7 @@ import {
   Users,
 } from "lucide-react";
 import { MobileNav } from "./dashboard/mobile-nav";
-import { useAuth } from "@/lib/auth";
+import { useAuth } from "@/lib/auth/auth";
 import { ThemeToggle } from "@/components/theme-toggle";
 
 const sidebarItems = [

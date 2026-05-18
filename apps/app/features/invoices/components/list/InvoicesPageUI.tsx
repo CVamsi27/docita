@@ -7,7 +7,7 @@ import {
   CardContent,
   CardHeader,
   CardTitle,
-} from "@workspace/ui/components/card";
+} from "@workspace/ui/components/indicators/card";
 import {
   Table,
   TableBody,
@@ -15,17 +15,17 @@ import {
   TableHead,
   TableHeader,
   TableRow,
-} from "@workspace/ui/components/table";
-import { AppPageScaffold } from "@workspace/ui/components/app-page-scaffold";
-import { PageHeader } from "@workspace/ui/components/page-header";
-import { Button } from "@workspace/ui/components/button";
+} from "@workspace/ui/components/data-display/table";
+import { AppPageScaffold } from "@workspace/ui/components/layout/app-page-scaffold";
+import { PageHeader } from "@workspace/ui/components/layout/page-header";
+import { Button } from "@workspace/ui/components/form/button";
 import {
   Select,
   SelectContent,
   SelectItem,
   SelectTrigger,
   SelectValue,
-} from "@workspace/ui/components/select";
+} from "@workspace/ui/components/form/select";
 import {
   Download,
   Eye,
@@ -35,7 +35,7 @@ import {
   Printer,
   RefreshCw,
 } from "lucide-react";
-import { Input } from "@workspace/ui/components/input";
+import { Input } from "@workspace/ui/components/form/input";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -43,20 +43,20 @@ import {
   DropdownMenuLabel,
   DropdownMenuSeparator,
   DropdownMenuTrigger,
-} from "@workspace/ui/components/dropdown-menu";
+} from "@workspace/ui/components/overlay/dropdown-menu";
 import {
   Tooltip,
   TooltipContent,
   TooltipTrigger,
-} from "@workspace/ui/components/tooltip";
+} from "@workspace/ui/components/overlay/tooltip";
 import { useInvoicesLogic } from "@/features/invoices/hooks/use-invoices-logic";
 import {
   DATE_FORMAT_OPTIONS_US_LONG,
   formatDate,
 } from "@/lib/formatters";
 import Link from "next/link";
-import { DataState } from "@workspace/ui/components/data-state";
-import { StatusBadge } from "@workspace/ui/components/status-badge";
+import { DataState } from "@workspace/ui/components/data-display/data-state";
+import { StatusBadge } from "@workspace/ui/components/indicators/status-badge";
 import { Invoice, Patient } from "@workspace/types";
 import { useClinicCurrency } from "@/hooks/use-clinic-currency";
 import { buildInvoicePaidSummaryLine } from "@/features/invoices/lib/invoice-payment-display";

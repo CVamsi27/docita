@@ -4,7 +4,7 @@ import { Specialization, HospitalRole } from '@workspace/db';
 import {
   DOCTOR_LIST_SELECT,
   DOCTOR_CARD_SELECT,
-} from '@/common/select-fragments';
+} from '@/shared/common/select-fragments';
 import { StoredFileUrlResolverService } from '@/domains/documents/application/services/stored-file-url-resolver.service';
 
 @Injectable()

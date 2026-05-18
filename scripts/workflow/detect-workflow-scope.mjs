@@ -133,7 +133,6 @@ function isAppChange(file) {
     file === "pnpm-workspace.yaml" ||
     file === "turbo.json" ||
     file.startsWith("apps/app/") ||
-    file.startsWith("packages/auth/") ||
     file.startsWith("packages/data-access/") ||
     file.startsWith("packages/hooks/") ||
     file.startsWith("packages/types/") ||

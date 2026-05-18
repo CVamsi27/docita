@@ -6,7 +6,7 @@ import {
   InventoryItemFormData,
 } from "./InventoryAddItemDialogUI";
 import { useCreateInventoryItem } from "@/hooks/api/use-inventory";
-import { useConstants } from "@/features/_shared/hooks/use-constants";
+import { useConstants } from "@/hooks/use-constants";
 import { showUserFacingErrorToast } from "@/lib/errors/user-facing-errors";
 
 interface InventoryAddItemDialogContainerProps {

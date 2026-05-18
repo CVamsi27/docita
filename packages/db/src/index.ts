@@ -22,12 +22,3 @@ export default prisma;
 if (process.env.NODE_ENV === "development") globalThis.prismaGlobal = prisma;
 
 export * from "@prisma/client";
-
-export {
-  AppointmentStatus,
-  InvoiceStatus,
-  QueueTokenStatus,
-  PaymentSessionStatus,
-  WhatsappLogStatus,
-  SubscriptionStatus,
-} from "@prisma/client";

@@ -14,7 +14,7 @@ import { TierGuard } from '@/shared/modules/auth/auth/tier.guard';
 import { RequireFeature } from '@/shared/modules/auth/auth/tier.decorator';
 import { SendMessageUseCase } from '@/domains/whatsapp/application/use-cases/send-message.use-case';
 import { WhatsAppQueryService } from '@/domains/whatsapp/application/services/whatsapp-query.service';
-import { RequestWithUser } from '@/common/types/common.types';
+import { RequestWithUser } from '@/shared/common/types/common.types';
 import {
   SendWhatsAppMessageDto,
   SendWhatsAppMessageResponseDto,

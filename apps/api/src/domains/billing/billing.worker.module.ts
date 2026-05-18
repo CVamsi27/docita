@@ -16,7 +16,6 @@ import {
   InvoicesQueryService,
   InvoicesCommandService,
   PaymentsService,
-  RetryService,
   SchedulerService,
   PDFService,
 } from './application/services';
@@ -31,7 +30,6 @@ import { PaymentsModule } from '@/domains/payments/payments.module';
 import { WhatsAppWorkerModule } from '@/domains/whatsapp/whatsapp.worker.module';
 import { NotificationsWorkerModule } from '@/shared/modules/messaging/notifications/notifications.worker.module';
 import { QueueWorkerModule } from '@/shared/modules/queue/queue.worker.module';
-import { BillingPaymentRetryCron } from './application/cron/billing-payment-retry.cron';
 import { BillingScheduledPaymentRemindersCron } from './application/cron/billing-scheduled-payment-reminders.cron';
 import { BillingUsageAggregationCron } from './application/cron/billing-usage-aggregation.cron';
 
@@ -57,7 +55,6 @@ import { BillingUsageAggregationCron } from './application/cron/billing-usage-ag
     InvoicesCommandService,
     InvoicesService,
     PaymentsService,
-    RetryService,
     SchedulerService,
     PDFService,
     InvoicePdfProcessor,
@@ -69,7 +66,6 @@ import { BillingUsageAggregationCron } from './application/cron/billing-usage-ag
       provide: PAYMENT_SESSION_REPOSITORY_TOKEN,
       useClass: PrismaPaymentSessionRepository,
     },
-    BillingPaymentRetryCron,
     BillingScheduledPaymentRemindersCron,
     BillingUsageAggregationCron,
   ],

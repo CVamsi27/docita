@@ -7,16 +7,16 @@ import {
   CardDescription,
   CardHeader,
   CardTitle,
-} from "@workspace/ui/components/card";
-import { AppPageScaffold } from "@workspace/ui/components/app-page-scaffold";
-import { Button } from "@workspace/ui/components/button";
-import { PageHeader } from "@workspace/ui/components/page-header";
-import { Section } from "@workspace/ui/components/section";
+} from "@workspace/ui/components/indicators/card";
+import { AppPageScaffold } from "@workspace/ui/components/layout/app-page-scaffold";
+import { Button } from "@workspace/ui/components/form/button";
+import { PageHeader } from "@workspace/ui/components/layout/page-header";
+import { Section } from "@workspace/ui/components/layout/section";
 import { Activity, Calendar, Play, Stethoscope, Users } from "lucide-react";
 import { useConsultationDashboard } from "@/features/consultation/hooks/use-consultation-dashboard";
 import { formatClockTime } from "@/lib/formatters";
-import { StatGrid } from "@workspace/ui/components/stat-grid";
-import { isQueueTokenInProgress } from "@/lib/queue-token-status";
+import { StatGrid } from "@workspace/ui/components/data-display/stat-grid";
+import { isQueueTokenInProgress } from "@/lib/utils/queue-token-status";
 import Link from "next/link";
 import { useCheckInAppointment } from "@/hooks/api/use-appointments";
 import { showUserFacingErrorToast } from "@/lib/errors/user-facing-errors";

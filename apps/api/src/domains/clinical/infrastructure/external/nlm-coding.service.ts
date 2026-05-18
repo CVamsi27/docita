@@ -1,6 +1,6 @@
 import { Injectable, Logger } from '@nestjs/common';
 import { IcdCode, CptCode } from '@workspace/db';
-import { getAllCPTCodes } from '@workspace/types';
+import { getAllCPTCodes } from '@workspace/utils';
 
 type NlmSearchResponse = [number, string[], null, string[][]];
 type CodeSystem = 'ICD' | 'HCPCS';

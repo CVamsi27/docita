@@ -9,11 +9,11 @@ import {
   PaginatedResult,
 } from '@/domains/billing/core/repositories/invoice.repository';
 import { Prisma, InvoiceStatus } from '@workspace/db';
-import { paginateWithCursor } from '@/common/pagination.helper';
+import { paginateWithCursor } from '@/shared/common/pagination.helper';
 import {
   INVOICE_CARD_SELECT,
   INVOICE_DETAIL_SELECT,
-} from '@/common/select-fragments';
+} from '@/shared/common/select-fragments';
 
 type CursorModel<T> = {
   findMany: (args?: Record<string, unknown>) => Promise<T[]>;
@@ -195,6 +195,17 @@ export class PrismaInvoiceRepository implements IInvoiceRepository {
     });
 
     return patient as PatientInvoiceContext | null;
+  }
+
+  async findClinicFeatureContext(clinicId: string) {
+    return this.getReadClient().clinic.findUnique({
+      where: { id: clinicId },
+      select: {
+        tier: true,
+        intelligenceAddon: true,
+        features: true,
+      },
+    });
   }
 
   async nextInvoiceNumber(

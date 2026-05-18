@@ -35,8 +35,8 @@ import {
   DoctorAvailableSlotsQueryDto,
   DoctorUnavailableDoctorsQueryDto,
 } from '@/domains/doctors/application/dto/doctor-availability.dto';
-import { ZodValidationPipe } from '@/common/pipes/zod-validation.pipe';
-import { RequestWithUser } from '@/common/types/common.types';
+import { ZodValidationPipe } from '@/shared/common/pipes/zod-validation.pipe';
+import { RequestWithUser } from '@/shared/common/types/common.types';
 
 @Controller('doctor-availability')
 @Roles(Role.ADMIN, Role.DOCTOR, Role.RECEPTIONIST, Role.ADMIN_DOCTOR)

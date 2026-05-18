@@ -24,6 +24,8 @@ import { DOCTOR_VERIFICATION_REPOSITORY_TOKEN } from './core/repositories/doctor
 import { PrismaDoctorVerificationRepository } from './infrastructure/repositories/prisma-doctor-verification.repository';
 import { SIGNATURE_UPLOAD_REPOSITORY_TOKEN } from './core/repositories/signature-upload.repository.interface';
 import { PrismaSignatureUploadRepository } from './infrastructure/repositories/prisma-signature-upload.repository';
+import { DOCTOR_REPOSITORY_TOKEN } from './core/repositories/doctor.repository.interface';
+import { PrismaDoctorRepository } from './infrastructure/repositories/prisma-doctor.repository';
 
 @Module({
   imports: [PrismaModule, DocumentsModule],
@@ -60,6 +62,10 @@ import { PrismaSignatureUploadRepository } from './infrastructure/repositories/p
     {
       provide: SIGNATURE_UPLOAD_REPOSITORY_TOKEN,
       useClass: PrismaSignatureUploadRepository,
+    },
+    {
+      provide: DOCTOR_REPOSITORY_TOKEN,
+      useClass: PrismaDoctorRepository,
     },
   ],
   exports: [

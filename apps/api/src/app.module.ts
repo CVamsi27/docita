@@ -5,7 +5,6 @@ import { LoggerModule } from 'nestjs-pino';
 import { SentryModule } from '@sentry/nestjs/setup';
 import { PrometheusModule } from '@willsoto/nestjs-prometheus';
 import { AppController } from './app.controller';
-import { AppService } from './app.service';
 import { PrismaModule } from './prisma/prisma.module';
 import { PatientsModule } from './domains/patients/patients.module';
 import { AppointmentsModule } from './domains/appointments/appointments.module';
@@ -46,11 +45,11 @@ import { AuditModule } from './shared/modules/audit/audit/audit.module';
 import { PerformanceModule } from './shared/modules/performance/performance.module';
 import { ComplianceModule } from './shared/modules/compliance/compliance.module';
 import { TenantContextInterceptor } from './shared/modules/interceptors/tenant-context.interceptor';
-import { CacheInterceptor } from './common/interceptors/cache.interceptor';
+import { CacheInterceptor } from './shared/common/interceptors/cache.interceptor';
 import { PatientDataAuditInterceptor } from './shared/modules/interceptors/patient-audit.interceptor';
 import { BreakTheGlassInterceptor } from './shared/modules/interceptors/emergency-access.interceptor';
-import { RequestIdInterceptor } from './common/interceptors/request-id.interceptor';
-import { RequestContextInterceptor } from './common/interceptors/request-context.interceptor';
+import { RequestIdInterceptor } from './shared/common/interceptors/request-id.interceptor';
+import { RequestContextInterceptor } from './shared/common/interceptors/request-context.interceptor';
 import { JwtAuthGuard } from './shared/modules/auth/auth/jwt-auth.guard';
 import { RolesGuard } from './shared/modules/auth/auth/roles.guard';
 import { TenantGuard } from './shared/modules/auth/guards/tenant.guard';
@@ -60,7 +59,7 @@ import { EmailVerifiedGuard } from './shared/modules/auth/guards/email-verified.
 import { UserRateLimitGuard } from './shared/modules/auth/guards/user-rate-limit.guard';
 import { E2EThrottlerGuard } from './shared/modules/auth/guards/e2e-throttler.guard';
 import { CsrfInterceptor } from './shared/modules/interceptors/csrf.interceptor';
-import { RateLimitInterceptor } from './common/interceptors/rate-limit.interceptor';
+import { RateLimitInterceptor } from './shared/common/interceptors/rate-limit.interceptor';
 import { TimeoutInterceptor } from './shared/modules/interceptors/timeout.interceptor';
 import { buildPinoOptions } from './shared/modules/observability/pino-options.factory';
 import { IdempotencyModule } from './shared/modules/idempotency';
@@ -72,7 +71,7 @@ import { WebhooksModule } from './shared/modules/webhooks';
 import { RlsModule } from './shared/modules/rls';
 import { FeatureFlagsModule } from './shared/modules/feature-flags';
 
-import { EventsModule } from './common/events/events.module';
+import { EventsModule } from './shared/common/events/events.module';
 import { CommonServicesModule } from './shared/modules/services/common-services.module';
 import { FeedbackModule } from './domains/feedback/feedback.module';
 import { PatientPortalModule } from './domains/patient-portal/patient-portal.module';
@@ -188,8 +187,6 @@ import { PublicBookingModule } from './domains/public-booking/public-booking.mod
   ],
   controllers: [AppController],
   providers: [
-    AppService,
-
     {
       provide: APP_GUARD,
       useClass: E2EThrottlerGuard,

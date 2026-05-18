@@ -39,11 +39,11 @@ import {
   type CreateDataSubjectRequest,
   type UpdateDataSubjectRequest,
 } from '@workspace/types';
-import { ZodValidationPipe } from '@/common/pipes/zod-validation.pipe';
+import { ZodValidationPipe } from '@/shared/common/pipes/zod-validation.pipe';
 import { UserResponseDto } from '@/domains/users/application/dto/users.dto';
 import { ZodSerializerDto } from 'nestjs-zod';
 import { SkipSubscriptionCheck } from '@/shared/modules/auth/decorators/skip-subscription-check.decorator';
-import { RequestWithUser } from '@/common/types/common.types';
+import { RequestWithUser } from '@/shared/common/types/common.types';
 
 @Controller('clinics')
 @Roles(Role.INTERNAL)

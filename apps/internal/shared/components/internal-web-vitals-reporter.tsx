@@ -3,7 +3,7 @@
 import { useEffect } from "react";
 import { usePathname } from "next/navigation";
 import type { Metric } from "web-vitals";
-import { API_URL } from "@/lib/api-config";
+import { API_URL } from "@/lib/api/api-config";
 
 function createWebVitalsBeaconBody(payload: Record<string, unknown>) {
   return new Blob([JSON.stringify(payload)], {

@@ -1,18 +1,18 @@
 "use client";
 
-import { DocitaLoadingIndicator } from "@workspace/ui/components/docita-loading-indicator";
+import { DocitaLoadingIndicator } from "@workspace/ui/components/feedback/docita-loading-indicator";
 
-import { Button } from "@workspace/ui/components/button";
+import { Button } from "@workspace/ui/components/form/button";
 import {
   Card,
   CardContent,
   CardHeader,
   CardTitle,
-} from "@workspace/ui/components/card";
-import { Input } from "@workspace/ui/components/input";
-import { Badge } from "@workspace/ui/components/badge";
-import { EmptyState } from "@workspace/ui/components/empty-state";
-import { PageHeader } from "@workspace/ui/components/page-header";
+} from "@workspace/ui/components/indicators/card";
+import { Input } from "@workspace/ui/components/form/input";
+import { Badge } from "@workspace/ui/components/indicators/badge";
+import { EmptyState } from "@workspace/ui/components/feedback/empty-state";
+import { PageHeader } from "@workspace/ui/components/layout/page-header";
 import {
   Table,
   TableBody,
@@ -20,27 +20,27 @@ import {
   TableHead,
   TableHeader,
   TableRow,
-} from "@workspace/ui/components/table";
+} from "@workspace/ui/components/data-display/table";
 import {
   Dialog,
   DialogContent,
   DialogDescription,
   DialogHeader,
   DialogTitle,
-} from "@workspace/ui/components/dialog";
+} from "@workspace/ui/components/overlay/dialog";
 import {
   Select,
   SelectContent,
   SelectItem,
   SelectTrigger,
   SelectValue,
-} from "@workspace/ui/components/select";
+} from "@workspace/ui/components/form/select";
 import { Eye, Search, Users } from "lucide-react";
 import { SPECIALIZATION_LABELS } from "@workspace/types";
 import {
   formatInternalListDate,
   formatInternalTimestamp,
-} from "@/lib/format-display-date";
+} from "@/lib/formatters/format-display-date";
 import { ROLE_CONFIG } from "./types";
 import { getRoleBadgeColor } from "./utils";
 import { useUsersData } from "./use-users-data";

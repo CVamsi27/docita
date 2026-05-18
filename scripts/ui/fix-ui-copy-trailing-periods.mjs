@@ -9,7 +9,6 @@ const SCAN_ROOTS = [
   "apps/app",
   "apps/internal",
   "apps/landing/src",
-  "packages/auth/src",
   "packages/ui/src",
 ];
 

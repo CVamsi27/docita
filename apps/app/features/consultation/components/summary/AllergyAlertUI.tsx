@@ -1,4 +1,4 @@
-import { AllergyBanner } from "@workspace/ui/components/allergy-banner";
+import { AllergyBanner } from "@workspace/ui/components/feedback/allergy-banner";
 import { Allergy } from "@/features/consultation/components/PatientSummaryCardUI";
 
 export function AllergyAlertUI({

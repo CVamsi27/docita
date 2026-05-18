@@ -3,8 +3,8 @@
 import Link from "next/link";
 import { useEffect } from "react";
 import { AlertCircle, Home, RefreshCw } from "lucide-react";
-import { Button } from "@workspace/ui/components/button";
-import { captureException } from "@/lib/sentry.client.config";
+import { Button } from "@workspace/ui/components/form/button";
+import { captureException } from "@/lib/monitoring/sentry.client.config";
 
 export default function ConsultationError({
   error,

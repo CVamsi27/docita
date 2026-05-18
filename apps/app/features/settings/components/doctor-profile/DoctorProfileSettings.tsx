@@ -6,9 +6,9 @@ import {
   CardDescription,
   CardHeader,
   CardTitle,
-} from "@workspace/ui/components/card";
-import { Badge } from "@workspace/ui/components/badge";
-import { Button } from "@workspace/ui/components/button";
+} from "@workspace/ui/components/indicators/card";
+import { Badge } from "@workspace/ui/components/indicators/badge";
+import { Button } from "@workspace/ui/components/form/button";
 import { useAuth } from "@/lib/auth/auth-context";
 import { useAPIQuery } from "@/lib/api/api-core";
 import type { User } from "@workspace/types";
@@ -21,8 +21,8 @@ import {
   Clock,
   PenLine,
 } from "lucide-react";
-import { toAbsoluteApiUrl } from "@/lib/url";
-import { getDoctorVerificationPublicNote } from "@/lib/doctor-verification-display";
+import { toAbsoluteApiUrl } from "@/lib/utils/url";
+import { getDoctorVerificationPublicNote } from "@/lib/formatters/doctor-verification-display";
 
 export function DoctorProfileSettings() {
   const { user } = useAuth();

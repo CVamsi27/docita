@@ -1,6 +1,6 @@
 "use client";
 
-import { DocitaLoadingIndicator } from "@workspace/ui/components/docita-loading-indicator";
+import { DocitaLoadingIndicator } from "@workspace/ui/components/feedback/docita-loading-indicator";
 
 import Link from "next/link";
 import type { UseFormReturn } from "react-hook-form";
@@ -11,7 +11,7 @@ import {
   DialogFooter,
   DialogHeader,
   DialogTitle,
-} from "@workspace/ui/components/dialog";
+} from "@workspace/ui/components/overlay/dialog";
 import {
   Form,
   FormControl,
@@ -19,20 +19,20 @@ import {
   FormItem,
   FormLabel,
   FormMessage,
-} from "@workspace/ui/components/form";
-import { Input } from "@workspace/ui/components/input";
+} from "@workspace/ui/components/form/form";
+import { Input } from "@workspace/ui/components/form/input";
 import {
   Select,
   SelectContent,
   SelectItem,
   SelectTrigger,
   SelectValue,
-} from "@workspace/ui/components/select";
-import { Button } from "@workspace/ui/components/button";
-import { Badge } from "@workspace/ui/components/badge";
+} from "@workspace/ui/components/form/select";
+import { Button } from "@workspace/ui/components/form/button";
+import { Badge } from "@workspace/ui/components/indicators/badge";
 import { ShieldCheck, ShieldX } from "lucide-react";
 import { User } from "@workspace/types";
-import { getDoctorVerificationPublicNote } from "@/lib/doctor-verification-display";
+import { getDoctorVerificationPublicNote } from "@/lib/formatters/doctor-verification-display";
 import { showUserFacingErrorToast } from "@/lib/errors/user-facing-errors";
 import {
   MEMBER_ROLE_LABELS,

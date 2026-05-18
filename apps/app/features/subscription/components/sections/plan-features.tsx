@@ -1,8 +1,8 @@
 import { ComponentType, useState } from "react";
 import { Check, ChevronDown, ChevronUp, Lock, LucideProps } from "lucide-react";
-import { Button } from "@workspace/ui/components/button";
+import { Button } from "@workspace/ui/components/form/button";
 import { cn } from "@workspace/ui/lib/utils";
-import { Feature } from "@/lib/tier-config";
+import { Feature } from "@/lib/subscription/tier-access";
 
 export interface FeatureDetail {
   name: string;

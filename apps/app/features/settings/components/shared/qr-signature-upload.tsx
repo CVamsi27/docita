@@ -7,19 +7,19 @@ import {
   DialogDescription,
   DialogHeader,
   DialogTitle,
-} from "@workspace/ui/components/dialog";
-import { Button } from "@workspace/ui/components/button";
-import { SymbolTooltip } from "@workspace/ui/components/tooltip";
-import { Alert, AlertDescription } from "@workspace/ui/components/alert";
+} from "@workspace/ui/components/overlay/dialog";
+import { Button } from "@workspace/ui/components/form/button";
+import { SymbolTooltip } from "@workspace/ui/components/overlay/tooltip";
+import { Alert, AlertDescription } from "@workspace/ui/components/feedback/alert";
 import { Clock, QrCode, Smartphone, X } from "lucide-react";
 import {
   type SignatureUploadToken,
   type ActiveToken,
 } from "@/hooks/api/use-signature-upload";
 import { DATE_FORMATS, formatDate } from "@workspace/utils";
-import { QrCodeCard } from "@/features/_shared/components/signature/qr-code-card";
-import { CopyableLinkField } from "@/features/_shared/components/signature/copyable-link-field";
-import { toAbsoluteAppUrl } from "@/lib/url";
+import { QrCodeCard } from "@/components/signature/qr-code-card";
+import { CopyableLinkField } from "@/components/signature/copyable-link-field";
+import { toAbsoluteAppUrl } from "@/lib/utils/url";
 
 interface QrSignatureUploadProps {
   onGenerate: () => Promise<SignatureUploadToken>;

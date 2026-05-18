@@ -9,7 +9,7 @@ import {
   Req,
   UseGuards,
 } from '@nestjs/common';
-import { RequestWithUser } from '@/common/types/common.types';
+import { RequestWithUser } from '@/shared/common/types/common.types';
 import { FollowUpService } from '@/domains/appointments/application/services/follow-up.service';
 import {
   BookFollowUpDto,

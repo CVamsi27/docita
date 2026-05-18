@@ -8,7 +8,6 @@ const root = process.cwd();
 const logError = (message) => process.stderr.write(`${message}\n`);
 
 const runtimePackages = [
-  'auth',
   'data-access',
   'db',
   'hooks',

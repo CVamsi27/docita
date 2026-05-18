@@ -26,7 +26,7 @@ vi.mock("@/lib/auth/auth-context", () => ({
   useAuth: () => mocks.authState,
 }));
 
-vi.mock("@workspace/ui/components/docita-logo", () => ({
+vi.mock("@workspace/ui/components/indicators/docita-logo", () => ({
   DocitaLogo: () => <div>Docita</div>,
   DocitaIcon: () => <div>Docita Icon</div>,
 }));

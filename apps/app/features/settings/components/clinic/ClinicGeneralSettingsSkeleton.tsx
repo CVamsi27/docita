@@ -4,8 +4,8 @@ import {
   Card,
   CardContent,
   CardHeader,
-} from "@workspace/ui/components/card";
-import { Skeleton } from "@workspace/ui/components/skeleton";
+} from "@workspace/ui/components/indicators/card";
+import { Skeleton } from "@workspace/ui/components/feedback/skeleton";
 
 export function ClinicGeneralSettingsSkeleton() {
   return (

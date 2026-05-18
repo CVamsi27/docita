@@ -2,7 +2,7 @@ import * as z from "zod";
 import {
   phoneSchema,
   requiredStringSchema,
-} from "@/features/_shared/schemas/common.schemas";
+} from "@/lib/validation/common.schemas";
 
 export const clinicSettingsSchema = z.object({
   name: requiredStringSchema("Facility Name"),

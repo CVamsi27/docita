@@ -11,9 +11,9 @@ import { z } from 'zod';
 import { Role } from '@workspace/db';
 import { Roles } from '@/shared/modules/auth/auth/roles.decorator';
 import { TierGuard } from '@/shared/modules/auth/auth/tier.guard';
-import { ZodValidationPipe } from '@/common/pipes/zod-validation.pipe';
+import { ZodValidationPipe } from '@/shared/common/pipes/zod-validation.pipe';
 import { DoctorsService } from '@/domains/doctors/application/services/doctors.service';
-import { RequestWithUser } from '@/common/types/common.types';
+import { RequestWithUser } from '@/shared/common/types/common.types';
 
 const AdminVerifySchema = z.object({
   note: z.string().trim().max(500).optional(),

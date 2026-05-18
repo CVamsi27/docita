@@ -23,8 +23,8 @@ import {
   defaultComplianceValues,
   type PlanSelection,
 } from "@/features/onboarding/components/types";
-import { Alert, AlertDescription } from "@workspace/ui/components/alert";
-import { Button } from "@workspace/ui/components/button";
+import { Alert, AlertDescription } from "@workspace/ui/components/feedback/alert";
+import { Button } from "@workspace/ui/components/form/button";
 import { DEFAULT_COUNTRY_CODE, getFacilityLabel } from "@workspace/utils";
 
 import {

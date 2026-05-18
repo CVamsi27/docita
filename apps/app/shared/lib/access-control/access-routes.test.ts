@@ -7,7 +7,7 @@ import { getAccessTargetForPath } from "./access-routes";
 
 const protectedAppDir = resolve(
   dirname(fileURLToPath(import.meta.url)),
-  "../app/(protected)",
+  "../../../app/(protected)",
 );
 
 function collectProtectedPages(dir: string): string[] {

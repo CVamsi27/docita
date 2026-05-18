@@ -1,6 +1,6 @@
 "use client";
 
-import { DocitaLoadingIndicator } from "@workspace/ui/components/docita-loading-indicator";
+import { DocitaLoadingIndicator } from "@workspace/ui/components/feedback/docita-loading-indicator";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { toast } from "sonner";
@@ -9,24 +9,24 @@ import {
   CardContent,
   CardHeader,
   CardTitle,
-} from "@workspace/ui/components/card";
-import { Button } from "@workspace/ui/components/button";
-import { Badge } from "@workspace/ui/components/badge";
+} from "@workspace/ui/components/indicators/card";
+import { Button } from "@workspace/ui/components/form/button";
+import { Badge } from "@workspace/ui/components/indicators/badge";
 import {
   Dialog,
   DialogContent,
   DialogHeader,
   DialogTitle,
   DialogFooter,
-} from "@workspace/ui/components/dialog";
-import { Input } from "@workspace/ui/components/input";
+} from "@workspace/ui/components/overlay/dialog";
+import { Input } from "@workspace/ui/components/form/input";
 import {
   Select,
   SelectContent,
   SelectItem,
   SelectTrigger,
   SelectValue,
-} from "@workspace/ui/components/select";
+} from "@workspace/ui/components/form/select";
 import { Plus } from "lucide-react";
 import { useCreateLeavePlan, useLeavePlans } from "@/hooks/api/use-leaves";
 import { LeaveType, LeavePlan } from "@workspace/types";
@@ -38,7 +38,7 @@ import {
   FormItem,
   FormLabel,
   FormMessage,
-} from "@workspace/ui/components/form";
+} from "@workspace/ui/components/form/form";
 import { leavePlanDialogSchema } from "@/features/settings/schemas/leave-plan-dialog.schema";
 import type { LeavePlanDialogFormValues } from "@/features/settings/schemas/leave-plan-dialog.schema";
 import { LEAVE_TYPE_LABELS } from "./LeaveBalanceCard";

@@ -27,7 +27,7 @@ import {
   RequiresIdempotency,
 } from '@/shared/modules/idempotency';
 import { UseInterceptors } from '@nestjs/common';
-import { RequestWithUser } from '@/common/types/common.types';
+import { RequestWithUser } from '@/shared/common/types/common.types';
 import { AppConfigService } from '@/shared/modules/config/app-configuration.service';
 
 @Controller('payments')

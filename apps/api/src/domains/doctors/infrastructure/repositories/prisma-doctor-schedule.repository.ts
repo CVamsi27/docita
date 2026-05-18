@@ -2,7 +2,7 @@ import { Injectable, Logger } from '@nestjs/common';
 import { PrismaService } from '@/prisma/prisma.service';
 import { IDoctorScheduleRepository } from '@/domains/doctors/core/repositories/doctor-schedule.repository.interface';
 import { Prisma, DayOfWeek } from '@workspace/db';
-import { isPrismaTableDoesNotExistForModel } from '@/common/utils/prisma-missing-table';
+import { isPrismaTableDoesNotExistForModel } from '@/shared/common/utils/prisma-missing-table';
 
 @Injectable()
 export class PrismaDoctorScheduleRepository implements IDoctorScheduleRepository {

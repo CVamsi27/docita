@@ -9,10 +9,10 @@ import {
   DialogFooter,
   DialogHeader,
   DialogTitle,
-} from "@workspace/ui/components/dialog";
-import { Button } from "@workspace/ui/components/button";
-import { Badge } from "@workspace/ui/components/badge";
-import { Progress } from "@workspace/ui/components/progress";
+} from "@workspace/ui/components/overlay/dialog";
+import { Button } from "@workspace/ui/components/form/button";
+import { Badge } from "@workspace/ui/components/indicators/badge";
+import { Progress } from "@workspace/ui/components/feedback/progress";
 import { cn } from "@workspace/ui/lib/utils";
 import { CheckCircle2, Circle, ShieldCheck } from "lucide-react";
 import {

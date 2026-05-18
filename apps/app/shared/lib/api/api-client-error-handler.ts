@@ -1,5 +1,5 @@
-import { SUBSCRIPTION_SETTINGS_PATH } from "./subscription-settings-path";
-import { appSession } from "./session";
+import { SUBSCRIPTION_SETTINGS_PATH } from "@/lib/subscription/subscription-settings-path";
+import { appSession } from "@/lib/auth/session";
 import { showUserFacingErrorToast } from "@/lib/errors/user-facing-errors";
 
 export type ApiClientError = {

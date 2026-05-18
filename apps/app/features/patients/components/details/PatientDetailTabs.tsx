@@ -3,8 +3,8 @@
 import { useCallback, useEffect, useMemo } from "react";
 import dynamic from "next/dynamic";
 import { useRouter, useSearchParams, usePathname } from "next/navigation";
-import { PageTabs, type PageTabItem } from "@workspace/ui/components/page-tabs";
-import { MicroLabel } from "@workspace/ui/components/micro-label";
+import { PageTabs, type PageTabItem } from "@workspace/ui/components/navigation/page-tabs";
+import { MicroLabel } from "@workspace/ui/components/indicators/micro-label";
 import { PatientDetailTabLoadingShell } from "@/features/patients/components/details/patient-detail-tab-loading-shell";
 import {
   ClipboardList,

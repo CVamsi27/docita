@@ -3,7 +3,7 @@ import {
   CardDescription,
   CardHeader,
   CardTitle,
-} from "@workspace/ui/components/card";
+} from "@workspace/ui/components/indicators/card";
 
 interface OCRHeaderProps {
   documentType: string;

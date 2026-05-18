@@ -14,7 +14,7 @@ import { Role } from '@workspace/db';
 import { JwtAuthGuard } from '@/shared/modules/auth/auth/jwt-auth.guard';
 import { Roles } from '@/shared/modules/auth/auth/roles.decorator';
 import { SkipSubscriptionCheck } from '@/shared/modules/auth/decorators';
-import { RequestWithUser } from '@/common/types/common.types';
+import { RequestWithUser } from '@/shared/common/types/common.types';
 import { PatientPortalContextService } from '@/domains/patient-portal/application/services/patient-portal-context.service';
 import { PatientPortalMetricsService } from '@/domains/patient-portal/application/services/patient-portal-metrics.service';
 import {

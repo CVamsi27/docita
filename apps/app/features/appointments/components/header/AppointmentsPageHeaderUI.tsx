@@ -1,8 +1,8 @@
 import { AddAppointmentDialogContainer as AddAppointmentDialog } from "@/features/appointments/components/dialogs/AddAppointmentDialogContainer";
-import { Input } from "@workspace/ui/components/input";
-import { Button } from "@workspace/ui/components/button";
-import { PageHeader } from "@workspace/ui/components/page-header";
-import { SymbolTooltip } from "@workspace/ui/components/tooltip";
+import { Input } from "@workspace/ui/components/form/input";
+import { Button } from "@workspace/ui/components/form/button";
+import { PageHeader } from "@workspace/ui/components/layout/page-header";
+import { SymbolTooltip } from "@workspace/ui/components/overlay/tooltip";
 import { Plus, Search, X } from "lucide-react";
 import type { Appointment } from "@workspace/types";
 

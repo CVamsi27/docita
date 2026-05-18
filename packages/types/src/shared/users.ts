@@ -21,15 +21,6 @@ export const genderSchema = z.enum([
 ]);
 export type Gender = z.infer<typeof genderSchema>;
 
-export const GENDER_LABELS: Record<Gender, string> = {
-  MALE: "Male",
-  FEMALE: "Female",
-  OTHER: "Other",
-  INTERSEX: "Intersex",
-  NON_BINARY: "Non-Binary",
-  PREFER_NOT_TO_SAY: "Prefer Not to Say",
-};
-
 export const bloodGroupSchema = z.enum([
   "A+",
   "A-",

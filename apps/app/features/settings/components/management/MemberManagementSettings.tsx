@@ -10,12 +10,12 @@ import {
   useReverifyDoctorRegistration,
   useUpdateClinicMember,
 } from "@/hooks/api/use-settings";
-import { Card, CardContent } from "@workspace/ui/components/card";
+import { Card, CardContent } from "@workspace/ui/components/indicators/card";
 import { User } from "@workspace/types";
 import { useMemberManagementLogic } from "@/features/settings/hooks/use-member-management-logic";
 import { toast } from "sonner";
 import { showUserFacingErrorToast } from "@/lib/errors/user-facing-errors";
-import { useFacilityLabel } from "@/lib/facility-label";
+import { useFacilityLabel } from "@/lib/formatters/facility-label";
 import { useAuth } from "@/lib/auth/auth-context";
 import { useConfirm } from "@/hooks/use-confirm";
 import {

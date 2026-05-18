@@ -23,6 +23,14 @@ describe('AppointmentService metric persistence', () => {
     exists: jest.fn<IAppointmentRepository['exists']>(),
     findAppointmentsForSlots:
       jest.fn<IAppointmentRepository['findAppointmentsForSlots']>(),
+    findClinicWorkspaceProfile:
+      jest.fn<IAppointmentRepository['findClinicWorkspaceProfile']>(),
+    findForConsultationStart:
+      jest.fn<IAppointmentRepository['findForConsultationStart']>(),
+    startConsultationTx:
+      jest.fn<IAppointmentRepository['startConsultationTx']>(),
+    findForUpdate: jest.fn<IAppointmentRepository['findForUpdate']>(),
+    applyPatch: jest.fn<IAppointmentRepository['applyPatch']>(),
   } satisfies IAppointmentRepository;
 
   const mockCreateAppointmentUseCase = {
@@ -171,12 +179,17 @@ describe('AppointmentService metric persistence', () => {
   });
 
   it('batches observation metrics for appointment detail updates', async () => {
-    mockPrisma.appointment.findFirst.mockResolvedValue({
+    const existingAppointment = {
       id: 'apt-2',
       clinicId: 'clinic-1',
       patientId: 'patient-1',
       doctorId: 'doctor-1',
-    });
+    };
+    mockPrisma.appointment.findFirst.mockResolvedValue(existingAppointment);
+    mockAppointmentRepository.findForUpdate.mockResolvedValue(
+      existingAppointment as never,
+    );
+    mockAppointmentRepository.applyPatch.mockResolvedValue(1);
     mockPrisma.appointment.updateMany.mockResolvedValue({ count: 1 });
     mockPrisma.metricDefinition.findMany
       .mockResolvedValueOnce([])

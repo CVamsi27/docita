@@ -6,15 +6,15 @@ import {
   CardContent,
   CardHeader,
   CardTitle,
-} from "@workspace/ui/components/card";
-import { Badge } from "@workspace/ui/components/badge";
-import { Button } from "@workspace/ui/components/button";
-import { DataState } from "@workspace/ui/components/data-state";
+} from "@workspace/ui/components/indicators/card";
+import { Badge } from "@workspace/ui/components/indicators/badge";
+import { Button } from "@workspace/ui/components/form/button";
+import { DataState } from "@workspace/ui/components/data-display/data-state";
 import { ExternalLink, FlaskConical } from "lucide-react";
 import { humanizeUiLabel } from "@workspace/ui/lib/label-formatters";
 import { Feature } from "@workspace/types";
 import { useLabTestOrders } from "@/hooks/api/use-clinical";
-import { TierGate } from "@/components/common/auth/access-gates";
+import { TierGate } from "@/components/auth/access-gates";
 
 interface LabsTabProps {
   patientId: string;

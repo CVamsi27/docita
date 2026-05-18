@@ -11,7 +11,7 @@ import {
 import { Role } from '@workspace/db';
 import { Appointment } from '@/domains/appointments/core/entities/appointment.entity';
 import { PrismaService } from '@/prisma/prisma.service';
-import { getClinicLocalDayUtcBounds } from '@/common/utils/clinic-calendar-bounds';
+import { getClinicLocalDayUtcBounds } from '@/shared/common/utils/clinic-calendar-bounds';
 
 type AppointmentAccessContext = {
   role?: Role;

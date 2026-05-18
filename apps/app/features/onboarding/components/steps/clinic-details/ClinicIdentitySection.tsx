@@ -1,17 +1,17 @@
 import { UseFormReturn } from "react-hook-form";
-import { Input } from "@workspace/ui/components/input";
-import { Label } from "@workspace/ui/components/label";
+import { Input } from "@workspace/ui/components/form/input";
+import { Label } from "@workspace/ui/components/form/label";
 import {
   RadioGroup,
   RadioGroupItem,
-} from "@workspace/ui/components/radio-group";
+} from "@workspace/ui/components/form/radio-group";
 import {
   Select,
   SelectContent,
   SelectItem,
   SelectTrigger,
   SelectValue,
-} from "@workspace/ui/components/select";
+} from "@workspace/ui/components/form/select";
 import { CLINIC_TYPE_OPTIONS, type ClinicType } from "@workspace/types";
 import { cn } from "@workspace/ui/lib/utils";
 import type { ClinicDetails } from "@/features/onboarding/components/types";

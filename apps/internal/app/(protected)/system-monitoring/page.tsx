@@ -10,29 +10,29 @@ import {
   CardDescription,
   CardHeader,
   CardTitle,
-} from "@workspace/ui/components/card";
-import { Badge } from "@workspace/ui/components/badge";
-import { Button } from "@workspace/ui/components/button";
-import { DataState } from "@workspace/ui/components/data-state";
-import { DocitaLoadingIndicator } from "@workspace/ui/components/docita-loading-indicator";
-import { PageHeader } from "@workspace/ui/components/page-header";
-import { Progress } from "@workspace/ui/components/progress";
+} from "@workspace/ui/components/indicators/card";
+import { Badge } from "@workspace/ui/components/indicators/badge";
+import { Button } from "@workspace/ui/components/form/button";
+import { DataState } from "@workspace/ui/components/data-display/data-state";
+import { DocitaLoadingIndicator } from "@workspace/ui/components/feedback/docita-loading-indicator";
+import { PageHeader } from "@workspace/ui/components/layout/page-header";
+import { Progress } from "@workspace/ui/components/feedback/progress";
 import {
   SystemHealthBadge,
   SystemHealthIcon,
-} from "@workspace/ui/components/system-health-indicator";
+} from "@workspace/ui/components/feedback/system-health-indicator";
 import {
   Tabs,
   TabsContent,
   TabsList,
   TabsTrigger,
-} from "@workspace/ui/components/tabs";
+} from "@workspace/ui/components/navigation/tabs";
 import {
   healthAPI,
   monitoringAPI,
   operationsAPI,
   performanceAPI,
-} from "@/lib/api";
+} from "@/lib/api/api";
 import {
   Table,
   TableBody,
@@ -40,9 +40,9 @@ import {
   TableHead,
   TableHeader,
   TableRow,
-} from "@workspace/ui/components/table";
-import { internalQueryKeys } from "@/lib/query-keys";
-import { useInternalQuery } from "@/lib/use-internal-query";
+} from "@workspace/ui/components/data-display/table";
+import { internalQueryKeys } from "@/lib/api/query-keys";
+import { useInternalQuery } from "@/lib/api/use-internal-query";
 import {
   Activity,
   AlertTriangle,

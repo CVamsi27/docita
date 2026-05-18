@@ -20,7 +20,6 @@ import {
 } from '@/domains/appointments/application/use-cases/create-appointment.use-case';
 import { AppointmentCreatedEvent } from '@/domains/appointments/application/events/appointment-created.event';
 import { Appointment } from '@/domains/appointments/core/entities/appointment.entity';
-import { PrismaService } from '@/prisma/prisma.service';
 import { AppointmentSchedulingRulesService } from '@/domains/appointments/core/domain-services/appointment-scheduling-rules.service';
 import { AppointmentQueryService } from './appointment-query.service';
 import { AppointmentMetricsService } from './appointment-metrics.service';
@@ -49,7 +48,6 @@ export class AppointmentCommandService {
     @Inject('IAppointmentRepository')
     private readonly appointmentRepository: IAppointmentRepository,
     private readonly createAppointmentUseCase: CreateAppointmentUseCase,
-    private readonly prisma: PrismaService,
     private readonly eventEmitter: EventEmitter2,
     private readonly schedulingRules: AppointmentSchedulingRulesService,
     private readonly metricsService: AppointmentMetricsService,
@@ -96,10 +94,8 @@ export class AppointmentCommandService {
     clinicId: string,
     accessContext?: AppointmentAccessContext,
   ): Promise<{ appointmentId: string; status: string }> {
-    const clinicRow = await this.prisma.clinic.findUnique({
-      where: { id: clinicId },
-      select: { settings: true },
-    });
+    const clinicRow =
+      await this.appointmentRepository.findClinicWorkspaceProfile(clinicId);
     const clinicSettings =
       clinicRow?.settings && typeof clinicRow.settings === 'object'
         ? (clinicRow.settings as Record<string, unknown>)
@@ -114,23 +110,8 @@ export class AppointmentCommandService {
       );
     }
 
-    const appointment = await this.prisma.appointment.findFirst({
-      where: { id, clinicId },
-      select: {
-        id: true,
-        clinicId: true,
-        doctorId: true,
-        status: true,
-        queueToken: {
-          select: {
-            id: true,
-            status: true,
-            calledAt: true,
-            consultationStart: true,
-          },
-        },
-      },
-    });
+    const appointment =
+      await this.appointmentRepository.findForConsultationStart(id, clinicId);
 
     if (!appointment) {
       throw new NotFoundException(`Appointment with ID ${id} not found`);
@@ -158,35 +139,22 @@ export class AppointmentCommandService {
       );
     }
 
-    await this.prisma.$transaction(async (tx) => {
-      if (appointment.status !== 'IN_PROGRESS') {
-        const result = await tx.appointment.updateMany({
-          where: { id, clinicId },
-          data: {
-            status: 'IN_PROGRESS',
-            version: { increment: 1 },
-          },
-        });
-        if (result.count === 0) {
-          throw new NotFoundException(`Appointment with ID ${id} not found`);
-        }
+    try {
+      await this.appointmentRepository.startConsultationTx(
+        id,
+        clinicId,
+        appointment.queueToken,
+        appointment.status,
+      );
+    } catch (error) {
+      if (
+        error instanceof Error &&
+        error.message === `Appointment with ID ${id} not found`
+      ) {
+        throw new NotFoundException(error.message);
       }
-
-      if (appointment.queueToken) {
-        const startTime =
-          appointment.queueToken.consultationStart ?? new Date();
-        const calledAt = appointment.queueToken.calledAt ?? new Date();
-
-        await tx.queueToken.update({
-          where: { id: appointment.queueToken.id },
-          data: {
-            status: 'IN_PROGRESS',
-            calledAt,
-            consultationStart: startTime,
-          },
-        });
-      }
-    });
+      throw error;
+    }
 
     return { appointmentId: appointment.id, status: 'in-progress' };
   }
@@ -239,17 +207,10 @@ export class AppointmentCommandService {
     data: Partial<UpdateAppointmentRequest>,
     accessContext?: AppointmentAccessContext,
   ): Promise<Appointment> {
-    const appointment = await this.prisma.appointment.findFirst({
-      where: { id, clinicId },
-      select: {
-        id: true,
-        clinicId: true,
-        patientId: true,
-        doctorId: true,
-        startTime: true,
-        endTime: true,
-      },
-    });
+    const appointment = await this.appointmentRepository.findForUpdate(
+      id,
+      clinicId,
+    );
 
     if (!appointment) {
       throw new NotFoundException(`Appointment with ID ${id} not found`);
@@ -291,11 +252,12 @@ export class AppointmentCommandService {
 
     const prismaPatch = toPrismaAppointmentUpdate(data);
 
-    const result = await this.prisma.appointment.updateMany({
-      where: { id, clinicId },
-      data: { ...prismaPatch, version: { increment: 1 } },
-    });
-    if (result.count === 0) {
+    const count = await this.appointmentRepository.applyPatch(
+      id,
+      clinicId,
+      prismaPatch,
+    );
+    if (count === 0) {
       throw new NotFoundException(`Appointment with ID ${id} not found`);
     }
 

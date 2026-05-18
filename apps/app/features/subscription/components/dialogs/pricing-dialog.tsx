@@ -7,11 +7,11 @@ import {
   DialogDescription,
   DialogHeader,
   DialogTitle,
-} from "@workspace/ui/components/dialog";
-import { Button } from "@workspace/ui/components/button";
-import { Badge } from "@workspace/ui/components/badge";
-import { Switch } from "@workspace/ui/components/switch";
-import { Label } from "@workspace/ui/components/label";
+} from "@workspace/ui/components/overlay/dialog";
+import { Button } from "@workspace/ui/components/form/button";
+import { Badge } from "@workspace/ui/components/indicators/badge";
+import { Switch } from "@workspace/ui/components/form/switch";
+import { Label } from "@workspace/ui/components/form/label";
 import { cn } from "@workspace/ui/lib/utils";
 import { Check } from "lucide-react";
 import {

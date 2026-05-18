@@ -6,9 +6,9 @@ import {
   CardDescription,
   CardHeader,
   CardTitle,
-} from "@workspace/ui/components/card";
-import { Input } from "@workspace/ui/components/input";
-import { PageHeader } from "@workspace/ui/components/page-header";
+} from "@workspace/ui/components/indicators/card";
+import { Input } from "@workspace/ui/components/form/input";
+import { PageHeader } from "@workspace/ui/components/layout/page-header";
 import {
   Building2,
   FileText,

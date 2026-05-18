@@ -22,7 +22,7 @@ import {
   getDbRolesForTarget,
   requireFeatureForTarget,
 } from '@/shared/modules/auth/auth/access-matrix.util';
-import { RequestWithUser } from '@/common/types/common.types';
+import { RequestWithUser } from '@/shared/common/types/common.types';
 import { AppConfigService } from '@/shared/modules/config/app-configuration.service';
 import { WhatsappSenderSettingsService } from '@/domains/whatsapp/application/services/whatsapp-sender-settings.service';
 import {

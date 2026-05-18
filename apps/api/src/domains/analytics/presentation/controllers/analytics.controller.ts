@@ -11,7 +11,7 @@ import {
   getDbRolesForTarget,
   requireFeatureForTarget,
 } from '@/shared/modules/auth/auth/access-matrix.util';
-import { RateLimit } from '@/common/interceptors/rate-limit.interceptor';
+import { RateLimit } from '@/shared/common/interceptors/rate-limit.interceptor';
 import {
   AnalyticsDateRangeQueryDto,
   AnalyticsDaysQueryDto,
@@ -39,7 +39,7 @@ import {
   TopConditionListResponseDto,
 } from '@/domains/analytics/dto/analytics.dto';
 import { ZodSerializerDto } from 'nestjs-zod';
-import { RequestWithUser } from '@/common/types/common.types';
+import { RequestWithUser } from '@/shared/common/types/common.types';
 
 @Controller('analytics')
 @Roles(...getDbRolesForTarget(APP_ACCESS_TARGETS.API_ANALYTICS))

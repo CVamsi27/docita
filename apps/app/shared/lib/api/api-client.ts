@@ -11,7 +11,7 @@ import {
   listPatientsResponseSchema,
   patientResponseSchema,
 } from "@workspace/types";
-import { appSession } from "./session";
+import { appSession } from "@/lib/auth/session";
 import { handleApiClientError } from "./api-client-error-handler";
 
 const client = getAPIClient({
@@ -111,4 +111,3 @@ export const typedApi = {
     stats: () => client.get(API_ROUTES.dashboard.stats),
   },
 };
-

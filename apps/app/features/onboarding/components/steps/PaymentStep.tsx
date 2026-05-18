@@ -1,6 +1,6 @@
 "use client";
 
-import { DocitaLoadingIndicator } from "@workspace/ui/components/docita-loading-indicator";
+import { DocitaLoadingIndicator } from "@workspace/ui/components/feedback/docita-loading-indicator";
 
 import { useState } from "react";
 import { CreditCard, Info, ShieldCheck } from "lucide-react";
@@ -10,19 +10,19 @@ import {
   CardDescription,
   CardHeader,
   CardTitle,
-} from "@workspace/ui/components/card";
-import { Button } from "@workspace/ui/components/button";
-import { Checkbox } from "@workspace/ui/components/checkbox";
-import { Label } from "@workspace/ui/components/label";
+} from "@workspace/ui/components/indicators/card";
+import { Button } from "@workspace/ui/components/form/button";
+import { Checkbox } from "@workspace/ui/components/form/checkbox";
+import { Label } from "@workspace/ui/components/form/label";
 import {
   Alert,
   AlertDescription,
-} from "@workspace/ui/components/alert";
+} from "@workspace/ui/components/feedback/alert";
 import { api } from "@/lib/api/api-client";
-import { getSupportContactText } from "@/lib/support-contact";
+import { getSupportContactText } from "@/lib/constants/support-contact";
 import { showUserFacingErrorToast } from "@/lib/errors/user-facing-errors";
 import { isPaymentCanceledError, useRazorpay } from "@/hooks/use-razorpay";
-import { BRAND_PRIMARY_HEX } from "@/lib/branding";
+import { BRAND_PRIMARY_HEX } from "@/lib/constants/branding";
 import type { TierName } from "@workspace/types";
 import { formatAmountLocale } from "@workspace/utils";
 

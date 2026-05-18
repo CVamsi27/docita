@@ -83,7 +83,7 @@ vi.mock("@/lib/api/api-client", () => ({
   },
 }));
 
-vi.mock("@/components/common/loaders/page-transition-loader", () => ({
+vi.mock("@/components/loaders/page-transition-loader", () => ({
   PageTransitionLoader: ({
     title,
     description,

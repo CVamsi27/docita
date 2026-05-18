@@ -12,7 +12,7 @@ import {
   Zap,
 } from "lucide-react";
 import { formatAmountLocale } from "@workspace/utils";
-import { Tier, type TierInfo } from "@/lib/tier-config";
+import { Tier, type TierInfo } from "@/lib/subscription/tier-access";
 import type { PlanFeature } from "@/features/subscription/components/sections/plan-features";
 
 export interface TierCardProps {

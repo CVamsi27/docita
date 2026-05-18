@@ -4,13 +4,13 @@ import {
   CardDescription,
   CardHeader,
   CardTitle,
-} from "@workspace/ui/components/card";
-import { AppPageScaffold } from "@workspace/ui/components/app-page-scaffold";
-import { PageHeader } from "@workspace/ui/components/page-header";
-import { Button } from "@workspace/ui/components/button";
-import { Input } from "@workspace/ui/components/input";
+} from "@workspace/ui/components/indicators/card";
+import { AppPageScaffold } from "@workspace/ui/components/layout/app-page-scaffold";
+import { PageHeader } from "@workspace/ui/components/layout/page-header";
+import { Button } from "@workspace/ui/components/form/button";
+import { Input } from "@workspace/ui/components/form/input";
 import { cn } from "@workspace/ui/lib/utils";
-import { Badge } from "@workspace/ui/components/badge";
+import { Badge } from "@workspace/ui/components/indicators/badge";
 import {
   Table,
   TableBody,
@@ -18,7 +18,7 @@ import {
   TableHead,
   TableHeader,
   TableRow,
-} from "@workspace/ui/components/table";
+} from "@workspace/ui/components/data-display/table";
 import {
   ArrowDown,
   ArrowUp,
@@ -30,9 +30,9 @@ import {
   Search,
   X,
 } from "lucide-react";
-import { EmptyState } from "@workspace/ui/components/empty-state";
-import { Skeleton } from "@workspace/ui/components/skeleton";
-import { SymbolTooltip } from "@workspace/ui/components/tooltip";
+import { EmptyState } from "@workspace/ui/components/feedback/empty-state";
+import { Skeleton } from "@workspace/ui/components/feedback/skeleton";
+import { SymbolTooltip } from "@workspace/ui/components/overlay/tooltip";
 import type { Document } from "@workspace/types";
 import { formatDate } from "@workspace/utils";
 import { SortConfig, SortKey } from "@/features/documents/hooks/use-documents-logic";

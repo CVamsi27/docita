@@ -2,8 +2,8 @@
 
 import { useMemo } from "react";
 import { AlertTriangle, CreditCard, RotateCw } from "lucide-react";
-import { Button } from "@workspace/ui/components/button";
-import { Card, CardContent } from "@workspace/ui/components/card";
+import { Button } from "@workspace/ui/components/form/button";
+import { Card, CardContent } from "@workspace/ui/components/indicators/card";
 import { toast } from "sonner";
 import { DEFAULT_CURRENCY, formatCurrency } from "@workspace/utils";
 import { useBillingHistory } from "@/hooks/api/use-billing-history";

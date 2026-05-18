@@ -131,7 +131,7 @@ function backendTarget(file, type) {
     return "apps/api/src/domains/<domain>";
   }
   if (file.startsWith("apps/api/src/shared/modules/")) return "apps/api/src/shared/modules";
-  if (file.startsWith("apps/api/src/common/")) return "apps/api/src/common legacy/generic utility";
+  if (file.startsWith("apps/api/src/shared/common/")) return "apps/api/src/shared/common (migrated from legacy src/common/)";
   if (file.startsWith("apps/api/src/test-utils/")) return "apps/api/src/test-utils";
   if (file.startsWith("apps/worker/src/domains/")) {
     if (type === "processor") return "apps/worker/src/domains/<domain>/processors";

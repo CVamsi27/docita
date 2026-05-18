@@ -6,7 +6,7 @@ import {
   Inject,
 } from '@nestjs/common';
 import { Prisma, Role } from '@workspace/db';
-import { TimeUtils } from '@/common/utils/time.utils';
+import { TimeUtils } from '@/shared/common/utils/time.utils';
 import {
   IDoctorScheduleRepository,
   DOCTOR_SCHEDULE_REPOSITORY_TOKEN,

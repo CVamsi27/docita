@@ -25,7 +25,9 @@ const files = execSync(`git ls-files ${roots.join(" ")}`, {
 const violations = [];
 
 for (const file of files) {
-  const lines = fs.readFileSync(path.join(repoRoot, file), "utf8").split(/\r?\n/);
+  const absolutePath = path.join(repoRoot, file);
+  if (!fs.existsSync(absolutePath)) continue;
+  const lines = fs.readFileSync(absolutePath, "utf8").split(/\r?\n/);
   lines.forEach((line, index) => {
     if (!forbidden.some((pattern) => pattern.test(line))) return;
     violations.push({ file, line: index + 1, content: line.trim() });

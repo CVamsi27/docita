@@ -14,7 +14,7 @@ import {
   ContactInquirySchema,
 } from './dto/contact.dto';
 import { ZodSerializerDto } from 'nestjs-zod';
-import { ZodValidationPipe } from '@/common/pipes/zod-validation.pipe';
+import { ZodValidationPipe } from '@/shared/common/pipes/zod-validation.pipe';
 
 @Controller('contact')
 @Public()

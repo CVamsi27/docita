@@ -1,18 +1,19 @@
 import {
   Injectable,
+  Inject,
   NotFoundException,
   ForbiddenException,
 } from '@nestjs/common';
-import { PrismaService } from '@/prisma/prisma.service';
 import {
   FeedbackCategory,
   FeedbackFeatureType,
   FeedbackStatus,
 } from '@workspace/db';
+import { type FeedbackFilters } from './feedback-helpers';
 import {
-  buildFeedbackWhereClause,
-  type FeedbackFilters,
-} from './feedback-helpers';
+  FEEDBACK_REPOSITORY_TOKEN,
+  IFeedbackRepository,
+} from '@/domains/feedback/core/repositories/feedback.repository.interface';
 
 interface CreateFeedbackDto {
   overallRating: number;
@@ -32,9 +33,16 @@ interface UpdateFeedbackStatusDto {
   adminNotes?: string;
 }
 
+interface FeedbackWithClinic {
+  clinicId: string | null;
+}
+
 @Injectable()
 export class FeedbackService {
-  constructor(private prisma: PrismaService) {}
+  constructor(
+    @Inject(FEEDBACK_REPOSITORY_TOKEN)
+    private readonly repository: IFeedbackRepository,
+  ) {}
 
   async create(clinicId: string, userId: string, data: CreateFeedbackDto) {
     const goodFeatures = data.goodFeatures || [];
@@ -58,136 +66,46 @@ export class FeedbackService {
       })),
     ].filter((entry) => entry.feature.trim().length > 0);
 
-    return this.prisma.feedback.create({
-      data: {
-        clinicId,
-        userId,
-        overallRating: data.overallRating,
-        goodFeatures,
-        goodFeaturesReason: data.goodFeaturesReason,
-        badFeatures,
-        badFeaturesReason: data.badFeaturesReason,
-        improvementAreas,
-        improvementReason: data.improvementReason,
-        featureRequests: data.featureRequests,
-        generalComments: data.generalComments,
-        category: (data.category as FeedbackCategory) || 'GENERAL',
-        status: 'NEW',
-        ...(feedbackFeatures.length > 0
-          ? {
-              feedbackFeatures: {
-                createMany: {
-                  data: feedbackFeatures,
-                },
-              },
-            }
-          : {}),
-      },
-      include: {
-        user: {
-          select: {
-            id: true,
-            name: true,
-            email: true,
-          },
-        },
-        clinic: {
-          select: {
-            id: true,
-            name: true,
-          },
-        },
-      },
+    return this.repository.create({
+      clinicId,
+      userId,
+      overallRating: data.overallRating,
+      goodFeatures,
+      goodFeaturesReason: data.goodFeaturesReason,
+      badFeatures,
+      badFeaturesReason: data.badFeaturesReason,
+      improvementAreas,
+      improvementReason: data.improvementReason,
+      featureRequests: data.featureRequests,
+      generalComments: data.generalComments,
+      category: (data.category as FeedbackCategory) || 'GENERAL',
+      feedbackFeatures,
     });
   }
 
-  async findAllForClinic(clinicId: string) {
-    return this.prisma.feedback.findMany({
-      where: { clinicId },
-      include: {
-        user: {
-          select: {
-            id: true,
-            name: true,
-            email: true,
-          },
-        },
-      },
-      orderBy: { createdAt: 'desc' },
-    });
+  findAllForClinic(clinicId: string) {
+    return this.repository.findAllForClinic(clinicId);
   }
 
-  async findAll(filters: FeedbackFilters = {}) {
-    const where = buildFeedbackWhereClause(filters);
-    return this.prisma.feedback.findMany({
-      where,
-      include: {
-        user: {
-          select: {
-            id: true,
-            name: true,
-            email: true,
-            role: true,
-          },
-        },
-        clinic: {
-          select: {
-            id: true,
-            name: true,
-            tier: true,
-          },
-        },
-      },
-      orderBy: { createdAt: 'desc' },
-    });
+  findAll(filters: FeedbackFilters = {}) {
+    return this.repository.findAll(filters);
   }
 
   async findOne(id: string, clinicId?: string) {
-    const feedback = await this.prisma.feedback.findUnique({
-      where: { id },
-      include: {
-        user: {
-          select: {
-            id: true,
-            name: true,
-            email: true,
-            role: true,
-          },
-        },
-        clinic: {
-          select: {
-            id: true,
-            name: true,
-            tier: true,
-          },
-        },
-      },
-    });
-
+    const feedback = (await this.repository.findOneRaw(
+      id,
+    )) as FeedbackWithClinic | null;
     if (!feedback) {
       throw new NotFoundException('Feedback not found');
     }
-
     if (clinicId && feedback.clinicId !== clinicId) {
       throw new NotFoundException('Feedback not found');
     }
-
     return feedback;
   }
 
-  async findByUser(userId: string) {
-    return this.prisma.feedback.findMany({
-      where: { userId },
-      include: {
-        clinic: {
-          select: {
-            id: true,
-            name: true,
-          },
-        },
-      },
-      orderBy: { createdAt: 'desc' },
-    });
+  findByUser(userId: string) {
+    return this.repository.findByUser(userId);
   }
 
   async updateStatus(
@@ -195,195 +113,71 @@ export class FeedbackService {
     data: UpdateFeedbackStatusDto,
     clinicId?: string,
   ) {
-    const feedback = await this.prisma.feedback.findUnique({
-      where: { id },
-    });
-
+    const feedback = (await this.repository.findOneRaw(
+      id,
+    )) as FeedbackWithClinic | null;
     if (!feedback) {
       throw new NotFoundException('Feedback not found');
     }
-
     if (clinicId && feedback.clinicId !== clinicId) {
       throw new ForbiddenException(
         'Cannot update feedback from another clinic',
       );
     }
 
-    return this.prisma.feedback.update({
-      where: { id },
-      data: {
-        status: data.status as FeedbackStatus,
-        adminNotes: data.adminNotes,
-      },
-      include: {
-        user: {
-          select: {
-            id: true,
-            name: true,
-            email: true,
-          },
-        },
-        clinic: {
-          select: {
-            id: true,
-            name: true,
-          },
-        },
-      },
+    return this.repository.updateStatus(id, {
+      status: data.status as FeedbackStatus,
+      adminNotes: data.adminNotes,
     });
   }
 
   async getStats(clinicId?: string) {
-    const where = clinicId ? { clinicId } : {};
+    const stats = await this.repository.computeStats(clinicId);
 
-    const [
-      total,
-      byStatus,
-      byCategory,
-      avgRating,
-      recentFeedback,
-      topGoodFeatures,
-      topBadFeatures,
-      topImprovementAreas,
-    ] = await Promise.all([
-      this.prisma.feedback.count({ where }),
-
-      this.prisma.feedback.groupBy({
-        by: ['status'],
-        where,
-        _count: true,
-      }),
-
-      this.prisma.feedback.groupBy({
-        by: ['category'],
-        where,
-        _count: true,
-      }),
-
-      this.prisma.feedback.aggregate({
-        where,
-        _avg: { overallRating: true },
-      }),
-
-      this.prisma.feedback.count({
-        where: {
-          ...where,
-          createdAt: {
-            gte: new Date(Date.now() - 7 * 24 * 60 * 60 * 1000),
-          },
-        },
-      }),
-
-      this.prisma.feedbackFeature.groupBy({
-        by: ['feature'],
-        where: {
-          featureType: FeedbackFeatureType.GOOD,
-          ...(clinicId ? { clinicId } : {}),
-        },
-        _count: { feature: true },
-        orderBy: {
-          _count: {
-            feature: 'desc',
-          },
-        },
-        take: 10,
-      }),
-
-      this.prisma.feedbackFeature.groupBy({
-        by: ['feature'],
-        where: {
-          featureType: FeedbackFeatureType.BAD,
-          ...(clinicId ? { clinicId } : {}),
-        },
-        _count: { feature: true },
-        orderBy: {
-          _count: {
-            feature: 'desc',
-          },
-        },
-        take: 10,
-      }),
-
-      this.prisma.feedbackFeature.groupBy({
-        by: ['feature'],
-        where: {
-          featureType: FeedbackFeatureType.IMPROVEMENT,
-          ...(clinicId ? { clinicId } : {}),
-        },
-        _count: { feature: true },
-        orderBy: {
-          _count: {
-            feature: 'desc',
-          },
-        },
-        take: 10,
-      }),
-    ]);
+    const byStatus = stats.byStatus.reduce(
+      (acc, item) => {
+        acc[item.status] = item._count;
+        return acc;
+      },
+      {} as Record<string, number>,
+    );
+    const byCategory = stats.byCategory.reduce(
+      (acc, item) => {
+        acc[item.category] = item._count;
+        return acc;
+      },
+      {} as Record<string, number>,
+    );
 
     return {
-      total,
-      byStatus: byStatus.reduce(
-        (acc, item) => {
-          acc[item.status] = item._count;
-          return acc;
-        },
-        {} as Record<string, number>,
-      ),
-      byCategory: byCategory.reduce(
-        (acc, item) => {
-          acc[item.category] = item._count;
-          return acc;
-        },
-        {} as Record<string, number>,
-      ),
-      averageRating: avgRating._avg.overallRating || 0,
-      recentFeedback,
-      topGoodFeatures: topGoodFeatures.map((item) => ({
-        feature: item.feature,
-        count: item._count.feature,
-      })),
-      topBadFeatures: topBadFeatures.map((item) => ({
-        feature: item.feature,
-        count: item._count.feature,
-      })),
-      topImprovementAreas: topImprovementAreas.map((item) => ({
-        feature: item.feature,
-        count: item._count.feature,
-      })),
+      total: stats.total,
+      byStatus,
+      byCategory,
+      averageRating: stats.avgRating ?? 0,
+      recentFeedback: stats.recentCount,
+      topGoodFeatures: stats.topGood,
+      topBadFeatures: stats.topBad,
+      topImprovementAreas: stats.topImprovement,
     };
   }
 
   async delete(id: string, clinicId?: string) {
-    const feedback = await this.prisma.feedback.findUnique({
-      where: { id },
-    });
-
+    const feedback = (await this.repository.findOneRaw(
+      id,
+    )) as FeedbackWithClinic | null;
     if (!feedback) {
       throw new NotFoundException('Feedback not found');
     }
-
     if (clinicId && feedback.clinicId !== clinicId) {
       throw new ForbiddenException(
         'Cannot delete feedback from another clinic',
       );
     }
-
-    return this.prisma.feedback.delete({
-      where: { id },
-    });
+    return this.repository.delete(id);
   }
 
-  async hasRecentFeedback(userId: string, clinicId: string): Promise<boolean> {
+  hasRecentFeedback(userId: string, clinicId: string): Promise<boolean> {
     const thirtyDaysAgo = new Date(Date.now() - 30 * 24 * 60 * 60 * 1000);
-
-    const recent = await this.prisma.feedback.findFirst({
-      where: {
-        userId,
-        clinicId,
-        createdAt: { gte: thirtyDaysAgo },
-      },
-    });
-
-    return !!recent;
+    return this.repository.hasFeedbackInWindow(userId, clinicId, thirtyDaysAgo);
   }
 }

@@ -7,29 +7,29 @@ import {
   CardContent,
   CardHeader,
   CardTitle,
-} from "@workspace/ui/components/card";
-import { Button } from "@workspace/ui/components/button";
-import { Input } from "@workspace/ui/components/input";
-import { Label } from "@workspace/ui/components/label";
-import { Textarea } from "@workspace/ui/components/textarea";
-import { Badge } from "@workspace/ui/components/badge";
+} from "@workspace/ui/components/indicators/card";
+import { Button } from "@workspace/ui/components/form/button";
+import { Input } from "@workspace/ui/components/form/input";
+import { Label } from "@workspace/ui/components/form/label";
+import { Textarea } from "@workspace/ui/components/form/textarea";
+import { Badge } from "@workspace/ui/components/indicators/badge";
 import {
   Select,
   SelectContent,
   SelectItem,
   SelectTrigger,
   SelectValue,
-} from "@workspace/ui/components/select";
-import { DocitaLoadingIndicator } from "@workspace/ui/components/docita-loading-indicator";
+} from "@workspace/ui/components/form/select";
+import { DocitaLoadingIndicator } from "@workspace/ui/components/feedback/docita-loading-indicator";
 import {
   getUserFacingErrorMessage,
   WhatsAppBroadcastJobSummary,
 } from "@workspace/types";
 import { DATE_FORMATS, formatDate, formatDistanceToNow } from "@workspace/utils";
 import { AlertCircle, FileText, Megaphone, Send, Upload } from "lucide-react";
-import { broadcastsAPI } from "@/lib/api";
-import { internalQueryKeys } from "@/lib/query-keys";
-import { useInternalQuery } from "@/lib/use-internal-query";
+import { broadcastsAPI } from "@/lib/api/api";
+import { internalQueryKeys } from "@/lib/api/query-keys";
+import { useInternalQuery } from "@/lib/api/use-internal-query";
 import {
   BROADCAST_PRESETS,
   type BroadcastPresetId,

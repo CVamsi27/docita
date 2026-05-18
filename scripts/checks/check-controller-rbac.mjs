@@ -22,7 +22,9 @@ const files = execSync("git ls-files apps/api/src", {
 const violations = [];
 
 for (const file of files) {
-  const lines = fs.readFileSync(path.join(repoRoot, file), "utf8").split(/\r?\n/);
+  const absolutePath = path.join(repoRoot, file);
+  if (!fs.existsSync(absolutePath)) continue;
+  const lines = fs.readFileSync(absolutePath, "utf8").split(/\r?\n/);
   let classHasAuth = false;
   const decoratorBuffer = [];
   const classHeaderBuffer = [];

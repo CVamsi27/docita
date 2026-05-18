@@ -11,9 +11,13 @@ import {
   BillingCycle,
   ClinicTier,
 } from '@/domains/clinics/application/dto/onboarding/create-clinic-onboarding.dto';
+import {
+  IOnboardingTxRepository,
+  OnboardingPaymentWriteData,
+  OnboardingSubscriptionWriteData,
+} from '@/domains/clinics/core/repositories/onboarding-tx.repository.interface';
 import { OnboardingValidationService } from './onboarding-validation.service';
 import { OnboardingWorkflowService } from './onboarding-workflow.service';
-import { PrismaService } from '@/prisma/prisma.service';
 
 describe('OnboardingWorkflowService', () => {
   const validation = {
@@ -46,7 +50,40 @@ describe('OnboardingWorkflowService', () => {
   beforeEach(() => {
     jest.useFakeTimers().setSystemTime(new Date('2026-04-29T00:00:00.000Z'));
     jest.clearAllMocks();
-    service = new OnboardingWorkflowService({} as PrismaService, validation);
+    const repository = {
+      createSubscription: jest.fn(
+        (
+          txArg: Prisma.TransactionClient,
+          data: OnboardingSubscriptionWriteData,
+        ) => txArg.subscription.create({ data: data as never }),
+      ),
+      createSubscriptionPayment: jest.fn(
+        (txArg: Prisma.TransactionClient, data: OnboardingPaymentWriteData) =>
+          txArg.subscriptionPayment
+            .create({ data: data as never })
+            .then(() => undefined),
+      ),
+      applyClinicTierAndTrial: jest.fn(
+        (
+          txArg: Prisma.TransactionClient,
+          clinicId: string,
+          tier: string,
+          status: SubscriptionStatus,
+          trialEndsAt: Date | null,
+        ) =>
+          txArg.clinic
+            .update({
+              where: { id: clinicId },
+              data: {
+                tier: tier as never,
+                subscriptionStatus: status,
+                trialEndsAt,
+              },
+            })
+            .then(() => undefined),
+      ),
+    } as unknown as IOnboardingTxRepository;
+    service = new OnboardingWorkflowService(validation, repository);
   });
 
   afterEach(() => {

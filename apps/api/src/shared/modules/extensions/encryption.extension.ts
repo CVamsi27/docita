@@ -1,5 +1,5 @@
 import { Prisma } from '@workspace/db';
-import { EncryptionService } from '@/common/encryption.service';
+import { EncryptionService } from '@/shared/common/encryption.service';
 
 type PatientExtensionArgs = {
   data?: Record<string, unknown> | Record<string, unknown>[];

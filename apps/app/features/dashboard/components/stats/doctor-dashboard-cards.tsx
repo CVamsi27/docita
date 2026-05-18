@@ -9,11 +9,11 @@ import {
   CardContent,
   CardHeader,
   CardTitle,
-} from "@workspace/ui/components/card";
-import { Button } from "@workspace/ui/components/button";
-import { Avatar, AvatarFallback } from "@workspace/ui/components/avatar";
-import { Badge } from "@workspace/ui/components/badge";
-import { LiveDot } from "@workspace/ui/components/live-dot";
+} from "@workspace/ui/components/indicators/card";
+import { Button } from "@workspace/ui/components/form/button";
+import { Avatar, AvatarFallback } from "@workspace/ui/components/indicators/avatar";
+import { Badge } from "@workspace/ui/components/indicators/badge";
+import { LiveDot } from "@workspace/ui/components/indicators/live-dot";
 import { cn } from "@workspace/ui/lib/utils";
 import { humanizeUiLabel } from "@workspace/ui/lib/label-formatters";
 import { Clock, Play, Stethoscope, Users } from "lucide-react";

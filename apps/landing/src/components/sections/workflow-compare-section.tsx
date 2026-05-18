@@ -4,7 +4,7 @@ import { AnimatePresence, LayoutGroup, motion, useReducedMotion } from "motion/r
 import { useState } from "react";
 import { Check, X } from "lucide-react";
 
-import { ToggleGroup, ToggleGroupItem } from "@workspace/ui/components/toggle-group";
+import { ToggleGroup, ToggleGroupItem } from "@workspace/ui/components/form/toggle-group";
 import { cn } from "@workspace/ui/lib/utils";
 
 import { landingSpringTransition } from "@/lib/motion-prefs";

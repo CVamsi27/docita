@@ -34,7 +34,7 @@ import {
 } from '@/domains/subscriptions/core/value-objects';
 import { ClinicTierEnum } from '@/domains/subscriptions/core/value-objects/clinic-tier.value-object';
 import { BillingCycleEnum } from '@/domains/subscriptions/core/value-objects/billing-cycle.value-object';
-import { RequestWithUser } from '@/common/types/common.types';
+import { RequestWithUser } from '@/shared/common/types/common.types';
 import {
   SubscriptionActivateLegacyRequestDto,
   SubscriptionCancelRequestDto,

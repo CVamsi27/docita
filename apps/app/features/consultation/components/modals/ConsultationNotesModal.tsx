@@ -6,10 +6,10 @@ import {
   DialogFooter,
   DialogHeader,
   DialogTitle,
-} from "@workspace/ui/components/dialog";
-import { Button } from "@workspace/ui/components/button";
-import { Label } from "@workspace/ui/components/label";
-import { Textarea } from "@workspace/ui/components/textarea";
+} from "@workspace/ui/components/overlay/dialog";
+import { Button } from "@workspace/ui/components/form/button";
+import { Label } from "@workspace/ui/components/form/label";
+import { Textarea } from "@workspace/ui/components/form/textarea";
 import { toast } from "sonner";
 import { useUpdateAppointment } from "@/hooks/api/use-appointments";
 import { StickyNote } from "lucide-react";

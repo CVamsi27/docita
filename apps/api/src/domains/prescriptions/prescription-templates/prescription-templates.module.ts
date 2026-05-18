@@ -1,6 +1,6 @@
 import { Module } from '@nestjs/common';
-import { PrescriptionTemplatesController } from './prescription-templates.controller';
-import { PrescriptionTemplatesService } from './prescription-templates.service';
+import { PrescriptionTemplatesController } from './presentation/controllers/prescription-templates.controller';
+import { PrescriptionTemplatesService } from './application/services/prescription-templates.service';
 import { PrismaModule } from '@/prisma/prisma.module';
 
 @Module({

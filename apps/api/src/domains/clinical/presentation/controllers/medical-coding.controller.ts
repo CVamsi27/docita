@@ -28,8 +28,8 @@ import {
   getDbRolesForTarget,
   requireFeatureForTarget,
 } from '@/shared/modules/auth/auth/access-matrix.util';
-import { RequestWithUser } from '@/common/types/common.types';
-import { ZodValidationPipe } from '@/common/pipes/zod-validation.pipe';
+import { RequestWithUser } from '@/shared/common/types/common.types';
+import { ZodValidationPipe } from '@/shared/common/pipes/zod-validation.pipe';
 
 @Controller('clinical/medical-coding')
 @UseGuards(TierGuard, FrontDeskClinicalBlockGuard)

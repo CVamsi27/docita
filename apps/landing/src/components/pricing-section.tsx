@@ -3,7 +3,7 @@
 import { ArrowRight, Check } from "lucide-react";
 import { motion, useReducedMotion } from "motion/react";
 
-import { Button } from "@workspace/ui/components/button";
+import { Button } from "@workspace/ui/components/form/button";
 import { cn } from "@workspace/ui/lib/utils";
 
 import { FALLBACK_PRICING_CONFIG, formatTierPrice } from "@/lib/landing-data";

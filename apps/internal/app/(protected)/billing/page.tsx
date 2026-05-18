@@ -1,6 +1,6 @@
 "use client";
 
-import { DocitaLoadingIndicator } from "@workspace/ui/components/docita-loading-indicator";
+import { DocitaLoadingIndicator } from "@workspace/ui/components/feedback/docita-loading-indicator";
 
 import { useCallback, useEffect, useState } from "react";
 import {
@@ -8,8 +8,8 @@ import {
   BillingMetrics,
   PaymentRecord,
   SubscriptionOverview,
-} from "@/lib/api";
-import { useAuth } from "@/lib/auth";
+} from "@/lib/api/api";
+import { useAuth } from "@/lib/auth/auth";
 import {
   DEFAULT_CURRENCY,
   differenceInDays,
@@ -23,16 +23,16 @@ import {
   CardDescription,
   CardHeader,
   CardTitle,
-} from "@workspace/ui/components/card";
-import { Button } from "@workspace/ui/components/button";
-import { Badge } from "@workspace/ui/components/badge";
-import { PageHeader } from "@workspace/ui/components/page-header";
+} from "@workspace/ui/components/indicators/card";
+import { Button } from "@workspace/ui/components/form/button";
+import { Badge } from "@workspace/ui/components/indicators/badge";
+import { PageHeader } from "@workspace/ui/components/layout/page-header";
 import {
   Tabs,
   TabsContent,
   TabsList,
   TabsTrigger,
-} from "@workspace/ui/components/tabs";
+} from "@workspace/ui/components/navigation/tabs";
 import {
   Table,
   TableBody,
@@ -40,14 +40,14 @@ import {
   TableHead,
   TableHeader,
   TableRow,
-} from "@workspace/ui/components/table";
+} from "@workspace/ui/components/data-display/table";
 import {
   Select,
   SelectContent,
   SelectItem,
   SelectTrigger,
   SelectValue,
-} from "@workspace/ui/components/select";
+} from "@workspace/ui/components/form/select";
 import {
   Dialog,
   DialogContent,
@@ -55,9 +55,9 @@ import {
   DialogFooter,
   DialogHeader,
   DialogTitle,
-} from "@workspace/ui/components/dialog";
-import { Input } from "@workspace/ui/components/input";
-import { Label } from "@workspace/ui/components/label";
+} from "@workspace/ui/components/overlay/dialog";
+import { Input } from "@workspace/ui/components/form/input";
+import { Label } from "@workspace/ui/components/form/label";
 import { Activity, AlertTriangle, ArrowDownRight, ArrowUpRight, Building2, CalendarPlus, Clock, CreditCard, DollarSign, Mail, RefreshCw, TrendingDown, TrendingUp, Users } from "lucide-react";
 const statusColors: Record<string, string> = {
   ACTIVE: "badge-success",

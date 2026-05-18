@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { Skeleton } from "@workspace/ui/components/skeleton";
+import { Skeleton } from "@workspace/ui/components/feedback/skeleton";
 import { browserJson } from "@/lib/auth/browser-request";
 import { logger } from "@/lib/monitoring/logger";
 

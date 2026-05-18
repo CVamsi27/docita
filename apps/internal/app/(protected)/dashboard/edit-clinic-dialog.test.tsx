@@ -1,7 +1,7 @@
 import { fireEvent, render, screen, waitFor } from "@testing-library/react";
 import type { ReactElement } from "react";
 import { beforeEach, describe, expect, it, vi } from "vitest";
-import { TooltipProvider } from "@workspace/ui/components/tooltip";
+import { TooltipProvider } from "@workspace/ui/components/overlay/tooltip";
 import { EditClinicDialog } from "./edit-clinic-dialog";
 
 function renderDialog(ui: ReactElement) {
@@ -13,13 +13,13 @@ const apiMocks = vi.hoisted(() => ({
   toastSuccess: vi.fn(),
 }));
 
-vi.mock("@/lib/api-client", () => ({
+vi.mock("@/lib/api/api-client", () => ({
   client: {
     patch: apiMocks.patch,
   },
 }));
 
-vi.mock("@/lib/user-facing-errors", () => ({
+vi.mock("@/lib/errors/user-facing-errors", () => ({
   showUserFacingErrorToast: vi.fn(),
 }));
 

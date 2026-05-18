@@ -13,7 +13,7 @@ import {
 } from "@workspace/types";
 
 const ROLES_LAND_ON_CONSULTATION = new Set<UserRole>(["DOCTOR", "ADMIN_DOCTOR"]);
-import { PageTransitionLoader } from "@/components/common/loaders/page-transition-loader";
+import { PageTransitionLoader } from "@/components/loaders/page-transition-loader";
 import { AuthEmailStepUI } from "./AuthEmailStepUI";
 import { AuthLoginStepUI } from "./AuthLoginStepUI";
 import { AuthSignupStepUI } from "./AuthSignupStepUI";

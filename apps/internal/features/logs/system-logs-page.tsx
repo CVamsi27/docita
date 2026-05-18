@@ -1,17 +1,17 @@
 "use client";
 
 import { useCallback, useEffect, useMemo, useState } from "react";
-import { useInternalQuery } from "@/lib/use-internal-query";
+import { useInternalQuery } from "@/lib/api/use-internal-query";
 import { formatDate } from "@workspace/utils";
 import { RefreshCw } from "lucide-react";
 import { getUserFacingErrorMessage } from "@workspace/types";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
-import { client } from "@/lib/api-client";
-import { internalQueryKeys } from "@/lib/query-keys";
-import { Badge } from "@workspace/ui/components/badge";
-import { Button } from "@workspace/ui/components/button";
-import { Input } from "@workspace/ui/components/input";
-import { PageHeader } from "@workspace/ui/components/page-header";
+import { client } from "@/lib/api/api-client";
+import { internalQueryKeys } from "@/lib/api/query-keys";
+import { Badge } from "@workspace/ui/components/indicators/badge";
+import { Button } from "@workspace/ui/components/form/button";
+import { Input } from "@workspace/ui/components/form/input";
+import { PageHeader } from "@workspace/ui/components/layout/page-header";
 import {
   Table,
   TableBody,
@@ -19,7 +19,7 @@ import {
   TableHead,
   TableHeader,
   TableRow,
-} from "@workspace/ui/components/table";
+} from "@workspace/ui/components/data-display/table";
 
 interface SystemLog {
   id: string;

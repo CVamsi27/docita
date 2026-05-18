@@ -6,10 +6,10 @@ import {
   CardContent,
   CardHeader,
   CardTitle,
-} from "@workspace/ui/components/card";
-import { Badge } from "@workspace/ui/components/badge";
-import { Button } from "@workspace/ui/components/button";
-import { DataState } from "@workspace/ui/components/data-state";
+} from "@workspace/ui/components/indicators/card";
+import { Badge } from "@workspace/ui/components/indicators/badge";
+import { Button } from "@workspace/ui/components/form/button";
+import { DataState } from "@workspace/ui/components/data-display/data-state";
 import { ExternalLink, Receipt } from "lucide-react";
 import { humanizeUiLabel } from "@workspace/ui/lib/label-formatters";
 import { formatCurrency, formatDate } from "@workspace/utils";

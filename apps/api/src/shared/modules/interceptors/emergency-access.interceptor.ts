@@ -9,7 +9,7 @@ import {
 import { Reflector } from '@nestjs/core';
 import { Observable } from 'rxjs';
 import { AuditService } from '@/shared/modules/audit/audit/audit.service';
-import { tenantStorage } from '@/common/middleware/tenant.middleware';
+import { tenantStorage } from '@/shared/common/middleware/tenant.middleware';
 import { EMERGENCY_ACCESS_KEY } from '@/shared/modules/auth/decorators/emergency-access.decorator';
 
 @Injectable()

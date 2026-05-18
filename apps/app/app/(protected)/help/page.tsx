@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
-import { AppPageScaffold } from "@workspace/ui/components/app-page-scaffold";
-import { PageHeader } from "@workspace/ui/components/page-header";
+import { AppPageScaffold } from "@workspace/ui/components/layout/app-page-scaffold";
+import { PageHeader } from "@workspace/ui/components/layout/page-header";
 import { HelpCenter } from "@/features/help/components";
 
 export const metadata: Metadata = {

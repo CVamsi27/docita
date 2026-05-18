@@ -1,32 +1,32 @@
 "use client";
 
-import { DocitaLoadingIndicator } from "@workspace/ui/components/docita-loading-indicator";
+import { DocitaLoadingIndicator } from "@workspace/ui/components/feedback/docita-loading-indicator";
 
 import dynamic from "next/dynamic";
 import React, { useCallback, useEffect, useMemo, useState } from "react";
-import { useInternalQuery } from "@/lib/use-internal-query";
+import { useInternalQuery } from "@/lib/api/use-internal-query";
 import { Activity, BarChart3, Calendar, DollarSign, Download, TrendingUp, Users } from "lucide-react";
-import { API_URL } from "@/lib/api";
-import { useAuth } from "@/lib/auth";
+import { API_URL } from "@/lib/api/api";
+import { useAuth } from "@/lib/auth/auth";
 import { toast } from "sonner";
-import { client } from "@/lib/api-client";
-import { internalQueryKeys } from "@/lib/query-keys";
-import { AppPageScaffold } from "@workspace/ui/components/app-page-scaffold";
-import { Button } from "@workspace/ui/components/button";
+import { client } from "@/lib/api/api-client";
+import { internalQueryKeys } from "@/lib/api/query-keys";
+import { AppPageScaffold } from "@workspace/ui/components/layout/app-page-scaffold";
+import { Button } from "@workspace/ui/components/form/button";
 import {
   Card,
   CardContent,
   CardDescription,
   CardHeader,
   CardTitle,
-} from "@workspace/ui/components/card";
-import { DatePicker } from "@workspace/ui/components/date-picker";
-import { PageHeader } from "@workspace/ui/components/page-header";
-import { Section } from "@workspace/ui/components/section";
+} from "@workspace/ui/components/indicators/card";
+import { DatePicker } from "@workspace/ui/components/form/date-picker";
+import { PageHeader } from "@workspace/ui/components/layout/page-header";
+import { Section } from "@workspace/ui/components/layout/section";
 import { cn } from "@workspace/ui/lib/utils";
 import { formatAmountLocale } from "@workspace/utils";
 import type { DetailedMetricsRow } from "@/components/analytics/analytics-detailed-metrics-table";
-import { showUserFacingErrorToast } from "@/lib/user-facing-errors";
+import { showUserFacingErrorToast } from "@/lib/errors/user-facing-errors";
 
 const AnalyticsDetailedMetricsTable = dynamic(
   () =>

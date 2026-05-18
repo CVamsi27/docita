@@ -1,7 +1,7 @@
 import { Injectable, Logger } from '@nestjs/common';
 import { PrismaService } from '@/prisma/prisma.service';
 import { AppointmentStatus, Prisma } from '@workspace/db';
-import { runInArchivalMode } from '@/common/extensions/audit-immutability.extension';
+import { runInArchivalMode } from '@/shared/common/extensions/audit-immutability.extension';
 
 function toNullableJsonInput(
   value: Prisma.JsonValue | null,

@@ -6,8 +6,8 @@ import { LoggerService, VersioningType } from '@nestjs/common';
 import { ZodValidationPipe, cleanupOpenApiDoc } from 'nestjs-zod';
 import * as Sentry from '@sentry/nestjs';
 import { AllExceptionsFilter } from './shared/modules/error-handling/filters/http-exception.filter';
-import { RequestLoggingInterceptor } from './common/interceptors/request-logging.interceptor';
-import { CacheInterceptor as _CacheInterceptor } from './common/interceptors/cache.interceptor';
+import { RequestLoggingInterceptor } from './shared/common/interceptors/request-logging.interceptor';
+import { CacheInterceptor as _CacheInterceptor } from './shared/common/interceptors/cache.interceptor';
 import { MonitoringService } from './shared/modules/monitoring/monitoring/monitoring.service';
 import { ObservabilityService } from './shared/modules/services/observability.service';
 import {

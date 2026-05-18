@@ -1,7 +1,7 @@
 import { NotFoundException, BadRequestException, Logger } from '@nestjs/common';
 import { PrismaService } from '@/prisma/prisma.service';
-import { PaginatedResult } from '@/common/repositories/base.repository';
-import { paginateWithCursor } from '@/common/pagination.helper';
+import { PaginatedResult } from '@/shared/common/repositories/base.repository';
+import { paginateWithCursor } from '@/shared/common/pagination.helper';
 
 export interface ServicePaginationOptions {
   cursor?: string;

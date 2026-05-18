@@ -1,9 +1,9 @@
 import React from "react";
-import { Button } from "@workspace/ui/components/button";
-import { Input } from "@workspace/ui/components/input";
-import { Label } from "@workspace/ui/components/label";
-import { IsoDatePickerField } from "@workspace/ui/components/iso-date-picker-field";
-import { SymbolTooltip } from "@workspace/ui/components/tooltip";
+import { Button } from "@workspace/ui/components/form/button";
+import { Input } from "@workspace/ui/components/form/input";
+import { Label } from "@workspace/ui/components/form/label";
+import { IsoDatePickerField } from "@workspace/ui/components/form/iso-date-picker-field";
+import { SymbolTooltip } from "@workspace/ui/components/overlay/tooltip";
 import { Search, X } from "lucide-react";
 
 interface PrescriptionsFiltersProps {

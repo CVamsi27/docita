@@ -8,10 +8,10 @@ import {
   CardContent,
   CardHeader,
   CardTitle,
-} from "@workspace/ui/components/card";
-import { Button } from "@workspace/ui/components/button";
+} from "@workspace/ui/components/indicators/card";
+import { Button } from "@workspace/ui/components/form/button";
 import { ChevronRight, History } from "lucide-react";
-import { PatientSnapshotStrip } from "@/features/_shared/components/patient-history";
+import { PatientSnapshotStrip } from "@/components/patient-history";
 import { usePatientSnapshot } from "@/hooks/api/use-patient-timeline";
 import { formatLocaleDateShortMonthYear } from "@/lib/formatters";
 

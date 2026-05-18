@@ -20,8 +20,8 @@ import {
   type DischargePatientRequest,
   type TransferPatientRequest,
 } from '@workspace/types';
-import { RequestWithUser } from '@/common/types/common.types';
-import { ZodValidationPipe } from '@/common/pipes/zod-validation.pipe';
+import { RequestWithUser } from '@/shared/common/types/common.types';
+import { ZodValidationPipe } from '@/shared/common/pipes/zod-validation.pipe';
 import { Roles } from '@/shared/modules/auth/auth/roles.decorator';
 import { TierGuard } from '@/shared/modules/auth/auth/tier.guard';
 import {

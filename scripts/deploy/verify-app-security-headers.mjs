@@ -8,7 +8,7 @@ const repoRoot = process.cwd();
 const middlewarePath = path.join(repoRoot, "apps/app/middleware.ts");
 const securityHeadersPath = path.join(
   repoRoot,
-  "apps/app/lib/security-headers.ts",
+  "apps/app/shared/lib/security/security-headers.ts",
 );
 
 const middleware = fs.readFileSync(middlewarePath, "utf8");

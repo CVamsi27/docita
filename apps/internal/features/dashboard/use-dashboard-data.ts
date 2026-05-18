@@ -1,5 +1,5 @@
-import { useAuth } from "@/lib/auth";
-import { useInternalQuery } from "@/lib/use-internal-query";
+import { useAuth } from "@/lib/auth/auth";
+import { useInternalQuery } from "@/lib/api/use-internal-query";
 import { fetchDashboardClinics, fetchDashboardStats } from "./api";
 import {
   type DashboardClinic,

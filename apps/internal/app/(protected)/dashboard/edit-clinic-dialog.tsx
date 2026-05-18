@@ -1,24 +1,24 @@
 "use client";
 
 import { useState } from "react";
-import { CRUDDialog } from "@workspace/ui/components/crud-dialog";
-import { Input } from "@workspace/ui/components/input";
-import { Label } from "@workspace/ui/components/label";
+import { CRUDDialog } from "@workspace/ui/components/overlay/crud-dialog";
+import { Input } from "@workspace/ui/components/form/input";
+import { Label } from "@workspace/ui/components/form/label";
 import { Pencil } from "lucide-react";
-import { Button } from "@workspace/ui/components/button";
-import { SymbolTooltip } from "@workspace/ui/components/tooltip";
-import { client } from "@/lib/api-client";
+import { Button } from "@workspace/ui/components/form/button";
+import { SymbolTooltip } from "@workspace/ui/components/overlay/tooltip";
+import { client } from "@/lib/api/api-client";
 import {
   Select,
   SelectContent,
   SelectItem,
   SelectTrigger,
   SelectValue,
-} from "@workspace/ui/components/select";
+} from "@workspace/ui/components/form/select";
 import PhoneInput, { type Country } from "react-phone-number-input";
 import { toast } from "sonner";
 import { CLINIC_TYPE_OPTIONS, type ClinicType, TIER_INFO, type TierName } from "@workspace/types";
-import { showUserFacingErrorToast } from "@/lib/user-facing-errors";
+import { showUserFacingErrorToast } from "@/lib/errors/user-facing-errors";
 import { resolveCountryCodeOrDefault } from "@workspace/utils";
 
 const AVAILABLE_TIERS: TierName[] = [

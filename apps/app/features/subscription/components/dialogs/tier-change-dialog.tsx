@@ -1,6 +1,6 @@
 "use client";
 
-import { DocitaLoadingIndicator } from "@workspace/ui/components/docita-loading-indicator";
+import { DocitaLoadingIndicator } from "@workspace/ui/components/feedback/docita-loading-indicator";
 
 import { useState } from "react";
 import {
@@ -10,9 +10,9 @@ import {
   DialogFooter,
   DialogHeader,
   DialogTitle,
-} from "@workspace/ui/components/dialog";
-import { Button } from "@workspace/ui/components/button";
-import { Alert, AlertDescription } from "@workspace/ui/components/alert";
+} from "@workspace/ui/components/overlay/dialog";
+import { Button } from "@workspace/ui/components/form/button";
+import { Alert, AlertDescription } from "@workspace/ui/components/feedback/alert";
 import { cn } from "@workspace/ui/lib/utils";
 import { AlertTriangle, ArrowDown, ArrowRight, Building2, CheckCircle } from "lucide-react";
 import {

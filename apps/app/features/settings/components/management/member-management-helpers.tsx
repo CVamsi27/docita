@@ -7,10 +7,10 @@ import {
   CardDescription,
   CardHeader,
   CardTitle,
-} from "@workspace/ui/components/card";
-import { Button } from "@workspace/ui/components/button";
-import { Badge } from "@workspace/ui/components/badge";
-import { Skeleton } from "@workspace/ui/components/skeleton";
+} from "@workspace/ui/components/indicators/card";
+import { Button } from "@workspace/ui/components/form/button";
+import { Badge } from "@workspace/ui/components/indicators/badge";
+import { Skeleton } from "@workspace/ui/components/feedback/skeleton";
 import { Copy, UserPlus } from "lucide-react";
 import { User } from "@workspace/types";
 import {

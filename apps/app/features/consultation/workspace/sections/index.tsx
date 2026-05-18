@@ -2,11 +2,11 @@
 
 import dynamic from "next/dynamic";
 import { HeartPulse } from "lucide-react";
-import { DocitaLoadingIndicator } from "@workspace/ui/components/docita-loading-indicator";
-import { Skeleton } from "@workspace/ui/components/skeleton";
-import { Button } from "@workspace/ui/components/button";
-import { Textarea } from "@workspace/ui/components/textarea";
-import { Label } from "@workspace/ui/components/label";
+import { DocitaLoadingIndicator } from "@workspace/ui/components/feedback/docita-loading-indicator";
+import { Skeleton } from "@workspace/ui/components/feedback/skeleton";
+import { Button } from "@workspace/ui/components/form/button";
+import { Textarea } from "@workspace/ui/components/form/textarea";
+import { Label } from "@workspace/ui/components/form/label";
 import { useConsultationDraft } from "@/features/consultation/state/useConsultationDraft";
 import {
   useConsultationSectionSubtitle,

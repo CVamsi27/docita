@@ -1,52 +1,46 @@
 "use client";
 
-import { useCallback, useEffect, useState } from "react";
+import { useState } from "react";
 import {
   Card,
   CardContent,
   CardHeader,
   CardTitle,
-} from "@workspace/ui/components/card";
-import { Badge } from "@workspace/ui/components/badge";
-import { Button } from "@workspace/ui/components/button";
-import { DataState } from "@workspace/ui/components/data-state";
-import { Input } from "@workspace/ui/components/input";
-import { Label } from "@workspace/ui/components/label";
+} from "@workspace/ui/components/indicators/card";
+import { Badge } from "@workspace/ui/components/indicators/badge";
+import { Button } from "@workspace/ui/components/form/button";
+import { DataState } from "@workspace/ui/components/data-display/data-state";
+import { Input } from "@workspace/ui/components/form/input";
+import { Label } from "@workspace/ui/components/form/label";
 import {
   Select,
   SelectContent,
   SelectItem,
   SelectTrigger,
   SelectValue,
-} from "@workspace/ui/components/select";
+} from "@workspace/ui/components/form/select";
 import {
   Dialog,
   DialogContent,
   DialogFooter,
   DialogHeader,
   DialogTitle,
-} from "@workspace/ui/components/dialog";
+} from "@workspace/ui/components/overlay/dialog";
 import { FileText, Plus, Check, X } from "lucide-react";
 import { Feature } from "@workspace/types";
 import { api } from "@/lib/api/api-client";
+import {
+  useCreateMedicalDocument,
+  useMedicalDocuments,
+  useRevokeMedicalDocument,
+  useSignMedicalDocument,
+} from "@/hooks/api/use-clinical";
 import { useTierFeatureEnabled } from "@/hooks/api/tier-feature-guards";
 import { logger } from "@/lib/monitoring/logger";
 import { toast } from "sonner";
 import { useAuth } from "@/lib/auth/auth-context";
 import { showUserFacingErrorToast } from "@/lib/errors/user-facing-errors";
 import { useMobileUpload } from "@/features/ocr";
-
-interface MedicalDocument {
-  id: string;
-  type: string;
-  title: string;
-  status: string;
-  createdAt: string;
-  signedAt?: string;
-  validFrom?: string;
-  validUntil?: string;
-  pdfUrl?: string | null;
-}
 
 interface Props {
   patientId: string;
@@ -82,8 +76,14 @@ const DOCUMENT_TYPE_LABELS: Record<
 export function MedicalDocumentList({ patientId }: Props) {
   const { user } = useAuth();
   const docsOk = useTierFeatureEnabled(Feature.DOCUMENT_ARCHIVAL);
-  const [documents, setDocuments] = useState<MedicalDocument[]>([]);
-  const [loading, setLoading] = useState(true);
+  const {
+    data: documents = [],
+    isLoading: loading,
+  } = useMedicalDocuments(patientId);
+  const signDocument = useSignMedicalDocument();
+  const revokeDocument = useRevokeMedicalDocument();
+  const createDocument = useCreateMedicalDocument();
+
   const [showNew, setShowNew] = useState(false);
   const [newType, setNewType] = useState("MEDICAL_CERTIFICATE");
   const [newTitle, setNewTitle] = useState("");
@@ -92,37 +92,11 @@ export function MedicalDocumentList({ patientId }: Props) {
   const [creating, setCreating] = useState(false);
   const { showQr, setShowQr, qrUrl, startMobileUpload } = useMobileUpload();
 
-  const load = useCallback(async () => {
-    if (!docsOk) {
-      setDocuments([]);
-      setLoading(false);
-      return;
-    }
-    try {
-      const data = await api.get<MedicalDocument[]>(
-        `/medical-documents?patientId=${patientId}`,
-      );
-      setDocuments(data);
-    } catch (err) {
-      logger.error("Failed to load medical documents", { err });
-      showUserFacingErrorToast(
-        "We could not load these medical documents. Please try again.",
-      );
-    } finally {
-      setLoading(false);
-    }
-  }, [patientId, docsOk]);
-
-  useEffect(() => {
-    load();
-  }, [load]);
-
   const handleSign = async (id: string) => {
     if (!docsOk) return;
     try {
-      await api.patch(`/medical-documents/${id}/sign`, {});
+      await signDocument.mutateAsync(id);
       toast.success("Document signed");
-      await load();
     } catch (err) {
       logger.error("Failed to sign document", { err });
       showUserFacingErrorToast(
@@ -134,9 +108,8 @@ export function MedicalDocumentList({ patientId }: Props) {
   const handleRevoke = async (id: string) => {
     if (!docsOk) return;
     try {
-      await api.patch(`/medical-documents/${id}/revoke`, {});
+      await revokeDocument.mutateAsync(id);
       toast.success("Document revoked");
-      await load();
     } catch (err) {
       logger.error("Failed to revoke document", { err });
       showUserFacingErrorToast(
@@ -153,7 +126,7 @@ export function MedicalDocumentList({ patientId }: Props) {
     }
     setCreating(true);
     try {
-      let pdfUrl: string | null = null;
+      let pdfUrl: string | undefined;
       if (newFile) {
         const session = await api.post<{ id: string; uploadSecret: string }>(
           `/uploads/session`,
@@ -170,10 +143,10 @@ export function MedicalDocumentList({ patientId }: Props) {
             },
           },
         );
-        pdfUrl = uploaded?.fileUrl ?? null;
+        pdfUrl = uploaded?.fileUrl ?? undefined;
       }
 
-      await api.post("/medical-documents", {
+      await createDocument.mutateAsync({
         type: newType,
         patientId,
         title: newTitle.trim(),
@@ -187,7 +160,6 @@ export function MedicalDocumentList({ patientId }: Props) {
       setNewType("MEDICAL_CERTIFICATE");
       setNewFile(null);
       setNewFileUrl(null);
-      await load();
     } catch (err) {
       logger.error("Failed to create document", { err });
       showUserFacingErrorToast(

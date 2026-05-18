@@ -1,5 +1,5 @@
 import { createBrowserSessionManager } from "@workspace/data-access";
-import { API_URL } from "./api-config";
+import { API_URL } from "@/lib/api/api-config";
 
 export const APP_REDIRECT_AFTER_LOGIN_KEY = "redirectAfterLogin";
 

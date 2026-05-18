@@ -14,13 +14,13 @@ const supportApiMocks = vi.hoisted(() => ({
   replyToWhatsAppThread: vi.fn(),
 }));
 
-vi.mock("@/lib/auth", () => ({
+vi.mock("@/lib/auth/auth", () => ({
   useAuth: () => ({
     token: "test-token",
   }),
 }));
 
-vi.mock("@/lib/api", () => ({
+vi.mock("@/lib/api/api", () => ({
   supportAPI: supportApiMocks,
 }));
 

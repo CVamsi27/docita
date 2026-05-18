@@ -3,7 +3,7 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import type { ReactElement } from "react";
 import { describe, expect, it, vi } from "vitest";
 
-vi.mock("@/lib/auth", () => ({
+vi.mock("@/lib/auth/auth", () => ({
   useAuth: () => ({
     token: null,
     logout: vi.fn(),

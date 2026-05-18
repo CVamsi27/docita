@@ -7,7 +7,7 @@ import { WhatsAppNotificationService } from './whatsapp-notification.service';
 import { ClinicScopedGuard } from '@/shared/modules/auth/decorators/clinic-scoped.decorator';
 import { PrismaModule } from '@/prisma/prisma.module';
 import { WhatsAppModule } from '@/domains/whatsapp/whatsapp.module';
-import { EncryptionService } from '@/common/encryption.service';
+import { EncryptionService } from '@/shared/common/encryption.service';
 import { UserRateLimitService } from './user-rate-limit.service';
 import { UserRateLimitGuard } from '@/shared/modules/auth/guards/user-rate-limit.guard';
 import { DPDPComplianceService as _DPDPComplianceService } from '@/shared/modules/compliance/dpdp-compliance.service';

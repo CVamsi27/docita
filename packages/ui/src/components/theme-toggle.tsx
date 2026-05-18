@@ -2,9 +2,9 @@
 
 import { useTheme } from "next-themes";
 import { Moon, Sun } from "lucide-react";
-import { Button } from "@workspace/ui/components/button";
+import { Button } from "@workspace/ui/components/form/button";
 import { useMounted } from "@workspace/hooks";
-import { SymbolTooltip } from "@workspace/ui/components/tooltip";
+import { SymbolTooltip } from "@workspace/ui/components/overlay/tooltip";
 import { cn } from "@workspace/ui/lib/utils";
 
 export interface ThemeToggleProps {

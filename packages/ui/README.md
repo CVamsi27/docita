@@ -38,5 +38,5 @@ import { AppPageScaffold } from "@workspace/ui/components/app-page-scaffold";
 ## What does NOT belong here
 
 - Hooks that call APIs (use `@workspace/data-access` or `apps/app/hooks`)
-- Permission/tier checks (use `@workspace/auth` or `@workspace/types/access`)
+- Permission/tier checks (use `@workspace/types/access`)
 - Domain-specific components that are only ever used in one feature

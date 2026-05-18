@@ -82,9 +82,7 @@
     "./lib/*": "./dist/lib/*.js",
     "./components": "./dist/components/index.js",
     "./components/*": "./dist/components/*.js",
-    "./design-tokens": "./dist/design-tokens.js",
-    "./next-cloudflare/empty-module.cjs": "./src/next-cloudflare/empty-module.cjs",
-    "./next-cloudflare/sentry-nextjs-cloudflare": "./src/next-cloudflare/sentry-nextjs-cloudflare.ts"
+    "./design-tokens": "./dist/design-tokens.js"
   },
   "main": "./dist/index.js",
   "module": "./dist/index.js",

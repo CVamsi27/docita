@@ -2,20 +2,20 @@
 
 import { Clock, Users } from "lucide-react";
 
-import { AppPageScaffold } from "@workspace/ui/components/app-page-scaffold";
-import { PageHeader } from "@workspace/ui/components/page-header";
-import { Section } from "@workspace/ui/components/section";
+import { AppPageScaffold } from "@workspace/ui/components/layout/app-page-scaffold";
+import { PageHeader } from "@workspace/ui/components/layout/page-header";
+import { Section } from "@workspace/ui/components/layout/section";
 import {
   Card,
   CardContent,
   CardHeader,
   CardTitle,
-} from "@workspace/ui/components/card";
-import { Avatar, AvatarFallback } from "@workspace/ui/components/avatar";
-import { LiveDot } from "@workspace/ui/components/live-dot";
-import { NowServingBoard } from "@workspace/ui/components/now-serving-board";
-import { LoadingState, EmptyState } from "@workspace/ui/components/empty-state";
-import { DataState } from "@workspace/ui/components/data-state";
+} from "@workspace/ui/components/indicators/card";
+import { Avatar, AvatarFallback } from "@workspace/ui/components/indicators/avatar";
+import { LiveDot } from "@workspace/ui/components/indicators/live-dot";
+import { NowServingBoard } from "@workspace/ui/components/data-display/now-serving-board";
+import { LoadingState, EmptyState } from "@workspace/ui/components/feedback/empty-state";
+import { DataState } from "@workspace/ui/components/data-display/data-state";
 import { cn } from "@workspace/ui/lib/utils";
 
 export interface DeskFloorRow {

@@ -5,15 +5,15 @@ import {
   DPDP_NOTICE_TEXT_PATIENT,
   DPDP_NOTICE_TITLE,
 } from "@workspace/types";
-import { Alert, AlertDescription, AlertTitle } from "@workspace/ui/components/alert";
-import { Button } from "@workspace/ui/components/button";
-import { Card, CardContent, CardHeader } from "@workspace/ui/components/card";
-import { Checkbox } from "@workspace/ui/components/checkbox";
-import { Input } from "@workspace/ui/components/input";
-import { IsoDatePickerField } from "@workspace/ui/components/iso-date-picker-field";
-import { Label } from "@workspace/ui/components/label";
-import { MicroLabel } from "@workspace/ui/components/micro-label";
-import { Textarea } from "@workspace/ui/components/textarea";
+import { Alert, AlertDescription, AlertTitle } from "@workspace/ui/components/feedback/alert";
+import { Button } from "@workspace/ui/components/form/button";
+import { Card, CardContent, CardHeader } from "@workspace/ui/components/indicators/card";
+import { Checkbox } from "@workspace/ui/components/form/checkbox";
+import { Input } from "@workspace/ui/components/form/input";
+import { IsoDatePickerField } from "@workspace/ui/components/form/iso-date-picker-field";
+import { Label } from "@workspace/ui/components/form/label";
+import { MicroLabel } from "@workspace/ui/components/indicators/micro-label";
+import { Textarea } from "@workspace/ui/components/form/textarea";
 import {
   BookingSectionHeader,
   bookingCardClass,

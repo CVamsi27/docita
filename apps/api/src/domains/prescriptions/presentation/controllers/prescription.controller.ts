@@ -41,7 +41,7 @@ import {
   CreatePrescriptionSchema,
 } from '@/domains/prescriptions/application/dto/prescription.dto';
 import { ZodSerializerDto } from 'nestjs-zod';
-import { ZodValidationPipe } from '@/common/pipes/zod-validation.pipe';
+import { ZodValidationPipe } from '@/shared/common/pipes/zod-validation.pipe';
 
 interface AuthRequest {
   user: {

@@ -7,8 +7,8 @@ import {
   TableHead,
   TableHeader,
   TableRow,
-} from "@workspace/ui/components/table";
-import { Badge } from "@workspace/ui/components/badge";
+} from "@workspace/ui/components/data-display/table";
+import { Badge } from "@workspace/ui/components/indicators/badge";
 import { EditClinicDialog } from "./edit-clinic-dialog";
 import { Building2 } from "lucide-react";
 import { TIER_INFO, type TierName } from "@workspace/types";

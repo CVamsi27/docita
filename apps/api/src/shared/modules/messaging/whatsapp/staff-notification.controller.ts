@@ -14,7 +14,7 @@ import { TierGuard } from '@/shared/modules/auth/auth/tier.guard';
 import { Roles } from '@/shared/modules/auth/auth/roles.decorator';
 import { RequireFeature } from '@/shared/modules/auth/auth/tier.decorator';
 import { StaffNotificationService } from './staff-notification.service';
-import { RequestWithUser } from '@/common/types/common.types';
+import { RequestWithUser } from '@/shared/common/types/common.types';
 import { APP_ACCESS_TARGETS } from '@workspace/types';
 import {
   getDbRolesForTarget,

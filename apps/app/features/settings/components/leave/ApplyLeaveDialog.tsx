@@ -3,16 +3,16 @@
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { toast } from "sonner";
-import { Button } from "@workspace/ui/components/button";
-import { DatePicker } from "@workspace/ui/components/date-picker";
+import { Button } from "@workspace/ui/components/form/button";
+import { DatePicker } from "@workspace/ui/components/form/date-picker";
 import {
   Dialog,
   DialogContent,
   DialogFooter,
   DialogHeader,
   DialogTitle,
-} from "@workspace/ui/components/dialog";
-import { DocitaLoadingIndicator } from "@workspace/ui/components/docita-loading-indicator";
+} from "@workspace/ui/components/overlay/dialog";
+import { DocitaLoadingIndicator } from "@workspace/ui/components/feedback/docita-loading-indicator";
 import {
   Form,
   FormControl,
@@ -20,15 +20,15 @@ import {
   FormItem,
   FormLabel,
   FormMessage,
-} from "@workspace/ui/components/form";
+} from "@workspace/ui/components/form/form";
 import {
   Select,
   SelectContent,
   SelectItem,
   SelectTrigger,
   SelectValue,
-} from "@workspace/ui/components/select";
-import { Textarea } from "@workspace/ui/components/textarea";
+} from "@workspace/ui/components/form/select";
+import { Textarea } from "@workspace/ui/components/form/textarea";
 import { useApplyLeave } from "@/hooks/api/use-leaves";
 import {
   LeaveType,

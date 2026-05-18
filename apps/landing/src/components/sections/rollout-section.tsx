@@ -3,7 +3,7 @@
 import { motion, useReducedMotion } from "motion/react";
 import { ArrowRight } from "lucide-react";
 
-import { Button } from "@workspace/ui/components/button";
+import { Button } from "@workspace/ui/components/form/button";
 
 import {
   landingFadeUpVariants,

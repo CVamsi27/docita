@@ -1,4 +1,4 @@
-import { BrandedPageLoader } from "@/components/common/loaders/branded-page-loader";
+import { BrandedPageLoader } from "@/components/loaders/branded-page-loader";
 
 export default function Loading() {
   return <BrandedPageLoader />;

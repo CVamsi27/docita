@@ -8,7 +8,7 @@ import {
   IdempotencyInterceptor,
   IdempotencyService,
 } from '@/shared/modules/idempotency';
-import { RequestWithUser } from '@/common/types/common.types';
+import { RequestWithUser } from '@/shared/common/types/common.types';
 import { Role } from '@workspace/db';
 import { CreateAppointmentDto } from '@/domains/appointments/application/dto/appointments.dto';
 

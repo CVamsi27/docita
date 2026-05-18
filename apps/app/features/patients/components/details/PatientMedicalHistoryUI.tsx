@@ -4,7 +4,7 @@ import {
   CardDescription,
   CardHeader,
   CardTitle,
-} from "@workspace/ui/components/card";
+} from "@workspace/ui/components/indicators/card";
 import { Baby, Eye, History, Smile } from "lucide-react";
 import {
   GrowthChartData,

@@ -2,7 +2,7 @@
 
 import React, { FC, ReactNode } from "react";
 import { Download } from "lucide-react";
-import { Button } from "@workspace/ui/components/button";
+import { Button } from "@workspace/ui/components/form/button";
 
 // Re-exports from split dialog files
 export { AddPatientDialog } from "./dialogs/AddPatientDialog";

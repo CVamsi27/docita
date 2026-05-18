@@ -40,22 +40,36 @@ docita/
 │   ├── api/                  NestJS backend
 │   │   └── src/
 │   │       ├── domains/<domain>/{application,core,infrastructure,presentation}
-│   │       ├── shared/       cross-cutting modules (auth, guards, interceptors, ...)
-│   │       └── common/       legacy generic utilities (being phased into shared/)
+│   │       └── shared/
+│   │           ├── modules/  NestJS feature modules (auth, audit, cache, database, ...)
+│   │           ├── common/   legacy generic utilities migrated from src/common/ (interceptors, pipes, builders, ...)
+│   │           ├── schedule/, services/
 │   ├── worker/               NestJS background worker (shares infra with api)
 │   ├── app/                  Next.js - main clinician app
 │   │   ├── app/              App Router routes
 │   │   ├── features/<feature>/{components,hooks,rules,lib,api,index.ts}
-│   │   ├── providers/
+│   │   ├── providers/        app-level React providers (query, navigation)
+│   │   ├── types/            ambient declarations + barrel re-export of @workspace/types
+│   │   ├── test/             test-helper render() wrapper
 │   │   └── shared/           non-feature code reused across features
-│   │       ├── components/   was: apps/app/components/
-│   │       ├── hooks/        was: apps/app/hooks/
-│   │       └── lib/          was: apps/app/lib/
+│   │       ├── components/   common/{auth,buttons,dialogs,inputs,i18n,loaders,monitoring,navigation,pwa}/ + a few loose primitives
+│   │       ├── hooks/        generic hooks + api/ subfolder of data-access hook aggregators
+│   │       └── lib/          grouped by concern (see below)
+│   │           ├── auth/            auth-context, session, fetch-with-session, browser-session/request, csrf, safe-return-path, permissions
+│   │           ├── contexts/        app-config, clinic, socket, tier-config providers
+│   │           ├── api/             api-client + error handler + config + core + query-keys/hooks + react-query-config + optimistic-updates + network-error
+│   │           ├── monitoring/      logger, client-error-reporting, sentry.client.config, sentry-phi-redactor
+│   │           ├── security/        security-headers
+│   │           ├── access-control/  policy engine + routes (extends existing decorators/rules)
+│   │           ├── subscription/    lockout + settings-path
+│   │           ├── errors/          error-parser + user-facing-errors
+│   │           ├── formatters/, validation/, rules/, services/, stores/, types/, i18n/, http/, constants/, utils/
+│   │           └── (root)           branding, config, tier-config, support-contact, url, utils, plus a few feature-helper files
 │   ├── internal/             Next.js - admin/internal dashboard (same shape as app)
 │   │   ├── app/
 │   │   ├── features/
 │   │   ├── providers/
-│   │   └── shared/{components,hooks,lib}
+│   │   └── shared/{components,hooks,lib{auth,api,monitoring,errors,formatters,stores}}
 │   └── landing/              Astro marketing site
 ├── packages/
 │   ├── auth/                 access + token semantics (tests in __tests__/)
@@ -175,7 +189,7 @@ The `shared/` folder is the home for **non-feature** code reused across features
 - Loading, error, and empty states must use `DataState` at page level (not inline rows or ad-hoc text).
 - Inputs default to the floating-label `Input` variant; password fields ship the eye toggle and inline rules list per `UI_UX_STANDARD_2026.md` §3.2.
 - Tokens are the only source of color/typography/spacing. No raw hex outside `packages/ui/src/styles/globals.css`. No `text-[10px]/[11px]/[13px]/[15px]`; use `--fs-2xs/xs/sm/md`.
-- If a needed pattern is missing, add it to `packages/ui/src/components` rather than creating an app-local duplicate, and update `UI_UX_STANDARD_2026.md` if the pattern is new.
+- If a needed pattern is missing, add it to `packages/ui/src/components/<group>/` (groups: `form/`, `overlay/`, `layout/`, `feedback/`, `data-display/`, `navigation/`, `indicators/`) rather than creating an app-local duplicate, and update `UI_UX_STANDARD_2026.md` if the pattern is new. Consumers reach primitives via `@workspace/ui/components/<group>/<name>`.
 
 ## 5) Backend Rules
 

@@ -1,20 +1,20 @@
 import React from "react";
-import { Label } from "@workspace/ui/components/label";
-import { Switch } from "@workspace/ui/components/switch";
-import { Textarea } from "@workspace/ui/components/textarea";
-import { Badge } from "@workspace/ui/components/badge";
+import { Label } from "@workspace/ui/components/form/label";
+import { Switch } from "@workspace/ui/components/form/switch";
+import { Textarea } from "@workspace/ui/components/form/textarea";
+import { Badge } from "@workspace/ui/components/indicators/badge";
 import {
   Accordion,
   AccordionContent,
   AccordionItem,
   AccordionTrigger,
-} from "@workspace/ui/components/accordion";
+} from "@workspace/ui/components/overlay/accordion";
 import {
   Card,
   CardContent,
   CardHeader,
   CardTitle,
-} from "@workspace/ui/components/card";
+} from "@workspace/ui/components/indicators/card";
 import { cn } from "@workspace/ui/lib/utils";
 import { Activity, FileText, Heart, Stethoscope, Wind } from "lucide-react";
 

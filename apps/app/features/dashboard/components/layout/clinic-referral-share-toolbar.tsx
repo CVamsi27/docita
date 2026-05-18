@@ -3,15 +3,15 @@
 import type { ReactNode } from "react";
 import { useState } from "react";
 import { CalendarDays, Check, Copy, Share2, Users } from "lucide-react";
-import { Button } from "@workspace/ui/components/button";
-import { MicroLabel } from "@workspace/ui/components/micro-label";
-import { useFacilityLabel } from "@/lib/facility-label";
+import { Button } from "@workspace/ui/components/form/button";
+import { MicroLabel } from "@workspace/ui/components/indicators/micro-label";
+import { useFacilityLabel } from "@/lib/formatters/facility-label";
 import {
   Tooltip,
   TooltipContent,
   TooltipProvider,
   TooltipTrigger,
-} from "@workspace/ui/components/tooltip";
+} from "@workspace/ui/components/overlay/tooltip";
 import { cn } from "@workspace/ui/lib/utils";
 
 export interface ClinicReferralShareToolbarProps {

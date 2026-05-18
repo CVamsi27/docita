@@ -80,6 +80,8 @@ describe('PaymentsService', () => {
     update: jest.fn<IInvoiceRepository['update']>(),
     delete: jest.fn<IInvoiceRepository['delete']>(),
     findPatientContext: jest.fn<IInvoiceRepository['findPatientContext']>(),
+    findClinicFeatureContext:
+      jest.fn<IInvoiceRepository['findClinicFeatureContext']>(),
     nextInvoiceNumber: jest.fn<IInvoiceRepository['nextInvoiceNumber']>(),
   };
 

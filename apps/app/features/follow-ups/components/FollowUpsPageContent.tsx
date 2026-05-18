@@ -3,23 +3,23 @@
 import { useMemo, useState } from "react";
 import Link from "next/link";
 import { CalendarCheck, Check, X } from "lucide-react";
-import { AppPageScaffold } from "@workspace/ui/components/app-page-scaffold";
-import { Badge } from "@workspace/ui/components/badge";
-import { Button } from "@workspace/ui/components/button";
+import { AppPageScaffold } from "@workspace/ui/components/layout/app-page-scaffold";
+import { Badge } from "@workspace/ui/components/indicators/badge";
+import { Button } from "@workspace/ui/components/form/button";
 import {
   Card,
   CardContent,
   CardHeader,
   CardTitle,
-} from "@workspace/ui/components/card";
-import { DataState } from "@workspace/ui/components/data-state";
-import { PageHeader } from "@workspace/ui/components/page-header";
+} from "@workspace/ui/components/indicators/card";
+import { DataState } from "@workspace/ui/components/data-display/data-state";
+import { PageHeader } from "@workspace/ui/components/layout/page-header";
 import {
   Feature,
   type FollowUpResponse,
   type FollowUpStatus,
 } from "@workspace/types";
-import { FeatureGate } from "@/features/_shared/components/auth/feature-gate";
+import { FeatureGate } from "@/components/auth/feature-gate";
 import {
   type FollowUpListView,
   getFollowUpListQuery,

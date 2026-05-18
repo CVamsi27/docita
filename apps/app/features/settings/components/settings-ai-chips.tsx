@@ -1,10 +1,10 @@
 "use client";
 
 import { Sparkles } from "lucide-react";
-import { Button } from "@workspace/ui/components/button";
-import { MicroLabel } from "@workspace/ui/components/micro-label";
-import { useAskAi } from "@/features/_shared/components/ask-ai/ask-ai-context";
-import { useFeatureFlag } from "@/features/_shared/hooks/use-feature-flag";
+import { Button } from "@workspace/ui/components/form/button";
+import { MicroLabel } from "@workspace/ui/components/indicators/micro-label";
+import { useAskAi } from "@/components/ask-ai/ask-ai-context";
+import { useFeatureFlag } from "@/hooks/use-feature-flag";
 
 export type SettingsAiChipScope =
   | "doctor-profile"

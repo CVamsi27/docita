@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect } from "react";
-import { initializeSentryClient } from "@/lib/sentry.client.config";
+import { initializeSentryClient } from "@/lib/monitoring/sentry.client.config";
 
 export function SentryInitializer() {
   useEffect(() => {

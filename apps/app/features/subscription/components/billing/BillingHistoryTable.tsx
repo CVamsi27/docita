@@ -1,20 +1,20 @@
 "use client";
 
-import { DocitaLoadingIndicator } from "@workspace/ui/components/docita-loading-indicator";
+import { DocitaLoadingIndicator } from "@workspace/ui/components/feedback/docita-loading-indicator";
 
 import { useMemo, useState } from "react";
 import { Download, FileText } from "lucide-react";
-import { Button } from "@workspace/ui/components/button";
-import { Badge } from "@workspace/ui/components/badge";
-import { Label } from "@workspace/ui/components/label";
-import { IsoDatePickerField } from "@workspace/ui/components/iso-date-picker-field";
+import { Button } from "@workspace/ui/components/form/button";
+import { Badge } from "@workspace/ui/components/indicators/badge";
+import { Label } from "@workspace/ui/components/form/label";
+import { IsoDatePickerField } from "@workspace/ui/components/form/iso-date-picker-field";
 import {
   Select,
   SelectContent,
   SelectItem,
   SelectTrigger,
   SelectValue,
-} from "@workspace/ui/components/select";
+} from "@workspace/ui/components/form/select";
 import {
   Table,
   TableBody,
@@ -23,14 +23,14 @@ import {
   TableHead,
   TableHeader,
   TableRow,
-} from "@workspace/ui/components/table";
+} from "@workspace/ui/components/data-display/table";
 import {
   Tooltip,
   TooltipContent,
   TooltipProvider,
   TooltipTrigger,
-} from "@workspace/ui/components/tooltip";
-import { EmptyState } from "@workspace/ui/components/empty-state";
+} from "@workspace/ui/components/overlay/tooltip";
+import { EmptyState } from "@workspace/ui/components/feedback/empty-state";
 import { humanizeUiLabel } from "@workspace/ui/lib/label-formatters";
 import { cn } from "@workspace/ui/lib/utils";
 import type { BillingHistoryItem } from "@/hooks/api/use-billing-history";

@@ -5,7 +5,7 @@ import type {
   IAccessDecision,
   IAccessRule,
 } from "@/lib/access-control/interfaces";
-import { getSupportContactText } from "@/lib/support-contact";
+import { getSupportContactText } from "@/lib/constants/support-contact";
 import { CLINIC_TYPE_FEATURES, CLINIC_TYPE_LABELS } from "@workspace/types";
 
 export class ClinicTypeBasedAccessRule implements IAccessRule {

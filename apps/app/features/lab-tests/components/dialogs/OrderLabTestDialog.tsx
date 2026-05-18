@@ -1,5 +1,5 @@
-import { DocitaLoadingIndicator } from "@workspace/ui/components/docita-loading-indicator";
-import { Button } from "@workspace/ui/components/button";
+import { DocitaLoadingIndicator } from "@workspace/ui/components/feedback/docita-loading-indicator";
+import { Button } from "@workspace/ui/components/form/button";
 import { Check, ChevronsUpDown } from "lucide-react";
 import {
   Dialog,
@@ -8,27 +8,27 @@ import {
   DialogFooter,
   DialogHeader,
   DialogTitle,
-} from "@workspace/ui/components/dialog";
+} from "@workspace/ui/components/overlay/dialog";
 import {
   FormControl,
   FormField,
   FormItem,
   FormLabel,
   FormMessage,
-} from "@workspace/ui/components/form";
+} from "@workspace/ui/components/form/form";
 import {
   Popover,
   PopoverContent,
   PopoverTrigger,
-} from "@workspace/ui/components/popover";
+} from "@workspace/ui/components/overlay/popover";
 import {
   Command,
   CommandEmpty,
   CommandGroup,
   CommandInput,
   CommandList,
-} from "@workspace/ui/components/command";
-import { Textarea } from "@workspace/ui/components/textarea";
+} from "@workspace/ui/components/overlay/command";
+import { Textarea } from "@workspace/ui/components/form/textarea";
 import { cn } from "@workspace/ui/lib/utils";
 import { FormProvider, UseFormReturn } from "react-hook-form";
 

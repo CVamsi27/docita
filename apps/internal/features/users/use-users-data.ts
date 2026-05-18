@@ -1,11 +1,11 @@
 import { useEffect, useMemo, useState } from "react";
 import { getUserFacingErrorMessage } from "@workspace/types";
-import { useAuth } from "@/lib/auth";
-import { useInternalQuery } from "@/lib/use-internal-query";
+import { useAuth } from "@/lib/auth/auth";
+import { useInternalQuery } from "@/lib/api/use-internal-query";
 import { fetchClinics, fetchUsersForSelection } from "./api";
 import { calculateRoleStats, filterUsers } from "./utils";
 import type { RoleFilter, User } from "./types";
-import { showUserFacingErrorToast } from "@/lib/user-facing-errors";
+import { showUserFacingErrorToast } from "@/lib/errors/user-facing-errors";
 
 export function useUsersData() {
   const { token } = useAuth();

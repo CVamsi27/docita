@@ -1,7 +1,7 @@
 import { usePatient } from "@/features/patients/hooks/usePatients";
 import { getPatientAgeDisplay } from "@/features/patients/rules/patientRules";
-import { getInitials } from "@/features/_shared/utils";
-import { Skeleton } from "@workspace/ui/components/skeleton";
+import { getInitials } from "@/lib/formatters/text-helpers";
+import { Skeleton } from "@workspace/ui/components/feedback/skeleton";
 import { PatientProfileHeaderUI } from "./PatientProfileHeaderUI";
 
 interface PatientProfileHeaderContainerProps {

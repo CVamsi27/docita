@@ -5,13 +5,13 @@ import {
   CardDescription,
   CardHeader,
   CardTitle,
-} from "@workspace/ui/components/card";
-import { Button } from "@workspace/ui/components/button";
-import { SymbolTooltip } from "@workspace/ui/components/tooltip";
-import { Input } from "@workspace/ui/components/input";
+} from "@workspace/ui/components/indicators/card";
+import { Button } from "@workspace/ui/components/form/button";
+import { SymbolTooltip } from "@workspace/ui/components/overlay/tooltip";
+import { Input } from "@workspace/ui/components/form/input";
 import { FileText, Filter, FlaskConical, Search, X } from "lucide-react";
-import { EmptyState, LoadingState } from "@workspace/ui/components/empty-state";
-import { StatusBadge } from "@workspace/ui/components/status-badge";
+import { EmptyState, LoadingState } from "@workspace/ui/components/feedback/empty-state";
+import { StatusBadge } from "@workspace/ui/components/indicators/status-badge";
 import {
   Table,
   TableBody,
@@ -19,7 +19,7 @@ import {
   TableHead,
   TableHeader,
   TableRow,
-} from "@workspace/ui/components/table";
+} from "@workspace/ui/components/data-display/table";
 
 import { LabTestOrder } from "@workspace/types";
 import {

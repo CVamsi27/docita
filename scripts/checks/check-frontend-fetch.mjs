@@ -9,10 +9,10 @@ const repoRoot = process.cwd();
 const enforce = process.argv.includes("--enforce");
 const allowedPatterns = [
   /^apps\/app\/app\/api\//,
-  /^apps\/app\/lib\/api-client\.ts$/,
-  /^apps\/app\/lib\/fetch-with-session\.ts$/,
-  /^apps\/app\/lib\/browser-session\.ts$/,
-  /^apps\/app\/lib\/browser-request\.ts$/,
+  /^apps\/app\/shared\/lib\/api\/api-client\.ts$/,
+  /^apps\/app\/shared\/lib\/auth\/fetch-with-session\.ts$/,
+  /^apps\/app\/shared\/lib\/auth\/browser-session\.ts$/,
+  /^apps\/app\/shared\/lib\/auth\/browser-request\.ts$/,
   /\.test\.[tj]sx?$/,
   /\.spec\.[tj]sx?$/,
 ];
@@ -29,8 +29,10 @@ const files = execSync("git ls-files apps/app", {
 const violations = [];
 
 for (const file of files) {
+  const absolutePath = path.join(repoRoot, file);
+  if (!fs.existsSync(absolutePath)) continue;
   const lines = fs
-    .readFileSync(path.join(repoRoot, file), "utf8")
+    .readFileSync(absolutePath, "utf8")
     .split(/\r?\n/);
   lines.forEach((line, index) => {
     if (!/\bfetch\s*\(/.test(line)) return;

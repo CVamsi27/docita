@@ -1,8 +1,8 @@
 "use client";
 
 import { ShieldCheck } from "lucide-react";
-import { Alert, AlertDescription, AlertTitle } from "@workspace/ui/components/alert";
-import { Button } from "@workspace/ui/components/button";
+import { Alert, AlertDescription, AlertTitle } from "@workspace/ui/components/feedback/alert";
+import { Button } from "@workspace/ui/components/form/button";
 import {
   Sheet,
   SheetContent,
@@ -10,7 +10,7 @@ import {
   SheetHeader,
   SheetTitle,
   SheetTrigger,
-} from "@workspace/ui/components/sheet";
+} from "@workspace/ui/components/overlay/sheet";
 import { bookingSteps } from "./booking-constants";
 import { cn } from "@workspace/ui/lib/utils";
 

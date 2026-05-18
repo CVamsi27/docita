@@ -11,10 +11,10 @@ import { DashboardActivityFeed } from "@/features/dashboard/components/overview/
 import { DashboardUpcomingCard } from "@/features/dashboard/components/overview/dashboard-upcoming-card";
 import type { AppointmentListItem } from "@/hooks/api/use-appointments";
 import type { DashboardPatient, DashboardStats } from "@workspace/types";
-import { AppPageScaffold } from "@workspace/ui/components/app-page-scaffold";
-import { DataState } from "@workspace/ui/components/data-state";
+import { AppPageScaffold } from "@workspace/ui/components/layout/app-page-scaffold";
+import { DataState } from "@workspace/ui/components/data-display/data-state";
 import { LayoutDashboard } from "lucide-react";
-import { Section } from "@workspace/ui/components/section";
+import { Section } from "@workspace/ui/components/layout/section";
 import { formatDashboardSummary } from "@/features/dashboard/lib/format-dashboard-summary";
 import { DashboardHeaderContainer } from "./dashboard-header-container";
 import { DashboardSharedWorkspace } from "./dashboard-shared-workspace";

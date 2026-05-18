@@ -7,16 +7,16 @@ import {
   CardDescription,
   CardHeader,
   CardTitle,
-} from "@workspace/ui/components/card";
-import { Button } from "@workspace/ui/components/button";
-import { Checkbox } from "@workspace/ui/components/checkbox";
-import { Label } from "@workspace/ui/components/label";
-import { Textarea } from "@workspace/ui/components/textarea";
+} from "@workspace/ui/components/indicators/card";
+import { Button } from "@workspace/ui/components/form/button";
+import { Checkbox } from "@workspace/ui/components/form/checkbox";
+import { Label } from "@workspace/ui/components/form/label";
+import { Textarea } from "@workspace/ui/components/form/textarea";
 import {
   Alert,
   AlertDescription,
   AlertTitle,
-} from "@workspace/ui/components/alert";
+} from "@workspace/ui/components/feedback/alert";
 import { AlertCircle, LogOut, Trash2 } from "lucide-react";
 import { useAuth } from "@/lib/auth/auth-context";
 import { useConfirm } from "@/hooks/use-confirm";

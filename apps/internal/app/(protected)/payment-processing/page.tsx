@@ -1,6 +1,6 @@
 "use client";
 
-import { DocitaLoadingIndicator } from "@workspace/ui/components/docita-loading-indicator";
+import { DocitaLoadingIndicator } from "@workspace/ui/components/feedback/docita-loading-indicator";
 
 import { useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
@@ -10,10 +10,10 @@ import {
   CardDescription,
   CardHeader,
   CardTitle,
-} from "@workspace/ui/components/card";
-import { Button } from "@workspace/ui/components/button";
-import { PageHeader } from "@workspace/ui/components/page-header";
-import { EmptyState } from "@workspace/ui/components/empty-state";
+} from "@workspace/ui/components/indicators/card";
+import { Button } from "@workspace/ui/components/form/button";
+import { PageHeader } from "@workspace/ui/components/layout/page-header";
+import { EmptyState } from "@workspace/ui/components/feedback/empty-state";
 import {
   Table,
   TableBody,
@@ -21,22 +21,22 @@ import {
   TableHead,
   TableHeader,
   TableRow,
-} from "@workspace/ui/components/table";
-import { Badge } from "@workspace/ui/components/badge";
+} from "@workspace/ui/components/data-display/table";
+import { Badge } from "@workspace/ui/components/indicators/badge";
 import {
   Dialog,
   DialogContent,
   DialogDescription,
   DialogHeader,
   DialogTitle,
-} from "@workspace/ui/components/dialog";
+} from "@workspace/ui/components/overlay/dialog";
 import {
   Select,
   SelectContent,
   SelectItem,
   SelectTrigger,
   SelectValue,
-} from "@workspace/ui/components/select";
+} from "@workspace/ui/components/form/select";
 import {
   Form,
   FormControl,
@@ -45,24 +45,24 @@ import {
   FormItem,
   FormLabel,
   FormMessage,
-} from "@workspace/ui/components/form";
-import { Input } from "@workspace/ui/components/input";
-import { Textarea } from "@workspace/ui/components/textarea";
-import { IsoDatePickerField } from "@workspace/ui/components/iso-date-picker-field";
+} from "@workspace/ui/components/form/form";
+import { Input } from "@workspace/ui/components/form/input";
+import { Textarea } from "@workspace/ui/components/form/textarea";
+import { IsoDatePickerField } from "@workspace/ui/components/form/iso-date-picker-field";
 import { CreditCard, Percent, Receipt, TrendingUp } from "lucide-react";
 import {
   GUIDED_SETUP_LIST_PRICE_BY_CURRENCY,
   recordInternalAdditionalChargeRequestSchema,
   type SupportedCurrency,
 } from "@workspace/types";
-import { useAuth } from "@/lib/auth";
-import { billingAPI, type PricingOfferRow } from "@/lib/api";
-import { client } from "@/lib/api-client";
-import { internalQueryKeys } from "@/lib/query-keys";
+import { useAuth } from "@/lib/auth/auth";
+import { billingAPI, type PricingOfferRow } from "@/lib/api/api";
+import { client } from "@/lib/api/api-client";
+import { internalQueryKeys } from "@/lib/api/query-keys";
 import { useForm } from "react-hook-form";
 import { toast } from "sonner";
 import { DEFAULT_CURRENCY, formatCurrency } from "@workspace/utils";
-import { showUserFacingErrorToast } from "@/lib/user-facing-errors";
+import { showUserFacingErrorToast } from "@/lib/errors/user-facing-errors";
 
 interface Clinic {
   id: string;

@@ -1,16 +1,16 @@
 "use client";
 
 import { useState } from "react";
-import { Button } from "@workspace/ui/components/button";
-import { SymbolTooltip } from "@workspace/ui/components/tooltip";
-import { DataState } from "@workspace/ui/components/data-state";
+import { Button } from "@workspace/ui/components/form/button";
+import { SymbolTooltip } from "@workspace/ui/components/overlay/tooltip";
+import { DataState } from "@workspace/ui/components/data-display/data-state";
 import {
   Select,
   SelectContent,
   SelectItem,
   SelectTrigger,
   SelectValue,
-} from "@workspace/ui/components/select";
+} from "@workspace/ui/components/form/select";
 import { Activity, Plus, RefreshCw } from "lucide-react";
 import {
   usePortalMetricCategories,

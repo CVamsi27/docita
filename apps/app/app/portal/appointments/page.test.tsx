@@ -21,7 +21,7 @@ vi.mock("@/lib/errors/user-facing-errors", () => ({
   showUserFacingErrorToast: portalAppointmentMocks.showError,
 }));
 
-vi.mock("@workspace/ui/components/iso-date-picker-field", () => ({
+vi.mock("@workspace/ui/components/form/iso-date-picker-field", () => ({
   IsoDatePickerField: ({
     id,
     value,

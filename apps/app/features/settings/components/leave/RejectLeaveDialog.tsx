@@ -1,17 +1,17 @@
 "use client";
 
 import { toast } from "sonner";
-import { Button } from "@workspace/ui/components/button";
-import { DocitaLoadingIndicator } from "@workspace/ui/components/docita-loading-indicator";
+import { Button } from "@workspace/ui/components/form/button";
+import { DocitaLoadingIndicator } from "@workspace/ui/components/feedback/docita-loading-indicator";
 import {
   Dialog,
   DialogContent,
   DialogFooter,
   DialogHeader,
   DialogTitle,
-} from "@workspace/ui/components/dialog";
-import { Label } from "@workspace/ui/components/label";
-import { Textarea } from "@workspace/ui/components/textarea";
+} from "@workspace/ui/components/overlay/dialog";
+import { Label } from "@workspace/ui/components/form/label";
+import { Textarea } from "@workspace/ui/components/form/textarea";
 import { useRejectLeave } from "@/hooks/api/use-leaves";
 import { showUserFacingErrorToast } from "@/lib/errors/user-facing-errors";
 

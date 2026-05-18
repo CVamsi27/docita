@@ -1,6 +1,6 @@
 "use client";
 
-import { DocitaLoadingIndicator } from "@workspace/ui/components/docita-loading-indicator";
+import { DocitaLoadingIndicator } from "@workspace/ui/components/feedback/docita-loading-indicator";
 
 import { useEffect } from "react";
 import { useForm } from "react-hook-form";
@@ -12,11 +12,11 @@ import {
   CardDescription,
   CardHeader,
   CardTitle,
-} from "@workspace/ui/components/card";
-import { Skeleton } from "@workspace/ui/components/skeleton";
-import { Label } from "@workspace/ui/components/label";
-import { Switch } from "@workspace/ui/components/switch";
-import { Button } from "@workspace/ui/components/button";
+} from "@workspace/ui/components/indicators/card";
+import { Skeleton } from "@workspace/ui/components/feedback/skeleton";
+import { Label } from "@workspace/ui/components/form/label";
+import { Switch } from "@workspace/ui/components/form/switch";
+import { Button } from "@workspace/ui/components/form/button";
 import { Bell, Smartphone } from "lucide-react";
 import {
   ClinicAppSettings,
@@ -30,7 +30,7 @@ import {
   FormControl,
   FormField,
   FormItem,
-} from "@workspace/ui/components/form";
+} from "@workspace/ui/components/form/form";
 import Link from "next/link";
 import { usePermissionStore } from "@/lib/stores/permission-store";
 import { Feature } from "@workspace/types";

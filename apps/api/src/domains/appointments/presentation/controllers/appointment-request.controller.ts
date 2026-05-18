@@ -10,7 +10,7 @@ import {
 } from '@nestjs/common';
 import { ApiOperation, ApiTags } from '@nestjs/swagger';
 import { APP_ACCESS_TARGETS } from '@workspace/types';
-import { RequestWithUser } from '@/common/types/common.types';
+import { RequestWithUser } from '@/shared/common/types/common.types';
 import {
   ApproveAppointmentRequestDto,
   ListAppointmentRequestsQueryDto,

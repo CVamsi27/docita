@@ -11,12 +11,12 @@ import {
   CardDescription,
   CardHeader,
   CardTitle,
-} from "@workspace/ui/components/card";
-import { Button } from "@workspace/ui/components/button";
-import { Input } from "@workspace/ui/components/input";
-import { Form, FormControl, FormField } from "@workspace/ui/components/form";
+} from "@workspace/ui/components/indicators/card";
+import { Button } from "@workspace/ui/components/form/button";
+import { Input } from "@workspace/ui/components/form/input";
+import { Form, FormControl, FormField } from "@workspace/ui/components/form/form";
 import { FormFieldGroup } from "@workspace/ui/components";
-import { requiredStringSchema } from "@/features/_shared/schemas/common.schemas";
+import { requiredStringSchema } from "@/lib/validation/common.schemas";
 import { settingsApi } from "@/features/settings/api/settings.api";
 import { PasswordStrengthIndicator } from "@/features/auth";
 

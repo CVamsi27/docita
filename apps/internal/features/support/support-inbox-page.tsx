@@ -1,27 +1,27 @@
 "use client";
 
-import { DocitaLoadingIndicator } from "@workspace/ui/components/docita-loading-indicator";
+import { DocitaLoadingIndicator } from "@workspace/ui/components/feedback/docita-loading-indicator";
 
 import { type FormEvent, useDeferredValue, useEffect, useMemo, useState } from "react";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { DATE_FORMATS, formatDate, formatDistanceToNow } from "@workspace/utils";
-import { Badge } from "@workspace/ui/components/badge";
-import { Button } from "@workspace/ui/components/button";
+import { Badge } from "@workspace/ui/components/indicators/badge";
+import { Button } from "@workspace/ui/components/form/button";
 import {
   Card,
   CardContent,
   CardHeader,
   CardTitle,
-} from "@workspace/ui/components/card";
-import { Input } from "@workspace/ui/components/input";
-import { Textarea } from "@workspace/ui/components/textarea";
+} from "@workspace/ui/components/indicators/card";
+import { Input } from "@workspace/ui/components/form/input";
+import { Textarea } from "@workspace/ui/components/form/textarea";
 import {
   getUserFacingErrorMessage,
   SupportWhatsAppMessage,
 } from "@workspace/types";
-import { internalQueryKeys } from "@/lib/query-keys";
-import { supportAPI } from "@/lib/api";
-import { useInternalQuery } from "@/lib/use-internal-query";
+import { internalQueryKeys } from "@/lib/api/query-keys";
+import { supportAPI } from "@/lib/api/api";
+import { useInternalQuery } from "@/lib/api/use-internal-query";
 import { Inbox, MessageSquare, Phone, Search, Send } from "lucide-react";
 
 const THREAD_LIMIT = 100;

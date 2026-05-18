@@ -225,6 +225,62 @@ export const useDocument = (id: string) => {
   });
 };
 
+/**
+ * `/medical-documents` is a separate domain from `/documents` (general uploads):
+ * sign/revoke workflow for clinical certificates and notes. Type lives here
+ * since the backend hasn't published a Zod schema for it yet.
+ */
+export interface MedicalDocument {
+  id: string;
+  type: string;
+  title: string;
+  status: string;
+  createdAt: string;
+  signedAt?: string;
+  validFrom?: string;
+  validUntil?: string;
+  pdfUrl?: string | null;
+}
+
+export interface CreateMedicalDocumentInput {
+  type: string;
+  patientId: string;
+  title: string;
+  content: Record<string, unknown>;
+  doctorId: string;
+  pdfUrl?: string;
+}
+
+export const useMedicalDocuments = (patientId: string) => {
+  const docsOk = useTierFeatureEnabled(Feature.DOCUMENT_ARCHIVAL);
+  return useAPIQuery<MedicalDocument[]>(
+    ["medical-documents", patientId],
+    `/medical-documents?patientId=${patientId}`,
+    { enabled: docsOk && patientId.length > 0 },
+  );
+};
+
+export const useSignMedicalDocument = () =>
+  useAPIMutation<MedicalDocument, string>(
+    (id) => `/medical-documents/${id}/sign`,
+    "PATCH",
+    { invalidateKeys: [["medical-documents"]], body: () => ({}) },
+  );
+
+export const useRevokeMedicalDocument = () =>
+  useAPIMutation<MedicalDocument, string>(
+    (id) => `/medical-documents/${id}/revoke`,
+    "PATCH",
+    { invalidateKeys: [["medical-documents"]], body: () => ({}) },
+  );
+
+export const useCreateMedicalDocument = () =>
+  useAPIMutation<MedicalDocument, CreateMedicalDocumentInput>(
+    "/medical-documents",
+    "POST",
+    { invalidateKeys: [["medical-documents"]] },
+  );
+
 export const useTemplates = (filters?: ListTemplatesContractQuery) =>
   useAPIQuery<TemplateContractResponse[]>(
     ["templates", filters || {}],

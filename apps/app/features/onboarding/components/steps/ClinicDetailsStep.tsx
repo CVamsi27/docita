@@ -1,12 +1,12 @@
 import { UseFormReturn } from "react-hook-form";
-import { Button } from "@workspace/ui/components/button";
+import { Button } from "@workspace/ui/components/form/button";
 import {
   Card,
   CardContent,
   CardFooter,
   CardHeader,
   CardTitle,
-} from "@workspace/ui/components/card";
+} from "@workspace/ui/components/indicators/card";
 import type { ClinicDetails } from "@/features/onboarding/components/types";
 import {
   ClinicAddressPickerDialog,

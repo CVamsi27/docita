@@ -14,7 +14,7 @@ import {
 import { FeedbackService } from '@/domains/feedback/application/services/feedback.service';
 import { Roles } from '@/shared/modules/auth/auth/roles.decorator';
 import { Role } from '@workspace/db';
-import { RequestWithUser } from '@/common/types/common.types';
+import { RequestWithUser } from '@/shared/common/types/common.types';
 
 import {
   CreateFeedbackDto,
@@ -25,7 +25,7 @@ import {
   UpdateFeedbackStatusSchema,
 } from '@/domains/feedback/dto/feedback.dto';
 import { ZodSerializerDto } from 'nestjs-zod';
-import { ZodValidationPipe } from '@/common/pipes/zod-validation.pipe';
+import { ZodValidationPipe } from '@/shared/common/pipes/zod-validation.pipe';
 
 @Controller('feedback')
 @Roles(

@@ -1,12 +1,12 @@
 "use client";
 
-import { DocitaLoadingIndicator } from "@workspace/ui/components/docita-loading-indicator";
+import { DocitaLoadingIndicator } from "@workspace/ui/components/feedback/docita-loading-indicator";
 
 import { useEffect } from "react";
 import { useRouter } from "next/navigation";
-import { Card, CardContent, CardHeader, CardTitle } from "@workspace/ui/components/card";
+import { Card, CardContent, CardHeader, CardTitle } from "@workspace/ui/components/indicators/card";
 import { useAuth } from "@/lib/auth/auth-context";
-import { PageTransitionLoader } from "@/components/common/loaders/page-transition-loader";
+import { PageTransitionLoader } from "@/components/loaders/page-transition-loader";
 import { PreDashboardShell } from "@/features/auth/components/PreDashboardShell";
 
 export default function ClinicSelectionPage() {

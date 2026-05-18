@@ -1,8 +1,8 @@
 import { Receipt } from "lucide-react";
-import { Button } from "@workspace/ui/components/button";
-import { Checkbox } from "@workspace/ui/components/checkbox";
-import { Input } from "@workspace/ui/components/input";
-import { Label } from "@workspace/ui/components/label";
+import { Button } from "@workspace/ui/components/form/button";
+import { Checkbox } from "@workspace/ui/components/form/checkbox";
+import { Input } from "@workspace/ui/components/form/input";
+import { Label } from "@workspace/ui/components/form/label";
 import { SectionToggle } from "@/features/ocr/components/common/section-toggle";
 import type { OCRFormData, OCRInvoiceLineForm } from "@/features/ocr/types";
 

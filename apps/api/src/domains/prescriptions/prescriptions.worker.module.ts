@@ -6,7 +6,6 @@ import { QueueWorkerModule } from '@/shared/modules/queue/queue.worker.module';
 import { PrescriptionsService } from './application/services/prescription.service';
 import { PrescriptionPdfService } from './application/services/prescription-pdf.service';
 import { PrescriptionPdfProcessor } from './application/services/prescription-pdf.processor';
-import { PrescriptionValidationRulesService } from './core/services/prescription-validation-rules.service';
 import { PrismaPrescriptionRepository } from './infrastructure/repositories/prescription.repository';
 
 @Module({
@@ -20,16 +19,11 @@ import { PrismaPrescriptionRepository } from './infrastructure/repositories/pres
     PrescriptionsService,
     PrescriptionPdfService,
     PrescriptionPdfProcessor,
-    PrescriptionValidationRulesService,
     {
       provide: 'IPrescriptionRepository',
       useClass: PrismaPrescriptionRepository,
     },
   ],
-  exports: [
-    PrescriptionsService,
-    PrescriptionPdfService,
-    PrescriptionValidationRulesService,
-  ],
+  exports: [PrescriptionsService, PrescriptionPdfService],
 })
 export class PrescriptionsWorkerModule {}

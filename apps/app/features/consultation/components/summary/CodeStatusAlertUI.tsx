@@ -1,5 +1,5 @@
 import { ShieldAlert, ShieldCheck } from "lucide-react";
-import { Badge } from "@workspace/ui/components/badge";
+import { Badge } from "@workspace/ui/components/indicators/badge";
 import { cn } from "@workspace/ui/lib/utils";
 import { formatDate } from "@/lib/formatters";
 

@@ -9,7 +9,7 @@ import React, {
 import { useQuery } from "@tanstack/react-query";
 import { usePathname } from "next/navigation";
 import { getUserFacingErrorMessage, Tier, TIER_INFO } from "@workspace/types";
-import { Feature, FEATURE_TIER_MAP } from "../stores/permission-store";
+import { Feature, FEATURE_TIER_MAP } from "@/lib/stores/permission-store";
 
 import {
   DEFAULT_DESCRIPTIONS,
@@ -19,10 +19,10 @@ import {
   PlanLimits,
   PlanPricing,
   TierConfigData,
-} from "../constants/tier-config";
-import { apiFetch } from "./api-client";
-import { isNetworkError } from "./network-error";
-import { appQueryKeys } from "./query-keys";
+} from "@/lib/constants/tier-config";
+import { apiFetch } from "@/lib/api/api-client";
+import { isNetworkError } from "@/lib/api/network-error";
+import { appQueryKeys } from "@/lib/api/query-keys";
 
 export type {
   PlanPricing,
@@ -30,7 +30,7 @@ export type {
   TierConfig,
   FeatureDisplay,
   TierConfigData,
-} from "../constants/tier-config";
+} from "@/lib/constants/tier-config";
 
 interface TierConfigContextType {
   config: TierConfigData | null;

@@ -2,9 +2,9 @@
 
 import { Check, X, Ban } from "lucide-react";
 import { toast } from "sonner";
-import { Badge } from "@workspace/ui/components/badge";
-import { Button } from "@workspace/ui/components/button";
-import { DocitaLoadingIndicator } from "@workspace/ui/components/docita-loading-indicator";
+import { Badge } from "@workspace/ui/components/indicators/badge";
+import { Button } from "@workspace/ui/components/form/button";
+import { DocitaLoadingIndicator } from "@workspace/ui/components/feedback/docita-loading-indicator";
 import { formatDate } from "@workspace/utils";
 import {
   useApproveLeave,

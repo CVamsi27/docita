@@ -11,11 +11,3 @@ export {
   type ContactSalesFormData,
 } from "./ContactSalesModalUI";
 export { ContactSalesModalContainer } from "./ContactSalesModalContainer";
-
-export {
-  BulkImportDialogUI,
-  type BulkImportDialogUIProps,
-  type EntityType,
-  type BulkImportStep,
-} from "./BulkImportDialogUI";
-export { BulkImportDialogContainer } from "./BulkImportDialogContainer";

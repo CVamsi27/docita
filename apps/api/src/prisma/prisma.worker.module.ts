@@ -1,7 +1,7 @@
 import { Global, Module } from '@nestjs/common';
 import { PrismaService } from './prisma.service';
 import { AppConfigModule } from '@/shared/modules/config/config.module';
-import { EncryptionService } from '@/common/encryption.service';
+import { EncryptionService } from '@/shared/common/encryption.service';
 
 @Global()
 @Module({

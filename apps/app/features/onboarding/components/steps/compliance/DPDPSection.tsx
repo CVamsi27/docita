@@ -1,8 +1,8 @@
 "use client";
 
 import type { UseFormReturn } from "react-hook-form";
-import { Checkbox } from "@workspace/ui/components/checkbox";
-import { Label } from "@workspace/ui/components/label";
+import { Checkbox } from "@workspace/ui/components/form/checkbox";
+import { Label } from "@workspace/ui/components/form/label";
 import type { ComplianceSettings } from "@/features/onboarding/components/types";
 
 interface DPDPSectionProps {

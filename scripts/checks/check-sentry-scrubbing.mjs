@@ -33,10 +33,13 @@ const files = execSync("git ls-files apps packages", {
   .filter((file) => /\.(ts|tsx)$/.test(file));
 
 const sourceByFile = new Map(
-  files.map((file) => [
-    file,
-    fs.readFileSync(path.join(repoRoot, file), "utf8"),
-  ]),
+  files
+    .map((file) => [file, path.join(repoRoot, file)])
+    .filter(([, absolutePath]) => fs.existsSync(absolutePath))
+    .map(([file, absolutePath]) => [
+      file,
+      fs.readFileSync(absolutePath, "utf8"),
+    ]),
 );
 const combined = Array.from(sourceByFile.values()).join("\n");
 const missing = piiFields.filter((field) => {

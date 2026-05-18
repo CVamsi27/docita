@@ -1,33 +1,33 @@
 "use client";
 
-import { DocitaLoadingIndicator } from "@workspace/ui/components/docita-loading-indicator";
+import { DocitaLoadingIndicator } from "@workspace/ui/components/feedback/docita-loading-indicator";
 
 import { useCallback, useEffect, useMemo, useState } from "react";
 import {
   billingAPI,
   type PricingOfferRow,
   type TierPricingRow,
-} from "@/lib/api";
+} from "@/lib/api/api";
 import { fetchClinics } from "@/features/users/api";
 import type { Clinic } from "@/features/users/types";
-import { useAuth } from "@/lib/auth";
+import { useAuth } from "@/lib/auth/auth";
 import {
   Card,
   CardContent,
   CardDescription,
   CardHeader,
   CardTitle,
-} from "@workspace/ui/components/card";
-import { Button } from "@workspace/ui/components/button";
-import { Input } from "@workspace/ui/components/input";
-import { DatePicker } from "@workspace/ui/components/date-picker";
-import { PageHeader } from "@workspace/ui/components/page-header";
+} from "@workspace/ui/components/indicators/card";
+import { Button } from "@workspace/ui/components/form/button";
+import { Input } from "@workspace/ui/components/form/input";
+import { DatePicker } from "@workspace/ui/components/form/date-picker";
+import { PageHeader } from "@workspace/ui/components/layout/page-header";
 import {
   Tabs,
   TabsContent,
   TabsList,
   TabsTrigger,
-} from "@workspace/ui/components/tabs";
+} from "@workspace/ui/components/navigation/tabs";
 import {
   Table,
   TableBody,
@@ -35,8 +35,8 @@ import {
   TableHead,
   TableHeader,
   TableRow,
-} from "@workspace/ui/components/table";
-import { Badge } from "@workspace/ui/components/badge";
+} from "@workspace/ui/components/data-display/table";
+import { Badge } from "@workspace/ui/components/indicators/badge";
 import { Plus, Save, Sparkles, Trash2 } from "lucide-react";
 
 interface EditableTierRow extends TierPricingRow {

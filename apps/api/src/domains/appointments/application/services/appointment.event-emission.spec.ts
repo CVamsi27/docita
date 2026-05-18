@@ -23,6 +23,14 @@ describe('AppointmentService - appointment.created event', () => {
     exists: jest.fn<IAppointmentRepository['exists']>(),
     findAppointmentsForSlots:
       jest.fn<IAppointmentRepository['findAppointmentsForSlots']>(),
+    findClinicWorkspaceProfile:
+      jest.fn<IAppointmentRepository['findClinicWorkspaceProfile']>(),
+    findForConsultationStart:
+      jest.fn<IAppointmentRepository['findForConsultationStart']>(),
+    startConsultationTx:
+      jest.fn<IAppointmentRepository['startConsultationTx']>(),
+    findForUpdate: jest.fn<IAppointmentRepository['findForUpdate']>(),
+    applyPatch: jest.fn<IAppointmentRepository['applyPatch']>(),
   } satisfies IAppointmentRepository;
 
   const mockCreateAppointmentUseCase = Object.create(

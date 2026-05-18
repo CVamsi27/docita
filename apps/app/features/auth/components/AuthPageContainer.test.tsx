@@ -3,7 +3,7 @@ import { fireEvent, render, screen, waitFor } from "@testing-library/react";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { AuthPageContainer } from "./AuthPageContainer";
 
-vi.mock("@workspace/ui/components/tooltip", () => ({
+vi.mock("@workspace/ui/components/overlay/tooltip", () => ({
   SymbolTooltip: ({ children }: { children: ReactElement }) => children,
 }));
 
@@ -44,7 +44,7 @@ vi.mock("./AuthBrandingPanel", () => ({
   AuthBrandingPanel: () => <div data-testid="auth-branding-panel" />,
 }));
 
-vi.mock("@/components/common/loaders/page-transition-loader", () => ({
+vi.mock("@/components/loaders/page-transition-loader", () => ({
   PageTransitionLoader: ({
     title,
     description,

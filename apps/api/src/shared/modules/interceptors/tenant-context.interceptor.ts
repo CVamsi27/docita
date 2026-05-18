@@ -6,7 +6,7 @@ import {
 } from '@nestjs/common';
 import { Observable, from } from 'rxjs';
 import { lastValueFrom } from 'rxjs';
-import { tenantStorage } from '@/common/middleware/tenant.middleware';
+import { tenantStorage } from '@/shared/common/middleware/tenant.middleware';
 
 @Injectable()
 export class TenantContextInterceptor implements NestInterceptor {

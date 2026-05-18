@@ -14,12 +14,12 @@ import {
   CardDescription,
   CardHeader,
   CardTitle,
-} from "@workspace/ui/components/card";
+} from "@workspace/ui/components/indicators/card";
 import { FormFieldGroup } from "@workspace/ui/components";
-import { Button } from "@workspace/ui/components/button";
-import { SymbolTooltip } from "@workspace/ui/components/tooltip";
-import { Form, FormControl, FormField } from "@workspace/ui/components/form";
-import { Input } from "@workspace/ui/components/input";
+import { Button } from "@workspace/ui/components/form/button";
+import { SymbolTooltip } from "@workspace/ui/components/overlay/tooltip";
+import { Form, FormControl, FormField } from "@workspace/ui/components/form/form";
+import { Input } from "@workspace/ui/components/form/input";
 import { Copy, Check, ExternalLink } from "lucide-react";
 import { useState } from "react";
 import { showUserFacingErrorToast } from "@/lib/errors/user-facing-errors";
@@ -29,12 +29,12 @@ import {
   SelectItem,
   SelectTrigger,
   SelectValue,
-} from "@workspace/ui/components/select";
+} from "@workspace/ui/components/form/select";
 import { getFacilityLabel } from "@workspace/utils";
 import { SettingsAiChips } from "@/features/settings/components/settings-ai-chips";
-import { CopyableLinkField } from "@/features/_shared/components/signature/copyable-link-field";
-import { getPublicAppOrigin } from "@/lib/public-app-origin";
-import { MicroLabel } from "@workspace/ui/components/micro-label";
+import { CopyableLinkField } from "@/components/signature/copyable-link-field";
+import { getPublicAppOrigin } from "@/lib/constants/public-app-origin";
+import { MicroLabel } from "@workspace/ui/components/indicators/micro-label";
 import { ClinicGeneralSettingsSkeleton } from "./ClinicGeneralSettingsSkeleton";
 import { WorkspaceModeCard } from "./WorkspaceModeCard";
 import {

@@ -1,6 +1,6 @@
-import { Button } from "@workspace/ui/components/button";
-import { Badge } from "@workspace/ui/components/badge";
-import { Skeleton } from "@workspace/ui/components/skeleton";
+import { Button } from "@workspace/ui/components/form/button";
+import { Badge } from "@workspace/ui/components/indicators/badge";
+import { Skeleton } from "@workspace/ui/components/feedback/skeleton";
 import { Clock } from "lucide-react";
 import { formatDate } from "@workspace/utils";
 

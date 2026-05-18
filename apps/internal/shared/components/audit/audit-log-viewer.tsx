@@ -10,10 +10,10 @@ import {
   RefreshCw,
   User as UserIcon,
 } from "lucide-react";
-import { Button } from "@workspace/ui/components/button";
-import { SymbolTooltip } from "@workspace/ui/components/tooltip";
-import { Badge } from "@workspace/ui/components/badge";
-import { DatePicker } from "@workspace/ui/components/date-picker";
+import { Button } from "@workspace/ui/components/form/button";
+import { SymbolTooltip } from "@workspace/ui/components/overlay/tooltip";
+import { Badge } from "@workspace/ui/components/indicators/badge";
+import { DatePicker } from "@workspace/ui/components/form/date-picker";
 import {
   Table,
   TableBody,
@@ -21,19 +21,19 @@ import {
   TableHead,
   TableHeader,
   TableRow,
-} from "@workspace/ui/components/table";
+} from "@workspace/ui/components/data-display/table";
 import { toast } from "sonner";
-import { formatInternalTimestamp } from "@/lib/format-display-date";
-import { client } from "@/lib/api-client";
-import { showUserFacingErrorToast } from "@/lib/user-facing-errors";
-import { Input } from "@workspace/ui/components/input";
+import { formatInternalTimestamp } from "@/lib/formatters/format-display-date";
+import { client } from "@/lib/api/api-client";
+import { showUserFacingErrorToast } from "@/lib/errors/user-facing-errors";
+import { Input } from "@workspace/ui/components/form/input";
 import {
   Select,
   SelectContent,
   SelectItem,
   SelectTrigger,
   SelectValue,
-} from "@workspace/ui/components/select";
+} from "@workspace/ui/components/form/select";
 
 interface AuditLog {
   id: string;
@@ -459,5 +459,3 @@ export function AuditLogViewer() {
     </div>
   );
 }
-
-export default AuditLogViewer;

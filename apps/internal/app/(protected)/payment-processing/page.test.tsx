@@ -19,7 +19,7 @@ const clientMocks = vi.hoisted(() => ({
 const toastSuccessMock = vi.hoisted(() => vi.fn());
 const showUserFacingErrorToastMock = vi.hoisted(() => vi.fn());
 
-vi.mock("@/lib/auth", () => ({
+vi.mock("@/lib/auth/auth", () => ({
   useAuth: () => ({
     token: "test-token",
     isInternal: true,
@@ -27,11 +27,11 @@ vi.mock("@/lib/auth", () => ({
   }),
 }));
 
-vi.mock("@/lib/api-client", () => ({
+vi.mock("@/lib/api/api-client", () => ({
   client: clientMocks,
 }));
 
-vi.mock("@/lib/user-facing-errors", () => ({
+vi.mock("@/lib/errors/user-facing-errors", () => ({
   showUserFacingErrorToast: showUserFacingErrorToastMock,
 }));
 

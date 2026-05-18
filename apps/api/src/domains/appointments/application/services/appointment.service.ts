@@ -54,7 +54,6 @@ export class AppointmentService {
       this.queryService,
       appointmentRepository,
       createAppointmentUseCase,
-      prisma,
       eventEmitter,
       schedulingRules,
       metricsService,

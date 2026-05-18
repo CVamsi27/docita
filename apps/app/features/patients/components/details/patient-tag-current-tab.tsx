@@ -1,10 +1,10 @@
 import { resolveTagColor } from "./tag-colors";
 import {
   SymbolTooltip,
-} from "@workspace/ui/components/tooltip";
-import { Button } from "@workspace/ui/components/button";
-import { Input } from "@workspace/ui/components/input";
-import { ScrollArea } from "@workspace/ui/components/scroll-area";
+} from "@workspace/ui/components/overlay/tooltip";
+import { Button } from "@workspace/ui/components/form/button";
+import { Input } from "@workspace/ui/components/form/input";
+import { ScrollArea } from "@workspace/ui/components/layout/scroll-area";
 import { Check, Pencil, Trash2, X } from "lucide-react";
 import type { PatientTag } from "./PatientTagManagerUI";
 import { ColorSwatchButton, ColorPickerGrid } from "./patient-tag-color-pickers";

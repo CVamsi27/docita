@@ -17,7 +17,7 @@ import {
   type ISubscriptionRepository,
   type IUpgradeOption,
 } from "./interfaces";
-import { FEATURE_ADDON_MAP } from "../rules/addon-based-rule";
+import { FEATURE_ADDON_MAP } from "./rules/addon-based-rule";
 
 export class AccessControlService implements IAccessControlService {
   private rules: IAccessRule[] = [];

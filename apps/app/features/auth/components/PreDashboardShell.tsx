@@ -3,15 +3,15 @@
 import { useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { Lock, LogOut, Shield } from "lucide-react";
-import { Button } from "@workspace/ui/components/button";
-import { ThemeToggleWithAppearanceSync } from "@/features/_shared/components/layout/theme-toggle-with-appearance-sync";
-import { DocitaLogo } from "@workspace/ui/components/docita-logo";
+import { Button } from "@workspace/ui/components/form/button";
+import { ThemeToggleWithAppearanceSync } from "@/components/layout/theme-toggle-with-appearance-sync";
+import { DocitaLogo } from "@workspace/ui/components/indicators/docita-logo";
 import { cn } from "@workspace/ui/lib/utils";
-import { SupportContact } from "@/components/common/support-contact";
+import { SupportContact } from "@/components/support-contact/support-contact";
 import {
   SUPPORT_WHATSAPP_MESSAGE_DEFAULT,
   SUPPORT_WHATSAPP_MESSAGE_ONBOARDING,
-} from "@/lib/support-contact";
+} from "@/lib/constants/support-contact";
 import { AuthBrandingPanel } from "./AuthBrandingPanel";
 import { useAuth } from "@/lib/auth/auth-context";
 import type { AuthBrandingStep } from "@/features/auth/types/auth";

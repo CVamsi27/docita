@@ -4,19 +4,19 @@ import { useDeferredValue, useMemo, useState } from "react";
 import { FileText } from "lucide-react";
 import type { Appointment } from "@workspace/types";
 import { Feature } from "@workspace/types";
-import { AppPageScaffold } from "@workspace/ui/components/app-page-scaffold";
+import { AppPageScaffold } from "@workspace/ui/components/layout/app-page-scaffold";
 import {
   Card,
   CardContent,
   CardDescription,
   CardHeader,
   CardTitle,
-} from "@workspace/ui/components/card";
-import { EmptyState } from "@workspace/ui/components/empty-state";
-import { Input } from "@workspace/ui/components/input";
-import { PageHeader } from "@workspace/ui/components/page-header";
+} from "@workspace/ui/components/indicators/card";
+import { EmptyState } from "@workspace/ui/components/feedback/empty-state";
+import { Input } from "@workspace/ui/components/form/input";
+import { PageHeader } from "@workspace/ui/components/layout/page-header";
 import { useDebounce } from "@workspace/hooks/use-debounce";
-import { FeatureGate } from "@/features/_shared/components/auth/feature-gate";
+import { FeatureGate } from "@/components/auth/feature-gate";
 import { CodingQueue } from "@/features/medical-coding/components";
 import { useCodingQueue } from "@/hooks/api/use-medical-coding";
 import { formatDateTime } from "@/lib/formatters";

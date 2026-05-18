@@ -1,6 +1,6 @@
 /** Pure helper functions for slot generation — no DI, no @Injectable. */
 import { fromLocalISOString } from '@workspace/utils';
-import { TimeUtils } from '@/common/utils/time.utils';
+import { TimeUtils } from '@/shared/common/utils/time.utils';
 import type { ClinicWeeklySchedule } from '@workspace/db';
 
 export type DayOfWeek =

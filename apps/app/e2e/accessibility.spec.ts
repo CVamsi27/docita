@@ -1,4 +1,5 @@
 import { expect, test } from "@playwright/test";
+import { DPDP_NOTICE_VERSION } from "@workspace/types";
 import { getViolations, injectAxe } from "axe-playwright";
 import * as fs from "fs";
 import * as path from "path";
@@ -99,6 +100,11 @@ test.describe("Accessibility Audit - Main App", () => {
           gender: "MALE",
           dateOfBirth: "1990-01-01",
           clinicId: user.clinicId,
+          dpdpConsent: {
+            accepted: true,
+            noticeVersion: DPDP_NOTICE_VERSION,
+            givenByName: "Axe Patient",
+          },
         },
       });
       expect(patientRes.ok()).toBeTruthy();

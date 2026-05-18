@@ -91,23 +91,20 @@
       "ignoreDependencies": ["clsx", "tailwind-merge"]
     },
     "packages/data-access": {
-      "ignoreDependencies": ["@workspace/types"],
       "ignore": ["src/lib/retry.ts"]
     },
     "apps/app": {
       "entry": [
         "app/**/*.{ts,tsx}",
         "features/**/*.{ts,tsx}",
-        "hooks/**/*.{ts,tsx}",
-        "lib/**/*.{ts,tsx}",
-        "components/**/*.{ts,tsx}",
+        "shared/**/*.{ts,tsx}",
         "e2e/**/*.ts"
       ],
       "paths": {
         "@/*": ["./*"],
-        "@/lib/*": ["./lib/*"],
-        "@/hooks/*": ["./hooks/*"],
-        "@/components/*": ["./components/*"]
+        "@/lib/*": ["./shared/lib/*"],
+        "@/hooks/*": ["./shared/hooks/*"],
+        "@/components/*": ["./shared/components/*"]
       },
       "ignoreDependencies": [
         "class-variance-authority",
@@ -119,15 +116,28 @@
       ]
     },
     "apps/internal": {
+      "entry": [
+        "app/**/*.{ts,tsx}",
+        "features/**/*.{ts,tsx}",
+        "providers/**/*.{ts,tsx}",
+        "shared/**/*.{ts,tsx}",
+        "e2e/**/*.ts"
+      ],
+      "paths": {
+        "@/*": ["./*"],
+        "@/lib/*": ["./shared/lib/*"],
+        "@/hooks/*": ["./shared/hooks/*"],
+        "@/components/*": ["./shared/components/*"]
+      },
       "ignore": [
-        "components/common/back-button.tsx",
+        "shared/components/common/back-button.tsx",
         "features/broadcasts/**",
-        "lib/api.ts",
-        "lib/api-client.ts",
-        "lib/sentry-phi-redactor.ts",
-        "lib/sentry.client.config.ts",
-        "lib/session.ts",
-        "lib/user-facing-errors.ts"
+        "shared/lib/api.ts",
+        "shared/lib/api-client.ts",
+        "shared/lib/sentry-phi-redactor.ts",
+        "shared/lib/sentry.client.config.ts",
+        "shared/lib/session.ts",
+        "shared/lib/user-facing-errors.ts"
       ],
       "ignoreDependencies": [
         "@axe-core/playwright",
@@ -149,7 +159,6 @@
     },
     ".": {
       "entry": [
-        "scripts/*.mjs",
         "scripts/lib/*.mjs"
       ],
       "ignoreDependencies": [

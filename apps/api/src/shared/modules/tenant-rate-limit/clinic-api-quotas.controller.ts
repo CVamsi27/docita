@@ -14,7 +14,7 @@ import {
   ClinicApiQuotaUpsertRequest,
   clinicApiQuotaUpsertSchema,
 } from '@workspace/types';
-import { ZodValidationPipe } from '@/common/pipes/zod-validation.pipe';
+import { ZodValidationPipe } from '@/shared/common/pipes/zod-validation.pipe';
 import { Roles } from '@/shared/modules/auth/auth/roles.decorator';
 import { TenantRateLimitService } from '@/shared/modules/tenant-rate-limit/tenant-rate-limit.service';
 

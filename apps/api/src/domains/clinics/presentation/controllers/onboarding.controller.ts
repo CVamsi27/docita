@@ -30,19 +30,19 @@ import {
   OnboardingCompletionResponseDto,
 } from '@/domains/clinics/application/dto/onboarding/onboarding-response.dto';
 import { ZodSerializerDto } from 'nestjs-zod';
-import { ZodValidationPipe } from '@/common/pipes/zod-validation.pipe';
+import { ZodValidationPipe } from '@/shared/common/pipes/zod-validation.pipe';
 import { Public } from '@/shared/modules/auth/auth/public.decorator';
 import { AllowNoClinic } from '@/shared/modules/auth/auth/allow-no-clinic.decorator';
 import { SkipSubscriptionCheck } from '@/shared/modules/auth/decorators/skip-subscription-check.decorator';
 import { SkipPasswordExpiry } from '@/shared/modules/auth/guards/password-expired.guard';
 import { SkipEmailVerification } from '@/shared/modules/auth/guards/email-verified.guard';
-import { RequestWithUser } from '@/common/types/common.types';
+import { RequestWithUser } from '@/shared/common/types/common.types';
 import { FileInterceptor } from '@nestjs/platform-express';
 import { MAX_FILE_SIZE } from '@workspace/utils';
 import {
   assertAllowedFileSignature,
   createTempDiskStorage,
-} from '@/common/utils/upload.utils';
+} from '@/shared/common/utils/upload.utils';
 import { unlink } from 'fs/promises';
 
 @Controller('onboarding')

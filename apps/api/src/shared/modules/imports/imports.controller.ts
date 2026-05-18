@@ -23,7 +23,7 @@ import {
   RequireFeature,
   Feature,
 } from '@/shared/modules/auth/auth/tier.decorator';
-import { RateLimit } from '@/common/interceptors/rate-limit.interceptor';
+import { RateLimit } from '@/shared/common/interceptors/rate-limit.interceptor';
 import {
   ImportPatientFieldsResponseDto,
   ImportPreviewResponseDto,
@@ -32,7 +32,7 @@ import {
   ColumnMappingRequestDto,
   OcrImportCommitResponseDto,
 } from './dto/imports.dto';
-import { ZodValidationPipe } from '@/common/pipes/zod-validation.pipe';
+import { ZodValidationPipe } from '@/shared/common/pipes/zod-validation.pipe';
 import type {
   AuthenticatedRequest,
   OcrImportCommitRequest,
@@ -46,7 +46,7 @@ import {
   assertAllowedFileSignature,
   assertAllowedImportFileSignature,
   createTempDiskStorage,
-} from '@/common/utils/upload.utils';
+} from '@/shared/common/utils/upload.utils';
 import { unlink } from 'fs/promises';
 
 interface AuthRequest extends ExpressRequest {

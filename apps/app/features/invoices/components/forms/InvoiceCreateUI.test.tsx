@@ -1,5 +1,5 @@
 import { fireEvent, screen, waitFor } from "@testing-library/react";
-import { render } from "@/test/render-with-tooltip";
+import { render } from "@/test-utils/render-with-tooltip";
 import { describe, expect, it, vi, beforeEach } from "vitest";
 import { InvoiceCreateUI } from "./InvoiceCreateUI";
 
@@ -8,7 +8,7 @@ const invoiceCreateMocks = vi.hoisted(() => ({
   routerPush: vi.fn(),
 }));
 
-vi.mock("@/components/common/navigation/back-button", () => ({
+vi.mock("@/components/navigation/back-button", () => ({
   BackButton: ({ label }: { label: string }) => (
     <button type="button">{label}</button>
   ),

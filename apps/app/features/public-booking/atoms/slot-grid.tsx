@@ -7,17 +7,17 @@ import {
   Clock,
   UserCircle,
 } from "lucide-react";
-import { Alert, AlertDescription, AlertTitle } from "@workspace/ui/components/alert";
-import { Button } from "@workspace/ui/components/button";
-import { EmptyState } from "@workspace/ui/components/empty-state";
-import { Label } from "@workspace/ui/components/label";
+import { Alert, AlertDescription, AlertTitle } from "@workspace/ui/components/feedback/alert";
+import { Button } from "@workspace/ui/components/form/button";
+import { EmptyState } from "@workspace/ui/components/feedback/empty-state";
+import { Label } from "@workspace/ui/components/form/label";
 import {
   Select,
   SelectContent,
   SelectItem,
   SelectTrigger,
   SelectValue,
-} from "@workspace/ui/components/select";
+} from "@workspace/ui/components/form/select";
 import {
   ANY_DOCTOR_ID,
 } from "@/features/public-booking/public-booking-constants";

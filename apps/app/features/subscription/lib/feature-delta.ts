@@ -1,6 +1,6 @@
 import { Feature, FEATURE_TIER_MAP } from "@workspace/types";
 import { getFeatureDetails } from "@/features/subscription/config/feature-config";
-import { Tier, type TierName } from "@/lib/tier-config";
+import { Tier, type TierName } from "@/lib/subscription/tier-access";
 
 export interface FeatureDeltaItem {
   feature: Feature;

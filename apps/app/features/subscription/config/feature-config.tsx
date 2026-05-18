@@ -18,7 +18,7 @@ import {
   Users,
   Zap,
 } from "lucide-react";
-import { Feature, FEATURE_DISPLAY } from "@/lib/tier-config";
+import { Feature, FEATURE_DISPLAY } from "@/lib/subscription/tier-access";
 
 export const FEATURE_ICONS: Record<Feature, LucideIcon> = {
 

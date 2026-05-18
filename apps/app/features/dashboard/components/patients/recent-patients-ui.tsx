@@ -7,9 +7,9 @@ import {
   CardDescription,
   CardHeader,
   CardTitle,
-} from "@workspace/ui/components/card";
-import { Avatar, AvatarFallback } from "@workspace/ui/components/avatar";
-import { EmptyState } from "@workspace/ui/components/empty-state";
+} from "@workspace/ui/components/indicators/card";
+import { Avatar, AvatarFallback } from "@workspace/ui/components/indicators/avatar";
+import { EmptyState } from "@workspace/ui/components/feedback/empty-state";
 import { ViewAllLinkUI } from "@/features/dashboard/components/layout/view-all-link-ui";
 
 export interface RecentPatient {

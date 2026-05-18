@@ -14,9 +14,7 @@ const requiredPaths = [
   'apps/api',
   'apps/worker',
   'apps/worker/src',
-  'apps/app/tests/unit',
-  'apps/app/tests/integration',
-  'apps/app/tests/e2e',
+  'apps/app/e2e',
   'apps/internal/tests/unit',
   'apps/internal/tests/integration',
   'apps/internal/tests/e2e',
@@ -31,38 +29,21 @@ const requiredPaths = [
   'packages/types',
   'packages/db',
   'packages/data-access',
-  'packages/auth',
   'packages/utils',
   'packages/eslint-config',
   'packages/typescript-config',
-  'packages/auth/src',
-  'packages/auth/src/index.ts',
-  'packages/auth/tests/unit',
-  'packages/auth/tests/integration',
   'packages/data-access/src',
   'packages/data-access/src/index.ts',
-  'packages/data-access/tests/unit',
-  'packages/data-access/tests/integration',
   'packages/db/src',
   'packages/db/src/index.ts',
-  'packages/db/tests/unit',
-  'packages/db/tests/integration',
   'packages/hooks/src',
   'packages/hooks/src/index.ts',
-  'packages/hooks/tests/unit',
-  'packages/hooks/tests/integration',
   'packages/types/src',
   'packages/types/src/index.ts',
-  'packages/types/tests/unit',
-  'packages/types/tests/integration',
   'packages/ui/src',
   'packages/ui/src/index.ts',
-  'packages/ui/tests/unit',
-  'packages/ui/tests/integration',
   'packages/utils/src',
   'packages/utils/src/index.ts',
-  'packages/utils/tests/unit',
-  'packages/utils/tests/integration',
   'docs',
   'scripts',
 ];
@@ -85,9 +66,8 @@ for (const target of requiredPaths) {
 }
 
 if (missing.length > 0) {
-
   for (const target of missing) {
-
+    console.error(`Missing required repository path: ${target}`);
   }
   process.exit(1);
 }

@@ -7,7 +7,7 @@ vi.mock("next/navigation", () => ({
   useRouter: () => ({ push: vi.fn() }),
 }));
 
-vi.mock("@/features/_shared/hooks/use-feature-flag", () => ({
+vi.mock("@/hooks/use-feature-flag", () => ({
   useFeatureFlag: (key: string) =>
     key === "patient_advisor_drug_interactions" ? true : false,
 }));

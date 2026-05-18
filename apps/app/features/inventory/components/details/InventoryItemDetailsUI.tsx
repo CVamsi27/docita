@@ -5,8 +5,8 @@ import {
   SheetDescription,
   SheetHeader,
   SheetTitle,
-} from "@workspace/ui/components/sheet";
-import { Badge } from "@workspace/ui/components/badge";
+} from "@workspace/ui/components/overlay/sheet";
+import { Badge } from "@workspace/ui/components/indicators/badge";
 import {
   Table,
   TableBody,
@@ -14,9 +14,9 @@ import {
   TableHead,
   TableHeader,
   TableRow,
-} from "@workspace/ui/components/table";
-import { LoadingState } from "@workspace/ui/components/empty-state";
-import { ScrollArea } from "@workspace/ui/components/scroll-area";
+} from "@workspace/ui/components/data-display/table";
+import { LoadingState } from "@workspace/ui/components/feedback/empty-state";
+import { ScrollArea } from "@workspace/ui/components/layout/scroll-area";
 import { ArrowDownLeft, ArrowUpRight, History, Package } from "lucide-react";
 import { useClinicCurrency } from "@/hooks/use-clinic-currency";
 

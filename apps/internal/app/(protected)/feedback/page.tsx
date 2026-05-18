@@ -1,6 +1,6 @@
 "use client";
 
-import { DocitaLoadingIndicator } from "@workspace/ui/components/docita-loading-indicator";
+import { DocitaLoadingIndicator } from "@workspace/ui/components/feedback/docita-loading-indicator";
 
 import { useCallback, useMemo, useState } from "react";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
@@ -10,33 +10,33 @@ import {
   CardDescription,
   CardHeader,
   CardTitle,
-} from "@workspace/ui/components/card";
-import { Button } from "@workspace/ui/components/button";
-import { Badge } from "@workspace/ui/components/badge";
-import { EmptyState } from "@workspace/ui/components/empty-state";
-import { PageHeader } from "@workspace/ui/components/page-header";
-import { DatePicker } from "@workspace/ui/components/date-picker";
+} from "@workspace/ui/components/indicators/card";
+import { Button } from "@workspace/ui/components/form/button";
+import { Badge } from "@workspace/ui/components/indicators/badge";
+import { EmptyState } from "@workspace/ui/components/feedback/empty-state";
+import { PageHeader } from "@workspace/ui/components/layout/page-header";
+import { DatePicker } from "@workspace/ui/components/form/date-picker";
 import {
   Select,
   SelectContent,
   SelectItem,
   SelectTrigger,
   SelectValue,
-} from "@workspace/ui/components/select";
+} from "@workspace/ui/components/form/select";
 import {
   Dialog,
   DialogContent,
   DialogDescription,
   DialogHeader,
   DialogTitle,
-} from "@workspace/ui/components/dialog";
-import { Textarea } from "@workspace/ui/components/textarea";
-import { Label } from "@workspace/ui/components/label";
+} from "@workspace/ui/components/overlay/dialog";
+import { Textarea } from "@workspace/ui/components/form/textarea";
+import { Label } from "@workspace/ui/components/form/label";
 import { AlertCircle, CheckCircle, Clock, Eye, Filter, Lightbulb, MessageSquare, RefreshCw, Star, ThumbsDown, ThumbsUp, Trash2 } from "lucide-react";
 import { formatDate } from "@workspace/utils";
-import { Feedback, feedbackAPI, FeedbackFilters } from "@/lib/api";
-import { internalQueryKeys } from "@/lib/query-keys";
-import { useInternalQuery } from "@/lib/use-internal-query";
+import { Feedback, feedbackAPI, FeedbackFilters } from "@/lib/api/api";
+import { internalQueryKeys } from "@/lib/api/query-keys";
+import { useInternalQuery } from "@/lib/api/use-internal-query";
 
 const STATUS_OPTIONS = [
   { value: "NEW", label: "New", color: "badge-info" },

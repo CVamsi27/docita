@@ -23,7 +23,7 @@ import {
   createPatientTagRequestSchema,
   updatePatientTagRequestSchema,
 } from '@workspace/types';
-import { RequestWithUser } from '@/common/types/common.types';
+import { RequestWithUser } from '@/shared/common/types/common.types';
 import { PatientTagsService } from '@/domains/patients/application/services/patient-tags.service';
 import {
   PatientTagListResponseDto,

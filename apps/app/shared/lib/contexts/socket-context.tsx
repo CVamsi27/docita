@@ -7,8 +7,8 @@ import {
   useState,
 } from "react";
 import { io, Socket } from "socket.io-client";
-import { useAuth } from "./auth-context";
-import { appSession } from "./session";
+import { useAuth } from "@/lib/auth/auth-context";
+import { appSession } from "@/lib/auth/session";
 
 interface SocketContextType {
   socket: Socket | null;

@@ -3,7 +3,7 @@
 import { useMemo, useState } from "react";
 import { Calendar } from "lucide-react";
 import { DAY_OF_WEEK_LABELS, type DayOfWeek } from "@workspace/types";
-import { Button } from "@workspace/ui/components/button";
+import { Button } from "@workspace/ui/components/form/button";
 import {
   Card,
   CardContent,
@@ -11,19 +11,19 @@ import {
   CardFooter,
   CardHeader,
   CardTitle,
-} from "@workspace/ui/components/card";
-import { CategoryAvatar } from "@workspace/ui/components/category-avatar";
-import { Input } from "@workspace/ui/components/input";
-import { Label } from "@workspace/ui/components/label";
-import { MicroLabel } from "@workspace/ui/components/micro-label";
+} from "@workspace/ui/components/indicators/card";
+import { CategoryAvatar } from "@workspace/ui/components/indicators/category-avatar";
+import { Input } from "@workspace/ui/components/form/input";
+import { Label } from "@workspace/ui/components/form/label";
+import { MicroLabel } from "@workspace/ui/components/indicators/micro-label";
 import {
   Select,
   SelectContent,
   SelectItem,
   SelectTrigger,
   SelectValue,
-} from "@workspace/ui/components/select";
-import { Switch } from "@workspace/ui/components/switch";
+} from "@workspace/ui/components/form/select";
+import { Switch } from "@workspace/ui/components/form/switch";
 import { showUserFacingErrorToast } from "@/lib/errors/user-facing-errors";
 import type { ClinicWeeklyHourRow } from "@/features/onboarding/components/types";
 

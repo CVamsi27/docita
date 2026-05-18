@@ -2,17 +2,17 @@
 
 import { useEffect, useMemo, useState } from "react";
 import { CheckCircle2, MessageCircle, RotateCcw, ShieldCheck } from "lucide-react";
-import { Button } from "@workspace/ui/components/button";
+import { Button } from "@workspace/ui/components/form/button";
 import {
   Card,
   CardContent,
   CardHeader,
   CardTitle,
-} from "@workspace/ui/components/card";
-import { DataState } from "@workspace/ui/components/data-state";
-import { Input } from "@workspace/ui/components/input";
-import { Label } from "@workspace/ui/components/label";
-import { Badge } from "@workspace/ui/components/badge";
+} from "@workspace/ui/components/indicators/card";
+import { DataState } from "@workspace/ui/components/data-display/data-state";
+import { Input } from "@workspace/ui/components/form/input";
+import { Label } from "@workspace/ui/components/form/label";
+import { Badge } from "@workspace/ui/components/indicators/badge";
 import {
   useRevokeWhatsappSender,
   useUpdateWhatsappSender,

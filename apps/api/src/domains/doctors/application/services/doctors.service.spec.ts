@@ -7,8 +7,12 @@ import { SignatureUploadService } from './signature-upload.service';
 import { StoredFileUrlResolverService } from '@/domains/documents/application/services/stored-file-url-resolver.service';
 import { StorageProvider } from '@/domains/documents/infrastructure/storage.provider';
 import { NotFoundException } from '@nestjs/common';
-import { Specialization } from '@workspace/db';
+import { Role, Specialization } from '@workspace/db';
 import { beforeEach, describe, it, expect, jest } from '@jest/globals';
+import {
+  DOCTOR_REPOSITORY_TOKEN,
+  IDoctorRepository,
+} from '@/domains/doctors/core/repositories/doctor.repository.interface';
 
 describe('DoctorsService', () => {
   let service: DoctorsService;
@@ -60,6 +64,7 @@ describe('DoctorsService', () => {
       findFirst: jest.fn<(...args: unknown[]) => Promise<unknown>>(),
       create: jest.fn<(...args: unknown[]) => Promise<unknown>>(),
       findMany: jest.fn<(...args: unknown[]) => Promise<unknown>>(),
+      updateMany: jest.fn<(...args: unknown[]) => Promise<unknown>>(),
       deleteMany: jest.fn<(...args: unknown[]) => Promise<unknown>>(),
     },
     doctorEducation: {
@@ -115,6 +120,75 @@ describe('DoctorsService', () => {
     generateSignedUrl: jest.fn<(...args: unknown[]) => Promise<string>>(),
   };
 
+  const mockDoctorRepository = {
+    createDoctorWithClinic: jest.fn<
+      IDoctorRepository['createDoctorWithClinic']
+    >(async (user, link, primarySpecialization) => {
+      const created = await mockPrismaService.user.create({
+        data: {
+          ...user,
+          password: user.hashedPassword,
+        },
+      });
+      await mockPrismaService.doctorClinic.create({
+        data: link,
+      });
+      if (primarySpecialization) {
+        await mockPrismaService.doctorSpecialization.create({
+          data: {
+            doctorId: (created as { id: string }).id,
+            specialization: primarySpecialization,
+          },
+        });
+      }
+      return created as never;
+    }),
+    updateDoctorProfile: jest.fn<IDoctorRepository['updateDoctorProfile']>(
+      async (id, patch) => {
+        const result = await mockPrismaService.user.updateMany({
+          where: { id },
+          data: patch,
+        });
+        return (result as { count: number }).count;
+      },
+    ),
+    findDoctorForResponse: jest.fn<IDoctorRepository['findDoctorForResponse']>(
+      async (id) =>
+        (await mockPrismaService.user.findFirst({
+          where: { id },
+          select: expect.any(Object) as never,
+        })) as never,
+    ),
+    updateDoctorClinicRole: jest.fn<
+      IDoctorRepository['updateDoctorClinicRole']
+    >(async (doctorId, role) => {
+      await mockPrismaService.doctorClinic.updateMany({
+        where: { doctorId },
+        data: { role },
+      });
+    }),
+    deleteDoctorCascading: jest.fn<IDoctorRepository['deleteDoctorCascading']>(
+      async (id) => {
+        await mockPrismaService.doctorEducation.deleteMany({
+          where: { doctorId: id },
+        });
+        await mockPrismaService.doctorCertification.deleteMany({
+          where: { doctorId: id },
+        });
+        await mockPrismaService.doctorSpecialization.deleteMany({
+          where: { doctorId: id },
+        });
+        await mockPrismaService.doctorClinic.deleteMany({
+          where: { doctorId: id },
+        });
+        const result = await mockPrismaService.user.deleteMany({
+          where: { id },
+        });
+        return (result as { count: number }).count;
+      },
+    ),
+  } satisfies IDoctorRepository;
+
   beforeEach(async () => {
     const module: TestingModule = await Test.createTestingModule({
       providers: [
@@ -139,6 +213,10 @@ describe('DoctorsService', () => {
         {
           provide: StorageProvider,
           useValue: mockStorageProvider,
+        },
+        {
+          provide: DOCTOR_REPOSITORY_TOKEN,
+          useValue: mockDoctorRepository,
         },
       ],
     }).compile();

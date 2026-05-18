@@ -7,15 +7,15 @@ import {
   CardDescription,
   CardHeader,
   CardTitle,
-} from "@workspace/ui/components/card";
-import { Button } from "@workspace/ui/components/button";
+} from "@workspace/ui/components/indicators/card";
+import { Button } from "@workspace/ui/components/form/button";
 import {
   Select,
   SelectContent,
   SelectItem,
   SelectTrigger,
   SelectValue,
-} from "@workspace/ui/components/select";
+} from "@workspace/ui/components/form/select";
 import {
   Form,
   FormControl,
@@ -23,15 +23,15 @@ import {
   FormItem,
   FormLabel,
   FormMessage,
-} from "@workspace/ui/components/form";
-import { Textarea } from "@workspace/ui/components/textarea";
+} from "@workspace/ui/components/form/form";
+import { Textarea } from "@workspace/ui/components/form/textarea";
 import { Plus, Save } from "lucide-react";
 import type { Path } from "react-hook-form";
 import {
   type CreateInvoiceFormValues,
   useInvoiceCreateLogic,
 } from "@/features/invoices/hooks/use-invoice-create-logic";
-import { BackButton } from "@/components/common/navigation/back-button";
+import { BackButton } from "@/components/navigation/back-button";
 import { InvoiceItemsTable } from "./InvoiceItemsTable";
 import { InvoiceSubtotal } from "./InvoiceSubtotal";
 import { PatientSelector } from "@/features/appointments";

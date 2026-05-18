@@ -8,7 +8,7 @@ import {
   Stethoscope,
   UserCheck,
 } from "lucide-react";
-import { DocitaIcon } from "@workspace/ui/components/docita-logo";
+import { DocitaIcon } from "@workspace/ui/components/indicators/docita-logo";
 import { cn } from "@workspace/ui/lib/utils";
 import type { AuthBrandingStep } from "@/features/auth/types/auth";
 import { LoginDailyThought } from "@/features/auth/components/LoginDailyThought";

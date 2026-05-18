@@ -3,23 +3,23 @@
 import { useMemo, useState } from "react";
 import { Check, Info, Minus } from "lucide-react";
 import { Feature } from "@workspace/types";
-import { Badge } from "@workspace/ui/components/badge";
+import { Badge } from "@workspace/ui/components/indicators/badge";
 import {
   TableCell,
-} from "@workspace/ui/components/table";
+} from "@workspace/ui/components/data-display/table";
 import {
   SymbolTooltip,
   Tooltip,
   TooltipContent,
   TooltipTrigger,
-} from "@workspace/ui/components/tooltip";
+} from "@workspace/ui/components/overlay/tooltip";
 import {
   FEATURE_TIER_MAP,
   getTierInfo,
   Tier,
   getFeatureComparisonData,
   type FeatureComparisonRow,
-} from "@/lib/tier-config";
+} from "@/lib/subscription/tier-access";
 import { getFeatureDetails } from "@/features/subscription/config/feature-config";
 import {
   Table,
@@ -27,7 +27,7 @@ import {
   TableHead,
   TableHeader,
   TableRow,
-} from "@workspace/ui/components/table";
+} from "@workspace/ui/components/data-display/table";
 import { cn } from "@workspace/ui/lib/utils";
 import {
   FEATURE_CATEGORIES,

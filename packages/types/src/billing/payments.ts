@@ -1,9 +1,10 @@
 import { z } from "zod";
 
-export enum PaymentMode {
-  ONLINE = "ONLINE",
-  CASH = "CASH",
-}
+export const PaymentMode = {
+  ONLINE: "ONLINE",
+  CASH: "CASH",
+} as const;
+export type PaymentMode = (typeof PaymentMode)[keyof typeof PaymentMode];
 
 export enum PaymentMethod {
   CASH = "cash",
@@ -14,7 +15,7 @@ export enum PaymentMethod {
   WALLET = "wallet",
 }
 
-export const paymentModeSchema = z.nativeEnum(PaymentMode);
+export const paymentModeSchema = z.enum([PaymentMode.ONLINE, PaymentMode.CASH]);
 export const paymentMethodSchema = z.nativeEnum(PaymentMethod);
 
 export interface PaymentRetryInvoice {
@@ -27,7 +28,7 @@ export interface PaymentRetryInvoice {
 
 export const createPaymentLinkSchema = z.object({
   invoiceId: z.string(),
-  amount: z.number().positive(), 
+  amount: z.number().positive(),
   currency: z.string().default("INR"),
   paymentMode: paymentModeSchema.default(PaymentMode.ONLINE),
   patientId: z.string(),

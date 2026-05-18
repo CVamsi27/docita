@@ -1,4 +1,4 @@
-import { Tier } from "@/lib/tier-config";
+import { Tier } from "@/lib/subscription/tier-access";
 import {
   PRICING_CURRENCY_SYMBOLS,
   TIER_PRICING_BY_CURRENCY,

@@ -19,10 +19,10 @@ import {
   UpdateCustomFieldSchema,
 } from '@/domains/custom-fields/dto/custom-fields.dto';
 import { ZodSerializerDto } from 'nestjs-zod';
-import { ZodValidationPipe } from '@/common/pipes/zod-validation.pipe';
+import { ZodValidationPipe } from '@/shared/common/pipes/zod-validation.pipe';
 import { Role } from '@workspace/db';
 import { Roles } from '@/shared/modules/auth/auth/roles.decorator';
-import { RequestWithUser } from '@/common/types/common.types';
+import { RequestWithUser } from '@/shared/common/types/common.types';
 
 @Controller('custom-fields')
 @Roles(Role.ADMIN, Role.ADMIN_DOCTOR)

@@ -2,16 +2,16 @@
 
 import { useMemo } from "react";
 import { useAuth } from "@/lib/auth/auth-context";
-import { Button } from "@workspace/ui/components/button";
+import { Button } from "@workspace/ui/components/form/button";
 import {
   Card,
   CardContent,
   CardHeader,
   CardTitle,
-} from "@workspace/ui/components/card";
+} from "@workspace/ui/components/indicators/card";
 import { Printer } from "lucide-react";
 import { usePatientConsentSettings } from "@/hooks/api/use-patient-portal";
-import { BackButton } from "@/components/common/navigation/back-button";
+import { BackButton } from "@/components/navigation/back-button";
 import { formatDate, formatDateTime } from "@/lib/formatters";
 
 const formatConsentDateTime = (date?: string | null) => {

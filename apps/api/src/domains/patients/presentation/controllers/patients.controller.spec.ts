@@ -16,7 +16,7 @@ import {
   IdempotencyService,
 } from '@/shared/modules/idempotency';
 import { Gender, Role } from '@workspace/db';
-import { RequestWithUser } from '@/common/types/common.types';
+import { RequestWithUser } from '@/shared/common/types/common.types';
 import { ListPatientsQueryDto } from '@/domains/patients/application/dto/patients.dto';
 import { Patient } from '@/domains/patients/core/entities/patient.entity';
 import { DPDPComplianceService } from '@/shared/modules/compliance/dpdp-compliance.service';

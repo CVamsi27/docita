@@ -4,13 +4,13 @@ import {
   CardContent,
   CardHeader,
   CardTitle,
-} from "@workspace/ui/components/card";
-import { Button } from "@workspace/ui/components/button";
-import { Input } from "@workspace/ui/components/input";
-import { AppPageScaffold } from "@workspace/ui/components/app-page-scaffold";
-import { PageHeader } from "@workspace/ui/components/page-header";
-import { LoadingState } from "@workspace/ui/components/empty-state";
-import { StatGrid, type StatItem } from "@workspace/ui/components/stat-grid";
+} from "@workspace/ui/components/indicators/card";
+import { Button } from "@workspace/ui/components/form/button";
+import { Input } from "@workspace/ui/components/form/input";
+import { AppPageScaffold } from "@workspace/ui/components/layout/app-page-scaffold";
+import { PageHeader } from "@workspace/ui/components/layout/page-header";
+import { LoadingState } from "@workspace/ui/components/feedback/empty-state";
+import { StatGrid, type StatItem } from "@workspace/ui/components/data-display/stat-grid";
 import { AdmissionModal } from "@/features/ipd/components/modals/admission-modal";
 import type { AdmitPatientRequest, Admission } from "@workspace/types";
 import { useClinicCurrency } from "@/hooks/use-clinic-currency";

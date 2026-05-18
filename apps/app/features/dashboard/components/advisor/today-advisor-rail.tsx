@@ -5,8 +5,8 @@ import Link from "next/link";
 import {
   RightRailCard,
   RightRailCardStack,
-} from "@workspace/ui/components/right-rail-card";
-import { Button } from "@workspace/ui/components/button";
+} from "@workspace/ui/components/data-display/right-rail-card";
+import { Button } from "@workspace/ui/components/form/button";
 
 interface TodayAdvisorRailProps {
   pendingJoinRequests: number;

@@ -3,7 +3,7 @@ import { render, screen, waitFor } from "@testing-library/react";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import ProtectedLayout from "./layout";
 
-vi.mock("@workspace/ui/components/tooltip", () => ({
+vi.mock("@workspace/ui/components/overlay/tooltip", () => ({
   SymbolTooltip: ({ children }: { children: ReactElement }) => children,
 }));
 
@@ -33,7 +33,7 @@ vi.mock("@/lib/auth/auth-context", () => ({
   useAuth: () => mocks.auth,
 }));
 
-vi.mock("@/features/_shared/components", () => ({
+vi.mock("@/components", () => ({
   FloatingStartConsultation: () => null,
   RealtimeProviders: ({ children }: { children: React.ReactNode }) => (
     <>{children}</>
@@ -46,7 +46,7 @@ vi.mock("@/features/_shared/components", () => ({
   AskAiOverlay: () => null,
 }));
 
-vi.mock("@/components/common/navigation/back-button", () => ({
+vi.mock("@/components/navigation/back-button", () => ({
   BackButton: () => null,
 }));
 
@@ -54,11 +54,11 @@ vi.mock("@/hooks/use-can-go-back", () => ({
   useCanGoBack: () => false,
 }));
 
-vi.mock("@/features/_shared/components/navigation/command-palette", () => ({
+vi.mock("@/components/navigation/command-palette", () => ({
   CommandPalette: () => null,
 }));
 
-vi.mock("@/features/_shared/components/layout/desktop-top-bar", () => ({
+vi.mock("@/components/layout/desktop-top-bar", () => ({
   DesktopTopBar: () => <div data-testid="desktop-top-bar" />,
 }));
 
@@ -75,13 +75,13 @@ vi.mock("@/lib/contexts/clinic-context", () => ({
   useClinic: () => ({ clinic: null }),
 }));
 
-vi.mock("@/components/common/error-boundary", () => ({
+vi.mock("@/components/errors/error-boundary", () => ({
   ErrorBoundaryWrapper: ({ children }: { children: React.ReactNode }) => (
     <>{children}</>
   ),
 }));
 
-vi.mock("@/components/common/loaders/page-transition-loader", () => ({
+vi.mock("@/components/loaders/page-transition-loader", () => ({
   PageTransitionLoader: ({
     title,
     description,
@@ -114,7 +114,7 @@ vi.mock("@/lib/access-control/access-routes", () => ({
   getAccessTargetForPath: () => null,
 }));
 
-vi.mock("@workspace/ui/components/resizable", () => ({
+vi.mock("@workspace/ui/components/layout/resizable", () => ({
   ResizableHandle: () => null,
   ResizablePanel: ({ children }: { children: React.ReactNode }) => <>{children}</>,
   ResizablePanelGroup: ({ children }: { children: React.ReactNode }) => <>{children}</>,
@@ -124,11 +124,11 @@ vi.mock("@workspace/ui/components/theme-toggle", () => ({
   ThemeToggle: () => null,
 }));
 
-vi.mock("@workspace/ui/components/skeleton", () => ({
+vi.mock("@workspace/ui/components/feedback/skeleton", () => ({
   Skeleton: () => null,
 }));
 
-vi.mock("@workspace/ui/components/docita-logo", () => ({
+vi.mock("@workspace/ui/components/indicators/docita-logo", () => ({
   DocitaLogo: () => null,
 }));
 

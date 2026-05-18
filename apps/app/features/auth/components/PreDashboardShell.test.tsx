@@ -29,7 +29,7 @@ vi.mock("./AuthBrandingPanel", () => ({
   AuthBrandingPanel: () => <div data-testid="branding-panel" />,
 }));
 
-vi.mock("@/components/common/support-contact", () => ({
+vi.mock("@/components/support-contact/support-contact", () => ({
   SupportContact: () => <div data-testid="support-contact-footer" />,
 }));
 
@@ -37,7 +37,7 @@ vi.mock("@workspace/ui/components/theme-toggle", () => ({
   ThemeToggle: () => <button type="button">Theme</button>,
 }));
 
-vi.mock("@workspace/ui/components/docita-logo", () => ({
+vi.mock("@workspace/ui/components/indicators/docita-logo", () => ({
   DocitaLogo: () => <div data-testid="docita-logo" />,
 }));
 

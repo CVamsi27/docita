@@ -1,3 +1,3 @@
-export * from "@workspace/ui/components/button";
-export * from "@workspace/ui/components/badge";
-export * from "@workspace/ui/components/avatar";
+export * from "@workspace/ui/components/form/button";
+export * from "@workspace/ui/components/indicators/badge";
+export * from "@workspace/ui/components/indicators/avatar";

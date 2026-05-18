@@ -1,10 +1,10 @@
-import { Badge } from "@workspace/ui/components/badge";
+import { Badge } from "@workspace/ui/components/indicators/badge";
 import {
   Card,
   CardContent,
   CardHeader,
   CardTitle,
-} from "@workspace/ui/components/card";
+} from "@workspace/ui/components/indicators/card";
 import { History } from "lucide-react";
 import { formatDate, formatDateTime } from "@/lib/formatters";
 

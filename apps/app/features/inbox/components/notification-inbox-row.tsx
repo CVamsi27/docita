@@ -1,14 +1,14 @@
 "use client";
 
 import { useRouter } from "next/navigation";
-import { Button } from "@workspace/ui/components/button";
-import { SymbolTooltip } from "@workspace/ui/components/tooltip";
+import { Button } from "@workspace/ui/components/form/button";
+import { SymbolTooltip } from "@workspace/ui/components/overlay/tooltip";
 import { CheckIcon, XIcon } from "lucide-react";
 import { cn } from "@workspace/ui/lib/utils";
-import { PriorityBadge } from "@workspace/ui/components/status-badge";
+import { PriorityBadge } from "@workspace/ui/components/indicators/status-badge";
 import { formatTime, isToday, isYesterday } from "@workspace/utils";
 import type { StaffNotification } from "@/hooks/api/use-notifications";
-import { notificationHref } from "@/features/_shared/components/navigation/notification-href";
+import { notificationHref } from "@/components/navigation/notification-href";
 
 interface RowProps {
   notification: StaffNotification;

@@ -14,7 +14,7 @@ import { Request } from 'express';
 import { PaymentsService } from '@/domains/billing/application/services/payments.service';
 import { Public } from '@/shared/modules/auth/auth/public.decorator';
 import { WebhookErrorHandlingService } from '@/domains/webhooks/application/services/webhook-error-handling.service';
-import { ZodValidationPipe } from '@/common/pipes/zod-validation.pipe';
+import { ZodValidationPipe } from '@/shared/common/pipes/zod-validation.pipe';
 import {
   paymentWebhookPayloadSchema,
   type PaymentWebhookPayload,

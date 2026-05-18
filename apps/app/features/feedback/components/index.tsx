@@ -7,10 +7,10 @@ import {
   CardDescription,
   CardHeader,
   CardTitle,
-} from "@workspace/ui/components/card";
-import { Button } from "@workspace/ui/components/button";
-import { Textarea } from "@workspace/ui/components/textarea";
-import { Label } from "@workspace/ui/components/label";
+} from "@workspace/ui/components/indicators/card";
+import { Button } from "@workspace/ui/components/form/button";
+import { Textarea } from "@workspace/ui/components/form/textarea";
+import { Label } from "@workspace/ui/components/form/label";
 import {
   Frown,
   Meh,

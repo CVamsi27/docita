@@ -1,6 +1,6 @@
 "use client";
 
-import { DocitaLoadingIndicator } from "@workspace/ui/components/docita-loading-indicator";
+import { DocitaLoadingIndicator } from "@workspace/ui/components/feedback/docita-loading-indicator";
 
 import { useEffect } from "react";
 import { useForm } from "react-hook-form";
@@ -12,16 +12,16 @@ import {
   CardDescription,
   CardHeader,
   CardTitle,
-} from "@workspace/ui/components/card";
-import { Label } from "@workspace/ui/components/label";
-import { Switch } from "@workspace/ui/components/switch";
-import { Button } from "@workspace/ui/components/button";
-import { Input } from "@workspace/ui/components/input";
+} from "@workspace/ui/components/indicators/card";
+import { Label } from "@workspace/ui/components/form/label";
+import { Switch } from "@workspace/ui/components/form/switch";
+import { Button } from "@workspace/ui/components/form/button";
+import { Input } from "@workspace/ui/components/form/input";
 import { Lock } from "lucide-react";
 import Link from "next/link";
 import { Feature } from "@workspace/types";
 import { usePermissionStore } from "@/lib/stores/permission-store";
-import { FeatureTierBadge } from "@/features/_shared/components/auth/feature-gate";
+import { FeatureTierBadge } from "@/components/auth/feature-gate";
 import { SUBSCRIPTION_SETTINGS_PATH } from "@/lib/subscription/subscription-settings-path";
 import {
   ClinicAppSettings,
@@ -36,7 +36,7 @@ import {
   FormField,
   FormItem,
   FormMessage,
-} from "@workspace/ui/components/form";
+} from "@workspace/ui/components/form/form";
 
 const securitySettingsSchema = z.object({
   twoFactorAuth: z.boolean(),

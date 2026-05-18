@@ -2,8 +2,8 @@
 
 import { useCallback, useRef, useState } from "react";
 import { usePermissionStore } from "@/lib/stores/permission-store";
-import { getTierInfo, Tier } from "@/lib/tier-config";
-import { Button } from "@workspace/ui/components/button";
+import { getTierInfo, Tier } from "@/lib/subscription/tier-access";
+import { Button } from "@workspace/ui/components/form/button";
 import { X } from "lucide-react";
 import { ContactSalesModal } from "@/features/dialogs";
 import { CurrentPlanCard } from "@/features/subscription/components/cards/current-plan-card";

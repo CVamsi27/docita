@@ -4,7 +4,7 @@ import {
   CardDescription,
   CardHeader,
   CardTitle,
-} from "@workspace/ui/components/card";
+} from "@workspace/ui/components/indicators/card";
 import { Activity, AlertCircle, CheckCircle2 } from "lucide-react";
 import {
   Bar,

@@ -1,4 +1,4 @@
-import { DocitaLoadingIndicator } from "@workspace/ui/components/docita-loading-indicator";
+import { DocitaLoadingIndicator } from "@workspace/ui/components/feedback/docita-loading-indicator";
 import React from "react";
 import { FieldValues, Path, PathValue, UseFormReturn } from "react-hook-form";
 import {
@@ -7,14 +7,14 @@ import {
   FormItem,
   FormLabel,
   FormMessage,
-} from "@workspace/ui/components/form";
+} from "@workspace/ui/components/form/form";
 import {
   Popover,
   PopoverContent,
   PopoverTrigger,
-} from "@workspace/ui/components/popover";
-import { Button } from "@workspace/ui/components/button";
-import { Input } from "@workspace/ui/components/input";
+} from "@workspace/ui/components/overlay/popover";
+import { Button } from "@workspace/ui/components/form/button";
+import { Input } from "@workspace/ui/components/form/input";
 import { Check, ChevronsUpDown, Search } from "lucide-react";
 import { cn } from "@workspace/ui/lib/utils";
 import type { Patient } from "@workspace/types";

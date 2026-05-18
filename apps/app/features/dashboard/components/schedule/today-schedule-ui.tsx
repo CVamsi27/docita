@@ -9,13 +9,13 @@ import {
   CardDescription,
   CardHeader,
   CardTitle,
-} from "@workspace/ui/components/card";
-import { Button } from "@workspace/ui/components/button";
-import { SymbolTooltip } from "@workspace/ui/components/tooltip";
-import { Avatar, AvatarFallback } from "@workspace/ui/components/avatar";
+} from "@workspace/ui/components/indicators/card";
+import { Button } from "@workspace/ui/components/form/button";
+import { SymbolTooltip } from "@workspace/ui/components/overlay/tooltip";
+import { Avatar, AvatarFallback } from "@workspace/ui/components/indicators/avatar";
 import { cn } from "@workspace/ui/lib/utils";
-import { EmptyState } from "@workspace/ui/components/empty-state";
-import { StatusBadge } from "@workspace/ui/components/status-badge";
+import { EmptyState } from "@workspace/ui/components/feedback/empty-state";
+import { StatusBadge } from "@workspace/ui/components/indicators/status-badge";
 import { ViewAllLinkUI } from "@/features/dashboard/components/layout/view-all-link-ui";
 import { humanizeUiLabel } from "@workspace/ui/lib/label-formatters";
 

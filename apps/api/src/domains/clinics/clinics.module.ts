@@ -12,6 +12,7 @@ import { ClinicSettingsQueryService } from './application/services/clinic-settin
 import { ClinicSettingsCommandService } from './application/services/clinic-settings-command.service';
 import { ClinicDataSubjectRequestService } from './application/services/clinic-data-subject-request.service';
 import { StaffManagementService } from './application/services/staff-management.service';
+import { StaffInviteService } from './application/services/staff-invite.service';
 import { JoinRequestService } from './application/services/join-request.service';
 import { OnboardingService } from './application/services/onboarding/onboarding.service';
 import { PrismaClinicDataRepository } from './infrastructure/repositories/prisma-clinic-data.repository';
@@ -21,6 +22,8 @@ import { JOIN_REQUEST_REPOSITORY_TOKEN } from './core/repositories/join-request.
 import { OnboardingDataService } from './application/services/onboarding/onboarding-data.service';
 import { OnboardingValidationService } from './application/services/onboarding/onboarding-validation.service';
 import { OnboardingWorkflowService } from './application/services/onboarding/onboarding-workflow.service';
+import { ONBOARDING_TX_REPOSITORY_TOKEN } from './core/repositories/onboarding-tx.repository.interface';
+import { PrismaOnboardingTxRepository } from './infrastructure/repositories/prisma-onboarding-tx.repository';
 import { OnboardingComplianceService } from './application/services/onboarding/onboarding-compliance.service';
 import { PrismaModule } from '@/prisma/prisma.module';
 import { AuditModule } from '@/shared/modules/audit/audit/audit.module';
@@ -58,6 +61,7 @@ import { DocumentsModule } from '@/domains/documents/documents.module';
     ClinicSettingsQueryService,
     ClinicSettingsCommandService,
     ClinicDataSubjectRequestService,
+    StaffInviteService,
     StaffManagementService,
     ClinicsService,
     JoinRequestService,
@@ -65,6 +69,10 @@ import { DocumentsModule } from '@/domains/documents/documents.module';
     OnboardingDataService,
     OnboardingValidationService,
     OnboardingWorkflowService,
+    {
+      provide: ONBOARDING_TX_REPOSITORY_TOKEN,
+      useClass: PrismaOnboardingTxRepository,
+    },
     OnboardingComplianceService,
     ClinicFactory,
     SettingsFactory,
@@ -85,6 +93,7 @@ import { DocumentsModule } from '@/domains/documents/documents.module';
     ClinicFactory,
     SettingsFactory,
     JoinRequestService,
+    StaffInviteService,
   ],
 })
 export class ClinicsModule {}

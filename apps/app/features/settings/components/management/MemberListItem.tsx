@@ -1,7 +1,7 @@
 "use client";
 
-import { Badge } from "@workspace/ui/components/badge";
-import { Button } from "@workspace/ui/components/button";
+import { Badge } from "@workspace/ui/components/indicators/badge";
+import { Button } from "@workspace/ui/components/form/button";
 import { User } from "@workspace/types";
 import {
   MEMBER_ROLE_LABELS,

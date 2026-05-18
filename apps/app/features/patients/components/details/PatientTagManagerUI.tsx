@@ -1,5 +1,5 @@
 import { useMemo, useState } from "react";
-import { Button } from "@workspace/ui/components/button";
+import { Button } from "@workspace/ui/components/form/button";
 import {
   Dialog,
   DialogContent,
@@ -8,15 +8,15 @@ import {
   DialogHeader,
   DialogTitle,
   DialogTrigger,
-} from "@workspace/ui/components/dialog";
-import { Input } from "@workspace/ui/components/input";
+} from "@workspace/ui/components/overlay/dialog";
+import { Input } from "@workspace/ui/components/form/input";
 import {
   Tabs,
   TabsContent,
   TabsList,
   TabsTrigger,
-} from "@workspace/ui/components/tabs";
-import { SymbolTooltip } from "@workspace/ui/components/tooltip";
+} from "@workspace/ui/components/navigation/tabs";
+import { SymbolTooltip } from "@workspace/ui/components/overlay/tooltip";
 import { Search, Tag, X } from "lucide-react";
 import { getTagColorName } from "./tag-colors";
 import {

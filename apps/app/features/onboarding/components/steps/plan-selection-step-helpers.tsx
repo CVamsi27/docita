@@ -2,15 +2,15 @@
 
 import { FC } from "react";
 import { ChevronDown } from "lucide-react";
-import { Button } from "@workspace/ui/components/button";
-import { Badge } from "@workspace/ui/components/badge";
-import { MicroLabel } from "@workspace/ui/components/micro-label";
+import { Button } from "@workspace/ui/components/form/button";
+import { Badge } from "@workspace/ui/components/indicators/badge";
+import { MicroLabel } from "@workspace/ui/components/indicators/micro-label";
 import { cn } from "@workspace/ui/lib/utils";
 import {
   Collapsible,
   CollapsibleContent,
   CollapsibleTrigger,
-} from "@workspace/ui/components/collapsible";
+} from "@workspace/ui/components/overlay/collapsible";
 import { ComparisonTable } from "@/features/subscription";
 import {
   PRICING_CURRENCY_SYMBOLS,
@@ -21,7 +21,7 @@ import {
   WORKSPACE_PROFILE_LABEL,
   WORKSPACE_PROFILE_MARKETING,
 } from "@workspace/types";
-import { getTierPricing } from "@/lib/tier-config";
+import { getTierPricing } from "@/lib/subscription/tier-access";
 import { type TierPricing } from "@/hooks/api/use-pricing";
 
 // ---------------------------------------------------------------------------

@@ -3,9 +3,9 @@
 import { PatientPortalPrescriptionsUI } from "@/features/patient-portal/components";
 import type { PatientPrescriptionStatus } from "@/features/patient-portal/types/patient-portal-types";
 import { usePatientPortalPrescriptions } from "@/hooks/api/use-patient-portal";
-import { AppPageScaffold } from "@workspace/ui/components/app-page-scaffold";
-import { DataState } from "@workspace/ui/components/data-state";
-import { PageHeader } from "@workspace/ui/components/page-header";
+import { AppPageScaffold } from "@workspace/ui/components/layout/app-page-scaffold";
+import { DataState } from "@workspace/ui/components/data-display/data-state";
+import { PageHeader } from "@workspace/ui/components/layout/page-header";
 import { FileText } from "lucide-react";
 
 function mapPrescriptionStatus(status: unknown): PatientPrescriptionStatus {

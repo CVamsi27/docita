@@ -15,6 +15,7 @@ import { PrismaPatientRepository } from './infrastructure/persistence/prisma-pat
 import { PrismaMedicationDoseRepository } from './infrastructure/persistence/prisma-medication-dose.repository';
 import { PrismaPatientTimelineRepository } from './infrastructure/persistence/prisma-patient-timeline.repository';
 import { PrismaPatientMetricsRepository } from './infrastructure/persistence/prisma-patient-metrics.repository';
+import { PrismaPatientTagsRepository } from './infrastructure/persistence/prisma-patient-tags.repository';
 import { PrismaModule } from '@/prisma/prisma.module';
 import { AuthModule } from '@/shared/modules/auth/auth/auth.module';
 import { AuditModule } from '@/shared/modules/audit/audit/audit.module';
@@ -25,6 +26,7 @@ import { AiModule } from '@/shared/modules/ai-core/ai.module';
 import { MEDICATION_DOSE_REPOSITORY_TOKEN } from './core/repositories/medication-dose.repository.interface';
 import { PATIENT_TIMELINE_REPOSITORY_TOKEN } from './core/repositories/patient-timeline.repository.interface';
 import { PATIENT_METRICS_REPOSITORY_TOKEN } from './core/repositories/patient-metrics.repository.interface';
+import { PATIENT_TAGS_REPOSITORY_TOKEN } from './core/repositories/patient-tags.repository.interface';
 import { PatientTagsController } from './presentation/controllers/patient-tags.controller';
 
 @Module({
@@ -61,6 +63,10 @@ import { PatientTagsController } from './presentation/controllers/patient-tags.c
     {
       provide: PATIENT_METRICS_REPOSITORY_TOKEN,
       useClass: PrismaPatientMetricsRepository,
+    },
+    {
+      provide: PATIENT_TAGS_REPOSITORY_TOKEN,
+      useClass: PrismaPatientTagsRepository,
     },
     MedicalHistoryFactory,
     VitalsFactory,

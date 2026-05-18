@@ -1,6 +1,6 @@
 import { screen } from "@testing-library/react";
 import { describe, expect, it, vi } from "vitest";
-import { render } from "@/test/render-with-tooltip";
+import { render } from "@/test-utils/render-with-tooltip";
 import {
   AppointmentRowActionsMenu,
   getAppointmentRowActionVisibility,

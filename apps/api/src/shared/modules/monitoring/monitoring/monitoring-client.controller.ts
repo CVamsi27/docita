@@ -12,7 +12,7 @@ import { ErrorSeverity } from '@workspace/db';
 import { z } from 'zod';
 import { MonitoringService } from './monitoring.service';
 import { JwtAuthGuard } from '@/shared/modules/auth/auth/jwt-auth.guard';
-import { ZodValidationPipe } from '@/common/pipes/zod-validation.pipe';
+import { ZodValidationPipe } from '@/shared/common/pipes/zod-validation.pipe';
 import { AllowNoClinic } from '@/shared/modules/auth/auth/allow-no-clinic.decorator';
 import { SkipSubscriptionCheck } from '@/shared/modules/auth/decorators/skip-subscription-check.decorator';
 
