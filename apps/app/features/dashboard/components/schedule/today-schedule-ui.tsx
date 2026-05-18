@@ -29,14 +29,14 @@ export function TodayScheduleUI({ appointments }: TodayScheduleUIProps) {
   return (
     <Card className="lg:col-span-2 border border-border shadow-sm bg-card">
       <CardHeader className="pb-3">
-        <div className="flex items-center justify-between">
-          <div className="flex items-center gap-3">
+        <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+          <div className="flex min-w-0 items-center gap-3">
             <SymbolTooltip label="Today's appointments">
-              <div className="flex h-9 w-9 items-center justify-center rounded-full border border-border/70 bg-background/70 text-primary">
+              <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full border border-border/70 bg-background/70 text-primary">
                 <Clock className="h-4 w-4" aria-hidden />
               </div>
             </SymbolTooltip>
-            <div>
+            <div className="min-w-0">
               <CardTitle className="text-base font-semibold">
                 Today&apos;s Schedule
               </CardTitle>
@@ -46,7 +46,9 @@ export function TodayScheduleUI({ appointments }: TodayScheduleUIProps) {
               </CardDescription>
             </div>
           </div>
-          <ViewAllLinkUI href="/appointments" />
+          <div className="shrink-0">
+            <ViewAllLinkUI href="/appointments" />
+          </div>
         </div>
       </CardHeader>
       <CardContent className="pt-0">
@@ -76,7 +78,7 @@ export function TodayScheduleUI({ appointments }: TodayScheduleUIProps) {
                   key={apt.id}
                   href={`/consultation/${apt.id}`}
                   className={cn(
-                    "group flex items-center gap-2 sm:gap-4 rounded-lg border border-transparent p-3 sm:p-4 transition-colors duration-150",
+                    "group grid min-w-0 grid-cols-[3rem_minmax(0,1fr)_2rem] items-center gap-2 rounded-lg border border-transparent p-3 transition-colors duration-150 sm:grid-cols-[3rem_auto_2.25rem_minmax(0,1fr)_auto] sm:gap-3 sm:p-4",
                     apt.status === "completed" && "opacity-60 bg-muted/30",
                     apt.status === "in-progress" &&
                       "bg-primary/8 border-primary/20 ring-1 ring-primary/30",
@@ -84,7 +86,7 @@ export function TodayScheduleUI({ appointments }: TodayScheduleUIProps) {
                     "hover:bg-muted/60 hover:border-border/50",
                   )}
                 >
-                  <div className="flex flex-col items-center justify-center min-w-10 sm:min-w-12 text-center">
+                  <div className="flex flex-col items-center justify-center text-center">
                     <p
                       className={cn(
                         "text-sm font-bold leading-none",
@@ -98,7 +100,7 @@ export function TodayScheduleUI({ appointments }: TodayScheduleUIProps) {
                     </p>
                   </div>
 
-                  <div className="relative h-10 flex items-center">
+                  <div className="relative hidden h-10 items-center sm:flex">
                     <div className="w-px h-full bg-border" />
                     {apt.status === "in-progress" && (
                       <span className="absolute left-1/2 -translate-x-1/2 h-2.5 w-2.5 rounded-full bg-primary" />
@@ -108,14 +110,14 @@ export function TodayScheduleUI({ appointments }: TodayScheduleUIProps) {
                     )}
                   </div>
 
-                  <Avatar className="h-9 w-9 shrink-0">
+                  <Avatar className="hidden h-9 w-9 shrink-0 sm:flex">
                     <AvatarFallback className="border border-border/70 bg-background/70 text-foreground text-xs font-medium">
                       {apt.patient?.firstName?.[0]}
                       {apt.patient?.lastName?.[0]}
                     </AvatarFallback>
                   </Avatar>
 
-                  <div className="flex-1 min-w-0">
+                  <div className="min-w-0">
                     <p className="font-medium text-sm truncate">
                       {apt.patient?.firstName} {apt.patient?.lastName}
                     </p>
@@ -124,7 +126,7 @@ export function TodayScheduleUI({ appointments }: TodayScheduleUIProps) {
                     </p>
                   </div>
 
-                  <div className="flex items-center gap-1.5 sm:gap-2 shrink-0">
+                  <div className="flex items-center justify-end gap-1.5 sm:gap-2">
                     <span className="hidden sm:block">
                       <StatusBadge status={apt.status} />
                     </span>

@@ -17,14 +17,24 @@ export interface DashboardQuickActionsUIProps {
 export function DashboardQuickActionsUI({
   quickActions,
 }: DashboardQuickActionsUIProps) {
+  const actions = [
+    ...quickActions,
+    {
+      href: "/patients",
+      icon: Users,
+      label: "All Patients",
+      shortLabel: "Patients",
+    },
+  ];
+
   return (
-    <div className="flex flex-wrap items-center gap-3 pb-4 -mx-4 px-4 sm:mx-0 sm:px-0 overflow-x-hidden">
-      {quickActions.map((action, idx) => (
+    <div className="grid grid-cols-2 gap-2.5 sm:grid-cols-3 sm:gap-3 md:grid-cols-4 xl:grid-cols-7">
+      {actions.map((action, idx) => (
         <Link
           key={action.href}
           href={action.href}
           className={cn(
-            "group flex min-w-[72px] snap-start flex-col items-center justify-center gap-2 rounded-[var(--radius)] border border-transparent p-3 transition-colors duration-150 sm:min-w-24",
+            "group flex min-h-24 min-w-0 flex-col items-center justify-center gap-2 rounded-[var(--radius)] border border-transparent p-3 text-center transition-colors duration-150",
             "bg-card hover:bg-muted/40 hover:border-border/80",
           )}
         >
@@ -53,20 +63,6 @@ export function DashboardQuickActionsUI({
           </span>
         </Link>
       ))}
-
-      <div className="w-px h-12 bg-border/50 mx-2 hidden sm:block" />
-
-      <Link
-        href="/patients"
-        className="group hidden min-w-20 flex-col items-center justify-center gap-2 rounded-lg p-3 transition-colors duration-150 hover:bg-muted/40 sm:flex"
-      >
-        <div className="flex h-10 w-10 items-center justify-center rounded-full border border-border/70 bg-background/70 text-muted-foreground transition-colors group-hover:text-foreground">
-          <Users className="h-5 w-5" />
-        </div>
-        <span className="text-xs font-medium text-muted-foreground group-hover:text-foreground">
-          All Patients
-        </span>
-      </Link>
     </div>
   );
 }

@@ -65,15 +65,15 @@ export function DoctorDashboardCardsUI({
   };
 
   return (
-    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+    <div className="grid min-w-0 grid-cols-1 gap-4 md:grid-cols-2 2xl:grid-cols-3">
       <Card className="border border-border shadow-sm bg-card md:col-span-2 lg:col-span-2">
         <CardHeader className="pb-3">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-3">
-              <div className="flex h-10 w-10 items-center justify-center rounded-full border border-border/70 bg-background/70 text-primary">
+          <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+            <div className="flex min-w-0 items-center gap-3">
+              <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full border border-border/70 bg-background/70 text-primary">
                 <Stethoscope className="h-5 w-5" />
               </div>
-              <div>
+              <div className="min-w-0">
                 <CardTitle className="text-lg font-semibold">
                   {currentPatient ? "Current Patient" : "No Active Session"}
                 </CardTitle>
@@ -85,7 +85,7 @@ export function DoctorDashboardCardsUI({
               </div>
             </div>
             {currentPatient && (
-              <Badge className="badge-info border px-2.5 py-0.5 font-medium">
+              <Badge className="badge-info w-fit border px-2.5 py-0.5 font-medium">
                 In Progress
               </Badge>
             )}
@@ -93,7 +93,7 @@ export function DoctorDashboardCardsUI({
         </CardHeader>
         <CardContent>
           {currentPatient ? (
-            <div className="flex items-center gap-3 sm:gap-4">
+            <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:gap-4">
               <Avatar className="h-10 w-10 sm:h-14 sm:w-14 shrink-0">
                 <AvatarFallback className="border border-border/70 bg-background/70 text-foreground text-base sm:text-lg font-medium">
                   {currentPatient.patient?.firstName?.[0]}
@@ -112,15 +112,17 @@ export function DoctorDashboardCardsUI({
               </div>
               <Button
                 size="default"
-                className="gap-2 shrink-0"
-                onClick={() => router.push(`/consultation/${currentPatient.id}`)}
+                className="w-full gap-2 sm:w-auto sm:shrink-0"
+                onClick={() =>
+                  router.push(`/consultation/${currentPatient.id}`)
+                }
               >
                 <Play className="h-4 w-4" />
                 Continue
               </Button>
             </div>
           ) : (
-            <div className="flex flex-wrap items-center justify-between gap-3 py-3 sm:py-4">
+            <div className="flex flex-col gap-3 py-3 sm:flex-row sm:items-center sm:justify-between sm:py-4">
               <p className="text-sm sm:text-base text-muted-foreground">
                 {nextPatients.length > 0
                   ? `${nextPatients.length} patient(s) waiting`
@@ -129,9 +131,11 @@ export function DoctorDashboardCardsUI({
               {nextPatients.length > 0 && nextPatients[0] && (
                 <Button
                   size="default"
-                  className="gap-2 shrink-0"
+                  className="w-full gap-2 sm:w-auto sm:shrink-0"
                   disabled={startConsultation.isPending}
-                  onClick={() => void handleStartAppointment(nextPatients[0].id)}
+                  onClick={() =>
+                    void handleStartAppointment(nextPatients[0].id)
+                  }
                 >
                   <Play className="h-4 w-4" />
                   {startingAppointmentId === nextPatients[0].id
@@ -163,31 +167,31 @@ export function DoctorDashboardCardsUI({
           </div>
         </CardHeader>
         <CardContent className="pt-0">
-          <div className="grid grid-cols-3 gap-3 text-center">
-            <div className="p-3 rounded-[var(--radius)] bg-warning/10 flex flex-col justify-center items-center">
+          <div className="grid grid-cols-3 gap-2 text-center sm:gap-3">
+            <div className="flex min-w-0 flex-col items-center justify-center rounded-[var(--radius)] bg-warning/10 p-2 sm:p-3">
               <p className="text-[var(--fs-2xl)] font-semibold tabular-nums text-warning">
                 {queueStats.waiting}
               </p>
-              <p className="text-xs text-muted-foreground uppercase tracking-wider">
+              <p className="max-w-full text-[length:var(--fs-2xs)] uppercase text-muted-foreground sm:text-xs">
                 Waiting
               </p>
             </div>
-            <div className="p-3 rounded-[var(--radius)] bg-info/10 flex flex-col justify-center items-center">
+            <div className="flex min-w-0 flex-col items-center justify-center rounded-[var(--radius)] bg-info/10 p-2 sm:p-3">
               <p className="text-[var(--fs-2xl)] font-semibold tabular-nums text-info">
                 {queueStats.inProgress}
               </p>
-              <p className="flex items-center justify-center gap-1.5 text-xs text-muted-foreground uppercase tracking-wider">
+              <p className="flex max-w-full items-center justify-center gap-1 text-[length:var(--fs-2xs)] uppercase text-muted-foreground sm:gap-1.5 sm:text-xs">
                 {queueStats.inProgress > 0 ? (
                   <LiveDot tone="cyan" ariaLabel="Active consultation" />
                 ) : null}
                 <span>Active</span>
               </p>
             </div>
-            <div className="p-3 rounded-[var(--radius)] bg-success/10 flex flex-col justify-center items-center">
+            <div className="flex min-w-0 flex-col items-center justify-center rounded-[var(--radius)] bg-success/10 p-2 sm:p-3">
               <p className="text-[var(--fs-2xl)] font-semibold tabular-nums text-success">
                 {queueStats.completed}
               </p>
-              <p className="text-xs text-muted-foreground uppercase tracking-wider">
+              <p className="max-w-full text-[length:var(--fs-2xs)] uppercase text-muted-foreground sm:text-xs">
                 Done
               </p>
             </div>
