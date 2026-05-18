@@ -1,8 +1,7 @@
-import { render, screen } from "@testing-library/react";
-import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
+import { screen } from "@testing-library/react";
+import { render } from "@/test-utils/render-with-tooltip";
 import { describe, expect, it, vi, beforeEach } from "vitest";
-import type { ImgHTMLAttributes, ReactElement } from "react";
-import { DataAccessProvider } from "@workspace/data-access";
+import type { ImgHTMLAttributes } from "react";
 import { InvoiceDetailsUI } from "./InvoiceDetailsUI";
 
 vi.mock("next/navigation", () => ({
@@ -43,28 +42,6 @@ vi.mock("@/features/invoices/hooks/use-invoice-details-logic", () => ({
   useInvoiceDetailsLogic: (...args: unknown[]) =>
     useInvoiceDetailsLogicMock(...args),
 }));
-
-function renderWithQueryClient(ui: ReactElement) {
-  const queryClient = new QueryClient({
-    defaultOptions: {
-      queries: { retry: false },
-      mutations: { retry: false },
-    },
-  });
-
-  return render(
-    <DataAccessProvider
-      config={{
-        fetcher: () => Promise.resolve({ ok: true }),
-        getClinicId: () => "clinic-1",
-        getClinicTimezone: () => "UTC",
-        isTierFeatureEnabled: () => true,
-      }}
-    >
-      <QueryClientProvider client={queryClient}>{ui}</QueryClientProvider>
-    </DataAccessProvider>,
-  );
-}
 
 const baseHookState = {
   invoice: {
@@ -122,7 +99,7 @@ describe("InvoiceDetailsUI signature block", () => {
       },
     });
 
-    renderWithQueryClient(<InvoiceDetailsUI invoiceId="inv-1" />);
+    render(<InvoiceDetailsUI invoiceId="inv-1" />);
 
     expect(screen.getByText("Authorized Signature")).toBeInTheDocument();
     expect(
@@ -133,7 +110,7 @@ describe("InvoiceDetailsUI signature block", () => {
   it("renders fallback text when clinic signature is missing", () => {
     useInvoiceDetailsLogicMock.mockReturnValue(baseHookState);
 
-    renderWithQueryClient(<InvoiceDetailsUI invoiceId="inv-1" />);
+    render(<InvoiceDetailsUI invoiceId="inv-1" />);
 
     expect(screen.getByText("Authorized Signature")).toBeInTheDocument();
     expect(screen.getByText("Signature on file pending")).toBeInTheDocument();
