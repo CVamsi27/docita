@@ -2,6 +2,7 @@ import { render, screen } from "@testing-library/react";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { describe, expect, it, vi, beforeEach } from "vitest";
 import type { ImgHTMLAttributes, ReactElement } from "react";
+import { DataAccessProvider } from "@workspace/data-access";
 import { InvoiceDetailsUI } from "./InvoiceDetailsUI";
 
 vi.mock("next/navigation", () => ({
@@ -52,7 +53,9 @@ function renderWithQueryClient(ui: ReactElement) {
   });
 
   return render(
-    <QueryClientProvider client={queryClient}>{ui}</QueryClientProvider>,
+    <DataAccessProvider fetcher={() => Promise.resolve({ ok: true })} clinicId="">
+      <QueryClientProvider client={queryClient}>{ui}</QueryClientProvider>
+    </DataAccessProvider>,
   );
 }
 
