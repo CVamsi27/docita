@@ -2,13 +2,13 @@
 
 import { AuthProvider } from "@/lib/auth";
 import { Toaster } from "sonner";
-import { ThemeProvider } from "next-themes";
 import { type ReactNode, useState } from "react";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { APIRequestError } from "@workspace/data-access";
 import { NavigationHistoryProvider } from "@/providers/navigation-history-provider";
 import { InternalWebVitalsReporter } from "@/components/internal-web-vitals-reporter";
 import { TooltipProvider } from "@workspace/ui/components/tooltip";
+import { InternalThemeProvider } from "@/components/internal-theme-provider";
 
 const TOAST_DURATION_MS = 5000;
 const TOAST_VISIBLE_COUNT = Number.POSITIVE_INFINITY;
@@ -40,7 +40,7 @@ export function Providers({ children }: { children: ReactNode }) {
   );
 
   return (
-    <ThemeProvider attribute="class" defaultTheme="light" enableSystem={false}>
+    <InternalThemeProvider>
       <QueryClientProvider client={queryClient}>
         <AuthProvider>
           <TooltipProvider delayDuration={300}>
@@ -59,6 +59,6 @@ export function Providers({ children }: { children: ReactNode }) {
           />
         </AuthProvider>
       </QueryClientProvider>
-    </ThemeProvider>
+    </InternalThemeProvider>
   );
 }
