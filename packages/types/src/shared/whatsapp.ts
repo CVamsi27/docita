@@ -119,8 +119,9 @@ export const supportWhatsAppReplyRequestSchema = z
   })
   .strict();
 
+/** Reply response shares the same shape as a message but is a distinct schema object. */
 export const supportWhatsAppReplyResponseSchema =
-  supportWhatsAppMessageSchema;
+  supportWhatsAppMessageSchema.describe("SupportWhatsAppReplyResponse");
 
 export const supportWhatsAppReadResponseSchema = z.object({
   updatedCount: z.number().int().min(0),

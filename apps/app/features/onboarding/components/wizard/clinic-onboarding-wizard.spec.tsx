@@ -22,7 +22,7 @@ vi.mock("next/navigation", () => ({
   }),
 }));
 
-vi.mock("@/lib/auth-context", () => ({
+vi.mock("@/lib/auth/auth-context", () => ({
   useAuth: () => mocks.authState,
 }));
 

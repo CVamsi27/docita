@@ -11,9 +11,9 @@ import { Upload } from "lucide-react";
 import { MobileHeader } from "@/features/mobile-upload/components/MobileHeader";
 import { MobileSuccessScreen } from "@/features/mobile-upload/components/MobileSuccessScreen";
 import { MobileFileUploader } from "@/features/mobile-upload/components/MobileFileUploader";
-import { apiFetch } from "@/lib/api-client";
-import { buildCsrfHeaders } from "@/lib/csrf";
-import { showUserFacingErrorToast } from "@/lib/user-facing-errors";
+import { apiFetch } from "@/lib/api/api-client";
+import { buildCsrfHeaders } from "@/lib/auth/csrf";
+import { showUserFacingErrorToast } from "@/lib/errors/user-facing-errors";
 
 function MobileUploadPageInner() {
   const params = useParams();
@@ -165,7 +165,7 @@ function MobileUploadPageInner() {
         )}
 
         <Button
-          className={`w-full h-14 text-base font-medium rounded-lg shadow-lg transition-all ${
+          className={`w-full h-14 text-base font-medium rounded-lg shadow-lg transition-colors duration-200 ${
             file && !uploadMutation.isPending
               ? "bg-primary text-primary-foreground hover:bg-primary/90 shadow-primary/25"
               : ""

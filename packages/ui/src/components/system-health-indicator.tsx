@@ -4,7 +4,7 @@ import { Activity, AlertTriangle, CheckCircle2, XCircle } from "lucide-react";
 import { Badge } from "@workspace/ui/components/badge";
 import { cn } from "@workspace/ui/lib/utils";
 
-export type SystemHealthStatus =
+type SystemHealthStatus =
   | "healthy"
   | "ok"
   | "warning"
@@ -18,7 +18,7 @@ const HEALTHY = new Set(["healthy", "ok"]);
 const WARNING = new Set(["warning", "degraded"]);
 const FAILING = new Set(["critical", "error", "unhealthy"]);
 
-export interface SystemHealthIconProps {
+interface SystemHealthIconProps {
   status: SystemHealthStatus;
   size?: "sm" | "md";
   className?: string;
@@ -44,7 +44,7 @@ export function SystemHealthIcon({
   return <Activity className={cn(classes, "text-muted-foreground")} />;
 }
 
-export interface SystemHealthBadgeProps {
+interface SystemHealthBadgeProps {
   status: SystemHealthStatus;
   label?: string;
   className?: string;

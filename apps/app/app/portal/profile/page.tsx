@@ -27,7 +27,7 @@ import {
 import { PageHeader } from "@workspace/ui/components/page-header";
 import { toast } from "sonner";
 import { Textarea } from "@workspace/ui/components/textarea";
-import { showUserFacingErrorToast } from "@/lib/user-facing-errors";
+import { showUserFacingErrorToast } from "@/lib/errors/user-facing-errors";
 import { formatDate } from "@/lib/formatters";
 
 export default function PatientProfilePage() {

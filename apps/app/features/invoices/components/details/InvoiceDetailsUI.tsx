@@ -13,7 +13,7 @@ import { useSearchParams } from "next/navigation";
 import { useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
 import { useResendInvoiceWhatsApp } from "@/hooks/api/use-whatsapp";
-import { showUserFacingErrorToast } from "@/lib/user-facing-errors";
+import { showUserFacingErrorToast } from "@/lib/errors/user-facing-errors";
 import { WhatsAppDeliveryBadge } from "@/features/_shared/components/whatsapp/whatsapp-delivery-badge";
 import { Section } from "@workspace/ui/components/section";
 import { InvoiceHeader } from "./InvoiceHeader";

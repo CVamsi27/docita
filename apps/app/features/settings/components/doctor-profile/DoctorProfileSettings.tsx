@@ -9,8 +9,8 @@ import {
 } from "@workspace/ui/components/card";
 import { Badge } from "@workspace/ui/components/badge";
 import { Button } from "@workspace/ui/components/button";
-import { useAuth } from "@/lib/auth-context";
-import { useAPIQuery } from "@/lib/api-core";
+import { useAuth } from "@/lib/auth/auth-context";
+import { useAPIQuery } from "@/lib/api/api-core";
 import type { User } from "@workspace/types";
 import { SignatureUploadQR } from "@/features/settings/components/signature-upload-qr";
 import { RegistrationCertificateUpload } from "@/features/settings/components/doctor-profile/RegistrationCertificateUpload";

@@ -6,6 +6,7 @@ import { PatientMetricsController } from './presentation/controllers/patient-met
 import { MedicationDoseController } from './presentation/controllers/medication-dose.controller';
 import { PatientTimelineController } from './presentation/controllers/patient-timeline.controller';
 import { MedicalHistoryService } from './application/services/medical-history.service';
+import { MedicalHistoryConditionsService } from './application/services/medical-history-conditions.service';
 import { PatientMetricsService } from './application/services/patientMetrics.service';
 import { MedicationDoseService } from './application/services/medication-dose.service';
 import { PatientTimelineService } from './application/services/patient-timeline.service';
@@ -39,6 +40,7 @@ import { PatientTagsController } from './presentation/controllers/patient-tags.c
   providers: [
     PatientService,
     PatientTagsService,
+    MedicalHistoryConditionsService,
     MedicalHistoryService,
     PatientMetricsService,
     MedicationDoseService,

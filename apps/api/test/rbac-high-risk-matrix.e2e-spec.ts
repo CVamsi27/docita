@@ -20,7 +20,7 @@ import { mockWhatsappService } from './whatsapp.provider';
 
 /**
  * Table-driven checks for high-risk routes: TierGuard + RolesGuard must match
- * APP_ACCESS_MATRIX expectations. See docs/ACCESS_AUDIT.md traceability appendix.
+ * APP_ACCESS_MATRIX expectations. See docs/compliance/ACCESS_AUDIT.md traceability appendix.
  */
 describe('RBAC high-risk matrix (e2e)', () => {
   let app: INestApplication;

@@ -2,12 +2,16 @@ import { Module } from '@nestjs/common';
 import { DoctorsController } from './presentation/controllers/doctors.controller';
 import { InternalDoctorsVerificationController } from './presentation/controllers/internal-doctors-verification.controller';
 import { DoctorsService } from './application/services/doctors.service';
+import { DoctorsQueryService } from './application/services/doctors-query.service';
+import { DoctorsCommandService } from './application/services/doctors-command.service';
+import { DoctorProfileService } from './application/services/doctor-profile.service';
 import { DoctorAvailabilityController } from './presentation/controllers/doctor-availability.controller';
 import { DoctorAvailabilityService } from './application/services/doctor-availability.service';
 import { AvailabilityScheduleService } from './application/services/availability-schedule.service';
 import { SlotGenerationService } from './application/services/slot-generation.service';
 import { DoctorVerificationService } from './application/services/doctor-verification.service';
 import { SignatureUploadService } from './application/services/signature-upload.service';
+import { DoctorAdminVerificationCommandService } from './application/services/doctor-admin-verification-command.service';
 import { SignatureUploadController } from './presentation/controllers/signature-upload.controller';
 import { ClinicSignatureController } from '@/domains/clinics/presentation/controllers/clinic-signature.controller';
 import { PrismaModule } from '@/prisma/prisma.module';
@@ -32,6 +36,10 @@ import { PrismaSignatureUploadRepository } from './infrastructure/repositories/p
   ],
   providers: [
     DoctorsService,
+    DoctorsQueryService,
+    DoctorsCommandService,
+    DoctorAdminVerificationCommandService,
+    DoctorProfileService,
     DoctorAvailabilityService,
     AvailabilityScheduleService,
     SlotGenerationService,

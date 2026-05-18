@@ -25,7 +25,7 @@ import {
   useUpdateClinicSettings,
 } from "@/hooks/api/use-settings";
 import { toast } from "sonner";
-import { showUserFacingErrorToast } from "@/lib/user-facing-errors";
+import { showUserFacingErrorToast } from "@/lib/errors/user-facing-errors";
 import {
   Select,
   SelectContent,

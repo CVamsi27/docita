@@ -8,7 +8,7 @@ import {
   useClinicMembers,
   useDoctorSchedules,
 } from "@/hooks/api/use-settings";
-import { useAuth } from "@/lib/auth-context";
+import { useAuth } from "@/lib/auth/auth-context";
 import { toast } from "sonner";
 import {
   Card,
@@ -30,7 +30,7 @@ import {
 } from "@workspace/ui/components/select";
 import { Calendar } from "lucide-react";
 import { Skeleton } from "@workspace/ui/components/skeleton";
-import { showUserFacingErrorToast } from "@/lib/user-facing-errors";
+import { showUserFacingErrorToast } from "@/lib/errors/user-facing-errors";
 
 const DAYS_OF_WEEK = [
   "Monday",

@@ -24,7 +24,7 @@ vi.mock("@/hooks/api/use-appointments", () => ({
   }),
 }));
 
-vi.mock("@/lib/user-facing-errors", () => ({
+vi.mock("@/lib/errors/user-facing-errors", () => ({
   showUserFacingErrorToast: clinicalMocks.showError,
 }));
 

@@ -44,6 +44,13 @@ export class CancelSubscriptionUseCase {
       );
     }
 
+    // AuditLogged: subscription cancellation
+    this.logger.log({
+      action: 'subscription.cancel',
+      clinicId: request.clinicId,
+      cancelAtPeriodEnd,
+    });
+
     if (subscription.razorpaySubscriptionId) {
       await this.paymentGateway.cancelSubscription(
         subscription.razorpaySubscriptionId,

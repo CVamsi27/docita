@@ -9,4 +9,3 @@ const enforce = process.argv.includes("--enforce");
 const issues = collectApiDomainLayoutFindings();
 
 printReport("API domain layout audit", issues, { enforce });
-

@@ -75,7 +75,7 @@ async function ensureCsrfToken(): Promise<string | null> {
   return getCsrfTokenFromCookie();
 }
 
-export interface ContactInquiryPayload {
+interface ContactInquiryPayload {
   name: string;
   email: string;
   clinic: string;

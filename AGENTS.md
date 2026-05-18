@@ -27,6 +27,82 @@ It adapts and consolidates guidance from `CONTRIBUTING.md` and `.github/copilot-
   - `packages/data-access` (API clients + React Query)
   - `packages/ui` (shared UI)
   - `packages/db` (Prisma)
+  - `packages/auth` (cross-app access semantics)
+  - `packages/hooks` (framework-agnostic React hooks)
+  - `packages/utils` (framework-agnostic helpers)
+  - `packages/eslint-config`, `packages/typescript-config` (shared configs)
+
+### 2.1 Repository layout (canonical)
+
+```
+docita/
+├── apps/
+│   ├── api/                  NestJS backend
+│   │   └── src/
+│   │       ├── domains/<domain>/{application,core,infrastructure,presentation}
+│   │       ├── shared/       cross-cutting modules (auth, guards, interceptors, ...)
+│   │       └── common/       legacy generic utilities (being phased into shared/)
+│   ├── worker/               NestJS background worker (shares infra with api)
+│   ├── app/                  Next.js - main clinician app
+│   │   ├── app/              App Router routes
+│   │   ├── features/<feature>/{components,hooks,rules,lib,api,index.ts}
+│   │   ├── providers/
+│   │   └── shared/           non-feature code reused across features
+│   │       ├── components/   was: apps/app/components/
+│   │       ├── hooks/        was: apps/app/hooks/
+│   │       └── lib/          was: apps/app/lib/
+│   ├── internal/             Next.js - admin/internal dashboard (same shape as app)
+│   │   ├── app/
+│   │   ├── features/
+│   │   ├── providers/
+│   │   └── shared/{components,hooks,lib}
+│   └── landing/              Astro marketing site
+├── packages/
+│   ├── auth/                 access + token semantics (tests in __tests__/)
+│   ├── data-access/          API clients + React Query
+│   ├── db/                   Prisma client + migrations
+│   ├── hooks/                framework-agnostic React hooks
+│   ├── types/                Zod schemas + inferred TS types
+│   ├── ui/                   presentational primitives
+│   ├── utils/                pure helpers
+│   ├── eslint-config/
+│   └── typescript-config/
+├── scripts/
+│   ├── checks/               check-*.{mjs,js} - repo-wide invariants and boundaries
+│   ├── perf/                 perf budgets, a11y budgets, baselines, audits
+│   ├── ui/                   contrast, hardcoded-color detection, UI copy fixers
+│   ├── db/                   db-check, ICD imports
+│   ├── deploy/               startup smoke tests, header verifiers, OpenNext patches
+│   ├── workflow/             CI scope detection, repo hygiene, contract verifiers
+│   ├── lib/                  shared helpers used by other scripts
+│   └── kill-ports.js         dev-loop utility
+├── docs/
+│   ├── architecture/         ARCHITECTURE, zod-first-architecture, DATA_FOUNDATIONS, API_DOCUMENTATION, TURBOREPO_STANDARD_STRUCTURE
+│   ├── ui/                   DESIGN_SYSTEM, UI_UX_STANDARD_2026, UI_UX_CONTRACT, UI_UX_ALL_SCREENS_AUDIT_MATRIX, PAGE_STANDARDIZATION_CHECKLIST, UI_REDESIGN_CHECKLIST
+│   ├── operations/           DEPLOYMENT, RUNBOOKS, STAGING, RATE_LIMITS, MIGRATION_NOTES
+│   ├── compliance/           ACCESS_AUDIT, RLS_ROLLOUT, SECURITY_ALLOWLIST
+│   ├── product/              INDIA_FIRST_EXECUTION, ONBOARDING, PAYMENT_FLOWS, NOTIFICATIONS_*, WHATSAPP_BROADCAST_TEMPLATES, BILLING_AND_GATING_AUDIT_2026-05-07
+│   ├── testing/              TESTING
+│   ├── audits/               point-in-time audit reports
+│   └── UpcomingPlans/        planning notes
+├── AGENTS.md
+├── CLAUDE.md                 thin pointer to AGENTS.md for Claude Code
+├── README.md
+└── (root configs: turbo.json, pnpm-workspace.yaml, knip.json, ...)
+```
+
+Import-path conventions for `apps/app` and `apps/internal`:
+
+| Alias | Resolves to |
+|---|---|
+| `@/components/...` | `apps/<app>/shared/components/...` |
+| `@/hooks/...`      | `apps/<app>/shared/hooks/...` |
+| `@/lib/...`        | `apps/<app>/shared/lib/...` |
+| `@/features/...`   | `apps/<app>/features/...` |
+| `@/app/...`        | `apps/<app>/app/...` |
+| `@workspace/...`   | shared workspace packages |
+
+The `shared/` folder is the home for **non-feature** code reused across features (theme toggles, generic dialogs, app-wide logger, etc.). New work belongs in a feature; only put code in `shared/` when at least two features need it.
 
 ## 3) Non-Negotiable Architecture Rules
 
@@ -88,7 +164,7 @@ It adapts and consolidates guidance from `CONTRIBUTING.md` and `.github/copilot-
 
 ### 4.3 UI design consistency (mandatory)
 
-- [`docs/UI_UX_STANDARD_2026.md`](docs/UI_UX_STANDARD_2026.md) is the authoritative UI/UX source for `apps/app`, `apps/internal`, and `apps/landing`. It supersedes any conflicting older guidance in `docs/DESIGN_SYSTEM.md` or `docs/UI_UX_CONTRACT.md`; those files remain for history and detail.
+- [`docs/ui/UI_UX_STANDARD_2026.md`](docs/ui/UI_UX_STANDARD_2026.md) is the authoritative UI/UX source for `apps/app`, `apps/internal`, and `apps/landing`. It supersedes any conflicting older guidance in `docs/ui/DESIGN_SYSTEM.md` or `docs/ui/UI_UX_CONTRACT.md`; those files remain for history and detail.
 - Every new page, modal, or feature surface MUST be assembled from `@workspace/ui` primitives. Do not reinvent a primitive that already exists.
   - Layout/chrome: `AppPageScaffold`, `PageHeader`, `PageContainer`, `Section`, `AppShell`, `TopBar`, `Breadcrumbs`, `PageTabs`.
   - State: `DataState`, `LoadingState`, `EmptyState`, `ErrorState`, `Skeleton`.
@@ -150,11 +226,11 @@ It adapts and consolidates guidance from `CONTRIBUTING.md` and `.github/copilot-
 ### 7.4 Unused dependencies and exports (Knip)
 
 - Run `pnpm knip` for consolidated or workspace-wide changes and treat failures like lint: fix unused exports and dependencies or adjust `knip.json` only when the pattern is intentional.
-- In CI, Knip runs in the Repository Standards job only when the diff touches dependency manifests, `knip.json`, `turbo.json`, or paths under `apps/`, `packages/`, or `scripts/` (see `isKnipChange` in [`scripts/detect-workflow-scope.mjs`](scripts/detect-workflow-scope.mjs)). Workflow-only edits skip Knip to conserve minutes per section 11.2.
+- In CI, Knip runs in the Repository Standards job only when the diff touches dependency manifests, `knip.json`, `turbo.json`, or paths under `apps/`, `packages/`, or `scripts/` (see `isKnipChange` in [`scripts/workflow/detect-workflow-scope.mjs`](scripts/workflow/detect-workflow-scope.mjs)). Workflow-only edits skip Knip to conserve minutes per section 11.2.
 
 ## 8) UX and Design Rules (Project-Wide)
 
-The Origin-inspired standard in [`docs/UI_UX_STANDARD_2026.md`](docs/UI_UX_STANDARD_2026.md) is authoritative for all web UI work going forward. The rules below are the minimum hierarchy/spacing/responsiveness contract that applies even when that standard does not call something out explicitly.
+The Origin-inspired standard in [`docs/ui/UI_UX_STANDARD_2026.md`](docs/ui/UI_UX_STANDARD_2026.md) is authoritative for all web UI work going forward. The rules below are the minimum hierarchy/spacing/responsiveness contract that applies even when that standard does not call something out explicitly.
 
 ### 8.1 Typography hierarchy (mandatory)
 
@@ -227,7 +303,7 @@ The Origin-inspired standard in [`docs/UI_UX_STANDARD_2026.md`](docs/UI_UX_STAND
   - Frontend uses Vitest
   - E2E uses Playwright
 - End-to-end tests must stay aligned with real routes, auth, and selectors: update Playwright specs when navigation, feature flags, or critical flows change; add coverage when adding new clinician-critical journeys.
-- API specs that stub NestJS `Reflector#getAllAndOverride` should use `@/test-utils` keyed helpers (`createKeyedReflectorMock`, `mockGetAllAndOverrideKeyMap`, `mockGetAllAndOverrideKeyBranch`); see `docs/TESTING.md` (Backend unit tests).
+- API specs that stub NestJS `Reflector#getAllAndOverride` should use `@/test-utils` keyed helpers (`createKeyedReflectorMock`, `mockGetAllAndOverrideKeyMap`, `mockGetAllAndOverrideKeyBranch`); see `docs/testing/TESTING.md` (Backend unit tests).
 - For large or consolidated pull requests, prefer this baseline before push:
   - `pnpm lint`
   - `pnpm verify:standard`
@@ -268,7 +344,7 @@ The Origin-inspired standard in [`docs/UI_UX_STANDARD_2026.md`](docs/UI_UX_STAND
 - Production deployment workflows must use path-based filtering so only the deployable apps affected by the change are released.
 - The production deploy workflow currently targets the API and the worker independently; keep those deploy paths and jobs scoped separately.
 - Include relevant shared packages, lockfiles, build scripts, and infra manifests in those path filters so dependent apps still deploy when their runtime inputs change.
-- When a new package becomes a runtime dependency of `apps/api` or `apps/worker`, update both [`.github/workflows/deploy.yml`](.github/workflows/deploy.yml) `on.push.paths` and the deploy detection logic in [`scripts/detect-workflow-scope.mjs`](scripts/detect-workflow-scope.mjs) so migrations and Fly deploys still trigger when appropriate.
+- When a new package becomes a runtime dependency of `apps/api` or `apps/worker`, update both [`.github/workflows/deploy.yml`](.github/workflows/deploy.yml) `on.push.paths` and the deploy detection logic in [`scripts/workflow/detect-workflow-scope.mjs`](scripts/workflow/detect-workflow-scope.mjs) so migrations and Fly deploys still trigger when appropriate.
 - Fly.io API deployments must be driven by [`fly.toml`](fly.toml), including the resolved app name and config path, instead of duplicating those values elsewhere in CI.
 - Fly.io worker deployments must be driven by [`apps/worker/fly.toml`](apps/worker/fly.toml), including the resolved app name and config path, instead of duplicating those values elsewhere in CI.
 - Staging API deployments are handled by Render auto-deploys from the `staging` branch; GitHub Actions should not add a separate deploy hook for the staging API.
@@ -337,7 +413,7 @@ These principles are mandatory for every change. Apply them pragmatically; do no
 
 - Zod schemas live once in `packages/types` and are reused via `z.infer` everywhere. Never hand-redefine the same shape in API DTOs and frontend forms.
 - API clients and React Query hooks live once in `packages/data-access`. Apps must consume them, not re-roll `fetch` calls.
-- UI primitives live once in `@workspace/ui`. Do not introduce app-local duplicates of `EmptyState`, `BackButton`, navigation chrome, etc.; remove duplicates when you find them (see `docs/UI_UX_STANDARD_2026.md` §8).
+- UI primitives live once in `@workspace/ui`. Do not introduce app-local duplicates of `EmptyState`, `BackButton`, navigation chrome, etc.; remove duplicates when you find them (see `docs/ui/UI_UX_STANDARD_2026.md` §8).
 - Tokens live once in `packages/ui/src/styles/globals.css` and are mirrored by `packages/ui/src/design-tokens.ts`. Do not redefine spacing, radius, or color in app code.
 - Repository mappers live once per aggregate inside `packages/db` / API repositories; do not duplicate Prisma-to-domain mapping in services.
 
@@ -356,7 +432,7 @@ These principles are mandatory for every change. Apply them pragmatically; do no
 
 ### 12.6 Future work convention
 
-- Every PR opened from this point on MUST comply with §4.3 (UI consistency), §7 (logging/comments/hygiene), §8 (typography), §12 (SOLID/KISS/DRY/patterns), and the Origin-inspired standard in [`docs/UI_UX_STANDARD_2026.md`](docs/UI_UX_STANDARD_2026.md).
+- Every PR opened from this point on MUST comply with §4.3 (UI consistency), §7 (logging/comments/hygiene), §8 (typography), §12 (SOLID/KISS/DRY/patterns), and the Origin-inspired standard in [`docs/ui/UI_UX_STANDARD_2026.md`](docs/ui/UI_UX_STANDARD_2026.md).
 - Deviations are allowed only when documented inline in the PR description with a one-line rationale and, when relevant, a follow-up issue link. "We will fix it later" is not a rationale.
 - Reviewers should block merges that introduce app-local duplicates of `@workspace/ui` primitives, parallel hand-written types alongside Zod schemas, or new pages that skip `AppPageScaffold` / `PageHeader` / `DataState` without justification.
 
@@ -401,7 +477,7 @@ Before finalizing changes:
 - TODO/FIXME-style comments are resolved or removed from touched areas; redundant comments are removed per section 7.2.
 - No unnecessary `any`, unchecked `unknown`, or type escape hatches outside isolated, justified helpers.
 - Typographic hierarchy is preserved (headings > body > sub-points).
-- New or changed pages comply with [`docs/UI_UX_STANDARD_2026.md`](docs/UI_UX_STANDARD_2026.md) (sectioned sidebar, minimal topbar, Origin visual language, AI surface contract, modal/wizard patterns, per-page test contract).
+- New or changed pages comply with [`docs/ui/UI_UX_STANDARD_2026.md`](docs/ui/UI_UX_STANDARD_2026.md) (sectioned sidebar, minimal topbar, Origin visual language, AI surface contract, modal/wizard patterns, per-page test contract).
 - Loading, error, and empty states use `DataState` at page level; no inline `Loading...` text.
 - No decorative motion: no `animate-pulse` on chrome, no skeleton `animation="wave"`, no `animate-in fade-in slide-in-from-bottom-*`, no `transition-all` (per `UI_UX_STANDARD_2026.md` §5).
 - Origin sidebar IA preserved: TRACK / SERVICES sections, Settings / Help / Theme / Plan footer, Ask AI pinned at the bottom; command palette parity with the sidebar.
@@ -415,12 +491,12 @@ Before finalizing changes:
 
 ## 15) Pattern Catalogue
 
-When this file says to follow existing patterns, use these concrete references before adding a new instance.
+When this file says to follow existing patterns, use these concrete references before adding a new instance. Subsections 15.1–15.3 are stable references; subsections 15.4–15.10 codify patterns validated during the 2026-05 audit sprint.
 
 ### 15.1 Backend Patterns
 
 - **Domain layout**: `apps/api/src/domains/<domain>/{application,core,infrastructure,presentation}`. Reference: `apps/api/src/domains/appointments`.
-- **Controller posture**: every route declares `@Public`, `@Roles`, `@RequireFeature`, or inherits an explicit controller-level posture. Enforced by `scripts/check-controller-rbac.mjs`.
+- **Controller posture**: every route declares `@Public`, `@Roles`, `@RequireFeature`, or inherits an explicit controller-level posture. Enforced by `scripts/checks/check-controller-rbac.mjs`.
 - **DTOs**: schemas originate in `packages/types` and API DTOs wrap them with `createZodDto`.
 - **Persistence**: repositories isolate Prisma access and map database rows to application/domain objects.
 - **Tier/feature gates**: never compare `Tier.INTELLIGENCE` or `Tier.FRONT_DESK` numerically. Use `hasFeatureAccess`, `getMinimumTierForFeature`, and the feature guards.
@@ -429,10 +505,11 @@ When this file says to follow existing patterns, use these concrete references b
 ### 15.2 Frontend Patterns
 
 - **Feature layout**: `apps/app/features/<feature>/{components,hooks,rules,lib,types,index.ts}` with public imports through `index.ts`.
+- **Non-feature code** (shared across features) lives in `apps/<app>/shared/{components,hooks,lib}` and is reached via `@/components/...`, `@/hooks/...`, `@/lib/...` (the aliases now resolve into `shared/`). Promote into `packages/ui`, `packages/hooks`, or `packages/utils` once a second app needs it.
 - **Pages**: route files compose feature shells; business logic belongs in feature components/hooks.
-- **Data fetching**: feature code consumes `packages/data-access` hooks or approved app API wrappers. Inline `fetch` in client features is blocked by `scripts/check-frontend-fetch.mjs`.
+- **Data fetching**: feature code consumes `packages/data-access` hooks or approved app API wrappers. Inline `fetch` in client features is blocked by `scripts/checks/check-frontend-fetch.mjs`.
 - **State**: React Query for server state, established stores for cross-cutting client state, and local state only for view-local behavior.
-- **UI**: assemble from `@workspace/ui` primitives and follow `docs/UI_UX_STANDARD_2026.md`.
+- **UI**: assemble from `@workspace/ui` primitives and follow `docs/ui/UI_UX_STANDARD_2026.md`.
 
 ### 15.3 Shared Package Boundaries
 
@@ -443,3 +520,61 @@ When this file says to follow existing patterns, use these concrete references b
 - `packages/utils`: framework-agnostic helpers. No React or Next.js imports.
 - `packages/auth`: cross-app access and permission semantics.
 - `packages/db`: Prisma schema/client and database scripts only.
+
+### 15.4 SOLID Principles Applied (2026-05 audit)
+
+- **Single Responsibility**: each service/component has one reason to change. Large services split into Command/Query/pure-calculator trios. Large components split into orchestrator + sub-sections + custom hooks.
+- **Open/Closed**: `Feature` enum + `FEATURE_TIER_MAP` are the extension point — add features without modifying guards. New tier capabilities extend the matrix, not existing code.
+- **Liskov Substitution**: repository interfaces (`IAppointmentRepository`, etc.) allow DI swapping. The `StorageProvider` abstraction lets R2/S3 swap without touching service logic.
+- **Interface Segregation**: controllers depend on split services (Command vs Query), not fat facades. React components receive only the props they render.
+- **Dependency Inversion**: NestJS `@Inject('IAppointmentRepository')` tokens bind interfaces, not concretions. React hooks (`usePatientMetricsUI`, `useOnboardingDraft`) abstract data from render.
+
+### 15.5 Decomposition Rules (enforced patterns)
+
+- **Backend services >400 lines**: split into `XCommandService` (mutations) + `XQueryService` (reads) + optional `XCalculator` (pure math). Register all three in the module. A facade `XService` may keep the original constructor signature for test compatibility.
+- **Frontend components >400 lines**: extract to `orchestrator.tsx` (state wiring only) + `component-sections.tsx` (JSX blocks, accepts props) + `component-helpers.ts` (pure functions and constants, no React) + `use-component.ts` (data + mutations).
+- **Custom hooks own data**: `useState`, `useMemo`, `useEffect`, mutations, and derived values live in hooks. Components only render JSX.
+- **No parent-relative imports**: cross-directory imports use `@/` alias. Sibling imports (`./`) are allowed; parent traversal (`../`) is banned by ESLint.
+
+### 15.6 Design Patterns in Use
+
+- **Facade**: `AppointmentService`, `InvoicesService`, `UsageTrackingService` keep a stable public API while delegating to split internals.
+- **Command/Query Separation (CQS)**: backend services split on the read vs. mutate axis. Query services must not be imported into command chains.
+- **Repository Pattern**: every domain has an `IXRepository` interface + `PrismaXRepository` implementation. Controllers never touch Prisma directly.
+- **Strategy Pattern**: `StorageProvider` abstraction; `OnboardingStepEngine` (pure state machine callable with any persistence strategy).
+- **Observer Pattern**: `EventEmitter2` for `appointment.created`, `invoice.paid`, etc. — producers and consumers are decoupled.
+- **Decorator Pattern**: `@AuditLogged`, `@RequireFeature`, `@Roles` — cross-cutting concerns added without modifying method logic.
+- **Template Method**: `BasePdfService` defines the PDF render pipeline; `InvoicePdfRenderer`/`PrescriptionPdfRenderer` fill in the steps.
+
+### 15.7 Frontend Component Architecture
+
+- **Page shell**: `AppPageScaffold → PageHeader → DataState → Content` is the mandatory pattern for every new page.
+- **Colocation rule**: types used only within one feature stay in `features/<feature>/types.ts`. Shared types go to `packages/types`. Never duplicate.
+- **Draft pattern**: `useOnboardingDraft` is the canonical pattern for localStorage persistence — hook encapsulates read/write/expiry; component only calls handlers.
+- **Sections file** (`*-sections.tsx`): sub-components that accept props from the orchestrator. Pure render, no data fetching.
+- **Helpers file** (`*-helpers.ts`): pure functions and constants. No React imports. Fully unit-testable without DI.
+
+### 15.8 Tier/Feature Gating Contract (critical)
+
+- `Tier.INTELLIGENCE` and `Tier.FRONT_DESK` are **never** compared with `>=`. Use the `hasIntelligence` flag or `hasFeatureAccess(Feature.X)`.
+- All 56 `Feature` enum values map to tiers via `FEATURE_TIER_MAP`. Both backend (`assertClinicHasFeatureOrThrow`) and frontend (`<FeatureGate>`) derive from this single source of truth.
+- `FRONT_DESK_BLOCKED_FEATURES` is the exhaustive blocklist for workspace-profile gating. Do not gate by ad-hoc `workspaceProfile === "FRONT_DESK"` conditionals anywhere else.
+
+### 15.9 Import Discipline
+
+| Package | Allowed contents | Banned |
+|---|---|---|
+| `packages/types` | Zod schemas + `z.infer` types | Runtime logic, React |
+| `packages/data-access` | React Query hooks | Direct `fetch()`, UI |
+| `packages/ui` | Presentational primitives | Data fetching, business logic |
+| `packages/hooks` | Framework-agnostic React hooks | Next.js-specific imports |
+| `packages/utils` | Pure functions | React, Next.js |
+
+Relative parent imports (`../`) are ESLint-banned across all apps. Use `@/` absolute paths for cross-directory references.
+
+### 15.10 Testing Expectations (2026-05 audit)
+
+- Service constructor changes require test mock updates. Use `Object.create(X.prototype) as X` to create mock instances of NestJS services without invoking the constructor.
+- Spec files live next to the service file. Integration specs for controllers go in `apps/api/test/`.
+- Pure helpers (`XCalculator`, `*-helpers.ts`) must have standalone unit tests — no DI container required.
+- When a service is split into Command/Query/Calculator, each file gets its own spec. The facade spec covers only delegation and module wiring.

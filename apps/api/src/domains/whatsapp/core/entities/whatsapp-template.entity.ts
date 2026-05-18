@@ -11,7 +11,6 @@ export enum WhatsAppTemplateStatus {
 }
 
 export enum WhatsAppTemplateCategory {
-  AUTHENTICATION = 'AUTHENTICATION',
   MARKETING = 'MARKETING',
   UTILITY = 'UTILITY',
 }

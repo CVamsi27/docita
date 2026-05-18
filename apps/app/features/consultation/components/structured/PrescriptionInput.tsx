@@ -13,7 +13,8 @@ import {
 } from "@workspace/ui/components/select";
 import { Pill, Plus, Trash2 } from "lucide-react";
 import { useClinicSettings } from "@/hooks/api/use-settings";
-import ClinicFeatureService, {
+import {
+  ClinicFeatureService,
   MEDICATION_ROUTES,
 } from "@/lib/services/clinic-feature.service";
 

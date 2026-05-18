@@ -14,7 +14,7 @@ import { toast } from "sonner";
 import { useSaveVitals } from "@/hooks/api/use-clinical";
 import { HeartPulse } from "lucide-react";
 import { ModalProps } from "./PrescriptionModal";
-import { showUserFacingErrorToast } from "@/lib/user-facing-errors";
+import { showUserFacingErrorToast } from "@/lib/errors/user-facing-errors";
 
 export interface VitalsFormData {
   height: string;

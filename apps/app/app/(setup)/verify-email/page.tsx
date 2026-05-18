@@ -10,10 +10,10 @@ import { Button } from "@workspace/ui/components/button";
 import {
   useAuth,
   VERIFICATION_EMAIL_STATUS_STORAGE_KEY,
-} from "@/lib/auth-context";
-import { logger } from "@/lib/logger";
-import { API_URL } from "@/lib/api-config";
-import { browserRequest } from "@/lib/browser-request";
+} from "@/lib/auth/auth-context";
+import { logger } from "@/lib/monitoring/logger";
+import { API_URL } from "@/lib/api/api-config";
+import { browserRequest } from "@/lib/auth/browser-request";
 import { PreDashboardShell } from "@/features/auth/components/PreDashboardShell";
 import { BackButton } from "@/components/common/navigation/back-button";
 

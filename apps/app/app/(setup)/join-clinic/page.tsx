@@ -24,11 +24,11 @@ import {
 } from "@workspace/ui/components/dialog";
 import { Badge } from "@workspace/ui/components/badge";
 import { toast } from "sonner";
-import { typedApi } from "@/lib/api-client";
-import { logger } from "@/lib/logger";
+import { typedApi } from "@/lib/api/api-client";
+import { logger } from "@/lib/monitoring/logger";
 import { PageTransitionLoader } from "@/components/common/loaders/page-transition-loader";
-import { showUserFacingErrorToast } from "@/lib/user-facing-errors";
-import { useAuth } from "@/lib/auth-context";
+import { showUserFacingErrorToast } from "@/lib/errors/user-facing-errors";
+import { useAuth } from "@/lib/auth/auth-context";
 import { PreDashboardShell } from "@/features/auth/components/PreDashboardShell";
 import { BackButton } from "@/components/common/navigation/back-button";
 

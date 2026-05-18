@@ -1,8 +1,8 @@
 import { useCallback, useState } from "react";
 import { toast } from "sonner";
-import { useAppConfig } from "@/lib/app-config-context";
-import { fetchWithSession } from "@/lib/fetch-with-session";
-import { showUserFacingErrorToast } from "@/lib/user-facing-errors";
+import { useAppConfig } from "@/lib/contexts/app-config-context";
+import { fetchWithSession } from "@/lib/auth/fetch-with-session";
+import { showUserFacingErrorToast } from "@/lib/errors/user-facing-errors";
 
 export interface ColumnMapping {
   excelColumn: string;

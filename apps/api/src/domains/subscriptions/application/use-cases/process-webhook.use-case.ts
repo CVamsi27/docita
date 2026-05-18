@@ -32,7 +32,7 @@ import { SubscriptionPricingService } from '@/domains/subscriptions/core/service
 /**
  * **Docita SaaS** only: Razorpay webhooks for subscription and related platform
  * billing (clinic pays Docita). Not for patient-to-clinic settlement (Flow B)
- * or clinic payment-settings webhooks; see docs/PAYMENT_FLOWS.md.
+ * or clinic payment-settings webhooks; see docs/product/PAYMENT_FLOWS.md.
  */
 @Injectable()
 export class ProcessWebhookUseCase {

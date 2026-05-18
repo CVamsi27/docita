@@ -305,7 +305,7 @@ Order of operations once we commit:
 3. **Custom domain** — CNAME per hospital onto Cloudflare Workers route; certificate management automated.
 4. **CI/CD matrix** — extend [.github/workflows](.github/workflows) so each enterprise customer is a deploy target; build artifacts shared, configs per-customer.
 5. **Migration tool** — a script that exports a clinic's data from shared DB into a dedicated DB and flips DNS. Must handle all clinic-scoped tables (all of `clinicId`-keyed models in the schema).
-6. **Runbook** — extend [docs/DEPLOYMENT.md](docs/DEPLOYMENT.md) with the per-customer lifecycle: onboard, upgrade, decommission.
+6. **Runbook** — extend [docs/operations/DEPLOYMENT.md](docs/operations/DEPLOYMENT.md) with the per-customer lifecycle: onboard, upgrade, decommission.
 
 Phase D is intentionally not detailed further here; it should be its own plan when the first enterprise customer is signed.
 
@@ -486,7 +486,7 @@ When a clinic resets sender mode to SHARED, downgrades below the required tier, 
 
 ### R13. Documentation
 
-- Update [docs/DEPLOYMENT.md](docs/DEPLOYMENT.md) with the two new env vars and rollout instructions.
+- Update [docs/operations/DEPLOYMENT.md](docs/operations/DEPLOYMENT.md) with the two new env vars and rollout instructions.
 - Add a new internal runbook `docs/runbooks/whatsapp-per-clinic-sender.md` (this is one of the rare doc files worth writing — operational, not narrative) covering: how to onboard a BYO clinic step-by-step, what to do when a verify fails, how to revoke compromised credentials.
 - Add `docs/runbooks/enterprise-contract-editing.md` covering: how staff edit contracts, what triggers a revision, how the invoice preview maps to the next billing run.
 

@@ -2,7 +2,7 @@ import { Button } from "@workspace/ui/components/button";
 import { BarChart3 } from "lucide-react";
 import Link from "next/link";
 import { BackButton } from "@/components/common/navigation/back-button";
-import { SUBSCRIPTION_SETTINGS_PATH } from "@/lib/subscription-settings-path";
+import { SUBSCRIPTION_SETTINGS_PATH } from "@/lib/subscription/subscription-settings-path";
 
 export const AnalyticsUpgradeState = () => (
   <div className="flex flex-col items-center justify-center min-h-[60vh] text-center p-8">

@@ -281,4 +281,3 @@ export function ConsentNoticeModal({
   );
 }
 
-export default ConsentNoticeModal;

@@ -31,9 +31,9 @@ import {
   DialogFooter,
 } from "@workspace/ui/components/dialog";
 import { toast } from "sonner";
-import { typedApi } from "@/lib/api-client";
+import { typedApi } from "@/lib/api/api-client";
 import { formatDistanceToNow } from "@workspace/utils";
-import { showUserFacingErrorToast } from "@/lib/user-facing-errors";
+import { showUserFacingErrorToast } from "@/lib/errors/user-facing-errors";
 
 interface JoinRequest {
   id: string;

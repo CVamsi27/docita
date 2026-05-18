@@ -13,7 +13,7 @@ import {
   type UpsertMetricSelectionsInput,
 } from "@workspace/types";
 import { queryKeys } from "@workspace/data-access";
-import { useAppMutation } from "@/lib/query-hooks";
+import { useAppMutation } from "@/lib/api/query-hooks";
 import { useTierFeatureEnabled } from "@/hooks/api/tier-feature-guards";
 
 export function usePatients(params?: {

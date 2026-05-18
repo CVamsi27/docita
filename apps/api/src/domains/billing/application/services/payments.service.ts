@@ -28,7 +28,7 @@ import {
 /**
  * Clinic invoice payments: payment sessions (links / cash), manual desk
  * settlement, and related helpers. **Flow B** (patient pays clinic) in
- * docs/PAYMENT_FLOWS.md. **Docita SaaS** subscription / platform billing uses
+ * docs/product/PAYMENT_FLOWS.md. **Docita SaaS** subscription / platform billing uses
  * other services and tokens — do not conflate webhooks or Docita merchant
  * semantics with patient settlement.
  */
@@ -57,6 +57,14 @@ export class PaymentsService {
     description?: string;
     paymentMode?: 'ONLINE' | 'CASH';
   }) {
+    // AuditLogged: payment processing
+    this.logger.log({
+      action: 'payment.process',
+      clinicId: dto.clinicId,
+      invoiceId: dto.invoiceId,
+      paymentMode: dto.paymentMode ?? 'ONLINE',
+    });
+
     const expiresAt = new Date();
     expiresAt.setMinutes(
       expiresAt.getMinutes() + this.configService.getPaymentLinkTtlMinutes(),
@@ -99,7 +107,7 @@ export class PaymentsService {
 
       // Flow B online link: must use clinic gateway creds from settings (Flow A);
       // interim shared adapter must not be Docita merchant for new work — see
-      // docs/PAYMENT_FLOWS.md.
+      // docs/product/PAYMENT_FLOWS.md.
       paymentLinkResponse = await this.paymentLinkProvider.createPaymentLink({
         amount,
         description: dto.description || `Invoice #${dto.invoiceId.slice(0, 8)}`,

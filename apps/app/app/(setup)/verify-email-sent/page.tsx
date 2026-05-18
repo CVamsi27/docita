@@ -12,10 +12,10 @@ import {
   useAuth,
   VERIFICATION_EMAIL_STATUS_STORAGE_KEY,
   type User,
-} from "@/lib/auth-context";
-import { apiFetch } from "@/lib/api-client";
-import { logger } from "@/lib/logger";
-import { showUserFacingErrorToast } from "@/lib/user-facing-errors";
+} from "@/lib/auth/auth-context";
+import { apiFetch } from "@/lib/api/api-client";
+import { logger } from "@/lib/monitoring/logger";
+import { showUserFacingErrorToast } from "@/lib/errors/user-facing-errors";
 import { PageTransitionLoader } from "@/components/common/loaders/page-transition-loader";
 import { PreDashboardShell } from "@/features/auth/components/PreDashboardShell";
 import { BackButton } from "@/components/common/navigation/back-button";

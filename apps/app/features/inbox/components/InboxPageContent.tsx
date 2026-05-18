@@ -21,9 +21,9 @@ import {
   type UserRole,
   type WorkspaceProfile,
 } from "@workspace/types";
-import { canAccessTarget } from "@/lib/access-policy";
-import { useAuth } from "@/lib/auth-context";
-import { hasPermission, type Permission } from "@/lib/permissions";
+import { canAccessTarget } from "@/lib/access-control/access-policy";
+import { useAuth } from "@/lib/auth/auth-context";
+import { hasPermission, type Permission } from "@/lib/auth/permissions";
 import { usePermissionStore } from "@/lib/stores/permission-store";
 import { NotificationsInboxView } from "./NotificationsInboxView";
 

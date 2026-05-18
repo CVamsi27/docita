@@ -17,7 +17,7 @@ import {
 } from "@/lib/stores/permission-store";
 import { usePermissions } from "@/hooks/use-permissions";
 import { useStartConsultation } from "@/hooks/api/use-appointments";
-import { showUserFacingErrorToast } from "@/lib/user-facing-errors";
+import { showUserFacingErrorToast } from "@/lib/errors/user-facing-errors";
 
 interface PatientHeaderActionsProps {
   patientId: string;

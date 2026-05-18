@@ -1,5 +1,6 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import { MedicalHistoryService } from './medical-history.service';
+import { MedicalHistoryConditionsService } from './medical-history-conditions.service';
 import { PrismaService } from '@/prisma/prisma.service';
 import { MedicalHistoryFactory } from '@/domains/patients/core/factories/medical-history.factory';
 import { AiService } from '@/shared/modules/ai-core/ai.service';
@@ -72,6 +73,7 @@ describe('MedicalHistoryService', () => {
     const module: TestingModule = await Test.createTestingModule({
       providers: [
         MedicalHistoryService,
+        MedicalHistoryConditionsService,
         { provide: PrismaService, useValue: mockPrismaService },
         { provide: MedicalHistoryFactory, useValue: mockFactory },
         { provide: AiService, useValue: mockAiService },

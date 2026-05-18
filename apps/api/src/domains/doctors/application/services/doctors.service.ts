@@ -1,822 +1,177 @@
-import {
-  Injectable,
-  NotFoundException,
-  BadRequestException,
-} from '@nestjs/common';
+import { Injectable } from '@nestjs/common';
+import { Specialization } from '@workspace/db';
+import { StorageFile } from '@/domains/documents/infrastructure/storage.provider';
 import { PrismaService } from '@/prisma/prisma.service';
-import * as bcrypt from 'bcrypt';
-import {
-  Specialization,
-  HospitalRole,
-  Role,
-  DoctorVerificationStatus,
-} from '@workspace/db';
-import {
-  DOCTOR_LIST_SELECT,
-  DOCTOR_CARD_SELECT,
-} from '@/common/select-fragments';
 import { DoctorVerificationService } from './doctor-verification.service';
 import { SignatureUploadService } from './signature-upload.service';
 import { StoredFileUrlResolverService } from '@/domains/documents/application/services/stored-file-url-resolver.service';
-import {
-  StorageProvider,
-  StorageFile,
-} from '@/domains/documents/infrastructure/storage.provider';
+import { StorageProvider } from '@/domains/documents/infrastructure/storage.provider';
+import { DoctorsQueryService } from './doctors-query.service';
+import { DoctorsCommandService } from './doctors-command.service';
+import { DoctorProfileService } from './doctor-profile.service';
+import { DoctorAdminVerificationCommandService } from './doctor-admin-verification-command.service';
 
-interface CreateDoctorData {
-  email: string;
-  password: string;
-  name: string;
-  role?: string;
-  specialization?: Specialization;
-  hospitalRole?: HospitalRole;
-  qualification?: string;
-  registrationNumber?: string;
-  licenseNumber?: string;
-  phoneNumber?: string;
-  bio?: string;
-  yearsOfExperience?: number;
-  consultationFee?: number;
-}
-
-interface UpdateDoctorData {
-  name?: string;
-  email?: string;
-  specialization?: Specialization;
-  hospitalRole?: HospitalRole;
-  qualification?: string;
-  registrationNumber?: string;
-  registrationCouncil?: string | null;
-  registrationStateCode?: string | null;
-  licenseNumber?: string;
-  licenseExpiry?: Date;
-  signatureUrl?: string;
-  profilePhotoUrl?: string;
-  phoneNumber?: string;
-  bio?: string;
-  yearsOfExperience?: number;
-  consultationFee?: number;
-  role?: string;
-}
-
-interface CreateEducationData {
-  degree: string;
-  fieldOfStudy?: string;
-  institution: string;
-  location?: string;
-  startYear?: number;
-  endYear?: number;
-  isOngoing?: boolean;
-  grade?: string;
-  thesis?: string;
-  order?: number;
-}
-
-interface CreateCertificationData {
-  name: string;
-  issuingBody: string;
-  issueDate: Date;
-  expiryDate?: Date;
-  credentialId?: string;
-  credentialUrl?: string;
-}
-
-function normalizeRole(role: string | undefined): Role {
-  if (!role) {
-    return Role.DOCTOR;
-  }
-
-  return Object.values(Role).includes(role as Role)
-    ? (role as Role)
-    : Role.DOCTOR;
-}
-
+/**
+ * Facade — keeps the original constructor signature so existing consumers
+ * (controllers, tests, other modules) are not broken. All work is delegated
+ * to DoctorsQueryService or DoctorsCommandService.
+ */
 @Injectable()
 export class DoctorsService {
+  private readonly queryService: DoctorsQueryService;
+  private readonly commandService: DoctorsCommandService;
+
   constructor(
-    private prisma: PrismaService,
-    private doctorVerificationService: DoctorVerificationService,
-    private readonly signatureUploadService: SignatureUploadService,
-    private readonly storedFileUrlResolver: StoredFileUrlResolverService,
-    private readonly storageProvider: StorageProvider,
-  ) {}
-
-  private async resolveDoctorSignatureUrl<
-    T extends {
-      signatureUrl?: string | null;
-      registrationCertificateUrl?: string | null;
-    },
-  >(
-    doctor: T,
-  ): Promise<
-    T & {
-      signatureUrl?: string | null;
-      signatureStoredUrl?: string | null;
-      registrationCertificateUrl?: string | null;
-      registrationCertificateStoredUrl?: string | null;
-    }
-  > {
-    const [signature, certificate] = await Promise.all([
-      this.storedFileUrlResolver.resolveWithStoredUrl(
-        doctor.signatureUrl ?? null,
-      ),
-      this.storedFileUrlResolver.resolveWithStoredUrl(
-        doctor.registrationCertificateUrl ?? null,
-      ),
-    ]);
-
-    return {
-      ...doctor,
-      signatureUrl: signature.url ?? undefined,
-      signatureStoredUrl: signature.storedUrl ?? undefined,
-      registrationCertificateUrl: certificate.url ?? undefined,
-      registrationCertificateStoredUrl: certificate.storedUrl ?? undefined,
-    };
-  }
-
-  async findAll(clinicId: string) {
-    const [doctorClinics, clinicUsers] = await Promise.all([
-      this.prisma.doctorClinic.findMany({
-        where: { clinicId },
-        include: {
-          doctor: {
-            select: DOCTOR_CARD_SELECT,
-          },
-        },
-      }),
-      this.prisma.user.findMany({
-        where: {
-          clinicId,
-          role: { in: ['DOCTOR', 'ADMIN_DOCTOR'] },
-        },
-        select: {
-          ...DOCTOR_LIST_SELECT,
-          registrationNumber: true,
-          registrationCouncil: true,
-          registrationStateCode: true,
-          verificationStatus: true,
-          verificationReason: true,
-          verificationCheckedAt: true,
-          signatureUrl: true,
-          profilePhotoUrl: true,
-          yearsOfExperience: true,
-          consultationFee: true,
-          createdAt: true,
-        },
-      }),
-    ]);
-
-    const doctorClinicIds = new Set(doctorClinics.map((dc) => dc.doctor.id));
-
-    const validDoctorClinics = doctorClinics.filter(
-      (dc) => dc.doctor.role === 'DOCTOR' || dc.doctor.role === 'ADMIN_DOCTOR',
+    prisma: PrismaService,
+    doctorVerificationService: DoctorVerificationService,
+    signatureUploadService: SignatureUploadService,
+    storedFileUrlResolver: StoredFileUrlResolverService,
+    storageProvider: StorageProvider,
+    profileService: DoctorProfileService,
+  ) {
+    this.queryService = new DoctorsQueryService(prisma, storedFileUrlResolver);
+    const adminVerificationService = new DoctorAdminVerificationCommandService(
+      prisma,
+      this.queryService,
     );
-
-    const directUsers = clinicUsers.filter((u) => !doctorClinicIds.has(u.id));
-
-    const mappedClinics = await Promise.all(
-      validDoctorClinics.map(async (dc) => {
-        const doctor = await this.resolveDoctorSignatureUrl(dc.doctor);
-        return {
-          id: doctor.id,
-          role: doctor.role,
-          email: doctor.email,
-          name: doctor.name,
-          specialization: doctor.specialization,
-          hospitalRole: doctor.hospitalRole,
-          qualification: doctor.qualification,
-          registrationNumber: doctor.registrationNumber,
-          registrationCouncil: doctor.registrationCouncil,
-          registrationStateCode: doctor.registrationStateCode,
-          verificationStatus: doctor.verificationStatus,
-          verificationReason: doctor.verificationReason,
-          verificationCheckedAt: doctor.verificationCheckedAt,
-          signatureUrl: doctor.signatureUrl,
-          signatureStoredUrl: doctor.signatureStoredUrl,
-          profilePhotoUrl: doctor.profilePhotoUrl,
-          yearsOfExperience: doctor.yearsOfExperience,
-          consultationFee: doctor.consultationFee,
-          createdAt: doctor.createdAt,
-        };
-      }),
-    );
-
-    const mappedDirectUsers = await Promise.all(
-      directUsers.map(async (user) => {
-        const doctor = await this.resolveDoctorSignatureUrl(user);
-        return {
-          id: doctor.id,
-          role: doctor.role,
-          email: doctor.email,
-          name: doctor.name,
-          specialization: doctor.specialization,
-          hospitalRole: doctor.hospitalRole,
-          qualification: doctor.qualification,
-          registrationNumber: doctor.registrationNumber,
-          registrationCouncil: doctor.registrationCouncil,
-          registrationStateCode: doctor.registrationStateCode,
-          verificationStatus: doctor.verificationStatus,
-          verificationReason: doctor.verificationReason,
-          verificationCheckedAt: doctor.verificationCheckedAt,
-          signatureUrl: doctor.signatureUrl,
-          signatureStoredUrl: doctor.signatureStoredUrl,
-          profilePhotoUrl: doctor.profilePhotoUrl,
-          yearsOfExperience: doctor.yearsOfExperience,
-          consultationFee: doctor.consultationFee,
-          createdAt: doctor.createdAt,
-        };
-      }),
-    );
-
-    return [...mappedClinics, ...mappedDirectUsers];
-  }
-
-  async findOne(id: string, clinicId?: string) {
-    const user = await this.prisma.user.findFirst({
-      where: { id },
-      select: {
-        id: true,
-        email: true,
-        name: true,
-        role: true,
-        clinicId: true,
-        specialization: true,
-        hospitalRole: true,
-        qualification: true,
-        registrationNumber: true,
-        registrationCouncil: true,
-        registrationStateCode: true,
-        licenseNumber: true,
-        licenseExpiry: true,
-        signatureUrl: true,
-        signatureUploadedAt: true,
-        verificationStatus: true,
-        verificationSource: true,
-        verificationRef: true,
-        verificationReason: true,
-        verificationData: true,
-        verificationCheckedAt: true,
-        registrationCertificateUrl: true,
-        verifiedByAdminId: true,
-        verifiedByAdminAt: true,
-        profilePhotoUrl: true,
-        phoneNumber: true,
-        bio: true,
-        yearsOfExperience: true,
-        consultationFee: true,
-        createdAt: true,
-        updatedAt: true,
-        educationHistory: {
-          orderBy: { order: 'asc' },
-        },
-        certifications: {
-          orderBy: { issueDate: 'desc' },
-        },
-        additionalSpecializations: true,
-      },
-    });
-
-    if (!user) {
-      throw new NotFoundException(`Doctor with ID ${id} not found`);
-    }
-
-    if (clinicId && user.clinicId !== clinicId) {
-      const assignment = await this.prisma.doctorClinic.findFirst({
-        where: { doctorId: id, clinicId, active: true },
-      });
-      if (!assignment) {
-        throw new NotFoundException(`Doctor with ID ${id} not found`);
-      }
-    }
-
-    return this.resolveDoctorSignatureUrl(user);
-  }
-
-  async create(clinicId: string, data: CreateDoctorData) {
-    const {
-      email,
-      password,
-      name,
-      role = 'DOCTOR',
-      specialization,
-      hospitalRole,
-      qualification,
-      registrationNumber,
-      licenseNumber,
-      phoneNumber,
-      bio,
-      yearsOfExperience,
-      consultationFee,
-    } = data;
-
-    const hashedPassword = await bcrypt.hash(password, 10);
-    const user = await this.prisma.user.create({
-      data: {
-        email,
-        password: hashedPassword,
-        name,
-        clinicId,
-        role: normalizeRole(role),
-        specialization,
-        hospitalRole,
-        qualification,
-        registrationNumber,
-        licenseNumber,
-        phoneNumber,
-        bio,
-        yearsOfExperience,
-        consultationFee,
-      },
-    });
-
-    await this.prisma.doctorClinic.create({
-      data: {
-        doctorId: user.id,
-        clinicId,
-        role,
-      },
-    });
-
-    if (specialization) {
-      await this.prisma.doctorSpecialization.create({
-        data: {
-          doctorId: user.id,
-          specialization,
-          isPrimary: true,
-        },
-      });
-    }
-
-    await this.doctorVerificationService.verifyAndPersistDoctorVerification(
-      user.id,
-    );
-
-    return {
-      id: user.id,
-      email: user.email,
-      name: user.name,
-      role: user.role,
-      specialization: user.specialization,
-      hospitalRole: user.hospitalRole,
-      qualification: user.qualification,
-    };
-  }
-
-  async update(id: string, data: UpdateDoctorData, clinicId?: string) {
-    if (clinicId) await this.findOne(id, clinicId);
-    const {
-      name,
-      email,
-      specialization,
-      hospitalRole,
-      qualification,
-      registrationNumber,
-      registrationCouncil,
-      registrationStateCode,
-      licenseNumber,
-      licenseExpiry,
-      signatureUrl,
-      profilePhotoUrl,
-      phoneNumber,
-      bio,
-      yearsOfExperience,
-      consultationFee,
-      role,
-    } = data;
-
-    const updateData: Record<string, unknown> = {};
-    if (name !== undefined) updateData.name = name;
-    if (email !== undefined) updateData.email = email;
-    if (specialization !== undefined)
-      updateData.specialization = specialization;
-    if (hospitalRole !== undefined) updateData.hospitalRole = hospitalRole;
-    if (qualification !== undefined) updateData.qualification = qualification;
-    if (registrationNumber !== undefined)
-      updateData.registrationNumber = registrationNumber;
-    if (registrationCouncil !== undefined)
-      updateData.registrationCouncil = registrationCouncil;
-    if (registrationStateCode !== undefined)
-      updateData.registrationStateCode = registrationStateCode;
-    if (licenseNumber !== undefined) updateData.licenseNumber = licenseNumber;
-    if (licenseExpiry !== undefined) updateData.licenseExpiry = licenseExpiry;
-    if (signatureUrl !== undefined) {
-      updateData.signatureUrl = signatureUrl;
-      updateData.signatureUploadedAt = signatureUrl ? new Date() : null;
-    }
-    if (profilePhotoUrl !== undefined)
-      updateData.profilePhotoUrl = profilePhotoUrl;
-    if (phoneNumber !== undefined) updateData.phoneNumber = phoneNumber;
-    if (bio !== undefined) updateData.bio = bio;
-    if (yearsOfExperience !== undefined)
-      updateData.yearsOfExperience = yearsOfExperience;
-    if (consultationFee !== undefined)
-      updateData.consultationFee = consultationFee;
-
-    const result = await this.prisma.user.updateMany({
-      where: { id },
-      data: updateData,
-    });
-
-    if (result.count === 0) {
-      throw new NotFoundException(`Doctor with ID ${id} not found`);
-    }
-
-    const user = await this.prisma.user.findFirst({
-      where: { id },
-      select: {
-        id: true,
-        email: true,
-        name: true,
-        role: true,
-        specialization: true,
-        hospitalRole: true,
-        qualification: true,
-        registrationNumber: true,
-        registrationCouncil: true,
-        registrationStateCode: true,
-        licenseNumber: true,
-        signatureUrl: true,
-        signatureUploadedAt: true,
-        verificationStatus: true,
-        verificationSource: true,
-        verificationRef: true,
-        verificationReason: true,
-        verificationData: true,
-        verificationCheckedAt: true,
-        profilePhotoUrl: true,
-        bio: true,
-        yearsOfExperience: true,
-        consultationFee: true,
-      },
-    });
-
-    if (!user) {
-      throw new NotFoundException(`Doctor with ID ${id} not found`);
-    }
-
-    if (
-      registrationNumber !== undefined ||
-      registrationCouncil !== undefined ||
-      registrationStateCode !== undefined ||
-      licenseNumber !== undefined ||
-      name !== undefined
-    ) {
-      await this.doctorVerificationService.verifyAndPersistDoctorVerification(
-        id,
-      );
-      return this.findOne(id, clinicId);
-    }
-
-    if (role) {
-      await this.prisma.doctorClinic.updateMany({
-        where: { doctorId: id },
-        data: { role },
-      });
-    }
-
-    return this.resolveDoctorSignatureUrl(user);
-  }
-
-  async createSignatureUploadSession(id: string, clinicId?: string) {
-    if (clinicId) await this.findOne(id, clinicId);
-
-    return this.signatureUploadService.generateUploadToken(id);
-  }
-
-  async reverifyDoctor(id: string, clinicId?: string) {
-    if (clinicId) await this.findOne(id, clinicId);
-    return this.doctorVerificationService.verifyAndPersistDoctorVerification(
-      id,
+    this.commandService = new DoctorsCommandService(
+      prisma,
+      doctorVerificationService,
+      signatureUploadService,
+      storedFileUrlResolver,
+      storageProvider,
+      this.queryService,
+      profileService,
+      adminVerificationService,
     );
   }
 
-  async adminVerifyDoctor(doctorId: string, adminId: string, note?: string) {
-    const doctor = await this.prisma.user.findUnique({
-      where: { id: doctorId },
-      select: { id: true, role: true, registrationNumber: true },
-    });
-    if (!doctor) throw new NotFoundException('Doctor not found');
-    if (doctor.role !== Role.DOCTOR && doctor.role !== Role.ADMIN_DOCTOR) {
-      throw new BadRequestException('Only doctor accounts can be verified');
-    }
-    if (!doctor.registrationNumber) {
-      throw new BadRequestException(
-        'Doctor must submit a registration number before verification',
-      );
-    }
-
-    await this.prisma.user.update({
-      where: { id: doctorId },
-      data: {
-        verificationStatus: DoctorVerificationStatus.VERIFIED,
-        verificationSource: 'MANUAL_ADMIN',
-        verificationReason: note?.trim() || null,
-        verificationCheckedAt: new Date(),
-        verifiedByAdminId: adminId,
-        verifiedByAdminAt: new Date(),
-      },
-    });
-
-    return this.findOne(doctorId);
+  findAll(clinicId: string) {
+    return this.queryService.findAll(clinicId);
   }
 
-  async adminRejectDoctor(doctorId: string, adminId: string, reason: string) {
-    const trimmed = reason?.trim();
-    if (!trimmed) {
-      throw new BadRequestException(
-        'A rejection reason is required so the doctor knows what to fix',
-      );
-    }
-
-    const doctor = await this.prisma.user.findUnique({
-      where: { id: doctorId },
-      select: { id: true, role: true },
-    });
-    if (!doctor) throw new NotFoundException('Doctor not found');
-    if (doctor.role !== Role.DOCTOR && doctor.role !== Role.ADMIN_DOCTOR) {
-      throw new BadRequestException('Only doctor accounts can be rejected');
-    }
-
-    await this.prisma.user.update({
-      where: { id: doctorId },
-      data: {
-        verificationStatus: DoctorVerificationStatus.REJECTED,
-        verificationSource: 'MANUAL_ADMIN',
-        verificationReason: trimmed,
-        verificationCheckedAt: new Date(),
-        verifiedByAdminId: adminId,
-        verifiedByAdminAt: new Date(),
-      },
-    });
-
-    return this.findOne(doctorId);
+  findOne(id: string, clinicId?: string) {
+    return this.queryService.findOne(id, clinicId);
   }
 
-  async uploadRegistrationCertificate(doctorId: string, file: StorageFile) {
-    const doctor = await this.prisma.user.findUnique({
-      where: { id: doctorId },
-      select: { id: true, role: true, verificationStatus: true },
-    });
-    if (!doctor) throw new NotFoundException('Doctor not found');
-    if (doctor.role !== Role.DOCTOR && doctor.role !== Role.ADMIN_DOCTOR) {
-      throw new BadRequestException(
-        'Only doctor accounts can upload a registration certificate',
-      );
-    }
-
-    const fileUrl = await this.storageProvider.upload(
-      file,
-      'registration-certificates',
-      {
-        metadata: {
-          asset_type: 'registration_certificate',
-          doctor_id: doctorId,
-          modified_at: new Date().toISOString(),
-          modified_by: doctorId,
-        },
-      },
-    );
-
-    const shouldRequeue =
-      doctor.verificationStatus === DoctorVerificationStatus.REJECTED ||
-      doctor.verificationStatus === DoctorVerificationStatus.FAILED ||
-      doctor.verificationStatus === DoctorVerificationStatus.UNVERIFIED;
-
-    await this.prisma.user.update({
-      where: { id: doctorId },
-      data: {
-        registrationCertificateUrl: fileUrl,
-        ...(shouldRequeue
-          ? {
-              verificationStatus: DoctorVerificationStatus.PENDING,
-              verificationSource: 'MANUAL_ADMIN',
-              verificationReason:
-                'Certificate uploaded — pending admin review.',
-              verificationCheckedAt: new Date(),
-              verifiedByAdminId: null,
-              verifiedByAdminAt: null,
-            }
-          : {}),
-      },
-    });
-
-    const resolved =
-      await this.storedFileUrlResolver.resolveWithStoredUrl(fileUrl);
-    return {
-      success: true,
-      registrationCertificateUrl: resolved.url ?? fileUrl,
-      registrationCertificateStoredUrl: resolved.storedUrl ?? fileUrl,
-    };
+  create(
+    clinicId: string,
+    data: Parameters<DoctorsCommandService['create']>[1],
+  ) {
+    return this.commandService.create(clinicId, data);
   }
 
-  async listDoctorsForAdminReview() {
-    const doctors = await this.prisma.user.findMany({
-      where: {
-        role: { in: [Role.DOCTOR, Role.ADMIN_DOCTOR] },
-        verificationStatus: {
-          in: [
-            DoctorVerificationStatus.PENDING,
-            DoctorVerificationStatus.FAILED,
-          ],
-        },
-      },
-      select: {
-        id: true,
-        name: true,
-        email: true,
-        registrationNumber: true,
-        registrationCouncil: true,
-        registrationStateCode: true,
-        registrationCertificateUrl: true,
-        verificationStatus: true,
-        verificationReason: true,
-        verificationSource: true,
-        verificationCheckedAt: true,
-        clinic: { select: { id: true, name: true } },
-      },
-      orderBy: { verificationCheckedAt: 'asc' },
-    });
-    return doctors;
+  update(
+    id: string,
+    data: Parameters<DoctorsCommandService['update']>[1],
+    clinicId?: string,
+  ) {
+    return this.commandService.update(id, data, clinicId);
   }
 
-  async remove(id: string, clinicId?: string) {
-    if (clinicId) await this.findOne(id, clinicId);
-
-    await this.prisma.doctorEducation.deleteMany({
-      where: { doctorId: id },
-    });
-    await this.prisma.doctorCertification.deleteMany({
-      where: { doctorId: id },
-    });
-    await this.prisma.doctorSpecialization.deleteMany({
-      where: { doctorId: id },
-    });
-    await this.prisma.doctorClinic.deleteMany({
-      where: { doctorId: id },
-    });
-
-    const result = await this.prisma.user.deleteMany({
-      where: { id },
-    });
-
-    if (result.count === 0) {
-      throw new NotFoundException(`Doctor with ID ${id} not found`);
-    }
-
-    return { success: true };
+  createSignatureUploadSession(id: string, clinicId?: string) {
+    return this.commandService.createSignatureUploadSession(id, clinicId);
   }
 
-  async addEducation(doctorId: string, data: CreateEducationData) {
-    return this.prisma.doctorEducation.create({
-      data: {
-        doctorId,
-        ...data,
-      },
-    });
+  reverifyDoctor(id: string, clinicId?: string) {
+    return this.commandService.reverifyDoctor(id, clinicId);
   }
 
-  async updateEducation(
+  adminVerifyDoctor(doctorId: string, adminId: string, note?: string) {
+    return this.commandService.adminVerifyDoctor(doctorId, adminId, note);
+  }
+
+  adminRejectDoctor(doctorId: string, adminId: string, reason: string) {
+    return this.commandService.adminRejectDoctor(doctorId, adminId, reason);
+  }
+
+  uploadRegistrationCertificate(doctorId: string, file: StorageFile) {
+    return this.commandService.uploadRegistrationCertificate(doctorId, file);
+  }
+
+  listDoctorsForAdminReview() {
+    return this.queryService.listDoctorsForAdminReview();
+  }
+
+  remove(id: string, clinicId?: string) {
+    return this.commandService.remove(id, clinicId);
+  }
+
+  addEducation(
+    doctorId: string,
+    data: Parameters<DoctorsCommandService['addEducation']>[1],
+  ) {
+    return this.commandService.addEducation(doctorId, data);
+  }
+
+  updateEducation(
     educationId: string,
-    data: Partial<CreateEducationData>,
+    data: Parameters<DoctorsCommandService['updateEducation']>[1],
     doctorId?: string,
   ) {
-    if (doctorId) {
-      const existing = await this.prisma.doctorEducation.findFirst({
-        where: { id: educationId, doctorId },
-      });
-      if (!existing) throw new NotFoundException('Education record not found');
-    }
-    return this.prisma.doctorEducation.update({
-      where: { id: educationId },
-      data,
-    });
+    return this.commandService.updateEducation(educationId, data, doctorId);
   }
 
-  async removeEducation(educationId: string, doctorId?: string) {
-    if (doctorId) {
-      const existing = await this.prisma.doctorEducation.findFirst({
-        where: { id: educationId, doctorId },
-      });
-      if (!existing) throw new NotFoundException('Education record not found');
-    }
-    await this.prisma.doctorEducation.delete({
-      where: { id: educationId },
-    });
-    return { success: true };
+  removeEducation(educationId: string, doctorId?: string) {
+    return this.commandService.removeEducation(educationId, doctorId);
   }
 
-  async getEducationHistory(doctorId: string) {
-    return this.prisma.doctorEducation.findMany({
-      where: { doctorId },
-      orderBy: { order: 'asc' },
-    });
+  getEducationHistory(doctorId: string) {
+    return this.queryService.getEducationHistory(doctorId);
   }
 
-  async addCertification(doctorId: string, data: CreateCertificationData) {
-    return this.prisma.doctorCertification.create({
-      data: {
-        doctorId,
-        ...data,
-      },
-    });
+  addCertification(
+    doctorId: string,
+    data: Parameters<DoctorsCommandService['addCertification']>[1],
+  ) {
+    return this.commandService.addCertification(doctorId, data);
   }
 
-  async updateCertification(
+  updateCertification(
     certificationId: string,
-    data: Partial<CreateCertificationData>,
+    data: Parameters<DoctorsCommandService['updateCertification']>[1],
     doctorId?: string,
   ) {
-    if (doctorId) {
-      const existing = await this.prisma.doctorCertification.findFirst({
-        where: { id: certificationId, doctorId },
-      });
-      if (!existing)
-        throw new NotFoundException('Certification record not found');
-    }
-    return this.prisma.doctorCertification.update({
-      where: { id: certificationId },
+    return this.commandService.updateCertification(
+      certificationId,
       data,
-    });
+      doctorId,
+    );
   }
 
-  async removeCertification(certificationId: string, doctorId?: string) {
-    if (doctorId) {
-      const existing = await this.prisma.doctorCertification.findFirst({
-        where: { id: certificationId, doctorId },
-      });
-      if (!existing)
-        throw new NotFoundException('Certification record not found');
-    }
-    await this.prisma.doctorCertification.delete({
-      where: { id: certificationId },
-    });
-    return { success: true };
+  removeCertification(certificationId: string, doctorId?: string) {
+    return this.commandService.removeCertification(certificationId, doctorId);
   }
 
-  async getCertifications(doctorId: string) {
-    return this.prisma.doctorCertification.findMany({
-      where: { doctorId },
-      orderBy: { issueDate: 'desc' },
-    });
+  getCertifications(doctorId: string) {
+    return this.queryService.getCertifications(doctorId);
   }
 
-  async addSpecialization(
+  addSpecialization(
     doctorId: string,
     specialization: Specialization,
     yearsOfPractice?: number,
   ) {
-    return this.prisma.doctorSpecialization.create({
-      data: {
-        doctorId,
-        specialization,
-        yearsOfPractice,
-      },
-    });
+    return this.commandService.addSpecialization(
+      doctorId,
+      specialization,
+      yearsOfPractice,
+    );
   }
 
-  async removeSpecialization(doctorId: string, specialization: Specialization) {
-    await this.prisma.doctorSpecialization.delete({
-      where: {
-        doctorId_specialization: {
-          doctorId,
-          specialization,
-        },
-      },
-    });
-    return { success: true };
+  removeSpecialization(doctorId: string, specialization: Specialization) {
+    return this.commandService.removeSpecialization(doctorId, specialization);
   }
 
-  async getSpecializations(doctorId: string) {
-    return this.prisma.doctorSpecialization.findMany({
-      where: { doctorId },
-    });
+  getSpecializations(doctorId: string) {
+    return this.queryService.getSpecializations(doctorId);
   }
 
   getAvailableSpecializations() {
-    return Object.values(Specialization).map((spec: string) => ({
-      value: spec,
-      label: this.formatSpecializationLabel(spec),
-    }));
+    return this.queryService.getAvailableSpecializations();
   }
 
   getAvailableHospitalRoles() {
-    return Object.values(HospitalRole).map((role: string) => ({
-      value: role,
-      label: this.formatHospitalRoleLabel(role),
-    }));
-  }
-
-  private formatSpecializationLabel(spec: string): string {
-    return spec
-      .split('_')
-      .map((word) => word.charAt(0) + word.slice(1).toLowerCase())
-      .join(' ');
-  }
-
-  private formatHospitalRoleLabel(role: string): string {
-    return role
-      .split('_')
-      .map((word) => word.charAt(0) + word.slice(1).toLowerCase())
-      .join(' ');
+    return this.queryService.getAvailableHospitalRoles();
   }
 }

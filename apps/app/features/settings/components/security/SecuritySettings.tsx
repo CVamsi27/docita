@@ -22,14 +22,14 @@ import Link from "next/link";
 import { Feature } from "@workspace/types";
 import { usePermissionStore } from "@/lib/stores/permission-store";
 import { FeatureTierBadge } from "@/features/_shared/components/auth/feature-gate";
-import { SUBSCRIPTION_SETTINGS_PATH } from "@/lib/subscription-settings-path";
+import { SUBSCRIPTION_SETTINGS_PATH } from "@/lib/subscription/subscription-settings-path";
 import {
   ClinicAppSettings,
   useClinicSettings,
   useUpdateClinicSettings,
 } from "@/hooks/api/use-settings";
 import { toast } from "sonner";
-import { showUserFacingErrorToast } from "@/lib/user-facing-errors";
+import { showUserFacingErrorToast } from "@/lib/errors/user-facing-errors";
 import {
   Form,
   FormControl,

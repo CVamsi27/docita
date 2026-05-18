@@ -14,8 +14,8 @@ import {
 } from "@workspace/types";
 import { usePermissions } from "@/hooks/use-permissions";
 import { usePermissionStore } from "@/lib/stores/permission-store";
-import { useAuth } from "@/lib/auth-context";
-import { canAccessTarget } from "@/lib/access-policy";
+import { useAuth } from "@/lib/auth/auth-context";
+import { canAccessTarget } from "@/lib/access-control/access-policy";
 import { isConsultationReadOnlyStatus } from "@/features/appointments";
 
 interface ConsultationVisitOverviewStripProps {

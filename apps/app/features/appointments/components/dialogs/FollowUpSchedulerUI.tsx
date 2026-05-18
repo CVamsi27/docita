@@ -24,6 +24,7 @@ import {
 import { DocitaLoadingIndicator } from "@workspace/ui/components/docita-loading-indicator";
 import { Calendar as CalendarIcon, CalendarPlus, Check } from "lucide-react";
 import { formatDate } from "@workspace/utils";
+import type { DurationOption } from "@workspace/types";
 import { cn } from "@workspace/ui/lib/utils";
 import { FollowUpForm } from "@/features/appointments/components/sections/follow-up/FollowUpForm";
 import { QuickScheduleButtons } from "@/features/appointments/components/sections/follow-up/QuickScheduleButtons";
@@ -44,10 +45,8 @@ export interface FollowUpType {
   label: string;
 }
 
-export interface ReminderOption {
-  value: number;
-  label: string;
-}
+/** ReminderOption is structurally identical to DurationOption — use the shared type. */
+export type ReminderOption = DurationOption;
 
 interface FollowUpSchedulerUIProps {
   open: boolean;

@@ -14,8 +14,8 @@ import { FloatingInput } from "@workspace/ui/components/floating-input";
 import { SymbolTooltip } from "@workspace/ui/components/tooltip";
 import { getUserFacingErrorMessage, passwordSchema } from "@workspace/types";
 import { BackButton } from "@/components/common/navigation/back-button";
-import { api } from "@/lib/api-client";
-import { logger } from "@/lib/logger";
+import { api } from "@/lib/api/api-client";
+import { logger } from "@/lib/monitoring/logger";
 import { PreDashboardShell } from "./PreDashboardShell";
 
 const resetPasswordSchema = z

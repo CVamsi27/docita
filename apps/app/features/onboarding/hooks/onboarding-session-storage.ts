@@ -1,0 +1,136 @@
+/**
+ * Pure session-storage helpers for the clinic registration flow.
+ * No React, no hooks — just read/write/clear helpers.
+ */
+import { ApiError } from "@/lib/errors";
+import {
+  type ClinicRegistrationData,
+  defaultClinicRegistrationData,
+} from "@/features/onboarding/components/types";
+
+export const SESSION_KEY = "docita_onboarding_step";
+export const SESSION_ONBOARDING_ID_KEY = "docita_onboarding_id";
+export const SESSION_FORM_DATA_KEY = "docita_onboarding_form_data";
+
+export const RESTARTABLE_ONBOARDING_ERROR =
+  /onboarding session not found|expired|validation|missing required/i;
+
+interface RestartableOnboardingError extends Error {
+  restartOnboarding?: boolean;
+}
+
+export function isRestartableOnboardingError(error: unknown): boolean {
+  if (
+    error &&
+    typeof error === "object" &&
+    "restartOnboarding" in error &&
+    (error as RestartableOnboardingError).restartOnboarding === true
+  ) {
+    return true;
+  }
+  if (error instanceof ApiError) {
+    return error.statusCode === 400 || error.statusCode === 404;
+  }
+  const rawMessage =
+    error instanceof Error ? error.message : String(error ?? "");
+  return RESTARTABLE_ONBOARDING_ERROR.test(rawMessage);
+}
+
+export function getPersistedStep(): number {
+  if (typeof sessionStorage === "undefined") return 1;
+  try {
+    const v = sessionStorage.getItem(SESSION_KEY);
+    const n = v ? parseInt(v, 10) : 1;
+    const clamped = isNaN(n) ? 1 : Math.max(1, Math.min(n, 5));
+    const persistedOnboardingId = sessionStorage.getItem(SESSION_ONBOARDING_ID_KEY);
+    // Step 5 (compliance) requires an onboarding session ID (used for QR signature flow).
+    // If an older/stale session has step 5 but no ID, recover to step 4.
+    if (clamped >= 5 && !persistedOnboardingId) return 4;
+    return clamped;
+  } catch {
+    return 1;
+  }
+}
+
+export function getPersistedOnboardingId(): string | null {
+  if (typeof sessionStorage === "undefined") return null;
+  try {
+    return sessionStorage.getItem(SESSION_ONBOARDING_ID_KEY);
+  } catch {
+    return null;
+  }
+}
+
+export function getPersistedFormData(): ClinicRegistrationData {
+  if (typeof sessionStorage === "undefined") return defaultClinicRegistrationData;
+  try {
+    const raw = sessionStorage.getItem(SESSION_FORM_DATA_KEY);
+    if (!raw) return defaultClinicRegistrationData;
+    const parsed = JSON.parse(raw) as Partial<ClinicRegistrationData>;
+    return {
+      ...defaultClinicRegistrationData,
+      ...parsed,
+      clinicDetails: {
+        ...defaultClinicRegistrationData.clinicDetails,
+        ...(parsed.clinicDetails || {}),
+      },
+      compliance: {
+        ...defaultClinicRegistrationData.compliance,
+        ...(parsed.compliance || {}),
+      },
+      planSelection: {
+        ...defaultClinicRegistrationData.planSelection,
+        ...(parsed.planSelection || {}),
+      },
+      paymentDetails: {
+        ...defaultClinicRegistrationData.paymentDetails,
+        ...(parsed.paymentDetails || {}),
+      },
+      teamMembers: Array.isArray(parsed.teamMembers)
+        ? parsed.teamMembers
+        : defaultClinicRegistrationData.teamMembers,
+      clinicWeeklyHours:
+        Array.isArray(parsed.clinicWeeklyHours) &&
+        parsed.clinicWeeklyHours.length === 7
+          ? parsed.clinicWeeklyHours
+          : defaultClinicRegistrationData.clinicWeeklyHours,
+    };
+  } catch {
+    return defaultClinicRegistrationData;
+  }
+}
+
+export function clearOnboardingSession(): void {
+  try {
+    sessionStorage.removeItem(SESSION_KEY);
+    sessionStorage.removeItem(SESSION_ONBOARDING_ID_KEY);
+    sessionStorage.removeItem(SESSION_FORM_DATA_KEY);
+  } catch {
+    /* ignore */
+  }
+}
+
+export function persistStep(n: number): void {
+  try {
+    sessionStorage.setItem(SESSION_KEY, String(n));
+  } catch {
+    /* ignore */
+  }
+}
+
+export function persistOnboardingId(id: string | null): void {
+  try {
+    if (id) sessionStorage.setItem(SESSION_ONBOARDING_ID_KEY, id);
+    else sessionStorage.removeItem(SESSION_ONBOARDING_ID_KEY);
+  } catch {
+    /* ignore */
+  }
+}
+
+export function persistFormData(data: ClinicRegistrationData): void {
+  try {
+    sessionStorage.setItem(SESSION_FORM_DATA_KEY, JSON.stringify(data));
+  } catch {
+    /* ignore */
+  }
+}

@@ -9,7 +9,7 @@ import {
 } from "@/hooks/api/use-appointments";
 import { useClinicSettings } from "@/hooks/api/use-settings";
 import { useBackNavigation } from "@/hooks/use-back-navigation";
-import { useAuth } from "@/lib/auth-context";
+import { useAuth } from "@/lib/auth/auth-context";
 import { usePermissions } from "@/hooks/use-permissions";
 import { UpdateAppointmentInput } from "@workspace/types";
 export const useConsultationLogic = (appointmentId: string) => {

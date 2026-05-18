@@ -37,16 +37,16 @@ vi.mock("@/hooks/api/use-settings", () => ({
   }),
 }));
 
-vi.mock("@/lib/user-facing-errors", async (importOriginal) => {
+vi.mock("@/lib/errors/user-facing-errors", async (importOriginal) => {
   const mod =
-    await importOriginal<typeof import("@/lib/user-facing-errors")>();
+    await importOriginal<typeof import("@/lib/errors/user-facing-errors")>();
   return {
     ...mod,
     showUserFacingErrorToast: appointmentMocks.showError,
   };
 });
 
-vi.mock("@/lib/clinic-context", () => ({
+vi.mock("@/lib/contexts/clinic-context", () => ({
   useClinic: () => ({
     clinicId: "clinic_1",
     clinic: { timezone: "Asia/Kolkata" },

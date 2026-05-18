@@ -2,7 +2,7 @@ import { fireEvent, render, screen } from "@testing-library/react";
 import { describe, expect, it, vi } from "vitest";
 import { AddPatientDialog } from "./PatientDialogs";
 
-vi.mock("@/lib/clinic-context", () => ({
+vi.mock("@/lib/contexts/clinic-context", () => ({
   useClinic: () => ({
     clinic: { countryCode: "IN" },
   }),

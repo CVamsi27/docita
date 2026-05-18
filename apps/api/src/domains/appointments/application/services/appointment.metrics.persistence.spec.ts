@@ -7,6 +7,9 @@ import { EventEmitter2 } from '@nestjs/event-emitter';
 import { Appointment } from '@/domains/appointments/core/entities/appointment.entity';
 import { AppointmentStatus } from '@/domains/appointments/core/value-objects/appointment-status.value-object';
 import { AppointmentSchedulingRulesService } from '@/domains/appointments/core/domain-services/appointment-scheduling-rules.service';
+import { AppointmentMetricsService } from './appointment-metrics.service';
+import { AppointmentMetricDefinitionService } from './appointment-metric-definition.service';
+import { AppointmentDiagnosisService } from './appointment-diagnosis.service';
 
 describe('AppointmentService metric persistence', () => {
   const mockAppointmentRepository = {
@@ -92,12 +95,42 @@ describe('AppointmentService metric persistence', () => {
       $transaction: { value: mockPrisma.$transaction, writable: true },
     });
 
+    const metricDefinitionService = Object.create(
+      AppointmentMetricDefinitionService.prototype,
+    ) as AppointmentMetricDefinitionService;
+    Object.defineProperty(metricDefinitionService, 'prisma', {
+      value: prisma,
+      writable: true,
+    });
+
+    const metricsService = Object.create(
+      AppointmentMetricsService.prototype,
+    ) as AppointmentMetricsService;
+    Object.defineProperty(metricsService, 'prisma', {
+      value: prisma,
+      writable: true,
+    });
+    Object.defineProperty(metricsService, 'metricDefinitionService', {
+      value: metricDefinitionService,
+      writable: true,
+    });
+
+    const diagnosisService = Object.create(
+      AppointmentDiagnosisService.prototype,
+    ) as AppointmentDiagnosisService;
+    Object.defineProperty(diagnosisService, 'prisma', {
+      value: prisma,
+      writable: true,
+    });
+
     service = new AppointmentService(
       appointmentRepository,
       createAppointmentUseCase,
       prisma,
       eventEmitter,
       mockSchedulingRules,
+      metricsService,
+      diagnosisService,
     );
   });
 

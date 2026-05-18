@@ -6,7 +6,7 @@ import {
   useCancelAppointment,
   useUpdateAppointment,
 } from "@/hooks/api/use-appointments";
-import { showUserFacingErrorToast } from "@/lib/user-facing-errors";
+import { showUserFacingErrorToast } from "@/lib/errors/user-facing-errors";
 
 export interface UseAppointmentRowActionsOptions {
   /** Called after a successful cancel/no-show so the consumer can refetch its own list. */

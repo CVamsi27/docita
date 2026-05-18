@@ -3,7 +3,7 @@
 import { useRouter } from "next/navigation";
 import { CheckCircle2 } from "lucide-react";
 import { Button } from "@workspace/ui/components/button";
-import { useAuth, type User } from "@/lib/auth-context";
+import { useAuth, type User } from "@/lib/auth/auth-context";
 
 function getNextPathForVerifiedUser(user: User | null): string {
   if (!user) {

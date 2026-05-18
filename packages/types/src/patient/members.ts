@@ -56,7 +56,8 @@ export const teamMemberSchema = z.object({
 
 export type TeamMember = z.infer<typeof teamMemberSchema>;
 
-export const clinicDoctorSchema = teamMemberSchema;
+/** Alias for {@link teamMemberSchema} scoped to doctor-role members. */
+export const clinicDoctorSchema = teamMemberSchema.describe("ClinicDoctor");
 export type ClinicDoctor = z.infer<typeof clinicDoctorSchema>;
 
 export const clinicReceptionistSchema = z.object({

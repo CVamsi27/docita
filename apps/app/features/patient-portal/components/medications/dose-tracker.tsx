@@ -13,7 +13,7 @@ import { Check, Clock, X } from "lucide-react";
 import { toast } from "sonner";
 import { formatDate } from "@workspace/utils";
 import { usePortalDoseHistory, useRecordPortalDose } from "@/hooks/api/use-patient-portal";
-import { showUserFacingErrorToast } from "@/lib/user-facing-errors";
+import { showUserFacingErrorToast } from "@/lib/errors/user-facing-errors";
 
 interface DoseTrackerProps {
   medicationId: string;

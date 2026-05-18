@@ -19,15 +19,15 @@ import {
   useCheckInAppointment,
   useStartConsultation,
 } from "@/hooks/api/use-appointments";
-import { useAuth } from "@/lib/auth-context";
-import { showUserFacingErrorToast } from "@/lib/user-facing-errors";
+import { useAuth } from "@/lib/auth/auth-context";
+import { showUserFacingErrorToast } from "@/lib/errors/user-facing-errors";
 import { useDebounce } from "@workspace/hooks/use-debounce";
 import {
   isClinicWideAppointmentRole,
   resolveDoctorScopedAppointmentFilter,
 } from "@workspace/types";
 import { useAppointmentRowActions } from "@/features/appointments/hooks/use-appointment-row-actions";
-import { useClinic } from "@/lib/clinic-context";
+import { useClinic } from "@/lib/contexts/clinic-context";
 
 export const generateTimeSlots = () => {
   const slots = [];

@@ -24,7 +24,7 @@ import {
   useUpdateClinicSettings,
 } from "@/hooks/api/use-settings";
 import { toast } from "sonner";
-import { showUserFacingErrorToast } from "@/lib/user-facing-errors";
+import { showUserFacingErrorToast } from "@/lib/errors/user-facing-errors";
 import {
   Form,
   FormControl,
@@ -34,7 +34,7 @@ import {
 import Link from "next/link";
 import { usePermissionStore } from "@/lib/stores/permission-store";
 import { Feature } from "@workspace/types";
-import { SUBSCRIPTION_SETTINGS_PATH } from "@/lib/subscription-settings-path";
+import { SUBSCRIPTION_SETTINGS_PATH } from "@/lib/subscription/subscription-settings-path";
 
 const notificationSettingsSchema = z.object({
   whatsappNotifications: z.boolean().optional(),

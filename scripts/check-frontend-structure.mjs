@@ -19,4 +19,3 @@ if (write) {
     `Wrote structure evidence (${result.frontendIssues} frontend finding(s), ${result.backendIssues} backend finding(s)).`,
   );
 }
-

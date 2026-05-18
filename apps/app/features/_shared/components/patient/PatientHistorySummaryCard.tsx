@@ -335,4 +335,3 @@ export const PatientHistorySummaryCard: FC<PatientHistorySummaryCardProps> = ({
   );
 };
 
-export default PatientHistorySummaryCard;

@@ -11,10 +11,10 @@ import { Alert, AlertDescription, AlertTitle } from '@workspace/ui/components/al
 import { Badge } from '@workspace/ui/components/badge';
 import { DATE_FORMATS, formatDate, formatDistanceToNow } from '@workspace/utils';
 import { toast } from 'sonner';
-import { typedApi } from '@/lib/api-client';
+import { typedApi } from '@/lib/api/api-client';
 import { PageTransitionLoader } from '@/components/common/loaders/page-transition-loader';
-import { useAuth } from '@/lib/auth-context';
-import { showUserFacingErrorToast } from "@/lib/user-facing-errors";
+import { useAuth } from '@/lib/auth/auth-context';
+import { showUserFacingErrorToast } from "@/lib/errors/user-facing-errors";
 import { PreDashboardShell } from '@/features/auth/components/PreDashboardShell';
 import { BackButton } from "@/components/common/navigation/back-button";
 

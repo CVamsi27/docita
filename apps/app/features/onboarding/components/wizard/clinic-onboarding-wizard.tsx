@@ -3,7 +3,7 @@
 import { useEffect, useState } from "react";
 import { ClinicRegistrationForm } from "@/features/onboarding/components/forms/clinic-registration-form";
 import { useRouter } from "next/navigation";
-import { useAuth } from "@/lib/auth-context";
+import { useAuth } from "@/lib/auth/auth-context";
 import { PageTransitionLoader } from "@/components/common/loaders/page-transition-loader";
 
 export function ClinicOnboardingWizard() {

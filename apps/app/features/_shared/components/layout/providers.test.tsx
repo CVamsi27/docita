@@ -12,15 +12,15 @@ vi.mock("next-themes", () => ({
     themeProviderMock({ children, nonce }),
 }));
 
-vi.mock("@/lib/socket-context", () => ({
+vi.mock("@/lib/contexts/socket-context", () => ({
   SocketProvider: ({ children }: { children: ReactNode }) => <>{children}</>,
 }));
 
-vi.mock("@/lib/tier-config-context", () => ({
+vi.mock("@/lib/contexts/tier-config-context", () => ({
   TierConfigProvider: ({ children }: { children: ReactNode }) => <>{children}</>,
 }));
 
-vi.mock("@/lib/app-config-context", () => ({
+vi.mock("@/lib/contexts/app-config-context", () => ({
   AppConfigProvider: ({ children }: { children: ReactNode }) => <>{children}</>,
 }));
 

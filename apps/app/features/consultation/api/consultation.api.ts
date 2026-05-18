@@ -1,4 +1,4 @@
-import { api } from "@/lib/api-client";
+import { api } from "@/lib/api/api-client";
 import type { UpdateAppointmentRequest, VitalSign } from "@workspace/types";
 import {
   appointmentResponseSchema,

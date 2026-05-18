@@ -8,11 +8,11 @@ import { ChevronUp, Stethoscope } from "lucide-react";
 import { cn } from "@workspace/ui/lib/utils";
 import { usePermissions } from "@/hooks/use-permissions";
 import { useQueueByDoctor, useStartConsultation } from "@/hooks/api/use-appointments";
-import { useAuth } from "@/lib/auth-context";
+import { useAuth } from "@/lib/auth/auth-context";
 import { usePermissionStore } from "@/lib/stores/permission-store";
-import { canAccessTarget } from "@/lib/access-policy";
+import { canAccessTarget } from "@/lib/access-control/access-policy";
 import { APP_ACCESS_TARGETS } from "@workspace/types";
-import { showUserFacingErrorToast } from "@/lib/user-facing-errors";
+import { showUserFacingErrorToast } from "@/lib/errors/user-facing-errors";
 
 interface FloatingStartConsultationProps {
   patientId?: string;

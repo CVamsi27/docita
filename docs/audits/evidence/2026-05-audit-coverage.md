@@ -20,25 +20,39 @@ Generated for `security-and-performance-audit-merry-lobster.md`.
 | `pnpm-workspace.yaml` | infra                   | WS-18                                   | workspace membership only                                                                   | Turborepo structure verification                                                            |
 | `turbo.json`          | infra                   | WS-18                                   | task graph correctness and cache boundaries                                                 | `verify:structure`                                                                          |
 | `tsconfig*.json`      | config                  | WS-18                                   | compiler boundaries and path aliases                                                        | type checks                                                                                 |
+| `tsconfig.json`       | config                  | WS-18                                   | root TypeScript compiler config                                                             | type checks                                                                                 |
 | `eslint.config.*`     | config                  | WS-5                                    | repository rule enforcement                                                                 | lint                                                                                        |
 | `knip.json`           | config                  | WS-7                                    | dead-code detector posture                                                                  | `pnpm knip`                                                                                 |
 | `fly.toml`            | infra                   | WS-11                                   | API deployment contract and health checks                                                   | deployment contract checks                                                                  |
 | `render.yaml`         | infra                   | WS-11                                   | staging deploy contract only                                                                | deployment contract checks                                                                  |
 | `components.json`     | config                  | WS-3                                    | UI component registry config                                                                | manual review                                                                               |
+| `.cursor/**`          | config                  | WS-15                                   | developer tooling only                                                                      | manual review                                                                               |
+| `.dockerignore`       | infra                   | WS-11                                   | container build scope                                                                       | manual review                                                                               |
+| `.env.example`        | config                  | WS-15                                   | env variable template — must not contain real secrets                                       | manual review                                                                               |
+| `.gitignore`          | config                  | WS-15                                   | git ignore rules                                                                            | manual review                                                                               |
+| `.gitleaks-envtest.json` | config               | WS-15                                   | secret scanning test fixtures                                                               | manual review                                                                               |
+| `.gitleaks.toml`      | config                  | WS-15                                   | secret scanning config                                                                      | manual review                                                                               |
+| `.node-version`       | config                  | WS-7                                    | Node.js version pin                                                                         | manual review                                                                               |
+| `.npmrc`              | config                  | WS-7                                    | pnpm/npm config                                                                             | manual review                                                                               |
+| `.vercelignore`       | infra                   | WS-11                                   | Vercel deployment ignore                                                                    | manual review                                                                               |
+| `CONTRIBUTING.md`     | docs                    | WS-8                                    | contributor guidelines                                                                      | manual review                                                                               |
+| `docker-compose.yml`  | infra                   | WS-11                                   | local dev compose                                                                           | manual review                                                                               |
+| `loadtest/**`         | infra                   | WS-12                                   | k6 load test scripts                                                                        | manual review                                                                               |
+| `vercel.json`         | infra                   | WS-11                                   | Vercel config (not used for main deploy but present)                                        | manual review                                                                               |
 
 ## Guardrail Script Coverage
 
 | Script                                    | Status       | Notes                                                                                               |
 | ----------------------------------------- | ------------ | --------------------------------------------------------------------------------------------------- |
-| `scripts/check-type-duplicates.mjs`       | report-first | Promotable with `--enforce` after app-local duplicate type findings are resolved.                   |
-| `scripts/check-webhook-signatures.mjs`    | strict       | Public webhook POST handlers must use raw body and signature verification.                          |
-| `scripts/check-upload-validation.mjs`     | report-first | Promotable with `--enforce` after all upload endpoints declare mime, size, and filename validation. |
-| `scripts/check-job-idempotency.mjs`       | report-first | Worker/API processors must declare retry, backoff, lock duration, idempotency, and failure policy.  |
-| `scripts/check-sentry-scrubbing.mjs`      | report-first | Promotable after client and server Sentry configs share the same scrubber.                          |
-| `scripts/check-audit-logging.mjs`         | report-first | Promotable after command services/use-cases have explicit audit markers.                            |
-| `scripts/check-a11y-budget.mjs`           | report-first | Uses `artifacts/a11y-baseline.json` when present.                                                   |
-| `scripts/check-contrast.mjs`              | strict       | Ensures core semantic foreground/background token pairs exist.                                      |
-| `scripts/verify-app-security-headers.mjs` | strict       | Ensures app middleware applies CSP, HSTS, nosniff, Referrer-Policy, and Permissions-Policy.         |
+| `scripts/checks/check-type-duplicates.mjs`       | report-first | Promotable with `--enforce` after app-local duplicate type findings are resolved.                   |
+| `scripts/checks/check-webhook-signatures.mjs`    | strict       | Public webhook POST handlers must use raw body and signature verification.                          |
+| `scripts/checks/check-upload-validation.mjs`     | report-first | Promotable with `--enforce` after all upload endpoints declare mime, size, and filename validation. |
+| `scripts/checks/check-job-idempotency.mjs`       | report-first | Worker/API processors must declare retry, backoff, lock duration, idempotency, and failure policy.  |
+| `scripts/checks/check-sentry-scrubbing.mjs`      | report-first | Promotable after client and server Sentry configs share the same scrubber.                          |
+| `scripts/checks/check-audit-logging.mjs`         | report-first | Promotable after command services/use-cases have explicit audit markers.                            |
+| `scripts/perf/check-a11y-budget.mjs`           | report-first | Uses `artifacts/a11y-baseline.json` when present.                                                   |
+| `scripts/ui/check-contrast.mjs`              | strict       | Ensures core semantic foreground/background token pairs exist.                                      |
+| `scripts/deploy/verify-app-security-headers.mjs` | strict       | Ensures app middleware applies CSP, HSTS, nosniff, Referrer-Policy, and Permissions-Policy.         |
 
 ## Current State
 

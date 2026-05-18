@@ -1,0 +1,195 @@
+import { useEffect, useMemo, useRef, useState } from "react";
+import { toast } from "sonner";
+import { LineItem, type Specialization } from "@workspace/types";
+import { fetchAPI } from "@/lib/api/api-core";
+import { useQueryClient } from "@tanstack/react-query";
+import { showUserFacingErrorToast } from "@/lib/errors/user-facing-errors";
+
+const SPECIALTY_CONSULTATION_FEES: Record<Specialization, number> = {
+  GENERAL_PRACTICE: 500,
+  DENTAL: 500,
+  CARDIOLOGY: 1000,
+  ORTHOPEDICS: 900,
+  PEDIATRICS: 600,
+  GYNECOLOGY: 800,
+  DERMATOLOGY: 700,
+  NEUROLOGY: 1100,
+  PSYCHIATRY: 900,
+  RADIOLOGY: 1000,
+  OPHTHALMOLOGY: 800,
+  ENT: 700,
+  PATHOLOGY: 600,
+  PULMONOLOGY: 900,
+  ONCOLOGY: 1200,
+  NEPHROLOGY: 1000,
+  UROLOGY: 900,
+  GASTROENTEROLOGY: 950,
+  RHEUMATOLOGY: 900,
+  ENDOCRINOLOGY: 900,
+  ANESTHESIOLOGY: 800,
+  EMERGENCY_MEDICINE: 800,
+  FAMILY_MEDICINE: 600,
+  INTERNAL_MEDICINE: 700,
+  PLASTIC_SURGERY: 1500,
+  GENERAL_SURGERY: 1500,
+  OTHER: 800,
+};
+
+interface UseInvoiceFormProps {
+  appointmentId?: string;
+  patientId: string;
+  doctorSpecialization?: Specialization;
+  doctorName?: string;
+  doctorEmail?: string;
+  doctorPhone?: string;
+  doctorRole?: string;
+  doctorRegistrationNumber?: string;
+  doctorLicenseNumber?: string;
+  onInvoiceCreated?: () => void;
+}
+
+export function useInvoiceForm({
+  appointmentId,
+  patientId,
+  doctorSpecialization,
+  doctorName,
+  doctorEmail,
+  doctorPhone,
+  doctorRole,
+  doctorRegistrationNumber,
+  doctorLicenseNumber,
+  onInvoiceCreated,
+}: UseInvoiceFormProps) {
+  const queryClient = useQueryClient();
+
+  const initialItems = useMemo(() => {
+    const basePrice =
+      doctorSpecialization && SPECIALTY_CONSULTATION_FEES[doctorSpecialization]
+        ? SPECIALTY_CONSULTATION_FEES[doctorSpecialization]
+        : 800;
+
+    return [
+      {
+        description: "Consultation Fee",
+        quantity: 1,
+        price: basePrice,
+      },
+    ];
+  }, [doctorSpecialization]);
+
+  const [loading, setLoading] = useState(false);
+  const [status, setStatus] = useState("pending");
+
+  const lastDefaultItemsRef = useRef(initialItems);
+  const [items, setItems] = useState<LineItem[]>(() =>
+    initialItems.map((item) => ({ ...item })),
+  );
+
+  useEffect(() => {
+    if (
+      initialItems !== lastDefaultItemsRef.current &&
+      initialItems.length > 0
+    ) {
+      lastDefaultItemsRef.current = initialItems;
+      setItems(initialItems.map((item) => ({ ...item })));
+    }
+  }, [initialItems]);
+
+  const addItem = (item?: Partial<LineItem>) => {
+    const newItem: LineItem = {
+      description: item?.description || "",
+      quantity: item?.quantity || 1,
+      price: item?.price || 0,
+    };
+    setItems([...items, newItem]);
+  };
+
+  const removeItem = (index: number) => {
+    setItems(items.filter((_, i) => i !== index));
+  };
+
+  const updateItem = (
+    index: number,
+    field: keyof LineItem,
+    value: string | number,
+  ) => {
+    const updated = [...items];
+    if (updated[index]) {
+      updated[index] = { ...updated[index], [field]: value } as LineItem;
+      setItems(updated);
+    }
+  };
+
+  const calculateTotal = () => {
+    return items.reduce((sum, item) => sum + item.quantity * item.price, 0);
+  };
+
+  const resetItems = () => {
+    setItems(initialItems.map((item) => ({ ...item })));
+  };
+
+  const handleSubmit = async (e: React.FormEvent, onSuccess?: () => void) => {
+    e.preventDefault();
+    setLoading(true);
+
+    try {
+      await fetchAPI(`/invoices`, {
+        method: "POST",
+        body: JSON.stringify({
+          appointmentId,
+          patientId,
+          total: calculateTotal(),
+          status,
+          items: items.filter((item) => item.description.trim() !== ""),
+          doctorName,
+          doctorEmail,
+          doctorPhone,
+          doctorSpecialization,
+          doctorRole,
+          doctorRegistrationNumber,
+          doctorLicenseNumber,
+        }),
+      });
+
+      if (appointmentId) {
+        await queryClient.invalidateQueries({
+          queryKey: ["appointments"],
+          refetchType: "active",
+        });
+
+        await queryClient.invalidateQueries({
+          queryKey: ["patients"],
+          refetchType: "active",
+        });
+      }
+
+      resetItems();
+      setStatus("pending");
+      if (onInvoiceCreated) {
+        await onInvoiceCreated();
+      }
+      if (onSuccess) {
+        await onSuccess();
+      }
+      toast.success("Invoice created successfully");
+    } catch {
+      showUserFacingErrorToast(
+        "We could not create this invoice. Please try again.",
+      );
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  return {
+    loading,
+    status,
+    setStatus,
+    items,
+    addItem,
+    removeItem,
+    updateItem,
+    calculateTotal,
+    handleSubmit,
+  };
+}

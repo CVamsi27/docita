@@ -16,7 +16,7 @@ import { CheckCircle2, ExternalLink, X } from "lucide-react";
 import confetti from "canvas-confetti";
 import { useRouter } from "next/navigation";
 import { useClinicCurrency } from "@/hooks/use-clinic-currency";
-import { SUBSCRIPTION_SETTINGS_PATH } from "@/lib/subscription-settings-path";
+import { SUBSCRIPTION_SETTINGS_PATH } from "@/lib/subscription/subscription-settings-path";
 import { formatDate } from "@/lib/formatters";
 
 interface PaymentSuccessModalProps {

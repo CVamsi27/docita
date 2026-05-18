@@ -1,13 +1,15 @@
 "use client";
 
 import { useDeferredValue, useEffect, useMemo, useState } from "react";
+import type { Invoice } from "@workspace/types";
 import Link from "next/link";
 import { useDebounce } from "@workspace/hooks/use-debounce";
 import {
-  type DeskRecordInvoiceSettlementBody,
-  type Invoice,
-  type UserRole,
-} from "@workspace/types";
+  isOpenDeskInvoice,
+  type DeskPaymentMethod,
+  PAYMENT_CHANNEL_OPTIONS,
+  ROLES_CAN_RECORD_PAYMENT,
+} from "./desk-collect-payment-helpers";
 import { AppPageScaffold } from "@workspace/ui/components/app-page-scaffold";
 import { PageHeader } from "@workspace/ui/components/page-header";
 import { DataState } from "@workspace/ui/components/data-state";
@@ -45,41 +47,13 @@ import { usePatients } from "@/hooks/api/use-patients";
 import { useInvoices } from "@/features/invoices";
 import { useDeskRecordInvoiceSettlement } from "@/features/desk/hooks/use-desk-record-invoice-settlement";
 import { useClinicCurrency } from "@/hooks/use-clinic-currency";
-import { useAuth } from "@/lib/auth-context";
+import { useAuth } from "@/lib/auth/auth-context";
 import {
   DATE_FORMAT_OPTIONS_US_LONG,
   formatDate,
 } from "@/lib/formatters";
 import { ExternalLink } from "lucide-react";
 
-function isOpenDeskInvoice(
-  inv: Invoice,
-): inv is Invoice & {
-  status: "PENDING" | "PARTIALLY_PAID" | "OVERDUE";
-} {
-  const s = inv.status;
-  return s === "PENDING" || s === "PARTIALLY_PAID" || s === "OVERDUE";
-}
-
-type DeskPaymentMethod = DeskRecordInvoiceSettlementBody["paymentMethod"];
-
-const PAYMENT_CHANNEL_OPTIONS: {
-  value: DeskPaymentMethod;
-  label: string;
-}[] = [
-  { value: "CASH", label: "Cash" },
-  { value: "CARD_POS", label: "Card (POS / swipe machine)" },
-  { value: "UPI_QR", label: "UPI / QR (e.g. PhonePe)" },
-  { value: "PINELABS", label: "Pine Labs terminal" },
-  { value: "OTHER_TERMINAL", label: "Other card terminal" },
-  { value: "OTHER_ONLINE", label: "Other online payment" },
-];
-
-const ROLES_CAN_RECORD_PAYMENT: ReadonlySet<UserRole> = new Set([
-  "ADMIN",
-  "RECEPTIONIST",
-  "ADMIN_DOCTOR",
-]);
 
 export function DeskCollectPaymentPageUI() {
   const clinicCurrency = useClinicCurrency();

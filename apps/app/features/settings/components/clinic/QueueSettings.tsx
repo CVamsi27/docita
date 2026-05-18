@@ -23,7 +23,7 @@ import {
 import { Input } from "@workspace/ui/components/input";
 import { Switch } from "@workspace/ui/components/switch";
 import { RefreshCw, RotateCcw } from "lucide-react";
-import { showUserFacingErrorToast } from "@/lib/user-facing-errors";
+import { showUserFacingErrorToast } from "@/lib/errors/user-facing-errors";
 import {
   isQueueTokenCompleted,
   isQueueTokenInProgress,

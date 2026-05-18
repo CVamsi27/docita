@@ -1,6 +1,7 @@
 import {
   BadRequestException,
   Injectable,
+  Logger,
   NotFoundException,
   UnauthorizedException,
 } from '@nestjs/common';
@@ -30,6 +31,8 @@ export interface CreateUploadSessionOptions {
 
 @Injectable()
 export class UploadsService {
+  private readonly logger = new Logger(UploadsService.name);
+
   constructor(
     private prisma: PrismaService,
     private storageProvider: StorageProvider,
@@ -164,6 +167,14 @@ export class UploadsService {
     }
 
     this.validateSessionReadyForUpload(session, context?.uploadSecret);
+
+    // AuditLogged: document upload
+    this.logger.log({
+      action: 'document.upload',
+      clinicId: context?.onboardingId,
+      sessionId: id,
+      purpose: session.purpose,
+    });
 
     const modifiedAt = new Date().toISOString();
     const fileUrl = await this.storageProvider.upload(file, 'documents', {

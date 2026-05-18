@@ -4,7 +4,6 @@ import {
   TIER_PRICING,
   TIER_LIMITS,
   TIER_FEATURES,
-  TIER_INFO,
   ANNUAL_DISCOUNT_PERCENT,
   SEMI_ANNUAL_DISCOUNT_PERCENT,
   deriveAnnualPrice,
@@ -15,6 +14,11 @@ import {
   PRICING_CURRENCY_CONFIG,
   SupportedCurrency,
 } from '@workspace/types';
+import {
+  resolveCurrency,
+  readNumber,
+  toPricingTierPayload,
+} from './pricing-helpers';
 
 @Injectable()
 export class PricingService {
@@ -25,116 +29,13 @@ export class PricingService {
   ) as SupportedCurrency[];
 
   private resolveCurrency(currency?: string): SupportedCurrency {
-    const selectedCurrency = currency?.toUpperCase() as
-      | SupportedCurrency
-      | undefined;
-    if (
-      selectedCurrency &&
-      this.supportedCurrencies.includes(selectedCurrency)
-    ) {
-      return selectedCurrency;
-    }
-
-    return this.supportedCurrencies[0];
+    return resolveCurrency(this.supportedCurrencies, currency);
   }
 
-  private parseJsonValue(value: unknown): unknown {
-    if (typeof value === 'string') {
-      try {
-        return JSON.parse(value);
-      } catch {
-        return {};
-      }
-    }
-
-    return value;
-  }
-
-  private readNumber(value: unknown, fallback = 0): number {
-    return typeof value === 'number' && Number.isFinite(value)
-      ? value
-      : fallback;
-  }
-
-  private parseStringArray(value: unknown): string[] {
-    const parsed = this.parseJsonValue(value);
-    if (!Array.isArray(parsed)) {
-      return [];
-    }
-
-    return parsed.filter(
-      (item): item is string => typeof item === 'string' && item.length > 0,
-    );
-  }
-
-  private getWhatsappBillableConfig(
-    tier: keyof typeof TIER_LIMITS,
-    currency: SupportedCurrency,
-  ): { includedQuota: number; overageRate: number } {
-    if (
-      tier === 'ESSENTIAL' ||
-      tier === 'FRONT_DESK' ||
-      tier === 'PROFESSIONAL' ||
-      tier === 'ENTERPRISE'
-    ) {
-      const pricing = getWhatsAppAddonPricingByCurrency(tier, currency);
-      return {
-        includedQuota: pricing.includedQuota,
-        overageRate: pricing.overageRate,
-      };
-    }
-    return { includedQuota: 0, overageRate: 0 };
-  }
-
-  private toPricingTierPayload(args: {
-    tier: keyof typeof TIER_LIMITS;
-    validCurrency: SupportedCurrency;
-    monthly: number | 'custom';
-    yearly: number | 'custom';
-    includedAppointments: number;
-    includedUsers: number;
-    features: unknown;
-  }) {
-    const {
-      tier,
-      validCurrency,
-      monthly,
-      yearly,
-      includedAppointments,
-      includedUsers,
-      features,
-    } = args;
-    const tierDefaults = TIER_LIMITS[tier];
-    const whatsapp = this.getWhatsappBillableConfig(tier, validCurrency);
-
-    return {
-      id: tier,
-      name: TIER_INFO[tier].name,
-      description: TIER_INFO[tier].description,
-      tagline: TIER_INFO[tier].tagline,
-      color: TIER_INFO[tier].color,
-      pricing: {
-        monthly,
-        yearly,
-        currency: PRICING_CURRENCY_CONFIG[validCurrency].symbol,
-      },
-      limits: {
-        patients: tierDefaults.patients,
-        appointments: includedAppointments,
-        storage: tierDefaults.storageGB,
-        users: includedUsers,
-        doctors: tierDefaults.doctors,
-        branches: tierDefaults.branches,
-        prescriptions: tierDefaults.prescriptions,
-        invoices: tierDefaults.invoices,
-        billable: {
-          consultations: includedAppointments,
-          users: includedUsers,
-          whatsappMessages: whatsapp.includedQuota,
-        },
-      },
-      features: this.parseStringArray(features),
-    };
+  private toPricingTierPayload(
+    args: Parameters<typeof toPricingTierPayload>[0],
+  ) {
+    return toPricingTierPayload(args);
   }
 
   async getPricingConfig(currency?: string) {
@@ -343,7 +244,7 @@ export class PricingService {
       };
     }
 
-    const basePrice = this.readNumber(pricing.monthly);
+    const basePrice = readNumber(pricing.monthly);
 
     const consultationOverage =
       Math.max(0, resolvedConsultations - (limits.appointments || 999999)) *

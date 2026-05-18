@@ -10,7 +10,7 @@ import {
 } from "@workspace/types";
 
 type CreateAppointmentInput = z.infer<typeof createAppointmentSchema>;
-import type { SelectOption } from "@/lib/app-config-context";
+import type { SelectOption } from "@/lib/contexts/app-config-context";
 
 import { Button } from "@workspace/ui/components/button";
 import { Badge } from "@workspace/ui/components/badge";
@@ -29,7 +29,7 @@ import { PatientSelector } from "@/features/appointments/components/sections/add
 import { DoctorSelector } from "@/features/appointments/components/sections/add-dialog/DoctorSelector";
 import { TimeSlotPicker } from "@/features/appointments/components/sections/add-dialog/TimeSlotPicker";
 import type { SlotBlockingAppointment } from "@/features/appointments/lib/calendar-slot-local-iso";
-import { showUserFacingErrorToast } from "@/lib/user-facing-errors";
+import { showUserFacingErrorToast } from "@/lib/errors/user-facing-errors";
 import { formatClockTime, formatLocaleDateShortMonth } from "@/lib/formatters";
 
 interface AddAppointmentDialogUIProps {

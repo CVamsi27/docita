@@ -6,7 +6,10 @@ import { PrismaService } from '@/prisma/prisma.service';
 import { SettingsFactory } from '@/domains/clinics/core/factories/settings.factory';
 import { AuditService } from '@/shared/modules/audit/audit/audit.service';
 import { ClinicSettingsService } from './clinic-settings.service';
+import { ClinicSettingsQueryService } from './clinic-settings-query.service';
+import { ClinicSettingsCommandService } from './clinic-settings-command.service';
 import { ClinicDataService } from './clinic-data.service';
+import { ClinicDataSubjectRequestService } from './clinic-data-subject-request.service';
 
 describe('ClinicSettingsService', () => {
   let service: ClinicSettingsService;
@@ -69,10 +72,13 @@ describe('ClinicSettingsService', () => {
     const moduleRef = await Test.createTestingModule({
       providers: [
         ClinicSettingsService,
+        ClinicSettingsCommandService,
         { provide: PrismaService, useValue: prisma },
         { provide: SettingsFactory, useValue: settingsFactory },
         { provide: AuditService, useValue: auditService },
         { provide: ClinicDataService, useValue: clinicDataService },
+        { provide: ClinicSettingsQueryService, useValue: {} },
+        { provide: ClinicDataSubjectRequestService, useValue: {} },
       ],
     }).compile();
 

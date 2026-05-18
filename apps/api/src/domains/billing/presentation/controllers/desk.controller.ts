@@ -23,7 +23,7 @@ import { AnyResponseDto } from '@/domains/billing/application/dto/payments.dto';
  * Flow B (patient pays clinic): front-desk settlement (cash / POS / UPI /
  * terminal metadata). Separate from {@link PaymentsController} payment links,
  * from optional clinic payment **settings** (Flow A), and from **Docita SaaS**
- * subscription checkout. See docs/PAYMENT_FLOWS.md.
+ * subscription checkout. See docs/product/PAYMENT_FLOWS.md.
  */
 @Controller('desk')
 @UseGuards(TierGuard)

@@ -11,7 +11,7 @@ import { PaymentLinkStatus } from '@/domains/payments/core/entities/payment-link
  * Razorpay Payment Links using **Docita env** credentials (platform keys).
  * Intended for **Docita SaaS** billing links. Flow B may also use Razorpay,
  * but only with **clinic** keys from payment settings (Flow A), via a
- * separate clinic-scoped adapter — see docs/PAYMENT_FLOWS.md.
+ * separate clinic-scoped adapter — see docs/product/PAYMENT_FLOWS.md.
  */
 @Injectable()
 export class RazorpayPaymentLinkAdapter

@@ -10,8 +10,8 @@ import {
 import { useRouter } from "next/navigation";
 import { useStartConsultation, useQueueByDoctor } from "@/hooks/api/use-appointments";
 import { usePermissions } from "@/hooks/use-permissions";
-import { useAuth } from "@/lib/auth-context";
-import { canAccessTarget } from "@/lib/access-policy";
+import { useAuth } from "@/lib/auth/auth-context";
+import { canAccessTarget } from "@/lib/access-control/access-policy";
 import { usePermissionStore } from "@/lib/stores/permission-store";
 import type {
   UserRole,
@@ -33,10 +33,10 @@ import {
   Stethoscope,
 } from "lucide-react";
 import { APP_ACCESS_TARGETS } from "@workspace/types";
-import { showUserFacingErrorToast } from "@/lib/user-facing-errors";
+import { showUserFacingErrorToast } from "@/lib/errors/user-facing-errors";
 import { useAskAi } from "@/features/_shared/components/ask-ai/ask-ai-context";
 import { useSidebarNavOrder } from "@/hooks/use-sidebar-nav-order";
-import { useClinic } from "@/lib/clinic-context";
+import { useClinic } from "@/lib/contexts/clinic-context";
 import {
   AI_ASSISTANT_NAV_ITEM,
   HELP_NAV_ITEM,

@@ -9,14 +9,14 @@ import { FileX } from "lucide-react";
 import { useBackNavigation } from "@/hooks/use-back-navigation";
 import { usePrescription } from "@/hooks/api/use-clinical";
 import { useResendPrescriptionWhatsApp } from "@/hooks/api/use-whatsapp";
-import { useClinic } from "@/lib/clinic-context";
-import { useAuth } from "@/lib/auth-context";
-import { canCreatePrescription } from "@/lib/permissions";
+import { useClinic } from "@/lib/contexts/clinic-context";
+import { useAuth } from "@/lib/auth/auth-context";
+import { canCreatePrescription } from "@/lib/auth/permissions";
 import { Feature } from "@workspace/types";
 import { PrescriptionHeader } from "@/features/prescriptions/components/view/PrescriptionHeader";
 import { PrescriptionDocument } from "@/features/prescriptions/components/view/PrescriptionDocument";
 import { buildConsultationRoute } from "@/features/consultation/rules/consultationTabRouting";
-import { showUserFacingErrorToast } from "@/lib/user-facing-errors";
+import { showUserFacingErrorToast } from "@/lib/errors/user-facing-errors";
 import { FeatureGate } from "@/features/_shared/components/auth/feature-gate";
 import { toast } from "sonner";
 

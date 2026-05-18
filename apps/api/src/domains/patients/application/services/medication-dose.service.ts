@@ -14,6 +14,7 @@ import {
   IMedicationDoseRepository,
   MEDICATION_DOSE_REPOSITORY_TOKEN,
 } from '@/domains/patients/core/repositories/medication-dose.repository.interface';
+import { parseDosesPerDay, parseDurationDays } from './medication-dose-helpers';
 
 interface RecordDoseDto {
   medicationId: string;
@@ -304,10 +305,10 @@ export class MedicationDoseService {
     for (const med of prescription.medications) {
       if (med.isPRN) continue;
 
-      const dosesPerDay = this.parseDosesPerDay(med.sigCode, med.frequency);
+      const dosesPerDay = parseDosesPerDay(med.sigCode, med.frequency);
       if (!dosesPerDay) continue;
 
-      const durationDays = this.parseDurationDays(med.duration);
+      const durationDays = parseDurationDays(med.duration);
       if (!durationDays) continue;
 
       const startDate = med.startDate ?? prescription.date;
@@ -349,67 +350,6 @@ export class MedicationDoseService {
     }
 
     return { medicationsProcessed: created.length };
-  }
-
-  private parseDosesPerDay(
-    sigCode: string | null | undefined,
-    frequency: string,
-  ): number | null {
-    const sigMap: Record<string, number> = {
-      QD: 1,
-      BID: 2,
-      TID: 3,
-      QID: 4,
-      Q4H: 6,
-      Q6H: 4,
-      Q8H: 3,
-      Q12H: 2,
-      QHS: 1,
-      QAM: 1,
-      QPM: 1,
-      QOD: 0.5,
-      QWK: 1 / 7,
-      STAT: 1,
-      AC: 3,
-      PC: 3,
-    };
-
-    if (sigCode && sigMap[sigCode] !== undefined) {
-      return sigMap[sigCode];
-    }
-
-    const lower = frequency.toLowerCase();
-    if (
-      lower.includes('once') ||
-      lower.includes('daily') ||
-      lower.includes('od')
-    )
-      return 1;
-    if (lower.includes('twice') || lower.includes('bid')) return 2;
-    if (
-      lower.includes('three') ||
-      lower.includes('tid') ||
-      lower.includes('thrice')
-    )
-      return 3;
-    if (lower.includes('four') || lower.includes('qid')) return 4;
-
-    return null;
-  }
-
-  private parseDurationDays(duration: string): number | null {
-    const lower = duration.toLowerCase();
-    const match = lower.match(/(\d+)\s*(day|week|month)/);
-    if (!match) return null;
-
-    const value = parseInt(match[1], 10);
-    const unit = match[2];
-
-    if (unit === 'day') return value;
-    if (unit === 'week') return value * 7;
-    if (unit === 'month') return value * 30;
-
-    return null;
   }
 
   private async verifyPatientAccess(

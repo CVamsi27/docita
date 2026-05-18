@@ -1,5 +1,5 @@
 import * as Sentry from "@sentry/nextjs";
-import { scrubSentryEvent } from "./lib/sentry-phi-redactor";
+import { scrubSentryEvent } from "./shared/lib/monitoring/sentry-phi-redactor";
 
 Sentry.init({
   dsn: process.env.NEXT_PUBLIC_SENTRY_DSN,

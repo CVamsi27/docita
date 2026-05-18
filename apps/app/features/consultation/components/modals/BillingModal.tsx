@@ -10,7 +10,6 @@ import {
   DialogTitle,
 } from "@workspace/ui/components/dialog";
 import { Button } from "@workspace/ui/components/button";
-import { SymbolTooltip } from "@workspace/ui/components/tooltip";
 import { Input } from "@workspace/ui/components/input";
 import { Label } from "@workspace/ui/components/label";
 import { DatePicker } from "@workspace/ui/components/date-picker";
@@ -25,10 +24,11 @@ import { formatCurrency } from "@workspace/utils";
 import { toast } from "sonner";
 import { useCreateInvoice } from "@/hooks/api/use-billing";
 import { useLocaleCurrency } from "@/hooks/use-locale-currency";
-import { CreditCard, Plus, X } from "lucide-react";
+import { CreditCard } from "lucide-react";
 import { ModalProps } from "./PrescriptionModal";
-import { showUserFacingErrorToast } from "@/lib/user-facing-errors";
-import { useDefaultValue } from "@/lib/app-config-context";
+import { showUserFacingErrorToast } from "@/lib/errors/user-facing-errors";
+import { useDefaultValue } from "@/lib/contexts/app-config-context";
+import { BillingLineItemsEditor } from "./BillingLineItemsEditor";
 
 export interface LineItem {
   description: string;
@@ -225,89 +225,12 @@ export function BillingModal({
             </div>
           </div>
 
-          <div className="space-y-3 bg-muted/20 p-4 rounded-lg">
-            <div className="hidden sm:grid grid-cols-12 gap-2 text-xs font-medium text-muted-foreground uppercase tracking-wider">
-              <div className="col-span-5">Description</div>
-              <div className="col-span-2">Qty</div>
-              <div className="col-span-4">Unit Price</div>
-              <div className="col-span-1"></div>
-            </div>
-
-            {items.map((item, index) => (
-              <div key={index} className="flex flex-col gap-2 sm:grid sm:grid-cols-12 sm:items-center">
-                <div className="sm:col-span-5">
-                  <Input
-                    placeholder="Item description"
-                    value={item.description}
-                    onChange={(e) =>
-                      updateItem(index, "description", e.target.value)
-                    }
-                    className="h-9"
-                  />
-                </div>
-                <div className="flex gap-2 sm:contents">
-                  <div className="flex-1 sm:col-span-2">
-                    <Input
-                      type="number"
-                      min="1"
-                      placeholder="Qty"
-                      value={item.quantity}
-                      onChange={(e) =>
-                        updateItem(
-                          index,
-                          "quantity",
-                          parseInt(e.target.value) || 1,
-                        )
-                      }
-                      className="h-9"
-                    />
-                  </div>
-                  <div className="flex-1 sm:col-span-4">
-                    <Input
-                      type="number"
-                      min="0"
-                      step="0.01"
-                      placeholder="Unit price"
-                      value={item.price}
-                      onChange={(e) =>
-                        updateItem(
-                          index,
-                          "price",
-                          parseFloat(e.target.value) || 0,
-                        )
-                      }
-                      className="h-9"
-                    />
-                  </div>
-                  <div className="sm:col-span-1 flex items-center justify-center">
-                    {items.length > 1 && (
-                      <SymbolTooltip label="Remove line item">
-                        <Button
-                          variant="ghost"
-                          size="icon"
-                          className="h-8 w-8 text-muted-foreground hover:text-destructive"
-                          onClick={() => removeItem(index)}
-                          aria-label="Remove line item"
-                        >
-                          <X className="h-4 w-4" />
-                        </Button>
-                      </SymbolTooltip>
-                    )}
-                  </div>
-                </div>
-              </div>
-            ))}
-
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={addItem}
-              className="w-full border-dashed mt-2"
-            >
-              <Plus className="mr-2 h-3.5 w-3.5" />
-              Add Item
-            </Button>
-          </div>
+          <BillingLineItemsEditor
+            items={items}
+            updateItem={updateItem}
+            removeItem={removeItem}
+            addItem={addItem}
+          />
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
             <div className="space-y-4">

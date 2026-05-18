@@ -1,5 +1,10 @@
 import { Injectable, NotFoundException, Inject } from '@nestjs/common';
 import {
+  normalizePaymentHistory,
+  filterPendingPlanCheckoutMismatches,
+  collapseStaleUpgradePendingCheckouts,
+} from './subscriptions-payment-history-helpers';
+import {
   SUBSCRIPTION_REPOSITORY_TOKEN,
   ISubscriptionRepository,
   CLINIC_OPERATIONS_TOKEN,
@@ -170,9 +175,9 @@ export class SubscriptionsQueryService {
       clinicId,
       Math.max(limit * 5, limit),
     )) as PaymentHistoryRecord[];
-    const normalized = this.normalizePaymentHistory(records);
-    const collapsed = this.collapseStaleUpgradePendingCheckouts(normalized);
-    const withoutStalePending = this.filterPendingPlanCheckoutMismatches(
+    const normalized = normalizePaymentHistory(records);
+    const collapsed = collapseStaleUpgradePendingCheckouts(normalized);
+    const withoutStalePending = filterPendingPlanCheckoutMismatches(
       collapsed,
       currentPlan,
     );
@@ -322,143 +327,5 @@ export class SubscriptionsQueryService {
       currency: DEFAULT_CURRENCY,
       plan: subscription.getPlan().value,
     };
-  }
-
-  private normalizePaymentHistory<T extends PaymentHistoryRecord>(
-    records: T[],
-  ): T[] {
-    const seenPendingKeys = new Set<string>();
-    const normalized: T[] = [];
-
-    for (const record of records) {
-      const status = (
-        record.status ?? String(record.getStatus?.() ?? '')
-      ).toLowerCase();
-
-      if (status === 'expired') {
-        continue;
-      }
-
-      if (status === 'pending') {
-        const key = [
-          record.description ?? '',
-          record.amountCents,
-          record.currency,
-        ].join('|');
-
-        if (seenPendingKeys.has(key)) {
-          continue;
-        }
-
-        seenPendingKeys.add(key);
-      }
-
-      normalized.push(record);
-    }
-
-    return normalized;
-  }
-
-  private isPendingLikeStatus(status: string): boolean {
-    const s = status.toLowerCase().trim();
-    return (
-      s === 'pending' ||
-      s === 'processing' ||
-      s === 'created' ||
-      s === 'requires_action' ||
-      s === 'attempted' ||
-      s === 'due'
-    );
-  }
-
-  private isTierUpgradeSubscriptionDescription(
-    description: string | null | undefined,
-  ): boolean {
-    if (!description || typeof description !== 'string') return false;
-    return /\b(STARTER|ESSENTIAL|FRONT_DESK|PROFESSIONAL|HOSPITAL|ENTERPRISE)\s+(MONTHLY|YEARLY)\s+subscription\b/i.test(
-      description.trim(),
-    );
-  }
-
-  private parseTierFromUpgradeDescription(
-    description: string | null | undefined,
-  ): string | null {
-    if (!description || typeof description !== 'string') return null;
-    const m = description
-      .trim()
-      .match(
-        /^(STARTER|ESSENTIAL|FRONT_DESK|PROFESSIONAL|HOSPITAL|ENTERPRISE)\s+(MONTHLY|YEARLY)\s+subscription$/i,
-      );
-    return m?.[1] ? m[1].toUpperCase() : null;
-  }
-
-  /**
-   * Pending tier-upgrade rows describe the target plan on the Razorpay order.
-   * If the clinic never completed checkout and is still on another tier, hide
-   * those rows so billing history matches the active subscription (new
-   * checkouts expire older pendings when a new checkout is created).
-   */
-  private filterPendingPlanCheckoutMismatches<T extends PaymentHistoryRecord>(
-    records: T[],
-    currentPlan: string | undefined,
-  ): T[] {
-    if (!currentPlan) {
-      return records;
-    }
-    return records.filter((record) => {
-      const status = (
-        record.status ?? String(record.getStatus?.() ?? '')
-      ).toLowerCase();
-      if (!this.isPendingLikeStatus(status)) {
-        return true;
-      }
-      if (!this.isTierUpgradeSubscriptionDescription(record.description)) {
-        return true;
-      }
-      const rowTier = this.parseTierFromUpgradeDescription(record.description);
-      if (!rowTier) {
-        return true;
-      }
-      return rowTier === currentPlan;
-    });
-  }
-
-  /**
-   * Each plan change creates a Razorpay order; abandoning checkout leaves
-   * multiple pending rows. Keep only the newest pending tier upgrade so the
-   * table matches a single actionable checkout (paid rows unchanged).
-   */
-  private collapseStaleUpgradePendingCheckouts<T extends PaymentHistoryRecord>(
-    records: T[],
-  ): T[] {
-    const pendingUpgradeIndexes: number[] = [];
-    for (let i = 0; i < records.length; i++) {
-      const record = records[i]!;
-      const status = (
-        record.status ?? String(record.getStatus?.() ?? '')
-      ).toLowerCase();
-      if (!this.isPendingLikeStatus(status)) continue;
-      if (!this.isTierUpgradeSubscriptionDescription(record.description)) {
-        continue;
-      }
-      pendingUpgradeIndexes.push(i);
-    }
-    if (pendingUpgradeIndexes.length <= 1) {
-      return records;
-    }
-
-    let newestIndex = pendingUpgradeIndexes[0]!;
-    let newestTs = new Date(records[newestIndex]!.createdAt).getTime();
-    for (const idx of pendingUpgradeIndexes) {
-      const ts = new Date(records[idx]!.createdAt).getTime();
-      if (ts >= newestTs) {
-        newestTs = ts;
-        newestIndex = idx;
-      }
-    }
-    const drop = new Set(
-      pendingUpgradeIndexes.filter((idx) => idx !== newestIndex),
-    );
-    return records.filter((_, i) => !drop.has(i));
   }
 }

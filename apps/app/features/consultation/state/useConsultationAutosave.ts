@@ -9,8 +9,8 @@ import {
   useSyncDiagnoses,
 } from "@/hooks/api/use-appointments";
 import { useCreatePrescription } from "@/hooks/api/use-clinical";
-import { logger } from "@/lib/logger";
-import { showUserFacingErrorToast } from "@/lib/user-facing-errors";
+import { logger } from "@/lib/monitoring/logger";
+import { showUserFacingErrorToast } from "@/lib/errors/user-facing-errors";
 import {
   consultationDraftNeedsLeaveGuard,
   hashDiagnosesForSync,

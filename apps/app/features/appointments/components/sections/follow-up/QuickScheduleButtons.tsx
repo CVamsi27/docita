@@ -5,7 +5,7 @@ import {
 import { cn } from "@workspace/ui/lib/utils";
 import { Button } from "@workspace/ui/components/button";
 import { Label } from "@workspace/ui/components/label";
-import { useClinic } from "@/lib/clinic-context";
+import { useClinic } from "@/lib/contexts/clinic-context";
 
 interface QuickScheduleButtonsProps {
   quickSchedules: Array<{ label: string; getValue: () => Date }>;

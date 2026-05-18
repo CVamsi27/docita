@@ -1,10 +1,8 @@
 "use client";
 
 import { DocitaLoadingIndicator } from "@workspace/ui/components/docita-loading-indicator";
-
 import { Suspense, useEffect, useState } from "react";
 import { useSearchParams } from "next/navigation";
-import { ChevronDown } from "lucide-react";
 import {
   Card,
   CardContent,
@@ -12,40 +10,31 @@ import {
   CardHeader,
   CardTitle,
 } from "@workspace/ui/components/card";
-import { Button } from "@workspace/ui/components/button";
 import { Badge } from "@workspace/ui/components/badge";
 import { cn } from "@workspace/ui/lib/utils";
-import { MicroLabel } from "@workspace/ui/components/micro-label";
-import {
-  Collapsible,
-  CollapsibleContent,
-  CollapsibleTrigger,
-} from "@workspace/ui/components/collapsible";
 import { type TierPricing, usePricingConfig } from "@/hooks/api/use-pricing";
 import { ContactSalesModal } from "@/features/dialogs";
-import {
-  ComparisonTable,
-  TierCard,
-  getFeatureDetails,
-} from "@/features/subscription";
+import { TierCard, getFeatureDetails } from "@/features/subscription";
 import {
   getAllFeaturesUpToTier,
   PLAN_LIMITS,
   getTierInfo,
-  getTierPricing,
   getTierValue,
 } from "@/lib/tier-config";
 import {
-  PRICING_CURRENCY_SYMBOLS,
-  SUBSCRIPTION_TRIAL_DAYS,
-  TIER_OVERAGE_RATES_BY_CURRENCY,
   type TierName,
   type WorkspaceProfile,
-  WORKSPACE_PROFILE_LABEL,
-  WORKSPACE_PROFILE_MARKETING,
 } from "@workspace/types";
 import { useLocaleCurrency } from "@/hooks/use-locale-currency";
 import { PLAN_ONBOARDING_KEY_HIGHLIGHTS } from "@/features/subscription";
+import {
+  DISPLAY_TIERS,
+  PLAN_AUDIENCE,
+  buildTierCardConfig,
+  WorkspaceSelector,
+  BillingCycleToggle,
+  PlanComparisonCollapsible,
+} from "./plan-selection-step-helpers";
 
 interface PlanSelectionProps {
   onSelect: (
@@ -60,24 +49,6 @@ interface PlanSelectionProps {
   initialWorkspaceProfile?: WorkspaceProfile;
 }
 
-const DISPLAY_TIERS = [
-  "STARTER",
-  "FRONT_DESK",
-  "ESSENTIAL",
-  "PROFESSIONAL",
-  "ENTERPRISE",
-];
-
-const PLAN_AUDIENCE: Record<string, string> = {
-  STARTER: "Best for solo doctors starting with full clinic workflows",
-  ESSENTIAL:
-    "Best for small facilities needing clear limits and simple billing",
-  FRONT_DESK:
-    "Best for reception-led facilities that need scheduling and billing without full clinical workflows in-app",
-  PROFESSIONAL: "Best for multi-doctor facilities and growing practices",
-  ENTERPRISE: "Best for hospitals and chains with custom requirements",
-};
-
 function PlanSelectionStepInner({
   onSelect,
   defaultTier = "ESSENTIAL",
@@ -89,19 +60,13 @@ function PlanSelectionStepInner({
   const { currency: detectedCurrency } = useLocaleCurrency();
   const [workspaceProfile, setWorkspaceProfile] = useState<WorkspaceProfile>(
     () => {
-      if (searchParams.get("workspace") === "front_desk") {
-        return "FRONT_DESK";
-      }
-      if (searchParams.get("tier") === "FRONT_DESK") {
-        return "FRONT_DESK";
-      }
+      if (searchParams.get("workspace") === "front_desk") return "FRONT_DESK";
+      if (searchParams.get("tier") === "FRONT_DESK") return "FRONT_DESK";
       return initialWorkspaceProfile;
     },
   );
   const [selectedTier, setSelectedTier] = useState<string>(() => {
-    if (searchParams.get("tier") === "FRONT_DESK") {
-      return "FRONT_DESK";
-    }
+    if (searchParams.get("tier") === "FRONT_DESK") return "FRONT_DESK";
     return defaultTier;
   });
   const [billingCycle, setBillingCycle] = useState<"MONTHLY" | "YEARLY">(
@@ -151,11 +116,12 @@ function PlanSelectionStepInner({
     const tierPricingFromApi = pricingConfig?.tiers.find(
       (t: TierPricing) => t.id === tier,
     );
-    const catalog = getTierPricing(tier as TierName);
-    const pricingPayload = tierPricingFromApi?.pricing ?? {
-      monthly: catalog.monthly,
-      yearly: catalog.yearly,
-    };
+    const { cardPricing } = buildTierCardConfig(
+      tier as TierName,
+      resolvedCurrency,
+      pricingConfig?.tiers ?? [],
+    );
+    const pricingPayload = tierPricingFromApi?.pricing ?? cardPricing;
 
     setIsSubmitting(true);
     try {
@@ -229,223 +195,97 @@ Please contact me with deployment and commercial details.`;
         </p>
       </CardHeader>
       <CardContent className="space-y-6">
-        <div className="rounded-lg border border-border/60 bg-card p-4 space-y-3">
-          <MicroLabel>Workspace</MicroLabel>
-          <p className="text-sm text-muted-foreground">
-            Choose how Docita is used at this facility. This is separate from the
-            commercial tier below (quotas and pricing).
-          </p>
-          <div className="flex flex-col gap-2 sm:flex-row">
-            <Button
-              type="button"
-              variant={workspaceProfile === "FULL_CLINICAL" ? "default" : "outline"}
-              className="flex-1 justify-center"
-              onClick={() => setWorkspaceProfile("FULL_CLINICAL")}
-            >
-              {WORKSPACE_PROFILE_LABEL.FULL_CLINICAL}
-            </Button>
-            <Button
-              type="button"
-              variant={workspaceProfile === "FRONT_DESK" ? "default" : "outline"}
-              className="flex-1 justify-center"
-              onClick={() => setWorkspaceProfile("FRONT_DESK")}
-            >
-              {WORKSPACE_PROFILE_LABEL.FRONT_DESK}
-            </Button>
-          </div>
-          <ul className="list-disc space-y-1 pl-5 text-sm text-muted-foreground">
-            {WORKSPACE_PROFILE_MARKETING[workspaceProfile].included.map((line) => (
-              <li key={line}>{line}</li>
-            ))}
-          </ul>
-          {WORKSPACE_PROFILE_MARKETING[workspaceProfile].notIncluded.length > 0 ? (
-            <div>
-              <p className="text-sm font-medium text-foreground">
-                Not included in this workspace
-              </p>
-              <ul className="mt-1 list-disc space-y-1 pl-5 text-sm text-muted-foreground">
-                {WORKSPACE_PROFILE_MARKETING[workspaceProfile].notIncluded.map(
-                  (line) => (
-                    <li key={line}>{line}</li>
-                  ),
-                )}
-              </ul>
-            </div>
-          ) : null}
-        </div>
+        <WorkspaceSelector
+          workspaceProfile={workspaceProfile}
+          onSelect={setWorkspaceProfile}
+        />
 
-        <div className="flex justify-center">
-          <div className="inline-flex items-center gap-2 p-1 bg-muted rounded-lg">
-            <Button
-              variant={billingCycle === "MONTHLY" ? "default" : "ghost"}
-              size="sm"
-              onClick={() => setBillingCycle("MONTHLY")}
-            >
-              Monthly
-            </Button>
-            <Button
-              variant={billingCycle === "YEARLY" ? "default" : "ghost"}
-              size="sm"
-              onClick={() => setBillingCycle("YEARLY")}
-            >
-              Yearly{" "}
-              <Badge variant="secondary" className="ml-1">
-                2 months free
-              </Badge>
-            </Button>
-          </div>
-        </div>
+        <BillingCycleToggle
+          billingCycle={billingCycle}
+          onChange={setBillingCycle}
+        />
 
         <div className="flex flex-wrap justify-center gap-4">
           {featuresByTier.map(({ tierName, tier, info, features }) => {
-              const tierPricingFromApi = pricingConfig.tiers.find(
-                (t: TierPricing) => t.id === tierName,
+            const { cardPricing, currencySymbol, overageHint, buttonLabel } =
+              buildTierCardConfig(
+                tierName,
+                resolvedCurrency,
+                pricingConfig.tiers,
               );
-              const catalogPricing = getTierPricing(tierName);
-              const cardPricing =
-                tierPricingFromApi?.pricing ?? {
-                  monthly: catalogPricing.monthly,
-                  yearly: catalogPricing.yearly,
-                };
-              const currencyKey =
-                resolvedCurrency as keyof typeof TIER_OVERAGE_RATES_BY_CURRENCY;
-              const currencySymbol =
-                PRICING_CURRENCY_SYMBOLS[
-                  resolvedCurrency as keyof typeof PRICING_CURRENCY_SYMBOLS
-                ] ?? resolvedCurrency;
-              const overageRates = (TIER_OVERAGE_RATES_BY_CURRENCY[
-                currencyKey
-              ] ?? TIER_OVERAGE_RATES_BY_CURRENCY.INR)[tierName];
-              const overageFromRates =
-                overageRates?.appointmentRate > 0
-                  ? `then ${currencySymbol}${overageRates.appointmentRate}/extra consultation`
-                  : undefined;
-              const tierOverageHint =
-                tierName === "ESSENTIAL"
-                  ? `${currencySymbol}0 for the first ${SUBSCRIPTION_TRIAL_DAYS} days, then regular billing`
-                  : tierName === "STARTER"
-                    ? [
-                        "Payment at signup (Razorpay). No unpaid trial on Starter.",
-                        overageFromRates,
-                      ]
-                        .filter(Boolean)
-                        .join(" ")
-                    : tierName === "FRONT_DESK"
-                      ? [
-                          "Payment required at signup. Clinical workflows stay disabled in-app.",
-                          overageFromRates,
-                        ]
-                          .filter(Boolean)
-                          .join(" ")
-                    : tierName === "PROFESSIONAL"
-                      ? [
-                          "Payment required at signup. Unpaid trial is only on Essential.",
-                          overageFromRates,
-                        ]
-                          .filter(Boolean)
-                          .join(" ")
-                      : tierName === "ENTERPRISE"
-                        ? "Custom pricing and deployment. Contact sales to continue."
-                        : overageFromRates;
 
-              const tierButtonLabel =
-                tierName === "ESSENTIAL"
-                  ? `Start free ${SUBSCRIPTION_TRIAL_DAYS}-day trial`
-                  : tierName === "ENTERPRISE"
-                    ? "Contact sales"
-                    : "Select and pay";
-
-              return (
-                <div
-                  key={tier}
+            return (
+              <div
+                key={tier}
+                className={cn(
+                  "relative flex w-full max-w-[22rem] flex-col sm:max-w-[24rem]",
+                  tierName === "ESSENTIAL" && "order-first md:order-none",
+                )}
+              >
+                {tierName === "ESSENTIAL" && (
+                  <Badge className="absolute -top-2 left-4 z-10 bg-success text-success-foreground">
+                    Popular
+                  </Badge>
+                )}
+                <TierCard
+                  tier={tier}
+                  info={info}
+                  features={features}
+                  isCurrentTier={false}
+                  isLocked={false}
                   className={cn(
-                    "relative flex w-full max-w-[22rem] flex-col sm:max-w-[24rem]",
-                    tierName === "ESSENTIAL" && "order-first md:order-none",
+                    "h-full",
+                    selectedTier === tierName &&
+                      "border-primary ring-2 ring-primary/20 shadow-lg",
                   )}
-                >
-                  {tierName === "ESSENTIAL" && (
-                    <Badge className="absolute -top-2 left-4 z-10 bg-success text-success-foreground">
-                      Popular
-                    </Badge>
-                  )}
-                  <TierCard
-                    tier={tier}
-                    info={info}
-                    features={features}
-                    isCurrentTier={false}
-                    isLocked={false}
-                    className={cn(
-                      "h-full",
-                      selectedTier === tierName &&
-                        "border-primary ring-2 ring-primary/20 shadow-lg",
-                    )}
-                    keyHighlights={
-                      PLAN_ONBOARDING_KEY_HIGHLIGHTS[tierName] ?? []
-                    }
-                    pricing={cardPricing}
-                    billingCycle={billingCycle}
-                    currencySymbol={currencySymbol}
-                    overageHint={tierOverageHint}
-                    buttonLabel={tierButtonLabel}
-                    maxDisplay={8}
-                    usageHints={
-                      PLAN_LIMITS[tierName as keyof typeof PLAN_LIMITS]
-                        ? {
-                            patients:
-                              PLAN_LIMITS[tierName as keyof typeof PLAN_LIMITS]
-                                .patients,
-                            users:
-                              PLAN_LIMITS[tierName as keyof typeof PLAN_LIMITS]
-                                .users,
-                          }
-                        : undefined
-                    }
-                    onSelect={
-                      isSubmitting
-                        ? undefined
-                        : () => {
-                            setSelectedTier(tierName);
-                            if (tierName === "FRONT_DESK") {
-                              setWorkspaceProfile("FRONT_DESK");
-                            } else {
-                              setWorkspaceProfile("FULL_CLINICAL");
-                            }
-                            handleSelectTier(tierName);
-                          }
-                    }
-                  />
-                </div>
-              );
-            })}
+                  keyHighlights={PLAN_ONBOARDING_KEY_HIGHLIGHTS[tierName] ?? []}
+                  pricing={cardPricing}
+                  billingCycle={billingCycle}
+                  currencySymbol={currencySymbol}
+                  overageHint={overageHint}
+                  buttonLabel={buttonLabel}
+                  maxDisplay={8}
+                  usageHints={
+                    PLAN_LIMITS[tierName as keyof typeof PLAN_LIMITS]
+                      ? {
+                          patients:
+                            PLAN_LIMITS[tierName as keyof typeof PLAN_LIMITS]
+                              .patients,
+                          users:
+                            PLAN_LIMITS[tierName as keyof typeof PLAN_LIMITS]
+                              .users,
+                        }
+                      : undefined
+                  }
+                  onSelect={
+                    isSubmitting
+                      ? undefined
+                      : () => {
+                          setSelectedTier(tierName);
+                          setWorkspaceProfile(
+                            tierName === "FRONT_DESK"
+                              ? "FRONT_DESK"
+                              : "FULL_CLINICAL",
+                          );
+                          handleSelectTier(tierName);
+                        }
+                  }
+                />
+              </div>
+            );
+          })}
         </div>
 
-        <Collapsible open={comparisonOpen} onOpenChange={setComparisonOpen}>
-          <CollapsibleTrigger asChild>
-            <Button
-              variant="ghost"
-              className="w-full justify-between border border-border/50 rounded-lg px-4 py-3 h-auto"
-            >
-              <span className="text-sm font-medium">Compare all plans</span>
-              <ChevronDown
-                className={cn(
-                  "h-4 w-4 text-muted-foreground transition-transform duration-200",
-                  comparisonOpen && "rotate-180",
-                )}
-              />
-            </Button>
-          </CollapsibleTrigger>
-          <CollapsibleContent className="mt-2">
-            <ComparisonTable currentTier={0} />
-          </CollapsibleContent>
-        </Collapsible>
+        <PlanComparisonCollapsible
+          open={comparisonOpen}
+          onOpenChange={setComparisonOpen}
+        />
 
         <ContactSalesModal
           open={showContactSalesModal}
           onOpenChange={setShowContactSalesModal}
           source="onboarding_enterprise"
-          defaultValues={{
-            message: enterpriseContactMessage,
-          }}
+          defaultValues={{ message: enterpriseContactMessage }}
         />
       </CardContent>
     </Card>

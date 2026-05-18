@@ -1,9 +1,9 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import { toast } from "sonner";
-import { apiFetch } from "@/lib/api-client";
-import { browserBlob } from "@/lib/browser-request";
+import { apiFetch } from "@/lib/api/api-client";
+import { browserBlob } from "@/lib/auth/browser-request";
 import { toAbsoluteAppUrl } from "@/lib/url";
-import { showUserFacingErrorToast } from "@/lib/user-facing-errors";
+import { showUserFacingErrorToast } from "@/lib/errors/user-facing-errors";
 
 function resolveUploadedFileUrl(fileUrl: string): string {
   if (/^https?:\/\//i.test(fileUrl)) {

@@ -29,7 +29,7 @@ import {
 } from "@workspace/ui/components/select";
 import { Button } from "@workspace/ui/components/button";
 
-import { showUserFacingErrorToast } from "@/lib/user-facing-errors";
+import { showUserFacingErrorToast } from "@/lib/errors/user-facing-errors";
 import type { InviteFormValues } from "@/features/settings/components/management/member-management-schemas";
 
 interface InviteTeamMemberDialogProps {

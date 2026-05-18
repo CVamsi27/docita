@@ -24,7 +24,7 @@ import {
   SelectValue,
 } from "@workspace/ui/components/select";
 import { Switch } from "@workspace/ui/components/switch";
-import { showUserFacingErrorToast } from "@/lib/user-facing-errors";
+import { showUserFacingErrorToast } from "@/lib/errors/user-facing-errors";
 import type { ClinicWeeklyHourRow } from "@/features/onboarding/components/types";
 
 const DISPLAY_ORDER: DayOfWeek[] = [

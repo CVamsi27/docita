@@ -217,7 +217,7 @@ export function AuthBrandingPanel({ currentStep }: AuthBrandingPanelProps) {
                       key={step.title}
                       aria-current={isActive ? "step" : undefined}
                       className={cn(
-                        "flex gap-3 rounded-lg border px-3 py-2.5 transition-all duration-300",
+                        "flex gap-3 rounded-lg border px-3 py-2.5 transition-colors duration-300",
                         isActive
                           ? "border-primary/40 bg-primary/5 shadow-sm"
                           : isComplete

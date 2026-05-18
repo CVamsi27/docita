@@ -1,5 +1,6 @@
 import {
   Injectable,
+  Logger,
   NotFoundException,
   BadRequestException,
   Inject,
@@ -18,6 +19,8 @@ import {
 
 @Injectable()
 export class SignatureUploadService {
+  private readonly logger = new Logger(SignatureUploadService.name);
+
   constructor(
     @Inject(SIGNATURE_UPLOAD_REPOSITORY_TOKEN)
     private readonly repository: ISignatureUploadRepository,
@@ -168,6 +171,14 @@ export class SignatureUploadService {
 
   async uploadSignature(token: string, file: StorageFile) {
     const validation = await this.validateToken(token);
+
+    // AuditLogged: signature upload
+    this.logger.log({
+      action: 'signature.upload',
+      clinicId: validation.clinic?.id,
+      userId: validation.doctor?.id,
+      purpose: validation.purpose,
+    });
 
     if (!file.mimetype.startsWith('image/')) {
       throw new BadRequestException('File must be an image');

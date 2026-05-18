@@ -26,6 +26,8 @@ import { StoredFileUrlResolverService } from '@/domains/documents/application/se
 import { PDFService, InvoiceData } from './pdf.service';
 import { InvoicesService } from './invoices.service';
 import type { PdfJobServicePort } from '@/shared/modules/queue/pdf-job.service';
+import { InvoicesQueryService } from './invoices-query.service';
+import { InvoicesCommandService } from './invoices-command.service';
 
 describe('InvoicesService', () => {
   const baseDate = new Date('2026-01-01T00:00:00.000Z');
@@ -193,12 +195,52 @@ describe('InvoicesService', () => {
 
   let service: InvoicesService;
 
+  const pdfJobService: PdfJobServicePort = {
+    enqueue: async () => ({
+      jobId: 'job-1',
+      status: 'PENDING' as const,
+      pollUrl: '/api/v1/invoices/inv-1/pdf/status?jobId=job-1',
+    }),
+    getStatus: async () => ({
+      jobId: 'job-1',
+      status: 'PENDING' as const,
+      createdAt: new Date('2026-01-01T00:00:00.000Z'),
+    }),
+  };
+
   beforeEach(() => {
     jest.clearAllMocks();
 
     evaluateClaimReadinessMock.mockResolvedValue(
       buildClaimReadinessResult('invoice-default', true),
     );
+
+    const queryService = Object.create(
+      InvoicesQueryService.prototype,
+    ) as InvoicesQueryService;
+    Object.assign(queryService, {
+      repository,
+      paymentSessionRepository,
+      prisma,
+      pdfService,
+      claimValidationService,
+      storageProvider,
+      storedFileUrlResolver,
+      pdfJobService,
+    });
+
+    const commandService = Object.create(
+      InvoicesCommandService.prototype,
+    ) as InvoicesCommandService;
+    Object.assign(commandService, {
+      repository,
+      taxCalculator,
+      eventEmitter,
+      usageTracking,
+      storageProvider,
+      claimValidationService,
+      queryService,
+    });
 
     service = new InvoicesService(
       repository,
@@ -211,18 +253,9 @@ describe('InvoicesService', () => {
       storageProvider,
       claimValidationService,
       storedFileUrlResolver,
-      {
-        enqueue: async () => ({
-          jobId: 'job-1',
-          status: 'PENDING' as const,
-          pollUrl: '/api/v1/invoices/inv-1/pdf/status?jobId=job-1',
-        }),
-        getStatus: async () => ({
-          jobId: 'job-1',
-          status: 'PENDING' as const,
-          createdAt: new Date('2026-01-01T00:00:00.000Z'),
-        }),
-      } satisfies PdfJobServicePort,
+      pdfJobService,
+      queryService,
+      commandService,
     );
   });
 

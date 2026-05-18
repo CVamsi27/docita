@@ -34,5 +34,6 @@ export const createMockWhatsAppService = () => {
   };
 };
 
-export const mockTwilio = mockWhatsAppService;
-export const createMockTwilio = createMockWhatsAppService;
+// Legacy alias — remove once all specs migrate to mockWhatsAppService
+// export const mockTwilio = mockWhatsAppService;
+// export const createMockTwilio = createMockWhatsAppService;

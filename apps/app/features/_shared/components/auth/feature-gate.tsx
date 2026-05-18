@@ -25,7 +25,7 @@ import {
   TIER_INFO,
 } from "@workspace/types";
 import { usePermissionStore } from "@/lib/stores/permission-store";
-import { SUBSCRIPTION_SETTINGS_PATH } from "@/lib/subscription-settings-path";
+import { SUBSCRIPTION_SETTINGS_PATH } from "@/lib/subscription/subscription-settings-path";
 
 export { Feature, Tier };
 

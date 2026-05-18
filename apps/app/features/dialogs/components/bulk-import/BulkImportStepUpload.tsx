@@ -66,7 +66,7 @@ export function BulkImportStepUpload({
       ) : null}
 
       <label
-        className={`flex h-48 w-full flex-col items-center justify-center rounded-[var(--radius)] border-2 border-dashed transition-all ${
+        className={`flex h-48 w-full flex-col items-center justify-center rounded-[var(--radius)] border-2 border-dashed transition-colors duration-150 ${
           uploadDisabled
             ? "cursor-not-allowed border-muted-foreground/15 opacity-60"
             : "cursor-pointer border-muted-foreground/25 hover:border-border/80 hover:bg-muted/50"

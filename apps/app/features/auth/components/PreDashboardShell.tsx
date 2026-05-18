@@ -13,7 +13,7 @@ import {
   SUPPORT_WHATSAPP_MESSAGE_ONBOARDING,
 } from "@/lib/support-contact";
 import { AuthBrandingPanel } from "./AuthBrandingPanel";
-import { useAuth } from "@/lib/auth-context";
+import { useAuth } from "@/lib/auth/auth-context";
 import type { AuthBrandingStep } from "@/features/auth/types/auth";
 
 // Derives the user's position in the 4-step pre-dashboard journey
@@ -155,7 +155,7 @@ export function PreDashboardShell({
                     <div
                       key={i}
                       className={[
-                        "h-1 flex-1 rounded-full transition-all duration-500",
+                        "h-1 flex-1 rounded-full transition-colors duration-500",
                         i < meta.index
                           ? "bg-success"
                           : i === meta.index

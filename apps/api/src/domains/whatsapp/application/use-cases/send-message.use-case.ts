@@ -63,6 +63,13 @@ export class SendMessageUseCase {
   }
 
   async execute(request: SendMessageRequest): Promise<SendMessageResult> {
+    // AuditLogged: whatsapp message send
+    this.logger.log({
+      action: 'whatsapp.send',
+      clinicId: request.clinicId,
+      templateName: request.templateName,
+    });
+
     const {
       clinicId,
       recipientPhone,

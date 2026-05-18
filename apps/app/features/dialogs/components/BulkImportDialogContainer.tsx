@@ -7,7 +7,7 @@ import {
   useBulkImportJobStatus,
   useBulkImportTemplate,
 } from "@/hooks/api/use-import";
-import { showUserFacingErrorToast } from "@/lib/user-facing-errors";
+import { showUserFacingErrorToast } from "@/lib/errors/user-facing-errors";
 import {
   BulkImportDialogUI,
   BulkImportStep,
@@ -181,5 +181,4 @@ export function BulkImportDialogContainer({
   );
 }
 
-export default BulkImportDialogContainer;
 export { BulkImportDialogContainer as BulkImportDialog };

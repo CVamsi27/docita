@@ -1,7 +1,7 @@
 "use client";
 
-import { useAuth } from "@/lib/auth-context";
-import { useClinic } from "@/lib/clinic-context";
+import { useAuth } from "@/lib/auth/auth-context";
+import { useClinic } from "@/lib/contexts/clinic-context";
 import { useClinicSettings } from "@/hooks/api/use-settings";
 import { getPublicAppOrigin } from "@/lib/public-app-origin";
 

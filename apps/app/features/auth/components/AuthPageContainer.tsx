@@ -2,9 +2,9 @@
 
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
-import { useAuth, type User } from "@/lib/auth-context";
-import { formatLoginLockoutMessage } from "@/lib/auth-lockout";
-import { ApiValidationError } from "@/lib/api-error";
+import { useAuth, type User } from "@/lib/auth/auth-context";
+import { formatLoginLockoutMessage } from "@/lib/auth/auth-lockout";
+import { ApiValidationError } from "@/lib/api/api-error";
 import {
   checkEmailSchema,
   getUserFacingErrorMessage,
@@ -19,8 +19,8 @@ import { AuthLoginStepUI } from "./AuthLoginStepUI";
 import { AuthSignupStepUI } from "./AuthSignupStepUI";
 import { PreDashboardShell } from "./PreDashboardShell";
 import type { AuthStep, FieldErrors } from "@/features/auth/types/auth";
-import { sanitizeAppReturnPath } from "@/lib/safe-return-path";
-import { APP_REDIRECT_AFTER_LOGIN_KEY } from "@/lib/session";
+import { sanitizeAppReturnPath } from "@/lib/auth/safe-return-path";
+import { APP_REDIRECT_AFTER_LOGIN_KEY } from "@/lib/auth/session";
 
 const STEP_TITLES: Record<AuthStep, string> = {
   email: "Welcome to Docita",

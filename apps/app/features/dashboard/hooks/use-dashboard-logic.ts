@@ -9,10 +9,10 @@ import { useDashboardStats } from "@/hooks/api/use-dashboard";
 import { useTodayAppointments } from "@/hooks/api/use-appointments";
 import { useRecentPatients } from "@/hooks/api/use-patients";
 import { usePendingJoinRequestCount } from "@/hooks/api/use-notifications";
-import { useAuth } from "@/lib/auth-context";
+import { useAuth } from "@/lib/auth/auth-context";
 import { usePermissionStore } from "@/lib/stores/permission-store";
 import { type AppointmentListItem } from "@/hooks/api/use-appointments";
-import { logger } from "@/lib/logger";
+import { logger } from "@/lib/monitoring/logger";
 
 function defaultDashboardStats(): DashboardStats {
   return {

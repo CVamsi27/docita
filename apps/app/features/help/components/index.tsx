@@ -102,7 +102,7 @@ export const HelpCenter: FC = () => {
         {filteredCategories.map((cat) => (
           <Card
             key={cat.id}
-            className="ui-card-surface hover:shadow-md transition-all cursor-pointer group"
+            className="ui-card-surface hover:shadow-md transition-shadow duration-150 cursor-pointer group"
           >
             <CardContent className="p-6">
               <div className="flex items-start gap-4">

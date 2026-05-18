@@ -18,11 +18,11 @@ import {
   AlertTitle,
 } from "@workspace/ui/components/alert";
 import { AlertCircle, LogOut, Trash2 } from "lucide-react";
-import { useAuth } from "@/lib/auth-context";
+import { useAuth } from "@/lib/auth/auth-context";
 import { useConfirm } from "@/hooks/use-confirm";
 import { useRequestStaffAccountDeletion } from "@/hooks/api/use-settings";
 import { toast } from "sonner";
-import { showUserFacingErrorToast } from "@/lib/user-facing-errors";
+import { showUserFacingErrorToast } from "@/lib/errors/user-facing-errors";
 
 export function DangerZoneSettings() {
   const { logout } = useAuth();

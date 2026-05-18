@@ -12,10 +12,10 @@ import {
   CardTitle,
 } from "@workspace/ui/components/card";
 import { APP_ACCESS_MATRIX, type AppAccessTarget } from "@workspace/types";
-import { canAccessTarget } from "@/lib/access-policy";
-import { useAuth } from "@/lib/auth-context";
+import { canAccessTarget } from "@/lib/access-control/access-policy";
+import { useAuth } from "@/lib/auth/auth-context";
 import { usePermissionStore } from "@/lib/stores/permission-store";
-import { SUBSCRIPTION_SETTINGS_PATH } from "@/lib/subscription-settings-path";
+import { SUBSCRIPTION_SETTINGS_PATH } from "@/lib/subscription/subscription-settings-path";
 
 interface AccessGateProps {
   target: AppAccessTarget;

@@ -21,7 +21,7 @@ import { Label } from "@workspace/ui/components/label";
 import { Textarea } from "@workspace/ui/components/textarea";
 import { FileText, Save } from "lucide-react";
 import { Checkbox } from "@workspace/ui/components/checkbox";
-import { showUserFacingErrorToast } from "@/lib/user-facing-errors";
+import { showUserFacingErrorToast } from "@/lib/errors/user-facing-errors";
 import {
   Form,
   FormControl,
@@ -34,7 +34,7 @@ import {
   type PrescriptionDefaultsFormValues,
 } from "@/features/settings/schemas/prescription-defaults-form.schema";
 
-export function PrescriptionDefaultsSettings() {
+function PrescriptionDefaultsSettings() {
   const {
     data: initialSettings,
     isLoading: loading,

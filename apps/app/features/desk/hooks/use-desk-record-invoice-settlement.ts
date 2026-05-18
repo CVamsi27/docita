@@ -1,5 +1,5 @@
 import { deskApi, type DeskRecordInvoiceSettlementVariables } from "@/features/desk/api/desk.api";
-import { useAppMutation } from "@/lib/query-hooks";
+import { useAppMutation } from "@/lib/api/query-hooks";
 import { queryKeys } from "@workspace/data-access";
 
 export function useDeskRecordInvoiceSettlement() {
