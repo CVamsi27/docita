@@ -26,9 +26,6 @@ vi.mock("@workspace/data-access", () => ({
     isPending: false,
     mutateAsync: appointmentMocks.rejectMutateAsync,
   }),
-}));
-
-vi.mock("@workspace/data-access", () => ({
   useDoctors: () => ({
     data: appointmentMocks.doctors,
   }),

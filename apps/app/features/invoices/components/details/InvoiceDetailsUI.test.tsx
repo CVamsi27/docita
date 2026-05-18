@@ -53,7 +53,14 @@ function renderWithQueryClient(ui: ReactElement) {
   });
 
   return render(
-    <DataAccessProvider fetcher={() => Promise.resolve({ ok: true })} clinicId="">
+    <DataAccessProvider
+      config={{
+        fetcher: () => Promise.resolve({ ok: true }),
+        getClinicId: () => "clinic-1",
+        getClinicTimezone: () => "UTC",
+        isTierFeatureEnabled: () => true,
+      }}
+    >
       <QueryClientProvider client={queryClient}>{ui}</QueryClientProvider>
     </DataAccessProvider>,
   );
