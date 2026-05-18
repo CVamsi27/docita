@@ -74,6 +74,8 @@ It adapts and consolidates guidance from `CONTRIBUTING.md` and `.github/copilot-
 - Keep components accessible and keyboard-friendly.
 - Never import `@prisma/client` or `@workspace/db` in frontend code.
 - For `apps/app` Cloudflare builds, keep the route guard file as `middleware.ts`; Next 16 may warn about the newer `proxy` convention, but this deployment path does not use it.
+- For browser-side web-vitals or client-error telemetry in `apps/app` and `apps/internal`, do not post directly from the browser to `https://api.docita.work` or any other cross-origin API URL. Use a same-origin app/internal route proxy, or first update and verify the API CORS allowlist for the exact production origin. Telemetry failures must be non-blocking and must not create console noise for clinicians.
+- Do not remove Cloudflare/OpenNext runtime shims such as the `globalThis.__name` bootstrap in `apps/app/app/layout.tsx` unless the matching production Cloudflare artifact and local preview prove the helper is no longer needed. The check must include `build:cloudflare:production`, an artifact search for `__name`/telemetry URLs, and a browser or Playwright smoke of the affected production route.
 
 ### 4.1 Import path standards
 
