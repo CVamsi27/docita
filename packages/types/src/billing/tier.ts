@@ -1153,40 +1153,9 @@ export const REFERRAL_REWARDS_BY_CURRENCY: Record<
   },
 };
 
-export function getTierPricingByCurrency(
-  tier: TierName,
-  currency: SupportedCurrency = "INR",
-): MultiCurrencyTierPricing {
-  return TIER_PRICING_BY_CURRENCY[currency][tier];
-}
-
-export function getOverageRatesByCurrency(
-  tier: TierName,
-  currency: SupportedCurrency = "INR",
-) {
-  return TIER_OVERAGE_RATES_BY_CURRENCY[currency][tier];
-}
-
-export function getWhatsAppAddonPricingByCurrency(
-  tier: Exclude<TierName, "STARTER" | "INTELLIGENCE">,
-  currency: SupportedCurrency = "INR",
-): AddOnPricing {
-  return WHATSAPP_ADDON_PRICING_BY_CURRENCY[currency][tier];
-}
-
-export function getIntelligenceAddonPricingByCurrency(
-  tier: Exclude<TierName, "STARTER" | "INTELLIGENCE">,
-  currency: SupportedCurrency = "INR",
-): AddOnPricing {
-  return INTELLIGENCE_ADDON_PRICING_BY_CURRENCY[currency][tier];
-}
-
-export function getReferralRewardByCurrency(
-  tier: TierName,
-  currency: SupportedCurrency = "INR",
-): number {
-  return REFERRAL_REWARDS_BY_CURRENCY[currency][tier];
-}
+// Currency-aware pricing helpers (getTierPricingByCurrency, getOverageRatesByCurrency, ...)
+// were extracted to `@workspace/utils/billing/tier-pricing` per §15.3. Import them from
+// `@workspace/utils`.
 
 export const tierInfoSchema = z.object({
   name: z.string(),

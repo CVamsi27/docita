@@ -27,15 +27,8 @@ import { PrivacyPolicyContent, SLAContent } from "@/features/legal";
 import { ComparisonTable } from "@/features/subscription/components/pricing/comparison-table";
 import { FaqSection } from "@/features/subscription/components/sections/faq-section";
 import { TierCard } from "@/features/subscription/components/cards/tier-card";
-import {
-  ANNUAL_DISCOUNT_PERCENT,
-  PRICING_CURRENCY_SYMBOLS,
-  TIER_INFO,
-  TIER_OVERAGE_RATES_BY_CURRENCY,
-  type TierName,
-  getWhatsAppAddonPricingByCurrency,
-  isFrontDeskWorkspace,
-} from "@workspace/types";
+import { ANNUAL_DISCOUNT_PERCENT, PRICING_CURRENCY_SYMBOLS, TIER_INFO, TIER_OVERAGE_RATES_BY_CURRENCY, type TierName, isFrontDeskWorkspace } from "@workspace/types";
+import { getWhatsAppAddonPricingByCurrency } from "@workspace/utils";
 import { PLAN_ONBOARDING_KEY_HIGHLIGHTS } from "@/features/subscription/config/plan-onboarding-highlights";
 import { PLAN_ORDER } from "./billing-subscription-helpers";
 import type { recommendTier } from "@/features/subscription/lib/recommend-tier";

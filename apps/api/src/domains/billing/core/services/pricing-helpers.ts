@@ -2,9 +2,9 @@ import {
   TIER_LIMITS,
   TIER_INFO,
   PRICING_CURRENCY_CONFIG,
-  getWhatsAppAddonPricingByCurrency,
   type SupportedCurrency,
 } from '@workspace/types';
+import { getWhatsAppAddonPricingByCurrency } from '@workspace/utils';
 
 export function resolveCurrency(
   supportedCurrencies: SupportedCurrency[],

@@ -9,11 +9,11 @@ import {
   deriveAnnualPrice,
   TIER_PRICING_BY_CURRENCY,
   TIER_OVERAGE_RATES_BY_CURRENCY,
-  getWhatsAppAddonPricingByCurrency,
   REFERRAL_REWARDS_BY_CURRENCY,
   PRICING_CURRENCY_CONFIG,
   SupportedCurrency,
 } from '@workspace/types';
+import { getWhatsAppAddonPricingByCurrency } from '@workspace/utils';
 import {
   resolveCurrency,
   readNumber,

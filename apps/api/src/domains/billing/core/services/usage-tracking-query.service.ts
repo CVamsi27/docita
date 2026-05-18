@@ -6,10 +6,10 @@ import {
   PRICING_CURRENCY_CONFIG,
   TIER_LIMITS,
   TIER_OVERAGE_RATES_BY_CURRENCY,
-  getWhatsAppAddonPricingByCurrency,
   type TierName,
   type SupportedCurrency,
 } from '@workspace/types';
+import { getWhatsAppAddonPricingByCurrency } from '@workspace/utils';
 
 @Injectable()
 export class UsageTrackingQueryService {

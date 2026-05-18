@@ -14,9 +14,9 @@ import {
   TIER_LIMITS,
   PRICING_CURRENCY_CONFIG,
   PRICING_CURRENCY_SYMBOLS,
-  getWhatsAppAddonPricingByCurrency,
   type SupportedCurrency,
 } from '@workspace/types';
+import { getWhatsAppAddonPricingByCurrency } from '@workspace/utils';
 import {
   ClinicTier,
   UsageType,

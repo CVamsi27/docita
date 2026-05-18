@@ -5,10 +5,10 @@ import { DEFAULT_CURRENCY } from '@workspace/utils';
 import {
   PRICING_CURRENCY_CONFIG,
   TIER_OVERAGE_RATES_BY_CURRENCY,
-  getWhatsAppAddonPricingByCurrency,
   type TierName,
   type SupportedCurrency,
 } from '@workspace/types';
+import { getWhatsAppAddonPricingByCurrency } from '@workspace/utils';
 
 interface UsageData {
   period: { start: Date; end: Date };

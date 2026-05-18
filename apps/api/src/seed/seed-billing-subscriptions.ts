@@ -11,8 +11,8 @@ import {
   TIER_LIMITS,
   TIER_OVERAGE_RATES_BY_CURRENCY,
   TIER_PRICING_BY_CURRENCY,
-  getWhatsAppAddonPricingByCurrency,
 } from '@workspace/types';
+import { getWhatsAppAddonPricingByCurrency } from '@workspace/utils';
 
 interface SeedBillingAndUsageParams {
   clinicId: string;

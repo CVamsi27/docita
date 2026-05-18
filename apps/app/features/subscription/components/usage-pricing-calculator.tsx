@@ -7,15 +7,8 @@ import { Slider } from "@workspace/ui/components/form/slider";
 import { Badge } from "@workspace/ui/components/indicators/badge";
 import { Separator } from "@workspace/ui/components/layout/separator";
 import { Button } from "@workspace/ui/components/form/button";
-import {
-  PRICING_CURRENCY_CONFIG,
-  TIER_PRICING_BY_CURRENCY,
-  TIER_OVERAGE_RATES_BY_CURRENCY,
-  PRICING_CURRENCY_SYMBOLS,
-  TIER_LIMITS,
-  getWhatsAppAddonPricingByCurrency,
-  type SupportedCurrency,
-} from "@workspace/types";
+import { PRICING_CURRENCY_CONFIG, TIER_PRICING_BY_CURRENCY, TIER_OVERAGE_RATES_BY_CURRENCY, PRICING_CURRENCY_SYMBOLS, TIER_LIMITS, type SupportedCurrency } from "@workspace/types";
+import { getWhatsAppAddonPricingByCurrency } from "@workspace/utils";
 import { formatAmountLocale, formatCountLocale } from "@workspace/utils";
 import { Calculator, ArrowRight } from "lucide-react";
 import { useRouter } from "next/navigation";
