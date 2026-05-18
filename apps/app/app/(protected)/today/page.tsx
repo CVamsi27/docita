@@ -1,3 +1,5 @@
+"use client";
+
 import Link from "next/link";
 import { useMemo } from "react";
 import { DashboardSharedWorkspace } from "@/features/dashboard/components/layout/dashboard-shared-workspace";
@@ -17,7 +19,7 @@ import { usePermissions } from "@/hooks/use-permissions";
 import { useAskAi } from "@/components/ask-ai/ask-ai-context";
 import { AppPageScaffold } from "@workspace/ui/components/layout/app-page-scaffold";
 import { Button } from "@workspace/ui/components/form/button";
-import { DataState } from "@workspace/ui/components/feedback/data-state";
+import { DataState } from "@workspace/ui/components/data-display/data-state";
 import { MicroLabel } from "@workspace/ui/components/indicators/micro-label";
 import { PageHeader } from "@workspace/ui/components/layout/page-header";
 import { cn } from "@workspace/ui/lib/utils";
