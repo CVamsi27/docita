@@ -5,6 +5,16 @@ import { usePathname } from "next/navigation";
 import type { Metric } from "web-vitals";
 import { API_URL } from "@/lib/api-config";
 
+const PUBLIC_INTERNAL_PATHS = new Set(["/"]);
+
+export function shouldReportInternalWebVitals(pathname: string | null): boolean {
+  if (!pathname) {
+    return false;
+  }
+
+  return !PUBLIC_INTERNAL_PATHS.has(pathname);
+}
+
 function createWebVitalsBeaconBody(payload: Record<string, unknown>) {
   return new Blob([JSON.stringify(payload)], {
     type: "application/json",
@@ -16,6 +26,10 @@ export function InternalWebVitalsReporter() {
 
   useEffect(() => {
     if (process.env.NODE_ENV !== "production") {
+      return;
+    }
+
+    if (!shouldReportInternalWebVitals(pathname)) {
       return;
     }
 
