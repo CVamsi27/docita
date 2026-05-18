@@ -12,14 +12,14 @@ import { useDashboardLogic } from "@/features/dashboard/hooks/use-dashboard-logi
 import { useClinicReferralShare } from "@/features/dashboard/hooks/use-clinic-referral-share";
 import { ClinicReferralShareToolbar } from "@/features/dashboard/components/layout/clinic-referral-share-toolbar";
 import { Feature } from "@/lib/stores/permission-store";
-import { useClinic } from "@/lib/clinic-context";
+import { useClinic } from "@/lib/contexts/clinic-context";
 import { usePermissions } from "@/hooks/use-permissions";
-import { useAskAi } from "@/features/_shared/components/ask-ai/ask-ai-context";
-import { AppPageScaffold } from "@workspace/ui/components/app-page-scaffold";
-import { Button } from "@workspace/ui/components/button";
-import { DataState } from "@workspace/ui/components/data-state";
-import { MicroLabel } from "@workspace/ui/components/micro-label";
-import { PageHeader } from "@workspace/ui/components/page-header";
+import { useAskAi } from "@/components/ask-ai/ask-ai-context";
+import { AppPageScaffold } from "@workspace/ui/components/layout/app-page-scaffold";
+import { Button } from "@workspace/ui/components/form/button";
+import { DataState } from "@workspace/ui/components/feedback/data-state";
+import { MicroLabel } from "@workspace/ui/components/indicators/micro-label";
+import { PageHeader } from "@workspace/ui/components/layout/page-header";
 import { cn } from "@workspace/ui/lib/utils";
 import { LayoutDashboard, Sparkles } from "lucide-react";
 
