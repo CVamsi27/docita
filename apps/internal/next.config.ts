@@ -3,10 +3,12 @@ import { createRequire } from "module";
 import { withSentryConfig } from "@sentry/nextjs";
 
 const require = createRequire(import.meta.url);
-const nextCloudflareEmptyStub =
-  require.resolve("@workspace/ui/next-cloudflare/empty-module.cjs");
-const nextCloudflareSentryStub =
-  require.resolve("@workspace/ui/next-cloudflare/sentry-nextjs-cloudflare");
+const nextCloudflareEmptyStub = require.resolve(
+  "../../scripts/deploy/cloudflare-stubs/empty-module.cjs",
+);
+const nextCloudflareSentryStub = require.resolve(
+  "../../scripts/deploy/cloudflare-stubs/sentry-nextjs-cloudflare.ts",
+);
 const isCloudflareBuild = process.env.DOCITA_CLOUDFLARE === "1";
 const DEFAULT_PUBLIC_API_URL = isCloudflareBuild
   ? "/api/v1"
