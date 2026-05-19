@@ -9,6 +9,7 @@ import {
   Request,
   Query,
   ForbiddenException,
+  NotFoundException,
   BadRequestException,
   UsePipes,
 } from '@nestjs/common';
@@ -20,6 +21,8 @@ import {
   ClinicUpdateMemberDto,
   ClinicSettingsDto,
   ClinicResponseDto,
+  JoinClinicDto,
+  JoinClinicSchema,
 } from '@/domains/clinics/application/dto/clinics.dto';
 import { ZodValidationPipe } from '@/shared/common/pipes/zod-validation.pipe';
 import { ZodSerializerDto } from 'nestjs-zod';
