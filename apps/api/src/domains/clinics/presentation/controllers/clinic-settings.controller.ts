@@ -3,14 +3,12 @@ import {
   Get,
   Post,
   Put,
-  Patch,
   Delete,
   Body,
   Param,
   Request,
   Query,
   ForbiddenException,
-  NotFoundException,
   BadRequestException,
   UsePipes,
 } from '@nestjs/common';
@@ -19,28 +17,11 @@ import { JoinRequestService } from '@/domains/clinics/application/services/join-
 import { Roles } from '@/shared/modules/auth/auth/roles.decorator';
 import { Role } from '@workspace/db';
 import {
-  CreateClinicDto,
-  UpdateClinicDto,
-  ClinicCreateDoctorDto,
-  ClinicCreateMemberDto,
-  ClinicCreateReceptionistDto,
   ClinicUpdateMemberDto,
   ClinicSettingsDto,
   ClinicResponseDto,
-  ClinicListResponseDto,
-  CreateClinicSchema,
-  JoinClinicDto,
-  JoinClinicSchema,
 } from '@/domains/clinics/application/dto/clinics.dto';
-import {
-  createDataSubjectRequestSchema,
-  dataSubjectRequestStatusSchema,
-  updateDataSubjectRequestSchema,
-  type CreateDataSubjectRequest,
-  type UpdateDataSubjectRequest,
-} from '@workspace/types';
 import { ZodValidationPipe } from '@/shared/common/pipes/zod-validation.pipe';
-import { UserResponseDto } from '@/domains/users/application/dto/users.dto';
 import { ZodSerializerDto } from 'nestjs-zod';
 import { SkipSubscriptionCheck } from '@/shared/modules/auth/decorators/skip-subscription-check.decorator';
 import { RequestWithUser } from '@/shared/common/types/common.types';

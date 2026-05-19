@@ -2,9 +2,7 @@ import { Test, TestingModule } from '@nestjs/testing';
 import { OverageCalculationService } from './overage-calculation.service';
 import { PrismaService } from '@/prisma/prisma.service';
 import { ClinicTier } from '@workspace/db';
-import {
-  TIER_OVERAGE_RATES_BY_CURRENCY,
-} from '@workspace/types';
+import { TIER_OVERAGE_RATES_BY_CURRENCY } from '@workspace/types';
 import { getWhatsAppAddonPricingByCurrency } from '@workspace/utils';
 import { beforeEach, describe, it, expect, jest } from '@jest/globals';
 

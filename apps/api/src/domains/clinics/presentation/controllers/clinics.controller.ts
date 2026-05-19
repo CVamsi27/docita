@@ -10,7 +10,6 @@ import {
   Request,
   Query,
   ForbiddenException,
-  NotFoundException,
   BadRequestException,
   UsePipes,
 } from '@nestjs/common';
@@ -24,13 +23,9 @@ import {
   ClinicCreateDoctorDto,
   ClinicCreateMemberDto,
   ClinicCreateReceptionistDto,
-  ClinicUpdateMemberDto,
-  ClinicSettingsDto,
   ClinicResponseDto,
   ClinicListResponseDto,
   CreateClinicSchema,
-  JoinClinicDto,
-  JoinClinicSchema,
 } from '@/domains/clinics/application/dto/clinics.dto';
 import {
   createDataSubjectRequestSchema,
@@ -42,7 +37,6 @@ import {
 import { ZodValidationPipe } from '@/shared/common/pipes/zod-validation.pipe';
 import { UserResponseDto } from '@/domains/users/application/dto/users.dto';
 import { ZodSerializerDto } from 'nestjs-zod';
-import { SkipSubscriptionCheck } from '@/shared/modules/auth/decorators/skip-subscription-check.decorator';
 import { RequestWithUser } from '@/shared/common/types/common.types';
 
 @Controller('clinics')
