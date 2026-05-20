@@ -8,6 +8,15 @@ export {
   TIER_LIMITS,
   TIER_FEATURES,
   FEATURE_DISPLAY,
+  WHATSAPP_ADDON_PRICING,
+  type TierName,
+  type TierPricing,
+  type TierLimits,
+  type TierInfo,
+  type FeatureDisplay,
+} from "@workspace/types";
+
+export {
   getAllFeaturesUpToTier,
   getFeaturesForTier,
   getIntelligenceBundlePrice,
@@ -19,19 +28,11 @@ export {
   getTierPricing,
   getTierLimits,
   getTierFeaturesList,
-  type TierName,
-  type TierPricing,
-  type TierLimits,
-  type TierInfo,
-  type FeatureDisplay,
-} from "@workspace/types";
+} from "@workspace/utils";
 
 import {
   Feature,
   FEATURE_DISPLAY,
-  getAllFeaturesUpToTier,
-  getTierName,
-  hasFeatureAccess,
   Tier,
   TIER_LIMITS,
   TIER_PRICING,
@@ -39,7 +40,12 @@ import {
   type TierPricing,
   type TierLimits,
 } from "@workspace/types";
-import { formatCountLocale } from "@workspace/utils";
+import {
+  formatCountLocale,
+  getAllFeaturesUpToTier,
+  getTierName,
+  hasFeatureAccess,
+} from "@workspace/utils";
 
 /** Linear plan ladder for onboarding highlights (excludes INTELLIGENCE add-on). */
 const PLAN_TIER_LADDER: Tier[] = [

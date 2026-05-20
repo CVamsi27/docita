@@ -1,7 +1,10 @@
 "use client";
 
 import React, { useMemo, useState } from "react";
-import { useQuery } from "@tanstack/react-query";
+import {
+  useInternalAuditLogs,
+  type InternalAuditLog,
+} from "@workspace/data-access/internal";
 import {
   Calendar,
   ChevronDown,
@@ -24,7 +27,6 @@ import {
 } from "@workspace/ui/components/data-display/table";
 import { toast } from "sonner";
 import { formatInternalTimestamp } from "@/lib/formatters/format-display-date";
-import { client } from "@/lib/api/api-client";
 import { showUserFacingErrorToast } from "@/lib/errors/user-facing-errors";
 import { Input } from "@workspace/ui/components/form/input";
 import {
@@ -35,21 +37,7 @@ import {
   SelectValue,
 } from "@workspace/ui/components/form/select";
 
-interface AuditLog {
-  id: string;
-  clinicId: string;
-  userId: string;
-  actionType: string;
-  resourceType?: string;
-  resourceId?: string;
-  changes?: Record<string, unknown>;
-  ipAddress?: string;
-  userAgent?: string;
-  status: "success" | "failure";
-  errorMessage?: string;
-  metadata?: Record<string, unknown>;
-  createdAt: string;
-}
+type AuditLog = InternalAuditLog;
 
 export function AuditLogViewer() {
   const [showFilters, setShowFilters] = useState(false);
@@ -72,16 +60,7 @@ export function AuditLogViewer() {
     return next.toString();
   }, [selectedActionType, selectedDate, selectedUserId]);
 
-  const logsQuery = useQuery({
-    queryKey: ["internal", "audit-logs", params],
-    queryFn: async () => {
-      const data = await client.get<AuditLog[] | { logs?: AuditLog[] }>(
-        `/audit-logs?${params}`,
-      );
-      return Array.isArray(data) ? data : (data.logs ?? []);
-    },
-    refetchInterval: 30000,
-  });
+  const logsQuery = useInternalAuditLogs(params);
 
   const logs = logsQuery.data ?? [];
   const isLoading = logsQuery.isLoading;

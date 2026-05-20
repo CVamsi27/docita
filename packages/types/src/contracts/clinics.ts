@@ -122,6 +122,15 @@ export const updateClinicSettingsRequestSchema = z.object({
   sidebarNavOrder: sidebarNavOrderSchema.optional(),
   mapsLocation: mapsLocationSchema.optional(),
   mapsLink: z.union([z.string().url(), z.literal("")]).optional(),
+  brandName: z.string().max(80).optional(),
+  lockedTheme: z
+    .object({
+      primaryColor: z.string().optional(),
+      mode: z.enum(["light", "dark", "system"]).optional(),
+      compactMode: z.boolean().optional(),
+      enforced: z.boolean().optional(),
+    })
+    .optional(),
 });
 
 export const createClinicDoctorRequestSchema = z.object({

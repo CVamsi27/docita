@@ -13,6 +13,7 @@ import {
 } from "@workspace/ui/components/form/select";
 import { Activity, Plus, RefreshCw } from "lucide-react";
 import {
+  queryKeys,
   usePortalMetricCategories,
   usePortalMetricHistory,
 } from "@workspace/data-access";
@@ -65,7 +66,7 @@ export function PortalMetricsUI({
 
   const handleRecordSuccess = () => {
     queryClient.invalidateQueries({
-      queryKey: ["patient-portal", "metrics", "history"],
+      queryKey: queryKeys.patientPortal.metrics.historyPrefix(),
     });
   };
 
@@ -108,7 +109,7 @@ export function PortalMetricsUI({
   const handleRetry = () => {
     void refetchHistory();
     void queryClient.invalidateQueries({
-      queryKey: ["patient-portal", "metrics", "categories"],
+      queryKey: queryKeys.patientPortal.metrics.categories(),
     });
   };
 
@@ -195,7 +196,7 @@ export function PortalMetricsUI({
           onClose={() => setShowAddModal(false)}
           onSuccess={() => {
             queryClient.invalidateQueries({
-              queryKey: ["patient-portal", "metrics", "categories"],
+              queryKey: queryKeys.patientPortal.metrics.categories(),
             });
           }}
         />

@@ -12,9 +12,14 @@ import {
 import { Button } from "@workspace/ui/components/form/button";
 import { Input } from "@workspace/ui/components/form/input";
 import { useAuth } from "@/lib/auth/auth";
-import { client } from "@/lib/api/api-client";
-import { internalQueryKeys } from "@/lib/api/query-keys";
-import { useInternalQuery } from "@/lib/api/use-internal-query";
+import {
+  useInternalBillingMetrics,
+  useInternalClinics,
+  useInternalDashboardStats,
+  type InternalBillingMetrics as BillingMetrics,
+  type InternalDashboardClinic as Clinic,
+  type InternalDashboardStats as StatsData,
+} from "@workspace/data-access/internal";
 import { ClinicList } from "./clinic-list";
 import {
   BarChart3,
@@ -29,47 +34,6 @@ import {
   Users,
 } from "lucide-react";
 
-interface StatsData {
-  clinics: number;
-  users: number;
-  doctors: number;
-  patients: number;
-  invoices: number;
-  prescriptions: number;
-  trends?: {
-    clinicsThisMonth: number;
-    usersThisMonth: number;
-    doctorsThisMonth: number;
-    patientsThisMonth: number;
-    invoicesPercentChange: number;
-    prescriptionsPercentChange: number;
-  };
-}
-
-interface BillingMetrics {
-  mrr: number;
-  arr: number;
-  churnRate: number;
-  activeSubscriptions: number;
-  subscriptionsByTier: Record<string, number>;
-}
-
-interface Clinic {
-  id: string;
-  name: string;
-  email?: string;
-  phone?: string;
-  address?: string;
-  tier?: string;
-  type?: string;
-  active?: boolean;
-  settings?: Record<string, unknown>;
-  _count?: {
-    users: number;
-    patients: number;
-  };
-}
-
 export default function InternalDashboard() {
   const defaultStats: StatsData = {
     clinics: 0,
@@ -81,25 +45,9 @@ export default function InternalDashboard() {
   };
   const { token, isLoading } = useAuth();
 
-  const clinicsQuery = useInternalQuery({
-    queryKey: internalQueryKeys.internal.clinics(),
-    queryFn: async () => {
-      const data = await client.get<Clinic[] | { items?: Clinic[] }>(
-        "/internal/clinics",
-      );
-      return Array.isArray(data) ? data : (data.items ?? []);
-    },
-  });
-
-  const statsQuery = useInternalQuery({
-    queryKey: internalQueryKeys.internal.stats(),
-    queryFn: () => client.get<StatsData>("/internal/stats"),
-  });
-
-  const billingQuery = useInternalQuery({
-    queryKey: internalQueryKeys.internal.billingMetrics(),
-    queryFn: () => client.get<BillingMetrics>("/internal/billing/metrics"),
-  });
+  const clinicsQuery = useInternalClinics(token, "list");
+  const statsQuery = useInternalDashboardStats(token);
+  const billingQuery = useInternalBillingMetrics(token);
 
   const clinics = clinicsQuery.data ?? [];
   const stats = statsQuery.data ?? defaultStats;

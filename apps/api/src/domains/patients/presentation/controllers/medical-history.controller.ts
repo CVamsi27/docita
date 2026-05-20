@@ -16,6 +16,7 @@ import { Feature } from '@workspace/types';
 import { Roles } from '@/shared/modules/auth/auth/roles.decorator';
 import { RequireFeature } from '@/shared/modules/auth/auth/tier.decorator';
 import { AuditService } from '@/shared/modules/audit/audit/audit.service';
+import { logPatientPhiRead } from '@/shared/modules/audit/audit/patient-access-audit.util';
 import { RequestWithUser } from '@/shared/common/types/common.types';
 import { PatientService } from '@/domains/patients/application/services/patient.service';
 
@@ -57,12 +58,25 @@ export class MedicalHistoryController {
     await this.patientService.getPatient(patientId, clinicId);
   }
 
+  private auditViewHistory(
+    patientId: string,
+    req: RequestWithUser,
+  ): Promise<void> {
+    return logPatientPhiRead(
+      this.auditService,
+      req,
+      patientId,
+      'VIEW_HISTORY',
+    );
+  }
+
   @Get('conditions')
   async getConditions(
     @Param('patientId') patientId: string,
     @Request() req: RequestWithUser,
   ) {
     await this.verifyPatientAccess(patientId, req);
+    await this.auditViewHistory(patientId, req);
     return this.medicalHistoryService.getConditions(patientId);
   }
 
@@ -103,6 +117,7 @@ export class MedicalHistoryController {
     @Request() req: RequestWithUser,
   ) {
     await this.verifyPatientAccess(patientId, req);
+    await this.auditViewHistory(patientId, req);
     return this.medicalHistoryService.getAllergies(patientId);
   }
   @Post('allergies')
@@ -142,6 +157,7 @@ export class MedicalHistoryController {
     @Request() req: RequestWithUser,
   ) {
     await this.verifyPatientAccess(patientId, req);
+    await this.auditViewHistory(patientId, req);
     return this.medicalHistoryService.getFamilyHistory(patientId);
   }
 
@@ -182,6 +198,7 @@ export class MedicalHistoryController {
     @Request() req: RequestWithUser,
   ) {
     await this.verifyPatientAccess(patientId, req);
+    await this.auditViewHistory(patientId, req);
     return this.medicalHistoryService.getSocialHistory(patientId);
   }
 
@@ -213,6 +230,7 @@ export class MedicalHistoryController {
     @Request() req: RequestWithUser,
   ) {
     await this.verifyPatientAccess(patientId, req);
+    await this.auditViewHistory(patientId, req);
     return this.medicalHistoryService.getSurgicalHistory(patientId);
   }
 
@@ -253,23 +271,7 @@ export class MedicalHistoryController {
     @Request() req: RequestWithUser,
   ) {
     await this.verifyPatientAccess(patientId, req);
-
-    const userId = req.user?.id;
-    const clinicId = req.user?.clinicId;
-    const ipAddress = req.ip;
-    const userAgent = req.headers?.['user-agent'];
-
-    if (userId && clinicId) {
-      await this.auditService.logPatientAccess(
-        userId,
-        clinicId,
-        patientId,
-        'VIEW_HISTORY',
-        ipAddress,
-        userAgent,
-      );
-    }
-
+    await this.auditViewHistory(patientId, req);
     return this.medicalHistoryService.getFullMedicalHistory(patientId);
   }
 }

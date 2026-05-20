@@ -15,7 +15,7 @@ import {
   PAYMENT_SESSION_REPOSITORY_TOKEN,
 } from '@/domains/billing/core/repositories/payment-session.repository';
 import { UsageTrackingService } from '@/domains/billing/core/services/usage-tracking.service';
-import { StorageProvider } from '@/domains/documents/infrastructure/storage.provider';
+import { StorageProvider } from '@/domains/documents/application/ports/storage-provider.port';
 import { StoredFileUrlResolverService } from '@/domains/documents/application/services/stored-file-url-resolver.service';
 import {
   ClaimReadinessResult,
@@ -25,7 +25,10 @@ import { TaxCalculatorService } from '@/domains/billing/core/services/tax-calcul
 import { PdfJobService } from '@/shared/modules/queue/pdf-job.service';
 import type { PdfJobServicePort } from '@/shared/modules/queue/pdf-job.service';
 import { EventEmitter2 } from '@nestjs/event-emitter';
-import { PrismaService } from '@/prisma/prisma.service';
+import {
+  BILLING_PERSISTENCE_PORT,
+  type BillingPersistencePort,
+} from '@/domains/billing/application/ports/billing-persistence.port';
 import { PDFService } from './pdf.service';
 import { InvoicesQueryService } from './invoices-query.service';
 import { InvoicesCommandService } from './invoices-command.service';
@@ -42,7 +45,8 @@ export class InvoicesService {
     private readonly repository: IInvoiceRepository,
     @Inject(PAYMENT_SESSION_REPOSITORY_TOKEN)
     private readonly paymentSessionRepository: IPaymentSessionRepository,
-    private readonly prisma: PrismaService,
+    @Inject(BILLING_PERSISTENCE_PORT)
+    private readonly persistence: BillingPersistencePort,
     private readonly pdfService: PDFService,
     private readonly taxCalculator: TaxCalculatorService,
     private readonly eventEmitter: EventEmitter2,

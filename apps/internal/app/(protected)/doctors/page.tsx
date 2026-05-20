@@ -5,7 +5,10 @@ import { DEFAULT_CURRENCY, formatCurrency, getDoctorVerificationPublicNote } fro
 import { DocitaLoadingIndicator } from "@workspace/ui/components/feedback/docita-loading-indicator";
 
 import { useEffect, useMemo, useState } from "react";
-import { useInternalQuery } from "@/lib/api/use-internal-query";
+import {
+  useInternalClinics,
+  useInternalDoctorsList,
+} from "@workspace/data-access/internal";
 import { Button } from "@workspace/ui/components/form/button";
 import {
   Card,
@@ -126,11 +129,7 @@ interface DoctorSpecializationEntry {
   yearsOfPractice?: number;
 }
 
-interface Clinic {
-  id: string;
-  name: string;
-}
-const EMPTY_CLINICS: Clinic[] = [];
+const EMPTY_CLINICS: { id: string; name: string }[] = [];
 
 export default function DoctorsPage() {
   const { doctorSearch, selectedClinic, setDoctorSearch, setSelectedClinic } =
@@ -158,15 +157,7 @@ export default function DoctorsPage() {
     return status.charAt(0) + status.slice(1).toLowerCase();
   };
 
-  const clinicsQuery = useInternalQuery({
-    queryKey: internalQueryKeys.internal.clinics(),
-    queryFn: async () => {
-      const data = await client.get<Clinic[] | { items?: Clinic[] }>(
-        "/internal/clinics",
-      );
-      return Array.isArray(data) ? data : (data.items ?? []);
-    },
-  });
+  const clinicsQuery = useInternalClinics(token);
 
   const clinics = useMemo(
     () => clinicsQuery.data ?? EMPTY_CLINICS,
@@ -181,38 +172,8 @@ export default function DoctorsPage() {
     }
   }, [clinics, selectedClinic, setSelectedClinic]);
 
-  const doctorsQuery = useInternalQuery({
-    queryKey: [
-      "internal",
-      "doctors",
-      selectedClinic || "none",
-      clinics.length,
-    ] as const,
-    queryFn: async () => {
-      if (selectedClinic === "all") {
-        const allDoctorsArrays = await Promise.all(
-          clinics.map(async (clinic) => {
-            const clinicDoctors = await client.get<Doctor[]>(
-              `/internal/clinics/${clinic.id}/doctors`,
-            );
-            return (clinicDoctors ?? []).map((doctor) => ({
-              ...doctor,
-              clinicId: clinic.id,
-            }));
-          }),
-        );
-        return allDoctorsArrays.flat();
-      }
-
-      if (!selectedClinic) return [];
-      const data = await client.get<Doctor[]>(
-        `/internal/clinics/${selectedClinic}/doctors`,
-      );
-      return Array.isArray(data) ? data : [];
-    },
-    enabled: Boolean(selectedClinic),
-  });
-  const doctors = doctorsQuery.data ?? [];
+  const doctorsQuery = useInternalDoctorsList(token, selectedClinic, clinics);
+  const doctors = (doctorsQuery.data ?? []) as Doctor[];
   const loading = clinicsQuery.isLoading || doctorsQuery.isLoading;
 
   const fetchDoctorDetails = async (clinicId: string, doctorId: string) => {

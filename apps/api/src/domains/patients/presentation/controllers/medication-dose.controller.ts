@@ -18,6 +18,8 @@ import { RequestWithUser } from '@/shared/common/types/common.types';
 import { MedicationDoseService } from '@/domains/patients/application/services/medication-dose.service';
 import { PatientService } from '@/domains/patients/application/services/patient.service';
 import { parsePaginationInt } from '@/shared/common/utils/string.utils';
+import { AuditService } from '@/shared/modules/audit/audit/audit.service';
+import { logPatientPhiRead } from '@/shared/modules/audit/audit/patient-access-audit.util';
 
 @ApiTags('medication-doses')
 @Controller('patients/:patientId/medication-doses')
@@ -28,6 +30,7 @@ export class MedicationDoseController {
   constructor(
     private readonly medicationDoseService: MedicationDoseService,
     private readonly patientService: PatientService,
+    private readonly auditService: AuditService,
   ) {}
 
   private async getClinicId(req: RequestWithUser): Promise<string> {
@@ -157,6 +160,7 @@ export class MedicationDoseController {
     @Query() query: { prescriptionId?: string },
   ) {
     const clinicId = await this.getClinicId(req);
+    await logPatientPhiRead(this.auditService, req, patientId, 'VIEW_HISTORY');
     return this.medicationDoseService.getAdherenceSummary(
       clinicId,
       patientId,
@@ -171,6 +175,7 @@ export class MedicationDoseController {
     @Request() req: RequestWithUser,
   ) {
     const clinicId = await this.getClinicId(req);
+    await logPatientPhiRead(this.auditService, req, patientId, 'VIEW_HISTORY');
     return this.medicationDoseService.getActiveMedications(clinicId, patientId);
   }
 }

@@ -80,6 +80,14 @@ interface ClinicSettingsData {
   };
 
   workspaceProfile?: WorkspaceProfile;
+
+  brandName?: string;
+  lockedTheme?: {
+    primaryColor?: string;
+    mode?: 'light' | 'dark' | 'system';
+    compactMode?: boolean;
+    enforced?: boolean;
+  };
 }
 
 interface CreateDoctorData {
@@ -126,6 +134,9 @@ interface JoinClinicData {
   clinicEmail?: string;
 }
 
+/**
+ * Thin facade — delegates clinic CRUD, settings, and staff to focused services.
+ */
 @Injectable()
 export class ClinicsService {
   constructor(

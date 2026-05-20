@@ -1,5 +1,8 @@
-import { Injectable, Logger, NotFoundException } from '@nestjs/common';
-import { PrismaService } from '@/prisma/prisma.service';
+import { Injectable, Logger, NotFoundException, Inject } from '@nestjs/common';
+import {
+  REMINDER_PERSISTENCE_PORT,
+  type ReminderPersistencePort,
+} from '@/domains/reminders/application/ports/reminder-persistence.port';
 import { ReminderSettings as _ReminderSettings } from '@workspace/db';
 import { ReminderSettingsService } from './reminder-settings.service';
 import { ReminderNotificationService } from './reminder-notification.service';
@@ -30,13 +33,14 @@ export class ReminderHistoryService {
   private readonly logger = new Logger(ReminderHistoryService.name);
 
   constructor(
-    private prisma: PrismaService,
+    @Inject(REMINDER_PERSISTENCE_PORT)
+    private persistence: ReminderPersistencePort,
     private settingsService: ReminderSettingsService,
     private notificationService: ReminderNotificationService,
   ) {}
 
   async getReminderHistory(clinicId: string, limit: number = 50) {
-    const appointments = await this.prisma.appointment.findMany({
+    const appointments = await this.persistence.appointment.findMany({
       where: { clinicId },
       select: { id: true },
     });
@@ -47,7 +51,7 @@ export class ReminderHistoryService {
       return [];
     }
 
-    const reminders = await this.prisma.appointmentReminder.findMany({
+    const reminders = await this.persistence.appointmentReminder.findMany({
       where: {
         appointmentId: { in: appointmentIds },
       },
@@ -59,7 +63,7 @@ export class ReminderHistoryService {
       (reminder) => reminder.appointmentId,
     );
 
-    const appointmentsForReminders = await this.prisma.appointment.findMany({
+    const appointmentsForReminders = await this.persistence.appointment.findMany({
       where: {
         id: { in: reminderAppointmentIds },
       },
@@ -92,7 +96,7 @@ export class ReminderHistoryService {
     type: 'email' | 'sms' | 'whatsapp',
     clinicId?: string,
   ) {
-    const appointment = await this.prisma.appointment.findUnique({
+    const appointment = await this.persistence.appointment.findUnique({
       where: { id: appointmentId },
       include: {
         patient: {

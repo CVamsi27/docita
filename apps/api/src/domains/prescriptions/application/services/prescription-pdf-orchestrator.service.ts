@@ -10,12 +10,16 @@ import {
   IPrescriptionRepository,
   PrescriptionDetail,
 } from '@/domains/prescriptions/core/repositories/prescription.repository.interface';
-import { StorageProvider } from '@/domains/documents/infrastructure/storage.provider';
+import { StorageProvider } from '@/domains/documents/application/ports/storage-provider.port';
 import { calculateAge, DEFAULT_LOCALE } from '@workspace/utils';
 import { type EnqueuePdfJobResponse, extractPdfTheme } from '@workspace/types';
 import { StoredFileUrlResolverService } from '@/domains/documents/application/services/stored-file-url-resolver.service';
 import { PdfJobService } from '@/shared/modules/queue/pdf-job.service';
 import type { PdfJobServicePort } from '@/shared/modules/queue/pdf-job.service';
+import {
+  CLOCK_PORT,
+  type IClock,
+} from '@/shared/common/ports/clock.port';
 
 const CURRENT_PDF_TEMPLATE_VERSION = 1;
 const PDF_SIGNED_URL_TTL_SECONDS = 3600;
@@ -36,6 +40,7 @@ export class PrescriptionPdfOrchestratorService {
     >,
     @Inject(PdfJobService)
     private readonly pdfJobService: PdfJobServicePort,
+    @Inject(CLOCK_PORT) private readonly clock: IClock,
   ) {}
 
   async generatePDF(
@@ -117,7 +122,7 @@ export class PrescriptionPdfOrchestratorService {
       })),
       diagnoses: diagnoses?.length ? diagnoses : undefined,
       instructions: prescription.instructions || undefined,
-      date: new Date(),
+      date: this.clock.now(),
       validityDays: 30,
     });
   }
@@ -172,7 +177,7 @@ export class PrescriptionPdfOrchestratorService {
     prescription: PrescriptionDetail,
   ): Promise<{ storedKey: string; generatedAt: Date }> {
     const objectKey = `pdfs/prescriptions/${id}.pdf`;
-    const generatedAt = new Date();
+    const generatedAt = this.clock.now();
     const storedKey = await this.storageProvider.uploadBuffer(
       buffer,
       objectKey,

@@ -1,4 +1,8 @@
-import { ConflictException, Injectable } from '@nestjs/common';
+import { ConflictException, Inject, Injectable } from '@nestjs/common';
+import {
+  CLOCK_PORT,
+  type IClock,
+} from '@/shared/common/ports/clock.port';
 import { Prisma } from '@workspace/db';
 import { PrismaService } from '@/prisma/prisma.service';
 import type { CachedIdempotencyEntry } from './idempotency.service';
@@ -31,12 +35,15 @@ function responseAsJsonInput(response: unknown): Prisma.InputJsonValue {
 
 @Injectable()
 export class IdempotencyRepository {
-  constructor(private readonly prisma: PrismaService) {}
+  constructor(
+    private readonly prisma: PrismaService,
+    @Inject(CLOCK_PORT) private readonly clock: IClock,
+  ) {}
 
   async findActiveCompleted(
     scopedKey: string,
   ): Promise<CachedIdempotencyEntry | null> {
-    const now = new Date();
+    const now = this.clock.now();
     const row = await this.prisma.apiHttpIdempotencyRecord.findFirst({
       where: {
         scopedKey,
@@ -54,7 +61,7 @@ export class IdempotencyRepository {
   }
 
   async isKeyProcessing(scopedKey: string): Promise<boolean> {
-    const now = new Date();
+    const now = this.clock.now();
     const count = await this.prisma.apiHttpIdempotencyRecord.count({
       where: {
         scopedKey,
@@ -75,7 +82,7 @@ export class IdempotencyRepository {
    * {@link completeProcessing}.
    */
   async markProcessing(scopedKey: string): Promise<void> {
-    const now = new Date();
+    const now = this.clock.now();
     const processingExpiresAt = addSeconds(
       now,
       IDEMPOTENCY_PROCESSING_TTL_SECONDS,
@@ -144,7 +151,7 @@ export class IdempotencyRepository {
     response: unknown,
     ttlSeconds: number,
   ): Promise<void> {
-    const now = new Date();
+    const now = this.clock.now();
     const recordExpiresAt = addSeconds(now, ttlSeconds);
     const jsonResponse = responseAsJsonInput(response);
     const updated = await this.prisma.apiHttpIdempotencyRecord.updateMany({

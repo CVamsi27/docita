@@ -8,17 +8,13 @@ import {
   type UserRole,
   type WorkspaceProfile,
 } from "@workspace/types";
+import { getTierName, hasFeatureAccess } from "@workspace/utils";
 
 function canAccessFeatureFactory(tier: Tier) {
   return (feature: Feature): boolean => {
-    const required = FEATURE_TIER_MAP[feature];
-    if (required === undefined) return true;
-    return tier >= required;
+    if (FEATURE_TIER_MAP[feature] === undefined) return true;
+    return hasFeatureAccess(getTierName(tier), feature, false);
   };
-}
-
-function canAccessTierFactory(currentTier: Tier) {
-  return (tier: Tier): boolean => currentTier >= tier;
 }
 
 describe("canAccessTarget matrix parity (role x tier x target)", () => {
@@ -240,7 +236,8 @@ describe("canAccessTarget matrix parity (role x tier x target)", () => {
         {
           role,
           canAccessFeature: canAccessFeatureFactory(tier),
-          canAccessTier: canAccessTierFactory(tier),
+          currentTier: tier,
+          hasIntelligence: false,
           workspaceProfile,
         },
         mode ?? "read",

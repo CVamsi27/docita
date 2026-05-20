@@ -16,12 +16,10 @@ import {
   AppearanceSettings,
   ClinicGeneralSettings,
   NotificationSettings,
-  ReminderSettings,
-  SecuritySettings,
-} from "@/features/settings/components";
-import {
   PrescriptionDefaultsSettingsContainer,
   QueueSettings,
+  ReminderSettings,
+  SecuritySettings,
 } from "@/features/settings/components";
 import { HelpSupportSettingsPanel } from "./help-support/HelpSupportSettingsPanel";
 import {
@@ -144,6 +142,17 @@ const DangerZoneSettingsLazy = dynamic(
   () =>
     import("./danger-zone/DangerZoneSettings").then(
       (mod) => mod.DangerZoneSettings,
+    ),
+  {
+    ssr: false,
+    loading: () => <LazySettingsPanelFallback />,
+  },
+);
+
+const EnterpriseBrandingSettingsLazy = dynamic(
+  () =>
+    import("./branding/EnterpriseBrandingSettings").then(
+      (mod) => mod.EnterpriseBrandingSettings,
     ),
   {
     ssr: false,
@@ -365,6 +374,14 @@ export function SettingsPageUI({
             <TabsContent value="doctor-profile" className="mt-0 space-y-6">
               <RoleGuard requiredRole="DOCTOR">
                 <DoctorProfileSettingsLazy />
+              </RoleGuard>
+            </TabsContent>
+          )}
+
+          {visibleTabValues.has("branding") && (
+            <TabsContent value="branding" className="mt-0 space-y-6">
+              <RoleGuard requiredPermission="manageClinic">
+                <EnterpriseBrandingSettingsLazy />
               </RoleGuard>
             </TabsContent>
           )}

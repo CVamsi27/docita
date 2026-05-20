@@ -23,7 +23,7 @@ import { toast } from "sonner";
 import { showUserFacingErrorToast } from "@/lib/errors/user-facing-errors";
 import { consultationApi } from "@/features/consultation/api/consultation.api";
 import { useQueryClient } from "@tanstack/react-query";
-import { useSendPrescriptionWhatsApp } from "@workspace/data-access";
+import { queryKeys, useSendPrescriptionWhatsApp } from "@workspace/data-access";
 import { usePermissionStore } from "@/lib/stores/permission-store";
 import { Feature } from "@workspace/types";
 import { FeatureGate } from "@/components/auth/feature-gate";
@@ -124,9 +124,9 @@ function ConsultationPageContent() {
       const refreshed = await consultationApi.getByAppointmentId(appointmentId);
 
       await queryClient.invalidateQueries({
-        queryKey: ["appointments", appointmentId],
+        queryKey: queryKeys.appointments.detail(appointmentId),
       });
-      await queryClient.invalidateQueries({ queryKey: ["appointments"] });
+      await queryClient.invalidateQueries({ queryKey: queryKeys.appointments.all() });
 
       const prescriptionId = refreshed.prescription?.id;
       const canSendWhatsApp = canAccess(Feature.WHATSAPP_MESSAGING);

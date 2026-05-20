@@ -1,4 +1,8 @@
-import { Injectable, Logger } from '@nestjs/common';
+import { Inject, Injectable, Logger } from '@nestjs/common';
+import {
+  CLOCK_PORT,
+  type IClock,
+} from '@/shared/common/ports/clock.port';
 import PDFDocument from 'pdfkit';
 import {
   PDFClinicInfo,
@@ -36,6 +40,8 @@ const DIVIDER_COLOR = '#e2e8f0';
 @Injectable()
 export class BasePdfService {
   protected readonly logger = new Logger(BasePdfService.name);
+
+  constructor(@Inject(CLOCK_PORT) private readonly clock: IClock) {}
 
   protected createDocument(config: BasePDFConfig): {
     doc: typeof PDFDocument.prototype;
@@ -165,7 +171,7 @@ export class BasePdfService {
     doc.fillColor('#000000');
     currentY += 37;
 
-    const dateStr = `Date: ${formatDate(new Date(), DATE_FORMATS.DATE_LONG)}`;
+    const dateStr = `Date: ${formatDate(this.clock.now(), DATE_FORMATS.DATE_LONG)}`;
 
     doc.fontSize(9).font('Helvetica').fillColor('#6b7280');
 

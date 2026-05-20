@@ -1,5 +1,4 @@
-import { Injectable } from '@nestjs/common';
-import { PrismaService } from '@/prisma/prisma.service';
+import { Inject, Injectable } from '@nestjs/common';
 import { PatientMetricsService } from '@/domains/patients/application/services/patientMetrics.service';
 import {
   CreateMetricDefinitionDto,
@@ -7,16 +6,24 @@ import {
   MetricHistoryQueryDto,
   UpsertMetricSelectionsDto,
 } from '@/domains/patients/application/dto/patient-metrics.dto';
+import {
+  IPatientPortalRepository,
+  PATIENT_PORTAL_REPOSITORY_TOKEN,
+} from '@/domains/patient-portal/core/repositories/patient-portal.repository.interface';
 
+/**
+ * Facade — delegates patient metrics reads/writes to PatientMetricsService under portal scope.
+ */
 @Injectable()
 export class PatientPortalMetricsService {
   constructor(
-    private readonly prisma: PrismaService,
+    @Inject(PATIENT_PORTAL_REPOSITORY_TOKEN)
+    private readonly patientPortalRepository: IPatientPortalRepository,
     private readonly patientMetricsService: PatientMetricsService,
   ) {}
 
   async listCategories(clinicId: string, patientId: string) {
-    return this.prisma.runUnrestricted(async () =>
+    return this.patientPortalRepository.runUnrestricted(async () =>
       this.patientMetricsService.listCategories(clinicId, patientId),
     );
   }
@@ -26,13 +33,13 @@ export class PatientPortalMetricsService {
     patientId: string,
     query: MetricHistoryQueryDto,
   ) {
-    return this.prisma.runUnrestricted(async () =>
+    return this.patientPortalRepository.runUnrestricted(async () =>
       this.patientMetricsService.getHistory(clinicId, patientId, query),
     );
   }
 
   async getSelections(clinicId: string, patientId: string) {
-    return this.prisma.runUnrestricted(async () =>
+    return this.patientPortalRepository.runUnrestricted(async () =>
       this.patientMetricsService.getSelections(clinicId, patientId),
     );
   }
@@ -42,7 +49,7 @@ export class PatientPortalMetricsService {
     patientId: string,
     dto: UpsertMetricSelectionsDto,
   ) {
-    return this.prisma.runUnrestricted(async () =>
+    return this.patientPortalRepository.runUnrestricted(async () =>
       this.patientMetricsService.upsertSelections(clinicId, patientId, dto),
     );
   }
@@ -53,7 +60,7 @@ export class PatientPortalMetricsService {
     userId: string | undefined,
     dto: CreatePatientMetricValueDto,
   ) {
-    return this.prisma.runUnrestricted(async () =>
+    return this.patientPortalRepository.runUnrestricted(async () =>
       this.patientMetricsService.recordMetricValue(
         clinicId,
         patientId,
@@ -71,7 +78,7 @@ export class PatientPortalMetricsService {
     patientId: string,
     dto: CreateMetricDefinitionDto,
   ) {
-    return this.prisma.runUnrestricted(async () =>
+    return this.patientPortalRepository.runUnrestricted(async () =>
       this.patientMetricsService.createDefinition(clinicId, patientId, dto),
     );
   }

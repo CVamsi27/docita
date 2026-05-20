@@ -3,8 +3,11 @@ import { Test } from '@nestjs/testing';
 import { beforeEach, describe, expect, it, jest } from '@jest/globals';
 import { JsonValue } from '@workspace/types';
 import { SupportWhatsAppInboxService } from './support-whatsapp-inbox.service';
+import { SupportWhatsAppThreadQueryService } from './support-whatsapp-thread-query.service';
+import { SupportWhatsAppReplyService } from './support-whatsapp-reply.service';
+import { SupportWhatsAppWebhookIngestService } from './support-whatsapp-webhook-ingest.service';
 import { PrismaService } from '@/prisma/prisma.service';
-import { WhatsappClientService } from '@/shared/modules/messaging/whatsapp/whatsapp-client.service';
+import { WhatsappClientService } from '@/domains/whatsapp/infrastructure/clients/whatsapp-client.service';
 import type {
   SupportWhatsAppMessage,
   SupportWhatsAppMessageStatus,
@@ -301,6 +304,9 @@ describe('SupportWhatsAppInboxService', () => {
 
     const moduleRef = await Test.createTestingModule({
       providers: [
+        SupportWhatsAppThreadQueryService,
+        SupportWhatsAppReplyService,
+        SupportWhatsAppWebhookIngestService,
         SupportWhatsAppInboxService,
         { provide: PrismaService, useValue: mockPrisma },
         { provide: WhatsappClientService, useValue: mockWhatsappClient },

@@ -1,7 +1,7 @@
 import {
   classifySensitiveWrite,
   sanitizeAuditPayload,
-} from './patient-audit.interceptor';
+} from '@/shared/common/interceptors/patient-audit.interceptor';
 
 describe('PatientDataAuditInterceptor helpers', () => {
   describe('classifySensitiveWrite', () => {
@@ -48,6 +48,21 @@ describe('PatientDataAuditInterceptor helpers', () => {
         method: 'PATCH',
         url: '/patients/pat-123',
         params: { patientId: 'pat-123' },
+      });
+
+      expect(classification).toEqual({
+        actionType: 'CLINICAL_PATCH',
+        resourceType: 'CLINICAL_DATA',
+        resourceId: 'pat-123',
+        immediate: false,
+      });
+    });
+
+    it('should classify patient-portal writes as clinical', () => {
+      const classification = classifySensitiveWrite({
+        method: 'PATCH',
+        url: '/patient-portal/profile',
+        body: { patientId: 'pat-123' },
       });
 
       expect(classification).toEqual({

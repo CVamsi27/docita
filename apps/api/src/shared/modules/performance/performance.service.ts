@@ -1,9 +1,16 @@
-import { Injectable } from '@nestjs/common';
+import { Inject, Injectable } from '@nestjs/common';
+import {
+  CLOCK_PORT,
+  type IClock,
+} from '@/shared/common/ports/clock.port';
 import { PrismaService } from '@/prisma/prisma.service';
 
 @Injectable()
 export class PerformanceService {
-  constructor(private readonly prisma: PrismaService) {}
+  constructor(
+    private readonly prisma: PrismaService,
+    @Inject(CLOCK_PORT) private readonly clock: IClock,
+  ) {}
 
   async getDatabaseStats() {
     const startTime = Date.now();
@@ -13,7 +20,7 @@ export class PerformanceService {
     return {
       status: 'connected',
       queryResponseTimeMs: queryTime,
-      timestamp: new Date().toISOString(),
+      timestamp: this.clock.now().toISOString(),
     };
   }
 
@@ -37,7 +44,7 @@ export class PerformanceService {
         platform: process.platform,
         arch: process.arch,
       },
-      timestamp: new Date().toISOString(),
+      timestamp: this.clock.now().toISOString(),
     };
   }
 

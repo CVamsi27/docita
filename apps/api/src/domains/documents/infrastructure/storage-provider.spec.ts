@@ -4,7 +4,7 @@ import {
   MAX_SIGNED_URL_TTL_SECONDS,
   MIN_SIGNED_URL_TTL_SECONDS,
   StorageProvider,
-} from './storage.provider';
+} from '../application/ports/storage-provider.port';
 
 class TestStorageProvider extends StorageProvider {
   readonly supportsSignedUrls = true;

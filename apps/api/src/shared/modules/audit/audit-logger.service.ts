@@ -1,4 +1,8 @@
-import { Injectable } from '@nestjs/common';
+import { Inject, Injectable, Logger } from '@nestjs/common';
+import {
+  CLOCK_PORT,
+  type IClock,
+} from '@/shared/common/ports/clock.port';
 import { PrismaService } from '@/prisma/prisma.service';
 import { IAuditLogger, AuditLogEntry, AuditAction } from './audit.interface';
 import { randomUUID } from 'crypto';
@@ -6,7 +10,12 @@ import { Prisma } from '@workspace/db';
 
 @Injectable()
 export class AuditLoggerService implements IAuditLogger {
-  constructor(private prisma: PrismaService) {}
+  private readonly logger = new Logger(AuditLoggerService.name);
+
+  constructor(
+    private prisma: PrismaService,
+    @Inject(CLOCK_PORT) private readonly clock: IClock,
+  ) {}
 
   private toDbStatus(status: AuditLogEntry['status']): string {
     return status === 'failure' ? 'FAILED' : 'SUCCESS';
@@ -21,7 +30,7 @@ export class AuditLoggerService implements IAuditLogger {
       await this.prisma.auditLog.create({
         data: {
           id: randomUUID(),
-          createdAt: new Date(),
+          createdAt: this.clock.now(),
           userId: entry.userId,
           clinicId: entry.clinicId,
           action: entry.action,
@@ -53,7 +62,16 @@ export class AuditLoggerService implements IAuditLogger {
           errorMessage: entry.failureReason,
         },
       });
-    } catch (_error) {}
+    } catch (error) {
+      const message =
+        error instanceof Error ? error.message : 'Unknown audit log failure';
+      const stack = error instanceof Error ? error.stack : undefined;
+      this.logger.error(
+        `Failed to write audit log for ${entry.action} ${entry.resourceType}: ${message}`,
+        stack,
+      );
+      throw error;
+    }
   }
 
   async getLogsForResource(
@@ -114,7 +132,7 @@ export class AuditLoggerService implements IAuditLogger {
   }
 
   async deleteOldLogs(olderThanDays: number): Promise<number> {
-    const cutoffDate = new Date();
+    const cutoffDate = this.clock.now();
     cutoffDate.setDate(cutoffDate.getDate() - olderThanDays);
 
     const result = await this.prisma.auditLog.deleteMany({

@@ -1,7 +1,10 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import { NotFoundException } from '@nestjs/common';
 import { FollowUpService } from './follow-up.service';
+import { FollowUpCommandService } from './follow-up-command.service';
+import { FollowUpQueryService } from './follow-up-query.service';
 import { FOLLOW_UP_REPOSITORY_TOKEN } from '@/domains/appointments/core/repositories/follow-up.repository.interface';
+import { CLOCK_PORT } from '@/shared/common/ports/clock.port';
 import { beforeEach, describe, it, expect, jest } from '@jest/globals';
 
 describe('FollowUpService', () => {
@@ -35,6 +38,7 @@ describe('FollowUpService', () => {
     followUpRepository = {
       create: jest.fn<(...args: unknown[]) => Promise<unknown>>(),
       findUpcoming: jest.fn<(...args: unknown[]) => Promise<unknown>>(),
+      findForClinic: jest.fn<(...args: unknown[]) => Promise<unknown>>(),
       findForAppointment: jest.fn<(...args: unknown[]) => Promise<unknown>>(),
       findByIdAndClinic: jest.fn<(...args: unknown[]) => Promise<unknown>>(),
       update: jest.fn<(...args: unknown[]) => Promise<unknown>>(),
@@ -42,8 +46,11 @@ describe('FollowUpService', () => {
 
     const module: TestingModule = await Test.createTestingModule({
       providers: [
+        FollowUpQueryService,
+        FollowUpCommandService,
         FollowUpService,
         { provide: FOLLOW_UP_REPOSITORY_TOKEN, useValue: followUpRepository },
+        { provide: CLOCK_PORT, useValue: { now: () => new Date('2026-05-19') } },
       ],
     }).compile();
 

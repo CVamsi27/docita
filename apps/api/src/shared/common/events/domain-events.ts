@@ -203,7 +203,7 @@ export function createEvent<T extends DomainEvents>(
   type: T,
   payload: T extends keyof EventPayloadMap ? EventPayloadMap[T] : unknown,
   metadata: Omit<EventMetadata, 'timestamp' | 'version'> & {
-    timestamp?: Date;
+    timestamp: Date;
     version?: number;
   },
 ): DomainEvent<T extends keyof EventPayloadMap ? EventPayloadMap[T] : unknown> {
@@ -212,7 +212,7 @@ export function createEvent<T extends DomainEvents>(
     payload,
     metadata: {
       ...metadata,
-      timestamp: metadata.timestamp ?? new Date(),
+      timestamp: metadata.timestamp,
       version: metadata.version ?? 1,
     },
   };

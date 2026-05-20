@@ -44,7 +44,6 @@
         "src/domains/subscriptions/application/use-cases/**",
         "src/shared/modules/idempotency/**",
         "src/shared/modules/cache/**",
-        "src/shared/modules/document-generation/builders/**",
         "src/shared/modules/error-handling/sentry.utils.ts",
         "src/shared/modules/ai-core/schemas/**",
         "src/shared/modules/services/**",

@@ -5,7 +5,11 @@ import { DocitaLoadingIndicator } from "@workspace/ui/components/feedback/docita
 import { FC, useEffect } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
-import * as z from "zod";
+import {
+  reminderSettingsFormSchema,
+  type ReminderSettingsFormValues,
+  type ReminderTimeUnit,
+} from "@workspace/types";
 import {
   Card,
   CardContent,
@@ -41,59 +45,6 @@ const TIME_UNITS = [
   { value: "day", label: "Days" },
   { value: "week", label: "Weeks" },
 ];
-
-const unitSchema = z.enum(["minute", "hour", "day", "week"]);
-
-const reminderBlockSchema = z.object({
-  enabled: z.boolean(),
-  before: z
-    .string()
-    .trim()
-    .optional()
-    .refine((value) => value === undefined || value === "" || /^[0-9]+$/.test(value), "Enter a valid number"),
-  unit: unitSchema.optional(),
-});
-
-const reminderSettingsSchema = z
-  .object({
-    appointment: reminderBlockSchema,
-    followUp: reminderBlockSchema,
-    invoice: reminderBlockSchema,
-    prescription: reminderBlockSchema,
-    schedule: reminderBlockSchema,
-  })
-  .superRefine((data, ctx) => {
-    const blocks: Array<[keyof typeof data, string]> = [
-      ["appointment", "Appointment reminder"],
-      ["followUp", "Follow-up reminder"],
-      ["invoice", "Invoice reminder"],
-      ["prescription", "Prescription reminder"],
-      ["schedule", "Schedule notification"],
-    ];
-
-    for (const [key] of blocks) {
-      const block = data[key];
-      if (!block.enabled) continue;
-
-      const before = Number(block.before);
-      if (!block.before || Number.isNaN(before) || before < 1) {
-        ctx.addIssue({
-          code: z.ZodIssueCode.custom,
-          path: [key, "before"],
-          message: "Enter a value of 1 or more",
-        });
-      }
-      if (!block.unit) {
-        ctx.addIssue({
-          code: z.ZodIssueCode.custom,
-          path: [key, "unit"],
-          message: "Select a time unit",
-        });
-      }
-    }
-  });
-
-type ReminderSettingsFormValues = z.infer<typeof reminderSettingsSchema>;
 
 interface ReminderRowProps {
   label: string;
@@ -212,7 +163,7 @@ export const ReminderSettingsUI: FC = () => {
   const { mutate: updateSettings, isPending: isSaving } = useUpdateClinicSettings();
 
   const form = useForm<ReminderSettingsFormValues>({
-    resolver: zodResolver(reminderSettingsSchema),
+    resolver: zodResolver(reminderSettingsFormSchema),
     defaultValues: {
       appointment: { enabled: true, before: "1", unit: "day" },
       followUp: { enabled: false, before: "1", unit: "day" },
@@ -229,27 +180,27 @@ export const ReminderSettingsUI: FC = () => {
       appointment: {
         enabled: s.reminderBefore !== undefined,
         before: String(s.reminderBefore ?? "1"),
-        unit: (s.reminderUnit as z.infer<typeof unitSchema>) ?? "day",
+        unit: (s.reminderUnit as ReminderTimeUnit) ?? "day",
       },
       followUp: {
         enabled: s.followUpReminderEnabled ?? false,
         before: String(s.followUpReminderBefore ?? "1"),
-        unit: (s.followUpReminderUnit as z.infer<typeof unitSchema>) ?? "day",
+        unit: (s.followUpReminderUnit as ReminderTimeUnit) ?? "day",
       },
       invoice: {
         enabled: s.invoiceReminderEnabled ?? false,
         before: String(s.invoiceReminderBefore ?? "3"),
-        unit: (s.invoiceReminderUnit as z.infer<typeof unitSchema>) ?? "day",
+        unit: (s.invoiceReminderUnit as ReminderTimeUnit) ?? "day",
       },
       prescription: {
         enabled: s.prescriptionReminderEnabled ?? false,
         before: String(s.prescriptionReminderBefore ?? "1"),
-        unit: (s.prescriptionReminderUnit as z.infer<typeof unitSchema>) ?? "day",
+        unit: (s.prescriptionReminderUnit as ReminderTimeUnit) ?? "day",
       },
       schedule: {
         enabled: s.scheduleNotificationEnabled ?? false,
         before: String(s.scheduleNotificationBefore ?? "1"),
-        unit: (s.scheduleNotificationUnit as z.infer<typeof unitSchema>) ?? "hour",
+        unit: (s.scheduleNotificationUnit as ReminderTimeUnit) ?? "hour",
       },
     });
   }, [clinic, form]);

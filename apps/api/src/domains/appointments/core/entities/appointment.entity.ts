@@ -1,4 +1,9 @@
 import { AppointmentStatus } from '@/domains/appointments/core/value-objects/appointment-status.value-object';
+import {
+  findFirstSchedulingConflict,
+  intervalsOverlap,
+  type AppointmentTimeSlot,
+} from '@/domains/appointments/core/domain-services/appointment-interval-overlap';
 import type { DentalChartData, JsonValue } from '@workspace/types';
 
 export interface AppointmentProps {
@@ -169,7 +174,30 @@ export class Appointment {
     return { ...this.metadata };
   }
 
-  reschedule(startTime: Date, endTime: Date): void {
+  overlapsInterval(startTime: Date, endTime: Date): boolean {
+    return intervalsOverlap(
+      this.startTime,
+      this.endTime,
+      startTime,
+      endTime,
+    );
+  }
+
+  static findFirstSchedulingConflict(
+    candidateStart: Date,
+    candidateEnd: Date,
+    existing: readonly AppointmentTimeSlot[],
+    excludeAppointmentId?: string,
+  ): AppointmentTimeSlot | undefined {
+    return findFirstSchedulingConflict(
+      candidateStart,
+      candidateEnd,
+      existing,
+      excludeAppointmentId,
+    );
+  }
+
+  reschedule(startTime: Date, endTime: Date, now: Date): void {
     if (this.status.isCompleted() || this.status.isCancelled()) {
       throw new Error('Cannot reschedule a completed or cancelled appointment');
     }
@@ -180,10 +208,10 @@ export class Appointment {
 
     this.startTime = startTime;
     this.endTime = endTime;
-    this.updatedAt = new Date();
+    this.updatedAt = now;
   }
 
-  cancel(reason: string): void {
+  cancel(reason: string, now: Date): void {
     if (this.status.isCompleted()) {
       throw new Error('Cannot cancel a completed appointment');
     }
@@ -194,17 +222,17 @@ export class Appointment {
 
     this.status = AppointmentStatus.cancelled();
     this.cancellationReason = reason;
-    this.cancelledAt = new Date();
-    this.updatedAt = new Date();
+    this.cancelledAt = now;
+    this.updatedAt = now;
   }
 
-  complete(): void {
+  complete(now: Date): void {
     if (this.status.isCancelled()) {
       throw new Error('Cannot complete a cancelled appointment');
     }
 
     this.status = AppointmentStatus.completed();
-    this.updatedAt = new Date();
+    this.updatedAt = now;
   }
 
   /** Ensures Nest/Express JSON responses include all clinical fields (not only enumerable ctor props). */

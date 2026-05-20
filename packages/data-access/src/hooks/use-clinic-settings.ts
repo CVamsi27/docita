@@ -8,20 +8,21 @@ import {
   User,
   type AppClinicSettings,
 } from "@workspace/types";
+import { queryKeys } from "../lib/query-keys";
 import { useAPIMutation } from "../core/use-api-mutation";
 import { useAPIQuery } from "../core/use-api-query";
 
 export type ClinicAppSettings = AppClinicSettings;
 
 export const useClinicSettings = (queryOptions?: { enabled?: boolean }) =>
-  useAPIQuery<Clinic>(["clinic", "settings"], "/clinic/settings", {
+  useAPIQuery<Clinic>(queryKeys.clinic.settings(), "/clinic/settings", {
     enabled: queryOptions?.enabled,
     staleTime: 10 * 60 * 1000,
     gcTime: 30 * 60 * 1000,
   });
 
 export const useClinicMembers = () =>
-  useAPIQuery<User[]>(["clinic", "members"], "/clinic/members");
+  useAPIQuery<User[]>(queryKeys.clinic.members(), "/clinic/members");
 
 export const useCreateClinicDoctor = (clinicId?: string) =>
   useAPIMutation<User, CreateClinicDoctorRequest>(
@@ -35,7 +36,7 @@ export const useCreateClinicDoctor = (clinicId?: string) =>
     },
     "POST",
     {
-      invalidateKeys: [["clinic", "members"]],
+      invalidateKeys: [queryKeys.clinic.members()],
       suppressGlobalErrorToast: true,
     },
   );
@@ -52,7 +53,7 @@ export const useCreateClinicReceptionist = (clinicId?: string) =>
     },
     "POST",
     {
-      invalidateKeys: [["clinic", "members"]],
+      invalidateKeys: [queryKeys.clinic.members()],
       suppressGlobalErrorToast: true,
     },
   );
@@ -69,7 +70,7 @@ export const useCreateClinicMember = (clinicId?: string) =>
     },
     "POST",
     {
-      invalidateKeys: [["clinic", "members"]],
+      invalidateKeys: [queryKeys.clinic.members()],
       suppressGlobalErrorToast: true,
     },
   );
@@ -81,7 +82,7 @@ export const useUpdateClinicMember = () =>
       memberId: string;
     }
   >(({ memberId }) => `/clinic/members/${memberId}`, "PUT", {
-    invalidateKeys: [["clinic", "members"]],
+    invalidateKeys: [queryKeys.clinic.members()],
     suppressGlobalErrorToast: true,
   });
 
@@ -90,7 +91,7 @@ export const useDeleteClinicMember = () =>
     ({ memberId }) => `/clinic/members/${memberId}`,
     "DELETE",
     {
-      invalidateKeys: [["clinic", "members"]],
+      invalidateKeys: [queryKeys.clinic.members()],
     },
   );
 
@@ -99,6 +100,6 @@ export const useUpdateClinicSettings = () =>
     "/clinic/settings",
     "PUT",
     {
-      invalidateKeys: [["clinic", "settings"]],
+      invalidateKeys: [queryKeys.clinic.settings()],
     },
   );

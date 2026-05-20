@@ -28,12 +28,6 @@ import {
   TabsTrigger,
 } from "@workspace/ui/components/navigation/tabs";
 import {
-  healthAPI,
-  monitoringAPI,
-  operationsAPI,
-  performanceAPI,
-} from "@/lib/api/api";
-import {
   Table,
   TableBody,
   TableCell,
@@ -41,8 +35,17 @@ import {
   TableHeader,
   TableRow,
 } from "@workspace/ui/components/data-display/table";
-import { internalQueryKeys } from "@/lib/api/query-keys";
-import { useInternalQuery } from "@/lib/api/use-internal-query";
+import {
+  useInternalHealthCheck,
+  useInternalMonitoringDashboard,
+  useInternalMonitoringHealth,
+  useInternalMonitoringQueueHealth,
+  useInternalMonitoringSecuritySummary,
+  useInternalMonitoringWebVitals,
+  useInternalPerformanceDatabaseStats,
+  useInternalPerformanceMetrics,
+  useInternalTenantScopeDiagnostics,
+} from "@workspace/data-access/internal";
 import {
   Activity,
   AlertTriangle,
@@ -82,74 +85,39 @@ export default function SystemMonitoringPage() {
   const fastInterval = autoRefresh ? 30000 : false;
   const slowInterval = autoRefresh ? 60000 : false;
 
-  const dashboardQuery = useInternalQuery({
-    queryKey: internalQueryKeys.internal.monitoringDashboard(),
-    queryFn: () => monitoringAPI.getDashboard(),
+  const dashboardQuery = useInternalMonitoringDashboard({
     refetchInterval: fastInterval,
   });
 
-  const monitoringHealthQuery = useInternalQuery({
-    queryKey: internalQueryKeys.internal.monitoringHealth(),
-    queryFn: () => monitoringAPI.getHealth(),
+  const monitoringHealthQuery = useInternalMonitoringHealth({
     refetchInterval: fastInterval,
   });
 
-  const appHealthQuery = useInternalQuery({
-    queryKey: ["health", "system-monitoring"] as const,
-    queryFn: () => healthAPI.getHealth(),
+  const appHealthQuery = useInternalHealthCheck("system-monitoring", {
     refetchInterval: fastInterval,
   });
 
-  const performanceQuery = useInternalQuery({
-    queryKey: internalQueryKeys.internal.performanceMetrics(),
-    queryFn: () => performanceAPI.getMetrics(),
+  const performanceQuery = useInternalPerformanceMetrics({
     refetchInterval: fastInterval,
   });
 
-  const databaseQuery = useInternalQuery({
-    queryKey: internalQueryKeys.internal.performanceDatabase(),
-    queryFn: () => performanceAPI.getDatabaseStats(),
+  const databaseQuery = useInternalPerformanceDatabaseStats({
     refetchInterval: fastInterval,
   });
 
-  const tenantScopeQuery = useInternalQuery({
-    queryKey: internalQueryKeys.internal.tenantScopeDiagnostics(),
-    queryFn: () => operationsAPI.getTenantScopeDiagnostics(),
+  const tenantScopeQuery = useInternalTenantScopeDiagnostics({
     refetchInterval: fastInterval,
   });
 
-  const webVitalsQuery = useInternalQuery({
-    queryKey: internalQueryKeys.internal.monitoringWebVitals("24h", "rolling"),
-    queryFn: () => {
-      const end = new Date();
-      const start = new Date(end.getTime() - 24 * 60 * 60 * 1000);
-      return monitoringAPI.getWebVitalsAggregates(
-        start.toISOString(),
-        end.toISOString(),
-      );
-    },
+  const webVitalsQuery = useInternalMonitoringWebVitals(24, {
     refetchInterval: slowInterval,
   });
 
-  const securitySummaryQuery = useInternalQuery({
-    queryKey: internalQueryKeys.internal.monitoringSecuritySummary(
-      "24h",
-      "rolling",
-    ),
-    queryFn: () => {
-      const end = new Date();
-      const start = new Date(end.getTime() - 24 * 60 * 60 * 1000);
-      return monitoringAPI.getSecuritySummary(
-        start.toISOString(),
-        end.toISOString(),
-      );
-    },
+  const securitySummaryQuery = useInternalMonitoringSecuritySummary(24, {
     refetchInterval: slowInterval,
   });
 
-  const queueHealthQuery = useInternalQuery({
-    queryKey: internalQueryKeys.internal.monitoringQueueHealth(),
-    queryFn: () => monitoringAPI.getQueueHealth(),
+  const queueHealthQuery = useInternalMonitoringQueueHealth({
     refetchInterval: fastInterval,
   });
 

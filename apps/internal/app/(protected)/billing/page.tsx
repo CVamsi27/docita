@@ -2,13 +2,16 @@
 
 import { DocitaLoadingIndicator } from "@workspace/ui/components/feedback/docita-loading-indicator";
 
-import { useCallback, useEffect, useState } from "react";
+import { useMemo, useState } from "react";
+import { billingAPI } from "@/lib/api/api";
 import {
-  billingAPI,
-  BillingMetrics,
-  PaymentRecord,
-  SubscriptionOverview,
-} from "@/lib/api/api";
+  useInternalBillingMetrics,
+  useInternalBillingPayments,
+  useInternalBillingSubscriptions,
+  type InternalBillingMetrics as BillingMetrics,
+  type InternalSubscriptionOverview as SubscriptionOverview,
+} from "@workspace/data-access/internal";
+import type { InternalBillingPaymentItem as PaymentRecord } from "@workspace/types";
 import { useAuth } from "@/lib/auth/auth";
 import {
   DEFAULT_CURRENCY,
@@ -78,14 +81,8 @@ const tierColors: Record<string, string> = {
 };
 
 export default function BillingDashboard() {
-  const [metrics, setMetrics] = useState<BillingMetrics | null>(null);
-  const [subscriptions, setSubscriptions] = useState<SubscriptionOverview[]>(
-    [],
-  );
-  const [payments, setPayments] = useState<PaymentRecord[]>([]);
-  const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
-  const { token } = useAuth();
+  const { token, isLoading: authLoading } = useAuth();
 
   const [tierFilter, setTierFilter] = useState<string>("all");
   const [statusFilter, setStatusFilter] = useState<string>("all");
@@ -98,56 +95,53 @@ export default function BillingDashboard() {
   const [extendDays, setExtendDays] = useState(3);
   const [sending, setSending] = useState(false);
 
-  const fetchData = useCallback(async () => {
-    if (!token) return;
+  const subscriptionFilters = useMemo(
+    () => ({
+      tier: tierFilter !== "all" ? tierFilter : undefined,
+      status: statusFilter !== "all" ? statusFilter : undefined,
+      billingCycle:
+        billingCycleFilter !== "all" ? billingCycleFilter : undefined,
+    }),
+    [tierFilter, statusFilter, billingCycleFilter],
+  );
+  const subscriptionFiltersKey = useMemo(
+    () => JSON.stringify(subscriptionFilters),
+    [subscriptionFilters],
+  );
 
+  const metricsQuery = useInternalBillingMetrics(token);
+  const subscriptionsQuery = useInternalBillingSubscriptions(
+    token,
+    subscriptionFiltersKey,
+    subscriptionFilters,
+  );
+  const paymentsQuery = useInternalBillingPayments(token, "default", {});
+
+  const metrics = metricsQuery.data ?? null;
+  const subscriptions = subscriptionsQuery.data ?? [];
+  const payments = paymentsQuery.data ?? [];
+  const loading =
+    authLoading ||
+    (Boolean(token) &&
+      (metricsQuery.isLoading ||
+        subscriptionsQuery.isLoading ||
+        paymentsQuery.isLoading));
+
+  const refetchBilling = async () => {
+    await Promise.all([
+      metricsQuery.refetch(),
+      subscriptionsQuery.refetch(),
+      paymentsQuery.refetch(),
+    ]);
+  };
+
+  const handleRefresh = async () => {
+    setRefreshing(true);
     try {
-      const results = await Promise.allSettled([
-        billingAPI.getMetrics(),
-        billingAPI.getSubscriptions({
-          tier: tierFilter !== "all" ? tierFilter : undefined,
-          status: statusFilter !== "all" ? statusFilter : undefined,
-          billingCycle:
-            billingCycleFilter !== "all" ? billingCycleFilter : undefined,
-        }),
-        billingAPI.getPayments({}),
-      ]);
-
-      if (results[0].status === "fulfilled") {
-        setMetrics(results[0].value);
-      } else {
-        setMetrics(null);
-      }
-
-      if (results[1].status === "fulfilled") {
-        setSubscriptions(results[1].value);
-      } else {
-        setSubscriptions([]);
-      }
-
-      if (results[2].status === "fulfilled") {
-        setPayments(results[2].value);
-      } else {
-        setPayments([]);
-      }
-    } catch (error) {
-      void error;
-      setMetrics(null);
-      setSubscriptions([]);
-      setPayments([]);
+      await refetchBilling();
     } finally {
-      setLoading(false);
       setRefreshing(false);
     }
-  }, [token, tierFilter, statusFilter, billingCycleFilter]);
-
-  useEffect(() => {
-    fetchData();
-  }, [fetchData]);
-
-  const handleRefresh = () => {
-    setRefreshing(true);
-    fetchData();
   };
 
   const handleSendReminder = async (subscription: SubscriptionOverview) => {
@@ -172,7 +166,7 @@ export default function BillingDashboard() {
       );
       setExtendGraceDialog({ open: false });
       setExtendDays(3);
-      fetchData();
+      await refetchBilling();
     } catch (error) {
       void error;
     } finally {

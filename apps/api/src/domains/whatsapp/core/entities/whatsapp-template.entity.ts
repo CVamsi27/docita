@@ -78,8 +78,8 @@ export class WhatsAppTemplate {
       WhatsAppTemplateProps,
       'id' | 'createdAt' | 'updatedAt' | 'status'
     >,
+    now: Date,
   ): WhatsAppTemplate {
-    const now = new Date();
     return new WhatsAppTemplate({
       ...props,
       id: Math.random().toString(36).substring(7),
@@ -89,20 +89,20 @@ export class WhatsAppTemplate {
     });
   }
 
-  approve(): void {
+  approve(now: Date): void {
     this.props.status = WhatsAppTemplateStatus.APPROVED;
-    this.props.updatedAt = new Date();
+    this.props.updatedAt = now;
   }
 
-  reject(): void {
+  reject(now: Date): void {
     this.props.status = WhatsAppTemplateStatus.REJECTED;
-    this.props.updatedAt = new Date();
+    this.props.updatedAt = now;
   }
 
-  updateContent(content: string, buttons?: TemplateButton[]): void {
+  updateContent(content: string, buttons: TemplateButton[] | undefined, now: Date): void {
     this.props.content = content;
     this.props.buttons = buttons;
-    this.props.updatedAt = new Date();
+    this.props.updatedAt = now;
   }
 
   toSnapshot(): WhatsAppTemplateProps {

@@ -15,7 +15,14 @@ import {
   MedicalDocumentType,
   Prisma,
 } from '@workspace/db';
+import {
+  CLOCK_PORT,
+  type IClock,
+} from '@/shared/common/ports/clock.port';
 
+/**
+ * Thin facade — delegates medical document persistence to IMedicalDocumentsRepository.
+ */
 @Injectable()
 export class MedicalDocumentsService {
   private readonly logger = new Logger(MedicalDocumentsService.name);
@@ -23,6 +30,7 @@ export class MedicalDocumentsService {
   constructor(
     @Inject(MEDICAL_DOCUMENTS_REPOSITORY_TOKEN)
     private readonly medicalDocumentsRepository: IMedicalDocumentsRepository,
+    @Inject(CLOCK_PORT) private readonly clock: IClock,
   ) {}
 
   private toMedicalDocumentType(rawType: string): MedicalDocumentType {
@@ -117,7 +125,7 @@ export class MedicalDocumentsService {
     }
     return this.medicalDocumentsRepository.update(id, {
       status: MedicalDocumentStatus.SIGNED,
-      signedAt: new Date(),
+      signedAt: this.clock.now(),
     });
   }
 

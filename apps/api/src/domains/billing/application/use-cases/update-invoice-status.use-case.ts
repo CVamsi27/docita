@@ -1,9 +1,14 @@
 import {
+  Inject,
   Injectable,
   BadRequestException,
   Logger,
   NotFoundException,
 } from '@nestjs/common';
+import {
+  CLOCK_PORT,
+  type IClock,
+} from '@/shared/common/ports/clock.port';
 import { InvoiceStatusEnum } from '@/domains/billing/core/value-objects';
 import { IInvoiceRepository } from '@/domains/billing/application/ports/invoice.repository.port';
 
@@ -16,7 +21,10 @@ export interface UpdateInvoiceStatusCommand {
 export class UpdateInvoiceStatusUseCase {
   private readonly logger = new Logger(UpdateInvoiceStatusUseCase.name);
 
-  constructor(private invoiceRepository: IInvoiceRepository) {}
+  constructor(
+    private invoiceRepository: IInvoiceRepository,
+    @Inject(CLOCK_PORT) private readonly clock: IClock,
+  ) {}
 
   async execute(command: UpdateInvoiceStatusCommand): Promise<void> {
     const invoice = await this.invoiceRepository.findById(command.invoiceId);
@@ -38,35 +46,12 @@ export class UpdateInvoiceStatusUseCase {
       );
     }
 
-    switch (command.targetStatus) {
-      case InvoiceStatusEnum.ISSUED:
-        invoice.issue();
-        break;
-      case InvoiceStatusEnum.SENT:
-        invoice.send();
-        break;
-      case InvoiceStatusEnum.VIEWED:
-        invoice.markAsViewed();
-        break;
-      case InvoiceStatusEnum.PAID:
-        invoice.markAsPaid();
-        break;
-      case InvoiceStatusEnum.PARTIALLY_PAID:
-        invoice.markAsPartiallyPaid();
-        break;
-      case InvoiceStatusEnum.OVERDUE:
-        invoice.markAsOverdue();
-        break;
-      case InvoiceStatusEnum.CANCELLED:
-        invoice.cancel();
-        break;
-      case InvoiceStatusEnum.CREDIT_MEMO:
-        invoice.convertToCredit();
-        break;
-      default:
-        throw new BadRequestException(
-          `Invalid status: ${command.targetStatus}`,
-        );
+    try {
+      invoice.transitionTo(command.targetStatus, this.clock.now());
+    } catch (error) {
+      const message =
+        error instanceof Error ? error.message : 'Invalid invoice transition';
+      throw new BadRequestException(message);
     }
 
     await this.invoiceRepository.update(invoice);

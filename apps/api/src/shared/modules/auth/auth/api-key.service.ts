@@ -1,9 +1,14 @@
 import {
+  Inject,
   Injectable,
   NotFoundException,
   ForbiddenException,
   Logger,
 } from '@nestjs/common';
+import {
+  CLOCK_PORT,
+  type IClock,
+} from '@/shared/common/ports/clock.port';
 import * as crypto from 'crypto';
 import { nanoid } from 'nanoid';
 import { PrismaService } from '@/prisma/prisma.service';
@@ -31,7 +36,10 @@ export interface ApiKeyWithSecret {
 export class ApiKeyService {
   private readonly logger = new Logger(ApiKeyService.name);
 
-  constructor(private prisma: PrismaService) {}
+  constructor(
+    private prisma: PrismaService,
+    @Inject(CLOCK_PORT) private readonly clock: IClock,
+  ) {}
 
   async createApiKey(
     clinicId: string,
@@ -51,7 +59,7 @@ export class ApiKeyService {
         keyPrefix,
         scopes: dto.scopes,
         expiresAt: dto.expiresAt ?? null,
-        updatedAt: new Date(),
+        updatedAt: this.clock.now(),
       },
     });
 
@@ -102,7 +110,10 @@ export class ApiKeyService {
 
     await this.prisma.apiKey.update({
       where: { id },
-      data: { revokedAt: new Date(), updatedAt: new Date() },
+      data: {
+        revokedAt: this.clock.now(),
+        updatedAt: this.clock.now(),
+      },
     });
 
     this.logger.log('API key revoked', { id, clinicId });
@@ -132,13 +143,16 @@ export class ApiKeyService {
       return null;
     }
 
-    if (apiKey.expiresAt && apiKey.expiresAt < new Date()) {
+    if (apiKey.expiresAt && apiKey.expiresAt < this.clock.now()) {
       return null;
     }
 
     await this.prisma.apiKey.update({
       where: { id: apiKey.id },
-      data: { lastUsedAt: new Date(), updatedAt: new Date() },
+      data: {
+        lastUsedAt: this.clock.now(),
+        updatedAt: this.clock.now(),
+      },
     });
 
     return { clinicId: apiKey.clinicId, scopes: apiKey.scopes };

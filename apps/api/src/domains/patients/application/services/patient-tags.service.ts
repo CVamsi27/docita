@@ -9,7 +9,11 @@ import {
   type IPatientTagsRepository,
   PATIENT_TAGS_REPOSITORY_TOKEN,
 } from '@/domains/patients/core/repositories/patient-tags.repository.interface';
+import { Patient } from '@/domains/patients/core/entities/patient.entity';
 
+/**
+ * Thin facade — delegates patient tag persistence to IPatientTagsRepository.
+ */
 @Injectable()
 export class PatientTagsService {
   constructor(
@@ -35,8 +39,8 @@ export class PatientTagsService {
       throw new NotFoundException('Patient not found');
     }
 
-    const normalizedTag = params.tag.trim();
-    if (!normalizedTag) {
+    const normalizedTag = Patient.normalizeTagLabel(params.tag);
+    if (!Patient.isTagLabelValid(params.tag)) {
       throw new BadRequestException('Tag is required');
     }
 
@@ -68,7 +72,9 @@ export class PatientTagsService {
 
     return this.patientTagsRepository.update({
       tagId: params.tagId,
-      ...(params.tag !== undefined ? { tag: params.tag.trim() } : {}),
+      ...(params.tag !== undefined
+        ? { tag: Patient.normalizeTagLabel(params.tag) }
+        : {}),
       ...(params.color !== undefined ? { color: params.color } : {}),
     });
   }

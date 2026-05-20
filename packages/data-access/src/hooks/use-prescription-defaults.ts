@@ -1,4 +1,5 @@
 import { useAPIMutation } from "../core/use-api-mutation";
+import { queryKeys } from "../lib/query-keys";
 import { useAPIQuery } from "../core/use-api-query";
 
 export interface PrescriptionDefaults {
@@ -11,7 +12,7 @@ export interface PrescriptionDefaults {
 
 export const usePrescriptionDefaults = () =>
   useAPIQuery<PrescriptionDefaults>(
-    ["clinic", "prescription-defaults"],
+    queryKeys.clinic.prescriptionDefaults(),
     "/clinic/prescription-defaults",
   );
 

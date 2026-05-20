@@ -47,12 +47,15 @@ export class LabOrder {
     );
   }
 
-  update(props: {
-    status?: LabTestOrderStatus;
-    result?: Record<string, unknown>;
-    resultUrl?: string;
-    notes?: string;
-  }): LabOrder {
+  update(
+    props: {
+      status?: LabTestOrderStatus;
+      result?: Record<string, unknown>;
+      resultUrl?: string;
+      notes?: string;
+    },
+    now: Date,
+  ): LabOrder {
     return new LabOrder(
       this.id,
       this.patientId,
@@ -64,7 +67,7 @@ export class LabOrder {
       props.resultUrl ?? this.resultUrl,
       props.notes ?? this.notes,
       this.createdAt,
-      new Date(),
+      now,
     );
   }
 }

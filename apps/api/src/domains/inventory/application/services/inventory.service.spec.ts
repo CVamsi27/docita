@@ -1,7 +1,10 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import { NotFoundException } from '@nestjs/common';
 import { InventoryService } from './inventory.service';
+import { InventoryCommandService } from './inventory-command.service';
+import { InventoryQueryService } from './inventory-query.service';
 import { INVENTORY_REPOSITORY_TOKEN } from '../../core/repositories/inventory.repository.interface';
+import { CLOCK_PORT } from '@/shared/common/ports/clock.port';
 import { beforeEach, describe, it, expect, jest } from '@jest/globals';
 
 describe('InventoryService', () => {
@@ -41,8 +44,14 @@ describe('InventoryService', () => {
 
     const module: TestingModule = await Test.createTestingModule({
       providers: [
+        InventoryCommandService,
+        InventoryQueryService,
         InventoryService,
         { provide: INVENTORY_REPOSITORY_TOKEN, useValue: repo },
+        {
+          provide: CLOCK_PORT,
+          useValue: { now: () => new Date('2026-04-01T12:00:00.000Z') },
+        },
       ],
     }).compile();
 

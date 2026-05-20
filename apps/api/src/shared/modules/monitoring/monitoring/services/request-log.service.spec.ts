@@ -2,6 +2,8 @@ import { Test, TestingModule } from '@nestjs/testing';
 import { RequestLogService } from './request-log.service';
 import { PrismaService } from '@/prisma/prisma.service';
 import { MonitoringFactory } from '@/shared/modules/monitoring/monitoring/factories/monitoring.factory';
+import { API_REQUEST_METRICS_REPOSITORY_TOKEN } from '@/shared/modules/monitoring/monitoring/ports/api-request-metrics.repository.port';
+import { CLOCK_PORT } from '@/shared/common/ports/clock.port';
 import { ApiRequestInput } from '@/shared/modules/monitoring/monitoring/schemas/monitoring.schema';
 import {
   beforeEach,
@@ -46,12 +48,26 @@ describe('RequestLogService', () => {
     createApiRequest: jest.fn((data) => data),
   };
 
+  const apiRequestMetricsMock = {
+    getResponseTimeDistribution: jest.fn().mockResolvedValue([]),
+    getThroughputByMinute: jest.fn().mockResolvedValue([]),
+    getRequestsByHour: jest.fn().mockResolvedValue([]),
+  };
+
   beforeEach(async () => {
     const module: TestingModule = await Test.createTestingModule({
       providers: [
         RequestLogService,
         { provide: PrismaService, useValue: mockPrismaService },
         { provide: MonitoringFactory, useValue: mockMonitoringFactory },
+        {
+          provide: API_REQUEST_METRICS_REPOSITORY_TOKEN,
+          useValue: apiRequestMetricsMock,
+        },
+        {
+          provide: CLOCK_PORT,
+          useValue: { now: () => new Date('2026-05-19T12:00:00.000Z') },
+        },
       ],
     }).compile();
 
@@ -164,12 +180,14 @@ describe('RequestLogService', () => {
 
   describe('getRequestStats', () => {
     it('should aggregate stats', async () => {
-      prismaService.$queryRaw.mockResolvedValueOnce([{ hour: 10, count: 3n }]);
+      apiRequestMetricsMock.getRequestsByHour.mockResolvedValueOnce([
+        { hour: 10, count: 3n },
+      ]);
       const stats = await service.getRequestStats();
       expect(stats.totalRequests).toBe(100);
       expect(prismaService.apiRequest.count).toHaveBeenCalledTimes(3);
       expect(prismaService.apiRequest.aggregate).toHaveBeenCalled();
-      expect(prismaService.$queryRaw).toHaveBeenCalled();
+      expect(apiRequestMetricsMock.getRequestsByHour).toHaveBeenCalled();
       expect(stats.requestsByHour).toEqual([{ hour: 10, count: 3 }]);
     });
   });

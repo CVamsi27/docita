@@ -1,5 +1,47 @@
 import { Subscription } from '@/domains/subscriptions/core/entities';
 
+export type SubscriptionBillingContact = {
+  name: string | null;
+  email: string | null;
+  phoneNumber: string | null;
+};
+
+export type SubscriptionReminderRecipient = {
+  email: string | null;
+  name: string | null;
+};
+
+export type SubscriptionExpiryReminderCandidate = {
+  id: string;
+  clinicId: string;
+  currentPeriodEnd: Date;
+  status: string;
+  clinic: {
+    name: string | null;
+    users: SubscriptionReminderRecipient[];
+  } | null;
+};
+
+export type SubscriptionGraceDeadlineReminderCandidate = {
+  id: string;
+  clinicId: string;
+  graceUntil: Date | null;
+  clinic: {
+    name: string | null;
+    users: SubscriptionReminderRecipient[];
+  } | null;
+};
+
+export type SubscriptionReminderCreateInput = {
+  clinicId: string;
+  subscriptionId: string;
+  type: string;
+  channel: string;
+  status: string;
+  sentAt: Date | null;
+  errorMessage: string | null;
+};
+
 export interface ISubscriptionRepository {
   save(subscription: Subscription): Promise<void>;
   findById(id: string): Promise<Subscription | null>;
@@ -7,7 +49,25 @@ export interface ISubscriptionRepository {
   findByStatus(status: string): Promise<Subscription[]>;
   findApproachingRenewal(daysThreshold: number): Promise<Subscription[]>;
   update(subscription: Subscription): Promise<void>;
+  markClinicPastDue(clinicId: string, graceUntil: Date): Promise<void>;
   delete(id: string): Promise<void>;
+  findBillingContact(clinicId: string): Promise<SubscriptionBillingContact>;
+  findExpiryReminderCandidates(params: {
+    startOfDay: Date;
+    endOfDay: Date;
+  }): Promise<SubscriptionExpiryReminderCandidate[]>;
+  findGraceDeadlineReminderCandidates(params: {
+    startOfDay: Date;
+    endOfDay: Date;
+  }): Promise<SubscriptionGraceDeadlineReminderCandidate[]>;
+  findRecentReminderClinicIds(params: {
+    clinicIds: string[];
+    reminderType: string;
+    reminderCutoff: Date;
+  }): Promise<string[]>;
+  createSubscriptionReminders(
+    reminders: SubscriptionReminderCreateInput[],
+  ): Promise<void>;
   savePayment(payment: {
     clinicId: string;
     subscriptionId?: string;

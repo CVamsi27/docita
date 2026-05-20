@@ -9,7 +9,8 @@ import { ProratingService } from '@/domains/subscriptions/core/services/proratio
 import { SubscriptionCheckoutPricingService } from '@/domains/subscriptions/application/services/subscription-checkout-pricing.service';
 import { FeatureFlagService } from '@/shared/modules/services/feature-flag.service';
 import { AppConfigService } from '@/shared/modules/config/app-configuration.service';
-import type { RazorpayInvoiceAdapter } from '@/domains/payments/infrastructure/adapters/razorpay/razorpay-invoice.adapter';
+import { SubscriptionActivationPolicyService } from '@/domains/subscriptions/application/services/subscription-activation-policy.service';
+import { SubscriptionBillingSnapshotService } from '@/domains/subscriptions/application/services/subscription-billing-snapshot.service';
 
 describe('ActivateSubscriptionUseCase', () => {
   const subscriptionRepo: ISubscriptionRepository = {
@@ -19,7 +20,17 @@ describe('ActivateSubscriptionUseCase', () => {
     findByStatus: jest.fn(async () => []),
     findApproachingRenewal: jest.fn(async () => []),
     update: jest.fn(async () => undefined),
+    markClinicPastDue: jest.fn(async () => undefined),
     delete: jest.fn(async () => undefined),
+    findBillingContact: jest.fn(async () => ({
+      name: null,
+      email: null,
+      phoneNumber: null,
+    })),
+    findExpiryReminderCandidates: jest.fn(async () => []),
+    findGraceDeadlineReminderCandidates: jest.fn(async () => []),
+    findRecentReminderClinicIds: jest.fn(async () => []),
+    createSubscriptionReminders: jest.fn(async () => undefined),
     savePayment: jest.fn(async () => undefined),
     updatePaymentStatus: jest.fn(async () => undefined),
     findPaymentsByClinicId: jest.fn(async () => []),
@@ -78,10 +89,16 @@ describe('ActivateSubscriptionUseCase', () => {
     getCurrencyCode: jest.fn(() => 'INR'),
   } as unknown as AppConfigService;
 
-  const razorpayInvoiceAdapter = {
-    createInvoice: jest.fn(async () => null),
-    listInvoicesByCustomer: jest.fn(async () => []),
-  } as unknown as RazorpayInvoiceAdapter;
+  const activationPolicy = new SubscriptionActivationPolicyService();
+  const billingSnapshot = new SubscriptionBillingSnapshotService(
+    subscriptionRepo,
+    clinicOps,
+    activationPolicy,
+    {
+      createInvoice: jest.fn(async () => null),
+      listInvoicesByCustomer: jest.fn(async () => []),
+    } as never,
+  );
 
   let useCase: ActivateSubscriptionUseCase;
 
@@ -95,7 +112,8 @@ describe('ActivateSubscriptionUseCase', () => {
       featureFlagService,
       checkoutPricing,
       configService,
-      razorpayInvoiceAdapter,
+      activationPolicy,
+      billingSnapshot,
     );
   });
 

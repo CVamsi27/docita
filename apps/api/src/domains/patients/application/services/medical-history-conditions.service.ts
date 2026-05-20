@@ -1,5 +1,10 @@
 /** Handles CRUD for medical conditions and allergies sub-resources. */
-import { Injectable, NotFoundException } from '@nestjs/common';
+import {
+  Injectable,
+  NotFoundException,
+  ConflictException,
+  Inject,
+} from '@nestjs/common';
 import {
   MedicalConditionType,
   ConditionStatus,
@@ -13,18 +18,23 @@ import {
   CreatePatientAllergyInput,
   UpdatePatientAllergyInput,
 } from '@workspace/types';
-import { PrismaService } from '@/prisma/prisma.service';
+import {
+  PATIENT_PERSISTENCE_PORT,
+  type PatientPersistencePort,
+} from '@/domains/patients/application/ports/patient-persistence.port';
 import { MedicalHistoryFactory } from '@/domains/patients/core/factories/medical-history.factory';
+import { findDuplicateAllergy } from '@/domains/patients/core/domain-services/patient-medical-history.rules';
 
 @Injectable()
 export class MedicalHistoryConditionsService {
   constructor(
-    private readonly prisma: PrismaService,
+    @Inject(PATIENT_PERSISTENCE_PORT)
+    private readonly persistence: PatientPersistencePort,
     private readonly medicalHistoryFactory: MedicalHistoryFactory,
   ) {}
 
   async getConditions(patientId: string) {
-    return this.prisma.patientMedicalCondition.findMany({
+    return this.persistence.patientMedicalCondition.findMany({
       where: { patientId },
       orderBy: { createdAt: 'desc' },
     });
@@ -32,7 +42,7 @@ export class MedicalHistoryConditionsService {
 
   async createCondition(patientId: string, dto: CreateMedicalConditionInput) {
     const validated = this.medicalHistoryFactory.createCondition(dto);
-    return this.prisma.patientMedicalCondition.create({
+    return this.persistence.patientMedicalCondition.create({
       data: {
         patientId,
         conditionName: validated.conditionName,
@@ -57,12 +67,12 @@ export class MedicalHistoryConditionsService {
     patientId: string,
     dto: UpdateMedicalConditionInput,
   ) {
-    const existing = await this.prisma.patientMedicalCondition.findFirst({
+    const existing = await this.persistence.patientMedicalCondition.findFirst({
       where: { id, patientId },
     });
     if (!existing)
       throw new NotFoundException(`Medical condition with ID ${id} not found`);
-    return this.prisma.patientMedicalCondition.update({
+    return this.persistence.patientMedicalCondition.update({
       where: { id },
       data: {
         conditionName: dto.conditionName,
@@ -81,16 +91,16 @@ export class MedicalHistoryConditionsService {
   }
 
   async deleteCondition(id: string, patientId: string) {
-    const existing = await this.prisma.patientMedicalCondition.findFirst({
+    const existing = await this.persistence.patientMedicalCondition.findFirst({
       where: { id, patientId },
     });
     if (!existing)
       throw new NotFoundException(`Medical condition with ID ${id} not found`);
-    return this.prisma.patientMedicalCondition.delete({ where: { id } });
+    return this.persistence.patientMedicalCondition.delete({ where: { id } });
   }
 
   async getAllergies(patientId: string) {
-    return this.prisma.patientAllergy.findMany({
+    return this.persistence.patientAllergy.findMany({
       where: { patientId },
       orderBy: { createdAt: 'desc' },
     });
@@ -98,7 +108,16 @@ export class MedicalHistoryConditionsService {
 
   async createAllergy(patientId: string, dto: CreatePatientAllergyInput) {
     const validated = this.medicalHistoryFactory.createAllergy(dto);
-    return this.prisma.patientAllergy.create({
+    const existingAllergies = await this.persistence.patientAllergy.findMany({
+      where: { patientId },
+      select: { id: true, allergen: true },
+    });
+    if (findDuplicateAllergy(validated.allergen, existingAllergies)) {
+      throw new ConflictException(
+        'An allergy with this allergen already exists for this patient',
+      );
+    }
+    return this.persistence.patientAllergy.create({
       data: {
         patientId,
         allergen: validated.allergen,
@@ -116,12 +135,23 @@ export class MedicalHistoryConditionsService {
     patientId: string,
     dto: UpdatePatientAllergyInput,
   ) {
-    const existing = await this.prisma.patientAllergy.findFirst({
+    const existing = await this.persistence.patientAllergy.findFirst({
       where: { id, patientId },
     });
     if (!existing)
       throw new NotFoundException(`Allergy with ID ${id} not found`);
-    return this.prisma.patientAllergy.update({
+    if (dto.allergen !== undefined) {
+      const existingAllergies = await this.persistence.patientAllergy.findMany({
+        where: { patientId },
+        select: { id: true, allergen: true },
+      });
+      if (findDuplicateAllergy(dto.allergen, existingAllergies, id)) {
+        throw new ConflictException(
+          'An allergy with this allergen already exists for this patient',
+        );
+      }
+    }
+    return this.persistence.patientAllergy.update({
       where: { id },
       data: {
         allergen: dto.allergen,
@@ -135,11 +165,11 @@ export class MedicalHistoryConditionsService {
   }
 
   async deleteAllergy(id: string, patientId: string) {
-    const existing = await this.prisma.patientAllergy.findFirst({
+    const existing = await this.persistence.patientAllergy.findFirst({
       where: { id, patientId },
     });
     if (!existing)
       throw new NotFoundException(`Allergy with ID ${id} not found`);
-    return this.prisma.patientAllergy.delete({ where: { id } });
+    return this.persistence.patientAllergy.delete({ where: { id } });
   }
 }

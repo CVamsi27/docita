@@ -21,14 +21,23 @@ import {
 } from './application/use-cases';
 import { SubscriptionsQueryService } from './application/services/subscriptions-query.service';
 import { SubscriptionCheckoutPricingService } from './application/services/subscription-checkout-pricing.service';
+import { SubscriptionActivationPolicyService } from './application/services/subscription-activation-policy.service';
+import { SubscriptionBillingSnapshotService } from './application/services/subscription-billing-snapshot.service';
+import { razorpayWebhookHandlerProviders } from './application/webhooks/razorpay/razorpay-webhook-handler.registry';
 import {
   SUBSCRIPTION_REPOSITORY_TOKEN,
   PAYMENT_GATEWAY_TOKEN,
   CLINIC_OPERATIONS_TOKEN,
 } from './application/ports';
-import { PrismaSubscriptionRepository } from './infrastructure/repositories';
+import {
+  PrismaSubscriptionRepository,
+  PrismaSubscriptionCoreRepository,
+  PrismaSubscriptionPaymentRepository,
+  SubscriptionPaymentTaxService,
+} from './infrastructure/repositories';
 import { PaymentGatewayFacade } from './infrastructure/adapters/payment-gateway-facade.adapter';
 import { ClinicOperationsAdapter } from './infrastructure/adapters/clinic-operations.adapter';
+import { SubscriptionsBillingController } from './presentation/controllers/subscriptions-billing.controller';
 import { SubscriptionsController } from './presentation/controllers/subscriptions.controller';
 import { SubscriptionsWebhookController } from './presentation/controllers/subscriptions-webhook.controller';
 import { PrismaModule } from '@/prisma/prisma.module';
@@ -45,10 +54,16 @@ import { AdminAlertsModule } from '@/shared/modules/messaging/admin-alerts/admin
     EmailModule,
     AdminAlertsModule,
   ],
-  controllers: [SubscriptionsController, SubscriptionsWebhookController],
+  controllers: [
+    SubscriptionsController,
+    SubscriptionsBillingController,
+    SubscriptionsWebhookController,
+  ],
   providers: [
     SubscriptionPricingService,
     SubscriptionCheckoutPricingService,
+    SubscriptionActivationPolicyService,
+    SubscriptionBillingSnapshotService,
     ProratingService,
     SubscriptionValidationService,
     ReferralService,
@@ -61,13 +76,18 @@ import { AdminAlertsModule } from '@/shared/modules/messaging/admin-alerts/admin
     ExpireSubscriptionUseCase,
     EnterGracePeriodUseCase,
     ProcessWebhookUseCase,
+    ...razorpayWebhookHandlerProviders,
     NotifyExpiringSubscriptionsUseCase,
     NotifySubscriptionGraceDeadlineUseCase,
     SchedulePlanChangeUseCase,
     SubscriptionsQueryService,
+    SubscriptionPaymentTaxService,
+    PrismaSubscriptionCoreRepository,
+    PrismaSubscriptionPaymentRepository,
+    PrismaSubscriptionRepository,
     {
       provide: SUBSCRIPTION_REPOSITORY_TOKEN,
-      useClass: PrismaSubscriptionRepository,
+      useExisting: PrismaSubscriptionRepository,
     },
     {
       provide: PAYMENT_GATEWAY_TOKEN,

@@ -2,7 +2,10 @@ import { ForbiddenException } from '@nestjs/common';
 import { Test } from '@nestjs/testing';
 import { describe, it, expect, beforeEach, jest } from '@jest/globals';
 import { ClinicTier, IntelligenceAddon } from '@workspace/db';
-import { PrismaService } from '@/prisma/prisma.service';
+import {
+  CLINIC_PERSISTENCE_PORT,
+  type ClinicPersistencePort,
+} from '@/domains/clinics/application/ports/clinic-persistence.port';
 import { SettingsFactory } from '@/domains/clinics/core/factories/settings.factory';
 import { AuditService } from '@/shared/modules/audit/audit/audit.service';
 import { ClinicSettingsService } from './clinic-settings.service';
@@ -45,7 +48,7 @@ describe('ClinicSettingsService', () => {
       findUnique: findUniqueMock,
       update: updateMock,
     },
-  } as unknown as PrismaService;
+  } as unknown as ClinicPersistencePort;
 
   const settingsFactory = {
     partialValidate: jest.fn((v: unknown) => v),
@@ -73,7 +76,7 @@ describe('ClinicSettingsService', () => {
       providers: [
         ClinicSettingsService,
         ClinicSettingsCommandService,
-        { provide: PrismaService, useValue: prisma },
+        { provide: CLINIC_PERSISTENCE_PORT, useValue: prisma },
         { provide: SettingsFactory, useValue: settingsFactory },
         { provide: AuditService, useValue: auditService },
         { provide: ClinicDataService, useValue: clinicDataService },
@@ -118,7 +121,7 @@ describe('ClinicSettingsService', () => {
     expect(findUniqueMock).toHaveBeenCalledWith(
       expect.objectContaining({
         where: { id: 'clinic-1' },
-        select: { settings: true },
+        select: { settings: true, branding: true },
       }),
     );
     expect(updateMock).toHaveBeenCalled();

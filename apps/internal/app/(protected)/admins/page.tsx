@@ -3,6 +3,11 @@
 import { DocitaLoadingIndicator } from "@workspace/ui/components/feedback/docita-loading-indicator";
 
 import { useEffect, useMemo, useState } from "react";
+import {
+  useInternalClinicAdmins,
+  useInternalClinics,
+  type InternalAdminUser,
+} from "@workspace/data-access/internal";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { Button } from "@workspace/ui/components/form/button";
 import {
@@ -41,7 +46,6 @@ import { Label } from "@workspace/ui/components/form/label";
 import { Edit2, Eye, Plus, Search, Shield, Trash2, Users } from "lucide-react";
 import { useAuth } from "@/lib/auth/auth";
 import { client } from "@/lib/api/api-client";
-import { useInternalQuery } from "@/lib/api/use-internal-query";
 import {
   formatInternalListDate,
   formatInternalTimestamp,
@@ -51,26 +55,13 @@ import { useInternalFiltersStore } from "@/lib/stores/internal-filters-store";
 import { toast } from "sonner";
 import { showUserFacingErrorToast } from "@/lib/errors/user-facing-errors";
 
-interface Admin {
-  id: string;
-  name: string;
-  email: string;
-  phoneNumber?: string;
-  role: "ADMIN" | "ADMIN_DOCTOR";
-  createdAt: string;
-  updatedAt: string;
-}
-
-interface Clinic {
-  id: string;
-  name: string;
-}
+type Admin = InternalAdminUser;
 
 const ADMIN_TYPE_LABELS = {
   admin: "Clinic Admin",
   admin_doctor: "Admin Doctor",
 };
-const EMPTY_CLINICS: Clinic[] = [];
+const EMPTY_CLINICS: { id: string; name: string }[] = [];
 
 export default function AdminsPage() {
   const queryClient = useQueryClient();
@@ -95,15 +86,7 @@ export default function AdminsPage() {
   });
   const { token } = useAuth();
 
-  const clinicsQuery = useInternalQuery({
-    queryKey: internalQueryKeys.internal.clinics(),
-    queryFn: async () => {
-      const data = await client.get<Clinic[] | { items?: Clinic[] }>(
-        "/internal/clinics",
-      );
-      return Array.isArray(data) ? data : (data.items ?? []);
-    },
-  });
+  const clinicsQuery = useInternalClinics(token);
 
   const clinics = useMemo(
     () => clinicsQuery.data ?? EMPTY_CLINICS,
@@ -118,12 +101,7 @@ export default function AdminsPage() {
     }
   }, [clinics, selectedClinic, setSelectedClinic]);
 
-  const adminsQuery = useInternalQuery({
-    queryKey: internalQueryKeys.internal.clinicAdmins(selectedClinic || "none"),
-    queryFn: () =>
-      client.get<Admin[]>(`/internal/clinics/${selectedClinic}/admins`),
-    enabled: Boolean(selectedClinic && selectedClinic !== "all"),
-  });
+  const adminsQuery = useInternalClinicAdmins(token, selectedClinic);
 
   const admins = adminsQuery.data ?? [];
 

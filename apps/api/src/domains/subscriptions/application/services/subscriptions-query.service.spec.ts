@@ -3,9 +3,10 @@ import { SubscriptionsQueryService } from './subscriptions-query.service';
 import type { ISubscriptionRepository } from '@/domains/subscriptions/application/ports/subscription.repository.port';
 import type { IClinicOperations } from '@/domains/subscriptions/application/ports/clinic-operations.port';
 import { SubscriptionPricingService } from '@/domains/subscriptions/core/services/subscription-pricing.service';
-import { PricingService as BillingPricingService } from '@/domains/billing/core/services/pricing.service';
+import type { IClinicPricingQuery } from '@/domains/billing/application/ports';
 import { FeatureFlagService } from '@/shared/modules/services/feature-flag.service';
-import type { RazorpayInvoiceAdapter } from '@/domains/payments/infrastructure/adapters/razorpay/razorpay-invoice.adapter';
+import type { IPlatformInvoiceProvider } from '@/domains/payments/core/ports';
+import type { IClock } from '@/shared/common/ports/clock.port';
 import type { ActivateSubscriptionUseCase } from '@/domains/subscriptions/application/use-cases/activate-subscription.use-case';
 
 describe('SubscriptionsQueryService', () => {
@@ -21,7 +22,17 @@ describe('SubscriptionsQueryService', () => {
     findByStatus: jest.fn(async () => []),
     findApproachingRenewal: jest.fn(async () => []),
     update: jest.fn(async () => undefined),
+    markClinicPastDue: jest.fn(async () => undefined),
     delete: jest.fn(async () => undefined),
+    findBillingContact: jest.fn(async () => ({
+      name: null,
+      email: null,
+      phoneNumber: null,
+    })),
+    findExpiryReminderCandidates: jest.fn(async () => []),
+    findGraceDeadlineReminderCandidates: jest.fn(async () => []),
+    findRecentReminderClinicIds: jest.fn(async () => []),
+    createSubscriptionReminders: jest.fn(async () => undefined),
     savePayment: jest.fn(async () => undefined),
     updatePaymentStatus: jest.fn(async () => undefined),
     findPaymentsByClinicId: findPaymentsByClinicIdMock,
@@ -43,16 +54,19 @@ describe('SubscriptionsQueryService', () => {
       razorpayCustomerId: undefined,
     })),
   } as unknown as IClinicOperations;
-  const billingPricingService = {
+  const clinicPricingQuery = {
     getPricingConfig: jest.fn(async () => ({ tiers: [] })),
-  } as unknown as BillingPricingService;
+  } as unknown as IClinicPricingQuery;
   const featureFlagService = {
     getClinicPricingOffer: jest.fn(async () => null),
   } as unknown as FeatureFlagService;
-  const razorpayInvoiceAdapter = {
+  const platformInvoiceProvider = {
     listInvoicesByCustomer: jest.fn(async () => []),
     createInvoice: jest.fn(async () => null),
-  } as unknown as RazorpayInvoiceAdapter;
+  } as unknown as IPlatformInvoiceProvider;
+  const clock = {
+    now: () => new Date('2026-04-29T00:00:00.000Z'),
+  } as IClock;
   const activateSubscriptionUseCase = {
     applyPlanChangeWithoutPayment: jest.fn(async () => undefined),
   } as unknown as ActivateSubscriptionUseCase;
@@ -66,10 +80,11 @@ describe('SubscriptionsQueryService', () => {
       subscriptionRepo,
       clinicOps,
       new SubscriptionPricingService(),
-      billingPricingService,
+      clinicPricingQuery,
       featureFlagService,
-      razorpayInvoiceAdapter,
+      platformInvoiceProvider,
       activateSubscriptionUseCase,
+      clock,
     );
   });
 

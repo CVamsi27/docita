@@ -15,7 +15,8 @@ import { Button } from "@workspace/ui/components/form/button";
 import { Alert, AlertDescription } from "@workspace/ui/components/feedback/alert";
 import { cn } from "@workspace/ui/lib/utils";
 import { AlertTriangle, ArrowDown, ArrowRight, Building2, CheckCircle } from "lucide-react";
-import { PRICING_CURRENCY_CONFIG, TIER_INFO, getTierName } from "@workspace/types";
+import { PRICING_CURRENCY_CONFIG, TIER_INFO } from "@workspace/types";
+import { getTierName } from "@workspace/utils";
 import { getUserFacingErrorMessage } from "@workspace/utils";
 import {
   type TierChangeDialogProps,

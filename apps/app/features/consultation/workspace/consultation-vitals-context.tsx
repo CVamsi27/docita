@@ -9,6 +9,7 @@ import {
   type ReactNode,
 } from "react";
 import { useQueryClient } from "@tanstack/react-query";
+import { queryKeys } from "@workspace/data-access";
 import { VitalsModal } from "@/features/consultation/components/modals/VitalsModal";
 
 interface ConsultationVitalsContextValue {
@@ -46,9 +47,9 @@ export function ConsultationVitalsProvider({
 
   const handleSaved = useCallback(() => {
     queryClient.invalidateQueries({
-      queryKey: ["appointments", appointmentId],
+      queryKey: queryKeys.appointments.detail(appointmentId),
     });
-    queryClient.invalidateQueries({ queryKey: ["patient-snapshot"] });
+    queryClient.invalidateQueries({ queryKey: queryKeys.patientSnapshot.all() });
   }, [appointmentId, queryClient]);
 
   const value = useMemo(() => ({ openVitals }), [openVitals]);

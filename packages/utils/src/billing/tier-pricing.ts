@@ -1,14 +1,12 @@
-import type {
-  AddOnPricing,
-  MultiCurrencyTierPricing,
-  SupportedCurrency,
-  TierName,
-} from "@workspace/types";
 import {
+  type AddOnPricing,
   INTELLIGENCE_ADDON_PRICING_BY_CURRENCY,
+  type MultiCurrencyTierPricing,
   REFERRAL_REWARDS_BY_CURRENCY,
+  type SupportedCurrency,
   TIER_OVERAGE_RATES_BY_CURRENCY,
   TIER_PRICING_BY_CURRENCY,
+  type TierName,
   WHATSAPP_ADDON_PRICING_BY_CURRENCY,
 } from "@workspace/types";
 

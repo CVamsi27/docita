@@ -1,3 +1,4 @@
+import { queryKeys } from "../lib/query-keys";
 import { useAPIMutation } from "../core/use-api-mutation";
 import { useAPIQuery } from "../core/use-api-query";
 import type {
@@ -28,7 +29,7 @@ export const usePatientPortalDashboard = () =>
     upcomingAppointments: Record<string, unknown>[];
     activePrescriptions: Record<string, unknown>[];
     outstandingInvoices: Record<string, unknown>[];
-  }>(["patient-portal", "dashboard"], "/patient-portal/dashboard");
+  }>(queryKeys.patientPortal.dashboard(), "/patient-portal/dashboard");
 
 export const usePatientPortalAppointments = (filters?: {
   status?: string;
@@ -46,13 +47,13 @@ export const usePatientPortalAppointments = (filters?: {
       hasMore: boolean;
     };
   }>(
-    ["patient-portal", "appointments", filters || {}],
+    queryKeys.patientPortal.appointments.list(filters),
     "/patient-portal/appointments",
   );
 
 export const usePatientPortalAppointmentById = (appointmentId: string) =>
   useAPIQuery(
-    ["patient-portal", "appointments", appointmentId],
+    queryKeys.patientPortal.appointments.detail(appointmentId),
     `/patient-portal/appointments/${appointmentId}`,
     {
       enabled: !!appointmentId,
@@ -64,7 +65,7 @@ export const useRequestAppointment = () =>
     "/patient-portal/appointments/request",
     "POST",
     {
-      invalidateKeys: [["patient-portal", "appointments"]],
+      invalidateKeys: [queryKeys.patientPortal.appointments.all()],
       suppressGlobalErrorToast: true,
     },
   );
@@ -82,13 +83,13 @@ export const usePatientPortalPrescriptions = (filters?: {
       hasMore: boolean;
     };
   }>(
-    ["patient-portal", "prescriptions", filters || {}],
+    queryKeys.patientPortal.prescriptions.list(filters),
     "/patient-portal/prescriptions",
   );
 
 export const usePatientPortalPrescriptionById = (prescriptionId: string) =>
   useAPIQuery(
-    ["patient-portal", "prescriptions", prescriptionId],
+    queryKeys.patientPortal.prescriptions.detail(prescriptionId),
     `/patient-portal/prescriptions/${prescriptionId}`,
     {
       enabled: !!prescriptionId,
@@ -108,7 +109,7 @@ export const usePatientPortalInvoices = (filters?: {
       offset: number;
       hasMore: boolean;
     };
-  }>(["patient-portal", "invoices", filters || {}], "/patient-portal/invoices");
+  }>(queryKeys.patientPortal.invoices.list(filters), "/patient-portal/invoices");
 
 export const useUpdatePatientProfile = () =>
   useAPIMutation<Record<string, unknown>, UpdatePatientProfileBodyDto>(
@@ -122,7 +123,7 @@ export const usePatientConsentSettings = () =>
     whatsappConsentAt: string | null;
     isFirstLogin: boolean;
     dataStorageConsent: boolean;
-  }>(["patient-portal", "consent"], "/patient-portal/consent");
+  }>(queryKeys.patientPortal.consent(), "/patient-portal/consent");
 
 export const useUpdatePatientConsent = () =>
   useAPIMutation<
@@ -144,7 +145,7 @@ export const usePatientMedicalHistory = (patientId?: string) =>
     socialHistory: Record<string, unknown> | null;
     surgicalHistory: Record<string, unknown>[];
   }>(
-    ["patient-portal", "medical-history", patientId || ""],
+    queryKeys.patientPortal.medicalHistory(patientId || ""),
     `/patients/${patientId}/medical-history`,
     {
       enabled: !!patientId,
@@ -153,7 +154,7 @@ export const usePatientMedicalHistory = (patientId?: string) =>
 
 export const usePortalMetricCategories = () =>
   useAPIQuery<Record<string, unknown>[]>(
-    ["patient-portal", "metrics", "categories"],
+    queryKeys.patientPortal.metrics.categories(),
     "/patient-portal/metrics/categories",
   );
 
@@ -176,14 +177,14 @@ export const usePortalMetricHistory = (filters?: {
     timeline: Record<string, unknown>[];
     byCategory: Record<string, Record<string, unknown>[]>;
   }>(
-    ["patient-portal", "metrics", "history", filters || {}],
+    queryKeys.patientPortal.metrics.history(filters),
     `/patient-portal/metrics/history${query ? `?${query}` : ""}`,
   );
 };
 
 export const usePortalSelectedMetrics = () =>
   useAPIQuery<Record<string, unknown>[]>(
-    ["patient-portal", "metrics", "selected"],
+    queryKeys.patientPortal.metrics.selected(),
     "/patient-portal/metrics/selected",
   );
 
@@ -192,7 +193,7 @@ export const useUpdatePortalSelectedMetrics = () =>
     Record<string, unknown>[],
     { items: Array<{ definitionId: string; isTracked: boolean }> }
   >("/patient-portal/metrics/selected", "PUT", {
-    invalidateKeys: [["patient-portal", "metrics", "selected"]],
+    invalidateKeys: [queryKeys.patientPortal.metrics.selected()],
   });
 
 export const useRecordPortalMetricValue = () =>
@@ -210,7 +211,7 @@ export const useRecordPortalMetricValue = () =>
       notes?: string;
     }
   >("/patient-portal/metrics/values", "POST", {
-    invalidateKeys: [["patient-portal", "metrics", "history"]],
+    invalidateKeys: [queryKeys.patientPortal.metrics.historyPrefix()],
   });
 
 export const useCreatePortalMetricDefinition = () =>
@@ -225,7 +226,7 @@ export const useCreatePortalMetricDefinition = () =>
       isTrackedByDefault?: boolean;
     }
   >("/patient-portal/metrics/definitions", "POST", {
-    invalidateKeys: [["patient-portal", "metrics", "categories"]],
+    invalidateKeys: [queryKeys.patientPortal.metrics.categories()],
   });
 
 export const usePortalVitalsHistory = (filters?: {
@@ -245,7 +246,7 @@ export const usePortalVitalsHistory = (filters?: {
     timeline: Record<string, unknown>[];
     byCategory: Record<string, Record<string, unknown>[]>;
   }>(
-    ["patient-portal", "metrics", "vitals-history", filters || {}],
+    queryKeys.patientPortal.metrics.vitalsHistory(filters),
     `/patient-portal/metrics/vitals-history${query ? `?${query}` : ""}`,
   );
 };
@@ -266,20 +267,20 @@ export const usePortalTimeline = (filters?: {
   if (filters?.offset) params.set("offset", String(filters.offset));
   const query = params.toString();
   return useAPIQuery<PatientTimelineResponse>(
-    ["patient-portal", "timeline", filters || {}],
+    queryKeys.patientPortal.timeline.list(filters),
     `/patient-portal/timeline${query ? `?${query}` : ""}`,
   );
 };
 
 export const usePortalSnapshot = () =>
   useAPIQuery<PatientSnapshot>(
-    ["patient-portal", "timeline", "snapshot"],
+    queryKeys.patientPortal.timeline.snapshot(),
     "/patient-portal/timeline/snapshot",
   );
 
 export const usePortalActiveMedications = () =>
   useAPIQuery<ActiveMedication[]>(
-    ["patient-portal", "medications", "active"],
+    queryKeys.patientPortal.medications.active(),
     "/patient-portal/medications/active",
   );
 
@@ -305,7 +306,7 @@ export const usePortalDoseHistory = (filters?: {
     limit: number;
     offset: number;
   }>(
-    ["patient-portal", "medications", "doses", filters || {}],
+    queryKeys.patientPortal.medications.doses.list(filters),
     `/patient-portal/medications/doses${query ? `?${query}` : ""}`,
   );
 };
@@ -322,15 +323,15 @@ export const useRecordPortalDose = () =>
     }
   >("/patient-portal/medications/doses", "POST", {
     invalidateKeys: [
-      ["patient-portal", "medications", "doses"],
-      ["patient-portal", "medications", "active"],
+      queryKeys.patientPortal.medications.doses.all(),
+      queryKeys.patientPortal.medications.active(),
     ],
   });
 
 export const usePortalAdherence = (prescriptionId?: string) => {
   const query = prescriptionId ? `?prescriptionId=${prescriptionId}` : "";
   return useAPIQuery<MedicationAdherenceSummary>(
-    ["patient-portal", "medications", "adherence", prescriptionId || ""],
+    queryKeys.patientPortal.medications.adherence(prescriptionId || ""),
     `/patient-portal/medications/adherence${query}`,
   );
 };

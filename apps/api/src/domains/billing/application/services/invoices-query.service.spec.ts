@@ -2,7 +2,7 @@ import { NotFoundException } from '@nestjs/common';
 import { beforeEach, describe, it, expect, jest } from '@jest/globals';
 import { InvoicesQueryService } from './invoices-query.service';
 import { ClaimValidationService } from '@/domains/billing/core/services/claim-validation.service';
-import { StorageProvider } from '@/domains/documents/infrastructure/storage.provider';
+import { StorageProvider } from '@/domains/documents/application/ports/storage-provider.port';
 import { StoredFileUrlResolverService } from '@/domains/documents/application/services/stored-file-url-resolver.service';
 import { PDFService } from './pdf.service';
 import { PdfJobService } from '@/shared/modules/queue/pdf-job.service';

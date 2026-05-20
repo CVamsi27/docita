@@ -32,7 +32,7 @@ import {
 import {
   queueSettingsFormSchema,
   type QueueSettingsFormValues,
-} from "@/features/settings/schemas/queue-settings-form.schema";
+} from "@workspace/types";
 
 export const QueueConfigurationForm = () => {
   const { data: clinic, isLoading: settingsLoading } = useClinicSettings();

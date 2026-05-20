@@ -7,7 +7,7 @@ import {
 } from '@nestjs/common';
 import { JoinRequestsController } from './join-requests.controller';
 import { JoinRequestService } from '@/domains/clinics/application/services/join-request.service';
-import { StaffNotificationService } from '@/shared/modules/messaging/whatsapp/staff-notification.service';
+import { StaffNotificationService } from '@/domains/whatsapp/application/services/staff-notification.service';
 import { JwtAuthGuard } from '@/shared/modules/auth/auth/jwt-auth.guard';
 import type { RequestWithUser } from '@/shared/common/types/common.types';
 

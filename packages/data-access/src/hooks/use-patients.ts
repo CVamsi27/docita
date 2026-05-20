@@ -4,6 +4,11 @@ import {
   CreatePatientRequest,
   Feature,
   Patient,
+  PatientAllergy,
+  PatientFamilyHistory,
+  PatientMedicalCondition,
+  PatientSocialHistory,
+  PatientSurgicalHistory,
   PatientWithMedicalHistory,
   UpdatePatientRequest,
 } from "@workspace/types";
@@ -57,7 +62,7 @@ export const useInfinitePatients = (options?: {
   const { fetcher, isTierFeatureEnabled } = useDataAccessContext();
   const tierPatientsOk = isTierFeatureEnabled(Feature.BASIC_PATIENT_MANAGEMENT);
   return useInfiniteQuery({
-    queryKey: ["patients", "infinite", options?.search ?? ""],
+    queryKey: queryKeys.patients.infinite(options?.search),
     queryFn: ({ pageParam }) => {
       return fetcher<{
         items: Patient[];
@@ -85,14 +90,14 @@ export const useRecentPatients = (limit: number = 5) => {
     nextCursor?: string;
     hasMore: boolean;
     count: number;
-  }>(["patients", "recent", limit.toString()], withQueryString("/patients", { limit }), {
+  }>(queryKeys.patients.recent(limit), withQueryString("/patients", { limit }), {
     enabled: tierPatientsOk,
   });
 };
 
 export const usePatient = (id: string) => {
   const tierPatientsOk = useDataAccessContext().isTierFeatureEnabled(Feature.BASIC_PATIENT_MANAGEMENT);
-  return useAPIQuery<Patient>(["patients", id], `/patients/${id}`, {
+  return useAPIQuery<Patient>(queryKeys.patients.byId(id), `/patients/${id}`, {
     enabled: tierPatientsOk && !!id,
   });
 };
@@ -100,7 +105,7 @@ export const usePatient = (id: string) => {
 export const usePatientWithMedicalHistory = (id: string) => {
   const tierPatientsOk = useDataAccessContext().isTierFeatureEnabled(Feature.BASIC_PATIENT_MANAGEMENT);
   return useAPIQuery<PatientWithMedicalHistory>(
-    ["patients", id, "with-medical-history"],
+    queryKeys.patients.withMedicalHistory(id),
     `/patients/${id}`,
     { enabled: tierPatientsOk && !!id },
   );
@@ -109,27 +114,46 @@ export const usePatientWithMedicalHistory = (id: string) => {
 export const usePatientMedicalHistoryTimeline = (patientId: string) => {
   const tierPatientsOk = useDataAccessContext().isTierFeatureEnabled(Feature.BASIC_PATIENT_MANAGEMENT);
   return useAPIQuery<MedicalHistoryTimelineItem[]>(
-    ["patients", patientId, "medical-history-timeline"],
+    queryKeys.patients.medicalHistoryTimeline(patientId),
     `/patients/${patientId}/medical-history-timeline`,
+    { enabled: tierPatientsOk && !!patientId },
+  );
+};
+
+export type PatientMedicalHistoryFull = {
+  conditions?: PatientMedicalCondition[];
+  allergies?: PatientAllergy[];
+  familyHistory?: PatientFamilyHistory[];
+  socialHistory?: PatientSocialHistory | null;
+  surgicalHistory?: PatientSurgicalHistory[];
+};
+
+export const usePatientMedicalHistoryFull = (patientId: string) => {
+  const tierPatientsOk = useDataAccessContext().isTierFeatureEnabled(
+    Feature.BASIC_PATIENT_MANAGEMENT,
+  );
+  return useAPIQuery<PatientMedicalHistoryFull>(
+    queryKeys.patients.medicalHistoryFull(patientId),
+    `/patients/${patientId}/medical-history`,
     { enabled: tierPatientsOk && !!patientId },
   );
 };
 
 export const useCreatePatient = () =>
   useAPIMutation<Patient, CreatePatientRequest>("/patients", "POST", {
-    invalidateKeys: [["patients"]],
+    invalidateKeys: [queryKeys.patients.all()],
     suppressGlobalErrorToast: true,
   });
 
 export const useUpdatePatient = (id: string) =>
   useAPIMutation<Patient, UpdatePatientRequest>(`/patients/${id}`, "PATCH", {
-    invalidateKeys: [["patients"], ["patients", id]],
+    invalidateKeys: [queryKeys.patients.all(), queryKeys.patients.byId(id)],
     suppressGlobalErrorToast: true,
   });
 
 export const useDeletePatient = (id: string) =>
   useAPIMutation<void, void>(`/patients/${id}`, "DELETE", {
-    invalidateKeys: [["patients"]],
+    invalidateKeys: [queryKeys.patients.all()],
   });
 
 export const useTodaysPatients = (doctorId?: string, search?: string) => {
@@ -172,7 +196,7 @@ export const useTodaysPatients = (doctorId?: string, search?: string) => {
       avgConsultationMinutes: number;
     };
   }>(
-    ["todays-patients", doctorId ?? "all", search ?? ""],
+    queryKeys.patients.todays(doctorId ?? "all", search ?? ""),
     withQueryString("/queue/today", { doctorId, search }),
     { enabled: tierQueueOk },
   );

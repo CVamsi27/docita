@@ -1,6 +1,9 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import { ReminderNotificationService } from './reminder-notification.service';
-import { PrismaService } from '@/prisma/prisma.service';
+import {
+  REMINDER_PERSISTENCE_PORT,
+  type ReminderPersistencePort,
+} from '@/domains/reminders/application/ports/reminder-persistence.port';
 import { SendMessageUseCase } from '@/domains/whatsapp/application/use-cases/send-message.use-case';
 import { ClinicTier, IntelligenceAddon } from '@workspace/db';
 import {
@@ -153,7 +156,7 @@ describe('ReminderNotificationService', () => {
       providers: [
         ReminderNotificationService,
         {
-          provide: PrismaService,
+          provide: REMINDER_PERSISTENCE_PORT,
           useValue: prismaMock,
         },
         {
@@ -166,7 +169,9 @@ describe('ReminderNotificationService', () => {
     service = module.get<ReminderNotificationService>(
       ReminderNotificationService,
     );
-    prisma = module.get(PrismaService);
+    prisma = module.get<ReminderPersistencePort>(
+      REMINDER_PERSISTENCE_PORT,
+    ) as unknown as typeof prisma;
     sendMessage = module.get(SendMessageUseCase);
   });
 

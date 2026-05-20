@@ -3,6 +3,7 @@ import {
   NestInterceptor,
   ExecutionContext,
   CallHandler,
+  Logger,
 } from '@nestjs/common';
 import { Observable } from 'rxjs';
 import { Request } from 'express';
@@ -21,6 +22,8 @@ export interface RequestWithTimezone extends Request {
 
 @Injectable()
 export class TimezoneInterceptor implements NestInterceptor {
+  private readonly logger = new Logger(TimezoneInterceptor.name);
+
   constructor(private prisma: PrismaService) {}
 
   async intercept(
@@ -48,7 +51,13 @@ export class TimezoneInterceptor implements NestInterceptor {
           request.timezone = clinic.timezone || DEFAULT_TIMEZONE;
           request.locale = clinic.locale || DEFAULT_LOCALE;
         }
-      } catch {}
+      } catch (error) {
+        const message =
+          error instanceof Error
+            ? error.message
+            : 'Unknown timezone lookup failure';
+        this.logger.warn(`Falling back to default locale/timezone: ${message}`);
+      }
     }
 
     return next.handle();

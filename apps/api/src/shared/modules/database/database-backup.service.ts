@@ -1,4 +1,8 @@
-import { Injectable, Logger } from '@nestjs/common';
+import { Inject, Injectable, Logger } from '@nestjs/common';
+import {
+  CLOCK_PORT,
+  type IClock,
+} from '@/shared/common/ports/clock.port';
 import { AppConfigService } from '@/shared/modules/config/app-configuration.service';
 import { spawn } from 'child_process';
 import * as fs from 'fs';
@@ -15,7 +19,10 @@ export class DatabaseBackupService {
   private readonly databaseUser: string;
   private readonly databaseName: string;
 
-  constructor(private configService: AppConfigService) {
+  constructor(
+    private configService: AppConfigService,
+    @Inject(CLOCK_PORT) private readonly clock: IClock,
+  ) {
     const dbUrl = new URL(this.configService.getDatabaseUrl());
 
     this.backupDir = '/backups/postgresql';
@@ -133,7 +140,7 @@ export class DatabaseBackupService {
   async createFullBackup(
     filename?: string,
   ): Promise<{ success: boolean; filepath: string; size: number }> {
-    const timestamp = new Date().toISOString().replace(/[:.]/g, '-');
+    const timestamp = this.clock.now().toISOString().replace(/[:.]/g, '-');
     const backupFilename = this.sanitizeBackupFilename(
       filename || `backup-full-${timestamp}.dump`,
     );
@@ -172,7 +179,7 @@ export class DatabaseBackupService {
   async createSchemaBackup(
     filename?: string,
   ): Promise<{ success: boolean; filepath: string; size: number }> {
-    const timestamp = new Date().toISOString().replace(/[:.]/g, '-');
+    const timestamp = this.clock.now().toISOString().replace(/[:.]/g, '-');
     const backupFilename = this.sanitizeBackupFilename(
       filename || `backup-schema-${timestamp}.sql`,
     );

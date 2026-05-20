@@ -23,14 +23,24 @@ import {
   FEATURE_TIER_MAP,
 } from '@/shared/modules/auth/auth/tier.decorator';
 import { DEFAULT_CURRENCY } from '@workspace/utils';
-import { PricingService as BillingPricingService } from '@/domains/billing/core/services/pricing.service';
+import {
+  CLINIC_PRICING_QUERY_TOKEN,
+  type IClinicPricingQuery,
+} from '@/domains/billing/application/ports';
 import { FeatureFlagService } from '@/shared/modules/services/feature-flag.service';
 import {
   getTrialGraceEndsAt,
   getTrialWindowState,
 } from '@/shared/modules/auth/utils/trial-window.util';
-import { RazorpayInvoiceAdapter } from '@/domains/payments/infrastructure/adapters/razorpay/razorpay-invoice.adapter';
+import {
+  PLATFORM_INVOICE_PROVIDER_TOKEN,
+  type IPlatformInvoiceProvider,
+} from '@/domains/payments/core/ports';
 import { ActivateSubscriptionUseCase } from '@/domains/subscriptions/application/use-cases/activate-subscription.use-case';
+import {
+  CLOCK_PORT,
+  type IClock,
+} from '@/shared/common/ports/clock.port';
 
 type PaymentHistoryRecord = {
   amountCents: number;
@@ -49,10 +59,13 @@ export class SubscriptionsQueryService {
     @Inject(CLINIC_OPERATIONS_TOKEN)
     private readonly clinicOps: IClinicOperations,
     private readonly pricingService: SubscriptionPricingService,
-    private readonly billingPricingService: BillingPricingService,
+    @Inject(CLINIC_PRICING_QUERY_TOKEN)
+    private readonly clinicPricingQuery: IClinicPricingQuery,
     private readonly featureFlagService: FeatureFlagService,
-    private readonly razorpayInvoiceAdapter: RazorpayInvoiceAdapter,
+    @Inject(PLATFORM_INVOICE_PROVIDER_TOKEN)
+    private readonly platformInvoiceProvider: IPlatformInvoiceProvider,
     private readonly activateSubscriptionUseCase: ActivateSubscriptionUseCase,
+    @Inject(CLOCK_PORT) private readonly clock: IClock,
   ) {}
 
   /**
@@ -62,7 +75,8 @@ export class SubscriptionsQueryService {
    */
   private async maybeApplyDueScheduledChange(clinicId: string): Promise<void> {
     const subscription = await this.subscriptionRepo.findByClinicId(clinicId);
-    if (!subscription || !subscription.isScheduledChangeDue()) return;
+    if (!subscription || !subscription.isScheduledChangeDue(this.clock.now()))
+      return;
     const scheduled = subscription.scheduledChange!;
     try {
       await this.activateSubscriptionUseCase.applyPlanChangeWithoutPayment({
@@ -104,7 +118,7 @@ export class SubscriptionsQueryService {
       'ENTERPRISE',
     ];
     const pricingConfig =
-      await this.billingPricingService.getPricingConfig(DEFAULT_CURRENCY);
+      await this.clinicPricingQuery.getPricingConfig(DEFAULT_CURRENCY);
     const pricingTiers = pricingConfig.tiers as Array<{
       id: string;
       pricing?: unknown;
@@ -161,7 +175,7 @@ export class SubscriptionsQueryService {
       cancelAtPeriodEnd: subscription.cancelAtPeriodEnd ?? false,
       currentPeriodStart: subscription.currentPeriodStart.toISOString(),
       currentPeriodEnd: subscription.currentPeriodEnd.toISOString(),
-      daysRemaining: subscription.getDaysRemaining(),
+      daysRemaining: subscription.getDaysRemaining(this.clock.now()),
       scheduledChange: subscription.scheduledChange ?? null,
       accountCreditCents: subscription.getCredits().paise,
     };
@@ -207,7 +221,7 @@ export class SubscriptionsQueryService {
       return localRecords;
     }
 
-    const invoices = await this.razorpayInvoiceAdapter.listInvoicesByCustomer(
+    const invoices = await this.platformInvoiceProvider.listInvoicesByCustomer(
       clinic.razorpayCustomerId,
     );
     if (!invoices.length) {
@@ -269,6 +283,7 @@ export class SubscriptionsQueryService {
       ? getTrialWindowState({
           subscriptionStatus: subscription.getStatus().value,
           trialEnd,
+          now: this.clock.now(),
         })
       : null;
     const trialGraceEndsAt = getTrialGraceEndsAt(trialEnd);

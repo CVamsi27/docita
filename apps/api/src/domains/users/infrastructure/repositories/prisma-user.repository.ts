@@ -153,4 +153,14 @@ export class PrismaUserRepository implements IUserRepository {
       }),
     );
   }
+
+  async findPasswordExpiresAt(userId: string): Promise<Date | null> {
+    return this.prisma.runUnrestricted(async () => {
+      const row = await this.prisma.user.findUnique({
+        where: { id: userId },
+        select: { passwordExpiresAt: true },
+      });
+      return row?.passwordExpiresAt ?? null;
+    });
+  }
 }

@@ -1,3 +1,5 @@
+import { PrismaService } from '@/prisma/prisma.service';
+import { ENTERPRISE_CONTRACT_PERSISTENCE_PORT } from './application/ports/enterprise-contract-persistence.port';
 import { Module } from '@nestjs/common';
 import { PrismaModule } from '@/prisma/prisma.module';
 import { EmailModule } from '@/shared/modules/messaging/email/email.module';
@@ -15,6 +17,10 @@ import { ClinicEnterpriseContractController } from './presentation/controllers/c
     ClinicEnterpriseContractController,
   ],
   providers: [
+    {
+      provide: ENTERPRISE_CONTRACT_PERSISTENCE_PORT,
+      useExisting: PrismaService,
+    },
     EnterpriseContractsService,
     EnterpriseContractsQueryService,
     EnterpriseContractsCommandService,

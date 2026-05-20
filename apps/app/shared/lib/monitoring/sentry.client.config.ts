@@ -77,7 +77,7 @@ export function initializeSentryClient() {
 
       (window as WindowWithSentryReady).__sentryReady = true;
     } catch {
-
+      // Client-side monitoring must never block app boot.
     }
   });
 }
@@ -154,7 +154,7 @@ export function captureMessage(
       Sentry?.captureMessage(message, level);
     });
   } catch {
-
+    // Monitoring calls are best-effort and must remain non-blocking.
   }
 }
 
@@ -189,6 +189,6 @@ export function addBreadcrumb(
       });
     });
   } catch {
-
+    // Breadcrumb recording is best-effort and must remain non-blocking.
   }
 }

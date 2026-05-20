@@ -9,10 +9,8 @@ import React, {
   useRef,
   useState,
 } from "react";
-import { useMutation } from "@tanstack/react-query";
 import { usePathname, useRouter } from "next/navigation";
 import { usePermissionStore } from "@/lib/stores/permission-store";
-import { apiFetch } from "@/lib/api/api-client";
 import { appSession } from "@/lib/auth/session";
 import { clearStoredReturnPathBeforeLogin } from "@/lib/auth/safe-return-path";
 import {
@@ -38,6 +36,8 @@ import {
   persistVerificationEmailStatus,
   type User,
 } from "./auth-context-helpers";
+import { useAuthMutations } from "./use-auth-mutations";
+import { logger } from "@/lib/monitoring/logger";
 
 export { VERIFICATION_EMAIL_STATUS_STORAGE_KEY };
 export type { User };
@@ -83,6 +83,13 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const { setUserRole } = usePermissionStore();
   const hasSetRoleRef = useRef(false);
   const hasInitializedSessionRef = useRef(false);
+  const {
+    validateAuth,
+    loginMutation,
+    checkEmailMutation,
+    registerMutation,
+    logoutMutation,
+  } = useAuthMutations();
 
   useEffect(() => {
     if (!loginLockoutUntil) {
@@ -129,58 +136,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     }
     return refreshed;
   }, [persistToken]);
-
-  const { mutateAsync: validateAuth } = useMutation({
-    mutationFn: (headers?: HeadersInit) =>
-      apiFetch<unknown>("/auth/validate", {
-        method: "GET",
-        headers,
-      }),
-  });
-
-  const loginMutation = useMutation({
-    mutationFn: (payload: unknown) => {
-      const csrfToken = appSession.getCsrfToken();
-      return apiFetch<unknown>("/auth/login", {
-        method: "POST",
-        headers: csrfToken ? { "x-xsrf-token": csrfToken } : undefined,
-        body: JSON.stringify(payload),
-      });
-    },
-  });
-
-  const checkEmailMutation = useMutation({
-    mutationFn: (payload: unknown) => {
-      const csrfToken = appSession.getCsrfToken();
-      return apiFetch<unknown>("/auth/check-email", {
-        method: "POST",
-        headers: csrfToken ? { "x-xsrf-token": csrfToken } : undefined,
-        body: JSON.stringify(payload),
-      });
-    },
-  });
-
-  const registerMutation = useMutation({
-    mutationFn: (payload: unknown) => {
-      const csrfToken = appSession.getCsrfToken();
-      return apiFetch<unknown>("/auth/register", {
-        method: "POST",
-        headers: csrfToken ? { "x-xsrf-token": csrfToken } : undefined,
-        body: JSON.stringify(payload),
-      });
-    },
-  });
-
-  const logoutMutation = useMutation({
-    mutationFn: () => {
-      const csrfToken = appSession.getCsrfToken();
-      return apiFetch<unknown>("/auth/logout", {
-        method: "POST",
-        headers: csrfToken ? { "x-xsrf-token": csrfToken } : undefined,
-        body: JSON.stringify({}),
-      });
-    },
-  });
 
   useEffect(() => {
     if (hasInitializedSessionRef.current) {
@@ -468,7 +423,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     clearStoredReturnPathBeforeLogin();
     try {
       await logoutMutation.mutateAsync();
-    } catch {}
+    } catch (error) {
+      logger.warn("Logout request failed after local session clear", { error });
+    }
 
     if (shouldRedirect) {
       router.push("/login");

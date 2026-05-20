@@ -9,13 +9,12 @@ import {
   getAccessPermissions,
   getAccessRoles,
   hasAppPermission,
-  hasFeatureAccess,
   isAccessComingSoon,
-  isFeatureGenerallyAvailable,
   mapClinicTierDbStringToAccessTier,
   mapDbClinicTierStringToTierName,
   Tier,
 } from "../src";
+import { hasFeatureAccess, isFeatureGenerallyAvailable } from "@workspace/utils";
 
 const INTENTIONAL_GA_SUBFEATURES = new Set<Feature>([
   Feature.PAPER_SCANNING,
@@ -38,6 +37,8 @@ const INTENTIONAL_GA_SUBFEATURES = new Set<Feature>([
   Feature.OCR_ADVANCED,
   Feature.ADVANCED_ANALYTICS,
   Feature.WHATSAPP_MANAGED_NUMBER,
+  Feature.WHITE_LABEL_BRANDING,
+  Feature.LOCKED_CUSTOM_THEME,
 ]);
 
 describe("@workspace/types access contracts", () => {

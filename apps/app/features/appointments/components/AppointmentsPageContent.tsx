@@ -1,10 +1,10 @@
 "use client";
 
 import dynamicImport from "next/dynamic";
-import { Suspense, useCallback, useEffect, useMemo, useRef } from "react";
+import { Suspense, useCallback, useEffect, useMemo, useRef, useState } from "react";
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
-import { CalendarDays } from "lucide-react";
+import { CalendarDays, Clock } from "lucide-react";
 import { Button } from "@workspace/ui/components/form/button";
 import { Badge } from "@workspace/ui/components/indicators/badge";
 import { cn } from "@workspace/ui/lib/utils";
@@ -22,6 +22,9 @@ import {
   AppointmentsListUI,
   AppointmentsPageHeaderUI,
 } from "@/features/appointments/components";
+import { DoctorDelayBanner } from "@/features/appointments/components/DoctorDelayBanner";
+import { MarkDoctorDelayDialog } from "@/features/appointments/components/dialogs/MarkDoctorDelayDialog";
+import { useMarkDoctorDelay } from "@workspace/data-access";
 import type { AppointmentListItem } from "@workspace/data-access";
 import { SUBSCRIPTION_SETTINGS_PATH } from "@/lib/subscription/subscription-settings-path";
 
@@ -44,6 +47,8 @@ function AppointmentsContent() {
   const { state, handlers } = useAppointmentsLogic();
   const router = useRouter();
   const searchParams = useSearchParams();
+  const [isDelayDialogOpen, setIsDelayDialogOpen] = useState(false);
+  const { mutate: markDelay, isPending: isMarkingDelay } = useMarkDoctorDelay();
   const appointmentRequestsRef = useRef<HTMLDivElement>(null);
   const focusRequestsPanel = searchParams.get(REQUESTS_PANEL_FOCUS_PARAM);
 
@@ -173,6 +178,19 @@ function AppointmentsContent() {
           setSearchQuery={setSearchQuery}
         />
 
+        <div className="flex flex-wrap items-center justify-between gap-2">
+          <DoctorDelayBanner filterDoctorId={selectedDoctorId ?? undefined} />
+          <Button
+            variant="outline"
+            size="sm"
+            className="btn-warning ml-auto shrink-0"
+            onClick={() => setIsDelayDialogOpen(true)}
+          >
+            <Clock className="mr-1.5 h-3.5 w-3.5" />
+            Mark Delay
+          </Button>
+        </div>
+
         <div className="flex flex-wrap gap-2">
           {appointmentSummary.map((item) => (
             <div
@@ -241,6 +259,26 @@ function AppointmentsContent() {
       </AppPageScaffold>
 
       <AppointmentRowActionDialogs {...rowActionDialogProps} />
+
+      <MarkDoctorDelayDialog
+        open={isDelayDialogOpen}
+        onOpenChange={setIsDelayDialogOpen}
+        doctorId={selectedDoctorId ?? undefined}
+        doctorName={
+          selectedDoctorId
+            ? (doctorsList?.find((d) => d.id === selectedDoctorId)?.name ?? "")
+            : undefined
+        }
+        doctors={
+          !selectedDoctorId && doctorsList
+            ? doctorsList.map((d) => ({ id: d.id, name: d.name }))
+            : undefined
+        }
+        isLoading={isMarkingDelay}
+        onConfirm={(input) => {
+          markDelay(input, { onSuccess: () => setIsDelayDialogOpen(false) });
+        }}
+      />
     </FeatureGate>
   );
 }

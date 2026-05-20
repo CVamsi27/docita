@@ -1,4 +1,8 @@
-import { Injectable, Logger } from '@nestjs/common';
+import { Inject, Injectable, Logger } from '@nestjs/common';
+import {
+  CLOCK_PORT,
+  type IClock,
+} from '@/shared/common/ports/clock.port';
 import { IcdCode, CptCode } from '@workspace/db';
 import { getAllCPTCodes } from '@workspace/utils';
 
@@ -67,6 +71,8 @@ export class NlmCodingService {
   private icdSearchDisabledUntil = 0;
   private hcpcsSearchDisabledUntil = 0;
 
+  constructor(@Inject(CLOCK_PORT) private readonly clock: IClock) {}
+
   private getDisabledUntil(system: CodeSystem): number {
     return system === 'ICD'
       ? this.icdSearchDisabledUntil
@@ -84,9 +90,9 @@ export class NlmCodingService {
 
   private isSearchTemporarilyDisabled(
     system: CodeSystem,
-    now = Date.now(),
+    nowMs: number = this.clock.now().getTime(),
   ): boolean {
-    return now < this.getDisabledUntil(system);
+    return nowMs < this.getDisabledUntil(system);
   }
 
   private clearSearchUnavailable(system: CodeSystem): void {
@@ -94,7 +100,7 @@ export class NlmCodingService {
   }
 
   private markSearchUnavailable(system: CodeSystem, reason: string): void {
-    const now = Date.now();
+    const now = this.clock.now().getTime();
     if (this.isSearchTemporarilyDisabled(system, now)) {
       return;
     }

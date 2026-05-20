@@ -1,4 +1,8 @@
-import { Injectable } from '@nestjs/common';
+import { Inject, Injectable } from '@nestjs/common';
+import {
+  CLOCK_PORT,
+  type IClock,
+} from '@/shared/common/ports/clock.port';
 import { AppointmentRequestStatus, Prisma } from '@workspace/db';
 import { PrismaService } from '@/prisma/prisma.service';
 import {
@@ -23,7 +27,10 @@ const APPOINTMENT_REQUEST_INCLUDE = {
 
 @Injectable()
 export class PrismaAppointmentRequestRepository implements IAppointmentRequestRepository {
-  constructor(private readonly prisma: PrismaService) {}
+  constructor(
+    private readonly prisma: PrismaService,
+    @Inject(CLOCK_PORT) private readonly clock: IClock,
+  ) {}
 
   private getReadClient() {
     return this.prisma.getReadClient();
@@ -127,7 +134,7 @@ export class PrismaAppointmentRequestRepository implements IAppointmentRequestRe
       where: { id, clinicId },
       data: {
         status,
-        reviewedAt: new Date(),
+        reviewedAt: this.clock.now(),
         responseMessage,
         ...(reviewerExists > 0 ? { reviewedById } : {}),
       },

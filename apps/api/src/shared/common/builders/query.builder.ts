@@ -1,6 +1,8 @@
 import { Prisma, AppointmentStatus, InvoiceStatus } from '@workspace/db';
 
 export class AppointmentQueryBuilder {
+  constructor(private readonly referenceNow: Date) {}
+
   private where: Prisma.AppointmentWhereInput = {};
   private orderBy: Prisma.AppointmentOrderByWithRelationInput = {
     startTime: 'asc',
@@ -42,7 +44,7 @@ export class AppointmentQueryBuilder {
   }
 
   today(): this {
-    return this.onDate(new Date());
+    return this.onDate(this.referenceNow);
   }
 
   withStatus(...statuses: (string | AppointmentStatus)[]): this {
@@ -62,13 +64,13 @@ export class AppointmentQueryBuilder {
   }
 
   upcoming(): this {
-    this.where.startTime = { gte: new Date() };
+    this.where.startTime = { gte: this.referenceNow };
     this.orderBy = { startTime: 'asc' };
     return this;
   }
 
   past(): this {
-    this.where.startTime = { lt: new Date() };
+    this.where.startTime = { lt: this.referenceNow };
     this.orderBy = { startTime: 'desc' };
     return this;
   }
@@ -160,6 +162,8 @@ export class AppointmentQueryBuilder {
 }
 
 export class PatientQueryBuilder {
+  constructor(private readonly referenceNow: Date) {}
+
   private where: Prisma.PatientWhereInput = {};
   private orderBy: Prisma.PatientOrderByWithRelationInput = {
     updatedAt: 'desc',
@@ -187,7 +191,9 @@ export class PatientQueryBuilder {
 
   withAppointments(options?: { upcoming?: boolean; limit?: number }): this {
     this.includeOptions.appointments = {
-      where: options?.upcoming ? { startTime: { gte: new Date() } } : undefined,
+      where: options?.upcoming
+        ? { startTime: { gte: this.referenceNow } }
+        : undefined,
       take: options?.limit,
       orderBy: { startTime: 'desc' },
     };

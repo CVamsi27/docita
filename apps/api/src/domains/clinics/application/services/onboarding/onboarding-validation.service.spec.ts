@@ -1,4 +1,4 @@
-import { deriveAnnualPrice } from '@workspace/types';
+import { deriveAnnualPrice } from '@workspace/utils';
 import { describe, expect, it } from '@jest/globals';
 import { OnboardingValidationService } from './onboarding-validation.service';
 

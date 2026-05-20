@@ -5,8 +5,11 @@ import {
   NotFoundException,
 } from '@nestjs/common';
 import { LeaveService } from './leave.service';
+import { LeaveCommandService } from './leave-command.service';
+import { LeaveQueryService } from './leave-query.service';
 import { LEAVE_REPOSITORY_TOKEN } from '@/domains/leave/core/repositories/leave.repository.interface';
 import { AvailabilityScheduleService } from '@/domains/doctors/application/services/availability-schedule.service';
+import { CLOCK_PORT } from '@/shared/common/ports/clock.port';
 import { beforeEach, describe, it, expect, jest } from '@jest/globals';
 
 describe('LeaveService', () => {
@@ -52,6 +55,8 @@ describe('LeaveService', () => {
 
     const module: TestingModule = await Test.createTestingModule({
       providers: [
+        LeaveCommandService,
+        LeaveQueryService,
         LeaveService,
         { provide: LEAVE_REPOSITORY_TOKEN, useValue: leaveRepository },
         {
@@ -60,6 +65,10 @@ describe('LeaveService', () => {
             createTimeOff: jest.fn<(...args: unknown[]) => Promise<unknown>>(),
             deleteTimeOff: jest.fn<(...args: unknown[]) => Promise<unknown>>(),
           },
+        },
+        {
+          provide: CLOCK_PORT,
+          useValue: { now: () => new Date('2026-04-01T12:00:00.000Z') },
         },
       ],
     }).compile();

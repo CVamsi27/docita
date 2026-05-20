@@ -3,7 +3,17 @@
 import { DocitaLoadingIndicator } from "@workspace/ui/components/feedback/docita-loading-indicator";
 
 import { useState } from "react";
-import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import {
+  fetchInternalClinicTierInfo,
+  fetchInternalPricingConfig,
+  useInternalBillingPricingOffers,
+  useInternalClinics,
+  useInternalTierPricing,
+  type InternalClinicTierInfo,
+  type InternalPaymentTierPricingRow,
+} from "@workspace/data-access/internal";
+import { useDataAccessFetcher } from "@workspace/data-access";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
 import {
   Card,
   CardContent,
@@ -64,31 +74,17 @@ import { toast } from "sonner";
 import { DEFAULT_CURRENCY, formatCurrency } from "@workspace/utils";
 import { showUserFacingErrorToast } from "@/lib/errors/user-facing-errors";
 
-interface Clinic {
+type Clinic = {
   id: string;
   name: string;
   tier: string;
   email: string;
   phone: string;
   currency?: string;
-}
+};
 
-interface TierInfo {
-  currentTier: string;
-  maxDoctors: number;
-  maxPatients: number;
-  features: string[];
-  pricing: number;
-}
-
-interface TierPricing {
-  tier: string;
-  price: number;
-  billingCycle: string;
-  maxDoctors: number;
-  maxPatients: number;
-  features: string[];
-}
+type TierInfo = InternalClinicTierInfo;
+type TierPricing = InternalPaymentTierPricingRow;
 
 interface PaymentFormData {
   paymentMethod: string;
@@ -185,6 +181,7 @@ export default function PaymentProcessingPage() {
     useState<Clinic | null>(null);
 
   const { token, isInternal, isLoading } = useAuth();
+  const fetcher = useDataAccessFetcher();
   const form = useForm<PaymentFormData>({
     defaultValues: {
       paymentMethod: "razorpay",
@@ -193,29 +190,11 @@ export default function PaymentProcessingPage() {
       paymentNotes: "",
     },
   });
-  const clinicsQuery = useQuery({
-    queryKey: internalQueryKeys.internal.clinics(),
-    queryFn: async () => {
-      const data = await client.get<Clinic[] | { items?: Clinic[] }>(
-        "/internal/clinics",
-      );
-      return Array.isArray(data) ? data : (data.items ?? []);
-    },
+  const clinicsQuery = useInternalClinics(token, "list", {
     enabled: Boolean(isInternal && token),
   });
 
-  const tierPricingQuery = useQuery({
-    queryKey: internalQueryKeys.internal.pricingTiers(),
-    queryFn: async () => {
-      try {
-        const data = await client.get<{ tiers?: TierPricing[] }>(
-          "/internal/tier-pricing",
-        );
-        return Array.isArray(data.tiers) ? data.tiers : DEFAULT_TIERS;
-      } catch {
-        return DEFAULT_TIERS;
-      }
-    },
+  const tierPricingQuery = useInternalTierPricing(token, DEFAULT_TIERS, {
     enabled: Boolean(isInternal && token),
   });
 
@@ -239,9 +218,7 @@ export default function PaymentProcessingPage() {
     },
   });
 
-  const pricingOffersQuery = useQuery({
-    queryKey: internalQueryKeys.internal.billingPricingOffers(),
-    queryFn: () => billingAPI.getPricingOffers(),
+  const pricingOffersQuery = useInternalBillingPricingOffers(token, {
     enabled: Boolean(isInternal && token),
   });
 
@@ -278,7 +255,14 @@ export default function PaymentProcessingPage() {
     },
   });
 
-  const clinics = clinicsQuery.data ?? [];
+  const clinics: Clinic[] = (clinicsQuery.data ?? []).map((clinic) => ({
+    id: clinic.id,
+    name: clinic.name,
+    tier: clinic.tier ?? "CAPTURE",
+    email: clinic.email ?? "",
+    phone: clinic.phone ?? "",
+    currency: clinic.currency,
+  }));
   const tierPricing = tierPricingQuery.data ?? DEFAULT_TIERS;
   const loading = clinicsQuery.isLoading || tierPricingQuery.isLoading;
 
@@ -287,17 +271,19 @@ export default function PaymentProcessingPage() {
 
     try {
       const data = await queryClient.fetchQuery({
-        queryKey: ["internal", "clinic", clinic.id, "tier-info"],
-        queryFn: () =>
-          client.get<TierInfo>(`/internal/clinics/${clinic.id}/tier-info`),
+        queryKey: internalQueryKeys.internal.clinicTierInfo(clinic.id),
+        queryFn: () => fetchInternalClinicTierInfo(fetcher, clinic.id),
       });
 
       const pricingData = await queryClient.fetchQuery({
-        queryKey: ["pricing", "config", clinic.currency || DEFAULT_CURRENCY],
+        queryKey: internalQueryKeys.internal.pricingConfig(
+          clinic.currency || DEFAULT_CURRENCY,
+        ),
         queryFn: () =>
-          client.get<{
-            tiers?: Array<{ id: string; pricing?: { monthly?: number } }>;
-          }>(`/pricing/config?currency=${clinic.currency || DEFAULT_CURRENCY}`),
+          fetchInternalPricingConfig(
+            fetcher,
+            clinic.currency || DEFAULT_CURRENCY,
+          ),
       });
       const nextPricing: TierPricing[] = Array.isArray(pricingData.tiers)
         ? pricingData.tiers.map((tier) => ({

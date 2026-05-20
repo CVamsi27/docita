@@ -6,6 +6,7 @@ import {
   IcdCode,
   IcdFavorite,
 } from "@workspace/types";
+import { queryKeys } from "../lib/query-keys";
 import { useAPIMutation } from "../core/use-api-mutation";
 import { useAPIQuery } from "../core/use-api-query";
 import { useDataAccessContext } from "../provider/hooks";
@@ -18,7 +19,7 @@ function isMeaningfulMedicalCodeQuery(search: string): boolean {
 export const useICDCodes = (search: string) => {
   const codingOk = useDataAccessContext().isTierFeatureEnabled(Feature.MEDICAL_CODING);
   return useAPIQuery<IcdCode[]>(
-    ["icd-codes", search],
+    queryKeys.medicalCoding.icd(search),
     `/clinical/medical-coding/icd/search?q=${encodeURIComponent(search)}`,
     { enabled: codingOk && isMeaningfulMedicalCodeQuery(search) },
   );
@@ -27,7 +28,7 @@ export const useICDCodes = (search: string) => {
 export const useCPTCodes = (search: string) => {
   const codingOk = useDataAccessContext().isTierFeatureEnabled(Feature.MEDICAL_CODING);
   return useAPIQuery<CptCode[]>(
-    ["cpt-codes", search],
+    queryKeys.medicalCoding.cpt(search),
     `/clinical/medical-coding/cpt/search?q=${encodeURIComponent(search)}`,
     { enabled: codingOk && isMeaningfulMedicalCodeQuery(search) },
   );
@@ -36,7 +37,7 @@ export const useCPTCodes = (search: string) => {
 export const useICDFavorites = () => {
   const codingOk = useDataAccessContext().isTierFeatureEnabled(Feature.MEDICAL_CODING);
   return useAPIQuery<IcdFavorite[]>(
-    ["icd-favorites"],
+    queryKeys.medicalCoding.icdFavorites(),
     "/clinical/medical-coding/icd/favorites",
     { enabled: codingOk },
   );
@@ -45,7 +46,7 @@ export const useICDFavorites = () => {
 export const useCPTFavorites = () => {
   const codingOk = useDataAccessContext().isTierFeatureEnabled(Feature.MEDICAL_CODING);
   return useAPIQuery<CptFavorite[]>(
-    ["cpt-favorites"],
+    queryKeys.medicalCoding.cptFavorites(),
     "/clinical/medical-coding/cpt/favorites",
     { enabled: codingOk },
   );
@@ -78,7 +79,7 @@ export const useRemoveCPTFavorite = (id: string) =>
 export const useCodingQueue = (search?: string) => {
   const codingOk = useDataAccessContext().isTierFeatureEnabled(Feature.MEDICAL_CODING);
   return useAPIQuery<Appointment[]>(
-    ["coding-queue", search ?? ""],
+    queryKeys.codingQueue.list(search),
     `/clinical/medical-coding/uncoded-visits${search ? `?search=${encodeURIComponent(search)}` : ""}`,
     { enabled: codingOk },
   );
@@ -87,7 +88,7 @@ export const useCodingQueue = (search?: string) => {
 export const useSearchIcdCodes = (search: string) => {
   const codingOk = useDataAccessContext().isTierFeatureEnabled(Feature.MEDICAL_CODING);
   return useAPIQuery<IcdCode[]>(
-    ["icd-codes", search],
+    queryKeys.medicalCoding.icd(search),
     `/clinical/medical-coding/icd/search?q=${encodeURIComponent(search || "")}`,
     {
       enabled:
@@ -99,7 +100,7 @@ export const useSearchIcdCodes = (search: string) => {
 export const useSearchCptCodes = (search: string) => {
   const codingOk = useDataAccessContext().isTierFeatureEnabled(Feature.MEDICAL_CODING);
   return useAPIQuery<CptCode[]>(
-    ["cpt-codes", search],
+    queryKeys.medicalCoding.cpt(search),
     `/clinical/medical-coding/cpt/search?q=${encodeURIComponent(search || "")}`,
     {
       enabled:

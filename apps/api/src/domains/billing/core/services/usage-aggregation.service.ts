@@ -1,4 +1,8 @@
-import { Injectable, Logger } from '@nestjs/common';
+import { Inject, Injectable, Logger } from '@nestjs/common';
+import {
+  CLOCK_PORT,
+  type IClock,
+} from '@/shared/common/ports/clock.port';
 import { PrismaService } from '@/prisma/prisma.service';
 import { UsageType } from '@workspace/db';
 
@@ -6,7 +10,10 @@ import { UsageType } from '@workspace/db';
 export class UsageAggregationService {
   private readonly logger = new Logger(UsageAggregationService.name);
 
-  constructor(private readonly prisma: PrismaService) {}
+  constructor(
+    private readonly prisma: PrismaService,
+    @Inject(CLOCK_PORT) private readonly clock: IClock,
+  ) {}
 
   async runDailyUsageAggregation(): Promise<void> {
     this.logger.log('Starting daily usage aggregation...');
@@ -23,20 +30,24 @@ export class UsageAggregationService {
         select: { id: true },
       });
 
+      const results = await Promise.allSettled(
+        clinics.map((clinic) =>
+          this.aggregateForClinic(clinic.id, yesterday, endOfYesterday),
+        ),
+      );
       let successCount = 0;
       let errorCount = 0;
-
-      for (const clinic of clinics) {
-        try {
-          await this.aggregateForClinic(clinic.id, yesterday, endOfYesterday);
+      for (const [index, result] of results.entries()) {
+        if (result.status === 'fulfilled') {
           successCount++;
-        } catch (error) {
-          errorCount++;
-          this.logger.error(
-            `Failed to aggregate usage for clinic ${clinic.id}:`,
-            error,
-          );
+          continue;
         }
+        errorCount++;
+        const clinic = clinics[index];
+        this.logger.error(
+          `Failed to aggregate usage for clinic ${clinic?.id ?? 'unknown'}:`,
+          result.reason,
+        );
       }
 
       this.logger.log(
@@ -64,7 +75,7 @@ export class UsageAggregationService {
     const plan =
       typeof subscription?.plan === 'string' ? subscription.plan : 'CORE';
 
-    await Promise.all([
+    const aggregationResults = await Promise.allSettled([
       this.aggregateUsageType(
         clinicId,
         'WHATSAPP_MESSAGES',
@@ -82,6 +93,14 @@ export class UsageAggregationService {
         addOns.find((a) => a.addOnType === 'INTELLIGENCE'),
       ),
     ]);
+    for (const result of aggregationResults) {
+      if (result.status === 'rejected') {
+        this.logger.error(
+          `Usage aggregation partial failure for clinic ${clinicId}:`,
+          result.reason,
+        );
+      }
+    }
   }
 
   private async aggregateUsageType(
@@ -153,7 +172,7 @@ export class UsageAggregationService {
   }
 
   private getYesterdayRange() {
-    const yesterday = new Date();
+    const yesterday = this.clock.now();
     yesterday.setDate(yesterday.getDate() - 1);
     yesterday.setHours(0, 0, 0, 0);
 

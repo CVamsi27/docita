@@ -32,7 +32,7 @@ import {
 import {
   prescriptionDefaultsFormSchema,
   type PrescriptionDefaultsFormValues,
-} from "@/features/settings/schemas/prescription-defaults-form.schema";
+} from "@workspace/types";
 
 function PrescriptionDefaultsSettings() {
   const {

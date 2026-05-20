@@ -1,3 +1,4 @@
+import { queryKeys } from "../lib/query-keys";
 import { useAPIMutation } from "../core/use-api-mutation";
 import { useAPIQuery } from "../core/use-api-query";
 
@@ -29,13 +30,13 @@ export const useGenerateSignatureToken = () =>
     "/doctors/signature/generate-token",
     "POST",
     {
-      invalidateKeys: [["signature-tokens"]],
+      invalidateKeys: [queryKeys.signatures.tokens()],
     },
   );
 
 export const useActiveSignatureTokens = () =>
   useAPIQuery<ActiveToken[]>(
-    ["signature-tokens"],
+    queryKeys.signatures.tokens(),
     "/doctors/signature/active-tokens",
   );
 
@@ -44,7 +45,7 @@ export const useRevokeSignatureToken = () =>
     (params) => `/doctors/signature/token/${params.tokenId}`,
     "DELETE",
     {
-      invalidateKeys: [["signature-tokens"]],
+      invalidateKeys: [queryKeys.signatures.tokens()],
     },
   );
 
@@ -53,13 +54,13 @@ export const useGenerateSlaSignatureToken = (clinicId: string) =>
     `/clinics/signature/generate-token?clinicId=${clinicId}`,
     "POST",
     {
-      invalidateKeys: [["clinic-signature-tokens", clinicId]],
+      invalidateKeys: [queryKeys.signatures.clinicTokens(clinicId)],
     },
   );
 
 export const useClinicActiveSignatureTokens = (clinicId: string) =>
   useAPIQuery<ActiveToken[]>(
-    ["clinic-signature-tokens", clinicId],
+    queryKeys.signatures.clinicTokens(clinicId),
     `/clinics/signature/active-tokens?clinicId=${clinicId}`,
     { enabled: !!clinicId },
   );
@@ -70,7 +71,7 @@ export const useRevokeClinicSignatureToken = (clinicId: string) =>
       `/clinics/signature/token/${params.tokenId}?clinicId=${clinicId}`,
     "DELETE",
     {
-      invalidateKeys: [["clinic-signature-tokens", clinicId]],
+      invalidateKeys: [queryKeys.signatures.clinicTokens(clinicId)],
     },
   );
 

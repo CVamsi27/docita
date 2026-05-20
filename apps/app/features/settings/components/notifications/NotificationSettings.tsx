@@ -5,7 +5,10 @@ import { DocitaLoadingIndicator } from "@workspace/ui/components/feedback/docita
 import { useEffect } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
-import * as z from "zod";
+import {
+  notificationSettingsFormSchema,
+  type NotificationSettingsFormValues,
+} from "@workspace/types";
 import {
   Card,
   CardContent,
@@ -36,15 +39,6 @@ import { usePermissionStore } from "@/lib/stores/permission-store";
 import { Feature } from "@workspace/types";
 import { SUBSCRIPTION_SETTINGS_PATH } from "@/lib/subscription/subscription-settings-path";
 
-const notificationSettingsSchema = z.object({
-  whatsappNotifications: z.boolean().optional(),
-  inAppNotifications: z.boolean(),
-});
-
-type NotificationSettingsFormValues = z.infer<
-  typeof notificationSettingsSchema
->;
-
 export function NotificationSettings() {
   const { data: clinic, isLoading } = useClinicSettings();
   const { mutate: updateSettings, isPending: isSaving } =
@@ -54,7 +48,7 @@ export function NotificationSettings() {
   );
 
   const form = useForm<NotificationSettingsFormValues>({
-    resolver: zodResolver(notificationSettingsSchema),
+    resolver: zodResolver(notificationSettingsFormSchema),
     defaultValues: {
       whatsappNotifications: true,
       inAppNotifications: true,

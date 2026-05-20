@@ -8,6 +8,11 @@ import {
   IDoctorVerificationRepository,
   DOCTOR_VERIFICATION_REPOSITORY_TOKEN,
 } from '@/domains/doctors/core/repositories/doctor-verification.repository.interface';
+import {
+  CLOCK_PORT,
+  type IClock,
+} from '@/shared/common/ports/clock.port';
+import { DoctorVerificationHttpClient } from '@/domains/doctors/infrastructure/external/doctor-verification-http.client';
 
 type VerificationResult = {
   status: DoctorVerificationStatus;
@@ -35,6 +40,8 @@ export class DoctorVerificationService {
     @Inject(DOCTOR_VERIFICATION_REPOSITORY_TOKEN)
     private readonly repository: IDoctorVerificationRepository,
     private readonly configService: AppConfigService,
+    @Inject(CLOCK_PORT) private readonly clock: IClock,
+    private readonly verificationHttp: DoctorVerificationHttpClient,
   ) {}
 
   async verifyAndPersistDoctorVerification(doctorId: string) {
@@ -54,7 +61,7 @@ export class DoctorVerificationService {
         verificationSource: 'NMC',
         verificationReason: 'Registration number is required',
         verificationRef: null,
-        verificationCheckedAt: new Date(),
+        verificationCheckedAt: this.clock.now(),
       });
 
       return this.repository.findDoctorVerificationRecord(doctorId);
@@ -64,7 +71,7 @@ export class DoctorVerificationService {
       verificationStatus: DoctorVerificationStatus.PENDING,
       verificationSource: 'NMC',
       verificationReason: null,
-      verificationCheckedAt: new Date(),
+      verificationCheckedAt: this.clock.now(),
     });
 
     const result = await this.verifyWithProvider({
@@ -82,7 +89,7 @@ export class DoctorVerificationService {
       verificationRef: result.reference ?? null,
       verificationReason: result.reason ?? null,
       verificationData: result.data,
-      verificationCheckedAt: new Date(),
+      verificationCheckedAt: this.clock.now(),
     });
 
     return this.repository.findDoctorVerificationRecord(doctorId);
@@ -113,7 +120,7 @@ export class DoctorVerificationService {
       return { valid: true };
     }
 
-    const now = new Date();
+    const now = this.clock.now();
     const expiryDate = new Date(doctor.licenseExpiry);
 
     if (expiryDate < now) {
@@ -176,31 +183,25 @@ export class DoctorVerificationService {
     }
 
     try {
-      const controller = new AbortController();
-      const timeoutId = setTimeout(() => controller.abort(), 10000);
+      const { ok, status, json: payload } =
+        await this.verificationHttp.postJson<VerificationProviderResponse>(
+          apiUrl,
+          {
+            doctorId: input.id,
+            name: input.name,
+            registrationNumber: input.registrationNumber,
+            registrationCouncil: input.registrationCouncil,
+            registrationStateCode: input.registrationStateCode,
+            licenseNumber: input.licenseNumber,
+          },
+          {
+            headers: apiKey ? { Authorization: `Bearer ${apiKey}` } : {},
+          },
+        );
 
-      const response = await fetch(apiUrl, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          ...(apiKey ? { Authorization: `Bearer ${apiKey}` } : {}),
-        },
-        body: JSON.stringify({
-          doctorId: input.id,
-          name: input.name,
-          registrationNumber: input.registrationNumber,
-          registrationCouncil: input.registrationCouncil,
-          registrationStateCode: input.registrationStateCode,
-          licenseNumber: input.licenseNumber,
-        }),
-        signal: controller.signal,
-      });
-
-      clearTimeout(timeoutId);
-
-      if (!response.ok) {
+      if (!ok) {
         this.logger.warn(
-          `Doctor verification provider returned HTTP ${response.status}`,
+          `Doctor verification provider returned HTTP ${status}`,
         );
         return {
           status: DoctorVerificationStatus.FAILED,
@@ -209,8 +210,6 @@ export class DoctorVerificationService {
             'Registration verification is temporarily unavailable. Please try again later.',
         };
       }
-
-      const payload = (await response.json()) as VerificationProviderResponse;
 
       if (payload.verified) {
         return {
@@ -260,35 +259,26 @@ export class DoctorVerificationService {
     }
 
     try {
-      const controller = new AbortController();
-      const timeoutId = setTimeout(() => controller.abort(), 10000);
-
-      const response = await fetch(`${hprApiUrl}/v1/practitioner/search`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          Authorization: `Bearer ${hprApiKey}`,
-        },
-        body: JSON.stringify({
-          registrationNumber: input.registrationNumber,
-          stateMedicalCouncil:
-            input.registrationCouncil ?? input.registrationStateCode,
-        }),
-        signal: controller.signal,
-      });
-
-      clearTimeout(timeoutId);
-
-      if (!response.ok) {
-        this.logger.warn(`HPR lookup HTTP ${response.status} for ${input.id}`);
-        return null;
-      }
-
-      const payload = (await response.json()) as {
+      const { ok, status, json: payload } = await this.verificationHttp.postJson<{
         matched?: boolean;
         hpid?: string;
         data?: JsonValue;
-      };
+      }>(
+        `${hprApiUrl}/v1/practitioner/search`,
+        {
+          registrationNumber: input.registrationNumber,
+          stateMedicalCouncil:
+            input.registrationCouncil ?? input.registrationStateCode,
+        },
+        {
+          headers: { Authorization: `Bearer ${hprApiKey}` },
+        },
+      );
+
+      if (!ok) {
+        this.logger.warn(`HPR lookup HTTP ${status} for ${input.id}`);
+        return null;
+      }
 
       if (!payload.matched) {
         return null;

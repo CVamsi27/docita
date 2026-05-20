@@ -1,3 +1,4 @@
+import { queryKeys } from "../lib/query-keys";
 import { useAPIMutation } from "../core/use-api-mutation";
 import { useAPIQuery } from "../core/use-api-query";
 // FIXME: remove or substitute: 
@@ -65,7 +66,7 @@ export const useOcrCommitImport = () =>
 
 export const useBulkImportTemplate = (entityType: string) =>
   useAPIQuery<{ template: string; format: string }>(
-    ["import-template", entityType],
+    queryKeys.importJobs.template(entityType),
     `/imports/template?entityType=${entityType}`,
     { staleTime: 1000 * 60 * 60 },
   );
@@ -83,7 +84,7 @@ export const useBulkImport = () =>
 
 export const useBulkImportJobStatus = (jobId: string | null) =>
   useAPIQuery<BulkImportJobStatusResponse>(
-    ["bulk-import-job", jobId ?? ""],
+    queryKeys.importJobs.bulkJob(jobId ?? ""),
     `/imports/bulk/${jobId ?? "pending"}`,
     {
       enabled: !!jobId,

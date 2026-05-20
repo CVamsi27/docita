@@ -1,4 +1,12 @@
-import { Injectable, Logger } from '@nestjs/common';
+import { Inject, Injectable, Logger } from '@nestjs/common';
+import {
+  CLOCK_PORT,
+  type IClock,
+} from '@/shared/common/ports/clock.port';
+import {
+  createNestLogLevelWriters,
+  writeAppLog,
+} from './logger-level.registry';
 
 export interface LogContext {
   userId?: string;
@@ -11,6 +19,9 @@ export interface LogContext {
 @Injectable()
 export class LoggerService {
   private logger = new Logger('AppLogger');
+  private readonly levelWriters = createNestLogLevelWriters(this.logger);
+
+  constructor(@Inject(CLOCK_PORT) private readonly clock: IClock) {}
 
   debug(message: string, context?: LogContext) {
     this.log('DEBUG', message, context);
@@ -36,7 +47,7 @@ export class LoggerService {
     error?: string,
   ) {
     const logEntry = {
-      timestamp: new Date().toISOString(),
+      timestamp: this.clock.now().toISOString(),
       level,
       message,
       ...(context && {
@@ -49,19 +60,6 @@ export class LoggerService {
       ...(error && { error }),
     };
 
-    switch (level) {
-      case 'DEBUG':
-        this.logger.debug(JSON.stringify(logEntry));
-        break;
-      case 'INFO':
-        this.logger.log(JSON.stringify(logEntry));
-        break;
-      case 'WARN':
-        this.logger.warn(JSON.stringify(logEntry));
-        break;
-      case 'ERROR':
-        this.logger.error(JSON.stringify(logEntry));
-        break;
-    }
+    writeAppLog(this.levelWriters, level, JSON.stringify(logEntry));
   }
 }

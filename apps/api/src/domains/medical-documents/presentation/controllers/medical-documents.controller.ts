@@ -22,6 +22,8 @@ import {
   requireFeatureForTarget,
 } from '@/shared/modules/auth/auth/access-matrix.util';
 import { RequestWithUser } from '@/shared/common/types/common.types';
+import { AuditService } from '@/shared/modules/audit/audit/audit.service';
+import { logPatientPhiRead } from '@/shared/modules/audit/audit/patient-access-audit.util';
 
 @Controller('medical-documents')
 @UseGuards(TierGuard, FrontDeskClinicalBlockGuard)
@@ -30,7 +32,10 @@ import { RequestWithUser } from '@/shared/common/types/common.types';
 )
 @Roles(...getDbRolesForTarget(APP_ACCESS_TARGETS.API_MEDICAL_DOCUMENTS))
 export class MedicalDocumentsController {
-  constructor(private readonly service: MedicalDocumentsService) {}
+  constructor(
+    private readonly service: MedicalDocumentsService,
+    private readonly auditService: AuditService,
+  ) {}
 
   private getClinicId(req: RequestWithUser): string {
     const clinicId = req.user?.clinicId;
@@ -66,13 +71,26 @@ export class MedicalDocumentsController {
     @Query('patientId') patientId: string,
   ) {
     const clinicId = this.getClinicId(req);
+    await logPatientPhiRead(
+      this.auditService,
+      req,
+      patientId,
+      'VIEW_HISTORY',
+    );
     return this.service.findAllForPatient(clinicId, patientId);
   }
 
   @Get(':id')
   async findOne(@Req() req: RequestWithUser, @Param('id') id: string) {
     const clinicId = this.getClinicId(req);
-    return this.service.findOne(id, clinicId);
+    const doc = await this.service.findOne(id, clinicId);
+    await logPatientPhiRead(
+      this.auditService,
+      req,
+      doc.patientId,
+      'VIEW_HISTORY',
+    );
+    return doc;
   }
 
   @Patch(':id')

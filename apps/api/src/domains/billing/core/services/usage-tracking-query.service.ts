@@ -1,4 +1,8 @@
-import { Injectable } from '@nestjs/common';
+import { Inject, Injectable } from '@nestjs/common';
+import {
+  CLOCK_PORT,
+  type IClock,
+} from '@/shared/common/ports/clock.port';
 import { PrismaService } from '@/prisma/prisma.service';
 import { UsageType, ClinicTier, Role } from '@workspace/db';
 import { DEFAULT_CURRENCY } from '@workspace/utils';
@@ -13,7 +17,10 @@ import { getWhatsAppAddonPricingByCurrency } from '@workspace/utils';
 
 @Injectable()
 export class UsageTrackingQueryService {
-  constructor(private prisma: PrismaService) {}
+  constructor(
+    private readonly prisma: PrismaService,
+    @Inject(CLOCK_PORT) private readonly clock: IClock,
+  ) {}
 
   resolveCurrency(currency?: string): SupportedCurrency {
     const selected = currency?.toUpperCase() as SupportedCurrency | undefined;
@@ -27,7 +34,7 @@ export class UsageTrackingQueryService {
   }
 
   async getCurrentUsage(clinicId: string) {
-    const now = new Date();
+    const now = this.clock.now();
     const periodStart = new Date(now.getFullYear(), now.getMonth(), 1);
     const periodEnd = new Date(
       now.getFullYear(),

@@ -1,9 +1,14 @@
 import {
+  Inject,
   Injectable,
   BadRequestException,
   UnauthorizedException,
   Logger,
 } from '@nestjs/common';
+import {
+  CLOCK_PORT,
+  type IClock,
+} from '@/shared/common/ports/clock.port';
 import { generateSecret, generateURI, verify } from 'otplib';
 import * as QRCode from 'qrcode';
 import * as bcrypt from 'bcrypt';
@@ -15,7 +20,10 @@ import { AUTH_CONSTANTS } from '@/shared/modules/config/app-constants';
 export class MfaService {
   private readonly logger = new Logger(MfaService.name);
 
-  constructor(private prisma: PrismaService) {}
+  constructor(
+    private prisma: PrismaService,
+    @Inject(CLOCK_PORT) private readonly clock: IClock,
+  ) {}
 
   async generateSetupSecret(
     userId: string,
@@ -206,7 +214,7 @@ export class MfaService {
       },
     });
 
-    if (!challenge || challenge.expiresAt < new Date()) {
+    if (!challenge || challenge.expiresAt < this.clock.now()) {
       throw new UnauthorizedException(
         'MFA challenge expired or invalid. Please log in again.',
       );

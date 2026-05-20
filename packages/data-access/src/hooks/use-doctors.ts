@@ -3,6 +3,7 @@ import {
   UpdateDoctorRequest,
   User,
 } from "@workspace/types";
+import { queryKeys } from "../lib/query-keys";
 import { useAPIMutation } from "../core/use-api-mutation";
 import { useAPIQuery } from "../core/use-api-query";
 
@@ -12,10 +13,11 @@ export interface SignatureUploadSessionResponse {
   expiresAt: string | Date;
 }
 
-export const useDoctors = () => useAPIQuery<User[]>(["doctors"], "/doctors");
+export const useDoctors = () =>
+  useAPIQuery<User[]>(queryKeys.doctors.all(), "/doctors");
 
 export const useDoctor = (id: string) =>
-  useAPIQuery<User>(["doctors", id], `/doctors/${id}`);
+  useAPIQuery<User>(queryKeys.doctors.detail(id), `/doctors/${id}`);
 
 export const useCreateDoctor = () =>
   useAPIMutation<User, CreateDoctorRequest>("/doctors", "POST");
@@ -31,7 +33,7 @@ export const useCreateDoctorSignatureUploadSession = () =>
     ({ doctorId }) => `/doctors/${doctorId}/signature-upload-session`,
     "POST",
     {
-      invalidateKeys: [["clinic", "members"], ["doctors"]],
+      invalidateKeys: [queryKeys.clinic.members(), queryKeys.doctors.all()],
       suppressGlobalErrorToast: true,
     },
   );
@@ -41,6 +43,6 @@ export const useReverifyDoctorRegistration = () =>
     ({ doctorId }) => `/doctors/${doctorId}/reverify-registration`,
     "POST",
     {
-      invalidateKeys: [["clinic", "members"], ["doctors"]],
+      invalidateKeys: [queryKeys.clinic.members(), queryKeys.doctors.all()],
     },
   );

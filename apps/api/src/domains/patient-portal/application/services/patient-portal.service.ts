@@ -1,270 +1,76 @@
-import { Injectable, NotFoundException, Logger, Inject } from '@nestjs/common';
-import {
-  IPatientPortalRepository,
-  PATIENT_PORTAL_REPOSITORY_TOKEN,
-} from '@/domains/patient-portal/core/repositories/patient-portal.repository.interface';
-import { PatientPortalContextService } from './patient-portal-context.service';
+import { Injectable } from '@nestjs/common';
+import { PatientPortalCommandService } from './patient-portal-command.service';
+import { PatientPortalQueryService } from './patient-portal-query.service';
 
+/**
+ * Facade — delegates patient portal reads and mutations to query/command services.
+ */
 @Injectable()
 export class PatientPortalService {
-  private readonly logger = new Logger(PatientPortalService.name);
-
   constructor(
-    @Inject(PATIENT_PORTAL_REPOSITORY_TOKEN)
-    private readonly repository: IPatientPortalRepository,
-    private readonly contextService: PatientPortalContextService,
+    private readonly queryService: PatientPortalQueryService,
+    private readonly commandService: PatientPortalCommandService,
   ) {}
 
-  async getDashboard(userId: string) {
-    const { patientId, clinicId } =
-      await this.contextService.getPatientContext(userId);
-
-    const now = new Date();
-
-    const [
-      patient,
-      upcomingAppointments,
-      activePrescriptions,
-      outstandingInvoices,
-    ] = await Promise.all([
-      this.repository.getPatientSummary(patientId),
-      this.repository.getUpcomingAppointments(patientId, clinicId, now, 5),
-      this.repository.getActivePrescriptions(patientId, 5),
-      this.repository.getOutstandingInvoices(patientId, 5),
-    ]);
-
-    const totalOutstandingAmount = (
-      outstandingInvoices as Array<{ total?: number }>
-    ).reduce((sum, inv) => sum + (inv.total ?? 0), 0);
-
-    return {
-      patient,
-      summary: {
-        upcomingAppointmentsCount: upcomingAppointments.length,
-        activePrescriptionsCount: activePrescriptions.length,
-        outstandingInvoicesCount: outstandingInvoices.length,
-        totalOutstandingAmount,
-      },
-      upcomingAppointments,
-      activePrescriptions,
-      outstandingInvoices,
-    };
+  getDashboard(userId: string) {
+    return this.queryService.getDashboard(userId);
   }
 
-  async getAppointments(
+  getAppointments(
     userId: string,
-    filters?: {
-      status?: string;
-      startDate?: string;
-      endDate?: string;
-      limit?: number;
-      offset?: number;
-    },
+    filters?: Parameters<PatientPortalQueryService['getAppointments']>[1],
   ) {
-    const { patientId, clinicId } =
-      await this.contextService.getPatientContext(userId);
-
-    const take = filters?.limit ?? 20;
-    const skip = filters?.offset ?? 0;
-
-    const { items: appointments, total } =
-      await this.repository.getAppointments(patientId, clinicId, {
-        status: filters?.status,
-        startDate: filters?.startDate ? new Date(filters.startDate) : undefined,
-        endDate: filters?.endDate ? new Date(filters.endDate) : undefined,
-        take,
-        skip,
-      });
-
-    return {
-      appointments,
-      pagination: {
-        total,
-        limit: take,
-        offset: skip,
-        hasMore: skip + (appointments as unknown[]).length < total,
-      },
-    };
+    return this.queryService.getAppointments(userId, filters);
   }
 
-  async getAppointmentById(userId: string, appointmentId: string) {
-    const { patientId, clinicId } =
-      await this.contextService.getPatientContext(userId);
-
-    const appointment = await this.repository.getAppointmentById(
-      appointmentId,
-      patientId,
-      clinicId,
-    );
-
-    if (!appointment) {
-      throw new NotFoundException('Appointment not found');
-    }
-
-    return appointment;
+  getAppointmentById(userId: string, appointmentId: string) {
+    return this.queryService.getAppointmentById(userId, appointmentId);
   }
 
-  async getPrescriptions(
+  getPrescriptions(
     userId: string,
-    filters?: { limit?: number; offset?: number },
+    filters?: Parameters<PatientPortalQueryService['getPrescriptions']>[1],
   ) {
-    const { patientId } = await this.contextService.getPatientContext(userId);
-
-    const take = filters?.limit ?? 20;
-    const skip = filters?.offset ?? 0;
-
-    const { items: prescriptions, total } =
-      await this.repository.getPrescriptions(patientId, { take, skip });
-
-    return {
-      prescriptions,
-      pagination: {
-        total,
-        limit: take,
-        offset: skip,
-        hasMore: skip + (prescriptions as unknown[]).length < total,
-      },
-    };
+    return this.queryService.getPrescriptions(userId, filters);
   }
 
-  async getPrescriptionById(userId: string, prescriptionId: string) {
-    const { patientId } = await this.contextService.getPatientContext(userId);
-
-    const prescription = await this.repository.getPrescriptionById(
-      prescriptionId,
-      patientId,
-    );
-
-    if (!prescription) {
-      throw new NotFoundException('Prescription not found');
-    }
-
-    return prescription;
+  getPrescriptionById(userId: string, prescriptionId: string) {
+    return this.queryService.getPrescriptionById(userId, prescriptionId);
   }
 
-  async getInvoices(
+  getInvoices(
     userId: string,
-    filters?: { status?: string; limit?: number; offset?: number },
+    filters?: Parameters<PatientPortalQueryService['getInvoices']>[1],
   ) {
-    const { patientId } = await this.contextService.getPatientContext(userId);
-
-    const take = filters?.limit ?? 20;
-    const skip = filters?.offset ?? 0;
-
-    const { items: invoices, total } = await this.repository.getInvoices(
-      patientId,
-      { status: filters?.status, take, skip },
-    );
-
-    return {
-      invoices,
-      pagination: {
-        total,
-        limit: take,
-        offset: skip,
-        hasMore: skip + (invoices as unknown[]).length < total,
-      },
-    };
+    return this.queryService.getInvoices(userId, filters);
   }
 
-  async getProfile(userId: string) {
-    const { patientId } = await this.contextService.getPatientContext(userId);
-    return this.repository.getPatientProfile(patientId);
+  getProfile(userId: string) {
+    return this.queryService.getProfile(userId);
   }
 
-  async updateProfile(
+  updateProfile(
     userId: string,
-    data: {
-      phoneNumber?: string;
-      email?: string;
-      address?: string;
-      whatsappConsent?: boolean;
-      preferredName?: string;
-      emergencyContactName?: string;
-      emergencyContactPhone?: string;
-      emergencyContactRelation?: string;
-    },
+    data: Parameters<PatientPortalCommandService['updateProfile']>[1],
   ) {
-    const { patientId } = await this.contextService.getPatientContext(userId);
-
-    const updateData: Record<string, unknown> = {};
-    if (data.email !== undefined) updateData.email = data.email;
-    if (data.phoneNumber !== undefined)
-      updateData.phoneNumber = data.phoneNumber;
-    if (data.address !== undefined) updateData.address = data.address;
-    if (data.preferredName !== undefined)
-      updateData.preferredName = data.preferredName;
-    if (data.emergencyContactName !== undefined)
-      updateData.emergencyContactName = data.emergencyContactName;
-    if (data.emergencyContactPhone !== undefined)
-      updateData.emergencyContactPhone = data.emergencyContactPhone;
-    if (data.emergencyContactRelation !== undefined)
-      updateData.emergencyContactRelation = data.emergencyContactRelation;
-    if (data.whatsappConsent !== undefined) {
-      updateData.whatsappConsent = data.whatsappConsent;
-      updateData.whatsappConsentAt = new Date();
-    }
-
-    return this.repository.updatePatient(patientId, updateData);
+    return this.commandService.updateProfile(userId, data);
   }
 
-  async getConsent(userId: string) {
-    const { patientId, clinicId } =
-      await this.contextService.getPatientContext(userId);
-    const patient = await this.repository.getPatientProfile(patientId);
-    const dataStorageConsent = await this.repository.hasActiveTreatmentConsent(
-      patientId,
-      clinicId,
-    );
-
-    return {
-      whatsappConsent: patient?.whatsappConsent ?? false,
-      whatsappConsentAt: patient?.whatsappConsentAt ?? null,
-      isFirstLogin: false,
-      dataStorageConsent,
-    };
+  getConsent(userId: string) {
+    return this.queryService.getConsent(userId);
   }
 
-  async updateConsent(
+  updateConsent(
     userId: string,
-    data: { whatsappConsent?: boolean; dataStorageConsent?: boolean },
+    data: Parameters<PatientPortalCommandService['updateConsent']>[1],
   ) {
-    const { patientId, clinicId } =
-      await this.contextService.getPatientContext(userId);
-
-    const updateData: Record<string, unknown> = {};
-    if (data.whatsappConsent !== undefined) {
-      updateData.whatsappConsent = data.whatsappConsent;
-      updateData.whatsappConsentAt = new Date();
-    }
-
-    const updated = await this.repository.updatePatient(patientId, updateData);
-    const dataStorageConsent = await this.repository.hasActiveTreatmentConsent(
-      patientId,
-      clinicId,
-    );
-
-    return {
-      whatsappConsent: updated.whatsappConsent,
-      whatsappConsentAt: updated.whatsappConsentAt,
-      isFirstLogin: false,
-      dataStorageConsent,
-    };
+    return this.commandService.updateConsent(userId, data);
   }
 
-  async requestDataDeletion(
+  requestDataDeletion(
     userId: string,
-    _data: { reason: string; confirmDeletion?: boolean },
+    data: Parameters<PatientPortalCommandService['requestDataDeletion']>[1],
   ) {
-    const { patientId } = await this.contextService.getPatientContext(userId);
-
-    this.logger.log('Patient requested data deletion');
-
-    return {
-      message:
-        'Your data deletion request has been received. Our team will process it within 30 days as per DPDP guidelines.',
-      patientId,
-      requestedAt: new Date().toISOString(),
-    };
+    return this.commandService.requestDataDeletion(userId, data);
   }
 }

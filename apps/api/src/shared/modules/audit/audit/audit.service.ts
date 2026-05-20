@@ -1,4 +1,8 @@
-import { Injectable, Logger, BadRequestException } from '@nestjs/common';
+import { Inject, Injectable, Logger, BadRequestException } from '@nestjs/common';
+import {
+  CLOCK_PORT,
+  type IClock,
+} from '@/shared/common/ports/clock.port';
 import { PrismaService } from '@/prisma/prisma.service';
 import { Prisma } from '@workspace/db';
 import type { AppAuditLogSummary } from '@workspace/types';
@@ -30,7 +34,10 @@ export interface AuditLogFilter {
 export class AuditService {
   private readonly logger = new Logger(AuditService.name);
 
-  constructor(private prisma: PrismaService) {}
+  constructor(
+    private prisma: PrismaService,
+    @Inject(CLOCK_PORT) private readonly clock: IClock,
+  ) {}
 
   async logAction(
     data: AuditLogData,
@@ -101,7 +108,7 @@ export class AuditService {
           ipAddress: data.ipAddress,
           userAgent: data.userAgent,
           metadata: data.metadata,
-          createdAt: new Date(),
+          createdAt: this.clock.now(),
         };
 
         return auditData;
@@ -204,7 +211,7 @@ export class AuditService {
 
   archiveOldLogs(daysOld: number = 90): void {
     try {
-      const cutoffDate = new Date();
+      const cutoffDate = this.clock.now();
       cutoffDate.setDate(cutoffDate.getDate() - daysOld);
 
       this.logger.log(
@@ -361,7 +368,7 @@ export class AuditService {
       ipAddress,
       userAgent,
       metadata: {
-        accessTime: new Date().toISOString(),
+        accessTime: this.clock.now().toISOString(),
       },
     });
   }

@@ -3,11 +3,10 @@
 import {
   Feature,
   FEATURE_TIER_MAP,
-  getTierInfo,
   Tier,
   TIER_PRICING,
 } from "@workspace/types";
-import { DEFAULT_CURRENCY } from "@workspace/utils";
+import { DEFAULT_CURRENCY, getTierInfo } from "@workspace/utils";
 import {
   AddOnType,
   type IAccessContext,

@@ -2,14 +2,22 @@ import {
   Injectable,
   NotFoundException,
   BadRequestException,
+  Inject,
 } from '@nestjs/common';
 import { Role, DoctorVerificationStatus, Specialization } from '@workspace/db';
-import { PrismaService } from '@/prisma/prisma.service';
+import {
+  DOCTOR_PERSISTENCE_PORT,
+  type DoctorPersistencePort,
+} from '@/domains/doctors/application/ports/doctor-persistence.port';
 import { StoredFileUrlResolverService } from '@/domains/documents/application/services/stored-file-url-resolver.service';
 import {
   StorageProvider,
   StorageFile,
-} from '@/domains/documents/infrastructure/storage.provider';
+} from '@/domains/documents/application/ports/storage-provider.port';
+import {
+  CLOCK_PORT,
+  type IClock,
+} from '@/shared/common/ports/clock.port';
 
 interface CreateEducationData {
   degree: string;
@@ -40,13 +48,15 @@ interface CreateCertificationData {
 @Injectable()
 export class DoctorProfileService {
   constructor(
-    private readonly prisma: PrismaService,
+    @Inject(DOCTOR_PERSISTENCE_PORT)
+    private readonly persistence: DoctorPersistencePort,
     private readonly storedFileUrlResolver: StoredFileUrlResolverService,
     private readonly storageProvider: StorageProvider,
+    @Inject(CLOCK_PORT) private readonly clock: IClock,
   ) {}
 
   async uploadRegistrationCertificate(doctorId: string, file: StorageFile) {
-    const doctor = await this.prisma.user.findUnique({
+    const doctor = await this.persistence.user.findUnique({
       where: { id: doctorId },
       select: { id: true, role: true, verificationStatus: true },
     });
@@ -64,7 +74,7 @@ export class DoctorProfileService {
         metadata: {
           asset_type: 'registration_certificate',
           doctor_id: doctorId,
-          modified_at: new Date().toISOString(),
+          modified_at: this.clock.now().toISOString(),
           modified_by: doctorId,
         },
       },
@@ -75,7 +85,7 @@ export class DoctorProfileService {
       doctor.verificationStatus === DoctorVerificationStatus.FAILED ||
       doctor.verificationStatus === DoctorVerificationStatus.UNVERIFIED;
 
-    await this.prisma.user.update({
+    await this.persistence.user.update({
       where: { id: doctorId },
       data: {
         registrationCertificateUrl: fileUrl,
@@ -85,7 +95,7 @@ export class DoctorProfileService {
               verificationSource: 'MANUAL_ADMIN',
               verificationReason:
                 'Certificate uploaded — pending admin review.',
-              verificationCheckedAt: new Date(),
+              verificationCheckedAt: this.clock.now(),
               verifiedByAdminId: null,
               verifiedByAdminAt: null,
             }
@@ -103,7 +113,7 @@ export class DoctorProfileService {
   }
 
   async addEducation(doctorId: string, data: CreateEducationData) {
-    return this.prisma.doctorEducation.create({ data: { doctorId, ...data } });
+    return this.persistence.doctorEducation.create({ data: { doctorId, ...data } });
   }
 
   async updateEducation(
@@ -112,12 +122,12 @@ export class DoctorProfileService {
     doctorId?: string,
   ) {
     if (doctorId) {
-      const existing = await this.prisma.doctorEducation.findFirst({
+      const existing = await this.persistence.doctorEducation.findFirst({
         where: { id: educationId, doctorId },
       });
       if (!existing) throw new NotFoundException('Education record not found');
     }
-    return this.prisma.doctorEducation.update({
+    return this.persistence.doctorEducation.update({
       where: { id: educationId },
       data,
     });
@@ -125,17 +135,17 @@ export class DoctorProfileService {
 
   async removeEducation(educationId: string, doctorId?: string) {
     if (doctorId) {
-      const existing = await this.prisma.doctorEducation.findFirst({
+      const existing = await this.persistence.doctorEducation.findFirst({
         where: { id: educationId, doctorId },
       });
       if (!existing) throw new NotFoundException('Education record not found');
     }
-    await this.prisma.doctorEducation.delete({ where: { id: educationId } });
+    await this.persistence.doctorEducation.delete({ where: { id: educationId } });
     return { success: true };
   }
 
   async addCertification(doctorId: string, data: CreateCertificationData) {
-    return this.prisma.doctorCertification.create({
+    return this.persistence.doctorCertification.create({
       data: { doctorId, ...data },
     });
   }
@@ -146,13 +156,13 @@ export class DoctorProfileService {
     doctorId?: string,
   ) {
     if (doctorId) {
-      const existing = await this.prisma.doctorCertification.findFirst({
+      const existing = await this.persistence.doctorCertification.findFirst({
         where: { id: certificationId, doctorId },
       });
       if (!existing)
         throw new NotFoundException('Certification record not found');
     }
-    return this.prisma.doctorCertification.update({
+    return this.persistence.doctorCertification.update({
       where: { id: certificationId },
       data,
     });
@@ -160,13 +170,13 @@ export class DoctorProfileService {
 
   async removeCertification(certificationId: string, doctorId?: string) {
     if (doctorId) {
-      const existing = await this.prisma.doctorCertification.findFirst({
+      const existing = await this.persistence.doctorCertification.findFirst({
         where: { id: certificationId, doctorId },
       });
       if (!existing)
         throw new NotFoundException('Certification record not found');
     }
-    await this.prisma.doctorCertification.delete({
+    await this.persistence.doctorCertification.delete({
       where: { id: certificationId },
     });
     return { success: true };
@@ -177,13 +187,13 @@ export class DoctorProfileService {
     specialization: Specialization,
     yearsOfPractice?: number,
   ) {
-    return this.prisma.doctorSpecialization.create({
+    return this.persistence.doctorSpecialization.create({
       data: { doctorId, specialization, yearsOfPractice },
     });
   }
 
   async removeSpecialization(doctorId: string, specialization: Specialization) {
-    await this.prisma.doctorSpecialization.delete({
+    await this.persistence.doctorSpecialization.delete({
       where: { doctorId_specialization: { doctorId, specialization } },
     });
     return { success: true };

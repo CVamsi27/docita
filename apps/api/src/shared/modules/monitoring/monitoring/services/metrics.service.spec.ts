@@ -1,5 +1,12 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import { MetricsService } from './metrics.service';
+import { MetricsPersistenceService } from './metrics-persistence.service';
+import { MetricsRecordingService } from './metrics-recording.service';
+import { WebVitalsMetricsService } from './web-vitals-metrics.service';
+import { MetricsQueryService } from './metrics-query.service';
+import { API_REQUEST_METRICS_REPOSITORY_TOKEN } from '@/shared/modules/monitoring/monitoring/ports/api-request-metrics.repository.port';
+import { CLOCK_PORT } from '@/shared/common/ports/clock.port';
+import { MetricsAggregationService } from './metrics-aggregation.service';
 import { PrismaService } from '@/prisma/prisma.service';
 import { Logger } from '@nestjs/common';
 import { MetricType } from '@workspace/db';
@@ -37,6 +44,12 @@ describe('MetricsService', () => {
     };
   };
 
+  const apiRequestMetricsMock = {
+    getResponseTimeDistribution: jest.fn().mockResolvedValue([]),
+    getThroughputByMinute: jest.fn().mockResolvedValue([]),
+    getRequestsByHour: jest.fn().mockResolvedValue([]),
+  };
+
   const mockPrismaService = {
     $queryRaw: jest.fn(),
     systemMetric: {
@@ -67,8 +80,21 @@ describe('MetricsService', () => {
 
     const module: TestingModule = await Test.createTestingModule({
       providers: [
+        MetricsPersistenceService,
+        MetricsRecordingService,
+        WebVitalsMetricsService,
+        MetricsQueryService,
+        MetricsAggregationService,
         MetricsService,
         { provide: PrismaService, useValue: mockPrismaService },
+        {
+          provide: API_REQUEST_METRICS_REPOSITORY_TOKEN,
+          useValue: apiRequestMetricsMock,
+        },
+        {
+          provide: CLOCK_PORT,
+          useValue: { now: () => new Date('2026-05-19T12:00:00.000Z') },
+        },
       ],
     }).compile();
 
@@ -164,19 +190,20 @@ describe('MetricsService', () => {
           _count: { id: 5 },
         },
       ]);
-      prismaService.$queryRaw
-        .mockResolvedValueOnce([
-          {
-            range_0_100: 2n,
-            range_100_250: 3n,
-            range_250_500: 0n,
-            range_500_1000: 0n,
-            range_1000_2000: 0n,
-            range_2000_5000: 0n,
-            range_5000_plus: 0n,
-          },
-        ])
-        .mockResolvedValueOnce([{ minute: '2026-04-04T13:10', count: 4n }]);
+      apiRequestMetricsMock.getResponseTimeDistribution.mockResolvedValueOnce([
+        {
+          range_0_100: 2n,
+          range_100_250: 3n,
+          range_250_500: 0n,
+          range_500_1000: 0n,
+          range_1000_2000: 0n,
+          range_2000_5000: 0n,
+          range_5000_plus: 0n,
+        },
+      ]);
+      apiRequestMetricsMock.getThroughputByMinute.mockResolvedValueOnce([
+        { minute: '2026-04-04T13:10', count: 4n },
+      ]);
 
       const metrics = await service.getPerformanceMetrics(
         new Date('2026-04-04T13:00:00.000Z'),

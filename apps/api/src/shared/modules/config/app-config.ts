@@ -1,4 +1,5 @@
 import { z } from 'zod';
+import { EnvConfigStore } from './env-config.store';
 
 export const EnvSchema = z.object({
   DATABASE_URL: z.string().min(1),
@@ -116,6 +117,12 @@ export const EnvSchema = z.object({
    * Docita owner/team.
    */
   INTERNAL_ALLOWED_EMAILS: z.string().default(''),
+  DOCITA_API_E2E: z.string().optional(),
+  CPT_CATALOG_SOURCE: z.string().optional(),
+  CPT_LICENSED_API_URL: z.string().optional(),
+  CPT_LICENSED_API_KEY: z.string().optional(),
+  CPT_LICENSED_SEARCH_PATH: z.string().optional(),
+  CPT_LICENSED_SYNC_PATH: z.string().optional(),
 });
 
 export type EnvConfig = z.infer<typeof EnvSchema>;
@@ -170,10 +177,9 @@ export function getWebSocketCorsOrigins(): (string | RegExp)[] {
   return getCorsOrigins();
 }
 
-let validatedEnv: EnvConfig | null = null;
-
 export function validateEnv(): EnvConfig {
-  if (validatedEnv) return validatedEnv;
+  const cached = EnvConfigStore.getCached();
+  if (cached) return cached;
 
   const envToParse = { ...process.env };
   envToParse.META_BUSINESS_ACCOUNT_ID ??=
@@ -253,13 +259,14 @@ export function validateEnv(): EnvConfig {
     process.exit(1);
   }
 
-  validatedEnv = result.data;
+  EnvConfigStore.setCached(result.data);
   return result.data;
 }
 
 export function getEnv(): EnvConfig {
-  if (!validatedEnv) {
-    return validateEnv();
+  const cached = EnvConfigStore.getCached();
+  if (cached) {
+    return cached;
   }
-  return validatedEnv;
+  return validateEnv();
 }

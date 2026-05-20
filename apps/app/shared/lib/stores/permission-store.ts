@@ -5,16 +5,15 @@ import {
   Feature,
   FEATURE_TIER_MAP,
   FRONT_DESK_BLOCKED_FEATURES,
-  isFeatureGenerallyAvailable,
   mapClinicTierDbStringToAccessTier,
   Tier,
   TIER_INFO,
   type UserRole,
   type WorkspaceProfile,
   DEFAULT_WORKSPACE_PROFILE,
-  getTierName,
   parseWorkspaceProfile,
 } from "@workspace/types";
+import { getTierName, isFeatureGenerallyAvailable } from "@workspace/utils";
 import { hasPermission, type Permission } from "@/lib/auth/permissions";
 
 export { Tier, Feature, FEATURE_TIER_MAP, TIER_INFO };
@@ -47,7 +46,6 @@ interface PermissionState {
   }, userRole?: string) => void;
 
   canAccess: (feature: Feature, permission?: Permission) => boolean;
-  canAccessTier: (tier: Tier) => boolean;
   canAccessClinicFeature: (feature: string) => boolean;
   isFeatureLocked: (feature: Feature) => boolean;
   getRequiredTier: (feature: Feature) => Tier;
@@ -167,21 +165,6 @@ export const usePermissionStore = create<PermissionState>((set, get) => ({
     return currentTier >= requiredTier;
   },
 
-  canAccessTier: (tier) => {
-    const { currentTier, hasIntelligence } = get();
-
-    if (tier === Tier.INTELLIGENCE) {
-      return hasIntelligence;
-    }
-
-    if (currentTier === Tier.FRONT_DESK) {
-      return tier <= Tier.ESSENTIAL;
-    }
-
-    return currentTier >= tier;
-  },
-
-  
   canAccessClinicFeature: (feature) => {
     const { clinicType } = get();
 

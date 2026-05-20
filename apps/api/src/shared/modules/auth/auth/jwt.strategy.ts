@@ -24,7 +24,7 @@ interface JwtPayload {
   patientId?: string;
 }
 
-// TODO(WS-11 security): Patient portal tokens (role=PATIENT) are signed with the
+// NOTE(WS-11 security): Patient portal tokens (role=PATIENT) are signed with the
 // same JWT secret and have no `aud` claim to separate them from staff tokens.
 // A PATIENT-role token can technically be presented to staff endpoints and will
 // pass signature validation — it is only rejected later by @Roles guards.

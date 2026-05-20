@@ -4,6 +4,11 @@ import { TenantRateLimitService } from './tenant-rate-limit.service';
 import { TenantRateLimitRepository } from './tenant-rate-limit.repository';
 import type { TenantQuota } from './tenant-rate-limit.types';
 import type { AppConfigService } from '@/shared/modules/config/app-configuration.service';
+import type { IClock } from '@/shared/common/ports/clock.port';
+
+const buildClock = (): IClock => ({
+  now: () => new Date(),
+});
 
 function buildMemoryCache(): Cache {
   const store = new Map<string, { value: unknown; expiresAt: number }>();
@@ -87,7 +92,7 @@ describe('TenantRateLimitService', () => {
 
   it('uses defaults when no override exists', async () => {
     const { repo } = buildRepo();
-    const service = new TenantRateLimitService(cache, repo, buildConfig());
+    const service = new TenantRateLimitService(cache, repo, buildConfig(), buildClock());
     const quota = await service.getQuota('clinic-1');
     expect(quota.rps).toBe(5);
     expect(quota.rpm).toBe(50);
@@ -96,7 +101,7 @@ describe('TenantRateLimitService', () => {
 
   it('resolves persisted overrides ahead of defaults', async () => {
     const { repo } = buildRepo({ rps: 200, rpm: 10_000, monthlyBudget: 1e6 });
-    const service = new TenantRateLimitService(cache, repo, buildConfig());
+    const service = new TenantRateLimitService(cache, repo, buildConfig(), buildClock());
     const quota = await service.getQuota('clinic-1');
     expect(quota.rps).toBe(200);
     expect(quota.rpm).toBe(10_000);
@@ -109,6 +114,7 @@ describe('TenantRateLimitService', () => {
       cache,
       repo,
       buildConfig({ rps: 2 }),
+      buildClock(),
     );
     const a = await service.checkAndConsume('clinic-1');
     const b = await service.checkAndConsume('clinic-1');
@@ -124,6 +130,7 @@ describe('TenantRateLimitService', () => {
       cache,
       repo,
       buildConfig({ rps: 1, rpm: 100 }),
+      buildClock(),
     );
     await service.checkAndConsume('clinic-1');
     const blocked = await service.checkAndConsume('clinic-1');
@@ -138,6 +145,7 @@ describe('TenantRateLimitService', () => {
       cache,
       repo,
       buildConfig({ rps: 100, rpm: 2 }),
+      buildClock(),
     );
     await service.checkAndConsume('clinic-1');
     await service.checkAndConsume('clinic-1');
@@ -154,6 +162,7 @@ describe('TenantRateLimitService', () => {
       cache,
       repo,
       buildConfig({ rps: 100, rpm: 100 }),
+      buildClock(),
     );
     await service.checkAndConsume('clinic-1');
     await service.checkAndConsume('clinic-1');
@@ -188,7 +197,7 @@ describe('TenantRateLimitService', () => {
       incrementMonthlyUsage: jest.fn(async () => null) as unknown as never,
     } as unknown as TenantRateLimitRepository;
 
-    const service = new TenantRateLimitService(cache, repo, buildConfig());
+    const service = new TenantRateLimitService(cache, repo, buildConfig(), buildClock());
     const before = await service.getQuota('clinic-1');
     expect(before.rps).toBe(5);
     expect(before.hasOverride).toBe(false);

@@ -14,6 +14,10 @@ import {
   FEEDBACK_REPOSITORY_TOKEN,
   IFeedbackRepository,
 } from '@/domains/feedback/core/repositories/feedback.repository.interface';
+import {
+  CLOCK_PORT,
+  type IClock,
+} from '@/shared/common/ports/clock.port';
 
 interface CreateFeedbackDto {
   overallRating: number;
@@ -37,11 +41,15 @@ interface FeedbackWithClinic {
   clinicId: string | null;
 }
 
+/**
+ * Thin facade — delegates feedback persistence to IFeedbackRepository.
+ */
 @Injectable()
 export class FeedbackService {
   constructor(
     @Inject(FEEDBACK_REPOSITORY_TOKEN)
     private readonly repository: IFeedbackRepository,
+    @Inject(CLOCK_PORT) private readonly clock: IClock,
   ) {}
 
   async create(clinicId: string, userId: string, data: CreateFeedbackDto) {
@@ -177,7 +185,10 @@ export class FeedbackService {
   }
 
   hasRecentFeedback(userId: string, clinicId: string): Promise<boolean> {
-    const thirtyDaysAgo = new Date(Date.now() - 30 * 24 * 60 * 60 * 1000);
+    const now = this.clock.now();
+    const thirtyDaysAgo = new Date(
+      now.getTime() - 30 * 24 * 60 * 60 * 1000,
+    );
     return this.repository.hasFeedbackInWindow(userId, clinicId, thirtyDaysAgo);
   }
 }

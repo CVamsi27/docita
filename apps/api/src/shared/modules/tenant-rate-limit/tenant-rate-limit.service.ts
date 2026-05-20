@@ -14,6 +14,10 @@ import {
 } from '@/shared/modules/tenant-rate-limit/tenant-rate-limit.constants';
 import { TenantRateLimitRepository } from '@/shared/modules/tenant-rate-limit/tenant-rate-limit.repository';
 import {
+  CLOCK_PORT,
+  type IClock,
+} from '@/shared/common/ports/clock.port';
+import {
   QuotaUpsertInput,
   RateLimitDecision,
   TenantQuota,
@@ -36,10 +40,11 @@ export class TenantRateLimitService implements OnModuleInit {
     @Inject(CACHE_MANAGER) private readonly cache: Cache,
     private readonly repository: TenantRateLimitRepository,
     private readonly config: AppConfigService,
+    @Inject(CLOCK_PORT) private readonly clock: IClock,
   ) {}
 
   onModuleInit(): void {
-    if (process.env.NODE_ENV !== 'test') {
+    if (!this.config.isTest()) {
       this.logger.warn(
         'Tenant burst and sustained rate counters use the in-process Nest cache-manager store. ' +
           'Enforcement is best-effort per API replica until a shared counter store is introduced.',
@@ -234,7 +239,7 @@ export class TenantRateLimitService implements OnModuleInit {
   }
 
   private nextMonthResetDate(): Date {
-    const now = new Date();
+    const now = this.clock.now();
     return new Date(
       Date.UTC(now.getUTCFullYear(), now.getUTCMonth() + 1, 1, 0, 0, 0, 0),
     );

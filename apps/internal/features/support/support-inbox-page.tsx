@@ -19,7 +19,10 @@ import { Textarea } from "@workspace/ui/components/form/textarea";
 import { SupportWhatsAppMessage } from "@workspace/types";
 import { internalQueryKeys } from "@/lib/api/query-keys";
 import { supportAPI } from "@/lib/api/api";
-import { useInternalQuery } from "@/lib/api/use-internal-query";
+import {
+  useInternalSupportWhatsAppThreadMessages,
+  useInternalSupportWhatsAppThreads,
+} from "@workspace/data-access/internal";
 import { Inbox, MessageSquare, Phone, Search, Send } from "lucide-react";
 
 const THREAD_LIMIT = 100;
@@ -85,22 +88,11 @@ export function SupportInboxPage() {
       )
     : null;
 
-  const threadsQuery = useInternalQuery({
-    queryKey: threadsQueryKey,
-    queryFn: () => supportAPI.getWhatsAppThreads(THREAD_LIMIT),
-  });
-
-  const threadMessagesQuery = useInternalQuery({
-    queryKey:
-      selectedThreadKey ??
-      (["internal", "support", "whatsapp", "thread", ""] as const),
-    queryFn: () =>
-      supportAPI.getWhatsAppThreadMessages(
-        selectedThreadPhoneNumber ?? "",
-        THREAD_MESSAGES_LIMIT,
-      ),
-    enabled: Boolean(selectedThreadPhoneNumber),
-  });
+  const threadsQuery = useInternalSupportWhatsAppThreads(THREAD_LIMIT);
+  const threadMessagesQuery = useInternalSupportWhatsAppThreadMessages(
+    selectedThreadPhoneNumber,
+    THREAD_MESSAGES_LIMIT,
+  );
 
   const { mutate: markThreadRead } = useMutation({
     mutationFn: (threadPhoneNumber: string) =>

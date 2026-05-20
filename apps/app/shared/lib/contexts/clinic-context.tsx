@@ -12,6 +12,7 @@ import React, {
 import { usePermissionStore } from "@/lib/stores/permission-store";
 import { useClinicSocket } from "@/hooks/use-clinic-socket";
 import { fetchWithSession } from "@/lib/auth/fetch-with-session";
+import { logger } from "@/lib/monitoring/logger";
 import { appClinicSchema, type AppClinic } from "@workspace/types";
 
 export type Clinic = AppClinic;
@@ -35,7 +36,9 @@ function getStoredClinicId(): string | null {
     const savedClinicId = localStorage.getItem("selectedClinicId");
     localStorage.removeItem("selectedClinic");
     return savedClinicId && savedClinicId.length > 0 ? savedClinicId : null;
-  } catch {}
+  } catch (error) {
+    logger.warn("Failed to read selected clinic from localStorage", { error });
+  }
   return null;
 }
 
@@ -172,7 +175,8 @@ export function ClinicProvider({ children }: { children: React.ReactNode }) {
           localStorage.setItem("selectedClinicId", clinicData.id);
         }
       }
-    } catch {
+    } catch (error) {
+      logger.warn("Failed to refresh clinic context", { error });
     } finally {
       isFetchingRef.current = false;
     }

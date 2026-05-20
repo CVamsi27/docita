@@ -8,7 +8,6 @@ import {
   UsePipes,
   Req,
   UnauthorizedException,
-  ConflictException,
 } from '@nestjs/common';
 import { Request } from 'express';
 import { PaymentsService } from '@/domains/billing/application/services/payments.service';
@@ -21,6 +20,7 @@ import {
 } from '@workspace/types';
 import { AppConfigService } from '@/shared/modules/config/app-configuration.service';
 import { WebhookVerifierService } from '@/shared/modules/webhooks';
+import { assertVerifiedRazorpayWebhook } from '@/shared/modules/webhooks/razorpay-webhook-verification.helper';
 
 @Controller('webhooks/payments')
 export class WebhooksController {
@@ -44,29 +44,22 @@ export class WebhooksController {
     @Headers('user-agent') userAgent: string | undefined,
     @Body() payload: PaymentWebhookPayload,
   ) {
-    const rawBody = req.rawBody;
-    if (!rawBody || !signature) {
-      throw new UnauthorizedException('Missing webhook signature');
-    }
-
-    const verification = await this.webhookVerifier.verify({
-      provider: 'razorpay',
-      rawBody,
-      signature,
-      secret: this.configService.getRazorpayWebhookSecret(),
-    });
-
-    if (!verification.ok) {
+    let rawBody: Buffer;
+    try {
+      rawBody = await assertVerifiedRazorpayWebhook({
+        req,
+        signature,
+        secret: this.configService.getRazorpayWebhookSecret(),
+        verifier: this.webhookVerifier,
+      });
+    } catch (error) {
       this.logger.warn('Razorpay webhook verification failed', {
         ipAddress,
         userAgent,
         event: payload?.event,
-        failure: verification.failure,
+        error: error instanceof Error ? error.message : String(error),
       });
-      if (verification.failure === 'replayed') {
-        throw new ConflictException('Webhook already processed');
-      }
-      throw new UnauthorizedException('Invalid webhook signature');
+      throw error;
     }
 
     const paymentLinkId = 'razorpay_webhook';

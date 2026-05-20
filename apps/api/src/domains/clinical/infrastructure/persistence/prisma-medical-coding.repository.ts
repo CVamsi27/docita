@@ -1,7 +1,11 @@
 import { Injectable, Logger, OnModuleInit } from '@nestjs/common';
 import { PrismaService } from '@/prisma/prisma.service';
 import { LruCache } from '@/shared/common/utils/lru-cache';
-import { IMedicalCodingRepository } from '@/domains/clinical/core/repositories/clinical.repository.interface';
+import {
+  IMedicalCodingRepository,
+  MedicalCodeSyncRecord,
+  SyncedMedicalCodeRecord,
+} from '@/domains/clinical/core/repositories/clinical.repository.interface';
 import {
   IcdCode,
   CptCode,
@@ -223,5 +227,89 @@ export class PrismaMedicalCodingRepository
       take: 20,
     });
     return visits;
+  }
+
+  async findExistingIcdCodes(
+    codes: string[],
+  ): Promise<SyncedMedicalCodeRecord[]> {
+    return this.getReadClient().icdCode.findMany({
+      where: { code: { in: codes } },
+      select: {
+        code: true,
+        description: true,
+        category: true,
+        isCommon: true,
+      },
+    });
+  }
+
+  async createCommonIcdCodes(records: MedicalCodeSyncRecord[]): Promise<void> {
+    await this.prisma.icdCode.createMany({
+      data: records.map((code) => ({
+        code: code.code,
+        description: code.description,
+        category: code.category,
+        version: 'ICD-10',
+        isCommon: true,
+      })),
+      skipDuplicates: true,
+    });
+  }
+
+  async updateCommonIcdCodes(records: MedicalCodeSyncRecord[]): Promise<void> {
+    await this.prisma.$transaction(
+      records.map((code) =>
+        this.prisma.icdCode.update({
+          where: { code: code.code },
+          data: {
+            description: code.description,
+            category: code.category,
+            isCommon: true,
+          },
+        }),
+      ),
+    );
+  }
+
+  async findExistingCptCodes(
+    codes: string[],
+  ): Promise<SyncedMedicalCodeRecord[]> {
+    return this.getReadClient().cptCode.findMany({
+      where: { code: { in: codes } },
+      select: {
+        code: true,
+        description: true,
+        category: true,
+        isCommon: true,
+      },
+    });
+  }
+
+  async createCommonCptCodes(records: MedicalCodeSyncRecord[]): Promise<void> {
+    await this.prisma.cptCode.createMany({
+      data: records.map((code) => ({
+        code: code.code,
+        description: code.description,
+        category: code.category,
+        isCommon: true,
+        price: 0,
+      })),
+      skipDuplicates: true,
+    });
+  }
+
+  async updateCommonCptCodes(records: MedicalCodeSyncRecord[]): Promise<void> {
+    await this.prisma.$transaction(
+      records.map((code) =>
+        this.prisma.cptCode.update({
+          where: { code: code.code },
+          data: {
+            description: code.description,
+            category: code.category,
+            isCommon: true,
+          },
+        }),
+      ),
+    );
   }
 }

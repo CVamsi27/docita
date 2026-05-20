@@ -1,4 +1,5 @@
 import {
+  Inject,
   Injectable,
   NestInterceptor,
   ExecutionContext,
@@ -6,6 +7,10 @@ import {
   Logger,
   ForbiddenException,
 } from '@nestjs/common';
+import {
+  CLOCK_PORT,
+  type IClock,
+} from '@/shared/common/ports/clock.port';
 import { Reflector } from '@nestjs/core';
 import { Observable } from 'rxjs';
 import { AuditService } from '@/shared/modules/audit/audit/audit.service';
@@ -19,6 +24,7 @@ export class BreakTheGlassInterceptor implements NestInterceptor {
   constructor(
     private readonly reflector: Reflector,
     private readonly auditService: AuditService,
+    @Inject(CLOCK_PORT) private readonly clock: IClock,
   ) {}
 
   async intercept(
@@ -61,7 +67,7 @@ export class BreakTheGlassInterceptor implements NestInterceptor {
           method,
           url,
           reason,
-          timestamp: new Date().toISOString(),
+          timestamp: this.clock.now().toISOString(),
         },
       },
       true,

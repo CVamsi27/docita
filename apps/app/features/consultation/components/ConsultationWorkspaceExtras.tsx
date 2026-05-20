@@ -86,7 +86,8 @@ export function ConsultationAfterVisitStrip({
   onGoToPlan,
 }: ConsultationAfterVisitStripProps) {
   const { user } = useAuth();
-  const { canAccess, canAccessTier, workspaceProfile } = usePermissionStore();
+  const { canAccess, currentTier, hasIntelligence, workspaceProfile } =
+    usePermissionStore();
   const {
     canViewInvoices,
     canViewPrescriptions,
@@ -102,7 +103,8 @@ export function ConsultationAfterVisitStrip({
     {
       role: user?.role,
       canAccessFeature: canAccess,
-      canAccessTier,
+      currentTier,
+      hasIntelligence,
       workspaceProfile,
     },
     "read",

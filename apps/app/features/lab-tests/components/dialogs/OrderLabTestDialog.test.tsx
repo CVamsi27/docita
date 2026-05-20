@@ -3,9 +3,9 @@ import { useForm } from "react-hook-form";
 import { describe, expect, it, vi } from "vitest";
 import type { LabTest, Patient } from "@workspace/types";
 import {
-  createLabTestOrderSchema,
-  type CreateLabTestOrderInput,
-} from "@/features/lab-tests/hooks/use-lab-tests-logic";
+  createLabTestOrderFormSchema,
+  type CreateLabTestOrderFormValues,
+} from "@workspace/types";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { OrderLabTestDialog } from "./OrderLabTestDialog";
 
@@ -33,11 +33,11 @@ function TestDialog({
   onSubmit = vi.fn(),
   defaultValues,
 }: {
-  onSubmit?: (data: CreateLabTestOrderInput) => void;
-  defaultValues?: Partial<CreateLabTestOrderInput>;
+  onSubmit?: (data: CreateLabTestOrderFormValues) => void;
+  defaultValues?: Partial<CreateLabTestOrderFormValues>;
 }) {
-  const form = useForm<CreateLabTestOrderInput>({
-    resolver: zodResolver(createLabTestOrderSchema),
+  const form = useForm<CreateLabTestOrderFormValues>({
+    resolver: zodResolver(createLabTestOrderFormSchema),
     defaultValues: {
       patientId: "",
       labTestId: "",

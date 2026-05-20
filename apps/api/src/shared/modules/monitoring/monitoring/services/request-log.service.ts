@@ -1,6 +1,14 @@
-import { Injectable, Logger, OnModuleDestroy } from '@nestjs/common';
+import { Inject, Injectable, Logger, OnModuleDestroy } from '@nestjs/common';
+import {
+  CLOCK_PORT,
+  type IClock,
+} from '@/shared/common/ports/clock.port';
 import { PrismaService } from '@/prisma/prisma.service';
 import { Prisma } from '@workspace/db';
+import {
+  API_REQUEST_METRICS_REPOSITORY_TOKEN,
+  type ApiRequestMetricsRepository,
+} from '@/shared/modules/monitoring/monitoring/ports/api-request-metrics.repository.port';
 import { ApiRequestInput } from '@/shared/modules/monitoring/monitoring/schemas/monitoring.schema';
 import { MonitoringFactory } from '@/shared/modules/monitoring/monitoring/factories/monitoring.factory';
 
@@ -18,6 +26,9 @@ export class RequestLogService implements OnModuleDestroy {
   constructor(
     private prisma: PrismaService,
     private monitoringFactory: MonitoringFactory,
+    @Inject(API_REQUEST_METRICS_REPOSITORY_TOKEN)
+    private readonly apiRequestMetrics: ApiRequestMetricsRepository,
+    @Inject(CLOCK_PORT) private readonly clock: IClock,
   ) {
     this.startFlushTimer();
   }
@@ -227,21 +238,7 @@ export class RequestLogService implements OnModuleDestroy {
     }
     if (clinicId) where.clinicId = clinicId;
 
-    const whereSqlClauses: Prisma.Sql[] = [];
-    if (startDate) {
-      whereSqlClauses.push(Prisma.sql`"createdAt" >= ${startDate}`);
-    }
-    if (endDate) {
-      whereSqlClauses.push(Prisma.sql`"createdAt" <= ${endDate}`);
-    }
-    if (clinicId) {
-      whereSqlClauses.push(Prisma.sql`"clinicId" = ${clinicId}`);
-    }
-
-    const sqlWhere =
-      whereSqlClauses.length > 0
-        ? Prisma.sql`WHERE ${Prisma.join(whereSqlClauses, ' AND ')}`
-        : Prisma.empty;
+    const metricsFilter = { startDate, endDate, clinicId };
 
     const [
       totalRequests,
@@ -277,15 +274,7 @@ export class RequestLogService implements OnModuleDestroy {
         _count: { id: true },
         orderBy: { statusCode: 'asc' },
       }),
-      this.prisma.$queryRaw<Array<{ hour: number; count: bigint }>>(Prisma.sql`
-        SELECT
-          EXTRACT(HOUR FROM "createdAt")::int AS "hour",
-          COUNT(*)::bigint AS "count"
-        FROM "ApiRequest"
-        ${sqlWhere}
-        GROUP BY EXTRACT(HOUR FROM "createdAt")
-        ORDER BY EXTRACT(HOUR FROM "createdAt") ASC
-      `),
+      this.apiRequestMetrics.getRequestsByHour(metricsFilter),
     ]);
 
     return {
@@ -310,7 +299,7 @@ export class RequestLogService implements OnModuleDestroy {
   }
 
   async cleanupOldRequests(daysToKeep: number): Promise<number> {
-    const cutoffDate = new Date();
+    const cutoffDate = this.clock.now();
     cutoffDate.setDate(cutoffDate.getDate() - daysToKeep);
 
     const result = await this.prisma.apiRequest.deleteMany({

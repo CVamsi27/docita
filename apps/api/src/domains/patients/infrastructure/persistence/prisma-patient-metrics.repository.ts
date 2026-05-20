@@ -1,4 +1,8 @@
-import { Injectable } from '@nestjs/common';
+import { Inject, Injectable } from '@nestjs/common';
+import {
+  CLOCK_PORT,
+  type IClock,
+} from '@/shared/common/ports/clock.port';
 import { PrismaService } from '@/prisma/prisma.service';
 import {
   CreateMetricCategoryDto,
@@ -80,7 +84,10 @@ function toMetricRecordSource(
 
 @Injectable()
 export class PrismaPatientMetricsRepository implements IPatientMetricsRepository {
-  constructor(private readonly prisma: PrismaService) {}
+  constructor(
+    private readonly prisma: PrismaService,
+    @Inject(CLOCK_PORT) private readonly clock: IClock,
+  ) {}
 
   private getReadClient() {
     return this.prisma.getReadClient();
@@ -295,7 +302,9 @@ export class PrismaPatientMetricsRepository implements IPatientMetricsRepository
         patientId,
         definitionId: dto.definitionId,
         appointmentId: dto.appointmentId,
-        recordedAt: dto.recordedAt ? new Date(dto.recordedAt) : new Date(),
+        recordedAt: dto.recordedAt
+          ? new Date(dto.recordedAt)
+          : this.clock.now(),
         recordedById: userId,
         source: toMetricRecordSource(dto.source),
         notes: dto.notes,

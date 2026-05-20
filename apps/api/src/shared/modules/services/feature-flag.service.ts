@@ -1,4 +1,8 @@
-import { Injectable, Logger, OnModuleInit } from '@nestjs/common';
+import { Inject, Injectable, Logger, OnModuleInit } from '@nestjs/common';
+import {
+  CLOCK_PORT,
+  type IClock,
+} from '@/shared/common/ports/clock.port';
 import { Prisma } from '@workspace/db';
 import { PrismaService } from '@/prisma/prisma.service';
 
@@ -126,10 +130,21 @@ export class FeatureFlagService implements OnModuleInit {
   private cacheExpiry: Date = new Date(0);
   private readonly CACHE_TTL_MS = 60000;
 
-  constructor(private readonly prisma: PrismaService) {}
+  constructor(
+    private readonly prisma: PrismaService,
+    @Inject(CLOCK_PORT) private readonly clock: IClock,
+  ) {}
 
   onModuleInit(): void {
-    void this.initializeDefaultFlags();
+    void this.initializeDefaultFlags().catch((error: unknown) => {
+      this.logger.warn(
+        `Feature flag initialization failed; defaults will be used: ${this.formatErrorMessage(error)}`,
+      );
+    });
+  }
+
+  private formatErrorMessage(error: unknown): string {
+    return error instanceof Error ? error.message : String(error);
   }
 
   private async initializeDefaultFlags(): Promise<void> {
@@ -151,8 +166,10 @@ export class FeatureFlagService implements OnModuleInit {
           this.logger.debug(`Initialized feature flag: ${flag.key}`);
         }
       }
-    } catch (_error) {
-      this.logger.warn('FeatureFlag model not available, using defaults');
+    } catch (error) {
+      this.logger.warn(
+        `FeatureFlag model not available, using defaults: ${this.formatErrorMessage(error)}`,
+      );
     }
   }
 
@@ -177,7 +194,7 @@ export class FeatureFlagService implements OnModuleInit {
       }
 
       const cacheKey = `global:${key}`;
-      if (this.cache.has(cacheKey) && this.cacheExpiry > new Date()) {
+      if (this.cache.has(cacheKey) && this.cacheExpiry > this.clock.now()) {
         return this.cache.get(cacheKey) as T;
       }
 
@@ -190,7 +207,11 @@ export class FeatureFlagService implements OnModuleInit {
         this.cacheExpiry = new Date(Date.now() + this.CACHE_TTL_MS);
         return globalFlag.value as T;
       }
-    } catch (_error) {}
+    } catch (error) {
+      this.logger.warn(
+        `Feature flag lookup failed for ${key}; using fallback: ${this.formatErrorMessage(error)}`,
+      );
+    }
 
     const configDefault = DEFAULT_FEATURE_FLAGS.find(
       (f) => f.key === key,
@@ -260,7 +281,11 @@ export class FeatureFlagService implements OnModuleInit {
       for (const flag of clinicFlags) {
         result[flag.key] = flag.value as FeatureFlagValue;
       }
-    } catch (_error) {}
+    } catch (error) {
+      this.logger.warn(
+        `Feature flag list lookup failed for clinic ${clinicId}; returning defaults: ${this.formatErrorMessage(error)}`,
+      );
+    }
 
     return result;
   }

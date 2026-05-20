@@ -2,13 +2,15 @@ import { beforeEach, describe, expect, it, jest } from '@jest/globals';
 import { BadRequestException, NotFoundException } from '@nestjs/common';
 import { InvoiceStatus, PaymentSessionStatus, Prisma } from '@workspace/db';
 import { SendMessageUseCase } from '@/domains/whatsapp/application/use-cases/send-message.use-case';
-import { PushNotificationService } from '@/shared/modules/messaging/notifications/push-notification.service';
 import { AppConfigService } from '@/shared/modules/config/app-configuration.service';
 import type { IPaymentLinkProvider } from '@/domains/payments/core/ports/payment-link-provider.port';
 import { PaymentProvider } from '@/domains/payments/core/entities/payment-provider.enum';
 import type { IPaymentSessionRepository } from '@/domains/billing/core/repositories/payment-session.repository';
 import type { IInvoiceRepository } from '@/domains/billing/core/repositories/invoice.repository';
 import type { InvoiceDetail } from '@/domains/billing/core/repositories/invoice.repository';
+import type { IClock } from '@/shared/common/ports/clock.port';
+import { PaymentsCommandService } from './payments-command.service';
+import { PaymentsQueryService } from './payments-query.service';
 import { PaymentsService } from './payments.service';
 
 function buildInvoice(overrides: Partial<InvoiceDetail> = {}): InvoiceDetail {
@@ -90,10 +92,6 @@ describe('PaymentsService', () => {
   ) as SendMessageUseCase;
   sendMessage.execute = jest.fn<SendMessageUseCase['execute']>();
 
-  const pushNotifications = Object.create(
-    PushNotificationService.prototype,
-  ) as PushNotificationService;
-
   const configService = Object.create(
     AppConfigService.prototype,
   ) as AppConfigService;
@@ -130,18 +128,24 @@ describe('PaymentsService', () => {
       .mockResolvedValue(undefined),
   } as unknown as IPaymentLinkProvider;
 
+  const clock: IClock = {
+    now: () => new Date('2026-05-19T10:00:00.000Z'),
+  };
+
   let service: PaymentsService;
 
   beforeEach(() => {
     jest.clearAllMocks();
-    service = new PaymentsService(
+    const command = new PaymentsCommandService(
       repository,
       invoiceRepository,
       sendMessage,
-      pushNotifications,
       configService,
       paymentLinkProvider,
+      clock,
     );
+    const query = new PaymentsQueryService(repository);
+    service = new PaymentsService(query, command);
   });
 
   describe('markInvoicePaidManually', () => {

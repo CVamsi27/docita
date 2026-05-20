@@ -6,7 +6,10 @@ import { Suspense, useEffect, useMemo, useState } from "react";
 import { useSearchParams } from "next/navigation";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
-import { z } from "zod";
+import {
+  forgotPasswordFormSchema,
+  type ForgotPasswordFormValues,
+} from "@workspace/types";
 import { CheckCircle } from "lucide-react";
 import { Button } from "@workspace/ui/components/form/button";
 import { FloatingInput } from "@workspace/ui/components/form/floating-input";
@@ -15,12 +18,6 @@ import { api } from "@/lib/api/api-client";
 import { logger } from "@/lib/monitoring/logger";
 import { PreDashboardShell } from "@/features/auth/components/PreDashboardShell";
 import { BackButton } from "@/components/navigation/back-button";
-
-const forgotPasswordSchema = z.object({
-  email: z.string().email("Please enter a valid email address"),
-});
-
-type ForgotPasswordFormValues = z.infer<typeof forgotPasswordSchema>;
 
 export default function ForgotPasswordPage() {
   return (
@@ -49,7 +46,7 @@ function ForgotPasswordPageContent() {
   }, [searchParams]);
 
   const form = useForm<ForgotPasswordFormValues>({
-    resolver: zodResolver(forgotPasswordSchema),
+    resolver: zodResolver(forgotPasswordFormSchema),
     defaultValues: { email: prefillEmail },
   });
 

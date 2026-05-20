@@ -38,6 +38,11 @@ import {
 } from '@/shared/modules/auth/auth/tier.decorator';
 import { getDbRolesForTarget } from '@/shared/modules/auth/auth/access-matrix.util';
 import { RequestWithUser } from '@/shared/common/types/common.types';
+import { AuditService } from '@/shared/modules/audit/audit/audit.service';
+import {
+  logClinicPhiListRead,
+  logPatientPhiRead,
+} from '@/shared/modules/audit/audit/patient-access-audit.util';
 import {
   CreatePatientDto,
   ListPatientsQueryDto,
@@ -54,6 +59,7 @@ export class PatientsController {
   constructor(
     private readonly patientService: PatientService,
     private readonly dpdpService: DPDPComplianceService,
+    private readonly auditService: AuditService,
   ) {}
 
   private toPatientResponse(value: unknown) {
@@ -131,6 +137,13 @@ export class PatientsController {
     @Query() query: ListPatientsQueryDto,
   ) {
     const { search, gender, page, limit } = query;
+    await logClinicPhiListRead(
+      this.auditService,
+      req,
+      'VIEW_PATIENT_LIST',
+      'Patient',
+      { search, gender, page: page ?? 1, limit: limit ?? 20 },
+    );
     const result = await this.patientService.listPatients({
       clinicId: req.user!.clinicId!,
       search,
@@ -152,6 +165,7 @@ export class PatientsController {
       id,
       req.user!.clinicId!,
     );
+    await logPatientPhiRead(this.auditService, req, id, 'VIEW_PROFILE');
     return this.toPatientResponse(patient);
   }
 

@@ -5,7 +5,6 @@ import { DocitaLoadingIndicator } from "@workspace/ui/components/feedback/docita
 import React, { FC } from "react";
 import { toast } from "sonner";
 import { useForm } from "react-hook-form";
-import { z } from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
 
 import { useClinic } from "@/lib/contexts/clinic-context";
@@ -36,6 +35,8 @@ import {
   DPDP_NOTICE_TEXT_STAFF,
   DPDP_NOTICE_TITLE,
   DPDP_NOTICE_VERSION,
+  patientCreateFormSchema,
+  type PatientCreateFormValues,
 } from "@workspace/types";
 import { validatePatientPhoneNumberForCountry } from "@/features/patients/rules/patientRules";
 
@@ -69,28 +70,6 @@ export const AddPatientDialog: FC<AddPatientDialogProps> = ({
 }) => {
   const createPatient = useCreatePatient();
   const { clinic } = useClinic();
-
-  const patientCreateFormSchema = createPatientRequestSchema.superRefine(
-    (val, ctx) => {
-      if (!val.dateOfBirth) {
-        ctx.addIssue({
-          code: z.ZodIssueCode.custom,
-          path: ["dateOfBirth"],
-          message: "Date of birth is required",
-        });
-      }
-      if (val.dpdpConsent?.accepted !== true) {
-        ctx.addIssue({
-          code: z.ZodIssueCode.custom,
-          path: ["dpdpConsent", "accepted"],
-          message:
-            "Confirm DPDP consent has been obtained from the patient before saving",
-        });
-      }
-    },
-  );
-
-  type PatientCreateFormValues = z.infer<typeof patientCreateFormSchema>;
 
   const form = useForm<PatientCreateFormValues>({
     resolver: zodResolver(patientCreateFormSchema),

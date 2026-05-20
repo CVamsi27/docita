@@ -3,13 +3,18 @@ import { AppointmentService } from './appointment.service';
 import { CreateAppointmentUseCase } from '@/domains/appointments/application/use-cases/create-appointment.use-case';
 import { Appointment } from '@/domains/appointments/core/entities/appointment.entity';
 import { IAppointmentRepository } from '@/domains/appointments/core/repositories/appointment.repository.interface';
-import { PrismaService } from '@/prisma/prisma.service';
+import {
+  APPOINTMENT_PERSISTENCE_PORT,
+  type AppointmentPersistencePort,
+} from '@/domains/appointments/application/ports/appointment-persistence.port';
 import { EventEmitter2 } from '@nestjs/event-emitter';
+import { ApplicationEvents } from '@/shared/common/events/application-events';
 import { AppointmentStatus } from '@/domains/appointments/core/value-objects/appointment-status.value-object';
 import { CreateAppointmentCommand } from '@/domains/appointments/application/use-cases/create-appointment.use-case';
 import { AppointmentSchedulingRulesService } from '@/domains/appointments/core/domain-services/appointment-scheduling-rules.service';
 import { AppointmentMetricsService } from './appointment-metrics.service';
 import { AppointmentDiagnosisService } from './appointment-diagnosis.service';
+import { createStubAppointmentWriteUseCases } from './appointment-use-case.stubs';
 
 describe('AppointmentService - appointment.created event', () => {
   const mockRepository = {
@@ -39,7 +44,9 @@ describe('AppointmentService - appointment.created event', () => {
   const executeMock = jest.fn<CreateAppointmentUseCase['execute']>();
   mockCreateAppointmentUseCase.execute = executeMock;
 
-  const mockPrisma = Object.create(PrismaService.prototype) as PrismaService;
+  const mockPrisma = Object.create(
+    Object.prototype,
+  ) as AppointmentPersistencePort;
 
   const mockEventEmitter = Object.create(
     EventEmitter2.prototype,
@@ -65,14 +72,20 @@ describe('AppointmentService - appointment.created event', () => {
 
   let service: AppointmentService;
 
+  const writeUseCaseStubs = createStubAppointmentWriteUseCases();
+
   beforeEach(() => {
     jest.clearAllMocks();
     service = new AppointmentService(
       mockRepository,
+      mockRepository,
       mockCreateAppointmentUseCase,
+      writeUseCaseStubs.cancelAppointmentUseCase,
+      writeUseCaseStubs.rescheduleAppointmentUseCase,
+      writeUseCaseStubs.startConsultationUseCase,
+      writeUseCaseStubs.updateAppointmentDetailsUseCase,
       mockPrisma,
       mockEventEmitter,
-      mockSchedulingRules,
       Object.create(
         AppointmentMetricsService.prototype,
       ) as AppointmentMetricsService,
@@ -112,7 +125,7 @@ describe('AppointmentService - appointment.created event', () => {
 
     expect(result).toBe(created);
     expect(emitMock).toHaveBeenCalledWith(
-      'appointment.created',
+      ApplicationEvents.APPOINTMENT_CREATED,
       expect.objectContaining({
         appointmentId: 'appt-1',
         clinicId: 'clinic-1',

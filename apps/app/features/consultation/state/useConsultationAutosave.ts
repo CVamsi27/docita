@@ -176,7 +176,7 @@ export function useConsultationAutosave(options: UseConsultationAutosaveOptions)
         );
         if (patientId) {
           void queryClient.invalidateQueries({
-            queryKey: ["patient-timeline", patientId],
+            queryKey: queryKeys.patientTimeline.prefix(patientId),
             exact: false,
           });
         }

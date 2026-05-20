@@ -1,3 +1,5 @@
+import { PrismaService } from '@/prisma/prisma.service';
+import { ENTERPRISE_CONTRACT_PERSISTENCE_PORT } from './application/ports/enterprise-contract-persistence.port';
 import { Module } from '@nestjs/common';
 import { PrismaWorkerModule } from '@/prisma/prisma.worker.module';
 import { EmailModule } from '@/shared/modules/messaging/email/email.module';
@@ -11,7 +13,14 @@ import { EnterpriseContractTrueUpScheduler } from './infrastructure/schedulers/e
  */
 @Module({
   imports: [PrismaWorkerModule, EmailModule],
-  providers: [EnterpriseContractsService, EnterpriseContractTrueUpScheduler],
+  providers: [
+    {
+      provide: ENTERPRISE_CONTRACT_PERSISTENCE_PORT,
+      useExisting: PrismaService,
+    },
+    EnterpriseContractsService,
+    EnterpriseContractTrueUpScheduler,
+  ],
   exports: [EnterpriseContractsService],
 })
 export class EnterpriseContractsWorkerModule {}

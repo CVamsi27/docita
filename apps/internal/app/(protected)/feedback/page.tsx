@@ -34,9 +34,14 @@ import { Textarea } from "@workspace/ui/components/form/textarea";
 import { Label } from "@workspace/ui/components/form/label";
 import { AlertCircle, CheckCircle, Clock, Eye, Filter, Lightbulb, MessageSquare, RefreshCw, Star, ThumbsDown, ThumbsUp, Trash2 } from "lucide-react";
 import { formatDate } from "@workspace/utils";
-import { Feedback, feedbackAPI, FeedbackFilters } from "@/lib/api/api";
+import { feedbackAPI } from "@/lib/api/api";
 import { internalQueryKeys } from "@/lib/api/query-keys";
-import { useInternalQuery } from "@/lib/api/use-internal-query";
+import {
+  useInternalFeedbackList,
+  useInternalFeedbackStats,
+  type InternalFeedback,
+  type InternalFeedbackFilters,
+} from "@workspace/data-access/internal";
 
 const STATUS_OPTIONS = [
   { value: "NEW", label: "New", color: "badge-info" },
@@ -57,27 +62,16 @@ const CATEGORY_OPTIONS = [
 ];
 
 export default function FeedbackPage() {
-  const [selectedFeedback, setSelectedFeedback] = useState<Feedback | null>(
-    null,
-  );
+  const [selectedFeedback, setSelectedFeedback] =
+    useState<InternalFeedback | null>(null);
   const [showFilters, setShowFilters] = useState(false);
-  const [filters, setFilters] = useState<FeedbackFilters>({});
+  const [filters, setFilters] = useState<InternalFeedbackFilters>({});
   const [adminNotes, setAdminNotes] = useState("");
   const queryClient = useQueryClient();
 
   const filtersKey = useMemo(() => JSON.stringify(filters), [filters]);
-  const feedbacksQuery = useInternalQuery({
-    queryKey: internalQueryKeys.internal.feedback(filtersKey),
-    queryFn: () =>
-      feedbackAPI.getAll(
-        filters as Record<string, string | number | boolean | undefined>,
-      ),
-  });
-
-  const statsQuery = useInternalQuery({
-    queryKey: internalQueryKeys.internal.feedbackStats(),
-    queryFn: () => feedbackAPI.getStats(filters.clinicId),
-  });
+  const feedbacksQuery = useInternalFeedbackList(filtersKey, filters);
+  const statsQuery = useInternalFeedbackStats(filters.clinicId);
 
   const feedbacks = feedbacksQuery.data ?? [];
   const stats = statsQuery.data ?? null;

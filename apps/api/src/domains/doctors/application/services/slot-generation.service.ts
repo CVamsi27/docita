@@ -1,15 +1,18 @@
 import { Injectable, Inject } from '@nestjs/common';
 import { Prisma } from '@workspace/db';
 import { fromLocalISOString } from '@workspace/utils';
-import { PrismaService } from '@/prisma/prisma.service';
+import {
+  DOCTOR_PERSISTENCE_PORT,
+  type DoctorPersistencePort,
+} from '@/domains/doctors/application/ports/doctor-persistence.port';
 import {
   IDoctorScheduleRepository,
   DOCTOR_SCHEDULE_REPOSITORY_TOKEN,
 } from '@/domains/doctors/core/repositories/doctor-schedule.repository.interface';
 import {
-  IAppointmentRepository,
-  APPOINTMENT_REPOSITORY_TOKEN,
-} from '@/domains/appointments/core/repositories/appointment.repository.interface';
+  SLOT_APPOINTMENT_LOOKUP_TOKEN,
+  type ISlotAppointmentLookup,
+} from '@/domains/doctors/application/ports/slot-appointment-lookup.port';
 import type { PublicBookingSlotListEmptyReason } from '@workspace/types';
 import {
   type AvailableSlot,
@@ -21,6 +24,10 @@ import {
   generateSlotsForSchedule,
   sortSlots,
 } from './slot-generation-helpers';
+import {
+  CLOCK_PORT,
+  type IClock,
+} from '@/shared/common/ports/clock.port';
 
 interface AvailableSlotsWithMeta {
   slots: AvailableSlot[];
@@ -33,9 +40,11 @@ export class SlotGenerationService {
   constructor(
     @Inject(DOCTOR_SCHEDULE_REPOSITORY_TOKEN)
     private scheduleRepository: IDoctorScheduleRepository,
-    @Inject(APPOINTMENT_REPOSITORY_TOKEN)
-    private appointmentRepository: IAppointmentRepository,
-    private readonly prisma: PrismaService,
+    @Inject(SLOT_APPOINTMENT_LOOKUP_TOKEN)
+    private readonly slotAppointmentLookup: ISlotAppointmentLookup,
+    @Inject(DOCTOR_PERSISTENCE_PORT)
+    private readonly persistence: DoctorPersistencePort,
+    @Inject(CLOCK_PORT) private readonly clock: IClock,
   ) {}
 
   async getAvailableSlots(
@@ -82,7 +91,7 @@ export class SlotGenerationService {
           clinicId,
           dayOfWeek,
         }),
-        this.prisma.user.findFirst({
+        this.persistence.user.findFirst({
           where: { id: doctorId, clinicId },
           select: { name: true, specialization: true },
         }),
@@ -97,6 +106,7 @@ export class SlotGenerationService {
         clinicRows = implicitClinicWeeklyRowsForSlotFallback(
           clinicId,
           dayOfWeek as DayOfWeek,
+          this.clock.now(),
         );
       }
 
@@ -144,7 +154,7 @@ export class SlotGenerationService {
         endDate: { gt: rangeStart },
         OR: [{ clinicId }, { clinicId: null }],
       }),
-      this.appointmentRepository.findAppointmentsForSlots(
+      this.slotAppointmentLookup.findAppointmentsForSlots(
         clinicId,
         doctorIds,
         rangeStart,
@@ -176,6 +186,7 @@ export class SlotGenerationService {
           timezone,
           doctorTimeOffs,
           doctorAppointments,
+          this.clock.now(),
         ),
       );
     }
@@ -188,7 +199,7 @@ export class SlotGenerationService {
   }
 
   private async resolveClinicTimezone(clinicId: string): Promise<string> {
-    const row = await this.prisma.clinic.findUnique({
+    const row = await this.persistence.clinic.findUnique({
       where: { id: clinicId },
       select: { timezone: true },
     });

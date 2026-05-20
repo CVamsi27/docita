@@ -1,5 +1,3 @@
-import { formatCurrency as formatCurrencyWithContext } from "@workspace/utils";
-
 export const formatPhoneNumber = (phone: string): string => {
   const cleaned = phone.replace(/\D/g, "");
 
@@ -40,13 +38,3 @@ export function debounce<
     timeout = setTimeout(() => func(...args), wait);
   };
 }
-
-export const formatCurrency = (
-  amount: number,
-  currency: string = "INR",
-): string => {
-  return formatCurrencyWithContext(amount, {
-    currency,
-    fractionDigits: Number.isInteger(amount) ? 0 : 2,
-  });
-};

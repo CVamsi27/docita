@@ -1,4 +1,8 @@
-import { Injectable, Logger } from '@nestjs/common';
+import { Inject, Injectable, Logger } from '@nestjs/common';
+import {
+  CLOCK_PORT,
+  type IClock,
+} from '@/shared/common/ports/clock.port';
 
 @Injectable()
 export class ErrorAlertingService {
@@ -9,7 +13,7 @@ export class ErrorAlertingService {
     responseTimeThreshold: 5000,
   };
 
-  constructor() {}
+  constructor(@Inject(CLOCK_PORT) private readonly clock: IClock) {}
 
   trackCriticalError(context: {
     errorType: string;
@@ -24,7 +28,7 @@ export class ErrorAlertingService {
       userId: context.userId,
       clinicId: context.clinicId,
       message: context.message,
-      timestamp: new Date().toISOString(),
+      timestamp: this.clock.now().toISOString(),
     });
 
     const shouldEscalate = this.evaluateSeverity(context);
@@ -105,7 +109,7 @@ export class ErrorAlertingService {
   private sendEscalationAlert(context: Record<string, unknown>): void {
     this.logger.error('ESCALATION ALERT', {
       context,
-      timestamp: new Date().toISOString(),
+      timestamp: this.clock.now().toISOString(),
     });
   }
 

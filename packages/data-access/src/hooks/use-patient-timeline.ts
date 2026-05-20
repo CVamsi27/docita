@@ -5,6 +5,7 @@ import {
   type PatientSnapshot,
   type PatientTimelineResponse,
 } from "@workspace/types";
+import { queryKeys } from "../lib/query-keys";
 import { useAPIMutation } from "../core/use-api-mutation";
 import { useAPIQuery } from "../core/use-api-query";
 import { useDataAccessContext } from "../provider/hooks";
@@ -30,7 +31,7 @@ export const usePatientTimeline = (
   const tierPatientsOk = useDataAccessContext().isTierFeatureEnabled(Feature.BASIC_PATIENT_MANAGEMENT);
 
   return useAPIQuery<PatientTimelineResponse>(
-    ["patient-timeline", patientId, filters ?? {}],
+    queryKeys.patientTimeline.list(patientId, filters ?? {}),
     `/patients/${patientId}/timeline${query ? `?${query}` : ""}`,
     { enabled: tierPatientsOk && !!patientId },
   );
@@ -39,7 +40,7 @@ export const usePatientTimeline = (
 export const usePatientSnapshot = (patientId: string) => {
   const tierPatientsOk = useDataAccessContext().isTierFeatureEnabled(Feature.BASIC_PATIENT_MANAGEMENT);
   return useAPIQuery<PatientSnapshot>(
-    ["patient-snapshot", patientId],
+    queryKeys.patientSnapshot.detail(patientId),
     `/patients/${patientId}/timeline/snapshot`,
     { enabled: tierPatientsOk && !!patientId },
   );
@@ -48,7 +49,7 @@ export const usePatientSnapshot = (patientId: string) => {
 export const useActiveMedications = (patientId: string) => {
   const tierPatientsOk = useDataAccessContext().isTierFeatureEnabled(Feature.BASIC_PATIENT_MANAGEMENT);
   return useAPIQuery<ActiveMedication[]>(
-    ["active-medications", patientId],
+    queryKeys.medications.active(patientId),
     `/patients/${patientId}/medication-doses/active-medications`,
     { enabled: tierPatientsOk && !!patientId },
   );
@@ -63,7 +64,7 @@ export const useMedicationAdherence = (
     ? `?prescriptionId=${prescriptionId}`
     : "";
   return useAPIQuery<MedicationAdherenceSummary>(
-    ["medication-adherence", patientId, prescriptionId ?? ""],
+    queryKeys.medications.adherence(patientId, prescriptionId ?? ""),
     `/patients/${patientId}/medication-doses/adherence${params}`,
     { enabled: tierPatientsOk && !!patientId },
   );
@@ -75,7 +76,7 @@ export const useUpdateDoseStatus = (patientId: string, doseId: string) =>
     { status?: string; takenAt?: string; notes?: string }
   >(`/patients/${patientId}/medication-doses/${doseId}`, "PATCH", {
     invalidateKeys: [
-      ["medication-adherence", patientId],
-      ["active-medications", patientId],
+      queryKeys.medications.adherencePrefix(patientId),
+      queryKeys.medications.active(patientId),
     ],
   });

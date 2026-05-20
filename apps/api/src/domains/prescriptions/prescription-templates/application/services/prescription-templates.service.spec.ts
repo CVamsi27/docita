@@ -1,11 +1,22 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import { PrescriptionTemplatesService } from './prescription-templates.service';
-import { PrismaService } from '@/prisma/prisma.service';
+import {
+  IPrescriptionTemplatesRepository,
+  PRESCRIPTION_TEMPLATES_REPOSITORY_TOKEN,
+} from '@/domains/prescriptions/prescription-templates/application/ports/prescription-templates.repository.port';
 import { beforeEach, describe, it, expect, jest } from '@jest/globals';
 
 describe('PrescriptionTemplatesService', () => {
   let service: PrescriptionTemplatesService;
-  let prismaService: PrismaService;
+  let repository: IPrescriptionTemplatesRepository;
+
+  const mockRepository: IPrescriptionTemplatesRepository = {
+    findAll: jest.fn<IPrescriptionTemplatesRepository['findAll']>(),
+    findById: jest.fn<IPrescriptionTemplatesRepository['findById']>(),
+    create: jest.fn<IPrescriptionTemplatesRepository['create']>(),
+    update: jest.fn<IPrescriptionTemplatesRepository['update']>(),
+    delete: jest.fn<IPrescriptionTemplatesRepository['delete']>(),
+  };
 
   const mockTemplate = {
     id: 'template-123',
@@ -30,16 +41,8 @@ describe('PrescriptionTemplatesService', () => {
       providers: [
         PrescriptionTemplatesService,
         {
-          provide: PrismaService,
-          useValue: {
-            prescriptionTemplate: {
-              findMany: jest.fn(),
-              findUnique: jest.fn(),
-              create: jest.fn(),
-              update: jest.fn(),
-              delete: jest.fn(),
-            },
-          },
+          provide: PRESCRIPTION_TEMPLATES_REPOSITORY_TOKEN,
+          useValue: mockRepository,
         },
       ],
     }).compile();
@@ -47,33 +50,30 @@ describe('PrescriptionTemplatesService', () => {
     service = module.get<PrescriptionTemplatesService>(
       PrescriptionTemplatesService,
     );
-    prismaService = module.get<PrismaService>(PrismaService);
+    repository = module.get<IPrescriptionTemplatesRepository>(
+      PRESCRIPTION_TEMPLATES_REPOSITORY_TOKEN,
+    );
+    jest.clearAllMocks();
   });
 
   it('should be defined', () => {
     expect(service).toBeDefined();
+    expect(repository).toBeDefined();
   });
 
   describe('findAll', () => {
     it('should return templates for a user', async () => {
-      jest
-        .spyOn(prismaService.prescriptionTemplate, 'findMany')
-        .mockResolvedValue([mockTemplate]);
+      jest.mocked(mockRepository.findAll).mockResolvedValue([mockTemplate]);
 
       const result = await service.findAll('user-123');
       expect(result).toEqual([mockTemplate]);
-      expect(prismaService.prescriptionTemplate.findMany).toHaveBeenCalledWith({
-        where: { userId: 'user-123' },
-        orderBy: { createdAt: 'desc' },
-      });
+      expect(mockRepository.findAll).toHaveBeenCalledWith('user-123');
     });
   });
 
   describe('create', () => {
     it('should create a template', async () => {
-      jest
-        .spyOn(prismaService.prescriptionTemplate, 'create')
-        .mockResolvedValue(mockTemplate);
+      jest.mocked(mockRepository.create).mockResolvedValue(mockTemplate);
 
       const createData = {
         name: 'Standard Fever',
@@ -83,12 +83,10 @@ describe('PrescriptionTemplatesService', () => {
 
       const result = await service.create('user-123', createData);
       expect(result).toEqual(mockTemplate);
-      expect(prismaService.prescriptionTemplate.create).toHaveBeenCalledWith({
-        data: expect.objectContaining({
-          userId: 'user-123',
-          name: 'Standard Fever',
-        }),
-      });
+      expect(mockRepository.create).toHaveBeenCalledWith(
+        'user-123',
+        createData,
+      );
     });
   });
 });

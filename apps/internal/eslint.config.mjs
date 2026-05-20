@@ -1,3 +1,8 @@
+import {
+  noInlineInvalidateKeysSyntaxRule,
+  noInlineQueryKeySyntaxRule,
+  noInlineUseApiQueryKeySyntaxRule,
+} from "@workspace/eslint-config/base";
 import { nextJsConfig } from "@workspace/eslint-config/next-js";
 
 export default [
@@ -25,7 +30,7 @@ export default [
           caughtErrorsIgnorePattern: "^_",
         },
       ],
-      "no-empty": ["warn", { allowEmptyCatch: true }],
+      "no-empty": ["error", { allowEmptyCatch: false }],
       "no-useless-catch": "warn",
       "no-console": ["error", { allow: ["warn", "error", "info"] }],
       "no-restricted-imports": [
@@ -101,6 +106,9 @@ export default [
           message:
             "animate-pulse is banned by docs/ui/UI_UX_STANDARD_2026.md \u00a75. Use static styling for emphasis instead.",
         },
+        noInlineQueryKeySyntaxRule,
+        noInlineUseApiQueryKeySyntaxRule,
+        noInlineInvalidateKeysSyntaxRule,
       ],
     },
   },

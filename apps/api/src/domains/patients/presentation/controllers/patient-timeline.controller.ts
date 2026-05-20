@@ -14,6 +14,8 @@ import { RequestWithUser } from '@/shared/common/types/common.types';
 import { PatientTimelineService } from '@/domains/patients/application/services/patient-timeline.service';
 import { parsePaginationInt } from '@/shared/common/utils/string.utils';
 import { getDbRolesForTarget } from '@/shared/modules/auth/auth/access-matrix.util';
+import { AuditService } from '@/shared/modules/audit/audit/audit.service';
+import { logPatientPhiRead } from '@/shared/modules/audit/audit/patient-access-audit.util';
 
 @ApiTags('patient-timeline')
 @Controller('patients/:patientId/timeline')
@@ -23,6 +25,7 @@ import { getDbRolesForTarget } from '@/shared/modules/auth/auth/access-matrix.ut
 export class PatientTimelineController {
   constructor(
     private readonly patientTimelineService: PatientTimelineService,
+    private readonly auditService: AuditService,
   ) {}
 
   private getClinicId(req: RequestWithUser): string {
@@ -46,6 +49,7 @@ export class PatientTimelineController {
     },
   ) {
     const clinicId = this.getClinicId(req);
+    await logPatientPhiRead(this.auditService, req, patientId, 'VIEW_HISTORY');
     const eventTypes = query.eventTypes
       ? (query.eventTypes.split(',') as Parameters<
           typeof this.patientTimelineService.getTimeline
@@ -68,6 +72,7 @@ export class PatientTimelineController {
     @Request() req: RequestWithUser,
   ) {
     const clinicId = this.getClinicId(req);
+    await logPatientPhiRead(this.auditService, req, patientId, 'VIEW_HISTORY');
     return this.patientTimelineService.getPatientSnapshot(clinicId, patientId);
   }
 }

@@ -24,6 +24,11 @@ import {
   getDbRolesForTarget,
   requireFeatureForTarget,
 } from '@/shared/modules/auth/auth/access-matrix.util';
+import { AuditService } from '@/shared/modules/audit/audit/audit.service';
+import {
+  logClinicPhiListRead,
+  logPatientPhiRead,
+} from '@/shared/modules/audit/audit/patient-access-audit.util';
 
 @ApiTags('appointment-requests')
 @Controller('appointment-requests')
@@ -33,6 +38,7 @@ import {
 export class AppointmentRequestController {
   constructor(
     private readonly appointmentRequestService: AppointmentRequestService,
+    private readonly auditService: AuditService,
   ) {}
 
   @Get()
@@ -41,6 +47,23 @@ export class AppointmentRequestController {
     @Request() req: RequestWithUser,
     @Query() query: ListAppointmentRequestsQueryDto,
   ) {
+    if (query.patientId) {
+      await logPatientPhiRead(
+        this.auditService,
+        req,
+        query.patientId,
+        'VIEW_HISTORY',
+      );
+    } else {
+      await logClinicPhiListRead(
+        this.auditService,
+        req,
+        'VIEW_APPOINTMENT_LIST',
+        'Appointment',
+        { scope: 'appointment-requests', ...query },
+      );
+    }
+
     return this.appointmentRequestService.listRequests(
       req.user!.clinicId!,
       query,

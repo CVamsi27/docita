@@ -42,13 +42,12 @@ import {
 } from '@/domains/prescriptions/application/dto/prescription.dto';
 import { ZodSerializerDto } from 'nestjs-zod';
 import { ZodValidationPipe } from '@/shared/common/pipes/zod-validation.pipe';
-
-interface AuthRequest {
-  user: {
-    id: string;
-    clinicId: string;
-  };
-}
+import { RequestWithUser } from '@/shared/common/types/common.types';
+import { AuditService } from '@/shared/modules/audit/audit/audit.service';
+import {
+  logClinicPhiListRead,
+  logPatientPhiRead,
+} from '@/shared/modules/audit/audit/patient-access-audit.util';
 
 @Controller('prescriptions')
 @UseGuards(TierGuard, FrontDeskClinicalBlockGuard)
@@ -59,16 +58,35 @@ export class PrescriptionsController {
     private readonly prescriptionsService: PrescriptionsService,
     @Inject(PdfJobService)
     private readonly pdfJobService: PdfJobServicePort,
+    private readonly auditService: AuditService,
   ) {}
 
   @Get()
   @ZodSerializerDto(PrescriptionListResponseDto)
-  findAll(
-    @Request() req: AuthRequest,
+  async findAll(
+    @Request() req: RequestWithUser,
     @Query() query?: ListPrescriptionsQueryDto,
   ) {
     const { search, date, startDate, endDate, patientId, limit } = query ?? {};
-    return this.prescriptionsService.findAll(req.user.clinicId, {
+
+    if (patientId) {
+      await logPatientPhiRead(
+        this.auditService,
+        req,
+        patientId,
+        'VIEW_HISTORY',
+      );
+    } else {
+      await logClinicPhiListRead(
+        this.auditService,
+        req,
+        'VIEW_PRESCRIPTION_LIST',
+        'Prescription',
+        { search, date, startDate, endDate, limit },
+      );
+    }
+
+    return this.prescriptionsService.findAll(req.user!.clinicId!, {
       search,
       date,
       startDate,
@@ -80,8 +98,18 @@ export class PrescriptionsController {
 
   @Get(':id')
   @ZodSerializerDto(PrescriptionResponseDto)
-  findOne(@Request() req: AuthRequest, @Param('id') id: string) {
-    return this.prescriptionsService.findOne(id, req.user.clinicId);
+  async findOne(@Request() req: RequestWithUser, @Param('id') id: string) {
+    const prescription = await this.prescriptionsService.findOne(
+      id,
+      req.user!.clinicId!,
+    );
+    await logPatientPhiRead(
+      this.auditService,
+      req,
+      prescription.patientId,
+      'VIEW_HISTORY',
+    );
+    return prescription;
   }
 
   @Post()
@@ -90,42 +118,67 @@ export class PrescriptionsController {
   @RequiresIdempotency()
   @ZodSerializerDto(PrescriptionResponseDto)
   @UsePipes(new ZodValidationPipe(CreatePrescriptionSchema))
-  create(@Request() req: AuthRequest, @Body() dto: CreatePrescriptionDto) {
+  create(@Request() req: RequestWithUser, @Body() dto: CreatePrescriptionDto) {
     return this.prescriptionsService.create({
       ...dto,
       appointmentId: dto.appointmentId || '',
-      doctorId: dto.doctorId || req.user.id,
+      doctorId: dto.doctorId || req.user!.id,
       doctorSpecialization: dto.doctorSpecialization as Specialization,
       doctorRole: dto.doctorRole as HospitalRole,
-      clinicId: req.user.clinicId,
+      clinicId: req.user!.clinicId!,
     });
   }
 
   @Get(':id/pdf/status')
   @RequireFeature(Feature.DIGITAL_PRESCRIPTIONS)
-  getPdfStatus(@Request() req: AuthRequest, @Query('jobId') jobId: string) {
-    return this.pdfJobService.getStatus(jobId, req.user.clinicId);
+  async getPdfStatus(
+    @Request() req: RequestWithUser,
+    @Param('id') id: string,
+    @Query('jobId') jobId: string,
+  ) {
+    const prescription = await this.prescriptionsService.findOne(
+      id,
+      req.user!.clinicId!,
+    );
+    await logPatientPhiRead(
+      this.auditService,
+      req,
+      prescription.patientId,
+      'VIEW_HISTORY',
+    );
+    return this.pdfJobService.getStatus(jobId, req.user!.clinicId!);
   }
 
   @Get(':id/pdf')
   @RequireFeature(Feature.DIGITAL_PRESCRIPTIONS)
   async getPdf(
-    @Request() req: AuthRequest,
+    @Request() req: RequestWithUser,
     @Param('id') id: string,
     @Query('async') isAsync: string,
     @Res() res: Response,
   ) {
+    const prescription = await this.prescriptionsService.findOne(
+      id,
+      req.user!.clinicId!,
+    );
+    await logPatientPhiRead(
+      this.auditService,
+      req,
+      prescription.patientId,
+      'VIEW_HISTORY',
+    );
+
     if (isAsync === 'true') {
       const result = await this.prescriptionsService.generatePdfAsync(
         id,
-        req.user.clinicId,
+        req.user!.clinicId!,
       );
       return res.status(HttpStatus.ACCEPTED).json(result);
     }
 
     const result = await this.prescriptionsService.getPdf(
       id,
-      req.user.clinicId,
+      req.user!.clinicId!,
     );
 
     if (result.type === 'url') {

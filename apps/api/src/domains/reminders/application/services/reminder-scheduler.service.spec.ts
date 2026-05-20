@@ -5,9 +5,13 @@ import {
   ClinicTier,
   IntelligenceAddon,
 } from '@workspace/db';
-import { PrismaService } from '@/prisma/prisma.service';
+import {
+  REMINDER_PERSISTENCE_PORT,
+  type ReminderPersistencePort,
+} from '@/domains/reminders/application/ports/reminder-persistence.port';
 import { ReminderNotificationService } from './reminder-notification.service';
 import { ReminderSchedulerService } from './reminder-scheduler.service';
+import { CLOCK_PORT } from '@/shared/common/ports/clock.port';
 
 describe('ReminderSchedulerService', () => {
   let service: ReminderSchedulerService;
@@ -76,8 +80,14 @@ describe('ReminderSchedulerService', () => {
     const module: TestingModule = await Test.createTestingModule({
       providers: [
         ReminderSchedulerService,
-        { provide: PrismaService, useValue: prisma },
+        { provide: REMINDER_PERSISTENCE_PORT, useValue: prisma },
         { provide: ReminderNotificationService, useValue: notificationService },
+        {
+          provide: CLOCK_PORT,
+          useValue: {
+            now: () => new Date('2026-04-01T09:00:00.000Z'),
+          },
+        },
       ],
     }).compile();
 

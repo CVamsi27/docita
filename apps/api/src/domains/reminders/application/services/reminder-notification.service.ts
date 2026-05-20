@@ -2,8 +2,12 @@ import {
   Injectable,
   Logger,
   NotFoundException as _NotFoundException,
+  Inject,
 } from '@nestjs/common';
-import { PrismaService } from '@/prisma/prisma.service';
+import {
+  REMINDER_PERSISTENCE_PORT,
+  type ReminderPersistencePort,
+} from '@/domains/reminders/application/ports/reminder-persistence.port';
 import { ReminderSettings, WhatsappLogStatus } from '@workspace/db';
 import {
   formatDate,
@@ -12,7 +16,11 @@ import {
   DEFAULT_TIMEZONE,
 } from '@workspace/utils';
 import { SendMessageUseCase } from '@/domains/whatsapp/application/use-cases/send-message.use-case';
-import { isClinicWhatsAppAutomationSendingAllowed } from '@/shared/modules/messaging/whatsapp/whatsapp-patient-send-policy.util';
+import {
+  CLOCK_PORT,
+  type IClock,
+} from '@/shared/common/ports/clock.port';
+import { isClinicWhatsAppAutomationSendingAllowed } from '@/shared/whatsapp/whatsapp-patient-send-policy.util';
 
 interface AppointmentForReminder {
   id: string;
@@ -40,8 +48,10 @@ export class ReminderNotificationService {
   private readonly logger = new Logger(ReminderNotificationService.name);
 
   constructor(
-    private prisma: PrismaService,
+    @Inject(REMINDER_PERSISTENCE_PORT)
+    private persistence: ReminderPersistencePort,
     private sendMessage: SendMessageUseCase,
+    @Inject(CLOCK_PORT) private readonly clock: IClock,
   ) {}
 
   async sendEmailReminder(
@@ -60,12 +70,12 @@ export class ReminderNotificationService {
       );
       this.logger.debug(`[EMAIL] Subject: ${subject}`);
 
-      await this.prisma.appointmentReminder.create({
+      await this.persistence.appointmentReminder.create({
         data: {
           appointmentId: appointment.id,
           type: 'email',
           status: 'sent',
-          sentAt: new Date(),
+          sentAt: this.clock.now(),
         },
       });
 
@@ -74,7 +84,7 @@ export class ReminderNotificationService {
       this.logger.error(
         `Failed to send email reminder: ${error instanceof Error ? error.message : 'Unknown error'}`,
       );
-      await this.prisma.appointmentReminder.create({
+      await this.persistence.appointmentReminder.create({
         data: {
           appointmentId: appointment.id,
           type: 'email',
@@ -96,12 +106,12 @@ export class ReminderNotificationService {
         `[SMS] Reminder workflow started for appointment ${appointment.id}`,
       );
 
-      await this.prisma.appointmentReminder.create({
+      await this.persistence.appointmentReminder.create({
         data: {
           appointmentId: appointment.id,
           type: 'sms',
           status: 'sent',
-          sentAt: new Date(),
+          sentAt: this.clock.now(),
         },
       });
 
@@ -110,7 +120,7 @@ export class ReminderNotificationService {
       this.logger.error(
         `Failed to send SMS reminder: ${error instanceof Error ? error.message : 'Unknown error'}`,
       );
-      await this.prisma.appointmentReminder.create({
+      await this.persistence.appointmentReminder.create({
         data: {
           appointmentId: appointment.id,
           type: 'sms',
@@ -131,7 +141,7 @@ export class ReminderNotificationService {
       const clinicId = appointment.clinic?.id || '';
       if (
         clinicId &&
-        !(await isClinicWhatsAppAutomationSendingAllowed(this.prisma, clinicId))
+        !(await isClinicWhatsAppAutomationSendingAllowed(this.persistence, clinicId))
       ) {
         this.logger.log(
           `[WhatsApp] Not allowed for clinic ${clinicId}; skipping ${reminderType} reminder for appointment ${appointment.id}`,
@@ -162,7 +172,7 @@ export class ReminderNotificationService {
         variables,
       });
 
-      await this.prisma.whatsappLog.create({
+      await this.persistence.whatsappLog.create({
         data: {
           clinicId: clinicId || '',
           patientId: appointment.patient.id,
@@ -175,12 +185,12 @@ export class ReminderNotificationService {
         },
       });
 
-      await this.prisma.appointmentReminder.create({
+      await this.persistence.appointmentReminder.create({
         data: {
           appointmentId: appointment.id,
           type: reminderType,
           status: 'sent',
-          sentAt: new Date(),
+          sentAt: this.clock.now(),
         },
       });
 
@@ -191,7 +201,7 @@ export class ReminderNotificationService {
       this.logger.error(
         `Failed to send WhatsApp reminder: ${error instanceof Error ? error.message : 'Unknown error'}`,
       );
-      await this.prisma.appointmentReminder.create({
+      await this.persistence.appointmentReminder.create({
         data: {
           appointmentId: appointment.id,
           type: reminderType,

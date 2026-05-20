@@ -1,6 +1,5 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import { FeedbackService } from './feedback.service';
-import { PrismaService } from '@/prisma/prisma.service';
 import { NotFoundException } from '@nestjs/common';
 import { beforeEach, describe, it, expect, jest } from '@jest/globals';
 import {
@@ -12,9 +11,8 @@ import type { FeedbackFilters } from './feedback-helpers';
 
 describe('FeedbackService', () => {
   let service: FeedbackService;
-  let prismaService: PrismaService;
 
-  const mockPrismaService = {
+  const mockFeedbackPersistenceMock = {
     feedback: {
       create: jest.fn<(...args: unknown[]) => Promise<unknown>>(),
       findMany: jest.fn<(...args: unknown[]) => Promise<unknown>>(),
@@ -58,7 +56,7 @@ describe('FeedbackService', () => {
 
   const mockFeedbackRepository: IFeedbackRepository = {
     create: jest.fn(async (data: CreateFeedbackData) =>
-      mockPrismaService.feedback.create({
+      mockFeedbackPersistenceMock.feedback.create({
         data: {
           ...data,
           status: 'NEW',
@@ -69,7 +67,7 @@ describe('FeedbackService', () => {
     ),
     findAllForClinic: jest.fn(
       (clinicId) =>
-        mockPrismaService.feedback.findMany({
+        mockFeedbackPersistenceMock.feedback.findMany({
           where: { clinicId },
           include: {},
           orderBy: { createdAt: 'desc' },
@@ -77,76 +75,80 @@ describe('FeedbackService', () => {
     ),
     findAll: jest.fn(
       (filters: FeedbackFilters) =>
-        mockPrismaService.feedback.findMany({
+        mockFeedbackPersistenceMock.feedback.findMany({
           where: buildWhere(filters),
           include: {},
           orderBy: { createdAt: 'desc' },
         }) as Promise<unknown[]>,
     ),
     findOneRaw: jest.fn((id) =>
-      mockPrismaService.feedback.findUnique({
+      mockFeedbackPersistenceMock.feedback.findUnique({
         where: { id },
         include: {},
       }),
     ),
     findByUser: jest.fn(
       (userId) =>
-        mockPrismaService.feedback.findMany({
+        mockFeedbackPersistenceMock.feedback.findMany({
           where: { userId },
           include: {},
           orderBy: { createdAt: 'desc' },
         }) as Promise<unknown[]>,
     ),
     updateStatus: jest.fn((id, data) =>
-      mockPrismaService.feedback.update({
+      mockFeedbackPersistenceMock.feedback.update({
         where: { id },
         data,
         include: {},
       }),
     ),
     delete: jest.fn((id) =>
-      mockPrismaService.feedback.update({
+      mockFeedbackPersistenceMock.feedback.update({
         where: { id },
         data: { deletedAt: expect.any(Date) },
       }),
     ),
     computeStats: jest.fn(async (clinicId) => {
       const where = clinicId ? { clinicId } : {};
-      const total = (await mockPrismaService.feedback.count({
+      const total = (await mockFeedbackPersistenceMock.feedback.count({
         where,
       })) as number;
-      const byStatus = (await mockPrismaService.feedback.groupBy({
+      const byStatus = (await mockFeedbackPersistenceMock.feedback.groupBy({
         by: ['status'],
         where,
         _count: true,
       })) as Array<{ status: never; _count: number }>;
-      const byCategory = (await mockPrismaService.feedback.groupBy({
+      const byCategory = (await mockFeedbackPersistenceMock.feedback.groupBy({
         by: ['category'],
         where,
         _count: true,
       })) as Array<{ category: never; _count: number }>;
-      const rating = (await mockPrismaService.feedback.aggregate({
+      const rating = (await mockFeedbackPersistenceMock.feedback.aggregate({
         where,
         _avg: { overallRating: true },
       })) as { _avg: { overallRating: number | null } };
-      const recentCount = (await mockPrismaService.feedback.count({
+      const recentCount = (await mockFeedbackPersistenceMock.feedback.count({
         where,
       })) as number;
-      const topGood = (await mockPrismaService.feedbackFeature.groupBy({
-        by: ['feature'],
-        where,
-        _count: { feature: true },
-      })) as Array<{ feature: string; _count: { feature: number } }>;
-      const topBad = (await mockPrismaService.feedbackFeature.groupBy({
-        by: ['feature'],
-        where,
-        _count: { feature: true },
-      })) as Array<{ feature: string; _count: { feature: number } }>;
-      const topImprovement = (await mockPrismaService.feedbackFeature.groupBy({
-        by: ['feature'],
-        where,
-        _count: { feature: true },
-      })) as Array<{ feature: string; _count: { feature: number } }>;
+      const topGood =
+        (await mockFeedbackPersistenceMock.feedbackFeature.groupBy({
+          by: ['feature'],
+          where,
+          _count: { feature: true },
+        })) as Array<{ feature: string; _count: { feature: number } }>;
+      const topBad = (await mockFeedbackPersistenceMock.feedbackFeature.groupBy(
+        {
+          by: ['feature'],
+          where,
+          _count: { feature: true },
+        },
+      )) as Array<{ feature: string; _count: { feature: number } }>;
+      const topImprovement =
+        (await mockFeedbackPersistenceMock.feedbackFeature.groupBy({
+          by: ['feature'],
+          where,
+          _count: { feature: true },
+        })) as Array<{ feature: string; _count: { feature: number } }>;
 
       return {
         total,
@@ -196,10 +198,6 @@ describe('FeedbackService', () => {
       providers: [
         FeedbackService,
         {
-          provide: PrismaService,
-          useValue: mockPrismaService,
-        },
-        {
           provide: FEEDBACK_REPOSITORY_TOKEN,
           useValue: mockFeedbackRepository,
         },
@@ -207,18 +205,12 @@ describe('FeedbackService', () => {
     }).compile();
 
     service = module.get<FeedbackService>(FeedbackService);
-    prismaService = module.get<PrismaService>(PrismaService);
-
     jest.clearAllMocks();
   });
 
   describe('Dependency Injection', () => {
     it('should be defined', () => {
       expect(service).toBeDefined();
-    });
-
-    it('should inject PrismaService', () => {
-      expect(prismaService).toBeDefined();
     });
   });
 
@@ -243,14 +235,14 @@ describe('FeedbackService', () => {
         clinic: { id: 'clinic-1', name: 'Test Clinic' },
       };
 
-      mockPrismaService.feedback.create.mockResolvedValue(
+      mockFeedbackPersistenceMock.feedback.create.mockResolvedValue(
         feedbackWithRelations,
       );
 
       const result = await service.create('clinic-1', 'user-1', createData);
 
       expect(result).toEqual(feedbackWithRelations);
-      expect(mockPrismaService.feedback.create).toHaveBeenCalledWith({
+      expect(mockFeedbackPersistenceMock.feedback.create).toHaveBeenCalledWith({
         data: expect.objectContaining({
           clinicId: 'clinic-1',
           userId: 'user-1',
@@ -262,13 +254,15 @@ describe('FeedbackService', () => {
     });
 
     it('should set empty arrays for undefined array fields', async () => {
-      mockPrismaService.feedback.create.mockResolvedValue(mockFeedback);
+      mockFeedbackPersistenceMock.feedback.create.mockResolvedValue(
+        mockFeedback,
+      );
 
       await service.create('clinic-1', 'user-1', {
         overallRating: 5,
       });
 
-      expect(mockPrismaService.feedback.create).toHaveBeenCalledWith(
+      expect(mockFeedbackPersistenceMock.feedback.create).toHaveBeenCalledWith(
         expect.objectContaining({
           data: expect.objectContaining({
             goodFeatures: [],
@@ -280,13 +274,15 @@ describe('FeedbackService', () => {
     });
 
     it('should default category to GENERAL if not provided', async () => {
-      mockPrismaService.feedback.create.mockResolvedValue(mockFeedback);
+      mockFeedbackPersistenceMock.feedback.create.mockResolvedValue(
+        mockFeedback,
+      );
 
       await service.create('clinic-1', 'user-1', {
         overallRating: 3,
       });
 
-      expect(mockPrismaService.feedback.create).toHaveBeenCalledWith(
+      expect(mockFeedbackPersistenceMock.feedback.create).toHaveBeenCalledWith(
         expect.objectContaining({
           data: expect.objectContaining({
             category: 'GENERAL',
@@ -299,12 +295,16 @@ describe('FeedbackService', () => {
   describe('findAllForClinic', () => {
     it('should return all feedback for a clinic', async () => {
       const feedbacks = [mockFeedback];
-      mockPrismaService.feedback.findMany.mockResolvedValue(feedbacks);
+      mockFeedbackPersistenceMock.feedback.findMany.mockResolvedValue(
+        feedbacks,
+      );
 
       const result = await service.findAllForClinic('clinic-1');
 
       expect(result).toEqual(feedbacks);
-      expect(mockPrismaService.feedback.findMany).toHaveBeenCalledWith({
+      expect(
+        mockFeedbackPersistenceMock.feedback.findMany,
+      ).toHaveBeenCalledWith({
         where: { clinicId: 'clinic-1' },
         include: expect.any(Object),
         orderBy: { createdAt: 'desc' },
@@ -312,7 +312,7 @@ describe('FeedbackService', () => {
     });
 
     it('should return empty array when no feedback exists', async () => {
-      mockPrismaService.feedback.findMany.mockResolvedValue([]);
+      mockFeedbackPersistenceMock.feedback.findMany.mockResolvedValue([]);
 
       const result = await service.findAllForClinic('clinic-1');
 
@@ -323,12 +323,16 @@ describe('FeedbackService', () => {
   describe('findAll', () => {
     it('should return all feedback without filters', async () => {
       const feedbacks = [mockFeedback];
-      mockPrismaService.feedback.findMany.mockResolvedValue(feedbacks);
+      mockFeedbackPersistenceMock.feedback.findMany.mockResolvedValue(
+        feedbacks,
+      );
 
       const result = await service.findAll();
 
       expect(result).toEqual(feedbacks);
-      expect(mockPrismaService.feedback.findMany).toHaveBeenCalledWith(
+      expect(
+        mockFeedbackPersistenceMock.feedback.findMany,
+      ).toHaveBeenCalledWith(
         expect.objectContaining({
           where: {},
         }),
@@ -336,11 +340,15 @@ describe('FeedbackService', () => {
     });
 
     it('should filter by status', async () => {
-      mockPrismaService.feedback.findMany.mockResolvedValue([mockFeedback]);
+      mockFeedbackPersistenceMock.feedback.findMany.mockResolvedValue([
+        mockFeedback,
+      ]);
 
       await service.findAll({ status: 'REVIEWED' });
 
-      expect(mockPrismaService.feedback.findMany).toHaveBeenCalledWith(
+      expect(
+        mockFeedbackPersistenceMock.feedback.findMany,
+      ).toHaveBeenCalledWith(
         expect.objectContaining({
           where: { status: 'REVIEWED' },
         }),
@@ -348,11 +356,15 @@ describe('FeedbackService', () => {
     });
 
     it('should filter by category', async () => {
-      mockPrismaService.feedback.findMany.mockResolvedValue([mockFeedback]);
+      mockFeedbackPersistenceMock.feedback.findMany.mockResolvedValue([
+        mockFeedback,
+      ]);
 
       await service.findAll({ category: 'BUG_REPORT' });
 
-      expect(mockPrismaService.feedback.findMany).toHaveBeenCalledWith(
+      expect(
+        mockFeedbackPersistenceMock.feedback.findMany,
+      ).toHaveBeenCalledWith(
         expect.objectContaining({
           where: { category: 'BUG_REPORT' },
         }),
@@ -360,11 +372,15 @@ describe('FeedbackService', () => {
     });
 
     it('should filter by clinicId', async () => {
-      mockPrismaService.feedback.findMany.mockResolvedValue([mockFeedback]);
+      mockFeedbackPersistenceMock.feedback.findMany.mockResolvedValue([
+        mockFeedback,
+      ]);
 
       await service.findAll({ clinicId: 'clinic-1' });
 
-      expect(mockPrismaService.feedback.findMany).toHaveBeenCalledWith(
+      expect(
+        mockFeedbackPersistenceMock.feedback.findMany,
+      ).toHaveBeenCalledWith(
         expect.objectContaining({
           where: { clinicId: 'clinic-1' },
         }),
@@ -372,11 +388,15 @@ describe('FeedbackService', () => {
     });
 
     it('should filter by minimum rating', async () => {
-      mockPrismaService.feedback.findMany.mockResolvedValue([mockFeedback]);
+      mockFeedbackPersistenceMock.feedback.findMany.mockResolvedValue([
+        mockFeedback,
+      ]);
 
       await service.findAll({ minRating: 4 });
 
-      expect(mockPrismaService.feedback.findMany).toHaveBeenCalledWith(
+      expect(
+        mockFeedbackPersistenceMock.feedback.findMany,
+      ).toHaveBeenCalledWith(
         expect.objectContaining({
           where: { overallRating: { gte: 4 } },
         }),
@@ -384,11 +404,15 @@ describe('FeedbackService', () => {
     });
 
     it('should filter by maximum rating', async () => {
-      mockPrismaService.feedback.findMany.mockResolvedValue([mockFeedback]);
+      mockFeedbackPersistenceMock.feedback.findMany.mockResolvedValue([
+        mockFeedback,
+      ]);
 
       await service.findAll({ maxRating: 3 });
 
-      expect(mockPrismaService.feedback.findMany).toHaveBeenCalledWith(
+      expect(
+        mockFeedbackPersistenceMock.feedback.findMany,
+      ).toHaveBeenCalledWith(
         expect.objectContaining({
           where: { overallRating: { lte: 3 } },
         }),
@@ -396,11 +420,15 @@ describe('FeedbackService', () => {
     });
 
     it('should filter by rating range', async () => {
-      mockPrismaService.feedback.findMany.mockResolvedValue([mockFeedback]);
+      mockFeedbackPersistenceMock.feedback.findMany.mockResolvedValue([
+        mockFeedback,
+      ]);
 
       await service.findAll({ minRating: 3, maxRating: 5 });
 
-      expect(mockPrismaService.feedback.findMany).toHaveBeenCalledWith(
+      expect(
+        mockFeedbackPersistenceMock.feedback.findMany,
+      ).toHaveBeenCalledWith(
         expect.objectContaining({
           where: { overallRating: { gte: 3, lte: 5 } },
         }),
@@ -408,11 +436,15 @@ describe('FeedbackService', () => {
     });
 
     it('should filter by search text', async () => {
-      mockPrismaService.feedback.findMany.mockResolvedValue([mockFeedback]);
+      mockFeedbackPersistenceMock.feedback.findMany.mockResolvedValue([
+        mockFeedback,
+      ]);
 
       await service.findAll({ search: 'telehealth' });
 
-      expect(mockPrismaService.feedback.findMany).toHaveBeenCalledWith(
+      expect(
+        mockFeedbackPersistenceMock.feedback.findMany,
+      ).toHaveBeenCalledWith(
         expect.objectContaining({
           where: expect.objectContaining({
             OR: expect.arrayContaining([
@@ -428,7 +460,9 @@ describe('FeedbackService', () => {
     });
 
     it('should combine multiple filters', async () => {
-      mockPrismaService.feedback.findMany.mockResolvedValue([mockFeedback]);
+      mockFeedbackPersistenceMock.feedback.findMany.mockResolvedValue([
+        mockFeedback,
+      ]);
 
       await service.findAll({
         status: 'NEW',
@@ -436,7 +470,9 @@ describe('FeedbackService', () => {
         clinicId: 'clinic-1',
       });
 
-      expect(mockPrismaService.feedback.findMany).toHaveBeenCalledWith(
+      expect(
+        mockFeedbackPersistenceMock.feedback.findMany,
+      ).toHaveBeenCalledWith(
         expect.objectContaining({
           where: {
             status: 'NEW',
@@ -456,14 +492,16 @@ describe('FeedbackService', () => {
         clinic: { id: 'clinic-1', name: 'Clinic' },
       };
 
-      mockPrismaService.feedback.findUnique.mockResolvedValue(
+      mockFeedbackPersistenceMock.feedback.findUnique.mockResolvedValue(
         feedbackWithRelations,
       );
 
       const result = await service.findOne('feedback-1');
 
       expect(result).toEqual(feedbackWithRelations);
-      expect(mockPrismaService.feedback.findUnique).toHaveBeenCalledWith(
+      expect(
+        mockFeedbackPersistenceMock.feedback.findUnique,
+      ).toHaveBeenCalledWith(
         expect.objectContaining({
           where: { id: 'feedback-1' },
         }),
@@ -471,7 +509,7 @@ describe('FeedbackService', () => {
     });
 
     it('should throw NotFoundException when feedback not found', async () => {
-      mockPrismaService.feedback.findUnique.mockResolvedValue(null);
+      mockFeedbackPersistenceMock.feedback.findUnique.mockResolvedValue(null);
 
       await expect(service.findOne('non-existent')).rejects.toThrow(
         NotFoundException,
@@ -485,12 +523,16 @@ describe('FeedbackService', () => {
   describe('findByUser', () => {
     it('should return all feedback by user', async () => {
       const feedbacks = [mockFeedback];
-      mockPrismaService.feedback.findMany.mockResolvedValue(feedbacks);
+      mockFeedbackPersistenceMock.feedback.findMany.mockResolvedValue(
+        feedbacks,
+      );
 
       const result = await service.findByUser('user-1');
 
       expect(result).toEqual(feedbacks);
-      expect(mockPrismaService.feedback.findMany).toHaveBeenCalledWith({
+      expect(
+        mockFeedbackPersistenceMock.feedback.findMany,
+      ).toHaveBeenCalledWith({
         where: { userId: 'user-1' },
         include: expect.any(Object),
         orderBy: { createdAt: 'desc' },
@@ -498,7 +540,7 @@ describe('FeedbackService', () => {
     });
 
     it('should return empty array when user has no feedback', async () => {
-      mockPrismaService.feedback.findMany.mockResolvedValue([]);
+      mockFeedbackPersistenceMock.feedback.findMany.mockResolvedValue([]);
 
       const result = await service.findByUser('user-1');
 
@@ -508,14 +550,18 @@ describe('FeedbackService', () => {
 
   describe('updateStatus', () => {
     it('should update feedback status', async () => {
-      mockPrismaService.feedback.findUnique.mockResolvedValue(mockFeedback);
+      mockFeedbackPersistenceMock.feedback.findUnique.mockResolvedValue(
+        mockFeedback,
+      );
 
       const updatedFeedback = {
         ...mockFeedback,
         status: 'REVIEWED',
         adminNotes: 'Thanks for the feedback',
       };
-      mockPrismaService.feedback.update.mockResolvedValue(updatedFeedback);
+      mockFeedbackPersistenceMock.feedback.update.mockResolvedValue(
+        updatedFeedback,
+      );
 
       const result = await service.updateStatus('feedback-1', {
         status: 'REVIEWED',
@@ -523,7 +569,7 @@ describe('FeedbackService', () => {
       });
 
       expect(result).toEqual(updatedFeedback);
-      expect(mockPrismaService.feedback.update).toHaveBeenCalledWith(
+      expect(mockFeedbackPersistenceMock.feedback.update).toHaveBeenCalledWith(
         expect.objectContaining({
           where: { id: 'feedback-1' },
           data: {
@@ -535,7 +581,7 @@ describe('FeedbackService', () => {
     });
 
     it('should throw NotFoundException when updating non-existent feedback', async () => {
-      mockPrismaService.feedback.findUnique.mockResolvedValue(null);
+      mockFeedbackPersistenceMock.feedback.findUnique.mockResolvedValue(null);
 
       await expect(
         service.updateStatus('non-existent', { status: 'REVIEWED' }),
@@ -543,15 +589,17 @@ describe('FeedbackService', () => {
     });
 
     it('should update status without admin notes', async () => {
-      mockPrismaService.feedback.findUnique.mockResolvedValue(mockFeedback);
-      mockPrismaService.feedback.update.mockResolvedValue({
+      mockFeedbackPersistenceMock.feedback.findUnique.mockResolvedValue(
+        mockFeedback,
+      );
+      mockFeedbackPersistenceMock.feedback.update.mockResolvedValue({
         ...mockFeedback,
         status: 'RESOLVED',
       });
 
       await service.updateStatus('feedback-1', { status: 'RESOLVED' });
 
-      expect(mockPrismaService.feedback.update).toHaveBeenCalledWith(
+      expect(mockFeedbackPersistenceMock.feedback.update).toHaveBeenCalledWith(
         expect.objectContaining({
           data: expect.objectContaining({
             status: 'RESOLVED',
@@ -563,16 +611,16 @@ describe('FeedbackService', () => {
 
   describe('getStats', () => {
     it('should aggregate feature stats from normalized feedback features', async () => {
-      mockPrismaService.feedback.count
+      mockFeedbackPersistenceMock.feedback.count
         .mockResolvedValueOnce(12)
         .mockResolvedValueOnce(3);
-      mockPrismaService.feedback.groupBy
+      mockFeedbackPersistenceMock.feedback.groupBy
         .mockResolvedValueOnce([{ status: 'NEW', _count: 10 }])
         .mockResolvedValueOnce([{ category: 'GENERAL', _count: 9 }]);
-      mockPrismaService.feedback.aggregate.mockResolvedValue({
+      mockFeedbackPersistenceMock.feedback.aggregate.mockResolvedValue({
         _avg: { overallRating: 4.2 },
       });
-      mockPrismaService.feedbackFeature.groupBy
+      mockFeedbackPersistenceMock.feedbackFeature.groupBy
         .mockResolvedValueOnce([
           { feature: 'Ease of use', _count: { feature: 4 } },
         ])
@@ -599,7 +647,7 @@ describe('FeedbackService', () => {
   describe('Error Handling', () => {
     it('should propagate database errors from create', async () => {
       const error = new Error('Database connection failed');
-      mockPrismaService.feedback.create.mockRejectedValue(error);
+      mockFeedbackPersistenceMock.feedback.create.mockRejectedValue(error);
 
       await expect(
         service.create('clinic-1', 'user-1', { overallRating: 5 }),
@@ -608,15 +656,17 @@ describe('FeedbackService', () => {
 
     it('should propagate database errors from findMany', async () => {
       const error = new Error('Database error');
-      mockPrismaService.feedback.findMany.mockRejectedValue(error);
+      mockFeedbackPersistenceMock.feedback.findMany.mockRejectedValue(error);
 
       await expect(service.findAll()).rejects.toThrow('Database error');
     });
 
     it('should propagate database errors from update', async () => {
-      mockPrismaService.feedback.findUnique.mockResolvedValue(mockFeedback);
+      mockFeedbackPersistenceMock.feedback.findUnique.mockResolvedValue(
+        mockFeedback,
+      );
       const error = new Error('Update failed');
-      mockPrismaService.feedback.update.mockRejectedValue(error);
+      mockFeedbackPersistenceMock.feedback.update.mockRejectedValue(error);
 
       await expect(
         service.updateStatus('feedback-1', { status: 'REVIEWED' }),

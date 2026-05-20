@@ -1,4 +1,8 @@
-import { Injectable } from '@nestjs/common';
+import { Inject, Injectable } from '@nestjs/common';
+import {
+  CLOCK_PORT,
+  type IClock,
+} from '@/shared/common/ports/clock.port';
 import { PrismaService } from '@/prisma/prisma.service';
 import { FeedbackFeatureType } from '@workspace/db';
 import {
@@ -38,7 +42,10 @@ const CLINIC_WITH_TIER_SELECT = {
 
 @Injectable()
 export class PrismaFeedbackRepository implements IFeedbackRepository {
-  constructor(private readonly prisma: PrismaService) {}
+  constructor(
+    private readonly prisma: PrismaService,
+    @Inject(CLOCK_PORT) private readonly clock: IClock,
+  ) {}
 
   create(data: CreateFeedbackData) {
     return this.prisma.feedback.create({
@@ -165,7 +172,11 @@ export class PrismaFeedbackRepository implements IFeedbackRepository {
       this.prisma.feedback.count({
         where: {
           ...where,
-          createdAt: { gte: new Date(Date.now() - 7 * 24 * 60 * 60 * 1000) },
+          createdAt: {
+            gte: new Date(
+              this.clock.now().getTime() - 7 * 24 * 60 * 60 * 1000,
+            ),
+          },
         },
       }),
       this.prisma.feedbackFeature.groupBy({

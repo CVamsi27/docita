@@ -62,15 +62,19 @@ export class Payment {
     return this.status;
   }
 
-  capture(): void {
+  private touchUpdatedAt(now: Date): void {
+    this.updatedAt = now;
+  }
+
+  capture(now: Date): void {
     if (this.status !== PaymentStatus.PENDING) {
       throw new Error('Can only capture pending payments');
     }
     this.status = PaymentStatus.CAPTURED;
-    this.updatedAt = new Date();
+    this.touchUpdatedAt(now);
   }
 
-  refund(amount: Money): void {
+  refund(amount: Money, now: Date): void {
     if (this.status !== PaymentStatus.CAPTURED) {
       throw new Error('Can only refund captured payments');
     }
@@ -81,20 +85,20 @@ export class Payment {
     }
 
     this.refundedAmount = totalRefunded;
-    this.updatedAt = new Date();
+    this.touchUpdatedAt(now);
 
     if (this.refundedAmount.amount >= this.amount.amount * 0.9999) {
       this.status = PaymentStatus.REFUNDED;
     }
   }
 
-  fail(reason: string): void {
+  fail(reason: string, now: Date): void {
     if (this.status === PaymentStatus.CAPTURED) {
       throw new Error('Cannot fail a captured payment');
     }
     this.status = PaymentStatus.FAILED;
     this.failureReason = reason;
-    this.updatedAt = new Date();
+    this.touchUpdatedAt(now);
   }
 
   getRefundedAmount(): Money {

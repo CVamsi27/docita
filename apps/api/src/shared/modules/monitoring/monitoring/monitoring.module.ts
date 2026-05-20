@@ -13,7 +13,14 @@ import { ComplianceModule } from '@/shared/modules/compliance/compliance.module'
 import { RequestLogService } from './services/request-log.service';
 import { ErrorTrackingService } from './services/error-tracking.service';
 import { MetricsService } from './services/metrics.service';
+import { MetricsPersistenceService } from './services/metrics-persistence.service';
+import { MetricsRecordingService } from './services/metrics-recording.service';
+import { WebVitalsMetricsService } from './services/web-vitals-metrics.service';
+import { MetricsQueryService } from './services/metrics-query.service';
+import { MetricsAggregationService } from './services/metrics-aggregation.service';
 import { HealthCheckService } from './services/health-check.service';
+import { API_REQUEST_METRICS_REPOSITORY_TOKEN } from './ports/api-request-metrics.repository.port';
+import { PrismaApiRequestMetricsRepository } from './infrastructure/prisma-api-request-metrics.repository';
 
 @Global()
 @Module({
@@ -25,12 +32,21 @@ import { HealthCheckService } from './services/health-check.service';
     HealthController,
   ],
   providers: [
+    {
+      provide: API_REQUEST_METRICS_REPOSITORY_TOKEN,
+      useClass: PrismaApiRequestMetricsRepository,
+    },
     MonitoringService,
     MonitoringFactory,
     HealthService,
     PrismaHealthIndicator,
     RequestLogService,
     ErrorTrackingService,
+    MetricsPersistenceService,
+    MetricsRecordingService,
+    WebVitalsMetricsService,
+    MetricsQueryService,
+    MetricsAggregationService,
     MetricsService,
     HealthCheckService,
   ],
@@ -40,6 +56,11 @@ import { HealthCheckService } from './services/health-check.service';
     PrismaHealthIndicator,
     RequestLogService,
     ErrorTrackingService,
+    MetricsPersistenceService,
+    MetricsRecordingService,
+    WebVitalsMetricsService,
+    MetricsQueryService,
+    MetricsAggregationService,
     MetricsService,
     HealthCheckService,
   ],

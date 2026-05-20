@@ -1,0 +1,49 @@
+import type { IClock } from '@/shared/common/ports/clock.port';
+import type { QueueTokenWithRelations } from '@/domains/appointments/core/repositories/queue.repository.interface';
+
+export function getTodayRange(clock: IClock) {
+  const today = clock.now();
+  today.setHours(0, 0, 0, 0);
+  const tomorrow = new Date(today);
+  tomorrow.setDate(tomorrow.getDate() + 1);
+  return { today, tomorrow };
+}
+
+export function mapQueueToken(t: QueueTokenWithRelations) {
+  return {
+    id: t.id,
+    clinicId: t.clinicId,
+    patientId: t.patientId,
+    appointmentId: t.appointmentId,
+    doctorId: t.doctorId,
+    tokenNumber: t.tokenNumber,
+    status: t.status,
+    priority: t.priority,
+    notes: t.notes,
+    calledAt: t.calledAt?.toISOString(),
+    completedAt: t.completedAt?.toISOString(),
+    createdAt: t.createdAt.toISOString(),
+    tokenType: t.tokenType as 'scheduled' | 'walk-in' | 'late-arrival',
+    scheduledTime: t.scheduledTime?.toISOString(),
+    estimatedDuration: t.estimatedDuration,
+    estimatedWaitTime: t.estimatedWaitTime,
+    consultationStart: t.consultationStart?.toISOString(),
+    patient: t.patient,
+    doctor: t.doctor,
+    appointment: t.appointment,
+  };
+}
+
+export function calcAvgConsultationMinutes(
+  completed: Array<{
+    consultationStart: Date | null;
+    completedAt: Date | null;
+  }>,
+): number {
+  if (completed.length === 0) return 0;
+  const total = completed.reduce((sum, t) => {
+    if (!t.consultationStart || !t.completedAt) return sum;
+    return sum + (t.completedAt.getTime() - t.consultationStart.getTime());
+  }, 0);
+  return Math.round(total / completed.length / 60000);
+}

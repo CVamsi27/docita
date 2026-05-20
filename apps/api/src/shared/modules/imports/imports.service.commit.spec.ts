@@ -1,9 +1,11 @@
 import { Test, TestingModule } from '@nestjs/testing';
-import { EventEmitter2 } from '@nestjs/event-emitter';
 import { ImportsService } from './imports.service';
+import { ImportPreviewService } from './import-preview.service';
+import { PatientTabularImportService } from './patient-tabular-import.service';
+import { ImportOcrWorkflowService } from './import-ocr-workflow.service';
+import { OcrImportCommitService } from './ocr-import-commit.service';
 import { PrismaService } from '@/prisma/prisma.service';
-import { AIService } from '@/shared/modules/ai/ai.service';
-import { OCRService } from './ocr.service';
+import { CLOCK_PORT, type IClock } from '@/shared/common/ports/clock.port';
 import { beforeEach, describe, expect, it, jest } from '@jest/globals';
 import type { OcrImportCommitRequest } from '@workspace/types';
 
@@ -71,20 +73,25 @@ describe('ImportsService.commitOcrImport', () => {
       providers: [
         ImportsService,
         {
+          provide: ImportPreviewService,
+          useValue: {},
+        },
+        {
+          provide: PatientTabularImportService,
+          useValue: {},
+        },
+        {
+          provide: ImportOcrWorkflowService,
+          useValue: {},
+        },
+        OcrImportCommitService,
+        {
           provide: PrismaService,
           useValue: prismaServiceMock as PrismaService,
         },
         {
-          provide: OCRService,
-          useValue: {},
-        },
-        {
-          provide: EventEmitter2,
-          useValue: { emit: jest.fn() },
-        },
-        {
-          provide: AIService,
-          useValue: {},
+          provide: CLOCK_PORT,
+          useValue: { now: () => new Date('2026-01-15T10:00:00Z') } satisfies IClock,
         },
       ],
     }).compile();

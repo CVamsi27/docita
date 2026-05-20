@@ -20,6 +20,10 @@ import {
   ISubscriptionRepository,
   SUBSCRIPTION_REPOSITORY_TOKEN,
 } from '@/domains/subscriptions/application/ports/subscription.repository.port';
+import {
+  CLOCK_PORT,
+  type IClock,
+} from '@/shared/common/ports/clock.port';
 
 @Injectable()
 export class CreateSubscriptionUseCase {
@@ -30,6 +34,7 @@ export class CreateSubscriptionUseCase {
     private subscriptionRepository: ISubscriptionRepository,
     private pricingService: SubscriptionPricingService,
     private validationService: SubscriptionValidationService,
+    @Inject(CLOCK_PORT) private readonly clock: IClock,
   ) {}
 
   async execute(
@@ -68,13 +73,15 @@ export class CreateSubscriptionUseCase {
       currentPeriodEnd: dto.currentPeriodEnd,
       trialEnd: dto.trialEnd,
       autoPayEnabled: true,
-      createdAt: new Date(),
-      updatedAt: new Date(),
+      createdAt: this.clock.now(),
+      updatedAt: this.clock.now(),
       version: 1,
     });
 
-    const validation =
-      this.validationService.validateSubscription(subscription);
+    const validation = this.validationService.validateSubscription(
+      subscription,
+      this.clock.now(),
+    );
     if (!validation.valid) {
       throw new BadRequestException({
         message: 'Invalid subscription',

@@ -25,6 +25,16 @@
             "types": "./dist/lib/*.d.ts",
             "import": "./dist/lib/*.js",
             "default": "./dist/lib/*.js"
+        },
+        "./internal": {
+            "types": "./dist/internal/index.d.ts",
+            "import": "./dist/internal/index.js",
+            "default": "./dist/internal/index.js"
+        },
+        "./internal/*": {
+            "types": "./dist/internal/*.d.ts",
+            "import": "./dist/internal/*.js",
+            "default": "./dist/internal/*.js"
         }
     },
     "scripts": {

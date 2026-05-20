@@ -1,5 +1,9 @@
+import { PrismaService } from '@/prisma/prisma.service';
+import { PATIENT_PERSISTENCE_PORT } from './application/ports/patient-persistence.port';
 import { Module } from '@nestjs/common';
 import { PatientService } from './application/services/patient.service';
+import { PatientCommandService } from './application/services/patient-command.service';
+import { PatientQueryService } from './application/services/patient-query.service';
 import { PatientsController } from './presentation/controllers/patients.controller';
 import { MedicalHistoryController } from './presentation/controllers/medical-history.controller';
 import { PatientMetricsController } from './presentation/controllers/patient-metrics.controller';
@@ -9,11 +13,18 @@ import { MedicalHistoryService } from './application/services/medical-history.se
 import { MedicalHistoryConditionsService } from './application/services/medical-history-conditions.service';
 import { PatientMetricsService } from './application/services/patientMetrics.service';
 import { MedicationDoseService } from './application/services/medication-dose.service';
+import { MedicationDoseCommandService } from './application/services/medication-dose-command.service';
+import { MedicationDoseQueryService } from './application/services/medication-dose-query.service';
 import { PatientTimelineService } from './application/services/patient-timeline.service';
+import { PatientTimelineQueryService } from './application/services/patient-timeline-query.service';
 import { PatientTagsService } from './application/services/patient-tags.service';
 import { PrismaPatientRepository } from './infrastructure/persistence/prisma-patient.repository';
 import { PrismaMedicationDoseRepository } from './infrastructure/persistence/prisma-medication-dose.repository';
-import { PrismaPatientTimelineRepository } from './infrastructure/persistence/prisma-patient-timeline.repository';
+import { PrismaPatientTimelineSnapshotRepository } from './infrastructure/persistence/timeline/prisma-patient-timeline-snapshot.repository';
+import {
+  PATIENT_TIMELINE_SOURCE_CLASSES,
+} from './infrastructure/persistence/timeline/prisma-patient-timeline-sources';
+import { PatientTimelineSourceRegistry } from './application/services/patient-timeline-source.registry';
 import { PrismaPatientMetricsRepository } from './infrastructure/persistence/prisma-patient-metrics.repository';
 import { PrismaPatientTagsRepository } from './infrastructure/persistence/prisma-patient-tags.repository';
 import { PrismaModule } from '@/prisma/prisma.module';
@@ -24,7 +35,10 @@ import { MedicalHistoryFactory } from './core/factories/medical-history.factory'
 import { VitalsFactory } from './core/factories/vitals.factory';
 import { AiModule } from '@/shared/modules/ai-core/ai.module';
 import { MEDICATION_DOSE_REPOSITORY_TOKEN } from './core/repositories/medication-dose.repository.interface';
-import { PATIENT_TIMELINE_REPOSITORY_TOKEN } from './core/repositories/patient-timeline.repository.interface';
+import {
+  PATIENT_TIMELINE_REPOSITORY_TOKEN,
+  PATIENT_TIMELINE_SNAPSHOT_REPOSITORY_TOKEN,
+} from './core/repositories/patient-timeline.repository.interface';
 import { PATIENT_METRICS_REPOSITORY_TOKEN } from './core/repositories/patient-metrics.repository.interface';
 import { PATIENT_TAGS_REPOSITORY_TOKEN } from './core/repositories/patient-tags.repository.interface';
 import { PatientTagsController } from './presentation/controllers/patient-tags.controller';
@@ -40,13 +54,22 @@ import { PatientTagsController } from './presentation/controllers/patient-tags.c
     PatientTimelineController,
   ],
   providers: [
+    { provide: PATIENT_PERSISTENCE_PORT, useExisting: PrismaService },
+    PatientQueryService,
+    PatientCommandService,
     PatientService,
     PatientTagsService,
     MedicalHistoryConditionsService,
     MedicalHistoryService,
     PatientMetricsService,
+    MedicationDoseCommandService,
+    MedicationDoseQueryService,
     MedicationDoseService,
+    PatientTimelineQueryService,
     PatientTimelineService,
+    PatientTimelineSourceRegistry,
+    ...PATIENT_TIMELINE_SOURCE_CLASSES,
+    PrismaPatientTimelineSnapshotRepository,
     PrismaPatientRepository,
     {
       provide: 'IPatientRepository',
@@ -57,8 +80,12 @@ import { PatientTagsController } from './presentation/controllers/patient-tags.c
       useClass: PrismaMedicationDoseRepository,
     },
     {
+      provide: PATIENT_TIMELINE_SNAPSHOT_REPOSITORY_TOKEN,
+      useExisting: PrismaPatientTimelineSnapshotRepository,
+    },
+    {
       provide: PATIENT_TIMELINE_REPOSITORY_TOKEN,
-      useClass: PrismaPatientTimelineRepository,
+      useExisting: PrismaPatientTimelineSnapshotRepository,
     },
     {
       provide: PATIENT_METRICS_REPOSITORY_TOKEN,
@@ -72,9 +99,14 @@ import { PatientTagsController } from './presentation/controllers/patient-tags.c
     VitalsFactory,
   ],
   exports: [
+    PatientQueryService,
+    PatientCommandService,
     PatientService,
     PatientMetricsService,
+    MedicationDoseCommandService,
+    MedicationDoseQueryService,
     MedicationDoseService,
+    PatientTimelineQueryService,
     PatientTimelineService,
     'IPatientRepository',
     VitalsFactory,

@@ -6,6 +6,9 @@ import {
   IDashboardRepository,
 } from '@/domains/dashboards/dashboard/core/repositories/dashboard.repository.interface';
 
+/**
+ * Thin facade — delegates dashboard stats to IDashboardRepository with cache.
+ */
 @Injectable()
 export class DashboardService {
   constructor(

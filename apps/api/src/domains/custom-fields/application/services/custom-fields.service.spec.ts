@@ -1,21 +1,22 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import { CustomFieldsService } from './custom-fields.service';
-import { PrismaService } from '@/prisma/prisma.service';
+import {
+  CUSTOM_FIELDS_REPOSITORY_TOKEN,
+  ICustomFieldsRepository,
+} from '@/domains/custom-fields/application/ports/custom-fields.repository.port';
 import { NotFoundException as _NotFoundException } from '@nestjs/common';
 import { beforeEach, describe, it, expect, jest } from '@jest/globals';
 
 describe('CustomFieldsService', () => {
   let service: CustomFieldsService;
-  let prismaService: PrismaService;
+  let customFieldsRepository: ICustomFieldsRepository;
 
-  const mockPrismaService = {
-    customField: {
-      findMany: jest.fn<(...args: unknown[]) => Promise<unknown>>(),
-      findUnique: jest.fn<(...args: unknown[]) => Promise<unknown>>(),
-      create: jest.fn<(...args: unknown[]) => Promise<unknown>>(),
-      update: jest.fn<(...args: unknown[]) => Promise<unknown>>(),
-      delete: jest.fn<(...args: unknown[]) => Promise<unknown>>(),
-    },
+  const mockCustomFieldsRepository: ICustomFieldsRepository = {
+    findAll: jest.fn<ICustomFieldsRepository['findAll']>(),
+    findById: jest.fn<ICustomFieldsRepository['findById']>(),
+    create: jest.fn<ICustomFieldsRepository['create']>(),
+    update: jest.fn<ICustomFieldsRepository['update']>(),
+    delete: jest.fn<ICustomFieldsRepository['delete']>(),
   };
 
   const mockCustomField = {
@@ -35,14 +36,16 @@ describe('CustomFieldsService', () => {
       providers: [
         CustomFieldsService,
         {
-          provide: PrismaService,
-          useValue: mockPrismaService,
+          provide: CUSTOM_FIELDS_REPOSITORY_TOKEN,
+          useValue: mockCustomFieldsRepository,
         },
       ],
     }).compile();
 
     service = module.get<CustomFieldsService>(CustomFieldsService);
-    prismaService = module.get<PrismaService>(PrismaService);
+    customFieldsRepository = module.get<ICustomFieldsRepository>(
+      CUSTOM_FIELDS_REPOSITORY_TOKEN,
+    );
 
     jest.clearAllMocks();
   });
@@ -52,27 +55,26 @@ describe('CustomFieldsService', () => {
       expect(service).toBeDefined();
     });
 
-    it('should inject PrismaService', () => {
-      expect(prismaService).toBeDefined();
+    it('should inject custom fields repository', () => {
+      expect(customFieldsRepository).toBeDefined();
     });
   });
 
   describe('findAll', () => {
     it('should return all custom fields ordered by order', async () => {
       const fields = [mockCustomField];
-      mockPrismaService.customField.findMany.mockResolvedValue(fields);
+      jest.mocked(mockCustomFieldsRepository.findAll).mockResolvedValue(fields);
 
       const result = await service.findAll();
 
       expect(result).toEqual(fields);
-      expect(mockPrismaService.customField.findMany).toHaveBeenCalledWith({
-        where: {},
-        orderBy: { order: 'asc' },
-      });
+      expect(mockCustomFieldsRepository.findAll).toHaveBeenCalledWith(
+        undefined,
+      );
     });
 
     it('should return empty array when no fields exist', async () => {
-      mockPrismaService.customField.findMany.mockResolvedValue([]);
+      jest.mocked(mockCustomFieldsRepository.findAll).mockResolvedValue([]);
 
       const result = await service.findAll();
 
@@ -85,7 +87,7 @@ describe('CustomFieldsService', () => {
         { ...mockCustomField, id: 'field-2', order: 2 },
         { ...mockCustomField, id: 'field-3', order: 3 },
       ];
-      mockPrismaService.customField.findMany.mockResolvedValue(fields);
+      jest.mocked(mockCustomFieldsRepository.findAll).mockResolvedValue(fields);
 
       const result = await service.findAll();
 
@@ -98,20 +100,20 @@ describe('CustomFieldsService', () => {
 
   describe('findOne', () => {
     it('should return a custom field by id', async () => {
-      mockPrismaService.customField.findUnique.mockResolvedValue(
-        mockCustomField,
-      );
+      jest
+        .mocked(mockCustomFieldsRepository.findById)
+        .mockResolvedValue(mockCustomField);
 
       const result = await service.findOne('field-1');
 
       expect(result).toEqual(mockCustomField);
-      expect(mockPrismaService.customField.findUnique).toHaveBeenCalledWith({
-        where: { id: 'field-1' },
-      });
+      expect(mockCustomFieldsRepository.findById).toHaveBeenCalledWith(
+        'field-1',
+      );
     });
 
     it('should return null when field not found', async () => {
-      mockPrismaService.customField.findUnique.mockResolvedValue(null);
+      jest.mocked(mockCustomFieldsRepository.findById).mockResolvedValue(null);
 
       await expect(service.findOne('non-existent-id')).rejects.toThrow();
     });
@@ -128,14 +130,16 @@ describe('CustomFieldsService', () => {
         clinicId: 'clinic-1',
       };
 
-      mockPrismaService.customField.create.mockResolvedValue(mockCustomField);
+      jest
+        .mocked(mockCustomFieldsRepository.create)
+        .mockResolvedValue(mockCustomField);
 
       const result = await service.create(createData);
 
       expect(result).toEqual(mockCustomField);
-      expect(mockPrismaService.customField.create).toHaveBeenCalledWith({
-        data: createData,
-      });
+      expect(mockCustomFieldsRepository.create).toHaveBeenCalledWith(
+        createData,
+      );
     });
 
     it('should create field with minimal properties', async () => {
@@ -153,14 +157,16 @@ describe('CustomFieldsService', () => {
         clinicId: null,
       };
 
-      mockPrismaService.customField.create.mockResolvedValue(minimalField);
+      jest
+        .mocked(mockCustomFieldsRepository.create)
+        .mockResolvedValue(minimalField);
 
       const result = await service.create(createData);
 
       expect(result).toEqual(minimalField);
-      expect(mockPrismaService.customField.create).toHaveBeenCalledWith({
-        data: createData,
-      });
+      expect(mockCustomFieldsRepository.create).toHaveBeenCalledWith(
+        createData,
+      );
     });
 
     it('should create dropdown field with options', async () => {
@@ -170,7 +176,7 @@ describe('CustomFieldsService', () => {
         options: 'A+,A-,B+,B-,O+,O-,AB+,AB-',
       };
 
-      mockPrismaService.customField.create.mockResolvedValue({
+      jest.mocked(mockCustomFieldsRepository.create).mockResolvedValue({
         ...mockCustomField,
         fieldType: 'dropdown',
         options: 'A+,A-,B+,B-,O+,O-,AB+,AB-',
@@ -188,7 +194,7 @@ describe('CustomFieldsService', () => {
         fieldType: 'checkbox',
       };
 
-      mockPrismaService.customField.create.mockResolvedValue({
+      jest.mocked(mockCustomFieldsRepository.create).mockResolvedValue({
         ...mockCustomField,
         fieldType: 'checkbox',
       });
@@ -204,25 +210,32 @@ describe('CustomFieldsService', () => {
       const updateData = { name: 'Updated Name' };
       const updatedField = { ...mockCustomField, name: 'Updated Name' };
 
-      mockPrismaService.customField.findUnique.mockResolvedValue(
-        mockCustomField,
-      );
-      mockPrismaService.customField.update.mockResolvedValue(updatedField);
+      jest
+        .mocked(mockCustomFieldsRepository.findById)
+        .mockResolvedValue(mockCustomField);
+      jest
+        .mocked(mockCustomFieldsRepository.update)
+        .mockResolvedValue(updatedField);
 
       const result = await service.update('field-1', updateData);
 
       expect(result).toEqual(updatedField);
-      expect(mockPrismaService.customField.update).toHaveBeenCalledWith({
-        where: { id: 'field-1' },
-        data: updateData,
-      });
+      expect(mockCustomFieldsRepository.update).toHaveBeenCalledWith(
+        'field-1',
+        updateData,
+      );
     });
 
     it('should update required flag', async () => {
       const updateData = { required: false };
       const updatedField = { ...mockCustomField, required: false };
 
-      mockPrismaService.customField.update.mockResolvedValue(updatedField);
+      jest
+        .mocked(mockCustomFieldsRepository.findById)
+        .mockResolvedValue(mockCustomField);
+      jest
+        .mocked(mockCustomFieldsRepository.update)
+        .mockResolvedValue(updatedField);
 
       const result = await service.update('field-1', updateData);
 
@@ -233,7 +246,12 @@ describe('CustomFieldsService', () => {
       const updateData = { fieldType: 'dropdown' };
       const updatedField = { ...mockCustomField, fieldType: 'dropdown' };
 
-      mockPrismaService.customField.update.mockResolvedValue(updatedField);
+      jest
+        .mocked(mockCustomFieldsRepository.findById)
+        .mockResolvedValue(mockCustomField);
+      jest
+        .mocked(mockCustomFieldsRepository.update)
+        .mockResolvedValue(updatedField);
 
       const result = await service.update('field-1', updateData);
 
@@ -244,7 +262,12 @@ describe('CustomFieldsService', () => {
       const updateData = { order: 5 };
       const updatedField = { ...mockCustomField, order: 5 };
 
-      mockPrismaService.customField.update.mockResolvedValue(updatedField);
+      jest
+        .mocked(mockCustomFieldsRepository.findById)
+        .mockResolvedValue(mockCustomField);
+      jest
+        .mocked(mockCustomFieldsRepository.update)
+        .mockResolvedValue(updatedField);
 
       const result = await service.update('field-1', updateData);
 
@@ -258,7 +281,12 @@ describe('CustomFieldsService', () => {
         options: 'Option 1,Option 2,Option 3',
       };
 
-      mockPrismaService.customField.update.mockResolvedValue(updatedField);
+      jest
+        .mocked(mockCustomFieldsRepository.findById)
+        .mockResolvedValue(mockCustomField);
+      jest
+        .mocked(mockCustomFieldsRepository.update)
+        .mockResolvedValue(updatedField);
 
       const result = await service.update('field-1', updateData);
 
@@ -274,7 +302,12 @@ describe('CustomFieldsService', () => {
       };
       const updatedField = { ...mockCustomField, ...updateData };
 
-      mockPrismaService.customField.update.mockResolvedValue(updatedField);
+      jest
+        .mocked(mockCustomFieldsRepository.findById)
+        .mockResolvedValue(mockCustomField);
+      jest
+        .mocked(mockCustomFieldsRepository.update)
+        .mockResolvedValue(updatedField);
 
       const result = await service.update('field-1', updateData);
 
@@ -287,21 +320,24 @@ describe('CustomFieldsService', () => {
 
   describe('remove', () => {
     it('should delete a custom field', async () => {
-      mockPrismaService.customField.delete.mockResolvedValue(mockCustomField);
+      jest
+        .mocked(mockCustomFieldsRepository.findById)
+        .mockResolvedValue(mockCustomField);
+      jest
+        .mocked(mockCustomFieldsRepository.delete)
+        .mockResolvedValue(mockCustomField);
 
       const result = await service.remove('field-1');
 
       expect(result).toEqual(mockCustomField);
-      expect(mockPrismaService.customField.delete).toHaveBeenCalledWith({
-        where: { id: 'field-1' },
-      });
+      expect(mockCustomFieldsRepository.delete).toHaveBeenCalledWith('field-1');
     });
 
     it('should propagate error when field not found', async () => {
-      mockPrismaService.customField.findUnique.mockResolvedValue(null);
-      mockPrismaService.customField.delete.mockRejectedValue(
-        new Error('Record not found'),
-      );
+      jest.mocked(mockCustomFieldsRepository.findById).mockResolvedValue(null);
+      jest
+        .mocked(mockCustomFieldsRepository.delete)
+        .mockRejectedValue(new Error('Record not found'));
 
       await expect(service.remove('non-existent-id')).rejects.toThrow(
         'Custom field with ID non-existent-id not found',
@@ -312,7 +348,7 @@ describe('CustomFieldsService', () => {
   describe('Error Handling', () => {
     it('should propagate database errors from findMany', async () => {
       const error = new Error('Database connection failed');
-      mockPrismaService.customField.findMany.mockRejectedValue(error);
+      jest.mocked(mockCustomFieldsRepository.findAll).mockRejectedValue(error);
 
       await expect(service.findAll()).rejects.toThrow(
         'Database connection failed',
@@ -321,7 +357,7 @@ describe('CustomFieldsService', () => {
 
     it('should propagate database errors from create', async () => {
       const error = new Error('Unique constraint violation');
-      mockPrismaService.customField.create.mockRejectedValue(error);
+      jest.mocked(mockCustomFieldsRepository.create).mockRejectedValue(error);
 
       await expect(
         service.create({ name: 'Test', fieldType: 'text' }),
@@ -329,11 +365,11 @@ describe('CustomFieldsService', () => {
     });
 
     it('should propagate database errors from update', async () => {
-      mockPrismaService.customField.findUnique.mockResolvedValue(
-        mockCustomField,
-      );
+      jest
+        .mocked(mockCustomFieldsRepository.findById)
+        .mockResolvedValue(mockCustomField);
       const error = new Error('Record not found');
-      mockPrismaService.customField.update.mockRejectedValue(error);
+      jest.mocked(mockCustomFieldsRepository.update).mockRejectedValue(error);
 
       await expect(
         service.update('field-1', { name: 'Updated' }),

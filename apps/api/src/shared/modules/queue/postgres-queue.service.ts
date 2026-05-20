@@ -1,5 +1,8 @@
-import { Injectable, Logger, OnModuleDestroy } from '@nestjs/common';
-import { Prisma } from '@workspace/db';
+import { Inject, Injectable, Logger, OnModuleDestroy } from '@nestjs/common';
+import {
+  CLOCK_PORT,
+  type IClock,
+} from '@/shared/common/ports/clock.port';
 import { PrismaService } from '@/prisma/prisma.service';
 import {
   IQueueProvider,
@@ -9,6 +12,10 @@ import {
   QueueJobOptions,
   QueueStats,
 } from './queue.interface';
+import type {
+  QueueJobRepository,
+  QueueJobRow,
+} from './ports/queue-job.repository.port';
 import { WorkerMetricsService } from './worker-metrics.service';
 
 const POLL_INTERVAL_MS = 2000;
@@ -24,23 +31,6 @@ const computeBackoffMs = (attempt: number): number => {
   return Math.min(exponential, RETRY_MAX_MS);
 };
 
-interface QueueJobRow {
-  id: string;
-  name: string;
-  data: Prisma.JsonValue;
-  status: string;
-  priority: number;
-  attemptsMade: number;
-  maxAttempts: number;
-  failedReason: string | null;
-  processedAt: Date | null;
-  delayedUntil: Date | null;
-  createdAt: Date;
-  updatedAt: Date;
-  idempotencyKey?: string | null;
-  completedAt?: Date | null;
-}
-
 @Injectable()
 export class PostgresQueueService implements IQueueProvider, OnModuleDestroy {
   private readonly logger = new Logger(PostgresQueueService.name);
@@ -49,6 +39,8 @@ export class PostgresQueueService implements IQueueProvider, OnModuleDestroy {
 
   constructor(
     private readonly prisma: PrismaService,
+    @Inject(CLOCK_PORT) private readonly clock: IClock,
+    private readonly queueJobs: QueueJobRepository,
     private readonly metrics?: WorkerMetricsService,
   ) {}
 
@@ -95,20 +87,14 @@ export class PostgresQueueService implements IQueueProvider, OnModuleDestroy {
     name: string,
     idempotencyKey: string,
   ): Promise<QueueJobRow | null> {
-    const cutoff = new Date(Date.now() - IDEMPOTENCY_LOOKBACK_MS);
-    const rows = await this.prisma.runUnrestricted(
-      async () =>
-        this.prisma.$queryRaw<QueueJobRow[]>`
-          SELECT * FROM "QueueJob"
-          WHERE name = ${name}
-            AND "idempotencyKey" = ${idempotencyKey}
-            AND status = 'COMPLETED'
-            AND "completedAt" >= ${cutoff}
-          ORDER BY "completedAt" DESC
-          LIMIT 1
-        `,
+    const cutoff = new Date(
+      this.clock.now().getTime() - IDEMPOTENCY_LOOKBACK_MS,
     );
-    return rows && rows[0] ? rows[0] : null;
+    return this.queueJobs.findRecentCompletedByIdempotency(
+      name,
+      idempotencyKey,
+      cutoff,
+    );
   }
 
   async process<T extends QueueJobData>(
@@ -139,24 +125,7 @@ export class PostgresQueueService implements IQueueProvider, OnModuleDestroy {
 
     await this.recoverStaleActiveJobs(name);
 
-    const rows =
-      (await this.prisma.runUnrestricted(
-        async () =>
-          this.prisma.$queryRaw<QueueJobRow[]>`
-        UPDATE "QueueJob"
-        SET status = 'ACTIVE', "processedAt" = NOW(), "updatedAt" = NOW()
-        WHERE id = (
-          SELECT id FROM "QueueJob"
-          WHERE name = ${name}
-            AND status IN ('WAITING', 'DELAYED')
-            AND ("delayedUntil" IS NULL OR "delayedUntil" <= NOW())
-          ORDER BY priority DESC, "createdAt" ASC
-          LIMIT 1
-          FOR UPDATE SKIP LOCKED
-        )
-        RETURNING *
-      `,
-      )) ?? [];
+    const rows = await this.queueJobs.claimNextWaitingJob(name);
 
     if (!rows.length) return;
 
@@ -174,7 +143,7 @@ export class PostgresQueueService implements IQueueProvider, OnModuleDestroy {
             where: { id: row.id },
             data: {
               status: 'COMPLETED',
-              completedAt: new Date(),
+              completedAt: this.clock.now(),
               failedReason: 'Skipped: idempotency-key already completed',
             },
           }),
@@ -191,7 +160,7 @@ export class PostgresQueueService implements IQueueProvider, OnModuleDestroy {
       await this.prisma.runUnrestricted(async () =>
         this.prisma.queueJob.update({
           where: { id: row.id },
-          data: { status: 'COMPLETED', completedAt: new Date() },
+          data: { status: 'COMPLETED', completedAt: this.clock.now() },
         }),
       );
       this.metrics?.observeJobCompletion(name, 'completed');
@@ -223,7 +192,7 @@ export class PostgresQueueService implements IQueueProvider, OnModuleDestroy {
               status: 'DEAD_LETTERED',
               attemptsMade: nextAttemptsMade,
               failedReason,
-              deadLetteredAt: new Date(),
+              deadLetteredAt: this.clock.now(),
             },
           }),
         );
@@ -292,42 +261,20 @@ export class PostgresQueueService implements IQueueProvider, OnModuleDestroy {
   }
 
   private async recoverStaleActiveJobs(name: string): Promise<void> {
-    const staleBefore = new Date(Date.now() - STALE_ACTIVE_TIMEOUT_MS);
-    const delayedUntil = new Date(Date.now() + RECOVERY_DELAY_MS);
+    const nowMs = this.clock.now().getTime();
+    const staleBefore = new Date(nowMs - STALE_ACTIVE_TIMEOUT_MS);
+    const delayedUntil = new Date(nowMs + RECOVERY_DELAY_MS);
 
-    const delayedRows =
-      (await this.prisma.runUnrestricted(
-        async () =>
-          this.prisma.$queryRaw<Array<{ id: string }>>`
-          UPDATE "QueueJob"
-          SET status = 'DELAYED',
-              "attemptsMade" = "attemptsMade" + 1,
-              "failedReason" = NULL,
-              "delayedUntil" = ${delayedUntil},
-              "updatedAt" = NOW()
-          WHERE name = ${name}
-            AND status = 'ACTIVE'
-            AND "processedAt" < ${staleBefore}
-            AND "attemptsMade" < "maxAttempts"
-          RETURNING id
-        `,
-      )) ?? [];
+    const delayedRows = await this.queueJobs.recoverStaleActiveToDelayed(
+      name,
+      staleBefore,
+      delayedUntil,
+    );
 
-    const failedRows =
-      (await this.prisma.runUnrestricted(
-        async () =>
-          this.prisma.$queryRaw<Array<{ id: string }>>`
-          UPDATE "QueueJob"
-          SET status = 'FAILED',
-              "failedReason" = 'Recovered stale ACTIVE job after timeout',
-              "updatedAt" = NOW()
-          WHERE name = ${name}
-            AND status = 'ACTIVE'
-            AND "processedAt" < ${staleBefore}
-            AND "attemptsMade" >= "maxAttempts"
-          RETURNING id
-        `,
-      )) ?? [];
+    const failedRows = await this.queueJobs.recoverStaleActiveToFailed(
+      name,
+      staleBefore,
+    );
 
     if (delayedRows.length > 0 || failedRows.length > 0) {
       this.logger.warn(
@@ -339,15 +286,9 @@ export class PostgresQueueService implements IQueueProvider, OnModuleDestroy {
   async getJob<T extends QueueJobData>(
     jobId: string,
   ): Promise<QueueJob<T> | null> {
-    const rows = await this.prisma.runUnrestricted(
-      async () =>
-        this.prisma.$queryRaw<QueueJobRow[]>`
-        SELECT * FROM "QueueJob" WHERE id = ${jobId} LIMIT 1
-      `,
-    );
-
-    if (!rows.length) return null;
-    return this.rowToJob<T>(rows[0]);
+    const row = await this.queueJobs.findById(jobId);
+    if (!row) return null;
+    return this.rowToJob<T>(row);
   }
 
   async removeJob(jobId: string): Promise<void> {
@@ -363,15 +304,7 @@ export class PostgresQueueService implements IQueueProvider, OnModuleDestroy {
   }
 
   async getStats(name: string): Promise<QueueStats> {
-    const rows = await this.prisma.runUnrestricted(
-      async () =>
-        this.prisma.$queryRaw<Array<{ status: string; count: bigint }>>`
-        SELECT status, COUNT(*) as count
-        FROM "QueueJob"
-        WHERE name = ${name}
-        GROUP BY status
-      `,
-    );
+    const rows = await this.queueJobs.countByStatus(name);
 
     const byStatus = new Map(rows.map((r) => [r.status, Number(r.count)]));
 

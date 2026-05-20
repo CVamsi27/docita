@@ -2,6 +2,7 @@ import {
   staffNotificationsListResponseSchema,
   whatsappUnreadCountResponseSchema,
 } from "@workspace/types";
+import { queryKeys } from "../lib/query-keys";
 import { useAPIMutation } from "../core/use-api-mutation";
 import { useAPIQuery } from "../core/use-api-query";
 import { useAPIQueryValidated } from "../core/use-api-query-validated";
@@ -10,7 +11,7 @@ export type StaffNotification = typeof staffNotificationsListResponseSchema._typ
 
 export const useNotifications = (enabled: boolean = true) =>
   useAPIQueryValidated(
-    ["notifications"],
+    queryKeys.notifications.all(),
     "/staff-notifications",
     staffNotificationsListResponseSchema,
     {
@@ -26,7 +27,7 @@ export const useNotifications = (enabled: boolean = true) =>
  */
 export const useAllNotifications = (enabled: boolean = true) =>
   useAPIQueryValidated(
-    ["notifications", "all"],
+    queryKeys.notifications.listAll(),
     "/staff-notifications/all",
     staffNotificationsListResponseSchema,
     {
@@ -37,7 +38,7 @@ export const useAllNotifications = (enabled: boolean = true) =>
 
 export const useUnreadNotificationCount = (enabled: boolean = true) =>
   useAPIQueryValidated(
-    ["notifications", "unread-count"],
+    queryKeys.notifications.unreadCount(),
     "/staff-notifications/unread-count",
     whatsappUnreadCountResponseSchema,
     {
@@ -53,9 +54,9 @@ export const useMarkNotificationRead = () =>
     {
       body: () => undefined,
       invalidateKeys: [
-        ["notifications"],
-        ["notifications", "all"],
-        ["notifications", "unread-count"],
+        queryKeys.notifications.all(),
+        queryKeys.notifications.listAll(),
+        queryKeys.notifications.unreadCount(),
       ],
     },
   );
@@ -67,9 +68,9 @@ export const useDeleteNotification = () =>
     {
       body: () => undefined,
       invalidateKeys: [
-        ["notifications"],
-        ["notifications", "all"],
-        ["notifications", "unread-count"],
+        queryKeys.notifications.all(),
+        queryKeys.notifications.listAll(),
+        queryKeys.notifications.unreadCount(),
       ],
     },
   );
@@ -80,16 +81,16 @@ export const useDeleteAllNotifications = () =>
     "DELETE",
     {
       invalidateKeys: [
-        ["notifications"],
-        ["notifications", "all"],
-        ["notifications", "unread-count"],
+        queryKeys.notifications.all(),
+        queryKeys.notifications.listAll(),
+        queryKeys.notifications.unreadCount(),
       ],
     },
   );
 
 export const usePendingJoinRequestCount = (enabled = true) =>
   useAPIQuery<{ count: number }>(
-    ["join-requests", "count"],
+    queryKeys.joinRequests.count(),
     "/clinics/join-requests/count",
     {
       enabled,

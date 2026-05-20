@@ -4,6 +4,9 @@ import {
   DPDPComplianceService,
   DataSubjectRight as _DataSubjectRight,
 } from './dpdp-compliance.service';
+import { ConsentComplianceService } from './consent-compliance.service';
+import { DataSubjectRequestService } from './data-subject-request.service';
+import { DpdpAuditEmitter } from './dpdp-audit.emitter';
 import { PrismaService } from '@/prisma/prisma.service';
 import { AuditService } from '@/shared/modules/audit/audit/audit.service';
 import { AnonymizationFactory } from './factories/anonymization.factory';
@@ -49,6 +52,9 @@ describe('DPDPComplianceService', () => {
   beforeEach(async () => {
     const module: TestingModule = await Test.createTestingModule({
       providers: [
+        DpdpAuditEmitter,
+        ConsentComplianceService,
+        DataSubjectRequestService,
         DPDPComplianceService,
         { provide: PrismaService, useValue: mockPrismaService },
         { provide: AuditService, useValue: mockAuditService },

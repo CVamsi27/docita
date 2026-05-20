@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { normalizeInvoicesListResponse } from "./use-billing";
+import { normalizeInvoicesListResponse } from "@workspace/data-access";
 
 describe("normalizeInvoicesListResponse", () => {
   it("extracts items from paginated invoice list responses", () => {

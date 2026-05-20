@@ -1,3 +1,4 @@
+import { queryKeys } from "../lib/query-keys";
 import { useAPIMutation } from "../core/use-api-mutation";
 import { useAPIQuery } from "../core/use-api-query";
 import {
@@ -24,7 +25,7 @@ export const useLeaves = (options?: {
   const qs = params.toString();
   const leaveOk = useDataAccessContext().isTierFeatureEnabled(Feature.LEAVE_MANAGEMENT);
   return useAPIQuery<StaffLeave[]>(
-    ["leaves", "list", options ?? {}] as string[],
+    queryKeys.leaves.list(options),
     qs ? `/leaves?${qs}` : "/leaves",
     { enabled: leaveOk },
   );
@@ -32,46 +33,46 @@ export const useLeaves = (options?: {
 
 export const useLeaveBalance = () => {
   const leaveOk = useDataAccessContext().isTierFeatureEnabled(Feature.LEAVE_MANAGEMENT);
-  return useAPIQuery<LeaveBalance[]>(["leaves", "balance"], "/leaves/balance", {
+  return useAPIQuery<LeaveBalance[]>(queryKeys.leaves.balance(), "/leaves/balance", {
     enabled: leaveOk,
   });
 };
 
 export const useApplyLeave = () =>
   useAPIMutation<StaffLeave, CreateLeaveRequest>("/leaves", "POST", {
-    invalidateKeys: [["leaves"]],
+    invalidateKeys: [queryKeys.leaves.all()],
   });
 
 export const useApproveLeave = (id: string) =>
   useAPIMutation<StaffLeave, void>(`/leaves/${id}/approve`, "PATCH", {
-    invalidateKeys: [["leaves"]],
+    invalidateKeys: [queryKeys.leaves.all()],
   });
 
 export const useRejectLeave = (id: string) =>
   useAPIMutation<StaffLeave, { rejectionReason: string }>(
     `/leaves/${id}/reject`,
     "PATCH",
-    { invalidateKeys: [["leaves"]] },
+    { invalidateKeys: [queryKeys.leaves.all()] },
   );
 
 export const useCancelLeave = (id: string) =>
   useAPIMutation<StaffLeave, void>(`/leaves/${id}/cancel`, "PATCH", {
-    invalidateKeys: [["leaves"]],
+    invalidateKeys: [queryKeys.leaves.all()],
   });
 
 export const useLeavePlans = () => {
   const leaveOk = useDataAccessContext().isTierFeatureEnabled(Feature.LEAVE_MANAGEMENT);
-  return useAPIQuery<LeavePlan[]>(["leave-plans"], "/leave-plans", {
+  return useAPIQuery<LeavePlan[]>(queryKeys.leavePlans.all(), "/leave-plans", {
     enabled: leaveOk,
   });
 };
 
 export const useCreateLeavePlan = () =>
   useAPIMutation<LeavePlan, CreateLeavePlan>("/leave-plans", "POST", {
-    invalidateKeys: [["leave-plans"]],
+    invalidateKeys: [queryKeys.leavePlans.all()],
   });
 
 export const useUpdateLeavePlan = (id: string) =>
   useAPIMutation<LeavePlan, UpdateLeavePlan>(`/leave-plans/${id}`, "PUT", {
-    invalidateKeys: [["leave-plans"]],
+    invalidateKeys: [queryKeys.leavePlans.all()],
   });

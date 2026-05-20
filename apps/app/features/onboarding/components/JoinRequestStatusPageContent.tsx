@@ -11,6 +11,7 @@ import { Alert, AlertDescription, AlertTitle } from '@workspace/ui/components/fe
 import { Badge } from '@workspace/ui/components/indicators/badge';
 import { DATE_FORMATS, formatDate, formatDistanceToNow } from '@workspace/utils';
 import { toast } from 'sonner';
+import { appQueryKeys } from '@workspace/data-access';
 import { typedApi } from '@/lib/api/api-client';
 import { PageTransitionLoader } from '@/components/loaders/page-transition-loader';
 import { useAuth } from '@/lib/auth/auth-context';
@@ -46,7 +47,7 @@ export default function JoinRequestStatusPage() {
   );
 
   const { data: request, isLoading } = useQuery<JoinRequest | null>({
-    queryKey: ['my-join-request'],
+    queryKey: appQueryKeys.onboarding.myJoinRequest(),
     queryFn: () => typedApi.joinRequests.getMine(),
     retry: false,
     refetchInterval: terminalState ? false : 10000,
@@ -56,7 +57,7 @@ export default function JoinRequestStatusPage() {
     mutationFn: (requestId: string) => typedApi.joinRequests.withdraw(requestId),
     onSuccess: () => {
       toast.success('Request withdrawn successfully');
-      queryClient.invalidateQueries({ queryKey: ['my-join-request'] });
+      queryClient.invalidateQueries({ queryKey: appQueryKeys.onboarding.myJoinRequest() });
       if (request) {
         setTerminalState({
           kind: 'withdrawn',

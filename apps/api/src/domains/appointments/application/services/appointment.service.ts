@@ -1,9 +1,12 @@
 import { Injectable, Inject } from '@nestjs/common';
 import { EventEmitter2 } from '@nestjs/event-emitter';
 import {
-  IAppointmentRepository,
-  AppointmentSearchParams,
+  APPOINTMENT_READ_REPOSITORY_TOKEN,
+  APPOINTMENT_WRITE_REPOSITORY_TOKEN,
+  IAppointmentReadRepository,
+  IAppointmentWriteRepository,
 } from '@/domains/appointments/core/repositories/appointment.repository.interface';
+import type { AppointmentSearchParams } from '@/domains/appointments/core/repositories/appointment-repository.types';
 import { VitalSign, Role } from '@workspace/db';
 import {
   type DiagnosisSyncItem,
@@ -13,9 +16,12 @@ import {
   CreateAppointmentUseCase,
   CreateAppointmentCommand,
 } from '@/domains/appointments/application/use-cases/create-appointment.use-case';
+import { CancelAppointmentUseCase } from '@/domains/appointments/application/use-cases/cancel-appointment.use-case';
+import { RescheduleAppointmentUseCase } from '@/domains/appointments/application/use-cases/reschedule-appointment.use-case';
+import { StartConsultationUseCase } from '@/domains/appointments/application/use-cases/start-consultation.use-case';
+import { UpdateAppointmentDetailsUseCase } from '@/domains/appointments/application/use-cases/update-appointment-details.use-case';
 import { Appointment } from '@/domains/appointments/core/entities/appointment.entity';
-import { PrismaService } from '@/prisma/prisma.service';
-import { AppointmentSchedulingRulesService } from '@/domains/appointments/core/domain-services/appointment-scheduling-rules.service';
+import { type AppointmentPersistencePort } from '@/domains/appointments/application/ports/appointment-persistence.port';
 import { AppointmentQueryService } from './appointment-query.service';
 import { AppointmentCommandService } from './appointment-command.service';
 import { AppointmentMetricsService } from './appointment-metrics.service';
@@ -29,7 +35,8 @@ type AppointmentAccessContext = {
 /**
  * Thin facade that delegates to AppointmentQueryService and
  * AppointmentCommandService. Keeps the original 5-arg constructor signature
- * so existing tests that call `new AppointmentService(...)` continue to work.
+ * so existing tests that call `new AppointmentService(read, write, ...)` can pass
+ * the same composite mock for both ports.
  */
 @Injectable()
 export class AppointmentService {
@@ -37,25 +44,31 @@ export class AppointmentService {
   private readonly commandService: AppointmentCommandService;
 
   constructor(
-    @Inject('IAppointmentRepository')
-    appointmentRepository: IAppointmentRepository,
+    @Inject(APPOINTMENT_READ_REPOSITORY_TOKEN)
+    readRepository: IAppointmentReadRepository,
+    @Inject(APPOINTMENT_WRITE_REPOSITORY_TOKEN)
+    writeRepository: IAppointmentWriteRepository,
     createAppointmentUseCase: CreateAppointmentUseCase,
-    prisma: PrismaService,
+    cancelAppointmentUseCase: CancelAppointmentUseCase,
+    rescheduleAppointmentUseCase: RescheduleAppointmentUseCase,
+    startConsultationUseCase: StartConsultationUseCase,
+    updateAppointmentDetailsUseCase: UpdateAppointmentDetailsUseCase,
+    prisma: AppointmentPersistencePort,
     eventEmitter: EventEmitter2,
-    schedulingRules: AppointmentSchedulingRulesService,
     metricsService: AppointmentMetricsService,
     diagnosisService: AppointmentDiagnosisService,
   ) {
-    this.queryService = new AppointmentQueryService(
-      appointmentRepository,
-      prisma,
-    );
+    this.queryService = new AppointmentQueryService(readRepository, prisma);
     this.commandService = new AppointmentCommandService(
       this.queryService,
-      appointmentRepository,
+      readRepository,
+      writeRepository,
       createAppointmentUseCase,
+      cancelAppointmentUseCase,
+      rescheduleAppointmentUseCase,
+      startConsultationUseCase,
+      updateAppointmentDetailsUseCase,
       eventEmitter,
-      schedulingRules,
       metricsService,
       diagnosisService,
     );

@@ -1,6 +1,13 @@
-import { Injectable, Logger } from '@nestjs/common';
-import { PrismaService } from '@/prisma/prisma.service';
+import { Injectable, Logger, Inject } from '@nestjs/common';
+import {
+  REMINDER_PERSISTENCE_PORT,
+  type ReminderPersistencePort,
+} from '@/domains/reminders/application/ports/reminder-persistence.port';
 import { ReminderSettings } from '@workspace/db';
+import {
+  CLOCK_PORT,
+  type IClock,
+} from '@/shared/common/ports/clock.port';
 
 interface ReminderSettingsData {
   enabled?: boolean;
@@ -20,10 +27,14 @@ export class ReminderSettingsService {
   private readonly logger = new Logger(ReminderSettingsService.name);
   private databaseAccessDisabled = false;
 
-  constructor(private prisma: PrismaService) {}
+  constructor(
+    @Inject(REMINDER_PERSISTENCE_PORT)
+    private persistence: ReminderPersistencePort,
+    @Inject(CLOCK_PORT) private readonly clock: IClock,
+  ) {}
 
   private getFallbackSettings(clinicId?: string): ReminderSettings {
-    const now = new Date();
+    const now = this.clock.now();
     return {
       id: 'local-fallback-reminder-settings',
       clinicId: clinicId ?? '',
@@ -86,15 +97,15 @@ Thank you,
     let settings: ReminderSettings | null = null;
     try {
       if (clinicId) {
-        settings = await this.prisma.reminderSettings.findUnique({
+        settings = await this.persistence.reminderSettings.findUnique({
           where: { clinicId },
         });
       } else {
-        settings = await this.prisma.reminderSettings.findFirst();
+        settings = await this.persistence.reminderSettings.findFirst();
       }
 
       if (!settings && clinicId) {
-        settings = await this.prisma.reminderSettings.create({
+        settings = await this.persistence.reminderSettings.create({
           data: {
             clinicId,
             enabled: true,
@@ -144,13 +155,13 @@ Thank you,
       return {
         ...this.getFallbackSettings(clinicId),
         ...data,
-        updatedAt: new Date(),
+        updatedAt: this.clock.now(),
       } as ReminderSettings;
     }
 
     const existing = await this.getSettings(clinicId);
     try {
-      return await this.prisma.reminderSettings.update({
+      return await this.persistence.reminderSettings.update({
         where: { id: existing.id },
         data,
       });
@@ -163,7 +174,7 @@ Thank you,
         return {
           ...this.getFallbackSettings(clinicId),
           ...data,
-          updatedAt: new Date(),
+          updatedAt: this.clock.now(),
         } as ReminderSettings;
       }
 

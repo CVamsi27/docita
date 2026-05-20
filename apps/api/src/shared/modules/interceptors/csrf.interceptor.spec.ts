@@ -6,7 +6,7 @@ import {
 import { ExecutionContextHost } from '@nestjs/core/helpers/execution-context-host';
 import { of } from 'rxjs';
 import { beforeEach, describe, expect, it, jest } from '@jest/globals';
-import { CsrfInterceptor } from './csrf.interceptor';
+import { CsrfInterceptor } from '@/shared/common/interceptors/csrf.interceptor';
 import { AppConfigService } from '@/shared/modules/config/app-configuration.service';
 
 function createContext(

@@ -8,7 +8,7 @@ import { LoadingState, EmptyState } from "@workspace/ui/components/feedback/empt
 import { FileX } from "lucide-react";
 import { useBackNavigation } from "@/hooks/use-back-navigation";
 import { usePrescription } from "@/hooks/api/use-clinical";
-import { useResendPrescriptionWhatsApp } from "@workspace/data-access";
+import { queryKeys, useResendPrescriptionWhatsApp } from "@workspace/data-access";
 import { useClinic } from "@/lib/contexts/clinic-context";
 import { useAuth } from "@/lib/auth/auth-context";
 import { canCreatePrescription } from "@/lib/auth/permissions";
@@ -62,7 +62,7 @@ function PrescriptionViewPageContent() {
       await resendWhatsApp.mutateAsync();
       toast.success("Prescription re-sent on WhatsApp");
       await queryClient.invalidateQueries({
-        queryKey: ["prescriptions", prescriptionId],
+        queryKey: queryKeys.prescriptions.detail(prescriptionId),
       });
     } catch (err) {
       showUserFacingErrorToast(

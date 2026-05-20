@@ -1,25 +1,16 @@
 import { describe, it, expect, beforeEach, jest } from '@jest/globals';
 import { SubscriptionStatus } from '@workspace/db';
 import { NotifyExpiringSubscriptionsUseCase } from './notify-expiring-subscriptions.use-case';
-import { PrismaService } from '@/prisma/prisma.service';
 import { ISubscriptionRepository } from '@/domains/subscriptions/application/ports';
 import { EmailService } from '@/shared/modules/messaging/email/email.service';
 
 describe('NotifyExpiringSubscriptionsUseCase', () => {
   const findSubscriptionsMock =
-    jest.fn<(args: unknown) => Promise<unknown[]>>();
-  const findRemindersMock =
-    jest.fn<(args: unknown) => Promise<Array<{ clinicId: string }>>>();
-  const createManyRemindersMock =
-    jest.fn<(args: unknown) => Promise<{ count: number }>>();
-
-  const prismaSubscription = {
-    findMany: findSubscriptionsMock,
-  };
-  const prismaSubscriptionReminder = {
-    findMany: findRemindersMock,
-    createMany: createManyRemindersMock,
-  };
+    jest.fn<ISubscriptionRepository['findExpiryReminderCandidates']>();
+  const findRecentReminderClinicIdsMock =
+    jest.fn<ISubscriptionRepository['findRecentReminderClinicIds']>();
+  const createSubscriptionRemindersMock =
+    jest.fn<ISubscriptionRepository['createSubscriptionReminders']>();
 
   const subscriptionRepository: ISubscriptionRepository = {
     save: jest.fn(async () => undefined),
@@ -28,7 +19,17 @@ describe('NotifyExpiringSubscriptionsUseCase', () => {
     findByStatus: jest.fn(async () => []),
     findApproachingRenewal: jest.fn(async () => []),
     update: jest.fn(async () => undefined),
+    markClinicPastDue: jest.fn(async () => undefined),
     delete: jest.fn(async () => undefined),
+    findBillingContact: jest.fn(async () => ({
+      name: null,
+      email: null,
+      phoneNumber: null,
+    })),
+    findExpiryReminderCandidates: findSubscriptionsMock,
+    findGraceDeadlineReminderCandidates: jest.fn(async () => []),
+    findRecentReminderClinicIds: findRecentReminderClinicIdsMock,
+    createSubscriptionReminders: createSubscriptionRemindersMock,
     savePayment: jest.fn(async () => undefined),
     updatePaymentStatus: jest.fn(async () => undefined),
     findPaymentsByClinicId: jest.fn(async () => []),
@@ -49,21 +50,9 @@ describe('NotifyExpiringSubscriptionsUseCase', () => {
 
   beforeEach(() => {
     jest.clearAllMocks();
-    const prisma = Object.create(PrismaService.prototype) as PrismaService;
-    Object.defineProperties(prisma, {
-      subscription: {
-        value: prismaSubscription,
-        writable: true,
-      },
-      subscriptionReminder: {
-        value: prismaSubscriptionReminder,
-        writable: true,
-      },
-    });
 
     useCase = new NotifyExpiringSubscriptionsUseCase(
       subscriptionRepository,
-      prisma,
       emailService,
     );
   });
@@ -101,29 +90,25 @@ describe('NotifyExpiringSubscriptionsUseCase', () => {
         },
       },
     ]);
-    findRemindersMock.mockResolvedValue([{ clinicId: 'clinic-2' }]);
-    createManyRemindersMock.mockResolvedValue({ count: 1 });
+    findRecentReminderClinicIdsMock.mockResolvedValue(['clinic-2']);
+    createSubscriptionRemindersMock.mockResolvedValue(undefined);
 
     await useCase.execute({
       targetDate: new Date('2026-04-10T00:00:00.000Z'),
       reminderType: 'expiry_7d',
     });
 
-    expect(findRemindersMock).toHaveBeenCalledTimes(1);
-    expect(createManyRemindersMock).toHaveBeenCalledTimes(1);
-    expect(createManyRemindersMock).toHaveBeenCalledWith(
+    expect(findRecentReminderClinicIdsMock).toHaveBeenCalledTimes(1);
+    expect(createSubscriptionRemindersMock).toHaveBeenCalledTimes(1);
+    expect(createSubscriptionRemindersMock).toHaveBeenCalledWith([
       expect.objectContaining({
-        data: [
-          expect.objectContaining({
-            clinicId: 'clinic-1',
-            subscriptionId: 'sub-1',
-            type: 'expiry_7d',
-            channel: 'EMAIL',
-            status: 'sent',
-          }),
-        ],
+        clinicId: 'clinic-1',
+        subscriptionId: 'sub-1',
+        type: 'expiry_7d',
+        channel: 'EMAIL',
+        status: 'sent',
       }),
-    );
+    ]);
   });
 
   it('uses same-day subject when reminder type is expiry_0d', async () => {
@@ -139,8 +124,8 @@ describe('NotifyExpiringSubscriptionsUseCase', () => {
         },
       },
     ]);
-    findRemindersMock.mockResolvedValue([]);
-    createManyRemindersMock.mockResolvedValue({ count: 1 });
+    findRecentReminderClinicIdsMock.mockResolvedValue([]);
+    createSubscriptionRemindersMock.mockResolvedValue(undefined);
 
     await useCase.execute({
       targetDate: new Date('2026-04-10T00:00:00.000Z'),
@@ -167,8 +152,8 @@ describe('NotifyExpiringSubscriptionsUseCase', () => {
         },
       },
     ]);
-    findRemindersMock.mockResolvedValue([]);
-    createManyRemindersMock.mockResolvedValue({ count: 1 });
+    findRecentReminderClinicIdsMock.mockResolvedValue([]);
+    createSubscriptionRemindersMock.mockResolvedValue(undefined);
 
     await useCase.execute({
       targetDate: new Date('2026-04-10T00:00:00.000Z'),
@@ -191,7 +176,7 @@ describe('NotifyExpiringSubscriptionsUseCase', () => {
       reminderType: 'expiry_7d',
     });
 
-    expect(findRemindersMock).not.toHaveBeenCalled();
-    expect(createManyRemindersMock).not.toHaveBeenCalled();
+    expect(findRecentReminderClinicIdsMock).not.toHaveBeenCalled();
+    expect(createSubscriptionRemindersMock).not.toHaveBeenCalled();
   });
 });

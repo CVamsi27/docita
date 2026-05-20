@@ -3,6 +3,7 @@ import {
   Injectable,
   NotFoundException,
   ServiceUnavailableException,
+  Inject,
 } from '@nestjs/common';
 import {
   Prisma,
@@ -14,22 +15,36 @@ import {
   UpdateWhatsappSenderRequest,
   WhatsappSenderConfigResponse,
 } from '@workspace/types';
-import { PrismaService } from '@/prisma/prisma.service';
+import {
+  WHATSAPP_PERSISTENCE_PORT,
+  type WhatsappPersistencePort,
+} from '@/domains/whatsapp/application/ports/whatsapp-persistence.port';
 import { EncryptionService } from '@/shared/common/encryption.service';
 import { AppConfigService } from '@/shared/modules/config/app-configuration.service';
+import {
+  CLOCK_PORT,
+  type IClock,
+} from '@/shared/common/ports/clock.port';
 import {
   assertClinicHasFeatureOrThrow,
   clinicHasFeatureForAccess,
 } from '@/shared/modules/auth/utils/clinic-feature-access.util';
 import type { ClinicFeatureAuthSnapshot } from '@/shared/modules/auth/utils/clinic-feature-access.util';
 import { WHATSAPP_ACCESS_TOKEN_SECRET_KIND } from './whatsapp-sender-resolver.service';
+import { MetaGraphPhoneProfileClient } from '@/domains/whatsapp/infrastructure/clients/meta-graph-phone-profile.client';
 
+/**
+ * Thin facade — delegates WhatsApp sender configuration to WhatsappPersistencePort.
+ */
 @Injectable()
 export class WhatsappSenderSettingsService {
   constructor(
-    private readonly prisma: PrismaService,
+    @Inject(WHATSAPP_PERSISTENCE_PORT)
+    private readonly persistence: WhatsappPersistencePort,
     private readonly encryptionService: EncryptionService,
     private readonly configService: AppConfigService,
+    @Inject(CLOCK_PORT) private readonly clock: IClock,
+    private readonly metaGraphPhoneProfile: MetaGraphPhoneProfileClient,
   ) {}
 
   async getConfig(clinicId: string): Promise<WhatsappSenderConfigResponse> {
@@ -73,7 +88,7 @@ export class WhatsappSenderSettingsService {
       const encryptedToken = this.encryptionService.encrypt(
         payload.accessToken,
       );
-      await this.prisma.$transaction(async (tx) => {
+      await this.persistence.$transaction(async (tx) => {
         await tx.clinic.update({
           where: { id: clinicId },
           data: {
@@ -96,7 +111,7 @@ export class WhatsappSenderSettingsService {
           },
           update: {
             ciphertext: encryptedToken,
-            rotatedAt: new Date(),
+            rotatedAt: this.clock.now(),
           },
           create: {
             clinicId,
@@ -125,7 +140,7 @@ export class WhatsappSenderSettingsService {
 
     if (payload.mode === 'MANAGED') {
       assertClinicHasFeatureOrThrow(clinic, Feature.WHATSAPP_MANAGED_NUMBER);
-      await this.prisma.clinic.update({
+      await this.persistence.clinic.update({
         where: { id: clinicId },
         data: {
           whatsappSenderMode: 'MANAGED',
@@ -161,7 +176,7 @@ export class WhatsappSenderSettingsService {
       throw new BadRequestException('WhatsApp phone number ID is missing.');
     }
 
-    const secret = await this.prisma.clinicSecret.findUnique({
+    const secret = await this.persistence.clinicSecret.findUnique({
       where: {
         clinicId_kind: {
           clinicId,
@@ -176,29 +191,25 @@ export class WhatsappSenderSettingsService {
 
     const accessToken = this.encryptionService.decrypt(secret.ciphertext);
     try {
-      const response = await fetch(
-        `https://graph.facebook.com/v21.0/${clinic.whatsappPhoneNumberId}?fields=verified_name,display_phone_number`,
-        { headers: { Authorization: `Bearer ${accessToken}` } },
-      );
-      const data = (await response.json()) as {
-        verified_name?: string;
-        display_phone_number?: string;
-        error?: { message?: string };
-      };
+      const { ok, data } =
+        await this.metaGraphPhoneProfile.fetchPhoneNumberProfile(
+          clinic.whatsappPhoneNumberId,
+          accessToken,
+        );
 
-      if (!response.ok) {
+      if (!ok) {
         throw new Error(data.error?.message || 'Meta verification failed');
       }
 
       const displayName =
         data.verified_name || data.display_phone_number || null;
-      await this.prisma.$transaction(async (tx) => {
+      await this.persistence.$transaction(async (tx) => {
         await tx.clinic.update({
           where: { id: clinicId },
           data: {
             whatsappSenderStatus: 'VERIFIED',
             whatsappDisplayName: displayName,
-            whatsappVerifiedAt: new Date(),
+            whatsappVerifiedAt: this.clock.now(),
             whatsappLastVerifyError: null,
           },
         });
@@ -221,7 +232,7 @@ export class WhatsappSenderSettingsService {
     } catch (error) {
       const message =
         error instanceof Error ? error.message : 'Meta verification failed';
-      await this.prisma.$transaction(async (tx) => {
+      await this.persistence.$transaction(async (tx) => {
         await tx.clinic.update({
           where: { id: clinicId },
           data: {
@@ -251,7 +262,7 @@ export class WhatsappSenderSettingsService {
 
   async revoke(clinicId: string, actorUserId: string) {
     const clinic = await this.getClinic(clinicId);
-    await this.prisma.$transaction(async (tx) => {
+    await this.persistence.$transaction(async (tx) => {
       await tx.clinicSecret.deleteMany({
         where: { clinicId, kind: WHATSAPP_ACCESS_TOKEN_SECRET_KIND },
       });
@@ -291,7 +302,7 @@ export class WhatsappSenderSettingsService {
   }
 
   private async getClinic(clinicId: string) {
-    const clinic = await this.prisma.clinic.findUnique({
+    const clinic = await this.persistence.clinic.findUnique({
       where: { id: clinicId },
       select: {
         id: true,

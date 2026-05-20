@@ -1,8 +1,15 @@
-import { Injectable, Logger } from '@nestjs/common';
-import { PrismaService } from '@/prisma/prisma.service';
+import { Inject, Injectable, Logger } from '@nestjs/common';
 import { EmailService } from '@/shared/modules/messaging/email/email.service';
-import { SubscriptionStatus } from '@workspace/db';
 import { DATE_FORMATS, formatDate } from '@workspace/utils';
+import {
+  ISubscriptionRepository,
+  SUBSCRIPTION_REPOSITORY_TOKEN,
+} from '@/domains/subscriptions/application/ports';
+import {
+  CLOCK_PORT,
+  type IClock,
+} from '@/shared/common/ports/clock.port';
+import { getUtcDayBounds } from '@/shared/schedule/scheduler-date.util';
 
 export interface NotifyGraceDeadlineRequest {
   targetDate: Date;
@@ -24,8 +31,10 @@ export class NotifySubscriptionGraceDeadlineUseCase {
   );
 
   constructor(
-    private readonly prisma: PrismaService,
+    @Inject(SUBSCRIPTION_REPOSITORY_TOKEN)
+    private readonly subscriptionRepo: ISubscriptionRepository,
     private readonly emailService: EmailService,
+    @Inject(CLOCK_PORT) private readonly clock: IClock,
   ) {}
 
   private buildEmail(reminderType: string, clinicName: string, deadline: Date) {
@@ -64,29 +73,13 @@ export class NotifySubscriptionGraceDeadlineUseCase {
     request: NotifyGraceDeadlineRequest,
   ): Promise<NotifyGraceDeadlineResult> {
     const { targetDate, reminderType } = request;
-    const startOfDay = new Date(targetDate);
-    startOfDay.setHours(0, 0, 0, 0);
-    const endOfDay = new Date(targetDate);
-    endOfDay.setHours(23, 59, 59, 999);
+    const { startOfDay, endOfDay } = getUtcDayBounds(targetDate);
 
-    const subscriptions = await this.prisma.subscription.findMany({
-      where: {
-        graceUntil: { gte: startOfDay, lte: endOfDay },
-        status: {
-          in: [SubscriptionStatus.GRACE, SubscriptionStatus.PAST_DUE],
-        },
-      },
-      include: {
-        clinic: {
-          include: {
-            users: {
-              where: { role: { in: ['ADMIN', 'ADMIN_DOCTOR'] } },
-              select: { email: true, name: true },
-            },
-          },
-        },
-      },
-    });
+    const subscriptions =
+      await this.subscriptionRepo.findGraceDeadlineReminderCandidates({
+        startOfDay,
+        endOfDay,
+      });
 
     if (subscriptions.length === 0) {
       return {
@@ -98,26 +91,22 @@ export class NotifySubscriptionGraceDeadlineUseCase {
       };
     }
 
-    const reminderCutoff = new Date();
+    const reminderCutoff = this.clock.now();
     reminderCutoff.setDate(reminderCutoff.getDate() - 1);
 
     const clinicIds = Array.from(
       new Set(subscriptions.map((sub) => sub.clinicId)),
     );
-    const existingReminders = await this.prisma.subscriptionReminder.findMany({
-      where: {
-        clinicId: { in: clinicIds },
-        type: reminderType,
-        sentAt: { gte: reminderCutoff },
-      },
-      select: { clinicId: true },
-    });
+    const existingReminderClinicIds =
+      await this.subscriptionRepo.findRecentReminderClinicIds({
+        clinicIds,
+        reminderType,
+        reminderCutoff,
+      });
 
-    const processedClinicIds = new Set(
-      existingReminders.map((reminder) => reminder.clinicId),
-    );
+    const processedClinicIds = new Set(existingReminderClinicIds);
 
-    const sentAt = new Date();
+    const sentAt = this.clock.now();
     const remindersToCreate: Array<{
       clinicId: string;
       subscriptionId: string;
@@ -215,9 +204,9 @@ export class NotifySubscriptionGraceDeadlineUseCase {
     }
 
     if (remindersToCreate.length > 0) {
-      await this.prisma.subscriptionReminder.createMany({
-        data: remindersToCreate,
-      });
+      await this.subscriptionRepo.createSubscriptionReminders(
+        remindersToCreate,
+      );
     }
 
     return {

@@ -25,15 +25,15 @@ export class Discount {
     this.description = props.description;
   }
 
-  isValid(): boolean {
+  isValid(asOf: Date): boolean {
     if (!this.expiresAt) {
       return true;
     }
-    return new Date() <= this.expiresAt;
+    return asOf <= this.expiresAt;
   }
 
-  isExpired(): boolean {
-    return !this.isValid();
+  isExpired(asOf: Date): boolean {
+    return !this.isValid(asOf);
   }
 
   equals(other: Discount): boolean {
@@ -53,8 +53,8 @@ export class Discount {
 export class DiscountAggregate {
   private discounts: Discount[] = [];
 
-  addDiscount(discount: Discount): DiscountAggregate {
-    if (!discount.isValid()) {
+  addDiscount(discount: Discount, asOf: Date): DiscountAggregate {
+    if (!discount.isValid(asOf)) {
       throw new Error('Cannot add expired discount');
     }
     this.discounts.push(discount);
@@ -75,16 +75,18 @@ export class DiscountAggregate {
     return [...this.discounts];
   }
 
-  getActiveDiscounts(): Discount[] {
-    return this.discounts.filter((d) => d.isValid());
+  getActiveDiscounts(asOf: Date): Discount[] {
+    return this.discounts.filter((d) => d.isValid(asOf));
   }
 
-  hasDiscount(type: DiscountType): boolean {
-    return this.discounts.some((d) => d.type === type && d.isValid());
+  hasDiscount(type: DiscountType, asOf: Date): boolean {
+    return this.discounts.some((d) => d.type === type && d.isValid(asOf));
   }
 
-  getDiscount(type: DiscountType): Discount | null {
-    return this.discounts.find((d) => d.type === type && d.isValid()) || null;
+  getDiscount(type: DiscountType, asOf: Date): Discount | null {
+    return (
+      this.discounts.find((d) => d.type === type && d.isValid(asOf)) || null
+    );
   }
 
   toArray(): Discount[] {

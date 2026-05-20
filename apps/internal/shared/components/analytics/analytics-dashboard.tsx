@@ -4,13 +4,16 @@ import { DocitaLoadingIndicator } from "@workspace/ui/components/feedback/docita
 
 import dynamic from "next/dynamic";
 import React, { useCallback, useEffect, useMemo, useState } from "react";
-import { useInternalQuery } from "@/lib/api/use-internal-query";
 import { Activity, BarChart3, Calendar, DollarSign, Download, TrendingUp, Users } from "lucide-react";
 import { API_URL } from "@/lib/api/api";
 import { useAuth } from "@/lib/auth/auth";
 import { toast } from "sonner";
-import { client } from "@/lib/api/api-client";
-import { internalQueryKeys } from "@/lib/api/query-keys";
+import {
+  useInternalAnalytics,
+  useInternalBillingMetrics,
+  type InternalAnalyticsData as AnalyticsData,
+  type InternalBillingMetrics as BillingMetrics,
+} from "@workspace/data-access/internal";
 import { AppPageScaffold } from "@workspace/ui/components/layout/app-page-scaffold";
 import { Button } from "@workspace/ui/components/form/button";
 import {
@@ -61,27 +64,6 @@ interface MetricCard {
   trend?: "up" | "down" | "neutral";
 }
 
-interface AnalyticsData {
-  revenue: number;
-  appointments: number;
-  newPatients: number;
-  avgInvoiceValue: number;
-  revenueChange?: number;
-  appointmentsChange?: number;
-  patientsChange?: number;
-  invoiceValueChange?: number;
-  detailedMetrics?: DetailedMetricsRow[];
-}
-
-interface BillingMetrics {
-  mrr: number;
-  arr: number;
-  churnRate: number;
-  activeSubscriptions: number;
-  revenueByMonth: { month: string; revenue: number }[];
-  subscriptionsByTier: Record<string, number>;
-}
-
 const tierColors: Record<string, string> = {
   CAPTURE: "bg-muted",
   CORE: "bg-info",
@@ -111,16 +93,8 @@ export function AnalyticsDashboard() {
     return params.toString();
   }, [endDate, period, startDate]);
 
-  const analyticsQuery = useInternalQuery({
-    queryKey: internalQueryKeys.internal.analytics(analyticsParams),
-    queryFn: () =>
-      client.get<AnalyticsData>(`/internal/analytics?${analyticsParams}`),
-  });
-
-  const billingQuery = useInternalQuery({
-    queryKey: internalQueryKeys.internal.billingMetrics(),
-    queryFn: () => client.get<BillingMetrics>("/internal/billing/metrics"),
-  });
+  const analyticsQuery = useInternalAnalytics(token, analyticsParams);
+  const billingQuery = useInternalBillingMetrics(token);
 
   const data = analyticsQuery.data ?? null;
   const billing = billingQuery.data ?? null;
@@ -579,7 +553,9 @@ export function AnalyticsDashboard() {
         contentClassName="space-y-4"
       >
         {data?.detailedMetrics && data.detailedMetrics.length > 0 ? (
-          <AnalyticsDetailedMetricsTable rows={data.detailedMetrics} />
+          <AnalyticsDetailedMetricsTable
+            rows={data.detailedMetrics as unknown as DetailedMetricsRow[]}
+          />
         ) : (
           <div className="ui-section-stack py-8 text-center text-muted-foreground">
             <p>No detailed metrics available for this period</p>

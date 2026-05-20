@@ -33,13 +33,21 @@ import {
 } from '@/shared/modules/auth/auth/access-matrix.util';
 import { RequestWithUser } from '@/shared/common/types/common.types';
 import type { LabStats } from '@/domains/clinical/core/repositories/clinical.repository.interface';
+import { AuditService } from '@/shared/modules/audit/audit/audit.service';
+import {
+  logClinicPhiListRead,
+  logPatientPhiRead,
+} from '@/shared/modules/audit/audit/patient-access-audit.util';
 
 @Controller('clinical/lab-tests')
 @UseGuards(TierGuard, FrontDeskClinicalBlockGuard)
 @RequireFeature(requireFeatureForTarget(APP_ACCESS_TARGETS.API_LAB_TESTS))
 @Roles(...getDbRolesForTarget(APP_ACCESS_TARGETS.API_LAB_TESTS))
 export class LabTestsController {
-  constructor(private readonly clinicalService: ClinicalService) {}
+  constructor(
+    private readonly clinicalService: ClinicalService,
+    private readonly auditService: AuditService,
+  ) {}
 
   @Get()
   async getAllTests(@Request() req: RequestWithUser): Promise<LabTest[]> {
@@ -59,8 +67,29 @@ export class LabTestsController {
     @Request() req: RequestWithUser,
     @Query() query: ListLabTestOrdersQueryDto,
   ): Promise<LabOrder[]> {
-    const { clinicId: _clinicId, ...params } = query;
-    return await this.clinicalService.getAllOrders(req.user!.clinicId!, params);
+    const { clinicId: _clinicId, patientId, ...params } = query;
+
+    if (patientId) {
+      await logPatientPhiRead(
+        this.auditService,
+        req,
+        patientId,
+        'VIEW_HISTORY',
+      );
+    } else {
+      await logClinicPhiListRead(
+        this.auditService,
+        req,
+        'VIEW_LAB_ORDER_LIST',
+        'LabOrder',
+        params,
+      );
+    }
+
+    return await this.clinicalService.getAllOrders(req.user!.clinicId!, {
+      ...params,
+      patientId,
+    });
   }
 
   @Get('orders/:id')
@@ -72,6 +101,12 @@ export class LabTestsController {
     if (order.clinicId !== req.user!.clinicId!) {
       throw new NotFoundException('Lab order not found');
     }
+    await logPatientPhiRead(
+      this.auditService,
+      req,
+      order.patientId,
+      'VIEW_HISTORY',
+    );
     return order;
   }
 

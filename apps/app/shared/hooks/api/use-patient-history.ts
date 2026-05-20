@@ -1,14 +1,15 @@
 import { useCallback, useMemo } from "react";
-import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
-import { usePatient, useUpdatePatient } from "@workspace/data-access";
-import { useAPIQuery } from "@/lib/api/api-core";
+import {
+  queryKeys,
+  usePatient,
+  usePatientMedicalHistoryFull,
+  useUpdatePatient,
+} from "@workspace/data-access";
 import { showUserFacingErrorToast } from "@/lib/errors/user-facing-errors";
 import { logger } from "@/lib/monitoring/logger";
-import { patientsApi } from "@/features/patients/api/patients.api";
 import {
-  CreatePatientSocialHistoryInput,
-  Feature,
   PatientAllergy,
   PatientFamilyHistory,
   PatientMedicalCondition,
@@ -16,7 +17,11 @@ import {
   PatientSurgicalHistory,
   PatientWithMedicalHistory,
 } from "@workspace/types";
-import { useTierFeatureEnabled } from "@/lib/access-control/use-tier-feature-enabled";
+import { usePatientAllergies } from "./use-patient-allergies";
+import { usePatientConditions } from "./use-patient-conditions";
+import { usePatientFamilyHistory } from "./use-patient-family-history";
+import { usePatientSocialHistory } from "./use-patient-social-history";
+import { usePatientSurgeries } from "./use-patient-surgeries";
 
 interface FullMedicalHistoryResponse {
   conditions?: PatientMedicalCondition[];
@@ -25,12 +30,6 @@ interface FullMedicalHistoryResponse {
   socialHistory?: PatientSocialHistory | null;
   surgicalHistory?: PatientSurgicalHistory[];
 }
-
-const medicalHistoryQueryKey = (patientId: string) => [
-  "patients",
-  patientId,
-  "medical-history",
-];
 
 function toRecord(value: unknown): Record<string, unknown> {
   if (!value || typeof value !== "object") {
@@ -92,7 +91,6 @@ const HISTORY_ERROR_MESSAGE =
 
 export function usePatientHistory(patientId: string): UsePatientHistoryResult {
   const queryClient = useQueryClient();
-  const tierPatientsOk = useTierFeatureEnabled(Feature.BASIC_PATIENT_MANAGEMENT);
   const {
     data: patientData,
     isLoading: isPatientLoading,
@@ -102,11 +100,7 @@ export function usePatientHistory(patientId: string): UsePatientHistoryResult {
     data: medicalHistoryData,
     isLoading: isHistoryLoading,
     isError: isHistoryError,
-  } = useAPIQuery<FullMedicalHistoryResponse>(
-    medicalHistoryQueryKey(patientId),
-    `/patients/${patientId}/medical-history`,
-    { enabled: tierPatientsOk && !!patientId },
-  );
+  } = usePatientMedicalHistoryFull(patientId);
   const { mutate: updatePatient } = useUpdatePatient(patientId);
 
   const patient = useMemo<PatientWithMedicalHistory | undefined>(() => {
@@ -127,10 +121,10 @@ export function usePatientHistory(patientId: string): UsePatientHistoryResult {
 
   const invalidatePatient = useCallback(() => {
     void queryClient.invalidateQueries({
-      queryKey: ["patients", patientId],
+      queryKey: queryKeys.patients.byId(patientId),
     });
     void queryClient.invalidateQueries({
-      queryKey: medicalHistoryQueryKey(patientId),
+      queryKey: queryKeys.patients.medicalHistoryFull(patientId),
     });
   }, [queryClient, patientId]);
 
@@ -138,143 +132,6 @@ export function usePatientHistory(patientId: string): UsePatientHistoryResult {
     logger.error("Patient medical history mutation failed", { error });
     showUserFacingErrorToast(error, HISTORY_ERROR_MESSAGE, "save");
   }, []);
-
-  const conditionMutation = useMutation({
-    mutationFn: (variables: { conditionName: string }) =>
-      patientsApi.createCondition(patientId, {
-        conditionName: variables.conditionName,
-        conditionType: "CHRONIC",
-        status: "ACTIVE",
-        sourceType: "MANUAL",
-        diagnosedBy: "",
-        notes: "",
-      }),
-    onSuccess: () => {
-      toast.success("Condition added");
-      invalidatePatient();
-    },
-    onError: handleHistoryError,
-  });
-
-  const removeConditionMutation = useMutation({
-    mutationFn: (conditionId: string) =>
-      patientsApi.deleteCondition(patientId, conditionId),
-    onSuccess: () => {
-      toast.success("Condition removed");
-      invalidatePatient();
-    },
-    onError: handleHistoryError,
-  });
-
-  const allergyMutation = useMutation({
-    mutationFn: (variables: {
-      allergen: string;
-      severity: PatientAllergy["severity"];
-      allergyType: PatientAllergy["allergyType"];
-    }) =>
-      patientsApi.createAllergy(patientId, {
-        allergen: variables.allergen,
-        severity: variables.severity,
-        allergyType: variables.allergyType,
-        reaction: "",
-      }),
-    onSuccess: () => {
-      toast.success("Allergy added");
-      invalidatePatient();
-    },
-    onError: handleHistoryError,
-  });
-
-  const removeAllergyMutation = useMutation({
-    mutationFn: (allergyId: string) =>
-      patientsApi.deleteAllergy(patientId, allergyId),
-    onSuccess: () => {
-      toast.success("Allergy removed");
-      invalidatePatient();
-    },
-    onError: handleHistoryError,
-  });
-
-  const updateAllergyMutation = useMutation({
-    mutationFn: (allergy: PatientAllergy) => {
-      if (!allergy.id) {
-        throw new Error("Allergy id is required to update");
-      }
-      return patientsApi.updateAllergy(patientId, allergy.id, {
-        allergen: allergy.allergen,
-        severity: allergy.severity,
-        allergyType: allergy.allergyType,
-        reaction: allergy.reaction,
-        onsetDate: allergy.onsetDate,
-        notes: allergy.notes,
-      });
-    },
-    onSuccess: () => {
-      toast.success("Allergy updated");
-      invalidatePatient();
-    },
-    onError: handleHistoryError,
-  });
-
-  const surgeryMutation = useMutation({
-    mutationFn: (variables: {
-      procedureName: string;
-      procedureDate?: string;
-    }) =>
-      patientsApi.createSurgicalHistory(patientId, {
-        procedureName: variables.procedureName,
-        procedureDate: variables.procedureDate,
-        complications: "",
-        notes: "",
-      }),
-    onSuccess: () => {
-      toast.success("Surgery added");
-      invalidatePatient();
-    },
-    onError: handleHistoryError,
-  });
-
-  const removeSurgeryMutation = useMutation({
-    mutationFn: (surgicalId: string) =>
-      patientsApi.deleteSurgicalHistory(patientId, surgicalId),
-    onSuccess: () => {
-      toast.success("Surgery removed");
-      invalidatePatient();
-    },
-    onError: handleHistoryError,
-  });
-
-  const familyMutation = useMutation({
-    mutationFn: (variables: { condition: string; relationship: string }) =>
-      patientsApi.createFamilyHistory(patientId, {
-        condition: variables.condition,
-        relationship: variables.relationship,
-      }),
-    onSuccess: () => {
-      toast.success("Family history added");
-      invalidatePatient();
-    },
-    onError: handleHistoryError,
-  });
-
-  const removeFamilyMutation = useMutation({
-    mutationFn: (familyId: string) =>
-      patientsApi.deleteFamilyHistory(patientId, familyId),
-    onSuccess: () => {
-      toast.success("Family history removed");
-      invalidatePatient();
-    },
-    onError: handleHistoryError,
-  });
-
-  const socialMutation = useMutation({
-    mutationFn: (variables: CreatePatientSocialHistoryInput) =>
-      patientsApi.upsertSocialHistory(patientId, variables),
-    onSuccess: () => {
-      invalidatePatient();
-    },
-    onError: handleHistoryError,
-  });
 
   const handleCustomDataUpdate = useCallback(
     (
@@ -297,113 +154,32 @@ export function usePatientHistory(patientId: string): UsePatientHistoryResult {
     [updatePatient, invalidatePatient, handleHistoryError],
   );
 
-  const addCondition = useCallback(
-    (conditionName: string) => {
-      const trimmed = conditionName.trim();
-      if (!trimmed) return;
-      conditionMutation.mutate({ conditionName: trimmed });
-    },
-    [conditionMutation],
-  );
-
-  const removeCondition = useCallback(
-    (id: string) => {
-      removeConditionMutation.mutate(id);
-    },
-    [removeConditionMutation],
-  );
-
-  const addAllergy = useCallback(
-    (
-      allergen: string,
-      severity: PatientAllergy["severity"] = "MODERATE",
-      allergyType: PatientAllergy["allergyType"] = "DRUG",
-    ) => {
-      const trimmed = allergen.trim();
-      if (!trimmed) return;
-      allergyMutation.mutate({
-        allergen: trimmed,
-        severity,
-        allergyType,
-      });
-    },
-    [allergyMutation],
-  );
-
-  const removeAllergy = useCallback(
-    (id: string) => {
-      removeAllergyMutation.mutate(id);
-    },
-    [removeAllergyMutation],
-  );
-
-  const updateAllergy = useCallback(
-    (allergy: PatientAllergy) => {
-      updateAllergyMutation.mutate(allergy);
-    },
-    [updateAllergyMutation],
-  );
-
-  const addSurgery = useCallback(
-    (procedureName: string, procedureDate?: string) => {
-      const trimmed = procedureName.trim();
-      if (!trimmed) return;
-      surgeryMutation.mutate({
-        procedureName: trimmed,
-        procedureDate: procedureDate || undefined,
-      });
-    },
-    [surgeryMutation],
-  );
-
-  const removeSurgery = useCallback(
-    (id: string) => {
-      removeSurgeryMutation.mutate(id);
-    },
-    [removeSurgeryMutation],
-  );
-
-  const addFamilyHistory = useCallback(
-    (condition: string, relationship: string) => {
-      const trimmedCondition = condition.trim();
-      const trimmedRelationship = relationship.trim();
-      if (!trimmedCondition || !trimmedRelationship) return;
-      familyMutation.mutate({
-        condition: trimmedCondition,
-        relationship: trimmedRelationship,
-      });
-    },
-    [familyMutation],
-  );
-
-  const removeFamilyHistory = useCallback(
-    (id: string) => {
-      removeFamilyMutation.mutate(id);
-    },
-    [removeFamilyMutation],
-  );
-
-  const updateSocialHistory = useCallback(
-    (field: keyof PatientSocialHistory, value: string) => {
-      const currentSocial = patient?.socialHistory;
-      const next: CreatePatientSocialHistoryInput = {
-        smokingStatus: currentSocial?.smokingStatus,
-        smokingPackYears: currentSocial?.smokingPackYears,
-        smokingQuitDate: currentSocial?.smokingQuitDate,
-        alcoholUse: currentSocial?.alcoholUse,
-        alcoholFrequency: currentSocial?.alcoholFrequency,
-        substanceUse: currentSocial?.substanceUse,
-        occupation: currentSocial?.occupation,
-        occupationalHazards: currentSocial?.occupationalHazards,
-        exerciseFrequency: currentSocial?.exerciseFrequency,
-        dietaryRestrictions: currentSocial?.dietaryRestrictions,
-        notes: currentSocial?.notes,
-        [field]: value,
-      } as CreatePatientSocialHistoryInput;
-      socialMutation.mutate(next);
-    },
-    [patient?.socialHistory, socialMutation],
-  );
+  const conditionOperations = usePatientConditions({
+    patientId,
+    invalidatePatient,
+    onError: handleHistoryError,
+  });
+  const allergyOperations = usePatientAllergies({
+    patientId,
+    invalidatePatient,
+    onError: handleHistoryError,
+  });
+  const surgeryOperations = usePatientSurgeries({
+    patientId,
+    invalidatePatient,
+    onError: handleHistoryError,
+  });
+  const familyHistoryOperations = usePatientFamilyHistory({
+    patientId,
+    invalidatePatient,
+    onError: handleHistoryError,
+  });
+  const socialHistoryOperations = usePatientSocialHistory({
+    patientId,
+    socialHistory: patient?.socialHistory,
+    invalidatePatient,
+    onError: handleHistoryError,
+  });
 
   const updateCustomData = useCallback(
     (
@@ -432,16 +208,11 @@ export function usePatientHistory(patientId: string): UsePatientHistoryResult {
   };
 
   const operations: HistoryOperations = {
-    addCondition,
-    removeCondition,
-    addAllergy,
-    removeAllergy,
-    updateAllergy,
-    addSurgery,
-    removeSurgery,
-    addFamilyHistory,
-    removeFamilyHistory,
-    updateSocialHistory,
+    ...conditionOperations,
+    ...allergyOperations,
+    ...surgeryOperations,
+    ...familyHistoryOperations,
+    ...socialHistoryOperations,
     updateCustomData,
   };
 

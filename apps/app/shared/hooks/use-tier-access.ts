@@ -18,6 +18,7 @@ import {
   type TierName,
 } from "@workspace/types";
 import { useQuery } from "@tanstack/react-query";
+import { queryKeys } from "@workspace/data-access";
 
 const TIER_NAMES: Record<number, string> = {
   [Tier.STARTER]: "Starter",
@@ -35,7 +36,7 @@ export function useTierAccess() {
   const clinic = clinicContext?.clinic ?? null;
 
   const { data: subscription } = useQuery<SubscriptionCurrentResponse>({
-    queryKey: ["clinic-subscription", user?.clinicId],
+    queryKey: queryKeys.clinic.subscription(user?.clinicId),
     queryFn: async () => {
       if (!token || !user?.clinicId) {
         return null;

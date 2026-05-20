@@ -25,6 +25,8 @@ import {
 } from '@workspace/types';
 import { RequestWithUser } from '@/shared/common/types/common.types';
 import { PatientTagsService } from '@/domains/patients/application/services/patient-tags.service';
+import { AuditService } from '@/shared/modules/audit/audit/audit.service';
+import { logPatientPhiRead } from '@/shared/modules/audit/audit/patient-access-audit.util';
 import {
   PatientTagListResponseDto,
   PatientTagResponseDto,
@@ -36,7 +38,10 @@ import {
 @RequireFeature(Feature.BASIC_PATIENT_MANAGEMENT)
 @Roles(...getDbRolesForTarget(APP_ACCESS_TARGETS.API_PATIENTS))
 export class PatientTagsController {
-  constructor(private readonly tagsService: PatientTagsService) {}
+  constructor(
+    private readonly tagsService: PatientTagsService,
+    private readonly auditService: AuditService,
+  ) {}
 
   @Get()
   @ApiOperation({ summary: 'List tags for a patient' })
@@ -45,6 +50,7 @@ export class PatientTagsController {
     @Request() req: RequestWithUser,
     @Param('patientId') patientId: string,
   ) {
+    await logPatientPhiRead(this.auditService, req, patientId, 'VIEW_PROFILE');
     return this.tagsService.list({
       clinicId: req.user!.clinicId!,
       patientId,

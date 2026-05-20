@@ -8,6 +8,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@workspace/ui/componen
 import { DataState } from "@workspace/ui/components/data-display/data-state";
 import { BellIcon, TrashIcon } from "lucide-react";
 import {
+  queryKeys,
   useAllNotifications, useMarkNotificationRead, useDeleteNotification,
   useDeleteAllNotifications, type StaffNotification,
 } from "@workspace/data-access";
@@ -28,19 +29,19 @@ export function NotificationsInboxView() {
   useEffect(() => {
     if (!socket) return;
     const onNew = (n: StaffNotification) => {
-      queryClient.setQueryData<StaffNotification[]>(["notifications", "all"], (old = []) => [n, ...old]);
-      queryClient.invalidateQueries({ queryKey: ["notifications", "unread-count"] });
+      queryClient.setQueryData<StaffNotification[]>(queryKeys.notifications.listAll(), (old = []) => [n, ...old]);
+      queryClient.invalidateQueries({ queryKey: queryKeys.notifications.unreadCount() });
     };
     const onRead = (data: { id: string; readAt: Date }) => {
-      queryClient.setQueryData<StaffNotification[]>(["notifications", "all"], (old = []) =>
+      queryClient.setQueryData<StaffNotification[]>(queryKeys.notifications.listAll(), (old = []) =>
         old.map((n) => n.id === data.id ? { ...n, isRead: true, readAt: data.readAt } : n));
-      queryClient.invalidateQueries({ queryKey: ["notifications", "unread-count"] });
+      queryClient.invalidateQueries({ queryKey: queryKeys.notifications.unreadCount() });
     };
     const onDeleted = (data: { id: string }) => {
-      queryClient.setQueryData<StaffNotification[]>(["notifications", "all"], (old = []) => old.filter((n) => n.id !== data.id));
-      queryClient.invalidateQueries({ queryKey: ["notifications", "unread-count"] });
+      queryClient.setQueryData<StaffNotification[]>(queryKeys.notifications.listAll(), (old = []) => old.filter((n) => n.id !== data.id));
+      queryClient.invalidateQueries({ queryKey: queryKeys.notifications.unreadCount() });
     };
-    const onBulk = () => { refetch(); queryClient.invalidateQueries({ queryKey: ["notifications", "unread-count"] }); };
+    const onBulk = () => { refetch(); queryClient.invalidateQueries({ queryKey: queryKeys.notifications.unreadCount() }); };
     socket.on("notification:new", onNew);
     socket.on("notification:read", onRead);
     socket.on("notification:deleted", onDeleted);

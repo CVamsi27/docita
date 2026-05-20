@@ -51,10 +51,10 @@ export function PatientProfileHeaderContainer({
       initials={initials}
       age={ageDisplay}
       gender={patient.gender || "UNKNOWN"}
-      dateOfBirth={patient.dateOfBirth}
+      dateOfBirth={patient.dateOfBirth ?? undefined}
       patientId={patient.id || ""}
-      email={patient.email || undefined}
-      phoneNumber={patient.phoneNumber}
+      email={patient.email ?? undefined}
+      phoneNumber={patient.phoneNumber ?? undefined}
       address={patient.address || undefined}
       onEdit={onEdit}
     />

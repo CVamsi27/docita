@@ -1,5 +1,6 @@
 import { Feature } from "@workspace/types";
 import { useAPIMutation } from "../core/use-api-mutation";
+import { queryKeys } from "../lib/query-keys";
 import { useAPIQuery } from "../core/use-api-query";
 import { useDataAccessContext } from "../provider/hooks";
 
@@ -12,7 +13,7 @@ export const useMedicalCodingSettings = () => {
     provider: string;
     autoSuggest: boolean;
     preferredSystem: string;
-  }>(["clinic", "medical-coding-settings"], "/clinical/medical-coding/settings", {
+  }>(queryKeys.clinic.medicalCodingSettings(), "/clinical/medical-coding/settings", {
     enabled: codingOk,
   });
 };

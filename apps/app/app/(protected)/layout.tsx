@@ -77,6 +77,7 @@ export default function ProtectedLayout({
   const [redirectMessage, setRedirectMessage] = useState<string | null>(null);
   const sidebarPanelRef = useRef<ImperativePanelHandle>(null);
   const wasSettingsAutoCollapseRouteRef = useRef(false);
+  const wasConsultationAutoCollapseRouteRef = useRef(false);
   const { user, isLoading } = useAuth();
   const router = useRouter();
   const isSettingsRoute = pathname?.startsWith("/settings") ?? false;
@@ -111,15 +112,26 @@ export default function ProtectedLayout({
     }
   }, [isLoading, user, router]);
 
-  // Consultation detail: collapse after the resizable shell exists (avoids a no-op during auth loading).
+  // Consultation detail: collapse/expand based on route
   useEffect(() => {
-    if (isLoading || !isConsultationDetailRoute) return;
+    if (isLoading) return;
+    const wasConsultationAutoCollapseRoute =
+      wasConsultationAutoCollapseRouteRef.current;
+    wasConsultationAutoCollapseRouteRef.current = isConsultationDetailRoute;
+
     const id = requestAnimationFrame(() => {
-      sidebarPanelRef.current?.collapse();
-      setIsCollapsed(true);
+      if (isConsultationDetailRoute && !wasConsultationAutoCollapseRoute) {
+        // Entering consultation detail: collapse sidebar
+        sidebarPanelRef.current?.collapse();
+        setIsCollapsed(true);
+      } else if (!isConsultationDetailRoute && wasConsultationAutoCollapseRoute) {
+        // Leaving consultation detail: expand sidebar
+        sidebarPanelRef.current?.expand();
+        setIsCollapsed(false);
+      }
     });
     return () => cancelAnimationFrame(id);
-  }, [isLoading, pathname, isConsultationDetailRoute]);
+  }, [isLoading, isConsultationDetailRoute]);
 
   useEffect(() => {
     if (isLoading) return;
@@ -127,13 +139,18 @@ export default function ProtectedLayout({
       wasSettingsAutoCollapseRouteRef.current;
     wasSettingsAutoCollapseRouteRef.current = isSettingsRoute;
 
-    if (isSettingsRoute && !wasSettingsAutoCollapseRoute) {
-      const id = requestAnimationFrame(() => {
+    const id = requestAnimationFrame(() => {
+      if (isSettingsRoute && !wasSettingsAutoCollapseRoute) {
+        // Entering settings: collapse sidebar
         sidebarPanelRef.current?.collapse();
         setIsCollapsed(true);
-      });
-      return () => cancelAnimationFrame(id);
-    }
+      } else if (!isSettingsRoute && wasSettingsAutoCollapseRoute) {
+        // Leaving settings: expand sidebar
+        sidebarPanelRef.current?.expand();
+        setIsCollapsed(false);
+      }
+    });
+    return () => cancelAnimationFrame(id);
   }, [isLoading, isSettingsRoute]);
 
   if (isLoading) {

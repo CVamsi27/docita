@@ -1,4 +1,8 @@
-import { Injectable, Logger } from '@nestjs/common';
+import { Inject, Injectable, Logger } from '@nestjs/common';
+import {
+  CLOCK_PORT,
+  type IClock,
+} from '@/shared/common/ports/clock.port';
 import { EventEmitter2 } from '@nestjs/event-emitter';
 import { nanoid } from 'nanoid';
 import {
@@ -12,7 +16,10 @@ import {
 export class DomainEventService {
   private readonly logger = new Logger(DomainEventService.name);
 
-  constructor(private readonly eventEmitter: EventEmitter2) {}
+  constructor(
+    private readonly eventEmitter: EventEmitter2,
+    @Inject(CLOCK_PORT) private readonly clock: IClock,
+  ) {}
 
   emit<T extends DomainEvents>(
     type: T,
@@ -31,6 +38,7 @@ export class DomainEventService {
       userId: context.userId,
       source: context.source,
       correlationId,
+      timestamp: this.clock.now(),
     });
 
     this.logger.debug(
@@ -65,6 +73,7 @@ export class DomainEventService {
       userId: context.userId,
       source: context.source,
       correlationId,
+      timestamp: this.clock.now(),
     });
 
     this.logger.debug(

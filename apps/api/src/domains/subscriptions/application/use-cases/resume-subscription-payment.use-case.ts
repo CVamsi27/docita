@@ -4,14 +4,12 @@ import {
   BadRequestException,
   Logger,
 } from '@nestjs/common';
-import { PrismaService } from '@/prisma/prisma.service';
 import { AppConfigService } from '@/shared/modules/config/app-configuration.service';
 import {
   IPaymentLinkProvider,
   DOCITA_PLATFORM_PAYMENT_LINK_PROVIDER_TOKEN,
 } from '@/domains/payments/core/ports';
 import { Money } from '@/domains/payments/core/value-objects/money.vo';
-import { Role } from '@workspace/db';
 import {
   ISubscriptionRepository,
   SUBSCRIPTION_REPOSITORY_TOKEN,
@@ -33,7 +31,6 @@ export class ResumeSubscriptionPaymentUseCase {
   private readonly logger = new Logger(ResumeSubscriptionPaymentUseCase.name);
 
   constructor(
-    private readonly prisma: PrismaService,
     private readonly configService: AppConfigService,
     @Inject(DOCITA_PLATFORM_PAYMENT_LINK_PROVIDER_TOKEN)
     private readonly paymentLinkProvider: IPaymentLinkProvider,
@@ -70,7 +67,9 @@ export class ResumeSubscriptionPaymentUseCase {
       return { id: payment.id, payUrl: payment.invoiceUrl };
     }
 
-    const billingContact = await this.getBillingContact(params.clinicId);
+    const billingContact = await this.subscriptionRepo.findBillingContact(
+      params.clinicId,
+    );
     const callbackUrl = `${this.configService.getFrontendAppUrl().replace(/\/$/, '')}/settings?tab=subscription`;
 
     const link = await this.paymentLinkProvider.createPaymentLink({
@@ -102,53 +101,5 @@ export class ResumeSubscriptionPaymentUseCase {
     });
 
     return { id: payment.id, payUrl };
-  }
-
-  private async getBillingContact(clinicId: string): Promise<{
-    name: string | null;
-    email: string | null;
-    phoneNumber: string | null;
-  }> {
-    const primaryAdmin = await this.prisma.user.findFirst({
-      where: {
-        clinicId,
-        role: { in: [Role.ADMIN, Role.ADMIN_DOCTOR] },
-      },
-      select: {
-        name: true,
-        email: true,
-        phoneNumber: true,
-      },
-      orderBy: { createdAt: 'asc' },
-    });
-
-    if (primaryAdmin) {
-      return primaryAdmin;
-    }
-
-    const fallbackUser = await this.prisma.user.findFirst({
-      where: { clinicId },
-      select: {
-        name: true,
-        email: true,
-        phoneNumber: true,
-      },
-      orderBy: { createdAt: 'asc' },
-    });
-
-    if (fallbackUser) {
-      return fallbackUser;
-    }
-
-    const clinic = await this.prisma.clinic.findUnique({
-      where: { id: clinicId },
-      select: { name: true },
-    });
-
-    return {
-      name: clinic?.name ?? null,
-      email: null,
-      phoneNumber: null,
-    };
   }
 }

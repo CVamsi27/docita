@@ -1,4 +1,8 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import { Inject, Injectable, NotFoundException } from '@nestjs/common';
+import {
+  CLOCK_PORT,
+  type IClock,
+} from '@/shared/common/ports/clock.port';
 import { PrismaService } from '@/prisma/prisma.service';
 import { Prisma } from '@workspace/db';
 import {
@@ -31,6 +35,7 @@ export class FhirService {
     private allergyFactory: FhirAllergyFactory,
     private immunizationFactory: FhirImmunizationFactory,
     private appointmentFactory: FhirAppointmentFactory,
+    @Inject(CLOCK_PORT) private readonly clock: IClock,
   ) {}
 
   async getPatientResource(
@@ -258,7 +263,7 @@ export class FhirService {
       resourceType: 'Bundle',
       id: `patient-bundle-${patientId}`,
       type: 'collection',
-      timestamp: new Date().toISOString(),
+      timestamp: this.clock.now().toISOString(),
       total: entries.length,
       entry: entries,
     };
@@ -290,7 +295,7 @@ export class FhirService {
       title: 'Docita FHIR R4 Server',
       status: 'active',
       experimental: false,
-      date: new Date().toISOString(),
+      date: this.clock.now().toISOString(),
       publisher: 'Docita',
       description: 'FHIR R4 API for Docita Healthcare Platform',
       kind: 'instance',

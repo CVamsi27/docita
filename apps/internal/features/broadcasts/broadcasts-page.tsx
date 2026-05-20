@@ -27,7 +27,7 @@ import { WhatsAppBroadcastJobSummary } from "@workspace/types";
 import { AlertCircle, FileText, Megaphone, Send, Upload } from "lucide-react";
 import { broadcastsAPI } from "@/lib/api/api";
 import { internalQueryKeys } from "@/lib/api/query-keys";
-import { useInternalQuery } from "@/lib/api/use-internal-query";
+import { useInternalBroadcastsList } from "@workspace/data-access/internal";
 import {
   BROADCAST_PRESETS,
   type BroadcastPresetId,
@@ -68,10 +68,7 @@ export function BroadcastsPage() {
   );
 
   const listKey = internalQueryKeys.internal.broadcasts(BROADCAST_LIST_LIMIT);
-  const broadcastsQuery = useInternalQuery({
-    queryKey: listKey,
-    queryFn: () => broadcastsAPI.list(BROADCAST_LIST_LIMIT),
-  });
+  const broadcastsQuery = useInternalBroadcastsList(BROADCAST_LIST_LIMIT);
 
   const createMutation = useMutation({
     mutationFn: broadcastsAPI.create,

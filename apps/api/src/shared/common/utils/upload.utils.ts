@@ -1,5 +1,5 @@
 import { BadRequestException } from '@nestjs/common';
-import type { StorageFile } from '@/domains/documents/infrastructure/storage.provider';
+import type { StorageFile } from '@/domains/documents/application/ports/storage-provider.port';
 import { extname, join } from 'path';
 import { mkdirSync } from 'fs';
 import { open } from 'fs/promises';

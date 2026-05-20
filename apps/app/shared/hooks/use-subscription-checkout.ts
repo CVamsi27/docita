@@ -11,6 +11,7 @@ import { BRAND_FOREGROUND_HEX } from "@/lib/constants/branding";
 import { fetchJsonWithSession } from "@/lib/auth/fetch-with-session";
 import { usePermissionStore } from "@/lib/stores/permission-store";
 import { showUserFacingErrorToast } from "@/lib/errors/user-facing-errors";
+import { queryKeys } from "@workspace/data-access";
 import {
   subscriptionBillingActivateResponseSchema,
   subscriptionBillingCheckoutResponseSchema,
@@ -41,8 +42,10 @@ export function useSubscriptionCheckout(
 
   const invalidateSubscriptionQueries = useCallback(async () => {
     await Promise.all([
-      queryClient.invalidateQueries({ queryKey: ["billing-status"] }),
-      queryClient.invalidateQueries({ queryKey: ["clinic", "subscription"] }),
+      queryClient.invalidateQueries({ queryKey: queryKeys.billing.status() }),
+      queryClient.invalidateQueries({
+        queryKey: queryKeys.clinic.subscriptionSettings(),
+      }),
     ]);
   }, [queryClient]);
 

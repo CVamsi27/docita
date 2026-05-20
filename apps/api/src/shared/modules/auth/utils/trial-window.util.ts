@@ -6,7 +6,7 @@ const DAY_MS = 24 * 60 * 60 * 1000;
 export function getTrialWindowState(params: {
   subscriptionStatus: SubscriptionStatus;
   trialEnd: Date | null | undefined;
-  now?: Date;
+  now: Date;
 }): TrialWindowState | null {
   if (params.subscriptionStatus !== SubscriptionStatus.TRIALING) {
     return null;
@@ -14,7 +14,7 @@ export function getTrialWindowState(params: {
   if (!params.trialEnd) {
     return 'ACTIVE';
   }
-  const now = (params.now ?? new Date()).getTime();
+  const now = params.now.getTime();
   const trialEndMs = new Date(params.trialEnd).getTime();
   if (now < trialEndMs) {
     return 'ACTIVE';

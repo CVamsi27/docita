@@ -10,7 +10,7 @@ import type {
 } from "@workspace/types";
 import { useAuth } from "@/lib/auth/auth-context";
 import { useAPIQuery, useAPIMutation } from "@/lib/api/api-core";
-import { useGenerateSignatureToken } from "@workspace/data-access";
+import { appQueryKeys, useGenerateSignatureToken } from "@workspace/data-access";
 import { toAbsoluteApiUrl, toAbsoluteAppUrl } from "@/lib/utils/url";
 import { usePhoneSignatureQrFlow } from "@/hooks/use-phone-signature-qr-flow";
 import { showUserFacingErrorToast } from "@/lib/errors/user-facing-errors";
@@ -46,13 +46,13 @@ export function useVerifyDoctor() {
     isLoading: profileLoading,
     refetch,
   } = useAPIQuery<User>(
-    ["doctor-profile", user?.id ?? ""],
+    appQueryKeys.doctorProfile.detail(user?.id ?? ""),
     `/doctors/${user?.id}`,
     { enabled: !!user?.id && isDoctor },
   );
 
   const { data: clinic, isLoading: clinicLoading } = useAPIQuery<Clinic>(
-    ["clinic-settings", user?.clinicId ?? ""],
+    appQueryKeys.clinicSettings(user?.clinicId ?? ""),
     "/clinic/settings",
     { enabled: !!user?.clinicId && isDoctor },
   );
@@ -61,13 +61,13 @@ export function useVerifyDoctor() {
     User,
     UpdateDoctorRegistrationRequest
   >(`/doctors/${user?.id}/registration-number`, "PUT", {
-    invalidateKeys: [["doctor-profile", user?.id ?? ""]],
+    invalidateKeys: [appQueryKeys.doctorProfile.detail(user?.id ?? "")],
   });
 
   const updateDoctorSignature = useAPIMutation<User, { signatureUrl: string }>(
     `/doctors/${user?.id}`,
     "PUT",
-    { invalidateKeys: [["doctor-profile", user?.id ?? ""]] },
+    { invalidateKeys: [appQueryKeys.doctorProfile.detail(user?.id ?? "")] },
   );
 
   const profile = doctorProfile ?? user;

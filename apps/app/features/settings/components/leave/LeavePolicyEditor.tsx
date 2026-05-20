@@ -39,8 +39,10 @@ import {
   FormLabel,
   FormMessage,
 } from "@workspace/ui/components/form/form";
-import { leavePlanDialogSchema } from "@/features/settings/schemas/leave-plan-dialog.schema";
-import type { LeavePlanDialogFormValues } from "@/features/settings/schemas/leave-plan-dialog.schema";
+import {
+  leavePlanDialogFormSchema,
+  type LeavePlanDialogFormValues,
+} from "@workspace/types";
 import { LEAVE_TYPE_LABELS } from "./LeaveBalanceCard";
 import { useState } from "react";
 
@@ -55,7 +57,7 @@ export function LeavePolicyEditor() {
   const [planDialogOpen, setPlanDialogOpen] = useState(false);
 
   const form = useForm<LeavePlanDialogFormValues>({
-    resolver: zodResolver(leavePlanDialogSchema),
+    resolver: zodResolver(leavePlanDialogFormSchema),
     defaultValues: DEFAULT_VALUES,
   });
 

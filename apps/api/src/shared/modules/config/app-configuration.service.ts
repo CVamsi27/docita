@@ -281,6 +281,41 @@ export class AppConfigService {
     return this.getEnvironment() === 'development';
   }
 
+  isTest(): boolean {
+    return this.getEnvironment() === 'test';
+  }
+
+  isApiE2eEnabled(): boolean {
+    return this.getConfig().DOCITA_API_E2E === 'true';
+  }
+
+  /** Non-production E2E bypass (global flag or per-request header). */
+  shouldBypassGuardForE2e(e2eHeaderValue: string | undefined): boolean {
+    if (this.isProduction()) {
+      return false;
+    }
+    if (this.isApiE2eEnabled()) {
+      return true;
+    }
+    return e2eHeaderValue === 'true';
+  }
+
+  getCptCatalogSource(): 'licensed' | 'nlm_hcpcs' {
+    return this.getConfig().CPT_CATALOG_SOURCE?.toLowerCase() === 'licensed'
+      ? 'licensed'
+      : 'nlm_hcpcs';
+  }
+
+  getCptLicensedApiConfig() {
+    const config = this.getConfig();
+    return {
+      apiBaseUrl: config.CPT_LICENSED_API_URL?.trim() || null,
+      apiKey: config.CPT_LICENSED_API_KEY?.trim() || null,
+      searchPath: config.CPT_LICENSED_SEARCH_PATH?.trim() || '/search',
+      syncPath: config.CPT_LICENSED_SYNC_PATH?.trim() || '/codes',
+    };
+  }
+
   getCpuCount(): number {
     return this.getConfig().CPU_COUNT;
   }

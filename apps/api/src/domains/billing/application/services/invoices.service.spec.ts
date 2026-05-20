@@ -9,7 +9,10 @@ import {
   PaymentSessionStatus,
   Prisma,
 } from '@workspace/db';
-import { PrismaService } from '@/prisma/prisma.service';
+import {
+  BILLING_PERSISTENCE_PORT,
+  type BillingPersistencePort,
+} from '@/domains/billing/application/ports/billing-persistence.port';
 import {
   ClaimReadinessResult,
   ClaimValidationService,
@@ -21,7 +24,7 @@ import {
 import type { IPaymentSessionRepository } from '@/domains/billing/core/repositories/payment-session.repository';
 import { UsageTrackingService } from '@/domains/billing/core/services/usage-tracking.service';
 import { TaxCalculatorService } from '@/domains/billing/core/services/tax-calculator.service';
-import { StorageProvider } from '@/domains/documents/infrastructure/storage.provider';
+import { StorageProvider } from '@/domains/documents/application/ports/storage-provider.port';
 import { StoredFileUrlResolverService } from '@/domains/documents/application/services/stored-file-url-resolver.service';
 import { PDFService, InvoiceData } from './pdf.service';
 import { InvoicesService } from './invoices.service';
@@ -43,7 +46,7 @@ describe('InvoicesService', () => {
     clinic: {
       findUnique: clinicFindUniqueMock,
     },
-  } as unknown as PrismaService;
+  } as unknown as BillingPersistencePort;
 
   const repository: jest.Mocked<IInvoiceRepository> = {
     findAll: jest.fn<IInvoiceRepository['findAll']>(),

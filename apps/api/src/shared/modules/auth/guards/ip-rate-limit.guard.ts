@@ -7,24 +7,28 @@ import {
 } from '@nestjs/common';
 import { Request } from 'express';
 import { IpRateLimitService } from '@/shared/modules/services/ip-rate-limit.service';
+import { AppConfigService } from '@/shared/modules/config/app-configuration.service';
 
 type RequestWithClientIp = Request & { clientIp?: string };
 
 @Injectable()
 export class IpRateLimitGuard implements CanActivate {
-  constructor(private readonly ipRateLimitService: IpRateLimitService) {}
+  constructor(
+    private readonly ipRateLimitService: IpRateLimitService,
+    private readonly config: AppConfigService,
+  ) {}
 
   canActivate(context: ExecutionContext): boolean {
     const request = context.switchToHttp().getRequest<RequestWithClientIp>();
 
-    if (process.env.DOCITA_API_E2E === 'true') {
-      request.clientIp = this.ipRateLimitService.getClientIp(request);
-      return true;
-    }
-
     const e2eHeader = request.headers?.['x-docita-e2e'];
-    const e2eValue = Array.isArray(e2eHeader) ? e2eHeader[0] : e2eHeader;
-    if (e2eValue === 'true' && process.env.NODE_ENV !== 'production') {
+    const e2eValue = Array.isArray(e2eHeader)
+      ? String(e2eHeader[0])
+      : typeof e2eHeader === 'string'
+        ? e2eHeader
+        : undefined;
+    if (this.config.shouldBypassGuardForE2e(e2eValue)) {
+      request.clientIp = this.ipRateLimitService.getClientIp(request);
       return true;
     }
     const ip = this.ipRateLimitService.getClientIp(request);

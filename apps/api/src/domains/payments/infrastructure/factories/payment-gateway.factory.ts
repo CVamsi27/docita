@@ -12,6 +12,7 @@ import { RazorpaySubscriptionAdapter } from '@/domains/payments/infrastructure/a
 import { RazorpayOrderAdapter } from '@/domains/payments/infrastructure/adapters/razorpay/razorpay-order.adapter';
 import { RazorpayWebhookAdapter } from '@/domains/payments/infrastructure/adapters/razorpay/razorpay-webhook.adapter';
 import { RazorpayRefundAdapter } from '@/domains/payments/infrastructure/adapters/razorpay/razorpay-refund.adapter';
+import { detectPaymentProviderFromWebhookHeaders } from './payment-webhook-provider-detection.registry';
 
 /**
  * Registry for **Docita SaaS** Razorpay capabilities (Docita merchant):
@@ -125,13 +126,6 @@ export class PaymentGatewayFactory {
   }
 
   detectProviderFromWebhook(headers: Record<string, string>): PaymentProvider {
-    if (headers['x-razorpay-signature']) {
-      return PaymentProvider.RAZORPAY;
-    }
-    if (headers['stripe-signature']) {
-      return PaymentProvider.STRIPE;
-    }
-
-    throw new Error('Unable to detect payment provider from webhook headers');
+    return detectPaymentProviderFromWebhookHeaders(headers);
   }
 }

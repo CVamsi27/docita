@@ -2,7 +2,7 @@ import {
   applyTenantScopeForTest,
   getTenantScopeDiagnostics,
   getTenantScopeRule,
-} from './tenant.extension';
+} from './tenant-scope-policy';
 
 describe('tenant extension scope rules', () => {
   it('derives direct clinic scope from the Prisma datamodel', () => {
@@ -20,7 +20,7 @@ describe('tenant extension scope rules', () => {
   });
 
   it('reports schema-backed tenant coverage diagnostics', () => {
-    const diagnostics = getTenantScopeDiagnostics();
+    const diagnostics = getTenantScopeDiagnostics(new Date('2026-01-01T00:00:00Z'));
 
     expect(diagnostics.uncoveredClinicIdModels).toEqual([]);
     expect(diagnostics.staleRelationRules).toEqual([]);

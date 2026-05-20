@@ -1,4 +1,5 @@
 import { fireEvent, render, screen, waitFor } from "@testing-library/react";
+import { queryKeys } from "@workspace/data-access";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import JoinRequestsPage from "./page";
 
@@ -105,7 +106,7 @@ describe("JoinRequestsPage", () => {
       });
     });
     expect(joinRequestMocks.queryClient.invalidateQueries).toHaveBeenCalledWith({
-      queryKey: ["clinic-join-requests"],
+      queryKey: queryKeys.clinicJoinRequests.all(),
     });
     expect(joinRequestMocks.toastSuccess).toHaveBeenCalledWith(
       "Join request approved! User can now access the dashboard",

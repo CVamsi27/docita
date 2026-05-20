@@ -3,12 +3,14 @@ import {
   Feature,
   FEATURE_TIER_MAP,
   FRONT_DESK_BLOCKED_FEATURES,
-  getAllFeaturesUpToTier,
-  getFeaturesForTier,
-  hasFeatureAccess,
   tierSchema,
   type TierName,
 } from "../src";
+import {
+  getAllFeaturesUpToTier,
+  getFeaturesForTier,
+  hasFeatureAccess,
+} from "@workspace/utils";
 
 const BILLABLE_PLAN_SKUS = [
   "STARTER",

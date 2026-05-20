@@ -2,14 +2,16 @@
 
 import { DocitaLoadingIndicator } from "@workspace/ui/components/feedback/docita-loading-indicator";
 
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
+import { useQueryClient } from "@tanstack/react-query";
+import { billingAPI, type PricingOfferRow } from "@/lib/api/api";
+import { internalQueryKeys } from "@/lib/api/query-keys";
 import {
-  billingAPI,
-  type PricingOfferRow,
-  type TierPricingRow,
-} from "@/lib/api/api";
-import { fetchClinics } from "@/features/users/api";
-import type { Clinic } from "@/features/users/types";
+  useInternalBillingPricingOffers,
+  useInternalBillingPricingTiers,
+  useInternalClinics,
+  type InternalTierPricingRow,
+} from "@workspace/data-access/internal";
 import { useAuth } from "@/lib/auth/auth";
 import {
   Card,
@@ -39,7 +41,7 @@ import {
 import { Badge } from "@workspace/ui/components/indicators/badge";
 import { Plus, Save, Sparkles, Trash2 } from "lucide-react";
 
-interface EditableTierRow extends TierPricingRow {
+interface EditableTierRow extends InternalTierPricingRow {
   isDirty?: boolean;
 }
 
@@ -107,66 +109,38 @@ const OFFER_TEMPLATES: OfferTemplate[] = [
 ];
 
 export default function PricingPage() {
-  const { token, isLoading } = useAuth();
+  const queryClient = useQueryClient();
+  const { token, isLoading: authLoading } = useAuth();
   const [tiers, setTiers] = useState<EditableTierRow[]>([]);
-  const [offers, setOffers] = useState<PricingOfferRow[]>([]);
-  const [clinics, setClinics] = useState<Clinic[]>([]);
-  const [isLoadingTiers, setIsLoadingTiers] = useState(true);
-  const [isLoadingOffers, setIsLoadingOffers] = useState(true);
-  const [isLoadingClinics, setIsLoadingClinics] = useState(true);
   const [savingId, setSavingId] = useState<string | null>(null);
   const [saveError, setSaveError] = useState<string | null>(null);
   const [offerForm, setOfferForm] = useState<PricingOfferFormState>(
     DEFAULT_OFFER_FORM,
   );
 
-  const loadTiers = useCallback(async () => {
-    setIsLoadingTiers(true);
-    try {
-      const data = await billingAPI.getPricingTiers();
-      setTiers(data);
-    } finally {
-      setIsLoadingTiers(false);
-    }
-  }, []);
+  const tiersQuery = useInternalBillingPricingTiers(token, {
+    enabled: Boolean(token && !authLoading),
+  });
+  const offersQuery = useInternalBillingPricingOffers(token, {
+    enabled: Boolean(token && !authLoading),
+  });
+  const clinicsQuery = useInternalClinics(token, "list", {
+    enabled: Boolean(token && !authLoading),
+  });
 
-  const loadOffers = useCallback(async () => {
-    setIsLoadingOffers(true);
-    try {
-      const data = await billingAPI.getPricingOffers();
-      setOffers(data);
-    } finally {
-      setIsLoadingOffers(false);
-    }
-  }, []);
+  const offers = (offersQuery.data ?? []) as PricingOfferRow[];
+  const clinics = clinicsQuery.data ?? [];
+  const isLoadingTiers = tiersQuery.isLoading;
+  const isLoadingOffers = offersQuery.isLoading;
+  const isLoadingClinics = clinicsQuery.isLoading;
 
-  const loadClinics = useCallback(async () => {
-    if (!token) {
-      setClinics([]);
-      setIsLoadingClinics(false);
-      return;
-    }
-
-    setIsLoadingClinics(true);
-    try {
-      const data = await fetchClinics();
-      setClinics(data);
-    } catch {
-      setClinics([]);
-    } finally {
-      setIsLoadingClinics(false);
-    }
-  }, [token]);
+  const offersQueryKey = internalQueryKeys.internal.billingPricingOffers();
 
   useEffect(() => {
-    if (isLoading || !token) {
-      return;
+    if (tiersQuery.data) {
+      setTiers(tiersQuery.data.map((tier) => ({ ...tier, isDirty: false })));
     }
-
-    void loadTiers();
-    void loadOffers();
-    void loadClinics();
-  }, [isLoading, token, loadTiers, loadOffers, loadClinics]);
+  }, [tiersQuery.data]);
 
   const clinicOptions = useMemo(() => {
     return clinics.map((clinic) => ({
@@ -177,7 +151,7 @@ export default function PricingPage() {
 
   const handleTierFieldChange = (
     tierId: string,
-    field: keyof TierPricingRow,
+    field: keyof InternalTierPricingRow,
     value: number | string,
   ) => {
     setTiers((prev) =>
@@ -227,7 +201,7 @@ export default function PricingPage() {
     setSavingId(offerForm.clinicId);
     setSaveError(null);
     try {
-      const updated = await billingAPI.upsertPricingOffer(offerForm.clinicId, {
+      await billingAPI.upsertPricingOffer(offerForm.clinicId, {
         title: offerForm.title.trim(),
         description: offerForm.description.trim(),
         percentOff: offerForm.percentOff,
@@ -236,10 +210,7 @@ export default function PricingPage() {
         notes: offerForm.notes.trim() || undefined,
       });
 
-      setOffers((prev) => {
-        const next = prev.filter((offer) => offer.clinicId !== updated.clinicId);
-        return [updated, ...next];
-      });
+      await queryClient.invalidateQueries({ queryKey: offersQueryKey });
       setOfferForm(DEFAULT_OFFER_FORM);
     } catch {
       setSaveError("We could not save this facility offer. Please try again.");
@@ -253,7 +224,7 @@ export default function PricingPage() {
     setSaveError(null);
     try {
       await billingAPI.deletePricingOffer(clinicId);
-      setOffers((prev) => prev.filter((offer) => offer.clinicId !== clinicId));
+      await queryClient.invalidateQueries({ queryKey: offersQueryKey });
       if (offerForm.clinicId === clinicId) {
         setOfferForm(DEFAULT_OFFER_FORM);
       }
@@ -277,7 +248,7 @@ export default function PricingPage() {
 
   const numericField = (
     tierId: string,
-    field: keyof TierPricingRow,
+    field: keyof InternalTierPricingRow,
     value: number,
   ) => (
     <Input
@@ -290,7 +261,7 @@ export default function PricingPage() {
     />
   );
 
-  if (isLoading || !token) {
+  if (authLoading || !token) {
     return (
       <div
         className="flex min-h-[60vh] items-center justify-center"

@@ -1,10 +1,12 @@
 import { useEffect, useMemo, useState } from "react";
 import { getUserFacingErrorMessage } from "@workspace/utils";
 import { useAuth } from "@/lib/auth/auth";
-import { useInternalQuery } from "@/lib/api/use-internal-query";
-import { fetchClinics, fetchUsersForSelection } from "./api";
+import {
+  useInternalClinics,
+  useInternalUsersList,
+} from "@workspace/data-access/internal";
 import { calculateRoleStats, filterUsers } from "./utils";
-import type { RoleFilter, User } from "./types";
+import type { Clinic, RoleFilter, User } from "./types";
 import { showUserFacingErrorToast } from "@/lib/errors/user-facing-errors";
 
 export function useUsersData() {
@@ -16,25 +18,10 @@ export function useUsersData() {
   const [selectedUser, setSelectedUser] = useState<User | null>(null);
   const [isViewOpen, setIsViewOpen] = useState(false);
 
-  const clinicsQuery = useInternalQuery({
-    queryKey: ["internal", "users", "clinics", token] as const,
-    queryFn: fetchClinics,
-  });
+  const clinicsQuery = useInternalClinics(token, "users");
+  const clinics = (clinicsQuery.data ?? []) as Clinic[];
 
-  const usersQuery = useInternalQuery({
-    queryKey: [
-      "internal",
-      "users",
-      token,
-      selectedClinic,
-      clinicsQuery.data?.length ?? 0,
-    ] as const,
-    queryFn: () =>
-      fetchUsersForSelection(selectedClinic, clinicsQuery.data ?? []),
-    enabled:
-      Boolean(selectedClinic) &&
-      (selectedClinic === "all" ? (clinicsQuery.data?.length ?? 0) > 0 : true),
-  });
+  const usersQuery = useInternalUsersList(token, selectedClinic, clinics);
 
   useEffect(() => {
     if (clinicsQuery.error) {
@@ -48,7 +35,10 @@ export function useUsersData() {
     }
   }, [usersQuery.error]);
 
-  const users = useMemo(() => usersQuery.data ?? [], [usersQuery.data]);
+  const users = useMemo(
+    () => (usersQuery.data ?? []) as User[],
+    [usersQuery.data],
+  );
 
   const filteredUsers = useMemo(
     () => filterUsers(users, searchTerm, selectedRole),
@@ -72,7 +62,7 @@ export function useUsersData() {
     : "We could not load your team members. Please refresh and try again.";
 
   return {
-    clinics: clinicsQuery.data ?? [],
+    clinics,
     users,
     filteredUsers,
     roleStats,

@@ -2,11 +2,17 @@ import { Test, TestingModule } from '@nestjs/testing';
 import { JwtService } from '@nestjs/jwt';
 import { ForbiddenException, UnauthorizedException } from '@nestjs/common';
 import { AuthService } from './auth.service';
+import { CredentialValidationService } from './credential-validation.service';
+import { AuthSessionService } from './auth-session.service';
+import { AuthRegistrationService } from './auth-registration.service';
+import { AuthPasswordService } from './auth-password.service';
+import { AuthEmailVerificationService } from './auth-email-verification.service';
+import { AuthMfaOrchestratorService } from './auth-mfa-orchestrator.service';
 import { MfaService } from './mfa.service';
+import { AppConfigService } from '@/shared/modules/config/app-configuration.service';
 import { EmailService } from '@/shared/modules/messaging/email/email.service';
 import { PrismaService } from '@/prisma/prisma.service';
 import { UserFactory } from '@/domains/users/core/factories/user.factory';
-import { MonitoringService } from '@/shared/modules/monitoring/monitoring/monitoring.service';
 import { ObservabilityService } from '@/shared/modules/services/observability.service';
 import { AUTH_CONSTANTS } from '@/shared/modules/config/app-constants';
 import * as bcrypt from 'bcrypt';
@@ -17,6 +23,7 @@ jest.mock('bcrypt');
 
 describe('AuthService', () => {
   let service: AuthService;
+  let sessionService: AuthSessionService;
   type ObservabilityServiceMock = {
     logStructured: jest.Mock;
     captureMessage: jest.Mock;
@@ -137,11 +144,18 @@ describe('AuthService', () => {
     const module: TestingModule = await Test.createTestingModule({
       providers: [
         AuthService,
+        CredentialValidationService,
+        AuthSessionService,
+        AuthRegistrationService,
+        AuthPasswordService,
+        AuthEmailVerificationService,
+        AuthMfaOrchestratorService,
         {
           provide: PrismaService,
           useValue: {
             user: {
               findUnique: jest.fn(),
+              findFirst: jest.fn(),
               create: jest.fn(),
               update: jest.fn(),
             },
@@ -218,10 +232,10 @@ describe('AuthService', () => {
           },
         },
         {
-          provide: MonitoringService,
+          provide: AppConfigService,
           useValue: {
-            logError: jest.fn(),
-            trackMetric: jest.fn(),
+            isProduction: jest.fn().mockReturnValue(false),
+            isTest: jest.fn().mockReturnValue(false),
           },
         },
         {
@@ -244,7 +258,7 @@ describe('AuthService', () => {
           useValue: {
             sendVerificationEmail: jest
               .fn()
-              .mockImplementation(async () => ({ messageId: 'test' })),
+              .mockImplementation(async () => ({ success: true, messageId: 'test' })),
             sendPasswordResetEmail: jest
               .fn()
               .mockImplementation(async () => ({ success: true })),
@@ -254,6 +268,7 @@ describe('AuthService', () => {
     }).compile();
 
     service = module.get<AuthService>(AuthService);
+    sessionService = module.get<AuthSessionService>(AuthSessionService);
     prismaService = module.get<typeof prismaService>(PrismaService);
     jwtService = module.get<JwtService>(JwtService);
     userFactory = module.get<UserFactory>(UserFactory);
@@ -559,8 +574,28 @@ describe('AuthService', () => {
         .mocked(bcrypt.hash)
         .mockImplementation(async () => 'hashedNewPassword');
       jest
+        .spyOn(prismaService.user, 'findUnique')
+        .mockImplementation(async (...callArgs: unknown[]) => {
+          const args = callArgs[0] as {
+            where?: { email?: string; id?: string };
+          };
+          if (args?.where?.email) {
+            return null;
+          }
+          if (args?.where?.id) {
+            return {
+              id: mockUserWithoutPassword.id,
+              email: mockUserWithoutPassword.email,
+              name: mockUserWithoutPassword.name,
+              emailVerified: false,
+            };
+          }
+          return null;
+        });
+      jest
         .spyOn(prismaService.user, 'create')
         .mockResolvedValue(mockUserWithoutPassword);
+      jest.spyOn(prismaService.refreshToken, 'create').mockResolvedValue({});
 
       const result = await service.register(registerData);
 
@@ -891,7 +926,7 @@ describe('AuthService', () => {
         replacedByToken: null,
         user: mockUser,
       });
-      jest.spyOn(service, 'login').mockResolvedValue({
+      jest.spyOn(sessionService, 'login').mockResolvedValue({
         access_token: 'new-access',
         refresh_token: 'new-refresh',
         user: mockUserWithoutPassword,
@@ -900,7 +935,7 @@ describe('AuthService', () => {
 
       const tokens = await service.refreshTokens('incoming');
 
-      expect(service.login).toHaveBeenCalledWith(
+      expect(sessionService.login).toHaveBeenCalledWith(
         expect.objectContaining({
           id: 'user-123',
           email: 'test@example.com',

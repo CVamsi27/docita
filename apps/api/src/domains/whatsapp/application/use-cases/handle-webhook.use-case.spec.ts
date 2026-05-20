@@ -1,30 +1,11 @@
 import { describe, it, expect, jest, beforeEach } from '@jest/globals';
 import { HandleWebhookUseCase } from './handle-webhook.use-case';
-import { IWhatsAppRepository } from '../ports/whatsapp.repository.port';
+import { WhatsAppWebhookIngressService } from '../services/whatsapp-webhook-ingress.service';
 import { asType } from '@/test-utils';
-import { SupportWhatsAppInboxService } from '@/shared/modules/support-whatsapp';
-import {
-  WhatsAppMessage,
-  WhatsAppMessageStatus,
-} from '../../core/entities/whatsapp-message.entity';
 import {
   WhatsAppWebhookDeliveryStatus,
   WhatsAppWebhookPayload,
 } from '@workspace/types';
-import { WhatsAppTemplate } from '../../core/entities/whatsapp-template.entity';
-
-function makeMessage(status = WhatsAppMessageStatus.SENT): WhatsAppMessage {
-  return new WhatsAppMessage({
-    id: 'msg-001',
-    clinicId: 'clinic-123',
-    conversationId: 'conv-001',
-    recipientPhone: '919876543210',
-    content: 'Hello',
-    status,
-    externalMessageId: 'wamid.ext001',
-    sentAt: new Date(),
-  });
-}
 
 const createStatusPayload = (
   statuses: WhatsAppWebhookDeliveryStatus[],
@@ -50,314 +31,115 @@ const createStatusPayload = (
   ],
 });
 
-function makePayload(
-  status: 'sent' | 'delivered' | 'read' | 'failed',
-  externalId = 'wamid.ext001',
-  errors?: Array<{ code: number; title: string; message?: string }>,
-): WhatsAppWebhookPayload {
-  return createStatusPayload([
-    {
-      id: externalId,
-      status,
-      timestamp: String(Math.floor(Date.now() / 1000)),
-      recipient_id: '919876543210',
-      ...(errors ? { errors } : {}),
-    },
-  ]);
-}
-
 describe('HandleWebhookUseCase', () => {
   let useCase: HandleWebhookUseCase;
 
-  const saveMessageMock = jest.fn<IWhatsAppRepository['saveMessage']>();
-  const findMessageByIdMock = jest.fn<IWhatsAppRepository['findMessageById']>();
-  const findMessageByExternalIdMock =
-    jest.fn<IWhatsAppRepository['findMessageByExternalId']>();
-  const saveTemplateMock = jest.fn<IWhatsAppRepository['saveTemplate']>();
-  const findTemplateByIdMock =
-    jest.fn<IWhatsAppRepository['findTemplateById']>();
-  const findTemplateByNameMock =
-    jest.fn<IWhatsAppRepository['findTemplateByName']>();
-  const listTemplatesByClinicMock =
-    jest.fn<IWhatsAppRepository['listTemplatesByClinic']>();
-  const isAutomationEnabledMock =
-    jest.fn<IWhatsAppRepository['isAutomationEnabled']>();
-  const recordIncomingMessagesMock =
-    jest.fn<SupportWhatsAppInboxService['recordIncomingMessages']>();
-  const updateMessageStatusMock =
-    jest.fn<SupportWhatsAppInboxService['updateMessageStatus']>();
+  const processIncomingMessagesMock =
+    jest.fn<WhatsAppWebhookIngressService['processIncomingMessages']>();
+  const processStatusUpdatesMock =
+    jest.fn<WhatsAppWebhookIngressService['processStatusUpdates']>();
 
-  const mockRepository: IWhatsAppRepository = {
-    saveMessage: saveMessageMock,
-    findMessageById: findMessageByIdMock,
-    findMessageByExternalId: findMessageByExternalIdMock,
-    saveTemplate: saveTemplateMock,
-    findTemplateById: findTemplateByIdMock,
-    findTemplateByName: findTemplateByNameMock,
-    listTemplatesByClinic: listTemplatesByClinicMock,
-    isAutomationEnabled: isAutomationEnabledMock,
-  };
-  const mockSupportInboxService = {
-    recordIncomingMessages: recordIncomingMessagesMock,
-    updateMessageStatus: updateMessageStatusMock,
+  const mockIngress = {
+    processIncomingMessages: processIncomingMessagesMock,
+    processStatusUpdates: processStatusUpdatesMock,
   };
 
   beforeEach(() => {
     jest.clearAllMocks();
-
-    saveMessageMock.mockResolvedValue();
-    findMessageByIdMock.mockResolvedValue(null);
-    findMessageByExternalIdMock.mockResolvedValue(makeMessage());
-    saveTemplateMock.mockResolvedValue();
-    findTemplateByIdMock.mockResolvedValue(null);
-    findTemplateByNameMock.mockResolvedValue(null);
-    listTemplatesByClinicMock.mockResolvedValue([] as WhatsAppTemplate[]);
-    isAutomationEnabledMock.mockResolvedValue(true);
-    recordIncomingMessagesMock.mockResolvedValue();
-    updateMessageStatusMock.mockResolvedValue();
+    processIncomingMessagesMock.mockResolvedValue();
+    processStatusUpdatesMock.mockResolvedValue();
 
     useCase = new HandleWebhookUseCase(
-      mockRepository,
-      asType<SupportWhatsAppInboxService>(mockSupportInboxService),
+      asType<WhatsAppWebhookIngressService>(mockIngress),
     );
   });
 
-  describe('status update processing', () => {
-    it('should update message status to SENT', async () => {
-      await useCase.execute({ payload: makePayload('sent') });
-
-      expect(findMessageByExternalIdMock).toHaveBeenCalledWith('wamid.ext001');
-      const saved = saveMessageMock.mock.calls[0][0] as WhatsAppMessage;
-      expect(saved.status).toBe(WhatsAppMessageStatus.SENT);
-      expect(updateMessageStatusMock).toHaveBeenCalledWith(
-        'wamid.ext001',
-        'sent',
-        undefined,
-      );
-    });
-
-    it('should update message status to DELIVERED', async () => {
-      await useCase.execute({ payload: makePayload('delivered') });
-
-      const saved = saveMessageMock.mock.calls[0][0] as WhatsAppMessage;
-      expect(saved.status).toBe(WhatsAppMessageStatus.DELIVERED);
-      expect(updateMessageStatusMock).toHaveBeenCalledWith(
-        'wamid.ext001',
-        'delivered',
-        undefined,
-      );
-    });
-
-    it('should update message status to READ', async () => {
-      await useCase.execute({ payload: makePayload('read') });
-
-      const saved = saveMessageMock.mock.calls[0][0] as WhatsAppMessage;
-      expect(saved.status).toBe(WhatsAppMessageStatus.READ);
-      expect(updateMessageStatusMock).toHaveBeenCalledWith(
-        'wamid.ext001',
-        'read',
-        undefined,
-      );
-    });
-
-    it('should update message status to FAILED', async () => {
-      await useCase.execute({ payload: makePayload('failed') });
-
-      const saved = saveMessageMock.mock.calls[0][0] as WhatsAppMessage;
-      expect(saved.status).toBe(WhatsAppMessageStatus.FAILED);
-      expect(updateMessageStatusMock).toHaveBeenCalledWith(
-        'wamid.ext001',
-        'failed',
-        undefined,
-      );
-    });
-
-    it('should set error code and message on FAILED with errors', async () => {
-      const payload = makePayload('failed', 'wamid.ext001', [
+  it('routes status updates through the ingress service', async () => {
+    await useCase.execute({
+      payload: createStatusPayload([
         {
-          code: 131026,
-          title: 'Message undeliverable',
-          message: 'Message undeliverable',
+          id: 'wamid.ext001',
+          status: 'delivered',
+          timestamp: '123',
+          recipient_id: '919876543210',
         },
-      ]);
-
-      await useCase.execute({ payload });
-
-      const saved = saveMessageMock.mock.calls[0][0] as WhatsAppMessage;
-      expect(saved.status).toBe(WhatsAppMessageStatus.FAILED);
-      expect(updateMessageStatusMock).toHaveBeenCalledWith(
-        'wamid.ext001',
-        'failed',
-        {
-          code: 131026,
-          title: 'Message undeliverable',
-          message: 'Message undeliverable',
-        },
-      );
+      ]),
     });
 
-    it('should skip update when external ID not found in repository', async () => {
-      findMessageByExternalIdMock.mockResolvedValue(null);
-
-      await useCase.execute({ payload: makePayload('delivered') });
-
-      expect(saveMessageMock).not.toHaveBeenCalled();
-    });
-
-    it('should skip unknown status values', async () => {
-      const payload = makePayload('sent');
-      Object.assign(payload.entry[0].changes[0].value.statuses![0], {
-        status: 'unknown_status',
-      });
-
-      await useCase.execute({ payload });
-
-      expect(saveMessageMock).not.toHaveBeenCalled();
-    });
+    expect(processStatusUpdatesMock).toHaveBeenCalledTimes(1);
+    expect(processIncomingMessagesMock).not.toHaveBeenCalled();
   });
 
-  describe('payload edge cases', () => {
-    it('should handle empty entry array gracefully', async () => {
-      await useCase.execute({
-        payload: {
-          object: 'whatsapp_business_account',
-          entry: [],
-        },
-      });
-
-      expect(findMessageByExternalIdMock).not.toHaveBeenCalled();
-    });
-
-    it('should handle changes with non-messages field', async () => {
-      await useCase.execute({
-        payload: {
-          object: 'whatsapp_business_account',
-          entry: [
-            {
-              id: 'entry-1',
-              changes: [
-                {
-                  field: 'account_alerts',
-                  value: {
-                    messaging_product: 'whatsapp',
-                    metadata: {
-                      display_phone_number: '919876543210',
-                      phone_number_id: 'phone-id',
-                    },
-                  },
-                },
-              ],
-            },
-          ],
-        },
-      });
-
-      expect(findMessageByExternalIdMock).not.toHaveBeenCalled();
-    });
-
-    it('should handle missing statuses in value', async () => {
-      await useCase.execute({
-        payload: {
-          object: 'whatsapp_business_account',
-          entry: [
-            {
-              id: 'entry-1',
-              changes: [
-                {
-                  field: 'messages',
-                  value: {
-                    messaging_product: 'whatsapp',
-                    metadata: {
-                      display_phone_number: '919876543210',
-                      phone_number_id: 'phone-id',
-                    },
-                  },
-                },
-              ],
-            },
-          ],
-        },
-      });
-
-      expect(findMessageByExternalIdMock).not.toHaveBeenCalled();
-    });
-
-    it('should process multiple status updates in one payload', async () => {
-      const msg1 = makeMessage(WhatsAppMessageStatus.SENT);
-      const msg2 = makeMessage(WhatsAppMessageStatus.SENT);
-
-      findMessageByExternalIdMock
-        .mockResolvedValueOnce(msg1)
-        .mockResolvedValueOnce(msg2);
-
-      await useCase.execute({
-        payload: createStatusPayload([
+  it('routes incoming messages through the ingress service', async () => {
+    await useCase.execute({
+      payload: {
+        object: 'whatsapp_business_account',
+        entry: [
           {
-            id: 'wamid.001',
-            status: 'delivered',
-            timestamp: '123',
-            recipient_id: '1',
+            id: 'entry-1',
+            changes: [
+              {
+                field: 'messages',
+                value: {
+                  messaging_product: 'whatsapp',
+                  metadata: {
+                    display_phone_number: '919876543210',
+                    phone_number_id: 'phone-id',
+                  },
+                  messages: [
+                    {
+                      from: '919876543210',
+                      id: 'wamid.inbound001',
+                      timestamp: '123',
+                      type: 'text',
+                      text: { body: 'I need help' },
+                    },
+                  ],
+                },
+              },
+            ],
           },
-          {
-            id: 'wamid.002',
-            status: 'read',
-            timestamp: '124',
-            recipient_id: '1',
-          },
-        ]),
-      });
-
-      expect(saveMessageMock).toHaveBeenCalledTimes(2);
+        ],
+      },
     });
 
-    it('should persist incoming messages from webhook payloads', async () => {
-      await useCase.execute({
-        payload: {
-          object: 'whatsapp_business_account',
-          entry: [
-            {
-              id: 'entry-1',
-              changes: [
-                {
-                  field: 'messages',
-                  value: {
-                    messaging_product: 'whatsapp',
-                    metadata: {
-                      display_phone_number: '919876543210',
-                      phone_number_id: 'phone-id',
-                    },
-                    contacts: [
-                      {
-                        profile: { name: 'Rahul Sharma' },
-                        wa_id: '919876543210',
-                      },
-                    ],
-                    messages: [
-                      {
-                        from: '919876543210',
-                        id: 'wamid.inbound001',
-                        timestamp: '123',
-                        type: 'text',
-                        text: { body: 'I need help' },
-                      },
-                    ],
+    expect(processIncomingMessagesMock).toHaveBeenCalledWith(
+      expect.objectContaining({
+        messages: [
+          expect.objectContaining({
+            id: 'wamid.inbound001',
+          }),
+        ],
+      }),
+    );
+    expect(processStatusUpdatesMock).not.toHaveBeenCalled();
+  });
+
+  it('ignores non-message webhook fields', async () => {
+    await useCase.execute({
+      payload: {
+        object: 'whatsapp_business_account',
+        entry: [
+          {
+            id: 'entry-1',
+            changes: [
+              {
+                field: 'account_alerts',
+                value: {
+                  messaging_product: 'whatsapp',
+                  metadata: {
+                    display_phone_number: '919876543210',
+                    phone_number_id: 'phone-id',
                   },
                 },
-              ],
-            },
-          ],
-        },
-      });
-
-      expect(recordIncomingMessagesMock).toHaveBeenCalledWith(
-        expect.objectContaining({
-          messages: [
-            expect.objectContaining({
-              id: 'wamid.inbound001',
-            }),
-          ],
-        }),
-      );
+              },
+            ],
+          },
+        ],
+      },
     });
+
+    expect(processIncomingMessagesMock).not.toHaveBeenCalled();
+    expect(processStatusUpdatesMock).not.toHaveBeenCalled();
   });
 });

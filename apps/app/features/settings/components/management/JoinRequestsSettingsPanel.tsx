@@ -31,6 +31,7 @@ import {
   DialogFooter,
 } from "@workspace/ui/components/overlay/dialog";
 import { toast } from "sonner";
+import { queryKeys } from "@workspace/data-access";
 import { typedApi } from "@/lib/api/api-client";
 import { formatDistanceToNow } from "@workspace/utils";
 import { showUserFacingErrorToast } from "@/lib/errors/user-facing-errors";
@@ -63,7 +64,7 @@ export function JoinRequestsSettingsPanel() {
   const [rejectionReason, setRejectionReason] = useState("");
 
   const { data: requests = [], isLoading } = useQuery<JoinRequest[]>({
-    queryKey: ["clinic-join-requests"],
+    queryKey: queryKeys.clinicJoinRequests.all(),
     queryFn: () =>
       typedApi.joinRequests.list("PENDING") as Promise<JoinRequest[]>,
     refetchInterval: 30000,
@@ -79,7 +80,7 @@ export function JoinRequestsSettingsPanel() {
     }) => typedApi.joinRequests.approve(id, data),
     onSuccess: () => {
       toast.success("Join request approved! User can now access the dashboard");
-      queryClient.invalidateQueries({ queryKey: ["clinic-join-requests"] });
+      queryClient.invalidateQueries({ queryKey: queryKeys.clinicJoinRequests.all() });
       closeDialog();
     },
     onError: () => {
@@ -94,7 +95,7 @@ export function JoinRequestsSettingsPanel() {
       typedApi.joinRequests.reject(id, data),
     onSuccess: () => {
       toast.success("Join request rejected");
-      queryClient.invalidateQueries({ queryKey: ["clinic-join-requests"] });
+      queryClient.invalidateQueries({ queryKey: queryKeys.clinicJoinRequests.all() });
       closeDialog();
     },
     onError: () => {

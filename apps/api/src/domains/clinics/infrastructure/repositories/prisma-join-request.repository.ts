@@ -1,4 +1,8 @@
-import { Injectable } from '@nestjs/common';
+import { Inject, Injectable } from '@nestjs/common';
+import {
+  CLOCK_PORT,
+  type IClock,
+} from '@/shared/common/ports/clock.port';
 import { JoinRequestStatus, Role } from '@workspace/db';
 import { PrismaService } from '@/prisma/prisma.service';
 import {
@@ -16,7 +20,10 @@ const JOIN_REQUEST_WITH_RELATIONS = {
 
 @Injectable()
 export class PrismaJoinRequestRepository implements IJoinRequestRepository {
-  constructor(private readonly prisma: PrismaService) {}
+  constructor(
+    private readonly prisma: PrismaService,
+    @Inject(CLOCK_PORT) private readonly clock: IClock,
+  ) {}
 
   private getReadClient() {
     return this.prisma.getReadClient();
@@ -83,6 +90,7 @@ export class PrismaJoinRequestRepository implements IJoinRequestRepository {
   }
 
   async approve(input: JoinRequestApproveInput): Promise<void> {
+    const now = this.clock.now();
     await this.prisma.$transaction(async (tx) => {
       await tx.memberJoinRequest.update({
         where: { id: input.requestId },
@@ -91,7 +99,7 @@ export class PrismaJoinRequestRepository implements IJoinRequestRepository {
           approvedById: input.approvedById,
           approvedByName: input.approvedByName,
           responseMessage: input.welcomeMessage,
-          respondedAt: new Date(),
+          respondedAt: now,
         },
       });
 
@@ -101,7 +109,7 @@ export class PrismaJoinRequestRepository implements IJoinRequestRepository {
           clinicId: input.clinicId,
           role: input.finalRole,
           onboardingStep: 'COMPLETED',
-          onboardingCompletedAt: new Date(),
+          onboardingCompletedAt: now,
         },
       });
 
@@ -134,6 +142,7 @@ export class PrismaJoinRequestRepository implements IJoinRequestRepository {
   }
 
   async reject(input: JoinRequestRejectInput): Promise<void> {
+    const now = this.clock.now();
     await this.prisma.$transaction(async (tx) => {
       await tx.memberJoinRequest.update({
         where: { id: input.requestId },
@@ -142,7 +151,7 @@ export class PrismaJoinRequestRepository implements IJoinRequestRepository {
           approvedById: input.approvedById,
           approvedByName: input.approvedByName,
           responseMessage: input.reason,
-          respondedAt: new Date(),
+          respondedAt: now,
         },
       });
 
@@ -154,10 +163,11 @@ export class PrismaJoinRequestRepository implements IJoinRequestRepository {
   }
 
   async withdraw(input: JoinRequestWithdrawInput): Promise<void> {
+    const now = this.clock.now();
     await this.prisma.$transaction(async (tx) => {
       await tx.memberJoinRequest.update({
         where: { id: input.requestId },
-        data: { status: 'WITHDRAWN', respondedAt: new Date() },
+        data: { status: 'WITHDRAWN', respondedAt: now },
       });
 
       await tx.user.update({
@@ -168,9 +178,10 @@ export class PrismaJoinRequestRepository implements IJoinRequestRepository {
   }
 
   async expireOldRequests(): Promise<number> {
+    const now = this.clock.now();
     return this.prisma.$transaction(async (tx) => {
       const expiredRequests = await tx.memberJoinRequest.findMany({
-        where: { status: 'PENDING', expiresAt: { lt: new Date() } },
+        where: { status: 'PENDING', expiresAt: { lt: now } },
         select: { id: true, userId: true },
       });
 
@@ -178,7 +189,7 @@ export class PrismaJoinRequestRepository implements IJoinRequestRepository {
 
       await tx.memberJoinRequest.updateMany({
         where: { id: { in: expiredRequests.map((r) => r.id) } },
-        data: { status: 'EXPIRED', respondedAt: new Date() },
+        data: { status: 'EXPIRED', respondedAt: now },
       });
 
       await tx.user.updateMany({

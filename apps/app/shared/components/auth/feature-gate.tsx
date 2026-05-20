@@ -20,10 +20,10 @@ import {
 import {
   Feature,
   FEATURE_TIER_MAP,
-  getTierName,
   Tier,
   TIER_INFO,
 } from "@workspace/types";
+import { getTierName, hasFeatureAccess } from "@workspace/utils";
 import { usePermissionStore } from "@/lib/stores/permission-store";
 import { SUBSCRIPTION_SETTINGS_PATH } from "@/lib/subscription/subscription-settings-path";
 
@@ -179,8 +179,21 @@ export function TierGate({
   fallback,
   showLockedCard = false,
 }: TierGateProps) {
-  const { canAccessTier } = usePermissionStore();
-  const hasAccess = canAccessTier(tier);
+  const { currentTier, hasIntelligence } = usePermissionStore();
+  const tierFeature = {
+    [Tier.STARTER]: Feature.BASIC_PATIENT_MANAGEMENT,
+    [Tier.ESSENTIAL]: Feature.INVOICING,
+    [Tier.PROFESSIONAL]: Feature.WHATSAPP_OWN_NUMBER,
+    [Tier.HOSPITAL]: Feature.WHATSAPP_MANAGED_NUMBER,
+    [Tier.ENTERPRISE]: Feature.DATA_WAREHOUSE_EXPORT,
+    [Tier.INTELLIGENCE]: Feature.AI_PRESCRIPTION_ASSISTANT,
+    [Tier.FRONT_DESK]: Feature.CALENDAR_SLOTS,
+  }[tier];
+  const hasAccess = hasFeatureAccess(
+    getTierName(currentTier),
+    tierFeature,
+    hasIntelligence,
+  );
 
   if (hasAccess) {
     return <>{children}</>;

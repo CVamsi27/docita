@@ -56,6 +56,8 @@ export interface PdfJobProcessorPrismaPort {
   };
 }
 
+export const PDF_JOB_PROCESSOR_PRISMA_TOKEN = 'PdfJobProcessorPrismaPort';
+
 export interface PdfJobServicePort {
   enqueue(
     documentId: string,

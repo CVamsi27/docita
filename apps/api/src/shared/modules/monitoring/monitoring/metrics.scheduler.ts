@@ -1,7 +1,8 @@
 import { Injectable, Logger } from '@nestjs/common';
-import { Cron, CronExpression } from '@nestjs/schedule';
+import { Cron } from '@nestjs/schedule';
 import { MonitoringService } from './monitoring.service';
 import { isCronDisabledInThisProcess } from '@/shared/schedule/cron-env';
+import { CRON_SCHEDULES } from '@/shared/schedule/cron-schedules';
 
 @Injectable()
 export class MetricsScheduler {
@@ -10,7 +11,7 @@ export class MetricsScheduler {
 
   constructor(private monitoringService: MonitoringService) {}
 
-  @Cron(CronExpression.EVERY_10_MINUTES, {
+  @Cron(CRON_SCHEDULES.METRICS_FLUSH, {
     disabled: isCronDisabledInThisProcess(),
   })
   async recordSystemMetrics() {
@@ -32,7 +33,7 @@ export class MetricsScheduler {
     }
   }
 
-  @Cron(CronExpression.EVERY_HOUR, {
+  @Cron(CRON_SCHEDULES.METRICS_AGGREGATE, {
     disabled: isCronDisabledInThisProcess(),
   })
   async aggregateHourlyMetrics() {
@@ -44,7 +45,9 @@ export class MetricsScheduler {
     }
   }
 
-  @Cron('0 5 * * *', { disabled: isCronDisabledInThisProcess() })
+  @Cron(CRON_SCHEDULES.METRICS_DAILY_ROLLUP, {
+    disabled: isCronDisabledInThisProcess(),
+  })
   async cleanupOldData() {
     try {
       const result = await this.monitoringService.cleanupOldData(30);

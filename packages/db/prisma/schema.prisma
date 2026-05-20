@@ -611,10 +611,28 @@ model Appointment {
   @@index([status, startTime])
   @@index([doctorId])
   @@index([patientId])
+  originalStartTime       DateTime?
   @@index([clinicId, status, startTime])
   @@index([clinicId, startTime(sort: Desc), id(sort: Desc)], map: "Appointment_clinicId_startTime_id_idx")
   @@index([patientId, clinicId, startTime(sort: Desc)], map: "Appointment_patientId_clinicId_startTime_idx")
   @@index([doctorId, clinicId, startTime(sort: Desc)], map: "Appointment_doctorId_clinicId_startTime_idx")
+}
+
+model DoctorDelay {
+  id           String    @id @default(cuid())
+  clinicId     String
+  doctorId     String
+  delayMinutes Int
+  reason       String?
+  isActive     Boolean   @default(true)
+  markedById   String
+  markedAt     DateTime  @default(now())
+  clearedAt    DateTime?
+  clearedById  String?
+
+  @@index([clinicId, isActive])
+  @@index([doctorId, isActive])
+  @@index([markedAt])
 }
 
 model VitalSign {

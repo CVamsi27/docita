@@ -1,4 +1,5 @@
 import { Feature, InventoryItem } from "@workspace/types";
+import { queryKeys } from "../lib/query-keys";
 import { useAPIMutation } from "../core/use-api-mutation";
 import { useAPIQuery } from "../core/use-api-query";
 import { withQueryString } from "../lib/query-string";
@@ -30,7 +31,7 @@ export const useInventory = (filters?: {
 }) => {
   const inventoryOk = useDataAccessContext().isTierFeatureEnabled(Feature.INVENTORY);
   return useAPIQuery<InventoryItem[]>(
-    ["inventory", filters || {}],
+    queryKeys.inventory.list(filters),
     withQueryString("/inventory", filters),
     { enabled: inventoryOk },
   );
@@ -44,7 +45,7 @@ export const useInventoryStats = () => {
     lowStock: number;
     critical: number;
     expiringSoon: number;
-  }>(["inventory-stats"], "/inventory/stats", { enabled: inventoryOk });
+  }>(queryKeys.inventory.stats(), "/inventory/stats", { enabled: inventoryOk });
 };
 
 export const useInventoryItem = (id: string) => {
@@ -58,7 +59,7 @@ export const useInventoryItem = (id: string) => {
         createdAt: string;
       }[];
     }
-  >(["inventory", id], `/inventory/${id}`, {
+  >(queryKeys.inventory.detail(id), `/inventory/${id}`, {
     enabled: inventoryOk && id.length > 0,
   });
 };

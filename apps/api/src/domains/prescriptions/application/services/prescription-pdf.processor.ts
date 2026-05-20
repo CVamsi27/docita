@@ -1,13 +1,19 @@
 import { Injectable, Logger, OnModuleInit, Inject } from '@nestjs/common';
-import { PrismaService } from '@/prisma/prisma.service';
 import {
   IQueueProvider,
   JobNames,
   GeneratePdfJobData,
 } from '@/shared/modules/queue/queue.interface';
-import { StorageProvider } from '@/domains/documents/infrastructure/storage.provider';
+import { StorageProvider } from '@/domains/documents/application/ports/storage-provider.port';
 import { PrescriptionsService } from './prescription.service';
-import type { PdfJobProcessorPrismaPort } from '@/shared/modules/queue/pdf-job.service';
+import {
+  PDF_JOB_PROCESSOR_PRISMA_TOKEN,
+  type PdfJobProcessorPrismaPort,
+} from '@/shared/modules/queue/pdf-job.service';
+import {
+  CLOCK_PORT,
+  type IClock,
+} from '@/shared/common/ports/clock.port';
 
 const PDF_SIGNED_URL_TTL_SECONDS = 3600;
 
@@ -25,12 +31,13 @@ export class PrescriptionPdfProcessor implements OnModuleInit {
   private readonly logger = new Logger(PrescriptionPdfProcessor.name);
 
   constructor(
-    @Inject(PrismaService)
-    private readonly prisma: PdfJobProcessorPrismaPort,
+    @Inject(PDF_JOB_PROCESSOR_PRISMA_TOKEN)
+    private readonly persistence: PdfJobProcessorPrismaPort,
     @Inject(PrescriptionsService)
     private readonly prescriptionsService: PrescriptionPdfProcessorPort,
     private readonly storageProvider: StorageProvider,
     @Inject('queue') private readonly queue: Pick<IQueueProvider, 'process'>,
+    @Inject(CLOCK_PORT) private readonly clock: IClock,
   ) {}
 
   onModuleInit() {
@@ -48,8 +55,8 @@ export class PrescriptionPdfProcessor implements OnModuleInit {
         const { documentId, clinicId, pdfJobId } = job.data;
 
         if (pdfJobId) {
-          await this.prisma.runUnrestricted(async () =>
-            this.prisma.pdfJob.update({
+          await this.persistence.runUnrestricted(async () =>
+            this.persistence.pdfJob.update({
               where: { id: pdfJobId },
               data: { status: 'PROCESSING' },
             }),
@@ -79,10 +86,14 @@ export class PrescriptionPdfProcessor implements OnModuleInit {
               PDF_SIGNED_URL_TTL_SECONDS,
             );
 
-            await this.prisma.runUnrestricted(async () =>
-              this.prisma.pdfJob.update({
+            await this.persistence.runUnrestricted(async () =>
+              this.persistence.pdfJob.update({
                 where: { id: pdfJobId },
-                data: { status: 'COMPLETED', pdfUrl, completedAt: new Date() },
+                data: {
+                  status: 'COMPLETED',
+                  pdfUrl,
+                  completedAt: this.clock.now(),
+                },
               }),
             );
           }
@@ -94,8 +105,8 @@ export class PrescriptionPdfProcessor implements OnModuleInit {
           const isFinalAttempt = job.attemptsMade + 1 >= (job.maxAttempts ?? 1);
 
           if (pdfJobId && isFinalAttempt) {
-            await this.prisma.runUnrestricted(async () =>
-              this.prisma.pdfJob.update({
+            await this.persistence.runUnrestricted(async () =>
+              this.persistence.pdfJob.update({
                 where: { id: pdfJobId },
                 data: {
                   status: 'FAILED',

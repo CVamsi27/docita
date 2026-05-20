@@ -1,4 +1,9 @@
-import { Injectable } from '@nestjs/common';
+import { Inject, Injectable } from '@nestjs/common';
+import {
+  CLOCK_PORT,
+  type IClock,
+} from '@/shared/common/ports/clock.port';
+import { SignatureImageClient } from '@/domains/prescriptions/infrastructure/external/signature-image.client';
 import {
   BasePdfService,
   BasePDFConfig,
@@ -32,6 +37,13 @@ export interface PrescriptionData {
 
 @Injectable()
 export class PrescriptionPdfService extends BasePdfService {
+  constructor(
+    @Inject(CLOCK_PORT) clock: IClock,
+    private readonly signatureImages: SignatureImageClient,
+  ) {
+    super(clock);
+  }
+
   async generate(data: PrescriptionData): Promise<Buffer> {
     const config: BasePDFConfig = {
       title: 'PRESCRIPTION',
@@ -161,7 +173,7 @@ export class PrescriptionPdfService extends BasePdfService {
 
     if (data.doctor.signatureUrl) {
       try {
-        const signatureBuffer = await this.fetchSignatureImage(
+        const signatureBuffer = await this.signatureImages.fetchImageBuffer(
           data.doctor.signatureUrl,
         );
         doc.image(signatureBuffer, signatureX, currentY, {
@@ -374,20 +386,5 @@ export class PrescriptionPdfService extends BasePdfService {
       .fontSize(9)
       .text(text, context.margin + 10, y + 10);
     doc.fillColor('#000000');
-  }
-
-  private async fetchSignatureImage(url: string): Promise<Buffer> {
-    try {
-      const response = await fetch(url);
-      if (!response.ok) {
-        throw new Error(`Failed to fetch signature: ${response.statusText}`);
-      }
-      const arrayBuffer = await response.arrayBuffer();
-      return Buffer.from(arrayBuffer);
-    } catch (error) {
-      const errorMessage =
-        error instanceof Error ? error.message : String(error);
-      throw new Error(`Error fetching signature from ${url}: ${errorMessage}`);
-    }
   }
 }

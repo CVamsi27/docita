@@ -12,6 +12,10 @@ import {
   PAYMENT_GATEWAY_TOKEN,
 } from '@/domains/subscriptions/application/ports/payment-gateway.port';
 import { SubscriptionStatusEnum } from '@/domains/subscriptions/core/value-objects';
+import {
+  CLOCK_PORT,
+  type IClock,
+} from '@/shared/common/ports/clock.port';
 
 export interface CancelSubscriptionRequest {
   clinicId: string;
@@ -30,6 +34,7 @@ export class CancelSubscriptionUseCase {
     private readonly clinicOps: IClinicOperations,
     @Inject(PAYMENT_GATEWAY_TOKEN)
     private readonly paymentGateway: IPaymentGateway,
+    @Inject(CLOCK_PORT) private readonly clock: IClock,
   ) {}
 
   async execute(request: CancelSubscriptionRequest): Promise<void> {
@@ -57,7 +62,7 @@ export class CancelSubscriptionUseCase {
       );
     }
 
-    subscription.cancel(cancelAtPeriodEnd);
+    subscription.cancel(cancelAtPeriodEnd, this.clock.now());
     await this.subscriptionRepo.save(subscription);
 
     if (!cancelAtPeriodEnd) {

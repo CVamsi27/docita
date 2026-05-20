@@ -84,6 +84,10 @@ export class Subscription {
     this.validate();
   }
 
+  private touchUpdatedAt(now: Date): void {
+    this.updatedAt = now;
+  }
+
   private validate(): void {
     if (this.currentPeriodStart >= this.currentPeriodEnd) {
       throw new Error('Current period start must be before end');
@@ -121,22 +125,21 @@ export class Subscription {
     return this.graceUntil;
   }
 
-  deductCreditsApplied(amountCents: number): void {
+  deductCreditsApplied(amountCents: number, now: Date): void {
     const n = Math.round(amountCents);
     if (n <= 0) {
       return;
     }
     const applied = Math.min(this.creditsCents, n);
     this.creditsCents -= applied;
-    this.updatedAt = new Date();
+    this.touchUpdatedAt(now);
   }
 
   isAutoPayEnabled(): boolean {
     return this.autoPayEnabled;
   }
 
-  getDaysRemaining(): number {
-    const now = new Date();
+  getDaysRemaining(now: Date): number {
     return Math.max(
       0,
       Math.ceil(
@@ -146,8 +149,7 @@ export class Subscription {
     );
   }
 
-  isDueForRenewal(): boolean {
-    const now = new Date();
+  isDueForRenewal(now: Date): boolean {
     return now >= this.currentPeriodEnd;
   }
 
@@ -159,52 +161,132 @@ export class Subscription {
     return this.status.isActive() || this.status.isTrialing();
   }
 
-  upgradePlan(newTier: ClinicTier, newPricePaise: number, immediate: boolean) {
+  upgradePlan(
+    newTier: ClinicTier,
+    newPricePaise: number,
+    immediate: boolean,
+    now: Date,
+  ) {
     if (!newTier.isUpgradeTo(this.plan)) {
       throw new Error('New tier must be an upgrade');
     }
     if (immediate) {
       this.plan = newTier;
       this.basePriceCents = newPricePaise;
-      this.updatedAt = new Date();
+      this.touchUpdatedAt(now);
     }
   }
 
-  cancel(atPeriodEnd: boolean = true) {
+  cancel(atPeriodEnd: boolean = true, now: Date) {
     this.cancelAtPeriodEnd = atPeriodEnd;
-    this.cancelledAt = new Date();
+    this.cancelledAt = now;
     if (!atPeriodEnd) {
       this.status = this.status.transitionTo(SubscriptionStatusEnum.CANCELLED);
     }
-    this.updatedAt = new Date();
+    this.touchUpdatedAt(now);
   }
 
-  activate() {
+  activate(now: Date) {
     this.status = new SubscriptionStatus(SubscriptionStatusEnum.ACTIVE);
     this.graceUntil = null;
-    this.updatedAt = new Date();
+    this.touchUpdatedAt(now);
   }
 
-  expire() {
+  /** Billing period end from a cycle anchor (shared by paid activation paths). */
+  static calculatePeriodEnd(start: Date, billingCycle: BillingCycle): Date {
+    const end = new Date(start);
+    if (billingCycle.isYearly()) {
+      end.setFullYear(end.getFullYear() + 1);
+    } else if (billingCycle.isSemiAnnual()) {
+      end.setMonth(end.getMonth() + 6);
+    } else if (billingCycle.isQuarterly()) {
+      end.setMonth(end.getMonth() + 3);
+    } else {
+      end.setMonth(end.getMonth() + 1);
+    }
+    return end;
+  }
+
+  static createFromRazorpayActivation(params: {
+    id: string;
+    clinicId: string;
+    plan: ClinicTier;
+    billingCycle: BillingCycle;
+    basePriceCents: number;
+    periodStart: Date;
+    periodEnd: Date;
+    razorpaySubscriptionId: string;
+    now: Date;
+  }): Subscription {
+    const timestamps = params.now;
+    return new Subscription({
+      id: params.id,
+      clinicId: params.clinicId,
+      plan: params.plan,
+      billingCycle: params.billingCycle,
+      basePriceCents: params.basePriceCents,
+      status: new SubscriptionStatus(SubscriptionStatusEnum.ACTIVE),
+      currentPeriodStart: params.periodStart,
+      currentPeriodEnd: params.periodEnd,
+      razorpaySubscriptionId: params.razorpaySubscriptionId,
+      autoPayEnabled: true,
+      createdAt: timestamps,
+      updatedAt: timestamps,
+      version: 1,
+    });
+  }
+
+  /** Razorpay `subscription.activated` on an existing clinic subscription. */
+  applyRazorpayActivation(
+    periodStart: Date,
+    periodEnd: Date,
+    razorpaySubscriptionId: string,
+    now: Date,
+  ): void {
+    this.activate(now);
+    this.currentPeriodStart = periodStart;
+    this.currentPeriodEnd = periodEnd;
+    this.razorpaySubscriptionId = razorpaySubscriptionId;
+  }
+
+  /** Razorpay `subscription.charged` renewal while keeping the subscription active. */
+  applyRazorpayRenewal(periodEnd: Date, now: Date): void {
+    this.activate(now);
+    this.currentPeriodEnd = periodEnd;
+  }
+
+  /**
+   * Mid-cycle tier change on the same billing cycle: keep the existing period end
+   * so renewal dates do not drift.
+   */
+  shouldPreservePeriodEndOnTierChange(
+    newPlan: ClinicTier,
+    newCycle: BillingCycle,
+  ): boolean {
+    return (
+      this.getBillingCycle().equals(newCycle) && !this.getPlan().equals(newPlan)
+    );
+  }
+
+  expire(now: Date) {
     this.status = this.status.transitionTo(SubscriptionStatusEnum.EXPIRED);
     this.graceUntil = null;
-    this.updatedAt = new Date();
+    this.touchUpdatedAt(now);
   }
 
-  enterGracePeriod(graceUntil: Date) {
+  enterGracePeriod(graceUntil: Date, now: Date) {
     this.status = this.status.transitionTo(SubscriptionStatusEnum.GRACE);
     this.graceUntil = graceUntil;
-    this.updatedAt = new Date();
+    this.touchUpdatedAt(now);
   }
 
-  enterPastDue(graceUntil: Date) {
+  enterPastDue(graceUntil: Date, now: Date) {
     this.status = this.status.transitionTo(SubscriptionStatusEnum.PAST_DUE);
     this.graceUntil = graceUntil;
-    this.updatedAt = new Date();
+    this.touchUpdatedAt(now);
   }
 
-  applyPayment() {
-    const now = new Date();
+  applyPayment(now: Date) {
     this.activatePaidPlan(
       this.plan,
       this.billingCycle,
@@ -217,7 +299,7 @@ export class Subscription {
     plan: ClinicTier,
     billingCycle: BillingCycle,
     basePriceCents: number,
-    start: Date = new Date(),
+    start: Date,
     options: { preserveCurrentPeriodEnd?: boolean } = {},
   ) {
     const isSameCycle = this.billingCycle.equals(billingCycle);
@@ -236,22 +318,12 @@ export class Subscription {
       this.currentPeriodStart = start;
     } else {
       this.currentPeriodStart = start;
-      const nextEnd = new Date(start);
-      if (billingCycle.isYearly()) {
-        nextEnd.setFullYear(nextEnd.getFullYear() + 1);
-      } else if (billingCycle.isSemiAnnual()) {
-        nextEnd.setMonth(nextEnd.getMonth() + 6);
-      } else if (billingCycle.isQuarterly()) {
-        nextEnd.setMonth(nextEnd.getMonth() + 3);
-      } else {
-        nextEnd.setMonth(nextEnd.getMonth() + 1);
-      }
-      this.currentPeriodEnd = nextEnd;
+      this.currentPeriodEnd = Subscription.calculatePeriodEnd(start, billingCycle);
     }
 
     this.status = new SubscriptionStatus(SubscriptionStatusEnum.ACTIVE);
     this.graceUntil = null;
-    this.updatedAt = new Date();
+    this.updatedAt = start;
   }
 
   /**
@@ -263,22 +335,23 @@ export class Subscription {
     plan: ClinicTier,
     billingCycle: BillingCycle,
     effectiveAt: Date,
+    now: Date,
   ) {
     this.scheduledChange = {
       plan: plan.value,
       billingCycle: billingCycle.value,
       effectiveAt: effectiveAt.toISOString(),
     };
-    this.updatedAt = new Date();
+    this.touchUpdatedAt(now);
   }
 
-  clearScheduledPlanChange() {
+  clearScheduledPlanChange(now: Date) {
     this.scheduledChange = null;
-    this.updatedAt = new Date();
+    this.touchUpdatedAt(now);
   }
 
   /** Returns true if a scheduled change exists and its effectiveAt is in the past. */
-  isScheduledChangeDue(now: Date = new Date()): boolean {
+  isScheduledChangeDue(now: Date): boolean {
     if (!this.scheduledChange) return false;
     return (
       new Date(this.scheduledChange.effectiveAt).getTime() <= now.getTime()
@@ -286,9 +359,9 @@ export class Subscription {
   }
 
   /** Adds a positive amount to the account credit balance. */
-  addAccountCredit(amountCents: number) {
+  addAccountCredit(amountCents: number, now: Date) {
     if (amountCents <= 0) return;
     this.creditsCents += amountCents;
-    this.updatedAt = new Date();
+    this.touchUpdatedAt(now);
   }
 }

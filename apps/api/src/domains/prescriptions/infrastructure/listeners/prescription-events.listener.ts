@@ -1,5 +1,6 @@
 import { Injectable, Logger } from '@nestjs/common';
 import { OnEvent } from '@nestjs/event-emitter';
+import { ApplicationEvents } from '@/shared/common/events/application-events';
 import { PrescriptionCreatedEvent } from '@/domains/prescriptions/core/events/prescription-created.event';
 import { PrismaService } from '@/prisma/prisma.service';
 import { SendMessageUseCase } from '@/domains/whatsapp/application/use-cases/send-message.use-case';
@@ -19,7 +20,7 @@ export class PrescriptionEventsListener {
     private readonly sendMessage: SendMessageUseCase,
   ) {}
 
-  @OnEvent('prescription.created')
+  @OnEvent(ApplicationEvents.PRESCRIPTION_CREATED)
   async handlePrescriptionCreatedEvent(event: PrescriptionCreatedEvent) {
     const { prescriptionId, clinicId } = event;
     this.logger.log(

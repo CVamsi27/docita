@@ -1,26 +1,40 @@
-import { Injectable, Logger, BadRequestException } from '@nestjs/common';
-import { PrismaService } from '@/prisma/prisma.service';
+import {
+  Injectable,
+  Logger,
+  BadRequestException,
+  Inject,
+} from '@nestjs/common';
+import {
+  CLINIC_PERSISTENCE_PORT,
+  type ClinicPersistencePort,
+} from '@/domains/clinics/application/ports/clinic-persistence.port';
 import { AuditService } from '@/shared/modules/audit/audit/audit.service';
 import type { Prisma } from '@workspace/db';
 import PDFDocument from 'pdfkit';
 import { createHash } from 'crypto';
-import { StorageProvider } from '@/domains/documents/infrastructure/storage.provider';
+import { StorageProvider } from '@/domains/documents/application/ports/storage-provider.port';
 import { AppConfigService } from '@/shared/modules/config/app-configuration.service';
 import {
   SLAAgreementDto,
   ConsentManagementDto,
 } from '@/domains/clinics/application/dto/onboarding/create-clinic-onboarding.dto';
 import { getClinicSettings } from './type-helpers';
+import {
+  CLOCK_PORT,
+  type IClock,
+} from '@/shared/common/ports/clock.port';
 
 @Injectable()
 export class OnboardingComplianceService {
   private readonly logger = new Logger(OnboardingComplianceService.name);
 
   constructor(
-    private prisma: PrismaService,
+    @Inject(CLINIC_PERSISTENCE_PORT)
+    private persistence: ClinicPersistencePort,
     private auditService: AuditService,
     private storageProvider: StorageProvider,
     private configService: AppConfigService,
+    @Inject(CLOCK_PORT) private readonly clock: IClock,
   ) {}
 
   private formatUptime(seconds: number): string {
@@ -154,7 +168,7 @@ export class OnboardingComplianceService {
       throw new BadRequestException('Valid SLA signature upload is required');
     }
 
-    const acceptedAtIso = new Date().toISOString();
+    const acceptedAtIso = this.clock.now().toISOString();
     const signatureAuthHash = createHash('sha256')
       .update(
         `${clinicId}:${userId}:${slaData.signatureSessionId}:${signatureSession.fileUrl}:${acceptedAtIso}`,
@@ -283,7 +297,7 @@ export class OnboardingComplianceService {
             requireExplicitConsent:
               consentData.patientConsentRequiredBeforeWhatsApp,
             logAllConsentChanges: consentData.logAllConsentChanges,
-            configuredAt: new Date().toISOString(),
+            configuredAt: this.clock.now().toISOString(),
           },
         },
       },

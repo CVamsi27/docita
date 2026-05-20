@@ -5,9 +5,10 @@ import { PrismaModule } from '@/prisma/prisma.module';
 import { MEDICAL_DOCUMENTS_REPOSITORY_TOKEN } from './core/repositories/medical-documents.repository.interface';
 import { PrismaMedicalDocumentsRepository } from './infrastructure/repositories/prisma-medical-documents.repository';
 import { FrontDeskClinicalBlockGuard } from '@/shared/modules/clinic-workspace/front-desk-clinical-block.guard';
+import { AuditModule } from '@/shared/modules/audit/audit/audit.module';
 
 @Module({
-  imports: [PrismaModule],
+  imports: [PrismaModule, AuditModule],
   controllers: [MedicalDocumentsController],
   providers: [
     FrontDeskClinicalBlockGuard,

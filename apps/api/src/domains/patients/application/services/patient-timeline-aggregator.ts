@@ -1,15 +1,7 @@
 import { formatChiefComplaintSummary } from '@workspace/utils';
 
-export type TimelineEventType =
-  | 'APPOINTMENT'
-  | 'PRESCRIPTION'
-  | 'METRIC_RECORD'
-  | 'LAB_TEST'
-  | 'MEDICAL_DOCUMENT'
-  | 'FOLLOW_UP'
-  | 'IMMUNIZATION'
-  | 'ADMISSION'
-  | 'MEDICATION_DOSE';
+export type { TimelineEventType } from '@/domains/patients/core/repositories/timeline/timeline-event.types';
+import type { TimelineEventType } from '@/domains/patients/core/repositories/timeline/timeline-event.types';
 
 export interface TimelineEvent {
   type: TimelineEventType;

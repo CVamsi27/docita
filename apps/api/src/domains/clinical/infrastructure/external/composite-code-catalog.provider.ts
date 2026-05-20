@@ -3,25 +3,28 @@ import { CptCode, IcdCode } from '@workspace/db';
 import { CodeCatalogProvider } from '@/domains/clinical/core/providers/code-catalog.provider';
 import { LicensedCptCodeCatalogProvider } from '@/domains/clinical/infrastructure/external/licensed-cpt-code-catalog.provider';
 import { NlmCodeCatalogProvider } from '@/domains/clinical/infrastructure/external/nlm-code-catalog.provider';
+import { AppConfigService } from '@/shared/modules/config/app-configuration.service';
 
-type CptSource = 'nlm_hcpcs' | 'licensed';
+type CptCatalogSource = ReturnType<AppConfigService['getCptCatalogSource']>;
 
 @Injectable()
 export class CompositeCodeCatalogProvider implements CodeCatalogProvider {
-  private readonly cptSource: CptSource =
-    process.env.CPT_CATALOG_SOURCE?.toLowerCase() === 'licensed'
-      ? 'licensed'
-      : 'nlm_hcpcs';
+  private readonly cptProviders: ReadonlyMap<CptCatalogSource, CodeCatalogProvider>;
 
   constructor(
+    private readonly config: AppConfigService,
     private readonly nlmProvider: NlmCodeCatalogProvider,
     private readonly licensedProvider: LicensedCptCodeCatalogProvider,
-  ) {}
+  ) {
+    this.cptProviders = new Map<CptCatalogSource, CodeCatalogProvider>([
+      ['nlm_hcpcs', nlmProvider],
+      ['licensed', licensedProvider],
+    ]);
+  }
 
-  private get cptProvider(): CodeCatalogProvider {
-    return this.cptSource === 'licensed'
-      ? this.licensedProvider
-      : this.nlmProvider;
+  private resolveCptProvider(): CodeCatalogProvider {
+    const source = this.config.getCptCatalogSource();
+    return this.cptProviders.get(source) ?? this.nlmProvider;
   }
 
   async searchIcdCodes(query: string): Promise<IcdCode[]> {
@@ -29,7 +32,7 @@ export class CompositeCodeCatalogProvider implements CodeCatalogProvider {
   }
 
   async searchCptCodes(query: string): Promise<CptCode[]> {
-    return this.cptProvider.searchCptCodes(query);
+    return this.resolveCptProvider().searchCptCodes(query);
   }
 
   async streamIcdCodes(
@@ -41,6 +44,6 @@ export class CompositeCodeCatalogProvider implements CodeCatalogProvider {
   async streamCptCodes(
     onBatch: (batch: CptCode[]) => Promise<void>,
   ): Promise<void> {
-    return this.cptProvider.streamCptCodes(onBatch);
+    return this.resolveCptProvider().streamCptCodes(onBatch);
   }
 }

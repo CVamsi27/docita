@@ -1,6 +1,6 @@
 import { NotFoundException } from '@nestjs/common';
 import type { PublicBookingClinicResponse } from '@workspace/types';
-import { PrismaService } from '@/prisma/prisma.service';
+import { type PublicBookingPersistencePort } from '@/domains/public-booking/application/ports/public-booking-persistence.port';
 import { runWithTenant } from '@/shared/common/middleware/tenant.middleware';
 
 export type ResolvedPublicBookingClinic = PublicBookingClinicResponse;
@@ -27,11 +27,11 @@ function readFacilityLabelFromSettings(
 }
 
 export async function resolveClinicByReferralCode(
-  prisma: PrismaService,
+  persistence: PublicBookingPersistencePort,
   referralCode: string,
 ): Promise<PublicBookingClinicResponse> {
   const normalized = referralCode.trim().toUpperCase();
-  const clinic = await prisma.clinic.findFirst({
+  const clinic = await persistence.clinic.findFirst({
     where: {
       referralCode: normalized,
       active: true,
@@ -71,10 +71,10 @@ export function extractBearerToken(header: string | undefined): string | null {
 }
 
 export async function withBookingTenant<T>(
-  prisma: PrismaService,
+  persistence: PublicBookingPersistencePort,
   referralCode: string,
   fn: (clinic: ResolvedPublicBookingClinic) => Promise<T>,
 ): Promise<T> {
-  const clinic = await resolveClinicByReferralCode(prisma, referralCode);
+  const clinic = await resolveClinicByReferralCode(persistence, referralCode);
   return await runWithTenant({ clinicId: clinic.id }, async () => fn(clinic));
 }

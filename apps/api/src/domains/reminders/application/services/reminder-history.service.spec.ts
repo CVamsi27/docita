@@ -1,6 +1,9 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import { ReminderHistoryService } from './reminder-history.service';
-import { PrismaService } from '@/prisma/prisma.service';
+import {
+  REMINDER_PERSISTENCE_PORT,
+  type ReminderPersistencePort,
+} from '@/domains/reminders/application/ports/reminder-persistence.port';
 import { ReminderSettingsService } from './reminder-settings.service';
 import { ReminderNotificationService } from './reminder-notification.service';
 import { NotFoundException } from '@nestjs/common';
@@ -96,7 +99,7 @@ describe('ReminderHistoryService', () => {
       providers: [
         ReminderHistoryService,
         {
-          provide: PrismaService,
+          provide: REMINDER_PERSISTENCE_PORT,
           useValue: prismaMock,
         },
         {
@@ -111,7 +114,9 @@ describe('ReminderHistoryService', () => {
     }).compile();
 
     service = module.get<ReminderHistoryService>(ReminderHistoryService);
-    prisma = module.get(PrismaService);
+    prisma = module.get<ReminderPersistencePort>(
+      REMINDER_PERSISTENCE_PORT,
+    ) as unknown as typeof prisma;
     settingsService = module.get(ReminderSettingsService);
     notificationService = module.get(ReminderNotificationService);
   });

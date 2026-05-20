@@ -5,6 +5,7 @@ import {
   BadRequestException as _BadRequestException,
   UsePipes,
 } from '@nestjs/common';
+import { Throttle } from '@nestjs/throttler';
 import { Public } from '@/shared/modules/auth/auth/public.decorator';
 import { ContactService } from './contact.service';
 
@@ -22,6 +23,7 @@ export class ContactController {
   constructor(private contactService: ContactService) {}
 
   @Post('inquiry')
+  @Throttle({ short: { ttl: 60000, limit: 3 } })
   @ZodSerializerDto(ContactResponseDto)
   @UsePipes(new ZodValidationPipe(ContactInquirySchema))
   submitInquiry(@Body() dto: ContactInquiryDto) {

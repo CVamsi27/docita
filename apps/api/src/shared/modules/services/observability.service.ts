@@ -1,4 +1,8 @@
-import { Injectable, Logger, OnModuleDestroy } from '@nestjs/common';
+import { Inject, Injectable, Logger, OnModuleDestroy } from '@nestjs/common';
+import {
+  CLOCK_PORT,
+  type IClock,
+} from '@/shared/common/ports/clock.port';
 import * as Sentry from '@sentry/nestjs';
 import { ErrorSeverity } from '@workspace/db';
 import { PrismaService } from '@/prisma/prisma.service';
@@ -51,6 +55,7 @@ export class ObservabilityService implements OnModuleDestroy {
   constructor(
     private prisma: PrismaService,
     private configService: AppConfigService,
+    @Inject(CLOCK_PORT) private readonly clock: IClock,
   ) {
     this.startMetricsFlushing();
   }
@@ -152,7 +157,7 @@ export class ObservabilityService implements OnModuleDestroy {
     const correlationId = getRecordString(requestContext, 'id') || 'unknown';
 
     const logEntry = {
-      timestamp: new Date().toISOString(),
+      timestamp: this.clock.now().toISOString(),
       level,
       message,
       correlationId,
@@ -161,7 +166,16 @@ export class ObservabilityService implements OnModuleDestroy {
     };
 
     if (level !== 'debug') {
-      void this.persistStructuredLog(level, message, correlationId, metadata);
+      void this.persistStructuredLog(
+        level,
+        message,
+        correlationId,
+        metadata,
+      ).catch((error: unknown) => {
+        this.logger.warn(
+          `Structured log persistence task failed: ${error instanceof Error ? error.message : String(error)}`,
+        );
+      });
     }
 
     if (
@@ -291,9 +305,10 @@ export class ObservabilityService implements OnModuleDestroy {
     const checks: Record<string, unknown> = {
       uptime: process.uptime(),
       memory: process.memoryUsage(),
-      timestamp: new Date().toISOString(),
+      timestamp: this.clock.now().toISOString(),
     };
 
+    const checkedAt = this.clock.now();
     try {
       await Promise.race([
         this.prisma.$queryRaw`SELECT 1`,
@@ -301,7 +316,7 @@ export class ObservabilityService implements OnModuleDestroy {
           setTimeout(() => reject(new Error('DB timeout')), 5000),
         ),
       ]);
-      checks.database = { status: 'connected', checked_at: new Date() };
+      checks.database = { status: 'connected', checked_at: checkedAt };
     } catch (error) {
       checks.database = {
         status: 'disconnected',
@@ -322,6 +337,7 @@ export class ObservabilityService implements OnModuleDestroy {
   }
 
   async getDatabaseHealth(): Promise<Record<string, unknown>> {
+    const checkedAt = this.clock.now();
     try {
       const result = await this.prisma.$queryRaw`
         SELECT
@@ -336,13 +352,13 @@ export class ObservabilityService implements OnModuleDestroy {
       return {
         status: 'connected',
         stats: result,
-        checked_at: new Date(),
+        checked_at: checkedAt,
       };
     } catch (error) {
       return {
         status: 'error',
         error: error instanceof Error ? error.message : 'Unknown error',
-        checked_at: new Date(),
+        checked_at: checkedAt,
       };
     }
   }

@@ -1,3 +1,4 @@
+import { queryKeys } from "../lib/query-keys";
 import { useAPIQuery } from "../core/use-api-query";
 
 export interface ResolvedFeatureFlagsResponse {
@@ -6,7 +7,7 @@ export interface ResolvedFeatureFlagsResponse {
 
 export const useResolvedFeatureFlags = () =>
   useAPIQuery<ResolvedFeatureFlagsResponse>(
-    ["feature-flags", "me"],
+    queryKeys.featureFlags.me(),
     "/feature-flags/me",
     {
       staleTime: 10 * 60 * 1000,

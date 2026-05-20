@@ -10,6 +10,7 @@ import {
   Sparkles,
   Clock,
 } from "lucide-react";
+import { queryKeys } from "@workspace/data-access";
 import { useAskAi } from "@/components/ask-ai/ask-ai-context";
 import { Avatar, AvatarFallback } from "@workspace/ui/components/indicators/avatar";
 import { Button } from "@workspace/ui/components/form/button";
@@ -100,9 +101,9 @@ export function ConsultationPageHeaderUI({
 
   const handleBillingSaved = () => {
     queryClient.invalidateQueries({
-      queryKey: ["appointments", appointmentId],
+      queryKey: queryKeys.appointments.detail(appointmentId),
     });
-    queryClient.invalidateQueries({ queryKey: ["billing"] });
+    queryClient.invalidateQueries({ queryKey: queryKeys.billing.all() });
   };
 
   const statusKey = (appointmentStatus ?? "").toLowerCase().replace(/-/g, "_");

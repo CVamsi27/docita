@@ -5,7 +5,7 @@ import {
   type DashboardStats,
   type DashboardPatient,
 } from "@workspace/types";
-import { useDashboardStats } from "@workspace/data-access";
+import { queryKeys, useDashboardStats } from "@workspace/data-access";
 import { useTodayAppointments } from "@workspace/data-access";
 import { useRecentPatients } from "@workspace/data-access";
 import { usePendingJoinRequestCount } from "@workspace/data-access";
@@ -148,7 +148,7 @@ export const useDashboardLogic = () => {
       tasks.push(refetchJoinRequests());
     }
     await Promise.all(tasks);
-    await queryClient.invalidateQueries({ queryKey: ["follow-ups"] });
+    await queryClient.invalidateQueries({ queryKey: queryKeys.followUps.all() });
   }, [
     isAdmin,
     queryClient,

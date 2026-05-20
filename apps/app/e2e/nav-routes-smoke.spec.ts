@@ -7,6 +7,8 @@ import { loginUser, setupTestUser, UserData } from "./utils/patient-helpers";
  */
 const NAV_SMOKE_ROUTES: { path: string }[] = [
   { path: "/today" },
+  { path: "/patients" },
+  { path: "/appointments" },
   { path: "/prescriptions" },
   { path: "/lab-tests" },
   { path: "/invoices" },

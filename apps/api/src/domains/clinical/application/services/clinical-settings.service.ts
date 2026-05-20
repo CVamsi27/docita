@@ -1,6 +1,9 @@
-import { Injectable } from '@nestjs/common';
+import { Inject, Injectable } from '@nestjs/common';
 import { z } from 'zod';
-import { PrismaService } from '@/prisma/prisma.service';
+import {
+  CLINICAL_SETTINGS_REPOSITORY_TOKEN,
+  IClinicalSettingsRepository,
+} from '@/domains/clinical/core/repositories/clinical-settings.repository.interface';
 
 export const medicalCodingSettingsSchema = z
   .object({
@@ -20,9 +23,15 @@ export interface ResolvedMedicalCodingSettings {
   preferredSystem: string;
 }
 
+/**
+ * Thin facade — delegates clinical settings reads/writes to IClinicalSettingsRepository.
+ */
 @Injectable()
 export class ClinicalSettingsService {
-  constructor(private readonly prisma: PrismaService) {}
+  constructor(
+    @Inject(CLINICAL_SETTINGS_REPOSITORY_TOKEN)
+    private readonly clinicalSettingsRepository: IClinicalSettingsRepository,
+  ) {}
 
   private normalizeSettings(
     raw: Record<string, unknown>,
@@ -44,14 +53,8 @@ export class ClinicalSettingsService {
   async getMedicalCodingSettings(
     clinicId: string,
   ): Promise<ResolvedMedicalCodingSettings> {
-    const clinic = await this.prisma.clinic.findUnique({
-      where: { id: clinicId },
-      select: { settings: true },
-    });
     const settings =
-      clinic?.settings && typeof clinic.settings === 'object'
-        ? Object.fromEntries(Object.entries(clinic.settings))
-        : {};
+      await this.clinicalSettingsRepository.getClinicSettings(clinicId);
     return this.normalizeSettings(settings);
   }
 
@@ -59,14 +62,8 @@ export class ClinicalSettingsService {
     clinicId: string,
     patch: MedicalCodingSettings,
   ): Promise<ResolvedMedicalCodingSettings> {
-    const clinic = await this.prisma.clinic.findUnique({
-      where: { id: clinicId },
-      select: { settings: true },
-    });
     const current =
-      clinic?.settings && typeof clinic.settings === 'object'
-        ? Object.fromEntries(Object.entries(clinic.settings))
-        : {};
+      await this.clinicalSettingsRepository.getClinicSettings(clinicId);
 
     const next = {
       ...current,
@@ -84,10 +81,7 @@ export class ClinicalSettingsService {
         : {}),
     };
 
-    await this.prisma.clinic.update({
-      where: { id: clinicId },
-      data: { settings: next },
-    });
+    await this.clinicalSettingsRepository.updateClinicSettings(clinicId, next);
 
     return this.normalizeSettings(next);
   }

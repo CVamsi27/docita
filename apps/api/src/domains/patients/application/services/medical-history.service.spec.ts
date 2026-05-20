@@ -1,7 +1,10 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import { MedicalHistoryService } from './medical-history.service';
 import { MedicalHistoryConditionsService } from './medical-history-conditions.service';
-import { PrismaService } from '@/prisma/prisma.service';
+import {
+  PATIENT_PERSISTENCE_PORT,
+  type PatientPersistencePort,
+} from '@/domains/patients/application/ports/patient-persistence.port';
 import { MedicalHistoryFactory } from '@/domains/patients/core/factories/medical-history.factory';
 import { AiService } from '@/shared/modules/ai-core/ai.service';
 import { AiFactory } from '@/shared/modules/ai-core/factories/ai.factory';
@@ -13,7 +16,7 @@ describe('MedicalHistoryService', () => {
   let aiService: AiService;
   let aiFactory: AiFactory;
 
-  const mockPrismaService = {
+  const mockPatientPersistencePort = {
     patientMedicalCondition: {
       create: jest.fn<(...args: unknown[]) => Promise<unknown>>(),
       findMany: jest.fn<(...args: unknown[]) => Promise<unknown>>(),
@@ -74,7 +77,10 @@ describe('MedicalHistoryService', () => {
       providers: [
         MedicalHistoryService,
         MedicalHistoryConditionsService,
-        { provide: PrismaService, useValue: mockPrismaService },
+        {
+          provide: PATIENT_PERSISTENCE_PORT,
+          useValue: mockPatientPersistencePort,
+        },
         { provide: MedicalHistoryFactory, useValue: mockFactory },
         { provide: AiService, useValue: mockAiService },
         { provide: AiFactory, useValue: mockAiFactory },
@@ -110,7 +116,7 @@ describe('MedicalHistoryService', () => {
 
       expect(factory.createCondition).toHaveBeenCalledWith(input);
       expect(
-        mockPrismaService.patientMedicalCondition.create,
+        mockPatientPersistencePort.patientMedicalCondition.create,
       ).toHaveBeenCalled();
     });
   });
@@ -118,9 +124,11 @@ describe('MedicalHistoryService', () => {
   describe('summarizeMedicalHistory', () => {
     it('should aggregate data and call AI service', async () => {
       const patientId = 'p123';
-      mockPrismaService.patientMedicalCondition.findMany.mockResolvedValue([]);
-      mockPrismaService.patientAllergy.findMany.mockResolvedValue([]);
-      mockPrismaService.prescription.findMany.mockResolvedValue([]);
+      mockPatientPersistencePort.patientMedicalCondition.findMany.mockResolvedValue(
+        [],
+      );
+      mockPatientPersistencePort.patientAllergy.findMany.mockResolvedValue([]);
+      mockPatientPersistencePort.prescription.findMany.mockResolvedValue([]);
 
       const mockPrompt = { user: 'test prompt' };
       mockAiFactory.createPrompt.mockReturnValue(mockPrompt);

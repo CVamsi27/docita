@@ -32,7 +32,8 @@ export function useSidebarSections() {
   const { clinicId } = useClinic();
   const {
     canAccess,
-    canAccessTier,
+    currentTier,
+    hasIntelligence,
     getTierInfo,
     clinicType: storeClinicType,
     workspaceProfile,
@@ -47,7 +48,8 @@ export function useSidebarSections() {
     {
       role: user?.role,
       canAccessFeature: canAccess,
-      canAccessTier,
+      currentTier,
+      hasIntelligence,
       workspaceProfile,
     },
     "read",
@@ -58,7 +60,8 @@ export function useSidebarSections() {
     {
       role: user?.role,
       canAccessFeature: canAccess,
-      canAccessTier,
+      currentTier,
+      hasIntelligence,
       workspaceProfile,
     },
     "read",
@@ -96,7 +99,8 @@ export function useSidebarSections() {
         {
           role: user?.role,
           canAccessFeature: canAccess,
-          canAccessTier,
+          currentTier,
+          hasIntelligence,
           workspaceProfile,
         },
         "read",

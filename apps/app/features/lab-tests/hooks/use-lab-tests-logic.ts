@@ -1,8 +1,11 @@
 import { useCallback, useEffect, useState } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { z } from "zod";
 import { toast } from "sonner";
+import {
+  createLabTestOrderFormSchema,
+  type CreateLabTestOrderFormValues,
+} from "@workspace/types";
 import {
   useCreateLabTestOrder,
   useLabTestCatalog,
@@ -14,14 +17,12 @@ import { Patient, type PaginatedResponse } from "@workspace/types";
 import { useDebounce } from "@workspace/hooks/use-debounce";
 import { showUserFacingErrorToast } from "@/lib/errors/user-facing-errors";
 
-export const createLabTestOrderSchema = z.object({
-  patientId: z.string().min(1, "Select a patient"),
-  labTestId: z.string().min(1, "Select a test"),
-  appointmentId: z.string().optional(),
-  notes: z.string().optional(),
-});
+export {
+  createLabTestOrderFormSchema as createLabTestOrderSchema,
+  type CreateLabTestOrderFormValues,
+} from "@workspace/types";
 
-export type CreateLabTestOrderInput = z.infer<typeof createLabTestOrderSchema>;
+export type CreateLabTestOrderInput = CreateLabTestOrderFormValues;
 
 export const useLabTestsLogic = () => {
   const [searchQuery, setSearchQuery] = useState("");
@@ -62,8 +63,8 @@ export const useLabTestsLogic = () => {
   const { mutateAsync: createOrder, isPending: isCreating } =
     useCreateLabTestOrder();
 
-  const form = useForm<CreateLabTestOrderInput>({
-    resolver: zodResolver(createLabTestOrderSchema),
+  const form = useForm<CreateLabTestOrderFormValues>({
+    resolver: zodResolver(createLabTestOrderFormSchema),
     defaultValues: {
       patientId: "",
       labTestId: "",
@@ -91,7 +92,7 @@ export const useLabTestsLogic = () => {
   const filteredTests = labTests;
 
   const onSubmitOrder = useCallback(
-    async (data: CreateLabTestOrderInput) => {
+    async (data: CreateLabTestOrderFormValues) => {
       try {
         await createOrder(data);
         form.reset();

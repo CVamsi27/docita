@@ -5,7 +5,9 @@ import { MessageTemplateService } from './templates';
 import { NotificationOrchestrator } from './notification-orchestrator.service';
 import { WhatsAppChannel, EmailChannel, SmsChannel } from './channels';
 import { NotificationsModule } from './notifications/notifications.module';
-import { WhatsappModule } from './whatsapp/whatsapp.module';
+import { WhatsappModule } from '@/domains/whatsapp/whatsapp-clinic.module';
+import { CLOCK_PORT } from '@/shared/common/ports/clock.port';
+import type { IClock } from '@/shared/common/ports/clock.port';
 
 @Module({
   imports: [AppConfigModule, NotificationsModule, WhatsappModule],
@@ -15,39 +17,46 @@ import { WhatsappModule } from './whatsapp/whatsapp.module';
 
     {
       provide: WhatsAppChannel,
-      useFactory: (configService: AppConfigService) => {
+      useFactory: (configService: AppConfigService, clock: IClock) => {
         const metaConfig = configService.getMetaConfig();
         return new WhatsAppChannel(
           metaConfig.phoneNumberId,
           metaConfig.accessToken,
           metaConfig.businessAccountId,
+          clock,
         );
       },
-      inject: [AppConfigService],
+      inject: [AppConfigService, CLOCK_PORT],
     },
     {
       provide: EmailChannel,
-      useFactory: (configService: AppConfigService) => {
+      useFactory: (configService: AppConfigService, clock: IClock) => {
         const smtpConfig = configService.getSmtpConfig();
-        return new EmailChannel({
-          host: smtpConfig.host,
-          port: smtpConfig.port,
-          user: smtpConfig.user,
-          pass: smtpConfig.pass,
-        });
+        return new EmailChannel(
+          {
+            host: smtpConfig.host,
+            port: smtpConfig.port,
+            user: smtpConfig.user,
+            pass: smtpConfig.pass,
+          },
+          clock,
+        );
       },
-      inject: [AppConfigService],
+      inject: [AppConfigService, CLOCK_PORT],
     },
     {
       provide: SmsChannel,
-      useFactory: (configService: AppConfigService) => {
+      useFactory: (configService: AppConfigService, clock: IClock) => {
         const smsConfig = configService.getSmsConfig();
-        return new SmsChannel({
-          apiKey: smsConfig.apiKey,
-          senderId: smsConfig.senderId,
-        });
+        return new SmsChannel(
+          {
+            apiKey: smsConfig.apiKey,
+            senderId: smsConfig.senderId,
+          },
+          clock,
+        );
       },
-      inject: [AppConfigService],
+      inject: [AppConfigService, CLOCK_PORT],
     },
   ],
   exports: [

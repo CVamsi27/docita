@@ -24,13 +24,18 @@ import {
   getDbRolesForTarget,
   requireFeatureForTarget,
 } from '@/shared/modules/auth/auth/access-matrix.util';
+import { AuditService } from '@/shared/modules/audit/audit/audit.service';
+import { logClinicPhiListRead } from '@/shared/modules/audit/audit/patient-access-audit.util';
 
 @Controller()
 @UseGuards(TierGuard)
 @RequireFeature(requireFeatureForTarget(APP_ACCESS_TARGETS.API_APPOINTMENTS))
 @Roles(...getDbRolesForTarget(APP_ACCESS_TARGETS.API_APPOINTMENTS))
 export class FollowUpController {
-  constructor(private readonly followUpService: FollowUpService) {}
+  constructor(
+    private readonly followUpService: FollowUpService,
+    private readonly auditService: AuditService,
+  ) {}
 
   @Post('appointments/:id/follow-up')
   async createFollowUp(
@@ -51,6 +56,19 @@ export class FollowUpController {
     @Query() query: ListFollowUpsQueryDto,
   ) {
     const clinicId = req.user!.clinicId!;
+    await logClinicPhiListRead(
+      this.auditService,
+      req,
+      'VIEW_APPOINTMENT_LIST',
+      'Appointment',
+      {
+        scope: 'follow-ups',
+        appointmentId: query.appointmentId,
+        status: query.status,
+        from: query.from,
+        to: query.to,
+      },
+    );
     if (query.appointmentId) {
       return this.followUpService.findForAppointment(
         query.appointmentId,

@@ -1,10 +1,13 @@
 import { beforeEach, describe, it, expect, jest } from '@jest/globals';
 import { DoctorsCommandService } from './doctors-command.service';
-import { PrismaService } from '@/prisma/prisma.service';
+import {
+  DOCTOR_PERSISTENCE_PORT,
+  type DoctorPersistencePort,
+} from '@/domains/doctors/application/ports/doctor-persistence.port';
 import { DoctorVerificationService } from './doctor-verification.service';
 import { SignatureUploadService } from './signature-upload.service';
 import { StoredFileUrlResolverService } from '@/domains/documents/application/services/stored-file-url-resolver.service';
-import { StorageProvider } from '@/domains/documents/infrastructure/storage.provider';
+import { StorageProvider } from '@/domains/documents/application/ports/storage-provider.port';
 import { DoctorsQueryService } from './doctors-query.service';
 import { DoctorProfileService } from './doctor-profile.service';
 import { DoctorAdminVerificationCommandService } from './doctor-admin-verification-command.service';
@@ -13,7 +16,7 @@ import { IDoctorRepository } from '@/domains/doctors/core/repositories/doctor.re
 
 describe('DoctorsCommandService', () => {
   let service: DoctorsCommandService;
-  let prisma: jest.Mocked<PrismaService>;
+  let prisma: jest.Mocked<DoctorPersistencePort>;
   let doctorVerificationService: jest.Mocked<DoctorVerificationService>;
   let signatureUploadService: jest.Mocked<SignatureUploadService>;
   let storedFileUrlResolver: jest.Mocked<StoredFileUrlResolverService>;
@@ -41,7 +44,7 @@ describe('DoctorsCommandService', () => {
       doctorSpecialization: { create: jest.fn(), deleteMany: jest.fn() },
       doctorEducation: { deleteMany: jest.fn() },
       doctorCertification: { deleteMany: jest.fn() },
-    } as unknown as jest.Mocked<PrismaService>;
+    } as unknown as jest.Mocked<DoctorPersistencePort>;
 
     doctorVerificationService = Object.create(
       DoctorVerificationService.prototype,

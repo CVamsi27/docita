@@ -1,4 +1,5 @@
 import {
+  Inject,
   Injectable,
   CanActivate,
   ExecutionContext,
@@ -6,8 +7,15 @@ import {
   Logger,
   SetMetadata,
 } from '@nestjs/common';
+import {
+  CLOCK_PORT,
+  type IClock,
+} from '@/shared/common/ports/clock.port';
 import { Reflector } from '@nestjs/core';
-import { PrismaService } from '@/prisma/prisma.service';
+import {
+  IUserRepository,
+  USER_REPOSITORY_TOKEN,
+} from '@/domains/users/core/repositories/user.repository.interface';
 import { getAuthenticatedUserId } from '@/shared/modules/auth/auth/request-user.util';
 
 export const SKIP_PASSWORD_EXPIRY_KEY = 'skipPasswordExpiry';
@@ -21,7 +29,9 @@ export class PasswordExpiredGuard implements CanActivate {
 
   constructor(
     private reflector: Reflector,
-    private prisma: PrismaService,
+    @Inject(USER_REPOSITORY_TOKEN)
+    private readonly users: IUserRepository,
+    @Inject(CLOCK_PORT) private readonly clock: IClock,
   ) {}
 
   async canActivate(context: ExecutionContext): Promise<boolean> {
@@ -43,17 +53,9 @@ export class PasswordExpiredGuard implements CanActivate {
     }
 
     try {
-      const users = await this.prisma.$queryRaw<
-        Array<{ passwordExpiresAt: Date | null }>
-      >`
-        SELECT "passwordExpiresAt"
-        FROM "User"
-        WHERE "id" = ${userId}
-        LIMIT 1
-      `;
-      const dbUser = users[0] ?? null;
+      const passwordExpiresAt = await this.users.findPasswordExpiresAt(userId);
 
-      if (dbUser?.passwordExpiresAt && dbUser.passwordExpiresAt < new Date()) {
+      if (passwordExpiresAt && passwordExpiresAt < this.clock.now()) {
         throw new ForbiddenException({
           message:
             'Your password has expired. Please change your password to continue.',

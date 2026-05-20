@@ -4,7 +4,7 @@ import { useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
 import { formatClockTime } from "@/lib/formatters";
 import { Check, Play, UserCheck } from "lucide-react";
-import type { AppointmentListItem } from "@workspace/data-access";
+import { queryKeys, type AppointmentListItem } from "@workspace/data-access";
 import { Button } from "@workspace/ui/components/form/button";
 import { Badge } from "@workspace/ui/components/indicators/badge";
 import { SymbolTooltip } from "@workspace/ui/components/overlay/tooltip";
@@ -82,7 +82,7 @@ export const TimeSlotRow = memo<TimeSlotRowProps>(
       try {
         await resendReminder.mutateAsync({ appointmentId: apt.id });
         toast.success("Reminder re-sent on WhatsApp");
-        await queryClient.invalidateQueries({ queryKey: ["appointments"] });
+        await queryClient.invalidateQueries({ queryKey: queryKeys.appointments.all() });
       } catch (err) {
         showUserFacingErrorToast(
           err,

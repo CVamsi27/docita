@@ -3,9 +3,11 @@ import { Test, TestingModule } from '@nestjs/testing';
 import { beforeEach, describe, expect, it, jest } from '@jest/globals';
 import { AppointmentRequestStatus } from '@workspace/db';
 import { AppointmentRequestService } from './appointment-request.service';
+import { AppointmentRequestCommandService } from './appointment-request-command.service';
+import { AppointmentRequestQueryService } from './appointment-request-query.service';
 import { AppointmentService } from './appointment.service';
 import { APPOINTMENT_REQUEST_REPOSITORY_TOKEN } from '@/domains/appointments/core/repositories/appointment-request.repository.interface';
-import { StaffNotificationService } from '@/shared/modules/messaging/whatsapp/staff-notification.service';
+import { StaffNotificationService } from '@/domains/whatsapp/application/services/staff-notification.service';
 
 describe('AppointmentRequestService', () => {
   let service: AppointmentRequestService;
@@ -66,6 +68,8 @@ describe('AppointmentRequestService', () => {
 
     const module: TestingModule = await Test.createTestingModule({
       providers: [
+        AppointmentRequestCommandService,
+        AppointmentRequestQueryService,
         AppointmentRequestService,
         {
           provide: APPOINTMENT_REQUEST_REPOSITORY_TOKEN,

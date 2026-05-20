@@ -10,7 +10,7 @@ import {
 } from '@/shared/modules/queue/queue.interface';
 import type { InvoicePdfProcessorPort } from './invoice-pdf.processor';
 import type { InvoicesService } from './invoices.service';
-import { StorageProvider } from '@/domains/documents/infrastructure/storage.provider';
+import { StorageProvider } from '@/domains/documents/application/ports/storage-provider.port';
 import type { PdfJobProcessorPrismaPort } from '@/shared/modules/queue/pdf-job.service';
 import { InvoiceStatus } from '@workspace/db';
 import type { InvoiceDetail } from '@/domains/billing/core/repositories/invoice.repository';

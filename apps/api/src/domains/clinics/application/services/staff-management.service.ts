@@ -3,8 +3,12 @@ import {
   ForbiddenException,
   Injectable,
   NotFoundException,
+  Inject,
 } from '@nestjs/common';
-import { PrismaService } from '@/prisma/prisma.service';
+import {
+  CLINIC_PERSISTENCE_PORT,
+  type ClinicPersistencePort,
+} from '@/domains/clinics/application/ports/clinic-persistence.port';
 import { Role, Specialization } from '@workspace/db';
 import {
   actorMayAssignMemberRoles,
@@ -19,7 +23,8 @@ import { StaffInviteService } from './staff-invite.service';
 @Injectable()
 export class StaffManagementService {
   constructor(
-    private prisma: PrismaService,
+    @Inject(CLINIC_PERSISTENCE_PORT)
+    private readonly persistence: ClinicPersistencePort,
     private staffInviteService: StaffInviteService,
   ) {}
 
@@ -36,7 +41,7 @@ export class StaffManagementService {
   }
 
   async getDoctors(clinicId: string) {
-    return this.prisma.user.findMany({
+    return this.persistence.user.findMany({
       where: {
         clinicId,
         role: Role.DOCTOR,
@@ -60,7 +65,7 @@ export class StaffManagementService {
   }
 
   async getReceptionists(clinicId: string) {
-    return this.prisma.user.findMany({
+    return this.persistence.user.findMany({
       where: {
         clinicId,
         role: Role.RECEPTIONIST,
@@ -81,7 +86,7 @@ export class StaffManagementService {
   }
 
   async getMembers(clinicId: string) {
-    return this.prisma.user.findMany({
+    return this.persistence.user.findMany({
       where: {
         clinicId,
       },
@@ -116,7 +121,7 @@ export class StaffManagementService {
     actorUserId: string,
     actorRole: Role,
   ) {
-    const member = await this.prisma.user.findFirst({
+    const member = await this.persistence.user.findFirst({
       where: {
         id: memberId,
         clinicId,
@@ -154,7 +159,7 @@ export class StaffManagementService {
       }
     }
 
-    const isFrontDesk = await isClinicFrontDesk(this.prisma, clinicId);
+    const isFrontDesk = await isClinicFrontDesk(this.persistence, clinicId);
     if (data.role) {
       if (isFrontDesk) {
         if (data.role === 'NURSE' || data.role === 'ADMIN_DOCTOR') {
@@ -174,7 +179,7 @@ export class StaffManagementService {
       }
     }
 
-    const updated = await this.prisma.user.update({
+    const updated = await this.persistence.user.update({
       where: { id: memberId },
       data: {
         ...(data.name !== undefined ? { name: data.name } : {}),
@@ -217,7 +222,7 @@ export class StaffManagementService {
   }
 
   async removeMember(clinicId: string, memberId: string, actorUserId: string) {
-    const member = await this.prisma.user.findFirst({
+    const member = await this.persistence.user.findFirst({
       where: {
         id: memberId,
         clinicId,
@@ -240,7 +245,7 @@ export class StaffManagementService {
       throw new ForbiddenException('Admin account cannot be removed here');
     }
 
-    await this.prisma.user.delete({
+    await this.persistence.user.delete({
       where: { id: memberId },
     });
 

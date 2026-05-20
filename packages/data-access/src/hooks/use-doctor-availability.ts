@@ -4,6 +4,7 @@ import {
 } from "@workspace/utils";
 import { z } from "zod";
 import { Feature, availableSlotSchema } from "@workspace/types";
+import { queryKeys } from "../lib/query-keys";
 import { useAPIMutation } from "../core/use-api-mutation";
 import { useAPIQuery } from "../core/use-api-query";
 import { useAPIQueryValidated } from "../core/use-api-query-validated";
@@ -42,7 +43,7 @@ export const useDoctorSchedules = (doctorId?: string) => {
     Feature.CALENDAR_SLOTS,
   );
   return useAPIQuery<DoctorSchedule[]>(
-    ["doctor-schedules", doctorId || "me"],
+    queryKeys.doctorSchedules.list(doctorId || "me"),
     `/doctor-availability/schedules${doctorId ? `?doctorId=${doctorId}` : ""}`,
     { enabled: calendarOk },
   );
@@ -53,7 +54,7 @@ export const useClinicSchedules = () => {
     Feature.CALENDAR_SLOTS,
   );
   return useAPIQuery<DoctorSchedule[]>(
-    ["clinic-schedules"],
+    queryKeys.doctorSchedules.clinic(),
     "/doctor-availability/schedules/clinic",
     { enabled: calendarOk },
   );
@@ -109,7 +110,10 @@ export const useDoctorTimeOffs = (doctorId?: string, upcoming?: boolean) => {
     Feature.CALENDAR_SLOTS,
   );
   return useAPIQuery<DoctorTimeOff[]>(
-    ["doctor-time-offs", doctorId || "me", upcoming ? "upcoming" : "all"],
+    queryKeys.doctorTimeOffs.list(
+      doctorId || "me",
+      upcoming ? "upcoming" : "all",
+    ),
     `/doctor-availability/time-off${doctorId ? `?doctorId=${doctorId}` : ""}${upcoming ? "&upcoming=true" : ""}`,
     { enabled: calendarOk },
   );
@@ -128,7 +132,7 @@ export const useCreateDoctorTimeOff = () =>
       endTime?: string;
     }
   >("/doctor-availability/time-off", "POST", {
-    invalidateKeys: [["doctor-time-offs"]],
+    invalidateKeys: [queryKeys.doctorTimeOffs.all()],
   });
 
 export const useDeleteDoctorTimeOff = (id: string) =>
@@ -142,7 +146,7 @@ export const useDeleteDoctorTimeOffMutation = () =>
     (id) => `/doctor-availability/time-off/${id}`,
     "DELETE",
     {
-      invalidateKeys: [["doctor-time-offs"]],
+      invalidateKeys: [queryKeys.doctorTimeOffs.all()],
     },
   );
 
@@ -170,7 +174,7 @@ export function useUnavailableDoctorIdsForDate(
     (queryOptions?.enabled ?? true);
 
   return useAPIQueryValidated(
-    ["doctor-unavailability", dateStr],
+    queryKeys.doctorUnavailability.byDate(dateStr),
     withQueryString("/doctor-availability/time-off/unavailable-doctors", {
       date: dateStr,
     }),
@@ -196,7 +200,7 @@ export function useDoctorAvailabilitySlots(
     : "";
 
   return useAPIQueryValidated(
-    ["doctor-availability-slots", dateKey, doctorId ?? ""],
+    queryKeys.doctorAvailabilitySlots.forDay(dateKey, doctorId ?? ""),
     enabled && date && doctorId
       ? withQueryString("/doctor-availability/slots", {
           date: dateKey,

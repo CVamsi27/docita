@@ -22,6 +22,11 @@ import { parsePaginationInt } from '@/shared/common/utils/string.utils';
 import { MedicationDoseService } from '@/domains/patients/application/services/medication-dose.service';
 import { AppointmentRequestService } from '@/domains/appointments/application/services/appointment-request.service';
 import { PatientAppointmentRequestCreateDto } from '@/domains/appointments/application/dto/appointments.dto';
+import { AuditService } from '@/shared/modules/audit/audit/audit.service';
+import {
+  logPatientPortalPhiRead,
+  type PatientPhiReadAccessType,
+} from '@/shared/modules/audit/audit/patient-access-audit.util';
 
 @ApiTags('patient-portal')
 @Controller('patient-portal')
@@ -36,11 +41,27 @@ export class PatientPortalController {
     private readonly timelineService: PatientTimelineService,
     private readonly medicationDoseService: MedicationDoseService,
     private readonly appointmentRequestService: AppointmentRequestService,
+    private readonly auditService: AuditService,
   ) {}
+
+  private async auditPortalRead(
+    req: RequestWithUser,
+    accessType: PatientPhiReadAccessType,
+  ) {
+    const context = await this.contextService.getPatientContext(req.user!.id);
+    await logPatientPortalPhiRead(
+      this.auditService,
+      req,
+      context,
+      accessType,
+    );
+    return context;
+  }
 
   @Get('dashboard')
   @ApiOperation({ summary: 'Get patient portal dashboard' })
   async getDashboard(@Request() req: RequestWithUser) {
+    await this.auditPortalRead(req, 'VIEW_PROFILE');
     return this.portalService.getDashboard(req.user!.id);
   }
 
@@ -57,6 +78,7 @@ export class PatientPortalController {
       offset?: string;
     },
   ) {
+    await this.auditPortalRead(req, 'VIEW_HISTORY');
     return this.portalService.getAppointments(req.user!.id, {
       status: query.status,
       startDate: query.startDate,
@@ -72,6 +94,7 @@ export class PatientPortalController {
     @Request() req: RequestWithUser,
     @Param('id') id: string,
   ) {
+    await this.auditPortalRead(req, 'VIEW_HISTORY');
     return this.portalService.getAppointmentById(req.user!.id, id);
   }
 
@@ -97,6 +120,7 @@ export class PatientPortalController {
     @Request() req: RequestWithUser,
     @Query() query: { limit?: string; offset?: string },
   ) {
+    await this.auditPortalRead(req, 'VIEW_HISTORY');
     return this.portalService.getPrescriptions(req.user!.id, {
       limit: parsePaginationInt(query.limit, { min: 1, max: 200 }),
       offset: parsePaginationInt(query.offset, { min: 0 }),
@@ -109,6 +133,7 @@ export class PatientPortalController {
     @Request() req: RequestWithUser,
     @Param('id') id: string,
   ) {
+    await this.auditPortalRead(req, 'VIEW_HISTORY');
     return this.portalService.getPrescriptionById(req.user!.id, id);
   }
 
@@ -128,6 +153,7 @@ export class PatientPortalController {
   @Get('profile')
   @ApiOperation({ summary: 'Get patient profile' })
   async getProfile(@Request() req: RequestWithUser) {
+    await this.auditPortalRead(req, 'VIEW_PROFILE');
     return this.portalService.getProfile(req.user!.id);
   }
 
@@ -153,6 +179,7 @@ export class PatientPortalController {
   @Get('consent')
   @ApiOperation({ summary: 'Get consent settings' })
   async getConsent(@Request() req: RequestWithUser) {
+    await this.auditPortalRead(req, 'VIEW_PROFILE');
     return this.portalService.getConsent(req.user!.id);
   }
 
@@ -187,8 +214,9 @@ export class PatientPortalController {
       offset?: string;
     },
   ) {
-    const { patientId, clinicId } = await this.contextService.getPatientContext(
-      req.user!.id,
+    const { patientId, clinicId } = await this.auditPortalRead(
+      req,
+      'VIEW_HISTORY',
     );
     const eventTypes = query.eventTypes
       ? (query.eventTypes.split(',') as Parameters<
@@ -207,8 +235,9 @@ export class PatientPortalController {
   @Get('timeline/snapshot')
   @ApiOperation({ summary: 'Get patient clinical snapshot' })
   async getSnapshot(@Request() req: RequestWithUser) {
-    const { patientId, clinicId } = await this.contextService.getPatientContext(
-      req.user!.id,
+    const { patientId, clinicId } = await this.auditPortalRead(
+      req,
+      'VIEW_HISTORY',
     );
     return this.timelineService.getPatientSnapshot(clinicId, patientId);
   }
@@ -236,8 +265,9 @@ export class PatientPortalController {
       offset?: string;
     },
   ) {
-    const { patientId, clinicId } = await this.contextService.getPatientContext(
-      req.user!.id,
+    const { patientId, clinicId } = await this.auditPortalRead(
+      req,
+      'VIEW_HISTORY',
     );
     return this.medicationDoseService.getDoseHistory(clinicId, patientId, {
       prescriptionId: query.prescriptionId,
@@ -286,8 +316,9 @@ export class PatientPortalController {
     @Request() req: RequestWithUser,
     @Query() query: { prescriptionId?: string },
   ) {
-    const { patientId, clinicId } = await this.contextService.getPatientContext(
-      req.user!.id,
+    const { patientId, clinicId } = await this.auditPortalRead(
+      req,
+      'VIEW_HISTORY',
     );
     return this.medicationDoseService.getAdherenceSummary(
       clinicId,

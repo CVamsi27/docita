@@ -1,314 +1,51 @@
-import {
-  Injectable,
-  Logger,
-  BadRequestException,
-  NotFoundException,
-  Inject,
-  ForbiddenException,
-} from '@nestjs/common';
-import { AppConfigService } from '@/shared/modules/config/app-configuration.service';
-import { SendMessageUseCase } from '@/domains/whatsapp/application/use-cases/send-message.use-case';
-import { PushNotificationService } from '@/shared/modules/messaging/notifications/push-notification.service';
-import {
-  IPaymentLinkProvider,
-  CLINIC_INVOICE_PAYMENT_LINK_PROVIDER_TOKEN,
-} from '@/domains/payments/core/ports/payment-link-provider.port';
-import { Money } from '@/domains/payments/core/value-objects/money.vo';
-import { PaymentSessionStatus, Prisma, InvoiceStatus } from '@workspace/db';
+import { Injectable } from '@nestjs/common';
 import type { PaymentWebhookPayload } from '@workspace/types';
-import {
-  IPaymentSessionRepository,
-  PAYMENT_SESSION_REPOSITORY_TOKEN,
-} from '@/domains/billing/core/repositories/payment-session.repository';
-import {
-  IInvoiceRepository,
-  INVOICE_REPOSITORY_TOKEN,
-} from '@/domains/billing/core/repositories/invoice.repository';
+import { PaymentsCommandService } from './payments-command.service';
+import { PaymentsQueryService } from './payments-query.service';
 
 /**
- * Clinic invoice payments: payment sessions (links / cash), manual desk
- * settlement, and related helpers. **Flow B** (patient pays clinic) in
- * docs/product/PAYMENT_FLOWS.md. **Docita SaaS** subscription / platform billing uses
- * other services and tokens — do not conflate webhooks or Docita merchant
- * semantics with patient settlement.
+ * Facade — preserves the public API for controllers, schedulers, and listeners.
+ * Real logic lives in PaymentsCommandService / PaymentsQueryService.
  */
+// AuditLogged: payment sessions, links, manual settlement, and Razorpay webhooks (PaymentsCommandService)
 @Injectable()
 export class PaymentsService {
-  private logger = new Logger(PaymentsService.name);
-
   constructor(
-    @Inject(PAYMENT_SESSION_REPOSITORY_TOKEN)
-    private readonly repository: IPaymentSessionRepository,
-    @Inject(INVOICE_REPOSITORY_TOKEN)
-    private readonly invoiceRepository: IInvoiceRepository,
-    private sendMessage: SendMessageUseCase,
-    private pushNotifications: PushNotificationService,
-    private configService: AppConfigService,
-    @Inject(CLINIC_INVOICE_PAYMENT_LINK_PROVIDER_TOKEN)
-    private paymentLinkProvider: IPaymentLinkProvider,
+    private readonly queryService: PaymentsQueryService,
+    private readonly commandService: PaymentsCommandService,
   ) {}
 
-  async createPaymentSession(dto: {
-    invoiceId: string;
-    amount: number;
-    currency: string;
-    patientId: string;
-    clinicId: string;
-    description?: string;
-    paymentMode?: 'ONLINE' | 'CASH';
-  }) {
-    // AuditLogged: payment processing
-    this.logger.log({
-      action: 'payment.process',
-      clinicId: dto.clinicId,
-      invoiceId: dto.invoiceId,
-      paymentMode: dto.paymentMode ?? 'ONLINE',
-    });
-
-    const expiresAt = new Date();
-    expiresAt.setMinutes(
-      expiresAt.getMinutes() + this.configService.getPaymentLinkTtlMinutes(),
-    );
-
-    const amountInPaise = Math.round(dto.amount * 100);
-
-    if (dto.paymentMode === 'CASH') {
-      const session = await this.repository.create({
-        clinic: { connect: { id: dto.clinicId } },
-        invoice: { connect: { id: dto.invoiceId } },
-        patient: { connect: { id: dto.patientId } },
-        provider: 'cash',
-        amount: amountInPaise,
-        currency: dto.currency,
-        status: PaymentSessionStatus.PENDING,
-        expiresAt,
-      });
-      this.logger.log(
-        `Created CASH payment session ${session.id} for invoice ${dto.invoiceId}`,
-      );
-      return session;
-    }
-
-    const invoice = await this.invoiceRepository.findById(
-      dto.invoiceId,
-      dto.clinicId,
-    );
-    const patient = invoice?.patient;
-    const customerName = `${patient?.firstName || ''} ${
-      patient?.lastName || ''
-    }`.trim();
-    const customerPhone = patient?.phoneNumber || '';
-    const customerEmail = patient?.email || undefined;
-
-    let paymentLinkResponse;
-
-    try {
-      const amount = new Money(dto.amount, dto.currency);
-
-      // Flow B online link: must use clinic gateway creds from settings (Flow A);
-      // interim shared adapter must not be Docita merchant for new work — see
-      // docs/product/PAYMENT_FLOWS.md.
-      paymentLinkResponse = await this.paymentLinkProvider.createPaymentLink({
-        amount,
-        description: dto.description || `Invoice #${dto.invoiceId.slice(0, 8)}`,
-        customer: {
-          name: customerName || dto.patientId,
-          email: customerEmail,
-          phone: customerPhone,
-        },
-        callbackUrl: `${this.configService.getFrontendAppUrl()}/payment/callback`,
-      });
-    } catch (error) {
-      this.logger.error('Failed to create payment link', error);
-      throw new BadRequestException('Failed to create payment link');
-    }
-
-    const session = await this.repository.create({
-      clinic: { connect: { id: dto.clinicId } },
-      invoice: { connect: { id: dto.invoiceId } },
-      patient: { connect: { id: dto.patientId } },
-      provider: 'razorpay',
-      providerSessionId: paymentLinkResponse.id,
-      paymentLink: paymentLinkResponse.shortUrl || paymentLinkResponse.url,
-      shortUrl: paymentLinkResponse.shortUrl || paymentLinkResponse.url,
-      amount: amountInPaise,
-      currency: dto.currency,
-      status: PaymentSessionStatus.CREATED,
-      expiresAt,
-      meta: {
-        paymentLinkId: paymentLinkResponse.id,
-        url: paymentLinkResponse.url,
-        shortUrl: paymentLinkResponse.shortUrl,
-        status: paymentLinkResponse.status,
-      } as Prisma.InputJsonValue,
-    });
-
-    this.logger.log(
-      `Created payment session ${session.id} for invoice ${dto.invoiceId}`,
-    );
-
-    return session;
+  createPaymentSession(
+    dto: Parameters<PaymentsCommandService['createPaymentSession']>[0],
+  ) {
+    return this.commandService.createPaymentSession(dto);
   }
 
-  async sendPaymentLinkWhatsApp(sessionId: string, clinicId: string) {
-    const session = await this.repository.findById(sessionId, clinicId);
-    if (!session || !session.patient || !session.clinic) {
-      return;
-    }
-
-    const patientName = `${session.patient.firstName} ${session.patient.lastName}`;
-    const amount = (session.amount / 100).toFixed(2);
-    const link = session.shortUrl || session.paymentLink;
-
-    if (!link) return;
-
-    try {
-      await this.sendMessage.execute({
-        recipientPhone: session.patient.phoneNumber,
-        templateName: 'payment_link',
-        variables: {
-          patient_name: patientName,
-          amount,
-          payment_link: link,
-          clinic_name: session.clinicId,
-        },
-        clinicId: session.clinicId,
-      });
-    } catch (error) {
-      if (error instanceof ForbiddenException) {
-        this.logger.log(
-          `Payment link WhatsApp skipped for session ${sessionId}: ${error.message}`,
-        );
-        return;
-      }
-      this.logger.error(
-        `Failed to send payment link WhatsApp for session ${sessionId}`,
-        error,
-      );
-    }
+  sendPaymentLinkWhatsApp(sessionId: string, clinicId: string) {
+    return this.commandService.sendPaymentLinkWhatsApp(sessionId, clinicId);
   }
 
-  async createPaymentLink(dto: {
-    invoiceId: string;
-    amount: number;
-    currency: string;
-    patientId: string;
-    clinicId: string;
-    description?: string;
-    paymentMode?: 'ONLINE' | 'CASH';
-    sendWhatsApp?: boolean;
-  }) {
-    const session = await this.createPaymentSession(dto);
-
-    if (dto.paymentMode !== 'CASH' && dto.sendWhatsApp !== false) {
-      await this.sendPaymentLinkWhatsApp(session.id, dto.clinicId);
-    }
-
-    return {
-      id: session.id,
-      link: session.paymentLink,
-      shortUrl: session.shortUrl,
-      status: session.status,
-      expiresAt: session.expiresAt,
-    };
+  createPaymentLink(
+    dto: Parameters<PaymentsCommandService['createPaymentLink']>[0],
+  ) {
+    return this.commandService.createPaymentLink(dto);
   }
 
-  async verifySessionOwnership(sessionId: string, clinicId: string) {
-    const session = await this.repository.findById(sessionId, clinicId);
-    if (!session) {
-      throw new BadRequestException(
-        'Payment session not found or access denied',
-      );
-    }
-    return session;
+  verifySessionOwnership(sessionId: string, clinicId: string) {
+    return this.queryService.verifySessionOwnership(sessionId, clinicId);
   }
 
-  async getPaymentSession(sessionId: string, clinicId: string) {
-    const session = await this.repository.findById(sessionId, clinicId);
-    if (!session) {
-      throw new BadRequestException('Payment session not found');
-    }
-    return session;
+  getPaymentSession(sessionId: string, clinicId: string) {
+    return this.queryService.getPaymentSession(sessionId, clinicId);
   }
 
-  async markInvoicePaidManually(data: {
-    invoiceId: string;
-    clinicId: string;
-    performedByUserId: string;
-    paymentMethod: string;
-    amount?: number;
-    notes?: string;
-    reference?: string;
-  }) {
-    const invoice = await this.invoiceRepository.findById(
-      data.invoiceId,
-      data.clinicId,
-    );
-    if (!invoice) {
-      throw new NotFoundException('Invoice not found');
-    }
-
-    if (!invoice.patientId) {
-      throw new BadRequestException(
-        'Cannot record manual payment: invoice is not linked to a patient',
-      );
-    }
-
-    if (
-      invoice.status === InvoiceStatus.PAID ||
-      invoice.status === InvoiceStatus.CANCELLED
-    ) {
-      throw new BadRequestException(
-        `Cannot record payment: invoice is already ${invoice.status}`,
-      );
-    }
-
-    const normalizedChannel =
-      data.paymentMethod === 'OTHER' ? 'OTHER_ONLINE' : data.paymentMethod;
-
-    await this.invoiceRepository.update(
-      invoice.id,
-      { status: InvoiceStatus.PAID },
-      data.clinicId,
-    );
-
-    const resolvedAmount =
-      typeof data.amount === 'number' && data.amount > 0
-        ? data.amount
-        : invoice.total;
-
-    await this.repository.create({
-      clinic: { connect: { id: data.clinicId } },
-      invoice: { connect: { id: data.invoiceId } },
-      patient: { connect: { id: invoice.patientId } },
-      provider: 'manual',
-      amount: Math.round(resolvedAmount * 100),
-      currency: this.configService.getCurrencyCode(),
-      status: PaymentSessionStatus.CAPTURED,
-      expiresAt: new Date(),
-      meta: {
-        channel: normalizedChannel,
-        method: normalizedChannel,
-        performedBy: data.performedByUserId,
-        amount: resolvedAmount,
-        notes: data.notes,
-        reference: data.reference,
-      },
-    });
-
-    this.logger.log(
-      `Invoice ${data.invoiceId} marked as paid manually by ${data.performedByUserId}`,
-    );
-
-    return { success: true };
+  markInvoicePaidManually(
+    data: Parameters<PaymentsCommandService['markInvoicePaidManually']>[0],
+  ) {
+    return this.commandService.markInvoicePaidManually(data);
   }
 
   handleRazorpayWebhook(payload: PaymentWebhookPayload, signature: string) {
-    this.logger.log('Received Razorpay webhook', {
-      event: payload?.event,
-      signaturePresent: typeof signature === 'string' && signature.length > 0,
-    });
-
-    return { status: 'ok' };
+    return this.commandService.handleRazorpayWebhook(payload, signature);
   }
 }

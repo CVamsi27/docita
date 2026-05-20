@@ -11,13 +11,46 @@ import {
   type WorkspaceProfile,
   shouldDenyAccessForWorkspaceProfile,
 } from "@workspace/types";
+import { getTierName, hasFeatureAccess } from "@workspace/utils";
 import { hasPermission, type Permission } from "@/lib/auth/permissions";
 
 interface AccessContext {
   role?: UserRole | null;
   canAccessFeature?: (feature: Feature) => boolean;
-  canAccessTier?: (tier: Tier) => boolean;
+  currentTier?: Tier;
+  hasIntelligence?: boolean;
   workspaceProfile?: WorkspaceProfile | null;
+}
+
+const TIER_SENTINEL_FEATURES: Partial<Record<Tier, Feature>> = {
+  [Tier.STARTER]: Feature.BASIC_PATIENT_MANAGEMENT,
+  [Tier.ESSENTIAL]: Feature.INVOICING,
+  [Tier.PROFESSIONAL]: Feature.WHATSAPP_OWN_NUMBER,
+  [Tier.HOSPITAL]: Feature.WHATSAPP_MANAGED_NUMBER,
+};
+
+function hasRequiredTier(
+  requiredTier: Tier,
+  context: AccessContext,
+): boolean {
+  if (requiredTier === Tier.INTELLIGENCE) {
+    return context.hasIntelligence === true;
+  }
+
+  if (context.currentTier === undefined) {
+    return false;
+  }
+
+  const sentinelFeature = TIER_SENTINEL_FEATURES[requiredTier];
+  if (sentinelFeature) {
+    return hasFeatureAccess(
+      getTierName(context.currentTier),
+      sentinelFeature,
+      context.hasIntelligence === true,
+    );
+  }
+
+  return false;
 }
 
 export function canAccessTarget(
@@ -68,7 +101,7 @@ export function canAccessTarget(
 
   const requiredTier = getAccessTier(target);
   if (requiredTier !== undefined) {
-    if (!context.canAccessTier || !context.canAccessTier(requiredTier)) {
+    if (!hasRequiredTier(requiredTier, context)) {
       return false;
     }
   }

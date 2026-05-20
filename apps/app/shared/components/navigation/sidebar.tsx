@@ -19,6 +19,9 @@ import { SidebarServicesSection } from "./sidebar/sidebar-services-section";
 import { SidebarFooter } from "./sidebar/sidebar-footer";
 import { useSidebarSections } from "./sidebar/use-sidebar-sections";
 import { useState } from "react";
+import { Feature } from "@workspace/types";
+import { useClinic } from "@/lib/contexts/clinic-context";
+import { useTierFeatureEnabled } from "@/lib/access-control/use-tier-feature-enabled";
 
 // ─── Scroll-shadow hook ───────────────────────────────────────────────────────
 
@@ -89,6 +92,13 @@ function SidebarContent({
   const collapsedRail = isCollapsed && !isMobile;
   const showLabels = !isCollapsed || isMobile;
 
+  const { clinic } = useClinic();
+  const hasWhiteLabel = useTierFeatureEnabled(Feature.WHITE_LABEL_BRANDING);
+  const brandName =
+    hasWhiteLabel && clinic?.enterpriseBranding?.brandName
+      ? clinic.enterpriseBranding.brandName
+      : null;
+
   return (
     <>
       {/* Header */}
@@ -100,7 +110,13 @@ function SidebarContent({
             onClick={onExpand}
             aria-label="Expand sidebar"
           >
-            <DocitaIcon />
+            {brandName ? (
+              <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-primary text-[10px] font-bold text-primary-foreground uppercase">
+                {brandName.slice(0, 2)}
+              </span>
+            ) : (
+              <DocitaIcon />
+            )}
           </button>
         </SymbolTooltip>
       ) : (
@@ -109,7 +125,13 @@ function SidebarContent({
             href="/today"
             className="flex h-9 items-center gap-2 rounded-lg px-1 transition-colors hover:opacity-80"
           >
-            <DocitaLogo />
+            {brandName ? (
+              <span className="truncate text-base font-semibold tracking-tight text-foreground max-w-[11rem]">
+                {brandName}
+              </span>
+            ) : (
+              <DocitaLogo />
+            )}
           </Link>
           {isMobile && (
             <SymbolTooltip label="Close sidebar" side="bottom">

@@ -1,46 +1,32 @@
 import { client } from "@/lib/api/api-client";
+import {
+  loadInternalClinicUsers,
+  loadInternalUsersForSelection,
+  normalizeClinicsList,
+  type InternalDashboardClinic,
+} from "@workspace/data-access/internal";
 import type { Clinic, User } from "./types";
 
+const fetcher = <T,>(endpoint: string) => client.get<T>(endpoint);
+
 export async function fetchClinics(): Promise<Clinic[]> {
-  const data = await client.get<Clinic[] | { items?: Clinic[] }>(
-    "/internal/clinics",
-  );
-  return Array.isArray(data) ? data : (data.items ?? []);
+  const data = await client.get<
+    InternalDashboardClinic[] | { items?: InternalDashboardClinic[] }
+  >("/internal/clinics");
+  return normalizeClinicsList(data) as Clinic[];
 }
 
 export async function fetchClinicUsers(clinicId: string): Promise<User[]> {
-  const [doctorsResponse, adminsResponse] = await Promise.all([
-    client.get<User[] | null>(`/internal/clinics/${clinicId}/doctors`),
-    client.get<User[] | null>(`/internal/clinics/${clinicId}/admins`),
-  ]);
-
-  const doctors = Array.isArray(doctorsResponse) ? doctorsResponse : [];
-  const admins = Array.isArray(adminsResponse) ? adminsResponse : [];
-  const merged = [...doctors, ...admins];
-  const uniqueUsers = new Map<string, User>();
-
-  for (const user of merged) {
-    uniqueUsers.set(user.id, user);
-  }
-
-  return Array.from(uniqueUsers.values());
+  return loadInternalClinicUsers(fetcher, clinicId) as Promise<User[]>;
 }
 
 export async function fetchUsersForSelection(
   selectedClinic: string,
   clinics: Clinic[],
 ): Promise<User[]> {
-  if (selectedClinic === "all") {
-    if (clinics.length === 0) {
-      return [];
-    }
-
-    const allUsers = await Promise.all(
-      clinics.map((clinic) => fetchClinicUsers(clinic.id)),
-    );
-
-    return allUsers.flat();
-  }
-
-  return fetchClinicUsers(selectedClinic);
+  return loadInternalUsersForSelection(
+    fetcher,
+    selectedClinic,
+    clinics,
+  ) as Promise<User[]>;
 }

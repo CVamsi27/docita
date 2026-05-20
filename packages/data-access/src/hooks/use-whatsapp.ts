@@ -5,6 +5,7 @@ import type {
   WhatsAppUnreadCountResponse,
 } from "@workspace/types";
 import { Feature } from "@workspace/types";
+import { queryKeys } from "../lib/query-keys";
 import { useAPIMutation } from "../core/use-api-mutation";
 import { useAPIQuery } from "../core/use-api-query";
 import { useDataAccessContext } from "../provider/hooks";
@@ -27,7 +28,7 @@ export const useSendInvoiceWhatsApp = () =>
 export const useWhatsappUnreadNotificationCount = () => {
   const whatsappOk = useDataAccessContext().isTierFeatureEnabled(Feature.WHATSAPP_MESSAGING);
   return useAPIQuery<NotificationUnreadCountResponse>(
-    ["whatsapp", "notifications", "unread-count"],
+    queryKeys.whatsapp.notifications.unreadCount(),
     "/whatsapp/notifications/unread-count",
     {
       enabled: whatsappOk,
@@ -39,7 +40,7 @@ export const useWhatsappUnreadNotificationCount = () => {
 export const useUnreadNotifications = (limit: number = 50) => {
   const whatsappOk = useDataAccessContext().isTierFeatureEnabled(Feature.WHATSAPP_MESSAGING);
   return useAPIQuery<StaffNotificationEntry[]>(
-    ["whatsapp", "notifications", "unread", limit],
+    queryKeys.whatsapp.notifications.unread(limit),
     `/whatsapp/notifications/unread?limit=${limit}`,
     { enabled: whatsappOk },
   );
@@ -51,8 +52,8 @@ export const useWhatsappDeleteNotification = () =>
     "DELETE",
     {
       invalidateKeys: [
-        ["whatsapp", "notifications", "unread-count"],
-        ["whatsapp", "notifications", "unread"],
+        queryKeys.whatsapp.notifications.unreadCount(),
+        queryKeys.whatsapp.notifications.unreadPrefix(),
       ],
     },
   );
@@ -60,8 +61,8 @@ export const useWhatsappDeleteNotification = () =>
 export const useWhatsappDeleteAllNotifications = () =>
   useAPIMutation<void, void>("/whatsapp/notifications", "DELETE", {
     invalidateKeys: [
-      ["whatsapp", "notifications", "unread-count"],
-      ["whatsapp", "notifications", "unread"],
+      queryKeys.whatsapp.notifications.unreadCount(),
+      queryKeys.whatsapp.notifications.unreadPrefix(),
     ],
   });
 
@@ -89,7 +90,7 @@ export const useResendAppointmentReminder = () =>
 
 export const useWhatsappSender = () =>
   useAPIQuery<WhatsappSenderConfigResponse>(
-    ["whatsapp", "sender"],
+    queryKeys.whatsapp.sender(),
     "/whatsapp/sender",
   );
 
@@ -97,7 +98,7 @@ export const useUpdateWhatsappSender = () =>
   useAPIMutation<WhatsappSenderConfigResponse, UpdateWhatsappSenderRequest>(
     "/whatsapp/sender",
     "PUT",
-    { invalidateKeys: [["whatsapp", "sender"]] },
+    { invalidateKeys: [queryKeys.whatsapp.sender()] },
   );
 
 export const useVerifyWhatsappSender = () =>
@@ -112,7 +113,7 @@ export const useVerifyWhatsappSender = () =>
     void
   >("/whatsapp/sender/verify", "POST", {
     body: () => undefined,
-    invalidateKeys: [["whatsapp", "sender"]],
+    invalidateKeys: [queryKeys.whatsapp.sender()],
   });
 
 export const useRevokeWhatsappSender = () =>
@@ -121,6 +122,6 @@ export const useRevokeWhatsappSender = () =>
     "DELETE",
     {
       body: () => undefined,
-      invalidateKeys: [["whatsapp", "sender"]],
+      invalidateKeys: [queryKeys.whatsapp.sender()],
     },
   );

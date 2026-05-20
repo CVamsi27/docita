@@ -94,16 +94,16 @@ export class SubscriptionPayment {
     return this.status === PaymentStatusEnum.REFUNDED;
   }
 
-  markAsPaid(paidAt: Date = new Date()): void {
+  markAsPaid(paidAt: Date, now: Date): void {
     if (!this.isPending()) {
       throw new Error(`Cannot mark ${this.status} payment as paid`);
     }
     this.status = PaymentStatusEnum.PAID;
     this.paidAt = paidAt;
-    this.updatedAt = new Date();
+    this.updatedAt = now;
   }
 
-  markAsFailed(reason: string): void {
+  markAsFailed(reason: string, now: Date): void {
     if (this.isPaid() || this.isRefunded()) {
       throw new Error(
         `Cannot mark completed payment (${this.status}) as failed`,
@@ -111,15 +111,15 @@ export class SubscriptionPayment {
     }
     this.status = PaymentStatusEnum.FAILED;
     this.failureReason = reason;
-    this.updatedAt = new Date();
+    this.updatedAt = now;
   }
 
-  refund(): void {
+  refund(now: Date): void {
     if (!this.isPaid()) {
       throw new Error('Can only refund paid payments');
     }
     this.status = PaymentStatusEnum.REFUNDED;
-    this.updatedAt = new Date();
+    this.updatedAt = now;
   }
 
   getNetAmount(): number {

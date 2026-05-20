@@ -10,8 +10,9 @@ import {
 import { ClaimValidationService } from '@/domains/billing/core/services/claim-validation.service';
 import { TaxCalculatorService } from '@/domains/billing/core/services/tax-calculator.service';
 import { UsageTrackingService } from '@/domains/billing/core/services/usage-tracking.service';
-import { StorageProvider } from '@/domains/documents/infrastructure/storage.provider';
+import { StorageProvider } from '@/domains/documents/application/ports/storage-provider.port';
 import { EventEmitter2 } from '@nestjs/event-emitter';
+import { ApplicationEvents } from '@/shared/common/events/application-events';
 import {
   toInvoiceCentCreateFields,
   toInvoiceCentUpdateFields,
@@ -32,6 +33,10 @@ import {
   DEFAULT_INVOICE_DUE_DAYS,
   CURRENT_PDF_TEMPLATE_VERSION,
 } from './invoices-helpers';
+import {
+  CLOCK_PORT,
+  type IClock,
+} from '@/shared/common/ports/clock.port';
 
 @Injectable()
 export class InvoicesCommandService {
@@ -44,6 +49,7 @@ export class InvoicesCommandService {
     private readonly storageProvider: StorageProvider,
     private readonly claimValidationService: ClaimValidationService,
     private readonly queryService: InvoicesQueryService,
+    @Inject(CLOCK_PORT) private readonly clock: IClock,
   ) {}
 
   private requiresClaimReadinessValidation(
@@ -126,7 +132,7 @@ export class InvoicesCommandService {
     doctorLicenseNumber?: string;
     clinicId?: string;
   }): Promise<InvoiceDetail> {
-    const issuedAt = new Date();
+    const issuedAt = this.clock.now();
     const { patient, taxSettings, seller, buyer, calculation } =
       await this.calculateTaxForPatientInvoice(
         data.patientId,
@@ -184,7 +190,7 @@ export class InvoicesCommandService {
       doctorLicenseNumber: data.doctorLicenseNumber,
     });
 
-    this.eventEmitter.emit('invoice.generated', {
+    this.eventEmitter.emit(ApplicationEvents.INVOICE_GENERATED, {
       invoiceId: invoice.id,
       clinicId: patient.clinic.id,
     });
@@ -293,7 +299,7 @@ export class InvoicesCommandService {
     return {
       invoiceId: invoice.id,
       claimReady: true,
-      submittedAt: new Date().toISOString(),
+      submittedAt: this.clock.now().toISOString(),
       status: invoice.status,
     };
   }
@@ -305,7 +311,7 @@ export class InvoicesCommandService {
     invoice: InvoiceDetail,
   ): Promise<{ storedKey: string; generatedAt: Date }> {
     const objectKey = `pdfs/invoices/${id}.pdf`;
-    const generatedAt = new Date();
+    const generatedAt = this.clock.now();
     const storedKey = await this.storageProvider.uploadBuffer(
       buffer,
       objectKey,

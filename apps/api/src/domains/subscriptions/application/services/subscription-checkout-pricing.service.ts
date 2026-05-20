@@ -1,4 +1,8 @@
-import { Injectable } from '@nestjs/common';
+import { Inject, Injectable } from '@nestjs/common';
+import {
+  CLOCK_PORT,
+  type IClock,
+} from '@/shared/common/ports/clock.port';
 import { Subscription } from '@/domains/subscriptions/core/entities/subscription.entity';
 import { SubscriptionPricingService } from '@/domains/subscriptions/core/services/subscription-pricing.service';
 import { ProratingService } from '@/domains/subscriptions/core/services/proration.service';
@@ -46,6 +50,7 @@ export class SubscriptionCheckoutPricingService {
   constructor(
     private readonly pricingService: SubscriptionPricingService,
     private readonly proratingService: ProratingService,
+    @Inject(CLOCK_PORT) private readonly clock: IClock,
   ) {}
 
   compute(
@@ -84,7 +89,7 @@ export class SubscriptionCheckoutPricingService {
       currentCycleObj,
       offerPercent,
     );
-    const daysRemaining = subscription.getDaysRemaining();
+    const daysRemaining = subscription.getDaysRemaining(this.clock.now());
     const currentCycleDays = currentCycleObj.getDays();
     const accountCredits = subscription.getCredits().paise;
 

@@ -1,5 +1,8 @@
-import { Injectable, Logger } from '@nestjs/common';
-import { PrismaService } from '@/prisma/prisma.service';
+import { Injectable, Logger, Inject } from '@nestjs/common';
+import {
+  WHATSAPP_PERSISTENCE_PORT,
+  type WhatsappPersistencePort,
+} from '@/domains/whatsapp/application/ports/whatsapp-persistence.port';
 import { EncryptionService } from '@/shared/common/encryption.service';
 import { AppConfigService } from '@/shared/modules/config/app-configuration.service';
 import { ResolvedWhatsappSender } from '@/domains/whatsapp/application/ports/whatsapp-client.port';
@@ -11,7 +14,8 @@ export class WhatsappSenderResolver {
   private readonly logger = new Logger(WhatsappSenderResolver.name);
 
   constructor(
-    private readonly prisma: PrismaService,
+    @Inject(WHATSAPP_PERSISTENCE_PORT)
+    private readonly persistence: WhatsappPersistencePort,
     private readonly encryptionService: EncryptionService,
     private readonly configService: AppConfigService,
   ) {}
@@ -32,7 +36,7 @@ export class WhatsappSenderResolver {
     // AuditLogged: whatsapp sender resolution
     this.logger.log({ action: 'whatsapp.resolve-sender', clinicId });
 
-    const clinic = await this.prisma.clinic.findUnique({
+    const clinic = await this.persistence.clinic.findUnique({
       where: { id: clinicId },
       select: {
         whatsappSenderMode: true,
@@ -56,7 +60,7 @@ export class WhatsappSenderResolver {
       return { ...this.resolveShared(), fallbackActive: true };
     }
 
-    const secret = await this.prisma.clinicSecret.findUnique({
+    const secret = await this.persistence.clinicSecret.findUnique({
       where: {
         clinicId_kind: {
           clinicId,

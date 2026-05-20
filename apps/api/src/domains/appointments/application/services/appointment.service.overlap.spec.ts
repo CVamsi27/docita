@@ -6,12 +6,16 @@ import {
   type CreateAppointmentCommand,
 } from '@/domains/appointments/application/use-cases/create-appointment.use-case';
 import { IAppointmentRepository } from '@/domains/appointments/core/repositories/appointment.repository.interface';
-import { PrismaService } from '@/prisma/prisma.service';
+import {
+  APPOINTMENT_PERSISTENCE_PORT,
+  type AppointmentPersistencePort,
+} from '@/domains/appointments/application/ports/appointment-persistence.port';
 import { Appointment } from '@/domains/appointments/core/entities/appointment.entity';
 import { AppointmentStatus } from '@/domains/appointments/core/value-objects/appointment-status.value-object';
 import { AppointmentSchedulingRulesService } from '@/domains/appointments/core/domain-services/appointment-scheduling-rules.service';
 import { AppointmentMetricsService } from './appointment-metrics.service';
 import { AppointmentDiagnosisService } from './appointment-diagnosis.service';
+import { createStubAppointmentWriteUseCases } from './appointment-use-case.stubs';
 
 describe('AppointmentService overlap enforcement', () => {
   const mockRepository = {
@@ -35,13 +39,9 @@ describe('AppointmentService overlap enforcement', () => {
     applyPatch: jest.fn<IAppointmentRepository['applyPatch']>(),
   } satisfies IAppointmentRepository;
 
-  const mockCreateAppointmentUseCase = Object.create(
-    CreateAppointmentUseCase.prototype,
-  ) as CreateAppointmentUseCase;
-  const executeMock = jest.fn<CreateAppointmentUseCase['execute']>();
-  mockCreateAppointmentUseCase.execute = executeMock;
-
-  const mockPrisma = Object.create(PrismaService.prototype) as PrismaService;
+  const mockPrisma = Object.create(
+    Object.prototype,
+  ) as AppointmentPersistencePort;
 
   const mockEventEmitter = Object.create(
     EventEmitter2.prototype,
@@ -57,6 +57,14 @@ describe('AppointmentService overlap enforcement', () => {
     validateAppointmentOverlap: validateOverlapMock,
   } as unknown as AppointmentSchedulingRulesService;
 
+  const clock = { now: () => new Date('2026-05-19T12:00:00.000Z') };
+
+  const createAppointmentUseCase = new CreateAppointmentUseCase(
+    mockRepository,
+    schedulingRules,
+    clock,
+  );
+
   const command: CreateAppointmentCommand = {
     clinicId: 'clinic-1',
     patientId: 'patient-1',
@@ -69,12 +77,18 @@ describe('AppointmentService overlap enforcement', () => {
 
   beforeEach(() => {
     jest.clearAllMocks();
+    const writeUseCaseStubs = createStubAppointmentWriteUseCases();
+
     service = new AppointmentService(
       mockRepository,
-      mockCreateAppointmentUseCase,
+      mockRepository,
+      createAppointmentUseCase,
+      writeUseCaseStubs.cancelAppointmentUseCase,
+      writeUseCaseStubs.rescheduleAppointmentUseCase,
+      writeUseCaseStubs.startConsultationUseCase,
+      writeUseCaseStubs.updateAppointmentDetailsUseCase,
       mockPrisma,
       mockEventEmitter,
-      schedulingRules,
       Object.create(
         AppointmentMetricsService.prototype,
       ) as AppointmentMetricsService,
@@ -97,7 +111,7 @@ describe('AppointmentService overlap enforcement', () => {
     await expect(service.createAppointment(command)).rejects.toThrow(
       'Bad Request Exception',
     );
-    expect(executeMock).not.toHaveBeenCalled();
+    expect(mockRepository.save).not.toHaveBeenCalled();
     expect(validateOverlapMock).toHaveBeenCalledWith(
       command.doctorId,
       command.clinicId,
@@ -109,25 +123,12 @@ describe('AppointmentService overlap enforcement', () => {
   it('persists when no overlap is reported', async () => {
     validateOverlapMock.mockResolvedValueOnce({ hasConflict: false });
 
-    const created = new Appointment({
-      id: 'appt-new',
-      clinicId: command.clinicId,
-      patientId: command.patientId,
-      doctorId: command.doctorId,
-      startTime: command.startTime,
-      endTime: command.endTime,
-      status: AppointmentStatus.scheduled(),
-      type: 'consultation',
-      createdAt: new Date(),
-      updatedAt: new Date(),
-      version: 1,
-    });
-
-    executeMock.mockResolvedValueOnce(created);
+    mockRepository.save.mockResolvedValueOnce(undefined);
 
     const result = await service.createAppointment(command);
 
-    expect(result).toBe(created);
-    expect(executeMock).toHaveBeenCalledTimes(1);
+    expect(result.clinicId).toBe(command.clinicId);
+    expect(result.doctorId).toBe(command.doctorId);
+    expect(mockRepository.save).toHaveBeenCalledTimes(1);
   });
 });

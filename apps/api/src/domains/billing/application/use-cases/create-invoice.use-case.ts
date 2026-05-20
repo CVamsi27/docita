@@ -1,4 +1,8 @@
-import { Injectable, BadRequestException, Logger } from '@nestjs/common';
+import { Inject, Injectable, BadRequestException, Logger } from '@nestjs/common';
+import {
+  CLOCK_PORT,
+  type IClock,
+} from '@/shared/common/ports/clock.port';
 import { Invoice, InvoiceItem } from '@/domains/billing/core/entities';
 import {
   Money,
@@ -26,6 +30,7 @@ export class CreateInvoiceUseCase {
     private invoiceRepository: IInvoiceRepository,
     private billingCalculator: BillingCalculatorService,
     private invoiceValidator: InvoiceValidatorService,
+    @Inject(CLOCK_PORT) private readonly clock: IClock,
   ) {}
 
   async execute(dto: CreateInvoiceDto): Promise<{ invoiceId: string }> {
@@ -74,8 +79,8 @@ export class CreateInvoiceUseCase {
       status,
       billingPeriod,
       items,
-      createdAt: new Date(),
-      updatedAt: new Date(),
+      createdAt: this.clock.now(),
+      updatedAt: this.clock.now(),
       notes: dto.notes,
     });
 

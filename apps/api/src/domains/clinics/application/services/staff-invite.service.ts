@@ -1,5 +1,8 @@
-import { BadRequestException, Injectable } from '@nestjs/common';
-import { PrismaService } from '@/prisma/prisma.service';
+import { BadRequestException, Injectable, Inject } from '@nestjs/common';
+import {
+  CLINIC_PERSISTENCE_PORT,
+  type ClinicPersistencePort,
+} from '@/domains/clinics/application/ports/clinic-persistence.port';
 import * as bcrypt from 'bcrypt';
 import { Role, Specialization } from '@workspace/db';
 import {
@@ -13,10 +16,13 @@ import {
 // AuditLogged: all staff creation methods (doctor, receptionist, member) are sensitive writes
 @Injectable()
 export class StaffInviteService {
-  constructor(private prisma: PrismaService) {}
+  constructor(
+    @Inject(CLINIC_PERSISTENCE_PORT)
+    private persistence: ClinicPersistencePort,
+  ) {}
 
   async createDoctor(clinicId: string, data: CreateDoctorData) {
-    const isFrontDesk = await isClinicFrontDesk(this.prisma, clinicId);
+    const isFrontDesk = await isClinicFrontDesk(this.persistence, clinicId);
 
     const hashedPassword = await bcrypt.hash(data.password, 10);
 
@@ -33,7 +39,7 @@ export class StaffInviteService {
       ...(isFrontDesk ? { appLoginDisabled: true } : {}),
     };
 
-    const user = await this.prisma.user.create({
+    const user = await this.persistence.user.create({
       data: userData,
       select: {
         id: true,
@@ -48,7 +54,7 @@ export class StaffInviteService {
       },
     });
 
-    await this.prisma.doctorClinic.create({
+    await this.persistence.doctorClinic.create({
       data: {
         doctorId: user.id,
         clinicId,
@@ -59,14 +65,14 @@ export class StaffInviteService {
   }
 
   async createReceptionist(clinicId: string, data: CreateReceptionistData) {
-    const isFrontDesk = await isClinicFrontDesk(this.prisma, clinicId);
+    const isFrontDesk = await isClinicFrontDesk(this.persistence, clinicId);
     if (isFrontDesk && data.role === 'NURSE') {
       throw new BadRequestException(
         'This role is not available for the front desk workspace.',
       );
     }
     const hashedPassword = await bcrypt.hash(data.password, 10);
-    const user = await this.prisma.user.create({
+    const user = await this.persistence.user.create({
       data: {
         name: data.name,
         email: data.email,
@@ -89,7 +95,7 @@ export class StaffInviteService {
   }
 
   async createMember(clinicId: string, data: CreateClinicMemberData) {
-    const isFrontDesk = await isClinicFrontDesk(this.prisma, clinicId);
+    const isFrontDesk = await isClinicFrontDesk(this.persistence, clinicId);
     if (isFrontDesk) {
       if (data.role === 'NURSE' || data.role === 'ADMIN_DOCTOR') {
         throw new BadRequestException(
@@ -103,7 +109,7 @@ export class StaffInviteService {
     const needsDoctorClinic =
       data.role === 'DOCTOR' || data.role === 'ADMIN_DOCTOR';
 
-    const user = await this.prisma.user.create({
+    const user = await this.persistence.user.create({
       data: {
         name: data.name,
         email: data.email,
@@ -136,7 +142,7 @@ export class StaffInviteService {
     });
 
     if (needsDoctorClinic) {
-      await this.prisma.doctorClinic.create({
+      await this.persistence.doctorClinic.create({
         data: {
           doctorId: user.id,
           clinicId,

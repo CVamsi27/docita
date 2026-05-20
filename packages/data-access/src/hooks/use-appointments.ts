@@ -159,11 +159,11 @@ export const useCreateAppointment = () => {
     {
       invalidateKeys: [
         queryKeys.appointments.all(),
-        ["doctor-availability-slots"],
+        queryKeys.doctorAvailabilitySlots.all(),
       ],
       onSuccess: async () => {
         await queryClient.refetchQueries({
-          queryKey: ["doctor-availability-slots"],
+          queryKey: queryKeys.doctorAvailabilitySlots.all(),
           type: "all",
         });
       },
@@ -180,7 +180,7 @@ export const useUpdateAppointment = (id: string) =>
       invalidateKeys: [
         queryKeys.appointments.all(),
         queryKeys.appointments.detail(id),
-        ["doctor-availability-slots"],
+        queryKeys.doctorAvailabilitySlots.all(),
       ],
       suppressGlobalErrorToast: true,
     },
@@ -205,7 +205,7 @@ export const useCancelAppointment = (id: string) =>
       invalidateKeys: [
         queryKeys.appointments.all(),
         queryKeys.appointments.detail(id),
-        ["doctor-availability-slots"],
+        queryKeys.doctorAvailabilitySlots.all(),
       ],
     },
   );
@@ -244,7 +244,7 @@ export const useSyncDiagnoses = (appointmentId: string) =>
     {
       invalidateKeys: [
         queryKeys.appointments.detail(appointmentId),
-        ["coding-queue"],
+        queryKeys.codingQueue.list(),
       ],
     },
   );
@@ -291,7 +291,7 @@ export const useFollowUps = (options?: ListFollowUpsQuery | null) => {
   const calendarOk = useDataAccessContext().isTierFeatureEnabled(Feature.CALENDAR_SLOTS);
   const normalizedOptions = normalizeAppointmentQueryOptions(options);
   return useAPIQuery<FollowUpResponse[]>(
-    ["follow-ups", normalizedOptions ?? {}],
+    queryKeys.followUps.list(normalizedOptions ?? {}),
     withQueryString("/follow-ups", normalizedOptions),
     {
       enabled: calendarOk && options !== null,
@@ -306,7 +306,7 @@ export const useCompleteFollowUp = () =>
     "PATCH",
     {
       body: () => undefined,
-      invalidateKeys: [["follow-ups"]],
+      invalidateKeys: [queryKeys.followUps.all()],
     },
   );
 
@@ -316,7 +316,7 @@ export const useCancelFollowUp = () =>
     "PATCH",
     {
       body: () => undefined,
-      invalidateKeys: [["follow-ups"]],
+      invalidateKeys: [queryKeys.followUps.all()],
     },
   );
 
@@ -326,7 +326,7 @@ export const useBookFollowUp = () =>
     "PATCH",
     {
       body: ({ id: _id, ...body }) => body,
-      invalidateKeys: [["follow-ups"], queryKeys.appointments.all()],
+      invalidateKeys: [queryKeys.followUps.all(), queryKeys.appointments.all()],
     },
   );
 
@@ -336,7 +336,7 @@ export const useAppointmentRequests = (
   const calendarOk = useDataAccessContext().isTierFeatureEnabled(Feature.CALENDAR_SLOTS);
   const normalizedOptions = normalizeAppointmentQueryOptions(options);
   return useAPIQuery<AppointmentRequestListResponse>(
-    ["appointment-requests", normalizedOptions ?? {}],
+    queryKeys.appointmentRequests.list(normalizedOptions ?? {}),
     withQueryString("/appointment-requests", normalizedOptions),
     {
       enabled: calendarOk && options !== null,
@@ -352,10 +352,10 @@ export const useApproveAppointmentRequest = () =>
   >(({ id }) => `/appointment-requests/${id}/approve`, "PATCH", {
     body: ({ id: _id, ...body }) => body,
     invalidateKeys: [
-      ["appointment-requests"],
+      queryKeys.appointmentRequests.all(),
       queryKeys.appointments.all(),
-      ["patient-portal", "appointments"],
-      ["doctor-availability-slots"],
+      queryKeys.patientPortal.appointments.all(),
+      queryKeys.doctorAvailabilitySlots.all(),
     ],
     suppressGlobalErrorToast: true,
   });
@@ -366,7 +366,7 @@ export const useRejectAppointmentRequest = () =>
     RejectAppointmentRequest & { id: string }
   >(({ id }) => `/appointment-requests/${id}/reject`, "PATCH", {
     body: ({ id: _id, ...body }) => body,
-    invalidateKeys: [["appointment-requests"]],
+    invalidateKeys: [queryKeys.appointmentRequests.all()],
     suppressGlobalErrorToast: true,
   });
 

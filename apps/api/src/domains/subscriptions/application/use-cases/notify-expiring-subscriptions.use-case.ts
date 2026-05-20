@@ -4,9 +4,13 @@ import {
   SUBSCRIPTION_REPOSITORY_TOKEN,
   ISubscriptionRepository,
 } from '@/domains/subscriptions/application/ports';
-import { PrismaService } from '@/prisma/prisma.service';
 import { EmailService } from '@/shared/modules/messaging/email/email.service';
 import { DATE_FORMATS, formatDate } from '@workspace/utils';
+import {
+  CLOCK_PORT,
+  type IClock,
+} from '@/shared/common/ports/clock.port';
+import { getUtcDayBounds } from '@/shared/schedule/scheduler-date.util';
 
 export interface NotifyExpiringSubscriptionsRequest {
   targetDate: Date;
@@ -27,9 +31,9 @@ export class NotifyExpiringSubscriptionsUseCase {
 
   constructor(
     @Inject(SUBSCRIPTION_REPOSITORY_TOKEN)
-    private readonly _subscriptionRepo: ISubscriptionRepository,
-    private readonly prisma: PrismaService,
+    private readonly subscriptionRepo: ISubscriptionRepository,
     private readonly emailService: EmailService,
+    @Inject(CLOCK_PORT) private readonly clock: IClock,
   ) {}
 
   private parseDays(reminderType: string): number | null {
@@ -43,7 +47,7 @@ export class NotifyExpiringSubscriptionsUseCase {
     reminderType: string,
     clinicName: string,
     end: Date,
-    subscriptionStatus: SubscriptionStatus,
+    subscriptionStatus: string,
   ) {
     const days = this.parseDays(reminderType);
     const endDate = formatDate(end, DATE_FORMATS.DATE_WEEKDAY_SHORT_MEDIUM);
@@ -81,27 +85,13 @@ export class NotifyExpiringSubscriptionsUseCase {
     request: NotifyExpiringSubscriptionsRequest,
   ): Promise<NotifyExpiringSubscriptionsResult> {
     const { targetDate, reminderType } = request;
-    const startOfDay = new Date(targetDate);
-    startOfDay.setHours(0, 0, 0, 0);
-    const endOfDay = new Date(targetDate);
-    endOfDay.setHours(23, 59, 59, 999);
+    const { startOfDay, endOfDay } = getUtcDayBounds(targetDate);
 
-    const subscriptions = await this.prisma.subscription.findMany({
-      where: {
-        currentPeriodEnd: { gte: startOfDay, lte: endOfDay },
-        status: { in: ['ACTIVE', 'TRIALING'] },
-      },
-      include: {
-        clinic: {
-          include: {
-            users: {
-              where: { role: { in: ['ADMIN', 'ADMIN_DOCTOR'] } },
-              select: { email: true, name: true },
-            },
-          },
-        },
-      },
-    });
+    const subscriptions =
+      await this.subscriptionRepo.findExpiryReminderCandidates({
+        startOfDay,
+        endOfDay,
+      });
 
     if (subscriptions.length === 0) {
       return {
@@ -113,25 +103,21 @@ export class NotifyExpiringSubscriptionsUseCase {
       };
     }
 
-    const reminderCutoff = new Date();
+    const reminderCutoff = this.clock.now();
     reminderCutoff.setDate(reminderCutoff.getDate() - 1);
 
     const clinicIds = Array.from(
       new Set(subscriptions.map((sub) => sub.clinicId)),
     );
-    const existingReminders = await this.prisma.subscriptionReminder.findMany({
-      where: {
-        clinicId: { in: clinicIds },
-        type: reminderType,
-        sentAt: { gte: reminderCutoff },
-      },
-      select: { clinicId: true },
-    });
+    const existingReminderClinicIds =
+      await this.subscriptionRepo.findRecentReminderClinicIds({
+        clinicIds,
+        reminderType,
+        reminderCutoff,
+      });
 
-    const processedClinicIds = new Set(
-      existingReminders.map((reminder) => reminder.clinicId),
-    );
-    const sentAt = new Date();
+    const processedClinicIds = new Set(existingReminderClinicIds);
+    const sentAt = this.clock.now();
     const remindersToCreate: Array<{
       clinicId: string;
       subscriptionId: string;
@@ -238,9 +224,7 @@ export class NotifyExpiringSubscriptionsUseCase {
       };
     }
 
-    await this.prisma.subscriptionReminder.createMany({
-      data: remindersToCreate,
-    });
+    await this.subscriptionRepo.createSubscriptionReminders(remindersToCreate);
 
     return {
       reminderType,

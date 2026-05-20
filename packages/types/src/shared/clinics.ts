@@ -8,6 +8,19 @@ export const ClinicTier = z.enum(["FREE", "CAPTURE", "GROWTH", "ENTERPRISE"]);
 
 export const IntelligenceAddonStatus = z.enum(["NONE", "ACTIVE"]);
 
+export const enterpriseBrandingSchema = z.object({
+  brandName: z.string().max(80).optional(),
+  lockedTheme: z
+    .object({
+      primaryColor: z.string().optional(),
+      mode: z.enum(["light", "dark", "system"]).optional(),
+      compactMode: z.boolean().optional(),
+      enforced: z.boolean().optional(),
+    })
+    .optional(),
+});
+export type EnterpriseBranding = z.infer<typeof enterpriseBrandingSchema>;
+
 export const whatsAppAutomationSchema = z.object({
   enabled: z.boolean().default(false),
   prescriptionSent: z.boolean().optional(),

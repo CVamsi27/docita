@@ -46,8 +46,8 @@ import { PerformanceModule } from './shared/modules/performance/performance.modu
 import { ComplianceModule } from './shared/modules/compliance/compliance.module';
 import { TenantContextInterceptor } from './shared/modules/interceptors/tenant-context.interceptor';
 import { CacheInterceptor } from './shared/common/interceptors/cache.interceptor';
-import { PatientDataAuditInterceptor } from './shared/modules/interceptors/patient-audit.interceptor';
-import { BreakTheGlassInterceptor } from './shared/modules/interceptors/emergency-access.interceptor';
+import { PatientDataAuditInterceptor } from './shared/common/interceptors/patient-audit.interceptor';
+import { BreakTheGlassInterceptor } from './shared/common/interceptors/emergency-access.interceptor';
 import { RequestIdInterceptor } from './shared/common/interceptors/request-id.interceptor';
 import { RequestContextInterceptor } from './shared/common/interceptors/request-context.interceptor';
 import { JwtAuthGuard } from './shared/modules/auth/auth/jwt-auth.guard';
@@ -58,9 +58,9 @@ import { PasswordExpiredGuard } from './shared/modules/auth/guards/password-expi
 import { EmailVerifiedGuard } from './shared/modules/auth/guards/email-verified.guard';
 import { UserRateLimitGuard } from './shared/modules/auth/guards/user-rate-limit.guard';
 import { E2EThrottlerGuard } from './shared/modules/auth/guards/e2e-throttler.guard';
-import { CsrfInterceptor } from './shared/modules/interceptors/csrf.interceptor';
+import { CsrfInterceptor } from './shared/common/interceptors/csrf.interceptor';
 import { RateLimitInterceptor } from './shared/common/interceptors/rate-limit.interceptor';
-import { TimeoutInterceptor } from './shared/modules/interceptors/timeout.interceptor';
+import { TimeoutInterceptor } from './shared/common/interceptors/timeout.interceptor';
 import { buildPinoOptions } from './shared/modules/observability/pino-options.factory';
 import { IdempotencyModule } from './shared/modules/idempotency';
 import {
@@ -187,6 +187,11 @@ import { PublicBookingModule } from './domains/public-booking/public-booking.mod
   ],
   controllers: [AppController],
   providers: [
+    // Global pipeline order (first registered runs first on inbound request):
+    // Guards: throttle → JWT → tenant → tenant rate limit → roles → subscription →
+    // password expiry → email verified → user rate limit.
+    // Interceptors: CSRF → request id → request context → tenant context → cache →
+    // rate limit → timeout → patient PHI write audit → break-the-glass.
     {
       provide: APP_GUARD,
       useClass: E2EThrottlerGuard,

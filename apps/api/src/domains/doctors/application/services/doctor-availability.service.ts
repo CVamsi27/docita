@@ -17,6 +17,9 @@ type ActorContext = {
   actorRole?: Role;
 };
 
+/**
+ * Facade — delegates availability schedules and slot generation to specialized services.
+ */
 @Injectable()
 export class DoctorAvailabilityService {
   constructor(

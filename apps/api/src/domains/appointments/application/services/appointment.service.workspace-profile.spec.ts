@@ -3,12 +3,17 @@ import { ForbiddenException } from '@nestjs/common';
 import { AppointmentService } from './appointment.service';
 import { CreateAppointmentUseCase } from '@/domains/appointments/application/use-cases/create-appointment.use-case';
 import { IAppointmentRepository } from '@/domains/appointments/core/repositories/appointment.repository.interface';
-import { PrismaService } from '@/prisma/prisma.service';
+import {
+  APPOINTMENT_PERSISTENCE_PORT,
+  type AppointmentPersistencePort,
+} from '@/domains/appointments/application/ports/appointment-persistence.port';
 import { EventEmitter2 } from '@nestjs/event-emitter';
 import { Role } from '@workspace/db';
 import { AppointmentSchedulingRulesService } from '@/domains/appointments/core/domain-services/appointment-scheduling-rules.service';
 import { AppointmentMetricsService } from './appointment-metrics.service';
 import { AppointmentDiagnosisService } from './appointment-diagnosis.service';
+import { StartConsultationUseCase } from '@/domains/appointments/application/use-cases/start-consultation.use-case';
+import { createStubAppointmentWriteUseCases } from './appointment-use-case.stubs';
 
 describe('AppointmentService workspace profile', () => {
   const mockRepository = {
@@ -46,7 +51,7 @@ describe('AppointmentService workspace profile', () => {
   const mockPrisma = {
     clinic: { findUnique: mockClinicFindUnique },
     appointment: { findFirst: mockAppointmentFindFirst },
-  } as unknown as PrismaService;
+  } as unknown as AppointmentPersistencePort;
 
   const mockEventEmitter = Object.create(
     EventEmitter2.prototype,
@@ -62,15 +67,26 @@ describe('AppointmentService workspace profile', () => {
   } as unknown as AppointmentSchedulingRulesService;
 
   let service: AppointmentService;
+  let startConsultationUseCase: StartConsultationUseCase;
 
   beforeEach(() => {
     jest.clearAllMocks();
+    const writeUseCaseStubs = createStubAppointmentWriteUseCases();
+    startConsultationUseCase = new StartConsultationUseCase(
+      mockRepository,
+      mockRepository,
+    );
+
     service = new AppointmentService(
       mockRepository,
+      mockRepository,
       mockCreateAppointmentUseCase,
+      writeUseCaseStubs.cancelAppointmentUseCase,
+      writeUseCaseStubs.rescheduleAppointmentUseCase,
+      startConsultationUseCase,
+      writeUseCaseStubs.updateAppointmentDetailsUseCase,
       mockPrisma,
       mockEventEmitter,
-      mockSchedulingRules,
       Object.create(
         AppointmentMetricsService.prototype,
       ) as AppointmentMetricsService,
@@ -81,9 +97,9 @@ describe('AppointmentService workspace profile', () => {
   });
 
   it('forbids startConsultation when clinic workspace is FRONT_DESK', async () => {
-    mockRepository.findClinicWorkspaceProfile.mockImplementation(async () => ({
+    mockRepository.findClinicWorkspaceProfile.mockResolvedValue({
       settings: { workspaceProfile: 'FRONT_DESK' },
-    }));
+    });
 
     await expect(
       service.startConsultation('apt-1', 'clinic-1', {
@@ -92,6 +108,6 @@ describe('AppointmentService workspace profile', () => {
       }),
     ).rejects.toBeInstanceOf(ForbiddenException);
 
-    expect(mockAppointmentFindFirst).not.toHaveBeenCalled();
+    expect(mockRepository.findForConsultationStart).not.toHaveBeenCalled();
   });
 });

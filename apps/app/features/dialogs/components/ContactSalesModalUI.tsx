@@ -1,7 +1,10 @@
 import { useEffect } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
-import * as z from "zod";
+import {
+  contactSalesFormSchema,
+  type ContactSalesFormValues,
+} from "@workspace/types";
 import {
   Dialog,
   DialogContent,
@@ -16,19 +19,6 @@ import { Alert, AlertDescription } from "@workspace/ui/components/feedback/alert
 import { AlertCircle, CheckCircle, Mail } from "lucide-react";
 import { Form, FormControl, FormField } from "@workspace/ui/components/form/form";
 import { FormFieldGroup } from "@workspace/ui/components";
-import {
-  emailSchema,
-  requiredStringSchema,
-} from "@/lib/validation/common.schemas";
-
-const contactSalesSchema = z.object({
-  name: requiredStringSchema("Name"),
-  email: emailSchema,
-  clinic: z.string().optional(),
-  message: requiredStringSchema("Message"),
-});
-
-type ContactSalesFormValues = z.infer<typeof contactSalesSchema>;
 
 export type ContactSalesFormData = ContactSalesFormValues;
 
@@ -52,7 +42,7 @@ export function ContactSalesModalUI({
   onSubmit,
 }: ContactSalesModalUIProps) {
   const form = useForm<ContactSalesFormValues>({
-    resolver: zodResolver(contactSalesSchema),
+    resolver: zodResolver(contactSalesFormSchema),
     defaultValues: {
       name: "",
       email: "",

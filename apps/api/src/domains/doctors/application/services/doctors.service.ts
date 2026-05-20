@@ -1,7 +1,10 @@
 import { Injectable, Inject } from '@nestjs/common';
 import { Specialization } from '@workspace/db';
-import { StorageFile } from '@/domains/documents/infrastructure/storage.provider';
-import { PrismaService } from '@/prisma/prisma.service';
+import { StorageFile } from '@/domains/documents/application/ports/storage-provider.port';
+import {
+  DOCTOR_PERSISTENCE_PORT,
+  type DoctorPersistencePort,
+} from '@/domains/doctors/application/ports/doctor-persistence.port';
 import {
   DOCTOR_REPOSITORY_TOKEN,
   IDoctorRepository,
@@ -9,11 +12,15 @@ import {
 import { DoctorVerificationService } from './doctor-verification.service';
 import { SignatureUploadService } from './signature-upload.service';
 import { StoredFileUrlResolverService } from '@/domains/documents/application/services/stored-file-url-resolver.service';
-import { StorageProvider } from '@/domains/documents/infrastructure/storage.provider';
+import { StorageProvider } from '@/domains/documents/application/ports/storage-provider.port';
 import { DoctorsQueryService } from './doctors-query.service';
 import { DoctorsCommandService } from './doctors-command.service';
 import { DoctorProfileService } from './doctor-profile.service';
 import { DoctorAdminVerificationCommandService } from './doctor-admin-verification-command.service';
+import {
+  CLOCK_PORT,
+  type IClock,
+} from '@/shared/common/ports/clock.port';
 
 /**
  * Facade — keeps the original constructor signature so existing consumers
@@ -26,7 +33,8 @@ export class DoctorsService {
   private readonly commandService: DoctorsCommandService;
 
   constructor(
-    prisma: PrismaService,
+    @Inject(DOCTOR_PERSISTENCE_PORT)
+    prisma: DoctorPersistencePort,
     doctorVerificationService: DoctorVerificationService,
     signatureUploadService: SignatureUploadService,
     storedFileUrlResolver: StoredFileUrlResolverService,
@@ -34,11 +42,13 @@ export class DoctorsService {
     profileService: DoctorProfileService,
     @Inject(DOCTOR_REPOSITORY_TOKEN)
     doctorRepository: IDoctorRepository,
+    @Inject(CLOCK_PORT) clock: IClock,
   ) {
     this.queryService = new DoctorsQueryService(prisma, storedFileUrlResolver);
     const adminVerificationService = new DoctorAdminVerificationCommandService(
       prisma,
       this.queryService,
+      clock,
     );
     this.commandService = new DoctorsCommandService(
       doctorRepository,
@@ -49,6 +59,7 @@ export class DoctorsService {
       this.queryService,
       profileService,
       adminVerificationService,
+      clock,
     );
   }
 

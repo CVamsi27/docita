@@ -12,7 +12,7 @@ import Link from "next/link";
 import { useSearchParams } from "next/navigation";
 import { useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
-import { useResendInvoiceWhatsApp } from "@workspace/data-access";
+import { queryKeys, useResendInvoiceWhatsApp } from "@workspace/data-access";
 import { showUserFacingErrorToast } from "@/lib/errors/user-facing-errors";
 import { WhatsAppDeliveryBadge } from "@/components/whatsapp/whatsapp-delivery-badge";
 import { Section } from "@workspace/ui/components/layout/section";
@@ -54,7 +54,9 @@ export const InvoiceDetailsUI: FC<InvoiceDetailsUIProps> = ({ invoiceId }) => {
     try {
       await resendInvoice.mutateAsync();
       toast.success("Invoice re-sent on WhatsApp");
-      await queryClient.invalidateQueries({ queryKey: ["invoices", invoiceId] });
+      await queryClient.invalidateQueries({
+        queryKey: queryKeys.invoices.legacyDetail(invoiceId),
+      });
     } catch (err) {
       showUserFacingErrorToast(
         err,

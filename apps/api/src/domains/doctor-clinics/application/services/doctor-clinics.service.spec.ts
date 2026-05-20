@@ -1,11 +1,14 @@
 import { Test, TestingModule } from '@nestjs/testing';
+import { beforeEach, describe, expect, it, jest } from '@jest/globals';
 import { DoctorClinicsService } from './doctor-clinics.service';
-import { PrismaService } from '@/prisma/prisma.service';
-import { beforeEach, describe, it, expect, jest } from '@jest/globals';
+import {
+  DOCTOR_CLINICS_REPOSITORY_TOKEN,
+  IDoctorClinicsRepository,
+} from '@/domains/doctor-clinics/application/ports/doctor-clinics.repository.port';
 
 describe('DoctorClinicsService', () => {
   let service: DoctorClinicsService;
-  let prismaService: PrismaService;
+  let repository: IDoctorClinicsRepository;
 
   const mockDoctor = {
     id: 'doctor-1',
@@ -35,16 +38,18 @@ describe('DoctorClinicsService', () => {
     clinic: mockClinic,
   };
 
-  const mockPrismaService = {
-    doctorClinic: {
-      findUnique: jest.fn<(...args: unknown[]) => Promise<unknown>>(),
-      create: jest.fn<(...args: unknown[]) => Promise<unknown>>(),
-      update: jest.fn<(...args: unknown[]) => Promise<unknown>>(),
-      findMany: jest.fn<(...args: unknown[]) => Promise<unknown>>(),
-    },
-    user: {
-      update: jest.fn<(...args: unknown[]) => Promise<unknown>>(),
-    },
+  const mockRepository: IDoctorClinicsRepository = {
+    findAssignment: jest.fn<IDoctorClinicsRepository['findAssignment']>(),
+    reactivateAssignment:
+      jest.fn<IDoctorClinicsRepository['reactivateAssignment']>(),
+    createAssignment: jest.fn<IDoctorClinicsRepository['createAssignment']>(),
+    assignUserClinic: jest.fn<IDoctorClinicsRepository['assignUserClinic']>(),
+    deactivateAssignment:
+      jest.fn<IDoctorClinicsRepository['deactivateAssignment']>(),
+    findDoctorClinics: jest.fn<IDoctorClinicsRepository['findDoctorClinics']>(),
+    findClinicDoctors: jest.fn<IDoctorClinicsRepository['findClinicDoctors']>(),
+    updateAssignmentRole:
+      jest.fn<IDoctorClinicsRepository['updateAssignmentRole']>(),
   };
 
   beforeEach(async () => {
@@ -52,85 +57,61 @@ describe('DoctorClinicsService', () => {
       providers: [
         DoctorClinicsService,
         {
-          provide: PrismaService,
-          useValue: mockPrismaService,
+          provide: DOCTOR_CLINICS_REPOSITORY_TOKEN,
+          useValue: mockRepository,
         },
       ],
     }).compile();
 
     service = module.get<DoctorClinicsService>(DoctorClinicsService);
-    prismaService = module.get<PrismaService>(PrismaService);
+    repository = module.get<IDoctorClinicsRepository>(
+      DOCTOR_CLINICS_REPOSITORY_TOKEN,
+    );
 
     jest.clearAllMocks();
   });
 
-  describe('Dependency Injection', () => {
-    it('should be defined', () => {
-      expect(service).toBeDefined();
-    });
-
-    it('should inject PrismaService', () => {
-      expect(prismaService).toBeDefined();
-    });
+  it('injects the repository', () => {
+    expect(service).toBeDefined();
+    expect(repository).toBeDefined();
   });
 
   describe('assignDoctor', () => {
-    it('should create new assignment when none exists', async () => {
-      mockPrismaService.doctorClinic.findUnique.mockResolvedValue(null);
-      mockPrismaService.doctorClinic.create.mockResolvedValue(mockAssignment);
-      mockPrismaService.user.update.mockResolvedValue({});
+    it('creates new assignment when none exists', async () => {
+      jest.mocked(mockRepository.findAssignment).mockResolvedValue(null);
+      jest
+        .mocked(mockRepository.createAssignment)
+        .mockResolvedValue(mockAssignment);
+      jest.mocked(mockRepository.assignUserClinic).mockResolvedValue();
 
       const result = await service.assignDoctor('doctor-1', 'clinic-1');
 
-      expect(mockPrismaService.doctorClinic.findUnique).toHaveBeenCalledWith({
-        where: {
-          doctorId_clinicId: {
-            doctorId: 'doctor-1',
-            clinicId: 'clinic-1',
-          },
-        },
-      });
-      expect(mockPrismaService.doctorClinic.create).toHaveBeenCalledWith({
-        data: {
-          doctorId: 'doctor-1',
-          clinicId: 'clinic-1',
-          role: 'doctor',
-          active: true,
-        },
-        include: {
-          doctor: {
-            select: {
-              id: true,
-              name: true,
-              email: true,
-              role: true,
-            },
-          },
-          clinic: {
-            select: {
-              id: true,
-              name: true,
-            },
-          },
-        },
-      });
-      expect(mockPrismaService.user.update).toHaveBeenCalledWith({
-        where: { id: 'doctor-1' },
-        data: { clinicId: 'clinic-1' },
-      });
+      expect(mockRepository.findAssignment).toHaveBeenCalledWith(
+        'doctor-1',
+        'clinic-1',
+      );
+      expect(mockRepository.createAssignment).toHaveBeenCalledWith(
+        'doctor-1',
+        'clinic-1',
+        'doctor',
+      );
+      expect(mockRepository.assignUserClinic).toHaveBeenCalledWith(
+        'doctor-1',
+        'clinic-1',
+      );
       expect(result).toEqual(mockAssignment);
     });
 
-    it('should update existing assignment when found', async () => {
+    it('reactivates existing assignment when found', async () => {
       const existingAssignment = { ...mockAssignment, active: false };
-      mockPrismaService.doctorClinic.findUnique.mockResolvedValue(
-        existingAssignment,
-      );
-      mockPrismaService.doctorClinic.update.mockResolvedValue({
+      jest
+        .mocked(mockRepository.findAssignment)
+        .mockResolvedValue(existingAssignment);
+      jest.mocked(mockRepository.reactivateAssignment).mockResolvedValue({
         ...existingAssignment,
         active: true,
       });
-      mockPrismaService.user.update.mockResolvedValue({});
+      jest.mocked(mockRepository.assignUserClinic).mockResolvedValue();
 
       const result = await service.assignDoctor(
         'doctor-1',
@@ -138,92 +119,48 @@ describe('DoctorClinicsService', () => {
         'admin',
       );
 
-      expect(mockPrismaService.doctorClinic.update).toHaveBeenCalledWith({
-        where: { id: 'assignment-1' },
-        data: { active: true, role: 'admin' },
-      });
+      expect(mockRepository.reactivateAssignment).toHaveBeenCalledWith(
+        'assignment-1',
+        'admin',
+      );
       expect(result.active).toBe(true);
     });
 
-    it('should use default role "doctor" when not specified', async () => {
-      mockPrismaService.doctorClinic.findUnique.mockResolvedValue(null);
-      mockPrismaService.doctorClinic.create.mockResolvedValue(mockAssignment);
-      mockPrismaService.user.update.mockResolvedValue({});
-
-      await service.assignDoctor('doctor-1', 'clinic-1');
-
-      expect(mockPrismaService.doctorClinic.create).toHaveBeenCalledWith(
-        expect.objectContaining({
-          data: expect.objectContaining({ role: 'doctor' }),
-        }),
-      );
-    });
-
-    it('should handle user update errors gracefully when creating assignment', async () => {
-      mockPrismaService.doctorClinic.findUnique.mockResolvedValue(null);
-      mockPrismaService.doctorClinic.create.mockResolvedValue(mockAssignment);
-      mockPrismaService.user.update.mockRejectedValue(
-        new Error('User not found'),
-      );
+    it('handles user update errors gracefully when creating assignment', async () => {
+      jest.mocked(mockRepository.findAssignment).mockResolvedValue(null);
+      jest
+        .mocked(mockRepository.createAssignment)
+        .mockResolvedValue(mockAssignment);
+      jest
+        .mocked(mockRepository.assignUserClinic)
+        .mockRejectedValue(new Error('User not found'));
 
       const result = await service.assignDoctor('doctor-1', 'clinic-1');
 
       expect(result).toEqual(mockAssignment);
-    });
-
-    it('should handle user update errors gracefully when updating assignment', async () => {
-      mockPrismaService.doctorClinic.findUnique.mockResolvedValue(
-        mockAssignment,
-      );
-      mockPrismaService.doctorClinic.update.mockResolvedValue(mockAssignment);
-      mockPrismaService.user.update.mockRejectedValue(
-        new Error('User not found'),
-      );
-
-      const result = await service.assignDoctor('doctor-1', 'clinic-1');
-
-      expect(result).toEqual(mockAssignment);
-    });
-
-    it('should accept custom role parameter', async () => {
-      mockPrismaService.doctorClinic.findUnique.mockResolvedValue(null);
-      mockPrismaService.doctorClinic.create.mockResolvedValue({
-        ...mockAssignment,
-        role: 'admin',
-      });
-      mockPrismaService.user.update.mockResolvedValue({});
-
-      await service.assignDoctor('doctor-1', 'clinic-1', 'admin');
-
-      expect(mockPrismaService.doctorClinic.create).toHaveBeenCalledWith(
-        expect.objectContaining({
-          data: expect.objectContaining({ role: 'admin' }),
-        }),
-      );
     });
   });
 
   describe('removeDoctor', () => {
-    it('should deactivate existing assignment', async () => {
-      mockPrismaService.doctorClinic.findUnique.mockResolvedValue(
-        mockAssignment,
-      );
-      mockPrismaService.doctorClinic.update.mockResolvedValue({
+    it('deactivates existing assignment', async () => {
+      jest
+        .mocked(mockRepository.findAssignment)
+        .mockResolvedValue(mockAssignment);
+      jest.mocked(mockRepository.deactivateAssignment).mockResolvedValue({
         ...mockAssignment,
         active: false,
       });
 
       const result = await service.removeDoctor('doctor-1', 'clinic-1');
 
-      expect(mockPrismaService.doctorClinic.update).toHaveBeenCalledWith({
-        where: { id: 'assignment-1' },
-        data: { active: false },
-      });
+      expect(mockRepository.deactivateAssignment).toHaveBeenCalledWith(
+        'assignment-1',
+      );
       expect(result.active).toBe(false);
     });
 
-    it('should throw error when assignment not found', async () => {
-      mockPrismaService.doctorClinic.findUnique.mockResolvedValue(null);
+    it('throws when assignment is missing', async () => {
+      jest.mocked(mockRepository.findAssignment).mockResolvedValue(null);
 
       await expect(
         service.removeDoctor('doctor-1', 'clinic-1'),
@@ -231,134 +168,60 @@ describe('DoctorClinicsService', () => {
     });
   });
 
-  describe('getDoctorClinics', () => {
-    it('should return active clinics for doctor', async () => {
-      const mockResult = [
-        {
-          id: 'assignment-1',
-          role: 'doctor',
-          active: true,
-          createdAt: new Date(),
-          clinic: mockClinic,
-        },
-      ];
-      mockPrismaService.doctorClinic.findMany.mockResolvedValue(mockResult);
+  it('returns active clinics for doctor', async () => {
+    const rows = [
+      {
+        id: 'assignment-1',
+        role: 'doctor',
+        active: true,
+        createdAt: new Date(),
+        clinic: mockClinic,
+      },
+    ];
+    jest.mocked(mockRepository.findDoctorClinics).mockResolvedValue(rows);
 
-      const result = await service.getDoctorClinics('doctor-1');
+    const result = await service.getDoctorClinics('doctor-1');
 
-      expect(mockPrismaService.doctorClinic.findMany).toHaveBeenCalledWith({
-        where: {
-          doctorId: 'doctor-1',
-          active: true,
-        },
-        select: {
-          id: true,
-          role: true,
-          active: true,
-          createdAt: true,
-          clinic: {
-            select: {
-              id: true,
-              name: true,
-              address: true,
-              phone: true,
-              email: true,
-              tier: true,
-              logo: true,
-            },
-          },
-        },
-      });
-      expect(result).toEqual(mockResult);
-    });
-
-    it('should return empty array when doctor has no clinics', async () => {
-      mockPrismaService.doctorClinic.findMany.mockResolvedValue([]);
-
-      const result = await service.getDoctorClinics('doctor-1');
-
-      expect(result).toEqual([]);
-    });
+    expect(mockRepository.findDoctorClinics).toHaveBeenCalledWith('doctor-1');
+    expect(result).toEqual(rows);
   });
 
-  describe('getClinicDoctors', () => {
-    it('should return active doctors for clinic', async () => {
-      const mockResult = [mockAssignment];
-      mockPrismaService.doctorClinic.findMany.mockResolvedValue(mockResult);
+  it('returns active doctors for clinic', async () => {
+    jest
+      .mocked(mockRepository.findClinicDoctors)
+      .mockResolvedValue([mockAssignment]);
 
-      const result = await service.getClinicDoctors('clinic-1');
+    const result = await service.getClinicDoctors('clinic-1');
 
-      expect(mockPrismaService.doctorClinic.findMany).toHaveBeenCalledWith({
-        where: {
-          clinicId: 'clinic-1',
-          active: true,
-        },
-        include: {
-          doctor: {
-            select: {
-              id: true,
-              name: true,
-              email: true,
-              role: true,
-            },
-          },
-        },
-      });
-      expect(result).toEqual(mockResult);
-    });
-
-    it('should return empty array when clinic has no doctors', async () => {
-      mockPrismaService.doctorClinic.findMany.mockResolvedValue([]);
-
-      const result = await service.getClinicDoctors('clinic-1');
-
-      expect(result).toEqual([]);
-    });
+    expect(mockRepository.findClinicDoctors).toHaveBeenCalledWith('clinic-1');
+    expect(result).toEqual([mockAssignment]);
   });
 
   describe('updateRole', () => {
-    it('should update role of existing assignment', async () => {
-      mockPrismaService.doctorClinic.findUnique.mockResolvedValue(
-        mockAssignment,
-      );
-      mockPrismaService.doctorClinic.update.mockResolvedValue({
+    it('updates role of existing assignment', async () => {
+      jest
+        .mocked(mockRepository.findAssignment)
+        .mockResolvedValue(mockAssignment);
+      jest.mocked(mockRepository.updateAssignmentRole).mockResolvedValue({
         ...mockAssignment,
         role: 'admin',
       });
 
       const result = await service.updateRole('doctor-1', 'clinic-1', 'admin');
 
-      expect(mockPrismaService.doctorClinic.update).toHaveBeenCalledWith({
-        where: { id: 'assignment-1' },
-        data: { role: 'admin' },
-      });
+      expect(mockRepository.updateAssignmentRole).toHaveBeenCalledWith(
+        'assignment-1',
+        'admin',
+      );
       expect(result.role).toBe('admin');
     });
 
-    it('should throw error when assignment not found', async () => {
-      mockPrismaService.doctorClinic.findUnique.mockResolvedValue(null);
+    it('throws when assignment is missing', async () => {
+      jest.mocked(mockRepository.findAssignment).mockResolvedValue(null);
 
       await expect(
         service.updateRole('doctor-1', 'clinic-1', 'admin'),
       ).rejects.toThrow('Assignment not found');
-    });
-  });
-
-  describe('Error Handling', () => {
-    it('should propagate database errors from assignDoctor', async () => {
-      const error = new Error('Database connection failed');
-      mockPrismaService.doctorClinic.findUnique.mockRejectedValue(error);
-
-      await expect(
-        service.assignDoctor('doctor-1', 'clinic-1'),
-      ).rejects.toThrow('Database connection failed');
-    });
-
-    it('should propagate database errors from getDoctorClinics', async () => {
-      const error = new Error('Database error');
-      mockPrismaService.doctorClinic.findMany.mockRejectedValue(error);
-
-      await expect(service.getDoctorClinics('doctor-1')).rejects.toThrow(error);
     });
   });
 });

@@ -3,6 +3,7 @@ import { CptCode, IcdCode } from '@workspace/db';
 import { z } from 'zod';
 import { CodeCatalogProvider } from '@/domains/clinical/core/providers/code-catalog.provider';
 import { NlmCodeCatalogProvider } from '@/domains/clinical/infrastructure/external/nlm-code-catalog.provider';
+import { AppConfigService } from '@/shared/modules/config/app-configuration.service';
 
 const licensedCodeRecordSchema = z
   .object({
@@ -36,16 +37,22 @@ const LICENSED_CPT_REQUEST_TIMEOUT_MS = 8000;
 @Injectable()
 export class LicensedCptCodeCatalogProvider implements CodeCatalogProvider {
   private readonly logger = new Logger(LicensedCptCodeCatalogProvider.name);
-  private readonly apiBaseUrl =
-    process.env.CPT_LICENSED_API_URL?.trim() || null;
-  private readonly apiKey = process.env.CPT_LICENSED_API_KEY?.trim() || null;
-  private readonly searchPath =
-    process.env.CPT_LICENSED_SEARCH_PATH?.trim() || '/search';
-  private readonly syncPath =
-    process.env.CPT_LICENSED_SYNC_PATH?.trim() || '/codes';
+  private readonly apiBaseUrl: string | null;
+  private readonly apiKey: string | null;
+  private readonly searchPath: string;
+  private readonly syncPath: string;
   private missingConfigWarned = false;
 
-  constructor(private readonly fallbackProvider: NlmCodeCatalogProvider) {}
+  constructor(
+    config: AppConfigService,
+    private readonly fallbackProvider: NlmCodeCatalogProvider,
+  ) {
+    const licensed = config.getCptLicensedApiConfig();
+    this.apiBaseUrl = licensed.apiBaseUrl;
+    this.apiKey = licensed.apiKey;
+    this.searchPath = licensed.searchPath;
+    this.syncPath = licensed.syncPath;
+  }
 
   private isConfigured(): boolean {
     return !!this.apiBaseUrl && !!this.apiKey;

@@ -2,12 +2,13 @@ import { describe, it, expect, beforeEach, jest } from '@jest/globals';
 import { ResumeSubscriptionPaymentUseCase } from './resume-subscription-payment.use-case';
 import type { ISubscriptionRepository } from '@/domains/subscriptions/application/ports/subscription.repository.port';
 import type { IPaymentLinkProvider } from '@/domains/payments/core/ports';
-import { PrismaService } from '@/prisma/prisma.service';
 import { AppConfigService } from '@/shared/modules/config/app-configuration.service';
 
 describe('ResumeSubscriptionPaymentUseCase', () => {
   const findPaymentByIdMock =
     jest.fn<ISubscriptionRepository['findPaymentById']>();
+  const findBillingContactMock =
+    jest.fn<ISubscriptionRepository['findBillingContact']>();
 
   const subscriptionRepo: ISubscriptionRepository = {
     save: jest.fn(async () => undefined),
@@ -16,7 +17,13 @@ describe('ResumeSubscriptionPaymentUseCase', () => {
     findByStatus: jest.fn(async () => []),
     findApproachingRenewal: jest.fn(async () => []),
     update: jest.fn(async () => undefined),
+    markClinicPastDue: jest.fn(async () => undefined),
     delete: jest.fn(async () => undefined),
+    findBillingContact: findBillingContactMock,
+    findExpiryReminderCandidates: jest.fn(async () => []),
+    findGraceDeadlineReminderCandidates: jest.fn(async () => []),
+    findRecentReminderClinicIds: jest.fn(async () => []),
+    createSubscriptionReminders: jest.fn(async () => undefined),
     savePayment: jest.fn(async () => undefined),
     updatePaymentStatus: jest.fn(async () => undefined),
     findPaymentsByClinicId: jest.fn(async () => []),
@@ -36,20 +43,6 @@ describe('ResumeSubscriptionPaymentUseCase', () => {
     })),
   } as unknown as IPaymentLinkProvider;
 
-  const prisma = Object.create(PrismaService.prototype) as PrismaService;
-  Object.defineProperties(prisma, {
-    user: {
-      value: {
-        findFirst: jest.fn(async () => null),
-      },
-    },
-    clinic: {
-      value: {
-        findUnique: jest.fn(async () => ({ name: 'Clinic' })),
-      },
-    },
-  });
-
   const configService = {
     getFrontendAppUrl: () => 'http://localhost:3000',
   } as unknown as AppConfigService;
@@ -58,8 +51,12 @@ describe('ResumeSubscriptionPaymentUseCase', () => {
 
   beforeEach(() => {
     jest.clearAllMocks();
+    findBillingContactMock.mockResolvedValue({
+      name: 'Clinic',
+      email: null,
+      phoneNumber: null,
+    });
     useCase = new ResumeSubscriptionPaymentUseCase(
-      prisma,
       configService,
       paymentLinkProvider,
       subscriptionRepo,

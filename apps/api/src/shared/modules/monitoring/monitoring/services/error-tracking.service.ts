@@ -1,4 +1,8 @@
-import { Injectable, Logger, OnModuleDestroy } from '@nestjs/common';
+import { Inject, Injectable, Logger, OnModuleDestroy } from '@nestjs/common';
+import {
+  CLOCK_PORT,
+  type IClock,
+} from '@/shared/common/ports/clock.port';
 import { PrismaService } from '@/prisma/prisma.service';
 import { Prisma, ErrorSeverity } from '@workspace/db';
 import { ErrorLogInput } from '@/shared/modules/monitoring/monitoring/schemas/monitoring.schema';
@@ -16,6 +20,7 @@ export class ErrorTrackingService implements OnModuleDestroy {
   constructor(
     private prisma: PrismaService,
     private monitoringFactory: MonitoringFactory,
+    @Inject(CLOCK_PORT) private readonly clock: IClock,
   ) {
     this.startFlushTimer();
   }
@@ -244,7 +249,7 @@ export class ErrorTrackingService implements OnModuleDestroy {
       data: {
         resolved: true,
         resolvedBy,
-        resolvedAt: new Date(),
+        resolvedAt: this.clock.now(),
       },
     });
     return { success: true };
@@ -259,14 +264,14 @@ export class ErrorTrackingService implements OnModuleDestroy {
       data: {
         resolved: true,
         resolvedBy,
-        resolvedAt: new Date(),
+        resolvedAt: this.clock.now(),
       },
     });
     return { success: true, count: result.count };
   }
 
   async cleanupOldErrors(daysToKeep: number): Promise<number> {
-    const cutoffDate = new Date();
+    const cutoffDate = this.clock.now();
     cutoffDate.setDate(cutoffDate.getDate() - daysToKeep);
 
     const result = await this.prisma.runUnrestricted(async () =>

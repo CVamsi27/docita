@@ -3,11 +3,10 @@
 import { formatDate, getUserFacingErrorMessage } from "@workspace/utils";
 
 import { useCallback, useEffect, useMemo, useState } from "react";
-import { useInternalQuery } from "@/lib/api/use-internal-query";
 import { RefreshCw } from "lucide-react";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
-import { client } from "@/lib/api/api-client";
-import { internalQueryKeys } from "@/lib/api/query-keys";
+import { useAuth } from "@/lib/auth/auth";
+import { useInternalSystemLogs } from "@workspace/data-access/internal";
 import { Badge } from "@workspace/ui/components/indicators/badge";
 import { Button } from "@workspace/ui/components/form/button";
 import { Input } from "@workspace/ui/components/form/input";
@@ -21,14 +20,7 @@ import {
   TableRow,
 } from "@workspace/ui/components/data-display/table";
 
-interface SystemLog {
-  id: string;
-  timestamp: string;
-  level: "INFO" | "WARNING" | "ERROR" | "DEBUG";
-  module: string;
-  message: string;
-  details?: string;
-}
+import type { InternalSystemLog as SystemLog } from "@workspace/data-access/internal";
 
 interface SystemLogsPageProps {
   title: string;
@@ -157,26 +149,8 @@ export function SystemLogsPage({
     searchText,
   ]);
 
-  const logsQuery = useInternalQuery({
-    queryKey: internalQueryKeys.internal.logs(logsParams),
-    queryFn: async () => {
-      const json = await client.get<
-        SystemLog[] | { data?: SystemLog[]; total?: number }
-      >(`/internal/logs?${logsParams}`);
-      const logsData = Array.isArray(json)
-        ? json
-        : Array.isArray(json.data)
-          ? json.data
-          : [];
-      const total = Array.isArray(json)
-        ? json.length
-        : typeof json.total === "number"
-          ? json.total
-          : logsData.length;
-
-      return { logs: logsData, total };
-    },
-  });
+  const { token } = useAuth();
+  const logsQuery = useInternalSystemLogs(token, logsParams);
 
   const logs = useMemo(
     () => logsQuery.data?.logs ?? EMPTY_LOGS,

@@ -14,6 +14,7 @@ import {
   type UserRole,
   type WorkspaceProfile,
 } from "@workspace/types";
+import { getTierName, hasFeatureAccess } from "@workspace/utils";
 
 const SETTINGS_TAB_ACCESS_TARGETS: Partial<Record<string, AppAccessTarget>> = {
   subscription: APP_ACCESS_TARGETS.PAGE_SETTINGS_SUBSCRIPTION,
@@ -42,8 +43,8 @@ const SETTINGS_TAB_MIN_TIERS: Partial<Record<string, Tier>> = {
 interface VisibleSettingsTabsParams {
   userRole?: UserRole | null;
   currentTier: Tier;
+  hasIntelligence?: boolean;
   canAccessFeature: (feature: Feature) => boolean;
-  canAccessTier: (tier: Tier) => boolean;
   searchQuery?: string;
   workspaceProfile?: WorkspaceProfile;
 }
@@ -51,8 +52,8 @@ interface VisibleSettingsTabsParams {
 export function getVisibleSettingsTabs({
   userRole,
   currentTier,
+  hasIntelligence = false,
   canAccessFeature,
-  canAccessTier,
   searchQuery = "",
   workspaceProfile = DEFAULT_WORKSPACE_PROFILE,
 }: VisibleSettingsTabsParams) {
@@ -68,7 +69,14 @@ export function getVisibleSettingsTabs({
         }
 
         const minTier = SETTINGS_TAB_MIN_TIERS[item.value];
-        if (minTier !== undefined && currentTier < minTier) {
+        if (
+          minTier !== undefined &&
+          !hasFeatureAccess(
+            getTierName(currentTier),
+            Feature.QUEUE_MANAGEMENT,
+            hasIntelligence,
+          )
+        ) {
           return false;
         }
 
@@ -85,7 +93,8 @@ export function getVisibleSettingsTabs({
             {
               role: userRole,
               canAccessFeature,
-              canAccessTier,
+              currentTier,
+              hasIntelligence,
               workspaceProfile,
             },
             "read",
@@ -118,8 +127,8 @@ export const useSettingsLogic = () => {
   const searchParams = useSearchParams();
   const { user } = useAuth();
   const canAccessFeature = usePermissionStore((state) => state.canAccess);
-  const canAccessTier = usePermissionStore((state) => state.canAccessTier);
   const currentTier = usePermissionStore((state) => state.currentTier);
+  const hasIntelligence = usePermissionStore((state) => state.hasIntelligence);
   const workspaceProfile = usePermissionStore((state) => state.workspaceProfile);
   const requestedTab = searchParams.get("tab") || "general";
   const [searchQuery, setSearchQuery] = useState("");
@@ -128,15 +137,15 @@ export const useSettingsLogic = () => {
     return getVisibleSettingsTabs({
       userRole: user?.role,
       currentTier,
+      hasIntelligence,
       canAccessFeature,
-      canAccessTier,
       searchQuery,
       workspaceProfile,
     });
   }, [
     canAccessFeature,
-    canAccessTier,
     currentTier,
+    hasIntelligence,
     searchQuery,
     user?.role,
     workspaceProfile,

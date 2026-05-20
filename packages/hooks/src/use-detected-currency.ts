@@ -79,6 +79,7 @@ export function guessCurrencyFromTimezone(): SupportedCurrency {
       return "USD";
     }
   } catch {
+    // Timezone access can be blocked by the browser; fall back to USD.
   }
 
   return "USD";

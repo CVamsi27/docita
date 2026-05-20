@@ -1,9 +1,14 @@
 import {
   BadRequestException,
   ConflictException,
+  Inject,
   Injectable,
   NotFoundException,
 } from '@nestjs/common';
+import {
+  CLOCK_PORT,
+  type IClock,
+} from '@/shared/common/ports/clock.port';
 import { AdmissionStatus, BedStatus, Role } from '@workspace/db';
 import type {
   Admission,
@@ -19,7 +24,10 @@ import {
 
 @Injectable()
 export class PrismaIpdRepository implements IpdRepository {
-  constructor(private readonly prisma: PrismaService) {}
+  constructor(
+    private readonly prisma: PrismaService,
+    @Inject(CLOCK_PORT) private readonly clock: IClock,
+  ) {}
 
   listWards(clinicId: string, search?: string): Promise<WardWithRooms[]> {
     const trimmedSearch = search?.trim();
@@ -238,7 +246,7 @@ export class PrismaIpdRepository implements IpdRepository {
           status: AdmissionStatus.DISCHARGED,
           dischargedAt: input.dischargeDate
             ? new Date(input.dischargeDate)
-            : new Date(),
+            : this.clock.now(),
           notes: dischargeNotes,
         },
       });

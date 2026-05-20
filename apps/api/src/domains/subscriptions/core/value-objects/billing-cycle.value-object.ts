@@ -1,9 +1,11 @@
-export enum BillingCycleEnum {
-  MONTHLY = 'MONTHLY',
-  QUARTERLY = 'QUARTERLY',
-  SEMI_ANNUAL = 'SEMI_ANNUAL',
-  YEARLY = 'YEARLY',
-}
+import {
+  BILLING_CYCLE_DAYS,
+  BILLING_CYCLE_DISPLAY_NAMES,
+  BILLING_CYCLE_MONTHLY_DIVISOR,
+  BillingCycleEnum,
+} from './billing-cycle.policy';
+
+export { BillingCycleEnum } from './billing-cycle.policy';
 
 export class BillingCycle {
   constructor(readonly value: BillingCycleEnum) {}
@@ -33,42 +35,15 @@ export class BillingCycle {
   }
 
   getDays(): number {
-    switch (this.value) {
-      case BillingCycleEnum.YEARLY:
-        return 365;
-      case BillingCycleEnum.SEMI_ANNUAL:
-        return 180;
-      case BillingCycleEnum.QUARTERLY:
-        return 90;
-      default:
-        return 30;
-    }
+    return BILLING_CYCLE_DAYS[this.value];
   }
 
   getDisplayName(): string {
-    switch (this.value) {
-      case BillingCycleEnum.YEARLY:
-        return 'Yearly';
-      case BillingCycleEnum.SEMI_ANNUAL:
-        return 'Semi-Annual';
-      case BillingCycleEnum.QUARTERLY:
-        return 'Quarterly';
-      default:
-        return 'Monthly';
-    }
+    return BILLING_CYCLE_DISPLAY_NAMES[this.value];
   }
 
   getMonthlyEquivalent(price: number): number {
-    switch (this.value) {
-      case BillingCycleEnum.YEARLY:
-        return price / 12;
-      case BillingCycleEnum.SEMI_ANNUAL:
-        return price / 6;
-      case BillingCycleEnum.QUARTERLY:
-        return price / 3;
-      default:
-        return price;
-    }
+    return price / BILLING_CYCLE_MONTHLY_DIVISOR[this.value];
   }
 
   equals(other: BillingCycle): boolean {

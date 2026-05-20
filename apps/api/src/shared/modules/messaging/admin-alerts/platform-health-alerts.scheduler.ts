@@ -5,6 +5,7 @@ import { EmailService } from '@/shared/modules/messaging/email/email.service';
 import { AppConfigService } from '@/shared/modules/config/app-configuration.service';
 import { AdminAlertsService } from './admin-alerts.service';
 import { isCronDisabledInThisProcess } from '@/shared/schedule/cron-env';
+import { CRON_SCHEDULES } from '@/shared/schedule/cron-schedules';
 
 @Injectable()
 export class PlatformHealthAlertsScheduler {
@@ -17,7 +18,9 @@ export class PlatformHealthAlertsScheduler {
     private readonly adminAlerts: AdminAlertsService,
   ) {}
 
-  @Cron('*/2 * * * *', { disabled: isCronDisabledInThisProcess() })
+  @Cron(CRON_SCHEDULES.PLATFORM_HEALTH_ALERTS, {
+    disabled: isCronDisabledInThisProcess(),
+  })
   async run(): Promise<void> {
     if (!this.config.isProduction()) {
       return;

@@ -3,6 +3,9 @@
 import { useEffect, useRef } from "react";
 import { useTheme } from "next-themes";
 import { useAppearanceStore } from "@/lib/stores/appearance-store";
+import { useClinic } from "@/lib/contexts/clinic-context";
+import { Feature } from "@workspace/types";
+import { useTierFeatureEnabled } from "@/lib/access-control/use-tier-feature-enabled";
 
 const ACCENT_VALUES = new Set([
   "blue",
@@ -15,14 +18,26 @@ const ACCENT_VALUES = new Set([
 ]);
 
 export function AppearanceController() {
-  const theme = useAppearanceStore((s) => s.theme);
-  const primaryColor = useAppearanceStore((s) => s.primaryColor);
-  const compactMode = useAppearanceStore((s) => s.compactMode);
+  const storeTheme = useAppearanceStore((s) => s.theme);
+  const storePrimaryColor = useAppearanceStore((s) => s.primaryColor);
+  const storeCompactMode = useAppearanceStore((s) => s.compactMode);
   const { theme: nextThemesPreference, setTheme } = useTheme();
   const setNextThemeRef = useRef(setTheme);
   setNextThemeRef.current = setTheme;
   const hydrated = useRef(false);
-  const lastStoreTheme = useRef(theme);
+  const lastStoreTheme = useRef(storeTheme);
+
+  const { clinic } = useClinic();
+  const hasLockedTheme = useTierFeatureEnabled(Feature.LOCKED_CUSTOM_THEME);
+
+  const lockedTheme =
+    hasLockedTheme && clinic?.enterpriseBranding?.lockedTheme?.enforced
+      ? clinic.enterpriseBranding.lockedTheme
+      : null;
+
+  const theme = lockedTheme?.mode ?? storeTheme;
+  const primaryColor = lockedTheme?.primaryColor ?? storePrimaryColor;
+  const compactMode = lockedTheme?.compactMode ?? storeCompactMode;
 
   useEffect(() => {
     if (nextThemesPreference === undefined) return;

@@ -2,7 +2,8 @@ import { Test, TestingModule } from '@nestjs/testing';
 import { UnauthorizedException } from '@nestjs/common';
 import { PatientPortalAuthService } from './patient-portal-auth.service';
 import { PATIENT_PORTAL_REPOSITORY_TOKEN } from '@/domains/patient-portal/core/repositories/patient-portal.repository.interface';
-import { WhatsappClientService } from '@/shared/modules/messaging/whatsapp/whatsapp-client.service';
+import { WHATSAPP_CLIENT_TOKEN } from '@/domains/whatsapp/application/ports/whatsapp-client.port';
+import { CLOCK_PORT, type IClock } from '@/shared/common/ports/clock.port';
 import { AuthService } from '@/shared/modules/auth/auth/auth.service';
 import { beforeEach, describe, it, expect, jest } from '@jest/globals';
 
@@ -60,8 +61,12 @@ describe('PatientPortalAuthService', () => {
           useValue: repository,
         },
         {
-          provide: WhatsappClientService,
+          provide: WHATSAPP_CLIENT_TOKEN,
           useValue: { sendMessage: jest.fn() },
+        },
+        {
+          provide: CLOCK_PORT,
+          useValue: { now: () => new Date('2026-05-19T12:00:00.000Z') } satisfies IClock,
         },
         {
           provide: AuthService,

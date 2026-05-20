@@ -1,7 +1,6 @@
 import { ReactNode } from "react";
 import { act, renderHook, waitFor } from "@testing-library/react";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { DataAccessProvider } from "@workspace/data-access";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
 vi.mock("sonner", () => ({
@@ -24,79 +23,57 @@ vi.mock("@/lib/monitoring/logger", () => ({
   },
 }));
 
-vi.mock("./use-patients", () => ({
-  usePatient: vi.fn(() => ({
-    data: { id: "patient-123", firstName: "Test", lastName: "Patient" },
-    isLoading: false,
-    isError: false,
-  })),
-  useUpdatePatient: vi.fn(() => ({ mutate: vi.fn() })),
-}));
+const createConditionMutate = vi.fn();
+const deleteAllergyMutate = vi.fn();
+const createAllergyMutate = vi.fn();
 
-vi.mock("@/lib/api/api-core", () => ({
-  useAPIQuery: vi.fn(() => ({
-    data: {
-      conditions: [],
-      allergies: [
-        {
-          id: "allergy-1",
-          patientId: "patient-123",
-          allergen: "Peanuts",
-          allergyType: "FOOD",
-          severity: "SEVERE",
-          isVerified: false,
-        },
-      ],
-      familyHistory: [],
-      socialHistory: null,
-      surgicalHistory: [],
-    },
-    isLoading: false,
-    isError: false,
-  })),
-}));
+vi.mock("@workspace/data-access", async (importOriginal) => {
+  const actual =
+    await importOriginal<typeof import("@workspace/data-access")>();
+  return {
+    ...actual,
+    usePatient: vi.fn(() => ({
+      data: { id: "patient-123", firstName: "Test", lastName: "Patient" },
+      isLoading: false,
+      isError: false,
+    })),
+    useUpdatePatient: vi.fn(() => ({ mutate: vi.fn() })),
+    usePatientMedicalHistoryFull: vi.fn(() => ({
+      data: {
+        conditions: [],
+        allergies: [
+          {
+            id: "allergy-1",
+            patientId: "patient-123",
+            allergen: "Peanuts",
+            allergyType: "FOOD",
+            severity: "SEVERE",
+            isVerified: false,
+          },
+        ],
+        familyHistory: [],
+        socialHistory: null,
+        surgicalHistory: [],
+      },
+      isLoading: false,
+      isError: false,
+    })),
+    useCreatePatientCondition: vi.fn(() => ({
+      mutate: createConditionMutate,
+    })),
+    useDeletePatientCondition: vi.fn(() => ({ mutate: vi.fn() })),
+    useCreatePatientAllergy: vi.fn(() => ({ mutate: createAllergyMutate })),
+    useDeletePatientAllergy: vi.fn(() => ({ mutate: deleteAllergyMutate })),
+    useUpdatePatientAllergy: vi.fn(() => ({ mutate: vi.fn() })),
+    useCreatePatientSurgicalHistory: vi.fn(() => ({ mutate: vi.fn() })),
+    useDeletePatientSurgicalHistory: vi.fn(() => ({ mutate: vi.fn() })),
+    useCreatePatientFamilyHistory: vi.fn(() => ({ mutate: vi.fn() })),
+    useDeletePatientFamilyHistory: vi.fn(() => ({ mutate: vi.fn() })),
+    useUpsertPatientSocialHistory: vi.fn(() => ({ mutate: vi.fn() })),
+  };
+});
 
-const createConditionSpy = vi
-  .fn()
-  .mockResolvedValue({ id: "new-condition-id" });
-const deleteAllergySpy = vi.fn().mockResolvedValue(undefined);
-const createAllergySpy = vi.fn().mockResolvedValue({ id: "new-allergy-id" });
-const deleteConditionSpy = vi.fn().mockResolvedValue(undefined);
-const createSurgicalHistorySpy = vi
-  .fn()
-  .mockResolvedValue({ id: "new-surgery-id" });
-const deleteSurgicalHistorySpy = vi.fn().mockResolvedValue(undefined);
-const createFamilyHistorySpy = vi
-  .fn()
-  .mockResolvedValue({ id: "new-family-id" });
-const deleteFamilyHistorySpy = vi.fn().mockResolvedValue(undefined);
-const upsertSocialHistorySpy = vi
-  .fn()
-  .mockResolvedValue({ id: "social-history-1" });
-const updateAllergySpy = vi
-  .fn()
-  .mockResolvedValue({ id: "allergy-1" });
-
-vi.mock("@/features/patients/api/patients.api", () => ({
-  patientsApi: {
-    createCondition: (...args: unknown[]) => createConditionSpy(...args),
-    deleteCondition: (...args: unknown[]) => deleteConditionSpy(...args),
-    createAllergy: (...args: unknown[]) => createAllergySpy(...args),
-    deleteAllergy: (...args: unknown[]) => deleteAllergySpy(...args),
-    updateAllergy: (...args: unknown[]) => updateAllergySpy(...args),
-    createSurgicalHistory: (...args: unknown[]) =>
-      createSurgicalHistorySpy(...args),
-    deleteSurgicalHistory: (...args: unknown[]) =>
-      deleteSurgicalHistorySpy(...args),
-    createFamilyHistory: (...args: unknown[]) =>
-      createFamilyHistorySpy(...args),
-    deleteFamilyHistory: (...args: unknown[]) =>
-      deleteFamilyHistorySpy(...args),
-    upsertSocialHistory: (...args: unknown[]) =>
-      upsertSocialHistorySpy(...args),
-  },
-}));
-
+import { DataAccessProvider } from "@workspace/data-access";
 import { usePatientHistory } from "./use-patient-history";
 
 function createWrapper() {
@@ -138,17 +115,20 @@ describe("usePatientHistory", () => {
     });
 
     await waitFor(() => {
-      expect(createConditionSpy).toHaveBeenCalledTimes(1);
+      expect(createConditionMutate).toHaveBeenCalledTimes(1);
     });
 
-    expect(createConditionSpy).toHaveBeenCalledWith("patient-123", {
-      conditionName: "Hypertension",
-      conditionType: "CHRONIC",
-      status: "ACTIVE",
-      sourceType: "MANUAL",
-      diagnosedBy: "",
-      notes: "",
-    });
+    expect(createConditionMutate).toHaveBeenCalledWith(
+      {
+        conditionName: "Hypertension",
+        conditionType: "CHRONIC",
+        status: "ACTIVE",
+        sourceType: "MANUAL",
+        diagnosedBy: "",
+        notes: "",
+      },
+      expect.objectContaining({ onSuccess: expect.any(Function) }),
+    );
   });
 
   it("ignores empty/whitespace condition input", async () => {
@@ -160,7 +140,7 @@ describe("usePatientHistory", () => {
       result.current.operations.addCondition("   ");
     });
 
-    expect(createConditionSpy).not.toHaveBeenCalled();
+    expect(createConditionMutate).not.toHaveBeenCalled();
   });
 
   it("removeAllergy deletes against the medical-history allergies sub-resource", async () => {
@@ -173,10 +153,13 @@ describe("usePatientHistory", () => {
     });
 
     await waitFor(() => {
-      expect(deleteAllergySpy).toHaveBeenCalledTimes(1);
+      expect(deleteAllergyMutate).toHaveBeenCalledTimes(1);
     });
 
-    expect(deleteAllergySpy).toHaveBeenCalledWith("patient-123", "allergy-1");
+    expect(deleteAllergyMutate).toHaveBeenCalledWith(
+      "allergy-1",
+      expect.objectContaining({ onSuccess: expect.any(Function) }),
+    );
   });
 
   it("addAllergy defaults to MODERATE/DRUG and posts to the allergies sub-resource", async () => {
@@ -189,14 +172,17 @@ describe("usePatientHistory", () => {
     });
 
     await waitFor(() => {
-      expect(createAllergySpy).toHaveBeenCalledTimes(1);
+      expect(createAllergyMutate).toHaveBeenCalledTimes(1);
     });
 
-    expect(createAllergySpy).toHaveBeenCalledWith("patient-123", {
-      allergen: "Penicillin",
-      severity: "MODERATE",
-      allergyType: "DRUG",
-      reaction: "",
-    });
+    expect(createAllergyMutate).toHaveBeenCalledWith(
+      {
+        allergen: "Penicillin",
+        severity: "MODERATE",
+        allergyType: "DRUG",
+        reaction: "",
+      },
+      expect.objectContaining({ onSuccess: expect.any(Function) }),
+    );
   });
 });

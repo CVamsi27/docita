@@ -1,45 +1,27 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
-import { PrismaService } from '@/prisma/prisma.service';
-import { Prisma } from '@workspace/db';
+import { Inject, Injectable, NotFoundException } from '@nestjs/common';
+import {
+  CreatePrescriptionTemplateData,
+  IPrescriptionTemplatesRepository,
+  PRESCRIPTION_TEMPLATES_REPOSITORY_TOKEN,
+  UpdatePrescriptionTemplateData,
+} from '@/domains/prescriptions/prescription-templates/application/ports/prescription-templates.repository.port';
 
-interface MedicationData {
-  name: string;
-  dosage: string;
-  frequency: string;
-  duration: string;
-}
-
-interface CreateTemplateData {
-  name: string;
-  medications: MedicationData[];
-  instructions?: string;
-}
-
-interface UpdateTemplateData {
-  name?: string;
-  medications?: MedicationData[];
-  instructions?: string;
-}
-
+/**
+ * Thin facade — delegates prescription template persistence to IPrescriptionTemplatesRepository.
+ */
 @Injectable()
 export class PrescriptionTemplatesService {
-  constructor(private prisma: PrismaService) {}
-
-  private toInputJsonValue(value: unknown): Prisma.InputJsonValue {
-    return JSON.parse(JSON.stringify(value)) as Prisma.InputJsonValue;
-  }
+  constructor(
+    @Inject(PRESCRIPTION_TEMPLATES_REPOSITORY_TOKEN)
+    private readonly prescriptionTemplatesRepository: IPrescriptionTemplatesRepository,
+  ) {}
 
   async findAll(userId: string) {
-    return this.prisma.prescriptionTemplate.findMany({
-      where: { userId },
-      orderBy: { createdAt: 'desc' },
-    });
+    return this.prescriptionTemplatesRepository.findAll(userId);
   }
 
   async findOne(id: string, userId?: string) {
-    const template = await this.prisma.prescriptionTemplate.findUnique({
-      where: { id },
-    });
+    const template = await this.prescriptionTemplatesRepository.findById(id);
     if (!template || (userId && template.userId !== userId)) {
       throw new NotFoundException(
         `Prescription template with ID ${id} not found`,
@@ -48,35 +30,21 @@ export class PrescriptionTemplatesService {
     return template;
   }
 
-  async create(userId: string, data: CreateTemplateData) {
-    return this.prisma.prescriptionTemplate.create({
-      data: {
-        name: data.name,
-        medications: this.toInputJsonValue(data.medications),
-        instructions: data.instructions,
-        userId,
-      },
-    });
+  async create(userId: string, data: CreatePrescriptionTemplateData) {
+    return this.prescriptionTemplatesRepository.create(userId, data);
   }
 
-  async update(id: string, data: UpdateTemplateData, userId?: string) {
+  async update(
+    id: string,
+    data: UpdatePrescriptionTemplateData,
+    userId?: string,
+  ) {
     await this.findOne(id, userId);
-    return this.prisma.prescriptionTemplate.update({
-      where: { id },
-      data: {
-        name: data.name,
-        medications: data.medications
-          ? this.toInputJsonValue(data.medications)
-          : undefined,
-        instructions: data.instructions,
-      },
-    });
+    return this.prescriptionTemplatesRepository.update(id, data);
   }
 
   async remove(id: string, userId?: string) {
     await this.findOne(id, userId);
-    return this.prisma.prescriptionTemplate.delete({
-      where: { id },
-    });
+    return this.prescriptionTemplatesRepository.delete(id);
   }
 }

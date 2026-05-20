@@ -55,7 +55,10 @@ export class SubscriptionMapper {
     const plan = ClinicTier.fromString(raw.plan);
     const cycle = BillingCycle.fromString(raw.billingCycle);
 
-    const discountAggregate = this.parseDiscounts(raw.discountsApplied);
+    const discountAggregate = this.parseDiscounts(
+      raw.discountsApplied,
+      raw.updatedAt,
+    );
 
     return new Subscription({
       id: raw.id,
@@ -105,7 +108,10 @@ export class SubscriptionMapper {
   static toPersistence(
     subscription: Subscription,
   ): Prisma.SubscriptionUncheckedCreateInput {
-    const discountsJson = this.serializeDiscounts(subscription.getDiscounts());
+    const discountsJson = this.serializeDiscounts(
+      subscription.getDiscounts(),
+      subscription.updatedAt,
+    );
 
     return {
       id: subscription.id,
@@ -129,7 +135,7 @@ export class SubscriptionMapper {
       creditsCents: subscription.getCredits().paise,
       graceUntil: subscription.getGraceUntil(),
       createdAt: subscription.createdAt,
-      updatedAt: new Date(),
+      updatedAt: subscription.updatedAt,
       version: subscription.version,
 
       scheduledChange: subscription.scheduledChange
@@ -140,7 +146,10 @@ export class SubscriptionMapper {
     };
   }
 
-  private static parseDiscounts(json: Prisma.JsonValue): DiscountAggregate {
+  private static parseDiscounts(
+    json: Prisma.JsonValue,
+    asOf: Date,
+  ): DiscountAggregate {
     const aggregate = new DiscountAggregate();
 
     if (!Array.isArray(json)) {
@@ -158,8 +167,10 @@ export class SubscriptionMapper {
           expiresAt: item.expiresAt ? new Date(item.expiresAt) : undefined,
           description: item.description || '',
         });
-        aggregate.addDiscount(discount);
-      } catch (_error) {}
+        aggregate.addDiscount(discount, asOf);
+      } catch {
+        // Ignore malformed stored discounts; valid discount rows remain usable.
+      }
     });
 
     return aggregate;
@@ -167,8 +178,9 @@ export class SubscriptionMapper {
 
   private static serializeDiscounts(
     aggregate: DiscountAggregate,
+    asOf: Date,
   ): DiscountJsonItem[] {
-    return aggregate.getActiveDiscounts().map((d) => ({
+    return aggregate.getActiveDiscounts(asOf).map((d) => ({
       type: d.type,
       percentOff: d.percentOff,
       expiresAt: d.expiresAt?.toISOString(),

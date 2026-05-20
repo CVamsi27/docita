@@ -1,11 +1,16 @@
 import {
   BadRequestException,
+  Inject,
   Injectable,
   Logger,
   NotFoundException,
 } from '@nestjs/common';
+import {
+  CLOCK_PORT,
+  type IClock,
+} from '@/shared/common/ports/clock.port';
 import { PrismaService } from '@/prisma/prisma.service';
-import { WhatsappClientService } from '@/shared/modules/messaging/whatsapp/whatsapp-client.service';
+import { WhatsappClientService } from '@/domains/whatsapp/infrastructure/clients/whatsapp-client.service';
 import type {
   CreateWhatsAppBroadcastJobRequest,
   WhatsAppBroadcastJobDetail,
@@ -24,6 +29,7 @@ export class WhatsAppBroadcastService {
   constructor(
     private readonly prisma: PrismaService,
     private readonly whatsappClient: WhatsappClientService,
+    @Inject(CLOCK_PORT) private readonly clock: IClock,
   ) {}
 
   async createBroadcast(
@@ -122,7 +128,7 @@ export class WhatsAppBroadcastService {
     try {
       const job = await this.prisma.whatsAppBroadcastJob.update({
         where: { id: jobId },
-        data: { status: 'RUNNING', startedAt: new Date() },
+        data: { status: 'RUNNING', startedAt: this.clock.now() },
       });
 
       const recipients = await this.prisma.whatsAppBroadcastRecipient.findMany({
@@ -150,7 +156,7 @@ export class WhatsAppBroadcastService {
               status: result.success ? 'SENT' : 'FAILED',
               providerMessageId: result.messageId ?? null,
               errorMessage: result.success ? null : (result.error ?? null),
-              sentAt: result.success ? new Date() : null,
+              sentAt: result.success ? this.clock.now() : null,
             },
           });
 
@@ -187,7 +193,7 @@ export class WhatsAppBroadcastService {
         where: { id: jobId },
         data: {
           status: 'COMPLETED',
-          completedAt: new Date(),
+          completedAt: this.clock.now(),
           sentCount,
           failedCount,
         },
@@ -201,7 +207,7 @@ export class WhatsAppBroadcastService {
         data: {
           status: 'FAILED',
           errorMessage,
-          completedAt: new Date(),
+          completedAt: this.clock.now(),
         },
       });
     } finally {
@@ -241,7 +247,7 @@ export class WhatsAppBroadcastService {
           name: input.recipientName ?? '',
           ...(input.variables ?? {}),
         });
-        const result = await this.whatsappClient.sendMessage({
+        const result = await this.whatsappClient.sendTextMessage({
           to: input.phoneNumber,
           message: finalText,
         });

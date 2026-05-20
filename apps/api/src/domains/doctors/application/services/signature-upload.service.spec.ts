@@ -2,7 +2,7 @@ import { Test, TestingModule } from '@nestjs/testing';
 import { BadRequestException, NotFoundException } from '@nestjs/common';
 import { SignatureUploadService } from './signature-upload.service';
 import { SIGNATURE_UPLOAD_REPOSITORY_TOKEN } from '@/domains/doctors/core/repositories/signature-upload.repository.interface';
-import { StorageProvider } from '@/domains/documents/infrastructure/storage.provider';
+import { StorageProvider } from '@/domains/documents/application/ports/storage-provider.port';
 import { StoredFileUrlResolverService } from '@/domains/documents/application/services/stored-file-url-resolver.service';
 import { SignaturePurpose } from '@workspace/db';
 import { beforeEach, describe, it, expect, jest } from '@jest/globals';

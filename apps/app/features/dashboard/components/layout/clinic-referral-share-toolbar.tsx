@@ -13,6 +13,7 @@ import {
   TooltipTrigger,
 } from "@workspace/ui/components/overlay/tooltip";
 import { cn } from "@workspace/ui/lib/utils";
+import { logger } from "@/lib/monitoring/logger";
 
 export interface ClinicReferralShareToolbarProps {
   clinicCode?: string | null;
@@ -95,7 +96,10 @@ export function ClinicReferralShareToolbar({
         await navigator.clipboard.writeText(shareText);
         setCopiedInvite(true);
         setTimeout(() => setCopiedInvite(false), 2000);
-      } catch {
+      } catch (clipboardError) {
+        logger.warn("Failed to copy clinic referral share text", {
+          error: clipboardError,
+        });
       }
     }
   };

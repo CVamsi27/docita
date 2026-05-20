@@ -1,141 +1,36 @@
-import { Patient, PatientOtp, User } from '@workspace/db';
+import type { IPortalAppointmentsRepository } from './portal-appointments.repository.interface';
+import type { IPortalAuthRepository } from './portal-auth.repository.interface';
+import type { IPortalDocumentsRepository } from './portal-documents.repository.interface';
+import type { IPortalProfileRepository } from './portal-profile.repository.interface';
 
-export type PatientProfile = Pick<
-  Patient,
-  | 'id'
-  | 'firstName'
-  | 'lastName'
-  | 'preferredName'
-  | 'email'
-  | 'phoneNumber'
-  | 'dateOfBirth'
-  | 'gender'
-  | 'bloodGroup'
-  | 'address'
-  | 'mrn'
-  | 'preferredLanguage'
-  | 'emergencyContactName'
-  | 'emergencyContactPhone'
-  | 'emergencyContactRelation'
-  | 'whatsappConsent'
-  | 'whatsappConsentAt'
-  | 'createdAt'
->;
+export type {
+  OtpRecord,
+  PatientProfile,
+  PatientSummary,
+  PatientWithUser,
+} from './portal-patient.types';
 
-export type PatientSummary = Pick<
-  Patient,
-  | 'id'
-  | 'firstName'
-  | 'lastName'
-  | 'email'
-  | 'phoneNumber'
-  | 'dateOfBirth'
-  | 'gender'
-  | 'bloodGroup'
-  | 'mrn'
->;
+export type { IPortalProfileRepository } from './portal-profile.repository.interface';
+export {
+  PORTAL_PROFILE_REPOSITORY_TOKEN,
+} from './portal-profile.repository.interface';
+export type { IPortalAuthRepository } from './portal-auth.repository.interface';
+export { PORTAL_AUTH_REPOSITORY_TOKEN } from './portal-auth.repository.interface';
+export type { IPortalAppointmentsRepository } from './portal-appointments.repository.interface';
+export {
+  PORTAL_APPOINTMENTS_REPOSITORY_TOKEN,
+} from './portal-appointments.repository.interface';
+export type { IPortalDocumentsRepository } from './portal-documents.repository.interface';
+export {
+  PORTAL_DOCUMENTS_REPOSITORY_TOKEN,
+} from './portal-documents.repository.interface';
 
-export type PatientWithUser = Patient & { user: User | null };
-
-export type OtpRecord = Pick<
-  PatientOtp,
-  | 'id'
-  | 'phoneNumber'
-  | 'otpHash'
-  | 'expiresAt'
-  | 'attempts'
-  | 'usedAt'
-  | 'createdAt'
->;
-
-export interface IPatientPortalRepository {
-  findPatientByUserId(userId: string): Promise<Patient | null>;
-
-  findPatientByPhone(phone: string): Promise<Patient | null>;
-
-  findPatientWithUserByPhone(phone: string): Promise<PatientWithUser | null>;
-
-  getPatientSummary(patientId: string): Promise<PatientSummary | null>;
-
-  getPatientProfile(patientId: string): Promise<PatientProfile | null>;
-
-  hasActiveTreatmentConsent(
-    patientId: string,
-    clinicId: string,
-  ): Promise<boolean>;
-
-  updatePatient(
-    patientId: string,
-    data: Record<string, unknown>,
-  ): Promise<PatientProfile>;
-
-  getUpcomingAppointments(
-    patientId: string,
-    clinicId: string,
-    from: Date,
-    take: number,
-  ): Promise<unknown[]>;
-
-  getAppointments(
-    patientId: string,
-    clinicId: string,
-    filters: {
-      status?: string;
-      startDate?: Date;
-      endDate?: Date;
-      take: number;
-      skip: number;
-    },
-  ): Promise<{ items: unknown[]; total: number }>;
-
-  getAppointmentById(
-    appointmentId: string,
-    patientId: string,
-    clinicId: string,
-  ): Promise<unknown | null>;
-
-  getPrescriptions(
-    patientId: string,
-    filters: { take: number; skip: number },
-  ): Promise<{ items: unknown[]; total: number }>;
-
-  getPrescriptionById(
-    prescriptionId: string,
-    patientId: string,
-  ): Promise<unknown | null>;
-
-  getInvoices(
-    patientId: string,
-    filters: { status?: string; take: number; skip: number },
-  ): Promise<{ items: unknown[]; total: number }>;
-
-  getActivePrescriptions(patientId: string, take: number): Promise<unknown[]>;
-
-  getOutstandingInvoices(patientId: string, take: number): Promise<unknown[]>;
-
-  invalidateOtps(phone: string): Promise<void>;
-
-  createOtp(data: {
-    phoneNumber: string;
-    otpHash: string;
-    expiresAt: Date;
-  }): Promise<OtpRecord>;
-
-  findActiveOtp(phone: string, now: Date): Promise<OtpRecord | null>;
-
-  incrementOtpAttempts(id: string): Promise<void>;
-
-  markOtpUsed(id: string): Promise<void>;
-
-  createPortalUser(data: {
-    email: string;
-    password: string;
-    role: User['role'];
-    name: string;
-  }): Promise<User>;
-
-  linkUserToPatient(patientId: string, userId: string): Promise<void>;
-}
+/** Composite port for callers that span profile, auth, appointments, and documents. */
+export interface IPatientPortalRepository
+  extends IPortalProfileRepository,
+    IPortalAuthRepository,
+    IPortalAppointmentsRepository,
+    IPortalDocumentsRepository {}
 
 export const PATIENT_PORTAL_REPOSITORY_TOKEN = Symbol(
   'IPatientPortalRepository',

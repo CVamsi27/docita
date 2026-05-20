@@ -38,9 +38,9 @@ import { MicroLabel } from "@workspace/ui/components/indicators/micro-label";
 import { ClinicGeneralSettingsSkeleton } from "./ClinicGeneralSettingsSkeleton";
 import { WorkspaceModeCard } from "./WorkspaceModeCard";
 import {
-  clinicSettingsSchema,
+  clinicSettingsFormSchema,
   type ClinicSettingsFormValues,
-} from "./clinic-settings-schema";
+} from "@workspace/types";
 
 export function ClinicGeneralSettings() {
   const { data: clinic, isLoading } = useClinicSettings();
@@ -60,7 +60,7 @@ export function ClinicGeneralSettings() {
   };
 
   const form = useForm<ClinicSettingsFormValues>({
-    resolver: zodResolver(clinicSettingsSchema),
+    resolver: zodResolver(clinicSettingsFormSchema),
     defaultValues: {
       name: "",
       address: "",

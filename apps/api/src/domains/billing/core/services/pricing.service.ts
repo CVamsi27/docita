@@ -6,14 +6,16 @@ import {
   TIER_FEATURES,
   ANNUAL_DISCOUNT_PERCENT,
   SEMI_ANNUAL_DISCOUNT_PERCENT,
-  deriveAnnualPrice,
   TIER_PRICING_BY_CURRENCY,
   TIER_OVERAGE_RATES_BY_CURRENCY,
   REFERRAL_REWARDS_BY_CURRENCY,
   PRICING_CURRENCY_CONFIG,
   SupportedCurrency,
 } from '@workspace/types';
-import { getWhatsAppAddonPricingByCurrency } from '@workspace/utils';
+import {
+  deriveAnnualPrice,
+  getWhatsAppAddonPricingByCurrency,
+} from '@workspace/utils';
 import {
   resolveCurrency,
   readNumber,

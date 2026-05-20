@@ -3,6 +3,7 @@
 import { useEffect } from "react";
 import { useRouter, usePathname } from "next/navigation";
 import { useAuth } from "@/lib/auth/auth-context";
+import { appQueryKeys } from "@workspace/data-access";
 import { useAPIQuery } from "@/lib/api/api-core";
 import type { User } from "@workspace/types";
 import { PageTransitionLoader } from "@/components/loaders/page-transition-loader";
@@ -28,7 +29,7 @@ export function DoctorVerificationGuard({
     isFetching: profileFetching,
     isError: profileError,
   } = useAPIQuery<User>(
-    ["doctor-profile", user?.id ?? ""],
+    appQueryKeys.doctorProfile.detail(user?.id ?? ""),
     `/doctors/${user?.id}`,
     { enabled: !!user?.id && isDoctor, staleTime: 5 * 60 * 1000 },
   );

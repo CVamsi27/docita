@@ -29,6 +29,8 @@ import {
   RequireFeature,
 } from '@/shared/modules/auth/auth/tier.decorator';
 import { IpdService } from '@/domains/ipd/application/services/ipd.service';
+import { AuditService } from '@/shared/modules/audit/audit/audit.service';
+import { logClinicPhiListRead } from '@/shared/modules/audit/audit/patient-access-audit.util';
 
 @ApiTags('IPD')
 @Controller('ipd')
@@ -42,20 +44,31 @@ import { IpdService } from '@/domains/ipd/application/services/ipd.service';
   Role.RECEPTIONIST,
 )
 export class IpdController {
-  constructor(private readonly ipdService: IpdService) {}
+  constructor(
+    private readonly ipdService: IpdService,
+    private readonly auditService: AuditService,
+  ) {}
 
   @Get('wards')
   @ApiOperation({ summary: 'List wards, rooms, and beds for the facility' })
   listWards(@Request() req: RequestWithUser, @Query('search') search?: string) {
+    // check-phi-read-audit: allow — facility layout only; no patient identifiers
     return this.ipdService.listWards(this.getClinicId(req), search);
   }
 
   @Get('admissions')
   @ApiOperation({ summary: 'List inpatient admissions for the facility' })
-  listAdmissions(
+  async listAdmissions(
     @Request() req: RequestWithUser,
     @Query('status') status?: string,
   ) {
+    await logClinicPhiListRead(
+      this.auditService,
+      req,
+      'VIEW_PATIENT_LIST',
+      'Patient',
+      { scope: 'ipd-admissions', status },
+    );
     return this.ipdService.listAdmissions(this.getClinicId(req), status);
   }
 

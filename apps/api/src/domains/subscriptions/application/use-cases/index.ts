@@ -10,3 +10,5 @@ export { ExpireSubscriptionUseCase } from './expire-subscription.use-case';
 export { NotifyExpiringSubscriptionsUseCase } from './notify-expiring-subscriptions.use-case';
 export { NotifySubscriptionGraceDeadlineUseCase } from './notify-subscription-grace-deadline.use-case';
 export { SchedulePlanChangeUseCase } from './schedule-plan-change.use-case';
+export { BillMonthlyOveragesUseCase } from './bill-monthly-overages.use-case';
+export { NotifyUsageThresholdsUseCase } from './notify-usage-thresholds.use-case';

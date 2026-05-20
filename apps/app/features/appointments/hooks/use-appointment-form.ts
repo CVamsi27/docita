@@ -7,7 +7,7 @@ import {
   formatClinicPickerDayIsoFromSelection,
   formatClinicTodayPickerIso,
 } from "@workspace/utils";
-import { usePatient, usePatients } from "@workspace/data-access";
+import { queryKeys, usePatient, usePatients } from "@workspace/data-access";
 import {
   useDoctors,
   useDoctorSchedules,
@@ -18,9 +18,8 @@ import { useAppointments } from "@workspace/data-access";
 import {
   Appointment,
   CreateAppointmentInput,
-  createAppointmentBaseSchema,
+  createAppointmentFormSchema,
   Patient,
-  refineCreateAppointmentDateTimes,
 } from "@workspace/types";
 import { defaultStartIsoForSelectedCalendarDay } from "@/features/appointments/lib/calendar-slot-local-iso";
 import { useAppConfig } from "@/lib/contexts/app-config-context";
@@ -156,17 +155,14 @@ export function useAppointmentForm({
     clinicTimezone,
   ]);
 
-  const createAppointmentSchema = useMemo(
-    () =>
-      createAppointmentBaseSchema.superRefine(
-        refineCreateAppointmentDateTimes(clinicTimezone),
-      ),
+  const appointmentFormSchema = useMemo(
+    () => createAppointmentFormSchema(clinicTimezone),
     [clinicTimezone],
   );
 
   const form = useForm<CreateAppointmentInput>({
     resolver: zodResolver(
-      createAppointmentSchema,
+      appointmentFormSchema,
     ) as Resolver<CreateAppointmentInput>,
     defaultValues,
   });
@@ -181,14 +177,13 @@ export function useAppointmentForm({
       form.reset(resetValues);
       if (selectedDate && defaultValues.doctorId) {
         void queryClient.invalidateQueries({
-          queryKey: [
-            "doctor-availability-slots",
+          queryKey: queryKeys.doctorAvailabilitySlots.forDay(
             formatClinicPickerDayIsoFromSelection(
               selectedDate,
               clinicTimezone,
             ),
             defaultValues.doctorId,
-          ],
+          ),
         });
       }
     }

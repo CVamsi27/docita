@@ -1,5 +1,5 @@
 import { z } from "zod";
-import { Feature, isFeatureGenerallyAvailable } from "./tier";
+import { Feature } from "./tier";
 
 export const featureDisplaySchema = z.object({
   name: z.string(),
@@ -181,6 +181,14 @@ export const FEATURE_DISPLAY: Record<Feature, FeatureDisplay> = {
     description: "White-label with your brand",
     availability: "PLANNED",
   },
+  [Feature.WHITE_LABEL_BRANDING]: {
+    name: "White-Label Branding",
+    description: "Replace Docita with your clinic name throughout the app",
+  },
+  [Feature.LOCKED_CUSTOM_THEME]: {
+    name: "Locked Custom Theme",
+    description: "Set and enforce a theme, colour, and layout for all users",
+  },
   [Feature.DATA_WAREHOUSE_EXPORT]: {
     name: "Data Warehouse Export",
     description: "Export to data warehouse",
@@ -240,4 +248,3 @@ export const FEATURE_DISPLAY: Record<Feature, FeatureDisplay> = {
   },
 };
 
-export { isFeatureGenerallyAvailable };

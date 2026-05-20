@@ -38,6 +38,10 @@ import {
   IOnboardingTxRepository,
   ONBOARDING_TX_REPOSITORY_TOKEN,
 } from '@/domains/clinics/core/repositories/onboarding-tx.repository.interface';
+import {
+  CLOCK_PORT,
+  type IClock,
+} from '@/shared/common/ports/clock.port';
 
 interface OnboardingPaymentInput {
   razorpayPaymentId?: string;
@@ -61,6 +65,7 @@ export class OnboardingWorkflowService {
     private validation: OnboardingValidationService,
     @Inject(ONBOARDING_TX_REPOSITORY_TOKEN)
     private readonly repository: IOnboardingTxRepository,
+    @Inject(CLOCK_PORT) private readonly clock: IClock,
   ) {}
 
   async createClinic(
@@ -102,7 +107,7 @@ export class OnboardingWorkflowService {
         facilityLabel: clinicData.facilityLabel || 'CLINIC',
         gstin: clinicData.gstin || undefined,
         privacyComplianceVersion: '1.0',
-        onboardedAt: new Date().toISOString(),
+        onboardedAt: this.clock.now().toISOString(),
         onboardedFromIP: ipAddress,
         workspaceProfile,
         mapsLocation: clinicData.mapsLocation ?? undefined,
@@ -215,7 +220,7 @@ export class OnboardingWorkflowService {
     planData: PlanSelectionDto,
     paymentData?: OnboardingPaymentInput,
   ): Promise<Subscription> {
-    const now = new Date();
+    const now = this.clock.now();
     const periodEnd = computePeriodEnd({
       tier: planData.tier,
       billingCycle: planData.billingCycle,

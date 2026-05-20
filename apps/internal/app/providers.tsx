@@ -9,6 +9,7 @@ import { NavigationHistoryProvider } from "@/providers/navigation-history-provid
 import { InternalWebVitalsReporter } from "@/components/internal-web-vitals-reporter";
 import { TooltipProvider } from "@workspace/ui/components/overlay/tooltip";
 import { InternalThemeProvider } from "@/components/internal-theme-provider";
+import { InternalDataAccessBridge } from "@/app/data-access-bridge";
 
 const TOAST_DURATION_MS = 5000;
 const TOAST_VISIBLE_COUNT = Number.POSITIVE_INFINITY;
@@ -43,20 +44,22 @@ export function Providers({ children }: { children: ReactNode }) {
     <InternalThemeProvider>
       <QueryClientProvider client={queryClient}>
         <AuthProvider>
-          <TooltipProvider delayDuration={300}>
-            <NavigationHistoryProvider>
-              <InternalWebVitalsReporter />
-              {children}
-            </NavigationHistoryProvider>
-          </TooltipProvider>
-          <Toaster
-            closeButton
-            duration={TOAST_DURATION_MS}
-            expand
-            richColors
-            position="top-right"
-            visibleToasts={TOAST_VISIBLE_COUNT}
-          />
+          <InternalDataAccessBridge>
+            <TooltipProvider delayDuration={300}>
+              <NavigationHistoryProvider>
+                <InternalWebVitalsReporter />
+                {children}
+              </NavigationHistoryProvider>
+            </TooltipProvider>
+            <Toaster
+              closeButton
+              duration={TOAST_DURATION_MS}
+              expand
+              richColors
+              position="top-right"
+              visibleToasts={TOAST_VISIBLE_COUNT}
+            />
+          </InternalDataAccessBridge>
         </AuthProvider>
       </QueryClientProvider>
     </InternalThemeProvider>

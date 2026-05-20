@@ -1,5 +1,6 @@
 import { Injectable, Logger } from '@nestjs/common';
 import { OnEvent } from '@nestjs/event-emitter';
+import { ApplicationEvents } from '@/shared/common/events/application-events';
 import { PrismaService } from '@/prisma/prisma.service';
 import { UsageType, Prisma } from '@workspace/db';
 
@@ -156,7 +157,7 @@ export class UsageTrackingCommandService {
     });
   }
 
-  @OnEvent('ocr.page.processed')
+  @OnEvent(ApplicationEvents.OCR_PAGE_PROCESSED)
   async handleOcrPageProcessed(payload: {
     clinicId: string;
     pageCount: number;
@@ -168,7 +169,7 @@ export class UsageTrackingCommandService {
     );
   }
 
-  @OnEvent('whatsapp.message.sent')
+  @OnEvent(ApplicationEvents.WHATSAPP_MESSAGE_SENT)
   async handleWhatsAppMessageSent(payload: {
     clinicId: string;
     messageId: string;
@@ -183,7 +184,7 @@ export class UsageTrackingCommandService {
     });
   }
 
-  @OnEvent('prescription.created')
+  @OnEvent(ApplicationEvents.PRESCRIPTION_CREATED)
   async handlePrescriptionCreated(payload: {
     clinicId: string;
     prescriptionId: string;
@@ -196,7 +197,7 @@ export class UsageTrackingCommandService {
     });
   }
 
-  @OnEvent('invoice.generated')
+  @OnEvent(ApplicationEvents.INVOICE_GENERATED)
   async handleInvoiceGenerated(payload: {
     clinicId: string;
     invoiceId: string;
@@ -208,7 +209,7 @@ export class UsageTrackingCommandService {
     );
   }
 
-  @OnEvent('appointment.completed')
+  @OnEvent(ApplicationEvents.APPOINTMENT_COMPLETED)
   async handleAppointmentCompleted(payload: {
     clinicId: string;
     appointmentId: string;

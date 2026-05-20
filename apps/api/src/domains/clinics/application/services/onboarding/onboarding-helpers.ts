@@ -1,7 +1,7 @@
 /** Pure onboarding helpers — no @Injectable, no DI. */
 import { BadRequestException, NotFoundException } from '@nestjs/common';
 import { UploadSessionPurpose } from '@workspace/db';
-import { PrismaService } from '@/prisma/prisma.service';
+import { type ClinicPersistencePort } from '@/domains/clinics/application/ports/clinic-persistence.port';
 import { UploadsService } from '@/domains/documents/application/services/uploads.service';
 
 /**
@@ -10,13 +10,13 @@ import { UploadsService } from '@/domains/documents/application/services/uploads
  * offer so each customer can only consume it once.
  */
 export async function hasPriorPaidSubscriptionForEmail(
-  prisma: PrismaService,
+  persistence: ClinicPersistencePort,
   email: string,
 ): Promise<boolean> {
   const normalized = email.trim().toLowerCase();
   if (!normalized) return false;
-  return prisma.runUnrestricted(async () => {
-    const users = await prisma.user.findMany({
+  return persistence.runUnrestricted(async () => {
+    const users = await persistence.user.findMany({
       where: { email: normalized },
       select: { clinicId: true },
     });
@@ -24,7 +24,7 @@ export async function hasPriorPaidSubscriptionForEmail(
       .map((u) => u.clinicId)
       .filter((id): id is string => !!id);
     if (clinicIds.length === 0) return false;
-    const paid = await prisma.subscriptionPayment.findFirst({
+    const paid = await persistence.subscriptionPayment.findFirst({
       where: { clinicId: { in: clinicIds }, status: 'paid' },
       select: { id: true },
     });
@@ -46,12 +46,13 @@ export async function createSlaSignatureSession(
 
 /** Handles the multipart SLA signature upload; invalidates the session after upload. */
 export async function uploadSlaSignature(
-  prisma: PrismaService,
+  persistence: ClinicPersistencePort,
   uploadsService: UploadsService,
   onboardingId: string,
   sessionId: string,
   file: Express.Multer.File,
   uploadSecret: string,
+  now: Date,
   context?: {
     modifiedBy?: string;
     modifiedByRole?: string;
@@ -59,14 +60,14 @@ export async function uploadSlaSignature(
     userAgent?: string;
   },
 ) {
-  const session = await prisma.uploadSession.findUnique({
+  const session = await persistence.uploadSession.findUnique({
     where: { id: sessionId },
   });
 
   if (!session) {
     throw new NotFoundException('Signature session not found');
   }
-  if (session.expiresAt < new Date()) {
+  if (session.expiresAt < now) {
     throw new BadRequestException(
       'This signature link has expired. Please generate a new link from onboarding.',
     );
@@ -86,9 +87,9 @@ export async function uploadSlaSignature(
   });
 
   // One-time onboarding signature links should not be reused after upload.
-  await prisma.uploadSession.update({
+  await persistence.uploadSession.update({
     where: { id: sessionId },
-    data: { expiresAt: new Date() },
+    data: { expiresAt: now },
   });
 
   return updated;
@@ -96,12 +97,12 @@ export async function uploadSlaSignature(
 
 /** Returns the upload/upload status of a signature session. */
 export async function getSlaSignatureSessionStatus(
-  prisma: PrismaService,
+  persistence: ClinicPersistencePort,
   onboardingId: string,
   sessionId: string,
 ): Promise<{ status: string; uploaded: boolean; fileUrl: string | null }> {
   void onboardingId;
-  const session = await prisma.uploadSession.findUnique({
+  const session = await persistence.uploadSession.findUnique({
     where: { id: sessionId },
   });
   if (!session) throw new NotFoundException('Signature session not found');

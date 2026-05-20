@@ -146,7 +146,7 @@ export class InvoiceMapper {
       items: itemsJson as Prisma.InputJsonValue,
       total: invoice.getTotal().amount,
       createdAt: invoice.createdAt,
-      updatedAt: new Date(),
+      updatedAt: invoice.updatedAt,
       version: invoice.version,
       doctorName: invoice.doctorContext?.doctorName,
       doctorEmail: invoice.doctorContext?.doctorEmail,

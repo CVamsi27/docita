@@ -10,6 +10,7 @@ import {
 import { Badge } from "@workspace/ui/components/indicators/badge";
 import { Button } from "@workspace/ui/components/form/button";
 import { useAuth } from "@/lib/auth/auth-context";
+import { appQueryKeys } from "@workspace/data-access";
 import { useAPIQuery } from "@/lib/api/api-core";
 import type { User } from "@workspace/types";
 import { SignatureUploadQR } from "@/features/settings/components/signature-upload-qr";
@@ -28,7 +29,7 @@ export function DoctorProfileSettings() {
   const { user } = useAuth();
 
   const { data: doctorProfile } = useAPIQuery<User>(
-    ["doctor-profile", user?.id ?? ""],
+    appQueryKeys.doctorProfile.detail(user?.id ?? ""),
     `/doctors/${user?.id}`,
     { enabled: !!user?.id },
   );

@@ -1,4 +1,16 @@
-import { Controller, Get, Post, Body, UseGuards, Logger } from '@nestjs/common';
+import {
+  Controller,
+  Get,
+  Post,
+  Body,
+  UseGuards,
+  Logger,
+  Inject,
+} from '@nestjs/common';
+import {
+  CLOCK_PORT,
+  type IClock,
+} from '@/shared/common/ports/clock.port';
 import {
   ApiOperation,
   ApiResponse,
@@ -29,6 +41,7 @@ export class DatabaseOperationsController {
     private slowQueryService: SlowQueryLoggingService,
     private indexService: DatabaseIndexOptimizationService,
     private poolingService: DatabasePoolingService,
+    @Inject(CLOCK_PORT) private readonly clock: IClock,
   ) {
     this.poolingService.logPoolConfig();
   }
@@ -136,7 +149,9 @@ export class DatabaseOperationsController {
     description: 'Tenant scope coverage diagnostics',
   })
   getTenantScopeCoverage() {
-    return tenantScopeDiagnosticsSchema.parse(getTenantScopeDiagnostics());
+    return tenantScopeDiagnosticsSchema.parse(
+      getTenantScopeDiagnostics(this.clock.now()),
+    );
   }
 
   @Get('status')

@@ -163,7 +163,8 @@ function navItemIsAccessible(
   args: {
     role: UserRole | undefined;
     canAccess: CanAccessFeatureFn;
-    canAccessTier: (tier: Tier) => boolean;
+    currentTier: Tier;
+    hasIntelligence: boolean;
     workspaceProfile: WorkspaceProfile;
   },
 ): boolean {
@@ -174,7 +175,8 @@ function navItemIsAccessible(
     {
       role: args.role,
       canAccessFeature: args.canAccess,
-      canAccessTier: args.canAccessTier,
+      currentTier: args.currentTier,
+      hasIntelligence: args.hasIntelligence,
       workspaceProfile: args.workspaceProfile,
     },
     "read",
@@ -187,7 +189,8 @@ export function CommandPalette() {
   const { user } = useAuth();
   const { clinicId } = useClinic();
   const { canStartConsultation } = usePermissions();
-  const { canAccess, canAccessTier, workspaceProfile } = usePermissionStore();
+  const { canAccess, currentTier, hasIntelligence, workspaceProfile } =
+    usePermissionStore();
   const { openOverlay } = useAskAi();
   const navOrder = useSidebarNavOrder({
     clinicId,
@@ -200,7 +203,8 @@ export function CommandPalette() {
     {
       role: user?.role,
       canAccessFeature: canAccess,
-      canAccessTier,
+      currentTier,
+      hasIntelligence,
       workspaceProfile,
     },
     "read",
@@ -297,7 +301,8 @@ export function CommandPalette() {
         !navItemIsAccessible(item, {
           role: user?.role,
           canAccess,
-          canAccessTier,
+          currentTier,
+          hasIntelligence,
           workspaceProfile,
         })
       )
@@ -329,7 +334,8 @@ export function CommandPalette() {
           {
             role: user?.role,
             canAccessFeature: canAccess,
-            canAccessTier,
+            currentTier,
+            hasIntelligence,
             workspaceProfile,
           },
           action.accessMode ?? "write",
@@ -358,9 +364,10 @@ export function CommandPalette() {
     return out;
   }, [
     canAccess,
-    canAccessTier,
     canStartConsultation,
+    currentTier,
     handleStartConsultation,
+    hasIntelligence,
     navOrder,
     openOverlay,
     router,

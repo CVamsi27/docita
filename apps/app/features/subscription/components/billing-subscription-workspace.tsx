@@ -29,7 +29,7 @@ import {
 } from "@workspace/types";
 import { getDisplayBillingPeriodEndAndDaysLeft } from "@/features/subscription/lib/billing-period-display";
 import { recommendTier } from "@/features/subscription/lib/recommend-tier";
-import { getTierName } from "@workspace/types";
+import { getTierName } from "@workspace/utils";
 import {
   formatPlanDate,
   formatStatusLabel,

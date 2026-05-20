@@ -1,4 +1,8 @@
-import { Injectable, Logger } from '@nestjs/common';
+import { Inject, Injectable, Logger } from '@nestjs/common';
+import {
+  CLOCK_PORT,
+  type IClock,
+} from '@/shared/common/ports/clock.port';
 import { PrismaService } from '@/prisma/prisma.service';
 import { AppointmentStatus, Prisma } from '@workspace/db';
 import { runInArchivalMode } from '@/shared/common/extensions/audit-immutability.extension';
@@ -17,12 +21,15 @@ function toNullableJsonInput(
 export class ArchivalService {
   private readonly logger = new Logger(ArchivalService.name);
 
-  constructor(private prisma: PrismaService) {}
+  constructor(
+    private prisma: PrismaService,
+    @Inject(CLOCK_PORT) private readonly clock: IClock,
+  ) {}
 
   async archiveAuditLogs(daysOld = 90): Promise<number> {
     return this.prisma.runUnrestricted(async () =>
       runInArchivalMode(async () => {
-        const cutoffDate = new Date();
+        const cutoffDate = this.clock.now();
         cutoffDate.setDate(cutoffDate.getDate() - daysOld);
 
         this.logger.log(
@@ -57,7 +64,7 @@ export class ArchivalService {
                 errorMessage: record.errorMessage,
                 metadata: toNullableJsonInput(record.metadata),
                 createdAt: record.createdAt,
-                archivedAt: new Date(),
+                archivedAt: this.clock.now(),
               })),
               skipDuplicates: true,
             });
@@ -78,7 +85,7 @@ export class ArchivalService {
 
   async archiveWhatsappLogs(daysOld = 180): Promise<number> {
     return this.prisma.runUnrestricted(async () => {
-      const cutoffDate = new Date();
+      const cutoffDate = this.clock.now();
       cutoffDate.setDate(cutoffDate.getDate() - daysOld);
 
       this.logger.log(
@@ -117,7 +124,7 @@ export class ArchivalService {
               createdAt: record.createdAt,
               updatedAt: record.updatedAt,
               deliveredAt: record.deliveredAt,
-              archivedAt: new Date(),
+              archivedAt: this.clock.now(),
             })),
             skipDuplicates: true,
           });
@@ -137,7 +144,7 @@ export class ArchivalService {
 
   async archiveAppointments(yearsOld = 2): Promise<number> {
     return this.prisma.runUnrestricted(async () => {
-      const cutoffDate = new Date();
+      const cutoffDate = this.clock.now();
       cutoffDate.setFullYear(cutoffDate.getFullYear() - yearsOld);
 
       this.logger.log(
@@ -203,7 +210,7 @@ export class ArchivalService {
               psychiatryExam: toNullableJsonInput(record.psychiatryExam),
               encounterSummary: record.encounterSummary,
               priority: record.priority,
-              archivedAt: new Date(),
+              archivedAt: this.clock.now(),
             })),
             skipDuplicates: true,
           });

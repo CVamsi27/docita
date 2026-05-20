@@ -3,11 +3,19 @@ import {
   NotFoundException,
   BadRequestException,
   Logger,
+  Inject,
 } from '@nestjs/common';
-import { PrismaService } from '@/prisma/prisma.service';
+import {
+  ENTERPRISE_CONTRACT_PERSISTENCE_PORT,
+  type EnterpriseContractPersistencePort,
+} from '@/domains/enterprise-contracts/application/ports/enterprise-contract-persistence.port';
 import { EnterpriseContractStatus, EnterpriseInvoiceKind } from '@workspace/db';
 import { EmailService } from '@/shared/modules/messaging/email/email.service';
 import { AppConfigService } from '@/shared/modules/config/app-configuration.service';
+import {
+  CLOCK_PORT,
+  type IClock,
+} from '@/shared/common/ports/clock.port';
 
 /**
  * Handles enterprise-contract financial operations: annual prepay invoice generation
@@ -20,14 +28,16 @@ export class EnterpriseContractInvoiceCommandService {
   );
 
   constructor(
-    private readonly prisma: PrismaService,
+    @Inject(ENTERPRISE_CONTRACT_PERSISTENCE_PORT)
+    private readonly persistence: EnterpriseContractPersistencePort,
     private readonly emailService: EmailService,
     private readonly configService: AppConfigService,
+    @Inject(CLOCK_PORT) private readonly clock: IClock,
   ) {}
 
   async generateAnnualPrepayInvoice(contractId: string) {
-    return this.prisma.runUnrestricted(async () => {
-      const contract = await this.prisma.enterpriseContract.findUnique({
+    return this.persistence.runUnrestricted(async () => {
+      const contract = await this.persistence.enterpriseContract.findUnique({
         where: { id: contractId },
       });
       if (!contract)
@@ -37,7 +47,7 @@ export class EnterpriseContractInvoiceCommandService {
           'Annual prepay only available for ACTIVE contracts',
         );
 
-      const existing = await this.prisma.enterpriseContractInvoice.findFirst({
+      const existing = await this.persistence.enterpriseContractInvoice.findFirst({
         where: {
           contractId,
           kind: EnterpriseInvoiceKind.ANNUAL_PREPAY,
@@ -56,7 +66,7 @@ export class EnterpriseContractInvoiceCommandService {
       const invoiceNumber = `ENT-PREPAY-${contract.contractNumber}-${periodStart.getFullYear()}`;
       const description = `Annual platform fee prepay for contract ${contract.contractNumber} (${periodStart.toISOString().slice(0, 10)} → ${periodEnd.toISOString().slice(0, 10)})${contract.annualPrepayDiscountPercent ? `, discount ${contract.annualPrepayDiscountPercent}%` : ''}`;
 
-      const payment = await this.prisma.subscriptionPayment.upsert({
+      const payment = await this.persistence.subscriptionPayment.upsert({
         where: {
           clinicId_invoiceNumber: {
             clinicId: contract.primaryClinicId,
@@ -78,7 +88,7 @@ export class EnterpriseContractInvoiceCommandService {
         },
       });
 
-      const invoice = await this.prisma.enterpriseContractInvoice.upsert({
+      const invoice = await this.persistence.enterpriseContractInvoice.upsert({
         where: { subscriptionPaymentId: payment.id },
         update: {
           amountCents: netCents,
@@ -100,7 +110,7 @@ export class EnterpriseContractInvoiceCommandService {
         include: { subscriptionPayment: true },
       });
 
-      await this.prisma.enterpriseContract.update({
+      await this.persistence.enterpriseContract.update({
         where: { id: contractId },
         data: { annualPrepayInvoiceId: invoice.id },
       });
@@ -114,14 +124,14 @@ export class EnterpriseContractInvoiceCommandService {
   async evaluateAndAlertTrueUp(
     contractId: string,
   ): Promise<{ alerted: boolean; observedPercent: number }> {
-    return this.prisma.runUnrestricted(async () => {
-      const contract = await this.prisma.enterpriseContract.findUnique({
+    return this.persistence.runUnrestricted(async () => {
+      const contract = await this.persistence.enterpriseContract.findUnique({
         where: { id: contractId },
       });
       if (!contract || contract.status !== EnterpriseContractStatus.ACTIVE)
         return { alerted: false, observedPercent: 0 };
 
-      const now = new Date();
+      const now = this.clock.now();
       const yearStart =
         contract.startDate > new Date(now.getFullYear(), 0, 1)
           ? contract.startDate
@@ -133,10 +143,10 @@ export class EnterpriseContractInvoiceCommandService {
           1,
       );
 
-      const members = await this.prisma.enterpriseContractMember.findMany({
+      const members = await this.persistence.enterpriseContractMember.findMany({
         where: { contractId, removedAt: null },
       });
-      const ytdOverageAgg = await this.prisma.usageRecord.aggregate({
+      const ytdOverageAgg = await this.persistence.usageRecord.aggregate({
         where: {
           clinicId: { in: members.map((m) => m.clinicId) },
           periodStart: { gte: yearStart, lte: now },
@@ -157,13 +167,13 @@ export class EnterpriseContractInvoiceCommandService {
         return { alerted: false, observedPercent };
 
       const monthStart = new Date(now.getFullYear(), now.getMonth(), 1);
-      const alreadyAlerted = await this.prisma.enterpriseTrueUpAlert.findFirst({
+      const alreadyAlerted = await this.persistence.enterpriseTrueUpAlert.findFirst({
         where: { contractId, alertedAt: { gte: monthStart } },
       });
       if (alreadyAlerted) return { alerted: false, observedPercent };
 
       const recipients = this.configService.getInternalAllowedEmails();
-      await this.prisma.enterpriseTrueUpAlert.create({
+      await this.persistence.enterpriseTrueUpAlert.create({
         data: {
           contractId,
           thresholdPercent: contract.trueUpThresholdPercent,
@@ -173,7 +183,7 @@ export class EnterpriseContractInvoiceCommandService {
           recipients,
         },
       });
-      await this.prisma.enterpriseContract.update({
+      await this.persistence.enterpriseContract.update({
         where: { id: contractId },
         data: { lastTrueUpAlertAt: now },
       });

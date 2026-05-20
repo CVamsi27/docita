@@ -1,6 +1,7 @@
 import { Injectable } from '@nestjs/common';
 import { ThrottlerGuard } from '@nestjs/throttler';
 import type { ExecutionContext } from '@nestjs/common';
+import { getEnv } from '@/shared/modules/config/app-config';
 
 @Injectable()
 export class E2EThrottlerGuard extends ThrottlerGuard {
@@ -10,11 +11,17 @@ export class E2EThrottlerGuard extends ThrottlerGuard {
     }>();
 
     const e2eHeader = request?.headers?.['x-docita-e2e'];
-    const e2eValue = Array.isArray(e2eHeader) ? e2eHeader[0] : e2eHeader;
+    const e2eValue = Array.isArray(e2eHeader)
+      ? String(e2eHeader[0])
+      : typeof e2eHeader === 'string'
+        ? e2eHeader
+        : undefined;
+    const env = getEnv();
+    const isNonProduction = env.NODE_ENV !== 'production';
     if (
-      (process.env.DOCITA_API_E2E === 'true' ||
-        (e2eValue === 'true' && process.env.NODE_ENV !== 'production')) &&
-      process.env.NODE_ENV !== 'production'
+      isNonProduction &&
+      (env.DOCITA_API_E2E === 'true' ||
+        (e2eValue === 'true' && isNonProduction))
     ) {
       return true;
     }

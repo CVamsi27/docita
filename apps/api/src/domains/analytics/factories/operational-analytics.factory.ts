@@ -19,6 +19,10 @@ import {
   ANALYTICS_REPOSITORY_TOKEN,
   IAnalyticsRepository,
 } from '@/domains/analytics/core/repositories/analytics.repository.interface';
+import {
+  CLOCK_PORT,
+  type IClock,
+} from '@/shared/common/ports/clock.port';
 
 /**
  * Orchestrates analytics queries: caching, DTO shaping, and growth-rate math.
@@ -34,6 +38,7 @@ export class OperationalAnalyticsFactory {
     private readonly repository: IAnalyticsRepository,
     private readonly configService: AppConfigService,
     @Inject(CACHE_MANAGER) private readonly cacheManager: Cache,
+    @Inject(CLOCK_PORT) private readonly clock: IClock,
   ) {}
 
   async getOverview(clinicId: string, timezone: string = DEFAULT_TIMEZONE) {
@@ -43,8 +48,9 @@ export class OperationalAnalyticsFactory {
       return cachedResult;
     }
 
-    const thisMonthRange = getMonthRange(new Date(), { timezone });
-    const lastMonthDate = new Date();
+    const now = this.clock.now();
+    const thisMonthRange = getMonthRange(now, { timezone });
+    const lastMonthDate = new Date(now);
     lastMonthDate.setMonth(lastMonthDate.getMonth() - 1);
     const lastMonthRange = getMonthRange(lastMonthDate, { timezone });
 
@@ -119,7 +125,7 @@ export class OperationalAnalyticsFactory {
     clinicId: string,
     timezone: string = DEFAULT_TIMEZONE,
   ) {
-    const monthRange = getMonthRange(new Date(), { timezone });
+    const monthRange = getMonthRange(this.clock.now(), { timezone });
     const breakdown = await this.repository.getAppointmentStatusBreakdown(
       clinicId,
       monthRange.start,
@@ -204,7 +210,7 @@ export class OperationalAnalyticsFactory {
       if (endDate) where.createdAt.lte = endDate;
     }
 
-    const now = new Date();
+    const now = this.clock.now();
     const cutoffs = {
       age18: new Date(now.getFullYear() - 18, now.getMonth(), now.getDate()),
       age35: new Date(now.getFullYear() - 35, now.getMonth(), now.getDate()),
@@ -246,7 +252,7 @@ export class OperationalAnalyticsFactory {
   }
 
   async getUncodedVisitsStats(clinicId: string) {
-    const now = new Date();
+    const now = this.clock.now();
     const sevenDaysAgo = new Date(now);
     sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 7);
 

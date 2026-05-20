@@ -1,4 +1,5 @@
 import { type NextRequest, NextResponse } from "next/server";
+import { applyInternalSecurityHeaders } from "./shared/lib/security/security-headers";
 
 const STATIC_EXT =
   /\.(?:svg|png|jpg|jpeg|gif|webp|ico|avif|woff2?|ttf|txt|xml|json|webmanifest)$/i;
@@ -39,30 +40,36 @@ export function middleware(request: NextRequest): NextResponse {
     pathname.startsWith("/fonts/") ||
     STATIC_EXT.test(pathname)
   ) {
-    return NextResponse.next();
+    return applyInternalSecurityHeaders(NextResponse.next());
   }
 
   if (pathname === "/robots.txt") {
-    return NextResponse.next();
+    return applyInternalSecurityHeaders(NextResponse.next());
   }
 
   if (pathname === "/") {
-    return NextResponse.next();
+    return applyInternalSecurityHeaders(NextResponse.next());
   }
 
   if (pathname.startsWith("/clinic")) {
-    return NextResponse.redirect(new URL("/dashboard", request.url));
+    return applyInternalSecurityHeaders(
+      NextResponse.redirect(new URL("/dashboard", request.url)),
+    );
   }
 
   if (pathname === "/dashboard/doctors") {
-    return NextResponse.redirect(new URL("/doctors", request.url));
+    return applyInternalSecurityHeaders(
+      NextResponse.redirect(new URL("/doctors", request.url)),
+    );
   }
 
   if (isPortalPath(pathname)) {
-    return NextResponse.next();
+    return applyInternalSecurityHeaders(NextResponse.next());
   }
 
-  return NextResponse.redirect(new URL("/dashboard", request.url));
+  return applyInternalSecurityHeaders(
+    NextResponse.redirect(new URL("/dashboard", request.url)),
+  );
 }
 
 export const config = {

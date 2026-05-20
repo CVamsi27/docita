@@ -5,6 +5,7 @@ import {
   type StaffAccountDeletionResponse,
   type UserProfileResponse,
 } from "@workspace/types";
+import { queryKeys } from "../lib/query-keys";
 import { useAPIMutation } from "../core/use-api-mutation";
 import { useAPIQueryValidated } from "../core/use-api-query-validated";
 
@@ -16,7 +17,7 @@ export const useUpdateProfile = () =>
 
 export const useUserProfile = () =>
   useAPIQueryValidated(
-    ["users", "profile"],
+    queryKeys.users.profile(),
     "/users/profile",
     z.object({
       id: z.string(),

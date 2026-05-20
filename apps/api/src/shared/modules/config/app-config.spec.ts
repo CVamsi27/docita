@@ -24,9 +24,11 @@ describe('app-config validateEnv', () => {
     };
   }
 
-  beforeEach(() => {
+  beforeEach(async () => {
     jest.resetModules();
     process.env = { ...originalEnv };
+    const { EnvConfigStore } = await import('./env-config.store');
+    EnvConfigStore.resetForTests();
   });
 
   afterEach(() => {

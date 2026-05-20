@@ -82,6 +82,9 @@ export enum Feature {
   SSO = "SSO",
   BULK_IMPORT_SUITE = "BULK_IMPORT_SUITE",
 
+  WHITE_LABEL_BRANDING = "WHITE_LABEL_BRANDING",
+  LOCKED_CUSTOM_THEME = "LOCKED_CUSTOM_THEME",
+
   AI_PRESCRIPTION_ASSISTANT = "AI_PRESCRIPTION_ASSISTANT",
   AI_DIAGNOSIS_HINTS = "AI_DIAGNOSIS_HINTS",
   SMART_TASK_ENGINE = "SMART_TASK_ENGINE",
@@ -90,7 +93,7 @@ export enum Feature {
   ANOMALY_DETECTION = "ANOMALY_DETECTION",
 }
 
-const PLANNED_FEATURES: ReadonlySet<Feature> = new Set([
+export const PLANNED_FEATURES: ReadonlySet<Feature> = new Set([
   Feature.MULTI_CLINIC,
   Feature.INSURANCE_BILLING,
   Feature.DIGITAL_INTAKE_FORMS,
@@ -110,10 +113,6 @@ const PLANNED_FEATURES: ReadonlySet<Feature> = new Set([
   Feature.PATIENT_SEGMENTATION,
   Feature.ANOMALY_DETECTION,
 ]);
-
-export function isFeatureGenerallyAvailable(feature: Feature): boolean {
-  return !PLANNED_FEATURES.has(feature);
-}
 
 /**
  * Clinical / multi-doctor features blocked for front-desk workspaces and
@@ -203,19 +202,9 @@ export const FEATURE_TIER_MAP: Record<Feature, Tier> = {
 
   [Feature.DATA_WAREHOUSE_EXPORT]: Tier.ENTERPRISE,
   [Feature.DEDICATED_DEPLOYMENT]: Tier.ENTERPRISE,
+  [Feature.WHITE_LABEL_BRANDING]: Tier.ENTERPRISE,
+  [Feature.LOCKED_CUSTOM_THEME]: Tier.ENTERPRISE,
 };
-
-export function getMinimumTierForFeature(feature: Feature): Tier {
-  return FEATURE_TIER_MAP[feature];
-}
-
-export function assertNotIntelligenceComparison(tier: Tier): void {
-  if (tier === Tier.INTELLIGENCE || tier === Tier.FRONT_DESK) {
-    throw new Error(
-      "Tier.INTELLIGENCE and Tier.FRONT_DESK must use feature access checks, not numeric tier comparisons.",
-    );
-  }
-}
 
 export type SupportedCurrency =
   | "INR"
@@ -331,7 +320,8 @@ export interface MultiCurrencyTierPricing {
   yearly: number | "custom";
 }
 
-export function deriveAnnualPrice(monthly: number): number {
+/** Internal helper for static pricing tables; public API: `@workspace/utils` `deriveAnnualPrice`. */
+function deriveAnnualPrice(monthly: number): number {
   return Math.round(monthly * 10);
 }
 
@@ -1153,9 +1143,8 @@ export const REFERRAL_REWARDS_BY_CURRENCY: Record<
   },
 };
 
-// Currency-aware pricing helpers (getTierPricingByCurrency, getOverageRatesByCurrency, ...)
-// were extracted to `@workspace/utils/billing/tier-pricing` per §15.3. Import them from
-// `@workspace/utils`.
+// Runtime tier helpers (hasFeatureAccess, getTierPricing, deriveAnnualPrice, …) live in
+// `@workspace/utils/billing/tier-rules`. Currency-aware pricing: `@workspace/utils/billing/tier-pricing`.
 
 export const tierInfoSchema = z.object({
   name: z.string(),
@@ -1315,88 +1304,6 @@ export const TIER_FEATURES: Record<TierName, string[]> = {
   ],
   INTELLIGENCE: [],
 };
-
-export function getTierValue(tierName: TierName): Tier {
-  if (tierName === "FRONT_DESK") {
-    return Tier.FRONT_DESK;
-  }
-  return Tier[tierName];
-}
-
-export function getTierName(tier: Tier): TierName {
-  if (tier === Tier.FRONT_DESK) {
-    return "FRONT_DESK";
-  }
-  return Tier[tier] as TierName;
-}
-
-export function hasFeatureAccess(
-  tier: TierName,
-  feature: Feature,
-  hasIntelligence = false,
-): boolean {
-  if (!isFeatureGenerallyAvailable(feature)) {
-    return false;
-  }
-
-  const requiredTier = FEATURE_TIER_MAP[feature];
-
-  if (requiredTier === Tier.INTELLIGENCE) {
-    return hasIntelligence;
-  }
-
-  if (tier === "FRONT_DESK") {
-    if (FRONT_DESK_BLOCKED_FEATURES.has(feature)) {
-      return false;
-    }
-    return Tier.ESSENTIAL >= requiredTier;
-  }
-
-  return getTierValue(tier) >= requiredTier;
-}
-
-/**
- * Generally available {@link Feature} values enabled for this billed tier,
- * derived only from {@link hasFeatureAccess} (same rules as API feature guards).
- */
-export function getFeaturesForTier(tier: TierName): Feature[] {
-  return (Object.keys(FEATURE_TIER_MAP) as Feature[]).filter((feature) =>
-    hasFeatureAccess(tier, feature, false),
-  );
-}
-
-/** Alias of {@link getFeaturesForTier}; cumulative SKUs use the same access set. */
-export function getAllFeaturesUpToTier(tier: TierName): Feature[] {
-  return getFeaturesForTier(tier);
-}
-
-export function getIntelligenceBundlePrice(): number {
-  const totalPrice = INTELLIGENCE_ADDONS.reduce(
-    (sum, addon) => sum + addon.monthlyPrice,
-    0,
-  );
-  return Math.round(totalPrice * (1 - INTELLIGENCE_BUNDLE_DISCOUNT));
-}
-
-export function getTierInfo(tier: Tier | TierName): TierInfo {
-  const tierName = typeof tier === "number" ? getTierName(tier) : tier;
-  return TIER_INFO[tierName];
-}
-
-export function getTierPricing(tier: Tier | TierName): TierPricing {
-  const tierName = typeof tier === "number" ? getTierName(tier) : tier;
-  return TIER_PRICING[tierName];
-}
-
-export function getTierLimits(tier: Tier | TierName): TierLimits {
-  const tierName = typeof tier === "number" ? getTierName(tier) : tier;
-  return TIER_LIMITS[tierName];
-}
-
-export function getTierFeaturesList(tier: Tier | TierName): string[] {
-  const tierName = typeof tier === "number" ? getTierName(tier) : tier;
-  return TIER_FEATURES[tierName];
-}
 
 export const usageMetricsSchema = z.object({
   consultations: z.number().int().min(0),

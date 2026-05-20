@@ -17,7 +17,7 @@ import {
   APP_ACCESS_TARGETS,
   type AppAccessTarget,
   type Feature,
-  type Tier,
+  Tier,
   type UserRole,
   type WorkspaceProfile,
 } from "@workspace/types";
@@ -78,7 +78,8 @@ function isInboxTabVisible(
   tab: InboxTabDef,
   role: UserRole | undefined,
   canAccessFeature: (feature: Feature) => boolean,
-  canAccessTier: (tier: Tier) => boolean,
+  currentTier: Tier,
+  hasIntelligence: boolean,
   workspaceProfile: WorkspaceProfile,
 ): boolean {
   if (tab.requiredPermission) {
@@ -95,7 +96,8 @@ function isInboxTabVisible(
       {
         role,
         canAccessFeature,
-        canAccessTier,
+        currentTier,
+        hasIntelligence,
         workspaceProfile,
       },
       "read",
@@ -109,7 +111,8 @@ function InboxContent() {
   const searchParams = useSearchParams();
   const { user } = useAuth();
   const canAccessFeature = usePermissionStore((s) => s.canAccess);
-  const canAccessTier = usePermissionStore((s) => s.canAccessTier);
+  const currentTier = usePermissionStore((s) => s.currentTier);
+  const hasIntelligence = usePermissionStore((s) => s.hasIntelligence);
   const workspaceProfile = usePermissionStore((s) => s.workspaceProfile);
 
   const visibleTabs = useMemo(
@@ -119,11 +122,12 @@ function InboxContent() {
           tab,
           user?.role as UserRole | undefined,
           canAccessFeature,
-          canAccessTier,
+          currentTier,
+          hasIntelligence,
           workspaceProfile,
         ),
       ),
-    [user?.role, canAccessFeature, canAccessTier, workspaceProfile],
+    [user?.role, canAccessFeature, currentTier, hasIntelligence, workspaceProfile],
   );
 
   const defaultTab = visibleTabs[0]?.value ?? "notifications";
@@ -229,4 +233,3 @@ export function InboxPageContent() {
     </Suspense>
   );
 }
-

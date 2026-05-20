@@ -1,6 +1,18 @@
 import { Module, forwardRef } from '@nestjs/common';
 import { AuthService } from './auth.service';
-import { AuthController } from './auth.controller';
+import { CredentialValidationService } from './credential-validation.service';
+import { AuthSessionService } from './auth-session.service';
+import { AuthRegistrationService } from './auth-registration.service';
+import { AuthPasswordService } from './auth-password.service';
+import { AuthEmailVerificationService } from './auth-email-verification.service';
+import { AuthMfaOrchestratorService } from './auth-mfa-orchestrator.service';
+import { AuthRegistrationController } from './auth-registration.controller';
+import { AuthLoginController } from './auth-login.controller';
+import { AuthPasswordController } from './auth-password.controller';
+import { AuthSessionController } from './auth-session.controller';
+import { AuthMfaController } from './auth-mfa.controller';
+import { AuthVerificationController } from './auth-verification.controller';
+import { AuthApiKeysController } from './auth-api-keys.controller';
 import { MfaService } from './mfa.service';
 import { ApiKeyService } from './api-key.service';
 import { PrismaModule } from '@/prisma/prisma.module';
@@ -54,6 +66,12 @@ type JwtDuration = `${number}${'s' | 'm' | 'h' | 'd' | 'w' | 'y'}`;
   ],
   providers: [
     AuthService,
+    CredentialValidationService,
+    AuthSessionService,
+    AuthRegistrationService,
+    AuthPasswordService,
+    AuthEmailVerificationService,
+    AuthMfaOrchestratorService,
     MfaService,
     ApiKeyService,
     JwtStrategy,
@@ -71,7 +89,15 @@ type JwtDuration = `${number}${'s' | 'm' | 'h' | 'd' | 'w' | 'y'}`;
       useClass: DefaultPasswordPolicy,
     },
   ],
-  controllers: [AuthController],
+  controllers: [
+    AuthRegistrationController,
+    AuthLoginController,
+    AuthPasswordController,
+    AuthSessionController,
+    AuthMfaController,
+    AuthVerificationController,
+    AuthApiKeysController,
+  ],
   exports: [
     AuthService,
     MfaService,

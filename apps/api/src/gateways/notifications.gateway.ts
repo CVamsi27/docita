@@ -6,8 +6,13 @@ import {
   OnGatewayDisconnect,
 } from '@nestjs/websockets';
 import { Server, Socket } from 'socket.io';
-import { Logger, UseGuards } from '@nestjs/common';
+import { Inject, Logger, UseGuards } from '@nestjs/common';
+import {
+  CLOCK_PORT,
+  type IClock,
+} from '@/shared/common/ports/clock.port';
 import { OnEvent } from '@nestjs/event-emitter';
+import { ApplicationEvents } from '@/shared/common/events/application-events';
 import { getWebSocketCorsOrigins } from '@/shared/modules/config/app-config';
 import { WsJwtAuthGuard } from '@/shared/modules/auth/auth/ws-jwt-auth.guard';
 import { PrismaService } from '@/prisma/prisma.service';
@@ -55,6 +60,7 @@ export class NotificationsGateway
   constructor(
     private readonly prisma: PrismaService,
     private readonly jwtService: JwtService,
+    @Inject(CLOCK_PORT) private readonly clock: IClock,
   ) {}
 
   async handleConnection(client: Socket) {
@@ -140,7 +146,7 @@ export class NotificationsGateway
     };
   }
 
-  @OnEvent('notification.created')
+  @OnEvent(ApplicationEvents.NOTIFICATION_CREATED)
   handleNotificationCreated(payload: {
     clinicId: string;
     userId: string;
@@ -153,7 +159,7 @@ export class NotificationsGateway
     );
   }
 
-  @OnEvent('notification.read')
+  @OnEvent(ApplicationEvents.NOTIFICATION_READ)
   handleNotificationRead(payload: {
     clinicId: string;
     userId: string;
@@ -166,7 +172,7 @@ export class NotificationsGateway
     );
   }
 
-  @OnEvent('notification.deleted')
+  @OnEvent(ApplicationEvents.NOTIFICATION_DELETED)
   handleNotificationDeleted(payload: {
     clinicId: string;
     userId: string;
@@ -179,7 +185,7 @@ export class NotificationsGateway
     );
   }
 
-  @OnEvent('notification.bulk-deleted')
+  @OnEvent(ApplicationEvents.NOTIFICATION_BULK_DELETED)
   handleBulkDeleted(payload: { clinicId: string; userId: string }) {
     this.emitBulkDelete(payload.clinicId, payload.userId);
   }
@@ -223,7 +229,7 @@ export class NotificationsGateway
     userId: string | null,
     notificationId: string,
   ) {
-    const data = { id: notificationId, readAt: new Date() };
+    const data = { id: notificationId, readAt: this.clock.now() };
     if (userId) {
       this.server.to(`user:${userId}`).emit('notification:read', data);
       this.logger.log(`Emitted read status for notification ${notificationId}`);
@@ -235,7 +241,7 @@ export class NotificationsGateway
   private emitBulkDelete(clinicId: string, userId: string) {
     this.server.to(`user:${userId}`).emit('notification:bulk-delete', {
       userId,
-      timestamp: new Date(),
+      timestamp: this.clock.now(),
     });
     this.logger.log(`Emitted bulk delete for user ${userId}`);
   }

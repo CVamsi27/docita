@@ -5,7 +5,10 @@ import { DocitaLoadingIndicator } from "@workspace/ui/components/feedback/docita
 import { useEffect } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
-import * as z from "zod";
+import {
+  securitySettingsFormSchema,
+  type SecuritySettingsFormValues,
+} from "@workspace/types";
 import {
   Card,
   CardContent,
@@ -38,20 +41,6 @@ import {
   FormMessage,
 } from "@workspace/ui/components/form/form";
 
-const securitySettingsSchema = z.object({
-  twoFactorAuth: z.boolean(),
-  sessionTimeout: z
-    .string()
-    .min(1, "Enter a session timeout")
-    .refine((value) => {
-      const parsed = Number(value);
-      return Number.isFinite(parsed) && parsed >= 5 && parsed <= 240;
-    }, "Use a value between 5 and 240 minutes"),
-  auditLogs: z.boolean(),
-});
-
-type SecuritySettingsFormValues = z.infer<typeof securitySettingsSchema>;
-
 export function SecuritySettings() {
   const { data: clinic, isLoading } = useClinicSettings();
   const { mutate: updateSettings, isPending: isSaving } =
@@ -59,7 +48,7 @@ export function SecuritySettings() {
   const { canAccess } = usePermissionStore();
 
   const form = useForm<SecuritySettingsFormValues>({
-    resolver: zodResolver(securitySettingsSchema),
+    resolver: zodResolver(securitySettingsFormSchema),
     defaultValues: {
       twoFactorAuth: false,
       sessionTimeout: "30",

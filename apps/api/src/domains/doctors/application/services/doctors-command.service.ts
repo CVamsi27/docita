@@ -11,10 +11,14 @@ import { StoredFileUrlResolverService } from '@/domains/documents/application/se
 import {
   StorageProvider,
   StorageFile,
-} from '@/domains/documents/infrastructure/storage.provider';
+} from '@/domains/documents/application/ports/storage-provider.port';
 import { DoctorsQueryService } from './doctors-query.service';
 import { DoctorProfileService } from './doctor-profile.service';
 import { DoctorAdminVerificationCommandService } from './doctor-admin-verification-command.service';
+import {
+  CLOCK_PORT,
+  type IClock,
+} from '@/shared/common/ports/clock.port';
 
 interface CreateDoctorData {
   email: string;
@@ -97,6 +101,7 @@ export class DoctorsCommandService {
     private readonly queryService: DoctorsQueryService,
     private readonly profileService: DoctorProfileService,
     private readonly adminVerificationService: DoctorAdminVerificationCommandService,
+    @Inject(CLOCK_PORT) private readonly clock: IClock,
   ) {}
 
   async create(clinicId: string, data: CreateDoctorData) {
@@ -184,7 +189,7 @@ export class DoctorsCommandService {
     if (licenseExpiry !== undefined) updateData.licenseExpiry = licenseExpiry;
     if (signatureUrl !== undefined) {
       updateData.signatureUrl = signatureUrl;
-      updateData.signatureUploadedAt = signatureUrl ? new Date() : null;
+      updateData.signatureUploadedAt = signatureUrl ? this.clock.now() : null;
     }
     if (profilePhotoUrl !== undefined)
       updateData.profilePhotoUrl = profilePhotoUrl;

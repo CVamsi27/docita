@@ -2,6 +2,7 @@ import { Injectable, Logger, OnModuleInit } from '@nestjs/common';
 import { createHash } from 'crypto';
 import { IDEMPOTENCY_TTL_SECONDS_DEFAULT } from './idempotency.constants';
 import { IdempotencyRepository } from './idempotency.repository';
+import { AppConfigService } from '@/shared/modules/config/app-configuration.service';
 
 export interface CachedIdempotencyEntry {
   /**
@@ -25,10 +26,13 @@ export interface CachedIdempotencyEntry {
 export class IdempotencyService implements OnModuleInit {
   private readonly logger = new Logger(IdempotencyService.name);
 
-  constructor(private readonly repository: IdempotencyRepository) {}
+  constructor(
+    private readonly repository: IdempotencyRepository,
+    private readonly config: AppConfigService,
+  ) {}
 
   onModuleInit(): void {
-    if (process.env.NODE_ENV !== 'test') {
+    if (!this.config.isTest()) {
       this.logger.log(
         'HTTP idempotency is persisted to Postgres and is safe across API replicas.',
       );

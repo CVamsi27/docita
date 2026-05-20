@@ -1,11 +1,7 @@
 import { ForbiddenException } from '@nestjs/common';
 import { ClinicTier, IntelligenceAddon } from '@workspace/db';
-import {
-  Feature,
-  hasFeatureAccess,
-  isFeatureGenerallyAvailable,
-  mapDbClinicTierStringToTierName,
-} from '@workspace/types';
+import { Feature, mapDbClinicTierStringToTierName } from '@workspace/types';
+import { hasFeatureAccess, isFeatureGenerallyAvailable } from '@workspace/utils';
 import {
   FEATURE_TIER_MAP,
   Tier,

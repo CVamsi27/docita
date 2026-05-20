@@ -1,4 +1,8 @@
-import { Injectable, Logger } from '@nestjs/common';
+import { Inject, Injectable, Logger } from '@nestjs/common';
+import {
+  CLOCK_PORT,
+  type IClock,
+} from '@/shared/common/ports/clock.port';
 import { PrismaService } from '@/prisma/prisma.service';
 import { AppConfigService } from '@/shared/modules/config/app-configuration.service';
 
@@ -16,6 +20,7 @@ export class SlowQueryLoggingService {
   constructor(
     private prisma: PrismaService,
     private configService: AppConfigService,
+    @Inject(CLOCK_PORT) private readonly clock: IClock,
   ) {
     this.setupQueryLogging();
   }
@@ -45,7 +50,7 @@ export class SlowQueryLoggingService {
         const slowQuery: SlowQuery = {
           query: event.query,
           duration,
-          timestamp: new Date(),
+          timestamp: this.clock.now(),
         };
 
         this.slowQueries.push(slowQuery);

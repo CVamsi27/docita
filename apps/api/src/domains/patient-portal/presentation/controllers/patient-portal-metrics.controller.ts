@@ -23,6 +23,8 @@ import {
   MetricHistoryQueryDto,
   UpsertMetricSelectionsDto,
 } from '@/domains/patients/application/dto/patient-metrics.dto';
+import { AuditService } from '@/shared/modules/audit/audit/audit.service';
+import { logPatientPortalPhiRead } from '@/shared/modules/audit/audit/patient-access-audit.util';
 
 @ApiTags('patient-portal-metrics')
 @Controller('patient-portal/metrics')
@@ -34,6 +36,7 @@ export class PatientPortalMetricsController {
   constructor(
     private readonly portalMetricsService: PatientPortalMetricsService,
     private readonly contextService: PatientPortalContextService,
+    private readonly auditService: AuditService,
   ) {}
 
   private async resolveContext(req: RequestWithUser) {
@@ -42,6 +45,17 @@ export class PatientPortalMetricsController {
       throw new UnauthorizedException('User context required');
     }
     return this.contextService.getPatientContext(userId);
+  }
+
+  private async resolveContextWithAudit(req: RequestWithUser) {
+    const context = await this.resolveContext(req);
+    await logPatientPortalPhiRead(
+      this.auditService,
+      req,
+      context,
+      'VIEW_HISTORY',
+    );
+    return context;
   }
 
   @Get('categories')
@@ -57,14 +71,14 @@ export class PatientPortalMetricsController {
     @Request() req: RequestWithUser,
     @Query() query: MetricHistoryQueryDto,
   ) {
-    const { patientId, clinicId } = await this.resolveContext(req);
+    const { patientId, clinicId } = await this.resolveContextWithAudit(req);
     return this.portalMetricsService.getHistory(clinicId, patientId, query);
   }
 
   @Get('selected')
   @ApiOperation({ summary: 'Get selected metrics for patient' })
   async getSelected(@Request() req: RequestWithUser) {
-    const { patientId, clinicId } = await this.resolveContext(req);
+    const { patientId, clinicId } = await this.resolveContextWithAudit(req);
     return this.portalMetricsService.getSelections(clinicId, patientId);
   }
 
@@ -110,7 +124,7 @@ export class PatientPortalMetricsController {
     @Request() req: RequestWithUser,
     @Query() query: MetricHistoryQueryDto,
   ) {
-    const { patientId, clinicId } = await this.resolveContext(req);
+    const { patientId, clinicId } = await this.resolveContextWithAudit(req);
     return this.portalMetricsService.getHistory(clinicId, patientId, query);
   }
 }

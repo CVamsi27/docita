@@ -1,14 +1,20 @@
 "use client";
 
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useMemo, useState } from "react";
+import { enterpriseContractsAPI } from "@/lib/api/api";
 import {
-  EnterpriseContractEstimate,
-  EnterpriseContractInvoiceRow,
-  EnterpriseContractRevisionRow,
-  EnterpriseContractRow,
-  enterpriseContractsAPI,
-  EnterpriseTrueUpAlertRow,
-} from "@/lib/api/api";
+  fetchInternalEnterpriseContractEstimate,
+  fetchInternalEnterpriseContractInvoices,
+  fetchInternalEnterpriseContractRevisions,
+  fetchInternalEnterpriseContractTrueUpAlerts,
+  useInternalEnterpriseContracts,
+  type InternalEnterpriseContractEstimate as EnterpriseContractEstimate,
+  type InternalEnterpriseContractInvoiceRow as EnterpriseContractInvoiceRow,
+  type InternalEnterpriseContractRevisionRow as EnterpriseContractRevisionRow,
+  type InternalEnterpriseContractRow as EnterpriseContractRow,
+  type InternalEnterpriseTrueUpAlertRow as EnterpriseTrueUpAlertRow,
+} from "@workspace/data-access/internal";
+import { useDataAccessFetcher } from "@workspace/data-access";
 import { useAuth } from "@/lib/auth/auth";
 import { formatCurrency, formatDate } from "@workspace/utils";
 import {
@@ -246,8 +252,10 @@ const statusBadgeClass: Record<EnterpriseContractRow["status"], string> = {
 
 export default function EnterpriseContractsPage() {
   const { token } = useAuth();
-  const [rows, setRows] = useState<EnterpriseContractRow[]>([]);
-  const [loading, setLoading] = useState(true);
+  const fetcher = useDataAccessFetcher();
+  const contractsQuery = useInternalEnterpriseContracts(token);
+  const rows = contractsQuery.data ?? [];
+  const loading = contractsQuery.isLoading;
   const [refreshing, setRefreshing] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
@@ -281,23 +289,15 @@ export default function EnterpriseContractsPage() {
   const [alertsOpen, setAlertsOpen] = useState(false);
   const [alerts, setAlerts] = useState<EnterpriseTrueUpAlertRow[]>([]);
 
-  const load = useCallback(async () => {
+  const load = async () => {
     setRefreshing(true);
     setError(null);
-    try {
-      const list = await enterpriseContractsAPI.list();
-      setRows(list);
-    } catch {
+    const result = await contractsQuery.refetch();
+    if (result.isError) {
       setError("We couldn’t load enterprise contracts. Please try again.");
-    } finally {
-      setLoading(false);
-      setRefreshing(false);
     }
-  }, []);
-
-  useEffect(() => {
-    if (token) void load();
-  }, [token, load]);
+    setRefreshing(false);
+  };
 
   const openCreate = () => {
     setEditorMode("create");
@@ -381,7 +381,10 @@ export default function EnterpriseContractsPage() {
     setEstimateOpen(true);
     setEstimateLoading(true);
     try {
-      const est = await enterpriseContractsAPI.estimate(contractId);
+      const est = await fetchInternalEnterpriseContractEstimate(
+        fetcher,
+        contractId,
+      );
       setEstimate(est);
     } catch {
       setError("We couldn’t load the estimate. Please try again.");
@@ -394,7 +397,10 @@ export default function EnterpriseContractsPage() {
     setRevisions([]);
     setRevisionsOpen(true);
     try {
-      const list = await enterpriseContractsAPI.listRevisions(contractId);
+      const list = await fetchInternalEnterpriseContractRevisions(
+        fetcher,
+        contractId,
+      );
       setRevisions(list);
     } catch {
       setError("We couldn’t load revisions. Please try again.");
@@ -475,7 +481,10 @@ export default function EnterpriseContractsPage() {
     setInvoices([]);
     setInvoicesOpen(true);
     try {
-      const list = await enterpriseContractsAPI.listInvoices(contractId);
+      const list = await fetchInternalEnterpriseContractInvoices(
+        fetcher,
+        contractId,
+      );
       setInvoices(list);
     } catch {
       setError("We couldn’t load invoices. Please try again.");
@@ -504,7 +513,10 @@ export default function EnterpriseContractsPage() {
     setAlerts([]);
     setAlertsOpen(true);
     try {
-      const list = await enterpriseContractsAPI.listTrueUpAlerts(contractId);
+      const list = await fetchInternalEnterpriseContractTrueUpAlerts(
+        fetcher,
+        contractId,
+      );
       setAlerts(list);
     } catch {
       setError("We couldn’t load alerts. Please try again.");

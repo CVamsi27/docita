@@ -1,10 +1,6 @@
 import { SetMetadata } from '@nestjs/common';
-import {
-  Tier,
-  Feature,
-  FEATURE_TIER_MAP,
-  isFeatureGenerallyAvailable,
-} from '@workspace/types';
+import { Tier, Feature, FEATURE_TIER_MAP } from '@workspace/types';
+import { isFeatureGenerallyAvailable } from '@workspace/utils';
 
 export { Tier, Feature, FEATURE_TIER_MAP, isFeatureGenerallyAvailable };
 

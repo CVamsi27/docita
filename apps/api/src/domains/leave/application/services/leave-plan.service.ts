@@ -12,6 +12,9 @@ import {
 } from '@/domains/leave/core/repositories/leave.repository.interface';
 import { LeaveMapper } from '@/domains/leave/infrastructure/mappers/leave.mapper';
 
+/**
+ * Thin facade — delegates leave plan persistence to ILeaveRepository.
+ */
 @Injectable()
 export class LeavePlanService {
   private readonly logger = new Logger(LeavePlanService.name);

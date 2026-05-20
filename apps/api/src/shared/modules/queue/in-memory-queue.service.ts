@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, Logger } from '@nestjs/common';
 import {
   IQueueProvider,
   QueueJob,
@@ -15,6 +15,7 @@ interface InMemoryJob<T extends QueueJobData> extends QueueJob<T> {
 
 @Injectable()
 export class InMemoryQueueService implements IQueueProvider {
+  private readonly logger = new Logger(InMemoryQueueService.name);
   private jobs = new Map<string, InMemoryJob<QueueJobData>>();
   private jobsByName = new Map<string, Set<string>>();
   private handlers = new Map<string, QueueJobHandler>();
@@ -58,7 +59,12 @@ export class InMemoryQueueService implements IQueueProvider {
       await this.processJob(job);
     } else {
       setTimeout(() => {
-        void this.processJob(job).catch(() => {});
+        void this.processJob(job).catch((error: unknown) => {
+          this.logger.error(
+            `Delayed in-memory queue job ${job.id} failed: ${error instanceof Error ? error.message : String(error)}`,
+            error instanceof Error ? error.stack : undefined,
+          );
+        });
       }, options.delay);
     }
 

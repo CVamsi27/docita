@@ -22,6 +22,8 @@ import {
   getDbRolesForTarget,
   requireFeatureForTarget,
 } from '@/shared/modules/auth/auth/access-matrix.util';
+import { AuditService } from '@/shared/modules/audit/audit/audit.service';
+import { logClinicPhiListRead } from '@/shared/modules/audit/audit/patient-access-audit.util';
 
 @ApiTags('Queue')
 @Controller('queue')
@@ -29,13 +31,16 @@ import {
 @RequireFeature(requireFeatureForTarget(APP_ACCESS_TARGETS.API_QUEUE))
 @Roles(...getDbRolesForTarget(APP_ACCESS_TARGETS.API_QUEUE))
 export class QueueController {
-  constructor(private readonly queueService: QueueService) {}
+  constructor(
+    private readonly queueService: QueueService,
+    private readonly auditService: AuditService,
+  ) {}
 
   @Get()
   @ApiOperation({
     summary: 'Get active queue (WAITING + IN_PROGRESS) for today',
   })
-  getQueue(
+  async getQueue(
     @Request() req: RequestWithUser,
     @Query('doctorId') doctorId?: string,
     @Query('search') search?: string,
@@ -49,6 +54,14 @@ export class QueueController {
     if (doctorScope.denied) {
       throw new ForbiddenException('Doctors can only access their queue');
     }
+
+    await logClinicPhiListRead(
+      this.auditService,
+      req,
+      'VIEW_APPOINTMENT_LIST',
+      'Appointment',
+      { scope: 'queue', doctorId: doctorScope.scopedDoctorId, search },
+    );
 
     return this.queueService.getQueue(
       req.user!.clinicId!,
@@ -59,7 +72,7 @@ export class QueueController {
 
   @Get('today')
   @ApiOperation({ summary: 'Get full queue for today with stats' })
-  getTodayQueue(
+  async getTodayQueue(
     @Request() req: RequestWithUser,
     @Query('doctorId') doctorId?: string,
     @Query('search') search?: string,
@@ -73,6 +86,14 @@ export class QueueController {
     if (doctorScope.denied) {
       throw new ForbiddenException('Doctors can only access their queue');
     }
+
+    await logClinicPhiListRead(
+      this.auditService,
+      req,
+      'VIEW_APPOINTMENT_LIST',
+      'Appointment',
+      { scope: 'queue-today', doctorId: doctorScope.scopedDoctorId, search },
+    );
 
     return this.queueService.getTodayQueue(
       req.user!.clinicId!,

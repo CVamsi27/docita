@@ -1,10 +1,16 @@
 import {
+  Inject,
   Injectable,
   ConflictException as _ConflictException,
   BadRequestException as _BadRequestException,
 } from '@nestjs/common';
+import {
+  CLOCK_PORT,
+  type IClock,
+} from '@/shared/common/ports/clock.port';
 import { PrismaService } from '@/prisma/prisma.service';
 import { AppointmentStatus } from '@workspace/db';
+import { findFirstSchedulingConflict } from '@/domains/appointments/core/domain-services/appointment-interval-overlap';
 
 export interface AppointmentConflict {
   id: string;
@@ -59,7 +65,10 @@ export class AppointmentSchedulingRulesService implements AppointmentSchedulingR
   private readonly BUSINESS_HOURS_START = 9;
   private readonly BUSINESS_HOURS_END = 18;
 
-  constructor(private prisma: PrismaService) {}
+  constructor(
+    private prisma: PrismaService,
+    @Inject(CLOCK_PORT) private readonly clock: IClock,
+  ) {}
 
   validateAppointmentTime(
     startTime: Date,
@@ -89,7 +98,7 @@ export class AppointmentSchedulingRulesService implements AppointmentSchedulingR
       };
     }
 
-    if (startTime < new Date()) {
+    if (startTime < this.clock.now()) {
       return {
         valid: false,
         error: 'Appointment start time cannot be in the past',
@@ -140,11 +149,15 @@ export class AppointmentSchedulingRulesService implements AppointmentSchedulingR
       },
     });
 
-    if (conflictingAppointments.length > 0) {
-      return {
-        hasConflict: true,
-        conflict: conflictingAppointments[0],
-      };
+    const conflict = findFirstSchedulingConflict(
+      startTime,
+      endTime,
+      conflictingAppointments,
+      excludeAppointmentId,
+    );
+
+    if (conflict) {
+      return { hasConflict: true, conflict };
     }
 
     return { hasConflict: false };

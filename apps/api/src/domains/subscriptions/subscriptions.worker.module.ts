@@ -16,17 +16,29 @@ import {
   ProcessWebhookUseCase,
   NotifyExpiringSubscriptionsUseCase,
   NotifySubscriptionGraceDeadlineUseCase,
+  BillMonthlyOveragesUseCase,
+  NotifyUsageThresholdsUseCase,
 } from './application/use-cases';
 import { SubscriptionsQueryService } from './application/services/subscriptions-query.service';
+import { SubscriptionCheckoutPricingService } from './application/services/subscription-checkout-pricing.service';
+import { SubscriptionActivationPolicyService } from './application/services/subscription-activation-policy.service';
+import { SubscriptionBillingSnapshotService } from './application/services/subscription-billing-snapshot.service';
+import { razorpayWebhookHandlerProviders } from './application/webhooks/razorpay/razorpay-webhook-handler.registry';
 import {
   SUBSCRIPTION_REPOSITORY_TOKEN,
   PAYMENT_GATEWAY_TOKEN,
   CLINIC_OPERATIONS_TOKEN,
 } from './application/ports';
-import { PrismaSubscriptionRepository } from './infrastructure/repositories';
+import {
+  PrismaSubscriptionRepository,
+  PrismaSubscriptionCoreRepository,
+  PrismaSubscriptionPaymentRepository,
+  SubscriptionPaymentTaxService,
+} from './infrastructure/repositories';
 import { PaymentGatewayFacade } from './infrastructure/adapters/payment-gateway-facade.adapter';
 import { ClinicOperationsAdapter } from './infrastructure/adapters/clinic-operations.adapter';
 import { SubscriptionReminderScheduler } from './infrastructure/schedulers/subscription-reminder.scheduler';
+import { OverageInvoiceComposer } from './infrastructure/schedulers/overage-invoice.composer';
 import { OverageBillingScheduler } from './infrastructure/schedulers/overage-billing.scheduler';
 import { PrismaWorkerModule } from '@/prisma/prisma.worker.module';
 import { BillingWorkerModule } from '@/domains/billing/billing.worker.module';
@@ -50,6 +62,9 @@ import { AdminAlertsModule } from '@/shared/modules/messaging/admin-alerts/admin
   ],
   providers: [
     SubscriptionPricingService,
+    SubscriptionCheckoutPricingService,
+    SubscriptionActivationPolicyService,
+    SubscriptionBillingSnapshotService,
     ProratingService,
     SubscriptionValidationService,
     ReferralService,
@@ -61,14 +76,22 @@ import { AdminAlertsModule } from '@/shared/modules/messaging/admin-alerts/admin
     ExpireSubscriptionUseCase,
     EnterGracePeriodUseCase,
     ProcessWebhookUseCase,
+    ...razorpayWebhookHandlerProviders,
     NotifyExpiringSubscriptionsUseCase,
     NotifySubscriptionGraceDeadlineUseCase,
     SubscriptionsQueryService,
     SubscriptionReminderScheduler,
+    OverageInvoiceComposer,
+    BillMonthlyOveragesUseCase,
+    NotifyUsageThresholdsUseCase,
     OverageBillingScheduler,
+    SubscriptionPaymentTaxService,
+    PrismaSubscriptionCoreRepository,
+    PrismaSubscriptionPaymentRepository,
+    PrismaSubscriptionRepository,
     {
       provide: SUBSCRIPTION_REPOSITORY_TOKEN,
-      useClass: PrismaSubscriptionRepository,
+      useExisting: PrismaSubscriptionRepository,
     },
     {
       provide: PAYMENT_GATEWAY_TOKEN,

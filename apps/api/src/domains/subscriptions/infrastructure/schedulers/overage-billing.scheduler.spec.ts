@@ -1,12 +1,11 @@
 import { describe, it, expect, beforeEach, jest } from '@jest/globals';
 import { PrismaService } from '@/prisma/prisma.service';
-import { OverageCalculationService } from '@/domains/billing/core/services/overage-calculation.service';
-import { UsageTrackingService } from '@/domains/billing/core/services/usage-tracking.service';
-import { EmailService } from '@/shared/modules/messaging/email/email.service';
+import type { IOverageCalculation } from '@/domains/billing/application/ports';
 import { AppConfigService } from '@/shared/modules/config/app-configuration.service';
 import { IPaymentLinkProvider } from '@/domains/payments/core/ports';
 import { PaymentProvider } from '@/domains/payments/core/entities/payment-provider.enum';
-import { OverageBillingScheduler } from './overage-billing.scheduler';
+import { OverageInvoiceComposer } from './overage-invoice.composer';
+import { BillMonthlyOveragesUseCase } from '@/domains/subscriptions/application/use-cases/bill-monthly-overages.use-case';
 
 type OverageBreakdown = Record<
   string,
@@ -34,7 +33,7 @@ type SubscriptionPaymentRecord = {
   description: string | null;
 };
 
-describe('OverageBillingScheduler', () => {
+describe('BillMonthlyOveragesUseCase (overage payment upsert)', () => {
   const upsertPaymentMock = jest.fn<
     (_args: {
       where: {
@@ -75,20 +74,10 @@ describe('OverageBillingScheduler', () => {
     writable: true,
   });
 
-  const overageCalculationService = Object.create(
-    OverageCalculationService.prototype,
-  ) as OverageCalculationService;
-  overageCalculationService.calculateOverageCharges =
-    jest.fn<OverageCalculationService['calculateOverageCharges']>();
-
-  const usageTrackingService = Object.create(
-    UsageTrackingService.prototype,
-  ) as UsageTrackingService;
-  usageTrackingService.getCurrentUsage =
-    jest.fn<UsageTrackingService['getCurrentUsage']>();
-
-  const emailService = Object.create(EmailService.prototype) as EmailService;
-  emailService.send = jest.fn<EmailService['send']>();
+  const overageCalculation = {
+    calculateOverageCharges:
+      jest.fn<IOverageCalculation['calculateOverageCharges']>(),
+  } satisfies IOverageCalculation;
 
   const configService = Object.create(
     AppConfigService.prototype,
@@ -120,17 +109,17 @@ describe('OverageBillingScheduler', () => {
     cancelPaymentLink: jest.fn<IPaymentLinkProvider['cancelPaymentLink']>(),
   };
 
-  let scheduler: OverageBillingScheduler;
+  let useCase: BillMonthlyOveragesUseCase;
+  const invoiceComposer = new OverageInvoiceComposer();
 
   beforeEach(() => {
     jest.clearAllMocks();
-    scheduler = new OverageBillingScheduler(
+    useCase = new BillMonthlyOveragesUseCase(
       prisma,
-      overageCalculationService,
-      usageTrackingService,
-      emailService,
+      overageCalculation,
       configService,
       paymentLinkProvider,
+      invoiceComposer,
     );
   });
 
@@ -158,13 +147,13 @@ describe('OverageBillingScheduler', () => {
     const ensureLinkMock = jest
       .fn<(payment: SubscriptionPaymentRecord) => Promise<void>>()
       .mockResolvedValue();
-    Reflect.set(scheduler, 'ensureOveragePaymentLink', ensureLinkMock);
+    Reflect.set(useCase, 'ensureOveragePaymentLink', ensureLinkMock);
     const createOrUpdate = Reflect.get(
-      scheduler,
+      useCase,
       'createOrUpdateOverageInvoicePayment',
     ) as (params: OverageInvoiceParams) => Promise<void>;
 
-    await createOrUpdate.call(scheduler, {
+    await createOrUpdate.call(useCase, {
       clinicId: 'clinic_1',
       subscriptionId: 'sub_1',
       periodStart: new Date('2026-03-01T00:00:00.000Z'),
@@ -214,13 +203,13 @@ describe('OverageBillingScheduler', () => {
     const ensureLinkMock = jest
       .fn<(payment: SubscriptionPaymentRecord) => Promise<void>>()
       .mockResolvedValue();
-    Reflect.set(scheduler, 'ensureOveragePaymentLink', ensureLinkMock);
+    Reflect.set(useCase, 'ensureOveragePaymentLink', ensureLinkMock);
     const createOrUpdate = Reflect.get(
-      scheduler,
+      useCase,
       'createOrUpdateOverageInvoicePayment',
     ) as (params: OverageInvoiceParams) => Promise<void>;
 
-    await createOrUpdate.call(scheduler, {
+    await createOrUpdate.call(useCase, {
       clinicId: 'clinic_1',
       subscriptionId: 'sub_1',
       periodStart: new Date('2026-03-01T00:00:00.000Z'),

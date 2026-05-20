@@ -17,6 +17,12 @@ import { MonitoringService } from '@/shared/modules/monitoring/monitoring/monito
 import { ZodValidationException } from 'nestjs-zod';
 import { ZodIssue } from 'zod';
 import { AppConfigService } from '@/shared/modules/config/app-configuration.service';
+import { mapPrismaKnownRequestError } from '@/shared/modules/error-handling/filters/prisma-error.registry';
+import {
+  DomainError,
+  InvariantViolationError,
+  NotFoundDomainError,
+} from '@/shared/common/errors/domain.errors';
 
 interface RequestUser {
   id?: string;
@@ -201,67 +207,25 @@ export class AllExceptionsFilter implements ExceptionFilter {
           details = responseObj.message;
         }
       }
+    } else if (exception instanceof NotFoundDomainError) {
+      status = HttpStatus.NOT_FOUND;
+      errorType = 'NotFoundDomainError';
+      message = exception.message;
+    } else if (exception instanceof InvariantViolationError) {
+      status = HttpStatus.BAD_REQUEST;
+      errorType = 'InvariantViolationError';
+      message = exception.message;
+    } else if (exception instanceof DomainError) {
+      status = HttpStatus.BAD_REQUEST;
+      errorType = 'DomainError';
+      message = exception.message;
     } else if (exception instanceof Prisma.PrismaClientKnownRequestError) {
       errorType = 'PrismaClientKnownRequestError';
       errorStack = exception.stack;
-      switch (exception.code) {
-        case 'P1000':
-          status = HttpStatus.SERVICE_UNAVAILABLE;
-          message =
-            'Database connection is unavailable. Please try again shortly.';
-          details = { code: 'P1000' };
-          break;
-        case 'P2002': {
-          status = HttpStatus.CONFLICT;
-          const fields = toStringArray(exception.meta?.target);
-          const conflictFields = fields.length > 0 ? fields : ['field'];
-          message = `A record with this ${conflictFields.join(', ')} already exists`;
-          details = {
-            field: conflictFields[0],
-            constraint: 'unique',
-          };
-          break;
-        }
-        case 'P2014':
-          status = HttpStatus.BAD_REQUEST;
-          message =
-            'The change you are trying to make violates a required relation';
-          details = { code: 'P2014' };
-          break;
-        case 'P2016':
-          status = HttpStatus.NOT_FOUND;
-          message =
-            'The query interpretation could not be matched to the database schema';
-          details = { code: 'P2016' };
-          break;
-        case 'P2021':
-          status = HttpStatus.INTERNAL_SERVER_ERROR;
-          message = 'The table does not exist in the current database';
-          details = { code: 'P2021' };
-          break;
-        case 'P2025':
-          status = HttpStatus.NOT_FOUND;
-          message = 'The requested record was not found';
-          details = { code: 'P2025' };
-          break;
-        case 'P2003':
-          status = HttpStatus.BAD_REQUEST;
-          message = 'Invalid reference: the related record does not exist';
-          details = {
-            field: toStringOrUndefined(exception.meta?.field_name) || 'unknown',
-            code: 'P2003',
-          };
-          break;
-        case 'P2019':
-          status = HttpStatus.INTERNAL_SERVER_ERROR;
-          message = 'Database input parsing error - malformed input data';
-          details = { code: 'P2019' };
-          break;
-        default:
-          status = HttpStatus.INTERNAL_SERVER_ERROR;
-          message = 'Database error occurred';
-          details = { code: exception.code };
-      }
+      const mapped = mapPrismaKnownRequestError(exception);
+      status = mapped.status;
+      message = mapped.message;
+      details = mapped.details;
     } else if (exception instanceof Prisma.PrismaClientValidationError) {
       status = HttpStatus.BAD_REQUEST;
       errorType = 'PrismaClientValidationError';

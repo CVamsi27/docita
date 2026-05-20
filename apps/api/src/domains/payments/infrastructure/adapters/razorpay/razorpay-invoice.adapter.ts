@@ -1,36 +1,22 @@
 import { Injectable, Logger } from '@nestjs/common';
+import {
+  type CreatePlatformInvoiceInput,
+  type IPlatformInvoiceProvider,
+  type PlatformInvoiceSummary,
+} from '@/domains/payments/core/ports/platform-invoice-provider.port';
 import { BaseRazorpayAdapter } from './razorpay.adapter';
 import { RazorpayClientService } from './razorpay-client.service';
 
-export interface CreateRazorpayInvoiceInput {
-  customerId: string;
-  /** Amount in the smallest currency unit (paise for INR). */
-  amountCents: number;
-  currency: string;
-  description: string;
-  /** Pre-existing Razorpay order_id, if the invoice should reference one. */
-  orderId?: string;
-  /** Optional Razorpay payment_id to mark the invoice as paid. */
-  paymentId?: string;
-  /** Free-form metadata stored on the invoice. */
-  notes?: Record<string, string>;
-}
-
-export interface RazorpayInvoiceSummary {
-  id: string;
-  /** Razorpay-hosted invoice URL the customer can open to view + download. */
-  shortUrl: string | null;
-  invoiceNumber: string | null;
-  status: string;
-  amountCents: number;
-  amountPaidCents: number;
-  currency: string;
-  createdAt: Date;
-  paidAt: Date | null;
-}
+export type {
+  CreatePlatformInvoiceInput as CreateRazorpayInvoiceInput,
+  PlatformInvoiceSummary as RazorpayInvoiceSummary,
+};
 
 @Injectable()
-export class RazorpayInvoiceAdapter extends BaseRazorpayAdapter {
+export class RazorpayInvoiceAdapter
+  extends BaseRazorpayAdapter
+  implements IPlatformInvoiceProvider
+{
   private readonly logger = new Logger(RazorpayInvoiceAdapter.name);
 
   constructor(razorpayClient: RazorpayClientService) {
@@ -46,8 +32,8 @@ export class RazorpayInvoiceAdapter extends BaseRazorpayAdapter {
    * must not block subscription activation.
    */
   async createInvoice(
-    input: CreateRazorpayInvoiceInput,
-  ): Promise<RazorpayInvoiceSummary | null> {
+    input: CreatePlatformInvoiceInput,
+  ): Promise<PlatformInvoiceSummary | null> {
     try {
       const razorpay = this.getClient();
       // Cast — razorpay node SDK types for `invoices.create` are loose.
@@ -93,7 +79,7 @@ export class RazorpayInvoiceAdapter extends BaseRazorpayAdapter {
   async listInvoicesByCustomer(
     customerId: string,
     options: { count?: number } = {},
-  ): Promise<RazorpayInvoiceSummary[]> {
+  ): Promise<PlatformInvoiceSummary[]> {
     try {
       const razorpay = this.getClient();
       const invoicesApi = razorpay.invoices as unknown as {
@@ -105,7 +91,7 @@ export class RazorpayInvoiceAdapter extends BaseRazorpayAdapter {
       });
       return (response.items ?? [])
         .map((item) => this.toSummary(item as Record<string, unknown>))
-        .filter((s): s is RazorpayInvoiceSummary => s !== null);
+        .filter((s): s is PlatformInvoiceSummary => s !== null);
     } catch (error) {
       this.logger.warn(
         `Failed to list Razorpay invoices for customer ${customerId}: ${
@@ -118,7 +104,7 @@ export class RazorpayInvoiceAdapter extends BaseRazorpayAdapter {
 
   private toSummary(
     invoice: Record<string, unknown>,
-  ): RazorpayInvoiceSummary | null {
+  ): PlatformInvoiceSummary | null {
     const id = invoice['id'];
     if (typeof id !== 'string') return null;
 
