@@ -344,19 +344,21 @@ These have measurable progress recorded today. They are not "open new work" — 
 
 ### A.4 Phase C — OCP: switch → strategy/state
 
-**C1 [H] `domains/appointments/presentation/controllers/appointments.controller.ts:57-72`**
-- 10-arm status alias switch (`scheduled`, `confirmed`, `arrived`, `checked-in`, `in_progress`, `in-progress`, `completed`, `cancelled`, `noshow`, `no-show`).
-- Move to `application/appointment-status.mapper.ts`:
+**C1 [H] `domains/appointments/presentation/controllers/appointments.controller.ts:57-72` — DONE (2026-05-20)**
+- Current tree has no `appointments.controller.ts`; schedule controller imports `parseAppointmentStatus` from `application/mappers/appointment-status.mapper.ts`.
+- Status aliases live in the mapper:
   ```ts
   const STATUS_ALIASES: Record<string, AppointmentStatus> = {
     scheduled: 'SCHEDULED', confirmed: 'CONFIRMED', /* ... */
   };
   export const normalizeStatus = (raw: string) => STATUS_ALIASES[raw.toLowerCase()] ?? null;
   ```
-- Acceptance: controller no longer references status strings; new status added by editing the map, not the switch.
+- Acceptance met: controller no longer references status strings; new status aliases are added by editing the map.
 
-**C4 [H] `domains/billing/application/use-cases/update-invoice-status.use-case.ts:42-63` + C5 anemic Invoice**
-- 8-arm switch validating transition legality. Push into `Invoice` entity:
+**C4 [H] `domains/billing/application/use-cases/update-invoice-status.use-case.ts:42-63` + C5 anemic Invoice — PARTIAL (2026-05-20)**
+- Transition legality now lives in `Invoice` / `InvoiceStatus`; use case calls `invoice.transitionTo(...)` and persists.
+- No application-layer switch or duplicate `canTransitionTo` guard remains.
+- Remaining: trim use case below 30L or update the threshold rationale, and add exhaustive legal/illegal transition coverage if current `invoice.entity.spec.ts` is not exhaustive.
   ```ts
   // invoice.entity.ts
   private static readonly TRANSITIONS: Record<InvoiceStatus, InvoiceStatus[]> = {
@@ -369,8 +371,7 @@ These have measurable progress recorded today. They are not "open new work" — 
     this.status = next;
   }
   ```
-- Use-case becomes 1-line: `invoice.transitionTo(next); await this.repo.save(invoice);`.
-- Acceptance: `update-invoice-status.use-case.ts` ≤ 30L; `invoice.entity.spec.ts` covers every legal + illegal pair.
+- Verification: API `check-types`, focused billing core tests, and touched lint pass.
 
 **C6 [M] WhatsApp `response-handler.service.ts` — 16-arm action switches × 3** — **PARTIAL (2026-05-20)**
 - Split into `patient-response-confirmation.service.ts`, `patient-response-staff-notification.service.ts`, `patient-response-parser.helper.ts`; orchestrator **266L** (under 400L budget).
