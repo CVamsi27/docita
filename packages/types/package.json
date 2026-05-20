@@ -21,7 +21,6 @@
   },
   "devDependencies": {
     "@types/jest": "^30.0.0",
-    "@workspace/utils": "workspace:^",
     "@workspace/eslint-config": "workspace:^",
     "eslint": "^9",
     "tsup": "^8.0.1",
@@ -29,8 +28,6 @@
     "vitest": "^4.0.16"
   },
   "dependencies": {
-    "date-fns": "^4.1.0",
-    "date-fns-tz": "^3.2.0",
     "zod": "^3.25.76"
   }
 }

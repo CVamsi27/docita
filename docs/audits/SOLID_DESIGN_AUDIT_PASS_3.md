@@ -467,26 +467,28 @@ These have measurable progress recorded today. They are not "open new work" — 
 
 ### A.4 Phase Ξ — Dependency hygiene
 
-**Ξ1 [H] Remove dead deps**
-```bash
-pnpm remove axios lodash --filter root
-```
-- Verify 0 imports remain: `grep -rln "from 'axios'\|from 'lodash'"` = 0.
+**Ξ1 [H] Remove dead deps — DONE (2026-05-20)**
+- `axios` and `lodash` are not root dependencies and have 0 source imports.
+- Root `pnpm.overrides` entries are retained because they pin transitive security versions, not direct runtime dependencies.
 
-**Ξ2 [M] `date-fns` out of `packages/types`**
-- `packages/types/package.json`: remove `date-fns`.
-- Move any date imports from `packages/types/src/**` into `packages/utils/src/date/`.
-- Re-build types; the package becomes truly zero-runtime.
+**Ξ2 [M] `date-fns` out of `packages/types` — DONE (2026-05-20)**
+- `packages/types/package.json`: removed `date-fns`, `date-fns-tz`, and the now-unused `@workspace/utils` dev dependency.
+- `packages/types/src/operations/appointments.ts` now uses a local Intl-based wall-time parser so `packages/types` stays independent of `packages/utils`.
+- Moved utility-owned access tests from `packages/types/test` to `packages/utils/test` so `types` no longer imports `@workspace/utils` in source or tests.
+- Verification: `pnpm --filter @workspace/types run check-types`; `pnpm --filter @workspace/types run test`; `pnpm --filter @workspace/utils run test`.
 
-**Ξ4 [M] `check-types` in every package**
-- Add to: `packages/data-access`, `packages/db`, `packages/hooks`, `packages/ui`, `packages/eslint-config`, `packages/typescript-config`:
+**Ξ4 [M] `check-types` in every package — DONE (2026-05-20)**
+- Added to: `packages/data-access`, `packages/db`, `packages/hooks`, `packages/ui`, `packages/eslint-config`, `packages/typescript-config`:
   ```json
   "scripts": { "check-types": "tsc --noEmit" }
   ```
-- Wire into `turbo.json`:
+- `packages/ui` uses `tsconfig.build.json` to avoid including stories/tests in the production type contract.
+- Config-only packages use silent no-op scripts because they have no TypeScript sources.
+- Already wired in `turbo.json`:
   ```json
   "check-types": { "dependsOn": ["^build", "^check-types"] }
   ```
+- Verification: package-level `check-types` scripts pass for all six packages plus `@workspace/types` and `@workspace/utils`.
 
 ### A.4 Phase Ψ — Schema / DB
 
@@ -1159,7 +1161,7 @@ Execute in order. Each tier is a coherent PR set.
 3. L2 + L3 + L1 — domain errors → infra exceptions → HTTP filter — **PARTIAL** (L1/L3 done; L2 long-tail remains)
 4. G1 — tier helpers `packages/types` → `packages/utils`
 5. N1 + N3 — finish 6 `process.env` + lift `validatedEnv`
-6. Ξ1 + Ξ2 + Ξ4 — dead deps, types/utils, per-package check-types
+6. Ξ1 + Ξ2 + Ξ4 — dead deps, types/utils, per-package check-types — **DONE**
 
 ### Tier 2 — Lock in (new CI guards)
 7. Write all 18 new scripts from A.9

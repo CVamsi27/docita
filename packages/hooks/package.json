@@ -20,6 +20,7 @@
     "clean": "rm -rf dist",
     "dev": "tsc -w",
     "lint": "eslint . --max-warnings 0",
+    "check-types": "tsc --noEmit",
     "type-check": "tsc --noEmit",
     "test": "vitest run --pool=forks --maxWorkers=1"
   },
