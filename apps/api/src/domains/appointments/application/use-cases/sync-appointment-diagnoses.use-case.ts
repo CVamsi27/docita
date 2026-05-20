@@ -11,7 +11,7 @@ import {
 } from '@/domains/appointments/application/ports/appointment-persistence.port';
 import { hashDiagnosesContent } from '@/domains/appointments/core/domain-services/appointment-diagnosis-content.rules';
 
-export interface SyncAppointmentDiagnosesCommand {
+interface SyncAppointmentDiagnosesCommand {
   appointmentId: string;
   clinicId: string;
   diagnoses: DiagnosisSyncItem[];

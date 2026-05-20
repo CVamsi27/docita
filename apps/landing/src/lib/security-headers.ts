@@ -38,7 +38,7 @@ function buildLandingContentSecurityPolicy(): string {
   ].join("; ");
 }
 
-export const LANDING_SECURITY_HEADERS = [
+const LANDING_SECURITY_HEADERS = [
   {
     key: "Content-Security-Policy",
     value: buildLandingContentSecurityPolicy(),

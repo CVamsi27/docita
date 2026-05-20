@@ -54,7 +54,7 @@ export function readOptionalString(
   return typeof value === 'string' && value.trim() ? value.trim() : undefined;
 }
 
-export function readClinicSignatureUrl(clinic: {
+function readClinicSignatureUrl(clinic: {
   slaSignatureUrl?: string | null;
   settings?: unknown;
 }): string | null {

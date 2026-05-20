@@ -2,15 +2,8 @@ import { Prisma } from '@workspace/db';
 import { getCurrentTenant } from '@/shared/common/middleware/tenant.middleware';
 import {
   applyTenantScopeForTest,
-  getTenantScopeDiagnostics,
   getTenantScopeRule,
   type TenantExtensionArgs,
-} from './tenant-scope-policy';
-
-export {
-  applyTenantScopeForTest,
-  getTenantScopeDiagnostics,
-  getTenantScopeRule,
 } from './tenant-scope-policy';
 
 export const tenantExtension = Prisma.defineExtension({

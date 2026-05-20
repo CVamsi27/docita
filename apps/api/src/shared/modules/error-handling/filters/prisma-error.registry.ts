@@ -1,10 +1,12 @@
 import { HttpStatus } from '@nestjs/common';
 import { Prisma } from '@workspace/db';
 
-export interface PrismaErrorMapping {
+interface PrismaErrorMapping {
   status: HttpStatus;
   message: string;
-  details: (error: Prisma.PrismaClientKnownRequestError) => Record<string, unknown>;
+  details: (
+    error: Prisma.PrismaClientKnownRequestError,
+  ) => Record<string, unknown>;
 }
 
 const toStringArray = (value: unknown): string[] => {
@@ -15,14 +17,10 @@ const toStringArray = (value: unknown): string[] => {
 const toStringOrUndefined = (value: unknown): string | undefined =>
   typeof value === 'string' ? value : undefined;
 
-export const PRISMA_KNOWN_ERROR_REGISTRY: Record<
-  string,
-  PrismaErrorMapping
-> = {
+const PRISMA_KNOWN_ERROR_REGISTRY: Record<string, PrismaErrorMapping> = {
   P1000: {
     status: HttpStatus.SERVICE_UNAVAILABLE,
-    message:
-      'Database connection is unavailable. Please try again shortly.',
+    message: 'Database connection is unavailable. Please try again shortly.',
     details: () => ({ code: 'P1000' }),
   },
   P2002: {
@@ -39,8 +37,7 @@ export const PRISMA_KNOWN_ERROR_REGISTRY: Record<
   },
   P2014: {
     status: HttpStatus.BAD_REQUEST,
-    message:
-      'The change you are trying to make violates a required relation',
+    message: 'The change you are trying to make violates a required relation',
     details: () => ({ code: 'P2014' }),
   },
   P2016: {

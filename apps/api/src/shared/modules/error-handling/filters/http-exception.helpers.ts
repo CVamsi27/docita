@@ -10,7 +10,7 @@ export const getErrorCause = (value: unknown): unknown => {
   return value.cause;
 };
 
-export const toStringArray = (value: unknown): string[] => {
+const toStringArray = (value: unknown): string[] => {
   if (!Array.isArray(value)) {
     return [];
   }
@@ -18,7 +18,7 @@ export const toStringArray = (value: unknown): string[] => {
   return value.filter((item): item is string => typeof item === 'string');
 };
 
-export const toStringOrUndefined = (value: unknown): string | undefined =>
+const toStringOrUndefined = (value: unknown): string | undefined =>
   typeof value === 'string' ? value : undefined;
 
 export function formatZodIssuesToFieldMap(
@@ -58,6 +58,8 @@ export function resolveHttpExceptionMessage(
   return { message: singleMessage ?? errorLabel ?? fallback };
 }
 
-export function readZodIssuesFromCause(cause: unknown): readonly ZodIssue[] | null {
+export function readZodIssuesFromCause(
+  cause: unknown,
+): readonly ZodIssue[] | null {
   return cause instanceof ZodError ? cause.issues : null;
 }

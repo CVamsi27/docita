@@ -1,6 +1,6 @@
 import type { Request } from 'express';
 
-export interface WhatsAppWebhookVerificationQuery {
+interface WhatsAppWebhookVerificationQuery {
   mode?: string;
   verifyToken?: string;
   challenge?: string;

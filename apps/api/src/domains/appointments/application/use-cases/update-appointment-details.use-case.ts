@@ -21,7 +21,7 @@ import {
 
 // AuditLogged: appointment detail updates (AppointmentCommandService)
 
-export type AppointmentForUpdate = {
+type AppointmentForUpdate = {
   id: string;
   clinicId: string;
   patientId: string;
@@ -30,7 +30,7 @@ export type AppointmentForUpdate = {
   endTime: Date;
 };
 
-export interface UpdateAppointmentDetailsCommand {
+interface UpdateAppointmentDetailsCommand {
   appointmentId: string;
   clinicId: string;
   data: Partial<UpdateAppointmentRequest>;

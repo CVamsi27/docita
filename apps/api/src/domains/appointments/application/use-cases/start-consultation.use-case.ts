@@ -13,12 +13,9 @@ import {
   IAppointmentReadRepository,
   IAppointmentWriteRepository,
 } from '@/domains/appointments/core/repositories/appointment.repository.interface';
-import {
-  isFrontDeskWorkspace,
-  parseWorkspaceProfile,
-} from '@workspace/types';
+import { isFrontDeskWorkspace, parseWorkspaceProfile } from '@workspace/types';
 
-export interface StartConsultationCommand {
+interface StartConsultationCommand {
   appointmentId: string;
   clinicId: string;
   userId: string;
@@ -69,8 +66,10 @@ export class StartConsultationUseCase {
       );
     }
 
-    const appointment =
-      await this.readRepository.findForConsultationStart(appointmentId, clinicId);
+    const appointment = await this.readRepository.findForConsultationStart(
+      appointmentId,
+      clinicId,
+    );
 
     if (!appointment) {
       throw new NotFoundException(

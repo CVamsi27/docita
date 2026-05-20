@@ -8,8 +8,6 @@ import { InternalLogActivityFallbackService } from './logs/internal-log-activity
 import { InternalLogStorageQueryService } from './logs/internal-log-storage-query.service';
 import type { InternalLogFilters } from './logs/internal-log.types';
 
-export type { InternalLogFilters as LogFilters } from './logs/internal-log.types';
-
 @Injectable()
 export class InternalLogService {
   private readonly logger = new Logger(InternalLogService.name);

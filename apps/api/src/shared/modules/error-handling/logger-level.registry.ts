@@ -1,6 +1,6 @@
 import { Logger } from '@nestjs/common';
 
-export type AppLogLevel = 'DEBUG' | 'INFO' | 'WARN' | 'ERROR';
+type AppLogLevel = 'DEBUG' | 'INFO' | 'WARN' | 'ERROR';
 
 export function createNestLogLevelWriters(
   logger: Logger,

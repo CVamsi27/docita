@@ -13,7 +13,7 @@ import {
   type IDoctorDelayRepository,
 } from '@/domains/appointments/application/ports/doctor-delay.repository.port';
 
-export interface MarkDoctorDelayCommand {
+interface MarkDoctorDelayCommand {
   clinicId: string;
   doctorId: string;
   delayMinutes: number;
@@ -21,7 +21,7 @@ export interface MarkDoctorDelayCommand {
   markedById: string;
 }
 
-export interface DoctorDelayResponse {
+interface DoctorDelayResponse {
   id: string;
   clinicId: string;
   doctorId: string;
@@ -72,7 +72,10 @@ export class DoctorDelayService {
       ),
     );
 
-    return { ...delay, affectedAppointmentCount: affectedAppointmentIds.length };
+    return {
+      ...delay,
+      affectedAppointmentCount: affectedAppointmentIds.length,
+    };
   }
 
   async clearDelay(

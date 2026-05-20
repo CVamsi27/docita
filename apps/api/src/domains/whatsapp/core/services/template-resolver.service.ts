@@ -5,16 +5,11 @@ import {
 } from '@/shared/whatsapp/template-resolution.service';
 
 export type { ResolvedTemplate };
-export type {
-  TemplateButton,
-  TemplateVariable,
-} from '@/shared/whatsapp/default-templates.service';
+export type { TemplateButton, TemplateVariable } from '@workspace/types';
 
 @Injectable()
 export class TemplateResolverService {
-  constructor(
-    private readonly templateResolution: TemplateResolutionService,
-  ) {}
+  constructor(private readonly templateResolution: TemplateResolutionService) {}
 
   resolveTemplate(
     templateId: string,

@@ -4,7 +4,7 @@ import {
   type ClinicStaffRequestContext,
 } from '@/shared/modules/auth/auth/clinic-request-context';
 
-export type BillingRequestContext = Pick<
+type BillingRequestContext = Pick<
   ClinicStaffRequestContext,
   'clinicId' | 'userId'
 >;

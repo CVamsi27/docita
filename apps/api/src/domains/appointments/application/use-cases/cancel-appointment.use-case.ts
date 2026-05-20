@@ -4,14 +4,11 @@ import {
   IAppointmentWriteRepository,
 } from '@/domains/appointments/core/repositories/appointment.repository.interface';
 import { Appointment } from '@/domains/appointments/core/entities/appointment.entity';
-import {
-  CLOCK_PORT,
-  type IClock,
-} from '@/shared/common/ports/clock.port';
+import { CLOCK_PORT, type IClock } from '@/shared/common/ports/clock.port';
 
 // AuditLogged: appointment cancellation (AppointmentCommandService)
 
-export interface CancelAppointmentCommand {
+interface CancelAppointmentCommand {
   appointment: Appointment;
   reason: string;
 }

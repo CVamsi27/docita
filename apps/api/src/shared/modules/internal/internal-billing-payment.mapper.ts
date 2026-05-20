@@ -15,7 +15,7 @@ export const INTERNAL_ADDITIONAL_CHARGE_CATEGORY_LABELS: Record<
   OTHER: 'Other service',
 };
 
-export type SubscriptionPaymentWithClinic = Prisma.SubscriptionPaymentGetPayload<{
+type SubscriptionPaymentWithClinic = Prisma.SubscriptionPaymentGetPayload<{
   include: {
     subscription: {
       include: { clinic: { select: { id: true; name: true } } };
@@ -24,7 +24,7 @@ export type SubscriptionPaymentWithClinic = Prisma.SubscriptionPaymentGetPayload
   };
 }>;
 
-export function normalizePaymentGatewayStatus(
+function normalizePaymentGatewayStatus(
   status: string,
 ): 'SUCCESS' | 'PENDING' | 'FAILED' {
   const normalized = status.toLowerCase();
@@ -40,7 +40,7 @@ export function normalizePaymentGatewayStatus(
   return 'PENDING';
 }
 
-export function planLabelFromInternalPayment(
+function planLabelFromInternalPayment(
   description: string | null,
 ): string | null {
   if (!description?.startsWith(INTERNAL_ADDITIONAL_CHARGE_PREFIX)) {

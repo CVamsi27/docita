@@ -19,7 +19,7 @@ import { OverageInvoiceComposer } from '@/domains/subscriptions/infrastructure/s
 import { mapOverageKeyToUsageType } from '@/domains/subscriptions/infrastructure/schedulers/usage-key.mapper';
 import { SubscriptionOveragePaymentService } from '@/domains/subscriptions/application/services/subscription-overage-payment.service';
 
-export type ActiveSubscriptionOverageRow = {
+type ActiveSubscriptionOverageRow = {
   id: string;
   clinicId: string;
   plan: ClinicTier;
@@ -56,9 +56,11 @@ export class SubscriptionOverageMeterService {
       ReturnType<typeof this.persistence.enterpriseContract.findUnique>
     > = null;
     if (tier === ClinicTier.ENTERPRISE) {
-      const member = await this.persistence.enterpriseContractMember.findUnique({
-        where: { clinicId: sub.clinicId },
-      });
+      const member = await this.persistence.enterpriseContractMember.findUnique(
+        {
+          where: { clinicId: sub.clinicId },
+        },
+      );
       const candidate = member
         ? await this.persistence.enterpriseContract.findUnique({
             where: { id: member.contractId },

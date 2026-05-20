@@ -19,12 +19,9 @@ import {
   type IPlatformInvoiceProvider,
 } from '@/domains/payments/core/ports';
 import { SubscriptionActivationPolicyService } from '@/domains/subscriptions/application/services/subscription-activation-policy.service';
-import {
-  CLOCK_PORT,
-  type IClock,
-} from '@/shared/common/ports/clock.port';
+import { CLOCK_PORT, type IClock } from '@/shared/common/ports/clock.port';
 
-export interface PersistActivatedSubscriptionParams {
+interface PersistActivatedSubscriptionParams {
   clinicId: string;
   tier: ClinicTier;
   cycle: BillingCycle;
@@ -75,15 +72,9 @@ export class SubscriptionBillingSnapshotService {
     } else {
       const now = this.clock.now();
       subscription.deductCreditsApplied(params.creditsConsumed, now);
-      subscription.activatePaidPlan(
-        tier,
-        cycle,
-        listPriceCents,
-        now,
-        {
-          preserveCurrentPeriodEnd: params.preserveCurrentPeriodEnd,
-        },
-      );
+      subscription.activatePaidPlan(tier, cycle, listPriceCents, now, {
+        preserveCurrentPeriodEnd: params.preserveCurrentPeriodEnd,
+      });
       if (params.surplusCreditCents && params.surplusCreditCents > 0) {
         subscription.addAccountCredit(params.surplusCreditCents, now);
       }

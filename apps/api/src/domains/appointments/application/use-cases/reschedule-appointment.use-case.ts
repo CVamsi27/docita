@@ -10,12 +10,9 @@ import {
 } from '@/domains/appointments/core/repositories/appointment.repository.interface';
 import { Appointment } from '@/domains/appointments/core/entities/appointment.entity';
 import { AppointmentSchedulingRulesService } from '@/domains/appointments/core/domain-services/appointment-scheduling-rules.service';
-import {
-  CLOCK_PORT,
-  type IClock,
-} from '@/shared/common/ports/clock.port';
+import { CLOCK_PORT, type IClock } from '@/shared/common/ports/clock.port';
 
-export interface RescheduleAppointmentCommand {
+interface RescheduleAppointmentCommand {
   appointment: Appointment;
   clinicId: string;
   startTime: Date;

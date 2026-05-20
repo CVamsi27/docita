@@ -7,10 +7,7 @@ import {
   Logger,
   Inject,
 } from '@nestjs/common';
-import {
-  CLOCK_PORT,
-  type IClock,
-} from '@/shared/common/ports/clock.port';
+import { CLOCK_PORT, type IClock } from '@/shared/common/ports/clock.port';
 import {
   ApiOperation,
   ApiResponse,
@@ -25,7 +22,7 @@ import { RolesGuard } from '@/shared/modules/auth/auth/roles.guard';
 import { Roles } from '@/shared/modules/auth/auth/roles.decorator';
 import { Role } from '@workspace/db';
 import { VerifyBackupRequestDto } from '@/shared/common/dto/database-operations.dto';
-import { getTenantScopeDiagnostics } from '@/shared/common/extensions/tenant.extension';
+import { getTenantScopeDiagnostics } from '@/shared/common/extensions/tenant-scope-policy';
 import { tenantScopeDiagnosticsSchema } from '@workspace/types';
 
 @ApiTags('Database Operations')

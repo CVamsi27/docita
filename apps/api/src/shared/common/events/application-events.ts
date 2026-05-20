@@ -17,7 +17,3 @@ export enum ApplicationEvents {
   WHATSAPP_MESSAGE_SENT = 'whatsapp.message.sent',
   OCR_PAGE_PROCESSED = 'ocr.page.processed',
 }
-
-export const APPLICATION_EVENT_NAMES = new Set<string>(
-  Object.values(ApplicationEvents),
-);

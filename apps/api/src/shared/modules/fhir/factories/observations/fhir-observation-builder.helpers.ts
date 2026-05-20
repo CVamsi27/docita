@@ -4,7 +4,7 @@ import type {
   VitalWithRelations,
 } from './fhir-vital-sign.types';
 
-export const OBSERVATION_CATEGORY_SYSTEM =
+const OBSERVATION_CATEGORY_SYSTEM =
   'http://terminology.hl7.org/CodeSystem/observation-category';
 export const LOINC_SYSTEM = 'http://loinc.org';
 export const UCUM_SYSTEM = 'http://unitsofmeasure.org';

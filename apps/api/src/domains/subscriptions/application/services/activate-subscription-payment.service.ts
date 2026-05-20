@@ -1,8 +1,4 @@
-import {
-  BadRequestException,
-  Inject,
-  Injectable,
-} from '@nestjs/common';
+import { BadRequestException, Inject, Injectable } from '@nestjs/common';
 import {
   ISubscriptionRepository,
   SUBSCRIPTION_REPOSITORY_TOKEN,
@@ -13,7 +9,7 @@ import {
 } from '@/domains/subscriptions/application/ports/payment-gateway.port';
 
 // AuditLogged: subscription payment verification is part of subscription activation audit trail.
-export type SubscriptionPaymentRecord = {
+type SubscriptionPaymentRecord = {
   id: string;
   clinicId: string;
   amountCents: number;
@@ -23,7 +19,7 @@ export type SubscriptionPaymentRecord = {
   razorpayPaymentId?: string | null;
 };
 
-export type ResolveSubscriptionPaymentInput = {
+type ResolveSubscriptionPaymentInput = {
   clinicId: string;
   razorpayOrderId: string;
   razorpayPaymentId: string;

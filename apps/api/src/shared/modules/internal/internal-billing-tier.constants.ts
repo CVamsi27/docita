@@ -1,4 +1,4 @@
-export interface BillingTierInfo {
+interface BillingTierInfo {
   name: string;
   price: number | null;
   maxDoctors: number;

@@ -10,24 +10,15 @@ export type {
   PatientWithUser,
 } from './portal-patient.types';
 
-export type { IPortalProfileRepository } from './portal-profile.repository.interface';
-export {
-  PORTAL_PROFILE_REPOSITORY_TOKEN,
-} from './portal-profile.repository.interface';
-export type { IPortalAuthRepository } from './portal-auth.repository.interface';
+export { PORTAL_PROFILE_REPOSITORY_TOKEN } from './portal-profile.repository.interface';
 export { PORTAL_AUTH_REPOSITORY_TOKEN } from './portal-auth.repository.interface';
-export type { IPortalAppointmentsRepository } from './portal-appointments.repository.interface';
-export {
-  PORTAL_APPOINTMENTS_REPOSITORY_TOKEN,
-} from './portal-appointments.repository.interface';
-export type { IPortalDocumentsRepository } from './portal-documents.repository.interface';
-export {
-  PORTAL_DOCUMENTS_REPOSITORY_TOKEN,
-} from './portal-documents.repository.interface';
+export { PORTAL_APPOINTMENTS_REPOSITORY_TOKEN } from './portal-appointments.repository.interface';
+export { PORTAL_DOCUMENTS_REPOSITORY_TOKEN } from './portal-documents.repository.interface';
 
 /** Composite port for callers that span profile, auth, appointments, and documents. */
 export interface IPatientPortalRepository
-  extends IPortalProfileRepository,
+  extends
+    IPortalProfileRepository,
     IPortalAuthRepository,
     IPortalAppointmentsRepository,
     IPortalDocumentsRepository {}

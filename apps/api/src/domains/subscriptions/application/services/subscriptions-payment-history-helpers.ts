@@ -2,8 +2,6 @@
 
 import type { PaymentHistoryRecord } from './subscription-payment-history.types';
 
-export type { PaymentHistoryRecord } from './subscription-payment-history.types';
-
 export function normalizePaymentHistory<T extends PaymentHistoryRecord>(
   records: T[],
 ): T[] {

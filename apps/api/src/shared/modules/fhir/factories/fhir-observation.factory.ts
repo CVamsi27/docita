@@ -5,8 +5,6 @@ import type { IFhirObservationBuilder } from './observations/fhir-observation-bu
 import { createVitalSignObservationBuilders } from './observations/fhir-vital-sign-observation.registry';
 import type { VitalWithRelations } from './observations/fhir-vital-sign.types';
 
-export type { VitalWithRelations } from './observations/fhir-vital-sign.types';
-
 @Injectable()
 export class FhirObservationFactory {
   private readonly builders: IFhirObservationBuilder[];

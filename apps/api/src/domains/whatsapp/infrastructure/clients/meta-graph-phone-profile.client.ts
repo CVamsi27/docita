@@ -1,7 +1,7 @@
 import { Injectable } from '@nestjs/common';
 import { fetchWithTimeout } from '@/shared/common/http/fetch-with-timeout';
 
-export type MetaPhoneNumberProfile = {
+type MetaPhoneNumberProfile = {
   verified_name?: string;
   display_phone_number?: string;
   error?: { message?: string };

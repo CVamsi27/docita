@@ -1,9 +1,7 @@
 import type { z } from 'zod';
 import { createPatientMetricValueSchema } from '@workspace/types';
 
-export type PatientMetricValueInput = z.infer<
-  typeof createPatientMetricValueSchema
->;
+type PatientMetricValueInput = z.infer<typeof createPatientMetricValueSchema>;
 
 /** Definition IDs requested for selection that are not valid for the patient. */
 export function findInvalidMetricDefinitionIds(
@@ -16,7 +14,9 @@ export function findInvalidMetricDefinitionIds(
 }
 
 /** True when at least one structured metric value field is present. */
-export function hasStructuredMetricValue(input: PatientMetricValueInput): boolean {
+export function hasStructuredMetricValue(
+  input: PatientMetricValueInput,
+): boolean {
   return (
     input.valueString !== undefined ||
     input.valueNumber !== undefined ||

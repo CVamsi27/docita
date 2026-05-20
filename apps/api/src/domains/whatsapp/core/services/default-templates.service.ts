@@ -1,8 +1,8 @@
-export {
-  DefaultTemplatesService,
-  type DefaultTemplateDefinition,
-  type TemplateButton,
-  type TemplateCategory,
-  type TemplateVariable,
-  type WhatsAppDefaultTemplateDefinition,
-} from '@/shared/whatsapp/default-templates.service';
+export { DefaultTemplatesService } from '@/shared/whatsapp/default-templates.service';
+export type {
+  DefaultTemplateDefinition,
+  TemplateButton,
+  TemplateCategory,
+  TemplateVariable,
+  WhatsAppDefaultTemplateDefinition,
+} from '@workspace/types';

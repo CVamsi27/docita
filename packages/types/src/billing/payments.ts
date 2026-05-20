@@ -137,4 +137,5 @@ export type PaymentWebhookPayload = z.infer<typeof paymentWebhookPayloadSchema>;
 export const paymentSessionMetaJsonSchema = jsonObjectSchema;
 
 /** Prisma `PaymentSession.webhookPayload` — verified Razorpay webhook body. */
-export const paymentSessionWebhookPayloadSchema = paymentWebhookPayloadSchema;
+export const paymentSessionWebhookPayloadSchema =
+  paymentWebhookPayloadSchema.describe("PaymentSession.webhookPayload");

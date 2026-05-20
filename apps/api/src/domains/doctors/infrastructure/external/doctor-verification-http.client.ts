@@ -1,7 +1,7 @@
 import { Injectable, Logger } from '@nestjs/common';
 import { fetchWithTimeout } from '@/shared/common/http/fetch-with-timeout';
 
-export type DoctorVerificationHttpResult<T> = {
+type DoctorVerificationHttpResult<T> = {
   ok: boolean;
   status: number;
   json: T;

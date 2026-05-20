@@ -318,7 +318,9 @@ export const addOnTierNumberMapJsonSchema = z.record(z.number());
 export const addOnIncludedQuotaByTierJsonSchema = z.record(z.number());
 
 /** Prisma `AddOn.features` — marketing feature bullets. */
-export const addOnFeaturesJsonSchema = tierPricingFeaturesJsonSchema;
+export const addOnFeaturesJsonSchema = z
+  .array(z.string())
+  .describe("Add-on feature identifiers stored as JSON");
 
 export const tierPricingSchema = z.object({
   monthly: z.union([z.number(), z.literal("custom")]),
@@ -1214,7 +1216,6 @@ export const TIER_INFO: Record<TierName, TierInfo> = {
     color: "teal",
   },
 };
-
 
 export const intelligenceAddonSchema = z.object({
   feature: z.nativeEnum(Feature),

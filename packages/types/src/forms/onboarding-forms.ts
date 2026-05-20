@@ -54,8 +54,12 @@ export const onboardingDataSchema = z.object({
   compliance: onboardingLegalComplianceSchema,
 });
 
-export type OnboardingClinicDetails = z.infer<typeof onboardingClinicDetailsSchema>;
-export type OnboardingPlanSelection = z.infer<typeof onboardingPlanSelectionSchema>;
+export type OnboardingClinicDetails = z.infer<
+  typeof onboardingClinicDetailsSchema
+>;
+export type OnboardingPlanSelection = z.infer<
+  typeof onboardingPlanSelectionSchema
+>;
 export type OnboardingTeamInvites = z.infer<typeof onboardingTeamInviteSchema>;
 export type OnboardingLegalCompliance = z.infer<
   typeof onboardingLegalComplianceSchema
@@ -63,13 +67,21 @@ export type OnboardingLegalCompliance = z.infer<
 export type OnboardingData = z.infer<typeof onboardingDataSchema>;
 
 /** @deprecated Use onboardingClinicDetailsSchema */
-export const clinicDetailsSchema = onboardingClinicDetailsSchema;
+export const clinicDetailsSchema = onboardingClinicDetailsSchema.describe(
+  "Legacy onboarding clinic details",
+);
 
 /** @deprecated Use onboardingPlanSelectionSchema */
-export const planSelectionSchema = onboardingPlanSelectionSchema;
+export const planSelectionSchema = onboardingPlanSelectionSchema.describe(
+  "Legacy onboarding plan selection",
+);
 
 /** @deprecated Use onboardingTeamInviteSchema */
-export const teamInviteSchema = onboardingTeamInviteSchema;
+export const teamInviteSchema = onboardingTeamInviteSchema.describe(
+  "Legacy onboarding team invite",
+);
 
 /** @deprecated Use onboardingLegalComplianceSchema */
-export const complianceSchema = onboardingLegalComplianceSchema;
+export const complianceSchema = onboardingLegalComplianceSchema.describe(
+  "Legacy onboarding compliance",
+);

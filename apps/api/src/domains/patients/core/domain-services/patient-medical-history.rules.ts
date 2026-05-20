@@ -1,4 +1,4 @@
-export interface PatientAllergyRecord {
+interface PatientAllergyRecord {
   id: string;
   allergen: string;
 }
@@ -19,7 +19,6 @@ export function findDuplicateAllergy(
   }
   return existing.find(
     (row) =>
-      row.id !== excludeAllergyId &&
-      normalizeAllergenKey(row.allergen) === key,
+      row.id !== excludeAllergyId && normalizeAllergenKey(row.allergen) === key,
   );
 }

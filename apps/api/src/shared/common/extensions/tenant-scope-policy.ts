@@ -1,13 +1,13 @@
 import { Prisma } from '@workspace/db';
 
-export const TENANT_FIELD = 'clinicId';
+const TENANT_FIELD = 'clinicId';
 
-export const DIRECT_SCOPE_EXCLUSIONS = new Set([
+const DIRECT_SCOPE_EXCLUSIONS = new Set([
   // Feature flags intentionally support global defaults with clinic overrides.
   'FeatureFlag',
 ]);
 
-export const INDIRECT_TENANT_RELATION_PATHS = {
+const INDIRECT_TENANT_RELATION_PATHS = {
   AppointmentReminder: ['appointment'],
   Bed: ['room', 'ward'],
   Diagnosis: ['appointment'],
@@ -30,11 +30,11 @@ export const INDIRECT_TENANT_RELATION_PATHS = {
   VitalSign: ['appointment'],
 } as const satisfies Record<string, readonly string[]>;
 
-export type TenantScopeRule =
+type TenantScopeRule =
   | { kind: 'direct' }
   | { kind: 'relation'; path: readonly string[] };
 
-export type TenantScopeRuleSnapshot = {
+type TenantScopeRuleSnapshot = {
   model: string;
   kind: TenantScopeRule['kind'];
   path?: readonly string[];
@@ -55,7 +55,7 @@ export type TenantExtensionArgs = {
   data?: Record<string, PropertyValue> | Record<string, PropertyValue>[];
 };
 
-export const TENANT_READ_OPERATIONS = new Set([
+const TENANT_READ_OPERATIONS = new Set([
   'findMany',
   'findFirst',
   'findFirstOrThrow',
@@ -64,12 +64,9 @@ export const TENANT_READ_OPERATIONS = new Set([
   'groupBy',
 ]);
 
-export const TENANT_WRITE_FILTER_OPERATIONS = new Set([
-  'updateMany',
-  'deleteMany',
-]);
+const TENANT_WRITE_FILTER_OPERATIONS = new Set(['updateMany', 'deleteMany']);
 
-export const TENANT_UNSAFE_UNIQUE_OPERATIONS = new Set([
+const TENANT_UNSAFE_UNIQUE_OPERATIONS = new Set([
   'findUnique',
   'findUniqueOrThrow',
   'update',
@@ -77,11 +74,11 @@ export const TENANT_UNSAFE_UNIQUE_OPERATIONS = new Set([
   'upsert',
 ]);
 
-export function isPlainObject(value: PropertyValue): value is object {
+function isPlainObject(value: PropertyValue): value is object {
   return typeof value === 'object' && value !== null && !Array.isArray(value);
 }
 
-export function hasScalarClinicId(model: {
+function hasScalarClinicId(model: {
   fields: ReadonlyArray<{ kind: string; name: string }>;
 }) {
   return model.fields.some(
@@ -89,7 +86,7 @@ export function hasScalarClinicId(model: {
   );
 }
 
-export function buildTenantScopeRules(): ReadonlyMap<string, TenantScopeRule> {
+function buildTenantScopeRules(): ReadonlyMap<string, TenantScopeRule> {
   const rules = new Map<string, TenantScopeRule>();
 
   for (const model of Prisma.dmmf.datamodel.models) {
@@ -102,7 +99,9 @@ export function buildTenantScopeRules(): ReadonlyMap<string, TenantScopeRule> {
     }
   }
 
-  for (const [modelName, path] of Object.entries(INDIRECT_TENANT_RELATION_PATHS)) {
+  for (const [modelName, path] of Object.entries(
+    INDIRECT_TENANT_RELATION_PATHS,
+  )) {
     if (!rules.has(modelName)) {
       rules.set(modelName, { kind: 'relation', path });
     }
@@ -164,7 +163,7 @@ export function getTenantScopeDiagnostics(asOf: Date) {
   };
 }
 
-export function buildRelationTenantFilter(
+function buildRelationTenantFilter(
   path: readonly string[],
   clinicId: string,
 ): Record<string, PropertyValue> {
@@ -174,7 +173,7 @@ export function buildRelationTenantFilter(
   );
 }
 
-export function appendAndFilter(
+function appendAndFilter(
   where: Record<string, PropertyValue> | undefined,
   filter: Record<string, PropertyValue>,
 ): Record<string, PropertyValue> {
@@ -192,7 +191,7 @@ export function appendAndFilter(
   };
 }
 
-export function applyTenantFilter(
+function applyTenantFilter(
   args: TenantExtensionArgs,
   rule: TenantScopeRule,
   clinicId: string,
@@ -217,7 +216,7 @@ function hasClinicRelation(data: Record<string, PropertyValue>): boolean {
   );
 }
 
-export function applyTenantCreateData(
+function applyTenantCreateData(
   args: TenantExtensionArgs,
   rule: TenantScopeRule,
   clinicId: string,
@@ -269,7 +268,7 @@ export function applyTenantCreateData(
   }
 }
 
-export function applyTenantUpsertData(
+function applyTenantUpsertData(
   args: TenantExtensionArgs & {
     create?: Record<string, PropertyValue>;
     update?: Record<string, PropertyValue>;
@@ -308,7 +307,7 @@ export function applyTenantUpsertData(
   }
 }
 
-export function enforceTenantOnUnsafeUniqueOperation(
+function enforceTenantOnUnsafeUniqueOperation(
   model: string,
   operation: string,
   rule: TenantScopeRule,

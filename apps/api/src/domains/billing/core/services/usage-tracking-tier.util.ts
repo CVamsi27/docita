@@ -8,7 +8,7 @@ import {
 import { DEFAULT_CURRENCY } from '@workspace/utils';
 import { validateClinicTier } from '@/domains/clinics/application/services/onboarding/type-helpers';
 
-export type UsageWarningThreshold = 80 | 100 | null;
+type UsageWarningThreshold = 80 | 100 | null;
 
 function isSupportedCurrency(value: string): value is SupportedCurrency {
   return Object.prototype.hasOwnProperty.call(PRICING_CURRENCY_CONFIG, value);
@@ -33,9 +33,7 @@ export function resolveTierName(plan: string | undefined): TierName {
   return parsed.success ? parsed.data : 'STARTER';
 }
 
-export function resolveClinicTierPlan(
-  plan: string | undefined,
-): ClinicTier {
+export function resolveClinicTierPlan(plan: string | undefined): ClinicTier {
   return validateClinicTier(plan);
 }
 

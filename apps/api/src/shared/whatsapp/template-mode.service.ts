@@ -1,7 +1,7 @@
 import { Injectable, Logger } from '@nestjs/common';
 import { AppConfigService } from '@/shared/modules/config/app-configuration.service';
 
-export interface ResolvedTemplate {
+interface ResolvedTemplate {
   content: string;
   buttons?: { id: string; text: string; action?: string }[];
   buttonType: 'QUICK_REPLY' | 'CALL_TO_ACTION';
