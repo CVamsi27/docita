@@ -275,11 +275,11 @@ These have measurable progress recorded today. They are not "open new work" — 
 
 | ID | Status | Remaining | Touch points |
 |---|---|---|---|
-| **B1** | 216 → **136** PrismaService leaks | Eliminate 136. Best opener: **Κ1** (closes ~10 in one PR). | `apps/api/src/domains/**/application/services/*.ts` |
+| **B1** | WhatsApp Κ1 cluster cleared | Remaining leaks outside `domains/whatsapp/application/services/*` | `apps/api/src/domains/**/application/services/*.ts` |
 | **B2** | 10 → **9** domains without ports | Add `core/repositories/*.interface.ts` for: `custom-fields`, `doctor-clinics`, `documents`, `enterprise-contracts`, `payments`, `public-booking`, `reminders`, `webhooks`, `whatsapp` |
 | **N1** | 37 → **6** `process.env` leaks | Migrate the 6 — see A.4 Phase N table |
-| **A2** | `imports.service.ts` 522 → **68L** facade | Parser/mapping/dedupe/OCR/commit split; `bulk-import` still 390L (A5) |
-| **A5** | `bulk-import.service.ts` 750 → **390L** | Fold into A2's shared importer |
+| **A2** | `imports.service.ts` 522 → **68L** facade | Parser/mapping/dedupe/OCR/commit split — **DONE** |
+| **A5** | `bulk-import.service.ts` 390 → **62L** facade | Query/orchestrator/processor split — **DONE** |
 | **D1** | 1 → **7** domain-services | Promote remaining application services with no I/O — see A.4 Phase D |
 | **E3-b** | `activate-subscription.use-case.ts` 410 → **287L** | Split rules vs writes — see A.4 Phase E |
 | **G1** | `tier.ts` 1498 → **1405L** | Move helpers to `packages/utils/billing/tier-rules.ts` |
@@ -598,8 +598,9 @@ pnpm remove axios lodash --filter root
 
 ### A.4 Phase Κ — Repository pattern (highest concentration of B1)
 
-**Κ1 [H] WhatsApp domain — 10 services bypassing repository**
-- Files (each currently uses `this.prisma.X.Y(...)` directly):
+**Κ1 [H] WhatsApp domain — 10 services bypassing repository** — **DONE** (2026-05-20)
+- Migrated to `WhatsappPersistencePort` via `WHATSAPP_PERSISTENCE_PORT` (11 application files).
+- Files (each formerly used `this.prisma.X.Y(...)` directly):
   1. `template-message.service.ts`
   2. `approval.service.ts`
   3. `staff-notification-policy.service.ts`

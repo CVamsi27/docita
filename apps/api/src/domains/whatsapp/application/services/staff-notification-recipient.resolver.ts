@@ -1,5 +1,8 @@
-import { Injectable } from '@nestjs/common';
-import { PrismaService } from '@/prisma/prisma.service';
+import { Inject, Injectable } from '@nestjs/common';
+import {
+  WHATSAPP_PERSISTENCE_PORT,
+  type WhatsappPersistencePort,
+} from '@/domains/whatsapp/application/ports/whatsapp-persistence.port';
 import type { Role, StaffNotificationType } from '@workspace/db';
 import { Prisma } from '@workspace/db';
 import { isFrontDeskWorkspace, parseWorkspaceProfile } from '@workspace/types';
@@ -10,7 +13,10 @@ import type {
 
 @Injectable()
 export class StaffNotificationRecipientResolver implements INotificationRecipientResolver {
-  constructor(private readonly prisma: PrismaService) {}
+  constructor(
+    @Inject(WHATSAPP_PERSISTENCE_PORT)
+    private readonly persistence: WhatsappPersistencePort,
+  ) {}
 
   async resolveStaffRecipients(
     clinicId: string,
@@ -25,7 +31,7 @@ export class StaffNotificationRecipientResolver implements INotificationRecipien
     };
 
     if (doctorId && !targetRoles.includes('DOCTOR' as Role)) {
-      return this.prisma.user.findMany({
+      return this.persistence.user.findMany({
         where: {
           OR: [where, { id: doctorId, clinicId }],
         },
@@ -36,7 +42,7 @@ export class StaffNotificationRecipientResolver implements INotificationRecipien
       });
     }
 
-    return this.prisma.user.findMany({
+    return this.persistence.user.findMany({
       where,
       select: {
         id: true,
@@ -95,7 +101,7 @@ export class StaffNotificationRecipientResolver implements INotificationRecipien
       return base;
     }
 
-    const clinic = await this.prisma.clinic.findUnique({
+    const clinic = await this.persistence.clinic.findUnique({
       where: { id: clinicId },
       select: { settings: true },
     });

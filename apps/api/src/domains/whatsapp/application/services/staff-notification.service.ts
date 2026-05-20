@@ -6,7 +6,10 @@ import {
 } from '@nestjs/common';
 import { EventEmitter2 } from '@nestjs/event-emitter';
 import { ApplicationEvents } from '@/shared/common/events/application-events';
-import { PrismaService } from '@/prisma/prisma.service';
+import {
+  WHATSAPP_PERSISTENCE_PORT,
+  type WhatsappPersistencePort,
+} from '@/domains/whatsapp/application/ports/whatsapp-persistence.port';
 import type {
   NotificationPriority,
   StaffNotificationType,
@@ -64,7 +67,8 @@ export class StaffNotificationService {
   private readonly logger = new Logger(StaffNotificationService.name);
 
   constructor(
-    private readonly prisma: PrismaService,
+    @Inject(WHATSAPP_PERSISTENCE_PORT)
+    private readonly persistence: WhatsappPersistencePort,
     @Inject(NOTIFICATION_RECIPIENT_RESOLVER_TOKEN)
     private readonly recipientResolver: INotificationRecipientResolver,
     private readonly policy: StaffNotificationPolicyService,
@@ -156,7 +160,7 @@ export class StaffNotificationService {
     priority: NotificationPriority,
   ): Promise<void> {
     try {
-      const notification = await this.prisma.staffNotification.create({
+      const notification = await this.persistence.staffNotification.create({
         data: {
           clinicId,
           userId,
@@ -205,7 +209,7 @@ export class StaffNotificationService {
     }>
   > {
     const { limit = 100, offset = 0 } = options;
-    const notifications = await this.prisma.staffNotification.findMany({
+    const notifications = await this.persistence.staffNotification.findMany({
       where: {
         userId,
         deletedAt: null,
@@ -254,7 +258,7 @@ export class StaffNotificationService {
       createdAt: Date;
     }>
   > {
-    const notifications = await this.prisma.staffNotification.findMany({
+    const notifications = await this.persistence.staffNotification.findMany({
       where: {
         userId,
         isRead: false,
@@ -288,7 +292,7 @@ export class StaffNotificationService {
     notificationId: string,
     userId: string,
   ): Promise<void> {
-    const existing = await this.prisma.staffNotification.findFirst({
+    const existing = await this.persistence.staffNotification.findFirst({
       where: { id: notificationId, userId, deletedAt: null },
       select: { clinicId: true },
     });
@@ -297,7 +301,7 @@ export class StaffNotificationService {
       throw new NotFoundException('Notification not found');
     }
 
-    await this.prisma.staffNotification.updateMany({
+    await this.persistence.staffNotification.updateMany({
       where: { id: notificationId, userId, deletedAt: null },
       data: { isRead: true, readAt: this.clock.now() },
     });
@@ -313,7 +317,7 @@ export class StaffNotificationService {
     notificationId: string,
     userId: string,
   ): Promise<void> {
-    const existing = await this.prisma.staffNotification.findFirst({
+    const existing = await this.persistence.staffNotification.findFirst({
       where: { id: notificationId, userId, deletedAt: null },
       select: { clinicId: true },
     });
@@ -322,7 +326,7 @@ export class StaffNotificationService {
       throw new NotFoundException('Notification not found');
     }
 
-    await this.prisma.staffNotification.updateMany({
+    await this.persistence.staffNotification.updateMany({
       where: { id: notificationId, userId, deletedAt: null },
       data: { deletedAt: this.clock.now() },
     });
@@ -338,7 +342,7 @@ export class StaffNotificationService {
     userId: string,
     clinicId: string,
   ): Promise<void> {
-    await this.prisma.staffNotification.updateMany({
+    await this.persistence.staffNotification.updateMany({
       where: { userId, deletedAt: null },
       data: { deletedAt: this.clock.now() },
     });
@@ -350,7 +354,7 @@ export class StaffNotificationService {
   }
 
   async getUnreadCount(userId: string): Promise<number> {
-    return this.prisma.staffNotification.count({
+    return this.persistence.staffNotification.count({
       where: {
         userId,
         isRead: false,

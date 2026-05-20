@@ -1,7 +1,10 @@
 import { Inject, Injectable, Logger, forwardRef } from '@nestjs/common';
 import { AppointmentStatus, Prisma, WhatsappLogStatus } from '@workspace/db';
 import { WhatsAppWebhookPayload } from '@workspace/types';
-import { PrismaService } from '@/prisma/prisma.service';
+import {
+  WHATSAPP_PERSISTENCE_PORT,
+  type WhatsappPersistencePort,
+} from '@/domains/whatsapp/application/ports/whatsapp-persistence.port';
 import { SupportWhatsAppInboxService } from '@/shared/modules/support-whatsapp';
 import { ResponseHandlerService } from '@/domains/whatsapp/application/services/response-handler.service';
 import {
@@ -26,7 +29,8 @@ export class WhatsAppWebhookIngressService {
   private readonly logger = new Logger(WhatsAppWebhookIngressService.name);
 
   constructor(
-    private readonly prisma: PrismaService,
+    @Inject(WHATSAPP_PERSISTENCE_PORT)
+    private readonly persistence: WhatsappPersistencePort,
     @Inject(WHATSAPP_REPOSITORY_TOKEN)
     private readonly repository: IWhatsAppRepository,
     private readonly supportInboxService: SupportWhatsAppInboxService,
@@ -109,7 +113,7 @@ export class WhatsAppWebhookIngressService {
     status: NonNullable<WebhookChangeValue['statuses']>[number],
   ): Promise<void> {
     try {
-      const log = await this.prisma.whatsappLog.findFirst({
+      const log = await this.persistence.whatsappLog.findFirst({
         where: { providerMessageId: status.id },
       });
 
@@ -132,7 +136,7 @@ export class WhatsAppWebhookIngressService {
           .join('; ');
       }
 
-      await this.prisma.whatsappLog.update({
+      await this.persistence.whatsappLog.update({
         where: { id: log.id },
         data: updateData,
       });
@@ -210,7 +214,7 @@ export class WhatsAppWebhookIngressService {
       cleanPhone.slice(-10),
     ];
 
-    const patient = await this.prisma.patient.findFirst({
+    const patient = await this.persistence.patient.findFirst({
       where: {
         phoneNumber: { in: phoneVariants },
       },
@@ -222,7 +226,7 @@ export class WhatsAppWebhookIngressService {
     const now = this.clock.now();
     const twoHoursAgo = new Date(now.getTime() - 2 * 60 * 60 * 1000);
 
-    return this.prisma.appointment.findFirst({
+    return this.persistence.appointment.findFirst({
       where: {
         patientId: patient.id,
         startTime: { gte: twoHoursAgo },

@@ -3,7 +3,10 @@ import {
   CLOCK_PORT,
   type IClock,
 } from '@/shared/common/ports/clock.port';
-import { PrismaService } from '@/prisma/prisma.service';
+import {
+  WHATSAPP_PERSISTENCE_PORT,
+  type WhatsappPersistencePort,
+} from '@/domains/whatsapp/application/ports/whatsapp-persistence.port';
 import { SendMessageUseCase } from '@/domains/whatsapp/application/use-cases/send-message.use-case';
 import { TemplatesService } from '@/domains/whatsapp/application/services/templates.service';
 import { StaffNotificationService } from '@/domains/whatsapp/application/services/staff-notification.service';
@@ -47,7 +50,8 @@ export class ResponseHandlerService {
   private readonly logger = new Logger(ResponseHandlerService.name);
 
   constructor(
-    private readonly prisma: PrismaService,
+    @Inject(WHATSAPP_PERSISTENCE_PORT)
+    private readonly persistence: WhatsappPersistencePort,
     private readonly sendMessage: SendMessageUseCase,
     private readonly templatesService: TemplatesService,
     private readonly staffNotification: StaffNotificationService,
@@ -90,7 +94,7 @@ export class ResponseHandlerService {
       `Processing response for appointment ${appointmentId}: ${responseText}`,
     );
 
-    const appointment = await this.prisma.appointment.findUnique({
+    const appointment = await this.persistence.appointment.findUnique({
       where: { id: appointmentId },
       include: {
         patient: true,
@@ -129,7 +133,7 @@ export class ResponseHandlerService {
     const delayMinutesPending =
       responseType === 'DELAY' && delayMinutes === null;
 
-    const response = await this.prisma.appointmentResponse.create({
+    const response = await this.persistence.appointmentResponse.create({
       data: {
         appointmentId,
         responseType,
@@ -236,7 +240,7 @@ export class ResponseHandlerService {
       now.getTime() - DELAY_FOLLOW_UP_WINDOW_HOURS * 60 * 60 * 1000,
     );
 
-    const pending = await this.prisma.appointmentResponse.findFirst({
+    const pending = await this.persistence.appointmentResponse.findFirst({
       where: {
         appointmentId,
         responseType: 'DELAY',
@@ -264,7 +268,7 @@ export class ResponseHandlerService {
       delayMinutes,
     );
 
-    await this.prisma.appointmentResponse.update({
+    await this.persistence.appointmentResponse.update({
       where: { id: responseId },
       data: {
         delayMinutes,
@@ -300,7 +304,7 @@ export class ResponseHandlerService {
       appointmentStart.getTime() + delayMinutes * 60 * 1000,
     );
 
-    const nextAppointment = await this.prisma.appointment.findFirst({
+    const nextAppointment = await this.persistence.appointment.findFirst({
       where: {
         id: { not: appointmentId },
         clinicId,
@@ -335,7 +339,7 @@ export class ResponseHandlerService {
     const newStatus = APPOINTMENT_STATUS_BY_PATIENT_RESPONSE[responseType];
 
     if (newStatus) {
-      await this.prisma.appointment.update({
+      await this.persistence.appointment.update({
         where: { id: appointmentId },
         data: { status: newStatus },
       });
@@ -516,7 +520,7 @@ export class ResponseHandlerService {
       templateVariables: variables,
     });
 
-    await this.prisma.appointmentResponse.update({
+    await this.persistence.appointmentResponse.update({
       where: { id: responseId },
       data: {
         staffNotified: true,

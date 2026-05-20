@@ -1,7 +1,7 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import { beforeEach, describe, expect, it, jest } from '@jest/globals';
 import { Logger } from '@nestjs/common';
-import { PrismaService } from '@/prisma/prisma.service';
+import { WHATSAPP_PERSISTENCE_PORT } from '@/domains/whatsapp/application/ports/whatsapp-persistence.port';
 import { SendMessageUseCase } from '@/domains/whatsapp/application/use-cases/send-message.use-case';
 import { TemplatesService } from '@/domains/whatsapp/application/services/templates.service';
 import { StaffNotificationService } from '@/domains/whatsapp/application/services/staff-notification.service';
@@ -82,7 +82,7 @@ describe('ResponseHandlerService', () => {
     const module: TestingModule = await Test.createTestingModule({
       providers: [
         ResponseHandlerService,
-        { provide: PrismaService, useValue: mockPrisma },
+        { provide: WHATSAPP_PERSISTENCE_PORT, useValue: mockPrisma },
         {
           provide: SendMessageUseCase,
           useValue: { execute: sendMessageExecute },

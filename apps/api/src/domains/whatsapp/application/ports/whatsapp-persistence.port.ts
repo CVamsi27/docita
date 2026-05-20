@@ -3,10 +3,15 @@ import { type PrismaDelegatePort } from '@/shared/modules/database/prisma-delega
 type WhatsappPersistenceKey =
   | '$transaction'
   | 'appointment'
+  | 'appointmentResponse'
   | 'clinic'
   | 'clinicSecret'
   | 'invoice'
-  | 'prescription';
+  | 'patient'
+  | 'prescription'
+  | 'staffNotification'
+  | 'user'
+  | 'whatsappLog';
 
 export type WhatsappPersistencePort = Pick<
   PrismaDelegatePort,

@@ -28,6 +28,8 @@ import { StaffNotificationPolicyService } from '@/domains/whatsapp/application/s
 import { StaffNotificationWhatsAppDispatchService } from '@/domains/whatsapp/application/services/staff-notification-whatsapp-dispatch.service';
 import { NOTIFICATION_RECIPIENT_RESOLVER_TOKEN } from '@/domains/whatsapp/application/ports/notification-recipient-resolver.port';
 import { PrismaModule } from '@/prisma/prisma.module';
+import { PrismaService } from '@/prisma/prisma.service';
+import { WHATSAPP_PERSISTENCE_PORT } from '@/domains/whatsapp/application/ports/whatsapp-persistence.port';
 import { WhatsappEventListener } from '@/domains/whatsapp/application/listeners/whatsapp-event.listener';
 import { StaffNotificationListener } from '@/domains/whatsapp/application/listeners/staff-notification.listener';
 import { SupportWhatsAppModule } from '@/shared/modules/support-whatsapp';
@@ -51,6 +53,7 @@ import { SupportWhatsAppModule } from '@/shared/modules/support-whatsapp';
     LegacyWhatsappWebhookController,
   ],
   providers: [
+    { provide: WHATSAPP_PERSISTENCE_PORT, useExisting: PrismaService },
     TemplatesFacadeService,
     { provide: 'TemplatesService', useClass: TemplatesFacadeService },
 

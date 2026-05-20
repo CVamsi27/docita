@@ -1,7 +1,10 @@
-import { Injectable, Logger } from '@nestjs/common';
+import { Inject, Injectable, Logger } from '@nestjs/common';
 import { OnEvent } from '@nestjs/event-emitter';
 import { ApplicationEvents } from '@/shared/common/events/application-events';
-import { PrismaService } from '@/prisma/prisma.service';
+import {
+  WHATSAPP_PERSISTENCE_PORT,
+  type WhatsappPersistencePort,
+} from '@/domains/whatsapp/application/ports/whatsapp-persistence.port';
 import { StaffNotificationService } from '@/domains/whatsapp/application/services/staff-notification.service';
 
 /**
@@ -16,7 +19,8 @@ export class StaffNotificationListener {
 
   constructor(
     private readonly staffNotifications: StaffNotificationService,
-    private readonly prisma: PrismaService,
+    @Inject(WHATSAPP_PERSISTENCE_PORT)
+    private readonly persistence: WhatsappPersistencePort,
   ) {}
 
   @OnEvent(ApplicationEvents.INVOICE_GENERATED, { async: true })
@@ -25,7 +29,7 @@ export class StaffNotificationListener {
     clinicId: string;
   }): Promise<void> {
     try {
-      const invoice = await this.prisma.invoice.findUnique({
+      const invoice = await this.persistence.invoice.findUnique({
         where: { id: payload.invoiceId },
         select: {
           id: true,

@@ -1,5 +1,8 @@
-import { Injectable, Logger } from '@nestjs/common';
-import { PrismaService } from '@/prisma/prisma.service';
+import { Inject, Injectable, Logger } from '@nestjs/common';
+import {
+  WHATSAPP_PERSISTENCE_PORT,
+  type WhatsappPersistencePort,
+} from '@/domains/whatsapp/application/ports/whatsapp-persistence.port';
 import { SendMessageUseCase } from '@/domains/whatsapp/application/use-cases/send-message.use-case';
 import { isClinicWhatsAppAutomationSendingAllowed } from '@/shared/whatsapp/whatsapp-patient-send-policy.util';
 import { DATE_FORMATS, formatDate, formatTime } from '@workspace/utils';
@@ -10,13 +13,14 @@ export class SystemEventsService {
   private readonly logger = new Logger(SystemEventsService.name);
 
   constructor(
-    private readonly prisma: PrismaService,
+    @Inject(WHATSAPP_PERSISTENCE_PORT)
+    private readonly persistence: WhatsappPersistencePort,
     private readonly sendMessage: SendMessageUseCase,
   ) {}
 
   async sendPrescriptionSystem(prescriptionId: string, clinicId: string) {
     if (
-      !(await isClinicWhatsAppAutomationSendingAllowed(this.prisma, clinicId))
+      !(await isClinicWhatsAppAutomationSendingAllowed(this.persistence, clinicId))
     ) {
       this.logger.log(
         `WhatsApp patient messaging not allowed for clinic ${clinicId}; skipping prescription notification`,
@@ -24,7 +28,7 @@ export class SystemEventsService {
       return;
     }
 
-    const prescription = await this.prisma.prescription.findUnique({
+    const prescription = await this.persistence.prescription.findUnique({
       where: { id: prescriptionId },
       include: {
         patient: {
@@ -61,7 +65,7 @@ export class SystemEventsService {
 
   async sendInvoiceSystem(invoiceId: string, clinicId: string) {
     if (
-      !(await isClinicWhatsAppAutomationSendingAllowed(this.prisma, clinicId))
+      !(await isClinicWhatsAppAutomationSendingAllowed(this.persistence, clinicId))
     ) {
       this.logger.log(
         `WhatsApp patient messaging not allowed for clinic ${clinicId}; skipping invoice notification`,
@@ -69,7 +73,7 @@ export class SystemEventsService {
       return;
     }
 
-    const invoice = await this.prisma.invoice.findUnique({
+    const invoice = await this.persistence.invoice.findUnique({
       where: { id: invoiceId },
       include: {
         patient: {
@@ -105,7 +109,7 @@ export class SystemEventsService {
 
   async sendAppointmentConfirmation(appointmentId: string, clinicId: string) {
     if (
-      !(await isClinicWhatsAppAutomationSendingAllowed(this.prisma, clinicId))
+      !(await isClinicWhatsAppAutomationSendingAllowed(this.persistence, clinicId))
     ) {
       this.logger.log(
         `WhatsApp patient messaging not allowed for clinic ${clinicId}; skipping appointment confirmation`,
@@ -113,7 +117,7 @@ export class SystemEventsService {
       return;
     }
 
-    const appointment = await this.prisma.appointment.findUnique({
+    const appointment = await this.persistence.appointment.findUnique({
       where: { id: appointmentId },
       include: {
         patient: {
@@ -171,7 +175,7 @@ export class SystemEventsService {
     delayMinutes: number,
   ) {
     if (
-      !(await isClinicWhatsAppAutomationSendingAllowed(this.prisma, clinicId))
+      !(await isClinicWhatsAppAutomationSendingAllowed(this.persistence, clinicId))
     ) {
       this.logger.log(
         `WhatsApp patient messaging not allowed for clinic ${clinicId}; skipping delay notification`,
@@ -179,7 +183,7 @@ export class SystemEventsService {
       return;
     }
 
-    const appointment = await this.prisma.appointment.findUnique({
+    const appointment = await this.persistence.appointment.findUnique({
       where: { id: appointmentId },
       include: {
         patient: {
@@ -220,7 +224,7 @@ export class SystemEventsService {
     type: 'CANCELLED' | 'RESCHEDULED',
   ) {
     if (
-      !(await isClinicWhatsAppAutomationSendingAllowed(this.prisma, clinicId))
+      !(await isClinicWhatsAppAutomationSendingAllowed(this.persistence, clinicId))
     ) {
       this.logger.log(
         `WhatsApp patient messaging not allowed for clinic ${clinicId}; skipping appointment update`,
@@ -228,7 +232,7 @@ export class SystemEventsService {
       return;
     }
 
-    const appointment = await this.prisma.appointment.findUnique({
+    const appointment = await this.persistence.appointment.findUnique({
       where: { id: appointmentId },
       include: {
         patient: {

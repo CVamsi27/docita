@@ -1,6 +1,6 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import { WhatsappWebhookService } from './whatsapp-webhook.service';
-import { PrismaService } from '@/prisma/prisma.service';
+import { WHATSAPP_PERSISTENCE_PORT } from '@/domains/whatsapp/application/ports/whatsapp-persistence.port';
 import { WhatsappClientService } from '@/domains/whatsapp/infrastructure/clients/whatsapp-client.service';
 import { ResponseHandlerService } from '@/domains/whatsapp/application/services/response-handler.service';
 import { WhatsAppWebhookIngressService } from '@/domains/whatsapp/application/services/whatsapp-webhook-ingress.service';
@@ -80,7 +80,7 @@ describe('WhatsappWebhookService', () => {
       providers: [
         WhatsappWebhookService,
         WhatsAppWebhookIngressService,
-        { provide: PrismaService, useValue: mockPrisma },
+        { provide: WHATSAPP_PERSISTENCE_PORT, useValue: mockPrisma },
         { provide: WhatsappClientService, useValue: mockWhatsappClient },
         {
           provide: SupportWhatsAppInboxService,

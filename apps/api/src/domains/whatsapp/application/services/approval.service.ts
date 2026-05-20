@@ -3,25 +3,29 @@ import {
   CLOCK_PORT,
   type IClock,
 } from '@/shared/common/ports/clock.port';
-import { PrismaService } from '@/prisma/prisma.service';
+import {
+  WHATSAPP_PERSISTENCE_PORT,
+  type WhatsappPersistencePort,
+} from '@/domains/whatsapp/application/ports/whatsapp-persistence.port';
 import { ApprovalStatus } from '@workspace/db';
 
 @Injectable()
 export class ApprovalService {
   constructor(
-    private readonly prisma: PrismaService,
+    @Inject(WHATSAPP_PERSISTENCE_PORT)
+    private readonly persistence: WhatsappPersistencePort,
     @Inject(CLOCK_PORT) private readonly clock: IClock,
   ) {}
 
   async approvePrescription(id: string, userId: string, clinicId: string) {
-    const existing = await this.prisma.prescription.findFirst({
+    const existing = await this.persistence.prescription.findFirst({
       where: { id, appointment: { clinicId } },
     });
     if (!existing) {
       throw new NotFoundException(`Prescription with ID ${id} not found`);
     }
 
-    const prescription = await this.prisma.prescription.update({
+    const prescription = await this.persistence.prescription.update({
       where: { id },
       data: {
         approvalStatus: ApprovalStatus.APPROVED,
@@ -34,14 +38,14 @@ export class ApprovalService {
   }
 
   async approveInvoice(id: string, userId: string, clinicId: string) {
-    const existing = await this.prisma.invoice.findFirst({
+    const existing = await this.persistence.invoice.findFirst({
       where: { id, appointment: { clinicId } },
     });
     if (!existing) {
       throw new NotFoundException(`Invoice with ID ${id} not found`);
     }
 
-    const invoice = await this.prisma.invoice.update({
+    const invoice = await this.persistence.invoice.update({
       where: { id },
       data: {
         approvalStatus: ApprovalStatus.APPROVED,

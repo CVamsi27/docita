@@ -1,10 +1,14 @@
 import {
+  Inject,
   Injectable,
   Logger,
   BadRequestException,
   NotFoundException,
 } from '@nestjs/common';
-import { PrismaService } from '@/prisma/prisma.service';
+import {
+  WHATSAPP_PERSISTENCE_PORT,
+  type WhatsappPersistencePort,
+} from '@/domains/whatsapp/application/ports/whatsapp-persistence.port';
 import { TemplatesService } from '@/domains/whatsapp/application/services/templates.service';
 import { SendTemplateDto } from '@/domains/whatsapp/presentation/dto/send-template.dto';
 import { SendMessageUseCase } from '@/domains/whatsapp/application/use-cases/send-message.use-case';
@@ -19,7 +23,8 @@ export class TemplateMessageService {
   private readonly logger = new Logger(TemplateMessageService.name);
 
   constructor(
-    private readonly prisma: PrismaService,
+    @Inject(WHATSAPP_PERSISTENCE_PORT)
+    private readonly persistence: WhatsappPersistencePort,
     private readonly templatesService: TemplatesService,
     private readonly sendMessage: SendMessageUseCase,
   ) {}
@@ -29,7 +34,7 @@ export class TemplateMessageService {
     _userId: string,
     dto: SendTemplateDto,
   ) {
-    const clinic = await this.prisma.clinic.findUnique({
+    const clinic = await this.persistence.clinic.findUnique({
       where: { id: clinicId },
       select: { id: true, name: true },
     });
@@ -64,7 +69,7 @@ export class TemplateMessageService {
       ),
     });
 
-    await this.prisma.whatsappLog.create({
+    await this.persistence.whatsappLog.create({
       data: {
         clinicId: clinicId,
         patientId: dto.patientId,

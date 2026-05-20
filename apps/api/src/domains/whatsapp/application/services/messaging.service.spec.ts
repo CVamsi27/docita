@@ -1,6 +1,6 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import { MessagingService } from './messaging.service';
-import { PrismaService } from '@/prisma/prisma.service';
+import { WHATSAPP_PERSISTENCE_PORT } from '@/domains/whatsapp/application/ports/whatsapp-persistence.port';
 import {
   beforeEach,
   afterEach,
@@ -58,7 +58,7 @@ describe('MessagingService', () => {
     const module: TestingModule = await Test.createTestingModule({
       providers: [
         MessagingService,
-        { provide: PrismaService, useValue: mockPrisma },
+        { provide: WHATSAPP_PERSISTENCE_PORT, useValue: mockPrisma },
       ],
     }).compile();
 

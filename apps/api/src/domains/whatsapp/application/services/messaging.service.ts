@@ -1,15 +1,21 @@
-import { Injectable } from '@nestjs/common';
-import { PrismaService } from '@/prisma/prisma.service';
+import { Inject, Injectable } from '@nestjs/common';
+import {
+  WHATSAPP_PERSISTENCE_PORT,
+  type WhatsappPersistencePort,
+} from '@/domains/whatsapp/application/ports/whatsapp-persistence.port';
 
 @Injectable()
 export class MessagingService {
-  constructor(private readonly prisma: PrismaService) {}
+  constructor(
+    @Inject(WHATSAPP_PERSISTENCE_PORT)
+    private readonly persistence: WhatsappPersistencePort,
+  ) {}
 
   async getLogs(
     clinicId: string,
     options: { limit?: number; patientId?: string; type?: string },
   ) {
-    return this.prisma.whatsappLog.findMany({
+    return this.persistence.whatsappLog.findMany({
       where: {
         clinicId,
         ...(options.patientId && { patientId: options.patientId }),
@@ -24,11 +30,11 @@ export class MessagingService {
   }
 
   async getWhatsappStats(clinicId: string) {
-    const totalPatients = await this.prisma.patient.count({
+    const totalPatients = await this.persistence.patient.count({
       where: { clinicId },
     });
 
-    const subscribers = await this.prisma.patient.count({
+    const subscribers = await this.persistence.patient.count({
       where: {
         clinicId,
         phoneNumber: { not: '' },

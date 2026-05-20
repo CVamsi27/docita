@@ -1,5 +1,8 @@
-import { Injectable } from '@nestjs/common';
-import { PrismaService } from '@/prisma/prisma.service';
+import { Inject, Injectable } from '@nestjs/common';
+import {
+  WHATSAPP_PERSISTENCE_PORT,
+  type WhatsappPersistencePort,
+} from '@/domains/whatsapp/application/ports/whatsapp-persistence.port';
 import type { ClinicTier, StaffNotificationType } from '@workspace/db';
 
 const NOTIFICATION_TYPE_MIN_TIER: Partial<
@@ -23,7 +26,10 @@ const TIER_RANK: Record<ClinicTier, number> = {
 
 @Injectable()
 export class StaffNotificationPolicyService {
-  constructor(private readonly prisma: PrismaService) {}
+  constructor(
+    @Inject(WHATSAPP_PERSISTENCE_PORT)
+    private readonly persistence: WhatsappPersistencePort,
+  ) {}
 
   async isTierAllowed(
     clinicId: string,
@@ -32,7 +38,7 @@ export class StaffNotificationPolicyService {
     const required = NOTIFICATION_TYPE_MIN_TIER[type];
     if (!required) return true;
 
-    const clinic = await this.prisma.clinic.findUnique({
+    const clinic = await this.persistence.clinic.findUnique({
       where: { id: clinicId },
       select: { tier: true },
     });
@@ -42,7 +48,7 @@ export class StaffNotificationPolicyService {
   }
 
   async isWhatsappEnabled(clinicId: string): Promise<boolean> {
-    const clinic = await this.prisma.clinic.findUnique({
+    const clinic = await this.persistence.clinic.findUnique({
       where: { id: clinicId },
       select: { whatsappAutomation: true },
     });

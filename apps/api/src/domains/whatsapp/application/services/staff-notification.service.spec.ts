@@ -1,6 +1,7 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import { StaffNotificationService } from './staff-notification.service';
-import { PrismaService } from '@/prisma/prisma.service';
+import { WHATSAPP_PERSISTENCE_PORT } from '@/domains/whatsapp/application/ports/whatsapp-persistence.port';
+import { CLOCK_PORT } from '@/shared/common/ports/clock.port';
 import { WhatsappClientService } from '@/domains/whatsapp/infrastructure/clients/whatsapp-client.service';
 import { TemplateResolutionService } from '@/shared/whatsapp/template-resolution.service';
 import { TemplateModeService } from '@/shared/whatsapp/template-mode.service';
@@ -115,7 +116,7 @@ describe('StaffNotificationService', () => {
         },
         StaffNotificationPolicyService,
         StaffNotificationWhatsAppDispatchService,
-        { provide: PrismaService, useValue: mockPrisma },
+        { provide: WHATSAPP_PERSISTENCE_PORT, useValue: mockPrisma },
         { provide: WhatsappClientService, useValue: mockWhatsappClient },
         {
           provide: TemplateResolutionService,
@@ -123,6 +124,10 @@ describe('StaffNotificationService', () => {
         },
         { provide: TemplateModeService, useValue: mockTemplateMode },
         { provide: EventEmitter2, useValue: mockEventEmitter },
+        {
+          provide: CLOCK_PORT,
+          useValue: { now: () => new Date('2026-01-15T10:00:00Z') },
+        },
       ],
     }).compile();
 

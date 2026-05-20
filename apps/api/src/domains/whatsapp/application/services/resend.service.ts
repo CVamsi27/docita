@@ -8,7 +8,10 @@ import {
   CLOCK_PORT,
   type IClock,
 } from '@/shared/common/ports/clock.port';
-import { PrismaService } from '@/prisma/prisma.service';
+import {
+  WHATSAPP_PERSISTENCE_PORT,
+  type WhatsappPersistencePort,
+} from '@/domains/whatsapp/application/ports/whatsapp-persistence.port';
 import { TemplatesService } from '@/domains/whatsapp/application/services/templates.service';
 import { SendMessageUseCase } from '@/domains/whatsapp/application/use-cases/send-message.use-case';
 import {
@@ -29,7 +32,8 @@ function toTemplateVariables(
 @Injectable()
 export class WhatsappResendService {
   constructor(
-    private readonly prisma: PrismaService,
+    @Inject(WHATSAPP_PERSISTENCE_PORT)
+    private readonly persistence: WhatsappPersistencePort,
     private readonly templatesService: TemplatesService,
     private readonly sendMessage: SendMessageUseCase,
     @Inject(CLOCK_PORT) private readonly clock: IClock,
@@ -41,7 +45,7 @@ export class WhatsappResendService {
     role: string,
     id: string,
   ) {
-    const prescription = await this.prisma.prescription.findUnique({
+    const prescription = await this.persistence.prescription.findUnique({
       where: { id },
       include: {
         patient: {
@@ -107,7 +111,7 @@ export class WhatsappResendService {
       variables,
     });
 
-    await this.prisma.prescription.update({
+    await this.persistence.prescription.update({
       where: { id },
       data: {
         whatsappSentAt: this.clock.now(),
@@ -121,7 +125,7 @@ export class WhatsappResendService {
       },
     });
 
-    await this.prisma.whatsappLog.create({
+    await this.persistence.whatsappLog.create({
       data: {
         clinicId,
         patientId: prescription.patient.id,
@@ -146,7 +150,7 @@ export class WhatsappResendService {
     role: string,
     id: string,
   ) {
-    const invoice = await this.prisma.invoice.findUnique({
+    const invoice = await this.persistence.invoice.findUnique({
       where: { id },
       include: {
         patient: {
@@ -215,7 +219,7 @@ export class WhatsappResendService {
       variables,
     });
 
-    await this.prisma.invoice.update({
+    await this.persistence.invoice.update({
       where: { id },
       data: {
         whatsappSentAt: this.clock.now(),
@@ -229,7 +233,7 @@ export class WhatsappResendService {
       },
     });
 
-    await this.prisma.whatsappLog.create({
+    await this.persistence.whatsappLog.create({
       data: {
         clinicId,
         patientId: invoice.patient.id,
