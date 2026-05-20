@@ -41,6 +41,8 @@ import { SubscriptionReminderScheduler } from './infrastructure/schedulers/subsc
 import { OverageInvoiceComposer } from './infrastructure/schedulers/overage-invoice.composer';
 import { OverageBillingScheduler } from './infrastructure/schedulers/overage-billing.scheduler';
 import { PrismaWorkerModule } from '@/prisma/prisma.worker.module';
+import { PrismaService } from '@/prisma/prisma.service';
+import { SUBSCRIPTION_PERSISTENCE_PORT } from './application/ports/subscription-persistence.port';
 import { BillingWorkerModule } from '@/domains/billing/billing.worker.module';
 import { PaymentsModule } from '@/domains/payments/payments.module';
 import { EmailModule } from '@/shared/modules/messaging/email/email.module';
@@ -61,6 +63,7 @@ import { AdminAlertsModule } from '@/shared/modules/messaging/admin-alerts/admin
     CommonServicesModule,
   ],
   providers: [
+    { provide: SUBSCRIPTION_PERSISTENCE_PORT, useExisting: PrismaService },
     SubscriptionPricingService,
     SubscriptionCheckoutPricingService,
     SubscriptionActivationPolicyService,

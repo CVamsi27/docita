@@ -1,6 +1,5 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import { WhatsappService } from './whatsapp-clinic-facade.service';
-import { PrismaService } from '@/prisma/prisma.service';
 import { WhatsappClientService } from '@/domains/whatsapp/infrastructure/clients/whatsapp-client.service';
 import { TemplatesService } from './templates.service';
 import { WhatsappResendService } from './resend.service';
@@ -36,19 +35,6 @@ describe('WhatsappService', () => {
 
   const asyncMock = <T>(value: T) =>
     jest.fn().mockImplementation(async () => value);
-
-  const mockPrismaService = {
-    whatsappLog: {
-      create: asyncMock({}),
-    },
-    clinic: {
-      findUnique: jest.fn().mockImplementation(async () => ({
-        id: 'clinic-123',
-        name: 'Test Clinic',
-        phoneNumber: '+919876543210',
-      })),
-    },
-  };
 
   beforeEach(async () => {
     originalMetaPhoneId = process.env.META_PHONE_NUMBER_ID;
@@ -122,7 +108,6 @@ describe('WhatsappService', () => {
     module = await Test.createTestingModule({
       providers: [
         WhatsappService,
-        { provide: PrismaService, useValue: mockPrismaService },
         { provide: WhatsappClientService, useValue: mockWhatsappClient },
         { provide: TemplatesService, useValue: mockTemplatesService },
         { provide: WhatsappResendService, useValue: mockResendService },

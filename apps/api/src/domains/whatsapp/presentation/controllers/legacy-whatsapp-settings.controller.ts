@@ -1,20 +1,26 @@
-import { Body, Controller, Get, Put, Req, UsePipes } from '@nestjs/common';
+import { Body, Controller, Get, Inject, Put, Req, UsePipes } from '@nestjs/common';
 import { Request } from 'express';
 import { updateWhatsAppSettingsRequestSchema } from '@workspace/types';
 import { ZodValidationPipe } from '@/shared/common/pipes/zod-validation.pipe';
-import { PrismaService } from '@/prisma/prisma.service';
+import {
+  WHATSAPP_PERSISTENCE_PORT,
+  type WhatsappPersistencePort,
+} from '@/domains/whatsapp/application/ports/whatsapp-persistence.port';
 import { LegacyWhatsappClinicAccess } from '@/domains/whatsapp/presentation/controllers/legacy-whatsapp-clinic.access';
 import { requireClinicId } from '@/domains/whatsapp/presentation/controllers/legacy-whatsapp-clinic.helpers';
 
 @Controller('whatsapp')
 @LegacyWhatsappClinicAccess()
 export class LegacyWhatsappSettingsController {
-  constructor(private readonly prisma: PrismaService) {}
+  constructor(
+    @Inject(WHATSAPP_PERSISTENCE_PORT)
+    private readonly persistence: WhatsappPersistencePort,
+  ) {}
 
   @Get('settings')
   async getSettings(@Req() req: Request) {
     const clinicId = requireClinicId(req);
-    const clinic = await this.prisma.clinic.findUnique({
+    const clinic = await this.persistence.clinic.findUnique({
       where: { id: clinicId },
       select: { settings: true },
     });
@@ -40,7 +46,7 @@ export class LegacyWhatsappSettingsController {
     @Body() body: Record<string, unknown>,
   ) {
     const clinicId = requireClinicId(req);
-    const clinic = await this.prisma.clinic.findUnique({
+    const clinic = await this.persistence.clinic.findUnique({
       where: { id: clinicId },
       select: { settings: true },
     });
@@ -72,7 +78,7 @@ export class LegacyWhatsappSettingsController {
         : {}),
     };
 
-    await this.prisma.clinic.update({
+    await this.persistence.clinic.update({
       where: { id: clinicId },
       data: { settings: nextSettings },
     });

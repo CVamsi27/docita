@@ -10,10 +10,7 @@ import { AppConfigService } from '@/shared/modules/config/app-configuration.serv
 import { EnterpriseContractsQueryService } from './enterprise-contracts-query.service';
 import { EnterpriseContractsCommandService } from './enterprise-contracts-command.service';
 import { EnterpriseContractInvoiceCommandService } from './enterprise-contract-invoice-command.service';
-import {
-  CLOCK_PORT,
-  type IClock,
-} from '@/shared/common/ports/clock.port';
+import { CLOCK_PORT, type IClock } from '@/shared/common/ports/clock.port';
 
 /**
  * Facade that preserves the original public API while delegating to focused
@@ -31,16 +28,19 @@ export class EnterpriseContractsService {
     private readonly configService: AppConfigService,
     @Inject(CLOCK_PORT) clock: IClock,
   ) {
-    this.queryService = new EnterpriseContractsQueryService(prisma, clock);
+    this.queryService = new EnterpriseContractsQueryService(
+      this.persistence,
+      clock,
+    );
     const invoiceService = new EnterpriseContractInvoiceCommandService(
-      prisma,
+      this.persistence,
       emailService,
       configService,
       clock,
     );
     this.commandService = new EnterpriseContractsCommandService(
       this.queryService,
-      prisma,
+      this.persistence,
       invoiceService,
       clock,
     );

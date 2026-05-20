@@ -3,7 +3,10 @@ import {
   CLOCK_PORT,
   type IClock,
 } from '@/shared/common/ports/clock.port';
-import { PrismaService } from '@/prisma/prisma.service';
+import {
+  SUBSCRIPTION_PERSISTENCE_PORT,
+  type SubscriptionPersistencePort,
+} from '@/domains/subscriptions/application/ports/subscription-persistence.port';
 import {
   CLINIC_USAGE_PORT_TOKEN,
   type IClinicUsagePort,
@@ -21,7 +24,8 @@ export class NotifyUsageThresholdsUseCase {
   private readonly logger = new Logger(NotifyUsageThresholdsUseCase.name);
 
   constructor(
-    private readonly prisma: PrismaService,
+    @Inject(SUBSCRIPTION_PERSISTENCE_PORT)
+    private readonly persistence: SubscriptionPersistencePort,
     @Inject(CLINIC_USAGE_PORT_TOKEN)
     private readonly clinicUsage: IClinicUsagePort,
     private readonly emailService: EmailService,
@@ -30,8 +34,8 @@ export class NotifyUsageThresholdsUseCase {
   ) {}
 
   async execute(): Promise<void> {
-    await this.prisma.runUnrestricted(async () => {
-      const activeSubscriptions = await this.prisma.subscription.findMany({
+    await this.persistence.runUnrestricted(async () => {
+      const activeSubscriptions = await this.persistence.subscription.findMany({
         where: { status: { in: ['ACTIVE', 'TRIALING'] } },
         select: {
           clinicId: true,
@@ -107,7 +111,7 @@ export class NotifyUsageThresholdsUseCase {
       new Set(warningActions.map((action) => action.channel)),
     );
 
-    const existingReminders = await this.prisma.subscriptionReminder.findMany({
+    const existingReminders = await this.persistence.subscriptionReminder.findMany({
       where: {
         clinicId,
         type: { in: reminderTypes },
@@ -178,7 +182,7 @@ export class NotifyUsageThresholdsUseCase {
       return;
     }
 
-    await this.prisma.subscriptionReminder.createMany({
+    await this.persistence.subscriptionReminder.createMany({
       data: remindersToCreate,
       skipDuplicates: true,
     });
@@ -200,7 +204,7 @@ export class NotifyUsageThresholdsUseCase {
       ? `You've reached ${Math.round(percentUsed)}% of your ${meterLabel} limit. Service continues without lockout, but overage will be billed at cycle close. Consider upgrading to reduce overage charges.`
       : `You've reached ${Math.round(percentUsed)}% of your ${meterLabel} limit this billing cycle. Overage billing applies beyond included usage.`;
 
-    await this.prisma.staffNotification.create({
+    await this.persistence.staffNotification.create({
       data: {
         clinicId,
         type: StaffNotificationType.SYSTEM_ALERT,
@@ -229,7 +233,7 @@ export class NotifyUsageThresholdsUseCase {
     threshold: 80 | 100,
     percentUsed: number,
   ): Promise<boolean> {
-    const admins = await this.prisma.user.findMany({
+    const admins = await this.persistence.user.findMany({
       where: {
         clinicId,
         role: 'ADMIN',

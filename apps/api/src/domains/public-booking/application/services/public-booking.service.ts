@@ -27,10 +27,7 @@ import { AppConfigService } from '@/shared/modules/config/app-configuration.serv
 import { PublicBookingSlotsService } from './public-booking-slots.service';
 import { PublicBookingCreationService } from './public-booking-creation.service';
 import { PublicBookingSubmitService } from './public-booking-submit.service';
-import {
-  CLOCK_PORT,
-  type IClock,
-} from '@/shared/common/ports/clock.port';
+import { CLOCK_PORT, type IClock } from '@/shared/common/ports/clock.port';
 
 /**
  * Thin facade — preserves the original constructor signature.
@@ -58,12 +55,12 @@ export class PublicBookingService {
     @Inject(CLOCK_PORT) clock: IClock,
   ) {
     this.slots = new PublicBookingSlotsService(
-      prisma,
+      this.persistence,
       doctorsService,
       slotGeneration,
     );
     this.creation = new PublicBookingCreationService(
-      prisma,
+      this.persistence,
       patientService,
       whatsappClient,
       bookingTokenService,
@@ -72,7 +69,7 @@ export class PublicBookingService {
       clock,
     );
     this.submit = new PublicBookingSubmitService(
-      prisma,
+      this.persistence,
       patientService,
       appointmentRequestService,
       bookingTokenService,

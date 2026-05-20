@@ -1,5 +1,8 @@
 import { Injectable, Logger, Inject } from '@nestjs/common';
-import { PrismaService } from '@/prisma/prisma.service';
+import {
+  SUBSCRIPTION_PERSISTENCE_PORT,
+  type SubscriptionPersistencePort,
+} from '@/domains/subscriptions/application/ports/subscription-persistence.port';
 import {
   OVERAGE_CALCULATION_TOKEN,
   type IOverageCalculation,
@@ -31,7 +34,8 @@ export class BillMonthlyOveragesUseCase {
   private readonly logger = new Logger(BillMonthlyOveragesUseCase.name);
 
   constructor(
-    private readonly prisma: PrismaService,
+    @Inject(SUBSCRIPTION_PERSISTENCE_PORT)
+    private readonly persistence: SubscriptionPersistencePort,
     @Inject(OVERAGE_CALCULATION_TOKEN)
     private readonly overageCalculation: IOverageCalculation,
     private readonly configService: AppConfigService,
@@ -42,8 +46,8 @@ export class BillMonthlyOveragesUseCase {
 
   async execute(params: BillMonthlyOveragesParams): Promise<void> {
     const { periodStart, periodEnd } = params;
-    await this.prisma.runUnrestricted(async () => {
-      const activeSubscriptions = await this.prisma.subscription.findMany({
+    await this.persistence.runUnrestricted(async () => {
+      const activeSubscriptions = await this.persistence.subscription.findMany({
         where: { status: { in: ['ACTIVE', 'TRIALING'] } },
         select: {
           id: true,
@@ -91,17 +95,17 @@ export class BillMonthlyOveragesUseCase {
     const tier = sub.plan;
 
     let activeContract: Awaited<
-      ReturnType<typeof this.prisma.enterpriseContract.findUnique>
+      ReturnType<typeof this.persistence.enterpriseContract.findUnique>
     > = null;
     if (tier === ClinicTier.ENTERPRISE) {
-      const member = await this.prisma.enterpriseContractMember.findUnique({
+      const member = await this.persistence.enterpriseContractMember.findUnique({
         where: { clinicId: sub.clinicId },
       });
       const candidate = member
-        ? await this.prisma.enterpriseContract.findUnique({
+        ? await this.persistence.enterpriseContract.findUnique({
             where: { id: member.contractId },
           })
-        : await this.prisma.enterpriseContract.findFirst({
+        : await this.persistence.enterpriseContract.findFirst({
             where: { primaryClinicId: sub.clinicId },
           });
       if (candidate?.status === EnterpriseContractStatus.ACTIVE) {
@@ -127,14 +131,14 @@ export class BillMonthlyOveragesUseCase {
       0;
 
     const [consultationCount, userCount, whatsappCount] = await Promise.all([
-      this.prisma.appointment.count({
+      this.persistence.appointment.count({
         where: {
           clinicId: sub.clinicId,
           status: 'COMPLETED',
           updatedAt: { gte: periodStart, lte: periodEnd },
         },
       }),
-      this.prisma.user.count({
+      this.persistence.user.count({
         where: {
           clinicId: sub.clinicId,
           ...(tier === ClinicTier.FRONT_DESK
@@ -146,7 +150,7 @@ export class BillMonthlyOveragesUseCase {
             : {}),
         },
       }),
-      this.prisma.usageEvent.aggregate({
+      this.persistence.usageEvent.aggregate({
         where: {
           clinicId: sub.clinicId,
           type: UsageType.WHATSAPP_MESSAGES,
@@ -218,7 +222,7 @@ export class BillMonthlyOveragesUseCase {
         const usageType = mapOverageKeyToUsageType(key)!;
         const usageEntry = usageData.usage[key as keyof typeof usageData.usage];
 
-        await this.prisma.usageRecord.upsert({
+        await this.persistence.usageRecord.upsert({
           where: {
             clinicId_type_periodStart: {
               clinicId: sub.clinicId,
@@ -311,7 +315,7 @@ export class BillMonthlyOveragesUseCase {
       breakdown,
     );
 
-    let payment = await this.prisma.subscriptionPayment.upsert({
+    let payment = await this.persistence.subscriptionPayment.upsert({
       where: {
         clinicId_invoiceNumber: {
           clinicId,
@@ -337,7 +341,7 @@ export class BillMonthlyOveragesUseCase {
 
     const normalizedStatus = payment.status.toLowerCase();
     if (normalizedStatus !== 'paid' && normalizedStatus !== 'pending') {
-      payment = await this.prisma.subscriptionPayment.update({
+      payment = await this.persistence.subscriptionPayment.update({
         where: { id: payment.id },
         data: { status: 'pending' },
       });
@@ -387,7 +391,7 @@ export class BillMonthlyOveragesUseCase {
         },
       });
 
-      await this.prisma.subscriptionPayment.update({
+      await this.persistence.subscriptionPayment.update({
         where: { id: payment.id },
         data: {
           invoiceUrl: link.shortUrl || link.url,
@@ -407,7 +411,7 @@ export class BillMonthlyOveragesUseCase {
     email: string | null;
     phoneNumber: string | null;
   }> {
-    const primaryAdmin = await this.prisma.user.findFirst({
+    const primaryAdmin = await this.persistence.user.findFirst({
       where: {
         clinicId,
         role: { in: [Role.ADMIN, Role.ADMIN_DOCTOR] },
@@ -424,7 +428,7 @@ export class BillMonthlyOveragesUseCase {
       return primaryAdmin;
     }
 
-    const fallbackUser = await this.prisma.user.findFirst({
+    const fallbackUser = await this.persistence.user.findFirst({
       where: { clinicId },
       select: {
         name: true,
@@ -438,7 +442,7 @@ export class BillMonthlyOveragesUseCase {
       return fallbackUser;
     }
 
-    const clinic = await this.prisma.clinic.findUnique({
+    const clinic = await this.persistence.clinic.findUnique({
       where: { id: clinicId },
       select: { name: true },
     });

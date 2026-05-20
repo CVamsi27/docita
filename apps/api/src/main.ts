@@ -176,7 +176,6 @@ async function bootstrap() {
   const app = await NestFactory.create(AppModule, { bufferLogs: true });
   const logger = app.get(Logger);
   app.useLogger(createFilteredBootstrapLogger(logger));
-  app.getHttpAdapter().getInstance().set('trust proxy', true);
 
   try {
     const { StartupValidationService } =

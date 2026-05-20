@@ -275,7 +275,7 @@ These have measurable progress recorded today. They are not "open new work" — 
 
 | ID | Status | Remaining | Touch points |
 |---|---|---|---|
-| **B1** | WhatsApp Κ1 cluster cleared | Remaining leaks outside `domains/whatsapp/application/services/*` | `apps/api/src/domains/**/application/services/*.ts` |
+| **B1** | **0** PrismaService leaks in application/presentation | `check:prisma-boundary --enforce-prisma-service` passes | — |
 | **B2** | 10 → **9** domains without ports | Add `core/repositories/*.interface.ts` for: `custom-fields`, `doctor-clinics`, `documents`, `enterprise-contracts`, `payments`, `public-booking`, `reminders`, `webhooks`, `whatsapp` |
 | **N1** | 37 → **6** `process.env` leaks | Migrate the 6 — see A.4 Phase N table |
 | **A2** | `imports.service.ts` 522 → **68L** facade | Parser/mapping/dedupe/OCR/commit split — **DONE** |
@@ -1163,7 +1163,7 @@ Execute in order. Each tier is a coherent PR set.
 9. Land fixes per script; flag `--enforce`
 
 ### Tier 3 — Persistence + ISP
-10. Κ1 — WhatsApp repository routing (closes 10 B1 leaks)
+10. Κ1 — WhatsApp repository routing — **DONE**
 11. B2 — ports for 9 missing domains
 12. B1 — eliminate remaining 136 leaks
 13. K-new-1 (clinical 25 methods), K4 (appointment CQS), K-new-2/3/4
