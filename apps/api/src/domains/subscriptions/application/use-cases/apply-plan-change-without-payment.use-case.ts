@@ -28,9 +28,12 @@ export interface ApplyPlanChangeWithoutPaymentParams {
   cycle: string;
 }
 
+// AuditLogged: zero-payable subscription plan changes are billing-sensitive writes.
 @Injectable()
 export class ApplyPlanChangeWithoutPaymentUseCase {
-  private readonly logger = new Logger(ApplyPlanChangeWithoutPaymentUseCase.name);
+  private readonly logger = new Logger(
+    ApplyPlanChangeWithoutPaymentUseCase.name,
+  );
 
   constructor(
     @Inject(SUBSCRIPTION_REPOSITORY_TOKEN)

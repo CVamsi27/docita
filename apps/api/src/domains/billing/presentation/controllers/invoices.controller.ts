@@ -7,17 +7,13 @@ import {
   Param,
   Delete as _Delete,
   UseGuards,
-  UseInterceptors,
   Request,
   Query,
   Res,
   HttpStatus,
   Inject,
 } from '@nestjs/common';
-import {
-  IdempotencyInterceptor,
-  RequiresIdempotency,
-} from '@/shared/modules/idempotency';
+import { RequiresIdempotency } from '@/shared/modules/idempotency';
 import { InvoicesService } from '@/domains/billing/application/services/invoices.service';
 import {
   PdfJobService,
@@ -53,7 +49,6 @@ import { getBillingRequestContext } from './billing-request-context';
 @Controller('invoices')
 @UseGuards(TierGuard)
 @Roles(Role.ADMIN, Role.DOCTOR, Role.RECEPTIONIST, Role.ADMIN_DOCTOR)
-@UseInterceptors(IdempotencyInterceptor)
 export class InvoicesController {
   constructor(
     private readonly invoicesService: InvoicesService,

@@ -22,11 +22,7 @@ import {
   Feature,
   RequireFeature,
 } from '@/shared/modules/auth/auth/tier.decorator';
-import {
-  IdempotencyInterceptor,
-  RequiresIdempotency,
-} from '@/shared/modules/idempotency';
-import { UseInterceptors } from '@nestjs/common';
+import { RequiresIdempotency } from '@/shared/modules/idempotency';
 import { RequestWithUser } from '@/shared/common/types/common.types';
 import { AppConfigService } from '@/shared/modules/config/app-configuration.service';
 import { getBillingRequestContext } from './billing-request-context';
@@ -34,7 +30,6 @@ import { getBillingRequestContext } from './billing-request-context';
 @Controller('payments')
 @UseGuards(TierGuard)
 @Roles(Role.ADMIN, Role.DOCTOR, Role.RECEPTIONIST, Role.ADMIN_DOCTOR)
-@UseInterceptors(IdempotencyInterceptor)
 export class PaymentsController {
   constructor(
     private readonly paymentsService: PaymentsService,

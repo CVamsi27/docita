@@ -509,6 +509,18 @@ export class AppConfigService {
     return this.getConfig().QUEUE_BACKEND;
   }
 
+  getCacheBackend(): 'memory' | 'redis' {
+    return this.getConfig().CACHE_BACKEND;
+  }
+
+  getRedisUrl(): string {
+    const redisUrl = this.getConfig().REDIS_URL;
+    if (!redisUrl) {
+      throw new Error('REDIS_URL is required when CACHE_BACKEND=redis');
+    }
+    return redisUrl;
+  }
+
   getDoctorVerificationConfig() {
     return {
       apiUrl: this.getConfig().DOCTOR_VERIFICATION_API_URL,

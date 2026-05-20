@@ -9,6 +9,7 @@ import {
 } from '@/domains/subscriptions/core/value-objects';
 import { SubscriptionActivationPolicyService } from '@/domains/subscriptions/application/services/subscription-activation-policy.service';
 
+// AuditLogged: subscription activation clinic sync is part of the audited activation workflow.
 @Injectable()
 export class ActivateSubscriptionClinicSyncService {
   constructor(
@@ -18,7 +19,8 @@ export class ActivateSubscriptionClinicSyncService {
   ) {}
 
   async syncAfterActivation(clinicId: string, tier: ClinicTier): Promise<void> {
-    const featureUpdates = this.activationPolicy.buildPaidTierFeatureUpdates(tier);
+    const featureUpdates =
+      this.activationPolicy.buildPaidTierFeatureUpdates(tier);
 
     await this.clinicOps.updateTierAndFeatures(
       clinicId,

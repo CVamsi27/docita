@@ -62,7 +62,10 @@ import { CsrfInterceptor } from './shared/common/interceptors/csrf.interceptor';
 import { RateLimitInterceptor } from './shared/common/interceptors/rate-limit.interceptor';
 import { TimeoutInterceptor } from './shared/common/interceptors/timeout.interceptor';
 import { buildPinoOptions } from './shared/modules/observability/pino-options.factory';
-import { IdempotencyModule } from './shared/modules/idempotency';
+import {
+  IdempotencyInterceptor,
+  IdempotencyModule,
+} from './shared/modules/idempotency';
 import {
   TenantRateLimitGuard,
   TenantRateLimitModule,
@@ -245,6 +248,11 @@ import { PublicBookingModule } from './domains/public-booking/public-booking.mod
     {
       provide: APP_INTERCEPTOR,
       useClass: RequestContextInterceptor,
+    },
+
+    {
+      provide: APP_INTERCEPTOR,
+      useClass: IdempotencyInterceptor,
     },
 
     {

@@ -9,9 +9,11 @@ export interface ICacheProvider {
 }
 
 export interface CacheConfig {
-  provider: 'memory';
+  provider: 'memory' | 'redis';
   ttl: number;
 }
+
+export const CACHE_PROVIDER = Symbol('CACHE_PROVIDER');
 
 export class CacheKeys {
   static userById(userId: string) {

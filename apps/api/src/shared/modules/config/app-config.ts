@@ -94,6 +94,8 @@ export const EnvSchema = z.object({
   SECRETS_PROVIDER: z.enum(['env', 'aws']).default('env'),
   ENABLE_SCHEDULERS: envBoolean(true),
   QUEUE_BACKEND: z.enum(['memory', 'postgres']).default('memory'),
+  CACHE_BACKEND: z.enum(['memory', 'redis']).default('memory'),
+  REDIS_URL: z.string().url().optional(),
   API_LOG_MODE: z.string().default('access-and-errors'),
   WORKER_ENTRYPOINT: z.enum(['main', 'worker']).default('main'),
   DOCTOR_VERIFICATION_API_URL: z.string().optional(),
