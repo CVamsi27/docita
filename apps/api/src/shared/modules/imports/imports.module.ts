@@ -14,6 +14,9 @@ import { ImportDuplicateDetectorService } from './import-duplicate-detector.serv
 import { DUPLICATE_DETECTOR_TOKEN } from './ports/duplicate-detector.port';
 import { ImportPatientPersistenceService } from './import-patient-persistence.service';
 import { BulkImportService } from './bulk-import.service';
+import { BulkImportJobQueryService } from './bulk-import-job-query.service';
+import { BulkImportJobProcessorService } from './bulk-import-job-processor.service';
+import { BulkImportOrchestratorService } from './bulk-import-orchestrator.service';
 import { BulkImportStrategyRegistry } from './bulk-import-strategy.registry';
 import {
   PatientImportStrategy,
@@ -57,6 +60,9 @@ import { ComplianceModule } from '@/shared/modules/compliance/compliance.module'
     LabTestImportStrategy,
     InventoryImportStrategy,
     BulkImportStrategyRegistry,
+    BulkImportJobQueryService,
+    BulkImportJobProcessorService,
+    BulkImportOrchestratorService,
     BulkImportService,
 
     ImagePreprocessorService,

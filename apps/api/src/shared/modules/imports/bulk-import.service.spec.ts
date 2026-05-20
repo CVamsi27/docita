@@ -1,5 +1,10 @@
 import { Test, TestingModule } from '@nestjs/testing';
-import { BulkImportService, BulkImportEntityType } from './bulk-import.service';
+import { BulkImportService } from './bulk-import.service';
+import type { BulkImportEntityType } from '@workspace/types';
+import { BulkImportJobQueryService } from './bulk-import-job-query.service';
+import { BulkImportJobProcessorService } from './bulk-import-job-processor.service';
+import { BulkImportOrchestratorService } from './bulk-import-orchestrator.service';
+import { CLOCK_PORT } from '@/shared/common/ports/clock.port';
 import { PrismaService } from '@/prisma/prisma.service';
 import { AppConfigService } from '@/shared/modules/config/app-configuration.service';
 import { ImportFileParserService } from './import-file-parser.service';
@@ -107,6 +112,13 @@ describe('BulkImportService', () => {
     const module: TestingModule = await Test.createTestingModule({
       providers: [
         BulkImportService,
+        BulkImportJobQueryService,
+        BulkImportJobProcessorService,
+        BulkImportOrchestratorService,
+        {
+          provide: CLOCK_PORT,
+          useValue: { now: () => new Date('2026-01-15T10:00:00Z') },
+        },
         ImportFileParserService,
         ImportDuplicateDetectorService,
         {
@@ -143,7 +155,8 @@ describe('BulkImportService', () => {
     service = module.get<BulkImportService>(BulkImportService);
     prismaService = module.get<PrismaService>(PrismaService);
 
-    jest.spyOn(service['logger'], 'error').mockImplementation(() => {});
+    const orchestrator = module.get(BulkImportOrchestratorService);
+    jest.spyOn(orchestrator['logger'], 'error').mockImplementation(() => {});
   });
 
   it('should be defined', () => {
