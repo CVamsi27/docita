@@ -108,25 +108,28 @@ export class MedicalHistoryConditionsService {
 
   async createAllergy(patientId: string, dto: CreatePatientAllergyInput) {
     const validated = this.medicalHistoryFactory.createAllergy(dto);
-    const existingAllergies = await this.persistence.patientAllergy.findMany({
-      where: { patientId },
-      select: { id: true, allergen: true },
-    });
-    if (findDuplicateAllergy(validated.allergen, existingAllergies)) {
-      throw new ConflictException(
-        'An allergy with this allergen already exists for this patient',
-      );
-    }
-    return this.persistence.patientAllergy.create({
-      data: {
-        patientId,
-        allergen: validated.allergen,
-        allergyType: validated.allergyType as AllergyType,
-        severity: validated.severity as AllergySeverity,
-        reaction: validated.reaction,
-        notes: validated.notes,
-        onsetDate: validated.onsetDate ? new Date(validated.onsetDate) : null,
-      },
+
+    return this.persistence.$transaction(async (tx) => {
+      const existingAllergies = await tx.patientAllergy.findMany({
+        where: { patientId },
+        select: { id: true, allergen: true },
+      });
+      if (findDuplicateAllergy(validated.allergen, existingAllergies)) {
+        throw new ConflictException(
+          'An allergy with this allergen already exists for this patient',
+        );
+      }
+      return tx.patientAllergy.create({
+        data: {
+          patientId,
+          allergen: validated.allergen,
+          allergyType: validated.allergyType as AllergyType,
+          severity: validated.severity as AllergySeverity,
+          reaction: validated.reaction,
+          notes: validated.notes,
+          onsetDate: validated.onsetDate ? new Date(validated.onsetDate) : null,
+        },
+      });
     });
   }
 
@@ -135,32 +138,35 @@ export class MedicalHistoryConditionsService {
     patientId: string,
     dto: UpdatePatientAllergyInput,
   ) {
-    const existing = await this.persistence.patientAllergy.findFirst({
-      where: { id, patientId },
-    });
-    if (!existing)
-      throw new NotFoundException(`Allergy with ID ${id} not found`);
-    if (dto.allergen !== undefined) {
-      const existingAllergies = await this.persistence.patientAllergy.findMany({
-        where: { patientId },
-        select: { id: true, allergen: true },
+    return this.persistence.$transaction(async (tx) => {
+      const existing = await tx.patientAllergy.findFirst({
+        where: { id, patientId },
       });
-      if (findDuplicateAllergy(dto.allergen, existingAllergies, id)) {
-        throw new ConflictException(
-          'An allergy with this allergen already exists for this patient',
-        );
+      if (!existing)
+        throw new NotFoundException(`Allergy with ID ${id} not found`);
+
+      if (dto.allergen !== undefined) {
+        const existingAllergies = await tx.patientAllergy.findMany({
+          where: { patientId },
+          select: { id: true, allergen: true },
+        });
+        if (findDuplicateAllergy(dto.allergen, existingAllergies, id)) {
+          throw new ConflictException(
+            'An allergy with this allergen already exists for this patient',
+          );
+        }
       }
-    }
-    return this.persistence.patientAllergy.update({
-      where: { id },
-      data: {
-        allergen: dto.allergen,
-        allergyType: dto.allergyType as AllergyType,
-        severity: dto.severity as AllergySeverity,
-        reaction: dto.reaction,
-        notes: dto.notes,
-        onsetDate: dto.onsetDate ? new Date(dto.onsetDate) : undefined,
-      },
+      return tx.patientAllergy.update({
+        where: { id },
+        data: {
+          allergen: dto.allergen,
+          allergyType: dto.allergyType as AllergyType,
+          severity: dto.severity as AllergySeverity,
+          reaction: dto.reaction,
+          notes: dto.notes,
+          onsetDate: dto.onsetDate ? new Date(dto.onsetDate) : undefined,
+        },
+      });
     });
   }
 

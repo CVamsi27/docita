@@ -390,15 +390,9 @@ These have measurable progress recorded today. They are not "open new work" — 
 - Each handler is its own class with its own spec.
 - Adding an action = new file + one map entry, no switch edits.
 
-**C8 [M] `domains/subscriptions/core/value-objects/billing-cycle.value-object.ts`**
-- 9-arm switch. Replace with:
-  ```ts
-  const CYCLE_POLICY: Record<BillingCycle, BillingCyclePolicy> = {
-    MONTHLY: { months: 1, discount: 0 },
-    QUARTERLY: { months: 3, discount: 0.04 },
-    /* ... */
-  };
-  ```
+**C8 [M] `domains/subscriptions/core/value-objects/billing-cycle.value-object.ts` — DONE (2026-05-20)**
+- Re-verified: the value object delegates cycle policy to `billing-cycle.policy.ts` records (`BILLING_CYCLE_DAYS`, `BILLING_CYCLE_DISPLAY_NAMES`, `BILLING_CYCLE_MONTHLY_DIVISOR`).
+- No multi-arm switch remains in the value object.
 
 ### A.4 Phase D — DDD: rich entities + domain services
 
@@ -509,7 +503,7 @@ These have measurable progress recorded today. They are not "open new work" — 
   - Write `docs/operations/MIGRATION_HISTORY.md` documenting which Prisma orders first on a fresh DB (the lexicographic `_a` suffix wins — `_admin_doctor` < `_internal`).
   - Add `scripts/checks/check-migration-prefix-collision.mjs` for future prevention.
 
-**Ψ4 [M] Multi-write services without `$transaction`**
+**Ψ4 [M] Multi-write services without `$transaction` — PARTIAL (2026-05-20)**
 - Wrap each write block:
   ```ts
   return this.prisma.$transaction(async (tx) => {
@@ -519,6 +513,7 @@ These have measurable progress recorded today. They are not "open new work" — 
   });
   ```
 - Files: `medical-history.service.ts` (5 writes), `medical-history-conditions.service.ts` (4), `razorpay-subscription.adapter.ts` (3), `follow-up-command.service.ts` (4).
+- Progress: `medical-history-conditions.service.ts` now performs allergy duplicate checks and create/update writes inside the persistence port transaction.
 
 **Ψ5 [M] 46 `runUnrestricted` calls**
 - Each call must be preceded by a justification comment:
@@ -950,8 +945,8 @@ Each split: write the narrower interfaces, repository class implements all, regi
 - Actions:
   1. **DONE:** `shared/modules/interceptors/` → `shared/common/interceptors/` (runtime + specs).
   2. **DONE:** `shared/modules/pipes/` is gone.
-  3. **PENDING:** Move `shared/modules/extensions/` → `shared/common/extensions/`.
-  4. **PENDING:** Delete `shared/common/controllers/` if no controller remains.
+  3. **DONE:** `shared/modules/extensions/` is gone; extension imports point to `shared/common/extensions/`.
+  4. **NOT APPLICABLE:** `shared/common/controllers/` still contains real controllers/specs and should not be deleted.
   5. **DONE:** `check:no-duplicate-shared-paths` enforces duplicate shared path collisions; extend it only when a new canonical pair is identified.
 
 ### Φ2 [H] `shared/common/abstractions/` mis-located

@@ -10,7 +10,7 @@ type PatientPersistenceKey =
 
 export type PatientPersistencePort = Pick<
   PrismaDelegatePort,
-  PatientPersistenceKey
+  PatientPersistenceKey | '$transaction'
 >;
 
 export const PATIENT_PERSISTENCE_PORT = 'PatientPersistencePort';

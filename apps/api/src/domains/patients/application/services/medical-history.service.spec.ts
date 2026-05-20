@@ -16,7 +16,16 @@ describe('MedicalHistoryService', () => {
   let aiService: AiService;
   let aiFactory: AiFactory;
 
+  async function runPatientTransaction(
+    callback: (tx: PatientPersistencePort) => unknown,
+  ) {
+    return callback(
+      mockPatientPersistencePort as unknown as PatientPersistencePort,
+    );
+  }
+
   const mockPatientPersistencePort = {
+    $transaction: jest.fn(runPatientTransaction),
     patientMedicalCondition: {
       create: jest.fn<(...args: unknown[]) => Promise<unknown>>(),
       findMany: jest.fn<(...args: unknown[]) => Promise<unknown>>(),
@@ -27,6 +36,7 @@ describe('MedicalHistoryService', () => {
     patientAllergy: {
       create: jest.fn<(...args: unknown[]) => Promise<unknown>>(),
       findMany: jest.fn<(...args: unknown[]) => Promise<unknown>>(),
+      findFirst: jest.fn<(...args: unknown[]) => Promise<unknown>>(),
       findUnique: jest.fn<(...args: unknown[]) => Promise<unknown>>(),
       update: jest.fn<(...args: unknown[]) => Promise<unknown>>(),
       delete: jest.fn<(...args: unknown[]) => Promise<unknown>>(),
@@ -73,6 +83,7 @@ describe('MedicalHistoryService', () => {
   };
 
   beforeEach(async () => {
+    jest.clearAllMocks();
     const module: TestingModule = await Test.createTestingModule({
       providers: [
         MedicalHistoryService,
@@ -117,6 +128,37 @@ describe('MedicalHistoryService', () => {
       expect(factory.createCondition).toHaveBeenCalledWith(input);
       expect(
         mockPatientPersistencePort.patientMedicalCondition.create,
+      ).toHaveBeenCalled();
+    });
+  });
+
+  describe('createAllergy', () => {
+    it('checks duplicates and creates inside a transaction', async () => {
+      const input: Parameters<MedicalHistoryService['createAllergy']>[1] = {
+        allergen: 'Penicillin',
+        allergyType: 'DRUG',
+        severity: 'SEVERE',
+        reaction: 'Rash',
+      };
+      const patientId = 'p123';
+
+      mockFactory.createAllergy.mockReturnValue(input);
+      mockPatientPersistencePort.patientAllergy.findMany.mockResolvedValue([]);
+      mockPatientPersistencePort.patientAllergy.create.mockResolvedValue({
+        id: 'allergy_1',
+      });
+
+      await service.createAllergy(patientId, input);
+
+      expect(mockPatientPersistencePort.$transaction).toHaveBeenCalledTimes(1);
+      expect(
+        mockPatientPersistencePort.patientAllergy.findMany,
+      ).toHaveBeenCalledWith({
+        where: { patientId },
+        select: { id: true, allergen: true },
+      });
+      expect(
+        mockPatientPersistencePort.patientAllergy.create,
       ).toHaveBeenCalled();
     });
   });
