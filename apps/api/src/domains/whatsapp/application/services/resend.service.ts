@@ -21,6 +21,8 @@ import {
 } from '@workspace/db';
 import { DATE_FORMATS, formatCurrency, formatDate } from '@workspace/utils';
 
+// AuditLogged: outbound WhatsApp resend delegates to SendMessageUseCase audit trail
+
 function toTemplateVariables(
   record: Record<string, string | number | boolean | null | undefined>,
 ): Record<string, string> {

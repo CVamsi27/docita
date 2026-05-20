@@ -18,6 +18,7 @@ import { AUTH_CONSTANTS } from '@/shared/modules/config/app-constants';
 import * as bcrypt from 'bcrypt';
 import { OnboardingStep, Role } from '@workspace/db';
 import { beforeEach, describe, it, expect, jest } from '@jest/globals';
+import { clockPortTestProvider } from '@/test-utils';
 
 jest.mock('bcrypt');
 
@@ -264,6 +265,7 @@ describe('AuthService', () => {
               .mockImplementation(async () => ({ success: true })),
           },
         },
+        clockPortTestProvider(),
       ],
     }).compile();
 

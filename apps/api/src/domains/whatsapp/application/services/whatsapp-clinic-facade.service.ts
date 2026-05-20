@@ -8,7 +8,7 @@ import { TemplateMessageService } from '@/domains/whatsapp/application/services/
 import { StaffNotificationService } from '@/domains/whatsapp/application/services/staff-notification.service';
 import { SendTemplateDto } from '@/domains/whatsapp/presentation/dto/send-template.dto';
 
-/** Legacy clinic WhatsApp facade; delegates to shared messaging services until full domain migration. */
+/** Facade — legacy clinic WhatsApp routes; delegates to shared messaging services until full domain migration. */
 @Injectable()
 export class WhatsappService {
   constructor(

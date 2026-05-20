@@ -7,12 +7,7 @@ import {
   Patch,
   Request,
   HttpCode,
-  UseInterceptors,
-  UploadedFile,
-  BadRequestException,
   ForbiddenException,
-  Headers,
-  UnauthorizedException,
 } from '@nestjs/common';
 import { OnboardingService } from '@/domains/clinics/application/services/onboarding/onboarding.service';
 import { UsersService } from '@/domains/users/application/services/users.service';
@@ -37,13 +32,7 @@ import { SkipSubscriptionCheck } from '@/shared/modules/auth/decorators/skip-sub
 import { SkipPasswordExpiry } from '@/shared/modules/auth/guards/password-expired.guard';
 import { SkipEmailVerification } from '@/shared/modules/auth/guards/email-verified.guard';
 import { RequestWithUser } from '@/shared/common/types/common.types';
-import { FileInterceptor } from '@nestjs/platform-express';
-import { MAX_FILE_SIZE } from '@workspace/utils';
-import {
-  assertAllowedFileSignature,
-  createTempDiskStorage,
-} from '@/shared/common/utils/upload.utils';
-import { unlink } from 'fs/promises';
+import { assertNoExistingClinicOnboarding } from '@/domains/clinics/presentation/controllers/onboarding-controller.helpers';
 
 @Controller('onboarding')
 export class OnboardingController {
@@ -57,17 +46,7 @@ export class OnboardingController {
   @HttpCode(201)
   @ZodSerializerDto(OnboardingInitResponseDto)
   initializeOnboarding(@Request() req: RequestWithUser) {
-    // If an authenticated user already has a clinic or completed onboarding,
-    // they must not re-initialize an onboarding session.
-    if (
-      req.user &&
-      (req.user.clinicId || req.user.onboardingStep === 'COMPLETED')
-    ) {
-      throw new ForbiddenException(
-        'Onboarding not allowed for existing clinics',
-      );
-    }
-
+    assertNoExistingClinicOnboarding(req, 'Onboarding');
     return this.onboardingService.initializeOnboarding();
   }
 
@@ -104,7 +83,6 @@ export class OnboardingController {
     completeData: CompleteOnboardingDto,
     @Request() req: RequestWithUser,
   ) {
-    // Prevent completing onboarding if request user already belongs to a clinic
     if (
       req.user &&
       (req.user.clinicId || req.user.onboardingStep === 'COMPLETED')
@@ -132,124 +110,8 @@ export class OnboardingController {
     checkoutData: OnboardingCheckoutDto,
     @Request() req?: RequestWithUser,
   ) {
-    if (
-      req?.user &&
-      (req.user.clinicId || req.user.onboardingStep === 'COMPLETED')
-    ) {
-      throw new ForbiddenException(
-        'Onboarding checkout not allowed for existing clinics',
-      );
-    }
+    assertNoExistingClinicOnboarding(req, 'Onboarding checkout');
     return this.onboardingService.createCheckout(onboardingId, checkoutData);
-  }
-
-  @Public()
-  @Post(':onboardingId/sla-signature-session')
-  async createSlaSignatureSession(
-    @Param('onboardingId') onboardingId: string,
-    @Request() req?: RequestWithUser,
-  ) {
-    if (
-      req?.user &&
-      (req.user.clinicId || req.user.onboardingStep === 'COMPLETED')
-    ) {
-      throw new ForbiddenException(
-        'SLA signature session not allowed for existing clinics',
-      );
-    }
-
-    return this.onboardingService.createSlaSignatureSession(onboardingId);
-  }
-
-  @Public()
-  @Get(':onboardingId/sla-signature-session/:sessionId/status')
-  getSlaSignatureSessionStatus(
-    @Param('onboardingId') onboardingId: string,
-    @Param('sessionId') sessionId: string,
-  ) {
-    return this.onboardingService.getSlaSignatureSessionStatus(
-      onboardingId,
-      sessionId,
-    );
-  }
-
-  @Public()
-  @Post(':onboardingId/sla-signature-session/:sessionId')
-  @UseInterceptors(
-    FileInterceptor('file', {
-      storage: createTempDiskStorage(),
-      limits: { fileSize: MAX_FILE_SIZE },
-      fileFilter: (_req, file, cb) => {
-        const allowedMimes = [
-          'image/jpeg',
-          'image/jpg',
-          'image/png',
-          'image/webp',
-        ];
-
-        if (!allowedMimes.includes(file.mimetype)) {
-          return cb(
-            new BadRequestException(
-              'Only signature images (JPEG, PNG, WebP) are allowed',
-            ),
-            false,
-          );
-        }
-
-        cb(null, true);
-      },
-    }),
-  )
-  async uploadSlaSignature(
-    @Param('onboardingId') onboardingId: string,
-    @Param('sessionId') sessionId: string,
-    @UploadedFile() file: Express.Multer.File,
-    @Headers('x-upload-secret')
-    uploadSecretHeader: string | string[] | undefined,
-    @Request() req?: RequestWithUser,
-  ) {
-    if (!file) {
-      throw new BadRequestException('Signature file is required');
-    }
-
-    const rawSecret = Array.isArray(uploadSecretHeader)
-      ? uploadSecretHeader[0]
-      : uploadSecretHeader;
-    const uploadSecret = typeof rawSecret === 'string' ? rawSecret.trim() : '';
-    if (!uploadSecret) {
-      throw new UnauthorizedException('X-Upload-Secret header is required');
-    }
-
-    try {
-      await assertAllowedFileSignature(file, ['png', 'jpeg', 'webp']);
-
-      if (
-        req?.user &&
-        (req.user.clinicId || req.user.onboardingStep === 'COMPLETED')
-      ) {
-        throw new ForbiddenException(
-          'Signature upload not allowed for existing clinics',
-        );
-      }
-
-      return await this.onboardingService.uploadSlaSignature(
-        onboardingId,
-        sessionId,
-        file,
-        uploadSecret,
-        {
-          modifiedBy: req?.user?.id,
-          modifiedByRole: req?.user?.role,
-          ipAddress: req?.ip || req?.socket?.remoteAddress,
-          userAgent: req?.headers?.['user-agent'],
-        },
-      );
-    } catch (error) {
-      if (file.path) {
-        await unlink(file.path).catch(() => {});
-      }
-      throw error;
-    }
   }
 
   @Post('choose-path')
@@ -262,14 +124,8 @@ export class OnboardingController {
     @Request() req: RequestWithUser,
     @Body() dto: { path: string },
   ) {
-    if (
-      req.user &&
-      (req.user.clinicId || req.user.onboardingStep === 'COMPLETED')
-    ) {
-      throw new ForbiddenException(
-        'Choose path not allowed for existing clinics',
-      );
-    }
+    assertNoExistingClinicOnboarding(req, 'Choose path');
+
     const onboardingStep =
       dto.path === 'CREATE_CLINIC' ? 'CREATING_CLINIC' : 'JOINING_CLINIC';
 

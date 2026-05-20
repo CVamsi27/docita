@@ -20,16 +20,13 @@ import {
 } from '@/domains/subscriptions/core/value-objects';
 import { FeatureFlagService } from '@/shared/modules/services/feature-flag.service';
 import {
-  IPaymentGateway,
-  PAYMENT_GATEWAY_TOKEN,
-} from '@/domains/subscriptions/application/ports/payment-gateway.port';
-import {
   finalizePayableAmountPaise,
   SubscriptionCheckoutPricingService,
 } from '@/domains/subscriptions/application/services/subscription-checkout-pricing.service';
 import { AppConfigService } from '@/shared/modules/config/app-configuration.service';
 import { SubscriptionActivationPolicyService } from '@/domains/subscriptions/application/services/subscription-activation-policy.service';
 import { SubscriptionBillingSnapshotService } from '@/domains/subscriptions/application/services/subscription-billing-snapshot.service';
+import { ActivateSubscriptionPaymentService } from '@/domains/subscriptions/application/services/activate-subscription-payment.service';
 
 export interface ActivateSubscriptionRequest {
   clinicId: string;
@@ -48,16 +45,6 @@ export interface ApplyPlanChangeWithoutPaymentParams {
   cycle: string;
 }
 
-type SubscriptionPaymentRecord = {
-  id: string;
-  clinicId: string;
-  amountCents: number;
-  currency: string;
-  status: string;
-  razorpayOrderId?: string | null;
-  razorpayPaymentId?: string | null;
-};
-
 @Injectable()
 export class ActivateSubscriptionUseCase {
   private readonly logger = new Logger(ActivateSubscriptionUseCase.name);
@@ -67,14 +54,13 @@ export class ActivateSubscriptionUseCase {
     private readonly subscriptionRepo: ISubscriptionRepository,
     @Inject(CLINIC_OPERATIONS_TOKEN)
     private readonly clinicOps: IClinicOperations,
-    @Inject(PAYMENT_GATEWAY_TOKEN)
-    private readonly paymentGateway: IPaymentGateway,
     private readonly pricingService: SubscriptionPricingService,
     private readonly featureFlagService: FeatureFlagService,
     private readonly checkoutPricing: SubscriptionCheckoutPricingService,
     private readonly configService: AppConfigService,
     private readonly activationPolicy: SubscriptionActivationPolicyService,
     private readonly billingSnapshot: SubscriptionBillingSnapshotService,
+    private readonly activationPayment: ActivateSubscriptionPaymentService,
   ) {}
 
   async applyPlanChangeWithoutPayment(
@@ -173,51 +159,18 @@ export class ActivateSubscriptionUseCase {
       cycle,
       offerPercent,
     );
-    const payment = (await this.subscriptionRepo.findPaymentByOrderId(
-      request.clinicId,
-      request.razorpayOrderId,
-    )) as SubscriptionPaymentRecord | null;
 
-    if (!payment) {
-      throw new BadRequestException('Payment order not found for this clinic');
-    }
-
-    if (payment.amountCents !== payableAmount) {
-      throw new BadRequestException(
-        'Payment amount does not match checkout quote',
-      );
-    }
-
-    let verifiedAmountCents = request.verifiedAmountCents;
-    if (!request.skipPaymentVerification) {
-      const verification = await this.paymentGateway.verifyPayment({
+    const { payment } = await this.activationPayment.resolvePaymentForActivation(
+      {
+        clinicId: request.clinicId,
         razorpayOrderId: request.razorpayOrderId,
         razorpayPaymentId: request.razorpayPaymentId,
         razorpaySignature: request.razorpaySignature,
-      });
-
-      if (!verification.verified) {
-        throw new BadRequestException('Unable to verify payment');
-      }
-
-      if (
-        verification.orderId &&
-        verification.orderId !== request.razorpayOrderId
-      ) {
-        throw new BadRequestException('Payment order verification failed');
-      }
-
-      verifiedAmountCents = verification.amountCents;
-    }
-
-    if (
-      verifiedAmountCents !== undefined &&
-      verifiedAmountCents !== payment.amountCents
-    ) {
-      throw new BadRequestException(
-        'Payment amount does not match selected plan',
-      );
-    }
+        payableAmountPaise: payableAmount,
+        skipPaymentVerification: request.skipPaymentVerification,
+        verifiedAmountCents: request.verifiedAmountCents,
+      },
+    );
 
     const saved = await this.billingSnapshot.persistActivatedSubscription({
       clinicId: request.clinicId,

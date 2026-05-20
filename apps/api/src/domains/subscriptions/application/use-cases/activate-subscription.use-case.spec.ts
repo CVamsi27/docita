@@ -3,7 +3,7 @@ import { beforeEach, describe, expect, it, jest } from '@jest/globals';
 import { ActivateSubscriptionUseCase } from './activate-subscription.use-case';
 import type { ISubscriptionRepository } from '@/domains/subscriptions/application/ports/subscription.repository.port';
 import type { IClinicOperations } from '@/domains/subscriptions/application/ports/clinic-operations.port';
-import type { IPaymentGateway } from '@/domains/subscriptions/application/ports/payment-gateway.port';
+import { ActivateSubscriptionPaymentService } from '@/domains/subscriptions/application/services/activate-subscription-payment.service';
 import { SubscriptionPricingService } from '@/domains/subscriptions/core/services/subscription-pricing.service';
 import { ProratingService } from '@/domains/subscriptions/core/services/proration.service';
 import { SubscriptionCheckoutPricingService } from '@/domains/subscriptions/application/services/subscription-checkout-pricing.service';
@@ -11,8 +11,10 @@ import { FeatureFlagService } from '@/shared/modules/services/feature-flag.servi
 import { AppConfigService } from '@/shared/modules/config/app-configuration.service';
 import { SubscriptionActivationPolicyService } from '@/domains/subscriptions/application/services/subscription-activation-policy.service';
 import { SubscriptionBillingSnapshotService } from '@/domains/subscriptions/application/services/subscription-billing-snapshot.service';
+import { createFixedClockMock } from '@/test-utils';
 
 describe('ActivateSubscriptionUseCase', () => {
+  const clock = createFixedClockMock();
   const subscriptionRepo: ISubscriptionRepository = {
     save: jest.fn(async () => undefined),
     findById: jest.fn(async () => null),
@@ -61,7 +63,7 @@ describe('ActivateSubscriptionUseCase', () => {
     clearScheduledPlanChange: jest.fn(async () => undefined),
   } as unknown as IClinicOperations;
 
-  const paymentGateway: IPaymentGateway = {
+  const paymentGateway = {
     createCustomer: jest.fn(async () => 'cust_1'),
     createOrder: jest.fn(),
     verifyPayment: jest.fn(async () => ({
@@ -74,7 +76,7 @@ describe('ActivateSubscriptionUseCase', () => {
     cancelSubscription: jest.fn(),
     refundPayment: jest.fn(),
     verifyWebhookSignature: jest.fn(() => true),
-  } as unknown as IPaymentGateway;
+  };
 
   const featureFlagService = {
     getClinicPricingOffer: jest.fn(async () => null),
@@ -83,6 +85,7 @@ describe('ActivateSubscriptionUseCase', () => {
   const checkoutPricing = new SubscriptionCheckoutPricingService(
     new SubscriptionPricingService(),
     new ProratingService(),
+    clock,
   );
 
   const configService = {
@@ -98,6 +101,12 @@ describe('ActivateSubscriptionUseCase', () => {
       createInvoice: jest.fn(async () => null),
       listInvoicesByCustomer: jest.fn(async () => []),
     } as never,
+    clock,
+  );
+
+  const activationPayment = new ActivateSubscriptionPaymentService(
+    subscriptionRepo,
+    paymentGateway as never,
   );
 
   let useCase: ActivateSubscriptionUseCase;
@@ -107,13 +116,13 @@ describe('ActivateSubscriptionUseCase', () => {
     useCase = new ActivateSubscriptionUseCase(
       subscriptionRepo,
       clinicOps,
-      paymentGateway,
       new SubscriptionPricingService(),
       featureFlagService,
       checkoutPricing,
       configService,
       activationPolicy,
       billingSnapshot,
+      activationPayment,
     );
   });
 

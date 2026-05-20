@@ -6,6 +6,9 @@ import { SendMessageUseCase } from '@/domains/whatsapp/application/use-cases/sen
 import { TemplatesService } from '@/domains/whatsapp/application/services/templates.service';
 import { StaffNotificationService } from '@/domains/whatsapp/application/services/staff-notification.service';
 import { ResponseHandlerService } from '@/domains/whatsapp/application/services/response-handler.service';
+import { PatientResponseConfirmationService } from '@/domains/whatsapp/application/services/patient-response-confirmation.service';
+import { PatientResponseStaffNotificationService } from '@/domains/whatsapp/application/services/patient-response-staff-notification.service';
+import { CLOCK_PORT } from '@/shared/common/ports/clock.port';
 
 describe('ResponseHandlerService', () => {
   let service: ResponseHandlerService;
@@ -82,6 +85,8 @@ describe('ResponseHandlerService', () => {
     const module: TestingModule = await Test.createTestingModule({
       providers: [
         ResponseHandlerService,
+        PatientResponseConfirmationService,
+        PatientResponseStaffNotificationService,
         { provide: WHATSAPP_PERSISTENCE_PORT, useValue: mockPrisma },
         {
           provide: SendMessageUseCase,
@@ -89,6 +94,10 @@ describe('ResponseHandlerService', () => {
         },
         { provide: TemplatesService, useValue: mockTemplatesService },
         { provide: StaffNotificationService, useValue: mockStaffNotification },
+        {
+          provide: CLOCK_PORT,
+          useValue: { now: () => new Date('2026-04-01T10:00:00.000Z') },
+        },
       ],
     }).compile();
 

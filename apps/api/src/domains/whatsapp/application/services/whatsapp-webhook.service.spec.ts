@@ -7,6 +7,7 @@ import { WhatsAppWebhookIngressService } from '@/domains/whatsapp/application/se
 import { WHATSAPP_REPOSITORY_TOKEN } from '@/domains/whatsapp/application/ports/whatsapp.repository.port';
 import { SupportWhatsAppInboxService } from '@/shared/modules/support-whatsapp';
 import { Logger } from '@nestjs/common';
+import { clockPortTestProvider } from '@/test-utils';
 import {
   beforeEach,
   afterEach,
@@ -96,6 +97,7 @@ describe('WhatsappWebhookService', () => {
             saveMessage: jest.fn<() => Promise<void>>().mockResolvedValue(),
           },
         },
+        clockPortTestProvider(),
       ],
     }).compile();
 

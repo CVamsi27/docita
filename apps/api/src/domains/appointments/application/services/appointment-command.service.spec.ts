@@ -148,10 +148,12 @@ describe('AppointmentCommandService', () => {
         'clinic-1',
       );
 
-      expect(cancelUseCase.execute).toHaveBeenCalledWith({
-        appointment,
-        reason: 'reason',
-      });
+      expect(cancelUseCase.execute).toHaveBeenCalledWith(
+        expect.objectContaining({
+          appointment,
+          reason: 'reason',
+        }),
+      );
       expect(result).toEqual(appointment);
     });
 

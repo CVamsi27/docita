@@ -5,7 +5,8 @@ import { PatientService } from './application/services/patient.service';
 import { PatientCommandService } from './application/services/patient-command.service';
 import { PatientQueryService } from './application/services/patient-query.service';
 import { PatientsController } from './presentation/controllers/patients.controller';
-import { MedicalHistoryController } from './presentation/controllers/medical-history.controller';
+import { MedicalHistoryConditionsController } from './presentation/controllers/medical-history-conditions.controller';
+import { MedicalHistoryExtendedController } from './presentation/controllers/medical-history-extended.controller';
 import { PatientMetricsController } from './presentation/controllers/patient-metrics.controller';
 import { MedicationDoseController } from './presentation/controllers/medication-dose.controller';
 import { PatientTimelineController } from './presentation/controllers/patient-timeline.controller';
@@ -48,7 +49,8 @@ import { PatientTagsController } from './presentation/controllers/patient-tags.c
   controllers: [
     PatientsController,
     PatientTagsController,
-    MedicalHistoryController,
+    MedicalHistoryConditionsController,
+    MedicalHistoryExtendedController,
     PatientMetricsController,
     MedicationDoseController,
     PatientTimelineController,

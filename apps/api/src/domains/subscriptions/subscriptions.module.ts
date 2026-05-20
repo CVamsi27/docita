@@ -23,6 +23,7 @@ import { SubscriptionsQueryService } from './application/services/subscriptions-
 import { SubscriptionCheckoutPricingService } from './application/services/subscription-checkout-pricing.service';
 import { SubscriptionActivationPolicyService } from './application/services/subscription-activation-policy.service';
 import { SubscriptionBillingSnapshotService } from './application/services/subscription-billing-snapshot.service';
+import { ActivateSubscriptionPaymentService } from './application/services/activate-subscription-payment.service';
 import { razorpayWebhookHandlerProviders } from './application/webhooks/razorpay/razorpay-webhook-handler.registry';
 import {
   SUBSCRIPTION_REPOSITORY_TOKEN,
@@ -37,7 +38,8 @@ import {
 } from './infrastructure/repositories';
 import { PaymentGatewayFacade } from './infrastructure/adapters/payment-gateway-facade.adapter';
 import { ClinicOperationsAdapter } from './infrastructure/adapters/clinic-operations.adapter';
-import { SubscriptionsBillingController } from './presentation/controllers/subscriptions-billing.controller';
+import { SubscriptionsBillingQueryController } from './presentation/controllers/subscriptions-billing-query.controller';
+import { SubscriptionsBillingMutationController } from './presentation/controllers/subscriptions-billing-mutation.controller';
 import { SubscriptionsController } from './presentation/controllers/subscriptions.controller';
 import { SubscriptionsWebhookController } from './presentation/controllers/subscriptions-webhook.controller';
 import { PrismaModule } from '@/prisma/prisma.module';
@@ -56,7 +58,8 @@ import { AdminAlertsModule } from '@/shared/modules/messaging/admin-alerts/admin
   ],
   controllers: [
     SubscriptionsController,
-    SubscriptionsBillingController,
+    SubscriptionsBillingQueryController,
+    SubscriptionsBillingMutationController,
     SubscriptionsWebhookController,
   ],
   providers: [
@@ -64,6 +67,7 @@ import { AdminAlertsModule } from '@/shared/modules/messaging/admin-alerts/admin
     SubscriptionCheckoutPricingService,
     SubscriptionActivationPolicyService,
     SubscriptionBillingSnapshotService,
+    ActivateSubscriptionPaymentService,
     ProratingService,
     SubscriptionValidationService,
     ReferralService,

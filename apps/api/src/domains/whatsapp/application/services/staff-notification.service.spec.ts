@@ -8,6 +8,7 @@ import { TemplateModeService } from '@/shared/whatsapp/template-mode.service';
 import { StaffNotificationRecipientResolver } from './staff-notification-recipient.resolver';
 import { StaffNotificationPolicyService } from './staff-notification-policy.service';
 import { StaffNotificationWhatsAppDispatchService } from './staff-notification-whatsapp-dispatch.service';
+import { StaffNotificationInboxService } from './staff-notification-inbox.service';
 import { NOTIFICATION_RECIPIENT_RESOLVER_TOKEN } from '@/domains/whatsapp/application/ports/notification-recipient-resolver.port';
 import { Logger, NotFoundException } from '@nestjs/common';
 import { EventEmitter2 } from '@nestjs/event-emitter';
@@ -25,7 +26,7 @@ import { ClinicTier } from '@workspace/db';
 describe('StaffNotificationService', () => {
   let service: StaffNotificationService;
   let mockPrisma: ReturnType<typeof buildMockPrisma>;
-  let mockWhatsappClient: { sendMessage: ReturnType<typeof jest.fn> };
+  let mockWhatsappClient: { sendTextMessage: ReturnType<typeof jest.fn> };
   let mockTemplateResolution: {
     resolveTemplate: ReturnType<typeof jest.fn>;
   };
@@ -87,7 +88,7 @@ describe('StaffNotificationService', () => {
   beforeEach(async () => {
     mockPrisma = buildMockPrisma();
     mockWhatsappClient = {
-      sendMessage: jest.fn().mockImplementation(async () => ({
+      sendTextMessage: jest.fn().mockImplementation(async () => ({
         success: true,
         messageId: 'msg-123',
       })),
@@ -116,6 +117,7 @@ describe('StaffNotificationService', () => {
         },
         StaffNotificationPolicyService,
         StaffNotificationWhatsAppDispatchService,
+        StaffNotificationInboxService,
         { provide: WHATSAPP_PERSISTENCE_PORT, useValue: mockPrisma },
         { provide: WhatsappClientService, useValue: mockWhatsappClient },
         {
@@ -163,8 +165,8 @@ describe('StaffNotificationService', () => {
         sendWhatsApp: true,
       });
 
-      expect(mockWhatsappClient.sendMessage).toHaveBeenCalledTimes(1);
-      expect(mockWhatsappClient.sendMessage).toHaveBeenCalledWith(
+      expect(mockWhatsappClient.sendTextMessage).toHaveBeenCalledTimes(1);
+      expect(mockWhatsappClient.sendTextMessage).toHaveBeenCalledWith(
         expect.objectContaining({ to: '+919876543210' }),
       );
     });
@@ -184,7 +186,7 @@ describe('StaffNotificationService', () => {
         sendWhatsApp: true,
       });
 
-      expect(mockWhatsappClient.sendMessage).not.toHaveBeenCalled();
+      expect(mockWhatsappClient.sendTextMessage).not.toHaveBeenCalled();
     });
 
     it('should skip WhatsApp when sendWhatsApp=false', async () => {
@@ -196,7 +198,7 @@ describe('StaffNotificationService', () => {
         sendWhatsApp: false,
       });
 
-      expect(mockWhatsappClient.sendMessage).not.toHaveBeenCalled();
+      expect(mockWhatsappClient.sendTextMessage).not.toHaveBeenCalled();
     });
 
     it('should emit notification.created event for each in-app notification', async () => {

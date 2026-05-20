@@ -8,8 +8,8 @@ const enforce = process.argv.includes("--enforce");
 
 const EXCLUDED_FILES = new Set([
   "apps/api/src/shared/common/events/event.service.ts",
-  "apps/api/src/gateways/notifications.gateway.ts",
-  "apps/api/src/gateways/payment.websocket.gateway.ts",
+  "apps/api/src/websockets/notifications.gateway.ts",
+  "apps/api/src/websockets/payment.websocket.gateway.ts",
 ]);
 
 const STRING_EMIT = /eventEmitter\.emit\s*\(\s*['"]([^'"]+)['"]/g;
@@ -20,7 +20,7 @@ const files = execSync("git ls-files apps/api/src", { encoding: "utf8" })
   .filter(Boolean)
   .filter((file) => /\.ts$/.test(file))
   .filter((file) => !/\.(spec|test)\.[tj]sx?$/.test(file))
-  .filter((file) => !file.includes("/gateways/"))
+  .filter((file) => !file.includes("/websockets/"))
   .filter((file) => !EXCLUDED_FILES.has(file));
 
 const findings = [];

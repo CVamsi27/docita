@@ -114,7 +114,7 @@ describe('AppointmentService metric persistence', () => {
     const metricDefinitionService = Object.create(
       AppointmentMetricDefinitionService.prototype,
     ) as AppointmentMetricDefinitionService;
-    Object.defineProperty(metricDefinitionService, 'prisma', {
+    Object.defineProperty(metricDefinitionService, 'persistence', {
       value: prisma,
       writable: true,
     });

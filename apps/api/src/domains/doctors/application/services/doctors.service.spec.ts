@@ -12,6 +12,7 @@ import { StorageProvider } from '@/domains/documents/application/ports/storage-p
 import { NotFoundException } from '@nestjs/common';
 import { Role, Specialization } from '@workspace/db';
 import { beforeEach, describe, it, expect, jest } from '@jest/globals';
+import { clockPortTestProvider } from '@/test-utils';
 import {
   DOCTOR_REPOSITORY_TOKEN,
   IDoctorRepository,
@@ -221,6 +222,7 @@ describe('DoctorsService', () => {
           provide: DOCTOR_REPOSITORY_TOKEN,
           useValue: mockDoctorRepository,
         },
+        clockPortTestProvider(),
       ],
     }).compile();
 

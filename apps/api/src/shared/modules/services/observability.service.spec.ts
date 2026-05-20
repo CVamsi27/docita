@@ -3,6 +3,7 @@ import * as Sentry from '@sentry/nestjs';
 import { AppConfigService } from '@/shared/modules/config/app-configuration.service';
 import { PrismaService } from '@/prisma/prisma.service';
 import { ObservabilityService } from './observability.service';
+import { createFixedClockMock } from '@/test-utils';
 
 const consoleIntegration = { name: 'console-logging-integration' };
 
@@ -26,6 +27,8 @@ jest.mock('@sentry/nestjs', () => ({
 }));
 
 describe('ObservabilityService', () => {
+  const clock = createFixedClockMock();
+
   const mockConfigService = {
     getSentryConfig: jest.fn(),
     getEnvironment: jest.fn(),
@@ -68,6 +71,7 @@ describe('ObservabilityService', () => {
     service = new ObservabilityService(
       mockPrismaService,
       mockConfigService as unknown as AppConfigService,
+      clock,
     );
 
     service.initializeSentry();
@@ -96,6 +100,7 @@ describe('ObservabilityService', () => {
     service = new ObservabilityService(
       mockPrismaService,
       mockConfigService as unknown as AppConfigService,
+      clock,
     );
 
     service.recordRequestLatency('/patients', 'GET', 200, 123);
@@ -118,6 +123,7 @@ describe('ObservabilityService', () => {
     service = new ObservabilityService(
       mockPrismaService,
       mockConfigService as unknown as AppConfigService,
+      clock,
     );
 
     service.initializeSentry({
@@ -139,6 +145,7 @@ describe('ObservabilityService', () => {
     service = new ObservabilityService(
       mockPrismaService,
       mockConfigService as unknown as AppConfigService,
+      clock,
     );
 
     service.logStructured('warn', 'Failed login attempt recorded', {
@@ -155,6 +162,7 @@ describe('ObservabilityService', () => {
     service = new ObservabilityService(
       mockPrismaService,
       mockConfigService as unknown as AppConfigService,
+      clock,
     );
 
     service.logStructured(

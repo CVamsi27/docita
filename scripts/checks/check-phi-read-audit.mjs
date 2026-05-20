@@ -7,7 +7,7 @@ import process from "node:process";
 const enforce = process.argv.includes("--enforce");
 
 const READ_AUDIT_MARKER_RE =
-  /\b(logPatientPhiRead|logClinicPhiListRead|logPatientPortalPhiRead|auditViewHistory|auditPortalRead|resolveContextWithAudit)\b/;
+  /\b(logPatientPhiRead|logClinicPhiListRead|logPatientPortalPhiRead|auditViewHistory|auditPortalRead|auditPatientPortalRead|resolveContextWithAudit)\b/;
 
 /** Controllers that expose patient PHI on GET must call a read-audit helper. */
 const PHI_CONTROLLER_PATH_RES = [
@@ -44,7 +44,7 @@ for (const file of files) {
   }
   if (!READ_AUDIT_MARKER_RE.test(source)) {
     findings.push(
-      `${file}: PHI controller has @Get but no read-audit helper (logPatientPhiRead, logClinicPhiListRead, logPatientPortalPhiRead, auditViewHistory, auditPortalRead, or resolveContextWithAudit)`,
+      `${file}: PHI controller has @Get but no read-audit helper (logPatientPhiRead, logClinicPhiListRead, logPatientPortalPhiRead, auditViewHistory, auditPortalRead, auditPatientPortalRead, or resolveContextWithAudit)`,
     );
   }
 }

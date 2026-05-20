@@ -88,7 +88,7 @@ describe('WhatsappService', () => {
           const dto = args[2] as { phoneNumber: string; templateId?: string };
           await mockWhatsappClient.sendMessage({
             to: dto.phoneNumber,
-            message: 'Template message',
+            text: 'Template message',
           });
           return {
             success: true,
@@ -192,7 +192,7 @@ describe('WhatsappService', () => {
       const client = module.get(WhatsappClientService);
       expect(client.sendMessage).toHaveBeenCalledWith({
         to: '9876543210',
-        message: expect.any(String),
+        text: expect.any(String),
       });
     });
 
@@ -326,7 +326,7 @@ describe('WhatsappService', () => {
       const client = module.get(WhatsappClientService);
       expect(client.sendMessage).toHaveBeenCalledWith({
         to: '9876543213',
-        message: expect.any(String),
+        text: expect.any(String),
       });
     });
 

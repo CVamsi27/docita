@@ -9,8 +9,10 @@ import { SubscriptionCheckoutPricingService } from '@/domains/subscriptions/appl
 import { ActivateSubscriptionUseCase } from '@/domains/subscriptions/application/use-cases/activate-subscription.use-case';
 import { AppConfigService } from '@/shared/modules/config/app-configuration.service';
 import { FeatureFlagService } from '@/shared/modules/services/feature-flag.service';
+import { createFixedClockMock } from '@/test-utils';
 
 describe('CreateCheckoutUseCase', () => {
+  const clock = createFixedClockMock();
   const findReusablePendingCheckoutMock =
     jest.fn<ISubscriptionRepository['findReusablePendingCheckout']>();
 
@@ -83,6 +85,7 @@ describe('CreateCheckoutUseCase', () => {
   const checkoutPricing = new SubscriptionCheckoutPricingService(
     new SubscriptionPricingService(),
     new ProratingService(),
+    clock,
   );
   const activateSubscription = {
     applyPlanChangeWithoutPayment: jest.fn(async () => undefined),

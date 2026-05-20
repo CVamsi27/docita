@@ -13,6 +13,7 @@ import {
 import { RequestWithUser } from '@/shared/common/types/common.types';
 import { Role } from '@workspace/db';
 import { CreateAppointmentDto } from '@/domains/appointments/application/dto/appointments.dto';
+import { AuditService } from '@/shared/modules/audit/audit/audit.service';
 
 describe('Appointments controllers', () => {
   let scheduleController: AppointmentsScheduleController;
@@ -93,6 +94,10 @@ describe('Appointments controllers', () => {
               (_ctx: unknown, next: { handle: () => unknown }) => next.handle(),
             ),
           },
+        },
+        {
+          provide: AuditService,
+          useValue: { logAction: jest.fn(), logPatientAccess: jest.fn() },
         },
       ],
     })

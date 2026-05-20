@@ -3,6 +3,7 @@ import { describe, it, expect, beforeEach, jest } from '@jest/globals';
 import { AppointmentSchedulingRulesService } from './appointment-scheduling-rules.service';
 import { PrismaService } from '@/prisma/prisma.service';
 import { AppointmentStatus } from '@workspace/db';
+import { clockPortTestProvider, createMutableClockMock } from '@/test-utils';
 
 describe('AppointmentSchedulingRulesService', () => {
   let service: AppointmentSchedulingRulesService;
@@ -26,6 +27,7 @@ describe('AppointmentSchedulingRulesService', () => {
           provide: PrismaService,
           useValue: mockPrismaService,
         },
+        clockPortTestProvider(createMutableClockMock()),
       ],
     }).compile();
 

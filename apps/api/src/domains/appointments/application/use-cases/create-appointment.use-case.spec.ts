@@ -8,7 +8,7 @@ import type { IClock } from '@/shared/common/ports/clock.port';
 describe('CreateAppointmentUseCase', () => {
   const writeRepository = {
     save: jest.fn<IAppointmentWriteRepository['save']>(),
-  } as jest.Mocked<IAppointmentWriteRepository>;
+  } as unknown as jest.Mocked<IAppointmentWriteRepository>;
 
   const validateOverlapMock =
     jest.fn<AppointmentSchedulingRulesService['validateAppointmentOverlap']>();

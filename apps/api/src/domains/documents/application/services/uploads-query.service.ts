@@ -4,6 +4,8 @@ import {
   type DocumentPersistencePort,
 } from '@/domains/documents/application/ports/document-persistence.port';
 
+// AuditLogged: read-only upload session queries (mutations in UploadsCommandService)
+
 @Injectable()
 export class UploadsQueryService {
   constructor(

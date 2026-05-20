@@ -1,15 +1,4 @@
-import {
-  Inject,
-  Injectable,
-  Logger,
-  NotFoundException,
-} from '@nestjs/common';
-import { EventEmitter2 } from '@nestjs/event-emitter';
-import { ApplicationEvents } from '@/shared/common/events/application-events';
-import {
-  WHATSAPP_PERSISTENCE_PORT,
-  type WhatsappPersistencePort,
-} from '@/domains/whatsapp/application/ports/whatsapp-persistence.port';
+import { Inject, Injectable, Logger } from '@nestjs/common';
 import type {
   NotificationPriority,
   StaffNotificationType,
@@ -20,10 +9,7 @@ import {
 } from '@/domains/whatsapp/application/ports/notification-recipient-resolver.port';
 import { StaffNotificationPolicyService } from './staff-notification-policy.service';
 import { StaffNotificationWhatsAppDispatchService } from './staff-notification-whatsapp-dispatch.service';
-import {
-  CLOCK_PORT,
-  type IClock,
-} from '@/shared/common/ports/clock.port';
+import { StaffNotificationInboxService } from './staff-notification-inbox.service';
 
 export interface StaffNotificationPayload {
   clinicId: string;
@@ -38,43 +24,20 @@ export interface StaffNotificationPayload {
   sendInApp?: boolean;
 }
 
-function parseNotificationData(value: unknown): Record<string, unknown> {
-  if (typeof value === 'string') {
-    try {
-      const parsed = JSON.parse(value);
-      if (parsed && typeof parsed === 'object' && !Array.isArray(parsed)) {
-        return Object.fromEntries(Object.entries(parsed));
-      }
-      return {};
-    } catch {
-      return {};
-    }
-  }
-
-  if (value && typeof value === 'object' && !Array.isArray(value)) {
-    return Object.fromEntries(Object.entries(value));
-  }
-
-  return {};
-}
-
 /**
- * Facade — delegates policy and WhatsApp dispatch to StaffNotificationPolicyService
- * and StaffNotificationWhatsAppDispatchService.
+ * Facade — delegates inbox CRUD to StaffNotificationInboxService; orchestrates
+ * outbound staff alerts via policy, recipient resolver, and WhatsApp dispatch.
  */
 @Injectable()
 export class StaffNotificationService {
   private readonly logger = new Logger(StaffNotificationService.name);
 
   constructor(
-    @Inject(WHATSAPP_PERSISTENCE_PORT)
-    private readonly persistence: WhatsappPersistencePort,
     @Inject(NOTIFICATION_RECIPIENT_RESOLVER_TOKEN)
     private readonly recipientResolver: INotificationRecipientResolver,
     private readonly policy: StaffNotificationPolicyService,
     private readonly whatsappDispatch: StaffNotificationWhatsAppDispatchService,
-    private readonly eventEmitter: EventEmitter2,
-    @Inject(CLOCK_PORT) private readonly clock: IClock,
+    private readonly inbox: StaffNotificationInboxService,
   ) {}
 
   async notifyStaff(payload: StaffNotificationPayload): Promise<void> {
@@ -118,7 +81,7 @@ export class StaffNotificationService {
     for (const recipient of recipients) {
       if (sendInApp) {
         notificationPromises.push(
-          this.createInAppNotification(
+          this.inbox.createInAppNotification(
             recipient.id,
             clinicId,
             type,
@@ -150,217 +113,31 @@ export class StaffNotificationService {
     );
   }
 
-  private async createInAppNotification(
-    userId: string,
-    clinicId: string,
-    type: StaffNotificationType,
-    title: string,
-    message: string,
-    data: Record<string, unknown>,
-    priority: NotificationPriority,
-  ): Promise<void> {
-    try {
-      const notification = await this.persistence.staffNotification.create({
-        data: {
-          clinicId,
-          userId,
-          type,
-          title,
-          message,
-          data: JSON.stringify(data),
-          priority,
-          isRead: false,
-        },
-      });
-
-      this.eventEmitter.emit(ApplicationEvents.NOTIFICATION_CREATED, {
-        clinicId,
-        userId,
-        notification: {
-          ...notification,
-          data: parseNotificationData(notification.data),
-        },
-      });
-    } catch (error) {
-      this.logger.error(
-        `Failed to create in-app notification for user ${userId}`,
-        error,
-      );
-    }
-  }
-
   async getAllNotifications(
     userId: string,
     options: { limit?: number; offset?: number } = {},
-  ): Promise<
-    Array<{
-      id: string;
-      clinicId: string;
-      userId: string | null;
-      type: StaffNotificationType;
-      title: string;
-      message: string;
-      data: unknown;
-      priority: NotificationPriority;
-      isRead: boolean;
-      readAt: Date | null;
-      deletedAt: Date | null;
-      createdAt: Date;
-    }>
-  > {
-    const { limit = 100, offset = 0 } = options;
-    const notifications = await this.persistence.staffNotification.findMany({
-      where: {
-        userId,
-        deletedAt: null,
-      },
-      orderBy: [{ createdAt: 'desc' }],
-      take: limit,
-      skip: offset,
-      select: {
-        id: true,
-        clinicId: true,
-        userId: true,
-        type: true,
-        title: true,
-        message: true,
-        data: true,
-        priority: true,
-        isRead: true,
-        readAt: true,
-        deletedAt: true,
-        createdAt: true,
-      },
-    });
-
-    return notifications.map((n) => ({
-      ...n,
-      data: parseNotificationData(n.data),
-    }));
+  ) {
+    return this.inbox.getAllNotifications(userId, options);
   }
 
-  async getUnreadNotifications(
-    userId: string,
-    limit = 20,
-  ): Promise<
-    Array<{
-      id: string;
-      clinicId: string;
-      userId: string | null;
-      type: StaffNotificationType;
-      title: string;
-      message: string;
-      data: unknown;
-      priority: NotificationPriority;
-      isRead: boolean;
-      readAt: Date | null;
-      deletedAt: Date | null;
-      createdAt: Date;
-    }>
-  > {
-    const notifications = await this.persistence.staffNotification.findMany({
-      where: {
-        userId,
-        isRead: false,
-        deletedAt: null,
-      },
-      orderBy: [{ priority: 'desc' }, { createdAt: 'desc' }],
-      take: limit,
-      select: {
-        id: true,
-        clinicId: true,
-        userId: true,
-        type: true,
-        title: true,
-        message: true,
-        data: true,
-        priority: true,
-        isRead: true,
-        readAt: true,
-        deletedAt: true,
-        createdAt: true,
-      },
-    });
-
-    return notifications.map((n) => ({
-      ...n,
-      data: parseNotificationData(n.data),
-    }));
+  async getUnreadNotifications(userId: string, limit = 20) {
+    return this.inbox.getUnreadNotifications(userId, limit);
   }
 
-  async markNotificationRead(
-    notificationId: string,
-    userId: string,
-  ): Promise<void> {
-    const existing = await this.persistence.staffNotification.findFirst({
-      where: { id: notificationId, userId, deletedAt: null },
-      select: { clinicId: true },
-    });
-
-    if (!existing) {
-      throw new NotFoundException('Notification not found');
-    }
-
-    await this.persistence.staffNotification.updateMany({
-      where: { id: notificationId, userId, deletedAt: null },
-      data: { isRead: true, readAt: this.clock.now() },
-    });
-
-    this.eventEmitter.emit(ApplicationEvents.NOTIFICATION_READ, {
-      clinicId: existing.clinicId,
-      userId,
-      notificationId,
-    });
+  async markNotificationRead(notificationId: string, userId: string) {
+    return this.inbox.markNotificationRead(notificationId, userId);
   }
 
-  async deleteNotification(
-    notificationId: string,
-    userId: string,
-  ): Promise<void> {
-    const existing = await this.persistence.staffNotification.findFirst({
-      where: { id: notificationId, userId, deletedAt: null },
-      select: { clinicId: true },
-    });
-
-    if (!existing) {
-      throw new NotFoundException('Notification not found');
-    }
-
-    await this.persistence.staffNotification.updateMany({
-      where: { id: notificationId, userId, deletedAt: null },
-      data: { deletedAt: this.clock.now() },
-    });
-
-    this.eventEmitter.emit(ApplicationEvents.NOTIFICATION_DELETED, {
-      clinicId: existing.clinicId,
-      userId,
-      notificationId,
-    });
+  async deleteNotification(notificationId: string, userId: string) {
+    return this.inbox.deleteNotification(notificationId, userId);
   }
 
-  async deleteAllNotifications(
-    userId: string,
-    clinicId: string,
-  ): Promise<void> {
-    await this.persistence.staffNotification.updateMany({
-      where: { userId, deletedAt: null },
-      data: { deletedAt: this.clock.now() },
-    });
-
-    this.eventEmitter.emit(ApplicationEvents.NOTIFICATION_BULK_DELETED, {
-      clinicId,
-      userId,
-    });
+  async deleteAllNotifications(userId: string, clinicId: string) {
+    return this.inbox.deleteAllNotifications(userId, clinicId);
   }
 
-  async getUnreadCount(userId: string): Promise<number> {
-    return this.persistence.staffNotification.count({
-      where: {
-        userId,
-        isRead: false,
-        deletedAt: null,
-      },
-    });
+  async getUnreadCount(userId: string) {
+    return this.inbox.getUnreadCount(userId);
   }
 
   async sendApprovalRequest(

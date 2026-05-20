@@ -14,7 +14,10 @@ import {
   IMedicationDoseRepository,
   MEDICATION_DOSE_REPOSITORY_TOKEN,
 } from '@/domains/patients/core/repositories/medication-dose.repository.interface';
-import { parseDosesPerDay, parseDurationDays } from './medication-dose-helpers';
+import {
+  parseDosesPerDay,
+  parseDurationDays,
+} from '@/domains/patients/core/domain-services/medication-dose.rules';
 import { verifyMedicationDosePatientAccess } from './medication-dose-access.helpers';
 import {
   CLOCK_PORT,

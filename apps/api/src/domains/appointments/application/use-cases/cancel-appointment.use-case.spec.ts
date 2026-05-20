@@ -13,7 +13,11 @@ describe('CancelAppointmentUseCase', () => {
   };
 
   beforeEach(() => {
-    writeRepository = { update: jest.fn().mockResolvedValue(undefined) };
+    writeRepository = {
+      update: jest
+        .fn<IAppointmentWriteRepository['update']>()
+        .mockResolvedValue(undefined),
+    };
     useCase = new CancelAppointmentUseCase(
       writeRepository as unknown as IAppointmentWriteRepository,
       clock,
@@ -39,7 +43,7 @@ describe('CancelAppointmentUseCase', () => {
       reason: 'Patient requested',
     });
 
-    expect(result.status.isCancelled()).toBe(true);
+    expect(result.getStatus().isCancelled()).toBe(true);
     expect(writeRepository.update).toHaveBeenCalledWith(appointment);
   });
 });

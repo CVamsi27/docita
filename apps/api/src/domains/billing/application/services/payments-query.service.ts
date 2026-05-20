@@ -8,6 +8,8 @@ import {
   PAYMENT_SESSION_REPOSITORY_TOKEN,
 } from '@/domains/billing/core/repositories/payment-session.repository';
 
+// AuditLogged: read-only payment session lookups (mutations in PaymentsCommandService)
+
 @Injectable()
 export class PaymentsQueryService {
   constructor(

@@ -2,7 +2,10 @@ import { Test, TestingModule } from '@nestjs/testing';
 import { RequestLogService } from './request-log.service';
 import { PrismaService } from '@/prisma/prisma.service';
 import { MonitoringFactory } from '@/shared/modules/monitoring/monitoring/factories/monitoring.factory';
-import { API_REQUEST_METRICS_REPOSITORY_TOKEN } from '@/shared/modules/monitoring/monitoring/ports/api-request-metrics.repository.port';
+import {
+  API_REQUEST_METRICS_REPOSITORY_TOKEN,
+  type ApiRequestMetricsRepository,
+} from '@/shared/modules/monitoring/monitoring/ports/api-request-metrics.repository.port';
 import { CLOCK_PORT } from '@/shared/common/ports/clock.port';
 import { ApiRequestInput } from '@/shared/modules/monitoring/monitoring/schemas/monitoring.schema';
 import {
@@ -48,10 +51,23 @@ describe('RequestLogService', () => {
     createApiRequest: jest.fn((data) => data),
   };
 
-  const apiRequestMetricsMock = {
-    getResponseTimeDistribution: jest.fn().mockResolvedValue([]),
-    getThroughputByMinute: jest.fn().mockResolvedValue([]),
-    getRequestsByHour: jest.fn().mockResolvedValue([]),
+  const apiRequestMetricsMock: jest.Mocked<
+    Pick<
+      ApiRequestMetricsRepository,
+      | 'getResponseTimeDistribution'
+      | 'getThroughputByMinute'
+      | 'getRequestsByHour'
+    >
+  > = {
+    getResponseTimeDistribution: jest
+      .fn<ApiRequestMetricsRepository['getResponseTimeDistribution']>()
+      .mockResolvedValue([]),
+    getThroughputByMinute: jest
+      .fn<ApiRequestMetricsRepository['getThroughputByMinute']>()
+      .mockResolvedValue([]),
+    getRequestsByHour: jest
+      .fn<ApiRequestMetricsRepository['getRequestsByHour']>()
+      .mockResolvedValue([]),
   };
 
   beforeEach(async () => {

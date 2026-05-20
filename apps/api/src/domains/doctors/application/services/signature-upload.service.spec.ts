@@ -6,6 +6,7 @@ import { StorageProvider } from '@/domains/documents/application/ports/storage-p
 import { StoredFileUrlResolverService } from '@/domains/documents/application/services/stored-file-url-resolver.service';
 import { SignaturePurpose } from '@workspace/db';
 import { beforeEach, describe, it, expect, jest } from '@jest/globals';
+import { clockPortTestProvider } from '@/test-utils';
 
 describe('SignatureUploadService', () => {
   let service: SignatureUploadService;
@@ -86,6 +87,7 @@ describe('SignatureUploadService', () => {
           provide: StoredFileUrlResolverService,
           useValue: storedFileUrlResolver,
         },
+        clockPortTestProvider(),
       ],
     }).compile();
 
@@ -153,7 +155,7 @@ describe('SignatureUploadService', () => {
     it('throws BadRequestException for expired token', async () => {
       repository.findTokenByValue.mockResolvedValue({
         ...mockToken,
-        expiresAt: new Date(Date.now() - 1000),
+        expiresAt: new Date('2026-01-01T00:00:00.000Z'),
       });
 
       await expect(service.validateToken('abc123')).rejects.toThrow(

@@ -11,6 +11,7 @@ import { PrismaService } from '@/prisma/prisma.service';
 import { AuditService } from '@/shared/modules/audit/audit/audit.service';
 import { AnonymizationFactory } from './factories/anonymization.factory';
 import { DataExportFactory } from './factories/data-export.factory';
+import { clockPortTestProvider } from '@/test-utils';
 
 describe('DPDPComplianceService', () => {
   let service: DPDPComplianceService;
@@ -60,6 +61,7 @@ describe('DPDPComplianceService', () => {
         { provide: AuditService, useValue: mockAuditService },
         { provide: AnonymizationFactory, useValue: mockAnonymizationFactory },
         { provide: DataExportFactory, useValue: mockDataExportFactory },
+        clockPortTestProvider(),
       ],
     }).compile();
 

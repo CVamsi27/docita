@@ -9,4 +9,4 @@ import { AuthModule } from '@/shared/modules/auth/auth/auth.module';
   providers: [PaymentWebSocketGateway, NotificationsGateway],
   exports: [PaymentWebSocketGateway, NotificationsGateway],
 })
-export class GatewaysModule {}
+export class WebsocketsModule {}

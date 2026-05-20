@@ -8,7 +8,7 @@ import { PrismaService } from '@/prisma/prisma.service';
 import {
   PaymentWebSocketGateway,
   ClinicUpdateData as WsClinicUpdateData,
-} from '@/gateways/payment.websocket.gateway';
+} from '@/websockets/payment.websocket.gateway';
 import { ClinicTier, SubscriptionStatus } from '@workspace/db';
 import { ClinicAuthCacheService } from '@/shared/modules/auth/auth/clinic-auth-cache.service';
 

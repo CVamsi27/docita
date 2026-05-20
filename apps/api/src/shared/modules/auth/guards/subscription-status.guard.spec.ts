@@ -5,6 +5,7 @@ import { beforeEach, describe, expect, it, jest } from '@jest/globals';
 import { ClinicAuthCacheService } from '@/shared/modules/auth/auth/clinic-auth-cache.service';
 import {
   asType,
+  createFixedClockMock,
   createKeyedReflectorMock,
   mockGetAllAndOverrideKeyBranch,
   type MockedReflectorGetAllAndOverride,
@@ -47,6 +48,7 @@ describe('SubscriptionStatusGuard', () => {
     guard = new SubscriptionStatusGuard(
       asType<Reflector>(reflector),
       asType<ClinicAuthCacheService>(clinicAuthCache),
+      createFixedClockMock(),
     );
   });
 

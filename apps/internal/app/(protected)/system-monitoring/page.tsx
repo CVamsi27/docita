@@ -4,6 +4,7 @@ import { DATE_FORMATS, formatCountLocale, formatDate, sanitizeUserFacingMessage 
 
 import Link from "next/link";
 import { useMemo, useState } from "react";
+import { resolveInternalApiUrl } from "@/lib/api/api-config";
 import {
   Card,
   CardContent,
@@ -70,7 +71,7 @@ function buildPrometheusMetricsUrl(): string | null {
     return null;
   }
   try {
-    const parsed = new URL(base);
+    const parsed = new URL(resolveInternalApiUrl(base));
     parsed.pathname = "/metrics";
     parsed.search = "";
     return parsed.toString();

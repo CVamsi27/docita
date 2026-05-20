@@ -26,6 +26,9 @@ import { StaffNotificationService } from '@/domains/whatsapp/application/service
 import { StaffNotificationRecipientResolver } from '@/domains/whatsapp/application/services/staff-notification-recipient.resolver';
 import { StaffNotificationPolicyService } from '@/domains/whatsapp/application/services/staff-notification-policy.service';
 import { StaffNotificationWhatsAppDispatchService } from '@/domains/whatsapp/application/services/staff-notification-whatsapp-dispatch.service';
+import { StaffNotificationInboxService } from '@/domains/whatsapp/application/services/staff-notification-inbox.service';
+import { PatientResponseConfirmationService } from '@/domains/whatsapp/application/services/patient-response-confirmation.service';
+import { PatientResponseStaffNotificationService } from '@/domains/whatsapp/application/services/patient-response-staff-notification.service';
 import { NOTIFICATION_RECIPIENT_RESOLVER_TOKEN } from '@/domains/whatsapp/application/ports/notification-recipient-resolver.port';
 import { PrismaModule } from '@/prisma/prisma.module';
 import { PrismaService } from '@/prisma/prisma.service';
@@ -80,6 +83,9 @@ import { SupportWhatsAppModule } from '@/shared/modules/support-whatsapp';
     },
     StaffNotificationPolicyService,
     StaffNotificationWhatsAppDispatchService,
+    StaffNotificationInboxService,
+    PatientResponseConfirmationService,
+    PatientResponseStaffNotificationService,
     StaffNotificationService,
     WhatsappEventListener,
     StaffNotificationListener,

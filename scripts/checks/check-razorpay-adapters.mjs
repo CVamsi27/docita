@@ -9,12 +9,15 @@ const enforce = process.argv.includes("--enforce");
 const FORBIDDEN_PATHS = [
   "apps/api/src/gateways/razorpay-subscription.gateway.ts",
   "apps/api/src/gateways/payment-gateway.interface.ts",
+  "apps/api/src/websockets/razorpay-subscription.gateway.ts",
+  "apps/api/src/websockets/payment-gateway.interface.ts",
   "apps/api/src/domains/subscriptions/infrastructure/gateways/razorpay.gateway.ts",
   "apps/api/src/domains/billing/infrastructure/providers/razorpay.provider.ts",
 ];
 
 const FORBIDDEN_FRAGMENTS = [
   "gateways/razorpay-subscription",
+  "websockets/razorpay-subscription",
   "subscriptions/infrastructure/gateways/razorpay",
   "billing/infrastructure/providers/razorpay.provider",
 ];

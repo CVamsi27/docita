@@ -2,6 +2,7 @@ import { Test, TestingModule } from '@nestjs/testing';
 import { PerformanceService } from './performance.service';
 import { PrismaService } from '@/prisma/prisma.service';
 import { beforeEach, describe, it, expect, jest } from '@jest/globals';
+import { clockPortTestProvider } from '@/test-utils';
 
 describe('PerformanceService', () => {
   let service: PerformanceService;
@@ -21,6 +22,7 @@ describe('PerformanceService', () => {
           provide: PrismaService,
           useValue: mockPrismaService,
         },
+        clockPortTestProvider(),
       ],
     }).compile();
 

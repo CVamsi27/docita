@@ -3,6 +3,7 @@ import { ForbiddenException, NotFoundException } from '@nestjs/common';
 import { MedicalDocumentsService } from './medical-documents.service';
 import { MEDICAL_DOCUMENTS_REPOSITORY_TOKEN } from '../../core/repositories/medical-documents.repository.interface';
 import { beforeEach, describe, it, expect, jest } from '@jest/globals';
+import { clockPortTestProvider } from '@/test-utils';
 
 describe('MedicalDocumentsService', () => {
   let service: MedicalDocumentsService;
@@ -39,6 +40,7 @@ describe('MedicalDocumentsService', () => {
       providers: [
         MedicalDocumentsService,
         { provide: MEDICAL_DOCUMENTS_REPOSITORY_TOKEN, useValue: repo },
+        clockPortTestProvider(),
       ],
     }).compile();
 

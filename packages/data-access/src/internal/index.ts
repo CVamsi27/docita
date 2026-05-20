@@ -29,3 +29,10 @@ export {
   loadInternalClinicUsers,
   loadInternalUsersForSelection,
 } from "./lib/load-internal-users";
+export { downloadInternalAnalyticsExport } from "./lib/analytics-export";
+export type { InternalAnalyticsExportParams } from "./lib/analytics-export";
+export {
+  postInternalWebVitals,
+  type InternalWebVitalsPayload,
+} from "./lib/internal-monitoring";
+export { postInternalAuthLogout } from "./lib/internal-auth";

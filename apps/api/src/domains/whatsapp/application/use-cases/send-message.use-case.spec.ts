@@ -4,6 +4,7 @@ import { EventEmitter2 } from '@nestjs/event-emitter';
 import { ClinicTier, IntelligenceAddon } from '@workspace/db';
 import { AppConfigService } from '@/shared/modules/config/app-configuration.service';
 import { SendMessageUseCase } from './send-message.use-case';
+import { createFixedClockMock } from '@/test-utils';
 import { IWhatsAppRepository } from '../ports/whatsapp.repository.port';
 import { IWhatsAppClient } from '../ports/whatsapp-client.port';
 import {
@@ -118,6 +119,7 @@ describe('SendMessageUseCase', () => {
       mockTemplateResolver,
       mockConfigService,
       mockEventEmitter,
+      createFixedClockMock(),
     );
   });
 
@@ -248,6 +250,7 @@ describe('SendMessageUseCase', () => {
         mockTemplateResolver,
         mockConfigService,
         mockEventEmitter,
+        createFixedClockMock(),
       );
 
       resolveTemplateMock.mockResolvedValue({

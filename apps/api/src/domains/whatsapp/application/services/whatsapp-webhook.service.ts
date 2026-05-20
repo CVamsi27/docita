@@ -4,6 +4,7 @@ import { WhatsappClientService } from '@/domains/whatsapp/infrastructure/clients
 import { verifyMetaWebhookSignature } from '@/shared/whatsapp/meta-webhook-signature.util';
 import { WhatsAppWebhookPayload } from '@workspace/types';
 
+/** Facade — legacy Meta webhook ingress; delegates to WhatsAppWebhookIngressService. */
 @Injectable()
 export class WhatsappWebhookService {
   private readonly logger = new Logger(WhatsappWebhookService.name);

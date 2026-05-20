@@ -1,7 +1,3 @@
-/**
- * Pure helpers for medication dose scheduling — no DI, no side-effects.
- */
-
 const SIG_MAP: Record<string, number> = {
   QD: 1,
   BID: 2,
@@ -30,8 +26,6 @@ export function parseDosesPerDay(
   }
 
   const lower = frequency.toLowerCase();
-  if (lower.includes('once') || lower.includes('daily') || lower.includes('od'))
-    return 1;
   if (lower.includes('twice') || lower.includes('bid')) return 2;
   if (
     lower.includes('three') ||
@@ -40,7 +34,8 @@ export function parseDosesPerDay(
   )
     return 3;
   if (lower.includes('four') || lower.includes('qid')) return 4;
-
+  if (lower.includes('once') || lower.includes('daily') || lower.includes('od'))
+    return 1;
   return null;
 }
 

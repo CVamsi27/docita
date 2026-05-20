@@ -77,9 +77,10 @@ describe('PrismaAppointmentRepository', () => {
         writable: true,
       },
     });
+    const clock = { now: () => new Date('2026-05-19T12:00:00.000Z') };
     repository = new PrismaAppointmentRepository(
       new PrismaAppointmentReadRepository(prismaService),
-      new PrismaAppointmentWriteRepository(prismaService),
+      new PrismaAppointmentWriteRepository(prismaService, clock),
     );
   });
 

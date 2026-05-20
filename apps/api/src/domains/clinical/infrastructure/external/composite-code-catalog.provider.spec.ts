@@ -45,7 +45,9 @@ describe('CompositeCodeCatalogProvider', () => {
     updatedAt: now,
   });
 
-  const nlmCodingService = new NlmCodingService();
+  const nlmCodingService = new NlmCodingService({
+    now: () => new Date('2026-01-15T12:00:00.000Z'),
+  });
   const nlmProvider = new NlmCodeCatalogProvider(nlmCodingService);
   const licensedProvider = new LicensedCptCodeCatalogProvider(
     mockAppConfig(),

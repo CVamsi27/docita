@@ -48,7 +48,16 @@ describe('ProcessWebhookUseCase', () => {
   it('dispatches known events to the handler registry', async () => {
     await useCase.execute('sig', '{}', {
       event: 'payment.failed',
-      payload: { payment: { entity: { id: 'pay_1' } } },
+      payload: {
+        payment: {
+          entity: {
+            id: 'pay_1',
+            amount: 100,
+            currency: 'INR',
+            status: 'failed',
+          },
+        },
+      },
     });
 
     expect(paymentFailedHandler.handle).toHaveBeenCalled();

@@ -8,6 +8,10 @@ import { isClinicWhatsAppAutomationSendingAllowed } from '@/shared/whatsapp/what
 import { DATE_FORMATS, formatDate, formatTime } from '@workspace/utils';
 import { ClinicSettingsSchema } from '@/domains/clinics/presentation/schemas/settings.schema';
 
+/**
+ * Clinic automation event notifier. Message delivery delegates to SendMessageUseCase.
+ */
+// Facade — loads appointment/prescription/invoice context then delegates sends
 @Injectable()
 export class SystemEventsService {
   private readonly logger = new Logger(SystemEventsService.name);

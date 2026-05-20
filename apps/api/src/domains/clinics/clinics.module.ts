@@ -2,8 +2,10 @@ import { PrismaService } from '@/prisma/prisma.service';
 import { CLINIC_PERSISTENCE_PORT } from './application/ports/clinic-persistence.port';
 import { Module, forwardRef } from '@nestjs/common';
 import { ClinicsController } from './presentation/controllers/clinics.controller';
+import { ClinicsComplianceController } from './presentation/controllers/clinics-compliance.controller';
 import { ClinicSettingsController } from './presentation/controllers/clinic-settings.controller';
 import { OnboardingController } from './presentation/controllers/onboarding.controller';
+import { OnboardingSlaSignatureController } from './presentation/controllers/onboarding-sla-signature.controller';
 import { JoinRequestsController } from './presentation/controllers/join-requests.controller';
 import { ClinicsService } from './application/services/clinics.service';
 import { ClinicDataService } from './application/services/clinic-data.service';
@@ -62,8 +64,10 @@ import { DocumentsModule } from '@/domains/documents/documents.module';
   ],
   controllers: [
     ClinicsController,
+    ClinicsComplianceController,
     ClinicSettingsController,
     OnboardingController,
+    OnboardingSlaSignatureController,
     JoinRequestsController,
   ],
   providers: [

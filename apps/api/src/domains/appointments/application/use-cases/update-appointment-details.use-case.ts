@@ -19,6 +19,8 @@ import {
   toPrismaAppointmentUpdate,
 } from '@/domains/appointments/core/domain-services/appointment-update-patch.rules';
 
+// AuditLogged: appointment detail updates (AppointmentCommandService)
+
 export type AppointmentForUpdate = {
   id: string;
   clinicId: string;

@@ -9,6 +9,8 @@ import {
   type IClock,
 } from '@/shared/common/ports/clock.port';
 
+// AuditLogged: appointment cancellation (AppointmentCommandService)
+
 export interface CancelAppointmentCommand {
   appointment: Appointment;
   reason: string;

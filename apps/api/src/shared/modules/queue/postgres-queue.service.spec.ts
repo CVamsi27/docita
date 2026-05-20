@@ -57,12 +57,22 @@ describe('PostgresQueueService', () => {
   const findManyMock = jest.fn<(args: unknown) => Promise<MockRow[]>>();
   const countMock = jest.fn<(args: unknown) => Promise<number>>();
   const queueJobsMock: jest.Mocked<QueueJobRepository> = {
-    findRecentCompletedByIdempotency: jest.fn().mockResolvedValue(null),
-    claimNextWaitingJob: jest.fn().mockResolvedValue([]),
-    recoverStaleActiveToDelayed: jest.fn().mockResolvedValue([]),
-    recoverStaleActiveToFailed: jest.fn().mockResolvedValue([]),
-    findById: jest.fn().mockResolvedValue(null),
-    countByStatus: jest.fn().mockResolvedValue([]),
+    findRecentCompletedByIdempotency: jest
+      .fn<QueueJobRepository['findRecentCompletedByIdempotency']>()
+      .mockResolvedValue(null),
+    claimNextWaitingJob: jest
+      .fn<QueueJobRepository['claimNextWaitingJob']>()
+      .mockResolvedValue([]),
+    recoverStaleActiveToDelayed: jest
+      .fn<QueueJobRepository['recoverStaleActiveToDelayed']>()
+      .mockResolvedValue([]),
+    recoverStaleActiveToFailed: jest
+      .fn<QueueJobRepository['recoverStaleActiveToFailed']>()
+      .mockResolvedValue([]),
+    findById: jest.fn<QueueJobRepository['findById']>().mockResolvedValue(null),
+    countByStatus: jest
+      .fn<QueueJobRepository['countByStatus']>()
+      .mockResolvedValue([]),
   };
 
   const prisma = {

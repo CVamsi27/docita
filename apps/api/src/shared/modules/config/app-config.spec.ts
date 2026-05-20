@@ -51,6 +51,17 @@ describe('app-config validateEnv', () => {
     });
   });
 
+  it('parses ENABLE_SCHEDULERS=false as disabled', async () => {
+    process.env = createBaseEnv({
+      JWT_SECRET: 'test-jwt-secret-minimum-32-characters-long',
+      ENABLE_SCHEDULERS: 'false',
+    });
+
+    const { validateEnv } = await import('./app-config');
+
+    expect(validateEnv().ENABLE_SCHEDULERS).toBe(false);
+  });
+
   it('exits when the main API runtime has no JWT_SECRET', async () => {
     process.env = createBaseEnv({
       WORKER_ENTRYPOINT: 'main',

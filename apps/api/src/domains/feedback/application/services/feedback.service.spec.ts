@@ -8,6 +8,7 @@ import {
   IFeedbackRepository,
 } from '@/domains/feedback/core/repositories/feedback.repository.interface';
 import type { FeedbackFilters } from './feedback-helpers';
+import { clockPortTestProvider } from '@/test-utils';
 
 describe('FeedbackService', () => {
   let service: FeedbackService;
@@ -201,6 +202,7 @@ describe('FeedbackService', () => {
           provide: FEEDBACK_REPOSITORY_TOKEN,
           useValue: mockFeedbackRepository,
         },
+        clockPortTestProvider(),
       ],
     }).compile();
 

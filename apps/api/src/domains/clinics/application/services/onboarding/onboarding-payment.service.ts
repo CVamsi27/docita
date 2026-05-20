@@ -8,6 +8,8 @@ import type { OnboardingCheckoutDto } from '@/domains/clinics/application/dto/on
 import { OnboardingDataService } from './onboarding-data.service';
 import { OnboardingValidationService } from './onboarding-validation.service';
 
+// AuditLogged: onboarding checkout creation audited in onboarding-compliance workflow
+
 @Injectable()
 export class OnboardingPaymentService {
   constructor(

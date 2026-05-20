@@ -12,6 +12,7 @@ import {
   expect,
   jest,
 } from '@jest/globals';
+import { clockPortTestProvider } from '@/test-utils';
 
 describe('ErrorTrackingService', () => {
   let service: ErrorTrackingService;
@@ -57,6 +58,7 @@ describe('ErrorTrackingService', () => {
         ErrorTrackingService,
         { provide: PrismaService, useValue: mockPrismaService },
         { provide: MonitoringFactory, useValue: mockMonitoringFactory },
+        clockPortTestProvider(),
       ],
     }).compile();
 

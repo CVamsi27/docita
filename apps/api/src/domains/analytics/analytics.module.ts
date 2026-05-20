@@ -1,5 +1,6 @@
 import { Module } from '@nestjs/common';
-import { AnalyticsController } from './presentation/controllers/analytics.controller';
+import { AnalyticsOverviewController } from './presentation/controllers/analytics-overview.controller';
+import { AnalyticsAdvancedController } from './presentation/controllers/analytics-advanced.controller';
 import { AnalyticsService } from './application/services/analytics.service';
 import { PrismaModule } from '@/prisma/prisma.module';
 import { FinancialAnalyticsFactory } from './factories/financial-analytics.factory';
@@ -11,7 +12,7 @@ import { PrismaAnalyticsRepository } from './infrastructure/repositories/prisma-
 
 @Module({
   imports: [PrismaModule],
-  controllers: [AnalyticsController],
+  controllers: [AnalyticsOverviewController, AnalyticsAdvancedController],
   providers: [
     AnalyticsService,
     FinancialAnalyticsFactory,

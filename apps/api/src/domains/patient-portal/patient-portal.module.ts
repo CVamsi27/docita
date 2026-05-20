@@ -17,6 +17,8 @@ import { PatientPortalQueryService } from './application/services/patient-portal
 
 import { PatientPortalAuthController } from './presentation/controllers/patient-portal-auth.controller';
 import { PatientPortalController } from './presentation/controllers/patient-portal.controller';
+import { PatientPortalRecordsController } from './presentation/controllers/patient-portal-records.controller';
+import { PatientPortalClinicalController } from './presentation/controllers/patient-portal-clinical.controller';
 import { PatientPortalMetricsController } from './presentation/controllers/patient-portal-metrics.controller';
 
 import { PrismaPatientPortalRepository } from './infrastructure/repositories/prisma-patient-portal.repository';
@@ -45,6 +47,8 @@ import {
   controllers: [
     PatientPortalAuthController,
     PatientPortalController,
+    PatientPortalRecordsController,
+    PatientPortalClinicalController,
     PatientPortalMetricsController,
   ],
   providers: [

@@ -11,6 +11,7 @@ import {
 } from "react";
 import { useRouter } from "next/navigation";
 import { client, setAuthLogoutCallback } from "../api/api-client";
+import { postInternalAuthLogout } from "@workspace/data-access/internal";
 import { API_URL, MAIN_APP_URL } from "../api/api-config";
 import { INTERNAL_USER_KEY, internalSession } from "./session";
 import { DocitaLoadingIndicator } from "@workspace/ui/components/feedback/docita-loading-indicator";
@@ -182,14 +183,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         try {
           if (internalSession.getToken()) {
             const csrfToken = internalSession.getCsrfToken();
-            await fetch(`${API_URL}/auth/logout`, {
-              method: "POST",
-              credentials: "include",
-              headers: {
-                "Content-Type": "application/json",
-                ...(csrfToken ? { "X-XSRF-TOKEN": csrfToken } : {}),
-              },
-              body: JSON.stringify({}),
+            await postInternalAuthLogout(API_URL, {
+              ...(csrfToken ? { "X-XSRF-TOKEN": csrfToken } : {}),
             });
           }
         } catch {

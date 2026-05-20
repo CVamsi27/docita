@@ -23,7 +23,7 @@ import { ClinicsModule } from '@/domains/clinics/clinics.module';
 import { UsersModule } from '@/domains/users/users.module';
 import { BillingModule } from '@/domains/billing/billing.module';
 import { AuthModule } from '@/shared/modules/auth/auth/auth.module';
-import { GatewaysModule } from '@/gateways/gateways.module';
+import { WebsocketsModule } from '@/websockets/websockets.module';
 import { FeedbackModule } from '@/domains/feedback/feedback.module';
 import { ContactModule } from '@/shared/modules/contact/contact.module';
 import { SupportWhatsAppModule } from '@/shared/modules/support-whatsapp';
@@ -46,7 +46,7 @@ import { PrismaInternalSubscriptionPaymentRepository } from './infrastructure/pr
     SupportWhatsAppModule,
     WhatsAppBroadcastModule,
     AuthModule,
-    GatewaysModule,
+    WebsocketsModule,
   ],
   controllers: [
     InternalAnalyticsController,

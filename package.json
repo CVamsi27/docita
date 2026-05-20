@@ -16,6 +16,7 @@
     "preview:landing:cloudflare": "pnpm --filter @docita/landing run preview:cloudflare",
     "deploy:landing:cloudflare": "pnpm --filter @docita/landing run deploy:cloudflare",
     "build:app": "turbo build --filter=@docita/app",
+    "build:web-workspace-deps": "pnpm --filter @workspace/hooks run build && pnpm --filter @workspace/types run build && pnpm --filter @workspace/utils run build && pnpm --filter @workspace/data-access run build && pnpm --filter @workspace/ui run build",
     "build:app:cloudflare": "pnpm --filter @docita/app run build:cloudflare",
     "preview:app:cloudflare": "pnpm --filter @docita/app run preview:cloudflare",
     "deploy:app:cloudflare": "pnpm --filter @docita/app run deploy:cloudflare",

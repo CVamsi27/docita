@@ -2,7 +2,7 @@
 
 **Date:** 2026-05-20
 **Branch:** `fix/audit-overhaul-quality-gates`
-**Status:** ✅ `pnpm verify:standard` **passes** after Open-1–4 implementation (2026-05-20).
+**Status:** ✅ `pnpm verify:standard` **passes** after reconciliation and structure cleanup (2026-05-20).
 
 ---
 
@@ -18,7 +18,7 @@ pnpm verify:standard
 
 If it exits 0, **the audit has zero findings.** If it exits non-zero, the failing check name is the finding.
 
-This document is now a **check matrix**, not a backlog. It is reconciled against the live `verify:standard` pipeline (49 checks) on 2026-05-20.
+This document is now a **check matrix**, not a backlog. It is reconciled against the live `verify:standard` pipeline (48 commands) on 2026-05-20.
 
 ---
 
@@ -28,7 +28,7 @@ This document is now a **check matrix**, not a backlog. It is reconciled against
 pnpm verify:standard
 ```
 
-runs **49 automated checks** (`scripts/checks/check-*.mjs` + `scripts/workflow/*.mjs` + `scripts/deploy/verify-app-security-headers.mjs`). Each one enforces a concern from the architecture spec (AGENTS.md). Today, **all 49 pass.**
+runs **48 automated commands** (`scripts/checks/check-*.mjs` + `scripts/workflow/*.mjs` + `scripts/deploy/verify-app-security-headers.mjs`). Each one enforces a concern from the architecture spec (AGENTS.md). Today, **all 48 pass.**
 
 The check names map directly to the concerns each Pass 1–5 found:
 
@@ -157,7 +157,7 @@ Main-contract items Open-1–4 are landed. **Appendix A.10 Tier 0+** tracks the 
 - **Today:** the script only checks `shared/common ↔ shared/modules` collisions.
 - **Missing scopes:**
   - `apps/api/src/shared/modules/ai/` ↔ `apps/api/src/shared/modules/ai-core/`
-  - `apps/api/src/gateways/` ↔ `apps/api/src/domains/payments/infrastructure/adapters/razorpay/`
+  - legacy Razorpay gateway paths ↔ `apps/api/src/domains/payments/infrastructure/adapters/razorpay/` (enforced by `check:razorpay-adapters`)
   - Razorpay webhook controllers in `subscriptions/presentation/` ↔ `billing/presentation/`
 - **Fix:** Generalise the script to take a list of canonical-pair tuples from a config file. Add the three pairs above.
 
@@ -178,7 +178,7 @@ Main-contract items Open-1–4 are landed. **Appendix A.10 Tier 0+** tracks the 
 From this point on, an **audit** of this repo is defined as:
 
 ```bash
-pnpm verify:standard && pnpm lint && pnpm test && pnpm check-types && pnpm knip
+pnpm verify:standard && pnpm lint && pnpm turbo check-types --continue && pnpm test && pnpm knip
 ```
 
 If all five exit 0, the audit has **zero findings**. Period.
@@ -198,7 +198,7 @@ That's the only way the bar moves. Without a script, a pattern is a wish, not a 
 
 This file replaces every previous version of `SOLID_DESIGN_AUDIT_PASS_3.md` (passes 1 through 5, 227 cumulative findings). Those 227 reduce to:
 
-- **~220 already enforced** by the 49-check pipeline (Section 2a + 2b).
+- **~220 already enforced** by the 48-command pipeline (Section 2a + 2b).
 - **2 audit-logging markers** to add (Open-1).
 - **3 hierarchy collisions** to add to an existing script (Open-2).
 - **1 warn-to-error flip** after the queue empties (Open-3).
@@ -258,12 +258,15 @@ These are why the gated checks pass today. Do not re-do.
 | K3 patient-timeline | 16-method interface → Composite | `core/repositories/timeline/` + `infrastructure/persistence/timeline/`; per-source `ITimelineSource` |
 | N2 hard-coded crons | 10+ → **0** | `shared/schedule/cron-schedules.ts` |
 | Open-1 audit-logging | 2 warnings → 0; `--enforce` on |
-| Open-3 prisma-boundary | warn → `--enforce`; remaining 136 leaks routed to Κ1 plan |
+| Open-2 duplicate path scopes | `shared/common↔shared/modules`, `ai↔ai-core`, and Razorpay webhook-controller pair are checked; legacy Razorpay paths are separately gated by `check:razorpay-adapters` |
+| Open-3 prisma-boundary | warn → `--enforce-prisma-service`; 0 PrismaService leaks in application/presentation |
 | Open-4 PHI encryption | `check:phi-encryption-coverage --enforce` shipping |
 | S1 audit-logger empty catch | removed |
 | S2 unsafe ZodValidationPipe | `shared/modules/pipes/zod-validation.pipe.ts` deleted |
 | S4 empty catches | 9 → **0** |
 | Φ13 messaging folder | removed |
+| Φ1 interceptors path | `shared/modules/interceptors/` removed; runtime + specs now under `shared/common/interceptors/` |
+| Φ3 WebSocket path | `apps/api/src/gateways/` removed; WebSocket gateways now live under `apps/api/src/websockets/` |
 
 **Tests:** 1,640 api + 664 app + 31 internal = 2,335 passing.
 
@@ -276,16 +279,19 @@ These have measurable progress recorded today. They are not "open new work" — 
 | ID | Status | Remaining | Touch points |
 |---|---|---|---|
 | **B1** | **0** PrismaService leaks in application/presentation | `check:prisma-boundary --enforce-prisma-service` passes | — |
-| **B2** | 10 → **9** domains without ports | Add `core/repositories/*.interface.ts` for: `custom-fields`, `doctor-clinics`, `documents`, `enterprise-contracts`, `payments`, `public-booking`, `reminders`, `webhooks`, `whatsapp` |
-| **N1** | 37 → **6** `process.env` leaks | Migrate the 6 — see A.4 Phase N table |
+| **B2** | **DONE** (application ports) | Persistence ports exist for listed domains; `payments` lives under `billing/application/ports` |
+| **N1** | `check:process-env` passes | PDF processors + `cron-env` use `getEnv()`; `envBoolean()` fixes `"false"` string |
 | **A2** | `imports.service.ts` 522 → **68L** facade | Parser/mapping/dedupe/OCR/commit split — **DONE** |
 | **A5** | `bulk-import.service.ts` 390 → **62L** facade | Query/orchestrator/processor split — **DONE** |
-| **D1** | 1 → **7** domain-services | Promote remaining application services with no I/O — see A.4 Phase D |
-| **E3-b** | `activate-subscription.use-case.ts` 410 → **287L** | Split rules vs writes — see A.4 Phase E |
-| **G1** | `tier.ts` 1498 → **1405L** | Move helpers to `packages/utils/billing/tier-rules.ts` |
+| **D1** | 1 → **8** domain-services | `medication-dose.rules.ts` promoted from application helpers (2026-05-20) |
+| **E3-b** | `activate-subscription.use-case.ts` 410 → **240L** | Payment verification in `activate-subscription-payment.service.ts` (98L) |
+| **G1** | `tier.ts` **1405L**; helpers in `packages/utils/billing/tier-rules.ts` | Constants remain in `packages/types`; rules exported from `@workspace/utils` |
 | **L1** | Domain `Error` OK; infra still throws bare | Repository conversions — see A.4 Phase L |
-| **M4** | Internal app fetch 25 → **7** | 7 files listed in A.4 Phase M |
-| **S3** | Pipes consolidated | Interceptors + folder merge — see A.7 Φ1 |
+| **M4** | Internal app fetch 25 → **1** (API proxy only) | data-access: `downloadInternalAnalyticsExport`, `postInternalWebVitals`, `postInternalAuthLogout` |
+| **S3** | Pipes + interceptors consolidated | `shared/modules/pipes/` and `shared/modules/interceptors/` are gone; shared primitives live under `shared/common/` |
+| **E4** | **DONE** — all controllers ≤250L | `medical-history` 261→143+166; + clinics, subscriptions-billing, onboarding, analytics, patient-portal |
+| **E3-c** | `bill-monthly-overages.use-case.ts` 456→**62L** | Meter + payment services (`subscription-overage-meter`, `subscription-overage-payment`) |
+| **T-spec** | API `check-types` (incl. `tsconfig.spec.json`) | `createFixedClockMock()` + constructor/mock alignment across 24 spec files (2026-05-20) |
 
 ---
 
@@ -308,8 +314,8 @@ These have measurable progress recorded today. They are not "open new work" — 
 - Acceptance: `bulk-import.service.ts` ≤ 100L.
 
 **A9 [M] `apps/api/src/shared/modules/messaging/whatsapp/staff-notification.service.ts`**
-- Status: needs verification. The legacy path should be gone; the canonical service lives in `domains/whatsapp/application/services/staff-notification.service.ts` (Κ1).
-- Acceptance: run `find apps/api/src/shared/modules/messaging -type f` → empty.
+- Status: **DONE** — legacy `whatsapp/` subtree removed; canonical services under `domains/whatsapp/application/services/` (C6 split: confirmation + staff-notification + inbox).
+- Acceptance: no `staff-notification.service.ts` or `response-handler.service.ts` under `shared/modules/messaging/whatsapp/`.
 
 ### A.4 Phase B — Persistence boundary
 
@@ -366,7 +372,9 @@ These have measurable progress recorded today. They are not "open new work" — 
 - Use-case becomes 1-line: `invoice.transitionTo(next); await this.repo.save(invoice);`.
 - Acceptance: `update-invoice-status.use-case.ts` ≤ 30L; `invoice.entity.spec.ts` covers every legal + illegal pair.
 
-**C6 [M] WhatsApp `response-handler.service.ts` — 16-arm action switches × 3**
+**C6 [M] WhatsApp `response-handler.service.ts` — 16-arm action switches × 3** — **PARTIAL (2026-05-20)**
+- Split into `patient-response-confirmation.service.ts`, `patient-response-staff-notification.service.ts`, `patient-response-parser.helper.ts`; orchestrator **266L** (under 400L budget).
+- Full strategy registry (per-action handler classes) remains optional follow-up.
 - Pattern: action codes (`CONFIRM`, `ON_THE_WAY`, `CANCEL`, `RESCHEDULE`, `DELAY`).
 - Strategy:
   ```ts
@@ -428,9 +436,7 @@ These have measurable progress recorded today. They are not "open new work" — 
 - Pairs with D2 — rules live on `Subscription` entity, the use-case asks the entity for legality.
 
 **E4 [M] Controllers still over threshold**
-- `doctors.controller.ts` (327L) → split into `doctors-profile.controller.ts`, `doctors-credentials.controller.ts`, `doctors-availability.controller.ts`
-- `appointments.controller.ts` (319L) → `appointments-schedule.controller.ts` (exists), `appointments-status.controller.ts`, `appointments-search.controller.ts`
-- `imports.controller.ts` (316L) → `imports-upload.controller.ts`, `imports-status.controller.ts`, `imports-preview.controller.ts`
+- **Done (2026-05-20):** onboarding, analytics, patient-portal, medical-history helpers; `clinics` → `clinics.controller.ts` + `clinics-compliance.controller.ts`; `subscriptions-billing` → query + mutation controllers; doctors/appointments/imports already split in tree.
 
 **E5 [M] CQS unevenness**
 - Today: appointments 1 use-case, subscriptions 12.
@@ -935,7 +941,7 @@ Each split: write the narrower interfaces, repository class implements all, regi
 
 ## A.7 Folder-structure backlog (Phase Φ)
 
-### Φ1 [H] Parallel `shared/common/` ↔ `shared/modules/`
+### Φ1 [H] Parallel `shared/common/` ↔ `shared/modules/` — **DONE for interceptors/pipes; broader module grouping remains**
 - Today (re-verified):
   - `shared/common/`: `abstractions/`, `builders/`, `constants/`, `controllers/`, `dto/`, `errors/`, `events/`, `extensions/`, `interceptors/`, `middleware/`, `pipes/`, `plugins/`, `ports/`, `repositories/`, `types/`, `utils/`
   - `shared/modules/`: `ai/`, `ai-core/`, `audit/`, `auth/`, `cache/`, `clinic-workspace/`, `compliance/`, `config/`, `contact/`, `database/`, `document-generation/`, `error-handling/`, `extensions/`, `feature-flags/`, `fhir/`, `idempotency/`, `imports/`, `interceptors/`, `internal/`, `messaging/`, `monitoring/`, `observability/`, `performance/`, `pipes/`, `queue/`, `rls/`, `search/`, `services/`, `support-whatsapp/`, `webhooks/`, `whatsapp-broadcast/`
@@ -943,11 +949,11 @@ Each split: write the narrower interfaces, repository class implements all, regi
   - `shared/common/` → primitives. **No `*.module.ts` files.**
   - `shared/modules/` → Nest modules. **Each subfolder has a `*.module.ts`.**
 - Actions:
-  1. Move `shared/modules/interceptors/` → `shared/common/interceptors/` (already a folder; merge contents).
-  2. Move `shared/modules/extensions/` → `shared/common/extensions/`.
-  3. Move `shared/modules/pipes/` (already empty after S2) → ensure gone.
-  4. Delete `shared/common/controllers/` (controllers belong to domains).
-  5. Extend `check:no-duplicate-shared-paths` to enforce the rule.
+  1. **DONE:** `shared/modules/interceptors/` → `shared/common/interceptors/` (runtime + specs).
+  2. **DONE:** `shared/modules/pipes/` is gone.
+  3. **PENDING:** Move `shared/modules/extensions/` → `shared/common/extensions/`.
+  4. **PENDING:** Delete `shared/common/controllers/` if no controller remains.
+  5. **DONE:** `check:no-duplicate-shared-paths` enforces duplicate shared path collisions; extend it only when a new canonical pair is identified.
 
 ### Φ2 [H] `shared/common/abstractions/` mis-located
 - Move each port next to its adapter:
@@ -958,11 +964,11 @@ Each split: write the narrower interfaces, repository class implements all, regi
   - `payment.service.interface.ts` → `domains/payments/core/ports/payment-gateway.port.ts`
   - `whatsapp.service.interface.ts` → `domains/whatsapp/core/ports/whatsapp.port.ts`
 
-### Φ3 [H] `apps/api/src/gateways/`
-- Today: 4 files mixing external-API adapters + NestJS WebSocketGateway classes.
-- Split:
-  - `razorpay-subscription.gateway.ts` (400L) + `payment-gateway.interface.ts` → `domains/payments/infrastructure/adapters/razorpay/` and `domains/payments/core/ports/`
-  - `notifications.gateway.ts` + `payment.websocket.gateway.ts` → rename folder to `apps/api/src/websockets/`
+### Φ3 [H] `apps/api/src/gateways/` — **DONE for current tree**
+- Current state: `apps/api/src/gateways/` is gone.
+- External payment adapters live under `domains/payments/infrastructure/adapters/razorpay/` and ports under `domains/payments/core/ports/`.
+- WebSocket classes live under `apps/api/src/websockets/` (`notifications.gateway.ts`, `payment.websocket.gateway.ts`, `websockets.module.ts`).
+- Guardrail: `check:razorpay-adapters --enforce` still blocks legacy Razorpay gateway paths.
 
 ### Φ4 [H] `apps/api/src/seed/` → `scripts/db/seeds/`
 - Move:
@@ -1232,7 +1238,7 @@ Execute in order. Each tier is a coherent PR set.
 | D (rich domain) | `check:domain-rules-tests --enforce` passes; `core/domain-services/` count > 10 |
 | E (controllers) | `check:controller-cqs --enforce` passes; no controller > 250L |
 | F (frontend SRP) | `check:frontend-fetch --enforce` passes; `check:route-thinness` covers internal app |
-| G (packages) | `pnpm check-types` passes per package; `pnpm knip` clean |
+| G (packages) | `pnpm turbo check-types --continue` passes; `pnpm knip` clean |
 | H (cross-cutting) | Token DI in every service-to-service edge; mapper layer present |
 | K (ISP) | No `*.interface.ts` exceeds 10 methods |
 | L (errors) | `check:user-facing-errors` plus domain-error filter mapping covers 100% |
@@ -1252,7 +1258,24 @@ When all of these are true, **`pnpm verify:standard` exits 0 with zero warnings*
 
 ---
 
-## A.12 Summary
+## A.12 Added standards that must stay in future passes
+
+These were added during the pass-3 reconciliation so future audits do not miss repo standards that are not expressed by SOLID alone.
+
+| Area | Standard | Enforcement / next action |
+|---|---|---|
+| SOLID / DIP | WebSocket gateways are framework boundary adapters, not payment-provider gateways. Keep them in `apps/api/src/websockets/`; payment-provider adapters stay in `domains/payments/infrastructure/adapters/<provider>/`. | `check:razorpay-adapters --enforce` blocks legacy Razorpay paths; imports now point to `@/websockets/*`. |
+| Folder structure | `shared/common/` contains primitives and cross-cutting helpers; `shared/modules/` contains Nest modules. Runtime interceptors and pipes must not live under `shared/modules/`. | `check:no-duplicate-shared-paths`; manual structure review until a dedicated common-vs-module ownership check lands. |
+| Security / PHI | Browser telemetry must remain same-origin or CORS-verified; no direct production browser posts to cross-origin API endpoints. | Keep app/internal telemetry behind same-origin route proxies; verify with `check:no-console-runtime`, `check:sensitive-logging`, and rendered browser QA for frontend changes. |
+| Security / tenant safety | Any future RLS bypass must carry a local business justification and must not leak lazy Prisma promises outside the bypass callback. | Existing `check:auth-tenant-safety`; add `check:rls-bypass-annotation` from A.9 before broadening bypass usage. |
+| Performance | External HTTP calls need bounded timeouts; WebSocket connection handlers need rate limits and tenant/role guards. | Add `check-external-http-timeouts` or implement Ω3/Ω4 before adding more providers. |
+| Performance / frontend | Large client-only overlays, command surfaces, and rare dialogs should be dynamically imported after first interaction. | Add `check-dynamic-import-budget` from A.9; validate bundle impact with `pnpm perf:budget:warn` when moving app-shell code. |
+| Type safety | Cast density, non-null assertions, and unguarded `JSON.parse` are tracked audit debt, not acceptable new patterns. | Add T1/T2/T3 checks from A.9 and ratchet thresholds down after current violations are reduced. |
+| Testing | A "done" structural refactor must include the closest unit/spec coverage or prove an existing gate covers it. | Use `pnpm turbo check-types --continue`, touched-package tests, and eventually `check-feature-test-density`. |
+
+---
+
+## A.13 Summary
 
 - **48 items DONE** — see §A.1.
 - **14 PARTIAL** — see §A.2.

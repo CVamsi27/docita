@@ -17,13 +17,14 @@ import { CsrfInterceptor } from '@/shared/common/interceptors/csrf.interceptor';
 import { RequestIdInterceptor } from '@/shared/common/interceptors/request-id.interceptor';
 import { RequestContextInterceptor } from '@/shared/common/interceptors/request-context.interceptor';
 import { TimeoutInterceptor } from '@/shared/common/interceptors/timeout.interceptor';
-import { TenantContextInterceptor } from '@/shared/modules/interceptors/tenant-context.interceptor';
+import { TenantContextInterceptor } from '@/shared/common/interceptors/tenant-context.interceptor';
 import { CacheInterceptor } from '@/shared/common/interceptors/cache.interceptor';
 import { PatientDataAuditInterceptor } from '@/shared/common/interceptors/patient-audit.interceptor';
 import { BreakTheGlassInterceptor } from '@/shared/common/interceptors/emergency-access.interceptor';
 import { RequestWithUser } from '@/shared/common/types/common.types';
 import { AuditService } from '@/shared/modules/audit/audit/audit.service';
 import { AppConfigService } from '@/shared/modules/config/app-configuration.service';
+import { clockPortTestProvider } from '@/test-utils';
 
 class PipelineController {
   getHealth() {
@@ -106,6 +107,7 @@ Get('health')(
         get: jest.fn().mockReturnValue(false),
       },
     },
+    clockPortTestProvider(),
     {
       provide: AppConfigService,
       useValue: {
@@ -222,6 +224,7 @@ async function runPipeline({
     new BreakTheGlassInterceptor(
       moduleFixture.get(Reflector),
       moduleFixture.get(AuditService),
+      { now: () => new Date('2026-05-19T12:00:00.000Z') },
     ),
   ];
 

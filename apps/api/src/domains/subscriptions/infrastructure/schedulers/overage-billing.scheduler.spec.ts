@@ -1,11 +1,10 @@
 import { describe, it, expect, beforeEach, jest } from '@jest/globals';
 import { PrismaService } from '@/prisma/prisma.service';
-import type { IOverageCalculation } from '@/domains/billing/application/ports';
 import { AppConfigService } from '@/shared/modules/config/app-configuration.service';
 import { IPaymentLinkProvider } from '@/domains/payments/core/ports';
 import { PaymentProvider } from '@/domains/payments/core/entities/payment-provider.enum';
 import { OverageInvoiceComposer } from './overage-invoice.composer';
-import { BillMonthlyOveragesUseCase } from '@/domains/subscriptions/application/use-cases/bill-monthly-overages.use-case';
+import { SubscriptionOveragePaymentService } from '@/domains/subscriptions/application/services/subscription-overage-payment.service';
 
 type OverageBreakdown = Record<
   string,
@@ -33,7 +32,7 @@ type SubscriptionPaymentRecord = {
   description: string | null;
 };
 
-describe('BillMonthlyOveragesUseCase (overage payment upsert)', () => {
+describe('SubscriptionOveragePaymentService (overage payment upsert)', () => {
   const upsertPaymentMock = jest.fn<
     (_args: {
       where: {
@@ -74,11 +73,6 @@ describe('BillMonthlyOveragesUseCase (overage payment upsert)', () => {
     writable: true,
   });
 
-  const overageCalculation = {
-    calculateOverageCharges:
-      jest.fn<IOverageCalculation['calculateOverageCharges']>(),
-  } satisfies IOverageCalculation;
-
   const configService = Object.create(
     AppConfigService.prototype,
   ) as AppConfigService;
@@ -109,14 +103,13 @@ describe('BillMonthlyOveragesUseCase (overage payment upsert)', () => {
     cancelPaymentLink: jest.fn<IPaymentLinkProvider['cancelPaymentLink']>(),
   };
 
-  let useCase: BillMonthlyOveragesUseCase;
+  let paymentService: SubscriptionOveragePaymentService;
   const invoiceComposer = new OverageInvoiceComposer();
 
   beforeEach(() => {
     jest.clearAllMocks();
-    useCase = new BillMonthlyOveragesUseCase(
+    paymentService = new SubscriptionOveragePaymentService(
       prisma,
-      overageCalculation,
       configService,
       paymentLinkProvider,
       invoiceComposer,
@@ -147,13 +140,9 @@ describe('BillMonthlyOveragesUseCase (overage payment upsert)', () => {
     const ensureLinkMock = jest
       .fn<(payment: SubscriptionPaymentRecord) => Promise<void>>()
       .mockResolvedValue();
-    Reflect.set(useCase, 'ensureOveragePaymentLink', ensureLinkMock);
-    const createOrUpdate = Reflect.get(
-      useCase,
-      'createOrUpdateOverageInvoicePayment',
-    ) as (params: OverageInvoiceParams) => Promise<void>;
+    Reflect.set(paymentService, 'ensureOveragePaymentLink', ensureLinkMock);
 
-    await createOrUpdate.call(useCase, {
+    await paymentService.createOrUpdateOverageInvoicePayment({
       clinicId: 'clinic_1',
       subscriptionId: 'sub_1',
       periodStart: new Date('2026-03-01T00:00:00.000Z'),
@@ -203,13 +192,9 @@ describe('BillMonthlyOveragesUseCase (overage payment upsert)', () => {
     const ensureLinkMock = jest
       .fn<(payment: SubscriptionPaymentRecord) => Promise<void>>()
       .mockResolvedValue();
-    Reflect.set(useCase, 'ensureOveragePaymentLink', ensureLinkMock);
-    const createOrUpdate = Reflect.get(
-      useCase,
-      'createOrUpdateOverageInvoicePayment',
-    ) as (params: OverageInvoiceParams) => Promise<void>;
+    Reflect.set(paymentService, 'ensureOveragePaymentLink', ensureLinkMock);
 
-    await createOrUpdate.call(useCase, {
+    await paymentService.createOrUpdateOverageInvoicePayment({
       clinicId: 'clinic_1',
       subscriptionId: 'sub_1',
       periodStart: new Date('2026-03-01T00:00:00.000Z'),

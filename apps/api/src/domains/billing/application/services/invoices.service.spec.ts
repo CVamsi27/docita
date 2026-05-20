@@ -31,6 +31,7 @@ import { InvoicesService } from './invoices.service';
 import type { PdfJobServicePort } from '@/shared/modules/queue/pdf-job.service';
 import { InvoicesQueryService } from './invoices-query.service';
 import { InvoicesCommandService } from './invoices-command.service';
+import { createFixedClockMock } from '@/test-utils';
 
 describe('InvoicesService', () => {
   const baseDate = new Date('2026-01-01T00:00:00.000Z');
@@ -245,6 +246,7 @@ describe('InvoicesService', () => {
       storageProvider,
       claimValidationService,
       queryService,
+      clock: createFixedClockMock(),
     });
 
     service = new InvoicesService(

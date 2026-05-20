@@ -11,22 +11,11 @@ import {
   getDbRolesForTarget,
   requireFeatureForTarget,
 } from '@/shared/modules/auth/auth/access-matrix.util';
-import { RateLimit } from '@/shared/common/interceptors/rate-limit.interceptor';
 import {
   AnalyticsDateRangeQueryDto,
-  AnalyticsDaysQueryDto,
-  AnalyticsLimitQueryDto,
   AnalyticsPeriodDateRangeQueryDto,
-  AnalyticsPeriodDaysQueryDto,
   AnalyticsTimeSeriesQueryDto,
   AppointmentMetricsResponseDto,
-  OverviewStatsResponseDto,
-  RevenueTrendListResponseDto,
-  PatientGrowthListResponseDto,
-  AppointmentStatsResponseDto,
-  TopDiagnosisListResponseDto,
-  DiseaseTrendListResponseDto,
-  DiseaseTrendByCategoryListResponseDto,
   DiseaseTimeSeriesListResponseDto,
   RevenueByCategoryListResponseDto,
   RevenueByCptListResponseDto,
@@ -36,99 +25,17 @@ import {
   CodingTimelinessResponseDto,
   UncodedVisitsStatsResponseDto,
   PatientDemographicsResponseDto,
-  TopConditionListResponseDto,
 } from '@/domains/analytics/dto/analytics.dto';
 import { ZodSerializerDto } from 'nestjs-zod';
 import { RequestWithUser } from '@/shared/common/types/common.types';
+import { parseAnalyticsDate } from '@/domains/analytics/presentation/controllers/analytics-controller.helpers';
 
 @Controller('analytics')
 @Roles(...getDbRolesForTarget(APP_ACCESS_TARGETS.API_ANALYTICS))
 @UseGuards(TierGuard)
 @RequireFeature(requireFeatureForTarget(APP_ACCESS_TARGETS.API_ANALYTICS))
-export class AnalyticsController {
+export class AnalyticsAdvancedController {
   constructor(private readonly analyticsService: AnalyticsService) {}
-
-  private parseDate(value?: string): Date | undefined {
-    return value ? new Date(value) : undefined;
-  }
-
-  @Get('overview')
-  @RateLimit({ limit: 30, window: 60000 })
-  @ZodSerializerDto(OverviewStatsResponseDto)
-  getOverview(@Request() req: RequestWithUser) {
-    return this.analyticsService.getOverview(req.user!.clinicId!);
-  }
-
-  @Get('revenue')
-  @ZodSerializerDto(RevenueTrendListResponseDto)
-  getRevenueTrends(
-    @Request() req: RequestWithUser,
-    @Query() query: AnalyticsPeriodDaysQueryDto,
-  ) {
-    return this.analyticsService.getRevenueTrends(
-      req.user!.clinicId!,
-      query.period ?? 'daily',
-      query.days ?? 30,
-    );
-  }
-
-  @Get('patients')
-  @ZodSerializerDto(PatientGrowthListResponseDto)
-  getPatientGrowth(
-    @Request() req: RequestWithUser,
-    @Query() query: AnalyticsDaysQueryDto,
-  ) {
-    return this.analyticsService.getPatientGrowth(
-      req.user!.clinicId!,
-      query.days ?? 30,
-    );
-  }
-
-  @Get('appointments')
-  @ZodSerializerDto(AppointmentStatsResponseDto)
-  getAppointmentStats(@Request() req: RequestWithUser) {
-    return this.analyticsService.getAppointmentStats(req.user!.clinicId!);
-  }
-
-  @Get('top-diagnoses')
-  @ZodSerializerDto(TopDiagnosisListResponseDto)
-  getTopDiagnoses(
-    @Request() req: RequestWithUser,
-    @Query() query: AnalyticsLimitQueryDto,
-  ) {
-    return this.analyticsService.getTopDiagnoses(
-      req.user!.clinicId!,
-      query.limit ?? 10,
-    );
-  }
-
-  @Get('disease-trends')
-  @RequireFeature(Feature.ADVANCED_ANALYTICS)
-  @ZodSerializerDto(DiseaseTrendListResponseDto)
-  getDiseaseTrends(
-    @Request() req: RequestWithUser,
-    @Query() query: AnalyticsDateRangeQueryDto,
-  ) {
-    return this.analyticsService.getDiseaseTrends(
-      req.user!.clinicId!,
-      this.parseDate(query.startDate),
-      this.parseDate(query.endDate),
-    );
-  }
-
-  @Get('disease-trends/by-category')
-  @RequireFeature(Feature.ADVANCED_ANALYTICS)
-  @ZodSerializerDto(DiseaseTrendByCategoryListResponseDto)
-  getDiseaseTrendsByCategory(
-    @Request() req: RequestWithUser,
-    @Query() query: AnalyticsDateRangeQueryDto,
-  ) {
-    return this.analyticsService.getDiseaseTrendsByCategory(
-      req.user!.clinicId!,
-      this.parseDate(query.startDate),
-      this.parseDate(query.endDate),
-    );
-  }
 
   @Get('disease-trends/time-series')
   @RequireFeature(Feature.ADVANCED_ANALYTICS)
@@ -154,8 +61,8 @@ export class AnalyticsController {
   ) {
     return this.analyticsService.getRevenueByCptCode(
       req.user!.clinicId!,
-      this.parseDate(query.startDate),
-      this.parseDate(query.endDate),
+      parseAnalyticsDate(query.startDate),
+      parseAnalyticsDate(query.endDate),
     );
   }
 
@@ -168,8 +75,8 @@ export class AnalyticsController {
   ) {
     return this.analyticsService.getRevenueByCategory(
       req.user!.clinicId!,
-      this.parseDate(query.startDate),
-      this.parseDate(query.endDate),
+      parseAnalyticsDate(query.startDate),
+      parseAnalyticsDate(query.endDate),
     );
   }
 
@@ -197,8 +104,8 @@ export class AnalyticsController {
   ) {
     return this.analyticsService.getCodingComplianceMetrics(
       req.user!.clinicId!,
-      this.parseDate(query.startDate),
-      this.parseDate(query.endDate),
+      parseAnalyticsDate(query.startDate),
+      parseAnalyticsDate(query.endDate),
     );
   }
 
@@ -218,8 +125,8 @@ export class AnalyticsController {
   ) {
     return this.analyticsService.getCodingTimeliness(
       req.user!.clinicId!,
-      this.parseDate(query.startDate),
-      this.parseDate(query.endDate),
+      parseAnalyticsDate(query.startDate),
+      parseAnalyticsDate(query.endDate),
     );
   }
 
@@ -233,8 +140,8 @@ export class AnalyticsController {
     return this.analyticsService.getRevenueMetrics(
       req.user!.clinicId!,
       query.period ?? 'monthly',
-      this.parseDate(query.startDate),
-      this.parseDate(query.endDate),
+      parseAnalyticsDate(query.startDate),
+      parseAnalyticsDate(query.endDate),
     );
   }
 
@@ -248,8 +155,8 @@ export class AnalyticsController {
     return this.analyticsService.getAppointmentMetrics(
       req.user!.clinicId!,
       query.period ?? 'monthly',
-      this.parseDate(query.startDate),
-      this.parseDate(query.endDate),
+      parseAnalyticsDate(query.startDate),
+      parseAnalyticsDate(query.endDate),
     );
   }
 
@@ -262,20 +169,8 @@ export class AnalyticsController {
   ) {
     return this.analyticsService.getPatientDemographics(
       req.user!.clinicId!,
-      this.parseDate(query.startDate),
-      this.parseDate(query.endDate),
-    );
-  }
-
-  @Get('top-conditions')
-  @ZodSerializerDto(TopConditionListResponseDto)
-  getTopConditions(
-    @Request() req: RequestWithUser,
-    @Query() query: AnalyticsLimitQueryDto,
-  ) {
-    return this.analyticsService.getTopConditions(
-      req.user!.clinicId!,
-      query.limit ?? 10,
+      parseAnalyticsDate(query.startDate),
+      parseAnalyticsDate(query.endDate),
     );
   }
 }

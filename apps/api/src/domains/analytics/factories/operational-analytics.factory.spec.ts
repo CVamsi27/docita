@@ -8,6 +8,7 @@ import {
   ANALYTICS_REPOSITORY_TOKEN,
   IAnalyticsRepository,
 } from '@/domains/analytics/core/repositories/analytics.repository.interface';
+import { clockPortTestProvider } from '@/test-utils';
 
 describe('OperationalAnalyticsFactory', () => {
   let factory: OperationalAnalyticsFactory;
@@ -173,6 +174,7 @@ describe('OperationalAnalyticsFactory', () => {
             getAnalyticsCacheTtl: jest.fn().mockReturnValue(3600),
           },
         },
+        clockPortTestProvider(),
       ],
     }).compile();
 

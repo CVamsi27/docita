@@ -45,6 +45,7 @@ export function finalizePayableAmountPaise(
   return rawFinalPaise;
 }
 
+/** Facade — checkout price preview; delegates to SubscriptionPricingService and ProratingService. */
 @Injectable()
 export class SubscriptionCheckoutPricingService {
   constructor(

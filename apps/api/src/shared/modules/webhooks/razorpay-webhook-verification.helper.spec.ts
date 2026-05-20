@@ -4,8 +4,15 @@ import {
   UnauthorizedException,
 } from '@nestjs/common';
 import { beforeEach, describe, expect, it, jest } from '@jest/globals';
-import { assertVerifiedRazorpayWebhook } from './razorpay-webhook-verification.helper';
+import {
+  assertVerifiedRazorpayWebhook,
+  type RazorpayWebhookRequest,
+} from './razorpay-webhook-verification.helper';
 import type { WebhookVerifierService } from './webhook-verifier';
+
+function razorpayWebhookReq(rawBody: Buffer): RazorpayWebhookRequest {
+  return { rawBody } as RazorpayWebhookRequest;
+}
 
 describe('assertVerifiedRazorpayWebhook', () => {
   const verifier = {
@@ -21,7 +28,7 @@ describe('assertVerifiedRazorpayWebhook', () => {
     jest.mocked(verifier.verify).mockResolvedValue({ ok: true });
 
     const result = await assertVerifiedRazorpayWebhook({
-      req: { rawBody },
+      req: razorpayWebhookReq(rawBody),
       signature: 'sig',
       secret: 'secret',
       verifier,
@@ -33,7 +40,7 @@ describe('assertVerifiedRazorpayWebhook', () => {
   it('throws when signature is missing', async () => {
     await expect(
       assertVerifiedRazorpayWebhook({
-        req: { rawBody: Buffer.from('{}') },
+        req: razorpayWebhookReq(Buffer.from('{}')),
         signature: undefined,
         secret: 'secret',
         verifier,
@@ -48,7 +55,7 @@ describe('assertVerifiedRazorpayWebhook', () => {
 
     await expect(
       assertVerifiedRazorpayWebhook({
-        req: { rawBody: Buffer.from('{}') },
+        req: razorpayWebhookReq(Buffer.from('{}')),
         signature: 'sig',
         secret: 'secret',
         verifier,
@@ -63,7 +70,7 @@ describe('assertVerifiedRazorpayWebhook', () => {
 
     await expect(
       assertVerifiedRazorpayWebhook({
-        req: { rawBody: Buffer.from('{}') },
+        req: razorpayWebhookReq(Buffer.from('{}')),
         signature: 'sig',
         secret: 'secret',
         verifier,

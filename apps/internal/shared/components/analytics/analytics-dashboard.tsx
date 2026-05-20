@@ -5,10 +5,11 @@ import { DocitaLoadingIndicator } from "@workspace/ui/components/feedback/docita
 import dynamic from "next/dynamic";
 import React, { useCallback, useEffect, useMemo, useState } from "react";
 import { Activity, BarChart3, Calendar, DollarSign, Download, TrendingUp, Users } from "lucide-react";
-import { API_URL } from "@/lib/api/api";
+import { API_URL } from "@/lib/api/api-config";
 import { useAuth } from "@/lib/auth/auth";
 import { toast } from "sonner";
 import {
+  downloadInternalAnalyticsExport,
   useInternalAnalytics,
   useInternalBillingMetrics,
   type InternalAnalyticsData as AnalyticsData,
@@ -112,29 +113,18 @@ export function AnalyticsDashboard() {
     if (!token) return;
 
     try {
-      const params = new URLSearchParams({ period, format: "pdf" });
-      if (startDate) params.append("startDate", startDate);
-      if (endDate) params.append("endDate", endDate);
-
-      const res = await fetch(
-        `${API_URL}/internal/analytics/export?${params.toString()}`,
-        { headers: { Authorization: `Bearer ${token}` } },
+      const blob = await downloadInternalAnalyticsExport(
+        API_URL,
+        { Authorization: `Bearer ${token}` },
+        { period, startDate, endDate },
       );
-
-      if (res.ok) {
-        const blob = await res.blob();
-        const url = window.URL.createObjectURL(blob);
-        const a = document.createElement("a");
-        a.href = url;
-        a.download = `analytics-report-${new Date().toISOString().split("T")[0]}.pdf`;
-        a.click();
-        window.URL.revokeObjectURL(url);
-        toast.success("Report exported successfully");
-      } else {
-        showUserFacingErrorToast(
-          "We could not export the report. Please try again.",
-        );
-      }
+      const url = window.URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = `analytics-report-${new Date().toISOString().split("T")[0]}.pdf`;
+      a.click();
+      window.URL.revokeObjectURL(url);
+      toast.success("Report exported successfully");
     } catch {
       showUserFacingErrorToast(
         "We could not export the report. Please try again.",

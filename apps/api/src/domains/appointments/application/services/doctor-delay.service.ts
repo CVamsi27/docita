@@ -35,6 +35,7 @@ export interface DoctorDelayResponse {
   affectedAppointmentCount: number;
 }
 
+/** Facade — doctor delay mark/clear; delegates to IDoctorDelayRepository. */
 @Injectable()
 export class DoctorDelayService {
   private readonly logger = new Logger(DoctorDelayService.name);

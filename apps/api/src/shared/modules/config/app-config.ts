@@ -1,6 +1,32 @@
 import { z } from 'zod';
 import { EnvConfigStore } from './env-config.store';
 
+/** Parses env boolean strings (`"false"` must not coerce to true). */
+function envBoolean(defaultValue: boolean) {
+  return z
+    .union([z.boolean(), z.string(), z.number()])
+    .optional()
+    .transform((value) => {
+      if (value === undefined) {
+        return defaultValue;
+      }
+      if (typeof value === 'boolean') {
+        return value;
+      }
+      if (typeof value === 'number') {
+        return value !== 0;
+      }
+      const normalized = String(value).trim().toLowerCase();
+      if (['false', '0', 'no', 'off'].includes(normalized)) {
+        return false;
+      }
+      if (['true', '1', 'yes', 'on'].includes(normalized)) {
+        return true;
+      }
+      return defaultValue;
+    });
+}
+
 export const EnvSchema = z.object({
   DATABASE_URL: z.string().min(1),
   CPU_COUNT: z.coerce.number().default(4),
@@ -66,7 +92,7 @@ export const EnvSchema = z.object({
   SLOW_QUERY_THRESHOLD_MS: z.coerce.number().default(1000),
   REQUEST_TIMEOUT_MS: z.coerce.number().default(30000),
   SECRETS_PROVIDER: z.enum(['env', 'aws']).default('env'),
-  ENABLE_SCHEDULERS: z.coerce.boolean().default(true),
+  ENABLE_SCHEDULERS: envBoolean(true),
   QUEUE_BACKEND: z.enum(['memory', 'postgres']).default('memory'),
   API_LOG_MODE: z.string().default('access-and-errors'),
   WORKER_ENTRYPOINT: z.enum(['main', 'worker']).default('main'),

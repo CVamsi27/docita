@@ -34,7 +34,7 @@ import { ClinicalModule } from './domains/clinical/clinical.module';
 import { AppConfigModule } from './shared/modules/config/config.module';
 import { ConfigModule as PublicConfigModule } from './modules/config/config.module';
 import { AppConfigService } from './shared/modules/config/app-configuration.service';
-import { GatewaysModule } from './gateways/gateways.module';
+import { WebsocketsModule } from './websockets/websockets.module';
 import { MonitoringModule } from './shared/modules/monitoring/monitoring/monitoring.module';
 import { CacheConfigModule } from './cache/cache.module';
 import { FhirModule } from './shared/modules/fhir/fhir.module';
@@ -44,7 +44,7 @@ import { AIModule } from './shared/modules/ai/ai.module';
 import { AuditModule } from './shared/modules/audit/audit/audit.module';
 import { PerformanceModule } from './shared/modules/performance/performance.module';
 import { ComplianceModule } from './shared/modules/compliance/compliance.module';
-import { TenantContextInterceptor } from './shared/modules/interceptors/tenant-context.interceptor';
+import { TenantContextInterceptor } from './shared/common/interceptors/tenant-context.interceptor';
 import { CacheInterceptor } from './shared/common/interceptors/cache.interceptor';
 import { PatientDataAuditInterceptor } from './shared/common/interceptors/patient-audit.interceptor';
 import { BreakTheGlassInterceptor } from './shared/common/interceptors/emergency-access.interceptor';
@@ -179,7 +179,7 @@ import { PublicBookingModule } from './domains/public-booking/public-booking.mod
     AuditModule,
     PerformanceModule,
     ComplianceModule,
-    GatewaysModule,
+    WebsocketsModule,
     PatientPortalModule,
     PublicModule,
     MedicalDocumentsModule,
@@ -277,6 +277,6 @@ import { PublicBookingModule } from './domains/public-booking/public-booking.mod
       useClass: BreakTheGlassInterceptor,
     },
   ],
-  exports: [GatewaysModule],
+  exports: [WebsocketsModule],
 })
 export class AppModule {}

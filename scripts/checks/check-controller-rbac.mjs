@@ -9,7 +9,9 @@ const repoRoot = process.cwd();
 const routeDecorator = /^\s*@(Get|Post|Put|Patch|Delete|All)\b/;
 const authDecorator =
   /^\s*@(Public|Roles|RequireFeature|RequireFeatureFlag|UseGuards|SkipSubscriptionCheck)\b/;
-const classPosturePattern = /@(Roles|Public|UseGuards)\b/;
+/** Composite *Access() decorators apply Roles/Guards via applyDecorators. */
+const classPosturePattern =
+  /@(Roles|Public|UseGuards)\b|@\w+Access\(\)/;
 const classLine = /^\s*export\s+class\s+\w+Controller\b/;
 
 const files = execSync("git ls-files apps/api/src", {

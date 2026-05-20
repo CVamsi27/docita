@@ -3,8 +3,10 @@ import { SubscriptionStatus } from '@workspace/db';
 import { NotifyExpiringSubscriptionsUseCase } from './notify-expiring-subscriptions.use-case';
 import { ISubscriptionRepository } from '@/domains/subscriptions/application/ports';
 import { EmailService } from '@/shared/modules/messaging/email/email.service';
+import { createFixedClockMock } from '@/test-utils';
 
 describe('NotifyExpiringSubscriptionsUseCase', () => {
+  const clock = createFixedClockMock();
   const findSubscriptionsMock =
     jest.fn<ISubscriptionRepository['findExpiryReminderCandidates']>();
   const findRecentReminderClinicIdsMock =
@@ -54,6 +56,7 @@ describe('NotifyExpiringSubscriptionsUseCase', () => {
     useCase = new NotifyExpiringSubscriptionsUseCase(
       subscriptionRepository,
       emailService,
+      clock,
     );
   });
 

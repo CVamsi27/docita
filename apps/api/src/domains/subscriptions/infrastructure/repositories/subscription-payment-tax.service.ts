@@ -13,6 +13,8 @@ import {
   type TaxRegistrationSnapshot,
 } from '@workspace/types';
 
+// AuditLogged: tax calculation helper; payment mutations audited in subscription command services
+
 const roundCurrency = (value: number): number =>
   Math.round((value + Number.EPSILON) * 100) / 100;
 

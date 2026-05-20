@@ -23,6 +23,7 @@ import { SubscriptionsQueryService } from './application/services/subscriptions-
 import { SubscriptionCheckoutPricingService } from './application/services/subscription-checkout-pricing.service';
 import { SubscriptionActivationPolicyService } from './application/services/subscription-activation-policy.service';
 import { SubscriptionBillingSnapshotService } from './application/services/subscription-billing-snapshot.service';
+import { ActivateSubscriptionPaymentService } from './application/services/activate-subscription-payment.service';
 import { razorpayWebhookHandlerProviders } from './application/webhooks/razorpay/razorpay-webhook-handler.registry';
 import {
   SUBSCRIPTION_REPOSITORY_TOKEN,
@@ -39,6 +40,8 @@ import { PaymentGatewayFacade } from './infrastructure/adapters/payment-gateway-
 import { ClinicOperationsAdapter } from './infrastructure/adapters/clinic-operations.adapter';
 import { SubscriptionReminderScheduler } from './infrastructure/schedulers/subscription-reminder.scheduler';
 import { OverageInvoiceComposer } from './infrastructure/schedulers/overage-invoice.composer';
+import { SubscriptionOverageMeterService } from './application/services/subscription-overage-meter.service';
+import { SubscriptionOveragePaymentService } from './application/services/subscription-overage-payment.service';
 import { OverageBillingScheduler } from './infrastructure/schedulers/overage-billing.scheduler';
 import { PrismaWorkerModule } from '@/prisma/prisma.worker.module';
 import { PrismaService } from '@/prisma/prisma.service';
@@ -68,6 +71,7 @@ import { AdminAlertsModule } from '@/shared/modules/messaging/admin-alerts/admin
     SubscriptionCheckoutPricingService,
     SubscriptionActivationPolicyService,
     SubscriptionBillingSnapshotService,
+    ActivateSubscriptionPaymentService,
     ProratingService,
     SubscriptionValidationService,
     ReferralService,
@@ -85,6 +89,8 @@ import { AdminAlertsModule } from '@/shared/modules/messaging/admin-alerts/admin
     SubscriptionsQueryService,
     SubscriptionReminderScheduler,
     OverageInvoiceComposer,
+    SubscriptionOveragePaymentService,
+    SubscriptionOverageMeterService,
     BillMonthlyOveragesUseCase,
     NotifyUsageThresholdsUseCase,
     OverageBillingScheduler,

@@ -4,7 +4,7 @@ import {
   InternalServerErrorException,
 } from '@nestjs/common';
 import { PrismaService } from '@/prisma/prisma.service';
-import { PaymentWebSocketGateway } from '@/gateways/payment.websocket.gateway';
+import { PaymentWebSocketGateway } from '@/websockets/payment.websocket.gateway';
 import { ClinicTier, Prisma, Role, SubscriptionStatus } from '@workspace/db';
 import * as bcrypt from 'bcrypt';
 import {

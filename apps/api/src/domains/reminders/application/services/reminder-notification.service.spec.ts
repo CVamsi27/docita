@@ -5,6 +5,7 @@ import {
   type ReminderPersistencePort,
 } from '@/domains/reminders/application/ports/reminder-persistence.port';
 import { SendMessageUseCase } from '@/domains/whatsapp/application/use-cases/send-message.use-case';
+import { clockPortTestProvider } from '@/test-utils';
 import { ClinicTier, IntelligenceAddon } from '@workspace/db';
 import {
   afterEach,
@@ -163,6 +164,7 @@ describe('ReminderNotificationService', () => {
           provide: SendMessageUseCase,
           useValue: sendMessageMock,
         },
+        clockPortTestProvider(),
       ],
     }).compile();
 

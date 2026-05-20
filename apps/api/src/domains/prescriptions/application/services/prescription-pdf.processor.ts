@@ -15,11 +15,9 @@ import {
   type IClock,
 } from '@/shared/common/ports/clock.port';
 
-const PDF_SIGNED_URL_TTL_SECONDS = 3600;
+import { shouldRegisterPdfQueueHandlers } from '@/shared/modules/queue/pdf-processor-registration';
 
-function areSchedulersEnabled(): boolean {
-  return process.env.ENABLE_SCHEDULERS !== 'false';
-}
+const PDF_SIGNED_URL_TTL_SECONDS = 3600;
 
 export type PrescriptionPdfProcessorPort = Pick<
   PrescriptionsService,
@@ -41,11 +39,7 @@ export class PrescriptionPdfProcessor implements OnModuleInit {
   ) {}
 
   onModuleInit() {
-    if (
-      !areSchedulersEnabled() ||
-      (process.env.QUEUE_BACKEND === 'postgres' &&
-        process.env.WORKER_ENTRYPOINT !== 'worker')
-    ) {
+    if (!shouldRegisterPdfQueueHandlers()) {
       return;
     }
 
