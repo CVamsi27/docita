@@ -257,9 +257,10 @@ describe('AuthService', () => {
         {
           provide: EmailService,
           useValue: {
-            sendVerificationEmail: jest
-              .fn()
-              .mockImplementation(async () => ({ success: true, messageId: 'test' })),
+            sendVerificationEmail: jest.fn().mockImplementation(async () => ({
+              success: true,
+              messageId: 'test',
+            })),
             sendPasswordResetEmail: jest
               .fn()
               .mockImplementation(async () => ({ success: true })),

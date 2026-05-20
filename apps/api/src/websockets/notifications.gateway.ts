@@ -7,10 +7,7 @@ import {
 } from '@nestjs/websockets';
 import { Server, Socket } from 'socket.io';
 import { Inject, Logger, UseGuards } from '@nestjs/common';
-import {
-  CLOCK_PORT,
-  type IClock,
-} from '@/shared/common/ports/clock.port';
+import { CLOCK_PORT, type IClock } from '@/shared/common/ports/clock.port';
 import { OnEvent } from '@nestjs/event-emitter';
 import { ApplicationEvents } from '@/shared/common/events/application-events';
 import { getWebSocketCorsOrigins } from '@/shared/modules/config/app-config';

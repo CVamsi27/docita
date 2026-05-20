@@ -23,10 +23,7 @@ import {
   IInvoiceRepository,
   INVOICE_REPOSITORY_TOKEN,
 } from '@/domains/billing/core/repositories/invoice.repository';
-import {
-  CLOCK_PORT,
-  type IClock,
-} from '@/shared/common/ports/clock.port';
+import { CLOCK_PORT, type IClock } from '@/shared/common/ports/clock.port';
 
 /**
  * Clinic invoice payment mutations (sessions, links, manual settlement).

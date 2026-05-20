@@ -214,9 +214,11 @@ describe('MedicalHistoryService', () => {
       mockPatientPersistencePort.patientSocialHistory.findFirst
         .mockResolvedValueOnce(existing)
         .mockResolvedValueOnce({ ...existing, smokingStatus: 'FORMER' });
-      mockPatientPersistencePort.patientSocialHistory.updateMany.mockResolvedValue({
-        count: 1,
-      });
+      mockPatientPersistencePort.patientSocialHistory.updateMany.mockResolvedValue(
+        {
+          count: 1,
+        },
+      );
 
       await service.createOrUpdateSocialHistory(patientId, dto);
 
@@ -233,9 +235,11 @@ describe('MedicalHistoryService', () => {
       mockPatientPersistencePort.patientSocialHistory.findFirst.mockResolvedValue(
         existing,
       );
-      mockPatientPersistencePort.patientSocialHistory.deleteMany.mockResolvedValue({
-        count: 1,
-      });
+      mockPatientPersistencePort.patientSocialHistory.deleteMany.mockResolvedValue(
+        {
+          count: 1,
+        },
+      );
 
       const result = await service.deleteSocialHistory('p-del');
 

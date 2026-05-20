@@ -16,10 +16,7 @@ import {
   DEFAULT_TIMEZONE,
 } from '@workspace/utils';
 import { SendMessageUseCase } from '@/domains/whatsapp/application/use-cases/send-message.use-case';
-import {
-  CLOCK_PORT,
-  type IClock,
-} from '@/shared/common/ports/clock.port';
+import { CLOCK_PORT, type IClock } from '@/shared/common/ports/clock.port';
 import { isClinicWhatsAppAutomationSendingAllowed } from '@/shared/whatsapp/whatsapp-patient-send-policy.util';
 
 interface AppointmentForReminder {
@@ -141,7 +138,10 @@ export class ReminderNotificationService {
       const clinicId = appointment.clinic?.id || '';
       if (
         clinicId &&
-        !(await isClinicWhatsAppAutomationSendingAllowed(this.persistence, clinicId))
+        !(await isClinicWhatsAppAutomationSendingAllowed(
+          this.persistence,
+          clinicId,
+        ))
       ) {
         this.logger.log(
           `[WhatsApp] Not allowed for clinic ${clinicId}; skipping ${reminderType} reminder for appointment ${appointment.id}`,

@@ -23,14 +23,6 @@ import { usePatientFamilyHistory } from "./use-patient-family-history";
 import { usePatientSocialHistory } from "./use-patient-social-history";
 import { usePatientSurgeries } from "./use-patient-surgeries";
 
-interface FullMedicalHistoryResponse {
-  conditions?: PatientMedicalCondition[];
-  allergies?: PatientAllergy[];
-  familyHistory?: PatientFamilyHistory[];
-  socialHistory?: PatientSocialHistory | null;
-  surgicalHistory?: PatientSurgicalHistory[];
-}
-
 function toRecord(value: unknown): Record<string, unknown> {
   if (!value || typeof value !== "object") {
     return {};

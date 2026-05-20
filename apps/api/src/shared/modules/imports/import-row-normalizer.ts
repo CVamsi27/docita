@@ -136,10 +136,7 @@ export function normalizeBulkImportRow(
       }
       continue;
     }
-    if (
-      typeof value === 'number' ||
-      typeof value === 'boolean'
-    ) {
+    if (typeof value === 'number' || typeof value === 'boolean') {
       normalized[trimmedKey] = value;
     }
   }

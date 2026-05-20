@@ -47,10 +47,7 @@ export class PrismaSubscriptionRepository implements ISubscriptionRepository {
     return this.core.findBillingContact(clinicId);
   }
 
-  findExpiryReminderCandidates(params: {
-    startOfDay: Date;
-    endOfDay: Date;
-  }) {
+  findExpiryReminderCandidates(params: { startOfDay: Date; endOfDay: Date }) {
     return this.core.findExpiryReminderCandidates(params);
   }
 
@@ -69,9 +66,11 @@ export class PrismaSubscriptionRepository implements ISubscriptionRepository {
     return this.core.findRecentReminderClinicIds(params);
   }
 
-  createSubscriptionReminders(reminders: Parameters<
-    PrismaSubscriptionCoreRepository['createSubscriptionReminders']
-  >[0]) {
+  createSubscriptionReminders(
+    reminders: Parameters<
+      PrismaSubscriptionCoreRepository['createSubscriptionReminders']
+    >[0],
+  ) {
     return this.core.createSubscriptionReminders(reminders);
   }
 
@@ -104,7 +103,9 @@ export class PrismaSubscriptionRepository implements ISubscriptionRepository {
   }
 
   updatePaymentLink(
-    params: Parameters<PrismaSubscriptionPaymentRepository['updatePaymentLink']>[0],
+    params: Parameters<
+      PrismaSubscriptionPaymentRepository['updatePaymentLink']
+    >[0],
   ) {
     return this.payments.updatePaymentLink(params);
   }

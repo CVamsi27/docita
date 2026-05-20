@@ -13,10 +13,7 @@ import {
   RATE_LIMIT_SUSTAINED_WINDOW_MS,
 } from '@/shared/modules/tenant-rate-limit/tenant-rate-limit.constants';
 import { TenantRateLimitRepository } from '@/shared/modules/tenant-rate-limit/tenant-rate-limit.repository';
-import {
-  CLOCK_PORT,
-  type IClock,
-} from '@/shared/common/ports/clock.port';
+import { CLOCK_PORT, type IClock } from '@/shared/common/ports/clock.port';
 import {
   QuotaUpsertInput,
   RateLimitDecision,

@@ -9,10 +9,7 @@ import {
 } from '@/domains/subscriptions/application/ports/clinic-operations.port';
 import { SubscriptionStatusEnum } from '@/domains/subscriptions/core/value-objects';
 import { computeSubscriptionGraceDeadline } from '@/domains/subscriptions/core/constants/subscription-lockout.constants';
-import {
-  CLOCK_PORT,
-  type IClock,
-} from '@/shared/common/ports/clock.port';
+import { CLOCK_PORT, type IClock } from '@/shared/common/ports/clock.port';
 
 @Injectable()
 export class EnterGracePeriodUseCase {

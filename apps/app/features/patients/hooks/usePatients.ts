@@ -28,7 +28,6 @@ import type {
   MetricRecordResponse,
   Patient,
   UpdatePatientRequest,
-  UpsertMetricSelectionsInput,
 } from "@workspace/types";
 import { showUserFacingErrorToast } from "@/lib/errors/user-facing-errors";
 
@@ -73,13 +72,10 @@ function wrapMutationWithToasts<TData, TVariables>(
 }
 
 export function useCreatePatientMetricCategory(patientId: string) {
-  return wrapMutationWithToasts(
-    useCreatePatientMetricCategoryBase(patientId),
-    {
-      success: "Metric category added",
-      error: "We could not add this metric category. Please try again.",
-    },
-  );
+  return wrapMutationWithToasts(useCreatePatientMetricCategoryBase(patientId), {
+    success: "Metric category added",
+    error: "We could not add this metric category. Please try again.",
+  });
 }
 
 export function useCreatePatientMetricDefinition(patientId: string) {

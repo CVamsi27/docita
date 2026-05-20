@@ -109,11 +109,7 @@ describe('PostgresQueueService', () => {
     queueJobsMock.recoverStaleActiveToFailed.mockResolvedValue([]);
     queueJobsMock.findById.mockResolvedValue(null);
     queueJobsMock.countByStatus.mockResolvedValue([]);
-    service = new PostgresQueueService(
-      prisma as never,
-      clock,
-      queueJobsMock,
-    );
+    service = new PostgresQueueService(prisma as never, clock, queueJobsMock);
   });
 
   afterEach(() => {
@@ -332,7 +328,9 @@ describe('PostgresQueueService', () => {
     });
 
     it('persists the idempotency key on new enqueues when no prior completion exists', async () => {
-      queueJobsMock.findRecentCompletedByIdempotency.mockResolvedValueOnce(null);
+      queueJobsMock.findRecentCompletedByIdempotency.mockResolvedValueOnce(
+        null,
+      );
       createMock.mockResolvedValueOnce(
         makeRow({ idempotencyKey: 'send:patient-1:appt-2' }),
       );

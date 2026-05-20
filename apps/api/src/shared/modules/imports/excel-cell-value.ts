@@ -8,9 +8,7 @@ function isExcelCellObject(value: object): value is ExcelCellObject {
   return 'result' in value || 'text' in value || 'richText' in value;
 }
 
-export function extractWorksheetRowCells(
-  values: unknown,
-): unknown[] {
+export function extractWorksheetRowCells(values: unknown): unknown[] {
   if (Array.isArray(values)) {
     return values.slice(1);
   }

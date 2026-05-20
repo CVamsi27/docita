@@ -1,8 +1,5 @@
 import { Inject, Injectable, Logger } from '@nestjs/common';
-import {
-  CLOCK_PORT,
-  type IClock,
-} from '@/shared/common/ports/clock.port';
+import { CLOCK_PORT, type IClock } from '@/shared/common/ports/clock.port';
 import { EventEmitter2 } from '@nestjs/event-emitter';
 import { nanoid } from 'nanoid';
 import {

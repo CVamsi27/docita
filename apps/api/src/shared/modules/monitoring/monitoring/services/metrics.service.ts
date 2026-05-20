@@ -89,7 +89,11 @@ export class MetricsService {
     startDate: Date,
     endDate: Date,
   ): Promise<unknown[]> {
-    return this.aggregation.getAggregatedPerformance(period, startDate, endDate);
+    return this.aggregation.getAggregatedPerformance(
+      period,
+      startDate,
+      endDate,
+    );
   }
 
   recordWebVital(vital: WebVitalDto) {

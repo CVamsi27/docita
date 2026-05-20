@@ -14,10 +14,7 @@ import {
   IPaymentSessionRepository,
   PAYMENT_SESSION_REPOSITORY_TOKEN,
 } from '@/domains/billing/core/repositories/payment-session.repository';
-import {
-  CLOCK_PORT,
-  type IClock,
-} from '@/shared/common/ports/clock.port';
+import { CLOCK_PORT, type IClock } from '@/shared/common/ports/clock.port';
 interface PaymentReminderConfig {
   enabled: boolean;
   days: number[];

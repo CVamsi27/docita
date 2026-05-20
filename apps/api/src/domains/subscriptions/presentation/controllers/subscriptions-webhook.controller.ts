@@ -1,11 +1,4 @@
-import {
-  Controller,
-  Post,
-  Body,
-  Headers,
-  HttpCode,
-  Req,
-} from '@nestjs/common';
+import { Controller, Post, Body, Headers, HttpCode, Req } from '@nestjs/common';
 import { Request } from 'express';
 import { Public } from '@/shared/modules/auth/auth/public.decorator';
 import { ProcessWebhookUseCase } from '@/domains/subscriptions/application/use-cases';

@@ -29,7 +29,9 @@ export class DPDPComplianceService {
     return this.consentCompliance.recordConsent(data, ipAddress);
   }
 
-  recordDpdpNoticeConsent(input: DpdpNoticeConsentInput): Promise<{ id: string }> {
+  recordDpdpNoticeConsent(
+    input: DpdpNoticeConsentInput,
+  ): Promise<{ id: string }> {
     return this.consentCompliance.recordDpdpNoticeConsent(input);
   }
 
@@ -65,7 +67,10 @@ export class DPDPComplianceService {
     return this.consentCompliance.getConsentHistory(patientId, clinicId);
   }
 
-  validateWhatsAppConsent(patientId: string, clinicId: string): Promise<boolean> {
+  validateWhatsAppConsent(
+    patientId: string,
+    clinicId: string,
+  ): Promise<boolean> {
     return this.consentCompliance.validateWhatsAppConsent(patientId, clinicId);
   }
 

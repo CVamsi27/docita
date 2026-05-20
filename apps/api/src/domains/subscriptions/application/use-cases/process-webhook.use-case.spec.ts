@@ -25,15 +25,13 @@ describe('ProcessWebhookUseCase', () => {
   beforeEach(() => {
     jest.clearAllMocks();
     const registry = new RazorpayWebhookHandlerRegistry([paymentFailedHandler]);
-    useCase = new ProcessWebhookUseCase(
-      paymentGateway,
-      adminAlerts,
-      registry,
-    );
+    useCase = new ProcessWebhookUseCase(paymentGateway, adminAlerts, registry);
   });
 
   it('rejects webhooks with invalid signatures', async () => {
-    jest.mocked(paymentGateway.verifyWebhookSignature).mockReturnValueOnce(false);
+    jest
+      .mocked(paymentGateway.verifyWebhookSignature)
+      .mockReturnValueOnce(false);
 
     await expect(
       useCase.execute('bad-sig', '{}', {

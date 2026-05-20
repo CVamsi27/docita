@@ -4,7 +4,8 @@ import type {
 } from '@workspace/types';
 import { Prisma } from '@workspace/db';
 
-export type WebhookValue = WhatsAppWebhookPayload['entry'][0]['changes'][0]['value'];
+export type WebhookValue =
+  WhatsAppWebhookPayload['entry'][0]['changes'][0]['value'];
 export type WebhookMessage = NonNullable<WebhookValue['messages']>[number];
 
 export const SUPPORT_EMAIL = 'support@docita.work';

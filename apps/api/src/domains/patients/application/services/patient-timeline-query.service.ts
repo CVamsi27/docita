@@ -19,10 +19,7 @@ import {
   sortAndSummarize,
   buildAdherenceMap,
 } from './patient-timeline-aggregator';
-import {
-  CLOCK_PORT,
-  type IClock,
-} from '@/shared/common/ports/clock.port';
+import { CLOCK_PORT, type IClock } from '@/shared/common/ports/clock.port';
 
 interface TimelineQuery {
   eventTypes?: TimelineEventType[];

@@ -88,7 +88,10 @@ export class MedicalCodingController {
     @Request() req: RequestWithUser,
     @Param('icdCodeId') icdCodeId: string,
   ): Promise<void> {
-    return await this.clinicalService.removeFavorite(getClinicStaffRequestContext(req).userId, icdCodeId);
+    return await this.clinicalService.removeFavorite(
+      getClinicStaffRequestContext(req).userId,
+      icdCodeId,
+    );
   }
 
   @Get('cpt/search')
@@ -153,7 +156,9 @@ export class MedicalCodingController {
 
   @Get('settings')
   async getCodingSettings(@Request() req: RequestWithUser) {
-    return this.settingsService.getMedicalCodingSettings(getClinicStaffRequestContext(req).clinicId);
+    return this.settingsService.getMedicalCodingSettings(
+      getClinicStaffRequestContext(req).clinicId,
+    );
   }
 
   @Put('settings')

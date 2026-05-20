@@ -111,8 +111,7 @@ export class AllExceptionsFilter implements ExceptionFilter {
       status = HttpStatus.BAD_REQUEST;
       errorType = 'ZodValidationException';
       const zodError = exception.getZodError();
-      const issues =
-        zodError instanceof ZodError ? zodError.issues : [];
+      const issues = zodError instanceof ZodError ? zodError.issues : [];
 
       details = formatZodIssuesToFieldMap(issues);
       message = 'Validation failed. Please check the highlighted fields.';

@@ -10,7 +10,9 @@ export function isWriteHttpMethod(method: string): boolean {
   return WRITE_METHODS.has(method.toUpperCase());
 }
 
-export function toAuditRecord(value: unknown): Record<string, unknown> | undefined {
+export function toAuditRecord(
+  value: unknown,
+): Record<string, unknown> | undefined {
   if (!isRecord(value)) {
     return undefined;
   }

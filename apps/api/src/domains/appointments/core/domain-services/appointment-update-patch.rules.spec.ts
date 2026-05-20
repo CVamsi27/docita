@@ -32,12 +32,12 @@ describe('appointment-update-patch.rules', () => {
 
   describe('toPrismaAppointmentUpdate', () => {
     it('maps domain status values to Prisma enums', () => {
-      expect(
-        toPrismaAppointmentUpdate({ status: 'completed' }).status,
-      ).toBe(PrismaAppointmentStatus.COMPLETED);
-      expect(
-        toPrismaAppointmentUpdate({ status: 'checked-in' }).status,
-      ).toBe(PrismaAppointmentStatus.CONFIRMED);
+      expect(toPrismaAppointmentUpdate({ status: 'completed' }).status).toBe(
+        PrismaAppointmentStatus.COMPLETED,
+      );
+      expect(toPrismaAppointmentUpdate({ status: 'checked-in' }).status).toBe(
+        PrismaAppointmentStatus.CONFIRMED,
+      );
     });
 
     it('omits status when not provided', () => {

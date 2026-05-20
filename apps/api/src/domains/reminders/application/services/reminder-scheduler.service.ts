@@ -1,8 +1,5 @@
 import { Injectable, Logger, Inject, forwardRef } from '@nestjs/common';
-import {
-  CLOCK_PORT,
-  type IClock,
-} from '@/shared/common/ports/clock.port';
+import { CLOCK_PORT, type IClock } from '@/shared/common/ports/clock.port';
 import {
   REMINDER_PERSISTENCE_PORT,
   type ReminderPersistencePort,
@@ -102,9 +99,7 @@ export class ReminderSchedulerService {
         const clinicResults = await Promise.allSettled(
           allSettings
             .filter(
-              (
-                settings,
-              ): settings is typeof settings & { clinicId: string } =>
+              (settings): settings is typeof settings & { clinicId: string } =>
                 !!settings.clinicId,
             )
             .map((settings) =>
@@ -315,12 +310,13 @@ export class ReminderSchedulerService {
     appointment: AppointmentForReminder,
     settings: _ReminderSettings,
   ): Promise<void> {
-    const existingReminder = await this.persistence.appointmentReminder.findFirst({
-      where: {
-        appointmentId: appointment.id,
-        status: 'sent',
-      },
-    });
+    const existingReminder =
+      await this.persistence.appointmentReminder.findFirst({
+        where: {
+          appointmentId: appointment.id,
+          status: 'sent',
+        },
+      });
 
     if (existingReminder) {
       return;
@@ -360,13 +356,14 @@ export class ReminderSchedulerService {
     appointment: AppointmentForReminder,
     settings: _ReminderSettings,
   ): Promise<void> {
-    const existingReminder = await this.persistence.appointmentReminder.findFirst({
-      where: {
-        appointmentId: appointment.id,
-        type: 'whatsapp_30min',
-        status: 'sent',
-      },
-    });
+    const existingReminder =
+      await this.persistence.appointmentReminder.findFirst({
+        where: {
+          appointmentId: appointment.id,
+          type: 'whatsapp_30min',
+          status: 'sent',
+        },
+      });
 
     if (existingReminder) {
       return;

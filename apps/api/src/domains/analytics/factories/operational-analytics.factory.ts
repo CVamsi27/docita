@@ -19,10 +19,7 @@ import {
   ANALYTICS_REPOSITORY_TOKEN,
   IAnalyticsRepository,
 } from '@/domains/analytics/core/repositories/analytics.repository.interface';
-import {
-  CLOCK_PORT,
-  type IClock,
-} from '@/shared/common/ports/clock.port';
+import { CLOCK_PORT, type IClock } from '@/shared/common/ports/clock.port';
 
 /**
  * Orchestrates analytics queries: caching, DTO shaping, and growth-rate math.

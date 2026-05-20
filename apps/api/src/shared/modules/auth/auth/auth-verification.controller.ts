@@ -1,6 +1,11 @@
 import { Controller, Post, Body, Request } from '@nestjs/common';
 import { Throttle } from '@nestjs/throttler';
-import { ApiTags, ApiOperation, ApiResponse, ApiBearerAuth } from '@nestjs/swagger';
+import {
+  ApiTags,
+  ApiOperation,
+  ApiResponse,
+  ApiBearerAuth,
+} from '@nestjs/swagger';
 import { Public } from './public.decorator';
 import { AuthService } from './auth.service';
 import { AuthenticatedRequest } from '@workspace/types';

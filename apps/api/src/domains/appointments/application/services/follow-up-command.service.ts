@@ -1,8 +1,4 @@
-import {
-  Injectable,
-  NotFoundException,
-  Inject,
-} from '@nestjs/common';
+import { Injectable, NotFoundException, Inject } from '@nestjs/common';
 import {
   IFollowUpRepository,
   FOLLOW_UP_REPOSITORY_TOKEN,

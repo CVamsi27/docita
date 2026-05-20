@@ -32,10 +32,7 @@ import {
   uploadSlaSignature,
   getSlaSignatureSessionStatus,
 } from './onboarding-helpers';
-import {
-  CLOCK_PORT,
-  type IClock,
-} from '@/shared/common/ports/clock.port';
+import { CLOCK_PORT, type IClock } from '@/shared/common/ports/clock.port';
 import { OnboardingPaymentService } from './onboarding-payment.service';
 import type { OnboardingResult } from './onboarding-result.types';
 
@@ -98,7 +95,11 @@ export class OnboardingService {
   }
 
   async getSlaSignatureSessionStatus(onboardingId: string, sessionId: string) {
-    return getSlaSignatureSessionStatus(this.persistence, onboardingId, sessionId);
+    return getSlaSignatureSessionStatus(
+      this.persistence,
+      onboardingId,
+      sessionId,
+    );
   }
 
   initializeOnboarding(): { onboardingId: string } {

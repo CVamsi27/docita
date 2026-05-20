@@ -4,7 +4,10 @@ import {
   SupportWhatsAppMessage,
   SupportWhatsAppThreadSummary,
 } from '@workspace/types';
-import { threadMessageSelect, normalizePhoneNumber } from './support-whatsapp-shared';
+import {
+  threadMessageSelect,
+  normalizePhoneNumber,
+} from './support-whatsapp-shared';
 
 type ThreadSummaryAccumulator = SupportWhatsAppThreadSummary & {
   senderName: string | null;
@@ -68,8 +71,7 @@ export class SupportWhatsAppThreadQueryService {
     threadPhoneNumber: string,
     limit = 500,
   ): Promise<SupportWhatsAppMessage[]> {
-    const normalizedThreadPhoneNumber =
-      normalizePhoneNumber(threadPhoneNumber);
+    const normalizedThreadPhoneNumber = normalizePhoneNumber(threadPhoneNumber);
     const take = Math.min(Math.max(limit, 1), 1000);
 
     const messages = await this.prisma.supportWhatsAppMessage.findMany({
@@ -83,8 +85,7 @@ export class SupportWhatsAppThreadQueryService {
   }
 
   async markThreadAsRead(threadPhoneNumber: string): Promise<number> {
-    const normalizedThreadPhoneNumber =
-      normalizePhoneNumber(threadPhoneNumber);
+    const normalizedThreadPhoneNumber = normalizePhoneNumber(threadPhoneNumber);
 
     const result = await this.prisma.supportWhatsAppMessage.updateMany({
       where: {

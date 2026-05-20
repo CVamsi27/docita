@@ -1,8 +1,5 @@
 import { Inject, Injectable, Logger } from '@nestjs/common';
-import {
-  CLOCK_PORT,
-  type IClock,
-} from '@/shared/common/ports/clock.port';
+import { CLOCK_PORT, type IClock } from '@/shared/common/ports/clock.port';
 import { AppConfigService } from '@/shared/modules/config/app-configuration.service';
 import { spawn } from 'child_process';
 import * as fs from 'fs';

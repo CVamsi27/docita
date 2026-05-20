@@ -7,10 +7,7 @@ import {
   Request,
   Inject,
 } from '@nestjs/common';
-import {
-  CLOCK_PORT,
-  type IClock,
-} from '@/shared/common/ports/clock.port';
+import { CLOCK_PORT, type IClock } from '@/shared/common/ports/clock.port';
 import { JwtAuthGuard } from '@/shared/modules/auth/auth/jwt-auth.guard';
 import { Roles } from '@/shared/modules/auth/auth/roles.decorator';
 import {

@@ -1,8 +1,5 @@
 import { Inject, Injectable } from '@nestjs/common';
-import {
-  CLOCK_PORT,
-  type IClock,
-} from '@/shared/common/ports/clock.port';
+import { CLOCK_PORT, type IClock } from '@/shared/common/ports/clock.port';
 import { PrismaService } from '@/prisma/prisma.service';
 import { FeedbackFeatureType } from '@workspace/db';
 import {
@@ -173,9 +170,7 @@ export class PrismaFeedbackRepository implements IFeedbackRepository {
         where: {
           ...where,
           createdAt: {
-            gte: new Date(
-              this.clock.now().getTime() - 7 * 24 * 60 * 60 * 1000,
-            ),
+            gte: new Date(this.clock.now().getTime() - 7 * 24 * 60 * 60 * 1000),
           },
         },
       }),

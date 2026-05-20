@@ -13,10 +13,7 @@ import {
   ClinicTier,
   BillingCycle,
 } from '@/domains/subscriptions/core/value-objects';
-import {
-  CLOCK_PORT,
-  type IClock,
-} from '@/shared/common/ports/clock.port';
+import { CLOCK_PORT, type IClock } from '@/shared/common/ports/clock.port';
 
 export interface SchedulePlanChangeRequest {
   clinicId: string;

@@ -1,7 +1,5 @@
 import { Injectable } from '@nestjs/common';
-import {
-  PrescriptionDetail,
-} from '@/domains/prescriptions/core/repositories/prescription.repository.interface';
+import { PrescriptionDetail } from '@/domains/prescriptions/core/repositories/prescription.repository.interface';
 import {
   Specialization,
   HospitalRole,

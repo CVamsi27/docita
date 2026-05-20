@@ -14,10 +14,7 @@ import type {
   CreateDataSubjectRequest,
   UpdateDataSubjectRequest,
 } from '@workspace/types';
-import {
-  CLOCK_PORT,
-  type IClock,
-} from '@/shared/common/ports/clock.port';
+import { CLOCK_PORT, type IClock } from '@/shared/common/ports/clock.port';
 
 /**
  * Handles GDPR / data-subject request lifecycle: creation and status updates.

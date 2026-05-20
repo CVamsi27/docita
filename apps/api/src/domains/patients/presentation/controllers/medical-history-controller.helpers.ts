@@ -1,7 +1,4 @@
-import {
-  ForbiddenException,
-  NotFoundException,
-} from '@nestjs/common';
+import { ForbiddenException, NotFoundException } from '@nestjs/common';
 import { Role } from '@workspace/db';
 import { AuditService } from '@/shared/modules/audit/audit/audit.service';
 import { logPatientPhiRead } from '@/shared/modules/audit/audit/patient-access-audit.util';

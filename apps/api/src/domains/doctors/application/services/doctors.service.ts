@@ -17,10 +17,7 @@ import { DoctorsQueryService } from './doctors-query.service';
 import { DoctorsCommandService } from './doctors-command.service';
 import { DoctorProfileService } from './doctor-profile.service';
 import { DoctorAdminVerificationCommandService } from './doctor-admin-verification-command.service';
-import {
-  CLOCK_PORT,
-  type IClock,
-} from '@/shared/common/ports/clock.port';
+import { CLOCK_PORT, type IClock } from '@/shared/common/ports/clock.port';
 
 /**
  * Facade — keeps the original constructor signature so existing consumers

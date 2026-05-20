@@ -6,10 +6,7 @@ import {
 } from '@/domains/subscriptions/application/ports';
 import { EmailService } from '@/shared/modules/messaging/email/email.service';
 import { DATE_FORMATS, formatDate } from '@workspace/utils';
-import {
-  CLOCK_PORT,
-  type IClock,
-} from '@/shared/common/ports/clock.port';
+import { CLOCK_PORT, type IClock } from '@/shared/common/ports/clock.port';
 import { getUtcDayBounds } from '@/shared/schedule/scheduler-date.util';
 
 export interface NotifyExpiringSubscriptionsRequest {

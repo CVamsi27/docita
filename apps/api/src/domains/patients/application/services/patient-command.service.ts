@@ -2,10 +2,7 @@ import { Injectable, Inject, NotFoundException } from '@nestjs/common';
 import { IPatientRepository } from '@/domains/patients/core/repositories/patient.repository.interface';
 import { Patient } from '@/domains/patients/core/entities/patient.entity';
 import { randomUUID } from 'crypto';
-import {
-  CLOCK_PORT,
-  type IClock,
-} from '@/shared/common/ports/clock.port';
+import { CLOCK_PORT, type IClock } from '@/shared/common/ports/clock.port';
 import {
   type PatientDomainCreateInput,
   type PatientDomainUpdateInput,

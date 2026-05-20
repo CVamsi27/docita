@@ -1,9 +1,9 @@
 "use client";
 
-import { useMemo, type ReactNode } from "react";
+import { type ReactNode, useMemo } from "react";
 import {
-  DataAccessProvider,
   type DataAccessConfig,
+  DataAccessProvider,
   type RequestConfig,
 } from "@workspace/data-access";
 import { client } from "@/lib/api/api-client";

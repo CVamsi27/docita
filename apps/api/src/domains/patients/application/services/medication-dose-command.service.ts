@@ -19,10 +19,7 @@ import {
   parseDurationDays,
 } from '@/domains/patients/core/domain-services/medication-dose.rules';
 import { verifyMedicationDosePatientAccess } from './medication-dose-access.helpers';
-import {
-  CLOCK_PORT,
-  type IClock,
-} from '@/shared/common/ports/clock.port';
+import { CLOCK_PORT, type IClock } from '@/shared/common/ports/clock.port';
 
 interface RecordDoseDto {
   medicationId: string;

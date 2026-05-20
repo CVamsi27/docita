@@ -9,10 +9,7 @@ import {
   UsePipes,
   Inject,
 } from '@nestjs/common';
-import {
-  CLOCK_PORT,
-  type IClock,
-} from '@/shared/common/ports/clock.port';
+import { CLOCK_PORT, type IClock } from '@/shared/common/ports/clock.port';
 import { MonitoringService } from './monitoring.service';
 import { JwtAuthGuard as _JwtAuthGuard } from '@/shared/modules/auth/auth/jwt-auth.guard';
 import { TierGuard } from '@/shared/modules/auth/auth/tier.guard';

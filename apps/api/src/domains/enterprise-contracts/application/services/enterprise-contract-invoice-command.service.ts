@@ -12,10 +12,7 @@ import {
 import { EnterpriseContractStatus, EnterpriseInvoiceKind } from '@workspace/db';
 import { EmailService } from '@/shared/modules/messaging/email/email.service';
 import { AppConfigService } from '@/shared/modules/config/app-configuration.service';
-import {
-  CLOCK_PORT,
-  type IClock,
-} from '@/shared/common/ports/clock.port';
+import { CLOCK_PORT, type IClock } from '@/shared/common/ports/clock.port';
 
 /**
  * Handles enterprise-contract financial operations: annual prepay invoice generation
@@ -48,14 +45,15 @@ export class EnterpriseContractInvoiceCommandService {
           'Annual prepay only available for ACTIVE contracts',
         );
 
-      const existing = await this.persistence.enterpriseContractInvoice.findFirst({
-        where: {
-          contractId,
-          kind: EnterpriseInvoiceKind.ANNUAL_PREPAY,
-          periodStart: contract.startDate,
-        },
-        include: { subscriptionPayment: true },
-      });
+      const existing =
+        await this.persistence.enterpriseContractInvoice.findFirst({
+          where: {
+            contractId,
+            kind: EnterpriseInvoiceKind.ANNUAL_PREPAY,
+            periodStart: contract.startDate,
+          },
+          include: { subscriptionPayment: true },
+        });
       if (existing) return existing;
 
       const grossCents = contract.platformFeeCents * 12;
@@ -172,9 +170,10 @@ export class EnterpriseContractInvoiceCommandService {
         return { alerted: false, observedPercent };
 
       const monthStart = new Date(now.getFullYear(), now.getMonth(), 1);
-      const alreadyAlerted = await this.persistence.enterpriseTrueUpAlert.findFirst({
-        where: { contractId, alertedAt: { gte: monthStart } },
-      });
+      const alreadyAlerted =
+        await this.persistence.enterpriseTrueUpAlert.findFirst({
+          where: { contractId, alertedAt: { gte: monthStart } },
+        });
       if (alreadyAlerted) return { alerted: false, observedPercent };
 
       const recipients = this.configService.getInternalAllowedEmails();

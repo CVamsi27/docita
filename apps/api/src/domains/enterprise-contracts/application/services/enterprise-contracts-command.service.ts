@@ -16,10 +16,7 @@ import {
   type ContractWithMembers,
 } from './enterprise-contracts-query.service';
 import { EnterpriseContractInvoiceCommandService } from './enterprise-contract-invoice-command.service';
-import {
-  CLOCK_PORT,
-  type IClock,
-} from '@/shared/common/ports/clock.port';
+import { CLOCK_PORT, type IClock } from '@/shared/common/ports/clock.port';
 
 /**
  * Handles enterprise-contract lifecycle mutations: upsert, status transitions,

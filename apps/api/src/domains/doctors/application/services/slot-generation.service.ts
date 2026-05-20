@@ -24,10 +24,7 @@ import {
   generateSlotsForSchedule,
   sortSlots,
 } from './slot-generation-helpers';
-import {
-  CLOCK_PORT,
-  type IClock,
-} from '@/shared/common/ports/clock.port';
+import { CLOCK_PORT, type IClock } from '@/shared/common/ports/clock.port';
 
 interface AvailableSlotsWithMeta {
   slots: AvailableSlot[];

@@ -33,7 +33,8 @@ describe('PatientTimelineService', () => {
       verifyPatientAccess: jest.fn<(...args: unknown[]) => Promise<unknown>>(),
       fetchPatientConditions:
         jest.fn<(...args: unknown[]) => Promise<unknown>>(),
-      fetchPatientAllergies: jest.fn<(...args: unknown[]) => Promise<unknown>>(),
+      fetchPatientAllergies:
+        jest.fn<(...args: unknown[]) => Promise<unknown>>(),
       fetchRecentPrescriptionsWithMedications:
         jest.fn<(...args: unknown[]) => Promise<unknown>>(),
       fetchLatestVitals: jest.fn<(...args: unknown[]) => Promise<unknown>>(),

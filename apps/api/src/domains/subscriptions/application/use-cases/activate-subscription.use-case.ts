@@ -1,8 +1,4 @@
-import {
-  Injectable,
-  Logger,
-  Inject,
-} from '@nestjs/common';
+import { Injectable, Logger, Inject } from '@nestjs/common';
 import {
   ISubscriptionRepository,
   SUBSCRIPTION_REPOSITORY_TOKEN,
@@ -88,8 +84,8 @@ export class ActivateSubscriptionUseCase {
       offerPercent,
     );
 
-    const { payment } = await this.activationPayment.resolvePaymentForActivation(
-      {
+    const { payment } =
+      await this.activationPayment.resolvePaymentForActivation({
         clinicId: request.clinicId,
         razorpayOrderId: request.razorpayOrderId,
         razorpayPaymentId: request.razorpayPaymentId,
@@ -97,8 +93,7 @@ export class ActivateSubscriptionUseCase {
         payableAmountPaise: payableAmount,
         skipPaymentVerification: request.skipPaymentVerification,
         verifiedAmountCents: request.verifiedAmountCents,
-      },
-    );
+      });
 
     const saved = await this.billingSnapshot.persistActivatedSubscription({
       clinicId: request.clinicId,

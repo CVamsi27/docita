@@ -1,11 +1,4 @@
-import {
-  Controller,
-  Post,
-  Patch,
-  Param,
-  Request,
-  Body,
-} from '@nestjs/common';
+import { Controller, Post, Patch, Param, Request, Body } from '@nestjs/common';
 import { ZodSerializerDto } from 'nestjs-zod';
 import { ApiTags, ApiOperation } from '@nestjs/swagger';
 import { APP_ACCESS_TARGETS } from '@workspace/types';
@@ -24,10 +17,9 @@ import {
   getAppointmentAccessContext,
 } from '@/domains/appointments/presentation/controllers/appointments.controller.access';
 
-function stripVitalsMetadata(body: VitalsDto): Omit<
-  VitalsDto,
-  'id' | 'appointmentId' | 'createdAt' | 'updatedAt'
-> {
+function stripVitalsMetadata(
+  body: VitalsDto,
+): Omit<VitalsDto, 'id' | 'appointmentId' | 'createdAt' | 'updatedAt'> {
   const {
     id: _id,
     appointmentId: _appointmentId,

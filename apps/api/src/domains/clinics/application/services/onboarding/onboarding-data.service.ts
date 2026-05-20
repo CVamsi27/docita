@@ -5,10 +5,7 @@ import {
   BadRequestException,
   OnModuleDestroy,
 } from '@nestjs/common';
-import {
-  CLOCK_PORT,
-  type IClock,
-} from '@/shared/common/ports/clock.port';
+import { CLOCK_PORT, type IClock } from '@/shared/common/ports/clock.port';
 import { randomBytes } from 'crypto';
 import {
   OnboardingStep,
@@ -46,9 +43,7 @@ export class OnboardingDataService implements OnModuleDestroy {
       data: {},
       createdAt: this.clock.now(),
       updatedAt: this.clock.now(),
-      expiresAt: new Date(
-        this.clock.now().getTime() + 24 * 60 * 60 * 1000,
-      ),
+      expiresAt: new Date(this.clock.now().getTime() + 24 * 60 * 60 * 1000),
     };
 
     this.onboardingSessions.set(onboardingId, session);

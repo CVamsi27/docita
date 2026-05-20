@@ -1,8 +1,5 @@
 import { Injectable, NotFoundException, Inject } from '@nestjs/common';
-import {
-  CLOCK_PORT,
-  type IClock,
-} from '@/shared/common/ports/clock.port';
+import { CLOCK_PORT, type IClock } from '@/shared/common/ports/clock.port';
 import {
   ILabRepository,
   IMedicalCodingRepository,

@@ -6,10 +6,7 @@ import {
   ForbiddenException,
   Logger,
 } from '@nestjs/common';
-import {
-  CLOCK_PORT,
-  type IClock,
-} from '@/shared/common/ports/clock.port';
+import { CLOCK_PORT, type IClock } from '@/shared/common/ports/clock.port';
 import { Reflector } from '@nestjs/core';
 import { SubscriptionStatus } from '@workspace/db';
 import { IS_PUBLIC_KEY } from '@/shared/modules/auth/auth/public.decorator';

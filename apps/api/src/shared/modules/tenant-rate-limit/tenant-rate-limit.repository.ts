@@ -1,8 +1,9 @@
-import { Inject, Injectable, ServiceUnavailableException } from '@nestjs/common';
 import {
-  CLOCK_PORT,
-  type IClock,
-} from '@/shared/common/ports/clock.port';
+  Inject,
+  Injectable,
+  ServiceUnavailableException,
+} from '@nestjs/common';
+import { CLOCK_PORT, type IClock } from '@/shared/common/ports/clock.port';
 
 import { PrismaService } from '@/prisma/prisma.service';
 import {

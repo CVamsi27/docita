@@ -1,12 +1,7 @@
-import {
-  CLOCK_PORT,
-  type IClock,
-} from '@/shared/common/ports/clock.port';
+import { CLOCK_PORT, type IClock } from '@/shared/common/ports/clock.port';
 
 /** Fixed clock for unit tests that inject {@link CLOCK_PORT}. */
-export function createFixedClockMock(
-  iso = '2026-01-15T12:00:00.000Z',
-): IClock {
+export function createFixedClockMock(iso = '2026-01-15T12:00:00.000Z'): IClock {
   const fixed = new Date(iso);
   return { now: () => new Date(fixed.getTime()) };
 }

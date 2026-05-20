@@ -51,7 +51,9 @@ export class DoctorsComplianceController {
 
   @Post(':id/registration-certificate')
   @Roles(Role.ADMIN, Role.ADMIN_DOCTOR, Role.DOCTOR)
-  @UseInterceptors(FileInterceptor('file', registrationCertificateUploadOptions))
+  @UseInterceptors(
+    FileInterceptor('file', registrationCertificateUploadOptions),
+  )
   async uploadRegistrationCertificate(
     @Request() req: RequestWithUser,
     @Param('id') id: string,

@@ -8,10 +8,7 @@ import {
   IDoctorVerificationRepository,
   DOCTOR_VERIFICATION_REPOSITORY_TOKEN,
 } from '@/domains/doctors/core/repositories/doctor-verification.repository.interface';
-import {
-  CLOCK_PORT,
-  type IClock,
-} from '@/shared/common/ports/clock.port';
+import { CLOCK_PORT, type IClock } from '@/shared/common/ports/clock.port';
 import { DoctorVerificationHttpClient } from '@/domains/doctors/infrastructure/external/doctor-verification-http.client';
 
 type VerificationResult = {
@@ -183,21 +180,24 @@ export class DoctorVerificationService {
     }
 
     try {
-      const { ok, status, json: payload } =
-        await this.verificationHttp.postJson<VerificationProviderResponse>(
-          apiUrl,
-          {
-            doctorId: input.id,
-            name: input.name,
-            registrationNumber: input.registrationNumber,
-            registrationCouncil: input.registrationCouncil,
-            registrationStateCode: input.registrationStateCode,
-            licenseNumber: input.licenseNumber,
-          },
-          {
-            headers: apiKey ? { Authorization: `Bearer ${apiKey}` } : {},
-          },
-        );
+      const {
+        ok,
+        status,
+        json: payload,
+      } = await this.verificationHttp.postJson<VerificationProviderResponse>(
+        apiUrl,
+        {
+          doctorId: input.id,
+          name: input.name,
+          registrationNumber: input.registrationNumber,
+          registrationCouncil: input.registrationCouncil,
+          registrationStateCode: input.registrationStateCode,
+          licenseNumber: input.licenseNumber,
+        },
+        {
+          headers: apiKey ? { Authorization: `Bearer ${apiKey}` } : {},
+        },
+      );
 
       if (!ok) {
         this.logger.warn(
@@ -259,7 +259,11 @@ export class DoctorVerificationService {
     }
 
     try {
-      const { ok, status, json: payload } = await this.verificationHttp.postJson<{
+      const {
+        ok,
+        status,
+        json: payload,
+      } = await this.verificationHttp.postJson<{
         matched?: boolean;
         hpid?: string;
         data?: JsonValue;

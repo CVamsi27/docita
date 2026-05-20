@@ -11,10 +11,7 @@ import { InvoiceStatus } from '@workspace/db';
 import { getMonthRange, DEFAULT_TIMEZONE } from '@workspace/utils';
 import { MonitoringService } from '@/shared/modules/monitoring/monitoring/monitoring.service';
 import { HealthService } from '@/shared/modules/monitoring/monitoring/health.service';
-import {
-  CLOCK_PORT,
-  type IClock,
-} from '@/shared/common/ports/clock.port';
+import { CLOCK_PORT, type IClock } from '@/shared/common/ports/clock.port';
 
 @Injectable()
 export class InternalAnalyticsService {

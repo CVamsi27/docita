@@ -92,7 +92,12 @@ describe('TenantRateLimitService', () => {
 
   it('uses defaults when no override exists', async () => {
     const { repo } = buildRepo();
-    const service = new TenantRateLimitService(cache, repo, buildConfig(), buildClock());
+    const service = new TenantRateLimitService(
+      cache,
+      repo,
+      buildConfig(),
+      buildClock(),
+    );
     const quota = await service.getQuota('clinic-1');
     expect(quota.rps).toBe(5);
     expect(quota.rpm).toBe(50);
@@ -101,7 +106,12 @@ describe('TenantRateLimitService', () => {
 
   it('resolves persisted overrides ahead of defaults', async () => {
     const { repo } = buildRepo({ rps: 200, rpm: 10_000, monthlyBudget: 1e6 });
-    const service = new TenantRateLimitService(cache, repo, buildConfig(), buildClock());
+    const service = new TenantRateLimitService(
+      cache,
+      repo,
+      buildConfig(),
+      buildClock(),
+    );
     const quota = await service.getQuota('clinic-1');
     expect(quota.rps).toBe(200);
     expect(quota.rpm).toBe(10_000);
@@ -197,7 +207,12 @@ describe('TenantRateLimitService', () => {
       incrementMonthlyUsage: jest.fn(async () => null) as unknown as never,
     } as unknown as TenantRateLimitRepository;
 
-    const service = new TenantRateLimitService(cache, repo, buildConfig(), buildClock());
+    const service = new TenantRateLimitService(
+      cache,
+      repo,
+      buildConfig(),
+      buildClock(),
+    );
     const before = await service.getQuota('clinic-1');
     expect(before.rps).toBe(5);
     expect(before.hasOverride).toBe(false);

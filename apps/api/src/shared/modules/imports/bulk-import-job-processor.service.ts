@@ -1,9 +1,6 @@
 import { Inject, Injectable, Logger } from '@nestjs/common';
 import { PrismaService } from '@/prisma/prisma.service';
-import {
-  CLOCK_PORT,
-  type IClock,
-} from '@/shared/common/ports/clock.port';
+import { CLOCK_PORT, type IClock } from '@/shared/common/ports/clock.port';
 import { BulkImportStrategyRegistry } from './bulk-import-strategy.registry';
 import type { BulkImportRow } from './import-types';
 import { DuplicateImportError } from './import-types';

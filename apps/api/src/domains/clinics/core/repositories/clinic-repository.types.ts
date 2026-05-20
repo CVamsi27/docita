@@ -1,9 +1,7 @@
 import {
-  Clinic,
   ClinicTier,
   ClinicType,
   Prisma,
-  Role,
   SubscriptionStatus,
 } from '@workspace/db';
 

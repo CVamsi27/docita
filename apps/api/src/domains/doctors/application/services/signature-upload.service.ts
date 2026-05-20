@@ -16,10 +16,7 @@ import {
   ISignatureUploadRepository,
   SIGNATURE_UPLOAD_REPOSITORY_TOKEN,
 } from '@/domains/doctors/core/repositories/signature-upload.repository.interface';
-import {
-  CLOCK_PORT,
-  type IClock,
-} from '@/shared/common/ports/clock.port';
+import { CLOCK_PORT, type IClock } from '@/shared/common/ports/clock.port';
 
 /**
  * Facade — delegates signature file storage to ISignatureUploadRepository and StorageProvider.

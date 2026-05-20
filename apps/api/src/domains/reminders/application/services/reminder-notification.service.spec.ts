@@ -176,7 +176,9 @@ describe('ReminderNotificationService', () => {
     };
     prismaMock.$transaction.mockImplementation(
       (callback: (tx: ReminderPersistencePort) => unknown) =>
-        Promise.resolve(callback(prismaMock as unknown as ReminderPersistencePort)),
+        Promise.resolve(
+          callback(prismaMock as unknown as ReminderPersistencePort),
+        ),
     );
 
     const module: TestingModule = await Test.createTestingModule({
@@ -197,9 +199,7 @@ describe('ReminderNotificationService', () => {
     service = module.get<ReminderNotificationService>(
       ReminderNotificationService,
     );
-    prisma = module.get(
-      REMINDER_PERSISTENCE_PORT,
-    ) as unknown as typeof prisma;
+    prisma = module.get(REMINDER_PERSISTENCE_PORT) as unknown as typeof prisma;
     sendMessage = module.get(SendMessageUseCase);
   });
 

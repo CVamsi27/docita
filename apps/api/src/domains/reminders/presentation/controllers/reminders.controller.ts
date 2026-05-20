@@ -49,7 +49,10 @@ export class RemindersController {
     @Request() req: RequestWithUser,
     @Body() data: ReminderSettingsDto,
   ) {
-    return this.remindersService.updateSettings(data, requireClinicIdFromRequest(req));
+    return this.remindersService.updateSettings(
+      data,
+      requireClinicIdFromRequest(req),
+    );
   }
 
   @Get('history')
@@ -58,7 +61,10 @@ export class RemindersController {
     @Request() req: RequestWithUser,
     @Query('limit', new ParseIntPipe({ optional: true })) limit: number = 50,
   ) {
-    return this.remindersService.getReminderHistory(requireClinicIdFromRequest(req), limit);
+    return this.remindersService.getReminderHistory(
+      requireClinicIdFromRequest(req),
+      limit,
+    );
   }
 
   @Post('send/:appointmentId')

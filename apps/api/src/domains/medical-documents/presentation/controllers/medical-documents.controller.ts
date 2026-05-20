@@ -71,12 +71,7 @@ export class MedicalDocumentsController {
     @Query('patientId') patientId: string,
   ) {
     const clinicId = this.getClinicId(req);
-    await logPatientPhiRead(
-      this.auditService,
-      req,
-      patientId,
-      'VIEW_HISTORY',
-    );
+    await logPatientPhiRead(this.auditService, req, patientId, 'VIEW_HISTORY');
     return this.service.findAllForPatient(clinicId, patientId);
   }
 

@@ -33,10 +33,7 @@ import {
   DEFAULT_INVOICE_DUE_DAYS,
   CURRENT_PDF_TEMPLATE_VERSION,
 } from './invoices-helpers';
-import {
-  CLOCK_PORT,
-  type IClock,
-} from '@/shared/common/ports/clock.port';
+import { CLOCK_PORT, type IClock } from '@/shared/common/ports/clock.port';
 
 @Injectable()
 export class InvoicesCommandService {

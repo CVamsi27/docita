@@ -4,10 +4,7 @@ import {
   Injectable,
   NotFoundException,
 } from '@nestjs/common';
-import {
-  CLOCK_PORT,
-  type IClock,
-} from '@/shared/common/ports/clock.port';
+import { CLOCK_PORT, type IClock } from '@/shared/common/ports/clock.port';
 import { PrismaService } from '@/prisma/prisma.service';
 import { IAppointmentWriteRepository } from '@/domains/appointments/core/repositories/appointment-write.repository.interface';
 import { Appointment } from '@/domains/appointments/core/entities/appointment.entity';

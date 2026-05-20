@@ -9,8 +9,7 @@ import type { RequestWithUser } from '@/shared/common/types/common.types';
 
 describe('logPatientPhiRead', () => {
   it('skips audit when user or clinic context is missing', async () => {
-    const logPatientAccess =
-      jest.fn<AuditService['logPatientAccess']>();
+    const logPatientAccess = jest.fn<AuditService['logPatientAccess']>();
     const auditService = { logPatientAccess } as unknown as AuditService;
     const req = { user: { id: 'user-1' } } as RequestWithUser;
 
@@ -20,8 +19,9 @@ describe('logPatientPhiRead', () => {
   });
 
   it('emits logPatientAccess when actor and clinic are present', async () => {
-    const logPatientAccess =
-      jest.fn<AuditService['logPatientAccess']>().mockResolvedValue(undefined);
+    const logPatientAccess = jest
+      .fn<AuditService['logPatientAccess']>()
+      .mockResolvedValue(undefined);
     const auditService = { logPatientAccess } as unknown as AuditService;
     const req = {
       user: { id: 'user-1', clinicId: 'clinic-1' },
@@ -42,8 +42,9 @@ describe('logPatientPhiRead', () => {
   });
 
   it('emits clinic-scoped list audit via logAction', async () => {
-    const logAction =
-      jest.fn<AuditService['logAction']>().mockResolvedValue(undefined);
+    const logAction = jest
+      .fn<AuditService['logAction']>()
+      .mockResolvedValue(undefined);
     const auditService = { logAction } as unknown as AuditService;
     const req = {
       user: { id: 'user-1', clinicId: 'clinic-1' },
@@ -72,8 +73,9 @@ describe('logPatientPhiRead', () => {
   });
 
   it('emits portal self-access audit with resolved clinic context', async () => {
-    const logPatientAccess =
-      jest.fn<AuditService['logPatientAccess']>().mockResolvedValue(undefined);
+    const logPatientAccess = jest
+      .fn<AuditService['logPatientAccess']>()
+      .mockResolvedValue(undefined);
     const auditService = { logPatientAccess } as unknown as AuditService;
     const req = {
       user: { id: 'portal-user-1' },

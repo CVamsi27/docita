@@ -22,7 +22,10 @@ export class DoctorImportStrategy implements IImportStrategy {
   constructor(private readonly prisma: PrismaService) {}
 
   validate(row: Record<string, unknown>): ImportValidationResult {
-    if (!readImportRowString(row, 'name') || !readImportRowString(row, 'email')) {
+    if (
+      !readImportRowString(row, 'name') ||
+      !readImportRowString(row, 'email')
+    ) {
       return { valid: false, error: 'Missing name or email' };
     }
     return { valid: true };

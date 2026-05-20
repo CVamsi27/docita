@@ -52,7 +52,9 @@ export class LabTestsController {
 
   @Get()
   async getAllTests(@Request() req: RequestWithUser): Promise<LabTest[]> {
-    return await this.clinicalService.getAllTests(getClinicStaffRequestContext(req).clinicId);
+    return await this.clinicalService.getAllTests(
+      getClinicStaffRequestContext(req).clinicId,
+    );
   }
 
   @Get('stats')
@@ -60,7 +62,9 @@ export class LabTestsController {
     @Request() req: RequestWithUser,
     @Query() _query: LabStatsQueryDto,
   ): Promise<LabStats> {
-    return await this.clinicalService.getStats(getClinicStaffRequestContext(req).clinicId);
+    return await this.clinicalService.getStats(
+      getClinicStaffRequestContext(req).clinicId,
+    );
   }
 
   @Get('orders')
@@ -87,10 +91,13 @@ export class LabTestsController {
       );
     }
 
-    return await this.clinicalService.getAllOrders(getClinicStaffRequestContext(req).clinicId, {
-      ...params,
-      patientId,
-    });
+    return await this.clinicalService.getAllOrders(
+      getClinicStaffRequestContext(req).clinicId,
+      {
+        ...params,
+        patientId,
+      },
+    );
   }
 
   @Get('orders/:id')

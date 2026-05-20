@@ -74,10 +74,8 @@ export class PatientTabularImportService {
             ? this.columnMapping.applyColumnMapping(excelRow, columnMapping)
             : (excelRow as MappedPatientData);
 
-          const duplicateCheck = await this.duplicateDetector.checkForDuplicates(
-            mapped,
-            clinicId,
-          );
+          const duplicateCheck =
+            await this.duplicateDetector.checkForDuplicates(mapped, clinicId);
 
           if (duplicateCheck.isDuplicate) {
             results.duplicates++;

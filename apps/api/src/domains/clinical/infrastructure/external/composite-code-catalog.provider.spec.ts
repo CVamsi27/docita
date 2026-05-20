@@ -139,5 +139,4 @@ describe('CompositeCodeCatalogProvider', () => {
     expect(nlmStreamIcdMock).toHaveBeenCalled();
     expect(licensedSearchIcdSpy).not.toHaveBeenCalled();
   });
-
 });

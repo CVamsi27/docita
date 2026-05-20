@@ -24,6 +24,8 @@ export function lookupTierObject<T extends Record<string, unknown>>(
   return Object.fromEntries(Object.entries(value));
 }
 
-export function parsePricingConfigResponse(raw: unknown): PricingConfigResponse {
+export function parsePricingConfigResponse(
+  raw: unknown,
+): PricingConfigResponse {
   return pricingConfigResponseSchema.parse(raw);
 }

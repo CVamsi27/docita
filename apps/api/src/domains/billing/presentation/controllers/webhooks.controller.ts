@@ -7,7 +7,6 @@ import {
   Logger,
   UsePipes,
   Req,
-  UnauthorizedException,
 } from '@nestjs/common';
 import { Request } from 'express';
 import { PaymentsService } from '@/domains/billing/application/services/payments.service';
@@ -44,9 +43,8 @@ export class WebhooksController {
     @Headers('user-agent') userAgent: string | undefined,
     @Body() payload: PaymentWebhookPayload,
   ) {
-    let rawBody: Buffer;
     try {
-      rawBody = await assertVerifiedRazorpayWebhook({
+      await assertVerifiedRazorpayWebhook({
         req,
         signature,
         secret: this.configService.getRazorpayWebhookSecret(),

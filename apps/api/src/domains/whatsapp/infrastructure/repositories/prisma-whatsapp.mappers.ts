@@ -171,9 +171,7 @@ const PRISMA_TO_DOMAIN_MESSAGE_STATUS: Record<
 export function toPrismaTemplateStatus(
   status: DomainTemplateStatus,
 ): PrismaTemplateStatus {
-  return (
-    DOMAIN_TO_PRISMA_TEMPLATE_STATUS[status] ?? PrismaTemplateStatus.DRAFT
-  );
+  return DOMAIN_TO_PRISMA_TEMPLATE_STATUS[status] ?? PrismaTemplateStatus.DRAFT;
 }
 
 export function toDomainTemplateStatus(
@@ -205,15 +203,11 @@ export function toDomainTemplateCategory(
 export function toPrismaMessageStatus(
   status: DomainMessageStatus,
 ): PrismaMessageStatus {
-  return (
-    DOMAIN_TO_PRISMA_MESSAGE_STATUS[status] ?? PrismaMessageStatus.FAILED
-  );
+  return DOMAIN_TO_PRISMA_MESSAGE_STATUS[status] ?? PrismaMessageStatus.FAILED;
 }
 
 export function toDomainMessageStatus(
   status: PrismaMessageStatus,
 ): DomainMessageStatus {
-  return (
-    PRISMA_TO_DOMAIN_MESSAGE_STATUS[status] ?? DomainMessageStatus.FAILED
-  );
+  return PRISMA_TO_DOMAIN_MESSAGE_STATUS[status] ?? DomainMessageStatus.FAILED;
 }

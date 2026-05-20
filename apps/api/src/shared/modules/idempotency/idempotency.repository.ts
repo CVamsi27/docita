@@ -1,9 +1,6 @@
 import { ConflictException, Inject, Injectable } from '@nestjs/common';
 import { apiHttpIdempotencyResponseJsonSchema } from '@workspace/types';
-import {
-  CLOCK_PORT,
-  type IClock,
-} from '@/shared/common/ports/clock.port';
+import { CLOCK_PORT, type IClock } from '@/shared/common/ports/clock.port';
 import { Prisma } from '@workspace/db';
 import { PrismaService } from '@/prisma/prisma.service';
 import { parsePrismaJsonColumn } from '@/shared/common/json/parse-prisma-json-column';

@@ -15,10 +15,7 @@ import { CredentialValidationService } from './credential-validation.service';
 import { AuthSessionService } from './auth-session.service';
 import { AuthEmailVerificationService } from './auth-email-verification.service';
 import type { RegisterData } from './auth.types';
-import {
-  CLOCK_PORT,
-  type IClock,
-} from '@/shared/common/ports/clock.port';
+import { CLOCK_PORT, type IClock } from '@/shared/common/ports/clock.port';
 
 @Injectable()
 export class AuthRegistrationService {

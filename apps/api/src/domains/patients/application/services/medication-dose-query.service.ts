@@ -5,10 +5,7 @@ import {
   MEDICATION_DOSE_REPOSITORY_TOKEN,
 } from '@/domains/patients/core/repositories/medication-dose.repository.interface';
 import { verifyMedicationDosePatientAccess } from './medication-dose-access.helpers';
-import {
-  CLOCK_PORT,
-  type IClock,
-} from '@/shared/common/ports/clock.port';
+import { CLOCK_PORT, type IClock } from '@/shared/common/ports/clock.port';
 
 interface DoseHistoryQuery {
   prescriptionId?: string;

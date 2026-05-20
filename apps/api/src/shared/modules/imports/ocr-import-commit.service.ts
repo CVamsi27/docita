@@ -1,8 +1,4 @@
-import {
-  BadRequestException,
-  Inject,
-  Injectable,
-} from '@nestjs/common';
+import { BadRequestException, Inject, Injectable } from '@nestjs/common';
 import { PrismaService } from '@/prisma/prisma.service';
 import {
   AppointmentStatus,
@@ -12,10 +8,7 @@ import {
   InvoiceStatus,
 } from '@workspace/db';
 import type { OcrImportCommitRequest } from '@workspace/types';
-import {
-  CLOCK_PORT,
-  type IClock,
-} from '@/shared/common/ports/clock.port';
+import { CLOCK_PORT, type IClock } from '@/shared/common/ports/clock.port';
 import type { ImportAuditContext } from './import-types';
 
 @Injectable()

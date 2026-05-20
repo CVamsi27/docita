@@ -3,9 +3,7 @@ import { PrismaService } from '@/prisma/prisma.service';
 import { IPortalAppointmentsRepository } from '@/domains/patient-portal/core/repositories/portal-appointments.repository.interface';
 
 @Injectable()
-export class PrismaPortalAppointmentsRepository
-  implements IPortalAppointmentsRepository
-{
+export class PrismaPortalAppointmentsRepository implements IPortalAppointmentsRepository {
   constructor(private readonly prisma: PrismaService) {}
 
   async getUpcomingAppointments(

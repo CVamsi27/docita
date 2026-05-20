@@ -6,10 +6,7 @@ import { Prisma } from '@workspace/db';
 import { FinancialAnalyticsFactory } from './financial-analytics.factory';
 import { OperationalAnalyticsFactory } from './operational-analytics.factory';
 import { ClinicalAnalyticsFactory } from './clinical-analytics.factory';
-import {
-  CLOCK_PORT,
-  type IClock,
-} from '@/shared/common/ports/clock.port';
+import { CLOCK_PORT, type IClock } from '@/shared/common/ports/clock.port';
 
 export interface SnapshotRecord {
   [key: string]: unknown;

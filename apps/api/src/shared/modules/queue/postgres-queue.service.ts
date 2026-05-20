@@ -1,10 +1,7 @@
 import { Inject, Injectable, Logger, OnModuleDestroy } from '@nestjs/common';
 import { jsonObjectSchema } from '@workspace/types';
 import { parsePrismaJsonColumn } from '@/shared/common/json/parse-prisma-json-column';
-import {
-  CLOCK_PORT,
-  type IClock,
-} from '@/shared/common/ports/clock.port';
+import { CLOCK_PORT, type IClock } from '@/shared/common/ports/clock.port';
 import { PrismaService } from '@/prisma/prisma.service';
 import {
   IQueueProvider,
@@ -337,8 +334,7 @@ export class PostgresQueueService implements IQueueProvider, OnModuleDestroy {
   }
 
   private rowToJob<T extends QueueJobData>(row: QueueJobRow): QueueJob<T> {
-    const data = (parsePrismaJsonColumn(row.data, jsonObjectSchema) ??
-      {}) as T;
+    const data = (parsePrismaJsonColumn(row.data, jsonObjectSchema) ?? {}) as T;
     return {
       id: row.id,
       name: row.name,

@@ -1,9 +1,9 @@
 import { client } from "@/lib/api/api-client";
 import {
+  type InternalDashboardClinic,
   loadInternalClinicUsers,
   loadInternalUsersForSelection,
   normalizeClinicsList,
-  type InternalDashboardClinic,
 } from "@workspace/data-access/internal";
 import type { Clinic, User } from "./types";
 

@@ -1,20 +1,15 @@
-import {
-  Inject,
-  Injectable,
-  Logger,
-  NotFoundException,
-} from '@nestjs/common';
+import { Inject, Injectable, Logger, NotFoundException } from '@nestjs/common';
 import { EventEmitter2 } from '@nestjs/event-emitter';
 import { ApplicationEvents } from '@/shared/common/events/application-events';
 import {
   WHATSAPP_PERSISTENCE_PORT,
   type WhatsappPersistencePort,
 } from '@/domains/whatsapp/application/ports/whatsapp-persistence.port';
-import type { NotificationPriority, StaffNotificationType } from '@workspace/db';
-import {
-  CLOCK_PORT,
-  type IClock,
-} from '@/shared/common/ports/clock.port';
+import type {
+  NotificationPriority,
+  StaffNotificationType,
+} from '@workspace/db';
+import { CLOCK_PORT, type IClock } from '@/shared/common/ports/clock.port';
 import { parseNotificationData } from './staff-notification-data.helper';
 
 @Injectable()

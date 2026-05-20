@@ -7,10 +7,7 @@ import {
   Logger,
   SetMetadata,
 } from '@nestjs/common';
-import {
-  CLOCK_PORT,
-  type IClock,
-} from '@/shared/common/ports/clock.port';
+import { CLOCK_PORT, type IClock } from '@/shared/common/ports/clock.port';
 import { Reflector } from '@nestjs/core';
 import {
   IUserRepository,

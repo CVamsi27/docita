@@ -25,10 +25,7 @@ import {
   ResolvedTemplate,
 } from '@/domains/whatsapp/core/services/template-resolver.service';
 import { WhatsappSenderResolver } from '@/domains/whatsapp/application/services/whatsapp-sender-resolver.service';
-import {
-  CLOCK_PORT,
-  type IClock,
-} from '@/shared/common/ports/clock.port';
+import { CLOCK_PORT, type IClock } from '@/shared/common/ports/clock.port';
 
 export interface SendMessageRequest {
   clinicId: string;

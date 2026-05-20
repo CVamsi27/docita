@@ -12,10 +12,7 @@ import {
   PAYMENT_GATEWAY_TOKEN,
 } from '@/domains/subscriptions/application/ports/payment-gateway.port';
 import { SubscriptionStatusEnum } from '@/domains/subscriptions/core/value-objects';
-import {
-  CLOCK_PORT,
-  type IClock,
-} from '@/shared/common/ports/clock.port';
+import { CLOCK_PORT, type IClock } from '@/shared/common/ports/clock.port';
 
 export interface CancelSubscriptionRequest {
   clinicId: string;

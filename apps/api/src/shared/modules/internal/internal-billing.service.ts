@@ -1,6 +1,5 @@
 import { Injectable } from '@nestjs/common';
 import { ClinicTier } from '@workspace/db';
-import type { InternalAdditionalChargeCategory } from '@workspace/types';
 import { InternalBillingMetricsService } from './internal-billing-metrics.service';
 import { InternalSubscriptionQueryService } from './internal-subscription-query.service';
 import { InternalSubscriptionAdminService } from './internal-subscription-admin.service';
@@ -25,7 +24,9 @@ export class InternalBillingService {
   }
 
   getSubscriptions(
-    filters: Parameters<InternalSubscriptionQueryService['getSubscriptions']>[0],
+    filters: Parameters<
+      InternalSubscriptionQueryService['getSubscriptions']
+    >[0],
   ) {
     return this.subscriptionQuery.getSubscriptions(filters);
   }

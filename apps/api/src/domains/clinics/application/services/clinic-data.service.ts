@@ -35,10 +35,7 @@ export class ClinicDataService {
     return this.queryService.findOne(id);
   }
 
-  update(
-    id: string,
-    data: Parameters<ClinicDataCommandService['update']>[1],
-  ) {
+  update(id: string, data: Parameters<ClinicDataCommandService['update']>[1]) {
     return this.commandService.update(id, data);
   }
 

@@ -70,7 +70,9 @@ export class MedicalHistoryService {
 
   async summarizeMedicalHistory(patientId: string): Promise<string> {
     const [conditions, allergies, meds] = await Promise.all([
-      this.persistence.patientMedicalCondition.findMany({ where: { patientId } }),
+      this.persistence.patientMedicalCondition.findMany({
+        where: { patientId },
+      }),
       this.persistence.patientAllergy.findMany({ where: { patientId } }),
       this.persistence.prescription.findMany({
         where: { patientId, approvalStatus: 'APPROVED' },
@@ -160,7 +162,9 @@ export class MedicalHistoryService {
   // ── Social history ────────────────────────────────────────────────────────
 
   async getSocialHistory(patientId: string) {
-    return this.persistence.patientSocialHistory.findFirst({ where: { patientId } });
+    return this.persistence.patientSocialHistory.findFirst({
+      where: { patientId },
+    });
   }
 
   async createOrUpdateSocialHistory(

@@ -78,7 +78,9 @@ export class PrismaPatientPortalRepository implements IPatientPortalRepository {
   getAppointments(
     patientId: string,
     clinicId: string,
-    filters: Parameters<PrismaPortalAppointmentsRepository['getAppointments']>[2],
+    filters: Parameters<
+      PrismaPortalAppointmentsRepository['getAppointments']
+    >[2],
   ) {
     return this.appointments.getAppointments(patientId, clinicId, filters);
   }

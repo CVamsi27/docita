@@ -1,8 +1,4 @@
-import {
-  ClinicWeeklySchedule,
-  DoctorSchedule,
-  Prisma,
-} from '@workspace/db';
+import { ClinicWeeklySchedule, DoctorSchedule, Prisma } from '@workspace/db';
 
 export interface IDoctorScheduleCoreRepository {
   findSchedules(

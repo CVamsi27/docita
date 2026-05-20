@@ -1,8 +1,5 @@
 import { Inject, Injectable } from '@nestjs/common';
-import {
-  CLOCK_PORT,
-  type IClock,
-} from '@/shared/common/ports/clock.port';
+import { CLOCK_PORT, type IClock } from '@/shared/common/ports/clock.port';
 import { PrismaService } from '@/prisma/prisma.service';
 import {
   CreateMetricCategoryDto,
@@ -105,7 +102,9 @@ export class PrismaPatientMetricsRepository implements IPatientMetricsRepository
     };
   }
 
-  private mapMetricRecord<T extends { values: PatientMetricValue[] }>(record: T) {
+  private mapMetricRecord<T extends { values: PatientMetricValue[] }>(
+    record: T,
+  ) {
     return {
       ...record,
       values: record.values.map((value) => this.mapMetricValue(value)),

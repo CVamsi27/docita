@@ -2,7 +2,11 @@ import { Injectable, UnauthorizedException } from '@nestjs/common';
 import { PrismaService } from '@/prisma/prisma.service';
 import { MfaService } from './mfa.service';
 import { AuthSessionService } from './auth-session.service';
-import type { AuthDeviceInfo, AuthLoginResult, UserWithoutPassword } from './auth.types';
+import type {
+  AuthDeviceInfo,
+  AuthLoginResult,
+  UserWithoutPassword,
+} from './auth.types';
 
 @Injectable()
 export class AuthMfaOrchestratorService {
@@ -15,8 +19,7 @@ export class AuthMfaOrchestratorService {
   async loginWithMfaCheck(
     user: UserWithoutPassword,
   ): Promise<
-    | { mfa_required: true; mfa_challenge_token: string }
-    | AuthLoginResult
+    { mfa_required: true; mfa_challenge_token: string } | AuthLoginResult
   > {
     if (user.mfaEnabled) {
       const challengeToken = await this.mfaService.issueMfaChallenge(user.id);

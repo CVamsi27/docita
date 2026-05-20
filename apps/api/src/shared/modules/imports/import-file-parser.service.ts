@@ -16,10 +16,7 @@ export type TabularRow = Array<string | number | Date | undefined>;
 export class ImportFileParserService {
   private readonly supportedImportExtensions = new Set(['.csv', '.xlsx']);
 
-  getCell(
-    row: unknown,
-    index: number,
-  ): string | number | Date | undefined {
+  getCell(row: unknown, index: number): string | number | Date | undefined {
     if (!Array.isArray(row)) {
       return undefined;
     }
@@ -30,9 +27,7 @@ export class ImportFileParserService {
       : undefined;
   }
 
-  sanitizeCellValue(
-    value: unknown,
-  ): string | number | Date | undefined {
+  sanitizeCellValue(value: unknown): string | number | Date | undefined {
     if (typeof value === 'string' || typeof value === 'number') {
       return value;
     }

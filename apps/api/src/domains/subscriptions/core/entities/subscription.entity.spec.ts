@@ -76,7 +76,9 @@ describe('Subscription entity', () => {
         now,
       });
 
-      expect(subscription.getStatus().value).toBe(SubscriptionStatusEnum.ACTIVE);
+      expect(subscription.getStatus().value).toBe(
+        SubscriptionStatusEnum.ACTIVE,
+      );
       expect(subscription.currentPeriodStart).toEqual(periodStart);
       expect(subscription.currentPeriodEnd).toEqual(periodEnd);
       expect(subscription.razorpaySubscriptionId).toBe('rzp_sub_123');
@@ -97,7 +99,9 @@ describe('Subscription entity', () => {
         periodStart,
       );
 
-      expect(subscription.getStatus().value).toBe(SubscriptionStatusEnum.ACTIVE);
+      expect(subscription.getStatus().value).toBe(
+        SubscriptionStatusEnum.ACTIVE,
+      );
       expect(subscription.getGraceUntil()).toBeNull();
       expect(subscription.currentPeriodStart).toEqual(periodStart);
       expect(subscription.currentPeriodEnd).toEqual(periodEnd);
@@ -140,7 +144,9 @@ describe('Subscription entity', () => {
 
       subscription.applyRazorpayRenewal(newPeriodEnd, newPeriodEnd);
 
-      expect(subscription.getStatus().value).toBe(SubscriptionStatusEnum.ACTIVE);
+      expect(subscription.getStatus().value).toBe(
+        SubscriptionStatusEnum.ACTIVE,
+      );
       expect(subscription.getGraceUntil()).toBeNull();
       expect(subscription.currentPeriodEnd).toEqual(newPeriodEnd);
     });

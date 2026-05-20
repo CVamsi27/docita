@@ -52,7 +52,10 @@ export class PrismaMedicalDocumentsRepository implements IMedicalDocumentsReposi
     id: string,
     data: Prisma.MedicalDocumentUpdateInput,
   ): Promise<MedicalDocument> {
-    const row = await this.prisma.medicalDocument.update({ where: { id }, data });
+    const row = await this.prisma.medicalDocument.update({
+      where: { id },
+      data,
+    });
     return this.mapDocument(row);
   }
 

@@ -14,7 +14,8 @@ export const queryKeys = {
     byId: (id: string) => ["patients", id] as const,
     infinite: (search?: string) =>
       ["patients", "infinite", search ?? ""] as const,
-    recent: (limit: number) => ["patients", "recent", limit.toString()] as const,
+    recent: (limit: number) =>
+      ["patients", "recent", limit.toString()] as const,
     withMedicalHistory: (id: string) =>
       ["patients", id, "with-medical-history"] as const,
     medicalHistoryTimeline: (patientId: string) =>
@@ -59,7 +60,8 @@ export const queryKeys = {
   },
   queue: {
     all: () => ["queue"] as const,
-    list: (params?: QueryParams) => ["queue", "list", withParams(params)] as const,
+    list: (params?: QueryParams) =>
+      ["queue", "list", withParams(params)] as const,
   },
   consultations: {
     all: () => ["consultations"] as const,
@@ -135,6 +137,18 @@ export const queryKeys = {
     all: () => ["patient-snapshot"] as const,
     detail: (patientId: string) => ["patient-snapshot", patientId] as const,
   },
+  ipd: {
+    wardsRoot: () => ["ipd", "wards"] as const,
+    wards: (search = "") => ["ipd", "wards", search] as const,
+    activeAdmissions: () => ["ipd", "admissions", "active"] as const,
+  },
+  compliance: {
+    summary: (clinicId: string) => ["clinic-compliance", clinicId] as const,
+    recentAuditLogs: (clinicId: string) =>
+      ["audit-logs-recent", clinicId] as const,
+    dataSubjectRequests: (clinicId: string) =>
+      ["data-subject-requests", clinicId] as const,
+  },
   clinicJoinRequests: {
     all: () => ["clinic-join-requests"] as const,
   },
@@ -150,14 +164,17 @@ export const queryKeys = {
     prorationPreview: (tier: string, cycle: string) =>
       ["proration-preview", tier, cycle] as const,
   },
+  enterpriseContract: {
+    detail: () => ["clinic", "enterprise-contract"] as const,
+    estimate: () => ["clinic", "enterprise-contract", "estimate"] as const,
+  },
   clinic: {
     subscription: (clinicId?: string | null) =>
       ["clinic-subscription", clinicId] as const,
     subscriptionSettings: () => ["clinic", "subscription"] as const,
     settings: () => ["clinic", "settings"] as const,
     members: () => ["clinic", "members"] as const,
-    medicalCodingSettings: () =>
-      ["clinic", "medical-coding-settings"] as const,
+    medicalCodingSettings: () => ["clinic", "medical-coding-settings"] as const,
     prescriptionDefaults: () => ["clinic", "prescription-defaults"] as const,
   },
   doctors: {
@@ -196,8 +213,7 @@ export const queryKeys = {
       ["doctor-availability-slots", day, doctorId] as const,
   },
   medications: {
-    active: (patientId: string) =>
-      ["active-medications", patientId] as const,
+    active: (patientId: string) => ["active-medications", patientId] as const,
     adherence: (patientId: string, prescriptionId = "") =>
       ["medication-adherence", patientId, prescriptionId] as const,
     adherencePrefix: (patientId: string) =>
@@ -214,8 +230,7 @@ export const queryKeys = {
     prescriptions: {
       list: (filters?: QueryParams) =>
         ["patient-portal", "prescriptions", withParams(filters ?? {})] as const,
-      detail: (id: string) =>
-        ["patient-portal", "prescriptions", id] as const,
+      detail: (id: string) => ["patient-portal", "prescriptions", id] as const,
     },
     invoices: {
       list: (filters?: QueryParams) =>
@@ -225,14 +240,23 @@ export const queryKeys = {
     medicalHistory: (patientId: string) =>
       ["patient-portal", "medical-history", patientId] as const,
     metrics: {
-      categories: () =>
-        ["patient-portal", "metrics", "categories"] as const,
+      categories: () => ["patient-portal", "metrics", "categories"] as const,
       history: (filters?: QueryParams) =>
-        ["patient-portal", "metrics", "history", withParams(filters ?? {})] as const,
+        [
+          "patient-portal",
+          "metrics",
+          "history",
+          withParams(filters ?? {}),
+        ] as const,
       historyPrefix: () => ["patient-portal", "metrics", "history"] as const,
       selected: () => ["patient-portal", "metrics", "selected"] as const,
       vitalsHistory: (filters?: QueryParams) =>
-        ["patient-portal", "metrics", "vitals-history", withParams(filters ?? {})] as const,
+        [
+          "patient-portal",
+          "metrics",
+          "vitals-history",
+          withParams(filters ?? {}),
+        ] as const,
     },
     timeline: {
       list: (filters?: QueryParams) =>
@@ -258,8 +282,7 @@ export const queryKeys = {
   whatsapp: {
     sender: () => ["whatsapp", "sender"] as const,
     notifications: {
-      unreadCount: () =>
-        ["whatsapp", "notifications", "unread-count"] as const,
+      unreadCount: () => ["whatsapp", "notifications", "unread-count"] as const,
       unread: (limit: number) =>
         ["whatsapp", "notifications", "unread", limit] as const,
       unreadPrefix: () => ["whatsapp", "notifications", "unread"] as const,
@@ -288,8 +311,7 @@ export const queryKeys = {
     detail: (id: string) => ["inventory", id] as const,
   },
   importJobs: {
-    template: (entityType: string) =>
-      ["import-template", entityType] as const,
+    template: (entityType: string) => ["import-template", entityType] as const,
     bulkJob: (jobId: string) => ["bulk-import-job", jobId] as const,
   },
   signatures: {
@@ -329,15 +351,13 @@ export const queryKeys = {
       period: "daily" | "weekly" | "monthly",
       startDate = "",
       endDate = "",
-    ) =>
-      ["revenue-metrics", clinicId, period, startDate, endDate] as const,
+    ) => ["revenue-metrics", clinicId, period, startDate, endDate] as const,
     appointmentMetrics: (
       clinicId: string,
       period: "daily" | "weekly" | "monthly",
       startDate = "",
       endDate = "",
-    ) =>
-      ["appointment-metrics", clinicId, period, startDate, endDate] as const,
+    ) => ["appointment-metrics", clinicId, period, startDate, endDate] as const,
     patientDemographics: (clinicId: string, startDate = "", endDate = "") =>
       ["patient-demographics", clinicId, startDate, endDate] as const,
     topConditions: (clinicId: string, limit: number) =>
@@ -439,8 +459,7 @@ export const internalQueryKeys = {
       ["internal", "billing", "payments", filtersKey] as const,
     billingPricingTiers: () =>
       ["internal", "billing", "pricing", "tiers"] as const,
-    enterpriseContracts: () =>
-      ["internal", "enterprise-contracts"] as const,
+    enterpriseContracts: () => ["internal", "enterprise-contracts"] as const,
     monitoringDashboard: () => ["internal", "monitoring", "dashboard"] as const,
     monitoringHealth: () => ["internal", "monitoring", "health"] as const,
     healthPerformance: () => ["health", "performance"] as const,
@@ -460,10 +479,7 @@ export const internalQueryKeys = {
       ["internal", "support", "inquiries", limit] as const,
     supportWhatsAppThreads: (limit: number) =>
       ["internal", "support", "whatsapp", "threads", limit] as const,
-    supportWhatsAppThreadMessages: (
-      threadPhoneNumber: string,
-      limit: number,
-    ) =>
+    supportWhatsAppThreadMessages: (threadPhoneNumber: string, limit: number) =>
       [
         "internal",
         "support",

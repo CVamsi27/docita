@@ -5,9 +5,7 @@ import { Prisma, DayOfWeek } from '@workspace/db';
 import { isPrismaTableDoesNotExistForModel } from '@/shared/common/utils/prisma-missing-table';
 
 @Injectable()
-export class PrismaDoctorScheduleCoreRepository
-  implements IDoctorScheduleCoreRepository
-{
+export class PrismaDoctorScheduleCoreRepository implements IDoctorScheduleCoreRepository {
   private readonly logger = new Logger(PrismaDoctorScheduleCoreRepository.name);
 
   constructor(private prisma: PrismaService) {}

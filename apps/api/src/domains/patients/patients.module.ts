@@ -22,9 +22,7 @@ import { PatientTagsService } from './application/services/patient-tags.service'
 import { PrismaPatientRepository } from './infrastructure/persistence/prisma-patient.repository';
 import { PrismaMedicationDoseRepository } from './infrastructure/persistence/prisma-medication-dose.repository';
 import { PrismaPatientTimelineSnapshotRepository } from './infrastructure/persistence/timeline/prisma-patient-timeline-snapshot.repository';
-import {
-  PATIENT_TIMELINE_SOURCE_CLASSES,
-} from './infrastructure/persistence/timeline/prisma-patient-timeline-sources';
+import { PATIENT_TIMELINE_SOURCE_CLASSES } from './infrastructure/persistence/timeline/prisma-patient-timeline-sources';
 import { PatientTimelineSourceRegistry } from './application/services/patient-timeline-source.registry';
 import { PrismaPatientMetricsRepository } from './infrastructure/persistence/prisma-patient-metrics.repository';
 import { PrismaPatientTagsRepository } from './infrastructure/persistence/prisma-patient-tags.repository';

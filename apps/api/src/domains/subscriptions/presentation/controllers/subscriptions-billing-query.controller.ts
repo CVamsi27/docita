@@ -1,10 +1,4 @@
-import {
-  Controller,
-  Get,
-  Query,
-  Request,
-  UseGuards,
-} from '@nestjs/common';
+import { Controller, Get, Query, Request, UseGuards } from '@nestjs/common';
 import { JwtAuthGuard } from '@/shared/modules/auth/auth/jwt-auth.guard';
 import { Roles } from '@/shared/modules/auth/auth/roles.decorator';
 import { SubscriptionsQueryService } from '@/domains/subscriptions/application/services/subscriptions-query.service';
@@ -73,7 +67,8 @@ export class SubscriptionsBillingQueryController {
     const { tier, cycle } = query;
     const subscriptionEntity =
       await this.queryService.findSubscriptionEntity(clinicId);
-    const pricingOffer = await this.queryService.getClinicPricingOffer(clinicId);
+    const pricingOffer =
+      await this.queryService.getClinicPricingOffer(clinicId);
     const offerPercent = pricingOffer?.percentOff ?? 0;
     const newTier = ClinicTier.fromString(tier);
     const newCycle = BillingCycle.fromString(cycle);

@@ -9,10 +9,7 @@ import {
 import { Public } from './public.decorator';
 import { AuthService } from './auth.service';
 import { IpRateLimitGuard } from '@/shared/modules/auth/guards/ip-rate-limit.guard';
-import {
-  ChangePasswordDto,
-  ChangePasswordResponseDto,
-} from './dto/auth.dto';
+import { ChangePasswordDto, ChangePasswordResponseDto } from './dto/auth.dto';
 import { ZodSerializerDto } from 'nestjs-zod';
 import { AuthenticatedRequest } from '@workspace/types';
 import { AuthSessionAccess } from './auth.controller.access';

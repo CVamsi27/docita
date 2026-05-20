@@ -16,11 +16,6 @@ export async function auditPatientPortalRead(
   const context = await contextService.getPatientContext(
     requireAuthenticatedUserId(req),
   );
-  await logPatientPortalPhiRead(
-    auditService,
-    req,
-    context,
-    accessType,
-  );
+  await logPatientPortalPhiRead(auditService, req, context, accessType);
   return context;
 }

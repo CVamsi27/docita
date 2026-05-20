@@ -1,7 +1,4 @@
-import {
-  BadRequestException,
-  UnauthorizedException,
-} from '@nestjs/common';
+import { BadRequestException, UnauthorizedException } from '@nestjs/common';
 import { createHash, timingSafeEqual } from 'crypto';
 import type { IClock } from '@/shared/common/ports/clock.port';
 

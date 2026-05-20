@@ -8,9 +8,7 @@ import type {
 } from '@/shared/modules/monitoring/monitoring/ports/api-request-metrics.repository.port';
 
 @Injectable()
-export class PrismaApiRequestMetricsRepository
-  implements ApiRequestMetricsRepository
-{
+export class PrismaApiRequestMetricsRepository implements ApiRequestMetricsRepository {
   constructor(private readonly prisma: PrismaService) {}
 
   private buildSqlWhere(filter: ApiRequestMetricsFilter): Prisma.Sql {

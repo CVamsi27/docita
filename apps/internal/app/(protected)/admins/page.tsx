@@ -4,9 +4,9 @@ import { DocitaLoadingIndicator } from "@workspace/ui/components/feedback/docita
 
 import { useEffect, useMemo, useState } from "react";
 import {
+  type InternalAdminUser,
   useInternalClinicAdmins,
   useInternalClinics,
-  type InternalAdminUser,
 } from "@workspace/data-access/internal";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { Button } from "@workspace/ui/components/form/button";

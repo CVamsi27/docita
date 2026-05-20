@@ -1,7 +1,5 @@
 import { Injectable } from '@nestjs/common';
-import {
-  PatientSearchParams,
-} from '@/domains/patients/core/repositories/patient.repository.interface';
+import { PatientSearchParams } from '@/domains/patients/core/repositories/patient.repository.interface';
 import { Patient } from '@/domains/patients/core/entities/patient.entity';
 import {
   type PatientDomainCreateInput,
@@ -32,7 +30,10 @@ export class PatientService {
     clinicId: string,
     phoneNumber: string,
   ): Promise<Patient | null> {
-    return this.queryService.findByClinicIdAndPhoneNumber(clinicId, phoneNumber);
+    return this.queryService.findByClinicIdAndPhoneNumber(
+      clinicId,
+      phoneNumber,
+    );
   }
 
   listPatients(params: PatientSearchParams) {

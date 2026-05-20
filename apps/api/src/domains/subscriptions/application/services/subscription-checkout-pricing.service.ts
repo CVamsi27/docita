@@ -1,8 +1,5 @@
 import { Inject, Injectable } from '@nestjs/common';
-import {
-  CLOCK_PORT,
-  type IClock,
-} from '@/shared/common/ports/clock.port';
+import { CLOCK_PORT, type IClock } from '@/shared/common/ports/clock.port';
 import { Subscription } from '@/domains/subscriptions/core/entities/subscription.entity';
 import { SubscriptionPricingService } from '@/domains/subscriptions/core/services/subscription-pricing.service';
 import { ProratingService } from '@/domains/subscriptions/core/services/proration.service';

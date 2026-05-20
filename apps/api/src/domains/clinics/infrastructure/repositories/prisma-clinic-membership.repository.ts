@@ -7,9 +7,7 @@ import {
 } from '@/domains/clinics/core/repositories/clinic-membership.repository.interface';
 
 @Injectable()
-export class PrismaClinicMembershipRepository
-  implements IClinicMembershipRepository
-{
+export class PrismaClinicMembershipRepository implements IClinicMembershipRepository {
   constructor(private readonly prisma: PrismaService) {}
 
   private getReadClient() {

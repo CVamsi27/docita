@@ -1,8 +1,5 @@
 import { Inject, Injectable } from '@nestjs/common';
-import {
-  DuplicateImportError,
-  type MappedPatientData,
-} from '../import-types';
+import { DuplicateImportError, type MappedPatientData } from '../import-types';
 import {
   DUPLICATE_DETECTOR_TOKEN,
   type IDuplicateDetector,

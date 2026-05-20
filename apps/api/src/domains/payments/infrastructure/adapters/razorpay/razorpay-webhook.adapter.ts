@@ -1,8 +1,5 @@
 import { Inject, Injectable, Logger } from '@nestjs/common';
-import {
-  CLOCK_PORT,
-  type IClock,
-} from '@/shared/common/ports/clock.port';
+import { CLOCK_PORT, type IClock } from '@/shared/common/ports/clock.port';
 import { ConfigService } from '@nestjs/config';
 import * as crypto from 'crypto';
 import { BaseRazorpayAdapter } from './razorpay.adapter';

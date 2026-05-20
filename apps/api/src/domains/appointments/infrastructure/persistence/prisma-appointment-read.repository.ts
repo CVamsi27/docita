@@ -11,7 +11,10 @@ import {
   AppointmentMapper,
   PRISMA_TO_DOMAIN_STATUS,
 } from '@/domains/appointments/infrastructure/mappers/appointment.mapper';
-import { Prisma, AppointmentStatus as PrismaAppointmentStatus } from '@workspace/db';
+import {
+  Prisma,
+  AppointmentStatus as PrismaAppointmentStatus,
+} from '@workspace/db';
 import { APPOINTMENT_STATUS_TO_PRISMA } from './appointment-status-prisma.maps';
 
 @Injectable()

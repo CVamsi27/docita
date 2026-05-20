@@ -36,7 +36,10 @@ export class StaffNotificationController {
     @Req() req: RequestWithUser,
     @Query('limit') limit?: number,
   ) {
-    return this.notificationService.getUnreadNotifications(getClinicStaffRequestContext(req).userId, limit);
+    return this.notificationService.getUnreadNotifications(
+      getClinicStaffRequestContext(req).userId,
+      limit,
+    );
   }
 
   @Get('all')
@@ -45,21 +48,29 @@ export class StaffNotificationController {
     @Query('limit') limit?: number,
     @Query('offset') offset?: number,
   ) {
-    return this.notificationService.getAllNotifications(getClinicStaffRequestContext(req).userId, {
-      limit: limit ? Number(limit) : undefined,
-      offset: offset ? Number(offset) : undefined,
-    });
+    return this.notificationService.getAllNotifications(
+      getClinicStaffRequestContext(req).userId,
+      {
+        limit: limit ? Number(limit) : undefined,
+        offset: offset ? Number(offset) : undefined,
+      },
+    );
   }
 
   @Get('unread-count')
   async getUnreadCount(@Req() req: RequestWithUser) {
-    const count = await this.notificationService.getUnreadCount(getClinicStaffRequestContext(req).userId);
+    const count = await this.notificationService.getUnreadCount(
+      getClinicStaffRequestContext(req).userId,
+    );
     return { count };
   }
 
   @Patch('mark-read/:id')
   async markRead(@Req() req: RequestWithUser, @Param('id') id: string) {
-    await this.notificationService.markNotificationRead(id, getClinicStaffRequestContext(req).userId);
+    await this.notificationService.markNotificationRead(
+      id,
+      getClinicStaffRequestContext(req).userId,
+    );
     return { success: true };
   }
 
@@ -68,7 +79,10 @@ export class StaffNotificationController {
     @Req() req: RequestWithUser,
     @Param('id') id: string,
   ) {
-    await this.notificationService.deleteNotification(id, getClinicStaffRequestContext(req).userId);
+    await this.notificationService.deleteNotification(
+      id,
+      getClinicStaffRequestContext(req).userId,
+    );
     return { success: true };
   }
 

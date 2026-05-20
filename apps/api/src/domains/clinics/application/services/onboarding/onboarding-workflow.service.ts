@@ -39,10 +39,7 @@ import {
   IOnboardingTxRepository,
   ONBOARDING_TX_REPOSITORY_TOKEN,
 } from '@/domains/clinics/core/repositories/onboarding-tx.repository.interface';
-import {
-  CLOCK_PORT,
-  type IClock,
-} from '@/shared/common/ports/clock.port';
+import { CLOCK_PORT, type IClock } from '@/shared/common/ports/clock.port';
 
 interface OnboardingPaymentInput {
   razorpayPaymentId?: string;

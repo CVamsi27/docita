@@ -15,10 +15,7 @@ import {
   MedicalDocumentType,
   Prisma,
 } from '@workspace/db';
-import {
-  CLOCK_PORT,
-  type IClock,
-} from '@/shared/common/ports/clock.port';
+import { CLOCK_PORT, type IClock } from '@/shared/common/ports/clock.port';
 
 /**
  * Thin facade — delegates medical document persistence to IMedicalDocumentsRepository.

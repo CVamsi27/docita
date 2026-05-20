@@ -4,7 +4,15 @@ import { DocitaLoadingIndicator } from "@workspace/ui/components/feedback/docita
 
 import dynamic from "next/dynamic";
 import React, { useCallback, useEffect, useMemo, useState } from "react";
-import { Activity, BarChart3, Calendar, DollarSign, Download, TrendingUp, Users } from "lucide-react";
+import {
+  Activity,
+  BarChart3,
+  Calendar,
+  DollarSign,
+  Download,
+  TrendingUp,
+  Users,
+} from "lucide-react";
 import { API_URL } from "@/lib/api/api-config";
 import { useAuth } from "@/lib/auth/auth";
 import { toast } from "sonner";
@@ -12,8 +20,6 @@ import {
   downloadInternalAnalyticsExport,
   useInternalAnalytics,
   useInternalBillingMetrics,
-  type InternalAnalyticsData as AnalyticsData,
-  type InternalBillingMetrics as BillingMetrics,
 } from "@workspace/data-access/internal";
 import { AppPageScaffold } from "@workspace/ui/components/layout/app-page-scaffold";
 import { Button } from "@workspace/ui/components/form/button";
@@ -429,10 +435,14 @@ export function AnalyticsDashboard() {
                     style={{
                       height: `${Math.round((item.revenue / maxRevenue) * 100)}%`,
                     }}
-                    title={`${item.month}: ₹${formatAmountLocale(item.revenue, "en-IN", {
-                      minimumFractionDigits: 0,
-                      maximumFractionDigits: 0,
-                    })}`}
+                    title={`${item.month}: ₹${formatAmountLocale(
+                      item.revenue,
+                      "en-IN",
+                      {
+                        minimumFractionDigits: 0,
+                        maximumFractionDigits: 0,
+                      },
+                    )}`}
                   />
                   <span className="text-xs text-muted-foreground truncate w-full text-center">
                     {item.month.split(" ")[0]}
@@ -555,4 +565,3 @@ export function AnalyticsDashboard() {
     </AppPageScaffold>
   );
 }
-

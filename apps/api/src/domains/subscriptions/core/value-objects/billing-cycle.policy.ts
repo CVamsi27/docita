@@ -19,10 +19,9 @@ export const BILLING_CYCLE_DISPLAY_NAMES: Record<BillingCycleEnum, string> = {
   [BillingCycleEnum.YEARLY]: 'Yearly',
 };
 
-export const BILLING_CYCLE_MONTHLY_DIVISOR: Record<BillingCycleEnum, number> =
-  {
-    [BillingCycleEnum.MONTHLY]: 1,
-    [BillingCycleEnum.QUARTERLY]: 3,
-    [BillingCycleEnum.SEMI_ANNUAL]: 6,
-    [BillingCycleEnum.YEARLY]: 12,
-  };
+export const BILLING_CYCLE_MONTHLY_DIVISOR: Record<BillingCycleEnum, number> = {
+  [BillingCycleEnum.MONTHLY]: 1,
+  [BillingCycleEnum.QUARTERLY]: 3,
+  [BillingCycleEnum.SEMI_ANNUAL]: 6,
+  [BillingCycleEnum.YEARLY]: 12,
+};

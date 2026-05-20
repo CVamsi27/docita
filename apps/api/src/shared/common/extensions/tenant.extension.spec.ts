@@ -20,7 +20,9 @@ describe('tenant extension scope rules', () => {
   });
 
   it('reports schema-backed tenant coverage diagnostics', () => {
-    const diagnostics = getTenantScopeDiagnostics(new Date('2026-01-01T00:00:00Z'));
+    const diagnostics = getTenantScopeDiagnostics(
+      new Date('2026-01-01T00:00:00Z'),
+    );
 
     expect(diagnostics.uncoveredClinicIdModels).toEqual([]);
     expect(diagnostics.staleRelationRules).toEqual([]);

@@ -1,8 +1,4 @@
-import type {
-  InviteFormValues,
-  MemberFormValues,
-  MemberRole,
-} from "@workspace/types";
+import type { InviteFormValues, MemberRole } from "@workspace/types";
 
 export {
   inviteTeamMemberFormSchema as inviteSchema,
@@ -13,7 +9,10 @@ export {
 } from "@workspace/types";
 
 export const DOCTOR_ROLES = new Set<MemberRole>(["DOCTOR", "ADMIN_DOCTOR"]);
-export const ADMIN_SWITCH_ROLES = new Set<MemberRole>(["ADMIN", "ADMIN_DOCTOR"]);
+export const ADMIN_SWITCH_ROLES = new Set<MemberRole>([
+  "ADMIN",
+  "ADMIN_DOCTOR",
+]);
 
 export const MEMBER_ROLE_LABELS: Record<MemberRole, string> = {
   DOCTOR: "Doctor",

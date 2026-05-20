@@ -1,8 +1,5 @@
 import { Inject, Injectable, Logger } from '@nestjs/common';
-import {
-  CLOCK_PORT,
-  type IClock,
-} from '@/shared/common/ports/clock.port';
+import { CLOCK_PORT, type IClock } from '@/shared/common/ports/clock.port';
 import { Cron } from '@nestjs/schedule';
 import { NotifyExpiringSubscriptionsUseCase } from '@/domains/subscriptions/application/use-cases/notify-expiring-subscriptions.use-case';
 import { NotifySubscriptionGraceDeadlineUseCase } from '@/domains/subscriptions/application/use-cases/notify-subscription-grace-deadline.use-case';

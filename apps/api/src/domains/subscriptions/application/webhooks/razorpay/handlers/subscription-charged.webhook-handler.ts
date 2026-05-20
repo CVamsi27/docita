@@ -5,19 +5,17 @@ import {
   CLINIC_OPERATIONS_TOKEN,
   IClinicOperations,
 } from '@/domains/subscriptions/application/ports';
-import { type RazorpayWebhookPayload, SUBSCRIPTION_TRIAL_DAYS } from '@workspace/types';
+import {
+  type RazorpayWebhookPayload,
+  SUBSCRIPTION_TRIAL_DAYS,
+} from '@workspace/types';
 import { SubscriptionStatusEnum } from '@/domains/subscriptions/core/value-objects';
 import { AdminAlertsService } from '@/shared/modules/messaging/admin-alerts/admin-alerts.service';
 import { RazorpayWebhookEventHandler } from '@/domains/subscriptions/application/webhooks/razorpay/razorpay-webhook-event-handler.interface';
-import {
-  CLOCK_PORT,
-  type IClock,
-} from '@/shared/common/ports/clock.port';
+import { CLOCK_PORT, type IClock } from '@/shared/common/ports/clock.port';
 
 @Injectable()
-export class SubscriptionChargedWebhookHandler
-  implements RazorpayWebhookEventHandler
-{
+export class SubscriptionChargedWebhookHandler implements RazorpayWebhookEventHandler {
   readonly event = 'subscription.charged';
 
   constructor(

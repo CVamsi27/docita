@@ -4,15 +4,9 @@ import {
   Logger,
   BadRequestException,
 } from '@nestjs/common';
-import {
-  CLOCK_PORT,
-  type IClock,
-} from '@/shared/common/ports/clock.port';
+import { CLOCK_PORT, type IClock } from '@/shared/common/ports/clock.port';
 import { PrismaService } from '@/prisma/prisma.service';
-import {
-  AppointmentStatus,
-  InvoiceStatus,
-} from '@workspace/db';
+import { AppointmentStatus, InvoiceStatus } from '@workspace/db';
 import { AnonymizationFactory } from './factories/anonymization.factory';
 import { DataExportFactory } from './factories/data-export.factory';
 import { DpdpAuditEmitter } from './dpdp-audit.emitter';

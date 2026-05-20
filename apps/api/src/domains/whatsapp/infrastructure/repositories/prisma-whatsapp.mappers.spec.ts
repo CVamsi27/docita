@@ -17,7 +17,9 @@ describe('prisma-whatsapp.mappers', () => {
   });
 
   it('parses template buttons from Json via Zod', () => {
-    const value: Prisma.JsonValue = [{ id: 'btn1', text: 'Confirm', action: null }];
+    const value: Prisma.JsonValue = [
+      { id: 'btn1', text: 'Confirm', action: null },
+    ];
 
     expect(toTemplateButtons(value)).toEqual([
       { id: 'btn1', text: 'Confirm', action: undefined },

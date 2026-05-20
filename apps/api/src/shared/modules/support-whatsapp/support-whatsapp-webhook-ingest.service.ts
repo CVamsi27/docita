@@ -1,8 +1,5 @@
 import { Inject, Injectable, Logger } from '@nestjs/common';
-import {
-  CLOCK_PORT,
-  type IClock,
-} from '@/shared/common/ports/clock.port';
+import { CLOCK_PORT, type IClock } from '@/shared/common/ports/clock.port';
 import { PrismaService } from '@/prisma/prisma.service';
 import { Prisma } from '@workspace/db';
 import { SupportWhatsAppReplyService } from './support-whatsapp-reply.service';
@@ -20,7 +17,9 @@ import {
 
 @Injectable()
 export class SupportWhatsAppWebhookIngestService {
-  private readonly logger = new Logger(SupportWhatsAppWebhookIngestService.name);
+  private readonly logger = new Logger(
+    SupportWhatsAppWebhookIngestService.name,
+  );
 
   constructor(
     private readonly prisma: PrismaService,

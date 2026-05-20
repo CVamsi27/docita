@@ -99,7 +99,11 @@ export class WhatsAppTemplate {
     this.props.updatedAt = now;
   }
 
-  updateContent(content: string, buttons: TemplateButton[] | undefined, now: Date): void {
+  updateContent(
+    content: string,
+    buttons: TemplateButton[] | undefined,
+    now: Date,
+  ): void {
     this.props.content = content;
     this.props.buttons = buttons;
     this.props.updatedAt = now;

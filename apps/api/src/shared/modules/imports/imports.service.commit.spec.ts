@@ -91,7 +91,9 @@ describe('ImportsService.commitOcrImport', () => {
         },
         {
           provide: CLOCK_PORT,
-          useValue: { now: () => new Date('2026-01-15T10:00:00Z') } satisfies IClock,
+          useValue: {
+            now: () => new Date('2026-01-15T10:00:00Z'),
+          } satisfies IClock,
         },
       ],
     }).compile();

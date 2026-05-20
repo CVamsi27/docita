@@ -14,10 +14,7 @@ import {
   type EnterpriseContractEstimate,
   enterpriseContractCustomLineItemsJsonSchema,
 } from '@workspace/types';
-import {
-  CLOCK_PORT,
-  type IClock,
-} from '@/shared/common/ports/clock.port';
+import { CLOCK_PORT, type IClock } from '@/shared/common/ports/clock.port';
 
 export interface ContractWithMembers extends EnterpriseContract {
   members: {
@@ -55,9 +52,11 @@ export class EnterpriseContractsQueryService {
   async getForClinicId(clinicId: string): Promise<ContractWithMembers | null> {
     // RLS-BYPASS: enterprise contract administration spans member clinics by design
     return this.persistence.runUnrestricted(async () => {
-      const member = await this.persistence.enterpriseContractMember.findUnique({
-        where: { clinicId },
-      });
+      const member = await this.persistence.enterpriseContractMember.findUnique(
+        {
+          where: { clinicId },
+        },
+      );
       if (member) {
         return this.persistence.enterpriseContract.findUnique({
           where: { id: member.contractId },

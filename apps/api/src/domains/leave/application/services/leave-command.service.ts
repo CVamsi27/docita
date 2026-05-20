@@ -13,10 +13,7 @@ import {
 import { LeaveMapper } from '@/domains/leave/infrastructure/mappers/leave.mapper';
 import { AvailabilityScheduleService } from '@/domains/doctors/application/services/availability-schedule.service';
 import { Role } from '@workspace/db';
-import {
-  CLOCK_PORT,
-  type IClock,
-} from '@/shared/common/ports/clock.port';
+import { CLOCK_PORT, type IClock } from '@/shared/common/ports/clock.port';
 import { parseLeaveType } from './leave-type.helpers';
 
 @Injectable()

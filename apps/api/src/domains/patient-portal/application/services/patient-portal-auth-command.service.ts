@@ -16,10 +16,7 @@ import {
   PATIENT_PORTAL_REPOSITORY_TOKEN,
 } from '@/domains/patient-portal/core/repositories/patient-portal.repository.interface';
 import * as crypto from 'crypto';
-import {
-  CLOCK_PORT,
-  type IClock,
-} from '@/shared/common/ports/clock.port';
+import { CLOCK_PORT, type IClock } from '@/shared/common/ports/clock.port';
 
 @Injectable()
 export class PatientPortalAuthCommandService {

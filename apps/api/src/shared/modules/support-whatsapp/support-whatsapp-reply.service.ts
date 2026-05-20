@@ -6,10 +6,7 @@ import {
   NotFoundException,
   ServiceUnavailableException,
 } from '@nestjs/common';
-import {
-  CLOCK_PORT,
-  type IClock,
-} from '@/shared/common/ports/clock.port';
+import { CLOCK_PORT, type IClock } from '@/shared/common/ports/clock.port';
 import { PrismaService } from '@/prisma/prisma.service';
 import { SupportWhatsAppMessage } from '@workspace/types';
 import { randomUUID } from 'crypto';
@@ -35,8 +32,7 @@ export class SupportWhatsAppReplyService {
     message: string,
     replyToProviderMessageId?: string,
   ): Promise<SupportWhatsAppMessage> {
-    const normalizedThreadPhoneNumber =
-      normalizePhoneNumber(threadPhoneNumber);
+    const normalizedThreadPhoneNumber = normalizePhoneNumber(threadPhoneNumber);
     const trimmedMessage = message.trim();
     if (!trimmedMessage) {
       throw new BadRequestException('Reply message cannot be empty');

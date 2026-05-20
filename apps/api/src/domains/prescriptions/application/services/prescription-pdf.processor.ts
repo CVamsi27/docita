@@ -10,10 +10,7 @@ import {
   PDF_JOB_PROCESSOR_PRISMA_TOKEN,
   type PdfJobProcessorPrismaPort,
 } from '@/shared/modules/queue/pdf-job.service';
-import {
-  CLOCK_PORT,
-  type IClock,
-} from '@/shared/common/ports/clock.port';
+import { CLOCK_PORT, type IClock } from '@/shared/common/ports/clock.port';
 
 import { shouldRegisterPdfQueueHandlers } from '@/shared/modules/queue/pdf-processor-registration';
 

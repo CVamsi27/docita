@@ -13,12 +13,10 @@ import { Button } from "@workspace/ui/components/form/button";
 import { Input } from "@workspace/ui/components/form/input";
 import { useAuth } from "@/lib/auth/auth";
 import {
+  type InternalDashboardStats as StatsData,
   useInternalBillingMetrics,
   useInternalClinics,
   useInternalDashboardStats,
-  type InternalBillingMetrics as BillingMetrics,
-  type InternalDashboardClinic as Clinic,
-  type InternalDashboardStats as StatsData,
 } from "@workspace/data-access/internal";
 import { ClinicList } from "./clinic-list";
 import {
@@ -224,7 +222,9 @@ export default function InternalDashboard() {
             <Building2 className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-[var(--fs-2xl)] font-semibold tabular-nums leading-[var(--lh-tight)]">{stats.clinics}</div>
+            <div className="text-[var(--fs-2xl)] font-semibold tabular-nums leading-[var(--lh-tight)]">
+              {stats.clinics}
+            </div>
             {renderTrend(trends.clinicsThisMonth)}
           </CardContent>
         </Card>
@@ -234,7 +234,9 @@ export default function InternalDashboard() {
             <Users className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-[var(--fs-2xl)] font-semibold tabular-nums leading-[var(--lh-tight)]">{stats.doctors}</div>
+            <div className="text-[var(--fs-2xl)] font-semibold tabular-nums leading-[var(--lh-tight)]">
+              {stats.doctors}
+            </div>
             {renderTrend(trends.doctorsThisMonth)}
           </CardContent>
         </Card>
@@ -246,7 +248,9 @@ export default function InternalDashboard() {
             <User className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-[var(--fs-2xl)] font-semibold tabular-nums leading-[var(--lh-tight)]">{stats.patients}</div>
+            <div className="text-[var(--fs-2xl)] font-semibold tabular-nums leading-[var(--lh-tight)]">
+              {stats.patients}
+            </div>
             {renderTrend(trends.patientsThisMonth)}
           </CardContent>
         </Card>
@@ -258,7 +262,9 @@ export default function InternalDashboard() {
             <FileText className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-[var(--fs-2xl)] font-semibold tabular-nums leading-[var(--lh-tight)]">{stats.invoices}</div>
+            <div className="text-[var(--fs-2xl)] font-semibold tabular-nums leading-[var(--lh-tight)]">
+              {stats.invoices}
+            </div>
             {renderTrend(trends.invoicesPercentChange, true)}
           </CardContent>
         </Card>
@@ -268,7 +274,9 @@ export default function InternalDashboard() {
             <Pill className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-[var(--fs-2xl)] font-semibold tabular-nums leading-[var(--lh-tight)]">{stats.prescriptions}</div>
+            <div className="text-[var(--fs-2xl)] font-semibold tabular-nums leading-[var(--lh-tight)]">
+              {stats.prescriptions}
+            </div>
             {renderTrend(trends.prescriptionsPercentChange, true)}
           </CardContent>
         </Card>

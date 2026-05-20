@@ -16,10 +16,7 @@ import { type EnqueuePdfJobResponse, extractPdfTheme } from '@workspace/types';
 import { StoredFileUrlResolverService } from '@/domains/documents/application/services/stored-file-url-resolver.service';
 import { PdfJobService } from '@/shared/modules/queue/pdf-job.service';
 import type { PdfJobServicePort } from '@/shared/modules/queue/pdf-job.service';
-import {
-  CLOCK_PORT,
-  type IClock,
-} from '@/shared/common/ports/clock.port';
+import { CLOCK_PORT, type IClock } from '@/shared/common/ports/clock.port';
 
 const CURRENT_PDF_TEMPLATE_VERSION = 1;
 const PDF_SIGNED_URL_TTL_SECONDS = 3600;
@@ -73,9 +70,7 @@ export class PrescriptionPdfOrchestratorService {
 
     const diagnoses = prescription.appointment?.diagnoses
       ?.filter(
-        (
-          d,
-        ): d is (typeof d & { icdCode: NonNullable<(typeof d)['icdCode']> }) =>
+        (d): d is typeof d & { icdCode: NonNullable<(typeof d)['icdCode']> } =>
           d.icdCode != null,
       )
       .map((d) => ({

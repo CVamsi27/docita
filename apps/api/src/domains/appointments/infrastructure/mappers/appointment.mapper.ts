@@ -214,12 +214,16 @@ export class AppointmentMapper {
       version: plain.version,
       ...(plain.generalExamination !== undefined
         ? {
-            generalExamination: toPrismaInputJsonValue(plain.generalExamination),
+            generalExamination: toPrismaInputJsonValue(
+              plain.generalExamination,
+            ),
           }
         : {}),
       ...(plain.systemicExamination !== undefined
         ? {
-            systemicExamination: toPrismaInputJsonValue(plain.systemicExamination),
+            systemicExamination: toPrismaInputJsonValue(
+              plain.systemicExamination,
+            ),
           }
         : {}),
       ...(plain.investigations !== undefined

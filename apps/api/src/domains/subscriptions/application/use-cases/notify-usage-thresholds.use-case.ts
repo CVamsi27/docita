@@ -1,8 +1,5 @@
 import { Inject, Injectable, Logger } from '@nestjs/common';
-import {
-  CLOCK_PORT,
-  type IClock,
-} from '@/shared/common/ports/clock.port';
+import { CLOCK_PORT, type IClock } from '@/shared/common/ports/clock.port';
 import {
   SUBSCRIPTION_PERSISTENCE_PORT,
   type SubscriptionPersistencePort,
@@ -13,10 +10,7 @@ import {
 } from '@/domains/billing/application/ports';
 import type { CurrentUsage } from '@workspace/types';
 import { EmailService } from '@/shared/modules/messaging/email/email.service';
-import {
-  StaffNotificationType,
-  NotificationPriority,
-} from '@workspace/db';
+import { StaffNotificationType, NotificationPriority } from '@workspace/db';
 import { OverageInvoiceComposer } from '../../infrastructure/schedulers/overage-invoice.composer';
 
 @Injectable()
@@ -112,18 +106,19 @@ export class NotifyUsageThresholdsUseCase {
       new Set(warningActions.map((action) => action.channel)),
     );
 
-    const existingReminders = await this.persistence.subscriptionReminder.findMany({
-      where: {
-        clinicId,
-        type: { in: reminderTypes },
-        channel: { in: channels },
-        createdAt: { gte: periodStart, lte: periodEnd },
-      },
-      select: {
-        type: true,
-        channel: true,
-      },
-    });
+    const existingReminders =
+      await this.persistence.subscriptionReminder.findMany({
+        where: {
+          clinicId,
+          type: { in: reminderTypes },
+          channel: { in: channels },
+          createdAt: { gte: periodStart, lte: periodEnd },
+        },
+        select: {
+          type: true,
+          channel: true,
+        },
+      });
 
     const dedupeSet = new Set(
       existingReminders.map(

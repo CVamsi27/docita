@@ -10,13 +10,13 @@ import type { InvoicePdfInput } from './pdf.types';
 export function isClinicalInvoiceInput(data: InvoicePdfInput): boolean {
   return Boolean(
     data.taxSummary ||
-      data.sellerTaxSnapshot ||
-      data.buyerTaxSnapshot ||
-      data.authorizedSignatureUrl ||
-      data.hospitalConfig ||
-      data.items.some(
-        (item) => item.cptCode || item.icdCode || item.gstRate || item.hsnCode,
-      ),
+    data.sellerTaxSnapshot ||
+    data.buyerTaxSnapshot ||
+    data.authorizedSignatureUrl ||
+    data.hospitalConfig ||
+    data.items.some(
+      (item) => item.cptCode || item.icdCode || item.gstRate || item.hsnCode,
+    ),
   );
 }
 

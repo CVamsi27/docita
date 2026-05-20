@@ -46,7 +46,9 @@ export class SearchStrategyRegistry {
   get(entityType: Exclude<SearchEntityType, 'all'>): ISearchStrategy {
     const strategy = this.strategies.get(entityType);
     if (!strategy) {
-      throw new BadRequestException(`Unsupported search entity type: ${entityType}`);
+      throw new BadRequestException(
+        `Unsupported search entity type: ${entityType}`,
+      );
     }
     return strategy;
   }

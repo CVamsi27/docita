@@ -90,7 +90,10 @@ export class PatientPortalController {
       req,
       'VIEW_HISTORY',
     );
-    return this.portalService.getAppointmentById(requireAuthenticatedUserId(req), id);
+    return this.portalService.getAppointmentById(
+      requireAuthenticatedUserId(req),
+      id,
+    );
   }
 
   @Post('appointments/request')
@@ -137,7 +140,10 @@ export class PatientPortalController {
       emergencyContactRelation?: string;
     },
   ) {
-    return this.portalService.updateProfile(requireAuthenticatedUserId(req), body);
+    return this.portalService.updateProfile(
+      requireAuthenticatedUserId(req),
+      body,
+    );
   }
 
   @Get('consent')
@@ -158,7 +164,10 @@ export class PatientPortalController {
     @Request() req: RequestWithUser,
     @Body() body: { whatsappConsent?: boolean; dataStorageConsent?: boolean },
   ) {
-    return this.portalService.updateConsent(requireAuthenticatedUserId(req), body);
+    return this.portalService.updateConsent(
+      requireAuthenticatedUserId(req),
+      body,
+    );
   }
 
   @Post('profile/delete-request')
@@ -167,6 +176,9 @@ export class PatientPortalController {
     @Request() req: RequestWithUser,
     @Body() body: { reason: string; confirmDeletion?: boolean },
   ) {
-    return this.portalService.requestDataDeletion(requireAuthenticatedUserId(req), body);
+    return this.portalService.requestDataDeletion(
+      requireAuthenticatedUserId(req),
+      body,
+    );
   }
 }

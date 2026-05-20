@@ -4,10 +4,7 @@ import {
   type ReminderPersistencePort,
 } from '@/domains/reminders/application/ports/reminder-persistence.port';
 import { ReminderSettings } from '@workspace/db';
-import {
-  CLOCK_PORT,
-  type IClock,
-} from '@/shared/common/ports/clock.port';
+import { CLOCK_PORT, type IClock } from '@/shared/common/ports/clock.port';
 
 interface ReminderSettingsData {
   enabled?: boolean;

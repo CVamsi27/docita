@@ -44,10 +44,13 @@ export class PatientPortalRecordsController {
       req,
       'VIEW_HISTORY',
     );
-    return this.portalService.getPrescriptions(requireAuthenticatedUserId(req), {
-      limit: parsePaginationInt(query.limit, { min: 1, max: 200 }),
-      offset: parsePaginationInt(query.offset, { min: 0 }),
-    });
+    return this.portalService.getPrescriptions(
+      requireAuthenticatedUserId(req),
+      {
+        limit: parsePaginationInt(query.limit, { min: 1, max: 200 }),
+        offset: parsePaginationInt(query.offset, { min: 0 }),
+      },
+    );
   }
 
   @Get('prescriptions/:id')
@@ -62,7 +65,10 @@ export class PatientPortalRecordsController {
       req,
       'VIEW_HISTORY',
     );
-    return this.portalService.getPrescriptionById(requireAuthenticatedUserId(req), id);
+    return this.portalService.getPrescriptionById(
+      requireAuthenticatedUserId(req),
+      id,
+    );
   }
 
   @Get('invoices')

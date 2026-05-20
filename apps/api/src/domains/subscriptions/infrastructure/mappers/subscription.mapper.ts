@@ -2,10 +2,7 @@ import {
   scheduledPlanChangeJsonSchema,
   subscriptionDiscountsAppliedJsonSchema,
 } from '@workspace/types';
-import {
-  Prisma,
-  Subscription as PrismaSubscription,
-} from '@workspace/db';
+import { Prisma, Subscription as PrismaSubscription } from '@workspace/db';
 import { parsePrismaJsonColumn } from '@/shared/common/json/parse-prisma-json-column';
 import { toPrismaInputJsonValue } from '@/shared/common/json/to-prisma-input-json-value';
 import {

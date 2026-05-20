@@ -21,10 +21,7 @@ import {
 } from '@/domains/whatsapp/application/ports/whatsapp-persistence.port';
 import { EncryptionService } from '@/shared/common/encryption.service';
 import { AppConfigService } from '@/shared/modules/config/app-configuration.service';
-import {
-  CLOCK_PORT,
-  type IClock,
-} from '@/shared/common/ports/clock.port';
+import { CLOCK_PORT, type IClock } from '@/shared/common/ports/clock.port';
 import {
   assertClinicHasFeatureOrThrow,
   clinicHasFeatureForAccess,

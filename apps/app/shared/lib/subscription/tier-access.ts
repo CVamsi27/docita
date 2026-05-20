@@ -1,4 +1,3 @@
-
 export {
   Tier,
   Feature,
@@ -43,7 +42,6 @@ import {
   formatCountLocale,
   getAllFeaturesUpToTier,
   getTierName,
-  hasFeatureAccess,
 } from "@workspace/utils";
 
 /** Linear plan ladder for onboarding highlights (excludes INTELLIGENCE add-on). */
@@ -143,7 +141,9 @@ export function getPlanHighlights(
     if (prevTier) {
       const prevTierName = getTierName(prevTier);
       const prevFeatureSet = new Set(getAllFeaturesUpToTier(prevTierName));
-      const newVsPrev = currentTierFeatures.filter((f) => !prevFeatureSet.has(f));
+      const newVsPrev = currentTierFeatures.filter(
+        (f) => !prevFeatureSet.has(f),
+      );
       highlightFeatures = (
         newVsPrev.length > 0 ? newVsPrev : currentTierFeatures
       ).slice(0, 3);
@@ -183,7 +183,9 @@ export function getPlanHighlights(
     const nextTierName = getTierName(nextTier);
     const nextTierFeaturesFull = getAllFeaturesUpToTier(nextTierName);
     const currentFeatureSet = new Set(currentTierFeatures);
-    const upcoming = nextTierFeaturesFull.filter((f) => !currentFeatureSet.has(f));
+    const upcoming = nextTierFeaturesFull.filter(
+      (f) => !currentFeatureSet.has(f),
+    );
     upcoming.slice(0, 2).forEach((feature) => {
       features.push({
         name: FEATURE_DISPLAY[feature].name,

@@ -443,7 +443,11 @@ describe('Auth controllers', () => {
       mockAuthService.refreshTokens.mockResolvedValue(tokens);
 
       await expect(
-        sessionController.refresh({ refresh_token: 'dto-refresh' }, request, response),
+        sessionController.refresh(
+          { refresh_token: 'dto-refresh' },
+          request,
+          response,
+        ),
       ).resolves.toEqual(tokens);
       expect(mockAuthService.refreshTokens).toHaveBeenCalledWith('dto-refresh');
       expect(response.cookie).toHaveBeenCalledTimes(2);
@@ -471,9 +475,7 @@ describe('Auth controllers', () => {
 
       await expect(
         sessionController.refresh({}, request, response),
-      ).rejects.toThrow(
-        BadRequestException,
-      );
+      ).rejects.toThrow(BadRequestException);
     });
 
     it('logs out and clears cookies when token exists', async () => {
@@ -602,15 +604,11 @@ describe('Auth controllers', () => {
 
       await expect(
         verificationController.verifyEmail({ token: 'token' }),
-      ).resolves.toEqual(
-        {
-          message: 'verified',
-        },
-      );
+      ).resolves.toEqual({
+        message: 'verified',
+      });
       await expect(
-        verificationController.resendVerification(
-          createAuthenticatedRequest(),
-        ),
+        verificationController.resendVerification(createAuthenticatedRequest()),
       ).resolves.toEqual({ message: 'sent' });
 
       expect(mockAuthService.verifyEmail).toHaveBeenCalledWith('token');
@@ -699,9 +697,9 @@ describe('Auth controllers', () => {
       await expect(apiKeysController.listApiKeys(request)).rejects.toThrow(
         BadRequestException,
       );
-      await expect(apiKeysController.revokeApiKey(request, 'id')).rejects.toThrow(
-        BadRequestException,
-      );
+      await expect(
+        apiKeysController.revokeApiKey(request, 'id'),
+      ).rejects.toThrow(BadRequestException);
     });
   });
 

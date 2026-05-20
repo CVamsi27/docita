@@ -13,10 +13,7 @@ import { AppointmentStatus } from '@/domains/appointments/core/value-objects/app
 import { AppointmentSchedulingRulesService } from '@/domains/appointments/core/domain-services/appointment-scheduling-rules.service';
 import type { JsonValue } from '@workspace/types';
 import { randomUUID } from 'crypto';
-import {
-  CLOCK_PORT,
-  type IClock,
-} from '@/shared/common/ports/clock.port';
+import { CLOCK_PORT, type IClock } from '@/shared/common/ports/clock.port';
 
 export interface CreateAppointmentCommand {
   clinicId: string;

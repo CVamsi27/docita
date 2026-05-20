@@ -14,9 +14,9 @@ describe('verifyMetaWebhookSignature', () => {
   });
 
   it('returns false for invalid signature', () => {
-    expect(
-      verifyMetaWebhookSignature(body, 'sha256=invalid', secret),
-    ).toBe(false);
+    expect(verifyMetaWebhookSignature(body, 'sha256=invalid', secret)).toBe(
+      false,
+    );
   });
 
   it('returns false when secret or signature is missing', () => {

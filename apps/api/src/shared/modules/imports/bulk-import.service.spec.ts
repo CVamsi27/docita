@@ -384,8 +384,9 @@ describe('BulkImportService', () => {
 
       await service.processImport(jobData);
 
-      const lastUpdate = jest.mocked(prismaService.bulkImportJob.update).mock
-        .calls.at(-1)?.[0];
+      const lastUpdate = jest
+        .mocked(prismaService.bulkImportJob.update)
+        .mock.calls.at(-1)?.[0];
       expect(lastUpdate?.data).toEqual(
         expect.objectContaining({
           skippedRows: 1,

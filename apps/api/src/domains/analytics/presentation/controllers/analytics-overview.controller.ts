@@ -73,7 +73,9 @@ export class AnalyticsOverviewController {
   @Get('appointments')
   @ZodSerializerDto(AppointmentStatsResponseDto)
   getAppointmentStats(@Request() req: RequestWithUser) {
-    return this.analyticsService.getAppointmentStats(requireClinicIdFromRequest(req));
+    return this.analyticsService.getAppointmentStats(
+      requireClinicIdFromRequest(req),
+    );
   }
 
   @Get('top-diagnoses')

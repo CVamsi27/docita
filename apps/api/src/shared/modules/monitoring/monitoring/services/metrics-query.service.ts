@@ -1,8 +1,5 @@
 import { Inject, Injectable, Logger } from '@nestjs/common';
-import {
-  CLOCK_PORT,
-  type IClock,
-} from '@/shared/common/ports/clock.port';
+import { CLOCK_PORT, type IClock } from '@/shared/common/ports/clock.port';
 import { PrismaService } from '@/prisma/prisma.service';
 import { MetricType, Prisma } from '@workspace/db';
 import {
@@ -207,7 +204,6 @@ export class MetricsQueryService {
     }
   }
 
-
   async getQueueHealthSummary() {
     try {
       const since24h = new Date(Date.now() - 24 * 60 * 60 * 1000);
@@ -270,4 +266,3 @@ export class MetricsQueryService {
     }
   }
 }
-

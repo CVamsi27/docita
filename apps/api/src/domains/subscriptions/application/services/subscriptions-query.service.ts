@@ -46,10 +46,7 @@ import {
   type IPlatformInvoiceProvider,
 } from '@/domains/payments/core/ports';
 import { ApplyPlanChangeWithoutPaymentUseCase } from '@/domains/subscriptions/application/use-cases/apply-plan-change-without-payment.use-case';
-import {
-  CLOCK_PORT,
-  type IClock,
-} from '@/shared/common/ports/clock.port';
+import { CLOCK_PORT, type IClock } from '@/shared/common/ports/clock.port';
 
 @Injectable()
 export class SubscriptionsQueryService {

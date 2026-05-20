@@ -5,10 +5,7 @@ import {
   ISubscriptionRepository,
   SUBSCRIPTION_REPOSITORY_TOKEN,
 } from '@/domains/subscriptions/application/ports';
-import {
-  CLOCK_PORT,
-  type IClock,
-} from '@/shared/common/ports/clock.port';
+import { CLOCK_PORT, type IClock } from '@/shared/common/ports/clock.port';
 import { getUtcDayBounds } from '@/shared/schedule/scheduler-date.util';
 
 export interface NotifyGraceDeadlineRequest {

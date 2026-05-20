@@ -9,7 +9,10 @@ type CptCatalogSource = ReturnType<AppConfigService['getCptCatalogSource']>;
 
 @Injectable()
 export class CompositeCodeCatalogProvider implements CodeCatalogProvider {
-  private readonly cptProviders: ReadonlyMap<CptCatalogSource, CodeCatalogProvider>;
+  private readonly cptProviders: ReadonlyMap<
+    CptCatalogSource,
+    CodeCatalogProvider
+  >;
 
   constructor(
     private readonly config: AppConfigService,

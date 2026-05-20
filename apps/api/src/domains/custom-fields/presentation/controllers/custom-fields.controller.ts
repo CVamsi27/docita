@@ -39,7 +39,10 @@ export class CustomFieldsController {
   @Get(':id')
   @ZodSerializerDto(CustomFieldResponseDto)
   findOne(@Request() req: RequestWithUser, @Param('id') id: string) {
-    return this.customFieldsService.findOne(id, requireClinicIdFromRequest(req));
+    return this.customFieldsService.findOne(
+      id,
+      requireClinicIdFromRequest(req),
+    );
   }
 
   @Post()
@@ -60,7 +63,11 @@ export class CustomFieldsController {
     @Param('id') id: string,
     @Body() data: UpdateCustomFieldDto,
   ) {
-    return this.customFieldsService.update(id, data, requireClinicIdFromRequest(req));
+    return this.customFieldsService.update(
+      id,
+      data,
+      requireClinicIdFromRequest(req),
+    );
   }
 
   @Delete(':id')

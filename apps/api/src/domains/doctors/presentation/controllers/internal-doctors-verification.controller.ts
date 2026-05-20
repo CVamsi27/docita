@@ -43,7 +43,11 @@ export class InternalDoctorsVerificationController {
     @Param('id') id: string,
     @Body(new ZodValidationPipe(AdminVerifySchema)) dto: AdminVerifyDto,
   ) {
-    return this.doctorsService.adminVerifyDoctor(id, requireAuthenticatedUserId(req), dto.note);
+    return this.doctorsService.adminVerifyDoctor(
+      id,
+      requireAuthenticatedUserId(req),
+      dto.note,
+    );
   }
 
   @Post(':id/admin-reject')
@@ -52,6 +56,10 @@ export class InternalDoctorsVerificationController {
     @Param('id') id: string,
     @Body(new ZodValidationPipe(AdminRejectSchema)) dto: AdminRejectDto,
   ) {
-    return this.doctorsService.adminRejectDoctor(id, requireAuthenticatedUserId(req), dto.reason);
+    return this.doctorsService.adminRejectDoctor(
+      id,
+      requireAuthenticatedUserId(req),
+      dto.reason,
+    );
   }
 }

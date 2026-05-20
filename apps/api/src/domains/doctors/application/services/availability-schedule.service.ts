@@ -11,10 +11,7 @@ import {
   IDoctorScheduleRepository,
   DOCTOR_SCHEDULE_REPOSITORY_TOKEN,
 } from '@/domains/doctors/core/repositories/doctor-schedule.repository.interface';
-import {
-  CLOCK_PORT,
-  type IClock,
-} from '@/shared/common/ports/clock.port';
+import { CLOCK_PORT, type IClock } from '@/shared/common/ports/clock.port';
 
 type DayOfWeek =
   | 'SUNDAY'

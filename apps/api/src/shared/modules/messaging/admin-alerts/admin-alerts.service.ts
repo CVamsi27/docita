@@ -1,8 +1,5 @@
 import { Inject, Injectable, Logger } from '@nestjs/common';
-import {
-  CLOCK_PORT,
-  type IClock,
-} from '@/shared/common/ports/clock.port';
+import { CLOCK_PORT, type IClock } from '@/shared/common/ports/clock.port';
 import { EmailService } from '@/shared/modules/messaging/email/email.service';
 import { AppConfigService } from '@/shared/modules/config/app-configuration.service';
 import { PrismaService } from '@/prisma/prisma.service';

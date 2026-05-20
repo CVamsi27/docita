@@ -1,8 +1,5 @@
 import { Inject, Injectable, Logger, OnModuleDestroy } from '@nestjs/common';
-import {
-  CLOCK_PORT,
-  type IClock,
-} from '@/shared/common/ports/clock.port';
+import { CLOCK_PORT, type IClock } from '@/shared/common/ports/clock.port';
 import { PrismaService } from '@/prisma/prisma.service';
 import { Prisma, ErrorSeverity } from '@workspace/db';
 import { ErrorLogInput } from '@/shared/modules/monitoring/monitoring/schemas/monitoring.schema';

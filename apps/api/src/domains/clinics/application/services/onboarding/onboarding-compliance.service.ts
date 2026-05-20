@@ -19,10 +19,7 @@ import {
   ConsentManagementDto,
 } from '@/domains/clinics/application/dto/onboarding/create-clinic-onboarding.dto';
 import { getClinicSettings } from './type-helpers';
-import {
-  CLOCK_PORT,
-  type IClock,
-} from '@/shared/common/ports/clock.port';
+import { CLOCK_PORT, type IClock } from '@/shared/common/ports/clock.port';
 
 @Injectable()
 export class OnboardingComplianceService {

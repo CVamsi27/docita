@@ -11,10 +11,7 @@ import {
   IJoinRequestRepository,
   JOIN_REQUEST_REPOSITORY_TOKEN,
 } from '@/domains/clinics/core/repositories/join-request.repository.interface';
-import {
-  CLOCK_PORT,
-  type IClock,
-} from '@/shared/common/ports/clock.port';
+import { CLOCK_PORT, type IClock } from '@/shared/common/ports/clock.port';
 import { JoinRequestQueryService } from './join-request-query.service';
 
 @Injectable()

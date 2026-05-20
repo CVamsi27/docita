@@ -114,7 +114,9 @@ export class AnalyticsAdvancedController {
   @RequireFeature(Feature.ADVANCED_ANALYTICS)
   @ZodSerializerDto(UncodedVisitsStatsResponseDto)
   getUncodedVisitsStats(@Request() req: RequestWithUser) {
-    return this.analyticsService.getUncodedVisitsStats(requireClinicIdFromRequest(req));
+    return this.analyticsService.getUncodedVisitsStats(
+      requireClinicIdFromRequest(req),
+    );
   }
 
   @Get('compliance/timeliness')

@@ -11,7 +11,6 @@ import { PrismaWhatsAppRepository } from './infrastructure/repositories/prisma-w
 import { PrismaWhatsAppMessageRepository } from './infrastructure/repositories/prisma-whatsapp-message.repository';
 import { PrismaWhatsAppTemplateRepository } from './infrastructure/repositories/prisma-whatsapp-template.repository';
 import { WhatsappClientService } from './infrastructure/clients/whatsapp-client.service';
-import { AppConfigModule } from '@/shared/modules/config/config.module';
 import { PrismaWorkerModule } from '@/prisma/prisma.worker.module';
 import { TemplateResolverService } from './core/services/template-resolver.service';
 import { WhatsappTemplatesModule } from '@/shared/whatsapp/whatsapp-templates.module';

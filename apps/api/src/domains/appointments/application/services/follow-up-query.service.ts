@@ -1,17 +1,11 @@
 import { Injectable, Inject } from '@nestjs/common';
-import {
-  CLOCK_PORT,
-  type IClock,
-} from '@/shared/common/ports/clock.port';
+import { CLOCK_PORT, type IClock } from '@/shared/common/ports/clock.port';
 import type { ListFollowUpsQuery } from '@workspace/types';
 import {
   IFollowUpRepository,
   FOLLOW_UP_REPOSITORY_TOKEN,
 } from '@/domains/appointments/core/repositories/follow-up.repository.interface';
-import {
-  parseFollowUpDate,
-  parseFollowUpStatuses,
-} from './follow-up.helpers';
+import { parseFollowUpDate, parseFollowUpStatuses } from './follow-up.helpers';
 
 @Injectable()
 export class FollowUpQueryService {

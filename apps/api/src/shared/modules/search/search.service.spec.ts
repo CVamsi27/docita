@@ -56,7 +56,9 @@ describe('SearchService', () => {
     .mockResolvedValue([]);
 
   const mockGetTsvectorSupport = jest
-    .fn<() => Promise<Array<{ tableName: string; hasSearchTsvector: boolean }>>>()
+    .fn<
+      () => Promise<Array<{ tableName: string; hasSearchTsvector: boolean }>>
+    >()
     .mockResolvedValue([]);
 
   function primeFullTextSupportProbe({

@@ -1,9 +1,4 @@
-import {
-  Injectable,
-  Logger,
-  NotFoundException,
-  Inject,
-} from '@nestjs/common';
+import { Injectable, Logger, NotFoundException, Inject } from '@nestjs/common';
 import { randomBytes } from 'crypto';
 import {
   DOCUMENT_PERSISTENCE_PORT,
@@ -14,10 +9,7 @@ import {
   StorageFile,
 } from '@/domains/documents/application/ports/storage-provider.port';
 import { UploadSessionPurpose } from '@workspace/db';
-import {
-  CLOCK_PORT,
-  type IClock,
-} from '@/shared/common/ports/clock.port';
+import { CLOCK_PORT, type IClock } from '@/shared/common/ports/clock.port';
 import {
   hashUploadSecret,
   validateSessionReadyForUpload,

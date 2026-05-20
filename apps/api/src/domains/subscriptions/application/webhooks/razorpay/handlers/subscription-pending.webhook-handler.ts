@@ -9,15 +9,10 @@ import { type RazorpayWebhookPayload } from '@workspace/types';
 import { AdminAlertsService } from '@/shared/modules/messaging/admin-alerts/admin-alerts.service';
 import { computeSubscriptionGraceDeadline } from '@/domains/subscriptions/core/constants/subscription-lockout.constants';
 import { RazorpayWebhookEventHandler } from '@/domains/subscriptions/application/webhooks/razorpay/razorpay-webhook-event-handler.interface';
-import {
-  CLOCK_PORT,
-  type IClock,
-} from '@/shared/common/ports/clock.port';
+import { CLOCK_PORT, type IClock } from '@/shared/common/ports/clock.port';
 
 @Injectable()
-export class SubscriptionPendingWebhookHandler
-  implements RazorpayWebhookEventHandler
-{
+export class SubscriptionPendingWebhookHandler implements RazorpayWebhookEventHandler {
   readonly event = 'subscription.pending';
 
   constructor(

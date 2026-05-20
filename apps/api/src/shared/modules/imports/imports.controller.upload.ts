@@ -17,7 +17,10 @@ export const spreadsheetImportUploadOptions = {
     cb: (error: Error | null, acceptFile: boolean) => void,
   ) => {
     if (!hasSupportedImportExtension(file.originalname)) {
-      cb(new BadRequestException('Only .xlsx and .csv files are allowed!'), false);
+      cb(
+        new BadRequestException('Only .xlsx and .csv files are allowed!'),
+        false,
+      );
       return;
     }
     cb(null, true);

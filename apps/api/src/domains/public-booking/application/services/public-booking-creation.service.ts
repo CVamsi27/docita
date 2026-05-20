@@ -33,10 +33,7 @@ import {
   normalizePhone,
   withBookingTenant,
 } from './public-booking-utils';
-import {
-  CLOCK_PORT,
-  type IClock,
-} from '@/shared/common/ports/clock.port';
+import { CLOCK_PORT, type IClock } from '@/shared/common/ports/clock.port';
 
 @Injectable()
 export class PublicBookingCreationService {

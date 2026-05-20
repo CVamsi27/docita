@@ -2,6 +2,7 @@
 
 import { useMemo, useState } from "react";
 import { useAPIMutation, useAPIQuery } from "@/lib/api/api-core";
+import { queryKeys } from "@/lib/api/query-keys";
 import { useTierFeatureEnabled } from "@/lib/access-control/use-tier-feature-enabled";
 import { useDebounce } from "@workspace/hooks/use-debounce";
 import {
@@ -26,13 +27,13 @@ export const useIpdLogic = () => {
   const [showAdmissionModal, setShowAdmissionModal] = useState(false);
 
   const { data: wards, isLoading } = useAPIQuery<WardWithRooms[]>(
-    ["ipd", "wards", debouncedSearch],
+    queryKeys.ipd.wards(debouncedSearch),
     `/ipd/wards${debouncedSearch ? `?search=${encodeURIComponent(debouncedSearch)}` : ""}`,
     { staleTime: 15 * 1000, enabled: ipdOk },
   );
 
   const { data: activeAdmissions } = useAPIQuery<Admission[]>(
-    ["ipd", "admissions", "active"],
+    queryKeys.ipd.activeAdmissions(),
     "/ipd/admissions?status=ADMITTED",
     { staleTime: 15 * 1000, enabled: ipdOk },
   );
@@ -42,8 +43,8 @@ export const useIpdLogic = () => {
     "POST",
     {
       invalidateKeys: [
-        ["ipd", "wards"],
-        ["ipd", "admissions", "active"],
+        queryKeys.ipd.wardsRoot(),
+        queryKeys.ipd.activeAdmissions(),
       ],
     },
   );
@@ -53,8 +54,8 @@ export const useIpdLogic = () => {
     TransferPatientRequest
   >("/ipd/transfers", "POST", {
     invalidateKeys: [
-      ["ipd", "wards"],
-      ["ipd", "admissions", "active"],
+      queryKeys.ipd.wardsRoot(),
+      queryKeys.ipd.activeAdmissions(),
     ],
   });
 
@@ -63,8 +64,8 @@ export const useIpdLogic = () => {
     DischargePatientRequest
   >("/ipd/discharges", "POST", {
     invalidateKeys: [
-      ["ipd", "wards"],
-      ["ipd", "admissions", "active"],
+      queryKeys.ipd.wardsRoot(),
+      queryKeys.ipd.activeAdmissions(),
     ],
   });
 
@@ -76,7 +77,8 @@ export const useIpdLogic = () => {
         ...room,
         beds: (room.beds || []).map((b) => ({
           ...b,
-          status: typeof b.status === "string" ? b.status.toUpperCase() : b.status,
+          status:
+            typeof b.status === "string" ? b.status.toUpperCase() : b.status,
         })),
       })),
     }));
@@ -94,16 +96,24 @@ export const useIpdLogic = () => {
 
     const totalBeds = normalizedWards.reduce(
       (acc, ward) =>
-        acc + (ward.rooms?.reduce((rAcc, room) => rAcc + (room.beds?.length || 0), 0) || 0),
+        acc +
+        (ward.rooms?.reduce(
+          (rAcc, room) => rAcc + (room.beds?.length || 0),
+          0,
+        ) || 0),
       0,
     );
 
     const occupiedBeds = normalizedWards.reduce((acc, ward) => {
       const wardOccupied =
-        (ward.rooms?.reduce((rAcc, room) =>
-          rAcc +
-          room.beds.filter((b) => String(b.status).toUpperCase() === "OCCUPIED").length,
-        0) || 0);
+        ward.rooms?.reduce(
+          (rAcc, room) =>
+            rAcc +
+            room.beds.filter(
+              (b) => String(b.status).toUpperCase() === "OCCUPIED",
+            ).length,
+          0,
+        ) || 0;
 
       return acc + wardOccupied;
     }, 0);
@@ -111,14 +121,14 @@ export const useIpdLogic = () => {
     const availableBeds = totalBeds - occupiedBeds;
     const maintenanceBeds = normalizedWards.reduce((acc, ward) => {
       const wardMaintenance =
-        (ward.rooms?.reduce(
+        ward.rooms?.reduce(
           (rAcc, room) =>
             rAcc +
             room.beds.filter(
               (b) => String(b.status).toUpperCase() === "MAINTENANCE",
             ).length,
           0,
-        ) || 0);
+        ) || 0;
 
       return acc + wardMaintenance;
     }, 0);

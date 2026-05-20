@@ -1,10 +1,7 @@
 "use client";
 
 import React, { useMemo, useState } from "react";
-import {
-  useInternalAuditLogs,
-  type InternalAuditLog,
-} from "@workspace/data-access/internal";
+import { useInternalAuditLogs } from "@workspace/data-access/internal";
 import {
   Calendar,
   ChevronDown,
@@ -36,8 +33,6 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@workspace/ui/components/form/select";
-
-type AuditLog = InternalAuditLog;
 
 export function AuditLogViewer() {
   const [showFilters, setShowFilters] = useState(false);
@@ -118,9 +113,7 @@ export function AuditLogViewer() {
 
     const csv = [
       headers.join(","),
-      ...rows.map((row) =>
-        row.map((cell) => escapeCsvCell(cell)).join(","),
-      ),
+      ...rows.map((row) => row.map((cell) => escapeCsvCell(cell)).join(",")),
     ].join("\n");
 
     const element = document.createElement("a");
@@ -180,9 +173,7 @@ export function AuditLogViewer() {
             <Filter className="h-4 w-4" />
             Filters
           </Button>
-          <Button
-            onClick={exportToCSV}
-          >
+          <Button onClick={exportToCSV}>
             <Download className="h-4 w-4" />
             Export CSV
           </Button>
@@ -279,24 +270,12 @@ export function AuditLogViewer() {
             <Table>
               <TableHeader className="bg-muted/40 border-b border-border">
                 <TableRow>
-                  <TableHead className="px-4 py-3">
-                    Timestamp
-                  </TableHead>
-                  <TableHead className="px-4 py-3">
-                    User
-                  </TableHead>
-                  <TableHead className="px-4 py-3">
-                    Action
-                  </TableHead>
-                  <TableHead className="px-4 py-3">
-                    Resource
-                  </TableHead>
-                  <TableHead className="px-4 py-3">
-                    Status
-                  </TableHead>
-                  <TableHead className="px-4 py-3">
-                    IP Address
-                  </TableHead>
+                  <TableHead className="px-4 py-3">Timestamp</TableHead>
+                  <TableHead className="px-4 py-3">User</TableHead>
+                  <TableHead className="px-4 py-3">Action</TableHead>
+                  <TableHead className="px-4 py-3">Resource</TableHead>
+                  <TableHead className="px-4 py-3">Status</TableHead>
+                  <TableHead className="px-4 py-3">IP Address</TableHead>
                   <TableHead className="px-4 py-3 text-center">
                     Details
                   </TableHead>

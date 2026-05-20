@@ -5,16 +5,11 @@ import {
 } from '@/domains/subscriptions/application/ports';
 import { type RazorpayWebhookPayload } from '@workspace/types';
 import { AdminAlertsService } from '@/shared/modules/messaging/admin-alerts/admin-alerts.service';
-import {
-  CLOCK_PORT,
-  type IClock,
-} from '@/shared/common/ports/clock.port';
+import { CLOCK_PORT, type IClock } from '@/shared/common/ports/clock.port';
 import { RazorpayWebhookEventHandler } from '@/domains/subscriptions/application/webhooks/razorpay/razorpay-webhook-event-handler.interface';
 
 @Injectable()
-export class SubscriptionCancelledWebhookHandler
-  implements RazorpayWebhookEventHandler
-{
+export class SubscriptionCancelledWebhookHandler implements RazorpayWebhookEventHandler {
   readonly event = 'subscription.cancelled';
 
   constructor(

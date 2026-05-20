@@ -1,5 +1,5 @@
 import { Injectable } from '@nestjs/common';
-import { MedicationDoseSource, MedicationDoseStatus } from '@workspace/db';
+import { MedicationDoseSource } from '@workspace/db';
 import { MedicationDoseCommandService } from './medication-dose-command.service';
 import { MedicationDoseQueryService } from './medication-dose-query.service';
 

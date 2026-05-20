@@ -3,7 +3,10 @@
 import { FormEvent, useState } from "react";
 import { toast } from "sonner";
 import { useAuth } from "@/lib/auth/auth-context";
-import { Alert, AlertDescription } from "@workspace/ui/components/feedback/alert";
+import {
+  Alert,
+  AlertDescription,
+} from "@workspace/ui/components/feedback/alert";
 import {
   Card,
   CardContent,
@@ -15,6 +18,7 @@ import { FileText, CheckCircle2 } from "lucide-react";
 import { formatDate } from "@workspace/utils";
 import { ClinicSlaSignatureQR } from "@/features/settings/components/clinic-sla-signature-qr";
 import { useAPIMutation, useAPIQuery } from "@/lib/api/api-core";
+import { queryKeys } from "@/lib/api/query-keys";
 import { showUserFacingErrorToast } from "@/lib/errors/user-facing-errors";
 import {
   createDataSubjectRequestSchema,
@@ -46,13 +50,13 @@ export function ComplianceSettingsPanel() {
     useState<CreateDataSubjectRequest>(INITIAL_REQUEST_FORM);
 
   const { data: compliance } = useAPIQuery<AppComplianceSummary>(
-    ["clinic-compliance", clinicId],
+    queryKeys.compliance.summary(clinicId),
     `/clinics/${clinicId}/compliance`,
     { enabled: !!clinicId },
   );
 
   const { data: recentAuditLogs } = useAPIQuery<AppAuditLogSummary[]>(
-    ["audit-logs-recent", clinicId],
+    queryKeys.compliance.recentAuditLogs(clinicId),
     `/audit/recent?limit=5`,
     { enabled: !!clinicId },
   );
@@ -60,15 +64,15 @@ export function ComplianceSettingsPanel() {
   const { data: dataSubjectRequests = [] } = useAPIQuery<
     AppDataSubjectRequest[]
   >(
-    ["data-subject-requests", clinicId],
+    queryKeys.compliance.dataSubjectRequests(clinicId),
     `/clinics/${clinicId}/data-subject-requests`,
     { enabled: !!clinicId },
   );
 
   const invalidateComplianceData = [
-    ["clinic-compliance", clinicId],
-    ["data-subject-requests", clinicId],
-    ["audit-logs-recent", clinicId],
+    queryKeys.compliance.summary(clinicId),
+    queryKeys.compliance.dataSubjectRequests(clinicId),
+    queryKeys.compliance.recentAuditLogs(clinicId),
   ] as const;
 
   const createRequestMutation = useAPIMutation<

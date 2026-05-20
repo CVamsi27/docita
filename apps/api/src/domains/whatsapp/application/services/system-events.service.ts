@@ -24,7 +24,10 @@ export class SystemEventsService {
 
   async sendPrescriptionSystem(prescriptionId: string, clinicId: string) {
     if (
-      !(await isClinicWhatsAppAutomationSendingAllowed(this.persistence, clinicId))
+      !(await isClinicWhatsAppAutomationSendingAllowed(
+        this.persistence,
+        clinicId,
+      ))
     ) {
       this.logger.log(
         `WhatsApp patient messaging not allowed for clinic ${clinicId}; skipping prescription notification`,
@@ -69,7 +72,10 @@ export class SystemEventsService {
 
   async sendInvoiceSystem(invoiceId: string, clinicId: string) {
     if (
-      !(await isClinicWhatsAppAutomationSendingAllowed(this.persistence, clinicId))
+      !(await isClinicWhatsAppAutomationSendingAllowed(
+        this.persistence,
+        clinicId,
+      ))
     ) {
       this.logger.log(
         `WhatsApp patient messaging not allowed for clinic ${clinicId}; skipping invoice notification`,
@@ -113,7 +119,10 @@ export class SystemEventsService {
 
   async sendAppointmentConfirmation(appointmentId: string, clinicId: string) {
     if (
-      !(await isClinicWhatsAppAutomationSendingAllowed(this.persistence, clinicId))
+      !(await isClinicWhatsAppAutomationSendingAllowed(
+        this.persistence,
+        clinicId,
+      ))
     ) {
       this.logger.log(
         `WhatsApp patient messaging not allowed for clinic ${clinicId}; skipping appointment confirmation`,
@@ -179,7 +188,10 @@ export class SystemEventsService {
     delayMinutes: number,
   ) {
     if (
-      !(await isClinicWhatsAppAutomationSendingAllowed(this.persistence, clinicId))
+      !(await isClinicWhatsAppAutomationSendingAllowed(
+        this.persistence,
+        clinicId,
+      ))
     ) {
       this.logger.log(
         `WhatsApp patient messaging not allowed for clinic ${clinicId}; skipping delay notification`,
@@ -228,7 +240,10 @@ export class SystemEventsService {
     type: 'CANCELLED' | 'RESCHEDULED',
   ) {
     if (
-      !(await isClinicWhatsAppAutomationSendingAllowed(this.persistence, clinicId))
+      !(await isClinicWhatsAppAutomationSendingAllowed(
+        this.persistence,
+        clinicId,
+      ))
     ) {
       this.logger.log(
         `WhatsApp patient messaging not allowed for clinic ${clinicId}; skipping appointment update`,

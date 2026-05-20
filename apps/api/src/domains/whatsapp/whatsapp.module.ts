@@ -9,7 +9,6 @@ import { WhatsAppAutomationService } from './application/services/whatsapp-autom
 import { WhatsappSenderResolver } from './application/services/whatsapp-sender-resolver.service';
 import { WhatsappSenderSettingsService } from './application/services/whatsapp-sender-settings.service';
 import { WHATSAPP_REPOSITORY_TOKEN } from './application/ports/whatsapp.repository.port';
-import { WHATSAPP_CLIENT_TOKEN } from './application/ports/whatsapp-client.port';
 import { PrismaWhatsAppRepository } from './infrastructure/repositories/prisma-whatsapp.repository';
 import { PrismaWhatsAppMessageRepository } from './infrastructure/repositories/prisma-whatsapp-message.repository';
 import { PrismaWhatsAppTemplateRepository } from './infrastructure/repositories/prisma-whatsapp-template.repository';

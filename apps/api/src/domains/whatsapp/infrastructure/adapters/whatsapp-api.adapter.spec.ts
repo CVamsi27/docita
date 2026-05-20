@@ -155,8 +155,9 @@ describe('WhatsappClientService (IWhatsAppClient)', () => {
           { provide: AppConfigService, useValue: mockConfigService },
         ],
       }).compile();
-      const unconfiguredAdapter =
-        unconfiguredModule.get<WhatsappClientService>(WhatsappClientService);
+      const unconfiguredAdapter = unconfiguredModule.get<WhatsappClientService>(
+        WhatsappClientService,
+      );
 
       const result = await unconfiguredAdapter.sendMessage({
         to: '919876543210',
@@ -294,8 +295,9 @@ describe('WhatsappClientService (IWhatsAppClient)', () => {
           { provide: AppConfigService, useValue: mockConfigService },
         ],
       }).compile();
-      const unconfigured =
-        unconfiguredModule.get<WhatsappClientService>(WhatsappClientService);
+      const unconfigured = unconfiguredModule.get<WhatsappClientService>(
+        WhatsappClientService,
+      );
 
       const healthy = await unconfigured.checkHealth();
       expect(healthy).toBe(false);

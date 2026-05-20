@@ -23,7 +23,6 @@ import {
   mapSessionChiefComplaints,
   mapSessionDiagnosis,
   mapSessionExamination,
-  parseDiagnosisList,
   parseStructuredChiefComplaints,
 } from "./consultation-session-mappers";
 import { parseChiefComplaintsFromAppointmentData } from "@workspace/utils";
@@ -46,11 +45,7 @@ export function readStringField(
   return typeof value === "string" ? value : "";
 }
 
-function parseZodField<T>(
-  schema: z.ZodType<T>,
-  raw: unknown,
-  fallback: T,
-): T {
+function parseZodField<T>(schema: z.ZodType<T>, raw: unknown, fallback: T): T {
   const parsed = schema.safeParse(raw);
   return parsed.success ? parsed.data : fallback;
 }
@@ -164,20 +159,36 @@ export function buildConsultationHydrateSeed(
     history: readStringField(data, "historyOfPresentIllness"),
     followUpPlan: readStringField(data, "followUpPlan"),
     dentalChart: parseZodField(dentalChartSchema, data["dentalChart"], {}),
-    eyeExam: parseZodField(ophthalmologyExamDataSchema, data["ophthalmologyExam"], {}),
+    eyeExam: parseZodField(
+      ophthalmologyExamDataSchema,
+      data["ophthalmologyExam"],
+      {},
+    ),
     growthData: parseZodField(
       growthChartDataSchema,
       data["growthData"],
       DEFAULT_GROWTH_DATA,
     ),
-    cardiologyExam: parseZodField(cardiologyExamDataSchema, data["cardiologyExam"], {}),
+    cardiologyExam: parseZodField(
+      cardiologyExamDataSchema,
+      data["cardiologyExam"],
+      {},
+    ),
     dermatologyExam: parseZodField(
       dermatologyExamDataSchema,
       data["dermatologyExam"],
       {},
     ),
-    gynecologyExam: parseZodField(gynecologyExamDataSchema, data["gynecologyExam"], {}),
-    psychiatryExam: parseZodField(psychiatryExamDataSchema, data["psychiatryExam"], {}),
+    gynecologyExam: parseZodField(
+      gynecologyExamDataSchema,
+      data["gynecologyExam"],
+      {},
+    ),
+    psychiatryExam: parseZodField(
+      psychiatryExamDataSchema,
+      data["psychiatryExam"],
+      {},
+    ),
     investigations: parseZodField(
       z.array(clinicalInvestigationSchema),
       data["investigations"],
@@ -254,7 +265,8 @@ function normalizeComplaintList(
   return items.map((item) => ({
     ...item,
     durationValue:
-      item.complaint?.trim() && (!item.durationValue || !item.durationValue.trim())
+      item.complaint?.trim() &&
+      (!item.durationValue || !item.durationValue.trim())
         ? "1"
         : item.durationValue,
   }));

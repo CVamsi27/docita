@@ -8,10 +8,7 @@ import {
   IUserRepository,
   USER_REPOSITORY_TOKEN,
 } from '@/domains/users/core/repositories/user.repository.interface';
-import {
-  CLOCK_PORT,
-  type IClock,
-} from '@/shared/common/ports/clock.port';
+import { CLOCK_PORT, type IClock } from '@/shared/common/ports/clock.port';
 
 interface UpdateProfileDto {
   name?: string;

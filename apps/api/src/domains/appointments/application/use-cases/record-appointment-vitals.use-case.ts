@@ -72,7 +72,9 @@ export class RecordAppointmentVitalsUseCase {
 
     const vital =
       updated.count > 0
-        ? await this.persistence.vitalSign.findFirst({ where: { appointmentId } })
+        ? await this.persistence.vitalSign.findFirst({
+            where: { appointmentId },
+          })
         : await this.persistence.vitalSign.create({
             data: {
               appointmentId,

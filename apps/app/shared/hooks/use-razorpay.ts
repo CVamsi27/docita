@@ -204,22 +204,19 @@ export function useRazorpay() {
           },
         });
 
-        rzp.on?.(
-          "payment.failed",
-          (...args: unknown[]) => {
-            void args;
-            activeInstanceRef.current = null;
-            setIsCheckoutOpen(false);
-            reject(new PaymentFailedError());
-          },
-        );
+        rzp.on?.("payment.failed", (...args: unknown[]) => {
+          void args;
+          activeInstanceRef.current = null;
+          setIsCheckoutOpen(false);
+          reject(new PaymentFailedError());
+        });
 
         activeInstanceRef.current = rzp;
         setIsCheckoutOpen(true);
         rzp.open();
       });
     },
-    [isRazorpayConstructible, loadRazorpay],
+    [loadRazorpay],
   );
 
   /** Programmatically close the active Razorpay modal, if any. */

@@ -50,7 +50,10 @@ describe('FollowUpService', () => {
         FollowUpCommandService,
         FollowUpService,
         { provide: FOLLOW_UP_REPOSITORY_TOKEN, useValue: followUpRepository },
-        { provide: CLOCK_PORT, useValue: { now: () => new Date('2026-05-19') } },
+        {
+          provide: CLOCK_PORT,
+          useValue: { now: () => new Date('2026-05-19') },
+        },
       ],
     }).compile();
 

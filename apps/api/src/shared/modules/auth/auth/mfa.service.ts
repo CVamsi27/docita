@@ -5,10 +5,7 @@ import {
   UnauthorizedException,
   Logger,
 } from '@nestjs/common';
-import {
-  CLOCK_PORT,
-  type IClock,
-} from '@/shared/common/ports/clock.port';
+import { CLOCK_PORT, type IClock } from '@/shared/common/ports/clock.port';
 import { generateSecret, generateURI, verify } from 'otplib';
 import * as QRCode from 'qrcode';
 import * as bcrypt from 'bcrypt';

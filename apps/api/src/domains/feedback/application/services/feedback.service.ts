@@ -14,10 +14,7 @@ import {
   FEEDBACK_REPOSITORY_TOKEN,
   IFeedbackRepository,
 } from '@/domains/feedback/core/repositories/feedback.repository.interface';
-import {
-  CLOCK_PORT,
-  type IClock,
-} from '@/shared/common/ports/clock.port';
+import { CLOCK_PORT, type IClock } from '@/shared/common/ports/clock.port';
 
 interface CreateFeedbackDto {
   overallRating: number;
@@ -190,9 +187,7 @@ export class FeedbackService {
 
   hasRecentFeedback(userId: string, clinicId: string): Promise<boolean> {
     const now = this.clock.now();
-    const thirtyDaysAgo = new Date(
-      now.getTime() - 30 * 24 * 60 * 60 * 1000,
-    );
+    const thirtyDaysAgo = new Date(now.getTime() - 30 * 24 * 60 * 60 * 1000);
     return this.repository.hasFeedbackInWindow(userId, clinicId, thirtyDaysAgo);
   }
 }

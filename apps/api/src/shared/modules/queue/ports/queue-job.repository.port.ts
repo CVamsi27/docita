@@ -39,7 +39,9 @@ export interface QueueJobRepository {
 
   findById(jobId: string): Promise<QueueJobRow | null>;
 
-  countByStatus(name: string): Promise<Array<{ status: string; count: bigint }>>;
+  countByStatus(
+    name: string,
+  ): Promise<Array<{ status: string; count: bigint }>>;
 }
 
 export const QUEUE_JOB_REPOSITORY_TOKEN = Symbol('QueueJobRepository');

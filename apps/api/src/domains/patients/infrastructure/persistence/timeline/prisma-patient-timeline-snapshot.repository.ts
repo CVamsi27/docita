@@ -9,9 +9,7 @@ import type {
 } from '@/domains/patients/core/repositories/timeline/patient-timeline-snapshot.types';
 
 @Injectable()
-export class PrismaPatientTimelineSnapshotRepository
-  implements IPatientTimelineSnapshotRepository
-{
+export class PrismaPatientTimelineSnapshotRepository implements IPatientTimelineSnapshotRepository {
   constructor(private readonly prisma: PrismaService) {}
 
   private getReadClient() {

@@ -15,10 +15,7 @@ import type {
   BulkImportAuditContext,
   BulkImportJobData,
 } from './bulk-import.types';
-import {
-  CLOCK_PORT,
-  type IClock,
-} from '@/shared/common/ports/clock.port';
+import { CLOCK_PORT, type IClock } from '@/shared/common/ports/clock.port';
 
 @Injectable()
 export class BulkImportOrchestratorService {

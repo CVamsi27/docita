@@ -15,10 +15,7 @@ import {
   ISubscriptionRepository,
   SUBSCRIPTION_REPOSITORY_TOKEN,
 } from '@/domains/subscriptions/application/ports/subscription.repository.port';
-import {
-  CLOCK_PORT,
-  type IClock,
-} from '@/shared/common/ports/clock.port';
+import { CLOCK_PORT, type IClock } from '@/shared/common/ports/clock.port';
 
 @Injectable()
 export class UpgradeSubscriptionUseCase {

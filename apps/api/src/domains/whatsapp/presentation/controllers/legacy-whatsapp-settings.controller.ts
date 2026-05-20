@@ -1,4 +1,12 @@
-import { Body, Controller, Get, Inject, Put, Req, UsePipes } from '@nestjs/common';
+import {
+  Body,
+  Controller,
+  Get,
+  Inject,
+  Put,
+  Req,
+  UsePipes,
+} from '@nestjs/common';
 import { Request } from 'express';
 import { updateWhatsAppSettingsRequestSchema } from '@workspace/types';
 import { ZodValidationPipe } from '@/shared/common/pipes/zod-validation.pipe';

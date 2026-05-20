@@ -1,12 +1,9 @@
 import { Injectable, Logger } from '@nestjs/common';
 import {
-  BillingCycle,
   Clinic,
   ClinicTier,
-  ClinicType,
   DayOfWeek,
   Prisma,
-  Role,
   Subscription,
   SubscriptionStatus,
   User,

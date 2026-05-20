@@ -180,12 +180,7 @@ export class Appointment {
   }
 
   overlapsInterval(startTime: Date, endTime: Date): boolean {
-    return intervalsOverlap(
-      this.startTime,
-      this.endTime,
-      startTime,
-      endTime,
-    );
+    return intervalsOverlap(this.startTime, this.endTime, startTime, endTime);
   }
 
   static findFirstSchedulingConflict(
@@ -210,9 +205,7 @@ export class Appointment {
     }
 
     if (startTime >= endTime) {
-      throw new InvariantViolationError(
-        'Start time must be before end time',
-      );
+      throw new InvariantViolationError('Start time must be before end time');
     }
 
     this.startTime = startTime;

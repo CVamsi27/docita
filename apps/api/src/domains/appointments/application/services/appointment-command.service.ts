@@ -1,7 +1,6 @@
 import {
   Injectable,
   Inject,
-  BadRequestException,
   NotFoundException,
   ForbiddenException,
 } from '@nestjs/common';
@@ -133,10 +132,7 @@ export class AppointmentCommandService {
     data: Partial<UpdateAppointmentRequest>,
     accessContext?: AppointmentAccessContext,
   ): Promise<Appointment> {
-    const appointment = await this.readRepository.findForUpdate(
-      id,
-      clinicId,
-    );
+    const appointment = await this.readRepository.findForUpdate(id, clinicId);
 
     if (!appointment) {
       throw new NotFoundException(`Appointment with ID ${id} not found`);

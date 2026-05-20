@@ -29,9 +29,7 @@ import { ContactModule } from '@/shared/modules/contact/contact.module';
 import { SupportWhatsAppModule } from '@/shared/modules/support-whatsapp';
 import { WhatsAppBroadcastModule } from '@/shared/modules/whatsapp-broadcast';
 import { SubscriptionsModule } from '@/domains/subscriptions/subscriptions.module';
-import {
-  INTERNAL_SUBSCRIPTION_PAYMENT_REPOSITORY_TOKEN,
-} from './ports/internal-subscription-payment.repository.port';
+import { INTERNAL_SUBSCRIPTION_PAYMENT_REPOSITORY_TOKEN } from './ports/internal-subscription-payment.repository.port';
 import { PrismaInternalSubscriptionPaymentRepository } from './infrastructure/prisma-internal-subscription-payment.repository';
 
 @Module({

@@ -6,9 +6,7 @@ import type {
 } from '@/shared/modules/internal/ports/internal-subscription-payment.repository.port';
 
 @Injectable()
-export class PrismaInternalSubscriptionPaymentRepository
-  implements InternalSubscriptionPaymentRepository
-{
+export class PrismaInternalSubscriptionPaymentRepository implements InternalSubscriptionPaymentRepository {
   constructor(private readonly prisma: PrismaService) {}
 
   async getPaidRevenueGroupedByMonth(

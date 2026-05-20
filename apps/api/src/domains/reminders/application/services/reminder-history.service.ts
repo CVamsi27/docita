@@ -63,20 +63,21 @@ export class ReminderHistoryService {
       (reminder) => reminder.appointmentId,
     );
 
-    const appointmentsForReminders = await this.persistence.appointment.findMany({
-      where: {
-        id: { in: reminderAppointmentIds },
-      },
-      select: {
-        id: true,
-        patient: {
-          select: {
-            firstName: true,
-            lastName: true,
+    const appointmentsForReminders =
+      await this.persistence.appointment.findMany({
+        where: {
+          id: { in: reminderAppointmentIds },
+        },
+        select: {
+          id: true,
+          patient: {
+            select: {
+              firstName: true,
+              lastName: true,
+            },
           },
         },
-      },
-    });
+      });
 
     const appointmentById = new Map(
       appointmentsForReminders.map((appointment) => [

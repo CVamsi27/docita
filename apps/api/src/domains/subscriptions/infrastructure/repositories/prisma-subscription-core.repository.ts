@@ -4,10 +4,7 @@ import {
   NotFoundException,
   BadRequestException,
 } from '@nestjs/common';
-import {
-  CLOCK_PORT,
-  type IClock,
-} from '@/shared/common/ports/clock.port';
+import { CLOCK_PORT, type IClock } from '@/shared/common/ports/clock.port';
 import { Subscription } from '@/domains/subscriptions/core/entities';
 import { SubscriptionMapper } from '@/domains/subscriptions/infrastructure/mappers/subscription.mapper';
 import { PrismaService } from '@/prisma/prisma.service';

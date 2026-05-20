@@ -10,10 +10,7 @@ import {
 } from '@/domains/doctors/application/ports/doctor-persistence.port';
 import { DoctorVerificationStatus, Role } from '@workspace/db';
 import { DoctorsQueryService } from './doctors-query.service';
-import {
-  CLOCK_PORT,
-  type IClock,
-} from '@/shared/common/ports/clock.port';
+import { CLOCK_PORT, type IClock } from '@/shared/common/ports/clock.port';
 
 /**
  * Handles platform-admin manual verification decisions for doctor accounts:

@@ -14,10 +14,7 @@ import {
   StorageProvider,
   StorageFile,
 } from '@/domains/documents/application/ports/storage-provider.port';
-import {
-  CLOCK_PORT,
-  type IClock,
-} from '@/shared/common/ports/clock.port';
+import { CLOCK_PORT, type IClock } from '@/shared/common/ports/clock.port';
 
 interface CreateEducationData {
   degree: string;
@@ -113,7 +110,9 @@ export class DoctorProfileService {
   }
 
   async addEducation(doctorId: string, data: CreateEducationData) {
-    return this.persistence.doctorEducation.create({ data: { doctorId, ...data } });
+    return this.persistence.doctorEducation.create({
+      data: { doctorId, ...data },
+    });
   }
 
   async updateEducation(
@@ -140,7 +139,9 @@ export class DoctorProfileService {
       });
       if (!existing) throw new NotFoundException('Education record not found');
     }
-    await this.persistence.doctorEducation.delete({ where: { id: educationId } });
+    await this.persistence.doctorEducation.delete({
+      where: { id: educationId },
+    });
     return { success: true };
   }
 

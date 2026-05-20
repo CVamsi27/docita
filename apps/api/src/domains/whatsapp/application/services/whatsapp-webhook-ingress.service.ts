@@ -12,10 +12,7 @@ import {
   IWhatsAppRepository,
 } from '@/domains/whatsapp/application/ports/whatsapp.repository.port';
 import { WhatsAppMessageStatus } from '@/domains/whatsapp/core/entities/whatsapp-message.entity';
-import {
-  CLOCK_PORT,
-  type IClock,
-} from '@/shared/common/ports/clock.port';
+import { CLOCK_PORT, type IClock } from '@/shared/common/ports/clock.port';
 
 type WebhookChangeValue =
   WhatsAppWebhookPayload['entry'][number]['changes'][number]['value'];
@@ -137,7 +134,9 @@ export class WhatsAppWebhookIngressService {
       };
 
       if (status.status === 'delivered' || status.status === 'read') {
-        updateData.deliveredAt = new Date(parseInt(status.timestamp, 10) * 1000);
+        updateData.deliveredAt = new Date(
+          parseInt(status.timestamp, 10) * 1000,
+        );
       }
 
       if (status.status === 'failed' && status.errors?.length) {

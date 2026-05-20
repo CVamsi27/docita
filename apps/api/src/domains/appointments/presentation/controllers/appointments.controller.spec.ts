@@ -225,7 +225,10 @@ describe('Appointments controllers', () => {
     it('should return a single appointment', async () => {
       mockAppointmentsService.getAppointment.mockResolvedValue(mockAppointment);
 
-      const result = await scheduleController.findOne('apt-123', mockAuthRequest);
+      const result = await scheduleController.findOne(
+        'apt-123',
+        mockAuthRequest,
+      );
 
       expect(result).toEqual(mockAppointment);
       expect(mockAppointmentsService.getAppointment).toHaveBeenCalledWith(

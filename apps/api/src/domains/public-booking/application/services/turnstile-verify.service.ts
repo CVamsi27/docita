@@ -25,10 +25,6 @@ export class TurnstileVerifyService {
       return false;
     }
 
-    return this.turnstileClient.verifySiteToken(
-      secret,
-      token.trim(),
-      remoteIp,
-    );
+    return this.turnstileClient.verifySiteToken(secret, token.trim(), remoteIp);
   }
 }

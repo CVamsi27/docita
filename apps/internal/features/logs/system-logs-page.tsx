@@ -6,7 +6,10 @@ import { useCallback, useEffect, useMemo, useState } from "react";
 import { RefreshCw } from "lucide-react";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { useAuth } from "@/lib/auth/auth";
-import { useInternalSystemLogs } from "@workspace/data-access/internal";
+import {
+  type InternalSystemLog as SystemLog,
+  useInternalSystemLogs,
+} from "@workspace/data-access/internal";
 import { Badge } from "@workspace/ui/components/indicators/badge";
 import { Button } from "@workspace/ui/components/form/button";
 import { Input } from "@workspace/ui/components/form/input";
@@ -19,8 +22,6 @@ import {
   TableHeader,
   TableRow,
 } from "@workspace/ui/components/data-display/table";
-
-import type { InternalSystemLog as SystemLog } from "@workspace/data-access/internal";
 
 interface SystemLogsPageProps {
   title: string;

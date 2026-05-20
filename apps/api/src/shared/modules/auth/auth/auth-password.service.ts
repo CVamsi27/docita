@@ -12,10 +12,7 @@ import { IPasswordPolicy } from './policies/password.policy';
 import { EmailService } from '@/shared/modules/messaging/email/email.service';
 import { AUTH_CONSTANTS } from '@/shared/modules/config/app-constants';
 import type { ChangePasswordData } from './auth.types';
-import {
-  CLOCK_PORT,
-  type IClock,
-} from '@/shared/common/ports/clock.port';
+import { CLOCK_PORT, type IClock } from '@/shared/common/ports/clock.port';
 
 @Injectable()
 export class AuthPasswordService {
@@ -45,9 +42,7 @@ export class AuthPasswordService {
       }
 
       const token = nanoid(64);
-      const expiresAt = new Date(
-        this.clock.now().getTime() + 60 * 60 * 1000,
-      );
+      const expiresAt = new Date(this.clock.now().getTime() + 60 * 60 * 1000);
 
       await this.prisma.user.update({
         where: { id: user.id },
