@@ -280,12 +280,12 @@ These have measurable progress recorded today. They are not "open new work" — 
 |---|---|---|---|
 | **B1** | **0** PrismaService leaks in application/presentation | `check:prisma-boundary --enforce-prisma-service` passes | — |
 | **B2** | **DONE** (application ports) | Persistence ports exist for listed domains; `payments` lives under `billing/application/ports` |
-| **N1** | `check:process-env` passes | PDF processors + `cron-env` use `getEnv()`; `envBoolean()` fixes `"false"` string |
+| **N1** | **DONE** | Listed PDF processors/catalog/R2/cron files no longer read `process.env` directly; `check:process-env` passes |
 | **A2** | `imports.service.ts` 522 → **68L** facade | Parser/mapping/dedupe/OCR/commit split — **DONE** |
 | **A5** | `bulk-import.service.ts` 390 → **62L** facade | Query/orchestrator/processor split — **DONE** |
 | **D1** | 1 → **8** domain-services | `medication-dose.rules.ts` promoted from application helpers (2026-05-20) |
 | **E3-b** | `activate-subscription.use-case.ts` 410 → **240L** | Payment verification in `activate-subscription-payment.service.ts` (98L) |
-| **G1** | `tier.ts` **1405L**; helpers in `packages/utils/billing/tier-rules.ts` | Constants remain in `packages/types`; rules exported from `@workspace/utils` |
+| **G1** | **DONE** | Runtime tier helpers live in `packages/utils/billing/tier-rules.ts`; `packages/types/src/billing/tier.ts` retains schemas/constants only |
 | **L1** | Domain `Error` OK; infra still throws bare | Repository conversions — see A.4 Phase L |
 | **M4** | Internal app fetch 25 → **1** (API proxy only) | data-access: `downloadInternalAnalyticsExport`, `postInternalWebVitals`, `postInternalAuthLogout` |
 | **S3** | Pipes + interceptors consolidated | `shared/modules/pipes/` and `shared/modules/interceptors/` are gone; shared primitives live under `shared/common/` |
@@ -687,17 +687,15 @@ Each split: write the narrower interfaces, repository class implements all, regi
 
 ### A.4 Phase N — Config
 
-**N1 [H] 6 remaining `process.env` callers**
-- `apps/api/src/domains/clinical/infrastructure/external/composite-code-catalog.provider.ts`
-- `apps/api/src/domains/clinical/infrastructure/external/licensed-cpt-code-catalog.provider.ts`
-- `apps/api/src/domains/documents/infrastructure/r2-storage.provider.ts`
-- `apps/api/src/domains/prescriptions/application/services/prescription-pdf.processor.ts`
-- `apps/api/src/domains/billing/application/services/invoice-pdf.processor.ts`
-- `apps/api/src/shared/schedule/cron-env.ts`
-- Each: inject `AppConfigService` and read via getter; add Zod-validated env keys to `app-config.ts`.
+**N1 [H] 6 remaining `process.env` callers — DONE (2026-05-20)**
+- Listed clinical catalog, R2 storage, prescription PDF, invoice PDF, and cron files now consume config through `AppConfigService`/`getEnv()`.
+- `ENABLE_SCHEDULERS` uses `envBoolean()` so string `"false"` does not coerce to truthy.
+- Verification: `pnpm check:process-env`; `pnpm verify:standard`.
 
-**N3 [M] `app-config.ts:173 let validatedEnv`**
-- Lift module-scope cache into the `AppConfigurationService` instance.
+**N3 [M] `app-config.ts:173 let validatedEnv` — DONE (2026-05-20)**
+- Module-scope mutable env cache was replaced by `EnvConfigStore`.
+- `validateEnv()` and `getEnv()` share the same validated cache without a local `let validatedEnv`.
+- Verification: `pnpm check:module-scope-config`; `pnpm verify:standard`.
 
 ### A.4 Phase Π — Logging
 
@@ -1159,8 +1157,8 @@ Execute in order. Each tier is a coherent PR set.
 
 ### Tier 1 — Foundations
 3. L2 + L3 + L1 — domain errors → infra exceptions → HTTP filter — **PARTIAL** (L1/L3 done; L2 long-tail remains)
-4. G1 — tier helpers `packages/types` → `packages/utils`
-5. N1 + N3 — finish 6 `process.env` + lift `validatedEnv`
+4. G1 — tier helpers `packages/types` → `packages/utils` — **DONE**
+5. N1 + N3 — finish 6 `process.env` + lift `validatedEnv` — **DONE**
 6. Ξ1 + Ξ2 + Ξ4 — dead deps, types/utils, per-package check-types — **DONE**
 
 ### Tier 2 — Lock in (new CI guards)
