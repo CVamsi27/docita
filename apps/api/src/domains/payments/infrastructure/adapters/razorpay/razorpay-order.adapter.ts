@@ -30,11 +30,13 @@ export class RazorpayOrderAdapter
   async createOrder(request: CreateOrderRequest): Promise<PaymentGatewayOrder> {
     try {
       const razorpay = this.getClient();
-      const order = await razorpay.orders.create({
-        amount: request.amount.toCents(),
-        currency: request.amount.currency,
-        notes: request.metadata || {},
-      });
+      const order = await this.withRazorpayTimeout(() =>
+        razorpay.orders.create({
+          amount: request.amount.toCents(),
+          currency: request.amount.currency,
+          notes: request.metadata || {},
+        }),
+      );
 
       return {
         id: order.id,
@@ -78,7 +80,9 @@ export class RazorpayOrderAdapter
   async getOrder(orderId: string): Promise<PaymentGatewayOrder | null> {
     try {
       const razorpay = this.getClient();
-      const order = await razorpay.orders.fetch(orderId);
+      const order = await this.withRazorpayTimeout(() =>
+        razorpay.orders.fetch(orderId),
+      );
 
       return {
         id: order.id,
@@ -101,7 +105,9 @@ export class RazorpayOrderAdapter
   async capturePayment(orderId: string): Promise<PaymentGatewayPayment> {
     try {
       const razorpay = this.getClient();
-      const paymentsResponse = await razorpay.orders.fetchPayments(orderId);
+      const paymentsResponse = await this.withRazorpayTimeout(() =>
+        razorpay.orders.fetchPayments(orderId),
+      );
       const payments = Array.isArray(paymentsResponse.items)
         ? paymentsResponse.items
         : [];
@@ -132,10 +138,12 @@ export class RazorpayOrderAdapter
           ? authorizedPayment.amount
           : parseInt(authorizedPayment.amount, 10);
 
-      const capturedPayment = await razorpay.payments.capture(
-        authorizedPayment.id,
-        amountInCents,
-        authorizedPayment.currency,
+      const capturedPayment = await this.withRazorpayTimeout(() =>
+        razorpay.payments.capture(
+          authorizedPayment.id,
+          amountInCents,
+          authorizedPayment.currency,
+        ),
       );
 
       return this.toPaymentGatewayPayment(capturedPayment);
@@ -177,7 +185,9 @@ export class RazorpayOrderAdapter
       }
 
       const razorpay = this.getClient();
-      const payment = await razorpay.payments.fetch(request.paymentId);
+      const payment = await this.withRazorpayTimeout(() =>
+        razorpay.payments.fetch(request.paymentId),
+      );
 
       return {
         verified: true,

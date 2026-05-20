@@ -538,16 +538,14 @@ These have measurable progress recorded today. They are not "open new work" — 
 - `domains/whatsapp/presentation/controllers/{whatsapp-webhook,legacy-whatsapp-*}.controller.ts` (7 files).
 - Each `@Post` should be `@RequiresIdempotency((req) => req.body.messageId ?? req.headers['x-request-id'])` + `@UseInterceptors(IdempotencyInterceptor)`.
 
-**Ω3 [H] Razorpay adapter timeouts**
-- All `fetch()` calls in `domains/payments/infrastructure/adapters/razorpay/*.ts` lack `AbortSignal`.
-- Add `withTimeout()` helper:
-  ```ts
-  export const withTimeout = <T>(
-    p: (signal: AbortSignal) => Promise<T>,
-    ms = 5000,
-  ): Promise<T> => p(AbortSignal.timeout(ms));
-  ```
-- Wrap every external call.
+**Ω3 [H] Razorpay adapter timeouts — DONE**
+- The Razorpay boundary uses the official SDK rather than raw `fetch()`, so
+  `AbortSignal` cannot be passed through directly.
+- `BaseRazorpayAdapter.withRazorpayTimeout()` now bounds SDK calls at 5000ms.
+- Wrapped every external SDK call in the concrete Razorpay order, payment-link,
+  refund, subscription, and invoice adapters.
+- Added focused coverage for timeout behavior in
+  `razorpay-order.adapter.spec.ts`.
 
 **Ω4 [M] Audit external-HTTP completeness**
 - Inventory every outbound HTTP call (`grep -rEn "fetch\(|axios\." apps/api/src` — recall axios is being removed in Ξ1).

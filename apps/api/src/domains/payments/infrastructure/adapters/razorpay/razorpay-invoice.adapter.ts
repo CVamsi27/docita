@@ -42,23 +42,25 @@ export class RazorpayInvoiceAdapter
           body: Record<string, unknown>,
         ) => Promise<Record<string, unknown>>;
       };
-      const invoice = await invoicesApi.create({
-        type: 'invoice',
-        customer_id: input.customerId,
-        currency: input.currency,
-        description: input.description,
-        order_id: input.orderId,
-        line_items: [
-          {
-            name: input.description,
-            amount: input.amountCents,
-            currency: input.currency,
-            quantity: 1,
-          },
-        ],
-        notes: input.notes ?? {},
-        draft: '0',
-      });
+      const invoice = await this.withRazorpayTimeout(() =>
+        invoicesApi.create({
+          type: 'invoice',
+          customer_id: input.customerId,
+          currency: input.currency,
+          description: input.description,
+          order_id: input.orderId,
+          line_items: [
+            {
+              name: input.description,
+              amount: input.amountCents,
+              currency: input.currency,
+              quantity: 1,
+            },
+          ],
+          notes: input.notes ?? {},
+          draft: '0',
+        }),
+      );
 
       return this.toSummary(invoice);
     } catch (error) {
@@ -85,10 +87,12 @@ export class RazorpayInvoiceAdapter
       const invoicesApi = razorpay.invoices as unknown as {
         all: (query: Record<string, unknown>) => Promise<{ items: unknown[] }>;
       };
-      const response = await invoicesApi.all({
-        customer_id: customerId,
-        count: options.count ?? 50,
-      });
+      const response = await this.withRazorpayTimeout(() =>
+        invoicesApi.all({
+          customer_id: customerId,
+          count: options.count ?? 50,
+        }),
+      );
       return (response.items ?? [])
         .map((item) => this.toSummary(item as Record<string, unknown>))
         .filter((s): s is PlatformInvoiceSummary => s !== null);

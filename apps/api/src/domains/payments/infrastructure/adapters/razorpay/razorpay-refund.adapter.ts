@@ -18,13 +18,15 @@ export class RazorpayRefundAdapter
   async createRefund(request: CreateRefundRequest): Promise<RefundResponse> {
     try {
       const razorpay = this.getClient();
-      const refund = await razorpay.payments.refund(request.paymentId, {
-        ...(request.amount && { amount: request.amount.toCents() }),
-        notes: {
-          ...(request.metadata || {}),
-          ...(request.reason && { reason: request.reason }),
-        },
-      });
+      const refund = await this.withRazorpayTimeout(() =>
+        razorpay.payments.refund(request.paymentId, {
+          ...(request.amount && { amount: request.amount.toCents() }),
+          notes: {
+            ...(request.metadata || {}),
+            ...(request.reason && { reason: request.reason }),
+          },
+        }),
+      );
 
       return {
         refundId: refund.id,
@@ -41,7 +43,9 @@ export class RazorpayRefundAdapter
   async getRefund(refundId: string): Promise<RefundResponse | null> {
     try {
       const razorpay = this.getClient();
-      const refund = await razorpay.refunds.fetch(refundId);
+      const refund = await this.withRazorpayTimeout(() =>
+        razorpay.refunds.fetch(refundId),
+      );
 
       return {
         refundId: refund.id,
