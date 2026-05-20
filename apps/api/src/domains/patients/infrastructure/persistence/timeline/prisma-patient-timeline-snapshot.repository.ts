@@ -1,6 +1,12 @@
 import { Injectable } from '@nestjs/common';
 import { PrismaService } from '@/prisma/prisma.service';
 import { IPatientTimelineSnapshotRepository } from '@/domains/patients/core/repositories/timeline/patient-timeline-snapshot.repository.interface';
+import type {
+  PatientAllergySnapshotRow,
+  PatientConditionSnapshotRow,
+  PatientVitalsSnapshotRow,
+  SnapshotPrescriptionRow,
+} from '@/domains/patients/core/repositories/timeline/patient-timeline-snapshot.types';
 
 @Injectable()
 export class PrismaPatientTimelineSnapshotRepository
@@ -23,7 +29,9 @@ export class PrismaPatientTimelineSnapshotRepository
     return !!patient;
   }
 
-  async fetchPatientConditions(patientId: string): Promise<unknown[]> {
+  async fetchPatientConditions(
+    patientId: string,
+  ): Promise<PatientConditionSnapshotRow[]> {
     return this.getReadClient().patientMedicalCondition.findMany({
       where: { patientId, status: { in: ['ACTIVE', 'MANAGED'] } },
       select: {
@@ -37,7 +45,9 @@ export class PrismaPatientTimelineSnapshotRepository
     });
   }
 
-  async fetchPatientAllergies(patientId: string): Promise<unknown[]> {
+  async fetchPatientAllergies(
+    patientId: string,
+  ): Promise<PatientAllergySnapshotRow[]> {
     return this.getReadClient().patientAllergy.findMany({
       where: { patientId },
       select: {
@@ -54,21 +64,18 @@ export class PrismaPatientTimelineSnapshotRepository
   async fetchRecentPrescriptionsWithMedications(
     patientId: string,
     take: number,
-  ): Promise<unknown[]> {
+  ): Promise<SnapshotPrescriptionRow[]> {
     return this.getReadClient().prescription.findMany({
       where: { patientId },
       select: {
-        id: true,
-        date: true,
-        approvalStatus: true,
         medications: {
           select: {
             id: true,
             name: true,
             dosage: true,
             frequency: true,
-            duration: true,
-            route: true,
+            isPRN: true,
+            endDate: true,
           },
         },
       },
@@ -80,7 +87,7 @@ export class PrismaPatientTimelineSnapshotRepository
   async fetchLatestVitals(
     patientId: string,
     clinicId: string,
-  ): Promise<unknown | null> {
+  ): Promise<PatientVitalsSnapshotRow | null> {
     return this.getReadClient().vitalSign.findFirst({
       where: { appointment: { patientId, clinicId } },
       orderBy: { createdAt: 'desc' },

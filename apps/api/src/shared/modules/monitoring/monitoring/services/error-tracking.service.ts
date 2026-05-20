@@ -106,6 +106,7 @@ export class ErrorTrackingService implements OnModuleDestroy {
       };
 
       if (typeof this.prisma.runUnrestricted === 'function') {
+        // RLS-BYPASS: system telemetry and error logs are not clinic-scoped
         await this.prisma.runUnrestricted(writeLogs);
       } else {
         await writeLogs();
@@ -274,6 +275,7 @@ export class ErrorTrackingService implements OnModuleDestroy {
     const cutoffDate = this.clock.now();
     cutoffDate.setDate(cutoffDate.getDate() - daysToKeep);
 
+    // RLS-BYPASS: system telemetry and error logs are not clinic-scoped
     const result = await this.prisma.runUnrestricted(async () =>
       this.prisma.errorLog.deleteMany({
         where: { createdAt: { lt: cutoffDate }, resolved: true },

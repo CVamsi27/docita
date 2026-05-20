@@ -5,15 +5,18 @@ import {
 } from '@/shared/common/ports/clock.port';
 import { PrismaService } from '@/prisma/prisma.service';
 import { UsageType, ClinicTier, Role } from '@workspace/db';
-import { DEFAULT_CURRENCY } from '@workspace/utils';
 import {
-  PRICING_CURRENCY_CONFIG,
   TIER_LIMITS,
   TIER_OVERAGE_RATES_BY_CURRENCY,
-  type TierName,
   type SupportedCurrency,
 } from '@workspace/types';
 import { getWhatsAppAddonPricingByCurrency } from '@workspace/utils';
+import {
+  buildUsageWarning,
+  resolveClinicTierPlan,
+  resolveSupportedCurrency,
+  resolveTierName,
+} from '@/domains/billing/core/services/usage-tracking-tier.util';
 
 @Injectable()
 export class UsageTrackingQueryService {
@@ -23,14 +26,7 @@ export class UsageTrackingQueryService {
   ) {}
 
   resolveCurrency(currency?: string): SupportedCurrency {
-    const selected = currency?.toUpperCase() as SupportedCurrency | undefined;
-    if (
-      selected &&
-      Object.prototype.hasOwnProperty.call(PRICING_CURRENCY_CONFIG, selected)
-    ) {
-      return selected;
-    }
-    return DEFAULT_CURRENCY as SupportedCurrency;
+    return resolveSupportedCurrency(currency);
   }
 
   async getCurrentUsage(clinicId: string) {
@@ -113,15 +109,13 @@ export class UsageTrackingQueryService {
       }),
     ]);
 
-    const tierKey =
-      (subscription?.plan as keyof typeof TIER_LIMITS) ?? 'STARTER';
+    const tierKey = resolveTierName(subscription?.plan);
     const resolvedCurrency = this.resolveCurrency(subscription?.currency);
     const tierLimits = TIER_LIMITS[tierKey];
     const includedConsultations =
       subscription?.includedAppointments ?? tierLimits.appointments ?? 0;
     const includedUsers = subscription?.includedUsers ?? tierLimits.users ?? 1;
-    const tierRates =
-      TIER_OVERAGE_RATES_BY_CURRENCY[resolvedCurrency][tierKey as TierName];
+    const tierRates = TIER_OVERAGE_RATES_BY_CURRENCY[resolvedCurrency][tierKey];
     const whatsappEligibleTier =
       tierKey === 'ESSENTIAL' ||
       tierKey === 'FRONT_DESK' ||
@@ -174,14 +168,6 @@ export class UsageTrackingQueryService {
       (sum, item) => sum + item.charge,
       0,
     );
-    const buildWarning = (current: number, included: number) => {
-      if (included <= 0)
-        return { percentUsed: 0, threshold: null as 80 | 100 | null };
-      const percentUsed = (current / included) * 100;
-      if (percentUsed >= 100) return { percentUsed, threshold: 100 as const };
-      if (percentUsed >= 80) return { percentUsed, threshold: 80 as const };
-      return { percentUsed, threshold: null as 80 | 100 | null };
-    };
     const meters = {
       consultations: {
         current: consultations,
@@ -225,11 +211,11 @@ export class UsageTrackingQueryService {
       total,
       meters,
       warnings: {
-        consultations: buildWarning(consultations, includedConsultations),
-        users: buildWarning(peakUsersInCycle, includedUsers),
-        whatsappMessages: buildWarning(whatsappCurrent, includedWhatsapp),
+        consultations: buildUsageWarning(consultations, includedConsultations),
+        users: buildUsageWarning(peakUsersInCycle, includedUsers),
+        whatsappMessages: buildUsageWarning(whatsappCurrent, includedWhatsapp),
       },
-      tier: (subscription?.plan as ClinicTier) || ClinicTier.STARTER,
+      tier: resolveClinicTierPlan(subscription?.plan),
     };
   }
 

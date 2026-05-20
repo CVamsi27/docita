@@ -1,5 +1,7 @@
 import { Injectable } from '@nestjs/common';
+import { jsonObjectSchema } from '@workspace/types';
 import { PrismaService } from '@/prisma/prisma.service';
+import { parsePrismaJsonColumn } from '@/shared/common/json/parse-prisma-json-column';
 import {
   IUserRepository,
   JwtValidationUserSnapshot,
@@ -16,6 +18,7 @@ export class PrismaUserRepository implements IUserRepository {
   }
 
   async findById(id: string) {
+    // RLS-BYPASS: user lookup by identifier precedes clinic tenant binding
     return this.prisma.runUnrestricted(async () =>
       this.prisma.user.findUnique({ where: { id } }),
     );
@@ -24,6 +27,7 @@ export class PrismaUserRepository implements IUserRepository {
   async findByIdForJwtValidation(
     id: string,
   ): Promise<JwtValidationUserSnapshot | null> {
+    // RLS-BYPASS: user lookup by identifier precedes clinic tenant binding
     return this.prisma.runUnrestricted(async () =>
       this.prisma.user.findUnique({
         where: { id },
@@ -40,6 +44,7 @@ export class PrismaUserRepository implements IUserRepository {
   }
 
   async findByEmail(email: string) {
+    // RLS-BYPASS: user lookup by identifier precedes clinic tenant binding
     return this.prisma.runUnrestricted(async () =>
       this.prisma.user.findUnique({ where: { email } }),
     );
@@ -82,6 +87,7 @@ export class PrismaUserRepository implements IUserRepository {
       sidebarNavOrderOverride?: unknown | null;
     },
   ): Promise<UserProfile> {
+    // RLS-BYPASS: user lookup by identifier precedes clinic tenant binding
     return this.prisma.runUnrestricted(async () => {
       const existing = await this.prisma.user.findUnique({
         where: { id: userId },
@@ -127,9 +133,7 @@ export class PrismaUserRepository implements IUserRepository {
       });
 
       const prefs =
-        updated.verificationData && typeof updated.verificationData === 'object'
-          ? (updated.verificationData as Record<string, unknown>)
-          : {};
+        parsePrismaJsonColumn(updated.verificationData, jsonObjectSchema) ?? {};
 
       return {
         id: updated.id,
@@ -146,6 +150,7 @@ export class PrismaUserRepository implements IUserRepository {
   }
 
   async updateOnboardingStep(userId: string, step: string): Promise<void> {
+    // RLS-BYPASS: user lookup by identifier precedes clinic tenant binding
     await this.prisma.runUnrestricted(async () =>
       this.prisma.user.update({
         where: { id: userId },
@@ -155,6 +160,7 @@ export class PrismaUserRepository implements IUserRepository {
   }
 
   async findPasswordExpiresAt(userId: string): Promise<Date | null> {
+    // RLS-BYPASS: user lookup by identifier precedes clinic tenant binding
     return this.prisma.runUnrestricted(async () => {
       const row = await this.prisma.user.findUnique({
         where: { id: userId },

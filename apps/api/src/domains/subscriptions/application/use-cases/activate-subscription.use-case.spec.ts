@@ -2,8 +2,9 @@ import { BadRequestException } from '@nestjs/common';
 import { beforeEach, describe, expect, it, jest } from '@jest/globals';
 import { ActivateSubscriptionUseCase } from './activate-subscription.use-case';
 import type { ISubscriptionRepository } from '@/domains/subscriptions/application/ports/subscription.repository.port';
-import type { IClinicOperations } from '@/domains/subscriptions/application/ports/clinic-operations.port';
 import { ActivateSubscriptionPaymentService } from '@/domains/subscriptions/application/services/activate-subscription-payment.service';
+import { ActivateSubscriptionClinicSyncService } from '@/domains/subscriptions/application/services/activate-subscription-clinic-sync.service';
+import type { IClinicOperations } from '@/domains/subscriptions/application/ports/clinic-operations.port';
 import { SubscriptionPricingService } from '@/domains/subscriptions/core/services/subscription-pricing.service';
 import { ProratingService } from '@/domains/subscriptions/core/services/proration.service';
 import { SubscriptionCheckoutPricingService } from '@/domains/subscriptions/application/services/subscription-checkout-pricing.service';
@@ -109,13 +110,17 @@ describe('ActivateSubscriptionUseCase', () => {
     paymentGateway as never,
   );
 
+  const clinicSync = new ActivateSubscriptionClinicSyncService(
+    clinicOps,
+    activationPolicy,
+  );
+
   let useCase: ActivateSubscriptionUseCase;
 
   beforeEach(() => {
     jest.clearAllMocks();
     useCase = new ActivateSubscriptionUseCase(
       subscriptionRepo,
-      clinicOps,
       new SubscriptionPricingService(),
       featureFlagService,
       checkoutPricing,
@@ -123,6 +128,7 @@ describe('ActivateSubscriptionUseCase', () => {
       activationPolicy,
       billingSnapshot,
       activationPayment,
+      clinicSync,
     );
   });
 

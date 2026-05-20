@@ -6,6 +6,8 @@
  * want zero workspace-package imports here so the config can load early.
  */
 
+import { scrubSentryEventRecord } from "./sentry-event-scrub";
+
 export const REDACTED = "[REDACTED]";
 
 const PHI_FIELDS: ReadonlySet<string> = new Set([
@@ -103,6 +105,10 @@ export function redactPhi<T>(value: T): T {
   return walk(value, 0, new WeakSet()) as T;
 }
 
+function isRecord(value: unknown): value is Record<string, unknown> {
+  return typeof value === "object" && value !== null && !Array.isArray(value);
+}
+
 function walk(value: unknown, depth: number, seen: WeakSet<object>): unknown {
   if (depth > MAX_DEPTH) return REDACTED;
   if (value === null || value === undefined) return value;
@@ -119,10 +125,13 @@ function walk(value: unknown, depth: number, seen: WeakSet<object>): unknown {
     return value.map((item) => walk(item, depth + 1, seen));
   }
   if (typeof value === "object") {
-    if (seen.has(value as object)) return REDACTED;
-    seen.add(value as object);
+    if (seen.has(value)) return REDACTED;
+    seen.add(value);
+    if (!isRecord(value)) {
+      return value;
+    }
     const out: Record<string, unknown> = {};
-    for (const [key, val] of Object.entries(value as Record<string, unknown>)) {
+    for (const [key, val] of Object.entries(value)) {
       const lower = key.toLowerCase();
       if (SAFE_FIELDS.has(lower)) {
         out[key] = val;
@@ -138,38 +147,5 @@ function walk(value: unknown, depth: number, seen: WeakSet<object>): unknown {
 }
 
 export function scrubSentryEvent<T>(event: T): T {
-  if (!event || typeof event !== "object") return event;
-  const e = event as Record<string, unknown>;
-
-  if (e.request && typeof e.request === "object") {
-    const req = e.request as Record<string, unknown>;
-    if (req.data !== undefined) req.data = redactPhi(req.data);
-    if (typeof req.query_string === "string") {
-      req.query_string = redactString(req.query_string);
-    } else if (req.query_string !== undefined) {
-      req.query_string = redactPhi(req.query_string);
-    }
-    if (req.headers !== undefined) req.headers = redactPhi(req.headers);
-    if (req.cookies !== undefined) req.cookies = redactPhi(req.cookies);
-  }
-
-  if (e.extra !== undefined) e.extra = redactPhi(e.extra);
-  if (e.contexts !== undefined) e.contexts = redactPhi(e.contexts);
-  if (e.tags !== undefined) e.tags = redactPhi(e.tags);
-
-  if (Array.isArray(e.breadcrumbs)) {
-    e.breadcrumbs = e.breadcrumbs.map((crumb: unknown) => {
-      if (!crumb || typeof crumb !== "object") return crumb;
-      const c = crumb as Record<string, unknown>;
-      if (typeof c.message === "string") c.message = redactString(c.message);
-      if (c.data !== undefined) c.data = redactPhi(c.data);
-      return c;
-    });
-  }
-
-  if (typeof e.message === "string") {
-    e.message = redactString(e.message);
-  }
-
-  return e as T;
+  return scrubSentryEventRecord(event);
 }

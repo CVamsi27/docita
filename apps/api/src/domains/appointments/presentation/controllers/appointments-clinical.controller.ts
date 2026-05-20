@@ -12,6 +12,7 @@ import { APP_ACCESS_TARGETS } from '@workspace/types';
 import { Roles } from '@/shared/modules/auth/auth/roles.decorator';
 import { getDbRolesForTarget } from '@/shared/modules/auth/auth/access-matrix.util';
 import { RequestWithUser } from '@/shared/common/types/common.types';
+import { requireClinicIdFromRequest } from '@/shared/modules/auth/auth/clinic-request-context';
 import { AppointmentService } from '@/domains/appointments/application/services/appointment.service';
 import {
   VitalsDto,
@@ -56,7 +57,7 @@ export class AppointmentsClinicalController {
   ) {
     return this.appointmentService.createVitals(
       id,
-      req.user!.clinicId!,
+      requireClinicIdFromRequest(req),
       stripVitalsMetadata(body),
       getAppointmentAccessContext(req),
     );
@@ -75,7 +76,7 @@ export class AppointmentsClinicalController {
   ) {
     return this.appointmentService.updateVitals(
       id,
-      req.user!.clinicId!,
+      requireClinicIdFromRequest(req),
       stripVitalsMetadata(body),
       getAppointmentAccessContext(req),
     );
@@ -91,7 +92,7 @@ export class AppointmentsClinicalController {
   ): Promise<DiagnosesSyncResponseDto> {
     const result = await this.appointmentService.syncDiagnoses(
       id,
-      req.user!.clinicId!,
+      requireClinicIdFromRequest(req),
       body.diagnoses ?? [],
       body.contentHash,
     );

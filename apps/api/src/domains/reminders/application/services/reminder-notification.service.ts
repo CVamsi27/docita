@@ -172,26 +172,28 @@ export class ReminderNotificationService {
         variables,
       });
 
-      await this.persistence.whatsappLog.create({
-        data: {
-          clinicId: clinicId || '',
-          patientId: appointment.patient.id,
-          phoneNumber: appointment.patient.phoneNumber,
-          message: `Sent template: ${templateId}`,
-          type: 'reminder',
-          status: WhatsappLogStatus.SENT,
-          senderMode: sendResult.senderMode ?? 'SHARED',
-          senderPhoneNumberId: sendResult.senderPhoneNumberId ?? null,
-        },
-      });
+      await this.persistence.$transaction(async (tx) => {
+        await tx.whatsappLog.create({
+          data: {
+            clinicId: clinicId || '',
+            patientId: appointment.patient.id,
+            phoneNumber: appointment.patient.phoneNumber,
+            message: `Sent template: ${templateId}`,
+            type: 'reminder',
+            status: WhatsappLogStatus.SENT,
+            senderMode: sendResult.senderMode ?? 'SHARED',
+            senderPhoneNumberId: sendResult.senderPhoneNumberId ?? null,
+          },
+        });
 
-      await this.persistence.appointmentReminder.create({
-        data: {
-          appointmentId: appointment.id,
-          type: reminderType,
-          status: 'sent',
-          sentAt: this.clock.now(),
-        },
+        await tx.appointmentReminder.create({
+          data: {
+            appointmentId: appointment.id,
+            type: reminderType,
+            status: 'sent',
+            sentAt: this.clock.now(),
+          },
+        });
       });
 
       this.logger.log(

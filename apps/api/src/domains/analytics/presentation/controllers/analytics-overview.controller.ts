@@ -28,6 +28,7 @@ import {
 } from '@/domains/analytics/dto/analytics.dto';
 import { ZodSerializerDto } from 'nestjs-zod';
 import { RequestWithUser } from '@/shared/common/types/common.types';
+import { requireClinicIdFromRequest } from '@/shared/modules/auth/auth/clinic-request-context';
 import { parseAnalyticsDate } from '@/domains/analytics/presentation/controllers/analytics-controller.helpers';
 
 @Controller('analytics')
@@ -41,7 +42,7 @@ export class AnalyticsOverviewController {
   @RateLimit({ limit: 30, window: 60000 })
   @ZodSerializerDto(OverviewStatsResponseDto)
   getOverview(@Request() req: RequestWithUser) {
-    return this.analyticsService.getOverview(req.user!.clinicId!);
+    return this.analyticsService.getOverview(requireClinicIdFromRequest(req));
   }
 
   @Get('revenue')
@@ -51,7 +52,7 @@ export class AnalyticsOverviewController {
     @Query() query: AnalyticsPeriodDaysQueryDto,
   ) {
     return this.analyticsService.getRevenueTrends(
-      req.user!.clinicId!,
+      requireClinicIdFromRequest(req),
       query.period ?? 'daily',
       query.days ?? 30,
     );
@@ -64,7 +65,7 @@ export class AnalyticsOverviewController {
     @Query() query: AnalyticsDaysQueryDto,
   ) {
     return this.analyticsService.getPatientGrowth(
-      req.user!.clinicId!,
+      requireClinicIdFromRequest(req),
       query.days ?? 30,
     );
   }
@@ -72,7 +73,7 @@ export class AnalyticsOverviewController {
   @Get('appointments')
   @ZodSerializerDto(AppointmentStatsResponseDto)
   getAppointmentStats(@Request() req: RequestWithUser) {
-    return this.analyticsService.getAppointmentStats(req.user!.clinicId!);
+    return this.analyticsService.getAppointmentStats(requireClinicIdFromRequest(req));
   }
 
   @Get('top-diagnoses')
@@ -82,7 +83,7 @@ export class AnalyticsOverviewController {
     @Query() query: AnalyticsLimitQueryDto,
   ) {
     return this.analyticsService.getTopDiagnoses(
-      req.user!.clinicId!,
+      requireClinicIdFromRequest(req),
       query.limit ?? 10,
     );
   }
@@ -95,7 +96,7 @@ export class AnalyticsOverviewController {
     @Query() query: AnalyticsDateRangeQueryDto,
   ) {
     return this.analyticsService.getDiseaseTrends(
-      req.user!.clinicId!,
+      requireClinicIdFromRequest(req),
       parseAnalyticsDate(query.startDate),
       parseAnalyticsDate(query.endDate),
     );
@@ -109,7 +110,7 @@ export class AnalyticsOverviewController {
     @Query() query: AnalyticsDateRangeQueryDto,
   ) {
     return this.analyticsService.getDiseaseTrendsByCategory(
-      req.user!.clinicId!,
+      requireClinicIdFromRequest(req),
       parseAnalyticsDate(query.startDate),
       parseAnalyticsDate(query.endDate),
     );
@@ -122,7 +123,7 @@ export class AnalyticsOverviewController {
     @Query() query: AnalyticsLimitQueryDto,
   ) {
     return this.analyticsService.getTopConditions(
-      req.user!.clinicId!,
+      requireClinicIdFromRequest(req),
       query.limit ?? 10,
     );
   }

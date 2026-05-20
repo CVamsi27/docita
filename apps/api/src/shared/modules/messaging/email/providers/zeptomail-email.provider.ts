@@ -6,6 +6,7 @@ import {
   TemplatedEmailOptions,
 } from './email-provider.interface';
 import { AppConfigService } from '@/shared/modules/config/app-configuration.service';
+import { fetchWithTimeout } from '@/shared/common/http/fetch-with-timeout';
 
 type ZeptoMailAddress = {
   address: string;
@@ -94,7 +95,7 @@ export class ZeptoMailEmailProvider implements IEmailProvider {
     };
 
     try {
-      const response = await fetch(this.apiUrl, {
+      const response = await fetchWithTimeout(this.apiUrl, {
         method: 'POST',
         headers: {
           Accept: 'application/json',

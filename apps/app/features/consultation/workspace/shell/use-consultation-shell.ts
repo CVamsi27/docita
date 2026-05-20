@@ -17,6 +17,7 @@ import {
 } from "lucide-react";
 import { useConsultationDraft } from "@/features/consultation/state/useConsultationDraft";
 import { useConsultationHydrate } from "@/features/consultation/state/useConsultationHydrate";
+import { toRecord } from "@/features/consultation/state/consultationHydrateHelpers";
 import { useConsultationAutosave } from "@/features/consultation/state/useConsultationAutosave";
 import { usePatientWithMedicalHistory } from "@workspace/data-access";
 import { type CommandPaletteAction } from "@/features/consultation/workspace/chrome/CommandPalette";
@@ -52,7 +53,8 @@ export function useConsultationShell({
   onPaletteOpenChange,
 }: UseConsultationShellOptions) {
   const params = useParams();
-  const appointmentId = params?.["id"] as string;
+  const appointmentId =
+    typeof params?.["id"] === "string" ? params["id"] : "";
   const router = useRouter();
   const searchParams = useSearchParams();
   const { openVitals } = useConsultationVitals();
@@ -62,7 +64,7 @@ export function useConsultationShell({
 
   useConsultationHydrate({
     appointmentId,
-    appointmentData: appointmentData as unknown as Record<string, unknown>,
+    appointmentData: toRecord(appointmentData),
   });
 
   const sections = useMemo(
@@ -71,8 +73,11 @@ export function useConsultationShell({
   );
 
   const clinicFeatures = useMemo(() => {
-    const key = (clinicType?.toUpperCase() ?? "GENERAL") as ClinicType;
-    return CLINIC_TYPE_FEATURES[key] ?? CLINIC_TYPE_FEATURES.GENERAL;
+    const normalized = clinicType?.toUpperCase() ?? "GENERAL";
+    if (normalized in CLINIC_TYPE_FEATURES) {
+      return CLINIC_TYPE_FEATURES[normalized as ClinicType];
+    }
+    return CLINIC_TYPE_FEATURES.GENERAL;
   }, [clinicType]);
 
   const sectionIdsKey = sections.map((s) => s.id).join(",");
@@ -313,9 +318,10 @@ export function useConsultationShell({
       const modKey = isMac ? e.metaKey : e.ctrlKey;
       if (modKey && e.key.toLowerCase() === "k") { e.preventDefault(); onPaletteOpenChange(!paletteOpen); return; }
       if (modKey && e.key.toLowerCase() === "s") { if (readOnly) return; e.preventDefault(); void onSaveClick(); return; }
-      const target = e.target as HTMLElement | null;
-      const tag = target?.tagName?.toLowerCase();
-      if (tag === "input" || tag === "textarea" || target?.isContentEditable) return;
+      const target = e.target;
+      if (!(target instanceof HTMLElement)) return;
+      const tag = target.tagName.toLowerCase();
+      if (tag === "input" || tag === "textarea" || target.isContentEditable) return;
       if (e.key === "?") { e.preventDefault(); onPaletteOpenChange(true); return; }
       if (e.key.toLowerCase() === "v") { e.preventDefault(); openVitals(); return; }
       if (e.key.toLowerCase() === "q") { e.preventDefault(); void router.push("/consultation"); return; }

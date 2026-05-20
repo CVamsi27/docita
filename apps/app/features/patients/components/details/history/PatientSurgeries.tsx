@@ -54,7 +54,9 @@ export function PatientSurgeries({
               <SymbolTooltip label="Remove surgery">
                 <button
                   type="button"
-                  onClick={() => onRemoveSurgery(surgery.id!)}
+                  onClick={() => {
+                    if (surgery.id) onRemoveSurgery(surgery.id);
+                  }}
                   className="opacity-0 group-hover:opacity-100 p-1.5 rounded-full hover:bg-destructive/10 text-muted-foreground hover:text-destructive transition-colors duration-150"
                   aria-label="Remove surgery"
                 >

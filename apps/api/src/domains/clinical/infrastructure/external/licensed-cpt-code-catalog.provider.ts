@@ -4,6 +4,7 @@ import { z } from 'zod';
 import { CodeCatalogProvider } from '@/domains/clinical/core/providers/code-catalog.provider';
 import { NlmCodeCatalogProvider } from '@/domains/clinical/infrastructure/external/nlm-code-catalog.provider';
 import { AppConfigService } from '@/shared/modules/config/app-configuration.service';
+import { fetchWithTimeout } from '@/shared/common/http/fetch-with-timeout';
 
 const licensedCodeRecordSchema = z
   .object({
@@ -117,13 +118,16 @@ export class LicensedCptCodeCatalogProvider implements CodeCatalogProvider {
       if (value !== undefined) url.searchParams.set(key, value);
     });
 
-    const res = await fetch(url.toString(), {
-      headers: {
-        Authorization: `Bearer ${this.apiKey}`,
-        Accept: 'application/json',
+    const res = await fetchWithTimeout(
+      url.toString(),
+      {
+        headers: {
+          Authorization: `Bearer ${this.apiKey}`,
+          Accept: 'application/json',
+        },
       },
-      signal: AbortSignal.timeout(LICENSED_CPT_REQUEST_TIMEOUT_MS),
-    });
+      LICENSED_CPT_REQUEST_TIMEOUT_MS,
+    );
 
     if (!res.ok) {
       throw new Error(`Licensed CPT API returned HTTP ${res.status}`);

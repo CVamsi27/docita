@@ -1,6 +1,8 @@
 import { Injectable } from '@nestjs/common';
-import { Prisma } from '@workspace/db';
+import { Prisma, type PrescriptionTemplate } from '@workspace/db';
+import { prescriptionTemplateMedicationsSchema } from '@workspace/types';
 import { PrismaService } from '@/prisma/prisma.service';
+import { parsePrismaJsonColumn } from '@/shared/common/json/parse-prisma-json-column';
 import {
   CreatePrescriptionTemplateData,
   IPrescriptionTemplatesRepository,
@@ -16,38 +18,54 @@ export class PrismaPrescriptionTemplatesRepository implements IPrescriptionTempl
     return JSON.parse(JSON.stringify(value)) as Prisma.InputJsonValue;
   }
 
-  findAll(userId: string): Promise<PrescriptionTemplateRecord[]> {
-    return this.prisma.prescriptionTemplate.findMany({
+  private mapRecord(raw: PrescriptionTemplate): PrescriptionTemplateRecord {
+    const medications =
+      parsePrismaJsonColumn(
+        raw.medications,
+        prescriptionTemplateMedicationsSchema,
+      ) ?? [];
+
+    return {
+      ...raw,
+      medications,
+    };
+  }
+
+  async findAll(userId: string): Promise<PrescriptionTemplateRecord[]> {
+    const rows = await this.prisma.prescriptionTemplate.findMany({
       where: { userId },
       orderBy: { createdAt: 'desc' },
-    }) as Promise<PrescriptionTemplateRecord[]>;
+    });
+    return rows.map((row) => this.mapRecord(row));
   }
 
-  findById(id: string): Promise<PrescriptionTemplateRecord | null> {
-    return this.prisma.prescriptionTemplate.findUnique({
+  async findById(id: string): Promise<PrescriptionTemplateRecord | null> {
+    const row = await this.prisma.prescriptionTemplate.findUnique({
       where: { id },
-    }) as Promise<PrescriptionTemplateRecord | null>;
+    });
+    return row ? this.mapRecord(row) : null;
   }
 
-  create(
+  async create(
     userId: string,
     data: CreatePrescriptionTemplateData,
   ): Promise<PrescriptionTemplateRecord> {
-    return this.prisma.prescriptionTemplate.create({
+    const row = await this.prisma.prescriptionTemplate.create({
       data: {
         name: data.name,
         medications: this.toInputJsonValue(data.medications),
         instructions: data.instructions,
         userId,
       },
-    }) as Promise<PrescriptionTemplateRecord>;
+    });
+    return this.mapRecord(row);
   }
 
-  update(
+  async update(
     id: string,
     data: UpdatePrescriptionTemplateData,
   ): Promise<PrescriptionTemplateRecord> {
-    return this.prisma.prescriptionTemplate.update({
+    const row = await this.prisma.prescriptionTemplate.update({
       where: { id },
       data: {
         name: data.name,
@@ -56,12 +74,14 @@ export class PrismaPrescriptionTemplatesRepository implements IPrescriptionTempl
           : undefined,
         instructions: data.instructions,
       },
-    }) as Promise<PrescriptionTemplateRecord>;
+    });
+    return this.mapRecord(row);
   }
 
-  delete(id: string): Promise<PrescriptionTemplateRecord> {
-    return this.prisma.prescriptionTemplate.delete({
+  async delete(id: string): Promise<PrescriptionTemplateRecord> {
+    const row = await this.prisma.prescriptionTemplate.delete({
       where: { id },
-    }) as Promise<PrescriptionTemplateRecord>;
+    });
+    return this.mapRecord(row);
   }
 }

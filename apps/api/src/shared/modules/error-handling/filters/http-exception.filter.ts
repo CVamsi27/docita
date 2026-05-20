@@ -15,51 +15,23 @@ import { Request, Response } from 'express';
 import { Prisma, ErrorSeverity } from '@workspace/db';
 import { MonitoringService } from '@/shared/modules/monitoring/monitoring/monitoring.service';
 import { ZodValidationException } from 'nestjs-zod';
-import { ZodIssue } from 'zod';
+import { ZodError, ZodIssue } from 'zod';
 import { AppConfigService } from '@/shared/modules/config/app-configuration.service';
 import { mapPrismaKnownRequestError } from '@/shared/modules/error-handling/filters/prisma-error.registry';
+import {
+  formatZodIssuesToFieldMap,
+  getErrorCause,
+  isObject,
+  readZodIssuesFromCause,
+  resolveHttpExceptionMessage,
+} from '@/shared/modules/error-handling/filters/http-exception.helpers';
 import {
   ConflictDomainError,
   DomainError,
   InvariantViolationError,
   NotFoundDomainError,
 } from '@/shared/common/errors/domain.errors';
-
-interface RequestUser {
-  id?: string;
-  clinicId?: string;
-}
-
-interface ZodErrorDetails {
-  errors: ZodIssue[];
-}
-
-interface HttpExceptionResponse {
-  message?: string | string[];
-  error?: string;
-  statusCode?: number;
-}
-
-const getErrorCause = (value: unknown): unknown => {
-  if (typeof value !== 'object' || value === null || !('cause' in value)) {
-    return undefined;
-  }
-  return (value as { cause?: unknown }).cause;
-};
-
-const isObject = (value: unknown): value is Record<string, unknown> =>
-  typeof value === 'object' && value !== null;
-
-const toStringArray = (value: unknown): string[] => {
-  if (!Array.isArray(value)) {
-    return [];
-  }
-
-  return value.filter((item): item is string => typeof item === 'string');
-};
-
-const toStringOrUndefined = (value: unknown): string | undefined =>
-  typeof value === 'string' ? value : undefined;
+import { getMonitoringUserContext } from '@/shared/modules/auth/auth/request-user.util';
 
 const MAX_REQUEST_BODY_KEYS = 20;
 const MAX_VALIDATION_FIELDS = 10;
@@ -138,21 +110,14 @@ export class AllExceptionsFilter implements ExceptionFilter {
     if (exception instanceof ZodValidationException) {
       status = HttpStatus.BAD_REQUEST;
       errorType = 'ZodValidationException';
-      const zodError = exception.getZodError() as ZodErrorDetails;
+      const zodError = exception.getZodError();
+      const issues =
+        zodError instanceof ZodError ? zodError.issues : [];
 
-      const formattedErrors = zodError.errors.reduce(
-        (acc, err) => {
-          const field = err.path.join('.');
-          acc[field] = err.message;
-          return acc;
-        },
-        {} as Record<string, string>,
-      );
-
-      details = formattedErrors;
+      details = formatZodIssuesToFieldMap(issues);
       message = 'Validation failed. Please check the highlighted fields.';
 
-      const summary = summarizeValidationIssues(zodError.errors);
+      const summary = summarizeValidationIssues(issues);
       this.logger.warn('[AllExceptionsFilter] Validation error', {
         requestId: getRequestId(request),
         path: request.path,
@@ -176,36 +141,18 @@ export class AllExceptionsFilter implements ExceptionFilter {
       const exceptionResponse = exception.getResponse();
 
       const cause = getErrorCause(exception);
-      if (isObject(cause) && 'issues' in cause && Array.isArray(cause.issues)) {
-        const formattedErrors = (cause.issues as ZodIssue[]).reduce(
-          (acc: Record<string, string>, err: ZodIssue) => {
-            const field = err.path.join('.');
-            acc[field] = err.message;
-            return acc;
-          },
-          {} as Record<string, string>,
-        );
-        details = formattedErrors;
+      const causeIssues = readZodIssuesFromCause(cause);
+      if (causeIssues) {
+        details = formatZodIssuesToFieldMap(causeIssues);
         message = 'Validation failed. Please check the highlighted fields.';
-      } else if (typeof exceptionResponse === 'string') {
-        message = exceptionResponse;
-      } else if (
-        typeof exceptionResponse === 'object' &&
-        exceptionResponse !== null
-      ) {
-        const responseObj = exceptionResponse as HttpExceptionResponse;
-        message =
-          (Array.isArray(responseObj.message)
-            ? responseObj.message.join(', ')
-            : responseObj.message) ||
-          responseObj.error ||
-          message;
-
-        if (
-          Array.isArray(responseObj.message) &&
-          responseObj.message.length > 0
-        ) {
-          details = responseObj.message;
+      } else {
+        const resolved = resolveHttpExceptionMessage(
+          exceptionResponse,
+          message,
+        );
+        message = resolved.message;
+        if (resolved.details && resolved.details.length > 0) {
+          details = resolved.details;
         }
       }
     } else if (exception instanceof NotFoundDomainError) {
@@ -271,11 +218,12 @@ export class AllExceptionsFilter implements ExceptionFilter {
     }
 
     if (status >= 500) {
+      const monitoringUser = getMonitoringUserContext(request.user);
       const requestBodySummary = summarizeRequestBody(request.body);
       Sentry.captureException(exception, {
         user: {
-          id: (request.user as RequestUser)?.id,
-          username: (request.user as RequestUser)?.clinicId,
+          id: monitoringUser.userId,
+          username: monitoringUser.clinicId,
         },
         extra: {
           path: request.path,
@@ -286,11 +234,11 @@ export class AllExceptionsFilter implements ExceptionFilter {
     }
 
     if (this.monitoringService) {
-      const user = request.user as RequestUser | undefined;
+      const monitoringUser = getMonitoringUserContext(request.user);
       const requestBodySummary = summarizeRequestBody(request.body);
       this.monitoringService.logError({
-        clinicId: user?.clinicId,
-        userId: user?.id,
+        clinicId: monitoringUser.clinicId,
+        userId: monitoringUser.userId,
         type: errorType,
         message,
         stack: this.configService?.isDevelopment() ? errorStack : undefined,

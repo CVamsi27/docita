@@ -49,6 +49,16 @@ export const bulkImportJobRowErrorSchema = z.object({
   error: z.string(),
 });
 
+/** Prisma `BulkImportJob.errors` JSON array. */
+export const bulkImportJobErrorsJsonSchema = z.array(bulkImportJobRowErrorSchema);
+
+/** Prisma `ImportJob.columnMapping` — header → field name. */
+export const importJobColumnMappingSchema = z.record(z.string());
+
+/** Prisma `ImportJob.errors` / `ImportJob.results` — legacy unstructured payloads. */
+export const importJobErrorsJsonSchema = z.record(z.unknown());
+export const importJobResultsJsonSchema = z.record(z.unknown());
+
 export const bulkImportJobStatusResponseSchema = z.object({
   jobId: z.string(),
   status: z.string(),
@@ -171,13 +181,13 @@ export const importJobSchema = z.object({
   status: z.string().or(ImportJobStatus),
   fileName: z.string().nullable().optional(),
   fileUrl: z.string().nullable().optional(),
-  columnMapping: z.record(z.unknown()).optional(), 
+  columnMapping: importJobColumnMappingSchema.optional(),
   totalRecords: z.number().int(),
   processed: z.number().int(),
   successful: z.number().int(),
   failed: z.number().int(),
-  errors: z.record(z.unknown()).optional(), 
-  results: z.record(z.unknown()).optional(), 
+  errors: importJobErrorsJsonSchema.optional(),
+  results: importJobResultsJsonSchema.optional(),
   createdAt: z.date().or(z.string()).optional(),
   updatedAt: z.date().or(z.string()).optional(),
 });

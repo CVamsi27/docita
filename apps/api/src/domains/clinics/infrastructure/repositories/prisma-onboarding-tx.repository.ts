@@ -41,7 +41,7 @@ export class PrismaOnboardingTxRepository implements IOnboardingTxRepository {
         email: data.email,
         phone: data.phone,
         address: data.address,
-        type: data.type as ClinicType,
+        type: data.type,
         website: data.website,
         mrnPrefix: data.mrnPrefix,
         timezone: data.timezone,
@@ -75,12 +75,12 @@ export class PrismaOnboardingTxRepository implements IOnboardingTxRepository {
       where: { id: userId },
       data: {
         name: data.name,
-        role: data.role as Role,
+        role: data.role,
         clinicId: data.clinicId,
         phoneNumber: data.phoneNumber,
         qualification: data.qualification,
         registrationNumber: data.registrationNumber,
-        specialization: data.specialization as User['specialization'],
+        specialization: data.specialization,
       },
     });
   }
@@ -95,11 +95,11 @@ export class PrismaOnboardingTxRepository implements IOnboardingTxRepository {
         email: data.email,
         password: data.hashedPassword,
         phoneNumber: data.phoneNumber,
-        role: data.role as Role,
+        role: data.role,
         clinicId: data.clinicId,
         qualification: data.qualification,
         registrationNumber: data.registrationNumber,
-        specialization: data.specialization as User['specialization'],
+        specialization: data.specialization,
       },
     });
   }
@@ -111,8 +111,8 @@ export class PrismaOnboardingTxRepository implements IOnboardingTxRepository {
     return tx.subscription.create({
       data: {
         clinicId: data.clinicId,
-        plan: data.plan as ClinicTier,
-        billingCycle: data.billingCycle as BillingCycle,
+        plan: data.plan,
+        billingCycle: data.billingCycle,
         basePriceCents: data.basePriceCents,
         currency: data.currency,
         status: data.status,
@@ -168,14 +168,14 @@ export class PrismaOnboardingTxRepository implements IOnboardingTxRepository {
   async applyClinicTierAndTrial(
     tx: Prisma.TransactionClient,
     clinicId: string,
-    tier: string,
+    tier: ClinicTier,
     status: SubscriptionStatus,
     trialEndsAt: Date | null,
   ): Promise<void> {
     await tx.clinic.update({
       where: { id: clinicId },
       data: {
-        tier: tier as ClinicTier,
+        tier,
         subscriptionStatus: status,
         trialEndsAt,
       },

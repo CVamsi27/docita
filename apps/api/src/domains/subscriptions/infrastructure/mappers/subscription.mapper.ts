@@ -1,17 +1,19 @@
 import {
+  scheduledPlanChangeJsonSchema,
+  subscriptionDiscountsAppliedJsonSchema,
+} from '@workspace/types';
+import {
   Prisma,
   Subscription as PrismaSubscription,
-  ClinicTier as PrismaClinicTier,
-  BillingCycle as PrismaBillingCycle,
-  SubscriptionStatus as PrismaSubscriptionStatus,
 } from '@workspace/db';
+import { parsePrismaJsonColumn } from '@/shared/common/json/parse-prisma-json-column';
+import { toPrismaInputJsonValue } from '@/shared/common/json/to-prisma-input-json-value';
 import {
   Subscription,
   type ScheduledPlanChange,
 } from '@/domains/subscriptions/core/entities/subscription.entity';
 import {
   SubscriptionStatus,
-  SubscriptionStatusEnum,
   ClinicTier,
   BillingCycle,
   DiscountAggregate,
@@ -19,39 +21,26 @@ import {
   DiscountType,
 } from '@/domains/subscriptions/core/value-objects';
 import { DEFAULT_CURRENCY } from '@workspace/utils';
+import {
+  DOMAIN_TO_PRISMA_BILLING_CYCLE,
+  DOMAIN_TO_PRISMA_CLINIC_TIER,
+  DOMAIN_TO_PRISMA_SUBSCRIPTION_STATUS,
+} from './subscription-prisma-maps';
 
-interface DiscountJsonItem extends Record<
-  string,
-  Prisma.JsonValue | undefined
-> {
+interface DiscountJsonItem {
   type: string;
   percentOff: number;
   expiresAt?: string;
   description?: string;
 }
 
+function discountTypeFromStored(value: string): DiscountType | null {
+  return Object.values(DiscountType).find((type) => type === value) ?? null;
+}
+
 export class SubscriptionMapper {
-  private static isDiscountJsonItem(
-    value: Prisma.JsonValue,
-  ): value is DiscountJsonItem {
-    if (!value || typeof value !== 'object' || Array.isArray(value)) {
-      return false;
-    }
-
-    const raw = value as Record<string, unknown>;
-    return typeof raw.type === 'string' && typeof raw.percentOff === 'number';
-  }
-
-  private static toInputJsonValue(
-    value: DiscountJsonItem[] | Record<string, unknown>,
-  ): Prisma.InputJsonValue {
-    return JSON.parse(JSON.stringify(value)) as Prisma.InputJsonValue;
-  }
-
   static toDomain(raw: PrismaSubscription): Subscription {
-    const statusValue = raw.status as SubscriptionStatusEnum;
-    const status = new SubscriptionStatus(statusValue);
-
+    const status = SubscriptionStatus.fromString(raw.status);
     const plan = ClinicTier.fromString(raw.plan);
     const cycle = BillingCycle.fromString(raw.billingCycle);
 
@@ -87,22 +76,8 @@ export class SubscriptionMapper {
   private static parseScheduledChange(
     json: Prisma.JsonValue | null,
   ): ScheduledPlanChange | null {
-    if (!json || typeof json !== 'object' || Array.isArray(json)) {
-      return null;
-    }
-    const raw = json as Record<string, unknown>;
-    if (
-      typeof raw.plan !== 'string' ||
-      typeof raw.billingCycle !== 'string' ||
-      typeof raw.effectiveAt !== 'string'
-    ) {
-      return null;
-    }
-    return {
-      plan: raw.plan,
-      billingCycle: raw.billingCycle,
-      effectiveAt: raw.effectiveAt,
-    };
+    const parsed = parsePrismaJsonColumn(json, scheduledPlanChangeJsonSchema);
+    return parsed ?? null;
   }
 
   static toPersistence(
@@ -116,14 +91,14 @@ export class SubscriptionMapper {
     return {
       id: subscription.id,
       clinicId: subscription.clinicId,
-      plan: subscription.getPlan().toString() as PrismaClinicTier,
-      billingCycle: subscription
-        .getBillingCycle()
-        .toString() as PrismaBillingCycle,
+      plan: DOMAIN_TO_PRISMA_CLINIC_TIER[subscription.getPlan().value],
+      billingCycle:
+        DOMAIN_TO_PRISMA_BILLING_CYCLE[subscription.getBillingCycle().value],
       basePriceCents: subscription.getBasePrice().paise,
       currency: DEFAULT_CURRENCY,
-      status: subscription.getStatus().toString() as PrismaSubscriptionStatus,
-      discountsApplied: this.toInputJsonValue(discountsJson),
+      status:
+        DOMAIN_TO_PRISMA_SUBSCRIPTION_STATUS[subscription.getStatus().value],
+      discountsApplied: toPrismaInputJsonValue(discountsJson),
       totalDiscountPercent: subscription.getDiscounts().getTotalPercent(),
       currentPeriodStart: subscription.currentPeriodStart,
       currentPeriodEnd: subscription.currentPeriodEnd,
@@ -139,9 +114,7 @@ export class SubscriptionMapper {
       version: subscription.version,
 
       scheduledChange: subscription.scheduledChange
-        ? (this.toInputJsonValue(
-            subscription.scheduledChange as unknown as Record<string, unknown>,
-          ) as Prisma.InputJsonValue)
+        ? toPrismaInputJsonValue(subscription.scheduledChange)
         : Prisma.JsonNull,
     };
   }
@@ -152,17 +125,17 @@ export class SubscriptionMapper {
   ): DiscountAggregate {
     const aggregate = new DiscountAggregate();
 
-    if (!Array.isArray(json)) {
-      return aggregate;
-    }
+    const items =
+      parsePrismaJsonColumn(json, subscriptionDiscountsAppliedJsonSchema) ?? [];
 
-    json.forEach((item) => {
+    items.forEach((item) => {
       try {
-        if (!this.isDiscountJsonItem(item)) {
+        const type = discountTypeFromStored(item.type);
+        if (!type) {
           return;
         }
         const discount = new Discount({
-          type: item.type as DiscountType,
+          type,
           percentOff: item.percentOff,
           expiresAt: item.expiresAt ? new Date(item.expiresAt) : undefined,
           description: item.description || '',

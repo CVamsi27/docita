@@ -22,6 +22,7 @@ export class PrismaPatientPortalRepository implements IPatientPortalRepository {
   ) {}
 
   runUnrestricted<T>(operation: () => Promise<T>): Promise<T> {
+    // RLS-BYPASS: patient portal identity is scoped by patient token, not clinic RLS
     return this.profile.runUnrestricted(operation);
   }
 

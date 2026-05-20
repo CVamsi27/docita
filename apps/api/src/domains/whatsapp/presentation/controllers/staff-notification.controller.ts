@@ -15,6 +15,7 @@ import { Roles } from '@/shared/modules/auth/auth/roles.decorator';
 import { RequireFeature } from '@/shared/modules/auth/auth/tier.decorator';
 import { StaffNotificationService } from '@/domains/whatsapp/application/services/staff-notification.service';
 import { RequestWithUser } from '@/shared/common/types/common.types';
+import { getClinicStaffRequestContext } from '@/shared/modules/auth/auth/clinic-request-context';
 import { APP_ACCESS_TARGETS } from '@workspace/types';
 import {
   getDbRolesForTarget,
@@ -35,7 +36,7 @@ export class StaffNotificationController {
     @Req() req: RequestWithUser,
     @Query('limit') limit?: number,
   ) {
-    return this.notificationService.getUnreadNotifications(req.user!.id, limit);
+    return this.notificationService.getUnreadNotifications(getClinicStaffRequestContext(req).userId, limit);
   }
 
   @Get('all')
@@ -44,7 +45,7 @@ export class StaffNotificationController {
     @Query('limit') limit?: number,
     @Query('offset') offset?: number,
   ) {
-    return this.notificationService.getAllNotifications(req.user!.id, {
+    return this.notificationService.getAllNotifications(getClinicStaffRequestContext(req).userId, {
       limit: limit ? Number(limit) : undefined,
       offset: offset ? Number(offset) : undefined,
     });
@@ -52,13 +53,13 @@ export class StaffNotificationController {
 
   @Get('unread-count')
   async getUnreadCount(@Req() req: RequestWithUser) {
-    const count = await this.notificationService.getUnreadCount(req.user!.id);
+    const count = await this.notificationService.getUnreadCount(getClinicStaffRequestContext(req).userId);
     return { count };
   }
 
   @Patch('mark-read/:id')
   async markRead(@Req() req: RequestWithUser, @Param('id') id: string) {
-    await this.notificationService.markNotificationRead(id, req.user!.id);
+    await this.notificationService.markNotificationRead(id, getClinicStaffRequestContext(req).userId);
     return { success: true };
   }
 
@@ -67,16 +68,14 @@ export class StaffNotificationController {
     @Req() req: RequestWithUser,
     @Param('id') id: string,
   ) {
-    await this.notificationService.deleteNotification(id, req.user!.id);
+    await this.notificationService.deleteNotification(id, getClinicStaffRequestContext(req).userId);
     return { success: true };
   }
 
   @Delete('delete-all')
   async deleteAllNotifications(@Req() req: RequestWithUser) {
-    await this.notificationService.deleteAllNotifications(
-      req.user!.id,
-      req.user!.clinicId!,
-    );
+    const { clinicId, userId } = getClinicStaffRequestContext(req);
+    await this.notificationService.deleteAllNotifications(userId, clinicId);
     return { success: true };
   }
 }

@@ -24,6 +24,7 @@ export class TenantRateLimitRepository {
   ) {}
 
   async findQuota(clinicId: string): Promise<TenantQuota | null> {
+    // RLS-BYPASS: rate limits apply before clinic tenant context is established
     return this.prisma.runUnrestricted(async () => {
       try {
         const row = await this.prisma.clinicApiQuota.findUnique({
@@ -50,6 +51,7 @@ export class TenantRateLimitRepository {
     clinicId: string,
     input: QuotaUpsertInput,
   ): Promise<TenantQuota> {
+    // RLS-BYPASS: rate limits apply before clinic tenant context is established
     return this.prisma.runUnrestricted(async () => {
       const resetAt = monthlyResetDate(this.clock.now());
       try {
@@ -99,6 +101,7 @@ export class TenantRateLimitRepository {
     delta: number,
   ): Promise<TenantQuota | null> {
     if (delta <= 0) return null;
+    // RLS-BYPASS: rate limits apply before clinic tenant context is established
     return this.prisma.runUnrestricted(async () => {
       try {
         const existing = await this.prisma.clinicApiQuota.findUnique({

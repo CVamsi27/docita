@@ -308,6 +308,18 @@ export const GUIDED_SETUP_LIST_PRICE_BY_CURRENCY: Record<
   ZAR: 999,
 };
 
+/** Prisma `TierPricing.features` — marketing feature bullet strings. */
+export const tierPricingFeaturesJsonSchema = z.array(z.string());
+
+/** Prisma `AddOn.pricingByTier` / `overageRateByTier` — cents or rate per tier key. */
+export const addOnTierNumberMapJsonSchema = z.record(z.number());
+
+/** Prisma `AddOn.includedQuotaByTier` — included units per tier key. */
+export const addOnIncludedQuotaByTierJsonSchema = z.record(z.number());
+
+/** Prisma `AddOn.features` — marketing feature bullets. */
+export const addOnFeaturesJsonSchema = tierPricingFeaturesJsonSchema;
+
 export const tierPricingSchema = z.object({
   monthly: z.union([z.number(), z.literal("custom")]),
   yearly: z.union([z.number(), z.literal("custom")]),

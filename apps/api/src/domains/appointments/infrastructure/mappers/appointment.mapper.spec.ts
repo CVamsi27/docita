@@ -1,5 +1,5 @@
 import { describe, expect, it } from '@jest/globals';
-import { AppointmentStatus } from '@workspace/db';
+import { AppointmentStatus as PrismaAppointmentStatus } from '@workspace/db';
 import { appointmentListItemResponseSchema } from '@workspace/types';
 import type { Appointment as PrismaAppointment } from '@workspace/db';
 import { AppointmentMapper } from './appointment.mapper';
@@ -13,7 +13,7 @@ describe('AppointmentMapper.toListItem', () => {
       doctorId: 'doctor-1',
       startTime: new Date('2026-04-01T09:00:00.000Z'),
       endTime: new Date('2026-04-01T09:30:00.000Z'),
-      status: AppointmentStatus.SCHEDULED,
+      status: PrismaAppointmentStatus.SCHEDULED,
       notes: null,
       consultationNotes: null,
       observations: null,
@@ -28,7 +28,7 @@ describe('AppointmentMapper.toListItem', () => {
       differentialDiagnosis: null,
       finalDiagnosis: null,
       followUpPlan: null,
-      generalExamination: { a: 1 },
+      generalExamination: {},
       systemicExamination: null,
       investigations: null,
       growthData: null,
@@ -68,5 +68,51 @@ describe('AppointmentMapper.toListItem', () => {
     expect(
       Object.prototype.hasOwnProperty.call(listItem, 'historyOfPresentIllness'),
     ).toBe(false);
+  });
+});
+
+describe('AppointmentMapper.toDomain', () => {
+  it('parses annotated clinical Json columns with Zod', () => {
+    const raw = {
+      id: 'appt-parse',
+      clinicId: 'clinic-1',
+      patientId: 'patient-1',
+      doctorId: 'doctor-1',
+      startTime: new Date('2026-04-01T09:00:00.000Z'),
+      endTime: new Date('2026-04-01T09:30:00.000Z'),
+      status: PrismaAppointmentStatus.SCHEDULED,
+      notes: null,
+      consultationNotes: null,
+      observations: null,
+      chiefComplaint: null,
+      historyOfPresentIllness: null,
+      pastMedicalHistory: null,
+      reviewOfSystems: null,
+      provisionalDiagnosis: null,
+      treatmentHistory: null,
+      treatmentPlan: null,
+      clinicalImpression: null,
+      differentialDiagnosis: null,
+      finalDiagnosis: null,
+      followUpPlan: null,
+      generalExamination: { pallor: true },
+      systemicExamination: null,
+      investigations: [{ name: 'CBC', status: 'ORDERED' }],
+      growthData: null,
+      ophthalmologyExam: null,
+      cardiologyExam: null,
+      gynecologyExam: null,
+      dermatologyExam: null,
+      psychiatryExam: null,
+      dentalChart: null,
+      type: 'consultation',
+      createdAt: new Date('2026-04-01T08:00:00.000Z'),
+      updatedAt: new Date('2026-04-01T08:00:00.000Z'),
+      version: 1,
+    } as unknown as Parameters<typeof AppointmentMapper.toDomain>[0];
+
+    const domain = AppointmentMapper.toDomain(raw);
+    expect(domain.toPlain().generalExamination).toMatchObject({ pallor: true });
+    expect(domain.toPlain().investigations).toHaveLength(1);
   });
 });

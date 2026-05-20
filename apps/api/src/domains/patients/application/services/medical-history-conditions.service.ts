@@ -6,18 +6,18 @@ import {
   Inject,
 } from '@nestjs/common';
 import {
-  MedicalConditionType,
-  ConditionStatus,
-  ConditionSeverity,
-  AllergyType,
-  AllergySeverity,
-} from '@workspace/db';
-import {
   CreateMedicalConditionInput,
   UpdateMedicalConditionInput,
   CreatePatientAllergyInput,
   UpdatePatientAllergyInput,
 } from '@workspace/types';
+import {
+  DOMAIN_TO_PRISMA_ALLERGY_SEVERITY,
+  DOMAIN_TO_PRISMA_ALLERGY_TYPE,
+  DOMAIN_TO_PRISMA_CONDITION_SEVERITY,
+  DOMAIN_TO_PRISMA_CONDITION_STATUS,
+  DOMAIN_TO_PRISMA_MEDICAL_CONDITION_TYPE,
+} from './medical-history-prisma-maps';
 import {
   PATIENT_PERSISTENCE_PORT,
   type PatientPersistencePort,
@@ -47,9 +47,12 @@ export class MedicalHistoryConditionsService {
         patientId,
         conditionName: validated.conditionName,
         icdCode: validated.icdCode,
-        conditionType: validated.conditionType as MedicalConditionType,
-        status: validated.status as ConditionStatus,
-        severity: validated.severity as ConditionSeverity,
+        conditionType:
+          DOMAIN_TO_PRISMA_MEDICAL_CONDITION_TYPE[validated.conditionType],
+        status: DOMAIN_TO_PRISMA_CONDITION_STATUS[validated.status],
+        severity: validated.severity
+          ? DOMAIN_TO_PRISMA_CONDITION_SEVERITY[validated.severity]
+          : null,
         diagnosedDate: validated.diagnosedDate
           ? new Date(validated.diagnosedDate)
           : null,
@@ -77,9 +80,18 @@ export class MedicalHistoryConditionsService {
       data: {
         conditionName: dto.conditionName,
         icdCode: dto.icdCode,
-        conditionType: dto.conditionType as MedicalConditionType,
-        status: dto.status as ConditionStatus,
-        severity: dto.severity as ConditionSeverity,
+        ...(dto.conditionType !== undefined
+          ? {
+              conditionType:
+                DOMAIN_TO_PRISMA_MEDICAL_CONDITION_TYPE[dto.conditionType],
+            }
+          : {}),
+        ...(dto.status !== undefined
+          ? { status: DOMAIN_TO_PRISMA_CONDITION_STATUS[dto.status] }
+          : {}),
+        ...(dto.severity !== undefined
+          ? { severity: DOMAIN_TO_PRISMA_CONDITION_SEVERITY[dto.severity] }
+          : {}),
         diagnosedDate: dto.diagnosedDate
           ? new Date(dto.diagnosedDate)
           : undefined,
@@ -123,8 +135,8 @@ export class MedicalHistoryConditionsService {
         data: {
           patientId,
           allergen: validated.allergen,
-          allergyType: validated.allergyType as AllergyType,
-          severity: validated.severity as AllergySeverity,
+          allergyType: DOMAIN_TO_PRISMA_ALLERGY_TYPE[validated.allergyType],
+          severity: DOMAIN_TO_PRISMA_ALLERGY_SEVERITY[validated.severity],
           reaction: validated.reaction,
           notes: validated.notes,
           onsetDate: validated.onsetDate ? new Date(validated.onsetDate) : null,
@@ -160,8 +172,12 @@ export class MedicalHistoryConditionsService {
         where: { id },
         data: {
           allergen: dto.allergen,
-          allergyType: dto.allergyType as AllergyType,
-          severity: dto.severity as AllergySeverity,
+          ...(dto.allergyType !== undefined
+            ? { allergyType: DOMAIN_TO_PRISMA_ALLERGY_TYPE[dto.allergyType] }
+            : {}),
+          ...(dto.severity !== undefined
+            ? { severity: DOMAIN_TO_PRISMA_ALLERGY_SEVERITY[dto.severity] }
+            : {}),
           reaction: dto.reaction,
           notes: dto.notes,
           onsetDate: dto.onsetDate ? new Date(dto.onsetDate) : undefined,

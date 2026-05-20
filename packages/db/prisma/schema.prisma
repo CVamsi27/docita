@@ -31,6 +31,7 @@ model User {
   verificationSource         String?
   verificationRef            String?
   verificationReason         String?
+  /// @json:jsonObjectSchema
   verificationData           Json?
   verificationCheckedAt      DateTime?
   registrationCertificateUrl String?
@@ -284,6 +285,7 @@ model Patient {
   allergies                String?
   bloodGroup               String?
   clinicId                 String
+  /// @json:jsonObjectSchema
   customData               Json?                     @default("{}")
   gender                   Gender
   userId                   String?                   @unique
@@ -572,20 +574,30 @@ model Appointment {
   differentialDiagnosis   String?
   finalDiagnosis          String?
   followUpPlan            String?
+  /// @json:generalExaminationSchema
   generalExamination      Json?
   historyOfPresentIllness String?
+  /// @json:clinicalInvestigationSchema
   investigations          Json?
   pastMedicalHistory      String?
   provisionalDiagnosis    String?
   reviewOfSystems         String?
+  /// @json:systemicExaminationSchema
   systemicExamination     Json?
   treatmentPlan           String?
+  /// @json:dentalChartSchema
   dentalChart             Json?
+  /// @json:growthChartDataSchema
   growthData              Json?
+  /// @json:ophthalmologyExamDataSchema
   ophthalmologyExam       Json?
+  /// @json:cardiologyExamDataSchema
   cardiologyExam          Json?
+  /// @json:gynecologyExamDataSchema
   gynecologyExam          Json?
+  /// @json:dermatologyExamDataSchema
   dermatologyExam         Json?
+  /// @json:psychiatryExamDataSchema
   psychiatryExam          Json?
   encounterSummary        String?
   clinic                  Clinic                @relation(fields: [clinicId], references: [id])
@@ -806,8 +818,11 @@ model Invoice {
   discountTotalCents       Int?
   taxTotalCents            Int?
   grandTotalCents          Int?
+  /// @json:invoiceTaxSummarySchema
   taxSummary               Json?
+  /// @json:taxRegistrationSnapshotSchema
   sellerTaxSnapshot        Json?
+  /// @json:taxRegistrationSnapshotSchema
   buyerTaxSnapshot         Json?
   placeOfSupplyStateCode   String?
   placeOfSupplyStateName   String?
@@ -819,6 +834,7 @@ model Invoice {
   eInvoiceQrCode           String?
   eInvoiceAcknowledgedAt   DateTime?
   status                   InvoiceStatus    @default(PENDING)
+  /// @json:invoiceItemsSchema
   items                    Json
   createdAt                DateTime         @default(now())
   updatedAt                DateTime         @updatedAt
@@ -872,6 +888,7 @@ model InvoiceItem {
   taxCents       Int      @default(0)
   totalCents     Int      @default(0)
   hsnSac         String?
+  /// @json:jsonObjectSchema
   metadata       Json?
   createdAt      DateTime @default(now())
   updatedAt      DateTime @default(now()) @updatedAt
@@ -924,6 +941,7 @@ model PrescriptionTemplate {
   name         String
   userId       String
   clinicId     String?
+  /// @json:prescriptionTemplateMedicationsSchema
   medications  Json
   instructions String?
   createdAt    DateTime @default(now())
@@ -939,6 +957,7 @@ model ClinicalTemplate {
   id                  String   @id @default(cuid())
   name                String
   speciality          String
+  /// @json:clinicalTemplateFieldsSchema
   fields              Json
   defaultObservations String?
   clinicId            String?
@@ -1013,6 +1032,7 @@ model Clinic {
   active                   Boolean                  @default(true)
   tier                     ClinicTier               @default(STARTER)
   type                     ClinicType               @default(GENERAL)
+  /// @json:jsonObjectSchema
   settings                 Json?
   timezone                 String                   @default("Asia/Kolkata")
   locale                   String                   @default("en-IN")
@@ -1020,8 +1040,11 @@ model Clinic {
   createdAt                DateTime                 @default(now())
   updatedAt                DateTime                 @updatedAt
   subscriptionStatus       SubscriptionStatus       @default(ACTIVE)
+  /// @json:jsonObjectSchema
   branding                 Json?
+  /// @json:jsonObjectSchema
   features                 Json?
+  /// @json:whatsAppAutomationSchema
   whatsappAutomation       Json?
   whatsappSenderMode       WhatsappSenderMode       @default(SHARED)
   whatsappSenderStatus     WhatsappSenderStatus     @default(NOT_CONFIGURED)
@@ -1146,7 +1169,9 @@ model FeatureFlagDefinition {
   key               String   @id
   description       String
   defaultEnabled    Boolean  @default(false)
+  /// @json:featureFlagBoolMapSchema
   clinicOverrides   Json?
+  /// @json:featureFlagBoolMapSchema
   userOverrides     Json?
   percentageRollout Int?
   createdAt         DateTime @default(now())
@@ -1253,6 +1278,7 @@ model PatientMetricValue {
   valueNumber    Float?
   valueBoolean   Boolean?
   valueDate      DateTime?
+  /// @json:patientMetricValueJsonSchema
   valueJson      Json?
   optionId       String?
   createdAt      DateTime  @default(now())
@@ -1319,6 +1345,7 @@ enum MetricRecordSource {
 model FeatureFlag {
   id          String   @id @default(cuid())
   key         String
+  /// @json:featureFlagValueJsonSchema
   value       Json
   description String?
   clinicId    String?
@@ -1364,7 +1391,9 @@ model PaymentSession {
   paidAt            DateTime?
   failedAt          DateTime?
   expiresAt         DateTime?
+  /// @json:paymentSessionWebhookPayloadSchema
   webhookPayload    Json?
+  /// @json:paymentSessionMetaJsonSchema
   meta              Json?
   whatsappSentAt    DateTime?
   whatsappMessageId String?
@@ -1396,7 +1425,9 @@ model WhatsappLog {
   status            WhatsappLogStatus @default(QUEUED)
   senderPhoneNumberId String?
   senderMode          WhatsappSenderMode @default(SHARED)
+  /// @json:jsonObjectSchema
   requestBody       Json?
+  /// @json:jsonObjectSchema
   responseBody      Json?
   errorMessage      String?
   createdAt         DateTime          @default(now())
@@ -1449,6 +1480,7 @@ model SupportWhatsAppMessage {
   respondedAt              DateTime?
   replyToProviderMessageId String?
   errorMessage             String?
+  /// @json:jsonObjectSchema
   rawPayload               Json?
   createdAt                DateTime                        @default(now())
   updatedAt                DateTime                        @updatedAt
@@ -1468,8 +1500,10 @@ model WhatsappTemplate {
   name           String
   category       WhatsappTemplateCategory
   content        String
+  /// @json:whatsappTemplateVariablesSchema
   variables      Json?
   buttonType     WhatsappButtonType       @default(NONE)
+  /// @json:whatsappTemplateButtonsSchema
   buttons        Json?
   status         WhatsappTemplateStatus   @default(DRAFT)
   metaTemplateId String?
@@ -1515,6 +1549,7 @@ model WhatsAppBroadcastRecipient {
   broadcastJobId    String
   phoneNumber       String
   name              String?
+  /// @json:whatsappBroadcastVariablesSchema
   variables         Json?
   status            WhatsAppBroadcastRecipientStatus  @default(PENDING)
   providerMessageId String?
@@ -1573,6 +1608,7 @@ model StaffNotification {
   type      StaffNotificationType
   title     String
   message   String
+  /// @json:jsonObjectSchema
   data      Json?
   priority  NotificationPriority  @default(NORMAL)
   isRead    Boolean               @default(false)
@@ -1818,12 +1854,15 @@ model ImportJob {
   status        ImportJobStatus @default(PENDING)
   fileName      String?
   fileUrl       String?
+  /// @json:importJobColumnMappingSchema
   columnMapping Json?
   totalRecords  Int             @default(0)
   processed     Int             @default(0)
   successful    Int             @default(0)
   failed        Int             @default(0)
+  /// @json:importJobErrorsJsonSchema
   errors        Json?
+  /// @json:importJobResultsJsonSchema
   results       Json?
   createdBy     String
   createdAt     DateTime        @default(now())
@@ -1843,13 +1882,17 @@ model OcrDocument {
   processedUrl          String?
   documentType          String            @default("UNKNOWN")
   ocrText               String?
+  /// @json:ocrExtractedDataJsonSchema
   extractedData         Json?
   confidence            Float?
+  /// @json:ocrFieldConfidenceScoresJsonSchema
   fieldConfidenceScores Json?
+  /// @json:ocrSuggestedCorrectionsJsonSchema
   suggestedCorrections  Json?
   status                OcrDocumentStatus @default(PENDING)
   reviewedBy            String?
   reviewedAt            DateTime?
+  /// @json:ocrCorrectionsJsonSchema
   corrections           Json?
   createdAt             DateTime          @default(now())
   updatedAt             DateTime          @updatedAt
@@ -1886,6 +1929,7 @@ model PatientMergeSuggestion {
   patient1Id      String
   patient2Id      String
   similarityScore Float
+  /// @json:patientMergeMatchReasonsJsonSchema
   matchReasons    Json
   status          String    @default("pending")
   mergedBy        String?
@@ -2013,6 +2057,7 @@ model LabTestOrder {
   appointmentId String?
   labTestId     String
   status        LabTestOrderStatus @default(ORDERED)
+  /// @json:labTestOrderResultJsonSchema
   result        Json?
   resultUrl     String?
   notes         String?
@@ -2037,6 +2082,7 @@ model WhatsappFlow {
   name      String
   trigger   String
   template  String
+  /// @json:jsonObjectSchema
   timing    Json?
   active    Boolean  @default(true)
   createdAt DateTime @default(now())
@@ -2052,6 +2098,7 @@ model WhatsappConversation {
   patientId     String
   status        WhatsappConversationStatus @default(OPEN)
   lastMessageAt DateTime?
+  /// @json:jsonObjectSchema
   context       Json?
   createdAt     DateTime                   @default(now())
   updatedAt     DateTime                   @updatedAt
@@ -2617,6 +2664,7 @@ model ApiRequest {
   ip           String?
   error        String?
   errorStack   String?
+  /// @json:jsonObjectSchema
   metadata     Json?
   createdAt    DateTime @default(now())
 
@@ -2642,7 +2690,9 @@ model ErrorLog {
   statusCode  Int?
   userAgent   String?
   ip          String?
+  /// @json:jsonObjectSchema
   requestBody Json?
+  /// @json:jsonObjectSchema
   metadata    Json?
   severity    ErrorSeverity @default(ERROR)
   resolved    Boolean       @default(false)
@@ -2664,6 +2714,7 @@ model SystemMetric {
   metricType MetricType
   value      Float
   unit       String?
+  /// @json:jsonObjectSchema
   metadata   Json?
   recordedAt DateTime   @default(now())
 
@@ -2685,6 +2736,7 @@ model PlatformAlert {
   lastSeenAt     DateTime  @default(now())
   lastNotifiedAt DateTime?
   recoveredAt    DateTime?
+  /// @json:jsonObjectSchema
   metadata       Json?
 
   @@unique([alertKey, environment])
@@ -2753,6 +2805,7 @@ model TierPricing {
   overageInvoiceCents      Int        @default(0)
   overageOcrPageCents      Int        @default(0)
   overageApiCallCents      Int        @default(0)
+  /// @json:tierPricingFeaturesJsonSchema
   features                 Json       @default("[]")
   name                     String
   description              String
@@ -2770,12 +2823,16 @@ model TierPricing {
 model AddOn {
   id                  String    @id @default(cuid())
   type                AddOnType @unique
+  /// @json:addOnTierNumberMapJsonSchema
   pricingByTier       Json
+  /// @json:addOnIncludedQuotaByTierJsonSchema
   includedQuotaByTier Json
+  /// @json:addOnTierNumberMapJsonSchema
   overageRateByTier   Json
   name                String
   description         String
   icon                String?
+  /// @json:addOnFeaturesJsonSchema
   features            Json      @default("[]")
 
   isActive     Boolean       @default(true)
@@ -2822,6 +2879,7 @@ model UsageRecord {
   includedQuota      Int
   overageUnits       Int
   overageChargeCents Int       @default(0)
+  /// @json:jsonObjectSchema
   metadata           Json?
 
   createdAt DateTime @default(now())
@@ -2844,6 +2902,7 @@ model UsageEvent {
   entityType String?
   entityId   String?
   eventKey   String?
+  /// @json:jsonObjectSchema
   metadata   Json?
 
   createdAt DateTime @default(now())
@@ -2887,6 +2946,7 @@ model Subscription {
   currency               String             @default("INR")
   status                 SubscriptionStatus @default(ACTIVE)
   version                Int                @default(1)
+  /// @json:subscriptionDiscountsAppliedJsonSchema
   discountsApplied       Json?
   totalDiscountPercent   Int                @default(0)
   includedPatients       Int                @default(300)
@@ -2908,6 +2968,7 @@ model Subscription {
   lastFailedPaymentDate  DateTime?
   failureRetryCount      Int                @default(0)
   graceUntil             DateTime? // Payment resolution deadline; length from SUBSCRIPTION_LOCKOUT_GRACE_DAYS (API) when status is GRACE or PAST_DUE
+  /// @json:scheduledPlanChangeJsonSchema
   scheduledChange        Json?
 
   createdAt DateTime @default(now())
@@ -2952,6 +3013,7 @@ model EnterpriseContract {
   overageInvoiceCents      Int @default(0)
   setupFeeCents            Int @default(0)
   dedicatedSupportCents    Int @default(0)
+  /// @json:enterpriseContractCustomLineItemsJsonSchema
   customLineItems          Json @default("[]")
 
   annualPrepayDiscountPercent Int     @default(0)
@@ -2993,6 +3055,7 @@ model EnterpriseContractRevision {
   contractId    String
   effectiveDate DateTime
   changeSummary String
+  /// @json:enterpriseContractRevisionSnapshotJsonSchema
   snapshot      Json
   createdById   String?
   createdAt     DateTime @default(now())
@@ -3013,6 +3076,7 @@ model EnterpriseContractInvoice {
   periodStart           DateTime
   periodEnd             DateTime
   discountPercent       Int                   @default(0)
+  /// @json:jsonObjectSchema
   metadata              Json?
   createdAt             DateTime              @default(now())
   updatedAt             DateTime              @updatedAt
@@ -3033,6 +3097,7 @@ model EnterpriseTrueUpAlert {
   ytdOverageCents  Int
   ytdPlatformCents Int
   recipients       String[] @default([])
+  /// @json:jsonObjectSchema
   metadata         Json?
 
   contract EnterpriseContract @relation(fields: [contractId], references: [id], onDelete: Cascade)
@@ -3058,8 +3123,11 @@ model SubscriptionPayment {
   subtotalCents          Int     @default(0)
   taxCents               Int     @default(0)
   grandTotalCents        Int     @default(0)
+  /// @json:invoiceTaxSummarySchema
   taxSummary             Json?
+  /// @json:taxRegistrationSnapshotSchema
   sellerTaxSnapshot      Json?
+  /// @json:taxRegistrationSnapshotSchema
   buyerTaxSnapshot       Json?
   placeOfSupplyStateCode String?
   reverseCharge          Boolean @default(false)
@@ -3189,12 +3257,15 @@ model AuditLog {
   action       String
   entityType   String
   entityId     String
+  /// @json:jsonObjectSchema
   oldValue     Json?
+  /// @json:jsonObjectSchema
   newValue     Json?
   ipAddress    String?
   userAgent    String?
   status       String   @default("SUCCESS")
   errorMessage String?
+  /// @json:jsonObjectSchema
   metadata     Json?
   createdAt    DateTime @default(now())
 
@@ -3224,6 +3295,7 @@ model AnalyticsSnapshot {
   newPatients         Int      @default(0)
   activePatients      Int      @default(0)
   appointmentRate     Decimal  @default(0) @db.Decimal(5, 2)
+  /// @json:analyticsTopConditionsJsonSchema
   topConditions       Json     @default("[]")
 
   createdAt DateTime @default(now())
@@ -3281,6 +3353,7 @@ model BulkImportJob {
   successRows   Int       @default(0)
   failedRows    Int       @default(0)
   skippedRows   Int       @default(0)
+  /// @json:bulkImportJobErrorsJsonSchema
   errors        Json      @default("[]")
   errorSummary  String?
   startedAt     DateTime?
@@ -3537,12 +3610,15 @@ model AuditLogArchive {
   action       String
   entityType   String
   entityId     String
+  /// @json:jsonObjectSchema
   oldValue     Json?
+  /// @json:jsonObjectSchema
   newValue     Json?
   ipAddress    String?
   userAgent    String?
   status       String
   errorMessage String?
+  /// @json:jsonObjectSchema
   metadata     Json?
   createdAt    DateTime
   archivedAt   DateTime @default(now())
@@ -3565,7 +3641,9 @@ model WhatsappLogArchive {
   phoneNumber       String
   message           String
   status            String
+  /// @json:jsonObjectSchema
   requestBody       Json?
+  /// @json:jsonObjectSchema
   responseBody      Json?
   errorMessage      String?
   createdAt         DateTime
@@ -3598,20 +3676,30 @@ model AppointmentArchive {
   differentialDiagnosis   String?
   finalDiagnosis          String?
   followUpPlan            String?
+  /// @json:generalExaminationSchema
   generalExamination      Json?
   historyOfPresentIllness String?
+  /// @json:clinicalInvestigationSchema
   investigations          Json?
   pastMedicalHistory      String?
   provisionalDiagnosis    String?
   reviewOfSystems         String?
+  /// @json:systemicExaminationSchema
   systemicExamination     Json?
   treatmentPlan           String?
+  /// @json:dentalChartSchema
   dentalChart             Json?
+  /// @json:growthChartDataSchema
   growthData              Json?
+  /// @json:ophthalmologyExamDataSchema
   ophthalmologyExam       Json?
+  /// @json:cardiologyExamDataSchema
   cardiologyExam          Json?
+  /// @json:gynecologyExamDataSchema
   gynecologyExam          Json?
+  /// @json:dermatologyExamDataSchema
   dermatologyExam         Json?
+  /// @json:psychiatryExamDataSchema
   psychiatryExam          Json?
   encounterSummary        String?
   priority                AppointmentPriority
@@ -3631,6 +3719,7 @@ model MedicalDocument {
   clinicId      String
   appointmentId String?
   title         String
+  /// @json:medicalDocumentContentJsonSchema
   content       Json
   validFrom     DateTime?
   validUntil    DateTime?
@@ -3908,6 +3997,7 @@ enum QueueJobStatus {
 model QueueJob {
   id             String         @id @default(cuid())
   name           String
+  /// @json:jsonObjectSchema
   data           Json
   status         QueueJobStatus @default(WAITING)
   priority       Int            @default(0)
@@ -3941,6 +4031,7 @@ model ApiHttpIdempotencyRecord {
   scopedKey             String                   @unique
   bodyHash              String
   status                ApiHttpIdempotencyStatus
+  /// @json:apiHttpIdempotencyResponseJsonSchema
   response              Json?
   processingExpiresAt   DateTime
   recordExpiresAt       DateTime

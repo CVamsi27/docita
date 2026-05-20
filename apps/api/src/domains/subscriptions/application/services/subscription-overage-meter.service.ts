@@ -170,14 +170,18 @@ export class SubscriptionOverageMeterService {
       usageData,
     );
 
-    const overageEntries = Object.entries(result.breakdown).filter(
-      ([key, breakdown]) =>
-        mapOverageKeyToUsageType(key) !== null && breakdown.charge > 0,
+    const overageEntries = Object.entries(result.breakdown).flatMap(
+      ([key, breakdown]) => {
+        const usageType = mapOverageKeyToUsageType(key);
+        if (usageType === null || breakdown.charge <= 0) {
+          return [];
+        }
+        return [{ key, breakdown, usageType }];
+      },
     );
 
     const upsertResults = await Promise.allSettled(
-      overageEntries.map(async ([key, breakdown]) => {
-        const usageType = mapOverageKeyToUsageType(key)!;
+      overageEntries.map(async ({ key, breakdown, usageType }) => {
         const usageEntry = usageData.usage[key as keyof typeof usageData.usage];
 
         await this.persistence.usageRecord.upsert({

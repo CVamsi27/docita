@@ -174,10 +174,17 @@ export class OnboardingService {
       }
 
       if (listPriceCents > 0 && !isUnpaidEssentialTrial && hasRazorpayPayment) {
+        const paymentDetails = completeData.paymentDetails;
+        const razorpayPaymentId = paymentDetails?.razorpayPaymentId;
+        const razorpayOrderId = paymentDetails?.razorpayOrderId;
+        const razorpaySignature = paymentDetails?.razorpaySignature;
+        if (!razorpayPaymentId || !razorpayOrderId || !razorpaySignature) {
+          throw new BadRequestException('Payment details are required');
+        }
         const verification = await this.paymentGateway.verifyPayment({
-          razorpayPaymentId: completeData.paymentDetails!.razorpayPaymentId!,
-          razorpayOrderId: completeData.paymentDetails!.razorpayOrderId!,
-          razorpaySignature: completeData.paymentDetails!.razorpaySignature!,
+          razorpayPaymentId,
+          razorpayOrderId,
+          razorpaySignature,
         });
 
         if (!verification.verified) {
@@ -196,6 +203,7 @@ export class OnboardingService {
           ? 'FRONT_DESK'
           : completeData.planSelection.workspaceProfile;
 
+      // RLS-BYPASS: onboarding creates clinic records before membership tenant binding
       const result = await this.persistence.runUnrestricted(async () => {
         return this.persistence.$transaction(async (tx) => {
           const clinic = await this.workflowService.createClinic(

@@ -18,7 +18,7 @@ type EnterpriseContractPersistenceKey =
 
 export type EnterpriseContractPersistencePort = Pick<
   PrismaDelegatePort,
-  EnterpriseContractPersistenceKey
+  EnterpriseContractPersistenceKey | '$transaction'
 >;
 
 export const ENTERPRISE_CONTRACT_PERSISTENCE_PORT =

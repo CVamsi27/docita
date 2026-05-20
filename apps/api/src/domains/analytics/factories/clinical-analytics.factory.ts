@@ -189,10 +189,12 @@ export class ClinicalAnalyticsFactory {
 
     const timeSeriesData = new Map<string, Map<string, number>>();
     for (const row of rows) {
-      if (!timeSeriesData.has(row.period)) {
-        timeSeriesData.set(row.period, new Map());
+      let periodMap = timeSeriesData.get(row.period);
+      if (!periodMap) {
+        periodMap = new Map();
+        timeSeriesData.set(row.period, periodMap);
       }
-      timeSeriesData.get(row.period)!.set(row.icd_code, row.count);
+      periodMap.set(row.icd_code, row.count);
     }
 
     return Array.from(timeSeriesData.entries()).map(([period, codes]) => ({

@@ -43,6 +43,7 @@ import {
 import { ZodSerializerDto } from 'nestjs-zod';
 import { ZodValidationPipe } from '@/shared/common/pipes/zod-validation.pipe';
 import { RequestWithUser } from '@/shared/common/types/common.types';
+import { getClinicStaffRequestContext } from '@/shared/modules/auth/auth/clinic-request-context';
 import { AuditService } from '@/shared/modules/audit/audit/audit.service';
 import {
   logClinicPhiListRead,
@@ -86,7 +87,8 @@ export class PrescriptionsController {
       );
     }
 
-    return this.prescriptionsService.findAll(req.user!.clinicId!, {
+    const { clinicId } = getClinicStaffRequestContext(req);
+    return this.prescriptionsService.findAll(clinicId, {
       search,
       date,
       startDate,
@@ -99,10 +101,8 @@ export class PrescriptionsController {
   @Get(':id')
   @ZodSerializerDto(PrescriptionResponseDto)
   async findOne(@Request() req: RequestWithUser, @Param('id') id: string) {
-    const prescription = await this.prescriptionsService.findOne(
-      id,
-      req.user!.clinicId!,
-    );
+    const { clinicId } = getClinicStaffRequestContext(req);
+    const prescription = await this.prescriptionsService.findOne(id, clinicId);
     await logPatientPhiRead(
       this.auditService,
       req,
@@ -119,13 +119,14 @@ export class PrescriptionsController {
   @ZodSerializerDto(PrescriptionResponseDto)
   @UsePipes(new ZodValidationPipe(CreatePrescriptionSchema))
   create(@Request() req: RequestWithUser, @Body() dto: CreatePrescriptionDto) {
+    const { clinicId, userId } = getClinicStaffRequestContext(req);
     return this.prescriptionsService.create({
       ...dto,
       appointmentId: dto.appointmentId || '',
-      doctorId: dto.doctorId || req.user!.id,
+      doctorId: dto.doctorId || userId,
       doctorSpecialization: dto.doctorSpecialization as Specialization,
       doctorRole: dto.doctorRole as HospitalRole,
-      clinicId: req.user!.clinicId!,
+      clinicId,
     });
   }
 
@@ -136,17 +137,15 @@ export class PrescriptionsController {
     @Param('id') id: string,
     @Query('jobId') jobId: string,
   ) {
-    const prescription = await this.prescriptionsService.findOne(
-      id,
-      req.user!.clinicId!,
-    );
+    const { clinicId } = getClinicStaffRequestContext(req);
+    const prescription = await this.prescriptionsService.findOne(id, clinicId);
     await logPatientPhiRead(
       this.auditService,
       req,
       prescription.patientId,
       'VIEW_HISTORY',
     );
-    return this.pdfJobService.getStatus(jobId, req.user!.clinicId!);
+    return this.pdfJobService.getStatus(jobId, clinicId);
   }
 
   @Get(':id/pdf')
@@ -157,10 +156,8 @@ export class PrescriptionsController {
     @Query('async') isAsync: string,
     @Res() res: Response,
   ) {
-    const prescription = await this.prescriptionsService.findOne(
-      id,
-      req.user!.clinicId!,
-    );
+    const { clinicId } = getClinicStaffRequestContext(req);
+    const prescription = await this.prescriptionsService.findOne(id, clinicId);
     await logPatientPhiRead(
       this.auditService,
       req,
@@ -171,15 +168,12 @@ export class PrescriptionsController {
     if (isAsync === 'true') {
       const result = await this.prescriptionsService.generatePdfAsync(
         id,
-        req.user!.clinicId!,
+        clinicId,
       );
       return res.status(HttpStatus.ACCEPTED).json(result);
     }
 
-    const result = await this.prescriptionsService.getPdf(
-      id,
-      req.user!.clinicId!,
-    );
+    const result = await this.prescriptionsService.getPdf(id, clinicId);
 
     if (result.type === 'url') {
       return res.json({ url: result.url });

@@ -62,10 +62,11 @@ export function PaymentRecoveryCard({ show = true }: PaymentRecoveryCardProps) {
   const createdAt = formatDate(new Date(failedPayment.createdAt));
   const statusLower = (failedPayment.status ?? "").toLowerCase();
   const isFailed = statusLower === "failed" || statusLower === "declined";
+  const failedPaymentId = failedPayment.id;
 
   async function handleRetry() {
     try {
-      const result = await resume.mutateAsync(failedPayment!.id);
+      const result = await resume.mutateAsync(failedPaymentId);
       if (result.payUrl) {
         window.open(result.payUrl, "_blank", "noopener,noreferrer");
       } else {

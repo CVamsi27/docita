@@ -37,6 +37,7 @@ export class CredentialValidationService {
     }
 
     try {
+      // RLS-BYPASS: auth resolves users before clinic tenant context is established
       return await this.prisma.runUnrestricted(async () => {
         const user = await this.prisma.user.findUnique({
           where: { email },
@@ -64,6 +65,7 @@ export class CredentialValidationService {
     if (!clinicId) return;
     if (role !== Role.DOCTOR && role !== Role.ADMIN_DOCTOR) return;
 
+    // RLS-BYPASS: auth resolves users before clinic tenant context is established
     const clinic = await this.prisma.runUnrestricted(async () =>
       this.prisma.clinic.findUnique({
         where: { id: clinicId },
@@ -83,6 +85,7 @@ export class CredentialValidationService {
     email: string,
     pass: string,
   ): Promise<UserWithoutPassword | null> {
+    // RLS-BYPASS: auth resolves users before clinic tenant context is established
     return this.prisma.runUnrestricted(async () => {
       const user = await this.prisma.user.findUnique({ where: { email } });
 

@@ -125,8 +125,30 @@ describe('ReminderNotificationService', () => {
     updatedAt: new Date('2024-01-01T00:00:00Z'),
   };
 
+  let prismaMock: {
+    $transaction: jest.Mock<
+      (callback: (tx: ReminderPersistencePort) => unknown) => Promise<unknown>
+    >;
+    appointmentReminder: {
+      create: jest.Mock<
+        (_args: AppointmentReminderCreateInput) => Promise<object>
+      >;
+    };
+    whatsappLog: {
+      create: jest.Mock<(_args: WhatsappLogCreateInput) => Promise<object>>;
+    };
+    clinic: {
+      findUnique: jest.Mock<
+        (
+          _args: ClinicFindUniqueInput,
+        ) => Promise<Record<string, unknown> | null>
+      >;
+    };
+  };
+
   beforeEach(async () => {
-    const prismaMock = {
+    prismaMock = {
+      $transaction: jest.fn(),
       appointmentReminder: {
         create: jest
           .fn<(_args: AppointmentReminderCreateInput) => Promise<object>>()
@@ -152,6 +174,10 @@ describe('ReminderNotificationService', () => {
           }),
       },
     };
+    prismaMock.$transaction.mockImplementation(
+      (callback: (tx: ReminderPersistencePort) => unknown) =>
+        Promise.resolve(callback(prismaMock as unknown as ReminderPersistencePort)),
+    );
 
     const module: TestingModule = await Test.createTestingModule({
       providers: [
@@ -171,7 +197,7 @@ describe('ReminderNotificationService', () => {
     service = module.get<ReminderNotificationService>(
       ReminderNotificationService,
     );
-    prisma = module.get<ReminderPersistencePort>(
+    prisma = module.get(
       REMINDER_PERSISTENCE_PORT,
     ) as unknown as typeof prisma;
     sendMessage = module.get(SendMessageUseCase);

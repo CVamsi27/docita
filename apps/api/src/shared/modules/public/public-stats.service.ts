@@ -59,6 +59,7 @@ export class PublicStatsService {
     }
 
     const result = await this.prisma
+      // RLS-BYPASS: public stats aggregate platform-wide metrics without tenant session
       .runUnrestricted(async () => {
         const [clinics, doctors, patients, prescriptions, appointments] =
           await Promise.all([

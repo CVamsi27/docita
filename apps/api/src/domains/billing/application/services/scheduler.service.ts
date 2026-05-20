@@ -46,6 +46,7 @@ export class SchedulerService {
   ) {}
 
   async runScheduledPaymentReminders(): Promise<void> {
+    // RLS-BYPASS: billing scheduler operates without per-request clinic session
     await this.persistence.runUnrestricted(async () => {
       const clinics = await this.persistence.clinic.findMany({
         where: { active: true },

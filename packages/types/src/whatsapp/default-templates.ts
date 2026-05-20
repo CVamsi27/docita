@@ -23,6 +23,31 @@ export const whatsappDefaultTemplateButtonSchema = z.object({
   action: z.string().optional(),
 });
 
+/** Prisma `WhatsappTemplate.variables` — DB may store explicit nulls. */
+export const whatsappTemplateVariableJsonSchema = z.object({
+  name: z.string(),
+  required: z.boolean(),
+  defaultValue: z.string().nullish(),
+});
+
+/** Prisma `WhatsappTemplate.buttons` — DB may store explicit nulls. */
+export const whatsappTemplateButtonJsonSchema = z.object({
+  id: z.string(),
+  text: z.string(),
+  action: z.string().nullish(),
+});
+
+export const whatsappTemplateVariablesSchema = z.array(
+  whatsappTemplateVariableJsonSchema,
+);
+export const whatsappTemplateButtonsSchema = z.array(
+  whatsappTemplateButtonJsonSchema,
+);
+export const whatsappBroadcastVariablesSchema = z.record(
+  z.string(),
+  z.string(),
+);
+
 export const whatsappDefaultTemplateButtonTypeSchema = z.enum([
   'QUICK_REPLY',
   'CALL_TO_ACTION',

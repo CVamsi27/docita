@@ -1,5 +1,13 @@
 import { useCallback, useRef, useState } from "react";
 import { logger } from "@/lib/monitoring/logger";
+import {
+  PaymentCanceledError,
+  PaymentFailedError,
+  type RazorpayCheckoutError,
+  isPaymentCanceledError,
+} from "./razorpay-checkout-errors";
+
+export { isPaymentCanceledError, type RazorpayCheckoutError };
 
 interface RazorpayInstance {
   open(): void;
@@ -9,7 +17,7 @@ interface RazorpayInstance {
 
 declare global {
   interface Window {
-    Razorpay: {
+    Razorpay?: {
       new (options: RazorpayOptions): RazorpayInstance;
     };
   }
@@ -55,33 +63,16 @@ export interface RazorpayResponse {
   [key: string]: unknown;
 }
 
-export interface RazorpayCheckoutError extends Error {
-  paymentCanceled?: boolean;
-}
+function clearStaleRazorpayGlobal(): void {
+  if (!("Razorpay" in window)) {
+    return;
+  }
 
-function createPaymentCanceledError(): RazorpayCheckoutError {
-  const error = new Error(
-    "Payment was canceled. No charge was made.",
-  ) as RazorpayCheckoutError;
-  error.paymentCanceled = true;
-  return error;
-}
-
-function createPaymentFailedError(): RazorpayCheckoutError {
-  return new Error(
-    "We could not complete this payment. Please try again.",
-  ) as RazorpayCheckoutError;
-}
-
-export function isPaymentCanceledError(
-  error: unknown,
-): error is RazorpayCheckoutError {
-  return Boolean(
-    error &&
-      typeof error === "object" &&
-      "paymentCanceled" in error &&
-      (error as RazorpayCheckoutError).paymentCanceled,
-  );
+  try {
+    Reflect.deleteProperty(window, "Razorpay");
+  } catch {
+    window.Razorpay = undefined;
+  }
 }
 
 export function useRazorpay() {
@@ -92,16 +83,13 @@ export function useRazorpay() {
   const [isCheckoutOpen, setIsCheckoutOpen] = useState(false);
 
   const isRazorpayConstructible = useCallback((): boolean => {
-    const RazorpayCtor = window.Razorpay as unknown;
+    const RazorpayCtor = window.Razorpay;
     if (typeof RazorpayCtor !== "function") return false;
 
     // Some environments can end up with a non-constructible function assigned to window.Razorpay.
     // We do a minimal construct attempt without calling open().
     try {
-      const InstanceCtor = RazorpayCtor as unknown as new (
-        options: RazorpayOptions,
-      ) => RazorpayInstance;
-      const instance = new InstanceCtor({
+      const instance = new RazorpayCtor({
         key: "dummy",
         amount: 0,
         currency: "INR",
@@ -136,15 +124,7 @@ export function useRazorpay() {
         existingScript.remove();
       }
 
-      // Remove any stale global to force the new script to re-attach it.
-      if ("Razorpay" in window) {
-        try {
-          delete (window as unknown as Record<string, unknown>).Razorpay;
-        } catch {
-          // Ignore if deletion is blocked.
-          (window as unknown as Record<string, unknown>).Razorpay = undefined;
-        }
-      }
+      clearStaleRazorpayGlobal();
 
       const script = document.createElement("script");
       script.id = "razorpay-sdk";
@@ -183,7 +163,8 @@ export function useRazorpay() {
       }
 
       await new Promise<void>((resolve, reject) => {
-        if (!isRazorpayConstructible()) {
+        const RazorpayCtor = window.Razorpay;
+        if (!RazorpayCtor) {
           reject(
             new Error(
               "We could not open payment right now. Please refresh and try again.",
@@ -192,7 +173,7 @@ export function useRazorpay() {
           return;
         }
 
-        const rzp = new window.Razorpay({
+        const rzp = new RazorpayCtor({
           ...options,
           handler: async (response: RazorpayResponse) => {
             try {
@@ -218,7 +199,7 @@ export function useRazorpay() {
               options.modal?.ondismiss?.();
               activeInstanceRef.current = null;
               setIsCheckoutOpen(false);
-              reject(createPaymentCanceledError());
+              reject(new PaymentCanceledError());
             },
           },
         });
@@ -229,7 +210,7 @@ export function useRazorpay() {
             void args;
             activeInstanceRef.current = null;
             setIsCheckoutOpen(false);
-            reject(createPaymentFailedError());
+            reject(new PaymentFailedError());
           },
         );
 

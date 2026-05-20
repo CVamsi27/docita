@@ -1,10 +1,7 @@
 import { ForbiddenException, Injectable, Logger } from '@nestjs/common';
 import { SendMessageUseCase } from '@/domains/whatsapp/application/use-cases/send-message.use-case';
 import { TemplatesService } from '@/domains/whatsapp/application/services/templates.service';
-import {
-  PATIENT_CONFIRMATION_TEMPLATE_BY_RESPONSE,
-  type PatientResponseType,
-} from '@/domains/whatsapp/application/policies/patient-response.policy';
+import { type PatientResponseType } from '@/domains/whatsapp/application/policies/patient-response.policy';
 import {
   formatDate,
   formatTime,
@@ -15,6 +12,7 @@ import type {
   AppointmentContext,
   DelayContext,
 } from './patient-response.types';
+import { resolvePatientConfirmationPlan } from './patient-response-confirmation.handlers';
 
 @Injectable()
 export class PatientResponseConfirmationService {
@@ -30,7 +28,6 @@ export class PatientResponseConfirmationService {
     responseType: PatientResponseType,
     delayContext: DelayContext,
   ): Promise<void> {
-    let templateId: string;
     const variables: Record<string, string> = {
       patientName: `${appointment.patient.firstName} ${appointment.patient.lastName}`,
       clinicName: appointment.clinic.name,
@@ -47,56 +44,24 @@ export class PatientResponseConfirmationService {
           : '',
     };
 
-    if (responseType === 'DELAY') {
-      if (delayContext.delayMinutesPending) {
-        await this.sendClinicPatientWhatsApp({
-          clinicId: appointment.clinic.id,
-          to: appointment.patient.phoneNumber,
-          text: `*Delay Update* - ${appointment.clinic.name}\n\nThanks ${appointment.patient.firstName}. Please reply with your expected delay in minutes (example: 15).`,
-        });
-        return;
-      }
+    const plan = resolvePatientConfirmationPlan(
+      responseType,
+      appointment,
+      delayContext,
+      variables,
+    );
 
-      if (delayContext.conflictDetected) {
-        await this.sendClinicPatientWhatsApp({
-          clinicId: appointment.clinic.id,
-          to: appointment.patient.phoneNumber,
-          text: `*Schedule Impact* - ${appointment.clinic.name}\n\nThanks for the update. This delay may affect the doctor's schedule. Please contact the clinic to reschedule or confirm a revised slot.`,
-        });
-        return;
-      }
-
-      templateId = 'patient_response_delay';
-    } else if (responseType === 'RESCHEDULE') {
+    if (plan.kind === 'plain_text') {
       await this.sendClinicPatientWhatsApp({
         clinicId: appointment.clinic.id,
         to: appointment.patient.phoneNumber,
-        text: `*Reschedule Request* - ${appointment.clinic.name}\n\nThank you ${appointment.patient.firstName}. Our staff will contact you shortly to reschedule your appointment.\n\nFor urgent queries, please call us directly.`,
+        text: plan.text,
       });
       return;
-    } else if (responseType === 'CANCEL') {
-      await this.sendClinicPatientWhatsApp({
-        clinicId: appointment.clinic.id,
-        to: appointment.patient.phoneNumber,
-        text: `*Appointment Cancelled* - ${appointment.clinic.name}\n\nYour appointment on ${variables.date} at ${variables.time} has been cancelled.\n\nIf you'd like to book a new appointment, please contact us or visit our website.`,
-      });
-      return;
-    } else {
-      const mappedTemplate =
-        PATIENT_CONFIRMATION_TEMPLATE_BY_RESPONSE[responseType];
-      if (!mappedTemplate) {
-        await this.sendClinicPatientWhatsApp({
-          clinicId: appointment.clinic.id,
-          to: appointment.patient.phoneNumber,
-          text: `Thank you for your message. Our staff at ${appointment.clinic.name} will get back to you shortly.`,
-        });
-        return;
-      }
-      templateId = mappedTemplate;
     }
 
     const resolved = await this.templatesService.resolveTemplate(
-      templateId,
+      plan.templateId,
       variables,
       appointment.clinic.id,
     );
@@ -105,7 +70,7 @@ export class PatientResponseConfirmationService {
       await this.sendClinicPatientWhatsApp({
         clinicId: appointment.clinic.id,
         to: appointment.patient.phoneNumber,
-        templateName: templateId,
+        templateName: plan.templateId,
         variables,
       });
     }

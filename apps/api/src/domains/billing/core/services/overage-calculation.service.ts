@@ -77,19 +77,18 @@ export class OverageCalculationService {
         ? getWhatsAppAddonPricingByCurrency(tierKey, resolvedCurrency)
             .overageRate
         : 0;
-    const canUseTierPricingTable = tierPricing && resolvedCurrency === 'INR';
     const overrides = usageData.rateOverridesCents ?? {};
 
     const consultationRateCents =
       overrides.consultation ??
-      (canUseTierPricingTable
-        ? tierPricing!.overageAppointmentCents
+      (tierPricing && resolvedCurrency === 'INR'
+        ? tierPricing.overageAppointmentCents
         : baseRates.appointmentRate * 100);
 
     const userRateCents =
       overrides.user ??
-      (canUseTierPricingTable
-        ? tierPricing!.overageUserCents
+      (tierPricing && resolvedCurrency === 'INR'
+        ? tierPricing.overageUserCents
         : baseRates.userRate * 100);
 
     this.addOverage(

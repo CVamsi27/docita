@@ -36,7 +36,6 @@ import {
   Tier,
   TIER_LIMITS,
   TIER_PRICING,
-  WHATSAPP_ADDON_PRICING,
   type TierPricing,
   type TierLimits,
 } from "@workspace/types";
@@ -103,222 +102,8 @@ export const PLAN_DESCRIPTIONS: Record<
   },
 };
 
-export interface FeatureComparisonRow {
-  name: string;
-  category: "limit" | "feature";
-  values: Record<Tier, string | boolean | number>;
-}
-
-export function getFeatureComparisonData(): FeatureComparisonRow[] {
-  const tiers = [
-    Tier.STARTER,
-    Tier.FRONT_DESK,
-    Tier.ESSENTIAL,
-    Tier.PROFESSIONAL,
-    Tier.HOSPITAL,
-    Tier.ENTERPRISE,
-  ];
-  const formatLimitValue = (value?: number): string => {
-    if (value === undefined) return "—";
-    if (value >= 999999 || value === 999) return "Unlimited";
-    return formatCountLocale(value);
-  };
-
-  const rows: FeatureComparisonRow[] = [
-
-    {
-      name: "Patient Limit",
-      category: "limit",
-      values: Object.fromEntries(
-        tiers.map((t) => [
-          t,
-          formatLimitValue(
-            PLAN_LIMITS[Tier[t] as keyof typeof PLAN_LIMITS].patients,
-          ),
-        ]),
-      ) as Record<Tier, string>,
-    },
-    {
-      name: "Doctors",
-      category: "limit",
-      values: Object.fromEntries(
-        tiers.map((t) => [
-          t,
-          formatLimitValue(PLAN_LIMITS[Tier[t] as keyof typeof PLAN_LIMITS].doctors),
-        ]),
-      ) as Record<Tier, string>,
-    },
-    {
-      name: "Storage",
-      category: "limit",
-      values: Object.fromEntries(
-        tiers.map((t) => [
-          t,
-          `${PLAN_LIMITS[Tier[t] as keyof typeof PLAN_LIMITS].storageGB} GB`,
-        ]),
-      ) as Record<Tier, string>,
-    },
-    {
-      name: "Branches",
-      category: "limit",
-      values: Object.fromEntries(
-        tiers.map((t) => [
-          t,
-          formatLimitValue(PLAN_LIMITS[Tier[t] as keyof typeof PLAN_LIMITS].branches),
-        ]),
-      ) as Record<Tier, string>,
-    },
-    {
-      name: "Consultations",
-      category: "limit",
-      values: Object.fromEntries(
-        tiers.map((t) => [
-          t,
-          formatLimitValue(
-            PLAN_LIMITS[Tier[t] as keyof typeof PLAN_LIMITS].appointments,
-          ),
-        ]),
-      ) as Record<Tier, string>,
-    },
-    {
-      name: "Prescriptions",
-      category: "limit",
-      values: Object.fromEntries(
-        tiers.map((t) => [
-          t,
-          formatLimitValue(
-            PLAN_LIMITS[Tier[t] as keyof typeof PLAN_LIMITS].prescriptions,
-          ),
-        ]),
-      ) as Record<Tier, string>,
-    },
-    {
-      name: "Invoices",
-      category: "limit",
-      values: Object.fromEntries(
-        tiers.map((t) => [
-          t,
-          formatLimitValue(PLAN_LIMITS[Tier[t] as keyof typeof PLAN_LIMITS].invoices),
-        ]),
-      ) as Record<Tier, string>,
-    },
-    {
-      name: "WhatsApp messages (incl. / mo)",
-      category: "limit",
-      values: Object.fromEntries(
-        tiers.map((t) => {
-          if (t === Tier.STARTER) return [t, "—"] as const;
-          const tierName = getTierName(t) as keyof typeof WHATSAPP_ADDON_PRICING;
-          return [
-            t,
-            formatLimitValue(WHATSAPP_ADDON_PRICING[tierName].includedQuota),
-          ] as const;
-        }),
-      ) as Record<Tier, string>,
-    },
-
-    {
-      name: "Prescriptions",
-      category: "feature",
-      values: Object.fromEntries(
-        tiers.map((t) => [
-          t,
-          hasFeatureAccess(getTierName(t), Feature.DIGITAL_PRESCRIPTIONS),
-        ]),
-      ) as Record<Tier, boolean>,
-    },
-    {
-      name: "Appointments",
-      category: "feature",
-      values: Object.fromEntries(
-        tiers.map((t) => [
-          t,
-          hasFeatureAccess(getTierName(t), Feature.CALENDAR_SLOTS),
-        ]),
-      ) as Record<Tier, boolean>,
-    },
-
-    {
-      name: "OCR Scanning",
-      category: "feature",
-      values: Object.fromEntries(
-        tiers.map((t) => {
-          const name = getTierName(t);
-          if (hasFeatureAccess(name, Feature.OCR_ADVANCED))
-            return [t, "Advanced"];
-          if (hasFeatureAccess(name, Feature.OCR_BASIC)) return [t, "Basic"];
-          return [t, false];
-        }),
-      ) as Record<Tier, string | boolean>,
-    },
-    {
-      name: "Analytics",
-      category: "feature",
-      values: Object.fromEntries(
-        tiers.map((t) => {
-          const name = getTierName(t);
-          if (hasFeatureAccess(name, Feature.ADVANCED_ANALYTICS))
-            return [t, "Advanced"];
-          if (hasFeatureAccess(name, Feature.BASIC_ANALYTICS))
-            return [t, "Basic"];
-          return [t, false];
-        }),
-      ) as Record<Tier, string | boolean>,
-    },
-    {
-      name: "API Access",
-      category: "feature",
-      values: Object.fromEntries(
-        tiers.map((t) => [
-          t,
-          hasFeatureAccess(getTierName(t), Feature.API_ACCESS),
-        ]),
-      ) as Record<Tier, boolean>,
-    },
-    {
-      name: "Multi-branch",
-      category: "feature",
-      values: Object.fromEntries(
-        tiers.map((t) => [
-          t,
-          hasFeatureAccess(getTierName(t), Feature.MULTI_CLINIC),
-        ]),
-      ) as Record<Tier, boolean>,
-    },
-    {
-      name: "Inventory",
-      category: "feature",
-      values: Object.fromEntries(
-        tiers.map((t) => [
-          t,
-          hasFeatureAccess(getTierName(t), Feature.INVENTORY),
-        ]),
-      ) as Record<Tier, boolean>,
-    },
-    {
-      name: "Lab Tests",
-      category: "feature",
-      values: Object.fromEntries(
-        tiers.map((t) => [
-          t,
-          hasFeatureAccess(getTierName(t), Feature.LAB_TESTS),
-        ]),
-      ) as Record<Tier, boolean>,
-    },
-    {
-      name: "Queue Management",
-      category: "feature",
-      values: Object.fromEntries(
-        tiers.map((t) => [
-          t,
-          hasFeatureAccess(getTierName(t), Feature.QUEUE_MANAGEMENT),
-        ]),
-      ) as Record<Tier, boolean>,
-    },
-  ];
-
-  return rows;
-}
+export type { FeatureComparisonRow } from "@/lib/subscription/tier-access-comparison-rows";
+export { getFeatureComparisonData } from "@/lib/subscription/tier-access-comparison-rows";
 
 export function getPlanHighlights(
   tier: Tier,
@@ -354,13 +139,17 @@ export function getPlanHighlights(
   if (ladderIndex <= 0) {
     highlightFeatures = currentTierFeatures.slice(0, 3);
   } else {
-    const prevTier = PLAN_TIER_LADDER[ladderIndex - 1]!;
-    const prevTierName = getTierName(prevTier);
-    const prevFeatureSet = new Set(getAllFeaturesUpToTier(prevTierName));
-    const newVsPrev = currentTierFeatures.filter((f) => !prevFeatureSet.has(f));
-    highlightFeatures = (
-      newVsPrev.length > 0 ? newVsPrev : currentTierFeatures
-    ).slice(0, 3);
+    const prevTier = PLAN_TIER_LADDER.at(ladderIndex - 1);
+    if (prevTier) {
+      const prevTierName = getTierName(prevTier);
+      const prevFeatureSet = new Set(getAllFeaturesUpToTier(prevTierName));
+      const newVsPrev = currentTierFeatures.filter((f) => !prevFeatureSet.has(f));
+      highlightFeatures = (
+        newVsPrev.length > 0 ? newVsPrev : currentTierFeatures
+      ).slice(0, 3);
+    } else {
+      highlightFeatures = currentTierFeatures.slice(0, 3);
+    }
   }
 
   highlightFeatures.forEach((feature) => {
@@ -372,7 +161,10 @@ export function getPlanHighlights(
   });
 
   if (ladderIndex > 0) {
-    const prevTier = PLAN_TIER_LADDER[ladderIndex - 1]!;
+    const prevTier = PLAN_TIER_LADDER.at(ladderIndex - 1);
+    if (!prevTier) {
+      return features;
+    }
     const prevTierName = getTierName(prevTier);
     const previousFeatures = getAllFeaturesUpToTier(prevTierName);
     previousFeatures.slice(0, 2).forEach((feature) => {
@@ -384,7 +176,10 @@ export function getPlanHighlights(
   }
 
   if (ladderIndex >= 0 && ladderIndex < PLAN_TIER_LADDER.length - 1) {
-    const nextTier = PLAN_TIER_LADDER[ladderIndex + 1]!;
+    const nextTier = PLAN_TIER_LADDER.at(ladderIndex + 1);
+    if (!nextTier) {
+      return features;
+    }
     const nextTierName = getTierName(nextTier);
     const nextTierFeaturesFull = getAllFeaturesUpToTier(nextTierName);
     const currentFeatureSet = new Set(currentTierFeatures);

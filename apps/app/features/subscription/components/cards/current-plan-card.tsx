@@ -50,7 +50,10 @@ export function CurrentPlanCard({
   statusNotice,
   showWhatsAppUsageMeter = true,
 }: CurrentPlanCardProps) {
-  const colors = TIER_COLOR_MAP[tierInfo.color] ?? TIER_COLOR_MAP["gray"]!;
+  const colors =
+    TIER_COLOR_MAP[tierInfo.color] ??
+    TIER_COLOR_MAP.gray ??
+    TIER_COLOR_MAP["gray"];
   const statusNoticeClassName =
     statusNotice?.variant === "destructive"
       ? "border-destructive/50 bg-destructive/10 text-destructive"

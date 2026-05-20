@@ -82,7 +82,8 @@ export function breadcrumbsFor(pathname: string): Crumb[] {
     currentKey = meta.parentPath;
   }
 
-  if (crumbs.length && crumbs[0]!.label !== "Dashboard") {
+  const firstCrumb = crumbs[0];
+  if (crumbs.length && firstCrumb && firstCrumb.label !== "Dashboard") {
     crumbs.unshift({ label: "Dashboard", href: "/dashboard" });
   }
 

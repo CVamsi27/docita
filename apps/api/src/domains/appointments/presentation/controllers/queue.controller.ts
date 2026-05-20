@@ -14,6 +14,7 @@ import { Roles } from '@/shared/modules/auth/auth/roles.decorator';
 import { RequireFeature } from '@/shared/modules/auth/auth/tier.decorator';
 import { QueueService } from '@/domains/appointments/application/services/queue.service';
 import { RequestWithUser } from '@/shared/common/types/common.types';
+import { getClinicStaffRequestContext } from '@/shared/modules/auth/auth/clinic-request-context';
 import {
   APP_ACCESS_TARGETS,
   resolveDoctorScopedAppointmentFilter,
@@ -45,9 +46,10 @@ export class QueueController {
     @Query('doctorId') doctorId?: string,
     @Query('search') search?: string,
   ) {
+    const { clinicId, userId, role } = getClinicStaffRequestContext(req);
     const doctorScope = resolveDoctorScopedAppointmentFilter({
-      role: req.user?.role,
-      userId: req.user?.id,
+      role,
+      userId,
       requestedDoctorId: doctorId,
     });
 
@@ -64,7 +66,7 @@ export class QueueController {
     );
 
     return this.queueService.getQueue(
-      req.user!.clinicId!,
+      clinicId,
       doctorScope.scopedDoctorId,
       search,
     );
@@ -77,9 +79,10 @@ export class QueueController {
     @Query('doctorId') doctorId?: string,
     @Query('search') search?: string,
   ) {
+    const { clinicId, userId, role } = getClinicStaffRequestContext(req);
     const doctorScope = resolveDoctorScopedAppointmentFilter({
-      role: req.user?.role,
-      userId: req.user?.id,
+      role,
+      userId,
       requestedDoctorId: doctorId,
     });
 
@@ -96,7 +99,7 @@ export class QueueController {
     );
 
     return this.queueService.getTodayQueue(
-      req.user!.clinicId!,
+      clinicId,
       doctorScope.scopedDoctorId,
       search,
     );
@@ -108,7 +111,8 @@ export class QueueController {
     @Request() req: RequestWithUser,
     @Param('appointmentId') appointmentId: string,
   ) {
-    return this.queueService.checkIn(req.user!.clinicId!, appointmentId);
+    const { clinicId } = getClinicStaffRequestContext(req);
+    return this.queueService.checkIn(clinicId, appointmentId);
   }
 
   @Post('call/:queueId')
@@ -117,7 +121,8 @@ export class QueueController {
     @Request() req: RequestWithUser,
     @Param('queueId') queueId: string,
   ) {
-    return this.queueService.callPatient(req.user!.clinicId!, queueId);
+    const { clinicId } = getClinicStaffRequestContext(req);
+    return this.queueService.callPatient(clinicId, queueId);
   }
 
   @Post('complete/:queueId')
@@ -126,7 +131,8 @@ export class QueueController {
     @Request() req: RequestWithUser,
     @Param('queueId') queueId: string,
   ) {
-    return this.queueService.completePatient(req.user!.clinicId!, queueId);
+    const { clinicId } = getClinicStaffRequestContext(req);
+    return this.queueService.completePatient(clinicId, queueId);
   }
 
   @Post('reset')
@@ -134,6 +140,7 @@ export class QueueController {
     summary: 'Reset queue (cancel all WAITING and IN_PROGRESS tokens)',
   })
   resetQueue(@Request() req: RequestWithUser) {
-    return this.queueService.resetQueue(req.user!.clinicId!);
+    const { clinicId } = getClinicStaffRequestContext(req);
+    return this.queueService.resetQueue(clinicId);
   }
 }

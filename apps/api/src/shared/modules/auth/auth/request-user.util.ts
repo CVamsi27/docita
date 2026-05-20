@@ -1,7 +1,29 @@
 type RequestUserShape = {
   id?: unknown;
   sub?: unknown;
+  clinicId?: unknown;
 };
+
+function isRecord(value: unknown): value is Record<string, unknown> {
+  return typeof value === 'object' && value !== null && !Array.isArray(value);
+}
+
+export function getMonitoringUserContext(user: unknown): {
+  userId: string | undefined;
+  clinicId: string | undefined;
+} {
+  const userId = getAuthenticatedUserId(user) ?? undefined;
+  if (!isRecord(user)) {
+    return { userId, clinicId: undefined };
+  }
+
+  const clinicId =
+    typeof user.clinicId === 'string' && user.clinicId.trim().length > 0
+      ? user.clinicId.trim()
+      : undefined;
+
+  return { userId, clinicId };
+}
 
 export function getAuthenticatedUserId(user: unknown): string | null {
   if (!user || typeof user !== 'object') {

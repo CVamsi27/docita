@@ -7,7 +7,7 @@ import type { IClinicPricingQuery } from '@/domains/billing/application/ports';
 import { FeatureFlagService } from '@/shared/modules/services/feature-flag.service';
 import type { IPlatformInvoiceProvider } from '@/domains/payments/core/ports';
 import type { IClock } from '@/shared/common/ports/clock.port';
-import type { ActivateSubscriptionUseCase } from '@/domains/subscriptions/application/use-cases/activate-subscription.use-case';
+import type { ApplyPlanChangeWithoutPaymentUseCase } from '@/domains/subscriptions/application/use-cases/apply-plan-change-without-payment.use-case';
 
 describe('SubscriptionsQueryService', () => {
   const findPaymentsByClinicIdMock =
@@ -67,9 +67,9 @@ describe('SubscriptionsQueryService', () => {
   const clock = {
     now: () => new Date('2026-04-29T00:00:00.000Z'),
   } as IClock;
-  const activateSubscriptionUseCase = {
-    applyPlanChangeWithoutPayment: jest.fn(async () => undefined),
-  } as unknown as ActivateSubscriptionUseCase;
+  const applyPlanChangeWithoutPayment = {
+    execute: jest.fn(async () => undefined),
+  } as unknown as ApplyPlanChangeWithoutPaymentUseCase;
 
   let service: SubscriptionsQueryService;
 
@@ -83,7 +83,7 @@ describe('SubscriptionsQueryService', () => {
       clinicPricingQuery,
       featureFlagService,
       platformInvoiceProvider,
-      activateSubscriptionUseCase,
+      applyPlanChangeWithoutPayment,
       clock,
     );
   });

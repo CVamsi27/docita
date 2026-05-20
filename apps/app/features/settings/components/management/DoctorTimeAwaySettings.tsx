@@ -288,7 +288,9 @@ export function DoctorTimeAwaySettings() {
                           disabled={deleteMutation.isPending}
                           onClick={async () => {
                             try {
-                              await deleteMutation.mutateAsync(off.id!);
+                              if (off.id) {
+                                await deleteMutation.mutateAsync(off.id);
+                              }
                               toast.success("Time away removed");
                             } catch (error) {
                               showUserFacingErrorToast(

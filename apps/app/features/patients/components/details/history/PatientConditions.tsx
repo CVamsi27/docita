@@ -38,7 +38,9 @@ export function PatientConditions({
             {!readOnly && (
               <button
                 type="button"
-                onClick={() => onRemoveCondition(condition.id!)}
+                onClick={() => {
+                  if (condition.id) onRemoveCondition(condition.id);
+                }}
                 className="ml-1 p-0.5 rounded-full hover:bg-destructive/10 hover:text-destructive transition-colors focus:outline-none"
               >
                 <X className="h-3.5 w-3.5" />

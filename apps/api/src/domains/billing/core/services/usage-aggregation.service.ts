@@ -3,8 +3,10 @@ import {
   CLOCK_PORT,
   type IClock,
 } from '@/shared/common/ports/clock.port';
+import { addOnIncludedQuotaByTierJsonSchema } from '@workspace/types';
 import { PrismaService } from '@/prisma/prisma.service';
 import { UsageType } from '@workspace/db';
+import { parsePrismaJsonColumn } from '@/shared/common/json/parse-prisma-json-column';
 
 @Injectable()
 export class UsageAggregationService {
@@ -18,6 +20,7 @@ export class UsageAggregationService {
   async runDailyUsageAggregation(): Promise<void> {
     this.logger.log('Starting daily usage aggregation...');
 
+    // RLS-BYPASS: usage aggregation rolls up metrics across clinics
     await this.prisma.runUnrestricted(async () => {
       const { yesterday, endOfYesterday } = this.getYesterdayRange();
 
@@ -126,11 +129,11 @@ export class UsageAggregationService {
     let included = 0;
     if (addOn) {
       try {
-        const addOnData = addOn.addOn;
         const quotas =
-          typeof addOnData.includedQuotaByTier === 'string'
-            ? JSON.parse(addOnData.includedQuotaByTier)
-            : (addOnData.includedQuotaByTier as Record<string, number>);
+          parsePrismaJsonColumn(
+            addOn.addOn.includedQuotaByTier,
+            addOnIncludedQuotaByTierJsonSchema,
+          ) ?? {};
         included = quotas[plan] || 0;
       } catch (error) {
         this.logger.error(`Error parsing quota for ${type}`, error);

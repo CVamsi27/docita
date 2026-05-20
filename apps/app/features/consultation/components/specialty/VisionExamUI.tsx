@@ -36,9 +36,9 @@ export function VisionExamUI({ value, onChange, readOnly }: VisionExamProps) {
 
     if (["sph", "cyl", "axis", "add"].includes(field)) {
       newData.refraction = { ...newData.refraction };
-      newData.refraction[eyeKey] = { ...newData.refraction?.[eyeKey] };
+      newData.refraction[eyeKey] = { ...(newData.refraction?.[eyeKey] ?? {}) };
 
-      const refParams = newData.refraction[eyeKey]!;
+      const refParams = newData.refraction[eyeKey];
       if (field === "sph") refParams.sphere = val ? parseFloat(val) : undefined;
       if (field === "cyl")
         refParams.cylinder = val ? parseFloat(val) : undefined;
@@ -48,9 +48,9 @@ export function VisionExamUI({ value, onChange, readOnly }: VisionExamProps) {
 
     if (["va", "vaNear"].includes(field)) {
       newData.visualAcuity = { ...newData.visualAcuity };
-      newData.visualAcuity[eyeKey] = { ...newData.visualAcuity?.[eyeKey] };
+      newData.visualAcuity[eyeKey] = { ...(newData.visualAcuity?.[eyeKey] ?? {}) };
 
-      const vaParams = newData.visualAcuity[eyeKey]!;
+      const vaParams = newData.visualAcuity[eyeKey];
       if (field === "va") vaParams.uncorrected = val;
       if (field === "vaNear") vaParams.corrected = val;
     }

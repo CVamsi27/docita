@@ -148,7 +148,8 @@ export default function OriginPrimitivesVisualTestPage() {
             activeStepId={wizardStep}
             onBack={() => {
               const idx = WIZARD_STEPS.findIndex((s) => s.id === wizardStep);
-              if (idx > 0) setWizardStep(WIZARD_STEPS[idx - 1]!.id);
+              const prev = WIZARD_STEPS.at(idx - 1);
+              if (prev) setWizardStep(prev.id);
             }}
             footer={
               <div className="flex items-center justify-between gap-2">
@@ -163,14 +164,15 @@ export default function OriginPrimitivesVisualTestPage() {
                     const idx = WIZARD_STEPS.findIndex(
                       (s) => s.id === wizardStep,
                     );
-                    if (idx < WIZARD_STEPS.length - 1) {
-                      setWizardStep(WIZARD_STEPS[idx + 1]!.id);
+                    const next = WIZARD_STEPS.at(idx + 1);
+                    if (next) {
+                      setWizardStep(next.id);
                     } else {
                       setWizardOpen(false);
                     }
                   }}
                 >
-                  {wizardStep === WIZARD_STEPS[WIZARD_STEPS.length - 1]!.id
+                  {wizardStep === WIZARD_STEPS.at(-1)?.id
                     ? "Finish"
                     : "Next"}
                 </Button>

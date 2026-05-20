@@ -32,6 +32,7 @@ import { SkipSubscriptionCheck } from '@/shared/modules/auth/decorators/skip-sub
 import { SkipPasswordExpiry } from '@/shared/modules/auth/guards/password-expired.guard';
 import { SkipEmailVerification } from '@/shared/modules/auth/guards/email-verified.guard';
 import { RequestWithUser } from '@/shared/common/types/common.types';
+import { requireAuthenticatedUserId } from '@/shared/modules/auth/auth/clinic-request-context';
 import { assertNoExistingClinicOnboarding } from '@/domains/clinics/presentation/controllers/onboarding-controller.helpers';
 
 @Controller('onboarding')
@@ -129,7 +130,7 @@ export class OnboardingController {
     const onboardingStep =
       dto.path === 'CREATE_CLINIC' ? 'CREATING_CLINIC' : 'JOINING_CLINIC';
 
-    await this.usersService.update(req.user!.id, {
+    await this.usersService.update(requireAuthenticatedUserId(req), {
       onboardingStep,
     });
 

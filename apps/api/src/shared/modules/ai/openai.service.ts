@@ -133,7 +133,16 @@ export class OpenaiService {
     if (!content)
       throw new InternalServerErrorException('Empty response from OpenAI');
 
-    const result = jsonMode ? JSON.parse(content) : content;
+    let result: unknown = content;
+    if (jsonMode) {
+      try {
+        result = JSON.parse(content);
+      } catch {
+        throw new InternalServerErrorException(
+          'Invalid JSON response from OpenAI',
+        );
+      }
+    }
 
     if (
       this.cacheEnabled &&

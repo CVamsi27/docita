@@ -198,7 +198,9 @@ export class WhatsappSenderSettingsService {
         );
 
       if (!ok) {
-        throw new Error(data.error?.message || 'Meta verification failed');
+        throw new BadRequestException(
+          data.error?.message || 'Meta verification failed',
+        );
       }
 
       const displayName =

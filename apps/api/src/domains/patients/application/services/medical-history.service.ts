@@ -180,45 +180,49 @@ export class MedicalHistoryService {
       dietaryRestrictions: validated.dietaryRestrictions,
       notes: validated.notes,
     };
+    const smokingQuitDate = validated.smokingQuitDate
+      ? new Date(validated.smokingQuitDate)
+      : null;
 
-    const existing = await this.persistence.patientSocialHistory.findFirst({
-      where: { patientId },
-    });
-    if (existing) {
-      await this.persistence.patientSocialHistory.updateMany({
+    return this.persistence.$transaction(async (tx) => {
+      const existing = await tx.patientSocialHistory.findFirst({
         where: { patientId },
+      });
+      if (existing) {
+        await tx.patientSocialHistory.updateMany({
+          where: { patientId },
+          data: {
+            ...socialData,
+            smokingQuitDate: smokingQuitDate ?? undefined,
+          },
+        });
+        return tx.patientSocialHistory.findFirst({
+          where: { patientId },
+        });
+      }
+      return tx.patientSocialHistory.create({
         data: {
+          patientId,
           ...socialData,
-          smokingQuitDate: validated.smokingQuitDate
-            ? new Date(validated.smokingQuitDate)
-            : undefined,
+          smokingQuitDate,
         },
       });
-      return this.persistence.patientSocialHistory.findFirst({
-        where: { patientId },
-      });
-    }
-    return this.persistence.patientSocialHistory.create({
-      data: {
-        patientId,
-        ...socialData,
-        smokingQuitDate: validated.smokingQuitDate
-          ? new Date(validated.smokingQuitDate)
-          : null,
-      },
     });
   }
 
   async deleteSocialHistory(patientId: string) {
-    const existing = await this.persistence.patientSocialHistory.findFirst({
-      where: { patientId },
+    return this.persistence.$transaction(async (tx) => {
+      const existing = await tx.patientSocialHistory.findFirst({
+        where: { patientId },
+      });
+      if (!existing) {
+        throw new NotFoundException(
+          `Social history for patient ${patientId} not found`,
+        );
+      }
+      await tx.patientSocialHistory.deleteMany({ where: { patientId } });
+      return existing;
     });
-    if (!existing)
-      throw new NotFoundException(
-        `Social history for patient ${patientId} not found`,
-      );
-    await this.persistence.patientSocialHistory.deleteMany({ where: { patientId } });
-    return existing;
   }
 
   // ── Surgical history ──────────────────────────────────────────────────────

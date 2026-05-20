@@ -2,6 +2,11 @@ import { z } from "zod";
 import { userSchema } from "./users";
 import { embeddedMedicationSchema } from "../clinical/medications";
 
+/** Prisma `PrescriptionTemplate.medications` column shape. */
+export const prescriptionTemplateMedicationsSchema = z.array(
+  embeddedMedicationSchema,
+);
+
 export const prescriptionTemplateSchema = z.object({
   id: z.string(),
   name: z.string(),

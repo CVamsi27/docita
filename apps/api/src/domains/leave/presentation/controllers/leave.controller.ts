@@ -11,11 +11,11 @@ import {
   ForbiddenException,
 } from '@nestjs/common';
 import { ApiTags, ApiOperation } from '@nestjs/swagger';
-import { Role } from '@workspace/db';
 import { Roles } from '@/shared/modules/auth/auth/roles.decorator';
 import { TierGuard } from '@/shared/modules/auth/auth/tier.guard';
 import { RequireFeature } from '@/shared/modules/auth/auth/tier.decorator';
 import { RequestWithUser } from '@/shared/common/types/common.types';
+import { getClinicStaffRequestContext } from '@/shared/modules/auth/auth/clinic-request-context';
 import { LeaveService } from '@/domains/leave/application/services/leave.service';
 import { Feature } from '@workspace/types';
 import {
@@ -44,13 +44,10 @@ export class LeaveController {
       staffId?: string;
     },
   ) {
-    const isAdmin = ADMIN_ROLES.includes(req.user!.role as Role);
-    const targetStaffId = isAdmin && body.staffId ? body.staffId : req.user!.id;
-    return this.leaveService.applyLeave(
-      targetStaffId,
-      req.user!.clinicId!,
-      body,
-    );
+    const { clinicId, userId, role } = getClinicStaffRequestContext(req);
+    const isAdmin = ADMIN_ROLES.includes(role);
+    const targetStaffId = isAdmin && body.staffId ? body.staffId : userId;
+    return this.leaveService.applyLeave(targetStaffId, clinicId, body);
   }
 
   @Get()
@@ -62,10 +59,11 @@ export class LeaveController {
     @Query('startDate') startDate?: string,
     @Query('endDate') endDate?: string,
   ) {
-    const isAdmin = ADMIN_ROLES.includes(req.user!.role as Role);
-    const effectiveStaffId = isAdmin ? staffId : req.user!.id;
+    const { clinicId, userId, role } = getClinicStaffRequestContext(req);
+    const isAdmin = ADMIN_ROLES.includes(role);
+    const effectiveStaffId = isAdmin ? staffId : userId;
 
-    return this.leaveService.getLeaves(req.user!.clinicId!, {
+    return this.leaveService.getLeaves(clinicId, {
       staffId: effectiveStaffId,
       status,
       startDate,
@@ -76,20 +74,18 @@ export class LeaveController {
   @Get('balance')
   @ApiOperation({ summary: 'Get leave balance for current user' })
   async getLeaveBalance(@Request() req: RequestWithUser) {
-    return this.leaveService.getLeaveBalance(req.user!.id, req.user!.clinicId!);
+    const { clinicId, userId } = getClinicStaffRequestContext(req);
+    return this.leaveService.getLeaveBalance(userId, clinicId);
   }
 
   @Patch(':id/approve')
   @ApiOperation({ summary: 'Approve a leave request (admin only)' })
   async approveLeave(@Param('id') id: string, @Request() req: RequestWithUser) {
-    if (!ADMIN_ROLES.includes(req.user!.role as Role)) {
+    const { clinicId, userId, role } = getClinicStaffRequestContext(req);
+    if (!ADMIN_ROLES.includes(role)) {
       throw new ForbiddenException('Only admins can approve leave');
     }
-    return this.leaveService.approveLeave(
-      id,
-      req.user!.id,
-      req.user!.clinicId!,
-    );
+    return this.leaveService.approveLeave(id, userId, clinicId);
   }
 
   @Patch(':id/reject')
@@ -99,13 +95,14 @@ export class LeaveController {
     @Request() req: RequestWithUser,
     @Body('rejectionReason') rejectionReason: string,
   ) {
-    if (!ADMIN_ROLES.includes(req.user!.role as Role)) {
+    const { clinicId, userId, role } = getClinicStaffRequestContext(req);
+    if (!ADMIN_ROLES.includes(role)) {
       throw new ForbiddenException('Only admins can reject leave');
     }
     return this.leaveService.rejectLeave(
       id,
-      req.user!.id,
-      req.user!.clinicId!,
+      userId,
+      clinicId,
       rejectionReason || 'No reason provided',
     );
   }
@@ -113,6 +110,7 @@ export class LeaveController {
   @Patch(':id/cancel')
   @ApiOperation({ summary: 'Cancel own leave request' })
   async cancelLeave(@Param('id') id: string, @Request() req: RequestWithUser) {
-    return this.leaveService.cancelLeave(id, req.user!.id, req.user!.clinicId!);
+    const { clinicId, userId } = getClinicStaffRequestContext(req);
+    return this.leaveService.cancelLeave(id, userId, clinicId);
   }
 }

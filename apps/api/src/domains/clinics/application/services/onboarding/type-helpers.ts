@@ -1,48 +1,39 @@
+import { z } from 'zod';
 import { Specialization, ClinicTier, BillingCycle } from '@workspace/db';
 
-const SPECIALIZATION_SET = new Set<Specialization>(
-  Object.values(Specialization),
-);
-const CLINIC_TIER_SET = new Set<ClinicTier>(Object.values(ClinicTier));
-const BILLING_CYCLE_SET = new Set<BillingCycle>(Object.values(BillingCycle));
+const specializationSchema = z.nativeEnum(Specialization);
+const clinicTierSchema = z.nativeEnum(ClinicTier);
+const billingCycleSchema = z.nativeEnum(BillingCycle);
 
 export function validateSpecializationForOnboarding(
   value: string | null | undefined,
 ): Specialization | null {
   if (!value) return null;
 
-  if (SPECIALIZATION_SET.has(value as Specialization)) {
-    return value as Specialization;
-  }
-
-  return null;
+  const parsed = specializationSchema.safeParse(value);
+  return parsed.success ? parsed.data : null;
 }
 
 export function validateClinicTier(value: string | undefined): ClinicTier {
   if (!value) return ClinicTier.ESSENTIAL;
 
-  if (CLINIC_TIER_SET.has(value as ClinicTier)) {
-    return value as ClinicTier;
-  }
-
-  return ClinicTier.ESSENTIAL;
+  const parsed = clinicTierSchema.safeParse(value);
+  return parsed.success ? parsed.data : ClinicTier.ESSENTIAL;
 }
 
 export function validateBillingCycle(value: string | undefined): BillingCycle {
   if (!value) return BillingCycle.MONTHLY;
 
-  if (BILLING_CYCLE_SET.has(value as BillingCycle)) {
-    return value as BillingCycle;
-  }
-
-  return BillingCycle.MONTHLY;
+  const parsed = billingCycleSchema.safeParse(value);
+  return parsed.success ? parsed.data : BillingCycle.MONTHLY;
 }
 
 export type ClinicSettings = Record<string, unknown>;
 
+function isRecord(value: unknown): value is Record<string, unknown> {
+  return typeof value === 'object' && value !== null && !Array.isArray(value);
+}
+
 export function getClinicSettings(settings: unknown): ClinicSettings {
-  if (settings && typeof settings === 'object') {
-    return settings as ClinicSettings;
-  }
-  return {};
+  return isRecord(settings) ? settings : {};
 }

@@ -1,18 +1,8 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
+import { bulkImportJobErrorsJsonSchema } from '@workspace/types';
 import { PrismaService } from '@/prisma/prisma.service';
+import { parsePrismaJsonColumn } from '@/shared/common/json/parse-prisma-json-column';
 import type { BulkImportRowError } from './bulk-import.types';
-
-function isBulkImportRowError(value: unknown): value is BulkImportRowError {
-  if (!value || typeof value !== 'object') {
-    return false;
-  }
-
-  const candidate = value as Partial<BulkImportRowError>;
-  return (
-    typeof candidate.rowNumber === 'number' &&
-    typeof candidate.error === 'string'
-  );
-}
 
 @Injectable()
 export class BulkImportJobQueryService {
@@ -43,10 +33,8 @@ export class BulkImportJobQueryService {
     if (!job) {
       throw new NotFoundException('Import job not found');
     }
-    const rawErrors: unknown[] = Array.isArray(job.errors)
-      ? [...job.errors]
-      : [];
-    const errors = rawErrors.filter(isBulkImportRowError);
+    const errors =
+      parsePrismaJsonColumn(job.errors, bulkImportJobErrorsJsonSchema) ?? [];
     return {
       jobId: job.id,
       status: job.status,

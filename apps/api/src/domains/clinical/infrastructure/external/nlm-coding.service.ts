@@ -1,10 +1,8 @@
 import { Inject, Injectable, Logger } from '@nestjs/common';
-import {
-  CLOCK_PORT,
-  type IClock,
-} from '@/shared/common/ports/clock.port';
+import { CLOCK_PORT, type IClock } from '@/shared/common/ports/clock.port';
 import { IcdCode, CptCode } from '@workspace/db';
 import { getAllCPTCodes } from '@workspace/utils';
+import { fetchWithTimeout } from '@/shared/common/http/fetch-with-timeout';
 
 type NlmSearchResponse = [number, string[], null, string[][]];
 type CodeSystem = 'ICD' | 'HCPCS';
@@ -141,9 +139,7 @@ export class NlmCodingService {
       url.searchParams.set(key, value);
     }
 
-    const res = await fetch(url.toString(), {
-      signal: AbortSignal.timeout(timeoutMs),
-    });
+    const res = await fetchWithTimeout(url.toString(), {}, timeoutMs);
 
     if (!res.ok) {
       throw new Error(`${system} API returned HTTP ${res.status}`);

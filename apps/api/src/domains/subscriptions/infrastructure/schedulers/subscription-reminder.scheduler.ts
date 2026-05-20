@@ -89,6 +89,7 @@ export class SubscriptionReminderScheduler {
     ];
 
     try {
+      // RLS-BYPASS: subscription scheduler runs system-wide without request tenant
       const settled = await this.prisma.runUnrestricted(async () =>
         Promise.allSettled(
           schedules.map((schedule) =>
@@ -141,6 +142,7 @@ export class SubscriptionReminderScheduler {
         { offsetDays: 1, type: 'grace_deadline_1d' },
         { offsetDays: 0, type: 'grace_deadline_today' },
       ];
+      // RLS-BYPASS: subscription scheduler runs system-wide without request tenant
       await this.prisma.runUnrestricted(async () => {
         const graceResults = await Promise.allSettled(
           graceSchedules.map((schedule) =>
@@ -184,6 +186,7 @@ export class SubscriptionReminderScheduler {
     const now = this.clock.now();
 
     try {
+      // RLS-BYPASS: subscription scheduler runs system-wide without request tenant
       await this.prisma.runUnrestricted(async () => {
         const expiredTrials = await this.prisma.subscription.findMany({
           where: {

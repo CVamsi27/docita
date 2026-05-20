@@ -12,6 +12,7 @@ import { JwtAuthGuard } from '@/shared/modules/auth/auth/jwt-auth.guard';
 import { Roles } from '@/shared/modules/auth/auth/roles.decorator';
 import { SkipSubscriptionCheck } from '@/shared/modules/auth/decorators';
 import { RequestWithUser } from '@/shared/common/types/common.types';
+import { requireAuthenticatedUserId } from '@/shared/modules/auth/auth/clinic-request-context';
 import { PatientPortalService } from '@/domains/patient-portal/application/services/patient-portal.service';
 import { PatientPortalContextService } from '@/domains/patient-portal/application/services/patient-portal-context.service';
 import { parsePaginationInt } from '@/shared/common/utils/string.utils';
@@ -43,7 +44,7 @@ export class PatientPortalRecordsController {
       req,
       'VIEW_HISTORY',
     );
-    return this.portalService.getPrescriptions(req.user!.id, {
+    return this.portalService.getPrescriptions(requireAuthenticatedUserId(req), {
       limit: parsePaginationInt(query.limit, { min: 1, max: 200 }),
       offset: parsePaginationInt(query.offset, { min: 0 }),
     });
@@ -61,7 +62,7 @@ export class PatientPortalRecordsController {
       req,
       'VIEW_HISTORY',
     );
-    return this.portalService.getPrescriptionById(req.user!.id, id);
+    return this.portalService.getPrescriptionById(requireAuthenticatedUserId(req), id);
   }
 
   @Get('invoices')
@@ -70,7 +71,7 @@ export class PatientPortalRecordsController {
     @Request() req: RequestWithUser,
     @Query() query: { status?: string; limit?: string; offset?: string },
   ) {
-    return this.portalService.getInvoices(req.user!.id, {
+    return this.portalService.getInvoices(requireAuthenticatedUserId(req), {
       status: query.status,
       limit: parsePaginationInt(query.limit, { min: 1, max: 200 }),
       offset: parsePaginationInt(query.offset, { min: 0 }),

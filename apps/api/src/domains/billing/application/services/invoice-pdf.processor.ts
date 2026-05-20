@@ -49,6 +49,7 @@ export class InvoicePdfProcessor implements OnModuleInit {
         const { documentId, clinicId, pdfJobId } = job.data;
 
         if (pdfJobId) {
+          // RLS-BYPASS: invoice PDF worker processes jobs without request tenant context
           await this.persistence.runUnrestricted(async () =>
             this.persistence.pdfJob.update({
               where: { id: pdfJobId },
@@ -79,6 +80,7 @@ export class InvoicePdfProcessor implements OnModuleInit {
               PDF_SIGNED_URL_TTL_SECONDS,
             );
 
+            // RLS-BYPASS: invoice PDF worker processes jobs without request tenant context
             await this.persistence.runUnrestricted(async () =>
               this.persistence.pdfJob.update({
                 where: { id: pdfJobId },
@@ -98,6 +100,7 @@ export class InvoicePdfProcessor implements OnModuleInit {
           const isFinalAttempt = job.attemptsMade + 1 >= (job.maxAttempts ?? 1);
 
           if (pdfJobId && isFinalAttempt) {
+            // RLS-BYPASS: invoice PDF worker processes jobs without request tenant context
             await this.persistence.runUnrestricted(async () =>
               this.persistence.pdfJob.update({
                 where: { id: pdfJobId },

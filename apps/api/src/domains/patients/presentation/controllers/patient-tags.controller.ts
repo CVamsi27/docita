@@ -24,6 +24,7 @@ import {
   updatePatientTagRequestSchema,
 } from '@workspace/types';
 import { RequestWithUser } from '@/shared/common/types/common.types';
+import { requireClinicIdFromRequest } from '@/shared/modules/auth/auth/clinic-request-context';
 import { PatientTagsService } from '@/domains/patients/application/services/patient-tags.service';
 import { AuditService } from '@/shared/modules/audit/audit/audit.service';
 import { logPatientPhiRead } from '@/shared/modules/audit/audit/patient-access-audit.util';
@@ -52,7 +53,7 @@ export class PatientTagsController {
   ) {
     await logPatientPhiRead(this.auditService, req, patientId, 'VIEW_PROFILE');
     return this.tagsService.list({
-      clinicId: req.user!.clinicId!,
+      clinicId: requireClinicIdFromRequest(req),
       patientId,
     });
   }
@@ -67,7 +68,7 @@ export class PatientTagsController {
   ) {
     const parsed = createPatientTagRequestSchema.parse(body);
     return this.tagsService.create({
-      clinicId: req.user!.clinicId!,
+      clinicId: requireClinicIdFromRequest(req),
       patientId,
       ...parsed,
     });
@@ -84,7 +85,7 @@ export class PatientTagsController {
   ) {
     const parsed = updatePatientTagRequestSchema.parse(body);
     return this.tagsService.update({
-      clinicId: req.user!.clinicId!,
+      clinicId: requireClinicIdFromRequest(req),
       patientId,
       tagId,
       ...parsed,
@@ -99,7 +100,7 @@ export class PatientTagsController {
     @Param('tagId') tagId: string,
   ) {
     await this.tagsService.remove({
-      clinicId: req.user!.clinicId!,
+      clinicId: requireClinicIdFromRequest(req),
       patientId,
       tagId,
     });

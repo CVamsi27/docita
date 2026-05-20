@@ -1,6 +1,8 @@
 import { Injectable } from '@nestjs/common';
-import { Prisma } from '@workspace/db';
+import { clinicalTemplateFieldsSchema } from '@workspace/types';
+import { ClinicalTemplate, Prisma } from '@workspace/db';
 import { PrismaService } from '@/prisma/prisma.service';
+import { parsePrismaJsonColumn } from '@/shared/common/json/parse-prisma-json-column';
 import {
   CreateTemplateData,
   ITemplatesRepository,
@@ -17,8 +19,16 @@ export class PrismaTemplatesRepository implements ITemplatesRepository {
     return JSON.parse(JSON.stringify(value)) as Prisma.InputJsonValue;
   }
 
-  create(data: CreateTemplateData): Promise<TemplateRecord> {
-    return this.prisma.clinicalTemplate.create({
+  private mapRecord(row: ClinicalTemplate): TemplateRecord {
+    return {
+      ...row,
+      fields:
+        parsePrismaJsonColumn(row.fields, clinicalTemplateFieldsSchema) ?? [],
+    };
+  }
+
+  async create(data: CreateTemplateData): Promise<TemplateRecord> {
+    const row = await this.prisma.clinicalTemplate.create({
       data: {
         name: data.name,
         speciality: data.speciality,
@@ -26,10 +36,11 @@ export class PrismaTemplatesRepository implements ITemplatesRepository {
         defaultObservations: data.defaultObservations,
         clinicId: data.clinicId,
       },
-    }) as Promise<TemplateRecord>;
+    });
+    return this.mapRecord(row);
   }
 
-  findAll(params?: TemplateQuery): Promise<TemplateRecord[]> {
+  async findAll(params?: TemplateQuery): Promise<TemplateRecord[]> {
     const { search, speciality, clinicId } = params || {};
     const where: Prisma.ClinicalTemplateWhereInput = {};
 
@@ -45,20 +56,22 @@ export class PrismaTemplatesRepository implements ITemplatesRepository {
       where.name = { contains: search, mode: 'insensitive' };
     }
 
-    return this.prisma.clinicalTemplate.findMany({
+    const rows = await this.prisma.clinicalTemplate.findMany({
       where,
       orderBy: { updatedAt: 'desc' },
-    }) as Promise<TemplateRecord[]>;
+    });
+    return rows.map((row) => this.mapRecord(row));
   }
 
-  findById(id: string): Promise<TemplateRecord | null> {
-    return this.prisma.clinicalTemplate.findUnique({
+  async findById(id: string): Promise<TemplateRecord | null> {
+    const row = await this.prisma.clinicalTemplate.findUnique({
       where: { id },
-    }) as Promise<TemplateRecord | null>;
+    });
+    return row ? this.mapRecord(row) : null;
   }
 
-  update(id: string, data: UpdateTemplateData): Promise<TemplateRecord> {
-    return this.prisma.clinicalTemplate.update({
+  async update(id: string, data: UpdateTemplateData): Promise<TemplateRecord> {
+    const row = await this.prisma.clinicalTemplate.update({
       where: { id },
       data: {
         name: data.name,
@@ -66,12 +79,14 @@ export class PrismaTemplatesRepository implements ITemplatesRepository {
         fields: data.fields ? this.toInputJsonValue(data.fields) : undefined,
         defaultObservations: data.defaultObservations,
       },
-    }) as Promise<TemplateRecord>;
+    });
+    return this.mapRecord(row);
   }
 
-  delete(id: string): Promise<TemplateRecord> {
-    return this.prisma.clinicalTemplate.delete({
+  async delete(id: string): Promise<TemplateRecord> {
+    const row = await this.prisma.clinicalTemplate.delete({
       where: { id },
-    }) as Promise<TemplateRecord>;
+    });
+    return this.mapRecord(row);
   }
 }

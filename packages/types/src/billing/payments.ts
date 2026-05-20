@@ -1,4 +1,5 @@
 import { z } from "zod";
+import { jsonObjectSchema } from "../shared/json-schema";
 
 export const PaymentMode = {
   ONLINE: "ONLINE",
@@ -131,3 +132,9 @@ export const paymentWebhookPayloadSchema = z.object({
   }),
 });
 export type PaymentWebhookPayload = z.infer<typeof paymentWebhookPayloadSchema>;
+
+/** Prisma `PaymentSession.meta` — channel, reference, notes, etc. */
+export const paymentSessionMetaJsonSchema = jsonObjectSchema;
+
+/** Prisma `PaymentSession.webhookPayload` — verified Razorpay webhook body. */
+export const paymentSessionWebhookPayloadSchema = paymentWebhookPayloadSchema;

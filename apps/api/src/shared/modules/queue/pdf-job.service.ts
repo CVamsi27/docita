@@ -81,6 +81,7 @@ export class PdfJobService implements PdfJobServicePort {
     clinicId: string,
   ): Promise<EnqueuePdfJobResponse> {
     let shouldEnqueue = true;
+    // RLS-BYPASS: background queue workers run without per-request clinic session
     const pdfJob = await this.prisma.runUnrestricted(async () => {
       try {
         return await this.prisma.pdfJob.create({
@@ -135,6 +136,7 @@ export class PdfJobService implements PdfJobServicePort {
     jobId: string,
     clinicId: string,
   ): Promise<PdfJobStatusResponse> {
+    // RLS-BYPASS: background queue workers run without per-request clinic session
     const pdfJob = await this.prisma.runUnrestricted(async () =>
       this.prisma.pdfJob.findFirst({
         where: { id: jobId, clinicId },

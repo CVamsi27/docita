@@ -10,7 +10,7 @@ type ReminderPersistenceKey =
 
 export type ReminderPersistencePort = Pick<
   PrismaDelegatePort,
-  ReminderPersistenceKey
+  ReminderPersistenceKey | '$transaction'
 >;
 
 export const REMINDER_PERSISTENCE_PORT = 'ReminderPersistencePort';

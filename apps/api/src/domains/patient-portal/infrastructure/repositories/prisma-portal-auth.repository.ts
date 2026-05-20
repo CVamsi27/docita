@@ -16,6 +16,7 @@ export class PrismaPortalAuthRepository implements IPortalAuthRepository {
   ) {}
 
   async invalidateOtps(phone: string): Promise<void> {
+    // RLS-BYPASS: patient portal identity is scoped by patient token, not clinic RLS
     await this.prisma.runUnrestricted(async () =>
       this.prisma.patientOtp.updateMany({
         where: { phoneNumber: phone, usedAt: null },
@@ -29,6 +30,7 @@ export class PrismaPortalAuthRepository implements IPortalAuthRepository {
     otpHash: string;
     expiresAt: Date;
   }): Promise<OtpRecord> {
+    // RLS-BYPASS: patient portal identity is scoped by patient token, not clinic RLS
     return this.prisma.runUnrestricted(async () =>
       this.prisma.patientOtp.create({ data }),
     ) as Promise<OtpRecord>;
@@ -48,6 +50,7 @@ export class PrismaPortalAuthRepository implements IPortalAuthRepository {
   }
 
   async incrementOtpAttempts(id: string): Promise<void> {
+    // RLS-BYPASS: patient portal identity is scoped by patient token, not clinic RLS
     await this.prisma.runUnrestricted(async () =>
       this.prisma.patientOtp.update({
         where: { id },
@@ -57,6 +60,7 @@ export class PrismaPortalAuthRepository implements IPortalAuthRepository {
   }
 
   async markOtpUsed(id: string): Promise<void> {
+    // RLS-BYPASS: patient portal identity is scoped by patient token, not clinic RLS
     await this.prisma.runUnrestricted(async () =>
       this.prisma.patientOtp.update({
         where: { id },
@@ -71,6 +75,7 @@ export class PrismaPortalAuthRepository implements IPortalAuthRepository {
     role: User['role'];
     name: string;
   }): Promise<User> {
+    // RLS-BYPASS: patient portal identity is scoped by patient token, not clinic RLS
     return this.prisma.runUnrestricted(async () =>
       this.prisma.user.create({ data }),
     );

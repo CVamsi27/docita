@@ -13,6 +13,7 @@ import { JwtAuthGuard } from '@/shared/modules/auth/auth/jwt-auth.guard';
 import { Roles } from '@/shared/modules/auth/auth/roles.decorator';
 import { SkipSubscriptionCheck } from '@/shared/modules/auth/decorators';
 import { RequestWithUser } from '@/shared/common/types/common.types';
+import { requireAuthenticatedUserId } from '@/shared/modules/auth/auth/clinic-request-context';
 import { PatientPortalContextService } from '@/domains/patient-portal/application/services/patient-portal-context.service';
 import { PatientTimelineService } from '@/domains/patients/application/services/patient-timeline.service';
 import { parsePaginationInt } from '@/shared/common/utils/string.utils';
@@ -83,7 +84,7 @@ export class PatientPortalClinicalController {
   @ApiOperation({ summary: 'Get active medications' })
   async getActiveMedications(@Request() req: RequestWithUser) {
     const { patientId, clinicId } = await this.contextService.getPatientContext(
-      req.user!.id,
+      requireAuthenticatedUserId(req),
     );
     return this.medicationDoseService.getActiveMedications(clinicId, patientId);
   }
@@ -134,7 +135,7 @@ export class PatientPortalClinicalController {
     },
   ) {
     const { patientId, clinicId } = await this.contextService.getPatientContext(
-      req.user!.id,
+      requireAuthenticatedUserId(req),
     );
     return this.medicationDoseService.recordAdHocDose(
       clinicId,

@@ -5,6 +5,10 @@ import ExcelJS from 'exceljs';
 import Papa from 'papaparse';
 import type { BulkImportRow, ExcelRow } from './import-types';
 import { normalizeBulkImportRow } from './import-row-normalizer';
+import {
+  extractWorksheetRowCells,
+  readExcelCellObject,
+} from './excel-cell-value';
 
 export type TabularRow = Array<string | number | Date | undefined>;
 
@@ -42,11 +46,10 @@ export class ImportFileParserService {
     }
 
     if (value && typeof value === 'object') {
-      const candidate = value as {
-        result?: unknown;
-        text?: unknown;
-        richText?: Array<{ text?: string }>;
-      };
+      const candidate = readExcelCellObject(value);
+      if (!candidate) {
+        return String(value);
+      }
 
       if (candidate.result !== undefined) {
         return this.sanitizeCellValue(candidate.result);
@@ -85,11 +88,14 @@ export class ImportFileParserService {
       );
     }
 
-    if (!this.supportedImportExtensions.has(extension)) {
-      throw new BadRequestException('Only .xlsx and .csv files are allowed.');
+    if (extension === '.csv') {
+      return '.csv';
+    }
+    if (extension === '.xlsx') {
+      return '.xlsx';
     }
 
-    return extension as '.csv' | '.xlsx';
+    throw new BadRequestException('Only .xlsx and .csv files are allowed.');
   }
 
   async parseCsvRows(
@@ -132,9 +138,7 @@ export class ImportFileParserService {
 
     const rows: Array<Array<string | number | Date | undefined>> = [];
     worksheet.eachRow({ includeEmpty: false }, (row) => {
-      const cells = row.values as unknown[];
-      const normalized = cells
-        .slice(1)
+      const normalized = extractWorksheetRowCells(row.values)
         .map((cell) => this.sanitizeCellValue(cell))
         .map((cell) => (cell === '' ? undefined : cell));
 
@@ -273,7 +277,9 @@ export class ImportFileParserService {
       throw new BadRequestException('Header row is empty');
     }
 
-    return this.mapDataRows(headers, tabularRows.slice(1)) as BulkImportRow[];
+    return this.mapDataRows(headers, tabularRows.slice(1)).map((row) =>
+      normalizeBulkImportRow(row),
+    );
   }
 
   async parseBulkImportBuffer(

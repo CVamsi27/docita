@@ -62,6 +62,7 @@ export class AuditService {
   }
 
   async createAuditLog(data: AuditLogData): Promise<unknown> {
+    // RLS-BYPASS: audit persistence correlates events across tenants for compliance
     return this.prisma.runUnrestricted(async () => {
       try {
         const [clinic, user] = await Promise.all([

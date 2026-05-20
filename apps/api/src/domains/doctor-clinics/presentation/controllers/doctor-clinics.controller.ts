@@ -21,6 +21,7 @@ import { ZodSerializerDto } from 'nestjs-zod';
 import { Role } from '@workspace/db';
 import { Roles } from '@/shared/modules/auth/auth/roles.decorator';
 import { RequestWithUser } from '@/shared/common/types/common.types';
+import { getClinicStaffRequestContext } from '@/shared/modules/auth/auth/clinic-request-context';
 
 @Controller('doctor-clinics')
 @Roles(Role.ADMIN, Role.ADMIN_DOCTOR)
@@ -28,7 +29,8 @@ export class DoctorClinicsController {
   constructor(private readonly doctorClinicsService: DoctorClinicsService) {}
 
   private verifyClinicAccess(req: RequestWithUser, clinicId: string): void {
-    if (req.user!.clinicId !== clinicId) {
+    const { clinicId: actorClinicId } = getClinicStaffRequestContext(req);
+    if (actorClinicId !== clinicId) {
       throw new ForbiddenException(
         'Cannot manage doctor-clinic assignments for another clinic',
       );

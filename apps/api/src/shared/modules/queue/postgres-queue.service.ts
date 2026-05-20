@@ -1,4 +1,6 @@
 import { Inject, Injectable, Logger, OnModuleDestroy } from '@nestjs/common';
+import { jsonObjectSchema } from '@workspace/types';
+import { parsePrismaJsonColumn } from '@/shared/common/json/parse-prisma-json-column';
 import {
   CLOCK_PORT,
   type IClock,
@@ -66,6 +68,7 @@ export class PostgresQueueService implements IQueueProvider, OnModuleDestroy {
       }
     }
 
+    // RLS-BYPASS: background queue workers run without per-request clinic session
     const row = await this.prisma.runUnrestricted(async () =>
       this.prisma.queueJob.create({
         data: {
@@ -138,6 +141,7 @@ export class PostgresQueueService implements IQueueProvider, OnModuleDestroy {
         row.idempotencyKey,
       );
       if (recent && recent.id !== row.id) {
+        // RLS-BYPASS: background queue workers run without per-request clinic session
         await this.prisma.runUnrestricted(async () =>
           this.prisma.queueJob.update({
             where: { id: row.id },
@@ -157,6 +161,7 @@ export class PostgresQueueService implements IQueueProvider, OnModuleDestroy {
     try {
       await handler(job);
 
+      // RLS-BYPASS: background queue workers run without per-request clinic session
       await this.prisma.runUnrestricted(async () =>
         this.prisma.queueJob.update({
           where: { id: row.id },
@@ -172,6 +177,7 @@ export class PostgresQueueService implements IQueueProvider, OnModuleDestroy {
 
       if (nextAttemptsMade < row.maxAttempts) {
         const backoffMs = computeBackoffMs(nextAttemptsMade);
+        // RLS-BYPASS: background queue workers run without per-request clinic session
         await this.prisma.runUnrestricted(async () =>
           this.prisma.queueJob.update({
             where: { id: row.id },
@@ -185,6 +191,7 @@ export class PostgresQueueService implements IQueueProvider, OnModuleDestroy {
         );
         this.metrics?.observeJobCompletion(name, 'retried');
       } else {
+        // RLS-BYPASS: background queue workers run without per-request clinic session
         await this.prisma.runUnrestricted(async () =>
           this.prisma.queueJob.update({
             where: { id: row.id },
@@ -210,6 +217,7 @@ export class PostgresQueueService implements IQueueProvider, OnModuleDestroy {
   private async refreshDlqGauge(name: string): Promise<void> {
     if (!this.metrics) return;
     try {
+      // RLS-BYPASS: background queue workers run without per-request clinic session
       const count = await this.prisma.runUnrestricted(async () =>
         this.prisma.queueJob.count({
           where: { name, status: 'DEAD_LETTERED' },
@@ -228,6 +236,7 @@ export class PostgresQueueService implements IQueueProvider, OnModuleDestroy {
     name: string,
     limit = 50,
   ): Promise<QueueJob<QueueJobData>[]> {
+    // RLS-BYPASS: background queue workers run without per-request clinic session
     const rows = await this.prisma.runUnrestricted(async () =>
       this.prisma.queueJob.findMany({
         where: { name, status: 'DEAD_LETTERED' },
@@ -243,6 +252,7 @@ export class PostgresQueueService implements IQueueProvider, OnModuleDestroy {
    * it back into the WAITING queue. Returns the refreshed job.
    */
   async replayDeadLettered(jobId: string): Promise<QueueJob<QueueJobData>> {
+    // RLS-BYPASS: background queue workers run without per-request clinic session
     const row = await this.prisma.runUnrestricted(async () =>
       this.prisma.queueJob.update({
         where: { id: jobId },
@@ -292,6 +302,7 @@ export class PostgresQueueService implements IQueueProvider, OnModuleDestroy {
   }
 
   async removeJob(jobId: string): Promise<void> {
+    // RLS-BYPASS: background queue workers run without per-request clinic session
     await this.prisma.runUnrestricted(async () =>
       this.prisma.queueJob.delete({ where: { id: jobId } }),
     );
@@ -326,10 +337,12 @@ export class PostgresQueueService implements IQueueProvider, OnModuleDestroy {
   }
 
   private rowToJob<T extends QueueJobData>(row: QueueJobRow): QueueJob<T> {
+    const data = (parsePrismaJsonColumn(row.data, jsonObjectSchema) ??
+      {}) as T;
     return {
       id: row.id,
       name: row.name,
-      data: row.data as T,
+      data,
       progress: 0,
       failedReason: row.failedReason ?? undefined,
       attemptsMade: row.attemptsMade,

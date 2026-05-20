@@ -28,6 +28,7 @@ import {
 } from '@/domains/analytics/dto/analytics.dto';
 import { ZodSerializerDto } from 'nestjs-zod';
 import { RequestWithUser } from '@/shared/common/types/common.types';
+import { requireClinicIdFromRequest } from '@/shared/modules/auth/auth/clinic-request-context';
 import { parseAnalyticsDate } from '@/domains/analytics/presentation/controllers/analytics-controller.helpers';
 
 @Controller('analytics')
@@ -45,7 +46,7 @@ export class AnalyticsAdvancedController {
     @Query() query: AnalyticsTimeSeriesQueryDto,
   ) {
     return this.analyticsService.getDiseaseTimeSeries(
-      req.user!.clinicId!,
+      requireClinicIdFromRequest(req),
       new Date(query.startDate),
       new Date(query.endDate),
       query.groupBy ?? 'month',
@@ -60,7 +61,7 @@ export class AnalyticsAdvancedController {
     @Query() query: AnalyticsDateRangeQueryDto,
   ) {
     return this.analyticsService.getRevenueByCptCode(
-      req.user!.clinicId!,
+      requireClinicIdFromRequest(req),
       parseAnalyticsDate(query.startDate),
       parseAnalyticsDate(query.endDate),
     );
@@ -74,7 +75,7 @@ export class AnalyticsAdvancedController {
     @Query() query: AnalyticsDateRangeQueryDto,
   ) {
     return this.analyticsService.getRevenueByCategory(
-      req.user!.clinicId!,
+      requireClinicIdFromRequest(req),
       parseAnalyticsDate(query.startDate),
       parseAnalyticsDate(query.endDate),
     );
@@ -88,7 +89,7 @@ export class AnalyticsAdvancedController {
     @Query() query: AnalyticsTimeSeriesQueryDto,
   ) {
     return this.analyticsService.getRevenueTimeSeries(
-      req.user!.clinicId!,
+      requireClinicIdFromRequest(req),
       new Date(query.startDate),
       new Date(query.endDate),
       query.groupBy ?? 'month',
@@ -103,7 +104,7 @@ export class AnalyticsAdvancedController {
     @Query() query: AnalyticsDateRangeQueryDto,
   ) {
     return this.analyticsService.getCodingComplianceMetrics(
-      req.user!.clinicId!,
+      requireClinicIdFromRequest(req),
       parseAnalyticsDate(query.startDate),
       parseAnalyticsDate(query.endDate),
     );
@@ -113,7 +114,7 @@ export class AnalyticsAdvancedController {
   @RequireFeature(Feature.ADVANCED_ANALYTICS)
   @ZodSerializerDto(UncodedVisitsStatsResponseDto)
   getUncodedVisitsStats(@Request() req: RequestWithUser) {
-    return this.analyticsService.getUncodedVisitsStats(req.user!.clinicId!);
+    return this.analyticsService.getUncodedVisitsStats(requireClinicIdFromRequest(req));
   }
 
   @Get('compliance/timeliness')
@@ -124,7 +125,7 @@ export class AnalyticsAdvancedController {
     @Query() query: AnalyticsDateRangeQueryDto,
   ) {
     return this.analyticsService.getCodingTimeliness(
-      req.user!.clinicId!,
+      requireClinicIdFromRequest(req),
       parseAnalyticsDate(query.startDate),
       parseAnalyticsDate(query.endDate),
     );
@@ -138,7 +139,7 @@ export class AnalyticsAdvancedController {
     @Query() query: AnalyticsPeriodDateRangeQueryDto,
   ) {
     return this.analyticsService.getRevenueMetrics(
-      req.user!.clinicId!,
+      requireClinicIdFromRequest(req),
       query.period ?? 'monthly',
       parseAnalyticsDate(query.startDate),
       parseAnalyticsDate(query.endDate),
@@ -153,7 +154,7 @@ export class AnalyticsAdvancedController {
     @Query() query: AnalyticsPeriodDateRangeQueryDto,
   ) {
     return this.analyticsService.getAppointmentMetrics(
-      req.user!.clinicId!,
+      requireClinicIdFromRequest(req),
       query.period ?? 'monthly',
       parseAnalyticsDate(query.startDate),
       parseAnalyticsDate(query.endDate),
@@ -168,7 +169,7 @@ export class AnalyticsAdvancedController {
     @Query() query: AnalyticsDateRangeQueryDto,
   ) {
     return this.analyticsService.getPatientDemographics(
-      req.user!.clinicId!,
+      requireClinicIdFromRequest(req),
       parseAnalyticsDate(query.startDate),
       parseAnalyticsDate(query.endDate),
     );

@@ -51,6 +51,7 @@ export class DataRetentionScheduler {
     const thirtyDaysAgo = this.clock.now();
     thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
 
+    // RLS-BYPASS: compliance retention and archival jobs span tenants by design
     const recordsToDelete = await this.prisma.runUnrestricted(async () =>
       this.prisma.patient.findMany({
         where: {
@@ -102,6 +103,7 @@ export class DataRetentionScheduler {
   ): Promise<void> {
     const randomId = `ANON-${this.clock.now().getTime()}`;
 
+    // RLS-BYPASS: compliance retention and archival jobs span tenants by design
     await this.prisma.runUnrestricted(async () => {
       await this.prisma.patient.update({
         where: { id: patientId },

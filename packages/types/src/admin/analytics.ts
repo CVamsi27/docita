@@ -36,6 +36,9 @@ export const TopDiagnosisSchema = z.object({
   percentage: z.number(),
 });
 
+/** Prisma `AnalyticsSnapshot.topConditions`. */
+export const analyticsTopConditionsJsonSchema = z.array(TopDiagnosisSchema);
+
 export const DiseaseTrendSchema = z.object({
   name: z.string(),
   data: z.array(

@@ -13,6 +13,10 @@ import { ZodSerializerDto } from 'nestjs-zod';
 import { ZodValidationPipe } from '@/shared/common/pipes/zod-validation.pipe';
 import { parsePaginationInt } from '@/shared/common/utils/string.utils';
 import { FeedbackService } from '@/domains/feedback/application/services/feedback.service';
+import {
+  parseFeedbackCategoryFilter,
+  parseFeedbackStatusFilter,
+} from '@/domains/feedback/application/services/feedback-enum-parse';
 import { ContactService } from '@/shared/modules/contact/contact.service';
 import {
   SupportWhatsAppInboxService,
@@ -63,8 +67,8 @@ export class InternalSupportController {
     @Query('search') search?: string,
   ) {
     return this.feedbackService.findAll({
-      status,
-      category,
+      status: parseFeedbackStatusFilter(status),
+      category: parseFeedbackCategoryFilter(category),
       clinicId,
       startDate,
       endDate,

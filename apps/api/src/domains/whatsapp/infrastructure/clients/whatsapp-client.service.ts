@@ -12,6 +12,7 @@ import {
   type SendMessageRequest,
   type SendMessageResponse,
 } from '@/domains/whatsapp/application/ports/whatsapp-client.port';
+import { fetchWithTimeout } from '@/shared/common/http/fetch-with-timeout';
 
 type LegacySendResult = {
   success: boolean;
@@ -278,7 +279,7 @@ export class WhatsappClientService implements IWhatsAppClient {
   ): Promise<Record<string, unknown>> {
     const phoneNumberId = sender?.phoneNumberId || this.phoneNumberId;
     const accessToken = sender?.accessToken || this.accessToken;
-    const response = await fetch(
+    const response = await fetchWithTimeout(
       `${this.baseUrl}/${this.apiVersion}/${phoneNumberId}/messages`,
       {
         method: 'POST',
@@ -304,9 +305,7 @@ export class WhatsappClientService implements IWhatsAppClient {
       } else {
         this.logger.error(`WhatsApp send failed: ${errorMsg}`, data);
       }
-      throw new ServiceUnavailableException(
-        `WhatsApp API error: ${errorMsg}`,
-      );
+      throw new ServiceUnavailableException(`WhatsApp API error: ${errorMsg}`);
     }
 
     return data;

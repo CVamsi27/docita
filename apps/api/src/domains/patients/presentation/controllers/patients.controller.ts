@@ -38,6 +38,7 @@ import {
 } from '@/shared/modules/auth/auth/tier.decorator';
 import { getDbRolesForTarget } from '@/shared/modules/auth/auth/access-matrix.util';
 import { RequestWithUser } from '@/shared/common/types/common.types';
+import { getClinicStaffRequestContext } from '@/shared/modules/auth/auth/clinic-request-context';
 import { AuditService } from '@/shared/modules/audit/audit/audit.service';
 import {
   logClinicPhiListRead,
@@ -106,7 +107,7 @@ export class PatientsController {
       );
     }
 
-    const clinicId = req.user!.clinicId!;
+    const { clinicId } = getClinicStaffRequestContext(req);
     const created = await this.patientService.createPatient(
       this.normalizeCreateBody(body, clinicId),
     );
@@ -145,7 +146,7 @@ export class PatientsController {
       { search, gender, page: page ?? 1, limit: limit ?? 20 },
     );
     const result = await this.patientService.listPatients({
-      clinicId: req.user!.clinicId!,
+      clinicId: getClinicStaffRequestContext(req).clinicId,
       search,
       gender,
       page: page ?? 1,
@@ -163,7 +164,7 @@ export class PatientsController {
   async findOne(@Request() req: RequestWithUser, @Param('id') id: string) {
     const patient = await this.patientService.getPatient(
       id,
-      req.user!.clinicId!,
+      getClinicStaffRequestContext(req).clinicId,
     );
     await logPatientPhiRead(this.auditService, req, id, 'VIEW_PROFILE');
     return this.toPatientResponse(patient);
@@ -180,7 +181,7 @@ export class PatientsController {
     const updated = await this.patientService.updatePatient(
       id,
       this.normalizeUpdateBody(body),
-      req.user!.clinicId!,
+      getClinicStaffRequestContext(req).clinicId,
     );
     return this.toPatientResponse(updated);
   }
@@ -190,6 +191,6 @@ export class PatientsController {
   @HttpCode(204)
   @ApiOperation({ summary: 'Delete patient' })
   async delete(@Request() req: RequestWithUser, @Param('id') id: string) {
-    await this.patientService.deletePatient(id, req.user!.clinicId!);
+    await this.patientService.deletePatient(id, getClinicStaffRequestContext(req).clinicId);
   }
 }

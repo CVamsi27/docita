@@ -21,7 +21,7 @@ import {
   finalizePayableAmountPaise,
   SubscriptionCheckoutPricingService,
 } from '@/domains/subscriptions/application/services/subscription-checkout-pricing.service';
-import { ActivateSubscriptionUseCase } from '@/domains/subscriptions/application/use-cases/activate-subscription.use-case';
+import { ApplyPlanChangeWithoutPaymentUseCase } from '@/domains/subscriptions/application/use-cases/apply-plan-change-without-payment.use-case';
 
 export interface CreateCheckoutRequest {
   clinicId: string;
@@ -50,7 +50,7 @@ export class CreateCheckoutUseCase {
     @Inject(PAYMENT_GATEWAY_TOKEN)
     private readonly paymentGateway: IPaymentGateway,
     private readonly checkoutPricing: SubscriptionCheckoutPricingService,
-    private readonly activateSubscription: ActivateSubscriptionUseCase,
+    private readonly applyPlanChangeWithoutPayment: ApplyPlanChangeWithoutPaymentUseCase,
     private readonly configService: AppConfigService,
     private readonly featureFlagService: FeatureFlagService,
   ) {}
@@ -91,7 +91,7 @@ export class CreateCheckoutUseCase {
     );
 
     if (amountCents === 0) {
-      await this.activateSubscription.applyPlanChangeWithoutPayment({
+      await this.applyPlanChangeWithoutPayment.execute({
         clinicId: request.clinicId,
         tier: tier.value,
         cycle: cycle.value,

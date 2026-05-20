@@ -8,16 +8,12 @@ import {
 import { Observable } from 'rxjs';
 import { tap } from 'rxjs/operators';
 import { AuditService } from '@/shared/modules/audit/audit/audit.service';
+import {
+  isWriteHttpMethod,
+  readAuditActor,
+  toAuditRecord,
+} from '@/shared/common/utils/audit-request.util';
 import { Request } from 'express';
-
-type HttpMethod = 'POST' | 'PUT' | 'PATCH' | 'DELETE';
-
-interface AuthUser {
-  id?: string;
-  sub?: string;
-  role?: string;
-  clinicId?: string | null;
-}
 
 interface ClassifiedAuditEvent {
   actionType: string;
@@ -26,7 +22,6 @@ interface ClassifiedAuditEvent {
   immediate: boolean;
 }
 
-const WRITE_METHODS: HttpMethod[] = ['POST', 'PUT', 'PATCH', 'DELETE'];
 const REDACTED_KEYS = new Set([
   'password',
   'currentPassword',
@@ -89,16 +84,16 @@ export function sanitizeAuditPayload(
   if (value === null || value === undefined) return value;
   if (typeof value !== 'object') return value;
 
-  if (visited.has(value as object)) {
+  if (visited.has(value)) {
     return '[Circular]';
   }
-  visited.add(value as object);
+  visited.add(value);
 
   if (Array.isArray(value)) {
     return value.map((entry) => sanitizeAuditPayload(entry, visited));
   }
 
-  const record = value as Record<string, unknown>;
+  const record = value;
   const sanitized: Record<string, unknown> = {};
 
   for (const [key, entry] of Object.entries(record)) {
@@ -120,7 +115,7 @@ export function classifySensitiveWrite(args: {
   body?: Record<string, unknown>;
 }): ClassifiedAuditEvent | null {
   const method = args.method.toUpperCase();
-  if (!WRITE_METHODS.includes(method as HttpMethod)) {
+  if (!isWriteHttpMethod(method)) {
     return null;
   }
 
@@ -222,20 +217,18 @@ export class PatientDataAuditInterceptor implements NestInterceptor {
         next: () => {
           (async () => {
             try {
-              const actor = user as AuthUser;
-              const userId = actor.id ?? actor.sub;
-              const clinicId = actor.clinicId ?? null;
+              const actor = readAuditActor(user);
 
-              if (!userId || !clinicId) {
+              if (!actor.userId || !actor.clinicId) {
                 return;
               }
 
               const classification = classifySensitiveWrite({
                 method,
                 url,
-                params: params as Record<string, unknown>,
-                query: query as Record<string, unknown>,
-                body: body as Record<string, unknown>,
+                params: toAuditRecord(params),
+                query: toAuditRecord(query),
+                body: toAuditRecord(body),
               });
 
               if (!classification) {
@@ -252,8 +245,8 @@ export class PatientDataAuditInterceptor implements NestInterceptor {
 
               await this.auditService.logAction(
                 {
-                  userId,
-                  clinicId,
+                  userId: actor.userId,
+                  clinicId: actor.clinicId,
                   actionType: classification.actionType,
                   resourceType: classification.resourceType,
                   resourceId: classification.resourceId,
@@ -262,9 +255,9 @@ export class PatientDataAuditInterceptor implements NestInterceptor {
                   userAgent: request.headers['user-agent'],
                   metadata: {
                     actor: {
-                      id: userId,
+                      id: actor.userId,
                       role: actor.role ?? null,
-                      clinicId,
+                      clinicId: actor.clinicId,
                     },
                     request: {
                       method,

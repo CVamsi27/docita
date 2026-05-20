@@ -17,12 +17,15 @@ import { HandleWebhookUseCase } from '@/domains/whatsapp/application/use-cases/h
 import { WhatsappWebhookService } from '@/domains/whatsapp/application/services/whatsapp-webhook.service';
 import { readWhatsAppWebhookVerificationQuery } from '@/shared/whatsapp/whatsapp-webhook-query.util';
 import type { WhatsAppWebhookPayload } from '@workspace/types';
+import { AppConfigService } from '@/shared/modules/config/app-configuration.service';
+import { WebhookVerifierService } from '@/shared/modules/webhooks';
 
 /**
- * Legacy Meta webhook at `/whatsapp/webhook` (fail-open on bad signature).
+ * Legacy Meta webhook at `/whatsapp/webhook` (fail-open HTTP ack on bad signature).
  *
  * Prefer `GET/POST /webhooks/whatsapp` (strict verification + replay protection).
- * Both paths call {@link HandleWebhookUseCase}; retire this controller after Meta cutover.
+ * POST uses {@link WebhookVerifierService} replay dedupe; invalid signatures still
+ * return `OK` for backward compatibility. Both paths call {@link HandleWebhookUseCase}.
  */
 @Controller('whatsapp')
 export class LegacyWhatsappWebhookController {
@@ -31,6 +34,8 @@ export class LegacyWhatsappWebhookController {
   constructor(
     private readonly handleWebhookUseCase: HandleWebhookUseCase,
     private readonly whatsappWebhook: WhatsappWebhookService,
+    private readonly configService: AppConfigService,
+    private readonly webhookVerifier: WebhookVerifierService,
   ) {}
 
   @Public()
@@ -73,12 +78,22 @@ export class LegacyWhatsappWebhookController {
       return 'OK';
     }
 
-    const isValid = this.whatsappWebhook.validateWebhookSignature(
-      req.rawBody,
+    const verification = await this.webhookVerifier.verify({
+      provider: 'meta-whatsapp',
+      rawBody: req.rawBody,
       signature,
-    );
-    if (!isValid) {
-      this.logger.warn('Invalid webhook signature received');
+      secret: this.configService.getMetaConfig().appSecret,
+      signaturePrefix: 'sha256=',
+    });
+
+    if (!verification.ok) {
+      if (verification.failure === 'replayed') {
+        this.logger.warn('Legacy WhatsApp webhook replay suppressed');
+        return 'OK';
+      }
+      this.logger.warn('Invalid webhook signature received', {
+        failure: verification.failure,
+      });
       return 'OK';
     }
 

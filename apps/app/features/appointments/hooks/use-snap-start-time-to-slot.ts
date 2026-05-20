@@ -37,11 +37,24 @@ interface UseSnapStartTimeToSlotParams {
   onAdjustSchedulingDate?: (next: Date) => void;
 }
 
+function pickerDayNoon(iso: string): number {
+  const [year, month, day] = iso.split("-").map(Number);
+  if (
+    year === undefined ||
+    month === undefined ||
+    day === undefined ||
+    Number.isNaN(year) ||
+    Number.isNaN(month) ||
+    Number.isNaN(day)
+  ) {
+    return Number.NaN;
+  }
+  return new Date(year, month - 1, day, 12, 0, 0, 0).getTime();
+}
+
 function pickerDayDiff(fromIso: string, toIso: string): number {
-  const [fy, fm, fd] = fromIso.split("-").map(Number);
-  const [ty, tm, td] = toIso.split("-").map(Number);
-  const fromT = new Date(fy!, fm! - 1, fd!, 12, 0, 0, 0).getTime();
-  const toT = new Date(ty!, tm! - 1, td!, 12, 0, 0, 0).getTime();
+  const fromT = pickerDayNoon(fromIso);
+  const toT = pickerDayNoon(toIso);
   return Math.round((toT - fromT) / 86_400_000);
 }
 

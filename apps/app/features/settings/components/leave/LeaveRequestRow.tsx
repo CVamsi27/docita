@@ -38,8 +38,9 @@ export function LeaveRequestRow({
   onActionDone: () => void;
   onReject: (id: string) => void;
 }) {
-  const approveMutation = useApproveLeave(leave.id!);
-  const cancelMutation = useCancelLeave(leave.id!);
+  const leaveId = leave.id ?? "";
+  const approveMutation = useApproveLeave(leaveId);
+  const cancelMutation = useCancelLeave(leaveId);
   const isOwn = leave.staffId === currentUserId;
 
   const handleApprove = async () => {
@@ -122,7 +123,9 @@ export function LeaveRequestRow({
               size="sm"
               variant="outline"
               className="h-7 text-xs gap-1 text-destructive hover:text-destructive"
-              onClick={() => onReject(leave.id!)}
+              onClick={() => {
+                if (leave.id) onReject(leave.id);
+              }}
             >
               <X className="h-3 w-3" />
               Reject

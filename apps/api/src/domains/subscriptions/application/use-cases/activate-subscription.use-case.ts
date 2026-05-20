@@ -2,21 +2,15 @@ import {
   Injectable,
   Logger,
   Inject,
-  BadRequestException,
 } from '@nestjs/common';
 import {
   ISubscriptionRepository,
   SUBSCRIPTION_REPOSITORY_TOKEN,
 } from '@/domains/subscriptions/application/ports/subscription.repository.port';
-import {
-  IClinicOperations,
-  CLINIC_OPERATIONS_TOKEN,
-} from '@/domains/subscriptions/application/ports/clinic-operations.port';
 import { SubscriptionPricingService } from '@/domains/subscriptions/core/services/subscription-pricing.service';
 import {
   ClinicTier,
   BillingCycle,
-  SubscriptionStatusEnum,
 } from '@/domains/subscriptions/core/value-objects';
 import { FeatureFlagService } from '@/shared/modules/services/feature-flag.service';
 import {
@@ -27,6 +21,7 @@ import { AppConfigService } from '@/shared/modules/config/app-configuration.serv
 import { SubscriptionActivationPolicyService } from '@/domains/subscriptions/application/services/subscription-activation-policy.service';
 import { SubscriptionBillingSnapshotService } from '@/domains/subscriptions/application/services/subscription-billing-snapshot.service';
 import { ActivateSubscriptionPaymentService } from '@/domains/subscriptions/application/services/activate-subscription-payment.service';
+import { ActivateSubscriptionClinicSyncService } from '@/domains/subscriptions/application/services/activate-subscription-clinic-sync.service';
 
 export interface ActivateSubscriptionRequest {
   clinicId: string;
@@ -39,12 +34,6 @@ export interface ActivateSubscriptionRequest {
   verifiedAmountCents?: number;
 }
 
-export interface ApplyPlanChangeWithoutPaymentParams {
-  clinicId: string;
-  tier: string;
-  cycle: string;
-}
-
 @Injectable()
 export class ActivateSubscriptionUseCase {
   private readonly logger = new Logger(ActivateSubscriptionUseCase.name);
@@ -52,8 +41,6 @@ export class ActivateSubscriptionUseCase {
   constructor(
     @Inject(SUBSCRIPTION_REPOSITORY_TOKEN)
     private readonly subscriptionRepo: ISubscriptionRepository,
-    @Inject(CLINIC_OPERATIONS_TOKEN)
-    private readonly clinicOps: IClinicOperations,
     private readonly pricingService: SubscriptionPricingService,
     private readonly featureFlagService: FeatureFlagService,
     private readonly checkoutPricing: SubscriptionCheckoutPricingService,
@@ -61,67 +48,8 @@ export class ActivateSubscriptionUseCase {
     private readonly activationPolicy: SubscriptionActivationPolicyService,
     private readonly billingSnapshot: SubscriptionBillingSnapshotService,
     private readonly activationPayment: ActivateSubscriptionPaymentService,
+    private readonly clinicSync: ActivateSubscriptionClinicSyncService,
   ) {}
-
-  async applyPlanChangeWithoutPayment(
-    params: ApplyPlanChangeWithoutPaymentParams,
-  ): Promise<void> {
-    const tier = ClinicTier.fromString(params.tier);
-    const cycle = BillingCycle.fromString(params.cycle);
-    const clinicOffer = await this.featureFlagService.getClinicPricingOffer(
-      params.clinicId,
-    );
-    const offerPercent = clinicOffer?.percentOff ?? 0;
-    const currencyCode = this.configService.getCurrencyCode();
-
-    const subscription = await this.subscriptionRepo.findByClinicId(
-      params.clinicId,
-    );
-    const breakdown = this.checkoutPricing.compute(
-      subscription,
-      tier,
-      cycle,
-      offerPercent,
-    );
-    const payableAmount = finalizePayableAmountPaise(
-      breakdown.finalAmountCents,
-      currencyCode,
-    );
-
-    if (payableAmount !== 0) {
-      throw new BadRequestException(
-        'This plan change requires payment through checkout',
-      );
-    }
-
-    const listPriceCents = this.pricingService.calculatePrice(
-      tier,
-      cycle,
-      offerPercent,
-    );
-
-    await this.billingSnapshot.persistActivatedSubscription({
-      clinicId: params.clinicId,
-      tier,
-      cycle,
-      listPriceCents,
-      subscription,
-      creditsConsumed: breakdown.accountCreditsAppliedCents,
-      preserveCurrentPeriodEnd:
-        this.activationPolicy.shouldPreserveCurrentPeriodEnd(
-          subscription,
-          tier,
-          cycle,
-        ),
-      surplusCreditCents: breakdown.surplusCreditCents,
-    });
-
-    await this.syncClinicAfterActivation(params.clinicId, tier);
-
-    this.logger.log(
-      `Subscription plan applied without payment for clinic ${params.clinicId}: ${tier.value} ${cycle.value}`,
-    );
-  }
 
   // AuditLogged: subscription activation (billing; not patient PHI)
   async execute(request: ActivateSubscriptionRequest): Promise<void> {
@@ -210,31 +138,10 @@ export class ActivateSubscriptionUseCase {
       },
     );
 
-    await this.syncClinicAfterActivation(request.clinicId, tier);
+    await this.clinicSync.syncAfterActivation(request.clinicId, tier);
 
     this.logger.log(
       `Subscription activated for clinic ${request.clinicId}: ${tier.value} ${cycle.value}`,
     );
-  }
-
-  private async syncClinicAfterActivation(
-    clinicId: string,
-    tier: ClinicTier,
-  ): Promise<void> {
-    const featureUpdates = this.activationPolicy.buildPaidTierFeatureUpdates(tier);
-
-    await this.clinicOps.updateTierAndFeatures(
-      clinicId,
-      tier.value,
-      SubscriptionStatusEnum.ACTIVE,
-      featureUpdates,
-    );
-
-    await this.clinicOps.emitUpdate(clinicId, {
-      clinicId,
-      tier: tier.value,
-      subscriptionStatus: SubscriptionStatusEnum.ACTIVE,
-      subscriptionGraceUntil: null,
-    });
   }
 }

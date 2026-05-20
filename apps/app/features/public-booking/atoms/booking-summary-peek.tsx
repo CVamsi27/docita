@@ -29,14 +29,18 @@ export function PublicBookingSummaryPeek({
   const hasSlot = Boolean(selectedCalendarDay && selectedStart && selectedEnd);
   const hasAll = Boolean(selectedDoctorName) && hasSlot;
   const hasAny = Boolean(selectedDoctorName) || hasSlot;
+  const calendarDay = selectedCalendarDay;
+  const slotStart = selectedStart;
+  const slotEnd = selectedEnd;
 
-  const line = hasAll
-    ? `${selectedDoctorName} · ${formatDate(selectedCalendarDay!, "EEE d MMM")} · ${formatTime(selectedStart!)}–${formatTime(selectedEnd!)}`
-    : hasSlot
-      ? `${formatDate(selectedCalendarDay!, "EEE d MMM")} · ${formatTime(selectedStart!)}–${formatTime(selectedEnd!)}`
-      : selectedDoctorName
-        ? selectedDoctorName
-        : null;
+  const line =
+    hasAll && calendarDay && slotStart && slotEnd
+      ? `${selectedDoctorName} · ${formatDate(calendarDay, "EEE d MMM")} · ${formatTime(slotStart)}–${formatTime(slotEnd)}`
+      : hasSlot && calendarDay && slotStart && slotEnd
+        ? `${formatDate(calendarDay, "EEE d MMM")} · ${formatTime(slotStart)}–${formatTime(slotEnd)}`
+        : selectedDoctorName
+          ? selectedDoctorName
+          : null;
 
   return (
     <Sheet>

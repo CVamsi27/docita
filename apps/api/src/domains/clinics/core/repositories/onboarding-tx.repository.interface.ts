@@ -1,7 +1,11 @@
 import type {
+  BillingCycle,
   Clinic,
+  ClinicTier,
+  ClinicType,
   DayOfWeek,
   Prisma,
+  Role,
   Subscription,
   SubscriptionStatus,
   User,
@@ -12,7 +16,7 @@ export interface OnboardingClinicWriteData {
   email: string;
   phone: string;
   address: string;
-  type: string;
+  type: ClinicType;
   website?: string;
   mrnPrefix: string;
   timezone: string;
@@ -25,17 +29,17 @@ export interface OnboardingAdminUserWriteData {
   email: string;
   hashedPassword: string;
   phoneNumber?: string;
-  role: string;
+  role: Role;
   clinicId: string;
   qualification?: string;
   registrationNumber?: string;
-  specialization?: string | null;
+  specialization?: User['specialization'];
 }
 
 export interface OnboardingSubscriptionWriteData {
   clinicId: string;
-  plan: string;
-  billingCycle: string;
+  plan: ClinicTier;
+  billingCycle: BillingCycle;
   basePriceCents: number;
   currency: string;
   status: SubscriptionStatus;
@@ -112,7 +116,7 @@ export interface IOnboardingTxRepository {
   applyClinicTierAndTrial(
     tx: Prisma.TransactionClient,
     clinicId: string,
-    tier: string,
+    tier: ClinicTier,
     status: SubscriptionStatus,
     trialEndsAt: Date | null,
   ): Promise<void>;

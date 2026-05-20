@@ -24,6 +24,16 @@ function toJsonValue(value: unknown): Prisma.InputJsonValue {
   return JSON.parse(JSON.stringify(value)) as Prisma.InputJsonValue;
 }
 
+const META_WEBHOOK_STATUS_TO_DOMAIN: Record<
+  string,
+  WhatsAppMessageStatus | undefined
+> = {
+  sent: WhatsAppMessageStatus.SENT,
+  delivered: WhatsAppMessageStatus.DELIVERED,
+  read: WhatsAppMessageStatus.READ,
+  failed: WhatsAppMessageStatus.FAILED,
+};
+
 @Injectable()
 export class WhatsAppWebhookIngressService {
   private readonly logger = new Logger(WhatsAppWebhookIngressService.name);
@@ -154,22 +164,9 @@ export class WhatsAppWebhookIngressService {
       return;
     }
 
-    let domainStatus: WhatsAppMessageStatus;
-    switch (status.status) {
-      case 'sent':
-        domainStatus = WhatsAppMessageStatus.SENT;
-        break;
-      case 'delivered':
-        domainStatus = WhatsAppMessageStatus.DELIVERED;
-        break;
-      case 'read':
-        domainStatus = WhatsAppMessageStatus.READ;
-        break;
-      case 'failed':
-        domainStatus = WhatsAppMessageStatus.FAILED;
-        break;
-      default:
-        return;
+    const domainStatus = META_WEBHOOK_STATUS_TO_DOMAIN[status.status];
+    if (!domainStatus) {
+      return;
     }
 
     if (

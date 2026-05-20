@@ -6,7 +6,7 @@ import type { IPaymentGateway } from '@/domains/subscriptions/application/ports/
 import { ProratingService } from '@/domains/subscriptions/core/services/proration.service';
 import { SubscriptionPricingService } from '@/domains/subscriptions/core/services/subscription-pricing.service';
 import { SubscriptionCheckoutPricingService } from '@/domains/subscriptions/application/services/subscription-checkout-pricing.service';
-import { ActivateSubscriptionUseCase } from '@/domains/subscriptions/application/use-cases/activate-subscription.use-case';
+import { ApplyPlanChangeWithoutPaymentUseCase } from '@/domains/subscriptions/application/use-cases/apply-plan-change-without-payment.use-case';
 import { AppConfigService } from '@/shared/modules/config/app-configuration.service';
 import { FeatureFlagService } from '@/shared/modules/services/feature-flag.service';
 import { createFixedClockMock } from '@/test-utils';
@@ -87,9 +87,9 @@ describe('CreateCheckoutUseCase', () => {
     new ProratingService(),
     clock,
   );
-  const activateSubscription = {
-    applyPlanChangeWithoutPayment: jest.fn(async () => undefined),
-  } as unknown as ActivateSubscriptionUseCase;
+  const applyPlanChangeWithoutPayment = {
+    execute: jest.fn(async () => undefined),
+  } as unknown as ApplyPlanChangeWithoutPaymentUseCase;
   const configService = {
     getCurrencyCode: () => 'INR',
     getRazorpayKeyId: () => 'rzp_test',
@@ -107,7 +107,7 @@ describe('CreateCheckoutUseCase', () => {
       clinicOps,
       paymentGateway,
       checkoutPricing,
-      activateSubscription,
+      applyPlanChangeWithoutPayment,
       configService,
       featureFlagService,
     );

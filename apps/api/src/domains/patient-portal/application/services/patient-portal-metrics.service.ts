@@ -23,6 +23,7 @@ export class PatientPortalMetricsService {
   ) {}
 
   async listCategories(clinicId: string, patientId: string) {
+    // RLS-BYPASS: patient portal identity is scoped by patient token, not clinic RLS
     return this.patientPortalRepository.runUnrestricted(async () =>
       this.patientMetricsService.listCategories(clinicId, patientId),
     );
@@ -33,6 +34,7 @@ export class PatientPortalMetricsService {
     patientId: string,
     query: MetricHistoryQueryDto,
   ) {
+    // RLS-BYPASS: patient portal identity is scoped by patient token, not clinic RLS
     return this.patientPortalRepository.runUnrestricted(async () =>
       this.patientMetricsService.getHistory(clinicId, patientId, query),
     );
@@ -49,6 +51,7 @@ export class PatientPortalMetricsService {
     patientId: string,
     dto: UpsertMetricSelectionsDto,
   ) {
+    // RLS-BYPASS: patient portal identity is scoped by patient token, not clinic RLS
     return this.patientPortalRepository.runUnrestricted(async () =>
       this.patientMetricsService.upsertSelections(clinicId, patientId, dto),
     );
@@ -60,6 +63,7 @@ export class PatientPortalMetricsService {
     userId: string | undefined,
     dto: CreatePatientMetricValueDto,
   ) {
+    // RLS-BYPASS: patient portal identity is scoped by patient token, not clinic RLS
     return this.patientPortalRepository.runUnrestricted(async () =>
       this.patientMetricsService.recordMetricValue(
         clinicId,
@@ -78,6 +82,7 @@ export class PatientPortalMetricsService {
     patientId: string,
     dto: CreateMetricDefinitionDto,
   ) {
+    // RLS-BYPASS: patient portal identity is scoped by patient token, not clinic RLS
     return this.patientPortalRepository.runUnrestricted(async () =>
       this.patientMetricsService.createDefinition(clinicId, patientId, dto),
     );

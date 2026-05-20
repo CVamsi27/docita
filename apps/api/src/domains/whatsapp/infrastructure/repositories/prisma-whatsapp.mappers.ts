@@ -1,4 +1,9 @@
 import {
+  whatsappTemplateButtonsSchema,
+  whatsappTemplateVariablesSchema,
+} from '@workspace/types';
+import { parsePrismaJsonColumn } from '@/shared/common/json/parse-prisma-json-column';
+import {
   TemplateButton,
   TemplateVariable,
 } from '@/domains/whatsapp/core/services/default-templates.service';
@@ -37,40 +42,35 @@ export function isWhatsAppJsonRecord(
 export function toTemplateVariables(
   value: Prisma.JsonValue | null,
 ): TemplateVariable[] | undefined {
-  if (!Array.isArray(value)) {
+  const parsed = parsePrismaJsonColumn(value, whatsappTemplateVariablesSchema);
+  if (!parsed?.length) {
     return undefined;
   }
 
-  const variables = value
-    .filter((item): item is JsonRecord => isWhatsAppJsonRecord(item))
+  return parsed
+    .filter((item) => item.name.length > 0)
     .map((item) => ({
-      name: typeof item.name === 'string' ? item.name : '',
-      required: item.required === true,
-      defaultValue:
-        typeof item.defaultValue === 'string' ? item.defaultValue : undefined,
-    }))
-    .filter((item) => item.name.length > 0);
-
-  return variables.length > 0 ? variables : undefined;
+      name: item.name,
+      required: item.required,
+      defaultValue: item.defaultValue ?? undefined,
+    }));
 }
 
 export function toTemplateButtons(
   value: Prisma.JsonValue | null,
 ): TemplateButton[] | undefined {
-  if (!Array.isArray(value)) {
+  const parsed = parsePrismaJsonColumn(value, whatsappTemplateButtonsSchema);
+  if (!parsed?.length) {
     return undefined;
   }
 
-  const buttons = value
-    .filter((item): item is JsonRecord => isWhatsAppJsonRecord(item))
+  return parsed
+    .filter((item) => item.id.length > 0 && item.text.length > 0)
     .map((item) => ({
-      id: typeof item.id === 'string' ? item.id : '',
-      text: typeof item.text === 'string' ? item.text : '',
-      action: typeof item.action === 'string' ? item.action : undefined,
-    }))
-    .filter((item) => item.id.length > 0 && item.text.length > 0);
-
-  return buttons.length > 0 ? buttons : undefined;
+      id: item.id,
+      text: item.text,
+      action: item.action ?? undefined,
+    }));
 }
 
 export function toTemplateVariablesInput(

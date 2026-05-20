@@ -1,4 +1,5 @@
 import { Injectable, Logger } from '@nestjs/common';
+import { fetchWithTimeout } from '@/shared/common/http/fetch-with-timeout';
 
 export type DoctorVerificationHttpResult<T> = {
   ok: boolean;
@@ -18,22 +19,19 @@ export class DoctorVerificationHttpClient {
       timeoutMs?: number;
     },
   ): Promise<DoctorVerificationHttpResult<T>> {
-    const controller = new AbortController();
-    const timeoutId = setTimeout(
-      () => controller.abort(),
-      options?.timeoutMs ?? 10_000,
-    );
-
     try {
-      const response = await fetch(url, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          ...options?.headers,
+      const response = await fetchWithTimeout(
+        url,
+        {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            ...options?.headers,
+          },
+          body: JSON.stringify(body),
         },
-        body: JSON.stringify(body),
-        signal: controller.signal,
-      });
+        options?.timeoutMs,
+      );
       const json = (await response.json()) as T;
       return { ok: response.ok, status: response.status, json };
     } catch (error) {
@@ -41,8 +39,6 @@ export class DoctorVerificationHttpClient {
         `Doctor verification HTTP request failed: ${error instanceof Error ? error.message : 'unknown error'}`,
       );
       throw error;
-    } finally {
-      clearTimeout(timeoutId);
     }
   }
 }

@@ -190,7 +190,10 @@ async function postWithRetry(
     if (res.status() !== 429) return res;
     await sleep(options.baseDelayMs * (attempt + 1));
   }
-  return lastRes!;
+  if (!lastRes) {
+    throw new Error(`POST ${url} did not return a response`);
+  }
+  return lastRes;
 }
 
 /**

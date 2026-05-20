@@ -32,6 +32,7 @@ import {
   requireFeatureForTarget,
 } from '@/shared/modules/auth/auth/access-matrix.util';
 import { RequestWithUser } from '@/shared/common/types/common.types';
+import { getClinicStaffRequestContext } from '@/shared/modules/auth/auth/clinic-request-context';
 import type { LabStats } from '@/domains/clinical/core/repositories/clinical.repository.interface';
 import { AuditService } from '@/shared/modules/audit/audit/audit.service';
 import {
@@ -51,7 +52,7 @@ export class LabTestsController {
 
   @Get()
   async getAllTests(@Request() req: RequestWithUser): Promise<LabTest[]> {
-    return await this.clinicalService.getAllTests(req.user!.clinicId!);
+    return await this.clinicalService.getAllTests(getClinicStaffRequestContext(req).clinicId);
   }
 
   @Get('stats')
@@ -59,7 +60,7 @@ export class LabTestsController {
     @Request() req: RequestWithUser,
     @Query() _query: LabStatsQueryDto,
   ): Promise<LabStats> {
-    return await this.clinicalService.getStats(req.user!.clinicId!);
+    return await this.clinicalService.getStats(getClinicStaffRequestContext(req).clinicId);
   }
 
   @Get('orders')
@@ -86,7 +87,7 @@ export class LabTestsController {
       );
     }
 
-    return await this.clinicalService.getAllOrders(req.user!.clinicId!, {
+    return await this.clinicalService.getAllOrders(getClinicStaffRequestContext(req).clinicId, {
       ...params,
       patientId,
     });
@@ -98,7 +99,7 @@ export class LabTestsController {
     @Request() req: RequestWithUser,
   ): Promise<LabOrder> {
     const order = await this.clinicalService.getOrderById(id);
-    if (order.clinicId !== req.user!.clinicId!) {
+    if (order.clinicId !== getClinicStaffRequestContext(req).clinicId) {
       throw new NotFoundException('Lab order not found');
     }
     await logPatientPhiRead(
@@ -117,7 +118,7 @@ export class LabTestsController {
   ): Promise<LabOrder> {
     return await this.clinicalService.createOrder({
       ...data,
-      clinicId: req.user!.clinicId!,
+      clinicId: getClinicStaffRequestContext(req).clinicId,
     });
   }
 
@@ -128,7 +129,7 @@ export class LabTestsController {
     @Body() body: UpdateLabTestOrderDto,
   ): Promise<LabOrder> {
     const order = await this.clinicalService.getOrderById(id);
-    if (order.clinicId !== req.user!.clinicId!) {
+    if (order.clinicId !== getClinicStaffRequestContext(req).clinicId) {
       throw new NotFoundException('Lab order not found');
     }
     const status = (body.status || 'ORDERED') as LabTestOrderStatus;
@@ -141,7 +142,7 @@ export class LabTestsController {
     @Request() req: RequestWithUser,
   ): Promise<LabTest> {
     const test = await this.clinicalService.getTestById(id);
-    if (test.clinicId !== req.user!.clinicId!) {
+    if (test.clinicId !== getClinicStaffRequestContext(req).clinicId) {
       throw new NotFoundException('Lab test not found');
     }
     return test;
@@ -154,7 +155,7 @@ export class LabTestsController {
   ): Promise<LabTest> {
     return await this.clinicalService.createTest({
       ...data,
-      clinicId: req.user!.clinicId!,
+      clinicId: getClinicStaffRequestContext(req).clinicId,
     });
   }
 }

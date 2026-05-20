@@ -1,19 +1,30 @@
+import type {
+  PatientAllergySnapshotRow,
+  PatientConditionSnapshotRow,
+  PatientVitalsSnapshotRow,
+  SnapshotPrescriptionRow,
+} from './patient-timeline-snapshot.types';
+
 export interface IPatientTimelineSnapshotRepository {
   verifyPatientAccess(patientId: string, clinicId: string): Promise<boolean>;
 
-  fetchPatientConditions(patientId: string): Promise<unknown[]>;
+  fetchPatientConditions(
+    patientId: string,
+  ): Promise<PatientConditionSnapshotRow[]>;
 
-  fetchPatientAllergies(patientId: string): Promise<unknown[]>;
+  fetchPatientAllergies(
+    patientId: string,
+  ): Promise<PatientAllergySnapshotRow[]>;
 
   fetchRecentPrescriptionsWithMedications(
     patientId: string,
     take: number,
-  ): Promise<unknown[]>;
+  ): Promise<SnapshotPrescriptionRow[]>;
 
   fetchLatestVitals(
     patientId: string,
     clinicId: string,
-  ): Promise<unknown | null>;
+  ): Promise<PatientVitalsSnapshotRow | null>;
 
   groupMedicationDosesByStatus(
     patientId: string,

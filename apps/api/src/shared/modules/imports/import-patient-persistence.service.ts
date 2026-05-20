@@ -86,10 +86,12 @@ export class ImportPatientPersistenceService {
           allergies: (row['allergies'] || row['Allergies'] || '')
             .toString()
             .trim(),
-          medicalHistory:
-            row['medicalHistory'] || row['Medical History']
-              ? [(row['medicalHistory'] ?? row['Medical History'])!.toString()]
-              : [],
+          medicalHistory: (() => {
+            const raw = row['medicalHistory'] ?? row['Medical History'];
+            return raw != null && String(raw).trim() !== ''
+              ? [String(raw)]
+              : [];
+          })(),
           clinicId,
         },
       });

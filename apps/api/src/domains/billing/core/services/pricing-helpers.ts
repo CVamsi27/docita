@@ -2,9 +2,11 @@ import {
   TIER_LIMITS,
   TIER_INFO,
   PRICING_CURRENCY_CONFIG,
+  tierPricingFeaturesJsonSchema,
   type SupportedCurrency,
 } from '@workspace/types';
 import { getWhatsAppAddonPricingByCurrency } from '@workspace/utils';
+import { parsePrismaJsonColumn } from '@/shared/common/json/parse-prisma-json-column';
 
 export function resolveCurrency(
   supportedCurrencies: SupportedCurrency[],
@@ -37,14 +39,16 @@ export function readNumber(value: unknown, fallback = 0): number {
 }
 
 function parseStringArray(value: unknown): string[] {
-  const parsed = parseJsonValue(value);
-  if (!Array.isArray(parsed)) {
+  const normalized = parseJsonValue(value);
+  const parsed = parsePrismaJsonColumn(
+    normalized,
+    tierPricingFeaturesJsonSchema,
+  );
+  if (!parsed) {
     return [];
   }
 
-  return parsed.filter(
-    (item): item is string => typeof item === 'string' && item.length > 0,
-  );
+  return parsed.filter((item) => item.length > 0);
 }
 
 function getWhatsappBillableConfig(

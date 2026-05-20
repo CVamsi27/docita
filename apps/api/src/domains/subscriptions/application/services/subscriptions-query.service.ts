@@ -5,6 +5,15 @@ import {
   collapseStaleUpgradePendingCheckouts,
 } from './subscriptions-payment-history-helpers';
 import {
+  parsePaymentHistoryRecords,
+  type PaymentHistoryRecord,
+} from './subscription-payment-history.types';
+import {
+  lookupTierObject,
+  lookupTierValue,
+  parsePricingConfigResponse,
+} from './subscription-tier-config.helpers';
+import {
   SUBSCRIPTION_REPOSITORY_TOKEN,
   ISubscriptionRepository,
   CLINIC_OPERATIONS_TOKEN,
@@ -36,20 +45,11 @@ import {
   PLATFORM_INVOICE_PROVIDER_TOKEN,
   type IPlatformInvoiceProvider,
 } from '@/domains/payments/core/ports';
-import { ActivateSubscriptionUseCase } from '@/domains/subscriptions/application/use-cases/activate-subscription.use-case';
+import { ApplyPlanChangeWithoutPaymentUseCase } from '@/domains/subscriptions/application/use-cases/apply-plan-change-without-payment.use-case';
 import {
   CLOCK_PORT,
   type IClock,
 } from '@/shared/common/ports/clock.port';
-
-type PaymentHistoryRecord = {
-  amountCents: number;
-  currency: string;
-  status?: string;
-  description?: string | null;
-  createdAt: Date;
-  getStatus?: () => unknown;
-};
 
 @Injectable()
 export class SubscriptionsQueryService {
@@ -64,7 +64,7 @@ export class SubscriptionsQueryService {
     private readonly featureFlagService: FeatureFlagService,
     @Inject(PLATFORM_INVOICE_PROVIDER_TOKEN)
     private readonly platformInvoiceProvider: IPlatformInvoiceProvider,
-    private readonly activateSubscriptionUseCase: ActivateSubscriptionUseCase,
+    private readonly applyPlanChangeWithoutPayment: ApplyPlanChangeWithoutPaymentUseCase,
     @Inject(CLOCK_PORT) private readonly clock: IClock,
   ) {}
 
@@ -77,9 +77,12 @@ export class SubscriptionsQueryService {
     const subscription = await this.subscriptionRepo.findByClinicId(clinicId);
     if (!subscription || !subscription.isScheduledChangeDue(this.clock.now()))
       return;
-    const scheduled = subscription.scheduledChange!;
+    const scheduled = subscription.scheduledChange;
+    if (!scheduled) {
+      return;
+    }
     try {
-      await this.activateSubscriptionUseCase.applyPlanChangeWithoutPayment({
+      await this.applyPlanChangeWithoutPayment.execute({
         clinicId,
         tier: scheduled.plan,
         cycle: scheduled.billingCycle,
@@ -117,31 +120,27 @@ export class SubscriptionsQueryService {
       'PROFESSIONAL',
       'ENTERPRISE',
     ];
-    const pricingConfig =
-      await this.clinicPricingQuery.getPricingConfig(DEFAULT_CURRENCY);
-    const pricingTiers = pricingConfig.tiers as Array<{
-      id: string;
-      pricing?: unknown;
-    }>;
+    const pricingConfig = parsePricingConfigResponse(
+      await this.clinicPricingQuery.getPricingConfig(DEFAULT_CURRENCY),
+    );
     return {
       tiers: tiers.map((tier) => ({
         id: tier,
-        tier: this.getTierData(Tier, tier),
-        ...this.getTierObject(TIER_INFO, tier),
+        tier: lookupTierValue(Tier, tier),
+        ...lookupTierObject(TIER_INFO, tier),
         pricing:
-          pricingTiers.find((item: { id: string }) => item.id === tier)
-            ?.pricing ?? undefined,
-        limits: this.getTierData(TIER_LIMITS, tier),
-        features: this.getTierData(TIER_FEATURES, tier) || [],
+          pricingConfig.tiers.find((item) => item.id === tier)?.pricing ??
+          undefined,
+        limits: lookupTierValue(TIER_LIMITS, tier),
+        features: lookupTierValue(TIER_FEATURES, tier) || [],
       })),
       featureTierMap: FEATURE_TIER_MAP,
       featureDisplay: FEATURE_DISPLAY,
       intelligenceInfo: {
-        ...this.getTierObject(TIER_INFO, 'INTELLIGENCE'),
+        ...lookupTierObject(TIER_INFO, 'INTELLIGENCE'),
         pricing:
-          pricingTiers.find(
-            (item: { id: string }) => item.id === 'INTELLIGENCE',
-          )?.pricing ?? undefined,
+          pricingConfig.tiers.find((item) => item.id === 'INTELLIGENCE')
+            ?.pricing ?? undefined,
         features: [],
       },
     };
@@ -244,14 +243,10 @@ export class SubscriptionsQueryService {
         status: inv.status === 'paid' ? 'paid' : inv.status,
         description: 'Razorpay subscription invoice',
         createdAt: inv.createdAt,
-        // Carry through identifiers + hosted URL so the controller can
-        // render `invoiceUrl` / `receiptUrl` from Razorpay's hosted PDF.
-        ...({
-          id: inv.id,
-          invoiceUrl: inv.shortUrl ?? undefined,
-          invoiceNumber: inv.invoiceNumber ?? undefined,
-          paidAt: inv.paidAt ?? undefined,
-        } as Partial<PaymentHistoryRecord>),
+        id: inv.id,
+        invoiceUrl: inv.shortUrl ?? undefined,
+        invoiceNumber: inv.invoiceNumber ?? undefined,
+        paidAt: inv.paidAt ?? undefined,
       });
     }
 
@@ -265,16 +260,9 @@ export class SubscriptionsQueryService {
     await this.maybeApplyDueScheduledChange(clinicId);
     const subscription = await this.subscriptionRepo.findByClinicId(clinicId);
     const payments = subscription
-      ? ((await this.subscriptionRepo.findPaymentsByClinicId(
-          clinicId,
-          1,
-        )) as Array<{
-          amountCents: number;
-          currency: string;
-          status?: string;
-          createdAt: Date;
-          getStatus?: () => unknown;
-        }>)
+      ? parsePaymentHistoryRecords(
+          await this.subscriptionRepo.findPaymentsByClinicId(clinicId, 1),
+        )
       : [];
     const lastPayment = payments[0];
 

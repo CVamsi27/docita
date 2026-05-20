@@ -1,4 +1,5 @@
 import { Injectable, Logger } from '@nestjs/common';
+import { fetchWithTimeout } from '@/shared/common/http/fetch-with-timeout';
 
 interface TurnstileVerifyResponse {
   success?: boolean;
@@ -21,7 +22,7 @@ export class TurnstileSiteverifyClient {
     }
 
     try {
-      const response = await fetch(
+      const response = await fetchWithTimeout(
         'https://challenges.cloudflare.com/turnstile/v0/siteverify',
         {
           method: 'POST',

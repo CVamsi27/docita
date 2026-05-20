@@ -6,6 +6,12 @@ import {
 } from '@/domains/payments/core/ports/platform-invoice-provider.port';
 import { BaseRazorpayAdapter } from './razorpay.adapter';
 import { RazorpayClientService } from './razorpay-client.service';
+import { getRazorpayInvoicesApi } from './razorpay-invoices-api';
+import {
+  asRazorpayInvoiceRecord,
+  readInvoiceNumberField,
+  readInvoiceStringField,
+} from './razorpay-invoice-record';
 
 export type {
   CreatePlatformInvoiceInput as CreateRazorpayInvoiceInput,
@@ -35,13 +41,7 @@ export class RazorpayInvoiceAdapter
     input: CreatePlatformInvoiceInput,
   ): Promise<PlatformInvoiceSummary | null> {
     try {
-      const razorpay = this.getClient();
-      // Cast — razorpay node SDK types for `invoices.create` are loose.
-      const invoicesApi = razorpay.invoices as unknown as {
-        create: (
-          body: Record<string, unknown>,
-        ) => Promise<Record<string, unknown>>;
-      };
+      const invoicesApi = getRazorpayInvoicesApi(this.getClient());
       const invoice = await this.withRazorpayTimeout(() =>
         invoicesApi.create({
           type: 'invoice',
@@ -83,10 +83,7 @@ export class RazorpayInvoiceAdapter
     options: { count?: number } = {},
   ): Promise<PlatformInvoiceSummary[]> {
     try {
-      const razorpay = this.getClient();
-      const invoicesApi = razorpay.invoices as unknown as {
-        all: (query: Record<string, unknown>) => Promise<{ items: unknown[] }>;
-      };
+      const invoicesApi = getRazorpayInvoicesApi(this.getClient());
       const response = await this.withRazorpayTimeout(() =>
         invoicesApi.all({
           customer_id: customerId,
@@ -94,7 +91,10 @@ export class RazorpayInvoiceAdapter
         }),
       );
       return (response.items ?? [])
-        .map((item) => this.toSummary(item as Record<string, unknown>))
+        .map((item) => {
+          const record = asRazorpayInvoiceRecord(item);
+          return record ? this.toSummary(record) : null;
+        })
         .filter((s): s is PlatformInvoiceSummary => s !== null);
     } catch (error) {
       this.logger.warn(
@@ -109,48 +109,25 @@ export class RazorpayInvoiceAdapter
   private toSummary(
     invoice: Record<string, unknown>,
   ): PlatformInvoiceSummary | null {
-    const id = invoice['id'];
-    if (typeof id !== 'string') return null;
+    const id = readInvoiceStringField(invoice, 'id');
+    if (!id) return null;
 
-    const amount =
-      typeof invoice['amount'] === 'number'
-        ? (invoice['amount'] as number)
-        : Number(invoice['amount']) || 0;
-    const amountPaid =
-      typeof invoice['amount_paid'] === 'number'
-        ? (invoice['amount_paid'] as number)
-        : Number(invoice['amount_paid']) || 0;
-    const createdAtUnix =
-      typeof invoice['created_at'] === 'number'
-        ? (invoice['created_at'] as number)
-        : Number(invoice['created_at']) || 0;
-    const paidAtUnix =
-      typeof invoice['paid_at'] === 'number'
-        ? (invoice['paid_at'] as number)
-        : null;
+    const amount = readInvoiceNumberField(invoice, 'amount');
+    const amountPaid = readInvoiceNumberField(invoice, 'amount_paid');
+    const createdAtUnix = readInvoiceNumberField(invoice, 'created_at');
+    const paidAtUnix = readInvoiceNumberField(invoice, 'paid_at', NaN);
+    const paidAtValid = Number.isFinite(paidAtUnix) && paidAtUnix > 0;
 
     return {
       id,
-      shortUrl:
-        typeof invoice['short_url'] === 'string'
-          ? (invoice['short_url'] as string)
-          : null,
-      invoiceNumber:
-        typeof invoice['invoice_number'] === 'string'
-          ? (invoice['invoice_number'] as string)
-          : null,
-      status:
-        typeof invoice['status'] === 'string'
-          ? (invoice['status'] as string)
-          : 'unknown',
+      shortUrl: readInvoiceStringField(invoice, 'short_url'),
+      invoiceNumber: readInvoiceStringField(invoice, 'invoice_number'),
+      status: readInvoiceStringField(invoice, 'status', 'unknown') ?? 'unknown',
       amountCents: amount,
       amountPaidCents: amountPaid,
-      currency:
-        typeof invoice['currency'] === 'string'
-          ? (invoice['currency'] as string)
-          : 'INR',
+      currency: readInvoiceStringField(invoice, 'currency', 'INR') ?? 'INR',
       createdAt: new Date(createdAtUnix * 1000),
-      paidAt: paidAtUnix ? new Date(paidAtUnix * 1000) : null,
+      paidAt: paidAtValid ? new Date(paidAtUnix * 1000) : null,
     };
   }
 }

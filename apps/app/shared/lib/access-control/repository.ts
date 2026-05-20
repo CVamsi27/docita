@@ -31,6 +31,24 @@ interface RawOverrideData {
   createdAt?: string | number;
 }
 
+const TIER_NUMERIC_VALUES = new Set(
+  Object.values(Tier).filter((value): value is Tier => typeof value === "number"),
+);
+
+const FEATURE_VALUE_SET = new Set<string>(Object.values(Feature));
+
+function isTierNumber(value: number): value is Tier {
+  return TIER_NUMERIC_VALUES.has(value);
+}
+
+function isTierNameKey(value: string): value is keyof typeof Tier {
+  return value in Tier;
+}
+
+function isFeatureValue(value: string): value is Feature {
+  return FEATURE_VALUE_SET.has(value);
+}
+
 export class SubscriptionRepository implements ISubscriptionRepository {
   private subscriptionCache = new Map<string, CacheEntry<ISubscription>>();
   private addOnsCache = new Map<string, CacheEntry<IAddOn[]>>();
@@ -186,7 +204,10 @@ export class SubscriptionRepository implements ISubscriptionRepository {
       this.subscriptionListeners.set(userId, new Set());
     }
 
-    this.subscriptionListeners.get(userId)!.add(callback);
+    const listeners = this.subscriptionListeners.get(userId);
+    if (listeners) {
+      listeners.add(callback);
+    }
 
     return () => {
       this.subscriptionListeners.get(userId)?.delete(callback);
@@ -210,12 +231,12 @@ export class SubscriptionRepository implements ISubscriptionRepository {
     }
 
     const numericTier = Number(value);
-    if (Number.isInteger(numericTier) && Tier[numericTier] !== undefined) {
-      return numericTier as Tier;
+    if (Number.isInteger(numericTier) && isTierNumber(numericTier)) {
+      return numericTier;
     }
 
-    if (Object.prototype.hasOwnProperty.call(Tier, value)) {
-      const mappedTier = Tier[value as keyof typeof Tier];
+    if (isTierNameKey(value)) {
+      const mappedTier = Tier[value];
       if (typeof mappedTier === "number") {
         return mappedTier;
       }
@@ -225,7 +246,7 @@ export class SubscriptionRepository implements ISubscriptionRepository {
   }
 
   private isValidFeature(value: string): value is Feature {
-    return Object.values(Feature).includes(value as Feature);
+    return isFeatureValue(value);
   }
 
   private normalizeSubscription(raw: RawSubscriptionData): ISubscription {
@@ -235,9 +256,7 @@ export class SubscriptionRepository implements ISubscriptionRepository {
       features: Array.isArray(raw.features)
         ? raw.features
             .filter((f): f is string => typeof f === "string")
-            .filter((f): f is Feature =>
-              Object.values(Feature).includes(f as Feature),
-            )
+            .filter((f): f is Feature => isFeatureValue(f))
         : [],
       startDate: new Date(raw.startDate || Date.now()),
       endDate: raw.endDate ? new Date(raw.endDate) : undefined,

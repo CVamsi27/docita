@@ -10,6 +10,7 @@ export class PrismaPortalDocumentsRepository implements IPortalDocumentsReposito
     patientId: string,
     filters: { take: number; skip: number },
   ): Promise<{ items: unknown[]; total: number }> {
+    // RLS-BYPASS: patient portal identity is scoped by patient token, not clinic RLS
     return this.prisma.runUnrestricted(async () => {
       const [items, total] = await Promise.all([
         this.prisma.prescription.findMany({
@@ -45,6 +46,7 @@ export class PrismaPortalDocumentsRepository implements IPortalDocumentsReposito
     prescriptionId: string,
     patientId: string,
   ): Promise<unknown | null> {
+    // RLS-BYPASS: patient portal identity is scoped by patient token, not clinic RLS
     return this.prisma.runUnrestricted(async () =>
       this.prisma.prescription.findFirst({
         where: { id: prescriptionId, patientId },
@@ -82,6 +84,7 @@ export class PrismaPortalDocumentsRepository implements IPortalDocumentsReposito
     const where: Record<string, unknown> = { patientId };
     if (filters.status) where.status = filters.status;
 
+    // RLS-BYPASS: patient portal identity is scoped by patient token, not clinic RLS
     return this.prisma.runUnrestricted(async () => {
       const [items, total] = await Promise.all([
         this.prisma.invoice.findMany({
@@ -107,6 +110,7 @@ export class PrismaPortalDocumentsRepository implements IPortalDocumentsReposito
     patientId: string,
     take: number,
   ): Promise<unknown[]> {
+    // RLS-BYPASS: patient portal identity is scoped by patient token, not clinic RLS
     return this.prisma.runUnrestricted(async () =>
       this.prisma.prescription.findMany({
         where: { patientId },
@@ -131,6 +135,7 @@ export class PrismaPortalDocumentsRepository implements IPortalDocumentsReposito
     patientId: string,
     take: number,
   ): Promise<unknown[]> {
+    // RLS-BYPASS: patient portal identity is scoped by patient token, not clinic RLS
     return this.prisma.runUnrestricted(async () =>
       this.prisma.invoice.findMany({
         where: { patientId, status: { in: ['PENDING', 'OVERDUE'] } },

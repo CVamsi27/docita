@@ -19,3 +19,6 @@ export const jsonValueSchema: z.ZodType<JsonValueSchemaType> = z.lazy(() =>
 );
 
 export const jsonObjectSchema = z.record(jsonValueSchema);
+
+/** Prisma `ApiHttpIdempotencyRecord.response` — cached HTTP response body. */
+export const apiHttpIdempotencyResponseJsonSchema = jsonValueSchema;

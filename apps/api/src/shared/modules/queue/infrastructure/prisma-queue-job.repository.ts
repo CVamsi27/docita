@@ -14,6 +14,7 @@ export class PrismaQueueJobRepository implements QueueJobRepository {
     idempotencyKey: string,
     completedSince: Date,
   ): Promise<QueueJobRow | null> {
+    // RLS-BYPASS: background queue workers run without per-request clinic session
     const rows = await this.prisma.runUnrestricted(
       async () =>
         this.prisma.$queryRaw<QueueJobRow[]>`
@@ -31,6 +32,7 @@ export class PrismaQueueJobRepository implements QueueJobRepository {
 
   async claimNextWaitingJob(name: string): Promise<QueueJobRow[]> {
     return (
+      // RLS-BYPASS: background queue workers run without per-request clinic session
       (await this.prisma.runUnrestricted(
         async () =>
           this.prisma.$queryRaw<QueueJobRow[]>`
@@ -57,6 +59,7 @@ export class PrismaQueueJobRepository implements QueueJobRepository {
     delayedUntil: Date,
   ): Promise<Array<{ id: string }>> {
     return (
+      // RLS-BYPASS: background queue workers run without per-request clinic session
       (await this.prisma.runUnrestricted(
         async () =>
           this.prisma.$queryRaw<Array<{ id: string }>>`
@@ -81,6 +84,7 @@ export class PrismaQueueJobRepository implements QueueJobRepository {
     staleBefore: Date,
   ): Promise<Array<{ id: string }>> {
     return (
+      // RLS-BYPASS: background queue workers run without per-request clinic session
       (await this.prisma.runUnrestricted(
         async () =>
           this.prisma.$queryRaw<Array<{ id: string }>>`
@@ -99,6 +103,7 @@ export class PrismaQueueJobRepository implements QueueJobRepository {
   }
 
   async findById(jobId: string): Promise<QueueJobRow | null> {
+    // RLS-BYPASS: background queue workers run without per-request clinic session
     const rows = await this.prisma.runUnrestricted(
       async () =>
         this.prisma.$queryRaw<QueueJobRow[]>`
@@ -111,6 +116,7 @@ export class PrismaQueueJobRepository implements QueueJobRepository {
   async countByStatus(
     name: string,
   ): Promise<Array<{ status: string; count: bigint }>> {
+    // RLS-BYPASS: background queue workers run without per-request clinic session
     return this.prisma.runUnrestricted(
       async () =>
         this.prisma.$queryRaw<Array<{ status: string; count: bigint }>>`

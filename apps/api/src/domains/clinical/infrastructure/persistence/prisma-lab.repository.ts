@@ -1,4 +1,6 @@
 import { Injectable } from '@nestjs/common';
+import { labTestOrderResultJsonSchema } from '@workspace/types';
+import { parsePrismaJsonColumn } from '@/shared/common/json/parse-prisma-json-column';
 import { PrismaService } from '@/prisma/prisma.service';
 import { LabTest } from '@/domains/clinical/core/entities/lab-test.entity';
 import { LabOrder } from '@/domains/clinical/core/entities/lab-order.entity';
@@ -177,12 +179,13 @@ export class PrismaLabRepository implements ILabRepository {
   }
 
   private mapToLabOrder(prismaOrder: PrismaLabTestOrder): LabOrder {
-    const normalizedResult =
-      prismaOrder.result &&
-      typeof prismaOrder.result === 'object' &&
-      !Array.isArray(prismaOrder.result)
-        ? Object.fromEntries(Object.entries(prismaOrder.result))
-        : undefined;
+    const parsedResult = parsePrismaJsonColumn(
+      prismaOrder.result,
+      labTestOrderResultJsonSchema,
+    );
+    const normalizedResult = parsedResult
+      ? Object.fromEntries(Object.entries(parsedResult))
+      : undefined;
 
     return new LabOrder(
       prismaOrder.id,

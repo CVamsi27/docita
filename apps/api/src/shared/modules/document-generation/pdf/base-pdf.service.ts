@@ -1,8 +1,6 @@
 import { Inject, Injectable, Logger } from '@nestjs/common';
-import {
-  CLOCK_PORT,
-  type IClock,
-} from '@/shared/common/ports/clock.port';
+import { CLOCK_PORT, type IClock } from '@/shared/common/ports/clock.port';
+import { fetchWithTimeout } from '@/shared/common/http/fetch-with-timeout';
 import PDFDocument from 'pdfkit';
 import {
   PDFClinicInfo,
@@ -376,7 +374,7 @@ export class BasePdfService {
       (src.startsWith('http://') || src.startsWith('https://'))
     ) {
       try {
-        const response = await fetch(src);
+        const response = await fetchWithTimeout(src);
         if (!response.ok) return undefined;
         const buf = await response.arrayBuffer();
         return Buffer.from(buf);

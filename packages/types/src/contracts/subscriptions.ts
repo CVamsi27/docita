@@ -227,13 +227,28 @@ export const subscriptionCurrentResponseSchema =
 
 const trialWindowStateSchema = z.enum(['ACTIVE', 'GRACE', 'EXPIRED']);
 
-const scheduledPlanChangeSchema = z
+/** Prisma `Subscription.scheduledChange`. */
+export const scheduledPlanChangeJsonSchema = z
   .object({
     plan: z.string(),
     billingCycle: z.string(),
     effectiveAt: z.string(),
   })
   .strict();
+
+const subscriptionDiscountJsonSchema = z.object({
+  type: z.string(),
+  percentOff: z.number(),
+  expiresAt: z.string().optional(),
+  description: z.string().optional(),
+});
+
+/** Prisma `Subscription.discountsApplied`. */
+export const subscriptionDiscountsAppliedJsonSchema = z.array(
+  subscriptionDiscountJsonSchema,
+);
+
+const scheduledPlanChangeSchema = scheduledPlanChangeJsonSchema;
 
 const subscriptionBillingStatusItemSchema = z
   .object({

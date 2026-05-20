@@ -190,10 +190,14 @@ export function AppointmentRequestsPanel() {
       return;
     }
 
+    if (!doctorId) {
+      return;
+    }
+
     try {
       await approveRequest.mutateAsync({
         id: request.id,
-        doctorId: doctorId!,
+        doctorId,
         startTime: window.startUtc,
         endTime: window.endUtc,
         type: "Consultation",

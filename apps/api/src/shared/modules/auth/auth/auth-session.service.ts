@@ -44,6 +44,7 @@ export class AuthSessionService {
     };
 
     if (user.role === Role.PATIENT) {
+      // RLS-BYPASS: auth resolves users before clinic tenant context is established
       const patient = await this.prisma.runUnrestricted(async () =>
         this.prisma.patient.findFirst({
           where: {
@@ -94,6 +95,7 @@ export class AuthSessionService {
   }
 
   async refreshTokens(incomingRefreshToken: string): Promise<AuthLoginResult> {
+    // RLS-BYPASS: auth resolves users before clinic tenant context is established
     const storedToken = await this.prisma.runUnrestricted(async () => {
       return await this.prisma.refreshToken.findUnique({
         where: { token: incomingRefreshToken },

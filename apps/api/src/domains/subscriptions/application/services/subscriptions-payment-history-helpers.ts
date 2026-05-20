@@ -1,13 +1,8 @@
 /** Pure helpers for payment-history normalization — no DI, no @Injectable. */
 
-type PaymentHistoryRecord = {
-  amountCents: number;
-  currency: string;
-  status?: string;
-  description?: string | null;
-  createdAt: Date;
-  getStatus?: () => unknown;
-};
+import type { PaymentHistoryRecord } from './subscription-payment-history.types';
+
+export type { PaymentHistoryRecord } from './subscription-payment-history.types';
 
 export function normalizePaymentHistory<T extends PaymentHistoryRecord>(
   records: T[],
@@ -91,7 +86,10 @@ export function collapseStaleUpgradePendingCheckouts<
 >(records: T[]): T[] {
   const pendingUpgradeIndexes: number[] = [];
   for (let i = 0; i < records.length; i++) {
-    const record = records[i]!;
+    const record = records[i];
+    if (!record) {
+      continue;
+    }
     const status = (
       record.status ?? String(record.getStatus?.() ?? '')
     ).toLowerCase();
@@ -101,10 +99,14 @@ export function collapseStaleUpgradePendingCheckouts<
   }
   if (pendingUpgradeIndexes.length <= 1) return records;
 
-  let newestIndex = pendingUpgradeIndexes[0]!;
-  let newestTs = new Date(records[newestIndex]!.createdAt).getTime();
+  const firstPendingIndex = pendingUpgradeIndexes[0];
+  if (firstPendingIndex === undefined) {
+    return records;
+  }
+  let newestIndex = firstPendingIndex;
+  let newestTs = new Date(records[newestIndex].createdAt).getTime();
   for (const idx of pendingUpgradeIndexes) {
-    const ts = new Date(records[idx]!.createdAt).getTime();
+    const ts = new Date(records[idx].createdAt).getTime();
     if (ts >= newestTs) {
       newestTs = ts;
       newestIndex = idx;

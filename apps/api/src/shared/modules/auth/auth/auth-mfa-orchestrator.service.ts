@@ -34,6 +34,7 @@ export class AuthMfaOrchestratorService {
       challengeToken,
       totpCode,
     );
+    // RLS-BYPASS: auth resolves users before clinic tenant context is established
     const user = await this.prisma.runUnrestricted(async () =>
       this.prisma.user.findUnique({
         where: { id: userId },

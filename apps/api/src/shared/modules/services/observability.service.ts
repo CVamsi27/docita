@@ -28,12 +28,16 @@ function toSentryContextValue(value: unknown): Record<string, unknown> {
   return { value };
 }
 
+function isRecord(value: unknown): value is Record<string, unknown> {
+  return typeof value === 'object' && value !== null && !Array.isArray(value);
+}
+
 function getRecordStatus(value: unknown): string | undefined {
-  if (!value || typeof value !== 'object') {
+  if (!isRecord(value)) {
     return undefined;
   }
 
-  const status = (value as { status?: unknown }).status;
+  const status = value.status;
   return typeof status === 'string' ? status : undefined;
 }
 
@@ -71,14 +75,13 @@ export class ObservabilityService implements OnModuleDestroy {
     const consoleLoggingIntegration = Sentry.consoleLoggingIntegration({
       levels: ['log', 'warn', 'error'],
     });
-    const integrations = (
+    const integrations: Sentry.NodeOptions['integrations'] =
       typeof optionIntegrations === 'function'
-        ? (defaultIntegrations: unknown[]) => [
+        ? (defaultIntegrations) => [
             consoleLoggingIntegration,
-            ...optionIntegrations(defaultIntegrations as never[]),
+            ...optionIntegrations(defaultIntegrations),
           ]
-        : [consoleLoggingIntegration, ...(optionIntegrations ?? [])]
-    ) as Sentry.NodeOptions['integrations'];
+        : [consoleLoggingIntegration, ...(optionIntegrations ?? [])];
     const beforeSend = createSentryBeforeSend(optionBeforeSend);
 
     if (!sentryConfig.dsn) {
@@ -341,11 +344,11 @@ export class ObservabilityService implements OnModuleDestroy {
     try {
       const result = await this.prisma.$queryRaw`
         SELECT
-          (SELECT count(*) FROM "User") as user_count,
-          (SELECT count(*) FROM "Clinic") as clinic_count,
-          (SELECT count(*) FROM "Appointment") as appointment_count,
-          (SELECT count(*) FROM "Patient") as patient_count,
-          (SELECT extract(epoch from (now() - max(pg_postmaster_start_time()))) / 3600 as uptime_hours
+          (SELECT count(*) FROM "User") user_count,
+          (SELECT count(*) FROM "Clinic") clinic_count,
+          (SELECT count(*) FROM "Appointment") appointment_count,
+          (SELECT count(*) FROM "Patient") patient_count,
+          (SELECT extract(epoch from (now() - max(pg_postmaster_start_time()))) / 3600 uptime_hours
             FROM pg_postmaster_start_time())
       `;
 

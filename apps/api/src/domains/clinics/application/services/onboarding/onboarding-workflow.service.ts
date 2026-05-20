@@ -1,6 +1,7 @@
 import { Injectable, Inject, Logger } from '@nestjs/common';
 
 import {
+  ClinicType,
   SubscriptionStatus,
   User,
   Clinic,
@@ -96,7 +97,7 @@ export class OnboardingWorkflowService {
       email: normalizedEmail,
       phone: clinicData.phone,
       address: clinicData.address,
-      type: clinicData.type || 'GENERAL',
+      type: clinicData.type ?? ClinicType.GENERAL,
       website: clinicData.website,
       mrnPrefix: clinicData.mrnPrefix || 'CLI',
       timezone: clinicData.timezone || 'Asia/Kolkata',
@@ -257,15 +258,15 @@ export class OnboardingWorkflowService {
       includedUsers: tierLimits.includedUsers,
     });
 
-    if (hasPayment) {
+    if (hasPayment && paymentData) {
       await this.repository.createSubscriptionPayment(tx, {
         clinicId,
         subscriptionId: subscription.id,
         amountCents: priceCents,
-        razorpayPaymentId: paymentData!.razorpayPaymentId,
-        razorpayOrderId: paymentData!.razorpayOrderId,
-        razorpaySignature: paymentData!.razorpaySignature,
-        cardLast4: paymentData!.cardLast4,
+        razorpayPaymentId: paymentData.razorpayPaymentId,
+        razorpayOrderId: paymentData.razorpayOrderId,
+        razorpaySignature: paymentData.razorpaySignature,
+        cardLast4: paymentData.cardLast4,
         planTier: planData.tier,
         billingCycle: planData.billingCycle,
         currency: planData.currency || 'INR',

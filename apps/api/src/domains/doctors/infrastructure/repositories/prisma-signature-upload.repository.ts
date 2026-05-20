@@ -65,6 +65,7 @@ export class PrismaSignatureUploadRepository implements ISignatureUploadReposito
   async findTokenByValue(
     token: string,
   ): Promise<UploadTokenWithRelations | null> {
+    // RLS-BYPASS: signature upload persistence uses storage keys outside clinic RLS
     return this.prisma.runUnrestricted(async () => {
       return this.prisma.signatureUploadToken.findUnique({
         where: { token },
@@ -153,6 +154,7 @@ export class PrismaSignatureUploadRepository implements ISignatureUploadReposito
     token: string,
   ): Promise<void> {
     const now = this.clock.now();
+    // RLS-BYPASS: signature upload persistence uses storage keys outside clinic RLS
     await this.prisma.runUnrestricted(async () => {
       await this.prisma.$transaction([
         this.prisma.user.update({
@@ -173,6 +175,7 @@ export class PrismaSignatureUploadRepository implements ISignatureUploadReposito
     token: string,
   ): Promise<void> {
     const now = this.clock.now();
+    // RLS-BYPASS: signature upload persistence uses storage keys outside clinic RLS
     await this.prisma.runUnrestricted(async () => {
       await this.prisma.$transaction([
         this.prisma.clinic.update({

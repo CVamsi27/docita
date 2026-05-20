@@ -91,6 +91,7 @@ export class RequestLogService implements OnModuleDestroy {
 
     try {
       this.flushInProgress = true;
+      // RLS-BYPASS: system telemetry and error logs are not clinic-scoped
       await this.prisma.runUnrestricted(async () => {
         await this.prisma.apiRequest.createMany({
           data: requestsToFlush.map((req) => ({

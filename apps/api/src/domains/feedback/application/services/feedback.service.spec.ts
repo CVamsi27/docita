@@ -8,6 +8,7 @@ import {
   IFeedbackRepository,
 } from '@/domains/feedback/core/repositories/feedback.repository.interface';
 import type { FeedbackFilters } from './feedback-helpers';
+import { FeedbackCategory, FeedbackStatus } from '@workspace/db';
 import { clockPortTestProvider } from '@/test-utils';
 
 describe('FeedbackService', () => {
@@ -346,7 +347,7 @@ describe('FeedbackService', () => {
         mockFeedback,
       ]);
 
-      await service.findAll({ status: 'REVIEWED' });
+      await service.findAll({ status: FeedbackStatus.REVIEWED });
 
       expect(
         mockFeedbackPersistenceMock.feedback.findMany,
@@ -362,13 +363,13 @@ describe('FeedbackService', () => {
         mockFeedback,
       ]);
 
-      await service.findAll({ category: 'BUG_REPORT' });
+      await service.findAll({ category: FeedbackCategory.UI_UX });
 
       expect(
         mockFeedbackPersistenceMock.feedback.findMany,
       ).toHaveBeenCalledWith(
         expect.objectContaining({
-          where: { category: 'BUG_REPORT' },
+          where: { category: FeedbackCategory.UI_UX },
         }),
       );
     });

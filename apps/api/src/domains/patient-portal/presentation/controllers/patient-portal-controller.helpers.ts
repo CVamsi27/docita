@@ -5,6 +5,7 @@ import {
   type PatientPhiReadAccessType,
 } from '@/shared/modules/audit/audit/patient-access-audit.util';
 import { PatientPortalContextService } from '@/domains/patient-portal/application/services/patient-portal-context.service';
+import { requireAuthenticatedUserId } from '@/shared/modules/auth/auth/clinic-request-context';
 
 export async function auditPatientPortalRead(
   contextService: PatientPortalContextService,
@@ -12,7 +13,9 @@ export async function auditPatientPortalRead(
   req: RequestWithUser,
   accessType: PatientPhiReadAccessType,
 ): Promise<{ patientId: string; clinicId: string }> {
-  const context = await contextService.getPatientContext(req.user!.id);
+  const context = await contextService.getPatientContext(
+    requireAuthenticatedUserId(req),
+  );
   await logPatientPortalPhiRead(
     auditService,
     req,

@@ -86,6 +86,7 @@ export class ReminderSchedulerService {
     const now = this.clock.now();
 
     try {
+      // RLS-BYPASS: reminder scheduler scans appointments without clinic request context
       return await this.persistence.runUnrestricted(async () => {
         const allSettings = await this.persistence.reminderSettings.findMany({
           where: { enabled: true, clinicId: { not: null } },
@@ -144,6 +145,7 @@ export class ReminderSchedulerService {
     }
 
     try {
+      // RLS-BYPASS: reminder scheduler scans appointments without clinic request context
       return await this.persistence.runUnrestricted(async () => {
         const allSettings = await this.persistence.reminderSettings.findMany({
           where: {

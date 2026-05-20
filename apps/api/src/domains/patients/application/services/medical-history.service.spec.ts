@@ -163,6 +163,90 @@ describe('MedicalHistoryService', () => {
     });
   });
 
+  describe('createOrUpdateSocialHistory', () => {
+    const patientId = 'p-social';
+    const dto = {
+      smokingStatus: 'NEVER' as const,
+      notes: '',
+      alcoholFrequency: '',
+      substanceUse: '',
+      occupation: '',
+      occupationalHazards: '',
+      exerciseFrequency: '',
+      dietaryRestrictions: '',
+    };
+
+    beforeEach(() => {
+      mockFactory.createSocialHistory.mockReturnValue({
+        smokingStatus: 'NEVER',
+        smokingPackYears: null,
+        alcoholUse: 'NONE',
+        alcoholFrequency: null,
+        substanceUse: null,
+        occupation: null,
+        occupationalHazards: null,
+        exerciseFrequency: null,
+        dietaryRestrictions: null,
+        notes: null,
+        smokingQuitDate: null,
+      });
+    });
+
+    it('wraps create path in persistence $transaction', async () => {
+      mockPatientPersistencePort.patientSocialHistory.findFirst.mockResolvedValue(
+        null,
+      );
+      mockPatientPersistencePort.patientSocialHistory.create.mockResolvedValue({
+        id: 'sh-new',
+        patientId,
+      });
+
+      await service.createOrUpdateSocialHistory(patientId, dto);
+
+      expect(mockPatientPersistencePort.$transaction).toHaveBeenCalled();
+      expect(
+        mockPatientPersistencePort.patientSocialHistory.create,
+      ).toHaveBeenCalled();
+    });
+
+    it('wraps update path in persistence $transaction', async () => {
+      const existing = { id: 'sh-1', patientId };
+      mockPatientPersistencePort.patientSocialHistory.findFirst
+        .mockResolvedValueOnce(existing)
+        .mockResolvedValueOnce({ ...existing, smokingStatus: 'FORMER' });
+      mockPatientPersistencePort.patientSocialHistory.updateMany.mockResolvedValue({
+        count: 1,
+      });
+
+      await service.createOrUpdateSocialHistory(patientId, dto);
+
+      expect(mockPatientPersistencePort.$transaction).toHaveBeenCalled();
+      expect(
+        mockPatientPersistencePort.patientSocialHistory.updateMany,
+      ).toHaveBeenCalled();
+    });
+  });
+
+  describe('deleteSocialHistory', () => {
+    it('wraps delete in persistence $transaction', async () => {
+      const existing = { id: 'sh-del', patientId: 'p-del' };
+      mockPatientPersistencePort.patientSocialHistory.findFirst.mockResolvedValue(
+        existing,
+      );
+      mockPatientPersistencePort.patientSocialHistory.deleteMany.mockResolvedValue({
+        count: 1,
+      });
+
+      const result = await service.deleteSocialHistory('p-del');
+
+      expect(mockPatientPersistencePort.$transaction).toHaveBeenCalled();
+      expect(result).toEqual(existing);
+      expect(
+        mockPatientPersistencePort.patientSocialHistory.deleteMany,
+      ).toHaveBeenCalledWith({ where: { patientId: 'p-del' } });
+    });
+  });
+
   describe('summarizeMedicalHistory', () => {
     it('should aggregate data and call AI service', async () => {
       const patientId = 'p123';

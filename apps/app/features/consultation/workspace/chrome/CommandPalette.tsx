@@ -51,7 +51,7 @@ export function CommandPalette({
   const groups = actions.reduce<Record<string, CommandPaletteAction[]>>(
     (acc, action) => {
       if (!acc[action.group]) acc[action.group] = [];
-      acc[action.group]!.push(action);
+      acc[action.group].push(action);
       return acc;
     },
     {},

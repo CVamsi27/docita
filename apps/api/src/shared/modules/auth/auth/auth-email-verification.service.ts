@@ -21,6 +21,7 @@ export class AuthEmailVerificationService {
   ) {}
 
   async sendVerificationEmail(userId: string): Promise<{ message: string }> {
+    // RLS-BYPASS: auth resolves users before clinic tenant context is established
     return this.prisma.runUnrestricted(async () => {
       const user = await this.prisma.user.findUnique({
         where: { id: userId },
@@ -63,6 +64,7 @@ export class AuthEmailVerificationService {
   }
 
   async verifyEmail(token: string): Promise<{ message: string }> {
+    // RLS-BYPASS: auth resolves users before clinic tenant context is established
     return this.prisma.runUnrestricted(async () => {
       const user = await this.prisma.user.findFirst({
         where: {

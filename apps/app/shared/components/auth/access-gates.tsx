@@ -71,7 +71,9 @@ export function TierGate({
           requiredTier={
             feature
               ? getRequiredTier(feature)
-              : getTierDisplayName(requiredTier!)
+              : requiredTier != null
+                ? getTierDisplayName(requiredTier)
+                : getRequiredTier(Feature.BASIC_PATIENT_MANAGEMENT)
           }
           currentTier={currentTierName}
           featureName={feature}

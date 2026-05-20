@@ -15,6 +15,7 @@ export async function hasPriorPaidSubscriptionForEmail(
 ): Promise<boolean> {
   const normalized = email.trim().toLowerCase();
   if (!normalized) return false;
+  // RLS-BYPASS: onboarding creates clinic records before membership tenant binding
   return persistence.runUnrestricted(async () => {
     const users = await persistence.user.findMany({
       where: { email: normalized },

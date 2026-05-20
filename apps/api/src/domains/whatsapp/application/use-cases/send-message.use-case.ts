@@ -5,6 +5,7 @@ import {
   NotFoundException,
   Optional,
 } from '@nestjs/common';
+import { InvariantViolationError } from '@/shared/common/errors/domain.errors';
 import { EventEmitter2 } from '@nestjs/event-emitter';
 import { ApplicationEvents } from '@/shared/common/events/application-events';
 import { AppConfigService } from '@/shared/modules/config/app-configuration.service';
@@ -128,11 +129,11 @@ export class SendMessageUseCase {
         sender.mode,
         clinicDisplayName,
       );
-      if (this.useProductionMode && resolved.metaTemplateId) {
+      if (this.useProductionMode && resolved.metaTemplateId && templateName) {
         const components = this.parseVariablesIntoComponents(messageVariables);
         const result = await this.client.sendMessage({
           to: recipientPhone,
-          templateName: templateName!,
+          templateName,
           languageCode,
           components,
           ...(resolvedSender ? { sender } : {}),
@@ -167,7 +168,9 @@ export class SendMessageUseCase {
       });
       externalId = result.externalId;
     } else {
-      throw new Error('Either templateName or text must be provided');
+      throw new InvariantViolationError(
+        'Either templateName or text must be provided',
+      );
     }
 
     const message = WhatsAppMessage.create(

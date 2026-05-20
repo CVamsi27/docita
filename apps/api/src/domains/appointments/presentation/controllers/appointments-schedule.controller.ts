@@ -25,6 +25,7 @@ import {
 } from '@workspace/types';
 import { Roles } from '@/shared/modules/auth/auth/roles.decorator';
 import { RequestWithUser } from '@/shared/common/types/common.types';
+import { requireClinicIdFromRequest } from '@/shared/modules/auth/auth/clinic-request-context';
 import {
   CreateAppointmentDto,
   CancelAppointmentDto,
@@ -61,7 +62,7 @@ export class AppointmentsScheduleController {
   ) {
     const payload = appointmentDomainCreateSchema.parse({
       ...body,
-      clinicId: req.user!.clinicId!,
+      clinicId: requireClinicIdFromRequest(req),
     });
 
     return this.appointmentService.createAppointment(payload);
@@ -134,7 +135,7 @@ export class AppointmentsScheduleController {
     }
 
     const result = await this.appointmentService.listAppointments({
-      clinicId: req.user!.clinicId!,
+      clinicId: requireClinicIdFromRequest(req),
       calendarPickerDate: date,
       startDate: startDate ? new Date(startDate) : undefined,
       endDate: endDate ? new Date(endDate) : undefined,
@@ -154,7 +155,7 @@ export class AppointmentsScheduleController {
   async findOne(@Param('id') id: string, @Request() req: RequestWithUser) {
     const appointment = await this.appointmentService.getAppointment(
       id,
-      req.user!.clinicId!,
+      requireClinicIdFromRequest(req),
       getAppointmentAccessContext(req),
     );
     await logPatientPhiRead(
@@ -176,7 +177,7 @@ export class AppointmentsScheduleController {
   ) {
     return this.appointmentService.updateAppointmentDetails(
       id,
-      req.user!.clinicId!,
+      requireClinicIdFromRequest(req),
       body,
       getAppointmentAccessContext(req),
     );
@@ -196,7 +197,7 @@ export class AppointmentsScheduleController {
     return this.appointmentService.cancelAppointment(
       id,
       reason,
-      req.user!.clinicId!,
+      requireClinicIdFromRequest(req),
       getAppointmentAccessContext(req),
     );
   }
@@ -213,7 +214,7 @@ export class AppointmentsScheduleController {
       id,
       payload.startTime,
       payload.endTime,
-      req.user!.clinicId!,
+      requireClinicIdFromRequest(req),
       getAppointmentAccessContext(req),
     );
   }

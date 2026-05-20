@@ -4,12 +4,12 @@ import {
   NotFoundException,
   ForbiddenException,
 } from '@nestjs/common';
-import {
-  FeedbackCategory,
-  FeedbackFeatureType,
-  FeedbackStatus,
-} from '@workspace/db';
+import { FeedbackFeatureType } from '@workspace/db';
 import { type FeedbackFilters } from './feedback-helpers';
+import {
+  parseFeedbackCategory,
+  parseFeedbackStatus,
+} from './feedback-enum-parse';
 import {
   FEEDBACK_REPOSITORY_TOKEN,
   IFeedbackRepository,
@@ -37,8 +37,15 @@ interface UpdateFeedbackStatusDto {
   adminNotes?: string;
 }
 
-interface FeedbackWithClinic {
-  clinicId: string | null;
+function isRecord(value: unknown): value is Record<string, unknown> {
+  return typeof value === 'object' && value !== null && !Array.isArray(value);
+}
+
+function readClinicId(value: unknown): string | null {
+  if (!isRecord(value)) {
+    return null;
+  }
+  return typeof value.clinicId === 'string' ? value.clinicId : null;
 }
 
 /**
@@ -86,7 +93,7 @@ export class FeedbackService {
       improvementReason: data.improvementReason,
       featureRequests: data.featureRequests,
       generalComments: data.generalComments,
-      category: (data.category as FeedbackCategory) || 'GENERAL',
+      category: parseFeedbackCategory(data.category),
       feedbackFeatures,
     });
   }
@@ -100,13 +107,12 @@ export class FeedbackService {
   }
 
   async findOne(id: string, clinicId?: string) {
-    const feedback = (await this.repository.findOneRaw(
-      id,
-    )) as FeedbackWithClinic | null;
+    const feedback = await this.repository.findOneRaw(id);
     if (!feedback) {
       throw new NotFoundException('Feedback not found');
     }
-    if (clinicId && feedback.clinicId !== clinicId) {
+    const feedbackClinicId = readClinicId(feedback);
+    if (clinicId && feedbackClinicId !== clinicId) {
       throw new NotFoundException('Feedback not found');
     }
     return feedback;
@@ -121,20 +127,19 @@ export class FeedbackService {
     data: UpdateFeedbackStatusDto,
     clinicId?: string,
   ) {
-    const feedback = (await this.repository.findOneRaw(
-      id,
-    )) as FeedbackWithClinic | null;
+    const feedback = await this.repository.findOneRaw(id);
     if (!feedback) {
       throw new NotFoundException('Feedback not found');
     }
-    if (clinicId && feedback.clinicId !== clinicId) {
+    const feedbackClinicId = readClinicId(feedback);
+    if (clinicId && feedbackClinicId !== clinicId) {
       throw new ForbiddenException(
         'Cannot update feedback from another clinic',
       );
     }
 
     return this.repository.updateStatus(id, {
-      status: data.status as FeedbackStatus,
+      status: parseFeedbackStatus(data.status),
       adminNotes: data.adminNotes,
     });
   }
@@ -142,19 +147,19 @@ export class FeedbackService {
   async getStats(clinicId?: string) {
     const stats = await this.repository.computeStats(clinicId);
 
-    const byStatus = stats.byStatus.reduce(
+    const byStatus = stats.byStatus.reduce<Record<string, number>>(
       (acc, item) => {
         acc[item.status] = item._count;
         return acc;
       },
-      {} as Record<string, number>,
+      {},
     );
-    const byCategory = stats.byCategory.reduce(
+    const byCategory = stats.byCategory.reduce<Record<string, number>>(
       (acc, item) => {
         acc[item.category] = item._count;
         return acc;
       },
-      {} as Record<string, number>,
+      {},
     );
 
     return {
@@ -170,13 +175,12 @@ export class FeedbackService {
   }
 
   async delete(id: string, clinicId?: string) {
-    const feedback = (await this.repository.findOneRaw(
-      id,
-    )) as FeedbackWithClinic | null;
+    const feedback = await this.repository.findOneRaw(id);
     if (!feedback) {
       throw new NotFoundException('Feedback not found');
     }
-    if (clinicId && feedback.clinicId !== clinicId) {
+    const feedbackClinicId = readClinicId(feedback);
+    if (clinicId && feedbackClinicId !== clinicId) {
       throw new ForbiddenException(
         'Cannot delete feedback from another clinic',
       );

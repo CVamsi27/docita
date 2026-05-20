@@ -141,7 +141,8 @@ function InboxContent() {
     const allowedIds = new Set(visibleTabs.map((t) => t.value));
     if (requested && !allowedIds.has(requested)) {
       const params = new URLSearchParams(searchParams.toString());
-      params.set("tab", visibleTabs[0]!.value);
+      const defaultTab = visibleTabs[0]?.value;
+      if (defaultTab) params.set("tab", defaultTab);
       router.replace(`/inbox?${params.toString()}`);
     }
   }, [currentTab, router, searchParams, visibleTabs]);

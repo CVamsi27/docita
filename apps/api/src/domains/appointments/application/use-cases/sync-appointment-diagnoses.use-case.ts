@@ -41,7 +41,10 @@ export class SyncAppointmentDiagnosesUseCase {
       );
     }
 
-    const codedDiagnoses = diagnoses.filter((d) => d.icdCodeId);
+    const codedDiagnoses = diagnoses.filter(
+      (d): d is DiagnosisSyncItem & { icdCodeId: string } =>
+        typeof d.icdCodeId === 'string' && d.icdCodeId.length > 0,
+    );
     const computedHash = hashDiagnosesContent(diagnoses);
 
     if (requestHash && requestHash !== computedHash) {
@@ -80,7 +83,7 @@ export class SyncAppointmentDiagnosesUseCase {
         await tx.diagnosis.createMany({
           data: codedDiagnoses.map((d, index) => ({
             appointmentId,
-            icdCodeId: d.icdCodeId!,
+            icdCodeId: d.icdCodeId,
             notes: d.notes ?? null,
             isPrimary:
               primaryDiagnosisIndex >= 0

@@ -122,7 +122,10 @@ export function RequestSummaryCard({
             {selectedDoctorName ?? "Select a doctor"}
           </p>
         </div>
-        {scheduleComplete ? (
+        {scheduleComplete &&
+        selectedCalendarDay &&
+        selectedStart &&
+        selectedEnd ? (
           <div
             className={cn(
               "rounded-[var(--radius-md)] border border-primary/50 bg-primary/[0.06] shadow-md transition-colors duration-150",
@@ -138,8 +141,8 @@ export function RequestSummaryCard({
                 compact ? "text-[length:var(--fs-xs)]" : "text-[length:var(--fs-sm)]",
               )}
             >
-              {formatDate(selectedCalendarDay!, "EEE d MMM")} &middot;{" "}
-              {formatTime(selectedStart!)}–{formatTime(selectedEnd!)}
+              {formatDate(selectedCalendarDay, "EEE d MMM")} &middot;{" "}
+              {formatTime(selectedStart)}–{formatTime(selectedEnd)}
             </p>
           </div>
         ) : (

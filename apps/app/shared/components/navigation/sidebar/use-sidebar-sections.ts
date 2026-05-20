@@ -84,7 +84,9 @@ export function useSidebarSections() {
 
   const specialtyNavItems: NavItem[] = specialtySections.map((section) => ({
     href: SPECIALTY_URLS[section.id] || `/specialty/${section.id}`,
-    icon: SPECIALTY_ICONS[section.icon] || SPECIALTY_ICONS["Brain"]!,
+    icon:
+      SPECIALTY_ICONS[section.icon] ??
+      SPECIALTY_ICONS.Smile,
     label: section.label,
     accessTarget: APP_ACCESS_TARGETS.PAGE_SPECIALTY,
   }));

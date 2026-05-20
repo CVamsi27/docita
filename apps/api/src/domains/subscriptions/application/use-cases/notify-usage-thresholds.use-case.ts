@@ -34,6 +34,7 @@ export class NotifyUsageThresholdsUseCase {
   ) {}
 
   async execute(): Promise<void> {
+    // RLS-BYPASS: subscription billing use cases run in scheduler context
     await this.persistence.runUnrestricted(async () => {
       const activeSubscriptions = await this.persistence.subscription.findMany({
         where: { status: { in: ['ACTIVE', 'TRIALING'] } },

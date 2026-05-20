@@ -12,7 +12,7 @@ import {
 } from '@workspace/db';
 import {
   type EnterpriseContractEstimate,
-  enterpriseCustomLineItemSchema,
+  enterpriseContractCustomLineItemsJsonSchema,
 } from '@workspace/types';
 import {
   CLOCK_PORT,
@@ -42,6 +42,7 @@ export class EnterpriseContractsQueryService {
   }
 
   async list(): Promise<ContractWithMembers[]> {
+    // RLS-BYPASS: enterprise contract administration spans member clinics by design
     return this.persistence.runUnrestricted(async () =>
       this.persistence.enterpriseContract.findMany({
         orderBy: { updatedAt: 'desc' },
@@ -52,6 +53,7 @@ export class EnterpriseContractsQueryService {
 
   /** Resolve the contract that covers a given clinic (member or primary). */
   async getForClinicId(clinicId: string): Promise<ContractWithMembers | null> {
+    // RLS-BYPASS: enterprise contract administration spans member clinics by design
     return this.persistence.runUnrestricted(async () => {
       const member = await this.persistence.enterpriseContractMember.findUnique({
         where: { clinicId },
@@ -70,6 +72,7 @@ export class EnterpriseContractsQueryService {
   }
 
   async getByContractId(id: string): Promise<ContractWithMembers | null> {
+    // RLS-BYPASS: enterprise contract administration spans member clinics by design
     return this.persistence.runUnrestricted(async () =>
       this.persistence.enterpriseContract.findUnique({
         where: { id },
@@ -88,6 +91,7 @@ export class EnterpriseContractsQueryService {
   }
 
   async listRevisions(contractId: string) {
+    // RLS-BYPASS: enterprise contract administration spans member clinics by design
     return this.persistence.runUnrestricted(async () =>
       this.persistence.enterpriseContractRevision.findMany({
         where: { contractId },
@@ -97,6 +101,7 @@ export class EnterpriseContractsQueryService {
   }
 
   async listInvoices(contractId: string) {
+    // RLS-BYPASS: enterprise contract administration spans member clinics by design
     return this.persistence.runUnrestricted(async () =>
       this.persistence.enterpriseContractInvoice.findMany({
         where: { contractId },
@@ -107,6 +112,7 @@ export class EnterpriseContractsQueryService {
   }
 
   async listTrueUpAlerts(contractId: string) {
+    // RLS-BYPASS: enterprise contract administration spans member clinics by design
     return this.persistence.runUnrestricted(async () =>
       this.persistence.enterpriseTrueUpAlert.findMany({
         where: { contractId },
@@ -141,6 +147,7 @@ export class EnterpriseContractsQueryService {
       59,
     );
 
+    // RLS-BYPASS: enterprise contract administration spans member clinics by design
     return this.persistence.runUnrestricted(async () => {
       const [
         consultationCount,
@@ -383,7 +390,7 @@ export class EnterpriseContractsQueryService {
   }
 
   parseCustomLineItems(value: Prisma.JsonValue) {
-    const parsed = enterpriseCustomLineItemSchema.array().safeParse(value);
+    const parsed = enterpriseContractCustomLineItemsJsonSchema.safeParse(value);
     return parsed.success ? parsed.data : [];
   }
 }

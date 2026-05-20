@@ -220,6 +220,7 @@ export class MfaService {
       );
     }
 
+    // RLS-BYPASS: auth resolves users before clinic tenant context is established
     const user = await this.prisma.runUnrestricted(async () =>
       this.prisma.user.findUnique({
         where: { id: challenge.userId },
@@ -273,6 +274,7 @@ export class MfaService {
       if (matches) {
         const remaining = [...hashedCodes];
         remaining.splice(i, 1);
+        // RLS-BYPASS: auth resolves users before clinic tenant context is established
         await this.prisma.runUnrestricted(async () =>
           this.prisma.user.update({
             where: { id: userId },

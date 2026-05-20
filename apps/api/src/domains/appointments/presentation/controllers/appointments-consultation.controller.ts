@@ -3,6 +3,7 @@ import { ApiTags, ApiOperation } from '@nestjs/swagger';
 import { Role } from '@workspace/db';
 import { Roles } from '@/shared/modules/auth/auth/roles.decorator';
 import { RequestWithUser } from '@/shared/common/types/common.types';
+import { requireClinicIdFromRequest } from '@/shared/modules/auth/auth/clinic-request-context';
 import { AppointmentService } from '@/domains/appointments/application/services/appointment.service';
 import {
   AppointmentsApiAccess,
@@ -24,7 +25,7 @@ export class AppointmentsConsultationController {
   ) {
     return this.appointmentService.startConsultation(
       id,
-      req.user!.clinicId!,
+      requireClinicIdFromRequest(req),
       getAppointmentAccessContext(req),
     );
   }

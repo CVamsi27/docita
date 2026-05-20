@@ -1,12 +1,190 @@
+import { z } from "zod";
+import {
+  cardiologyExamDataSchema,
+  chiefComplaintDraftItemSchema,
+  clinicalInvestigationSchema,
+  dentalChartSchema,
+  dermatologyExamDataSchema,
+  diagnosisDraftItemSchema,
+  examinationDraftSchema,
+  growthChartDataSchema,
+  gynecologyExamDataSchema,
+  ophthalmologyExamDataSchema,
+  psychiatryExamDataSchema,
+  type CardiologyExamData,
+  type ClinicalInvestigation,
+  type DermatologyExamData,
+  type GrowthChartData,
+  type GynecologyExamData,
+  type OphthalmologyExamData,
+  type PsychiatryExamData,
+} from "@workspace/types";
+import {
+  mapSessionChiefComplaints,
+  mapSessionDiagnosis,
+  mapSessionExamination,
+  parseDiagnosisList,
+  parseStructuredChiefComplaints,
+} from "./consultation-session-mappers";
 import { parseChiefComplaintsFromAppointmentData } from "@workspace/utils";
 import type { ChiefComplaintItem } from "@/features/consultation/components/structured/ChiefComplaintInput";
 import type { DiagnosisItem } from "@/features/consultation/components/structured/DiagnosisInput";
 import type { ExaminationData } from "@/features/consultation/components/structured/ExaminationInput";
+import type { DentalChartValue } from "@/features/consultation/components/specialty/DentalChartUI";
 import { DEFAULT_EXAMINATION } from "./consultationDraftHelpers";
 
 export function toRecord(value: unknown): Record<string, unknown> {
   if (!value || typeof value !== "object") return {};
   return Object.fromEntries(Object.entries(value));
+}
+
+export function readStringField(
+  data: Record<string, unknown>,
+  key: string,
+): string {
+  const value = data[key];
+  return typeof value === "string" ? value : "";
+}
+
+function parseZodField<T>(
+  schema: z.ZodType<T>,
+  raw: unknown,
+  fallback: T,
+): T {
+  const parsed = schema.safeParse(raw);
+  return parsed.success ? parsed.data : fallback;
+}
+
+const DEFAULT_GROWTH_DATA: GrowthChartData = {
+  patientGender: "MALE",
+  measurements: [],
+};
+
+export const consultationDraftSessionSchema = z.object({
+  savedAt: z.number().optional(),
+  chiefComplaint: z.array(chiefComplaintDraftItemSchema).optional(),
+  history: z.string().optional(),
+  examination: examinationDraftSchema.optional(),
+  diagnosis: z.array(diagnosisDraftItemSchema).optional(),
+  treatment: z.string().optional(),
+  followUpPlan: z.string().optional(),
+  dentalChart: dentalChartSchema.optional(),
+  eyeExam: ophthalmologyExamDataSchema.optional(),
+  growthData: growthChartDataSchema.optional(),
+  cardiologyExam: cardiologyExamDataSchema.optional(),
+  dermatologyExam: dermatologyExamDataSchema.optional(),
+  gynecologyExam: gynecologyExamDataSchema.optional(),
+  psychiatryExam: psychiatryExamDataSchema.optional(),
+  investigations: z.array(clinicalInvestigationSchema).optional(),
+});
+
+export interface ConsultationHydrateSeed {
+  chiefComplaint: ChiefComplaintItem[];
+  examination: ExaminationData;
+  diagnosis: DiagnosisItem[];
+  treatment: string;
+  history: string;
+  followUpPlan: string;
+  dentalChart: DentalChartValue;
+  eyeExam: OphthalmologyExamData;
+  growthData: GrowthChartData;
+  cardiologyExam: CardiologyExamData;
+  dermatologyExam: DermatologyExamData;
+  gynecologyExam: GynecologyExamData;
+  psychiatryExam: PsychiatryExamData;
+  investigations: ClinicalInvestigation[];
+  serverUpdatedAtMs: number;
+}
+
+export type ConsultationDraftSession = z.infer<
+  typeof consultationDraftSessionSchema
+>;
+
+export function applyConsultationSessionDraft<
+  TState extends {
+    chiefComplaint: ChiefComplaintItem[];
+    history: string;
+    examination: ExaminationData;
+    diagnosis: DiagnosisItem[];
+    treatment: string;
+    followUpPlan: string;
+    dentalChart: DentalChartValue;
+    eyeExam: OphthalmologyExamData;
+    growthData: GrowthChartData;
+    cardiologyExam: CardiologyExamData;
+    dermatologyExam: DermatologyExamData;
+    gynecologyExam: GynecologyExamData;
+    psychiatryExam: PsychiatryExamData;
+    investigations: ClinicalInvestigation[];
+  },
+>(state: TState, session: ConsultationDraftSession): TState {
+  return {
+    ...state,
+    chiefComplaint: session.chiefComplaint
+      ? mapSessionChiefComplaints(session.chiefComplaint)
+      : state.chiefComplaint,
+    history: session.history ?? state.history,
+    examination: session.examination
+      ? mapSessionExamination(session.examination)
+      : state.examination,
+    diagnosis: session.diagnosis
+      ? mapSessionDiagnosis(session.diagnosis)
+      : state.diagnosis,
+    treatment: session.treatment ?? state.treatment,
+    followUpPlan: session.followUpPlan ?? state.followUpPlan,
+    dentalChart: session.dentalChart ?? state.dentalChart,
+    eyeExam: session.eyeExam ?? state.eyeExam,
+    growthData: session.growthData ?? state.growthData,
+    cardiologyExam: session.cardiologyExam ?? state.cardiologyExam,
+    dermatologyExam: session.dermatologyExam ?? state.dermatologyExam,
+    gynecologyExam: session.gynecologyExam ?? state.gynecologyExam,
+    psychiatryExam: session.psychiatryExam ?? state.psychiatryExam,
+    investigations: session.investigations ?? state.investigations,
+    dirty: true,
+    saveState: "dirty",
+  };
+}
+
+export function buildConsultationHydrateSeed(
+  data: Record<string, unknown>,
+): ConsultationHydrateSeed {
+  const updatedAtRaw = data["updatedAt"];
+  const serverUpdatedAtMs =
+    typeof updatedAtRaw === "string"
+      ? new Date(updatedAtRaw).getTime()
+      : updatedAtRaw instanceof Date
+        ? updatedAtRaw.getTime()
+        : 0;
+
+  return {
+    chiefComplaint: buildChiefComplaintSeed(data),
+    examination: buildExaminationSeed(data),
+    diagnosis: parseDiagnosis(data["finalDiagnosis"]),
+    treatment: readStringField(data, "treatmentPlan"),
+    history: readStringField(data, "historyOfPresentIllness"),
+    followUpPlan: readStringField(data, "followUpPlan"),
+    dentalChart: parseZodField(dentalChartSchema, data["dentalChart"], {}),
+    eyeExam: parseZodField(ophthalmologyExamDataSchema, data["ophthalmologyExam"], {}),
+    growthData: parseZodField(
+      growthChartDataSchema,
+      data["growthData"],
+      DEFAULT_GROWTH_DATA,
+    ),
+    cardiologyExam: parseZodField(cardiologyExamDataSchema, data["cardiologyExam"], {}),
+    dermatologyExam: parseZodField(
+      dermatologyExamDataSchema,
+      data["dermatologyExam"],
+      {},
+    ),
+    gynecologyExam: parseZodField(gynecologyExamDataSchema, data["gynecologyExam"], {}),
+    psychiatryExam: parseZodField(psychiatryExamDataSchema, data["psychiatryExam"], {}),
+    investigations: parseZodField(
+      z.array(clinicalInvestigationSchema),
+      data["investigations"],
+      [],
+    ),
+    serverUpdatedAtMs,
+  };
 }
 
 function nestedSystemicNotes(raw: unknown): string {
@@ -16,6 +194,14 @@ function nestedSystemicNotes(raw: unknown): string {
     if (typeof obj.notes === "string") return obj.notes;
   }
   return "";
+}
+
+function readRecordString(
+  record: Record<string, unknown>,
+  key: string,
+): string {
+  const value = record[key];
+  return typeof value === "string" ? value : "";
 }
 
 function ensureString(val: unknown): string {
@@ -77,9 +263,9 @@ function normalizeComplaintList(
 export function buildChiefComplaintSeed(
   data: Record<string, unknown>,
 ): ChiefComplaintItem[] {
-  const structured = data["chiefComplaintStructured"] as
-    | ChiefComplaintItem[]
-    | undefined;
+  const structured = parseStructuredChiefComplaints(
+    data["chiefComplaintStructured"],
+  );
   const jsonRows = parseChiefComplaintsFromAppointmentData(data);
 
   if (structured?.length) {
@@ -99,10 +285,7 @@ export function buildChiefComplaintSeed(
     );
   }
 
-  const rawComplaint =
-    typeof data["chiefComplaint"] === "string"
-      ? (data["chiefComplaint"] as string).trim()
-      : "";
+  const rawComplaint = readStringField(data, "chiefComplaint").trim();
   return rawComplaint
     ? [
         {
@@ -127,13 +310,9 @@ export function buildExaminationSeed(
   if (mssRaw && typeof mssRaw === "object") {
     const mss = toRecord(mssRaw);
     musculoskeletalFromMss = [
-      typeof mss["jointExamination"] === "string"
-        ? (mss["jointExamination"] as string)
-        : "",
-      typeof mss["notes"] === "string" ? (mss["notes"] as string) : "",
-      typeof mss["muscleStrength"] === "string"
-        ? (mss["muscleStrength"] as string)
-        : "",
+      readRecordString(mss, "jointExamination"),
+      readRecordString(mss, "notes"),
+      readRecordString(mss, "muscleStrength"),
     ]
       .filter(Boolean)
       .join("\n")
@@ -148,14 +327,26 @@ export function buildExaminationSeed(
       : "";
   const generalNotesUi =
     typeof genRecord["notes"] === "string" ? genRecord["notes"] : "";
-  const { generalNotes: _generalNotes, notes: _notes, ...generalRest } = genRecord;
+  const parsedGeneral = {
+    ...DEFAULT_EXAMINATION.general,
+    ...parseZodField(
+      examinationDraftSchema.shape.general,
+      genExam,
+      DEFAULT_EXAMINATION.general,
+    ),
+  };
 
   return {
     general: genExam
       ? {
-          ...DEFAULT_EXAMINATION.general,
-          ...(generalRest as object),
-          notes: generalNotesUi || generalNotesFromApi,
+          pallor: parsedGeneral.pallor === true,
+          icterus: parsedGeneral.icterus === true,
+          cyanosis: parsedGeneral.cyanosis === true,
+          clubbing: parsedGeneral.clubbing === true,
+          lymphadenopathy: parsedGeneral.lymphadenopathy === true,
+          edema: parsedGeneral.edema === true,
+          notes:
+            generalNotesUi || generalNotesFromApi || parsedGeneral.notes || "",
         }
       : DEFAULT_EXAMINATION.general,
     systemic: sysExam

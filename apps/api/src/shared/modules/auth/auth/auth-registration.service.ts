@@ -36,6 +36,7 @@ export class AuthRegistrationService {
   ) {}
 
   async register(data: RegisterData) {
+    // RLS-BYPASS: auth resolves users before clinic tenant context is established
     return this.prisma.runUnrestricted(async () => {
       this.passwordPolicy.validate(data.password);
       const isNonProduction = !this.appConfig.isProduction();

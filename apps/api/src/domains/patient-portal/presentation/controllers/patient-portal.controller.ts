@@ -22,6 +22,7 @@ import { AppointmentRequestService } from '@/domains/appointments/application/se
 import { PatientAppointmentRequestCreateDto } from '@/domains/appointments/application/dto/appointments.dto';
 import { AuditService } from '@/shared/modules/audit/audit/audit.service';
 import { auditPatientPortalRead } from '@/domains/patient-portal/presentation/controllers/patient-portal-controller.helpers';
+import { requireAuthenticatedUserId } from '@/shared/modules/auth/auth/clinic-request-context';
 
 @ApiTags('patient-portal')
 @Controller('patient-portal')
@@ -46,7 +47,7 @@ export class PatientPortalController {
       req,
       'VIEW_PROFILE',
     );
-    return this.portalService.getDashboard(req.user!.id);
+    return this.portalService.getDashboard(requireAuthenticatedUserId(req));
   }
 
   @Get('appointments')
@@ -68,7 +69,7 @@ export class PatientPortalController {
       req,
       'VIEW_HISTORY',
     );
-    return this.portalService.getAppointments(req.user!.id, {
+    return this.portalService.getAppointments(requireAuthenticatedUserId(req), {
       status: query.status,
       startDate: query.startDate,
       endDate: query.endDate,
@@ -89,7 +90,7 @@ export class PatientPortalController {
       req,
       'VIEW_HISTORY',
     );
-    return this.portalService.getAppointmentById(req.user!.id, id);
+    return this.portalService.getAppointmentById(requireAuthenticatedUserId(req), id);
   }
 
   @Post('appointments/request')
@@ -99,7 +100,7 @@ export class PatientPortalController {
     @Body() body: PatientAppointmentRequestCreateDto,
   ) {
     const { patientId, clinicId } = await this.contextService.getPatientContext(
-      req.user!.id,
+      requireAuthenticatedUserId(req),
     );
     return this.appointmentRequestService.createPatientRequest(
       patientId,
@@ -117,7 +118,7 @@ export class PatientPortalController {
       req,
       'VIEW_PROFILE',
     );
-    return this.portalService.getProfile(req.user!.id);
+    return this.portalService.getProfile(requireAuthenticatedUserId(req));
   }
 
   @Patch('profile')
@@ -136,7 +137,7 @@ export class PatientPortalController {
       emergencyContactRelation?: string;
     },
   ) {
-    return this.portalService.updateProfile(req.user!.id, body);
+    return this.portalService.updateProfile(requireAuthenticatedUserId(req), body);
   }
 
   @Get('consent')
@@ -148,7 +149,7 @@ export class PatientPortalController {
       req,
       'VIEW_PROFILE',
     );
-    return this.portalService.getConsent(req.user!.id);
+    return this.portalService.getConsent(requireAuthenticatedUserId(req));
   }
 
   @Patch('consent')
@@ -157,7 +158,7 @@ export class PatientPortalController {
     @Request() req: RequestWithUser,
     @Body() body: { whatsappConsent?: boolean; dataStorageConsent?: boolean },
   ) {
-    return this.portalService.updateConsent(req.user!.id, body);
+    return this.portalService.updateConsent(requireAuthenticatedUserId(req), body);
   }
 
   @Post('profile/delete-request')
@@ -166,6 +167,6 @@ export class PatientPortalController {
     @Request() req: RequestWithUser,
     @Body() body: { reason: string; confirmDeletion?: boolean },
   ) {
-    return this.portalService.requestDataDeletion(req.user!.id, body);
+    return this.portalService.requestDataDeletion(requireAuthenticatedUserId(req), body);
   }
 }

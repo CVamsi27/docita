@@ -37,6 +37,7 @@ export class EnterpriseContractTrueUpScheduler {
     );
 
     try {
+      // RLS-BYPASS: enterprise contract administration spans member clinics by design
       await this.prisma.runUnrestricted(async () => {
         const activeContracts = await this.prisma.enterpriseContract.findMany({
           where: { status: EnterpriseContractStatus.ACTIVE },

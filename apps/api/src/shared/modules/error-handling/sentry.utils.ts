@@ -13,85 +13,90 @@ export function shouldCaptureInSentry(error: unknown): boolean {
   return true;
 }
 
+function isRecord(value: unknown): value is Record<string, unknown> {
+  return typeof value === 'object' && value !== null && !Array.isArray(value);
+}
+
 function isZodValidationEvent(event: unknown): boolean {
-  if (!event || typeof event !== 'object') {
+  if (!isRecord(event)) {
     return false;
   }
 
-  const exception = (event as { exception?: unknown }).exception;
-  if (!exception || typeof exception !== 'object') {
+  const exception = event.exception;
+  if (!isRecord(exception)) {
     return false;
   }
 
-  const values = (exception as { values?: unknown }).values;
+  const values = exception.values;
   if (!Array.isArray(values)) {
     return false;
   }
 
   return values.some((value) => {
-    if (!value || typeof value !== 'object') {
+    if (!isRecord(value)) {
       return false;
     }
 
-    return (value as { type?: unknown }).type === 'ZodValidationException';
+    return value.type === 'ZodValidationException';
   });
 }
 
-function scrubSentryEvent<T>(event: T): T {
-  if (!event || typeof event !== 'object') {
-    return event;
-  }
-  const e = event as Record<string, unknown>;
-
-  if (e.request && typeof e.request === 'object') {
-    const req = e.request as Record<string, unknown>;
-    if (req.data !== undefined) {
-      req.data = redactPhi(req.data);
+function scrubMutableRecord(record: Record<string, unknown>): void {
+  const request = record.request;
+  if (isRecord(request)) {
+    if (request.data !== undefined) {
+      request.data = redactPhi(request.data);
     }
-    if (typeof req.query_string === 'string') {
-      req.query_string = redactString(req.query_string);
-    } else if (req.query_string !== undefined) {
-      req.query_string = redactPhi(req.query_string);
+    if (typeof request.query_string === 'string') {
+      request.query_string = redactString(request.query_string);
+    } else if (request.query_string !== undefined) {
+      request.query_string = redactPhi(request.query_string);
     }
-    if (req.headers !== undefined) {
-      req.headers = redactPhi(req.headers);
+    if (request.headers !== undefined) {
+      request.headers = redactPhi(request.headers);
     }
-    if (req.cookies !== undefined) {
-      req.cookies = redactPhi(req.cookies);
+    if (request.cookies !== undefined) {
+      request.cookies = redactPhi(request.cookies);
     }
   }
 
-  if (e.extra !== undefined) {
-    e.extra = redactPhi(e.extra) as Record<string, unknown>;
+  if (record.extra !== undefined) {
+    record.extra = redactPhi(record.extra);
   }
-  if (e.contexts !== undefined) {
-    e.contexts = redactPhi(e.contexts) as Record<string, unknown>;
+  if (record.contexts !== undefined) {
+    record.contexts = redactPhi(record.contexts);
   }
-  if (e.tags !== undefined) {
-    e.tags = redactPhi(e.tags) as Record<string, string>;
+  if (record.tags !== undefined) {
+    record.tags = redactPhi(record.tags);
   }
 
-  if (Array.isArray(e.breadcrumbs)) {
-    e.breadcrumbs = e.breadcrumbs.map((crumb: unknown) => {
-      if (!crumb || typeof crumb !== 'object') {
+  if (Array.isArray(record.breadcrumbs)) {
+    record.breadcrumbs = record.breadcrumbs.map((crumb) => {
+      if (!isRecord(crumb)) {
         return crumb;
       }
-      const c = crumb as Record<string, unknown>;
-      if (typeof c.message === 'string') {
-        c.message = redactString(c.message);
+      if (typeof crumb.message === 'string') {
+        crumb.message = redactString(crumb.message);
       }
-      if (c.data !== undefined) {
-        c.data = redactPhi(c.data);
+      if (crumb.data !== undefined) {
+        crumb.data = redactPhi(crumb.data);
       }
-      return c;
+      return crumb;
     });
   }
 
-  if (e.message !== undefined && typeof e.message === 'string') {
-    e.message = redactString(e.message);
+  if (typeof record.message === 'string') {
+    record.message = redactString(record.message);
+  }
+}
+
+function scrubSentryEvent<T>(event: T): T {
+  if (!isRecord(event)) {
+    return event;
   }
 
-  return e as T;
+  scrubMutableRecord(event);
+  return event;
 }
 
 export { scrubSentryEvent };

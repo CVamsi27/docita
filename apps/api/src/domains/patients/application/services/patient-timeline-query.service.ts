@@ -130,16 +130,7 @@ export class PatientTimelineQueryService {
       adherenceRate: number | null;
     }> = [];
 
-    for (const prescription of prescriptions as Array<{
-      medications: Array<{
-        id: string;
-        name: string;
-        dosage: string;
-        frequency: string;
-        isPRN: boolean;
-        endDate: Date | null;
-      }>;
-    }>) {
+    for (const prescription of prescriptions) {
       for (const med of prescription.medications) {
         const isActive = !med.endDate || med.endDate >= now;
         if (!isActive) continue;
@@ -189,27 +180,13 @@ export class PatientTimelineQueryService {
     }));
 
     return {
-      activeConditions: (
-        conditions as Array<{
-          id: string;
-          conditionName: string;
-          status: string;
-          severity: string | null;
-        }>
-      ).map((c) => ({
+      activeConditions: conditions.map((c) => ({
         id: c.id,
         conditionName: c.conditionName,
         status: c.status,
         severity: c.severity,
       })),
-      activeAllergies: (
-        allergies as Array<{
-          id: string;
-          allergen: string;
-          severity: string | null;
-          allergyType: string;
-        }>
-      ).map((a) => ({
+      activeAllergies: allergies.map((a) => ({
         id: a.id,
         allergen: a.allergen,
         severity: a.severity,
@@ -217,26 +194,15 @@ export class PatientTimelineQueryService {
       })),
       activeMedications: enrichedActiveMedications,
       latestVitals: latestVitals
-        ? (() => {
-            const v = latestVitals as {
-              systolicBP: number | null;
-              diastolicBP: number | null;
-              pulse: number | null;
-              temperature: number | null;
-              spo2: number | null;
-              weight: number | null;
-              createdAt: Date;
-            };
-            return {
-              systolicBP: v.systolicBP,
-              diastolicBP: v.diastolicBP,
-              pulse: v.pulse,
-              temperature: v.temperature,
-              spo2: v.spo2,
-              weight: v.weight,
-              recordedAt: v.createdAt.toISOString(),
-            };
-          })()
+        ? {
+            systolicBP: latestVitals.systolicBP,
+            diastolicBP: latestVitals.diastolicBP,
+            pulse: latestVitals.pulse,
+            temperature: latestVitals.temperature,
+            spo2: latestVitals.spo2,
+            weight: latestVitals.weight,
+            recordedAt: latestVitals.createdAt.toISOString(),
+          }
         : null,
     };
   }

@@ -1,10 +1,12 @@
 import { ConflictException, Inject, Injectable } from '@nestjs/common';
+import { apiHttpIdempotencyResponseJsonSchema } from '@workspace/types';
 import {
   CLOCK_PORT,
   type IClock,
 } from '@/shared/common/ports/clock.port';
 import { Prisma } from '@workspace/db';
 import { PrismaService } from '@/prisma/prisma.service';
+import { parsePrismaJsonColumn } from '@/shared/common/json/parse-prisma-json-column';
 import type { CachedIdempotencyEntry } from './idempotency.service';
 import {
   IDEMPOTENCY_PROCESSING_TTL_SECONDS,
@@ -55,7 +57,11 @@ export class IdempotencyRepository {
     if (typeof row.bodyHash !== 'string') return null;
     return {
       bodyHash: row.bodyHash,
-      response: row.response as unknown,
+      response:
+        parsePrismaJsonColumn(
+          row.response,
+          apiHttpIdempotencyResponseJsonSchema,
+        ) ?? null,
       createdAt: row.createdAt.getTime(),
     };
   }

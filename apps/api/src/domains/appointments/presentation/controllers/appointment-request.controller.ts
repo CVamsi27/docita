@@ -11,6 +11,7 @@ import {
 import { ApiOperation, ApiTags } from '@nestjs/swagger';
 import { APP_ACCESS_TARGETS } from '@workspace/types';
 import { RequestWithUser } from '@/shared/common/types/common.types';
+import { getClinicStaffRequestContext } from '@/shared/modules/auth/auth/clinic-request-context';
 import {
   ApproveAppointmentRequestDto,
   ListAppointmentRequestsQueryDto,
@@ -64,10 +65,8 @@ export class AppointmentRequestController {
       );
     }
 
-    return this.appointmentRequestService.listRequests(
-      req.user!.clinicId!,
-      query,
-    );
+    const { clinicId } = getClinicStaffRequestContext(req);
+    return this.appointmentRequestService.listRequests(clinicId, query);
   }
 
   @Patch(':id/approve')
@@ -77,10 +76,11 @@ export class AppointmentRequestController {
     @Param('id') id: string,
     @Body() body: ApproveAppointmentRequestDto,
   ) {
+    const { clinicId, userId } = getClinicStaffRequestContext(req);
     return this.appointmentRequestService.approveRequest(
       id,
-      req.user!.clinicId!,
-      req.user!.id,
+      clinicId,
+      userId,
       body,
     );
   }
@@ -92,10 +92,11 @@ export class AppointmentRequestController {
     @Param('id') id: string,
     @Body() body: RejectAppointmentRequestDto,
   ) {
+    const { clinicId, userId } = getClinicStaffRequestContext(req);
     return this.appointmentRequestService.rejectRequest(
       id,
-      req.user!.clinicId!,
-      req.user!.id,
+      clinicId,
+      userId,
       body,
     );
   }

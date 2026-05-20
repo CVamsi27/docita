@@ -1,4 +1,5 @@
 import { Injectable } from '@nestjs/common';
+import { InvariantViolationError } from '@/shared/common/errors/domain.errors';
 import { PrismaService } from '@/prisma/prisma.service';
 import { Prisma } from '@workspace/db';
 import { ClinicPricingOffer } from '@/shared/modules/services/feature-flag.service';
@@ -94,9 +95,13 @@ export class InternalPricingAdminService {
           return null;
         }
 
+        if (!offer.clinicId) {
+          return null;
+        }
+
         return {
           id: offer.id,
-          clinicId: offer.clinicId!,
+          clinicId: offer.clinicId,
           clinic: offer.clinic,
           ...parsed,
           updatedAt: offer.updatedAt,
@@ -147,9 +152,14 @@ export class InternalPricingAdminService {
         });
 
     const record = await persist;
+    if (!record.clinicId) {
+      throw new InvariantViolationError(
+        'Pricing offer feature flag must have a clinicId',
+      );
+    }
     return {
       id: record.id,
-      clinicId: record.clinicId!,
+      clinicId: record.clinicId,
       title: payload.title,
       description: payload.description,
       percentOff: payload.percentOff,

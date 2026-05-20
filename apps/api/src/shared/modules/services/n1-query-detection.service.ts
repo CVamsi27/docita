@@ -46,10 +46,12 @@ export class N1QueryDetectionService {
 
     this.queryTraces.forEach((trace) => {
       const normalized = this.normalizeQuery(trace.query);
-      if (!patterns.has(normalized)) {
-        patterns.set(normalized, []);
+      let traces = patterns.get(normalized);
+      if (!traces) {
+        traces = [];
+        patterns.set(normalized, traces);
       }
-      patterns.get(normalized)!.push(trace);
+      traces.push(trace);
     });
 
     const potentialN1 = Array.from(patterns.entries())

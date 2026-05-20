@@ -14,6 +14,7 @@ export class PrismaPortalAppointmentsRepository
     from: Date,
     take: number,
   ): Promise<unknown[]> {
+    // RLS-BYPASS: patient portal identity is scoped by patient token, not clinic RLS
     return this.prisma.runUnrestricted(async () =>
       this.prisma.appointment.findMany({
         where: {
@@ -58,6 +59,7 @@ export class PrismaPortalAppointmentsRepository
       };
     }
 
+    // RLS-BYPASS: patient portal identity is scoped by patient token, not clinic RLS
     return this.prisma.runUnrestricted(async () => {
       const [items, total] = await Promise.all([
         this.prisma.appointment.findMany({
@@ -88,6 +90,7 @@ export class PrismaPortalAppointmentsRepository
     patientId: string,
     clinicId: string,
   ): Promise<unknown | null> {
+    // RLS-BYPASS: patient portal identity is scoped by patient token, not clinic RLS
     return this.prisma.runUnrestricted(async () =>
       this.prisma.appointment.findFirst({
         where: { id: appointmentId, patientId, clinicId },

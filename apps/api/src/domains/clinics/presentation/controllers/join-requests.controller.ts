@@ -21,6 +21,12 @@ import { JoinRequestService } from '@/domains/clinics/application/services/join-
 import { StaffNotificationService } from '@/domains/whatsapp/application/services/staff-notification.service';
 import { RequestWithUser } from '@/shared/common/types/common.types';
 import {
+  getClinicStaffRequestContext,
+  requireAuthenticatedUser,
+  requireAuthenticatedUserId,
+} from '@/shared/modules/auth/auth/clinic-request-context';
+import { getAuthenticatedUserId } from '@/shared/modules/auth/auth/request-user.util';
+import {
   CreateJoinRequestDto,
   ApproveJoinRequestDto,
   RejectJoinRequestDto,
@@ -43,9 +49,10 @@ export class JoinRequestsController {
     @Request() req: RequestWithUser,
     @Body() dto: CreateJoinRequestDto,
   ) {
-    const user = req.user!;
+    const user = requireAuthenticatedUser(req);
+    const userId = getAuthenticatedUserId(user) ?? user.id;
     this.logger.log('Creating join request', {
-      userId: user.id,
+      userId,
       clinicId: dto.clinicId,
     });
 
@@ -77,7 +84,7 @@ export class JoinRequestsController {
         message: `${user.name} (${user.email}) requested to join as ${dto.requestedRole}`,
         data: {
           requestId: request.id,
-          userId: user.id,
+          userId,
           userName: user.name,
           userEmail: user.email,
           requestedRole: dto.requestedRole,
@@ -104,14 +111,15 @@ export class JoinRequestsController {
     @Request() req: RequestWithUser,
     @Query('status') status?: JoinRequestStatus,
   ) {
-    return this.joinRequestService.findByClinic(req.user!.clinicId!, status);
+    const { clinicId } = getClinicStaffRequestContext(req);
+    return this.joinRequestService.findByClinic(clinicId, status);
   }
 
   @Get('mine')
   @UseGuards(JwtAuthGuard)
   async getMyJoinRequest(@Request() req: RequestWithUser) {
     const requests = await this.joinRequestService.findUserPendingRequests(
-      req.user!.id,
+      requireAuthenticatedUserId(req),
     );
 
     if (requests.length === 0) {
@@ -124,8 +132,9 @@ export class JoinRequestsController {
   @Get('count')
   @Roles(Role.ADMIN, Role.ADMIN_DOCTOR)
   async countPendingRequests(@Request() req: RequestWithUser) {
+    const { clinicId } = getClinicStaffRequestContext(req);
     const requests = await this.joinRequestService.findByClinic(
-      req.user!.clinicId!,
+      clinicId,
       'PENDING',
     );
 
@@ -140,24 +149,25 @@ export class JoinRequestsController {
     @Param('id') requestId: string,
     @Body() dto: ApproveJoinRequestDto,
   ) {
-    const user = req.user!;
+    const { clinicId, userId } = getClinicStaffRequestContext(req);
+    const userName = req.user?.name ?? 'Clinic staff';
     const request = await this.joinRequestService.findById(requestId);
 
-    if (!request || request.clinicId !== user.clinicId) {
+    if (!request || request.clinicId !== clinicId) {
       throw new NotFoundException('Request not found');
     }
 
     await this.joinRequestService.approve(
       requestId,
-      user.id,
-      user.name,
+      userId,
+      userName,
       dto.assignedRole,
       dto.welcomeMessage,
     );
 
     try {
       await this.staffNotificationService.notifyStaff({
-        clinicId: user.clinicId!,
+        clinicId,
         doctorId: request.userId,
         type: 'MEMBER_JOIN_APPROVED',
         title: 'Welcome to the Team!',
@@ -184,23 +194,24 @@ export class JoinRequestsController {
     @Param('id') requestId: string,
     @Body() dto: RejectJoinRequestDto,
   ) {
-    const user = req.user!;
+    const { clinicId, userId } = getClinicStaffRequestContext(req);
+    const userName = req.user?.name ?? 'Clinic staff';
     const request = await this.joinRequestService.findById(requestId);
 
-    if (!request || request.clinicId !== user.clinicId) {
+    if (!request || request.clinicId !== clinicId) {
       throw new NotFoundException('Request not found');
     }
 
     await this.joinRequestService.reject(
       requestId,
-      user.id,
-      user.name,
+      userId,
+      userName,
       dto.reason,
     );
 
     try {
       await this.staffNotificationService.notifyStaff({
-        clinicId: user.clinicId!,
+        clinicId,
         doctorId: request.userId,
         type: 'MEMBER_JOIN_REJECTED',
         title: 'Join Request Not Approved',
@@ -226,7 +237,10 @@ export class JoinRequestsController {
     @Request() req: RequestWithUser,
     @Param('id') requestId: string,
   ) {
-    await this.joinRequestService.withdraw(requestId, req.user!.id);
+    await this.joinRequestService.withdraw(
+      requestId,
+      requireAuthenticatedUserId(req),
+    );
 
     return {
       success: true,

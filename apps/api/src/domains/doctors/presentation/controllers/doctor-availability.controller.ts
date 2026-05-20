@@ -37,6 +37,7 @@ import {
 } from '@/domains/doctors/application/dto/doctor-availability.dto';
 import { ZodValidationPipe } from '@/shared/common/pipes/zod-validation.pipe';
 import { RequestWithUser } from '@/shared/common/types/common.types';
+import { getClinicStaffRequestContext } from '@/shared/modules/auth/auth/clinic-request-context';
 
 @Controller('doctor-availability')
 @Roles(Role.ADMIN, Role.DOCTOR, Role.RECEPTIONIST, Role.ADMIN_DOCTOR)
@@ -89,7 +90,7 @@ export class DoctorAvailabilityController {
         req.user?.role ?? '',
       ) && doctorId
         ? doctorId
-        : req.user!.id;
+        : getClinicStaffRequestContext(req).userId;
     return this.doctorAvailabilityService.getSchedules(
       targetDoctorId,
       req.user?.clinicId || undefined,
@@ -155,7 +156,7 @@ export class DoctorAvailabilityController {
         req.user?.role ?? '',
       ) && doctorId
         ? doctorId
-        : req.user!.id;
+        : getClinicStaffRequestContext(req).userId;
     return this.doctorAvailabilityService.getTimeOffs(targetDoctorId, {
       clinicId: req.user?.clinicId || undefined,
       upcoming: upcoming === true,
@@ -173,7 +174,7 @@ export class DoctorAvailabilityController {
         req.user?.role ?? '',
       ) && dto.doctorId
         ? dto.doctorId
-        : req.user!.id;
+        : getClinicStaffRequestContext(req).userId;
     return this.doctorAvailabilityService.createTimeOff({
       doctorId,
       clinicId: req.user?.clinicId || undefined,

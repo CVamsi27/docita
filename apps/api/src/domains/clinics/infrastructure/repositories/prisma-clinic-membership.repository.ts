@@ -28,6 +28,7 @@ export class PrismaClinicMembershipRepository
     clinicId: string,
     userRole: Role,
   ): Promise<void> {
+    // RLS-BYPASS: membership bootstrap runs before clinic tenant context exists
     await this.prisma.runUnrestricted(async () => {
       await this.prisma.$transaction(async (tx) => {
         await tx.user.update({

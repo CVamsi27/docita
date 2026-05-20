@@ -16,6 +16,7 @@ import { Roles } from '@/shared/modules/auth/auth/roles.decorator';
 import { RequireFeature } from '@/shared/modules/auth/auth/tier.decorator';
 import { InventoryService } from '../../application/services/inventory.service';
 import { RequestWithUser } from '@/shared/common/types/common.types';
+import { getClinicStaffRequestContext } from '@/shared/modules/auth/auth/clinic-request-context';
 import { APP_ACCESS_TARGETS } from '@workspace/types';
 import {
   getDbRolesForTarget,
@@ -38,7 +39,8 @@ export class InventoryController {
   @Get('stats')
   @ApiOperation({ summary: 'Get inventory statistics' })
   getStats(@Request() req: RequestWithUser) {
-    return this.inventoryService.getStats(req.user!.clinicId!);
+    const { clinicId } = getClinicStaffRequestContext(req);
+    return this.inventoryService.getStats(clinicId);
   }
 
   @Get()
@@ -49,7 +51,8 @@ export class InventoryController {
     @Query('category') category?: string,
     @Query('status') status?: string,
   ) {
-    return this.inventoryService.getItems(req.user!.clinicId!, {
+    const { clinicId } = getClinicStaffRequestContext(req);
+    return this.inventoryService.getItems(clinicId, {
       search,
       category,
       status,
@@ -59,7 +62,8 @@ export class InventoryController {
   @Get(':id')
   @ApiOperation({ summary: 'Get inventory item by ID' })
   getItemById(@Request() req: RequestWithUser, @Param('id') id: string) {
-    return this.inventoryService.getItemById(req.user!.clinicId!, id);
+    const { clinicId } = getClinicStaffRequestContext(req);
+    return this.inventoryService.getItemById(clinicId, id);
   }
 
   @Post()
@@ -68,11 +72,8 @@ export class InventoryController {
     @Request() req: RequestWithUser,
     @Body() body: CreateInventoryItemDto,
   ) {
-    return this.inventoryService.createItem(
-      req.user!.clinicId!,
-      req.user!.id,
-      body,
-    );
+    const { clinicId, userId } = getClinicStaffRequestContext(req);
+    return this.inventoryService.createItem(clinicId, userId, body);
   }
 
   @Patch(':id')
@@ -82,13 +83,15 @@ export class InventoryController {
     @Param('id') id: string,
     @Body() body: UpdateInventoryItemDto,
   ) {
-    return this.inventoryService.updateItem(req.user!.clinicId!, id, body);
+    const { clinicId } = getClinicStaffRequestContext(req);
+    return this.inventoryService.updateItem(clinicId, id, body);
   }
 
   @Delete(':id')
   @ApiOperation({ summary: 'Deactivate inventory item' })
   deleteItem(@Request() req: RequestWithUser, @Param('id') id: string) {
-    return this.inventoryService.deleteItem(req.user!.clinicId!, id);
+    const { clinicId } = getClinicStaffRequestContext(req);
+    return this.inventoryService.deleteItem(clinicId, id);
   }
 
   @Post(':id/movements')
@@ -98,11 +101,7 @@ export class InventoryController {
     @Param('id') id: string,
     @Body() body: InventoryMovementDto,
   ) {
-    return this.inventoryService.addMovement(
-      req.user!.clinicId!,
-      id,
-      req.user!.id,
-      body,
-    );
+    const { clinicId, userId } = getClinicStaffRequestContext(req);
+    return this.inventoryService.addMovement(clinicId, id, userId, body);
   }
 }

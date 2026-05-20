@@ -12,7 +12,9 @@ import {
   type InvoicePaymentActivityResponse,
   type EnqueuePdfJobResponse,
   extractPdfTheme,
+  paymentSessionMetaJsonSchema,
 } from '@workspace/types';
+import { parsePrismaJsonColumn } from '@/shared/common/json/parse-prisma-json-column';
 import {
   IInvoiceRepository,
   INVOICE_REPOSITORY_TOKEN,
@@ -105,10 +107,10 @@ export class InvoicesQueryService {
   private extractPaymentActivityMeta(
     meta: Prisma.JsonValue | null | undefined,
   ): { channel?: string; reference?: string; notes?: string } {
-    if (!meta || typeof meta !== 'object' || Array.isArray(meta)) {
+    const m = parsePrismaJsonColumn(meta, paymentSessionMetaJsonSchema);
+    if (!m) {
       return {};
     }
-    const m = meta as Record<string, unknown>;
     const channelRaw =
       typeof m.channel === 'string'
         ? m.channel

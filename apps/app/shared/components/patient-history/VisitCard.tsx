@@ -12,11 +12,9 @@ import { formatDate } from "@workspace/utils";
 import {
   EVENT_TYPE_CONFIG,
   type VisitCardProps,
-  type VitalsMetadata,
-  type MedicationMetadata,
-  type DiagnosisMetadata,
   capitalizeFirstLetter,
   medicationSummaryLine,
+  parseVisitCardMetadata,
 } from "./visit-card-config";
 
 export { EVENT_TYPE_CONFIG, type VisitCardProps } from "./visit-card-config";
@@ -34,20 +32,21 @@ export function VisitCard({ event, mode, defaultExpanded = false }: VisitCardPro
     return formatDate(d, "EEE, d MMM yyyy");
   })();
 
-  const meta = event.metadata as Record<string, unknown>;
-  const doctorName = meta?.doctorName as string | null | undefined;
-  const consultationId = meta?.consultationId as string | null | undefined;
-  const vitals = meta?.vitals as VitalsMetadata | null | undefined;
-  const medications = (meta?.medications ?? []) as MedicationMetadata[];
-  const diagnoses = (meta?.diagnoses ?? []) as DiagnosisMetadata[];
-  const treatmentPlan = meta?.treatmentPlan as string | null | undefined;
-  const observations = meta?.observations as string | null | undefined;
+  const {
+    doctorName,
+    consultationId,
+    vitals,
+    medications,
+    diagnoses,
+    treatmentPlan,
+    observations,
+    status: statusBadge,
+  } = parseVisitCardMetadata(event.metadata);
   const primaryDiagnosis = diagnoses.find((d) => d.isPrimary) ?? diagnoses[0];
   const displayTitle = capitalizeFirstLetter(event.title);
   const displayPrimaryDiagnosis = capitalizeFirstLetter(primaryDiagnosis?.description ?? null);
   const displayEventDescription = capitalizeFirstLetter(event.description);
 
-  const statusBadge = meta?.status as string | null | undefined;
   const statusKey = (statusBadge ?? "").toLowerCase().replace(/_/g, "-");
   const isFutureAppointment = event.type === "APPOINTMENT" && new Date(event.date).getTime() > Date.now();
   const consultationHref = consultationId

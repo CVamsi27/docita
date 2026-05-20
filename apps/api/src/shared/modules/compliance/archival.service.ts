@@ -27,6 +27,7 @@ export class ArchivalService {
   ) {}
 
   async archiveAuditLogs(daysOld = 90): Promise<number> {
+    // RLS-BYPASS: compliance retention and archival jobs span tenants by design
     return this.prisma.runUnrestricted(async () =>
       runInArchivalMode(async () => {
         const cutoffDate = this.clock.now();
@@ -84,6 +85,7 @@ export class ArchivalService {
   }
 
   async archiveWhatsappLogs(daysOld = 180): Promise<number> {
+    // RLS-BYPASS: compliance retention and archival jobs span tenants by design
     return this.prisma.runUnrestricted(async () => {
       const cutoffDate = this.clock.now();
       cutoffDate.setDate(cutoffDate.getDate() - daysOld);
@@ -143,6 +145,7 @@ export class ArchivalService {
   }
 
   async archiveAppointments(yearsOld = 2): Promise<number> {
+    // RLS-BYPASS: compliance retention and archival jobs span tenants by design
     return this.prisma.runUnrestricted(async () => {
       const cutoffDate = this.clock.now();
       cutoffDate.setFullYear(cutoffDate.getFullYear() - yearsOld);

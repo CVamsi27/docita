@@ -10,6 +10,7 @@ import {
   UseGuards,
 } from '@nestjs/common';
 import { RequestWithUser } from '@/shared/common/types/common.types';
+import { requireClinicIdFromRequest } from '@/shared/modules/auth/auth/clinic-request-context';
 import { FollowUpService } from '@/domains/appointments/application/services/follow-up.service';
 import {
   BookFollowUpDto,
@@ -46,7 +47,7 @@ export class FollowUpController {
     return this.followUpService.create({
       ...body,
       appointmentId,
-      clinicId: req.user!.clinicId!,
+      clinicId: requireClinicIdFromRequest(req),
     });
   }
 
@@ -55,7 +56,7 @@ export class FollowUpController {
     @Req() req: RequestWithUser,
     @Query() query: ListFollowUpsQueryDto,
   ) {
-    const clinicId = req.user!.clinicId!;
+    const clinicId = requireClinicIdFromRequest(req);
     await logClinicPhiListRead(
       this.auditService,
       req,
@@ -86,18 +87,18 @@ export class FollowUpController {
   ) {
     return this.followUpService.book(
       id,
-      req.user!.clinicId!,
+      requireClinicIdFromRequest(req),
       body.bookedAppointmentId,
     );
   }
 
   @Patch('follow-ups/:id/complete')
   async completeFollowUp(@Req() req: RequestWithUser, @Param('id') id: string) {
-    return this.followUpService.complete(id, req.user!.clinicId!);
+    return this.followUpService.complete(id, requireClinicIdFromRequest(req));
   }
 
   @Patch('follow-ups/:id/cancel')
   async cancelFollowUp(@Req() req: RequestWithUser, @Param('id') id: string) {
-    return this.followUpService.cancel(id, req.user!.clinicId!);
+    return this.followUpService.cancel(id, requireClinicIdFromRequest(req));
   }
 }

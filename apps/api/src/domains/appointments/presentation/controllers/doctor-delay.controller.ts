@@ -21,6 +21,7 @@ import {
 } from '@/shared/modules/auth/auth/tier.decorator';
 import { getDbRolesForTarget } from '@/shared/modules/auth/auth/access-matrix.util';
 import { RequestWithUser } from '@/shared/common/types/common.types';
+import { getClinicStaffRequestContext } from '@/shared/modules/auth/auth/clinic-request-context';
 import { DoctorDelayService } from '@/domains/appointments/application/services/doctor-delay.service';
 
 const markDelaySchema = z.object({
@@ -54,12 +55,13 @@ export class DoctorDelayController {
     if (!parsed.success) {
       throw new BadRequestException(parsed.error.flatten());
     }
+    const { clinicId, userId } = getClinicStaffRequestContext(req);
     return this.doctorDelayService.markDelay({
-      clinicId: req.user!.clinicId!,
+      clinicId,
       doctorId: parsed.data.doctorId,
       delayMinutes: parsed.data.delayMinutes,
       reason: parsed.data.reason,
-      markedById: req.user!.id,
+      markedById: userId,
     });
   }
 
@@ -73,20 +75,16 @@ export class DoctorDelayController {
   )
   @ApiOperation({ summary: 'Clear an active doctor delay' })
   async clearDelay(@Param('id') id: string, @Request() req: RequestWithUser) {
-    await this.doctorDelayService.clearDelay(
-      id,
-      req.user!.clinicId!,
-      req.user!.id,
-    );
+    const { clinicId, userId } = getClinicStaffRequestContext(req);
+    await this.doctorDelayService.clearDelay(id, clinicId, userId);
     return { success: true };
   }
 
   @Get()
   @ApiOperation({ summary: 'Get all active delays for the clinic' })
   async getActiveDelays(@Request() req: RequestWithUser) {
-    return this.doctorDelayService.getActiveDelaysForClinic(
-      req.user!.clinicId!,
-    );
+    const { clinicId } = getClinicStaffRequestContext(req);
+    return this.doctorDelayService.getActiveDelaysForClinic(clinicId);
   }
 
   @Get('doctor/:doctorId')
@@ -95,9 +93,7 @@ export class DoctorDelayController {
     @Param('doctorId') doctorId: string,
     @Request() req: RequestWithUser,
   ) {
-    return this.doctorDelayService.getActiveDelay(
-      doctorId,
-      req.user!.clinicId!,
-    );
+    const { clinicId } = getClinicStaffRequestContext(req);
+    return this.doctorDelayService.getActiveDelay(doctorId, clinicId);
   }
 }

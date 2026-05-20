@@ -49,6 +49,7 @@ export class PrescriptionPdfProcessor implements OnModuleInit {
         const { documentId, clinicId, pdfJobId } = job.data;
 
         if (pdfJobId) {
+          // RLS-BYPASS: prescription PDF worker processes jobs without request tenant context
           await this.persistence.runUnrestricted(async () =>
             this.persistence.pdfJob.update({
               where: { id: pdfJobId },
@@ -80,6 +81,7 @@ export class PrescriptionPdfProcessor implements OnModuleInit {
               PDF_SIGNED_URL_TTL_SECONDS,
             );
 
+            // RLS-BYPASS: prescription PDF worker processes jobs without request tenant context
             await this.persistence.runUnrestricted(async () =>
               this.persistence.pdfJob.update({
                 where: { id: pdfJobId },
@@ -99,6 +101,7 @@ export class PrescriptionPdfProcessor implements OnModuleInit {
           const isFinalAttempt = job.attemptsMade + 1 >= (job.maxAttempts ?? 1);
 
           if (pdfJobId && isFinalAttempt) {
+            // RLS-BYPASS: prescription PDF worker processes jobs without request tenant context
             await this.persistence.runUnrestricted(async () =>
               this.persistence.pdfJob.update({
                 where: { id: pdfJobId },

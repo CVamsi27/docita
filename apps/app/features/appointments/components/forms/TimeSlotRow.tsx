@@ -173,7 +173,9 @@ export const TimeSlotRow = memo<TimeSlotRowProps>(
                 <Button
                   size="sm"
                   variant="outline"
-                  onClick={() => onCheckIn(apt.id!)}
+                  onClick={() => {
+                    if (apt.id) onCheckIn(apt.id);
+                  }}
                   disabled={checkingIn === apt.id}
                   className="h-7 gap-1.5 rounded-full px-3 text-[length:var(--fs-xs)]"
                 >
@@ -197,7 +199,9 @@ export const TimeSlotRow = memo<TimeSlotRowProps>(
                 <Button
                   size="sm"
                   variant={isTerminalVisit ? "outline" : "default"}
-                  onClick={() => onStartConsultation(apt.id!)}
+                  onClick={() => {
+                    if (apt.id) onStartConsultation(apt.id);
+                  }}
                   disabled={startingConsultationId === apt.id}
                   className="h-7 gap-1.5 rounded-full px-3 text-[length:var(--fs-xs)]"
                 >

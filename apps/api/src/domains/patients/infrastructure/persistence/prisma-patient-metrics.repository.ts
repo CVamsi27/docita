@@ -19,13 +19,16 @@ import {
   MetricRecordRow,
   MetricSelectionRow,
 } from '@/domains/patients/core/repositories/patient-metrics.repository.interface';
+import { patientMetricValueJsonSchema } from '@workspace/types';
 import {
   MetricCardinality,
   MetricCaptureScope,
   MetricRecordSource,
   MetricValueType,
+  PatientMetricValue,
   Prisma,
 } from '@workspace/db';
+import { parsePrismaJsonColumn } from '@/shared/common/json/parse-prisma-json-column';
 
 function toMetricValueType(valueType: CreateMetricDefinitionDto['valueType']) {
   const mapping: Record<
@@ -91,6 +94,22 @@ export class PrismaPatientMetricsRepository implements IPatientMetricsRepository
 
   private getReadClient() {
     return this.prisma.getReadClient();
+  }
+
+  private mapMetricValue(value: PatientMetricValue) {
+    return {
+      ...value,
+      valueJson:
+        parsePrismaJsonColumn(value.valueJson, patientMetricValueJsonSchema) ??
+        null,
+    };
+  }
+
+  private mapMetricRecord<T extends { values: PatientMetricValue[] }>(record: T) {
+    return {
+      ...record,
+      values: record.values.map((value) => this.mapMetricValue(value)),
+    };
   }
 
   async findCategories(clinicId: string, patientId: string) {
@@ -381,6 +400,8 @@ export class PrismaPatientMetricsRepository implements IPatientMetricsRepository
       take: query.limit ?? 200,
     });
 
-    return records as MetricRecordRow[];
+    return records.map((record) =>
+      this.mapMetricRecord(record),
+    ) as MetricRecordRow[];
   }
 }

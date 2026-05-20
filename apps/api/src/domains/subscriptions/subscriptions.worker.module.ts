@@ -10,6 +10,7 @@ import {
   UpgradeSubscriptionUseCase,
   CancelSubscriptionUseCase,
   ActivateSubscriptionUseCase,
+  ApplyPlanChangeWithoutPaymentUseCase,
   CreateCheckoutUseCase,
   ExpireSubscriptionUseCase,
   EnterGracePeriodUseCase,
@@ -24,6 +25,7 @@ import { SubscriptionCheckoutPricingService } from './application/services/subsc
 import { SubscriptionActivationPolicyService } from './application/services/subscription-activation-policy.service';
 import { SubscriptionBillingSnapshotService } from './application/services/subscription-billing-snapshot.service';
 import { ActivateSubscriptionPaymentService } from './application/services/activate-subscription-payment.service';
+import { ActivateSubscriptionClinicSyncService } from './application/services/activate-subscription-clinic-sync.service';
 import { razorpayWebhookHandlerProviders } from './application/webhooks/razorpay/razorpay-webhook-handler.registry';
 import {
   SUBSCRIPTION_REPOSITORY_TOKEN,
@@ -72,6 +74,7 @@ import { AdminAlertsModule } from '@/shared/modules/messaging/admin-alerts/admin
     SubscriptionActivationPolicyService,
     SubscriptionBillingSnapshotService,
     ActivateSubscriptionPaymentService,
+    ActivateSubscriptionClinicSyncService,
     ProratingService,
     SubscriptionValidationService,
     ReferralService,
@@ -79,6 +82,7 @@ import { AdminAlertsModule } from '@/shared/modules/messaging/admin-alerts/admin
     UpgradeSubscriptionUseCase,
     CancelSubscriptionUseCase,
     ActivateSubscriptionUseCase,
+    ApplyPlanChangeWithoutPaymentUseCase,
     CreateCheckoutUseCase,
     ExpireSubscriptionUseCase,
     EnterGracePeriodUseCase,

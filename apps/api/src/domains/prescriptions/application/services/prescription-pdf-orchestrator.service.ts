@@ -72,11 +72,16 @@ export class PrescriptionPdfOrchestratorService {
     }
 
     const diagnoses = prescription.appointment?.diagnoses
-      ?.filter((d) => d.icdCode)
+      ?.filter(
+        (
+          d,
+        ): d is (typeof d & { icdCode: NonNullable<(typeof d)['icdCode']> }) =>
+          d.icdCode != null,
+      )
       .map((d) => ({
-        icdCode: d.icdCode!.code,
-        description: d.icdCode!.description,
-        version: d.icdCode!.version,
+        icdCode: d.icdCode.code,
+        description: d.icdCode.description,
+        version: d.icdCode.version,
         isPrimary: d.isPrimary,
       }));
 

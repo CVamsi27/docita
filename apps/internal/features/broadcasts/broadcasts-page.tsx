@@ -50,7 +50,7 @@ const STATUS_VARIANTS: Record<
 export function BroadcastsPage() {
   const queryClient = useQueryClient();
   const [presetId, setPresetId] = useState<BroadcastPresetId>(
-    BROADCAST_PRESETS[0]!.id,
+    BROADCAST_PRESETS[0]?.id ?? "",
   );
   const [title, setTitle] = useState("");
   const [messageOverride, setMessageOverride] = useState("");

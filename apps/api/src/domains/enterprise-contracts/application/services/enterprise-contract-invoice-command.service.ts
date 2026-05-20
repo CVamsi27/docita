@@ -36,6 +36,7 @@ export class EnterpriseContractInvoiceCommandService {
   ) {}
 
   async generateAnnualPrepayInvoice(contractId: string) {
+    // RLS-BYPASS: enterprise contract administration spans member clinics by design
     return this.persistence.runUnrestricted(async () => {
       const contract = await this.persistence.enterpriseContract.findUnique({
         where: { id: contractId },
@@ -66,53 +67,56 @@ export class EnterpriseContractInvoiceCommandService {
       const invoiceNumber = `ENT-PREPAY-${contract.contractNumber}-${periodStart.getFullYear()}`;
       const description = `Annual platform fee prepay for contract ${contract.contractNumber} (${periodStart.toISOString().slice(0, 10)} → ${periodEnd.toISOString().slice(0, 10)})${contract.annualPrepayDiscountPercent ? `, discount ${contract.annualPrepayDiscountPercent}%` : ''}`;
 
-      const payment = await this.persistence.subscriptionPayment.upsert({
-        where: {
-          clinicId_invoiceNumber: {
-            clinicId: contract.primaryClinicId,
-            invoiceNumber,
+      const invoice = await this.persistence.$transaction(async (tx) => {
+        const payment = await tx.subscriptionPayment.upsert({
+          where: {
+            clinicId_invoiceNumber: {
+              clinicId: contract.primaryClinicId,
+              invoiceNumber,
+            },
           },
-        },
-        update: {
-          amountCents: netCents,
-          currency: contract.currency,
-          description,
-        },
-        create: {
-          clinicId: contract.primaryClinicId,
-          amountCents: netCents,
-          currency: contract.currency,
-          status: 'pending',
-          invoiceNumber,
-          description,
-        },
-      });
+          update: {
+            amountCents: netCents,
+            currency: contract.currency,
+            description,
+          },
+          create: {
+            clinicId: contract.primaryClinicId,
+            amountCents: netCents,
+            currency: contract.currency,
+            status: 'pending',
+            invoiceNumber,
+            description,
+          },
+        });
 
-      const invoice = await this.persistence.enterpriseContractInvoice.upsert({
-        where: { subscriptionPaymentId: payment.id },
-        update: {
-          amountCents: netCents,
-          currency: contract.currency,
-          discountPercent: contract.annualPrepayDiscountPercent,
-          metadata: { grossCents, discountCents, netCents },
-        },
-        create: {
-          contractId,
-          kind: EnterpriseInvoiceKind.ANNUAL_PREPAY,
-          subscriptionPaymentId: payment.id,
-          amountCents: netCents,
-          currency: contract.currency,
-          periodStart,
-          periodEnd,
-          discountPercent: contract.annualPrepayDiscountPercent,
-          metadata: { grossCents, discountCents, netCents },
-        },
-        include: { subscriptionPayment: true },
-      });
+        const createdInvoice = await tx.enterpriseContractInvoice.upsert({
+          where: { subscriptionPaymentId: payment.id },
+          update: {
+            amountCents: netCents,
+            currency: contract.currency,
+            discountPercent: contract.annualPrepayDiscountPercent,
+            metadata: { grossCents, discountCents, netCents },
+          },
+          create: {
+            contractId,
+            kind: EnterpriseInvoiceKind.ANNUAL_PREPAY,
+            subscriptionPaymentId: payment.id,
+            amountCents: netCents,
+            currency: contract.currency,
+            periodStart,
+            periodEnd,
+            discountPercent: contract.annualPrepayDiscountPercent,
+            metadata: { grossCents, discountCents, netCents },
+          },
+          include: { subscriptionPayment: true },
+        });
 
-      await this.persistence.enterpriseContract.update({
-        where: { id: contractId },
-        data: { annualPrepayInvoiceId: invoice.id },
+        await tx.enterpriseContract.update({
+          where: { id: contractId },
+          data: { annualPrepayInvoiceId: createdInvoice.id },
+        });
+        return createdInvoice;
       });
       this.logger.log(
         `Annual prepay invoice generated for contract ${contract.contractNumber}: net ${netCents / 100} ${contract.currency}`,
@@ -124,6 +128,7 @@ export class EnterpriseContractInvoiceCommandService {
   async evaluateAndAlertTrueUp(
     contractId: string,
   ): Promise<{ alerted: boolean; observedPercent: number }> {
+    // RLS-BYPASS: enterprise contract administration spans member clinics by design
     return this.persistence.runUnrestricted(async () => {
       const contract = await this.persistence.enterpriseContract.findUnique({
         where: { id: contractId },

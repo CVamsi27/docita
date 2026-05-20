@@ -49,6 +49,7 @@ export class EnterpriseContractsCommandService {
     if (endDate.getTime() <= startDate.getTime())
       throw new BadRequestException('endDate must be after startDate');
 
+    // RLS-BYPASS: enterprise contract administration spans member clinics by design
     const clinic = await this.persistence.runUnrestricted(async () =>
       this.persistence.clinic.findUnique({ where: { id: primaryClinicId } }),
     );
@@ -96,55 +97,59 @@ export class EnterpriseContractsCommandService {
         signedDocumentUrl: payload.signedDocumentUrl ?? null,
       };
 
-      const contract = await this.persistence.enterpriseContract.upsert({
-        where: { contractNumber: payload.contractNumber },
-        update: { ...data },
-        create: { ...data },
-      });
+      const result = await this.persistence.$transaction(async (tx) => {
+        const contract = await tx.enterpriseContract.upsert({
+          where: { contractNumber: payload.contractNumber },
+          update: { ...data },
+          create: { ...data },
+        });
 
-      await this.persistence.enterpriseContractMember.upsert({
-        where: { clinicId: primaryClinicId },
-        update: { contractId: contract.id, removedAt: null },
-        create: { contractId: contract.id, clinicId: primaryClinicId },
-      });
+        await tx.enterpriseContractMember.upsert({
+          where: { clinicId: primaryClinicId },
+          update: { contractId: contract.id, removedAt: null },
+          create: { contractId: contract.id, clinicId: primaryClinicId },
+        });
 
-      const memberClinicIds = (
-        await this.persistence.enterpriseContractMember.findMany({
-          where: { contractId: contract.id, removedAt: null },
-        })
-      ).map((m) => m.clinicId);
+        const memberClinicIds = (
+          await tx.enterpriseContractMember.findMany({
+            where: { contractId: contract.id, removedAt: null },
+          })
+        ).map((m) => m.clinicId);
 
-      await this.persistence.subscription.updateMany({
-        where: { clinicId: { in: memberClinicIds } },
-        data: {
-          plan: ClinicTier.ENTERPRISE,
-          basePriceCents: contract.platformFeeCents,
-          currency: contract.currency,
-          billingCycle: contract.billingCycle,
-          includedAppointments: contract.includedConsultations,
-          includedUsers: contract.includedUsers,
-          includedStorageGB: contract.includedStorageGB,
-        },
-      });
+        await tx.subscription.updateMany({
+          where: { clinicId: { in: memberClinicIds } },
+          data: {
+            plan: ClinicTier.ENTERPRISE,
+            basePriceCents: contract.platformFeeCents,
+            currency: contract.currency,
+            billingCycle: contract.billingCycle,
+            includedAppointments: contract.includedConsultations,
+            includedUsers: contract.includedUsers,
+            includedStorageGB: contract.includedStorageGB,
+          },
+        });
 
-      await this.persistence.enterpriseContractRevision.create({
-        data: {
-          contractId: contract.id,
-          effectiveDate: this.clock.now(),
-          changeSummary:
-            payload.changeSummary ?? (existing ? 'Updated' : 'Created'),
-          snapshot: JSON.parse(JSON.stringify(existing ?? {})),
-          createdById: actorUserId ?? null,
-        },
+        await tx.enterpriseContractRevision.create({
+          data: {
+            contractId: contract.id,
+            effectiveDate: this.clock.now(),
+            changeSummary:
+              payload.changeSummary ?? (existing ? 'Updated' : 'Created'),
+            snapshot: JSON.parse(JSON.stringify(existing ?? {})),
+            createdById: actorUserId ?? null,
+          },
+        });
+
+        return tx.enterpriseContract.findUniqueOrThrow({
+          where: { id: contract.id },
+          include: { members: true },
+        });
       });
 
       this.logger.log(
-        `Enterprise contract ${existing ? 'updated' : 'created'} for ${contract.contractNumber} (primary clinic ${primaryClinicId}, ${memberClinicIds.length} members)`,
+        `Enterprise contract ${existing ? 'updated' : 'created'} for ${result.contractNumber} (primary clinic ${primaryClinicId}, ${result.members.length} members)`,
       );
-      return this.persistence.enterpriseContract.findUniqueOrThrow({
-        where: { id: contract.id },
-        include: { members: true },
-      });
+      return result;
     });
   }
 
@@ -153,6 +158,7 @@ export class EnterpriseContractsCommandService {
     status: EnterpriseContractStatus,
     actorUserId?: string,
   ): Promise<ContractWithMembers> {
+    // RLS-BYPASS: enterprise contract administration spans member clinics by design
     return this.persistence.runUnrestricted(async () => {
       const existing = await this.persistence.enterpriseContract.findUnique({
         where: { id: contractId },
@@ -183,6 +189,7 @@ export class EnterpriseContractsCommandService {
     clinicId: string,
     actorUserId?: string,
   ): Promise<ContractWithMembers> {
+    // RLS-BYPASS: enterprise contract administration spans member clinics by design
     return this.persistence.runUnrestricted(async () => {
       const contract = await this.persistence.enterpriseContract.findUnique({
         where: { id: contractId },
@@ -202,35 +209,37 @@ export class EnterpriseContractsCommandService {
           `Clinic ${clinicId} is already a member of contract ${existingMember.contractId}`,
         );
       }
-      await this.persistence.enterpriseContractMember.upsert({
-        where: { clinicId },
-        update: { contractId, removedAt: null },
-        create: { contractId, clinicId },
-      });
-      await this.persistence.subscription.updateMany({
-        where: { clinicId },
-        data: {
-          plan: ClinicTier.ENTERPRISE,
-          basePriceCents: contract.platformFeeCents,
-          currency: contract.currency,
-          billingCycle: contract.billingCycle,
-          includedAppointments: contract.includedConsultations,
-          includedUsers: contract.includedUsers,
-          includedStorageGB: contract.includedStorageGB,
-        },
-      });
-      await this.persistence.enterpriseContractRevision.create({
-        data: {
-          contractId,
-          effectiveDate: this.clock.now(),
-          changeSummary: `Added member clinic ${clinicId}`,
-          snapshot: {},
-          createdById: actorUserId ?? null,
-        },
-      });
-      return this.persistence.enterpriseContract.findUniqueOrThrow({
-        where: { id: contractId },
-        include: { members: true },
+      return this.persistence.$transaction(async (tx) => {
+        await tx.enterpriseContractMember.upsert({
+          where: { clinicId },
+          update: { contractId, removedAt: null },
+          create: { contractId, clinicId },
+        });
+        await tx.subscription.updateMany({
+          where: { clinicId },
+          data: {
+            plan: ClinicTier.ENTERPRISE,
+            basePriceCents: contract.platformFeeCents,
+            currency: contract.currency,
+            billingCycle: contract.billingCycle,
+            includedAppointments: contract.includedConsultations,
+            includedUsers: contract.includedUsers,
+            includedStorageGB: contract.includedStorageGB,
+          },
+        });
+        await tx.enterpriseContractRevision.create({
+          data: {
+            contractId,
+            effectiveDate: this.clock.now(),
+            changeSummary: `Added member clinic ${clinicId}`,
+            snapshot: {},
+            createdById: actorUserId ?? null,
+          },
+        });
+        return tx.enterpriseContract.findUniqueOrThrow({
+          where: { id: contractId },
+          include: { members: true },
+        });
       });
     });
   }
@@ -240,6 +249,7 @@ export class EnterpriseContractsCommandService {
     clinicId: string,
     actorUserId?: string,
   ): Promise<ContractWithMembers> {
+    // RLS-BYPASS: enterprise contract administration spans member clinics by design
     return this.persistence.runUnrestricted(async () => {
       const contract = await this.persistence.enterpriseContract.findUnique({
         where: { id: contractId },
