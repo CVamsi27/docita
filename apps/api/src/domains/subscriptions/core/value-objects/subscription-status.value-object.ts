@@ -1,3 +1,5 @@
+import { InvariantViolationError } from '@/shared/common/errors/domain.errors';
+
 export enum SubscriptionStatusEnum {
   ACTIVE = 'ACTIVE',
   TRIALING = 'TRIALING',
@@ -51,7 +53,9 @@ export class SubscriptionStatus {
   static fromString(value: string): SubscriptionStatus {
     const statusValue = value.toUpperCase() as SubscriptionStatusEnum;
     if (!Object.values(SubscriptionStatusEnum).includes(statusValue)) {
-      throw new Error(`Invalid subscription status: ${value}`);
+      throw new InvariantViolationError(
+        `Invalid subscription status: ${value}`,
+      );
     }
     return new SubscriptionStatus(statusValue);
   }
@@ -94,7 +98,9 @@ export class SubscriptionStatus {
 
   transitionTo(newStatus: SubscriptionStatusEnum): SubscriptionStatus {
     if (!this.canTransitionTo(newStatus)) {
-      throw new Error(`Cannot transition from ${this.value} to ${newStatus}`);
+      throw new InvariantViolationError(
+        `Cannot transition from ${this.value} to ${newStatus}`,
+      );
     }
     return new SubscriptionStatus(newStatus);
   }

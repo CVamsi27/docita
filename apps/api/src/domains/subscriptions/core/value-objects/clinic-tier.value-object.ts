@@ -1,3 +1,5 @@
+import { InvariantViolationError } from '@/shared/common/errors/domain.errors';
+
 export enum ClinicTierEnum {
   STARTER = 'STARTER',
   ESSENTIAL = 'ESSENTIAL',
@@ -41,7 +43,7 @@ export class ClinicTier {
     if (legacy) {
       return new ClinicTier(legacy);
     }
-    throw new Error(`Invalid clinic tier: ${value}`);
+    throw new InvariantViolationError(`Invalid clinic tier: ${value}`);
   }
 
   isStarter(): boolean {

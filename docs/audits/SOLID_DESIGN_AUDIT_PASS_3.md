@@ -658,7 +658,9 @@ Each split: write the narrower interfaces, repository class implements all, regi
   export class ConflictDomainError extends DomainError {}
   ```
 - Appointment and patient entities now throw `InvariantViolationError` for core invariants.
-- Remaining: convert the wider entity / value-object long tail called out in later phases.
+- Billing, payments, clinical, prescriptions, and subscriptions core entities/value objects/services now use `InvariantViolationError` for domain invariant failures.
+- Verification: `rg "throw new Error\\(" apps/api/src/domains/*/core -g '*.ts'` returns no findings; touched API lint + API `check-types` pass.
+- Remaining: convert non-core application-service integration failures where they are domain invariants instead of external provider/runtime failures.
 
 **L3 [M] Extend HTTP filter — DONE (2026-05-20)**
 - `http-exception.filter.ts` maps `NotFoundDomainError` → 404, `ConflictDomainError` → 409, and `InvariantViolationError` → 422.
@@ -1055,6 +1057,7 @@ Each split: write the narrower interfaces, repository class implements all, regi
 **T2 [H] 216 `!` non-null assertions**
 - Convert to narrowing `if`s or Zod parses.
 - Enforce: `"@typescript-eslint/no-non-null-assertion": "error"` with per-file disable list that shrinks.
+- Progress (2026-05-20): billing presentation controllers now use `billing-request-context.ts` for typed clinic/user narrowing; `invoices`, `desk`, and `payments` controllers have 0 `req.user!` / non-null request-context assertions.
 
 **T3 [M] 45 unguarded `JSON.parse`**
 - Helper in `@workspace/utils/json/safe-parse.ts`:

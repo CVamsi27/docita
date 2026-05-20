@@ -6,6 +6,7 @@ import {
   SubscriptionPrice,
   DiscountAggregate,
 } from '@/domains/subscriptions/core/value-objects';
+import { InvariantViolationError } from '@/shared/common/errors/domain.errors';
 
 /** Persistent shape for a scheduled plan change (downgrade or cycle swap). */
 export interface ScheduledPlanChange {
@@ -90,10 +91,12 @@ export class Subscription {
 
   private validate(): void {
     if (this.currentPeriodStart >= this.currentPeriodEnd) {
-      throw new Error('Current period start must be before end');
+      throw new InvariantViolationError(
+        'Current period start must be before end',
+      );
     }
     if (this.basePriceCents < 0) {
-      throw new Error('Base price cannot be negative');
+      throw new InvariantViolationError('Base price cannot be negative');
     }
   }
 
@@ -168,7 +171,7 @@ export class Subscription {
     now: Date,
   ) {
     if (!newTier.isUpgradeTo(this.plan)) {
-      throw new Error('New tier must be an upgrade');
+      throw new InvariantViolationError('New tier must be an upgrade');
     }
     if (immediate) {
       this.plan = newTier;
@@ -318,7 +321,10 @@ export class Subscription {
       this.currentPeriodStart = start;
     } else {
       this.currentPeriodStart = start;
-      this.currentPeriodEnd = Subscription.calculatePeriodEnd(start, billingCycle);
+      this.currentPeriodEnd = Subscription.calculatePeriodEnd(
+        start,
+        billingCycle,
+      );
     }
 
     this.status = new SubscriptionStatus(SubscriptionStatusEnum.ACTIVE);

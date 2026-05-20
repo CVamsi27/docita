@@ -29,6 +29,7 @@ import {
 import { UseInterceptors } from '@nestjs/common';
 import { RequestWithUser } from '@/shared/common/types/common.types';
 import { AppConfigService } from '@/shared/modules/config/app-configuration.service';
+import { getBillingRequestContext } from './billing-request-context';
 
 @Controller('payments')
 @UseGuards(TierGuard)
@@ -48,9 +49,11 @@ export class PaymentsController {
     @Body() dto: CreatePaymentLinkDto,
     @Request() req: RequestWithUser,
   ) {
+    const { clinicId } = getBillingRequestContext(req);
+
     return this.paymentsService.createPaymentLink({
       ...dto,
-      clinicId: req.user!.clinicId!,
+      clinicId,
       currency: dto.currency || this.configService.getCurrencyCode(),
     });
   }
@@ -59,7 +62,7 @@ export class PaymentsController {
   @RequireFeature(Feature.PAYMENT_LINKS)
   @ZodSerializerDto(AnyResponseDto)
   async sendWhatsApp(@Param('id') id: string, @Request() req: RequestWithUser) {
-    const clinicId = req.user!.clinicId!;
+    const { clinicId } = getBillingRequestContext(req);
     await this.paymentsService.verifySessionOwnership(id, clinicId);
     return this.paymentsService.sendPaymentLinkWhatsApp(id, clinicId);
   }
@@ -71,7 +74,7 @@ export class PaymentsController {
     @Param('id') id: string,
     @Request() req: RequestWithUser,
   ) {
-    const clinicId = req.user!.clinicId!;
+    const { clinicId } = getBillingRequestContext(req);
     await this.paymentsService.verifySessionOwnership(id, clinicId);
     return this.paymentsService.getPaymentSession(id, clinicId);
   }

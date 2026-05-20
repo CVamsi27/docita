@@ -1,3 +1,5 @@
+import { InvariantViolationError } from '@/shared/common/errors/domain.errors';
+
 export enum DiscountType {
   PROMOTIONAL = 'PROMOTIONAL',
 }
@@ -17,7 +19,9 @@ export class Discount {
 
   constructor(props: DiscountProps) {
     if (props.percentOff < 0 || props.percentOff > 100) {
-      throw new Error('Discount percentage must be between 0 and 100');
+      throw new InvariantViolationError(
+        'Discount percentage must be between 0 and 100',
+      );
     }
     this.type = props.type;
     this.percentOff = props.percentOff;
@@ -55,7 +59,7 @@ export class DiscountAggregate {
 
   addDiscount(discount: Discount, asOf: Date): DiscountAggregate {
     if (!discount.isValid(asOf)) {
-      throw new Error('Cannot add expired discount');
+      throw new InvariantViolationError('Cannot add expired discount');
     }
     this.discounts.push(discount);
     return this;

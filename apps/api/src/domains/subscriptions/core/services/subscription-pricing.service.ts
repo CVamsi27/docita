@@ -5,6 +5,7 @@ import {
   DiscountAggregate,
 } from '@/domains/subscriptions/core/value-objects';
 import { ANNUAL_DISCOUNT_PERCENT, TIER_PRICING } from '@workspace/types';
+import { InvariantViolationError } from '@/shared/common/errors/domain.errors';
 
 export class SubscriptionPricingService {
   getPricePaise(
@@ -15,7 +16,9 @@ export class SubscriptionPricingService {
     const tierName = tier.toString() as keyof typeof TIER_PRICING;
     const pricing = TIER_PRICING[tierName];
     if (!pricing) {
-      throw new Error(`Pricing not found for tier: ${tier.toString()}`);
+      throw new InvariantViolationError(
+        `Pricing not found for tier: ${tier.toString()}`,
+      );
     }
 
     let paise = 0;

@@ -48,6 +48,7 @@ import {
   logClinicPhiListRead,
   logPatientPhiRead,
 } from '@/shared/modules/audit/audit/patient-access-audit.util';
+import { getBillingRequestContext } from './billing-request-context';
 
 @Controller('invoices')
 @UseGuards(TierGuard)
@@ -68,6 +69,7 @@ export class InvoicesController {
     @Request() req: RequestWithUser,
     @Query() query?: ListInvoicesQueryDto,
   ) {
+    const { clinicId } = getBillingRequestContext(req);
     const { cursor, limit, patientId, status, date, search } = query ?? {};
 
     if (patientId) {
@@ -87,7 +89,7 @@ export class InvoicesController {
       );
     }
 
-    return this.invoicesService.findAll(req.user!.clinicId!, {
+    return this.invoicesService.findAll(clinicId, {
       cursor,
       limit,
       patientId,
@@ -104,21 +106,23 @@ export class InvoicesController {
     @Request() req: RequestWithUser,
     @Param('id') id: string,
   ) {
-    const invoice = await this.invoicesService.findOne(id, req.user!.clinicId!);
+    const { clinicId } = getBillingRequestContext(req);
+    const invoice = await this.invoicesService.findOne(id, clinicId);
     await logPatientPhiRead(
       this.auditService,
       req,
       invoice.patientId,
       'VIEW_PROFILE',
     );
-    return this.invoicesService.listPaymentActivity(id, req.user!.clinicId!);
+    return this.invoicesService.listPaymentActivity(id, clinicId);
   }
 
   @Get(':id')
   @RequireFeature(Feature.INVOICING)
   @ZodSerializerDto(InvoiceResponseDto)
   async findOne(@Request() req: RequestWithUser, @Param('id') id: string) {
-    const invoice = await this.invoicesService.findOne(id, req.user!.clinicId!);
+    const { clinicId } = getBillingRequestContext(req);
+    const invoice = await this.invoicesService.findOne(id, clinicId);
     await logPatientPhiRead(
       this.auditService,
       req,
@@ -135,7 +139,7 @@ export class InvoicesController {
   create(@Request() req: RequestWithUser, @Body() dto: CreateInvoiceDto) {
     return this.invoicesService.create({
       ...dto,
-      clinicId: req.user!.clinicId!,
+      clinicId: getBillingRequestContext(req).clinicId,
     });
   }
 
@@ -147,7 +151,11 @@ export class InvoicesController {
     @Param('id') id: string,
     @Body() dto: UpdateInvoiceDto,
   ) {
-    return this.invoicesService.update(id, dto, req.user!.clinicId!);
+    return this.invoicesService.update(
+      id,
+      dto,
+      getBillingRequestContext(req).clinicId,
+    );
   }
 
   @Get(':id/claim-readiness')
@@ -156,20 +164,24 @@ export class InvoicesController {
     @Request() req: RequestWithUser,
     @Param('id') id: string,
   ) {
-    const invoice = await this.invoicesService.findOne(id, req.user!.clinicId!);
+    const { clinicId } = getBillingRequestContext(req);
+    const invoice = await this.invoicesService.findOne(id, clinicId);
     await logPatientPhiRead(
       this.auditService,
       req,
       invoice.patientId,
       'VIEW_PROFILE',
     );
-    return this.invoicesService.getClaimReadiness(id, req.user!.clinicId!);
+    return this.invoicesService.getClaimReadiness(id, clinicId);
   }
 
   @Post(':id/submit-claim')
   @RequireFeature(Feature.INVOICING)
   submitClaim(@Request() req: RequestWithUser, @Param('id') id: string) {
-    return this.invoicesService.submitClaim(id, req.user!.clinicId!);
+    return this.invoicesService.submitClaim(
+      id,
+      getBillingRequestContext(req).clinicId,
+    );
   }
 
   @Get(':id/pdf/status')
@@ -179,14 +191,15 @@ export class InvoicesController {
     @Param('id') id: string,
     @Query('jobId') jobId: string,
   ) {
-    const invoice = await this.invoicesService.findOne(id, req.user!.clinicId!);
+    const { clinicId } = getBillingRequestContext(req);
+    const invoice = await this.invoicesService.findOne(id, clinicId);
     await logPatientPhiRead(
       this.auditService,
       req,
       invoice.patientId,
       'VIEW_PROFILE',
     );
-    return this.pdfJobService.getStatus(jobId, req.user!.clinicId!);
+    return this.pdfJobService.getStatus(jobId, clinicId);
   }
 
   @Get(':id/pdf')
@@ -197,7 +210,8 @@ export class InvoicesController {
     @Query('async') isAsync: string,
     @Res() res: Response,
   ) {
-    const invoice = await this.invoicesService.findOne(id, req.user!.clinicId!);
+    const { clinicId } = getBillingRequestContext(req);
+    const invoice = await this.invoicesService.findOne(id, clinicId);
     await logPatientPhiRead(
       this.auditService,
       req,
@@ -206,14 +220,11 @@ export class InvoicesController {
     );
 
     if (isAsync === 'true') {
-      const result = await this.invoicesService.generatePdfAsync(
-        id,
-        req.user!.clinicId!,
-      );
+      const result = await this.invoicesService.generatePdfAsync(id, clinicId);
       return res.status(HttpStatus.ACCEPTED).json(result);
     }
 
-    const result = await this.invoicesService.getPdf(id, req.user!.clinicId!);
+    const result = await this.invoicesService.getPdf(id, clinicId);
 
     if (result.type === 'url') {
       return res.json({ url: result.url });

@@ -4,6 +4,7 @@ import {
   BILLING_CYCLE_MONTHLY_DIVISOR,
   BillingCycleEnum,
 } from './billing-cycle.policy';
+import { InvariantViolationError } from '@/shared/common/errors/domain.errors';
 
 export { BillingCycleEnum } from './billing-cycle.policy';
 
@@ -13,7 +14,7 @@ export class BillingCycle {
   static fromString(value: string): BillingCycle {
     const cycle = Object.values(BillingCycleEnum).find((v) => v === value);
     if (!cycle) {
-      throw new Error(`Invalid billing cycle: ${value}`);
+      throw new InvariantViolationError(`Invalid billing cycle: ${value}`);
     }
     return new BillingCycle(cycle);
   }

@@ -1,4 +1,5 @@
 import { formatCurrency } from '@workspace/utils';
+import { InvariantViolationError } from '@/shared/common/errors/domain.errors';
 
 export enum PaymentStatusEnum {
   PENDING = 'PENDING',
@@ -67,10 +68,10 @@ export class SubscriptionPayment {
 
   private validate(): void {
     if (this.amountCents < 0) {
-      throw new Error('Payment amount cannot be negative');
+      throw new InvariantViolationError('Payment amount cannot be negative');
     }
     if (this.creditsApplied < 0) {
-      throw new Error('Credits applied cannot be negative');
+      throw new InvariantViolationError('Credits applied cannot be negative');
     }
   }
 
@@ -96,7 +97,9 @@ export class SubscriptionPayment {
 
   markAsPaid(paidAt: Date, now: Date): void {
     if (!this.isPending()) {
-      throw new Error(`Cannot mark ${this.status} payment as paid`);
+      throw new InvariantViolationError(
+        `Cannot mark ${this.status} payment as paid`,
+      );
     }
     this.status = PaymentStatusEnum.PAID;
     this.paidAt = paidAt;
@@ -105,7 +108,7 @@ export class SubscriptionPayment {
 
   markAsFailed(reason: string, now: Date): void {
     if (this.isPaid() || this.isRefunded()) {
-      throw new Error(
+      throw new InvariantViolationError(
         `Cannot mark completed payment (${this.status}) as failed`,
       );
     }
@@ -116,7 +119,7 @@ export class SubscriptionPayment {
 
   refund(now: Date): void {
     if (!this.isPaid()) {
-      throw new Error('Can only refund paid payments');
+      throw new InvariantViolationError('Can only refund paid payments');
     }
     this.status = PaymentStatusEnum.REFUNDED;
     this.updatedAt = now;

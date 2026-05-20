@@ -1,4 +1,5 @@
 import { LabTestOrderStatus } from '@workspace/db';
+import { InvariantViolationError } from '@/shared/common/errors/domain.errors';
 
 export class LabOrder {
   constructor(
@@ -28,9 +29,15 @@ export class LabOrder {
     createdAt?: Date;
     updatedAt?: Date;
   }): LabOrder {
-    if (!props.patientId) throw new Error('Patient ID is required');
-    if (!props.labTestId) throw new Error('Lab Test ID is required');
-    if (!props.clinicId) throw new Error('Clinic ID is required');
+    if (!props.patientId) {
+      throw new InvariantViolationError('Patient ID is required');
+    }
+    if (!props.labTestId) {
+      throw new InvariantViolationError('Lab Test ID is required');
+    }
+    if (!props.clinicId) {
+      throw new InvariantViolationError('Clinic ID is required');
+    }
 
     return new LabOrder(
       props.id || '',

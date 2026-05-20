@@ -18,6 +18,7 @@ import { RequestWithUser } from '@/shared/common/types/common.types';
 import { PaymentsService } from '@/domains/billing/application/services/payments.service';
 import { DeskRecordInvoiceSettlementBodyDto } from '@/domains/billing/application/dto/desk.dto';
 import { AnyResponseDto } from '@/domains/billing/application/dto/payments.dto';
+import { getBillingRequestContext } from './billing-request-context';
 
 /**
  * Flow B (patient pays clinic): front-desk settlement (cash / POS / UPI /
@@ -40,10 +41,12 @@ export class DeskController {
     @Body() dto: DeskRecordInvoiceSettlementBodyDto,
     @Request() req: RequestWithUser,
   ) {
+    const { clinicId, userId } = getBillingRequestContext(req);
+
     return this.paymentsService.markInvoicePaidManually({
       invoiceId,
-      clinicId: req.user!.clinicId!,
-      performedByUserId: req.user!.id,
+      clinicId,
+      performedByUserId: userId,
       paymentMethod: dto.paymentMethod,
       amount: dto.amount,
       notes: dto.notes,
