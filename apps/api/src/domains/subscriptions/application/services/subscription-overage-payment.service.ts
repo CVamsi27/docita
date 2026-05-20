@@ -12,7 +12,12 @@ import { Money } from '@/domains/payments/core/value-objects/money.vo';
 import { Role } from '@workspace/db';
 import { OverageInvoiceComposer } from '@/domains/subscriptions/infrastructure/schedulers/overage-invoice.composer';
 
+// AuditLogged: subscription overage invoice/payment recovery is billing-sensitive.
 @Injectable()
+/**
+ * Facade for overage-payment recovery; persistence, payment-provider calls, and
+ * invoice text composition stay behind injected ports/services.
+ */
 export class SubscriptionOveragePaymentService {
   private readonly logger = new Logger(SubscriptionOveragePaymentService.name);
 

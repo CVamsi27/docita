@@ -21,3 +21,10 @@ export class NotFoundDomainError extends DomainError {
     this.name = 'NotFoundDomainError';
   }
 }
+
+export class ConflictDomainError extends DomainError {
+  constructor(message: string) {
+    super(message);
+    this.name = 'ConflictDomainError';
+  }
+}

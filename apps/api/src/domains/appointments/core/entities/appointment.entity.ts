@@ -4,6 +4,7 @@ import {
   intervalsOverlap,
   type AppointmentTimeSlot,
 } from '@/domains/appointments/core/domain-services/appointment-interval-overlap';
+import { InvariantViolationError } from '@/shared/common/errors/domain.errors';
 import type { DentalChartData, JsonValue } from '@workspace/types';
 
 export interface AppointmentProps {
@@ -138,11 +139,15 @@ export class Appointment {
 
   private validate(): void {
     if (this.startTime >= this.endTime) {
-      throw new Error('Appointment start time must be before end time');
+      throw new InvariantViolationError(
+        'Appointment start time must be before end time',
+      );
     }
 
     if (!this.clinicId || !this.patientId || !this.doctorId) {
-      throw new Error('Clinic, Patient, and Doctor IDs are required');
+      throw new InvariantViolationError(
+        'Clinic, Patient, and Doctor IDs are required',
+      );
     }
   }
 
@@ -199,11 +204,15 @@ export class Appointment {
 
   reschedule(startTime: Date, endTime: Date, now: Date): void {
     if (this.status.isCompleted() || this.status.isCancelled()) {
-      throw new Error('Cannot reschedule a completed or cancelled appointment');
+      throw new InvariantViolationError(
+        'Cannot reschedule a completed or cancelled appointment',
+      );
     }
 
     if (startTime >= endTime) {
-      throw new Error('Start time must be before end time');
+      throw new InvariantViolationError(
+        'Start time must be before end time',
+      );
     }
 
     this.startTime = startTime;
@@ -213,7 +222,9 @@ export class Appointment {
 
   cancel(reason: string, now: Date): void {
     if (this.status.isCompleted()) {
-      throw new Error('Cannot cancel a completed appointment');
+      throw new InvariantViolationError(
+        'Cannot cancel a completed appointment',
+      );
     }
 
     if (this.status.isCancelled()) {
@@ -228,7 +239,9 @@ export class Appointment {
 
   complete(now: Date): void {
     if (this.status.isCancelled()) {
-      throw new Error('Cannot complete a cancelled appointment');
+      throw new InvariantViolationError(
+        'Cannot complete a cancelled appointment',
+      );
     }
 
     this.status = AppointmentStatus.completed();

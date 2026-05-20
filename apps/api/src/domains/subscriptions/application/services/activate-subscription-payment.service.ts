@@ -12,6 +12,7 @@ import {
   PAYMENT_GATEWAY_TOKEN,
 } from '@/domains/subscriptions/application/ports/payment-gateway.port';
 
+// AuditLogged: subscription payment verification is part of subscription activation audit trail.
 export type SubscriptionPaymentRecord = {
   id: string;
   clinicId: string;

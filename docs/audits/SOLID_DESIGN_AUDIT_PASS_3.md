@@ -642,27 +642,25 @@ Each split: write the narrower interfaces, repository class implements all, regi
 
 ### A.4 Phase L — Errors
 
-**L1 [H] Bare `throw new Error()` in infra repositories**
-- `prisma-patient.repository.ts:123,126,136` → `BadRequestException('Patient id is required for update')`, `BadRequestException('Patient clinicId is required for update')`, `NotFoundException(\`Patient ${id} not found\`)`.
-- `prisma-appointment.repository.ts:310` → `NotFoundException(\`Appointment with ID ${id} not found\`)`.
+**L1 [H] Bare `throw new Error()` in infra repositories — DONE (2026-05-20)**
+- `prisma-patient.repository.ts` update guard failures now throw `BadRequestException` / `NotFoundException`.
+- `prisma-appointment-write.repository.ts` and `prisma-appointment-request.repository.ts` not-found paths now throw `NotFoundException`.
+- Verification: focused repo specs + API spec typecheck pass.
 
-**L2 [M] Domain-error hierarchy**
-- New file `apps/api/src/shared/common/errors/domain-errors.ts`:
+**L2 [M] Domain-error hierarchy — PARTIAL (2026-05-20)**
+- `apps/api/src/shared/common/errors/domain.errors.ts` contains:
   ```ts
   export class DomainError extends Error {}
   export class InvariantViolationError extends DomainError {}
   export class NotFoundDomainError extends DomainError {}
   export class ConflictDomainError extends DomainError {}
   ```
-- Entities + VOs throw `InvariantViolationError`.
+- Appointment and patient entities now throw `InvariantViolationError` for core invariants.
+- Remaining: convert the wider entity / value-object long tail called out in later phases.
 
-**L3 [M] Extend HTTP filter**
-- `http-exception.filter.ts` already handles Prisma. Add:
-  ```ts
-  if (exception instanceof NotFoundDomainError) return host.switchToHttp().getResponse().status(404).json(...);
-  if (exception instanceof ConflictDomainError) return ... status(409) ...;
-  if (exception instanceof InvariantViolationError) return ... status(422) ...;
-  ```
+**L3 [M] Extend HTTP filter — DONE (2026-05-20)**
+- `http-exception.filter.ts` maps `NotFoundDomainError` → 404, `ConflictDomainError` → 409, and `InvariantViolationError` → 422.
+- Verification: `http-exception.filter.spec.ts` covers all three mappings.
 
 ### A.4 Phase M — DRY
 
@@ -1158,7 +1156,7 @@ Execute in order. Each tier is a coherent PR set.
 2. Σ2 — Shared Razorpay ingress — **PARTIAL** (`razorpay-webhook-verification.helper.ts`; routes stay split by domain)
 
 ### Tier 1 — Foundations
-3. L2 + L3 + L1 — domain errors → infra exceptions → HTTP filter
+3. L2 + L3 + L1 — domain errors → infra exceptions → HTTP filter — **PARTIAL** (L1/L3 done; L2 long-tail remains)
 4. G1 — tier helpers `packages/types` → `packages/utils`
 5. N1 + N3 — finish 6 `process.env` + lift `validatedEnv`
 6. Ξ1 + Ξ2 + Ξ4 — dead deps, types/utils, per-package check-types

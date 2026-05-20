@@ -1,4 +1,9 @@
-import { Inject, Injectable, BadRequestException } from '@nestjs/common';
+import {
+  BadRequestException,
+  Inject,
+  Injectable,
+  NotFoundException,
+} from '@nestjs/common';
 import {
   CLOCK_PORT,
   type IClock,
@@ -44,7 +49,7 @@ export class PrismaAppointmentWriteRepository implements IAppointmentWriteReposi
       },
     });
     if (result.count === 0) {
-      throw new BadRequestException(`Appointment ${id} not found`);
+      throw new NotFoundException(`Appointment ${id} not found`);
     }
   }
 
@@ -74,7 +79,7 @@ export class PrismaAppointmentWriteRepository implements IAppointmentWriteReposi
           },
         });
         if (result.count === 0) {
-          throw new Error(`Appointment with ID ${id} not found`);
+          throw new NotFoundException(`Appointment with ID ${id} not found`);
         }
       }
 

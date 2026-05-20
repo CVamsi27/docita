@@ -19,6 +19,7 @@ import { ZodIssue } from 'zod';
 import { AppConfigService } from '@/shared/modules/config/app-configuration.service';
 import { mapPrismaKnownRequestError } from '@/shared/modules/error-handling/filters/prisma-error.registry';
 import {
+  ConflictDomainError,
   DomainError,
   InvariantViolationError,
   NotFoundDomainError,
@@ -211,8 +212,12 @@ export class AllExceptionsFilter implements ExceptionFilter {
       status = HttpStatus.NOT_FOUND;
       errorType = 'NotFoundDomainError';
       message = exception.message;
+    } else if (exception instanceof ConflictDomainError) {
+      status = HttpStatus.CONFLICT;
+      errorType = 'ConflictDomainError';
+      message = exception.message;
     } else if (exception instanceof InvariantViolationError) {
-      status = HttpStatus.BAD_REQUEST;
+      status = HttpStatus.UNPROCESSABLE_ENTITY;
       errorType = 'InvariantViolationError';
       message = exception.message;
     } else if (exception instanceof DomainError) {

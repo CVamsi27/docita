@@ -1,3 +1,5 @@
+import { InvariantViolationError } from '@/shared/common/errors/domain.errors';
+
 export interface PatientProps {
   id: string;
   clinicId: string;
@@ -66,9 +68,11 @@ export class Patient {
   }
 
   private validate(): void {
-    if (!this.clinicId) throw new Error('Clinic ID is required');
+    if (!this.clinicId) {
+      throw new InvariantViolationError('Clinic ID is required');
+    }
     if (!this.firstName || !this.lastName)
-      throw new Error('Patient name is required');
+      throw new InvariantViolationError('Patient name is required');
   }
 
   /** Trim MRN; empty strings become undefined. */

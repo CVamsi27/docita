@@ -18,6 +18,10 @@ import {
 import { parseNotificationData } from './staff-notification-data.helper';
 
 @Injectable()
+/**
+ * Facade for staff notification inbox actions; persistence, event delivery, and
+ * notification data parsing stay behind injected collaborators.
+ */
 export class StaffNotificationInboxService {
   private readonly logger = new Logger(StaffNotificationInboxService.name);
 

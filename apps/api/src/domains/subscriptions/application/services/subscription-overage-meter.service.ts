@@ -29,6 +29,10 @@ export type ActiveSubscriptionOverageRow = {
 };
 
 @Injectable()
+/**
+ * Facade for monthly overage metering; real pricing, invoice composition, and
+ * payment-link work lives in the injected collaborators.
+ */
 export class SubscriptionOverageMeterService {
   private readonly logger = new Logger(SubscriptionOverageMeterService.name);
 

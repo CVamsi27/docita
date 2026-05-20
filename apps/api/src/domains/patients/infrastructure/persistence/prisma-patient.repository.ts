@@ -1,4 +1,8 @@
-import { Injectable } from '@nestjs/common';
+import {
+  BadRequestException,
+  Injectable,
+  NotFoundException,
+} from '@nestjs/common';
 import { PrismaService } from '@/prisma/prisma.service';
 import {
   IPatientRepository,
@@ -120,10 +124,10 @@ export class PrismaPatientRepository implements IPatientRepository {
     const data = PatientMapper.toPersistence(patient);
     const { id, clinicId, ...updateData } = data;
     if (!id || typeof id !== 'string') {
-      throw new Error('Patient id is required for update');
+      throw new BadRequestException('Patient id is required for update');
     }
     if (!clinicId || typeof clinicId !== 'string') {
-      throw new Error('Patient clinicId is required for update');
+      throw new BadRequestException('Patient clinicId is required for update');
     }
     const result = await this.prisma.patient.updateMany({
       where: { id, clinicId },
@@ -133,7 +137,7 @@ export class PrismaPatientRepository implements IPatientRepository {
       },
     });
     if (result.count === 0) {
-      throw new Error(`Patient ${id} not found`);
+      throw new NotFoundException(`Patient ${id} not found`);
     }
   }
 
