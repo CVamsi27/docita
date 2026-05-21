@@ -15,6 +15,10 @@ import {
   enterpriseContractCustomLineItemsJsonSchema,
 } from '@workspace/types';
 import { CLOCK_PORT, type IClock } from '@/shared/common/ports/clock.port';
+import {
+  buildEnterpriseUsageMeter,
+  currentCalendarMonthPeriod,
+} from '@/domains/enterprise-contracts/application/services/enterprise-contracts-estimate.helpers';
 
 export interface ContractWithMembers extends EnterpriseContract {
   members: {
@@ -139,15 +143,7 @@ export class EnterpriseContractsQueryService {
     if (memberIds.length === 0) return null;
 
     const now = this.clock.now();
-    const periodStart = new Date(now.getFullYear(), now.getMonth(), 1);
-    const periodEnd = new Date(
-      now.getFullYear(),
-      now.getMonth() + 1,
-      0,
-      23,
-      59,
-      59,
-    );
+    const { periodStart, periodEnd } = currentCalendarMonthPeriod(now);
 
     // RLS-BYPASS: enterprise contract administration spans member clinics by design
     return this.persistence.runUnrestricted(async () => {
@@ -217,47 +213,38 @@ export class EnterpriseContractsQueryService {
       const prescriptionsUsed = prescriptionAgg._sum.quantity ?? 0;
       const invoicesUsed = invoiceAgg._sum.quantity ?? 0;
 
-      const buildMeter = (
-        current: number,
-        included: number,
-        rateCents: number,
-      ) => {
-        const overage = Math.max(0, current - included);
-        return { current, included, overage, chargeCents: overage * rateCents };
-      };
-
       const meters = {
-        users: buildMeter(
+        users: buildEnterpriseUsageMeter(
           userCount,
           contract.includedUsers,
           contract.overageUserCents,
         ),
-        consultations: buildMeter(
+        consultations: buildEnterpriseUsageMeter(
           consultationCount,
           contract.includedConsultations,
           contract.overageConsultationCents,
         ),
-        whatsappMessages: buildMeter(
+        whatsappMessages: buildEnterpriseUsageMeter(
           whatsappUsed,
           contract.includedWhatsappMessages,
           contract.overageWhatsappCents,
         ),
-        storageGB: buildMeter(
+        storageGB: buildEnterpriseUsageMeter(
           storageUsed,
           contract.includedStorageGB,
           contract.overageStorageCents,
         ),
-        doctors: buildMeter(
+        doctors: buildEnterpriseUsageMeter(
           doctorCount,
           contract.includedDoctors,
           contract.overageDoctorCents,
         ),
-        prescriptions: buildMeter(
+        prescriptions: buildEnterpriseUsageMeter(
           prescriptionsUsed,
           contract.includedPrescriptions,
           contract.overagePrescriptionCents,
         ),
-        invoices: buildMeter(
+        invoices: buildEnterpriseUsageMeter(
           invoicesUsed,
           contract.includedInvoices,
           contract.overageInvoiceCents,

@@ -24,7 +24,7 @@ export interface CheckoutSuccessData {
   transactionId?: string;
 }
 
-interface TierCheckoutParams {
+export interface TierCheckoutParams {
   tier: TierName;
   billingCycle: "MONTHLY" | "YEARLY";
 }
