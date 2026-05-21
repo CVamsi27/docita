@@ -17,6 +17,7 @@ export default [
       "coverage/**",
       "next-env.d.ts",
       "eslint.config.mjs",
+      "playwright.config.ts",
     ],
   },
   ...nextJsConfig,

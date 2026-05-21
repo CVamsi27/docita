@@ -35,7 +35,7 @@ export const ErrorBanner: React.FC<ErrorBannerProps> = ({
     <div
       role="alert"
       aria-live="polite"
-      className="surface-danger rounded-lg p-4 animate-in fade-in slide-in-from-top-1"
+      className="surface-danger rounded-lg p-4"
     >
       <div className="flex gap-3">
         <AlertCircle className="h-5 w-5 shrink-0 mt-0.5" />
