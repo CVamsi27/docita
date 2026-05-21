@@ -204,12 +204,10 @@ export class PrismaAppointmentReadRepository implements IAppointmentReadReposito
     });
   }
 
-  async findClinicWorkspaceProfile(
-    clinicId: string,
-  ): Promise<{ settings: unknown } | null> {
+  async findClinicTier(clinicId: string): Promise<{ tier: string } | null> {
     return this.getReadClient().clinic.findUnique({
       where: { id: clinicId },
-      select: { settings: true },
+      select: { tier: true },
     });
   }
 

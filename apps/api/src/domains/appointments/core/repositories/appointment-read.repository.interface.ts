@@ -33,10 +33,8 @@ export interface IAppointmentReadRepository {
     rangeEndExclusive: Date,
   ): Promise<Array<{ doctorId: string; startTime: Date; endTime: Date }>>;
 
-  /** Returns the clinic's `settings.workspaceProfile` for FRONT_DESK gating, or null if clinic missing. */
-  findClinicWorkspaceProfile(
-    clinicId: string,
-  ): Promise<{ settings: unknown } | null>;
+  /** Returns the clinic tier for Front Desk gating, or null if clinic missing. */
+  findClinicTier(clinicId: string): Promise<{ tier: string } | null>;
 
   /** Narrow read used before transitioning an appointment to IN_PROGRESS. */
   findForConsultationStart(

@@ -1,5 +1,3 @@
-import type { WorkspaceProfile } from '@workspace/types';
-
 export interface ClinicSettingsData {
   name?: string;
   address?: string;
@@ -57,7 +55,6 @@ export interface ClinicSettingsData {
   paymentReceivingBankAccount?: BankAccountSettings;
   facilityLabel?: 'CLINIC' | 'HOSPITAL';
   taxSettings?: TaxSettingsData;
-  workspaceProfile?: WorkspaceProfile;
   sidebarNavOrder?: unknown;
   mapsLink?: string;
   brandName?: string;

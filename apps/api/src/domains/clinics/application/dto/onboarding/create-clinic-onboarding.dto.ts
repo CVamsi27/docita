@@ -4,7 +4,6 @@ import { BillingCycle, ClinicTier } from '@workspace/db';
 import {
   clinicTypeSchema as importedClinicTypeSchema,
   dayOfWeekSchema,
-  workspaceProfileSchema,
 } from '@workspace/types';
 export { ClinicTier };
 export const clinicTierSchema = z.nativeEnum(ClinicTier);
@@ -93,7 +92,6 @@ export const planSelectionSchema = z.object({
   whatsappAddon: z.boolean().optional(),
   intelligenceAddon: z.boolean().optional(),
   currency: z.string().optional(),
-  workspaceProfile: workspaceProfileSchema.optional(),
 });
 export class PlanSelectionDto extends createZodDto(planSelectionSchema) {}
 export const paymentDetailsSchema = z.object({

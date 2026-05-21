@@ -1,5 +1,6 @@
 import { ExecutionContext, ForbiddenException } from '@nestjs/common';
 import { beforeEach, describe, expect, it, jest } from '@jest/globals';
+import { ClinicTier } from '@workspace/db';
 import { PrismaService } from '@/prisma/prisma.service';
 import { asType } from '@/test-utils';
 import { FrontDeskClinicalBlockGuard } from './front-desk-clinical-block.guard';
@@ -19,7 +20,7 @@ function createContext(request: Record<string, unknown>): ExecutionContext {
 describe('FrontDeskClinicalBlockGuard', () => {
   let guard: FrontDeskClinicalBlockGuard;
   const findUnique = jest.fn(
-    async (): Promise<{ settings?: Record<string, unknown> } | null> => null,
+    async (): Promise<{ tier?: ClinicTier } | null> => null,
   );
 
   beforeEach(() => {
@@ -30,7 +31,7 @@ describe('FrontDeskClinicalBlockGuard', () => {
     guard = new FrontDeskClinicalBlockGuard(prisma);
   });
 
-  it('allows GET without loading clinic settings', async () => {
+  it('allows GET without loading clinic tier', async () => {
     await expect(
       guard.canActivate(
         createContext({ method: 'GET', user: { clinicId: 'c1' } }),
@@ -39,9 +40,9 @@ describe('FrontDeskClinicalBlockGuard', () => {
     expect(findUnique).not.toHaveBeenCalled();
   });
 
-  it('allows mutating methods when workspace is full clinical', async () => {
+  it('allows mutating methods when tier is not FRONT_DESK', async () => {
     findUnique.mockImplementation(async () => ({
-      settings: { workspaceProfile: 'FULL_CLINICAL' },
+      tier: ClinicTier.PROFESSIONAL,
     }));
     await expect(
       guard.canActivate(
@@ -50,9 +51,9 @@ describe('FrontDeskClinicalBlockGuard', () => {
     ).resolves.toBe(true);
   });
 
-  it('forbids mutating methods when workspace is FRONT_DESK', async () => {
+  it('forbids mutating methods on FRONT_DESK tier', async () => {
     findUnique.mockImplementation(async () => ({
-      settings: { workspaceProfile: 'FRONT_DESK' },
+      tier: ClinicTier.FRONT_DESK,
     }));
     await expect(
       guard.canActivate(

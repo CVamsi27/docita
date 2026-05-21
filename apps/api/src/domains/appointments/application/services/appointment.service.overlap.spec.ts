@@ -29,8 +29,7 @@ describe('AppointmentService overlap enforcement', () => {
     exists: jest.fn<IAppointmentRepository['exists']>(),
     findAppointmentsForSlots:
       jest.fn<IAppointmentRepository['findAppointmentsForSlots']>(),
-    findClinicWorkspaceProfile:
-      jest.fn<IAppointmentRepository['findClinicWorkspaceProfile']>(),
+    findClinicTier: jest.fn<IAppointmentRepository['findClinicTier']>(),
     findForConsultationStart:
       jest.fn<IAppointmentRepository['findForConsultationStart']>(),
     startConsultationTx:

@@ -6,14 +6,11 @@ import {
 } from '@nestjs/common';
 import { ClinicTier } from '@workspace/db';
 import { PrismaService } from '@/prisma/prisma.service';
-import { isFrontDeskWorkspace, parseWorkspaceProfile } from '@workspace/types';
-import { isRecord } from '@workspace/utils';
 import type { RequestWithUser } from '@/shared/common/types/common.types';
 
 /**
- * Blocks mutating clinical HTTP operations when the clinic workspace is
- * {@link isFrontDeskWorkspace}. GET/HEAD requests are allowed for read-only
- * surfaces (e.g. listing legacy prescriptions).
+ * Blocks mutating clinical HTTP operations on the Front Desk tier.
+ * GET/HEAD requests are allowed for read-only surfaces (e.g. listing legacy prescriptions).
  */
 @Injectable()
 export class FrontDeskClinicalBlockGuard implements CanActivate {
@@ -33,19 +30,15 @@ export class FrontDeskClinicalBlockGuard implements CanActivate {
 
     const clinic = await this.prisma.clinic.findUnique({
       where: { id: clinicId },
-      select: { tier: true, settings: true },
+      select: { tier: true },
     });
-    const settings = isRecord(clinic?.settings) ? clinic.settings : {};
 
-    if (
-      clinic?.tier !== ClinicTier.FRONT_DESK &&
-      !isFrontDeskWorkspace(parseWorkspaceProfile(settings.workspaceProfile))
-    ) {
+    if (clinic?.tier !== ClinicTier.FRONT_DESK) {
       return true;
     }
 
     throw new ForbiddenException(
-      'Clinical changes are not available for this workspace profile.',
+      'Clinical changes are not available on the Front Desk plan.',
     );
   }
 }

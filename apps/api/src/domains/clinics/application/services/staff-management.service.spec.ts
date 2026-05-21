@@ -26,7 +26,7 @@ describe('StaffManagementService', () => {
         findUnique: jest
           .fn<(...args: unknown[]) => Promise<unknown>>()
           .mockResolvedValue({
-            settings: { workspaceProfile: 'FULL_CLINICAL' },
+            settings: {},
           }),
       },
       user: {

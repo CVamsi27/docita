@@ -1,6 +1,4 @@
 import { Role } from '@workspace/db';
-import { isFrontDeskWorkspace, parseWorkspaceProfile } from '@workspace/types';
-import { isRecord } from '@workspace/utils';
 import { type ClinicPersistencePort } from '@/domains/clinics/application/ports/clinic-persistence.port';
 
 export type ClinicMemberRole =
@@ -30,16 +28,9 @@ export async function isClinicFrontDesk(
 ): Promise<boolean> {
   const clinic = await persistence.clinic.findUnique({
     where: { id: clinicId },
-    select: { tier: true, settings: true },
+    select: { tier: true },
   });
-  if (!clinic) {
-    return false;
-  }
-  if (clinic.tier === 'FRONT_DESK') {
-    return true;
-  }
-  const raw = isRecord(clinic.settings) ? clinic.settings : {};
-  return isFrontDeskWorkspace(parseWorkspaceProfile(raw.workspaceProfile));
+  return clinic?.tier === 'FRONT_DESK';
 }
 
 export interface CreateDoctorData {

@@ -15,7 +15,7 @@ import { AppointmentDiagnosisService } from './appointment-diagnosis.service';
 import { StartConsultationUseCase } from '@/domains/appointments/application/use-cases/start-consultation.use-case';
 import { createStubAppointmentWriteUseCases } from './appointment-use-case.stubs';
 
-describe('AppointmentService workspace profile', () => {
+describe('AppointmentService front desk tier', () => {
   const mockRepository = {
     findAll: jest.fn<IAppointmentRepository['findAll']>(),
     findById: jest.fn<IAppointmentRepository['findById']>(),
@@ -27,8 +27,7 @@ describe('AppointmentService workspace profile', () => {
     exists: jest.fn<IAppointmentRepository['exists']>(),
     findAppointmentsForSlots:
       jest.fn<IAppointmentRepository['findAppointmentsForSlots']>(),
-    findClinicWorkspaceProfile:
-      jest.fn<IAppointmentRepository['findClinicWorkspaceProfile']>(),
+    findClinicTier: jest.fn<IAppointmentRepository['findClinicTier']>(),
     findForConsultationStart:
       jest.fn<IAppointmentRepository['findForConsultationStart']>(),
     startConsultationTx:
@@ -96,9 +95,9 @@ describe('AppointmentService workspace profile', () => {
     );
   });
 
-  it('forbids startConsultation when clinic workspace is FRONT_DESK', async () => {
-    mockRepository.findClinicWorkspaceProfile.mockResolvedValue({
-      settings: { workspaceProfile: 'FRONT_DESK' },
+  it('forbids startConsultation when clinic tier is FRONT_DESK', async () => {
+    mockRepository.findClinicTier.mockResolvedValue({
+      tier: 'FRONT_DESK',
     });
 
     await expect(

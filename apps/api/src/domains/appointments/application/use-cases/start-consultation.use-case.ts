@@ -13,8 +13,7 @@ import {
   IAppointmentReadRepository,
   IAppointmentWriteRepository,
 } from '@/domains/appointments/core/repositories/appointment.repository.interface';
-import { isFrontDeskWorkspace, parseWorkspaceProfile } from '@workspace/types';
-import { isRecord } from '@workspace/utils';
+import { isFrontDeskTier } from '@workspace/types';
 
 interface StartConsultationCommand {
   appointmentId: string;
@@ -45,18 +44,10 @@ export class StartConsultationUseCase {
   ): Promise<{ appointmentId: string; status: string }> {
     const { appointmentId, clinicId, userId, role } = command;
 
-    const clinicRow =
-      await this.readRepository.findClinicWorkspaceProfile(clinicId);
-    const clinicSettings = isRecord(clinicRow?.settings)
-      ? clinicRow.settings
-      : {};
-    if (
-      isFrontDeskWorkspace(
-        parseWorkspaceProfile(clinicSettings.workspaceProfile),
-      )
-    ) {
+    const clinicRow = await this.readRepository.findClinicTier(clinicId);
+    if (isFrontDeskTier(clinicRow?.tier)) {
       throw new ForbiddenException(
-        'Consultation start is not available for this workspace profile.',
+        'Consultation start is not available on the Front Desk plan.',
       );
     }
 

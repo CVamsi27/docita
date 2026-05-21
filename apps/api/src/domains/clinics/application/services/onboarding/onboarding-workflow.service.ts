@@ -21,11 +21,7 @@ import {
 } from '@/domains/clinics/application/dto/onboarding/create-clinic-onboarding.dto';
 import { OnboardingValidationService } from './onboarding-validation.service';
 import { toPrismaInputJsonValue } from '@/shared/common/json/to-prisma-input-json-value';
-import {
-  SUBSCRIPTION_TRIAL_DAYS,
-  parseWorkspaceProfile,
-  type WorkspaceProfile,
-} from '@workspace/types';
+import { SUBSCRIPTION_TRIAL_DAYS } from '@workspace/types';
 
 import {
   getDefaultClinicWeeklyHoursInput,
@@ -71,9 +67,7 @@ export class OnboardingWorkflowService {
     tx: Prisma.TransactionClient,
     clinicData: ClinicDetailsDto,
     ipAddress?: string,
-    workspaceProfileInput?: WorkspaceProfile | null,
   ): Promise<Clinic> {
-    const workspaceProfile = parseWorkspaceProfile(workspaceProfileInput);
     const normalizedEmail = clinicData.email?.trim() ?? '';
 
     const existingClinic = normalizedEmail
@@ -108,7 +102,6 @@ export class OnboardingWorkflowService {
         privacyComplianceVersion: '1.0',
         onboardedAt: this.clock.now().toISOString(),
         onboardedFromIP: ipAddress,
-        workspaceProfile,
         mapsLocation: clinicData.mapsLocation ?? undefined,
         mapsLink: clinicData.mapsLink?.trim() || undefined,
         ...(clinicData.legalName && clinicData.legalName.trim().length > 0

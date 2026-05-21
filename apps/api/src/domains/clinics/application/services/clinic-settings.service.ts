@@ -4,7 +4,6 @@ import type {
   AppComplianceSummary,
   CreateDataSubjectRequest,
   UpdateDataSubjectRequest,
-  WorkspaceProfile,
 } from '@workspace/types';
 import { SettingsFactory } from '@/domains/clinics/core/factories/settings.factory';
 import { AuditService } from '@/shared/modules/audit/audit/audit.service';
@@ -94,8 +93,6 @@ interface ClinicSettingsData {
     registrationId?: string;
     registrationLabel?: string;
   };
-
-  workspaceProfile?: WorkspaceProfile;
 
   sidebarNavOrder?: unknown;
 

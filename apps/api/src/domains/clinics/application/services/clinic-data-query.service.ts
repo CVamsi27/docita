@@ -5,7 +5,6 @@ import {
   CLINIC_DATA_REPOSITORY_TOKEN,
   ClinicSearchResult,
 } from '@/domains/clinics/core/repositories/clinic-data.repository.interface';
-import { parseWorkspaceProfile } from '@workspace/types';
 import {
   attachResolvedClinicSignatureUrl,
   parseEnterpriseBranding,
@@ -39,7 +38,6 @@ export class ClinicDataQueryService {
             closingTime: readString(settings, 'closingTime'),
             workingDays: readStringArray(settings, 'workingDays'),
             consultationDuration: readNumber(settings, 'consultationDuration'),
-            workspaceProfile: parseWorkspaceProfile(settings.workspaceProfile),
           },
           this.storedFileUrlResolver,
         );
@@ -64,7 +62,6 @@ export class ClinicDataQueryService {
         closingTime: readString(settings, 'closingTime'),
         workingDays: readStringArray(settings, 'workingDays'),
         consultationDuration: readNumber(settings, 'consultationDuration'),
-        workspaceProfile: parseWorkspaceProfile(settings.workspaceProfile),
         enterpriseBranding: parseEnterpriseBranding(clinicRow.branding),
       },
       this.storedFileUrlResolver,
@@ -88,7 +85,6 @@ export class ClinicDataQueryService {
             closingTime: readString(settings, 'closingTime'),
             workingDays: readStringArray(settings, 'workingDays'),
             consultationDuration: readNumber(settings, 'consultationDuration'),
-            workspaceProfile: parseWorkspaceProfile(settings.workspaceProfile),
           },
           this.storedFileUrlResolver,
         );

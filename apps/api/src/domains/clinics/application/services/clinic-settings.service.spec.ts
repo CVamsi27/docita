@@ -58,7 +58,6 @@ describe('ClinicSettingsService', () => {
   const clinicDataService = {
     findOne: jest.fn(async () => ({
       id: 'clinic-1',
-      workspaceProfile: 'FULL_CLINICAL',
     })),
   } as unknown as Pick<ClinicDataService, 'findOne'>;
 

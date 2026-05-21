@@ -25,7 +25,6 @@ import { OnboardingValidationService } from './onboarding-validation.service';
 import { OnboardingWorkflowService } from './onboarding-workflow.service';
 import { OnboardingComplianceService } from './onboarding-compliance.service';
 import { UploadsService } from '@/domains/documents/application/services/uploads.service';
-import { isFrontDeskWorkspace, parseWorkspaceProfile } from '@workspace/types';
 import {
   hasPriorPaidSubscriptionForEmail,
   createSlaSignatureSession,
@@ -199,11 +198,6 @@ export class OnboardingService {
         }
       }
 
-      const resolvedWorkspaceProfile =
-        completeData.planSelection.tier === ClinicTier.FRONT_DESK
-          ? 'FRONT_DESK'
-          : completeData.planSelection.workspaceProfile;
-
       // RLS-BYPASS: onboarding creates clinic records before membership tenant binding
       const result = await this.persistence.runUnrestricted(async () => {
         return this.persistence.$transaction(async (tx) => {
@@ -211,7 +205,6 @@ export class OnboardingService {
             tx,
             completeData.clinicDetails,
             ipAddress,
-            resolvedWorkspaceProfile,
           );
           clinicId = clinic.id;
 
@@ -257,12 +250,7 @@ export class OnboardingService {
             this.logger.log(`Created ${staffCount} staff members`);
           }
 
-          if (
-            completeData.planSelection.tier === ClinicTier.FRONT_DESK ||
-            isFrontDeskWorkspace(
-              parseWorkspaceProfile(resolvedWorkspaceProfile),
-            )
-          ) {
+          if (completeData.planSelection.tier === ClinicTier.FRONT_DESK) {
             await this.workflowService.ensureFrontDeskScheduleDoctor(
               tx,
               clinic.id,

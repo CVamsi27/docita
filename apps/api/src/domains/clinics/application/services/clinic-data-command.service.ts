@@ -12,7 +12,6 @@ import {
   IClinicDataRepository,
   CLINIC_DATA_REPOSITORY_TOKEN,
 } from '@/domains/clinics/core/repositories/clinic-data.repository.interface';
-import { parseWorkspaceProfile } from '@workspace/types';
 import {
   attachResolvedClinicSignatureUrl,
   generateReferralCode,
@@ -115,7 +114,6 @@ export class ClinicDataCommandService {
         closingTime: readString(settings, 'closingTime'),
         workingDays: readStringArray(settings, 'workingDays'),
         consultationDuration: readNumber(settings, 'consultationDuration'),
-        workspaceProfile: parseWorkspaceProfile(settings.workspaceProfile),
       },
       this.storedFileUrlResolver,
     );

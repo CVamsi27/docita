@@ -58,8 +58,8 @@ export class PrismaAppointmentRepository implements IAppointmentRepository {
     );
   }
 
-  findClinicWorkspaceProfile(clinicId: string) {
-    return this.readRepository.findClinicWorkspaceProfile(clinicId);
+  findClinicTier(clinicId: string) {
+    return this.readRepository.findClinicTier(clinicId);
   }
 
   findForConsultationStart(id: string, clinicId: string) {

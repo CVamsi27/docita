@@ -5,8 +5,6 @@ import {
   tierSchema,
   type MultiCurrencyTierPricing,
   type SupportedCurrency,
-  isFrontDeskWorkspace,
-  parseWorkspaceProfile,
 } from '@workspace/types';
 import { parseStringEnumMember } from '@workspace/utils';
 import { z } from 'zod';
@@ -139,31 +137,15 @@ export class OnboardingValidationService {
       );
     }
 
-    const workspaceProfile = parseWorkspaceProfile(
-      data.planSelection?.workspaceProfile,
-    );
-    const isFrontDeskTier = data.planSelection?.tier === ClinicTier.FRONT_DESK;
-    const isFrontDeskWorkspaceMode = isFrontDeskWorkspace(workspaceProfile);
-    if (
-      (isFrontDeskTier || isFrontDeskWorkspaceMode) &&
-      data.staffSetup?.staffMembers
-    ) {
-      let doctorLikeCount = 0;
+    const isFrontDeskPlan = data.planSelection?.tier === ClinicTier.FRONT_DESK;
+    if (isFrontDeskPlan && data.staffSetup?.staffMembers) {
       for (const member of data.staffSetup.staffMembers) {
         if (member.role === 'NURSE' || member.role === 'ADMIN_DOCTOR') {
           errors.push(
-            'The front desk workspace does not support nurse or admin-doctor staff roles during onboarding.',
+            'The Front Desk plan does not support nurse or admin-doctor staff roles during onboarding.',
           );
           break;
         }
-        if (member.role === 'DOCTOR') {
-          doctorLikeCount += 1;
-        }
-      }
-      if (!isFrontDeskTier && doctorLikeCount > 1) {
-        errors.push(
-          'The front desk workspace allows at most one doctor profile during onboarding.',
-        );
       }
     }
 

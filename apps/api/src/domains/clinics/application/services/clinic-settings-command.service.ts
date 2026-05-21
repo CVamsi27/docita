@@ -184,7 +184,6 @@ export class ClinicSettingsCommandService {
       paymentReceivingBankAccount: data.paymentReceivingBankAccount,
       facilityLabel: data.facilityLabel,
       taxSettings: data.taxSettings,
-      workspaceProfile: data.workspaceProfile,
       mapsLink: data.mapsLink,
     };
 
