@@ -173,6 +173,53 @@ export function isDevelopment(): boolean {
   return (process.env.NODE_ENV || 'development') === 'development';
 }
 
+const DOCITA_HTTPS_ORIGIN_RE = /^https:\/\/([a-z0-9-]+\.)*docita\.work$/i;
+
+function assertDocitaOnlyPublicOrigins(
+  config: z.infer<typeof EnvSchema>,
+): void {
+  if (config.NODE_ENV !== 'production' && config.NODE_ENV !== 'staging') {
+    return;
+  }
+
+  const corsOrigins = config.CORS_ORIGINS.split(',')
+    .map((origin) => origin.trim())
+    .filter(Boolean);
+
+  for (const origin of corsOrigins) {
+    if (!DOCITA_HTTPS_ORIGIN_RE.test(origin)) {
+      process.stderr.write('\nAPI environment validation failed.\n');
+      process.stderr.write(
+        `CORS_ORIGINS must list https://*.docita.work hosts only. Invalid entry: ${origin}\n\n`,
+      );
+      process.exit(1);
+    }
+  }
+
+  for (const [key, value] of [
+    ['APP_URL', config.APP_URL],
+    ['NEXT_PUBLIC_APP_URL', config.NEXT_PUBLIC_APP_URL],
+    ['NEXT_PUBLIC_API_URL', config.NEXT_PUBLIC_API_URL],
+  ] as const) {
+    let hostname: string;
+    try {
+      hostname = new URL(value).hostname;
+    } catch {
+      process.stderr.write('\nAPI environment validation failed.\n');
+      process.stderr.write(`  - ${key}: must be a valid URL\n\n`);
+      process.exit(1);
+    }
+
+    if (hostname !== 'docita.work' && !hostname.endsWith('.docita.work')) {
+      process.stderr.write('\nAPI environment validation failed.\n');
+      process.stderr.write(
+        `  - ${key}: must use a docita.work host in staging/production\n\n`,
+      );
+      process.exit(1);
+    }
+  }
+}
+
 export function getCorsOrigins(): (string | RegExp)[] {
   const env = validateEnv();
   const parsed = env.CORS_ORIGINS.split(',')
@@ -294,6 +341,8 @@ export function validateEnv(): EnvConfig {
     );
     process.exit(1);
   }
+
+  assertDocitaOnlyPublicOrigins(result.data);
 
   EnvConfigStore.setCached(result.data);
   return result.data;

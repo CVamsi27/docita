@@ -13,6 +13,3 @@ export const ipdAdmissionFormSchema = z.object({
 });
 
 export type IpdAdmissionFormValues = z.infer<typeof ipdAdmissionFormSchema>;
-
-/** @deprecated Use IpdAdmissionFormValues */
-export type AdmissionFormData = IpdAdmissionFormValues;

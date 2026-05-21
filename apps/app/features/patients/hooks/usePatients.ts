@@ -8,7 +8,6 @@ import {
   useCreatePatientMetricDefinition as useCreatePatientMetricDefinitionBase,
   useDeletePatient as useDeletePatientBase,
   usePatient as usePatientBase,
-  usePatientMedicalHistoryTimeline,
   usePatientMetricCategories as usePatientMetricCategoriesBase,
   usePatientMetricHistory as usePatientMetricHistoryBase,
   usePatientSelectedMetrics as usePatientSelectedMetricsBase,
@@ -36,9 +35,6 @@ export const usePatient = usePatientBase;
 export const usePatientMetricCategories = usePatientMetricCategoriesBase;
 export const usePatientMetricHistory = usePatientMetricHistoryBase;
 export const usePatientSelectedMetrics = usePatientSelectedMetricsBase;
-
-/** @deprecated Prefer `usePatientMedicalHistoryTimeline` from `@workspace/data-access`. */
-export const usePatientMedicalHistory = usePatientMedicalHistoryTimeline;
 
 function wrapMutationWithToasts<TData, TVariables>(
   mutation: UseMutationResult<TData, Error, TVariables>,

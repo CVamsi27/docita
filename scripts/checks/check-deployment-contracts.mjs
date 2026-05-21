@@ -3,6 +3,7 @@ import { existsSync, readFileSync } from "node:fs";
 import { join } from "node:path";
 
 const repoRoot = process.cwd();
+const DOCITA_HTTPS_ORIGIN_RE = /^https:\/\/([a-z0-9-]+\.)*docita\.work$/i;
 
 function read(relativePath) {
   return readFileSync(join(repoRoot, relativePath), "utf8");
@@ -26,12 +27,18 @@ function assertExists(relativePath, message) {
   assert(existsSync(join(repoRoot, relativePath)), message);
 }
 
+function parseTomlSingleQuotedEnvValue(source, key) {
+  const match = source.match(new RegExp(`${key}\\s*=\\s*'([^']*)'`));
+  return match?.[1] ?? null;
+}
+
 try {
   const appMiddleware = "apps/app/middleware.ts";
   const internalMiddleware = "apps/internal/middleware.ts";
   const deployWorkflowPath = ".github/workflows/deploy.yml";
   const detectScopePath = "scripts/workflow/detect-workflow-scope.mjs";
   const appLayoutPath = "apps/app/app/layout.tsx";
+  const flyTomlPath = "fly.toml";
 
   assertExists(
     appMiddleware,
@@ -56,6 +63,7 @@ try {
   const deployWorkflowSource = read(deployWorkflowPath);
   const detectScopeSource = read(detectScopePath);
   const ciWorkflowSource = read(".github/workflows/ci.yml");
+  const flyTomlSource = read(flyTomlPath);
 
   assertIncludes(
     appMiddlewareSource,
@@ -123,6 +131,26 @@ try {
       `CI must exercise Cloudflare production builds: missing ${requiredCiBuild}.`,
     );
   }
+
+  const corsOrigins = parseTomlSingleQuotedEnvValue(
+    flyTomlSource,
+    "CORS_ORIGINS",
+  );
+  assert(
+    corsOrigins,
+    "fly.toml [env] must define CORS_ORIGINS for API production deployment.",
+  );
+
+  const invalidCorsOrigins = corsOrigins
+    .split(",")
+    .map((origin) => origin.trim())
+    .filter(Boolean)
+    .filter((origin) => !DOCITA_HTTPS_ORIGIN_RE.test(origin));
+
+  assert(
+    invalidCorsOrigins.length === 0,
+    `fly.toml CORS_ORIGINS must only list https://*.docita.work hosts. Invalid entries: ${invalidCorsOrigins.join(", ")}`,
+  );
 
   process.stdout.write("Deployment contracts verified.\n");
 } catch (error) {
