@@ -65,7 +65,7 @@ export function ClinicSetupSection() {
             <SectionHeading
               size="section"
               title="Sell a clinic outcome, not another login"
-              description="Docita can be packaged as a hands-on rollout: migrate the clinic list, configure the prescription format, train reception, and make the first workflow useful quickly."
+              description="Docita can be packaged for a hands-on rollout: migrate the clinic list, configure the prescription format, train reception, and make the first workflow useful quickly."
               className="mb-6"
             />
             <ul className="space-y-3 text-sm text-muted-foreground sm:text-base">

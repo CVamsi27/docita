@@ -54,6 +54,7 @@ const roots = [
   "apps/api/src",
   "apps/app",
   "apps/internal",
+  "apps/landing",
   "packages/data-access/src",
   "packages/hooks/src",
   "packages/utils/src",

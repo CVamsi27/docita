@@ -248,7 +248,7 @@ export function PricingSection({ appUrl }: PricingSectionProps) {
             {WORKSPACE_PROFILE_MARKETING.FRONT_DESK.headline}
           </h3>
           <p className="mt-2 text-sm leading-relaxed text-muted-foreground">
-            Same commercial tiers as above, but the product surface is limited to
+            Same commercial tiers shown above, but the product surface is limited to
             scheduling, queue, patients, and invoicing. Pick this path when you do
             not need the in-app consultation workspace or prescription tools.
           </p>
@@ -271,7 +271,7 @@ export function PricingSection({ appUrl }: PricingSectionProps) {
           <Check className="h-4 w-4 shrink-0 text-success" aria-hidden />
           <p className="min-w-0 flex-1">
             Features marked &ldquo;planned&rdquo; in higher tiers are part of
-            the rollout roadmap, not promised as live functionality today.
+            the rollout roadmap, not promised to be live functionality today.
             Overage usage is billed at a per-unit rate at the start of the next
             month.
           </p>

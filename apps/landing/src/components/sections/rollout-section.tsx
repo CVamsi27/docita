@@ -34,7 +34,7 @@ const MILESTONES: Milestone[] = [
     marker: "Day 2 · First workflow live",
     title: "Queue + records + prescriptions",
     detail:
-      "We import the patient list, set up the doctor templates, and the clinic runs its first OPD day on Docita. Old register stays as a safety net for the first week.",
+      "We import the patient list, set up the doctor templates, and the clinic runs its first OPD day on Docita. Old register remains a safety net for the first week.",
     artifacts: [
       "Patient list imported (CSV review)",
       "Prescription template configured",
