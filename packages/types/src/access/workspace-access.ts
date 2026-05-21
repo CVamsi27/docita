@@ -1,7 +1,7 @@
 import { APP_ACCESS_TARGETS, type AppAccessTarget } from "./access-matrix";
 import type { UserRole } from "../shared/users";
 import {
-  isFrontDeskWorkspace,
+  isFrontDeskClinicMode,
   type WorkspaceProfile,
 } from "../shared/workspace-profile";
 
@@ -34,8 +34,9 @@ export function shouldDenyAccessForWorkspaceProfile(
   target: AppAccessTarget,
   role: UserRole | string | null | undefined,
   workspaceProfile: WorkspaceProfile | null | undefined,
+  tier?: string | number | null,
 ): boolean {
-  if (!isFrontDeskWorkspace(workspaceProfile)) {
+  if (!isFrontDeskClinicMode(tier, workspaceProfile)) {
     return false;
   }
 

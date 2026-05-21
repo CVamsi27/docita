@@ -1,4 +1,5 @@
 import { z } from "zod";
+import { Tier, tierSchema } from "../billing/tier";
 
 export const WORKSPACE_PROFILE_VALUES = ["FULL_CLINICAL", "FRONT_DESK"] as const;
 
@@ -19,6 +20,48 @@ export function isFrontDeskWorkspace(
   profile: WorkspaceProfile | null | undefined,
 ): boolean {
   return profile === "FRONT_DESK";
+}
+
+/** True when the billed SKU is Front Desk (workspace profile is implied). */
+export function isFrontDeskTier(
+  tier: string | number | null | undefined,
+): boolean {
+  if (tier === null || tier === undefined) {
+    return false;
+  }
+  if (tier === Tier.FRONT_DESK || tier === "FRONT_DESK") {
+    return true;
+  }
+  if (typeof tier === "string") {
+    const parsed = tierSchema.safeParse(tier);
+    return parsed.success && parsed.data === "FRONT_DESK";
+  }
+  return false;
+}
+
+/**
+ * Front-desk gating: FRONT_DESK tier always implies front-desk mode; other tiers
+ * may still opt into front-desk workspace via settings/onboarding.
+ */
+export function isFrontDeskClinicMode(
+  tier: string | number | null | undefined,
+  workspaceProfile?: WorkspaceProfile | null,
+): boolean {
+  if (isFrontDeskTier(tier)) {
+    return true;
+  }
+  return isFrontDeskWorkspace(workspaceProfile);
+}
+
+/** Onboarding/API: FRONT_DESK tier forces workspace; otherwise honor explicit choice. */
+export function resolveWorkspaceProfileForPlan(
+  tier: string,
+  selectedWorkspace?: WorkspaceProfile | null,
+): WorkspaceProfile {
+  if (isFrontDeskTier(tier)) {
+    return "FRONT_DESK";
+  }
+  return selectedWorkspace ?? DEFAULT_WORKSPACE_PROFILE;
 }
 
 /** Short labels for settings, billing, and onboarding (no emoji). */

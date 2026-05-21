@@ -21,7 +21,12 @@ import {
   getTierInfo,
   getTierValue,
 } from "@/lib/subscription/tier-access";
-import { tierSchema, type WorkspaceProfile } from "@workspace/types";
+import {
+  tierSchema,
+  type WorkspaceProfile,
+  resolveWorkspaceProfileForPlan,
+  isFrontDeskTier,
+} from "@workspace/types";
 import { useLocaleCurrency } from "@/hooks/use-locale-currency";
 import { PLAN_ONBOARDING_KEY_HIGHLIGHTS } from "@/features/subscription";
 import {
@@ -74,12 +79,16 @@ function PlanSelectionStepInner({
   const [comparisonOpen, setComparisonOpen] = useState(false);
 
   useEffect(() => {
+    if (isFrontDeskTier(selectedTier)) {
+      setWorkspaceProfile("FRONT_DESK");
+      return;
+    }
     if (workspaceProfile === "FRONT_DESK") {
       setSelectedTier("FRONT_DESK");
       return;
     }
     setSelectedTier((prev) => (prev === "FRONT_DESK" ? "ESSENTIAL" : prev));
-  }, [workspaceProfile]);
+  }, [workspaceProfile, selectedTier]);
 
   const resolvedCurrency = currency ?? detectedCurrency;
   const { pricingConfig, isLoading, error } =
@@ -127,8 +136,7 @@ function PlanSelectionStepInner({
     try {
       await onSelect(tier, billingCycle, pricingPayload, {
         currency: resolvedCurrency,
-        workspaceProfile:
-          tier === "FRONT_DESK" ? "FRONT_DESK" : "FULL_CLINICAL",
+        workspaceProfile: resolveWorkspaceProfileForPlan(tier, workspaceProfile),
       });
     } finally {
       setIsSubmitting(false);
@@ -197,10 +205,12 @@ Please contact me with deployment and commercial details.`;
         </p>
       </CardHeader>
       <CardContent className="space-y-6">
-        <WorkspaceSelector
-          workspaceProfile={workspaceProfile}
-          onSelect={setWorkspaceProfile}
-        />
+        {!isFrontDeskTier(selectedTier) ? (
+          <WorkspaceSelector
+            workspaceProfile={workspaceProfile}
+            onSelect={setWorkspaceProfile}
+          />
+        ) : null}
 
         <BillingCycleToggle
           billingCycle={billingCycle}
@@ -261,9 +271,10 @@ Please contact me with deployment and commercial details.`;
                       : () => {
                           setSelectedTier(tierName);
                           setWorkspaceProfile(
-                            tierName === "FRONT_DESK"
-                              ? "FRONT_DESK"
-                              : "FULL_CLINICAL",
+                            resolveWorkspaceProfileForPlan(
+                              tierName,
+                              workspaceProfile,
+                            ),
                           );
                           handleSelectTier(tierName);
                         }

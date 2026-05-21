@@ -43,6 +43,17 @@ describe("workspace-access", () => {
     ).toBe(false);
   });
 
+  it("denies blocked targets for FRONT_DESK tier without workspace profile", () => {
+    expect(
+      shouldDenyAccessForWorkspaceProfile(
+        APP_ACCESS_TARGETS.PAGE_CONSULTATION,
+        "DOCTOR",
+        "FULL_CLINICAL",
+        "FRONT_DESK",
+      ),
+    ).toBe(true);
+  });
+
   it("does not deny non-clinical targets under FRONT_DESK", () => {
     expect(
       shouldDenyAccessForWorkspaceProfile(

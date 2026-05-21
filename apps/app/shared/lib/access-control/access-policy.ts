@@ -70,6 +70,9 @@ export function canAccessTarget(
       target,
       role ?? null,
       context.workspaceProfile,
+      context.currentTier !== undefined
+        ? getTierName(context.currentTier)
+        : null,
     )
   ) {
     return false;
