@@ -30,25 +30,12 @@ import type { ChiefComplaintItem } from "@/features/consultation/components/stru
 import type { DiagnosisItem } from "@/features/consultation/components/structured/DiagnosisInput";
 import type { ExaminationData } from "@/features/consultation/components/structured/ExaminationInput";
 import type { DentalChartValue } from "@/features/consultation/components/specialty/DentalChartUI";
-import { DEFAULT_EXAMINATION } from "./consultationDraftHelpers";
+import { buildExaminationSeed } from "./consultation-hydrate-examination";
+import { parseDiagnosis } from "./consultation-hydrate-diagnosis";
+import { parseZodField, readStringField } from "./consultation-hydrate-utils";
 
-export function toRecord(value: unknown): Record<string, unknown> {
-  if (!value || typeof value !== "object") return {};
-  return Object.fromEntries(Object.entries(value));
-}
-
-export function readStringField(
-  data: Record<string, unknown>,
-  key: string,
-): string {
-  const value = data[key];
-  return typeof value === "string" ? value : "";
-}
-
-function parseZodField<T>(schema: z.ZodType<T>, raw: unknown, fallback: T): T {
-  const parsed = schema.safeParse(raw);
-  return parsed.success ? parsed.data : fallback;
-}
+export { toRecord, readStringField } from "./consultation-hydrate-utils";
+export { parseDiagnosis } from "./consultation-hydrate-diagnosis";
 
 const DEFAULT_GROWTH_DATA: GrowthChartData = {
   patientGender: "MALE",
@@ -198,80 +185,6 @@ export function buildConsultationHydrateSeed(
   };
 }
 
-function nestedSystemicNotes(raw: unknown): string {
-  if (typeof raw === "string") return raw;
-  if (raw && typeof raw === "object") {
-    const obj = toRecord(raw);
-    if (typeof obj.notes === "string") return obj.notes;
-  }
-  return "";
-}
-
-function readRecordString(
-  record: Record<string, unknown>,
-  key: string,
-): string {
-  const value = record[key];
-  return typeof value === "string" ? value : "";
-}
-
-function ensureString(val: unknown): string {
-  if (typeof val === "string") return val;
-  if (typeof val === "object" && val !== null) {
-    const obj = toRecord(val);
-    if ("notes" in obj && typeof obj.notes === "string") return obj.notes;
-    return JSON.stringify(val);
-  }
-  if (val === null || val === undefined) return "";
-  return String(val);
-}
-
-function isDiagnosisItem(value: unknown): value is DiagnosisItem {
-  if (!value || typeof value !== "object" || Array.isArray(value)) {
-    return false;
-  }
-  const row = toRecord(value);
-  return (
-    typeof row.condition === "string" || typeof row.id === "string"
-  );
-}
-
-function parseDiagnosisArray(values: unknown[]): DiagnosisItem[] {
-  return values.filter(isDiagnosisItem);
-}
-
-export function parseDiagnosis(raw: unknown): DiagnosisItem[] {
-  if (!raw) return [];
-  if (Array.isArray(raw)) return parseDiagnosisArray(raw);
-  if (typeof raw !== "string") return [];
-  try {
-    const parsed: unknown = JSON.parse(raw);
-    if (Array.isArray(parsed)) return parseDiagnosisArray(parsed);
-    if (typeof parsed === "string" && parsed.trim()) {
-      return [
-        {
-          id: "legacy-dx",
-          condition: parsed,
-          type: "provisional",
-          status: "active",
-        },
-      ];
-    }
-  } catch {
-    if (raw.trim()) {
-      return [
-        {
-          id: "legacy-dx",
-          condition: raw,
-          type: "provisional",
-          status: "active",
-        },
-      ];
-    }
-  }
-  return [];
-}
-
 function normalizeComplaintList(
   items: ChiefComplaintItem[] | undefined,
 ): ChiefComplaintItem[] {
@@ -325,69 +238,4 @@ export function buildChiefComplaintSeed(
     : [];
 }
 
-export function buildExaminationSeed(
-  data: Record<string, unknown>,
-): ExaminationData {
-  const genExam = data["generalExamination"];
-  const sysExam = data["systemicExamination"];
-  const sysRecord = sysExam ? toRecord(sysExam) : {};
-  const mssRaw = sysRecord["mss"];
-  let musculoskeletalFromMss = "";
-  if (mssRaw && typeof mssRaw === "object") {
-    const mss = toRecord(mssRaw);
-    musculoskeletalFromMss = [
-      readRecordString(mss, "jointExamination"),
-      readRecordString(mss, "notes"),
-      readRecordString(mss, "muscleStrength"),
-    ]
-      .filter(Boolean)
-      .join("\n")
-      .trim();
-  }
-
-  const genRecord =
-    genExam && typeof genExam === "object" ? toRecord(genExam) : {};
-  const generalNotesFromApi =
-    typeof genRecord["generalNotes"] === "string"
-      ? genRecord["generalNotes"]
-      : "";
-  const generalNotesUi =
-    typeof genRecord["notes"] === "string" ? genRecord["notes"] : "";
-  const parsedGeneral = {
-    ...DEFAULT_EXAMINATION.general,
-    ...parseZodField(
-      examinationDraftSchema.shape.general,
-      genExam,
-      DEFAULT_EXAMINATION.general,
-    ),
-  };
-
-  return {
-    general: genExam
-      ? {
-          pallor: parsedGeneral.pallor === true,
-          icterus: parsedGeneral.icterus === true,
-          cyanosis: parsedGeneral.cyanosis === true,
-          clubbing: parsedGeneral.clubbing === true,
-          lymphadenopathy: parsedGeneral.lymphadenopathy === true,
-          edema: parsedGeneral.edema === true,
-          notes:
-            generalNotesUi || generalNotesFromApi || parsedGeneral.notes || "",
-        }
-      : DEFAULT_EXAMINATION.general,
-    systemic: sysExam
-      ? {
-          cvs: nestedSystemicNotes(sysRecord["cvs"]),
-          rs: nestedSystemicNotes(sysRecord["rs"]),
-          pa: nestedSystemicNotes(sysRecord["pa"]),
-          cns: nestedSystemicNotes(sysRecord["cns"]),
-          musculoskeletal:
-            musculoskeletalFromMss ||
-            (typeof sysRecord["musculoskeletal"] === "string"
-              ? sysRecord["musculoskeletal"]
-              : ""),
-          notes: ensureString(sysRecord["additionalNotes"]),
-        }
-      : DEFAULT_EXAMINATION.systemic,
-  };
-}
+export { buildExaminationSeed } from "./consultation-hydrate-examination";
