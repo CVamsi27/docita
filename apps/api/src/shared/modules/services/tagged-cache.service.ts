@@ -1,4 +1,7 @@
-import { parseSerializedJson } from '@/shared/common/json/parse-serialized-json.boundary';
+import {
+  assertTypedJsonValue,
+  parseSerializedJson,
+} from '@/shared/common/json/parse-serialized-json.boundary';
 import { Injectable, Logger } from '@nestjs/common';
 
 export interface CacheOptions {
@@ -69,7 +72,7 @@ export class TaggedCacheService {
     if (!entry) return null;
 
     try {
-      return parseSerializedJson<T>(entry.value);
+      return assertTypedJsonValue<T>(parseSerializedJson(entry.value));
     } catch (error) {
       this.logger.warn(
         `Cache get error: ${error instanceof Error ? error.message : 'Unknown error'}`,

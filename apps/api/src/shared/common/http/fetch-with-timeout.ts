@@ -1,3 +1,4 @@
+// check-external-http-timeouts: allow-file
 const DEFAULT_EXTERNAL_HTTP_TIMEOUT_MS = 10_000;
 
 export function fetchWithTimeout(

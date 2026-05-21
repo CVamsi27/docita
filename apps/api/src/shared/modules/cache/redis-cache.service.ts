@@ -1,7 +1,10 @@
 import { Injectable, OnModuleDestroy } from '@nestjs/common';
 import Redis from 'ioredis';
 import { ICacheProvider } from './cache.interface';
-import { parseSerializedJson } from '@/shared/common/json/parse-serialized-json.boundary';
+import {
+  assertTypedJsonValue,
+  parseSerializedJson,
+} from '@/shared/common/json/parse-serialized-json.boundary';
 
 @Injectable()
 export class RedisCacheService implements ICacheProvider, OnModuleDestroy {
@@ -25,7 +28,7 @@ export class RedisCacheService implements ICacheProvider, OnModuleDestroy {
       return null;
     }
     try {
-      return parseSerializedJson<T>(raw);
+      return assertTypedJsonValue<T>(parseSerializedJson(raw));
     } catch {
       return null;
     }
