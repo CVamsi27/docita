@@ -14,13 +14,18 @@ import {
 import { Button } from "@workspace/ui/components/form/button";
 import { Alert, AlertDescription } from "@workspace/ui/components/feedback/alert";
 import { cn } from "@workspace/ui/lib/utils";
-import { AlertTriangle, ArrowDown, ArrowRight, Building2, CheckCircle } from "lucide-react";
+import {
+  AlertTriangle,
+  ArrowDown,
+  ArrowRight,
+  Building2,
+  CheckCircle,
+} from "lucide-react";
 import { PRICING_CURRENCY_CONFIG, TIER_INFO } from "@workspace/types";
 import { getTierName } from "@workspace/utils";
 import { getUserFacingErrorMessage } from "@workspace/utils";
 import {
   type TierChangeDialogProps,
-  TIER_ICONS,
   PLAN_TIER_RANK,
 } from "./tier-change-dialog-types";
 
@@ -29,13 +34,13 @@ import { type TierPricing, usePricingConfig } from "@/features/subscription/hook
 import { useProrationPreview } from "@workspace/data-access";
 import { formatPriceWithCurrency } from "@workspace/utils";
 import { SUBSCRIPTION_GST_INCLUSIVE_NOTICE } from "@/features/subscription/lib/billing-display-messages";
-import { YearlyVsListAnnualPrice } from "@/features/subscription/lib/yearly-vs-list-annual-price";
 import { getTierFeatureDelta } from "@/features/subscription/lib/feature-delta";
 import {
   FeatureDeltaGrid,
   DowngradeTimingChooser,
   ProrationPreview,
 } from "./tier-change-dialog-sections";
+import { TierChangeDialogPlanCompare } from "./tier-change-dialog-plan-compare";
 
 
 export function TierChangeDialog({
@@ -131,9 +136,6 @@ export function TierChangeDialog({
 
   const cycleSuffix = billingCycle === "YEARLY" ? "/yr" : "/mo";
 
-  const CurrentIcon = TIER_ICONS[currentTierName];
-  const SelectedIcon = TIER_ICONS[selectedTier];
-
   const handleConfirm = async () => {
     setIsLoading(true);
     setError(null);
@@ -215,73 +217,20 @@ export function TierChangeDialog({
           </div>
         ) : (
           <>
-            <div className="grid gap-3 py-2 sm:grid-cols-[1fr_auto_1fr] sm:items-stretch">
-              <div className="rounded-lg border bg-muted/30 p-4">
-                <div className="mb-3 flex items-center gap-2">
-                  <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-background">
-                    <CurrentIcon className="h-4 w-4" />
-                  </div>
-                  <span className="text-sm font-medium">Current plan</span>
-                </div>
-                <p className="font-semibold">{currentInfo.name}</p>
-                <p className="mt-1 text-sm text-muted-foreground">
-                  {billingCycle === "YEARLY" &&
-                  !currentHasCustomPricing &&
-                  currentTierData &&
-                  typeof currentTierData.pricing.monthly === "number" &&
-                  typeof currentPrice === "number" ? (
-                    <YearlyVsListAnnualPrice
-                      monthlyListPrice={currentTierData.pricing.monthly}
-                      discountedAnnualPrice={currentPrice}
-                      formatMoney={formatPrice}
-                    />
-                  ) : !currentHasCustomPricing && typeof currentPrice === "number" ? (
-                    `${formatPrice(currentPrice)}${cycleSuffix}`
-                  ) : (
-                    "Custom pricing"
-                  )}
-                </p>
-              </div>
-
-              <div className="hidden items-center justify-center sm:flex">
-                {isUpgrade ? (
-                  <ArrowRight className="h-5 w-5 text-muted-foreground" />
-                ) : (
-                  <ArrowDown className="h-5 w-5 text-muted-foreground" />
-                )}
-              </div>
-
-              <div className="rounded-lg border border-primary/40 bg-primary/5 p-4">
-                <div className="mb-3 flex items-center gap-2">
-                  <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-background text-primary">
-                    <SelectedIcon className="h-4 w-4" />
-                  </div>
-                  <span className="text-sm font-medium">Selected plan</span>
-                </div>
-                <p className="font-semibold">{selectedInfo.name}</p>
-                <p className="mt-1 text-sm text-muted-foreground">
-                  {billingCycle === "YEARLY" &&
-                  !selectedHasCustomPricing &&
-                  selectedTierData &&
-                  typeof selectedTierData.pricing.monthly === "number" &&
-                  typeof selectedPrice === "number" ? (
-                    <YearlyVsListAnnualPrice
-                      monthlyListPrice={selectedTierData.pricing.monthly}
-                      discountedAnnualPrice={selectedPrice}
-                      formatMoney={formatPrice}
-                    />
-                  ) : !selectedHasCustomPricing &&
-                    typeof selectedPrice === "number" ? (
-                    `${formatPrice(selectedPrice)}${cycleSuffix}`
-                  ) : (
-                    "Custom pricing"
-                  )}
-                </p>
-                <p className="mt-2 text-xs text-muted-foreground">
-                  {billingCycle === "YEARLY" ? "Yearly billing" : "Monthly billing"}
-                </p>
-              </div>
-            </div>
+            <TierChangeDialogPlanCompare
+              currentTierName={currentTierName}
+              selectedTier={selectedTier}
+              billingCycle={billingCycle}
+              isUpgrade={isUpgrade}
+              currentTierData={currentTierData}
+              selectedTierData={selectedTierData}
+              currentPrice={currentPrice}
+              selectedPrice={selectedPrice}
+              currentHasCustomPricing={currentHasCustomPricing}
+              selectedHasCustomPricing={selectedHasCustomPricing}
+              formatPrice={formatPrice}
+              cycleSuffix={cycleSuffix}
+            />
 
             {priceDiff !== null && priceDiff !== 0 && (
               <div
