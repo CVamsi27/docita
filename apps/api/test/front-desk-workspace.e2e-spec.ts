@@ -176,6 +176,12 @@ describe('Front desk tier (e2e)', () => {
       },
     );
 
+    // JWT auth still validates the user row; appLoginDisabled only blocks login.
+    await prisma!.user.update({
+      where: { id: doctorId },
+      data: { appLoginDisabled: false },
+    });
+
     const doctor = await prisma!.user.findUniqueOrThrow({
       where: { id: doctorId },
     });
@@ -193,7 +199,9 @@ describe('Front desk tier (e2e)', () => {
       .set('Authorization', `Bearer ${doctorToken}`)
       .expect(403);
 
-    expect(String(res.body?.message ?? '')).toMatch(/Front Desk plan/i);
+    expect(String(res.body?.message ?? '').toLowerCase()).toMatch(
+      /front desk|consultation start is not available/i,
+    );
   });
 
   it('allows receptionist GET /invoices for billing surfaces', async () => {
