@@ -1,8 +1,6 @@
 "use client";
 
 import { DocitaLoadingIndicator } from "@workspace/ui/components/feedback/docita-loading-indicator";
-
-import Link from "next/link";
 import type { UseFormReturn } from "react-hook-form";
 import {
   Dialog,
@@ -30,15 +28,14 @@ import {
 } from "@workspace/ui/components/form/select";
 import { Button } from "@workspace/ui/components/form/button";
 import { Badge } from "@workspace/ui/components/indicators/badge";
-import { ShieldCheck, ShieldX } from "lucide-react";
 import { User } from "@workspace/types";
-import { getDoctorVerificationPublicNote } from "@/lib/formatters/doctor-verification-display";
 import { showUserFacingErrorToast } from "@/lib/errors/user-facing-errors";
 import {
   MEMBER_ROLE_LABELS,
   type MemberFormValues,
   type MemberRole,
 } from "@/features/settings/components/management/member-management-schemas";
+import { ManageTeamMemberDoctorPanel } from "./manage-team-member-doctor-panel";
 
 interface ManageTeamMemberDialogProps {
   member: User | null;
@@ -81,13 +78,6 @@ export function ManageTeamMemberDialog({
   getVerificationBadgeLabel,
   formatDate,
 }: ManageTeamMemberDialogProps) {
-  const verificationPublicNote = member
-    ? getDoctorVerificationPublicNote(
-        member.verificationStatus,
-        member.verificationReason,
-      )
-    : null;
-
   return (
     <Dialog open={!!member} onOpenChange={onOpenChange}>
       <DialogContent className="sm:max-w-[640px]">
@@ -95,7 +85,7 @@ export function ManageTeamMemberDialog({
           <DialogTitle>Member Details</DialogTitle>
           <DialogDescription>{memberDialogDescription}</DialogDescription>
         </DialogHeader>
-        {member && (
+        {member ? (
           <Form {...memberForm}>
             <form
               onSubmit={memberForm.handleSubmit(onSave, () => {
@@ -174,11 +164,7 @@ export function ManageTeamMemberDialog({
                     <FormItem>
                       <FormLabel>Email</FormLabel>
                       <FormControl>
-                        <Input
-                          type="email"
-                          placeholder="Email"
-                          {...field}
-                        />
+                        <Input type="email" placeholder="Email" {...field} />
                       </FormControl>
                       <FormMessage />
                     </FormItem>
@@ -199,120 +185,18 @@ export function ManageTeamMemberDialog({
                 />
               </div>
 
-              {isSelectedMemberDoctor && (
-                <>
-                  <div className="grid grid-cols-1 gap-4 md:grid-cols-3">
-                    <FormField
-                      control={memberForm.control}
-                      name="specialization"
-                      render={({ field }) => (
-                        <FormItem>
-                          <FormLabel>Specialization</FormLabel>
-                          <FormControl>
-                            <Input placeholder="Cardiology" {...field} />
-                          </FormControl>
-                          <FormMessage />
-                        </FormItem>
-                      )}
-                    />
-                    <FormField
-                      control={memberForm.control}
-                      name="qualification"
-                      render={({ field }) => (
-                        <FormItem>
-                          <FormLabel>Qualification</FormLabel>
-                          <FormControl>
-                            <Input placeholder="Qualification" {...field} />
-                          </FormControl>
-                          <FormMessage />
-                        </FormItem>
-                      )}
-                    />
-                    <FormField
-                      control={memberForm.control}
-                      name="registrationNumber"
-                      render={({ field }) => (
-                        <FormItem>
-                          <FormLabel>Registration #</FormLabel>
-                          <FormControl>
-                            <Input
-                              placeholder="Registration number"
-                              {...field}
-                            />
-                          </FormControl>
-                          <FormMessage />
-                        </FormItem>
-                      )}
-                    />
-                  </div>
-
-                  <div className="rounded-lg border bg-surface-2 p-3">
-                    <div className="flex flex-col gap-3">
-                      <div className="flex flex-wrap items-center gap-2">
-                        <Badge
-                          variant={getVerificationBadgeVariant(
-                            member.verificationStatus,
-                          )}
-                        >
-                          {member.verificationStatus === "VERIFIED" ? (
-                            <ShieldCheck className="mr-1 h-3.5 w-3.5" />
-                          ) : (
-                            <ShieldX className="mr-1 h-3.5 w-3.5" />
-                          )}
-                          {getVerificationBadgeLabel(member.verificationStatus)}
-                        </Badge>
-                        <Badge
-                          variant={
-                            member.signatureUploadedAt ? "default" : "outline"
-                          }
-                        >
-                          Signature{" "}
-                          {member.signatureUploadedAt ? "Ready" : "Missing"}
-                        </Badge>
-                      </div>
-                      <div className="space-y-1 text-xs text-muted-foreground">
-                        <p>
-                          Last verification:{" "}
-                          {formatDate(member.verificationCheckedAt)}
-                        </p>
-                        <p>
-                          Signature uploaded:{" "}
-                          {formatDate(member.signatureUploadedAt)}
-                        </p>
-                        {verificationPublicNote ? (
-                          <p>Status details: {verificationPublicNote}</p>
-                        ) : null}
-                      </div>
-                      <div className="flex flex-wrap gap-2">
-                        {!member.signatureUploadedAt && (
-                          <Button
-                            type="button"
-                            variant="outline"
-                            size="sm"
-                            asChild
-                          >
-                            <Link href="/verify-doctor">
-                              Complete Doctor Verification
-                            </Link>
-                          </Button>
-                        )}
-                        <Button
-                          type="button"
-                          variant="outline"
-                          size="sm"
-                          onClick={() => onReverifyDoctor(member.id)}
-                          disabled={isManaging}
-                        >
-                          {isReverifyingDoctor && (
-                            <DocitaLoadingIndicator variant="inline" decorative className="mr-2" />
-                          )}
-                          Reverify Registration
-                        </Button>
-                      </div>
-                    </div>
-                  </div>
-                </>
-              )}
+              {isSelectedMemberDoctor ? (
+                <ManageTeamMemberDoctorPanel
+                  member={member}
+                  memberForm={memberForm}
+                  isManaging={isManaging}
+                  isReverifyingDoctor={isReverifyingDoctor}
+                  onReverifyDoctor={onReverifyDoctor}
+                  getVerificationBadgeVariant={getVerificationBadgeVariant}
+                  getVerificationBadgeLabel={getVerificationBadgeLabel}
+                  formatDate={formatDate}
+                />
+              ) : null}
 
               <div>
                 <p className="text-muted-foreground">Created</p>
@@ -335,9 +219,13 @@ export function ManageTeamMemberDialog({
                     disabled={isManaging}
                     className="w-full sm:w-auto"
                   >
-                    {isUpdatingMember && (
-                      <DocitaLoadingIndicator variant="inline" decorative className="mr-2" />
-                    )}
+                    {isUpdatingMember ? (
+                      <DocitaLoadingIndicator
+                        variant="inline"
+                        decorative
+                        className="mr-2"
+                      />
+                    ) : null}
                     Save Changes
                   </Button>
                   <Button
@@ -347,16 +235,20 @@ export function ManageTeamMemberDialog({
                     disabled={isManaging}
                     className="w-full sm:w-auto"
                   >
-                    {isDeletingMember && (
-                      <DocitaLoadingIndicator variant="inline" decorative className="mr-2" />
-                    )}
+                    {isDeletingMember ? (
+                      <DocitaLoadingIndicator
+                        variant="inline"
+                        decorative
+                        className="mr-2"
+                      />
+                    ) : null}
                     Remove
                   </Button>
                 </div>
               </DialogFooter>
             </form>
           </Form>
-        )}
+        ) : null}
       </DialogContent>
     </Dialog>
   );
