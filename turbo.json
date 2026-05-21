@@ -1,20 +1,78 @@
 {
   "$schema": "https://v2-8-12.turborepo.dev/schema.json",
   "ui": "tui",
-  "globalEnv": ["NODE_ENV", "ANALYZE", "NEXT_RUNTIME", "DATABASE_URL", "JWT_SECRET", "API_PROXY_TARGET", "API_URL", "APP_URL", "PUBLIC_API_URL", "PUBLIC_APP_URL", "PUBLIC_ANALYTICS_URL", "NEXT_PUBLIC_API_URL", "NEXT_PUBLIC_APP_URL", "NEXT_PUBLIC_SOCKET_URL", "ENABLE_SCHEDULERS", "CI", "DOCITA_CLOUDFLARE", "DOCITA_ENV", "PLAYWRIGHT_TEST_BASE_URL", "API_HEALTH_URL", "SKIP_SERVER"],
+  "globalEnv": [
+    "NODE_ENV",
+    "ANALYZE",
+    "NEXT_RUNTIME",
+    "DATABASE_URL",
+    "JWT_SECRET",
+    "API_PROXY_TARGET",
+    "API_URL",
+    "APP_URL",
+    "PUBLIC_API_URL",
+    "PUBLIC_APP_URL",
+    "PUBLIC_ANALYTICS_URL",
+    "NEXT_PUBLIC_API_URL",
+    "NEXT_PUBLIC_APP_URL",
+    "NEXT_PUBLIC_SOCKET_URL",
+    "ENABLE_SCHEDULERS",
+    "CI",
+    "DOCITA_CLOUDFLARE",
+    "DOCITA_ENV",
+    "PLAYWRIGHT_TEST_BASE_URL",
+    "API_HEALTH_URL",
+    "SKIP_SERVER"
+  ],
   "tasks": {
     "build": {
       "dependsOn": ["^build", "check-types", "lint"],
       "inputs": ["$TURBO_DEFAULT$", ".env*"],
       "outputs": [".next/**", "!.next/cache/**", "dist/**", "build/**"],
-      "env": ["NODE_ENV", "API_URL", "APP_URL", "PUBLIC_API_URL", "PUBLIC_APP_URL", "PUBLIC_ANALYTICS_URL", "NEXT_PUBLIC_API_URL", "NEXT_PUBLIC_APP_URL", "NEXT_PUBLIC_SOCKET_URL", "ENABLE_SCHEDULERS", "CI", "SENTRY_ORG", "SENTRY_PROJECT", "DOCITA_CLOUDFLARE", "DOCITA_ENV", "PLAYWRIGHT_TEST_BASE_URL", "API_HEALTH_URL", "SKIP_SERVER"]
+      "env": [
+        "NODE_ENV",
+        "API_URL",
+        "APP_URL",
+        "PUBLIC_API_URL",
+        "PUBLIC_APP_URL",
+        "PUBLIC_ANALYTICS_URL",
+        "NEXT_PUBLIC_API_URL",
+        "NEXT_PUBLIC_APP_URL",
+        "NEXT_PUBLIC_SOCKET_URL",
+        "ENABLE_SCHEDULERS",
+        "CI",
+        "SENTRY_ORG",
+        "SENTRY_PROJECT",
+        "DOCITA_CLOUDFLARE",
+        "DOCITA_ENV",
+        "PLAYWRIGHT_TEST_BASE_URL",
+        "API_HEALTH_URL",
+        "SKIP_SERVER"
+      ]
     },
     "db:generate": {
       "cache": false
     },
     "lint": {
       "dependsOn": ["^lint"],
-      "env": ["DATABASE_URL", "API_URL", "APP_URL", "PUBLIC_API_URL", "PUBLIC_APP_URL", "PUBLIC_ANALYTICS_URL", "NEXT_PUBLIC_API_URL", "NEXT_PUBLIC_APP_URL", "NEXT_PUBLIC_SOCKET_URL", "ENABLE_SCHEDULERS", "CI", "DOCITA_CLOUDFLARE", "DOCITA_ENV", "PLAYWRIGHT_TEST_BASE_URL", "API_HEALTH_URL", "SKIP_SERVER"]
+      "env": [
+        "DATABASE_URL",
+        "API_URL",
+        "APP_URL",
+        "PUBLIC_API_URL",
+        "PUBLIC_APP_URL",
+        "PUBLIC_ANALYTICS_URL",
+        "NEXT_PUBLIC_API_URL",
+        "NEXT_PUBLIC_APP_URL",
+        "NEXT_PUBLIC_SOCKET_URL",
+        "ENABLE_SCHEDULERS",
+        "CI",
+        "DOCITA_CLOUDFLARE",
+        "DOCITA_ENV",
+        "PLAYWRIGHT_TEST_BASE_URL",
+        "API_HEALTH_URL",
+        "SKIP_SERVER"
+      ]
     },
     "check-types": {
       "dependsOn": ["^build", "^check-types"]
@@ -28,7 +86,16 @@
         "test/**/*.ts",
         "test/**/*.tsx"
       ],
-      "env": ["DATABASE_URL", "API_URL", "APP_URL", "ENABLE_SCHEDULERS", "CI", "PLAYWRIGHT_TEST_BASE_URL", "API_HEALTH_URL", "SKIP_SERVER"]
+      "env": [
+        "DATABASE_URL",
+        "API_URL",
+        "APP_URL",
+        "ENABLE_SCHEDULERS",
+        "CI",
+        "PLAYWRIGHT_TEST_BASE_URL",
+        "API_HEALTH_URL",
+        "SKIP_SERVER"
+      ]
     },
     "dev": {
       "cache": false,
