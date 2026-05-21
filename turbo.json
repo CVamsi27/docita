@@ -56,6 +56,7 @@
     "lint": {
       "dependsOn": ["^lint"],
       "env": [
+        "AUDIT_APP_PUBLIC_ONLY",
         "DATABASE_URL",
         "API_URL",
         "APP_URL",
@@ -87,6 +88,7 @@
         "test/**/*.tsx"
       ],
       "env": [
+        "AUDIT_APP_PUBLIC_ONLY",
         "DATABASE_URL",
         "API_URL",
         "APP_URL",
