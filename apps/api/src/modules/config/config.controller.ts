@@ -1,7 +1,8 @@
-import { Controller, Get, Query } from '@nestjs/common';
+import { Controller, Get, Request } from '@nestjs/common';
 import { CacheDuration } from '@/shared/common/interceptors/cache.interceptor';
 import { ConfigService } from './config.service';
 import { Public } from '@/shared/modules/auth/auth/public.decorator';
+import type { RequestWithUser } from '@/shared/common/types/common.types';
 import {
   FormOptionsResponseDto,
   AppConstantsResponseDto,
@@ -47,11 +48,12 @@ export class ConfigController {
     return this.configService.getDefaults();
   }
 
-  @Public()
   @Get()
   @CacheDuration(3600)
   @ZodSerializerDto(AppConfigResponseDto)
-  async getAppConfig(@Query('clinicId') clinicId?: string) {
+  async getAppConfig(@Request() req: RequestWithUser) {
+    const clinicId =
+      typeof req.user?.clinicId === 'string' ? req.user.clinicId : undefined;
     return this.configService.getAppConfig(clinicId);
   }
 }

@@ -8,6 +8,14 @@ import type {
 
 type ContactInquiryDto = ContactInquiry;
 
+function redactEmailForLog(email: string): string {
+  const [local = '', domain = ''] = email.trim().toLowerCase().split('@');
+  if (!local || !domain) {
+    return '[redacted-email]';
+  }
+  return `${local.slice(0, 2)}***@${domain}`;
+}
+
 @Injectable()
 export class ContactService {
   private readonly logger = new Logger('ContactService');
@@ -38,7 +46,7 @@ export class ContactService {
     });
 
     this.logger.log(
-      `New contact inquiry received: ${inquiry.id} from ${data.email}`,
+      `New contact inquiry received: ${inquiry.id} from ${redactEmailForLog(data.email)}`,
     );
 
     return {
