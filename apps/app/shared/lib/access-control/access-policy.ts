@@ -8,8 +8,7 @@ import {
   getAccessFeature,
   getAccessTier,
   type UserRole,
-  type WorkspaceProfile,
-  shouldDenyAccessForWorkspaceProfile,
+  shouldDenyAccessForFrontDeskTier,
 } from "@workspace/types";
 import { getTierName, hasFeatureAccess } from "@workspace/utils";
 import { hasPermission } from "@/lib/auth/permissions";
@@ -20,7 +19,6 @@ interface AccessContext {
   canAccessFeature?: (feature: Feature) => boolean;
   currentTier?: Tier;
   hasIntelligence?: boolean;
-  workspaceProfile?: WorkspaceProfile | null;
 }
 
 const TIER_SENTINEL_FEATURES: Partial<Record<Tier, Feature>> = {
@@ -66,10 +64,9 @@ export function canAccessTarget(
   const role = context.role ?? undefined;
 
   if (
-    shouldDenyAccessForWorkspaceProfile(
+    shouldDenyAccessForFrontDeskTier(
       target,
       role ?? null,
-      context.workspaceProfile,
       context.currentTier !== undefined
         ? getTierName(context.currentTier)
         : null,

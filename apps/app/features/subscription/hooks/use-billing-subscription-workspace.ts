@@ -26,7 +26,7 @@ import {
 } from "@/features/subscription/components/billing-subscription-helpers";
 
 export function useBillingSubscriptionWorkspace() {
-  const { currentTier, workspaceProfile } = usePermissionStore();
+  const { currentTier } = usePermissionStore();
 
   const [showContactSalesModal, setShowContactSalesModal] = useState(false);
   const [showTierChangeDialog, setShowTierChangeDialog] = useState(false);
@@ -222,7 +222,6 @@ export function useBillingSubscriptionWorkspace() {
   ];
 
   return {
-    workspaceProfile,
     showContactSalesModal,
     setShowContactSalesModal,
     showTierChangeDialog,

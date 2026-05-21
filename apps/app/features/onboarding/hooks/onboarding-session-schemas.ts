@@ -27,7 +27,6 @@ const sessionPlanSelectionSchema = z.object({
   price: z.number(),
   currency: z.string(),
   isCoreTrial: z.boolean().optional(),
-  workspaceProfile: z.enum(["FULL_CLINICAL", "FRONT_DESK"]).optional(),
 });
 
 const sessionPaymentDetailsSchema = z.object({

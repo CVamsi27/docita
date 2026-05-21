@@ -12,7 +12,6 @@ import type {
   UserRole,
   Feature,
   Tier,
-  WorkspaceProfile,
 } from "@workspace/types";
 import { canAccessTarget } from "@/lib/access-control/access-policy";
 import type { NavItem } from "./nav-config";
@@ -136,7 +135,6 @@ export function navItemIsAccessible(
     canAccess: CanAccessFeatureFn;
     currentTier: Tier;
     hasIntelligence: boolean;
-    workspaceProfile: WorkspaceProfile;
   },
 ): boolean {
   if (item.feature && !args.canAccess(item.feature)) return false;
@@ -148,7 +146,6 @@ export function navItemIsAccessible(
       canAccessFeature: args.canAccess,
       currentTier: args.currentTier,
       hasIntelligence: args.hasIntelligence,
-      workspaceProfile: args.workspaceProfile,
     },
     "read",
   );

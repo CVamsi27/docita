@@ -36,8 +36,7 @@ export function useCommandPalette() {
   const { user } = useAuth();
   const { clinicId } = useClinic();
   const { canStartConsultation } = usePermissions();
-  const { canAccess, currentTier, hasIntelligence, workspaceProfile } =
-    usePermissionStore();
+  const { canAccess, currentTier, hasIntelligence } = usePermissionStore();
   const { openOverlay } = useAskAi();
   const navOrder = useSidebarNavOrder({
     clinicId,
@@ -52,7 +51,6 @@ export function useCommandPalette() {
       canAccessFeature: canAccess,
       currentTier,
       hasIntelligence,
-      workspaceProfile,
     },
     "read",
   );
@@ -150,7 +148,6 @@ export function useCommandPalette() {
           canAccess,
           currentTier,
           hasIntelligence,
-          workspaceProfile,
         })
       )
         continue;
@@ -183,7 +180,6 @@ export function useCommandPalette() {
             canAccessFeature: canAccess,
             currentTier,
             hasIntelligence,
-            workspaceProfile,
           },
           action.accessMode ?? "write",
         );
@@ -219,7 +215,6 @@ export function useCommandPalette() {
     openOverlay,
     router,
     user?.role,
-    workspaceProfile,
   ]);
 
   return {

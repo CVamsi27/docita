@@ -44,8 +44,7 @@ export function QuickAddPopover() {
   const [open, setOpen] = useState(false);
   const router = useRouter();
   const { user } = useAuth();
-  const { canAccess, currentTier, hasIntelligence, workspaceProfile } =
-    usePermissionStore();
+  const { canAccess, currentTier, hasIntelligence } = usePermissionStore();
 
   const handleSelect = useCallback(
     (action: QuickAction) => {
@@ -70,7 +69,6 @@ export function QuickAddPopover() {
         canAccessFeature: canAccess,
         currentTier,
         hasIntelligence,
-        workspaceProfile,
       },
       "read",
     );

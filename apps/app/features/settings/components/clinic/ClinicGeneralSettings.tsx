@@ -10,7 +10,6 @@ import {
 import { SettingsAiChips } from "@/features/settings/components/settings-ai-chips";
 import { ClinicGeneralSettingsSkeleton } from "./ClinicGeneralSettingsSkeleton";
 import { ClinicReferralLinks } from "./ClinicReferralLinks";
-import { WorkspaceModeCard } from "./WorkspaceModeCard";
 import { ClinicGeneralSettingsForm } from "./clinic-general-settings-form";
 import { useClinicGeneralSettings } from "./use-clinic-general-settings";
 
@@ -22,7 +21,6 @@ export function ClinicGeneralSettings() {
   return (
     <div className="space-y-4">
       <SettingsAiChips scope="clinic-general" />
-      <WorkspaceModeCard workspaceProfile={settings.clinic?.workspaceProfile} />
       <Card>
         <CardHeader>
           <CardTitle>{settings.facilityLabel} Information</CardTitle>

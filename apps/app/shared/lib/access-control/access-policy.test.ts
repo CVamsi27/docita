@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { APP_ACCESS_TARGETS } from "@workspace/types";
+import { APP_ACCESS_TARGETS, Tier } from "@workspace/types";
 import { canAccessTarget } from "./access-policy";
 
 describe("canAccessTarget", () => {
@@ -104,12 +104,12 @@ describe("canAccessTarget", () => {
     ).toBe(false);
   });
 
-  it("blocks clinical surfaces on front desk workspace while keeping appointments", () => {
+  it("blocks clinical surfaces on FRONT_DESK tier while keeping appointments", () => {
     expect(
       canAccessTarget(APP_ACCESS_TARGETS.PAGE_CONSULTATION, {
         role: "ADMIN",
         canAccessFeature: () => true,
-        workspaceProfile: "FRONT_DESK",
+        currentTier: Tier.FRONT_DESK,
       }),
     ).toBe(false);
 
@@ -117,7 +117,7 @@ describe("canAccessTarget", () => {
       canAccessTarget(APP_ACCESS_TARGETS.PAGE_APPOINTMENTS, {
         role: "RECEPTIONIST",
         canAccessFeature: () => true,
-        workspaceProfile: "FRONT_DESK",
+        currentTier: Tier.FRONT_DESK,
       }),
     ).toBe(true);
 
@@ -125,7 +125,7 @@ describe("canAccessTarget", () => {
       canAccessTarget(APP_ACCESS_TARGETS.PAGE_CONSULTATION, {
         role: "ADMIN",
         canAccessFeature: () => true,
-        workspaceProfile: "FULL_CLINICAL",
+        currentTier: Tier.ESSENTIAL,
       }),
     ).toBe(true);
   });

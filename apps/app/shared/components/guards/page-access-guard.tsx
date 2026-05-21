@@ -12,8 +12,7 @@ import { usePermissionStore } from "@/lib/stores/permission-store";
 export function PageAccessGuard({ children }: { children: React.ReactNode }) {
   const { user } = useAuth();
   const { clinic } = useClinic();
-  const { canAccess, currentTier, hasIntelligence, workspaceProfile } =
-    usePermissionStore();
+  const { canAccess, currentTier, hasIntelligence } = usePermissionStore();
   const pathname = usePathname();
   const router = useRouter();
 
@@ -40,7 +39,6 @@ export function PageAccessGuard({ children }: { children: React.ReactNode }) {
         canAccessFeature: canAccess,
         currentTier,
         hasIntelligence,
-        workspaceProfile,
       },
       "read",
     );
@@ -56,7 +54,6 @@ export function PageAccessGuard({ children }: { children: React.ReactNode }) {
     pathname,
     router,
     user?.role,
-    workspaceProfile,
   ]);
 
   return <>{children}</>;

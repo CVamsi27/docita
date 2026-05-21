@@ -14,7 +14,6 @@ import { useClinicSocket } from "@/hooks/use-clinic-socket";
 import { fetchWithSession } from "@/lib/auth/fetch-with-session";
 import { logger } from "@/lib/monitoring/logger";
 import { appClinicSchema, tierSchema, type AppClinic } from "@workspace/types";
-import { isRecord } from "@workspace/utils";
 
 export type Clinic = AppClinic;
 
@@ -98,7 +97,6 @@ export function ClinicProvider({ children }: { children: React.ReactNode }) {
     setFeatureOverrides,
     setClinicType,
     setFacilityType,
-    setWorkspaceProfile,
   } = usePermissionStore();
   const hasFetchedRef = useRef(false);
   const isFetchingRef = useRef(false);
@@ -121,15 +119,6 @@ export function ClinicProvider({ children }: { children: React.ReactNode }) {
         setClinicType(clinicData.type);
       }
 
-      const settingsWorkspaceProfile = isRecord(clinicData.settings)
-        ? clinicData.settings.workspaceProfile
-        : undefined;
-      if (clinicData.tier === "FRONT_DESK") {
-        setWorkspaceProfile("FRONT_DESK");
-      } else {
-        setWorkspaceProfile(clinicData.workspaceProfile ?? settingsWorkspaceProfile);
-      }
-
       const facilityType =
         clinicData.facilityType ??
         getFacilityLabelFromSettings(clinicData.settings);
@@ -143,7 +132,6 @@ export function ClinicProvider({ children }: { children: React.ReactNode }) {
       setFeatureOverrides,
       setClinicType,
       setFacilityType,
-      setWorkspaceProfile,
     ],
   );
 

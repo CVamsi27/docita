@@ -37,7 +37,6 @@ export function useSidebarSections() {
     hasIntelligence,
     getTierInfo,
     clinicType: storeClinicType,
-    workspaceProfile,
   } = usePermissionStore();
   const { getClinicSetting } = useAppConfig();
   const { isHidden, toggleItem } = useSidebarPreferences(clinicId);
@@ -51,7 +50,6 @@ export function useSidebarSections() {
       canAccessFeature: canAccess,
       currentTier,
       hasIntelligence,
-      workspaceProfile,
     },
     "read",
   );
@@ -63,7 +61,6 @@ export function useSidebarSections() {
       canAccessFeature: canAccess,
       currentTier,
       hasIntelligence,
-      workspaceProfile,
     },
     "read",
   );
@@ -109,7 +106,6 @@ export function useSidebarSections() {
           canAccessFeature: canAccess,
           currentTier,
           hasIntelligence,
-          workspaceProfile,
         },
         "read",
       );

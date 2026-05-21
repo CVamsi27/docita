@@ -11,13 +11,11 @@ import { Button } from "@workspace/ui/components/form/button";
 import { Lightbulb } from "lucide-react";
 import { cn } from "@workspace/ui/lib/utils";
 import { TierCard } from "@/features/subscription/components/cards/tier-card";
-import { ANNUAL_DISCOUNT_PERCENT, PRICING_CURRENCY_SYMBOLS, TIER_INFO, TIER_OVERAGE_RATES_BY_CURRENCY, type TierName, isFrontDeskClinicMode } from "@workspace/types";
+import { ANNUAL_DISCOUNT_PERCENT, PRICING_CURRENCY_SYMBOLS, TIER_INFO, TIER_OVERAGE_RATES_BY_CURRENCY, type TierName, isFrontDeskTier } from "@workspace/types";
 import { getWhatsAppAddonPricingByCurrency } from "@workspace/utils";
 import { PLAN_ONBOARDING_KEY_HIGHLIGHTS } from "@/features/subscription/config/plan-onboarding-highlights";
 import { PLAN_ORDER } from "./billing-subscription-helpers";
 import type { recommendTier } from "@/features/subscription/lib/recommend-tier";
-import type { WorkspaceProfile } from "@workspace/types";
-
 type Recommendation = ReturnType<typeof recommendTier>;
 type PricingConfig = { tiers: { id: string; pricing: { monthly: number | "custom"; yearly: number | "custom" } }[] } | null | undefined;
 
@@ -31,7 +29,6 @@ interface PlansSectionProps {
   setShowContactSalesModal: (open: boolean) => void;
   pricingConfig: PricingConfig;
   currency: string;
-  workspaceProfile: WorkspaceProfile | null | undefined;
   plansRef: React.RefObject<HTMLDivElement | null>;
 }
 
@@ -45,13 +42,9 @@ export function PlansSection({
   setShowContactSalesModal,
   pricingConfig,
   currency,
-  workspaceProfile,
   plansRef,
 }: PlansSectionProps) {
-  const isFrontDeskClinic = isFrontDeskClinicMode(
-    getTierName(effectiveCurrentTier),
-    workspaceProfile,
-  );
+  const isFrontDeskClinic = isFrontDeskTier(getTierName(effectiveCurrentTier));
 
   const planCards = PLAN_ORDER.map((tier) => ({
     tier,

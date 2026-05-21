@@ -35,7 +35,7 @@ export const useConsultationDashboard = () => {
   const router = useRouter();
   const { user } = useAuth();
   const { canStartConsultation } = usePermissions();
-  const { canAccess, currentTier, hasIntelligence, workspaceProfile } =
+  const { canAccess, currentTier, hasIntelligence } =
     usePermissionStore();
   const { data: clinic } = useClinicSettings();
   const clinicTz = clinic?.timezone?.trim() || DEFAULT_TIMEZONE;
@@ -60,7 +60,6 @@ export const useConsultationDashboard = () => {
       canAccessFeature: canAccess,
       currentTier,
       hasIntelligence,
-      workspaceProfile,
     },
     "read",
   );

@@ -6,7 +6,6 @@ import {
   FEATURE_TIER_MAP,
   Tier,
   type UserRole,
-  type WorkspaceProfile,
 } from "@workspace/types";
 import { getTierName, hasFeatureAccess } from "@workspace/utils";
 
@@ -24,7 +23,6 @@ describe("canAccessTarget matrix parity (role x tier x target)", () => {
     tier: Tier;
     target: (typeof APP_ACCESS_TARGETS)[keyof typeof APP_ACCESS_TARGETS];
     expectAllowed: boolean;
-    workspaceProfile?: WorkspaceProfile;
     mode?: "read" | "write";
   }> = [
     {
@@ -63,20 +61,18 @@ describe("canAccessTarget matrix parity (role x tier x target)", () => {
       expectAllowed: true,
     },
     {
-      name: "Consultation blocked on front desk for admin on Essential",
+      name: "Consultation blocked on FRONT_DESK tier for admin",
       role: "ADMIN",
-      tier: Tier.ESSENTIAL,
+      tier: Tier.FRONT_DESK,
       target: APP_ACCESS_TARGETS.PAGE_CONSULTATION,
       expectAllowed: false,
-      workspaceProfile: "FRONT_DESK",
     },
     {
-      name: "Appointments allowed on front desk for receptionist on Starter",
+      name: "Appointments allowed on FRONT_DESK tier for receptionist",
       role: "RECEPTIONIST",
-      tier: Tier.STARTER,
+      tier: Tier.FRONT_DESK,
       target: APP_ACCESS_TARGETS.PAGE_APPOINTMENTS,
       expectAllowed: true,
-      workspaceProfile: "FRONT_DESK",
     },
     {
       name: "Desk floor denied on Essential for receptionist (tier-gated)",
@@ -121,36 +117,32 @@ describe("canAccessTarget matrix parity (role x tier x target)", () => {
       expectAllowed: true,
     },
     {
-      name: "Lab tests allowed on FRONT_DESK workspace for receptionist",
+      name: "Lab tests allowed on FRONT_DESK tier for receptionist",
       role: "RECEPTIONIST",
-      tier: Tier.ESSENTIAL,
+      tier: Tier.FRONT_DESK,
       target: APP_ACCESS_TARGETS.PAGE_LAB_TESTS,
       expectAllowed: true,
-      workspaceProfile: "FRONT_DESK",
     },
     {
-      name: "Lab tests API allowed on FRONT_DESK workspace for receptionist",
+      name: "Lab tests API allowed on FRONT_DESK tier for receptionist",
       role: "RECEPTIONIST",
-      tier: Tier.ESSENTIAL,
+      tier: Tier.FRONT_DESK,
       target: APP_ACCESS_TARGETS.API_LAB_TESTS,
       expectAllowed: true,
-      workspaceProfile: "FRONT_DESK",
     },
     {
-      name: "Consultation still blocked on FRONT_DESK workspace",
+      name: "Consultation still blocked on FRONT_DESK tier",
       role: "ADMIN",
-      tier: Tier.ESSENTIAL,
+      tier: Tier.FRONT_DESK,
       target: APP_ACCESS_TARGETS.PAGE_CONSULTATION,
       expectAllowed: false,
-      workspaceProfile: "FRONT_DESK",
     },
     {
-      name: "Prescriptions still blocked on FRONT_DESK workspace",
+      name: "Prescriptions still blocked on FRONT_DESK tier",
       role: "ADMIN",
-      tier: Tier.ESSENTIAL,
+      tier: Tier.FRONT_DESK,
       target: APP_ACCESS_TARGETS.PAGE_PRESCRIPTIONS,
       expectAllowed: false,
-      workspaceProfile: "FRONT_DESK",
     },
     {
       name: "Receptionist allowed PAGE_PRESCRIPTIONS read (for printing handoff)",
@@ -221,15 +213,7 @@ describe("canAccessTarget matrix parity (role x tier x target)", () => {
     },
   ];
 
-  for (const {
-    name,
-    role,
-    tier,
-    target,
-    expectAllowed,
-    workspaceProfile,
-    mode,
-  } of cases) {
+  for (const { name, role, tier, target, expectAllowed, mode } of cases) {
     it(name, () => {
       const allowed = canAccessTarget(
         target,
@@ -238,7 +222,6 @@ describe("canAccessTarget matrix parity (role x tier x target)", () => {
           canAccessFeature: canAccessFeatureFactory(tier),
           currentTier: tier,
           hasIntelligence: false,
-          workspaceProfile,
         },
         mode ?? "read",
       );

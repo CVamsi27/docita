@@ -7,12 +7,10 @@ import { hasPermission, type Permission } from "@/lib/auth/permissions";
 import { usePermissionStore } from "@/lib/stores/permission-store";
 import {
   APP_ACCESS_TARGETS,
-  DEFAULT_WORKSPACE_PROFILE,
   Feature,
   Tier,
   type AppAccessTarget,
   type UserRole,
-  type WorkspaceProfile,
 } from "@workspace/types";
 import { getTierName, hasFeatureAccess } from "@workspace/utils";
 
@@ -46,7 +44,6 @@ interface VisibleSettingsTabsParams {
   hasIntelligence?: boolean;
   canAccessFeature: (feature: Feature) => boolean;
   searchQuery?: string;
-  workspaceProfile?: WorkspaceProfile;
 }
 
 export function getVisibleSettingsTabs({
@@ -55,7 +52,6 @@ export function getVisibleSettingsTabs({
   hasIntelligence = false,
   canAccessFeature,
   searchQuery = "",
-  workspaceProfile = DEFAULT_WORKSPACE_PROFILE,
 }: VisibleSettingsTabsParams) {
   const tabs = settingsTabs
     .map((category) => ({
@@ -95,7 +91,6 @@ export function getVisibleSettingsTabs({
               canAccessFeature,
               currentTier,
               hasIntelligence,
-              workspaceProfile,
             },
             "read",
           );
@@ -132,7 +127,6 @@ export const useSettingsLogic = () => {
   const canAccessFeature = usePermissionStore((state) => state.canAccess);
   const currentTier = usePermissionStore((state) => state.currentTier);
   const hasIntelligence = usePermissionStore((state) => state.hasIntelligence);
-  const workspaceProfile = usePermissionStore((state) => state.workspaceProfile);
   const requestedTab = searchParams.get("tab") || "general";
   const [searchQuery, setSearchQuery] = useState("");
 
@@ -143,7 +137,6 @@ export const useSettingsLogic = () => {
       hasIntelligence,
       canAccessFeature,
       searchQuery,
-      workspaceProfile,
     });
   }, [
     canAccessFeature,
@@ -151,7 +144,6 @@ export const useSettingsLogic = () => {
     hasIntelligence,
     searchQuery,
     user?.role,
-    workspaceProfile,
   ]);
 
   const firstMatchingTab = filteredTabs[0]?.items[0]?.value;

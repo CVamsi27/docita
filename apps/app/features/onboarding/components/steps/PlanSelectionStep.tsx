@@ -2,7 +2,6 @@
 
 import { DocitaLoadingIndicator } from "@workspace/ui/components/feedback/docita-loading-indicator";
 import { Suspense } from "react";
-import type { WorkspaceProfile } from "@workspace/types";
 import { PlanSelectionStepInner } from "./plan-selection-step-inner";
 
 export interface PlanSelectionProps {
@@ -10,12 +9,11 @@ export interface PlanSelectionProps {
     tier: string,
     billingCycle: "MONTHLY" | "YEARLY",
     pricing: { monthly: number | "custom"; yearly: number | "custom" },
-    options?: { currency?: string; workspaceProfile?: WorkspaceProfile },
+    options?: { currency?: string },
   ) => Promise<void>;
   defaultTier?: string;
   defaultBillingCycle?: "MONTHLY" | "YEARLY";
   currency?: string;
-  initialWorkspaceProfile?: WorkspaceProfile;
 }
 
 export function PlanSelectionStep(props: PlanSelectionProps) {

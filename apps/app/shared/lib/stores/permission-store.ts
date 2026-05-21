@@ -9,15 +9,11 @@ import {
   Tier,
   TIER_INFO,
   userRoleSchema,
-  type WorkspaceProfile,
-  DEFAULT_WORKSPACE_PROFILE,
-  parseWorkspaceProfile,
 } from "@workspace/types";
 import {
   getTierName,
   hasFeatureAccess,
   isFeatureGenerallyAvailable,
-  isRecord,
 } from "@workspace/utils";
 import { hasPermission, type Permission } from "@/lib/auth/permissions";
 
@@ -32,7 +28,6 @@ interface PermissionState {
   facilityType: FacilityType;
   clinicType: ClinicType | null;
   featureOverrides: Record<string, boolean>;
-  workspaceProfile: WorkspaceProfile;
 
   setTier: (tier: Tier | string) => void;
   setIntelligence: (active: boolean) => void;
@@ -40,14 +35,12 @@ interface PermissionState {
   setFacilityType: (type: FacilityType) => void;
   setClinicType: (type: ClinicType | string | null) => void;
   setFeatureOverrides: (overrides: Record<string, boolean>) => void;
-  setWorkspaceProfile: (profile: unknown) => void;
   syncFromClinic: (
     clinic: {
       tier: string;
       intelligenceAddon?: string | null;
       features?: Record<string, boolean> | null;
       type?: string | null;
-      workspaceProfile?: WorkspaceProfile | string | null;
       settings?: Record<string, unknown> | null;
     },
     userRole?: string,
@@ -72,7 +65,6 @@ export const usePermissionStore = create<PermissionState>((set, get) => ({
   facilityType: "CLINIC",
   clinicType: null,
   featureOverrides: {},
-  workspaceProfile: DEFAULT_WORKSPACE_PROFILE,
 
   setTier: (tier) => {
     const parsedTier =
@@ -101,32 +93,13 @@ export const usePermissionStore = create<PermissionState>((set, get) => ({
 
   setFeatureOverrides: (overrides) => set({ featureOverrides: overrides }),
 
-  setWorkspaceProfile: (profile: unknown) =>
-    set({ workspaceProfile: parseWorkspaceProfile(profile) }),
-
   syncFromClinic: (clinic, userRole) => {
-    const {
-      setTier,
-      setIntelligence,
-      setUserRole,
-      setClinicType,
-      setFeatureOverrides,
-      setWorkspaceProfile,
-    } = get();
+    const { setTier, setIntelligence, setUserRole, setClinicType, setFeatureOverrides } =
+      get();
 
     setTier(clinic.tier);
     setIntelligence(clinic.intelligenceAddon === "ACTIVE");
     setFeatureOverrides(clinic.features || {});
-
-    const fromRoot = clinic.workspaceProfile;
-    const fromSettings = isRecord(clinic.settings)
-      ? clinic.settings.workspaceProfile
-      : undefined;
-    if (clinic.tier === "FRONT_DESK") {
-      setWorkspaceProfile("FRONT_DESK");
-    } else {
-      setWorkspaceProfile(fromRoot ?? fromSettings);
-    }
 
     if (clinic.type) {
       setClinicType(clinic.type);

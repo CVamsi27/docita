@@ -119,7 +119,6 @@ export function BillingSubscriptionWorkspace() {
         setShowContactSalesModal={ws.setShowContactSalesModal}
         pricingConfig={ws.pricingConfig}
         currency={ws.currency}
-        workspaceProfile={ws.workspaceProfile}
         plansRef={ws.plansRef}
       />
 

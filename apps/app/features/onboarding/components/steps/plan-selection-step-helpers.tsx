@@ -1,10 +1,9 @@
 "use client";
 
-import { FC } from "react";
+import type { FC } from "react";
 import { ChevronDown } from "lucide-react";
 import { Button } from "@workspace/ui/components/form/button";
 import { Badge } from "@workspace/ui/components/indicators/badge";
-import { MicroLabel } from "@workspace/ui/components/indicators/micro-label";
 import { cn } from "@workspace/ui/lib/utils";
 import {
   Collapsible,
@@ -17,9 +16,6 @@ import {
   SUBSCRIPTION_TRIAL_DAYS,
   TIER_OVERAGE_RATES_BY_CURRENCY,
   type TierName,
-  type WorkspaceProfile,
-  WORKSPACE_PROFILE_LABEL,
-  WORKSPACE_PROFILE_MARKETING,
 } from "@workspace/types";
 import { parseSupportedCurrency } from "@workspace/utils";
 import { getTierPricing } from "@/lib/subscription/tier-access";
@@ -121,65 +117,6 @@ export function buildTierCardConfig(
 
   return { cardPricing, currencySymbol, overageHint, buttonLabel };
 }
-
-// ---------------------------------------------------------------------------
-// WorkspaceSelector
-// ---------------------------------------------------------------------------
-
-interface WorkspaceSelectorProps {
-  workspaceProfile: WorkspaceProfile;
-  onSelect: (profile: WorkspaceProfile) => void;
-}
-
-export const WorkspaceSelector: FC<WorkspaceSelectorProps> = ({
-  workspaceProfile,
-  onSelect,
-}) => (
-  <div className="rounded-lg border border-border/60 bg-card p-4 space-y-3">
-    <MicroLabel>Workspace</MicroLabel>
-    <p className="text-sm text-muted-foreground">
-      Choose how Docita is used at this facility. This is separate from the
-      commercial tier below (quotas and pricing).
-    </p>
-    <div className="flex flex-col gap-2 sm:flex-row">
-      <Button
-        type="button"
-        variant={workspaceProfile === "FULL_CLINICAL" ? "default" : "outline"}
-        className="flex-1 justify-center"
-        onClick={() => onSelect("FULL_CLINICAL")}
-      >
-        {WORKSPACE_PROFILE_LABEL.FULL_CLINICAL}
-      </Button>
-      <Button
-        type="button"
-        variant={workspaceProfile === "FRONT_DESK" ? "default" : "outline"}
-        className="flex-1 justify-center"
-        onClick={() => onSelect("FRONT_DESK")}
-      >
-        {WORKSPACE_PROFILE_LABEL.FRONT_DESK}
-      </Button>
-    </div>
-    <ul className="list-disc space-y-1 pl-5 text-sm text-muted-foreground">
-      {WORKSPACE_PROFILE_MARKETING[workspaceProfile].included.map((line) => (
-        <li key={line}>{line}</li>
-      ))}
-    </ul>
-    {WORKSPACE_PROFILE_MARKETING[workspaceProfile].notIncluded.length > 0 ? (
-      <div>
-        <p className="text-sm font-medium text-foreground">
-          Not included in this workspace
-        </p>
-        <ul className="mt-1 list-disc space-y-1 pl-5 text-sm text-muted-foreground">
-          {WORKSPACE_PROFILE_MARKETING[workspaceProfile].notIncluded.map(
-            (line) => (
-              <li key={line}>{line}</li>
-            ),
-          )}
-        </ul>
-      </div>
-    ) : null}
-  </div>
-);
 
 // ---------------------------------------------------------------------------
 // BillingCycleToggle

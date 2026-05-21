@@ -28,7 +28,6 @@ export function buildRegistrationPayload(
       tier: formData.planSelection.tier,
       billingCycle: formData.planSelection.billingCycle,
       currency: formData.planSelection.currency,
-      workspaceProfile: formData.planSelection.workspaceProfile ?? "FULL_CLINICAL",
     },
     slaAgreement: {
       acceptedSLA: complianceData.acceptedSLA,

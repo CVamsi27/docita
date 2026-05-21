@@ -49,8 +49,6 @@ export interface PlanSelection {
   price: number;
   currency: string;
   isCoreTrial?: boolean;
-  /** Mirrors API `planSelection.workspaceProfile`. */
-  workspaceProfile?: "FULL_CLINICAL" | "FRONT_DESK";
 }
 
 /** One row per weekday for default clinic visit windows (matches onboarding API). */
@@ -101,7 +99,6 @@ export const defaultClinicRegistrationData: ClinicRegistrationData = {
     price: 0,
     currency: DEFAULT_CURRENCY,
     isCoreTrial: false,
-    workspaceProfile: "FULL_CLINICAL",
   },
   paymentDetails: {},
   teamMembers: [],

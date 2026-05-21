@@ -1,7 +1,7 @@
 "use client";
 
 import { DocitaLoadingIndicator } from "@workspace/ui/components/feedback/docita-loading-indicator";
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { useSearchParams } from "next/navigation";
 import {
   Card,
@@ -21,20 +21,13 @@ import {
   getTierInfo,
   getTierValue,
 } from "@/lib/subscription/tier-access";
-import {
-  tierSchema,
-  type WorkspaceProfile,
-  resolveWorkspaceProfileForPlan,
-  isFrontDeskTier,
-  isFrontDeskWorkspace,
-} from "@workspace/types";
+import { tierSchema } from "@workspace/types";
 import { useLocaleCurrency } from "@/hooks/use-locale-currency";
 import { PLAN_ONBOARDING_KEY_HIGHLIGHTS } from "@/features/subscription";
 import {
   DISPLAY_TIERS,
   PLAN_AUDIENCE,
   buildTierCardConfig,
-  WorkspaceSelector,
   BillingCycleToggle,
   PlanComparisonCollapsible,
 } from "./plan-selection-step-helpers";
@@ -45,17 +38,9 @@ export function PlanSelectionStepInner({
   defaultTier = "ESSENTIAL",
   defaultBillingCycle = "MONTHLY",
   currency,
-  initialWorkspaceProfile = "FULL_CLINICAL",
 }: PlanSelectionProps) {
   const searchParams = useSearchParams();
   const { currency: detectedCurrency } = useLocaleCurrency();
-  const [workspaceProfile, setWorkspaceProfile] = useState<WorkspaceProfile>(
-    () => {
-      if (searchParams.get("workspace") === "front_desk") return "FRONT_DESK";
-      if (searchParams.get("tier") === "FRONT_DESK") return "FRONT_DESK";
-      return initialWorkspaceProfile;
-    },
-  );
   const [selectedTier, setSelectedTier] = useState<string>(() => {
     if (searchParams.get("tier") === "FRONT_DESK") return "FRONT_DESK";
     return defaultTier;
@@ -66,18 +51,6 @@ export function PlanSelectionStepInner({
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [showContactSalesModal, setShowContactSalesModal] = useState(false);
   const [comparisonOpen, setComparisonOpen] = useState(false);
-
-  useEffect(() => {
-    if (isFrontDeskTier(selectedTier)) {
-      setWorkspaceProfile("FRONT_DESK");
-      return;
-    }
-    if (isFrontDeskWorkspace(workspaceProfile)) {
-      setSelectedTier("FRONT_DESK");
-      return;
-    }
-    setSelectedTier((prev) => (prev === "FRONT_DESK" ? "ESSENTIAL" : prev));
-  }, [workspaceProfile, selectedTier]);
 
   const resolvedCurrency = currency ?? detectedCurrency;
   const { pricingConfig, isLoading, error } =
@@ -125,7 +98,6 @@ export function PlanSelectionStepInner({
     try {
       await onSelect(tier, billingCycle, pricingPayload, {
         currency: resolvedCurrency,
-        workspaceProfile: resolveWorkspaceProfileForPlan(tier, workspaceProfile),
       });
     } finally {
       setIsSubmitting(false);
@@ -194,13 +166,6 @@ Please contact me with deployment and commercial details.`;
         </p>
       </CardHeader>
       <CardContent className="space-y-6">
-        {!isFrontDeskTier(selectedTier) ? (
-          <WorkspaceSelector
-            workspaceProfile={workspaceProfile}
-            onSelect={setWorkspaceProfile}
-          />
-        ) : null}
-
         <BillingCycleToggle
           billingCycle={billingCycle}
           onChange={setBillingCycle}
@@ -259,12 +224,6 @@ Please contact me with deployment and commercial details.`;
                       ? undefined
                       : () => {
                           setSelectedTier(tierName);
-                          setWorkspaceProfile(
-                            resolveWorkspaceProfileForPlan(
-                              tierName,
-                              workspaceProfile,
-                            ),
-                          );
                           void handleSelectTier(tierName);
                         }
                   }

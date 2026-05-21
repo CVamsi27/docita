@@ -19,7 +19,6 @@ import {
   type Feature,
   Tier,
   type UserRole,
-  type WorkspaceProfile,
 } from "@workspace/types";
 import { canAccessTarget } from "@/lib/access-control/access-policy";
 import { parseUserRole } from "@/lib/access-control/parse-user-role";
@@ -81,7 +80,6 @@ function isInboxTabVisible(
   canAccessFeature: (feature: Feature) => boolean,
   currentTier: Tier,
   hasIntelligence: boolean,
-  workspaceProfile: WorkspaceProfile,
 ): boolean {
   if (tab.requiredPermission) {
     if (!role || !hasPermission(role, tab.requiredPermission)) {
@@ -99,7 +97,6 @@ function isInboxTabVisible(
         canAccessFeature,
         currentTier,
         hasIntelligence,
-        workspaceProfile,
       },
       "read",
     );
@@ -114,8 +111,6 @@ function InboxContent() {
   const canAccessFeature = usePermissionStore((s) => s.canAccess);
   const currentTier = usePermissionStore((s) => s.currentTier);
   const hasIntelligence = usePermissionStore((s) => s.hasIntelligence);
-  const workspaceProfile = usePermissionStore((s) => s.workspaceProfile);
-
   const visibleTabs = useMemo(
     () =>
       ALL_INBOX_TABS.filter((tab) =>
@@ -125,10 +120,9 @@ function InboxContent() {
           canAccessFeature,
           currentTier,
           hasIntelligence,
-          workspaceProfile,
         ),
       ),
-    [user?.role, canAccessFeature, currentTier, hasIntelligence, workspaceProfile],
+    [user?.role, canAccessFeature, currentTier, hasIntelligence],
   );
 
   const defaultTab = visibleTabs[0]?.value ?? "notifications";

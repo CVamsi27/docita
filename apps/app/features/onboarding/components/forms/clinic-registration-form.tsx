@@ -127,7 +127,6 @@ export function ClinicRegistrationForm({
     pricing: { monthly: number | "custom"; yearly: number | "custom" },
     options?: {
       currency?: string;
-      workspaceProfile?: "FULL_CLINICAL" | "FRONT_DESK";
     },
   ) => {
     setStepError(null);
@@ -287,9 +286,6 @@ export function ClinicRegistrationForm({
           currency={currency}
           defaultTier={formData.planSelection.tier}
           defaultBillingCycle={formData.planSelection.billingCycle}
-          initialWorkspaceProfile={
-            formData.planSelection.workspaceProfile ?? "FULL_CLINICAL"
-          }
           onSelect={handleSetPlanSelection}
         />
       )}
