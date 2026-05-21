@@ -23,8 +23,8 @@
 #   R2_SECRET_ACCESS_KEY
 #   R2_BUCKET_NAME
 #   QUEUE_BACKEND
-#   CACHE_BACKEND (defaults to memory for smoke; production fly.toml uses redis)
-#   REDIS_URL (required when CACHE_BACKEND=redis)
+#   CACHE_BACKEND (defaults to memory)
+#   REDIS_URL (only when CACHE_BACKEND=redis)
 #   ENABLE_SCHEDULERS
 #   NODE_ENV (defaults to production)
 

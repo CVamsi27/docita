@@ -14,7 +14,7 @@ primary_region = 'bom'
   CORS_ORIGINS = 'https://app.docita.work,https://internal.docita.work'
   STORAGE_PROVIDER = 'r2'
   QUEUE_BACKEND = 'postgres'
-  CACHE_BACKEND = 'redis'
+  CACHE_BACKEND = 'memory'
   ENABLE_SCHEDULERS = 'false'
 
 [http_service]

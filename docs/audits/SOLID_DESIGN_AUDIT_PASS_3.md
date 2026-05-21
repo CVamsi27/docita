@@ -1140,7 +1140,7 @@ Each split: write the narrower interfaces, repository class implements all, regi
 | `check-migration-reversibility.mjs`                   | Ρ2         | irreversible SQL (`DROP TABLE/COLUMN/TYPE`) requires `check-migration-reversibility: one-way` — **in `verify:standard`** |
 | `check-suspense-error-boundary-pair.mjs`              | Λ1         | `<Suspense>` outside covered routes must include `fallback` — **in `verify:standard`**                      |
 | `check-dynamic-import-budget.mjs`                     | Β1         | client `.tsx` ≥ 401 lines requires `next/dynamic` — **in `verify:standard`**                              |
-| `check-cache-redis-required.mjs`                      | Χ1         | `fly.toml` `[env]` must set `CACHE_BACKEND=redis` — **in `verify:standard`**                                |
+| `check-cache-redis-required.mjs`                      | Χ1         | `fly.toml` `[env]` must set `CACHE_BACKEND=memory` (interim; not redis until provisioned) — **in `verify:standard`** |
 | `check-filename-case.mjs`                             | O1         | top-level `apps/app/features/*` directories use kebab-case — **in `verify:standard`**                       |
 | `check-error-tsx-coverage.mjs`                        | Σ''1       | `app/error.tsx` and `(protected)/error.tsx` required — **in `verify:standard`**                             |
 | `check-feature-test-density.mjs`                      | Θ1, Θ2, Θ4 | each feature folder has ≥1 test unless allowlisted — **in `verify:standard`**                               |
@@ -1261,7 +1261,7 @@ Execute in order. Each tier is a coherent PR set.
 | Ψ (schema)        | All new checks (json-column-zod, migration-prefix, multi-write-transaction) green        |
 | Ω (resilience)    | `check:job-idempotency --enforce` covers all webhooks; timeout helper used everywhere    |
 | Ε (encryption)    | `check:phi-encryption-coverage --enforce` passes; algorithm spec pins constant           |
-| Χ (cache)         | `CACHE_BACKEND=redis` works in prod; deploy contract requires it                         |
+| Χ (cache)         | `CACHE_BACKEND=memory` in prod for now; Redis adapter available when `REDIS_URL` is set   |
 | Κ (whatsapp repo) | 10 services use repo; B1 drops by 10+                                                    |
 | Φ (folder)        | Extended `check:no-duplicate-shared-paths` passes; no double-nested paths                |
 | Θ (tests)         | New `check:feature-test-density` passes                                                  |
