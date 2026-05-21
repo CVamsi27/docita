@@ -21,7 +21,8 @@
   --secondary: oklch(0.965 0.01 95);
   --secondary-foreground: oklch(0.49 0.14 250);
   --muted: oklch(0.968 0.01 95);
-  --muted-foreground: oklch(0.56 0.028 261.692);
+  /* >= 4.5:1 on paper-toned surfaces (auth/login a11y audit). */
+  --muted-foreground: oklch(0.50 0.028 261.692);
   --accent: oklch(0.962 0.012 95);
   --accent-foreground: oklch(0.44 0.12 248);
   --destructive: oklch(0.65 0.23 27.325);
@@ -576,7 +577,8 @@ html.dark[data-accent="slate"] {
   }
 
   .badge-muted {
-    @apply bg-muted text-muted-foreground border-border;
+    /* Meets WCAG AA on muted/card surfaces (audit: color-contrast on auth chrome). */
+    @apply bg-muted text-foreground/80 border-border;
   }
 
   /* Status badge utilities */
