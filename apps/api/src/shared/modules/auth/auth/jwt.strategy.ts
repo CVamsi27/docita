@@ -15,6 +15,8 @@ import {
   USER_REPOSITORY_TOKEN,
 } from '@/domains/users/core/repositories/user.repository.interface';
 
+import { JWT_AUDIENCES, type JwtAudience } from './jwt-audience';
+
 interface JwtPayload {
   sub: string;
   email: string;
@@ -22,16 +24,8 @@ interface JwtPayload {
   name: string;
   clinicId: string | null;
   patientId?: string;
+  aud?: JwtAudience | JwtAudience[];
 }
-
-// NOTE(WS-11 security): Patient portal tokens (role=PATIENT) are signed with the
-// same JWT secret and have no `aud` claim to separate them from staff tokens.
-// A PATIENT-role token can technically be presented to staff endpoints and will
-// pass signature validation — it is only rejected later by @Roles guards.
-// Recommended fix: add `audience: 'staff'` to JwtModule options and issue
-// patient-portal tokens with `audience: 'patient-portal'` via a dedicated
-// PatientPortalAuthService.login that calls jwtService.sign with { audience: 'patient-portal' }.
-// The strategy should then validate aud matches the expected audience for each guard context.
 
 /**
  * Prefer Authorization Bearer when present so API clients (and E2E using
@@ -71,6 +65,7 @@ export class JwtStrategy extends PassportStrategy(Strategy) {
       jwtFromRequest: extractJwtFromRequest,
       ignoreExpiration: false,
       secretOrKey: jwtSecret,
+      audience: [...JWT_AUDIENCES],
     });
   }
 
@@ -91,6 +86,10 @@ export class JwtStrategy extends PassportStrategy(Strategy) {
       if (user.appLoginDisabled) {
         throw new ForbiddenException('This profile cannot sign in to the app.');
       }
+      const jwtAudience = Array.isArray(payload.aud)
+        ? payload.aud[0]
+        : payload.aud;
+
       return {
         id: payload.sub,
         sub: payload.sub,
@@ -101,6 +100,7 @@ export class JwtStrategy extends PassportStrategy(Strategy) {
         emailVerified: user.emailVerified,
         onboardingStep: user.onboardingStep,
         patientId: payload.patientId,
+        jwtAudience,
       };
     } catch (error) {
       if (error instanceof UnauthorizedException) {

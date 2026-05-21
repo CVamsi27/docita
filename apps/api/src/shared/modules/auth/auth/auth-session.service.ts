@@ -16,6 +16,7 @@ import type {
   AuthLoginResult,
   UserWithoutPassword,
 } from './auth.types';
+import { jwtAudienceForRole } from './jwt-audience';
 
 @Injectable()
 export class AuthSessionService {
@@ -56,7 +57,9 @@ export class AuthSessionService {
       }
     }
 
-    const accessToken = this.jwtService.sign(payload);
+    const accessToken = this.jwtService.sign(payload, {
+      audience: jwtAudienceForRole(user.role),
+    });
     const refreshToken = nanoid(64);
 
     const newTokenFamily = tokenFamily || nanoid(16);

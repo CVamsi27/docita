@@ -1,6 +1,7 @@
 import { Injectable, UnauthorizedException } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
 import { AppConfigService } from '@/shared/modules/config/app-configuration.service';
+import { JWT_AUDIENCE_PUBLIC_BOOKING } from '@/shared/modules/auth/auth/jwt-audience';
 
 export const PUBLIC_BOOKING_JWT_PURPOSE = 'public_booking';
 
@@ -24,6 +25,7 @@ export class PublicBookingTokenService {
       {
         secret: this.appConfig.getJwtSecret(),
         expiresIn: '15m',
+        audience: JWT_AUDIENCE_PUBLIC_BOOKING,
       },
     );
   }
@@ -32,6 +34,7 @@ export class PublicBookingTokenService {
     try {
       const decoded = this.jwtService.verify<PublicBookingTokenPayload>(token, {
         secret: this.appConfig.getJwtSecret(),
+        audience: JWT_AUDIENCE_PUBLIC_BOOKING,
       });
       if (
         !decoded ||

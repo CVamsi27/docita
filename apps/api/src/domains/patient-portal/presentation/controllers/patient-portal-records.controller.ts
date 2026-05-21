@@ -9,6 +9,7 @@ import {
 import { ApiTags, ApiOperation, ApiBearerAuth } from '@nestjs/swagger';
 import { Role } from '@workspace/db';
 import { JwtAuthGuard } from '@/shared/modules/auth/auth/jwt-auth.guard';
+import { PatientPortalSession } from '@/shared/modules/auth/auth/patient-portal-session.decorator';
 import { Roles } from '@/shared/modules/auth/auth/roles.decorator';
 import { SkipSubscriptionCheck } from '@/shared/modules/auth/decorators';
 import { RequestWithUser } from '@/shared/common/types/common.types';
@@ -21,6 +22,7 @@ import { auditPatientPortalRead } from '@/domains/patient-portal/presentation/co
 
 @ApiTags('patient-portal')
 @Controller('patient-portal')
+@PatientPortalSession()
 @UseGuards(JwtAuthGuard)
 @Roles(Role.PATIENT)
 @SkipSubscriptionCheck()

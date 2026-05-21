@@ -51,6 +51,7 @@ import { BreakTheGlassInterceptor } from './shared/common/interceptors/emergency
 import { RequestIdInterceptor } from './shared/common/interceptors/request-id.interceptor';
 import { RequestContextInterceptor } from './shared/common/interceptors/request-context.interceptor';
 import { JwtAuthGuard } from './shared/modules/auth/auth/jwt-auth.guard';
+import { StaffJwtAudienceGuard } from './shared/modules/auth/guards/staff-jwt-audience.guard';
 import { RolesGuard } from './shared/modules/auth/auth/roles.guard';
 import { TenantGuard } from './shared/modules/auth/guards/tenant.guard';
 import { SubscriptionStatusGuard } from './shared/modules/auth/guards/subscription-status.guard';
@@ -204,6 +205,10 @@ import { PublicBookingModule } from './domains/public-booking/public-booking.mod
     {
       provide: APP_GUARD,
       useClass: JwtAuthGuard,
+    },
+    {
+      provide: APP_GUARD,
+      useClass: StaffJwtAudienceGuard,
     },
     {
       provide: APP_GUARD,
