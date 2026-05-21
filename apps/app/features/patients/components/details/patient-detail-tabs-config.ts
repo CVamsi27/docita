@@ -54,14 +54,22 @@ export const RECORDS_SUB_TAB_LABELS: Record<PatientRecordsSubTab, string> = {
   documents: "Documents",
 };
 
-export const isPatientDetailTabValue = (
+export function isPatientDetailTabValue(
   value: string | null,
-): value is PatientDetailTabValue =>
-  !!value &&
-  (PATIENT_DETAIL_TAB_VALUES as readonly string[]).includes(value);
+): value is PatientDetailTabValue {
+  if (!value) return false;
+  for (const tab of PATIENT_DETAIL_TAB_VALUES) {
+    if (tab === value) return true;
+  }
+  return false;
+}
 
-export const isPatientRecordsSubTab = (
+export function isPatientRecordsSubTab(
   value: string | null,
-): value is PatientRecordsSubTab =>
-  !!value &&
-  (PATIENT_RECORDS_SUB_TABS as readonly string[]).includes(value);
+): value is PatientRecordsSubTab {
+  if (!value) return false;
+  for (const subtab of PATIENT_RECORDS_SUB_TABS) {
+    if (subtab === value) return true;
+  }
+  return false;
+}

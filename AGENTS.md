@@ -446,7 +446,18 @@ These principles are mandatory for every change. Apply them pragmatically; do no
 - **Frontend**: code-split heavy routes; lazy-load rare panels where patterns already exist; right-size React Query `staleTime`/`gcTime`; avoid rerenders from unstable callbacks and oversized context; prefer shared UI primitives to reduce bundle duplication; run `pnpm perf:budget:warn` / `pnpm perf:budget:enforce` when changing bundles.
 - **Backend**: bound query cost per request (pagination, selective fields); avoid synchronous fan-out; cache only with explicit TTL and invalidation strategy where already introduced; measure hot paths before micro-optimizing.
 
-### 12.6 Future work convention
+### 12.6 Principle-first review (SOLID, patterns, KISS)
+
+Line count is a **backstop**, not the definition of quality. Before splitting or merging modules, ask:
+
+1. **Single responsibility** — Does this file have one reason to change? Flag mixes of routing, server I/O, business rules, and large JSX trees in one module.
+2. **KISS** — Is this the simplest structure that works? Reject splits that only shuffle lines (thin pass-through wrappers, duplicate props drilling) or abstractions with a single caller and no duplicate removed.
+3. **Required patterns** — Does the change follow §15.1–15.3 and §15.6–15.7 (repository, CQS, facade, feature layout, hooks vs sections, `DataState`, Zod/data-access boundaries)?
+4. **Dependency direction** — Do apps depend on `packages/*` and feature hooks, not on Prisma, raw `fetch`, or cross-feature deep imports?
+
+Use `pnpm verify:standard`, targeted tests, and the automation map in §15.11. Run `pnpm audit:structure` when relocating or splitting large surfaces (advisory report, not a substitute for review).
+
+### 12.7 Future work convention
 
 - Every PR opened from this point on MUST comply with §4.3 (UI consistency), §7 (logging/comments/hygiene), §8 (typography), §12 (SOLID/KISS/DRY/patterns), and the Origin-inspired standard in [`docs/ui/UI_UX_STANDARD_2026.md`](docs/ui/UI_UX_STANDARD_2026.md).
 - Deviations are allowed only when documented inline in the PR description with a one-line rationale and, when relevant, a follow-up issue link. "We will fix it later" is not a rationale.
@@ -498,7 +509,8 @@ Before finalizing changes:
 - No decorative motion: no `animate-pulse` on chrome, no skeleton `animation="wave"`, no `animate-in fade-in slide-in-from-bottom-*`, no `transition-all` (per `UI_UX_STANDARD_2026.md` §5).
 - Origin sidebar IA preserved: TRACK / SERVICES sections, Settings / Help / Theme / Plan footer, Ask AI pinned at the bottom; command palette parity with the sidebar.
 - New surfaces use `@workspace/ui` primitives (`AppPageScaffold`, `PageHeader`, `DataState`, `PageTabs`, `MicroLabel`, `WizardDialog`, `RightRailCardStack`, `PromptInput`, `CategoryAvatar`, `ProgressGauge`, `EmptyState`, `ErrorState`, `LoadingState`) instead of app-local duplicates.
-- SOLID, KISS, and DRY were considered before introducing new abstractions; any new abstraction has at least one current consumer and removes at least one duplicate.
+- SOLID, KISS, and DRY were applied per §12.6 (not line-count alone); any new abstraction has at least one current consumer and removes at least one duplicate.
+- Required patterns in §15.6–15.7 are followed for new pages, hooks, and backend domains (or deviation is documented in the PR).
 - Changed behavior is covered by appropriate tests/checks; E2E routes and selectors updated when flows move.
 - When your change is Knip-relevant per the CI scope detector, `pnpm knip` passes locally and the Knip step runs in CI; otherwise run Knip locally before merging if you touched dependencies or exports.
 - `pnpm lint`, targeted `check-types`, tests, and Knip (when applicable) pass before push.
@@ -539,18 +551,47 @@ When this file says to follow existing patterns, use these concrete references b
 
 ### 15.4 SOLID Principles Applied (2026-05 audit)
 
-- **Single Responsibility**: each service/component has one reason to change. Large services split into Command/Query/pure-calculator trios. Large components split into orchestrator + sub-sections + custom hooks.
+- **Single Responsibility**: one reason to change per module. Backend: Command/Query/calculator split when a service owns unrelated reads and writes. Frontend: route/page composes; `use-*` hook owns state and I/O; `*-sections.tsx` / row components own JSX fragments.
 - **Open/Closed**: `Feature` enum + `FEATURE_TIER_MAP` are the extension point — add features without modifying guards. New tier capabilities extend the matrix, not existing code.
 - **Liskov Substitution**: repository interfaces (`IAppointmentRepository`, etc.) allow DI swapping. The `StorageProvider` abstraction lets R2/S3 swap without touching service logic.
 - **Interface Segregation**: controllers depend on split services (Command vs Query), not fat facades. React components receive only the props they render.
-- **Dependency Inversion**: NestJS `@Inject('IAppointmentRepository')` tokens bind interfaces, not concretions. React hooks (`usePatientMetricsUI`, `useOnboardingDraft`) abstract data from render.
+- **Dependency Inversion**: NestJS `@Inject('IAppointmentRepository')` tokens bind interfaces, not concretions. React hooks (`usePatientMetricsUI`, `useOnboardingDraft`) abstract data from render; UI must not call `fetch` or Prisma directly.
 
-### 15.5 Decomposition Rules (enforced patterns)
+### 15.5 Module shape and decomposition (principle-first)
 
-- **Backend services >400 lines**: split into `XCommandService` (mutations) + `XQueryService` (reads) + optional `XCalculator` (pure math). Register all three in the module. A facade `XService` may keep the original constructor signature for test compatibility.
-- **Frontend components >400 lines**: extract to `orchestrator.tsx` (state wiring only) + `component-sections.tsx` (JSX blocks, accepts props) + `component-helpers.ts` (pure functions and constants, no React) + `use-component.ts` (data + mutations).
-- **Custom hooks own data**: `useState`, `useMemo`, `useEffect`, mutations, and derived values live in hooks. Components only render JSX.
-- **No parent-relative imports**: cross-directory imports use `@/` alias. Sibling imports (`./`) are allowed; parent traversal (`../`) is banned by ESLint.
+Split or extract when **responsibility**, **pattern fit**, or **duplication** demand it — not to chase a line target.
+
+**Split when (review criteria):**
+
+| Signal | Backend | Frontend |
+| --- | --- | --- |
+| Mixed read/write orchestration | Introduce `XQueryService` + `XCommandService`; optional `XCalculator` for pure math | — |
+| Fat persistence in a “facade” | Delegate to command/query; keep `XService` as thin facade if needed for tests | — |
+| UI + data + navigation in one component | — | `use-<feature>.ts` + `*-sections.tsx` / row components + thin page shell |
+| Repeated JSX or rules | Shared helper or `@workspace/ui` primitive | `*-helpers.ts` (no React) or shared section component |
+| Cross-feature coupling | — | Move to `packages/*` or `shared/` only when ≥2 features need it |
+
+**KISS guardrails:**
+
+- Do not add a new file unless it **removes duplication** or **isolates a distinct responsibility**.
+- Prefer one clear hook over several single-use 10-line wrappers.
+- Barrel re-exports (`index.ts`) expose the feature API; avoid deep imports around the public surface.
+
+**Canonical frontend split (when the table above applies):**
+
+- `use-<surface>.ts` — `useState`, `useMemo`, `useEffect`, React Query, mutations, derived values.
+- `<surface>-sections.tsx` or `<surface>-<part>.tsx` — presentational blocks; props in, events out; no `fetch`.
+- `<surface>-helpers.ts` — pure functions/constants; no React imports.
+- Route/page file — composes feature shell only (`AppPageScaffold`, `PageHeader`, `DataState`).
+
+**Canonical backend split (when the table above applies):**
+
+- `XCommandService` / `XQueryService` (+ optional calculator) registered in the domain module.
+- Facade `XService` may remain for stable constructor/DI compatibility; must delegate (`check:facade-delegation`).
+
+**Line-count backstop (automation only):** `pnpm check:file-size-budget` fails API `*.service.ts` and `apps/app/features/**` files above **400** lines (tests excluded). `pnpm audit:structure` may **advise** splits (e.g. feature components >400 lines, controllers >260, route pages >180). Passing the backstop does **not** prove SOLID; failing it means split or document an exception in the PR.
+
+**Imports:** cross-directory imports use `@/` or `@workspace/...`. Sibling `./` imports are allowed; parent `../` is ESLint-banned.
 
 ### 15.6 Design Patterns in Use
 
@@ -574,7 +615,7 @@ When this file says to follow existing patterns, use these concrete references b
 
 - `Tier.INTELLIGENCE` and `Tier.FRONT_DESK` are **never** compared with `>=`. Use the `hasIntelligence` flag or `hasFeatureAccess(Feature.X)`.
 - All 56 `Feature` enum values map to tiers via `FEATURE_TIER_MAP`. Both backend (`assertClinicHasFeatureOrThrow`) and frontend (`<FeatureGate>`) derive from this single source of truth.
-- `FRONT_DESK_BLOCKED_FEATURES` is the exhaustive blocklist for workspace-profile gating. Do not gate by ad-hoc `workspaceProfile === "FRONT_DESK"` conditionals anywhere else.
+- `FRONT_DESK_BLOCKED_FEATURES` is the exhaustive blocklist for workspace-profile gating. Elsewhere use `isFrontDeskClinicMode(tier, workspaceProfile)` or `isFrontDeskWorkspace(profile)` from `@workspace/types` — not raw `workspaceProfile === "FRONT_DESK"` (enforced by `pnpm check:workspace-profile-gating`, with a small onboarding workspace-picker allowlist).
 
 ### 15.9 Import Discipline
 
@@ -594,3 +635,26 @@ Relative parent imports (`../`) are ESLint-banned across all apps. Use `@/` abso
 - Spec files live next to the service file. Integration specs for controllers go in `apps/api/test/`.
 - Pure helpers (`XCalculator`, `*-helpers.ts`) must have standalone unit tests — no DI container required.
 - When a service is split into Command/Query/Calculator, each file gets its own spec. The facade spec covers only delegation and module wiring.
+
+### 15.11 Automation map (what CI enforces vs what agents must review)
+
+Mechanical checks catch **boundary violations**; they do not fully enforce SOLID or KISS. Agents and reviewers must still apply §12.6 and §15.5.
+
+| Principle / pattern | Command(s) | What it actually checks |
+| --- | --- | --- |
+| **Layering / DDD** | `pnpm check:prisma-boundary`, `pnpm check:api-domain-layout`, `pnpm check:cross-domain-*-imports` | Prisma and domain folder boundaries |
+| **Repository + thin controller** | `pnpm check:controller-cqs`, `pnpm check:route-thinness` | Controllers orchestrate; routes stay thin |
+| **Facade / CQS** | `pnpm check:facade-delegation --enforce` | Large application services delegate instead of embedding persistence |
+| **Zod-first / contracts** | `pnpm check:contracts-strict`, `pnpm verify:contracts`, `pnpm check:type-duplicates` | Shared schemas; no duplicate DTO shapes |
+| **Data access (frontend)** | `pnpm check:frontend-fetch`, `pnpm check:legacy-app-api-hooks` | No inline client `fetch`; legacy app API hook dir stays gone |
+| **Feature / package boundaries** | `pnpm check:feature-boundaries`, `pnpm check:package-boundaries` | Imports stay inside feature and package rules |
+| **Tier / feature gating** | `pnpm check:tier-comparisons`, `pnpm check:workspace-profile-gating` | No numeric tier compares; tier-aware workspace helpers |
+| **RBAC** | `pnpm check:controller-rbac` | Controller auth posture declared |
+| **Tenant / RLS** | `pnpm check:auth-tenant-safety`, `pnpm check:rls-rollout-readiness` | Tenant-safe auth; RLS rollout config |
+| **DRY / hygiene** | `pnpm knip`, `pnpm check:hygiene` | Unused exports/deps; repo junk |
+| **Typing discipline** | `pnpm check:as-cast-density`, `pnpm lint`, `pnpm turbo check-types` | Limit type escapes; ESLint rules |
+| **UI contract** | `pnpm check:colors`, `pnpm check:a11y-budget`, Origin standard in §4.3 | Tokens, a11y baseline, page primitives |
+| **Size backstop** | `pnpm check:file-size-budget`, `pnpm audit:structure` | Oversized files (advisory unless `--enforce` on structure) |
+| **Rules unit tests** | `pnpm check:domain-rules-tests` | Feature `rules/*.test.ts` present where required |
+
+**Bundle:** `pnpm verify:standard` runs the production guardrail set above (plus hygiene, deployment contracts, PHI/audit checks). Run it before push when touching architecture, auth, data access, or large feature surfaces.

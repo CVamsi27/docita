@@ -17,7 +17,7 @@ Guidance for Claude Code when working in this repository.
 - Development workflows (new feature, DB change, queries/performance)
 - Testing strategy and pre-merge checks
 - Branch model (`main` canonical, `staging` mirrors `main`, PRs target `main`)
-- Pattern Catalogue (§15: backend DDD, frontend features, design patterns, decomposition rules, tier/feature gating, import discipline, testing expectations)
+- Pattern Catalogue (§15: backend DDD, frontend features, design patterns, principle-first decomposition, automation map, tier/feature gating, import discipline, testing expectations)
 
 Everything in this file is shorthand — defer to AGENTS.md when in doubt.
 
@@ -77,6 +77,7 @@ Never use parent-relative imports (`../`). They are ESLint-banned across all app
 
 ## Things that will trip you up
 
+- **Decomposition is principle-first (AGENTS.md §12.6, §15.5)** — split on mixed responsibilities and required patterns (hook vs sections, CQS, data-access), not to chase line counts. `check:file-size-budget` (400 lines) is a backstop only.
 - The `@/components/...`, `@/hooks/...`, and `@/lib/...` aliases do **not** point at `apps/<app>/{components,hooks,lib}/` anymore — those folders no longer exist. They resolve through tsconfig into `apps/<app>/shared/{components,hooks,lib}/`. The `@/lib/` tree is further grouped into subfolders by concern (`@/lib/auth/...`, `@/lib/contexts/...`, `@/lib/api/...`, `@/lib/monitoring/...`, `@/lib/security/...`, `@/lib/access-control/...`, `@/lib/subscription/...`, `@/lib/errors/...`). Look there before adding a new top-level file.
 - Feature-specific code belongs in `apps/<app>/features/<feature>/`, not `shared/`. Promote into `packages/` once a second app needs it.
 - `@workspace/db` is allowed only in `apps/api/**`, `packages/db/**`, and `scripts/**`. Frontend apps must stay DB-agnostic ([`scripts/checks/check-prisma-boundary.js`](./scripts/checks/check-prisma-boundary.js)).

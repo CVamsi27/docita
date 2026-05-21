@@ -107,9 +107,10 @@ export function usePatientDetailTabs() {
 
   const recordsSubItems = useMemo<PageTabItem[]>(
     () =>
-      (PATIENT_RECORDS_SUB_TABS as readonly PatientRecordsSubTab[]).map(
-        (value) => ({ id: value, label: RECORDS_SUB_TAB_LABELS[value] }),
-      ),
+      PATIENT_RECORDS_SUB_TABS.map((value) => ({
+        id: value,
+        label: RECORDS_SUB_TAB_LABELS[value],
+      })),
     [],
   );
 

@@ -26,6 +26,7 @@ import {
   type WorkspaceProfile,
   resolveWorkspaceProfileForPlan,
   isFrontDeskTier,
+  isFrontDeskWorkspace,
 } from "@workspace/types";
 import { useLocaleCurrency } from "@/hooks/use-locale-currency";
 import { PLAN_ONBOARDING_KEY_HIGHLIGHTS } from "@/features/subscription";
@@ -71,7 +72,7 @@ export function PlanSelectionStepInner({
       setWorkspaceProfile("FRONT_DESK");
       return;
     }
-    if (workspaceProfile === "FRONT_DESK") {
+    if (isFrontDeskWorkspace(workspaceProfile)) {
       setSelectedTier("FRONT_DESK");
       return;
     }
