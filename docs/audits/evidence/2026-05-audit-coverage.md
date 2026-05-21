@@ -57,10 +57,4 @@ Generated for `security-and-performance-audit-merry-lobster.md`.
 
 ## Current State
 
-This ledger classifies coverage by top-level area first. File-by-file frontend and backend evidence is recorded in:
-
-- `docs/audits/evidence/2026-05-frontend-file-audit.md`
-- `docs/audits/evidence/2026-05-backend-file-audit.md`
-- `docs/audits/evidence/2026-05-file-move-map.md`
-
-The remaining non-runtime files are covered by area-level checks until the audit coverage script is promoted from report mode to strict mode.
+This ledger classifies coverage by top-level area. Enforcement is via `pnpm verify:standard` and per-app CI jobs. File-level structure reports are generated on demand with `pnpm audit:structure` and are not required in git.
