@@ -4,6 +4,7 @@ import { TemplatesService as _TemplatesService } from '@/domains/whatsapp/applic
 import { TemplatesFacadeService } from '@/shared/whatsapp/templates-facade.service';
 import { WhatsappTemplatesModule } from '@/shared/whatsapp/whatsapp-templates.module';
 import { WhatsappResendService } from '@/domains/whatsapp/application/services/resend.service';
+import { HandleWebhookUseCase } from '@/domains/whatsapp/application/use-cases/handle-webhook.use-case';
 import { SystemEventsService } from '@/domains/whatsapp/application/services/system-events.service';
 import { ApprovalService } from '@/domains/whatsapp/application/services/approval.service';
 import { MessagingService } from '@/domains/whatsapp/application/services/messaging.service';
@@ -74,6 +75,7 @@ import { SupportWhatsAppModule } from '@/shared/modules/support-whatsapp';
       useExisting: WhatsappClientService,
     },
     WhatsappWebhookService,
+    HandleWebhookUseCase,
     WhatsAppWebhookIngressService,
     ResponseHandlerService,
     StaffNotificationRecipientResolver,

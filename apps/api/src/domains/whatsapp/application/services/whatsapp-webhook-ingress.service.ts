@@ -5,7 +5,7 @@ import {
   WHATSAPP_PERSISTENCE_PORT,
   type WhatsappPersistencePort,
 } from '@/domains/whatsapp/application/ports/whatsapp-persistence.port';
-import { SupportWhatsAppInboxService } from '@/shared/modules/support-whatsapp';
+import { SupportWhatsAppInboxService } from '@/shared/modules/support-whatsapp/support-whatsapp-inbox.service';
 import { ResponseHandlerService } from '@/domains/whatsapp/application/services/response-handler.service';
 import {
   WHATSAPP_REPOSITORY_TOKEN,

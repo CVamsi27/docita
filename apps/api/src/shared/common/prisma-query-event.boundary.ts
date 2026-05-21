@@ -7,6 +7,7 @@ type PrismaQueryEvent = {
 };
 
 type PrismaQueryEventListener = (
+  this: { $on?: unknown },
   event: 'query',
   handler: (payload: PrismaQueryEvent) => void,
 ) => void;
@@ -21,5 +22,5 @@ export function listenPrismaQueryEvents(
   }
 
   const register = client.$on as PrismaQueryEventListener;
-  register('query', handler);
+  register.call(client, 'query', handler);
 }

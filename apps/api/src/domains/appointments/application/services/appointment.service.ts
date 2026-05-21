@@ -21,7 +21,10 @@ import { RescheduleAppointmentUseCase } from '@/domains/appointments/application
 import { StartConsultationUseCase } from '@/domains/appointments/application/use-cases/start-consultation.use-case';
 import { UpdateAppointmentDetailsUseCase } from '@/domains/appointments/application/use-cases/update-appointment-details.use-case';
 import { Appointment } from '@/domains/appointments/core/entities/appointment.entity';
-import { type AppointmentPersistencePort } from '@/domains/appointments/application/ports/appointment-persistence.port';
+import {
+  APPOINTMENT_PERSISTENCE_PORT,
+  type AppointmentPersistencePort,
+} from '@/domains/appointments/application/ports/appointment-persistence.port';
 import { AppointmentQueryService } from './appointment-query.service';
 import { AppointmentCommandService } from './appointment-command.service';
 import { AppointmentMetricsService } from './appointment-metrics.service';
@@ -53,6 +56,7 @@ export class AppointmentService {
     rescheduleAppointmentUseCase: RescheduleAppointmentUseCase,
     startConsultationUseCase: StartConsultationUseCase,
     updateAppointmentDetailsUseCase: UpdateAppointmentDetailsUseCase,
+    @Inject(APPOINTMENT_PERSISTENCE_PORT)
     prisma: AppointmentPersistencePort,
     eventEmitter: EventEmitter2,
     metricsService: AppointmentMetricsService,
