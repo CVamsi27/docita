@@ -16,6 +16,7 @@ import {
 import { factories, setPrismaInstance } from './factories';
 import { WhatsappService } from '@/domains/whatsapp/application/services/whatsapp-clinic-facade.service';
 import { mockWhatsappService } from './whatsapp.provider';
+import { signE2eAccessToken } from './e2e-auth-token';
 
 describe('RBAC 403 Verification (e2e)', () => {
   let app: INestApplication;
@@ -60,7 +61,7 @@ describe('RBAC 403 Verification (e2e)', () => {
     tokenClinicId: string | null = clinicId,
   ) => {
     const userObj = await factories.user({ clinicId: tokenClinicId, role });
-    return jwtService.sign({
+    return signE2eAccessToken(jwtService, {
       sub: userObj.user.id,
       email: userObj.user.email,
       role: userObj.user.role,
