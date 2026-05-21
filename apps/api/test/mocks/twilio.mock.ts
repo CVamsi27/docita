@@ -33,7 +33,3 @@ export const createMockWhatsAppService = () => {
     getVerifyToken: jest.fn().mockReturnValue('mock_verify_token'),
   };
 };
-
-// Legacy alias — remove once all specs migrate to mockWhatsAppService
-// export const mockTwilio = mockWhatsAppService;
-// export const createMockTwilio = createMockWhatsAppService;
