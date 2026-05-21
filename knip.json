@@ -107,6 +107,7 @@
         "@/components/*": ["./shared/components/*"]
       },
       "ignoreDependencies": [
+        "@tailwindcss/postcss",
         "class-variance-authority",
         "@types/react-signature-canvas",
         "baseline-browser-mapping",
@@ -148,7 +149,7 @@
       ]
     },
     "apps/landing": {
-      "ignoreDependencies": ["tailwindcss"],
+      "ignoreDependencies": ["sharp", "tailwindcss"],
       "ignore": [
         "src/pages/**",
         "src/layouts/**",

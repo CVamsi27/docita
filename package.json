@@ -136,7 +136,7 @@
     "prettier": "^3.6.2",
     "prisma": "^7.6.0",
     "ts-node": "^10.9.2",
-    "turbo": "^2.9.0",
+    "turbo": "^2.9.14",
     "typescript": "5.7.3"
   },
   "packageManager": "pnpm@10.30.3",
@@ -182,12 +182,15 @@
       "yaml": "^2.8.3",
       "vite>yaml": "2.8.3",
       "vite": "6.4.2",
+      "ws": "8.20.1",
       "ts-node>diff": "4.0.4",
       "webpack": "^5.104.1"
     },
     "ignoredBuiltDependencies": [],
     "onlyBuiltDependencies": [
-      "@nestjs/core"
+      "@nestjs/core",
+      "tesseract.js",
+      "workerd"
     ]
   }
 }
