@@ -527,7 +527,7 @@ When this file says to follow existing patterns, use these concrete references b
 - **Controller posture**: every route declares `@Public`, `@Roles`, `@RequireFeature`, or inherits an explicit controller-level posture. Enforced by `scripts/checks/check-controller-rbac.mjs`.
 - **DTOs**: schemas originate in `packages/types` and API DTOs wrap them with `createZodDto`.
 - **Persistence**: repositories isolate Prisma access and map database rows to application/domain objects.
-- **Tier/feature gates**: never compare `Tier.INTELLIGENCE` or `Tier.FRONT_DESK` numerically. Use `hasFeatureAccess`, `getMinimumTierForFeature`, and the feature guards.
+- **Tier/feature gates**: never compare `Tier.INTELLIGENCE` or `Tier.FRONT_DESK` numerically. Use `hasFeatureAccess`, `getMinimumTierForFeature`, and the feature guards. Front Desk clinical blocking uses `isFrontDeskTier(clinic.tier)` only (§15.8) — not a `workspaceProfile` setting.
 - **Pure rules/calculators**: keep deterministic business math free of NestJS decorators and dependency injection.
 
 ### 15.2 Frontend Patterns
@@ -615,7 +615,9 @@ Split or extract when **responsibility**, **pattern fit**, or **duplication** de
 
 - `Tier.INTELLIGENCE` and `Tier.FRONT_DESK` are **never** compared with `>=`. Use the `hasIntelligence` flag or `hasFeatureAccess(Feature.X)`.
 - All 56 `Feature` enum values map to tiers via `FEATURE_TIER_MAP`. Both backend (`assertClinicHasFeatureOrThrow`) and frontend (`<FeatureGate>`) derive from this single source of truth.
-- `FRONT_DESK_BLOCKED_FEATURES` is the exhaustive blocklist for workspace-profile gating. Elsewhere use `isFrontDeskClinicMode(tier, workspaceProfile)` or `isFrontDeskWorkspace(profile)` from `@workspace/types` — not raw `workspaceProfile === "FRONT_DESK"` (enforced by `pnpm check:workspace-profile-gating`, with a small onboarding workspace-picker allowlist).
+- **Front Desk is tier-only.** A clinic on the Front Desk billed SKU has `clinic.tier === Tier.FRONT_DESK`. There is no `settings.workspaceProfile`, workspace-mode picker, or plan→profile resolver — onboarding and billing set the tier directly.
+- **Canonical Front Desk helpers** (all in `@workspace/types`): `isFrontDeskTier(tier)`; `FRONT_DESK_BLOCKED_FEATURES` for `@RequireFeature` / `hasFeatureAccess` denials; `FRONT_DESK_BLOCKED_ACCESS_TARGETS` and `shouldDenyAccessForFrontDeskTier` for route/API access policy. Prefer these helpers over ad-hoc `tier === "FRONT_DESK"` checks at call sites.
+- **Removed symbols** (do not reintroduce): `workspaceProfile`, `isFrontDeskClinicMode`, `isFrontDeskWorkspace`, `resolveWorkspaceProfileForPlan`, `WorkspaceModeCard`, `WorkspaceSelector`. `pnpm check:workspace-profile-gating` fails the build if they appear outside migration SQL and [`scripts/checks/check-workspace-profile-gating.mjs`](scripts/checks/check-workspace-profile-gating.mjs) (historical script name).
 
 ### 15.9 Import Discipline
 
@@ -648,7 +650,7 @@ Mechanical checks catch **boundary violations**; they do not fully enforce SOLID
 | **Zod-first / contracts** | `pnpm check:contracts-strict`, `pnpm verify:contracts`, `pnpm check:type-duplicates` | Shared schemas; no duplicate DTO shapes |
 | **Data access (frontend)** | `pnpm check:frontend-fetch`, `pnpm check:legacy-app-api-hooks` | No inline client `fetch`; legacy app API hook dir stays gone |
 | **Feature / package boundaries** | `pnpm check:feature-boundaries`, `pnpm check:package-boundaries` | Imports stay inside feature and package rules |
-| **Tier / feature gating** | `pnpm check:tier-comparisons`, `pnpm check:workspace-profile-gating` | No numeric tier compares; tier-aware workspace helpers |
+| **Tier / feature gating** | `pnpm check:tier-comparisons`, `pnpm check:workspace-profile-gating` | No numeric tier compares; blocks legacy `workspaceProfile` symbols; tier-only Front Desk via `isFrontDeskTier` |
 | **RBAC** | `pnpm check:controller-rbac` | Controller auth posture declared |
 | **Tenant / RLS** | `pnpm check:auth-tenant-safety`, `pnpm check:rls-rollout-readiness` | Tenant-safe auth; RLS rollout config |
 | **DRY / hygiene** | `pnpm knip`, `pnpm check:hygiene` | Unused exports/deps; repo junk |

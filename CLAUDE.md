@@ -83,6 +83,7 @@ Never use parent-relative imports (`../`). They are ESLint-banned across all app
 - `@workspace/db` is allowed only in `apps/api/**`, `packages/db/**`, and `scripts/**`. Frontend apps must stay DB-agnostic ([`scripts/checks/check-prisma-boundary.js`](./scripts/checks/check-prisma-boundary.js)).
 - Inline `fetch()` in client features is blocked. Use `packages/data-access` hooks ([`scripts/checks/check-frontend-fetch.mjs`](./scripts/checks/check-frontend-fetch.mjs)).
 - Tier comparisons (`tier >= Tier.INTELLIGENCE`) are banned. Use `hasFeatureAccess(Feature.X)` (AGENTS.md §15.8).
+- Front Desk gating is **tier-only** (`isFrontDeskTier(tier)` / `Tier.FRONT_DESK`). Do not add `workspaceProfile`, workspace pickers, or `resolveWorkspaceProfileForPlan` — `pnpm check:workspace-profile-gating` blocks legacy symbols (AGENTS.md §15.8).
 - Don't compare `_dirname` script paths with `..` once you move a script — repo-root resolution depends on depth.
 
 ## Routine commands
