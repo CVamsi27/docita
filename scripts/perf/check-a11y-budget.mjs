@@ -9,8 +9,15 @@ const baselinePath = path.join(repoRoot, "artifacts/a11y-baseline.json");
 const reportOnly = process.argv.includes("--report");
 
 if (!fs.existsSync(baselinePath)) {
+  if (reportOnly) {
+    console.log(
+      "A11y baseline budget check skipped: artifacts/a11y-baseline.json is not present.",
+    );
+    process.exit(0);
+  }
+
   console.error("A11y baseline is missing: artifacts/a11y-baseline.json");
-  process.exit(reportOnly ? 0 : 1);
+  process.exit(1);
 }
 
 const baseline = JSON.parse(fs.readFileSync(baselinePath, "utf8"));
