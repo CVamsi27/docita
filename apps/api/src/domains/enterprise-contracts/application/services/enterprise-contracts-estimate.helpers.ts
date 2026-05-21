@@ -1,4 +1,4 @@
-export interface EnterpriseUsageMeter {
+interface EnterpriseUsageMeter {
   current: number;
   included: number;
   overage: number;

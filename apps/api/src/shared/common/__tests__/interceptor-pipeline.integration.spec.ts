@@ -129,7 +129,11 @@ Get('health')(
         $transaction: jest
           .fn<(fn: (tx: unknown) => Promise<unknown>) => Promise<unknown>>()
           .mockImplementation((fn) =>
-            fn({ $executeRawUnsafe: jest.fn().mockResolvedValue(undefined) }),
+            fn({
+              $executeRawUnsafe: jest
+                .fn<() => Promise<number>>()
+                .mockResolvedValue(0),
+            }),
           ),
       },
     },
