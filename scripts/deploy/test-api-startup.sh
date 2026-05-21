@@ -23,6 +23,8 @@
 #   R2_SECRET_ACCESS_KEY
 #   R2_BUCKET_NAME
 #   QUEUE_BACKEND
+#   CACHE_BACKEND (defaults to memory for smoke; production fly.toml uses redis)
+#   REDIS_URL (required when CACHE_BACKEND=redis)
 #   ENABLE_SCHEDULERS
 #   NODE_ENV (defaults to production)
 
@@ -66,6 +68,7 @@ export R2_ACCESS_KEY_ID="${R2_ACCESS_KEY_ID:-ci-startup-smoke-access-key}"
 export R2_SECRET_ACCESS_KEY="${R2_SECRET_ACCESS_KEY:-ci-startup-smoke-secret-key}"
 export R2_BUCKET_NAME="${R2_BUCKET_NAME:-docita-startup-smoke}"
 export QUEUE_BACKEND="${QUEUE_BACKEND:-postgres}"
+export CACHE_BACKEND="${CACHE_BACKEND:-memory}"
 export ENABLE_SCHEDULERS="${ENABLE_SCHEDULERS:-false}"
 export PORT
 
