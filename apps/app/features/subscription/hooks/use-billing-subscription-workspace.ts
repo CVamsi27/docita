@@ -14,10 +14,10 @@ import {
 import { useCurrentUsage, usePricingConfig } from "@/features/subscription/hooks/use-pricing";
 import { useLocaleCurrency } from "@/hooks/use-locale-currency";
 import { useSubscription } from "@workspace/data-access";
-import { tierSchema, type TierName } from "@workspace/types";
+import type { TierName } from "@workspace/types";
 import { getDisplayBillingPeriodEndAndDaysLeft } from "@/features/subscription/lib/billing-period-display";
 import { recommendTier } from "@/features/subscription/lib/recommend-tier";
-import { getTierName, parseSupportedCurrency } from "@workspace/utils";
+import { getTierName } from "@workspace/utils";
 import {
   formatPlanDate,
   formatStatusLabel,

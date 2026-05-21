@@ -5,7 +5,6 @@ import { Badge } from "@workspace/ui/components/indicators/badge";
 import { cn } from "@workspace/ui/lib/utils";
 import { Check } from "lucide-react";
 import {
-  PRICING_CURRENCY_CONFIG,
   type SupportedCurrency,
   Tier,
   TIER_INFO,

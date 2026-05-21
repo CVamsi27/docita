@@ -3,7 +3,7 @@
 import { Input } from "@workspace/ui/components/form/input";
 import { Label } from "@workspace/ui/components/form/label";
 import { Switch } from "@workspace/ui/components/form/switch";
-import type { DayOfWeek, DaySchedule } from "./doctor-availability-config";
+import type { DaySchedule } from "./doctor-availability-config";
 
 export function DoctorAvailabilityDayRow({
   day,

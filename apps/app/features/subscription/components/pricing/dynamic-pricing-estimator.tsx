@@ -14,10 +14,7 @@ import {
   type SupportedCurrency,
   type TierName,
 } from "@workspace/types";
-import {
-  formatAmountLocale,
-  parseSupportedCurrency,
-} from "@workspace/utils";
+import { formatAmountLocale } from "@workspace/utils";
 import { useLocaleCurrency } from "@/hooks/use-locale-currency";
 import {
   DEFAULT_PRICING_USAGE_INPUTS,
