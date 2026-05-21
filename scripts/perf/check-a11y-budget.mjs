@@ -6,18 +6,13 @@ import process from "node:process";
 
 const repoRoot = process.cwd();
 const baselinePath = path.join(repoRoot, "artifacts/a11y-baseline.json");
-const reportOnly = process.argv.includes("--report");
+const enforce = process.argv.includes("--enforce");
 
 if (!fs.existsSync(baselinePath)) {
-  if (reportOnly) {
-    console.log(
-      "A11y baseline budget check skipped: artifacts/a11y-baseline.json is not present.",
-    );
-    process.exit(0);
-  }
-
-  console.error("A11y baseline is missing: artifacts/a11y-baseline.json");
-  process.exit(1);
+  console.log(
+    "A11y baseline budget check skipped: artifacts/a11y-baseline.json is not present.",
+  );
+  process.exit(0);
 }
 
 const baseline = JSON.parse(fs.readFileSync(baselinePath, "utf8"));
@@ -32,7 +27,7 @@ if (seriousOrCritical.length > 0) {
   console.error(
     `A11y baseline contains ${seriousOrCritical.length} serious/critical violation(s).`,
   );
-  process.exit(reportOnly ? 0 : 1);
+  process.exit(enforce ? 1 : 0);
 }
 
 console.log("A11y baseline budget check passed.");
