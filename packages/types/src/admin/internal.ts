@@ -1,6 +1,11 @@
 import { z } from "zod";
 import { clinicSchema } from "../shared/clinics";
 
+export const internalClinicAdminTypeSchema = z.enum(["admin", "admin_doctor"]);
+export type InternalClinicAdminType = z.infer<
+  typeof internalClinicAdminTypeSchema
+>;
+
 export type ClinicTierType =
   | "CAPTURE"
   | "CORE"

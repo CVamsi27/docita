@@ -1,3 +1,5 @@
+import { isRecord } from "@workspace/utils";
+
 const LOGIN_LOCKOUT_STORAGE_KEY = "docita_login_lockout_until";
 const DEFAULT_LOGIN_LOCKOUT_MINUTES = 15;
 
@@ -42,11 +44,11 @@ export function isLoginLockoutResponse(status: number, body: unknown): boolean {
     return false;
   }
 
-  const candidate = body as { code?: unknown; message?: unknown };
-  const code = typeof candidate.code === "string" ? candidate.code : "";
+  const code =
+    isRecord(body) && typeof body.code === "string" ? body.code : "";
   const message =
-    typeof candidate.message === "string"
-      ? candidate.message.toLowerCase()
+    isRecord(body) && typeof body.message === "string"
+      ? body.message.toLowerCase()
       : "";
 
   return code === "ACCOUNT_LOCKED" || message.includes("account is locked");
@@ -60,12 +62,8 @@ export function parseLoginLockoutUntil(
     return null;
   }
 
-  const candidate =
-    body && typeof body === "object"
-      ? (body as { message?: unknown })
-      : null;
   const message =
-    typeof candidate?.message === "string" ? candidate.message : "";
+    isRecord(body) && typeof body.message === "string" ? body.message : "";
 
   const minuteMatch = message.match(/try again in (\d+) minute\(s\)/i);
   if (minuteMatch?.[1]) {

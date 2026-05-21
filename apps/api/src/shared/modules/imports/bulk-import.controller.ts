@@ -21,6 +21,7 @@ type AuthedExpressRequest = AuthenticatedRequest & ExpressRequest;
 import { ZodValidationPipe } from '@/shared/common/pipes/zod-validation.pipe';
 import { BulkImportJobStatusResponseDto } from './dto/bulk-import.dto';
 import { ZodSerializerDto } from 'nestjs-zod';
+import { readRequestHeaderString } from '@/shared/common/http/client-ip';
 
 @Controller('imports')
 @Roles(Role.ADMIN, Role.ADMIN_DOCTOR, Role.INTERNAL)
@@ -108,7 +109,7 @@ export class BulkImportController {
       fileBuffer,
       {
         ipAddress: req.ip,
-        userAgent: req.headers?.['user-agent'] as string | undefined,
+        userAgent: readRequestHeaderString(req.headers, 'user-agent'),
         dpdpNoticeVersion: data.dpdpAttestation?.noticeVersion,
       },
     );

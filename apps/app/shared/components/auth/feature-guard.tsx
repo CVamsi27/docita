@@ -16,8 +16,9 @@ import {
   FEATURE_TIER_MAP,
   Tier,
   TIER_INFO,
-  TierName,
+  coerceFeature,
 } from "@workspace/types";
+import { getTierName } from "@workspace/utils";
 import { usePermissionStore } from "@/lib/stores/permission-store";
 import { SUBSCRIPTION_SETTINGS_PATH } from "@/lib/subscription/subscription-settings-path";
 
@@ -39,13 +40,11 @@ function FeatureLockedCard({
   customTitle,
   customDescription,
 }: FeatureLockedCardProps) {
-  const featureEnum = Object.values(Feature).includes(feature as Feature)
-    ? (feature as Feature)
-    : null;
+  const featureEnum = coerceFeature(feature);
 
   const requiredTier = featureEnum ? FEATURE_TIER_MAP[featureEnum] : undefined;
   const tierName =
-    requiredTier !== undefined ? (Tier[requiredTier] as TierName) : undefined;
+    requiredTier !== undefined ? getTierName(requiredTier) : undefined;
   const tierInfo = tierName ? TIER_INFO[tierName] : undefined;
 
   const title = customTitle || "Feature Locked";
@@ -90,9 +89,7 @@ export function FeatureGuard({
 }: FeatureGuardProps) {
   const { canAccess } = usePermissionStore();
 
-  const featureEnum = Object.values(Feature).includes(feature as Feature)
-    ? (feature as Feature)
-    : null;
+  const featureEnum = coerceFeature(feature);
 
   const hasAccess = featureEnum ? canAccess(featureEnum) : true;
 
@@ -125,7 +122,7 @@ export function useFeatureLockStatus(feature: Feature): {
 } {
   const { canAccess } = usePermissionStore();
   const requiredTier = FEATURE_TIER_MAP[feature];
-  const tierName = Tier[requiredTier] as TierName;
+  const tierName = getTierName(requiredTier);
   const tierInfo = TIER_INFO[tierName];
 
   return {

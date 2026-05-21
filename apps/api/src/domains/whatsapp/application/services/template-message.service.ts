@@ -12,11 +12,8 @@ import {
 import { TemplatesService } from '@/domains/whatsapp/application/services/templates.service';
 import { SendTemplateDto } from '@/domains/whatsapp/presentation/dto/send-template.dto';
 import { SendMessageUseCase } from '@/domains/whatsapp/application/use-cases/send-message.use-case';
-import { Prisma, WhatsappLogStatus } from '@workspace/db';
-
-function toJsonValue(value: unknown): Prisma.InputJsonValue {
-  return JSON.parse(JSON.stringify(value)) as Prisma.InputJsonValue;
-}
+import { WhatsappLogStatus } from '@workspace/db';
+import { toPrismaInputJsonValue } from '@/shared/common/json/to-prisma-input-json-value';
 
 @Injectable()
 export class TemplateMessageService {
@@ -82,7 +79,7 @@ export class TemplateMessageService {
         providerMessageId: sendResult.providerMessageId,
         senderMode: sendResult.senderMode ?? 'SHARED',
         senderPhoneNumberId: sendResult.senderPhoneNumberId ?? null,
-        requestBody: toJsonValue(dto),
+        requestBody: toPrismaInputJsonValue(dto),
       },
     });
 

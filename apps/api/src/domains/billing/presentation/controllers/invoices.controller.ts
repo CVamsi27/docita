@@ -28,7 +28,8 @@ import {
   Tier,
 } from '@/shared/modules/auth/auth/tier.decorator';
 import { Roles } from '@/shared/modules/auth/auth/roles.decorator';
-import { Role, InvoiceStatus } from '@workspace/db';
+import { Role } from '@workspace/db';
+import { parseInvoiceListStatus } from '@/domains/billing/infrastructure/repositories/invoice-list-status';
 import {
   CreateInvoiceDto,
   UpdateInvoiceDto,
@@ -88,7 +89,7 @@ export class InvoicesController {
       cursor,
       limit,
       patientId,
-      status: status as InvoiceStatus | undefined,
+      status: parseInvoiceListStatus(status),
       date,
       search,
     });

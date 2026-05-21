@@ -8,15 +8,32 @@ import {
 import { CLOCK_PORT, type IClock } from '@/shared/common/ports/clock.port';
 import { PrismaService } from '@/prisma/prisma.service';
 import { WhatsappClientService } from '@/domains/whatsapp/infrastructure/clients/whatsapp-client.service';
-import type {
-  CreateWhatsAppBroadcastJobRequest,
-  WhatsAppBroadcastJobDetail,
-  WhatsAppBroadcastJobSummary,
-  WhatsAppBroadcastRecipientInput,
+import {
+  whatsappBroadcastJobStatusSchema,
+  type CreateWhatsAppBroadcastJobRequest,
+  type WhatsAppBroadcastJobDetail,
+  type WhatsAppBroadcastJobSummary,
+  type WhatsAppBroadcastRecipientInput,
 } from '@workspace/types';
+import { isRecord, parseStringEnumMember } from '@workspace/utils';
 
 const SEND_DELAY_MS = 250;
 const MAX_RECIPIENTS = 10000;
+const BROADCAST_JOB_STATUSES = whatsappBroadcastJobStatusSchema.options;
+
+function parseBroadcastVariables(
+  value: unknown,
+): Record<string, string> | undefined {
+  if (!isRecord(value)) {
+    return undefined;
+  }
+
+  const entries = Object.entries(value).filter(
+    (entry): entry is [string, string] => typeof entry[1] === 'string',
+  );
+
+  return entries.length > 0 ? Object.fromEntries(entries) : undefined;
+}
 
 @Injectable()
 export class WhatsAppBroadcastService {
@@ -143,7 +160,7 @@ export class WhatsAppBroadcastService {
             templateName: job.templateName,
             languageCode: job.languageCode,
             messageText: job.messageText,
-            variables: recipient.variables as Record<string, string> | null,
+            variables: parseBroadcastVariables(recipient.variables) ?? null,
             recipientName: recipient.name,
           });
 
@@ -353,7 +370,8 @@ export class WhatsAppBroadcastService {
       totalCount: job.totalCount,
       sentCount: job.sentCount,
       failedCount: job.failedCount,
-      status: job.status as WhatsAppBroadcastJobSummary['status'],
+      status:
+        parseStringEnumMember(BROADCAST_JOB_STATUSES, job.status) ?? 'PENDING',
       createdBy: job.createdBy,
       startedAt: job.startedAt,
       completedAt: job.completedAt,

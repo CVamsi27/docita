@@ -8,6 +8,7 @@ import {
   calcAvgConsultationMinutes,
   getTodayRange,
   mapQueueToken,
+  parseQueueTokenType,
 } from './queue-token.helpers';
 
 @Injectable()
@@ -45,38 +46,37 @@ export class QueueQueryService {
       search,
     );
 
-    const patients = tokens.map((t) => ({
-      id: t.id,
-      type: t.appointmentId
-        ? 'appointment'
-        : ('queue' as 'appointment' | 'queue'),
-      tokenNumber: t.tokenNumber,
-      tokenType: t.tokenType as
-        | 'scheduled'
-        | 'walk-in'
-        | 'late-arrival'
-        | 'pending',
-      status: t.status,
-      priority: t.priority,
-      scheduledTime: t.scheduledTime?.toISOString() ?? null,
-      checkInTime: t.createdAt.toISOString(),
-      patient: {
-        id: t.patient.id,
-        firstName: t.patient.firstName,
-        lastName: t.patient.lastName,
-        phoneNumber: t.patient.phoneNumber ?? null,
-        gender: t.patient.gender ?? null,
-        dateOfBirth: t.patient.dateOfBirth?.toISOString() ?? null,
-      },
-      doctor: t.doctor ?? null,
-      appointmentId: t.appointmentId ?? null,
-      appointmentType: t.appointment?.type ?? null,
-      chiefComplaint: t.appointment?.chiefComplaint ?? null,
-      estimatedWaitTime: t.estimatedWaitTime ?? null,
-      calledAt: t.calledAt?.toISOString() ?? null,
-      completedAt: t.completedAt?.toISOString() ?? null,
-      createdAt: t.createdAt.toISOString(),
-    }));
+    const patients = tokens.map((t) => {
+      const type = (t.appointmentId ? 'appointment' : 'queue') satisfies
+        | 'appointment'
+        | 'queue';
+      return {
+        id: t.id,
+        type,
+        tokenNumber: t.tokenNumber,
+        tokenType: parseQueueTokenType(t.tokenType),
+        status: t.status,
+        priority: t.priority,
+        scheduledTime: t.scheduledTime?.toISOString() ?? null,
+        checkInTime: t.createdAt.toISOString(),
+        patient: {
+          id: t.patient.id,
+          firstName: t.patient.firstName,
+          lastName: t.patient.lastName,
+          phoneNumber: t.patient.phoneNumber ?? null,
+          gender: t.patient.gender ?? null,
+          dateOfBirth: t.patient.dateOfBirth?.toISOString() ?? null,
+        },
+        doctor: t.doctor ?? null,
+        appointmentId: t.appointmentId ?? null,
+        appointmentType: t.appointment?.type ?? null,
+        chiefComplaint: t.appointment?.chiefComplaint ?? null,
+        estimatedWaitTime: t.estimatedWaitTime ?? null,
+        calledAt: t.calledAt?.toISOString() ?? null,
+        completedAt: t.completedAt?.toISOString() ?? null,
+        createdAt: t.createdAt.toISOString(),
+      };
+    });
 
     const stats = {
       total: tokens.length,

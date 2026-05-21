@@ -7,6 +7,7 @@ import {
   QueueJobOptions,
   QueueStats,
 } from './queue.interface';
+import { bindQueueJobHandler, coerceQueueJob } from './queue-job-boundary';
 
 interface InMemoryJob<T extends QueueJobData> extends QueueJob<T> {
   status: 'waiting' | 'active' | 'completed' | 'failed';
@@ -83,9 +84,7 @@ export class InMemoryQueueService implements IQueueProvider {
     name: string,
     handler: QueueJobHandler<T>,
   ): Promise<void> {
-    this.handlers.set(name, async (job) => {
-      await handler(job as QueueJob<T>);
-    });
+    this.handlers.set(name, bindQueueJobHandler(handler));
     await Promise.resolve();
   }
 
@@ -95,19 +94,7 @@ export class InMemoryQueueService implements IQueueProvider {
     const job = this.jobs.get(jobId);
     if (!job) return null;
 
-    const data = job.data as T;
-    const result: QueueJob<T> = {
-      id: job.id,
-      name: job.name,
-      data: data,
-      progress: job.progress,
-      failedReason: job.failedReason,
-      attemptsMade: job.attemptsMade,
-      maxAttempts: job.maxAttempts,
-      timestamp: job.timestamp,
-    };
-    await Promise.resolve();
-    return result;
+    return coerceQueueJob<T>(job);
   }
 
   async removeJob(jobId: string): Promise<void> {

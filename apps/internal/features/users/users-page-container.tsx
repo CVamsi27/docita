@@ -36,13 +36,16 @@ import {
   SelectValue,
 } from "@workspace/ui/components/form/select";
 import { Eye, Search, Users } from "lucide-react";
-import { SPECIALIZATION_LABELS } from "@workspace/types";
 import {
   formatInternalListDate,
   formatInternalTimestamp,
 } from "@/lib/formatters/format-display-date";
 import { ROLE_CONFIG } from "./types";
-import { getRoleBadgeColor } from "./utils";
+import {
+  getRoleBadgeColor,
+  getSpecializationLabel,
+  isRoleConfigKey,
+} from "./utils";
 import { useUsersData } from "./use-users-data";
 
 export function UsersPageContainer() {
@@ -100,7 +103,11 @@ export function UsersPageContainer() {
                 ? "ring-2 ring-primary shadow-lg"
                 : "hover:shadow-md"
             }`}
-            onClick={() => setSelectedRole(role as keyof typeof ROLE_CONFIG)}
+            onClick={() => {
+              if (isRoleConfigKey(role)) {
+                setSelectedRole(role);
+              }
+            }}
           >
             <CardContent className="pt-6">
               <div className="flex items-center justify-between">
@@ -109,7 +116,7 @@ export function UsersPageContainer() {
                     {config.label}
                   </p>
                   <p className="mt-1 text-[var(--fs-2xl)] font-semibold tabular-nums leading-[var(--lh-tight)]">
-                    {roleStats[role as keyof typeof roleStats]}
+                    {isRoleConfigKey(role) ? roleStats[role] : 0}
                   </p>
                 </div>
                 <config.icon className="h-8 w-8 text-muted-foreground" />
@@ -211,11 +218,7 @@ export function UsersPageContainer() {
                         </Badge>
                       </TableCell>
                       <TableCell className="text-muted-foreground">
-                        {user.specialization
-                          ? SPECIALIZATION_LABELS[
-                              user.specialization as keyof typeof SPECIALIZATION_LABELS
-                            ] || user.specialization
-                          : "-"}
+                        {getSpecializationLabel(user.specialization)}
                       </TableCell>
                       <TableCell className="text-muted-foreground">
                         {user.phoneNumber || "-"}
@@ -303,9 +306,7 @@ export function UsersPageContainer() {
                             Specialization
                           </p>
                           <p className="text-sm font-semibold mt-1">
-                            {SPECIALIZATION_LABELS[
-                              selectedUser.specialization as keyof typeof SPECIALIZATION_LABELS
-                            ] || selectedUser.specialization}
+                            {getSpecializationLabel(selectedUser.specialization)}
                           </p>
                         </div>
                       )}

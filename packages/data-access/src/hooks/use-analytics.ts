@@ -119,6 +119,12 @@ export const useRevenueMetrics = (
   const basicOk = useDataAccessContext().isTierFeatureEnabled(Feature.BASIC_ANALYTICS);
   const advancedOk = useDataAccessContext().isTierFeatureEnabled(Feature.ADVANCED_ANALYTICS);
   const tierOk = basicOk && advancedOk;
+  const revenueMetricsQuery: AnalyticsPeriodDateRangeQuery = {
+    clinicId,
+    period,
+    startDate: startDate?.toISOString(),
+    endDate: endDate?.toISOString(),
+  };
   return useAPIQuery<AnalyticsRevenueMetricsResponse>(
     queryKeys.analytics.revenueMetrics(
       clinicId,
@@ -126,11 +132,7 @@ export const useRevenueMetrics = (
       startDate?.toISOString() || "",
       endDate?.toISOString() || "",
     ),
-    `/analytics/revenue-metrics${buildQueryString({
-      ...( { clinicId, period } as AnalyticsPeriodDateRangeQuery),
-      startDate: startDate?.toISOString(),
-      endDate: endDate?.toISOString(),
-    })}`,
+    `/analytics/revenue-metrics${buildQueryString(revenueMetricsQuery)}`,
     { staleTime: 1000 * 60 * 5, enabled: tierOk },
   );
 };
@@ -144,6 +146,12 @@ export const useAppointmentMetrics = (
   const basicOk = useDataAccessContext().isTierFeatureEnabled(Feature.BASIC_ANALYTICS);
   const advancedOk = useDataAccessContext().isTierFeatureEnabled(Feature.ADVANCED_ANALYTICS);
   const tierOk = basicOk && advancedOk;
+  const appointmentMetricsQuery: AnalyticsPeriodDateRangeQuery = {
+    clinicId,
+    period,
+    startDate: startDate?.toISOString(),
+    endDate: endDate?.toISOString(),
+  };
   return useAPIQuery<AnalyticsAppointmentMetricsResponse>(
     queryKeys.analytics.appointmentMetrics(
       clinicId,
@@ -151,11 +159,7 @@ export const useAppointmentMetrics = (
       startDate?.toISOString() || "",
       endDate?.toISOString() || "",
     ),
-    `/analytics/appointment-metrics${buildQueryString({
-      ...( { clinicId, period } as AnalyticsPeriodDateRangeQuery),
-      startDate: startDate?.toISOString(),
-      endDate: endDate?.toISOString(),
-    })}`,
+    `/analytics/appointment-metrics${buildQueryString(appointmentMetricsQuery)}`,
     { staleTime: 1000 * 60 * 5, enabled: tierOk },
   );
 };
@@ -168,28 +172,28 @@ export const usePatientDemographics = (
   const basicOk = useDataAccessContext().isTierFeatureEnabled(Feature.BASIC_ANALYTICS);
   const advancedOk = useDataAccessContext().isTierFeatureEnabled(Feature.ADVANCED_ANALYTICS);
   const tierOk = basicOk && advancedOk;
+  const demographicsQuery: AnalyticsDateRangeQuery = {
+    clinicId,
+    startDate: startDate?.toISOString(),
+    endDate: endDate?.toISOString(),
+  };
   return useAPIQuery<AnalyticsPatientDemographicsResponse>(
     queryKeys.analytics.patientDemographics(
       clinicId,
       startDate?.toISOString() || "",
       endDate?.toISOString() || "",
     ),
-    `/analytics/patient-demographics${buildQueryString({
-      ...( { clinicId } as AnalyticsDateRangeQuery),
-      startDate: startDate?.toISOString(),
-      endDate: endDate?.toISOString(),
-    })}`,
+    `/analytics/patient-demographics${buildQueryString(demographicsQuery)}`,
     { staleTime: 1000 * 60 * 5, enabled: tierOk },
   );
 };
 
 export const useTopConditions = (clinicId: string, limit: number = 10) => {
   const basicOk = useDataAccessContext().isTierFeatureEnabled(Feature.BASIC_ANALYTICS);
+  const topConditionsQuery: AnalyticsLimitQuery = { clinicId, limit };
   return useAPIQuery<AnalyticsTopConditionListResponse>(
     queryKeys.analytics.topConditions(clinicId, limit),
-    `/analytics/top-conditions${buildQueryString({
-      ...( { clinicId, limit } as AnalyticsLimitQuery),
-    })}`,
+    `/analytics/top-conditions${buildQueryString(topConditionsQuery)}`,
     { staleTime: 1000 * 60 * 5, enabled: basicOk },
   );
 };

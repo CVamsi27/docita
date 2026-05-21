@@ -1,4 +1,5 @@
 import { useState, useEffect, useCallback } from "react";
+import { z } from "zod";
 
 const STORAGE_KEY = "sidebar_hidden_items";
 
@@ -10,7 +11,10 @@ export function useSidebarPreferences(clinicId: string | null) {
     const stored = localStorage.getItem(`${STORAGE_KEY}_${clinicId}`);
     if (stored) {
       try {
-        setHiddenItems(new Set(JSON.parse(stored) as string[]));
+        const parsed = z.array(z.string()).safeParse(JSON.parse(stored));
+        if (parsed.success) {
+          setHiddenItems(new Set(parsed.data));
+        }
       } catch {
         // ignore malformed data
       }

@@ -23,13 +23,10 @@ import {
 import { useCurrentUsage, usePricingConfig } from "@/hooks/api/use-pricing";
 import { useLocaleCurrency } from "@/hooks/use-locale-currency";
 import { useSubscription } from "@workspace/data-access";
-import {
-  type SupportedCurrency,
-  type TierName,
-} from "@workspace/types";
+import { tierSchema, type TierName } from "@workspace/types";
 import { getDisplayBillingPeriodEndAndDaysLeft } from "@/features/subscription/lib/billing-period-display";
 import { recommendTier } from "@/features/subscription/lib/recommend-tier";
-import { getTierName } from "@workspace/utils";
+import { getTierName, parseSupportedCurrency } from "@workspace/utils";
 import {
   formatPlanDate,
   formatStatusLabel,
@@ -103,8 +100,7 @@ export function BillingSubscriptionWorkspace() {
       : null;
   const planStripPeriodEnd =
     displayBillingPeriod?.periodEnd ?? subscriptionPeriodEnd;
-  const planStripDaysLeft =
-    displayBillingPeriod?.daysLeft ?? daysLeftInPeriod;
+  const planStripDaysLeft = displayBillingPeriod?.daysLeft ?? daysLeftInPeriod;
   const isTrialing = subscriptionStatus === "TRIALING";
   const isTrialExpired =
     isTrialing && subscriptionPeriodEnd !== null
@@ -157,7 +153,10 @@ export function BillingSubscriptionWorkspace() {
     plansRef.current?.scrollIntoView({ behavior: "smooth", block: "start" });
   }, []);
 
-  const recommendation = recommendTier(getTierName(effectiveCurrentTier), usage);
+  const recommendation = recommendTier(
+    getTierName(effectiveCurrentTier),
+    usage,
+  );
 
   const currentPlanStatusNotice = isSubscriptionExpired
     ? {
@@ -276,7 +275,7 @@ export function BillingSubscriptionWorkspace() {
           !isSubscriptionExpired
             ? () =>
                 checkoutTier({
-                  tier: subscription.tier as TierName,
+                  tier: subscription.tier,
                   billingCycle: subscription.billingCycle ?? "MONTHLY",
                 })
             : undefined
@@ -296,13 +295,15 @@ export function BillingSubscriptionWorkspace() {
         scheduledChange={
           subscription?.scheduledChange
             ? {
-                planName:
-                  getTierInfo(
-                    Tier[
-                      subscription.scheduledChange
-                        .plan as keyof typeof Tier
-                    ] as number,
-                  )?.name ?? subscription.scheduledChange.plan,
+                planName: (() => {
+                  const parsedPlan = tierSchema.safeParse(
+                    subscription.scheduledChange.plan,
+                  );
+                  return parsedPlan.success
+                    ? (getTierInfo(parsedPlan.data)?.name ??
+                        subscription.scheduledChange.plan)
+                    : subscription.scheduledChange.plan;
+                })(),
                 effectiveAt: subscription.scheduledChange.effectiveAt,
                 onCancel: () => cancelScheduledMutation.mutate(),
                 isCancelling: cancelScheduledMutation.isPending,
@@ -360,7 +361,7 @@ export function BillingSubscriptionWorkspace() {
         currentTier={effectiveCurrentTier}
         selectedTier={selectedTier}
         billingCycle={selectedCycle}
-        currency={currency as SupportedCurrency}
+        currency={parseSupportedCurrency(currency)}
         onConfirm={handleConfirmTierChange}
         onSchedule={handleScheduleTierChange}
         currentPeriodEnd={subscription?.currentPeriodEnd ?? null}

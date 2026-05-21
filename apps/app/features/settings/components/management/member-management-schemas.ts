@@ -1,8 +1,8 @@
 import type { InviteFormValues, MemberRole } from "@workspace/types";
 
 export {
-  inviteTeamMemberFormSchema as inviteSchema,
-  memberManagementFormSchema as memberSchema,
+  inviteTeamMemberFormSchema,
+  memberManagementFormSchema,
   type InviteFormValues,
   type MemberFormValues,
   type MemberRole,

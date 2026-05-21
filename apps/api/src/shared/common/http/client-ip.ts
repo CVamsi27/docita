@@ -1,5 +1,17 @@
 import type { Request } from 'express';
 
+export function readRequestHeaderString(
+  headers: Request['headers'] | undefined,
+  name: string,
+): string | undefined {
+  if (!headers) {
+    return undefined;
+  }
+
+  const normalized = name.toLowerCase();
+  return firstHeaderValue(headers[normalized] ?? headers[name]);
+}
+
 function firstHeaderValue(
   value: string | string[] | undefined,
 ): string | undefined {

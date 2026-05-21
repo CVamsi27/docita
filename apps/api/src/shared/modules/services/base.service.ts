@@ -1,4 +1,5 @@
 import { NotFoundException, BadRequestException, Logger } from '@nestjs/common';
+import { isRecord } from '@workspace/utils';
 import { PrismaService } from '@/prisma/prisma.service';
 import { PaginatedResult } from '@/shared/common/repositories/base.repository';
 import { paginateWithCursor } from '@/shared/common/pagination.helper';
@@ -39,12 +40,12 @@ export abstract class BaseService<T> {
       return false;
     }
 
-    const candidate = value as Partial<ServiceModelDelegate<T>>;
     return (
-      typeof candidate.findMany === 'function' &&
-      typeof candidate.findFirst === 'function' &&
-      typeof candidate.count === 'function' &&
-      typeof candidate.deleteMany === 'function'
+      isRecord(value) &&
+      typeof value.findMany === 'function' &&
+      typeof value.findFirst === 'function' &&
+      typeof value.count === 'function' &&
+      typeof value.deleteMany === 'function'
     );
   }
 
@@ -123,7 +124,7 @@ export abstract class BaseService<T> {
       this.throwNotFound(id);
     }
 
-    return entity as T;
+    return entity;
   }
 
   async findOneOrNull(id: string): Promise<T | null> {

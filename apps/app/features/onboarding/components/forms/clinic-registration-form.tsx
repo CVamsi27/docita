@@ -21,9 +21,11 @@ import {
   complianceSchema,
   type ComplianceSettings,
   defaultComplianceValues,
-  type PlanSelection,
 } from "@/features/onboarding/components/types";
-import { Alert, AlertDescription } from "@workspace/ui/components/feedback/alert";
+import {
+  Alert,
+  AlertDescription,
+} from "@workspace/ui/components/feedback/alert";
 import { Button } from "@workspace/ui/components/form/button";
 import { DEFAULT_COUNTRY_CODE, getFacilityLabel } from "@workspace/utils";
 
@@ -82,8 +84,9 @@ export function ClinicRegistrationForm({
       website: "",
       gstin: "",
       legalName: "",
-      ...(formData.clinicDetails as Partial<ClinicDetails>),
-    } as ClinicDetails,
+      type: "GENERAL",
+      ...formData.clinicDetails,
+    },
   });
 
   const complianceForm = useForm<ComplianceSettings>({
@@ -142,14 +145,10 @@ export function ClinicRegistrationForm({
     }
 
     try {
-      await setPlanSelection(
-        tier,
-        billingCycle,
-        pricing as PlanSelection["billingCycle"] extends "MONTHLY" | "YEARLY"
-          ? { monthly: number | "custom"; yearly: number | "custom" }
-          : never,
-        { ...options, currency },
-      );
+      await setPlanSelection(tier, billingCycle, pricing, {
+        ...options,
+        currency,
+      });
     } catch (error) {
       setStepError(
         getUserFacingErrorMessage(error, {

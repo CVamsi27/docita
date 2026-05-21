@@ -68,7 +68,7 @@ export class UsersService {
 
     return {
       message:
-        'Your account deletion request has been received. Our team will process it within 30 days as per applicable data protection guidelines.',
+        'Your account deletion request has been received. Our team will process it within 30 days per applicable data protection guidelines.',
       userId,
       requestedAt: this.clock.now().toISOString(),
     };

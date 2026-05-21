@@ -2,8 +2,8 @@ import { Prisma } from '@workspace/db';
 import { getCurrentTenant } from '@/shared/common/middleware/tenant.middleware';
 import {
   applyTenantScopeForTest,
+  coerceTenantExtensionArgs,
   getTenantScopeRule,
-  type TenantExtensionArgs,
 } from './tenant-scope-policy';
 
 export const tenantExtension = Prisma.defineExtension({
@@ -38,7 +38,7 @@ export const tenantExtension = Prisma.defineExtension({
               operation === 'findFirstOrThrow' ||
               operation === 'update')
           ) {
-            const typedArgs = args as TenantExtensionArgs;
+            const typedArgs = coerceTenantExtensionArgs(args);
             const where = typedArgs.where ?? {};
             if (where['id'] !== tenant.userId) {
               throw new Error(
@@ -53,7 +53,7 @@ export const tenantExtension = Prisma.defineExtension({
           );
         }
 
-        const typedArgs = args as TenantExtensionArgs;
+        const typedArgs = coerceTenantExtensionArgs(args);
 
         applyTenantScopeForTest(model, operation, typedArgs, tenant.clinicId);
 

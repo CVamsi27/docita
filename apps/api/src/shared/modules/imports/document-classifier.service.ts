@@ -18,7 +18,7 @@ export class DocumentClassifierService {
       lowerText.includes('tablet') ||
       lowerText.includes('capsule')
     ) {
-      this.logger.debug('[OCR] Classified as PRESCRIPTION');
+      this.logger.debug('[OCR] Classified: PRESCRIPTION');
       return 'PRESCRIPTION';
     }
 
@@ -32,7 +32,7 @@ export class DocumentClassifierService {
       lowerText.includes('value') ||
       lowerText.includes('reference')
     ) {
-      this.logger.debug('[OCR] Classified as LAB_REPORT');
+      this.logger.debug('[OCR] Classified: LAB_REPORT');
       return 'LAB_REPORT';
     }
 
@@ -44,11 +44,11 @@ export class DocumentClassifierService {
       lowerText.includes('examination') ||
       lowerText.includes('patient')
     ) {
-      this.logger.debug('[OCR] Classified as CASE_SHEET');
+      this.logger.debug('[OCR] Classified: CASE_SHEET');
       return 'CASE_SHEET';
     }
 
-    this.logger.debug('[OCR] Classified as GENERAL');
+    this.logger.debug('[OCR] Classified: GENERAL');
     return 'GENERAL';
   }
 }

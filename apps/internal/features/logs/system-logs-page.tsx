@@ -32,6 +32,27 @@ interface SystemLogsPageProps {
 
 const EMPTY_LOGS: SystemLog[] = [];
 
+function parseLogLimit(value: string | null, fallback: 25 | 50 | 100): 25 | 50 | 100 {
+  if (value === "25") return 25;
+  if (value === "50") return 50;
+  if (value === "100") return 100;
+  return fallback;
+}
+
+function parseLogLevel(
+  value: string | null,
+): "ALL" | SystemLog["level"] {
+  if (
+    value === "INFO" ||
+    value === "WARNING" ||
+    value === "ERROR" ||
+    value === "DEBUG"
+  ) {
+    return value;
+  }
+  return "ALL";
+}
+
 export function SystemLogsPage({
   title,
   description,
@@ -59,21 +80,10 @@ export function SystemLogsPage({
     const limit = searchParams.get("limit");
     const offset = searchParams.get("offset");
 
-    setSelectedLevel(
-      level === "INFO" ||
-        level === "WARNING" ||
-        level === "ERROR" ||
-        level === "DEBUG"
-        ? level
-        : "ALL",
-    );
+    setSelectedLevel(parseLogLevel(level));
     setSelectedModule(moduleParam || "ALL");
     setSearchText(search || "");
-    setSelectedLimit(
-      limit === "25" || limit === "50" || limit === "100"
-        ? (Number(limit) as 25 | 50 | 100)
-        : defaultLimit,
-    );
+    setSelectedLimit(parseLogLimit(limit, defaultLimit));
     setSelectedOffset(
       offset && Number.isFinite(Number(offset)) && Number(offset) >= 0
         ? Number(offset)
@@ -265,7 +275,7 @@ export function SystemLogsPage({
             className="h-9 w-full rounded-md border border-input bg-background px-3 text-sm"
             value={selectedLevel}
             onChange={(e) => {
-              const value = e.target.value as "ALL" | SystemLog["level"];
+              const value = parseLogLevel(e.target.value);
               setSelectedLevel(value);
               updateFilterParams({ level: value, offset: 0 });
             }}
@@ -322,7 +332,7 @@ export function SystemLogsPage({
             className="h-9 w-full rounded-md border border-input bg-background px-3 text-sm"
             value={selectedLimit}
             onChange={(e) => {
-              const value = Number(e.target.value) as 25 | 50 | 100;
+              const value = parseLogLimit(e.target.value, defaultLimit);
               setSelectedLimit(value);
               updateFilterParams({ limit: value, offset: 0 });
             }}

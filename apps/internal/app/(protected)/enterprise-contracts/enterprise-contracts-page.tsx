@@ -16,7 +16,8 @@ import {
 } from "@workspace/data-access/internal";
 import { useDataAccessFetcher } from "@workspace/data-access";
 import { useAuth } from "@/lib/auth/auth";
-import { formatCurrency, formatDate } from "@workspace/utils";
+import { formatCurrency, formatDate, parseStringEnumMember } from "@workspace/utils";
+import { enterpriseContractStatusSchema } from "@workspace/types";
 import {
   Card,
   CardContent,
@@ -197,6 +198,21 @@ const QUOTE_PRESETS = {
   },
 } as const;
 
+type QuotePresetKey = keyof typeof QUOTE_PRESETS;
+const QUOTE_PRESET_KEYS: QuotePresetKey[] = [
+  "MID_ENTERPRISE",
+  "MULTI_SITE",
+  "NETWORK",
+];
+
+const ENTERPRISE_CONTRACT_STATUSES = enterpriseContractStatusSchema.options;
+const ENTERPRISE_BILLING_CYCLES = [
+  "MONTHLY",
+  "QUARTERLY",
+  "SEMI_ANNUAL",
+  "YEARLY",
+] as const;
+
 function inrToCents(inr: string): number {
   const n = Number(inr.trim());
   if (!Number.isFinite(n) || n < 0) return 0;
@@ -333,7 +349,7 @@ export default function EnterpriseContractsPage() {
     setBusy(true);
     setError(null);
     try {
-      await enterpriseContractsAPI.upsert(form.primaryClinicId, {
+      const upsertPayload = {
         contractNumber: form.contractNumber,
         groupName: form.groupName.trim() || null,
         status: form.status,
@@ -366,7 +382,8 @@ export default function EnterpriseContractsPage() {
         notes: form.notes || null,
         signedDocumentUrl: form.signedDocumentUrl || null,
         changeSummary: form.changeSummary || undefined,
-      } as Partial<EnterpriseContractRow> & { changeSummary?: string });
+      } satisfies Partial<EnterpriseContractRow> & { changeSummary?: string };
+      await enterpriseContractsAPI.upsert(form.primaryClinicId, upsertPayload);
       setEditorOpen(false);
       await load();
     } catch {
@@ -785,12 +802,15 @@ export default function EnterpriseContractsPage() {
               <Label>Status</Label>
               <Select
                 value={form.status}
-                onValueChange={(v) =>
-                  setForm((f) => ({
-                    ...f,
-                    status: v as EnterpriseContractRow["status"],
-                  }))
-                }
+                onValueChange={(v) => {
+                  const status = parseStringEnumMember(
+                    ENTERPRISE_CONTRACT_STATUSES,
+                    v,
+                  );
+                  if (status) {
+                    setForm((f) => ({ ...f, status }));
+                  }
+                }}
               >
                 <SelectTrigger>
                   <SelectValue />
@@ -807,12 +827,14 @@ export default function EnterpriseContractsPage() {
               <Label>Billing cycle</Label>
               <Select
                 value={form.billingCycle}
-                onValueChange={(v) =>
-                  setForm((f) => ({
-                    ...f,
-                    billingCycle: v as EnterpriseContractRow["billingCycle"],
-                  }))
-                }
+                onValueChange={(v) => {
+                  const billingCycle = parseStringEnumMember(
+                    ENTERPRISE_BILLING_CYCLES,
+                    v,
+                  );
+                  if (!billingCycle) return;
+                  setForm((f) => ({ ...f, billingCycle }));
+                }}
               >
                 <SelectTrigger>
                   <SelectValue />
@@ -871,9 +893,7 @@ export default function EnterpriseContractsPage() {
           <div className="rounded-md border p-3">
             <p className="mb-2 text-sm font-medium">Quote presets</p>
             <div className="flex flex-wrap gap-2">
-              {(
-                Object.keys(QUOTE_PRESETS) as Array<keyof typeof QUOTE_PRESETS>
-              ).map((k) => (
+              {QUOTE_PRESET_KEYS.map((k) => (
                 <Button
                   key={k}
                   type="button"

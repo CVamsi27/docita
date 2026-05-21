@@ -18,7 +18,7 @@ export function DPDPSection({ complianceForm }: DPDPSectionProps) {
           id="requireConsent"
           checked={complianceForm.watch("requireConsent")}
           onCheckedChange={(checked) =>
-            complianceForm.setValue("requireConsent", checked as boolean, {
+            complianceForm.setValue("requireConsent", checked === true, {
               shouldDirty: true,
               shouldTouch: true,
               shouldValidate: true,

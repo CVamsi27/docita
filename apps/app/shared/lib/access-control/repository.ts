@@ -1,11 +1,13 @@
 import { Feature, Tier } from "@workspace/types";
+import { isRecord, parseStringEnumMember } from "@workspace/utils";
 import { browserRequest } from "@/lib/auth/browser-request";
-import type {
-  IAccessContext,
-  IAddOn,
-  IFeatureOverride,
-  ISubscription,
-  ISubscriptionRepository,
+import {
+  AddOnType,
+  type IAccessContext,
+  type IAddOn,
+  type IFeatureOverride,
+  type ISubscription,
+  type ISubscriptionRepository,
 } from "./interfaces";
 
 interface CacheEntry<T> {
@@ -13,23 +15,9 @@ interface CacheEntry<T> {
   timestamp: number;
 }
 
-interface RawSubscriptionData {
-  tier?: string;
-  status?: string;
-  features?: string[];
-  startDate?: string | number;
-  endDate?: string | number;
-  billingCycle?: string;
-}
-
-interface RawOverrideData {
-  feature: string;
-  granted?: boolean;
-  reason?: string;
-  grantedBy?: string;
-  expiresAt?: string | number;
-  createdAt?: string | number;
-}
+const ADD_ON_TYPE_VALUES = Object.values(AddOnType).filter(
+  (value): value is AddOnType => typeof value === "string",
+);
 
 const TIER_NUMERIC_VALUES = new Set(
   Object.values(Tier).filter((value): value is Tier => typeof value === "number"),
@@ -107,7 +95,7 @@ export class SubscriptionRepository implements ISubscriptionRepository {
       );
     }
 
-    const data = (await response.json()) as RawSubscriptionData;
+    const data: unknown = await response.json();
     const subscription = this.normalizeSubscription(data);
 
     this.subscriptionCache.set(cacheKey, {
@@ -143,8 +131,8 @@ export class SubscriptionRepository implements ISubscriptionRepository {
       );
     }
 
-    const data = (await response.json()) as IAddOn[];
-    const addOns = Array.isArray(data) ? data : [];
+    const data: unknown = await response.json();
+    const addOns = this.parseAddOnList(data);
 
     this.addOnsCache.set(cacheKey, {
       data: addOns,
@@ -174,9 +162,10 @@ export class SubscriptionRepository implements ISubscriptionRepository {
       );
     }
 
-    const data = (await response.json()) as RawOverrideData[];
+    const data: unknown = await response.json();
     const overrides = Array.isArray(data)
       ? data
+          .filter(isRecord)
           .map((override) => this.normalizeOverride(override))
           .filter((override): override is IFeatureOverride => override !== null)
       : [];
@@ -249,33 +238,93 @@ export class SubscriptionRepository implements ISubscriptionRepository {
     return isFeatureValue(value);
   }
 
-  private normalizeSubscription(raw: RawSubscriptionData): ISubscription {
+  private parseAddOnList(data: unknown): IAddOn[] {
+    if (!Array.isArray(data)) {
+      return [];
+    }
+    return data.flatMap((item) => {
+      const normalized = this.normalizeAddOn(item);
+      return normalized ? [normalized] : [];
+    });
+  }
+
+  private normalizeAddOn(raw: unknown): IAddOn | null {
+    if (!isRecord(raw)) {
+      return null;
+    }
+    const type = raw.type;
+    const status = raw.status;
+    if (typeof type !== "string" || typeof status !== "string") {
+      return null;
+    }
+    if (
+      status !== "active" &&
+      status !== "inactive" &&
+      status !== "suspended"
+    ) {
+      return null;
+    }
+    const parsedType = parseStringEnumMember(ADD_ON_TYPE_VALUES, type);
+    if (!parsedType) {
+      return null;
+    }
+    const billingCycle = raw.billingCycle === "yearly" ? "yearly" : "monthly";
     return {
-      tier: this.parseTier(raw.tier),
-      status: this.isValidStatus(raw.status) ? raw.status : "active",
+      type: parsedType,
+      status,
+      baseQuota: typeof raw.baseQuota === "number" ? raw.baseQuota : 0,
+      usedQuota: typeof raw.usedQuota === "number" ? raw.usedQuota : 0,
+      overageRate: typeof raw.overageRate === "number" ? raw.overageRate : 0,
+      billingCycle,
+      expiresAt:
+        raw.expiresAt != null ? new Date(String(raw.expiresAt)) : undefined,
+    };
+  }
+
+  private normalizeSubscription(raw: unknown): ISubscription {
+    if (!isRecord(raw)) {
+      return this.createDefaultSubscription();
+    }
+    const tier = typeof raw.tier === "string" ? raw.tier : undefined;
+    const status = typeof raw.status === "string" ? raw.status : undefined;
+    const startDate = raw.startDate;
+    const endDate = raw.endDate;
+    const billingCycle = raw.billingCycle;
+    return {
+      tier: this.parseTier(tier),
+      status: this.isValidStatus(status) ? status : "active",
       features: Array.isArray(raw.features)
         ? raw.features
             .filter((f): f is string => typeof f === "string")
             .filter((f): f is Feature => isFeatureValue(f))
         : [],
-      startDate: new Date(raw.startDate || Date.now()),
-      endDate: raw.endDate ? new Date(raw.endDate) : undefined,
-      billingCycle: raw.billingCycle === "yearly" ? "yearly" : "monthly",
+      startDate: new Date(
+        typeof startDate === "string" || typeof startDate === "number"
+          ? startDate
+          : Date.now(),
+      ),
+      endDate:
+        endDate != null
+          ? new Date(typeof endDate === "string" || typeof endDate === "number" ? endDate : Date.now())
+          : undefined,
+      billingCycle: billingCycle === "yearly" ? "yearly" : "monthly",
     };
   }
 
-  private normalizeOverride(raw: RawOverrideData): IFeatureOverride | null {
-    if (!this.isValidFeature(raw.feature)) {
+  private normalizeOverride(raw: Record<string, unknown>): IFeatureOverride | null {
+    const feature = typeof raw.feature === "string" ? raw.feature : "";
+    if (!this.isValidFeature(feature)) {
       return null;
     }
 
     return {
-      feature: raw.feature,
+      feature,
       granted: Boolean(raw.granted),
       reason: String(raw.reason || ""),
       grantedBy: String(raw.grantedBy || ""),
-      expiresAt: raw.expiresAt ? new Date(raw.expiresAt) : undefined,
-      createdAt: new Date(raw.createdAt || Date.now()),
+      expiresAt:
+        raw.expiresAt != null ? new Date(String(raw.expiresAt)) : undefined,
+      createdAt: new Date(String(raw.createdAt ?? Date.now())),
     };
   }
 

@@ -3,6 +3,8 @@ import { InvariantViolationError } from '@/shared/common/errors/domain.errors';
 import { PrismaService } from '@/prisma/prisma.service';
 import { Prisma } from '@workspace/db';
 import { ClinicPricingOffer } from '@/shared/modules/services/feature-flag.service';
+import { toPrismaInputJsonValue } from '@/shared/common/json/to-prisma-input-json-value';
+import { isRecord } from '@workspace/utils';
 
 const PRICING_OFFER_FLAG = 'clinic_pricing_offer';
 
@@ -10,18 +12,14 @@ const PRICING_OFFER_FLAG = 'clinic_pricing_offer';
 export class InternalPricingAdminService {
   constructor(private readonly prisma: PrismaService) {}
 
-  private toInputJsonValue(value: unknown): Prisma.InputJsonValue {
-    return JSON.parse(JSON.stringify(value)) as Prisma.InputJsonValue;
-  }
-
   private parseOfferValue(
     value: Prisma.JsonValue | null,
   ): ClinicPricingOffer | null {
-    if (!value || typeof value !== 'object' || Array.isArray(value)) {
+    if (!isRecord(value)) {
       return null;
     }
 
-    const raw = value as Record<string, unknown>;
+    const raw = value;
     const percentOff =
       typeof raw.percentOff === 'number' && Number.isFinite(raw.percentOff)
         ? raw.percentOff
@@ -90,7 +88,7 @@ export class InternalPricingAdminService {
 
     return offers
       .map((offer) => {
-        const parsed = this.parseOfferValue(offer.value as Prisma.JsonValue);
+        const parsed = this.parseOfferValue(offer.value);
         if (!parsed) {
           return null;
         }
@@ -138,7 +136,7 @@ export class InternalPricingAdminService {
       ? this.prisma.featureFlag.update({
           where: { id: existing.id },
           data: {
-            value: this.toInputJsonValue(payload),
+            value: toPrismaInputJsonValue(payload),
             description: 'Clinic pricing offer',
           },
         })
@@ -146,7 +144,7 @@ export class InternalPricingAdminService {
           data: {
             key: PRICING_OFFER_FLAG,
             clinicId,
-            value: this.toInputJsonValue(payload),
+            value: toPrismaInputJsonValue(payload),
             description: 'Clinic pricing offer',
           },
         });

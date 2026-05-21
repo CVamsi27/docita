@@ -52,8 +52,9 @@ import {
   parseDayBoundary,
   buildBillingCsvContent,
   triggerCsvDownload,
+  parseStatusFilterValue,
+  readBillingHistoryActions,
   type StatusFilterValue,
-  type BillingHistoryItemWithActions,
 } from "./billing-history-table-helpers";
 
 export function BillingHistoryTable({
@@ -153,7 +154,7 @@ export function BillingHistoryTable({
             </Label>
             <Select
               value={statusFilter}
-              onValueChange={(v) => setStatusFilter(v as StatusFilterValue)}
+              onValueChange={(v) => setStatusFilter(parseStatusFilterValue(v))}
             >
               <SelectTrigger id="billing-filter-status" className="h-9">
                 <SelectValue />
@@ -251,7 +252,7 @@ export function BillingHistoryTable({
               </TableHeader>
               <TableBody>
                 {filteredInvoices.map((invoice) => {
-                  const withActions = invoice as BillingHistoryItemWithActions;
+                  const withActions = readBillingHistoryActions(invoice);
                   const status = normalizeStatus(invoice.status);
                   const isPaid = isPaidStatus(status);
                   const receiptUrl = isPaid

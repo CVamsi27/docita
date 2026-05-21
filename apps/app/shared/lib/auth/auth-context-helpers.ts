@@ -35,15 +35,10 @@ export function isPublicAuthPath(pathname: string | null): boolean {
 export function extractAuthPayload(raw: unknown): AuthPayload | null {
   const directRegister = registerResponseSchema.safeParse(raw);
   if (directRegister.success) {
-    const registerData = directRegister.data as {
-      access_token: string;
-      user: User;
-      verificationEmailSent?: boolean;
-    };
     return {
-      access_token: registerData.access_token,
-      verificationEmailSent: registerData.verificationEmailSent,
-      user: registerData.user,
+      access_token: directRegister.data.access_token,
+      verificationEmailSent: directRegister.data.verificationEmailSent,
+      user: directRegister.data.user,
     };
   }
 
@@ -57,18 +52,13 @@ export function extractAuthPayload(raw: unknown): AuthPayload | null {
   }
 
   if (raw && typeof raw === "object" && "data" in raw) {
-    const nested = (raw as { data?: unknown }).data;
+    const nested = raw.data;
     const nestedRegister = registerResponseSchema.safeParse(nested);
     if (nestedRegister.success) {
-      const registerData = nestedRegister.data as {
-        access_token: string;
-        user: User;
-        verificationEmailSent?: boolean;
-      };
       return {
-        access_token: registerData.access_token,
-        verificationEmailSent: registerData.verificationEmailSent,
-        user: registerData.user,
+        access_token: nestedRegister.data.access_token,
+        verificationEmailSent: nestedRegister.data.verificationEmailSent,
+        user: nestedRegister.data.user,
       };
     }
 
@@ -92,7 +82,7 @@ export function parseValidatedUser(raw: unknown): User | null {
   }
 
   if (raw && typeof raw === "object" && "user" in raw) {
-    const nested = appAuthUserSchema.safeParse((raw as { user?: unknown }).user);
+    const nested = appAuthUserSchema.safeParse(raw.user);
     if (nested.success) {
       return nested.data;
     }

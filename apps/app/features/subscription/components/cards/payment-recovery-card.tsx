@@ -21,16 +21,21 @@ type RecoverableStatus =
   | "attempted"
   | "due";
 
-const RECOVERABLE_STATUSES = new Set<RecoverableStatus>([
-  "failed",
-  "declined",
-  "pending",
-  "processing",
-  "created",
-  "requires_action",
-  "attempted",
-  "due",
-]);
+function isRecoverableStatus(value: string): value is RecoverableStatus {
+  switch (value) {
+    case "failed":
+    case "declined":
+    case "pending":
+    case "processing":
+    case "created":
+    case "requires_action":
+    case "attempted":
+    case "due":
+      return true;
+    default:
+      return false;
+  }
+}
 
 interface PaymentRecoveryCardProps {
   /** Set when the parent already knows billing is in trouble (PAST_DUE/GRACE/TRIAL_GRACE). */
@@ -44,11 +49,10 @@ export function PaymentRecoveryCard({ show = true }: PaymentRecoveryCardProps) {
   const failedPayment = useMemo(() => {
     if (!invoices?.length) return null;
     return (
-      invoices.find((p) =>
-        RECOVERABLE_STATUSES.has(
-          (p.status ?? "").toLowerCase() as RecoverableStatus,
-        ),
-      ) ?? null
+      invoices.find((p) => {
+        const status = (p.status ?? "").toLowerCase();
+        return isRecoverableStatus(status);
+      }) ?? null
     );
   }, [invoices]);
 

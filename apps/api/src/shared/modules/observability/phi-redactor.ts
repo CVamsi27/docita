@@ -15,6 +15,10 @@
 
 export const REDACTED = '[REDACTED]';
 
+function isRecord(value: unknown): value is Record<string, unknown> {
+  return typeof value === 'object' && value !== null && !Array.isArray(value);
+}
+
 const PHI_FIELD_NAMES: ReadonlySet<string> = new Set([
   'email',
   'phone',
@@ -132,8 +136,8 @@ const MAX_DEPTH = 8;
  * Recursively redact PHI from arbitrary log/event payloads.
  * Returns a new object; the input is never mutated.
  */
-export function redactPhi<T>(value: T): T {
-  return redactWithDepth(value, 0, new WeakSet()) as T;
+export function redactPhi(value: unknown): unknown {
+  return redactWithDepth(value, 0, new WeakSet());
 }
 
 function redactWithDepth(
@@ -169,13 +173,13 @@ function redactWithDepth(
     return value.map((item) => redactWithDepth(item, depth + 1, seen));
   }
 
-  if (typeof value === 'object') {
-    if (seen.has(value as object)) {
+  if (isRecord(value)) {
+    if (seen.has(value)) {
       return REDACTED;
     }
-    seen.add(value as object);
+    seen.add(value);
     const out: Record<string, unknown> = {};
-    for (const [key, val] of Object.entries(value as Record<string, unknown>)) {
+    for (const [key, val] of Object.entries(value)) {
       const lower = key.toLowerCase();
       if (SAFE_FIELD_NAMES.has(lower)) {
         out[key] = val;
@@ -290,16 +294,18 @@ export function redactErrSerializer(err: unknown): unknown {
   if (!err || typeof err !== 'object') {
     return err;
   }
-  const e = err as Record<string, unknown>;
+  if (!isRecord(err)) {
+    return err;
+  }
   return {
-    type: e.type ?? e.name ?? 'Error',
+    type: err.type ?? err.name ?? 'Error',
     message:
-      typeof e.message === 'string' ? redactString(e.message) : e.message,
-    stack: typeof e.stack === 'string' ? redactString(e.stack) : e.stack,
-    code: e.code,
-    statusCode: e.statusCode,
-    name: e.name,
-    meta: e.meta !== undefined ? redactPhi(e.meta) : undefined,
-    cause: e.cause !== undefined ? redactPhi(e.cause) : undefined,
+      typeof err.message === 'string' ? redactString(err.message) : err.message,
+    stack: typeof err.stack === 'string' ? redactString(err.stack) : err.stack,
+    code: err.code,
+    statusCode: err.statusCode,
+    name: err.name,
+    meta: err.meta !== undefined ? redactPhi(err.meta) : undefined,
+    cause: err.cause !== undefined ? redactPhi(err.cause) : undefined,
   };
 }

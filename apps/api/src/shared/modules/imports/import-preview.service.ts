@@ -1,5 +1,6 @@
 import { BadRequestException, Injectable } from '@nestjs/common';
 import {
+  getErrorMessage,
   PATIENT_FIELD_MAPPINGS,
   type ColumnMapping,
   type ImportPreview,
@@ -77,7 +78,7 @@ export class ImportPreviewService {
     } catch (error) {
       if (error instanceof BadRequestException) throw error;
       throw new BadRequestException(
-        `Failed to read file: ${(error as Error).message}`,
+        `Failed to read file: ${getErrorMessage(error)}`,
       );
     }
   }

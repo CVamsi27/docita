@@ -20,12 +20,12 @@ import {
   ADMIN_SWITCH_ROLES,
   DOCTOR_ROLES,
   INVITE_SUCCESS_LABELS,
-  inviteSchema,
-  memberSchema,
+  inviteTeamMemberFormSchema,
+  memberManagementFormSchema,
   type InviteFormValues,
   type MemberFormValues,
-  type MemberRole,
 } from "@/features/settings/components/management/member-management-schemas";
+import { parseStringEnumMember } from "@workspace/utils";
 import { InviteTeamMemberDialog } from "@/features/settings/components/management/invite-team-member-dialog";
 import { ManageTeamMemberDialog } from "@/features/settings/components/management/manage-team-member-dialog";
 import { formatDateSafe } from "@/lib/formatters";
@@ -72,7 +72,7 @@ export const MemberManagementUI: FC<MemberManagementUIProps> = ({
     isUpdatingMember || isDeletingMember || isReverifyingDoctor;
 
   const form = useForm<InviteFormValues>({
-    resolver: zodResolver(inviteSchema),
+    resolver: zodResolver(inviteTeamMemberFormSchema),
     defaultValues: {
       name: "",
       email: "",
@@ -86,7 +86,7 @@ export const MemberManagementUI: FC<MemberManagementUIProps> = ({
   });
 
   const memberForm = useForm<MemberFormValues>({
-    resolver: zodResolver(memberSchema),
+    resolver: zodResolver(memberManagementFormSchema),
     defaultValues: {
       name: "",
       email: "",
@@ -107,7 +107,10 @@ export const MemberManagementUI: FC<MemberManagementUIProps> = ({
     !!selectedMember &&
     userCanChangeRoles &&
     selectedMember.id !== user?.id &&
-    ADMIN_SWITCH_ROLES.has(selectedMember.role as MemberRole);
+    parseStringEnumMember(
+      Array.from(ADMIN_SWITCH_ROLES),
+      selectedMember.role,
+    ) !== undefined;
   const memberDialogDescription = isSelectedMemberDoctor
     ? "Edit contact details, role eligibility, verification, and signature status."
     : "Edit contact details and review this member's role.";

@@ -438,7 +438,10 @@ export default function BillingDashboard() {
           <CardContent>
             <div className="space-y-3">
               {Object.entries(metrics?.subscriptionsByTier || {}).map(
-                ([tier, count]) => (
+                ([tier, count]) => {
+                  const subscriptionCount =
+                    typeof count === "number" ? count : Number(count) || 0;
+                  return (
                   <div key={tier} className="flex items-center justify-between">
                     <div className="flex items-center gap-2">
                       <Badge className={tierColors[tier] || tierColors.CAPTURE}>
@@ -450,16 +453,17 @@ export default function BillingDashboard() {
                         <div
                           className="h-full bg-primary"
                           style={{
-                            width: `${((count as number) / Math.max(metrics?.activeSubscriptions || 1, 1)) * 100}%`,
+                            width: `${(subscriptionCount / Math.max(metrics?.activeSubscriptions || 1, 1)) * 100}%`,
                           }}
                         />
                       </div>
                       <span className="w-8 text-right text-sm font-medium">
-                        {count as number}
+                        {subscriptionCount}
                       </span>
                     </div>
                   </div>
-                ),
+                  );
+                },
               )}
             </div>
           </CardContent>
@@ -472,7 +476,10 @@ export default function BillingDashboard() {
           <CardContent>
             <div className="space-y-3">
               {Object.entries(metrics?.subscriptionsByStatus || {}).map(
-                ([status, count]) => (
+                ([status, count]) => {
+                  const subscriptionCount =
+                    typeof count === "number" ? count : Number(count) || 0;
+                  return (
                   <div
                     key={status}
                     className="flex items-center justify-between"
@@ -489,16 +496,17 @@ export default function BillingDashboard() {
                         <div
                           className="h-full bg-primary"
                           style={{
-                            width: `${((count as number) / Math.max(metrics?.activeSubscriptions || 1, 1)) * 100}%`,
+                            width: `${(subscriptionCount / Math.max(metrics?.activeSubscriptions || 1, 1)) * 100}%`,
                           }}
                         />
                       </div>
                       <span className="w-8 text-right text-sm font-medium">
-                        {count as number}
+                        {subscriptionCount}
                       </span>
                     </div>
                   </div>
-                ),
+                  );
+                },
               )}
             </div>
           </CardContent>

@@ -22,6 +22,10 @@ const APPOINTMENT_REQUEST_INCLUDE = {
   reviewedBy: { select: { id: true, name: true } },
 } satisfies Prisma.AppointmentRequestInclude;
 
+type AppointmentRequestDbRow = Prisma.AppointmentRequestGetPayload<{
+  include: typeof APPOINTMENT_REQUEST_INCLUDE;
+}>;
+
 @Injectable()
 export class PrismaAppointmentRequestRepository implements IAppointmentRequestRepository {
   constructor(
@@ -33,11 +37,15 @@ export class PrismaAppointmentRequestRepository implements IAppointmentRequestRe
     return this.prisma.getReadClient();
   }
 
-  async create(data: Prisma.AppointmentRequestUncheckedCreateInput) {
-    return this.prisma.appointmentRequest.create({
-      data,
-      include: APPOINTMENT_REQUEST_INCLUDE,
-    }) as Promise<AppointmentRequestWithRelations>;
+  async create(
+    data: Prisma.AppointmentRequestUncheckedCreateInput,
+  ): Promise<AppointmentRequestWithRelations> {
+    const row: AppointmentRequestDbRow =
+      await this.prisma.appointmentRequest.create({
+        data,
+        include: APPOINTMENT_REQUEST_INCLUDE,
+      });
+    return row satisfies AppointmentRequestWithRelations;
   }
 
   async findForClinic({
@@ -72,16 +80,23 @@ export class PrismaAppointmentRequestRepository implements IAppointmentRequestRe
     ]);
 
     return {
-      items: items as AppointmentRequestWithRelations[],
+      items: items satisfies AppointmentRequestWithRelations[],
       total,
     };
   }
 
-  async findByIdAndClinic(id: string, clinicId: string) {
-    return this.getReadClient().appointmentRequest.findFirst({
+  async findByIdAndClinic(
+    id: string,
+    clinicId: string,
+  ): Promise<AppointmentRequestWithRelations | null> {
+    const row = await this.getReadClient().appointmentRequest.findFirst({
       where: { id, clinicId },
       include: APPOINTMENT_REQUEST_INCLUDE,
-    }) as Promise<AppointmentRequestWithRelations | null>;
+    });
+    if (!row) {
+      return null;
+    }
+    return row satisfies AppointmentRequestWithRelations;
   }
 
   private async requireByIdAndClinic(

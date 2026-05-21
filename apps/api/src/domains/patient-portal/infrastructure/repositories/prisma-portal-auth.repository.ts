@@ -30,10 +30,11 @@ export class PrismaPortalAuthRepository implements IPortalAuthRepository {
     // RLS-BYPASS: patient portal identity is scoped by patient token, not clinic RLS
     return this.prisma.runUnrestricted(async () =>
       this.prisma.patientOtp.create({ data }),
-    ) as Promise<OtpRecord>;
+    );
   }
 
   async findActiveOtp(phone: string, now: Date): Promise<OtpRecord | null> {
+    // RLS-BYPASS: patient portal identity is scoped by patient token, not clinic RLS
     return this.prisma.runUnrestricted(async () =>
       this.prisma.patientOtp.findFirst({
         where: {
@@ -43,7 +44,7 @@ export class PrismaPortalAuthRepository implements IPortalAuthRepository {
         },
         orderBy: { createdAt: 'desc' },
       }),
-    ) as Promise<OtpRecord | null>;
+    );
   }
 
   async incrementOtpAttempts(id: string): Promise<void> {

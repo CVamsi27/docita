@@ -21,10 +21,7 @@ import {
   getTierInfo,
   getTierValue,
 } from "@/lib/subscription/tier-access";
-import {
-  type TierName,
-  type WorkspaceProfile,
-} from "@workspace/types";
+import { tierSchema, type WorkspaceProfile } from "@workspace/types";
 import { useLocaleCurrency } from "@/hooks/use-locale-currency";
 import { PLAN_ONBOARDING_KEY_HIGHLIGHTS } from "@/features/subscription";
 import {
@@ -88,15 +85,14 @@ function PlanSelectionStepInner({
   const { pricingConfig, isLoading, error } =
     usePricingConfig(resolvedCurrency);
 
-  const featuresByTier = DISPLAY_TIERS.map((name) => {
-    const tierName = name as TierName;
+  const featuresByTier = DISPLAY_TIERS.map((tierName) => {
     const tier = getTierValue(tierName);
     return {
       tierName,
       tier,
       info: {
         ...getTierInfo(tier),
-        tagline: PLAN_AUDIENCE[name] ?? getTierInfo(tier).tagline,
+        tagline: PLAN_AUDIENCE[tierName] ?? getTierInfo(tier).tagline,
       },
       features: getAllFeaturesUpToTier(tierName)
         .map((feature) => ({
@@ -116,8 +112,12 @@ function PlanSelectionStepInner({
     const tierPricingFromApi = pricingConfig?.tiers.find(
       (t: TierPricing) => t.id === tier,
     );
+    const parsedTier = tierSchema.safeParse(tier);
+    if (!parsedTier.success) {
+      return;
+    }
     const { cardPricing } = buildTierCardConfig(
-      tier as TierName,
+      parsedTier.data,
       resolvedCurrency,
       pricingConfig?.tiers ?? [],
     );
@@ -149,7 +149,9 @@ function PlanSelectionStepInner({
             withStatusRole={false}
             iconClassName="h-8 w-8 text-muted-foreground"
           />
-          <span className="text-sm text-muted-foreground">Loading pricing…</span>
+          <span className="text-sm text-muted-foreground">
+            Loading pricing…
+          </span>
         </CardContent>
       </Card>
     );
@@ -246,14 +248,10 @@ Please contact me with deployment and commercial details.`;
                   buttonLabel={buttonLabel}
                   maxDisplay={8}
                   usageHints={
-                    PLAN_LIMITS[tierName as keyof typeof PLAN_LIMITS]
+                    PLAN_LIMITS[tierName]
                       ? {
-                          patients:
-                            PLAN_LIMITS[tierName as keyof typeof PLAN_LIMITS]
-                              .patients,
-                          users:
-                            PLAN_LIMITS[tierName as keyof typeof PLAN_LIMITS]
-                              .users,
+                          patients: PLAN_LIMITS[tierName].patients,
+                          users: PLAN_LIMITS[tierName].users,
                         }
                       : undefined
                   }

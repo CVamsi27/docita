@@ -1,12 +1,18 @@
 import { Injectable } from '@nestjs/common';
 import { PrismaService } from '@/prisma/prisma.service';
-import { IDoctorClinicsRepository } from '@/domains/doctor-clinics/application/ports/doctor-clinics.repository.port';
+import {
+  type DoctorClinicAssignmentRef,
+  IDoctorClinicsRepository,
+} from '@/domains/doctor-clinics/application/ports/doctor-clinics.repository.port';
 
 @Injectable()
 export class PrismaDoctorClinicsRepository implements IDoctorClinicsRepository {
   constructor(private readonly prisma: PrismaService) {}
 
-  findAssignment(doctorId: string, clinicId: string): Promise<unknown | null> {
+  findAssignment(
+    doctorId: string,
+    clinicId: string,
+  ): Promise<DoctorClinicAssignmentRef | null> {
     return this.prisma.doctorClinic.findUnique({
       where: {
         doctorId_clinicId: {
@@ -14,6 +20,7 @@ export class PrismaDoctorClinicsRepository implements IDoctorClinicsRepository {
           clinicId,
         },
       },
+      select: { id: true },
     });
   }
 

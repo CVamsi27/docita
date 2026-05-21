@@ -7,11 +7,7 @@ export { createCRUDResource } from "./lib/crud-resource";
 export * from "./lib/browser-session";
 export * from "./lib/query-keys";
 export { toQueryString, withQueryString } from "./lib/query-string";
-export type {
-  QueryPrimitive,
-  QueryValue,
-  QueryParams as QueryStringParams,
-} from "./lib/query-string";
+export type { QueryPrimitive, QueryValue, QueryParams } from "./lib/query-string";
 export {
   IDEMPOTENCY_HEADER,
   generateIdempotencyKey,
@@ -70,5 +66,3 @@ export * from "./hooks/use-subscription-billing-mutations";
 export * from "./hooks/use-user-profile";
 export * from "./hooks/use-signature-upload";
 export * from "./hooks/use-whatsapp";
-
-export * as internalDataAccess from "./internal";

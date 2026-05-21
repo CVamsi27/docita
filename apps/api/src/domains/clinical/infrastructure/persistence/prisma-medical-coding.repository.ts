@@ -71,10 +71,10 @@ export class PrismaMedicalCodingRepository
 
     await Promise.all([
       ...Array.from(icdQueries).map((q) =>
-        this.searchIcdCodes(q).catch(() => [] as IcdCode[]),
+        this.searchIcdCodes(q).catch((): IcdCode[] => []),
       ),
       ...Array.from(cptQueries).map((q) =>
-        this.searchCptCodes(q).catch(() => [] as CptCode[]),
+        this.searchCptCodes(q).catch((): CptCode[] => []),
       ),
     ]);
   }

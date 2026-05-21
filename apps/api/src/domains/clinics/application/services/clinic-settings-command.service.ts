@@ -3,7 +3,6 @@ import {
   CLINIC_PERSISTENCE_PORT,
   type ClinicPersistencePort,
 } from '@/domains/clinics/application/ports/clinic-persistence.port';
-import { Prisma } from '@workspace/db';
 import { Feature } from '@workspace/types';
 import { assertClinicHasFeatureOrThrow } from '@/shared/modules/auth/utils/clinic-feature-access.util';
 import { SettingsFactory } from '@/domains/clinics/core/factories/settings.factory';
@@ -14,6 +13,7 @@ import type {
 import { ClinicDataService } from './clinic-data.service';
 import { ClinicDataSubjectRequestService } from './clinic-data-subject-request.service';
 import type { ClinicSettingsData } from './clinic-settings.types';
+import { toPrismaInputJsonValue } from '@/shared/common/json/to-prisma-input-json-value';
 
 /**
  * Manages clinic settings mutations: updating clinic configuration and prescription defaults.
@@ -134,10 +134,6 @@ export class ClinicSettingsCommandService {
     return Object.fromEntries(Object.entries(value));
   }
 
-  private toInputJsonValue(value: unknown): Prisma.InputJsonValue {
-    return JSON.parse(JSON.stringify(value)) as Prisma.InputJsonValue;
-  }
-
   async updateSettings(id: string, data: ClinicSettingsData) {
     await this.assertTierGatedSettingsAllowed(id, data);
 
@@ -244,14 +240,14 @@ export class ClinicSettingsCommandService {
         name: data.name,
         address: data.address,
         phone: data.phoneNumber || data.phone,
-        settings: this.toInputJsonValue({
+        settings: toPrismaInputJsonValue({
           ...resolvedSettings,
           ...(data.gstin !== undefined && {
             gstin: data.gstin || undefined,
           }),
         }),
         ...(resolvedBranding !== undefined && {
-          branding: this.toInputJsonValue(resolvedBranding),
+          branding: toPrismaInputJsonValue(resolvedBranding),
         }),
         email: data.email,
         website: data.website,
@@ -325,7 +321,7 @@ export class ClinicSettingsCommandService {
     return this.persistence.clinic.update({
       where: { id: clinicId },
       data: {
-        settings: this.toInputJsonValue(mergedSettings),
+        settings: toPrismaInputJsonValue(mergedSettings),
       },
     });
   }

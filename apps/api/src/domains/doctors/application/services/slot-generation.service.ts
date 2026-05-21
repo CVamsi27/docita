@@ -16,7 +16,6 @@ import {
 import type { PublicBookingSlotListEmptyReason } from '@workspace/types';
 import {
   type AvailableSlot,
-  type DayOfWeek,
   normalizeCalendarDateInput,
   addOneCalendarDay,
   getDayOfWeekInClinicZone,
@@ -102,7 +101,7 @@ export class SlotGenerationService {
       ) {
         clinicRows = implicitClinicWeeklyRowsForSlotFallback(
           clinicId,
-          dayOfWeek as DayOfWeek,
+          dayOfWeek,
           this.clock.now(),
         );
       }
@@ -127,7 +126,7 @@ export class SlotGenerationService {
               : null,
           },
         }));
-        schedules = synthetic as typeof schedules;
+        schedules = synthetic;
       }
     }
 

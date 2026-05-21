@@ -15,17 +15,53 @@ const encryptionServicePath = path.join(
   repoRoot,
   "apps/api/src/shared/common/encryption.service.ts",
 );
+const patientFieldBoundaryPath = path.join(
+  repoRoot,
+  "apps/api/src/shared/common/encryption-patient-fields.boundary.ts",
+);
 
 const source = fs.readFileSync(encryptionServicePath, "utf8");
+const patientFieldBoundarySource = fs.existsSync(patientFieldBoundaryPath)
+  ? fs.readFileSync(patientFieldBoundaryPath, "utf8")
+  : "";
 
-function extractSensitiveFieldLists() {
-  const lists = [...source.matchAll(/const sensitiveFields = \[([\s\S]*?)\] as const/g)];
-  return lists.map((match) =>
-    [...match[1].matchAll(/'([^']+)'/g)].map((m) => m[1]).sort(),
-  );
+function parseFieldList(block) {
+  return [...block.matchAll(/'([^']+)'/g)].map((m) => m[1]).sort();
 }
 
-const [encryptFields, decryptFields] = extractSensitiveFieldLists();
+function extractSensitiveFieldLists() {
+  const lists = [
+    ...source.matchAll(/const sensitiveFields = \[([\s\S]*?)\] as const/g),
+  ];
+  if (lists.length >= 2) {
+    return lists.map((match) => parseFieldList(match[1]));
+  }
+
+  const shared = source.match(
+    /SENSITIVE_PATIENT_FIELDS = \[([\s\S]*?)\] as const/,
+  );
+  if (shared) {
+    const fields = parseFieldList(shared[1]);
+    return [fields, fields];
+  }
+
+  const boundary = patientFieldBoundarySource.match(
+    /const fields = \[([\s\S]*?)\] as const/,
+  );
+  if (
+    boundary &&
+    /encryptPatientData[\s\S]*mapPatientRecordFields/.test(source) &&
+    /decryptPatientData[\s\S]*mapPatientRecordFields/.test(source)
+  ) {
+    const fields = parseFieldList(boundary[1]);
+    return [fields, fields];
+  }
+
+  return [];
+}
+
+const fieldLists = extractSensitiveFieldLists();
+const [encryptFields, decryptFields] = fieldLists;
 
 const findings = [];
 
@@ -52,9 +88,7 @@ const extensionPath = path.join(
 );
 const extensionSource = fs.readFileSync(extensionPath, "utf8");
 const extensionFields = [
-  ...new Set(
-    [...extensionSource.matchAll(/patient\.(\w+)/g)].map((m) => m[1]),
-  ),
+  ...new Set([...extensionSource.matchAll(/patient\.(\w+)/g)].map((m) => m[1])),
 ].sort();
 
 if (encryptFields?.length) {

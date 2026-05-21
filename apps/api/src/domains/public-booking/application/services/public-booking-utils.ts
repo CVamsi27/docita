@@ -2,6 +2,7 @@ import { NotFoundException } from '@nestjs/common';
 import type { PublicBookingClinicResponse } from '@workspace/types';
 import { type PublicBookingPersistencePort } from '@/domains/public-booking/application/ports/public-booking-persistence.port';
 import { runWithTenant } from '@/shared/common/middleware/tenant.middleware';
+import { isRecord } from '@workspace/utils';
 
 export type ResolvedPublicBookingClinic = PublicBookingClinicResponse;
 
@@ -19,10 +20,10 @@ export function normalizePhone(phone: string): string {
 function readFacilityLabelFromSettings(
   settings: unknown,
 ): 'CLINIC' | 'HOSPITAL' | undefined {
-  if (!settings || typeof settings !== 'object' || Array.isArray(settings)) {
+  if (!isRecord(settings)) {
     return undefined;
   }
-  const raw = (settings as Record<string, unknown>).facilityLabel;
+  const raw = settings.facilityLabel;
   return raw === 'HOSPITAL' || raw === 'CLINIC' ? raw : undefined;
 }
 

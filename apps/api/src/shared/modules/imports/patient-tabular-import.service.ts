@@ -5,7 +5,7 @@ import {
   Logger,
 } from '@nestjs/common';
 import { unlink } from 'fs/promises';
-import type { ImportResult } from '@workspace/utils';
+import { getErrorMessage, type ImportResult } from '@workspace/utils';
 import { ImportFileParserService } from './import-file-parser.service';
 import { ImportColumnMappingService } from './import-column-mapping.service';
 import {
@@ -13,11 +13,7 @@ import {
   type IDuplicateDetector,
 } from './ports/duplicate-detector.port';
 import { ImportPatientPersistenceService } from './import-patient-persistence.service';
-import type {
-  ExcelRow,
-  ImportAuditContext,
-  MappedPatientData,
-} from './import-types';
+import type { ImportAuditContext } from './import-types';
 
 @Injectable()
 export class PatientTabularImportService {
@@ -69,10 +65,9 @@ export class PatientTabularImportService {
 
       for (const [index, row] of data.entries()) {
         try {
-          const excelRow = row as ExcelRow;
           const mapped = columnMapping
-            ? this.columnMapping.applyColumnMapping(excelRow, columnMapping)
-            : (excelRow as MappedPatientData);
+            ? this.columnMapping.applyColumnMapping(row, columnMapping)
+            : row;
 
           const duplicateCheck =
             await this.duplicateDetector.checkForDuplicates(mapped, clinicId);
@@ -95,7 +90,7 @@ export class PatientTabularImportService {
           results.success++;
         } catch (error) {
           results.failed++;
-          results.errors.push(`Row ${index + 2}: ${(error as Error).message}`);
+          results.errors.push(`Row ${index + 2}: ${getErrorMessage(error)}`);
         }
       }
 

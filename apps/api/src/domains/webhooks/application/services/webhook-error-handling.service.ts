@@ -1,4 +1,5 @@
 import { Inject, Injectable, Logger } from '@nestjs/common';
+import { getErrorMessage } from '@workspace/utils';
 import {
   IWebhookEventRepository,
   WEBHOOK_EVENT_REPOSITORY_TOKEN,
@@ -65,7 +66,7 @@ export class WebhookErrorHandlingService {
     } catch (logError) {
       this.logger.error('Failed to log webhook error to database', {
         originalError: error.message,
-        logError: (logError as Error).message,
+        logError: getErrorMessage(logError),
         context,
       });
     }
@@ -89,7 +90,7 @@ export class WebhookErrorHandlingService {
         eventType,
         providerId,
         status,
-        auditError: (auditError as Error).message,
+        auditError: getErrorMessage(auditError),
       });
     }
   }

@@ -78,7 +78,7 @@ export class MedicationDoseCommandService {
       status: dto.status ?? 'PENDING',
       doseAmount: dto.doseAmount,
       notes: dto.notes,
-      source: 'CLINICIAN_RECORDED' as MedicationDoseSource,
+      source: 'CLINICIAN_RECORDED' satisfies MedicationDoseSource,
     });
   }
 
@@ -123,7 +123,7 @@ export class MedicationDoseCommandService {
       prescriptionId: dto.prescriptionId ?? medication.prescriptionId,
       scheduledAt: takenAt,
       takenAt,
-      status: 'TAKEN' as MedicationDoseStatus,
+      status: 'TAKEN' satisfies MedicationDoseStatus,
       doseAmount: dto.doseAmount,
       notes: dto.notes,
       source,

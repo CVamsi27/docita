@@ -1,6 +1,7 @@
 "use client";
 
 import { useInventoryItem } from "@workspace/data-access";
+import { isRecord } from "@workspace/utils";
 import {
   InventoryItem,
   InventoryItemDetailsUI,
@@ -24,6 +25,35 @@ export function InventoryItemDetailsContainer({
       ? Object.fromEntries(Object.entries(rawItem))
       : null;
 
+  const movements = Array.isArray(rawData?.movements)
+    ? rawData.movements
+        .map((entry): InventoryMovement | null => {
+          if (!isRecord(entry)) return null;
+          if (
+            typeof entry.id !== "string" ||
+            typeof entry.type !== "string" ||
+            typeof entry.quantity !== "number"
+          ) {
+            return null;
+          }
+          const createdAt =
+            entry.createdAt instanceof Date
+              ? entry.createdAt.toISOString()
+              : typeof entry.createdAt === "string"
+                ? entry.createdAt
+                : null;
+          if (!createdAt) return null;
+          return {
+            id: entry.id,
+            type: entry.type,
+            quantity: entry.quantity,
+            createdAt,
+            notes: typeof entry.notes === "string" ? entry.notes : undefined,
+          };
+        })
+        .filter((entry): entry is InventoryMovement => entry !== null)
+    : [];
+
   const item: InventoryItem | null = rawData
     ? {
         name: String(rawData.name || ""),
@@ -34,8 +64,9 @@ export function InventoryItemDetailsContainer({
         unit: String(rawData.unit || ""),
         purchasePrice: Number(rawData.purchasePrice || 0),
         sellingPrice: Number(rawData.sellingPrice || 0),
-        expiryDate: rawData.expiryDate as string | undefined,
-        movements: (rawData.movements as InventoryMovement[]) || [],
+        expiryDate:
+          typeof rawData.expiryDate === "string" ? rawData.expiryDate : undefined,
+        movements,
       }
     : null;
 

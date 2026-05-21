@@ -7,6 +7,8 @@ import {
 import { ClinicTier } from '@workspace/db';
 import { PrismaService } from '@/prisma/prisma.service';
 import { isFrontDeskWorkspace, parseWorkspaceProfile } from '@workspace/types';
+import { isRecord } from '@workspace/utils';
+import type { RequestWithUser } from '@/shared/common/types/common.types';
 
 /**
  * Blocks mutating clinical HTTP operations when the clinic workspace is
@@ -18,14 +20,13 @@ export class FrontDeskClinicalBlockGuard implements CanActivate {
   constructor(private readonly prisma: PrismaService) {}
 
   async canActivate(context: ExecutionContext): Promise<boolean> {
-    const req = context.switchToHttp().getRequest<{ method?: string }>();
+    const req = context.switchToHttp().getRequest<RequestWithUser>();
     const method = (req.method ?? 'GET').toUpperCase();
     if (method === 'GET' || method === 'HEAD') {
       return true;
     }
 
-    const clinicId = (req as { user?: { clinicId?: string | null } }).user
-      ?.clinicId;
+    const clinicId = req.user?.clinicId;
     if (!clinicId) {
       return true;
     }
@@ -34,10 +35,7 @@ export class FrontDeskClinicalBlockGuard implements CanActivate {
       where: { id: clinicId },
       select: { tier: true, settings: true },
     });
-    const settings =
-      clinic?.settings && typeof clinic.settings === 'object'
-        ? (clinic.settings as Record<string, unknown>)
-        : {};
+    const settings = isRecord(clinic?.settings) ? clinic.settings : {};
 
     if (
       clinic?.tier !== ClinicTier.FRONT_DESK &&

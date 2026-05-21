@@ -20,8 +20,7 @@ import {
   CLINIC_USAGE_PORT_TOKEN,
   type IClinicUsagePort,
 } from '@/domains/billing/application/ports';
-import { ClinicTierEnum } from '@/domains/subscriptions/core/value-objects/clinic-tier.value-object';
-import { BillingCycleEnum } from '@/domains/subscriptions/core/value-objects/billing-cycle.value-object';
+import { ClinicTier } from '@/domains/subscriptions/core/value-objects';
 import { RequestWithUser } from '@/shared/common/types/common.types';
 import {
   SubscriptionActivateLegacyRequestDto,
@@ -77,9 +76,7 @@ export class SubscriptionsController {
       throw new Error('Clinic ID not found');
     }
     const usage = await this.clinicUsage.getCurrentUsage(req.user.clinicId);
-    return currentUsageSchema.parse(
-      JSON.parse(JSON.stringify(usage)) as unknown,
-    );
+    return currentUsageSchema.parse(JSON.parse(JSON.stringify(usage)));
   }
 
   @UseGuards(JwtAuthGuard)
@@ -94,8 +91,8 @@ export class SubscriptionsController {
     }
     return this.createCheckoutUseCase.execute({
       clinicId: req.user.clinicId,
-      tier: body.tier as ClinicTierEnum,
-      cycle: body.cycle as BillingCycleEnum,
+      tier: body.tier,
+      cycle: body.cycle,
       referrals: body.referrals,
     });
   }
@@ -129,7 +126,7 @@ export class SubscriptionsController {
 
     return this.createSubscriptionUseCase.execute({
       clinicId: req.user.clinicId,
-      plan: body.tier as ClinicTierEnum,
+      plan: ClinicTier.fromString(body.tier).value,
       billingCycle: normalizedBillingCycle,
       currentPeriodStart: this.clock.now(),
       currentPeriodEnd: new Date(

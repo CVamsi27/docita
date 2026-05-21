@@ -78,14 +78,14 @@ export class OpenaiService {
     }
   }
 
-  async callChatCompletion<T = never>(params: {
+  async callChatCompletion(params: {
     systemPrompt: string;
     userPrompt: string;
     temperature?: number;
     jsonMode?: boolean;
     cacheKeyPrefix?: string;
     cacheKeyData?: unknown;
-  }): Promise<T> {
+  }): Promise<unknown> {
     const {
       systemPrompt,
       userPrompt,
@@ -102,8 +102,8 @@ export class OpenaiService {
       cacheKeyData
     ) {
       const cacheKey = `${cacheKeyPrefix}:${Buffer.from(JSON.stringify(cacheKeyData)).toString('base64')}`;
-      const cached = await this.cacheManager.get<T>(cacheKey);
-      if (cached) return cached;
+      const cached = await this.cacheManager.get(cacheKey);
+      if (cached !== undefined && cached !== null) return cached;
     }
 
     if (!this.openai) {
@@ -128,8 +128,7 @@ export class OpenaiService {
       ),
     ]);
 
-    const content = (response as OpenAI.Chat.Completions.ChatCompletion)
-      .choices?.[0]?.message?.content;
+    const content = response.choices?.[0]?.message?.content;
     if (!content)
       throw new InternalServerErrorException('Empty response from OpenAI');
 
@@ -154,6 +153,6 @@ export class OpenaiService {
       await this.cacheManager.set(cacheKey, result, this.cacheTTL * 1000);
     }
 
-    return result as T;
+    return result;
   }
 }

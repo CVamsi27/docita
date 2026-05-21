@@ -44,10 +44,30 @@ export function getTierValue(tierName: TierName): Tier {
 }
 
 export function getTierName(tier: Tier): TierName {
-  if (tier === Tier.FRONT_DESK) {
-    return 'FRONT_DESK';
+  switch (tier) {
+    case Tier.STARTER:
+      return 'STARTER';
+    case Tier.ESSENTIAL:
+      return 'ESSENTIAL';
+    case Tier.PROFESSIONAL:
+      return 'PROFESSIONAL';
+    case Tier.HOSPITAL:
+      return 'HOSPITAL';
+    case Tier.ENTERPRISE:
+      return 'ENTERPRISE';
+    case Tier.INTELLIGENCE:
+      return 'INTELLIGENCE';
+    case Tier.FRONT_DESK:
+      return 'FRONT_DESK';
+    default: {
+      const _exhaustive: never = tier;
+      return _exhaustive;
+    }
   }
-  return Tier[tier] as TierName;
+}
+
+function isFeatureKey(key: string): key is Feature {
+  return key in FEATURE_TIER_MAP;
 }
 
 export function hasFeatureAccess(
@@ -76,9 +96,9 @@ export function hasFeatureAccess(
 }
 
 export function getFeaturesForTier(tier: TierName): Feature[] {
-  return (Object.keys(FEATURE_TIER_MAP) as Feature[]).filter((feature) =>
-    hasFeatureAccess(tier, feature, false),
-  );
+  return Object.keys(FEATURE_TIER_MAP)
+    .filter(isFeatureKey)
+    .filter((feature) => hasFeatureAccess(tier, feature, false));
 }
 
 export function getAllFeaturesUpToTier(tier: TierName): Feature[] {

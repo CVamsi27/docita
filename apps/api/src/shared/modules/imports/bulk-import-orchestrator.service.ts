@@ -126,7 +126,7 @@ export class BulkImportOrchestratorService {
           })
           .catch((updateError: unknown) => {
             this.logger.error(
-              `Failed to mark scheduled import job ${jobData.jobId} as failed: ${updateError instanceof Error ? updateError.message : String(updateError)}`,
+              `Failed to mark scheduled import job ${jobData.jobId} failed: ${updateError instanceof Error ? updateError.message : String(updateError)}`,
               updateError instanceof Error ? updateError.stack : undefined,
             );
           });

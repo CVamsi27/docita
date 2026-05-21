@@ -12,6 +12,11 @@ import {
   OverviewAggregates,
   UncodedVisitsAggregates,
 } from '@/domains/analytics/core/repositories/analytics.repository.interface';
+import {
+  mapAppointmentStatusGroupRows,
+  mapAppointmentTypeGroupRows,
+  mapPatientGenderGroupRows,
+} from '@/domains/analytics/infrastructure/repositories/analytics-groupby.helpers';
 
 @Injectable()
 export class PrismaAnalyticsRepository implements IAnalyticsRepository {
@@ -111,12 +116,8 @@ export class PrismaAnalyticsRepository implements IAnalyticsRepository {
 
     return {
       total,
-      statusCounts: (
-        statusCounts as Array<{ status: string; _count: { id: number } }>
-      ).map((s) => ({ status: s.status, count: s._count.id })),
-      typeCounts: (
-        typeCounts as Array<{ type: string; _count: { id: number } }>
-      ).map((t) => ({ type: t.type, count: t._count.id })),
+      statusCounts: mapAppointmentStatusGroupRows(statusCounts),
+      typeCounts: mapAppointmentTypeGroupRows(typeCounts),
     };
   }
 
@@ -190,12 +191,7 @@ export class PrismaAnalyticsRepository implements IAnalyticsRepository {
 
     return {
       totalPatients,
-      genders: (
-        genders as Array<{
-          gender: 'MALE' | 'FEMALE' | 'OTHER' | null;
-          _count: { _all: number };
-        }>
-      ).map((g) => ({ gender: g.gender, count: g._count._all })),
+      genders: mapPatientGenderGroupRows(genders),
       age0to18,
       age18to35,
       age35to50,

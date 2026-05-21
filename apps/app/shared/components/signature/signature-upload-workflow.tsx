@@ -93,7 +93,9 @@ export function SignatureUploadWorkflow({
 
     const reader = new FileReader();
     reader.onloadend = () => {
-      setPreviewUrl(reader.result as string);
+      if (typeof reader.result === "string") {
+        setPreviewUrl(reader.result);
+      }
     };
     reader.readAsDataURL(file);
   };
@@ -108,7 +110,9 @@ export function SignatureUploadWorkflow({
     <div className="space-y-4">
       <Tabs
         value={uploadMethod}
-        onValueChange={(value) => setUploadMethod(value as "draw" | "upload")}
+        onValueChange={(value) =>
+          setUploadMethod(value === "draw" ? "draw" : "upload")
+        }
       >
         <TabsList className="grid w-full grid-cols-2">
           <TabsTrigger value="draw">

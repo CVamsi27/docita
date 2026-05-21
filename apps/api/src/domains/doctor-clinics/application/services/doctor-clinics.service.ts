@@ -4,8 +4,6 @@ import {
   IDoctorClinicsRepository,
 } from '@/domains/doctor-clinics/application/ports/doctor-clinics.repository.port';
 
-type AssignmentRecord = { id: string };
-
 /**
  * Thin facade — delegates doctor–clinic assignments to IDoctorClinicsRepository.
  */
@@ -23,10 +21,10 @@ export class DoctorClinicsService {
     clinicId: string,
     role: string = 'doctor',
   ) {
-    const existing = (await this.doctorClinicsRepository.findAssignment(
+    const existing = await this.doctorClinicsRepository.findAssignment(
       doctorId,
       clinicId,
-    )) as AssignmentRecord | null;
+    );
 
     if (existing) {
       const updated = await this.doctorClinicsRepository.reactivateAssignment(
@@ -64,10 +62,10 @@ export class DoctorClinicsService {
   }
 
   async removeDoctor(doctorId: string, clinicId: string) {
-    const assignment = (await this.doctorClinicsRepository.findAssignment(
+    const assignment = await this.doctorClinicsRepository.findAssignment(
       doctorId,
       clinicId,
-    )) as AssignmentRecord | null;
+    );
 
     if (!assignment) {
       throw new NotFoundException('Assignment not found');
@@ -85,10 +83,10 @@ export class DoctorClinicsService {
   }
 
   async updateRole(doctorId: string, clinicId: string, role: string) {
-    const assignment = (await this.doctorClinicsRepository.findAssignment(
+    const assignment = await this.doctorClinicsRepository.findAssignment(
       doctorId,
       clinicId,
-    )) as AssignmentRecord | null;
+    );
 
     if (!assignment) {
       throw new NotFoundException('Assignment not found');

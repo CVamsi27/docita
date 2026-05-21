@@ -9,6 +9,11 @@ import {
 } from '@workspace/db';
 import { addDays } from '@workspace/utils';
 import { mapSubscriptionPaymentRow } from './internal-billing-payment.mapper';
+import { parseStringEnumMember } from '@workspace/utils';
+
+const CLINIC_TIER_VALUES = Object.values(ClinicTier);
+const SUBSCRIPTION_STATUS_VALUES = Object.values(SubscriptionStatus);
+const BILLING_CYCLE_VALUES = Object.values(BillingCycle);
 
 @Injectable()
 export class InternalSubscriptionQueryService {
@@ -23,10 +28,30 @@ export class InternalSubscriptionQueryService {
     billingCycle?: string;
   }) {
     const where: Prisma.SubscriptionWhereInput = {};
-    if (filters.tier) where.plan = filters.tier as ClinicTier;
-    if (filters.status) where.status = filters.status as SubscriptionStatus;
-    if (filters.billingCycle)
-      where.billingCycle = filters.billingCycle as BillingCycle;
+    if (filters.tier) {
+      const tier = parseStringEnumMember(CLINIC_TIER_VALUES, filters.tier);
+      if (tier) {
+        where.plan = tier;
+      }
+    }
+    if (filters.status) {
+      const status = parseStringEnumMember(
+        SUBSCRIPTION_STATUS_VALUES,
+        filters.status,
+      );
+      if (status) {
+        where.status = status;
+      }
+    }
+    if (filters.billingCycle) {
+      const billingCycle = parseStringEnumMember(
+        BILLING_CYCLE_VALUES,
+        filters.billingCycle,
+      );
+      if (billingCycle) {
+        where.billingCycle = billingCycle;
+      }
+    }
 
     const subscriptions = await this.prisma.subscription.findMany({
       where,

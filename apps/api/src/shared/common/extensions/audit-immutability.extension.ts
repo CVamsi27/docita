@@ -7,16 +7,14 @@ const auditArchivalStorage = new AsyncLocalStorage<{
 }>();
 
 const IMMUTABLE_MODELS = ['AuditLog', 'AuditLogArchive'] as const;
+const IMMUTABLE_MODEL_SET = new Set<string>(IMMUTABLE_MODELS);
 
 export const auditImmutabilityExtension = Prisma.defineExtension({
   name: 'audit-immutability',
   query: {
     $allModels: {
       async $allOperations({ model, operation, args, query }) {
-        if (
-          !model ||
-          !(IMMUTABLE_MODELS as readonly string[]).includes(model)
-        ) {
+        if (!model || !IMMUTABLE_MODEL_SET.has(model)) {
           return query(args);
         }
 

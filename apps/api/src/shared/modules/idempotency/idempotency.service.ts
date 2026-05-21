@@ -3,6 +3,7 @@ import { createHash } from 'crypto';
 import { IDEMPOTENCY_TTL_SECONDS_DEFAULT } from './idempotency.constants';
 import { IdempotencyRepository } from './idempotency.repository';
 import { AppConfigService } from '@/shared/modules/config/app-configuration.service';
+import { isRecord } from '@workspace/utils';
 
 export interface CachedIdempotencyEntry {
   /**
@@ -106,8 +107,8 @@ function canonicalize(value: unknown): string {
   if (Array.isArray(value)) {
     return `[${value.map((item) => canonicalize(item)).join(',')}]`;
   }
-  if (typeof value === 'object') {
-    const obj = value as Record<string, unknown>;
+  if (isRecord(value)) {
+    const obj = value;
     const entries = Object.keys(obj)
       .sort()
       .map((k) => `${JSON.stringify(k)}:${canonicalize(obj[k])}`);

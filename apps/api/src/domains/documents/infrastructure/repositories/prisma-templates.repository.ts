@@ -3,6 +3,7 @@ import { clinicalTemplateFieldsSchema } from '@workspace/types';
 import { ClinicalTemplate, Prisma } from '@workspace/db';
 import { PrismaService } from '@/prisma/prisma.service';
 import { parsePrismaJsonColumn } from '@/shared/common/json/parse-prisma-json-column';
+import { toPrismaInputJsonValue } from '@/shared/common/json/to-prisma-input-json-value';
 import {
   CreateTemplateData,
   ITemplatesRepository,
@@ -14,10 +15,6 @@ import {
 @Injectable()
 export class PrismaTemplatesRepository implements ITemplatesRepository {
   constructor(private readonly prisma: PrismaService) {}
-
-  private toInputJsonValue(value: unknown): Prisma.InputJsonValue {
-    return JSON.parse(JSON.stringify(value)) as Prisma.InputJsonValue;
-  }
 
   private mapRecord(row: ClinicalTemplate): TemplateRecord {
     return {
@@ -32,7 +29,7 @@ export class PrismaTemplatesRepository implements ITemplatesRepository {
       data: {
         name: data.name,
         speciality: data.speciality,
-        fields: this.toInputJsonValue(data.fields),
+        fields: toPrismaInputJsonValue(data.fields),
         defaultObservations: data.defaultObservations,
         clinicId: data.clinicId,
       },
@@ -76,7 +73,7 @@ export class PrismaTemplatesRepository implements ITemplatesRepository {
       data: {
         name: data.name,
         speciality: data.speciality,
-        fields: data.fields ? this.toInputJsonValue(data.fields) : undefined,
+        fields: data.fields ? toPrismaInputJsonValue(data.fields) : undefined,
         defaultObservations: data.defaultObservations,
       },
     });

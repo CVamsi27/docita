@@ -9,6 +9,7 @@ import { Observable } from 'rxjs';
 import { Response, Request } from 'express';
 import { randomBytes } from 'crypto';
 import { AppConfigService } from '@/shared/modules/config/app-configuration.service';
+import { readRequestHeaderString } from '@/shared/common/http/client-ip';
 
 @Injectable()
 export class CsrfInterceptor implements NestInterceptor {
@@ -103,7 +104,10 @@ export class CsrfInterceptor implements NestInterceptor {
 
     // CSRF protection is only needed for cookie-based auth.
     // Bearer token requests are inherently CSRF-safe.
-    const authHeader = request.headers['authorization'] as string | undefined;
+    const authHeader = readRequestHeaderString(
+      request.headers,
+      'authorization',
+    );
     if (authHeader?.startsWith('Bearer ')) {
       return next.handle();
     }

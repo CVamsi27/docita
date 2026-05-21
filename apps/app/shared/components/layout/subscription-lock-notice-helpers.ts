@@ -1,5 +1,8 @@
-import type { TierName } from "@workspace/types";
-import { SUBSCRIPTION_TRIAL_DAYS } from "@workspace/types";
+import {
+  mapDbClinicTierStringToTierName,
+  SUBSCRIPTION_TRIAL_DAYS,
+} from "@workspace/types";
+import type { Clinic } from "@/lib/contexts/clinic-context";
 import {
   getTrialState,
   isPastSubscriptionGraceDeadline,
@@ -24,12 +27,13 @@ export interface SubscriptionLockNoticeCopy {
   toneClass?: string;
 }
 
-interface ClinicShape {
-  subscriptionStatus?: string | null;
-  tier?: string | null;
-  trialEndsAt?: string | Date | null;
-  subscriptionGraceUntil?: string | Date | null;
-}
+type ClinicShape = Pick<
+  Clinic,
+  | "subscriptionStatus"
+  | "tier"
+  | "trialEndsAt"
+  | "subscriptionGraceUntil"
+>;
 
 /**
  * Resolves the visible {kind, title, description, cta, variant} for the
@@ -42,7 +46,7 @@ export function resolveSubscriptionLockNotice(
   const status = clinic?.subscriptionStatus;
   if (!status || status === "ACTIVE") return null;
 
-  const trialState = clinic ? getTrialState(clinic as never) : null;
+  const trialState = clinic ? getTrialState(clinic) : null;
   const isExpired = status === "EXPIRED";
   const isGrace = status === "GRACE";
   const isPastDue = status === "PAST_DUE";
@@ -52,7 +56,7 @@ export function resolveSubscriptionLockNotice(
 
   const trialTierLabel =
     clinic?.tier && typeof clinic.tier === "string"
-      ? getTierInfo(clinic.tier as TierName).name
+      ? getTierInfo(mapDbClinicTierStringToTierName(clinic.tier)).name
       : "subscription";
   const trialEnd = clinic?.trialEndsAt ? new Date(clinic.trialEndsAt) : null;
   const trialEndText =
@@ -86,7 +90,7 @@ export function resolveSubscriptionLockNotice(
       ? formatDate(graceUntil)
       : null;
   const pastGraceDeadline = clinic
-    ? isPastSubscriptionGraceDeadline(clinic as never)
+    ? isPastSubscriptionGraceDeadline(clinic)
     : false;
 
   if (isExpired) {

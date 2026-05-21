@@ -38,6 +38,12 @@ interface AppointmentWrapper {
 
 type AppointmentInput = AppointmentWrapper | Appointment;
 
+function isAppointmentWrapper(
+  data: AppointmentInput,
+): data is AppointmentWrapper {
+  return "appointment" in data;
+}
+
 interface ConsultationSidebarProps {
   appointmentData?: AppointmentInput;
   appointment?: AppointmentInput;
@@ -62,10 +68,11 @@ export const ConsultationSidebarUI: FC<ConsultationSidebarProps> = ({
   const { canViewInvoices, canViewPrescriptions } = usePermissions();
   const rawData = appointmentData ?? appointment;
 
-  const patient =
-    rawData && "patient" in rawData
-      ? (rawData as AppointmentWrapper).patient
-      : ((rawData as Appointment)?.patient as Patient | undefined);
+  const patient: Patient | undefined = rawData
+    ? isAppointmentWrapper(rawData)
+      ? rawData.patient
+      : rawData.patient
+    : undefined;
 
   if (!patient) {
     return (
@@ -82,10 +89,11 @@ export const ConsultationSidebarUI: FC<ConsultationSidebarProps> = ({
     `${patient.firstName ?? ""} ${patient.lastName ?? ""}`.trim();
   const initials = `${patient.firstName?.[0] ?? ""}${patient.lastName?.[0] ?? ""}`;
 
-  const appointmentId =
-    rawData && "appointment" in rawData
-      ? (rawData as AppointmentWrapper).appointment.id
-      : (rawData as Appointment)?.id;
+  const appointmentId = rawData
+    ? isAppointmentWrapper(rawData)
+      ? rawData.appointment.id
+      : rawData.id
+    : undefined;
 
   const patientRecordId = patient.id;
 

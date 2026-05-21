@@ -8,14 +8,7 @@ import { APIRequestError, ErrorCodes, getErrorCode } from "./errors";
 import { buildURL, normalizeHeaders } from "./request-helpers";
 import { executeWithRetry } from "./retry";
 import type { APIClient, APIClientConfig, RequestConfig } from "./types";
-
-function castPromise<T>(promise: Promise<unknown>): Promise<T> {
-  return promise as Promise<T>;
-}
-
-function castResolvedBody<T>(body: unknown): T {
-  return body as T;
-}
+import { assertTyped } from "./typed-http-boundary";
 
 function toHeaderRecord(headers?: HeadersInit): Record<string, string> {
   if (!headers) {
@@ -109,7 +102,7 @@ export function createAPIClient(config: APIClientConfig): APIClient {
     if (dedupeKey) {
       const inFlight = inFlightGetRequests.get(dedupeKey);
       if (inFlight) {
-        return castPromise<T>(inFlight);
+        return assertTyped<Promise<T>>(inFlight);
       }
     }
 
@@ -161,7 +154,7 @@ export function createAPIClient(config: APIClientConfig): APIClient {
 
         const contentType = response.headers.get("content-type");
         if (!contentType || !contentType.includes("application/json")) {
-          return castResolvedBody<T>({});
+          return assertTyped<T>({});
         }
 
         let data: unknown = await response.json();
@@ -170,7 +163,7 @@ export function createAPIClient(config: APIClientConfig): APIClient {
           data = await onResponse(data);
         }
 
-        return castResolvedBody<T>(data);
+        return assertTyped<T>(data);
       } catch (error) {
         clearTimeout(timeoutId);
 
@@ -206,7 +199,7 @@ export function createAPIClient(config: APIClientConfig): APIClient {
       return requestPromise;
     }
 
-    inFlightGetRequests.set(dedupeKey, requestPromise as Promise<unknown>);
+    inFlightGetRequests.set(dedupeKey, requestPromise);
 
     try {
       return await requestPromise;
@@ -364,7 +357,7 @@ export function createAPIClient(config: APIClientConfig): APIClient {
         );
       }
 
-      return castResolvedBody<T>(await response.json());
+      return assertTyped<T>(await response.json());
     },
   };
 }

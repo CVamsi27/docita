@@ -17,7 +17,16 @@ import {
   SelectValue,
 } from "@workspace/ui/components/form/select";
 import { Plus, X } from "lucide-react";
-import type { Invoice, InvoiceItem, Patient } from "@workspace/types";
+import { type Invoice, type InvoiceItem, type Patient } from "@workspace/types";
+import { z } from "zod";
+
+const editInvoiceStatusSchema = z.enum([
+  "PAID",
+  "PENDING",
+  "OVERDUE",
+  "CANCELLED",
+  "PARTIALLY_PAID",
+]);
 import { showUserFacingErrorToast } from "@/lib/errors/user-facing-errors";
 import { useClinicCurrency } from "@/hooks/use-clinic-currency";
 
@@ -66,9 +75,13 @@ export function EditInvoiceDialog({
     const newItems = [...items];
     const item = newItems[index];
     if (item) {
-      if (field === "description") item.description = value as string;
-      else if (field === "quantity") item.quantity = value as number;
-      else if (field === "price") item.price = value as number;
+      if (field === "description" && typeof value === "string") {
+        item.description = value;
+      } else if (field === "quantity" && typeof value === "number") {
+        item.quantity = value;
+      } else if (field === "price" && typeof value === "number") {
+        item.price = value;
+      }
     }
     setItems(newItems);
   };
@@ -77,15 +90,9 @@ export function EditInvoiceDialog({
     items.reduce((sum, item) => sum + item.quantity * item.price, 0);
 
   const handleStatusChange = (nextStatus: string) => {
-    const normalized = nextStatus.toUpperCase();
-    if (
-      normalized === "PAID" ||
-      normalized === "PENDING" ||
-      normalized === "OVERDUE" ||
-      normalized === "CANCELLED" ||
-      normalized === "PARTIALLY_PAID"
-    ) {
-      setStatus(normalized as Invoice["status"]);
+    const parsed = editInvoiceStatusSchema.safeParse(nextStatus.toUpperCase());
+    if (parsed.success) {
+      setStatus(parsed.data);
     }
   };
 

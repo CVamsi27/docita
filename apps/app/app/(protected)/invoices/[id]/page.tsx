@@ -6,8 +6,8 @@ import { FeatureGate } from "@/components/auth/feature-gate";
 import { InvoiceDetailsUI } from "@/features/invoices/components";
 
 export default function InvoiceDetailsPage() {
-  const params = useParams();
-  const id = params["id"] as string;
+  const params = useParams<{ id: string }>();
+  const id = params.id ?? "";
   return (
     <FeatureGate feature={Feature.INVOICING} showLockedCard>
       <InvoiceDetailsUI invoiceId={id} />

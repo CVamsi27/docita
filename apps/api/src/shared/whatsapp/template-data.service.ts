@@ -2,6 +2,7 @@ import { Inject, Injectable, Logger } from '@nestjs/common';
 import { CLOCK_PORT, type IClock } from '@/shared/common/ports/clock.port';
 import { PrismaService } from '@/prisma/prisma.service';
 import { Prisma } from '@workspace/db';
+import { toPrismaInputJsonValue } from '@/shared/common/json/to-prisma-input-json-value';
 import type {
   WhatsappTemplateCategory,
   WhatsappButtonType,
@@ -27,7 +28,7 @@ function toNullableJsonValue(
     return Prisma.JsonNull;
   }
 
-  return JSON.parse(JSON.stringify(value)) as Prisma.InputJsonValue;
+  return toPrismaInputJsonValue(value);
 }
 
 @Injectable()

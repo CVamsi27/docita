@@ -17,7 +17,6 @@ import {
 } from '@workspace/types';
 import { AiService } from '@/shared/modules/ai-core/ai.service';
 import { AiFactory } from '@/shared/modules/ai-core/factories/ai.factory';
-import { SmokingStatus, AlcoholUseStatus } from '@workspace/db';
 import { MedicalHistoryConditionsService } from './medical-history-conditions.service';
 
 /**
@@ -173,9 +172,9 @@ export class MedicalHistoryService {
   ) {
     const validated = this.medicalHistoryFactory.createSocialHistory(dto);
     const socialData = {
-      smokingStatus: validated.smokingStatus as SmokingStatus,
+      smokingStatus: validated.smokingStatus,
       smokingPackYears: validated.smokingPackYears,
-      alcoholUse: validated.alcoholUse as AlcoholUseStatus,
+      alcoholUse: validated.alcoholUse,
       alcoholFrequency: validated.alcoholFrequency,
       substanceUse: validated.substanceUse,
       occupation: validated.occupation,

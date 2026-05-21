@@ -1,7 +1,11 @@
 "use client";
 
 import { useCallback, useEffect, useState } from "react";
-import { countryCodeToCurrency as resolveCurrencyForCountry } from "@workspace/utils";
+import {
+  isRecord,
+  parseSupportedCurrency,
+  countryCodeToCurrency as resolveCurrencyForCountry,
+} from "@workspace/utils";
 
 type SupportedCurrency =
   | "INR"
@@ -21,15 +25,22 @@ function readCache(): SupportedCurrency | null {
   try {
     const raw = localStorage.getItem(CACHE_KEY);
     if (!raw) return null;
-    const parsed = JSON.parse(raw) as {
-      currency: SupportedCurrency;
-      exp: number;
-    };
-    if (Date.now() > parsed.exp) {
+    const parsed: unknown = JSON.parse(raw);
+    if (!isRecord(parsed)) {
       localStorage.removeItem(CACHE_KEY);
       return null;
     }
-    return parsed.currency;
+    const exp =
+      typeof parsed["exp"] === "number" ? parsed["exp"] : Number.NaN;
+    const currency =
+      typeof parsed["currency"] === "string"
+        ? parseSupportedCurrency(parsed["currency"])
+        : null;
+    if (!currency || !Number.isFinite(exp) || Date.now() > exp) {
+      localStorage.removeItem(CACHE_KEY);
+      return null;
+    }
+    return currency;
   } catch {
     return null;
   }
@@ -86,7 +97,7 @@ export function guessCurrencyFromTimezone(): SupportedCurrency {
 }
 
 export function countryCodeToCurrency(code: string): SupportedCurrency {
-  return resolveCurrencyForCountry(code) as SupportedCurrency;
+  return parseSupportedCurrency(resolveCurrencyForCountry(code));
 }
 
 export function useDetectedCurrency() {

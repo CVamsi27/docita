@@ -1,12 +1,14 @@
 import { Prisma } from '@workspace/db';
 import { enterpriseBrandingSchema } from '@workspace/types';
+import { isRecord } from '@workspace/utils';
 import { StoredFileUrlResolverService } from '@/domains/documents/application/services/stored-file-url-resolver.service';
+import { toPrismaInputJsonValue } from '@/shared/common/json/to-prisma-input-json-value';
 
 export function toRecord(value: unknown): Record<string, unknown> {
-  if (!value || typeof value !== 'object') {
+  if (!isRecord(value)) {
     return {};
   }
-  return Object.fromEntries(Object.entries(value as object));
+  return Object.fromEntries(Object.entries(value));
 }
 
 export function parseEnterpriseBranding(branding: unknown) {
@@ -15,7 +17,7 @@ export function parseEnterpriseBranding(branding: unknown) {
 }
 
 export function toInputJsonValue(value: unknown): Prisma.InputJsonValue {
-  return JSON.parse(JSON.stringify(toRecord(value))) as Prisma.InputJsonValue;
+  return toPrismaInputJsonValue(toRecord(value));
 }
 
 export function readString(

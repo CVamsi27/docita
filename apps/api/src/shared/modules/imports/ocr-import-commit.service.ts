@@ -8,7 +8,9 @@ import {
   InvoiceStatus,
 } from '@workspace/db';
 import type { OcrImportCommitRequest } from '@workspace/types';
+import { parseStringEnumMember } from '@workspace/utils';
 import { CLOCK_PORT, type IClock } from '@/shared/common/ports/clock.port';
+import { toPrismaInputJsonValue } from '@/shared/common/json/to-prisma-input-json-value';
 import type { ImportAuditContext } from './import-types';
 
 @Injectable()
@@ -66,7 +68,9 @@ export class OcrImportCommitService {
           firstName: dto.firstName.trim(),
           lastName: dto.lastName.trim(),
           phoneNumber: dto.phoneNumber.trim(),
-          gender: dto.gender as Gender,
+          gender:
+            parseStringEnumMember(Object.values(Gender), dto.gender) ??
+            Gender.OTHER,
           dateOfBirth: dob,
           address: dto.address?.trim() || undefined,
           clinicId: dto.clinicId,
@@ -183,7 +187,7 @@ export class OcrImportCommitService {
             taxTotal: inv.taxTotal ?? 0,
             discountTotal: 0,
             status: InvoiceStatus.PENDING,
-            items: inv.items as object,
+            items: toPrismaInputJsonValue(inv.items),
           },
         });
       }

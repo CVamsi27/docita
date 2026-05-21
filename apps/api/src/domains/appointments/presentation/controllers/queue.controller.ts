@@ -126,7 +126,7 @@ export class QueueController {
   }
 
   @Post('complete/:queueId')
-  @ApiOperation({ summary: 'Mark a patient as completed' })
+  @ApiOperation({ summary: 'Mark a patient completed' })
   completePatient(
     @Request() req: RequestWithUser,
     @Param('queueId') queueId: string,

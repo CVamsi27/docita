@@ -1,30 +1,15 @@
 import { Shield, Stethoscope, UserCog, Users } from "lucide-react";
+import type {
+  InternalClinicSummary,
+  InternalPortalUser,
+  InternalUserRole,
+} from "@workspace/data-access/internal";
 
-export type UserRole = "ADMIN" | "ADMIN_DOCTOR" | "DOCTOR" | "RECEPTIONIST";
+export type UserRole = InternalUserRole;
 
-export interface Clinic {
-  id: string;
-  name: string;
-  currency?: string;
-}
+export type Clinic = InternalClinicSummary;
 
-export interface User {
-  id: string;
-  name: string;
-  email: string;
-  phoneNumber?: string;
-  role: UserRole;
-  specialization?: string;
-  hospitalRole?: string;
-  qualification?: string;
-  registrationNumber?: string;
-  licenseNumber?: string;
-  bio?: string;
-  yearsOfExperience?: number;
-  consultationFee?: number;
-  createdAt: string;
-  clinicId?: string;
-}
+export type User = InternalPortalUser;
 
 export type RoleFilter = UserRole | "ALL";
 

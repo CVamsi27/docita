@@ -21,6 +21,7 @@ import {
   WORKSPACE_PROFILE_LABEL,
   WORKSPACE_PROFILE_MARKETING,
 } from "@workspace/types";
+import { parseSupportedCurrency } from "@workspace/utils";
 import { getTierPricing } from "@/lib/subscription/tier-access";
 import { type TierPricing } from "@/hooks/api/use-pricing";
 
@@ -28,7 +29,7 @@ import { type TierPricing } from "@/hooks/api/use-pricing";
 // Constants
 // ---------------------------------------------------------------------------
 
-export const DISPLAY_TIERS = [
+export const DISPLAY_TIERS: TierName[] = [
   "STARTER",
   "FRONT_DESK",
   "ESSENTIAL",
@@ -69,12 +70,9 @@ export function buildTierCardConfig(
     yearly: catalogPricing.yearly,
   };
 
-  const currencyKey =
-    resolvedCurrency as keyof typeof TIER_OVERAGE_RATES_BY_CURRENCY;
+  const currencyKey = parseSupportedCurrency(resolvedCurrency);
   const currencySymbol =
-    PRICING_CURRENCY_SYMBOLS[
-      resolvedCurrency as keyof typeof PRICING_CURRENCY_SYMBOLS
-    ] ?? resolvedCurrency;
+    PRICING_CURRENCY_SYMBOLS[currencyKey] ?? resolvedCurrency;
   const overageRates = (
     TIER_OVERAGE_RATES_BY_CURRENCY[currencyKey] ??
     TIER_OVERAGE_RATES_BY_CURRENCY.INR

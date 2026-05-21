@@ -6,6 +6,19 @@ import {
 import { PatientPortalContextService } from './patient-portal-context.service';
 import { CLOCK_PORT, type IClock } from '@/shared/common/ports/clock.port';
 
+function sumOutstandingInvoiceTotals(invoices: unknown[]): number {
+  let sum = 0;
+  for (const invoice of invoices) {
+    if (invoice && typeof invoice === 'object' && 'total' in invoice) {
+      const total = invoice.total;
+      if (typeof total === 'number') {
+        sum += total;
+      }
+    }
+  }
+  return sum;
+}
+
 @Injectable()
 export class PatientPortalQueryService {
   constructor(
@@ -33,9 +46,8 @@ export class PatientPortalQueryService {
       this.repository.getOutstandingInvoices(patientId, 5),
     ]);
 
-    const totalOutstandingAmount = (
-      outstandingInvoices as Array<{ total?: number }>
-    ).reduce((sum, inv) => sum + (inv.total ?? 0), 0);
+    const totalOutstandingAmount =
+      sumOutstandingInvoiceTotals(outstandingInvoices);
 
     return {
       patient,
@@ -82,7 +94,7 @@ export class PatientPortalQueryService {
         total,
         limit: take,
         offset: skip,
-        hasMore: skip + (appointments as unknown[]).length < total,
+        hasMore: skip + appointments.length < total,
       },
     };
   }
@@ -122,7 +134,7 @@ export class PatientPortalQueryService {
         total,
         limit: take,
         offset: skip,
-        hasMore: skip + (prescriptions as unknown[]).length < total,
+        hasMore: skip + prescriptions.length < total,
       },
     };
   }
@@ -162,7 +174,7 @@ export class PatientPortalQueryService {
         total,
         limit: take,
         offset: skip,
-        hasMore: skip + (invoices as unknown[]).length < total,
+        hasMore: skip + invoices.length < total,
       },
     };
   }

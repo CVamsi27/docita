@@ -26,7 +26,7 @@ import {
 import { useAPIMutation } from "../core/use-api-mutation";
 import { useAPIQuery } from "../core/use-api-query";
 import { useAPIQueryValidated } from "../core/use-api-query-validated";
-import { withQueryString, type QueryParams } from "../lib/query-string";
+import { omitEmptyQueryParams, withQueryString } from "../lib/query-string";
 import {
   DEFAULT_TIMEZONE,
   formatClinicTodayPickerIso,
@@ -69,6 +69,7 @@ export interface QueueItem {
     doctor: { id: string; name: string };
     type?: string | null;
     chiefComplaint?: string | null;
+    startTime?: string;
   };
 }
 
@@ -86,21 +87,11 @@ type AppointmentQueryOptions = {
 const normalizeAppointmentQueryOptions = (
   options?: AppointmentQueryOptions | null,
 ): AppointmentQueryOptions | undefined => {
-  return normalizeQueryOptions(options);
-};
-
-const normalizeQueryOptions = <T extends QueryParams>(
-  options?: T | null,
-): T | undefined => {
   if (!options) {
     return undefined;
   }
 
-  const normalizedEntries = Object.entries(options).filter(
-    ([, value]) => value !== undefined && value !== null && value !== "",
-  );
-
-  return Object.fromEntries(normalizedEntries) as T;
+  return omitEmptyQueryParams(options);
 };
 
 export const useAppointments = (options?: AppointmentQueryOptions | null) => {
@@ -260,19 +251,25 @@ export const useInfiniteAppointments = (options?: {
   const { fetcher, isTierFeatureEnabled } = useDataAccessContext();
   const calendarOk = isTierFeatureEnabled(Feature.CALENDAR_SLOTS);
 
-  return useInfiniteQuery({
+  return useInfiniteQuery<
+    ReturnType<typeof listAppointmentsResponseSchema.parse>,
+    Error,
+    ReturnType<typeof listAppointmentsResponseSchema.parse>,
+    ReturnType<typeof queryKeys.appointments.infinite>,
+    string | undefined
+  >({
     queryKey: queryKeys.appointments.infinite(normalizedOptions),
     queryFn: ({ pageParam }) => {
       return fetcher(
         withQueryString("/appointments", {
           ...normalizedOptions,
           limit: options?.limit ?? 50,
-          cursor: pageParam as string | undefined,
+          cursor: pageParam,
         }),
       ).then((data: unknown) => listAppointmentsResponseSchema.parse(data));
     },
     getNextPageParam: (lastPage) => lastPage.nextCursor,
-    initialPageParam: undefined as string | undefined,
+    initialPageParam: undefined,
     staleTime: 1000 * 60 * 2,
     enabled: calendarOk,
   });

@@ -7,6 +7,7 @@ import {
 import { CLOCK_PORT, type IClock } from '@/shared/common/ports/clock.port';
 import { PrismaService } from '@/prisma/prisma.service';
 import { Prisma } from '@workspace/db';
+import { toPrismaInputJsonValue } from '@/shared/common/json/to-prisma-input-json-value';
 import type { AppAuditLogSummary } from '@workspace/types';
 
 export interface AuditLogData {
@@ -87,10 +88,12 @@ export class AuditService {
             action: data.actionType,
             entityType: data.resourceType,
             entityId: data.resourceId,
-            newValue:
-              (data.changes as Prisma.InputJsonValue) || Prisma.JsonNull,
-            metadata:
-              (data.metadata as Prisma.InputJsonValue) || Prisma.JsonNull,
+            newValue: data.changes
+              ? toPrismaInputJsonValue(data.changes)
+              : Prisma.JsonNull,
+            metadata: data.metadata
+              ? toPrismaInputJsonValue(data.metadata)
+              : Prisma.JsonNull,
             ipAddress: data.ipAddress,
             userAgent: data.userAgent,
           },

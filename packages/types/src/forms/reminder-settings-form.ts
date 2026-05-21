@@ -1,4 +1,5 @@
 import { z } from "zod";
+import { appClinicSettingsSchema } from "../contracts/app";
 
 export const reminderTimeUnitSchema = z.enum([
   "minute",
@@ -65,3 +66,47 @@ export const reminderSettingsFormSchema = z
 export type ReminderSettingsFormValues = z.infer<
   typeof reminderSettingsFormSchema
 >;
+
+function parseReminderTimeUnit(
+  value: unknown,
+  fallback: ReminderTimeUnit,
+): ReminderTimeUnit {
+  const parsed = reminderTimeUnitSchema.safeParse(value);
+  return parsed.success ? parsed.data : fallback;
+}
+
+/** Map persisted clinic settings JSON into reminder settings form defaults. */
+export function reminderFormValuesFromClinicSettings(
+  settings: unknown,
+): ReminderSettingsFormValues {
+  const parsed = appClinicSettingsSchema.safeParse(settings);
+  const clinic = parsed.success ? parsed.data : {};
+
+  return {
+    appointment: {
+      enabled: clinic.reminderBefore !== undefined,
+      before: String(clinic.reminderBefore ?? "1"),
+      unit: parseReminderTimeUnit(clinic.reminderUnit, "day"),
+    },
+    followUp: {
+      enabled: clinic.followUpReminderEnabled ?? false,
+      before: String(clinic.followUpReminderBefore ?? "1"),
+      unit: parseReminderTimeUnit(clinic.followUpReminderUnit, "day"),
+    },
+    invoice: {
+      enabled: clinic.invoiceReminderEnabled ?? false,
+      before: String(clinic.invoiceReminderBefore ?? "3"),
+      unit: parseReminderTimeUnit(clinic.invoiceReminderUnit, "day"),
+    },
+    prescription: {
+      enabled: clinic.prescriptionReminderEnabled ?? false,
+      before: String(clinic.prescriptionReminderBefore ?? "1"),
+      unit: parseReminderTimeUnit(clinic.prescriptionReminderUnit, "day"),
+    },
+    schedule: {
+      enabled: clinic.scheduleNotificationEnabled ?? false,
+      before: String(clinic.scheduleNotificationBefore ?? "1"),
+      unit: parseReminderTimeUnit(clinic.scheduleNotificationUnit, "hour"),
+    },
+  };
+}

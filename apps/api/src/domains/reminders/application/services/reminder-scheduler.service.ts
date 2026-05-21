@@ -7,34 +7,36 @@ import {
 import { Cron } from '@nestjs/schedule';
 import {
   AppointmentStatus,
+  Prisma,
   ReminderSettings as _ReminderSettings,
 } from '@workspace/db';
 import { ReminderNotificationService } from './reminder-notification.service';
 import { isCronDisabledInThisProcess } from '@/shared/schedule/cron-env';
 import { CRON_SCHEDULES } from '@/shared/schedule/cron-schedules';
 import { isClinicWhatsAppAutomationSendingAllowed } from '@/shared/whatsapp/whatsapp-patient-send-policy.util';
+import { isDatabaseAuthError } from '@/shared/modules/auth/auth/auth-database.util';
 
-interface AppointmentForReminder {
-  id: string;
-  clinicId: string;
-  startTime: Date;
-  type: string;
+const APPOINTMENT_REMINDER_INCLUDE = {
   patient: {
-    id: string;
-    firstName: string;
-    lastName: string;
-    phoneNumber: string;
-    email: string | null;
-  };
+    select: {
+      id: true,
+      firstName: true,
+      lastName: true,
+      phoneNumber: true,
+      email: true,
+    },
+  },
   doctor: {
-    id: string;
-    name: string;
-  };
-  clinic?: {
-    id: string;
-    name: string;
-  };
-}
+    select: { id: true, name: true },
+  },
+  clinic: {
+    select: { id: true, name: true },
+  },
+} satisfies Prisma.AppointmentInclude;
+
+type AppointmentForReminder = Prisma.AppointmentGetPayload<{
+  include: typeof APPOINTMENT_REMINDER_INCLUDE;
+}>;
 
 @Injectable()
 export class ReminderSchedulerService {
@@ -48,29 +50,6 @@ export class ReminderSchedulerService {
     private notificationService: ReminderNotificationService,
     @Inject(CLOCK_PORT) private readonly clock: IClock,
   ) {}
-
-  private isDatabaseAuthError(error: unknown): boolean {
-    if (!error || typeof error !== 'object') {
-      return false;
-    }
-
-    const candidate = error as { code?: unknown; message?: unknown };
-    const code = typeof candidate.code === 'string' ? candidate.code : '';
-    const message =
-      typeof candidate.message === 'string'
-        ? candidate.message.toLowerCase()
-        : '';
-
-    if (code === 'P1000') {
-      return true;
-    }
-
-    return (
-      message.includes('authentication failed against the database server') ||
-      message.includes('database credentials') ||
-      message.includes('password authentication failed')
-    );
-  }
 
   @Cron(CRON_SCHEDULES.REMINDER_HOURLY, {
     disabled: isCronDisabledInThisProcess(),
@@ -116,7 +95,7 @@ export class ReminderSchedulerService {
         }
       });
     } catch (error) {
-      if (this.isDatabaseAuthError(error)) {
+      if (isDatabaseAuthError(error)) {
         this.databaseAccessDisabled = true;
         this.logger.warn(
           'Disabling reminder scheduler due to database authentication failure. Verify DATABASE_URL credentials.',
@@ -162,7 +141,9 @@ export class ReminderSchedulerService {
         const thirtyMinFromNow = new Date(now.getTime() + 30 * 60 * 1000);
         const thirtyFiveMinFromNow = new Date(now.getTime() + 35 * 60 * 1000);
 
-        const clinicIds = allSettings.map((s) => s.clinicId as string);
+        const clinicIds = allSettings.flatMap((setting) =>
+          setting.clinicId ? [setting.clinicId] : [],
+        );
         const settingsByClinicId = new Map(
           allSettings.map((s) => [s.clinicId, s]),
         );
@@ -178,23 +159,7 @@ export class ReminderSchedulerService {
               in: [AppointmentStatus.SCHEDULED, AppointmentStatus.CONFIRMED],
             },
           },
-          include: {
-            patient: {
-              select: {
-                id: true,
-                firstName: true,
-                lastName: true,
-                phoneNumber: true,
-                email: true,
-              },
-            },
-            doctor: {
-              select: { id: true, name: true },
-            },
-            clinic: {
-              select: { id: true, name: true },
-            },
-          },
+          include: APPOINTMENT_REMINDER_INCLUDE,
         });
 
         if (appointments.length > 0) {
@@ -209,10 +174,7 @@ export class ReminderSchedulerService {
             if (!settings) {
               return Promise.resolve();
             }
-            return this.sendThirtyMinuteWhatsappReminder(
-              appointment as AppointmentForReminder,
-              settings,
-            );
+            return this.sendThirtyMinuteWhatsappReminder(appointment, settings);
           }),
         );
         const appointmentFailures = appointmentResults.filter(
@@ -225,7 +187,7 @@ export class ReminderSchedulerService {
         }
       });
     } catch (error) {
-      if (this.isDatabaseAuthError(error)) {
+      if (isDatabaseAuthError(error)) {
         this.databaseAccessDisabled = true;
         this.logger.warn(
           'Disabling reminder scheduler due to database authentication failure. Verify DATABASE_URL credentials.',
@@ -259,29 +221,7 @@ export class ReminderSchedulerService {
           in: [AppointmentStatus.SCHEDULED, AppointmentStatus.CONFIRMED],
         },
       },
-      include: {
-        patient: {
-          select: {
-            id: true,
-            firstName: true,
-            lastName: true,
-            phoneNumber: true,
-            email: true,
-          },
-        },
-        doctor: {
-          select: {
-            id: true,
-            name: true,
-          },
-        },
-        clinic: {
-          select: {
-            id: true,
-            name: true,
-          },
-        },
-      },
+      include: APPOINTMENT_REMINDER_INCLUDE,
     });
 
     if (appointments.length > 0) {
@@ -292,10 +232,7 @@ export class ReminderSchedulerService {
 
     const results = await Promise.allSettled(
       appointments.map((appointment) =>
-        this.sendHourlyAppointmentReminder(
-          appointment as AppointmentForReminder,
-          settings,
-        ),
+        this.sendHourlyAppointmentReminder(appointment, settings),
       ),
     );
     const failures = results.filter((r) => r.status === 'rejected');

@@ -1,4 +1,5 @@
 import {
+  BadRequestException,
   Controller,
   Post,
   Body,
@@ -14,12 +15,7 @@ import {
   DataSubjectRight,
 } from './dpdp-compliance.service';
 import { ConsentType, ConsentStatus, Role } from '@workspace/db';
-import { Request } from 'express';
-
-interface AuthUser {
-  id: string;
-  clinicId: string;
-}
+import { RequestWithUser } from '@/shared/common/types/common.types';
 import { z } from 'zod';
 import { ZodValidationPipe } from 'nestjs-zod';
 import { RolesGuard } from '@/shared/modules/auth/auth/roles.guard';
@@ -49,6 +45,13 @@ const withdrawConsentSchema = z.object({
 type RecordConsentDto = z.infer<typeof recordConsentSchema>;
 type WithdrawConsentDto = z.infer<typeof withdrawConsentSchema>;
 
+function requireClinicId(clinicId: string | null | undefined): string {
+  if (!clinicId) {
+    throw new BadRequestException('Clinic context is required');
+  }
+  return clinicId;
+}
+
 @Controller('consent')
 @UseGuards(JwtAuthGuard, RolesGuard)
 export class ConsentController {
@@ -59,21 +62,28 @@ export class ConsentController {
   @HttpCode(201)
   async recordConsent(
     @Body(new ZodValidationPipe(recordConsentSchema)) data: RecordConsentDto,
-    @Req() req: Request,
+    @Req() req: RequestWithUser,
   ) {
     const ipAddress = req.ip || req.socket?.remoteAddress;
-    const clinicId = (req.user as AuthUser)?.clinicId;
-    return this.dpdpService.recordConsent({ ...data, clinicId }, ipAddress);
+    return this.dpdpService.recordConsent(
+      {
+        ...data,
+        clinicId: requireClinicId(data.clinicId ?? req.user?.clinicId),
+      },
+      ipAddress,
+    );
   }
 
   @Get('history')
   @Roles(Role.DOCTOR, Role.ADMIN, Role.ADMIN_DOCTOR)
   async getConsentHistory(
     @Query('patientId') patientId: string,
-    @Req() req: Request,
+    @Req() req: RequestWithUser,
   ) {
-    const clinicId = (req.user as AuthUser)?.clinicId;
-    return this.dpdpService.getConsentHistory(patientId, clinicId);
+    return this.dpdpService.getConsentHistory(
+      patientId,
+      requireClinicId(req.user?.clinicId),
+    );
   }
 
   @Post(':consentId/withdraw')
@@ -82,16 +92,15 @@ export class ConsentController {
     @Param('consentId') consentId: string,
     @Body(new ZodValidationPipe(withdrawConsentSchema))
     data: WithdrawConsentDto,
-    @Req() req: Request,
+    @Req() req: RequestWithUser,
   ) {
     const ipAddress = req.ip || req.socket?.remoteAddress;
-    const clinicId = (req.user as AuthUser)?.clinicId;
     return this.dpdpService.withdrawConsent(
       consentId,
       data.reason,
       data.withdrawnBy,
       ipAddress,
-      clinicId,
+      req.user?.clinicId ?? undefined,
     );
   }
 
@@ -101,13 +110,13 @@ export class ConsentController {
   async deletePatientData(
     @Param('patientId') patientId: string,
     @Body() dto: DeletePatientDataDto,
-    @Req() req: Request,
+    @Req() req: RequestWithUser,
   ) {
     const ipAddress = req.ip || req.socket?.remoteAddress;
     return this.dpdpService.handleErasureRequest(
       {
         patientId,
-        clinicId: (req.user as AuthUser)?.clinicId,
+        clinicId: requireClinicId(req.user?.clinicId),
         requestType: DataSubjectRight.ERASURE,
         reason: dto.reason,
         requestedBy: dto.requestedBy,

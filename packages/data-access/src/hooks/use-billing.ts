@@ -6,8 +6,10 @@ import {
   CreateInvoiceRequest,
   Feature,
   Invoice,
+  invoiceSchema,
   ListInvoicesContractQuery,
   Patient,
+  patientSchema,
   SubscriptionBillingActivateRequest,
   SubscriptionBillingActivateResponse,
   SubscriptionBillingCancelRequest,
@@ -32,24 +34,25 @@ import { APIRequestError } from "../lib/errors";
 import { queryKeys } from "../lib/query-keys";
 import { withQueryString } from "../lib/query-string";
 import { useDataAccessContext, useDataAccessFetcher } from "../provider/hooks";
+import { isRecord } from "@workspace/utils";
 
-export type InvoiceListRow = Invoice & {
-  patient: Patient;
-  appointment?: { doctor: { name: string } };
-};
+export const invoiceListRowSchema = invoiceSchema.extend({
+  patient: patientSchema,
+});
+
+export type InvoiceListRow = z.infer<typeof invoiceListRowSchema>;
+
+function hasItemsArray(data: unknown): data is { items: unknown[] } {
+  return isRecord(data) && Array.isArray(data["items"]);
+}
 
 /** API list returns `{ items, hasMore, ... }`; older clients may still receive a bare array. */
-export function normalizeInvoicesListResponse<T>(data: unknown): T[] {
+export function normalizeInvoicesListResponse(data: unknown): unknown[] {
   if (Array.isArray(data)) {
-    return data as T[];
+    return data;
   }
-  if (
-    data &&
-    typeof data === "object" &&
-    "items" in data &&
-    Array.isArray((data as { items: unknown }).items)
-  ) {
-    return (data as { items: T[] }).items;
+  if (hasItemsArray(data)) {
+    return data["items"];
   }
   return [];
 }
@@ -69,7 +72,8 @@ export const useInvoices = (filters?: ListInvoicesContractQuery) => {
   return useQuery<unknown, APIRequestError, InvoiceListRow[]>({
     queryKey: queryKeys.invoices.legacyList(filters),
     queryFn: () => fetcher<unknown>(withQueryString("/invoices", filters)),
-    select: (raw) => normalizeInvoicesListResponse<InvoiceListRow>(raw),
+    select: (raw) =>
+      z.array(invoiceListRowSchema).parse(normalizeInvoicesListResponse(raw)),
     staleTime: 60 * 1000,
     enabled: invoicingOk,
   });

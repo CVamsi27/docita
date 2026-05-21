@@ -40,8 +40,8 @@ function UploadPageShell({ children }: { children: ReactNode }) {
 }
 
 export default function UploadSignaturePage() {
-  const params = useParams();
-  const token = params.token as string;
+  const params = useParams<{ token: string }>();
+  const token = params.token ?? "";
 
   const [validating, setValidating] = useState(true);
   const [tokenValid, setTokenValid] = useState(false);

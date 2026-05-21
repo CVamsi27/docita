@@ -1,5 +1,6 @@
 import { BadRequestException } from '@nestjs/common';
 import { FollowUpStatus } from '@workspace/db';
+import { parseStringEnumMember } from '@workspace/utils';
 
 export function parseFollowUpDate(value: string): Date {
   const date = new Date(value);
@@ -16,8 +17,7 @@ export function parseFollowUpStatuses(
   const statuses = status
     .split(',')
     .map((item) => item.trim().toUpperCase())
-    .filter((item): item is FollowUpStatus =>
-      Object.values(FollowUpStatus).includes(item as FollowUpStatus),
-    );
+    .map((item) => parseStringEnumMember(Object.values(FollowUpStatus), item))
+    .filter((item): item is FollowUpStatus => item !== undefined);
   return statuses.length > 0 ? statuses : undefined;
 }

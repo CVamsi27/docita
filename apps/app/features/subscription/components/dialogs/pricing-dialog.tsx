@@ -84,9 +84,7 @@ export function PricingDialog({
   const formatPrice = (price: number | "custom") =>
     formatPriceWithCurrency(price, currency);
 
-  const getTierNumeric = (tierName: TierName): Tier => {
-    return Tier[tierName as keyof typeof Tier];
-  };
+  const getTierNumeric = (tierName: TierName): Tier => Tier[tierName];
 
   const getTierPricing = (tierName: TierName) => {
     const tierData = pricingConfig?.tiers.find(
@@ -219,7 +217,11 @@ export function PricingDialog({
                     <>
                       <div className="flex items-baseline gap-1">
                         <span className="text-[var(--fs-2xl)] font-semibold tabular-nums leading-[var(--lh-tight)]">
-                          {formatPrice(monthlyEquivalent as number)}
+                          {formatPrice(
+                            typeof monthlyEquivalent === "number"
+                              ? monthlyEquivalent
+                              : 0,
+                          )}
                         </span>
                         <span className="text-sm text-muted-foreground">
                           /mo

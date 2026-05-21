@@ -8,6 +8,10 @@ import {
   CreateSubscriptionRequest,
   PaymentGatewaySubscription,
 } from '@/domains/payments/core/ports';
+import {
+  asRazorpayRecord,
+  readRazorpayStringNotes,
+} from './razorpay-record.util';
 
 interface RazorpaySubscriptionResponse {
   id: string;
@@ -33,7 +37,10 @@ export class RazorpaySubscriptionAdapter
       throw new BadRequestException('Invalid Razorpay subscription response');
     }
 
-    const raw = value as Record<string, unknown>;
+    const raw = asRazorpayRecord(value);
+    if (!raw) {
+      throw new BadRequestException('Invalid Razorpay subscription response');
+    }
     return {
       id: typeof raw.id === 'string' ? raw.id : '',
       customer_id: typeof raw.customer_id === 'string' ? raw.customer_id : '',
@@ -68,7 +75,7 @@ export class RazorpaySubscriptionAdapter
         name: customer.name || '',
         email: customer.email || '',
         phone: customer.contact ? String(customer.contact) : undefined,
-        metadata: customer.notes as Record<string, string> | undefined,
+        metadata: readRazorpayStringNotes(customer.notes),
       };
     } catch (error) {
       this.logger.error('Failed to create customer', error);
@@ -90,7 +97,7 @@ export class RazorpaySubscriptionAdapter
         name: customer.name || '',
         email: customer.email || '',
         phone: customer.contact ? String(customer.contact) : undefined,
-        metadata: customer.notes as Record<string, string> | undefined,
+        metadata: readRazorpayStringNotes(customer.notes),
       };
     } catch {
       this.logger.warn(`Customer ${customerId} not found`);
@@ -118,7 +125,7 @@ export class RazorpaySubscriptionAdapter
         name: customer.name || '',
         email: customer.email || '',
         phone: customer.contact ? String(customer.contact) : undefined,
-        metadata: customer.notes as Record<string, string> | undefined,
+        metadata: readRazorpayStringNotes(customer.notes),
       };
     } catch (error) {
       this.logger.error(`Failed to update customer ${customerId}`, error);
@@ -173,9 +180,7 @@ export class RazorpaySubscriptionAdapter
         ...(request.startDate && {
           start_at: Math.floor(request.startDate.getTime() / 1000),
         }),
-        ...(request.trialPeriodDays && {
-          customer_notify: 0 as const,
-        }),
+        ...(request.trialPeriodDays ? ({ customer_notify: 0 } as const) : {}),
         notes: request.metadata || {},
       };
       const subscription = this.toRazorpaySubscriptionResponse(
@@ -192,7 +197,7 @@ export class RazorpaySubscriptionAdapter
         currentPeriodStart: new Date((subscription.current_start || 0) * 1000),
         currentPeriodEnd: new Date((subscription.current_end || 0) * 1000),
         cancelAtPeriodEnd: false,
-        metadata: subscription.notes as Record<string, unknown> | undefined,
+        metadata: subscription.notes,
       };
     } catch (error) {
       this.logger.error('Failed to create subscription', error);
@@ -219,7 +224,7 @@ export class RazorpaySubscriptionAdapter
         currentPeriodStart: new Date((subscription.current_start || 0) * 1000),
         currentPeriodEnd: new Date((subscription.current_end || 0) * 1000),
         cancelAtPeriodEnd: false,
-        metadata: subscription.notes as Record<string, unknown> | undefined,
+        metadata: subscription.notes,
       };
     } catch {
       this.logger.warn(`Subscription ${subscriptionId} not found`);

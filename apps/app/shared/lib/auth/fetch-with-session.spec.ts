@@ -1,4 +1,5 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
+import { isRecord } from "@workspace/utils";
 import { fetchJsonWithSession, fetchWithSession } from "@/lib/auth/fetch-with-session";
 import { appSession } from "@/lib/auth/session";
 
@@ -121,8 +122,8 @@ describe("fetchWithSession", () => {
       }),
     );
 
-    const payload = await fetchJsonWithSession<{ id: string }>("/test");
-    expect(payload.id).toBe("abc");
+    const payload = await fetchJsonWithSession("/test");
+    expect(isRecord(payload) && payload.id).toBe("abc");
   });
 
   it("throws safe copy when JSON error payload is provided", async () => {

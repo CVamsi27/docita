@@ -1,4 +1,5 @@
 import { Inject, Injectable, Logger } from '@nestjs/common';
+import { getErrorMessage } from '@workspace/utils';
 import { CLOCK_PORT, type IClock } from '@/shared/common/ports/clock.port';
 import { AppConfigService } from '@/shared/modules/config/app-configuration.service';
 import { spawn } from 'child_process';
@@ -41,9 +42,8 @@ export class DatabaseBackupService {
         this.logger.log(`Created backup directory: ${this.backupDir}`);
       }
     } catch (err) {
-      const error = err as Error;
       this.logger.warn(
-        `Failed to create configured backup directory ${this.backupDir}: ${error.message}. Falling back to project-local backups.`,
+        `Failed to create configured backup directory ${this.backupDir}: ${getErrorMessage(err)}. Falling back to project-local backups.`,
       );
 
       const fallback = path.join(process.cwd(), 'backups', 'postgresql');
@@ -55,9 +55,8 @@ export class DatabaseBackupService {
         this.backupDir = fallback;
         this.logger.log(`Using fallback backup directory: ${this.backupDir}`);
       } catch (fallbackErr) {
-        const error = fallbackErr as Error;
         this.logger.error(
-          `Failed to create fallback backup directory: ${error.message}`,
+          `Failed to create fallback backup directory: ${getErrorMessage(fallbackErr)}`,
         );
       }
     }

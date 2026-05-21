@@ -7,6 +7,7 @@ import { AppPageScaffold } from "@workspace/ui/components/layout/app-page-scaffo
 import { DataState } from "@workspace/ui/components/data-display/data-state";
 import { PageHeader } from "@workspace/ui/components/layout/page-header";
 import { Receipt } from "lucide-react";
+import { isRecord } from "@workspace/utils";
 
 function mapInvoiceStatus(status: unknown): PatientInvoiceStatus {
   if (typeof status !== "string") {
@@ -32,7 +33,7 @@ export default function PortalBillingPage() {
   } = usePatientPortalInvoices();
 
   const invoices = (data?.invoices ?? []).map((item, index) => {
-    const row = item as Record<string, unknown>;
+    const row = isRecord(item) ? item : {};
 
     const amount =
       typeof row.amount === "number"

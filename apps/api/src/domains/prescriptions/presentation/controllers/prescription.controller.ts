@@ -27,8 +27,9 @@ import {
 } from '@/shared/modules/auth/auth/tier.decorator';
 import { Roles } from '@/shared/modules/auth/auth/roles.decorator';
 import { getDbRolesForTarget } from '@/shared/modules/auth/auth/access-matrix.util';
-import { APP_ACCESS_TARGETS } from '@workspace/types';
-import { Specialization, HospitalRole } from '@workspace/db';
+import { APP_ACCESS_TARGETS, hospitalRoleSchema } from '@workspace/types';
+import { parseStringEnumMember } from '@workspace/utils';
+import { Specialization } from '@workspace/db';
 import {
   CreatePrescriptionDto,
   ListPrescriptionsQueryDto,
@@ -119,8 +120,16 @@ export class PrescriptionsController {
       ...dto,
       appointmentId: dto.appointmentId || '',
       doctorId: dto.doctorId || userId,
-      doctorSpecialization: dto.doctorSpecialization as Specialization,
-      doctorRole: dto.doctorRole as HospitalRole,
+      doctorSpecialization: dto.doctorSpecialization
+        ? (parseStringEnumMember(
+            Object.values(Specialization),
+            dto.doctorSpecialization,
+          ) ?? undefined)
+        : undefined,
+      doctorRole: dto.doctorRole
+        ? (parseStringEnumMember(hospitalRoleSchema.options, dto.doctorRole) ??
+          undefined)
+        : undefined,
       clinicId,
     });
   }

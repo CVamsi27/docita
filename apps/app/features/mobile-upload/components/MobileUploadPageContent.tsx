@@ -16,9 +16,9 @@ import { buildCsrfHeaders } from "@/lib/auth/csrf";
 import { showUserFacingErrorToast } from "@/lib/errors/user-facing-errors";
 
 function MobileUploadPageInner() {
-  const params = useParams();
+  const params = useParams<{ id: string }>();
   const searchParams = useSearchParams();
-  const sessionId = params["id"] as string;
+  const sessionId = params.id ?? "";
   const uploadSecretFromQuery = useMemo(
     () => searchParams.get("uploadSecret"),
     [searchParams],

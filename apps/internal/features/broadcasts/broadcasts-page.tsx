@@ -182,9 +182,14 @@ export function BroadcastsPage() {
                 <Label htmlFor="broadcast-audience">Audience preset</Label>
                 <Select
                   value={presetId}
-                  onValueChange={(value) =>
-                    setPresetId(value as BroadcastPresetId)
-                  }
+                  onValueChange={(value) => {
+                    const preset = BROADCAST_PRESETS.find(
+                      (entry) => entry.id === value,
+                    );
+                    if (preset) {
+                      setPresetId(preset.id);
+                    }
+                  }}
                 >
                   <SelectTrigger id="broadcast-audience">
                     <SelectValue placeholder="Select audience" />
@@ -249,7 +254,7 @@ export function BroadcastsPage() {
                     <code className="rounded bg-muted px-1.5 py-0.5">
                       {selectedPreset?.metaTemplateName}
                     </code>{" "}
-                    with the recipient name as a variable.
+                    using the recipient name template variable.
                   </p>
                 ) : (
                   <Textarea

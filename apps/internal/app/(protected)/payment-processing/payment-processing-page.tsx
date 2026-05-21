@@ -63,7 +63,6 @@ import { CreditCard, Percent, Receipt, TrendingUp } from "lucide-react";
 import {
   GUIDED_SETUP_LIST_PRICE_BY_CURRENCY,
   recordInternalAdditionalChargeRequestSchema,
-  type SupportedCurrency,
 } from "@workspace/types";
 import { useAuth } from "@/lib/auth/auth";
 import { billingAPI, type PricingOfferRow } from "@/lib/api/api";
@@ -71,7 +70,11 @@ import { client } from "@/lib/api/api-client";
 import { internalQueryKeys } from "@/lib/api/query-keys";
 import { useForm } from "react-hook-form";
 import { toast } from "sonner";
-import { DEFAULT_CURRENCY, formatCurrency } from "@workspace/utils";
+import {
+  DEFAULT_CURRENCY,
+  formatCurrency,
+  parseSupportedCurrency,
+} from "@workspace/utils";
 import { showUserFacingErrorToast } from "@/lib/errors/user-facing-errors";
 
 type Clinic = {
@@ -118,7 +121,7 @@ function guidedSetupPresetAmount(currency: string | undefined): string {
     )
   ) {
     return String(
-      GUIDED_SETUP_LIST_PRICE_BY_CURRENCY[key as SupportedCurrency],
+      GUIDED_SETUP_LIST_PRICE_BY_CURRENCY[parseSupportedCurrency(key)],
     );
   }
   return "";
@@ -488,7 +491,7 @@ export default function PaymentProcessingPage() {
     <div className="space-y-6">
       <PageHeader
         title="Payment Processing"
-        description="Record subscription payments and tier changes, or bill add-on services such as guided setup"
+        description="Record subscription payments and tier changes, or bill add-on services including guided setup"
         size="compact"
       />
 
@@ -765,7 +768,8 @@ export default function PaymentProcessingPage() {
                           />
                         </FormControl>
                         <FormDescription>
-                          Applied to list price at subscription checkout (max 95).
+                          Applied to list price at subscription checkout (max
+                          95).
                         </FormDescription>
                         <FormMessage />
                       </FormItem>
@@ -797,7 +801,9 @@ export default function PaymentProcessingPage() {
                             id="pricing-offer-valid-until"
                             label=""
                             showLabel={false}
-                            value={typeof field.value === "string" ? field.value : ""}
+                            value={
+                              typeof field.value === "string" ? field.value : ""
+                            }
                             onChange={field.onChange}
                             placeholder="Select date"
                           />
@@ -1003,10 +1009,7 @@ export default function PaymentProcessingPage() {
                     <FormItem>
                       <FormLabel>Payment Notes (Optional)</FormLabel>
                       <FormControl>
-                        <Input
-                          placeholder="Payment notes"
-                          {...field}
-                        />
+                        <Input placeholder="Payment notes" {...field} />
                       </FormControl>
                       <FormMessage />
                     </FormItem>
@@ -1027,7 +1030,11 @@ export default function PaymentProcessingPage() {
                     disabled={processPaymentMutation.isPending}
                   >
                     {processPaymentMutation.isPending && (
-                      <DocitaLoadingIndicator variant="inline" decorative className="mr-2" />
+                      <DocitaLoadingIndicator
+                        variant="inline"
+                        decorative
+                        className="mr-2"
+                      />
                     )}
                     {processPaymentMutation.isPending
                       ? "Processing…"
@@ -1151,10 +1158,7 @@ export default function PaymentProcessingPage() {
                 render={({ field }) => (
                   <FormItem>
                     <FormLabel>Payment method</FormLabel>
-                    <Select
-                      value={field.value}
-                      onValueChange={field.onChange}
-                    >
+                    <Select value={field.value} onValueChange={field.onChange}>
                       <FormControl>
                         <SelectTrigger>
                           <SelectValue />

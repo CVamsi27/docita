@@ -11,6 +11,7 @@ import { Cache } from 'cache-manager';
 import { Observable, of } from 'rxjs';
 import { map } from 'rxjs/operators';
 import * as crypto from 'crypto';
+import { isRecord } from '@workspace/utils';
 
 @Injectable()
 export class CacheInterceptor implements NestInterceptor {
@@ -91,22 +92,22 @@ export class CacheInterceptor implements NestInterceptor {
   }
 
   private extractClinicId(user: unknown): string {
-    if (!user || typeof user !== 'object') {
+    if (!isRecord(user)) {
       return 'public';
     }
 
-    const clinicId = (user as { clinicId?: unknown }).clinicId;
+    const clinicId = user['clinicId'];
     return typeof clinicId === 'string' && clinicId.length > 0
       ? clinicId
       : 'public';
   }
 
   private extractRole(user: unknown): string {
-    if (!user || typeof user !== 'object') {
+    if (!isRecord(user)) {
       return 'public';
     }
 
-    const role = (user as { role?: unknown }).role;
+    const role = user['role'];
     return typeof role === 'string' && role.length > 0 ? role : 'public';
   }
 

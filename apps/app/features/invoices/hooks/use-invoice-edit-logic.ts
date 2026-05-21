@@ -15,12 +15,6 @@ import {
   calculateInvoiceTotals,
 } from "@/features/invoices/rules/invoiceRules";
 
-export {
-  invoiceLineItemFormSchema as invoiceItemSchema,
-  invoiceEditFormSchema as invoiceSchema,
-  type InvoiceEditFormValues as InvoiceFormValues,
-} from "@workspace/types";
-
 const normalizeInvoiceStatus = (
   status: Invoice["status"] | "created",
 ): InvoiceEditFormValues["status"] => {

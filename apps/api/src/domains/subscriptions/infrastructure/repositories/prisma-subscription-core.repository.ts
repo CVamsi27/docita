@@ -8,7 +8,10 @@ import { CLOCK_PORT, type IClock } from '@/shared/common/ports/clock.port';
 import { Subscription } from '@/domains/subscriptions/core/entities';
 import { SubscriptionMapper } from '@/domains/subscriptions/infrastructure/mappers/subscription.mapper';
 import { PrismaService } from '@/prisma/prisma.service';
-import { Role, SubscriptionStatus, Prisma } from '@workspace/db';
+import { Role, SubscriptionStatus } from '@workspace/db';
+import { parseStringEnumMember } from '@workspace/utils';
+
+const SUBSCRIPTION_STATUS_VALUES = Object.values(SubscriptionStatus);
 import type {
   SubscriptionBillingContact,
   SubscriptionExpiryReminderCandidate,
@@ -45,7 +48,7 @@ export class PrismaSubscriptionCoreRepository {
         await this.prisma.subscription.update({
           where: { id: subscription.id },
           data: {
-            ...(data as Prisma.SubscriptionUncheckedUpdateInput),
+            ...data,
             version: { increment: 1 },
           },
         });
@@ -107,7 +110,11 @@ export class PrismaSubscriptionCoreRepository {
     try {
       const prismaSubscriptions =
         await this.getReadClient().subscription.findMany({
-          where: { status: status as SubscriptionStatus },
+          where: {
+            status:
+              parseStringEnumMember(SUBSCRIPTION_STATUS_VALUES, status) ??
+              SubscriptionStatus.ACTIVE,
+          },
         });
 
       return prismaSubscriptions.map((s) => SubscriptionMapper.toDomain(s));
@@ -166,7 +173,7 @@ export class PrismaSubscriptionCoreRepository {
       await this.prisma.subscription.update({
         where: { id: subscription.id },
         data: {
-          ...(data as Prisma.SubscriptionUncheckedUpdateInput),
+          ...data,
           version: { increment: 1 },
         },
       });

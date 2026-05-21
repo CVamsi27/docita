@@ -200,7 +200,7 @@ export function checkMedicationAllergies(
           ...(allergy.reaction ? { reaction: allergy.reaction } : {}),
         });
         result.warnings.push(
-          `CROSS-REACTIVITY WARNING: ${medicationName} is in the same class (${className}) as ${allergy.allergen} to which patient is allergic (${allergy.severity})`,
+          `CROSS-REACTIVITY WARNING: ${medicationName} shares class (${className}) with allergen ${allergy.allergen} (${allergy.severity})`,
         );
         break;
       }

@@ -1,7 +1,7 @@
 const DEFAULT_EXTERNAL_HTTP_TIMEOUT_MS = 10_000;
 
 export function fetchWithTimeout(
-  input: RequestInfo | URL,
+  input: string | URL,
   init: RequestInit = {},
   timeoutMs = DEFAULT_EXTERNAL_HTTP_TIMEOUT_MS,
 ): Promise<Response> {

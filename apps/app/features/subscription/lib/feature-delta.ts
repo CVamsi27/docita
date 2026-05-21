@@ -1,6 +1,10 @@
-import { Feature, FEATURE_TIER_MAP } from "@workspace/types";
+import {
+  Feature,
+  FEATURE_TIER_MAP,
+  coerceFeature,
+} from "@workspace/types";
 import { getFeatureDetails } from "@/features/subscription/config/feature-config";
-import { Tier, type TierName } from "@/lib/subscription/tier-access";
+import { hasFeatureAccess, type TierName } from "@/lib/subscription/tier-access";
 
 export interface FeatureDeltaItem {
   feature: Feature;
@@ -24,19 +28,17 @@ export function getTierFeatureDelta(
   fromTier: TierName,
   toTier: TierName,
 ): TierFeatureDelta {
-  const fromValue = tierNumericValue(fromTier);
-  const toValue = tierNumericValue(toTier);
-
   const gained: FeatureDeltaItem[] = [];
   const lost: FeatureDeltaItem[] = [];
 
-  for (const [featureKey, requiredTier] of Object.entries(FEATURE_TIER_MAP)) {
-    const feature = featureKey as Feature;
+  for (const featureKey of Object.keys(FEATURE_TIER_MAP)) {
+    const feature = coerceFeature(featureKey);
+    if (!feature) continue;
     const details = getFeatureDetails(feature);
     if (!details.isGenerallyAvailable) continue;
 
-    const inFrom = fromValue >= (requiredTier as number);
-    const inTo = toValue >= (requiredTier as number);
+    const inFrom = hasFeatureAccess(fromTier, feature);
+    const inTo = hasFeatureAccess(toTier, feature);
 
     if (!inFrom && inTo) {
       gained.push({
@@ -54,9 +56,4 @@ export function getTierFeatureDelta(
   }
 
   return { gained, lost };
-}
-
-function tierNumericValue(name: TierName): number {
-  const value = Tier[name as keyof typeof Tier];
-  return typeof value === "number" ? value : 0;
 }

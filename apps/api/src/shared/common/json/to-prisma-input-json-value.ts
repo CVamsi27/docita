@@ -1,3 +1,4 @@
+// check-as-cast-density: allow-file — canonical Prisma InputJsonValue serialization boundary
 import { Prisma } from '@workspace/db';
 
 /** Serialize domain JSON payloads for Prisma `InputJsonValue` columns. */

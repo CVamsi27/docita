@@ -22,6 +22,7 @@ import { cn } from "@workspace/ui/lib/utils";
 import { useDebounce } from "@workspace/hooks";
 import {
   PRICING_CURRENCY_CONFIG,
+  tierSchema,
   type SupportedCurrency,
   type TierName,
 } from "@workspace/types";
@@ -29,6 +30,7 @@ import {
   CURRENCY_OPTIONS,
   DEFAULT_CURRENCY,
   formatAmountLocale,
+  parseSupportedCurrency,
 } from "@workspace/utils";
 import { useLocaleCurrency } from "@/hooks/use-locale-currency";
 import {
@@ -151,11 +153,10 @@ export function DynamicPricingEstimator({
       maximumFractionDigits: amtFmt.decimalPlaces,
     });
 
+  const estimatorTierIds = new Set<string>(PRICING_ESTIMATOR_TIERS);
   const tiers = (pricingConfig?.tiers || [])
     .map((tierInfo) => tierInfo.id)
-    .filter((tierInfo) =>
-      PRICING_ESTIMATOR_TIERS.includes(tierInfo as TierName),
-    );
+    .filter((tierId) => estimatorTierIds.has(tierId));
 
   const hasDetailedEstimate =
     !!estimate &&
@@ -183,7 +184,15 @@ export function DynamicPricingEstimator({
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
           <div className="space-y-2">
             <Label>Plan</Label>
-            <Select value={tier} onValueChange={(value) => setTier(value as TierName)}>
+            <Select
+              value={tier}
+              onValueChange={(value) => {
+                const parsed = tierSchema.safeParse(value);
+                if (parsed.success) {
+                  setTier(parsed.data);
+                }
+              }}
+            >
               <SelectTrigger>
                 <SelectValue />
               </SelectTrigger>
@@ -201,9 +210,11 @@ export function DynamicPricingEstimator({
               <Label>Billing cycle</Label>
               <Select
                 value={effectiveBillingCycle}
-                onValueChange={(value) =>
-                  setLocalBillingCycle(value as "monthly" | "yearly")
-                }
+                onValueChange={(value) => {
+                  if (value === "monthly" || value === "yearly") {
+                    setLocalBillingCycle(value);
+                  }
+                }}
               >
                 <SelectTrigger>
                   <SelectValue />
@@ -220,9 +231,9 @@ export function DynamicPricingEstimator({
               <Label>Currency</Label>
               <Select
                 value={selectedCurrency}
-                onValueChange={(value) =>
-                  setSelectedCurrency(value as SupportedCurrency)
-                }
+                onValueChange={(value) => {
+                  setSelectedCurrency(parseSupportedCurrency(value));
+                }}
               >
                 <SelectTrigger>
                   <SelectValue />

@@ -2,18 +2,23 @@ import { create } from "zustand";
 import {
   CLINIC_TYPE_FEATURES,
   type ClinicType,
+  clinicTypeSchema,
   Feature,
   FEATURE_TIER_MAP,
   FRONT_DESK_BLOCKED_FEATURES,
   mapClinicTierDbStringToAccessTier,
   Tier,
   TIER_INFO,
-  type UserRole,
+  userRoleSchema,
   type WorkspaceProfile,
   DEFAULT_WORKSPACE_PROFILE,
   parseWorkspaceProfile,
 } from "@workspace/types";
-import { getTierName, isFeatureGenerallyAvailable } from "@workspace/utils";
+import {
+  getTierName,
+  isFeatureGenerallyAvailable,
+  isRecord,
+} from "@workspace/utils";
 import { hasPermission, type Permission } from "@/lib/auth/permissions";
 
 export { Tier, Feature, FEATURE_TIER_MAP, TIER_INFO };
@@ -36,14 +41,17 @@ interface PermissionState {
   setClinicType: (type: ClinicType | string | null) => void;
   setFeatureOverrides: (overrides: Record<string, boolean>) => void;
   setWorkspaceProfile: (profile: unknown) => void;
-  syncFromClinic: (clinic: {
-    tier: string;
-    intelligenceAddon?: string | null;
-    features?: Record<string, boolean> | null;
-    type?: string | null;
-    workspaceProfile?: WorkspaceProfile | string | null;
-    settings?: Record<string, unknown> | null;
-  }, userRole?: string) => void;
+  syncFromClinic: (
+    clinic: {
+      tier: string;
+      intelligenceAddon?: string | null;
+      features?: Record<string, boolean> | null;
+      type?: string | null;
+      workspaceProfile?: WorkspaceProfile | string | null;
+      settings?: Record<string, unknown> | null;
+    },
+    userRole?: string,
+  ) => void;
 
   canAccess: (feature: Feature, permission?: Permission) => boolean;
   canAccessClinicFeature: (feature: string) => boolean;
@@ -61,16 +69,14 @@ export const usePermissionStore = create<PermissionState>((set, get) => ({
   currentTier: Tier.STARTER,
   hasIntelligence: false,
   userRole: null,
-  facilityType: "CLINIC", 
-  clinicType: null, 
+  facilityType: "CLINIC",
+  clinicType: null,
   featureOverrides: {},
   workspaceProfile: DEFAULT_WORKSPACE_PROFILE,
 
   setTier: (tier) => {
     const parsedTier =
-      typeof tier === "string"
-        ? mapClinicTierDbStringToAccessTier(tier)
-        : tier;
+      typeof tier === "string" ? mapClinicTierDbStringToAccessTier(tier) : tier;
 
     set({ currentTier: parsedTier });
   },
@@ -81,16 +87,16 @@ export const usePermissionStore = create<PermissionState>((set, get) => ({
   setFacilityType: (type) => set({ facilityType: type }),
 
   setClinicType: (type) => {
-
     if (type === null) {
       set({ clinicType: null });
       return;
     }
 
-    const normalized = (
-      typeof type === "string" ? type.toUpperCase() : type
-    ) as ClinicType;
-    set({ clinicType: normalized });
+    const raw = typeof type === "string" ? type.toUpperCase() : type;
+    const parsed = clinicTypeSchema.safeParse(raw);
+    if (parsed.success) {
+      set({ clinicType: parsed.data });
+    }
   },
 
   setFeatureOverrides: (overrides) => set({ featureOverrides: overrides }),
@@ -109,14 +115,13 @@ export const usePermissionStore = create<PermissionState>((set, get) => ({
     } = get();
 
     setTier(clinic.tier);
-    setIntelligence(clinic.intelligenceAddon === 'ACTIVE');
+    setIntelligence(clinic.intelligenceAddon === "ACTIVE");
     setFeatureOverrides(clinic.features || {});
 
     const fromRoot = clinic.workspaceProfile;
-    const fromSettings =
-      clinic.settings && typeof clinic.settings === "object" && !Array.isArray(clinic.settings)
-        ? (clinic.settings as Record<string, unknown>).workspaceProfile
-        : undefined;
+    const fromSettings = isRecord(clinic.settings)
+      ? clinic.settings.workspaceProfile
+      : undefined;
     if (clinic.tier === "FRONT_DESK") {
       setWorkspaceProfile("FRONT_DESK");
     } else {
@@ -140,7 +145,8 @@ export const usePermissionStore = create<PermissionState>((set, get) => ({
     }
 
     if (permission && userRole) {
-      if (!hasPermission(userRole as UserRole, permission)) {
+      const parsedRole = userRoleSchema.safeParse(userRole);
+      if (!parsedRole.success || !hasPermission(parsedRole.data, permission)) {
         return false;
       }
     }
@@ -174,12 +180,12 @@ export const usePermissionStore = create<PermissionState>((set, get) => ({
 
     const typeFeatures = CLINIC_TYPE_FEATURES[clinicType];
     if (!typeFeatures) {
-      return true; 
+      return true;
     }
 
-    const featureKey = feature as keyof typeof typeFeatures;
-    if (featureKey in typeFeatures) {
-      return typeFeatures[featureKey] === true;
+    const match = Object.entries(typeFeatures).find(([key]) => key === feature);
+    if (match) {
+      return match[1] === true;
     }
 
     return true;

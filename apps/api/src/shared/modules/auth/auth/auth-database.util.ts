@@ -1,14 +1,20 @@
-export function isDatabaseAuthError(error: unknown): boolean {
-  if (!error || typeof error !== 'object') {
-    return false;
-  }
+import { isRecord } from '@workspace/utils';
 
-  const candidate = error as { code?: unknown; message?: unknown };
-  const code = typeof candidate.code === 'string' ? candidate.code : '';
+function readErrorMessageFields(error: unknown): {
+  code: string;
+  message: string;
+} {
+  if (!isRecord(error)) {
+    return { code: '', message: '' };
+  }
+  const code = typeof error['code'] === 'string' ? error['code'] : '';
   const message =
-    typeof candidate.message === 'string'
-      ? candidate.message.toLowerCase()
-      : '';
+    typeof error['message'] === 'string' ? error['message'].toLowerCase() : '';
+  return { code, message };
+}
+
+export function isDatabaseAuthError(error: unknown): boolean {
+  const { code, message } = readErrorMessageFields(error);
 
   if (code === 'P1000') {
     return true;
@@ -22,15 +28,7 @@ export function isDatabaseAuthError(error: unknown): boolean {
 }
 
 export function isDatabaseConnectivityError(error: unknown): boolean {
-  if (!error || typeof error !== 'object') {
-    return false;
-  }
-
-  const candidate = error as { message?: unknown };
-  const message =
-    typeof candidate.message === 'string'
-      ? candidate.message.toLowerCase()
-      : '';
+  const { message } = readErrorMessageFields(error);
 
   return (
     message.includes('self-signed certificate in certificate chain') ||

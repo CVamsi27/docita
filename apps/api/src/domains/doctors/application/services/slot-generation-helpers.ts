@@ -3,7 +3,7 @@ import { fromLocalISOString } from '@workspace/utils';
 import { TimeUtils } from '@/shared/common/utils/time.utils';
 import type { ClinicWeeklySchedule } from '@workspace/db';
 
-export type DayOfWeek =
+type DayOfWeek =
   | 'SUNDAY'
   | 'MONDAY'
   | 'TUESDAY'
@@ -80,7 +80,7 @@ export function implicitClinicWeeklyRowsForSlotFallback(
     {
       id: `implicit-clinic-weekly-${clinicId}-${dayOfWeek}`,
       clinicId,
-      dayOfWeek: dayOfWeek as ClinicWeeklySchedule['dayOfWeek'],
+      dayOfWeek: dayOfWeek satisfies ClinicWeeklySchedule['dayOfWeek'],
       startTime: '09:00',
       endTime: '17:00',
       slotDuration: 30,

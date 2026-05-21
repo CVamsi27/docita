@@ -1,7 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useRef, useState } from "react";
-import { getUserFacingErrorMessage } from "@workspace/utils";
+import { getUserFacingErrorMessage, isRecord } from "@workspace/utils";
 
 export interface PhoneSignatureQrSession {
   sessionId: string;
@@ -26,8 +26,9 @@ function readPersistedSession(
   try {
     const raw = sessionStorage.getItem(key);
     if (!raw) return null;
-    const parsed = JSON.parse(raw) as Partial<PhoneSignatureQrSession>;
+    const parsed: unknown = JSON.parse(raw);
     if (
+      !isRecord(parsed) ||
       typeof parsed.sessionId !== "string" ||
       !parsed.sessionId.trim() ||
       typeof parsed.qrUrl !== "string" ||

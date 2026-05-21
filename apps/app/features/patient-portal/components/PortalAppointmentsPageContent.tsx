@@ -2,7 +2,6 @@
 
 import { useState, type FormEvent } from "react";
 import { PatientPortalAppointmentsUI } from "@/features/patient-portal/components";
-import type { PatientAppointmentStatus } from "@/features/patient-portal/types/patient-portal-types";
 import {
   usePatientPortalAppointments,
   useRequestAppointment,
@@ -23,27 +22,7 @@ import { Textarea } from "@workspace/ui/components/form/textarea";
 import { IsoDatePickerField } from "@workspace/ui/components/form/iso-date-picker-field";
 import { Calendar } from "lucide-react";
 import { showUserFacingErrorToast } from "@/lib/errors/user-facing-errors";
-
-function mapAppointmentStatus(status: unknown): PatientAppointmentStatus {
-  if (typeof status !== "string") {
-    return "PENDING";
-  }
-
-  const normalized = status.toUpperCase().replace("-", "_");
-  if (normalized === "COMPLETED") {
-    return "COMPLETED";
-  }
-
-  if (
-    normalized === "CONFIRMED" ||
-    normalized === "CHECKED_IN" ||
-    normalized === "IN_PROGRESS"
-  ) {
-    return "CONFIRMED";
-  }
-
-  return "PENDING";
-}
+import { mapPortalAppointmentRow } from "@/features/patient-portal/lib/map-portal-records";
 
 export default function PortalAppointmentsPage() {
   const [preferredDate, setPreferredDate] = useState("");
@@ -58,40 +37,7 @@ export default function PortalAppointmentsPage() {
   } = usePatientPortalAppointments();
   const requestAppointment = useRequestAppointment();
 
-  const appointments = (data?.appointments ?? []).map((item, index) => {
-    const row = item as Record<string, unknown>;
-    const doctor = row.doctor as Record<string, unknown> | undefined;
-    const clinic = row.clinic as Record<string, unknown> | undefined;
-
-    const doctorName =
-      typeof row.doctorName === "string"
-        ? row.doctorName
-        : typeof doctor?.name === "string"
-          ? doctor.name
-          : "Doctor";
-
-    const clinicName =
-      typeof row.clinicName === "string"
-        ? row.clinicName
-        : typeof clinic?.name === "string"
-          ? clinic.name
-          : "Clinic";
-
-    const scheduledAt =
-      typeof row.scheduledAt === "string"
-        ? row.scheduledAt
-        : typeof row.startTime === "string"
-          ? row.startTime
-          : new Date().toISOString();
-
-    return {
-      id: typeof row.id === "string" ? row.id : `appointment-${index}`,
-      doctorName,
-      clinicName,
-      scheduledAt,
-      status: mapAppointmentStatus(row.status),
-    };
-  });
+  const appointments = (data?.appointments ?? []).map(mapPortalAppointmentRow);
 
   const state = isLoading
     ? "loading"

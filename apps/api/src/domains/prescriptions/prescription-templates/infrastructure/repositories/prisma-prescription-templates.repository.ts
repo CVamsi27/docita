@@ -1,8 +1,9 @@
 import { Injectable } from '@nestjs/common';
-import { Prisma, type PrescriptionTemplate } from '@workspace/db';
+import { type PrescriptionTemplate } from '@workspace/db';
 import { prescriptionTemplateMedicationsSchema } from '@workspace/types';
 import { PrismaService } from '@/prisma/prisma.service';
 import { parsePrismaJsonColumn } from '@/shared/common/json/parse-prisma-json-column';
+import { toPrismaInputJsonValue } from '@/shared/common/json/to-prisma-input-json-value';
 import {
   CreatePrescriptionTemplateData,
   IPrescriptionTemplatesRepository,
@@ -13,10 +14,6 @@ import {
 @Injectable()
 export class PrismaPrescriptionTemplatesRepository implements IPrescriptionTemplatesRepository {
   constructor(private readonly prisma: PrismaService) {}
-
-  private toInputJsonValue(value: unknown): Prisma.InputJsonValue {
-    return JSON.parse(JSON.stringify(value)) as Prisma.InputJsonValue;
-  }
 
   private mapRecord(raw: PrescriptionTemplate): PrescriptionTemplateRecord {
     const medications =
@@ -53,7 +50,7 @@ export class PrismaPrescriptionTemplatesRepository implements IPrescriptionTempl
     const row = await this.prisma.prescriptionTemplate.create({
       data: {
         name: data.name,
-        medications: this.toInputJsonValue(data.medications),
+        medications: toPrismaInputJsonValue(data.medications),
         instructions: data.instructions,
         userId,
       },
@@ -70,7 +67,7 @@ export class PrismaPrescriptionTemplatesRepository implements IPrescriptionTempl
       data: {
         name: data.name,
         medications: data.medications
-          ? this.toInputJsonValue(data.medications)
+          ? toPrismaInputJsonValue(data.medications)
           : undefined,
         instructions: data.instructions,
       },

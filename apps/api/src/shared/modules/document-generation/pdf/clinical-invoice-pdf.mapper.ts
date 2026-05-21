@@ -1,9 +1,3 @@
-import type {
-  PDFClinicInfo,
-  PDFDoctorInfo,
-  PDFInvoiceItem,
-  PDFPatientInfo,
-} from '@workspace/types';
 import type { ClinicalInvoicePdfInput } from './clinical-invoice-pdf.service';
 import type { InvoicePdfInput } from './pdf.types';
 
@@ -23,21 +17,14 @@ export function isClinicalInvoiceInput(data: InvoicePdfInput): boolean {
 export function mapInvoicePdfInputToClinical(
   data: InvoicePdfInput,
 ): ClinicalInvoicePdfInput {
-  return {
-    invoiceId: data.invoiceId,
-    title: data.title,
-    clinic: data.clinic as PDFClinicInfo,
-    patient: data.patient as PDFPatientInfo,
-    doctor: data.doctor as PDFDoctorInfo | undefined,
-    taxSummary: data.taxSummary,
-    sellerTaxSnapshot: data.sellerTaxSnapshot,
-    buyerTaxSnapshot: data.buyerTaxSnapshot,
-    authorizedSignatureUrl: data.authorizedSignatureUrl,
-    authorizedSignatureLabel: data.authorizedSignatureLabel,
-    items: data.items as PDFInvoiceItem[],
-    date: data.date,
-    dueDate: data.dueDate,
-    status: data.status,
-    hospitalConfig: data.hospitalConfig,
-  };
+  const {
+    subtotal: _subtotal,
+    discount: _discount,
+    tax: _tax,
+    total: _total,
+    paymentMethod: _paymentMethod,
+    notes: _notes,
+    ...clinical
+  } = data;
+  return clinical;
 }

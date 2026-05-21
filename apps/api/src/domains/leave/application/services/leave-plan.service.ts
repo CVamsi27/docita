@@ -6,6 +6,7 @@ import {
   BadRequestException,
 } from '@nestjs/common';
 import { LeaveType } from '@workspace/db';
+import { parseStringEnumMember } from '@workspace/utils';
 import {
   ILeaveRepository,
   LEAVE_REPOSITORY_TOKEN,
@@ -25,10 +26,11 @@ export class LeavePlanService {
   ) {}
 
   private toLeaveType(rawType: string): LeaveType {
-    if ((Object.values(LeaveType) as string[]).includes(rawType)) {
-      return rawType as LeaveType;
+    const leaveType = parseStringEnumMember(Object.values(LeaveType), rawType);
+    if (!leaveType) {
+      throw new BadRequestException(`Unsupported leave type: ${rawType}`);
     }
-    throw new BadRequestException(`Unsupported leave type: ${rawType}`);
+    return leaveType;
   }
 
   async getPlans(clinicId: string) {

@@ -15,11 +15,19 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@workspace/ui/components/form/select";
-import PhoneInput, { type Country } from "react-phone-number-input";
+import PhoneInput from "react-phone-number-input";
 import { toast } from "sonner";
-import { CLINIC_TYPE_OPTIONS, type ClinicType, TIER_INFO, type TierName } from "@workspace/types";
+import {
+  CLINIC_TYPE_OPTIONS,
+  type ClinicType,
+  clinicTypeSchema,
+  mapDbClinicTierStringToTierName,
+  TIER_INFO,
+  type TierName,
+  tierSchema,
+} from "@workspace/types";
 import { showUserFacingErrorToast } from "@/lib/errors/user-facing-errors";
-import { resolveCountryCodeOrDefault } from "@workspace/utils";
+import { resolveLibPhoneCountry } from "@/lib/phone/resolve-libphone-country";
 
 const AVAILABLE_TIERS: TierName[] = [
   "STARTER",
@@ -43,19 +51,22 @@ const CLINIC_TYPE_DESCRIPTIONS: Partial<Record<ClinicType, string>> = {
   SPECIALTY: "Custom specialty facility",
 };
 
-function normalizeTierName(tier: string): TierName {
-  const legacyMapping: Record<string, TierName> = {
-    FREE: "STARTER",
-    CAPTURE: "STARTER",
-    CORE: "ESSENTIAL",
-    PLUS: "ESSENTIAL",
-    PRO: "PROFESSIONAL",
-    CLINIC: "PROFESSIONAL",
-  };
-  return (legacyMapping[tier] || tier) as TierName;
+type EditClinicFormData = {
+  name: string;
+  email: string;
+  phone: string;
+  address: string;
+  tier: TierName;
+  type: ClinicType;
+  active: boolean;
+};
+
+function resolveClinicType(type: string | undefined): ClinicType {
+  const parsed = clinicTypeSchema.safeParse(type ?? "GENERAL");
+  return parsed.success ? parsed.data : "GENERAL";
 }
 
-function getInitialFormData(clinic: Clinic | null) {
+function getInitialFormData(clinic: Clinic | null): EditClinicFormData {
   if (!clinic) {
     return {
       name: "",
@@ -63,7 +74,7 @@ function getInitialFormData(clinic: Clinic | null) {
       phone: "",
       address: "",
       tier: "STARTER",
-      type: "GENERAL" as ClinicType,
+      type: "GENERAL",
       active: true,
     };
   }
@@ -72,8 +83,8 @@ function getInitialFormData(clinic: Clinic | null) {
     email: clinic.email,
     phone: clinic.phone,
     address: clinic.address,
-    tier: normalizeTierName(clinic.tier),
-    type: (clinic.type || "GENERAL") as ClinicType,
+    tier: mapDbClinicTierStringToTierName(clinic.tier),
+    type: resolveClinicType(clinic.type),
     active: clinic.active,
   };
 }
@@ -244,9 +255,7 @@ export function EditClinicDialog({
                   id="edit-phone"
                   value={formData.phone}
                   international
-                  defaultCountry={
-                    resolveCountryCodeOrDefault(clinic.settings) as Country
-                  }
+                  defaultCountry={resolveLibPhoneCountry(clinic.settings)}
                   onChange={(value: string | undefined) => {
                     setFormData({ ...formData, phone: value ?? "" });
                     if (fieldErrors.phone) {
@@ -273,9 +282,11 @@ export function EditClinicDialog({
                 <Label htmlFor="edit-tier">Subscription Tier</Label>
                 <Select
                   value={formData.tier}
-                  onValueChange={(val) =>
-                    setFormData({ ...formData, tier: val })
-                  }
+                  onValueChange={(val) => {
+                    const parsed = tierSchema.safeParse(val);
+                    if (!parsed.success) return;
+                    setFormData({ ...formData, tier: parsed.data });
+                  }}
                 >
                   <SelectTrigger>
                     <SelectValue placeholder="Tier" />
@@ -295,9 +306,11 @@ export function EditClinicDialog({
               <Label htmlFor="edit-type">Clinic Type</Label>
               <Select
                 value={formData.type}
-                onValueChange={(val) =>
-                  setFormData({ ...formData, type: val as ClinicType })
-                }
+                onValueChange={(val) => {
+                  const parsed = clinicTypeSchema.safeParse(val);
+                  if (!parsed.success) return;
+                  setFormData({ ...formData, type: parsed.data });
+                }}
               >
                 <SelectTrigger>
                   <SelectValue placeholder="Facility type" />

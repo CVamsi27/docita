@@ -14,6 +14,7 @@ import {
   IAppointmentWriteRepository,
 } from '@/domains/appointments/core/repositories/appointment.repository.interface';
 import { isFrontDeskWorkspace, parseWorkspaceProfile } from '@workspace/types';
+import { isRecord } from '@workspace/utils';
 
 interface StartConsultationCommand {
   appointmentId: string;
@@ -46,10 +47,9 @@ export class StartConsultationUseCase {
 
     const clinicRow =
       await this.readRepository.findClinicWorkspaceProfile(clinicId);
-    const clinicSettings =
-      clinicRow?.settings && typeof clinicRow.settings === 'object'
-        ? (clinicRow.settings as Record<string, unknown>)
-        : {};
+    const clinicSettings = isRecord(clinicRow?.settings)
+      ? clinicRow.settings
+      : {};
     if (
       isFrontDeskWorkspace(
         parseWorkspaceProfile(clinicSettings.workspaceProfile),

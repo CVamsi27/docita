@@ -2,6 +2,8 @@ import { Injectable } from '@nestjs/common';
 import { jsonObjectSchema } from '@workspace/types';
 import { PrismaService } from '@/prisma/prisma.service';
 import { parsePrismaJsonColumn } from '@/shared/common/json/parse-prisma-json-column';
+import { toPrismaInputJsonValue } from '@/shared/common/json/to-prisma-input-json-value';
+import { z } from 'zod';
 import {
   IUserRepository,
   JwtValidationUserSnapshot,
@@ -9,13 +11,18 @@ import {
 } from '@/domains/users/core/repositories/user.repository.interface';
 import { OnboardingStep, Prisma } from '@workspace/db';
 
+const onboardingStepSchema = z.nativeEnum(OnboardingStep);
+
+function verificationDataRecord(
+  value: Prisma.JsonValue | null | undefined,
+): Record<string, unknown> {
+  const parsed = parsePrismaJsonColumn(value, jsonObjectSchema);
+  return parsed ?? {};
+}
+
 @Injectable()
 export class PrismaUserRepository implements IUserRepository {
   constructor(private prisma: PrismaService) {}
-
-  private toInputJsonValue(value: unknown): Prisma.InputJsonValue {
-    return JSON.parse(JSON.stringify(value)) as Prisma.InputJsonValue;
-  }
 
   async findById(id: string) {
     // RLS-BYPASS: user lookup by identifier precedes clinic tenant binding
@@ -64,10 +71,7 @@ export class PrismaUserRepository implements IUserRepository {
         },
       });
       if (!row) return null;
-      const prefs =
-        row.verificationData && typeof row.verificationData === 'object'
-          ? (row.verificationData as Record<string, unknown>)
-          : {};
+      const prefs = verificationDataRecord(row.verificationData);
       return {
         id: row.id,
         email: row.email,
@@ -93,11 +97,7 @@ export class PrismaUserRepository implements IUserRepository {
         where: { id: userId },
         select: { verificationData: true },
       });
-      const current =
-        existing?.verificationData &&
-        typeof existing.verificationData === 'object'
-          ? (existing.verificationData as Record<string, unknown>)
-          : {};
+      const current = verificationDataRecord(existing?.verificationData);
 
       const nextPrefs =
         data.sidebarNavOrderOverride === undefined
@@ -119,7 +119,7 @@ export class PrismaUserRepository implements IUserRepository {
           ...(data.name && { name: data.name }),
           ...(data.email && { email: data.email }),
           ...(data.sidebarNavOrderOverride !== undefined && {
-            verificationData: this.toInputJsonValue(nextPrefs),
+            verificationData: toPrismaInputJsonValue(nextPrefs),
           }),
         },
         select: {
@@ -154,7 +154,7 @@ export class PrismaUserRepository implements IUserRepository {
     await this.prisma.runUnrestricted(async () =>
       this.prisma.user.update({
         where: { id: userId },
-        data: { onboardingStep: step as OnboardingStep },
+        data: { onboardingStep: onboardingStepSchema.parse(step) },
       }),
     );
   }

@@ -13,8 +13,8 @@ export class SecretsManagerService {
   }
 
   private getEnvSecret(secretName: string): string | undefined {
-    const config = this.configService.getConfig() as Record<string, unknown>;
-    const value = config[secretName];
+    const config = this.configService.getConfig();
+    const value = Reflect.get(config, secretName);
     return typeof value === 'string' ? value : undefined;
   }
 
@@ -53,8 +53,6 @@ export class SecretsManagerService {
 
     if (provider === 'aws') {
       secretValue = this.getFromAwsSecretsManager(secretName);
-    } else if ((provider as string) === 'vault') {
-      secretValue = this.getFromHashiCorpVault(secretName);
     } else {
       secretValue = this.getEnvSecret(secretName);
     }
@@ -75,12 +73,8 @@ export class SecretsManagerService {
   ): Record<string, string | undefined> {
     const secrets = secretNames.map((name) => this.getSecret(name, options));
 
-    return secretNames.reduce(
-      (acc, name, index) => {
-        acc[name] = secrets[index];
-        return acc;
-      },
-      {} as Record<string, string | undefined>,
+    return Object.fromEntries(
+      secretNames.map((name, index) => [name, secrets[index]]),
     );
   }
 

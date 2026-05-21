@@ -1,3 +1,5 @@
+import { isRecord } from "@workspace/utils";
+
 export interface AskAiStoredMessage {
   id: string;
   author: "user" | "assistant";
@@ -75,8 +77,8 @@ export function deriveTitle(content: string): string {
 }
 
 function isValidThread(value: unknown): value is AskAiStoredThread {
-  if (!value || typeof value !== "object") return false;
-  const t = value as Record<string, unknown>;
+  if (!isRecord(value)) return false;
+  const t = value;
   return (
     typeof t.id === "string" &&
     typeof t.title === "string" &&

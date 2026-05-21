@@ -15,6 +15,7 @@ import { ClinicalService } from '@/domains/clinical/application/services/clinica
 import { LabTest } from '@/domains/clinical/core/entities/lab-test.entity';
 import { LabOrder } from '@/domains/clinical/core/entities/lab-order.entity';
 import { LabTestOrderStatus } from '@workspace/db';
+import { parseStringEnumMember } from '@workspace/utils';
 import { TierGuard } from '@/shared/modules/auth/auth/tier.guard';
 import { FrontDeskClinicalBlockGuard } from '@/shared/modules/clinic-workspace/front-desk-clinical-block.guard';
 import { Roles } from '@/shared/modules/auth/auth/roles.decorator';
@@ -139,7 +140,11 @@ export class LabTestsController {
     if (order.clinicId !== getClinicStaffRequestContext(req).clinicId) {
       throw new NotFoundException('Lab order not found');
     }
-    const status = (body.status || 'ORDERED') as LabTestOrderStatus;
+    const status =
+      parseStringEnumMember(
+        Object.values(LabTestOrderStatus),
+        body.status ?? LabTestOrderStatus.ORDERED,
+      ) ?? LabTestOrderStatus.ORDERED;
     return await this.clinicalService.updateOrderStatus(id, status);
   }
 

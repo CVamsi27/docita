@@ -2,6 +2,8 @@ import { ConflictException, Inject, Injectable } from '@nestjs/common';
 import { apiHttpIdempotencyResponseJsonSchema } from '@workspace/types';
 import { CLOCK_PORT, type IClock } from '@/shared/common/ports/clock.port';
 import { Prisma } from '@workspace/db';
+import { isRecord } from '@workspace/utils';
+import { toPrismaInputJsonValue } from '@/shared/common/json/to-prisma-input-json-value';
 import { PrismaService } from '@/prisma/prisma.service';
 import { parsePrismaJsonColumn } from '@/shared/common/json/parse-prisma-json-column';
 import type { CachedIdempotencyEntry } from './idempotency.service';
@@ -15,21 +17,18 @@ function addSeconds(base: Date, seconds: number): Date {
 }
 
 function isPrismaUniqueViolation(error: unknown): boolean {
-  return (
-    error !== null &&
-    typeof error === 'object' &&
-    'code' in error &&
-    (error as { code: string }).code === 'P2002'
-  );
+  return isRecord(error) && error['code'] === 'P2002';
 }
 
 /** Json column persistence: strip non-JSON types (e.g. Date) Prisma may reject. */
 function responseAsJsonInput(response: unknown): Prisma.InputJsonValue {
-  return JSON.parse(
-    JSON.stringify(response, (_key, value) =>
-      typeof value === 'bigint' ? value.toString() : value,
+  return toPrismaInputJsonValue(
+    JSON.parse(
+      JSON.stringify(response, (_key, value) =>
+        typeof value === 'bigint' ? value.toString() : value,
+      ),
     ),
-  ) as Prisma.InputJsonValue;
+  );
 }
 
 @Injectable()

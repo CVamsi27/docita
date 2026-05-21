@@ -258,25 +258,32 @@ export function useComplianceStep({
     }
   }, [qrFlow]);
 
-  const legalDocs = [
+  const legalDocs: Array<{
+    key: LegalDocumentType;
+    title: string;
+    summary: string;
+    accepted: boolean;
+    fieldKey: "acceptedSLA" | "acceptedPrivacyPolicy" | "acceptedDataProcessing";
+  }> = [
     {
-      key: "sla" as LegalDocumentType,
+      key: "sla",
       title: "Service Level Agreement",
       summary: "Platform uptime, support timelines, incident response, and governance commitments",
       accepted: !!complianceForm.watch("acceptedSLA"),
       fieldKey: "acceptedSLA" as const,
     },
     {
-      key: "privacy" as LegalDocumentType,
+      key: "privacy",
       title: "Privacy Policy & Data Consent",
       summary: "How patient data is collected, stored, and processed under DPDP regulations",
       accepted: !!complianceForm.watch("acceptedPrivacyPolicy"),
       fieldKey: "acceptedPrivacyPolicy" as const,
     },
     {
-      key: "dpa" as LegalDocumentType,
+      key: "dpa",
       title: "Data Processing Agreement",
-      summary: "Your obligations as a data fiduciary and our role as a data processor",
+      summary:
+        "Your obligations in the data fiduciary role and our role in the data processor role",
       accepted: !!complianceForm.watch("acceptedDataProcessing"),
       fieldKey: "acceptedDataProcessing" as const,
     },

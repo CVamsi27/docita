@@ -38,6 +38,7 @@ import {
   type ImportsAuthRequest,
 } from './imports.controller.access';
 import { ocrImageUploadOptions } from './imports.controller.upload';
+import { readRequestHeaderString } from '@/shared/common/http/client-ip';
 
 @Controller('imports')
 @ImportsApiAccess()
@@ -99,7 +100,7 @@ export class ImportsOcrController {
     }
     return this.importsService.commitOcrImport(body, {
       ipAddress: req.ip,
-      userAgent: req.headers['user-agent'] as string | undefined,
+      userAgent: readRequestHeaderString(req.headers, 'user-agent'),
       createdBy: req.user.id,
       dpdpNoticeVersion: body.dpdpConsent.noticeVersion,
     });

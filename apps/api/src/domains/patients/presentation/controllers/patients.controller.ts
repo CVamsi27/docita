@@ -60,8 +60,11 @@ export class PatientsController {
 
   private toPatientResponse(value: unknown) {
     const candidate =
-      typeof value === 'object' && value && 'toPlain' in value
-        ? (value as { toPlain: () => unknown }).toPlain()
+      typeof value === 'object' &&
+      value !== null &&
+      'toPlain' in value &&
+      typeof value.toPlain === 'function'
+        ? value.toPlain()
         : value;
     return patientResponseSchema.parse(candidate);
   }
@@ -115,7 +118,10 @@ export class PatientsController {
       givenByRelation: consent.relation,
       createdBy: req.user?.id,
       ipAddress: req.ip,
-      userAgent: req.headers?.['user-agent'] as string | undefined,
+      userAgent:
+        typeof req.headers?.['user-agent'] === 'string'
+          ? req.headers['user-agent']
+          : undefined,
       notes: 'Collected by staff via Add Patient modal',
     });
 

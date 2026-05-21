@@ -8,24 +8,21 @@ import {
   MetricHistoryQueryDto,
   UpsertMetricSelectionsDto,
 } from '@/domains/patients/application/dto/patient-metrics.dto';
-import {
-  IPatientMetricsRepository,
-  MetricCategoryRow,
-  MetricDefinitionExistsRow,
-  MetricDefinitionRow,
-  MetricRecordRow,
-  MetricSelectionRow,
-} from '@/domains/patients/core/repositories/patient-metrics.repository.interface';
-import { patientMetricValueJsonSchema } from '@workspace/types';
+import { IPatientMetricsRepository } from '@/domains/patients/core/repositories/patient-metrics.repository.interface';
 import {
   MetricCardinality,
   MetricCaptureScope,
   MetricRecordSource,
   MetricValueType,
-  PatientMetricValue,
   Prisma,
 } from '@workspace/db';
-import { parsePrismaJsonColumn } from '@/shared/common/json/parse-prisma-json-column';
+import { toPrismaInputJsonValue } from '@/shared/common/json/to-prisma-input-json-value';
+import {
+  mapMetricCategoryRow,
+  mapMetricDefinitionRow,
+  mapMetricRecordRow,
+  mapMetricSelectionRow,
+} from '@/domains/patients/infrastructure/persistence/patient-metrics-repository.mappers';
 
 function toMetricValueType(valueType: CreateMetricDefinitionDto['valueType']) {
   const mapping: Record<
@@ -93,24 +90,6 @@ export class PrismaPatientMetricsRepository implements IPatientMetricsRepository
     return this.prisma.getReadClient();
   }
 
-  private mapMetricValue(value: PatientMetricValue) {
-    return {
-      ...value,
-      valueJson:
-        parsePrismaJsonColumn(value.valueJson, patientMetricValueJsonSchema) ??
-        null,
-    };
-  }
-
-  private mapMetricRecord<T extends { values: PatientMetricValue[] }>(
-    record: T,
-  ) {
-    return {
-      ...record,
-      values: record.values.map((value) => this.mapMetricValue(value)),
-    };
-  }
-
   async findCategories(clinicId: string, patientId: string) {
     const categories = await this.getReadClient().metricCategory.findMany({
       where: { clinicId, isActive: true },
@@ -132,7 +111,7 @@ export class PrismaPatientMetricsRepository implements IPatientMetricsRepository
       },
     });
 
-    return categories as MetricCategoryRow[];
+    return categories.map((category) => mapMetricCategoryRow(category));
   }
 
   async findSelections(clinicId: string, patientId: string) {
@@ -141,7 +120,7 @@ export class PrismaPatientMetricsRepository implements IPatientMetricsRepository
         where: { clinicId, patientId },
       });
 
-    return selections as MetricSelectionRow[];
+    return selections.map((selection) => mapMetricSelectionRow(selection));
   }
 
   createCategory(clinicId: string, dto: CreateMetricCategoryDto) {
@@ -220,7 +199,7 @@ export class PrismaPatientMetricsRepository implements IPatientMetricsRepository
       select: { id: true },
     });
 
-    return definitions as MetricDefinitionExistsRow[];
+    return definitions;
   }
 
   async upsertSelectionsBatch(
@@ -274,7 +253,7 @@ export class PrismaPatientMetricsRepository implements IPatientMetricsRepository
       orderBy: [{ order: 'asc' }, { label: 'asc' }],
     });
 
-    return definitions as MetricDefinitionRow[];
+    return definitions.map((definition) => mapMetricDefinitionRow(definition));
   }
 
   async findActiveDefinition(
@@ -309,7 +288,10 @@ export class PrismaPatientMetricsRepository implements IPatientMetricsRepository
               valueNumber: dto.valueNumber,
               valueBoolean: dto.valueBoolean,
               valueDate: dto.valueDate ? new Date(dto.valueDate) : undefined,
-              valueJson: dto.valueJson as Prisma.InputJsonValue | undefined,
+              valueJson:
+                dto.valueJson === undefined
+                  ? undefined
+                  : toPrismaInputJsonValue(dto.valueJson),
               optionId: dto.optionId,
             },
           ];
@@ -399,8 +381,6 @@ export class PrismaPatientMetricsRepository implements IPatientMetricsRepository
       take: query.limit ?? 200,
     });
 
-    return records.map((record) =>
-      this.mapMetricRecord(record),
-    ) as MetricRecordRow[];
+    return records.map((record) => mapMetricRecordRow(record));
   }
 }

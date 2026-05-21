@@ -1,5 +1,5 @@
 import { Inject, Injectable, Logger, forwardRef } from '@nestjs/common';
-import { AppointmentStatus, Prisma, WhatsappLogStatus } from '@workspace/db';
+import { AppointmentStatus, WhatsappLogStatus } from '@workspace/db';
 import { WhatsAppWebhookPayload } from '@workspace/types';
 import {
   WHATSAPP_PERSISTENCE_PORT,
@@ -13,12 +13,19 @@ import {
 } from '@/domains/whatsapp/application/ports/whatsapp.repository.port';
 import { WhatsAppMessageStatus } from '@/domains/whatsapp/core/entities/whatsapp-message.entity';
 import { CLOCK_PORT, type IClock } from '@/shared/common/ports/clock.port';
+import { toPrismaInputJsonValue } from '@/shared/common/json/to-prisma-input-json-value';
+import { parseStringEnumMember } from '@workspace/utils';
 
 type WebhookChangeValue =
   WhatsAppWebhookPayload['entry'][number]['changes'][number]['value'];
 
-function toJsonValue(value: unknown): Prisma.InputJsonValue {
-  return JSON.parse(JSON.stringify(value)) as Prisma.InputJsonValue;
+const WHATSAPP_LOG_STATUS_VALUES = Object.values(WhatsappLogStatus);
+
+function toLegacyLogStatus(status: string): WhatsappLogStatus | undefined {
+  return (
+    parseStringEnumMember(WHATSAPP_LOG_STATUS_VALUES, status.toUpperCase()) ??
+    undefined
+  );
 }
 
 const META_WEBHOOK_STATUS_TO_DOMAIN: Record<
@@ -128,9 +135,14 @@ export class WhatsAppWebhookIngressService {
         return;
       }
 
+      const logStatus = toLegacyLogStatus(status.status);
+      if (!logStatus) {
+        return;
+      }
+
       const updateData: Record<string, unknown> = {
-        status: status.status.toUpperCase() as WhatsappLogStatus,
-        responseBody: toJsonValue(status),
+        status: logStatus,
+        responseBody: toPrismaInputJsonValue(status),
       };
 
       if (status.status === 'delivered' || status.status === 'read') {

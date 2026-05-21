@@ -16,6 +16,7 @@ import { API_URL, MAIN_APP_URL } from "../api/api-config";
 import { INTERNAL_USER_KEY, internalSession } from "./session";
 import { DocitaLoadingIndicator } from "@workspace/ui/components/feedback/docita-loading-indicator";
 import { showUserFacingErrorToast } from "@/lib/errors/user-facing-errors";
+import { isRecord } from "@workspace/utils";
 
 interface User {
   id: string;
@@ -70,11 +71,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       return true;
     } catch (error) {
       const status =
-        typeof error === "object" &&
-        error !== null &&
-        "status" in error &&
-        typeof (error as { status?: unknown }).status === "number"
-          ? (error as { status: number }).status
+        isRecord(error) && typeof error.status === "number"
+          ? error.status
           : undefined;
       if (status === 404 || status === 401) {
         clearAuthStorage();

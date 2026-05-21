@@ -10,12 +10,12 @@ import {
   IMedicalDocumentsRepository,
   MEDICAL_DOCUMENTS_REPOSITORY_TOKEN,
 } from '@/domains/medical-documents/core/repositories/medical-documents.repository.interface';
-import {
-  MedicalDocumentStatus,
-  MedicalDocumentType,
-  Prisma,
-} from '@workspace/db';
+import { MedicalDocumentStatus, MedicalDocumentType } from '@workspace/db';
 import { CLOCK_PORT, type IClock } from '@/shared/common/ports/clock.port';
+import { parseStringEnumMember } from '@workspace/utils';
+import { toPrismaInputJsonValue } from '@/shared/common/json/to-prisma-input-json-value';
+
+const MEDICAL_DOCUMENT_TYPE_MEMBERS = Object.values(MedicalDocumentType);
 
 /**
  * Thin facade — delegates medical document persistence to IMedicalDocumentsRepository.
@@ -40,8 +40,12 @@ export class MedicalDocumentsService {
       return legacyAliases[normalized];
     }
 
-    if ((Object.values(MedicalDocumentType) as string[]).includes(normalized)) {
-      return normalized as MedicalDocumentType;
+    const parsed = parseStringEnumMember(
+      MEDICAL_DOCUMENT_TYPE_MEMBERS,
+      normalized,
+    );
+    if (parsed) {
+      return parsed;
     }
     throw new BadRequestException(
       `Unsupported medical document type: ${rawType}`,
@@ -69,7 +73,7 @@ export class MedicalDocumentsService {
         appointment: { connect: { id: data.appointmentId } },
       }),
       title: data.title,
-      content: data.content as Prisma.InputJsonValue,
+      content: toPrismaInputJsonValue(data.content),
       validFrom: data.validFrom ? new Date(data.validFrom) : null,
       validUntil: data.validUntil ? new Date(data.validUntil) : null,
       ...(data.pdfUrl ? { pdfUrl: data.pdfUrl } : {}),
@@ -104,7 +108,7 @@ export class MedicalDocumentsService {
     return this.medicalDocumentsRepository.update(id, {
       ...(data.title !== undefined && { title: data.title }),
       ...(data.content !== undefined && {
-        content: data.content as Prisma.InputJsonValue,
+        content: toPrismaInputJsonValue(data.content),
       }),
       ...(data.validFrom !== undefined && {
         validFrom: data.validFrom ? new Date(data.validFrom) : null,

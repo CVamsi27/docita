@@ -63,7 +63,7 @@ export function useSubscriptionCheckout(
 
       try {
         const createData = subscriptionBillingCheckoutResponseSchema.parse(
-          await fetchJsonWithSession<unknown>("/subscription/billing/checkout", {
+          await fetchJsonWithSession("/subscription/billing/checkout", {
             method: "POST",
             headers: { "Content-Type": "application/json" },
             body: JSON.stringify({ tier, billingCycle }),
@@ -94,15 +94,15 @@ export function useSubscriptionCheckout(
         }
 
         await openCheckout({
-          key: razorpayKeyId as string,
-          amount: amountCents as number,
-          currency: currency as string,
+          key: razorpayKeyId,
+          amount: amountCents,
+          currency,
           name: "Docita Subscription",
           description: `Upgrade to ${tier} Plan`,
-          order_id: orderId as string,
+          order_id: orderId,
           handler: async (response: RazorpayResponse) => {
             subscriptionBillingActivateResponseSchema.parse(
-              await fetchJsonWithSession<unknown>(
+              await fetchJsonWithSession(
                 "/subscription/billing/activate",
                 {
                   method: "POST",

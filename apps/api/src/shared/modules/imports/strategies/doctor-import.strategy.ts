@@ -1,6 +1,7 @@
 import { Injectable, Logger } from '@nestjs/common';
 import { PrismaService } from '@/prisma/prisma.service';
 import { Specialization } from '@workspace/db';
+import { parseStringEnumMember } from '@workspace/utils';
 import * as bcrypt from 'bcrypt';
 import { nanoid } from 'nanoid';
 import {
@@ -54,13 +55,12 @@ export class DoctorImportStrategy implements IImportStrategy {
       row,
       'specialization',
     );
-    const specialization =
-      specializationValue &&
-      Object.values(Specialization).includes(
-        specializationValue as Specialization,
-      )
-        ? (specializationValue as Specialization)
-        : undefined;
+    const specialization = specializationValue
+      ? (parseStringEnumMember(
+          Object.values(Specialization),
+          specializationValue,
+        ) ?? undefined)
+      : undefined;
 
     await this.prisma.user.create({
       data: {

@@ -13,7 +13,8 @@ import {
   CLINIC_INVOICE_PAYMENT_LINK_PROVIDER_TOKEN,
 } from '@/domains/payments/core/ports/payment-link-provider.port';
 import { Money } from '@/domains/payments/core/value-objects/money.vo';
-import { PaymentSessionStatus, Prisma, InvoiceStatus } from '@workspace/db';
+import { PaymentSessionStatus, InvoiceStatus } from '@workspace/db';
+import { toPrismaInputJsonValue } from '@/shared/common/json/to-prisma-input-json-value';
 import type { PaymentWebhookPayload } from '@workspace/types';
 import {
   IPaymentSessionRepository,
@@ -128,12 +129,12 @@ export class PaymentsCommandService {
       currency: dto.currency,
       status: PaymentSessionStatus.CREATED,
       expiresAt,
-      meta: {
+      meta: toPrismaInputJsonValue({
         paymentLinkId: paymentLinkResponse.id,
         url: paymentLinkResponse.url,
         shortUrl: paymentLinkResponse.shortUrl,
         status: paymentLinkResponse.status,
-      } as Prisma.InputJsonValue,
+      }),
     });
 
     this.logger.log(
@@ -272,7 +273,7 @@ export class PaymentsCommandService {
     });
 
     this.logger.log(
-      `Invoice ${data.invoiceId} marked as paid manually by ${data.performedByUserId}`,
+      `Invoice ${data.invoiceId} marked paid manually by ${data.performedByUserId}`,
     );
 
     return { success: true };

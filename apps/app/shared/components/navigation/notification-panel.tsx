@@ -17,7 +17,11 @@ import {
   useDeleteAllNotifications, type StaffNotification,
 } from "@workspace/data-access";
 import { useSocket } from "@/lib/contexts/socket-context";
-import { NOTIFICATION_CATEGORIES, type NotificationCategoryId } from "./notification-href";
+import {
+  isNotificationCategoryId,
+  NOTIFICATION_CATEGORIES,
+  type NotificationCategoryId,
+} from "./notification-href";
 import {
   NotificationItem, categorizeNotifications, filterByCategory,
 } from "./notification-item";
@@ -82,15 +86,21 @@ export function NotificationPanel({ open, onOpenChange, enabled = true }: Notifi
   }, [activeNotifications]);
 
   const notificationsByTab = useMemo(() => {
-    return Object.fromEntries(
-      visibleCategories.map((cat) => [cat.id, filterByCategory(activeNotifications, cat.types)]),
-    ) as Record<NotificationCategoryId, StaffNotification[]>;
+    const out: Partial<Record<NotificationCategoryId, StaffNotification[]>> =
+      {};
+    for (const cat of visibleCategories) {
+      out[cat.id] = filterByCategory(activeNotifications, cat.types);
+    }
+    return out;
   }, [activeNotifications, visibleCategories]);
 
   const unreadCountByTab = useMemo(() => {
-    return Object.fromEntries(
-      visibleCategories.map((cat) => [cat.id, (notificationsByTab[cat.id] ?? []).filter((n) => !n.isRead).length]),
-    ) as Record<NotificationCategoryId, number>;
+    const out: Partial<Record<NotificationCategoryId, number>> = {};
+    for (const cat of visibleCategories) {
+      out[cat.id] = (notificationsByTab[cat.id] ?? []).filter((n) => !n.isRead)
+        .length;
+    }
+    return out;
   }, [notificationsByTab, visibleCategories]);
 
   useEffect(() => {
@@ -135,7 +145,14 @@ export function NotificationPanel({ open, onOpenChange, enabled = true }: Notifi
                 </Button>
               </div>
               <div className="px-4">
-                <Tabs value={activeTab} onValueChange={(next) => setActiveTab(next as NotificationCategoryId)}>
+                <Tabs
+                  value={activeTab}
+                  onValueChange={(next) => {
+                    if (isNotificationCategoryId(next)) {
+                      setActiveTab(next);
+                    }
+                  }}
+                >
                   <TabsList className="w-full justify-start overflow-x-auto">
                     {visibleCategories.map((cat) => {
                       const count = unreadCountByTab[cat.id] ?? 0;

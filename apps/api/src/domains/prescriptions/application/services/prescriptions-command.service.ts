@@ -16,6 +16,7 @@ import {
 import {
   DEFAULT_LOCALE,
   checkPrescriptionAllergies,
+  parseStringEnumMember,
   validateDosage,
 } from '@workspace/utils';
 import {
@@ -188,10 +189,18 @@ export class PrescriptionsCommandService {
           route: med.route || 'PO',
           ndcCode: med.ndcCode,
           rxNormCui: med.rxNormCui,
-          dosageForm: med.dosageForm as DosageForm | undefined,
+          dosageForm: med.dosageForm
+            ? (parseStringEnumMember(
+                Object.values(DosageForm),
+                med.dosageForm,
+              ) ?? undefined)
+            : undefined,
           strengthValue: med.strengthValue,
           strengthUnit: med.strengthUnit,
-          sigCode: med.sigCode as SigCode | undefined,
+          sigCode: med.sigCode
+            ? (parseStringEnumMember(Object.values(SigCode), med.sigCode) ??
+              undefined)
+            : undefined,
           quantity: med.quantity,
           refillsAllowed: med.refillsAllowed ?? 0,
           dispenseAsWritten: med.dispenseAsWritten ?? false,

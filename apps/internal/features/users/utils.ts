@@ -1,4 +1,27 @@
-import type { RoleFilter, User, UserRole } from "./types";
+import { SPECIALIZATION_LABELS } from "@workspace/types";
+import { ROLE_CONFIG, type RoleFilter, type User, type UserRole } from "./types";
+
+export function isRoleConfigKey(key: string): key is keyof typeof ROLE_CONFIG {
+  return key in ROLE_CONFIG;
+}
+
+function isSpecializationLabelKey(
+  key: string,
+): key is keyof typeof SPECIALIZATION_LABELS {
+  return key in SPECIALIZATION_LABELS;
+}
+
+export function getSpecializationLabel(
+  specialization: string | undefined,
+): string {
+  if (!specialization) {
+    return "-";
+  }
+  if (isSpecializationLabelKey(specialization)) {
+    return SPECIALIZATION_LABELS[specialization];
+  }
+  return specialization;
+}
 
 export function getRoleBadgeColor(role: UserRole): string {
   switch (role) {

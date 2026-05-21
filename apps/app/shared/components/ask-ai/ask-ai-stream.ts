@@ -1,4 +1,5 @@
 import { fetchWithSession } from "@/lib/auth/fetch-with-session";
+import { isRecord } from "@workspace/utils";
 import type { AskAiScope } from "./ask-ai-context";
 
 export interface AskAiHistoryItem {
@@ -104,7 +105,8 @@ function parseEvent(raw: string): ParsedEvent | null {
   if (dataLines.length === 0) return { event, data: null };
   const dataString = dataLines.join("\n");
   try {
-    return { event, data: JSON.parse(dataString) as Record<string, unknown> };
+    const parsed: unknown = JSON.parse(dataString);
+    return { event, data: isRecord(parsed) ? parsed : null };
   } catch {
     return null;
   }
@@ -116,8 +118,10 @@ function parseErrorMessage(status: number, detail: string): string {
   if (status === 429) return "Too many Ask AI requests—try again in a minute.";
   if (detail) {
     try {
-      const parsed = JSON.parse(detail) as { message?: unknown };
-      if (typeof parsed.message === "string") return parsed.message;
+      const parsed: unknown = JSON.parse(detail);
+      if (isRecord(parsed) && typeof parsed.message === "string") {
+        return parsed.message;
+      }
     } catch {
       // detail wasn't JSON
     }

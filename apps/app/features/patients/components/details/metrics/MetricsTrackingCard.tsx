@@ -5,12 +5,13 @@ import {
   CardHeader,
   CardTitle,
 } from "@workspace/ui/components/indicators/card";
+import type { MetricCategoryResponse } from "@workspace/types";
 import { Layers } from "lucide-react";
 
 interface MetricsTrackingCardProps {
   loading: boolean;
   readOnly: boolean;
-  categories: Array<Record<string, unknown>>;
+  categories: MetricCategoryResponse[];
   selectionMap: Map<string, boolean>;
   emptyDefinitionsMessage: string;
   onToggleTracked: (definitionId: string, isTracked: boolean) => void;
@@ -38,35 +39,29 @@ export function MetricsTrackingCard({
         {loading ? (
           <p className="text-sm text-muted-foreground">Loading metrics</p>
         ) : (
-          categories.map((category) => {
-            const categoryId = String(category.id || "");
-            const categoryName = String(category.name || "Unnamed Category");
-            const definitions =
-              (category.metricDefinitions as Array<Record<string, unknown>>) ||
-              [];
-
-            return (
-              <div key={categoryId} className="rounded-lg border p-3">
-                <div className="font-medium text-sm mb-2">{categoryName}</div>
+          categories.map((category) => (
+              <div key={category.id} className="rounded-lg border p-3">
+                <div className="font-medium text-sm mb-2">
+                  {category.name || "Unnamed Category"}
+                </div>
                 <div className="space-y-2">
-                  {definitions.length === 0 ? (
+                  {category.metricDefinitions.length === 0 ? (
                     <p className="text-xs text-muted-foreground">
                       {emptyDefinitionsMessage}
                     </p>
                   ) : (
-                    definitions.map((definition) => {
-                      const definitionId = String(definition.id || "");
+                    category.metricDefinitions.map((definition) => {
                       const isTracked =
-                        selectionMap.get(definitionId) ??
-                        Boolean(definition.isTracked);
+                        selectionMap.get(definition.id) ??
+                        Boolean(definition.isTrackedByDefault);
 
                       return (
                         <label
-                          key={definitionId}
+                          key={definition.id}
                           className="flex items-center justify-between gap-3 rounded border px-3 py-2"
                         >
                           <span className="text-sm">
-                            {String(definition.label || "Metric")}
+                            {definition.label || "Metric"}
                           </span>
                           <div className="flex items-center gap-2">
                             <span className="text-xs text-muted-foreground">
@@ -76,7 +71,7 @@ export function MetricsTrackingCard({
                               checked={isTracked}
                               disabled={readOnly || isPending}
                               onCheckedChange={(value) =>
-                                onToggleTracked(definitionId, Boolean(value))
+                                onToggleTracked(definition.id, Boolean(value))
                               }
                             />
                           </div>
@@ -86,8 +81,7 @@ export function MetricsTrackingCard({
                   )}
                 </div>
               </div>
-            );
-          })
+            ))
         )}
       </CardContent>
     </Card>

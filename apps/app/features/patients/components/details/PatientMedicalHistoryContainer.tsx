@@ -3,8 +3,9 @@ import { usePatientHistory } from "@/hooks/api/use-patient-history";
 import { useClinicSettings } from "@workspace/data-access";
 import {
   PatientAllergy,
-  PatientSocialHistory,
-  PatientWithMedicalHistory,
+  patientSocialHistorySchema,
+  type PatientSocialHistory,
+  type PatientWithMedicalHistory,
 } from "@workspace/types";
 import { PatientMedicalHistoryUI } from "./PatientMedicalHistoryUI";
 import { PatientMetricsHistoryUI } from "./PatientMetricsHistoryUI";
@@ -94,12 +95,12 @@ export function PatientMedicalHistoryContainer({
     const baseSocial = sourcePatient.socialHistory;
     const mergedSocial =
       Object.keys(socialOverrides).length > 0 || baseSocial
-        ? ({
+        ? patientSocialHistorySchema.parse({
             ...(baseSocial ?? {
               patientId: sourcePatient.id || "",
             }),
             ...socialOverrides,
-          } as PatientSocialHistory)
+          })
         : undefined;
 
     const baseCustomData =
@@ -109,10 +110,22 @@ export function PatientMedicalHistoryContainer({
         ? Object.fromEntries(Object.entries(sourcePatient.customData))
         : {};
 
-    const mergedCustomData = {
+    const mergedCustomData: PatientWithMedicalHistory["customData"] = {
       ...baseCustomData,
-      ...customDataOverrides,
-    } as PatientWithMedicalHistory["customData"];
+      ...Object.fromEntries(
+        Object.entries(customDataOverrides).filter(
+          (entry): entry is [string, string | number | boolean | null] => {
+            const value = entry[1];
+            return (
+              typeof value === "string" ||
+              typeof value === "number" ||
+              typeof value === "boolean" ||
+              value === null
+            );
+          },
+        ),
+      ),
+    };
 
     return {
       ...sourcePatient,

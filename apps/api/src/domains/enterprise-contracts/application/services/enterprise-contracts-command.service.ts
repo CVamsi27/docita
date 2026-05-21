@@ -17,6 +17,7 @@ import {
 } from './enterprise-contracts-query.service';
 import { EnterpriseContractInvoiceCommandService } from './enterprise-contract-invoice-command.service';
 import { CLOCK_PORT, type IClock } from '@/shared/common/ports/clock.port';
+import { toPrismaInputJsonValue } from '@/shared/common/json/to-prisma-input-json-value';
 
 /**
  * Handles enterprise-contract lifecycle mutations: upsert, status transitions,
@@ -86,8 +87,7 @@ export class EnterpriseContractsCommandService {
         overageInvoiceCents: payload.overageInvoiceCents ?? 0,
         setupFeeCents: payload.setupFeeCents ?? 0,
         dedicatedSupportCents: payload.dedicatedSupportCents ?? 0,
-        customLineItems: (payload.customLineItems ??
-          []) as Prisma.InputJsonValue,
+        customLineItems: toPrismaInputJsonValue(payload.customLineItems ?? []),
         annualPrepayDiscountPercent: payload.annualPrepayDiscountPercent ?? 0,
         trueUpThresholdPercent: payload.trueUpThresholdPercent ?? 130,
         notes: payload.notes ?? null,

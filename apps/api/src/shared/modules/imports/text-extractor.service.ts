@@ -1,4 +1,5 @@
 import { Injectable, Logger } from '@nestjs/common';
+import { getErrorMessage } from '@workspace/utils';
 
 interface TesseractWorker {
   recognize(image: Buffer): Promise<TesseractResult>;
@@ -21,7 +22,7 @@ function isTesseractModule(value: unknown): value is TesseractModule {
     return false;
   }
 
-  const createWorker = (value as { createWorker?: unknown }).createWorker;
+  const createWorker = Reflect.get(value, 'createWorker');
   return typeof createWorker === 'function';
 }
 
@@ -99,8 +100,10 @@ export class TextExtractorService {
         this.logger.log('Tesseract worker initialized successfully');
       }
     } catch (error: unknown) {
-      const err = error as Error;
-      this.logger.error('Failed to initialize Tesseract worker', err);
+      this.logger.error(
+        'Failed to initialize Tesseract worker',
+        getErrorMessage(error),
+      );
     }
   }
 
@@ -133,11 +136,12 @@ export class TextExtractorService {
       this.logger.log('[OCR] Tesseract recognition completed');
       return result.data.text;
     } catch (recognizeError: unknown) {
-      const err = recognizeError as Error;
-      this.logger.warn(`[OCR] Tesseract recognition failed: ${err.message}`);
+      this.logger.warn(
+        `[OCR] Tesseract recognition failed: ${getErrorMessage(recognizeError)}`,
+      );
 
       this.workerReady = false;
-      throw err;
+      throw recognizeError;
     }
   }
 }

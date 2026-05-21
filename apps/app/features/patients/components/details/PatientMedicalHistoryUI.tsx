@@ -16,10 +16,15 @@ import {
 
 import {
   DentalChartUI,
-  DentalChartValue,
+  type DentalChartValue,
   GrowthChartUI,
   VisionExamUI,
 } from "@/features/consultation";
+import {
+  parseDentalChartValue,
+  parseGrowthChartValue,
+  parseOphthalmologyExamValue,
+} from "@/features/patients/components/details/patient-medical-history-helpers";
 
 import { PatientConditions } from "./history/PatientConditions";
 import { PatientAllergies } from "./history/PatientAllergies";
@@ -74,10 +79,11 @@ interface PatientMedicalHistoryUIProps {
   allowGrowthEdit?: boolean;
 }
 
-const asObject = (value: unknown): Record<string, unknown> =>
-  value && typeof value === "object" && !Array.isArray(value)
+function readCustomData(value: unknown): Record<string, unknown> {
+  return value && typeof value === "object" && !Array.isArray(value)
     ? Object.fromEntries(Object.entries(value))
     : {};
+}
 
 export function PatientMedicalHistoryUI({
   patient,
@@ -118,7 +124,7 @@ export function PatientMedicalHistoryUI({
   const isGrowthReadOnly = readOnly || !allowGrowthEdit;
 
   const renderSpecialtySection = () => {
-    const customData = asObject(patient.customData);
+    const customData = readCustomData(patient.customData);
 
     let component = null;
     let title = "";
@@ -129,10 +135,7 @@ export function PatientMedicalHistoryUI({
       icon = <Smile className="h-5 w-5 text-info" />;
       component = (
         <DentalChartUI
-          value={
-            (asObject(customData.dentalChart) as DentalChartValue) ||
-            ({} as DentalChartValue)
-          }
+          value={parseDentalChartValue(customData.dentalChart)}
           onChange={(val: DentalChartValue) =>
             onCustomDataUpdate?.(
               "dentalChart",
@@ -147,10 +150,7 @@ export function PatientMedicalHistoryUI({
       icon = <Eye className="h-5 w-5 text-info" />;
       component = (
         <VisionExamUI
-          value={
-            (asObject(customData.ophthalmologyExam) as OphthalmologyExamData) ||
-            ({} as OphthalmologyExamData)
-          }
+          value={parseOphthalmologyExamValue(customData.ophthalmologyExam)}
           onChange={(val: OphthalmologyExamData) =>
             onCustomDataUpdate?.(
               "ophthalmologyExam",
@@ -165,12 +165,7 @@ export function PatientMedicalHistoryUI({
       icon = <Baby className="h-5 w-5 text-destructive" />;
       component = (
         <GrowthChartUI
-          value={
-            (asObject(customData.growthData) as GrowthChartData) || {
-              patientGender: patient.gender === "MALE" ? "MALE" : "FEMALE",
-              measurements: [],
-            }
-          }
+          value={parseGrowthChartValue(customData.growthData, patient.gender)}
           onChange={(val: GrowthChartData) =>
             onCustomDataUpdate?.(
               "growthData",

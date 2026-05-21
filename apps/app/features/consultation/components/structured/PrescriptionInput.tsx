@@ -18,7 +18,8 @@ import {
   MEDICATION_ROUTES,
 } from "@/lib/services/clinic-feature.service";
 
-import { ClinicType } from "@workspace/types";
+import { clinicTypeSchema, type ClinicType } from "@workspace/types";
+import { parseStringEnumMember } from "@workspace/utils";
 
 export interface Medication {
   name: string;
@@ -43,15 +44,20 @@ export function PrescriptionInput({
   const { data: clinic } = useClinicSettings();
   const medications = value.length > 0 ? value : [];
 
-  const groupedRoutes = useMemo(() => {
-    return ClinicFeatureService.getMedicationRoutesGrouped(
-      clinic?.type as ClinicType,
-    );
+  const clinicType = useMemo((): ClinicType | undefined => {
+    if (!clinic?.type) {
+      return undefined;
+    }
+    return parseStringEnumMember(clinicTypeSchema.options, clinic.type) ?? undefined;
   }, [clinic?.type]);
 
+  const groupedRoutes = useMemo(() => {
+    return ClinicFeatureService.getMedicationRoutesGrouped(clinicType);
+  }, [clinicType]);
+
   const prioritizedRoutes = useMemo(() => {
-    return ClinicFeatureService.getMedicationRoutes(clinic?.type as ClinicType);
-  }, [clinic?.type]);
+    return ClinicFeatureService.getMedicationRoutes(clinicType);
+  }, [clinicType]);
 
   const addMedication = () => {
 

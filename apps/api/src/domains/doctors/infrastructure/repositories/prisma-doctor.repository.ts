@@ -1,6 +1,9 @@
 import { Injectable } from '@nestjs/common';
 import { PrismaService } from '@/prisma/prisma.service';
 import { Role, Specialization } from '@workspace/db';
+import { parseStringEnumMember } from '@workspace/utils';
+
+const ROLE_VALUES = Object.values(Role);
 import {
   CreateDoctorUserInput,
   CreatedDoctorUser,
@@ -37,11 +40,16 @@ export class PrismaDoctorRepository implements IDoctorRepository {
       },
     });
 
+    const clinicRole = parseStringEnumMember(ROLE_VALUES, link.role);
+    if (!clinicRole) {
+      throw new Error(`Invalid doctor clinic role: ${link.role}`);
+    }
+
     await this.prisma.doctorClinic.create({
       data: {
         doctorId: createdUser.id,
         clinicId: link.clinicId,
-        role: link.role as Role,
+        role: clinicRole,
       },
     });
 
@@ -106,16 +114,26 @@ export class PrismaDoctorRepository implements IDoctorRepository {
         consultationFee: true,
       },
     });
-    return user as DoctorAfterUpdate | null;
+    if (!user) {
+      return null;
+    }
+    return user satisfies DoctorAfterUpdate;
   }
 
   async updateDoctorClinicRole(
     doctorId: string,
     role: Role | string,
   ): Promise<void> {
+    const nextRole =
+      typeof role === 'string'
+        ? parseStringEnumMember(ROLE_VALUES, role)
+        : role;
+    if (!nextRole) {
+      throw new Error(`Invalid doctor clinic role: ${role}`);
+    }
     await this.prisma.doctorClinic.updateMany({
       where: { doctorId },
-      data: { role: role as Role },
+      data: { role: nextRole },
     });
   }
 

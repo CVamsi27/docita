@@ -9,7 +9,7 @@ export function useClinicDetailsStep(clinicForm: UseFormReturn<ClinicDetails>) {
   const [mapPickerOpen, setMapPickerOpen] = useState(false);
 
   const shouldUseClinicTypeRadio = CLINIC_TYPE_OPTIONS.length < 4;
-  const facilityLabel =
+  const facilityLabel: "Clinic" | "Hospital" =
     clinicForm.watch("facilityLabel") === "HOSPITAL" ? "Hospital" : "Clinic";
 
   const [
@@ -45,7 +45,7 @@ export function useClinicDetailsStep(clinicForm: UseFormReturn<ClinicDetails>) {
     mapPickerOpen,
     setMapPickerOpen,
     shouldUseClinicTypeRadio,
-    facilityLabel: facilityLabel as "Clinic" | "Hospital",
+    facilityLabel,
     resolvedCountryCode,
     addressSummary,
   };

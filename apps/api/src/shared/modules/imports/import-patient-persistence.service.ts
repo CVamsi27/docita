@@ -8,6 +8,7 @@ import {
   InvoiceStatus,
 } from '@workspace/db';
 import type { ImportAuditContext, MappedPatientData } from './import-types';
+import { toPrismaInputJsonValue } from '@/shared/common/json/to-prisma-input-json-value';
 import {
   cleanImportEmail,
   cleanImportName,
@@ -135,7 +136,7 @@ export class ImportPatientPersistenceService {
           row['invoiceItems'];
         if (rawItems) {
           try {
-            const parsed = JSON.parse(String(rawItems)) as unknown;
+            const parsed: unknown = JSON.parse(String(rawItems));
             if (Array.isArray(parsed) && parsed.length > 0) {
               items = parsed;
             }
@@ -153,7 +154,7 @@ export class ImportPatientPersistenceService {
             taxTotal: 0,
             discountTotal: 0,
             status: InvoiceStatus.PENDING,
-            items: items as object,
+            items: toPrismaInputJsonValue(items),
           },
         });
       }

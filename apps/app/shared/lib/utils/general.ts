@@ -41,22 +41,16 @@ export function wait(ms: number): Promise<void> {
 }
 
 export function deepClone<T>(obj: T): T {
-  if (obj === null || typeof obj !== "object") {
-    return obj;
-  }
+  return structuredClone(obj);
+}
 
-  if (obj instanceof Date) {
-    return new Date(obj.getTime()) as T;
-  }
-
-  if (Array.isArray(obj)) {
-    return obj.map((item) => deepClone(item)) as T;
-  }
-
-  const clonedObj = Object.fromEntries(
-    Object.entries(obj as object).map(([key, value]) => [key, deepClone(value)]),
+function isPlainObject(value: unknown): value is Record<string, unknown> {
+  return (
+    typeof value === "object" &&
+    value !== null &&
+    !Array.isArray(value) &&
+    !(value instanceof Date)
   );
-  return clonedObj as T;
 }
 
 export function isEmpty(value: unknown): boolean {
@@ -69,18 +63,18 @@ export function isEmpty(value: unknown): boolean {
   if (Array.isArray(value)) {
     return value.length === 0;
   }
-  if (typeof value === "object") {
-    return Object.keys(value as object).length === 0;
+  if (isPlainObject(value)) {
+    return Object.keys(value).length === 0;
   }
   return false;
 }
 
-export function safeJsonParse<T = unknown>(
+export function safeJsonParse(
   json: string,
-  fallback: T | null = null,
-): T | null {
+  fallback: unknown = null,
+): unknown {
   try {
-    return JSON.parse(json) as T;
+    return JSON.parse(json);
   } catch {
     return fallback;
   }

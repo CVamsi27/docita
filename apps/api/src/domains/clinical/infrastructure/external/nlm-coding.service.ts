@@ -4,7 +4,6 @@ import { IcdCode, CptCode } from '@workspace/db';
 import { getAllCPTCodes } from '@workspace/utils';
 import { fetchWithTimeout } from '@/shared/common/http/fetch-with-timeout';
 
-type NlmSearchResponse = [number, string[], null, string[][]];
 type CodeSystem = 'ICD' | 'HCPCS';
 type NlmCodeRow = { code: string; description: string };
 
@@ -112,13 +111,22 @@ export class NlmCodingService {
     );
   }
 
-  private toNlmRows(data: NlmSearchResponse): NlmCodeRow[] {
-    const codes = Array.isArray(data[1]) ? data[1] : [];
+  private toNlmRows(data: unknown): NlmCodeRow[] {
+    if (!Array.isArray(data)) {
+      return [];
+    }
+
+    const codes = Array.isArray(data[1])
+      ? data[1].filter((code): code is string => typeof code === 'string')
+      : [];
     const displayRows = Array.isArray(data[3]) ? data[3] : [];
 
     return codes
       .map((code, idx) => {
-        const row = displayRows[idx] ?? [];
+        const rawRow = displayRows[idx];
+        const row = Array.isArray(rawRow)
+          ? rawRow.filter((cell): cell is string => typeof cell === 'string')
+          : [];
         const description =
           row.find((value, rowIndex) => rowIndex > 0 && value)?.trim() ??
           row[1]?.trim() ??
@@ -145,9 +153,9 @@ export class NlmCodingService {
       throw new Error(`${system} API returned HTTP ${res.status}`);
     }
 
-    const data = (await res.json()) as NlmSearchResponse;
+    const data: unknown = await res.json();
     return {
-      total: typeof data[0] === 'number' ? data[0] : 0,
+      total: Array.isArray(data) && typeof data[0] === 'number' ? data[0] : 0,
       rows: this.toNlmRows(data),
     };
   }

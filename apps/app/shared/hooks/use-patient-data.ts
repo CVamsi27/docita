@@ -73,12 +73,12 @@ export function usePatientData(patientId: string): UsePatientDataReturn {
             ? apiFetch<{ items: Appointment[] }>(
                 `/appointments?patientId=${patientId}&limit=100`,
               )
-            : Promise.resolve({ items: [] as Appointment[] }),
+            : Promise.resolve({ items: [] satisfies Appointment[] }),
           tierDocsOk
             ? apiFetch<Document[]>(
                 `/medical-documents?patientId=${patientId}`,
               )
-            : Promise.resolve([] as Document[]),
+            : Promise.resolve([] satisfies Document[]),
         ]);
 
       if (
@@ -92,14 +92,14 @@ export function usePatientData(patientId: string): UsePatientDataReturn {
         setError("We could not open this patient record. Please try again.");
       }
 
-      const apptItems =
-        appointmentsData &&
-        typeof appointmentsData === "object" &&
-        "items" in appointmentsData
-          ? (appointmentsData as { items: Appointment[] }).items
-          : Array.isArray(appointmentsData)
-            ? appointmentsData
-            : [];
+      const apptItems = Array.isArray(appointmentsData)
+        ? appointmentsData
+        : appointmentsData &&
+            typeof appointmentsData === "object" &&
+            "items" in appointmentsData &&
+            Array.isArray(appointmentsData.items)
+          ? appointmentsData.items
+          : [];
       const uniqueAppointments = Array.from(
         new Map(apptItems.map((item) => [item.id, item])).values(),
       );

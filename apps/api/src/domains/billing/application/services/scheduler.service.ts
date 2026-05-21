@@ -15,16 +15,12 @@ import {
   PAYMENT_SESSION_REPOSITORY_TOKEN,
 } from '@/domains/billing/core/repositories/payment-session.repository';
 import { CLOCK_PORT, type IClock } from '@/shared/common/ports/clock.port';
+import { isRecord } from '@workspace/utils';
+
 interface PaymentReminderConfig {
   enabled: boolean;
   days: number[];
   autoSendWhatsApp: boolean;
-}
-
-interface ClinicSettings {
-  paymentReminderEnabled?: boolean;
-  paymentReminderDays?: number[];
-  paymentReminderAutoSendWhatsApp?: boolean;
 }
 
 @Injectable()
@@ -55,9 +51,7 @@ export class SchedulerService {
 
       await Promise.allSettled(
         clinics.map(async (clinic) => {
-          const config = this.getReminderConfig(
-            clinic.settings as ClinicSettings,
-          );
+          const config = this.getReminderConfig(clinic.settings);
           if (!config.enabled || config.days.length === 0) {
             return;
           }
@@ -84,10 +78,8 @@ export class SchedulerService {
     });
   }
 
-  private getReminderConfig(
-    settings: ClinicSettings | null,
-  ): PaymentReminderConfig {
-    if (!settings) {
+  private getReminderConfig(settings: unknown): PaymentReminderConfig {
+    if (!isRecord(settings)) {
       return { enabled: false, days: [], autoSendWhatsApp: true };
     }
 

@@ -13,6 +13,28 @@ import {
   ApiBearerAuth,
 } from '@nestjs/swagger';
 import { SearchService, SearchEntityType } from './search.service';
+import { parseStringEnumMember } from '@workspace/utils';
+
+const SEARCH_ENTITY_TYPES: SearchEntityType[] = [
+  'patient',
+  'appointment',
+  'prescription',
+  'all',
+];
+
+function parseSearchEntityTypes(types: string | undefined): SearchEntityType[] {
+  if (!types?.trim()) {
+    return ['all'];
+  }
+  const parsed = types
+    .split(',')
+    .map((value) => value.trim())
+    .flatMap((value) => {
+      const match = parseStringEnumMember(SEARCH_ENTITY_TYPES, value);
+      return match ? [match] : [];
+    });
+  return parsed.length > 0 ? parsed : ['all'];
+}
 import { APP_ACCESS_TARGETS, AuthenticatedRequest } from '@workspace/types';
 import { Role } from '@workspace/db';
 import { Roles } from '@/shared/modules/auth/auth/roles.decorator';
@@ -56,9 +78,7 @@ export class SearchController {
       throw new ForbiddenException('Search requires a clinic context');
     }
 
-    const searchTypes = types
-      ? (types.split(',') as SearchEntityType[])
-      : ['all' as SearchEntityType];
+    const searchTypes = parseSearchEntityTypes(types);
 
     const parsedLimit = limit ? parseInt(limit, 10) : 20;
     const safeLimit = Number.isFinite(parsedLimit)

@@ -1,7 +1,7 @@
 import { Injectable } from '@nestjs/common';
-import { Prisma } from '@workspace/db';
 import { PrismaService } from '@/prisma/prisma.service';
 import { IClinicalSettingsRepository } from '@/domains/clinical/core/repositories/clinical-settings.repository.interface';
+import { toPrismaInputJsonValue } from '@/shared/common/json/to-prisma-input-json-value';
 
 @Injectable()
 export class PrismaClinicalSettingsRepository implements IClinicalSettingsRepository {
@@ -24,7 +24,7 @@ export class PrismaClinicalSettingsRepository implements IClinicalSettingsReposi
   ): Promise<void> {
     await this.prisma.clinic.update({
       where: { id: clinicId },
-      data: { settings: settings as Prisma.InputJsonValue },
+      data: { settings: toPrismaInputJsonValue(settings) },
     });
   }
 }

@@ -11,6 +11,7 @@ import {
   QueueJobOptions,
   QueueStats,
 } from './queue.interface';
+import { bindQueueJobHandler, coerceQueueJob } from './queue-job-boundary';
 import type {
   QueueJobRepository,
   QueueJobRow,
@@ -61,7 +62,7 @@ export class PostgresQueueService implements IQueueProvider, OnModuleDestroy {
         this.logger.debug(
           `Skipping duplicate enqueue for ${name} idempotencyKey=${options.idempotencyKey} (existing job ${recent.id})`,
         );
-        return this.rowToJob<T>(recent);
+        return coerceQueueJob<T>(this.rowToJob(recent));
       }
     }
 
@@ -80,7 +81,7 @@ export class PostgresQueueService implements IQueueProvider, OnModuleDestroy {
       }),
     );
 
-    return this.rowToJob<T>(row);
+    return coerceQueueJob<T>(this.rowToJob(row));
   }
 
   private async findRecentCompletedByIdempotency(
@@ -101,9 +102,7 @@ export class PostgresQueueService implements IQueueProvider, OnModuleDestroy {
     name: string,
     handler: QueueJobHandler<T>,
   ): Promise<void> {
-    this.handlers.set(name, async (job) => {
-      await handler(job as QueueJob<T>);
-    });
+    this.handlers.set(name, bindQueueJobHandler(handler));
 
     if (!this.pollers.has(name)) {
       const interval = setInterval(() => {
@@ -295,7 +294,7 @@ export class PostgresQueueService implements IQueueProvider, OnModuleDestroy {
   ): Promise<QueueJob<T> | null> {
     const row = await this.queueJobs.findById(jobId);
     if (!row) return null;
-    return this.rowToJob<T>(row);
+    return coerceQueueJob<T>(this.rowToJob(row));
   }
 
   async removeJob(jobId: string): Promise<void> {
@@ -333,8 +332,8 @@ export class PostgresQueueService implements IQueueProvider, OnModuleDestroy {
     this.pollers.clear();
   }
 
-  private rowToJob<T extends QueueJobData>(row: QueueJobRow): QueueJob<T> {
-    const data = (parsePrismaJsonColumn(row.data, jsonObjectSchema) ?? {}) as T;
+  private rowToJob(row: QueueJobRow): QueueJob<QueueJobData> {
+    const data = parsePrismaJsonColumn(row.data, jsonObjectSchema) ?? {};
     return {
       id: row.id,
       name: row.name,

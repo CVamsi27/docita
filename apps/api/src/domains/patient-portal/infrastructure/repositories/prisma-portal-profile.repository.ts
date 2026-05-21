@@ -40,7 +40,7 @@ export class PrismaPortalProfileRepository implements IPortalProfileRepository {
         where: { phoneNumber: phone, deletedAt: null },
         include: { user: true },
       }),
-    ) as Promise<PatientWithUser | null>;
+    );
   }
 
   async getPatientSummary(patientId: string): Promise<PatientSummary | null> {
@@ -60,7 +60,7 @@ export class PrismaPortalProfileRepository implements IPortalProfileRepository {
           mrn: true,
         },
       }),
-    ) as Promise<PatientSummary | null>;
+    );
   }
 
   async hasActiveTreatmentConsent(
@@ -107,7 +107,7 @@ export class PrismaPortalProfileRepository implements IPortalProfileRepository {
           createdAt: true,
         },
       }),
-    ) as Promise<PatientProfile | null>;
+    );
   }
 
   async updatePatient(
@@ -140,7 +140,7 @@ export class PrismaPortalProfileRepository implements IPortalProfileRepository {
           createdAt: true,
         },
       }),
-    ) as Promise<PatientProfile>;
+    );
   }
 
   async linkUserToPatient(patientId: string, userId: string): Promise<void> {

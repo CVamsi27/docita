@@ -5,6 +5,7 @@ import {
 } from '@/domains/reminders/application/ports/reminder-persistence.port';
 import { ReminderSettings } from '@workspace/db';
 import { CLOCK_PORT, type IClock } from '@/shared/common/ports/clock.port';
+import { isDatabaseAuthError } from '@/shared/modules/auth/auth/auth-database.util';
 
 interface ReminderSettingsData {
   enabled?: boolean;
@@ -63,29 +64,6 @@ Thank you,
     };
   }
 
-  private isDatabaseAuthError(error: unknown): boolean {
-    if (!error || typeof error !== 'object') {
-      return false;
-    }
-
-    const candidate = error as { code?: unknown; message?: unknown };
-    const code = typeof candidate.code === 'string' ? candidate.code : '';
-    const message =
-      typeof candidate.message === 'string'
-        ? candidate.message.toLowerCase()
-        : '';
-
-    if (code === 'P1000') {
-      return true;
-    }
-
-    return (
-      message.includes('authentication failed against the database server') ||
-      message.includes('database credentials') ||
-      message.includes('password authentication failed')
-    );
-  }
-
   async getSettings(clinicId?: string): Promise<ReminderSettings> {
     if (this.databaseAccessDisabled) {
       return this.getFallbackSettings(clinicId);
@@ -132,7 +110,7 @@ Thank you,
 
       return settings ?? this.getFallbackSettings(clinicId);
     } catch (error) {
-      if (this.isDatabaseAuthError(error)) {
+      if (isDatabaseAuthError(error)) {
         this.databaseAccessDisabled = true;
         this.logger.warn(
           'Disabling reminder settings database access due to database authentication failure. Verify DATABASE_URL credentials.',
@@ -153,7 +131,7 @@ Thank you,
         ...this.getFallbackSettings(clinicId),
         ...data,
         updatedAt: this.clock.now(),
-      } as ReminderSettings;
+      } satisfies ReminderSettings;
     }
 
     const existing = await this.getSettings(clinicId);
@@ -163,7 +141,7 @@ Thank you,
         data,
       });
     } catch (error) {
-      if (this.isDatabaseAuthError(error)) {
+      if (isDatabaseAuthError(error)) {
         this.databaseAccessDisabled = true;
         this.logger.warn(
           'Disabling reminder settings database access due to database authentication failure. Verify DATABASE_URL credentials.',
@@ -172,7 +150,7 @@ Thank you,
           ...this.getFallbackSettings(clinicId),
           ...data,
           updatedAt: this.clock.now(),
-        } as ReminderSettings;
+        } satisfies ReminderSettings;
       }
 
       throw error;

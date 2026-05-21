@@ -1,6 +1,13 @@
-import { Controller, Param, Post, Req } from '@nestjs/common';
-import { Request } from 'express';
+import {
+  Controller,
+  ForbiddenException,
+  Param,
+  Post,
+  Req,
+} from '@nestjs/common';
 import { Role } from '@workspace/db';
+import type { RequestWithUser } from '@/shared/common/types/common.types';
+import { getAuthenticatedUserId } from '@/shared/modules/auth/auth/request-user.util';
 import { ZodSerializerDto } from 'nestjs-zod';
 import { Roles } from '@/shared/modules/auth/auth/roles.decorator';
 import { WhatsappService } from '@/domains/whatsapp/application/services/whatsapp-clinic-facade.service';
@@ -16,11 +23,17 @@ export class LegacyWhatsappApprovalController {
   @Post('approve-prescription/:id')
   @Roles(Role.DOCTOR, Role.ADMIN, Role.ADMIN_DOCTOR)
   @ZodSerializerDto(SuccessResponseDto)
-  async approvePrescription(@Req() req: Request, @Param('id') id: string) {
-    const user = req.user as { id: string };
+  async approvePrescription(
+    @Req() req: RequestWithUser,
+    @Param('id') id: string,
+  ) {
+    const userId = getAuthenticatedUserId(req.user);
+    if (!userId) {
+      throw new ForbiddenException('Authenticated user required');
+    }
     return this.whatsappService.approvePrescription(
       id,
-      user.id,
+      userId,
       requireClinicId(req),
     );
   }
@@ -28,11 +41,14 @@ export class LegacyWhatsappApprovalController {
   @Post('approve-invoice/:id')
   @Roles(Role.DOCTOR, Role.ADMIN, Role.ADMIN_DOCTOR)
   @ZodSerializerDto(SuccessResponseDto)
-  async approveInvoice(@Req() req: Request, @Param('id') id: string) {
-    const user = req.user as { id: string };
+  async approveInvoice(@Req() req: RequestWithUser, @Param('id') id: string) {
+    const userId = getAuthenticatedUserId(req.user);
+    if (!userId) {
+      throw new ForbiddenException('Authenticated user required');
+    }
     return this.whatsappService.approveInvoice(
       id,
-      user.id,
+      userId,
       requireClinicId(req),
     );
   }

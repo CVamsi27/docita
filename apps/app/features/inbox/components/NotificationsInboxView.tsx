@@ -13,7 +13,12 @@ import {
   useDeleteAllNotifications, type StaffNotification,
 } from "@workspace/data-access";
 import { useSocket } from "@/lib/contexts/socket-context";
-import { NOTIFICATION_CATEGORIES, type NotificationCategoryId } from "@/components/navigation/notification-href";
+import { buildNotificationCategoryRecord } from "@/components/navigation/notification-category-record";
+import {
+  isNotificationCategoryId,
+  NOTIFICATION_CATEGORIES,
+  type NotificationCategoryId,
+} from "@/components/navigation/notification-href";
 import { NotificationRow, categorize, filterByCategory } from "./notification-inbox-row";
 
 export function NotificationsInboxView() {
@@ -66,13 +71,19 @@ export function NotificationsInboxView() {
   );
 
   const byTab = useMemo(
-    () => Object.fromEntries(visibleCategories.map((cat) => [cat.id, filterByCategory(active, cat.types)])) as Record<NotificationCategoryId, StaffNotification[]>,
-    [active, visibleCategories],
+    () =>
+      buildNotificationCategoryRecord((cat) =>
+        filterByCategory(active, cat.types),
+      ),
+    [active],
   );
 
   const unreadByTab = useMemo(
-    () => Object.fromEntries(visibleCategories.map((cat) => [cat.id, (byTab[cat.id] ?? []).filter((n) => !n.isRead).length])) as Record<NotificationCategoryId, number>,
-    [byTab, visibleCategories],
+    () =>
+      buildNotificationCategoryRecord(
+        (cat) => (byTab[cat.id] ?? []).filter((n) => !n.isRead).length,
+      ),
+    [byTab],
   );
 
   useEffect(() => {
@@ -100,7 +111,12 @@ export function NotificationsInboxView() {
           <TrashIcon className="mr-2 h-4 w-4" />Clear all
         </Button>
       </div>
-      <Tabs value={activeTab} onValueChange={(v) => setActiveTab(v as NotificationCategoryId)}>
+      <Tabs
+        value={activeTab}
+        onValueChange={(v) => {
+          if (isNotificationCategoryId(v)) setActiveTab(v);
+        }}
+      >
         <TabsList className="w-full justify-start overflow-x-auto">
           {visibleCategories.map((cat) => {
             const count = unreadByTab[cat.id] ?? 0;

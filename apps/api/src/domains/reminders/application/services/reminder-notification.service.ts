@@ -19,6 +19,10 @@ import { SendMessageUseCase } from '@/domains/whatsapp/application/use-cases/sen
 import { CLOCK_PORT, type IClock } from '@/shared/common/ports/clock.port';
 import { isClinicWhatsAppAutomationSendingAllowed } from '@/shared/whatsapp/whatsapp-patient-send-policy.util';
 
+function formatCaughtError(error: unknown): string {
+  return error instanceof Error ? error.message : 'Unknown error';
+}
+
 interface AppointmentForReminder {
   id: string;
   startTime: Date;
@@ -86,7 +90,7 @@ export class ReminderNotificationService {
           appointmentId: appointment.id,
           type: 'email',
           status: 'failed',
-          error: (error as Error).message,
+          error: formatCaughtError(error),
         },
       });
     }
@@ -122,7 +126,7 @@ export class ReminderNotificationService {
           appointmentId: appointment.id,
           type: 'sms',
           status: 'failed',
-          error: (error as Error).message,
+          error: formatCaughtError(error),
         },
       });
     }
@@ -208,7 +212,7 @@ export class ReminderNotificationService {
           appointmentId: appointment.id,
           type: reminderType,
           status: 'failed',
-          error: (error as Error).message,
+          error: formatCaughtError(error),
         },
       });
     }

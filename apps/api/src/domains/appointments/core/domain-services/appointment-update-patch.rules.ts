@@ -1,7 +1,4 @@
-import {
-  Prisma,
-  AppointmentStatus as PrismaAppointmentStatus,
-} from '@workspace/db';
+import { AppointmentStatus, Prisma } from '@workspace/db';
 import { type UpdateAppointmentRequest } from '@workspace/types';
 
 /** Safely coerce an unknown value to a Date, falling back to `fallback`. */
@@ -26,21 +23,21 @@ export function coerceAppointmentDate(
 
 function mapStatusToPrisma(
   status: UpdateAppointmentRequest['status'] | undefined,
-): PrismaAppointmentStatus | undefined {
+): AppointmentStatus | undefined {
   switch (status) {
     case 'scheduled':
-      return PrismaAppointmentStatus.SCHEDULED;
+      return AppointmentStatus.SCHEDULED;
     case 'confirmed':
     case 'checked-in':
-      return PrismaAppointmentStatus.CONFIRMED;
+      return AppointmentStatus.CONFIRMED;
     case 'in-progress':
-      return PrismaAppointmentStatus.IN_PROGRESS;
+      return AppointmentStatus.IN_PROGRESS;
     case 'completed':
-      return PrismaAppointmentStatus.COMPLETED;
+      return AppointmentStatus.COMPLETED;
     case 'cancelled':
-      return PrismaAppointmentStatus.CANCELLED;
+      return AppointmentStatus.CANCELLED;
     case 'no-show':
-      return PrismaAppointmentStatus.NO_SHOW;
+      return AppointmentStatus.NO_SHOW;
     default:
       return undefined;
   }
@@ -52,9 +49,7 @@ export function toPrismaAppointmentUpdate(
 ): Prisma.AppointmentUpdateInput {
   const { status, ...rest } = input;
   const prismaStatus = mapStatusToPrisma(status);
-  const patch: Prisma.AppointmentUpdateInput = {
-    ...(rest as unknown as Prisma.AppointmentUpdateInput),
-  };
+  const patch: Prisma.AppointmentUpdateInput = { ...rest };
   if (prismaStatus) {
     patch.status = prismaStatus;
   }

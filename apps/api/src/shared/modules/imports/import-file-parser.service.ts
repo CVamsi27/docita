@@ -9,6 +9,7 @@ import {
   extractWorksheetRowCells,
   readExcelCellObject,
 } from './excel-cell-value';
+import { loadWorkbookXlsx } from './xlsx-load-boundary';
 
 export type TabularRow = Array<string | number | Date | undefined>;
 
@@ -228,12 +229,16 @@ export class ImportFileParserService {
       .filter((row) => Object.keys(row).length > 0);
   }
 
+  private async loadXlsxWorkbook(
+    workbook: ExcelJS.Workbook,
+    buffer: Buffer,
+  ): Promise<void> {
+    await loadWorkbookXlsx(workbook, buffer);
+  }
+
   async parseXlsxBufferToRecords(buffer: Buffer): Promise<BulkImportRow[]> {
     const workbook = new ExcelJS.Workbook();
-    // ExcelJS typings expect Node Buffer; runtime accepts Uint8Array from our Buffer input.
-    await workbook.xlsx.load(
-      buffer as unknown as Parameters<typeof workbook.xlsx.load>[0],
-    );
+    await this.loadXlsxWorkbook(workbook, buffer);
 
     const worksheet = workbook.worksheets[0];
     if (!worksheet) {
@@ -242,7 +247,7 @@ export class ImportFileParserService {
 
     const tabularRows: Array<Array<string | number | Date | undefined>> = [];
     worksheet.eachRow({ includeEmpty: false }, (row) => {
-      const cells = row.values as unknown[];
+      const cells = Array.isArray(row.values) ? row.values : [];
       const normalized = cells
         .slice(1)
         .map((cell) => this.sanitizeCellValue(cell))

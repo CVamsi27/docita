@@ -80,7 +80,7 @@ export function ComparisonTable({
     ? KEY_FEATURE_CATEGORIES
     : FEATURE_CATEGORIES;
 
-  const [mobileTier, setMobileTier] = useState<number>(() => {
+  const [mobileTier, setMobileTier] = useState<Tier>(() => {
     return tiers.includes(currentTier) ? currentTier : (tiers[0] ?? Tier.STARTER);
   });
 
@@ -89,13 +89,13 @@ export function ComparisonTable({
    * the left, and a target tier on the right that they pick. Single-tier
    * view is useless because the whole point is comparison.
    */
-  const validCurrentTier = tiers.includes(currentTier)
+  const validCurrentTier: Tier = tiers.includes(currentTier)
     ? currentTier
     : (tiers[0] ?? Tier.STARTER);
   const compareWithTier: Tier =
     mobileTier !== validCurrentTier
-      ? (mobileTier as Tier)
-      : ((tiers.find((t) => t !== validCurrentTier) ?? validCurrentTier) as Tier);
+      ? mobileTier
+      : (tiers.find((t) => t !== validCurrentTier) ?? validCurrentTier);
 
   const availableFeatures = useMemo(() => {
     return categories.flatMap<AvailableFeatureItem>((category) => {
@@ -188,10 +188,10 @@ export function ComparisonTable({
                   {row.name}
                 </p>
                 <p className="text-right text-[var(--fs-sm)] font-medium tabular-nums text-foreground">
-                  {String(row.values[validCurrentTier as Tier])}
+                  {String(row.values[validCurrentTier])}
                 </p>
                 <p className="text-right text-[var(--fs-sm)] font-semibold tabular-nums text-primary">
-                  {String(row.values[compareWithTier as Tier])}
+                  {String(row.values[compareWithTier])}
                 </p>
               </div>
             ))}
@@ -320,7 +320,7 @@ export function ComparisonTable({
                       )}
                     >
                       <span className="text-sm font-medium">
-                        {String(row.values[tier as Tier])}
+                        {String(row.values[tier])}
                       </span>
                     </TableCell>
                   ))}

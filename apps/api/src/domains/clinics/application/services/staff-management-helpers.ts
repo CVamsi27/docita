@@ -1,5 +1,6 @@
 import { Role } from '@workspace/db';
 import { isFrontDeskWorkspace, parseWorkspaceProfile } from '@workspace/types';
+import { isRecord } from '@workspace/utils';
 import { type ClinicPersistencePort } from '@/domains/clinics/application/ports/clinic-persistence.port';
 
 export type ClinicMemberRole =
@@ -37,10 +38,7 @@ export async function isClinicFrontDesk(
   if (clinic.tier === 'FRONT_DESK') {
     return true;
   }
-  const raw =
-    clinic.settings && typeof clinic.settings === 'object'
-      ? (clinic.settings as Record<string, unknown>)
-      : {};
+  const raw = isRecord(clinic.settings) ? clinic.settings : {};
   return isFrontDeskWorkspace(parseWorkspaceProfile(raw.workspaceProfile));
 }
 

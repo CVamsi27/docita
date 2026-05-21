@@ -103,7 +103,7 @@ export const useAppointmentRowActions = ({
     if (!noShowAptId) return;
     try {
       await updateAppointmentMutation.mutateAsync({ status: "no-show" });
-      toast.success("Appointment marked as no-show");
+      toast.success("Appointment marked no-show");
       setNoShowAptId(null);
       setNoShowDialogOpen(false);
       await invalidateRowQueries();
@@ -111,7 +111,7 @@ export const useAppointmentRowActions = ({
     } catch (error) {
       showUserFacingErrorToast(
         error,
-        "We could not mark this appointment as missed. Please try again.",
+        "We could not mark this appointment missed. Please try again.",
         "save",
       );
     }

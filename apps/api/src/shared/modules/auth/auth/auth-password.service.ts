@@ -198,7 +198,7 @@ export class AuthPasswordService {
       const isReused = await bcrypt.compare(newPassword, hash);
       if (isReused) {
         throw new BadRequestException(
-          `Password cannot be the same as your last ${AUTH_CONSTANTS.PASSWORD_HISTORY_COUNT} passwords`,
+          `Password cannot match any of your last ${AUTH_CONSTANTS.PASSWORD_HISTORY_COUNT} passwords`,
         );
       }
     }

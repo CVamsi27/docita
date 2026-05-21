@@ -1,7 +1,6 @@
 import { useQueryClient } from "@tanstack/react-query";
 import { useEffect, useMemo, useRef, useState } from "react";
-import { Resolver, useForm } from "react-hook-form";
-import { zodResolver } from "@hookform/resolvers/zod";
+import { useForm } from "react-hook-form";
 import {
   DEFAULT_TIMEZONE,
   formatClinicPickerDayIsoFromSelection,
@@ -15,12 +14,8 @@ import {
   useDoctorAvailabilitySlots,
 } from "@workspace/data-access";
 import { useAppointments } from "@workspace/data-access";
-import {
-  Appointment,
-  CreateAppointmentInput,
-  createAppointmentFormSchema,
-  Patient,
-} from "@workspace/types";
+import { Appointment, CreateAppointmentInput, Patient } from "@workspace/types";
+import { createAppointmentFormResolver } from "@/features/appointments/lib/appointment-form-resolver.boundary";
 import { defaultStartIsoForSelectedCalendarDay } from "@/features/appointments/lib/calendar-slot-local-iso";
 import { useAppConfig } from "@/lib/contexts/app-config-context";
 import { useAuth } from "@/lib/auth/auth-context";
@@ -61,8 +56,7 @@ export function useAppointmentForm({
   const { data: preselectedPatient } = usePatient(preselectedPatientId || "");
 
   const patients = useMemo(() => {
-    const searchedPatients: Patient[] =
-      ((searchedPatientsResponse as { items?: Patient[] }) || {}).items || [];
+    const searchedPatients: Patient[] = searchedPatientsResponse?.items ?? [];
     if (preselectedPatient && preselectedPatientId) {
       const hasPreselected = searchedPatients.some(
         (p) => p.id === preselectedPatientId,
@@ -93,10 +87,10 @@ export function useAppointmentForm({
 
   const queryClient = useQueryClient();
   const { clinic } = useClinic();
-  const clinicTimezone = useMemo(
-    () => (clinic?.timezone?.trim() || DEFAULT_TIMEZONE) as string,
-    [clinic?.timezone],
-  );
+  const clinicTimezone = useMemo(() => {
+    const trimmed = clinic?.timezone?.trim();
+    return trimmed || DEFAULT_TIMEZONE;
+  }, [clinic?.timezone]);
 
   const { config } = useAppConfig();
   const { user } = useAuth();
@@ -155,15 +149,8 @@ export function useAppointmentForm({
     clinicTimezone,
   ]);
 
-  const appointmentFormSchema = useMemo(
-    () => createAppointmentFormSchema(clinicTimezone),
-    [clinicTimezone],
-  );
-
   const form = useForm<CreateAppointmentInput>({
-    resolver: zodResolver(
-      appointmentFormSchema,
-    ) as Resolver<CreateAppointmentInput>,
+    resolver: createAppointmentFormResolver(clinicTimezone),
     defaultValues,
   });
 
@@ -178,10 +165,7 @@ export function useAppointmentForm({
       if (selectedDate && defaultValues.doctorId) {
         void queryClient.invalidateQueries({
           queryKey: queryKeys.doctorAvailabilitySlots.forDay(
-            formatClinicPickerDayIsoFromSelection(
-              selectedDate,
-              clinicTimezone,
-            ),
+            formatClinicPickerDayIsoFromSelection(selectedDate, clinicTimezone),
             defaultValues.doctorId,
           ),
         });
@@ -232,19 +216,19 @@ export function useAppointmentForm({
 
   const availabilitySlotsReady = Boolean(
     open &&
-      selectedDate &&
-      watchedDoctorId &&
-      slotsQuerySuccess &&
-      !slotsQueryError,
+    selectedDate &&
+    watchedDoctorId &&
+    slotsQuerySuccess &&
+    !slotsQueryError,
   );
 
   /** Only block editing until the first successful slots fetch — not during background refetch. */
   const isResolvingDefaultSlot = Boolean(
     open &&
-      selectedDate &&
-      watchedDoctorId &&
-      !slotsQueryError &&
-      !slotsQuerySuccess,
+    selectedDate &&
+    watchedDoctorId &&
+    !slotsQueryError &&
+    !slotsQuerySuccess,
   );
 
   useAutoPickStartTime({

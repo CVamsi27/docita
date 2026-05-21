@@ -4,6 +4,10 @@ import { PrismaService } from '@/prisma/prisma.service';
 import { IAuditLogger, AuditLogEntry, AuditAction } from './audit.interface';
 import { randomUUID } from 'crypto';
 import { Prisma } from '@workspace/db';
+import { toPrismaInputJsonValue } from '@/shared/common/json/to-prisma-input-json-value';
+import { parseStringEnumMember } from '@workspace/utils';
+
+const AUDIT_ACTION_MEMBERS = Object.values(AuditAction);
 
 @Injectable()
 export class AuditLoggerService implements IAuditLogger {
@@ -34,24 +38,28 @@ export class AuditLoggerService implements IAuditLogger {
           entityType: entry.resourceType,
           entityId: entry.resourceId ?? 'UNKNOWN',
           oldValue: entry.changes
-            ? (Object.fromEntries(
-                Object.entries(entry.changes).map(([key, value]) => [
-                  key,
-                  value.before,
-                ]),
-              ) as Prisma.InputJsonValue)
+            ? toPrismaInputJsonValue(
+                Object.fromEntries(
+                  Object.entries(entry.changes).map(([key, value]) => [
+                    key,
+                    value.before,
+                  ]),
+                ),
+              )
             : undefined,
           newValue: entry.changes
-            ? (Object.fromEntries(
-                Object.entries(entry.changes).map(([key, value]) => [
-                  key,
-                  value.after,
-                ]),
-              ) as Prisma.InputJsonValue)
+            ? toPrismaInputJsonValue(
+                Object.fromEntries(
+                  Object.entries(entry.changes).map(([key, value]) => [
+                    key,
+                    value.after,
+                  ]),
+                ),
+              )
             : undefined,
           metadata:
             entry.metadata !== undefined
-              ? (entry.metadata as Prisma.InputJsonValue)
+              ? toPrismaInputJsonValue(entry.metadata)
               : undefined,
           ipAddress: entry.ipAddress,
           userAgent: entry.userAgent,
@@ -159,7 +167,9 @@ export class AuditLoggerService implements IAuditLogger {
       timestamp: log.createdAt,
       userId: log.userId,
       clinicId: log.clinicId,
-      action: log.action as AuditAction,
+      action:
+        parseStringEnumMember(AUDIT_ACTION_MEMBERS, log.action) ??
+        AuditAction.PATIENT_UPDATED,
       resourceType: log.entityType,
       resourceId: log.entityId,
       changes:

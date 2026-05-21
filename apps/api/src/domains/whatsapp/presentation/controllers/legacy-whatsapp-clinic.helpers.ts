@@ -1,26 +1,39 @@
 import { BadRequestException } from '@nestjs/common';
-import type { Request } from 'express';
 
-export function requireClinicId(req: Request): string {
-  const user = req.user as { clinicId?: string };
-  if (!user.clinicId) {
+type ClinicAuthUser = {
+  id?: string;
+  clinicId?: string | null;
+  role?: string;
+};
+
+type ClinicAuthRequest = {
+  user?: ClinicAuthUser;
+};
+
+export function requireClinicId(req: ClinicAuthRequest): string {
+  const clinicId = req.user?.clinicId;
+  if (!clinicId) {
     throw new BadRequestException('User not associated with a clinic');
   }
-  return user.clinicId;
+  return clinicId;
 }
 
-export function requireClinicActor(req: Request): {
+export function requireClinicActor(req: ClinicAuthRequest): {
   clinicId: string;
   id: string;
   role: string;
 } {
-  const user = req.user as { clinicId?: string; id: string; role: string };
-  if (!user.clinicId) {
+  const user = req.user;
+  if (!user?.clinicId || !user.id || !user.role) {
     throw new BadRequestException('User not associated with a clinic');
   }
   return { clinicId: user.clinicId, id: user.id, role: user.role };
 }
 
-export function requireUserId(req: Request): string {
-  return (req.user as { id: string }).id;
+export function requireUserId(req: ClinicAuthRequest): string {
+  const userId = req.user?.id;
+  if (!userId) {
+    throw new BadRequestException('Authenticated user is required');
+  }
+  return userId;
 }

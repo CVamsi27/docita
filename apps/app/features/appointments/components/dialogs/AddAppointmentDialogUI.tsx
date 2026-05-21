@@ -14,7 +14,13 @@ import type { SelectOption } from "@/lib/contexts/app-config-context";
 
 import { Button } from "@workspace/ui/components/form/button";
 import { Badge } from "@workspace/ui/components/indicators/badge";
-import { Form, FormLabel } from "@workspace/ui/components/form/form";
+import {
+  Form,
+  FormField,
+  FormItem,
+  FormLabel,
+  FormMessage,
+} from "@workspace/ui/components/form/form";
 import { FormDialog } from "@workspace/ui/components/form/form-dialog";
 import {
   IsoDatePickerField,
@@ -160,14 +166,24 @@ export function AddAppointmentDialogUI({
               description="Who the appointment is for and who will see them."
             />
             <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
-              <PatientSelector
-                form={form}
-                patients={patients}
-                patientsLoading={patientsLoading}
-                patientSearch={patientSearch}
-                setPatientSearch={setPatientSearch}
-                patientComboboxOpen={patientComboboxOpen}
-                setPatientComboboxOpen={setPatientComboboxOpen}
+              <FormField
+                control={form.control}
+                name="patientId"
+                render={({ field }) => (
+                  <FormItem>
+                    <PatientSelector
+                      value={field.value ?? ""}
+                      onChange={field.onChange}
+                      patients={patients}
+                      patientsLoading={patientsLoading}
+                      patientSearch={patientSearch}
+                      setPatientSearch={setPatientSearch}
+                      patientComboboxOpen={patientComboboxOpen}
+                      setPatientComboboxOpen={setPatientComboboxOpen}
+                    />
+                    <FormMessage />
+                  </FormItem>
+                )}
               />
               <DoctorSelector
                 form={form}

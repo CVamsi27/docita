@@ -1,5 +1,6 @@
 import { API_URL } from "@/lib/api/api-config";
 import { appSession } from "@/lib/auth/session";
+import { isRecord } from "@workspace/utils";
 
 function isMutatingMethod(method: string | undefined): boolean {
   return ["POST", "PUT", "PATCH", "DELETE"].includes((method ?? "GET").toUpperCase());
@@ -51,10 +52,10 @@ export async function fetchWithSession(
   return response;
 }
 
-export async function fetchJsonWithSession<T>(
+export async function fetchJsonWithSession(
   endpoint: string,
   init?: RequestInit,
-): Promise<T> {
+): Promise<unknown> {
   const response = await fetchWithSession(endpoint, init);
   if (!response.ok) {
     let details: unknown = undefined;
@@ -69,10 +70,7 @@ export async function fetchJsonWithSession<T>(
       details = undefined;
     }
 
-    const rawMessage =
-      typeof details === "object" && details !== null && "message" in details
-        ? (details as { message?: unknown }).message
-        : undefined;
+    const rawMessage = isRecord(details) ? details.message : undefined;
     // NestJS validation errors put an array in `message`; flatten it.
     const message =
       typeof rawMessage === "string"
@@ -86,5 +84,5 @@ export async function fetchJsonWithSession<T>(
     throw new Error(message);
   }
 
-  return response.json() as Promise<T>;
+  return response.json();
 }

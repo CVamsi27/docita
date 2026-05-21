@@ -10,6 +10,10 @@ import {
   type TaxSettings,
 } from '@workspace/types';
 import { toPrismaJson } from '@/domains/billing/core/utils/invoice-normalization';
+import {
+  validateHospitalRole,
+  validateSpecialization,
+} from '@/domains/billing/application/services/enum-validators';
 
 // ── Constants ──────────────────────────────────────────────────────────────────
 
@@ -119,9 +123,7 @@ export const normalizeSpecialization = (
 ): Specialization | null | undefined => {
   if (value === undefined) return undefined;
   if (value === null) return null;
-  return Object.values(Specialization).includes(value as Specialization)
-    ? (value as Specialization)
-    : undefined;
+  return validateSpecialization(value) ?? undefined;
 };
 
 export const normalizeDoctorRole = (
@@ -129,9 +131,7 @@ export const normalizeDoctorRole = (
 ): HospitalRole | null | undefined => {
   if (value === undefined) return undefined;
   if (value === null) return null;
-  return Object.values(HospitalRole).includes(value as HospitalRole)
-    ? (value as HospitalRole)
-    : undefined;
+  return validateHospitalRole(value) ?? undefined;
 };
 
 // ── Date helpers ───────────────────────────────────────────────────────────────

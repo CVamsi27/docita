@@ -20,7 +20,7 @@ export function createStubAppointmentWriteUseCases(): {
     updateAppointmentDetailsUseCase: stubUseCase(
       UpdateAppointmentDetailsUseCase.prototype,
     ),
-  } as unknown as {
+  } satisfies {
     cancelAppointmentUseCase: CancelAppointmentUseCase;
     rescheduleAppointmentUseCase: RescheduleAppointmentUseCase;
     startConsultationUseCase: StartConsultationUseCase;

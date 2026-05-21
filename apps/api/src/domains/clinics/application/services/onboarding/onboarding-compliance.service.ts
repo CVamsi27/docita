@@ -65,7 +65,9 @@ export class OnboardingComplianceService {
       const doc = new PDFDocument({ margin: 48 });
       const chunks: Buffer[] = [];
 
-      doc.on('data', (chunk) => chunks.push(chunk as Buffer));
+      doc.on('data', (chunk) => {
+        chunks.push(Buffer.isBuffer(chunk) ? chunk : Buffer.from(chunk));
+      });
       doc.on('end', () => resolve(Buffer.concat(chunks)));
       doc.on('error', reject);
 
@@ -108,8 +110,8 @@ export class OnboardingComplianceService {
         .list([
           'Data processing is limited to consented healthcare operations.',
           'Access is role-based and tenant-scoped.',
-          'All legal acceptance actions are retained as immutable evidence.',
-          'This signed proof is retained as a non-repudiation artifact.',
+          'All legal acceptance actions are kept immutable for evidence.',
+          'This signed proof is stored for non-repudiation.',
         ]);
 
       doc.moveDown(0.75);

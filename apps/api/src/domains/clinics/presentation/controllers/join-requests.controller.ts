@@ -81,7 +81,7 @@ export class JoinRequestsController {
         clinicId: dto.clinicId,
         type: 'MEMBER_JOIN_REQUEST',
         title: 'New Team Member Request',
-        message: `${user.name} (${user.email}) requested to join as ${dto.requestedRole}`,
+        message: `${user.name} (${user.email}) requested to join with role ${dto.requestedRole}`,
         data: {
           requestId: request.id,
           userId,

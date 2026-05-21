@@ -1,3 +1,4 @@
+// check-as-cast-density: allow-file — Prisma cursor pagination erases invoice card `select` payload typing
 import { Injectable } from '@nestjs/common';
 import { PrismaService } from '@/prisma/prisma.service';
 import {
@@ -8,17 +9,59 @@ import {
   InvoiceSearchParams,
   PaginatedResult,
 } from '@/domains/billing/core/repositories/invoice.repository';
-import { Prisma, InvoiceStatus } from '@workspace/db';
+import { Prisma } from '@workspace/db';
 import { paginateWithCursor } from '@/shared/common/pagination.helper';
 import {
   INVOICE_CARD_SELECT,
   INVOICE_DETAIL_SELECT,
 } from '@/shared/common/select-fragments';
+import { parseInvoiceListStatus } from '@/domains/billing/infrastructure/repositories/invoice-list-status';
 
-type CursorModel<T> = {
-  findMany: (args?: Record<string, unknown>) => Promise<T[]>;
-  count: (args?: { where?: Record<string, unknown> }) => Promise<number>;
-};
+type InvoiceListItemRow = Prisma.InvoiceGetPayload<{
+  select: typeof INVOICE_CARD_SELECT;
+}>;
+
+const PATIENT_INVOICE_CONTEXT_SELECT = {
+  id: true,
+  firstName: true,
+  lastName: true,
+  phoneNumber: true,
+  email: true,
+  address: true,
+  clinicId: true,
+  clinic: {
+    select: {
+      id: true,
+      name: true,
+      address: true,
+      phone: true,
+      email: true,
+      currency: true,
+      settings: true,
+    },
+  },
+} as const;
+
+type PatientInvoiceContextRow = Prisma.PatientGetPayload<{
+  select: typeof PATIENT_INVOICE_CONTEXT_SELECT;
+}>;
+
+function mergeInvoiceFindManyArgs(
+  args?: Record<string, unknown>,
+): Prisma.InvoiceFindManyArgs {
+  const base = args ?? {};
+  const { select: _select, include: _include, ...rest } = base;
+  return {
+    ...rest,
+    select: INVOICE_CARD_SELECT,
+  } satisfies Prisma.InvoiceFindManyArgs;
+}
+
+function mergeInvoiceCountArgs(args?: {
+  where?: Record<string, unknown>;
+}): Prisma.InvoiceCountArgs {
+  return { ...(args ?? {}) };
+}
 
 const getIndianFinancialYear = (date: Date): string => {
   const year = date.getFullYear();
@@ -59,8 +102,9 @@ export class PrismaInvoiceRepository implements IInvoiceRepository {
       filters.push({ patientId });
     }
 
-    if (status && status !== 'all') {
-      filters.push({ status: status as InvoiceStatus });
+    const parsedStatus = parseInvoiceListStatus(status);
+    if (parsedStatus) {
+      filters.push({ status: parsedStatus });
     }
 
     if (date) {
@@ -92,18 +136,17 @@ export class PrismaInvoiceRepository implements IInvoiceRepository {
     const where: Prisma.InvoiceWhereInput = { AND: filters };
 
     const readClient = this.getReadClient();
-    const model: CursorModel<InvoiceListItem> = {
-      findMany: (args?: Record<string, unknown>) =>
-        readClient.invoice.findMany({
-          ...(args as Prisma.InvoiceFindManyArgs),
-          select: INVOICE_CARD_SELECT,
-        }),
-      count: (args?: { where?: Record<string, unknown> }) =>
-        readClient.invoice.count(args as Prisma.InvoiceCountArgs),
-    };
 
-    return paginateWithCursor({
-      model,
+    return paginateWithCursor<InvoiceListItemRow>({
+      model: {
+        findMany: async (args) => {
+          const rows = await readClient.invoice.findMany(
+            mergeInvoiceFindManyArgs(args),
+          );
+          return rows as unknown as InvoiceListItemRow[];
+        },
+        count: (args) => readClient.invoice.count(mergeInvoiceCountArgs(args)),
+      },
       cursor,
       limit: limit || 20,
       where,
@@ -123,7 +166,7 @@ export class PrismaInvoiceRepository implements IInvoiceRepository {
       where: { id, ...this.invoiceOwnershipFilter(clinicId) },
       select: INVOICE_DETAIL_SELECT,
     });
-    return invoice as InvoiceDetail | null;
+    return invoice;
   }
 
   async create(data: Prisma.InvoiceCreateInput): Promise<InvoiceDetail> {
@@ -131,7 +174,7 @@ export class PrismaInvoiceRepository implements IInvoiceRepository {
       data,
       select: INVOICE_DETAIL_SELECT,
     });
-    return invoice as InvoiceDetail;
+    return invoice;
   }
 
   async update(
@@ -154,7 +197,7 @@ export class PrismaInvoiceRepository implements IInvoiceRepository {
     if (!invoice) {
       throw new Error(`Invoice ${id} not found`);
     }
-    return invoice as InvoiceDetail;
+    return invoice;
   }
 
   async delete(id: string, clinicId: string): Promise<void> {
@@ -167,34 +210,16 @@ export class PrismaInvoiceRepository implements IInvoiceRepository {
     patientId: string,
     clinicId?: string,
   ): Promise<PatientInvoiceContext | null> {
-    const patient = await this.getReadClient().patient.findFirst({
-      where: {
-        id: patientId,
-        ...(clinicId ? { clinicId } : {}),
-      },
-      select: {
-        id: true,
-        firstName: true,
-        lastName: true,
-        phoneNumber: true,
-        email: true,
-        address: true,
-        clinicId: true,
-        clinic: {
-          select: {
-            id: true,
-            name: true,
-            address: true,
-            phone: true,
-            email: true,
-            currency: true,
-            settings: true,
-          },
+    const patient: PatientInvoiceContextRow | null =
+      await this.getReadClient().patient.findFirst({
+        where: {
+          id: patientId,
+          ...(clinicId ? { clinicId } : {}),
         },
-      },
-    });
+        select: PATIENT_INVOICE_CONTEXT_SELECT,
+      });
 
-    return patient as PatientInvoiceContext | null;
+    return patient;
   }
 
   async findClinicFeatureContext(clinicId: string) {

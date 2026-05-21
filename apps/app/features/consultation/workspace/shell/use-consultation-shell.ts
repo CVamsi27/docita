@@ -27,11 +27,12 @@ import { useConsultationVitals } from "@/features/consultation/workspace/consult
 import type { ConsultationSaveHandles } from "@/features/consultation/workspace/use-consultation-leave-navigation";
 import {
   CLINIC_TYPE_FEATURES,
+  clinicTypeSchema,
   Feature,
   type Appointment,
-  type ClinicType,
   type PatientWithMedicalHistory,
 } from "@workspace/types";
+import { parseStringEnumMember } from "@workspace/utils";
 import { usePermissions } from "@/hooks/use-permissions";
 import { usePermissionStore } from "@/lib/stores/permission-store";
 
@@ -74,8 +75,9 @@ export function useConsultationShell({
 
   const clinicFeatures = useMemo(() => {
     const normalized = clinicType?.toUpperCase() ?? "GENERAL";
-    if (normalized in CLINIC_TYPE_FEATURES) {
-      return CLINIC_TYPE_FEATURES[normalized as ClinicType];
+    const parsed = parseStringEnumMember(clinicTypeSchema.options, normalized);
+    if (parsed) {
+      return CLINIC_TYPE_FEATURES[parsed];
     }
     return CLINIC_TYPE_FEATURES.GENERAL;
   }, [clinicType]);
@@ -87,9 +89,7 @@ export function useConsultationShell({
   const { data: patient, isLoading: patientLoading } =
     usePatientWithMedicalHistory(appointmentData.patientId ?? "");
 
-  const effectivePatient =
-    patient ||
-    (appointmentData.patient as unknown as PatientWithMedicalHistory | undefined);
+  const effectivePatient = patient ?? appointmentData.patient;
 
   const [activeSectionId, setActiveSectionId] = useState<string>(
     () => sections[0]?.id ?? "subjective",

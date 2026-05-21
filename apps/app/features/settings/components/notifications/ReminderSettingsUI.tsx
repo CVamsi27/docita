@@ -7,8 +7,8 @@ import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import {
   reminderSettingsFormSchema,
+  reminderFormValuesFromClinicSettings,
   type ReminderSettingsFormValues,
-  type ReminderTimeUnit,
 } from "@workspace/types";
 import {
   Card,
@@ -24,7 +24,6 @@ import { Label } from "@workspace/ui/components/form/label";
 import { Switch } from "@workspace/ui/components/form/switch";
 import { Bell } from "lucide-react";
 import {
-  ClinicAppSettings,
   useClinicSettings,
   useUpdateClinicSettings,
 } from "@workspace/data-access";
@@ -175,34 +174,7 @@ export const ReminderSettingsUI: FC = () => {
 
   useEffect(() => {
     if (!clinic) return;
-    const s = (clinic.settings as ClinicAppSettings) || {};
-    form.reset({
-      appointment: {
-        enabled: s.reminderBefore !== undefined,
-        before: String(s.reminderBefore ?? "1"),
-        unit: (s.reminderUnit as ReminderTimeUnit) ?? "day",
-      },
-      followUp: {
-        enabled: s.followUpReminderEnabled ?? false,
-        before: String(s.followUpReminderBefore ?? "1"),
-        unit: (s.followUpReminderUnit as ReminderTimeUnit) ?? "day",
-      },
-      invoice: {
-        enabled: s.invoiceReminderEnabled ?? false,
-        before: String(s.invoiceReminderBefore ?? "3"),
-        unit: (s.invoiceReminderUnit as ReminderTimeUnit) ?? "day",
-      },
-      prescription: {
-        enabled: s.prescriptionReminderEnabled ?? false,
-        before: String(s.prescriptionReminderBefore ?? "1"),
-        unit: (s.prescriptionReminderUnit as ReminderTimeUnit) ?? "day",
-      },
-      schedule: {
-        enabled: s.scheduleNotificationEnabled ?? false,
-        before: String(s.scheduleNotificationBefore ?? "1"),
-        unit: (s.scheduleNotificationUnit as ReminderTimeUnit) ?? "hour",
-      },
-    });
+    form.reset(reminderFormValuesFromClinicSettings(clinic.settings));
   }, [clinic, form]);
 
   const handleSave = (values: ReminderSettingsFormValues) => {

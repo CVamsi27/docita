@@ -2,6 +2,9 @@ import { Inject, Injectable, Logger, OnModuleDestroy } from '@nestjs/common';
 import { CLOCK_PORT, type IClock } from '@/shared/common/ports/clock.port';
 import { PrismaService } from '@/prisma/prisma.service';
 import { Prisma } from '@workspace/db';
+import { toPrismaInputJsonValue } from '@/shared/common/json/to-prisma-input-json-value';
+import { isRecord } from '@workspace/utils';
+import { isDatabaseAuthError } from '@/shared/modules/auth/auth/auth-database.util';
 import {
   API_REQUEST_METRICS_REPOSITORY_TOKEN,
   type ApiRequestMetricsRepository,
@@ -104,7 +107,10 @@ export class RequestLogService implements OnModuleDestroy {
             ip: req.ip,
             error: req.error,
             errorStack: req.errorStack,
-            metadata: req.metadata as Prisma.InputJsonValue,
+            metadata:
+              req.metadata !== undefined
+                ? toPrismaInputJsonValue(req.metadata)
+                : undefined,
           })),
           skipDuplicates: true,
         });
@@ -113,7 +119,7 @@ export class RequestLogService implements OnModuleDestroy {
       this.requestBuffer.splice(0, requestsToFlush.length);
       this.logger.debug(`Flushed ${requestsToFlush.length} requests`);
     } catch (error) {
-      if (this.isDatabaseAuthError(error)) {
+      if (isDatabaseAuthError(error)) {
         this.disablePersistence(
           'Disabling request-log database persistence due to database authentication failure. Verify DATABASE_URL credentials.',
         );
@@ -145,41 +151,13 @@ export class RequestLogService implements OnModuleDestroy {
     this.logger.warn(message);
   }
 
-  private isDatabaseAuthError(error: unknown): boolean {
-    if (!error || typeof error !== 'object') {
-      return false;
-    }
-
-    const candidate = error as { code?: unknown; message?: unknown };
-    const code = typeof candidate.code === 'string' ? candidate.code : '';
-    const message =
-      typeof candidate.message === 'string'
-        ? candidate.message.toLowerCase()
-        : '';
-
-    if (code === 'P1000') {
-      return true;
-    }
-
-    return (
-      message.includes('authentication failed against the database server') ||
-      message.includes('database credentials') ||
-      message.includes('password authentication failed')
-    );
-  }
-
   private isMissingApiRequestTableError(error: unknown): boolean {
     if (!error || typeof error !== 'object') {
       return false;
     }
 
-    const candidate = error as {
-      code?: unknown;
-      message?: unknown;
-      meta?: unknown;
-    };
-
-    const code = typeof candidate.code === 'string' ? candidate.code : '';
+    const code =
+      'code' in error && typeof error.code === 'string' ? error.code : '';
 
     // Prisma known error for "table does not exist".
     // Common when migrations weren't applied (e.g. "ApiRequest" is missing).
@@ -188,8 +166,8 @@ export class RequestLogService implements OnModuleDestroy {
     }
 
     const message =
-      typeof candidate.message === 'string'
-        ? candidate.message.toLowerCase()
+      'message' in error && typeof error.message === 'string'
+        ? error.message.toLowerCase()
         : '';
 
     // Postgres: 42P01 = undefined_table
@@ -205,9 +183,11 @@ export class RequestLogService implements OnModuleDestroy {
     }
 
     // Some Prisma errors include a `meta.table` field.
-    if (candidate.meta && typeof candidate.meta === 'object') {
-      const meta = candidate.meta as { table?: unknown };
-      if (typeof meta.table === 'string' && meta.table === 'ApiRequest') {
+    if ('meta' in error && isRecord(error.meta)) {
+      if (
+        typeof error.meta.table === 'string' &&
+        error.meta.table === 'ApiRequest'
+      ) {
         return true;
       }
     }

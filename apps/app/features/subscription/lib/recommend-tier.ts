@@ -9,6 +9,19 @@ import {
  * Tier ladder used for "next plan" suggestions. Excludes INTELLIGENCE (add-on).
  * Order matches the published plan ladder, not the numeric Tier enum.
  */
+type WhatsappPricingTier = Exclude<TierName, "STARTER" | "INTELLIGENCE">;
+
+function isWhatsappPricingTier(tier: TierName): tier is WhatsappPricingTier {
+  return tier !== "STARTER" && tier !== "INTELLIGENCE";
+}
+
+function readWhatsappIncludedQuota(tier: TierName): number {
+  if (!isWhatsappPricingTier(tier)) {
+    return 0;
+  }
+  return WHATSAPP_ADDON_PRICING[tier]?.includedQuota ?? 0;
+}
+
 const RECOMMENDER_LADDER: TierName[] = [
   "STARTER",
   "FRONT_DESK",
@@ -45,12 +58,7 @@ export function recommendTier(
     const limits = TIER_LIMITS[candidate];
     const includedAppointments = limits.appointments ?? 0;
     const includedUsers = limits.users ?? 0;
-    const includedWhatsapp =
-      candidate === "STARTER"
-        ? 0
-        : (WHATSAPP_ADDON_PRICING[
-            candidate as Exclude<TierName, "STARTER" | "INTELLIGENCE">
-          ]?.includedQuota ?? 0);
+    const includedWhatsapp = readWhatsappIncludedQuota(candidate);
 
     const covers =
       consultations <= includedAppointments &&
@@ -70,12 +78,7 @@ export function recommendTier(
         `${users} active users vs ${currentLimits.users ?? 0} included on ${current}`,
       );
     }
-    const currentWa =
-      current === "STARTER"
-        ? 0
-        : (WHATSAPP_ADDON_PRICING[
-            current as Exclude<TierName, "STARTER" | "INTELLIGENCE">
-          ]?.includedQuota ?? 0);
+    const currentWa = readWhatsappIncludedQuota(current);
     if (whatsapp > currentWa) {
       reasons.push(
         `${whatsapp} WhatsApp messages vs ${currentWa} included on ${current}`,

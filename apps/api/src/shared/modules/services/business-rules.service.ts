@@ -158,13 +158,13 @@ export class BusinessRulesService {
 
     if (isPRN && prnInstructions.trim().length === 0) {
       throw new BadRequestException(
-        'PRN instructions are required when medication is marked as needed',
+        'PRN instructions are required when medication is marked needed (PRN)',
       );
     }
 
     if (status === 'COMPLETED' && !hasCompletedAt) {
       throw new BadRequestException(
-        'Completion date is required when marking appointment as completed',
+        'Completion date is required when marking appointment completed',
       );
     }
 

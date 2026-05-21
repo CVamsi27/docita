@@ -2,7 +2,16 @@ import { Injectable, Logger } from '@nestjs/common';
 import { PrismaService } from '@/prisma/prisma.service';
 import { IDoctorScheduleCoreRepository } from '@/domains/doctors/core/repositories/doctor-schedule-core.repository.interface';
 import { Prisma, DayOfWeek } from '@workspace/db';
+import { parseStringEnumMember } from '@workspace/utils';
 import { isPrismaTableDoesNotExistForModel } from '@/shared/common/utils/prisma-missing-table';
+
+function parseDayOfWeek(dayOfWeek: string): DayOfWeek {
+  const parsed = parseStringEnumMember(Object.values(DayOfWeek), dayOfWeek);
+  if (!parsed) {
+    throw new Error(`Invalid dayOfWeek: ${dayOfWeek}`);
+  }
+  return parsed;
+}
 
 @Injectable()
 export class PrismaDoctorScheduleCoreRepository implements IDoctorScheduleCoreRepository {
@@ -60,7 +69,7 @@ export class PrismaDoctorScheduleCoreRepository implements IDoctorScheduleCoreRe
         doctorId_clinicId_dayOfWeek: {
           doctorId,
           clinicId,
-          dayOfWeek: dayOfWeek as DayOfWeek,
+          dayOfWeek: parseDayOfWeek(dayOfWeek),
         },
       },
     });
@@ -85,7 +94,7 @@ export class PrismaDoctorScheduleCoreRepository implements IDoctorScheduleCoreRe
       return await this.getReadClient().clinicWeeklySchedule.findMany({
         where: {
           clinicId: params.clinicId,
-          dayOfWeek: params.dayOfWeek as DayOfWeek,
+          dayOfWeek: parseDayOfWeek(params.dayOfWeek),
           isActive: true,
         },
       });

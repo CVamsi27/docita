@@ -90,7 +90,7 @@ export class PatientPortalCommandService {
 
     return {
       message:
-        'Your data deletion request has been received. Our team will process it within 30 days as per DPDP guidelines.',
+        'Your data deletion request has been received. Our team will process it within 30 days per DPDP guidelines.',
       patientId,
       requestedAt: this.clock.now().toISOString(),
     };

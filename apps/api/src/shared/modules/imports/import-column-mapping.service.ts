@@ -4,6 +4,12 @@ import type { ExcelRow, MappedPatientData } from './import-types';
 import type { TabularRow } from './import-file-parser.service';
 import { ImportFileParserService } from './import-file-parser.service';
 
+function isPatientMappingField(
+  field: string,
+): field is keyof typeof PATIENT_FIELD_MAPPINGS {
+  return Object.prototype.hasOwnProperty.call(PATIENT_FIELD_MAPPINGS, field);
+}
+
 @Injectable()
 export class ImportColumnMappingService {
   constructor(private readonly fileParser: ImportFileParserService) {}
@@ -19,7 +25,9 @@ export class ImportColumnMappingService {
           (alias) => normalized.includes(alias) || alias.includes(normalized),
         )
       ) {
-        return field as keyof typeof PATIENT_FIELD_MAPPINGS;
+        if (isPatientMappingField(field)) {
+          return field;
+        }
       }
     }
 
@@ -34,9 +42,7 @@ export class ImportColumnMappingService {
 
     for (const [excelCol, dbField] of Object.entries(mapping)) {
       if (row[excelCol] !== undefined && dbField) {
-        (result as Record<string, string | number | Date | undefined>)[
-          dbField
-        ] = row[excelCol];
+        Reflect.set(result, dbField, row[excelCol]);
       }
     }
 

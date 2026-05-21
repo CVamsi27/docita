@@ -15,6 +15,8 @@ const BULK_IMPORT_ENTITY_TYPES = [
   'INVENTORY',
 ] as const satisfies readonly BulkImportEntityType[];
 
+const BULK_IMPORT_ENTITY_TYPE_SET = new Set<string>(BULK_IMPORT_ENTITY_TYPES);
+
 @Injectable()
 export class BulkImportStrategyRegistry {
   private readonly strategies: Map<BulkImportEntityType, IImportStrategy>;
@@ -36,7 +38,7 @@ export class BulkImportStrategyRegistry {
   }
 
   isValidEntityType(entityType: string): entityType is BulkImportEntityType {
-    return (BULK_IMPORT_ENTITY_TYPES as readonly string[]).includes(entityType);
+    return BULK_IMPORT_ENTITY_TYPE_SET.has(entityType);
   }
 
   get(entityType: BulkImportEntityType): IImportStrategy {

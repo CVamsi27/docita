@@ -204,7 +204,7 @@ export class EnterpriseContractInvoiceCommandService {
         } catch (err) {
           this.logger.warn(
             `True-up alert email send failed for ${contract.contractNumber}`,
-            err as Error,
+            err instanceof Error ? err : new Error(String(err)),
           );
         }
       }

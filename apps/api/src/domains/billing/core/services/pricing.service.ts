@@ -17,8 +17,12 @@ import {
   getWhatsAppAddonPricingByCurrency,
 } from '@workspace/utils';
 import {
-  resolveCurrency,
+  isLegacyDbPricingTier,
+  mapDbTierStringToCanonicalTier,
+  mapPricingTierInputToTierName,
   readNumber,
+  resolveCurrency,
+  SUPPORTED_PRICING_CURRENCIES,
   toPricingTierPayload,
 } from './pricing-helpers';
 
@@ -26,9 +30,7 @@ import {
 export class PricingService {
   constructor(private prisma: PrismaService) {}
 
-  private readonly supportedCurrencies = Object.keys(
-    PRICING_CURRENCY_CONFIG,
-  ) as SupportedCurrency[];
+  private readonly supportedCurrencies = SUPPORTED_PRICING_CURRENCIES;
 
   private resolveCurrency(currency?: string): SupportedCurrency {
     return resolveCurrency(this.supportedCurrencies, currency);
@@ -47,15 +49,6 @@ export class PricingService {
     const tierPricing = TIER_PRICING_BY_CURRENCY[validCurrency];
     const referralRewards = REFERRAL_REWARDS_BY_CURRENCY[validCurrency];
 
-    const DB_TIER_TO_CANONICAL: Record<string, string> = {
-      CAPTURE: 'STARTER',
-      CORE: 'ESSENTIAL',
-      PRO: 'PROFESSIONAL',
-      ENTERPRISE: 'ENTERPRISE',
-    };
-
-    const LEGACY_DB_TIERS = new Set(['PLUS', 'CLINIC']);
-
     const dbTiers = await this.prisma.tierPricing.findMany({
       where: { isActive: true },
       orderBy: { displayOrder: 'asc' },
@@ -63,7 +56,7 @@ export class PricingService {
 
     if (dbTiers.length > 0) {
       const canonicalTiers = dbTiers.filter(
-        (t) => !LEGACY_DB_TIERS.has(t.tier as string),
+        (t) => !isLegacyDbPricingTier(t.tier),
       );
 
       return {
@@ -80,8 +73,7 @@ export class PricingService {
           }),
         ),
         tiers: canonicalTiers.map((tier) => {
-          const canonicalTier = (DB_TIER_TO_CANONICAL[tier.tier as string] ??
-            tier.tier) as keyof typeof TIER_LIMITS;
+          const canonicalTier = mapDbTierStringToCanonicalTier(tier.tier);
           const monthlyPrice =
             canonicalTier === 'ENTERPRISE'
               ? 'custom'
@@ -212,19 +204,9 @@ export class PricingService {
     const tierPricing = TIER_PRICING_BY_CURRENCY[validCurrency];
     const tierOverageRates = TIER_OVERAGE_RATES_BY_CURRENCY[validCurrency];
 
-    const LEGACY_TIER_MAP: Record<string, string> = {
-      CAPTURE: 'STARTER',
-      CORE: 'ESSENTIAL',
-      PLUS: 'ESSENTIAL',
-      PRO: 'PROFESSIONAL',
-      CLINIC: 'PROFESSIONAL',
-    };
+    const tierKey = mapPricingTierInputToTierName(tier);
 
-    const rawKey = tier.toUpperCase();
-    const tierKey = (LEGACY_TIER_MAP[rawKey] ??
-      rawKey) as keyof typeof TIER_PRICING;
-
-    if (!TIER_PRICING[tierKey] || tierKey === 'INTELLIGENCE') {
+    if (!tierKey || !TIER_PRICING[tierKey]) {
       return { error: 'Invalid tier' };
     }
 

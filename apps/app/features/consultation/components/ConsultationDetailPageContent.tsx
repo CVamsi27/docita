@@ -39,7 +39,9 @@ export default function ConsultationPage() {
 function ConsultationPageContent() {
   const params = useParams();
   const router = useRouter();
-  const appointmentId = params["id"] as string;
+  const rawAppointmentId = params["id"];
+  const appointmentId =
+    typeof rawAppointmentId === "string" ? rawAppointmentId : "";
   const saveHandlesRef = useRef<ConsultationSaveHandles | null>(null);
   const queryClient = useQueryClient();
   const { confirmAction } = useConfirm();
@@ -142,7 +144,7 @@ function ConsultationPageContent() {
         }
       }
 
-      toast.success("Consultation marked as done");
+      toast.success("Consultation marked done");
       void retry();
       router.push("/consultation");
     } finally {

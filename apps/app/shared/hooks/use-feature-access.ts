@@ -8,12 +8,10 @@
  * messaging or add-on-specific evaluation is still required.
  */
 import { useCallback, useMemo } from "react";
-import { type ClinicType, Feature } from "@workspace/types";
+import { type Feature } from "@workspace/types";
 
 import { AccessControlFactory } from "@/lib/access-control/factory";
 import {
-  AddOnType,
-  type IAccessContext,
   type IAccessDecision,
   type IUpgradeOption,
 } from "@/lib/access-control/interfaces";
@@ -21,6 +19,10 @@ import { usePermissionStore } from "@/lib/stores/permission-store";
 import { useAuth } from "@/lib/auth/auth-context";
 import { useClinic } from "@/lib/contexts/clinic-context";
 import type { Permission } from "@/lib/auth/permissions";
+import {
+  buildFeatureAccessContext,
+  resolveUserRoleForAccess,
+} from "@/shared/hooks/use-feature-access-helpers";
 
 export function useFeatureAccess() {
   const { currentTier, hasIntelligence } = usePermissionStore();
@@ -40,35 +42,15 @@ export function useFeatureAccess() {
 
   const canAccess = useCallback(
     (feature: Feature | string, requiredPermission?: Permission): boolean => {
-      const context: IAccessContext = {
+      const context = buildFeatureAccessContext({
         feature,
         userId: user?.id || "current-user",
-        subscription: {
-          tier: currentTier,
-          status: "active",
-          features: [],
-          startDate: new Date(),
-          billingCycle: "monthly",
-        },
-        addOns: [
-          ...(hasIntelligence
-            ? [
-                {
-                  type: AddOnType.INTELLIGENCE,
-                  status: "active" as const,
-                  baseQuota: 500,
-                  usedQuota: 0,
-                  overageRate: 3,
-                  billingCycle: "monthly" as const,
-                },
-              ]
-            : []),
-        ],
-        overrides: [],
-        userRole: user?.role || "RECEPTIONIST",
+        currentTier,
+        hasIntelligence,
+        userRole: resolveUserRoleForAccess(user?.role),
+        clinicType: clinic?.type,
         requiredPermission,
-        clinicType: (clinic?.type as ClinicType) || undefined,
-      };
+      });
 
       return accessService.canAccessSync(context).granted;
     },
@@ -77,21 +59,14 @@ export function useFeatureAccess() {
 
   const canAccessAsync = useCallback(
     async (feature: Feature | string): Promise<boolean> => {
-      const context: IAccessContext = {
+      const context = buildFeatureAccessContext({
         feature,
         userId: user?.id || "current-user",
-        subscription: {
-          tier: currentTier,
-          status: "active",
-          features: [],
-          startDate: new Date(),
-          billingCycle: "monthly",
-        },
-        addOns: [],
-        overrides: [],
-        userRole: user?.role || "RECEPTIONIST",
-        clinicType: (clinic?.type as ClinicType) || undefined,
-      };
+        currentTier,
+        hasIntelligence: false,
+        userRole: resolveUserRoleForAccess(user?.role),
+        clinicType: clinic?.type,
+      });
 
       const decision = await accessService.canAccess(context);
       return decision.granted;
@@ -101,67 +76,30 @@ export function useFeatureAccess() {
 
   const getReason = useCallback(
     (feature: Feature | string): string => {
-      const context: IAccessContext = {
+      const context = buildFeatureAccessContext({
         feature,
         userId: "current-user",
-        subscription: {
-          tier: currentTier,
-          status: "active",
-          features: [],
-          startDate: new Date(),
-          billingCycle: "monthly",
-        },
-        addOns: hasIntelligence
-          ? [
-              {
-                type: AddOnType.INTELLIGENCE,
-                status: "active",
-                baseQuota: 500,
-                usedQuota: 0,
-                overageRate: 3,
-                billingCycle: "monthly",
-              },
-            ]
-          : [],
-        overrides: [],
-        userRole: user?.role || "RECEPTIONIST",
-        clinicType: (clinic?.type as ClinicType) || undefined,
-      };
+        currentTier,
+        hasIntelligence,
+        userRole: resolveUserRoleForAccess(user?.role),
+        clinicType: clinic?.type,
+      });
 
       return accessService.getReason(context);
     },
-    [currentTier, hasIntelligence, accessService, user, clinic], 
+    [currentTier, hasIntelligence, accessService, user, clinic],
   );
 
-  
   const getUpgradeOptions = useCallback(
     (feature: Feature | string): IUpgradeOption[] => {
-      const context: IAccessContext = {
+      const context = buildFeatureAccessContext({
         feature,
         userId: user?.id || "current-user",
-        subscription: {
-          tier: currentTier,
-          status: "active",
-          features: [],
-          startDate: new Date(),
-          billingCycle: "monthly",
-        },
-        addOns: hasIntelligence
-          ? [
-              {
-                type: AddOnType.INTELLIGENCE,
-                status: "active",
-                baseQuota: 500,
-                usedQuota: 0,
-                overageRate: 3,
-                billingCycle: "monthly",
-              },
-            ]
-          : [],
-        overrides: [],
-        userRole: user?.role || "RECEPTIONIST",
-        clinicType: (clinic?.type as ClinicType) || undefined, 
-      };
+        currentTier,
+        hasIntelligence,
+        userRole: resolveUserRoleForAccess(user?.role),
+        clinicType: clinic?.type,
+      });
 
       return accessService.getUpgradeOptions(context);
     },
@@ -170,32 +108,14 @@ export function useFeatureAccess() {
 
   const getDecision = useCallback(
     (feature: Feature | string): IAccessDecision => {
-      const context: IAccessContext = {
+      const context = buildFeatureAccessContext({
         feature,
         userId: user?.id || "current-user",
-        subscription: {
-          tier: currentTier,
-          status: "active",
-          features: [],
-          startDate: new Date(),
-          billingCycle: "monthly",
-        },
-        addOns: hasIntelligence
-          ? [
-              {
-                type: AddOnType.INTELLIGENCE,
-                status: "active",
-                baseQuota: 500,
-                usedQuota: 0,
-                overageRate: 3,
-                billingCycle: "monthly",
-              },
-            ]
-          : [],
-        overrides: [],
-        userRole: user?.role || "RECEPTIONIST",
-        clinicType: (clinic?.type as ClinicType) || undefined,
-      };
+        currentTier,
+        hasIntelligence,
+        userRole: resolveUserRoleForAccess(user?.role),
+        clinicType: clinic?.type,
+      });
 
       return accessService.canAccessSync(context);
     },

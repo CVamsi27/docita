@@ -1,4 +1,5 @@
 import { PaymentMethod } from "@workspace/types";
+import { parseStringEnumMember } from "@workspace/utils";
 import { humanizeUiLabel } from "@workspace/ui/lib/label-formatters";
 
 const PAYMENT_METHOD_LABELS: Record<PaymentMethod, string> = {
@@ -16,8 +17,12 @@ export function formatInvoicePaymentMethodLabel(
 ): string | null {
   if (raw == null || raw === "") return null;
   const normalized = raw.trim().toLowerCase().replace(/-/g, "_");
-  if ((Object.values(PaymentMethod) as string[]).includes(normalized)) {
-    return PAYMENT_METHOD_LABELS[normalized as PaymentMethod];
+  const method = parseStringEnumMember(
+    Object.values(PaymentMethod),
+    normalized,
+  );
+  if (method) {
+    return PAYMENT_METHOD_LABELS[method];
   }
   return humanizeUiLabel(raw.replace(/_/g, " "));
 }

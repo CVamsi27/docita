@@ -15,9 +15,10 @@ import {
   extractDelayMinutes,
   parsePatientResponse,
 } from './patient-response-parser.helper';
-import type {
-  AppointmentContext,
-  DelayContext,
+import {
+  toAppointmentContext,
+  type AppointmentContext,
+  type DelayContext,
 } from './patient-response.types';
 
 const DELAY_MINUTES_PENDING_NOTE = 'delay_minutes_pending';
@@ -63,6 +64,14 @@ export class ResponseHandlerService {
       return;
     }
 
+    const appointmentContext = toAppointmentContext(appointment);
+    if (!appointmentContext) {
+      this.logger.warn(
+        `Appointment ${appointmentId} is missing patient, doctor, or clinic relations`,
+      );
+      return;
+    }
+
     const responseType = parsePatientResponse(responseText);
     const delayMinutes = extractDelayMinutes(responseText);
     const pendingDelayResponse =
@@ -74,7 +83,7 @@ export class ResponseHandlerService {
       (responseType === 'UNKNOWN' || responseType === 'DELAY')
     ) {
       await this.handleDelayMinutesFollowUp(
-        appointment as AppointmentContext,
+        appointmentContext,
         pendingDelayResponse.id,
         responseText,
         delayMinutes,
@@ -123,13 +132,13 @@ export class ResponseHandlerService {
     };
 
     await this.patientConfirmation.sendPatientConfirmation(
-      appointment as AppointmentContext,
+      appointmentContext,
       responseType,
       delayContext,
     );
 
     await this.patientStaffNotification.notifyStaffForPatientResponse(
-      appointment as AppointmentContext,
+      appointmentContext,
       responseType,
       responseText,
       response.id,

@@ -20,6 +20,86 @@ import {
 import { MetricCategorySection } from "@/features/patient-portal/components/metrics/metric-category-section";
 import { AddMetricDefinitionModal } from "@/features/patient-portal/components/metrics/add-metric-definition-modal";
 import { useQueryClient } from "@tanstack/react-query";
+import {
+  metricHistoryResponseSchema,
+  type MetricRecordResponse,
+} from "@workspace/types";
+import { isRecord } from "@workspace/utils";
+
+type PortalMetricRecord = {
+  id: string;
+  definitionId: string;
+  recordedAt: string;
+  values: Array<{
+    valueNumber?: number | null;
+    valueString?: string | null;
+    valueBoolean?: boolean | null;
+  }>;
+};
+
+function toPortalMetricRecord(
+  record: MetricRecordResponse,
+): PortalMetricRecord | null {
+  const definitionId = record.definitionId ?? record.definition.id;
+  if (!definitionId) return null;
+  const recordedAt =
+    typeof record.recordedAt === "string"
+      ? record.recordedAt
+      : record.recordedAt.toISOString();
+  return {
+    id: record.id,
+    definitionId,
+    recordedAt,
+    values: record.values.map((value) => ({
+      valueNumber: value.valueNumber,
+      valueString: value.valueString,
+      valueBoolean: value.valueBoolean,
+    })),
+  };
+}
+
+type PortalMetricDefinition = {
+  id: string;
+  key: string;
+  label: string;
+  unit?: string | null;
+  valueType: string;
+  isTracked: boolean;
+};
+
+type PortalMetricCategory = {
+  id: string;
+  name: string;
+  metricDefinitions: PortalMetricDefinition[];
+};
+
+function readPortalMetricDefinition(value: unknown): PortalMetricDefinition | null {
+  if (!isRecord(value)) return null;
+  if (typeof value.id !== "string" || typeof value.key !== "string") {
+    return null;
+  }
+  return {
+    id: value.id,
+    key: value.key,
+    label: typeof value.label === "string" ? value.label : value.key,
+    unit: typeof value.unit === "string" || value.unit === null ? value.unit : null,
+    valueType: typeof value.valueType === "string" ? value.valueType : "NUMBER",
+    isTracked: value.isTracked === true,
+  };
+}
+
+function readPortalMetricCategory(value: unknown): PortalMetricCategory | null {
+  if (!isRecord(value)) return null;
+  if (typeof value.id !== "string" || typeof value.name !== "string") {
+    return null;
+  }
+  const metricDefinitions = Array.isArray(value.metricDefinitions)
+    ? value.metricDefinitions
+        .map(readPortalMetricDefinition)
+        .filter((entry): entry is PortalMetricDefinition => entry !== null)
+    : [];
+  return { id: value.id, name: value.name, metricDefinitions };
+}
 
 const DATE_RANGE_OPTIONS = [
   { value: "7", label: "Last 7 days" },
@@ -73,30 +153,16 @@ export function PortalMetricsUI({
   const isLoading = categoriesLoading || historyLoading;
   const hasError = Boolean(categoriesError) || Boolean(historyError);
 
-  const allRecords = (historyData?.timeline ?? []) as Array<{
-    id: string;
-    definitionId: string;
-    recordedAt: string;
-    values: Array<{
-      valueNumber?: number | null;
-      valueString?: string | null;
-      valueBoolean?: boolean | null;
-    }>;
-  }>;
+  const parsedHistory = metricHistoryResponseSchema.safeParse(historyData);
+  const allRecords = parsedHistory.success
+    ? parsedHistory.data.timeline
+        .map(toPortalMetricRecord)
+        .filter((record): record is PortalMetricRecord => record !== null)
+    : [];
 
-  const categoryList = (categories ?? []) as Array<{
-    id: string;
-    key: string;
-    name: string;
-    metricDefinitions: Array<{
-      id: string;
-      key: string;
-      label: string;
-      unit?: string | null;
-      valueType: string;
-      isTracked: boolean;
-    }>;
-  }>;
+  const categoryList = (Array.isArray(categories) ? categories : [])
+    .map(readPortalMetricCategory)
+    .filter((entry): entry is PortalMetricCategory => entry !== null);
 
   const status = isLoading
     ? "loading"

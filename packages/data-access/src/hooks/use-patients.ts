@@ -1,4 +1,5 @@
 import { useInfiniteQuery } from "@tanstack/react-query";
+import { APIRequestError } from "../lib/errors";
 import { queryKeys } from "../lib/query-keys";
 import {
   CreatePatientRequest,
@@ -61,24 +62,32 @@ export const useInfinitePatients = (options?: {
 }) => {
   const { fetcher, isTierFeatureEnabled } = useDataAccessContext();
   const tierPatientsOk = isTierFeatureEnabled(Feature.BASIC_PATIENT_MANAGEMENT);
-  return useInfiniteQuery({
+  type PatientsPage = {
+    items: Patient[];
+    nextCursor?: string;
+    hasMore: boolean;
+    count: number;
+  };
+
+  return useInfiniteQuery<
+    PatientsPage,
+    APIRequestError,
+    PatientsPage,
+    ReturnType<typeof queryKeys.patients.infinite>,
+    string | undefined
+  >({
     queryKey: queryKeys.patients.infinite(options?.search),
     queryFn: ({ pageParam }) => {
-      return fetcher<{
-        items: Patient[];
-        nextCursor?: string;
-        hasMore: boolean;
-        count: number;
-      }>(
+      return fetcher<PatientsPage>(
         withQueryString("/patients", {
           limit: options?.limit,
           search: options?.search,
-          cursor: pageParam as string | undefined,
+          cursor: pageParam,
         }),
       );
     },
     getNextPageParam: (lastPage) => lastPage.nextCursor,
-    initialPageParam: undefined as string | undefined,
+    initialPageParam: undefined,
     enabled: tierPatientsOk && (options?.enabled ?? true),
   });
 };

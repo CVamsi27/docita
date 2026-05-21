@@ -1,5 +1,6 @@
 import * as crypto from 'crypto';
 import { Injectable, Logger } from '@nestjs/common';
+import { mapPatientRecordFields } from '@/shared/common/encryption-patient-fields.boundary';
 import { AppConfigService } from '@/shared/modules/config/app-configuration.service';
 import { ENCRYPTION_CONSTANTS } from '@/shared/modules/config/app-constants';
 
@@ -138,51 +139,11 @@ export class EncryptionService {
   }
 
   encryptPatientData<T extends Record<string, unknown>>(patient: T): T {
-    const sensitiveFields = [
-      'email',
-      'phoneNumber',
-      'address',
-      'emergencyContactPhone',
-      'emergencyContactName',
-      'firstName',
-      'lastName',
-    ] as const;
-
-    const encryptedPatient: T = { ...patient };
-
-    for (const field of sensitiveFields) {
-      const typedField = field as keyof T;
-      const value = patient[typedField];
-      if (typeof value === 'string') {
-        encryptedPatient[typedField] = this.encrypt(value) as T[keyof T];
-      }
-    }
-
-    return encryptedPatient;
+    return mapPatientRecordFields(patient, (value) => this.encrypt(value));
   }
 
-  decryptPatientData<T>(patient: T): T {
-    const sensitiveFields = [
-      'email',
-      'phoneNumber',
-      'address',
-      'emergencyContactPhone',
-      'emergencyContactName',
-      'firstName',
-      'lastName',
-    ] as const;
-
-    const decryptedPatient: T = { ...patient };
-
-    for (const field of sensitiveFields) {
-      const typedField = field as keyof T;
-      const value = patient[typedField];
-      if (typeof value === 'string') {
-        decryptedPatient[typedField] = this.decrypt(value) as T[keyof T];
-      }
-    }
-
-    return decryptedPatient;
+  decryptPatientData<T extends Record<string, unknown>>(patient: T): T {
+    return mapPatientRecordFields(patient, (value) => this.decrypt(value));
   }
 
   hash(data: string): string {

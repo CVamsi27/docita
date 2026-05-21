@@ -1,4 +1,5 @@
 import { Prisma } from '@workspace/db';
+import { isRecord } from '@workspace/utils';
 
 const TENANT_FIELD = 'clinicId';
 
@@ -40,7 +41,7 @@ type TenantScopeRuleSnapshot = {
   path?: readonly string[];
 };
 
-export type PropertyValue =
+type PropertyValue =
   | object
   | string
   | number
@@ -50,10 +51,79 @@ export type PropertyValue =
   | null
   | undefined;
 
-export type TenantExtensionArgs = {
+type TenantExtensionArgs = {
   where?: Record<string, PropertyValue>;
   data?: Record<string, PropertyValue> | Record<string, PropertyValue>[];
 };
+
+function isPropertyValue(entry: unknown): entry is PropertyValue {
+  return (
+    entry === null ||
+    entry === undefined ||
+    typeof entry === 'string' ||
+    typeof entry === 'number' ||
+    typeof entry === 'boolean' ||
+    typeof entry === 'bigint' ||
+    typeof entry === 'symbol' ||
+    typeof entry === 'object'
+  );
+}
+
+function readPropertyValueRecord(
+  value: unknown,
+): Record<string, PropertyValue> | undefined {
+  if (!isRecord(value)) {
+    return undefined;
+  }
+
+  const record: Record<string, PropertyValue> = {};
+  for (const [key, entry] of Object.entries(value)) {
+    if (isPropertyValue(entry)) {
+      record[key] = entry;
+    }
+  }
+  return record;
+}
+
+/** Prisma middleware passes opaque args; tenant policy validates structure. */
+export function coerceTenantExtensionArgs(args: unknown): TenantExtensionArgs {
+  if (!isRecord(args)) {
+    return {};
+  }
+
+  const data = args.data;
+  const normalizedData = Array.isArray(data)
+    ? data
+        .filter(isRecord)
+        .map((entry) => readPropertyValueRecord(entry))
+        .filter((entry): entry is Record<string, PropertyValue> => !!entry)
+    : readPropertyValueRecord(data);
+
+  return {
+    where: readPropertyValueRecord(args.where),
+    data: normalizedData,
+  };
+}
+
+type TenantUpsertExtensionArgs = TenantExtensionArgs & {
+  create?: Record<string, PropertyValue>;
+  update?: Record<string, PropertyValue>;
+};
+
+function coerceTenantUpsertExtensionArgs(
+  args: unknown,
+): TenantUpsertExtensionArgs {
+  const base = coerceTenantExtensionArgs(args);
+  if (!isRecord(args)) {
+    return base;
+  }
+
+  return {
+    ...base,
+    create: readPropertyValueRecord(args.create),
+    update: readPropertyValueRecord(args.update),
+  };
+}
 
 const TENANT_READ_OPERATIONS = new Set([
   'findMany',
@@ -74,7 +144,9 @@ const TENANT_UNSAFE_UNIQUE_OPERATIONS = new Set([
   'upsert',
 ]);
 
-function isPlainObject(value: PropertyValue): value is object {
+function isTenantDataObject(
+  value: PropertyValue,
+): value is Record<string, PropertyValue> {
   return typeof value === 'object' && value !== null && !Array.isArray(value);
 }
 
@@ -211,9 +283,7 @@ function applyTenantFilter(
 }
 
 function hasClinicRelation(data: Record<string, PropertyValue>): boolean {
-  return Boolean(
-    'clinic' in data && (data as { clinic?: object | null }).clinic,
-  );
+  return 'clinic' in data && Boolean(data.clinic);
 }
 
 function applyTenantCreateData(
@@ -246,23 +316,21 @@ function applyTenantCreateData(
     return;
   }
 
-  if (!isPlainObject(data)) {
+  if (!isTenantDataObject(data)) {
     args.data = { [TENANT_FIELD]: clinicId };
     return;
   }
 
-  const existingClinicId = (data as Record<string, PropertyValue>)[
-    TENANT_FIELD
-  ];
+  const existingClinicId = data[TENANT_FIELD];
   if (typeof existingClinicId === 'string' && existingClinicId !== clinicId) {
     throw new Error(
       `Security Violation: Attempted to write tenant-scoped data for '${existingClinicId}' while in tenant '${clinicId}'.`,
     );
   }
 
-  if (!hasClinicRelation(data as Record<string, PropertyValue>)) {
+  if (!hasClinicRelation(data)) {
     args.data = {
-      ...(data as Record<string, PropertyValue>),
+      ...data,
       [TENANT_FIELD]: clinicId,
     };
   }
@@ -281,7 +349,7 @@ function applyTenantUpsertData(
     return;
   }
 
-  if (isPlainObject(args.create)) {
+  if (isTenantDataObject(args.create)) {
     const existingClinicId = args.create[TENANT_FIELD];
     if (typeof existingClinicId === 'string' && existingClinicId !== clinicId) {
       throw new Error(
@@ -297,7 +365,7 @@ function applyTenantUpsertData(
     }
   }
 
-  if (isPlainObject(args.update)) {
+  if (isTenantDataObject(args.update)) {
     const updateClinicId = args.update[TENANT_FIELD];
     if (typeof updateClinicId === 'string' && updateClinicId !== clinicId) {
       throw new Error(
@@ -356,7 +424,11 @@ export function applyTenantScopeForTest(
       clinicId,
     );
     if (operation === 'upsert') {
-      applyTenantUpsertData(args as never, rule, clinicId);
+      applyTenantUpsertData(
+        coerceTenantUpsertExtensionArgs(args),
+        rule,
+        clinicId,
+      );
     }
     return args;
   }

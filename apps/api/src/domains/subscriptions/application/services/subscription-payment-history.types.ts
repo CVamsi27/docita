@@ -1,3 +1,5 @@
+import { isRecord } from '@workspace/utils';
+
 export type PaymentHistoryRecord = {
   amountCents: number;
   currency: string;
@@ -13,10 +15,10 @@ export type PaymentHistoryRecord = {
 };
 
 function isPaymentHistoryRecord(value: unknown): value is PaymentHistoryRecord {
-  if (!value || typeof value !== 'object') {
+  if (!isRecord(value)) {
     return false;
   }
-  const row = value as Record<string, unknown>;
+  const row = value;
   return (
     typeof row.amountCents === 'number' &&
     typeof row.currency === 'string' &&

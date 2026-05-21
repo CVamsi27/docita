@@ -2,11 +2,11 @@ import { Injectable, Inject, Logger } from '@nestjs/common';
 import { CACHE_MANAGER } from '@nestjs/cache-manager';
 import { Cache } from 'cache-manager';
 import { PrismaService } from '@/prisma/prisma.service';
-import { Prisma } from '@workspace/db';
 import { FinancialAnalyticsFactory } from './financial-analytics.factory';
 import { OperationalAnalyticsFactory } from './operational-analytics.factory';
 import { ClinicalAnalyticsFactory } from './clinical-analytics.factory';
 import { CLOCK_PORT, type IClock } from '@/shared/common/ports/clock.port';
+import { toPrismaInputJsonValue } from '@/shared/common/json/to-prisma-input-json-value';
 
 export interface SnapshotRecord {
   [key: string]: unknown;
@@ -32,10 +32,6 @@ export interface SnapshotRecord {
 @Injectable()
 export class SnapshotAnalyticsFactory {
   private readonly logger = new Logger(SnapshotAnalyticsFactory.name);
-
-  private toJsonValue(value: unknown): Prisma.InputJsonValue {
-    return JSON.parse(JSON.stringify(value)) as Prisma.InputJsonValue;
-  }
 
   constructor(
     private prisma: PrismaService,
@@ -88,7 +84,7 @@ export class SnapshotAnalyticsFactory {
           newPatients: demographics.newPatients || 0,
           activePatients: demographics.totalPatients || 0,
           appointmentRate: appointments.fillRate || 0,
-          topConditions: this.toJsonValue(topConditions || []),
+          topConditions: toPrismaInputJsonValue(topConditions || []),
         },
       });
 

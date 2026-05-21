@@ -1,5 +1,4 @@
 import {
-  Prisma,
   Invoice as PrismaInvoice,
   InvoiceStatus as PrismaInvoiceStatus,
 } from '@workspace/db';
@@ -13,6 +12,7 @@ import {
 import { DEFAULT_CURRENCY } from '@workspace/utils';
 import { invoiceItemsSchema } from '@workspace/types';
 import { parsePrismaJsonColumn } from '@/shared/common/json/parse-prisma-json-column';
+import { toPrismaInputJsonValue } from '@/shared/common/json/to-prisma-input-json-value';
 
 interface InvoiceItemData {
   id: string;
@@ -120,7 +120,7 @@ export class InvoiceMapper {
       patientId: invoice.patientId,
       appointmentId: invoice.appointmentId || undefined,
       status: invoice.getStatus().value,
-      items: itemsJson as Prisma.InputJsonValue,
+      items: toPrismaInputJsonValue(itemsJson),
       total: invoice.getTotal().amount,
       createdAt: invoice.createdAt,
       updatedAt: invoice.updatedAt,

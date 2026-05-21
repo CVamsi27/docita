@@ -163,7 +163,7 @@ export class SupportWhatsAppReplyService {
         await this.markThreadAsReplied(normalizedThreadPhoneNumber, sentAt);
       } catch (error) {
         this.logger.warn(
-          `Failed to mark thread ${normalizedThreadPhoneNumber} as replied: ${
+          `Failed to mark thread ${normalizedThreadPhoneNumber} replied: ${
             error instanceof Error ? error.message : 'Unknown error'
           }`,
         );

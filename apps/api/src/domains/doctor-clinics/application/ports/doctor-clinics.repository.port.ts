@@ -1,5 +1,10 @@
+export type DoctorClinicAssignmentRef = { id: string };
+
 export interface IDoctorClinicsRepository {
-  findAssignment(doctorId: string, clinicId: string): Promise<unknown | null>;
+  findAssignment(
+    doctorId: string,
+    clinicId: string,
+  ): Promise<DoctorClinicAssignmentRef | null>;
   reactivateAssignment(
     assignmentId: string,
     role: string,

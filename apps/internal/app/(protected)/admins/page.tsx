@@ -54,6 +54,10 @@ import { internalQueryKeys } from "@/lib/api/query-keys";
 import { useInternalFiltersStore } from "@/lib/stores/internal-filters-store";
 import { toast } from "sonner";
 import { showUserFacingErrorToast } from "@/lib/errors/user-facing-errors";
+import {
+  type InternalClinicAdminType,
+  internalClinicAdminTypeSchema,
+} from "@workspace/types";
 
 type Admin = InternalAdminUser;
 
@@ -71,18 +75,29 @@ export default function AdminsPage() {
   const [isViewOpen, setIsViewOpen] = useState(false);
   const [isCreateOpen, setIsCreateOpen] = useState(false);
   const [isEditOpen, setIsEditOpen] = useState(false);
-  const [createForm, setCreateForm] = useState({
+  const [createForm, setCreateForm] = useState<{
+    name: string;
+    email: string;
+    password: string;
+    phoneNumber: string;
+    adminType: InternalClinicAdminType;
+  }>({
     name: "",
     email: "",
     password: "",
     phoneNumber: "",
-    adminType: "admin" as "admin" | "admin_doctor",
+    adminType: "admin",
   });
-  const [editForm, setEditForm] = useState({
+  const [editForm, setEditForm] = useState<{
+    name: string;
+    email: string;
+    phoneNumber: string;
+    adminType: InternalClinicAdminType;
+  }>({
     name: "",
     email: "",
     phoneNumber: "",
-    adminType: "admin" as "admin" | "admin_doctor",
+    adminType: "admin",
   });
   const { token } = useAuth();
 
@@ -506,12 +521,11 @@ export default function AdminsPage() {
               <Label htmlFor="adminType">Admin Type *</Label>
               <Select
                 value={createForm.adminType}
-                onValueChange={(value) =>
-                  setCreateForm({
-                    ...createForm,
-                    adminType: value as "admin" | "admin_doctor",
-                  })
-                }
+                onValueChange={(value) => {
+                  const parsed = internalClinicAdminTypeSchema.safeParse(value);
+                  if (!parsed.success) return;
+                  setCreateForm({ ...createForm, adminType: parsed.data });
+                }}
               >
                 <SelectTrigger>
                   <SelectValue placeholder="Admin type" />
@@ -533,7 +547,7 @@ export default function AdminsPage() {
               </Select>
               <p className="text-xs text-muted-foreground mt-1">
                 {createForm.adminType === "admin_doctor"
-                  ? "Admin Doctor can manage clinic operations and also act as a doctor"
+                  ? "Admin Doctor can manage clinic operations and provide clinical care"
                   : "Clinic Admin manages clinic operations and staff"}
               </p>
             </div>
@@ -616,12 +630,11 @@ export default function AdminsPage() {
               <Label htmlFor="edit-adminType">Admin Type *</Label>
               <Select
                 value={editForm.adminType}
-                onValueChange={(value) =>
-                  setEditForm({
-                    ...editForm,
-                    adminType: value as "admin" | "admin_doctor",
-                  })
-                }
+                onValueChange={(value) => {
+                  const parsed = internalClinicAdminTypeSchema.safeParse(value);
+                  if (!parsed.success) return;
+                  setEditForm({ ...editForm, adminType: parsed.data });
+                }}
               >
                 <SelectTrigger>
                   <SelectValue placeholder="Admin type" />

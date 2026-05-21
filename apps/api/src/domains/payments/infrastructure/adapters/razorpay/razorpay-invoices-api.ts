@@ -1,3 +1,4 @@
+// check-as-cast-density: allow-file — Razorpay Node SDK invoice resource typings are incomplete
 import type Razorpay from 'razorpay';
 
 /** Razorpay Node SDK invoice resource typings are incomplete; isolate the cast here. */

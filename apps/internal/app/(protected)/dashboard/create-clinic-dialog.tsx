@@ -14,9 +14,18 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@workspace/ui/components/form/select";
-import PhoneInput, { type Country } from "react-phone-number-input";
+import PhoneInput from "react-phone-number-input";
 import { toast } from "sonner";
-import { CLINIC_TYPE_OPTIONS, type ClinicType, TIER_INFO, type TierName } from "@workspace/types";
+import {
+  CLINIC_TYPE_OPTIONS,
+  type ClinicType,
+  clinicTypeSchema,
+  type InternalClinicAdminType,
+  internalClinicAdminTypeSchema,
+  TIER_INFO,
+  type TierName,
+  tierSchema,
+} from "@workspace/types";
 import { showUserFacingErrorToast } from "@/lib/errors/user-facing-errors";
 import { DEFAULT_COUNTRY_CODE } from "@workspace/utils";
 
@@ -27,6 +36,32 @@ const AVAILABLE_TIERS: TierName[] = [
   "PROFESSIONAL",
   "ENTERPRISE",
 ];
+
+type CreateClinicFormData = {
+  name: string;
+  email: string;
+  phone: string;
+  address: string;
+  tier: TierName;
+  type: ClinicType;
+  adminName: string;
+  adminEmail: string;
+  adminPassword: string;
+  adminType: InternalClinicAdminType;
+};
+
+const INITIAL_FORM_DATA: CreateClinicFormData = {
+  name: "",
+  email: "",
+  phone: "",
+  address: "",
+  tier: "STARTER",
+  type: "GENERAL",
+  adminName: "",
+  adminEmail: "",
+  adminPassword: "",
+  adminType: "admin",
+};
 
 const CLINIC_TYPE_DESCRIPTIONS: Partial<Record<ClinicType, string>> = {
   GENERAL: "Multi-specialty facility",
@@ -49,18 +84,7 @@ export function CreateClinicDialog({
 }) {
   const [open, setOpen] = useState(false);
   const [loading, setLoading] = useState(false);
-  const [formData, setFormData] = useState({
-    name: "",
-    email: "",
-    phone: "",
-    address: "",
-    tier: "STARTER",
-    type: "GENERAL" as ClinicType,
-    adminName: "",
-    adminEmail: "",
-    adminPassword: "",
-    adminType: "admin" as "admin" | "admin_doctor",
-  });
+  const [formData, setFormData] = useState<CreateClinicFormData>(INITIAL_FORM_DATA);
 
   const [showPassword, setShowPassword] = useState(false);
   const [fieldErrors, setFieldErrors] = useState<{
@@ -231,7 +255,7 @@ export function CreateClinicDialog({
                   id="phone"
                   value={formData.phone}
                   international
-                  defaultCountry={DEFAULT_COUNTRY_CODE as Country}
+                  defaultCountry={DEFAULT_COUNTRY_CODE}
                   onChange={(value: string | undefined) => {
                     setFormData({ ...formData, phone: value ?? "" });
                     if (fieldErrors.phone) {
@@ -258,9 +282,11 @@ export function CreateClinicDialog({
                 <Label htmlFor="tier">Subscription Tier</Label>
                 <Select
                   value={formData.tier}
-                  onValueChange={(val) =>
-                    setFormData({ ...formData, tier: val })
-                  }
+                  onValueChange={(val) => {
+                    const parsed = tierSchema.safeParse(val);
+                    if (!parsed.success) return;
+                    setFormData({ ...formData, tier: parsed.data });
+                  }}
                 >
                   <SelectTrigger>
                     <SelectValue placeholder="Tier" />
@@ -280,9 +306,11 @@ export function CreateClinicDialog({
               <Label htmlFor="type">Clinic Type</Label>
               <Select
                 value={formData.type}
-                onValueChange={(val) =>
-                  setFormData({ ...formData, type: val as ClinicType })
-                }
+                onValueChange={(val) => {
+                  const parsed = clinicTypeSchema.safeParse(val);
+                  if (!parsed.success) return;
+                  setFormData({ ...formData, type: parsed.data });
+                }}
               >
                 <SelectTrigger>
                   <SelectValue placeholder="Facility type" />
@@ -449,12 +477,11 @@ export function CreateClinicDialog({
               <Label htmlFor="adminType">Admin Type *</Label>
               <Select
                 value={formData.adminType}
-                onValueChange={(value) =>
-                  setFormData({
-                    ...formData,
-                    adminType: value as "admin" | "admin_doctor",
-                  })
-                }
+                onValueChange={(value) => {
+                  const parsed = internalClinicAdminTypeSchema.safeParse(value);
+                  if (!parsed.success) return;
+                  setFormData({ ...formData, adminType: parsed.data });
+                }}
               >
                 <SelectTrigger>
                   <SelectValue placeholder="Admin type" />
@@ -476,7 +503,7 @@ export function CreateClinicDialog({
               </Select>
               <p className="text-xs text-muted-foreground mt-1">
                 {formData.adminType === "admin_doctor"
-                  ? "Admin Doctor can manage clinic operations and also act as a doctor"
+                  ? "Admin Doctor can manage clinic operations and provide clinical care"
                   : "Clinic Admin manages clinic operations and staff"}
               </p>
             </div>

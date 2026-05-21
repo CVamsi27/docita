@@ -127,16 +127,13 @@ export class ClinicalAnalyticsFactory {
   ) {
     const trends = await this.getDiseaseTrends(clinicId, startDate, endDate);
 
-    const byCategory = trends.reduce(
-      (acc, item) => {
-        if (item.icdCode) {
-          const category = item.icdCode.category;
-          acc[category] = (acc[category] || 0) + item.count;
-        }
-        return acc;
-      },
-      {} as Record<string, number>,
-    );
+    const byCategory = trends.reduce<Record<string, number>>((acc, item) => {
+      if (item.icdCode) {
+        const category = item.icdCode.category;
+        acc[category] = (acc[category] || 0) + item.count;
+      }
+      return acc;
+    }, {});
 
     return Object.entries(byCategory)
       .map(([category, count]: [string, number]) => ({ category, count }))

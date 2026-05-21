@@ -45,12 +45,7 @@ export function useInternalBillingSubscriptions(
     queryFn: () =>
       fetcher<InternalSubscriptionOverview[]>(
         "/internal/billing/subscriptions",
-        {
-          params: filters as Record<
-            string,
-            string | number | boolean | undefined
-          >,
-        },
+        { params: filters },
       ),
     enabled: Boolean(token),
     ...options,
@@ -72,10 +67,7 @@ export function useInternalBillingPayments(
     queryKey: internalQueryKeys.internal.billingPayments(filtersKey),
     queryFn: () =>
       fetcher<InternalBillingPaymentItem[]>("/internal/billing/payments", {
-        params: filters as Record<
-          string,
-          string | number | boolean | undefined
-        >,
+        params: filters,
       }),
     enabled: Boolean(token),
     ...options,

@@ -1,4 +1,8 @@
-import { getUserFacingErrorMessage, sanitizeUserFacingMessage } from "@workspace/utils";
+import {
+  getUserFacingErrorMessage,
+  isRecord,
+  sanitizeUserFacingMessage,
+} from "@workspace/utils";
 import { browserRequest } from "@/lib/auth/browser-request";
 
 export interface ValidationResult {
@@ -29,10 +33,6 @@ export interface ComprehensiveCheckResult {
     warnings: number;
     errors: number;
   };
-}
-
-interface ApiErrorResponse {
-  message?: string | string[];
 }
 
 function sanitizeValidationResult(result: ValidationResult): ValidationResult {
@@ -100,6 +100,7 @@ async function postMedicationValidation<T>(
   endpoint: string,
   payload: unknown,
   fallbackMessage: string,
+  parseResult: (result: unknown) => T,
   sanitizeResult?: (result: T) => T,
 ): Promise<T> {
   const response = await browserRequest(endpoint, {
@@ -109,12 +110,13 @@ async function postMedicationValidation<T>(
   });
 
   if (!response.ok) {
-    const errorBody = (await response
-      .json()
-      .catch(() => ({}))) as ApiErrorResponse;
-    const errorMessage = Array.isArray(errorBody.message)
-      ? errorBody.message.join(", ")
-      : errorBody.message;
+    const errorBody: unknown = await response.json().catch(() => ({}));
+    const messageField = isRecord(errorBody) ? errorBody.message : undefined;
+    const errorMessage = Array.isArray(messageField)
+      ? messageField.filter((m) => typeof m === "string").join(", ")
+      : typeof messageField === "string"
+        ? messageField
+        : undefined;
     throw new Error(
       getUserFacingErrorMessage(errorMessage, {
         fallback: fallbackMessage,
@@ -123,18 +125,100 @@ async function postMedicationValidation<T>(
     );
   }
 
-  const result = (await response.json()) as T;
-  return sanitizeResult ? sanitizeResult(result) : result;
+  const result: unknown = await response.json();
+  const typed = parseResult(result);
+  return sanitizeResult ? sanitizeResult(typed) : typed;
+}
+
+function parseValidationResult(result: unknown): ValidationResult {
+  if (!isRecord(result) || typeof result.isValid !== "boolean") {
+    throw new Error("We could not check this dosage. Please try again.");
+  }
+  return {
+    isValid: result.isValid,
+    message: typeof result.message === "string" ? result.message : undefined,
+    severity:
+      result.severity === "warning" || result.severity === "critical"
+        ? result.severity
+        : undefined,
+    suggestion:
+      typeof result.suggestion === "string" ? result.suggestion : undefined,
+  };
+}
+
+function parseContraindicationResults(result: unknown): ContraindicationResult[] {
+  if (!Array.isArray(result)) {
+    throw new Error("We could not review this medicine right now. Please try again.");
+  }
+  return result.map((entry) => {
+    if (
+      !isRecord(entry) ||
+      typeof entry.isContraindicated !== "boolean" ||
+      typeof entry.message !== "string" ||
+      typeof entry.recommendation !== "string"
+    ) {
+      throw new Error("We could not review this medicine right now. Please try again.");
+    }
+    const severity = entry.severity;
+    if (severity !== "info" && severity !== "warning" && severity !== "critical") {
+      throw new Error("We could not review this medicine right now. Please try again.");
+    }
+    return {
+      isContraindicated: entry.isContraindicated,
+      severity,
+      message: entry.message,
+      recommendation: entry.recommendation,
+      alternatives: Array.isArray(entry.alternatives)
+        ? entry.alternatives.filter((item): item is string => typeof item === "string")
+        : undefined,
+    };
+  });
+}
+
+function parseComprehensiveCheckResult(result: unknown): ComprehensiveCheckResult {
+  if (!isRecord(result)) {
+    throw new Error("We could not complete this medicine review. Please try again.");
+  }
+  const dosageValidations = Array.isArray(result.dosageValidations)
+    ? result.dosageValidations.map(parseValidationResult)
+    : [];
+  const contraindications = Array.isArray(result.contraindications)
+    ? parseContraindicationResults(result.contraindications)
+    : [];
+  const warnings = Array.isArray(result.warnings)
+    ? result.warnings.filter((w): w is string => typeof w === "string")
+    : [];
+  const errors = Array.isArray(result.errors)
+    ? result.errors.filter((e): e is string => typeof e === "string")
+    : [];
+  const summary = isRecord(result.summary) ? result.summary : {};
+  return {
+    dosageValidations,
+    contraindications,
+    warnings,
+    errors,
+    isApproved: result.isApproved === true,
+    requiresReview: result.requiresReview === true,
+    summary: {
+      totalMedications:
+        typeof summary.totalMedications === "number" ? summary.totalMedications : 0,
+      validMedications:
+        typeof summary.validMedications === "number" ? summary.validMedications : 0,
+      warnings: typeof summary.warnings === "number" ? summary.warnings : 0,
+      errors: typeof summary.errors === "number" ? summary.errors : 0,
+    },
+  };
 }
 
 export function validateMedicationDosage(payload: {
   medication: string;
   dosage: string;
 }) {
-  return postMedicationValidation<ValidationResult>(
+  return postMedicationValidation(
     "/api/medications/validate-dosage",
     payload,
     "We could not check this dosage. Please try again.",
+    parseValidationResult,
     sanitizeValidationResult,
   );
 }
@@ -146,10 +230,11 @@ export function checkMedicationContraindications(payload: {
   currentMedications?: string[];
   isPregnant?: boolean;
 }) {
-  return postMedicationValidation<ContraindicationResult[]>(
+  return postMedicationValidation(
     "/api/medications/check-contraindications",
     payload,
     "We could not review this medicine right now. Please try again.",
+    parseContraindicationResults,
     (results) => results.map(sanitizeContraindicationResult),
   );
 }
@@ -158,10 +243,11 @@ export function checkMedicationInteractions(payload: {
   medications: Array<{ name: string; dosage?: string }>;
   patientAllergies?: string[];
 }) {
-  return postMedicationValidation<unknown>(
+  return postMedicationValidation(
     "/api/medications/check-interactions",
     payload,
     "We could not review these medicine interactions. Please try again.",
+    (result) => result,
   );
 }
 
@@ -174,10 +260,11 @@ export function runMedicationComprehensiveCheck(payload: {
   weight?: number;
   renalFunction?: string;
 }) {
-  return postMedicationValidation<ComprehensiveCheckResult>(
+  return postMedicationValidation(
     "/api/medications/comprehensive-check",
     payload,
     "We could not complete this medicine review. Please try again.",
+    parseComprehensiveCheckResult,
     sanitizeComprehensiveCheckResult,
   );
 }

@@ -87,7 +87,7 @@ export default function ConsentFormPage() {
             <p>
               I understand this processing follows applicable Indian data protection requirements,
               including the Digital Personal Data Protection Act, 2023 and healthcare record
-              handling practices as applicable to the facility.
+              handling practices where applicable to the facility.
             </p>
             <p>
               <span className="font-medium">Current Choice:</span> {storageStatus}
@@ -121,7 +121,7 @@ export default function ConsentFormPage() {
           <section className="rounded-md border bg-muted/20 p-4 text-sm leading-6">
             <h2 className="text-base font-semibold mb-1">Hospital Display Copy</h2>
             <p>
-              This consent form is maintained as a digital display and record for patient
+              This consent form is maintained for digital display and record for patient
               information and hospital reference. Physical signature is not required for this
               portal copy.
             </p>

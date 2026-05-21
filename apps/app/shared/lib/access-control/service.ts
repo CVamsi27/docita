@@ -1,12 +1,5 @@
-
-
-import {
-  Feature,
-  FEATURE_TIER_MAP,
-  Tier,
-  TIER_PRICING,
-} from "@workspace/types";
-import { DEFAULT_CURRENCY, getTierInfo } from "@workspace/utils";
+import { FEATURE_TIER_MAP, Tier, TIER_PRICING } from "@workspace/types";
+import { DEFAULT_CURRENCY, getTierInfo, getTierName } from "@workspace/utils";
 import {
   AddOnType,
   type IAccessContext,
@@ -17,6 +10,10 @@ import {
   type IUpgradeOption,
 } from "./interfaces";
 import { FEATURE_ADDON_MAP } from "./rules/addon-based-rule";
+
+function readMonthlyPrice(value: unknown): number {
+  return typeof value === "number" && Number.isFinite(value) ? value : 0;
+}
 
 export class AccessControlService implements IAccessControlService {
   private rules: IAccessRule[] = [];
@@ -33,7 +30,6 @@ export class AccessControlService implements IAccessControlService {
   }
 
   async canAccess(context: IAccessContext): Promise<IAccessDecision> {
-
     const freshContext = await this.repository.getContext(
       context.userId,
       context.clinicId,
@@ -56,9 +52,7 @@ export class AccessControlService implements IAccessControlService {
     return decision.upgradeOptions || [];
   }
 
-  
   private evaluateRules(context: IAccessContext): IAccessDecision {
-
     for (const rule of this.rules) {
       if (rule.canAccess(context)) {
         return {
@@ -72,7 +66,6 @@ export class AccessControlService implements IAccessControlService {
     return this.buildDenialDecision(context);
   }
 
-  
   private buildDenialDecision(context: IAccessContext): IAccessDecision {
     const { reason, metadata } = this.getDenialReason(context);
     const upgradeOptions = this.calculateUpgradeOptions(context, metadata);
@@ -86,7 +79,6 @@ export class AccessControlService implements IAccessControlService {
     };
   }
 
-  
   private getDenialReason(context: IAccessContext): {
     reason: string;
     metadata: IAccessDecision["metadata"];
@@ -118,7 +110,7 @@ export class AccessControlService implements IAccessControlService {
     }
 
     if (typeof feature !== "string" && feature in FEATURE_TIER_MAP) {
-      const requiredTier = FEATURE_TIER_MAP[feature as Feature];
+      const requiredTier = FEATURE_TIER_MAP[feature];
       const tierInfo = getTierInfo(requiredTier);
 
       return {
@@ -133,7 +125,6 @@ export class AccessControlService implements IAccessControlService {
     };
   }
 
-  
   private calculateUpgradeOptions(
     context: IAccessContext,
     metadata: IAccessDecision["metadata"],
@@ -145,12 +136,14 @@ export class AccessControlService implements IAccessControlService {
       const requiredTier = metadata.requiredTier;
 
       if (currentTier < requiredTier) {
-        const currentTierName = Tier[currentTier] as keyof typeof TIER_PRICING;
-        const requiredTierName = Tier[
-          requiredTier
-        ] as keyof typeof TIER_PRICING;
-        const currentPrice = TIER_PRICING[currentTierName].monthly as number;
-        const newPrice = TIER_PRICING[requiredTierName].monthly as number;
+        const currentTierName = getTierName(currentTier);
+        const requiredTierName = getTierName(requiredTier);
+        const currentPrice = readMonthlyPrice(
+          TIER_PRICING[currentTierName].monthly,
+        );
+        const newPrice = readMonthlyPrice(
+          TIER_PRICING[requiredTierName].monthly,
+        );
 
         options.push({
           type: "upgrade_tier",
@@ -198,7 +191,6 @@ export class AccessControlService implements IAccessControlService {
     return options;
   }
 
-  
   private getSubscriptionStatusMessage(
     status: "active" | "past_due" | "canceled" | "trialing",
   ): string {

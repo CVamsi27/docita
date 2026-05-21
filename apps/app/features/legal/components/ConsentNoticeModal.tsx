@@ -222,7 +222,7 @@ export function ConsentNoticeModal({
                     id={purpose.key}
                     checked={consents[purpose.key]}
                     onCheckedChange={(checked) =>
-                      handleConsentChange(purpose.key, checked as boolean)
+                      handleConsentChange(purpose.key, checked === true)
                     }
                   />
                   <div className="space-y-1">

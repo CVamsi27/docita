@@ -226,13 +226,27 @@ function ensureString(val: unknown): string {
   return String(val);
 }
 
+function isDiagnosisItem(value: unknown): value is DiagnosisItem {
+  if (!value || typeof value !== "object" || Array.isArray(value)) {
+    return false;
+  }
+  const row = toRecord(value);
+  return (
+    typeof row.condition === "string" || typeof row.id === "string"
+  );
+}
+
+function parseDiagnosisArray(values: unknown[]): DiagnosisItem[] {
+  return values.filter(isDiagnosisItem);
+}
+
 export function parseDiagnosis(raw: unknown): DiagnosisItem[] {
   if (!raw) return [];
-  if (Array.isArray(raw)) return raw as DiagnosisItem[];
+  if (Array.isArray(raw)) return parseDiagnosisArray(raw);
   if (typeof raw !== "string") return [];
   try {
-    const parsed = JSON.parse(raw);
-    if (Array.isArray(parsed)) return parsed as DiagnosisItem[];
+    const parsed: unknown = JSON.parse(raw);
+    if (Array.isArray(parsed)) return parseDiagnosisArray(parsed);
     if (typeof parsed === "string" && parsed.trim()) {
       return [
         {

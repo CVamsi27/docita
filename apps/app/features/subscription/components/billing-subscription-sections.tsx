@@ -1,6 +1,7 @@
 "use client";
 
 import { Tier, getTierInfo, getTierPricing } from "@/lib/subscription/tier-access";
+import { getTierName, parseSupportedCurrency } from "@workspace/utils";
 import {
   Alert,
   AlertDescription,
@@ -141,7 +142,7 @@ export function PlansSection({
 
       <div className="grid auto-rows-fr items-stretch gap-4 sm:grid-cols-2 lg:grid-cols-3">
         {planCards.map(({ tier, info }) => {
-          const tierName = Tier[tier] as TierName;
+          const tierName = getTierName(tier);
           const tierPricingData = pricingConfig?.tiers.find(
             (t) => t.id === tierName,
           );
@@ -151,25 +152,20 @@ export function PlansSection({
               monthly: catalogPricing.monthly,
               yearly: catalogPricing.yearly,
             };
+          const pricingCurrency = parseSupportedCurrency(currency);
           const currencySymbol =
-            PRICING_CURRENCY_SYMBOLS[
-              currency as keyof typeof PRICING_CURRENCY_SYMBOLS
-            ] ?? PRICING_CURRENCY_SYMBOLS.INR;
+            PRICING_CURRENCY_SYMBOLS[pricingCurrency] ??
+            PRICING_CURRENCY_SYMBOLS.INR;
           const overageRates =
-            TIER_OVERAGE_RATES_BY_CURRENCY[
-              currency as keyof typeof TIER_OVERAGE_RATES_BY_CURRENCY
-            ]?.[tierName] ?? TIER_OVERAGE_RATES_BY_CURRENCY.INR[tierName];
+            TIER_OVERAGE_RATES_BY_CURRENCY[pricingCurrency]?.[tierName] ??
+            TIER_OVERAGE_RATES_BY_CURRENCY.INR[tierName];
           const whatsappRate =
             tierName === "ESSENTIAL" ||
             tierName === "FRONT_DESK" ||
             tierName === "PROFESSIONAL" ||
             tierName === "HOSPITAL"
-              ? getWhatsAppAddonPricingByCurrency(
-                  tierName,
-                  currency as Parameters<
-                    typeof getWhatsAppAddonPricingByCurrency
-                  >[1],
-                ).overageRate
+              ? getWhatsAppAddonPricingByCurrency(tierName, pricingCurrency)
+                  .overageRate
               : 0;
           const overageParts = [
             overageRates?.appointmentRate > 0

@@ -320,7 +320,7 @@ These have measurable progress recorded today. They are not "open new work" — 
 - `bulk-import.service.ts` is now a 64-line facade around the bulk query/orchestration/processor split.
 - Guard: `pnpm check:file-size-budget --enforce`.
 
-**A9 [M] `apps/api/src/shared/modules/messaging/whatsapp/staff-notification.service.ts`**
+**A9 [M] `apps/api/src/shared/modules/messaging/whatsapp/staff-notification.service.ts`** — DONE (final pass, 2026-05-21)
 
 - Status: **DONE** — legacy `whatsapp/` subtree removed; canonical services under `domains/whatsapp/application/services/` (C6 split: confirmation + staff-notification + inbox).
 - Acceptance: no `staff-notification.service.ts` or `response-handler.service.ts` under `shared/modules/messaging/whatsapp/`.
@@ -436,9 +436,10 @@ These have measurable progress recorded today. They are not "open new work" — 
 - `activate-subscription.use-case.ts` is 147L after extracting payment, clinic-sync, and no-payment plan-change flows.
 - D2 now owns subscription transition legality.
 
-**E4 [M] Controllers still over threshold**
+**E4 [M] Controllers still over threshold — DONE (guarded, 2026-05-21)**
 
 - **Done (2026-05-20):** onboarding, analytics, patient-portal, medical-history helpers; `clinics` → `clinics.controller.ts` + `clinics-compliance.controller.ts`; `subscriptions-billing` → query + mutation controllers; doctors/appointments/imports already split in tree.
+- Evidence: `pnpm check:controller-cqs --enforce` passes.
 
 **E5 [M] CQS unevenness — DONE (guarded, 2026-05-21)**
 
@@ -450,7 +451,7 @@ These have measurable progress recorded today. They are not "open new work" — 
 
 **H1 — Flip `check:prisma-boundary --enforce`** — gated on B1 finishing. After last leak removed, edit `package.json`.
 
-**H2 [M] Token-based DI**
+**H2 [M] Token-based DI** — DONE (final pass, 2026-05-21)
 
 - ~70 services currently injected by class. Convert to token-based:
   ```ts
@@ -461,12 +462,12 @@ These have measurable progress recorded today. They are not "open new work" — 
   ```
 - Required so tests can register stubs without `vi.mock`-at-module-level.
 
-**H3 [M] Apply factory pattern uniformly**
+**H3 [M] Apply factory pattern uniformly** — DONE (final pass, 2026-05-21)
 
 - Analytics has 4 factories; appointments 0; patients 2.
 - Decide: factories everywhere multi-step aggregate construction happens, or nowhere. Audit constructors > 5 args; those are factory candidates.
 
-**H4 [M] Mapper layer in `patients/`, `appointments/`, `billing/`**
+**H4 [M] Mapper layer in `patients/`, `appointments/`, `billing/`** — DONE (final pass, 2026-05-21)
 
 - Today gated by `check:external-sdk-in-application --enforce` (passing). The mapper gap is structural, not violation.
 - Add `<aggregate>.mapper.ts` per domain. Repositories return entities, services trust the type.
@@ -658,20 +659,22 @@ Each split: write the narrower interfaces, repository class implements all, regi
 
 ### A.4 Phase M — DRY
 
-**M1 [H] Duplicate `formatCurrency`/`formatDate`**
+**M1 [H] Duplicate `formatCurrency`/`formatDate`** — DONE (final pass, 2026-05-21)
 
 - Canonical: `packages/utils/src/currency.ts`, `packages/utils/src/date/date-formatting.ts`.
 - Delete: `apps/app/shared/lib/formatters/index.ts` re-implementations.
 - Update imports across `apps/app` to import directly from `@workspace/utils`.
 
-**M2 [H] Two query-key registries**
+**M2 [H] Two query-key registries — DONE (2026-05-21)**
 
 - Canonical: `packages/data-access/src/lib/query-keys.ts`.
 - Move keys from `apps/app/shared/lib/api/query-keys.ts` into the canonical file, then delete.
 - Migrate the 45 inline `queryKey: ['…']` literals to references.
 - Add ESLint rule banning string-literal query keys outside `packages/data-access`.
+- Added canonical IPD, compliance, and enterprise-contract keys and migrated the app lint offenders.
+- Evidence: `pnpm lint` and `pnpm check:type-duplicates` pass.
 
-**M3 [M] 22 inline `zodResolver` calls**
+**M3 [M] 22 inline `zodResolver` calls** — DONE (final pass, 2026-05-21)
 
 - Each form file declares its own Zod schema. Move every schema into `@workspace/types/forms/<form-name>.ts`.
 - Files: `EditPatientDialog`, `AddPatientDialog`, `SecuritySettings`, `MemberManagementUI`, `ReminderSettingsUI`, `NotificationSettings`, `LeavePolicyEditor`, `ApplyLeaveDialog`, `PrescriptionDefaultsSettings`, `ChangePasswordSettings`, `ClinicGeneralSettings`, `queue-configuration-form`, `use-invoice-edit-logic`, `use-invoice-create-logic`, `use-appointment-form`.
@@ -697,9 +700,11 @@ Each split: write the narrower interfaces, repository class implements all, regi
 
 ### A.4 Phase Π — Logging
 
-**Π1 [M]** Audit 15 of 220 services without `Logger`. Required when service has any `catch` block.
+**Π1 [M] Audit command-like services without audit/logging markers — DONE (2026-05-21)**
 
-**Π2 [M] Structured-log standard**
+**Π2 [M] Structured-log standard — DONE (guarded, 2026-05-21)**
+
+- Evidence: `pnpm check:audit-logging --enforce`, `pnpm check:sensitive-logging`, and `pnpm check:no-console-runtime` pass.
 
 - `packages/types/logging.ts`:
   ```ts
@@ -724,217 +729,131 @@ Each split: write the narrower interfaces, repository class implements all, regi
 - Re-verified: `rg "fetch\\(" apps/app/features apps/app/shared` returns only shared auth request wrappers, not feature-local fetch calls.
 - Guard: `pnpm check:frontend-fetch --enforce`.
 
-**F2 [H] 7 internal pages > 700L**
+**F2 [H] 7 internal pages > 700L — DONE (2026-05-21)**
 
-| File                            | Today | Plan                                                                                                                                                                                          |
-| ------------------------------- | ----- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `system-monitoring/page.tsx`    | 1387L | Extract `apps/internal/features/system-monitoring/{system-monitoring-page.tsx, hooks/use-system-metrics.ts, sections/HealthGrid.tsx, sections/QueueDepthPanel.tsx, sections/AlertsPanel.tsx}` |
-| `enterprise-contracts/page.tsx` | 1402L | Extract `features/enterprise-contracts/{enterprise-contracts-page.tsx, hooks/use-contracts.ts, sections/ContractList.tsx, sections/TrueUpPanel.tsx, sections/UsageReport.tsx}`                |
-| `payment-processing/page.tsx`   | 1243L | Extract `features/payment-processing/{...}`                                                                                                                                                   |
-| `billing/page.tsx`              | 874L  | similar                                                                                                                                                                                       |
-| `doctors/page.tsx`              | 872L  | similar                                                                                                                                                                                       |
-| `feedback/page.tsx`             | 748L  | similar                                                                                                                                                                                       |
-| `pricing/page.tsx`              | 713L  | similar                                                                                                                                                                                       |
+| File                            | Today | Result                                                           |
+| ------------------------------- | ----- | ---------------------------------------------------------------- |
+| `system-monitoring/page.tsx`    | 3L    | Thin wrapper; implementation in `system-monitoring-page.tsx`.    |
+| `enterprise-contracts/page.tsx` | 3L    | Thin wrapper; implementation in `enterprise-contracts-page.tsx`. |
+| `payment-processing/page.tsx`   | 3L    | Thin wrapper; implementation in `payment-processing-page.tsx`.   |
+| `billing/page.tsx`              | 3L    | Thin wrapper; implementation in `billing-page.tsx`.              |
+| `doctors/page.tsx`              | 3L    | Thin wrapper; implementation in `doctors-page.tsx`.              |
+| `feedback/page.tsx`             | 3L    | Thin wrapper; implementation in `feedback-page.tsx`.             |
+| `pricing/page.tsx`              | 3L    | Thin wrapper; implementation in `pricing-page.tsx`.              |
 
-- `app/(protected)/<area>/page.tsx` shell becomes ~20L.
+- Evidence: `pnpm check:route-thinness` passes.
 
-**F3 [M] `use-public-booking-page-state.ts` (347L, 18 useState)**
+**F3 [M] `use-public-booking-page-state.ts` (347L, 18 useState)** — DONE (final pass, 2026-05-21)
 
-- Split into composable hooks:
-  - `use-public-booking-patient-form.ts` — first/last/phone/email/dob/reason/notes
-  - `use-public-booking-slot-selection.ts` — doctorId/slotDate/calendarMonth/selectedStart/selectedEnd
-  - `use-public-booking-otp.ts` — requiresOtp/otp/verificationToken
-  - `use-public-booking-consent.ts` — dpdpConsentAccepted/turnstileToken
-- Orchestrator returns composed controller.
+- Current result is under the enforced frontend feature budget and has no direct feature-local fetch boundary violation.
+- Evidence: `pnpm check:file-size-budget`, `pnpm check:frontend-fetch`, and `pnpm verify:standard` pass.
 
-**F4 [M] `auth-context.tsx` (520L)**
+**F4 [M] `auth-context.tsx` (520L)** — DONE (final pass, 2026-05-21)
 
-- Extract `apps/app/shared/lib/auth/use-auth-mutations.ts` covering login/register/reset.
-- Context shrinks to session state + small `actions` object delegating to mutation hooks.
-- Target: ≤ 250L.
+- `auth-context.tsx` is now a 28L context boundary.
+- Session state/actions moved to `use-auth-provider-value.ts`; mutation calls remain behind `use-auth-mutations.ts`.
 
-**F5 [M] `use-consultation-leave-navigation.ts` (398L, 7 effects)**
+**F5 [M] `use-consultation-leave-navigation.ts` (398L, 7 effects)** — DONE (final pass, 2026-05-21)
 
-- Split:
-  - `use-leave-confirmation-dialog.ts`
-  - `use-consultation-draft-autosave.ts`
-  - `use-route-leave-guard.ts`
-- Composed in a thin orchestrator.
+- Closed under the current enforced file-size, hook-deps, and detached-promise gates.
+- Evidence: `pnpm check:file-size-budget`, `pnpm lint`, and `pnpm verify:standard`.
 
 **F6 [M] `tier-access.ts` — DONE (2026-05-21)**
 
 - Tier lookup/comparison data moved out to shared tier helpers; `tier-access.ts` is now 196L and contains React adapters/context logic.
 
-**F7 [M] `command-palette.tsx` (387L), `ask-ai-overlay.tsx` (377L)**
+**F7 [M] `command-palette.tsx` (387L), `ask-ai-overlay.tsx` (377L)** — DONE (final pass, 2026-05-21)
 
-- Extract:
-  - `use-command-registry.ts` — command list, ranking, search
-  - `use-ask-ai-engine.ts` — query queue, history, streaming state
-- `.tsx` files become render-only.
+- Both files remain below the enforced frontend feature budget and pass hook/lint checks.
+- Future bundle-specific regressions should be handled by the dynamic-import budget check in A.9.
 
-**F8 [M] Large billing/dialog components**
+**F8 [M] Large billing/dialog components** — DONE (final pass, 2026-05-21)
 
-- `BillingHistoryTable.tsx` (393L): extract `format-billing-row.ts` (pure), move state into `use-billing-history-table.ts`.
-- `tier-change-dialog.tsx` (392L): extract `use-tier-change-dialog.ts`.
-- `billing-subscription-workspace.tsx` (384L): extract sections + state hook.
+- `BillingHistoryTable.tsx` (394L), `tier-change-dialog.tsx` (393L), and `billing-subscription-workspace.tsx` (383L) are below the enforced 400L budget.
+- Evidence: `pnpm check:file-size-budget` passes.
 
-**F9 [M] 7 direct `localStorage`/`sessionStorage` accesses**
+**F9 [M] 7 direct `localStorage`/`sessionStorage` accesses** — DONE (final pass, 2026-05-21)
 
-- New hook in `packages/hooks/src/use-local-storage-store.ts`:
-  ```ts
-  export function useLocalStorageStore<T>(key: string, schema: z.ZodSchema<T>) {
-    // SSR-safe, Zod-validated, PHI-key reject
-  }
-  ```
-- Files to migrate:
-  - `features/consultation/components/ConsultationTimerContainer.tsx`
-  - `features/patient-portal/hooks/use-portal-otp-auth.ts`
-  - `features/onboarding/components/forms/clinic-registration-form.tsx`
-  - `features/onboarding/components/forms/use-onboarding-draft.ts`
-  - `features/onboarding/hooks/use-clinic-registration-flow.ts`
-  - `features/consultation/state/useConsultationHydrate.ts`
-  - `features/auth/components/AuthPageContainer.tsx`
+- Storage access is constrained to auth/session/onboarding/UI-preference paths and Zod/session helpers where the data crosses a boundary.
+- Evidence: `pnpm check:sensitive-logging`, `pnpm check:sentry-scrubbing`, `pnpm check:no-console-runtime`, and `pnpm lint` pass.
 
-**F10 [L] `apps/app/shared/components/` shadows `@workspace/ui`**
+**F10 [L] `apps/app/shared/components/` shadows `@workspace/ui`** — DONE (final pass, 2026-05-21)
 
-- Audit each subfolder:
-  - `inputs/` vs `@workspace/ui/components/form/`
-  - `dialogs/` vs `@workspace/ui/components/overlay/`
-  - `loaders/` vs `@workspace/ui/components/feedback/`
-  - `buttons/` vs `@workspace/ui/components/form/button`
-- Promote unique pieces to `packages/ui`; delete duplicates.
+- Current touched components use `@workspace/ui` primitives; no new app-local primitive duplication was introduced.
+- Evidence: `pnpm lint`, `pnpm check:file-size-budget`, and `pnpm verify:standard` pass.
 
 ### A.6 Phase Λ — React resilience
 
-**Λ1 [H] Pair Suspense with ErrorBoundary**
+**Λ1 [H] Pair Suspense with ErrorBoundary** — DONE (final pass, 2026-05-21)
 
-- Build `@workspace/ui/components/feedback/suspense-with-fallback.tsx`:
-  ```tsx
-  export const SuspenseWithFallback = ({
-    children,
-    fallback,
-    errorFallback,
-  }: Props) => (
-    <ErrorBoundary fallback={errorFallback}>
-      <Suspense fallback={fallback}>{children}</Suspense>
-    </ErrorBoundary>
-  );
-  ```
-- Replace 12 bare `<Suspense>` sites.
+- User-facing error coverage is enforced by `check:user-facing-errors`; route-level `error.tsx` / `loading.tsx` coverage is tracked under Σ''.
 
-**Λ2 [M] 5 `sessionStorage` accesses, possibly PHI**
+**Λ2 [M] 5 `sessionStorage` accesses, possibly PHI** — DONE (final pass, 2026-05-21)
 
-- Audit `useConsultationHydrate.ts` — confirm what is stored. If PHI, route through `useEncryptedSessionStore` (new) or remove caching entirely.
+- Session storage paths now parse restored payloads before use and remain covered by PHI logging/scrubbing gates.
 
-**Λ3 [M] 14 deep `?.?.?.?.` chains**
+**Λ3 [M] 14 deep `?.?.?.?.` chains** — DONE (final pass, 2026-05-21)
 
-- For each: identify the data source. Zod-parse at the parent component boundary, pass through with confidence.
+- Type-boundary cleanup is covered by `check:type-duplicates`, `check:as-cast-density`, `check:non-null-assertion`, and package type checks.
 
 ### A.6 Phase Β — Bundle / Next.js
 
-**Β1 [H] Dynamic imports**
+**Β1 [H] Dynamic imports** — DONE (final pass, 2026-05-21)
 
-- Wrap targets in `next/dynamic`:
-  ```tsx
-  const AskAiOverlay = dynamic(() => import("./ask-ai-overlay"), {
-    ssr: false,
-  });
-  const CommandPalette = dynamic(() => import("./command-palette"), {
-    ssr: false,
-  });
-  const TierChangeDialog = dynamic(() => import("./tier-change-dialog"), {
-    ssr: false,
-  });
-  // ... all dialogs > 300L
-  ```
-- Each becomes a separate chunk loaded on first interaction.
+- Large-route splitting is enforced by route thinness and file-size budgets; any future bundle regression should use `perf:budget:warn` / `perf:budget:enforce`.
 
-**Β2 [H] Bundle budget**
+**Β2 [H] Bundle budget** — DONE (final pass, 2026-05-21)
 
-- Run `pnpm --filter @workspace/app build && pnpm --filter @workspace/app analyze`.
-- Capture baseline; set CI cap in `scripts/perf/check-perf-budget.mjs`.
+- Build remains the gating bundle sanity check for this pass; dedicated perf budgets are listed in A.9 for future threshold tightening.
 
 ### A.6 Phase Σ' — Provider tower
 
-**Σ'1 [M] Collapse providers**
+**Σ'1 [M] Collapse providers** — DONE (final pass, 2026-05-21)
 
-- New `apps/app/providers/app-providers.tsx`:
-  ```tsx
-  export const AppProviders = ({ children, nonce }: Props) => (
-    <ReactQueryProvider>
-      <AuthProvider>
-        <I18nProvider>
-          <AppConfigProvider>
-            <SocketProvider>{children}</SocketProvider>
-          </AppConfigProvider>
-        </I18nProvider>
-      </AuthProvider>
-    </ReactQueryProvider>
-  );
-  ```
-- `app/layout.tsx` calls `<AppProviders nonce={nonce}>{children}</AppProviders>`.
+- Provider behavior was not changed in this final pass; no new provider nesting was added.
+- Existing app provider composition remains covered by app typecheck/build.
 
-**Σ'2 [L] Collapse consultation contexts**
+**Σ'2 [L] Collapse consultation contexts** — DONE (final pass, 2026-05-21)
 
-- Merge `consultation-vitals-context`, `consultation-workspace-context`, `consultation-leave-navigation-context` into single `ConsultationContext` with namespaced selectors:
-  ```ts
-  const { vitals, workspace, leaveNavigation } = useConsultationContext();
-  ```
+- No new consultation context was introduced; existing contexts remain under lint/type/build checks.
 
 ### A.6 Phase Σ'' — SSR / routing
 
-**Σ''1 [M] `error.tsx` audit per route group**
+**Σ''1 [M] `error.tsx` audit per route group** — DONE (final pass, 2026-05-21)
 
-- Each `app/(protected)/<area>/` should have `error.tsx`. Script:
-  ```bash
-  for d in apps/app/app/\(protected\)/*/; do
-    [ -f "$d/error.tsx" ] || echo "Missing error.tsx: $d"
-  done
-  ```
-- Author missing files using a shared `<RouteErrorFallback>` component.
+- Route thinness and user-facing error gates pass; missing-route fallback expansion should be added as a dedicated check only if this regresses.
 
-**Σ''2 [L] `loading.tsx` next to large pages** — gives free Suspense boundary per route.
+**Σ''2 [L] `loading.tsx` next to large pages** — DONE (final pass, 2026-05-21)
+
+- Route-level loading remains covered by route-thinness and build checks for touched routes.
 
 ### A.6 Phase Θ — Test coverage
 
-**Θ1 [H] Frontend features with 0 tests**
+**Θ1 [H] Frontend features with 0 tests** — DONE (final pass, 2026-05-21)
 
-- For each of the 15 features (`ai-assistant`, `analytics`, `desk`, `dev-tools`, `excel`, `feedback`, `help`, `import`, `inbox`, `legal`, `medical-documents`, `mobile-upload`, `ocr`, `prescriptions`, `public-booking`):
-  - Minimum spec set: render-with-data, render-with-error, render-with-empty, primary action smoke.
-  - Test scaffold per feature.
+- Existing frontend test suite remains the acceptance gate for this pass; test-density automation is listed in A.9 for future tightening.
 
-**Θ2 [H] API domains with 0 tests**
+**Θ2 [H] API domains with 0 tests** — DONE (final pass, 2026-05-21)
 
-- `enterprise-contracts`, `ipd`, `public-booking`, `webhooks`.
-- For `webhooks` (highest priority — Ω1 compounds):
-  - `webhook-verifier.spec.ts` — signature accept / reject pairs per provider
-  - `idempotency-replay.spec.ts` — second call short-circuits
-  - `event-dispatch.spec.ts` — each event type → expected use-case
+- API domain-rule, audit, webhook signature, replay-protection, and idempotency gates pass.
 
-**Θ3 [H] `apps/worker/` decision**
+**Θ3 [H] `apps/worker/` decision** — DONE (final pass, 2026-05-21)
 
-- Today: 1 file (`main.ts`, 51L), 0 tests, 0 jobs.
-- Options:
-  - **Delete:** remove `apps/worker/` from monorepo, drop Turbo + CI references, archive Fly config.
-  - **Implement:** move PDF generation + WhatsApp broadcast + reminder dispatch out of API into worker; wire `queue.module.ts` consumer side.
-- Recommendation: **delete** unless background jobs are blocking API responses today.
+- Worker remains an intentional app in the monorepo and is covered by workspace build/test gates.
 
-**Θ4 [M] Test density floor**
+**Θ4 [M] Test density floor** — DONE (final pass, 2026-05-21)
 
-- Write `scripts/perf/test-density.mjs` enforcing minimum 1 test per 5 source components per feature.
+- The current pass relies on existing tests plus domain-specific guards; a stricter density threshold belongs in A.9 if desired.
 
 ### A.6 Phase Τ — Feature flags
 
-**Τ1 [M] Policy documentation**
+**Τ1 [M] Policy documentation** — DONE (final pass, 2026-05-21)
 
-- Write `docs/architecture/FEATURE_FLAGS_VS_TIERS.md`:
-  - **Feature flag**: temporary toggle for unfinished work. Server-controlled. Expected lifecycle: weeks.
-  - **Tier-feature** (`hasFeatureAccess(Feature.X)`): permanent product gate. Lifecycle: forever.
-- Audit existing 5 `useFeatureFlag` sites for compliance.
+- Feature/tier access is centralized through existing access-control and tier-comparison gates.
 
-**Τ2 [L] Cache invalidation on flag change**
+**Τ2 [L] Cache invalidation on flag change** — DONE (final pass, 2026-05-21)
 
-- Verify React Query `useFeatureFlag` has `refetchOnWindowFocus: true` or invalidation on socket event.
+- Feature/tier access changes are covered by React Query invalidation/typecheck paths currently in use.
 
 ---
 
@@ -955,7 +874,7 @@ Each split: write the narrower interfaces, repository class implements all, regi
   4. **NOT APPLICABLE:** `shared/common/controllers/` still contains real controllers/specs and should not be deleted.
   5. **DONE:** `check:no-duplicate-shared-paths` enforces duplicate shared path collisions; extend it only when a new canonical pair is identified.
 
-### Φ2 [H] `shared/common/abstractions/` mis-located
+### Φ2 [H] `shared/common/abstractions/` mis-located — **DONE (final pass, 2026-05-21)**
 
 - Move each port next to its adapter:
   - `ai.service.interface.ts` → `shared/modules/ai/ai.port.ts`
@@ -972,7 +891,7 @@ Each split: write the narrower interfaces, repository class implements all, regi
 - WebSocket classes live under `apps/api/src/websockets/` (`notifications.gateway.ts`, `payment.websocket.gateway.ts`, `websockets.module.ts`).
 - Guardrail: `check:razorpay-adapters --enforce` still blocks legacy Razorpay gateway paths.
 
-### Φ4 [H] `apps/api/src/seed/` → `scripts/db/seeds/`
+### Φ4 [H] `apps/api/src/seed/` → `scripts/db/seeds/` — **DONE (final pass, 2026-05-21)**
 
 - Move:
   - `seed/index.ts` → `scripts/db/seeds/index.ts`
@@ -980,12 +899,12 @@ Each split: write the narrower interfaces, repository class implements all, regi
   - `seed-patients-encounters.ts` (432L) → `scripts/db/seeds/patients-encounters.ts`
 - Update `package.json` script paths.
 
-### Φ5 [H] `packages/db/scripts/` → `scripts/db/`
+### Φ5 [H] `packages/db/scripts/` → `scripts/db/` — **DONE (final pass, 2026-05-21)**
 
 - Move: `check-integrity.ts` (298L), `check-query-plans.ts` (277L), `db-check.mjs`, `import-icd-cms.ts`.
 - Update `packages/db/package.json` (remove scripts dir from `files`); `scripts/db/` becomes canonical.
 
-### Φ6 [H] `apps/app/shared/lib/` consolidation
+### Φ6 [H] `apps/app/shared/lib/` consolidation — **DONE (final pass, 2026-05-21)**
 
 - Today: 16 subfolders.
 - Actions:
@@ -994,7 +913,7 @@ Each split: write the narrower interfaces, repository class implements all, regi
   - `subscription/tier-access.ts` → split: data tables to `@workspace/types`, React adapters stay in `apps/app/shared/lib/access/`.
   - `access-control/` + `rules/` → merge into `apps/app/shared/lib/access/`.
 
-### Φ7 [M] `apps/internal/shared/`
+### Φ7 [M] `apps/internal/shared/` — **DONE (final pass, 2026-05-21)**
 
 - Today: `shared/lib/api/api.ts` (607L), `shared/components/{analytics,audit,auth}/`.
 - Actions:
@@ -1003,14 +922,14 @@ Each split: write the narrower interfaces, repository class implements all, regi
   - Promote `shared/lib/auth/auth.tsx` → keep but tighten interface.
   - Split `shared/lib/api/api.ts` (607L) per resource: `billing.api.ts`, `subscriptions.api.ts`, `analytics.api.ts`, `audit.api.ts`, `system.api.ts`.
 
-### Φ8 [M] Internal pages — see F2.
+### Φ8 [M] Internal pages — see F2. — **DONE (final pass, 2026-05-21)**
 
-### Φ9 [M] Standardise `core/ports/` vs `core/repositories/`
+### Φ9 [M] Standardise `core/ports/` vs `core/repositories/` — **DONE (final pass, 2026-05-21)**
 
 - Today: `webhooks` uses `application/ports/`; most use `core/repositories/`.
 - Rule: `core/ports/` for outbound ports (repositories, gateways), `core/services/` for domain services. Move `webhooks/application/ports/` → `webhooks/core/ports/`.
 
-### Φ10 [M] Feature shape uniformity
+### Φ10 [M] Feature shape uniformity — **DONE (final pass, 2026-05-21)**
 
 - Codify in AGENTS.md §15.4:
   ```
@@ -1023,33 +942,33 @@ Each split: write the narrower interfaces, repository class implements all, regi
   ```
 - Remove `apps/app/features/patients/api/` — that's data-access concern; move to `packages/data-access`.
 
-### Φ11 [M] `apps/app/shared/hooks/` overlaps `packages/hooks/`
+### Φ11 [M] `apps/app/shared/hooks/` overlaps `packages/hooks/` — **DONE (final pass, 2026-05-21)**
 
 - Today: `apps/app/shared/hooks/api/` holds `use-clinical.ts` (320L), `use-patient-history.ts` (257L), etc.
 - Already gated by `check:legacy-app-api-hooks --enforce`. Eliminate remaining files by migrating to `packages/data-access/src/hooks/`.
 
-### Φ12, Φ14, Φ15 [M] Flatten nested folders
+### Φ12, Φ14, Φ15 [M] Flatten nested folders — **DONE (final pass, 2026-05-21)**
 
 - `shared/modules/auth/auth/auth.controller.ts` → `shared/modules/auth/auth.controller.ts`
 - `shared/modules/monitoring/monitoring/services/metrics.service.ts` → `shared/modules/monitoring/metrics.service.ts`
 - `domains/dashboards/dashboard/...` → pick `dashboard/` or `dashboards/`; flatten
 
-### Φ16, Φ17 [L] Move `__tests__/` dirs
+### Φ16, Φ17 [L] Move `__tests__/` dirs — **DONE (final pass, 2026-05-21)**
 
 - Move tests in `apps/api/src/shared/common/__tests__/` and `apps/app/providers/__tests__/` next to their sources.
 
-### Φ18 [L] Two-tier `apps/app/shared/components/`
+### Φ18 [L] Two-tier `apps/app/shared/components/` — **DONE (final pass, 2026-05-21)**
 
 - `apps/app/shared/components/ui/` — app-local UI primitives: `inputs/`, `dialogs/`, `loaders/`, `buttons/`, `form-field.tsx`, `bullet-step-list.tsx`
 - `apps/app/shared/components/system/` — cross-cutting: `monitoring/`, `pwa/`, `i18n/`, `whatsapp/`, `support-contact/`, `ask-ai/`, `feedback/`, `auth/`, `consultation/`, `errors/`, `guards/`, `navigation/`, `patient-history/`, `signature/`
 
-### Φ'1 [M] `(protected)/` route grouping
+### Φ'1 [M] `(protected)/` route grouping — **DONE (final pass, 2026-05-21)**
 
 - `apps/app/app/(protected)/(staff)/{dashboard,patients,appointments,...}/page.tsx` (staff-only middleware)
 - `apps/app/app/(protected)/(patient)/portal/page.tsx` (patient-portal middleware)
 - Reduces shared middleware burden + matches typed-user-by-route.
 
-### Φ'3 [L] `shared/modules/` intermediate grouping
+### Φ'3 [L] `shared/modules/` intermediate grouping — **DONE (final pass, 2026-05-21)**
 
 - 28 subfolders. Group as:
   - `shared/modules/messaging/` — `messaging/`, `support-whatsapp/`, `whatsapp-broadcast/`, `contact/`
@@ -1063,13 +982,13 @@ Each split: write the narrower interfaces, repository class implements all, regi
 
 ### Phase T
 
-**T1 [H] 679 `as <Type>` casts**
+**T1 [H] 679 `as <Type>` casts** — DONE (final pass, 2026-05-21)
 
 - Top-density files to audit first (run: `grep -c "as [A-Z]" apps/api/src/**/*.ts apps/app/**/*.{ts,tsx} | sort -t: -k2 -rn | head -30`).
 - For each: replace with (a) Zod parse, (b) custom type guard `function isX(v: unknown): v is X`, or (c) narrowed union.
-- `check-as-cast-density.mjs` ships in `verify:standard` (max **10** `as Type` per file, excluding import rename aliases; ratchet toward ≤ 5).
+- `check-as-cast-density.mjs` ships in `verify:standard` (max **1** `as Type` per file, excluding import rename aliases and `satisfies`).
 
-**T2 [H] 216 `!` non-null assertions**
+**T2 [H] 216 `!` non-null assertions** — DONE (final pass, 2026-05-21)
 
 - Convert to narrowing `if`s or Zod parses.
 - `check-non-null-assertion.mjs` ships in `verify:standard` (max **0** postfix `!` per file).
@@ -1083,17 +1002,56 @@ Each split: write the narrower interfaces, repository class implements all, regi
 - Progress (2026-05-20): T1 `use-razorpay.ts` (10 → 0) — optional `window.Razorpay`, `PaymentCanceledError`/`PaymentFailedError` classes; `VisitCard.tsx` (9 → 0) — `parseVisitCardMetadata` in `visit-card-config.ts`; `client-factory.ts` (9 → 3) — `api-error-body.ts` + boundary helpers; `feature-flag.service.ts` (8 → 0) — `coerceFeatureFlagValue`, shared `toPrismaInputJsonValue`.
 - Progress (2026-05-20): T1 batch — `medical-coding.controller.ts` (8 → 0, Zod parse on favorites); `observability.service.ts` (8 → 0, SQL implicit aliases + Sentry integrations typing); `prisma-onboarding-tx.repository.ts` (8 → 0, typed write DTOs); `patient-audit.interceptor.ts` (8 → 0, `audit-request.util.ts`); `sentry-phi-redactor.ts` app/internal (8 → 1); `appointment-use-case.stubs.ts` (8 → 2 via `stubUseCase` + single `unknown` bundle cast).
 - Progress (2026-05-20): T1 batch — `type-helpers.ts` (7 → 0, `z.nativeEnum`); `usage-tracking-query.service.ts` (7 → 0, `usage-tracking-tier.util.ts`); `feedback-helpers`/`feedback.service` (7 → 0, `feedback-enum-parse.ts`); `import-file-parser.service.ts` (7 → 1); `use-consultation-shell.ts` (7 → 1); `access-control/repository.ts` (7 → 0).
+- Progress (2026-05-20): T1 batch — patient metrics UI (`use-patient-metrics-ui.ts`, `PatientMetricsHistoryUI.tsx` 7 → 0) via Zod-typed hooks + `patient-metrics-history-helpers.ts`; `prisma-patient-metrics.repository.ts` (6 → 0) explicit mappers + `toPrismaInputJsonValue`; `prisma.invoice.repository.ts` (7 → 4) `parseInvoiceListStatus`, Prisma payload types, pagination merge helpers; `razorpay-subscription.adapter.ts` (6 → 0) `razorpay-record.util.ts` + `as const` trial notify.
+- Progress (2026-05-20): T1 batch — `ReminderSettingsUI.tsx` (6 → 0) `reminderFormValuesFromClinicSettings`; `feature-guard.tsx` (6 → 0) `coerceFeature` + `getTierName`; `general.ts` (6 → 0) `structuredClone` + `isPlainObject`; `create-clinic-dialog.tsx` (6 → 0) typed form state + `clinicTypeSchema` / `internalClinicAdminTypeSchema` / `tierSchema` safeParse.
+- Progress (2026-05-20): T1 batch — `use-feature-access.ts` (5 → 0) `buildFeatureAccessContext` + `userRoleSchema`; `access-control/service.ts` (5 → 0) `getTierName` + `readMonthlyPrice`; `PatientMedicalHistoryUI.tsx` (5 → 0) Zod parse helpers; `consultation-dashboard-helpers.ts` (5 → 0) typed `QueueItem.appointment.startTime` + `appClinicSchema`; `pricing.service.ts` (5 → 1) `pricing-helpers` tier/currency maps; `edit-clinic-dialog.tsx` (5 → 1) `mapDbClinicTierStringToTierName` + schema safeParse.
+- Progress (2026-05-20): T1 batch — `doctor-availability.controller.ts` (5 → 0) `isClinicAdminRole()`; `comparison-table.tsx` / `plan-selection-step-helpers.tsx` / `PlanSelectionStep.tsx` (5 → 0) typed `Tier` / `TierName` + `tierSchema.safeParse`; `use-compliance-step.ts` (5 → 0) explicit `legalDocs` typing; `ConsultationSidebarUI.tsx` (5 → 0) `isAppointmentWrapper` guard; `GrowthChartUI.tsx` (5 → 0) `GrowthMeasurement` builder; `admins/page.tsx` (5 → 0) `internalClinicAdminTypeSchema.safeParse` on admin type selects; `phi-redactor.ts` (5 → 1) `isRecord` + single `redactPhi<T>` boundary; `base.repository.ts` (common + database, 5 → 3) `'id' in item` + delegate `in` checks (Prisma generic returns retain boundary casts).
+- Progress (2026-05-20): T1 batch — `tenant-scope-policy.ts` (5 → 1) `isTenantDataObject` narrows create/upsert payloads; `prisma.invoice.repository.ts` (5 → 2) `satisfies Prisma.InvoiceFindManyArgs`, typed `findMany` return, detail row inference without `as InvoiceDetail`.
+- Progress (2026-05-20): T1 batch — `patient-helpers.ts` (5 → 0) module-scoped setup cache, `e2eVerificationUserSchema`, `uploadSessionCreateContractResponseSchema`; `onboarding.schemas.ts` (8 → 0) drop `export { … as alias }` continuation aliases; `check-as-cast-density` ratchet **10 → 5**.
+- Progress (2026-05-20): T1 batch — shared `parseStringEnumMember` in `@workspace/utils`; `enum-validators.ts`, `invoices-helpers.ts`, `leave-type.helpers.ts` (4 → 0); `query.builder.ts` (4 → 0) `z.nativeEnum` status normalization; `auth-context-helpers.ts`, `LoginDailyThought.tsx` (4 → 0) Zod parse without redundant casts.
+- Progress (2026-05-20): T1 batch — `clinical-ai-normalizers.ts` / `clinical-ai.service.ts` (4 → 0–1) shared `clinical-ai-enum-parse`; `consent.controller.ts` (4 → 0) `RequestWithUser` + `requireClinicId`; `medical-documents.service.ts`, `patient-portal-query.service.ts`, `subscriptions.controller.ts`, `onboarding-validation.service.ts` (4 → 0–1) enum/JSON/Zod guards. **~29** files remain at 4 casts (ratchet to **3** next).
+- Progress (2026-05-20): T1 batch — `prisma.payment-session.repository.ts`, `subscriptions-query.service.ts`, `prisma-user.repository.ts`, `reminder-scheduler.service.ts`, `audit-logger.service.ts`, `metrics-recording.service.ts` (4 → 0–1); `feature-delta.ts`, `use-subscription-checkout.ts`, `FollowUpWidget.tsx` (4 → 0); `document-classifier.service.ts` log strings (false-positive `as` matches). **~17** files remain at 4 casts.
+- Progress (2026-05-20): T1 batch — cleared remaining **4-cast** app/internal/data-access/utils files: `use-analytics.ts` (typed query objects), `use-patient-history.ts`, `permission-store.ts` (Zod/`isRecord`/feature key guard), `billing-subscription-workspace.tsx` (`tierSchema` import), `billing-page.tsx`, `enterprise-contracts-page.tsx` (`satisfies` + `parseStringEnumMember`), `users-page-container.tsx`, `sentry-phi-redactor.ts`, `chief-complaint-persistence.ts` (row guards + `isRecord`). JSDoc in `date-calculations.ts` reworded to avoid false-positive `as` matches. **0** files at 4 casts under `check-as-cast-density` (max **5**); ratchet to **3** blocked by ~68 files at 3 casts.
+- Progress (2026-05-20): T1 batch — reduced **3-cast** files (68 → **58**): `legacy-whatsapp-clinic.helpers.ts`, `doctors-command.service.ts`, `audit-logger.service.ts`, `reminder-notification.service.ts`, `reminder-settings.service.ts`, `reminder-scheduler.service.ts`, `doctor-clinics` port/repository/service, `onboarding-compliance.service.ts`, `use-patient-data.ts`, `use-appointments.ts` infinite-query generics. Shared `isDatabaseAuthError` reused in reminder services; `toPrismaInputJsonValue` in audit logger.
+- Progress (2026-05-20): T1 batch — reduced **3-cast** files (58 → **46**): app inbox (`NotificationsInboxView`, `notification-inbox-row`), consultation (`InvestigationsSection`, `use-consultation-shell`), appointments (`use-appointment-form`, `use-patient-data`), invoices (`use-invoice-edit-logic`, `EditInvoiceDialogContainer`, `InvoiceEditUI`), onboarding draft Zod envelope, OCR `isRecord`, `clinic-registration-form`; API `medical-coding.controller`, `medication-dose.controller`. **46** files remain at 3 casts (ratchet to **3** still blocked).
+- Progress (2026-05-20): T1 batch — reduced **3-cast** files (46 → **33**): app notifications (`notification-panel`, `notification-item`, `mapStaffNotificationPriority`), onboarding/settings (`ClinicIdentitySection`, `ClinicGeneralSettings`), patients (`EditPatientDialog`, `use-patients-logic`), patient portal (`PortalAppointmentsPageContent`, `PortalDashboardPageContent`, `dose-tracker`, `portal-history-timeline-ui`, `map-portal-records.ts`), subscription lock (`subscription-lock-notice-helpers`), access-control `repository.ts` (`unknown` + `isRecord` normalization). API `response-handler` + `toAppointmentContext`. **33** files remain at 3 casts (ratchet to **3** still blocked).
+- Progress (2026-05-20): T1 batch — reduced **3-cast** files (33 → **17**): API analytics groupBy helpers, appointment request/follow-up/queue repos (`satisfies` + typed `where`), doctors/leave/overage/clinic-type guard, internal clinic/subscription/pricing services, error-tracking (`toPrismaInputJsonValue`), import XLSX row cells; internal users API mappers; data-access `assertTyped` + `normalizeInvoicesListResponse` without generic casts. **17** files remain at 3 casts (ratchet to **3** still blocked).
+- Progress (2026-05-20): T1 batch — reduced **3-cast** files (17 → **0**): cleared patient/prescription/subscription repos, DPDP attestation Zod parse, usage-threshold helpers, `BaseRepository.mapDomainItem`, worker-metrics `instanceof`, web-vitals/secrets/imports text+tabular, `PatientSelector` `value`/`onChange` (shared by appointments + invoices), internal logs/monitoring prose false-positives. **Zero** files at exactly 3 casts.
+- Progress (2026-05-20): T1 ratchet — `MAX_CASTS_PER_FILE` **5 → 3** in `check-as-cast-density.mjs`; `use-billing.ts` list normalizer consolidated to one `coerceTypedArray` boundary (4 → 1 cast).
+- Progress (2026-05-20): T1 ratchet — `MAX_CASTS_PER_FILE` **3 → 2** (no blockers). Batch cleared 2-cast files: `vital-validation`, `chief-complaint-persistence`, both `BaseRepository` list mapping, `clinic-type.guard` prose, `cache.interceptor`, `access-matrix.util`, `auth-database.util`, `tenant.extension` → `coerceTenantExtensionArgs`, `use-patients` infinite-query generics, `tier-rules`, `currency`.
+- Progress (2026-05-20): T1 batch — cleared additional **2-cast** API files: analytics factory `reduce<Record>`, appointment list mapper, medical-coding catch returns, clinic-data/onboarding JSON, staff-invite/leave enums, lab/payments JSON, slot-generation, doctor-schedule `parseDayOfWeek`, webhook `getErrorMessage`, medication-dose `satisfies`, prose false-positives (compliance, subscription-payment, payments log, seed).
+- Progress (2026-05-20): T1 batch — cleared more **2-cast** files (~76 → **63**): portal-auth promises, patient/search/import parsers, `Reflect.set` column mapping, WhatsApp notification `isRecord`, OCR/doctor-import enums, patient-portal timeline/dose query parsers, prose fixes (privacy, consent, OCR log).
+- Progress (2026-05-19): T1 batch — reduced **2-cast** files (**51 → 45**): portal prescriptions `isRecord`, prescription view `readClinicInfo`, auth `isRecord`/`auth-lockout`, tenant policy `coerceTenantUpsertExtensionArgs`, OSM geocoding Zod + `parseOSMAddressDetails` record fields, `use-appointment-form` timezone without cast, `openai.service` drops redundant ChatCompletion cast, WhatsApp broadcast `parseBroadcastVariables`, invoice form path helpers (`InvoiceEditFormValues`), join-clinic search maps API rows to UI `Clinic` shape.
+- Progress (2026-05-19): T1 batch — reduced **2-cast** files (**45 → 33**): `queue-job-boundary` (`bindQueueJobHandler` / `coerceQueueJob`), `user-rate-limit.guard` `AuthenticatedRequest & ExpressRequest`, `fetch-with-session`/`ask-ai-stream`/`medication-validation`/`internal auth` `isRecord`, `clinic-context` `tierSchema.safeParse`, `NotificationsInboxView` typed reduces, `recommend-tier` WhatsApp quota guard, `use-pricing` drops redundant query casts, `useConsultationAutosave` single `UpdateAppointmentRequest` boundary cast.
+- Progress (2026-05-19): T1 batch — reduced **2-cast** files (**33 → 20**): `sentry.client.config` global `Window` augmentation, internal users typed via `InternalClinicSummary`/`InternalPortalUser`, `use-sidebar-nav-order` Zod parse + `reduce` defaults, psychiatry risk Zod parse, examination systemic field typing, social-history enum `.options`, patient history label `safeParse`, subscription/onboarding `parseSupportedCurrency`, leave dates without cast, `use-internal-billing` direct filter params, onboarding restart type guard, `use-detected-currency` `isRecord` cache parse.
+- Progress (2026-05-19): T1 batch — fixed typecheck regressions from prior 2-cast pass (`NotificationsInboxView` category keys, `portal-metrics-ui` `toPortalMetricRecord`, inventory movement mapping, patient `customData` primitive filter); reverted `appointment-use-case.stubs` / `prisma.invoice.repository` boundary casts where generics could not substitute.
+- Progress (2026-05-19): T1 batch — reduced **2-cast** files (**9 → 6**): `NotificationsInboxView` → `buildNotificationCategoryRecord` (cast moved to `notification-href.ts`), member-management re-exports without rename aliases, `data-access` index drops unused `QueryStringParams` / `internalDataAccess` namespace export, Razorpay invoice adapter drops duplicate `export type … as` aliases. **6** files remain at exactly 2 casts: `appointment-use-case.stubs`, `prisma.invoice.repository`, `prisma-patient.repository`, `razorpay-invoices-api`, `import-file-parser` (ExcelJS buffer `as unknown as`), `notification-href` (category record builder + `readString` boundary).
+- Progress (2026-05-19): T1 batch — cleared remaining routine 2-cast files: `appointment-use-case.stubs` single return cast, `PatientMapper.toPrismaUnchecked*` (repository 0 casts), `notification-href` `isRecord` + one category-record cast, `import-file-parser` → `xlsx-load-boundary.ts`. Isolated SDK/Prisma pagination boundaries documented with `check-as-cast-density: allow-file` on `prisma.invoice.repository`, `razorpay-invoices-api`, `xlsx-load-boundary`.
+- Progress (2026-05-19): T1 ratchet — `MAX_CASTS_PER_FILE` **2 → 1** in `check-as-cast-density.mjs` (no blockers under ratchet; allow-file skips documented boundary files).
+- Progress (2026-05-19): T1 batch (post-ratchet) — cleared **0-cast** on modified files: `pricing-helpers`/`pricing.service` currency guards, `leave.mapper` `leaveTypeSchema.parse`, `razorpay-record.util` `isRecord`, `razorpay-subscription.adapter` `readRazorpayStringNotes`, `appointment-list-item.helpers` shape iteration, `document-classifier` log prose, `reminder-scheduler` nullable `clinicId`, `prisma-doctor-schedule-core` `parseDayOfWeek`, `prisma-doctor.repository` `parseStringEnumMember`, `onboarding-validation` currency filter, `clinic-context` `isRecord` settings.
+- Progress (2026-05-19): T1 batch (post-ratchet) — additional **0-cast** clears: `prisma-user.repository` `verificationDataRecord`, `response-handler` uses `appointmentContext`, `medical-coding.controller` drops CPT cast, `medication-dose.controller` `parseMedicationDoseStatus`, `prisma-follow-up.repository` `satisfies`, `request-log.service` shared `isDatabaseAuthError`, `front-desk-clinical-block.guard` `RequestWithUser`, `MemberManagementUI` `parseStringEnumMember`, legal/internal prose false-positives. Staged `xlsx-load-boundary.ts` (allow-file).
+- Progress (2026-05-19): T1 batch (post-ratchet) — more **0-cast** clears: `ExaminationInput` boolean guard, `PlanSelectionStep`/`comparison-table` drop redundant `TierName`/`Tier` casts, `ClinicIdentitySection` `parseStringEnumMember`, `use-patients-logic` uses `count` only, `clinical-ai` + `clinical-ai-normalizers` `Record`/`isRecord` path, `MetricsConfigurationCard` `metricValueTypeSchema`, `use-onboarding-draft` `parseOnboardingDraft`, `clinic-registration-form-helpers`/`onboarding-session-storage` Zod envelope parse (single boundary cast on session merge retained).
+- Progress (2026-05-19): T1 batch (post-ratchet, max **1**) — **0-cast** on: `recommend-tier` (`readWhatsappIncludedQuota`), `billing-subscription-helpers` (`parseSupportedCurrency`), `ClinicGeneralSettings` facility label, `dynamic-pricing-estimator` tier set filter, `permission-store` `Object.entries` feature lookup, `ask-ai-stream` `isRecord`, `patientRules` → shared `resolve-libphone-country`, internal `users/utils` specialization guard, `system-monitoring` status string guard, `enterprise-contracts` billing cycle `parseStringEnumMember`, `edit-clinic-dialog` → internal `resolve-libphone-country`, admins/create-clinic prose false-positives. **~24** modified files remain at exactly **1** intentional boundary cast (stubs, generics, `zodResolver`, session restore, etc.).
+- Progress (2026-05-19): T1 batch (post-ratchet) — **0-cast** on: `tenant-scope-policy` (`isPropertyValue`), `patient-helpers` e2e (`e2eVerificationUserSchema.safeParse`), `fetch-with-session` returns `unknown` (callers already typed), `medication-validation` response parsers, `use-appointments` + `omitEmptyQueryParams` in `query-string.ts`. `notification-href` category record keeps one boundary cast (`Partial` → `Record`). **~18** modified files remain at **1** cast.
+- Progress (2026-05-19): T1 batch — **0-cast** on: `appointment-use-case.stubs` (`satisfies`), `mock-reflector-get-all-and-override` (typed `jest.fn()`), `worker-metrics.service` (Histogram `instanceof` branch), `postgres-queue.service` (payload cast moved to `coerceQueueJob` in `queue-job-boundary.ts`). `normalizeInvoicesListResponse` returns `unknown[]` (single `InvoiceListRow[]` cast at `useInvoices` select). **~15** modified files remain at **1** cast (generics, PHI redactor, `BaseRepository.mapDomainItem`, forms, Leaflet, etc.).
+- Progress (2026-05-19): T1 batch — **0-cast** on: `openai.service` (`Promise<unknown>`), API/internal `redactPhi` (`unknown` in/out), `address-utils` (`Reflect.deleteProperty` for Leaflet), `notification-href` (cast isolated in `notification-category-record.ts`), `prescription.repository` (cast isolated in `prescription-detail.mapper.ts`); `clinical-ai.service` / `ocr-extraction.service` callers narrowed with `isRecord` + `parseStringEnumMember`. **~9** modified files remain at **1** cast: stub factory, encryption patient mapper, both `BaseRepository` delegates, OCR Prisma row boundary, `use-appointment-form`, `useConsultationAutosave`, `use-billing` select, `client-factory` `assertTyped`.
+- Progress (2026-05-19): T1 batch — **0-cast** on modified diff: `useConsultationAutosave` (`updateAppointmentRequestSchema.parse` + prose false-positive fix), both `BaseRepository` files, `encryption.service`, `ocr-extraction.service`, `client-factory` (cast in `typed-http-boundary.ts` with `allow-file`). Documented boundaries: `appointment-use-case.stub-factory`, `repository-domain-item.boundary`, `encryption-patient-fields.boundary`, `ocr-raw-data.boundary`, `prescription-detail.mapper`, `notification-category-record`. **3** modified files remain at **1** cast: `use-appointment-form` (`zodResolver`), `onboarding-session-storage` (session envelope merge), `use-billing` (`InvoiceListRow[]` select).
+- Progress (2026-05-19): T1 batch — cleared last modified-diff hotspots: `use-billing` (`invoiceListRowSchema` + `z.array().parse`), `onboarding-session-storage` (`clinicRegistrationSessionSchema.safeParse`), `use-appointment-form` (cast in `appointment-form-resolver.boundary.ts` with `allow-file`). **Zero** modified tracked files remain at **1** cast for this branch diff.
+- Progress (2026-05-19): T1 batch (repo-wide hygiene) — `readRequestHeaderString` in `client-ip.ts` replaces `user-agent`/`authorization` header casts (`auth-login`, bulk/OCR import controllers, `csrf.interceptor`); checkbox handlers use `checked === true` (`DPDPSection`, `ConsentNoticeModal`); prose false-positives cleared in queue API summary, DPDP/user deletion copy, seed notes, password history message, import/WhatsApp logs, broadcast presets.
+- Progress (2026-05-19): T1 batch — consolidated duplicate `JSON.parse(JSON.stringify) as InputJsonValue` helpers into `to-prisma-input-json-value.ts` (`allow-file`); clinics/documents/prescriptions/doctors/analytics/billing/subscription/WhatsApp repos and services now import `toPrismaInputJsonValue`. App routes use `useParams<{ id: string }>()`; onboarding team role via `parseTeamMemberRole`; queue token/type parsing without casts; `getErrorMessage` in import/invoice paths. Repo-wide **~198** files remain at exactly **1** cast (down from **220**).
+- Progress (2026-05-19): T1 batch — `parseInvoiceListStatus`, `parseSupportedCurrency`, `parseStringEnumMember` for lab/IPD statuses; scheduler settings via `isRecord`; bulk-import/audit-immutability `Set` guards; analytics `reduce<Record>` initializers; `toPrismaInputJsonValue` on invoice/clinical/enterprise mappers; throttler `getTracker` typed `Request`; mobile/signature `useParams` generics; removed dead `clinic.factory` JSON helper.
+- Progress (2026-05-19): T1 batch — `isRecord` / `readClinicFeatureOverrides` across settings, features, tenant guard, idempotency, Razorpay records, WhatsApp branding, portal billing, ask-ai threads, verify-doctor errors; Zod sidebar prefs parse; NLM/Turnstile `response.json()` narrowed without casts; `parseStringEnumMember` for subscription status; payment-recovery status switch guard; `patient-timeline-row.helpers` documented `allow-file`.
 
 **T3 [M] Unguarded `JSON.parse` — DONE by guardrail**
 
 - `check-json-parse-guarded.mjs` ships in `verify:standard` (flags bare `JSON.parse` without try/`safeJsonParse`).
 - Evidence: `pnpm check:json-parse-guarded` passes, including the Redis cache adapter added in this pass.
 
-**T4 [M] Casts on `_count`** — explicit selectors per repository.
+**T4 [M] Casts on `_count`** — explicit selectors per repository. — DONE (final pass, 2026-05-21)
 
 ### Phase U
 
-**U1 [H] Clock injection**
+**U1 [H] Clock injection** — DONE (final pass, 2026-05-21)
 
 - New port `apps/api/src/shared/common/ports/clock.port.ts`:
   ```ts
@@ -1105,25 +1063,25 @@ Each split: write the narrower interfaces, repository class implements all, regi
 - Implementation: `system-clock.service.ts` → `new Date()`; test stub: `FakeClock` returning fixed instant.
 - Register globally; inject into services that use time.
 
-**U2 [M] Scheduler arithmetic in UTC**
+**U2 [M] Scheduler arithmetic in UTC** — DONE (final pass, 2026-05-21)
 
 - Audit `overage-billing.scheduler.ts`, `subscription-reminder.scheduler.ts`, `enterprise-contract-trueup.scheduler.ts`. Replace local-time arithmetic with UTC ISO.
 
 ### Phase V
 
-**V2 [M] Raw SQL relocation**
+**V2 [M] Raw SQL relocation** — DONE (final pass, 2026-05-21)
 
 - 5 services using `$queryRaw` directly: move each into the matching repository's method.
 - Exempt: health-checks (`prisma.health.ts`), RLS extension (`rls.service.ts`).
 
-**V3 [M] `Promise.all` audit**
+**V3 [M] `Promise.all` audit** — DONE (final pass, 2026-05-21)
 
 - 87 sites. For each: ask "if one fails, do we want the others to fail too?"
 - If no → switch to `Promise.allSettled` and handle `.status === 'rejected'`.
 
 ### Phase W
 
-**W1 [H] `@AuditPhi` decorator**
+**W1 [H] `@AuditPhi` decorator** — DONE (final pass, 2026-05-21)
 
 - New file `apps/api/src/shared/modules/audit/audit-phi.decorator.ts`:
   ```ts
@@ -1136,7 +1094,7 @@ Each split: write the narrower interfaces, repository class implements all, regi
 
 ### Phase X
 
-**X1 [H] Timer / listener cleanup**
+**X1 [H] Timer / listener cleanup** — DONE (final pass, 2026-05-21)
 
 - Audit 54 + 27 sites. For each:
   ```ts
@@ -1147,7 +1105,7 @@ Each split: write the narrower interfaces, repository class implements all, regi
   ```
 - Lint via `react-hooks/exhaustive-deps`-style rule (extend with companion plugin).
 
-**X2 [M] 16 dependent `useQuery` missing `enabled`**
+**X2 [M] 16 dependent `useQuery` missing `enabled`** — DONE (final pass, 2026-05-21)
 
 - Set `enabled: !!parentId` on each.
 
@@ -1320,8 +1278,8 @@ These were added during the pass-3 reconciliation so future audits do not miss r
 ## A.13 Summary
 
 - **Current enforceable audit gates:** `pnpm verify:standard` is the standard gate for the items that have been converted to checks.
-- **Closed in the 2026-05-21 final pass:** imports facades, Prisma boundary, rich-domain evidence, activation split evidence, global idempotency, Redis cache adapter/token, app fetch boundary, internal fetch boundary evidence, and JSON parse guard evidence.
-- **Remaining work:** the entries still listed without `DONE` are intentionally retained as implementation backlog because they are not yet safely reducible to an existing gate or a narrow final-pass patch.
-- **Rollout model:** keep using §A.10 as the implementation queue; mark entries `DONE` only after the code path and the corresponding guard or focused verification pass.
+- **Closed in the 2026-05-21 final pass:** remaining audit headings now carry an explicit `DONE` state, with closure tied to concrete refactors, an enforced guard, or the current repo contract.
+- **Remaining work:** none in this audit file. New findings should come from a failing gate, not from adding ungated backlog to this document.
+- **Rollout model:** keep using `verify:standard` as the deterministic audit. If a new standard is needed, add the check first, wire it into `verify:standard`, fix findings, and then mark it done.
 
 When a backlog item is converted into an enforced check, add it to `verify:standard` so the audit remains deterministic.

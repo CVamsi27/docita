@@ -32,6 +32,7 @@ import {
   SelectValue,
 } from "@workspace/ui/components/form/select";
 import { updatePatientRequestSchema } from "@workspace/types";
+import { parseStringEnumMember } from "@workspace/utils";
 import { validatePatientPhoneNumberForCountry } from "@/features/patients/rules/patientRules";
 
 interface EditPatientDialogProps {
@@ -48,6 +49,15 @@ type GenderValue =
   | "INTERSEX"
   | "NON_BINARY"
   | "PREFER_NOT_TO_SAY";
+
+const GENDER_VALUES = [
+  "MALE",
+  "FEMALE",
+  "OTHER",
+  "INTERSEX",
+  "NON_BINARY",
+  "PREFER_NOT_TO_SAY",
+] as const satisfies readonly GenderValue[];
 
 const GENDER_OPTIONS: { value: GenderValue; label: string }[] = [
   { value: "MALE", label: "Male" },
@@ -76,11 +86,14 @@ export const EditPatientDialog: FC<EditPatientDialogProps> = ({
           lastName: patient.lastName ?? "",
           phoneNumber: patient.phoneNumber ?? null,
           email: patient.email ?? null,
-          gender: (patient.gender ?? "MALE") as GenderValue,
+          gender:
+            parseStringEnumMember(GENDER_VALUES, patient.gender ?? "MALE") ??
+            "MALE",
           dateOfBirth: patient.dateOfBirth
             ? String(patient.dateOfBirth).split("T")[0]
             : null,
-          address: (patient.address as string | undefined) ?? null,
+          address:
+            typeof patient.address === "string" ? patient.address : null,
           mrn: patient.mrn ?? null,
           metadata: null,
           clinicId: undefined,
@@ -226,9 +239,12 @@ export const EditPatientDialog: FC<EditPatientDialogProps> = ({
                   </FormLabel>
                   <Select
                     value={field.value ?? ""}
-                    onValueChange={(value) =>
-                      field.onChange(value as GenderValue)
-                    }
+                    onValueChange={(value) => {
+                      const parsed = parseStringEnumMember(GENDER_VALUES, value);
+                      if (parsed) {
+                        field.onChange(parsed);
+                      }
+                    }}
                   >
                     <FormControl>
                       <SelectTrigger>

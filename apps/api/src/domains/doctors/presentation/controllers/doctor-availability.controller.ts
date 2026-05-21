@@ -38,6 +38,7 @@ import {
 import { ZodValidationPipe } from '@/shared/common/pipes/zod-validation.pipe';
 import { RequestWithUser } from '@/shared/common/types/common.types';
 import { getClinicStaffRequestContext } from '@/shared/modules/auth/auth/clinic-request-context';
+import { isClinicAdminRole } from '@/shared/common/constants/role-groups';
 
 @Controller('doctor-availability')
 @Roles(Role.ADMIN, Role.DOCTOR, Role.RECEPTIONIST, Role.ADMIN_DOCTOR)
@@ -68,8 +69,7 @@ export class DoctorAvailabilityController {
       throw new BadRequestException('Clinic ID is required');
     }
     const doctorId =
-      ([Role.ADMIN, Role.ADMIN_DOCTOR] as string[]).includes(req.user.role) &&
-      dto.doctorId
+      isClinicAdminRole(req.user.role) && dto.doctorId
         ? dto.doctorId
         : req.user.id;
     return this.doctorAvailabilityService.bulkUpsertSchedules(
@@ -86,9 +86,7 @@ export class DoctorAvailabilityController {
   ) {
     const { doctorId } = query;
     const targetDoctorId =
-      ([Role.ADMIN, Role.ADMIN_DOCTOR] as string[]).includes(
-        req.user?.role ?? '',
-      ) && doctorId
+      isClinicAdminRole(req.user?.role) && doctorId
         ? doctorId
         : getClinicStaffRequestContext(req).userId;
     return this.doctorAvailabilityService.getSchedules(
@@ -107,8 +105,7 @@ export class DoctorAvailabilityController {
       throw new BadRequestException('Clinic ID is required');
     }
     const doctorId =
-      ([Role.ADMIN, Role.ADMIN_DOCTOR] as string[]).includes(req.user.role) &&
-      dto.doctorId
+      isClinicAdminRole(req.user.role) && dto.doctorId
         ? dto.doctorId
         : req.user.id;
     return this.doctorAvailabilityService.createSchedule({
@@ -152,9 +149,7 @@ export class DoctorAvailabilityController {
   ) {
     const { doctorId, upcoming } = query;
     const targetDoctorId =
-      ([Role.ADMIN, Role.ADMIN_DOCTOR] as string[]).includes(
-        req.user?.role ?? '',
-      ) && doctorId
+      isClinicAdminRole(req.user?.role) && doctorId
         ? doctorId
         : getClinicStaffRequestContext(req).userId;
     return this.doctorAvailabilityService.getTimeOffs(targetDoctorId, {
@@ -170,9 +165,7 @@ export class DoctorAvailabilityController {
     @Body() dto: CreateTimeOffDto,
   ) {
     const doctorId =
-      ([Role.ADMIN, Role.ADMIN_DOCTOR] as string[]).includes(
-        req.user?.role ?? '',
-      ) && dto.doctorId
+      isClinicAdminRole(req.user?.role) && dto.doctorId
         ? dto.doctorId
         : getClinicStaffRequestContext(req).userId;
     return this.doctorAvailabilityService.createTimeOff({

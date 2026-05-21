@@ -2,6 +2,10 @@ import { Inject, Injectable, Logger, OnModuleDestroy } from '@nestjs/common';
 import { CLOCK_PORT, type IClock } from '@/shared/common/ports/clock.port';
 import { PrismaService } from '@/prisma/prisma.service';
 import { Prisma, ErrorSeverity } from '@workspace/db';
+import { toPrismaInputJsonValue } from '@/shared/common/json/to-prisma-input-json-value';
+import { parseStringEnumMember } from '@workspace/utils';
+
+const ERROR_SEVERITY_VALUES = Object.values(ErrorSeverity);
 import { ErrorLogInput } from '@/shared/modules/monitoring/monitoring/schemas/monitoring.schema';
 import { MonitoringFactory } from '@/shared/modules/monitoring/monitoring/factories/monitoring.factory';
 
@@ -94,9 +98,17 @@ export class ErrorTrackingService implements OnModuleDestroy {
             statusCode: err.statusCode,
             userAgent: err.userAgent,
             ip: err.ip,
-            requestBody: err.requestBody as Prisma.InputJsonValue,
-            metadata: err.metadata as Prisma.InputJsonValue,
-            severity: (err.severity as ErrorSeverity) || ErrorSeverity.ERROR,
+            ...(err.requestBody != null
+              ? { requestBody: toPrismaInputJsonValue(err.requestBody) }
+              : {}),
+            ...(err.metadata != null
+              ? { metadata: toPrismaInputJsonValue(err.metadata) }
+              : {}),
+            severity:
+              parseStringEnumMember(
+                ERROR_SEVERITY_VALUES,
+                err.severity ?? '',
+              ) ?? ErrorSeverity.ERROR,
           })),
           skipDuplicates: true,
         });

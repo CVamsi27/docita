@@ -9,6 +9,30 @@ import {
   type IClinicUsagePort,
 } from '@/domains/billing/application/ports';
 import type { CurrentUsage } from '@workspace/types';
+import { parseStringEnumMember } from '@workspace/utils';
+
+const USAGE_METERS = ['consultations', 'users', 'whatsappMessages'] as const;
+
+function parseUsageThreshold(value: number | null): 80 | 100 | null {
+  if (value === 80 || value === 100) {
+    return value;
+  }
+  return null;
+}
+
+function readMeterCounts(
+  usage: CurrentUsage,
+  meter: string,
+): { included: number; current: number } {
+  const key = parseStringEnumMember(USAGE_METERS, meter);
+  if (!key) {
+    return { included: 0, current: 0 };
+  }
+  return {
+    included: usage.included[key],
+    current: usage.usage[key],
+  };
+}
 import { EmailService } from '@/shared/modules/messaging/email/email.service';
 import { StaffNotificationType, NotificationPriority } from '@workspace/db';
 import { OverageInvoiceComposer } from '../../infrastructure/schedulers/overage-invoice.composer';
@@ -80,7 +104,10 @@ export class NotifyUsageThresholdsUseCase {
     for (const [meter, warning] of Object.entries(warnings)) {
       if (warning.threshold === null) continue;
 
-      const threshold = warning.threshold as 80 | 100;
+      const threshold = parseUsageThreshold(warning.threshold);
+      if (threshold === null) {
+        continue;
+      }
       const reminderType = `usage_${meter}_${threshold}_${periodKey}`;
       const channels = channelsByThreshold[threshold];
 
@@ -215,8 +242,7 @@ export class NotifyUsageThresholdsUseCase {
           threshold,
           percentUsed,
           period: usage.period,
-          included: usage.included[meter as keyof typeof usage.included] ?? 0,
-          current: usage.usage[meter as keyof typeof usage.usage] ?? 0,
+          ...readMeterCounts(usage, meter),
           action: isUpgradePrompt ? 'upgrade_prompt' : 'warning',
         },
       },

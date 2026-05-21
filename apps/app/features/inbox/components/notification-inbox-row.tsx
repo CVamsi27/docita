@@ -8,7 +8,10 @@ import { cn } from "@workspace/ui/lib/utils";
 import { PriorityBadge } from "@workspace/ui/components/indicators/status-badge";
 import { formatTime, isToday, isYesterday } from "@workspace/utils";
 import type { StaffNotification } from "@workspace/data-access";
-import { notificationHref } from "@/components/navigation/notification-href";
+import {
+  mapStaffNotificationPriority,
+  notificationHref,
+} from "@/components/navigation/notification-href";
 
 interface RowProps {
   notification: StaffNotification;
@@ -20,10 +23,7 @@ export function NotificationRow({ notification, onMarkRead, onDelete }: RowProps
   const router = useRouter();
   const href = notificationHref(notification);
 
-  const priorityMap = { URGENT: "urgent", HIGH: "high", NORMAL: "medium", LOW: "low" } as const;
-  const mappedPriority = notification.priority in priorityMap
-    ? priorityMap[notification.priority as keyof typeof priorityMap]
-    : "medium";
+  const mappedPriority = mapStaffNotificationPriority(notification.priority);
 
   const open = () => {
     if (!href) return;
@@ -51,8 +51,8 @@ export function NotificationRow({ notification, onMarkRead, onDelete }: RowProps
         </div>
         <div className="flex items-center gap-0.5">
           {!notification.isRead && (
-            <SymbolTooltip label="Mark as read">
-              <Button variant="ghost" size="icon-sm" type="button" onClick={(e) => { e.stopPropagation(); void onMarkRead(notification.id); }} aria-label="Mark as read">
+            <SymbolTooltip label="Mark read">
+              <Button variant="ghost" size="icon-sm" type="button" onClick={(e) => { e.stopPropagation(); void onMarkRead(notification.id); }} aria-label="Mark notification read">
                 <CheckIcon className="h-4 w-4" />
               </Button>
             </SymbolTooltip>

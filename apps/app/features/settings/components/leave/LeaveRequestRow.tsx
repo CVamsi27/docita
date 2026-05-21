@@ -84,8 +84,8 @@ export function LeaveRequestRow({
           </Badge>
         </div>
         <p className="text-xs text-muted-foreground mt-0.5">
-          {formatDate(leave.startDate as string, "MMM d, yyyy")} -{" "}
-          {formatDate(leave.endDate as string, "MMM d, yyyy")}
+          {formatDate(leave.startDate, "MMM d, yyyy")} -{" "}
+          {formatDate(leave.endDate, "MMM d, yyyy")}
         </p>
         {leave.reason && (
           <p className="text-xs text-muted-foreground mt-0.5 truncate">

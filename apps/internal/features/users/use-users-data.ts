@@ -6,7 +6,7 @@ import {
   useInternalUsersList,
 } from "@workspace/data-access/internal";
 import { calculateRoleStats, filterUsers } from "./utils";
-import type { Clinic, RoleFilter, User } from "./types";
+import type { RoleFilter, User } from "./types";
 import { showUserFacingErrorToast } from "@/lib/errors/user-facing-errors";
 
 export function useUsersData() {
@@ -19,7 +19,7 @@ export function useUsersData() {
   const [isViewOpen, setIsViewOpen] = useState(false);
 
   const clinicsQuery = useInternalClinics(token, "users");
-  const clinics = (clinicsQuery.data ?? []) as Clinic[];
+  const clinics = clinicsQuery.data ?? [];
 
   const usersQuery = useInternalUsersList(token, selectedClinic, clinics);
 
@@ -35,10 +35,7 @@ export function useUsersData() {
     }
   }, [usersQuery.error]);
 
-  const users = useMemo(
-    () => (usersQuery.data ?? []) as User[],
-    [usersQuery.data],
-  );
+  const users = useMemo(() => usersQuery.data ?? [], [usersQuery.data]);
 
   const filteredUsers = useMemo(
     () => filterUsers(users, searchTerm, selectedRole),
@@ -57,7 +54,8 @@ export function useUsersData() {
   const errorMessage = errorSource
     ? getUserFacingErrorMessage(errorSource, {
         context: "load",
-        fallback: "We could not load your team members. Please refresh and try again.",
+        fallback:
+          "We could not load your team members. Please refresh and try again.",
       })
     : "We could not load your team members. Please refresh and try again.";
 

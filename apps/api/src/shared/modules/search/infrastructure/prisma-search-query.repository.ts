@@ -22,7 +22,7 @@ export class PrismaSearchQueryRepository implements SearchQueryRepository {
         p."lastName",
         p."phoneNumber",
         p.mrn,
-        ts_rank(p.search_tsvector, plainto_tsquery('english', ${query})) as rank
+        ts_rank(p.search_tsvector, plainto_tsquery('english', ${query})) AS rank
       FROM "Patient" p
       WHERE 
         p."clinicId" = ${clinicId}
@@ -43,9 +43,9 @@ export class PrismaSearchQueryRepository implements SearchQueryRepository {
         a.notes,
         a."chiefComplaint",
         a."startTime",
-        p."firstName" as "patientFirstName",
-        p."lastName" as "patientLastName",
-        ts_rank(a.search_tsvector, plainto_tsquery('english', ${query})) as rank
+        p."firstName" AS "patientFirstName",
+        p."lastName" AS "patientLastName",
+        ts_rank(a.search_tsvector, plainto_tsquery('english', ${query})) AS rank
       FROM "Appointment" a
       LEFT JOIN "Patient" p ON a."patientId" = p.id
       WHERE 

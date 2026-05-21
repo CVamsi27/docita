@@ -73,7 +73,7 @@ export class WebhooksController {
 
       return { status: 'ok' };
     } catch (error) {
-      const err = error as Error;
+      const err = error instanceof Error ? error : new Error(String(error));
 
       const isCritical = this.webhookErrorHandler.isCriticalError(
         err,

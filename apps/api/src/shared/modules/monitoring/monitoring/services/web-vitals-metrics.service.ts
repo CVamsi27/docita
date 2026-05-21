@@ -3,6 +3,14 @@ import { PrismaService } from '@/prisma/prisma.service';
 import { MetricType, Prisma } from '@workspace/db';
 import { WebVitalDto } from '@/shared/modules/monitoring/monitoring/dto/monitoring.dto';
 import { MetricsPersistenceService } from './metrics-persistence.service';
+import { toPrismaInputJsonValue } from '@/shared/common/json/to-prisma-input-json-value';
+
+const CORE_WEB_VITAL_NAMES = ['LCP', 'INP', 'CLS', 'FCP', 'TTFB'] as const;
+type CoreWebVitalName = (typeof CORE_WEB_VITAL_NAMES)[number];
+
+function isCoreWebVitalName(name: string): name is CoreWebVitalName {
+  return CORE_WEB_VITAL_NAMES.some((vital) => vital === name);
+}
 
 function getMetadataPage(
   metadata: Prisma.JsonValue | null,
@@ -14,8 +22,6 @@ function getMetadataPage(
   const page = Reflect.get(metadata, 'page');
   return typeof page === 'string' ? page : undefined;
 }
-
-const CORE_WEB_VITAL_NAMES = new Set(['LCP', 'INP', 'CLS', 'FCP', 'TTFB']);
 
 @Injectable()
 export class WebVitalsMetricsService {
@@ -36,14 +42,14 @@ export class WebVitalsMetricsService {
         metricType: MetricType.AVG_RESPONSE_TIME,
         value: vital.value,
         unit: vital.name,
-        metadata: {
+        metadata: toPrismaInputJsonValue({
           rating,
           page: vital.page,
           userId: vital.userId,
           sessionId: vital.sessionId,
           metricName: vital.name,
           ...(vital.feature ? { feature: vital.feature } : {}),
-        } as Prisma.InputJsonValue,
+        }),
       },
       'Failed to record web vital',
     );
@@ -73,18 +79,18 @@ export class WebVitalsMetricsService {
       (vital) => !page || getMetadataPage(vital.metadata) === page,
     );
 
-    const grouped = filtered.reduce(
-      (acc, vital) => {
-        const name = vital.unit || 'unknown';
-        if (!CORE_WEB_VITAL_NAMES.has(name)) {
-          return acc;
-        }
-        if (!acc[name]) acc[name] = [];
-        acc[name].push(vital.value);
+    const grouped = filtered.reduce<
+      Partial<Record<CoreWebVitalName, number[]>>
+    >((acc, vital) => {
+      const name = vital.unit || 'unknown';
+      if (!isCoreWebVitalName(name)) {
         return acc;
-      },
-      {} as Record<string, number[]>,
-    );
+      }
+      const bucket = acc[name] ?? [];
+      bucket.push(vital.value);
+      acc[name] = bucket;
+      return acc;
+    }, {});
 
     return Object.entries(grouped).map(([name, values]) => {
       const sorted = values.sort((a, b) => a - b);
@@ -118,7 +124,7 @@ export class WebVitalsMetricsService {
       TTFB: { good: 800, poor: 1800 },
     };
 
-    const threshold = thresholds[name as keyof typeof thresholds];
+    const threshold = isCoreWebVitalName(name) ? thresholds[name] : undefined;
     if (!threshold) return 'good';
 
     if (value <= threshold.good) return 'good';

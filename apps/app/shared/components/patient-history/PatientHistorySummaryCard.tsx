@@ -25,14 +25,14 @@ import {
 } from "lucide-react";
 import {
   ALCOHOL_USE_STATUS_LABELS,
-  AlcoholUseStatus,
+  alcoholUseStatusSchema,
+  smokingStatusSchema,
   PatientAllergy,
   PatientFamilyHistory,
   PatientMedicalCondition,
   PatientSocialHistory,
   PatientSurgicalHistory,
   SMOKING_STATUS_LABELS,
-  SmokingStatus,
 } from "@workspace/types";
 import { humanizeUiLabel } from "@workspace/ui/lib/label-formatters";
 
@@ -286,9 +286,14 @@ export const PatientHistorySummaryCard: FC<PatientHistorySummaryCardProps> = ({
                           Smoking
                         </span>
                         <span className="font-medium">
-                          {SMOKING_STATUS_LABELS[
-                            socialHistory.smokingStatus as SmokingStatus
-                          ] || socialHistory.smokingStatus}
+                          {(() => {
+                            const parsed = smokingStatusSchema.safeParse(
+                              socialHistory.smokingStatus,
+                            );
+                            return parsed.success
+                              ? SMOKING_STATUS_LABELS[parsed.data]
+                              : socialHistory.smokingStatus;
+                          })()}
                         </span>
                       </div>
                     )}
@@ -299,9 +304,14 @@ export const PatientHistorySummaryCard: FC<PatientHistorySummaryCardProps> = ({
                           Alcohol
                         </span>
                         <span className="font-medium">
-                          {ALCOHOL_USE_STATUS_LABELS[
-                            socialHistory.alcoholUse as AlcoholUseStatus
-                          ] || socialHistory.alcoholUse}
+                          {(() => {
+                            const parsed = alcoholUseStatusSchema.safeParse(
+                              socialHistory.alcoholUse,
+                            );
+                            return parsed.success
+                              ? ALCOHOL_USE_STATUS_LABELS[parsed.data]
+                              : socialHistory.alcoholUse;
+                          })()}
                         </span>
                       </div>
                     )}

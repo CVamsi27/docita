@@ -1,4 +1,26 @@
 import { Prisma, AppointmentStatus, InvoiceStatus } from '@workspace/db';
+import { z } from 'zod';
+
+const appointmentStatusSchema = z.nativeEnum(AppointmentStatus);
+const invoiceStatusSchema = z.nativeEnum(InvoiceStatus);
+
+function normalizeEnumStatuses<T extends string>(
+  schema: z.ZodType<T>,
+  statuses: (string | T)[],
+): T[] {
+  const normalized: T[] = [];
+  for (const status of statuses) {
+    if (typeof status !== 'string') {
+      normalized.push(status);
+      continue;
+    }
+    const parsed = schema.safeParse(status);
+    if (parsed.success) {
+      normalized.push(parsed.data);
+    }
+  }
+  return normalized;
+}
 
 export class AppointmentQueryBuilder {
   constructor(private readonly referenceNow: Date) {}
@@ -48,10 +70,11 @@ export class AppointmentQueryBuilder {
   }
 
   withStatus(...statuses: (string | AppointmentStatus)[]): this {
-    if (statuses.length === 1) {
-      this.where.status = statuses[0] as AppointmentStatus;
-    } else {
-      this.where.status = { in: statuses as AppointmentStatus[] };
+    const normalized = normalizeEnumStatuses(appointmentStatusSchema, statuses);
+    if (normalized.length === 1) {
+      this.where.status = normalized[0];
+    } else if (normalized.length > 1) {
+      this.where.status = { in: normalized };
     }
     return this;
   }
@@ -259,10 +282,12 @@ export class InvoiceQueryBuilder {
   }
 
   withStatus(...statuses: (string | InvoiceStatus)[]): this {
-    this.where.status =
-      statuses.length === 1
-        ? (statuses[0] as InvoiceStatus)
-        : { in: statuses as InvoiceStatus[] };
+    const normalized = normalizeEnumStatuses(invoiceStatusSchema, statuses);
+    if (normalized.length === 1) {
+      this.where.status = normalized[0];
+    } else if (normalized.length > 1) {
+      this.where.status = { in: normalized };
+    }
     return this;
   }
 

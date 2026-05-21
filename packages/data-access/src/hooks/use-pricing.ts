@@ -120,8 +120,7 @@ export function useTierEstimates(params: {
 
   const estimateByTier = tiers.reduce<Record<string, EstimateResponse | null>>(
     (acc, tier, index) => {
-      const data = results[index]?.data as EstimateResponse | undefined;
-      acc[tier] = data ?? null;
+      acc[tier] = results[index]?.data ?? null;
       return acc;
     },
     {},
@@ -147,7 +146,7 @@ export function useCurrentUsage(options?: { enabled?: boolean }) {
   );
 
   return {
-    usage: query.data as CurrentUsage | undefined,
+    usage: query.data,
     isLoading: query.isLoading,
     error: query.error,
     refetch: query.refetch,

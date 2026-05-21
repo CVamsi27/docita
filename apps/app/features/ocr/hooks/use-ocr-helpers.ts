@@ -1,5 +1,6 @@
 /** Pure OCR field-mapping helpers — no React hooks. */
 import { importInvoiceDraftSchema, type OcrImportCommitRequest } from "@workspace/types";
+import { isRecord } from "@workspace/utils";
 import type { OCRInvoiceForm } from "@/features/ocr/types";
 
 export function emptyOcrInvoiceForm(): OCRInvoiceForm {
@@ -15,16 +16,16 @@ export function parseMoneyInput(raw: string): number {
 
 export function mapOcrFieldsToInvoiceForm(fields: unknown): OCRInvoiceForm {
   const empty = emptyOcrInvoiceForm();
-  if (!fields || typeof fields !== "object") return empty;
-  const invUnknown = (fields as { invoice?: unknown }).invoice;
-  if (!invUnknown || typeof invUnknown !== "object" || invUnknown === null) return empty;
-  const inv = invUnknown as Record<string, unknown>;
+  if (!isRecord(fields)) return empty;
+  const invUnknown = fields.invoice;
+  if (!isRecord(invUnknown)) return empty;
+  const inv = invUnknown;
   const itemsRaw = inv.items;
   const items: OCRInvoiceForm["items"] = [];
   if (Array.isArray(itemsRaw)) {
     for (const row of itemsRaw) {
-      if (!row || typeof row !== "object") continue;
-      const r = row as Record<string, unknown>;
+      if (!isRecord(row)) continue;
+      const r = row;
       const description = typeof r.description === "string" ? r.description : String(r.description ?? "");
       const quantity = typeof r.quantity === "number" && Number.isFinite(r.quantity) ? String(r.quantity) : String(r.quantity ?? "");
       const unitPrice = typeof r.unitPrice === "number" && Number.isFinite(r.unitPrice) ? String(r.unitPrice) : String(r.unitPrice ?? "");

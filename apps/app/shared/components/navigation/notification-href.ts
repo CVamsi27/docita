@@ -1,4 +1,32 @@
 import type { StaffNotification } from "@workspace/data-access";
+import { isRecord, parseStringEnumMember } from "@workspace/utils";
+
+const STAFF_NOTIFICATION_PRIORITY_KEYS = [
+  "URGENT",
+  "HIGH",
+  "NORMAL",
+  "LOW",
+] as const;
+
+/** Maps API notification priority to badge variant without type assertions. */
+export function mapStaffNotificationPriority(
+  priority: string,
+): "urgent" | "high" | "medium" | "low" {
+  const key = parseStringEnumMember(
+    STAFF_NOTIFICATION_PRIORITY_KEYS,
+    priority,
+  );
+  if (!key) {
+    return "medium";
+  }
+  const priorityMap = {
+    URGENT: "urgent",
+    HIGH: "high",
+    NORMAL: "medium",
+    LOW: "low",
+  } as const;
+  return priorityMap[key];
+}
 
 export type NotificationCategoryId =
   | "all"
@@ -83,6 +111,12 @@ export const NOTIFICATION_CATEGORIES: readonly NotificationCategoryDef[] = [
   { id: "system", label: "System", types: ["SYSTEM_ALERT"] },
 ] as const;
 
+export function isNotificationCategoryId(
+  value: string,
+): value is NotificationCategoryId {
+  return NOTIFICATION_CATEGORIES.some((category) => category.id === value);
+}
+
 export function categoryForType(type: string): NotificationCategoryId {
   for (const cat of NOTIFICATION_CATEGORIES) {
     if (cat.types?.includes(type)) return cat.id;
@@ -91,8 +125,8 @@ export function categoryForType(type: string): NotificationCategoryId {
 }
 
 function readString(data: unknown, key: string): string | null {
-  if (!data || typeof data !== "object" || Array.isArray(data)) return null;
-  const value = (data as Record<string, unknown>)[key];
+  if (!isRecord(data)) return null;
+  const value = data[key];
   return typeof value === "string" && value.length > 0 ? value : null;
 }
 

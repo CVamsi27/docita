@@ -13,7 +13,8 @@ import { usePermissionStore } from "@/lib/stores/permission-store";
 import { useClinicSocket } from "@/hooks/use-clinic-socket";
 import { fetchWithSession } from "@/lib/auth/fetch-with-session";
 import { logger } from "@/lib/monitoring/logger";
-import { appClinicSchema, type AppClinic } from "@workspace/types";
+import { appClinicSchema, tierSchema, type AppClinic } from "@workspace/types";
+import { isRecord } from "@workspace/utils";
 
 export type Clinic = AppClinic;
 
@@ -120,12 +121,9 @@ export function ClinicProvider({ children }: { children: React.ReactNode }) {
         setClinicType(clinicData.type);
       }
 
-      const settingsWorkspaceProfile =
-        clinicData.settings &&
-        typeof clinicData.settings === "object" &&
-        !Array.isArray(clinicData.settings)
-          ? (clinicData.settings as Record<string, unknown>).workspaceProfile
-          : undefined;
+      const settingsWorkspaceProfile = isRecord(clinicData.settings)
+        ? clinicData.settings.workspaceProfile
+        : undefined;
       if (clinicData.tier === "FRONT_DESK") {
         setWorkspaceProfile("FRONT_DESK");
       } else {
@@ -215,10 +213,13 @@ export function ClinicProvider({ children }: { children: React.ReactNode }) {
   useClinicSocket(clinicId, (data) => {
     if (data.clinicId === clinicId) {
       if (data.tier) {
-        setTier(data.tier);
-        setClinicState((prev) =>
-          prev ? { ...prev, tier: data.tier as Clinic["tier"] } : prev,
-        );
+        const parsedTier = tierSchema.safeParse(data.tier);
+        if (parsedTier.success) {
+          setTier(parsedTier.data);
+          setClinicState((prev) =>
+            prev ? { ...prev, tier: parsedTier.data } : prev,
+          );
+        }
       }
       if (data.intelligenceAddon) {
         setIntelligence(data.intelligenceAddon === "ACTIVE");

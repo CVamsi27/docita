@@ -66,20 +66,20 @@ export class InternalBillingMetricsService {
         ? cancelledRecently / (totalActive + cancelledRecently)
         : 0;
 
-    const subscriptionsByTier = subscriptions.reduce(
+    const subscriptionsByTier = subscriptions.reduce<Record<string, number>>(
       (acc, s) => {
         acc[s.plan] = (acc[s.plan] || 0) + 1;
         return acc;
       },
-      {} as Record<string, number>,
+      {},
     );
 
-    const subscriptionsByStatus = subscriptions.reduce(
+    const subscriptionsByStatus = subscriptions.reduce<Record<string, number>>(
       (acc, s) => {
         acc[s.status] = (acc[s.status] || 0) + 1;
         return acc;
       },
-      {} as Record<string, number>,
+      {},
     );
 
     const sevenDaysFromNow = addDays(this.clock.now(), 7);

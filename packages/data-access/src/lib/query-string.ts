@@ -37,6 +37,30 @@ export const toQueryString = (params?: QueryParams): string => {
   return searchParams.toString();
 };
 
+export function omitEmptyQueryParams(params: QueryParams): QueryParams {
+  const result: QueryParams = {};
+
+  for (const [key, rawValue] of Object.entries(params)) {
+    if (rawValue === undefined || rawValue === null || rawValue === "") {
+      continue;
+    }
+
+    if (Array.isArray(rawValue)) {
+      const entries = rawValue.filter(
+        (entry) => entry !== undefined && entry !== null && entry !== "",
+      );
+      if (entries.length > 0) {
+        result[key] = entries;
+      }
+      continue;
+    }
+
+    result[key] = rawValue;
+  }
+
+  return result;
+}
+
 export const withQueryString = (path: string, params?: QueryParams): string => {
   const queryString = toQueryString(params);
   if (!queryString) return path;

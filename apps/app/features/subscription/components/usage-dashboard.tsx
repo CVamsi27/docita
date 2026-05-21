@@ -7,9 +7,12 @@ import { useSubscription } from "@workspace/data-access";
 import {
   PRICING_CURRENCY_CONFIG,
   PRICING_CURRENCY_SYMBOLS,
-  type SupportedCurrency,
 } from "@workspace/types";
-import { formatAmountLocale, formatCountLocale } from "@workspace/utils";
+import {
+  formatAmountLocale,
+  formatCountLocale,
+  parseSupportedCurrency,
+} from "@workspace/utils";
 import { useClinicCurrency } from "@/hooks/use-clinic-currency";
 import {
   formatLocaleDateShortMonth,
@@ -110,13 +113,11 @@ export function UsageDashboard() {
   const { data: subscription } = useSubscription();
   const { currency, locale } = useClinicCurrency();
   const showWhatsAppMeter = subscription?.tier !== "STARTER";
-  const currencyCfg = PRICING_CURRENCY_CONFIG[currency as SupportedCurrency];
+  const resolvedCurrency = parseSupportedCurrency(currency);
+  const currencyCfg = PRICING_CURRENCY_CONFIG[resolvedCurrency];
   const amountFractionDigits = currencyCfg?.decimalPlaces ?? 2;
   const amountLocale = currencyCfg?.locale ?? locale;
-  const symbol =
-    PRICING_CURRENCY_SYMBOLS[
-      currency as keyof typeof PRICING_CURRENCY_SYMBOLS
-    ] ?? currency;
+  const symbol = PRICING_CURRENCY_SYMBOLS[resolvedCurrency] ?? resolvedCurrency;
 
   if (isLoading) {
     return (

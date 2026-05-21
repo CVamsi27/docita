@@ -1,5 +1,19 @@
 import type { IClock } from '@/shared/common/ports/clock.port';
 import type { QueueTokenWithRelations } from '@/domains/appointments/core/repositories/queue.repository.interface';
+import { parseStringEnumMember } from '@workspace/utils';
+
+const QUEUE_TOKEN_TYPES = [
+  'scheduled',
+  'walk-in',
+  'late-arrival',
+  'pending',
+] as const;
+
+type QueueTokenType = (typeof QUEUE_TOKEN_TYPES)[number];
+
+export function parseQueueTokenType(value: string): QueueTokenType {
+  return parseStringEnumMember(QUEUE_TOKEN_TYPES, value) ?? 'pending';
+}
 
 export function getTodayRange(clock: IClock) {
   const today = clock.now();
@@ -23,7 +37,7 @@ export function mapQueueToken(t: QueueTokenWithRelations) {
     calledAt: t.calledAt?.toISOString(),
     completedAt: t.completedAt?.toISOString(),
     createdAt: t.createdAt.toISOString(),
-    tokenType: t.tokenType as 'scheduled' | 'walk-in' | 'late-arrival',
+    tokenType: parseQueueTokenType(t.tokenType),
     scheduledTime: t.scheduledTime?.toISOString(),
     estimatedDuration: t.estimatedDuration,
     estimatedWaitTime: t.estimatedWaitTime,

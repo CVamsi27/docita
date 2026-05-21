@@ -90,9 +90,19 @@ export default function JoinClinicPage() {
     setIsSearching(true);
     try {
       const results = await typedApi.clinics.searchForJoin(searchQuery);
-      setClinics(results as Clinic[]);
+      setClinics(
+        results.map((clinic) => ({
+          id: clinic.id,
+          name: clinic.name,
+          email: "",
+          phone: "",
+          address: clinic.address ?? "",
+          canJoin: true,
+          existingRequestStatus: null,
+        })),
+      );
 
-      if ((results as Clinic[]).length === 0) {
+      if (results.length === 0) {
         toast.info("No facilities found matching your search");
       }
     } catch (error) {

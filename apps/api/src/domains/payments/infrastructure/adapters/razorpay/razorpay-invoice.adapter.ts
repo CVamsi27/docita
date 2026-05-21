@@ -13,11 +13,6 @@ import {
   readInvoiceStringField,
 } from './razorpay-invoice-record';
 
-export type {
-  CreatePlatformInvoiceInput as CreateRazorpayInvoiceInput,
-  PlatformInvoiceSummary as RazorpayInvoiceSummary,
-};
-
 @Injectable()
 export class RazorpayInvoiceAdapter
   extends BaseRazorpayAdapter

@@ -93,7 +93,10 @@ export class ImportsPatientsController {
       dto.columnMapping,
       {
         ipAddress: req.ip,
-        userAgent: req.headers['user-agent'] as string | undefined,
+        userAgent:
+          typeof req.headers['user-agent'] === 'string'
+            ? req.headers['user-agent']
+            : undefined,
         createdBy: req.user.id,
         dpdpNoticeVersion: attestation.noticeVersion,
       },
@@ -136,7 +139,10 @@ export class ImportsPatientsController {
         undefined,
         {
           ipAddress: req.ip,
-          userAgent: req.headers['user-agent'] as string | undefined,
+          userAgent:
+            typeof req.headers['user-agent'] === 'string'
+              ? req.headers['user-agent']
+              : undefined,
           createdBy: req.user.id,
           dpdpNoticeVersion: attestation.noticeVersion,
         },

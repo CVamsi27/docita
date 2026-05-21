@@ -15,15 +15,8 @@ vi.mock("@/components/navigation/back-button", () => ({
 }));
 
 vi.mock("@/features/appointments/components/sections/add-dialog/PatientSelector", () => ({
-  PatientSelector: ({
-    form,
-  }: {
-    form: { setValue: (name: "patientId", value: string) => void };
-  }) => (
-    <button
-      type="button"
-      onClick={() => form.setValue("patientId", "patient_1")}
-    >
+  PatientSelector: ({ onChange }: { onChange: (patientId: string) => void }) => (
+    <button type="button" onClick={() => onChange("patient_1")}>
       Select Test Patient
     </button>
   ),

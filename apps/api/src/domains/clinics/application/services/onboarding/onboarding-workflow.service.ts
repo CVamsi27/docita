@@ -20,6 +20,7 @@ import {
   ClinicTier,
 } from '@/domains/clinics/application/dto/onboarding/create-clinic-onboarding.dto';
 import { OnboardingValidationService } from './onboarding-validation.service';
+import { toPrismaInputJsonValue } from '@/shared/common/json/to-prisma-input-json-value';
 import {
   SUBSCRIPTION_TRIAL_DAYS,
   parseWorkspaceProfile,
@@ -99,7 +100,7 @@ export class OnboardingWorkflowService {
       mrnPrefix: clinicData.mrnPrefix || 'CLI',
       timezone: clinicData.timezone || 'Asia/Kolkata',
       referralCode,
-      settings: {
+      settings: toPrismaInputJsonValue({
         dataResidency: clinicData.dataResidency || 'IN',
         operatingCountryCode: clinicData.countryCode || 'IN',
         facilityLabel: clinicData.facilityLabel || 'CLINIC',
@@ -113,7 +114,7 @@ export class OnboardingWorkflowService {
         ...(clinicData.legalName && clinicData.legalName.trim().length > 0
           ? { taxSettings: { legalName: clinicData.legalName.trim() } }
           : {}),
-      } as Prisma.InputJsonValue,
+      }),
     });
 
     await this.repository.createMrnSequence(
@@ -176,7 +177,7 @@ export class OnboardingWorkflowService {
       );
 
       this.logger.log(
-        `Linked existing user: ${updatedUser.id} as owner for clinic: ${clinicId}`,
+        `Linked existing user: ${updatedUser.id} (clinic owner) for clinic: ${clinicId}`,
       );
       return updatedUser;
     }

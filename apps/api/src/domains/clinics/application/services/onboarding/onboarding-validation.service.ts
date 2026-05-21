@@ -2,11 +2,14 @@ import { Injectable, BadRequestException } from '@nestjs/common';
 import { Specialization } from '@workspace/db';
 import {
   TIER_PRICING_BY_CURRENCY,
+  tierSchema,
   type MultiCurrencyTierPricing,
   type SupportedCurrency,
   isFrontDeskWorkspace,
   parseWorkspaceProfile,
 } from '@workspace/types';
+import { parseStringEnumMember } from '@workspace/utils';
+import { z } from 'zod';
 import {
   CompleteOnboardingDto,
   ClinicTier,
@@ -33,15 +36,25 @@ function billingCycleEnumToCatalogKey(
   }
 }
 
+const SUPPORTED_CURRENCY_MEMBERS = Object.keys(TIER_PRICING_BY_CURRENCY).filter(
+  (key): key is SupportedCurrency => key in TIER_PRICING_BY_CURRENCY,
+);
+
+const slaAcceptanceSchema = z.object({
+  acceptedSLA: z.boolean(),
+  acceptedDataProcessingTerms: z.boolean(),
+  acceptedPrivacyPolicy: z.boolean(),
+});
+
 @Injectable()
 export class OnboardingValidationService {
   private resolveCurrency(currency?: string): SupportedCurrency {
-    const resolved = currency?.toUpperCase() as SupportedCurrency | undefined;
-    if (
-      resolved &&
-      Object.prototype.hasOwnProperty.call(TIER_PRICING_BY_CURRENCY, resolved)
-    ) {
-      return resolved;
+    const upper = currency?.toUpperCase();
+    if (upper) {
+      const parsed = parseStringEnumMember(SUPPORTED_CURRENCY_MEMBERS, upper);
+      if (parsed) {
+        return parsed;
+      }
     }
     return 'INR';
   }
@@ -223,16 +236,12 @@ export class OnboardingValidationService {
   validateSpecialization(
     spec: string | undefined,
   ): Specialization | null | undefined {
-    try {
-      if (!spec) return undefined;
-      return validateSpecializationForOnboarding(spec);
-    } catch {
-      return spec as Specialization;
-    }
+    if (!spec) return undefined;
+    return validateSpecializationForOnboarding(spec);
   }
 
   validateSLAAcceptance(slaData: Record<string, unknown>): void {
-    const data = slaData as Record<string, boolean>;
+    const data = slaAcceptanceSchema.parse(slaData);
     if (!data.acceptedSLA) {
       throw new BadRequestException('SLA must be accepted to proceed');
     }
@@ -250,7 +259,9 @@ export class OnboardingValidationService {
 
     const resolvedCurrency = this.resolveCurrency(currency);
     const pricing = TIER_PRICING_BY_CURRENCY[resolvedCurrency];
-    const tierPricing = pricing[tier as keyof typeof pricing];
+    const parsedTier = tierSchema.safeParse(tier);
+    const tierKey = parsedTier.success ? parsedTier.data : 'ESSENTIAL';
+    const tierPricing = pricing[tierKey];
     const pricingKey = billingCycleEnumToCatalogKey(cycle);
     const amount = pricingKey !== null ? tierPricing?.[pricingKey] : undefined;
     if (typeof amount !== 'number') {

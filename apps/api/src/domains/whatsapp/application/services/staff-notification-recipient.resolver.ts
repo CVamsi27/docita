@@ -3,9 +3,9 @@ import {
   WHATSAPP_PERSISTENCE_PORT,
   type WhatsappPersistencePort,
 } from '@/domains/whatsapp/application/ports/whatsapp-persistence.port';
-import type { Role, StaffNotificationType } from '@workspace/db';
-import { Prisma } from '@workspace/db';
+import { Prisma, Role, type StaffNotificationType } from '@workspace/db';
 import { isFrontDeskWorkspace, parseWorkspaceProfile } from '@workspace/types';
+import { isRecord } from '@workspace/utils';
 import type {
   INotificationRecipientResolver,
   NotificationRecipient,
@@ -30,7 +30,7 @@ export class StaffNotificationRecipientResolver implements INotificationRecipien
       role: { in: targetRoles },
     };
 
-    if (doctorId && !targetRoles.includes('DOCTOR' as Role)) {
+    if (doctorId && !targetRoles.includes(Role.DOCTOR)) {
       return this.persistence.user.findMany({
         where: {
           OR: [where, { id: doctorId, clinicId }],
@@ -105,10 +105,7 @@ export class StaffNotificationRecipientResolver implements INotificationRecipien
       where: { id: clinicId },
       select: { settings: true },
     });
-    const raw =
-      clinic?.settings && typeof clinic.settings === 'object'
-        ? (clinic.settings as Record<string, unknown>)
-        : {};
+    const raw = isRecord(clinic?.settings) ? clinic.settings : {};
     if (isFrontDeskWorkspace(parseWorkspaceProfile(raw.workspaceProfile))) {
       return ['ADMIN', 'ADMIN_DOCTOR', 'RECEPTIONIST'];
     }

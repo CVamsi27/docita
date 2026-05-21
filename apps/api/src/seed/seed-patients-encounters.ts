@@ -307,7 +307,7 @@ export async function seedPatientsAndEncounters(
       patientId: patientById['seed-patient-rajesh'].id,
       doctorId: doctor1Id,
       instructions:
-        'Take medications as prescribed. Follow low-sugar diet. Exercise 30 mins daily.',
+        'Take medications per prescription. Follow low-sugar diet. Exercise 30 mins daily.',
     },
     create: {
       id: SEEDED_IDS.prescription,
@@ -315,7 +315,7 @@ export async function seedPatientsAndEncounters(
       patientId: patientById['seed-patient-rajesh'].id,
       doctorId: doctor1Id,
       instructions:
-        'Take medications as prescribed. Follow low-sugar diet. Exercise 30 mins daily.',
+        'Take medications per prescription. Follow low-sugar diet. Exercise 30 mins daily.',
     },
   });
 

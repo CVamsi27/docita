@@ -20,6 +20,41 @@ import { parsePaginationInt } from '@/shared/common/utils/string.utils';
 import { MedicationDoseService } from '@/domains/patients/application/services/medication-dose.service';
 import { AuditService } from '@/shared/modules/audit/audit/audit.service';
 import { auditPatientPortalRead } from '@/domains/patient-portal/presentation/controllers/patient-portal-controller.helpers';
+import {
+  medicationDoseStatusSchema,
+  timelineEventTypeSchema,
+  type MedicationDoseStatus,
+  type TimelineEventType,
+} from '@workspace/types';
+import { parseStringEnumMember } from '@workspace/utils';
+
+const MEDICATION_DOSE_STATUSES = medicationDoseStatusSchema.options;
+const TIMELINE_EVENT_TYPES = timelineEventTypeSchema.options;
+
+function parseTimelineEventTypes(
+  raw: string | undefined,
+): TimelineEventType[] | undefined {
+  if (!raw?.trim()) {
+    return undefined;
+  }
+  const parsed = raw
+    .split(',')
+    .map((value) => value.trim())
+    .flatMap((value) => {
+      const match = parseStringEnumMember(TIMELINE_EVENT_TYPES, value);
+      return match ? [match] : [];
+    });
+  return parsed.length > 0 ? parsed : undefined;
+}
+
+function parseMedicationDoseStatusQuery(
+  status: string | undefined,
+): MedicationDoseStatus | undefined {
+  if (!status) {
+    return undefined;
+  }
+  return parseStringEnumMember(MEDICATION_DOSE_STATUSES, status) ?? undefined;
+}
 
 @ApiTags('patient-portal')
 @Controller('patient-portal')
@@ -54,11 +89,7 @@ export class PatientPortalClinicalController {
       req,
       'VIEW_HISTORY',
     );
-    const eventTypes = query.eventTypes
-      ? (query.eventTypes.split(',') as Parameters<
-          typeof this.timelineService.getTimeline
-        >[2]['eventTypes'])
-      : undefined;
+    const eventTypes = parseTimelineEventTypes(query.eventTypes);
     return this.timelineService.getTimeline(clinicId, patientId, {
       eventTypes,
       from: query.from,
@@ -113,9 +144,7 @@ export class PatientPortalClinicalController {
       prescriptionId: query.prescriptionId,
       from: query.from,
       to: query.to,
-      status: query.status as Parameters<
-        typeof this.medicationDoseService.getDoseHistory
-      >[2]['status'],
+      status: parseMedicationDoseStatusQuery(query.status),
       limit: parsePaginationInt(query.limit, { min: 1, max: 200 }),
       offset: parsePaginationInt(query.offset, { min: 0 }),
     });

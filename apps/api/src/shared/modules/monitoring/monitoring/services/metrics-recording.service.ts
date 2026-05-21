@@ -1,6 +1,7 @@
 import { Inject, Injectable } from '@nestjs/common';
 import { CLOCK_PORT, type IClock } from '@/shared/common/ports/clock.port';
-import { MetricType, Prisma } from '@workspace/db';
+import { MetricType } from '@workspace/db';
+import { toPrismaInputJsonValue } from '@/shared/common/json/to-prisma-input-json-value';
 import { MetricsPersistenceService } from './metrics-persistence.service';
 
 @Injectable()
@@ -21,7 +22,7 @@ export class MetricsRecordingService {
         metricType,
         value,
         unit,
-        metadata: metadata as Prisma.InputJsonValue,
+        metadata: metadata ? toPrismaInputJsonValue(metadata) : undefined,
       },
       'Failed to record metric',
     );
@@ -75,14 +76,14 @@ export class MetricsRecordingService {
         metricType: MetricType.REQUEST_COUNT,
         value: 1,
         unit: 'count',
-        metadata: {
+        metadata: toPrismaInputJsonValue({
           featureName,
           metricCategory: 'feature_usage',
           clinicId,
           userId,
           timestamp: this.clock.now().toISOString(),
           ...metadata,
-        } as Prisma.InputJsonValue,
+        }),
       },
       `Failed to record feature usage for ${featureName}`,
     );
@@ -98,12 +99,12 @@ export class MetricsRecordingService {
         metricType: MetricType.REQUEST_COUNT,
         value: 1,
         unit: 'count',
-        metadata: {
+        metadata: toPrismaInputJsonValue({
           metricCategory: isHit ? 'cache_hit' : 'cache_miss',
           key,
           timestamp: this.clock.now().toISOString(),
           ...metadata,
-        } as Prisma.InputJsonValue,
+        }),
       },
       'Failed to record cache metric',
     );
@@ -120,13 +121,13 @@ export class MetricsRecordingService {
         metricType: MetricType.DB_QUERY_TIME,
         value: duration,
         unit: 'ms',
-        metadata: {
+        metadata: toPrismaInputJsonValue({
           operationType,
           duration,
           isError,
           timestamp: this.clock.now().toISOString(),
           ...metadata,
-        } as Prisma.InputJsonValue,
+        }),
       },
       'Failed to record database metric',
     );

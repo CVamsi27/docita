@@ -1,9 +1,6 @@
 import { Injectable, Logger } from '@nestjs/common';
 import { fetchWithTimeout } from '@/shared/common/http/fetch-with-timeout';
-
-interface TurnstileVerifyResponse {
-  success?: boolean;
-}
+import { isRecord } from '@workspace/utils';
 
 @Injectable()
 export class TurnstileSiteverifyClient {
@@ -32,8 +29,8 @@ export class TurnstileSiteverifyClient {
           body,
         },
       );
-      const data = (await response.json()) as TurnstileVerifyResponse;
-      return data.success === true;
+      const data: unknown = await response.json();
+      return isRecord(data) && data.success === true;
     } catch (error) {
       this.logger.warn(
         'Turnstile siteverify request failed',

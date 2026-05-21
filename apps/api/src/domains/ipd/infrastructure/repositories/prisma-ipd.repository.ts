@@ -7,6 +7,7 @@ import {
 } from '@nestjs/common';
 import { CLOCK_PORT, type IClock } from '@/shared/common/ports/clock.port';
 import { AdmissionStatus, BedStatus, Role } from '@workspace/db';
+import { parseStringEnumMember } from '@workspace/utils';
 import type {
   Admission,
   AdmitPatientRequest,
@@ -77,10 +78,14 @@ export class PrismaIpdRepository implements IpdRepository {
   }
 
   listAdmissions(clinicId: string, status?: string): Promise<Admission[]> {
+    const parsedStatus = status
+      ? parseStringEnumMember(Object.values(AdmissionStatus), status)
+      : undefined;
+
     return this.prisma.admission.findMany({
       where: {
         bed: { room: { ward: { clinicId } } },
-        ...(status ? { status: status as AdmissionStatus } : {}),
+        ...(parsedStatus ? { status: parsedStatus } : {}),
       },
       orderBy: { admittedAt: 'desc' },
     });

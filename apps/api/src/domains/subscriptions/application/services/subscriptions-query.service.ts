@@ -90,25 +90,6 @@ export class SubscriptionsQueryService {
     }
   }
 
-  private getTierData<T extends Record<string, V>, V>(
-    source: T,
-    key: string,
-  ): T[keyof T] | undefined {
-    return source[key as keyof T];
-  }
-
-  private getTierObject<T extends Record<string, unknown>>(
-    source: T,
-    key: string,
-  ): Record<string, unknown> {
-    const value = this.getTierData(source, key);
-    if (!value || typeof value !== 'object' || Array.isArray(value)) {
-      return {};
-    }
-
-    return Object.fromEntries(Object.entries(value as Record<string, unknown>));
-  }
-
   async getTierConfig() {
     const tiers = [
       'STARTER',
@@ -181,10 +162,12 @@ export class SubscriptionsQueryService {
     const subscription = await this.subscriptionRepo.findByClinicId(clinicId);
     const currentPlan = subscription ? subscription.getPlan().value : undefined;
 
-    const records = (await this.subscriptionRepo.findPaymentsByClinicId(
-      clinicId,
-      Math.max(limit * 5, limit),
-    )) as PaymentHistoryRecord[];
+    const records = parsePaymentHistoryRecords(
+      await this.subscriptionRepo.findPaymentsByClinicId(
+        clinicId,
+        Math.max(limit * 5, limit),
+      ),
+    );
     const normalized = normalizePaymentHistory(records);
     const collapsed = collapseStaleUpgradePendingCheckouts(normalized);
     const withoutStalePending = filterPendingPlanCheckoutMismatches(
@@ -226,7 +209,7 @@ export class SubscriptionsQueryService {
 
     const knownInvoiceIds = new Set(
       localRecords
-        .map((r) => (r as Record<string, unknown>)['invoiceNumber'])
+        .map((r) => r.invoiceNumber)
         .filter((v): v is string => typeof v === 'string'),
     );
 

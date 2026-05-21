@@ -8,6 +8,7 @@ import { PatientSnapshotStrip } from "@/components/patient-history/PatientSnapsh
 import { PatientTimeline } from "@/components/patient-history/PatientTimeline";
 import { DataState } from "@workspace/ui/components/data-display/data-state";
 import type { TimelineEventType } from "@workspace/types";
+import { isRecord } from "@workspace/utils";
 
 const ALL_EVENT_TYPES: TimelineEventType[] = [
   "APPOINTMENT",
@@ -35,10 +36,12 @@ export function PortalHistoryTimelineUI({
   const limit = 15;
 
   const { data: dashboard } = usePatientPortalDashboard();
-  const patientId =
-    dashboard?.patient && typeof (dashboard.patient as Record<string, unknown>).id === "string"
-      ? (dashboard.patient as Record<string, unknown>).id as string
+  const patientRecord =
+    dashboard?.patient && isRecord(dashboard.patient)
+      ? dashboard.patient
       : undefined;
+  const patientId =
+    typeof patientRecord?.id === "string" ? patientRecord.id : undefined;
 
   const { data: snapshot } = usePortalSnapshot();
   const {

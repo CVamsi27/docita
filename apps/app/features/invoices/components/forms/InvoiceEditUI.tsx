@@ -26,14 +26,14 @@ import {
 } from "@workspace/ui/components/form/form";
 import { Textarea } from "@workspace/ui/components/form/textarea";
 import { FileText, Plus, Save } from "lucide-react";
-import type { Path } from "react-hook-form";
-import {
-  type InvoiceFormValues,
-  useInvoiceEditLogic,
-} from "@/features/invoices/hooks/use-invoice-edit-logic";
+import { editInvoiceItemFieldPath } from "@/features/invoices/lib/invoice-form-paths";
+import { useInvoiceEditLogic } from "@/features/invoices/hooks/use-invoice-edit-logic";
 import { BackButton } from "@/components/navigation/back-button";
 import { useBackNavigation } from "@/hooks/use-back-navigation";
-import { EmptyState, LoadingState } from "@workspace/ui/components/feedback/empty-state";
+import {
+  EmptyState,
+  LoadingState,
+} from "@workspace/ui/components/feedback/empty-state";
 import { InvoiceItemsTable } from "./InvoiceItemsTable";
 import { InvoiceSubtotal } from "./InvoiceSubtotal";
 import { formatCurrency } from "@workspace/utils";
@@ -157,12 +157,12 @@ export const InvoiceEditUI: FC<InvoiceEditUIProps> = ({ invoiceId }) => {
                 onUpdateItem={(index, key, value) => {
                   const fieldName = key === "unitPrice" ? "price" : key;
                   form.setValue(
-                    `items.${index}.${fieldName}` as Path<InvoiceFormValues>,
+                    editInvoiceItemFieldPath(index, fieldName),
                     value,
                   );
                   if (key === "taxTreatment" && value !== "TAXABLE") {
                     form.setValue(
-                      `items.${index}.taxRate` as Path<InvoiceFormValues>,
+                      editInvoiceItemFieldPath(index, "taxRate"),
                       0,
                     );
                   }

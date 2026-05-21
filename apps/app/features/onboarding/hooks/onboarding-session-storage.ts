@@ -2,11 +2,16 @@
  * Pure session-storage helpers for the clinic registration flow.
  * No React, no hooks — just read/write/clear helpers.
  */
+import { z } from "zod";
+import { isRecord } from "@workspace/utils";
 import { ApiError } from "@/lib/errors";
+import { parseClinicDetailsDraft } from "@/features/onboarding/components/forms/clinic-registration-form-helpers";
 import {
   type ClinicRegistrationData,
   defaultClinicRegistrationData,
 } from "@/features/onboarding/components/types";
+import { clinicRegistrationSessionSchema } from "@/features/onboarding/hooks/onboarding-session-schemas";
+import { complianceSchema } from "@/features/onboarding/components/types";
 
 export const SESSION_KEY = "docita_onboarding_step";
 export const SESSION_ONBOARDING_ID_KEY = "docita_onboarding_id";
@@ -19,13 +24,19 @@ interface RestartableOnboardingError extends Error {
   restartOnboarding?: boolean;
 }
 
-export function isRestartableOnboardingError(error: unknown): boolean {
-  if (
-    error &&
+function hasRestartOnboardingFlag(
+  error: unknown,
+): error is RestartableOnboardingError {
+  return (
     typeof error === "object" &&
+    error !== null &&
     "restartOnboarding" in error &&
-    (error as RestartableOnboardingError).restartOnboarding === true
-  ) {
+    error.restartOnboarding === true
+  );
+}
+
+export function isRestartableOnboardingError(error: unknown): boolean {
+  if (hasRestartOnboardingFlag(error)) {
     return true;
   }
   if (error instanceof ApiError) {
@@ -52,6 +63,58 @@ export function getPersistedStep(): number {
   }
 }
 
+const persistedFormEnvelopeSchema = z.object({
+  clinicDetails: z.unknown().optional(),
+  compliance: z.unknown().optional(),
+  planSelection: z.unknown().optional(),
+  paymentDetails: z.unknown().optional(),
+  teamMembers: z.array(z.unknown()).optional(),
+  clinicWeeklyHours: z.array(z.unknown()).optional(),
+});
+
+function parsePersistedFormData(raw: unknown): ClinicRegistrationData {
+  const envelope = persistedFormEnvelopeSchema.safeParse(raw);
+  if (!envelope.success) {
+    return defaultClinicRegistrationData;
+  }
+
+  const clinicDetails = parseClinicDetailsDraft(envelope.data.clinicDetails);
+  const compliance = complianceSchema
+    .partial()
+    .safeParse(envelope.data.compliance);
+
+  const candidate = {
+    ...defaultClinicRegistrationData,
+    clinicDetails: clinicDetails
+      ? { ...defaultClinicRegistrationData.clinicDetails, ...clinicDetails }
+      : defaultClinicRegistrationData.clinicDetails,
+    compliance: compliance.success
+      ? { ...defaultClinicRegistrationData.compliance, ...compliance.data }
+      : defaultClinicRegistrationData.compliance,
+    planSelection: isRecord(envelope.data.planSelection)
+      ? {
+          ...defaultClinicRegistrationData.planSelection,
+          ...envelope.data.planSelection,
+        }
+      : defaultClinicRegistrationData.planSelection,
+    paymentDetails: isRecord(envelope.data.paymentDetails)
+      ? {
+          ...defaultClinicRegistrationData.paymentDetails,
+          ...envelope.data.paymentDetails,
+        }
+      : defaultClinicRegistrationData.paymentDetails,
+    teamMembers: Array.isArray(envelope.data.teamMembers)
+      ? envelope.data.teamMembers
+      : defaultClinicRegistrationData.teamMembers,
+    clinicWeeklyHours: Array.isArray(envelope.data.clinicWeeklyHours)
+      ? envelope.data.clinicWeeklyHours
+      : defaultClinicRegistrationData.clinicWeeklyHours,
+  };
+
+  const parsed = clinicRegistrationSessionSchema.safeParse(candidate);
+  return parsed.success ? parsed.data : defaultClinicRegistrationData;
+}
+
 export function getPersistedOnboardingId(): string | null {
   if (typeof sessionStorage === "undefined") return null;
   try {
@@ -66,35 +129,7 @@ export function getPersistedFormData(): ClinicRegistrationData {
   try {
     const raw = sessionStorage.getItem(SESSION_FORM_DATA_KEY);
     if (!raw) return defaultClinicRegistrationData;
-    const parsed = JSON.parse(raw) as Partial<ClinicRegistrationData>;
-    return {
-      ...defaultClinicRegistrationData,
-      ...parsed,
-      clinicDetails: {
-        ...defaultClinicRegistrationData.clinicDetails,
-        ...(parsed.clinicDetails || {}),
-      },
-      compliance: {
-        ...defaultClinicRegistrationData.compliance,
-        ...(parsed.compliance || {}),
-      },
-      planSelection: {
-        ...defaultClinicRegistrationData.planSelection,
-        ...(parsed.planSelection || {}),
-      },
-      paymentDetails: {
-        ...defaultClinicRegistrationData.paymentDetails,
-        ...(parsed.paymentDetails || {}),
-      },
-      teamMembers: Array.isArray(parsed.teamMembers)
-        ? parsed.teamMembers
-        : defaultClinicRegistrationData.teamMembers,
-      clinicWeeklyHours:
-        Array.isArray(parsed.clinicWeeklyHours) &&
-        parsed.clinicWeeklyHours.length === 7
-          ? parsed.clinicWeeklyHours
-          : defaultClinicRegistrationData.clinicWeeklyHours,
-    };
+    return parsePersistedFormData(JSON.parse(raw));
   } catch {
     return defaultClinicRegistrationData;
   }

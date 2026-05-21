@@ -1,4 +1,5 @@
 import type { QueueItem } from "@workspace/data-access";
+import { appClinicSchema } from "@workspace/types";
 import { formatUtcInstantAsClinicPickerIso } from "@workspace/utils";
 import { isQueueTokenWaiting } from "@/lib/utils/queue-token-status";
 
@@ -51,19 +52,18 @@ export function isDateLocalToday(
   return formatUtcInstantAsClinicPickerIso(date, clinicTz) === today;
 }
 
+function readQueueAppointmentStartTime(q: QueueItem): string | null {
+  const startTime = q.appointment?.startTime;
+  return typeof startTime === "string" ? startTime : null;
+}
+
 export function isQueueItemForTodayFn(
   q: QueueItem,
   clinicTz: string,
   today: string,
 ): boolean {
-  const appointmentStart =
-    typeof (q as unknown as { appointment?: { startTime?: unknown } })
-      ?.appointment?.startTime === "string"
-      ? ((q as unknown as { appointment?: { startTime?: string } })
-          .appointment?.startTime ?? null)
-      : null;
   return (
-    isDateLocalToday(appointmentStart, clinicTz, today) ||
+    isDateLocalToday(readQueueAppointmentStartTime(q), clinicTz, today) ||
     isDateLocalToday(q.createdAt, clinicTz, today)
   );
 }
@@ -72,8 +72,10 @@ const DEFAULT_SLOT_MINUTES = 15;
 
 /** Extracts `slotDuration` from clinic settings; falls back to {@link DEFAULT_SLOT_MINUTES}. */
 export function getClinicSlotMinutes(clinic: unknown): number {
-  const value = (clinic as { slotDuration?: number | null } | null | undefined)
-    ?.slotDuration;
+  const parsed = appClinicSchema
+    .pick({ slotDuration: true })
+    .safeParse(clinic);
+  const value = parsed.success ? parsed.data.slotDuration : undefined;
   return typeof value === "number" ? value : DEFAULT_SLOT_MINUTES;
 }
 

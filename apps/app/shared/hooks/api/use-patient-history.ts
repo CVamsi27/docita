@@ -95,11 +95,10 @@ export function usePatientHistory(patientId: string): UsePatientHistoryResult {
   } = usePatientMedicalHistoryFull(patientId);
   const { mutate: updatePatient } = useUpdatePatient(patientId);
 
-  const patient = useMemo<PatientWithMedicalHistory | undefined>(() => {
+  const patient = useMemo((): PatientWithMedicalHistory | undefined => {
     if (!patientData) return undefined;
-    const base = patientData as PatientWithMedicalHistory;
     return {
-      ...base,
+      ...patientData,
       medicalConditions: medicalHistoryData?.conditions ?? [],
       patientAllergies: medicalHistoryData?.allergies ?? [],
       familyHistory: medicalHistoryData?.familyHistory ?? [],
@@ -126,12 +125,9 @@ export function usePatientHistory(patientId: string): UsePatientHistoryResult {
   }, []);
 
   const handleCustomDataUpdate = useCallback(
-    (
-      updates: Pick<PatientWithMedicalHistory, "customData">,
-      successMessage?: string,
-    ) => {
+    (metadata: Record<string, unknown>, successMessage?: string) => {
       updatePatient(
-        { metadata: updates.customData as Record<string, unknown> },
+        { metadata },
         {
           onSuccess: () => {
             if (successMessage) {
@@ -181,10 +177,8 @@ export function usePatientHistory(patientId: string): UsePatientHistoryResult {
       if (!patient) return;
       const currentCustomData = toRecord(patient.customData);
       handleCustomDataUpdate({
-        customData: {
-          ...currentCustomData,
-          [key]: value,
-        } as PatientWithMedicalHistory["customData"],
+        ...currentCustomData,
+        [key]: value,
       });
     },
     [patient, handleCustomDataUpdate],
@@ -220,20 +214,18 @@ export function usePatientHistory(patientId: string): UsePatientHistoryResult {
 export function usePatientHistoryReadOnly(patientId: string) {
   const { data: patientData, isLoading, isError } = usePatient(patientId);
 
-  const patient = patientData as PatientWithMedicalHistory | undefined;
-
   const historyData: PatientHistoryData = {
-    medicalConditions: patient?.medicalConditions || [],
-    patientAllergies: patient?.patientAllergies || [],
-    surgicalHistory: patient?.surgicalHistory || [],
-    familyHistory: patient?.familyHistory || [],
-    socialHistory: patient?.socialHistory || null,
-    customData: toRecord(patient?.customData),
+    medicalConditions: [],
+    patientAllergies: [],
+    surgicalHistory: [],
+    familyHistory: [],
+    socialHistory: null,
+    customData: toRecord(patientData?.customData),
   };
 
   return {
     historyData,
-    patient,
+    patient: patientData,
     isLoading,
     isError,
   };

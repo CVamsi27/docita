@@ -128,19 +128,19 @@ export class OperationalAnalyticsFactory {
       monthRange.start,
     );
 
-    const byStatus = breakdown.statusCounts.reduce(
+    const byStatus = breakdown.statusCounts.reduce<Record<string, number>>(
       (acc, { status, count }) => {
         acc[status] = count;
         return acc;
       },
-      {} as Record<string, number>,
+      {},
     );
-    const byType = breakdown.typeCounts.reduce(
+    const byType = breakdown.typeCounts.reduce<Record<string, number>>(
       (acc, { type, count }) => {
         acc[type] = count;
         return acc;
       },
-      {} as Record<string, number>,
+      {},
     );
 
     return {

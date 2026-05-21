@@ -1,5 +1,6 @@
 import { Prisma } from '@workspace/db';
 import type { InvoiceItem } from '@workspace/types';
+import { toPrismaInputJsonValue } from '@/shared/common/json/to-prisma-input-json-value';
 
 type InvoiceTotals = {
   total: number;
@@ -9,8 +10,7 @@ type InvoiceTotals = {
   grandTotal: number;
 };
 
-export const toPrismaJson = <T>(value: T): Prisma.InputJsonValue =>
-  JSON.parse(JSON.stringify(value)) as Prisma.InputJsonValue;
+export const toPrismaJson = toPrismaInputJsonValue;
 
 const toCents = (amount: number | null | undefined): number =>
   Math.round((amount ?? 0) * 100);

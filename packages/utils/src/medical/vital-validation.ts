@@ -33,17 +33,11 @@ export function validateVitalSign(
     | "glucose",
   value: number,
 ): VitalSignValidation {
-  const ranges = VITAL_SIGNS_RANGES as Record<
-    string,
-    { min: number; max: number }
-  >;
-  const normalRanges = VITAL_SIGNS_NORMAL_RANGES as Record<
-    string,
-    { min: number; max: number; category: string }
-  >;
+  type VitalRangeKey = keyof typeof VITAL_SIGNS_RANGES;
+  type VitalNormalKey = keyof typeof VITAL_SIGNS_NORMAL_RANGES;
 
-  let rangeKey = "";
-  let normalKey = "";
+  let rangeKey: VitalRangeKey | undefined;
+  let normalKey: VitalNormalKey | undefined;
 
   switch (sign) {
     case "bp_systolic":
@@ -76,8 +70,9 @@ export function validateVitalSign(
       break;
   }
 
-  const range = ranges[rangeKey];
-  const normal = normalRanges[normalKey];
+  const range = rangeKey !== undefined ? VITAL_SIGNS_RANGES[rangeKey] : undefined;
+  const normal =
+    normalKey !== undefined ? VITAL_SIGNS_NORMAL_RANGES[normalKey] : undefined;
 
   if (!range || !normal) {
     return { value, isValid: true, isNormal: true };

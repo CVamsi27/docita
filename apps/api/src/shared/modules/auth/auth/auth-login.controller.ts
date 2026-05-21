@@ -18,6 +18,7 @@ import { RequestWithUser } from '@/shared/common/types/common.types';
 import { LoginDto } from './dto/auth.dto';
 import { AppConfigService } from '@/shared/modules/config/app-configuration.service';
 import { setAuthCookies } from './auth-cookie.helpers';
+import { readRequestHeaderString } from '@/shared/common/http/client-ip';
 
 @ApiTags('auth')
 @Controller('auth')
@@ -74,7 +75,7 @@ export class AuthLoginController {
   ) {
     const deviceInfo = {
       ipAddress: req.ip,
-      userAgent: req.headers?.['user-agent'] as string | undefined,
+      userAgent: readRequestHeaderString(req.headers, 'user-agent'),
     };
     const tokens = await this.authService.loginAfterMfa(
       body.mfa_challenge_token,

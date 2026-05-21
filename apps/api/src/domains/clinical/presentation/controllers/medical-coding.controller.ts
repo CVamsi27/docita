@@ -96,23 +96,21 @@ export class MedicalCodingController {
 
   @Get('cpt/search')
   async searchCpt(@Query('q') query: string): Promise<CptCode[]> {
-    return (await this.clinicalService.searchCptCodes(query)) as CptCode[];
+    return this.clinicalService.searchCptCodes(query);
   }
 
   @Get('cpt/favorites')
   async getCptFavorites(
     @Request() req: RequestWithUser,
   ): Promise<(CptCode | null)[]> {
-    return (await this.clinicalService.getCptFavorites(
+    return this.clinicalService.getCptFavorites(
       getClinicStaffRequestContext(req).userId,
-    )) as (CptCode | null)[];
+    );
   }
 
   @Get('cpt/common')
   async getCommonCptCodes(@Query('limit') limit?: string): Promise<CptCode[]> {
-    return (await this.clinicalService.getCommonCptCodes(
-      limit ? Number(limit) : 50,
-    )) as CptCode[];
+    return this.clinicalService.getCommonCptCodes(limit ? Number(limit) : 50);
   }
 
   @Post('cpt/favorites')

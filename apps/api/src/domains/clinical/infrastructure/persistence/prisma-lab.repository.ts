@@ -1,6 +1,8 @@
 import { Injectable } from '@nestjs/common';
 import { labTestOrderResultJsonSchema } from '@workspace/types';
+import { parseStringEnumMember } from '@workspace/utils';
 import { parsePrismaJsonColumn } from '@/shared/common/json/parse-prisma-json-column';
+import { toPrismaInputJsonValue } from '@/shared/common/json/to-prisma-input-json-value';
 import { PrismaService } from '@/prisma/prisma.service';
 import { LabTest } from '@/domains/clinical/core/entities/lab-test.entity';
 import { LabOrder } from '@/domains/clinical/core/entities/lab-order.entity';
@@ -63,10 +65,14 @@ export class PrismaLabRepository implements ILabRepository {
       patientId?: string;
     },
   ): Promise<LabOrder[]> {
+    const statusFilter = params?.status
+      ? parseStringEnumMember(Object.values(LabTestOrderStatus), params.status)
+      : undefined;
+
     const where: Prisma.LabTestOrderWhereInput = {
       clinicId,
       ...(params?.patientId && { patientId: params.patientId }),
-      ...(params?.status && { status: params.status as LabTestOrderStatus }),
+      ...(statusFilter && { status: statusFilter }),
     };
 
     const readClient = this.getReadClient();
@@ -111,7 +117,7 @@ export class PrismaLabRepository implements ILabRepository {
       appointmentId: order.appointmentId || null,
       labTestId: order.labTestId,
       status: order.status,
-      result: order.result as Prisma.InputJsonValue,
+      result: toPrismaInputJsonValue(order.result),
       resultUrl: order.resultUrl || null,
       notes: order.notes || null,
       orderedBy: 'SYSTEM',

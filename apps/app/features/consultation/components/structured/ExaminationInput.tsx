@@ -106,7 +106,16 @@ export function ExaminationInput({
     0,
   );
 
-  const systemicSections = [
+  type SystemicField = keyof ExaminationData["systemic"];
+
+  const systemicSections: Array<{
+    id: SystemicField;
+    label: string;
+    short: string;
+    icon: React.ReactNode;
+    placeholder: string;
+    value: string | undefined;
+  }> = [
     {
       id: "cvs",
       label: "Cardiovascular",
@@ -139,7 +148,7 @@ export function ExaminationInput({
       placeholder: "CNS findings",
       value: data.systemic.cns,
     },
-  ] as const;
+  ];
 
   return (
     <div className="space-y-3">
@@ -166,7 +175,8 @@ export function ExaminationInput({
         <CardContent className="space-y-3 p-4">
           <div className="grid grid-cols-2 gap-2 sm:grid-cols-3">
             {generalFindings.map((item) => {
-              const checked = data.general[item.key] as boolean;
+              const value = data.general[item.key];
+              const checked = typeof value === "boolean" ? value : false;
               return (
                 <Label
                   key={item.key}
@@ -261,10 +271,7 @@ export function ExaminationInput({
                       placeholder={section.placeholder}
                       value={section.value}
                       onChange={(e) =>
-                        updateSystemic(
-                          section.id as keyof typeof data.systemic,
-                          e.target.value,
-                        )
+                        updateSystemic(section.id, e.target.value)
                       }
                       readOnly={readOnly}
                       className="min-h-20 resize-y"

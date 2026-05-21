@@ -79,11 +79,7 @@ export const LEAFLET_MARKER_ICON = L.icon({
 
 // Leaflet still falls back to its default marker lookup in a few code paths,
 // so set the global defaults to the bundled assets as well.
-delete (
-  L.Icon.Default.prototype as typeof L.Icon.Default.prototype & {
-    _getIconUrl?: unknown;
-  }
-)._getIconUrl;
+Reflect.deleteProperty(L.Icon.Default.prototype, "_getIconUrl");
 L.Icon.Default.mergeOptions({
   iconRetinaUrl: resolveLeafletAsset(markerIcon2x),
   iconUrl: resolveLeafletAsset(markerIcon),
@@ -140,32 +136,43 @@ export function formatAddressDetails(details: ClinicAddressDetails): string {
   ]);
 }
 
-export function parseOSMAddressDetails(
-  address?: OSMAddress,
-): ClinicAddressDetails | null {
-  if (!address) return null;
+function readOsmAddressField(
+  address: Record<string, unknown>,
+  key: keyof OSMAddress,
+): string | undefined {
+  const value = address[key];
+  return typeof value === "string" ? value : undefined;
+}
 
-  const line1 = joinAddress([address.house_number, address.road]);
+export function parseOSMAddressDetails(
+  address?: OSMAddress | Record<string, unknown>,
+): ClinicAddressDetails | null {
+  if (!address || typeof address !== "object") return null;
+
+  const line1 = joinAddress([
+    readOsmAddressField(address, "house_number"),
+    readOsmAddressField(address, "road"),
+  ]);
   const line2 = joinAddress([
-    address.neighbourhood,
-    address.suburb,
-    address.county,
+    readOsmAddressField(address, "neighbourhood"),
+    readOsmAddressField(address, "suburb"),
+    readOsmAddressField(address, "county"),
   ]);
   const city =
-    address.city?.trim() ||
-    address.town?.trim() ||
-    address.village?.trim() ||
-    address.municipality?.trim() ||
+    readOsmAddressField(address, "city")?.trim() ||
+    readOsmAddressField(address, "town")?.trim() ||
+    readOsmAddressField(address, "village")?.trim() ||
+    readOsmAddressField(address, "municipality")?.trim() ||
     "";
 
   return (
     toAddressDetails({
-      addressLine1: line1 || line2 || address.road || "",
+      addressLine1: line1 || line2 || readOsmAddressField(address, "road") || "",
       addressLine2: line2 && line2 !== line1 ? line2 : "",
       city,
-      state: address.state,
-      pincode: address.postcode,
-      countryCode: address.country_code,
+      state: readOsmAddressField(address, "state"),
+      pincode: readOsmAddressField(address, "postcode"),
+      countryCode: readOsmAddressField(address, "country_code"),
     }) ?? null
   );
 }

@@ -10,10 +10,11 @@ type SidebarNavOrder = Record<NavSectionId, string[]>;
 const CLINIC_ORDER_KEY = "sidebar_nav_order_clinic";
 const USER_ORDER_KEY = "sidebar_nav_order_user";
 
-function safeParseJson<T>(raw: string | null): T | null {
+function safeParseSidebarNavOrder(raw: string | null): SidebarNavOrder | null {
   if (!raw) return null;
   try {
-    return JSON.parse(raw) as T;
+    const parsed = sidebarNavOrderSchema.safeParse(JSON.parse(raw));
+    return parsed.success ? parsed.data : null;
   } catch {
     return null;
   }
@@ -41,11 +42,13 @@ function normalizeOrderForSection(items: NavItem[], desiredHrefs: string[] | und
 }
 
 function buildDefaultOrder(sections: NavSection[]): SidebarNavOrder {
-  const out = {} as SidebarNavOrder;
-  for (const section of sections) {
-    out[section.id] = section.items.map((i) => i.href);
-  }
-  return out;
+  return sections.reduce<SidebarNavOrder>(
+    (order, section) => {
+      order[section.id] = section.items.map((item) => item.href);
+      return order;
+    },
+    { track: [], services: [] },
+  );
 }
 
 function getClinicStorageKey(clinicId: string) {
@@ -86,13 +89,17 @@ export function useSidebarNavOrder(args: {
 
   useEffect(() => {
     if (!clinicId) return;
-    setClinicOrder(safeParseJson<SidebarNavOrder>(localStorage.getItem(getClinicStorageKey(clinicId))));
+    setClinicOrder(
+      safeParseSidebarNavOrder(localStorage.getItem(getClinicStorageKey(clinicId))),
+    );
   }, [clinicId]);
 
   useEffect(() => {
     if (!clinicId || !userId) return;
     setUserOrder(
-      safeParseJson<SidebarNavOrder>(localStorage.getItem(getUserStorageKey(clinicId, userId))),
+      safeParseSidebarNavOrder(
+        localStorage.getItem(getUserStorageKey(clinicId, userId)),
+      ),
     );
   }, [clinicId, userId]);
 

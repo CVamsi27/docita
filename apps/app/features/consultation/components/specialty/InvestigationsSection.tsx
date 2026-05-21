@@ -16,7 +16,21 @@ import { Textarea } from "@workspace/ui/components/form/textarea";
 import { useConsultationDraft } from "@/features/consultation/state/useConsultationDraft";
 import { SectionContainer } from "@/features/consultation/workspace/chrome/SectionContainer";
 import { useConsultationSectionSubtitle } from "@/features/consultation/workspace/consultation-workspace-context";
-import type { ClinicalInvestigation } from "@workspace/types";
+import { type ClinicalInvestigation } from "@workspace/types";
+import { parseStringEnumMember } from "@workspace/utils";
+
+const INVESTIGATION_CATEGORIES = [
+  "LABORATORY",
+  "IMAGING",
+  "SPECIAL",
+  "OTHER",
+] as const;
+const INVESTIGATION_STATUSES = [
+  "ORDERED",
+  "PENDING",
+  "COMPLETED",
+  "CANCELLED",
+] as const;
 
 interface InvestigationsSectionProps {
   readOnly?: boolean;
@@ -78,7 +92,7 @@ export function InvestigationsSection({
     >
       {investigations.length === 0 ? (
         <p className="text-sm text-muted-foreground">
-          No investigations recorded. Add imaging or labs as needed.
+          No investigations recorded. Add imaging or labs when needed.
         </p>
       ) : (
         <ul className="space-y-4">
@@ -105,11 +119,13 @@ export function InvestigationsSection({
                   <Select
                     disabled={readOnly}
                     value={row.category ?? "OTHER"}
-                    onValueChange={(category) =>
-                      updateAt(index, {
-                        category: category as ClinicalInvestigation["category"],
-                      })
-                    }
+                    onValueChange={(category) => {
+                      const parsed = parseStringEnumMember(
+                        INVESTIGATION_CATEGORIES,
+                        category,
+                      );
+                      if (parsed) updateAt(index, { category: parsed });
+                    }}
                   >
                     <SelectTrigger>
                       <SelectValue />
@@ -127,11 +143,13 @@ export function InvestigationsSection({
                   <Select
                     disabled={readOnly}
                     value={row.status ?? "ORDERED"}
-                    onValueChange={(status) =>
-                      updateAt(index, {
-                        status: status as ClinicalInvestigation["status"],
-                      })
-                    }
+                    onValueChange={(status) => {
+                      const parsed = parseStringEnumMember(
+                        INVESTIGATION_STATUSES,
+                        status,
+                      );
+                      if (parsed) updateAt(index, { status: parsed });
+                    }}
                   >
                     <SelectTrigger>
                       <SelectValue />

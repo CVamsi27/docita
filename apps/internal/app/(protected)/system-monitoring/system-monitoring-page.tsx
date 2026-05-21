@@ -709,8 +709,7 @@ export default function SystemMonitoringPage() {
                 <CardTitle>Core Web Vitals (24h)</CardTitle>
                 <CardDescription>
                   Browser RUM aggregated from production beacons (LCP, INP, CLS,
-                  FCP, TTFB). Values use the same thresholds as the API rating
-                  helper.
+                  FCP, TTFB). Values follow the API rating helper thresholds.
                 </CardDescription>
               </CardHeader>
               <CardContent>
@@ -1340,7 +1339,11 @@ export default function SystemMonitoringPage() {
                             className="flex items-center justify-between rounded-[var(--radius)] border border-border/70 p-3"
                           >
                             <div className="flex items-center gap-3">
-                              {getStatusIcon(checkData.status as string)}
+                              {getStatusIcon(
+                                typeof checkData.status === "string"
+                                  ? checkData.status
+                                  : "unknown",
+                              )}
                               <div>
                                 <p className="font-medium capitalize">
                                   {serviceName}
@@ -1361,7 +1364,11 @@ export default function SystemMonitoringPage() {
                                   {checkData.latency}ms
                                 </span>
                               )}
-                              {getStatusBadge(checkData.status as string)}
+                              {getStatusBadge(
+                                typeof checkData.status === "string"
+                                  ? checkData.status
+                                  : "unknown",
+                              )}
                             </div>
                           </div>
                         ),

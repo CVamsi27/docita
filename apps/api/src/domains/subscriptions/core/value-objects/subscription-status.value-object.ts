@@ -1,4 +1,5 @@
 import { InvariantViolationError } from '@/shared/common/errors/domain.errors';
+import { parseStringEnumMember } from '@workspace/utils';
 
 export enum SubscriptionStatusEnum {
   ACTIVE = 'ACTIVE',
@@ -51,8 +52,11 @@ export class SubscriptionStatus {
   constructor(readonly value: SubscriptionStatusEnum) {}
 
   static fromString(value: string): SubscriptionStatus {
-    const statusValue = value.toUpperCase() as SubscriptionStatusEnum;
-    if (!Object.values(SubscriptionStatusEnum).includes(statusValue)) {
+    const statusValue = parseStringEnumMember(
+      Object.values(SubscriptionStatusEnum),
+      value.toUpperCase(),
+    );
+    if (!statusValue) {
       throw new InvariantViolationError(
         `Invalid subscription status: ${value}`,
       );

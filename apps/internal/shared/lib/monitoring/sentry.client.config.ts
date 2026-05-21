@@ -19,6 +19,18 @@ let sentryModulePromise: Promise<SentryModule | null> | null = null;
 const isSentryEnabled = () =>
   typeof window !== "undefined" && Boolean(SENTRY_DSN) && !isDev;
 
+function toSentryContext(value: unknown): Record<string, unknown> | undefined {
+  if (!value || typeof value !== "object" || Array.isArray(value)) {
+    return undefined;
+  }
+
+  const context: Record<string, unknown> = {};
+  for (const [key, entry] of Object.entries(value)) {
+    context[key] = entry;
+  }
+  return context;
+}
+
 async function loadSentryModule(): Promise<SentryModule | null> {
   if (!isSentryEnabled()) {
     return null;
@@ -108,7 +120,9 @@ export function captureException(
           return error;
         })();
 
-  const scrubbedContext = context ? redactPhi(context) : undefined;
+  const scrubbedContext = context
+    ? toSentryContext(redactPhi(context))
+    : undefined;
 
   try {
     if (sentryModule) {
@@ -166,7 +180,7 @@ export function addBreadcrumb(
   }
 
   const scrubbedMessage = redactString(message);
-  const scrubbedData = data ? redactPhi(data) : undefined;
+  const scrubbedData = data ? toSentryContext(redactPhi(data)) : undefined;
 
   try {
     if (sentryModule) {

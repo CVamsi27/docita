@@ -4,7 +4,7 @@ import { normalizeInvoicesListResponse } from "@workspace/data-access";
 describe("normalizeInvoicesListResponse", () => {
   it("extracts items from paginated invoice list responses", () => {
     expect(
-      normalizeInvoicesListResponse<{ id: string }>({
+      normalizeInvoicesListResponse({
         items: [{ id: "a" }],
         hasMore: false,
         count: 1,

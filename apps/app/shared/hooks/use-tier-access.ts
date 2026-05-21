@@ -44,7 +44,7 @@ export function useTierAccess() {
 
       try {
         return subscriptionCurrentResponseSchema.parse(
-          await fetchJsonWithSession<unknown>("/subscription/current"),
+          await fetchJsonWithSession("/subscription/current"),
         );
       } catch {
         return null;
@@ -128,7 +128,7 @@ export function useTierAccess() {
     if (subscriptionHardLocked) {
       return "STARTER";
     }
-    return (subscription?.tier ?? "STARTER") as TierName;
+    return subscription?.tier ?? "STARTER";
   }, [subscription?.tier, subscriptionHardLocked]);
 
   return {

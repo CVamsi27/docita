@@ -26,8 +26,8 @@ export default function PatientDetailPage() {
 }
 
 function PatientDetailPageContent() {
-  const params = useParams();
-  const patientId = (params["id"] as string) ?? "";
+  const params = useParams<{ id: string }>();
+  const patientId = params.id ?? "";
 
   const { state, handlers } = usePatientDetailLogic(patientId);
 

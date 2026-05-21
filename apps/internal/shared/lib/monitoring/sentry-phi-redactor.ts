@@ -99,8 +99,8 @@ export function redactString(input: string): string {
   return out;
 }
 
-export function redactPhi<T>(value: T): T {
-  return walk(value, 0, new WeakSet()) as T;
+export function redactPhi(value: unknown): unknown {
+  return walk(value, 0, new WeakSet());
 }
 
 function walk(value: unknown, depth: number, seen: WeakSet<object>): unknown {
@@ -119,10 +119,10 @@ function walk(value: unknown, depth: number, seen: WeakSet<object>): unknown {
     return value.map((item) => walk(item, depth + 1, seen));
   }
   if (typeof value === "object") {
-    if (seen.has(value as object)) return REDACTED;
-    seen.add(value as object);
+    if (seen.has(value)) return REDACTED;
+    seen.add(value);
     const out: Record<string, unknown> = {};
-    for (const [key, val] of Object.entries(value as Record<string, unknown>)) {
+    for (const [key, val] of Object.entries(value)) {
       const lower = key.toLowerCase();
       if (SAFE_FIELDS.has(lower)) {
         out[key] = val;

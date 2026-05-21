@@ -17,11 +17,13 @@ import {
 } from "@workspace/ui/components/indicators/card";
 import { FormFieldGroup } from "@workspace/ui/components";
 import { Button } from "@workspace/ui/components/form/button";
-import { SymbolTooltip } from "@workspace/ui/components/overlay/tooltip";
-import { Form, FormControl, FormField } from "@workspace/ui/components/form/form";
+import {
+  Form,
+  FormControl,
+  FormField,
+} from "@workspace/ui/components/form/form";
 import { Input } from "@workspace/ui/components/form/input";
-import { Copy, Check, ExternalLink } from "lucide-react";
-import { useState } from "react";
+import { ExternalLink } from "lucide-react";
 import { showUserFacingErrorToast } from "@/lib/errors/user-facing-errors";
 import {
   Select,
@@ -32,32 +34,31 @@ import {
 } from "@workspace/ui/components/form/select";
 import { getFacilityLabel } from "@workspace/utils";
 import { SettingsAiChips } from "@/features/settings/components/settings-ai-chips";
-import { CopyableLinkField } from "@/components/signature/copyable-link-field";
-import { getPublicAppOrigin } from "@/lib/constants/public-app-origin";
-import { MicroLabel } from "@workspace/ui/components/indicators/micro-label";
 import { ClinicGeneralSettingsSkeleton } from "./ClinicGeneralSettingsSkeleton";
+import { ClinicReferralLinks } from "./ClinicReferralLinks";
 import { WorkspaceModeCard } from "./WorkspaceModeCard";
 import {
   clinicSettingsFormSchema,
   type ClinicSettingsFormValues,
 } from "@workspace/types";
+import { parseStringEnumMember } from "@workspace/utils";
+
+const FACILITY_LABEL_VALUES = ["CLINIC", "HOSPITAL"] as const;
 
 export function ClinicGeneralSettings() {
   const { data: clinic, isLoading } = useClinicSettings();
   const { mutate: updateClinic, isPending } = useUpdateClinicSettings();
-  const [copied, setCopied] = useState(false);
+  const facilityLabelSetting =
+    typeof clinic?.settings === "object" &&
+    clinic?.settings !== null &&
+    !Array.isArray(clinic.settings) &&
+    typeof clinic.settings.facilityLabel === "string"
+      ? clinic.settings.facilityLabel
+      : undefined;
   const facilityLabel = getFacilityLabel(
-    clinic?.settings?.facilityLabel as "CLINIC" | "HOSPITAL" | undefined,
+    parseStringEnumMember(FACILITY_LABEL_VALUES, facilityLabelSetting ?? "") ??
+      undefined,
   );
-
-  const handleCopyCode = () => {
-    const code = clinic?.referralCode;
-    if (!code) return;
-    navigator.clipboard.writeText(code).then(() => {
-      setCopied(true);
-      setTimeout(() => setCopied(false), 2000);
-    });
-  };
 
   const form = useForm<ClinicSettingsFormValues>({
     resolver: zodResolver(clinicSettingsFormSchema),
@@ -126,86 +127,96 @@ export function ClinicGeneralSettings() {
       <SettingsAiChips scope="clinic-general" />
       <WorkspaceModeCard workspaceProfile={clinic?.workspaceProfile} />
       <Card>
-      <CardHeader>
-        <CardTitle>{facilityLabel} Information</CardTitle>
-        <CardDescription>Basic settings and information</CardDescription>
-      </CardHeader>
-      <CardContent>
-        {!!clinic?.referralCode && (
-          <div className="mb-6 space-y-4">
-            <div className="rounded-lg border border-border bg-muted/30 p-4">
-              <MicroLabel as="h3">Staff workspace</MicroLabel>
-              <p className="mt-2 text-sm font-medium text-foreground">
-                Join code for Docita
-              </p>
-              <p className="mt-1 text-xs text-muted-foreground">
-                Doctors and staff enter this code in the Docita app to join this{" "}
-                {facilityLabel.toLowerCase()}. Do not send this code to patients
-                for appointments.
-              </p>
-              <div className="mt-3 flex items-center gap-2">
-                <code className="text-sm font-mono font-semibold tracking-wider text-foreground">
-                  {clinic.referralCode}
-                </code>
-                <SymbolTooltip label={`Copy staff join code`}>
-                  <Button
-                    type="button"
-                    variant="ghost"
-                    size="sm"
-                    className="h-7 w-7 p-0"
-                    onClick={handleCopyCode}
-                    aria-label="Copy staff join code"
-                  >
-                    {copied ? (
-                      <Check className="h-3.5 w-3.5 text-success" />
-                    ) : (
-                      <Copy className="h-3.5 w-3.5" />
-                    )}
-                  </Button>
-                </SymbolTooltip>
-              </div>
-            </div>
+        <CardHeader>
+          <CardTitle>{facilityLabel} Information</CardTitle>
+          <CardDescription>Basic settings and information</CardDescription>
+        </CardHeader>
+        <CardContent>
+          {!!clinic?.referralCode && (
+            <ClinicReferralLinks
+              facilityLabel={facilityLabel}
+              referralCode={clinic.referralCode}
+            />
+          )}
+          <Form {...form}>
+            <form
+              onSubmit={form.handleSubmit(handleSubmit)}
+              noValidate
+              className="space-y-6"
+            >
+              <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
+                <FormField
+                  control={form.control}
+                  name="name"
+                  render={({ field }) => (
+                    <FormFieldGroup
+                      label={`${facilityLabel} Name`}
+                      htmlFor="clinic-name"
+                      required
+                      error={form.formState.errors.name?.message}
+                    >
+                      <FormControl id="clinic-name">
+                        <Input
+                          id="clinic-name"
+                          autoComplete="organization"
+                          placeholder={`Enter ${facilityLabel.toLowerCase()} name`}
+                          {...field}
+                        />
+                      </FormControl>
+                    </FormFieldGroup>
+                  )}
+                />
 
-            <div className="rounded-lg border border-border bg-muted/30 p-4">
-              <MicroLabel as="h3">Patient booking</MicroLabel>
-              <p className="mt-2 text-sm font-medium text-foreground">
-                Public booking page
-              </p>
-              <p className="mt-1 text-xs text-muted-foreground">
-                Send this link to patients so they can request a visit without a
-                Docita account. This is not the staff join code.
-              </p>
-              <div className="mt-3">
-                <CopyableLinkField
-                  value={`${getPublicAppOrigin()}/book/${encodeURIComponent(clinic.referralCode)}`}
-                  helperText="Opens your clinic’s online booking form."
+                <FormField
+                  control={form.control}
+                  name="facilityLabel"
+                  render={({ field }) => (
+                    <FormFieldGroup
+                      label="Facility type"
+                      hint="Used in navigation, headings, and join flows."
+                    >
+                      <FormControl>
+                        <Select
+                          value={field.value ?? "CLINIC"}
+                          onValueChange={(value) => {
+                            const parsed = parseStringEnumMember(
+                              FACILITY_LABEL_VALUES,
+                              value,
+                            );
+                            if (parsed) {
+                              field.onChange(parsed);
+                            }
+                          }}
+                        >
+                          <SelectTrigger className="w-full">
+                            <SelectValue placeholder="Clinic or Hospital" />
+                          </SelectTrigger>
+                          <SelectContent>
+                            <SelectItem value="CLINIC">Clinic</SelectItem>
+                            <SelectItem value="HOSPITAL">Hospital</SelectItem>
+                          </SelectContent>
+                        </Select>
+                      </FormControl>
+                    </FormFieldGroup>
+                  )}
                 />
               </div>
-            </div>
-          </div>
-        )}
-        <Form {...form}>
-          <form
-            onSubmit={form.handleSubmit(handleSubmit)}
-            noValidate
-            className="space-y-6"
-          >
-            <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
+
               <FormField
                 control={form.control}
-                name="name"
+                name="address"
                 render={({ field }) => (
                   <FormFieldGroup
-                    label={`${facilityLabel} Name`}
-                    htmlFor="clinic-name"
+                    label="Address"
+                    htmlFor="clinic-address"
                     required
-                    error={form.formState.errors.name?.message}
+                    error={form.formState.errors.address?.message}
                   >
-                    <FormControl id="clinic-name">
+                    <FormControl id="clinic-address">
                       <Input
-                        id="clinic-name"
-                        autoComplete="organization"
-                        placeholder={`Enter ${facilityLabel.toLowerCase()} name`}
+                        id="clinic-address"
+                        autoComplete="street-address"
+                        placeholder="Enter address"
                         {...field}
                       />
                     </FormControl>
@@ -215,130 +226,102 @@ export function ClinicGeneralSettings() {
 
               <FormField
                 control={form.control}
-                name="facilityLabel"
+                name="mapsLink"
                 render={({ field }) => (
                   <FormFieldGroup
-                    label="Facility type"
-                    hint="Used in navigation, headings, and join flows."
+                    label="Google Maps link"
+                    htmlFor="clinic-maps-link"
+                    error={form.formState.errors.mapsLink?.message}
+                    hint="Patients see this in appointment notifications next to the date and time. Paste a Google Maps share URL or Plus code link."
                   >
-                    <FormControl>
-                      <Select
-                        value={field.value ?? "CLINIC"}
-                        onValueChange={(value) =>
-                          field.onChange(value as "CLINIC" | "HOSPITAL")
-                        }
+                    <FormControl id="clinic-maps-link">
+                      <Input
+                        id="clinic-maps-link"
+                        type="url"
+                        inputMode="url"
+                        autoComplete="url"
+                        placeholder="https://maps.google.com/..."
+                        {...field}
+                        value={field.value ?? ""}
+                      />
+                    </FormControl>
+                    {watchedMapsLink && !form.formState.errors.mapsLink ? (
+                      <a
+                        href={watchedMapsLink}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="mt-1 inline-flex items-center gap-1.5 text-xs font-medium text-primary underline-offset-4 hover:underline"
                       >
-                        <SelectTrigger className="w-full">
-                          <SelectValue placeholder="Clinic or Hospital" />
-                        </SelectTrigger>
-                        <SelectContent>
-                          <SelectItem value="CLINIC">Clinic</SelectItem>
-                          <SelectItem value="HOSPITAL">Hospital</SelectItem>
-                        </SelectContent>
-                      </Select>
-                    </FormControl>
+                        <ExternalLink className="h-3.5 w-3.5" aria-hidden />
+                        Preview link
+                      </a>
+                    ) : null}
                   </FormFieldGroup>
                 )}
               />
-            </div>
 
-            <FormField
-              control={form.control}
-              name="address"
-              render={({ field }) => (
-                <FormFieldGroup
-                  label="Address"
-                  htmlFor="clinic-address"
-                  required
-                  error={form.formState.errors.address?.message}
-                >
-                  <FormControl id="clinic-address">
-                    <Input
-                      id="clinic-address"
-                      autoComplete="street-address"
-                      placeholder="Enter address"
-                      {...field}
-                    />
-                  </FormControl>
-                </FormFieldGroup>
-              )}
-            />
-
-            <FormField
-              control={form.control}
-              name="mapsLink"
-              render={({ field }) => (
-                <FormFieldGroup
-                  label="Google Maps link"
-                  htmlFor="clinic-maps-link"
-                  error={form.formState.errors.mapsLink?.message}
-                  hint="Patients see this in appointment notifications next to the date and time. Paste a Google Maps share URL or Plus code link."
-                >
-                  <FormControl id="clinic-maps-link">
-                    <Input
-                      id="clinic-maps-link"
-                      type="url"
-                      inputMode="url"
-                      autoComplete="url"
-                      placeholder="https://maps.google.com/..."
-                      {...field}
-                      value={field.value ?? ""}
-                    />
-                  </FormControl>
-                  {watchedMapsLink &&
-                  !form.formState.errors.mapsLink ? (
-                    <a
-                      href={watchedMapsLink}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="mt-1 inline-flex items-center gap-1.5 text-xs font-medium text-primary underline-offset-4 hover:underline"
+              <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
+                <FormField
+                  control={form.control}
+                  name="phone"
+                  render={({ field }) => (
+                    <FormFieldGroup
+                      label="Phone Number"
+                      htmlFor="clinic-phone"
+                      required
+                      error={form.formState.errors.phone?.message}
                     >
-                      <ExternalLink className="h-3.5 w-3.5" aria-hidden />
-                      Preview link
-                    </a>
-                  ) : null}
-                </FormFieldGroup>
-              )}
-            />
+                      <FormControl id="clinic-phone">
+                        <Input
+                          id="clinic-phone"
+                          autoComplete="tel"
+                          placeholder="Enter phone number"
+                          {...field}
+                        />
+                      </FormControl>
+                    </FormFieldGroup>
+                  )}
+                />
 
-            <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
+                <FormField
+                  control={form.control}
+                  name="gstin"
+                  render={({ field }) => (
+                    <FormFieldGroup
+                      label="GSTIN"
+                      htmlFor="clinic-gstin"
+                      error={form.formState.errors.gstin?.message}
+                      hint="Needed for GST invoices on paid Indian plans."
+                    >
+                      <FormControl id="clinic-gstin">
+                        <Input
+                          id="clinic-gstin"
+                          autoComplete="off"
+                          placeholder="GST number"
+                          {...field}
+                          value={field.value || ""}
+                        />
+                      </FormControl>
+                    </FormFieldGroup>
+                  )}
+                />
+              </div>
+
               <FormField
                 control={form.control}
-                name="phone"
+                name="legalName"
                 render={({ field }) => (
                   <FormFieldGroup
-                    label="Phone Number"
-                    htmlFor="clinic-phone"
-                    required
-                    error={form.formState.errors.phone?.message}
+                    label="Legal name (for tax invoice)"
+                    htmlFor="clinic-legal-name"
+                    error={form.formState.errors.legalName?.message}
+                    hint="Registered legal name shown on your GST certificate. Leave blank to use the facility name on invoices."
                   >
-                    <FormControl id="clinic-phone">
+                    <FormControl id="clinic-legal-name">
                       <Input
-                        id="clinic-phone"
-                        autoComplete="tel"
-                        placeholder="Enter phone number"
-                        {...field}
-                      />
-                    </FormControl>
-                  </FormFieldGroup>
-                )}
-              />
-
-              <FormField
-                control={form.control}
-                name="gstin"
-                render={({ field }) => (
-                  <FormFieldGroup
-                    label="GSTIN"
-                    htmlFor="clinic-gstin"
-                    error={form.formState.errors.gstin?.message}
-                    hint="Needed for GST invoices on paid Indian plans."
-                  >
-                    <FormControl id="clinic-gstin">
-                      <Input
-                        id="clinic-gstin"
-                        autoComplete="off"
-                        placeholder="GST number"
+                        id="clinic-legal-name"
+                        autoComplete="organization"
+                        placeholder="e.g. Apollo Multispecialty Pvt. Ltd."
                         {...field}
                         value={field.value || ""}
                       />
@@ -346,43 +329,19 @@ export function ClinicGeneralSettings() {
                   </FormFieldGroup>
                 )}
               />
-            </div>
 
-            <FormField
-              control={form.control}
-              name="legalName"
-              render={({ field }) => (
-                <FormFieldGroup
-                  label="Legal name (for tax invoice)"
-                  htmlFor="clinic-legal-name"
-                  error={form.formState.errors.legalName?.message}
-                  hint="Registered legal name as printed on your GST certificate. Leave blank to use the facility name on invoices."
+              <div className="flex justify-end pt-2">
+                <Button
+                  type="submit"
+                  disabled={isPending}
+                  className="w-full sm:w-auto"
                 >
-                  <FormControl id="clinic-legal-name">
-                    <Input
-                      id="clinic-legal-name"
-                      autoComplete="organization"
-                      placeholder="e.g. Apollo Multispecialty Pvt. Ltd."
-                      {...field}
-                      value={field.value || ""}
-                    />
-                  </FormControl>
-                </FormFieldGroup>
-              )}
-            />
-
-            <div className="flex justify-end pt-2">
-              <Button
-                type="submit"
-                disabled={isPending}
-                className="w-full sm:w-auto"
-              >
-                {isPending ? "Saving…" : "Save Changes"}
-              </Button>
-            </div>
-          </form>
-        </Form>
-      </CardContent>
+                  {isPending ? "Saving…" : "Save Changes"}
+                </Button>
+              </div>
+            </form>
+          </Form>
+        </CardContent>
       </Card>
     </div>
   );

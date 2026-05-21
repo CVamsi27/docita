@@ -43,7 +43,7 @@ export class LabOrder {
       props.id || '',
       props.patientId,
       props.labTestId,
-      props.status || ('ORDERED' as LabTestOrderStatus),
+      props.status ?? LabTestOrderStatus.ORDERED,
       props.clinicId,
       props.appointmentId,
       props.result,

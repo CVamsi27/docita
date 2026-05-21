@@ -8,7 +8,7 @@ import { execSync } from "node:child_process";
 import { existsSync, readFileSync } from "node:fs";
 import process from "node:process";
 
-const MAX_CASTS_PER_FILE = 10;
+const MAX_CASTS_PER_FILE = 1;
 const ALLOW_FILE = "check-as-cast-density: allow-file";
 const CAST_RE = /\bas\s+(?!const\b|const\s|satisfies\b)/g;
 

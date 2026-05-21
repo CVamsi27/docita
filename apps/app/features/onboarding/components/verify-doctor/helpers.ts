@@ -1,4 +1,4 @@
-import { sanitizeUserFacingMessage } from "@workspace/utils";
+import { isRecord, sanitizeUserFacingMessage } from "@workspace/utils";
 import { ApiError } from "@/lib/errors";
 
 /**
@@ -10,15 +10,11 @@ export function extractRegistrationFieldError(error: unknown): string | null {
   if (!(error instanceof ApiError)) return null;
 
   const validationErrors = error.details?.validationErrors;
-  if (
-    !validationErrors ||
-    typeof validationErrors !== "object" ||
-    Array.isArray(validationErrors)
-  ) {
+  if (!isRecord(validationErrors)) {
     return null;
   }
 
-  const fieldErrors = validationErrors as Record<string, unknown>;
+  const fieldErrors = validationErrors;
   const registrationFieldError = fieldErrors.registrationNumber;
   if (
     typeof registrationFieldError === "string" &&

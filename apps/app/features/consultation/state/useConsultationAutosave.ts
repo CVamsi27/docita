@@ -19,7 +19,10 @@ import {
 } from "@/features/consultation/state/useConsultationDraft";
 import { getConsultationPersistKeysForClinic } from "@/features/consultation/workspace/consultation-section-registry";
 import type { ExaminationData } from "@/features/consultation/components/structured/ExaminationInput";
-import type { UpdateAppointmentRequest } from "@workspace/types";
+import {
+  updateAppointmentRequestSchema,
+  type UpdateAppointmentRequest,
+} from "@workspace/types";
 
 const AUTOSAVE_DEBOUNCE_MS = 2200;
 
@@ -105,7 +108,7 @@ export function useConsultationAutosave(options: UseConsultationAutosaveOptions)
       systemicExamination.mss = { jointExamination: ms };
     }
 
-    const patch = {
+    const patch: Record<string, unknown> = {
       chiefComplaint: chiefComplaintText,
       historyOfPresentIllness: state.history,
       treatmentPlan: state.treatment,
@@ -113,7 +116,7 @@ export function useConsultationAutosave(options: UseConsultationAutosaveOptions)
       followUpPlan: state.followUpPlan,
       generalExamination: mapGeneralExaminationForPatch(state.examination.general),
       systemicExamination,
-    } as unknown as UpdateAppointmentRequest;
+    };
 
     const persistKeys = getConsultationPersistKeysForClinic(clinicType);
     for (const key of persistKeys) {
@@ -147,7 +150,7 @@ export function useConsultationAutosave(options: UseConsultationAutosaveOptions)
       }
     }
 
-    return patch;
+    return updateAppointmentRequestSchema.parse(patch);
   }, [clinicType, getDraft]);
 
   /**
@@ -262,7 +265,7 @@ export function useConsultationAutosave(options: UseConsultationAutosaveOptions)
   );
 
   /**
-   * Submit prescriptions as a separate workflow. Only fires when the draft
+   * Submit prescriptions in a separate workflow. Only fires when the draft
    * actually has medications to send.
    */
   const submitPrescriptions = useCallback(async (): Promise<boolean> => {

@@ -5,6 +5,7 @@ import {
 } from '@/domains/clinics/application/ports/clinic-persistence.port';
 import * as bcrypt from 'bcrypt';
 import { Role, Specialization } from '@workspace/db';
+import { parseStringEnumMember } from '@workspace/utils';
 import {
   isClinicFrontDesk,
   mapClinicMemberRoleToPrisma,
@@ -21,6 +22,17 @@ export class StaffInviteService {
     private persistence: ClinicPersistencePort,
   ) {}
 
+  private parseSpecialization(value: string): Specialization {
+    const specialization = parseStringEnumMember(
+      Object.values(Specialization),
+      value,
+    );
+    if (!specialization) {
+      throw new BadRequestException(`Unsupported specialization: ${value}`);
+    }
+    return specialization;
+  }
+
   async createDoctor(clinicId: string, data: CreateDoctorData) {
     const isFrontDesk = await isClinicFrontDesk(this.persistence, clinicId);
 
@@ -35,7 +47,9 @@ export class StaffInviteService {
       phoneNumber: data.phoneNumber,
       qualification: data.qualification,
       registrationNumber: data.registrationNumber,
-      specialization: data.specialization as Specialization,
+      specialization: data.specialization
+        ? this.parseSpecialization(data.specialization)
+        : undefined,
       ...(isFrontDesk ? { appLoginDisabled: true } : {}),
     };
 
@@ -121,7 +135,9 @@ export class StaffInviteService {
           ? {
               qualification: data.qualification,
               registrationNumber: data.registrationNumber,
-              specialization: data.specialization as Specialization,
+              specialization: data.specialization
+                ? this.parseSpecialization(data.specialization)
+                : undefined,
             }
           : {}),
         ...(isFrontDesk && prismaRole === Role.DOCTOR

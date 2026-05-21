@@ -23,6 +23,7 @@ import {
   ShieldCheck,
 } from "lucide-react";
 import { formatDateTime } from "@/lib/formatters";
+import { isRecord } from "@workspace/utils";
 
 function pickString(v: unknown): string | undefined {
   return typeof v === "string" && v.trim() ? v : undefined;
@@ -43,13 +44,11 @@ export default function PortalDashboardPage() {
 
   const summaryRows = useMemo(() => {
     if (!dashboard) return [];
-    const next = dashboard.upcomingAppointments?.[0] as
-      | Record<string, unknown>
-      | undefined;
-    const start = next?.["startTime"];
-    const doctor = (next?.["doctor"] as Record<string, unknown> | undefined)?.[
-      "name"
-    ];
+    const nextRaw = dashboard.upcomingAppointments?.[0];
+    const next = isRecord(nextRaw) ? nextRaw : undefined;
+    const start = next?.startTime;
+    const doctorRecord = isRecord(next?.doctor) ? next.doctor : undefined;
+    const doctor = doctorRecord?.name;
     const nextVisit =
       typeof start === "string"
         ? `Next visit · ${formatDateTime(start, "EEE, d MMM, HH:mm")}${doctor ? ` · ${String(doctor)}` : ""}`
@@ -57,13 +56,13 @@ export default function PortalDashboardPage() {
           ? `Next visit · ${dashboard.summary.upcomingAppointmentsCount} scheduled`
           : "Next visit · None scheduled";
 
-    const rx = dashboard.activePrescriptions?.[0] as
-      | Record<string, unknown>
-      | undefined;
-    const meds = rx?.["medications"] as unknown[] | undefined;
+    const rxRaw = dashboard.activePrescriptions?.[0];
+    const rx = isRecord(rxRaw) ? rxRaw : undefined;
+    const meds = Array.isArray(rx?.medications) ? rx.medications : undefined;
+    const firstMedRaw = meds?.[0];
     const firstMed =
-      meds?.[0] && typeof meds[0] === "object" && meds[0] !== null
-        ? (meds[0] as Record<string, unknown>)["name"]
+      isRecord(firstMedRaw) && typeof firstMedRaw.name === "string"
+        ? firstMedRaw.name
         : undefined;
     const rxLine =
       typeof firstMed === "string"
@@ -72,15 +71,14 @@ export default function PortalDashboardPage() {
           ? `Prescriptions · ${dashboard.summary.activePrescriptionsCount} active`
           : "Prescriptions · None on file";
 
-    const inv = dashboard.outstandingInvoices?.[0] as
-      | Record<string, unknown>
-      | undefined;
-    const invStatus = pickString(inv?.["status"]);
+    const invRaw = dashboard.outstandingInvoices?.[0];
+    const inv = isRecord(invRaw) ? invRaw : undefined;
+    const invStatus = pickString(inv?.status);
     const total =
-      typeof inv?.["grandTotal"] === "number"
-        ? inv["grandTotal"]
-        : typeof inv?.["total"] === "number"
-          ? inv["total"]
+      typeof inv?.grandTotal === "number"
+        ? inv.grandTotal
+        : typeof inv?.total === "number"
+          ? inv.total
           : null;
     const billLine =
       total != null

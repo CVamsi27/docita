@@ -98,7 +98,7 @@ export class SubscriptionPayment {
   markAsPaid(paidAt: Date, now: Date): void {
     if (!this.isPending()) {
       throw new InvariantViolationError(
-        `Cannot mark ${this.status} payment as paid`,
+        `Cannot mark ${this.status} payment paid`,
       );
     }
     this.status = PaymentStatusEnum.PAID;
@@ -109,7 +109,7 @@ export class SubscriptionPayment {
   markAsFailed(reason: string, now: Date): void {
     if (this.isPaid() || this.isRefunded()) {
       throw new InvariantViolationError(
-        `Cannot mark completed payment (${this.status}) as failed`,
+        `Cannot mark completed payment (${this.status}) failed`,
       );
     }
     this.status = PaymentStatusEnum.FAILED;

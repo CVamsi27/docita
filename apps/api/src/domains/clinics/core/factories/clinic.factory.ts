@@ -1,14 +1,11 @@
 import { Injectable } from '@nestjs/common';
 import { Prisma, ClinicTier } from '@workspace/db';
+import { toPrismaInputJsonValue } from '@/shared/common/json/to-prisma-input-json-value';
 import { SettingsFactory } from './settings.factory';
 
 @Injectable()
 export class ClinicFactory {
   constructor(private readonly settingsFactory: SettingsFactory) {}
-
-  private toInputJsonValue(value: unknown): Prisma.InputJsonValue {
-    return JSON.parse(JSON.stringify(value)) as Prisma.InputJsonValue;
-  }
 
   create(data: {
     name: string;
@@ -32,7 +29,7 @@ export class ClinicFactory {
       address: data.address || '',
       tier: data.tier || 'ESSENTIAL',
       active: true,
-      settings: this.toInputJsonValue(finalSettings),
+      settings: toPrismaInputJsonValue(finalSettings),
     };
   }
 }

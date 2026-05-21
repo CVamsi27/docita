@@ -1,10 +1,9 @@
+import { isRecord } from '@workspace/utils';
+
 export function asRazorpayInvoiceRecord(
   value: unknown,
 ): Record<string, unknown> | null {
-  if (!value || typeof value !== 'object') {
-    return null;
-  }
-  return value as Record<string, unknown>;
+  return isRecord(value) ? value : null;
 }
 
 export function readInvoiceNumberField(

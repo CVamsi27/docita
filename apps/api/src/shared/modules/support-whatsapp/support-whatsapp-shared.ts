@@ -2,7 +2,6 @@ import type {
   SupportWhatsAppMessageStatus,
   WhatsAppWebhookPayload,
 } from '@workspace/types';
-import { Prisma } from '@workspace/db';
 
 export type WebhookValue =
   WhatsAppWebhookPayload['entry'][0]['changes'][0]['value'];
@@ -85,6 +84,4 @@ export function mapProviderStatus(
   }
 }
 
-export function toJsonValue(value: unknown): Prisma.InputJsonValue {
-  return JSON.parse(JSON.stringify(value)) as Prisma.InputJsonValue;
-}
+export { toPrismaInputJsonValue as toJsonValue } from '@/shared/common/json/to-prisma-input-json-value';

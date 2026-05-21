@@ -6,6 +6,7 @@ import {
   IntelligenceAddon,
 } from '@workspace/db';
 import { CACHE_CONSTANTS } from '@/shared/modules/config/app-constants';
+import { readClinicFeatureOverrides } from '@/shared/modules/auth/utils/clinic-feature-access.util';
 
 interface ClinicAuthCache {
   clinicId: string;
@@ -74,7 +75,7 @@ export class ClinicAuthCacheService {
       subscriptionGraceUntil: clinic.subscription?.graceUntil ?? null,
       subscriptionTrialEnd: clinic.subscription?.trialEnd ?? null,
       hasIntelligence: clinic.intelligenceAddon === IntelligenceAddon.ACTIVE,
-      features: (clinic.features as Record<string, boolean>) || {},
+      features: readClinicFeatureOverrides(clinic.features),
     };
 
     this.setCache(clinicId, authData);

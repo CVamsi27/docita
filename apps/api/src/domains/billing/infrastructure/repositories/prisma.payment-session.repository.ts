@@ -10,6 +10,10 @@ import {
 } from '@/domains/billing/core/repositories/payment-session.repository';
 import { PaymentSession, Prisma } from '@workspace/db';
 import { parsePrismaJsonColumn } from '@/shared/common/json/parse-prisma-json-column';
+import {
+  PAYMENT_SESSION_DETAIL_INCLUDE,
+  type PaymentSessionDetailRow,
+} from '@/domains/billing/infrastructure/repositories/payment-session-detail.types';
 
 @Injectable()
 export class PrismaPaymentSessionRepository implements IPaymentSessionRepository {
@@ -29,6 +33,12 @@ export class PrismaPaymentSessionRepository implements IPaymentSessionRepository
     };
   }
 
+  private mapSessionDetail(
+    session: PaymentSessionDetailRow,
+  ): PaymentSessionDetail {
+    return this.mapSession(session);
+  }
+
   private getReadClient() {
     return this.prisma.getReadClient();
   }
@@ -46,28 +56,9 @@ export class PrismaPaymentSessionRepository implements IPaymentSessionRepository
   ): Promise<PaymentSessionDetail | null> {
     const session = await this.getReadClient().paymentSession.findFirst({
       where: { id, clinicId },
-      include: {
-        patient: {
-          select: {
-            firstName: true,
-            lastName: true,
-            phoneNumber: true,
-            email: true,
-          },
-        },
-        invoice: {
-          select: {
-            id: true,
-          },
-        },
-        clinic: {
-          select: {
-            phone: true,
-          },
-        },
-      },
+      include: PAYMENT_SESSION_DETAIL_INCLUDE,
     });
-    return session as PaymentSessionDetail | null;
+    return session ? this.mapSessionDetail(session) : null;
   }
 
   async findByProviderSessionId(
@@ -75,28 +66,9 @@ export class PrismaPaymentSessionRepository implements IPaymentSessionRepository
   ): Promise<PaymentSessionDetail | null> {
     const session = await this.getReadClient().paymentSession.findFirst({
       where: { providerSessionId },
-      include: {
-        patient: {
-          select: {
-            firstName: true,
-            lastName: true,
-            phoneNumber: true,
-            email: true,
-          },
-        },
-        invoice: {
-          select: {
-            id: true,
-          },
-        },
-        clinic: {
-          select: {
-            phone: true,
-          },
-        },
-      },
+      include: PAYMENT_SESSION_DETAIL_INCLUDE,
     });
-    return session ? this.mapSession(session as PaymentSessionDetail) : null;
+    return session ? this.mapSessionDetail(session) : null;
   }
 
   async update(
@@ -106,7 +78,7 @@ export class PrismaPaymentSessionRepository implements IPaymentSessionRepository
   ): Promise<PaymentSession> {
     const result = await this.prisma.paymentSession.updateMany({
       where: { id, clinicId },
-      data: data as Prisma.PaymentSessionUpdateManyMutationInput,
+      data,
     });
     if (result.count === 0) {
       throw new Error(`Payment session ${id} not found`);
@@ -146,29 +118,8 @@ export class PrismaPaymentSessionRepository implements IPaymentSessionRepository
           shortUrl: null,
         },
       },
-      include: {
-        patient: {
-          select: {
-            firstName: true,
-            lastName: true,
-            phoneNumber: true,
-            email: true,
-          },
-        },
-        invoice: {
-          select: {
-            id: true,
-          },
-        },
-        clinic: {
-          select: {
-            phone: true,
-          },
-        },
-      },
+      include: PAYMENT_SESSION_DETAIL_INCLUDE,
     });
-    return sessions.map((session) =>
-      this.mapSession(session as PaymentSessionDetail),
-    );
+    return sessions.map((session) => this.mapSessionDetail(session));
   }
 }

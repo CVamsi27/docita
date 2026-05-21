@@ -7,7 +7,7 @@ import {
   OVERAGE_CALCULATION_TOKEN,
   type IOverageCalculation,
 } from '@/domains/billing/application/ports';
-import { TIER_LIMITS } from '@workspace/types';
+import { TIER_LIMITS, type TierName } from '@workspace/types';
 import { getWhatsAppAddonPricingByCurrency } from '@workspace/utils';
 import {
   ClinicTier,
@@ -18,6 +18,41 @@ import {
 import { OverageInvoiceComposer } from '@/domains/subscriptions/infrastructure/schedulers/overage-invoice.composer';
 import { mapOverageKeyToUsageType } from '@/domains/subscriptions/infrastructure/schedulers/usage-key.mapper';
 import { SubscriptionOveragePaymentService } from '@/domains/subscriptions/application/services/subscription-overage-payment.service';
+
+function clinicTierToTierName(tier: ClinicTier): TierName {
+  switch (tier) {
+    case ClinicTier.STARTER:
+      return 'STARTER';
+    case ClinicTier.ESSENTIAL:
+      return 'ESSENTIAL';
+    case ClinicTier.PROFESSIONAL:
+      return 'PROFESSIONAL';
+    case ClinicTier.HOSPITAL:
+      return 'HOSPITAL';
+    case ClinicTier.ENTERPRISE:
+      return 'ENTERPRISE';
+    case ClinicTier.FRONT_DESK:
+      return 'FRONT_DESK';
+    default: {
+      const _exhaustive: never = tier;
+      return _exhaustive;
+    }
+  }
+}
+
+function meteredUsageEntry(
+  usage: {
+    consultations: { current: number; included: number; overage: number };
+    users: { current: number; included: number; overage: number };
+    whatsappMessages: { current: number; included: number; overage: number };
+  },
+  key: string,
+) {
+  if (key === 'consultations') return usage.consultations;
+  if (key === 'users') return usage.users;
+  if (key === 'whatsappMessages') return usage.whatsappMessages;
+  return undefined;
+}
 
 type ActiveSubscriptionOverageRow = {
   id: string;
@@ -76,8 +111,7 @@ export class SubscriptionOverageMeterService {
     const currency = this.invoiceComposer.resolveCurrency(
       activeContract?.currency ?? sub.currency,
     );
-    const tierKey = tier as keyof typeof TIER_LIMITS;
-    const tierLimits = TIER_LIMITS[tierKey];
+    const tierLimits = TIER_LIMITS[clinicTierToTierName(tier)];
 
     const includedConsultations =
       activeContract?.includedConsultations ??
@@ -184,7 +218,7 @@ export class SubscriptionOverageMeterService {
 
     const upsertResults = await Promise.allSettled(
       overageEntries.map(async ({ key, breakdown, usageType }) => {
-        const usageEntry = usageData.usage[key as keyof typeof usageData.usage];
+        const usageEntry = meteredUsageEntry(usageData.usage, key);
 
         await this.persistence.usageRecord.upsert({
           where: {

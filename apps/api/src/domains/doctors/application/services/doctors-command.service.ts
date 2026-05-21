@@ -16,6 +16,9 @@ import { DoctorsQueryService } from './doctors-query.service';
 import { DoctorProfileService } from './doctor-profile.service';
 import { DoctorAdminVerificationCommandService } from './doctor-admin-verification-command.service';
 import { CLOCK_PORT, type IClock } from '@/shared/common/ports/clock.port';
+import { parseStringEnumMember } from '@workspace/utils';
+
+const PRISMA_ROLE_MEMBERS = Object.values(Role);
 
 interface CreateDoctorData {
   email: string;
@@ -77,9 +80,7 @@ interface CreateCertificationData {
 
 function normalizeRole(role: string | undefined): Role {
   if (!role) return Role.DOCTOR;
-  return Object.values(Role).includes(role as Role)
-    ? (role as Role)
-    : Role.DOCTOR;
+  return parseStringEnumMember(PRISMA_ROLE_MEMBERS, role) ?? Role.DOCTOR;
 }
 
 /**
@@ -125,7 +126,7 @@ export class DoctorsCommandService {
         hashedPassword,
         name,
         clinicId,
-        role: normalizeRole(role) as Role,
+        role: normalizeRole(role),
         specialization,
         hospitalRole,
         qualification,

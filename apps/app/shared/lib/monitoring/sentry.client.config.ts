@@ -1,6 +1,10 @@
 "use client";
 
-type WindowWithSentryReady = Window & { __sentryReady?: boolean };
+declare global {
+  interface Window {
+    __sentryReady?: boolean;
+  }
+}
 type SentryModule = typeof import("@sentry/nextjs");
 type SentrySeverityLevel =
   | "fatal"
@@ -45,7 +49,7 @@ export function initializeSentryClient() {
     return;
   }
 
-  if ((window as WindowWithSentryReady).__sentryReady) {
+  if (window.__sentryReady) {
     return;
   }
 
@@ -75,7 +79,7 @@ export function initializeSentryClient() {
         );
       });
 
-      (window as WindowWithSentryReady).__sentryReady = true;
+      window.__sentryReady = true;
     } catch {
       // Client-side monitoring must never block app boot.
     }
