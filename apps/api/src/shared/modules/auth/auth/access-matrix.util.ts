@@ -5,17 +5,21 @@ import {
   getAccessFeature,
   getAccessRoles,
 } from '@workspace/types';
-import { parseStringEnumMember } from '@workspace/utils';
 import { Feature } from './tier.decorator';
 
 const DB_ROLE_VALUES = Object.values(Role);
+const DB_ROLE_SET = new Set<string>(DB_ROLE_VALUES);
+
+function parseDbRole(role: string): Role | null {
+  return DB_ROLE_SET.has(role) ? (role as Role) : null;
+}
 
 export function getDbRolesForTarget(
   target: AppAccessTarget,
   mode: AccessMode = 'read',
 ): Role[] {
   return getAccessRoles(target, mode)
-    .map((role) => parseStringEnumMember(DB_ROLE_VALUES, role))
+    .map(parseDbRole)
     .filter((role): role is Role => role !== null);
 }
 

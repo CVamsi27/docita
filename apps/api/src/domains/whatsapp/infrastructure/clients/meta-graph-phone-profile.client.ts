@@ -1,5 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import { fetchWithTimeout } from '@/shared/common/http/fetch-with-timeout';
+import { isRecord } from '@workspace/utils';
 
 type MetaPhoneNumberProfile = {
   verified_name?: string;
@@ -20,7 +21,27 @@ export class MetaGraphPhoneProfileClient {
       `${this.baseUrl}/${this.apiVersion}/${phoneNumberId}?fields=verified_name,display_phone_number`,
       { headers: { Authorization: `Bearer ${accessToken}` } },
     );
-    const data = (await response.json()) as MetaPhoneNumberProfile;
+    const raw: unknown = await response.json();
+    const data: MetaPhoneNumberProfile = isRecord(raw)
+      ? {
+          verified_name:
+            typeof raw.verified_name === 'string'
+              ? raw.verified_name
+              : undefined,
+          display_phone_number:
+            typeof raw.display_phone_number === 'string'
+              ? raw.display_phone_number
+              : undefined,
+          error: isRecord(raw.error)
+            ? {
+                message:
+                  typeof raw.error.message === 'string'
+                    ? raw.error.message
+                    : undefined,
+              }
+            : undefined,
+        }
+      : {};
     return { ok: response.ok, data };
   }
 }

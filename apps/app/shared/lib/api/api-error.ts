@@ -4,8 +4,7 @@
  * using `instanceof ApiValidationError` and `err.fieldErrors` continue to work
  * via the alias and the `fieldErrors` getter declared on APIRequestError below.
  */
-export {
-  APIRequestError,
-  APIRequestError as ApiValidationError,
-  parseApiErrorResponse,
-} from "@workspace/data-access";
+import { APIRequestError, parseApiErrorResponse } from "@workspace/data-access";
+
+export { APIRequestError, parseApiErrorResponse };
+export const ApiValidationError = APIRequestError;

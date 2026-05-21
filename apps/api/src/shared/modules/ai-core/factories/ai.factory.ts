@@ -39,7 +39,7 @@ export class AiFactory {
     } catch (error) {
       if (error instanceof SyntaxError) {
         throw new InternalServerErrorException(
-          `Failed to parse AI response JSON: ${error.message}`,
+          'Failed to parse AI response as JSON',
         );
       }
       throw error;

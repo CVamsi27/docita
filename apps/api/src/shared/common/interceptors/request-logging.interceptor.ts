@@ -9,6 +9,7 @@ import { Observable } from 'rxjs';
 import { tap, catchError } from 'rxjs/operators';
 import { MonitoringService } from '@/shared/modules/monitoring/monitoring/monitoring.service';
 import { Request, Response } from 'express';
+import { getMonitoringUserContext } from '@/shared/modules/auth/auth/request-user.util';
 
 function toNumberHeader(value: unknown): number | undefined {
   if (typeof value === 'number' && Number.isFinite(value)) {
@@ -26,11 +27,6 @@ function toNumberHeader(value: unknown): number | undefined {
   }
 
   return undefined;
-}
-
-interface RequestUser {
-  id?: string;
-  clinicId?: string;
 }
 
 @Injectable()
@@ -55,9 +51,7 @@ export class RequestLoggingInterceptor implements NestInterceptor {
 
     const startTime = Date.now();
 
-    const user = request.user as RequestUser | undefined;
-    const userId = user?.id;
-    const clinicId = user?.clinicId;
+    const { userId, clinicId } = getMonitoringUserContext(request.user);
 
     const method = request.method;
     const path = request.path;

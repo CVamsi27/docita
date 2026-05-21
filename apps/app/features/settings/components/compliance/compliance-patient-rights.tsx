@@ -39,6 +39,7 @@ import type {
 } from "@workspace/types";
 import {
   REQUEST_TYPE_OPTIONS,
+  parseDataSubjectRequestType,
   toDisplayText,
   isOpenRequest,
 } from "./compliance-settings-constants";
@@ -204,7 +205,7 @@ export function LogRequestDialog({
                 onValueChange={(value) =>
                   onRequestFormChange({
                     ...requestForm,
-                    requestType: value as DataSubjectRequestType,
+                    requestType: parseDataSubjectRequestType(value),
                   })
                 }
               >

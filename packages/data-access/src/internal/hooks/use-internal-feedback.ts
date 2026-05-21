@@ -7,6 +7,21 @@ import type {
   InternalFeedbackStats,
 } from "../feedback.types";
 
+function toFeedbackListParams(
+  filters: InternalFeedbackFilters,
+): Record<string, string | number | boolean | undefined | null> {
+  const params: Record<string, string | number | boolean | undefined | null> =
+    {};
+  if (filters.status !== undefined) params["status"] = filters.status;
+  if (filters.category !== undefined) params["category"] = filters.category;
+  if (filters.clinicId !== undefined) params["clinicId"] = filters.clinicId;
+  if (filters.startDate !== undefined) params["startDate"] = filters.startDate;
+  if (filters.endDate !== undefined) params["endDate"] = filters.endDate;
+  if (filters.minRating !== undefined) params["minRating"] = filters.minRating;
+  if (filters.maxRating !== undefined) params["maxRating"] = filters.maxRating;
+  return params;
+}
+
 export function useInternalFeedbackList(
   filtersKey: string,
   filters?: InternalFeedbackFilters,
@@ -21,10 +36,7 @@ export function useInternalFeedbackList(
     queryKey: internalQueryKeys.internal.feedback(filtersKey),
     queryFn: () =>
       fetcher<InternalFeedback[]>("/internal/feedback/all", {
-        params: filters as Record<
-          string,
-          string | number | boolean | undefined
-        >,
+        params: filters ? toFeedbackListParams(filters) : undefined,
       }),
     ...options,
   });

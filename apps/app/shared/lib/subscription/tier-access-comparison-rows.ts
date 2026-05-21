@@ -40,11 +40,15 @@ function limitsForTier(tier: Tier) {
 function tierRecord<V extends string | boolean | number>(
   build: (tier: Tier) => V,
 ): Record<Tier, V> {
-  const result = {} as Record<Tier, V>;
-  for (const tier of COMPARISON_TIERS) {
-    result[tier] = build(tier);
-  }
-  return result;
+  return {
+    [Tier.STARTER]: build(Tier.STARTER),
+    [Tier.FRONT_DESK]: build(Tier.FRONT_DESK),
+    [Tier.ESSENTIAL]: build(Tier.ESSENTIAL),
+    [Tier.PROFESSIONAL]: build(Tier.PROFESSIONAL),
+    [Tier.HOSPITAL]: build(Tier.HOSPITAL),
+    [Tier.ENTERPRISE]: build(Tier.ENTERPRISE),
+    [Tier.INTELLIGENCE]: build(Tier.INTELLIGENCE),
+  };
 }
 
 function whatsappIncludedQuota(tier: Tier): number | undefined {

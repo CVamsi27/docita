@@ -46,6 +46,7 @@ describe('PatientsController (Authorization)', () => {
   const buildRequest = (clinicId = 'clinic-1', role = Role.DOCTOR) => {
     const request = Object.create({}) as AuthRequest;
     const user = Object.create({}) as NonNullable<RequestWithUser['user']>;
+    user.id = 'user-1';
     user.clinicId = clinicId;
     user.role = role;
     request.user = user;
@@ -92,7 +93,7 @@ describe('PatientsController (Authorization)', () => {
         },
         {
           provide: AuditService,
-          useValue: { logPatientAccess: jest.fn() },
+          useValue: { logAction: jest.fn(), logPatientAccess: jest.fn() },
         },
       ],
     })

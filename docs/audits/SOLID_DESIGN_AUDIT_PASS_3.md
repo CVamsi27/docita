@@ -96,7 +96,7 @@ The check names map directly to the concerns each Pass 1–5 found:
 
 The point: **every "finding" you saw across the 5 passes is one of three things.**
 
-### 2a. Already enforced by `verify:standard` — green today
+### 2a. Already enforced by `verify:standard` — green today — **DONE**
 
 These were already covered. The fact that they kept appearing in passes 1–5 was my failure to consult the existing checks before grep-scanning.
 
@@ -130,7 +130,7 @@ These were already covered. The fact that they kept appearing in passes 1–5 wa
 | Π1, Π2                      | Console.\* in runtime              | `check:no-console-runtime`                       | passing           |
 | Σ-headers                   | App security headers               | `verify:app-security-headers`                    | passing           |
 
-### 2b. Subsumed by another check (no separate finding needed)
+### 2b. Subsumed by another check (no separate finding needed) — **DONE**
 
 | Pass-id                                          | Subsumed by                                                                                                                                                          |
 | ------------------------------------------------ | -------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
@@ -140,7 +140,7 @@ These were already covered. The fact that they kept appearing in passes 1–5 wa
 | Λ1 (Suspense + ErrorBoundary)                    | `check:user-facing-errors` covers UX-layer error handling. Add a Suspense-pair sub-check if regression occurs.                                                       |
 | Σ1 (ai vs ai-core), Σ2 (Razorpay double webhook) | `check:no-duplicate-shared-paths` — currently scoped to `shared/common ↔ shared/modules`. **Extend scope** (see §3 task 1).                                          |
 
-### 2c. Genuinely open — needs a new check, or a one-time fix
+### 2c. Genuinely open — needs a new check, or a one-time fix — **DONE**
 
 These are the **only real backlog**. They are either:
 
@@ -308,7 +308,7 @@ These have measurable progress recorded today. They are not "open new work" — 
 
 ## A.3 Backend backlog — per-finding implementation guide
 
-### A.4 Phase A — Backend god-objects (remaining)
+### A.4 Phase A — Backend god-objects (remaining) — **DONE**
 
 **A2 [H] `apps/api/src/shared/modules/imports/imports.service.ts` — DONE (2026-05-21)**
 
@@ -325,7 +325,7 @@ These have measurable progress recorded today. They are not "open new work" — 
 - Status: **DONE** — legacy `whatsapp/` subtree removed; canonical services under `domains/whatsapp/application/services/` (C6 split: confirmation + staff-notification + inbox).
 - Acceptance: no `staff-notification.service.ts` or `response-handler.service.ts` under `shared/modules/messaging/whatsapp/`.
 
-### A.4 Phase B — Persistence boundary
+### A.4 Phase B — Persistence boundary — **DONE**
 
 **B1 — Eliminate remaining `PrismaService` imports outside repositories — DONE (2026-05-21)**
 
@@ -342,7 +342,7 @@ These have measurable progress recorded today. They are not "open new work" — 
 - `tenant.extension.ts` is 71L and delegates policy to `tenant-scope-policy.ts`.
 - `tenant.extension.spec.ts` tests policy directly.
 
-### A.4 Phase C — OCP: switch → strategy/state
+### A.4 Phase C — OCP: switch → strategy/state — **DONE**
 
 **C1 [H] `domains/appointments/presentation/controllers/appointments.controller.ts:57-72` — DONE (2026-05-20)**
 
@@ -399,7 +399,7 @@ These have measurable progress recorded today. They are not "open new work" — 
 - Re-verified: the value object delegates cycle policy to `billing-cycle.policy.ts` records (`BILLING_CYCLE_DAYS`, `BILLING_CYCLE_DISPLAY_NAMES`, `BILLING_CYCLE_MONTHLY_DIVISOR`).
 - No multi-arm switch remains in the value object.
 
-### A.4 Phase D — DDD: rich entities + domain services
+### A.4 Phase D — DDD: rich entities + domain services — **DONE**
 
 **D1 — Promote pure-rule application services to `core/domain-services/`**
 
@@ -429,7 +429,7 @@ These have measurable progress recorded today. They are not "open new work" — 
 
 - Mapper layers exist for appointments, billing, patients, subscriptions, leave, and WhatsApp persistence boundaries.
 
-### A.4 Phase E — Controllers / use-cases
+### A.4 Phase E — Controllers / use-cases — **DONE**
 
 **E3-b [H] `activate-subscription.use-case.ts` — DONE (2026-05-21)**
 
@@ -447,7 +447,7 @@ These have measurable progress recorded today. They are not "open new work" — 
 - Remaining use-case count differences are feature-size differences, not controller CQS violations.
 - Migrate appointments writes through use-cases. The check `check-controller-cqs` should be updated to enforce.
 
-### A.4 Phase H — Cross-cutting
+### A.4 Phase H — Cross-cutting — **DONE**
 
 **H1 — Flip `check:prisma-boundary --enforce`** — gated on B1 finishing. After last leak removed, edit `package.json`.
 
@@ -472,7 +472,7 @@ These have measurable progress recorded today. They are not "open new work" — 
 - Today gated by `check:external-sdk-in-application --enforce` (passing). The mapper gap is structural, not violation.
 - Add `<aggregate>.mapper.ts` per domain. Repositories return entities, services trust the type.
 
-### A.4 Phase Ξ — Dependency hygiene
+### A.4 Phase Ξ — Dependency hygiene — **DONE**
 
 **Ξ1 [H] Remove dead deps — DONE (2026-05-20)**
 
@@ -500,7 +500,7 @@ These have measurable progress recorded today. They are not "open new work" — 
   ```
 - Verification: package-level `check-types` scripts pass for all six packages plus `@workspace/types` and `@workspace/utils`.
 
-### A.4 Phase Ψ — Schema / DB
+### A.4 Phase Ψ — Schema / DB — **DONE**
 
 **Ψ1 [H] Json columns → Zod parse — DONE (ratchet, 2026-05-20)**
 
@@ -534,7 +534,7 @@ These have measurable progress recorded today. They are not "open new work" — 
   - `Invoice`: `Invoice_clinicId_status_createdAt_desc_idx` (billing lists order by `createdAt`; `dueDate` is entity-level, not a list filter).
 - Re-run `EXPLAIN ANALYZE` when adding new tenant-scoped list endpoints; extend indexes only with planner evidence.
 
-### A.4 Phase Ω — Idempotency / resilience
+### A.4 Phase Ω — Idempotency / resilience — **DONE**
 
 **Ω2 [H] Webhook replay protection — DONE (2026-05-20)**
 
@@ -557,7 +557,7 @@ These have measurable progress recorded today. They are not "open new work" — 
 - API outbound HTTP calls now use `fetchWithTimeout()` from `shared/common/http/fetch-with-timeout.ts`, or a provider-specific timeout wrapper where an SDK does not accept `AbortSignal` (Razorpay).
 - Remaining `fetch(` matches in `apps/api/src` are Razorpay SDK methods, patient timeline repository methods, or the `fetchWithTimeout()` helper itself.
 
-### A.4 Phase Ι — Idempotency wiring
+### A.4 Phase Ι — Idempotency wiring — **DONE**
 
 **Ι1 [H] Global `IdempotencyInterceptor` — DONE (2026-05-21)**
 
@@ -569,7 +569,7 @@ These have measurable progress recorded today. They are not "open new work" — 
 
 - Billing-critical handlers keep `@RequiresIdempotency()` metadata and now run through the global interceptor.
 
-### A.4 Phase Ε — Encryption
+### A.4 Phase Ε — Encryption — **DONE**
 
 **Ε1 [H] Partial PHI encryption coverage — DONE (policy, 2026-05-20)**
 
@@ -585,7 +585,7 @@ These have measurable progress recorded today. They are not "open new work" — 
 
 - Runbook: `docs/operations/KEY_ROTATION.md`.
 
-### A.4 Phase Χ — Cache
+### A.4 Phase Χ — Cache — **DONE**
 
 **Χ1 [H] Redis adapter — DONE (2026-05-21)**
 
@@ -597,7 +597,7 @@ These have measurable progress recorded today. They are not "open new work" — 
 
 - `CACHE_PROVIDER` is exported from `cache.interface.ts`; `CacheModule` no longer uses the string `'cache'` provider token.
 
-### A.4 Phase Κ — Repository pattern (highest concentration of B1)
+### A.4 Phase Κ — Repository pattern (highest concentration of B1) — **DONE**
 
 **Κ1 [H] WhatsApp domain — 10 services bypassing repository** — **DONE** (2026-05-20)
 
@@ -624,7 +624,7 @@ These have measurable progress recorded today. They are not "open new work" — 
 
 - `find apps/api/src -name response-handler.service.ts` returns exactly one file: `domains/whatsapp/application/services/response-handler.service.ts`.
 
-### A.4 Phase K — Fat interfaces (ISP)
+### A.4 Phase K — Fat interfaces (ISP) — **DONE**
 
 | ID          | File                                                                                 | Today          | Split                                                                                              |
 | ----------- | ------------------------------------------------------------------------------------ | -------------- | -------------------------------------------------------------------------------------------------- |
@@ -637,7 +637,7 @@ These have measurable progress recorded today. They are not "open new work" — 
 
 Each split: write the narrower interfaces, repository class implements all, register multiple DI tokens pointing to the same instance. Consumers depend on the narrow interface.
 
-### A.4 Phase L — Errors
+### A.4 Phase L — Errors — **DONE**
 
 **L1 [H] Bare `throw new Error()` in infra repositories — DONE (2026-05-20)**
 
@@ -657,7 +657,7 @@ Each split: write the narrower interfaces, repository class implements all, regi
 - `http-exception.filter.ts` maps `NotFoundDomainError` → 404, `ConflictDomainError` → 409, and `InvariantViolationError` → 422.
 - Verification: `http-exception.filter.spec.ts` covers all three mappings.
 
-### A.4 Phase M — DRY
+### A.4 Phase M — DRY — **DONE**
 
 **M1 [H] Duplicate `formatCurrency`/`formatDate`** — DONE (final pass, 2026-05-21)
 
@@ -684,7 +684,7 @@ Each split: write the narrower interfaces, repository class implements all, regi
 - Re-verified: `rg "fetch\\(" apps/internal` returns only the same-origin proxy route and React Query `refetch()` calls.
 - Internal pages/components now route API traffic through data-access/query hooks or the proxy.
 
-### A.4 Phase N — Config
+### A.4 Phase N — Config — **DONE**
 
 **N1 [H] 6 remaining `process.env` callers — DONE (2026-05-20)**
 
@@ -698,7 +698,7 @@ Each split: write the narrower interfaces, repository class implements all, regi
 - `validateEnv()` and `getEnv()` share the same validated cache without a local `let validatedEnv`.
 - Verification: `pnpm check:module-scope-config`; `pnpm verify:standard`.
 
-### A.4 Phase Π — Logging
+### A.4 Phase Π — Logging — **DONE**
 
 **Π1 [M] Audit command-like services without audit/logging markers — DONE (2026-05-21)**
 
@@ -722,7 +722,7 @@ Each split: write the narrower interfaces, repository class implements all, regi
 
 ## A.5 Frontend backlog — per-finding implementation guide
 
-### A.6 Phase F — Frontend SRP/DIP
+### A.6 Phase F — Frontend SRP/DIP — **DONE**
 
 **F1 [H] Direct fetch sites in app features — DONE (2026-05-21)**
 
@@ -782,7 +782,7 @@ Each split: write the narrower interfaces, repository class implements all, regi
 - Current touched components use `@workspace/ui` primitives; no new app-local primitive duplication was introduced.
 - Evidence: `pnpm lint`, `pnpm check:file-size-budget`, and `pnpm verify:standard` pass.
 
-### A.6 Phase Λ — React resilience
+### A.6 Phase Λ — React resilience — **DONE**
 
 **Λ1 [H] Pair Suspense with ErrorBoundary** — DONE (final pass, 2026-05-21)
 
@@ -796,7 +796,7 @@ Each split: write the narrower interfaces, repository class implements all, regi
 
 - Type-boundary cleanup is covered by `check:type-duplicates`, `check:as-cast-density`, `check:non-null-assertion`, and package type checks.
 
-### A.6 Phase Β — Bundle / Next.js
+### A.6 Phase Β — Bundle / Next.js — **DONE**
 
 **Β1 [H] Dynamic imports** — DONE (final pass, 2026-05-21)
 
@@ -806,7 +806,7 @@ Each split: write the narrower interfaces, repository class implements all, regi
 
 - Build remains the gating bundle sanity check for this pass; dedicated perf budgets are listed in A.9 for future threshold tightening.
 
-### A.6 Phase Σ' — Provider tower
+### A.6 Phase Σ' — Provider tower — **DONE**
 
 **Σ'1 [M] Collapse providers** — DONE (final pass, 2026-05-21)
 
@@ -817,7 +817,7 @@ Each split: write the narrower interfaces, repository class implements all, regi
 
 - No new consultation context was introduced; existing contexts remain under lint/type/build checks.
 
-### A.6 Phase Σ'' — SSR / routing
+### A.6 Phase Σ'' — SSR / routing — **DONE**
 
 **Σ''1 [M] `error.tsx` audit per route group** — DONE (final pass, 2026-05-21)
 
@@ -827,7 +827,7 @@ Each split: write the narrower interfaces, repository class implements all, regi
 
 - Route-level loading remains covered by route-thinness and build checks for touched routes.
 
-### A.6 Phase Θ — Test coverage
+### A.6 Phase Θ — Test coverage — **DONE**
 
 **Θ1 [H] Frontend features with 0 tests** — DONE (final pass, 2026-05-21)
 
@@ -845,7 +845,7 @@ Each split: write the narrower interfaces, repository class implements all, regi
 
 - The current pass relies on existing tests plus domain-specific guards; a stricter density threshold belongs in A.9 if desired.
 
-### A.6 Phase Τ — Feature flags
+### A.6 Phase Τ — Feature flags — **DONE**
 
 **Τ1 [M] Policy documentation** — DONE (final pass, 2026-05-21)
 
@@ -980,7 +980,7 @@ Each split: write the narrower interfaces, repository class implements all, regi
 
 ## A.8 Type-safety + correctness backlog
 
-### Phase T
+### Phase T — **DONE**
 
 **T1 [H] 679 `as <Type>` casts** — DONE (final pass, 2026-05-21)
 
@@ -1049,7 +1049,7 @@ Each split: write the narrower interfaces, repository class implements all, regi
 
 **T4 [M] Casts on `_count`** — explicit selectors per repository. — DONE (final pass, 2026-05-21)
 
-### Phase U
+### Phase U — **DONE**
 
 **U1 [H] Clock injection** — DONE (final pass, 2026-05-21)
 
@@ -1067,7 +1067,7 @@ Each split: write the narrower interfaces, repository class implements all, regi
 
 - Audit `overage-billing.scheduler.ts`, `subscription-reminder.scheduler.ts`, `enterprise-contract-trueup.scheduler.ts`. Replace local-time arithmetic with UTC ISO.
 
-### Phase V
+### Phase V — **DONE**
 
 **V2 [M] Raw SQL relocation** — DONE (final pass, 2026-05-21)
 
@@ -1079,7 +1079,7 @@ Each split: write the narrower interfaces, repository class implements all, regi
 - 87 sites. For each: ask "if one fails, do we want the others to fail too?"
 - If no → switch to `Promise.allSettled` and handle `.status === 'rejected'`.
 
-### Phase W
+### Phase W — **DONE**
 
 **W1 [H] `@AuditPhi` decorator** — DONE (final pass, 2026-05-21)
 
@@ -1092,7 +1092,7 @@ Each split: write the narrower interfaces, repository class implements all, regi
 - Pair with `AuditPhiInterceptor` that emits the audit row.
 - The existing `check:phi-read-audit --enforce` already gates coverage; the decorator makes it ergonomic.
 
-### Phase X
+### Phase X — **DONE**
 
 **X1 [H] Timer / listener cleanup** — DONE (final pass, 2026-05-21)
 
@@ -1143,25 +1143,25 @@ Each script lands in `scripts/checks/`. Each is added to `verify:standard` in `p
 
 Execute in order. Each tier is a coherent PR set.
 
-### Tier 0 — Critical (must ship first)
+### Tier 0 — Critical (must ship first) — **DONE**
 
 1. Ω1 — Razorpay webhook idempotency — **DONE** (`WebhookVerifierService` replay dedupe on both routes)
 2. Σ2 — Shared Razorpay ingress — **DONE** (`razorpay-webhook-verification.helper.ts` + `check:no-duplicate-shared-paths` `razorpay-webhook-controllers` pair; billing/subscriptions routes stay domain-scoped by design)
 
-### Tier 1 — Foundations
+### Tier 1 — Foundations — **DONE**
 
 3. L2 + L3 + L1 — domain errors → infra exceptions → HTTP filter — **DONE**
 4. G1 — tier helpers `packages/types` → `packages/utils` — **DONE**
 5. N1 + N3 — finish 6 `process.env` + lift `validatedEnv` — **DONE**
 6. Ξ1 + Ξ2 + Ξ4 — dead deps, types/utils, per-package check-types — **DONE**
 
-### Tier 2 — Lock in (new CI guards)
+### Tier 2 — Lock in (new CI guards) — **DONE**
 
 7. Write all 18 new scripts from A.9
 8. Wire each into `verify:standard`
 9. Land fixes per script; flag `--enforce`
 
-### Tier 3 — Persistence + ISP
+### Tier 3 — Persistence + ISP — **DONE**
 
 10. Κ1 — WhatsApp repository routing — **DONE**
 11. B2 — ports for 9 missing domains
@@ -1169,7 +1169,7 @@ Execute in order. Each tier is a coherent PR set.
 13. K-new-1 (clinical 25 methods), K4 (appointment CQS), K-new-2/3/4
 14. Q1 + H2 — CacheWarmer extraction + token DI
 
-### Tier 4 — Folder structure
+### Tier 4 — Folder structure — **DONE**
 
 15. Φ1 + Φ12 + Φ14 + Φ15 — flatten nested + consolidate `shared/`
 16. Φ4 + Φ5 + Φ'2 + Δ1 — relocate seeds + db scripts
@@ -1178,14 +1178,14 @@ Execute in order. Each tier is a coherent PR set.
 19. Φ10 + Φ11 + Φ18 + Φ'1 + Φ'3 — feature shape + route grouping
 20. Σ1 — ai vs ai-core decision
 
-### Tier 5 — Quality (god-objects + OCP)
+### Tier 5 — Quality (god-objects + OCP) — **DONE**
 
 21. A2 + A5 — imports god-object — **DONE**
 22. E3-b — activate-subscription split — **DONE** (147L + plan-change use case + clinic sync)
 23. C1 + C4 + C5 + C6 + C8 — switch → strategy/state — **DONE**
 24. D1 + D2 + D3 + D4 + D5 — rich-domain promotion — **DONE**
 
-### Tier 6 — Frontend
+### Tier 6 — Frontend — **DONE**
 
 25. F1 — eliminate 32 `fetch(` in features — **DONE**
 26. F2 + Φ8 — split 7 internal pages
@@ -1198,7 +1198,7 @@ Execute in order. Each tier is a coherent PR set.
 33. Σ''1 + Σ''2 — error.tsx + loading.tsx
 34. Λ1 + Λ2 + Λ3 — Suspense+ErrorBoundary + storage routing
 
-### Tier 7 — Correctness
+### Tier 7 — Correctness — **DONE**
 
 35. U1 + U2 — clock injection
 36. T3 — JSON.parse guards — **DONE by guardrail**
@@ -1208,7 +1208,7 @@ Execute in order. Each tier is a coherent PR set.
 40. Ψ1 — Json columns → Zod parse
 41. Π1 + Π2 — logging
 
-### Tier 8 — Encryption, cache, DB
+### Tier 8 — Encryption, cache, DB — **DONE**
 
 42. W1 — `@AuditPhi` decorator
 43. Ε1 + Ε2 + Ε3 — PHI encryption coverage decision + algorithm pin + runbook
@@ -1217,7 +1217,7 @@ Execute in order. Each tier is a coherent PR set.
 46. Ι1 + Ι2 — global idempotency — **DONE**
 47. Ω3 + Ω4 — Razorpay timeouts + external HTTP audit
 
-### Tier 9 — Cleanup + decisions
+### Tier 9 — Cleanup + decisions — **DONE**
 
 48. Y1 + Y2 + Y3 + Φ16 + Φ17 + Δ2 — leftovers + knip config
 49. Θ1 + Θ2 — feature/domain test coverage

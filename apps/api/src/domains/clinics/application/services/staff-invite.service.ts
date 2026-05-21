@@ -14,6 +14,11 @@ import {
   type CreateReceptionistData,
 } from './staff-management-helpers';
 
+const SPECIALIZATION_ALIASES: Readonly<Record<string, Specialization>> = {
+  GENERAL: Specialization.GENERAL_PRACTICE,
+  GENERAL_PRACTICE: Specialization.GENERAL_PRACTICE,
+};
+
 // AuditLogged: all staff creation methods (doctor, receptionist, member) are sensitive writes
 @Injectable()
 export class StaffInviteService {
@@ -23,6 +28,12 @@ export class StaffInviteService {
   ) {}
 
   private parseSpecialization(value: string): Specialization {
+    const normalizedValue = value.trim().toUpperCase().replaceAll(/\s+/g, '_');
+    const aliasedSpecialization = SPECIALIZATION_ALIASES[normalizedValue];
+    if (aliasedSpecialization) {
+      return aliasedSpecialization;
+    }
+
     const specialization = parseStringEnumMember(
       Object.values(Specialization),
       value,

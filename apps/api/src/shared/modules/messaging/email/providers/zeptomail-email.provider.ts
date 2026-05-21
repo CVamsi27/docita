@@ -7,6 +7,7 @@ import {
 } from './email-provider.interface';
 import { AppConfigService } from '@/shared/modules/config/app-configuration.service';
 import { fetchWithTimeout } from '@/shared/common/http/fetch-with-timeout';
+import { isRecord } from '@workspace/utils';
 
 type ZeptoMailAddress = {
   address: string;
@@ -117,10 +118,14 @@ export class ZeptoMailEmailProvider implements IEmailProvider {
         };
       }
 
-      const data = (await response.json()) as {
-        data?: Array<{ message_id?: string }>;
-      };
-      const messageId = data?.data?.[0]?.message_id;
+      const raw: unknown = await response.json();
+      const messageId =
+        isRecord(raw) &&
+        Array.isArray(raw.data) &&
+        isRecord(raw.data[0]) &&
+        typeof raw.data[0].message_id === 'string'
+          ? raw.data[0].message_id
+          : undefined;
       return { success: true, messageId };
     } catch (error) {
       const errorMessage =

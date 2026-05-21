@@ -1,12 +1,4 @@
-type RequestUserShape = {
-  id?: unknown;
-  sub?: unknown;
-  clinicId?: unknown;
-};
-
-function isRecord(value: unknown): value is Record<string, unknown> {
-  return typeof value === 'object' && value !== null && !Array.isArray(value);
-}
+import { isRecord } from '@workspace/utils';
 
 export function getMonitoringUserContext(user: unknown): {
   userId: string | undefined;
@@ -26,17 +18,16 @@ export function getMonitoringUserContext(user: unknown): {
 }
 
 export function getAuthenticatedUserId(user: unknown): string | null {
-  if (!user || typeof user !== 'object') {
+  if (!isRecord(user)) {
     return null;
   }
 
-  const candidate = user as RequestUserShape;
-  const sub = typeof candidate.sub === 'string' ? candidate.sub.trim() : '';
+  const sub = typeof user.sub === 'string' ? user.sub.trim() : '';
   if (sub.length > 0) {
     return sub;
   }
 
-  const id = typeof candidate.id === 'string' ? candidate.id.trim() : '';
+  const id = typeof user.id === 'string' ? user.id.trim() : '';
   if (id.length > 0) {
     return id;
   }
