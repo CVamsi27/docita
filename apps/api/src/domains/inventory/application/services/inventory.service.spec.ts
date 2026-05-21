@@ -34,6 +34,7 @@ describe('InventoryService', () => {
   beforeEach(async () => {
     repo = {
       findItems: jest.fn<(...args: unknown[]) => Promise<unknown>>(),
+      getStats: jest.fn<(...args: unknown[]) => Promise<unknown>>(),
       findItemById: jest.fn<(...args: unknown[]) => Promise<unknown>>(),
       findItemByClinic: jest.fn<(...args: unknown[]) => Promise<unknown>>(),
       createItem: jest.fn<(...args: unknown[]) => Promise<unknown>>(),
@@ -70,12 +71,15 @@ describe('InventoryService', () => {
       expect(result).toHaveLength(1);
     });
 
-    it('filters low stock items', async () => {
+    it('passes low stock filters to the repository', async () => {
       const lowStockItem = { ...mockItem, quantity: 5, minQuantity: 10 };
-      const normalItem = { ...mockItem, id: 'item-2', quantity: 50 };
-      repo.findItems.mockResolvedValue([lowStockItem, normalItem]);
+      repo.findItems.mockResolvedValue([lowStockItem]);
 
       const result = await service.getItems('clinic-1', {
+        status: 'low_stock',
+      });
+      expect(repo.findItems).toHaveBeenCalledWith({
+        clinicId: 'clinic-1',
         status: 'low_stock',
       });
       expect(result).toHaveLength(1);
@@ -85,27 +89,20 @@ describe('InventoryService', () => {
 
   describe('getStats', () => {
     it('returns inventory statistics', async () => {
-      const items = [
-        {
-          ...mockItem,
-          quantity: 0,
-          minQuantity: 5,
-          active: true,
-          expiryDate: null,
-        },
-        {
-          ...mockItem,
-          id: 'item-2',
-          quantity: 3,
-          minQuantity: 5,
-          active: true,
-          expiryDate: null,
-        },
-      ];
-      repo.findItems.mockResolvedValue(items);
+      repo.getStats.mockResolvedValue({
+        totalItems: 2,
+        totalStock: 3,
+        lowStock: 1,
+        critical: 1,
+        expiringSoon: 0,
+      });
 
       const result = await service.getStats('clinic-1');
 
+      expect(repo.getStats).toHaveBeenCalledWith(
+        'clinic-1',
+        new Date('2026-04-01T12:00:00.000Z'),
+      );
       expect(result.totalItems).toBe(2);
       expect(result.critical).toBe(1);
       expect(result.lowStock).toBe(1);

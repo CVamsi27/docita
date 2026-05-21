@@ -1,5 +1,4 @@
 import { Injectable, Inject } from '@nestjs/common';
-import { Prisma, VitalSign } from '@workspace/db';
 import {
   APPOINTMENT_PERSISTENCE_PORT,
   type AppointmentPersistencePort,
@@ -28,9 +27,9 @@ export class AppointmentMetricsService {
   createVitals(
     appointmentId: string,
     clinicId: string,
-    data: Partial<VitalSign>,
+    data: RecordAppointmentVitalsCommand['data'],
     accessContext?: AppointmentAccessContext,
-  ): Promise<VitalSign> {
+  ): ReturnType<RecordAppointmentVitalsUseCase['execute']> {
     return this.recordVitalsUseCase.execute({
       appointmentId,
       clinicId,
@@ -42,9 +41,9 @@ export class AppointmentMetricsService {
   updateVitals(
     appointmentId: string,
     clinicId: string,
-    data: Partial<VitalSign>,
+    data: RecordAppointmentVitalsCommand['data'],
     accessContext?: AppointmentAccessContext,
-  ): Promise<VitalSign> {
+  ): ReturnType<RecordAppointmentVitalsUseCase['execute']> {
     return this.createVitals(appointmentId, clinicId, data, accessContext);
   }
 
@@ -71,17 +70,15 @@ export class AppointmentMetricsService {
         })),
       });
 
-    const operations: Prisma.PrismaPromise<unknown>[] = [];
-
-    for (const metric of input.metrics) {
+    const operations = input.metrics.flatMap((metric) => {
       const definitionId = definitionIdsByKey.get(
         metric.definitionKey.trim().toLowerCase(),
       );
       if (!definitionId) {
-        continue;
+        return [];
       }
 
-      operations.push(
+      return [
         this.persistence.patientMetricRecord.create({
           data: {
             clinicId: input.clinicId,
@@ -94,8 +91,8 @@ export class AppointmentMetricsService {
             },
           },
         }),
-      );
-    }
+      ];
+    });
 
     if (operations.length > 0) {
       await this.persistence.$transaction(operations);

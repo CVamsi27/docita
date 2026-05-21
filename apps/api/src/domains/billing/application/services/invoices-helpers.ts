@@ -1,4 +1,4 @@
-import { Prisma, HospitalRole, Specialization } from '@workspace/db';
+import { HospitalRole, Specialization } from '@workspace/db';
 import {
   invoiceItemSchema,
   invoiceTaxSummarySchema,
@@ -6,6 +6,7 @@ import {
   taxSettingsSchema,
   type InvoiceItem,
   type InvoiceTaxSummary,
+  type JsonValue,
   type TaxRegistrationSnapshot,
   type TaxSettings,
 } from '@workspace/types';
@@ -23,13 +24,15 @@ export const DEFAULT_INVOICE_DUE_DAYS = 30;
 
 // ── JSON helpers ───────────────────────────────────────────────────────────────
 
+type JsonObject = { [key: string]: JsonValue | undefined };
+
 const isJsonObject = (
-  value: Prisma.JsonValue | null | undefined,
-): value is Prisma.JsonObject =>
+  value: JsonValue | null | undefined,
+): value is JsonObject =>
   !!value && typeof value === 'object' && !Array.isArray(value);
 
 const readJsonString = (
-  object: Prisma.JsonObject | undefined,
+  object: JsonObject | undefined,
   key: string,
 ): string | undefined => {
   const value = object?.[key];
@@ -39,7 +42,7 @@ const readJsonString = (
 // ── Tax helpers ────────────────────────────────────────────────────────────────
 
 export const parseTaxSettings = (
-  settings: Prisma.JsonValue | null | undefined,
+  settings: JsonValue | null | undefined,
 ): TaxSettings => {
   const settingsObject = isJsonObject(settings) ? settings : undefined;
   const rawTaxSettings = settingsObject?.taxSettings;
@@ -56,14 +59,14 @@ export const parseTaxSettings = (
 };
 
 export const parseTaxRegistrationSnapshot = (
-  value: Prisma.JsonValue | null,
+  value: JsonValue | null,
 ): TaxRegistrationSnapshot | undefined => {
   const parsed = taxRegistrationSnapshotSchema.safeParse(value);
   return parsed.success ? parsed.data : undefined;
 };
 
 export const parseInvoiceTaxSummary = (
-  value: Prisma.JsonValue | null,
+  value: JsonValue | null,
 ): InvoiceTaxSummary | undefined => {
   const parsed = invoiceTaxSummarySchema.safeParse(value);
   return parsed.success ? parsed.data : undefined;
@@ -78,7 +81,7 @@ export const extractClinicGstin = (
   clinic:
     | {
         gstin?: string | null;
-        settings?: Prisma.JsonValue | null;
+        settings?: JsonValue | null;
       }
     | null
     | undefined,
@@ -106,12 +109,12 @@ export const extractClinicGstin = (
 
 export const toPrismaInvoiceItems = (
   items: InvoiceItem[],
-): Prisma.InputJsonValue => {
+): ReturnType<typeof toPrismaJson> => {
   const parsedItems = invoiceItemSchema.array().parse(items);
   return toPrismaJson(parsedItems);
 };
 
-export const parseInvoiceItems = (items: Prisma.JsonValue): InvoiceItem[] => {
+export const parseInvoiceItems = (items: JsonValue): InvoiceItem[] => {
   const parsed = invoiceItemSchema.array().safeParse(items);
   return parsed.success ? parsed.data : [];
 };

@@ -2,6 +2,7 @@ import { Injectable, NotFoundException, Inject } from '@nestjs/common';
 import {
   IInventoryRepository,
   INVENTORY_REPOSITORY_TOKEN,
+  type CreateInventoryMovementData,
 } from '@/domains/inventory/core/repositories/inventory.repository.interface';
 
 @Injectable()
@@ -42,19 +43,15 @@ export class InventoryCommandService {
       batchNumber: data.batchNumber,
       supplier: data.supplier,
       active: true,
-      movements: {
-        create:
-          data.quantity > 0
-            ? [
-                {
-                  type: 'INITIAL',
-                  quantity: data.quantity,
-                  createdBy: userId,
-                  notes: 'Initial stock',
-                },
-              ]
-            : [],
-      },
+      initialMovement:
+        data.quantity > 0
+          ? {
+              type: 'INITIAL',
+              quantity: data.quantity,
+              createdBy: userId,
+              notes: 'Initial stock',
+            }
+          : undefined,
     });
   }
 
@@ -120,18 +117,19 @@ export class InventoryCommandService {
       ? -Math.abs(data.quantity)
       : Math.abs(data.quantity);
 
+    const movementData: CreateInventoryMovementData = {
+      type: data.type,
+      quantity: data.quantity,
+      referenceType: data.referenceType,
+      referenceId: data.referenceId,
+      notes: data.notes,
+      createdBy: userId,
+    };
+
     return this.inventoryRepository.addMovementAndUpdateQuantity(
       itemId,
       clinicId,
-      {
-        inventoryItem: { connect: { id: itemId } },
-        type: data.type,
-        quantity: data.quantity,
-        referenceType: data.referenceType,
-        referenceId: data.referenceId,
-        notes: data.notes,
-        createdBy: userId,
-      },
+      movementData,
       delta,
     );
   }
