@@ -1,7 +1,11 @@
 #!/usr/bin/env node
 /**
- * FRONT_DESK workspace gating must use tier-aware helpers, not ad-hoc
- * workspaceProfile === "FRONT_DESK" outside onboarding workspace UI.
+ * Front Desk gating is tier-only: clinic.tier === FRONT_DESK (see isFrontDeskTier).
+ * settings.workspaceProfile and related helpers were removed.
+ *
+ * Script name is historical (check:workspace-profile-gating). It scans apps/,
+ * packages/, and scripts/ for forbidden legacy symbols and fails the build if any
+ * appear outside the allowlist below (this file + Front Desk migration SQL only).
  */
 
 import { execSync } from "node:child_process";
@@ -10,23 +14,26 @@ import path from "node:path";
 import process from "node:process";
 
 const repoRoot = process.cwd();
-const sourceExtensions = new Set([".ts", ".tsx"]);
+const sourceExtensions = new Set([".ts", ".tsx", ".mjs"]);
 
 const allowlist = new Set([
-  "apps/app/features/onboarding/components/steps/plan-selection-step-helpers.tsx",
-  "apps/app/features/onboarding/components/steps/PlanSelectionStep.tsx",
-  "packages/types/src/shared/workspace-profile.ts",
-  "packages/types/test/workspace-access.test.ts",
-  "packages/types/test/workspace-profile.test.ts",
-  "apps/app/shared/lib/access-control/access-policy.test.ts",
-  "apps/app/shared/lib/access-control/access-policy.matrix.test.ts",
-  "apps/api/test/front-desk-workspace.e2e-spec.ts",
-  "apps/api/src/domains/appointments/application/services/appointment.service.workspace-profile.spec.ts",
+  "scripts/checks/check-workspace-profile-gating.mjs",
+  "packages/db/prisma/migrations/20260504190000_front_desk_tier_app_login_disabled/migration.sql",
+  "packages/db/prisma/migrations/20260521120000_remove_workspace_profile/migration.sql",
 ]);
 
 const forbidden = [
-  /workspaceProfile\s*===\s*["']FRONT_DESK["']/,
-  /workspaceProfile\s*!==\s*["']FRONT_DESK["']/,
+  /\bworkspaceProfile\b/,
+  /\bWorkspaceProfile\b/,
+  /\bisFrontDeskClinicMode\b/,
+  /\bisFrontDeskWorkspace\b/,
+  /\bparseWorkspaceProfile\b/,
+  /\bresolveWorkspaceProfileForPlan\b/,
+  /\bshouldDenyAccessForWorkspaceProfile\b/,
+  /\bWORKSPACE_PROFILE_/,
+  /\bworkspace-profile\.ts\b/,
+  /\bWorkspaceModeCard\b/,
+  /\bWorkspaceSelector\b/,
 ];
 
 function listFiles(root) {
@@ -38,7 +45,7 @@ function listFiles(root) {
     .filter((file) => sourceExtensions.has(path.extname(file)));
 }
 
-const files = [...listFiles("apps"), ...listFiles("packages")].filter(
+const files = [...listFiles("apps"), ...listFiles("packages"), ...listFiles("scripts")].filter(
   (file) => !allowlist.has(file),
 );
 
@@ -57,9 +64,9 @@ for (const file of files) {
 }
 
 if (violations.length > 0) {
-  console.error("Workspace profile gating check failed.\n");
+  console.error("check:workspace-profile-gating failed.\n");
   console.error(
-    "Use isFrontDeskClinicMode(tier, workspaceProfile) or isFrontDeskTier(tier) instead of workspaceProfile === \"FRONT_DESK\".",
+    "Front Desk is tier-only (isFrontDeskTier / Tier.FRONT_DESK). Remove legacy workspaceProfile symbols and workspace pickers.",
   );
   for (const violation of violations) {
     console.error(
@@ -69,4 +76,4 @@ if (violations.length > 0) {
   process.exit(1);
 }
 
-console.log("Workspace profile gating check passed.");
+console.log("check:workspace-profile-gating passed (tier-only Front Desk; no legacy symbols).");

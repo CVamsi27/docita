@@ -27,7 +27,9 @@ function listTypeScriptExports() {
   const exports = new Set();
   const exportRe = /export const (\w+)\s*=/g;
   for (const file of files) {
-    const source = readFileSync(path.join(process.cwd(), file), "utf8");
+    const absolutePath = path.join(process.cwd(), file);
+    if (!existsSync(absolutePath)) continue;
+    const source = readFileSync(absolutePath, "utf8");
     for (const match of source.matchAll(exportRe)) {
       exports.add(match[1]);
     }
