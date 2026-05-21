@@ -1,12 +1,5 @@
 "use client";
 
-import {
-  useCallback,
-  useEffect,
-  useMemo,
-  useRef,
-  useState,
-} from "react";
 import { AlertCircle, Plus, Sparkles, Square } from "lucide-react";
 import {
   Dialog,
@@ -18,223 +11,25 @@ import { EmptyState } from "@workspace/ui/components/feedback/empty-state";
 import { PromptInput } from "@workspace/ui/components/form/prompt-input";
 import { Button } from "@workspace/ui/components/form/button";
 import { cn } from "@workspace/ui/lib/utils";
-import { useAskAi } from "./ask-ai-context";
 import { MessageBubble, ThreadGroup } from "./ask-ai-messages";
-import { AskAiError, streamAskAi } from "./ask-ai-stream";
-import {
-  deriveTitle,
-  isToday,
-  loadThreads,
-  saveThreads,
-  upsertThread,
-  type AskAiStoredMessage,
-  type AskAiStoredThread,
-} from "./ask-ai-threads";
-
-function createId(prefix: string): string {
-  return `${prefix}-${Date.now().toString(36)}-${Math.random()
-    .toString(36)
-    .slice(2, 8)}`;
-}
+import { useAskAiOverlay } from "./use-ask-ai-overlay";
 
 export function AskAiOverlay() {
-  const { open, scope, closeOverlay, openOverlay } = useAskAi();
-  const [threads, setThreads] = useState<AskAiStoredThread[]>([]);
-  const [activeThreadId, setActiveThreadId] = useState<string | null>(null);
-  const [messages, setMessages] = useState<AskAiStoredMessage[]>([]);
-  const [streamingText, setStreamingText] = useState<string>("");
-  const [submitting, setSubmitting] = useState(false);
-  const [error, setError] = useState<string | null>(null);
-  const abortRef = useRef<AbortController | null>(null);
-  const scrollRef = useRef<HTMLDivElement | null>(null);
-
-  useEffect(() => {
-    setThreads(loadThreads());
-  }, []);
-
-  useEffect(() => {
-    if (!open) return;
-    setError(null);
-  }, [open]);
-
-  useEffect(() => {
-    if (typeof window === "undefined") return;
-    const handler = (event: KeyboardEvent) => {
-      if (event.key !== "j" || !(event.metaKey || event.ctrlKey)) return;
-      if (open) {
-        event.preventDefault();
-        closeOverlay();
-        return;
-      }
-      const target = event.target instanceof HTMLElement ? event.target : null;
-      const isEditable =
-        !!target &&
-        (target.tagName === "INPUT" ||
-          target.tagName === "TEXTAREA" ||
-          target.isContentEditable);
-      if (isEditable) return;
-      event.preventDefault();
-      openOverlay();
-    };
-    document.addEventListener("keydown", handler);
-    return () => document.removeEventListener("keydown", handler);
-  }, [open, openOverlay, closeOverlay]);
-
-  useEffect(() => {
-    const node = scrollRef.current;
-    if (!node) return;
-    node.scrollTop = node.scrollHeight;
-  }, [messages, streamingText, open]);
-
-  useEffect(() => {
-    if (!open) {
-      abortRef.current?.abort();
-      abortRef.current = null;
-    }
-  }, [open]);
-
-  const todaysThreads = useMemo(
-    () => threads.filter((t) => isToday(t.updatedAt)),
-    [threads],
-  );
-  const earlierThreads = useMemo(
-    () => threads.filter((t) => !isToday(t.updatedAt)),
-    [threads],
-  );
-
-  const persist = useCallback((next: AskAiStoredThread) => {
-    setThreads((prev) => {
-      const merged = upsertThread(prev, next);
-      saveThreads(merged);
-      return merged;
-    });
-  }, []);
-
-  const startNewThread = useCallback(() => {
-    abortRef.current?.abort();
-    abortRef.current = null;
-    setActiveThreadId(null);
-    setMessages([]);
-    setStreamingText("");
-    setError(null);
-    setSubmitting(false);
-  }, []);
-
-  const selectThread = useCallback(
-    (threadId: string) => {
-      const thread = threads.find((t) => t.id === threadId);
-      if (!thread) return;
-      abortRef.current?.abort();
-      abortRef.current = null;
-      setActiveThreadId(threadId);
-      setMessages(thread.messages);
-      setStreamingText("");
-      setError(null);
-      setSubmitting(false);
-    },
-    [threads],
-  );
-
-  const handleStop = useCallback(() => {
-    abortRef.current?.abort();
-    abortRef.current = null;
-  }, []);
-
-  const handleSubmit = useCallback(
-    async (value: string) => {
-      if (submitting) return;
-      const userMessage: AskAiStoredMessage = {
-        id: createId("u"),
-        author: "user",
-        content: value,
-        createdAt: Date.now(),
-      };
-      const baseMessages = [...messages, userMessage];
-      setMessages(baseMessages);
-      setStreamingText("");
-      setError(null);
-      setSubmitting(true);
-
-      const controller = new AbortController();
-      abortRef.current = controller;
-
-      const threadId = activeThreadId ?? createId("t");
-      const isNewThread = activeThreadId === null;
-      if (isNewThread) setActiveThreadId(threadId);
-
-      let assistantText = "";
-      try {
-        await streamAskAi({
-          prompt: value,
-          history: messages.map((m) => ({
-            role: m.author,
-            content: m.content,
-          })),
-          scope,
-          signal: controller.signal,
-          onDelta: (delta) => {
-            assistantText += delta;
-            setStreamingText(assistantText);
-          },
-        });
-      } catch (err) {
-        if (controller.signal.aborted) {
-          // user-initiated stop — keep partial output if any
-        } else {
-          const message =
-            err instanceof AskAiError
-              ? err.message
-              : "We couldn't reach the assistant. Please try again.";
-          setError(message);
-        }
-      } finally {
-        if (abortRef.current === controller) abortRef.current = null;
-      }
-
-      const finalMessages: AskAiStoredMessage[] = assistantText
-        ? [
-            ...baseMessages,
-            {
-              id: createId("a"),
-              author: "assistant",
-              content: assistantText,
-              createdAt: Date.now(),
-            },
-          ]
-        : baseMessages;
-
-      setMessages(finalMessages);
-      setStreamingText("");
-      setSubmitting(false);
-
-      const now = Date.now();
-      const existing = threads.find((t) => t.id === threadId);
-      persist({
-        id: threadId,
-        title: existing?.title ?? deriveTitle(value),
-        scopeLabel: scope?.label ?? existing?.scopeLabel ?? null,
-        createdAt: existing?.createdAt ?? now,
-        updatedAt: now,
-        messages: finalMessages,
-      });
-    },
-    [activeThreadId, messages, persist, scope, submitting, threads],
-  );
-
-  const scopeChipClass =
-    "inline-flex max-w-full items-center gap-1.5 rounded-full border border-accent/20 bg-accent/5 px-2.5 py-1 text-[var(--fs-xs)] font-medium text-foreground";
+  const overlay = useAskAiOverlay();
 
   const scopeChip = (
-    <span className={scopeChipClass}>
+    <span className="inline-flex max-w-full items-center gap-1.5 rounded-full border border-accent/20 bg-accent/5 px-2.5 py-1 text-[var(--fs-xs)] font-medium text-foreground">
       <Sparkles aria-hidden className="size-3 shrink-0 text-primary" />
-      <span className="truncate">{scope?.label ?? "Clinic-wide"}</span>
+      <span className="truncate">{overlay.scopeLabel}</span>
     </span>
   );
 
   return (
     <Dialog
-      open={open}
-      onOpenChange={(next) => (next ? openOverlay() : closeOverlay())}
+      open={overlay.open}
+      onOpenChange={(next) =>
+        next ? overlay.openOverlay() : overlay.closeOverlay()
+      }
     >
       <DialogContent
         showCloseButton
@@ -260,7 +55,7 @@ export function AskAiOverlay() {
               variant="outline"
               size="sm"
               className="justify-start gap-2"
-              onClick={startNewThread}
+              onClick={overlay.startNewThread}
             >
               <Plus aria-hidden className="size-3.5" />
               New thread
@@ -268,27 +63,27 @@ export function AskAiOverlay() {
             <div className="flex min-h-0 flex-1 flex-col gap-3 overflow-y-auto pr-1">
               <ThreadGroup
                 label="Today"
-                threads={todaysThreads}
-                activeId={activeThreadId}
-                onSelect={selectThread}
+                threads={overlay.todaysThreads}
+                activeId={overlay.activeThreadId}
+                onSelect={overlay.selectThread}
                 emptyHint="Nothing from today yet."
               />
-              {earlierThreads.length > 0 ? (
+              {overlay.earlierThreads.length > 0 ? (
                 <ThreadGroup
                   label="Earlier"
-                  threads={earlierThreads}
-                  activeId={activeThreadId}
-                  onSelect={selectThread}
+                  threads={overlay.earlierThreads}
+                  activeId={overlay.activeThreadId}
+                  onSelect={overlay.selectThread}
                 />
               ) : null}
             </div>
           </aside>
           <section className="flex min-h-0 flex-1 flex-col bg-background">
             <div
-              ref={scrollRef}
+              ref={overlay.scrollRef}
               className="min-h-0 flex-1 overflow-y-auto px-4 py-6 sm:px-6"
             >
-              {messages.length === 0 && !streamingText ? (
+              {overlay.messages.length === 0 && !overlay.streamingText ? (
                 <EmptyState
                   icon={Sparkles}
                   title="What should we look at?"
@@ -300,38 +95,38 @@ export function AskAiOverlay() {
                   className="flex w-full flex-col gap-2.5"
                   aria-label="Conversation"
                   aria-live="polite"
-                  aria-busy={submitting}
+                  aria-busy={overlay.submitting}
                 >
-                  {messages.map((message) => (
+                  {overlay.messages.map((message) => (
                     <MessageBubble key={message.id} message={message} />
                   ))}
-                  {streamingText ? (
+                  {overlay.streamingText ? (
                     <li
                       className={cn(
                         "max-w-[min(100%,28rem)] self-start whitespace-pre-wrap rounded-2xl rounded-bl-md border border-border/60 bg-muted/40 px-3.5 py-2.5 text-[var(--fs-sm)] leading-relaxed text-foreground",
                       )}
                     >
-                      {streamingText}
+                      {overlay.streamingText}
                       <span
                         className="ml-1 inline-block size-1.5 rounded-full bg-primary align-middle"
                         aria-hidden
                       />
                     </li>
                   ) : null}
-                  {submitting && !streamingText ? (
+                  {overlay.submitting && !overlay.streamingText ? (
                     <li className="self-start text-[var(--fs-xs)] text-muted-foreground">
                       Thinking…
                     </li>
                   ) : null}
                 </ol>
               )}
-              {error ? (
+              {overlay.error ? (
                 <div
                   role="alert"
                   className="mt-4 flex items-start gap-2 rounded-lg border border-destructive/30 bg-destructive/5 px-3 py-2 text-[var(--fs-xs)] text-destructive"
                 >
                   <AlertCircle aria-hidden className="mt-0.5 size-3.5 shrink-0" />
-                  <span>{error}</span>
+                  <span>{overlay.error}</span>
                 </div>
               ) : null}
             </div>
@@ -339,20 +134,20 @@ export function AskAiOverlay() {
               <div className="flex items-end gap-2">
                 <PromptInput
                   className="flex-1 gap-1.5"
-                  onSubmitPrompt={handleSubmit}
-                  submitting={submitting}
+                  onSubmitPrompt={overlay.handleSubmit}
+                  submitting={overlay.submitting}
                   scopeChip={scopeChip}
                   placeholder="Enter your question about patients, visits, or follow-ups"
                   aria-label="Ask AI prompt"
                   autoFocus
                 />
-                {submitting ? (
+                {overlay.submitting ? (
                   <Button
                     type="button"
                     variant="outline"
                     size="icon"
                     className="size-9 shrink-0 rounded-full"
-                    onClick={handleStop}
+                    onClick={overlay.handleStop}
                     aria-label="Stop generating"
                   >
                     <Square className="size-3.5" aria-hidden />
@@ -374,4 +169,3 @@ export function AskAiOverlay() {
     </Dialog>
   );
 }
-
