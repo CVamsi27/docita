@@ -1,295 +1,20 @@
 "use client";
 
-import { useEffect, useState } from "react";
-import { useRouter } from "next/navigation";
-import { useAuth, type User } from "@/lib/auth/auth-context";
-import { formatLoginLockoutMessage } from "@/lib/auth/auth-lockout";
-import { ApiValidationError } from "@/lib/api/api-error";
-import { checkEmailSchema, passwordSchema, type UserRole } from "@workspace/types";
-import { getUserFacingErrorMessage } from "@workspace/utils";
-import { parseUserRole } from "@/lib/access-control/parse-user-role";
-
-const ROLES_LAND_ON_CONSULTATION = new Set<UserRole>(["DOCTOR", "ADMIN_DOCTOR"]);
 import { PageTransitionLoader } from "@/components/loaders/page-transition-loader";
 import { AuthEmailStepUI } from "./AuthEmailStepUI";
 import { AuthLoginStepUI } from "./AuthLoginStepUI";
 import { AuthSignupStepUI } from "./AuthSignupStepUI";
 import { PreDashboardShell } from "./PreDashboardShell";
-import type { AuthStep, FieldErrors } from "@/features/auth/types/auth";
-import { sanitizeAppReturnPath } from "@/lib/auth/safe-return-path";
-import { APP_REDIRECT_AFTER_LOGIN_KEY } from "@/lib/auth/session";
-
-const STEP_TITLES: Record<AuthStep, string> = {
-  email: "Welcome to Docita",
-  login: "Welcome back",
-  signup: "Create your account",
-};
-
-const STEP_DESCRIPTIONS: Record<AuthStep, string> = {
-  email: "Use your work email to sign in or create an account",
-  login: "Sign in to your workspace",
-  signup: "Get started with Docita",
-};
-
-function getPostAuthPath(user: User): string {
-  if (user.emailVerified === false) {
-    return "/verify-email-sent";
-  }
-
-  if (!user.clinicId) {
-    switch (user.onboardingStep) {
-      case "JOINING_CLINIC":
-        return "/join-request-status";
-      case "CREATING_CLINIC":
-        return "/onboarding";
-      case "CHOOSE_PATH":
-      case "NOT_STARTED":
-      default:
-        return "/choose-path";
-    }
-  }
-
-  if (ROLES_LAND_ON_CONSULTATION.has(parseUserRole(user.role))) {
-    return "/consultation";
-  }
-
-  return "/today";
-}
-
-function getAuthenticatedLandingPath(user: User): string {
-  const fallback = getPostAuthPath(user);
-
-  if (user.emailVerified === false || !user.clinicId) {
-    return fallback;
-  }
-
-  if (typeof window === "undefined") {
-    return fallback;
-  }
-
-  const stored = sessionStorage.getItem(APP_REDIRECT_AFTER_LOGIN_KEY);
-  sessionStorage.removeItem(APP_REDIRECT_AFTER_LOGIN_KEY);
-  const safe = sanitizeAppReturnPath(stored);
-  return safe ?? fallback;
-}
+import {
+  AUTH_STEP_DESCRIPTIONS,
+  AUTH_STEP_TITLES,
+} from "@/features/auth/lib/auth-page-copy";
+import { useAuthPageContainer } from "@/features/auth/hooks/use-auth-page-container";
 
 export function AuthPageContainer() {
-  const [step, setStep] = useState<AuthStep>("email");
-  const [email, setEmail] = useState("");
-  const [password, setPassword] = useState("");
-  const [confirmPassword, setConfirmPassword] = useState("");
-  const [firstName, setFirstName] = useState("");
-  const [lastName, setLastName] = useState("");
-  const [ownerRole, setOwnerRole] = useState<"ADMIN" | "ADMIN_DOCTOR" | null>(
-    null,
-  );
-  const [showPassword, setShowPassword] = useState(false);
-  const [error, setError] = useState("");
-  const [fieldErrors, setFieldErrors] = useState<FieldErrors>({});
-  const [loading, setLoading] = useState(false);
-  const [isRedirecting, setIsRedirecting] = useState(false);
-  const router = useRouter();
-  const {
-    user,
-    isAuthenticated,
-    login,
-    register,
-    checkEmail,
-    isLoginLocked,
-    loginLockoutUntil,
-  } = useAuth();
+  const auth = useAuthPageContainer();
 
-  useEffect(() => {
-    if (!isAuthenticated || !user) {
-      return;
-    }
-
-    setIsRedirecting(true);
-    router.replace(getAuthenticatedLandingPath(user));
-  }, [isAuthenticated, router, user]);
-
-  const lockoutMessage = isLoginLocked
-    ? formatLoginLockoutMessage(loginLockoutUntil ?? 0)
-    : "";
-  const contentAlignment = step === "signup" ? "start" : "center";
-
-  const resetErrors = () => {
-    setError("");
-    setFieldErrors({});
-  };
-
-  const clearFieldError = (field: string) => {
-    setFieldErrors((prev) => {
-      if (!prev[field]) {
-        return prev;
-      }
-
-      const next = { ...prev };
-      delete next[field];
-      return next;
-    });
-  };
-
-  const handleOwnerRoleChange = (value: "ADMIN" | "ADMIN_DOCTOR") => {
-    setOwnerRole(value);
-    clearFieldError("ownerRole");
-  };
-
-  const handlePasswordChange = (value: string) => {
-    setPassword(value);
-    clearFieldError("password");
-    clearFieldError("confirmPassword");
-  };
-
-  const handleConfirmPasswordChange = (value: string) => {
-    setConfirmPassword(value);
-    clearFieldError("confirmPassword");
-  };
-
-  const handleCatchError = (err: unknown, fallback: string) => {
-    if (err instanceof ApiValidationError && err.hasFieldErrors) {
-      setFieldErrors(err.fieldErrors);
-      setError(
-        getUserFacingErrorMessage(err, {
-          fallback,
-          context: "form",
-        }),
-      );
-      return;
-    }
-
-    setError(
-      getUserFacingErrorMessage(err, {
-        fallback,
-        context: "auth",
-      }),
-    );
-  };
-
-  const handleEmailSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
-    e.preventDefault();
-    resetErrors();
-
-    const normalizedEmail = email.trim();
-    const validation = checkEmailSchema.safeParse({ email: normalizedEmail });
-    if (!validation.success) {
-      const emailIssue = validation.error.issues.find(
-        (issue) => issue.path[0] === "email",
-      );
-      setFieldErrors({
-        email: emailIssue?.message ?? "Please enter a valid email address",
-      });
-      return;
-    }
-
-    setLoading(true);
-    setEmail(normalizedEmail);
-
-    try {
-      const exists = await checkEmail(normalizedEmail);
-      setStep(exists ? "login" : "signup");
-    } catch (err) {
-      handleCatchError(
-        err,
-        "We could not check this email right now. Please try again.",
-      );
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const handleLoginSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
-    e.preventDefault();
-    resetErrors();
-    setLoading(true);
-
-    try {
-      await login(email, password);
-    } catch (err) {
-      handleCatchError(
-        err,
-        "We could not sign you in right now. Please try again.",
-      );
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const handleSignupSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
-    e.preventDefault();
-    resetErrors();
-
-    const nextFieldErrors: FieldErrors = {};
-
-    if (!password.trim()) {
-      nextFieldErrors.password = "Enter password";
-    } else {
-      const passwordValidation = passwordSchema.safeParse(password);
-      if (!passwordValidation.success) {
-        const firstIssue = passwordValidation.error.issues[0];
-        nextFieldErrors.password =
-          firstIssue?.message ?? "Enter a valid password";
-      }
-    }
-
-    if (!confirmPassword) {
-      nextFieldErrors.confirmPassword = "Confirm password";
-    } else if (password !== confirmPassword) {
-      nextFieldErrors.confirmPassword = "Passwords do not match";
-    }
-
-    if (!ownerRole) {
-      nextFieldErrors.ownerRole = "Choose how you will use this owner account";
-    }
-
-    if (Object.keys(nextFieldErrors).length > 0) {
-      setFieldErrors(nextFieldErrors);
-      return;
-    }
-
-    setLoading(true);
-
-    try {
-      await register(
-        email,
-        password,
-        firstName,
-        lastName,
-        ownerRole ?? undefined,
-        undefined,
-      );
-    } catch (err) {
-      handleCatchError(
-        err,
-        "We could not finish creating your account. Please try again.",
-      );
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const handleForgotPassword = () => {
-    const normalizedEmail = email.trim();
-    router.push(
-      normalizedEmail
-        ? `/forgot-password?email=${encodeURIComponent(normalizedEmail)}`
-        : "/forgot-password",
-    );
-  };
-
-  const handleBack = () => {
-    setStep("email");
-    setPassword("");
-    setConfirmPassword("");
-    setFirstName("");
-    setLastName("");
-    setOwnerRole(null);
-    resetErrors();
-  };
-
-  const contentMaxWidth = step === "signup" ? "max-w-3xl" : "max-w-md";
-
-  if (isRedirecting) {
+  if (auth.isRedirecting) {
     return (
       <PageTransitionLoader
         title="Redirecting…"
@@ -300,75 +25,70 @@ export function AuthPageContainer() {
 
   return (
     <PreDashboardShell
-      currentStep={step}
-      contentMaxWidth={contentMaxWidth}
-      contentAlignment={contentAlignment}
+      currentStep={auth.step}
+      contentMaxWidth={auth.contentMaxWidth}
+      contentAlignment={auth.contentAlignment}
       showBrandingPanel
-      showProgress={step === "signup"}
+      showProgress={auth.step === "signup"}
     >
-      <div
-        className={[
-          "ui-copy-stack",
-          step === "signup" ? "text-center lg:text-left" : "text-center",
-        ].join(" ")}
-      >
-        <h1 className="ui-page-title">{STEP_TITLES[step]}</h1>
+      <div className={["ui-copy-stack", auth.copyAlignment].join(" ")}>
+        <h1 className="ui-page-title">{AUTH_STEP_TITLES[auth.step]}</h1>
         <p className="ui-page-subtitle">
-          {STEP_DESCRIPTIONS[step]}
+          {AUTH_STEP_DESCRIPTIONS[auth.step]}
         </p>
       </div>
 
       <div className="ui-card-surface p-6 sm:p-8">
-        <div key={step}>
-          {step === "email" && (
+        <div key={auth.step}>
+          {auth.step === "email" && (
             <AuthEmailStepUI
-              email={email}
-              fieldErrors={fieldErrors}
-              loading={loading}
-              error={error}
-              onChangeEmail={setEmail}
-              onSubmit={handleEmailSubmit}
+              email={auth.email}
+              fieldErrors={auth.fieldErrors}
+              loading={auth.loading}
+              error={auth.error}
+              onChangeEmail={auth.setEmail}
+              onSubmit={auth.handleEmailSubmit}
             />
           )}
 
-          {step === "login" && (
+          {auth.step === "login" && (
             <AuthLoginStepUI
-              email={email}
-              password={password}
-              showPassword={showPassword}
-              fieldErrors={fieldErrors}
-              loading={loading}
-              error={error}
-              isLocked={isLoginLocked}
-              lockoutMessage={lockoutMessage}
-              onBack={handleBack}
-              onChangePassword={setPassword}
-              onTogglePassword={() => setShowPassword((prev) => !prev)}
-              onSubmit={handleLoginSubmit}
-              onForgotPassword={handleForgotPassword}
+              email={auth.email}
+              password={auth.password}
+              showPassword={auth.showPassword}
+              fieldErrors={auth.fieldErrors}
+              loading={auth.loading}
+              error={auth.error}
+              isLocked={auth.isLoginLocked}
+              lockoutMessage={auth.lockoutMessage}
+              onBack={auth.handleBack}
+              onChangePassword={auth.setPassword}
+              onTogglePassword={() => auth.setShowPassword((prev) => !prev)}
+              onSubmit={auth.handleLoginSubmit}
+              onForgotPassword={auth.handleForgotPassword}
             />
           )}
 
-          {step === "signup" && (
+          {auth.step === "signup" && (
             <AuthSignupStepUI
-              email={email}
-              firstName={firstName}
-              lastName={lastName}
-              password={password}
-              confirmPassword={confirmPassword}
-              ownerRole={ownerRole}
-              showPassword={showPassword}
-              fieldErrors={fieldErrors}
-              loading={loading}
-              error={error}
-              onBack={handleBack}
-              onChangeFirstName={setFirstName}
-              onChangeLastName={setLastName}
-              onChangePassword={handlePasswordChange}
-              onChangeConfirmPassword={handleConfirmPasswordChange}
-              onChangeOwnerRole={handleOwnerRoleChange}
-              onTogglePassword={() => setShowPassword((prev) => !prev)}
-              onSubmit={handleSignupSubmit}
+              email={auth.email}
+              firstName={auth.firstName}
+              lastName={auth.lastName}
+              password={auth.password}
+              confirmPassword={auth.confirmPassword}
+              ownerRole={auth.ownerRole}
+              showPassword={auth.showPassword}
+              fieldErrors={auth.fieldErrors}
+              loading={auth.loading}
+              error={auth.error}
+              onBack={auth.handleBack}
+              onChangeFirstName={auth.setFirstName}
+              onChangeLastName={auth.setLastName}
+              onChangePassword={auth.handlePasswordChange}
+              onChangeConfirmPassword={auth.handleConfirmPasswordChange}
+              onChangeOwnerRole={auth.handleOwnerRoleChange}
+              onTogglePassword={() => auth.setShowPassword((prev) => !prev)}
+              onSubmit={auth.handleSignupSubmit}
             />
           )}
         </div>
