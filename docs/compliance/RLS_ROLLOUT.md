@@ -5,6 +5,7 @@
 - Migration: `20260502143500_add_rls_policies` (additive, gated)
 - Application flag: `RLS_ENABLED` (defaults to `false`)
 - Application surface: `RlsService.runScopedTransaction(clinicId, fn)`
+- CI guard: `pnpm check:rls-rollout-readiness` (migration + service + env docs)
 
 The migration is safe to deploy at any time because the `tenant_isolation`
 policy is short-circuited until the `app.rls_enabled` Postgres setting is
