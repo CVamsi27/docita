@@ -12,7 +12,7 @@ import {
 import { DataState } from "@workspace/ui/components/data-display/data-state";
 import { StatusBadge } from "@workspace/ui/components/indicators/status-badge";
 import { CreditCard } from "lucide-react";
-import { useInvoicePaymentActivity } from "@/hooks/api/use-billing";
+import { useInvoicePaymentActivity } from "@workspace/data-access";
 import type { InvoicePaymentActivityItem } from "@workspace/types";
 
 function formatProviderLabel(provider: string): string {

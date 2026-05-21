@@ -9,7 +9,9 @@ import {
   getAllFeaturesUpToTier,
   getFeaturesForTier,
   hasFeatureAccess,
+  meetsMinimumTier,
 } from "../src/billing/tier-rules";
+import { Tier } from "@workspace/types";
 
 const BILLABLE_PLAN_SKUS = [
   "STARTER",
@@ -38,6 +40,15 @@ describe("tier plan feature access parity", () => {
       expect(getAllFeaturesUpToTier(sku)).toEqual(expected);
       expect(getFeaturesForTier(sku)).toEqual(getAllFeaturesUpToTier(sku));
     }
+  });
+
+  it("meetsMinimumTier aligns with billed SKUs for PROFESSIONAL floor", () => {
+    expect(meetsMinimumTier("STARTER", Tier.PROFESSIONAL, false)).toBe(false);
+    expect(meetsMinimumTier("PROFESSIONAL", Tier.PROFESSIONAL, false)).toBe(
+      true,
+    );
+    expect(meetsMinimumTier("HOSPITAL", Tier.ESSENTIAL, false)).toBe(true);
+    expect(meetsMinimumTier("FRONT_DESK", Tier.FRONT_DESK, false)).toBe(true);
   });
 
   it("includes Starter-era GA clinical basics on ESSENTIAL (cumulative access)", () => {

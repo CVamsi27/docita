@@ -15,8 +15,6 @@ import {
   AUTH_RESPONSE_ERROR_MESSAGE,
   clearLegacyUserStorage,
   extractAuthPayload,
-  isAuthFailure,
-  isPublicAuthPath,
   parseValidatedUser,
   persistVerificationEmailStatus,
   type User,
@@ -29,8 +27,14 @@ import {
   readLoginLockoutUntil,
 } from "./auth-lockout";
 import { clearStoredReturnPathBeforeLogin } from "./safe-return-path";
+import {
+  routeUserAfterLogin,
+  routeUserAfterRegister,
+} from "./auth-post-login-routing";
 import { appSession } from "./session";
+import { useAuthIdleLogout } from "./use-auth-idle-logout";
 import { useAuthMutations } from "./use-auth-mutations";
+import { useAuthSessionBootstrap } from "./use-auth-session-bootstrap";
 
 export function useAuthProviderValue(): AuthContextType {
   const [user, setUser] = useState<User | null>(null);
@@ -47,7 +51,6 @@ export function useAuthProviderValue(): AuthContextType {
   const pathname = usePathname();
   const { setUserRole } = usePermissionStore();
   const hasSetRoleRef = useRef(false);
-  const hasInitializedSessionRef = useRef(false);
   const {
     validateAuth,
     loginMutation,
@@ -102,90 +105,16 @@ export function useAuthProviderValue(): AuthContextType {
     return refreshed;
   }, [persistToken]);
 
-  useEffect(() => {
-    if (hasInitializedSessionRef.current) {
-      return;
-    }
-    hasInitializedSessionRef.current = true;
-
-    const persistedLockoutUntil = readLoginLockoutUntil();
-    clearLegacyUserStorage();
-    if (persistedLockoutUntil) {
-      setLoginLockoutUntil(persistedLockoutUntil);
-    }
-
-    if (!appSession.getToken()) {
-      setIsLoading(false);
-      return;
-    }
-
-    const validateSession = async () => {
-      try {
-        const userData = parseValidatedUser(await validateAuth(undefined));
-        if (userData) {
-          setUser(userData);
-          setUserRole(userData.role);
-          hasSetRoleRef.current = true;
-          if (!appSession.getToken()) {
-            await refreshAccessToken();
-          }
-          return;
-        }
-      } catch (error) {
-        if (!isAuthFailure(error)) {
-          return;
-        }
-
-        if (isPublicAuthPath(pathname)) {
-          clearSession();
-          return;
-        }
-
-        const refreshed = await refreshAccessToken();
-        if (!refreshed) {
-          clearSession();
-          return;
-        }
-
-        try {
-          const retryUser = parseValidatedUser(await validateAuth(undefined));
-          if (retryUser) {
-            setUser(retryUser);
-            setUserRole(retryUser.role);
-            hasSetRoleRef.current = true;
-            return;
-          }
-          clearSession();
-        } catch (retryError) {
-          if (isAuthFailure(retryError)) {
-            clearSession();
-          }
-        }
-      } finally {
-        setIsLoading(false);
-      }
-    };
-
-    void validateSession();
-  }, [clearSession, pathname, refreshAccessToken, setUserRole, validateAuth]);
-
-  useEffect(() => {
-    if (typeof window === "undefined") return;
-
-    const handler = (e: StorageEvent) => {
-      try {
-        if (e.key === "docita_token" && !e.newValue) {
-          setUser(null);
-          setUserRole("");
-        }
-      } catch {
-        // ignore malformed storage entries
-      }
-    };
-
-    window.addEventListener("storage", handler);
-    return () => window.removeEventListener("storage", handler);
-  }, [setUserRole]);
+  useAuthSessionBootstrap({
+    validateAuth,
+    refreshAccessToken,
+    clearSession,
+    setUser,
+    setUserRole,
+    setIsLoading,
+    setLoginLockoutUntil,
+    hasSetRoleRef,
+  });
 
   const refreshUser = useCallback(async (): Promise<User | null> => {
     try {
@@ -261,27 +190,7 @@ export function useAuthProviderValue(): AuthContextType {
       setLoginLockoutUntil(null);
       persistLoginLockoutUntil(null);
 
-      if (userData.emailVerified === false) {
-        persistVerificationEmailStatus("pending");
-        router.push("/verify-email-sent");
-        return;
-      }
-
-      persistVerificationEmailStatus(null);
-      if (!userData.clinicId) {
-        switch (userData.onboardingStep) {
-          case "JOINING_CLINIC":
-            router.push("/join-request-status");
-            break;
-          case "CREATING_CLINIC":
-            router.push("/onboarding");
-            break;
-          case "CHOOSE_PATH":
-          case "NOT_STARTED":
-          default:
-            router.push("/choose-path");
-        }
-      }
+      routeUserAfterLogin(userData, router);
     } catch (error) {
       const status = isRecord(error) ? Number(error.status) : undefined;
       const data = isRecord(error) ? error.data : null;
@@ -363,21 +272,7 @@ export function useAuthProviderValue(): AuthContextType {
     setUser(userData);
     setUserRole(userData.role);
 
-    if (userData.emailVerified === false) {
-      persistVerificationEmailStatus(
-        verificationEmailSent === false ? "failed" : "pending",
-      );
-      router.push("/verify-email-sent");
-      return;
-    }
-
-    persistVerificationEmailStatus(null);
-    if (!userData.clinicId) {
-      router.push("/choose-path");
-      return;
-    }
-
-    router.push("/dashboard");
+    routeUserAfterRegister(userData, router, verificationEmailSent);
   };
 
   const logout = useCallback(
@@ -400,61 +295,7 @@ export function useAuthProviderValue(): AuthContextType {
     [clearSession, logoutMutation, router],
   );
 
-  useEffect(() => {
-    if (!isAuthenticated) return;
-
-    let timeoutId: NodeJS.Timeout;
-    let deadlineMs = 0;
-
-    const MAX_TIMEOUT_MS = 2_147_483_647;
-
-    const scheduleLogout = () => {
-      if (!deadlineMs) return;
-      if (timeoutId) clearTimeout(timeoutId);
-      const remaining = deadlineMs - Date.now();
-      const nextDelay = Math.min(Math.max(remaining, 0), MAX_TIMEOUT_MS);
-
-      timeoutId = setTimeout(() => {
-        const stillRemaining = deadlineMs - Date.now();
-        if (stillRemaining > 0) {
-          scheduleLogout();
-          return;
-        }
-        const isPublicRoute =
-          !!pathname &&
-          typeof appSession.isPublicPath === "function" &&
-          appSession.isPublicPath(pathname);
-        void logout({ redirect: !isPublicRoute });
-      }, nextDelay);
-    };
-
-    const resetTimer = () => {
-      if (timeoutId) clearTimeout(timeoutId);
-      deadlineMs = Date.now() + 30 * 24 * 60 * 60 * 1000;
-      scheduleLogout();
-    };
-
-    const events = [
-      "mousedown",
-      "mousemove",
-      "keypress",
-      "scroll",
-      "touchstart",
-    ];
-
-    resetTimer();
-
-    events.forEach((event) => {
-      window.addEventListener(event, resetTimer);
-    });
-
-    return () => {
-      if (timeoutId) clearTimeout(timeoutId);
-      events.forEach((event) => {
-        window.removeEventListener(event, resetTimer);
-      });
-    };
-  }, [isAuthenticated, logout, pathname]);
+  useAuthIdleLogout({ isAuthenticated, pathname, logout, router });
 
   return {
     user,

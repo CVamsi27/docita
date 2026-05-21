@@ -8,7 +8,7 @@ import {
   useConsultationAutosaveUpdateAppointment,
   useSyncDiagnoses,
 } from "@workspace/data-access";
-import { useCreatePrescription } from "@/hooks/api/use-clinical";
+import { useCreatePrescription } from "@workspace/data-access";
 import { logger } from "@/lib/monitoring/logger";
 import { showUserFacingErrorToast } from "@/lib/errors/user-facing-errors";
 import {

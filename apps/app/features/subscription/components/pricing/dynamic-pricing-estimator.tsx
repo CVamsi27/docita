@@ -42,7 +42,7 @@ import {
   type EstimateUsageInputs,
   useEstimate,
   usePricingConfig,
-} from "@/hooks/api/use-pricing";
+} from "@/features/subscription/hooks/use-pricing";
 
 function EstimateRow({
   label,

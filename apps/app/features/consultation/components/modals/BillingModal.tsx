@@ -24,7 +24,7 @@ import { formatCurrency, parseStringEnumMember } from "@workspace/utils";
 
 const BILLING_DISCOUNT_TYPE_VALUES = ["PERCENTAGE", "AMOUNT"] as const;
 import { toast } from "sonner";
-import { useCreateInvoice } from "@/hooks/api/use-billing";
+import { useCreateInvoice } from "@workspace/data-access";
 import { useLocaleCurrency } from "@/hooks/use-locale-currency";
 import { CreditCard } from "lucide-react";
 import { ModalProps } from "./PrescriptionModal";

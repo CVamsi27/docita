@@ -2,7 +2,7 @@ import { useCallback, useState } from "react";
 import { useFieldArray, useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { toast } from "sonner";
-import { useCreateInvoice } from "@/hooks/api/use-billing";
+import { useCreateInvoice } from "@workspace/data-access";
 import { usePatients } from "@workspace/data-access";
 import { useRouter } from "next/navigation";
 import {

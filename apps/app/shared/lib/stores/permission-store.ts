@@ -5,7 +5,6 @@ import {
   clinicTypeSchema,
   Feature,
   FEATURE_TIER_MAP,
-  FRONT_DESK_BLOCKED_FEATURES,
   mapClinicTierDbStringToAccessTier,
   Tier,
   TIER_INFO,
@@ -16,6 +15,7 @@ import {
 } from "@workspace/types";
 import {
   getTierName,
+  hasFeatureAccess,
   isFeatureGenerallyAvailable,
   isRecord,
 } from "@workspace/utils";
@@ -155,20 +155,8 @@ export const usePermissionStore = create<PermissionState>((set, get) => ({
       return featureOverrides[feature];
     }
 
-    const requiredTier = FEATURE_TIER_MAP[feature];
-
-    if (requiredTier === Tier.INTELLIGENCE) {
-      return hasIntelligence;
-    }
-
-    if (currentTier === Tier.FRONT_DESK) {
-      if (FRONT_DESK_BLOCKED_FEATURES.has(feature)) {
-        return false;
-      }
-      return Tier.ESSENTIAL >= requiredTier;
-    }
-
-    return currentTier >= requiredTier;
+    const tierName = getTierName(currentTier);
+    return hasFeatureAccess(tierName, feature, hasIntelligence);
   },
 
   canAccessClinicFeature: (feature) => {

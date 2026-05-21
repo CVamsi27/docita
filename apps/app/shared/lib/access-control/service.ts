@@ -1,5 +1,10 @@
 import { FEATURE_TIER_MAP, Tier, TIER_PRICING } from "@workspace/types";
-import { DEFAULT_CURRENCY, getTierInfo, getTierName } from "@workspace/utils";
+import {
+  DEFAULT_CURRENCY,
+  getTierInfo,
+  getTierName,
+  meetsMinimumTier,
+} from "@workspace/utils";
 import {
   AddOnType,
   type IAccessContext,
@@ -167,14 +172,19 @@ export class AccessControlService implements IAccessControlService {
           ? "WhatsApp Integration"
           : "Intelligence";
 
-      const currentTier = context.subscription.tier;
+      const tierName = getTierName(context.subscription.tier);
+      const atProfessionalOrAbove = meetsMinimumTier(
+        tierName,
+        Tier.PROFESSIONAL,
+        false,
+      );
 
       const addOnPrice =
         addOnType === AddOnType.WHATSAPP
-          ? currentTier >= Tier.PROFESSIONAL
+          ? atProfessionalOrAbove
             ? 1499
             : 799
-          : currentTier >= Tier.PROFESSIONAL
+          : atProfessionalOrAbove
             ? 3499
             : 1999;
 

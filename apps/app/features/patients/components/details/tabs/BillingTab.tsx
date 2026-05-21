@@ -13,7 +13,7 @@ import { DataState } from "@workspace/ui/components/data-display/data-state";
 import { ExternalLink, Receipt } from "lucide-react";
 import { humanizeUiLabel } from "@workspace/ui/lib/label-formatters";
 import { formatCurrency, formatDate } from "@workspace/utils";
-import { useInvoices } from "@/hooks/api/use-billing";
+import { useInvoices } from "@workspace/data-access";
 
 interface BillingTabProps {
   patientId: string;

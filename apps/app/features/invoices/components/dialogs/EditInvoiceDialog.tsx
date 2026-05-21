@@ -2,7 +2,7 @@
 
 import { useRef, useState } from "react";
 import { toast } from "sonner";
-import { useUpdateInvoice } from "@/hooks/api/use-billing";
+import { useUpdateInvoice } from "@workspace/data-access";
 import { useFormOptions } from "@/lib/contexts/app-config-context";
 import { CRUDDialog } from "@workspace/ui/components/overlay/crud-dialog";
 import { Button } from "@workspace/ui/components/form/button";

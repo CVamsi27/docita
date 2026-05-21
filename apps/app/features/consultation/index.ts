@@ -18,5 +18,5 @@ export {
 export {
   CONSULTATION_LEAVE_GUARD_SKIP_ATTR,
   isSameConsultationAppointmentPathname,
-} from "./workspace/use-consultation-leave-navigation";
+} from "./workspace/consultation-leave-navigation-helpers";
 export { useConsultationDraft } from "./state/useConsultationDraft";

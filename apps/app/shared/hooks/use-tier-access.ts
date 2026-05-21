@@ -17,6 +17,11 @@ import {
   type SubscriptionCurrentResponse,
   type TierName,
 } from "@workspace/types";
+import {
+  getTierName,
+  hasFeatureAccess,
+  meetsMinimumTier,
+} from "@workspace/utils";
 import { useQuery } from "@tanstack/react-query";
 import { queryKeys } from "@workspace/data-access";
 
@@ -74,15 +79,21 @@ export function useTierAccess() {
   const hasIntelligence = false;
   const featureOverrides = useMemo<Record<string, boolean>>(() => ({}), []);
 
+  const tierNameForAccess = useMemo((): TierName => {
+    if (subscriptionHardLocked) {
+      return "STARTER";
+    }
+    return getTierName(currentTierValue);
+  }, [currentTierValue, subscriptionHardLocked]);
+
   const hasTier = useCallback(
     (requiredTier: Tier): boolean => {
       if (subscriptionHardLocked && requiredTier > Tier.STARTER) {
         return false;
       }
-      if (requiredTier === Tier.INTELLIGENCE) return hasIntelligence;
-      return currentTierValue >= requiredTier;
+      return meetsMinimumTier(tierNameForAccess, requiredTier, hasIntelligence);
     },
-    [currentTierValue, hasIntelligence, subscriptionHardLocked],
+    [tierNameForAccess, hasIntelligence, subscriptionHardLocked],
   );
 
   const hasFeature = useCallback(
@@ -91,16 +102,13 @@ export function useTierAccess() {
         return featureOverrides[feature];
       }
 
-      const requiredTier = FEATURE_TIER_MAP[feature];
-      if (requiredTier === undefined) return true;
-
-      if (subscriptionHardLocked && requiredTier > Tier.STARTER) {
-        return false;
+      if (subscriptionHardLocked) {
+        return hasFeatureAccess("STARTER", feature, hasIntelligence);
       }
-      if (requiredTier === Tier.INTELLIGENCE) return hasIntelligence;
-      return currentTierValue >= requiredTier;
+
+      return hasFeatureAccess(tierNameForAccess, feature, hasIntelligence);
     },
-    [currentTierValue, hasIntelligence, featureOverrides, subscriptionHardLocked],
+    [tierNameForAccess, hasIntelligence, featureOverrides, subscriptionHardLocked],
   );
 
   const getRequiredTier = useCallback((feature: Feature): string => {

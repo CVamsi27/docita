@@ -16,7 +16,7 @@ import { toast } from "sonner";
 import {
   useCreatePrescription,
   usePatientPrescriptions,
-} from "@/hooks/api/use-clinical";
+} from "@workspace/data-access";
 import { Pill, Plus, RotateCcw, X } from "lucide-react";
 import { ApiError } from "@/lib/errors";
 import { showUserFacingErrorToast } from "@/lib/errors/user-facing-errors";

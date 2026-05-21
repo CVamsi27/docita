@@ -1,7 +1,10 @@
 "use client";
 
 import { Check, Info, Minus } from "lucide-react";
-import { FEATURE_TIER_MAP } from "@/lib/subscription/tier-access";
+import {
+  getTierName,
+  hasFeatureAccess,
+} from "@/lib/subscription/tier-access";
 import { getFeatureDetails } from "@/features/subscription/config/feature-config";
 import {
   TableCell,
@@ -170,7 +173,6 @@ export function FeatureCategoryRows({
     <>
       <SectionHeader label={label} colSpan={tiers.length + 1} />
       {features.map((feature) => {
-        const requiredTier = FEATURE_TIER_MAP[feature];
         const details = getFeatureDetails(feature);
         return (
           <TableRow key={feature} className="hover:bg-muted/50">
@@ -205,7 +207,8 @@ export function FeatureCategoryRows({
             </TableCell>
             {tiers.map((tier) => {
               const hasAccess =
-                details.isGenerallyAvailable && tier >= requiredTier;
+                details.isGenerallyAvailable &&
+                hasFeatureAccess(getTierName(tier), feature, false);
               return (
                 <TableCell
                   key={tier}

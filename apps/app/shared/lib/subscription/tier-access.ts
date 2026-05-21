@@ -20,6 +20,7 @@ export {
   getFeaturesForTier,
   getIntelligenceBundlePrice,
   hasFeatureAccess,
+  meetsMinimumTier,
   isFeatureGenerallyAvailable,
   getTierValue,
   getTierName,

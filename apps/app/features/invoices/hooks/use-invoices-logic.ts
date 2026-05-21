@@ -1,5 +1,5 @@
 import { useMemo, useState } from "react";
-import { useInvoices } from "@/hooks/api/use-billing";
+import { useInvoices } from "@workspace/data-access";
 import { useDebounce } from "@workspace/hooks/use-debounce";
 import { toast } from "sonner";
 import { Invoice, ListInvoicesContractQuery } from "@workspace/types";

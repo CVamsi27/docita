@@ -10,8 +10,8 @@ vi.mock("next/navigation", () => ({
   }),
 }));
 
-vi.mock("@/hooks/api/use-billing", async (importOriginal) => {
-  const mod = await importOriginal<typeof import("@/hooks/api/use-billing")>();
+vi.mock("@workspace/data-access", async (importOriginal) => {
+  const mod = await importOriginal<typeof import("@workspace/data-access")>();
   return {
     ...mod,
     useInvoicePaymentActivity: () => ({

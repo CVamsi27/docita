@@ -18,7 +18,7 @@ import { Feature } from "@workspace/types";
 import { isRecord } from "@workspace/utils";
 import { FeatureGate } from "@/components/auth/feature-gate";
 import { useBackNavigation } from "@/hooks/use-back-navigation";
-import { usePrescription } from "@/hooks/api/use-clinical";
+import { usePrescription } from "@workspace/data-access";
 import { useAuth } from "@/lib/auth/auth-context";
 import { canCreatePrescription } from "@/lib/auth/permissions";
 import { useClinic } from "@/lib/contexts/clinic-context";

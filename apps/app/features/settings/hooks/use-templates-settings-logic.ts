@@ -4,7 +4,7 @@ import {
   useDeleteTemplate,
   useTemplates,
   useUpdateTemplate,
-} from "@/hooks/api/use-clinical";
+} from "@workspace/data-access";
 import { clinicalTemplateSchema, type ClinicalTemplate } from "@workspace/types";
 import { toast } from "sonner";
 import { showUserFacingErrorToast } from "@/lib/errors/user-facing-errors";

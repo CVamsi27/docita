@@ -111,7 +111,7 @@ function SidebarContent({
             aria-label="Expand sidebar"
           >
             {brandName ? (
-              <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-primary text-[10px] font-bold text-primary-foreground uppercase">
+              <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-primary text-[var(--fs-2xs)] font-bold text-primary-foreground uppercase">
                 {brandName.slice(0, 2)}
               </span>
             ) : (

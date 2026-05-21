@@ -11,7 +11,7 @@ import {
   useLabTestCatalog,
   useLabTestOrders,
   useLabTestStats,
-} from "@/hooks/api/use-clinical";
+} from "@workspace/data-access";
 import { usePatients } from "@workspace/data-access";
 import { Patient, type PaginatedResponse } from "@workspace/types";
 import { useDebounce } from "@workspace/hooks/use-debounce";

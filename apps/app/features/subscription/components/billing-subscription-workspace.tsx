@@ -19,8 +19,8 @@ import {
 import {
   useCancelScheduledPlanChange,
   useSchedulePlanChange,
-} from "@/hooks/api/use-schedule-plan-change";
-import { useCurrentUsage, usePricingConfig } from "@/hooks/api/use-pricing";
+} from "@workspace/data-access";
+import { useCurrentUsage, usePricingConfig } from "@/features/subscription/hooks/use-pricing";
 import { useLocaleCurrency } from "@/hooks/use-locale-currency";
 import { useSubscription } from "@workspace/data-access";
 import { tierSchema, type TierName } from "@workspace/types";

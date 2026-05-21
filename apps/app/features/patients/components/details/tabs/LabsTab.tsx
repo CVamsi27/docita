@@ -13,7 +13,7 @@ import { DataState } from "@workspace/ui/components/data-display/data-state";
 import { ExternalLink, FlaskConical } from "lucide-react";
 import { humanizeUiLabel } from "@workspace/ui/lib/label-formatters";
 import { Feature } from "@workspace/types";
-import { useLabTestOrders } from "@/hooks/api/use-clinical";
+import { useLabTestOrders } from "@workspace/data-access";
 import { TierGate } from "@/components/auth/access-gates";
 
 interface LabsTabProps {

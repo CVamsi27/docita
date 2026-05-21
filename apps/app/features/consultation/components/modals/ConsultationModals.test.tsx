@@ -10,14 +10,11 @@ const clinicalMocks = vi.hoisted(() => ({
   toastSuccess: vi.fn(),
 }));
 
-vi.mock("@/hooks/api/use-clinical", () => ({
+vi.mock("@workspace/data-access", () => ({
   useSaveVitals: () => ({
     mutateAsync: clinicalMocks.saveVitals,
     isPending: false,
   }),
-}));
-
-vi.mock("@workspace/data-access", () => ({
   useUpdateAppointment: () => ({
     mutateAsync: clinicalMocks.updateAppointment,
     isPending: false,

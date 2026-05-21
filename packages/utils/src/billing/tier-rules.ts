@@ -95,6 +95,27 @@ export function hasFeatureAccess(
   return getTierValue(tier) >= requiredTier;
 }
 
+/** Ordinal tier ladder check without comparing INTELLIGENCE/FRONT_DESK numerically at call sites. */
+export function meetsMinimumTier(
+  tier: TierName,
+  minimumTier: Tier,
+  hasIntelligence = false,
+): boolean {
+  if (minimumTier === Tier.INTELLIGENCE) {
+    return hasIntelligence;
+  }
+
+  if (minimumTier === Tier.FRONT_DESK) {
+    return tier === 'FRONT_DESK';
+  }
+
+  if (tier === 'FRONT_DESK') {
+    return Tier.ESSENTIAL >= minimumTier;
+  }
+
+  return getTierValue(tier) >= minimumTier;
+}
+
 export function getFeaturesForTier(tier: TierName): Feature[] {
   return Object.keys(FEATURE_TIER_MAP)
     .filter(isFeatureKey)

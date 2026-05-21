@@ -25,8 +25,8 @@ import {
 } from "./tier-change-dialog-types";
 
 export type { TierChangeDialogProps } from "./tier-change-dialog-types";
-import { type TierPricing, usePricingConfig } from "@/hooks/api/use-pricing";
-import { useProrationPreview } from "@/hooks/api/use-billing";
+import { type TierPricing, usePricingConfig } from "@/features/subscription/hooks/use-pricing";
+import { useProrationPreview } from "@workspace/data-access";
 import { formatPriceWithCurrency } from "@workspace/utils";
 import { SUBSCRIPTION_GST_INCLUSIVE_NOTICE } from "@/features/subscription/lib/billing-display-messages";
 import { YearlyVsListAnnualPrice } from "@/features/subscription/lib/yearly-vs-list-annual-price";

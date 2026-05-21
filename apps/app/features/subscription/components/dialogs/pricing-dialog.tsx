@@ -26,7 +26,7 @@ import {
   type TierPricing,
   usePricingConfig,
   useTierEstimates,
-} from "@/hooks/api/use-pricing";
+} from "@/features/subscription/hooks/use-pricing";
 import { useLocaleCurrency } from "@/hooks/use-locale-currency";
 import {
   DEFAULT_PRICING_USAGE_INPUTS,

@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
-import { usePatientHistory } from "@/hooks/api/use-patient-history";
+import { usePatientHistory } from "@/features/patients/hooks/use-patient-history";
 import { useClinicSettings } from "@workspace/data-access";
 import {
   PatientAllergy,

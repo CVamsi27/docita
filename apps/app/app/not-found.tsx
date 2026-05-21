@@ -10,7 +10,7 @@ import { Card, CardContent } from "@workspace/ui/components/indicators/card";
 export default function NotFound() {
   return (
     <AppPageScaffold className="max-w-md">
-      <Card className="ui-card-surface animate-in fade-in-0 slide-in-from-bottom-1 duration-300">
+      <Card className="ui-card-surface">
         <CardContent className="p-8 text-center">
           <div className="mx-auto mb-5 flex h-14 w-14 items-center justify-center rounded-full bg-muted">
             <FileQuestion className="h-7 w-7 text-muted-foreground" />

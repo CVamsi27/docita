@@ -35,7 +35,7 @@ import { humanizeUiLabel } from "@workspace/ui/lib/label-formatters";
 import { cn } from "@workspace/ui/lib/utils";
 import type { BillingHistoryItem } from "@workspace/data-access";
 import { formatDate, formatDateTime } from "@/lib/formatters";
-import { useResumeSubscriptionPayment } from "@/hooks/api/use-resume-subscription-payment";
+import { useResumeSubscriptionPayment } from "@workspace/data-access";
 import {
   formatInvoiceDescriptionForDisplay,
   BILLING_HISTORY_TABLE_CAPTION,

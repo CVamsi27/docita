@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { useDocuments } from "@/hooks/api/use-clinical";
+import { useDocuments } from "@workspace/data-access";
 import type { Document } from "@workspace/types";
 import { useDebounce } from "@workspace/hooks/use-debounce";
 import { browserRequest } from "@/lib/auth/browser-request";

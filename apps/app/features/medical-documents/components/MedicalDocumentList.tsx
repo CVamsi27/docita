@@ -34,7 +34,7 @@ import {
   useMedicalDocuments,
   useRevokeMedicalDocument,
   useSignMedicalDocument,
-} from "@/hooks/api/use-clinical";
+} from "@workspace/data-access";
 import { useTierFeatureEnabled } from "@/lib/access-control/use-tier-feature-enabled";
 import { logger } from "@/lib/monitoring/logger";
 import { toast } from "sonner";

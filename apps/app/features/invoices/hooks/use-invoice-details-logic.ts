@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState } from "react";
 import { useClinic } from "@/lib/contexts/clinic-context";
 
-import { useInvoice } from "@/hooks/api/use-billing";
+import { useInvoice } from "@workspace/data-access";
 import { toast } from "sonner";
 import { useRouter } from "next/navigation";
 import { InvoiceItem } from "@workspace/types";

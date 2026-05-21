@@ -7,7 +7,7 @@ import { Card, CardContent } from "@workspace/ui/components/indicators/card";
 import { toast } from "sonner";
 import { DEFAULT_CURRENCY, formatCurrency } from "@workspace/utils";
 import { useBillingHistory } from "@workspace/data-access";
-import { useResumeSubscriptionPayment } from "@/hooks/api/use-resume-subscription-payment";
+import { useResumeSubscriptionPayment } from "@workspace/data-access";
 import { formatDate } from "@/lib/formatters";
 import { showUserFacingErrorToast } from "@/lib/errors/user-facing-errors";
 

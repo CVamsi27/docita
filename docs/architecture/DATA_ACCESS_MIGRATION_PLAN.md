@@ -1,6 +1,6 @@
 # Data-Access Migration Plan
 
-Status: **Phases 1–4 executed (2026-05-18); 6 hooks deferred to follow-up.**
+Status: **Complete (2026-05-21).** `apps/app/shared/hooks/api/` removed; consumers use `@workspace/data-access` or feature-local hooks.
 
 ## What was done
 
@@ -17,17 +17,12 @@ Status: **Phases 1–4 executed (2026-05-18); 6 hooks deferred to follow-up.**
 - `uploadSignature` / `validateToken` imperative helpers moved to `apps/app/shared/lib/api/signature-helpers.ts` (they need session-aware fetch outside React).
 - Full `pnpm turbo check-types --force` green (17/17).
 
-## What was deferred
+## Follow-up completed (2026-05-21)
 
-Six hooks still in `apps/app/shared/hooks/api/` because they bypass the provider abstraction — they call `fetch-with-session` / `api-client` directly or reach into app-internal helpers (`auth-context`, `locale-currency`, `sonner`, `logger`, `features/patients/api`). Migrating them properly needs a per-hook refactor, not a relocation:
-
-- `use-billing.ts` — calls `fetchWithSession` + `fetchAPI` + checks `instanceof ApiError`
-- `use-clinical.ts` — uses `api-client.get/post` directly + checks `ApiError`
-- `use-billing-history.ts` is already migrated; `use-resume-subscription-payment.ts`, `use-schedule-plan-change.ts` use `fetchWithSession`
-- `use-pricing.ts` — depends on `auth-context`, `locale-currency` hook, `fetchWithSession`
-- `use-patient-history.ts` — reaches into `features/patients/api/patients.api`, uses `sonner` toasts, `logger`
-
-To complete the follow-up: rewrite each to use only `useAPIQuery` / `useAPIMutation` / `useAPIQueryValidated` (with the provider fetcher), drop direct `fetch-with-session` calls, and extract side effects (toast/logger) into composed app-level hooks if necessary. The `apps/app/shared/hooks/api/` folder can then be deleted.
+- Pure re-exports (`use-billing`, `use-clinical`, `use-schedule-plan-change`, `use-resume-subscription-payment`) removed; imports point at `@workspace/data-access`.
+- `use-pricing.ts` → `apps/app/features/subscription/hooks/use-pricing.ts` (auth + locale wrappers over data-access).
+- Patient medical-history cluster → `apps/app/features/patients/hooks/` + `features/patients/lib/patient-social-history-update.boundary.ts`.
+- `check-legacy-app-api-hooks` fails if `apps/app/shared/hooks/api/` is reintroduced.
 
 ## Original design (reference)
 

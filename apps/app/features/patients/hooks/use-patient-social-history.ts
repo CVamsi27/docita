@@ -1,7 +1,7 @@
 import { useCallback } from "react";
 import { useUpsertPatientSocialHistory } from "@workspace/data-access";
 import type { PatientSocialHistory } from "@workspace/types";
-import { buildSocialHistoryUpsertPayload } from "@/hooks/api/patient-social-history-update.boundary";
+import { buildSocialHistoryUpsertPayload } from "@/features/patients/lib/patient-social-history-update.boundary";
 
 interface UsePatientSocialHistoryOptions {
   patientId: string;

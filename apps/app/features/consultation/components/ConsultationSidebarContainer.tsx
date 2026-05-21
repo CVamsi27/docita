@@ -1,7 +1,7 @@
 "use client";
 
 import { FC } from "react";
-import { usePatientHistoryReadOnly } from "@/hooks/api/use-patient-history";
+import { usePatientHistoryReadOnly } from "@/features/patients/hooks/use-patient-history";
 import {
   usePatientTimeline,
   usePatientSnapshot,

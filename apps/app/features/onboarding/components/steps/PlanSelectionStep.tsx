@@ -12,7 +12,7 @@ import {
 } from "@workspace/ui/components/indicators/card";
 import { Badge } from "@workspace/ui/components/indicators/badge";
 import { cn } from "@workspace/ui/lib/utils";
-import { type TierPricing, usePricingConfig } from "@/hooks/api/use-pricing";
+import { type TierPricing, usePricingConfig } from "@/features/subscription/hooks/use-pricing";
 import { ContactSalesModal } from "@/features/dialogs";
 import { TierCard, getFeatureDetails } from "@/features/subscription";
 import {
