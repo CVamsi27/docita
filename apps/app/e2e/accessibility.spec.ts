@@ -83,6 +83,11 @@ test.describe("Accessibility Audit - Main App", () => {
   });
 
   test.describe("Authenticated routes", () => {
+    test.skip(
+      process.env.AUDIT_APP_PUBLIC_ONLY === "true",
+      "AUDIT_APP_PUBLIC_ONLY=true skips routes that need DATABASE_URL and API fixtures",
+    );
+
     let user: UserData;
     let appointmentId: string;
 

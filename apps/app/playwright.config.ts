@@ -4,6 +4,7 @@ const APP_URL = process.env["APP_URL"] || "http://localhost:3000";
 const API_HEALTH_URL =
   process.env["API_HEALTH_URL"] || "http://127.0.0.1:3001/api/health/live";
 const skipServer = process.env["SKIP_SERVER"] === "true";
+const publicOnlyAudit = process.env["AUDIT_APP_PUBLIC_ONLY"] === "true";
 
 export default defineConfig({
   testDir: "./e2e",
@@ -38,20 +39,29 @@ export default defineConfig({
 
   webServer: skipServer
     ? undefined
-    : [
-        {
-          command: "pnpm --filter @docita/api run dev",
-          url: API_HEALTH_URL,
-          reuseExistingServer: true,
-          timeout: 180_000,
-        },
-        {
-          command: "pnpm --filter @docita/app run dev",
-          url: APP_URL,
-          reuseExistingServer: true,
-          timeout: 180_000,
-        },
-      ],
+    : publicOnlyAudit
+      ? [
+          {
+            command: "pnpm --filter @docita/app run dev",
+            url: APP_URL,
+            reuseExistingServer: true,
+            timeout: 180_000,
+          },
+        ]
+      : [
+          {
+            command: "pnpm --filter @docita/api run dev",
+            url: API_HEALTH_URL,
+            reuseExistingServer: true,
+            timeout: 180_000,
+          },
+          {
+            command: "pnpm --filter @docita/app run dev",
+            url: APP_URL,
+            reuseExistingServer: true,
+            timeout: 180_000,
+          },
+        ],
 
   projects: [
     {

@@ -3,7 +3,7 @@
 import { useEffect, useRef } from "react";
 import { useTheme } from "next-themes";
 import { useAppearanceStore } from "@/lib/stores/appearance-store";
-import { useClinic } from "@/lib/contexts/clinic-context";
+import { useOptionalClinic } from "@/lib/contexts/clinic-context";
 import { Feature } from "@workspace/types";
 import { useTierFeatureEnabled } from "@/lib/access-control/use-tier-feature-enabled";
 
@@ -27,7 +27,7 @@ export function AppearanceController() {
   const hydrated = useRef(false);
   const lastStoreTheme = useRef(storeTheme);
 
-  const { clinic } = useClinic();
+  const clinic = useOptionalClinic()?.clinic;
   const hasLockedTheme = useTierFeatureEnabled(Feature.LOCKED_CUSTOM_THEME);
 
   const lockedTheme =
