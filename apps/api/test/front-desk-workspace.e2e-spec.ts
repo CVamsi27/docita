@@ -141,10 +141,25 @@ describe('Front desk tier (e2e)', () => {
       clinicId,
     );
 
+    await prisma!.user.update({
+      where: { id: doctorId },
+      data: { appLoginDisabled: false },
+    });
+    const doctor = await prisma!.user.findUniqueOrThrow({
+      where: { id: doctorId },
+    });
+    const doctorToken = signE2eAccessToken(jwtService, {
+      sub: doctor.id,
+      email: doctor.email,
+      role: Role.DOCTOR,
+      name: doctor.name,
+      clinicId,
+    });
+
     if (!httpServer) throw new Error('E2E app not initialized');
     const res = await request(httpServer)
       .post('/prescriptions')
-      .set('Authorization', `Bearer ${adminToken}`)
+      .set('Authorization', `Bearer ${doctorToken}`)
       .send({
         appointmentId: appointment.id,
         patientId,
