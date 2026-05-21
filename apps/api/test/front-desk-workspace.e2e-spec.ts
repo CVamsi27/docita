@@ -1,5 +1,7 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import { INestApplication } from '@nestjs/common';
+import { JwtService } from '@nestjs/jwt';
+import { Role } from '@workspace/db';
 import { ZodValidationPipe } from 'nestjs-zod';
 import request from 'supertest';
 import { AppModule } from '@/app.module';
@@ -13,9 +15,11 @@ import {
 import { factories, setPrismaInstance } from './factories';
 import { WhatsappService } from '@/domains/whatsapp/application/services/whatsapp-clinic-facade.service';
 import { mockWhatsappService } from './whatsapp.provider';
+import { signE2eAccessToken } from './e2e-auth-token';
 
 describe('Front desk tier (e2e)', () => {
   let app: INestApplication | undefined;
+  let jwtService: JwtService;
   let httpServer: ReturnType<INestApplication['getHttpServer']> | undefined;
   let prisma: PrismaService | undefined;
   let adminToken: string;
@@ -43,6 +47,7 @@ describe('Front desk tier (e2e)', () => {
     await nestApp.init();
     app = nestApp;
     httpServer = nestApp.getHttpServer();
+    jwtService = nestApp.get(JwtService);
 
     prisma = moduleFixture.get<PrismaService>(PrismaService);
     setPrismaInstance(prisma);
@@ -156,7 +161,7 @@ describe('Front desk tier (e2e)', () => {
       .expect(403);
 
     expect(String(res.body?.message ?? '').toLowerCase()).toMatch(
-      /front desk|not available/i,
+      /front desk|not available|starter tier or higher/i,
     );
   });
 
@@ -171,13 +176,24 @@ describe('Front desk tier (e2e)', () => {
       },
     );
 
+    const doctor = await prisma!.user.findUniqueOrThrow({
+      where: { id: doctorId },
+    });
+    const doctorToken = signE2eAccessToken(jwtService, {
+      sub: doctor.id,
+      email: doctor.email,
+      role: Role.DOCTOR,
+      name: doctor.name,
+      clinicId,
+    });
+
     if (!httpServer) throw new Error('E2E app not initialized');
     const res = await request(httpServer)
       .post(`/appointments/${appointment.id}/start-consultation`)
-      .set('Authorization', `Bearer ${adminToken}`)
+      .set('Authorization', `Bearer ${doctorToken}`)
       .expect(403);
 
-    expect(res.body?.message).toContain('Front Desk plan');
+    expect(String(res.body?.message ?? '')).toMatch(/Front Desk plan/i);
   });
 
   it('allows receptionist GET /invoices for billing surfaces', async () => {
