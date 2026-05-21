@@ -3,6 +3,7 @@ import {
   getAPIClient,
   type RequestConfig,
 } from "@workspace/data-access";
+import { isRecord } from "@workspace/utils";
 import { API_URL } from "@/lib/api/api-config";
 import { assertInternalPortalApiRequest } from "@/lib/api/internal-portal-api-paths";
 import { internalSession } from "@/lib/auth/session";
@@ -51,10 +52,13 @@ export const client = getAPIClient({
     }
 
     if (error.status === 404) {
-      const data = error.data as { message?: string };
+      const message =
+        isRecord(error.data) && typeof error.data.message === "string"
+          ? error.data.message
+          : undefined;
       if (
-        data?.message?.toLowerCase().includes("user") ||
-        data?.message?.toLowerCase().includes("not found")
+        message?.toLowerCase().includes("user") ||
+        message?.toLowerCase().includes("not found")
       ) {
         internalSession.clearSession();
         authLogoutCallback?.(

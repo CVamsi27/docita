@@ -21,6 +21,12 @@ import type {
   DelayContext,
 } from './patient-response.types';
 
+function isNonDelayPatientResponseType(
+  responseType: PatientResponseType,
+): responseType is Exclude<PatientResponseType, 'DELAY'> {
+  return responseType !== 'DELAY';
+}
+
 @Injectable()
 export class PatientResponseStaffNotificationService {
   constructor(
@@ -129,7 +135,10 @@ export class PatientResponseStaffNotificationService {
       CANCEL: 'Cancelled',
       UNKNOWN: 'Unknown response',
     };
-    return labels[responseType as Exclude<PatientResponseType, 'DELAY'>];
+    if (!isNonDelayPatientResponseType(responseType)) {
+      return 'Unknown response';
+    }
+    return labels[responseType];
   }
 
   private getNotificationPriority(

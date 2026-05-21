@@ -11,22 +11,10 @@ import {
 import { Badge } from "@workspace/ui/components/indicators/badge";
 import { EditClinicDialog } from "./edit-clinic-dialog";
 import { Building2 } from "lucide-react";
-import { TIER_INFO, type TierName } from "@workspace/types";
-
-function normalizeTierName(tier: string): TierName {
-  const legacyMapping: Record<string, TierName> = {
-    FREE: "STARTER",
-    CAPTURE: "STARTER",
-    CORE: "ESSENTIAL",
-    PLUS: "ESSENTIAL",
-    PRO: "PROFESSIONAL",
-    CLINIC: "PROFESSIONAL",
-  };
-  return (legacyMapping[tier] || tier) as TierName;
-}
+import { mapDbClinicTierStringToTierName, TIER_INFO } from "@workspace/types";
 
 function getTierDisplay(tier: string): { name: string; className: string } {
-  const normalizedTier = normalizeTierName(tier);
+  const normalizedTier = mapDbClinicTierStringToTierName(tier);
   const tierInfo = TIER_INFO[normalizedTier];
   if (tierInfo) {
     const tierClassMap: Record<string, string> = {

@@ -20,7 +20,9 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@workspace/ui/components/form/select";
-import { formatCurrency } from "@workspace/utils";
+import { formatCurrency, parseStringEnumMember } from "@workspace/utils";
+
+const BILLING_DISCOUNT_TYPE_VALUES = ["PERCENTAGE", "AMOUNT"] as const;
 import { toast } from "sonner";
 import { useCreateInvoice } from "@/hooks/api/use-billing";
 import { useLocaleCurrency } from "@/hooks/use-locale-currency";
@@ -260,9 +262,13 @@ export function BillingModal({
                 <div className="flex items-center gap-2">
                   <Select
                     value={discountType}
-                    onValueChange={(v) =>
-                      setDiscountType(v as "PERCENTAGE" | "AMOUNT")
-                    }
+                    onValueChange={(v) => {
+                      const parsed = parseStringEnumMember(
+                        BILLING_DISCOUNT_TYPE_VALUES,
+                        v,
+                      );
+                      if (parsed) setDiscountType(parsed);
+                    }}
                   >
                     <SelectTrigger className="w-[110px]">
                       <SelectValue />

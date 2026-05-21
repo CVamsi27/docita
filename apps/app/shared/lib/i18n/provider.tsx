@@ -28,9 +28,7 @@ export function I18nProvider({ children }: { children: React.ReactNode }) {
   const [locale, setLocaleState] = useState<AppLocale>(DEFAULT_LOCALE);
 
   useEffect(() => {
-    const storedLocale = localStorage.getItem(
-      LOCALE_STORAGE_KEY,
-    ) as AppLocale | null;
+    const storedLocale = localStorage.getItem(LOCALE_STORAGE_KEY);
     if (storedLocale === "en" || storedLocale === "hi") {
       setLocaleState(storedLocale);
     }

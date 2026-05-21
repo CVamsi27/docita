@@ -2,6 +2,22 @@ import { Logger } from '@nestjs/common';
 
 type AppLogLevel = 'DEBUG' | 'INFO' | 'WARN' | 'ERROR';
 
+const APP_LOG_LEVELS: readonly AppLogLevel[] = [
+  'DEBUG',
+  'INFO',
+  'WARN',
+  'ERROR',
+];
+
+function parseAppLogLevel(level: string): AppLogLevel | null {
+  for (const candidate of APP_LOG_LEVELS) {
+    if (candidate === level) {
+      return candidate;
+    }
+  }
+  return null;
+}
+
 export function createNestLogLevelWriters(
   logger: Logger,
 ): Record<AppLogLevel, (message: string) => void> {
@@ -18,7 +34,8 @@ export function writeAppLog(
   level: string,
   serializedEntry: string,
 ): void {
-  const writer = writers[level as AppLogLevel];
+  const parsedLevel = parseAppLogLevel(level);
+  const writer = parsedLevel ? writers[parsedLevel] : undefined;
   if (writer) {
     writer(serializedEntry);
     return;

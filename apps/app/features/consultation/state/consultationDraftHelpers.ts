@@ -70,13 +70,13 @@ export const DEFAULT_CONSULTATION_DRAFT_STATE: ConsultationDraftState = {
   diagnosesContentHash: null,
 };
 
+import { applyDraftUpdater } from "@/features/consultation/state/consultation-draft-updater.boundary";
+
 export function resolveDraftUpdater<T>(
-  updater: T | ((prev: T) => T),
+  updater: ((prev: T) => T) | T,
   prev: T,
 ): T {
-  return typeof updater === "function"
-    ? (updater as (prev: T) => T)(prev)
-    : updater;
+  return applyDraftUpdater(updater, prev);
 }
 
 export async function hashDiagnosesForSync(

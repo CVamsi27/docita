@@ -3,6 +3,9 @@ import {
   FieldConfidenceConfig,
   OcrRawData,
 } from '@workspace/types';
+import { parseStringEnumMember } from '@workspace/utils';
+
+const OCR_GENDER_VALUES = ['MALE', 'FEMALE', 'OTHER'] as const;
 
 export function calculateOverallConfidence(
   fieldConfidence: Record<string, number>,
@@ -47,9 +50,8 @@ export function normalizeOcrFields(
     lastName: data?.lastName || '',
     age: toStr(data?.age),
     dateOfBirth: data?.dateOfBirth || '',
-    gender: ['MALE', 'FEMALE', 'OTHER'].includes(data?.gender || '')
-      ? (data?.gender as 'MALE' | 'FEMALE' | 'OTHER')
-      : 'OTHER',
+    gender:
+      parseStringEnumMember(OCR_GENDER_VALUES, data?.gender ?? '') ?? 'OTHER',
     phoneNumber: data?.phoneNumber || '',
     email: data?.email || '',
     bloodType: data?.bloodType || '',

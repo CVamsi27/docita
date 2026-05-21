@@ -36,6 +36,16 @@ import { EmailVerifiedGuard } from '@/shared/modules/auth/guards/email-verified.
 
 type JwtDuration = `${number}${'s' | 'm' | 'h' | 'd' | 'w' | 'y'}`;
 
+const JWT_DURATION_PATTERN = /^\d+[smhdwy]$/;
+
+function isJwtDuration(value: string): value is JwtDuration {
+  return JWT_DURATION_PATTERN.test(value);
+}
+
+function parseJwtDuration(value: string): JwtDuration | null {
+  return isJwtDuration(value) ? value : null;
+}
+
 @Module({
   imports: [
     PrismaModule,
@@ -49,9 +59,10 @@ type JwtDuration = `${number}${'s' | 'm' | 'h' | 'd' | 'w' | 'y'}`;
       useFactory: (configService: AppConfigService) => {
         const secret = configService.getJwtSecret();
         const expiration = configService.getJwtExpiration();
+        const parsedDuration = parseJwtDuration(expiration);
         const expiresIn = /^\d+$/.test(expiration)
           ? Number(expiration)
-          : (expiration as JwtDuration);
+          : (parsedDuration ?? '7d');
         if (!secret) {
           throw new Error('JWT_SECRET is not defined');
         }

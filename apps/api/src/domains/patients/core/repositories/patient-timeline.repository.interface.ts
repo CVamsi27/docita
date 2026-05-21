@@ -1,4 +1,2 @@
-export {
-  PATIENT_TIMELINE_SNAPSHOT_REPOSITORY_TOKEN,
-  PATIENT_TIMELINE_SNAPSHOT_REPOSITORY_TOKEN as PATIENT_TIMELINE_REPOSITORY_TOKEN,
-} from './timeline/patient-timeline-snapshot.repository.interface';
+export { PATIENT_TIMELINE_SNAPSHOT_REPOSITORY_TOKEN } from './timeline/patient-timeline-snapshot.repository.interface';
+export { PATIENT_TIMELINE_SNAPSHOT_REPOSITORY_TOKEN as PATIENT_TIMELINE_REPOSITORY_TOKEN } from './timeline/patient-timeline-snapshot.repository.interface';

@@ -3,11 +3,7 @@ import { Input } from "@workspace/ui/components/form/input";
 import { Label } from "@workspace/ui/components/form/label";
 import PhoneInput from "react-phone-number-input";
 import { cn } from "@workspace/ui/lib/utils";
-import {
-  DEFAULT_COUNTRY_CODE,
-  normalizeCountryCode,
-} from "@workspace/utils";
-import type { Country } from "react-phone-number-input";
+import { resolveLibPhoneCountryFromCode } from "@/lib/phone/libphone-country.boundary";
 import type { ClinicDetails } from "@/features/onboarding/components/types";
 
 interface ClinicContactSectionProps {
@@ -28,10 +24,9 @@ export function ClinicContactSection({
         <PhoneInput
           id="phone"
           international
-          defaultCountry={(
-            normalizeCountryCode(clinicForm.watch("countryCode")) ??
-            DEFAULT_COUNTRY_CODE
-          ) as Country}
+          defaultCountry={resolveLibPhoneCountryFromCode(
+            clinicForm.watch("countryCode"),
+          )}
           placeholder="Phone number"
           value={clinicForm.watch("phone") ?? ""}
           onChange={(value) =>
@@ -60,9 +55,7 @@ export function ClinicContactSection({
           )}
           aria-invalid={!!clinicForm.formState.errors.phone}
           aria-describedby={
-            clinicForm.formState.errors.phone
-              ? "clinic-phone-error"
-              : undefined
+            clinicForm.formState.errors.phone ? "clinic-phone-error" : undefined
           }
         />
         {clinicForm.formState.errors.phone && (
@@ -86,9 +79,7 @@ export function ClinicContactSection({
           placeholder="Email"
           aria-invalid={!!clinicForm.formState.errors.email}
           aria-describedby={
-            clinicForm.formState.errors.email
-              ? "clinic-email-error"
-              : undefined
+            clinicForm.formState.errors.email ? "clinic-email-error" : undefined
           }
         />
         {clinicForm.formState.errors.email && (

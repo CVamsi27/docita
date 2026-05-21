@@ -1,3 +1,4 @@
+import { assertTyped } from '@workspace/data-access/lib/typed-http-boundary';
 export async function browserRequest(
   input: RequestInfo | URL,
   init?: RequestInit,
@@ -13,7 +14,7 @@ export async function browserJson<T>(
   if (!response.ok) {
     throw new Error(String(response.status));
   }
-  return (await response.json()) as T;
+  return assertTyped<T>(await response.json());
 }
 
 export async function browserBlob(

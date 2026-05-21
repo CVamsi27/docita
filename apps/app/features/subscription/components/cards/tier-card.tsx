@@ -57,7 +57,7 @@ export function TierCard({
   density = "full",
   isRecommended = false,
 }: TierCardProps & { currentTierValue?: Tier; onSelect?: () => void }) {
-  const tierName = Tier[tier] as string;
+  const tierName = String(Tier[tier]);
   const Icon = TIER_ICONS[tierName] || Zap;
   const gradient = TIER_GRADIENTS[tierName] || TIER_GRADIENTS.STARTER;
   const isSummary = density === "summary";

@@ -1,6 +1,6 @@
 /** Pure transaction-level helpers for onboarding workflow — no DI, no @Injectable. */
 import { BadRequestException } from '@nestjs/common';
-import { Prisma, Role } from '@workspace/db';
+import { Prisma, Role, Specialization } from '@workspace/db';
 import * as bcrypt from 'bcrypt';
 import { randomBytes } from 'crypto';
 import { generateReferralCode, toStaffRole } from './onboarding-step-engine';
@@ -11,7 +11,7 @@ import {
 
 interface ValidationDeps {
   validatePasswordStrength(p: string): { valid: boolean; error?: string };
-  validateSpecialization(s: unknown): unknown;
+  validateSpecialization(s: string | null | undefined): Specialization | null;
 }
 
 /** Retries referral code generation until it finds a unique one. */
@@ -75,7 +75,7 @@ export async function createStaffMembersInTx(
         registrationNumber: member.registrationNumber,
         specialization: validation.validateSpecialization(
           member.specialization,
-        ) as never,
+        ),
         ...(anchorDoctorOnFrontDeskTier ? { appLoginDisabled: true } : {}),
       },
     });

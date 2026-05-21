@@ -4,9 +4,10 @@ import { DocitaLoadingIndicator } from "@workspace/ui/components/feedback/docita
 
 import { useEffect, useMemo, useState } from "react";
 import { useQueryClient } from "@tanstack/react-query";
-import { billingAPI, type PricingOfferRow } from "@/lib/api/api";
+import { billingAPI } from "@/lib/api/api";
 import { internalQueryKeys } from "@/lib/api/query-keys";
 import {
+  type InternalPricingOfferRow,
   type InternalTierPricingRow,
   useInternalBillingPricingOffers,
   useInternalBillingPricingTiers,
@@ -129,7 +130,7 @@ export default function PricingPage() {
     enabled: Boolean(token && !authLoading),
   });
 
-  const offers = (offersQuery.data ?? []) as PricingOfferRow[];
+  const offers: InternalPricingOfferRow[] = offersQuery.data ?? [];
   const clinics = useMemo(() => clinicsQuery.data ?? [], [clinicsQuery.data]);
   const isLoadingTiers = tiersQuery.isLoading;
   const isLoadingOffers = offersQuery.isLoading;

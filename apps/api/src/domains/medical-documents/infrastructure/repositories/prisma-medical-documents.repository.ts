@@ -4,6 +4,7 @@ import { PrismaService } from '@/prisma/prisma.service';
 import { IMedicalDocumentsRepository } from '@/domains/medical-documents/core/repositories/medical-documents.repository.interface';
 import { MedicalDocument, Prisma } from '@workspace/db';
 import { parsePrismaJsonColumn } from '@/shared/common/json/parse-prisma-json-column';
+import { assertTypedJsonValue } from '@/shared/common/json/parse-serialized-json.boundary';
 
 @Injectable()
 export class PrismaMedicalDocumentsRepository implements IMedicalDocumentsRepository {
@@ -19,7 +20,7 @@ export class PrismaMedicalDocumentsRepository implements IMedicalDocumentsReposi
       {};
     return {
       ...row,
-      content: content as MedicalDocument['content'],
+      content: assertTypedJsonValue<Prisma.JsonValue>(content),
     };
   }
 

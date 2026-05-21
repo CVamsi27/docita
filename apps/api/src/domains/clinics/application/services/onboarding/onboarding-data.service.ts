@@ -121,7 +121,7 @@ export class OnboardingDataService implements OnModuleDestroy {
   }
 
   private getStepDataKey(step: OnboardingStep): string {
-    const keyMap = {
+    const keyMap: Record<OnboardingStep, string> = {
       [OnboardingStep.CLINIC_DETAILS]: 'clinicDetails',
       [OnboardingStep.ADMIN_ACCOUNT]: 'adminAccount',
       [OnboardingStep.PLAN_SELECTION]: 'planSelection',
@@ -129,8 +129,9 @@ export class OnboardingDataService implements OnModuleDestroy {
       [OnboardingStep.SLA_AGREEMENT]: 'slaAgreement',
       [OnboardingStep.CONSENT_MANAGEMENT]: 'consentManagement',
       [OnboardingStep.STAFF_SETUP]: 'staffSetup',
+      [OnboardingStep.COMPLETED]: 'completed',
     };
-    return keyMap[step as keyof typeof keyMap] || step.toLowerCase();
+    return keyMap[step] ?? step.toLowerCase();
   }
 
   private cleanExpiredSessions() {

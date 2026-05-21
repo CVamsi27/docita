@@ -28,11 +28,12 @@ import {
   isAdmin,
   isDoctor as isDoctorRole,
 } from "@/lib/auth/permissions";
-import { Feature, type UserRole } from "@workspace/types";
+import { Feature } from "@workspace/types";
+import { parseUserRole } from "@/lib/access-control/parse-user-role";
 
 export function usePermissions() {
   const { user } = useAuth();
-  const role = (user?.role || "RECEPTIONIST") as UserRole;
+  const role = parseUserRole(user?.role);
   const tierCanAccess = usePermissionStore((s) => s.canAccess);
   const invoicingOk = tierCanAccess(Feature.INVOICING);
 

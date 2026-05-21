@@ -233,9 +233,10 @@ export const AddPatientDialog: FC<AddPatientDialogProps> = ({
                   </FormLabel>
                   <Select
                     value={field.value}
-                    onValueChange={(value) =>
-                      field.onChange(value as GenderValue)
-                    }
+                    onValueChange={(value) => {
+                      const match = GENDER_OPTIONS.find((o) => o.value === value);
+                      if (match) field.onChange(match.value);
+                    }}
                   >
                     <FormControl>
                       <SelectTrigger>

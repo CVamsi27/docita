@@ -39,6 +39,33 @@ const DISPLAY_ORDER: DayOfWeek[] = [
 
 const SLOT_OPTIONS = [15, 30, 45, 60] as const;
 
+function buildWeeklyHourRows(
+  byDay: Map<DayOfWeek, ClinicWeeklyHourRow>,
+): Record<DayOfWeek, ClinicWeeklyHourRow> {
+  const rowFor = (day: DayOfWeek): ClinicWeeklyHourRow => {
+    const existing = byDay.get(day);
+    return existing
+      ? { ...existing }
+      : {
+          dayOfWeek: day,
+          startTime: "09:00",
+          endTime: "17:00",
+          slotDuration: 30,
+          isActive: false,
+        };
+  };
+
+  return {
+    MONDAY: rowFor("MONDAY"),
+    TUESDAY: rowFor("TUESDAY"),
+    WEDNESDAY: rowFor("WEDNESDAY"),
+    THURSDAY: rowFor("THURSDAY"),
+    FRIDAY: rowFor("FRIDAY"),
+    SATURDAY: rowFor("SATURDAY"),
+    SUNDAY: rowFor("SUNDAY"),
+  };
+}
+
 function sortRowsForApi(rows: ClinicWeeklyHourRow[]): ClinicWeeklyHourRow[] {
   const order: DayOfWeek[] = [
     "SUNDAY",
@@ -78,23 +105,8 @@ export function ClinicWeeklyHoursStep({
     return m;
   }, [initialRows]);
 
-  const [rows, setRows] = useState<Record<DayOfWeek, ClinicWeeklyHourRow>>(
-    () => {
-      const next = {} as Record<DayOfWeek, ClinicWeeklyHourRow>;
-      for (const d of DISPLAY_ORDER) {
-        const r = byDay.get(d);
-        next[d] = r
-          ? { ...r }
-          : {
-              dayOfWeek: d,
-              startTime: "09:00",
-              endTime: "17:00",
-              slotDuration: 30,
-              isActive: false,
-            };
-      }
-      return next;
-    },
+  const [rows, setRows] = useState<Record<DayOfWeek, ClinicWeeklyHourRow>>(() =>
+    buildWeeklyHourRows(byDay),
   );
 
   const updateDay = (day: DayOfWeek, patch: Partial<ClinicWeeklyHourRow>) => {

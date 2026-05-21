@@ -18,7 +18,7 @@ export interface IInventoryRepository {
 
   updateItem(
     id: string,
-    data: Prisma.InventoryItemUpdateInput,
+    data: Prisma.InventoryItemUpdateManyMutationInput,
     clinicId: string,
   ): Promise<InventoryItem>;
 

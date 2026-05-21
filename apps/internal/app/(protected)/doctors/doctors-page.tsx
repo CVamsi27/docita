@@ -4,12 +4,14 @@ import {
   DEFAULT_CURRENCY,
   formatCurrency,
   getDoctorVerificationPublicNote,
+  parseStringEnumMember,
 } from "@workspace/utils";
 
 import { DocitaLoadingIndicator } from "@workspace/ui/components/feedback/docita-loading-indicator";
 
 import { useEffect, useMemo, useState } from "react";
 import {
+  type InternalDoctorListItem,
   useInternalClinics,
   useInternalDoctorsList,
 } from "@workspace/data-access/internal";
@@ -68,8 +70,10 @@ import { showUserFacingErrorToast } from "@/lib/errors/user-facing-errors";
 import {
   HOSPITAL_ROLE_LABELS,
   type HospitalRole,
+  hospitalRoleSchema,
   type Specialization,
   SPECIALIZATION_LABELS,
+  specializationSchema,
 } from "@workspace/types";
 
 interface Doctor {
@@ -139,6 +143,41 @@ interface DoctorSpecializationEntry {
 
 const EMPTY_CLINICS: { id: string; name: string }[] = [];
 
+const DOCTOR_VERIFICATION_STATUS_VALUES = [
+  "UNVERIFIED",
+  "PENDING",
+  "VERIFIED",
+  "REJECTED",
+  "FAILED",
+] as const satisfies readonly NonNullable<Doctor["verificationStatus"]>[];
+
+function parseDoctorVerificationStatus(
+  value: string | undefined,
+): Doctor["verificationStatus"] | undefined {
+  if (!value) {
+    return undefined;
+  }
+  return (
+    parseStringEnumMember(DOCTOR_VERIFICATION_STATUS_VALUES, value) ?? undefined
+  );
+}
+
+function labelForSpecialization(value: string | undefined): string | undefined {
+  if (!value) {
+    return undefined;
+  }
+  const parsed = parseStringEnumMember(specializationSchema.options, value);
+  return parsed ? SPECIALIZATION_LABELS[parsed] : value;
+}
+
+function labelForHospitalRole(value: string | undefined): string | undefined {
+  if (!value) {
+    return undefined;
+  }
+  const parsed = parseStringEnumMember(hospitalRoleSchema.options, value);
+  return parsed ? HOSPITAL_ROLE_LABELS[parsed] : value;
+}
+
 export default function DoctorsPage() {
   const { doctorSearch, selectedClinic, setDoctorSearch, setSelectedClinic } =
     useInternalFiltersStore();
@@ -181,7 +220,7 @@ export default function DoctorsPage() {
   }, [clinics, selectedClinic, setSelectedClinic]);
 
   const doctorsQuery = useInternalDoctorsList(token, selectedClinic, clinics);
-  const doctors = (doctorsQuery.data ?? []) as Doctor[];
+  const doctors: InternalDoctorListItem[] = doctorsQuery.data ?? [];
   const loading = clinicsQuery.isLoading || doctorsQuery.isLoading;
 
   const fetchDoctorDetails = async (clinicId: string, doctorId: string) => {
@@ -199,7 +238,7 @@ export default function DoctorsPage() {
     }
   };
 
-  const handleViewDoctor = async (doctor: Doctor) => {
+  const handleViewDoctor = async (doctor: InternalDoctorListItem) => {
     const clinicId =
       doctor.clinicId || (selectedClinic !== "all" ? selectedClinic : "");
 
@@ -280,7 +319,7 @@ export default function DoctorsPage() {
       doctor.name.toLowerCase().includes(doctorSearch.toLowerCase()) ||
       doctor.email.toLowerCase().includes(doctorSearch.toLowerCase()) ||
       (doctor.specialization &&
-        SPECIALIZATION_LABELS[doctor.specialization]
+        labelForSpecialization(doctor.specialization)
           ?.toLowerCase()
           .includes(doctorSearch.toLowerCase())),
   );
@@ -383,7 +422,7 @@ export default function DoctorsPage() {
                     <TableCell>
                       {doctor.specialization ? (
                         <Badge variant="outline">
-                          {SPECIALIZATION_LABELS[doctor.specialization] ||
+                          {labelForSpecialization(doctor.specialization) ??
                             doctor.specialization}
                         </Badge>
                       ) : (
@@ -394,7 +433,9 @@ export default function DoctorsPage() {
                       <div className="flex flex-wrap gap-2">
                         <Badge
                           variant={getVerificationBadgeVariant(
-                            doctor.verificationStatus,
+                            parseDoctorVerificationStatus(
+                              doctor.verificationStatus,
+                            ),
                           )}
                         >
                           {doctor.verificationStatus === "VERIFIED" ? (
@@ -402,7 +443,11 @@ export default function DoctorsPage() {
                           ) : (
                             <ShieldX className="mr-1 h-3.5 w-3.5" />
                           )}
-                          {getVerificationLabel(doctor.verificationStatus)}
+                          {getVerificationLabel(
+                            parseDoctorVerificationStatus(
+                              doctor.verificationStatus,
+                            ),
+                          )}
                         </Badge>
                         <Badge
                           variant={
@@ -417,7 +462,7 @@ export default function DoctorsPage() {
                     <TableCell>
                       {doctor.hospitalRole ? (
                         <Badge variant="secondary">
-                          {HOSPITAL_ROLE_LABELS[doctor.hospitalRole] ||
+                          {labelForHospitalRole(doctor.hospitalRole) ??
                             doctor.hospitalRole}
                         </Badge>
                       ) : (

@@ -101,8 +101,12 @@ export function redactString(input: string): string {
   return out;
 }
 
+import { redactPhiPreservingType } from "@/lib/monitoring/sentry-phi-redactor.boundary";
+
 export function redactPhi<T>(value: T): T {
-  return walk(value, 0, new WeakSet()) as T;
+  return redactPhiPreservingType(value, (input) =>
+    walk(input, 0, new WeakSet()),
+  );
 }
 
 function isRecord(value: unknown): value is Record<string, unknown> {

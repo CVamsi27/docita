@@ -133,7 +133,7 @@ export const OCRResults = ({
                 htmlFor="ocr-review-ack"
                 className="text-sm font-normal leading-snug cursor-pointer"
               >
-                I have reviewed fields flagged as low confidence and corrected
+                I have reviewed fields flagged with low confidence and corrected
                 any errors before creating this patient record.
               </Label>
             </div>

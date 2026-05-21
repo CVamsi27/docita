@@ -2,6 +2,7 @@
 
 import { Feature, FEATURE_TIER_MAP, Tier } from "@workspace/types";
 import type { IAccessContext, IAccessRule } from "@/lib/access-control/interfaces";
+import { parseFeature } from "@/lib/access-control/parse-feature";
 
 export class TierBasedAccessRule implements IAccessRule {
   private readonly featureTierMap: Record<Feature, Tier>;
@@ -14,8 +15,8 @@ export class TierBasedAccessRule implements IAccessRule {
 
     if (typeof context.feature === "string") {
 
-      const featureKey = context.feature as Feature;
-      if (!(featureKey in this.featureTierMap)) {
+      const featureKey = parseFeature(context.feature);
+      if (!featureKey) {
         return false;
       }
 

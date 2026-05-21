@@ -55,5 +55,6 @@ export function basicOcrParsing(
     },
   };
 
-  return normalizeOcrFields(data as OcrRawData, config);
+  const rawData: OcrRawData = data;
+  return normalizeOcrFields(rawData, config);
 }

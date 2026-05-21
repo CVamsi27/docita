@@ -29,7 +29,7 @@ import {
 } from "@workspace/ui/components/form/select";
 import { Plus } from "lucide-react";
 import { useCreateLeavePlan, useLeavePlans } from "@workspace/data-access";
-import { LeaveType, LeavePlan } from "@workspace/types";
+import { LeavePlan } from "@workspace/types";
 import { showUserFacingErrorToast } from "@/lib/errors/user-facing-errors";
 import {
   Form,
@@ -45,6 +45,7 @@ import {
 } from "@workspace/types";
 import { LEAVE_TYPE_LABELS } from "./LeaveBalanceCard";
 import { useState } from "react";
+import { labelMapKeys } from "@workspace/utils";
 
 const DEFAULT_VALUES: LeavePlanDialogFormValues = {
   leaveType: "CASUAL",
@@ -141,23 +142,18 @@ export function LeavePolicyEditor() {
                 render={({ field }) => (
                   <FormItem>
                     <FormLabel>Leave Type</FormLabel>
-                    <Select
-                      value={field.value}
-                      onValueChange={field.onChange}
-                    >
+                    <Select value={field.value} onValueChange={field.onChange}>
                       <FormControl>
                         <SelectTrigger>
                           <SelectValue placeholder="Leave type" />
                         </SelectTrigger>
                       </FormControl>
                       <SelectContent>
-                        {(Object.keys(LEAVE_TYPE_LABELS) as LeaveType[]).map(
-                          (lt) => (
-                            <SelectItem key={lt} value={lt}>
-                              {LEAVE_TYPE_LABELS[lt]}
-                            </SelectItem>
-                          ),
-                        )}
+                        {labelMapKeys(LEAVE_TYPE_LABELS).map((lt) => (
+                          <SelectItem key={lt} value={lt}>
+                            {LEAVE_TYPE_LABELS[lt]}
+                          </SelectItem>
+                        ))}
                       </SelectContent>
                     </Select>
                     <FormMessage />
@@ -198,12 +194,13 @@ export function LeavePolicyEditor() {
                 >
                   Cancel
                 </Button>
-                <Button
-                  type="submit"
-                  disabled={createPlanMutation.isPending}
-                >
+                <Button type="submit" disabled={createPlanMutation.isPending}>
                   {createPlanMutation.isPending && (
-                    <DocitaLoadingIndicator variant="inline" decorative className="mr-2" />
+                    <DocitaLoadingIndicator
+                      variant="inline"
+                      decorative
+                      className="mr-2"
+                    />
                   )}
                   Save Plan
                 </Button>

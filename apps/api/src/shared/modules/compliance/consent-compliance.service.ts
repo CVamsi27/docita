@@ -3,18 +3,18 @@ import { CLOCK_PORT, type IClock } from '@/shared/common/ports/clock.port';
 import { PrismaService } from '@/prisma/prisma.service';
 import { ConsentStatus, ConsentType } from '@workspace/db';
 import { DpdpAuditEmitter } from './dpdp-audit.emitter';
+import { isRecord } from '@workspace/utils';
 import type {
   ConsentRecord,
   DpdpNoticeConsentInput,
 } from './dpdp-compliance.types';
 
 function getRequireConsentBeforeSending(value: unknown): boolean | undefined {
-  if (!value || typeof value !== 'object') {
+  if (!isRecord(value)) {
     return undefined;
   }
 
-  const consentFlag = (value as { requireConsentBeforeSending?: unknown })
-    .requireConsentBeforeSending;
+  const consentFlag = value.requireConsentBeforeSending;
   return typeof consentFlag === 'boolean' ? consentFlag : undefined;
 }
 

@@ -1,14 +1,10 @@
 import { Inject, Injectable } from '@nestjs/common';
 import { CLOCK_PORT, type IClock } from '@/shared/common/ports/clock.port';
 import { PrismaService } from '@/prisma/prisma.service';
+import { isRecord } from '@workspace/utils';
 
 function isPrismaUniqueViolation(error: unknown): boolean {
-  return (
-    error !== null &&
-    typeof error === 'object' &&
-    'code' in error &&
-    (error as { code: string }).code === 'P2002'
-  );
+  return isRecord(error) && error.code === 'P2002';
 }
 
 @Injectable()

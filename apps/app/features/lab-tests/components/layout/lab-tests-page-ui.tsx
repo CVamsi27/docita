@@ -79,7 +79,9 @@ export const LabTestsPageUI: FC = () => {
 
       <Tabs
         value={activeTab}
-        onValueChange={(value) => setActiveTab(value as "orders" | "catalog")}
+        onValueChange={(value) => {
+          if (value === "orders" || value === "catalog") setActiveTab(value);
+        }}
         className="w-full"
       >
         <TabsList>

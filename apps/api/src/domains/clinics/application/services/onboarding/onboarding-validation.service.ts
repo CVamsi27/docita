@@ -233,10 +233,8 @@ export class OnboardingValidationService {
     }
   }
 
-  validateSpecialization(
-    spec: string | undefined,
-  ): Specialization | null | undefined {
-    if (!spec) return undefined;
+  validateSpecialization(spec: string | undefined): Specialization | null {
+    if (!spec) return null;
     return validateSpecializationForOnboarding(spec);
   }
 

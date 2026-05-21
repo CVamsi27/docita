@@ -1,6 +1,12 @@
 import { z } from 'zod';
 import { EnvConfigStore } from './env-config.store';
 
+function isValidationErrorRecord(value: unknown): value is {
+  _errors?: unknown;
+} {
+  return value !== null && typeof value === 'object';
+}
+
 /** Parses env boolean strings (`"false"` must not coerce to true). */
 function envBoolean(defaultValue: boolean) {
   return z
@@ -245,10 +251,12 @@ export function validateEnv(): EnvConfig {
     Object.entries(formatted).forEach(([key, value]) => {
       if (
         key !== '_errors' &&
-        typeof value === 'object' &&
-        '_errors' in value
+        isValidationErrorRecord(value) &&
+        Array.isArray(value._errors)
       ) {
-        const errors = (value as { _errors: string[] })._errors;
+        const errors = value._errors.filter(
+          (entry): entry is string => typeof entry === 'string',
+        );
         if (errors.length > 0) {
           process.stderr.write(`  - ${key}: ${errors.join(', ')}\n`);
         }

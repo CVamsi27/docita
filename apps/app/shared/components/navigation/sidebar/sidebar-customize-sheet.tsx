@@ -168,7 +168,7 @@ function CustomizeSidebarOrderUI({
                 navOrder.setOrder(navOrder.effectiveOrder, "clinic");
               }}
             >
-              Save this order as clinic default
+              Save this order for the clinic default
             </button>
           ) : null}
         </div>

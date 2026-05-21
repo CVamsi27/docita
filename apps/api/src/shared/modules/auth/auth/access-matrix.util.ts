@@ -7,11 +7,25 @@ import {
 } from '@workspace/types';
 import { Feature } from './tier.decorator';
 
-const DB_ROLE_VALUES = Object.values(Role);
-const DB_ROLE_SET = new Set<string>(DB_ROLE_VALUES);
-
 function parseDbRole(role: string): Role | null {
-  return DB_ROLE_SET.has(role) ? (role as Role) : null;
+  switch (role) {
+    case Role.DOCTOR:
+      return Role.DOCTOR;
+    case Role.NURSE:
+      return Role.NURSE;
+    case Role.RECEPTIONIST:
+      return Role.RECEPTIONIST;
+    case Role.ADMIN:
+      return Role.ADMIN;
+    case Role.INTERNAL:
+      return Role.INTERNAL;
+    case Role.ADMIN_DOCTOR:
+      return Role.ADMIN_DOCTOR;
+    case Role.PATIENT:
+      return Role.PATIENT;
+    default:
+      return null;
+  }
 }
 
 export function getDbRolesForTarget(

@@ -1,4 +1,5 @@
 import { PrismaService } from '@/prisma/prisma.service';
+import { isRecord } from '@workspace/utils';
 import { Feature } from '@/shared/modules/auth/auth/tier.decorator';
 import {
   clinicHasFeatureForAccess,
@@ -46,6 +47,8 @@ export async function isClinicWhatsAppAutomationSendingAllowed(
     return true;
   }
 
-  const automation = clinic.whatsappAutomation as { enabled?: boolean };
+  const automation = isRecord(clinic.whatsappAutomation)
+    ? clinic.whatsappAutomation
+    : {};
   return automation.enabled !== false;
 }

@@ -16,7 +16,7 @@ import {
 } from "@workspace/ui/components/overlay/tooltip";
 
 export interface AppointmentRowActionsMenuProps {
-  /** Underlying appointment id (when present, enables Cancel and Mark as No Show). */
+  /** Underlying appointment id (when present, enables Cancel and Mark no-show). */
   appointmentId?: string | null;
   /** Patient id (when present, enables View Patient and Schedule follow-up). */
   patientId?: string | null;
@@ -168,7 +168,7 @@ export function AppointmentRowActionsMenu({
         ) : null}
         {showNoShow && appointmentId ? (
           <DropdownMenuItem onClick={() => onNoShowClick(appointmentId)}>
-            Mark as No Show
+            Mark no-show
           </DropdownMenuItem>
         ) : null}
       </DropdownMenuContent>

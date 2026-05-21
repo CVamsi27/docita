@@ -11,6 +11,7 @@ import { isCronDisabledInThisProcess } from '@/shared/schedule/cron-env';
 import { CRON_SCHEDULES } from '@/shared/schedule/cron-schedules';
 import { AdminAlertsService } from '@/shared/modules/messaging/admin-alerts/admin-alerts.service';
 import { addUtcCalendarDays } from '@/shared/schedule/scheduler-date.util';
+import { isRecord } from '@workspace/utils';
 
 @Injectable()
 export class SubscriptionReminderScheduler {
@@ -27,16 +28,13 @@ export class SubscriptionReminderScheduler {
   ) {}
 
   private isDatabaseAuthError(error: unknown): boolean {
-    if (!error || typeof error !== 'object') {
+    if (!isRecord(error)) {
       return false;
     }
 
-    const candidate = error as { code?: unknown; message?: unknown };
-    const code = typeof candidate.code === 'string' ? candidate.code : '';
+    const code = typeof error.code === 'string' ? error.code : '';
     const message =
-      typeof candidate.message === 'string'
-        ? candidate.message.toLowerCase()
-        : '';
+      typeof error.message === 'string' ? error.message.toLowerCase() : '';
 
     if (code === 'P1000') {
       return true;

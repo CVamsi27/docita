@@ -25,6 +25,12 @@ export interface ContractWithMembers extends EnterpriseContract {
   }[];
 }
 
+function isContractWithMembers(
+  contract: ContractWithMembers | EnterpriseContract,
+): contract is ContractWithMembers {
+  return 'members' in contract && Array.isArray(contract.members);
+}
+
 @Injectable()
 export class EnterpriseContractsQueryService {
   constructor(
@@ -37,7 +43,6 @@ export class EnterpriseContractsQueryService {
   activeMemberClinicIds(c: ContractWithMembers): string[] {
     return c.members.filter((m) => m.removedAt === null).map((m) => m.clinicId);
   }
-
   async list(): Promise<ContractWithMembers[]> {
     // RLS-BYPASS: enterprise contract administration spans member clinics by design
     return this.persistence.runUnrestricted(async () =>
@@ -69,7 +74,6 @@ export class EnterpriseContractsQueryService {
       });
     });
   }
-
   async getByContractId(id: string): Promise<ContractWithMembers | null> {
     // RLS-BYPASS: enterprise contract administration spans member clinics by design
     return this.persistence.runUnrestricted(async () =>
@@ -88,7 +92,6 @@ export class EnterpriseContractsQueryService {
     if (contract.status !== EnterpriseContractStatus.ACTIVE) return null;
     return contract;
   }
-
   async listRevisions(contractId: string) {
     // RLS-BYPASS: enterprise contract administration spans member clinics by design
     return this.persistence.runUnrestricted(async () =>
@@ -341,12 +344,11 @@ export class EnterpriseContractsQueryService {
   }
 
   toJsonContract(contract: ContractWithMembers | EnterpriseContract) {
-    const memberClinicIds =
-      'members' in contract
-        ? (contract as ContractWithMembers).members
-            .filter((m) => m.removedAt === null)
-            .map((m) => m.clinicId)
-        : [];
+    const memberClinicIds = isContractWithMembers(contract)
+      ? contract.members
+          .filter((m) => m.removedAt === null)
+          .map((m) => m.clinicId)
+      : [];
     return {
       id: contract.id,
       primaryClinicId: contract.primaryClinicId,

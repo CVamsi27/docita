@@ -7,6 +7,7 @@ import {
   IPaymentGateway,
   PAYMENT_GATEWAY_TOKEN,
 } from '@/domains/subscriptions/application/ports/payment-gateway.port';
+import { parseSubscriptionPaymentLookup } from '@/domains/subscriptions/application/services/subscription-payment-history.types';
 
 // AuditLogged: subscription payment verification is part of subscription activation audit trail.
 type SubscriptionPaymentRecord = {
@@ -44,10 +45,12 @@ export class ActivateSubscriptionPaymentService {
     payment: SubscriptionPaymentRecord;
     verifiedAmountCents: number | undefined;
   }> {
-    const payment = (await this.subscriptionRepo.findPaymentByOrderId(
-      input.clinicId,
-      input.razorpayOrderId,
-    )) as SubscriptionPaymentRecord | null;
+    const payment = parseSubscriptionPaymentLookup(
+      await this.subscriptionRepo.findPaymentByOrderId(
+        input.clinicId,
+        input.razorpayOrderId,
+      ),
+    );
 
     if (!payment) {
       throw new BadRequestException('Payment order not found for this clinic');

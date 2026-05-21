@@ -5,6 +5,10 @@ import {
 } from '@/domains/whatsapp/application/ports/whatsapp-persistence.port';
 import type { ClinicTier, StaffNotificationType } from '@workspace/db';
 
+function isJsonObject(value: unknown): value is { enabled?: unknown } {
+  return value !== null && typeof value === 'object' && !Array.isArray(value);
+}
+
 const NOTIFICATION_TYPE_MIN_TIER: Partial<
   Record<StaffNotificationType, ClinicTier>
 > = {
@@ -60,7 +64,9 @@ export class StaffNotificationPolicyService {
       return true;
     }
 
-    const automation = clinic.whatsappAutomation as { enabled?: boolean };
+    const automation = isJsonObject(clinic.whatsappAutomation)
+      ? clinic.whatsappAutomation
+      : {};
     return automation.enabled !== false;
   }
 }

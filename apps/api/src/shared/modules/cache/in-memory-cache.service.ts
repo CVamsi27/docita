@@ -1,5 +1,6 @@
 import { Injectable, OnModuleDestroy, OnModuleInit } from '@nestjs/common';
 import { ICacheProvider } from './cache.interface';
+import { assertTypedJsonValue } from '@/shared/common/json/parse-serialized-json.boundary';
 
 interface CacheEntry<T> {
   value: T;
@@ -44,7 +45,7 @@ export class InMemoryCacheService
       return null;
     }
 
-    return entry.value as T;
+    return assertTypedJsonValue<T>(entry.value);
   }
 
   async set<T>(key: string, value: T, ttl?: number): Promise<void> {

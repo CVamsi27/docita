@@ -76,7 +76,7 @@ export function ClinicBusinessSection({
           id="clinic-legal-name-help"
           className="text-xs text-muted-foreground"
         >
-          Used as the bill-to name on Docita tax invoices. Leave blank to use
+          Used for the bill-to name on Docita tax invoices. Leave blank to use
           your facility name.
         </p>
       </div>

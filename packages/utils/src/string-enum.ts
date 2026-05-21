@@ -6,7 +6,7 @@ export function isStringEnumMember<T extends string>(
   members: readonly T[],
   value: string,
 ): value is T {
-  return (members as readonly string[]).includes(value);
+  return members.some((member) => member === value);
 }
 
 export function parseStringEnumMember<T extends string>(

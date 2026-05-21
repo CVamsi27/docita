@@ -1,4 +1,5 @@
 import { CursorPaginationResult, PrismaQuery } from '@workspace/types';
+import { isRecord } from '@workspace/utils';
 
 interface PrismaModelDelegate<T> {
   findMany: (args?: Record<string, unknown>) => Promise<T[]>;
@@ -84,10 +85,10 @@ export async function paginateWithCursor<T>(
 }
 
 function extractCursorId(item: unknown): string | undefined {
-  if (!item || typeof item !== 'object') {
+  if (!isRecord(item)) {
     return undefined;
   }
 
-  const id = (item as { id?: unknown }).id;
+  const id = item.id;
   return typeof id === 'string' ? id : undefined;
 }

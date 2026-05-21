@@ -5,6 +5,7 @@ import {
   DiscountAggregate,
 } from '@/domains/subscriptions/core/value-objects';
 import { ANNUAL_DISCOUNT_PERCENT, TIER_PRICING } from '@workspace/types';
+import { mapPricingTierInputToTierName } from '@/domains/billing/core/services/pricing-helpers';
 import { InvariantViolationError } from '@/shared/common/errors/domain.errors';
 
 export class SubscriptionPricingService {
@@ -13,8 +14,13 @@ export class SubscriptionPricingService {
     cycle: BillingCycle,
     discountPercent = 0,
   ): number {
-    const tierName = tier.toString() as keyof typeof TIER_PRICING;
-    const pricing = TIER_PRICING[tierName];
+    const tierKey = mapPricingTierInputToTierName(tier.toString());
+    if (!tierKey) {
+      throw new InvariantViolationError(
+        `Pricing not found for tier: ${tier.toString()}`,
+      );
+    }
+    const pricing = TIER_PRICING[tierKey];
     if (!pricing) {
       throw new InvariantViolationError(
         `Pricing not found for tier: ${tier.toString()}`,

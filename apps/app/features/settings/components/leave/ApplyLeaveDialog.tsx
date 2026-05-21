@@ -30,14 +30,12 @@ import {
 } from "@workspace/ui/components/form/select";
 import { Textarea } from "@workspace/ui/components/form/textarea";
 import { useApplyLeave } from "@workspace/data-access";
-import {
-  LeaveType,
-  createLeaveRequestSchema,
-} from "@workspace/types";
+import { createLeaveRequestSchema } from "@workspace/types";
 import type { User } from "@workspace/types";
 import type { z } from "zod";
 import { showUserFacingErrorToast } from "@/lib/errors/user-facing-errors";
 import { LEAVE_TYPE_LABELS } from "./LeaveBalanceCard";
+import { labelMapKeys } from "@workspace/utils";
 
 type ApplyLeaveFormValues = z.infer<typeof createLeaveRequestSchema>;
 
@@ -76,9 +74,7 @@ export function ApplyLeaveDialog({
         endDate: data.endDate,
         reason: data.reason?.trim() || undefined,
         staffId:
-          userIsAdmin && data.staffId?.trim()
-            ? data.staffId.trim()
-            : undefined,
+          userIsAdmin && data.staffId?.trim() ? data.staffId.trim() : undefined,
       });
       toast.success("Leave request submitted");
       onOpenChange(false);
@@ -149,13 +145,11 @@ export function ApplyLeaveDialog({
                       </SelectTrigger>
                     </FormControl>
                     <SelectContent>
-                      {(Object.keys(LEAVE_TYPE_LABELS) as LeaveType[]).map(
-                        (lt) => (
-                          <SelectItem key={lt} value={lt}>
-                            {LEAVE_TYPE_LABELS[lt]}
-                          </SelectItem>
-                        ),
-                      )}
+                      {labelMapKeys(LEAVE_TYPE_LABELS).map((lt) => (
+                        <SelectItem key={lt} value={lt}>
+                          {LEAVE_TYPE_LABELS[lt]}
+                        </SelectItem>
+                      ))}
                     </SelectContent>
                   </Select>
                   <FormMessage />
@@ -173,8 +167,7 @@ export function ApplyLeaveDialog({
                       <DatePicker
                         value={field.value || undefined}
                         onChange={(date) => {
-                          const next =
-                            date?.toISOString().slice(0, 10) ?? "";
+                          const next = date?.toISOString().slice(0, 10) ?? "";
                           field.onChange(next);
                           const end = form.getValues("endDate");
                           if (end && date && new Date(end) < new Date(next)) {

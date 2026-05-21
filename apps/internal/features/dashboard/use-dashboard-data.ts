@@ -5,8 +5,6 @@ import {
   useInternalDashboardClinics,
   useInternalDashboardStats,
 } from "@workspace/data-access/internal";
-import type { DashboardClinic } from "./types";
-
 export function useDashboardData() {
   const { token } = useAuth();
 
@@ -15,7 +13,7 @@ export function useDashboardData() {
 
   return {
     token,
-    clinics: (clinicsQuery.data ?? []) as DashboardClinic[],
+    clinics: clinicsQuery.data ?? [],
     stats: statsQuery.data ?? defaultInternalDashboardStats,
     trends: statsQuery.data?.trends ?? defaultInternalDashboardTrends,
     loading: Boolean(token) && (clinicsQuery.isLoading || statsQuery.isLoading),

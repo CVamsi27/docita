@@ -6,6 +6,7 @@ import {
   MetricSelectionRow,
 } from '@/domains/patients/core/repositories/patient-metrics.repository.interface';
 import { parsePrismaJsonColumn } from '@/shared/common/json/parse-prisma-json-column';
+import { assertTypedJsonValue } from '@/shared/common/json/parse-serialized-json.boundary';
 import { patientMetricValueJsonSchema } from '@workspace/types';
 
 type MetricCategorySource = {
@@ -144,10 +145,10 @@ export function mapMetricRecordRow(
       valueNumber: value.valueNumber,
       valueBoolean: value.valueBoolean,
       valueDate: value.valueDate,
-      valueJson: (parsePrismaJsonColumn(
-        value.valueJson,
-        patientMetricValueJsonSchema,
-      ) ?? null) as Prisma.JsonValue | null,
+      valueJson: assertTypedJsonValue<Prisma.JsonValue | null>(
+        parsePrismaJsonColumn(value.valueJson, patientMetricValueJsonSchema) ??
+          null,
+      ),
       optionId: value.optionId,
       option: value.option,
     })),

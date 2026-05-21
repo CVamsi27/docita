@@ -2,6 +2,7 @@ import { render, screen } from "@testing-library/react";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import type { ReactElement } from "react";
 import { describe, expect, it, vi } from "vitest";
+import { DataAccessProvider } from "@workspace/data-access";
 
 vi.mock("@/lib/auth/auth", () => ({
   useAuth: () => ({
@@ -21,7 +22,19 @@ function renderWithQueryClient(ui: ReactElement) {
   });
 
   return render(
-    <QueryClientProvider client={queryClient}>{ui}</QueryClientProvider>,
+    <QueryClientProvider client={queryClient}>
+      <DataAccessProvider
+        config={{
+          fetcher: (endpoint) =>
+            Promise.reject(new Error(`Unexpected data-access GET ${endpoint}`)),
+          getClinicId: () => undefined,
+          getClinicTimezone: () => undefined,
+          isTierFeatureEnabled: () => true,
+        }}
+      >
+        {ui}
+      </DataAccessProvider>
+    </QueryClientProvider>,
   );
 }
 

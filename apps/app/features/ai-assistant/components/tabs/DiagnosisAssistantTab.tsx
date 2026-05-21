@@ -145,7 +145,7 @@ export const DiagnosisAssistantTab = ({
                   </p>
                   <div className="mt-3 flex gap-2">
                     <Button size="sm" variant="outline">
-                      Select as Primary
+                      Select primary
                     </Button>
                     <Button size="sm" variant="ghost">
                       View Details

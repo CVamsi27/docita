@@ -55,7 +55,7 @@ export const useAppointmentsLogic = () => {
   const { user } = useAuth();
   const { clinic } = useClinic();
   const clinicTz = useMemo(
-    () => (clinic?.timezone?.trim() || DEFAULT_TIMEZONE) as string,
+    () => clinic?.timezone?.trim() || DEFAULT_TIMEZONE,
     [clinic?.timezone],
   );
   const currentTimeSlotRef = useRef<HTMLDivElement>(null);

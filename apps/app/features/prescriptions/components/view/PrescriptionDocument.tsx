@@ -36,7 +36,7 @@ export function PrescriptionDocument({
   prescription,
   clinicInfo,
 }: PrescriptionDocumentProps) {
-  const doctorInfo = prescription.doctor as DoctorInfo;
+  const doctorInfo = prescription.doctor;
   const doctorName = doctorInfo?.name ?? "";
 
   const patientName = prescription.patient

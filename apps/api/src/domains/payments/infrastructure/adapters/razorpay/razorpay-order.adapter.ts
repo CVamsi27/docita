@@ -1,6 +1,8 @@
 import { Injectable, Logger, BadRequestException } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import * as crypto from 'crypto';
+import { isRecord } from '@workspace/utils';
+import { asRazorpayRecord } from './razorpay-record.util';
 import { BaseRazorpayAdapter } from './razorpay.adapter';
 import { RazorpayClientService } from './razorpay-client.service';
 import {
@@ -65,15 +67,18 @@ export class RazorpayOrderAdapter
   }
 
   private extractRazorpayErrorMessage(error: unknown): string | null {
-    if (!error || typeof error !== 'object') return null;
-    const err = error as {
-      error?: { description?: string; reason?: string; code?: string };
-      message?: string;
-      statusCode?: number;
-    };
-    if (err.error?.description) return err.error.description;
-    if (err.error?.reason) return err.error.reason;
-    if (err.message) return err.message;
+    const err = asRazorpayRecord(error);
+    if (!err) return null;
+    const nested = isRecord(err.error) ? err.error : null;
+    if (nested && typeof nested.description === 'string') {
+      return nested.description;
+    }
+    if (nested && typeof nested.reason === 'string') {
+      return nested.reason;
+    }
+    if (typeof err.message === 'string') {
+      return err.message;
+    }
     return null;
   }
 

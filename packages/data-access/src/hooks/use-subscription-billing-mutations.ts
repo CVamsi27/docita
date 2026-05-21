@@ -3,7 +3,6 @@
 import { useMutation } from "@tanstack/react-query";
 import {
   subscriptionBillingResumePaymentResponseSchema,
-  type SubscriptionBillingResumePaymentResponse,
   type TierName,
 } from "@workspace/types";
 import { queryKeys } from "../lib/query-keys";
@@ -28,7 +27,7 @@ export function useResumeSubscriptionPayment() {
           `/subscription/billing/payments/${paymentId}/resume`,
           { method: "POST", retries: 0 },
         ),
-      ) as SubscriptionBillingResumePaymentResponse,
+      ),
   });
 }
 

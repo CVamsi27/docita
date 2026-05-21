@@ -41,6 +41,7 @@ import { toast } from "sonner";
 import { useAuth } from "@/lib/auth/auth-context";
 import { showUserFacingErrorToast } from "@/lib/errors/user-facing-errors";
 import { useMobileUpload } from "@/features/ocr";
+import { parseStringEnumMember } from "@workspace/utils";
 
 interface Props {
   patientId: string;
@@ -72,6 +73,11 @@ const DOCUMENT_TYPE_LABELS: Record<
   SICK_NOTE: "Sick Note",
   OTHER: "Other",
 };
+
+function documentTypeLabel(type: string): string {
+  const parsed = parseStringEnumMember(DOCUMENT_TYPE_OPTIONS, type);
+  return parsed ? DOCUMENT_TYPE_LABELS[parsed] : type;
+}
 
 export function MedicalDocumentList({ patientId }: Props) {
   const { user } = useAuth();
@@ -300,9 +306,7 @@ export function MedicalDocumentList({ patientId }: Props) {
                   <div>
                     <CardTitle className="text-sm">{doc.title}</CardTitle>
                     <p className="text-xs text-muted-foreground">
-                      {DOCUMENT_TYPE_LABELS[
-                        doc.type as keyof typeof DOCUMENT_TYPE_LABELS
-                      ] || doc.type}
+                      {documentTypeLabel(doc.type)}
                     </p>
                   </div>
                 </div>

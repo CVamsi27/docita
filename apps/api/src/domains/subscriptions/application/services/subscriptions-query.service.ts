@@ -158,7 +158,10 @@ export class SubscriptionsQueryService {
     };
   }
 
-  async getPaymentHistory(clinicId: string, limit: number = 20) {
+  async getPaymentHistory(
+    clinicId: string,
+    limit: number = 20,
+  ): Promise<PaymentHistoryRecord[]> {
     const subscription = await this.subscriptionRepo.findByClinicId(clinicId);
     const currentPlan = subscription ? subscription.getPlan().value : undefined;
 

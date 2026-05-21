@@ -1,6 +1,7 @@
 "use client";
 
-import { Control, FieldValues, Path } from "react-hook-form";
+import { Control, FieldValues } from "react-hook-form";
+import { invoiceDiscountFieldPath } from "@/features/invoices/lib/invoice-form-paths.boundary";
 import {
   FormControl,
   FormField,
@@ -25,7 +26,7 @@ export function InvoiceSubtotal<T extends FieldValues & { discount: number }>({
       <div className="w-full max-w-[300px] space-y-4">
         <FormField
           control={control}
-          name={"discount" as Path<T>}
+          name={invoiceDiscountFieldPath<T>()}
           render={({ field }) => (
             <FormItem className="flex items-center justify-between space-y-0 gap-4">
               <FormLabel className="shrink-0">Discount</FormLabel>

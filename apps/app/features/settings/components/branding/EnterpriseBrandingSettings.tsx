@@ -186,7 +186,7 @@ export function EnterpriseBrandingSettings() {
               type="single"
               value={mode}
               onValueChange={(v) => {
-                if (typeof v === "string" && v) setMode(v as "light" | "dark" | "system");
+                if (v === "light" || v === "dark" || v === "system") setMode(v);
               }}
               className={cn("flex gap-2 justify-start", !hasLockedTheme && "pointer-events-none opacity-50")}
             >

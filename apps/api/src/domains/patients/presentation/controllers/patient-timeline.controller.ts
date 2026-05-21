@@ -16,6 +16,20 @@ import { parsePaginationInt } from '@/shared/common/utils/string.utils';
 import { getDbRolesForTarget } from '@/shared/modules/auth/auth/access-matrix.util';
 import { AuditService } from '@/shared/modules/audit/audit/audit.service';
 import { logPatientPhiRead } from '@/shared/modules/audit/audit/patient-access-audit.util';
+import type { TimelineEventType } from '@/domains/patients/core/repositories/timeline/timeline-event.types';
+import { parseStringEnumMember } from '@workspace/utils';
+
+const TIMELINE_EVENT_TYPES: readonly TimelineEventType[] = [
+  'APPOINTMENT',
+  'PRESCRIPTION',
+  'METRIC_RECORD',
+  'LAB_TEST',
+  'MEDICAL_DOCUMENT',
+  'FOLLOW_UP',
+  'IMMUNIZATION',
+  'ADMISSION',
+  'MEDICATION_DOSE',
+];
 
 @ApiTags('patient-timeline')
 @Controller('patients/:patientId/timeline')
@@ -51,9 +65,12 @@ export class PatientTimelineController {
     const clinicId = this.getClinicId(req);
     await logPatientPhiRead(this.auditService, req, patientId, 'VIEW_HISTORY');
     const eventTypes = query.eventTypes
-      ? (query.eventTypes.split(',') as Parameters<
-          typeof this.patientTimelineService.getTimeline
-        >[2]['eventTypes'])
+      ? query.eventTypes
+          .split(',')
+          .map((entry) =>
+            parseStringEnumMember(TIMELINE_EVENT_TYPES, entry.trim()),
+          )
+          .filter((entry): entry is TimelineEventType => entry !== null)
       : undefined;
 
     return this.patientTimelineService.getTimeline(clinicId, patientId, {

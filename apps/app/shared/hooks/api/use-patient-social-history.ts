@@ -1,9 +1,7 @@
 import { useCallback } from "react";
 import { useUpsertPatientSocialHistory } from "@workspace/data-access";
-import type {
-  CreatePatientSocialHistoryInput,
-  PatientSocialHistory,
-} from "@workspace/types";
+import type { PatientSocialHistory } from "@workspace/types";
+import { buildSocialHistoryUpsertPayload } from "@/hooks/api/patient-social-history-update.boundary";
 
 interface UsePatientSocialHistoryOptions {
   patientId: string;
@@ -22,20 +20,11 @@ export function usePatientSocialHistory({
 
   const updateSocialHistory = useCallback(
     (field: keyof PatientSocialHistory, value: string) => {
-      const next: CreatePatientSocialHistoryInput = {
-        smokingStatus: socialHistory?.smokingStatus,
-        smokingPackYears: socialHistory?.smokingPackYears,
-        smokingQuitDate: socialHistory?.smokingQuitDate,
-        alcoholUse: socialHistory?.alcoholUse,
-        alcoholFrequency: socialHistory?.alcoholFrequency,
-        substanceUse: socialHistory?.substanceUse,
-        occupation: socialHistory?.occupation,
-        occupationalHazards: socialHistory?.occupationalHazards,
-        exerciseFrequency: socialHistory?.exerciseFrequency,
-        dietaryRestrictions: socialHistory?.dietaryRestrictions,
-        notes: socialHistory?.notes,
-        [field]: value,
-      } as CreatePatientSocialHistoryInput;
+      const next = buildSocialHistoryUpsertPayload(
+        socialHistory,
+        field,
+        value,
+      );
       upsertSocialHistory(next, { onError });
     },
     [socialHistory, upsertSocialHistory, onError],

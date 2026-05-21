@@ -41,20 +41,13 @@ export function useAPIMutation<TData, TVariables, TError = Error>(
       });
     },
     ...options,
-    onSuccess: (data, variables, context) => {
+    onSuccess: (data, variables, context, mutation) => {
       if (options?.invalidateKeys) {
         options.invalidateKeys.forEach((key) => {
           queryClient.invalidateQueries({ queryKey: key });
         });
       }
-      if (options?.onSuccess) {
-        const typedOnSuccess = options.onSuccess as (
-          data: TData,
-          variables: TVariables,
-          context?: unknown,
-        ) => Promise<void> | void;
-        typedOnSuccess(data, variables, context);
-      }
+      options?.onSuccess?.(data, variables, context, mutation);
     },
   });
 }

@@ -16,7 +16,7 @@ import {
 } from "@/features/invoices/rules/invoiceRules";
 
 export {
-  createInvoiceFormSchema as createInvoiceSchema,
+  createInvoiceFormSchema,
   type CreateInvoiceFormValues,
 } from "@workspace/types";
 

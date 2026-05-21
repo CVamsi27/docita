@@ -19,7 +19,17 @@ interface PatientTimelineProps {
   isLoading?: boolean;
 }
 
-const ALL_TYPES = Object.keys(EVENT_TYPE_CONFIG) as TimelineEventType[];
+const ALL_TYPES: TimelineEventType[] = [
+  "APPOINTMENT",
+  "PRESCRIPTION",
+  "METRIC_RECORD",
+  "LAB_TEST",
+  "MEDICAL_DOCUMENT",
+  "FOLLOW_UP",
+  "IMMUNIZATION",
+  "ADMISSION",
+  "MEDICATION_DOSE",
+];
 
 export function PatientTimeline({
   events,

@@ -4,15 +4,22 @@ import {
   PRICING_CURRENCY_SYMBOLS,
   type SupportedCurrency,
 } from '@workspace/types';
+import { parseStringEnumMember } from '@workspace/utils';
+
+const SUPPORTED_CURRENCY_MEMBERS = Object.keys(PRICING_CURRENCY_CONFIG).filter(
+  (key): key is SupportedCurrency => key in PRICING_CURRENCY_CONFIG,
+);
 
 @Injectable()
 export class OverageInvoiceComposer {
   resolveCurrency(currency?: string): SupportedCurrency {
-    const selected = currency?.toUpperCase() as SupportedCurrency | undefined;
-    if (
-      selected &&
-      Object.prototype.hasOwnProperty.call(PRICING_CURRENCY_CONFIG, selected)
-    ) {
+    const selected = currency
+      ? parseStringEnumMember(
+          SUPPORTED_CURRENCY_MEMBERS,
+          currency.toUpperCase(),
+        )
+      : null;
+    if (selected) {
       return selected;
     }
 

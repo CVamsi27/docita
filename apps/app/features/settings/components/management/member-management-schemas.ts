@@ -1,4 +1,5 @@
 import type { InviteFormValues, MemberRole } from "@workspace/types";
+import { parseStringEnumMember } from "@workspace/utils";
 
 export {
   inviteTeamMemberFormSchema,
@@ -21,6 +22,21 @@ export const MEMBER_ROLE_LABELS: Record<MemberRole, string> = {
   ADMIN: "Admin",
   ADMIN_DOCTOR: "Admin Doctor",
 };
+
+const MEMBER_ROLE_VALUES = [
+  "DOCTOR",
+  "NURSE",
+  "RECEPTIONIST",
+  "ADMIN",
+  "ADMIN_DOCTOR",
+] as const satisfies readonly MemberRole[];
+
+export function memberRoleDisplayLabel(role: string | null | undefined): string {
+  const parsed = role
+    ? parseStringEnumMember(MEMBER_ROLE_VALUES, role)
+    : null;
+  return parsed ? MEMBER_ROLE_LABELS[parsed] : role || "Staff";
+}
 
 export const INVITE_SUCCESS_LABELS: Record<InviteFormValues["role"], string> = {
   DOCTOR: "Doctor",

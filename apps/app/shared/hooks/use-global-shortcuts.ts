@@ -35,11 +35,12 @@ export function useGlobalShortcuts({
     (event: KeyboardEvent) => {
       if (!enabled) return;
 
-      const target = event.target as HTMLElement;
+      const target = event.target instanceof HTMLElement ? event.target : null;
       const isInput =
-        target.tagName === "INPUT" ||
-        target.tagName === "TEXTAREA" ||
-        target.isContentEditable;
+        target !== null &&
+        (target.tagName === "INPUT" ||
+          target.tagName === "TEXTAREA" ||
+          target.isContentEditable);
 
       const hasModifier = event.metaKey || event.ctrlKey;
 

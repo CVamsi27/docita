@@ -27,10 +27,10 @@ import { usePermissionStore } from "@/lib/stores/permission-store";
 import { FeatureTierBadge } from "@/components/auth/feature-gate";
 import { SUBSCRIPTION_SETTINGS_PATH } from "@/lib/subscription/subscription-settings-path";
 import {
-  ClinicAppSettings,
   useClinicSettings,
   useUpdateClinicSettings,
 } from "@workspace/data-access";
+import { parseClinicAppSettings } from "@/lib/clinic/parse-clinic-app-settings";
 import { toast } from "sonner";
 import { showUserFacingErrorToast } from "@/lib/errors/user-facing-errors";
 import {
@@ -58,7 +58,7 @@ export function SecuritySettings() {
 
   useEffect(() => {
     if (clinic) {
-      const s = (clinic.settings as ClinicAppSettings) || {};
+      const s = parseClinicAppSettings(clinic.settings);
       form.reset({
         twoFactorAuth: s.twoFactorAuth ?? false,
         sessionTimeout: String(s.sessionTimeout || "30"),

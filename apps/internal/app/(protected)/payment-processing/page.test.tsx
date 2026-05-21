@@ -8,6 +8,7 @@ import {
 } from "@testing-library/react";
 import type { ReactElement } from "react";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
+import { DataAccessProvider, type RequestConfig } from "@workspace/data-access";
 import PaymentProcessingPage from "./page";
 
 const clientMocks = vi.hoisted(() => ({
@@ -84,8 +85,24 @@ function renderWithQueryClient(ui: ReactElement) {
     },
   });
 
+  const fetcher = <T,>(
+    endpoint: string,
+    _options?: RequestConfig,
+  ): Promise<T> => clientMocks.get(endpoint) as Promise<T>;
+
   return render(
-    <QueryClientProvider client={queryClient}>{ui}</QueryClientProvider>,
+    <QueryClientProvider client={queryClient}>
+      <DataAccessProvider
+        config={{
+          fetcher,
+          getClinicId: () => undefined,
+          getClinicTimezone: () => undefined,
+          isTierFeatureEnabled: () => true,
+        }}
+      >
+        {ui}
+      </DataAccessProvider>
+    </QueryClientProvider>,
   );
 }
 
@@ -198,9 +215,7 @@ describe("PaymentProcessingPage", () => {
         }),
       );
     });
-    expect(toastSuccessMock).toHaveBeenCalledWith(
-      "Additional charge recorded",
-    );
+    expect(toastSuccessMock).toHaveBeenCalledWith("Additional charge recorded");
   });
 
   it("shows an empty facilities state", async () => {

@@ -7,7 +7,8 @@ import { useAppConfig } from "@/lib/contexts/app-config-context";
 import { canAccessTarget } from "@/lib/access-control/access-policy";
 import { canManageBilling } from "@/lib/auth/permissions";
 import { ClinicFeatureService } from "@/lib/services/clinic-feature.service";
-import { APP_ACCESS_TARGETS, type ClinicType } from "@workspace/types";
+import { APP_ACCESS_TARGETS, clinicTypeSchema } from "@workspace/types";
+import { parseStringEnumMember } from "@workspace/utils";
 import { CLINIC_ADMIN_ROLES } from "@/lib/auth/permissions";
 import { useClinic } from "@/lib/contexts/clinic-context";
 import { useSidebarPreferences } from "@/hooks/use-sidebar-preferences";
@@ -76,8 +77,13 @@ export function useSidebarSections() {
   const notificationCount = unreadNotificationCount?.count ?? 0;
   const pendingJoinRequestCount = pendingJoinRequestData?.count ?? 0;
 
-  const clinicType = (storeClinicType ||
-    getClinicSetting("clinicType")) as ClinicType | undefined;
+  const clinicTypeRaw = storeClinicType || getClinicSetting("clinicType");
+  const clinicType = clinicTypeRaw
+    ? parseStringEnumMember(
+        clinicTypeSchema.options,
+        String(clinicTypeRaw).toUpperCase(),
+      ) ?? undefined
+    : undefined;
 
   const specialtySections =
     ClinicFeatureService.getSpecialtySections(clinicType);

@@ -35,7 +35,6 @@ import type {
   AppDataSubjectRequest,
   CreateDataSubjectRequest,
   DataSubjectRequestStatus,
-  DataSubjectRequestType,
 } from "@workspace/types";
 import {
   REQUEST_TYPE_OPTIONS,

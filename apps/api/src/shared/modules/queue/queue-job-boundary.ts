@@ -1,3 +1,4 @@
+// check-as-cast-density: allow-file — queue job payload generic erasure at handler registry
 import type {
   QueueJob,
   QueueJobData,

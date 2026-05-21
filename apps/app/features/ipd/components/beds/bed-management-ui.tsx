@@ -14,29 +14,12 @@ import { StatGrid, type StatItem } from "@workspace/ui/components/data-display/s
 import { AdmissionModal } from "@/features/ipd/components/modals/admission-modal";
 import type { AdmitPatientRequest, Admission } from "@workspace/types";
 import { useClinicCurrency } from "@/hooks/use-clinic-currency";
+import type { WardWithRooms } from "@/features/ipd/hooks/use-ipd-logic";
 
-interface BedInfo {
-  id: string;
-  bedNumber: string;
-  status: "AVAILABLE" | "OCCUPIED" | "MAINTENANCE";
-}
-
-interface RoomInfo {
-  id: string;
-  roomNumber: string;
-  charges: number;
-  beds: BedInfo[];
-}
-
-export interface WardInfo {
-  id: string;
-  name: string;
-  type: string;
-  rooms: RoomInfo[];
-}
+export type WardInfo = WardWithRooms;
 
 interface BedManagementUIProps {
-  wards: WardInfo[] | undefined;
+  wards: WardWithRooms[] | undefined;
   isLoading: boolean;
   stats: {
     totalBeds: number;

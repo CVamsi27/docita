@@ -23,6 +23,9 @@ import {
   PasswordStrengthIndicator,
 } from "./AuthSharedFields";
 import type { FieldErrors } from "@/features/auth/types/auth";
+import { parseStringEnumMember } from "@workspace/utils";
+
+const SIGNUP_OWNER_ROLE_VALUES = ["ADMIN", "ADMIN_DOCTOR"] as const;
 
 interface SignupStepProps {
   email: string;
@@ -255,9 +258,10 @@ export function AuthSignupStepUI({
               : "signup-owner-role-hint"
           }
           value={ownerRole ?? ""}
-          onValueChange={(value) =>
-            onChangeOwnerRole(value as "ADMIN" | "ADMIN_DOCTOR")
-          }
+          onValueChange={(value) => {
+            const parsed = parseStringEnumMember(SIGNUP_OWNER_ROLE_VALUES, value);
+            if (parsed) onChangeOwnerRole(parsed);
+          }}
           className="grid gap-2.5 xl:grid-cols-2"
         >
           {OWNER_ROLE_OPTIONS.map((option) => {

@@ -102,7 +102,10 @@ export function getVisibleSettingsTabs({
         }
 
         if (!("roles" in item) || !item.roles) return true;
-        return !!userRole && (item.roles as readonly string[]).includes(userRole);
+        return (
+          !!userRole &&
+          item.roles.some((allowedRole) => allowedRole === userRole)
+        );
       }),
     }))
     .filter((category) => category.items.length > 0);

@@ -3,7 +3,7 @@
  * No React, no hooks — just read/write/clear helpers.
  */
 import { z } from "zod";
-import { isRecord } from "@workspace/utils";
+import { DEFAULT_COUNTRY_CODE, isRecord } from "@workspace/utils";
 import { ApiError } from "@/lib/errors";
 import { parseClinicDetailsDraft } from "@/features/onboarding/components/forms/clinic-registration-form-helpers";
 import {
@@ -79,6 +79,13 @@ function parsePersistedFormData(raw: unknown): ClinicRegistrationData {
   }
 
   const clinicDetails = parseClinicDetailsDraft(envelope.data.clinicDetails);
+  const fallbackClinicDetails = isRecord(envelope.data.clinicDetails)
+    ? {
+        facilityLabel: "CLINIC",
+        countryCode: DEFAULT_COUNTRY_CODE,
+        ...envelope.data.clinicDetails,
+      }
+    : defaultClinicRegistrationData.clinicDetails;
   const compliance = complianceSchema
     .partial()
     .safeParse(envelope.data.compliance);
@@ -87,7 +94,7 @@ function parsePersistedFormData(raw: unknown): ClinicRegistrationData {
     ...defaultClinicRegistrationData,
     clinicDetails: clinicDetails
       ? { ...defaultClinicRegistrationData.clinicDetails, ...clinicDetails }
-      : defaultClinicRegistrationData.clinicDetails,
+      : fallbackClinicDetails,
     compliance: compliance.success
       ? { ...defaultClinicRegistrationData.compliance, ...compliance.data }
       : defaultClinicRegistrationData.compliance,

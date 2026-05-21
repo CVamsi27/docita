@@ -6,6 +6,7 @@ import {
   PdfJobStatusResponse,
   pdfJobStatusSchema,
 } from '@workspace/types';
+import { isRecord } from '@workspace/utils';
 
 type PdfJobRecord = {
   id: string;
@@ -159,8 +160,8 @@ export class PdfJobService implements PdfJobServicePort {
     return (
       typeof error === 'object' &&
       error !== null &&
-      'code' in error &&
-      (error as { code?: string }).code === 'P2002'
+      isRecord(error) &&
+      error.code === 'P2002'
     );
   }
 }

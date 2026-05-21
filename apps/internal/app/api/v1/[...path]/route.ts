@@ -49,10 +49,11 @@ function createProxyHeaders(request: Request) {
 
 function createResponseHeaders(upstreamHeaders: Headers) {
   const headers = new Headers();
-  const getSetCookie = (
-    upstreamHeaders as Headers & { getSetCookie?: () => string[] }
-  ).getSetCookie;
-  const setCookies = getSetCookie?.call(upstreamHeaders) ?? [];
+  const setCookies =
+    "getSetCookie" in upstreamHeaders &&
+    typeof upstreamHeaders.getSetCookie === "function"
+      ? upstreamHeaders.getSetCookie()
+      : [];
 
   upstreamHeaders.forEach((value, key) => {
     const normalizedKey = key.toLowerCase();

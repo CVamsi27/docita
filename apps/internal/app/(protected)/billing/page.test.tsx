@@ -5,7 +5,10 @@ import {
   waitFor,
   within,
 } from "@testing-library/react";
+import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
+import type { ReactElement } from "react";
 import { beforeEach, describe, expect, it, vi } from "vitest";
+import { DataAccessProvider, type RequestConfig } from "@workspace/data-access";
 import BillingDashboard from "./page";
 
 const billingApiMocks = vi.hoisted(() => ({
@@ -54,6 +57,49 @@ const metrics = {
   revenueByMonth: [{ month: "Apr 2026", revenue: 499900 }],
 };
 
+function renderWithDataAccess(ui: ReactElement) {
+  const queryClient = new QueryClient({
+    defaultOptions: {
+      queries: { retry: false },
+      mutations: { retry: false },
+    },
+  });
+
+  const fetcher = <T,>(
+    endpoint: string,
+    options?: RequestConfig,
+  ): Promise<T> => {
+    if (endpoint === "/internal/billing/metrics") {
+      return billingApiMocks.getMetrics() as Promise<T>;
+    }
+    if (endpoint === "/internal/billing/subscriptions") {
+      return billingApiMocks.getSubscriptions(
+        options?.params ?? {},
+      ) as Promise<T>;
+    }
+    if (endpoint === "/internal/billing/payments") {
+      return billingApiMocks.getPayments(options?.params ?? {}) as Promise<T>;
+    }
+
+    return Promise.reject(new Error(`Unexpected data-access GET ${endpoint}`));
+  };
+
+  return render(
+    <QueryClientProvider client={queryClient}>
+      <DataAccessProvider
+        config={{
+          fetcher,
+          getClinicId: () => undefined,
+          getClinicTimezone: () => undefined,
+          isTierFeatureEnabled: () => true,
+        }}
+      >
+        {ui}
+      </DataAccessProvider>
+    </QueryClientProvider>,
+  );
+}
+
 describe("BillingDashboard", () => {
   beforeEach(() => {
     billingApiMocks.getMetrics.mockReset();
@@ -69,7 +115,7 @@ describe("BillingDashboard", () => {
   });
 
   it("opens the grace-period dialog and submits an extension", async () => {
-    render(<BillingDashboard />);
+    renderWithDataAccess(<BillingDashboard />);
 
     expect(await screen.findByText("In Grace Period")).toBeInTheDocument();
     expect(screen.getAllByText("Care Clinic").length).toBeGreaterThan(0);
@@ -109,7 +155,7 @@ describe("BillingDashboard", () => {
     });
     billingApiMocks.getSubscriptions.mockResolvedValue([]);
 
-    render(<BillingDashboard />);
+    renderWithDataAccess(<BillingDashboard />);
 
     expect(
       await screen.findByText("No subscriptions found"),

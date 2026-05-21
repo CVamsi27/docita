@@ -37,7 +37,9 @@ export function PatientsFilters({
           </div>
           <Tabs
             value={filterType}
-            onValueChange={(v) => onFilterChange(v as "all" | "recent" | "new")}
+            onValueChange={(v) => {
+              if (v === "all" || v === "recent" || v === "new") onFilterChange(v);
+            }}
             className="w-full md:w-[400px]"
           >
             <TabsList className="grid w-full grid-cols-3">

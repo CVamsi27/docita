@@ -33,7 +33,8 @@ import {
   SelectValue,
 } from "@workspace/ui/components/form/select";
 
-export type { IpdAdmissionFormValues as AdmissionFormData } from "@workspace/types";
+export type AdmissionFormData = IpdAdmissionFormValues;
+export { ipdAdmissionFormSchema };
 
 export interface AdmissionFormProps {
   defaultValues?: Partial<IpdAdmissionFormValues>;

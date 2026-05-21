@@ -4,12 +4,16 @@ import { ApplicationEvents } from '@/shared/common/events/application-events';
 import { PrescriptionCreatedEvent } from '@/domains/prescriptions/core/events/prescription-created.event';
 import { PrismaService } from '@/prisma/prisma.service';
 import { SendMessageUseCase } from '@/domains/whatsapp/application/use-cases/send-message.use-case';
-import { Prescription, Medication, Patient } from '@workspace/db';
+import { Prisma } from '@workspace/db';
 
-type PrescriptionWithMedications = Prescription & {
-  patient: Pick<Patient, 'firstName' | 'lastName' | 'phoneNumber'>;
-  medications: Medication[];
-};
+type PrescriptionNotificationPayload = Prisma.PrescriptionGetPayload<{
+  include: {
+    patient: {
+      select: { firstName: true; lastName: true; phoneNumber: true };
+    };
+    medications: true;
+  };
+}>;
 
 @Injectable()
 export class PrescriptionEventsListener {
@@ -27,7 +31,7 @@ export class PrescriptionEventsListener {
       `Handling prescription.created event for ${prescriptionId}`,
     );
 
-    const prescription = (await this.prisma.prescription.findUnique({
+    const prescription = await this.prisma.prescription.findUnique({
       where: { id: prescriptionId },
       include: {
         patient: {
@@ -35,7 +39,7 @@ export class PrescriptionEventsListener {
         },
         medications: true,
       },
-    })) as PrescriptionWithMedications | null;
+    });
 
     if (!prescription || !prescription.patient.phoneNumber) {
       this.logger.warn(
@@ -62,7 +66,7 @@ export class PrescriptionEventsListener {
   }
 
   private composePrescriptionMessage(
-    prescription: PrescriptionWithMedications,
+    prescription: PrescriptionNotificationPayload,
     clinicName: string,
   ): string {
     const patientName = `${prescription.patient.firstName} ${prescription.patient.lastName}`;

@@ -10,10 +10,12 @@ import {
   DOCITA_PLATFORM_PAYMENT_LINK_PROVIDER_TOKEN,
 } from '@/domains/payments/core/ports';
 import { Money } from '@/domains/payments/core/value-objects/money.vo';
+import { isRecord } from '@workspace/utils';
 import {
   ISubscriptionRepository,
   SUBSCRIPTION_REPOSITORY_TOKEN,
 } from '@/domains/subscriptions/application/ports/subscription.repository.port';
+import { parseSubscriptionPaymentLookup } from '@/domains/subscriptions/application/services/subscription-payment-history.types';
 
 type SubscriptionPaymentRecord = {
   id: string;
@@ -25,6 +27,24 @@ type SubscriptionPaymentRecord = {
   invoiceNumber?: string | null;
   description?: string | null;
 };
+
+function parseResumeSubscriptionPayment(
+  value: unknown,
+): SubscriptionPaymentRecord | null {
+  const base = parseSubscriptionPaymentLookup(value);
+  if (!base || !isRecord(value)) {
+    return null;
+  }
+
+  return {
+    ...base,
+    invoiceUrl: typeof value.invoiceUrl === 'string' ? value.invoiceUrl : null,
+    invoiceNumber:
+      typeof value.invoiceNumber === 'string' ? value.invoiceNumber : null,
+    description:
+      typeof value.description === 'string' ? value.description : null,
+  };
+}
 
 @Injectable()
 export class ResumeSubscriptionPaymentUseCase {
@@ -39,10 +59,12 @@ export class ResumeSubscriptionPaymentUseCase {
   ) {}
 
   async execute(params: { clinicId: string; paymentId: string }) {
-    const payment = (await this.subscriptionRepo.findPaymentById(
-      params.clinicId,
-      params.paymentId,
-    )) as SubscriptionPaymentRecord | null;
+    const payment = parseResumeSubscriptionPayment(
+      await this.subscriptionRepo.findPaymentById(
+        params.clinicId,
+        params.paymentId,
+      ),
+    );
 
     if (!payment) {
       throw new BadRequestException('Payment not found');

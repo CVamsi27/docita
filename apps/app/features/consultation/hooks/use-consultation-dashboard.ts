@@ -148,7 +148,7 @@ export const useConsultationDashboard = () => {
       const updatedAt =
         typeof a.updatedAt === "string"
           ? a.updatedAt
-          : new Date(a.updatedAt as Date).toISOString();
+          : new Date(a.updatedAt).toISOString();
 
       withoutQueueToken.push({
         id: `in-progress-appt-${a.id}`,

@@ -23,6 +23,7 @@ import {
 import { getUserFacingErrorMessage } from "@workspace/utils";
 import { DEFAULT_CURRENCY } from "@workspace/utils";
 import { showUserFacingErrorToast } from "@/lib/errors/user-facing-errors";
+import { parseClinicDetailsDraft } from "@/features/onboarding/components/forms/clinic-registration-form-helpers";
 import {
   clearOnboardingSession,
   getPersistedFormData,
@@ -243,17 +244,21 @@ export function useClinicRegistrationFlow() {
 
   const submitRegistration = useCallback(
     async (complianceData: ComplianceSettings, onSuccess: () => void) => {
-      const details = formData.clinicDetails as ClinicDetails;
       const ownerRole = user?.role === "ADMIN_DOCTOR" ? "ADMIN_DOCTOR" : "ADMIN";
       const ownerName = user?.name ?? "";
       const ownerEmail = user?.email ?? "";
 
       const { stepOneMissing, all: missing } = validateRegistrationRequirements(
-        details, user?.name, user?.email, complianceData,
+        formData.clinicDetails, user?.name, user?.email, complianceData,
       );
       if (missing.length > 0) {
         setStep(stepOneMissing.length > 0 ? 1 : 5);
         throw new Error(`Complete the pending onboarding items before continuing: ${missing.join(", ")}`);
+      }
+      const details = parseClinicDetailsDraft(formData.clinicDetails);
+      if (!details) {
+        setStep(1);
+        throw new Error("Complete the pending onboarding items before continuing: valid facility details");
       }
 
       try {

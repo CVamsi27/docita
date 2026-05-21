@@ -101,7 +101,7 @@ export const OCRInvoiceDraft = ({
               htmlFor="ocr-invoice-pending"
               className="text-sm font-normal leading-snug cursor-pointer"
             >
-              Save as pending invoice with this patient and visit
+              Save pending invoice with this patient and visit
             </Label>
           </div>
           <div className="grid grid-cols-1 gap-3 sm:grid-cols-3">

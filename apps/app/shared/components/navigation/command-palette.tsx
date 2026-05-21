@@ -225,7 +225,7 @@ export function CommandPalette() {
       }
 
       if (e.key === "/") {
-        const target = e.target as HTMLElement | null;
+        const target = e.target instanceof HTMLElement ? e.target : null;
         const isEditable =
           !!target &&
           (target.tagName === "INPUT" ||

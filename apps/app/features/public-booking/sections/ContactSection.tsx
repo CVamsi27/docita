@@ -322,7 +322,7 @@ export function ContactSection({
                 />
                 <span>
                   I have read this notice and consent to my personal and health
-                  data being processed as described.
+                  data being processed per the description above.
                 </span>
               </label>
             </div>

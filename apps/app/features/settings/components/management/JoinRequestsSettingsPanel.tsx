@@ -35,21 +35,10 @@ import { queryKeys } from "@workspace/data-access";
 import { typedApi } from "@/lib/api/api-client";
 import { formatDistanceToNow } from "@workspace/utils";
 import { showUserFacingErrorToast } from "@/lib/errors/user-facing-errors";
-
-interface JoinRequest {
-  id: string;
-  status: string;
-  requestedRole: string;
-  message?: string;
-  requestedAt: string;
-  expiresAt?: string;
-  user: {
-    id: string;
-    name: string;
-    email: string;
-    phoneNumber?: string;
-  };
-}
+import {
+  fetchPendingJoinRequests,
+  type JoinRequest,
+} from "@/features/settings/components/management/join-requests-list.boundary";
 
 export function JoinRequestsSettingsPanel() {
   const queryClient = useQueryClient();
@@ -66,7 +55,7 @@ export function JoinRequestsSettingsPanel() {
   const { data: requests = [], isLoading } = useQuery<JoinRequest[]>({
     queryKey: queryKeys.clinicJoinRequests.all(),
     queryFn: () =>
-      typedApi.joinRequests.list("PENDING") as Promise<JoinRequest[]>,
+      fetchPendingJoinRequests(() => typedApi.joinRequests.list("PENDING")),
     refetchInterval: 30000,
   });
 

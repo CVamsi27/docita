@@ -10,6 +10,7 @@ import {
   type ClinicPersistencePort,
 } from '@/domains/clinics/application/ports/clinic-persistence.port';
 import { Role, Specialization } from '@workspace/db';
+import { parseStringEnumMember } from '@workspace/utils';
 import {
   actorMayAssignMemberRoles,
   isClinicFrontDesk,
@@ -190,7 +191,13 @@ export class StaffManagementService {
         ...(data.role !== undefined ? { role: data.role } : {}),
         ...(appLoginDisabled !== undefined ? { appLoginDisabled } : {}),
         ...(data.specialization !== undefined
-          ? { specialization: data.specialization as Specialization }
+          ? {
+              specialization:
+                parseStringEnumMember(
+                  Object.values(Specialization),
+                  data.specialization,
+                ) ?? undefined,
+            }
           : {}),
         ...(data.qualification !== undefined
           ? { qualification: data.qualification }

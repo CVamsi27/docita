@@ -51,7 +51,8 @@ function calculateBill(
   tierKey: "ESSENTIAL" | "PROFESSIONAL",
   currency: SupportedCurrency,
 ): BillResult {
-  const base = (TIER_PRICING_BY_CURRENCY[currency]?.[tierKey]?.monthly as number) ?? 0;
+  const monthly = TIER_PRICING_BY_CURRENCY[currency]?.[tierKey]?.monthly;
+  const base = typeof monthly === "number" ? monthly : 0;
   const rates = TIER_OVERAGE_RATES_BY_CURRENCY[currency]?.[tierKey] ?? TIER_OVERAGE_RATES_BY_CURRENCY.INR[tierKey];
   const limits = TIER_LIMITS[tierKey];
   const whatsappPricing = getWhatsAppAddonPricingByCurrency(tierKey, currency);

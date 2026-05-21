@@ -53,9 +53,7 @@ export class SubscriptionsBillingQueryController {
   async getPaymentHistory(@Request() req: RequestWithUser) {
     const clinicId = requireBillingClinicId(req);
     const payments = await this.queryService.getPaymentHistory(clinicId);
-    return mapSubscriptionBillingPayments(
-      payments as Parameters<typeof mapSubscriptionBillingPayments>[0],
-    );
+    return mapSubscriptionBillingPayments(payments);
   }
 
   @Get('billing/preview')

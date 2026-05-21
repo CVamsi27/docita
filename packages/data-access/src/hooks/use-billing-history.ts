@@ -8,7 +8,7 @@ import { useAPIQueryValidated } from "../core/use-api-query-validated";
 export type BillingHistoryItem = SubscriptionBillingPaymentHistoryItem;
 
 const billingHistorySchema = subscriptionBillingPaymentHistoryResponseSchema.transform(
-  (items) => [...items] as BillingHistoryItem[],
+  (items) => [...items],
 );
 
 export function useBillingHistory(enabled = true) {

@@ -1,7 +1,12 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
-import { CheckCircle2, MessageCircle, RotateCcw, ShieldCheck } from "lucide-react";
+import {
+  CheckCircle2,
+  MessageCircle,
+  RotateCcw,
+  ShieldCheck,
+} from "lucide-react";
 import { Button } from "@workspace/ui/components/form/button";
 import {
   Card,
@@ -13,6 +18,7 @@ import { DataState } from "@workspace/ui/components/data-display/data-state";
 import { Input } from "@workspace/ui/components/form/input";
 import { Label } from "@workspace/ui/components/form/label";
 import { Badge } from "@workspace/ui/components/indicators/badge";
+import { labelMapKeys } from "@workspace/utils";
 import {
   useRevokeWhatsappSender,
   useUpdateWhatsappSender,
@@ -88,7 +94,7 @@ export function WhatsappSenderSettings() {
           </CardHeader>
           <CardContent className="space-y-4">
             <div className="grid gap-3 md:grid-cols-3">
-              {(Object.keys(MODE_LABELS) as SenderMode[]).map((item) => {
+              {labelMapKeys(MODE_LABELS).map((item) => {
                 const disabled = !allowedModes.has(item);
                 const selected = mode === item;
                 return (
@@ -168,7 +174,8 @@ export function WhatsappSenderSettings() {
 
             {mode === "MANAGED" ? (
               <p className="text-sm text-muted-foreground">
-                Managed onboarding is prepared for support-assisted provisioning.
+                Managed onboarding is prepared for support-assisted
+                provisioning.
               </p>
             ) : null}
 

@@ -7,6 +7,7 @@ import type { ReactElement } from "react";
 import { TooltipProvider } from "@workspace/ui/components/overlay/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { DataAccessProvider } from "@workspace/data-access";
+import { testDataAccessFetcherStub } from "@/test-utils/data-access-test-fetcher.boundary";
 
 export function render(
   ui: ReactElement,
@@ -23,7 +24,7 @@ export function render(
     return (
       <DataAccessProvider
         config={{
-          fetcher: () => Promise.resolve({ ok: true } as never),
+          fetcher: testDataAccessFetcherStub,
           getClinicId: () => "clinic-1",
           getClinicTimezone: () => "UTC",
           isTierFeatureEnabled: () => true,

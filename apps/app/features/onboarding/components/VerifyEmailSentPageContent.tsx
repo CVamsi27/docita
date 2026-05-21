@@ -247,7 +247,7 @@ export default function VerifyEmailSentPage() {
               <div className="space-y-1">
                 <p className="font-medium text-foreground">
                   We created your account, but the verification email could not
-                  be confirmed as sent.
+                  be confirmed a{"s "}sent.
                 </p>
                 <p className="ui-helper-text">
                   Try sending it again now. If it still does not arrive, contact

@@ -12,7 +12,8 @@ import {
   shouldDenyAccessForWorkspaceProfile,
 } from "@workspace/types";
 import { getTierName, hasFeatureAccess } from "@workspace/utils";
-import { hasPermission, type Permission } from "@/lib/auth/permissions";
+import { hasPermission } from "@/lib/auth/permissions";
+import { parseAppPermission } from "@/lib/access-control/parse-app-permission";
 
 interface AccessContext {
   role?: UserRole | null;
@@ -85,7 +86,10 @@ export function canAccessTarget(
   if (requirement.permissions && requirement.permissions.length > 0) {
     if (!role) return false;
     const hasAllPermissions = requirement.permissions.every((permission) =>
-      hasPermission(role, permission as Permission),
+      (() => {
+        const parsed = parseAppPermission(permission);
+        return parsed ? hasPermission(role, parsed) : false;
+      })(),
     );
     if (!hasAllPermissions) {
       return false;

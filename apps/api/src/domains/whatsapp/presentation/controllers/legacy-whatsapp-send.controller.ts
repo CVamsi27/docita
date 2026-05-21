@@ -13,10 +13,7 @@ import {
 } from '@/domains/whatsapp/presentation/dto/send-template.dto';
 import { WhatsappMessageResponseDto } from '@/domains/whatsapp/presentation/dto/whatsapp-response.dto';
 import { LegacyWhatsappClinicAccess } from '@/domains/whatsapp/presentation/controllers/legacy-whatsapp-clinic.access';
-import {
-  requireClinicActor,
-  requireClinicId,
-} from '@/domains/whatsapp/presentation/controllers/legacy-whatsapp-clinic.helpers';
+import { requireClinicActor } from '@/domains/whatsapp/presentation/controllers/legacy-whatsapp-clinic.helpers';
 
 @Controller('whatsapp')
 @LegacyWhatsappClinicAccess()
@@ -59,11 +56,10 @@ export class LegacyWhatsappSendController {
     @Req() req: Request,
     @Body() body: Record<string, unknown>,
   ) {
-    const user = req.user as { clinicId?: string; id: string };
-    const clinicId = requireClinicId(req);
+    const { id: userId, clinicId } = requireClinicActor(req);
     const parsed = createWhatsAppBroadcastRequestSchema.parse(body);
     this.logger.log(
-      `WhatsApp campaign requested by ${user.id} for clinic ${clinicId}: ${parsed.campaignName}`,
+      `WhatsApp campaign requested by ${userId} for clinic ${clinicId}: ${parsed.campaignName}`,
     );
     return { success: true, message: 'Campaign created successfully' };
   }

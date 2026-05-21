@@ -199,7 +199,7 @@ export default function JoinRequestStatusPage() {
                 <span className="ml-1 font-semibold text-foreground">
                   {request.clinic.name}
                 </span>
-                <span className="ml-1">as a</span>
+                <span className="ml-1">with role</span>
                 <span className="ml-1 font-semibold text-foreground">
                   {request.requestedRole}
                 </span>

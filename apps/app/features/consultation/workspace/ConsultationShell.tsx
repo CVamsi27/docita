@@ -1,7 +1,8 @@
 "use client";
 
 import { useMemo, type RefObject } from "react";
-import { CLINIC_TYPE_FEATURES, type Appointment, type ClinicType, type PatientWithMedicalHistory } from "@workspace/types";
+import { type Appointment, type PatientWithMedicalHistory } from "@workspace/types";
+import { resolveClinicTypeFeatures } from "@/features/consultation/lib/resolve-clinic-type-features";
 import { CommandPalette } from "@/features/consultation/workspace/chrome/CommandPalette";
 import { ConsultationWorkspaceProvider } from "@/features/consultation/workspace/consultation-workspace-context";
 import { useConsultationShell } from "@/features/consultation/workspace/shell/use-consultation-shell";
@@ -47,10 +48,10 @@ export function ConsultationShell({
     onPaletteOpenChange,
   });
 
-  const clinicFeatures = useMemo(() => {
-    const key = (clinicType?.toUpperCase() ?? "GENERAL") as ClinicType;
-    return CLINIC_TYPE_FEATURES[key] ?? CLINIC_TYPE_FEATURES.GENERAL;
-  }, [clinicType]);
+  const clinicFeatures = useMemo(
+    () => resolveClinicTypeFeatures(clinicType).features,
+    [clinicType],
+  );
 
   return (
     <ConsultationWorkspaceProvider clinicFeatures={clinicFeatures} sections={sections}>

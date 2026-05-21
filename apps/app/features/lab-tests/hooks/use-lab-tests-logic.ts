@@ -18,7 +18,7 @@ import { useDebounce } from "@workspace/hooks/use-debounce";
 import { showUserFacingErrorToast } from "@/lib/errors/user-facing-errors";
 
 export {
-  createLabTestOrderFormSchema as createLabTestOrderSchema,
+  createLabTestOrderFormSchema,
   type CreateLabTestOrderFormValues,
 } from "@workspace/types";
 

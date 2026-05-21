@@ -15,6 +15,15 @@ export const INTERNAL_ADDITIONAL_CHARGE_CATEGORY_LABELS: Record<
   OTHER: 'Other service',
 };
 
+function isInternalAdditionalChargeCategory(
+  key: string,
+): key is InternalAdditionalChargeCategory {
+  return Object.prototype.hasOwnProperty.call(
+    INTERNAL_ADDITIONAL_CHARGE_CATEGORY_LABELS,
+    key,
+  );
+}
+
 type SubscriptionPaymentWithClinic = Prisma.SubscriptionPaymentGetPayload<{
   include: {
     subscription: {
@@ -53,11 +62,11 @@ function planLabelFromInternalPayment(
   if (end === -1) {
     return null;
   }
-  const key = description.slice(
-    INTERNAL_ADDITIONAL_CHARGE_PREFIX.length,
-    end,
-  ) as InternalAdditionalChargeCategory;
-  return INTERNAL_ADDITIONAL_CHARGE_CATEGORY_LABELS[key] ?? key;
+  const key = description.slice(INTERNAL_ADDITIONAL_CHARGE_PREFIX.length, end);
+  if (!isInternalAdditionalChargeCategory(key)) {
+    return key;
+  }
+  return INTERNAL_ADDITIONAL_CHARGE_CATEGORY_LABELS[key];
 }
 
 export function mapSubscriptionPaymentRow(p: SubscriptionPaymentWithClinic) {

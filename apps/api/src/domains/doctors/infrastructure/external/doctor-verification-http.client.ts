@@ -1,4 +1,5 @@
 import { Injectable, Logger } from '@nestjs/common';
+import { assertTypedJsonValue } from '@/shared/common/json/parse-serialized-json.boundary';
 import { fetchWithTimeout } from '@/shared/common/http/fetch-with-timeout';
 
 type DoctorVerificationHttpResult<T> = {
@@ -32,7 +33,7 @@ export class DoctorVerificationHttpClient {
         },
         options?.timeoutMs,
       );
-      const json = (await response.json()) as T;
+      const json = assertTypedJsonValue<T>(await response.json());
       return { ok: response.ok, status: response.status, json };
     } catch (error) {
       this.logger.warn(

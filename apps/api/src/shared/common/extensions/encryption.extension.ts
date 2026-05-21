@@ -1,4 +1,5 @@
 import { Prisma } from '@workspace/db';
+import { isRecord } from '@workspace/utils';
 import { EncryptionService } from '@/shared/common/encryption.service';
 
 type PatientExtensionArgs = {
@@ -6,6 +7,30 @@ type PatientExtensionArgs = {
   create?: Record<string, unknown>;
   update?: Record<string, unknown>;
 };
+
+function readPatientExtensionData(
+  value: unknown,
+): Record<string, unknown> | Record<string, unknown>[] | undefined {
+  if (Array.isArray(value)) {
+    return value.filter(isRecord);
+  }
+  if (isRecord(value)) {
+    return value;
+  }
+  return undefined;
+}
+
+function toPatientExtensionArgs(value: unknown): PatientExtensionArgs | null {
+  if (!isRecord(value)) {
+    return null;
+  }
+
+  return {
+    data: readPatientExtensionData(value.data),
+    create: isRecord(value.create) ? value.create : undefined,
+    update: isRecord(value.update) ? value.update : undefined,
+  };
+}
 
 export const createEncryptionExtension = (
   encryptionService: EncryptionService,
@@ -18,7 +43,10 @@ export const createEncryptionExtension = (
           if (
             ['create', 'update', 'upsert', 'createMany'].includes(operation)
           ) {
-            const typedArgs = args as PatientExtensionArgs;
+            const typedArgs = toPatientExtensionArgs(args);
+            if (!typedArgs) {
+              return query(args);
+            }
             if (typedArgs.data) {
               if (Array.isArray(typedArgs.data)) {
                 typedArgs.data = typedArgs.data.map(

@@ -22,10 +22,10 @@ import { Switch } from "@workspace/ui/components/form/switch";
 import { Button } from "@workspace/ui/components/form/button";
 import { Bell, Smartphone } from "lucide-react";
 import {
-  ClinicAppSettings,
   useClinicSettings,
   useUpdateClinicSettings,
 } from "@workspace/data-access";
+import { parseClinicAppSettings } from "@/lib/clinic/parse-clinic-app-settings";
 import { toast } from "sonner";
 import { showUserFacingErrorToast } from "@/lib/errors/user-facing-errors";
 import {
@@ -57,7 +57,7 @@ export function NotificationSettings() {
 
   useEffect(() => {
     if (clinic) {
-      const s = (clinic.settings as ClinicAppSettings) || {};
+      const s = parseClinicAppSettings(clinic.settings);
       const whatsappFromSettings =
         s.whatsappNotifications ??
         s.whatsappAppointmentReminders ??

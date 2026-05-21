@@ -1,5 +1,5 @@
 import { z } from "zod";
-import { isRecord } from "@workspace/utils";
+import { DEFAULT_COUNTRY_CODE, isRecord } from "@workspace/utils";
 import type { ClinicDetails } from "@/features/onboarding/components/types";
 import { clinicDetailsSchema } from "@/features/onboarding/schemas/clinic-details-refinement";
 
@@ -44,7 +44,14 @@ export function parseOnboardingDraft(raw: unknown): OnboardingDraft | null {
 }
 
 export function parseClinicDetailsDraft(value: unknown): ClinicDetails | null {
-  const parsed = clinicDetailsSchema.safeParse(value ?? {});
+  const candidate = isRecord(value)
+    ? {
+        facilityLabel: "CLINIC",
+        countryCode: DEFAULT_COUNTRY_CODE,
+        ...value,
+      }
+    : value;
+  const parsed = clinicDetailsSchema.safeParse(candidate ?? {});
   return parsed.success ? parsed.data : null;
 }
 

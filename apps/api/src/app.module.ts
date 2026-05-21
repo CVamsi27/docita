@@ -74,7 +74,6 @@ import { WebhooksModule } from './shared/modules/webhooks';
 import { RlsModule } from './shared/modules/rls';
 import { FeatureFlagsModule } from './shared/modules/feature-flags';
 import { getClientIp } from '@/shared/common/http/client-ip';
-import type { Request } from 'express';
 
 import { EventsModule } from './shared/common/events/events.module';
 import { CommonServicesModule } from './shared/modules/services/common-services.module';
@@ -130,7 +129,7 @@ import { PublicBookingModule } from './domains/public-booking/public-booking.mod
             limit: config.isProduction() ? 1000 : 10000,
           },
         ],
-        getTracker: (req) => getClientIp(req as Request),
+        getTracker: (req) => getClientIp(req),
         skipIf: () => config.getEnvironment() === 'test',
       }),
     }),

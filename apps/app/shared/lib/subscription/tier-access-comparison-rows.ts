@@ -12,15 +12,6 @@ import {
 
 const PLAN_LIMITS = TIER_LIMITS;
 
-const COMPARISON_TIERS: Tier[] = [
-  Tier.STARTER,
-  Tier.FRONT_DESK,
-  Tier.ESSENTIAL,
-  Tier.PROFESSIONAL,
-  Tier.HOSPITAL,
-  Tier.ENTERPRISE,
-];
-
 export interface FeatureComparisonRow {
   name: string;
   category: "limit" | "feature";

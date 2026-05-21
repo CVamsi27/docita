@@ -2,6 +2,20 @@
 
 import type { ClinicType } from "@workspace/types";
 
+const CLINIC_TYPE_KEYS: ClinicType[] = [
+  "GENERAL",
+  "DENTAL",
+  "PEDIATRIC",
+  "ORTHOPEDIC",
+  "CARDIOLOGY",
+  "DERMATOLOGY",
+  "ENT",
+  "GYNECOLOGY",
+  "OPHTHALMOLOGY",
+  "PSYCHIATRY",
+  "SPECIALTY",
+];
+
 export interface SpecialtySection {
   id: string;
   label: string;
@@ -287,7 +301,7 @@ export const ClinicFeatureService = {
 
   
   getAllClinicTypes(): ClinicType[] {
-    return Object.keys(CLINIC_CONFIGS) as ClinicType[];
+    return CLINIC_TYPE_KEYS;
   },
 
   

@@ -92,19 +92,18 @@ export function useLoading(options: UseLoadingOptions = {}) {
   };
 }
 
-export function withLoading<T extends (...args: never[]) => Promise<unknown>>(
-  fn: T,
+export function withLoading<TArgs extends readonly unknown[], TResult>(
+  fn: (...args: TArgs) => Promise<TResult>,
   loadingHandlers: {
     startLoading: (text?: string) => void;
     stopLoading: () => Promise<void>;
   },
   loadingText?: string,
-): (...args: Parameters<T>) => Promise<Awaited<ReturnType<T>>> {
-  return async (...args: Parameters<T>): Promise<Awaited<ReturnType<T>>> => {
+): (...args: TArgs) => Promise<TResult> {
+  return async (...args: TArgs): Promise<TResult> => {
     loadingHandlers.startLoading(loadingText);
     try {
-      const result = await fn(...args);
-      return result as Awaited<ReturnType<T>>;
+      return await fn(...args);
     } finally {
       await loadingHandlers.stopLoading();
     }

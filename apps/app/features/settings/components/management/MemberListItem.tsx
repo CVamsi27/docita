@@ -3,10 +3,7 @@
 import { Badge } from "@workspace/ui/components/indicators/badge";
 import { Button } from "@workspace/ui/components/form/button";
 import { User } from "@workspace/types";
-import {
-  MEMBER_ROLE_LABELS,
-  type MemberRole,
-} from "@/features/settings/components/management/member-management-schemas";
+import { memberRoleDisplayLabel } from "@/features/settings/components/management/member-management-schemas";
 
 interface MemberListItemProps {
   member: User;
@@ -38,9 +35,7 @@ export function MemberListItem({
           <div className="mt-1 flex flex-wrap items-center gap-2 text-xs text-muted-foreground">
             <span>{member.email}</span>
             <Badge variant="outline">
-              {MEMBER_ROLE_LABELS[member.role as MemberRole] ||
-                member.role ||
-                "Staff"}
+              {memberRoleDisplayLabel(member.role)}
             </Badge>
             {(member.role === "DOCTOR" || member.role === "ADMIN_DOCTOR") && (
               <>

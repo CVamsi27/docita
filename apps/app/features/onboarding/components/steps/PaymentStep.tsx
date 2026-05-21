@@ -23,8 +23,8 @@ import { getSupportContactText } from "@/lib/constants/support-contact";
 import { showUserFacingErrorToast } from "@/lib/errors/user-facing-errors";
 import { isPaymentCanceledError, useRazorpay } from "@/hooks/use-razorpay";
 import { BRAND_PRIMARY_HEX } from "@/lib/constants/branding";
-import type { TierName } from "@workspace/types";
-import { formatAmountLocale } from "@workspace/utils";
+import { tierSchema } from "@workspace/types";
+import { formatAmountLocale, parseStringEnumMember } from "@workspace/utils";
 
 interface PaymentDetails {
   autoPay: boolean;
@@ -44,7 +44,6 @@ interface PaymentStepProps {
   clinicPhone?: string;
   tier?: string;
 }
-
 
 export function PaymentStep({
   onComplete,
@@ -78,7 +77,11 @@ export function PaymentStep({
     setIsProcessing(true);
 
     try {
-      const resolvedTier = (tier ?? planId) as TierName | undefined;
+      const resolvedTier =
+        parseStringEnumMember(
+          tierSchema.options,
+          String(tier ?? planId ?? ""),
+        ) ?? undefined;
       if (!resolvedTier) {
         showUserFacingErrorToast(
           "We could not identify the plan tier. Please go back and reselect the plan.",
@@ -169,8 +172,8 @@ export function PaymentStep({
           <Alert>
             <Info className="h-4 w-4" />
             <AlertDescription>
-              Payments are processed securely through Razorpay. Your card details
-              are never stored on our servers.
+              Payments are processed securely through Razorpay. Your card
+              details are never stored on our servers.
             </AlertDescription>
           </Alert>
 
@@ -217,7 +220,11 @@ export function PaymentStep({
             >
               {isProcessing ? (
                 <>
-                  <DocitaLoadingIndicator variant="inline" decorative className="mr-2" />
+                  <DocitaLoadingIndicator
+                    variant="inline"
+                    decorative
+                    className="mr-2"
+                  />
                   Processing…
                 </>
               ) : isFree ? (

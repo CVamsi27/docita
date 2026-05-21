@@ -1,19 +1,16 @@
 import { z } from "zod";
 import {
-  DEFAULT_COUNTRY_CODE,
-  normalizeCountryCode,
-} from "@workspace/utils";
-import {
   getCountryCallingCode,
   isPossiblePhoneNumber,
   parsePhoneNumber,
   type Country,
 } from "react-phone-number-input";
+import { resolveLibPhoneCountryFromCode } from "@/lib/phone/libphone-country.boundary";
 import { onboardingClinicDetailsBaseSchema } from "@workspace/types";
 
 /** Applies locale-aware phone and required address refinements for clinic onboarding. */
-export const clinicDetailsSchema = onboardingClinicDetailsBaseSchema.superRefine(
-  (data, ctx) => {
+export const clinicDetailsSchema =
+  onboardingClinicDetailsBaseSchema.superRefine((data, ctx) => {
     const email = data.email?.trim() ?? "";
     if (email) {
       const emailResult = z.string().email().safeParse(email);
@@ -36,8 +33,7 @@ export const clinicDetailsSchema = onboardingClinicDetailsBaseSchema.superRefine
       return;
     }
 
-    const country = (normalizeCountryCode(data.countryCode) ??
-      DEFAULT_COUNTRY_CODE) as Country;
+    const country: Country = resolveLibPhoneCountryFromCode(data.countryCode);
     const isValidForCountry = isPossiblePhoneNumber(phone, country);
     const parsed = parsePhoneNumber(phone, country);
     const expectedCallingCode = getCountryCallingCode(country);
@@ -89,5 +85,4 @@ export const clinicDetailsSchema = onboardingClinicDetailsBaseSchema.superRefine
         });
       }
     }
-  },
-);
+  });

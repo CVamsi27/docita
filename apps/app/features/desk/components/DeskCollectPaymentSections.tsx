@@ -288,7 +288,12 @@ export function RecordPaymentDialog({
             </Label>
             <Select
               value={paymentMethod}
-              onValueChange={(v) => onPaymentMethodChange(v as DeskPaymentMethod)}
+              onValueChange={(v) => {
+                const match = PAYMENT_CHANNEL_OPTIONS.find(
+                  (opt) => opt.value === v,
+                );
+                if (match) onPaymentMethodChange(match.value);
+              }}
             >
               <SelectTrigger id="desk-channel">
                 <SelectValue />

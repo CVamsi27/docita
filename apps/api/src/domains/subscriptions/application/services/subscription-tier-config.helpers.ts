@@ -10,7 +10,7 @@ export function lookupTierValue<T extends Record<string, V>, V>(
   if (!Object.prototype.hasOwnProperty.call(source, key)) {
     return undefined;
   }
-  return source[key as keyof T];
+  return source[key];
 }
 
 export function lookupTierObject<T extends Record<string, unknown>>(

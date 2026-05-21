@@ -1,6 +1,7 @@
 import { Injectable, Logger } from '@nestjs/common';
 import { PrismaService } from '@/prisma/prisma.service';
 import { Prisma } from '@workspace/db';
+import { isRecord } from '@workspace/utils';
 
 @Injectable()
 export class MetricsPersistenceService {
@@ -56,16 +57,13 @@ export class MetricsPersistenceService {
   }
 
   private isDatabaseAuthError(error: unknown): boolean {
-    if (!error || typeof error !== 'object') {
+    if (!isRecord(error)) {
       return false;
     }
 
-    const candidate = error as { code?: unknown; message?: unknown };
-    const code = typeof candidate.code === 'string' ? candidate.code : '';
+    const code = typeof error.code === 'string' ? error.code : '';
     const message =
-      typeof candidate.message === 'string'
-        ? candidate.message.toLowerCase()
-        : '';
+      typeof error.message === 'string' ? error.message.toLowerCase() : '';
 
     if (code === 'P1000') {
       return true;

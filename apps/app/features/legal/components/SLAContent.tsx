@@ -84,7 +84,7 @@ export function SLAContent() {
 
           <li>
             <h3 className="mt-0 mb-2">5. Service Credits</h3>
-            <p>In the event of SLA breach, credits will be applied as follows:</p>
+            <p>In the event of SLA breach, credits will be applied per the table below:</p>
             <ul>
               <li>99.0% - 99.9% uptime: 10% service credit</li>
               <li>95.0% - 99.0% uptime: 25% service credit</li>

@@ -1,21 +1,12 @@
 
 
-import { getUserFacingErrorMessage } from "@workspace/utils";
+import { getUserFacingErrorMessage, isRecord } from "@workspace/utils";
 
 export interface ApiError {
   message: string;
   code?: string;
   status?: number;
   details?: Record<string, unknown>;
-}
-
-interface GenericApiError extends Error {
-  status?: number;
-  data?: {
-    message?: string;
-    code?: string;
-    details?: Record<string, unknown>;
-  };
 }
 
 export function parseError(error: unknown): ApiError {
@@ -29,23 +20,30 @@ export function parseError(error: unknown): ApiError {
 
   if (error instanceof Error) {
     if ("status" in error || "data" in error) {
-      const apiError = error as GenericApiError;
+      const status =
+        "status" in error && typeof error.status === "number"
+          ? error.status
+          : undefined;
+      const data =
+        "data" in error && isRecord(error.data) ? error.data : undefined;
       return {
         message: getUserFacingErrorMessage(
           {
-            status: apiError.status,
+            status,
             data: {
-              message: apiError.data?.message || error.message,
-              code: apiError.data?.code,
+              message:
+                (typeof data?.message === "string" ? data.message : undefined) ||
+                error.message,
+              code: typeof data?.code === "string" ? data.code : undefined,
             },
           },
           {
             fallback: "Please review the information on this screen and try again",
           },
         ),
-        code: apiError.data?.code,
-        status: apiError.status,
-        details: apiError.data?.details,
+        code: typeof data?.code === "string" ? data.code : undefined,
+        status,
+        details: isRecord(data?.details) ? data.details : undefined,
       };
     }
 

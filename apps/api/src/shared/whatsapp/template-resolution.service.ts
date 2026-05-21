@@ -1,4 +1,5 @@
 import { Injectable, Logger } from '@nestjs/common';
+import { isRecord } from '@workspace/utils';
 import { DefaultTemplatesService } from './default-templates.service';
 import { TemplateDataService } from './template-data.service';
 import { TemplateVariableService } from './template-variable.service';
@@ -16,11 +17,11 @@ interface TemplateVariable {
 }
 
 function getMetaTemplateId(template: unknown): string | undefined {
-  if (!template || typeof template !== 'object') {
+  if (!isRecord(template)) {
     return undefined;
   }
 
-  const raw = (template as { metaTemplateId?: unknown }).metaTemplateId;
+  const raw = template.metaTemplateId;
   return typeof raw === 'string' ? raw : undefined;
 }
 

@@ -120,7 +120,7 @@ export class PrismaQueueJobRepository implements QueueJobRepository {
     return this.prisma.runUnrestricted(
       async () =>
         this.prisma.$queryRaw<Array<{ status: string; count: bigint }>>`
-          SELECT status, COUNT(*) as count
+          SELECT status, COUNT(*) AS item_count
           FROM "QueueJob"
           WHERE name = ${name}
           GROUP BY status

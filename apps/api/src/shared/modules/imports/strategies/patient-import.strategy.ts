@@ -12,6 +12,23 @@ import {
   ImportValidationResult,
 } from './import-strategy.interface';
 
+function mapImportRowToPatientData(
+  row: Record<string, unknown>,
+): MappedPatientData {
+  const mapped: MappedPatientData = {};
+  for (const [key, value] of Object.entries(row)) {
+    if (
+      typeof value === 'string' ||
+      typeof value === 'number' ||
+      value instanceof Date ||
+      value === undefined
+    ) {
+      Reflect.set(mapped, key, value);
+    }
+  }
+  return mapped;
+}
+
 @Injectable()
 export class PatientImportStrategy implements IImportStrategy {
   readonly entityType = 'PATIENT';
@@ -44,7 +61,7 @@ export class PatientImportStrategy implements IImportStrategy {
       throw new Error('Missing DPDP attestation context for patient import');
     }
 
-    const mapped = row as MappedPatientData;
+    const mapped = mapImportRowToPatientData(row);
     const duplicate = await this.duplicateDetector.checkForDuplicates(
       mapped,
       clinicId,

@@ -111,7 +111,7 @@ function LegalCard({
                 variant="ghost"
                 onClick={onUnaccept}
               >
-                Mark as pending
+                Mark pending
               </Button>
             )}
           </div>

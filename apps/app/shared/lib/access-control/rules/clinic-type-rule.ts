@@ -44,10 +44,12 @@ export class ClinicTypeBasedAccessRule implements IAccessRule {
       "prenatalCare",
     ];
 
-    if (specialtyFeatures.includes(context.feature)) {
-
-      const featureKey = context.feature as keyof typeof typeFeatures;
-      return typeFeatures[featureKey] === true;
+    const featureName = String(context.feature);
+    if (specialtyFeatures.includes(featureName)) {
+      const match = Object.entries(typeFeatures).find(
+        ([key]) => key === featureName,
+      );
+      return match?.[1] === true;
     }
 
     return true;

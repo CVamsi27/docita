@@ -7,8 +7,24 @@ import {
   useState,
 } from "react";
 import { io, Socket } from "socket.io-client";
+import { isRecord } from "@workspace/utils";
 import { useAuth } from "@/lib/auth/auth-context";
 import { appSession } from "@/lib/auth/session";
+
+function socketErrorData(
+  err: unknown,
+): { content?: { message?: string } } | undefined {
+  if (!isRecord(err) || !isRecord(err.data)) return undefined;
+  const data = err.data;
+  if (!isRecord(data.content)) return { content: undefined };
+  const content = data.content;
+  return {
+    content: {
+      message:
+        typeof content.message === "string" ? content.message : undefined,
+    },
+  };
+}
 
 interface SocketContextType {
   socket: Socket | null;
@@ -129,7 +145,7 @@ export function SocketProvider({
 
       const errorPayload =
         err && typeof err === "object"
-          ? (err as { data?: { content?: { message?: string } } }).data
+          ? socketErrorData(err)
           : undefined;
 
       if (

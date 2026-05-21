@@ -7,27 +7,6 @@ import { ReminderSettings as _ReminderSettings } from '@workspace/db';
 import { ReminderSettingsService } from './reminder-settings.service';
 import { ReminderNotificationService } from './reminder-notification.service';
 
-interface AppointmentForReminder {
-  id: string;
-  startTime: Date;
-  type: string;
-  patient: {
-    id: string;
-    firstName: string;
-    lastName: string;
-    phoneNumber: string;
-    email: string | null;
-  };
-  doctor: {
-    id: string;
-    name: string;
-  };
-  clinic?: {
-    id: string;
-    name: string;
-  };
-}
-
 @Injectable()
 export class ReminderHistoryService {
   private readonly logger = new Logger(ReminderHistoryService.name);
@@ -136,7 +115,7 @@ export class ReminderHistoryService {
       await this.notificationService.sendSmsReminder(appointment, settings);
     } else if (type === 'whatsapp') {
       await this.notificationService.sendWhatsappReminder(
-        appointment as AppointmentForReminder,
+        appointment,
         settings,
         'appointment_reminder_24hr',
         'whatsapp_manual',
