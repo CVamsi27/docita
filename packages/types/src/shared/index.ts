@@ -4,7 +4,6 @@ export * from "./json-schema";
 export * from "./common-types";
 export * from "./users";
 export * from "./clinics";
-export * from "./workspace-profile";
 export * from "./sidebar-nav";
 export * from "./doctor-clinics";
 export * from "./contact";
