@@ -1,6 +1,7 @@
 "use client";
 
 import { usePathname, useRouter } from "next/navigation";
+import { useQueryClient } from "@tanstack/react-query";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { logger } from "@/lib/monitoring/logger";
 import { usePermissionStore } from "@/lib/stores/permission-store";
@@ -35,6 +36,7 @@ export function useAuthProviderValue(): AuthContextType {
   const isLoginLocked = !!loginLockoutUntil && loginLockoutUntil > Date.now();
   const router = useRouter();
   const pathname = usePathname();
+  const queryClient = useQueryClient();
   const { setUserRole } = usePermissionStore();
   const hasSetRoleRef = useRef(false);
   const {
@@ -75,13 +77,14 @@ export function useAuthProviderValue(): AuthContextType {
     setUser(null);
     persistToken(null);
     appSession.clearSession();
+    queryClient.removeQueries();
     clearLegacyUserStorage();
     setUserRole("");
     persistVerificationEmailStatus(null);
     setLoginLockoutUntil(null);
     persistLoginLockoutUntil(null);
     hasSetRoleRef.current = false;
-  }, [persistToken, setUserRole]);
+  }, [persistToken, queryClient, setUserRole]);
 
   const refreshAccessToken = useCallback(async () => {
     const refreshed = await appSession.refreshAccessToken();

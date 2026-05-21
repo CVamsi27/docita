@@ -124,7 +124,7 @@ export function FeaturesGridSection() {
           ].map((feature, i) => (
             <Card
               key={i}
-              className="bg-background hover:-translate-y-1 hover:shadow-md transition-all"
+              className="bg-background transition-shadow duration-150 hover:-translate-y-1 hover:shadow-md"
             >
               <CardHeader>
                 <div

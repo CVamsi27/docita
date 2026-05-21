@@ -19,6 +19,7 @@ import {
 import { apiFetch } from "@/lib/api/api-client";
 import { isNetworkError } from "@/lib/api/network-error";
 import { appQueryKeys } from "@/lib/api/query-keys";
+import { useOptionalAuth } from "@/lib/auth/auth-context";
 
 export type {
   SelectOption,
@@ -58,6 +59,9 @@ export function AppConfigProvider({
   clinicId,
 }: AppConfigProviderProps) {
   const pathname = usePathname();
+  const auth = useOptionalAuth();
+  const scopedClinicId = clinicId ?? auth?.user?.clinicId ?? undefined;
+  const scopedUserId = auth?.user?.id;
 
   const shouldSkipConfigFetch =
     pathname === "/login" ||
@@ -68,16 +72,13 @@ export function AppConfigProvider({
     pathname.startsWith("/clinic-selection/");
 
   const configQuery = useQuery({
-    queryKey: appQueryKeys.config.app(clinicId),
+    queryKey: appQueryKeys.config.app(scopedClinicId, scopedUserId),
     queryFn: () =>
-      apiFetch<AppConfig>(
-        clinicId ? `/config?clinicId=${clinicId}` : "/config",
-        {
-          method: "GET",
-          headers: { "Content-Type": "application/json" },
-        },
-      ),
-    enabled: !shouldSkipConfigFetch,
+      apiFetch<AppConfig>("/config", {
+        method: "GET",
+        headers: { "Content-Type": "application/json" },
+      }),
+    enabled: !shouldSkipConfigFetch && Boolean(auth?.token && scopedUserId),
   });
 
   const config = shouldSkipConfigFetch

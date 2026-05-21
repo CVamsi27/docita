@@ -98,7 +98,7 @@ export function UsersPageContainer() {
         {Object.entries(ROLE_CONFIG).map(([role, config]) => (
           <Card
             key={role}
-            className={`cursor-pointer transition-all ${
+            className={`cursor-pointer transition-shadow duration-150 ${
               selectedRole === role
                 ? "ring-2 ring-primary shadow-lg"
                 : "hover:shadow-md"

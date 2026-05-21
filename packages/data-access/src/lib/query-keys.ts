@@ -411,8 +411,8 @@ export const appQueryKeys = {
     subscriptionUsage: () => ["subscription-usage"] as const,
   },
   config: {
-    app: (clinicId?: string) =>
-      ["config", "app", clinicId ?? "default"] as const,
+    app: (clinicId?: string, userId?: string) =>
+      ["config", "app", clinicId ?? "default", userId ?? "anonymous"] as const,
     tier: () => ["config", "tier"] as const,
   },
   search: {
