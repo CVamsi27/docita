@@ -468,13 +468,16 @@ describe('AuthService', () => {
         emailVerified: mockUserWithoutPassword.emailVerified,
         onboardingStep: mockUserWithoutPassword.onboardingStep,
       });
-      expect(jwtService.sign).toHaveBeenCalledWith({
-        email: mockUserWithoutPassword.email,
-        sub: mockUserWithoutPassword.id,
-        role: mockUserWithoutPassword.role,
-        name: mockUserWithoutPassword.name,
-        clinicId: mockUserWithoutPassword.clinicId,
-      });
+      expect(jwtService.sign).toHaveBeenCalledWith(
+        {
+          email: mockUserWithoutPassword.email,
+          sub: mockUserWithoutPassword.id,
+          role: mockUserWithoutPassword.role,
+          name: mockUserWithoutPassword.name,
+          clinicId: mockUserWithoutPassword.clinicId,
+        },
+        { audience: 'staff' },
+      );
     });
 
     it('persists refresh tokens for 30 days', async () => {
@@ -515,6 +518,7 @@ describe('AuthService', () => {
           sub: patientUser.id,
           patientId: 'patient-1',
         }),
+        { audience: 'patient-portal' },
       );
     });
   });

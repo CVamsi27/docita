@@ -7,9 +7,17 @@ import {
 import { Observable, from } from 'rxjs';
 import { lastValueFrom } from 'rxjs';
 import { tenantStorage } from '@/shared/common/middleware/tenant.middleware';
+import { PrismaService } from '@/prisma/prisma.service';
+import { AppConfigService } from '@/shared/modules/config/app-configuration.service';
+import { applyRlsScope } from '@/shared/modules/rls/apply-rls-scope';
 
 @Injectable()
 export class TenantContextInterceptor implements NestInterceptor {
+  constructor(
+    private readonly prisma: PrismaService,
+    private readonly config: AppConfigService,
+  ) {}
+
   intercept<TResponse>(
     context: ExecutionContext,
     next: CallHandler<TResponse>,
@@ -27,9 +35,20 @@ export class TenantContextInterceptor implements NestInterceptor {
           bypassed: isInternal,
         };
 
-        return from(
-          tenantStorage.run(tenantContext, () => lastValueFrom(next.handle())),
-        );
+        const runHandler = () =>
+          tenantStorage.run(tenantContext, () => lastValueFrom(next.handle()));
+
+        const clinicId = tenantContext.clinicId;
+        if (this.config.isRlsEnabled() && clinicId && !tenantContext.bypassed) {
+          return from(
+            this.prisma.$transaction(async (tx) => {
+              await applyRlsScope(tx, clinicId);
+              return runHandler();
+            }),
+          );
+        }
+
+        return from(runHandler());
       }
 
       return from(

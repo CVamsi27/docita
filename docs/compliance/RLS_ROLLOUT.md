@@ -6,6 +6,10 @@
 - Application flag: `RLS_ENABLED` (defaults to `false`)
 - Application surface: `RlsService.runScopedTransaction(clinicId, fn)`
 - CI guard: `pnpm check:rls-rollout-readiness` (migration + service + env docs)
+- When `RLS_ENABLED=true`, `TenantContextInterceptor` wraps each authenticated
+  clinic request in a Prisma interactive transaction and sets `app.rls_enabled`
+  / `app.current_clinic_id` before handlers run (defense in depth with the
+  application tenant extension).
 
 The migration is safe to deploy at any time because the `tenant_isolation`
 policy is short-circuited until the `app.rls_enabled` Postgres setting is

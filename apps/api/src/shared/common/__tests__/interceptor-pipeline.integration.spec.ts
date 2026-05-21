@@ -24,6 +24,7 @@ import { BreakTheGlassInterceptor } from '@/shared/common/interceptors/emergency
 import { RequestWithUser } from '@/shared/common/types/common.types';
 import { AuditService } from '@/shared/modules/audit/audit/audit.service';
 import { AppConfigService } from '@/shared/modules/config/app-configuration.service';
+import { PrismaService } from '@/prisma/prisma.service';
 import { clockPortTestProvider } from '@/test-utils';
 
 class PipelineController {
@@ -118,7 +119,18 @@ Get('health')(
         getSharedCookieDomain: jest.fn().mockReturnValue(undefined),
         getEnvironment: jest.fn().mockReturnValue('test'),
         isProduction: jest.fn().mockReturnValue(false),
+        isRlsEnabled: jest.fn().mockReturnValue(false),
         getRequestTimeoutMs: jest.fn().mockReturnValue(5000),
+      },
+    },
+    {
+      provide: PrismaService,
+      useValue: {
+        $transaction: jest
+          .fn<(fn: (tx: unknown) => Promise<unknown>) => Promise<unknown>>()
+          .mockImplementation((fn) =>
+            fn({ $executeRawUnsafe: jest.fn().mockResolvedValue(undefined) }),
+          ),
       },
     },
   ],
@@ -218,7 +230,10 @@ async function runPipeline({
     new RequestIdInterceptor(),
     new RequestContextInterceptor(),
     new TimeoutInterceptor(moduleFixture.get(AppConfigService)),
-    new TenantContextInterceptor(),
+    new TenantContextInterceptor(
+      moduleFixture.get(PrismaService),
+      moduleFixture.get(AppConfigService),
+    ),
     new CacheInterceptor(moduleFixture.get(CACHE_MANAGER)),
     new PatientDataAuditInterceptor(moduleFixture.get(AuditService)),
     new BreakTheGlassInterceptor(
