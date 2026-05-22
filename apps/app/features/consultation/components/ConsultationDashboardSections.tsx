@@ -42,13 +42,13 @@ export function DoctorNextSection({
       id="consultation-doctor-next"
       title={
         doctorNowNext.mode === "fcfs"
-          ? "Next patients (FCFS)"
+          ? "Next patients (First Come First Serve)"
           : "Next patients (schedule + walk-ins)"
       }
       description={
         doctorNowNext.mode === "fcfs"
           ? "No appointments today — seeing patients in arrival order."
-          : "Appointments stay in time order. Walk-ins fill the gaps (FCFS)."
+          : "Appointments stay in time order. Walk-ins fill the gaps (First Come First Serve)."
       }
     >
       {doctorNowNext.inProgress.length === 0 &&
