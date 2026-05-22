@@ -14,6 +14,10 @@ const SUPPORT_TABS = [
 
 type SupportTabId = (typeof SUPPORT_TABS)[number]["id"];
 
+function isSupportTabId(id: string): id is SupportTabId {
+  return SUPPORT_TABS.some((tab) => tab.id === id);
+}
+
 export function SupportHubPage() {
   const [activeTab, setActiveTab] = useState<SupportTabId>("whatsapp");
 
@@ -29,7 +33,11 @@ export function SupportHubPage() {
       <PageTabs
         items={SUPPORT_TABS.map((tab) => ({ id: tab.id, label: tab.label }))}
         activeId={activeTab}
-        onSelect={(id) => setActiveTab(id as SupportTabId)}
+        onSelect={(id) => {
+          if (isSupportTabId(id)) {
+            setActiveTab(id);
+          }
+        }}
         ariaLabel="Support channels"
       />
 

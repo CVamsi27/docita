@@ -1,9 +1,22 @@
+import { z } from "zod";
 import {
   internalTierPricingRowSchema,
   TIER_LIMITS,
   tierSchema,
 } from "@workspace/types";
 import type { InternalPaymentTierPricingRow } from "../pricing.types";
+
+const tierPricingEnvelopeSchema = z.object({
+  tiers: z.array(z.unknown()),
+});
+
+const internalTierPricingApiRowInputSchema = z.object({
+  tier: z.string(),
+  name: z.string().optional(),
+  price: z.number().nullable().optional(),
+  maxDoctors: z.number().optional(),
+  aiEnabled: z.boolean().optional(),
+});
 
 function tierPriceIsCustom(
   tier: string,
@@ -18,15 +31,34 @@ function isInternalPaymentTierPricingRow(
   if (!value || typeof value !== "object") {
     return false;
   }
-  const row = value as InternalPaymentTierPricingRow;
+
   return (
-    typeof row.tier === "string" &&
-    typeof row.price === "number" &&
-    typeof row.billingCycle === "string" &&
-    typeof row.maxDoctors === "number" &&
-    typeof row.maxPatients === "number" &&
-    Array.isArray(row.features)
+    "tier" in value &&
+    typeof value.tier === "string" &&
+    "price" in value &&
+    typeof value.price === "number" &&
+    "billingCycle" in value &&
+    typeof value.billingCycle === "string" &&
+    "maxDoctors" in value &&
+    typeof value.maxDoctors === "number" &&
+    "maxPatients" in value &&
+    typeof value.maxPatients === "number" &&
+    "features" in value &&
+    Array.isArray(value.features)
   );
+}
+
+function extractRawTierRows(data: unknown): unknown[] | null {
+  if (Array.isArray(data)) {
+    return data;
+  }
+
+  const envelope = tierPricingEnvelopeSchema.safeParse(data);
+  if (envelope.success) {
+    return envelope.data.tiers;
+  }
+
+  return null;
 }
 
 function resolveMaxPatients(tier: string, maxDoctors: number): number {
@@ -41,13 +73,7 @@ function resolveMaxPatients(tier: string, maxDoctors: number): number {
 }
 
 export function mapInternalTierPricingApiRow(
-  row: {
-    tier: string;
-    name?: string;
-    price?: number | null;
-    maxDoctors?: number;
-    aiEnabled?: boolean;
-  },
+  row: z.infer<typeof internalTierPricingApiRowInputSchema>,
 ): InternalPaymentTierPricingRow {
   const maxDoctors = row.maxDoctors ?? -1;
   const priceIsCustom = tierPriceIsCustom(row.tier, row.price);
@@ -68,14 +94,7 @@ export function normalizeInternalTierPricingResponse(
   data: unknown,
   fallbackTiers: InternalPaymentTierPricingRow[],
 ): InternalPaymentTierPricingRow[] {
-  const rawRows = Array.isArray(data)
-    ? data
-    : data &&
-        typeof data === "object" &&
-        "tiers" in data &&
-        Array.isArray((data as { tiers: unknown }).tiers)
-      ? (data as { tiers: unknown[] }).tiers
-      : null;
+  const rawRows = extractRawTierRows(data);
 
   if (!rawRows?.length) {
     return fallbackTiers;
@@ -100,18 +119,9 @@ export function normalizeInternalTierPricingResponse(
       continue;
     }
 
-    if (entry && typeof entry === "object" && "tier" in entry) {
-      mapped.push(
-        mapInternalTierPricingApiRow(
-          entry as {
-            tier: string;
-            name?: string;
-            price?: number | null;
-            maxDoctors?: number;
-            aiEnabled?: boolean;
-          },
-        ),
-      );
+    const loose = internalTierPricingApiRowInputSchema.safeParse(entry);
+    if (loose.success) {
+      mapped.push(mapInternalTierPricingApiRow(loose.data));
     }
   }
 

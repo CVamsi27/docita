@@ -1,4 +1,8 @@
-import { CLINIC_TYPE_LABELS, type ClinicType } from "@workspace/types";
+import {
+  CLINIC_TYPE_LABELS,
+  clinicTypeSchema,
+  type ClinicType,
+} from "@workspace/types";
 
 /** Marketing descriptions for internal clinic create/edit selects. */
 export const CLINIC_TYPE_DESCRIPTIONS: Partial<Record<ClinicType, string>> = {
@@ -19,7 +23,10 @@ export function getInternalClinicTypeDisplay(type?: string): {
   name: string;
   className: string;
 } {
-  const normalizedType = (type || "GENERAL").toUpperCase() as ClinicType;
+  const parsedType = clinicTypeSchema.safeParse((type || "GENERAL").toUpperCase());
+  const normalizedType: ClinicType = parsedType.success
+    ? parsedType.data
+    : "GENERAL";
   const typeLabels: Record<string, { name: string; className: string }> = {
     GENERAL: { name: CLINIC_TYPE_LABELS.GENERAL, className: "badge-muted" },
     DENTAL: { name: CLINIC_TYPE_LABELS.DENTAL, className: "badge-info" },
