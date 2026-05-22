@@ -80,6 +80,9 @@ async function authPing(connectionString) {
       if (msg.includes('password authentication') || msg.includes('28P01')) {
         return 'auth_error';
       }
+      if (msg.includes('does not exist') && msg.includes('database')) {
+        return 'wrong_database';
+      }
       return 'unavailable';
     } finally {
       await client.end().catch(() => {});
@@ -153,7 +156,27 @@ async function devCheck(connectionString, host, port) {
     process.exit(1);
   }
 
+  if (auth === 'wrong_database') {
+    let testUrl = connectionString;
+    try {
+      const parsed = new URL(connectionString);
+      parsed.pathname = '/docita_test';
+      testUrl = parsed.toString();
+    } catch {
+      /* keep original */
+    }
+    const testAuth = await authPing(testUrl);
+    if (testAuth === 'ok') {
+      console.error(
+        '[db-check] Port 5434 is serving the E2E test database (docita_test), not dev (docita).',
+      );
+      console.error('[db-check] Run: docker compose stop db_test && docker compose up -d db');
+      process.exit(1);
+    }
+  }
+
   console.error('[db-check] Port is open but database is not accepting queries yet.');
+  console.error('[db-check] Try: docker compose up -d db');
   process.exit(1);
 }
 
