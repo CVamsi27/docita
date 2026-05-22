@@ -6,6 +6,25 @@ export type InternalClinicAdminType = z.infer<
   typeof internalClinicAdminTypeSchema
 >;
 
+const internalClinicAdminRoleSchema = z.enum(["ADMIN", "ADMIN_DOCTOR"]);
+
+export const internalClinicAdminSchema = z.object({
+  id: z.string(),
+  name: z.string(),
+  email: z.string().email(),
+  phoneNumber: z.string().nullable().optional(),
+  role: internalClinicAdminRoleSchema,
+  appLoginDisabled: z.boolean(),
+  createdAt: z.string().or(z.date()),
+  updatedAt: z.string().or(z.date()),
+});
+
+export const internalClinicAdminListResponseSchema = z.array(
+  internalClinicAdminSchema,
+);
+
+export type InternalClinicAdmin = z.infer<typeof internalClinicAdminSchema>;
+
 export type ClinicTierType =
   | "CAPTURE"
   | "CORE"
@@ -135,14 +154,15 @@ export const internalClinicTierInfoSchema = z.object({
   billingStatus: z.string(),
 });
 
-export const internalTierPricingSchema = z.array(
-  z.object({
-    tier: z.string(),
-    monthlyPrice: z.number(),
-    yearlyPrice: z.number(),
-    features: z.array(z.string()),
-  }),
-);
+export const internalTierPricingRowSchema = z.object({
+  tier: z.string(),
+  name: z.string(),
+  price: z.number().nullable(),
+  maxDoctors: z.number(),
+  aiEnabled: z.boolean(),
+});
+
+export const internalTierPricingSchema = z.array(internalTierPricingRowSchema);
 
 export const internalClinicListResponseSchema = z.object({
   data: z.array(clinicSchema),

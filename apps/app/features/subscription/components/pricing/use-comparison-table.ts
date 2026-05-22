@@ -2,6 +2,7 @@
 
 import { useMemo, useState } from "react";
 import { Feature } from "@workspace/types";
+import { PUBLISHED_TIER_LADDER } from "@workspace/utils";
 import {
   FEATURE_TIER_MAP,
   Tier,
@@ -13,15 +14,6 @@ import {
   FEATURE_CATEGORIES,
   KEY_FEATURE_CATEGORIES,
 } from "./comparison-table-helpers";
-
-export const PUBLISHED_TIER_LADDER: Tier[] = [
-  Tier.STARTER,
-  Tier.FRONT_DESK,
-  Tier.ESSENTIAL,
-  Tier.PROFESSIONAL,
-  Tier.HOSPITAL,
-  Tier.ENTERPRISE,
-];
 
 export type AvailableFeatureItem =
   | { kind: "header"; label: string }

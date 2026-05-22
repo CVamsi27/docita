@@ -1,4 +1,4 @@
-import type { TierName } from "@workspace/types";
+import { PUBLISHED_PLAN_LADDER, type TierName } from "@workspace/types";
 import {
 	Building2,
 	ClipboardList,
@@ -12,22 +12,13 @@ import {
 
 export const PRICING_ESTIMATE_DEBOUNCE_MS = 300;
 
-export const PRICING_DIALOG_TIERS: TierName[] = [
-	"STARTER",
-	"FRONT_DESK",
-	"ESSENTIAL",
-	"PROFESSIONAL",
-	"HOSPITAL",
-	"ENTERPRISE",
-];
+/** Published billable plan ladder (same order as internal admin and onboarding). */
+export const PRICING_DIALOG_TIERS: TierName[] = [...PUBLISHED_PLAN_LADDER];
 
-export const PRICING_ESTIMATOR_TIERS: TierName[] = [
-	"FRONT_DESK",
-	"ESSENTIAL",
-	"PROFESSIONAL",
-	"HOSPITAL",
-	"ENTERPRISE",
-];
+/** Paid plans only — excludes Starter for usage-based estimator UX. */
+export const PRICING_ESTIMATOR_TIERS: TierName[] = PUBLISHED_PLAN_LADDER.filter(
+	(tier) => tier !== "STARTER",
+);
 
 export const PRICING_DIALOG_TIER_ICONS: Record<TierName, LucideIcon> = {
 	STARTER: Zap,

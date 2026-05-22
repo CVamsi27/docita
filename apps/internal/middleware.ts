@@ -1,33 +1,9 @@
 import { type NextRequest, NextResponse } from "next/server";
+import { isPortalPath } from "@/lib/internal-portal-routes";
 import { applyInternalSecurityHeaders } from "./shared/lib/security/security-headers";
 
 const STATIC_EXT =
   /\.(?:svg|png|jpg|jpeg|gif|webp|ico|avif|woff2?|ttf|txt|xml|json|webmanifest)$/i;
-
-/** Routes served by the Internal Console (see `app/(protected)`). */
-const PORTAL_ROUTE_PREFIXES = [
-  "/dashboard",
-  "/users",
-  "/admins",
-  "/payment-processing",
-  "/billing",
-  "/pricing",
-  "/analytics",
-  "/system-monitoring",
-  "/feedback",
-  "/support",
-  "/broadcasts",
-  "/logs",
-  "/audits",
-  "/performance",
-  "/doctors",
-] as const;
-
-function isPortalPath(pathname: string): boolean {
-  return PORTAL_ROUTE_PREFIXES.some(
-    (prefix) => pathname === prefix || pathname.startsWith(`${prefix}/`),
-  );
-}
 
 export function middleware(request: NextRequest): NextResponse {
   const { pathname } = request.nextUrl;

@@ -10,6 +10,8 @@ import {
   internalClinicListResponseSchema,
   listClinicsQuerySchema,
   auditLogSchema,
+  internalClinicAdminListResponseSchema,
+  internalClinicAdminSchema,
   userSchema,
 } from '@workspace/types';
 
@@ -43,6 +45,12 @@ export class InternalLogListResponseDto extends createZodDto(
 ) {}
 export class InternalUserListResponseDto extends createZodDto(
   z.array(userSchema),
+) {}
+export class InternalClinicAdminListResponseDto extends createZodDto(
+  internalClinicAdminListResponseSchema,
+) {}
+export class InternalClinicAdminResponseDto extends createZodDto(
+  internalClinicAdminSchema,
 ) {}
 export class InternalUserResponseDto extends createZodDto(userSchema) {}
 

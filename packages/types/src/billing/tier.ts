@@ -33,6 +33,34 @@ export const BILLED_TIERS = [
   Tier.FRONT_DESK,
 ] as const;
 
+/** Billable clinic SKUs in published upgrade/downgrade order (excludes INTELLIGENCE add-on). */
+export const PUBLISHED_PLAN_LADDER = [
+  "STARTER",
+  "FRONT_DESK",
+  "ESSENTIAL",
+  "PROFESSIONAL",
+  "HOSPITAL",
+  "ENTERPRISE",
+] as const satisfies readonly TierName[];
+
+export type PublishedPlanSku = (typeof PUBLISHED_PLAN_LADDER)[number];
+
+const PUBLISHED_PLAN_LADDER_INDEX = Object.fromEntries(
+  PUBLISHED_PLAN_LADDER.map((tier, index) => [tier, index]),
+) as Record<PublishedPlanSku, number>;
+
+export function isPublishedPlanSku(tier: TierName): tier is PublishedPlanSku {
+  return tier in PUBLISHED_PLAN_LADDER_INDEX;
+}
+
+/** Published ladder rank for sorting plan cards/columns; -1 when not a billable published SKU. */
+export function publishedPlanLadderIndex(tier: TierName): number {
+  if (!isPublishedPlanSku(tier)) {
+    return -1;
+  }
+  return PUBLISHED_PLAN_LADDER_INDEX[tier];
+}
+
 export enum Feature {
   PAPER_SCANNING = "PAPER_SCANNING",
   EXCEL_IMPORT = "EXCEL_IMPORT",

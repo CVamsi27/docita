@@ -8,7 +8,7 @@ import { Section } from "@workspace/ui/components/layout/section";
 
 const AnalyticsDashboardLazy = dynamic(
   () =>
-    import("@/components/analytics/analytics-dashboard").then(
+    import("@/features/analytics/analytics-dashboard").then(
       (module) => module.AnalyticsDashboard,
     ),
   {

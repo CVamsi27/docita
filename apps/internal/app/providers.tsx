@@ -8,7 +8,7 @@ import { APIRequestError } from "@workspace/data-access";
 import { NavigationHistoryProvider } from "@/providers/navigation-history-provider";
 import { InternalWebVitalsReporter } from "@/components/internal-web-vitals-reporter";
 import { TooltipProvider } from "@workspace/ui/components/overlay/tooltip";
-import { InternalThemeProvider } from "@/components/internal-theme-provider";
+import { ThemeProvider } from "next-themes";
 import { InternalDataAccessBridge } from "@/app/data-access-bridge";
 
 const TOAST_DURATION_MS = 5000;
@@ -41,7 +41,14 @@ export function Providers({ children }: { children: ReactNode }) {
   );
 
   return (
-    <InternalThemeProvider>
+    <ThemeProvider
+      attribute="class"
+      defaultTheme="light"
+      enableSystem={false}
+      disableTransitionOnChange
+      enableColorScheme
+      storageKey="theme"
+    >
       <QueryClientProvider client={queryClient}>
         <AuthProvider>
           <InternalDataAccessBridge>
@@ -62,6 +69,6 @@ export function Providers({ children }: { children: ReactNode }) {
           </InternalDataAccessBridge>
         </AuthProvider>
       </QueryClientProvider>
-    </InternalThemeProvider>
+    </ThemeProvider>
   );
 }

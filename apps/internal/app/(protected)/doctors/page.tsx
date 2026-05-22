@@ -1,3 +1,1 @@
-import InternalDoctorsPage from "./doctors-page";
-
-export default InternalDoctorsPage;
+export { default } from "@/features/doctors";

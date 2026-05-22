@@ -3,7 +3,8 @@ import {
   Feature,
   FEATURE_TIER_MAP,
   FRONT_DESK_BLOCKED_FEATURES,
-  type TierName,
+  PUBLISHED_PLAN_LADDER,
+  Tier,
 } from "@workspace/types";
 import {
   getAllFeaturesUpToTier,
@@ -11,16 +12,6 @@ import {
   hasFeatureAccess,
   meetsMinimumTier,
 } from "../src/billing/tier-rules";
-import { Tier } from "@workspace/types";
-
-const BILLABLE_PLAN_SKUS = [
-  "STARTER",
-  "FRONT_DESK",
-  "ESSENTIAL",
-  "PROFESSIONAL",
-  "HOSPITAL",
-  "ENTERPRISE",
-] as const satisfies readonly TierName[];
 
 const ALL_MAPPED_FEATURES = Object.keys(FEATURE_TIER_MAP) as Feature[];
 
@@ -32,7 +23,7 @@ describe("tier plan feature access parity", () => {
   });
 
   it("matches hasFeatureAccess with getFeaturesForTier / getAllFeaturesUpToTier for billed SKUs", () => {
-    for (const sku of BILLABLE_PLAN_SKUS) {
+    for (const sku of PUBLISHED_PLAN_LADDER) {
       const expected = ALL_MAPPED_FEATURES.filter((f) =>
         hasFeatureAccess(sku, f, false),
       );

@@ -36,16 +36,6 @@ export class InternalEnterpriseContractsController {
     return contracts.map((c) => this.contractsService.toJsonContract(c));
   }
 
-  @Get(':contractId')
-  @ApiOperation({ summary: 'Get a contract by id' })
-  async get(@Param('contractId') contractId: string) {
-    const contract = await this.contractsService.getByContractId(contractId);
-    if (!contract) {
-      throw new NotFoundException('Contract not found');
-    }
-    return this.contractsService.toJsonContract(contract);
-  }
-
   @Get('by-clinic/:clinicId')
   @ApiOperation({ summary: 'Resolve the contract covering a clinic' })
   async getByClinic(@Param('clinicId') clinicId: string) {
@@ -72,6 +62,16 @@ export class InternalEnterpriseContractsController {
       dto,
       req.user?.id,
     );
+    return this.contractsService.toJsonContract(contract);
+  }
+
+  @Get(':contractId')
+  @ApiOperation({ summary: 'Get a contract by id' })
+  async get(@Param('contractId') contractId: string) {
+    const contract = await this.contractsService.getByContractId(contractId);
+    if (!contract) {
+      throw new NotFoundException('Contract not found');
+    }
     return this.contractsService.toJsonContract(contract);
   }
 

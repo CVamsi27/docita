@@ -2,9 +2,9 @@
 
 import { DATE_FORMATS, formatDate, formatDistanceToNow, getUserFacingErrorMessage } from "@workspace/utils";
 
-import { DocitaLoadingIndicator } from "@workspace/ui/components/feedback/docita-loading-indicator";
-
 import { type FormEvent, useDeferredValue, useEffect, useMemo, useState } from "react";
+import { DataState } from "@workspace/ui/components/data-display/data-state";
+import { DocitaLoadingIndicator } from "@workspace/ui/components/feedback/docita-loading-indicator";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { Badge } from "@workspace/ui/components/indicators/badge";
 import { Button } from "@workspace/ui/components/form/button";
@@ -169,8 +169,15 @@ export function SupportInboxPage() {
       return;
     }
 
+    const thread = threads.find(
+      (entry) => entry.threadPhoneNumber === selectedThreadPhoneNumber,
+    );
+    if (!thread || thread.unreadCount <= 0) {
+      return;
+    }
+
     markThreadRead(selectedThreadPhoneNumber);
-  }, [markThreadRead, selectedThreadPhoneNumber]);
+  }, [markThreadRead, selectedThreadPhoneNumber, threads]);
 
   const selectedThread = useMemo(() => {
     if (!filteredThreads.length) {
@@ -227,25 +234,15 @@ export function SupportInboxPage() {
     });
   };
 
+  const threadsStatus = threadsLoading
+    ? "loading"
+    : threadsErrorMessage
+      ? "error"
+      : "success";
+
   return (
     <div className="space-y-6">
-      <div className="flex flex-col gap-3 md:flex-row md:items-end md:justify-between">
-        <div className="space-y-2">
-          <div className="inline-flex items-center gap-2 rounded-full border bg-background px-3 py-1 text-xs font-medium text-muted-foreground">
-            <Inbox className="h-3.5 w-3.5" />
-            WhatsApp Inbox
-          </div>
-          <div>
-            <h1 className="ui-page-title text-[var(--fs-2xl)] sm:text-[var(--fs-3xl)]">
-              Incoming Messages
-            </h1>
-            <p className="ui-page-subtitle">
-              Live WhatsApp conversations received on the onboarding support
-              line, with replies sent directly from the internal portal.
-            </p>
-          </div>
-        </div>
-
+      <div className="flex flex-col gap-3 md:flex-row md:items-end md:justify-end">
         <div className="grid grid-cols-2 gap-3 sm:min-w-[260px]">
           <Card>
             <CardContent className="pt-4">
@@ -266,23 +263,15 @@ export function SupportInboxPage() {
         </div>
       </div>
 
-      {threadsLoading && (
-        <Card>
-          <CardContent className="p-6 text-sm text-muted-foreground">
-            Loading WhatsApp conversations…
-          </CardContent>
-        </Card>
-      )}
-
-      {threadsErrorMessage && (
-        <Card className="border-destructive/30 bg-destructive/5">
-          <CardContent className="p-6 text-sm text-destructive">
-            {threadsErrorMessage}
-          </CardContent>
-        </Card>
-      )}
-
-      {!threadsLoading && !threadsErrorMessage && (
+      <DataState
+        status={threadsStatus}
+        loadingMessage="Loading WhatsApp conversations…"
+        errorMessage={threadsErrorMessage ?? undefined}
+        onRetry={() => void threadsQuery.refetch()}
+        emptyTitle="No conversations yet"
+        emptyDescription="New WhatsApp messages will appear here when customers contact support."
+        emptyIcon={Inbox}
+      >
         <div className="grid gap-6 lg:grid-cols-[minmax(0,2fr)_minmax(0,3fr)]">
           <Card className="min-w-0">
             <CardHeader className="space-y-4 border-b bg-muted/20">
@@ -539,7 +528,7 @@ export function SupportInboxPage() {
             )}
           </Card>
         </div>
-      )}
+      </DataState>
     </div>
   );
 }

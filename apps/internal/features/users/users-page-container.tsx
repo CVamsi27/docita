@@ -1,7 +1,5 @@
 "use client";
 
-import { DocitaLoadingIndicator } from "@workspace/ui/components/feedback/docita-loading-indicator";
-
 import { Button } from "@workspace/ui/components/form/button";
 import {
   Card,
@@ -12,7 +10,9 @@ import {
 import { Input } from "@workspace/ui/components/form/input";
 import { Badge } from "@workspace/ui/components/indicators/badge";
 import { EmptyState } from "@workspace/ui/components/feedback/empty-state";
+import { AppPageScaffold } from "@workspace/ui/components/layout/app-page-scaffold";
 import { PageHeader } from "@workspace/ui/components/layout/page-header";
+import { DataState } from "@workspace/ui/components/data-display/data-state";
 import {
   Table,
   TableBody,
@@ -70,31 +70,28 @@ export function UsersPageContainer() {
     retry,
   } = useUsersData();
 
+  const pageStatus = loading ? "loading" : hasError ? "error" : "success";
+
   return (
-    <div className="space-y-6">
-      <PageHeader
-        title="Team Members"
-        description="View and manage all users across facilities"
-        size="compact"
-      />
-
-      {hasError && (
-        <Card className="border-destructive/40 bg-destructive/5">
-          <CardContent className="flex flex-col gap-3 pt-6 md:flex-row md:items-center md:justify-between">
-            <div>
-              <p className="font-medium text-destructive">
-                We could not load your team members
-              </p>
-              <p className="text-sm text-muted-foreground">{errorMessage}</p>
-            </div>
-            <Button variant="outline" onClick={() => void retry()}>
-              Retry
-            </Button>
-          </CardContent>
-        </Card>
-      )}
-
-      <div className="grid gap-4 md:grid-cols-5">
+    <AppPageScaffold
+      header={
+        <PageHeader
+          title="Team Members"
+          description="View and manage all users across facilities"
+          size="compact"
+        />
+      }
+    >
+      <DataState
+        status={pageStatus}
+        loadingMessage="Loading team members…"
+        errorMessage={errorMessage}
+        onRetry={() => void retry()}
+        emptyTitle="No team members found"
+        emptyDescription="Team members will appear here once facilities add users."
+        emptyIcon={Users}
+      >
+        <div className="grid gap-4 md:grid-cols-5">
         {Object.entries(ROLE_CONFIG).map(([role, config]) => (
           <Card
             key={role}
@@ -168,20 +165,7 @@ export function UsersPageContainer() {
           </CardTitle>
         </CardHeader>
         <CardContent>
-          {loading ? (
-            <div
-              className="flex items-center justify-center py-8"
-              role="status"
-              aria-live="polite"
-              aria-label="Loading team members"
-            >
-              <DocitaLoadingIndicator
-                variant="section"
-                withStatusRole={false}
-                iconClassName="h-8 w-8 text-primary"
-              />
-            </div>
-          ) : filteredUsers.length === 0 ? (
+          {filteredUsers.length === 0 ? (
             <EmptyState
               icon={Users}
               title={
@@ -244,6 +228,7 @@ export function UsersPageContainer() {
           )}
         </CardContent>
       </Card>
+      </DataState>
 
       <Dialog open={isViewOpen} onOpenChange={setIsViewOpen}>
         <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
@@ -365,6 +350,6 @@ export function UsersPageContainer() {
           )}
         </DialogContent>
       </Dialog>
-    </div>
+    </AppPageScaffold>
   );
 }

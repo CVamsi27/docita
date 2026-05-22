@@ -47,7 +47,7 @@ const EXCLUDED_FILE_PATTERNS = [
   /client-error-reporting\.ts$/,
   /client-error-reporter\.tsx$/,
   /system-logs-page\.tsx$/,
-  /audit-log-viewer\.tsx$/,
+  /audit-logs-page\.tsx$/,
   /system-monitoring\/page\.tsx$/,
   /performance\/page\.tsx$/,
 ];

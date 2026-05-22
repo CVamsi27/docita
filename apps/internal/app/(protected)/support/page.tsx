@@ -1,5 +1,5 @@
-import { SupportInboxPage } from "@/features/support/support-inbox-page";
+import { SupportHubPage } from "@/features/support/support-hub-page";
 
 export default function SupportPage() {
-  return <SupportInboxPage />;
+  return <SupportHubPage />;
 }
