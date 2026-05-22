@@ -95,7 +95,8 @@ const normalizeAppointmentQueryOptions = (
 };
 
 export const useAppointments = (options?: AppointmentQueryOptions | null) => {
-  const calendarOk = useDataAccessContext().isTierFeatureEnabled(Feature.CALENDAR_SLOTS);
+  const { isTierFeatureEnabled, getClinicId } = useDataAccessContext();
+  const calendarOk = isTierFeatureEnabled(Feature.CALENDAR_SLOTS);
   const normalizedOptions = normalizeAppointmentQueryOptions(options);
   const url = withQueryString("/appointments", normalizedOptions);
 
@@ -104,7 +105,7 @@ export const useAppointments = (options?: AppointmentQueryOptions | null) => {
     url,
     listAppointmentsResponseSchema,
     {
-      enabled: calendarOk && options !== null,
+      enabled: calendarOk && options !== null && Boolean(getClinicId()),
       placeholderData: keepPreviousData,
     },
   );
