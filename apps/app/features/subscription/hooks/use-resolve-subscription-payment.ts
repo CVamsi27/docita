@@ -122,9 +122,7 @@ export function useResolveSubscriptionPayment({
     enabled,
     recoverablePayment,
     resume,
-    subscription?.basePriceCents,
-    subscription?.billingCycle,
-    subscription?.tier,
+    subscription,
     checkoutTier,
     queryClient,
   ]);

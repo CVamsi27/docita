@@ -11,6 +11,8 @@ import { z } from "zod";
 
 export const API_URL = process.env["API_URL"] || "http://127.0.0.1:3001/api/v1";
 export const TEST_PASSWORD = "Test@123456";
+/** Valid 15-char GSTIN for paid INR onboarding in E2E (not a real taxpayer ID). */
+const E2E_PAID_PLAN_GSTIN = "29AABCU9603R1ZX";
 
 /** Next.js `(protected)` patient routes — keep Playwright URLs aligned with the app router. */
 export const PATIENTS_LIST_PATH = "/patients";
@@ -288,6 +290,7 @@ async function setupTestUserImpl(
 ): Promise<UserData> {
   const clinicType = options.clinicType ?? "GENERAL";
   const tier = options.tier ?? "ESSENTIAL";
+  const isUnpaidEssentialTrial = tier === "ESSENTIAL";
   const onboardingAdminRole =
     tier === "FRONT_DESK" ? "ADMIN" : "ADMIN_DOCTOR";
   const uniqueId = randomUUID();
@@ -422,7 +425,7 @@ async function setupTestUserImpl(
           address: "123 History Street, Hyderabad",
           type: clinicType,
           website: "",
-          gstin: "",
+          gstin: isUnpaidEssentialTrial ? "" : E2E_PAID_PLAN_GSTIN,
         },
         adminAccount: {
           name: "Dr. History",
@@ -434,9 +437,9 @@ async function setupTestUserImpl(
           billingCycle: "MONTHLY",
           currency: "INR",
         },
-        paymentDetails: {
-          skipPayment: true,
-        },
+        paymentDetails: isUnpaidEssentialTrial
+          ? { skipPayment: true }
+          : { cardLast4: "4242" },
         slaAgreement: {
           acceptedSLA: true,
           slaVersion: "1.0",
