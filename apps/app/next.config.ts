@@ -16,7 +16,7 @@ const withBundleAnalyzer = bundleAnalyzer({
 
 const isCloudflareBuild = process.env.DOCITA_CLOUDFLARE === "1";
 const DEFAULT_PUBLIC_API_URL = isCloudflareBuild
-  ? "https://api.docita.work/api/v1"
+  ? "/api/v1"
   : "http://localhost:3001/api/v1";
 const DEFAULT_PUBLIC_APP_URL = isCloudflareBuild
   ? "https://app.docita.work"

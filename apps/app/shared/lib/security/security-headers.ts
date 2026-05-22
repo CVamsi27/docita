@@ -1,6 +1,6 @@
 const DEFAULT_PUBLIC_API_URL =
   process.env["DOCITA_CLOUDFLARE"] === "1"
-    ? "https://api.docita.work/api/v1"
+    ? "/api/v1"
     : "http://localhost:3001/api/v1";
 const DEFAULT_PUBLIC_APP_URL =
   process.env["DOCITA_CLOUDFLARE"] === "1"
@@ -45,10 +45,24 @@ const SOCKET_SOURCES = [
   process.env["NEXT_PUBLIC_SOCKET_URL"],
 ].filter((source): source is string => Boolean(source));
 
+function resolveApiProxyOrigin(): string | undefined {
+  const proxyTarget = process.env["API_PROXY_TARGET"]?.trim();
+  if (!proxyTarget) {
+    return undefined;
+  }
+
+  try {
+    return new URL(proxyTarget).origin;
+  } catch {
+    return undefined;
+  }
+}
+
 const CONNECT_SOURCES = [
   "'self'",
-  "https://api.docita.work",
+  resolveApiProxyOrigin(),
   "wss://api.docita.work",
+  "wss://staging-api.docita.work",
   CLOUDFLARE_TURNSTILE_ORIGIN,
   "https://api.razorpay.com",
   "https://checkout.razorpay.com",
@@ -62,7 +76,7 @@ const CONNECT_SOURCES = [
   process.env["NEXT_PUBLIC_ANALYTICS_URL"],
 ]
   .filter((source): source is string => Boolean(source))
-  .map(toOrigin);
+  .map((source) => (source.startsWith("/") ? source : toOrigin(source)));
 
 const IMAGE_SOURCES = [
   "'self'",

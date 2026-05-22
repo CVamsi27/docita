@@ -1,7 +1,5 @@
 const isCloudflareBuild = process.env["DOCITA_CLOUDFLARE"] === "1";
-const defaultApiUrl = isCloudflareBuild
-  ? "https://api.docita.work/api/v1"
-  : "/api/v1";
+const defaultApiUrl = "/api/v1";
 const defaultAppUrl = isCloudflareBuild
   ? "https://app.docita.work"
   : "http://localhost:3000";
