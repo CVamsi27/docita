@@ -65,6 +65,7 @@ describe('PaymentCapturedWebhookHandler', () => {
             order_id: 'order_checkout',
             amount: 99900,
             currency: 'INR',
+            status: 'captured',
             notes: {
               clinicId: 'clinic-1',
               tier: 'ESSENTIAL',
@@ -102,6 +103,7 @@ describe('PaymentCapturedWebhookHandler', () => {
             order_id: 'order_resume',
             amount: 99900,
             currency: 'INR',
+            status: 'captured',
             notes: {
               clinic_id: 'clinic-1',
               purpose: 'subscription_payment_resume',
@@ -133,6 +135,7 @@ describe('PaymentCapturedWebhookHandler', () => {
             order_id: 'order_orphan',
             amount: 100,
             currency: 'INR',
+            status: 'captured',
             notes: { clinicId: 'clinic-missing' },
           },
         },
@@ -160,6 +163,7 @@ describe('PaymentCapturedWebhookHandler', () => {
             id: 'pay_link',
             amount: 99900,
             currency: 'INR',
+            status: 'captured',
             notes: {
               clinicId: 'clinic-1',
               subscriptionPaymentId: 'sp_resume_1',
@@ -193,6 +197,7 @@ describe('PaymentCapturedWebhookHandler', () => {
             order_id: 'order_no_clinic',
             amount: 100,
             currency: 'INR',
+            status: 'captured',
             notes: {},
           },
         },

@@ -71,10 +71,8 @@ export class SubscriptionStatusGuard implements CanActivate {
         isSubscriptionBillingHardLocked({
           subscriptionStatus: clinicAuth.subscriptionStatus,
           graceUntil: clinicAuth.subscriptionGraceUntil,
-          hasOutstandingPendingPayment:
-            clinicAuth.hasOutstandingPendingPayment,
-          subscriptionCurrentPeriodEnd:
-            clinicAuth.subscriptionCurrentPeriodEnd,
+          hasOutstandingPendingPayment: clinicAuth.hasOutstandingPendingPayment,
+          subscriptionCurrentPeriodEnd: clinicAuth.subscriptionCurrentPeriodEnd,
           now,
         }) &&
         !isBillingAdminRole(user.role)

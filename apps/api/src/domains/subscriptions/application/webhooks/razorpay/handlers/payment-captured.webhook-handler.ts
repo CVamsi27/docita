@@ -64,8 +64,7 @@ export class PaymentCapturedWebhookHandler implements RazorpayWebhookEventHandle
         razorpayOrderId: orderId,
       });
     } else if (orderId) {
-      const subscription =
-        await this.subscriptionRepo.findByClinicId(clinicId);
+      const subscription = await this.subscriptionRepo.findByClinicId(clinicId);
       if (subscription) {
         await activateCaptured({
           tier: subscription.getPlan().value,
@@ -78,8 +77,7 @@ export class PaymentCapturedWebhookHandler implements RazorpayWebhookEventHandle
         });
       }
     } else if (subscriptionPaymentId) {
-      const subscription =
-        await this.subscriptionRepo.findByClinicId(clinicId);
+      const subscription = await this.subscriptionRepo.findByClinicId(clinicId);
       if (subscription) {
         await activateCaptured({
           tier: subscription.getPlan().value,

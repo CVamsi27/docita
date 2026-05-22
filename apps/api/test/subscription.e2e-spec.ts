@@ -298,9 +298,9 @@ describe('Subscription (e2e)', () => {
       expect(new Date(current.body.currentPeriodStart).toISOString()).toBe(
         expectedPeriodStart.toISOString(),
       );
-      expect(
-        new Date(current.body.currentPeriodEnd).getTime(),
-      ).toBeGreaterThan(expectedPeriodStart.getTime());
+      expect(new Date(current.body.currentPeriodEnd).getTime()).toBeGreaterThan(
+        expectedPeriodStart.getTime(),
+      );
     });
   });
 });

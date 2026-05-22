@@ -16,9 +16,9 @@ describe('razorpay-webhook.helpers', () => {
 
   describe('readRazorpayClinicId', () => {
     it('reads snake_case clinic_id from payment notes', () => {
-      expect(
-        readRazorpayClinicId({ clinic_id: 'clinic-snake' }),
-      ).toBe('clinic-snake');
+      expect(readRazorpayClinicId({ clinic_id: 'clinic-snake' })).toBe(
+        'clinic-snake',
+      );
     });
 
     it('reads camelCase clinicId from checkout order notes', () => {

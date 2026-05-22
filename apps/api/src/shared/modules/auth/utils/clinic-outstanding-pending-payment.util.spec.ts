@@ -9,9 +9,15 @@ describe('clinicHasOutstandingPendingPayment', () => {
         { status: 'paid' },
       ]),
     ).toBe(true);
-    expect(
-      clinicHasOutstandingPendingPayment([{ status: 'failed' }]),
-    ).toBe(true);
+    expect(clinicHasOutstandingPendingPayment([{ status: 'failed' }])).toBe(
+      true,
+    );
+  });
+
+  it('returns false when payment history is missing or empty', () => {
+    expect(clinicHasOutstandingPendingPayment(undefined)).toBe(false);
+    expect(clinicHasOutstandingPendingPayment(null)).toBe(false);
+    expect(clinicHasOutstandingPendingPayment([])).toBe(false);
   });
 
   it('returns false when only paid or expired rows exist', () => {
@@ -21,8 +27,8 @@ describe('clinicHasOutstandingPendingPayment', () => {
         { status: 'captured' },
       ]),
     ).toBe(false);
-    expect(
-      clinicHasOutstandingPendingPayment([{ status: 'expired' }]),
-    ).toBe(false);
+    expect(clinicHasOutstandingPendingPayment([{ status: 'expired' }])).toBe(
+      false,
+    );
   });
 });
