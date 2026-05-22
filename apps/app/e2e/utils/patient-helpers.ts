@@ -288,6 +288,8 @@ async function setupTestUserImpl(
 ): Promise<UserData> {
   const clinicType = options.clinicType ?? "GENERAL";
   const tier = options.tier ?? "ESSENTIAL";
+  const onboardingAdminRole =
+    tier === "FRONT_DESK" ? "ADMIN" : "ADMIN_DOCTOR";
   const uniqueId = randomUUID();
   const email = `doctor-${uniqueId}@test.com`;
   const password = TEST_PASSWORD;
@@ -425,7 +427,7 @@ async function setupTestUserImpl(
         adminAccount: {
           name: "Dr. History",
           email,
-          role: "ADMIN_DOCTOR",
+          role: onboardingAdminRole,
         },
         planSelection: {
           tier,
@@ -461,8 +463,16 @@ async function setupTestUserImpl(
   }
 
   const completeData = await completeRes.json();
+  if (completeData.success === false) {
+    throw new Error(
+      `Onboarding completion rejected: ${JSON.stringify(completeData.errors ?? completeData.message)}`,
+    );
+  }
   const userFromComplete = completeData.user ?? registerData.user;
   const clinicId = userFromComplete.clinicId || completeData.clinicId;
+  if (!clinicId) {
+    throw new Error("Onboarding completion did not return a clinicId");
+  }
 
   // Always perform a fresh login after onboarding completion.
   // The API associates the user to the clinic during onboarding; using a fresh
@@ -496,58 +506,60 @@ async function setupTestUserImpl(
     postOnboardingLoginData.userId ??
     registeredUserId;
 
-  const tokenRes = await request.post(
-    `${API_URL}/doctors/signature/generate-token`,
-    {
-      headers: authHeaders(accessToken),
-    },
-  );
-  if (!tokenRes.ok()) {
-    throw new Error(
-      `Signature token generation failed: ${await tokenRes.text()}`,
-    );
-  }
-
-  const tokenData = await tokenRes.json();
-  const uploadToken = tokenData.token;
-
-  const uploadRes = await request.post(
-    `${API_URL}/doctors/signature/upload/${uploadToken}`,
-    {
-      headers: {
-        ...authHeaders(accessToken),
-        Cookie: "XSRF-TOKEN=e2e-csrf-token",
-        "X-XSRF-TOKEN": "e2e-csrf-token",
+  if (tier !== "FRONT_DESK") {
+    const tokenRes = await request.post(
+      `${API_URL}/doctors/signature/generate-token`,
+      {
+        headers: authHeaders(accessToken),
       },
-      multipart: {
-        file: {
-          name: "signature.png",
-          mimeType: "image/png",
-          buffer: signatureBuffer,
+    );
+    if (!tokenRes.ok()) {
+      throw new Error(
+        `Signature token generation failed: ${await tokenRes.text()}`,
+      );
+    }
+
+    const tokenData = await tokenRes.json();
+    const uploadToken = tokenData.token;
+
+    const uploadRes = await request.post(
+      `${API_URL}/doctors/signature/upload/${uploadToken}`,
+      {
+        headers: {
+          ...authHeaders(accessToken),
+          Cookie: "XSRF-TOKEN=e2e-csrf-token",
+          "X-XSRF-TOKEN": "e2e-csrf-token",
+        },
+        multipart: {
+          file: {
+            name: "signature.png",
+            mimeType: "image/png",
+            buffer: signatureBuffer,
+          },
         },
       },
-    },
-  );
-  if (!uploadRes.ok()) {
-    throw new Error(
-      `Doctor signature upload failed: ${await uploadRes.text()}`,
     );
-  }
+    if (!uploadRes.ok()) {
+      throw new Error(
+        `Doctor signature upload failed: ${await uploadRes.text()}`,
+      );
+    }
 
-  const regNumberRes = await request.put(
-    `${API_URL}/doctors/${userId}/registration-number`,
-    {
-      headers: authHeaders(accessToken),
-      data: {
-        registrationNumber: `REG-${uniqueId.slice(0, 8).toUpperCase()}`,
+    const regNumberRes = await request.put(
+      `${API_URL}/doctors/${userId}/registration-number`,
+      {
+        headers: authHeaders(accessToken),
+        data: {
+          registrationNumber: `REG-${uniqueId.slice(0, 8).toUpperCase()}`,
+        },
       },
-    },
-  );
-
-  if (!regNumberRes.ok()) {
-    throw new Error(
-      `Doctor registration number update failed: ${await regNumberRes.text()}`,
     );
+
+    if (!regNumberRes.ok()) {
+      throw new Error(
+        `Doctor registration number update failed: ${await regNumberRes.text()}`,
+      );
+    }
   }
 
   return {

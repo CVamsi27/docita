@@ -18,7 +18,7 @@ test.describe("Front desk workspace sidebar", () => {
       user: {
         id: user.id,
         email: user.email,
-        role: "ADMIN_DOCTOR",
+        role: "ADMIN",
         clinicId: user.clinicId,
       },
     });

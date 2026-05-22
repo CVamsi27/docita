@@ -70,7 +70,7 @@ describe('CreateCheckoutUseCase', () => {
     updateCustomer: jest.fn(async () => undefined),
     createOrder: jest.fn(async () => ({
       razorpayOrderId: 'order_new',
-      amountCents: 99900,
+      amountCents: 1,
       currency: 'INR',
     })),
     verifyPayment: jest.fn(async () => ({
@@ -154,6 +154,7 @@ describe('CreateCheckoutUseCase', () => {
     });
 
     expect(result.orderId).toBe('order_new');
+    expect(result.amountCents).toBe(99900);
     expect(subscriptionRepo.savePayment).toHaveBeenCalledWith(
       expect.objectContaining({
         clinicId: 'clinic-1',
