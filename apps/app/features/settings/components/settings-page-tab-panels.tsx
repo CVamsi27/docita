@@ -19,7 +19,7 @@ import {
   EnterpriseBrandingSettingsLazy,
   LeaveManagementSettingsLazy,
   MemberManagementSettingsLazy,
-  SubscriptionSettingsLazy,
+  SubscriptionSettingsPanel,
 } from "./settings-page-lazy-panels";
 import { TabsContent } from "@workspace/ui/components/navigation/tabs";
 
@@ -49,7 +49,7 @@ export function SettingsPageTabPanels({
       {visibleTabValues.has("subscription") && (
         <TabsContent value="subscription" className="mt-0 space-y-6">
           <RoleGuard requiredPermission="manageBilling">
-            <SubscriptionSettingsLazy />
+            <SubscriptionSettingsPanel />
           </RoleGuard>
         </TabsContent>
       )}

@@ -9,41 +9,29 @@ import {
   useResumeSubscriptionPayment,
 } from "@workspace/data-access";
 import type { SubscriptionCurrentResponse, TierName } from "@workspace/types";
-import {
-  type CheckoutSuccessData,
-  useSubscriptionCheckout,
-} from "@/hooks/use-subscription-checkout";
+import type { TierCheckoutParams } from "@/hooks/use-subscription-checkout";
 import { showUserFacingErrorToast } from "@/lib/errors/user-facing-errors";
 import { findRecoverableSubscriptionPayment } from "@/features/subscription/lib/recoverable-subscription-payment";
 
 type UseResolveSubscriptionPaymentParams = {
-  /** When false, skips billing-history fetch and resume/checkout wiring (parent owns recovery). */
+  /** When false, skips billing-history fetch and recovery actions (caller owns the UI). */
   enabled?: boolean;
   subscription?: SubscriptionCurrentResponse | null;
-  onCheckoutSuccess?: (data: CheckoutSuccessData) => void;
-  /** When the parent already owns checkout (e.g. billing workspace), pass it to avoid a second Razorpay session. */
-  checkoutTier?: (params: {
-    tier: TierName;
-    billingCycle: "MONTHLY" | "YEARLY";
-  }) => Promise<void>;
-  isCheckoutProcessing?: boolean;
+  /** Shared with the billing workspace so only one Razorpay checkout hook runs in the tree. */
+  checkoutTier: (params: TierCheckoutParams) => Promise<void>;
+  isCheckoutProcessing: boolean;
 };
 
 export function useResolveSubscriptionPayment({
   enabled = true,
   subscription,
-  onCheckoutSuccess,
-  checkoutTier: checkoutTierOverride,
-  isCheckoutProcessing: isCheckoutProcessingOverride,
-}: UseResolveSubscriptionPaymentParams = {}) {
+  checkoutTier,
+  isCheckoutProcessing,
+}: UseResolveSubscriptionPaymentParams) {
   const queryClient = useQueryClient();
   const { data: invoices, isLoading: isBillingHistoryLoading } =
     useBillingHistory(enabled);
   const resume = useResumeSubscriptionPayment();
-  const internalCheckout = useSubscriptionCheckout(onCheckoutSuccess ?? (() => {}));
-  const checkoutTier = checkoutTierOverride ?? internalCheckout.checkoutTier;
-  const isCheckoutProcessing =
-    isCheckoutProcessingOverride ?? internalCheckout.isProcessing;
 
   const recoverablePayment = useMemo(
     () => (enabled ? findRecoverableSubscriptionPayment(invoices) : null),

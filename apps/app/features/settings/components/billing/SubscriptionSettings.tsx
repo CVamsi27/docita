@@ -1,17 +1,15 @@
 "use client";
 
-import { useRef } from "react";
 import { useAuth } from "@/lib/auth/auth-context";
 import { getTierInfo } from "@/lib/subscription/tier-access";
-import { useSubscription } from "@workspace/data-access";
 import { WhatsAppButton } from "@/components/whatsapp/whatsapp-button";
 import { getSupportPhoneNumber } from "@/lib/constants/support-contact";
+import { PaymentRecoveryCard } from "@/features/subscription";
 import {
-  BillingSubscriptionWorkspace,
-  PaymentRecoveryCard,
-} from "@/features/subscription";
+  BillingSubscriptionWorkspaceView,
+  useBillingSubscriptionWorkspace,
+} from "@/features/subscription/subscription-billing-workspace";
 import { useAutoResolveSubscriptionPayment } from "@/features/subscription/hooks/use-auto-resolve-subscription-payment";
-import { useResolveSubscriptionPayment } from "@/features/subscription/hooks/use-resolve-subscription-payment";
 import { getTrialState } from "@/lib/subscription/subscription-lockout";
 import { DocitaLoadingIndicator } from "@workspace/ui/components/feedback/docita-loading-indicator";
 import { Skeleton } from "@workspace/ui/components/feedback/skeleton";
@@ -44,28 +42,19 @@ import { BillingHistory } from "./subscription-billing-history";
 export function SubscriptionSettings() {
   const { isAdmin } = useAuth();
   const { clinic } = useClinic();
-  const { data: subscription, isLoading } = useSubscription();
-  const {
-    resolvePayment,
-    isResolving,
-    recoverablePayment,
-    hasRecoverablePayment,
-    isBillingHistoryLoading,
-  } = useResolveSubscriptionPayment({
-    subscription,
-  });
-  const billingHistoryRef = useRef<HTMLDivElement>(null);
+  const billing = useBillingSubscriptionWorkspace();
 
   useAutoResolveSubscriptionPayment({
     enabled: isAdmin,
-    subscription,
-    isLoading,
-    isBillingHistoryLoading,
-    resolvePayment,
+    subscription: billing.subscription,
+    isLoading: billing.isSubscriptionLoading,
+    isBillingHistoryLoading: billing.isBillingHistoryLoading,
+    resolvePayment: billing.resolvePayment,
     clinic,
   });
 
   const supportPhone = getSupportPhoneNumber();
+  const subscription = billing.subscription;
   const subscriptionStatus = subscription?.subscriptionStatus;
   const hasOutstandingPendingPayment =
     subscription?.hasOutstandingPendingPayment === true;
@@ -84,7 +73,7 @@ export function SubscriptionSettings() {
     trialState === "GRACE" ||
     (hasOutstandingPendingPayment && renewalPeriodLapsed);
 
-  if (isLoading) {
+  if (billing.isSubscriptionLoading) {
     return (
       <Card>
         <CardContent className="space-y-4 pt-6">
@@ -147,13 +136,14 @@ export function SubscriptionSettings() {
       : null;
 
   const freeStarterActive = isFreeStarterActive(subscription ?? undefined);
+  const isResolving = billing.isCheckoutProcessing;
 
   return (
     <div className="space-y-6">
       <PaymentRecoveryCard
         show={showRecoveryCard}
-        recoverablePayment={recoverablePayment}
-        resolvePayment={resolvePayment}
+        recoverablePayment={billing.recoverablePayment}
+        resolvePayment={billing.resolvePayment}
         isResolving={isResolving}
       />
       {trialDaysLeft !== null ? (
@@ -207,7 +197,7 @@ export function SubscriptionSettings() {
               size="sm"
               variant="outline"
               disabled={isResolving}
-              onClick={() => void resolvePayment()}
+              onClick={() => void billing.resolvePayment()}
               className="shrink-0 border-destructive-foreground/30 text-destructive-foreground hover:bg-destructive-foreground/10"
             >
               {isResolving ? "Opening…" : "Update Payment"}
@@ -229,7 +219,7 @@ export function SubscriptionSettings() {
               size="sm"
               variant="outline"
               disabled={isResolving}
-              onClick={() => void resolvePayment()}
+              onClick={() => void billing.resolvePayment()}
               className="shrink-0"
             >
               {isResolving ? "Opening…" : "Resolve Payment"}
@@ -264,13 +254,7 @@ export function SubscriptionSettings() {
         description="Change plan, compare features, and view invoices"
         contentClassName="space-y-6"
       >
-        <BillingSubscriptionWorkspace
-          paymentRecovery={{
-            resolvePayment,
-            isResolving,
-            hasRecoverablePayment,
-          }}
-        />
+        <BillingSubscriptionWorkspaceView workspace={billing} />
 
         <div className="flex flex-col gap-3 border-t border-border/60 pt-4">
           <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
@@ -289,7 +273,7 @@ export function SubscriptionSettings() {
         </div>
       </Section>
 
-      <div ref={billingHistoryRef} className="scroll-mt-6">
+      <div className="scroll-mt-6">
         <Section
           id="billing-history-section"
           title="Billing History"

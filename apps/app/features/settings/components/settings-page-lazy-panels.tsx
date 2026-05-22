@@ -43,6 +43,11 @@ export const SubscriptionSettingsLazy = lazySettingsPanel(
   (mod) => mod.SubscriptionSettings,
 );
 
+/** Forces a full remount after billing-hook refactors (avoids stale Fast Refresh hook order). */
+export function SubscriptionSettingsPanel() {
+  return <SubscriptionSettingsLazy key="subscription-billing-workspace-v3" />;
+}
+
 export const MemberManagementSettingsLazy = lazySettingsPanel(
   () => import("./management/MemberManagementSettings"),
   (mod) => mod.MemberManagementSettings,
