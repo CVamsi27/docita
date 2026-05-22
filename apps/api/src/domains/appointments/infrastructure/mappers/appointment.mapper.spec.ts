@@ -69,6 +69,53 @@ describe('AppointmentMapper.toListItem', () => {
       Object.prototype.hasOwnProperty.call(listItem, 'historyOfPresentIllness'),
     ).toBe(false);
   });
+
+  it('maps list rows without parsing detail-only clinical Json columns', () => {
+    const raw = {
+      id: 'appt-invalid-clinical-json',
+      clinicId: 'clinic-1',
+      patientId: 'patient-1',
+      doctorId: 'doctor-1',
+      startTime: new Date('2026-05-22T09:00:00.000Z'),
+      endTime: new Date('2026-05-22T09:30:00.000Z'),
+      status: PrismaAppointmentStatus.IN_PROGRESS,
+      notes: null,
+      consultationNotes: null,
+      observations: null,
+      chiefComplaint: null,
+      historyOfPresentIllness: null,
+      pastMedicalHistory: null,
+      reviewOfSystems: null,
+      provisionalDiagnosis: null,
+      treatmentHistory: null,
+      treatmentPlan: null,
+      clinicalImpression: null,
+      differentialDiagnosis: null,
+      finalDiagnosis: null,
+      followUpPlan: null,
+      generalExamination: { unexpectedShape: true },
+      systemicExamination: { bad: true },
+      investigations: [{ not: 'a valid investigation row' }],
+      growthData: { invalid: true },
+      ophthalmologyExam: null,
+      cardiologyExam: null,
+      gynecologyExam: null,
+      dermatologyExam: null,
+      psychiatryExam: null,
+      dentalChart: { invalid: true },
+      type: 'consultation',
+      createdAt: new Date('2026-05-22T08:00:00.000Z'),
+      updatedAt: new Date('2026-05-22T08:00:00.000Z'),
+      version: 1,
+    } as unknown as PrismaAppointment;
+
+    expect(() => AppointmentMapper.toDomain(raw)).toThrow();
+    const listItem = AppointmentMapper.toListItem(raw);
+    expect(listItem.status).toBe('in-progress');
+    expect(appointmentListItemResponseSchema.safeParse(listItem).success).toBe(
+      true,
+    );
+  });
 });
 
 describe('AppointmentMapper.toDomain', () => {

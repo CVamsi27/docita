@@ -26,6 +26,7 @@ import {
   AppointmentStatusEnum,
 } from '@/domains/appointments/core/value-objects/appointment-status.value-object';
 import { AppointmentListItem } from '@/domains/appointments/core/repositories/appointment.repository.interface';
+import { InvariantViolationError } from '@/shared/common/errors/domain.errors';
 
 export const PRISMA_TO_DOMAIN_STATUS: Record<
   PrismaAppointmentStatus,
@@ -139,9 +140,47 @@ export class AppointmentMapper {
       } | null;
     },
   ): AppointmentListItem {
-    const plain = AppointmentMapper.toDomain(raw).toPlain();
+    const domainStatus = PRISMA_TO_DOMAIN_STATUS[raw.status];
+    if (!domainStatus) {
+      throw new InvariantViolationError(
+        `Unsupported appointment status: ${raw.status}`,
+      );
+    }
+
+    const listPlain: Record<string, unknown> = {
+      id: raw.id,
+      clinicId: raw.clinicId,
+      patientId: raw.patientId,
+      doctorId: raw.doctorId,
+      startTime: raw.startTime,
+      endTime: raw.endTime,
+      status: new AppointmentStatus(domainStatus).toJSON(),
+      type: raw.type || undefined,
+      priority: raw.priority,
+      reason: raw.notes ?? undefined,
+      notes: raw.notes ?? undefined,
+      consultationNotes: raw.consultationNotes ?? undefined,
+      observations: raw.observations ?? undefined,
+      chiefComplaint: raw.chiefComplaint ?? undefined,
+      treatmentHistory: raw.treatmentHistory ?? undefined,
+      clinicalImpression: raw.clinicalImpression ?? undefined,
+      differentialDiagnosis: raw.differentialDiagnosis ?? undefined,
+      finalDiagnosis: raw.finalDiagnosis ?? undefined,
+      followUpPlan: raw.followUpPlan ?? undefined,
+      createdAt: raw.createdAt,
+      updatedAt: raw.updatedAt,
+      version: raw.version,
+    };
+
+    if (raw.dentalChart != null) {
+      const dentalChart = dentalChartSchema.safeParse(raw.dentalChart);
+      if (dentalChart.success) {
+        listPlain.dentalChart = dentalChart.data;
+      }
+    }
+
     const parsed = appointmentListItemResponseSchema.parse({
-      ...pickAppointmentListPlainFields(plain),
+      ...pickAppointmentListPlainFields(listPlain),
       patient: raw.patient
         ? {
             id: raw.patient.id,

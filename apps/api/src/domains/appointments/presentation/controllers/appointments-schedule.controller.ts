@@ -98,6 +98,10 @@ export class AppointmentsScheduleController {
       .map(parseAppointmentStatus)
       .filter((value): value is AppointmentStatusEnum => value !== undefined);
 
+    if (status?.trim() && (statuses?.length ?? 0) === 0) {
+      throw new BadRequestException('Invalid appointment status filter');
+    }
+
     const doctorScope = resolveDoctorScopedAppointmentFilter({
       role: req.user?.role,
       userId: req.user?.id,
