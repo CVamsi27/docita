@@ -9,6 +9,7 @@ const repoRoot = process.cwd();
 const enforce = process.argv.includes("--enforce");
 const allowedPatterns = [
   /^apps\/app\/app\/api\//,
+  /^apps\/app\/shared\/lib\/api\/upstream-api-proxy\.ts$/,
   /^apps\/app\/shared\/lib\/api\/api-client\.ts$/,
   /^apps\/app\/shared\/lib\/auth\/fetch-with-session\.ts$/,
   /^apps\/app\/shared\/lib\/auth\/browser-session\.ts$/,
