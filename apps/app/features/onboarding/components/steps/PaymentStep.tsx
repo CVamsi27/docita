@@ -1,6 +1,6 @@
 "use client";
 
-import { DocitaLoadingIndicator } from "@workspace/ui/components/docita-loading-indicator";
+import { DocitaLoadingIndicator } from "@workspace/ui/components/feedback/docita-loading-indicator";
 
 import { useState } from "react";
 import { CreditCard, Info, ShieldCheck } from "lucide-react";
@@ -10,21 +10,25 @@ import {
   CardDescription,
   CardHeader,
   CardTitle,
-} from "@workspace/ui/components/card";
-import { Button } from "@workspace/ui/components/button";
-import { Checkbox } from "@workspace/ui/components/checkbox";
-import { Label } from "@workspace/ui/components/label";
+} from "@workspace/ui/components/indicators/card";
+import { Button } from "@workspace/ui/components/form/button";
+import { Checkbox } from "@workspace/ui/components/form/checkbox";
+import { Label } from "@workspace/ui/components/form/label";
 import {
   Alert,
   AlertDescription,
-} from "@workspace/ui/components/alert";
-import { api } from "@/lib/api-client";
-import { getSupportContactText } from "@/lib/support-contact";
-import { showUserFacingErrorToast } from "@/lib/user-facing-errors";
-import { isPaymentCanceledError, useRazorpay } from "@/hooks/use-razorpay";
-import { BRAND_PRIMARY_HEX } from "@/lib/branding";
-import type { TierName } from "@workspace/types";
-import { formatAmountLocale } from "@workspace/utils";
+} from "@workspace/ui/components/feedback/alert";
+import { api } from "@/lib/api/api-client";
+import { getSupportContactText } from "@/lib/constants/support-contact";
+import { showUserFacingErrorToast } from "@/lib/errors/user-facing-errors";
+import {
+  isPaymentCanceledError,
+  notifyPaymentCanceled,
+  useRazorpay,
+} from "@/hooks/use-razorpay";
+import { BRAND_PRIMARY_HEX } from "@/lib/constants/branding";
+import { tierSchema } from "@workspace/types";
+import { formatAmountLocale, parseStringEnumMember } from "@workspace/utils";
 
 interface PaymentDetails {
   autoPay: boolean;
@@ -44,7 +48,6 @@ interface PaymentStepProps {
   clinicPhone?: string;
   tier?: string;
 }
-
 
 export function PaymentStep({
   onComplete,
@@ -78,7 +81,11 @@ export function PaymentStep({
     setIsProcessing(true);
 
     try {
-      const resolvedTier = (tier ?? planId) as TierName | undefined;
+      const resolvedTier =
+        parseStringEnumMember(
+          tierSchema.options,
+          String(tier ?? planId ?? ""),
+        ) ?? undefined;
       if (!resolvedTier) {
         showUserFacingErrorToast(
           "We could not identify the plan tier. Please go back and reselect the plan.",
@@ -106,7 +113,7 @@ export function PaymentStep({
         billingCycle,
       });
 
-      await openCheckout({
+      const checkoutResult = await openCheckout({
         key: checkout.razorpayKeyId,
         amount: checkout.amountCents,
         currency: checkout.currency || currencyCode || "INR",
@@ -139,13 +146,27 @@ export function PaymentStep({
           },
         },
       });
+
+      if (checkoutResult.status === "canceled") {
+        return;
+      }
+      if (checkoutResult.status === "failed") {
+        showUserFacingErrorToast(
+          undefined,
+          "We could not complete this payment. Please try again.",
+          "payment",
+        );
+        return;
+      }
     } catch (error: unknown) {
       if (isPaymentCanceledError(error)) {
-        setIsProcessing(false);
+        notifyPaymentCanceled();
         return;
       }
       showUserFacingErrorToast(
+        error,
         `We could not start payment right now. Please ${getSupportContactText()}.`,
+        "payment",
       );
       setIsProcessing(false);
     }
@@ -169,8 +190,8 @@ export function PaymentStep({
           <Alert>
             <Info className="h-4 w-4" />
             <AlertDescription>
-              Payments are processed securely through Razorpay. Your card details
-              are never stored on our servers.
+              Payments are processed securely through Razorpay. Your card
+              details are never stored on our servers.
             </AlertDescription>
           </Alert>
 
@@ -217,7 +238,11 @@ export function PaymentStep({
             >
               {isProcessing ? (
                 <>
-                  <DocitaLoadingIndicator variant="inline" decorative className="mr-2" />
+                  <DocitaLoadingIndicator
+                    variant="inline"
+                    decorative
+                    className="mr-2"
+                  />
                   Processing…
                 </>
               ) : isFree ? (

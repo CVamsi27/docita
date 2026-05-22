@@ -21,15 +21,6 @@ export const genderSchema = z.enum([
 ]);
 export type Gender = z.infer<typeof genderSchema>;
 
-export const GENDER_LABELS: Record<Gender, string> = {
-  MALE: "Male",
-  FEMALE: "Female",
-  OTHER: "Other",
-  INTERSEX: "Intersex",
-  NON_BINARY: "Non-Binary",
-  PREFER_NOT_TO_SAY: "Prefer Not to Say",
-};
-
 export const bloodGroupSchema = z.enum([
   "A+",
   "A-",
@@ -497,6 +488,15 @@ export const SPECIALIZATION_LABELS: Record<Specialization, string> = {
   OTHER: "Other",
 };
 
+/**
+ * All possible hospital role values. None of these are currently in operational
+ * use — see {@link SUPPORTED_HOSPITAL_ROLES} which is intentionally empty.
+ *
+ * @deprecated All HospitalRole members have zero operational use. Do not
+ *   introduce feature gating or business logic that depends on any of these
+ *   values. Use {@link SUPPORTED_HOSPITAL_ROLES} to enumerate roles that are
+ *   actually active.
+ */
 export const hospitalRoleSchema = z.enum([
   "CONSULTANT",
   "SENIOR_CONSULTANT",
@@ -513,6 +513,11 @@ export const hospitalRoleSchema = z.enum([
 ]);
 export type HospitalRole = z.infer<typeof hospitalRoleSchema>;
 
+/**
+ * The subset of {@link HospitalRole} values that are currently active and
+ * permitted in the system. Currently empty — no hospital roles are in
+ * operational use.
+ */
 export const SUPPORTED_HOSPITAL_ROLES = [] as const satisfies readonly HospitalRole[];
 export const supportedHospitalRoleSchema = z.never();
 

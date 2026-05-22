@@ -82,6 +82,9 @@ export enum Feature {
   SSO = "SSO",
   BULK_IMPORT_SUITE = "BULK_IMPORT_SUITE",
 
+  WHITE_LABEL_BRANDING = "WHITE_LABEL_BRANDING",
+  LOCKED_CUSTOM_THEME = "LOCKED_CUSTOM_THEME",
+
   AI_PRESCRIPTION_ASSISTANT = "AI_PRESCRIPTION_ASSISTANT",
   AI_DIAGNOSIS_HINTS = "AI_DIAGNOSIS_HINTS",
   SMART_TASK_ENGINE = "SMART_TASK_ENGINE",
@@ -89,6 +92,27 @@ export enum Feature {
   PATIENT_SEGMENTATION = "PATIENT_SEGMENTATION",
   ANOMALY_DETECTION = "ANOMALY_DETECTION",
 }
+
+export const PLANNED_FEATURES: ReadonlySet<Feature> = new Set([
+  Feature.MULTI_CLINIC,
+  Feature.INSURANCE_BILLING,
+  Feature.DIGITAL_INTAKE_FORMS,
+  Feature.BROADCAST_CAMPAIGNS,
+  Feature.FULL_EHR,
+  Feature.API_ACCESS,
+  Feature.MULTI_LOCATION_ANALYTICS,
+  Feature.CUSTOM_BRANDING,
+  Feature.DATA_WAREHOUSE_EXPORT,
+  Feature.DEDICATED_DEPLOYMENT,
+  Feature.SSO,
+  Feature.BULK_IMPORT_SUITE,
+  Feature.AI_PRESCRIPTION_ASSISTANT,
+  Feature.AI_DIAGNOSIS_HINTS,
+  Feature.SMART_TASK_ENGINE,
+  Feature.PREDICTIVE_NO_SHOW,
+  Feature.PATIENT_SEGMENTATION,
+  Feature.ANOMALY_DETECTION,
+]);
 
 /**
  * Clinical / multi-doctor features blocked for front-desk workspaces and
@@ -178,19 +202,9 @@ export const FEATURE_TIER_MAP: Record<Feature, Tier> = {
 
   [Feature.DATA_WAREHOUSE_EXPORT]: Tier.ENTERPRISE,
   [Feature.DEDICATED_DEPLOYMENT]: Tier.ENTERPRISE,
+  [Feature.WHITE_LABEL_BRANDING]: Tier.ENTERPRISE,
+  [Feature.LOCKED_CUSTOM_THEME]: Tier.ENTERPRISE,
 };
-
-export function getMinimumTierForFeature(feature: Feature): Tier {
-  return FEATURE_TIER_MAP[feature];
-}
-
-export function assertNotIntelligenceComparison(tier: Tier): void {
-  if (tier === Tier.INTELLIGENCE || tier === Tier.FRONT_DESK) {
-    throw new Error(
-      "Tier.INTELLIGENCE and Tier.FRONT_DESK must use feature access checks, not numeric tier comparisons.",
-    );
-  }
-}
 
 export type SupportedCurrency =
   | "INR"
@@ -294,6 +308,20 @@ export const GUIDED_SETUP_LIST_PRICE_BY_CURRENCY: Record<
   ZAR: 999,
 };
 
+/** Prisma `TierPricing.features` — marketing feature bullet strings. */
+export const tierPricingFeaturesJsonSchema = z.array(z.string());
+
+/** Prisma `AddOn.pricingByTier` / `overageRateByTier` — cents or rate per tier key. */
+export const addOnTierNumberMapJsonSchema = z.record(z.number());
+
+/** Prisma `AddOn.includedQuotaByTier` — included units per tier key. */
+export const addOnIncludedQuotaByTierJsonSchema = z.record(z.number());
+
+/** Prisma `AddOn.features` — marketing feature bullets. */
+export const addOnFeaturesJsonSchema = z
+  .array(z.string())
+  .describe("Add-on feature identifiers stored as JSON");
+
 export const tierPricingSchema = z.object({
   monthly: z.union([z.number(), z.literal("custom")]),
   yearly: z.union([z.number(), z.literal("custom")]),
@@ -306,7 +334,8 @@ export interface MultiCurrencyTierPricing {
   yearly: number | "custom";
 }
 
-export function deriveAnnualPrice(monthly: number): number {
+/** Internal helper for static pricing tables; public API: `@workspace/utils` `deriveAnnualPrice`. */
+function deriveAnnualPrice(monthly: number): number {
   return Math.round(monthly * 10);
 }
 
@@ -1128,40 +1157,8 @@ export const REFERRAL_REWARDS_BY_CURRENCY: Record<
   },
 };
 
-export function getTierPricingByCurrency(
-  tier: TierName,
-  currency: SupportedCurrency = "INR",
-): MultiCurrencyTierPricing {
-  return TIER_PRICING_BY_CURRENCY[currency][tier];
-}
-
-export function getOverageRatesByCurrency(
-  tier: TierName,
-  currency: SupportedCurrency = "INR",
-) {
-  return TIER_OVERAGE_RATES_BY_CURRENCY[currency][tier];
-}
-
-export function getWhatsAppAddonPricingByCurrency(
-  tier: Exclude<TierName, "STARTER" | "INTELLIGENCE">,
-  currency: SupportedCurrency = "INR",
-): AddOnPricing {
-  return WHATSAPP_ADDON_PRICING_BY_CURRENCY[currency][tier];
-}
-
-export function getIntelligenceAddonPricingByCurrency(
-  tier: Exclude<TierName, "STARTER" | "INTELLIGENCE">,
-  currency: SupportedCurrency = "INR",
-): AddOnPricing {
-  return INTELLIGENCE_ADDON_PRICING_BY_CURRENCY[currency][tier];
-}
-
-export function getReferralRewardByCurrency(
-  tier: TierName,
-  currency: SupportedCurrency = "INR",
-): number {
-  return REFERRAL_REWARDS_BY_CURRENCY[currency][tier];
-}
+// Runtime tier helpers (hasFeatureAccess, getTierPricing, deriveAnnualPrice, …) live in
+// `@workspace/utils/billing/tier-rules`. Currency-aware pricing: `@workspace/utils/billing/tier-pricing`.
 
 export const tierInfoSchema = z.object({
   name: z.string(),
@@ -1217,245 +1214,6 @@ export const TIER_INFO: Record<TierName, TierInfo> = {
       "Reception-first scheduling, queue, and billing without full clinical workflows in-app",
     tagline: "Reception and operations",
     color: "teal",
-  },
-};
-
-export const featureDisplaySchema = z.object({
-  name: z.string(),
-  description: z.string(),
-  availability: z.enum(["GA", "PLANNED"]).optional(),
-  comingSoon: z.boolean().optional(),
-});
-export type FeatureDisplay = z.infer<typeof featureDisplaySchema>;
-
-export const FEATURE_DISPLAY: Record<Feature, FeatureDisplay> = {
-  [Feature.PAPER_SCANNING]: {
-    name: "Paper Scanning",
-    description: "Scan documents with your camera",
-  },
-  [Feature.EXCEL_IMPORT]: {
-    name: "Excel Import",
-    description: "Import patient data from Excel/CSV",
-  },
-  [Feature.PATIENT_DEDUPLICATION]: {
-    name: "Patient Deduplication",
-    description: "Automatic duplicate detection",
-  },
-  [Feature.BASIC_PATIENT_MANAGEMENT]: {
-    name: "Patient Management",
-    description: "Basic patient records",
-  },
-  [Feature.DOCUMENT_ARCHIVAL]: {
-    name: "Document Archival",
-    description: "Store and organize documents",
-  },
-  [Feature.EXPORT_CSV]: {
-    name: "CSV Export",
-    description: "Export data to CSV",
-  },
-  [Feature.OCR_BASIC]: {
-    name: "Basic OCR",
-    description: "Extract text from images",
-  },
-  [Feature.CALENDAR_SLOTS]: {
-    name: "Consultations",
-    description: "Schedule and manage consultations",
-  },
-  [Feature.VISIT_HISTORY]: {
-    name: "Visit History",
-    description: "Track patient visit history",
-  },
-  [Feature.MEDICINES_LIST]: {
-    name: "Medicine Database",
-    description: "Search and add medicines",
-  },
-  [Feature.DIGITAL_PRESCRIPTIONS]: {
-    name: "Digital Prescriptions",
-    description: "Create digital prescriptions",
-  },
-
-  [Feature.INVOICING]: {
-    name: "Invoicing",
-    description: "Create and manage invoices",
-  },
-  [Feature.BASIC_ANALYTICS]: {
-    name: "Basic Analytics",
-    description: "View clinic statistics",
-  },
-  [Feature.MEDICAL_CODING]: {
-    name: "Medical Coding",
-    description: "ICD/CPT code management",
-  },
-  [Feature.AUTO_REMINDERS]: {
-    name: "Auto Reminders",
-    description: "Automated appointment reminders",
-  },
-  [Feature.PAYMENT_LINKS]: {
-    name: "Payment Links",
-    description: "Send payment links via WhatsApp",
-  },
-  [Feature.PRESCRIPTION_TEMPLATES]: {
-    name: "Prescription Templates",
-    description: "Reusable prescription templates",
-  },
-  [Feature.MULTI_DEVICE]: {
-    name: "Multi-Device Login",
-    description: "Staff can log in from multiple devices",
-  },
-  [Feature.ROLE_MANAGEMENT]: {
-    name: "Role Management",
-    description: "Assign roles to staff members",
-  },
-  [Feature.CONSENT_MANAGEMENT]: {
-    name: "Consent Management",
-    description: "Digital patient consent forms",
-  },
-  [Feature.DOCTOR_SIGNATURE]: {
-    name: "Doctor Signature",
-    description: "Digital signature on prescriptions",
-  },
-  [Feature.LEAVE_MANAGEMENT]: {
-    name: "Leave Management",
-    description: "Track and manage staff leave",
-  },
-  [Feature.WHATSAPP_MESSAGING]: {
-    name: "WhatsApp Messaging",
-    description: "Send messages and reminders via WhatsApp",
-  },
-  [Feature.WHATSAPP_OWN_NUMBER]: {
-    name: "Own WhatsApp Number",
-    description: "Send clinic WhatsApp messages from a verified clinic number",
-  },
-  [Feature.WHATSAPP_MANAGED_NUMBER]: {
-    name: "Managed WhatsApp Number",
-    description: "Docita-assisted WhatsApp sender onboarding",
-  },
-
-  [Feature.MULTI_DOCTOR]: {
-    name: "Multi-Doctor",
-    description: "Manage multiple doctors",
-  },
-  [Feature.MULTI_CLINIC]: {
-    name: "Multi-Branch",
-    description: "Manage multiple clinic branches",
-    availability: "PLANNED",
-  },
-  [Feature.LAB_TESTS]: {
-    name: "Lab Tests",
-    description: "Lab test catalog and tracking",
-  },
-  [Feature.INVENTORY]: {
-    name: "Inventory",
-    description: "Medicine and supplies inventory",
-  },
-  [Feature.QUEUE_MANAGEMENT]: {
-    name: "Queue Management",
-    description: "Token queue system",
-  },
-  [Feature.AUDIT_LOGS]: {
-    name: "Audit Logs",
-    description: "Complete audit trail",
-  },
-  [Feature.INSURANCE_BILLING]: {
-    name: "Insurance Billing",
-    description: "Insurance claim management",
-    availability: "PLANNED",
-  },
-  [Feature.DIGITAL_INTAKE_FORMS]: {
-    name: "Digital Intake Forms",
-    description: "Patient intake forms online",
-    availability: "PLANNED",
-  },
-  [Feature.BROADCAST_CAMPAIGNS]: {
-    name: "Broadcast Campaigns",
-    description: "WhatsApp bulk messaging",
-    availability: "PLANNED",
-  },
-  [Feature.OCR_ADVANCED]: {
-    name: "Advanced OCR",
-    description: "AI-powered document extraction",
-  },
-  [Feature.ADVANCED_ANALYTICS]: {
-    name: "Advanced Analytics",
-    description: "Deep clinic performance analytics",
-  },
-
-  [Feature.FULL_EHR]: {
-    name: "Full EHR",
-    description: "Complete electronic health records",
-    availability: "PLANNED",
-  },
-  [Feature.API_ACCESS]: {
-    name: "API Access",
-    description: "REST API for integrations",
-    availability: "PLANNED",
-  },
-  [Feature.MULTI_LOCATION_ANALYTICS]: {
-    name: "Multi-Location Analytics",
-    description: "Analytics across all branches",
-    availability: "PLANNED",
-  },
-  [Feature.CUSTOM_BRANDING]: {
-    name: "Custom Branding",
-    description: "White-label with your brand",
-    availability: "PLANNED",
-  },
-  [Feature.DATA_WAREHOUSE_EXPORT]: {
-    name: "Data Warehouse Export",
-    description: "Export to data warehouse",
-    availability: "PLANNED",
-  },
-  [Feature.DEDICATED_DEPLOYMENT]: {
-    name: "Dedicated Deployment",
-    description: "Dedicated infrastructure and deployment support",
-    availability: "PLANNED",
-  },
-  [Feature.SSO]: {
-    name: "Single Sign-On",
-    description: "Enterprise SSO integration",
-    availability: "PLANNED",
-  },
-  [Feature.BULK_IMPORT_SUITE]: {
-    name: "Bulk Import Suite",
-    description: "Advanced bulk data import",
-    availability: "PLANNED",
-  },
-
-  [Feature.AI_PRESCRIPTION_ASSISTANT]: {
-    name: "AI Prescription Assistant",
-    description: "AI-powered prescription suggestions",
-    availability: "PLANNED",
-    comingSoon: true,
-  },
-  [Feature.AI_DIAGNOSIS_HINTS]: {
-    name: "AI Diagnosis Hints",
-    description: "AI-powered diagnosis suggestions",
-    availability: "PLANNED",
-    comingSoon: true,
-  },
-  [Feature.SMART_TASK_ENGINE]: {
-    name: "Smart Tasks",
-    description: "AI-powered task automation",
-    availability: "PLANNED",
-    comingSoon: true,
-  },
-  [Feature.PREDICTIVE_NO_SHOW]: {
-    name: "No-Show Prediction",
-    description: "Predict appointment no-shows",
-    availability: "PLANNED",
-    comingSoon: true,
-  },
-  [Feature.PATIENT_SEGMENTATION]: {
-    name: "Patient Segmentation",
-    description: "AI-powered patient grouping",
-    availability: "PLANNED",
-    comingSoon: true,
-  },
-  [Feature.ANOMALY_DETECTION]: {
-    name: "Anomaly Detection",
-    description: "Detect unusual patterns",
-    availability: "PLANNED",
-    comingSoon: true,
   },
 };
 
@@ -1559,95 +1317,6 @@ export const TIER_FEATURES: Record<TierName, string[]> = {
   ],
   INTELLIGENCE: [],
 };
-
-export function getTierValue(tierName: TierName): Tier {
-  if (tierName === "FRONT_DESK") {
-    return Tier.FRONT_DESK;
-  }
-  return Tier[tierName];
-}
-
-export function getTierName(tier: Tier): TierName {
-  if (tier === Tier.FRONT_DESK) {
-    return "FRONT_DESK";
-  }
-  return Tier[tier] as TierName;
-}
-
-export function hasFeatureAccess(
-  tier: TierName,
-  feature: Feature,
-  hasIntelligence = false,
-): boolean {
-  if (!isFeatureGenerallyAvailable(feature)) {
-    return false;
-  }
-
-  const requiredTier = FEATURE_TIER_MAP[feature];
-
-  if (requiredTier === Tier.INTELLIGENCE) {
-    return hasIntelligence;
-  }
-
-  if (tier === "FRONT_DESK") {
-    if (FRONT_DESK_BLOCKED_FEATURES.has(feature)) {
-      return false;
-    }
-    return Tier.ESSENTIAL >= requiredTier;
-  }
-
-  return getTierValue(tier) >= requiredTier;
-}
-
-export function isFeatureGenerallyAvailable(feature: Feature): boolean {
-  const display = FEATURE_DISPLAY[feature];
-  if (!display) return false;
-  if (display.availability === "PLANNED") return false;
-  return display.comingSoon !== true;
-}
-
-/**
- * Generally available {@link Feature} values enabled for this billed tier,
- * derived only from {@link hasFeatureAccess} (same rules as API feature guards).
- */
-export function getFeaturesForTier(tier: TierName): Feature[] {
-  return (Object.keys(FEATURE_TIER_MAP) as Feature[]).filter((feature) =>
-    hasFeatureAccess(tier, feature, false),
-  );
-}
-
-/** Alias of {@link getFeaturesForTier}; cumulative SKUs use the same access set. */
-export function getAllFeaturesUpToTier(tier: TierName): Feature[] {
-  return getFeaturesForTier(tier);
-}
-
-export function getIntelligenceBundlePrice(): number {
-  const totalPrice = INTELLIGENCE_ADDONS.reduce(
-    (sum, addon) => sum + addon.monthlyPrice,
-    0,
-  );
-  return Math.round(totalPrice * (1 - INTELLIGENCE_BUNDLE_DISCOUNT));
-}
-
-export function getTierInfo(tier: Tier | TierName): TierInfo {
-  const tierName = typeof tier === "number" ? getTierName(tier) : tier;
-  return TIER_INFO[tierName];
-}
-
-export function getTierPricing(tier: Tier | TierName): TierPricing {
-  const tierName = typeof tier === "number" ? getTierName(tier) : tier;
-  return TIER_PRICING[tierName];
-}
-
-export function getTierLimits(tier: Tier | TierName): TierLimits {
-  const tierName = typeof tier === "number" ? getTierName(tier) : tier;
-  return TIER_LIMITS[tierName];
-}
-
-export function getTierFeaturesList(tier: Tier | TierName): string[] {
-  const tierName = typeof tier === "number" ? getTierName(tier) : tier;
-  return TIER_FEATURES[tierName];
-}
 
 export const usageMetricsSchema = z.object({
   consultations: z.number().int().min(0),

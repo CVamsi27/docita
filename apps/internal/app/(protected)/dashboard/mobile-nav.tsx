@@ -4,20 +4,20 @@ import { useState } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { cn } from "@workspace/ui/lib/utils";
-import { Button } from "@workspace/ui/components/button";
+import { Button } from "@workspace/ui/components/form/button";
 import {
   Tooltip,
   TooltipContent,
   TooltipTrigger,
-} from "@workspace/ui/components/tooltip";
-import { DocitaIcon } from "@workspace/ui/components/docita-logo";
+} from "@workspace/ui/components/overlay/tooltip";
+import { DocitaIcon } from "@workspace/ui/components/indicators/docita-logo";
 import {
   Sheet,
   SheetContent,
   SheetHeader,
   SheetTitle,
   SheetTrigger,
-} from "@workspace/ui/components/sheet";
+} from "@workspace/ui/components/overlay/sheet";
 import {
   Activity,
   BarChart3,
@@ -32,7 +32,7 @@ import {
   Shield,
   Users,
 } from "lucide-react";
-import { useAuth } from "@/lib/auth";
+import { useAuth } from "@/lib/auth/auth";
 
 const sidebarItems = [
   {

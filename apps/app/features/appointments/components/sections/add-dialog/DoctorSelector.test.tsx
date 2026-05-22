@@ -1,7 +1,7 @@
 import { render, screen } from "@testing-library/react";
 import { useForm } from "react-hook-form";
 import { describe, expect, it } from "vitest";
-import { Form } from "@workspace/ui/components/form";
+import { Form } from "@workspace/ui/components/form/form";
 import type { CreateAppointmentInput, Doctor } from "@workspace/types";
 import { DoctorSelector } from "./DoctorSelector";
 

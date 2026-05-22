@@ -1,15 +1,16 @@
 "use client";
 
-import { useAPIQuery } from "@/lib/api-core";
+import { useAPIQuery } from "@/lib/api/api-core";
+import { queryKeys } from "@/lib/api/query-keys";
 import {
   Card,
   CardContent,
   CardDescription,
   CardHeader,
   CardTitle,
-} from "@workspace/ui/components/card";
-import { Badge } from "@workspace/ui/components/badge";
-import { Button } from "@workspace/ui/components/button";
+} from "@workspace/ui/components/indicators/card";
+import { Badge } from "@workspace/ui/components/indicators/badge";
+import { Button } from "@workspace/ui/components/form/button";
 import { formatCurrency, formatDate } from "@workspace/utils";
 import {
   enterpriseContractEstimateSchema,
@@ -21,17 +22,16 @@ import { ExternalLink, Building2 } from "lucide-react";
 
 const useEnterpriseContract = () =>
   useAPIQuery<EnterpriseContract | null>(
-    ["clinic", "enterprise-contract"],
+    queryKeys.enterpriseContract.detail(),
     "/subscription/enterprise-contract",
     {
-      select: (data) =>
-        data ? enterpriseContractSchema.parse(data) : null,
+      select: (data) => (data ? enterpriseContractSchema.parse(data) : null),
     },
   );
 
 const useEnterpriseEstimate = (enabled: boolean) =>
   useAPIQuery<EnterpriseContractEstimate | null>(
-    ["clinic", "enterprise-contract", "estimate"],
+    queryKeys.enterpriseContract.estimate(),
     "/subscription/enterprise-contract/estimate",
     {
       enabled,
@@ -63,7 +63,9 @@ export function EnterpriseContractCard() {
               {formatDate(contract.startDate)} → {formatDate(contract.endDate)}
             </CardDescription>
           </div>
-          <Badge variant={contract.status === "ACTIVE" ? "default" : "secondary"}>
+          <Badge
+            variant={contract.status === "ACTIVE" ? "default" : "secondary"}
+          >
             {contract.status}
           </Badge>
         </div>

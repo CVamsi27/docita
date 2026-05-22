@@ -4,16 +4,16 @@ import { useEffect, useMemo, useState } from "react";
 import { useSearchParams } from "next/navigation";
 import { Pill } from "lucide-react";
 import { useDebounce } from "@workspace/hooks/use-debounce";
-import { AppPageScaffold } from "@workspace/ui/components/app-page-scaffold";
-import { EmptyState } from "@workspace/ui/components/empty-state";
-import { PageHeader } from "@workspace/ui/components/page-header";
+import { AppPageScaffold } from "@workspace/ui/components/layout/app-page-scaffold";
+import { EmptyState } from "@workspace/ui/components/feedback/empty-state";
+import { PageHeader } from "@workspace/ui/components/layout/page-header";
 import { DEFAULT_TIMEZONE, formatClinicTodayPickerIso } from "@workspace/utils";
-import { FeatureGate } from "@/features/_shared/components/auth/feature-gate";
-import { useDownloadPrescriptionPDF, usePrescriptions } from "@/hooks/api/use-clinical";
-import { useAuth } from "@/lib/auth-context";
-import { useClinic } from "@/lib/clinic-context";
+import { FeatureGate } from "@/components/auth/feature-gate";
+import { useDownloadPrescriptionPDF, usePrescriptions } from "@workspace/data-access";
+import { useAuth } from "@/lib/auth/auth-context";
+import { useClinic } from "@/lib/contexts/clinic-context";
 import { Feature } from "@/lib/stores/permission-store";
-import { SUBSCRIPTION_SETTINGS_PATH } from "@/lib/subscription-settings-path";
+import { SUBSCRIPTION_SETTINGS_PATH } from "@/lib/subscription/subscription-settings-path";
 import { PrescriptionsFilters } from "./list/PrescriptionsFilters";
 import {
   PrescriptionsTable,

@@ -8,6 +8,7 @@
   ],
   "scripts": {
     "build": "tsc -p tsconfig.build.json",
+    "check-types": "tsc -p tsconfig.build.json --noEmit",
     "dev": "tsc -p tsconfig.build.json --watch",
     "clean": "rm -rf dist",
     "lint": "eslint src --max-warnings 0",
@@ -36,7 +37,6 @@
     "@radix-ui/react-toggle": "^1.1.10",
     "@radix-ui/react-tooltip": "^1.2.8",
     "@workspace/hooks": "workspace:*",
-    "@workspace/types": "workspace:*",
     "@workspace/utils": "workspace:*",
     "class-variance-authority": "^0.7.1",
     "clsx": "^2.1.1",
@@ -60,7 +60,7 @@
     "@tailwindcss/typography": "^0.5.19",
     "@testing-library/jest-dom": "^6.6.3",
     "@testing-library/react": "^16.2.0",
-    "@turbo/gen": "^2.5.5",
+    "@turbo/gen": "^2.9.14",
     "@types/node": "^20.19.9",
     "@types/react": "^19.1.9",
     "@types/react-dom": "^19.1.7",
@@ -82,9 +82,7 @@
     "./lib/*": "./dist/lib/*.js",
     "./components": "./dist/components/index.js",
     "./components/*": "./dist/components/*.js",
-    "./design-tokens": "./dist/design-tokens.js",
-    "./next-cloudflare/empty-module.cjs": "./src/next-cloudflare/empty-module.cjs",
-    "./next-cloudflare/sentry-nextjs-cloudflare": "./src/next-cloudflare/sentry-nextjs-cloudflare.ts"
+    "./design-tokens": "./dist/design-tokens.js"
   },
   "main": "./dist/index.js",
   "module": "./dist/index.js",

@@ -4,6 +4,8 @@
  * when the payload looks like a JSON array; legacy plain-text values remain supported.
  */
 
+import { isRecord } from "../is-record.js";
+
 export interface ChiefComplaintPersistRow {
   id?: string;
   complaint?: string;
@@ -17,6 +19,31 @@ function rowHasContent(row: ChiefComplaintPersistRow): boolean {
   const c = typeof row.complaint === "string" ? row.complaint.trim() : "";
   const n = typeof row.notes === "string" ? row.notes.trim() : "";
   return c.length > 0 || n.length > 0;
+}
+
+function isChiefComplaintPersistRow(value: unknown): value is ChiefComplaintPersistRow {
+  if (!isRecord(value)) {
+    return false;
+  }
+  return (
+    (value["id"] === undefined || typeof value["id"] === "string") &&
+    (value["complaint"] === undefined ||
+      typeof value["complaint"] === "string") &&
+    (value["durationValue"] === undefined ||
+      typeof value["durationValue"] === "string") &&
+    (value["durationUnit"] === undefined ||
+      typeof value["durationUnit"] === "string") &&
+    (value["severity"] === undefined ||
+      typeof value["severity"] === "string") &&
+    (value["notes"] === undefined || typeof value["notes"] === "string")
+  );
+}
+
+function parseChiefComplaintRows(value: unknown): ChiefComplaintPersistRow[] {
+  if (!Array.isArray(value)) {
+    return [];
+  }
+  return value.filter(isChiefComplaintPersistRow);
 }
 
 export function serializeChiefComplaintsForPatch(
@@ -36,7 +63,7 @@ export function parseChiefComplaintsFromAppointmentData(
 ): ChiefComplaintPersistRow[] {
   const structured = data["chiefComplaintStructured"];
   if (Array.isArray(structured) && structured.length > 0) {
-    return structured as ChiefComplaintPersistRow[];
+    return parseChiefComplaintRows(structured);
   }
 
   const raw = data["chiefComplaint"];
@@ -48,11 +75,8 @@ export function parseChiefComplaintsFromAppointmentData(
     return [];
   }
   try {
-    const parsed = JSON.parse(trimmed) as unknown;
-    if (!Array.isArray(parsed) || parsed.length === 0) {
-      return [];
-    }
-    return parsed as ChiefComplaintPersistRow[];
+    const parsed: unknown = JSON.parse(trimmed);
+    return parseChiefComplaintRows(parsed);
   } catch {
     return [];
   }
@@ -70,8 +94,8 @@ export function formatChiefComplaintSummary(
 
   if (s.startsWith("[")) {
     try {
-      const rows = JSON.parse(s) as ChiefComplaintPersistRow[];
-      if (!Array.isArray(rows)) {
+      const rows = parseChiefComplaintRows(JSON.parse(s));
+      if (rows.length === 0) {
         return s;
       }
       const parts = rows.map((row) => {

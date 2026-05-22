@@ -1,3 +1,4 @@
+-- check-migration-reversibility: one-way
 -- Normalize legacy SUPER_ADMIN users to INTERNAL and remove SUPER_ADMIN from the Role enum.
 CREATE TYPE "Role_new" AS ENUM (
   'DOCTOR',

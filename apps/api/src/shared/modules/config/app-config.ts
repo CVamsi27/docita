@@ -1,4 +1,37 @@
 import { z } from 'zod';
+import { EnvConfigStore } from './env-config.store';
+
+function isValidationErrorRecord(value: unknown): value is {
+  _errors?: unknown;
+} {
+  return value !== null && typeof value === 'object';
+}
+
+/** Parses env boolean strings (`"false"` must not coerce to true). */
+function envBoolean(defaultValue: boolean) {
+  return z
+    .union([z.boolean(), z.string(), z.number()])
+    .optional()
+    .transform((value) => {
+      if (value === undefined) {
+        return defaultValue;
+      }
+      if (typeof value === 'boolean') {
+        return value;
+      }
+      if (typeof value === 'number') {
+        return value !== 0;
+      }
+      const normalized = String(value).trim().toLowerCase();
+      if (['false', '0', 'no', 'off'].includes(normalized)) {
+        return false;
+      }
+      if (['true', '1', 'yes', 'on'].includes(normalized)) {
+        return true;
+      }
+      return defaultValue;
+    });
+}
 
 export const EnvSchema = z.object({
   DATABASE_URL: z.string().min(1),
@@ -65,8 +98,10 @@ export const EnvSchema = z.object({
   SLOW_QUERY_THRESHOLD_MS: z.coerce.number().default(1000),
   REQUEST_TIMEOUT_MS: z.coerce.number().default(30000),
   SECRETS_PROVIDER: z.enum(['env', 'aws']).default('env'),
-  ENABLE_SCHEDULERS: z.coerce.boolean().default(true),
+  ENABLE_SCHEDULERS: envBoolean(true),
   QUEUE_BACKEND: z.enum(['memory', 'postgres']).default('memory'),
+  CACHE_BACKEND: z.enum(['memory', 'redis']).default('memory'),
+  REDIS_URL: z.string().url().optional(),
   API_LOG_MODE: z.string().default('access-and-errors'),
   WORKER_ENTRYPOINT: z.enum(['main', 'worker']).default('main'),
   DOCTOR_VERIFICATION_API_URL: z.string().optional(),
@@ -116,6 +151,12 @@ export const EnvSchema = z.object({
    * Docita owner/team.
    */
   INTERNAL_ALLOWED_EMAILS: z.string().default(''),
+  DOCITA_API_E2E: z.string().optional(),
+  CPT_CATALOG_SOURCE: z.string().optional(),
+  CPT_LICENSED_API_URL: z.string().optional(),
+  CPT_LICENSED_API_KEY: z.string().optional(),
+  CPT_LICENSED_SEARCH_PATH: z.string().optional(),
+  CPT_LICENSED_SYNC_PATH: z.string().optional(),
 });
 
 export type EnvConfig = z.infer<typeof EnvSchema>;
@@ -130,6 +171,53 @@ export const WORKER_JWT_MODULE_PLACEHOLDER_SECRET =
 
 export function isDevelopment(): boolean {
   return (process.env.NODE_ENV || 'development') === 'development';
+}
+
+const DOCITA_HTTPS_ORIGIN_RE = /^https:\/\/([a-z0-9-]+\.)*docita\.work$/i;
+
+function assertDocitaOnlyPublicOrigins(
+  config: z.infer<typeof EnvSchema>,
+): void {
+  if (config.NODE_ENV !== 'production' && config.NODE_ENV !== 'staging') {
+    return;
+  }
+
+  const corsOrigins = config.CORS_ORIGINS.split(',')
+    .map((origin) => origin.trim())
+    .filter(Boolean);
+
+  for (const origin of corsOrigins) {
+    if (!DOCITA_HTTPS_ORIGIN_RE.test(origin)) {
+      process.stderr.write('\nAPI environment validation failed.\n');
+      process.stderr.write(
+        `CORS_ORIGINS must list https://*.docita.work hosts only. Invalid entry: ${origin}\n\n`,
+      );
+      process.exit(1);
+    }
+  }
+
+  for (const [key, value] of [
+    ['APP_URL', config.APP_URL],
+    ['NEXT_PUBLIC_APP_URL', config.NEXT_PUBLIC_APP_URL],
+    ['NEXT_PUBLIC_API_URL', config.NEXT_PUBLIC_API_URL],
+  ] as const) {
+    let hostname: string;
+    try {
+      hostname = new URL(value).hostname;
+    } catch {
+      process.stderr.write('\nAPI environment validation failed.\n');
+      process.stderr.write(`  - ${key}: must be a valid URL\n\n`);
+      process.exit(1);
+    }
+
+    if (hostname !== 'docita.work' && !hostname.endsWith('.docita.work')) {
+      process.stderr.write('\nAPI environment validation failed.\n');
+      process.stderr.write(
+        `  - ${key}: must use a docita.work host in staging/production\n\n`,
+      );
+      process.exit(1);
+    }
+  }
 }
 
 export function getCorsOrigins(): (string | RegExp)[] {
@@ -170,10 +258,9 @@ export function getWebSocketCorsOrigins(): (string | RegExp)[] {
   return getCorsOrigins();
 }
 
-let validatedEnv: EnvConfig | null = null;
-
 export function validateEnv(): EnvConfig {
-  if (validatedEnv) return validatedEnv;
+  const cached = EnvConfigStore.getCached();
+  if (cached) return cached;
 
   const envToParse = { ...process.env };
   envToParse.META_BUSINESS_ACCOUNT_ID ??=
@@ -211,10 +298,12 @@ export function validateEnv(): EnvConfig {
     Object.entries(formatted).forEach(([key, value]) => {
       if (
         key !== '_errors' &&
-        typeof value === 'object' &&
-        '_errors' in value
+        isValidationErrorRecord(value) &&
+        Array.isArray(value._errors)
       ) {
-        const errors = (value as { _errors: string[] })._errors;
+        const errors = value._errors.filter(
+          (entry): entry is string => typeof entry === 'string',
+        );
         if (errors.length > 0) {
           process.stderr.write(`  - ${key}: ${errors.join(', ')}\n`);
         }
@@ -253,13 +342,16 @@ export function validateEnv(): EnvConfig {
     process.exit(1);
   }
 
-  validatedEnv = result.data;
+  assertDocitaOnlyPublicOrigins(result.data);
+
+  EnvConfigStore.setCached(result.data);
   return result.data;
 }
 
 export function getEnv(): EnvConfig {
-  if (!validatedEnv) {
-    return validateEnv();
+  const cached = EnvConfigStore.getCached();
+  if (cached) {
+    return cached;
   }
-  return validatedEnv;
+  return validateEnv();
 }

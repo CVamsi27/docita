@@ -3,9 +3,7 @@ import { Test, TestingModule } from '@nestjs/testing';
 import request from 'supertest';
 import { AppModule } from '@/app.module';
 import { PublicBookingService } from '@/domains/public-booking/application/services/public-booking.service';
-import { RazorpaySubscriptionGateway } from '@/gateways/razorpay-subscription.gateway';
-import { mockRazorpayGateway } from './razorpay.provider';
-import { WhatsappService } from '@/shared/modules/messaging/whatsapp/whatsapp.service';
+import { WhatsappService } from '@/domains/whatsapp/application/services/whatsapp-clinic-facade.service';
 import { mockWhatsappService } from './whatsapp.provider';
 
 describe('PublicBookingController (e2e)', () => {
@@ -29,8 +27,6 @@ describe('PublicBookingController (e2e)', () => {
     })
       .overrideProvider(PublicBookingService)
       .useValue(mockPublicBookingService)
-      .overrideProvider(RazorpaySubscriptionGateway)
-      .useValue(mockRazorpayGateway)
       .overrideProvider(WhatsappService)
       .useValue(mockWhatsappService)
       .compile();

@@ -1,4 +1,5 @@
-import { Injectable } from '@nestjs/common';
+import { Inject, Injectable } from '@nestjs/common';
+import { CLOCK_PORT, type IClock } from '@/shared/common/ports/clock.port';
 import { Prisma, SignaturePurpose } from '@workspace/db';
 import { PrismaService } from '@/prisma/prisma.service';
 import {
@@ -17,7 +18,10 @@ const ACTIVE_TOKEN_SELECT = {
 
 @Injectable()
 export class PrismaSignatureUploadRepository implements ISignatureUploadRepository {
-  constructor(private readonly prisma: PrismaService) {}
+  constructor(
+    private readonly prisma: PrismaService,
+    @Inject(CLOCK_PORT) private readonly clock: IClock,
+  ) {}
 
   private getReadClient() {
     return this.prisma.getReadClient();
@@ -58,6 +62,7 @@ export class PrismaSignatureUploadRepository implements ISignatureUploadReposito
   async findTokenByValue(
     token: string,
   ): Promise<UploadTokenWithRelations | null> {
+    // RLS-BYPASS: signature upload persistence uses storage keys outside clinic RLS
     return this.prisma.runUnrestricted(async () => {
       return this.prisma.signatureUploadToken.findUnique({
         where: { token },
@@ -102,7 +107,7 @@ export class PrismaSignatureUploadRepository implements ISignatureUploadReposito
         doctorId,
         purpose: SignaturePurpose.DOCTOR_PRESCRIPTION,
         used: false,
-        expiresAt: { gt: new Date() },
+        expiresAt: { gt: this.clock.now() },
       },
       orderBy: { createdAt: 'desc' },
       select: ACTIVE_TOKEN_SELECT,
@@ -117,7 +122,7 @@ export class PrismaSignatureUploadRepository implements ISignatureUploadReposito
         clinicId,
         purpose: SignaturePurpose.SLA_ACCEPTANCE,
         used: false,
-        expiresAt: { gt: new Date() },
+        expiresAt: { gt: this.clock.now() },
       },
       orderBy: { createdAt: 'desc' },
       select: ACTIVE_TOKEN_SELECT,
@@ -125,16 +130,18 @@ export class PrismaSignatureUploadRepository implements ISignatureUploadReposito
   }
 
   async markTokenUsed(token: string): Promise<void> {
+    const now = this.clock.now();
     await this.prisma.signatureUploadToken.update({
       where: { token },
-      data: { used: true, usedAt: new Date() },
+      data: { used: true, usedAt: now },
     });
   }
 
   async markTokenUsedById(id: string): Promise<void> {
+    const now = this.clock.now();
     await this.prisma.signatureUploadToken.update({
       where: { id },
-      data: { used: true, usedAt: new Date() },
+      data: { used: true, usedAt: now },
     });
   }
 
@@ -143,15 +150,17 @@ export class PrismaSignatureUploadRepository implements ISignatureUploadReposito
     signatureUrl: string,
     token: string,
   ): Promise<void> {
+    const now = this.clock.now();
+    // RLS-BYPASS: signature upload persistence uses storage keys outside clinic RLS
     await this.prisma.runUnrestricted(async () => {
       await this.prisma.$transaction([
         this.prisma.user.update({
           where: { id: doctorId },
-          data: { signatureUrl, signatureUploadedAt: new Date() },
+          data: { signatureUrl, signatureUploadedAt: now },
         }),
         this.prisma.signatureUploadToken.update({
           where: { token },
-          data: { used: true, usedAt: new Date() },
+          data: { used: true, usedAt: now },
         }),
       ]);
     });
@@ -162,18 +171,20 @@ export class PrismaSignatureUploadRepository implements ISignatureUploadReposito
     signatureUrl: string,
     token: string,
   ): Promise<void> {
+    const now = this.clock.now();
+    // RLS-BYPASS: signature upload persistence uses storage keys outside clinic RLS
     await this.prisma.runUnrestricted(async () => {
       await this.prisma.$transaction([
         this.prisma.clinic.update({
           where: { id: clinicId },
           data: {
             slaSignatureUrl: signatureUrl,
-            slaSignatureAcceptedAt: new Date(),
+            slaSignatureAcceptedAt: now,
           },
         }),
         this.prisma.signatureUploadToken.update({
           where: { token },
-          data: { used: true, usedAt: new Date() },
+          data: { used: true, usedAt: now },
         }),
       ]);
     });

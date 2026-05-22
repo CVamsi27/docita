@@ -1,6 +1,18 @@
 import { Module, forwardRef } from '@nestjs/common';
 import { AuthService } from './auth.service';
-import { AuthController } from './auth.controller';
+import { CredentialValidationService } from './credential-validation.service';
+import { AuthSessionService } from './auth-session.service';
+import { AuthRegistrationService } from './auth-registration.service';
+import { AuthPasswordService } from './auth-password.service';
+import { AuthEmailVerificationService } from './auth-email-verification.service';
+import { AuthMfaOrchestratorService } from './auth-mfa-orchestrator.service';
+import { AuthRegistrationController } from './auth-registration.controller';
+import { AuthLoginController } from './auth-login.controller';
+import { AuthPasswordController } from './auth-password.controller';
+import { AuthSessionController } from './auth-session.controller';
+import { AuthMfaController } from './auth-mfa.controller';
+import { AuthVerificationController } from './auth-verification.controller';
+import { AuthApiKeysController } from './auth-api-keys.controller';
 import { MfaService } from './mfa.service';
 import { ApiKeyService } from './api-key.service';
 import { PrismaModule } from '@/prisma/prisma.module';
@@ -24,6 +36,16 @@ import { EmailVerifiedGuard } from '@/shared/modules/auth/guards/email-verified.
 
 type JwtDuration = `${number}${'s' | 'm' | 'h' | 'd' | 'w' | 'y'}`;
 
+const JWT_DURATION_PATTERN = /^\d+[smhdwy]$/;
+
+function isJwtDuration(value: string): value is JwtDuration {
+  return JWT_DURATION_PATTERN.test(value);
+}
+
+function parseJwtDuration(value: string): JwtDuration | null {
+  return isJwtDuration(value) ? value : null;
+}
+
 @Module({
   imports: [
     PrismaModule,
@@ -37,9 +59,10 @@ type JwtDuration = `${number}${'s' | 'm' | 'h' | 'd' | 'w' | 'y'}`;
       useFactory: (configService: AppConfigService) => {
         const secret = configService.getJwtSecret();
         const expiration = configService.getJwtExpiration();
+        const parsedDuration = parseJwtDuration(expiration);
         const expiresIn = /^\d+$/.test(expiration)
           ? Number(expiration)
-          : (expiration as JwtDuration);
+          : (parsedDuration ?? '7d');
         if (!secret) {
           throw new Error('JWT_SECRET is not defined');
         }
@@ -54,6 +77,12 @@ type JwtDuration = `${number}${'s' | 'm' | 'h' | 'd' | 'w' | 'y'}`;
   ],
   providers: [
     AuthService,
+    CredentialValidationService,
+    AuthSessionService,
+    AuthRegistrationService,
+    AuthPasswordService,
+    AuthEmailVerificationService,
+    AuthMfaOrchestratorService,
     MfaService,
     ApiKeyService,
     JwtStrategy,
@@ -71,7 +100,15 @@ type JwtDuration = `${number}${'s' | 'm' | 'h' | 'd' | 'w' | 'y'}`;
       useClass: DefaultPasswordPolicy,
     },
   ],
-  controllers: [AuthController],
+  controllers: [
+    AuthRegistrationController,
+    AuthLoginController,
+    AuthPasswordController,
+    AuthSessionController,
+    AuthMfaController,
+    AuthVerificationController,
+    AuthApiKeysController,
+  ],
   exports: [
     AuthService,
     MfaService,

@@ -1,5 +1,4 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
-import { useRouter, useSearchParams } from "next/navigation";
 import {
   addDays,
   DEFAULT_TIMEZONE,
@@ -11,23 +10,21 @@ import {
   startOfMonth,
   subDays,
 } from "@workspace/utils";
-import { toast } from "sonner";
-import { useDoctors, useUnavailableDoctorIdsForDate } from "@/hooks/api/use-settings";
+import { useDoctors, useUnavailableDoctorIdsForDate } from "@workspace/data-access";
 import {
   type AppointmentListItem,
   useAppointments,
-  useCheckInAppointment,
-  useStartConsultation,
-} from "@/hooks/api/use-appointments";
-import { useAuth } from "@/lib/auth-context";
-import { showUserFacingErrorToast } from "@/lib/user-facing-errors";
+} from "@workspace/data-access";
+import { useAuth } from "@/lib/auth/auth-context";
 import { useDebounce } from "@workspace/hooks/use-debounce";
 import {
   isClinicWideAppointmentRole,
   resolveDoctorScopedAppointmentFilter,
 } from "@workspace/types";
 import { useAppointmentRowActions } from "@/features/appointments/hooks/use-appointment-row-actions";
-import { useClinic } from "@/lib/clinic-context";
+import { useAppointmentActions } from "@/features/appointments/hooks/use-appointment-actions";
+import { useAppointmentsDialogUrlSync } from "@/features/appointments/hooks/use-appointments-dialog-url-sync";
+import { useClinic } from "@/lib/contexts/clinic-context";
 
 export const generateTimeSlots = () => {
   const slots = [];
@@ -49,12 +46,6 @@ export const useAppointmentsLogic = () => {
   const [calendarMonth, setCalendarMonth] = useState<Date>(() =>
     startOfMonth(new Date()),
   );
-  const [checkingIn, setCheckingIn] = useState<string | null>(null);
-
-  const [isAddDialogOpen, setIsAddDialogOpen] = useState(false);
-  const [startingConsultationId, setStartingConsultationId] = useState<
-    string | null
-  >(null);
   const [selectedDoctorId, setSelectedDoctorId] = useState<string | undefined>(
     undefined,
   );
@@ -64,11 +55,9 @@ export const useAppointmentsLogic = () => {
   const { user } = useAuth();
   const { clinic } = useClinic();
   const clinicTz = useMemo(
-    () => (clinic?.timezone?.trim() || DEFAULT_TIMEZONE) as string,
+    () => clinic?.timezone?.trim() || DEFAULT_TIMEZONE,
     [clinic?.timezone],
   );
-  const searchParams = useSearchParams();
-  const router = useRouter();
   const currentTimeSlotRef = useRef<HTMLDivElement>(null);
 
   const selectedDateStr = useMemo(
@@ -167,34 +156,14 @@ export const useAppointmentsLogic = () => {
     return appointmentsResponse?.items || [];
   }, [appointmentsResponse]);
 
-  const checkInMutation = useCheckInAppointment();
-  const startConsultationMutation = useStartConsultation();
-
   const rowActions = useAppointmentRowActions({
     onMutated: () => {
       void refetch();
     },
   });
 
-  const currentAction = searchParams.get("action");
-  useEffect(() => {
-    if (currentAction === "new") {
-      setIsAddDialogOpen(true);
-    }
-  }, [currentAction]);
-
-  const handleDialogChange = useCallback(
-    (open: boolean) => {
-      setIsAddDialogOpen(open);
-      if (!open) {
-        const newParams = new URLSearchParams(searchParams.toString());
-        newParams.delete("action");
-        newParams.delete("patientId");
-        router.replace(`/appointments?${newParams.toString()}`);
-      }
-    },
-    [searchParams, router],
-  );
+  const { isAddDialogOpen, handleDialogChange, preselectedPatientId } =
+    useAppointmentsDialogUrlSync();
 
   const uniqueAppointments = useMemo(() => {
     const seen = new Set<string>();
@@ -236,55 +205,13 @@ export const useAppointmentsLogic = () => {
     }
   }, [isToday, filteredAppointments]);
 
-  const preselectedPatientId = useMemo(
-    () => searchParams.get("patientId") || undefined,
-    [searchParams],
-  );
-
-  const handleStartConsultation = useCallback(
-    async (appointmentId: string) => {
-      setStartingConsultationId(appointmentId);
-      try {
-        const result = await startConsultationMutation.mutateAsync({
-          appointmentId,
-        });
-        router.push(`/consultation/${result.appointmentId}`);
-      } catch (error) {
-        showUserFacingErrorToast(
-          error,
-          "We could not open this consultation right now. Please try again.",
-          "save",
-        );
-      } finally {
-        setStartingConsultationId(null);
-      }
-    },
-    [router, startConsultationMutation],
-  );
-
-  const handleCheckIn = useCallback(
-    async (appointmentId: string) => {
-      setCheckingIn(appointmentId);
-      try {
-        await checkInMutation.mutateAsync(appointmentId);
-        toast.success("Patient checked in to queue");
-        await refetch();
-      } catch (error) {
-        showUserFacingErrorToast(
-          error,
-          "We could not check this patient in. Please try again.",
-          "save",
-        );
-      } finally {
-        setCheckingIn(null);
-      }
-    },
-    [checkInMutation, refetch],
-  );
-
-  const handleAppointmentAdded = useCallback(async (_appointment: unknown) => {
-    await refetch();
-  }, [refetch]);
+  const {
+    checkingIn,
+    startingConsultationId,
+    handleCheckIn,
+    handleStartConsultation,
+    handleAppointmentAdded,
+  } = useAppointmentActions({ refetch });
 
   return {
     state: {

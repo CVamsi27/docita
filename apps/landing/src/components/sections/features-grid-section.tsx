@@ -19,8 +19,8 @@ import {
   CardDescription,
   CardHeader,
   CardTitle,
-} from "@workspace/ui/components/card";
-import { SectionHeading } from "@workspace/ui/components/section-heading";
+} from "@workspace/ui/components/indicators/card";
+import { SectionHeading } from "@workspace/ui/components/layout/section-heading";
 
 export function FeaturesGridSection() {
   return (
@@ -124,7 +124,7 @@ export function FeaturesGridSection() {
           ].map((feature, i) => (
             <Card
               key={i}
-              className="bg-background hover:-translate-y-1 hover:shadow-md transition-all"
+              className="bg-background transition-shadow duration-150 hover:-translate-y-1 hover:shadow-md"
             >
               <CardHeader>
                 <div

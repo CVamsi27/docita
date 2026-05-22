@@ -1,12 +1,12 @@
 "use client";
 
 import { useMemo } from "react";
-import { getUserFacingErrorMessage } from "@workspace/types";
+import { getUserFacingErrorMessage } from "@workspace/utils";
 import {
   type AppointmentListItem,
   usePatientAppointments,
-} from "@/hooks/api/use-appointments";
-import { usePatient } from "@/hooks/api/use-patients";
+} from "@workspace/data-access";
+import { usePatient } from "@workspace/data-access";
 
 import type {
   PatientPortalSnapshot,

@@ -9,7 +9,8 @@ import {
   Req,
   UseGuards,
 } from '@nestjs/common';
-import { RequestWithUser } from '@/common/types/common.types';
+import { RequestWithUser } from '@/shared/common/types/common.types';
+import { requireClinicIdFromRequest } from '@/shared/modules/auth/auth/clinic-request-context';
 import { FollowUpService } from '@/domains/appointments/application/services/follow-up.service';
 import {
   BookFollowUpDto,
@@ -24,13 +25,18 @@ import {
   getDbRolesForTarget,
   requireFeatureForTarget,
 } from '@/shared/modules/auth/auth/access-matrix.util';
+import { AuditService } from '@/shared/modules/audit/audit/audit.service';
+import { logClinicPhiListRead } from '@/shared/modules/audit/audit/patient-access-audit.util';
 
 @Controller()
 @UseGuards(TierGuard)
 @RequireFeature(requireFeatureForTarget(APP_ACCESS_TARGETS.API_APPOINTMENTS))
 @Roles(...getDbRolesForTarget(APP_ACCESS_TARGETS.API_APPOINTMENTS))
 export class FollowUpController {
-  constructor(private readonly followUpService: FollowUpService) {}
+  constructor(
+    private readonly followUpService: FollowUpService,
+    private readonly auditService: AuditService,
+  ) {}
 
   @Post('appointments/:id/follow-up')
   async createFollowUp(
@@ -41,7 +47,7 @@ export class FollowUpController {
     return this.followUpService.create({
       ...body,
       appointmentId,
-      clinicId: req.user!.clinicId!,
+      clinicId: requireClinicIdFromRequest(req),
     });
   }
 
@@ -50,7 +56,20 @@ export class FollowUpController {
     @Req() req: RequestWithUser,
     @Query() query: ListFollowUpsQueryDto,
   ) {
-    const clinicId = req.user!.clinicId!;
+    const clinicId = requireClinicIdFromRequest(req);
+    await logClinicPhiListRead(
+      this.auditService,
+      req,
+      'VIEW_APPOINTMENT_LIST',
+      'Appointment',
+      {
+        scope: 'follow-ups',
+        appointmentId: query.appointmentId,
+        status: query.status,
+        from: query.from,
+        to: query.to,
+      },
+    );
     if (query.appointmentId) {
       return this.followUpService.findForAppointment(
         query.appointmentId,
@@ -68,18 +87,18 @@ export class FollowUpController {
   ) {
     return this.followUpService.book(
       id,
-      req.user!.clinicId!,
+      requireClinicIdFromRequest(req),
       body.bookedAppointmentId,
     );
   }
 
   @Patch('follow-ups/:id/complete')
   async completeFollowUp(@Req() req: RequestWithUser, @Param('id') id: string) {
-    return this.followUpService.complete(id, req.user!.clinicId!);
+    return this.followUpService.complete(id, requireClinicIdFromRequest(req));
   }
 
   @Patch('follow-ups/:id/cancel')
   async cancelFollowUp(@Req() req: RequestWithUser, @Param('id') id: string) {
-    return this.followUpService.cancel(id, req.user!.clinicId!);
+    return this.followUpService.cancel(id, requireClinicIdFromRequest(req));
   }
 }

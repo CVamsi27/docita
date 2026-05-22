@@ -1,7 +1,7 @@
 import { usePatient } from "@/features/patients/hooks/usePatients";
 import { getPatientAgeDisplay } from "@/features/patients/rules/patientRules";
-import { getInitials } from "@/features/_shared/utils";
-import { Skeleton } from "@workspace/ui/components/skeleton";
+import { getInitials } from "@/lib/formatters/text-helpers";
+import { Skeleton } from "@workspace/ui/components/feedback/skeleton";
 import { PatientProfileHeaderUI } from "./PatientProfileHeaderUI";
 
 interface PatientProfileHeaderContainerProps {
@@ -51,10 +51,10 @@ export function PatientProfileHeaderContainer({
       initials={initials}
       age={ageDisplay}
       gender={patient.gender || "UNKNOWN"}
-      dateOfBirth={patient.dateOfBirth}
+      dateOfBirth={patient.dateOfBirth ?? undefined}
       patientId={patient.id || ""}
-      email={patient.email || undefined}
-      phoneNumber={patient.phoneNumber}
+      email={patient.email ?? undefined}
+      phoneNumber={patient.phoneNumber ?? undefined}
       address={patient.address || undefined}
       onEdit={onEdit}
     />

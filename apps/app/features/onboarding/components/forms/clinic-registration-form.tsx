@@ -1,12 +1,12 @@
 "use client";
 
-import { useCallback, useEffect, useState } from "react";
+import { useEffect, useState } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { AlertCircle } from "lucide-react";
-import { getUserFacingErrorMessage } from "@workspace/types";
+import { getUserFacingErrorMessage } from "@workspace/utils";
 import { useClinicRegistrationFlow } from "@/features/onboarding/hooks/use-clinic-registration-flow";
-import { useAuth } from "@/lib/auth-context";
+import { useAuth } from "@/lib/auth/auth-context";
 import { useLocaleCurrency } from "@/hooks/use-locale-currency";
 import {
   ClinicDetailsStep,
@@ -20,80 +20,24 @@ import {
   clinicDetailsSchema,
   complianceSchema,
   type ComplianceSettings,
-  defaultClinicRegistrationData,
   defaultComplianceValues,
-  type PlanSelection,
 } from "@/features/onboarding/components/types";
-import { Alert, AlertDescription } from "@workspace/ui/components/alert";
-import { Button } from "@workspace/ui/components/button";
 import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
-} from "@workspace/ui/components/dialog";
-import { MicroLabel } from "@workspace/ui/components/micro-label";
-import { cn } from "@workspace/ui/lib/utils";
+  Alert,
+  AlertDescription,
+} from "@workspace/ui/components/feedback/alert";
+import { Button } from "@workspace/ui/components/form/button";
 import { DEFAULT_COUNTRY_CODE, getFacilityLabel } from "@workspace/utils";
-import { formatDateTime } from "@/lib/formatters";
 
-const STEPS = [
-  { number: 1, label: "Facility Details", estimatedTime: "2 min" },
-  { number: 2, label: "Visit hours", estimatedTime: "2 min" },
-  { number: 3, label: "Choose Plan", estimatedTime: "3 min" },
-  { number: 4, label: "Invite Team", estimatedTime: "2 min" },
-  { number: 5, label: "Compliance", estimatedTime: "3 min" },
-];
-
-const TOTAL_STEPS = 5;
-const DRAFT_KEY = "docita_onboarding_draft";
-const SESSION_ONBOARDING_ID_KEY = "docita_onboarding_id";
-interface OnboardingDraft {
-  clinicDetails: Partial<ClinicDetails>;
-  savedAt: string;
-  onboardingId?: string | null;
-}
-
-function hasMeaningfulClinicDraftData(
-  clinicDetails: Partial<ClinicDetails> | undefined,
-): boolean {
-  if (!clinicDetails) return false;
-
-  const meaningfulStringFields: Array<keyof ClinicDetails> = [
-    "name",
-    "email",
-    "phone",
-    "address",
-    "addressLine1",
-    "addressLine2",
-    "city",
-    "state",
-    "pincode",
-    "website",
-    "gstin",
-    "legalName",
-  ];
-
-  const hasMeaningfulString = meaningfulStringFields.some((field) => {
-    const value = clinicDetails[field];
-    return typeof value === "string" && value.trim().length > 0;
-  });
-
-  return hasMeaningfulString || Boolean(clinicDetails.type);
-}
-
-function getMissingClinicDetailsForProgress(
-  clinicDetails: Partial<ClinicDetails> | undefined,
-): string[] {
-  const missing: string[] = [];
-  if (!clinicDetails?.name?.trim()) missing.push("facility name");
-  if (!clinicDetails?.phone?.trim()) missing.push("facility phone");
-  if (!clinicDetails?.address?.trim()) missing.push("facility address");
-  if (!clinicDetails?.type) missing.push("facility type");
-  return missing;
-}
+import {
+  DRAFT_KEY,
+  getMissingClinicDetailsForProgress,
+} from "./clinic-registration-form-helpers";
+import { useOnboardingDraft } from "./use-onboarding-draft";
+import {
+  DraftRestoreDialog,
+  OnboardingProgressCard,
+} from "./clinic-registration-form-sections";
 
 export function ClinicRegistrationForm({
   onSuccess,
@@ -103,8 +47,6 @@ export function ClinicRegistrationForm({
   const { user } = useAuth();
   const { currency } = useLocaleCurrency();
   const [stepError, setStepError] = useState<string | null>(null);
-  const [showDraftDialog, setShowDraftDialog] = useState(false);
-  const [savedDraft, setSavedDraft] = useState<OnboardingDraft | null>(null);
   const {
     step,
     setStep,
@@ -142,8 +84,9 @@ export function ClinicRegistrationForm({
       website: "",
       gstin: "",
       legalName: "",
-      ...(formData.clinicDetails as Partial<ClinicDetails>),
-    } as ClinicDetails,
+      type: "GENERAL",
+      ...formData.clinicDetails,
+    },
   });
 
   const complianceForm = useForm<ComplianceSettings>({
@@ -158,77 +101,20 @@ export function ClinicRegistrationForm({
     },
   });
 
-  useEffect(() => {
-    try {
-      const raw = localStorage.getItem(DRAFT_KEY);
-      if (!raw) return;
-      const draft = JSON.parse(raw) as OnboardingDraft;
-      const currentOnboardingId =
-        typeof sessionStorage !== "undefined"
-          ? sessionStorage.getItem(SESSION_ONBOARDING_ID_KEY)
-          : null;
-      const persistedStep =
-        typeof sessionStorage !== "undefined"
-          ? Number(sessionStorage.getItem("docita_onboarding_step") || "1")
-          : 1;
-      const ageMs = Date.now() - new Date(draft.savedAt).getTime();
-      const hasMeaningfulDraft =
-        hasMeaningfulClinicDraftData(draft.clinicDetails) ||
-        Boolean(draft.onboardingId);
-      const isSameOnboardingSession =
-        Boolean(draft.onboardingId) &&
-        draft.onboardingId === currentOnboardingId;
-      const hasActiveSessionProgress =
-        Boolean(currentOnboardingId) && persistedStep > 1;
-
-      if (
-        ageMs < 24 * 60 * 60 * 1000 &&
-        hasMeaningfulDraft &&
-        !isSameOnboardingSession &&
-        !hasActiveSessionProgress
-      ) {
-        setSavedDraft(draft);
-        setShowDraftDialog(true);
-      } else if (
-        ageMs < 24 * 60 * 60 * 1000 &&
-        hasMeaningfulDraft &&
-        (isSameOnboardingSession || hasActiveSessionProgress)
-      ) {
-        // Same onboarding session after refresh: restore silently without showing prompt.
-        clinicForm.reset(draft.clinicDetails as ClinicDetails);
-      } else {
-        localStorage.removeItem(DRAFT_KEY);
-      }
-    } catch {
-    }
-  }, [clinicForm]);
-
-  const handleRestoreDraft = () => {
-    if (savedDraft?.clinicDetails) {
-      clinicForm.reset(savedDraft.clinicDetails as ClinicDetails);
-    }
-    if (savedDraft?.onboardingId) {
-      restoreOnboardingId(savedDraft.onboardingId);
-    }
-    setShowDraftDialog(false);
-    setSavedDraft(null);
-  };
-
-  const handleDiscardDraft = () => {
-    restartOnboarding();
-    clinicForm.reset({
-      ...defaultClinicRegistrationData.clinicDetails,
-      facilityLabel: "CLINIC",
-      countryCode: DEFAULT_COUNTRY_CODE,
-    });
-    complianceForm.reset({
-      ...defaultComplianceValues,
-    });
-    setStepError(null);
-    localStorage.removeItem(DRAFT_KEY);
-    setShowDraftDialog(false);
-    setSavedDraft(null);
-  };
+  const {
+    showDraftDialog,
+    setShowDraftDialog,
+    savedDraft,
+    handleRestoreDraft,
+    handleDiscardDraft,
+  } = useOnboardingDraft({
+    clinicForm,
+    complianceForm,
+    onboardingId,
+    restoreOnboardingId,
+    restartOnboarding,
+    onAfterDiscard: () => setStepError(null),
+  });
 
   const handleSetClinicDetails = (data: ClinicDetails) => {
     setStepError(null);
@@ -241,7 +127,6 @@ export function ClinicRegistrationForm({
     pricing: { monthly: number | "custom"; yearly: number | "custom" },
     options?: {
       currency?: string;
-      workspaceProfile?: "FULL_CLINICAL" | "FRONT_DESK";
     },
   ) => {
     setStepError(null);
@@ -259,28 +144,24 @@ export function ClinicRegistrationForm({
     }
 
     try {
-      await setPlanSelection(
-        tier,
-        billingCycle,
-        pricing as PlanSelection["billingCycle"] extends "MONTHLY" | "YEARLY"
-          ? { monthly: number | "custom"; yearly: number | "custom" }
-          : never,
-        {
-          ...options,
-          currency,
-        },
-      );
+      await setPlanSelection(tier, billingCycle, pricing, {
+        ...options,
+        currency,
+      });
     } catch (error) {
       setStepError(
         getUserFacingErrorMessage(error, {
-          fallback: "We could not continue with this plan right now. Please try again.",
+          fallback:
+            "We could not continue with this plan right now. Please try again.",
           context: "save",
         }),
       );
     }
   };
 
-  const handleSetTeamMembers = async (members: Parameters<typeof setTeamMembers>[0]) => {
+  const handleSetTeamMembers = async (
+    members: Parameters<typeof setTeamMembers>[0],
+  ) => {
     setStepError(null);
     try {
       await setTeamMembers(members);
@@ -318,49 +199,15 @@ export function ClinicRegistrationForm({
     } catch (error) {
       setStepError(
         getUserFacingErrorMessage(error, {
-          fallback: "We could not complete setup. Please check your details and try again.",
+          fallback:
+            "We could not complete setup. Please check your details and try again.",
           context: "form",
         }),
       );
     }
   };
 
-  // Auto-save clinic details to localStorage as user types
-  const persistDraft = useCallback(
-    (clinicDetails: Partial<ClinicDetails>) => {
-      try {
-        const draft: OnboardingDraft = {
-          clinicDetails,
-          savedAt: new Date().toISOString(),
-          onboardingId,
-        };
-
-        const hasMeaningfulDraft =
-          hasMeaningfulClinicDraftData(clinicDetails) || Boolean(onboardingId);
-        if (!hasMeaningfulDraft) {
-          localStorage.removeItem(DRAFT_KEY);
-          return;
-        }
-
-        localStorage.setItem(DRAFT_KEY, JSON.stringify(draft));
-      } catch {
-        // Storage quota exceeded or unavailable
-      }
-    },
-    [onboardingId],
-  );
-
-  useEffect(() => {
-    const subscription = clinicForm.watch((values) => {
-      persistDraft(values);
-    });
-    return () => subscription.unsubscribe();
-  }, [clinicForm, persistDraft]);
-
-  useEffect(() => {
-    persistDraft(clinicForm.getValues());
-  }, [clinicForm, onboardingId, persistDraft]);
-
+  // Guard: restart if required clinic data is missing while past step 1
   useEffect(() => {
     if (step <= 1) return;
     const missingClinicData = getMissingClinicDetailsForProgress(
@@ -370,38 +217,20 @@ export function ClinicRegistrationForm({
 
     restartOnboarding();
     localStorage.removeItem(DRAFT_KEY);
-    setSavedDraft(null);
-    setShowDraftDialog(false);
     setStepError(
       `Onboarding progress was incomplete (${missingClinicData.join(", ")}), so we started over from Step 1`,
     );
   }, [formData.clinicDetails, restartOnboarding, step]);
 
-  const currentStep = STEPS.find((s) => s.number === step) ?? STEPS[0];
-  const progressPercent = Math.round((step / TOTAL_STEPS) * 100);
-
-
-
   return (
     <div className="space-y-6">
-      <Dialog open={showDraftDialog} onOpenChange={setShowDraftDialog}>
-        <DialogContent>
-          <DialogHeader>
-            <DialogTitle>Continue where you left off?</DialogTitle>
-            <DialogDescription>
-              A saved draft was found from{" "}
-              {savedDraft ? formatDateTime(savedDraft.savedAt) : "earlier"}
-              {" "}and would you like to restore it?
-            </DialogDescription>
-          </DialogHeader>
-          <DialogFooter>
-            <Button variant="outline" onClick={handleDiscardDraft}>
-              Start over
-            </Button>
-            <Button onClick={handleRestoreDraft}>Continue</Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
+      <DraftRestoreDialog
+        open={showDraftDialog}
+        onOpenChange={setShowDraftDialog}
+        savedAt={savedDraft?.savedAt}
+        onDiscard={handleDiscardDraft}
+        onRestore={handleRestoreDraft}
+      />
 
       {stepError && (
         <Alert
@@ -429,59 +258,7 @@ export function ClinicRegistrationForm({
         {stepError ? `Error: ${stepError}` : ""}
       </div>
 
-      <div className="ui-card-surface p-4 md:p-5">
-        <div className="flex items-start justify-between gap-3">
-          <div className="space-y-1">
-            <MicroLabel>Setup wizard</MicroLabel>
-            <p className="text-base font-semibold text-foreground">
-              Step {step} of {TOTAL_STEPS}: {currentStep.label}
-            </p>
-          </div>
-          <p className="shrink-0 text-xs text-muted-foreground">
-            ~{currentStep.estimatedTime} remaining
-          </p>
-        </div>
-        <div
-          className="mt-3 flex items-center gap-2"
-          role="progressbar"
-          aria-valuenow={progressPercent}
-          aria-valuemin={0}
-          aria-valuemax={100}
-          aria-label={`Onboarding progress: ${progressPercent}%`}
-        >
-          {STEPS.map((s) => (
-            <span
-              key={s.number}
-              className={cn(
-                "h-1.5 flex-1 rounded-full transition-colors",
-                s.number < step
-                  ? "bg-primary"
-                  : s.number === step
-                    ? "bg-primary/80"
-                    : "bg-muted",
-              )}
-              aria-hidden
-            />
-          ))}
-        </div>
-        <div className="mt-2 hidden justify-between sm:flex">
-          {STEPS.map((s) => (
-            <span
-              key={s.number}
-              className={cn(
-                "text-[var(--fs-2xs)] uppercase tracking-wide",
-                s.number === step
-                  ? "font-semibold text-primary"
-                  : s.number < step
-                    ? "text-muted-foreground"
-                    : "text-muted-foreground/50",
-              )}
-            >
-              {s.label}
-            </span>
-          ))}
-        </div>
-      </div>
+      <OnboardingProgressCard step={step} />
 
       {step === 1 && (
         <ClinicDetailsStep
@@ -509,9 +286,6 @@ export function ClinicRegistrationForm({
           currency={currency}
           defaultTier={formData.planSelection.tier}
           defaultBillingCycle={formData.planSelection.billingCycle}
-          initialWorkspaceProfile={
-            formData.planSelection.workspaceProfile ?? "FULL_CLINICAL"
-          }
           onSelect={handleSetPlanSelection}
         />
       )}

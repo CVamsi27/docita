@@ -4,8 +4,8 @@ import {
   useComplianceMetrics,
   useDiseaseTrends,
   useRevenueByCPT,
-} from "@/hooks/api/use-analytics";
-import { useClinic } from "@/lib/clinic-context";
+} from "@workspace/data-access";
+import { useClinic } from "@/lib/contexts/clinic-context";
 import type { ComplianceMetric } from "@workspace/types";
 
 export type {

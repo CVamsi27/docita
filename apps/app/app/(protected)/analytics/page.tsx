@@ -2,8 +2,8 @@
 
 import dynamic from "next/dynamic";
 import { Feature } from "@workspace/types";
-import { DocitaLoadingIndicator } from "@workspace/ui/components/docita-loading-indicator";
-import { FeatureGate } from "@/features/_shared/components/auth/feature-gate";
+import { DocitaLoadingIndicator } from "@workspace/ui/components/feedback/docita-loading-indicator";
+import { FeatureGate } from "@/components/auth/feature-gate";
 import { useAnalyticsLogic } from "@/features/analytics/hooks/use-analytics-logic";
 
 function AnalyticsRouteLoading() {

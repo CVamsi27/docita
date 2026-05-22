@@ -9,23 +9,23 @@ import {
   ScanLine,
   Upload,
 } from "lucide-react";
-import { AppPageScaffold } from "@workspace/ui/components/app-page-scaffold";
-import { Button } from "@workspace/ui/components/button";
+import { AppPageScaffold } from "@workspace/ui/components/layout/app-page-scaffold";
+import { Button } from "@workspace/ui/components/form/button";
 import {
   Card,
   CardContent,
   CardDescription,
   CardHeader,
   CardTitle,
-} from "@workspace/ui/components/card";
-import { PageHeader } from "@workspace/ui/components/page-header";
-import { BulletStepList } from "@/components/common/bullet-step-list";
+} from "@workspace/ui/components/indicators/card";
+import { PageHeader } from "@workspace/ui/components/layout/page-header";
+import { BulletStepList } from "@/components/bullet-step-list";
 import {
   FeatureGate,
   FeatureTierBadge,
   TierBadge,
-} from "@/features/_shared/components/auth/feature-gate";
-import { BulkImportDialog } from "@/features/dialogs/components/BulkImportDialogContainer";
+} from "@/components/auth/feature-gate";
+import { BulkImportDialog } from "@/features/import/components/BulkImportDialogContainer";
 import { Feature, Tier } from "@/lib/stores/permission-store";
 
 export function ImportPageContent() {
@@ -169,7 +169,7 @@ export function ImportPageContent() {
           </p>
           <p>
             <strong>Duplicates:</strong> Patients with matching phone numbers or
-            matching name + date of birth will be flagged as duplicates and
+            matching name + date of birth will be flagged duplicate and
             skipped.
           </p>
         </CardContent>
@@ -184,4 +184,3 @@ export function ImportPageContent() {
     </AppPageScaffold>
   );
 }
-

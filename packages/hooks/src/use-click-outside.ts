@@ -13,7 +13,8 @@ export function useClickOutside<T extends HTMLElement>(
     }
 
     const handlePointerDown = (event: MouseEvent | TouchEvent) => {
-      const targetNode = event.target as Node | null;
+      const targetNode =
+        event.target instanceof Node ? event.target : null;
       if (!ref.current || !targetNode || ref.current.contains(targetNode)) {
         return;
       }

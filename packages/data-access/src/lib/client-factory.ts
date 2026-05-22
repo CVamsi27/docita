@@ -1,8 +1,14 @@
 import { z } from "zod";
+import {
+  getErrorMessage,
+  isAbortError,
+  parseProblemDetailsFromJson,
+} from "./api-error-body";
 import { APIRequestError, ErrorCodes, getErrorCode } from "./errors";
 import { buildURL, normalizeHeaders } from "./request-helpers";
 import { executeWithRetry } from "./retry";
 import type { APIClient, APIClientConfig, RequestConfig } from "./types";
+import { assertTyped } from "./typed-http-boundary";
 
 function toHeaderRecord(headers?: HeadersInit): Record<string, string> {
   if (!headers) {
@@ -93,8 +99,11 @@ export function createAPIClient(config: APIClientConfig): APIClient {
         ? `${method}:${url}:${normalizeHeaders(requestConfig.headers)}`
         : null;
 
-    if (dedupeKey && inFlightGetRequests.has(dedupeKey)) {
-      return inFlightGetRequests.get(dedupeKey) as Promise<T>;
+    if (dedupeKey) {
+      const inFlight = inFlightGetRequests.get(dedupeKey);
+      if (inFlight) {
+        return assertTyped<Promise<T>>(inFlight);
+      }
     }
 
     const makeRequest = async (): Promise<T> => {
@@ -118,24 +127,20 @@ export function createAPIClient(config: APIClientConfig): APIClient {
             errorData = null;
           }
 
-          const rfc7807 = errorData as {
-            detail?: string;
-            message?: string;
-            validationErrors?: Record<string, string>;
-          };
+          const problem = parseProblemDetailsFromJson(errorData);
 
           const error = new APIRequestError(
-            rfc7807?.detail ||
-              rfc7807?.message ||
+            problem.detail ||
+              problem.message ||
               response.statusText ||
               "Request failed",
             {
               status: response.status,
               statusText: response.statusText,
               code: getErrorCode(response.status),
-              ...(errorData ? { data: errorData } : {}),
-              ...(rfc7807?.validationErrors
-                ? { validationErrors: rfc7807.validationErrors }
+              ...(problem.raw ? { data: problem.raw } : {}),
+              ...(problem.validationErrors
+                ? { validationErrors: problem.validationErrors }
                 : {}),
             },
           );
@@ -149,16 +154,16 @@ export function createAPIClient(config: APIClientConfig): APIClient {
 
         const contentType = response.headers.get("content-type");
         if (!contentType || !contentType.includes("application/json")) {
-          return {} as T;
+          return assertTyped<T>({});
         }
 
-        let data = await response.json();
+        let data: unknown = await response.json();
 
         if (onResponse) {
           data = await onResponse(data);
         }
 
-        return data as T;
+        return assertTyped<T>(data);
       } catch (error) {
         clearTimeout(timeoutId);
 
@@ -166,7 +171,7 @@ export function createAPIClient(config: APIClientConfig): APIClient {
           throw error;
         }
 
-        if ((error as Error).name === "AbortError") {
+        if (isAbortError(error)) {
           const timeoutError = new APIRequestError("Request timeout", {
             isTimeout: true,
             code: ErrorCodes.TIMEOUT,
@@ -175,13 +180,10 @@ export function createAPIClient(config: APIClientConfig): APIClient {
           throw timeoutError;
         }
 
-        const networkError = new APIRequestError(
-          (error as Error).message || "Network error",
-          {
-            isNetworkError: true,
-            code: ErrorCodes.NETWORK_ERROR,
-          },
-        );
+        const networkError = new APIRequestError(getErrorMessage(error), {
+          isNetworkError: true,
+          code: ErrorCodes.NETWORK_ERROR,
+        });
         if (onError && shouldNotifyGlobalError) await onError(networkError);
         throw networkError;
       }
@@ -197,7 +199,7 @@ export function createAPIClient(config: APIClientConfig): APIClient {
       return requestPromise;
     }
 
-    inFlightGetRequests.set(dedupeKey, requestPromise as Promise<unknown>);
+    inFlightGetRequests.set(dedupeKey, requestPromise);
 
     try {
       return await requestPromise;
@@ -336,33 +338,26 @@ export function createAPIClient(config: APIClientConfig): APIClient {
       });
 
       if (!response.ok) {
-        const errorData = (await response.json().catch(() => null)) as Record<
-          string,
-          unknown
-        > | null;
-        const rfc7807 = errorData as {
-          detail?: string;
-          message?: string;
-          validationErrors?: Record<string, string>;
-        } | null;
+        const errorData = await response.json().catch(() => null);
+        const problem = parseProblemDetailsFromJson(errorData);
         throw new APIRequestError(
-          rfc7807?.detail ||
-            rfc7807?.message ||
+          problem.detail ||
+            problem.message ||
             response.statusText ||
             "Request failed",
           {
             status: response.status,
             statusText: response.statusText,
             code: getErrorCode(response.status),
-            ...(errorData ? { data: errorData } : {}),
-            ...(rfc7807?.validationErrors
-              ? { validationErrors: rfc7807.validationErrors }
+            ...(problem.raw ? { data: problem.raw } : {}),
+            ...(problem.validationErrors
+              ? { validationErrors: problem.validationErrors }
               : {}),
           },
         );
       }
 
-      return response.json();
+      return assertTyped<T>(await response.json());
     },
   };
 }

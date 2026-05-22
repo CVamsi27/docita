@@ -4,11 +4,11 @@ import {
   CardDescription,
   CardHeader,
   CardTitle,
-} from "@workspace/ui/components/card";
-import { Tabs, TabsList, TabsTrigger } from "@workspace/ui/components/tabs";
-import { Input } from "@workspace/ui/components/input";
-import { Button } from "@workspace/ui/components/button";
-import { SymbolTooltip } from "@workspace/ui/components/tooltip";
+} from "@workspace/ui/components/indicators/card";
+import { Tabs, TabsList, TabsTrigger } from "@workspace/ui/components/navigation/tabs";
+import { Input } from "@workspace/ui/components/form/input";
+import { Button } from "@workspace/ui/components/form/button";
+import { SymbolTooltip } from "@workspace/ui/components/overlay/tooltip";
 import { Search, X } from "lucide-react";
 
 interface PatientsFiltersProps {
@@ -37,7 +37,9 @@ export function PatientsFilters({
           </div>
           <Tabs
             value={filterType}
-            onValueChange={(v) => onFilterChange(v as "all" | "recent" | "new")}
+            onValueChange={(v) => {
+              if (v === "all" || v === "recent" || v === "new") onFilterChange(v);
+            }}
             className="w-full md:w-[400px]"
           >
             <TabsList className="grid w-full grid-cols-3">

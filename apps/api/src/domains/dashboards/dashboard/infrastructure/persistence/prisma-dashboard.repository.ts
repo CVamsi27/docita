@@ -1,4 +1,5 @@
-import { Injectable } from '@nestjs/common';
+import { Inject, Injectable } from '@nestjs/common';
+import { CLOCK_PORT, type IClock } from '@/shared/common/ports/clock.port';
 import { PrismaService } from '@/prisma/prisma.service';
 import {
   AppointmentStatus,
@@ -43,7 +44,10 @@ const UPCOMING_APPOINTMENT_SELECT = {
 
 @Injectable()
 export class PrismaDashboardRepository implements IDashboardRepository {
-  constructor(private readonly prisma: PrismaService) {}
+  constructor(
+    private readonly prisma: PrismaService,
+    @Inject(CLOCK_PORT) private readonly clock: IClock,
+  ) {}
 
   private getReadClient() {
     return this.prisma.getReadClient();
@@ -51,7 +55,7 @@ export class PrismaDashboardRepository implements IDashboardRepository {
 
   async getStatsSnapshot(clinicId: string): Promise<DashboardStatsSnapshot> {
     const readClient = this.getReadClient();
-    const now = new Date();
+    const now = this.clock.now();
 
     const today = new Date(now);
     today.setHours(0, 0, 0, 0);

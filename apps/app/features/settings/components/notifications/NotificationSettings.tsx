@@ -1,49 +1,43 @@
 "use client";
 
-import { DocitaLoadingIndicator } from "@workspace/ui/components/docita-loading-indicator";
+import { DocitaLoadingIndicator } from "@workspace/ui/components/feedback/docita-loading-indicator";
 
 import { useEffect } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
-import * as z from "zod";
+import {
+  notificationSettingsFormSchema,
+  type NotificationSettingsFormValues,
+} from "@workspace/types";
 import {
   Card,
   CardContent,
   CardDescription,
   CardHeader,
   CardTitle,
-} from "@workspace/ui/components/card";
-import { Skeleton } from "@workspace/ui/components/skeleton";
-import { Label } from "@workspace/ui/components/label";
-import { Switch } from "@workspace/ui/components/switch";
-import { Button } from "@workspace/ui/components/button";
+} from "@workspace/ui/components/indicators/card";
+import { Skeleton } from "@workspace/ui/components/feedback/skeleton";
+import { Label } from "@workspace/ui/components/form/label";
+import { Switch } from "@workspace/ui/components/form/switch";
+import { Button } from "@workspace/ui/components/form/button";
 import { Bell, Smartphone } from "lucide-react";
 import {
-  ClinicAppSettings,
   useClinicSettings,
   useUpdateClinicSettings,
-} from "@/hooks/api/use-settings";
+} from "@workspace/data-access";
+import { parseClinicAppSettings } from "@/lib/clinic/parse-clinic-app-settings";
 import { toast } from "sonner";
-import { showUserFacingErrorToast } from "@/lib/user-facing-errors";
+import { showUserFacingErrorToast } from "@/lib/errors/user-facing-errors";
 import {
   Form,
   FormControl,
   FormField,
   FormItem,
-} from "@workspace/ui/components/form";
+} from "@workspace/ui/components/form/form";
 import Link from "next/link";
 import { usePermissionStore } from "@/lib/stores/permission-store";
 import { Feature } from "@workspace/types";
-import { SUBSCRIPTION_SETTINGS_PATH } from "@/lib/subscription-settings-path";
-
-const notificationSettingsSchema = z.object({
-  whatsappNotifications: z.boolean().optional(),
-  inAppNotifications: z.boolean(),
-});
-
-type NotificationSettingsFormValues = z.infer<
-  typeof notificationSettingsSchema
->;
+import { SUBSCRIPTION_SETTINGS_PATH } from "@/lib/subscription/subscription-settings-path";
 
 export function NotificationSettings() {
   const { data: clinic, isLoading } = useClinicSettings();
@@ -54,7 +48,7 @@ export function NotificationSettings() {
   );
 
   const form = useForm<NotificationSettingsFormValues>({
-    resolver: zodResolver(notificationSettingsSchema),
+    resolver: zodResolver(notificationSettingsFormSchema),
     defaultValues: {
       whatsappNotifications: true,
       inAppNotifications: true,
@@ -63,7 +57,7 @@ export function NotificationSettings() {
 
   useEffect(() => {
     if (clinic) {
-      const s = (clinic.settings as ClinicAppSettings) || {};
+      const s = parseClinicAppSettings(clinic.settings);
       const whatsappFromSettings =
         s.whatsappNotifications ??
         s.whatsappAppointmentReminders ??

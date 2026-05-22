@@ -1,5 +1,5 @@
 import { z } from "zod";
-import { clinicSchema } from "../shared/clinics";
+import { clinicSchema, enterpriseBrandingSchema } from "../shared/clinics";
 import { userSchema } from "../shared/users";
 
 export const appAuthUserSchema = userSchema
@@ -85,6 +85,7 @@ export const appClinicSchema = clinicSchema.extend({
   slotDuration: z.number().optional(),
   countryCode: z.string().optional(),
   facilityType: z.enum(["CLINIC", "HOSPITAL"]).optional(),
+  enterpriseBranding: enterpriseBrandingSchema.optional(),
 });
 
 export const appSessionBootstrapSchema = z.object({

@@ -20,7 +20,7 @@ import {
   SetEnterpriseContractStatusDto,
   AddContractMemberDto,
 } from '@/domains/enterprise-contracts/application/dto/enterprise-contract.dto';
-import { RequestWithUser } from '@/common/types/common.types';
+import { RequestWithUser } from '@/shared/common/types/common.types';
 
 @Controller('internal/enterprise-contracts')
 @ApiTags('Internal - Enterprise Contracts')

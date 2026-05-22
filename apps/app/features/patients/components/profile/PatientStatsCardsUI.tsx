@@ -1,4 +1,4 @@
-import { Card, CardContent } from "@workspace/ui/components/card";
+import { Card, CardContent } from "@workspace/ui/components/indicators/card";
 import { Activity, Calendar, Clock, TrendingUp } from "lucide-react";
 import { formatDistanceToNow } from "@workspace/utils";
 

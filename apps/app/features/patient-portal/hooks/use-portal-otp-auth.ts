@@ -1,9 +1,9 @@
 "use client";
 
 import { useState } from "react";
-import { getUserFacingErrorMessage } from "@workspace/types";
-import { fetchAPI } from "@/lib/api-core";
-import { appSession } from "@/lib/session";
+import { getUserFacingErrorMessage } from "@workspace/utils";
+import { fetchAPI } from "@/lib/api/api-core";
+import { appSession } from "@/lib/auth/session";
 
 interface RequestOtpResponse {
   message: string;

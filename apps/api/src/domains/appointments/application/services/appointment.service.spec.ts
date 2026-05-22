@@ -1,5 +1,8 @@
 import { Test, TestingModule } from '@nestjs/testing';
-import { PrismaService } from '@/prisma/prisma.service';
+import {
+  APPOINTMENT_PERSISTENCE_PORT,
+  type AppointmentPersistencePort,
+} from '@/domains/appointments/application/ports/appointment-persistence.port';
 import { beforeEach, describe, it, expect, jest } from '@jest/globals';
 import {
   NotFoundException,
@@ -51,9 +54,9 @@ describe('AppointmentService', () => {
   };
 
   let service: MockAppointmentService;
-  let prisma: PrismaService;
+  let prisma: AppointmentPersistencePort;
 
-  const mockPrismaService = {
+  const mockAppointmentPersistencePort = {
     appointment: {
       findUnique: jest.fn(),
       findMany: jest.fn(),
@@ -83,14 +86,16 @@ describe('AppointmentService', () => {
           },
         },
         {
-          provide: PrismaService,
-          useValue: mockPrismaService,
+          provide: APPOINTMENT_PERSISTENCE_PORT,
+          useValue: mockAppointmentPersistencePort,
         },
       ],
     }).compile();
 
     service = module.get<MockAppointmentService>('AppointmentService');
-    prisma = module.get<PrismaService>(PrismaService);
+    prisma = module.get<AppointmentPersistencePort>(
+      APPOINTMENT_PERSISTENCE_PORT,
+    );
   });
 
   describe('createAppointment', () => {

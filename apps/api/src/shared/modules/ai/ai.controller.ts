@@ -21,7 +21,7 @@ import {
   RequireFeature,
   Feature,
 } from '@/shared/modules/auth/auth/tier.decorator';
-import { RateLimit } from '@/common/interceptors/rate-limit.interceptor';
+import { RateLimit } from '@/shared/common/interceptors/rate-limit.interceptor';
 import {
   AIAnalysisResponseDto,
   DiagnosisSuggestionListResponseDto,
@@ -36,7 +36,7 @@ import { ZodSerializerDto } from 'nestjs-zod';
 import {
   assertAllowedFileSignature,
   createTempDiskStorage,
-} from '@/common/utils/upload.utils';
+} from '@/shared/common/utils/upload.utils';
 import { unlink } from 'fs/promises';
 
 @Controller('ai')

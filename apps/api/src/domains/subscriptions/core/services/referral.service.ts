@@ -1,4 +1,5 @@
-import { Injectable, Logger } from '@nestjs/common';
+import { Inject, Injectable, Logger } from '@nestjs/common';
+import { CLOCK_PORT, type IClock } from '@/shared/common/ports/clock.port';
 import { PrismaService } from '@/prisma/prisma.service';
 import {
   MAX_REFERRAL_CREDITS_PER_YEAR,
@@ -9,7 +10,10 @@ import {
 export class ReferralService {
   private readonly logger = new Logger(ReferralService.name);
 
-  constructor(private prisma: PrismaService) {}
+  constructor(
+    private prisma: PrismaService,
+    @Inject(CLOCK_PORT) private readonly clock: IClock,
+  ) {}
 
   async validateReferralCode(
     referralCode: string,
@@ -72,7 +76,7 @@ export class ReferralService {
         data: {
           status: 'CONVERTED',
           creditApplied: true,
-          convertedAt: new Date(),
+          convertedAt: this.clock.now(),
         },
       });
 

@@ -1,4 +1,5 @@
-import { Injectable } from '@nestjs/common';
+import { Inject, Injectable, NotFoundException } from '@nestjs/common';
+import { CLOCK_PORT, type IClock } from '@/shared/common/ports/clock.port';
 import { AppointmentRequestStatus, Prisma } from '@workspace/db';
 import { PrismaService } from '@/prisma/prisma.service';
 import {
@@ -21,19 +22,30 @@ const APPOINTMENT_REQUEST_INCLUDE = {
   reviewedBy: { select: { id: true, name: true } },
 } satisfies Prisma.AppointmentRequestInclude;
 
+type AppointmentRequestDbRow = Prisma.AppointmentRequestGetPayload<{
+  include: typeof APPOINTMENT_REQUEST_INCLUDE;
+}>;
+
 @Injectable()
 export class PrismaAppointmentRequestRepository implements IAppointmentRequestRepository {
-  constructor(private readonly prisma: PrismaService) {}
+  constructor(
+    private readonly prisma: PrismaService,
+    @Inject(CLOCK_PORT) private readonly clock: IClock,
+  ) {}
 
   private getReadClient() {
     return this.prisma.getReadClient();
   }
 
-  async create(data: Prisma.AppointmentRequestUncheckedCreateInput) {
-    return this.prisma.appointmentRequest.create({
-      data,
-      include: APPOINTMENT_REQUEST_INCLUDE,
-    }) as Promise<AppointmentRequestWithRelations>;
+  async create(
+    data: Prisma.AppointmentRequestUncheckedCreateInput,
+  ): Promise<AppointmentRequestWithRelations> {
+    const row: AppointmentRequestDbRow =
+      await this.prisma.appointmentRequest.create({
+        data,
+        include: APPOINTMENT_REQUEST_INCLUDE,
+      });
+    return row satisfies AppointmentRequestWithRelations;
   }
 
   async findForClinic({
@@ -68,16 +80,23 @@ export class PrismaAppointmentRequestRepository implements IAppointmentRequestRe
     ]);
 
     return {
-      items: items as AppointmentRequestWithRelations[],
+      items: items satisfies AppointmentRequestWithRelations[],
       total,
     };
   }
 
-  async findByIdAndClinic(id: string, clinicId: string) {
-    return this.getReadClient().appointmentRequest.findFirst({
+  async findByIdAndClinic(
+    id: string,
+    clinicId: string,
+  ): Promise<AppointmentRequestWithRelations | null> {
+    const row = await this.getReadClient().appointmentRequest.findFirst({
       where: { id, clinicId },
       include: APPOINTMENT_REQUEST_INCLUDE,
-    }) as Promise<AppointmentRequestWithRelations | null>;
+    });
+    if (!row) {
+      return null;
+    }
+    return row satisfies AppointmentRequestWithRelations;
   }
 
   private async requireByIdAndClinic(
@@ -86,7 +105,7 @@ export class PrismaAppointmentRequestRepository implements IAppointmentRequestRe
   ): Promise<AppointmentRequestWithRelations> {
     const updated = await this.findByIdAndClinic(id, clinicId);
     if (!updated) {
-      throw new Error(
+      throw new NotFoundException(
         `Appointment request ${id} not found for clinic ${clinicId}`,
       );
     }
@@ -127,7 +146,7 @@ export class PrismaAppointmentRequestRepository implements IAppointmentRequestRe
       where: { id, clinicId },
       data: {
         status,
-        reviewedAt: new Date(),
+        reviewedAt: this.clock.now(),
         responseMessage,
         ...(reviewerExists > 0 ? { reviewedById } : {}),
       },

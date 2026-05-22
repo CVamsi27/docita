@@ -9,13 +9,14 @@ import {
   CardDescription,
   CardHeader,
   CardTitle,
-} from "@workspace/ui/components/card";
-import { Button } from "@workspace/ui/components/button";
-import { Badge } from "@workspace/ui/components/badge";
+} from "@workspace/ui/components/indicators/card";
+import { Button } from "@workspace/ui/components/form/button";
+import { Badge } from "@workspace/ui/components/indicators/badge";
 import { FileText, Upload, CheckCircle2 } from "lucide-react";
-import { fetchAPI } from "@/lib/api-core";
-import { toAbsoluteApiUrl } from "@/lib/url";
-import { showUserFacingErrorToast } from "@/lib/user-facing-errors";
+import { appQueryKeys } from "@workspace/data-access";
+import { fetchAPI } from "@/lib/api/api-core";
+import { toAbsoluteApiUrl } from "@/lib/utils/url";
+import { showUserFacingErrorToast } from "@/lib/errors/user-facing-errors";
 
 const ALLOWED_MIMES = [
   "application/pdf",
@@ -74,7 +75,7 @@ export function RegistrationCertificateUpload({
       });
       toast.success("Certificate uploaded — our team will review it shortly.");
       await queryClient.invalidateQueries({
-        queryKey: ["doctor-profile", doctorId],
+        queryKey: appQueryKeys.doctorProfile.detail(doctorId),
       });
     } catch (error) {
       showUserFacingErrorToast(

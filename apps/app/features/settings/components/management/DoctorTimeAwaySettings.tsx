@@ -1,6 +1,6 @@
 "use client";
 
-import { DocitaLoadingIndicator } from "@workspace/ui/components/docita-loading-indicator";
+import { DocitaLoadingIndicator } from "@workspace/ui/components/feedback/docita-loading-indicator";
 
 import { useEffect, useMemo, useState } from "react";
 import {
@@ -8,8 +8,8 @@ import {
   useCreateDoctorTimeOff,
   useDeleteDoctorTimeOffMutation,
   useDoctorTimeOffs,
-} from "@/hooks/api/use-settings";
-import { useAuth } from "@/lib/auth-context";
+} from "@workspace/data-access";
+import { useAuth } from "@/lib/auth/auth-context";
 import { toast } from "sonner";
 import { formatDate } from "@workspace/utils";
 import {
@@ -18,23 +18,23 @@ import {
   CardDescription,
   CardHeader,
   CardTitle,
-} from "@workspace/ui/components/card";
-import { Label } from "@workspace/ui/components/label";
-import { Button } from "@workspace/ui/components/button";
-import { SymbolTooltip } from "@workspace/ui/components/tooltip";
-import { Input } from "@workspace/ui/components/input";
-import { Switch } from "@workspace/ui/components/switch";
+} from "@workspace/ui/components/indicators/card";
+import { Label } from "@workspace/ui/components/form/label";
+import { Button } from "@workspace/ui/components/form/button";
+import { SymbolTooltip } from "@workspace/ui/components/overlay/tooltip";
+import { Input } from "@workspace/ui/components/form/input";
+import { Switch } from "@workspace/ui/components/form/switch";
 import {
   Select,
   SelectContent,
   SelectItem,
   SelectTrigger,
   SelectValue,
-} from "@workspace/ui/components/select";
+} from "@workspace/ui/components/form/select";
 import { Trash2 } from "lucide-react";
-import { Skeleton } from "@workspace/ui/components/skeleton";
-import { showUserFacingErrorToast } from "@/lib/user-facing-errors";
-import { IsoDatePickerField } from "@workspace/ui/components/iso-date-picker-field";
+import { Skeleton } from "@workspace/ui/components/feedback/skeleton";
+import { showUserFacingErrorToast } from "@/lib/errors/user-facing-errors";
+import { IsoDatePickerField } from "@workspace/ui/components/form/iso-date-picker-field";
 
 export function DoctorTimeAwaySettings() {
   const { user, isAdmin } = useAuth();
@@ -288,7 +288,9 @@ export function DoctorTimeAwaySettings() {
                           disabled={deleteMutation.isPending}
                           onClick={async () => {
                             try {
-                              await deleteMutation.mutateAsync(off.id!);
+                              if (off.id) {
+                                await deleteMutation.mutateAsync(off.id);
+                              }
                               toast.success("Time away removed");
                             } catch (error) {
                               showUserFacingErrorToast(

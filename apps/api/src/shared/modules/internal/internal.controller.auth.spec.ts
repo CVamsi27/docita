@@ -1,5 +1,5 @@
 import { Test, TestingModule } from '@nestjs/testing';
-import { InternalController } from './internal.controller';
+import { InternalAnalyticsController } from './internal-analytics.controller';
 import { ClinicManagementService } from './clinic-management.service';
 import { InternalAnalyticsService } from './internal-analytics.service';
 import { InternalLogService } from './internal-log.service';
@@ -16,8 +16,8 @@ import { ExecutionContextHost } from '@nestjs/core/helpers/execution-context-hos
 import { Role } from '@workspace/db';
 import { beforeEach, describe, it, expect, jest } from '@jest/globals';
 
-describe('InternalController - Authorization', () => {
-  let controller: InternalController;
+describe('Internal controllers - Authorization', () => {
+  let controller: InternalAnalyticsController;
   let rolesGuard: RolesGuard;
 
   const mockClinicManagementService = {
@@ -68,7 +68,7 @@ describe('InternalController - Authorization', () => {
 
   beforeEach(async () => {
     const module: TestingModule = await Test.createTestingModule({
-      controllers: [InternalController],
+      controllers: [InternalAnalyticsController],
       providers: [
         {
           provide: ClinicManagementService,
@@ -110,7 +110,9 @@ describe('InternalController - Authorization', () => {
       ],
     }).compile();
 
-    controller = module.get<InternalController>(InternalController);
+    controller = module.get<InternalAnalyticsController>(
+      InternalAnalyticsController,
+    );
     rolesGuard = new RolesGuard(module.get<Reflector>(Reflector), {
       getInternalAllowedEmails: () => [],
     } as never);
@@ -126,14 +128,14 @@ describe('InternalController - Authorization', () => {
     };
     const context = new ExecutionContextHost(
       [request, undefined, undefined],
-      InternalController,
+      InternalAnalyticsController,
       controller.getGlobalStats,
     );
     context.setType('http');
     return context;
   };
 
-  describe('RolesGuard - InternalController', () => {
+  describe('RolesGuard - internal endpoints', () => {
     it('should allow INTERNAL to access internal endpoints', () => {
       const context = createMockExecutionContext(Role.INTERNAL);
       expect(rolesGuard.canActivate(context)).toBe(true);
@@ -167,7 +169,7 @@ describe('InternalController - Authorization', () => {
 
   describe('Controller endpoint structure', () => {
     it('should have @Roles(INTERNAL) decorator on controller class', () => {
-      const roles = Reflect.getMetadata('roles', InternalController);
+      const roles = Reflect.getMetadata('roles', InternalAnalyticsController);
       expect(roles).toBeDefined();
       expect(roles).toEqual([Role.INTERNAL]);
     });

@@ -6,11 +6,17 @@ import {
 } from '@nestjs/common';
 import { createHash } from 'crypto';
 import { UploadsService } from './uploads.service';
-import { PrismaService } from '@/prisma/prisma.service';
+import { UploadsCommandService } from './uploads-command.service';
+import { UploadsQueryService } from './uploads-query.service';
+import { CLOCK_PORT } from '@/shared/common/ports/clock.port';
+import {
+  DOCUMENT_PERSISTENCE_PORT,
+  type DocumentPersistencePort,
+} from '@/domains/documents/application/ports/document-persistence.port';
 import {
   StorageProvider,
   type StorageFile,
-} from '@/domains/documents/infrastructure/storage.provider';
+} from '@/domains/documents/application/ports/storage-provider.port';
 import { UploadSessionPurpose } from '@workspace/db';
 import { beforeEach, describe, it, expect, jest } from '@jest/globals';
 
@@ -62,14 +68,20 @@ describe('UploadsService', () => {
 
     const module: TestingModule = await Test.createTestingModule({
       providers: [
+        UploadsCommandService,
+        UploadsQueryService,
         UploadsService,
-        { provide: PrismaService, useValue: prisma },
+        { provide: DOCUMENT_PERSISTENCE_PORT, useValue: prisma },
         {
           provide: StorageProvider,
           useValue: {
             upload: storageUpload,
             delete: jest.fn(),
           },
+        },
+        {
+          provide: CLOCK_PORT,
+          useValue: { now: () => new Date('2026-04-01T12:00:00.000Z') },
         },
       ],
     }).compile();

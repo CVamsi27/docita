@@ -13,7 +13,7 @@ export function PrivacyPolicyContent() {
           </h3>
           <p className="text-sm mb-0">
             This policy adheres to the Digital Personal Data Protection Act,
-            2023 (India). We act as a <strong>Data Processor</strong> for
+            2023 (India). We are the <strong>Data Processor</strong> for
             clinics and a <strong>Data Fiduciary</strong> for direct account
             information.
           </p>
@@ -84,7 +84,7 @@ export function PrivacyPolicyContent() {
               <li>Active clinic data: Retained while account is active</li>
               <li>Inactive accounts: Data deleted after 2 years of inactivity</li>
               <li>
-                Medical records: Retained for <strong>3 years</strong> as per
+                Medical records: Retained for <strong>3 years</strong> per
                 Clinical Establishments Rules (and anonymized thereafter)
               </li>
               <li>Backup data: Deleted 30 days after primary deletion</li>

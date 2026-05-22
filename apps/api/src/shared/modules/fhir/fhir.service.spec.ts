@@ -9,6 +9,7 @@ import { FhirAllergyFactory } from './factories/fhir-allergy.factory';
 import { FhirImmunizationFactory } from './factories/fhir-immunization.factory';
 import { FhirAppointmentFactory } from './factories/fhir-appointment.factory';
 import { NotFoundException } from '@nestjs/common';
+import { clockPortTestProvider } from '@/test-utils';
 import {
   beforeEach,
   afterEach,
@@ -66,6 +67,7 @@ describe('FhirService', () => {
         { provide: FhirAllergyFactory, useValue: mockFactory },
         { provide: FhirImmunizationFactory, useValue: mockFactory },
         { provide: FhirAppointmentFactory, useValue: mockFactory },
+        clockPortTestProvider(),
       ],
     }).compile();
 

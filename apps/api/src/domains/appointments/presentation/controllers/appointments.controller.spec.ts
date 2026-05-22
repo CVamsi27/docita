@@ -1,6 +1,8 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import { describe, it, expect, beforeEach, jest } from '@jest/globals';
-import { AppointmentsController } from './appointments.controller';
+import { AppointmentsScheduleController } from './appointments-schedule.controller';
+import { AppointmentsConsultationController } from './appointments-consultation.controller';
+import { AppointmentsClinicalController } from './appointments-clinical.controller';
 import { AppointmentService as AppointmentsService } from '@/domains/appointments/application/services/appointment.service';
 import { JwtAuthGuard } from '@/shared/modules/auth/auth/jwt-auth.guard';
 import { TierGuard } from '@/shared/modules/auth/auth/tier.guard';
@@ -8,12 +10,16 @@ import {
   IdempotencyInterceptor,
   IdempotencyService,
 } from '@/shared/modules/idempotency';
-import { RequestWithUser } from '@/common/types/common.types';
+import { RequestWithUser } from '@/shared/common/types/common.types';
 import { Role } from '@workspace/db';
 import { CreateAppointmentDto } from '@/domains/appointments/application/dto/appointments.dto';
+import { AuditService } from '@/shared/modules/audit/audit/audit.service';
 
-describe('AppointmentsController', () => {
-  let controller: AppointmentsController;
+describe('Appointments controllers', () => {
+  let scheduleController: AppointmentsScheduleController;
+  let consultationController: AppointmentsConsultationController;
+  let clinicalController: AppointmentsClinicalController;
+
   type AuthRequest = RequestWithUser & {
     user: NonNullable<RequestWithUser['user']>;
   };
@@ -67,7 +73,11 @@ describe('AppointmentsController', () => {
 
   beforeEach(async () => {
     const module: TestingModule = await Test.createTestingModule({
-      controllers: [AppointmentsController],
+      controllers: [
+        AppointmentsScheduleController,
+        AppointmentsConsultationController,
+        AppointmentsClinicalController,
+      ],
       providers: [
         {
           provide: AppointmentsService,
@@ -85,6 +95,10 @@ describe('AppointmentsController', () => {
             ),
           },
         },
+        {
+          provide: AuditService,
+          useValue: { logAction: jest.fn(), logPatientAccess: jest.fn() },
+        },
       ],
     })
       .overrideGuard(JwtAuthGuard)
@@ -93,13 +107,17 @@ describe('AppointmentsController', () => {
       .useValue({ canActivate: () => true })
       .compile();
 
-    controller = module.get<AppointmentsController>(AppointmentsController);
+    scheduleController = module.get(AppointmentsScheduleController);
+    consultationController = module.get(AppointmentsConsultationController);
+    clinicalController = module.get(AppointmentsClinicalController);
 
     jest.clearAllMocks();
   });
 
   it('should be defined', () => {
-    expect(controller).toBeDefined();
+    expect(scheduleController).toBeDefined();
+    expect(consultationController).toBeDefined();
+    expect(clinicalController).toBeDefined();
   });
 
   describe('findAll', () => {
@@ -108,7 +126,7 @@ describe('AppointmentsController', () => {
         mockAppointmentList,
       );
 
-      const result = await controller.findAll(mockAuthRequest, {});
+      const result = await scheduleController.findAll(mockAuthRequest, {});
 
       expect(result).toEqual(mockAppointmentList);
       expect(mockAppointmentsService.listAppointments).toHaveBeenCalled();
@@ -119,7 +137,7 @@ describe('AppointmentsController', () => {
         mockAppointmentList,
       );
 
-      await controller.findAll(mockAuthRequest, {
+      await scheduleController.findAll(mockAuthRequest, {
         date: '2025-11-28',
       });
 
@@ -136,7 +154,9 @@ describe('AppointmentsController', () => {
         mockAppointmentList,
       );
 
-      await controller.findAll(mockAuthRequest, { doctorId: 'doctor-999' });
+      await scheduleController.findAll(mockAuthRequest, {
+        doctorId: 'doctor-999',
+      });
 
       expect(mockAppointmentsService.listAppointments).toHaveBeenCalledWith(
         expect.objectContaining({
@@ -150,7 +170,7 @@ describe('AppointmentsController', () => {
         mockAppointmentList,
       );
 
-      await controller.findAll(mockAuthRequest, {});
+      await scheduleController.findAll(mockAuthRequest, {});
 
       expect(mockAppointmentsService.listAppointments).toHaveBeenCalledWith(
         expect.objectContaining({
@@ -165,7 +185,7 @@ describe('AppointmentsController', () => {
         mockAppointmentList,
       );
 
-      await controller.findAll(
+      await scheduleController.findAll(
         createRequest({
           id: 'admin-doctor-123',
           role: Role.ADMIN_DOCTOR,
@@ -185,7 +205,7 @@ describe('AppointmentsController', () => {
         mockAppointmentList,
       );
 
-      await controller.findAll(
+      await scheduleController.findAll(
         createRequest({
           id: 'receptionist-123',
           role: Role.RECEPTIONIST,
@@ -205,7 +225,10 @@ describe('AppointmentsController', () => {
     it('should return a single appointment', async () => {
       mockAppointmentsService.getAppointment.mockResolvedValue(mockAppointment);
 
-      const result = await controller.findOne('apt-123', mockAuthRequest);
+      const result = await scheduleController.findOne(
+        'apt-123',
+        mockAuthRequest,
+      );
 
       expect(result).toEqual(mockAppointment);
       expect(mockAppointmentsService.getAppointment).toHaveBeenCalledWith(
@@ -234,7 +257,7 @@ describe('AppointmentsController', () => {
         mockAppointment,
       );
 
-      const result = await controller.create(
+      const result = await scheduleController.create(
         mockAuthRequest,
         createDto as CreateAppointmentDto,
       );
@@ -253,7 +276,7 @@ describe('AppointmentsController', () => {
         updatedAppointment,
       );
 
-      const result = await controller.update(
+      const result = await scheduleController.update(
         'apt-123',
         mockAuthRequest,
         updateDto,
@@ -276,7 +299,7 @@ describe('AppointmentsController', () => {
 
       mockAppointmentsService.createVitals.mockResolvedValue(mockVitals);
 
-      const result = await controller.createVitals(
+      const result = await clinicalController.createVitals(
         'apt-123',
         mockAuthRequest,
         vitalsDto,
@@ -296,7 +319,7 @@ describe('AppointmentsController', () => {
 
       mockAppointmentsService.updateVitals.mockResolvedValue(mockVitals);
 
-      const result = await controller.updateVitals(
+      const result = await clinicalController.updateVitals(
         'apt-123',
         mockAuthRequest,
         vitalsDto,
@@ -311,7 +334,7 @@ describe('AppointmentsController', () => {
     it('should cancel appointment with clinic-scoped access context', async () => {
       mockAppointmentsService.cancelAppointment.mockResolvedValue(undefined);
 
-      await controller.cancel('apt-123', mockAuthRequest, {
+      await scheduleController.cancel('apt-123', mockAuthRequest, {
         reason: 'Patient unavailable',
       });
 
@@ -334,7 +357,7 @@ describe('AppointmentsController', () => {
         status: 'in-progress',
       });
 
-      const result = await controller.startConsultation(
+      const result = await consultationController.startConsultation(
         'apt-123',
         mockAuthRequest,
       );

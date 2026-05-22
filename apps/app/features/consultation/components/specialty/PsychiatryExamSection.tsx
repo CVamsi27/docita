@@ -1,18 +1,33 @@
 "use client";
 
-import { Label } from "@workspace/ui/components/label";
+import { Label } from "@workspace/ui/components/form/label";
 import {
   Select,
   SelectContent,
   SelectItem,
   SelectTrigger,
   SelectValue,
-} from "@workspace/ui/components/select";
-import { Textarea } from "@workspace/ui/components/textarea";
+} from "@workspace/ui/components/form/select";
+import { Textarea } from "@workspace/ui/components/form/textarea";
 import { useConsultationDraft } from "@/features/consultation/state/useConsultationDraft";
 import { SectionContainer } from "@/features/consultation/workspace/chrome/SectionContainer";
 import { useConsultationSectionSubtitle } from "@/features/consultation/workspace/consultation-workspace-context";
+import { z } from "zod";
 import type { PsychiatryExamData } from "@workspace/types";
+
+const psychiatryRiskLevelSchema = z.enum([
+  "low",
+  "moderate",
+  "high",
+  "imminent",
+]);
+
+function parsePsychiatryRiskLevel(
+  value: string,
+): z.infer<typeof psychiatryRiskLevelSchema> | undefined {
+  const parsed = psychiatryRiskLevelSchema.safeParse(value);
+  return parsed.success ? parsed.data : undefined;
+}
 
 interface PsychiatryExamSectionProps {
   readOnly?: boolean;
@@ -78,9 +93,7 @@ export function PsychiatryExamSection({
                     suicideRisk:
                       suicideRisk === "unset"
                         ? undefined
-                        : (suicideRisk as NonNullable<
-                            PsychiatryExamData["riskAssessment"]
-                          >["suicideRisk"]),
+                        : parsePsychiatryRiskLevel(suicideRisk),
                   },
                 }))
               }
@@ -110,9 +123,7 @@ export function PsychiatryExamSection({
                     homicideRisk:
                       homicideRisk === "unset"
                         ? undefined
-                        : (homicideRisk as NonNullable<
-                            PsychiatryExamData["riskAssessment"]
-                          >["homicideRisk"]),
+                        : parsePsychiatryRiskLevel(homicideRisk),
                   },
                 }))
               }

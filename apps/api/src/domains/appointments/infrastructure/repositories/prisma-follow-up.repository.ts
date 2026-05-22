@@ -38,7 +38,7 @@ export class PrismaFollowUpRepository implements IFollowUpRepository {
       };
     }
 
-    return this.getReadClient().followUp.findMany({
+    const rows = await this.getReadClient().followUp.findMany({
       where,
       include: {
         patient: {
@@ -53,7 +53,8 @@ export class PrismaFollowUpRepository implements IFollowUpRepository {
       },
       orderBy: { scheduledDate: 'asc' },
       take: params.take,
-    }) as Promise<FollowUpWithRelations[]>;
+    });
+    return rows satisfies FollowUpWithRelations[];
   }
 
   async findUpcoming(
@@ -61,7 +62,7 @@ export class PrismaFollowUpRepository implements IFollowUpRepository {
     from: Date,
     to: Date,
   ): Promise<FollowUpWithRelations[]> {
-    return this.getReadClient().followUp.findMany({
+    const rows = await this.getReadClient().followUp.findMany({
       where: {
         clinicId,
         status: { in: ['PENDING', 'REMINDER_SENT'] },
@@ -80,11 +81,12 @@ export class PrismaFollowUpRepository implements IFollowUpRepository {
       },
       orderBy: { scheduledDate: 'asc' },
       take: 50,
-    }) as Promise<FollowUpWithRelations[]>;
+    });
+    return rows satisfies FollowUpWithRelations[];
   }
 
   async findForAppointment(appointmentId: string, clinicId: string) {
-    return this.getReadClient().followUp.findMany({
+    const rows = await this.getReadClient().followUp.findMany({
       where: { appointmentId, clinicId },
       include: {
         patient: {
@@ -98,7 +100,8 @@ export class PrismaFollowUpRepository implements IFollowUpRepository {
         doctor: { select: { id: true, name: true } },
       },
       orderBy: { createdAt: 'desc' },
-    }) as Promise<FollowUpWithRelations[]>;
+    });
+    return rows satisfies FollowUpWithRelations[];
   }
 
   async findByIdAndClinic(id: string, clinicId: string) {

@@ -3,17 +3,20 @@
 import { FC } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { z } from "zod";
+import {
+  ipdAdmissionFormSchema,
+  type IpdAdmissionFormValues,
+} from "@workspace/types";
 import {
   Card,
   CardContent,
   CardDescription,
   CardHeader,
   CardTitle,
-} from "@workspace/ui/components/card";
-import { Button } from "@workspace/ui/components/button";
-import { Input } from "@workspace/ui/components/input";
-import { Textarea } from "@workspace/ui/components/textarea";
+} from "@workspace/ui/components/indicators/card";
+import { Button } from "@workspace/ui/components/form/button";
+import { Input } from "@workspace/ui/components/form/input";
+import { Textarea } from "@workspace/ui/components/form/textarea";
 import {
   Form,
   FormControl,
@@ -21,32 +24,21 @@ import {
   FormItem,
   FormLabel,
   FormMessage,
-} from "@workspace/ui/components/form";
+} from "@workspace/ui/components/form/form";
 import {
   Select,
   SelectContent,
   SelectItem,
   SelectTrigger,
   SelectValue,
-} from "@workspace/ui/components/select";
+} from "@workspace/ui/components/form/select";
 
-export const ipdAdmissionFormSchema = z.object({
-  patientId: z.string().min(1, "Select a patient"),
-  wardId: z.string().min(1, "Select a ward"),
-  bedId: z.string().min(1, "Select a bed"),
-  attendingDoctorId: z.string().min(1, "Select the attending doctor"),
-  diagnosis: z
-    .string()
-    .trim()
-    .min(1, "Enter the admission diagnosis"),
-  notes: z.string().optional(),
-});
-
-export type AdmissionFormData = z.infer<typeof ipdAdmissionFormSchema>;
+export type AdmissionFormData = IpdAdmissionFormValues;
+export { ipdAdmissionFormSchema };
 
 export interface AdmissionFormProps {
-  defaultValues?: Partial<AdmissionFormData>;
-  onSubmit?: (data: AdmissionFormData) => void;
+  defaultValues?: Partial<IpdAdmissionFormValues>;
+  onSubmit?: (data: IpdAdmissionFormValues) => void;
   isSubmitting?: boolean;
 }
 
@@ -72,7 +64,7 @@ export const AdmissionForm: FC<AdmissionFormProps> = ({
   onSubmit,
   isSubmitting,
 }) => {
-  const form = useForm<AdmissionFormData>({
+  const form = useForm<IpdAdmissionFormValues>({
     resolver: zodResolver(ipdAdmissionFormSchema),
     defaultValues: {
       patientId: defaultValues?.patientId ?? "",

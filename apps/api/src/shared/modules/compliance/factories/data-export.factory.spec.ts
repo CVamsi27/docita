@@ -2,6 +2,7 @@ import { Test, TestingModule } from '@nestjs/testing';
 import { DataExportFactory } from './data-export.factory';
 import { PrismaService } from '@/prisma/prisma.service';
 import { beforeEach, describe, it, expect, jest } from '@jest/globals';
+import { clockPortTestProvider } from '@/test-utils';
 
 describe('DataExportFactory', () => {
   let factory: DataExportFactory;
@@ -22,6 +23,7 @@ describe('DataExportFactory', () => {
       providers: [
         DataExportFactory,
         { provide: PrismaService, useValue: mockPrismaService },
+        clockPortTestProvider(),
       ],
     }).compile();
 

@@ -10,13 +10,9 @@ import {
   Request,
   Query,
   UseGuards,
-  UseInterceptors,
   HttpCode,
 } from '@nestjs/common';
-import {
-  IdempotencyInterceptor,
-  RequiresIdempotency,
-} from '@/shared/modules/idempotency';
+import { RequiresIdempotency } from '@/shared/modules/idempotency';
 import { PatientService } from '@/domains/patients/application/services/patient.service';
 import { DPDPComplianceService } from '@/shared/modules/compliance/dpdp-compliance.service';
 import { ApiTags, ApiOperation, ApiQuery } from '@nestjs/swagger';
@@ -37,7 +33,13 @@ import {
   RequireFeature,
 } from '@/shared/modules/auth/auth/tier.decorator';
 import { getDbRolesForTarget } from '@/shared/modules/auth/auth/access-matrix.util';
-import { RequestWithUser } from '@/common/types/common.types';
+import { RequestWithUser } from '@/shared/common/types/common.types';
+import { getClinicStaffRequestContext } from '@/shared/modules/auth/auth/clinic-request-context';
+import { AuditService } from '@/shared/modules/audit/audit/audit.service';
+import {
+  logClinicPhiListRead,
+  logPatientPhiRead,
+} from '@/shared/modules/audit/audit/patient-access-audit.util';
 import {
   CreatePatientDto,
   ListPatientsQueryDto,
@@ -49,17 +51,20 @@ import {
 @UseGuards(TierGuard)
 @RequireFeature(Feature.BASIC_PATIENT_MANAGEMENT)
 @Roles(...getDbRolesForTarget(APP_ACCESS_TARGETS.API_PATIENTS_READ))
-@UseInterceptors(IdempotencyInterceptor)
 export class PatientsController {
   constructor(
     private readonly patientService: PatientService,
     private readonly dpdpService: DPDPComplianceService,
+    private readonly auditService: AuditService,
   ) {}
 
   private toPatientResponse(value: unknown) {
     const candidate =
-      typeof value === 'object' && value && 'toPlain' in value
-        ? (value as { toPlain: () => unknown }).toPlain()
+      typeof value === 'object' &&
+      value !== null &&
+      'toPlain' in value &&
+      typeof value.toPlain === 'function'
+        ? value.toPlain()
         : value;
     return patientResponseSchema.parse(candidate);
   }
@@ -100,7 +105,7 @@ export class PatientsController {
       );
     }
 
-    const clinicId = req.user!.clinicId!;
+    const { clinicId } = getClinicStaffRequestContext(req);
     const created = await this.patientService.createPatient(
       this.normalizeCreateBody(body, clinicId),
     );
@@ -113,7 +118,10 @@ export class PatientsController {
       givenByRelation: consent.relation,
       createdBy: req.user?.id,
       ipAddress: req.ip,
-      userAgent: req.headers?.['user-agent'] as string | undefined,
+      userAgent:
+        typeof req.headers?.['user-agent'] === 'string'
+          ? req.headers['user-agent']
+          : undefined,
       notes: 'Collected by staff via Add Patient modal',
     });
 
@@ -131,8 +139,15 @@ export class PatientsController {
     @Query() query: ListPatientsQueryDto,
   ) {
     const { search, gender, page, limit } = query;
+    await logClinicPhiListRead(
+      this.auditService,
+      req,
+      'VIEW_PATIENT_LIST',
+      'Patient',
+      { search, gender, page: page ?? 1, limit: limit ?? 20 },
+    );
     const result = await this.patientService.listPatients({
-      clinicId: req.user!.clinicId!,
+      clinicId: getClinicStaffRequestContext(req).clinicId,
       search,
       gender,
       page: page ?? 1,
@@ -150,8 +165,9 @@ export class PatientsController {
   async findOne(@Request() req: RequestWithUser, @Param('id') id: string) {
     const patient = await this.patientService.getPatient(
       id,
-      req.user!.clinicId!,
+      getClinicStaffRequestContext(req).clinicId,
     );
+    await logPatientPhiRead(this.auditService, req, id, 'VIEW_PROFILE');
     return this.toPatientResponse(patient);
   }
 
@@ -166,7 +182,7 @@ export class PatientsController {
     const updated = await this.patientService.updatePatient(
       id,
       this.normalizeUpdateBody(body),
-      req.user!.clinicId!,
+      getClinicStaffRequestContext(req).clinicId,
     );
     return this.toPatientResponse(updated);
   }
@@ -176,6 +192,9 @@ export class PatientsController {
   @HttpCode(204)
   @ApiOperation({ summary: 'Delete patient' })
   async delete(@Request() req: RequestWithUser, @Param('id') id: string) {
-    await this.patientService.deletePatient(id, req.user!.clinicId!);
+    await this.patientService.deletePatient(
+      id,
+      getClinicStaffRequestContext(req).clinicId,
+    );
   }
 }

@@ -3,7 +3,7 @@ import {
   StorageProvider,
   StorageFile,
   StorageUploadOptions,
-} from './storage.provider';
+} from '../application/ports/storage-provider.port';
 import * as fs from 'fs';
 import * as path from 'path';
 import sharp from 'sharp';

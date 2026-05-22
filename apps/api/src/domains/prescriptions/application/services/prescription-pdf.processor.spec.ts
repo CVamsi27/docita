@@ -10,10 +10,11 @@ import {
 } from '@/shared/modules/queue/queue.interface';
 import type { PrescriptionPdfProcessorPort } from './prescription-pdf.processor';
 import type { PrescriptionsService } from './prescription.service';
-import { StorageProvider } from '@/domains/documents/infrastructure/storage.provider';
+import { StorageProvider } from '@/domains/documents/application/ports/storage-provider.port';
 import type { PdfJobProcessorPrismaPort } from '@/shared/modules/queue/pdf-job.service';
 import type { PrescriptionDetail } from '@/domains/prescriptions/core/repositories/prescription.repository.interface';
 import { ApprovalStatus } from '@workspace/db';
+import { EnvConfigStore } from '@/shared/modules/config/env-config.store';
 
 const makeJob = (
   overrides: Partial<GeneratePdfJobData> = {},
@@ -80,6 +81,10 @@ describe('PrescriptionPdfProcessor', () => {
   let processor: PrescriptionPdfProcessor;
 
   beforeEach(() => {
+    EnvConfigStore.resetForTests();
+    delete process.env.QUEUE_BACKEND;
+    delete process.env.WORKER_ENTRYPOINT;
+    delete process.env.ENABLE_SCHEDULERS;
     jest.clearAllMocks();
     pdfJobUpdateMock.mockResolvedValue(undefined);
     processor = new PrescriptionPdfProcessor(
@@ -87,6 +92,7 @@ describe('PrescriptionPdfProcessor', () => {
       prescriptionsService,
       storageProvider,
       queue,
+      { now: () => new Date('2026-01-15T10:00:00Z') },
     );
   });
 

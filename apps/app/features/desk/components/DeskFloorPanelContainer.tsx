@@ -2,12 +2,12 @@
 
 import { useMemo } from "react";
 
-import { useQueue, type QueueItem } from "@/hooks/api/use-appointments";
+import { useQueue, type QueueItem } from "@workspace/data-access";
 import {
   isQueueTokenCompleted,
   isQueueTokenInProgress,
   isQueueTokenWaiting,
-} from "@/lib/queue-token-status";
+} from "@/lib/utils/queue-token-status";
 import { getOpdQueueSummaryLine } from "@/features/consultation";
 import {
   DeskFloorPanelUI,

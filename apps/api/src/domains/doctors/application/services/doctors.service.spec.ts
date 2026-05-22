@@ -1,17 +1,26 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import { DoctorsService } from './doctors.service';
-import { PrismaService } from '@/prisma/prisma.service';
+import { DoctorProfileService } from './doctor-profile.service';
+import {
+  DOCTOR_PERSISTENCE_PORT,
+  type DoctorPersistencePort,
+} from '@/domains/doctors/application/ports/doctor-persistence.port';
 import { DoctorVerificationService } from './doctor-verification.service';
 import { SignatureUploadService } from './signature-upload.service';
 import { StoredFileUrlResolverService } from '@/domains/documents/application/services/stored-file-url-resolver.service';
-import { StorageProvider } from '@/domains/documents/infrastructure/storage.provider';
+import { StorageProvider } from '@/domains/documents/application/ports/storage-provider.port';
 import { NotFoundException } from '@nestjs/common';
-import { Specialization } from '@workspace/db';
+import { Role, Specialization } from '@workspace/db';
 import { beforeEach, describe, it, expect, jest } from '@jest/globals';
+import { clockPortTestProvider } from '@/test-utils';
+import {
+  DOCTOR_REPOSITORY_TOKEN,
+  IDoctorRepository,
+} from '@/domains/doctors/core/repositories/doctor.repository.interface';
 
 describe('DoctorsService', () => {
   let service: DoctorsService;
-  let prisma: PrismaService;
+  let prisma: DoctorPersistencePort;
 
   const mockDoctor = {
     id: 'doctor-123',
@@ -47,7 +56,7 @@ describe('DoctorsService', () => {
     issueDate: new Date(),
   };
 
-  const mockPrismaService = {
+  const mockDoctorPersistencePort = {
     user: {
       findMany: jest.fn<(...args: unknown[]) => Promise<unknown>>(),
       findFirst: jest.fn<(...args: unknown[]) => Promise<unknown>>(),
@@ -59,6 +68,7 @@ describe('DoctorsService', () => {
       findFirst: jest.fn<(...args: unknown[]) => Promise<unknown>>(),
       create: jest.fn<(...args: unknown[]) => Promise<unknown>>(),
       findMany: jest.fn<(...args: unknown[]) => Promise<unknown>>(),
+      updateMany: jest.fn<(...args: unknown[]) => Promise<unknown>>(),
       deleteMany: jest.fn<(...args: unknown[]) => Promise<unknown>>(),
     },
     doctorEducation: {
@@ -114,13 +124,83 @@ describe('DoctorsService', () => {
     generateSignedUrl: jest.fn<(...args: unknown[]) => Promise<string>>(),
   };
 
+  const mockDoctorRepository = {
+    createDoctorWithClinic: jest.fn<
+      IDoctorRepository['createDoctorWithClinic']
+    >(async (user, link, primarySpecialization) => {
+      const created = await mockDoctorPersistencePort.user.create({
+        data: {
+          ...user,
+          password: user.hashedPassword,
+        },
+      });
+      await mockDoctorPersistencePort.doctorClinic.create({
+        data: link,
+      });
+      if (primarySpecialization) {
+        await mockDoctorPersistencePort.doctorSpecialization.create({
+          data: {
+            doctorId: (created as { id: string }).id,
+            specialization: primarySpecialization,
+          },
+        });
+      }
+      return created as never;
+    }),
+    updateDoctorProfile: jest.fn<IDoctorRepository['updateDoctorProfile']>(
+      async (id, patch) => {
+        const result = await mockDoctorPersistencePort.user.updateMany({
+          where: { id },
+          data: patch,
+        });
+        return (result as { count: number }).count;
+      },
+    ),
+    findDoctorForResponse: jest.fn<IDoctorRepository['findDoctorForResponse']>(
+      async (id) =>
+        (await mockDoctorPersistencePort.user.findFirst({
+          where: { id },
+          select: expect.any(Object) as never,
+        })) as never,
+    ),
+    updateDoctorClinicRole: jest.fn<
+      IDoctorRepository['updateDoctorClinicRole']
+    >(async (doctorId, role) => {
+      await mockDoctorPersistencePort.doctorClinic.updateMany({
+        where: { doctorId },
+        data: { role },
+      });
+    }),
+    deleteDoctorCascading: jest.fn<IDoctorRepository['deleteDoctorCascading']>(
+      async (id) => {
+        await mockDoctorPersistencePort.doctorEducation.deleteMany({
+          where: { doctorId: id },
+        });
+        await mockDoctorPersistencePort.doctorCertification.deleteMany({
+          where: { doctorId: id },
+        });
+        await mockDoctorPersistencePort.doctorSpecialization.deleteMany({
+          where: { doctorId: id },
+        });
+        await mockDoctorPersistencePort.doctorClinic.deleteMany({
+          where: { doctorId: id },
+        });
+        const result = await mockDoctorPersistencePort.user.deleteMany({
+          where: { id },
+        });
+        return (result as { count: number }).count;
+      },
+    ),
+  } satisfies IDoctorRepository;
+
   beforeEach(async () => {
     const module: TestingModule = await Test.createTestingModule({
       providers: [
         DoctorsService,
+        DoctorProfileService,
         {
-          provide: PrismaService,
-          useValue: mockPrismaService,
+          provide: DOCTOR_PERSISTENCE_PORT,
+          useValue: mockDoctorPersistencePort,
         },
         {
           provide: DoctorVerificationService,
@@ -138,11 +218,16 @@ describe('DoctorsService', () => {
           provide: StorageProvider,
           useValue: mockStorageProvider,
         },
+        {
+          provide: DOCTOR_REPOSITORY_TOKEN,
+          useValue: mockDoctorRepository,
+        },
+        clockPortTestProvider(),
       ],
     }).compile();
 
     service = module.get<DoctorsService>(DoctorsService);
-    prisma = module.get<PrismaService>(PrismaService);
+    prisma = module.get<DoctorPersistencePort>(DOCTOR_PERSISTENCE_PORT);
 
     jest.clearAllMocks();
     mockDoctorVerificationService.verifyAndPersistDoctorVerification.mockResolvedValue(
@@ -156,33 +241,35 @@ describe('DoctorsService', () => {
 
   describe('findAll', () => {
     it('should return all doctors for a clinic', async () => {
-      mockPrismaService.doctorClinic.findMany.mockResolvedValue([
+      mockDoctorPersistencePort.doctorClinic.findMany.mockResolvedValue([
         { doctor: mockDoctor },
       ]);
-      mockPrismaService.user.findMany.mockResolvedValue([]);
+      mockDoctorPersistencePort.user.findMany.mockResolvedValue([]);
 
       const result = await service.findAll('clinic-123');
 
       expect(result).toBeDefined();
-      expect(mockPrismaService.doctorClinic.findMany).toHaveBeenCalled();
+      expect(
+        mockDoctorPersistencePort.doctorClinic.findMany,
+      ).toHaveBeenCalled();
     });
   });
 
   describe('findOne', () => {
     it('should return a doctor by id', async () => {
-      mockPrismaService.user.findFirst.mockResolvedValue(mockDoctor);
+      mockDoctorPersistencePort.user.findFirst.mockResolvedValue(mockDoctor);
 
       const result = await service.findOne('doctor-123');
 
       expect(result).toEqual(mockDoctor);
-      expect(mockPrismaService.user.findFirst).toHaveBeenCalledWith({
+      expect(mockDoctorPersistencePort.user.findFirst).toHaveBeenCalledWith({
         where: { id: 'doctor-123' },
         select: expect.any(Object),
       });
     });
 
     it('should throw NotFoundException if doctor not found', async () => {
-      mockPrismaService.user.findFirst.mockResolvedValue(null);
+      mockDoctorPersistencePort.user.findFirst.mockResolvedValue(null);
 
       await expect(service.findOne('invalid-id')).rejects.toThrow(
         NotFoundException,
@@ -199,26 +286,26 @@ describe('DoctorsService', () => {
         specialization: Specialization.PEDIATRICS,
       };
 
-      mockPrismaService.doctorClinic.findFirst.mockResolvedValue(null);
-      mockPrismaService.user.create.mockResolvedValue({
+      mockDoctorPersistencePort.doctorClinic.findFirst.mockResolvedValue(null);
+      mockDoctorPersistencePort.user.create.mockResolvedValue({
         id: 'new-doctor',
         ...createData,
       });
-      mockPrismaService.doctorClinic.create.mockResolvedValue({});
+      mockDoctorPersistencePort.doctorClinic.create.mockResolvedValue({});
 
       const result = await service.create('clinic-123', createData);
 
       expect(result.email).toBe('newdoctor@example.com');
-      expect(mockPrismaService.user.create).toHaveBeenCalled();
-      expect(mockPrismaService.doctorClinic.create).toHaveBeenCalled();
+      expect(mockDoctorPersistencePort.user.create).toHaveBeenCalled();
+      expect(mockDoctorPersistencePort.doctorClinic.create).toHaveBeenCalled();
     });
   });
 
   describe('update', () => {
     it('should update doctor information', async () => {
       const updateData = { name: 'Dr. Updated Name' };
-      mockPrismaService.user.updateMany.mockResolvedValue({ count: 1 });
-      mockPrismaService.user.findFirst.mockResolvedValue({
+      mockDoctorPersistencePort.user.updateMany.mockResolvedValue({ count: 1 });
+      mockDoctorPersistencePort.user.findFirst.mockResolvedValue({
         ...mockDoctor,
         ...updateData,
       });
@@ -231,22 +318,30 @@ describe('DoctorsService', () => {
 
   describe('remove', () => {
     it('should delete a doctor', async () => {
-      mockPrismaService.doctorEducation.deleteMany.mockResolvedValue({
+      mockDoctorPersistencePort.doctorEducation.deleteMany.mockResolvedValue({
         count: 0,
       });
-      mockPrismaService.doctorCertification.deleteMany.mockResolvedValue({
-        count: 0,
+      mockDoctorPersistencePort.doctorCertification.deleteMany.mockResolvedValue(
+        {
+          count: 0,
+        },
+      );
+      mockDoctorPersistencePort.doctorSpecialization.deleteMany.mockResolvedValue(
+        {
+          count: 0,
+        },
+      );
+      mockDoctorPersistencePort.doctorClinic.deleteMany.mockResolvedValue({
+        count: 1,
       });
-      mockPrismaService.doctorSpecialization.deleteMany.mockResolvedValue({
-        count: 0,
-      });
-      mockPrismaService.doctorClinic.deleteMany.mockResolvedValue({ count: 1 });
-      mockPrismaService.user.deleteMany.mockResolvedValue({ count: 1 });
+      mockDoctorPersistencePort.user.deleteMany.mockResolvedValue({ count: 1 });
 
       await service.remove('doctor-123');
 
-      expect(mockPrismaService.doctorEducation.deleteMany).toHaveBeenCalled();
-      expect(mockPrismaService.user.deleteMany).toHaveBeenCalledWith({
+      expect(
+        mockDoctorPersistencePort.doctorEducation.deleteMany,
+      ).toHaveBeenCalled();
+      expect(mockDoctorPersistencePort.user.deleteMany).toHaveBeenCalledWith({
         where: { id: 'doctor-123' },
       });
     });
@@ -260,7 +355,7 @@ describe('DoctorsService', () => {
         startYear: 2015,
         endYear: 2020,
       };
-      mockPrismaService.doctorEducation.create.mockResolvedValue({
+      mockDoctorPersistencePort.doctorEducation.create.mockResolvedValue({
         id: 'edu-new',
         doctorId: 'doctor-123',
         ...eduData,
@@ -274,7 +369,7 @@ describe('DoctorsService', () => {
 
   describe('getEducationHistory', () => {
     it('should return education history', async () => {
-      mockPrismaService.doctorEducation.findMany.mockResolvedValue([
+      mockDoctorPersistencePort.doctorEducation.findMany.mockResolvedValue([
         mockEducation,
       ]);
 
@@ -292,7 +387,7 @@ describe('DoctorsService', () => {
         issuingBody: 'AHA',
         issueDate: new Date(),
       };
-      mockPrismaService.doctorCertification.create.mockResolvedValue({
+      mockDoctorPersistencePort.doctorCertification.create.mockResolvedValue({
         id: 'cert-new',
         doctorId: 'doctor-123',
         ...certData,
@@ -306,7 +401,7 @@ describe('DoctorsService', () => {
 
   describe('getCertifications', () => {
     it('should return certifications', async () => {
-      mockPrismaService.doctorCertification.findMany.mockResolvedValue([
+      mockDoctorPersistencePort.doctorCertification.findMany.mockResolvedValue([
         mockCertification,
       ]);
 

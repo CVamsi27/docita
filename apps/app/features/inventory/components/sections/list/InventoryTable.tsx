@@ -8,19 +8,19 @@ import {
   TableHead,
   TableHeader,
   TableRow,
-} from "@workspace/ui/components/table";
-import { Badge } from "@workspace/ui/components/badge";
-import { Button } from "@workspace/ui/components/button";
-import { SymbolTooltip } from "@workspace/ui/components/tooltip";
+} from "@workspace/ui/components/data-display/table";
+import { Badge } from "@workspace/ui/components/indicators/badge";
+import { Button } from "@workspace/ui/components/form/button";
+import { SymbolTooltip } from "@workspace/ui/components/overlay/tooltip";
 import { Eye, Package } from "lucide-react";
-import { EmptyState, LoadingState } from "@workspace/ui/components/empty-state";
+import { EmptyState, LoadingState } from "@workspace/ui/components/feedback/empty-state";
 import {
   Card,
   CardContent,
   CardDescription,
   CardHeader,
   CardTitle,
-} from "@workspace/ui/components/card";
+} from "@workspace/ui/components/indicators/card";
 import type { InventoryItem } from "@workspace/types";
 import type { StockStatus } from "@/features/inventory/hooks/use-inventory-logic";
 import {

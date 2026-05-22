@@ -59,4 +59,20 @@ export interface IMedicalCodingRepository {
   ): Promise<DoctorFavoriteCode>;
   removeCptFavorite(userId: string, cptCodeId: string): Promise<void>;
   getUncodedVisits(clinicId: string, search?: string): Promise<Appointment[]>;
+  findExistingIcdCodes(codes: string[]): Promise<SyncedMedicalCodeRecord[]>;
+  createCommonIcdCodes(records: MedicalCodeSyncRecord[]): Promise<void>;
+  updateCommonIcdCodes(records: MedicalCodeSyncRecord[]): Promise<void>;
+  findExistingCptCodes(codes: string[]): Promise<SyncedMedicalCodeRecord[]>;
+  createCommonCptCodes(records: MedicalCodeSyncRecord[]): Promise<void>;
+  updateCommonCptCodes(records: MedicalCodeSyncRecord[]): Promise<void>;
 }
+
+export type MedicalCodeSyncRecord = {
+  code: string;
+  description: string;
+  category: string;
+};
+
+export type SyncedMedicalCodeRecord = MedicalCodeSyncRecord & {
+  isCommon: boolean;
+};

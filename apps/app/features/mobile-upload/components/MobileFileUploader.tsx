@@ -1,7 +1,7 @@
 import React, { useCallback, useState } from "react";
 import Image from "next/image";
-import { Card, CardContent } from "@workspace/ui/components/card";
-import { SymbolTooltip } from "@workspace/ui/components/tooltip";
+import { Card, CardContent } from "@workspace/ui/components/indicators/card";
+import { SymbolTooltip } from "@workspace/ui/components/overlay/tooltip";
 import { Camera, ImageIcon, RotateCcw, X } from "lucide-react";
 
 interface MobileFileUploaderProps {
@@ -60,7 +60,7 @@ export function MobileFileUploader({
           onDragLeave={handleDrag}
           onDragOver={handleDrag}
           onDrop={handleDrop}
-          className={`relative transition-all duration-200 ${
+          className={`relative transition-colors duration-200 ${
             dragActive
               ? "surface-info ring-2 ring-info ring-inset"
               : "bg-muted/40"

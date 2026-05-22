@@ -1,6 +1,11 @@
-import { Injectable, Logger, OnModuleDestroy } from '@nestjs/common';
+import { Inject, Injectable, Logger, OnModuleDestroy } from '@nestjs/common';
+import { CLOCK_PORT, type IClock } from '@/shared/common/ports/clock.port';
 import { PrismaService } from '@/prisma/prisma.service';
 import { Prisma, ErrorSeverity } from '@workspace/db';
+import { toPrismaInputJsonValue } from '@/shared/common/json/to-prisma-input-json-value';
+import { parseStringEnumMember } from '@workspace/utils';
+
+const ERROR_SEVERITY_VALUES = Object.values(ErrorSeverity);
 import { ErrorLogInput } from '@/shared/modules/monitoring/monitoring/schemas/monitoring.schema';
 import { MonitoringFactory } from '@/shared/modules/monitoring/monitoring/factories/monitoring.factory';
 
@@ -16,6 +21,7 @@ export class ErrorTrackingService implements OnModuleDestroy {
   constructor(
     private prisma: PrismaService,
     private monitoringFactory: MonitoringFactory,
+    @Inject(CLOCK_PORT) private readonly clock: IClock,
   ) {
     this.startFlushTimer();
   }
@@ -92,15 +98,24 @@ export class ErrorTrackingService implements OnModuleDestroy {
             statusCode: err.statusCode,
             userAgent: err.userAgent,
             ip: err.ip,
-            requestBody: err.requestBody as Prisma.InputJsonValue,
-            metadata: err.metadata as Prisma.InputJsonValue,
-            severity: (err.severity as ErrorSeverity) || ErrorSeverity.ERROR,
+            ...(err.requestBody != null
+              ? { requestBody: toPrismaInputJsonValue(err.requestBody) }
+              : {}),
+            ...(err.metadata != null
+              ? { metadata: toPrismaInputJsonValue(err.metadata) }
+              : {}),
+            severity:
+              parseStringEnumMember(
+                ERROR_SEVERITY_VALUES,
+                err.severity ?? '',
+              ) ?? ErrorSeverity.ERROR,
           })),
           skipDuplicates: true,
         });
       };
 
       if (typeof this.prisma.runUnrestricted === 'function') {
+        // RLS-BYPASS: system telemetry and error logs are not clinic-scoped
         await this.prisma.runUnrestricted(writeLogs);
       } else {
         await writeLogs();
@@ -244,7 +259,7 @@ export class ErrorTrackingService implements OnModuleDestroy {
       data: {
         resolved: true,
         resolvedBy,
-        resolvedAt: new Date(),
+        resolvedAt: this.clock.now(),
       },
     });
     return { success: true };
@@ -259,16 +274,17 @@ export class ErrorTrackingService implements OnModuleDestroy {
       data: {
         resolved: true,
         resolvedBy,
-        resolvedAt: new Date(),
+        resolvedAt: this.clock.now(),
       },
     });
     return { success: true, count: result.count };
   }
 
   async cleanupOldErrors(daysToKeep: number): Promise<number> {
-    const cutoffDate = new Date();
+    const cutoffDate = this.clock.now();
     cutoffDate.setDate(cutoffDate.getDate() - daysToKeep);
 
+    // RLS-BYPASS: system telemetry and error logs are not clinic-scoped
     const result = await this.prisma.runUnrestricted(async () =>
       this.prisma.errorLog.deleteMany({
         where: { createdAt: { lt: cutoffDate }, resolved: true },

@@ -26,7 +26,7 @@ const mocks = vi.hoisted(() => ({
   fetch: vi.fn(),
 }));
 
-vi.mock("@/lib/auth-context", () => ({
+vi.mock("@/lib/auth/auth-context", () => ({
   useAuth: () => ({
     user: mocks.user,
     refreshUser: mocks.refreshUser,

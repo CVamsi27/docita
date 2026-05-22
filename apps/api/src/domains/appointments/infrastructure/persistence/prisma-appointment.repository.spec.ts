@@ -1,5 +1,7 @@
 import { beforeEach, describe, expect, it, jest } from '@jest/globals';
 import { AppointmentStatus } from '@workspace/db';
+import { PrismaAppointmentReadRepository } from './prisma-appointment-read.repository';
+import { PrismaAppointmentWriteRepository } from './prisma-appointment-write.repository';
 import { PrismaAppointmentRepository } from './prisma-appointment.repository';
 import { PrismaService } from '@/prisma/prisma.service';
 
@@ -75,7 +77,11 @@ describe('PrismaAppointmentRepository', () => {
         writable: true,
       },
     });
-    repository = new PrismaAppointmentRepository(prismaService);
+    const clock = { now: () => new Date('2026-05-19T12:00:00.000Z') };
+    repository = new PrismaAppointmentRepository(
+      new PrismaAppointmentReadRepository(prismaService),
+      new PrismaAppointmentWriteRepository(prismaService, clock),
+    );
   });
 
   it('uses cursor pagination with skip and deterministic ordering', async () => {

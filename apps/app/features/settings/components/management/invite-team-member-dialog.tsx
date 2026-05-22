@@ -1,6 +1,6 @@
 "use client";
 
-import { DocitaLoadingIndicator } from "@workspace/ui/components/docita-loading-indicator";
+import { DocitaLoadingIndicator } from "@workspace/ui/components/feedback/docita-loading-indicator";
 
 import type { UseFormReturn } from "react-hook-form";
 import {
@@ -10,7 +10,7 @@ import {
   DialogFooter,
   DialogHeader,
   DialogTitle,
-} from "@workspace/ui/components/dialog";
+} from "@workspace/ui/components/overlay/dialog";
 import {
   Form,
   FormControl,
@@ -18,18 +18,18 @@ import {
   FormItem,
   FormLabel,
   FormMessage,
-} from "@workspace/ui/components/form";
-import { Input } from "@workspace/ui/components/input";
+} from "@workspace/ui/components/form/form";
+import { Input } from "@workspace/ui/components/form/input";
 import {
   Select,
   SelectContent,
   SelectItem,
   SelectTrigger,
   SelectValue,
-} from "@workspace/ui/components/select";
-import { Button } from "@workspace/ui/components/button";
+} from "@workspace/ui/components/form/select";
+import { Button } from "@workspace/ui/components/form/button";
 
-import { showUserFacingErrorToast } from "@/lib/user-facing-errors";
+import { showUserFacingErrorToast } from "@/lib/errors/user-facing-errors";
 import type { InviteFormValues } from "@/features/settings/components/management/member-management-schemas";
 
 interface InviteTeamMemberDialogProps {

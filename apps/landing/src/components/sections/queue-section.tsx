@@ -1,7 +1,7 @@
 "use client";
 
 import { CheckCircle2, Clock, Users } from "lucide-react";
-import { SectionHeading } from "@workspace/ui/components/section-heading";
+import { SectionHeading } from "@workspace/ui/components/layout/section-heading";
 
 export function QueueSection() {
   return (

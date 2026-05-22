@@ -6,7 +6,7 @@ const portalMetricMocks = vi.hoisted(() => ({
   mutateAsync: vi.fn(),
 }));
 
-vi.mock("@/hooks/api/use-patient-portal", () => ({
+vi.mock("@workspace/data-access", () => ({
   useRecordPortalMetricValue: () => ({
     mutateAsync: portalMetricMocks.mutateAsync,
     isPending: false,

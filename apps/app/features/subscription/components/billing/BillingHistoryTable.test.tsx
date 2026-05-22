@@ -6,7 +6,7 @@ const resumePaymentMock = vi.hoisted(() => ({
   mutateAsync: vi.fn(),
 }));
 
-vi.mock("@/hooks/api/use-resume-subscription-payment", () => ({
+vi.mock("@workspace/data-access", () => ({
   useResumeSubscriptionPayment: () => ({
     isPending: false,
     mutateAsync: resumePaymentMock.mutateAsync,

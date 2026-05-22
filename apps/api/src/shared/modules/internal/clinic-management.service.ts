@@ -4,14 +4,21 @@ import {
   InternalServerErrorException,
 } from '@nestjs/common';
 import { PrismaService } from '@/prisma/prisma.service';
-import { PaymentWebSocketGateway } from '@/gateways/payment.websocket.gateway';
-import { ClinicTier, Prisma, Role, SubscriptionStatus } from '@workspace/db';
+import { PaymentWebSocketGateway } from '@/websockets/payment.websocket.gateway';
+import {
+  ClinicTier,
+  ClinicType,
+  Prisma,
+  Role,
+  SubscriptionStatus,
+} from '@workspace/db';
+import { parseStringEnumMember } from '@workspace/utils';
 import * as bcrypt from 'bcrypt';
 import {
   CLINIC_CARD_SELECT,
   DOCTOR_CARD_SELECT,
-} from '@/common/select-fragments';
-import { paginateWithCursor } from '@/common/pagination.helper';
+} from '@/shared/common/select-fragments';
+import { paginateWithCursor } from '@/shared/common/pagination.helper';
 import type { CreateAdminDto, UpdateAdminDto } from '@workspace/types';
 import {
   InternalCreateClinicDto,
@@ -32,10 +39,10 @@ export class ClinicManagementService {
   async getAllClinics(options?: { cursor?: string; limit?: number }) {
     try {
       const clinicModel = {
-        findMany: (args?: Record<string, unknown>) =>
-          this.prisma.clinic.findMany(args as Prisma.ClinicFindManyArgs),
-        count: (args?: { where?: Record<string, unknown> }) =>
-          this.prisma.clinic.count(args as Prisma.ClinicCountArgs),
+        findMany: (args?: Prisma.ClinicFindManyArgs) =>
+          this.prisma.clinic.findMany(args),
+        count: (args?: Prisma.ClinicCountArgs) =>
+          this.prisma.clinic.count(args),
       };
 
       return paginateWithCursor({
@@ -195,9 +202,22 @@ export class ClinicManagementService {
   }
 
   async updateClinic(id: string, data: InternalUpdateClinicDto) {
+    const clinicType =
+      data.type !== undefined
+        ? parseStringEnumMember(Object.values(ClinicType), data.type)
+        : undefined;
+    const updateData: Prisma.ClinicUpdateInput = {
+      ...(data.name !== undefined ? { name: data.name } : {}),
+      ...(data.email !== undefined ? { email: data.email } : {}),
+      ...(data.phone !== undefined ? { phone: data.phone } : {}),
+      ...(data.address !== undefined ? { address: data.address } : {}),
+      ...(data.tier !== undefined ? { tier: data.tier } : {}),
+      ...(clinicType != null ? { type: clinicType } : {}),
+      ...(data.active !== undefined ? { active: data.active } : {}),
+    };
     const clinic = await this.prisma.clinic.update({
       where: { id },
-      data: data as Prisma.ClinicUpdateInput,
+      data: updateData,
     });
     if (data.tier !== undefined || data.active !== undefined) {
       this.paymentGateway.emitClinicUpdate(id, {

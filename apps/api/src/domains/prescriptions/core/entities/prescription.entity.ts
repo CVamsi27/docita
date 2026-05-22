@@ -1,3 +1,5 @@
+import { InvariantViolationError } from '@/shared/common/errors/domain.errors';
+
 export class Medication {
   constructor(
     public readonly name: string,
@@ -36,10 +38,14 @@ export class Prescription {
     createdAt?: Date;
     updatedAt?: Date;
   }): Prescription {
-    if (!props.patientId) throw new Error('Patient ID is required');
-    if (!props.doctorId) throw new Error('Doctor ID is required');
+    if (!props.patientId) {
+      throw new InvariantViolationError('Patient ID is required');
+    }
+    if (!props.doctorId) {
+      throw new InvariantViolationError('Doctor ID is required');
+    }
     if (!props.medications || props.medications.length === 0) {
-      throw new Error('At least one medication is required');
+      throw new InvariantViolationError('At least one medication is required');
     }
 
     const meds = props.medications.map(

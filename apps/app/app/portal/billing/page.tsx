@@ -2,11 +2,12 @@
 
 import { PatientPortalBillingUI } from "@/features/patient-portal/components";
 import type { PatientInvoiceStatus } from "@/features/patient-portal/types/patient-portal-types";
-import { usePatientPortalInvoices } from "@/hooks/api/use-patient-portal";
-import { AppPageScaffold } from "@workspace/ui/components/app-page-scaffold";
-import { DataState } from "@workspace/ui/components/data-state";
-import { PageHeader } from "@workspace/ui/components/page-header";
+import { usePatientPortalInvoices } from "@workspace/data-access";
+import { AppPageScaffold } from "@workspace/ui/components/layout/app-page-scaffold";
+import { DataState } from "@workspace/ui/components/data-display/data-state";
+import { PageHeader } from "@workspace/ui/components/layout/page-header";
 import { Receipt } from "lucide-react";
+import { isRecord } from "@workspace/utils";
 
 function mapInvoiceStatus(status: unknown): PatientInvoiceStatus {
   if (typeof status !== "string") {
@@ -32,7 +33,7 @@ export default function PortalBillingPage() {
   } = usePatientPortalInvoices();
 
   const invoices = (data?.invoices ?? []).map((item, index) => {
-    const row = item as Record<string, unknown>;
+    const row = isRecord(item) ? item : {};
 
     const amount =
       typeof row.amount === "number"

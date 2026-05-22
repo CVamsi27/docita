@@ -10,7 +10,7 @@ import {
   type TaxRegistrationSnapshot,
 } from '@workspace/types';
 
-interface CalculateInvoiceTaxInput {
+export interface CalculateInvoiceTaxInput {
   items: InvoiceItem[];
   currency?: string;
   seller?: Partial<TaxRegistrationSnapshot>;

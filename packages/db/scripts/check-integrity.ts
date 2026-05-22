@@ -214,8 +214,13 @@ export async function runIntegrityChecks(
           ? `Found ${subscriptionsWithoutClinic} subscriptions without valid clinic`
           : undefined,
     });
-  } catch {
-
+  } catch (error) {
+    checks.push({
+      name: "All Subscriptions Have Valid Clinic",
+      description: "Every subscription belongs to an existing clinic",
+      passed: false,
+      details: error instanceof Error ? error.message : String(error),
+    });
   }
 
   const nullNameRows = await prisma.$queryRaw<Array<{ count: bigint }>>`

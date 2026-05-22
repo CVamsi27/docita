@@ -1,14 +1,14 @@
 import type { ReactNode } from "react";
 
 import { cn } from "@workspace/ui/lib/utils";
-import { Section } from "@workspace/ui/components/section";
+import { Section } from "@workspace/ui/components/layout/section";
 
 import {
   type DashboardAlertDensity,
   DashboardAlertsContainer,
 } from "@/features/dashboard/components/alerts/dashboard-alerts-container";
 import { DoctorDashboardCards } from "@/features/dashboard/components/stats/doctor-dashboard-cards";
-import type { AppointmentListItem } from "@/hooks/api/use-appointments";
+import type { AppointmentListItem } from "@workspace/data-access";
 
 export type DashboardWorkspaceMode = "dashboard" | "today";
 

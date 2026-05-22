@@ -1,4 +1,5 @@
 import { fireEvent, render, screen, waitFor } from "@testing-library/react";
+import { queryKeys } from "@workspace/data-access";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import JoinRequestsPage from "./page";
 
@@ -37,7 +38,7 @@ vi.mock("@tanstack/react-query", () => ({
   }),
 }));
 
-vi.mock("@/lib/api-client", () => ({
+vi.mock("@/lib/api/api-client", () => ({
   typedApi: {
     joinRequests: {
       list: joinRequestMocks.list,
@@ -47,7 +48,7 @@ vi.mock("@/lib/api-client", () => ({
   },
 }));
 
-vi.mock("@/lib/user-facing-errors", () => ({
+vi.mock("@/lib/errors/user-facing-errors", () => ({
   showUserFacingErrorToast: joinRequestMocks.showError,
 }));
 
@@ -105,7 +106,7 @@ describe("JoinRequestsPage", () => {
       });
     });
     expect(joinRequestMocks.queryClient.invalidateQueries).toHaveBeenCalledWith({
-      queryKey: ["clinic-join-requests"],
+      queryKey: queryKeys.clinicJoinRequests.all(),
     });
     expect(joinRequestMocks.toastSuccess).toHaveBeenCalledWith(
       "Join request approved! User can now access the dashboard",

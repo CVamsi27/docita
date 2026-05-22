@@ -1,20 +1,23 @@
 "use client";
 
 import { useCallback } from "react";
-import { getUserFacingErrorMessage } from "@workspace/types";
+import { getUserFacingErrorMessage } from "@workspace/utils";
 import {
   Card,
   CardContent,
   CardDescription,
   CardHeader,
   CardTitle,
-} from "@workspace/ui/components/card";
-import { Button } from "@workspace/ui/components/button";
-import { Input } from "@workspace/ui/components/input";
-import { useAuth } from "@/lib/auth";
-import { client } from "@/lib/api-client";
-import { internalQueryKeys } from "@/lib/query-keys";
-import { useInternalQuery } from "@/lib/use-internal-query";
+} from "@workspace/ui/components/indicators/card";
+import { Button } from "@workspace/ui/components/form/button";
+import { Input } from "@workspace/ui/components/form/input";
+import { useAuth } from "@/lib/auth/auth";
+import {
+  type InternalDashboardStats as StatsData,
+  useInternalBillingMetrics,
+  useInternalClinics,
+  useInternalDashboardStats,
+} from "@workspace/data-access/internal";
 import { ClinicList } from "./clinic-list";
 import {
   BarChart3,
@@ -29,47 +32,6 @@ import {
   Users,
 } from "lucide-react";
 
-interface StatsData {
-  clinics: number;
-  users: number;
-  doctors: number;
-  patients: number;
-  invoices: number;
-  prescriptions: number;
-  trends?: {
-    clinicsThisMonth: number;
-    usersThisMonth: number;
-    doctorsThisMonth: number;
-    patientsThisMonth: number;
-    invoicesPercentChange: number;
-    prescriptionsPercentChange: number;
-  };
-}
-
-interface BillingMetrics {
-  mrr: number;
-  arr: number;
-  churnRate: number;
-  activeSubscriptions: number;
-  subscriptionsByTier: Record<string, number>;
-}
-
-interface Clinic {
-  id: string;
-  name: string;
-  email?: string;
-  phone?: string;
-  address?: string;
-  tier?: string;
-  type?: string;
-  active?: boolean;
-  settings?: Record<string, unknown>;
-  _count?: {
-    users: number;
-    patients: number;
-  };
-}
-
 export default function InternalDashboard() {
   const defaultStats: StatsData = {
     clinics: 0,
@@ -81,25 +43,9 @@ export default function InternalDashboard() {
   };
   const { token, isLoading } = useAuth();
 
-  const clinicsQuery = useInternalQuery({
-    queryKey: internalQueryKeys.internal.clinics(),
-    queryFn: async () => {
-      const data = await client.get<Clinic[] | { items?: Clinic[] }>(
-        "/internal/clinics",
-      );
-      return Array.isArray(data) ? data : (data.items ?? []);
-    },
-  });
-
-  const statsQuery = useInternalQuery({
-    queryKey: internalQueryKeys.internal.stats(),
-    queryFn: () => client.get<StatsData>("/internal/stats"),
-  });
-
-  const billingQuery = useInternalQuery({
-    queryKey: internalQueryKeys.internal.billingMetrics(),
-    queryFn: () => client.get<BillingMetrics>("/internal/billing/metrics"),
-  });
+  const clinicsQuery = useInternalClinics(token, "list");
+  const statsQuery = useInternalDashboardStats(token);
+  const billingQuery = useInternalBillingMetrics(token);
 
   const clinics = clinicsQuery.data ?? [];
   const stats = statsQuery.data ?? defaultStats;
@@ -276,7 +222,9 @@ export default function InternalDashboard() {
             <Building2 className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-[var(--fs-2xl)] font-semibold tabular-nums leading-[var(--lh-tight)]">{stats.clinics}</div>
+            <div className="text-[var(--fs-2xl)] font-semibold tabular-nums leading-[var(--lh-tight)]">
+              {stats.clinics}
+            </div>
             {renderTrend(trends.clinicsThisMonth)}
           </CardContent>
         </Card>
@@ -286,7 +234,9 @@ export default function InternalDashboard() {
             <Users className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-[var(--fs-2xl)] font-semibold tabular-nums leading-[var(--lh-tight)]">{stats.doctors}</div>
+            <div className="text-[var(--fs-2xl)] font-semibold tabular-nums leading-[var(--lh-tight)]">
+              {stats.doctors}
+            </div>
             {renderTrend(trends.doctorsThisMonth)}
           </CardContent>
         </Card>
@@ -298,7 +248,9 @@ export default function InternalDashboard() {
             <User className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-[var(--fs-2xl)] font-semibold tabular-nums leading-[var(--lh-tight)]">{stats.patients}</div>
+            <div className="text-[var(--fs-2xl)] font-semibold tabular-nums leading-[var(--lh-tight)]">
+              {stats.patients}
+            </div>
             {renderTrend(trends.patientsThisMonth)}
           </CardContent>
         </Card>
@@ -310,7 +262,9 @@ export default function InternalDashboard() {
             <FileText className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-[var(--fs-2xl)] font-semibold tabular-nums leading-[var(--lh-tight)]">{stats.invoices}</div>
+            <div className="text-[var(--fs-2xl)] font-semibold tabular-nums leading-[var(--lh-tight)]">
+              {stats.invoices}
+            </div>
             {renderTrend(trends.invoicesPercentChange, true)}
           </CardContent>
         </Card>
@@ -320,7 +274,9 @@ export default function InternalDashboard() {
             <Pill className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-[var(--fs-2xl)] font-semibold tabular-nums leading-[var(--lh-tight)]">{stats.prescriptions}</div>
+            <div className="text-[var(--fs-2xl)] font-semibold tabular-nums leading-[var(--lh-tight)]">
+              {stats.prescriptions}
+            </div>
             {renderTrend(trends.prescriptionsPercentChange, true)}
           </CardContent>
         </Card>

@@ -15,6 +15,8 @@ import {
   USER_REPOSITORY_TOKEN,
 } from '@/domains/users/core/repositories/user.repository.interface';
 
+import { JWT_AUDIENCES, type JwtAudience } from './jwt-audience';
+
 interface JwtPayload {
   sub: string;
   email: string;
@@ -22,6 +24,7 @@ interface JwtPayload {
   name: string;
   clinicId: string | null;
   patientId?: string;
+  aud?: JwtAudience | JwtAudience[];
 }
 
 /**
@@ -62,6 +65,7 @@ export class JwtStrategy extends PassportStrategy(Strategy) {
       jwtFromRequest: extractJwtFromRequest,
       ignoreExpiration: false,
       secretOrKey: jwtSecret,
+      audience: [...JWT_AUDIENCES],
     });
   }
 
@@ -82,6 +86,10 @@ export class JwtStrategy extends PassportStrategy(Strategy) {
       if (user.appLoginDisabled) {
         throw new ForbiddenException('This profile cannot sign in to the app.');
       }
+      const jwtAudience = Array.isArray(payload.aud)
+        ? payload.aud[0]
+        : payload.aud;
+
       return {
         id: payload.sub,
         sub: payload.sub,
@@ -92,6 +100,7 @@ export class JwtStrategy extends PassportStrategy(Strategy) {
         emailVerified: user.emailVerified,
         onboardingStep: user.onboardingStep,
         patientId: payload.patientId,
+        jwtAudience,
       };
     } catch (error) {
       if (error instanceof UnauthorizedException) {

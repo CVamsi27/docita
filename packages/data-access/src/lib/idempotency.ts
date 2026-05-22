@@ -7,13 +7,21 @@ export const IDEMPOTENCY_HEADER = "Idempotency-Key";
  * available (browser, Node 19+, edge runtimes), with a small Math.random
  * fallback for legacy environments.
  */
-export function generateIdempotencyKey(): string {
-  const cryptoApi = (
-    typeof globalThis !== "undefined" ? globalThis.crypto : undefined
-  ) as { randomUUID?: () => string } | undefined;
-
-  if (cryptoApi?.randomUUID) {
+function readRandomUuidFromCrypto(): string | undefined {
+  if (typeof globalThis === "undefined") {
+    return undefined;
+  }
+  const cryptoApi = globalThis.crypto;
+  if (typeof cryptoApi?.randomUUID === "function") {
     return cryptoApi.randomUUID();
+  }
+  return undefined;
+}
+
+export function generateIdempotencyKey(): string {
+  const randomUuid = readRandomUuidFromCrypto();
+  if (randomUuid) {
+    return randomUuid;
   }
 
   const bytes = new Uint8Array(16);

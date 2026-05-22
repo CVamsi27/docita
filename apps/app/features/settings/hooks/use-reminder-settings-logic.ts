@@ -1,11 +1,11 @@
 import { useEffect, useState } from "react";
 import {
-  ClinicAppSettings,
   useClinicSettings,
   useUpdateClinicSettings,
-} from "@/hooks/api/use-settings";
+} from "@workspace/data-access";
+import { parseClinicAppSettings } from "@/lib/clinic/parse-clinic-app-settings";
 import { toast } from "sonner";
-import { showUserFacingErrorToast } from "@/lib/user-facing-errors";
+import { showUserFacingErrorToast } from "@/lib/errors/user-facing-errors";
 
 export interface ReminderSettingsState {
   reminderBefore: string;
@@ -25,7 +25,7 @@ export const useReminderSettingsLogic = () => {
   useEffect(() => {
     if (clinic) {
       const clinicSettings =
-        (clinic.settings as ClinicAppSettings) || null;
+        parseClinicAppSettings(clinic.settings);
       setSettings({
         reminderBefore: String(clinicSettings?.reminderBefore || "1"),
         reminderUnit: clinicSettings?.reminderUnit || "day",

@@ -4,7 +4,7 @@ import { Feature, Tier } from "@workspace/types";
 import {
   FeatureGate,
   TierGate,
-} from "@/features/_shared/components/auth/feature-gate";
+} from "@/components/auth/feature-gate";
 import { DeskFloorPanelContainer } from "@/features/desk/components/DeskFloorPanelContainer";
 
 export default function DeskFloorPage() {

@@ -1,27 +1,24 @@
 import { useCallback, useState } from "react";
 import { useFieldArray, useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { z } from "zod";
 import { toast } from "sonner";
-import { useCreateInvoice } from "@/hooks/api/use-billing";
-import { usePatients } from "@/hooks/api/use-patients";
+import { useCreateInvoice } from "@workspace/data-access";
+import { usePatients } from "@workspace/data-access";
 import { useRouter } from "next/navigation";
-import { invoiceItemSchema } from "./use-invoice-edit-logic";
-import { showUserFacingErrorToast } from "@/lib/user-facing-errors";
+import {
+  createInvoiceFormSchema,
+  type CreateInvoiceFormValues,
+} from "@workspace/types";
+import { showUserFacingErrorToast } from "@/lib/errors/user-facing-errors";
 import {
   applyInvoiceDiscountToFirstLine,
   calculateInvoiceTotals,
 } from "@/features/invoices/rules/invoiceRules";
 
-export const createInvoiceSchema = z.object({
-  patientId: z.string().min(1, "Select a patient"),
-  status: z.enum(["PENDING", "PAID", "OVERDUE", "CANCELLED"]),
-  discount: z.number().min(0),
-  notes: z.string().optional(),
-  items: z.array(invoiceItemSchema).min(1, "Add at least one item"),
-});
-
-export type CreateInvoiceFormValues = z.infer<typeof createInvoiceSchema>;
+export {
+  createInvoiceFormSchema,
+  type CreateInvoiceFormValues,
+} from "@workspace/types";
 
 export const useInvoiceCreateLogic = () => {
   const router = useRouter();
@@ -37,7 +34,7 @@ export const useInvoiceCreateLogic = () => {
   const createInvoice = useCreateInvoice();
 
   const form = useForm<CreateInvoiceFormValues>({
-    resolver: zodResolver(createInvoiceSchema),
+    resolver: zodResolver(createInvoiceFormSchema),
     defaultValues: {
       patientId: "",
       status: "PENDING",

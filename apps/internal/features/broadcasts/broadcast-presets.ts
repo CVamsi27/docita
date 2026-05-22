@@ -52,7 +52,7 @@ export const BROADCAST_PRESETS: BroadcastPreset[] = [
     audienceLabel: "Pharmacies",
     metaTemplateName: "docita_pharmacy_referral_partner_v1",
     description:
-      "Audience: pharmacies. Pitches them as referral partners — refer a hospital that goes live on Docita, earn ₹1,000.",
+      "Audience: pharmacies. Pitches them referral partners — refer a hospital that goes live on Docita, earn ₹1,000.",
     body:
       "Hi {{name}}, Docita is now onboarding hospitals — and we pay pharmacies who refer them.\n\n" +
       "₹1,000 referral fee per hospital that goes live on Docita.\n\n" +

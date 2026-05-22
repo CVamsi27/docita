@@ -1,8 +1,11 @@
 import { Injectable, Logger, Inject } from '@nestjs/common';
 import { InvoiceStatus } from '@workspace/db';
-import { PrismaService } from '@/prisma/prisma.service';
+import {
+  BILLING_PERSISTENCE_PORT,
+  type BillingPersistencePort,
+} from '@/domains/billing/application/ports/billing-persistence.port';
 import { PaymentsService } from './payments.service';
-import { isClinicWhatsAppAutomationSendingAllowed } from '@/shared/modules/messaging/whatsapp/whatsapp-patient-send-policy.util';
+import { isClinicWhatsAppAutomationSendingAllowed } from '@/shared/whatsapp/whatsapp-patient-send-policy.util';
 import {
   IInvoiceRepository,
   INVOICE_REPOSITORY_TOKEN,
@@ -11,16 +14,13 @@ import {
   IPaymentSessionRepository,
   PAYMENT_SESSION_REPOSITORY_TOKEN,
 } from '@/domains/billing/core/repositories/payment-session.repository';
+import { CLOCK_PORT, type IClock } from '@/shared/common/ports/clock.port';
+import { isRecord } from '@workspace/utils';
+
 interface PaymentReminderConfig {
   enabled: boolean;
   days: number[];
   autoSendWhatsApp: boolean;
-}
-
-interface ClinicSettings {
-  paymentReminderEnabled?: boolean;
-  paymentReminderDays?: number[];
-  paymentReminderAutoSendWhatsApp?: boolean;
 }
 
 @Injectable()
@@ -28,17 +28,20 @@ export class SchedulerService {
   private readonly logger = new Logger(SchedulerService.name);
 
   constructor(
-    private readonly prisma: PrismaService,
+    @Inject(BILLING_PERSISTENCE_PORT)
+    private readonly persistence: BillingPersistencePort,
     private readonly paymentsService: PaymentsService,
     @Inject(INVOICE_REPOSITORY_TOKEN)
     private readonly invoiceRepository: IInvoiceRepository,
     @Inject(PAYMENT_SESSION_REPOSITORY_TOKEN)
     private readonly sessionRepository: IPaymentSessionRepository,
+    @Inject(CLOCK_PORT) private readonly clock: IClock,
   ) {}
 
   async runScheduledPaymentReminders(): Promise<void> {
-    await this.prisma.runUnrestricted(async () => {
-      const clinics = await this.prisma.clinic.findMany({
+    // RLS-BYPASS: billing scheduler operates without per-request clinic session
+    await this.persistence.runUnrestricted(async () => {
+      const clinics = await this.persistence.clinic.findMany({
         where: { active: true },
         select: {
           id: true,
@@ -46,29 +49,37 @@ export class SchedulerService {
         },
       });
 
-      for (const clinic of clinics) {
-        const config = this.getReminderConfig(
-          clinic.settings as ClinicSettings,
-        );
-        if (!config.enabled || config.days.length === 0) {
-          continue;
-        }
+      await Promise.allSettled(
+        clinics.map(async (clinic) => {
+          const config = this.getReminderConfig(clinic.settings);
+          if (!config.enabled || config.days.length === 0) {
+            return;
+          }
 
-        for (const dayOffset of config.days) {
-          await this.processClinicDayOffset(
-            clinic.id,
-            dayOffset,
-            config.autoSendWhatsApp,
+          const dayResults = await Promise.allSettled(
+            config.days.map((dayOffset) =>
+              this.processClinicDayOffset(
+                clinic.id,
+                dayOffset,
+                config.autoSendWhatsApp,
+              ),
+            ),
           );
-        }
-      }
+          for (const result of dayResults) {
+            if (result.status === 'rejected') {
+              this.logger.error(
+                `Payment reminder failed for clinic ${clinic.id}`,
+                result.reason,
+              );
+            }
+          }
+        }),
+      );
     });
   }
 
-  private getReminderConfig(
-    settings: ClinicSettings | null,
-  ): PaymentReminderConfig {
-    if (!settings) {
+  private getReminderConfig(settings: unknown): PaymentReminderConfig {
+    if (!isRecord(settings)) {
       return { enabled: false, days: [], autoSendWhatsApp: true };
     }
 
@@ -112,13 +123,16 @@ export class SchedulerService {
       : [];
     const sessionByInvoiceId = new Map(sessions.map((s) => [s.invoiceId, s]));
 
-    for (const invoice of targetInvoices) {
-      if (autoSendWhatsApp) {
+    await Promise.allSettled(
+      targetInvoices.map(async (invoice) => {
+        if (!autoSendWhatsApp) {
+          return;
+        }
         const session = sessionByInvoiceId.get(invoice.id);
         if (
           session &&
           (await isClinicWhatsAppAutomationSendingAllowed(
-            this.prisma,
+            this.persistence,
             session.clinicId,
           ))
         ) {
@@ -127,12 +141,12 @@ export class SchedulerService {
             session.clinicId,
           );
         }
-      }
-    }
+      }),
+    );
   }
 
   private getTargetDateRange(dayOffset: number): { start: Date; end: Date } {
-    const start = new Date();
+    const start = this.clock.now();
     start.setDate(start.getDate() - dayOffset);
     start.setHours(0, 0, 0, 0);
 

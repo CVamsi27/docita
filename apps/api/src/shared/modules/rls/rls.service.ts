@@ -2,6 +2,7 @@ import { Injectable, Logger, OnModuleInit } from '@nestjs/common';
 import { Prisma } from '@workspace/db';
 import { PrismaService } from '@/prisma/prisma.service';
 import { AppConfigService } from '@/shared/modules/config/app-configuration.service';
+import { applyRlsScope } from '@/shared/modules/rls/apply-rls-scope';
 
 type Tx = Prisma.TransactionClient;
 
@@ -14,7 +15,7 @@ type Tx = Prisma.TransactionClient;
  * connection. This service centralizes the GUC handshake so callers that opt
  * into RLS can do so via a single `runScopedTransaction` entry point.
  *
- * The flag defaults to OFF in every environment. See `docs/RLS_ROLLOUT.md`
+ * The flag defaults to OFF in every environment. See `docs/compliance/RLS_ROLLOUT.md`
  * for the staged enablement plan.
  */
 @Injectable()
@@ -52,19 +53,9 @@ export class RlsService implements OnModuleInit {
   ): Promise<T> {
     return this.prisma.$transaction(async (tx) => {
       if (this.isEnabled()) {
-        await this.applyScope(tx, clinicId);
+        await applyRlsScope(tx, clinicId);
       }
       return fn(tx);
     });
-  }
-
-  private async applyScope(tx: Tx, clinicId: string): Promise<void> {
-    if (!/^[A-Za-z0-9_-]+$/.test(clinicId)) {
-      throw new Error('Invalid clinicId for RLS scope');
-    }
-    await tx.$executeRawUnsafe(`SET LOCAL app.rls_enabled = 'on'`);
-    await tx.$executeRawUnsafe(
-      `SET LOCAL app.current_clinic_id = '${clinicId}'`,
-    );
   }
 }

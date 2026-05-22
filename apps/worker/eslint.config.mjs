@@ -2,6 +2,7 @@ import eslint from '@eslint/js';
 import eslintPluginPrettierRecommended from 'eslint-plugin-prettier/recommended';
 import globals from 'globals';
 import tseslint from 'typescript-eslint';
+import { noProcessEnvSyntaxRule } from '@workspace/eslint-config/base';
 
 export default tseslint.config(
   {
@@ -29,6 +30,13 @@ export default tseslint.config(
         },
       ],
       'no-console': ['error', { allow: ['warn', 'error', 'info'] }],
+      'no-restricted-syntax': ['warn', [noProcessEnvSyntaxRule]],
+    },
+  },
+  {
+    files: ['src/main.ts'],
+    rules: {
+      'no-restricted-syntax': 'off',
     },
   },
 );

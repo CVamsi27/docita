@@ -16,7 +16,7 @@ const appointmentMocks = vi.hoisted(() => ({
   refetch: vi.fn(),
 }));
 
-vi.mock("@/hooks/api/use-appointments", () => ({
+vi.mock("@workspace/data-access", () => ({
   useAppointmentRequests: appointmentMocks.useAppointmentRequests,
   useApproveAppointmentRequest: () => ({
     isPending: false,
@@ -26,9 +26,6 @@ vi.mock("@/hooks/api/use-appointments", () => ({
     isPending: false,
     mutateAsync: appointmentMocks.rejectMutateAsync,
   }),
-}));
-
-vi.mock("@/hooks/api/use-settings", () => ({
   useDoctors: () => ({
     data: appointmentMocks.doctors,
   }),
@@ -37,16 +34,16 @@ vi.mock("@/hooks/api/use-settings", () => ({
   }),
 }));
 
-vi.mock("@/lib/user-facing-errors", async (importOriginal) => {
+vi.mock("@/lib/errors/user-facing-errors", async (importOriginal) => {
   const mod =
-    await importOriginal<typeof import("@/lib/user-facing-errors")>();
+    await importOriginal<typeof import("@/lib/errors/user-facing-errors")>();
   return {
     ...mod,
     showUserFacingErrorToast: appointmentMocks.showError,
   };
 });
 
-vi.mock("@/lib/clinic-context", () => ({
+vi.mock("@/lib/contexts/clinic-context", () => ({
   useClinic: () => ({
     clinicId: "clinic_1",
     clinic: { timezone: "Asia/Kolkata" },
@@ -57,7 +54,7 @@ vi.mock("@/lib/clinic-context", () => ({
   }),
 }));
 
-vi.mock("@/lib/doctor-availability-first-slot", () => ({
+vi.mock("@/lib/utils/doctor-availability-first-slot", () => ({
   fetchFirstAvailableDatetimeLocal: vi.fn().mockResolvedValue(null),
   fetchNextAvailableSlotWindow: vi.fn().mockResolvedValue(null),
 }));

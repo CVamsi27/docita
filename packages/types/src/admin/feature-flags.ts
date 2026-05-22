@@ -1,6 +1,10 @@
 import { z } from "zod";
+import { jsonValueSchema } from "../shared/json-schema";
 
 export const featureFlagBoolMapSchema = z.record(z.string(), z.boolean());
+
+/** Prisma `FeatureFlag.value` — booleans, numbers, strings, or nested JSON. */
+export const featureFlagValueJsonSchema = jsonValueSchema;
 
 export const featureFlagDefinitionSchema = z.object({
   key: z.string().min(1).max(64),

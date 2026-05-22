@@ -8,6 +8,7 @@ import {
 } from "@testing-library/react";
 import type { ReactElement } from "react";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
+import { DataAccessProvider, type RequestConfig } from "@workspace/data-access";
 import PaymentProcessingPage from "./page";
 
 const clientMocks = vi.hoisted(() => ({
@@ -19,7 +20,7 @@ const clientMocks = vi.hoisted(() => ({
 const toastSuccessMock = vi.hoisted(() => vi.fn());
 const showUserFacingErrorToastMock = vi.hoisted(() => vi.fn());
 
-vi.mock("@/lib/auth", () => ({
+vi.mock("@/lib/auth/auth", () => ({
   useAuth: () => ({
     token: "test-token",
     isInternal: true,
@@ -27,11 +28,11 @@ vi.mock("@/lib/auth", () => ({
   }),
 }));
 
-vi.mock("@/lib/api-client", () => ({
+vi.mock("@/lib/api/api-client", () => ({
   client: clientMocks,
 }));
 
-vi.mock("@/lib/user-facing-errors", () => ({
+vi.mock("@/lib/errors/user-facing-errors", () => ({
   showUserFacingErrorToast: showUserFacingErrorToastMock,
 }));
 
@@ -84,8 +85,24 @@ function renderWithQueryClient(ui: ReactElement) {
     },
   });
 
+  const fetcher = <T,>(
+    endpoint: string,
+    _options?: RequestConfig,
+  ): Promise<T> => clientMocks.get(endpoint) as Promise<T>;
+
   return render(
-    <QueryClientProvider client={queryClient}>{ui}</QueryClientProvider>,
+    <QueryClientProvider client={queryClient}>
+      <DataAccessProvider
+        config={{
+          fetcher,
+          getClinicId: () => undefined,
+          getClinicTimezone: () => undefined,
+          isTierFeatureEnabled: () => true,
+        }}
+      >
+        {ui}
+      </DataAccessProvider>
+    </QueryClientProvider>,
   );
 }
 
@@ -198,9 +215,7 @@ describe("PaymentProcessingPage", () => {
         }),
       );
     });
-    expect(toastSuccessMock).toHaveBeenCalledWith(
-      "Additional charge recorded",
-    );
+    expect(toastSuccessMock).toHaveBeenCalledWith("Additional charge recorded");
   });
 
   it("shows an empty facilities state", async () => {

@@ -1,5 +1,4 @@
 import {
-  Prisma,
   Invoice as PrismaInvoice,
   InvoiceStatus as PrismaInvoiceStatus,
 } from '@workspace/db';
@@ -11,6 +10,9 @@ import {
   BillingPeriod,
 } from '@/domains/billing/core/value-objects';
 import { DEFAULT_CURRENCY } from '@workspace/utils';
+import { invoiceItemsSchema } from '@workspace/types';
+import { parsePrismaJsonColumn } from '@/shared/common/json/parse-prisma-json-column';
+import { toPrismaInputJsonValue } from '@/shared/common/json/to-prisma-input-json-value';
 
 interface InvoiceItemData {
   id: string;
@@ -31,44 +33,19 @@ const PRISMA_TO_DOMAIN_STATUS: Record<PrismaInvoiceStatus, InvoiceStatusEnum> =
   };
 
 const parseInvoiceItems = (items: unknown): InvoiceItemData[] => {
-  if (!Array.isArray(items)) {
+  const parsed = parsePrismaJsonColumn(items, invoiceItemsSchema);
+  if (!parsed) {
     return [];
   }
 
-  return items
-    .filter((item) => item && typeof item === 'object' && !Array.isArray(item))
-    .map((item) => {
-      const record = Object.fromEntries(Object.entries(item));
-      const quantity =
-        typeof record.quantity === 'number' && Number.isFinite(record.quantity)
-          ? record.quantity
-          : 0;
-      const unitPrice =
-        typeof record.unitPrice === 'number' &&
-        Number.isFinite(record.unitPrice)
-          ? record.unitPrice
-          : typeof record.price === 'number' && Number.isFinite(record.price)
-            ? record.price
-            : 0;
-      const taxRate =
-        typeof record.taxRate === 'number' && Number.isFinite(record.taxRate)
-          ? record.taxRate
-          : 0;
-      const discount =
-        typeof record.discount === 'number' && Number.isFinite(record.discount)
-          ? record.discount
-          : 0;
-
-      return {
-        id: typeof record.id === 'string' ? record.id : '',
-        description:
-          typeof record.description === 'string' ? record.description : '',
-        quantity,
-        unitPrice,
-        taxRate,
-        discount,
-      };
-    });
+  return parsed.map((item) => ({
+    id: item.id ?? '',
+    description: item.description,
+    quantity: item.quantity,
+    unitPrice: item.unitPrice ?? item.price,
+    taxRate: item.taxRate ?? 0,
+    discount: item.discountAmount ?? 0,
+  }));
 };
 
 export class InvoiceMapper {
@@ -143,10 +120,10 @@ export class InvoiceMapper {
       patientId: invoice.patientId,
       appointmentId: invoice.appointmentId || undefined,
       status: invoice.getStatus().value,
-      items: itemsJson as Prisma.InputJsonValue,
+      items: toPrismaInputJsonValue(itemsJson),
       total: invoice.getTotal().amount,
       createdAt: invoice.createdAt,
-      updatedAt: new Date(),
+      updatedAt: invoice.updatedAt,
       version: invoice.version,
       doctorName: invoice.doctorContext?.doctorName,
       doctorEmail: invoice.doctorContext?.doctorEmail,

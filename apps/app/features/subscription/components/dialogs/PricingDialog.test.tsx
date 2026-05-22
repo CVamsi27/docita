@@ -9,7 +9,7 @@ const pricingDialogMocks = vi.hoisted(() => ({
   useLocaleCurrency: vi.fn(),
 }));
 
-vi.mock("@/hooks/api/use-pricing", () => ({
+vi.mock("@/features/subscription/hooks/use-pricing", () => ({
   usePricingConfig: pricingDialogMocks.usePricingConfig,
   useTierEstimates: pricingDialogMocks.useTierEstimates,
 }));

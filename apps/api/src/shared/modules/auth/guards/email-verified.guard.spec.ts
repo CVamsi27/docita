@@ -10,6 +10,7 @@ import {
 import { IS_PUBLIC_KEY } from '../auth/public.decorator';
 import { SKIP_EMAIL_VERIFICATION_KEY } from './email-verified.guard';
 import { EmailVerifiedGuard } from './email-verified.guard';
+import type { AppConfigService } from '@/shared/modules/config/app-configuration.service';
 
 function createContext(user: unknown): ExecutionContext {
   return asType<ExecutionContext>({
@@ -34,7 +35,12 @@ describe('EmailVerifiedGuard', () => {
         [SKIP_EMAIL_VERIFICATION_KEY, false],
       ]),
     };
-    guard = new EmailVerifiedGuard(asType<Reflector>(reflector));
+    guard = new EmailVerifiedGuard(
+      asType<Reflector>(reflector),
+      asType<AppConfigService>({
+        shouldBypassGuardForE2e: () => false,
+      }),
+    );
   });
 
   it('allows verified users', () => {

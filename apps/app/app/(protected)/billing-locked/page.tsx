@@ -6,9 +6,9 @@ import {
   CardContent,
   CardDescription,
   CardHeader,
-} from "@workspace/ui/components/card";
-import { DocitaLogo } from "@workspace/ui/components/docita-logo";
-import { SupportContact } from "@/components/common/support-contact";
+} from "@workspace/ui/components/indicators/card";
+import { DocitaLogo } from "@workspace/ui/components/indicators/docita-logo";
+import { SupportContact } from "@/components/support-contact/support-contact";
 
 export default function BillingLockedPage() {
   return (

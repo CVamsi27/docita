@@ -1,13 +1,10 @@
 import { APP_ACCESS_TARGETS, type AppAccessTarget } from "./access-matrix";
 import type { UserRole } from "../shared/users";
-import {
-  isFrontDeskWorkspace,
-  type WorkspaceProfile,
-} from "../shared/workspace-profile";
+import { isFrontDeskTier } from "../billing/front-desk-tier";
 
 /**
- * Clinical / EHR-heavy surfaces disabled for all clinic roles when the workspace
- * is front-desk (appointments + invoicing). INTERNAL bypasses in the app gate.
+ * Clinical / EHR-heavy surfaces disabled for all clinic roles when the clinic
+ * is on the Front Desk tier. INTERNAL bypasses in the app gate.
  */
 export const FRONT_DESK_BLOCKED_ACCESS_TARGETS: ReadonlySet<AppAccessTarget> =
   new Set([
@@ -30,12 +27,12 @@ export function isFrontDeskBlockedAccessTarget(
   return FRONT_DESK_BLOCKED_ACCESS_TARGETS.has(target);
 }
 
-export function shouldDenyAccessForWorkspaceProfile(
+export function shouldDenyAccessForFrontDeskTier(
   target: AppAccessTarget,
   role: UserRole | string | null | undefined,
-  workspaceProfile: WorkspaceProfile | null | undefined,
+  tier?: string | number | null,
 ): boolean {
-  if (!isFrontDeskWorkspace(workspaceProfile)) {
+  if (!isFrontDeskTier(tier)) {
     return false;
   }
 

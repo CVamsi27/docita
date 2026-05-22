@@ -1,6 +1,3 @@
-
-export * from "./api/patients.api";
-
 export * from "./hooks/usePatients";
 
 export * from "./rules/patientRules";

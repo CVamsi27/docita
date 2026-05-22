@@ -3,22 +3,22 @@
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { useMutation } from "@tanstack/react-query";
-import { Button } from "@workspace/ui/components/button";
-import { Input } from "@workspace/ui/components/input";
+import { Button } from "@workspace/ui/components/form/button";
+import { Input } from "@workspace/ui/components/form/input";
 import {
   Card,
   CardContent,
   CardDescription,
   CardHeader,
   CardTitle,
-} from "@workspace/ui/components/card";
-import { SectionHeading } from "@workspace/ui/components/section-heading";
-import { useAuth } from "@/lib/auth";
-import { MAIN_APP_URL } from "@/lib/api-config";
+} from "@workspace/ui/components/indicators/card";
+import { SectionHeading } from "@workspace/ui/components/layout/section-heading";
+import { useAuth } from "@/lib/auth/auth";
+import { MAIN_APP_URL } from "@/lib/api/api-config";
 import { toast } from "sonner";
 import { Eye, EyeOff, ShieldCheck } from "lucide-react";
-import { client } from "@/lib/api-client";
-import { showUserFacingErrorToast } from "@/lib/user-facing-errors";
+import { client } from "@/lib/api/api-client";
+import { showUserFacingErrorToast } from "@/lib/errors/user-facing-errors";
 
 function getMainAppLoginUrl() {
   return `${MAIN_APP_URL.replace(/\/$/, "")}/login`;

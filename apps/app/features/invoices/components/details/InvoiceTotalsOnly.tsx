@@ -1,6 +1,6 @@
 "use client";
 
-import { Separator } from "@workspace/ui/components/separator";
+import { Separator } from "@workspace/ui/components/layout/separator";
 import { Invoice, InvoiceItem } from "@workspace/types";
 
 type InvoiceWithExtras = Invoice & {

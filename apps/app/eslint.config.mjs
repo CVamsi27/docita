@@ -1,3 +1,8 @@
+import {
+  noInlineInvalidateKeysSyntaxRule,
+  noInlineQueryKeySyntaxRule,
+  noInlineUseApiQueryKeySyntaxRule,
+} from "@workspace/eslint-config/base";
 import { nextJsConfig } from "@workspace/eslint-config/next-js";
 
 export default [
@@ -12,6 +17,7 @@ export default [
       "coverage/**",
       "next-env.d.ts",
       "eslint.config.mjs",
+      "playwright.config.ts",
     ],
   },
   ...nextJsConfig,
@@ -25,7 +31,7 @@ export default [
           caughtErrorsIgnorePattern: "^_",
         },
       ],
-      "no-empty": ["warn", { allowEmptyCatch: true }],
+      "no-empty": ["error", { allowEmptyCatch: false }],
       "no-useless-catch": "warn",
       "no-console": ["error", { allow: ["warn", "error", "info"] }],
       "sort-imports": "off",
@@ -67,18 +73,21 @@ export default [
           selector:
             "JSXAttribute[name.name='animation'] > Literal[value='wave']",
           message:
-            "Skeleton animation=\"wave\" is banned by docs/UI_UX_STANDARD_2026.md \u00a75. Drop the prop; Skeleton is now static.",
+            "Skeleton animation=\"wave\" is banned by docs/ui/UI_UX_STANDARD_2026.md \u00a75. Drop the prop; Skeleton is now static.",
         },
         {
           selector: "Literal[value=/\\banimate-pulse\\b/]",
           message:
-            "animate-pulse is banned by docs/UI_UX_STANDARD_2026.md \u00a75. Use static styling (font-bold, ring, color tokens) for emphasis instead.",
+            "animate-pulse is banned by docs/ui/UI_UX_STANDARD_2026.md \u00a75. Use static styling (font-bold, ring, color tokens) for emphasis instead.",
         },
         {
           selector: "TemplateElement[value.cooked=/\\banimate-pulse\\b/]",
           message:
-            "animate-pulse is banned by docs/UI_UX_STANDARD_2026.md \u00a75. Use static styling (font-bold, ring, color tokens) for emphasis instead.",
+            "animate-pulse is banned by docs/ui/UI_UX_STANDARD_2026.md \u00a75. Use static styling (font-bold, ring, color tokens) for emphasis instead.",
         },
+        noInlineQueryKeySyntaxRule,
+        noInlineUseApiQueryKeySyntaxRule,
+        noInlineInvalidateKeysSyntaxRule,
       ],
       "@next/next/no-img-element": "off",
     },
@@ -132,6 +141,9 @@ export default [
           message:
             "Use Card or Section primitives for panel shells instead of repeating border/padding classes.",
         },
+        noInlineQueryKeySyntaxRule,
+        noInlineUseApiQueryKeySyntaxRule,
+        noInlineInvalidateKeysSyntaxRule,
       ],
     },
   },

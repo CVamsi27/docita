@@ -1,6 +1,5 @@
 import { z } from "zod";
 import { jsonObjectSchema } from "../shared/json-schema";
-import { workspaceProfileSchema } from "../shared/workspace-profile";
 import { sidebarNavOrderSchema } from "../shared/sidebar-nav";
 
 const customFieldSchema = z.object({
@@ -118,10 +117,18 @@ export const updateClinicSettingsRequestSchema = z.object({
   paymentReceivingBankAccount: bankAccountSchema.optional(),
   taxSettings: taxSettingsSchema.optional(),
   facilityLabel: z.enum(["CLINIC", "HOSPITAL"]).optional(),
-  workspaceProfile: workspaceProfileSchema.optional(),
   sidebarNavOrder: sidebarNavOrderSchema.optional(),
   mapsLocation: mapsLocationSchema.optional(),
   mapsLink: z.union([z.string().url(), z.literal("")]).optional(),
+  brandName: z.string().max(80).optional(),
+  lockedTheme: z
+    .object({
+      primaryColor: z.string().optional(),
+      mode: z.enum(["light", "dark", "system"]).optional(),
+      compactMode: z.boolean().optional(),
+      enforced: z.boolean().optional(),
+    })
+    .optional(),
 });
 
 export const createClinicDoctorRequestSchema = z.object({
@@ -195,7 +202,6 @@ export const clinicResponseSchema = createClinicRequestSchema.extend({
   slaSignatureUrl: z.union([z.string(), z.null()]).optional(),
   slaSignatureStoredUrl: z.union([z.string(), z.null()]).optional(),
   slaSignatureAcceptedAt: z.union([z.string(), z.date(), z.null()]).optional(),
-  workspaceProfile: workspaceProfileSchema.optional(),
 });
 
 export const listClinicsResponseSchema = z.array(clinicResponseSchema);

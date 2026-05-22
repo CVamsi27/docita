@@ -1,11 +1,11 @@
 "use client";
 
 import { AlertCircle, Calendar, LayoutGrid, Plus } from "lucide-react";
-import { AppPageScaffold } from "@workspace/ui/components/app-page-scaffold";
-import { Button } from "@workspace/ui/components/button";
-import { Card, CardContent, CardHeader, CardTitle } from "@workspace/ui/components/card";
-import { DataState } from "@workspace/ui/components/data-state";
-import { PageHeader } from "@workspace/ui/components/page-header";
+import { AppPageScaffold } from "@workspace/ui/components/layout/app-page-scaffold";
+import { Button } from "@workspace/ui/components/form/button";
+import { Card, CardContent, CardHeader, CardTitle } from "@workspace/ui/components/indicators/card";
+import { DataState } from "@workspace/ui/components/data-display/data-state";
+import { PageHeader } from "@workspace/ui/components/layout/page-header";
 
 export default function UiContractVisualTestPage() {
   return (

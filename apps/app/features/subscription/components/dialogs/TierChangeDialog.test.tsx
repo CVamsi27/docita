@@ -7,11 +7,11 @@ const pricingMocks = vi.hoisted(() => ({
   usePricingConfig: vi.fn(),
 }));
 
-vi.mock("@/hooks/api/use-pricing", () => ({
+vi.mock("@/features/subscription/hooks/use-pricing", () => ({
   usePricingConfig: pricingMocks.usePricingConfig,
 }));
 
-vi.mock("@/hooks/api/use-billing", () => ({
+vi.mock("@workspace/data-access", () => ({
   useProrationPreview: () => ({
     data: undefined,
     isFetching: false,

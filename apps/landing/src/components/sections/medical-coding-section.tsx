@@ -1,7 +1,7 @@
 "use client";
 
 import { Activity, CheckCircle2, Code2 } from "lucide-react";
-import { SectionHeading } from "@workspace/ui/components/section-heading";
+import { SectionHeading } from "@workspace/ui/components/layout/section-heading";
 
 export function MedicalCodingSection() {
   return (

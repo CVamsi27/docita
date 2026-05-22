@@ -1,17 +1,19 @@
 "use client";
 
+import { formatDate, getUserFacingErrorMessage } from "@workspace/utils";
+
 import { useCallback, useEffect, useMemo, useState } from "react";
-import { useInternalQuery } from "@/lib/use-internal-query";
-import { formatDate } from "@workspace/utils";
 import { RefreshCw } from "lucide-react";
-import { getUserFacingErrorMessage } from "@workspace/types";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
-import { client } from "@/lib/api-client";
-import { internalQueryKeys } from "@/lib/query-keys";
-import { Badge } from "@workspace/ui/components/badge";
-import { Button } from "@workspace/ui/components/button";
-import { Input } from "@workspace/ui/components/input";
-import { PageHeader } from "@workspace/ui/components/page-header";
+import { useAuth } from "@/lib/auth/auth";
+import {
+  type InternalSystemLog as SystemLog,
+  useInternalSystemLogs,
+} from "@workspace/data-access/internal";
+import { Badge } from "@workspace/ui/components/indicators/badge";
+import { Button } from "@workspace/ui/components/form/button";
+import { Input } from "@workspace/ui/components/form/input";
+import { PageHeader } from "@workspace/ui/components/layout/page-header";
 import {
   Table,
   TableBody,
@@ -19,16 +21,7 @@ import {
   TableHead,
   TableHeader,
   TableRow,
-} from "@workspace/ui/components/table";
-
-interface SystemLog {
-  id: string;
-  timestamp: string;
-  level: "INFO" | "WARNING" | "ERROR" | "DEBUG";
-  module: string;
-  message: string;
-  details?: string;
-}
+} from "@workspace/ui/components/data-display/table";
 
 interface SystemLogsPageProps {
   title: string;
@@ -38,6 +31,27 @@ interface SystemLogsPageProps {
 }
 
 const EMPTY_LOGS: SystemLog[] = [];
+
+function parseLogLimit(value: string | null, fallback: 25 | 50 | 100): 25 | 50 | 100 {
+  if (value === "25") return 25;
+  if (value === "50") return 50;
+  if (value === "100") return 100;
+  return fallback;
+}
+
+function parseLogLevel(
+  value: string | null,
+): "ALL" | SystemLog["level"] {
+  if (
+    value === "INFO" ||
+    value === "WARNING" ||
+    value === "ERROR" ||
+    value === "DEBUG"
+  ) {
+    return value;
+  }
+  return "ALL";
+}
 
 export function SystemLogsPage({
   title,
@@ -66,21 +80,10 @@ export function SystemLogsPage({
     const limit = searchParams.get("limit");
     const offset = searchParams.get("offset");
 
-    setSelectedLevel(
-      level === "INFO" ||
-        level === "WARNING" ||
-        level === "ERROR" ||
-        level === "DEBUG"
-        ? level
-        : "ALL",
-    );
+    setSelectedLevel(parseLogLevel(level));
     setSelectedModule(moduleParam || "ALL");
     setSearchText(search || "");
-    setSelectedLimit(
-      limit === "25" || limit === "50" || limit === "100"
-        ? (Number(limit) as 25 | 50 | 100)
-        : defaultLimit,
-    );
+    setSelectedLimit(parseLogLimit(limit, defaultLimit));
     setSelectedOffset(
       offset && Number.isFinite(Number(offset)) && Number(offset) >= 0
         ? Number(offset)
@@ -157,26 +160,8 @@ export function SystemLogsPage({
     searchText,
   ]);
 
-  const logsQuery = useInternalQuery({
-    queryKey: internalQueryKeys.internal.logs(logsParams),
-    queryFn: async () => {
-      const json = await client.get<
-        SystemLog[] | { data?: SystemLog[]; total?: number }
-      >(`/internal/logs?${logsParams}`);
-      const logsData = Array.isArray(json)
-        ? json
-        : Array.isArray(json.data)
-          ? json.data
-          : [];
-      const total = Array.isArray(json)
-        ? json.length
-        : typeof json.total === "number"
-          ? json.total
-          : logsData.length;
-
-      return { logs: logsData, total };
-    },
-  });
+  const { token } = useAuth();
+  const logsQuery = useInternalSystemLogs(token, logsParams);
 
   const logs = useMemo(
     () => logsQuery.data?.logs ?? EMPTY_LOGS,
@@ -290,7 +275,7 @@ export function SystemLogsPage({
             className="h-9 w-full rounded-md border border-input bg-background px-3 text-sm"
             value={selectedLevel}
             onChange={(e) => {
-              const value = e.target.value as "ALL" | SystemLog["level"];
+              const value = parseLogLevel(e.target.value);
               setSelectedLevel(value);
               updateFilterParams({ level: value, offset: 0 });
             }}
@@ -347,7 +332,7 @@ export function SystemLogsPage({
             className="h-9 w-full rounded-md border border-input bg-background px-3 text-sm"
             value={selectedLimit}
             onChange={(e) => {
-              const value = Number(e.target.value) as 25 | 50 | 100;
+              const value = parseLogLimit(e.target.value, defaultLimit);
               setSelectedLimit(value);
               updateFilterParams({ limit: value, offset: 0 });
             }}

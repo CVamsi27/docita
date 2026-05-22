@@ -1,17 +1,19 @@
 import {
+  Inject,
   Injectable,
   CanActivate,
   ExecutionContext,
   ForbiddenException,
   Logger,
 } from '@nestjs/common';
+import { CLOCK_PORT, type IClock } from '@/shared/common/ports/clock.port';
 import { Reflector } from '@nestjs/core';
 import { SubscriptionStatus } from '@workspace/db';
 import { IS_PUBLIC_KEY } from '@/shared/modules/auth/auth/public.decorator';
 import { ClinicAuthCacheService } from '@/shared/modules/auth/auth/clinic-auth-cache.service';
 import {
   isBillingAdminRole,
-  isSubscriptionPastGraceDeadline,
+  isSubscriptionBillingHardLocked,
 } from '@/shared/modules/auth/utils/subscription-hard-lock.util';
 import { getTrialWindowState } from '@/shared/modules/auth/utils/trial-window.util';
 
@@ -25,6 +27,7 @@ export class SubscriptionStatusGuard implements CanActivate {
   constructor(
     private reflector: Reflector,
     private clinicAuthCache: ClinicAuthCacheService,
+    @Inject(CLOCK_PORT) private readonly clock: IClock,
   ) {}
 
   async canActivate(context: ExecutionContext): Promise<boolean> {
@@ -63,10 +66,14 @@ export class SubscriptionStatusGuard implements CanActivate {
         { bypassCache: true },
       );
 
+      const now = this.clock.now().getTime();
       if (
-        isSubscriptionPastGraceDeadline({
+        isSubscriptionBillingHardLocked({
           subscriptionStatus: clinicAuth.subscriptionStatus,
           graceUntil: clinicAuth.subscriptionGraceUntil,
+          hasOutstandingPendingPayment: clinicAuth.hasOutstandingPendingPayment,
+          subscriptionCurrentPeriodEnd: clinicAuth.subscriptionCurrentPeriodEnd,
+          now,
         }) &&
         !isBillingAdminRole(user.role)
       ) {
@@ -82,6 +89,7 @@ export class SubscriptionStatusGuard implements CanActivate {
       const trialWindowState = getTrialWindowState({
         subscriptionStatus: clinicAuth.subscriptionStatus,
         trialEnd: clinicAuth.subscriptionTrialEnd,
+        now: this.clock.now(),
       });
 
       if (trialWindowState === 'EXPIRED' && !isBillingAdminRole(user.role)) {

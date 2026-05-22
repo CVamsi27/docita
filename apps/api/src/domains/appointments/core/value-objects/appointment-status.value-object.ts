@@ -1,3 +1,5 @@
+import { InvariantViolationError } from '@/shared/common/errors/domain.errors';
+
 export enum AppointmentStatusEnum {
   SCHEDULED = 'SCHEDULED',
   CONFIRMED = 'CONFIRMED',
@@ -23,7 +25,7 @@ export class AppointmentStatus {
 
   constructor(value: AppointmentStatusEnum) {
     if (!Object.values(AppointmentStatusEnum).includes(value)) {
-      throw new Error(`Invalid appointment status: ${value}`);
+      throw new InvariantViolationError(`Invalid appointment status: ${value}`);
     }
     this.value = value;
   }

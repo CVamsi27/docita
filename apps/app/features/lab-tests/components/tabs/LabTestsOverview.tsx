@@ -4,7 +4,7 @@ import {
   CardContent,
   CardHeader,
   CardTitle,
-} from "@workspace/ui/components/card";
+} from "@workspace/ui/components/indicators/card";
 import { AlertCircle, CheckCircle, Clock, FlaskConical } from "lucide-react";
 
 interface LabTestsOverviewProps {

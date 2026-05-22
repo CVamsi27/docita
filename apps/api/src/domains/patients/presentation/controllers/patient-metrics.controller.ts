@@ -12,9 +12,11 @@ import {
 import { APP_ACCESS_TARGETS, Feature } from '@workspace/types';
 import { Roles } from '@/shared/modules/auth/auth/roles.decorator';
 import { RequireFeature } from '@/shared/modules/auth/auth/tier.decorator';
-import { RequestWithUser } from '@/common/types/common.types';
+import { RequestWithUser } from '@/shared/common/types/common.types';
 import { PatientService } from '@/domains/patients/application/services/patient.service';
 import { PatientMetricsService } from '@/domains/patients/application/services/patientMetrics.service';
+import { AuditService } from '@/shared/modules/audit/audit/audit.service';
+import { logPatientPhiRead } from '@/shared/modules/audit/audit/patient-access-audit.util';
 import {
   CreateMetricCategoryDto,
   CreateMetricDefinitionDto,
@@ -31,6 +33,7 @@ export class PatientMetricsController {
   constructor(
     private readonly patientService: PatientService,
     private readonly patientMetricsService: PatientMetricsService,
+    private readonly auditService: AuditService,
   ) {}
 
   private async verifyPatientAccess(
@@ -52,6 +55,7 @@ export class PatientMetricsController {
     @Request() req: RequestWithUser,
   ) {
     const clinicId = await this.verifyPatientAccess(patientId, req);
+    await logPatientPhiRead(this.auditService, req, patientId, 'VIEW_HISTORY');
     return this.patientMetricsService.listCategories(clinicId, patientId);
   }
 
@@ -91,6 +95,7 @@ export class PatientMetricsController {
     @Request() req: RequestWithUser,
   ) {
     const clinicId = await this.verifyPatientAccess(patientId, req);
+    await logPatientPhiRead(this.auditService, req, patientId, 'VIEW_HISTORY');
     return this.patientMetricsService.getSelections(clinicId, patientId);
   }
 
@@ -136,6 +141,7 @@ export class PatientMetricsController {
     @Query() query: MetricHistoryQueryDto,
   ) {
     const clinicId = await this.verifyPatientAccess(patientId, req);
+    await logPatientPhiRead(this.auditService, req, patientId, 'VIEW_HISTORY');
     return this.patientMetricsService.getHistory(clinicId, patientId, query);
   }
 }

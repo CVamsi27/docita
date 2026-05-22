@@ -1,7 +1,11 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import { ReminderNotificationService } from './reminder-notification.service';
-import { PrismaService } from '@/prisma/prisma.service';
+import {
+  REMINDER_PERSISTENCE_PORT,
+  type ReminderPersistencePort,
+} from '@/domains/reminders/application/ports/reminder-persistence.port';
 import { SendMessageUseCase } from '@/domains/whatsapp/application/use-cases/send-message.use-case';
+import { clockPortTestProvider } from '@/test-utils';
 import { ClinicTier, IntelligenceAddon } from '@workspace/db';
 import {
   afterEach,
@@ -121,8 +125,30 @@ describe('ReminderNotificationService', () => {
     updatedAt: new Date('2024-01-01T00:00:00Z'),
   };
 
+  let prismaMock: {
+    $transaction: jest.Mock<
+      (callback: (tx: ReminderPersistencePort) => unknown) => Promise<unknown>
+    >;
+    appointmentReminder: {
+      create: jest.Mock<
+        (_args: AppointmentReminderCreateInput) => Promise<object>
+      >;
+    };
+    whatsappLog: {
+      create: jest.Mock<(_args: WhatsappLogCreateInput) => Promise<object>>;
+    };
+    clinic: {
+      findUnique: jest.Mock<
+        (
+          _args: ClinicFindUniqueInput,
+        ) => Promise<Record<string, unknown> | null>
+      >;
+    };
+  };
+
   beforeEach(async () => {
-    const prismaMock = {
+    prismaMock = {
+      $transaction: jest.fn(),
       appointmentReminder: {
         create: jest
           .fn<(_args: AppointmentReminderCreateInput) => Promise<object>>()
@@ -148,25 +174,32 @@ describe('ReminderNotificationService', () => {
           }),
       },
     };
+    prismaMock.$transaction.mockImplementation(
+      (callback: (tx: ReminderPersistencePort) => unknown) =>
+        Promise.resolve(
+          callback(prismaMock as unknown as ReminderPersistencePort),
+        ),
+    );
 
     const module: TestingModule = await Test.createTestingModule({
       providers: [
         ReminderNotificationService,
         {
-          provide: PrismaService,
+          provide: REMINDER_PERSISTENCE_PORT,
           useValue: prismaMock,
         },
         {
           provide: SendMessageUseCase,
           useValue: sendMessageMock,
         },
+        clockPortTestProvider(),
       ],
     }).compile();
 
     service = module.get<ReminderNotificationService>(
       ReminderNotificationService,
     );
-    prisma = module.get(PrismaService);
+    prisma = module.get(REMINDER_PERSISTENCE_PORT) as unknown as typeof prisma;
     sendMessage = module.get(SendMessageUseCase);
   });
 

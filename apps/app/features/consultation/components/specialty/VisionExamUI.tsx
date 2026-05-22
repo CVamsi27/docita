@@ -1,11 +1,11 @@
-import { Input } from "@workspace/ui/components/input";
-import { Label } from "@workspace/ui/components/label";
+import { Input } from "@workspace/ui/components/form/input";
+import { Label } from "@workspace/ui/components/form/label";
 import {
   Card,
   CardContent,
   CardHeader,
   CardTitle,
-} from "@workspace/ui/components/card";
+} from "@workspace/ui/components/indicators/card";
 import {
   Table,
   TableBody,
@@ -13,7 +13,7 @@ import {
   TableHead,
   TableHeader,
   TableRow,
-} from "@workspace/ui/components/table";
+} from "@workspace/ui/components/data-display/table";
 
 import { OphthalmologyExamData } from "@workspace/types";
 
@@ -36,9 +36,9 @@ export function VisionExamUI({ value, onChange, readOnly }: VisionExamProps) {
 
     if (["sph", "cyl", "axis", "add"].includes(field)) {
       newData.refraction = { ...newData.refraction };
-      newData.refraction[eyeKey] = { ...newData.refraction?.[eyeKey] };
+      newData.refraction[eyeKey] = { ...(newData.refraction?.[eyeKey] ?? {}) };
 
-      const refParams = newData.refraction[eyeKey]!;
+      const refParams = newData.refraction[eyeKey];
       if (field === "sph") refParams.sphere = val ? parseFloat(val) : undefined;
       if (field === "cyl")
         refParams.cylinder = val ? parseFloat(val) : undefined;
@@ -48,9 +48,9 @@ export function VisionExamUI({ value, onChange, readOnly }: VisionExamProps) {
 
     if (["va", "vaNear"].includes(field)) {
       newData.visualAcuity = { ...newData.visualAcuity };
-      newData.visualAcuity[eyeKey] = { ...newData.visualAcuity?.[eyeKey] };
+      newData.visualAcuity[eyeKey] = { ...(newData.visualAcuity?.[eyeKey] ?? {}) };
 
-      const vaParams = newData.visualAcuity[eyeKey]!;
+      const vaParams = newData.visualAcuity[eyeKey];
       if (field === "va") vaParams.uncorrected = val;
       if (field === "vaNear") vaParams.corrected = val;
     }

@@ -1,4 +1,5 @@
 import type { Appointment, VitalSign } from "@workspace/types";
+import { isVitalRangeKey } from "@/features/consultation/lib/consultation-vital-keys";
 
 export const getVitalRanges = (age: number) => {
   if (age < 1) {
@@ -31,7 +32,7 @@ export const isVitalNormal = (
   age: number,
 ): boolean => {
   const ranges = getVitalRanges(age);
-  const range = ranges[vital as keyof typeof ranges];
+  const range = isVitalRangeKey(vital) ? ranges[vital] : undefined;
   if (!range) return true;
   return value >= range.min && value <= range.max;
 };

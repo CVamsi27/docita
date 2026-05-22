@@ -1,56 +1,45 @@
 "use client";
 
-import { DocitaLoadingIndicator } from "@workspace/ui/components/docita-loading-indicator";
+import { DocitaLoadingIndicator } from "@workspace/ui/components/feedback/docita-loading-indicator";
 
 import { useEffect } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
-import * as z from "zod";
+import {
+  securitySettingsFormSchema,
+  type SecuritySettingsFormValues,
+} from "@workspace/types";
 import {
   Card,
   CardContent,
   CardDescription,
   CardHeader,
   CardTitle,
-} from "@workspace/ui/components/card";
-import { Label } from "@workspace/ui/components/label";
-import { Switch } from "@workspace/ui/components/switch";
-import { Button } from "@workspace/ui/components/button";
-import { Input } from "@workspace/ui/components/input";
+} from "@workspace/ui/components/indicators/card";
+import { Label } from "@workspace/ui/components/form/label";
+import { Switch } from "@workspace/ui/components/form/switch";
+import { Button } from "@workspace/ui/components/form/button";
+import { Input } from "@workspace/ui/components/form/input";
 import { Lock } from "lucide-react";
 import Link from "next/link";
 import { Feature } from "@workspace/types";
 import { usePermissionStore } from "@/lib/stores/permission-store";
-import { FeatureTierBadge } from "@/features/_shared/components/auth/feature-gate";
-import { SUBSCRIPTION_SETTINGS_PATH } from "@/lib/subscription-settings-path";
+import { FeatureTierBadge } from "@/components/auth/feature-gate";
+import { SUBSCRIPTION_SETTINGS_PATH } from "@/lib/subscription/subscription-settings-path";
 import {
-  ClinicAppSettings,
   useClinicSettings,
   useUpdateClinicSettings,
-} from "@/hooks/api/use-settings";
+} from "@workspace/data-access";
+import { parseClinicAppSettings } from "@/lib/clinic/parse-clinic-app-settings";
 import { toast } from "sonner";
-import { showUserFacingErrorToast } from "@/lib/user-facing-errors";
+import { showUserFacingErrorToast } from "@/lib/errors/user-facing-errors";
 import {
   Form,
   FormControl,
   FormField,
   FormItem,
   FormMessage,
-} from "@workspace/ui/components/form";
-
-const securitySettingsSchema = z.object({
-  twoFactorAuth: z.boolean(),
-  sessionTimeout: z
-    .string()
-    .min(1, "Enter a session timeout")
-    .refine((value) => {
-      const parsed = Number(value);
-      return Number.isFinite(parsed) && parsed >= 5 && parsed <= 240;
-    }, "Use a value between 5 and 240 minutes"),
-  auditLogs: z.boolean(),
-});
-
-type SecuritySettingsFormValues = z.infer<typeof securitySettingsSchema>;
+} from "@workspace/ui/components/form/form";
 
 export function SecuritySettings() {
   const { data: clinic, isLoading } = useClinicSettings();
@@ -59,7 +48,7 @@ export function SecuritySettings() {
   const { canAccess } = usePermissionStore();
 
   const form = useForm<SecuritySettingsFormValues>({
-    resolver: zodResolver(securitySettingsSchema),
+    resolver: zodResolver(securitySettingsFormSchema),
     defaultValues: {
       twoFactorAuth: false,
       sessionTimeout: "30",
@@ -69,7 +58,7 @@ export function SecuritySettings() {
 
   useEffect(() => {
     if (clinic) {
-      const s = (clinic.settings as ClinicAppSettings) || {};
+      const s = parseClinicAppSettings(clinic.settings);
       form.reset({
         twoFactorAuth: s.twoFactorAuth ?? false,
         sessionTimeout: String(s.sessionTimeout || "30"),

@@ -1,7 +1,5 @@
 import { z } from 'zod';
 import { ClinicType as _ClinicType } from '@workspace/db';
-import { workspaceProfileSchema } from '@workspace/types';
-
 const BankAccountSchema = z.object({
   accountHolderName: z.string().optional(),
   bankName: z.string().optional(),
@@ -84,8 +82,6 @@ export const ClinicSettingsSchema = z.object({
    * DB migrations, while keeping India GST (`gstin`) as-is for existing flows.
    */
   taxSettings: TaxSettingsSchema.optional(),
-
-  workspaceProfile: workspaceProfileSchema.optional(),
 
   /** Used for patient-facing directions (e.g., WhatsApp confirmations). */
   mapsLocation: MapsLocationSchema.optional(),

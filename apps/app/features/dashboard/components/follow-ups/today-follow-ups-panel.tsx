@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { formatDate } from "@/lib/formatters";
 import { getFollowUpListQuery } from "@/features/follow-ups";
-import { useFollowUps } from "@/hooks/api/use-appointments";
+import { useFollowUps } from "@workspace/data-access";
 import type { FollowUpResponse, FollowUpStatus } from "@workspace/types";
 import {
   Card,
@@ -11,9 +11,9 @@ import {
   CardDescription,
   CardHeader,
   CardTitle,
-} from "@workspace/ui/components/card";
-import { Badge } from "@workspace/ui/components/badge";
-import { EmptyState } from "@workspace/ui/components/empty-state";
+} from "@workspace/ui/components/indicators/card";
+import { Badge } from "@workspace/ui/components/indicators/badge";
+import { EmptyState } from "@workspace/ui/components/feedback/empty-state";
 import { CalendarCheck } from "lucide-react";
 import { ViewAllLinkUI } from "@/features/dashboard/components/layout/view-all-link-ui";
 

@@ -1,11 +1,13 @@
 import { useEffect, useMemo, useState } from "react";
-import { getUserFacingErrorMessage } from "@workspace/types";
-import { useAuth } from "@/lib/auth";
-import { useInternalQuery } from "@/lib/use-internal-query";
-import { fetchClinics, fetchUsersForSelection } from "./api";
+import { getUserFacingErrorMessage } from "@workspace/utils";
+import { useAuth } from "@/lib/auth/auth";
+import {
+  useInternalClinics,
+  useInternalUsersList,
+} from "@workspace/data-access/internal";
 import { calculateRoleStats, filterUsers } from "./utils";
 import type { RoleFilter, User } from "./types";
-import { showUserFacingErrorToast } from "@/lib/user-facing-errors";
+import { showUserFacingErrorToast } from "@/lib/errors/user-facing-errors";
 
 export function useUsersData() {
   const { token } = useAuth();
@@ -16,25 +18,10 @@ export function useUsersData() {
   const [selectedUser, setSelectedUser] = useState<User | null>(null);
   const [isViewOpen, setIsViewOpen] = useState(false);
 
-  const clinicsQuery = useInternalQuery({
-    queryKey: ["internal", "users", "clinics", token] as const,
-    queryFn: fetchClinics,
-  });
+  const clinicsQuery = useInternalClinics(token, "users");
+  const clinics = clinicsQuery.data ?? [];
 
-  const usersQuery = useInternalQuery({
-    queryKey: [
-      "internal",
-      "users",
-      token,
-      selectedClinic,
-      clinicsQuery.data?.length ?? 0,
-    ] as const,
-    queryFn: () =>
-      fetchUsersForSelection(selectedClinic, clinicsQuery.data ?? []),
-    enabled:
-      Boolean(selectedClinic) &&
-      (selectedClinic === "all" ? (clinicsQuery.data?.length ?? 0) > 0 : true),
-  });
+  const usersQuery = useInternalUsersList(token, selectedClinic, clinics);
 
   useEffect(() => {
     if (clinicsQuery.error) {
@@ -67,12 +54,13 @@ export function useUsersData() {
   const errorMessage = errorSource
     ? getUserFacingErrorMessage(errorSource, {
         context: "load",
-        fallback: "We could not load your team members. Please refresh and try again.",
+        fallback:
+          "We could not load your team members. Please refresh and try again.",
       })
     : "We could not load your team members. Please refresh and try again.";
 
   return {
-    clinics: clinicsQuery.data ?? [],
+    clinics,
     users,
     filteredUsers,
     roleStats,

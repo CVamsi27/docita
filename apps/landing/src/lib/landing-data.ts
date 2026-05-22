@@ -13,13 +13,13 @@ interface PlatformStatsCacheEntry {
   stats: PlatformStats | null;
 }
 
-export interface TierPricing {
+interface TierPricing {
   monthly: number | "custom";
   yearly: number | "custom";
   currency: string;
 }
 
-export interface TierConfig {
+interface TierConfig {
   id: string;
   name: string;
   description: string;
@@ -28,7 +28,7 @@ export interface TierConfig {
   features: string[];
 }
 
-export interface PricingConfig {
+interface PricingConfig {
   currency: {
     code: string;
     symbol: string;

@@ -13,14 +13,12 @@ import {
   getPrismaInstance,
 } from './setup';
 import { factories, setPrismaInstance } from './factories';
-import { RazorpaySubscriptionGateway } from '@/gateways/razorpay-subscription.gateway';
-import { mockRazorpayGateway } from './razorpay.provider';
-import { WhatsappService } from '@/shared/modules/messaging/whatsapp/whatsapp.service';
+import { WhatsappService } from '@/domains/whatsapp/application/services/whatsapp-clinic-facade.service';
 import { mockWhatsappService } from './whatsapp.provider';
 
 /**
  * Table-driven checks for high-risk routes: TierGuard + RolesGuard must match
- * APP_ACCESS_MATRIX expectations. See docs/ACCESS_AUDIT.md traceability appendix.
+ * APP_ACCESS_MATRIX expectations. See docs/compliance/ACCESS_AUDIT.md traceability appendix.
  */
 describe('RBAC high-risk matrix (e2e)', () => {
   let app: INestApplication;
@@ -33,8 +31,6 @@ describe('RBAC high-risk matrix (e2e)', () => {
     })
       .overrideProvider(PrismaService)
       .useValue(getPrismaInstance())
-      .overrideProvider(RazorpaySubscriptionGateway)
-      .useValue(mockRazorpayGateway)
       .overrideProvider(WhatsappService)
       .useValue(mockWhatsappService)
       .compile();

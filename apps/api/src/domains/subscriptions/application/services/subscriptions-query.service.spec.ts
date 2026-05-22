@@ -3,10 +3,11 @@ import { SubscriptionsQueryService } from './subscriptions-query.service';
 import type { ISubscriptionRepository } from '@/domains/subscriptions/application/ports/subscription.repository.port';
 import type { IClinicOperations } from '@/domains/subscriptions/application/ports/clinic-operations.port';
 import { SubscriptionPricingService } from '@/domains/subscriptions/core/services/subscription-pricing.service';
-import { PricingService as BillingPricingService } from '@/domains/billing/core/services/pricing.service';
+import type { IClinicPricingQuery } from '@/domains/billing/application/ports';
 import { FeatureFlagService } from '@/shared/modules/services/feature-flag.service';
-import type { RazorpayInvoiceAdapter } from '@/domains/payments/infrastructure/adapters/razorpay/razorpay-invoice.adapter';
-import type { ActivateSubscriptionUseCase } from '@/domains/subscriptions/application/use-cases/activate-subscription.use-case';
+import type { IPlatformInvoiceProvider } from '@/domains/payments/core/ports';
+import type { IClock } from '@/shared/common/ports/clock.port';
+import type { ApplyPlanChangeWithoutPaymentUseCase } from '@/domains/subscriptions/application/use-cases/apply-plan-change-without-payment.use-case';
 
 describe('SubscriptionsQueryService', () => {
   const findPaymentsByClinicIdMock =
@@ -21,9 +22,20 @@ describe('SubscriptionsQueryService', () => {
     findByStatus: jest.fn(async () => []),
     findApproachingRenewal: jest.fn(async () => []),
     update: jest.fn(async () => undefined),
+    markClinicPastDue: jest.fn(async () => undefined),
     delete: jest.fn(async () => undefined),
+    findBillingContact: jest.fn(async () => ({
+      name: null,
+      email: null,
+      phoneNumber: null,
+    })),
+    findExpiryReminderCandidates: jest.fn(async () => []),
+    findGraceDeadlineReminderCandidates: jest.fn(async () => []),
+    findRecentReminderClinicIds: jest.fn(async () => []),
+    createSubscriptionReminders: jest.fn(async () => undefined),
     savePayment: jest.fn(async () => undefined),
     updatePaymentStatus: jest.fn(async () => undefined),
+    updatePaymentStatusById: jest.fn(async () => undefined),
     findPaymentsByClinicId: findPaymentsByClinicIdMock,
     findPaymentById: jest.fn(async () => null),
     findPaymentByOrderId: jest.fn(async () => null),
@@ -43,19 +55,22 @@ describe('SubscriptionsQueryService', () => {
       razorpayCustomerId: undefined,
     })),
   } as unknown as IClinicOperations;
-  const billingPricingService = {
+  const clinicPricingQuery = {
     getPricingConfig: jest.fn(async () => ({ tiers: [] })),
-  } as unknown as BillingPricingService;
+  } as unknown as IClinicPricingQuery;
   const featureFlagService = {
     getClinicPricingOffer: jest.fn(async () => null),
   } as unknown as FeatureFlagService;
-  const razorpayInvoiceAdapter = {
+  const platformInvoiceProvider = {
     listInvoicesByCustomer: jest.fn(async () => []),
     createInvoice: jest.fn(async () => null),
-  } as unknown as RazorpayInvoiceAdapter;
-  const activateSubscriptionUseCase = {
-    applyPlanChangeWithoutPayment: jest.fn(async () => undefined),
-  } as unknown as ActivateSubscriptionUseCase;
+  } as unknown as IPlatformInvoiceProvider;
+  const clock = {
+    now: () => new Date('2026-04-29T00:00:00.000Z'),
+  } as IClock;
+  const applyPlanChangeWithoutPayment = {
+    execute: jest.fn(async () => undefined),
+  } as unknown as ApplyPlanChangeWithoutPaymentUseCase;
 
   let service: SubscriptionsQueryService;
 
@@ -66,10 +81,11 @@ describe('SubscriptionsQueryService', () => {
       subscriptionRepo,
       clinicOps,
       new SubscriptionPricingService(),
-      billingPricingService,
+      clinicPricingQuery,
       featureFlagService,
-      razorpayInvoiceAdapter,
-      activateSubscriptionUseCase,
+      platformInvoiceProvider,
+      applyPlanChangeWithoutPayment,
+      clock,
     );
   });
 
@@ -193,5 +209,44 @@ describe('SubscriptionsQueryService', () => {
     );
 
     expect(result).toEqual([]);
+  });
+
+  it('sets hasOutstandingPendingPayment when a failed renewal row is still open', async () => {
+    findByClinicIdMock.mockResolvedValue({
+      id: 'sub-1',
+      clinicId: 'clinic-1',
+      getPlan: () => ({ value: 'ESSENTIAL' }),
+      getBillingCycle: () => ({ value: 'MONTHLY' }),
+      getStatus: () => ({ value: 'ACTIVE' }),
+      getBasePrice: () => ({ paise: 99900 }),
+      getDaysRemaining: () => 0,
+      cancelAtPeriodEnd: false,
+      currentPeriodStart: new Date('2026-03-17T00:00:00.000Z'),
+      currentPeriodEnd: new Date('2026-04-17T23:59:59.999Z'),
+      scheduledChange: null,
+      getCredits: () => ({ paise: 0 }),
+      isScheduledChangeDue: () => false,
+    } as never);
+    findPaymentsByClinicIdMock.mockResolvedValue([
+      {
+        id: 'paid-old',
+        amountCents: 99900,
+        currency: 'INR',
+        status: 'paid',
+        createdAt: new Date('2026-03-17T00:00:00.000Z'),
+      },
+      {
+        id: 'failed-renewal',
+        amountCents: 99900,
+        currency: 'INR',
+        status: 'failed',
+        createdAt: new Date('2026-04-18T00:00:00.000Z'),
+      },
+    ]);
+
+    const details = await service.getSubscriptionDetails('clinic-1');
+
+    expect(details?.hasOutstandingPendingPayment).toBe(true);
+    expect(details?.subscriptionStatus).toBe('ACTIVE');
   });
 });

@@ -27,11 +27,11 @@ import {
   RequireFeature,
 } from '@/shared/modules/auth/auth/tier.decorator';
 import { getDbRolesForTarget } from '@/shared/modules/auth/auth/access-matrix.util';
-import { RequestWithUser } from '@/common/types/common.types';
+import { RequestWithUser } from '@/shared/common/types/common.types';
 import {
   assertAllowedFileSignature,
   createTempDiskStorage,
-} from '@/common/utils/upload.utils';
+} from '@/shared/common/utils/upload.utils';
 import { unlink } from 'fs/promises';
 
 @Controller('uploads')

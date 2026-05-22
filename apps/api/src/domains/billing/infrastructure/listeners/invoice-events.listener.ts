@@ -1,5 +1,6 @@
 import { Injectable, Logger } from '@nestjs/common';
 import { OnEvent } from '@nestjs/event-emitter';
+import { ApplicationEvents } from '@/shared/common/events/application-events';
 import { InvoiceGeneratedEvent } from '@/domains/billing/application/services/events/invoice-generated.event';
 import { PrismaService } from '@/prisma/prisma.service';
 import { SendMessageUseCase } from '@/domains/whatsapp/application/use-cases/send-message.use-case';
@@ -18,7 +19,7 @@ export class InvoiceEventsListener {
     private readonly configService: AppConfigService,
   ) {}
 
-  @OnEvent('invoice.generated')
+  @OnEvent(ApplicationEvents.INVOICE_GENERATED)
   async handleInvoiceGeneratedEvent(event: InvoiceGeneratedEvent) {
     const { invoiceId, clinicId } = event;
     this.logger.log(`Handling invoice.generated event for ${invoiceId}`);

@@ -34,11 +34,11 @@ vi.mock("next/navigation", () => ({
   useRouter: () => mocks.router,
 }));
 
-vi.mock("@/lib/auth-context", () => ({
+vi.mock("@/lib/auth/auth-context", () => ({
   useAuth: () => mocks.auth,
 }));
 
-vi.mock("@/lib/api-client", () => ({
+vi.mock("@/lib/api/api-client", () => ({
   typedApi: {
     clinics: {
       searchForJoin: vi.fn(),
@@ -49,7 +49,7 @@ vi.mock("@/lib/api-client", () => ({
   },
 }));
 
-vi.mock("@/components/common/loaders/page-transition-loader", () => ({
+vi.mock("@/components/loaders/page-transition-loader", () => ({
   PageTransitionLoader: ({
     title,
     description,
@@ -80,13 +80,13 @@ vi.mock("@/features/auth/components/PreDashboardShell", () => ({
   },
 }));
 
-vi.mock("@/lib/logger", () => ({
+vi.mock("@/lib/monitoring/logger", () => ({
   logger: {
     error: vi.fn(),
   },
 }));
 
-vi.mock("@/lib/user-facing-errors", () => ({
+vi.mock("@/lib/errors/user-facing-errors", () => ({
   showUserFacingErrorToast: vi.fn(),
 }));
 

@@ -2,10 +2,10 @@
 
 import Link from "next/link";
 import { ChevronLeft, Sparkles } from "lucide-react";
-import { Badge } from "@workspace/ui/components/badge";
-import { Button } from "@workspace/ui/components/button";
+import { Badge } from "@workspace/ui/components/indicators/badge";
+import { Button } from "@workspace/ui/components/form/button";
 import type { Patient } from "@workspace/types";
-import { useAskAi } from "@/features/_shared/components/ask-ai/ask-ai-context";
+import { useAskAi } from "@/components/ask-ai/ask-ai-context";
 import { formatGenderLabel } from "@/lib/formatters";
 
 interface PatientPageHeaderUIProps {

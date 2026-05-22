@@ -106,13 +106,14 @@ function frontendTarget(file, type) {
   if (file.startsWith("apps/app/app/")) return "apps/app/app route layer";
   if (file.startsWith("apps/app/features/")) return "apps/app/features/<feature>";
   if (file.startsWith("apps/app/providers/")) return "apps/app/providers";
-  if (file.startsWith("apps/app/lib/")) return "apps/app/lib";
-  if (file.startsWith("apps/app/hooks/")) return "apps/app/hooks or packages/hooks";
-  if (file.startsWith("apps/app/components/")) return "apps/app/features/_shared or packages/ui";
+  if (file.startsWith("apps/app/shared/lib/")) return "apps/app/shared/lib";
+  if (file.startsWith("apps/app/shared/hooks/")) return "apps/app/shared/hooks or packages/hooks";
+  if (file.startsWith("apps/app/shared/components/")) return "apps/app/features/_shared or packages/ui";
   if (file.startsWith("apps/internal/app/")) return "apps/internal/app route layer";
   if (file.startsWith("apps/internal/features/")) return "apps/internal/features/<feature>";
-  if (file.startsWith("apps/internal/components/")) return "apps/internal/features or packages/ui";
-  if (file.startsWith("apps/internal/lib/")) return "apps/internal/lib";
+  if (file.startsWith("apps/internal/shared/components/")) return "apps/internal/features or packages/ui";
+  if (file.startsWith("apps/internal/shared/lib/")) return "apps/internal/shared/lib";
+  if (file.startsWith("apps/internal/shared/hooks/")) return "apps/internal/shared/hooks or packages/hooks";
   if (file.startsWith("apps/landing/src/pages/")) return "apps/landing/src/pages";
   if (file.startsWith("apps/landing/src/components/")) return "apps/landing/src/components";
   if (file.startsWith("apps/landing/src/layouts/")) return "apps/landing/src/layouts";
@@ -130,7 +131,7 @@ function backendTarget(file, type) {
     return "apps/api/src/domains/<domain>";
   }
   if (file.startsWith("apps/api/src/shared/modules/")) return "apps/api/src/shared/modules";
-  if (file.startsWith("apps/api/src/common/")) return "apps/api/src/common legacy/generic utility";
+  if (file.startsWith("apps/api/src/shared/common/")) return "apps/api/src/shared/common (migrated from legacy src/common/)";
   if (file.startsWith("apps/api/src/test-utils/")) return "apps/api/src/test-utils";
   if (file.startsWith("apps/worker/src/domains/")) {
     if (type === "processor") return "apps/worker/src/domains/<domain>/processors";

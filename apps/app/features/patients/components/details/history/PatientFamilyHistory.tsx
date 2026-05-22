@@ -1,12 +1,12 @@
-import { Button } from "@workspace/ui/components/button";
-import { Input } from "@workspace/ui/components/input";
-import { SymbolTooltip } from "@workspace/ui/components/tooltip";
+import { Button } from "@workspace/ui/components/form/button";
+import { Input } from "@workspace/ui/components/form/input";
+import { SymbolTooltip } from "@workspace/ui/components/overlay/tooltip";
 import {
   Card,
   CardContent,
   CardHeader,
   CardTitle,
-} from "@workspace/ui/components/card";
+} from "@workspace/ui/components/indicators/card";
 import { Users, X } from "lucide-react";
 import { PatientWithMedicalHistory } from "@workspace/types";
 
@@ -59,7 +59,9 @@ export function PatientFamilyHistory({
                   <SymbolTooltip label="Remove family history">
                     <button
                       type="button"
-                      onClick={() => onRemoveFamilyHistory(history.id!)}
+                      onClick={() => {
+                        if (history.id) onRemoveFamilyHistory(history.id);
+                      }}
                       className="opacity-0 group-hover:opacity-100 p-1.5 rounded-full hover:bg-destructive/10 text-muted-foreground hover:text-destructive transition-colors duration-150"
                       aria-label="Remove family history"
                     >

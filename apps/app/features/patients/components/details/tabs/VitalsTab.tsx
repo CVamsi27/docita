@@ -7,8 +7,8 @@ import {
   CardContent,
   CardHeader,
   CardTitle,
-} from "@workspace/ui/components/card";
-import { Badge } from "@workspace/ui/components/badge";
+} from "@workspace/ui/components/indicators/card";
+import { Badge } from "@workspace/ui/components/indicators/badge";
 import {
   Activity,
   ChevronDown,
@@ -280,13 +280,13 @@ function VitalCell({
           {value}
         </span>
         {unit && (
-          <Badge variant="outline" className="text-[10px] px-1 h-4 font-normal">
+          <Badge variant="outline" className="text-[0.625rem] px-1 h-4 font-normal">
             {unit}
           </Badge>
         )}
       </div>
       {secondary ? (
-        <p className="mt-1 text-[10px] text-muted-foreground leading-tight">
+        <p className="mt-1 text-[0.625rem] text-muted-foreground leading-tight">
           {secondary}
         </p>
       ) : null}

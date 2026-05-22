@@ -1,6 +1,7 @@
 import { Logger } from '@nestjs/common';
 import { beforeEach, describe, expect, it, jest } from '@jest/globals';
 import { NlmCodingService } from './nlm-coding.service';
+import { createFixedClockMock } from '@/test-utils';
 
 describe('NlmCodingService', () => {
   let service: NlmCodingService;
@@ -13,7 +14,7 @@ describe('NlmCodingService', () => {
     });
 
   beforeEach(() => {
-    service = new NlmCodingService();
+    service = new NlmCodingService(createFixedClockMock());
     fetchMock = jest.fn<typeof fetch>();
     global.fetch = fetchMock;
   });

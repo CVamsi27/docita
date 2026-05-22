@@ -145,4 +145,23 @@ describe('RazorpayOrderAdapter.capturePayment', () => {
       new BadRequestException('Failed to capture payment'),
     );
   });
+
+  it('bounds provider calls with a timeout', async () => {
+    jest.useFakeTimers();
+    try {
+      mockRazorpay.orders.fetchPayments.mockImplementation(
+        () => new Promise(() => undefined),
+      );
+
+      const capturePromise = adapter.capturePayment('order_timeout');
+      const expectation = expect(capturePromise).rejects.toThrow(
+        new BadRequestException('Failed to capture payment'),
+      );
+      await jest.advanceTimersByTimeAsync(5000);
+
+      await expectation;
+    } finally {
+      jest.useRealTimers();
+    }
+  });
 });

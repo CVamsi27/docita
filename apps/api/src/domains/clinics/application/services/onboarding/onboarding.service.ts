@@ -1,14 +1,14 @@
 import {
+  BadRequestException,
+  Inject,
   Injectable,
   Logger,
-  BadRequestException,
-  NotFoundException,
-  Inject,
 } from '@nestjs/common';
-import { PrismaService } from '@/prisma/prisma.service';
+import {
+  CLINIC_PERSISTENCE_PORT,
+  type ClinicPersistencePort,
+} from '@/domains/clinics/application/ports/clinic-persistence.port';
 import { AuthService } from '@/shared/modules/auth/auth/auth.service';
-import { UploadSessionPurpose } from '@workspace/db';
-import { AppConfigService } from '@/shared/modules/config/app-configuration.service';
 import {
   PAYMENT_GATEWAY_TOKEN,
   type IPaymentGateway,
@@ -25,94 +25,40 @@ import { OnboardingValidationService } from './onboarding-validation.service';
 import { OnboardingWorkflowService } from './onboarding-workflow.service';
 import { OnboardingComplianceService } from './onboarding-compliance.service';
 import { UploadsService } from '@/domains/documents/application/services/uploads.service';
-import { isFrontDeskWorkspace, parseWorkspaceProfile } from '@workspace/types';
+import {
+  hasPriorPaidSubscriptionForEmail,
+  createSlaSignatureSession,
+  uploadSlaSignature,
+  getSlaSignatureSessionStatus,
+} from './onboarding-helpers';
+import { CLOCK_PORT, type IClock } from '@/shared/common/ports/clock.port';
+import { OnboardingPaymentService } from './onboarding-payment.service';
+import type { OnboardingResult } from './onboarding-result.types';
 
-interface OnboardingResult {
-  success: boolean;
-  clinicId: string;
-  userId: string;
-  subscriptionId?: string;
-  message: string;
-  errors?: string[];
-  access_token?: string;
-  user?: {
-    id: string;
-    email: string;
-    name: string;
-    role: string;
-    clinicId: string | null;
-  };
-}
-
+/**
+ * Facade — delegates checkout, progress, and compliance to onboarding specialists;
+ * real logic lives in OnboardingWorkflowService.
+ */
 @Injectable()
 export class OnboardingService {
   private readonly logger = new Logger(OnboardingService.name);
-
   constructor(
-    private prisma: PrismaService,
+    @Inject(CLINIC_PERSISTENCE_PORT)
+    private persistence: ClinicPersistencePort,
     private authService: AuthService,
     private dataService: OnboardingDataService,
     private validationService: OnboardingValidationService,
     private workflowService: OnboardingWorkflowService,
     private complianceService: OnboardingComplianceService,
     private uploadsService: UploadsService,
-    private configService: AppConfigService,
+    private paymentService: OnboardingPaymentService,
     @Inject(PAYMENT_GATEWAY_TOKEN)
     private paymentGateway: IPaymentGateway,
+    @Inject(CLOCK_PORT) private readonly clock: IClock,
   ) {}
 
-  async createCheckout(onboardingId: string, data: OnboardingCheckoutDto) {
-    const sessionData = this.dataService.getSessionData(onboardingId);
-    if (!sessionData) {
-      throw new BadRequestException('Onboarding session not found or expired');
-    }
-
-    const amountCents = this.validationService.getTierPricing(
-      data.tier,
-      data.billingCycle,
-      data.currency,
-    );
-
-    if (
-      this.validationService.validateTier(data.tier) &&
-      this.validationService.validateBillingCycle(data.billingCycle) &&
-      data.currency?.toUpperCase() === 'INR' &&
-      amountCents > 0 &&
-      !data.gstin
-    ) {
-      throw new BadRequestException(
-        'GSTIN is required before charging paid Indian plans',
-      );
-    }
-
-    if (amountCents <= 0) {
-      throw new BadRequestException(
-        'Selected plan does not support direct checkout',
-      );
-    }
-
-    const order = await this.paymentGateway.createOrder({
-      amountCents,
-      currency: data.currency || this.configService.getCurrencyCode(),
-      customerId: `onboarding-${onboardingId}`,
-      customerEmail: data.customerEmail,
-      customerPhone: data.customerPhone,
-      orderId: crypto.randomUUID(),
-      description: `Docita ${data.tier} - ${data.billingCycle}`,
-      notes: {
-        onboardingId,
-        tier: data.tier,
-        cycle: data.billingCycle,
-        customerName: data.customerName,
-      },
-    });
-
-    return {
-      orderId: order.razorpayOrderId,
-      amountCents: order.amountCents,
-      currency: order.currency,
-      razorpayKeyId: this.configService.getRazorpayKeyId() || '',
-    };
+  createCheckout(onboardingId: string, data: OnboardingCheckoutDto) {
+    return this.paymentService.createCheckout(onboardingId, data);
   }
 
   async createSlaSignatureSession(onboardingId: string) {
@@ -120,11 +66,7 @@ export class OnboardingService {
     if (!sessionData) {
       throw new BadRequestException('Onboarding session not found or expired');
     }
-
-    return this.uploadsService.createSession({
-      expiresInMinutes: 20,
-      purpose: UploadSessionPurpose.GENERAL,
-    });
+    return createSlaSignatureSession(onboardingId, this.uploadsService);
   }
 
   async uploadSlaSignature(
@@ -139,67 +81,24 @@ export class OnboardingService {
       userAgent?: string;
     },
   ) {
-    const session = await this.prisma.uploadSession.findUnique({
-      where: { id: sessionId },
-    });
-
-    if (!session) {
-      throw new NotFoundException('Signature session not found');
-    }
-
-    if (session.expiresAt < new Date()) {
-      throw new BadRequestException(
-        'This signature link has expired. Please generate a new link from onboarding.',
-      );
-    }
-
-    if (session.status === 'uploaded' && session.fileUrl) {
-      throw new BadRequestException(
-        'This signature link has already been used.',
-      );
-    }
-
-    const updated = await this.uploadsService.updateSession(sessionId, file, {
+    return uploadSlaSignature(
+      this.persistence,
+      this.uploadsService,
       onboardingId,
-      modifiedBy: context?.modifiedBy,
-      modifiedByRole: context?.modifiedByRole,
-      authMethod: context?.modifiedBy ? 'session-auth' : 'onboarding-session',
-      ipAddress: context?.ipAddress,
-      userAgent: context?.userAgent,
+      sessionId,
+      file,
       uploadSecret,
-    });
-
-    // One-time onboarding signature links should not be reused after upload.
-    await this.prisma.uploadSession.update({
-      where: { id: sessionId },
-      data: { expiresAt: new Date() },
-    });
-
-    return updated;
+      this.clock.now(),
+      context,
+    );
   }
 
-  async getSlaSignatureSessionStatus(
-    onboardingId: string,
-    sessionId: string,
-  ): Promise<{ status: string; uploaded: boolean; fileUrl: string | null }> {
-    void onboardingId;
-
-    const session = await this.prisma.uploadSession.findUnique({
-      where: { id: sessionId },
-    });
-    if (!session) {
-      throw new NotFoundException('Signature session not found');
-    }
-
-    if (session.purpose !== UploadSessionPurpose.GENERAL) {
-      throw new NotFoundException('Signature session not found');
-    }
-
-    return {
-      status: session.status,
-      uploaded: session.status === 'uploaded' || !!session.fileUrl,
-      fileUrl: session.fileUrl,
-    };
+  async getSlaSignatureSessionStatus(onboardingId: string, sessionId: string) {
+    return getSlaSignatureSessionStatus(
+      this.persistence,
+      onboardingId,
+      sessionId,
+    );
   }
 
   initializeOnboarding(): { onboardingId: string } {
@@ -260,16 +159,14 @@ export class OnboardingService {
         completeData.planSelection.tier === ClinicTier.ESSENTIAL &&
         completeData.paymentDetails?.skipPayment === true;
 
-      // Trial re-use prevention: a free trial is a one-shot offer per
-      // person. If the admin email is associated with ANY clinic that has
-      // ever had a `paid` subscription payment, deny the trial path and
-      // force the user to complete a real Razorpay checkout.
+      // Free trial re-use prevention: prior paid subscriptions must use
+      // checkout instead of another trial.
       if (isUnpaidEssentialTrial) {
-        const hasPriorPaidSubscription =
-          await this.hasPriorPaidSubscriptionForEmail(
-            completeData.adminAccount.email,
-          );
-        if (hasPriorPaidSubscription) {
+        const hasPriorPaid = await hasPriorPaidSubscriptionForEmail(
+          this.persistence,
+          completeData.adminAccount.email,
+        );
+        if (hasPriorPaid) {
           throw new BadRequestException(
             'The 30-day free trial is only available to new customers. Please choose a paid plan to continue.',
           );
@@ -277,10 +174,17 @@ export class OnboardingService {
       }
 
       if (listPriceCents > 0 && !isUnpaidEssentialTrial && hasRazorpayPayment) {
+        const paymentDetails = completeData.paymentDetails;
+        const razorpayPaymentId = paymentDetails?.razorpayPaymentId;
+        const razorpayOrderId = paymentDetails?.razorpayOrderId;
+        const razorpaySignature = paymentDetails?.razorpaySignature;
+        if (!razorpayPaymentId || !razorpayOrderId || !razorpaySignature) {
+          throw new BadRequestException('Payment details are required');
+        }
         const verification = await this.paymentGateway.verifyPayment({
-          razorpayPaymentId: completeData.paymentDetails!.razorpayPaymentId!,
-          razorpayOrderId: completeData.paymentDetails!.razorpayOrderId!,
-          razorpaySignature: completeData.paymentDetails!.razorpaySignature!,
+          razorpayPaymentId,
+          razorpayOrderId,
+          razorpaySignature,
         });
 
         if (!verification.verified) {
@@ -294,18 +198,13 @@ export class OnboardingService {
         }
       }
 
-      const resolvedWorkspaceProfile =
-        completeData.planSelection.tier === ClinicTier.FRONT_DESK
-          ? 'FRONT_DESK'
-          : completeData.planSelection.workspaceProfile;
-
-      const result = await this.prisma.runUnrestricted(async () => {
-        return this.prisma.$transaction(async (tx) => {
+      // RLS-BYPASS: onboarding creates clinic records before membership tenant binding
+      const result = await this.persistence.runUnrestricted(async () => {
+        return this.persistence.$transaction(async (tx) => {
           const clinic = await this.workflowService.createClinic(
             tx,
             completeData.clinicDetails,
             ipAddress,
-            resolvedWorkspaceProfile,
           );
           clinicId = clinic.id;
 
@@ -351,12 +250,7 @@ export class OnboardingService {
             this.logger.log(`Created ${staffCount} staff members`);
           }
 
-          if (
-            completeData.planSelection.tier === ClinicTier.FRONT_DESK ||
-            isFrontDeskWorkspace(
-              parseWorkspaceProfile(resolvedWorkspaceProfile),
-            )
-          ) {
+          if (completeData.planSelection.tier === ClinicTier.FRONT_DESK) {
             await this.workflowService.ensureFrontDeskScheduleDoctor(
               tx,
               clinic.id,
@@ -376,11 +270,7 @@ export class OnboardingService {
             weeklyRows,
           );
 
-          return {
-            clinic,
-            adminUser,
-            subscriptionId,
-          };
+          return { clinic, adminUser, subscriptionId };
         });
       });
 
@@ -446,32 +336,5 @@ export class OnboardingService {
         errors: [error instanceof Error ? error.message : 'Unknown error'],
       };
     }
-  }
-
-  /**
-   * Returns true if any clinic linked to a user with the given email has
-   * a `paid` SubscriptionPayment on record. Used to gate the free-trial
-   * offer so each customer can only consume it once.
-   */
-  private async hasPriorPaidSubscriptionForEmail(
-    email: string,
-  ): Promise<boolean> {
-    const normalized = email.trim().toLowerCase();
-    if (!normalized) return false;
-    return this.prisma.runUnrestricted(async () => {
-      const users = await this.prisma.user.findMany({
-        where: { email: normalized },
-        select: { clinicId: true },
-      });
-      const clinicIds = users
-        .map((u) => u.clinicId)
-        .filter((id): id is string => !!id);
-      if (clinicIds.length === 0) return false;
-      const paid = await this.prisma.subscriptionPayment.findFirst({
-        where: { clinicId: { in: clinicIds }, status: 'paid' },
-        select: { id: true },
-      });
-      return !!paid;
-    });
   }
 }

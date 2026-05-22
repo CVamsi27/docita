@@ -9,21 +9,21 @@ import {
   UserPlus,
   type LucideIcon,
 } from "lucide-react";
-import { AppPageScaffold } from "@workspace/ui/components/app-page-scaffold";
-import { DataState } from "@workspace/ui/components/data-state";
-import { PageHeader } from "@workspace/ui/components/page-header";
-import { PageTabs, type PageTabItem } from "@workspace/ui/components/page-tabs";
+import { AppPageScaffold } from "@workspace/ui/components/layout/app-page-scaffold";
+import { DataState } from "@workspace/ui/components/data-display/data-state";
+import { PageHeader } from "@workspace/ui/components/layout/page-header";
+import { PageTabs, type PageTabItem } from "@workspace/ui/components/navigation/page-tabs";
 import {
   APP_ACCESS_TARGETS,
   type AppAccessTarget,
   type Feature,
-  type Tier,
+  Tier,
   type UserRole,
-  type WorkspaceProfile,
 } from "@workspace/types";
-import { canAccessTarget } from "@/lib/access-policy";
-import { useAuth } from "@/lib/auth-context";
-import { hasPermission, type Permission } from "@/lib/permissions";
+import { canAccessTarget } from "@/lib/access-control/access-policy";
+import { parseUserRole } from "@/lib/access-control/parse-user-role";
+import { useAuth } from "@/lib/auth/auth-context";
+import { hasPermission, type Permission } from "@/lib/auth/permissions";
 import { usePermissionStore } from "@/lib/stores/permission-store";
 import { NotificationsInboxView } from "./NotificationsInboxView";
 
@@ -78,8 +78,8 @@ function isInboxTabVisible(
   tab: InboxTabDef,
   role: UserRole | undefined,
   canAccessFeature: (feature: Feature) => boolean,
-  canAccessTier: (tier: Tier) => boolean,
-  workspaceProfile: WorkspaceProfile,
+  currentTier: Tier,
+  hasIntelligence: boolean,
 ): boolean {
   if (tab.requiredPermission) {
     if (!role || !hasPermission(role, tab.requiredPermission)) {
@@ -95,8 +95,8 @@ function isInboxTabVisible(
       {
         role,
         canAccessFeature,
-        canAccessTier,
-        workspaceProfile,
+        currentTier,
+        hasIntelligence,
       },
       "read",
     );
@@ -109,21 +109,20 @@ function InboxContent() {
   const searchParams = useSearchParams();
   const { user } = useAuth();
   const canAccessFeature = usePermissionStore((s) => s.canAccess);
-  const canAccessTier = usePermissionStore((s) => s.canAccessTier);
-  const workspaceProfile = usePermissionStore((s) => s.workspaceProfile);
-
+  const currentTier = usePermissionStore((s) => s.currentTier);
+  const hasIntelligence = usePermissionStore((s) => s.hasIntelligence);
   const visibleTabs = useMemo(
     () =>
       ALL_INBOX_TABS.filter((tab) =>
         isInboxTabVisible(
           tab,
-          user?.role as UserRole | undefined,
+          user?.role ? parseUserRole(user.role) : undefined,
           canAccessFeature,
-          canAccessTier,
-          workspaceProfile,
+          currentTier,
+          hasIntelligence,
         ),
       ),
-    [user?.role, canAccessFeature, canAccessTier, workspaceProfile],
+    [user?.role, canAccessFeature, currentTier, hasIntelligence],
   );
 
   const defaultTab = visibleTabs[0]?.value ?? "notifications";
@@ -137,7 +136,8 @@ function InboxContent() {
     const allowedIds = new Set(visibleTabs.map((t) => t.value));
     if (requested && !allowedIds.has(requested)) {
       const params = new URLSearchParams(searchParams.toString());
-      params.set("tab", visibleTabs[0]!.value);
+      const defaultTab = visibleTabs[0]?.value;
+      if (defaultTab) params.set("tab", defaultTab);
       router.replace(`/inbox?${params.toString()}`);
     }
   }, [currentTab, router, searchParams, visibleTabs]);
@@ -229,4 +229,3 @@ export function InboxPageContent() {
     </Suspense>
   );
 }
-

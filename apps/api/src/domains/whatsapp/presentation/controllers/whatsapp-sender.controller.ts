@@ -22,7 +22,8 @@ import {
   getDbRolesForTarget,
   requireFeatureForTarget,
 } from '@/shared/modules/auth/auth/access-matrix.util';
-import { RequestWithUser } from '@/common/types/common.types';
+import { RequestWithUser } from '@/shared/common/types/common.types';
+import { getClinicStaffRequestContext } from '@/shared/modules/auth/auth/clinic-request-context';
 import { AppConfigService } from '@/shared/modules/config/app-configuration.service';
 import { WhatsappSenderSettingsService } from '@/domains/whatsapp/application/services/whatsapp-sender-settings.service';
 import {
@@ -45,7 +46,8 @@ export class WhatsappSenderController {
   @Get()
   @ZodSerializerDto(WhatsappSenderConfigResponseDto)
   async get(@Request() req: RequestWithUser) {
-    return this.senderSettings.getConfig(req.user!.clinicId!);
+    const { clinicId } = getClinicStaffRequestContext(req);
+    return this.senderSettings.getConfig(clinicId);
   }
 
   @Put()
@@ -54,18 +56,16 @@ export class WhatsappSenderController {
     @Request() req: RequestWithUser,
     @Body() body: UpdateWhatsappSenderDto,
   ) {
-    return this.senderSettings.updateConfig(
-      req.user!.clinicId!,
-      req.user!.id,
-      body,
-    );
+    const { clinicId, userId } = getClinicStaffRequestContext(req);
+    return this.senderSettings.updateConfig(clinicId, userId, body);
   }
 
   @Post('verify')
   @HttpCode(HttpStatus.OK)
   @ZodSerializerDto(VerifyWhatsappSenderResponseDto)
   async verify(@Request() req: RequestWithUser) {
-    return this.senderSettings.verify(req.user!.clinicId!, req.user!.id);
+    const { clinicId, userId } = getClinicStaffRequestContext(req);
+    return this.senderSettings.verify(clinicId, userId);
   }
 
   @Post('managed-onboarding/start')
@@ -85,6 +85,7 @@ export class WhatsappSenderController {
   @HttpCode(HttpStatus.OK)
   @ZodSerializerDto(RevokeWhatsappSenderResponseDto)
   async revoke(@Request() req: RequestWithUser) {
-    return this.senderSettings.revoke(req.user!.clinicId!, req.user!.id);
+    const { clinicId, userId } = getClinicStaffRequestContext(req);
+    return this.senderSettings.revoke(clinicId, userId);
   }
 }

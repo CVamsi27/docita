@@ -7,7 +7,7 @@ import {
   AppointmentScheduledPayload,
   PatientCreatedPayload,
   EventMetadata,
-} from '@/common/events/domain-events';
+} from '@/shared/common/events/domain-events';
 
 @Injectable()
 export class EmailEventsListener {

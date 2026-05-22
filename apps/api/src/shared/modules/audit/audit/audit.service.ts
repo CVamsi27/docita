@@ -1,6 +1,13 @@
-import { Injectable, Logger, BadRequestException } from '@nestjs/common';
+import {
+  Inject,
+  Injectable,
+  Logger,
+  BadRequestException,
+} from '@nestjs/common';
+import { CLOCK_PORT, type IClock } from '@/shared/common/ports/clock.port';
 import { PrismaService } from '@/prisma/prisma.service';
 import { Prisma } from '@workspace/db';
+import { toPrismaInputJsonValue } from '@/shared/common/json/to-prisma-input-json-value';
 import type { AppAuditLogSummary } from '@workspace/types';
 
 export interface AuditLogData {
@@ -30,7 +37,10 @@ export interface AuditLogFilter {
 export class AuditService {
   private readonly logger = new Logger(AuditService.name);
 
-  constructor(private prisma: PrismaService) {}
+  constructor(
+    private prisma: PrismaService,
+    @Inject(CLOCK_PORT) private readonly clock: IClock,
+  ) {}
 
   async logAction(
     data: AuditLogData,
@@ -55,6 +65,7 @@ export class AuditService {
   }
 
   async createAuditLog(data: AuditLogData): Promise<unknown> {
+    // RLS-BYPASS: audit persistence correlates events across tenants for compliance
     return this.prisma.runUnrestricted(async () => {
       try {
         const [clinic, user] = await Promise.all([
@@ -77,10 +88,12 @@ export class AuditService {
             action: data.actionType,
             entityType: data.resourceType,
             entityId: data.resourceId,
-            newValue:
-              (data.changes as Prisma.InputJsonValue) || Prisma.JsonNull,
-            metadata:
-              (data.metadata as Prisma.InputJsonValue) || Prisma.JsonNull,
+            newValue: data.changes
+              ? toPrismaInputJsonValue(data.changes)
+              : Prisma.JsonNull,
+            metadata: data.metadata
+              ? toPrismaInputJsonValue(data.metadata)
+              : Prisma.JsonNull,
             ipAddress: data.ipAddress,
             userAgent: data.userAgent,
           },
@@ -101,7 +114,7 @@ export class AuditService {
           ipAddress: data.ipAddress,
           userAgent: data.userAgent,
           metadata: data.metadata,
-          createdAt: new Date(),
+          createdAt: this.clock.now(),
         };
 
         return auditData;
@@ -204,7 +217,7 @@ export class AuditService {
 
   archiveOldLogs(daysOld: number = 90): void {
     try {
-      const cutoffDate = new Date();
+      const cutoffDate = this.clock.now();
       cutoffDate.setDate(cutoffDate.getDate() - daysOld);
 
       this.logger.log(
@@ -361,7 +374,7 @@ export class AuditService {
       ipAddress,
       userAgent,
       metadata: {
-        accessTime: new Date().toISOString(),
+        accessTime: this.clock.now().toISOString(),
       },
     });
   }

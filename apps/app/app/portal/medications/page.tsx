@@ -3,13 +3,13 @@
 import {
   usePortalActiveMedications,
   usePortalAdherence,
-} from "@/hooks/api/use-patient-portal";
+} from "@workspace/data-access";
 import { ActiveMedicationsCard } from "@/features/patient-portal/components/medications/active-medications-card";
 import { DoseTracker } from "@/features/patient-portal/components/medications/dose-tracker";
 import { AdherenceChart } from "@/features/patient-portal/components/medications/adherence-chart";
-import { AppPageScaffold } from "@workspace/ui/components/app-page-scaffold";
-import { DataState } from "@workspace/ui/components/data-state";
-import { PageHeader } from "@workspace/ui/components/page-header";
+import { AppPageScaffold } from "@workspace/ui/components/layout/app-page-scaffold";
+import { DataState } from "@workspace/ui/components/data-display/data-state";
+import { PageHeader } from "@workspace/ui/components/layout/page-header";
 import { Pill } from "lucide-react";
 import type { ActiveMedication } from "@workspace/types";
 

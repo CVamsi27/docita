@@ -1,5 +1,5 @@
 import { Award, Clock, Lock, Shield } from "lucide-react";
-import { Card, CardContent } from "@workspace/ui/components/card";
+import { Card, CardContent } from "@workspace/ui/components/indicators/card";
 
 export function TrustSection() {
   const trustItems = [

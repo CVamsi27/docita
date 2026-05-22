@@ -1,43 +1,23 @@
 import { useCallback, useEffect, useState } from "react";
 import { useFieldArray, useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { z } from "zod";
 import { toast } from "sonner";
-import { useInvoice, useUpdateInvoice } from "@/hooks/api/use-billing";
+import { useInvoice, useUpdateInvoice } from "@workspace/data-access";
 import { useRouter } from "next/navigation";
-import { Invoice } from "@workspace/types";
-import { showUserFacingErrorToast } from "@/lib/user-facing-errors";
+import {
+  invoiceEditFormSchema,
+  type InvoiceEditFormValues,
+  type Invoice,
+} from "@workspace/types";
+import { showUserFacingErrorToast } from "@/lib/errors/user-facing-errors";
 import {
   applyInvoiceDiscountToFirstLine,
   calculateInvoiceTotals,
 } from "@/features/invoices/rules/invoiceRules";
 
-export const invoiceItemSchema = z.object({
-  id: z.string().optional(),
-  description: z.string().min(1, "Enter a description"),
-  quantity: z.number().min(1, "Enter a quantity of at least 1"),
-  price: z.number().min(0, "Enter a valid price"),
-  discountAmount: z.number().min(0).optional(),
-  taxTreatment: z
-    .enum(["TAXABLE", "EXEMPT_HEALTHCARE", "EXEMPT", "ZERO_RATED", "NON_GST"])
-    .optional(),
-  taxRate: z.number().min(0).max(100).optional(),
-  hsnCode: z.string().optional(),
-  sacCode: z.string().optional(),
-});
-
-export const invoiceSchema = z.object({
-  status: z.enum(["PENDING", "PAID", "OVERDUE", "CANCELLED", "PARTIALLY_PAID"]),
-  discount: z.number().min(0),
-  notes: z.string().optional(),
-  items: z.array(invoiceItemSchema).min(1, "Add at least one item"),
-});
-
-export type InvoiceFormValues = z.infer<typeof invoiceSchema>;
-
 const normalizeInvoiceStatus = (
   status: Invoice["status"] | "created",
-): InvoiceFormValues["status"] => {
+): InvoiceEditFormValues["status"] => {
   if (status === "created") {
     return "PENDING";
   }
@@ -53,8 +33,8 @@ export const useInvoiceEditLogic = (invoiceId: string) => {
 
   const updateInvoice = useUpdateInvoice(invoiceId);
 
-  const form = useForm<InvoiceFormValues>({
-    resolver: zodResolver(invoiceSchema),
+  const form = useForm<InvoiceEditFormValues>({
+    resolver: zodResolver(invoiceEditFormSchema),
     defaultValues: {
       status: "PENDING",
       discount: 0,
@@ -105,14 +85,14 @@ export const useInvoiceEditLogic = (invoiceId: string) => {
     }
   }, [invoice, form]);
 
-  const calculateTotal = useCallback((values: InvoiceFormValues) => {
+  const calculateTotal = useCallback((values: InvoiceEditFormValues) => {
     return calculateInvoiceTotals(values.items, values.discount || 0)
       .grandTotal;
   }, []);
 
   const totalAmount = calculateTotal(form.watch());
 
-  const onSubmit = async (data: InvoiceFormValues) => {
+  const onSubmit = async (data: InvoiceEditFormValues) => {
     try {
       setIsSaving(true);
       await updateInvoice.mutateAsync({

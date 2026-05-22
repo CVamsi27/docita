@@ -2,7 +2,7 @@ import { render, screen } from "@testing-library/react";
 import { describe, expect, it, vi } from "vitest";
 import type { CurrentUsage } from "@workspace/types";
 import { CurrentPlanCard } from "./current-plan-card";
-import { getTierInfo, Tier } from "@/lib/tier-config";
+import { getTierInfo, Tier } from "@/lib/subscription/tier-access";
 
 function buildUsage(): CurrentUsage {
   return {

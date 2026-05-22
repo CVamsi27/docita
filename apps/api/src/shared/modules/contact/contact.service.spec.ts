@@ -71,8 +71,11 @@ describe('ContactService', () => {
 
       expect(logSpy).toHaveBeenCalledWith(
         expect.stringContaining(
-          'New contact inquiry received: inquiry_1 from smith@example.com',
+          'New contact inquiry received: inquiry_1 from sm***@example.com',
         ),
+      );
+      expect(logSpy).not.toHaveBeenCalledWith(
+        expect.stringContaining('smith@example.com'),
       );
     });
 

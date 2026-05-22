@@ -4,6 +4,7 @@ import { ConsentType } from '@workspace/db';
 import { beforeEach, describe, expect, it, jest } from '@jest/globals';
 import {
   asType,
+  createFixedClockMock,
   createKeyedReflectorMock,
   mockGetAllAndOverrideKeyMap,
   type MockedReflectorGetAllAndOverride,
@@ -54,6 +55,7 @@ describe('ConsentGuard', () => {
     guard = new ConsentGuard(
       asType<Reflector>(reflector),
       asType<ConstructorParameters<typeof ConsentGuard>[1]>(prisma),
+      createFixedClockMock(),
     );
   });
 

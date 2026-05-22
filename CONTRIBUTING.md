@@ -8,7 +8,7 @@ Every contribution must follow these foundations. They apply to humans and codin
 
 - **SOLID, KISS, DRY** are mandatory. The concrete rules and examples live in [`AGENTS.md`](AGENTS.md) §12. Do not introduce abstractions without a current consumer; do not duplicate Zod schemas, API clients, UI primitives, or tokens.
 - **Architecture and layering** rules in [`AGENTS.md`](AGENTS.md) §3 (Zod-first types, Prisma boundary, controller/service/repository separation) and §5 (backend) are non-negotiable.
-- **UI/UX standard**: every new page, modal, or feature surface in `apps/app`, `apps/internal`, and `apps/landing` must comply with [`docs/UI_UX_STANDARD_2026.md`](docs/UI_UX_STANDARD_2026.md) (Origin-inspired sectioned sidebar, minimal topbar, AI surface contract, motion policy, modal/wizard patterns, per-page test contract). Use `@workspace/ui` primitives instead of app-local duplicates.
+- **UI/UX standard**: every new page, modal, or feature surface in `apps/app`, `apps/internal`, and `apps/landing` must comply with [`docs/ui/UI_UX_STANDARD_2026.md`](docs/ui/UI_UX_STANDARD_2026.md) (Origin-inspired sectioned sidebar, minimal topbar, AI surface contract, motion policy, modal/wizard patterns, per-page test contract). Use `@workspace/ui` primitives instead of app-local duplicates.
 - **Hygiene**: logging, comments, and code-hygiene rules in [`AGENTS.md`](AGENTS.md) §7 are required (no `console.log`, no decorative motion, no stale TODOs, no emojis in code).
 - Deviations from any of the above require an explicit, dated note in the PR description.
 
@@ -99,7 +99,7 @@ This is a Monorepo managed by **Turborepo**.
     ```bash
     pnpm check:hygiene    # Ensure generated/runtime artifacts are not tracked
     pnpm verify:standard # Structure, contracts, prisma boundary (when broad changes)
-    pnpm knip             # Unused deps/exports; CI runs this when the diff touches apps/packages/scripts, manifests, or knip.json (see scripts/detect-workflow-scope.mjs)
+    pnpm knip             # Unused deps/exports; CI runs this when the diff touches apps/packages/scripts, manifests, or knip.json (see scripts/workflow/detect-workflow-scope.mjs)
     pnpm lint             # Lint
     pnpm build            # Verify build consistency when impact is broad
     pnpm test             # Tests for touched areas
@@ -156,7 +156,7 @@ This project uses **two different test frameworks** optimized for their respecti
 - Native integration with NestJS dependency injection, decorators, Guards, and Interceptors
 - Established ecosystem and patterns for backend testing
 - Official NestJS documentation standardizes on Jest
-- When specs stub `Reflector#getAllAndOverride`, use `@/test-utils` keyed helpers (`createKeyedReflectorMock`, `mockGetAllAndOverrideKeyMap`, `mockGetAllAndOverrideKeyBranch`); see `docs/TESTING.md` (Backend unit tests).
+- When specs stub `Reflector#getAllAndOverride`, use `@/test-utils` keyed helpers (`createKeyedReflectorMock`, `mockGetAllAndOverrideKeyMap`, `mockGetAllAndOverrideKeyBranch`); see `docs/testing/TESTING.md` (Backend unit tests).
 
 **Running API tests:**
 

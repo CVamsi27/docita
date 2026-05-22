@@ -6,35 +6,48 @@ import {
   CardContent,
   CardHeader,
   CardTitle,
-} from "@workspace/ui/components/card";
-import { Badge } from "@workspace/ui/components/badge";
-import { Button } from "@workspace/ui/components/button";
-import { SymbolTooltip } from "@workspace/ui/components/tooltip";
+} from "@workspace/ui/components/indicators/card";
+import { Badge } from "@workspace/ui/components/indicators/badge";
+import { Button } from "@workspace/ui/components/form/button";
+import { SymbolTooltip } from "@workspace/ui/components/overlay/tooltip";
 import { Calendar, Check, X } from "lucide-react";
 import { APIRequestError } from "@workspace/data-access";
 import { Feature } from "@workspace/types";
-import { api } from "@/lib/api-client";
-import { useTierFeatureEnabled } from "@/hooks/api/tier-feature-guards";
-import { logger } from "@/lib/logger";
+import { api } from "@/lib/api/api-client";
+import { useTierFeatureEnabled } from "@/lib/access-control/use-tier-feature-enabled";
+import { logger } from "@/lib/monitoring/logger";
 import { toast } from "sonner";
-import { showUserFacingErrorToast } from "@/lib/user-facing-errors";
+import { showUserFacingErrorToast } from "@/lib/errors/user-facing-errors";
 import { humanizeUiLabel } from "@workspace/ui/lib/label-formatters";
 import { formatDate } from "@/lib/formatters";
+import { z } from "zod";
 
-interface FollowUp {
-  id: string;
-  scheduledDate: string;
-  reason: string;
-  status: string;
-  patient: {
-    id: string;
-    firstName: string;
-    lastName: string;
-  };
-  doctor: {
-    id: string;
-    name: string;
-  };
+const followUpSchema = z.object({
+  id: z.string(),
+  scheduledDate: z.string(),
+  reason: z.string(),
+  status: z.string(),
+  patient: z.object({
+    id: z.string(),
+    firstName: z.string(),
+    lastName: z.string(),
+  }),
+  doctor: z.object({
+    id: z.string(),
+    name: z.string(),
+  }),
+});
+
+type FollowUp = z.infer<typeof followUpSchema>;
+
+function parseFollowUpList(data: unknown): FollowUp[] {
+  if (!Array.isArray(data)) {
+    return [];
+  }
+  return data.flatMap((item) => {
+    const parsed = followUpSchema.safeParse(item);
+    return parsed.success ? [parsed.data] : [];
+  });
 }
 
 function isExpectedAccessFailure(err: unknown): boolean {
@@ -83,7 +96,7 @@ export function FollowUpWidget({ appointmentId }: FollowUpWidgetProps) {
       const data = await api.get<unknown>("/follow-ups", {
         params: appointmentId ? { appointmentId } : undefined,
       });
-      setFollowUps(Array.isArray(data) ? (data as FollowUp[]) : []);
+      setFollowUps(parseFollowUpList(data));
     } catch (err) {
       if (isExpectedAccessFailure(err)) {
         setFollowUps([]);
@@ -106,7 +119,7 @@ export function FollowUpWidget({ appointmentId }: FollowUpWidgetProps) {
     try {
       await api.patch(`/follow-ups/${id}/complete`, {});
       setFollowUps((prev) => prev.filter((fu) => fu.id !== id));
-      toast.success("Follow-up marked as completed");
+      toast.success("Follow-up marked complete");
     } catch (err) {
       logger.error("Failed to complete follow-up", logPayloadFromError(err));
       showUserFacingErrorToast(
@@ -164,14 +177,14 @@ export function FollowUpWidget({ appointmentId }: FollowUpWidgetProps) {
               <Badge variant="outline" className="text-xs">
                 {humanizeUiLabel(fu.status)}
               </Badge>
-              <SymbolTooltip label="Mark as completed">
+              <SymbolTooltip label="Mark complete">
                 <Button
                   size="sm"
                   variant="ghost"
                   className="h-7 w-7 p-0 text-success hover:bg-success/10"
                   disabled={actioning === fu.id}
                   onClick={() => handleComplete(fu.id)}
-                  aria-label="Mark as completed"
+                  aria-label="Mark complete"
                 >
                   <Check className="h-3 w-3" />
                 </Button>

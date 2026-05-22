@@ -8,6 +8,10 @@ import {
   CreateSubscriptionRequest,
   PaymentGatewaySubscription,
 } from '@/domains/payments/core/ports';
+import {
+  asRazorpayRecord,
+  readRazorpayStringNotes,
+} from './razorpay-record.util';
 
 interface RazorpaySubscriptionResponse {
   id: string;
@@ -33,7 +37,10 @@ export class RazorpaySubscriptionAdapter
       throw new BadRequestException('Invalid Razorpay subscription response');
     }
 
-    const raw = value as Record<string, unknown>;
+    const raw = asRazorpayRecord(value);
+    if (!raw) {
+      throw new BadRequestException('Invalid Razorpay subscription response');
+    }
     return {
       id: typeof raw.id === 'string' ? raw.id : '',
       customer_id: typeof raw.customer_id === 'string' ? raw.customer_id : '',
@@ -54,19 +61,21 @@ export class RazorpaySubscriptionAdapter
   ): Promise<PaymentGatewayCustomer> {
     try {
       const razorpay = this.getClient();
-      const customer = await razorpay.customers.create({
-        name: request.name,
-        email: request.email,
-        contact: request.phone,
-        notes: request.metadata || {},
-      });
+      const customer = await this.withRazorpayTimeout(() =>
+        razorpay.customers.create({
+          name: request.name,
+          email: request.email,
+          contact: request.phone,
+          notes: request.metadata || {},
+        }),
+      );
 
       return {
         id: customer.id,
         name: customer.name || '',
         email: customer.email || '',
         phone: customer.contact ? String(customer.contact) : undefined,
-        metadata: customer.notes as Record<string, string> | undefined,
+        metadata: readRazorpayStringNotes(customer.notes),
       };
     } catch (error) {
       this.logger.error('Failed to create customer', error);
@@ -79,14 +88,16 @@ export class RazorpaySubscriptionAdapter
   ): Promise<PaymentGatewayCustomer | null> {
     try {
       const razorpay = this.getClient();
-      const customer = await razorpay.customers.fetch(customerId);
+      const customer = await this.withRazorpayTimeout(() =>
+        razorpay.customers.fetch(customerId),
+      );
 
       return {
         id: customer.id,
         name: customer.name || '',
         email: customer.email || '',
         phone: customer.contact ? String(customer.contact) : undefined,
-        metadata: customer.notes as Record<string, string> | undefined,
+        metadata: readRazorpayStringNotes(customer.notes),
       };
     } catch {
       this.logger.warn(`Customer ${customerId} not found`);
@@ -100,19 +111,21 @@ export class RazorpaySubscriptionAdapter
   ): Promise<PaymentGatewayCustomer> {
     try {
       const razorpay = this.getClient();
-      const customer = await razorpay.customers.edit(customerId, {
-        ...(data.name && { name: data.name }),
-        ...(data.email && { email: data.email }),
-        ...(data.phone && { contact: data.phone }),
-        ...(data.metadata && { notes: data.metadata }),
-      });
+      const customer = await this.withRazorpayTimeout(() =>
+        razorpay.customers.edit(customerId, {
+          ...(data.name && { name: data.name }),
+          ...(data.email && { email: data.email }),
+          ...(data.phone && { contact: data.phone }),
+          ...(data.metadata && { notes: data.metadata }),
+        }),
+      );
 
       return {
         id: customer.id,
         name: customer.name || '',
         email: customer.email || '',
         phone: customer.contact ? String(customer.contact) : undefined,
-        metadata: customer.notes as Record<string, string> | undefined,
+        metadata: readRazorpayStringNotes(customer.notes),
       };
     } catch (error) {
       this.logger.error(`Failed to update customer ${customerId}`, error);
@@ -123,17 +136,19 @@ export class RazorpaySubscriptionAdapter
   async createPlan(request: CreatePlanRequest): Promise<{ planId: string }> {
     try {
       const razorpay = this.getClient();
-      const plan = await razorpay.plans.create({
-        period: request.interval,
-        interval: request.intervalCount || 1,
-        item: {
-          name: request.name,
-          amount: request.amount.toCents(),
-          currency: request.amount.currency,
-          description: request.description,
-        },
-        notes: request.metadata || {},
-      });
+      const plan = await this.withRazorpayTimeout(() =>
+        razorpay.plans.create({
+          period: request.interval,
+          interval: request.intervalCount || 1,
+          item: {
+            name: request.name,
+            amount: request.amount.toCents(),
+            currency: request.amount.currency,
+            description: request.description,
+          },
+          notes: request.metadata || {},
+        }),
+      );
 
       return { planId: plan.id };
     } catch (error) {
@@ -145,7 +160,7 @@ export class RazorpaySubscriptionAdapter
   async getPlan(planId: string): Promise<unknown> {
     try {
       const razorpay = this.getClient();
-      return await razorpay.plans.fetch(planId);
+      return await this.withRazorpayTimeout(() => razorpay.plans.fetch(planId));
     } catch {
       this.logger.warn(`Plan ${planId} not found`);
       return null;
@@ -165,13 +180,13 @@ export class RazorpaySubscriptionAdapter
         ...(request.startDate && {
           start_at: Math.floor(request.startDate.getTime() / 1000),
         }),
-        ...(request.trialPeriodDays && {
-          customer_notify: 0 as const,
-        }),
+        ...(request.trialPeriodDays ? ({ customer_notify: 0 } as const) : {}),
         notes: request.metadata || {},
       };
       const subscription = this.toRazorpaySubscriptionResponse(
-        await razorpay.subscriptions.create(createArgs),
+        await this.withRazorpayTimeout(() =>
+          razorpay.subscriptions.create(createArgs),
+        ),
       );
 
       return {
@@ -182,7 +197,7 @@ export class RazorpaySubscriptionAdapter
         currentPeriodStart: new Date((subscription.current_start || 0) * 1000),
         currentPeriodEnd: new Date((subscription.current_end || 0) * 1000),
         cancelAtPeriodEnd: false,
-        metadata: subscription.notes as Record<string, unknown> | undefined,
+        metadata: subscription.notes,
       };
     } catch (error) {
       this.logger.error('Failed to create subscription', error);
@@ -196,7 +211,9 @@ export class RazorpaySubscriptionAdapter
     try {
       const razorpay = this.getClient();
       const subscription = this.toRazorpaySubscriptionResponse(
-        await razorpay.subscriptions.fetch(subscriptionId),
+        await this.withRazorpayTimeout(() =>
+          razorpay.subscriptions.fetch(subscriptionId),
+        ),
       );
 
       return {
@@ -207,7 +224,7 @@ export class RazorpaySubscriptionAdapter
         currentPeriodStart: new Date((subscription.current_start || 0) * 1000),
         currentPeriodEnd: new Date((subscription.current_end || 0) * 1000),
         cancelAtPeriodEnd: false,
-        metadata: subscription.notes as Record<string, unknown> | undefined,
+        metadata: subscription.notes,
       };
     } catch {
       this.logger.warn(`Subscription ${subscriptionId} not found`);
@@ -221,9 +238,11 @@ export class RazorpaySubscriptionAdapter
   ): Promise<void> {
     try {
       const razorpay = this.getClient();
-      await razorpay.subscriptions.cancel(
-        subscriptionId,
-        cancelAtPeriodEnd ? 1 : 0,
+      await this.withRazorpayTimeout(() =>
+        razorpay.subscriptions.cancel(
+          subscriptionId,
+          cancelAtPeriodEnd ? 1 : 0,
+        ),
       );
     } catch (error) {
       this.logger.error(
@@ -237,7 +256,9 @@ export class RazorpaySubscriptionAdapter
   async pauseSubscription(subscriptionId: string): Promise<void> {
     try {
       const razorpay = this.getClient();
-      await razorpay.subscriptions.pause(subscriptionId);
+      await this.withRazorpayTimeout(() =>
+        razorpay.subscriptions.pause(subscriptionId),
+      );
     } catch (error) {
       this.logger.error(
         `Failed to pause subscription ${subscriptionId}`,
@@ -250,7 +271,9 @@ export class RazorpaySubscriptionAdapter
   async resumeSubscription(subscriptionId: string): Promise<void> {
     try {
       const razorpay = this.getClient();
-      await razorpay.subscriptions.resume(subscriptionId);
+      await this.withRazorpayTimeout(() =>
+        razorpay.subscriptions.resume(subscriptionId),
+      );
     } catch (error) {
       this.logger.error(
         `Failed to resume subscription ${subscriptionId}`,

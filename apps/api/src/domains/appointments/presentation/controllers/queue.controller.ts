@@ -13,7 +13,8 @@ import { TierGuard } from '@/shared/modules/auth/auth/tier.guard';
 import { Roles } from '@/shared/modules/auth/auth/roles.decorator';
 import { RequireFeature } from '@/shared/modules/auth/auth/tier.decorator';
 import { QueueService } from '@/domains/appointments/application/services/queue.service';
-import { RequestWithUser } from '@/common/types/common.types';
+import { RequestWithUser } from '@/shared/common/types/common.types';
+import { getClinicStaffRequestContext } from '@/shared/modules/auth/auth/clinic-request-context';
 import {
   APP_ACCESS_TARGETS,
   resolveDoctorScopedAppointmentFilter,
@@ -22,6 +23,8 @@ import {
   getDbRolesForTarget,
   requireFeatureForTarget,
 } from '@/shared/modules/auth/auth/access-matrix.util';
+import { AuditService } from '@/shared/modules/audit/audit/audit.service';
+import { logClinicPhiListRead } from '@/shared/modules/audit/audit/patient-access-audit.util';
 
 @ApiTags('Queue')
 @Controller('queue')
@@ -29,20 +32,24 @@ import {
 @RequireFeature(requireFeatureForTarget(APP_ACCESS_TARGETS.API_QUEUE))
 @Roles(...getDbRolesForTarget(APP_ACCESS_TARGETS.API_QUEUE))
 export class QueueController {
-  constructor(private readonly queueService: QueueService) {}
+  constructor(
+    private readonly queueService: QueueService,
+    private readonly auditService: AuditService,
+  ) {}
 
   @Get()
   @ApiOperation({
     summary: 'Get active queue (WAITING + IN_PROGRESS) for today',
   })
-  getQueue(
+  async getQueue(
     @Request() req: RequestWithUser,
     @Query('doctorId') doctorId?: string,
     @Query('search') search?: string,
   ) {
+    const { clinicId, userId, role } = getClinicStaffRequestContext(req);
     const doctorScope = resolveDoctorScopedAppointmentFilter({
-      role: req.user?.role,
-      userId: req.user?.id,
+      role,
+      userId,
       requestedDoctorId: doctorId,
     });
 
@@ -50,8 +57,16 @@ export class QueueController {
       throw new ForbiddenException('Doctors can only access their queue');
     }
 
+    await logClinicPhiListRead(
+      this.auditService,
+      req,
+      'VIEW_APPOINTMENT_LIST',
+      'Appointment',
+      { scope: 'queue', doctorId: doctorScope.scopedDoctorId, search },
+    );
+
     return this.queueService.getQueue(
-      req.user!.clinicId!,
+      clinicId,
       doctorScope.scopedDoctorId,
       search,
     );
@@ -59,14 +74,15 @@ export class QueueController {
 
   @Get('today')
   @ApiOperation({ summary: 'Get full queue for today with stats' })
-  getTodayQueue(
+  async getTodayQueue(
     @Request() req: RequestWithUser,
     @Query('doctorId') doctorId?: string,
     @Query('search') search?: string,
   ) {
+    const { clinicId, userId, role } = getClinicStaffRequestContext(req);
     const doctorScope = resolveDoctorScopedAppointmentFilter({
-      role: req.user?.role,
-      userId: req.user?.id,
+      role,
+      userId,
       requestedDoctorId: doctorId,
     });
 
@@ -74,8 +90,16 @@ export class QueueController {
       throw new ForbiddenException('Doctors can only access their queue');
     }
 
+    await logClinicPhiListRead(
+      this.auditService,
+      req,
+      'VIEW_APPOINTMENT_LIST',
+      'Appointment',
+      { scope: 'queue-today', doctorId: doctorScope.scopedDoctorId, search },
+    );
+
     return this.queueService.getTodayQueue(
-      req.user!.clinicId!,
+      clinicId,
       doctorScope.scopedDoctorId,
       search,
     );
@@ -87,7 +111,8 @@ export class QueueController {
     @Request() req: RequestWithUser,
     @Param('appointmentId') appointmentId: string,
   ) {
-    return this.queueService.checkIn(req.user!.clinicId!, appointmentId);
+    const { clinicId } = getClinicStaffRequestContext(req);
+    return this.queueService.checkIn(clinicId, appointmentId);
   }
 
   @Post('call/:queueId')
@@ -96,16 +121,18 @@ export class QueueController {
     @Request() req: RequestWithUser,
     @Param('queueId') queueId: string,
   ) {
-    return this.queueService.callPatient(req.user!.clinicId!, queueId);
+    const { clinicId } = getClinicStaffRequestContext(req);
+    return this.queueService.callPatient(clinicId, queueId);
   }
 
   @Post('complete/:queueId')
-  @ApiOperation({ summary: 'Mark a patient as completed' })
+  @ApiOperation({ summary: 'Mark a patient completed' })
   completePatient(
     @Request() req: RequestWithUser,
     @Param('queueId') queueId: string,
   ) {
-    return this.queueService.completePatient(req.user!.clinicId!, queueId);
+    const { clinicId } = getClinicStaffRequestContext(req);
+    return this.queueService.completePatient(clinicId, queueId);
   }
 
   @Post('reset')
@@ -113,6 +140,7 @@ export class QueueController {
     summary: 'Reset queue (cancel all WAITING and IN_PROGRESS tokens)',
   })
   resetQueue(@Request() req: RequestWithUser) {
-    return this.queueService.resetQueue(req.user!.clinicId!);
+    const { clinicId } = getClinicStaffRequestContext(req);
+    return this.queueService.resetQueue(clinicId);
   }
 }

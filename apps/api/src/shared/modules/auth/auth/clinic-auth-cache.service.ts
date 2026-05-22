@@ -6,6 +6,8 @@ import {
   IntelligenceAddon,
 } from '@workspace/db';
 import { CACHE_CONSTANTS } from '@/shared/modules/config/app-constants';
+import { readClinicFeatureOverrides } from '@/shared/modules/auth/utils/clinic-feature-access.util';
+import { clinicHasOutstandingPendingPayment } from '@/shared/modules/auth/utils/clinic-outstanding-pending-payment.util';
 
 interface ClinicAuthCache {
   clinicId: string;
@@ -13,6 +15,8 @@ interface ClinicAuthCache {
   subscriptionStatus: SubscriptionStatus;
   subscriptionGraceUntil: Date | null;
   subscriptionTrialEnd: Date | null;
+  subscriptionCurrentPeriodEnd: Date | null;
+  hasOutstandingPendingPayment: boolean;
   hasIntelligence: boolean;
   features: Record<string, boolean>;
   cachedAt: number;
@@ -33,6 +37,8 @@ export class ClinicAuthCacheService {
     subscriptionStatus: SubscriptionStatus;
     subscriptionGraceUntil: Date | null;
     subscriptionTrialEnd: Date | null;
+    subscriptionCurrentPeriodEnd: Date | null;
+    hasOutstandingPendingPayment: boolean;
     hasIntelligence: boolean;
     features: Record<string, boolean>;
   }> {
@@ -43,6 +49,8 @@ export class ClinicAuthCacheService {
         subscriptionStatus: cached.subscriptionStatus,
         subscriptionGraceUntil: cached.subscriptionGraceUntil,
         subscriptionTrialEnd: cached.subscriptionTrialEnd,
+        subscriptionCurrentPeriodEnd: cached.subscriptionCurrentPeriodEnd,
+        hasOutstandingPendingPayment: cached.hasOutstandingPendingPayment,
         hasIntelligence: cached.hasIntelligence,
         features: cached.features,
       };
@@ -59,7 +67,13 @@ export class ClinicAuthCacheService {
           select: {
             graceUntil: true,
             trialEnd: true,
+            currentPeriodEnd: true,
           },
+        },
+        subscriptionPayments: {
+          select: { status: true },
+          orderBy: { createdAt: 'desc' },
+          take: 12,
         },
       },
     });
@@ -73,8 +87,13 @@ export class ClinicAuthCacheService {
       subscriptionStatus: clinic.subscriptionStatus,
       subscriptionGraceUntil: clinic.subscription?.graceUntil ?? null,
       subscriptionTrialEnd: clinic.subscription?.trialEnd ?? null,
+      subscriptionCurrentPeriodEnd:
+        clinic.subscription?.currentPeriodEnd ?? null,
+      hasOutstandingPendingPayment: clinicHasOutstandingPendingPayment(
+        clinic.subscriptionPayments,
+      ),
       hasIntelligence: clinic.intelligenceAddon === IntelligenceAddon.ACTIVE,
-      features: (clinic.features as Record<string, boolean>) || {},
+      features: readClinicFeatureOverrides(clinic.features),
     };
 
     this.setCache(clinicId, authData);
@@ -119,6 +138,8 @@ export class ClinicAuthCacheService {
       subscriptionStatus: SubscriptionStatus;
       subscriptionGraceUntil: Date | null;
       subscriptionTrialEnd: Date | null;
+      subscriptionCurrentPeriodEnd: Date | null;
+      hasOutstandingPendingPayment: boolean;
       hasIntelligence: boolean;
       features: Record<string, boolean>;
     },

@@ -6,6 +6,7 @@ import {
   PdfJobStatusResponse,
   pdfJobStatusSchema,
 } from '@workspace/types';
+import { isRecord } from '@workspace/utils';
 
 type PdfJobRecord = {
   id: string;
@@ -56,6 +57,8 @@ export interface PdfJobProcessorPrismaPort {
   };
 }
 
+export const PDF_JOB_PROCESSOR_PRISMA_TOKEN = 'PdfJobProcessorPrismaPort';
+
 export interface PdfJobServicePort {
   enqueue(
     documentId: string,
@@ -79,6 +82,7 @@ export class PdfJobService implements PdfJobServicePort {
     clinicId: string,
   ): Promise<EnqueuePdfJobResponse> {
     let shouldEnqueue = true;
+    // RLS-BYPASS: background queue workers run without per-request clinic session
     const pdfJob = await this.prisma.runUnrestricted(async () => {
       try {
         return await this.prisma.pdfJob.create({
@@ -133,6 +137,7 @@ export class PdfJobService implements PdfJobServicePort {
     jobId: string,
     clinicId: string,
   ): Promise<PdfJobStatusResponse> {
+    // RLS-BYPASS: background queue workers run without per-request clinic session
     const pdfJob = await this.prisma.runUnrestricted(async () =>
       this.prisma.pdfJob.findFirst({
         where: { id: jobId, clinicId },
@@ -155,8 +160,8 @@ export class PdfJobService implements PdfJobServicePort {
     return (
       typeof error === 'object' &&
       error !== null &&
-      'code' in error &&
-      (error as { code?: string }).code === 'P2002'
+      isRecord(error) &&
+      error.code === 'P2002'
     );
   }
 }

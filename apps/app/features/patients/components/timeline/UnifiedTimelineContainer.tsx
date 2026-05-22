@@ -1,9 +1,9 @@
 "use client";
 
 import { useState } from "react";
-import { usePatientTimeline } from "@/hooks/api/use-patient-timeline";
+import { usePatientTimeline } from "@workspace/data-access";
 import { UnifiedTimelineUI } from "./UnifiedTimelineUI";
-import { DataState } from "@workspace/ui/components/data-state";
+import { DataState } from "@workspace/ui/components/data-display/data-state";
 import { Clock3 } from "lucide-react";
 import type { TimelineEventType } from "@workspace/types";
 
@@ -68,7 +68,7 @@ export function UnifiedTimelineContainer({
         status="empty"
         emptyIcon={Clock3}
         emptyTitle="No timeline records available"
-        emptyDescription="Patient events will appear here as care activities are recorded"
+        emptyDescription="Patient events will appear here when care activities are recorded"
       />
     );
   }

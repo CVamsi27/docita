@@ -1,121 +1,25 @@
 "use client";
 
-import { DocitaLoadingIndicator } from "@workspace/ui/components/docita-loading-indicator";
-
+import { DocitaLoadingIndicator } from "@workspace/ui/components/feedback/docita-loading-indicator";
 import { useMemo, useState } from "react";
 import { Download, FileText } from "lucide-react";
-import { Button } from "@workspace/ui/components/button";
-import { Badge } from "@workspace/ui/components/badge";
-import { Label } from "@workspace/ui/components/label";
-import { IsoDatePickerField } from "@workspace/ui/components/iso-date-picker-field";
+import { Button } from "@workspace/ui/components/form/button";
+import { TooltipProvider } from "@workspace/ui/components/overlay/tooltip";
+import { EmptyState } from "@workspace/ui/components/feedback/empty-state";
+import type { BillingHistoryItem } from "@workspace/data-access";
+import { useResumeSubscriptionPayment } from "@workspace/data-access";
+import { DEFAULT_CURRENCY } from "@workspace/utils";
 import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@workspace/ui/components/select";
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableFooter,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from "@workspace/ui/components/table";
-import {
-  Tooltip,
-  TooltipContent,
-  TooltipProvider,
-  TooltipTrigger,
-} from "@workspace/ui/components/tooltip";
-import { EmptyState } from "@workspace/ui/components/empty-state";
-import { humanizeUiLabel } from "@workspace/ui/lib/label-formatters";
-import { cn } from "@workspace/ui/lib/utils";
-import { DEFAULT_CURRENCY, formatCurrency } from "@workspace/utils";
-import type { BillingHistoryItem } from "@/hooks/api/use-billing-history";
-import { formatDate, formatDateTime } from "@/lib/formatters";
-import { useResumeSubscriptionPayment } from "@/hooks/api/use-resume-subscription-payment";
-import {
-  formatInvoiceDescriptionForDisplay,
-  BILLING_HISTORY_TABLE_CAPTION,
-} from "@/features/subscription/lib/billing-display-messages";
-
-type BillingHistoryItemWithActions = BillingHistoryItem & {
-  payUrl?: string;
-  receiptUrl?: string;
-};
-
-function formatMoney(amountCents: number, currency: string | undefined) {
-  return formatCurrency(amountCents / 100, {
-    currency: currency || DEFAULT_CURRENCY,
-  });
-}
-
-function normalizeStatus(status: string | undefined): string {
-  return (status ?? "").toLowerCase().trim();
-}
-
-function isPaidStatus(status: string): boolean {
-  return status === "paid" || status === "captured";
-}
-
-function isTerminalClosed(status: string): boolean {
-  return status === "refunded" || status === "void" || status === "voided";
-}
-
-function isFailedLike(status: string): boolean {
-  return status === "failed" || status === "declined";
-}
-
-function isPendingLike(status: string): boolean {
-  return (
-    status === "pending" ||
-    status === "processing" ||
-    status === "created" ||
-    status === "requires_action" ||
-    status === "attempted" ||
-    status === "due"
-  );
-}
-
-function badgeClassForStatus(status: string): string {
-  if (isPaidStatus(status)) return "badge-success";
-  if (isTerminalClosed(status)) return "";
-  if (isFailedLike(status)) return "badge-destructive";
-  if (isPendingLike(status)) return "badge-warning";
-  return "badge-warning";
-}
-
-type StatusFilterValue =
-  | "all"
-  | "paid"
-  | "pending"
-  | "failed"
-  | "refunded_void";
-
-function matchesStatusFilter(
-  status: string,
-  filter: StatusFilterValue,
-): boolean {
-  if (filter === "all") return true;
-  if (filter === "paid") return isPaidStatus(status);
-  if (filter === "pending") return isPendingLike(status) || (!isPaidStatus(status) && !isTerminalClosed(status) && !isFailedLike(status));
-  if (filter === "failed") return isFailedLike(status);
-  if (filter === "refunded_void") return isTerminalClosed(status);
-  return true;
-}
-
-function parseDayBoundary(
-  value: string,
-  endOfDay: boolean,
-): number | null {
-  if (!value.trim()) return null;
-  const d = new Date(value + (endOfDay ? "T23:59:59.999" : "T00:00:00.000"));
-  const t = d.getTime();
-  return Number.isFinite(t) ? t : null;
-}
+  buildBillingCsvContent,
+  isPaidStatus,
+  matchesStatusFilter,
+  normalizeStatus,
+  parseDayBoundary,
+  triggerCsvDownload,
+  type StatusFilterValue,
+} from "./billing-history-table-helpers";
+import { BillingHistoryTableFilters } from "./billing-history-table-filters";
+import { BillingHistoryInvoiceTable } from "./billing-history-invoice-table";
 
 export function BillingHistoryTable({
   invoices,
@@ -127,9 +31,7 @@ export function BillingHistoryTable({
   invoices: BillingHistoryItem[] | undefined;
   isLoading?: boolean;
   onPayNow?: () => void;
-  /** Optional note below the table (e.g. billing policy context). */
   footerNote?: string;
-  /** Overrides default empty copy when there are no rows at all. */
   emptyStateDescription?: string;
 }) {
   const resumePayment = useResumeSubscriptionPayment();
@@ -167,64 +69,23 @@ export function BillingHistoryTable({
     }, 0);
   }, [filteredInvoices, primaryCurrency]);
 
-  const csvRows = useMemo(() => filteredInvoices, [filteredInvoices]);
-
   const handleDownload = (url: string) => window.open(url, "_blank");
 
   const handleExportCsv = () => {
     if (!filteredHasRows) return;
+    triggerCsvDownload(buildBillingCsvContent(filteredInvoices));
+  };
 
-    const header = [
-      "Date",
-      "PaidAt",
-      "Description",
-      "Amount",
-      "Currency",
-      "Status",
-      "PayUrl",
-      "ReceiptUrl",
-    ];
-
-    const rows = csvRows.map((invoice) => {
-      const withActions = invoice as BillingHistoryItemWithActions;
-      const formattedDate = new Date(invoice.createdAt).toISOString();
-      const paidAt = invoice.paidAt
-        ? new Date(invoice.paidAt).toISOString()
-        : "";
-      const description = (
-        invoice.description || "Subscription Payment"
-      ).replaceAll('"', '""');
-      const amount = (invoice.amountCents / 100).toFixed(2);
-      const currency = invoice.currency || DEFAULT_CURRENCY;
-      const status = invoice.status;
-      const payUrl = withActions.payUrl ?? "";
-      const receiptUrl = withActions.receiptUrl ?? "";
-
-      return [
-        formattedDate,
-        paidAt,
-        `"${description}"`,
-        amount,
-        currency,
-        status,
-        `"${payUrl}"`,
-        `"${receiptUrl}"`,
-      ].join(",");
-    });
-
-    const csvContent = [header.join(","), ...rows].join("\n");
-    const blob = new Blob([csvContent], { type: "text/csv;charset=utf-8;" });
-    const url = URL.createObjectURL(blob);
-    const link = document.createElement("a");
-    link.href = url;
-    link.setAttribute(
-      "download",
-      `billing-history-${new Date().toISOString().slice(0, 10)}.csv`,
-    );
-    document.body.appendChild(link);
-    link.click();
-    document.body.removeChild(link);
-    URL.revokeObjectURL(url);
+  const handleResumePayment = async (
+    invoice: BillingHistoryItem,
+    payUrl?: string,
+  ) => {
+    if (payUrl) {
+      handleDownload(payUrl);
+      return;
+    }
+    const resumed = await resumePayment.mutateAsync(invoice.id);
+    handleDownload(resumed.payUrl);
   };
 
   if (isLoading) {
@@ -260,69 +121,19 @@ export function BillingHistoryTable({
   return (
     <TooltipProvider delayDuration={200}>
       <div className="space-y-4">
-        <div className="flex flex-col gap-3 rounded-lg border bg-muted/20 p-3 sm:flex-row sm:flex-wrap sm:items-end">
-          <div className="grid w-full gap-2 sm:w-auto sm:min-w-[140px]">
-            <Label htmlFor="billing-filter-status" className="text-xs">
-              Status
-            </Label>
-            <Select
-              value={statusFilter}
-              onValueChange={(v) => setStatusFilter(v as StatusFilterValue)}
-            >
-              <SelectTrigger id="billing-filter-status" className="h-9">
-                <SelectValue />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="all">All</SelectItem>
-                <SelectItem value="paid">Paid</SelectItem>
-                <SelectItem value="pending">Pending / unpaid</SelectItem>
-                <SelectItem value="failed">Failed / declined</SelectItem>
-                <SelectItem value="refunded_void">Refunded / void</SelectItem>
-              </SelectContent>
-            </Select>
-          </div>
-          <div className="grid w-full gap-2 sm:w-auto sm:min-w-[140px]">
-            <Label htmlFor="billing-filter-from" className="text-xs">
-              From
-            </Label>
-            <IsoDatePickerField
-              id="billing-filter-from"
-              label=""
-              showLabel={false}
-              value={dateFrom}
-              onChange={setDateFrom}
-              placeholder="Any"
-              triggerClassName="h-9 sm:w-auto sm:min-w-[140px]"
-            />
-          </div>
-          <div className="grid w-full gap-2 sm:w-auto sm:min-w-[140px]">
-            <Label htmlFor="billing-filter-to" className="text-xs">
-              To
-            </Label>
-            <IsoDatePickerField
-              id="billing-filter-to"
-              label=""
-              showLabel={false}
-              value={dateTo}
-              onChange={setDateTo}
-              placeholder="Any"
-              triggerClassName="h-9 sm:w-auto sm:min-w-[140px]"
-            />
-          </div>
-          <Button
-            type="button"
-            variant="ghost"
-            size="sm"
-            className="sm:ml-auto"
-            onClick={() => {
-              setStatusFilter("all");
-              setDateFrom("");
-              setDateTo("");
-            }}
-          >
-            Clear filters
-          </Button>
-        </div>
+        <BillingHistoryTableFilters
+          statusFilter={statusFilter}
+          dateFrom={dateFrom}
+          dateTo={dateTo}
+          onStatusFilterChange={setStatusFilter}
+          onDateFromChange={setDateFrom}
+          onDateToChange={setDateTo}
+          onClear={() => {
+            setStatusFilter("all");
+            setDateFrom("");
+            setDateTo("");
+          }}
+        />
 
         <div className="flex justify-end">
           <Button
@@ -344,162 +155,16 @@ export function BillingHistoryTable({
             description="Try clearing filters or widening the date range."
           />
         ) : (
-          <div className="rounded-lg border">
-            <div className="overflow-x-auto">
-              <Table className="min-w-[min(100%,36rem)] table-auto">
-                <caption className="caption-bottom px-3 pb-3 pt-2 text-left text-[var(--fs-2xs)] leading-snug text-muted-foreground">
-                  {BILLING_HISTORY_TABLE_CAPTION}
-                </caption>
-              <TableHeader>
-                <TableRow>
-                  <TableHead className="w-[96px] sm:w-[120px]">Date</TableHead>
-                  <TableHead className="min-w-[10rem]">Description</TableHead>
-                  <TableHead className="w-[110px] sm:w-[140px] whitespace-nowrap">
-                    Amount
-                  </TableHead>
-                  <TableHead className="w-[90px] sm:w-[110px]">Status</TableHead>
-                  <TableHead className="w-[88px] sm:w-[120px] text-right">
-                    Receipt
-                  </TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {filteredInvoices.map((invoice) => {
-                  const withActions = invoice as BillingHistoryItemWithActions;
-                  const status = normalizeStatus(invoice.status);
-                  const isPaid = isPaidStatus(status);
-                  const receiptUrl = isPaid
-                    ? (withActions.receiptUrl ?? invoice.invoiceUrl)
-                    : undefined;
-                  const payUrl =
-                    withActions.payUrl ??
-                    (!isPaid ? invoice.invoiceUrl : undefined);
-                  const terminalClosed = isTerminalClosed(status);
-                  const showPayNow =
-                    !isPaid &&
-                    !terminalClosed &&
-                    !(isFailedLike(status) && !payUrl);
-
-                  const dateCell = (
-                    <span>{formatDate(invoice.createdAt)}</span>
-                  );
-                  const { label, detail } =
-                    formatInvoiceDescriptionForDisplay(invoice.description);
-
-                  return (
-                    <TableRow key={invoice.id}>
-                      <TableCell>
-                        {invoice.paidAt ? (
-                          <Tooltip>
-                            <TooltipTrigger asChild>
-                              <button
-                                type="button"
-                                className="cursor-default text-left underline decoration-dotted underline-offset-2"
-                              >
-                                {dateCell}
-                              </button>
-                            </TooltipTrigger>
-                            <TooltipContent>
-                              Paid{" "}
-                              {formatDateTime(invoice.paidAt)}
-                            </TooltipContent>
-                          </Tooltip>
-                        ) : (
-                          dateCell
-                        )}
-                      </TableCell>
-                      <TableCell className="min-w-0 max-w-[14rem] sm:max-w-md">
-                        <div className="flex flex-col gap-0.5">
-                          <span className="font-medium text-foreground">
-                            {label}
-                          </span>
-                          {detail ? (
-                            <Tooltip>
-                              <TooltipTrigger asChild>
-                                <span className="line-clamp-2 cursor-default text-[var(--fs-2xs)] text-muted-foreground">
-                                  {detail}
-                                </span>
-                              </TooltipTrigger>
-                              <TooltipContent className="max-w-xs">
-                                {detail}
-                              </TooltipContent>
-                            </Tooltip>
-                          ) : null}
-                        </div>
-                      </TableCell>
-                      <TableCell className="font-medium">
-                        {formatMoney(invoice.amountCents, invoice.currency)}
-                      </TableCell>
-                      <TableCell>
-                        <Badge
-                          variant="outline"
-                          className={cn(
-                            "capitalize",
-                            badgeClassForStatus(status),
-                          )}
-                        >
-                          {humanizeUiLabel(invoice.status)}
-                        </Badge>
-                      </TableCell>
-                      <TableCell className="text-right">
-                        {receiptUrl ? (
-                          <Button
-                            variant="ghost"
-                            size="sm"
-                            onClick={() => handleDownload(receiptUrl)}
-                            className="h-8"
-                          >
-                            <Download className="mr-2 h-4 w-4" />
-                            PDF
-                          </Button>
-                        ) : showPayNow ? (
-                          <Button
-                            variant="outline"
-                            size="sm"
-                            disabled={resumePayment.isPending}
-                            onClick={async () => {
-                              onPayNow?.();
-                              if (payUrl) {
-                                handleDownload(payUrl);
-                                return;
-                              }
-                              const resumed = await resumePayment.mutateAsync(
-                                invoice.id,
-                              );
-                              handleDownload(resumed.payUrl);
-                            }}
-                          >
-                            Pay now
-                          </Button>
-                        ) : (
-                          <span className="text-xs text-muted-foreground">
-                            -
-                          </span>
-                        )}
-                      </TableCell>
-                    </TableRow>
-                  );
-                })}
-              </TableBody>
-              <TableFooter>
-                <TableRow>
-                  <TableCell colSpan={2} className="font-medium">
-                    Paid total ({primaryCurrency})
-                  </TableCell>
-                  <TableCell className="font-semibold">
-                    {formatMoney(paidTotalCents, primaryCurrency)}
-                  </TableCell>
-                  <TableCell colSpan={2} />
-                </TableRow>
-              </TableFooter>
-              </Table>
-            </div>
-            {footerNote ? (
-              <p className="border-t px-3 py-2 text-left text-[var(--fs-2xs)] leading-snug text-muted-foreground">
-                {footerNote}
-              </p>
-            ) : null}
-          </div>
+          <BillingHistoryInvoiceTable
+            invoices={filteredInvoices}
+            primaryCurrency={primaryCurrency}
+            paidTotalCents={paidTotalCents}
+            footerNote={footerNote}
+            onDownload={handleDownload}
+            onPayNow={onPayNow}
+            resumePaymentPending={resumePayment.isPending}
+            onResumePayment={handleResumePayment}
+          />
         )}
       </div>
     </TooltipProvider>

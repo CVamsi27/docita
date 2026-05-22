@@ -2,11 +2,17 @@ import { ForbiddenException } from '@nestjs/common';
 import { Test } from '@nestjs/testing';
 import { describe, it, expect, beforeEach, jest } from '@jest/globals';
 import { ClinicTier, IntelligenceAddon } from '@workspace/db';
-import { PrismaService } from '@/prisma/prisma.service';
+import {
+  CLINIC_PERSISTENCE_PORT,
+  type ClinicPersistencePort,
+} from '@/domains/clinics/application/ports/clinic-persistence.port';
 import { SettingsFactory } from '@/domains/clinics/core/factories/settings.factory';
 import { AuditService } from '@/shared/modules/audit/audit/audit.service';
 import { ClinicSettingsService } from './clinic-settings.service';
+import { ClinicSettingsQueryService } from './clinic-settings-query.service';
+import { ClinicSettingsCommandService } from './clinic-settings-command.service';
 import { ClinicDataService } from './clinic-data.service';
+import { ClinicDataSubjectRequestService } from './clinic-data-subject-request.service';
 
 describe('ClinicSettingsService', () => {
   let service: ClinicSettingsService;
@@ -42,7 +48,7 @@ describe('ClinicSettingsService', () => {
       findUnique: findUniqueMock,
       update: updateMock,
     },
-  } as unknown as PrismaService;
+  } as unknown as ClinicPersistencePort;
 
   const settingsFactory = {
     partialValidate: jest.fn((v: unknown) => v),
@@ -52,7 +58,6 @@ describe('ClinicSettingsService', () => {
   const clinicDataService = {
     findOne: jest.fn(async () => ({
       id: 'clinic-1',
-      workspaceProfile: 'FULL_CLINICAL',
     })),
   } as unknown as Pick<ClinicDataService, 'findOne'>;
 
@@ -69,10 +74,13 @@ describe('ClinicSettingsService', () => {
     const moduleRef = await Test.createTestingModule({
       providers: [
         ClinicSettingsService,
-        { provide: PrismaService, useValue: prisma },
+        ClinicSettingsCommandService,
+        { provide: CLINIC_PERSISTENCE_PORT, useValue: prisma },
         { provide: SettingsFactory, useValue: settingsFactory },
         { provide: AuditService, useValue: auditService },
         { provide: ClinicDataService, useValue: clinicDataService },
+        { provide: ClinicSettingsQueryService, useValue: {} },
+        { provide: ClinicDataSubjectRequestService, useValue: {} },
       ],
     }).compile();
 
@@ -112,7 +120,7 @@ describe('ClinicSettingsService', () => {
     expect(findUniqueMock).toHaveBeenCalledWith(
       expect.objectContaining({
         where: { id: 'clinic-1' },
-        select: { settings: true },
+        select: { settings: true, branding: true },
       }),
     );
     expect(updateMock).toHaveBeenCalled();

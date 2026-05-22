@@ -5,8 +5,9 @@ import {
   NotFoundException,
   Optional,
 } from '@nestjs/common';
+import { InvariantViolationError } from '@/shared/common/errors/domain.errors';
 import { EventEmitter2 } from '@nestjs/event-emitter';
-import { PrismaService } from '@/prisma/prisma.service';
+import { ApplicationEvents } from '@/shared/common/events/application-events';
 import { AppConfigService } from '@/shared/modules/config/app-configuration.service';
 import { Feature } from '@/shared/modules/auth/auth/tier.decorator';
 import { assertClinicHasFeatureOrThrow } from '@/shared/modules/auth/utils/clinic-feature-access.util';
@@ -24,6 +25,8 @@ import {
   ResolvedTemplate,
 } from '@/domains/whatsapp/core/services/template-resolver.service';
 import { WhatsappSenderResolver } from '@/domains/whatsapp/application/services/whatsapp-sender-resolver.service';
+import { CLOCK_PORT, type IClock } from '@/shared/common/ports/clock.port';
+import { isRecord } from '@workspace/utils';
 
 export interface SendMessageRequest {
   clinicId: string;
@@ -54,8 +57,8 @@ export class SendMessageUseCase {
     private readonly client: IWhatsAppClient,
     private readonly templateResolver: TemplateResolverService,
     private readonly configService: AppConfigService,
-    private readonly prisma: PrismaService,
     private readonly eventEmitter: EventEmitter2,
+    @Inject(CLOCK_PORT) private readonly clock: IClock,
     @Optional()
     private readonly senderResolver?: WhatsappSenderResolver,
   ) {
@@ -63,6 +66,13 @@ export class SendMessageUseCase {
   }
 
   async execute(request: SendMessageRequest): Promise<SendMessageResult> {
+    // AuditLogged: whatsapp message send
+    this.logger.log({
+      action: 'whatsapp.send',
+      clinicId: request.clinicId,
+      templateName: request.templateName,
+    });
+
     const {
       clinicId,
       recipientPhone,
@@ -73,16 +83,7 @@ export class SendMessageUseCase {
       metadata,
     } = request;
 
-    const clinic = await this.prisma.clinic.findUnique({
-      where: { id: clinicId },
-      select: {
-        tier: true,
-        intelligenceAddon: true,
-        features: true,
-        name: true,
-        branding: true,
-      },
-    });
+    const clinic = await this.repository.findClinicMessageContext(clinicId);
 
     if (!clinic) {
       throw new NotFoundException('Clinic not found');
@@ -126,11 +127,11 @@ export class SendMessageUseCase {
         sender.mode,
         clinicDisplayName,
       );
-      if (this.useProductionMode && resolved.metaTemplateId) {
+      if (this.useProductionMode && resolved.metaTemplateId && templateName) {
         const components = this.parseVariablesIntoComponents(messageVariables);
         const result = await this.client.sendMessage({
           to: recipientPhone,
-          templateName: templateName!,
+          templateName,
           languageCode,
           components,
           ...(resolvedSender ? { sender } : {}),
@@ -165,22 +166,27 @@ export class SendMessageUseCase {
       });
       externalId = result.externalId;
     } else {
-      throw new Error('Either templateName or text must be provided');
+      throw new InvariantViolationError(
+        'Either templateName or text must be provided',
+      );
     }
 
-    const message = WhatsAppMessage.create({
-      clinicId,
-      recipientPhone,
-      conversationId: 'default',
-      templateName: templateName || undefined,
-      content: finalContent,
-      externalMessageId: externalId,
-      metadata,
-    });
+    const message = WhatsAppMessage.create(
+      {
+        clinicId,
+        recipientPhone,
+        conversationId: 'default',
+        templateName: templateName || undefined,
+        content: finalContent,
+        externalMessageId: externalId,
+        metadata,
+      },
+      this.clock.now(),
+    );
 
     await this.repository.saveMessage(message);
 
-    this.eventEmitter.emit('whatsapp.message.sent', {
+    this.eventEmitter.emit(ApplicationEvents.WHATSAPP_MESSAGE_SENT, {
       clinicId,
       messageId: message.id,
       messageType: templateName ? 'template' : 'session',
@@ -228,8 +234,8 @@ export class SendMessageUseCase {
     clinicName: string,
     branding: unknown,
   ): string {
-    if (branding && typeof branding === 'object' && !Array.isArray(branding)) {
-      const displayName = (branding as Record<string, unknown>).displayName;
+    if (isRecord(branding)) {
+      const displayName = branding.displayName;
       if (typeof displayName === 'string' && displayName.trim()) {
         return displayName.trim();
       }

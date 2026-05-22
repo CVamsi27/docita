@@ -46,22 +46,25 @@ export class WhatsAppMessage {
 
   static create(
     props: Omit<WhatsAppMessageProps, 'id' | 'sentAt' | 'status'>,
+    now: Date,
   ): WhatsAppMessage {
     return new WhatsAppMessage({
       ...props,
       id: crypto.randomUUID(),
       status: WhatsAppMessageStatus.DISPATCHED,
-      sentAt: new Date(),
+      sentAt: now,
     });
   }
 
-  updateStatus(status: WhatsAppMessageStatus, externalId?: string): void {
+  updateStatus(
+    status: WhatsAppMessageStatus,
+    now: Date,
+    externalId?: string,
+  ): void {
     this.props.status = status;
     if (externalId) {
       this.props.externalMessageId = externalId;
     }
-
-    const now = new Date();
     switch (status) {
       case WhatsAppMessageStatus.DELIVERED:
         this.props.deliveredAt = now;
@@ -75,11 +78,11 @@ export class WhatsAppMessage {
     }
   }
 
-  setError(code: string, message: string): void {
+  setError(code: string, message: string, now: Date): void {
     this.props.status = WhatsAppMessageStatus.FAILED;
     this.props.errorCode = code;
     this.props.errorMessage = message;
-    this.props.failedAt = new Date();
+    this.props.failedAt = now;
   }
 
   toSnapshot(): WhatsAppMessageProps {

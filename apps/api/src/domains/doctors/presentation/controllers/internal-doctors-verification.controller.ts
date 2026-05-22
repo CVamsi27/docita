@@ -11,9 +11,10 @@ import { z } from 'zod';
 import { Role } from '@workspace/db';
 import { Roles } from '@/shared/modules/auth/auth/roles.decorator';
 import { TierGuard } from '@/shared/modules/auth/auth/tier.guard';
-import { ZodValidationPipe } from '@/common/pipes/zod-validation.pipe';
+import { ZodValidationPipe } from '@/shared/common/pipes/zod-validation.pipe';
 import { DoctorsService } from '@/domains/doctors/application/services/doctors.service';
-import { RequestWithUser } from '@/common/types/common.types';
+import { RequestWithUser } from '@/shared/common/types/common.types';
+import { requireAuthenticatedUserId } from '@/shared/modules/auth/auth/clinic-request-context';
 
 const AdminVerifySchema = z.object({
   note: z.string().trim().max(500).optional(),
@@ -42,7 +43,11 @@ export class InternalDoctorsVerificationController {
     @Param('id') id: string,
     @Body(new ZodValidationPipe(AdminVerifySchema)) dto: AdminVerifyDto,
   ) {
-    return this.doctorsService.adminVerifyDoctor(id, req.user!.id, dto.note);
+    return this.doctorsService.adminVerifyDoctor(
+      id,
+      requireAuthenticatedUserId(req),
+      dto.note,
+    );
   }
 
   @Post(':id/admin-reject')
@@ -51,6 +56,10 @@ export class InternalDoctorsVerificationController {
     @Param('id') id: string,
     @Body(new ZodValidationPipe(AdminRejectSchema)) dto: AdminRejectDto,
   ) {
-    return this.doctorsService.adminRejectDoctor(id, req.user!.id, dto.reason);
+    return this.doctorsService.adminRejectDoctor(
+      id,
+      requireAuthenticatedUserId(req),
+      dto.reason,
+    );
   }
 }

@@ -1,4 +1,5 @@
-import { Injectable, Logger } from '@nestjs/common';
+import { Inject, Injectable, Logger } from '@nestjs/common';
+import { CLOCK_PORT, type IClock } from '@/shared/common/ports/clock.port';
 import { ConfigService } from '@nestjs/config';
 import * as crypto from 'crypto';
 import { BaseRazorpayAdapter } from './razorpay.adapter';
@@ -22,6 +23,7 @@ export class RazorpayWebhookAdapter
   constructor(
     razorpayClient: RazorpayClientService,
     private configService: ConfigService,
+    @Inject(CLOCK_PORT) private readonly clock: IClock,
   ) {
     super(razorpayClient);
   }
@@ -57,7 +59,7 @@ export class RazorpayWebhookAdapter
       type: this.normalizeEventType(payload.event),
       provider: PaymentProvider.RAZORPAY,
       data: payload,
-      timestamp: new Date(),
+      timestamp: this.clock.now(),
     };
   }
 

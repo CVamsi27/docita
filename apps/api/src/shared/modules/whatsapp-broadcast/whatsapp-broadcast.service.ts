@@ -1,20 +1,39 @@
 import {
   BadRequestException,
+  Inject,
   Injectable,
   Logger,
   NotFoundException,
 } from '@nestjs/common';
+import { CLOCK_PORT, type IClock } from '@/shared/common/ports/clock.port';
 import { PrismaService } from '@/prisma/prisma.service';
-import { WhatsappClientService } from '@/shared/modules/messaging/whatsapp/whatsapp-client.service';
-import type {
-  CreateWhatsAppBroadcastJobRequest,
-  WhatsAppBroadcastJobDetail,
-  WhatsAppBroadcastJobSummary,
-  WhatsAppBroadcastRecipientInput,
+import { WhatsappClientService } from '@/domains/whatsapp/infrastructure/clients/whatsapp-client.service';
+import {
+  whatsappBroadcastJobStatusSchema,
+  type CreateWhatsAppBroadcastJobRequest,
+  type WhatsAppBroadcastJobDetail,
+  type WhatsAppBroadcastJobSummary,
+  type WhatsAppBroadcastRecipientInput,
 } from '@workspace/types';
+import { isRecord, parseStringEnumMember } from '@workspace/utils';
 
 const SEND_DELAY_MS = 250;
 const MAX_RECIPIENTS = 10000;
+const BROADCAST_JOB_STATUSES = whatsappBroadcastJobStatusSchema.options;
+
+function parseBroadcastVariables(
+  value: unknown,
+): Record<string, string> | undefined {
+  if (!isRecord(value)) {
+    return undefined;
+  }
+
+  const entries = Object.entries(value).filter(
+    (entry): entry is [string, string] => typeof entry[1] === 'string',
+  );
+
+  return entries.length > 0 ? Object.fromEntries(entries) : undefined;
+}
 
 @Injectable()
 export class WhatsAppBroadcastService {
@@ -24,6 +43,7 @@ export class WhatsAppBroadcastService {
   constructor(
     private readonly prisma: PrismaService,
     private readonly whatsappClient: WhatsappClientService,
+    @Inject(CLOCK_PORT) private readonly clock: IClock,
   ) {}
 
   async createBroadcast(
@@ -122,7 +142,7 @@ export class WhatsAppBroadcastService {
     try {
       const job = await this.prisma.whatsAppBroadcastJob.update({
         where: { id: jobId },
-        data: { status: 'RUNNING', startedAt: new Date() },
+        data: { status: 'RUNNING', startedAt: this.clock.now() },
       });
 
       const recipients = await this.prisma.whatsAppBroadcastRecipient.findMany({
@@ -140,7 +160,7 @@ export class WhatsAppBroadcastService {
             templateName: job.templateName,
             languageCode: job.languageCode,
             messageText: job.messageText,
-            variables: recipient.variables as Record<string, string> | null,
+            variables: parseBroadcastVariables(recipient.variables) ?? null,
             recipientName: recipient.name,
           });
 
@@ -150,7 +170,7 @@ export class WhatsAppBroadcastService {
               status: result.success ? 'SENT' : 'FAILED',
               providerMessageId: result.messageId ?? null,
               errorMessage: result.success ? null : (result.error ?? null),
-              sentAt: result.success ? new Date() : null,
+              sentAt: result.success ? this.clock.now() : null,
             },
           });
 
@@ -187,7 +207,7 @@ export class WhatsAppBroadcastService {
         where: { id: jobId },
         data: {
           status: 'COMPLETED',
-          completedAt: new Date(),
+          completedAt: this.clock.now(),
           sentCount,
           failedCount,
         },
@@ -201,7 +221,7 @@ export class WhatsAppBroadcastService {
         data: {
           status: 'FAILED',
           errorMessage,
-          completedAt: new Date(),
+          completedAt: this.clock.now(),
         },
       });
     } finally {
@@ -241,7 +261,7 @@ export class WhatsAppBroadcastService {
           name: input.recipientName ?? '',
           ...(input.variables ?? {}),
         });
-        const result = await this.whatsappClient.sendMessage({
+        const result = await this.whatsappClient.sendTextMessage({
           to: input.phoneNumber,
           message: finalText,
         });
@@ -350,7 +370,8 @@ export class WhatsAppBroadcastService {
       totalCount: job.totalCount,
       sentCount: job.sentCount,
       failedCount: job.failedCount,
-      status: job.status as WhatsAppBroadcastJobSummary['status'],
+      status:
+        parseStringEnumMember(BROADCAST_JOB_STATUSES, job.status) ?? 'PENDING',
       createdBy: job.createdBy,
       startedAt: job.startedAt,
       completedAt: job.completedAt,

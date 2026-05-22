@@ -25,9 +25,10 @@ export function buildURL(
   const normalizedEndpoint = endpoint.startsWith("/")
     ? endpoint.substring(1)
     : endpoint;
+  const resolvedBaseURL = resolveRequestBaseURL(baseURL);
   const url = new URL(
     normalizedEndpoint,
-    baseURL.endsWith("/") ? baseURL : `${baseURL}/`,
+    resolvedBaseURL.endsWith("/") ? resolvedBaseURL : `${resolvedBaseURL}/`,
   );
 
   if (params) {
@@ -39,4 +40,19 @@ export function buildURL(
   }
 
   return url.toString();
+}
+
+export function resolveRequestBaseURL(baseURL: string): string {
+  if (/^https?:\/\//i.test(baseURL)) {
+    return baseURL;
+  }
+
+  const runtimeOrigin =
+    typeof window !== "undefined" ? window.location.origin : undefined;
+
+  if (!runtimeOrigin) {
+    return baseURL;
+  }
+
+  return new URL(baseURL, runtimeOrigin).toString();
 }

@@ -9,10 +9,9 @@ import {
   TIER_PRICING_BY_CURRENCY,
   ANNUAL_DISCOUNT_PERCENT,
   REFERRAL_DISCOUNT_PERCENT,
-  SupportedCurrency,
   type TierName,
 } from '@workspace/types';
-import { DEFAULT_CURRENCY } from '@workspace/utils';
+import { DEFAULT_CURRENCY, parseSupportedCurrency } from '@workspace/utils';
 
 @Injectable()
 export class DefaultPricingCalculatorStrategy implements PricingCalculatorStrategy {
@@ -29,8 +28,9 @@ export class DefaultPricingCalculatorStrategy implements PricingCalculatorStrate
     referralCredits?: number;
     currency?: string;
   }): Promise<PricingCalculationResult> {
-    const currency = (params.currency?.toUpperCase() ||
-      DEFAULT_CURRENCY) as SupportedCurrency;
+    const currency = parseSupportedCurrency(
+      params.currency?.toUpperCase() ?? DEFAULT_CURRENCY,
+    );
     const tierPricing = TIER_PRICING_BY_CURRENCY[currency];
     const tierName = this.isTierName(params.tier) ? params.tier : 'ESSENTIAL';
     const tierConfig = tierPricing[tierName];

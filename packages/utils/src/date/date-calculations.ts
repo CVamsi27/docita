@@ -70,7 +70,7 @@ export function getMinutesDifference(
   return differenceInMinutes(end, start);
 }
 
-/** Calendar day difference (same semantics as date-fns `differenceInDays`). */
+/** Calendar day difference (matches date-fns differenceInDays). */
 export function differenceInDays(
   dateLeft: string | Date,
   dateRight: string | Date,
@@ -93,17 +93,17 @@ export function addMinutesToDate(
   return addMinutesFns(parsedDate, minutes);
 }
 
-/** Add minutes to an existing `Date` (same semantics as date-fns `addMinutes`). */
+/** Add minutes to an existing Date (matches date-fns addMinutes). */
 export function addMinutes(date: Date, amount: number): Date {
   return addMinutesFns(date, amount);
 }
 
-/** Subtract minutes from a `Date` (same semantics as date-fns `subMinutes`). */
+/** Subtract minutes from a Date (matches date-fns subMinutes). */
 export function subMinutes(date: Date, amount: number): Date {
   return subMinutesFns(date, amount);
 }
 
-/** Truncate to the start of the minute (same semantics as date-fns `startOfMinute`). */
+/** Truncate to the start of the minute (matches date-fns startOfMinute). */
 export function startOfMinute(date: Date): Date {
   return startOfMinuteFns(date);
 }

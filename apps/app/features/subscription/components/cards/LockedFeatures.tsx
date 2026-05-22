@@ -5,9 +5,9 @@ import {
   CardDescription,
   CardHeader,
   CardTitle,
-} from "@workspace/ui/components/card";
-import { Badge } from "@workspace/ui/components/badge";
-import { Feature, getTierInfo } from "@/lib/tier-config";
+} from "@workspace/ui/components/indicators/card";
+import { Badge } from "@workspace/ui/components/indicators/badge";
+import { Feature, getTierInfo } from "@/lib/subscription/tier-access";
 import { getFeatureDetails } from "@/features/subscription/config/feature-config";
 
 interface LockedFeaturesProps {

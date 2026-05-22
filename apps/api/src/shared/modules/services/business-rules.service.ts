@@ -1,10 +1,14 @@
-import { Injectable, BadRequestException } from '@nestjs/common';
+import { Inject, Injectable, BadRequestException } from '@nestjs/common';
+import { CLOCK_PORT, type IClock } from '@/shared/common/ports/clock.port';
 import { PrismaService } from '@/prisma/prisma.service';
 import { DATE_FORMATS, formatTime } from '@workspace/utils';
 
 @Injectable()
 export class BusinessRulesService {
-  constructor(private readonly prisma: PrismaService) {}
+  constructor(
+    private readonly prisma: PrismaService,
+    @Inject(CLOCK_PORT) private readonly clock: IClock,
+  ) {}
 
   validateAppointmentTimeRange(
     startTime: Date,
@@ -15,7 +19,7 @@ export class BusinessRulesService {
       throw new BadRequestException('End time must be after start time');
     }
 
-    if (startTime < new Date()) {
+    if (startTime < this.clock.now()) {
       throw new BadRequestException(
         'Appointment must be scheduled in the future',
       );
@@ -154,13 +158,13 @@ export class BusinessRulesService {
 
     if (isPRN && prnInstructions.trim().length === 0) {
       throw new BadRequestException(
-        'PRN instructions are required when medication is marked as needed',
+        'PRN instructions are required when medication is marked needed (PRN)',
       );
     }
 
     if (status === 'COMPLETED' && !hasCompletedAt) {
       throw new BadRequestException(
-        'Completion date is required when marking appointment as completed',
+        'Completion date is required when marking appointment completed',
       );
     }
 
@@ -198,7 +202,7 @@ export class BusinessRulesService {
     codeStatusUpdatedAt?: Date,
     advanceDirectiveDate?: Date,
   ): void {
-    const today = new Date();
+    const today = this.clock.now();
 
     const age = today.getFullYear() - dateOfBirth.getFullYear();
     if (age < 0 || age > 150) {

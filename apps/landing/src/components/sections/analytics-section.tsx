@@ -6,8 +6,8 @@ import {
   CardContent,
   CardHeader,
   CardTitle,
-} from "@workspace/ui/components/card";
-import { SectionHeading } from "@workspace/ui/components/section-heading";
+} from "@workspace/ui/components/indicators/card";
+import { SectionHeading } from "@workspace/ui/components/layout/section-heading";
 
 export function AnalyticsSection() {
   return (

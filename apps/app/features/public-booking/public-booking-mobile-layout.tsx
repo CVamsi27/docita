@@ -1,8 +1,8 @@
 "use client";
 
 import { useId, useRef } from "react";
-import { Button } from "@workspace/ui/components/button";
-import { MicroLabel } from "@workspace/ui/components/micro-label";
+import { Button } from "@workspace/ui/components/form/button";
+import { MicroLabel } from "@workspace/ui/components/indicators/micro-label";
 import {
   PublicBookingHowItWorksSheet,
   PublicBookingProgressChrome,
@@ -95,7 +95,8 @@ export function PublicBookingMobileLayout({
   function goBack() {
     const i = STEP_ORDER.indexOf(c.mobileStep);
     if (i > 0) {
-      c.setMobileStep(STEP_ORDER[i - 1]!);
+      const prev = STEP_ORDER.at(i - 1);
+      if (prev) c.setMobileStep(prev);
       window.scrollTo({ top: 0, behavior: "auto" });
       requestAnimationFrame(() =>
         stepHeadingRef.current?.focus({ preventScroll: true }),
@@ -106,7 +107,8 @@ export function PublicBookingMobileLayout({
   function goForward() {
     const i = STEP_ORDER.indexOf(c.mobileStep);
     if (i < STEP_ORDER.length - 1) {
-      c.setMobileStep(STEP_ORDER[i + 1]!);
+      const next = STEP_ORDER.at(i + 1);
+      if (next) c.setMobileStep(next);
       window.scrollTo({ top: 0, behavior: "auto" });
       requestAnimationFrame(() =>
         stepHeadingRef.current?.focus({ preventScroll: true }),

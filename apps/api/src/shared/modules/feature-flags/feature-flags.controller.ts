@@ -17,11 +17,11 @@ import {
   FeatureFlagUpsertRequest,
   featureFlagUpsertRequestSchema,
 } from '@workspace/types';
-import { ZodValidationPipe } from '@/common/pipes/zod-validation.pipe';
+import { ZodValidationPipe } from '@/shared/common/pipes/zod-validation.pipe';
 import { Roles } from '@/shared/modules/auth/auth/roles.decorator';
 import { Public } from '@/shared/modules/auth/auth/public.decorator';
 import { FeatureFlagsService } from '@/shared/modules/feature-flags/feature-flags.service';
-import type { RequestWithUser } from '@/common/types/common.types';
+import type { RequestWithUser } from '@/shared/common/types/common.types';
 
 @Controller('feature-flags')
 @ApiTags('Feature Flags')

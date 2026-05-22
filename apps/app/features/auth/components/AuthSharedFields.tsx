@@ -1,9 +1,9 @@
 "use client";
 
 import { AlertCircle } from "lucide-react";
-import { BackButton } from "@workspace/ui/components/back-button";
-import { Input } from "@workspace/ui/components/input";
-import { Label } from "@workspace/ui/components/label";
+import { BackButton } from "@workspace/ui/components/navigation/back-button";
+import { Input } from "@workspace/ui/components/form/input";
+import { Label } from "@workspace/ui/components/form/label";
 import type { FieldErrors } from "@/features/auth/types/auth";
 
 const PASSWORD_STRENGTH_LABELS = [

@@ -15,6 +15,7 @@ import type { Request } from 'express';
 import { Public } from '@/shared/modules/auth/auth/public.decorator';
 import { PublicBookingService } from '@/domains/public-booking/application/services/public-booking.service';
 import { publicBookingSlotsQuerySchema } from '@workspace/types';
+import { getClientIp } from '@/shared/common/http/client-ip';
 
 @ApiTags('public-booking')
 @Controller('public/booking/clinics')
@@ -47,6 +48,7 @@ export class PublicBookingController {
     return this.publicBookingService.listSlots(referralCode, parsed.data);
   }
 
+  @Throttle({ short: { ttl: 60000, limit: 10 } })
   @Post(':referralCode/phone-check')
   @ApiOperation({ summary: 'Whether WhatsApp OTP is required for this phone' })
   checkPhone(
@@ -57,7 +59,7 @@ export class PublicBookingController {
     return this.publicBookingService.checkPhoneStatus(
       referralCode,
       body,
-      req.ip,
+      getClientIp(req),
     );
   }
 
@@ -69,7 +71,11 @@ export class PublicBookingController {
     @Body() body: unknown,
     @Req() req: Request,
   ) {
-    return this.publicBookingService.requestOtp(referralCode, body, req.ip);
+    return this.publicBookingService.requestOtp(
+      referralCode,
+      body,
+      getClientIp(req),
+    );
   }
 
   @Throttle({ short: { ttl: 60000, limit: 10 } })
@@ -109,7 +115,7 @@ export class PublicBookingController {
       referralCode,
       body,
       authorization,
-      req.ip,
+      getClientIp(req),
       req.headers['user-agent'],
     );
   }

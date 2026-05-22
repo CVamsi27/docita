@@ -4,6 +4,11 @@ import { beforeEach, describe, expect, it, jest } from '@jest/globals';
 import { OperationalAnalyticsFactory } from './operational-analytics.factory';
 import { PrismaService } from '@/prisma/prisma.service';
 import { AppConfigService } from '@/shared/modules/config/app-configuration.service';
+import {
+  ANALYTICS_REPOSITORY_TOKEN,
+  IAnalyticsRepository,
+} from '@/domains/analytics/core/repositories/analytics.repository.interface';
+import { clockPortTestProvider } from '@/test-utils';
 
 describe('OperationalAnalyticsFactory', () => {
   let factory: OperationalAnalyticsFactory;
@@ -39,10 +44,128 @@ describe('OperationalAnalyticsFactory', () => {
     set: jest.fn<(...args: unknown[]) => Promise<unknown>>(),
   };
 
+  const mockAnalyticsRepository = {
+    getOverviewAggregates:
+      jest.fn<IAnalyticsRepository['getOverviewAggregates']>(),
+    getPatientCreationTimestamps:
+      jest.fn<IAnalyticsRepository['getPatientCreationTimestamps']>(),
+    getAppointmentStatusBreakdown: jest.fn<
+      IAnalyticsRepository['getAppointmentStatusBreakdown']
+    >(async (clinicId, since) => {
+      const where = {
+        clinicId,
+        startTime: { gte: since },
+      };
+      const total = (await mockAppointmentCount({ where })) as number;
+      const statusRows = (await mockAppointmentGroupBy({
+        by: ['status'],
+        where,
+        _count: { id: true },
+      })) as Array<{ status: string; _count: { id: number } }>;
+      const typeRows = (await mockAppointmentGroupBy({
+        by: ['type'],
+        where,
+        _count: { id: true },
+      })) as Array<{ type: string; _count: { id: number } }>;
+
+      return {
+        total,
+        statusCounts: statusRows.map((row) => ({
+          status: row.status,
+          count: row._count.id,
+        })),
+        typeCounts: typeRows.map((row) => ({
+          type: row.type,
+          count: row._count.id,
+        })),
+      };
+    }),
+    getAppointmentMetricsAggregates:
+      jest.fn<IAnalyticsRepository['getAppointmentMetricsAggregates']>(),
+    getPatientDemographicsAggregates: jest.fn<
+      IAnalyticsRepository['getPatientDemographicsAggregates']
+    >(async (where, cutoffs) => {
+      const [
+        totalPatients,
+        age0to18,
+        age18to35,
+        age35to50,
+        age50to65,
+        age65plus,
+      ] = (await Promise.all([
+        mockPatientCount({ where }),
+        mockPatientCount({
+          where: { ...where, dateOfBirth: { gte: cutoffs.age18 } },
+        }),
+        mockPatientCount({
+          where: {
+            ...where,
+            dateOfBirth: { lt: cutoffs.age18, gte: cutoffs.age35 },
+          },
+        }),
+        mockPatientCount({
+          where: {
+            ...where,
+            dateOfBirth: { lt: cutoffs.age35, gte: cutoffs.age50 },
+          },
+        }),
+        mockPatientCount({
+          where: {
+            ...where,
+            dateOfBirth: { lt: cutoffs.age50, gte: cutoffs.age65 },
+          },
+        }),
+        mockPatientCount({
+          where: { ...where, dateOfBirth: { lt: cutoffs.age65 } },
+        }),
+      ])) as number[];
+      const genders = (await mockPatientGroupBy({
+        by: ['gender'],
+        where,
+        _count: { _all: true },
+      })) as Array<{
+        gender: 'MALE' | 'FEMALE' | 'OTHER' | null;
+        _count: { _all: number };
+      }>;
+
+      return {
+        totalPatients,
+        genders: genders.map((row) => ({
+          gender: row.gender,
+          count: row._count._all,
+        })),
+        age0to18,
+        age18to35,
+        age35to50,
+        age50to65,
+        age65plus,
+      };
+    }),
+    getUncodedVisitsAggregates: jest.fn<
+      IAnalyticsRepository['getUncodedVisitsAggregates']
+    >(async (clinicId, olderThanDate) => {
+      const totalUncoded = (await mockAppointmentCount({
+        where: { clinicId, medicalCoding: null },
+      })) as number;
+      const uncodedOlderThan7Days = (await mockAppointmentCount({
+        where: {
+          clinicId,
+          medicalCoding: null,
+          startTime: { lt: olderThanDate },
+        },
+      })) as number;
+      return { totalUncoded, uncodedOlderThan7Days };
+    }),
+  } satisfies IAnalyticsRepository;
+
   beforeEach(async () => {
     const module: TestingModule = await Test.createTestingModule({
       providers: [
         OperationalAnalyticsFactory,
+        {
+          provide: ANALYTICS_REPOSITORY_TOKEN,
+          useValue: mockAnalyticsRepository,
+        },
         { provide: PrismaService, useValue: mockPrismaService },
         { provide: CACHE_MANAGER, useValue: mockCacheManager },
         {
@@ -51,6 +174,7 @@ describe('OperationalAnalyticsFactory', () => {
             getAnalyticsCacheTtl: jest.fn().mockReturnValue(3600),
           },
         },
+        clockPortTestProvider(),
       ],
     }).compile();
 

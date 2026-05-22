@@ -1,31 +1,18 @@
-import { Injectable, Logger, OnModuleInit } from '@nestjs/common';
-import { Prisma } from '@workspace/db';
+import { Inject, Injectable, Logger, OnModuleInit } from '@nestjs/common';
+import { CLOCK_PORT, type IClock } from '@/shared/common/ports/clock.port';
 import { PrismaService } from '@/prisma/prisma.service';
+import { toPrismaInputJsonValue } from '@/shared/common/json/to-prisma-input-json-value';
+import {
+  coerceFeatureFlagValue,
+  parseClinicPricingOffer,
+} from '@/shared/modules/services/feature-flag-value';
+import type {
+  ClinicPricingOffer,
+  FeatureFlagConfig,
+  FeatureFlagValue,
+} from '@/shared/modules/services/feature-flag.types';
 
-export type FeatureFlagValue =
-  | boolean
-  | number
-  | string
-  | Record<string, unknown>
-  | null
-  | unknown[];
-
-export interface ClinicPricingOffer {
-  title: string;
-  description: string;
-  percentOff: number;
-  validUntil?: string;
-  durationMonths?: number;
-  notes?: string;
-}
-
-export interface FeatureFlagConfig {
-  key: string;
-  defaultValue: FeatureFlagValue;
-  description: string;
-
-  perClinic?: boolean;
-}
+export type { ClinicPricingOffer, FeatureFlagConfig, FeatureFlagValue };
 
 export const DEFAULT_FEATURE_FLAGS: FeatureFlagConfig[] = [
   {
@@ -115,10 +102,6 @@ export const DEFAULT_FEATURE_FLAGS: FeatureFlagConfig[] = [
   },
 ];
 
-function toInputJsonValue(value: unknown): Prisma.InputJsonValue {
-  return value as Prisma.InputJsonValue;
-}
-
 @Injectable()
 export class FeatureFlagService implements OnModuleInit {
   private readonly logger = new Logger(FeatureFlagService.name);
@@ -126,10 +109,21 @@ export class FeatureFlagService implements OnModuleInit {
   private cacheExpiry: Date = new Date(0);
   private readonly CACHE_TTL_MS = 60000;
 
-  constructor(private readonly prisma: PrismaService) {}
+  constructor(
+    private readonly prisma: PrismaService,
+    @Inject(CLOCK_PORT) private readonly clock: IClock,
+  ) {}
 
   onModuleInit(): void {
-    void this.initializeDefaultFlags();
+    void this.initializeDefaultFlags().catch((error: unknown) => {
+      this.logger.warn(
+        `Feature flag initialization failed; defaults will be used: ${this.formatErrorMessage(error)}`,
+      );
+    });
+  }
+
+  private formatErrorMessage(error: unknown): string {
+    return error instanceof Error ? error.message : String(error);
   }
 
   private async initializeDefaultFlags(): Promise<void> {
@@ -143,7 +137,7 @@ export class FeatureFlagService implements OnModuleInit {
           await this.prisma.featureFlag?.create({
             data: {
               key: flag.key,
-              value: toInputJsonValue(flag.defaultValue),
+              value: toPrismaInputJsonValue(flag.defaultValue),
               description: flag.description,
               clinicId: null,
             },
@@ -151,34 +145,39 @@ export class FeatureFlagService implements OnModuleInit {
           this.logger.debug(`Initialized feature flag: ${flag.key}`);
         }
       }
-    } catch (_error) {
-      this.logger.warn('FeatureFlag model not available, using defaults');
+    } catch (error) {
+      this.logger.warn(
+        `FeatureFlag model not available, using defaults: ${this.formatErrorMessage(error)}`,
+      );
     }
   }
 
   async isEnabled(key: string, clinicId?: string): Promise<boolean> {
-    const value = await this.getValue<boolean>(key, clinicId);
+    const value = await this.getValue(key, clinicId);
     return value === true;
   }
 
-  async getValue<T>(
+  async getValue(
     key: string,
     clinicId?: string,
-    defaultValue?: T,
-  ): Promise<T> {
+    defaultValue?: FeatureFlagValue,
+  ): Promise<FeatureFlagValue> {
     try {
       if (clinicId) {
         const clinicFlag = await this.prisma.featureFlag?.findFirst({
           where: { key, clinicId },
         });
         if (clinicFlag) {
-          return clinicFlag.value as T;
+          return coerceFeatureFlagValue(clinicFlag.value);
         }
       }
 
       const cacheKey = `global:${key}`;
-      if (this.cache.has(cacheKey) && this.cacheExpiry > new Date()) {
-        return this.cache.get(cacheKey) as T;
+      if (this.cache.has(cacheKey) && this.cacheExpiry > this.clock.now()) {
+        const cached = this.cache.get(cacheKey);
+        if (cached !== undefined) {
+          return coerceFeatureFlagValue(cached);
+        }
       }
 
       const globalFlag = await this.prisma.featureFlag?.findFirst({
@@ -186,16 +185,21 @@ export class FeatureFlagService implements OnModuleInit {
       });
 
       if (globalFlag) {
-        this.cache.set(cacheKey, globalFlag.value as FeatureFlagValue);
+        const resolved = coerceFeatureFlagValue(globalFlag.value);
+        this.cache.set(cacheKey, resolved);
         this.cacheExpiry = new Date(Date.now() + this.CACHE_TTL_MS);
-        return globalFlag.value as T;
+        return resolved;
       }
-    } catch (_error) {}
+    } catch (error) {
+      this.logger.warn(
+        `Feature flag lookup failed for ${key}; using fallback: ${this.formatErrorMessage(error)}`,
+      );
+    }
 
     const configDefault = DEFAULT_FEATURE_FLAGS.find(
       (f) => f.key === key,
     )?.defaultValue;
-    return (defaultValue ?? configDefault ?? false) as T;
+    return defaultValue ?? configDefault ?? false;
   }
 
   async setValue(
@@ -211,13 +215,13 @@ export class FeatureFlagService implements OnModuleInit {
       if (existing) {
         await this.prisma.featureFlag?.update({
           where: { id: existing.id },
-          data: { value: toInputJsonValue(value) },
+          data: { value: toPrismaInputJsonValue(value) },
         });
       } else {
         await this.prisma.featureFlag?.create({
           data: {
             key,
-            value: toInputJsonValue(value),
+            value: toPrismaInputJsonValue(value),
             clinicId: clinicId ?? null,
           },
         });
@@ -249,7 +253,7 @@ export class FeatureFlagService implements OnModuleInit {
         })) ?? [];
 
       for (const flag of globalFlags) {
-        result[flag.key] = flag.value as FeatureFlagValue;
+        result[flag.key] = coerceFeatureFlagValue(flag.value);
       }
 
       const clinicFlags =
@@ -258,9 +262,13 @@ export class FeatureFlagService implements OnModuleInit {
         })) ?? [];
 
       for (const flag of clinicFlags) {
-        result[flag.key] = flag.value as FeatureFlagValue;
+        result[flag.key] = coerceFeatureFlagValue(flag.value);
       }
-    } catch (_error) {}
+    } catch (error) {
+      this.logger.warn(
+        `Feature flag list lookup failed for clinic ${clinicId}; returning defaults: ${this.formatErrorMessage(error)}`,
+      );
+    }
 
     return result;
   }
@@ -282,17 +290,14 @@ export class FeatureFlagService implements OnModuleInit {
   async getClinicPricingOffer(
     clinicId: string,
   ): Promise<ClinicPricingOffer | null> {
-    const offer = await this.getValue<ClinicPricingOffer | null>(
-      'clinic_pricing_offer',
-      clinicId,
-      null,
-    );
+    const offer = await this.getValue('clinic_pricing_offer', clinicId, null);
 
-    if (!offer || !offer.percentOff || offer.percentOff <= 0) {
+    const parsed = parseClinicPricingOffer(offer);
+    if (!parsed || parsed.percentOff <= 0) {
       return null;
     }
 
-    return offer;
+    return parsed;
   }
 
   async setClinicPricingOffer(

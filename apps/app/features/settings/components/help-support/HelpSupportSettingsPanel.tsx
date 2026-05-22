@@ -1,13 +1,13 @@
 "use client";
 
-import { SupportContact } from "@/components/common/support-contact";
+import { SupportContact } from "@/components/support-contact/support-contact";
 import {
   Card,
   CardContent,
   CardDescription,
   CardHeader,
   CardTitle,
-} from "@workspace/ui/components/card";
+} from "@workspace/ui/components/indicators/card";
 
 export function HelpSupportSettingsPanel() {
   return (

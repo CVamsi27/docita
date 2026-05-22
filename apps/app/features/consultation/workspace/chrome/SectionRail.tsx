@@ -3,7 +3,7 @@
 import { useMemo } from "react";
 import { Check } from "lucide-react";
 import { cn } from "@workspace/ui/lib/utils";
-import { MicroLabel } from "@workspace/ui/components/micro-label";
+import { MicroLabel } from "@workspace/ui/components/indicators/micro-label";
 import { useConsultationDraft } from "@/features/consultation/state/useConsultationDraft";
 import type { ConsultationSection } from "@/features/consultation/workspace/consultation-section-registry";
 

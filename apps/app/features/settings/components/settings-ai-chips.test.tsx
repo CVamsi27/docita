@@ -3,10 +3,10 @@ import { describe, expect, it, vi } from "vitest";
 import {
   AskAiProvider,
   useAskAi,
-} from "@/features/_shared/components/ask-ai/ask-ai-context";
+} from "@/components/ask-ai/ask-ai-context";
 import { SettingsAiChips } from "./settings-ai-chips";
 
-vi.mock("@/features/_shared/hooks/use-feature-flag", () => ({
+vi.mock("@/hooks/use-feature-flag", () => ({
   useFeatureFlag: (key: string) => key === "settings_ai_chips",
 }));
 

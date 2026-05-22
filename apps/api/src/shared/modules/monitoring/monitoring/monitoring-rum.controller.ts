@@ -2,7 +2,7 @@ import { Body, Controller, Post, UsePipes } from '@nestjs/common';
 import { Throttle } from '@nestjs/throttler';
 import { Public } from '@/shared/modules/auth/auth/public.decorator';
 import { ZodSerializerDto } from 'nestjs-zod';
-import { ZodValidationPipe } from '@/common/pipes/zod-validation.pipe';
+import { ZodValidationPipe } from '@/shared/common/pipes/zod-validation.pipe';
 import { MonitoringService } from './monitoring.service';
 import {
   AnyResponseDto,

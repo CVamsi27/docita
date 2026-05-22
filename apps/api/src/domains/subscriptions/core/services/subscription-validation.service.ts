@@ -1,13 +1,19 @@
 import { Subscription } from '@/domains/subscriptions/core/entities';
 
 export class SubscriptionValidationService {
-  validateSubscription(subscription: Subscription): {
+  validateSubscription(
+    subscription: Subscription,
+    asOf: Date,
+  ): {
     valid: boolean;
     errors: string[];
   } {
     const errors: string[] = [];
 
-    if (subscription.getDaysRemaining() < 0 && subscription.isDueForRenewal()) {
+    if (
+      subscription.getDaysRemaining(asOf) < 0 &&
+      subscription.isDueForRenewal(asOf)
+    ) {
       errors.push('Subscription has expired and needs renewal');
     }
 
@@ -53,7 +59,10 @@ export class SubscriptionValidationService {
     return { allowed: true };
   }
 
-  validatePaymentEligibility(subscription: Subscription): {
+  validatePaymentEligibility(
+    subscription: Subscription,
+    asOf: Date,
+  ): {
     eligible: boolean;
     reason?: string;
   } {
@@ -64,7 +73,7 @@ export class SubscriptionValidationService {
       };
     }
 
-    if (subscription.isDueForRenewal()) {
+    if (subscription.isDueForRenewal(asOf)) {
       return { eligible: true };
     }
 

@@ -7,7 +7,7 @@ import {
   ShieldCheck,
   Users,
 } from "lucide-react";
-import { SectionHeading } from "@workspace/ui/components/section-heading";
+import { SectionHeading } from "@workspace/ui/components/layout/section-heading";
 
 export function ValuePropsSection() {
   return (

@@ -8,18 +8,18 @@ import {
   DialogFooter,
   DialogHeader,
   DialogTitle,
-} from "@workspace/ui/components/dialog";
-import { Button } from "@workspace/ui/components/button";
-import { SymbolTooltip } from "@workspace/ui/components/tooltip";
-import { Input } from "@workspace/ui/components/input";
+} from "@workspace/ui/components/overlay/dialog";
+import { Button } from "@workspace/ui/components/form/button";
+import { SymbolTooltip } from "@workspace/ui/components/overlay/tooltip";
+import { Input } from "@workspace/ui/components/form/input";
 import { toast } from "sonner";
 import {
   useCreatePrescription,
   usePatientPrescriptions,
-} from "@/hooks/api/use-clinical";
+} from "@workspace/data-access";
 import { Pill, Plus, RotateCcw, X } from "lucide-react";
 import { ApiError } from "@/lib/errors";
-import { showUserFacingErrorToast } from "@/lib/user-facing-errors";
+import { showUserFacingErrorToast } from "@/lib/errors/user-facing-errors";
 
 const getPrescriptionComplianceErrorMessage = (error: unknown): string | null => {
   if (!(error instanceof ApiError)) {

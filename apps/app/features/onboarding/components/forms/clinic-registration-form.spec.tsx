@@ -7,7 +7,7 @@ const mocks = vi.hoisted(() => ({
   restoreOnboardingId: vi.fn(),
 }));
 
-vi.mock("@/lib/auth-context", () => ({
+vi.mock("@/lib/auth/auth-context", () => ({
   useAuth: () => ({
     user: {
       id: "user_1",

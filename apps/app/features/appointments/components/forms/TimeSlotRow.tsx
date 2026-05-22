@@ -1,19 +1,19 @@
-import { DocitaLoadingIndicator } from "@workspace/ui/components/docita-loading-indicator";
+import { DocitaLoadingIndicator } from "@workspace/ui/components/feedback/docita-loading-indicator";
 import { memo, useCallback } from "react";
 import { useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
 import { formatClockTime } from "@/lib/formatters";
 import { Check, Play, UserCheck } from "lucide-react";
-import type { AppointmentListItem } from "@/hooks/api/use-appointments";
-import { Button } from "@workspace/ui/components/button";
-import { Badge } from "@workspace/ui/components/badge";
-import { SymbolTooltip } from "@workspace/ui/components/tooltip";
+import { queryKeys, type AppointmentListItem } from "@workspace/data-access";
+import { Button } from "@workspace/ui/components/form/button";
+import { Badge } from "@workspace/ui/components/indicators/badge";
+import { SymbolTooltip } from "@workspace/ui/components/overlay/tooltip";
 import { usePermissions } from "@/hooks/use-permissions";
 import { humanizeUiLabel } from "@workspace/ui/lib/label-formatters";
 import { AppointmentRowActionsMenu } from "./AppointmentRowActionsMenu";
-import { WhatsAppDeliveryBadge } from "@/features/_shared/components/whatsapp/whatsapp-delivery-badge";
-import { useResendAppointmentReminder } from "@/hooks/api/use-whatsapp";
-import { showUserFacingErrorToast } from "@/lib/user-facing-errors";
+import { WhatsAppDeliveryBadge } from "@/components/whatsapp/whatsapp-delivery-badge";
+import { useResendAppointmentReminder } from "@workspace/data-access";
+import { showUserFacingErrorToast } from "@/lib/errors/user-facing-errors";
 
 interface TimeSlotRowProps {
   appointment: AppointmentListItem;
@@ -82,7 +82,7 @@ export const TimeSlotRow = memo<TimeSlotRowProps>(
       try {
         await resendReminder.mutateAsync({ appointmentId: apt.id });
         toast.success("Reminder re-sent on WhatsApp");
-        await queryClient.invalidateQueries({ queryKey: ["appointments"] });
+        await queryClient.invalidateQueries({ queryKey: queryKeys.appointments.all() });
       } catch (err) {
         showUserFacingErrorToast(
           err,
@@ -173,7 +173,9 @@ export const TimeSlotRow = memo<TimeSlotRowProps>(
                 <Button
                   size="sm"
                   variant="outline"
-                  onClick={() => onCheckIn(apt.id!)}
+                  onClick={() => {
+                    if (apt.id) onCheckIn(apt.id);
+                  }}
                   disabled={checkingIn === apt.id}
                   className="h-7 gap-1.5 rounded-full px-3 text-[length:var(--fs-xs)]"
                 >
@@ -197,7 +199,9 @@ export const TimeSlotRow = memo<TimeSlotRowProps>(
                 <Button
                   size="sm"
                   variant={isTerminalVisit ? "outline" : "default"}
-                  onClick={() => onStartConsultation(apt.id!)}
+                  onClick={() => {
+                    if (apt.id) onStartConsultation(apt.id);
+                  }}
                   disabled={startingConsultationId === apt.id}
                   className="h-7 gap-1.5 rounded-full px-3 text-[length:var(--fs-xs)]"
                 >

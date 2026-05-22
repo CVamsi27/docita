@@ -13,6 +13,7 @@ import {
   ClinicTier,
   BillingCycle,
 } from '@/domains/subscriptions/core/value-objects';
+import { CLOCK_PORT, type IClock } from '@/shared/common/ports/clock.port';
 
 export interface SchedulePlanChangeRequest {
   clinicId: string;
@@ -43,6 +44,7 @@ export class SchedulePlanChangeUseCase {
   constructor(
     @Inject(SUBSCRIPTION_REPOSITORY_TOKEN)
     private readonly subscriptionRepo: ISubscriptionRepository,
+    @Inject(CLOCK_PORT) private readonly clock: IClock,
   ) {}
 
   async execute(
@@ -70,7 +72,12 @@ export class SchedulePlanChangeUseCase {
     }
 
     const effectiveAt = subscription.currentPeriodEnd;
-    subscription.schedulePlanChange(targetTier, targetCycle, effectiveAt);
+    subscription.schedulePlanChange(
+      targetTier,
+      targetCycle,
+      effectiveAt,
+      this.clock.now(),
+    );
     await this.subscriptionRepo.save(subscription);
 
     this.logger.log(
@@ -96,7 +103,7 @@ export class SchedulePlanChangeUseCase {
     if (!subscription.scheduledChange) {
       return;
     }
-    subscription.clearScheduledPlanChange();
+    subscription.clearScheduledPlanChange(this.clock.now());
     await this.subscriptionRepo.save(subscription);
     this.logger.log(`Cancelled scheduled plan change for clinic ${clinicId}`);
   }

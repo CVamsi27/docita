@@ -7,6 +7,7 @@ import {
   PatientWithAllergies,
   DoctorComplianceProfile,
 } from '@/domains/prescriptions/core/repositories/prescription.repository.interface';
+import { mapPrescriptionDetailRow } from '@/domains/prescriptions/infrastructure/repositories/prescription-detail.mapper';
 import { Prescription, Prisma, Role } from '@workspace/db';
 
 @Injectable()
@@ -160,7 +161,7 @@ export class PrismaPrescriptionRepository implements IPrescriptionRepository {
       },
     });
 
-    return result as PrescriptionDetail | null;
+    return mapPrescriptionDetailRow(result);
   }
 
   async create(data: Prisma.PrescriptionCreateInput): Promise<Prescription> {
@@ -177,7 +178,7 @@ export class PrismaPrescriptionRepository implements IPrescriptionRepository {
   ): Promise<Prescription> {
     const result = await this.prisma.prescription.updateMany({
       where: { id, patient: { clinicId } },
-      data: data as Prisma.PrescriptionUpdateManyMutationInput,
+      data: data satisfies Prisma.PrescriptionUpdateManyMutationInput,
     });
     if (result.count === 0) {
       throw new Error(`Prescription ${id} not found`);
@@ -222,12 +223,12 @@ export class PrismaPrescriptionRepository implements IPrescriptionRepository {
 
     return {
       id: patient.id,
-      patientAllergies: patient.patientAllergies as Array<{
-        allergen: string;
-        allergyType: string;
-        severity: string;
-        reaction: string | null;
-      }>,
+      patientAllergies: patient.patientAllergies.map((allergy) => ({
+        allergen: allergy.allergen,
+        allergyType: allergy.allergyType,
+        severity: allergy.severity,
+        reaction: allergy.reaction,
+      })),
     };
   }
 

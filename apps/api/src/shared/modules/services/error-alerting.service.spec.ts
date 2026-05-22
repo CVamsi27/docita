@@ -1,10 +1,11 @@
 import { ErrorAlertingService } from './error-alerting.service';
+import { createFixedClockMock } from '@/test-utils';
 
 describe('ErrorAlertingService', () => {
   let service: ErrorAlertingService;
 
   beforeEach(() => {
-    service = new ErrorAlertingService();
+    service = new ErrorAlertingService(createFixedClockMock());
   });
 
   it('tracks critical errors without throwing', () => {

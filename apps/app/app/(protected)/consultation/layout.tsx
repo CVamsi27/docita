@@ -1,6 +1,6 @@
 "use client";
 
-import { AuthGuard } from "@/features/_shared/components/auth/auth-guard";
+import { AuthGuard } from "@/components/auth/auth-guard";
 
 export default function ConsultationLayout({
   children,

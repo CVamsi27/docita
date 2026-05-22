@@ -1,15 +1,15 @@
-import { CRUDDialog } from "@workspace/ui/components/crud-dialog";
-import { Button } from "@workspace/ui/components/button";
-import { SymbolTooltip } from "@workspace/ui/components/tooltip";
-import { Label } from "@workspace/ui/components/label";
-import { Input } from "@workspace/ui/components/input";
+import { CRUDDialog } from "@workspace/ui/components/overlay/crud-dialog";
+import { Button } from "@workspace/ui/components/form/button";
+import { SymbolTooltip } from "@workspace/ui/components/overlay/tooltip";
+import { Label } from "@workspace/ui/components/form/label";
+import { Input } from "@workspace/ui/components/form/input";
 import {
   Select,
   SelectContent,
   SelectItem,
   SelectTrigger,
   SelectValue,
-} from "@workspace/ui/components/select";
+} from "@workspace/ui/components/form/select";
 import { Plus, X } from "lucide-react";
 import type { InvoiceItem } from "@workspace/types";
 import { useClinicCurrency } from "@/hooks/use-clinic-currency";

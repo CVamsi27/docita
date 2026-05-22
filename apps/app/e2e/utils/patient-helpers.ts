@@ -3,7 +3,11 @@ import { randomUUID } from "node:crypto";
 import { existsSync, readFileSync } from "node:fs";
 import { resolve } from "node:path";
 import { APIRequestContext, Page } from "@playwright/test";
-import { type ClinicType } from "@workspace/types";
+import {
+  uploadSessionCreateContractResponseSchema,
+  type ClinicType,
+} from "@workspace/types";
+import { z } from "zod";
 
 export const API_URL = process.env["API_URL"] || "http://127.0.0.1:3001/api/v1";
 export const TEST_PASSWORD = "Test@123456";
@@ -28,15 +32,19 @@ export interface BasicAuthUserData extends UserData {
 
 type SetupUserCache = Map<string, Promise<UserData>>;
 
+let setupUserCache: SetupUserCache | undefined;
+
 function getSetupUserCache(): SetupUserCache {
-  const key = "__docitaE2ESetupUserCache";
-  const globalAny = globalThis as unknown as Record<string, unknown>;
-  const existing = globalAny[key] as SetupUserCache | undefined;
-  if (existing) return existing;
-  const created: SetupUserCache = new Map();
-  globalAny[key] = created;
-  return created;
+  if (!setupUserCache) {
+    setupUserCache = new Map();
+  }
+  return setupUserCache;
 }
+
+const e2eVerificationUserSchema = z.object({
+  emailVerified: z.boolean().optional(),
+  emailVerificationToken: z.string().nullable().optional(),
+});
 
 function getRepoRoot(): string {
   // Playwright can run from repo root or package root; walk up to find the monorepo root.
@@ -119,16 +127,16 @@ async function fetchVerificationToken(email: string): Promise<string | null> {
     return null;
   }
 
-  const parsed = JSON.parse(output) as {
-    emailVerified?: boolean;
-    emailVerificationToken?: string | null;
-  };
-
-  if (parsed.emailVerified) {
+  const parsed = e2eVerificationUserSchema.safeParse(JSON.parse(output));
+  if (!parsed.success) {
     return null;
   }
 
-  return parsed.emailVerificationToken ?? null;
+  if (parsed.data.emailVerified) {
+    return null;
+  }
+
+  return parsed.data.emailVerificationToken ?? null;
 }
 
 export async function verifyEmailIfNeeded(
@@ -190,7 +198,10 @@ async function postWithRetry(
     if (res.status() !== 429) return res;
     await sleep(options.baseDelayMs * (attempt + 1));
   }
-  return lastRes!;
+  if (!lastRes) {
+    throw new Error(`POST ${url} did not return a response`);
+  }
+  return lastRes;
 }
 
 /**
@@ -272,11 +283,11 @@ async function setupTestUserImpl(
   requestHeaders: Record<string, string> = {},
   options: {
     clinicType?: ClinicType;
-    workspaceProfile?: "FULL_CLINICAL" | "FRONT_DESK";
+    tier?: "ESSENTIAL" | "FRONT_DESK";
   } = {},
 ): Promise<UserData> {
   const clinicType = options.clinicType ?? "GENERAL";
-  const workspaceProfile = options.workspaceProfile ?? "FULL_CLINICAL";
+  const tier = options.tier ?? "ESSENTIAL";
   const uniqueId = randomUUID();
   const email = `doctor-${uniqueId}@test.com`;
   const password = TEST_PASSWORD;
@@ -363,12 +374,16 @@ async function setupTestUserImpl(
     );
   }
 
-  const signatureSession = await signatureSessionRes.json();
-  const signatureSessionId = signatureSession.id;
-  const signatureUploadSecret = signatureSession.uploadSecret as string;
-  if (!signatureUploadSecret) {
-    throw new Error("SLA signature session missing uploadSecret");
+  const signatureSessionParsed =
+    uploadSessionCreateContractResponseSchema.safeParse(
+      await signatureSessionRes.json(),
+    );
+  if (!signatureSessionParsed.success) {
+    throw new Error("SLA signature session response was invalid");
   }
+  const signatureSession = signatureSessionParsed.data;
+  const signatureSessionId = signatureSession.id;
+  const signatureUploadSecret = signatureSession.uploadSecret;
 
   const uploadSignatureRes = await request.post(
     `${API_URL}/onboarding/${onboardingId}/sla-signature-session/${signatureSessionId}`,
@@ -413,10 +428,9 @@ async function setupTestUserImpl(
           role: "ADMIN_DOCTOR",
         },
         planSelection: {
-          tier: "ESSENTIAL",
+          tier,
           billingCycle: "MONTHLY",
           currency: "INR",
-          workspaceProfile,
         },
         paymentDetails: {
           skipPayment: true,
@@ -570,7 +584,7 @@ export function reuseSharedFrontDeskClinicUser(
 ): Promise<UserData> {
   if (!sharedFrontDeskClinicUser) {
     sharedFrontDeskClinicUser = setupTestUser(request, {}, {
-      workspaceProfile: "FRONT_DESK",
+      tier: "FRONT_DESK",
     }).catch((err: unknown) => {
       sharedFrontDeskClinicUser = null;
       throw err;
@@ -584,23 +598,23 @@ export async function setupTestUser(
   requestHeaders: Record<string, string> = {},
   options: {
     clinicType?: ClinicType;
-    workspaceProfile?: "FULL_CLINICAL" | "FRONT_DESK";
+    tier?: "ESSENTIAL" | "FRONT_DESK";
   } = {},
 ): Promise<UserData> {
   const clinicType = options.clinicType ?? "GENERAL";
-  const workspaceProfile = options.workspaceProfile ?? "FULL_CLINICAL";
+  const tier = options.tier ?? "ESSENTIAL";
   const shouldCache =
     Object.keys(requestHeaders).length === 0 && clinicType === "GENERAL";
 
   if (!shouldCache) {
     return await setupTestUserImpl(request, requestHeaders, {
       clinicType,
-      workspaceProfile,
+      tier,
     });
   }
 
   const cache = getSetupUserCache();
-  const cacheKey = `setupTestUser:GENERAL:${workspaceProfile}`;
+  const cacheKey = `setupTestUser:GENERAL:${tier}`;
   const existing = cache.get(cacheKey);
   if (existing) {
     return await existing;
@@ -608,7 +622,7 @@ export async function setupTestUser(
 
   const promise = setupTestUserImpl(request, requestHeaders, {
     clinicType,
-    workspaceProfile,
+    tier,
   });
   cache.set(cacheKey, promise);
   return await promise;

@@ -12,14 +12,26 @@ import { AppConfigService } from '@/shared/modules/config/app-configuration.serv
 import { IpRateLimitGuard } from '@/shared/modules/auth/guards/ip-rate-limit.guard';
 import { asType } from '@/test-utils';
 import { ApiKeyService } from './api-key.service';
-import { AuthController } from './auth.controller';
+import { AuthRegistrationController } from './auth-registration.controller';
+import { AuthLoginController } from './auth-login.controller';
+import { AuthPasswordController } from './auth-password.controller';
+import { AuthSessionController } from './auth-session.controller';
+import { AuthMfaController } from './auth-mfa.controller';
+import { AuthVerificationController } from './auth-verification.controller';
+import { AuthApiKeysController } from './auth-api-keys.controller';
 import { AuthService } from './auth.service';
 import { JwtAuthGuard } from './jwt-auth.guard';
 import { MfaService } from './mfa.service';
 import { SKIP_EMAIL_VERIFICATION_KEY } from '@/shared/modules/auth/guards/email-verified.guard';
 
-describe('AuthController', () => {
-  let controller: AuthController;
+describe('Auth controllers', () => {
+  let registrationController: AuthRegistrationController;
+  let loginController: AuthLoginController;
+  let passwordController: AuthPasswordController;
+  let sessionController: AuthSessionController;
+  let mfaController: AuthMfaController;
+  let verificationController: AuthVerificationController;
+  let apiKeysController: AuthApiKeysController;
   let loggerErrorSpy: jest.Spied<typeof Logger.prototype.error>;
   let loggerWarnSpy: jest.Spied<typeof Logger.prototype.warn>;
 
@@ -59,18 +71,18 @@ describe('AuthController', () => {
     isProduction: jest.fn(() => false),
   };
 
-  type LoginRequest = Parameters<AuthController['login']>[1];
-  type LoginResponse = Parameters<AuthController['login']>[2];
-  type RegisterResponse = Parameters<AuthController['register']>[1];
-  type RefreshRequest = Parameters<AuthController['refresh']>[1];
-  type RefreshResponse = Parameters<AuthController['refresh']>[2];
-  type LogoutRequest = Parameters<AuthController['logoutUser']>[1];
-  type LogoutResponse = Parameters<AuthController['logoutUser']>[2];
-  type VerifyMfaRequest = Parameters<AuthController['verifyMfa']>[1];
-  type VerifyMfaResponse = Parameters<AuthController['verifyMfa']>[2];
-  type AuthenticatedRequest = Parameters<AuthController['validate']>[0];
+  type LoginRequest = Parameters<AuthLoginController['login']>[1];
+  type LoginResponse = Parameters<AuthLoginController['login']>[2];
+  type RegisterResponse = Parameters<AuthRegistrationController['register']>[1];
+  type RefreshRequest = Parameters<AuthSessionController['refresh']>[1];
+  type RefreshResponse = Parameters<AuthSessionController['refresh']>[2];
+  type LogoutRequest = Parameters<AuthSessionController['logoutUser']>[1];
+  type LogoutResponse = Parameters<AuthSessionController['logoutUser']>[2];
+  type VerifyMfaRequest = Parameters<AuthLoginController['verifyMfa']>[1];
+  type VerifyMfaResponse = Parameters<AuthLoginController['verifyMfa']>[2];
+  type AuthenticatedRequest = Parameters<AuthSessionController['validate']>[0];
   type RevokeAllSessionsRequest = Parameters<
-    AuthController['revokeAllSessions']
+    AuthSessionController['revokeAllSessions']
   >[0] & {
     cookies?: Record<string, string>;
   };
@@ -152,7 +164,15 @@ describe('AuthController', () => {
       .mockImplementation(() => undefined);
 
     const module: TestingModule = await Test.createTestingModule({
-      controllers: [AuthController],
+      controllers: [
+        AuthRegistrationController,
+        AuthLoginController,
+        AuthPasswordController,
+        AuthSessionController,
+        AuthMfaController,
+        AuthVerificationController,
+        AuthApiKeysController,
+      ],
       providers: [
         { provide: AuthService, useValue: mockAuthService },
         { provide: MfaService, useValue: mockMfaService },
@@ -166,11 +186,19 @@ describe('AuthController', () => {
       .useValue({ canActivate: jest.fn(() => true) })
       .compile();
 
-    controller = module.get<AuthController>(AuthController);
+    registrationController = module.get(AuthRegistrationController);
+    loginController = module.get(AuthLoginController);
+    passwordController = module.get(AuthPasswordController);
+    sessionController = module.get(AuthSessionController);
+    mfaController = module.get(AuthMfaController);
+    verificationController = module.get(AuthVerificationController);
+    apiKeysController = module.get(AuthApiKeysController);
   });
 
   it('should be defined', () => {
-    expect(controller).toBeDefined();
+    expect(registrationController).toBeDefined();
+    expect(loginController).toBeDefined();
+    expect(sessionController).toBeDefined();
   });
 
   describe('checkEmail', () => {
@@ -178,7 +206,7 @@ describe('AuthController', () => {
       mockAuthService.checkEmailExists.mockResolvedValue(true);
 
       await expect(
-        controller.checkEmail({ email: 'test@example.com' }),
+        registrationController.checkEmail({ email: 'test@example.com' }),
       ).resolves.toEqual({ exists: true });
       expect(mockAuthService.checkEmailExists).toHaveBeenCalledWith(
         'test@example.com',
@@ -205,7 +233,7 @@ describe('AuthController', () => {
       mockAuthService.loginWithMfaCheck.mockResolvedValue(tokens);
 
       await expect(
-        controller.login(
+        loginController.login(
           { email: 'test@example.com', password: 'password' },
           request,
           response,
@@ -253,7 +281,7 @@ describe('AuthController', () => {
       mockAuthService.loginWithMfaCheck.mockResolvedValue(mfaResult);
 
       await expect(
-        controller.login(
+        loginController.login(
           { email: 'test@example.com', password: 'password' },
           request,
           response,
@@ -268,7 +296,7 @@ describe('AuthController', () => {
       mockAuthService.validateUser.mockResolvedValue(null);
 
       await expect(
-        controller.login(
+        loginController.login(
           { email: 'test@example.com', password: 'wrong' },
           request,
           response,
@@ -283,7 +311,7 @@ describe('AuthController', () => {
       mockAuthService.validateUser.mockRejectedValue(new Error('db down'));
 
       await expect(
-        controller.login(
+        loginController.login(
           { email: 'test@example.com', password: 'password' },
           request,
           response,
@@ -310,7 +338,9 @@ describe('AuthController', () => {
       };
       mockAuthService.register.mockResolvedValue(tokens);
 
-      await expect(controller.register(dto, response)).resolves.toEqual(tokens);
+      await expect(
+        registrationController.register(dto, response),
+      ).resolves.toEqual(tokens);
       expect(mockAuthService.register).toHaveBeenCalledWith({
         email: dto.email,
         password: dto.password,
@@ -326,7 +356,7 @@ describe('AuthController', () => {
       mockAuthService.register.mockRejectedValue(new Error('register failed'));
 
       await expect(
-        controller.register(
+        registrationController.register(
           {
             email: 'new@example.com',
             password: 'password',
@@ -345,7 +375,7 @@ describe('AuthController', () => {
       mockAuthService.requestPasswordReset.mockResolvedValue({ message: 'ok' });
 
       await expect(
-        controller.forgotPassword({ email: 'test@example.com' }),
+        passwordController.forgotPassword({ email: 'test@example.com' }),
       ).resolves.toEqual({ message: 'ok' });
       expect(mockAuthService.requestPasswordReset).toHaveBeenCalledWith(
         'test@example.com',
@@ -356,7 +386,7 @@ describe('AuthController', () => {
       mockAuthService.resetPassword.mockResolvedValue({ message: 'reset' });
 
       await expect(
-        controller.resetPassword({
+        passwordController.resetPassword({
           token: 'token',
           newPassword: 'NewPass123!',
         }),
@@ -372,7 +402,7 @@ describe('AuthController', () => {
       const request = createAuthenticatedRequest();
 
       await expect(
-        controller.changePassword(request, {
+        passwordController.changePassword(request, {
           currentPassword: 'old',
           newPassword: 'new',
         }),
@@ -387,7 +417,7 @@ describe('AuthController', () => {
 
   describe('session and token endpoints', () => {
     it('returns validated session shape', () => {
-      const result = controller.validate(createAuthenticatedRequest());
+      const result = sessionController.validate(createAuthenticatedRequest());
 
       expect(result).toEqual({
         valid: true,
@@ -413,7 +443,11 @@ describe('AuthController', () => {
       mockAuthService.refreshTokens.mockResolvedValue(tokens);
 
       await expect(
-        controller.refresh({ refresh_token: 'dto-refresh' }, request, response),
+        sessionController.refresh(
+          { refresh_token: 'dto-refresh' },
+          request,
+          response,
+        ),
       ).resolves.toEqual(tokens);
       expect(mockAuthService.refreshTokens).toHaveBeenCalledWith('dto-refresh');
       expect(response.cookie).toHaveBeenCalledTimes(2);
@@ -429,7 +463,7 @@ describe('AuthController', () => {
         refresh_token: 'b',
       });
 
-      await controller.refresh({}, request, response);
+      await sessionController.refresh({}, request, response);
       expect(mockAuthService.refreshTokens).toHaveBeenCalledWith(
         'cookie-refresh',
       );
@@ -439,9 +473,9 @@ describe('AuthController', () => {
       const response = createRefreshResponse();
       const request = asType<RefreshRequest>({ cookies: {} });
 
-      await expect(controller.refresh({}, request, response)).rejects.toThrow(
-        BadRequestException,
-      );
+      await expect(
+        sessionController.refresh({}, request, response),
+      ).rejects.toThrow(BadRequestException);
     });
 
     it('logs out and clears cookies when token exists', async () => {
@@ -450,7 +484,7 @@ describe('AuthController', () => {
       mockAuthService.logout.mockResolvedValue(undefined);
 
       await expect(
-        controller.logoutUser(
+        sessionController.logoutUser(
           { refresh_token: 'logout-token' },
           request,
           response,
@@ -465,7 +499,7 @@ describe('AuthController', () => {
       const request = asType<LogoutRequest>({ cookies: {} });
 
       await expect(
-        controller.logoutUser({}, request, response),
+        sessionController.logoutUser({}, request, response),
       ).resolves.toEqual({ message: 'Logged out successfully' });
       expect(mockAuthService.logout).not.toHaveBeenCalled();
       expect(response.clearCookie).toHaveBeenCalledTimes(2);
@@ -485,7 +519,7 @@ describe('AuthController', () => {
       });
 
       await expect(
-        controller.verifyMfa(
+        loginController.verifyMfa(
           { mfa_challenge_token: 'challenge', code: '123456' },
           request,
           response,
@@ -514,19 +548,19 @@ describe('AuthController', () => {
       });
       const request = createAuthenticatedRequest();
 
-      await expect(controller.setupMfa(request)).resolves.toEqual({
+      await expect(mfaController.setupMfa(request)).resolves.toEqual({
         qrCodeUrl: 'qr',
       });
       await expect(
-        controller.enableMfa(request, { code: '123456' }),
+        mfaController.enableMfa(request, { code: '123456' }),
       ).resolves.toEqual({
         backupCodes: ['code'],
       });
       await expect(
-        controller.disableMfa(request, { code: '123456' }),
+        mfaController.disableMfa(request, { code: '123456' }),
       ).resolves.toEqual({ message: 'MFA disabled successfully' });
       await expect(
-        controller.regenerateBackupCodes(request, { code: '123456' }),
+        mfaController.regenerateBackupCodes(request, { code: '123456' }),
       ).resolves.toEqual({
         backupCodes: ['new-code'],
       });
@@ -540,13 +574,13 @@ describe('AuthController', () => {
       mockAuthService.revokeAllSessions.mockResolvedValue(undefined);
 
       await expect(
-        controller.getSessions(createAuthenticatedRequest()),
+        sessionController.getSessions(createAuthenticatedRequest()),
       ).resolves.toEqual([{ id: 's1' }]);
       await expect(
-        controller.revokeSession(createAuthenticatedRequest(), 's1'),
+        sessionController.revokeSession(createAuthenticatedRequest(), 's1'),
       ).resolves.toEqual({ message: 'Session revoked successfully' });
       await expect(
-        controller.revokeAllSessions(
+        sessionController.revokeAllSessions(
           asType<RevokeAllSessionsRequest>({
             ...createAuthenticatedRequest(),
             cookies: { refresh_token: 'current-token' },
@@ -568,13 +602,13 @@ describe('AuthController', () => {
         message: 'sent',
       });
 
-      await expect(controller.verifyEmail({ token: 'token' })).resolves.toEqual(
-        {
-          message: 'verified',
-        },
-      );
       await expect(
-        controller.resendVerification(createAuthenticatedRequest()),
+        verificationController.verifyEmail({ token: 'token' }),
+      ).resolves.toEqual({
+        message: 'verified',
+      });
+      await expect(
+        verificationController.resendVerification(createAuthenticatedRequest()),
       ).resolves.toEqual({ message: 'sent' });
 
       expect(mockAuthService.verifyEmail).toHaveBeenCalledWith('token');
@@ -588,8 +622,8 @@ describe('AuthController', () => {
 
       expect(
         reflector.getAllAndOverride<boolean>(SKIP_EMAIL_VERIFICATION_KEY, [
-          controller.resendVerification,
-          AuthController,
+          verificationController.resendVerification,
+          AuthVerificationController,
         ]),
       ).toBe(true);
     });
@@ -600,7 +634,7 @@ describe('AuthController', () => {
       mockApiKeyService.createApiKey.mockResolvedValue({ id: 'key-1' });
 
       await expect(
-        controller.createApiKey(
+        apiKeysController.createApiKey(
           createAuthenticatedRequest({
             user: { ...defaultAuthenticatedUser, clinicId: 'clinic-1' },
           }),
@@ -628,14 +662,14 @@ describe('AuthController', () => {
       mockApiKeyService.revokeApiKey.mockResolvedValue(undefined);
 
       await expect(
-        controller.listApiKeys(
+        apiKeysController.listApiKeys(
           createAuthenticatedRequest({
             user: { ...defaultAuthenticatedUser, clinicId: 'clinic-1' },
           }),
         ),
       ).resolves.toEqual([{ id: 'key-1' }]);
       await expect(
-        controller.revokeApiKey(
+        apiKeysController.revokeApiKey(
           createAuthenticatedRequest({
             user: { ...defaultAuthenticatedUser, clinicId: 'clinic-1' },
           }),
@@ -655,17 +689,17 @@ describe('AuthController', () => {
       });
 
       await expect(
-        controller.createApiKey(request, {
+        apiKeysController.createApiKey(request, {
           name: 'Key',
           scopes: [],
         }),
       ).rejects.toThrow(BadRequestException);
-      await expect(controller.listApiKeys(request)).rejects.toThrow(
+      await expect(apiKeysController.listApiKeys(request)).rejects.toThrow(
         BadRequestException,
       );
-      await expect(controller.revokeApiKey(request, 'id')).rejects.toThrow(
-        BadRequestException,
-      );
+      await expect(
+        apiKeysController.revokeApiKey(request, 'id'),
+      ).rejects.toThrow(BadRequestException);
     });
   });
 

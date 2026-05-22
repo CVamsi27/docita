@@ -1,20 +1,25 @@
 "use client";
 
-import { DocitaLoadingIndicator } from "@workspace/ui/components/docita-loading-indicator";
+import { DocitaLoadingIndicator } from "@workspace/ui/components/feedback/docita-loading-indicator";
 
 import { useEffect, useMemo, useState } from "react";
+import {
+  type InternalAdminUser,
+  useInternalClinicAdmins,
+  useInternalClinics,
+} from "@workspace/data-access/internal";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
-import { Button } from "@workspace/ui/components/button";
+import { Button } from "@workspace/ui/components/form/button";
 import {
   Card,
   CardContent,
   CardHeader,
   CardTitle,
-} from "@workspace/ui/components/card";
-import { EmptyState } from "@workspace/ui/components/empty-state";
-import { PageHeader } from "@workspace/ui/components/page-header";
-import { Input } from "@workspace/ui/components/input";
-import { Badge } from "@workspace/ui/components/badge";
+} from "@workspace/ui/components/indicators/card";
+import { EmptyState } from "@workspace/ui/components/feedback/empty-state";
+import { PageHeader } from "@workspace/ui/components/layout/page-header";
+import { Input } from "@workspace/ui/components/form/input";
+import { Badge } from "@workspace/ui/components/indicators/badge";
 import {
   Table,
   TableBody,
@@ -22,55 +27,45 @@ import {
   TableHead,
   TableHeader,
   TableRow,
-} from "@workspace/ui/components/table";
+} from "@workspace/ui/components/data-display/table";
 import {
   Dialog,
   DialogContent,
   DialogDescription,
   DialogHeader,
   DialogTitle,
-} from "@workspace/ui/components/dialog";
+} from "@workspace/ui/components/overlay/dialog";
 import {
   Select,
   SelectContent,
   SelectItem,
   SelectTrigger,
   SelectValue,
-} from "@workspace/ui/components/select";
-import { Label } from "@workspace/ui/components/label";
+} from "@workspace/ui/components/form/select";
+import { Label } from "@workspace/ui/components/form/label";
 import { Edit2, Eye, Plus, Search, Shield, Trash2, Users } from "lucide-react";
-import { useAuth } from "@/lib/auth";
-import { client } from "@/lib/api-client";
-import { useInternalQuery } from "@/lib/use-internal-query";
+import { useAuth } from "@/lib/auth/auth";
+import { client } from "@/lib/api/api-client";
 import {
   formatInternalListDate,
   formatInternalTimestamp,
-} from "@/lib/format-display-date";
-import { internalQueryKeys } from "@/lib/query-keys";
+} from "@/lib/formatters/format-display-date";
+import { internalQueryKeys } from "@/lib/api/query-keys";
 import { useInternalFiltersStore } from "@/lib/stores/internal-filters-store";
 import { toast } from "sonner";
-import { showUserFacingErrorToast } from "@/lib/user-facing-errors";
+import { showUserFacingErrorToast } from "@/lib/errors/user-facing-errors";
+import {
+  type InternalClinicAdminType,
+  internalClinicAdminTypeSchema,
+} from "@workspace/types";
 
-interface Admin {
-  id: string;
-  name: string;
-  email: string;
-  phoneNumber?: string;
-  role: "ADMIN" | "ADMIN_DOCTOR";
-  createdAt: string;
-  updatedAt: string;
-}
-
-interface Clinic {
-  id: string;
-  name: string;
-}
+type Admin = InternalAdminUser;
 
 const ADMIN_TYPE_LABELS = {
   admin: "Clinic Admin",
   admin_doctor: "Admin Doctor",
 };
-const EMPTY_CLINICS: Clinic[] = [];
+const EMPTY_CLINICS: { id: string; name: string }[] = [];
 
 export default function AdminsPage() {
   const queryClient = useQueryClient();
@@ -80,30 +75,33 @@ export default function AdminsPage() {
   const [isViewOpen, setIsViewOpen] = useState(false);
   const [isCreateOpen, setIsCreateOpen] = useState(false);
   const [isEditOpen, setIsEditOpen] = useState(false);
-  const [createForm, setCreateForm] = useState({
+  const [createForm, setCreateForm] = useState<{
+    name: string;
+    email: string;
+    password: string;
+    phoneNumber: string;
+    adminType: InternalClinicAdminType;
+  }>({
     name: "",
     email: "",
     password: "",
     phoneNumber: "",
-    adminType: "admin" as "admin" | "admin_doctor",
+    adminType: "admin",
   });
-  const [editForm, setEditForm] = useState({
+  const [editForm, setEditForm] = useState<{
+    name: string;
+    email: string;
+    phoneNumber: string;
+    adminType: InternalClinicAdminType;
+  }>({
     name: "",
     email: "",
     phoneNumber: "",
-    adminType: "admin" as "admin" | "admin_doctor",
+    adminType: "admin",
   });
   const { token } = useAuth();
 
-  const clinicsQuery = useInternalQuery({
-    queryKey: internalQueryKeys.internal.clinics(),
-    queryFn: async () => {
-      const data = await client.get<Clinic[] | { items?: Clinic[] }>(
-        "/internal/clinics",
-      );
-      return Array.isArray(data) ? data : (data.items ?? []);
-    },
-  });
+  const clinicsQuery = useInternalClinics(token);
 
   const clinics = useMemo(
     () => clinicsQuery.data ?? EMPTY_CLINICS,
@@ -118,12 +116,7 @@ export default function AdminsPage() {
     }
   }, [clinics, selectedClinic, setSelectedClinic]);
 
-  const adminsQuery = useInternalQuery({
-    queryKey: internalQueryKeys.internal.clinicAdmins(selectedClinic || "none"),
-    queryFn: () =>
-      client.get<Admin[]>(`/internal/clinics/${selectedClinic}/admins`),
-    enabled: Boolean(selectedClinic && selectedClinic !== "all"),
-  });
+  const adminsQuery = useInternalClinicAdmins(token, selectedClinic);
 
   const admins = adminsQuery.data ?? [];
 
@@ -528,12 +521,11 @@ export default function AdminsPage() {
               <Label htmlFor="adminType">Admin Type *</Label>
               <Select
                 value={createForm.adminType}
-                onValueChange={(value) =>
-                  setCreateForm({
-                    ...createForm,
-                    adminType: value as "admin" | "admin_doctor",
-                  })
-                }
+                onValueChange={(value) => {
+                  const parsed = internalClinicAdminTypeSchema.safeParse(value);
+                  if (!parsed.success) return;
+                  setCreateForm({ ...createForm, adminType: parsed.data });
+                }}
               >
                 <SelectTrigger>
                   <SelectValue placeholder="Admin type" />
@@ -555,7 +547,7 @@ export default function AdminsPage() {
               </Select>
               <p className="text-xs text-muted-foreground mt-1">
                 {createForm.adminType === "admin_doctor"
-                  ? "Admin Doctor can manage clinic operations and also act as a doctor"
+                  ? "Admin Doctor can manage clinic operations and provide clinical care"
                   : "Clinic Admin manages clinic operations and staff"}
               </p>
             </div>
@@ -638,12 +630,11 @@ export default function AdminsPage() {
               <Label htmlFor="edit-adminType">Admin Type *</Label>
               <Select
                 value={editForm.adminType}
-                onValueChange={(value) =>
-                  setEditForm({
-                    ...editForm,
-                    adminType: value as "admin" | "admin_doctor",
-                  })
-                }
+                onValueChange={(value) => {
+                  const parsed = internalClinicAdminTypeSchema.safeParse(value);
+                  if (!parsed.success) return;
+                  setEditForm({ ...editForm, adminType: parsed.data });
+                }}
               >
                 <SelectTrigger>
                   <SelectValue placeholder="Admin type" />

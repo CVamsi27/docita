@@ -1,4 +1,5 @@
 import { Injectable, Logger } from '@nestjs/common';
+import type { IClock } from '@/shared/common/ports/clock.port';
 import {
   IMessageChannel,
   MessageContent,
@@ -14,7 +15,10 @@ interface SMSConfig {
 export class SmsChannel implements IMessageChannel {
   private readonly logger = new Logger(SmsChannel.name);
 
-  constructor(private smsConfig: SMSConfig) {}
+  constructor(
+    private smsConfig: SMSConfig,
+    private readonly clock: IClock,
+  ) {}
 
   getName(): string {
     return 'SMS';
@@ -35,7 +39,7 @@ export class SmsChannel implements IMessageChannel {
       messageId: `sms_${Date.now()}`,
       status: 'sent',
       channel: 'SMS',
-      sentAt: new Date(),
+      sentAt: this.clock.now(),
     });
   }
 

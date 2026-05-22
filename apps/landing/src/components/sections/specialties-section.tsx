@@ -1,8 +1,8 @@
 "use client";
 
 import { Baby, CheckCircle2, Smile, Stethoscope } from "lucide-react";
-import { Card } from "@workspace/ui/components/card";
-import { SectionHeading } from "@workspace/ui/components/section-heading";
+import { Card } from "@workspace/ui/components/indicators/card";
+import { SectionHeading } from "@workspace/ui/components/layout/section-heading";
 
 export function SpecialtiesSection() {
   return (

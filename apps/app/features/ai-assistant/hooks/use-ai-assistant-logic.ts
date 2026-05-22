@@ -6,11 +6,8 @@ import {
   type UIDiagnosisSuggestion,
 } from "@workspace/types";
 
-export type {
-  DrugInteraction,
-  PrescriptionSuggestion,
-  UIDiagnosisSuggestion as DiagnosisSuggestion,
-};
+export type { DrugInteraction, PrescriptionSuggestion };
+export type DiagnosisSuggestion = UIDiagnosisSuggestion;
 
 export const useAIAssistantLogic = () => {
   const [activeTab, setActiveTab] = useState("prescription");

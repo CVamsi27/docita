@@ -1,10 +1,17 @@
 import { Injectable, Logger } from '@nestjs/common';
 import { PrismaService } from '@/prisma/prisma.service';
 import { Specialization } from '@workspace/db';
+import { parseStringEnumMember } from '@workspace/utils';
 import * as bcrypt from 'bcrypt';
 import { nanoid } from 'nanoid';
 import {
+  readImportRowOptionalString,
+  readImportRowRequiredString,
+  readImportRowString,
+} from '../import-row-normalizer';
+import {
   IImportStrategy,
+  ImportStrategyAuditContext,
   ImportValidationResult,
 } from './import-strategy.interface';
 
@@ -13,18 +20,13 @@ export class DoctorImportStrategy implements IImportStrategy {
   readonly entityType = 'DOCTOR';
   private readonly logger = new Logger(DoctorImportStrategy.name);
 
-  constructor(private prisma: PrismaService) {}
-
-  private readString(
-    source: Record<string, unknown>,
-    key: string,
-  ): string | undefined {
-    const value = source[key];
-    return typeof value === 'string' ? value : undefined;
-  }
+  constructor(private readonly prisma: PrismaService) {}
 
   validate(row: Record<string, unknown>): ImportValidationResult {
-    if (!row.name || !row.email) {
+    if (
+      !readImportRowString(row, 'name') ||
+      !readImportRowString(row, 'email')
+    ) {
       return { valid: false, error: 'Missing name or email' };
     }
     return { valid: true };
@@ -33,14 +35,11 @@ export class DoctorImportStrategy implements IImportStrategy {
   async import(
     row: Record<string, unknown>,
     clinicId: string,
-    _audit: import('./import-strategy.interface').ImportStrategyAuditContext,
+    _audit: ImportStrategyAuditContext,
   ): Promise<void> {
     void _audit;
-    const email = this.readString(row, 'email');
-    const name = this.readString(row, 'name');
-    if (!email || !name) {
-      throw new Error('Missing required doctor fields: name or email');
-    }
+    const email = readImportRowRequiredString(row, 'email');
+    const name = readImportRowRequiredString(row, 'name');
 
     const existing = await this.prisma.user.findUnique({
       where: { email },
@@ -52,14 +51,16 @@ export class DoctorImportStrategy implements IImportStrategy {
     const generatedPassword = nanoid(32);
     const passwordHash = await bcrypt.hash(generatedPassword, 10);
 
-    const specializationValue = this.readString(row, 'specialization');
-    const specialization =
-      specializationValue &&
-      Object.values(Specialization).includes(
-        specializationValue as Specialization,
-      )
-        ? (specializationValue as Specialization)
-        : undefined;
+    const specializationValue = readImportRowOptionalString(
+      row,
+      'specialization',
+    );
+    const specialization = specializationValue
+      ? (parseStringEnumMember(
+          Object.values(Specialization),
+          specializationValue,
+        ) ?? undefined)
+      : undefined;
 
     await this.prisma.user.create({
       data: {
@@ -70,8 +71,11 @@ export class DoctorImportStrategy implements IImportStrategy {
         clinicId,
         specialization,
         registrationNumber:
-          this.readString(row, 'registrationNumber') || undefined,
-        phoneNumber: this.readString(row, 'phoneNumber') || undefined,
+          readImportRowOptionalString(row, 'registrationNumber') || undefined,
+        phoneNumber:
+          readImportRowOptionalString(row, 'phoneNumber') ||
+          readImportRowOptionalString(row, 'phone') ||
+          undefined,
       },
     });
 
@@ -82,7 +86,7 @@ export class DoctorImportStrategy implements IImportStrategy {
     return {
       name: '',
       email: '',
-      phone: '',
+      phoneNumber: '',
       specialization: '',
       registrationNumber: '',
     };

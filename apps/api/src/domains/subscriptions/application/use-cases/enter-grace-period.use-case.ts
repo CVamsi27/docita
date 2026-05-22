@@ -9,6 +9,7 @@ import {
 } from '@/domains/subscriptions/application/ports/clinic-operations.port';
 import { SubscriptionStatusEnum } from '@/domains/subscriptions/core/value-objects';
 import { computeSubscriptionGraceDeadline } from '@/domains/subscriptions/core/constants/subscription-lockout.constants';
+import { CLOCK_PORT, type IClock } from '@/shared/common/ports/clock.port';
 
 @Injectable()
 export class EnterGracePeriodUseCase {
@@ -19,6 +20,7 @@ export class EnterGracePeriodUseCase {
     private readonly subscriptionRepo: ISubscriptionRepository,
     @Inject(CLINIC_OPERATIONS_TOKEN)
     private readonly clinicOps: IClinicOperations,
+    @Inject(CLOCK_PORT) private readonly clock: IClock,
   ) {}
 
   async execute(subscriptionId: string): Promise<void> {
@@ -28,7 +30,8 @@ export class EnterGracePeriodUseCase {
       throw new NotFoundException(`Subscription ${subscriptionId} not found`);
     }
 
-    subscription.enterGracePeriod(computeSubscriptionGraceDeadline());
+    const now = this.clock.now();
+    subscription.enterGracePeriod(computeSubscriptionGraceDeadline(now), now);
     await this.subscriptionRepo.save(subscription);
 
     await this.clinicOps.updateTierAndFeatures(

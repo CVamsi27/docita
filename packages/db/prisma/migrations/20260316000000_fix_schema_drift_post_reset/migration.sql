@@ -1,3 +1,4 @@
+-- check-migration-reversibility: one-way
 -- CreateEnum
 CREATE TYPE "AppointmentStatus" AS ENUM ('SCHEDULED', 'CONFIRMED', 'RESCHEDULING', 'IN_PROGRESS', 'COMPLETED', 'CANCELLED', 'NO_SHOW');
 

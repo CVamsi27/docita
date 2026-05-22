@@ -16,10 +16,11 @@ import {
   IdempotencyService,
 } from '@/shared/modules/idempotency';
 import { Gender, Role } from '@workspace/db';
-import { RequestWithUser } from '@/common/types/common.types';
+import { RequestWithUser } from '@/shared/common/types/common.types';
 import { ListPatientsQueryDto } from '@/domains/patients/application/dto/patients.dto';
 import { Patient } from '@/domains/patients/core/entities/patient.entity';
 import { DPDPComplianceService } from '@/shared/modules/compliance/dpdp-compliance.service';
+import { AuditService } from '@/shared/modules/audit/audit/audit.service';
 
 describe('PatientsController (Authorization)', () => {
   let controller: PatientsController;
@@ -45,6 +46,7 @@ describe('PatientsController (Authorization)', () => {
   const buildRequest = (clinicId = 'clinic-1', role = Role.DOCTOR) => {
     const request = Object.create({}) as AuthRequest;
     const user = Object.create({}) as NonNullable<RequestWithUser['user']>;
+    user.id = 'user-1';
     user.clinicId = clinicId;
     user.role = role;
     request.user = user;
@@ -88,6 +90,10 @@ describe('PatientsController (Authorization)', () => {
         {
           provide: DPDPComplianceService,
           useValue: { recordDpdpNoticeConsent: jest.fn() },
+        },
+        {
+          provide: AuditService,
+          useValue: { logAction: jest.fn(), logPatientAccess: jest.fn() },
         },
       ],
     })

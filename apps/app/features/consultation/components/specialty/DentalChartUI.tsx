@@ -1,19 +1,19 @@
 "use client";
 
-import { Button } from "@workspace/ui/components/button";
-import { SymbolTooltip } from "@workspace/ui/components/tooltip";
+import { Button } from "@workspace/ui/components/form/button";
+import { SymbolTooltip } from "@workspace/ui/components/overlay/tooltip";
 import {
   Card,
   CardContent,
   CardHeader,
   CardTitle,
-} from "@workspace/ui/components/card";
-import { Label } from "@workspace/ui/components/label";
+} from "@workspace/ui/components/indicators/card";
+import { Label } from "@workspace/ui/components/form/label";
 import { cn } from "@workspace/ui/lib/utils";
 import { useState } from "react";
 import type { DentalChartData } from "@workspace/types";
-import { useConstants } from "@/hooks/api/use-common";
-import { Skeleton } from "@workspace/ui/components/skeleton";
+import { useConstants } from "@workspace/data-access";
+import { Skeleton } from "@workspace/ui/components/feedback/skeleton";
 
 export type DentalChartValue = DentalChartData;
 

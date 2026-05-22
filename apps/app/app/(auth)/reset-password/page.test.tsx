@@ -1,5 +1,5 @@
 import { fireEvent, screen } from "@testing-library/react";
-import { render } from "@/test/render-with-tooltip";
+import { render } from "@/test-utils/render-with-tooltip";
 import type { ReactNode } from "react";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import ResetPasswordPage from "./page";
@@ -24,13 +24,13 @@ vi.mock("next/navigation", () => ({
   useRouter: () => mocks.router,
 }));
 
-vi.mock("@/lib/api-client", () => ({
+vi.mock("@/lib/api/api-client", () => ({
   api: {
     post: (...args: unknown[]) => mocks.apiPost(...args),
   },
 }));
 
-vi.mock("@/lib/logger", () => ({
+vi.mock("@/lib/monitoring/logger", () => ({
   logger: {
     error: (...args: unknown[]) => mocks.loggerError(...args),
   },

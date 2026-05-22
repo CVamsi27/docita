@@ -6,18 +6,21 @@ import {
   CardDescription,
   CardHeader,
   CardTitle,
-} from "@workspace/ui/components/card";
-import { DocitaLoadingIndicator } from "@workspace/ui/components/docita-loading-indicator";
-import { PageHeader } from "@workspace/ui/components/page-header";
-import { Progress } from "@workspace/ui/components/progress";
+} from "@workspace/ui/components/indicators/card";
+import { DocitaLoadingIndicator } from "@workspace/ui/components/feedback/docita-loading-indicator";
+import { PageHeader } from "@workspace/ui/components/layout/page-header";
+import { Progress } from "@workspace/ui/components/feedback/progress";
 import {
   SystemHealthBadge,
   SystemHealthIcon,
-} from "@workspace/ui/components/system-health-indicator";
+} from "@workspace/ui/components/feedback/system-health-indicator";
 import { formatCountLocale } from "@workspace/utils";
-import { healthAPI, monitoringAPI, performanceAPI } from "@/lib/api";
-import { internalQueryKeys } from "@/lib/query-keys";
-import { useInternalQuery } from "@/lib/use-internal-query";
+import {
+  useInternalHealthCheck,
+  useInternalMonitoringHealth,
+  useInternalPerformanceDatabaseStats,
+  useInternalPerformanceMetrics,
+} from "@workspace/data-access/internal";
 import {
   Activity,
   AlertTriangle,
@@ -29,28 +32,13 @@ import {
 } from "lucide-react";
 
 export default function PerformancePage() {
-  const runtimeQuery = useInternalQuery({
-    queryKey: internalQueryKeys.internal.performanceMetrics(),
-    queryFn: () => performanceAPI.getMetrics(),
-    refetchInterval: 30000,
-  });
+  const refetchInterval = 30_000;
 
-  const databaseQuery = useInternalQuery({
-    queryKey: internalQueryKeys.internal.performanceDatabase(),
-    queryFn: () => performanceAPI.getDatabaseStats(),
-    refetchInterval: 30000,
-  });
-
-  const healthQuery = useInternalQuery({
-    queryKey: internalQueryKeys.internal.monitoringHealth(),
-    queryFn: () => monitoringAPI.getHealth(),
-    refetchInterval: 30000,
-  });
-
-  const appHealthQuery = useInternalQuery({
-    queryKey: ["health", "performance"] as const,
-    queryFn: () => healthAPI.getHealth(),
-    refetchInterval: 30000,
+  const runtimeQuery = useInternalPerformanceMetrics({ refetchInterval });
+  const databaseQuery = useInternalPerformanceDatabaseStats({ refetchInterval });
+  const healthQuery = useInternalMonitoringHealth({ refetchInterval });
+  const appHealthQuery = useInternalHealthCheck("performance", {
+    refetchInterval,
   });
 
   const runtime = runtimeQuery.data;

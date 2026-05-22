@@ -15,9 +15,10 @@ import {
   ORDER_PROVIDER_TOKEN,
   WEBHOOK_HANDLER_TOKEN,
   REFUND_PROVIDER_TOKEN,
+  PLATFORM_INVOICE_PROVIDER_TOKEN,
 } from './core/ports';
 
-/** Wires Razorpay adapters for Docita SaaS + shared factory; see docs/PAYMENT_FLOWS.md. */
+/** Wires Razorpay adapters for Docita SaaS + shared factory; see docs/product/PAYMENT_FLOWS.md. */
 @Module({
   imports: [ConfigModule],
   providers: [
@@ -65,10 +66,14 @@ import {
         factory.getWebhookHandler(),
       inject: [PaymentGatewayFactory],
     },
+    {
+      provide: PLATFORM_INVOICE_PROVIDER_TOKEN,
+      useExisting: RazorpayInvoiceAdapter,
+    },
   ],
   exports: [
     PaymentGatewayFactory,
-    RazorpayInvoiceAdapter,
+    PLATFORM_INVOICE_PROVIDER_TOKEN,
     DOCITA_PLATFORM_PAYMENT_LINK_PROVIDER_TOKEN,
     CLINIC_INVOICE_PAYMENT_LINK_PROVIDER_TOKEN,
     SUBSCRIPTION_PROVIDER_TOKEN,

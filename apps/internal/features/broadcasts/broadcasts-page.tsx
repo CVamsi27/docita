@@ -1,5 +1,7 @@
 "use client";
 
+import { DATE_FORMATS, formatDate, formatDistanceToNow, getUserFacingErrorMessage } from "@workspace/utils";
+
 import { type ChangeEvent, type FormEvent, useMemo, useState } from "react";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import {
@@ -7,29 +9,25 @@ import {
   CardContent,
   CardHeader,
   CardTitle,
-} from "@workspace/ui/components/card";
-import { Button } from "@workspace/ui/components/button";
-import { Input } from "@workspace/ui/components/input";
-import { Label } from "@workspace/ui/components/label";
-import { Textarea } from "@workspace/ui/components/textarea";
-import { Badge } from "@workspace/ui/components/badge";
+} from "@workspace/ui/components/indicators/card";
+import { Button } from "@workspace/ui/components/form/button";
+import { Input } from "@workspace/ui/components/form/input";
+import { Label } from "@workspace/ui/components/form/label";
+import { Textarea } from "@workspace/ui/components/form/textarea";
+import { Badge } from "@workspace/ui/components/indicators/badge";
 import {
   Select,
   SelectContent,
   SelectItem,
   SelectTrigger,
   SelectValue,
-} from "@workspace/ui/components/select";
-import { DocitaLoadingIndicator } from "@workspace/ui/components/docita-loading-indicator";
-import {
-  getUserFacingErrorMessage,
-  WhatsAppBroadcastJobSummary,
-} from "@workspace/types";
-import { DATE_FORMATS, formatDate, formatDistanceToNow } from "@workspace/utils";
+} from "@workspace/ui/components/form/select";
+import { DocitaLoadingIndicator } from "@workspace/ui/components/feedback/docita-loading-indicator";
+import { WhatsAppBroadcastJobSummary } from "@workspace/types";
 import { AlertCircle, FileText, Megaphone, Send, Upload } from "lucide-react";
-import { broadcastsAPI } from "@/lib/api";
-import { internalQueryKeys } from "@/lib/query-keys";
-import { useInternalQuery } from "@/lib/use-internal-query";
+import { broadcastsAPI } from "@/lib/api/api";
+import { internalQueryKeys } from "@/lib/api/query-keys";
+import { useInternalBroadcastsList } from "@workspace/data-access/internal";
 import {
   BROADCAST_PRESETS,
   type BroadcastPresetId,
@@ -52,7 +50,7 @@ const STATUS_VARIANTS: Record<
 export function BroadcastsPage() {
   const queryClient = useQueryClient();
   const [presetId, setPresetId] = useState<BroadcastPresetId>(
-    BROADCAST_PRESETS[0]!.id,
+    BROADCAST_PRESETS[0]?.id ?? "",
   );
   const [title, setTitle] = useState("");
   const [messageOverride, setMessageOverride] = useState("");
@@ -70,10 +68,7 @@ export function BroadcastsPage() {
   );
 
   const listKey = internalQueryKeys.internal.broadcasts(BROADCAST_LIST_LIMIT);
-  const broadcastsQuery = useInternalQuery({
-    queryKey: listKey,
-    queryFn: () => broadcastsAPI.list(BROADCAST_LIST_LIMIT),
-  });
+  const broadcastsQuery = useInternalBroadcastsList(BROADCAST_LIST_LIMIT);
 
   const createMutation = useMutation({
     mutationFn: broadcastsAPI.create,
@@ -187,9 +182,14 @@ export function BroadcastsPage() {
                 <Label htmlFor="broadcast-audience">Audience preset</Label>
                 <Select
                   value={presetId}
-                  onValueChange={(value) =>
-                    setPresetId(value as BroadcastPresetId)
-                  }
+                  onValueChange={(value) => {
+                    const preset = BROADCAST_PRESETS.find(
+                      (entry) => entry.id === value,
+                    );
+                    if (preset) {
+                      setPresetId(preset.id);
+                    }
+                  }}
                 >
                   <SelectTrigger id="broadcast-audience">
                     <SelectValue placeholder="Select audience" />
@@ -254,7 +254,7 @@ export function BroadcastsPage() {
                     <code className="rounded bg-muted px-1.5 py-0.5">
                       {selectedPreset?.metaTemplateName}
                     </code>{" "}
-                    with the recipient name as a variable.
+                    using the recipient name template variable.
                   </p>
                 ) : (
                   <Textarea

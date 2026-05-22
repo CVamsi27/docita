@@ -61,7 +61,7 @@ export async function seedStructuredMedicalHistory(
         status: 'ACTIVE',
         severity: 'MODERATE',
         diagnosedDate: new Date('2015-05-10'),
-        notes: 'Uses inhaler as needed',
+        notes: 'Uses inhaler when needed',
         sourceType: 'MANUAL',
       },
       {

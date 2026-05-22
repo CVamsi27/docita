@@ -1,84 +1,36 @@
 "use client";
 
-import { useMemo } from "react";
 import { AlertTriangle, CreditCard, RotateCw } from "lucide-react";
-import { Button } from "@workspace/ui/components/button";
-import { Card, CardContent } from "@workspace/ui/components/card";
-import { toast } from "sonner";
+import { Button } from "@workspace/ui/components/form/button";
+import { Card, CardContent } from "@workspace/ui/components/indicators/card";
 import { DEFAULT_CURRENCY, formatCurrency } from "@workspace/utils";
-import { useBillingHistory } from "@/hooks/api/use-billing-history";
-import { useResumeSubscriptionPayment } from "@/hooks/api/use-resume-subscription-payment";
+import type { BillingHistoryItem } from "@workspace/data-access";
 import { formatDate } from "@/lib/formatters";
-import { showUserFacingErrorToast } from "@/lib/user-facing-errors";
-
-type RecoverableStatus =
-  | "failed"
-  | "declined"
-  | "pending"
-  | "processing"
-  | "created"
-  | "requires_action"
-  | "attempted"
-  | "due";
-
-const RECOVERABLE_STATUSES = new Set<RecoverableStatus>([
-  "failed",
-  "declined",
-  "pending",
-  "processing",
-  "created",
-  "requires_action",
-  "attempted",
-  "due",
-]);
 
 interface PaymentRecoveryCardProps {
-  /** Set when the parent already knows billing is in trouble (PAST_DUE/GRACE/TRIAL_GRACE). */
+  /** Set when the parent already knows billing is in trouble (PAST_DUE/GRACE/pending renewal). */
   show?: boolean;
+  recoverablePayment: BillingHistoryItem | null;
+  resolvePayment: () => Promise<void>;
+  isResolving?: boolean;
 }
 
-export function PaymentRecoveryCard({ show = true }: PaymentRecoveryCardProps) {
-  const { data: invoices } = useBillingHistory(show);
-  const resume = useResumeSubscriptionPayment();
-
-  const failedPayment = useMemo(() => {
-    if (!invoices?.length) return null;
-    return (
-      invoices.find((p) =>
-        RECOVERABLE_STATUSES.has(
-          (p.status ?? "").toLowerCase() as RecoverableStatus,
-        ),
-      ) ?? null
-    );
-  }, [invoices]);
-
-  if (!show || !failedPayment) {
+export function PaymentRecoveryCard({
+  show = true,
+  recoverablePayment,
+  resolvePayment,
+  isResolving = false,
+}: PaymentRecoveryCardProps) {
+  if (!show || !recoverablePayment) {
     return null;
   }
 
-  const amountText = formatCurrency(failedPayment.amountCents / 100, {
-    currency: failedPayment.currency || DEFAULT_CURRENCY,
+  const amountText = formatCurrency(recoverablePayment.amountCents / 100, {
+    currency: recoverablePayment.currency || DEFAULT_CURRENCY,
   });
-  const createdAt = formatDate(new Date(failedPayment.createdAt));
-  const statusLower = (failedPayment.status ?? "").toLowerCase();
+  const createdAt = formatDate(new Date(recoverablePayment.createdAt));
+  const statusLower = (recoverablePayment.status ?? "").toLowerCase();
   const isFailed = statusLower === "failed" || statusLower === "declined";
-
-  async function handleRetry() {
-    try {
-      const result = await resume.mutateAsync(failedPayment!.id);
-      if (result.payUrl) {
-        window.open(result.payUrl, "_blank", "noopener,noreferrer");
-      } else {
-        toast.success("Payment retry started — check your inbox for the link.");
-      }
-    } catch (err) {
-      showUserFacingErrorToast(
-        err,
-        "Could not resume payment. Please try again or contact support.",
-        "payment",
-      );
-    }
-  }
 
   return (
     <Card className="border-destructive/40 bg-destructive/5">
@@ -91,32 +43,32 @@ export function PaymentRecoveryCard({ show = true }: PaymentRecoveryCardProps) {
             {isFailed ? "Last payment failed" : "Payment pending"}
           </p>
           <p className="text-sm text-muted-foreground">
-            {failedPayment.description ?? "Subscription charge"} ·{" "}
+            {recoverablePayment.description ?? "Subscription charge"} ·{" "}
             <span className="font-medium text-foreground">{amountText}</span> ·{" "}
             {createdAt}
           </p>
           <p className="text-xs text-muted-foreground">
-            Resume the charge to keep your subscription active. Razorpay will
-            re-attempt against your saved card.
+            Complete payment to restore access. Checkout opens here when
+            available, or a secure payment link in a new tab.
           </p>
         </div>
         <div className="flex shrink-0 flex-col gap-2 sm:flex-row sm:items-center">
           <Button
             size="sm"
             variant="default"
-            onClick={handleRetry}
-            disabled={resume.isPending}
+            onClick={() => void resolvePayment()}
+            disabled={isResolving}
             className="gap-2"
           >
-            {resume.isPending ? (
+            {isResolving ? (
               <>
                 <RotateCw className="h-4 w-4 animate-spin" aria-hidden />
-                Retrying…
+                Opening…
               </>
             ) : (
               <>
                 <CreditCard className="h-4 w-4" aria-hidden />
-                Retry payment
+                Pay now
               </>
             )}
           </Button>

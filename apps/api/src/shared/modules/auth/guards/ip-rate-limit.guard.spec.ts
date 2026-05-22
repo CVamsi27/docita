@@ -4,6 +4,7 @@ import { beforeEach, describe, expect, it, jest } from '@jest/globals';
 import { IpRateLimitService } from '@/shared/modules/services/ip-rate-limit.service';
 import { asType } from '@/test-utils';
 import { IpRateLimitGuard } from './ip-rate-limit.guard';
+import type { AppConfigService } from '@/shared/modules/config/app-configuration.service';
 
 type RequestWithClientIp = Request & { clientIp?: string };
 
@@ -25,6 +26,7 @@ describe('IpRateLimitGuard', () => {
     >
   >;
   let guard: IpRateLimitGuard;
+  let config: Pick<AppConfigService, 'shouldBypassGuardForE2e'>;
 
   beforeEach(() => {
     service = {
@@ -32,7 +34,15 @@ describe('IpRateLimitGuard', () => {
       checkRateLimit: jest.fn(),
       getRemainingBanTime: jest.fn(),
     };
-    guard = new IpRateLimitGuard(asType<IpRateLimitService>(service));
+    config = {
+      shouldBypassGuardForE2e: jest.fn<
+        (e2eHeaderValue: string | undefined) => boolean
+      >(() => false),
+    };
+    guard = new IpRateLimitGuard(
+      asType<IpRateLimitService>(service),
+      asType<AppConfigService>(config),
+    );
   });
 
   it('allows request and stores client ip when rate limit is not exceeded', () => {
@@ -46,23 +56,16 @@ describe('IpRateLimitGuard', () => {
     expect(request.clientIp).toBe('127.0.0.1');
   });
 
-  it('skips IP limiting when DOCITA_API_E2E is set', () => {
-    const previous = process.env.DOCITA_API_E2E;
-    process.env.DOCITA_API_E2E = 'true';
-    try {
-      const request = { headers: {} } as RequestWithClientIp;
-      service.getClientIp.mockReturnValue('127.0.0.1');
+  it('skips IP limiting when E2E bypass is active', () => {
+    config.shouldBypassGuardForE2e = jest.fn<
+      (e2eHeaderValue: string | undefined) => boolean
+    >(() => true);
+    const request = { headers: {} } as RequestWithClientIp;
+    service.getClientIp.mockReturnValue('127.0.0.1');
 
-      expect(guard.canActivate(createContext(request))).toBe(true);
-      expect(request.clientIp).toBe('127.0.0.1');
-      expect(service.checkRateLimit).not.toHaveBeenCalled();
-    } finally {
-      if (previous === undefined) {
-        delete process.env.DOCITA_API_E2E;
-      } else {
-        process.env.DOCITA_API_E2E = previous;
-      }
-    }
+    expect(guard.canActivate(createContext(request))).toBe(true);
+    expect(request.clientIp).toBe('127.0.0.1');
+    expect(service.checkRateLimit).not.toHaveBeenCalled();
   });
 
   it('throws blocked response when IP is currently banned', () => {

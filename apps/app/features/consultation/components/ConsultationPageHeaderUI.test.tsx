@@ -1,7 +1,7 @@
 import { render, screen } from "@testing-library/react";
 import type { ReactElement } from "react";
 import { describe, expect, it, vi } from "vitest";
-import { TooltipProvider } from "@workspace/ui/components/tooltip";
+import { TooltipProvider } from "@workspace/ui/components/overlay/tooltip";
 import { ConsultationPageHeaderUI } from "./ConsultationPageHeaderUI";
 
 function renderWithUiProviders(ui: ReactElement) {
@@ -18,7 +18,7 @@ vi.mock("@/features/consultation/workspace/consultation-vitals-context", () => (
   useConsultationVitals: () => ({ openVitals: vi.fn() }),
 }));
 
-vi.mock("@/features/_shared/components/ask-ai/ask-ai-context", () => ({
+vi.mock("@/components/ask-ai/ask-ai-context", () => ({
   useAskAi: () => ({ openOverlay: vi.fn(), closeOverlay: vi.fn(), open: false, scope: null }),
 }));
 

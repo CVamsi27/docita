@@ -5,6 +5,7 @@ import { beforeEach, describe, expect, it, jest } from '@jest/globals';
 import { ClinicAuthCacheService } from '@/shared/modules/auth/auth/clinic-auth-cache.service';
 import {
   asType,
+  createFixedClockMock,
   createKeyedReflectorMock,
   mockGetAllAndOverrideKeyBranch,
   type MockedReflectorGetAllAndOverride,
@@ -47,6 +48,7 @@ describe('SubscriptionStatusGuard', () => {
     guard = new SubscriptionStatusGuard(
       asType<Reflector>(reflector),
       asType<ClinicAuthCacheService>(clinicAuthCache),
+      createFixedClockMock(),
     );
   });
 
@@ -97,6 +99,8 @@ describe('SubscriptionStatusGuard', () => {
         subscriptionStatus: SubscriptionStatus.ACTIVE,
         subscriptionGraceUntil: null,
         subscriptionTrialEnd: null,
+        subscriptionCurrentPeriodEnd: null,
+        hasOutstandingPendingPayment: false,
         hasIntelligence: false,
         features: {},
       })
@@ -105,6 +109,8 @@ describe('SubscriptionStatusGuard', () => {
         subscriptionStatus: SubscriptionStatus.TRIALING,
         subscriptionGraceUntil: null,
         subscriptionTrialEnd: null,
+        subscriptionCurrentPeriodEnd: null,
+        hasOutstandingPendingPayment: false,
         hasIntelligence: false,
         features: {},
       })
@@ -113,6 +119,8 @@ describe('SubscriptionStatusGuard', () => {
         subscriptionStatus: SubscriptionStatus.PAST_DUE,
         subscriptionGraceUntil: null,
         subscriptionTrialEnd: null,
+        subscriptionCurrentPeriodEnd: null,
+        hasOutstandingPendingPayment: false,
         hasIntelligence: false,
         features: {},
       })
@@ -121,6 +129,8 @@ describe('SubscriptionStatusGuard', () => {
         subscriptionStatus: SubscriptionStatus.GRACE,
         subscriptionGraceUntil: null,
         subscriptionTrialEnd: null,
+        subscriptionCurrentPeriodEnd: null,
+        hasOutstandingPendingPayment: false,
         hasIntelligence: false,
         features: {},
       })
@@ -129,6 +139,8 @@ describe('SubscriptionStatusGuard', () => {
         subscriptionStatus: SubscriptionStatus.PAUSED,
         subscriptionGraceUntil: null,
         subscriptionTrialEnd: null,
+        subscriptionCurrentPeriodEnd: null,
+        hasOutstandingPendingPayment: false,
         hasIntelligence: false,
         features: {},
       });
@@ -156,6 +168,8 @@ describe('SubscriptionStatusGuard', () => {
       subscriptionStatus: SubscriptionStatus.CANCELLED,
       subscriptionGraceUntil: null,
       subscriptionTrialEnd: null,
+      subscriptionCurrentPeriodEnd: null,
+      hasOutstandingPendingPayment: false,
       hasIntelligence: false,
       features: {},
     });
@@ -179,6 +193,8 @@ describe('SubscriptionStatusGuard', () => {
       subscriptionStatus: SubscriptionStatus.GRACE,
       subscriptionGraceUntil: new Date('2020-01-01T00:00:00.000Z'),
       subscriptionTrialEnd: null,
+      subscriptionCurrentPeriodEnd: new Date('2020-01-01T00:00:00.000Z'),
+      hasOutstandingPendingPayment: false,
       hasIntelligence: false,
       features: {},
     });
@@ -199,6 +215,8 @@ describe('SubscriptionStatusGuard', () => {
       subscriptionStatus: SubscriptionStatus.PAST_DUE,
       subscriptionGraceUntil: new Date('2020-01-01T00:00:00.000Z'),
       subscriptionTrialEnd: null,
+      subscriptionCurrentPeriodEnd: new Date('2020-01-01T00:00:00.000Z'),
+      hasOutstandingPendingPayment: false,
       hasIntelligence: false,
       features: {},
     });
@@ -208,6 +226,50 @@ describe('SubscriptionStatusGuard', () => {
         createContext({
           clinicId: 'clinic-1',
           role: 'ADMIN',
+        }),
+      ),
+    ).resolves.toBe(true);
+  });
+
+  it('blocks staff when renewal period ended with a pending payment', async () => {
+    clinicAuthCache.getClinicAuth.mockResolvedValue({
+      tier: ClinicTier.STARTER,
+      subscriptionStatus: SubscriptionStatus.ACTIVE,
+      subscriptionGraceUntil: null,
+      subscriptionTrialEnd: null,
+      subscriptionCurrentPeriodEnd: new Date('2020-01-01T00:00:00.000Z'),
+      hasOutstandingPendingPayment: true,
+      hasIntelligence: false,
+      features: {},
+    });
+
+    await expect(
+      guard.canActivate(
+        createContext({
+          clinicId: 'clinic-1',
+          role: 'DOCTOR',
+        }),
+      ),
+    ).rejects.toThrow(ForbiddenException);
+  });
+
+  it('allows billing admins when renewal period ended with a pending payment', async () => {
+    clinicAuthCache.getClinicAuth.mockResolvedValue({
+      tier: ClinicTier.STARTER,
+      subscriptionStatus: SubscriptionStatus.ACTIVE,
+      subscriptionGraceUntil: null,
+      subscriptionTrialEnd: null,
+      subscriptionCurrentPeriodEnd: new Date('2020-01-01T00:00:00.000Z'),
+      hasOutstandingPendingPayment: true,
+      hasIntelligence: false,
+      features: {},
+    });
+
+    await expect(
+      guard.canActivate(
+        createContext({
+          clinicId: 'clinic-1',
+          role: 'ADMIN_DOCTOR',
         }),
       ),
     ).resolves.toBe(true);

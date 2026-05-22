@@ -1,5 +1,3 @@
-import { parse } from "date-fns";
-import { fromZonedTime } from "date-fns-tz";
 import { z } from "zod";
 import {
   appointmentStatusSchema,
@@ -177,6 +175,54 @@ export const createAppointmentBaseSchema = appointmentSchema.omit({
  * Clinician scheduling forms should super-refine with `refineCreateAppointmentDateTimes(clinicTz)`.
  */
 const APPOINTMENT_FORM_WALL_TIMEZONE = "Asia/Kolkata";
+const APPOINTMENT_LOCAL_DATETIME_PATTERN =
+  /^(\d{4})-(\d{2})-(\d{2})T(\d{2}):(\d{2})$/;
+
+function getTimeZoneOffsetMs(date: Date, timeZone: string): number {
+  const parts = new Intl.DateTimeFormat("en-US", {
+    timeZone,
+    hourCycle: "h23",
+    year: "numeric",
+    month: "2-digit",
+    day: "2-digit",
+    hour: "2-digit",
+    minute: "2-digit",
+    second: "2-digit",
+  }).formatToParts(date);
+  const values = Object.fromEntries(
+    parts
+      .filter((part) => part.type !== "literal")
+      .map((part) => [part.type, Number(part.value)]),
+  );
+  const asUtc = Date.UTC(
+    values.year,
+    values.month - 1,
+    values.day,
+    values.hour,
+    values.minute,
+    values.second,
+  );
+
+  return asUtc - date.getTime();
+}
+
+function parseAppointmentWallDateTime(
+  value: string,
+  wallTimezone: string,
+): Date | undefined {
+  const match = APPOINTMENT_LOCAL_DATETIME_PATTERN.exec(value);
+  if (!match) {
+    return undefined;
+  }
+
+  const [, year, month, day, hour, minute] = match.map(Number);
+  const utcGuess = new Date(Date.UTC(year, month - 1, day, hour, minute));
+  const offsetMs = getTimeZoneOffsetMs(utcGuess, wallTimezone);
+  const zonedInstant = new Date(utcGuess.getTime() - offsetMs);
+  const correctedOffsetMs = getTimeZoneOffsetMs(zonedInstant, wallTimezone);
+
+  return new Date(utcGuess.getTime() - correctedOffsetMs);
+}
 
 function normalizeAppointmentDate(
   value: string | Date,
@@ -192,16 +238,11 @@ function normalizeAppointmentDate(
   if (!s) {
     return undefined;
   }
-  if (/^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}$/.test(s)) {
-    try {
-      const wall = parse(s, "yyyy-MM-dd'T'HH:mm", new Date());
-      if (Number.isNaN(wall.getTime())) {
-        return undefined;
-      }
-      return fromZonedTime(wall, wallTimezone);
-    } catch {
-      return undefined;
-    }
+  if (APPOINTMENT_LOCAL_DATETIME_PATTERN.test(s)) {
+    const parsedWallDate = parseAppointmentWallDateTime(s, wallTimezone);
+    return parsedWallDate && !Number.isNaN(parsedWallDate.getTime())
+      ? parsedWallDate
+      : undefined;
   }
   const parsed = new Date(s);
   return Number.isNaN(parsed.getTime()) ? undefined : parsed;

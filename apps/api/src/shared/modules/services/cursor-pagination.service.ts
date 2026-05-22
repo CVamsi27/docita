@@ -1,4 +1,5 @@
 import { Injectable, Logger } from '@nestjs/common';
+import { isRecord } from '@workspace/utils';
 import * as _crypto from 'crypto';
 
 export interface CursorPage<T> {
@@ -48,7 +49,7 @@ export class CursorPaginationService {
       return undefined;
     }
 
-    return (item as CursorPayload)[sortBy];
+    return isRecord(item) ? item[sortBy] : undefined;
   }
 
   buildCursorWhereClause(

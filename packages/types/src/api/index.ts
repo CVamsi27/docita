@@ -5,4 +5,3 @@ export * from "./error-types";
 export * from "./request-types";
 export * from "./sanitization";
 export * from "./prisma-types";
-export * from "./user-facing-errors";

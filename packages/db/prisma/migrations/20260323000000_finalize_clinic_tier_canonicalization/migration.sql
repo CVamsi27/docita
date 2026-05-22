@@ -1,3 +1,4 @@
+-- check-migration-reversibility: one-way
 -- Continue the tier canonicalization in a separate migration so enum value
 -- additions from the previous migration are committed before data rewrites run.
 

@@ -2,9 +2,9 @@
 
 import Link from "next/link";
 import { AlertCircle, Home, RefreshCw } from "lucide-react";
-import { Button } from "@workspace/ui/components/button";
-import { AppPageScaffold } from "@workspace/ui/components/app-page-scaffold";
-import { Card, CardContent } from "@workspace/ui/components/card";
+import { Button } from "@workspace/ui/components/form/button";
+import { AppPageScaffold } from "@workspace/ui/components/layout/app-page-scaffold";
+import { Card, CardContent } from "@workspace/ui/components/indicators/card";
 
 export default function DocumentsError({
   error,

@@ -1,3 +1,5 @@
+import { InvariantViolationError } from '@/shared/common/errors/domain.errors';
+
 export interface PatientProps {
   id: string;
   clinicId: string;
@@ -66,9 +68,26 @@ export class Patient {
   }
 
   private validate(): void {
-    if (!this.clinicId) throw new Error('Clinic ID is required');
+    if (!this.clinicId) {
+      throw new InvariantViolationError('Clinic ID is required');
+    }
     if (!this.firstName || !this.lastName)
-      throw new Error('Patient name is required');
+      throw new InvariantViolationError('Patient name is required');
+  }
+
+  /** Trim MRN; empty strings become undefined. */
+  static normalizeMrn(mrn: string | undefined): string | undefined {
+    const normalized = mrn?.trim();
+    return normalized ? normalized : undefined;
+  }
+
+  /** Trim display label for patient tags. */
+  static normalizeTagLabel(tag: string): string {
+    return tag.trim();
+  }
+
+  static isTagLabelValid(tag: string): boolean {
+    return Patient.normalizeTagLabel(tag).length > 0;
   }
 
   getFullName(): string {
@@ -79,13 +98,13 @@ export class Patient {
     return this.mrn;
   }
 
-  updateContactInfo(email?: string, phone?: string): void {
+  updateContactInfo(now: Date, email?: string, phone?: string): void {
     this.email = email;
     this.phoneNumber = phone;
-    this.updatedAt = new Date();
+    this.updatedAt = now;
   }
 
-  updateProfile(data: PatientProfileUpdate): void {
+  updateProfile(data: PatientProfileUpdate, now: Date): void {
     if (data.mrn !== undefined) this.mrn = data.mrn;
     if (data.firstName !== undefined) this.firstName = data.firstName;
     if (data.lastName !== undefined) this.lastName = data.lastName;
@@ -96,7 +115,7 @@ export class Patient {
     if (data.address !== undefined) this.address = data.address;
     if (data.metadata !== undefined) this.metadata = data.metadata;
 
-    this.updatedAt = new Date();
+    this.updatedAt = now;
     this.validate();
   }
 

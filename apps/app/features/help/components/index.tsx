@@ -7,16 +7,16 @@ import {
   CardDescription,
   CardHeader,
   CardTitle,
-} from "@workspace/ui/components/card";
-import { Button } from "@workspace/ui/components/button";
-import { Input } from "@workspace/ui/components/input";
-import { SymbolTooltip } from "@workspace/ui/components/tooltip";
-import { WhatsAppButton } from "@/features/_shared/components/whatsapp/whatsapp-button";
+} from "@workspace/ui/components/indicators/card";
+import { Button } from "@workspace/ui/components/form/button";
+import { Input } from "@workspace/ui/components/form/input";
+import { SymbolTooltip } from "@workspace/ui/components/overlay/tooltip";
+import { WhatsAppButton } from "@/components/whatsapp/whatsapp-button";
 import {
   getSupportPhoneNumber,
   SUPPORT_EMAIL,
   SUPPORT_WHATSAPP_MESSAGE_DEFAULT,
-} from "@/lib/support-contact";
+} from "@/lib/constants/support-contact";
 import {
   BookOpen,
   ChevronRight,
@@ -102,7 +102,7 @@ export const HelpCenter: FC = () => {
         {filteredCategories.map((cat) => (
           <Card
             key={cat.id}
-            className="ui-card-surface hover:shadow-md transition-all cursor-pointer group"
+            className="ui-card-surface hover:shadow-md transition-shadow duration-150 cursor-pointer group"
           >
             <CardContent className="p-6">
               <div className="flex items-start gap-4">

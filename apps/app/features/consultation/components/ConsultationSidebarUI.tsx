@@ -2,14 +2,14 @@
 
 import React, { FC, useState } from "react";
 import Link from "next/link";
-import { Card, CardContent } from "@workspace/ui/components/card";
-import { Button } from "@workspace/ui/components/button";
-import { SymbolTooltip } from "@workspace/ui/components/tooltip";
+import { Card, CardContent } from "@workspace/ui/components/indicators/card";
+import { Button } from "@workspace/ui/components/form/button";
+import { SymbolTooltip } from "@workspace/ui/components/overlay/tooltip";
 import {
   Collapsible,
   CollapsibleContent,
   CollapsibleTrigger,
-} from "@workspace/ui/components/collapsible";
+} from "@workspace/ui/components/overlay/collapsible";
 import { Clock, ChevronDown, ChevronRight, FileText, Receipt, User, X } from "lucide-react";
 import {
   Appointment,
@@ -20,8 +20,8 @@ import {
   PatientSurgicalHistory,
   PatientTimelineResponse,
 } from "@workspace/types";
-import { PatientSnapshotStrip } from "@/features/_shared/components/patient-history/PatientSnapshotStrip";
-import { PatientTimeline } from "@/features/_shared/components/patient-history/PatientTimeline";
+import { PatientSnapshotStrip } from "@/components/patient-history/PatientSnapshotStrip";
+import { PatientTimeline } from "@/components/patient-history/PatientTimeline";
 import { formatGenderLabel } from "@/lib/formatters";
 import { FollowUpWidget } from "./FollowUpWidget";
 import { usePermissions } from "@/hooks/use-permissions";
@@ -37,6 +37,12 @@ interface AppointmentWrapper {
 }
 
 type AppointmentInput = AppointmentWrapper | Appointment;
+
+function isAppointmentWrapper(
+  data: AppointmentInput,
+): data is AppointmentWrapper {
+  return "appointment" in data;
+}
 
 interface ConsultationSidebarProps {
   appointmentData?: AppointmentInput;
@@ -62,10 +68,11 @@ export const ConsultationSidebarUI: FC<ConsultationSidebarProps> = ({
   const { canViewInvoices, canViewPrescriptions } = usePermissions();
   const rawData = appointmentData ?? appointment;
 
-  const patient =
-    rawData && "patient" in rawData
-      ? (rawData as AppointmentWrapper).patient
-      : ((rawData as Appointment)?.patient as Patient | undefined);
+  const patient: Patient | undefined = rawData
+    ? isAppointmentWrapper(rawData)
+      ? rawData.patient
+      : rawData.patient
+    : undefined;
 
   if (!patient) {
     return (
@@ -82,10 +89,11 @@ export const ConsultationSidebarUI: FC<ConsultationSidebarProps> = ({
     `${patient.firstName ?? ""} ${patient.lastName ?? ""}`.trim();
   const initials = `${patient.firstName?.[0] ?? ""}${patient.lastName?.[0] ?? ""}`;
 
-  const appointmentId =
-    rawData && "appointment" in rawData
-      ? (rawData as AppointmentWrapper).appointment.id
-      : (rawData as Appointment)?.id;
+  const appointmentId = rawData
+    ? isAppointmentWrapper(rawData)
+      ? rawData.appointment.id
+      : rawData.id
+    : undefined;
 
   const patientRecordId = patient.id;
 

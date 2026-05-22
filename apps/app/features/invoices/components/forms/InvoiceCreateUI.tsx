@@ -7,15 +7,15 @@ import {
   CardDescription,
   CardHeader,
   CardTitle,
-} from "@workspace/ui/components/card";
-import { Button } from "@workspace/ui/components/button";
+} from "@workspace/ui/components/indicators/card";
+import { Button } from "@workspace/ui/components/form/button";
 import {
   Select,
   SelectContent,
   SelectItem,
   SelectTrigger,
   SelectValue,
-} from "@workspace/ui/components/select";
+} from "@workspace/ui/components/form/select";
 import {
   Form,
   FormControl,
@@ -23,15 +23,12 @@ import {
   FormItem,
   FormLabel,
   FormMessage,
-} from "@workspace/ui/components/form";
-import { Textarea } from "@workspace/ui/components/textarea";
+} from "@workspace/ui/components/form/form";
+import { Textarea } from "@workspace/ui/components/form/textarea";
 import { Plus, Save } from "lucide-react";
-import type { Path } from "react-hook-form";
-import {
-  type CreateInvoiceFormValues,
-  useInvoiceCreateLogic,
-} from "@/features/invoices/hooks/use-invoice-create-logic";
-import { BackButton } from "@/components/common/navigation/back-button";
+import { useInvoiceCreateLogic } from "@/features/invoices/hooks/use-invoice-create-logic";
+import { createInvoiceItemFieldPath } from "@/features/invoices/lib/invoice-form-paths";
+import { BackButton } from "@/components/navigation/back-button";
 import { InvoiceItemsTable } from "./InvoiceItemsTable";
 import { InvoiceSubtotal } from "./InvoiceSubtotal";
 import { PatientSelector } from "@/features/appointments";
@@ -78,14 +75,24 @@ export const InvoiceCreateUI: FC = () => {
             </CardHeader>
             <CardContent className="grid md:grid-cols-2 gap-6">
               <div className="col-span-full md:col-span-1">
-                <PatientSelector
-                  form={form}
-                  patients={patients}
-                  patientsLoading={patientsLoading}
-                  patientSearch={patientSearch}
-                  setPatientSearch={setPatientSearch}
-                  patientComboboxOpen={patientComboboxOpen}
-                  setPatientComboboxOpen={setPatientComboboxOpen}
+                <FormField
+                  control={form.control}
+                  name="patientId"
+                  render={({ field }) => (
+                    <FormItem>
+                      <PatientSelector
+                        value={field.value ?? ""}
+                        onChange={field.onChange}
+                        patients={patients}
+                        patientsLoading={patientsLoading}
+                        patientSearch={patientSearch}
+                        setPatientSearch={setPatientSearch}
+                        patientComboboxOpen={patientComboboxOpen}
+                        setPatientComboboxOpen={setPatientComboboxOpen}
+                      />
+                      <FormMessage />
+                    </FormItem>
+                  )}
                 />
               </div>
 
@@ -148,12 +155,12 @@ export const InvoiceCreateUI: FC = () => {
                 onUpdateItem={(index, key, value) => {
                   const fieldName = key === "unitPrice" ? "price" : key;
                   form.setValue(
-                    `items.${index}.${fieldName}` as Path<CreateInvoiceFormValues>,
+                    createInvoiceItemFieldPath(index, fieldName),
                     value,
                   );
                   if (key === "taxTreatment" && value !== "TAXABLE") {
                     form.setValue(
-                      `items.${index}.taxRate` as Path<CreateInvoiceFormValues>,
+                      createInvoiceItemFieldPath(index, "taxRate"),
                       0,
                     );
                   }

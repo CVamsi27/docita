@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { useEffect } from "react";
 import { AlertCircle, Home, RefreshCw } from "lucide-react";
-import { Button } from "@workspace/ui/components/button";
+import { Button } from "@workspace/ui/components/form/button";
 
 export default function DentalChartsError({
   error,

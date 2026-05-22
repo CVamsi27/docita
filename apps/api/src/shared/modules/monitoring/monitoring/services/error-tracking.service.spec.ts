@@ -12,6 +12,7 @@ import {
   expect,
   jest,
 } from '@jest/globals';
+import { clockPortTestProvider } from '@/test-utils';
 
 describe('ErrorTrackingService', () => {
   let service: ErrorTrackingService;
@@ -57,6 +58,7 @@ describe('ErrorTrackingService', () => {
         ErrorTrackingService,
         { provide: PrismaService, useValue: mockPrismaService },
         { provide: MonitoringFactory, useValue: mockMonitoringFactory },
+        clockPortTestProvider(),
       ],
     }).compile();
 
@@ -94,10 +96,10 @@ describe('ErrorTrackingService', () => {
       | {
           data?: Array<{
             requestBody?: {
-              amount?: bigint;
+              amount?: string;
               circular?: { self?: unknown };
             };
-            metadata?: { extra?: { value?: bigint } };
+            metadata?: { extra?: { value?: string } };
           }>;
         }
       | undefined;
@@ -105,11 +107,9 @@ describe('ErrorTrackingService', () => {
     expect(payload).toBeDefined();
     expect(payload?.requestBody).toBeDefined();
     expect(payload?.metadata).toBeDefined();
-    expect(payload!.requestBody!.amount).toBe(99n);
-    expect(payload!.requestBody!.circular!.self).toBe(
-      payload!.requestBody!.circular,
-    );
-    expect(payload!.metadata!.extra!.value).toBe(42n);
+    expect(payload!.requestBody!.amount).toBe('99');
+    expect(payload!.requestBody!.circular!.self).toBe('[Circular]');
+    expect(payload!.metadata!.extra!.value).toBe('42');
   });
 
   it('continues buffering when database write fails', async () => {

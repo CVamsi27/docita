@@ -43,7 +43,7 @@ export function slotOccupiedByAppointments(
   });
 }
 
-/** Wall-clock instant for a calendar day + HH:mm slot segment, as clinic-wall `yyyy-MM-dd'T'HH:mm`. */
+/** Wall-clock instant for a calendar day + HH:mm slot segment in clinic-wall `yyyy-MM-dd'T'HH:mm`. */
 export function calendarSlotTimeToLocalIso(
   selectedDate: Date,
   slotTimeHHmm: string,
@@ -67,7 +67,10 @@ export function defaultStartIsoForSelectedCalendarDay(
     typeof selectedDate === "string" &&
     /^\d{4}-\d{2}-\d{2}$/.test(selectedDate.trim())
       ? selectedDate.trim()
-      : formatClinicPickerDayIsoFromSelection(selectedDate as Date, timezone);
+      : formatClinicPickerDayIsoFromSelection(
+          selectedDate instanceof Date ? selectedDate : new Date(selectedDate),
+          timezone,
+        );
 
   const todayStr = formatClinicTodayPickerIso(timezone);
 

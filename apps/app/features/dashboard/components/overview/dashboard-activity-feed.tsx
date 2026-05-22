@@ -10,8 +10,8 @@ import {
   CardDescription,
   CardHeader,
   CardTitle,
-} from "@workspace/ui/components/card";
-import { EmptyState } from "@workspace/ui/components/empty-state";
+} from "@workspace/ui/components/indicators/card";
+import { EmptyState } from "@workspace/ui/components/feedback/empty-state";
 import { humanizeUiLabel } from "@workspace/ui/lib/label-formatters";
 import { ViewAllLinkUI } from "@/features/dashboard/components/layout/view-all-link-ui";
 

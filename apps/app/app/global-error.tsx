@@ -1,3 +1,6 @@
+// LINT-EXEMPT: raw hex colors below are intentional — this file renders before
+// the Next.js app shell (and thus before CSS variables / Tailwind are available),
+// so inline style literals are the only safe option here.
 "use client";
 
 export default function GlobalError({

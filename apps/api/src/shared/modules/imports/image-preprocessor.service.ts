@@ -1,4 +1,5 @@
 import { Injectable, Logger } from '@nestjs/common';
+import { getErrorMessage } from '@workspace/utils';
 import sharp from 'sharp';
 import { promises as fs } from 'fs';
 
@@ -32,8 +33,9 @@ export class ImagePreprocessorService {
       this.logger.debug(`Preprocessing complete for ${imagePath}`);
       return await pipeline.png().toBuffer();
     } catch (error: unknown) {
-      const err = error as Error;
-      this.logger.error(`Image preprocessing failed: ${err.message}`);
+      this.logger.error(
+        `Image preprocessing failed: ${getErrorMessage(error)}`,
+      );
 
       return await fs.readFile(imagePath);
     }
@@ -43,9 +45,8 @@ export class ImagePreprocessorService {
     try {
       return await fs.readFile(imagePath);
     } catch (error: unknown) {
-      const err = error as Error;
-      this.logger.error(`Failed to load image file: ${err.message}`);
-      throw err;
+      this.logger.error(`Failed to load image file: ${getErrorMessage(error)}`);
+      throw error;
     }
   }
 

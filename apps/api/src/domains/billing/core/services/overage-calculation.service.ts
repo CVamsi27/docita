@@ -1,14 +1,12 @@
 import { Injectable } from '@nestjs/common';
 import { PrismaService } from '@/prisma/prisma.service';
 import { ClinicTier } from '@workspace/db';
-import { DEFAULT_CURRENCY } from '@workspace/utils';
+import { DEFAULT_CURRENCY, parseSupportedCurrency } from '@workspace/utils';
 import {
-  PRICING_CURRENCY_CONFIG,
+  mapDbClinicTierStringToTierName,
   TIER_OVERAGE_RATES_BY_CURRENCY,
-  getWhatsAppAddonPricingByCurrency,
-  type TierName,
-  type SupportedCurrency,
 } from '@workspace/types';
+import { getWhatsAppAddonPricingByCurrency } from '@workspace/utils';
 
 interface UsageData {
   period: { start: Date; end: Date };
@@ -45,15 +43,11 @@ interface OverageResult {
 export class OverageCalculationService {
   constructor(private readonly prisma: PrismaService) {}
 
-  private resolveCurrency(currency?: string): SupportedCurrency {
-    const selected = currency?.toUpperCase() as SupportedCurrency | undefined;
-    if (
-      selected &&
-      Object.prototype.hasOwnProperty.call(PRICING_CURRENCY_CONFIG, selected)
-    ) {
-      return selected;
+  private resolveCurrency(currency?: string) {
+    if (!currency) {
+      return parseSupportedCurrency(DEFAULT_CURRENCY);
     }
-    return DEFAULT_CURRENCY as SupportedCurrency;
+    return parseSupportedCurrency(currency.toUpperCase());
   }
 
   async calculateOverageCharges(
@@ -67,7 +61,7 @@ export class OverageCalculationService {
 
     let totalOverageCharges = 0;
     const breakdown: Record<string, OverageBreakdown> = {};
-    const tierKey = tier as TierName;
+    const tierKey = mapDbClinicTierStringToTierName(tier);
     const resolvedCurrency = this.resolveCurrency(usageData.currency);
     const baseRates = TIER_OVERAGE_RATES_BY_CURRENCY[resolvedCurrency][tierKey];
     const whatsappRate =
@@ -77,19 +71,18 @@ export class OverageCalculationService {
         ? getWhatsAppAddonPricingByCurrency(tierKey, resolvedCurrency)
             .overageRate
         : 0;
-    const canUseTierPricingTable = tierPricing && resolvedCurrency === 'INR';
     const overrides = usageData.rateOverridesCents ?? {};
 
     const consultationRateCents =
       overrides.consultation ??
-      (canUseTierPricingTable
-        ? tierPricing!.overageAppointmentCents
+      (tierPricing && resolvedCurrency === 'INR'
+        ? tierPricing.overageAppointmentCents
         : baseRates.appointmentRate * 100);
 
     const userRateCents =
       overrides.user ??
-      (canUseTierPricingTable
-        ? tierPricing!.overageUserCents
+      (tierPricing && resolvedCurrency === 'INR'
+        ? tierPricing.overageUserCents
         : baseRates.userRate * 100);
 
     this.addOverage(

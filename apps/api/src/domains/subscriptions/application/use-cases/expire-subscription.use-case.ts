@@ -8,6 +8,7 @@ import {
   CLINIC_OPERATIONS_TOKEN,
 } from '@/domains/subscriptions/application/ports/clinic-operations.port';
 import { SubscriptionStatusEnum } from '@/domains/subscriptions/core/value-objects';
+import { CLOCK_PORT, type IClock } from '@/shared/common/ports/clock.port';
 
 @Injectable()
 export class ExpireSubscriptionUseCase {
@@ -18,6 +19,7 @@ export class ExpireSubscriptionUseCase {
     private readonly subscriptionRepo: ISubscriptionRepository,
     @Inject(CLINIC_OPERATIONS_TOKEN)
     private readonly clinicOps: IClinicOperations,
+    @Inject(CLOCK_PORT) private readonly clock: IClock,
   ) {}
 
   async execute(subscriptionId: string): Promise<void> {
@@ -27,7 +29,7 @@ export class ExpireSubscriptionUseCase {
       throw new NotFoundException(`Subscription ${subscriptionId} not found`);
     }
 
-    subscription.expire();
+    subscription.expire(this.clock.now());
     await this.subscriptionRepo.save(subscription);
 
     await this.clinicOps.updateTierAndFeatures(

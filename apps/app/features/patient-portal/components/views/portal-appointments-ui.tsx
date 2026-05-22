@@ -2,15 +2,15 @@
 
 import Link from "next/link";
 import { CalendarDays } from "lucide-react";
-import { Badge } from "@workspace/ui/components/badge";
+import { Badge } from "@workspace/ui/components/indicators/badge";
 import {
   Card,
   CardContent,
   CardHeader,
   CardTitle,
-} from "@workspace/ui/components/card";
-import { Button } from "@workspace/ui/components/button";
-import { EmptyState } from "@workspace/ui/components/empty-state";
+} from "@workspace/ui/components/indicators/card";
+import { Button } from "@workspace/ui/components/form/button";
+import { EmptyState } from "@workspace/ui/components/feedback/empty-state";
 import type { PatientPortalAppointment } from "@/features/patient-portal/types/patient-portal-types";
 import { getAppointmentStatusLabel } from "@/features/patient-portal/rules/patient-portal-rules";
 import { formatDateTime } from "@/lib/formatters";

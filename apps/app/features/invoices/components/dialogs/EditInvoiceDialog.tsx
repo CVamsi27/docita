@@ -2,23 +2,32 @@
 
 import { useRef, useState } from "react";
 import { toast } from "sonner";
-import { useUpdateInvoice } from "@/hooks/api/use-billing";
-import { useFormOptions } from "@/lib/app-config-context";
-import { CRUDDialog } from "@workspace/ui/components/crud-dialog";
-import { Button } from "@workspace/ui/components/button";
-import { SymbolTooltip } from "@workspace/ui/components/tooltip";
-import { Label } from "@workspace/ui/components/label";
-import { Input } from "@workspace/ui/components/input";
+import { useUpdateInvoice } from "@workspace/data-access";
+import { useFormOptions } from "@/lib/contexts/app-config-context";
+import { CRUDDialog } from "@workspace/ui/components/overlay/crud-dialog";
+import { Button } from "@workspace/ui/components/form/button";
+import { SymbolTooltip } from "@workspace/ui/components/overlay/tooltip";
+import { Label } from "@workspace/ui/components/form/label";
+import { Input } from "@workspace/ui/components/form/input";
 import {
   Select,
   SelectContent,
   SelectItem,
   SelectTrigger,
   SelectValue,
-} from "@workspace/ui/components/select";
+} from "@workspace/ui/components/form/select";
 import { Plus, X } from "lucide-react";
-import type { Invoice, InvoiceItem, Patient } from "@workspace/types";
-import { showUserFacingErrorToast } from "@/lib/user-facing-errors";
+import { type Invoice, type InvoiceItem, type Patient } from "@workspace/types";
+import { z } from "zod";
+
+const editInvoiceStatusSchema = z.enum([
+  "PAID",
+  "PENDING",
+  "OVERDUE",
+  "CANCELLED",
+  "PARTIALLY_PAID",
+]);
+import { showUserFacingErrorToast } from "@/lib/errors/user-facing-errors";
 import { useClinicCurrency } from "@/hooks/use-clinic-currency";
 
 type InvoiceWithPatient = Invoice & { patient: Patient };
@@ -66,9 +75,13 @@ export function EditInvoiceDialog({
     const newItems = [...items];
     const item = newItems[index];
     if (item) {
-      if (field === "description") item.description = value as string;
-      else if (field === "quantity") item.quantity = value as number;
-      else if (field === "price") item.price = value as number;
+      if (field === "description" && typeof value === "string") {
+        item.description = value;
+      } else if (field === "quantity" && typeof value === "number") {
+        item.quantity = value;
+      } else if (field === "price" && typeof value === "number") {
+        item.price = value;
+      }
     }
     setItems(newItems);
   };
@@ -77,15 +90,9 @@ export function EditInvoiceDialog({
     items.reduce((sum, item) => sum + item.quantity * item.price, 0);
 
   const handleStatusChange = (nextStatus: string) => {
-    const normalized = nextStatus.toUpperCase();
-    if (
-      normalized === "PAID" ||
-      normalized === "PENDING" ||
-      normalized === "OVERDUE" ||
-      normalized === "CANCELLED" ||
-      normalized === "PARTIALLY_PAID"
-    ) {
-      setStatus(normalized as Invoice["status"]);
+    const parsed = editInvoiceStatusSchema.safeParse(nextStatus.toUpperCase());
+    if (parsed.success) {
+      setStatus(parsed.data);
     }
   };
 

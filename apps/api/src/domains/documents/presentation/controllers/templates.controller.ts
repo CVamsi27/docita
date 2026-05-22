@@ -17,7 +17,7 @@ import { Role } from '@workspace/db';
 import { Feature } from '@workspace/types';
 import { Roles } from '@/shared/modules/auth/auth/roles.decorator';
 import { RequireFeature } from '@/shared/modules/auth/auth/tier.decorator';
-import { ZodValidationPipe } from '@/common/pipes/zod-validation.pipe';
+import { ZodValidationPipe } from '@/shared/common/pipes/zod-validation.pipe';
 import {
   CreateTemplateSchema,
   UpdateTemplateSchema,
@@ -25,7 +25,7 @@ import {
   UpdateTemplateDto,
   ListTemplatesQueryDto,
 } from '@/domains/documents/application/dto/templates.dto';
-import { RequestWithUser } from '@/common/types/common.types';
+import { RequestWithUser } from '@/shared/common/types/common.types';
 
 @Controller('templates')
 @Roles(Role.ADMIN, Role.DOCTOR, Role.RECEPTIONIST, Role.ADMIN_DOCTOR)

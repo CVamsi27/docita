@@ -1,4 +1,5 @@
 import { Injectable, Logger } from '@nestjs/common';
+import type { IClock } from '@/shared/common/ports/clock.port';
 import {
   S3Client,
   PutObjectCommand,
@@ -11,7 +12,7 @@ import {
   StorageFile,
   StorageUploadOptions,
   StorageMetadataValue,
-} from './storage.provider';
+} from '../application/ports/storage-provider.port';
 import * as fs from 'fs';
 import * as path from 'path';
 import { nanoid } from 'nanoid';
@@ -46,7 +47,7 @@ export class R2StorageProvider extends StorageProvider {
   private toObjectMetadata(
     options?: StorageUploadOptions,
   ): Record<string, string> {
-    const uploadedAt = new Date().toISOString();
+    const uploadedAt = this.clock.now().toISOString();
     const metadata: Record<string, string> = {
       uploaded_at: uploadedAt,
     };
@@ -76,13 +77,21 @@ export class R2StorageProvider extends StorageProvider {
     return metadata;
   }
 
-  constructor() {
+  constructor(
+    r2Config: {
+      accountId: string;
+      accessKeyId: string;
+      secretAccessKey: string;
+      bucketName: string;
+    },
+    private readonly clock: IClock,
+  ) {
     super();
 
-    const accountId = process.env.R2_ACCOUNT_ID;
-    const accessKeyId = process.env.R2_ACCESS_KEY_ID;
-    const secretAccessKey = process.env.R2_SECRET_ACCESS_KEY;
-    this.bucket = process.env.R2_BUCKET_NAME ?? 'docita-storage';
+    const accountId = r2Config.accountId;
+    const accessKeyId = r2Config.accessKeyId;
+    const secretAccessKey = r2Config.secretAccessKey;
+    this.bucket = r2Config.bucketName || 'docita-storage';
 
     if (!accountId || !accessKeyId || !secretAccessKey) {
       throw new Error(

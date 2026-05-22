@@ -1,4 +1,4 @@
-import { Section } from "@workspace/ui/components/section";
+import { Section } from "@workspace/ui/components/layout/section";
 
 import { DashboardQuickActionsContainer } from "@/features/dashboard/components/actions/dashboard-quick-actions-container";
 

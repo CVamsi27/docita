@@ -1,4 +1,5 @@
 import { z } from "zod";
+import { jsonObjectSchema } from "../shared/json-schema";
 
 const billingCycleSchema = z.enum([
   "MONTHLY",
@@ -39,6 +40,14 @@ export const enterpriseCustomLineItemSchema = z
 export type EnterpriseCustomLineItem = z.infer<
   typeof enterpriseCustomLineItemSchema
 >;
+
+/** Prisma `EnterpriseContract.customLineItems`. */
+export const enterpriseContractCustomLineItemsJsonSchema = z.array(
+  enterpriseCustomLineItemSchema,
+);
+
+/** Prisma `EnterpriseContractRevision.snapshot`. */
+export const enterpriseContractRevisionSnapshotJsonSchema = jsonObjectSchema;
 
 export const enterpriseContractSchema = z.object({
   id: z.string(),

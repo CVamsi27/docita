@@ -2,7 +2,7 @@
 
 import { ArrowRight, CalendarCheck } from "lucide-react";
 
-import { Button } from "@workspace/ui/components/button";
+import { Button } from "@workspace/ui/components/form/button";
 
 interface FaqCtaSectionProps {
   appUrl: string;

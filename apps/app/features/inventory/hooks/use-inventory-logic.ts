@@ -1,5 +1,5 @@
 import { useMemo, useState } from "react";
-import { useInventory, useInventoryStats } from "@/hooks/api/use-inventory";
+import { useInventory, useInventoryStats } from "@workspace/data-access";
 import { useDebounce } from "@workspace/hooks/use-debounce";
 import { InventoryItem } from "@workspace/types";
 

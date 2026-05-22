@@ -1,25 +1,25 @@
-import { Injectable } from '@nestjs/common';
+import { Inject, Injectable } from '@nestjs/common';
+import { CLOCK_PORT, type IClock } from '@/shared/common/ports/clock.port';
 import { PrismaService } from '@/prisma/prisma.service';
+import { isRecord } from '@workspace/utils';
 
 function isPrismaUniqueViolation(error: unknown): boolean {
-  return (
-    error !== null &&
-    typeof error === 'object' &&
-    'code' in error &&
-    (error as { code: string }).code === 'P2002'
-  );
+  return isRecord(error) && error.code === 'P2002';
 }
 
 @Injectable()
 export class WebhookReplayDedupeRepository {
-  constructor(private readonly prisma: PrismaService) {}
+  constructor(
+    private readonly prisma: PrismaService,
+    @Inject(CLOCK_PORT) private readonly clock: IClock,
+  ) {}
 
   /**
    * @returns true if this delivery was newly recorded, false if it is a replay
    * (dedupeKeyHash already present and not expired).
    */
   async tryClaim(dedupeKeyHash: string, expiresAt: Date): Promise<boolean> {
-    const now = new Date();
+    const now = this.clock.now();
     try {
       await this.prisma.webhookReplayDedupe.create({
         data: { dedupeKeyHash, expiresAt },

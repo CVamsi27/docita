@@ -2,40 +2,29 @@
 
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
-import * as z from "zod";
+import {
+  changePasswordFormSchema,
+  type ChangePasswordFormValues,
+} from "@workspace/types";
 import { toast } from "sonner";
-import { showUserFacingErrorToast } from "@/lib/user-facing-errors";
+import { showUserFacingErrorToast } from "@/lib/errors/user-facing-errors";
 import {
   Card,
   CardContent,
   CardDescription,
   CardHeader,
   CardTitle,
-} from "@workspace/ui/components/card";
-import { Button } from "@workspace/ui/components/button";
-import { Input } from "@workspace/ui/components/input";
-import { Form, FormControl, FormField } from "@workspace/ui/components/form";
+} from "@workspace/ui/components/indicators/card";
+import { Button } from "@workspace/ui/components/form/button";
+import { Input } from "@workspace/ui/components/form/input";
+import { Form, FormControl, FormField } from "@workspace/ui/components/form/form";
 import { FormFieldGroup } from "@workspace/ui/components";
-import { requiredStringSchema } from "@/features/_shared/schemas/common.schemas";
 import { settingsApi } from "@/features/settings/api/settings.api";
 import { PasswordStrengthIndicator } from "@/features/auth";
 
-const changePasswordSchema = z
-  .object({
-    currentPassword: requiredStringSchema("Current Password"),
-    newPassword: z.string().min(8, "Use at least 8 characters"),
-    confirmPassword: requiredStringSchema("Confirm Password"),
-  })
-  .refine((data) => data.newPassword === data.confirmPassword, {
-    message: "Passwords do not match",
-    path: ["confirmPassword"],
-  });
-
-type ChangePasswordFormValues = z.infer<typeof changePasswordSchema>;
-
 export function ChangePasswordSettings() {
   const form = useForm<ChangePasswordFormValues>({
-    resolver: zodResolver(changePasswordSchema),
+    resolver: zodResolver(changePasswordFormSchema),
     defaultValues: {
       currentPassword: "",
       newPassword: "",

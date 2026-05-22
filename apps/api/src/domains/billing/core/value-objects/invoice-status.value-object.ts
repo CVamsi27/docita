@@ -1,3 +1,5 @@
+import { InvariantViolationError } from '@/shared/common/errors/domain.errors';
+
 export enum InvoiceStatusEnum {
   DRAFT = 'DRAFT',
   ISSUED = 'ISSUED',
@@ -57,7 +59,9 @@ export class InvoiceStatus {
 
   transitionTo(nextStatus: InvoiceStatusEnum): InvoiceStatus {
     if (!this.canTransitionTo(nextStatus)) {
-      throw new Error(`Cannot transition from ${this.value} to ${nextStatus}`);
+      throw new InvariantViolationError(
+        `Cannot transition from ${this.value} to ${nextStatus}`,
+      );
     }
     return new InvoiceStatus(nextStatus);
   }

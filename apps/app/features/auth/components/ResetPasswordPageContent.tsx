@@ -6,29 +6,20 @@ import { useSearchParams } from "next/navigation";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { CheckCircle, Eye, EyeOff } from "lucide-react";
 import { useForm } from "react-hook-form";
-import { z } from "zod";
-import { Button } from "@workspace/ui/components/button";
-import { DocitaLoadingIndicator } from "@workspace/ui/components/docita-loading-indicator";
-import { LoadingState } from "@workspace/ui/components/empty-state";
-import { FloatingInput } from "@workspace/ui/components/floating-input";
-import { SymbolTooltip } from "@workspace/ui/components/tooltip";
-import { getUserFacingErrorMessage, passwordSchema } from "@workspace/types";
-import { BackButton } from "@/components/common/navigation/back-button";
-import { api } from "@/lib/api-client";
-import { logger } from "@/lib/logger";
+import { Button } from "@workspace/ui/components/form/button";
+import { DocitaLoadingIndicator } from "@workspace/ui/components/feedback/docita-loading-indicator";
+import { LoadingState } from "@workspace/ui/components/feedback/empty-state";
+import { FloatingInput } from "@workspace/ui/components/form/floating-input";
+import { SymbolTooltip } from "@workspace/ui/components/overlay/tooltip";
+import {
+  resetPasswordFormSchema,
+  type ResetPasswordFormValues,
+} from "@workspace/types";
+import { getUserFacingErrorMessage } from "@workspace/utils";
+import { BackButton } from "@/components/navigation/back-button";
+import { api } from "@/lib/api/api-client";
+import { logger } from "@/lib/monitoring/logger";
 import { PreDashboardShell } from "./PreDashboardShell";
-
-const resetPasswordSchema = z
-  .object({
-    newPassword: z.string().min(1, "Enter new password").pipe(passwordSchema),
-    confirmPassword: z.string().min(1, "Confirm password"),
-  })
-  .refine((data) => data.newPassword === data.confirmPassword, {
-    message: "Passwords do not match",
-    path: ["confirmPassword"],
-  });
-
-type ResetPasswordFormValues = z.infer<typeof resetPasswordSchema>;
 
 function ResetPasswordInner() {
   const searchParams = useSearchParams();
@@ -38,7 +29,7 @@ function ResetPasswordInner() {
   const [showPassword, setShowPassword] = useState(false);
 
   const form = useForm<ResetPasswordFormValues>({
-    resolver: zodResolver(resetPasswordSchema),
+    resolver: zodResolver(resetPasswordFormSchema),
     defaultValues: { newPassword: "", confirmPassword: "" },
   });
 

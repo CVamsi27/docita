@@ -2,8 +2,8 @@
 
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { Button } from "@workspace/ui/components/button";
-import { MicroLabel } from "@workspace/ui/components/micro-label";
+import { Button } from "@workspace/ui/components/form/button";
+import { MicroLabel } from "@workspace/ui/components/indicators/micro-label";
 import { humanizeUiLabel } from "@workspace/ui/lib/label-formatters";
 import { formatChiefComplaintSummary } from "@workspace/utils";
 import { formatDate, DATE_FORMAT_OPTIONS_US_LONG } from "@/lib/formatters";
@@ -14,8 +14,8 @@ import {
 } from "@workspace/types";
 import { usePermissions } from "@/hooks/use-permissions";
 import { usePermissionStore } from "@/lib/stores/permission-store";
-import { useAuth } from "@/lib/auth-context";
-import { canAccessTarget } from "@/lib/access-policy";
+import { useAuth } from "@/lib/auth/auth-context";
+import { canAccessTarget } from "@/lib/access-control/access-policy";
 import { isConsultationReadOnlyStatus } from "@/features/appointments";
 
 interface ConsultationVisitOverviewStripProps {
@@ -86,7 +86,8 @@ export function ConsultationAfterVisitStrip({
   onGoToPlan,
 }: ConsultationAfterVisitStripProps) {
   const { user } = useAuth();
-  const { canAccess, canAccessTier, workspaceProfile } = usePermissionStore();
+  const { canAccess, currentTier, hasIntelligence } =
+    usePermissionStore();
   const {
     canViewInvoices,
     canViewPrescriptions,
@@ -102,8 +103,8 @@ export function ConsultationAfterVisitStrip({
     {
       role: user?.role,
       canAccessFeature: canAccess,
-      canAccessTier,
-      workspaceProfile,
+      currentTier,
+      hasIntelligence,
     },
     "read",
   );

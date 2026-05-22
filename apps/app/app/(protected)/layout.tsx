@@ -9,204 +9,33 @@ import {
   RealtimeProviders,
   Sidebar,
   SidebarMobileTrigger,
-} from "@/features/_shared/components";
-import { BackButton } from "@/components/common/navigation/back-button";
+} from "@/components";
+import { BackButton } from "@/components/navigation/back-button";
 import { useCanGoBack } from "@/hooks/use-can-go-back";
-import { CommandPalette } from "@/features/_shared/components/navigation/command-palette";
-import { DesktopTopBar } from "@/features/_shared/components/layout/desktop-top-bar";
-import { ClinicProvider, useClinic } from "@/lib/clinic-context";
+import { CommandPalette } from "@/components/navigation/command-palette";
+import { DesktopTopBar } from "@/components/layout/desktop-top-bar";
+import { DoctorVerificationGuard } from "@/components/guards/doctor-verification-guard";
+import { SubscriptionGuard } from "@/components/guards/subscription-guard";
+import { PageAccessGuard } from "@/components/guards/page-access-guard";
+import { SubscriptionLockNotice } from "@/components/layout/subscription-lock-notice";
+import { ClinicProvider } from "@/lib/contexts/clinic-context";
 import {
   ResizableHandle,
   ResizablePanel,
   ResizablePanelGroup,
-} from "@workspace/ui/components/resizable";
-import type { ImperativePanelHandle } from "@workspace/ui/components/resizable";
-import { ErrorBoundaryWrapper } from "@/components/common/error-boundary";
-import { useAuth } from "@/lib/auth-context";
-import { useAPIQuery } from "@/lib/api-core";
-import type { TierName, User } from "@workspace/types";
-import { APP_ACCESS_TARGETS, SUBSCRIPTION_TRIAL_DAYS } from "@workspace/types";
-import { ThemeToggleWithAppearanceSync } from "@/features/_shared/components/layout/theme-toggle-with-appearance-sync";
-import { Skeleton } from "@workspace/ui/components/skeleton";
-import { DocitaLogo } from "@workspace/ui/components/docita-logo";
-import { Button } from "@workspace/ui/components/button";
-import { SymbolTooltip } from "@workspace/ui/components/tooltip";
-import {
-  AlertTriangle,
-  LockKeyhole,
-  PanelLeftClose,
-  PanelLeftOpen,
-} from "lucide-react";
-import {
-  Alert,
-  AlertDescription,
-  AlertTitle,
-} from "@workspace/ui/components/alert";
-import { canAccessTarget } from "@/lib/access-policy";
-import { getTierInfo } from "@/lib/tier-config";
-import { formatDate } from "@/lib/formatters";
-import { getAccessTargetForPath } from "@/lib/access-routes";
-import { usePermissionStore } from "@/lib/stores/permission-store";
-import { PageTransitionLoader } from "@/components/common/loaders/page-transition-loader";
-import {
-  getTrialState,
-  isBillingAdminRole,
-  isPastSubscriptionGraceDeadline,
-} from "@/lib/subscription-lockout";
-import { SUBSCRIPTION_SETTINGS_PATH } from "@/lib/subscription-settings-path";
-import { FeatureFlagsProvider } from "@/features/_shared/hooks/use-feature-flag";
-import { persistReturnPathBeforeLogin } from "@/lib/safe-return-path";
-
-const SUBSCRIPTION_ALLOWED_PATHS = ["/settings", "/login", "/billing-locked"];
-const VERIFICATION_ALLOWED_PATHS = ["/verify-doctor", "/login"];
-
-function DoctorVerificationGuard({ children }: { children: React.ReactNode }) {
-  const { user } = useAuth();
-  const router = useRouter();
-  const pathname = usePathname();
-  const isDoctor = user?.role === "DOCTOR" || user?.role === "ADMIN_DOCTOR";
-  const isVerificationAllowedPath = VERIFICATION_ALLOWED_PATHS.some((p) =>
-    pathname?.startsWith(p),
-  );
-
-  const {
-    data: doctorProfile,
-    isLoading: profileLoading,
-    isFetching: profileFetching,
-    isError: profileError,
-  } = useAPIQuery<User>(
-    ["doctor-profile", user?.id ?? ""],
-    `/doctors/${user?.id}`,
-    { enabled: !!user?.id && isDoctor, staleTime: 5 * 60 * 1000 },
-  );
-
-  const needsVerification =
-    !!doctorProfile &&
-    (!doctorProfile.signatureUrl || !doctorProfile.registrationNumber);
-
-  const shouldRedirectToVerify =
-    !!user && isDoctor && needsVerification && !isVerificationAllowedPath;
-
-  useEffect(() => {
-    if (!user || !isDoctor || profileLoading) return;
-    if (!doctorProfile) return;
-    if (shouldRedirectToVerify) {
-      router.replace("/verify-doctor");
-    }
-  }, [
-    user,
-    isDoctor,
-    doctorProfile,
-    profileLoading,
-    router,
-    shouldRedirectToVerify,
-  ]);
-
-  const isCheckingVerification =
-    !!user &&
-    isDoctor &&
-    !isVerificationAllowedPath &&
-    !profileError &&
-    (profileLoading || (profileFetching && !doctorProfile));
-
-  if (isCheckingVerification || shouldRedirectToVerify) {
-    return (
-      <PageTransitionLoader
-        title="Checking your profile…"
-        description="Verifying your doctor profile before loading your workspace"
-      />
-    );
-  }
-
-  return <>{children}</>;
-}
-
-function SubscriptionGuard({ children }: { children: React.ReactNode }) {
-  const { clinic } = useClinic();
-  const { user } = useAuth();
-  const router = useRouter();
-  const pathname = usePathname();
-
-  useEffect(() => {
-    if (!clinic) return;
-    const pastGrace = isPastSubscriptionGraceDeadline(clinic);
-    const billingAdmin = isBillingAdminRole(user?.role);
-    const trialState = getTrialState(clinic);
-    const trialFullyExpired = trialState === "EXPIRED";
-
-    if (
-      (pastGrace || trialFullyExpired) &&
-      !billingAdmin &&
-      !pathname?.startsWith("/billing-locked") &&
-      !pathname?.startsWith("/login")
-    ) {
-      router.replace("/billing-locked");
-      return;
-    }
-
-    const status = clinic.subscriptionStatus;
-    const isExpired = status === "EXPIRED";
-    const isBlocked = isExpired || trialFullyExpired;
-    if (
-      isBlocked &&
-      !SUBSCRIPTION_ALLOWED_PATHS.some((p) => pathname?.startsWith(p))
-    ) {
-      router.replace(SUBSCRIPTION_SETTINGS_PATH);
-    }
-  }, [clinic, pathname, router, user?.role]);
-
-  return <>{children}</>;
-}
-
-function PageAccessGuard({ children }: { children: React.ReactNode }) {
-  const { user } = useAuth();
-  const { clinic } = useClinic();
-  const { canAccess, canAccessTier, workspaceProfile } = usePermissionStore();
-  const pathname = usePathname();
-  const router = useRouter();
-
-  useEffect(() => {
-    if (!user?.role || !clinic || !pathname) return;
-
-    const target = getAccessTargetForPath(pathname);
-    if (!target) {
-      router.replace("/today");
-      return;
-    }
-
-    if (
-      target === APP_ACCESS_TARGETS.PAGE_UPGRADE &&
-      clinic.subscriptionStatus === "EXPIRED"
-    ) {
-      return;
-    }
-
-    const hasAccess = canAccessTarget(
-      target,
-      {
-        role: user.role,
-        canAccessFeature: canAccess,
-        canAccessTier,
-        workspaceProfile,
-      },
-      "read",
-    );
-
-    if (!hasAccess) {
-      router.replace("/today");
-    }
-  }, [
-    canAccess,
-    canAccessTier,
-    clinic,
-    pathname,
-    router,
-    user?.role,
-    workspaceProfile,
-  ]);
-
-  return <>{children}</>;
-}
+} from "@workspace/ui/components/layout/resizable";
+import type { ImperativePanelHandle } from "@workspace/ui/components/layout/resizable";
+import { ErrorBoundaryWrapper } from "@/components/errors/error-boundary";
+import { useAuth } from "@/lib/auth/auth-context";
+import { ThemeToggleWithAppearanceSync } from "@/components/layout/theme-toggle-with-appearance-sync";
+import { Skeleton } from "@workspace/ui/components/feedback/skeleton";
+import { DocitaLogo } from "@workspace/ui/components/indicators/docita-logo";
+import { Button } from "@workspace/ui/components/form/button";
+import { SymbolTooltip } from "@workspace/ui/components/overlay/tooltip";
+import { PanelLeftClose, PanelLeftOpen } from "lucide-react";
+import { FeatureFlagsProvider } from "@/hooks/use-feature-flag";
+import { PageTransitionLoader } from "@/components/loaders/page-transition-loader";
+import { persistReturnPathBeforeLogin } from "@/lib/auth/safe-return-path";
 
 function MobileHeader({ onMenuClick }: { onMenuClick: () => void }) {
   const pathname = usePathname();
@@ -236,127 +65,6 @@ function MobileHeader({ onMenuClick }: { onMenuClick: () => void }) {
   );
 }
 
-function SubscriptionLockNotice() {
-  const { clinic } = useClinic();
-  const router = useRouter();
-  const status = clinic?.subscriptionStatus;
-
-  if (!status || status === "ACTIVE") {
-    return null;
-  }
-
-  const isExpired = status === "EXPIRED";
-  const isGrace = status === "GRACE";
-  const isPastDue = status === "PAST_DUE";
-  const isPaused = status === "PAUSED";
-  const isTrialing = status === "TRIALING";
-  const trialState = getTrialState(clinic);
-  const isTrialGrace = trialState === "GRACE";
-  const trialTierLabel =
-    clinic?.tier && typeof clinic.tier === "string"
-      ? getTierInfo(clinic.tier as TierName).name
-      : "subscription";
-  const trialEnd = clinic?.trialEndsAt ? new Date(clinic.trialEndsAt) : null;
-  const trialEndText =
-    trialEnd && Number.isFinite(trialEnd.getTime())
-      ? formatDate(trialEnd)
-      : null;
-  const trialDaysLeft =
-    isTrialing && trialEnd && Number.isFinite(trialEnd.getTime())
-      ? Math.max(
-          0,
-          Math.ceil((trialEnd.getTime() - Date.now()) / (1000 * 60 * 60 * 24)),
-        )
-      : null;
-  const trialGraceDaysLeft = (() => {
-    if (!isTrialGrace || !trialEnd || !Number.isFinite(trialEnd.getTime())) {
-      return null;
-    }
-    const graceEnds = trialEnd.getTime() + 3 * 24 * 60 * 60 * 1000;
-    return Math.max(
-      0,
-      Math.ceil((graceEnds - Date.now()) / (1000 * 60 * 60 * 24)),
-    );
-  })();
-  const graceUntilRaw = clinic?.subscriptionGraceUntil;
-  const graceUntil =
-    graceUntilRaw !== undefined && graceUntilRaw !== null
-      ? new Date(graceUntilRaw)
-      : null;
-  const graceUntilText =
-    graceUntil && Number.isFinite(graceUntil.getTime())
-      ? formatDate(graceUntil)
-      : null;
-  const pastGraceDeadline = clinic
-    ? isPastSubscriptionGraceDeadline(clinic)
-    : false;
-  const title = isExpired
-    ? "Subscription Expired: Workspace Locked"
-    : isPaused
-      ? "Subscription Paused"
-      : isGrace || isPastDue
-        ? "Payment Grace Period: Access Restricted"
-        : isTrialGrace
-          ? "Trial ended — payment required"
-          : isTrialing
-            ? trialDaysLeft !== null && trialDaysLeft <= 3
-              ? "Trial ending soon"
-              : "Trial active: payment not completed"
-            : "Payment required";
-  const description = isExpired
-    ? "This facility is locked until payment is completed. You can still open billing under Settings, Subscription to restore access."
-    : isGrace || isPastDue
-      ? `${isPastDue ? "Your payment is overdue." : "Payment is still unresolved."}${graceUntilText && !pastGraceDeadline ? ` Resolve by ${graceUntilText} or staff access may pause until a billing admin completes payment under Settings, Subscription.` : " Resolve payment now to keep Docita access active."}`
-      : isPaused
-        ? "This subscription is paused. Resolve billing to restore full access."
-        : isTrialGrace
-          ? `Your free trial has ended${trialGraceDaysLeft !== null ? `. You have ${trialGraceDaysLeft} day${trialGraceDaysLeft === 1 ? "" : "s"} to complete payment` : ""} before access is blocked. Open Settings → Subscription to pay now.`
-          : isTrialing
-            ? `${trialTierLabel} plan: ${trialDaysLeft !== null ? `${trialDaysLeft} day${trialDaysLeft === 1 ? "" : "s"} left in your trial` : "trial active"}${trialEndText ? ` (ends ${trialEndText})` : ""}. Your trial includes a ${SUBSCRIPTION_TRIAL_DAYS}-day evaluation period. Add payment before the trial ends to avoid entering a payment grace period.`
-            : "Your subscription needs billing attention. Resolve payment to keep Docita access active.";
-
-  return (
-    <div className="border-b bg-background px-4 py-3 md:px-6">
-      <Alert
-        variant={isExpired || isTrialGrace ? "destructive" : "default"}
-        className={
-          isExpired || isTrialGrace
-            ? undefined
-            : isTrialing
-              ? "border-info/40 bg-info/10"
-              : "border-warning/40 bg-warning/10"
-        }
-      >
-        {isExpired || isTrialGrace ? (
-          <LockKeyhole className="h-4 w-4" />
-        ) : (
-          <AlertTriangle
-            className={
-              isTrialing ? "h-4 w-4 text-info" : "h-4 w-4 text-warning"
-            }
-          />
-        )}
-        <AlertTitle>{title}</AlertTitle>
-        <AlertDescription className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-          <span>{description}</span>
-          <Button
-            size="sm"
-            variant={isExpired || isTrialGrace ? "secondary" : "outline"}
-            onClick={() => router.push(SUBSCRIPTION_SETTINGS_PATH)}
-            className="self-start sm:self-auto"
-          >
-            {isTrialGrace
-              ? "Pay now"
-              : isTrialing
-                ? "Billing & subscription"
-                : "Resolve Payment"}
-          </Button>
-        </AlertDescription>
-      </Alert>
-    </div>
-  );
-}
-
 export default function ProtectedLayout({
   children,
 }: {
@@ -369,6 +77,7 @@ export default function ProtectedLayout({
   const [redirectMessage, setRedirectMessage] = useState<string | null>(null);
   const sidebarPanelRef = useRef<ImperativePanelHandle>(null);
   const wasSettingsAutoCollapseRouteRef = useRef(false);
+  const wasConsultationAutoCollapseRouteRef = useRef(false);
   const { user, isLoading } = useAuth();
   const router = useRouter();
   const isSettingsRoute = pathname?.startsWith("/settings") ?? false;
@@ -403,15 +112,26 @@ export default function ProtectedLayout({
     }
   }, [isLoading, user, router]);
 
-  // Consultation detail: collapse after the resizable shell exists (avoids a no-op during auth loading).
+  // Consultation detail: collapse/expand based on route
   useEffect(() => {
-    if (isLoading || !isConsultationDetailRoute) return;
+    if (isLoading) return;
+    const wasConsultationAutoCollapseRoute =
+      wasConsultationAutoCollapseRouteRef.current;
+    wasConsultationAutoCollapseRouteRef.current = isConsultationDetailRoute;
+
     const id = requestAnimationFrame(() => {
-      sidebarPanelRef.current?.collapse();
-      setIsCollapsed(true);
+      if (isConsultationDetailRoute && !wasConsultationAutoCollapseRoute) {
+        // Entering consultation detail: collapse sidebar
+        sidebarPanelRef.current?.collapse();
+        setIsCollapsed(true);
+      } else if (!isConsultationDetailRoute && wasConsultationAutoCollapseRoute) {
+        // Leaving consultation detail: expand sidebar
+        sidebarPanelRef.current?.expand();
+        setIsCollapsed(false);
+      }
     });
     return () => cancelAnimationFrame(id);
-  }, [isLoading, pathname, isConsultationDetailRoute]);
+  }, [isLoading, isConsultationDetailRoute]);
 
   useEffect(() => {
     if (isLoading) return;
@@ -419,13 +139,18 @@ export default function ProtectedLayout({
       wasSettingsAutoCollapseRouteRef.current;
     wasSettingsAutoCollapseRouteRef.current = isSettingsRoute;
 
-    if (isSettingsRoute && !wasSettingsAutoCollapseRoute) {
-      const id = requestAnimationFrame(() => {
+    const id = requestAnimationFrame(() => {
+      if (isSettingsRoute && !wasSettingsAutoCollapseRoute) {
+        // Entering settings: collapse sidebar
         sidebarPanelRef.current?.collapse();
         setIsCollapsed(true);
-      });
-      return () => cancelAnimationFrame(id);
-    }
+      } else if (!isSettingsRoute && wasSettingsAutoCollapseRoute) {
+        // Leaving settings: expand sidebar
+        sidebarPanelRef.current?.expand();
+        setIsCollapsed(false);
+      }
+    });
+    return () => cancelAnimationFrame(id);
   }, [isLoading, isSettingsRoute]);
 
   if (isLoading) {

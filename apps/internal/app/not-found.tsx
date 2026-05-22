@@ -2,10 +2,10 @@
 
 import Link from "next/link";
 import { FileQuestion, Home } from "lucide-react";
-import { Button } from "@workspace/ui/components/button";
+import { Button } from "@workspace/ui/components/form/button";
 import { BackButton } from "@/components/common/back-button";
-import { AppPageScaffold } from "@workspace/ui/components/app-page-scaffold";
-import { Card, CardContent } from "@workspace/ui/components/card";
+import { AppPageScaffold } from "@workspace/ui/components/layout/app-page-scaffold";
+import { Card, CardContent } from "@workspace/ui/components/indicators/card";
 
 export default function NotFound() {
   return (

@@ -62,7 +62,7 @@ jobs:
 
       - name: Detect changed areas
         id: detect
-        run: node scripts/detect-workflow-scope.mjs ci
+        run: node scripts/workflow/detect-workflow-scope.mjs ci
 
   repo-standards:
     name: Repository Standards

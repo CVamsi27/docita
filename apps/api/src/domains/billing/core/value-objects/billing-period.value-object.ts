@@ -1,10 +1,12 @@
+import { InvariantViolationError } from '@/shared/common/errors/domain.errors';
+
 export class BillingPeriod {
   constructor(
     readonly startDate: Date,
     readonly endDate: Date,
   ) {
     if (startDate >= endDate) {
-      throw new Error('Start date must be before end date');
+      throw new InvariantViolationError('Start date must be before end date');
     }
   }
 

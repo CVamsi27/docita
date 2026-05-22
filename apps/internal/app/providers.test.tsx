@@ -11,7 +11,7 @@ vi.mock("sonner", () => ({
   Toaster: toasterMock,
 }));
 
-vi.mock("@/lib/auth", () => ({
+vi.mock("@/lib/auth/auth", () => ({
   AuthProvider: ({ children }: { children: ReactNode }) => children,
 }));
 

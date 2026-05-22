@@ -14,10 +14,26 @@ import { Role } from '@workspace/db';
 import { Feature } from '@workspace/types';
 import { Roles } from '@/shared/modules/auth/auth/roles.decorator';
 import { RequireFeature } from '@/shared/modules/auth/auth/tier.decorator';
-import { RequestWithUser } from '@/common/types/common.types';
+import { RequestWithUser } from '@/shared/common/types/common.types';
 import { MedicationDoseService } from '@/domains/patients/application/services/medication-dose.service';
 import { PatientService } from '@/domains/patients/application/services/patient.service';
-import { parsePaginationInt } from '@/common/utils/string.utils';
+import { parsePaginationInt } from '@/shared/common/utils/string.utils';
+import {
+  medicationDoseStatusSchema,
+  type MedicationDoseStatus,
+} from '@workspace/types';
+import { parseStringEnumMember } from '@workspace/utils';
+
+const MEDICATION_DOSE_STATUSES = medicationDoseStatusSchema.options;
+
+function parseMedicationDoseStatus(
+  status: string | undefined,
+): MedicationDoseStatus | undefined {
+  if (!status) return undefined;
+  return parseStringEnumMember(MEDICATION_DOSE_STATUSES, status) ?? undefined;
+}
+import { AuditService } from '@/shared/modules/audit/audit/audit.service';
+import { logPatientPhiRead } from '@/shared/modules/audit/audit/patient-access-audit.util';
 
 @ApiTags('medication-doses')
 @Controller('patients/:patientId/medication-doses')
@@ -28,6 +44,7 @@ export class MedicationDoseController {
   constructor(
     private readonly medicationDoseService: MedicationDoseService,
     private readonly patientService: PatientService,
+    private readonly auditService: AuditService,
   ) {}
 
   private async getClinicId(req: RequestWithUser): Promise<string> {
@@ -55,9 +72,7 @@ export class MedicationDoseController {
     return this.medicationDoseService.recordDose(clinicId, patientId, {
       medicationId: body.medicationId,
       scheduledAt: new Date(body.scheduledAt),
-      status: body.status as Parameters<
-        typeof this.medicationDoseService.recordDose
-      >[2]['status'],
+      status: parseMedicationDoseStatus(body.status),
       doseAmount: body.doseAmount,
       notes: body.notes,
       prescriptionId: body.prescriptionId,
@@ -113,9 +128,7 @@ export class MedicationDoseController {
       doseId,
       {
         takenAt: body.takenAt ? new Date(body.takenAt) : undefined,
-        status: body.status as Parameters<
-          typeof this.medicationDoseService.updateDoseStatus
-        >[3]['status'],
+        status: parseMedicationDoseStatus(body.status),
         notes: body.notes,
       },
     );
@@ -141,9 +154,7 @@ export class MedicationDoseController {
       prescriptionId: query.prescriptionId,
       from: query.from,
       to: query.to,
-      status: query.status as Parameters<
-        typeof this.medicationDoseService.getDoseHistory
-      >[2]['status'],
+      status: parseMedicationDoseStatus(query.status),
       limit: parsePaginationInt(query.limit, { min: 1, max: 200 }),
       offset: parsePaginationInt(query.offset, { min: 0 }),
     });
@@ -157,6 +168,7 @@ export class MedicationDoseController {
     @Query() query: { prescriptionId?: string },
   ) {
     const clinicId = await this.getClinicId(req);
+    await logPatientPhiRead(this.auditService, req, patientId, 'VIEW_HISTORY');
     return this.medicationDoseService.getAdherenceSummary(
       clinicId,
       patientId,
@@ -171,6 +183,7 @@ export class MedicationDoseController {
     @Request() req: RequestWithUser,
   ) {
     const clinicId = await this.getClinicId(req);
+    await logPatientPhiRead(this.auditService, req, patientId, 'VIEW_HISTORY');
     return this.medicationDoseService.getActiveMedications(clinicId, patientId);
   }
 }

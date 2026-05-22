@@ -1,14 +1,17 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { Skeleton } from "@workspace/ui/components/skeleton";
-import { browserJson } from "@/lib/browser-request";
-import { logger } from "@/lib/logger";
+import { Skeleton } from "@workspace/ui/components/feedback/skeleton";
+import { browserJson } from "@/lib/auth/browser-request";
+import { logger } from "@/lib/monitoring/logger";
+import { z } from "zod";
 
-type DailyThoughtPayload = {
-  quote: string;
-  author: string;
-};
+const dailyThoughtPayloadSchema = z.object({
+  quote: z.string(),
+  author: z.string(),
+});
+
+type DailyThoughtPayload = z.infer<typeof dailyThoughtPayloadSchema>;
 
 export function LoginDailyThought() {
   const [data, setData] = useState<DailyThoughtPayload | null>(null);
@@ -28,19 +31,9 @@ export function LoginDailyThought() {
             method: "GET",
           },
         );
-        if (
-          !cancelled &&
-          body &&
-          typeof body === "object" &&
-          "quote" in body &&
-          "author" in body &&
-          typeof (body as DailyThoughtPayload).quote === "string" &&
-          typeof (body as DailyThoughtPayload).author === "string"
-        ) {
-          setData({
-            quote: (body as DailyThoughtPayload).quote,
-            author: (body as DailyThoughtPayload).author,
-          });
+        const parsed = dailyThoughtPayloadSchema.safeParse(body);
+        if (!cancelled && parsed.success) {
+          setData(parsed.data);
         }
       } catch (error) {
         logger.error("LoginDailyThought fetch failed", { error });

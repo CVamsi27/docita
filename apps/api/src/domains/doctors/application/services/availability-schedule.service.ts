@@ -6,11 +6,12 @@ import {
   Inject,
 } from '@nestjs/common';
 import { Prisma, Role } from '@workspace/db';
-import { TimeUtils } from '@/common/utils/time.utils';
+import { TimeUtils } from '@/shared/common/utils/time.utils';
 import {
   IDoctorScheduleRepository,
   DOCTOR_SCHEDULE_REPOSITORY_TOKEN,
 } from '@/domains/doctors/core/repositories/doctor-schedule.repository.interface';
+import { CLOCK_PORT, type IClock } from '@/shared/common/ports/clock.port';
 
 type DayOfWeek =
   | 'SUNDAY'
@@ -26,6 +27,7 @@ export class AvailabilityScheduleService {
   constructor(
     @Inject(DOCTOR_SCHEDULE_REPOSITORY_TOKEN)
     private repository: IDoctorScheduleRepository,
+    @Inject(CLOCK_PORT) private readonly clock: IClock,
   ) {}
 
   async getSchedules(doctorId: string, clinicId?: string) {
@@ -226,7 +228,7 @@ export class AvailabilityScheduleService {
     }
 
     if (options?.upcoming) {
-      where.endDate = { gte: new Date() };
+      where.endDate = { gte: this.clock.now() };
     }
 
     return this.repository.findTimeOffs(where);

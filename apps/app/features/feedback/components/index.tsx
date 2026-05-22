@@ -7,10 +7,10 @@ import {
   CardDescription,
   CardHeader,
   CardTitle,
-} from "@workspace/ui/components/card";
-import { Button } from "@workspace/ui/components/button";
-import { Textarea } from "@workspace/ui/components/textarea";
-import { Label } from "@workspace/ui/components/label";
+} from "@workspace/ui/components/indicators/card";
+import { Button } from "@workspace/ui/components/form/button";
+import { Textarea } from "@workspace/ui/components/form/textarea";
+import { Label } from "@workspace/ui/components/form/label";
 import {
   Frown,
   Meh,
@@ -85,16 +85,22 @@ export const FeedbackForm: FC<{
         <div className="space-y-2">
           <Label>Feedback Type</Label>
           <div className="flex gap-2">
-            {[
-              { id: "bug", label: "Bug Report", icon: Frown },
-              { id: "feature", label: "Feature Request", icon: Smile },
-              { id: "general", label: "General", icon: Meh },
-            ].map((t) => (
+            {(
+              [
+                { id: "bug", label: "Bug Report", icon: Frown },
+                { id: "feature", label: "Feature Request", icon: Smile },
+                { id: "general", label: "General", icon: Meh },
+              ] as const satisfies ReadonlyArray<{
+                id: FeedbackType;
+                label: string;
+                icon: typeof Frown;
+              }>
+            ).map((t) => (
               <Button
                 key={t.id}
                 variant={type === t.id ? "default" : "outline"}
                 size="sm"
-                onClick={() => setType(t.id as FeedbackType)}
+                onClick={() => setType(t.id)}
                 className="gap-2"
               >
                 <t.icon className="h-4 w-4" />

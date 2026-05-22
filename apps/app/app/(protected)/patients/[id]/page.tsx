@@ -9,13 +9,13 @@ import {
 import { PatientDetailTabs } from "@/features/patients/components/details/PatientDetailTabs";
 import { PatientHeaderActions } from "@/features/patients/components/details/PatientHeaderActions";
 import { PatientAdvisorRail } from "@/features/patients/components/details/patient-advisor-rail";
-import { AppPageScaffold } from "@workspace/ui/components/app-page-scaffold";
-import { DataState } from "@workspace/ui/components/data-state";
+import { AppPageScaffold } from "@workspace/ui/components/layout/app-page-scaffold";
+import { DataState } from "@workspace/ui/components/data-display/data-state";
 import { User } from "lucide-react";
 import { PatientDetailTabLoadingShell } from "@/features/patients/components/details/patient-detail-tab-loading-shell";
 import { usePatientDetailLogic } from "@/features/patients/hooks/use-patient-detail-logic";
 import { Feature } from "@workspace/types";
-import { FeatureGate } from "@/features/_shared/components/auth/feature-gate";
+import { FeatureGate } from "@/components/auth/feature-gate";
 
 export default function PatientDetailPage() {
   return (
@@ -26,8 +26,8 @@ export default function PatientDetailPage() {
 }
 
 function PatientDetailPageContent() {
-  const params = useParams();
-  const patientId = (params["id"] as string) ?? "";
+  const params = useParams<{ id: string }>();
+  const patientId = params.id ?? "";
 
   const { state, handlers } = usePatientDetailLogic(patientId);
 

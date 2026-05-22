@@ -1,7 +1,7 @@
 "use client";
 
-import { Label } from "@workspace/ui/components/label";
-import { Textarea } from "@workspace/ui/components/textarea";
+import { Label } from "@workspace/ui/components/form/label";
+import { Textarea } from "@workspace/ui/components/form/textarea";
 import { useConsultationDraft } from "@/features/consultation/state/useConsultationDraft";
 import { SectionContainer } from "@/features/consultation/workspace/chrome/SectionContainer";
 import { useConsultationSectionSubtitle } from "@/features/consultation/workspace/consultation-workspace-context";
