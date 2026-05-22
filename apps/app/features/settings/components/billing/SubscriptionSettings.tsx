@@ -10,6 +10,8 @@ import {
   BillingSubscriptionWorkspace,
   PaymentRecoveryCard,
 } from "@/features/subscription";
+import { useAutoResolveSubscriptionPayment } from "@/features/subscription/hooks/use-auto-resolve-subscription-payment";
+import { useResolveSubscriptionPayment } from "@/features/subscription/hooks/use-resolve-subscription-payment";
 import { getTrialState } from "@/lib/subscription/subscription-lockout";
 import { DocitaLoadingIndicator } from "@workspace/ui/components/feedback/docita-loading-indicator";
 import { Skeleton } from "@workspace/ui/components/feedback/skeleton";
@@ -43,9 +45,44 @@ export function SubscriptionSettings() {
   const { isAdmin } = useAuth();
   const { clinic } = useClinic();
   const { data: subscription, isLoading } = useSubscription();
+  const {
+    resolvePayment,
+    isResolving,
+    recoverablePayment,
+    hasRecoverablePayment,
+    isBillingHistoryLoading,
+  } = useResolveSubscriptionPayment({
+    subscription,
+  });
   const billingHistoryRef = useRef<HTMLDivElement>(null);
 
+  useAutoResolveSubscriptionPayment({
+    enabled: isAdmin,
+    subscription,
+    isLoading,
+    isBillingHistoryLoading,
+    resolvePayment,
+    clinic,
+  });
+
   const supportPhone = getSupportPhoneNumber();
+  const subscriptionStatus = subscription?.subscriptionStatus;
+  const hasOutstandingPendingPayment =
+    subscription?.hasOutstandingPendingPayment === true;
+  const renewalPeriodLapsed =
+    subscription?.currentPeriodEnd != null
+      ? new Date(subscription.currentPeriodEnd).getTime() <= Date.now()
+      : false;
+  const isPaymentDue =
+    subscriptionStatus === "PAYMENT_DUE" || subscriptionStatus === "PAST_DUE";
+  const isExpired = subscriptionStatus === "EXPIRED";
+  const isInGracePeriod = subscriptionStatus === "GRACE";
+  const trialState = getTrialState(clinic);
+  const showRecoveryCard =
+    isPaymentDue ||
+    isInGracePeriod ||
+    trialState === "GRACE" ||
+    (hasOutstandingPendingPayment && renewalPeriodLapsed);
 
   if (isLoading) {
     return (
@@ -75,7 +112,7 @@ export function SubscriptionSettings() {
   const tierName = subscription?.tier
     ? getTierInfo(subscription.tier).name
     : "Starter";
-  const subscriptionStatus = subscription?.subscriptionStatus || "Inactive";
+  const subscriptionStatusLabel = subscriptionStatus || "Inactive";
   if (!isAdmin) {
     return (
       <Card>
@@ -87,7 +124,7 @@ export function SubscriptionSettings() {
           <div className="flex items-center justify-between">
             <p className="ui-section-title text-[var(--fs-lg)]">{tierName}</p>
             <Badge variant="secondary" className="capitalize">
-              {subscriptionStatus}
+              {subscriptionStatusLabel}
             </Badge>
           </div>
           <p className="mt-3 text-sm text-muted-foreground">
@@ -99,7 +136,7 @@ export function SubscriptionSettings() {
   }
 
   const trialDaysLeft =
-    subscriptionStatus === "TRIALING" && subscription?.currentPeriodEnd
+    subscriptionStatusLabel === "TRIALING" && subscription?.currentPeriodEnd
       ? Math.max(
           0,
           Math.ceil(
@@ -109,18 +146,16 @@ export function SubscriptionSettings() {
         )
       : null;
 
-  const isPaymentDue =
-    subscriptionStatus === "PAYMENT_DUE" || subscriptionStatus === "PAST_DUE";
-  const isExpired = subscriptionStatus === "EXPIRED";
-  const isInGracePeriod = subscriptionStatus === "GRACE";
   const freeStarterActive = isFreeStarterActive(subscription ?? undefined);
-  const trialState = getTrialState(clinic);
-  const showRecoveryCard =
-    isPaymentDue || isInGracePeriod || trialState === "GRACE";
 
   return (
     <div className="space-y-6">
-      <PaymentRecoveryCard show={showRecoveryCard} />
+      <PaymentRecoveryCard
+        show={showRecoveryCard}
+        recoverablePayment={recoverablePayment}
+        resolvePayment={resolvePayment}
+        isResolving={isResolving}
+      />
       {trialDaysLeft !== null ? (
         <Alert className="border-info/40 bg-info/10">
           <Clock className="h-4 w-4 text-info" />
@@ -171,10 +206,11 @@ export function SubscriptionSettings() {
             <Button
               size="sm"
               variant="outline"
-              onClick={scrollToBillingPlans}
+              disabled={isResolving}
+              onClick={() => void resolvePayment()}
               className="shrink-0 border-destructive-foreground/30 text-destructive-foreground hover:bg-destructive-foreground/10"
             >
-              Update Payment
+              {isResolving ? "Opening…" : "Update Payment"}
             </Button>
           </AlertDescription>
         </Alert>
@@ -192,10 +228,11 @@ export function SubscriptionSettings() {
             <Button
               size="sm"
               variant="outline"
-              onClick={scrollToBillingPlans}
+              disabled={isResolving}
+              onClick={() => void resolvePayment()}
               className="shrink-0"
             >
-              Resolve Payment
+              {isResolving ? "Opening…" : "Resolve Payment"}
             </Button>
           </AlertDescription>
         </Alert>
@@ -227,7 +264,13 @@ export function SubscriptionSettings() {
         description="Change plan, compare features, and view invoices"
         contentClassName="space-y-6"
       >
-        <BillingSubscriptionWorkspace />
+        <BillingSubscriptionWorkspace
+          paymentRecovery={{
+            resolvePayment,
+            isResolving,
+            hasRecoverablePayment,
+          }}
+        />
 
         <div className="flex flex-col gap-3 border-t border-border/60 pt-4">
           <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">

@@ -219,6 +219,7 @@ const subscriptionCurrentItemSchema = z
       .nullable()
       .optional(),
     accountCreditCents: z.number().int().min(0).optional(),
+    hasOutstandingPendingPayment: z.boolean().optional(),
   })
   .strict();
 
@@ -299,6 +300,14 @@ export const subscriptionBillingPreviewResponseSchema = z
   })
   .strict();
 
+const subscriptionBillingCheckoutPrefillSchema = z
+  .object({
+    name: z.string(),
+    email: z.string(),
+    contact: z.string().optional(),
+  })
+  .strict();
+
 export const subscriptionBillingCheckoutResponseSchema = z
   .object({
     orderId: z.string(),
@@ -306,6 +315,7 @@ export const subscriptionBillingCheckoutResponseSchema = z
     currency: z.string(),
     razorpayKeyId: z.string(),
     completedWithoutPayment: z.boolean().optional(),
+    prefill: subscriptionBillingCheckoutPrefillSchema.optional(),
   })
   .strict();
 

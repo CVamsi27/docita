@@ -10,11 +10,15 @@ import {
   DOCITA_PLATFORM_PAYMENT_LINK_PROVIDER_TOKEN,
 } from '@/domains/payments/core/ports';
 import { Money } from '@/domains/payments/core/value-objects/money.vo';
-import { isRecord } from '@workspace/utils';
+import { isRecord, resolveSubscriptionBillingContact } from '@workspace/utils';
 import {
   ISubscriptionRepository,
   SUBSCRIPTION_REPOSITORY_TOKEN,
 } from '@/domains/subscriptions/application/ports/subscription.repository.port';
+import {
+  CLINIC_OPERATIONS_TOKEN,
+  IClinicOperations,
+} from '@/domains/subscriptions/application/ports/clinic-operations.port';
 import { parseSubscriptionPaymentLookup } from '@/domains/subscriptions/application/services/subscription-payment-history.types';
 
 type SubscriptionPaymentRecord = {
@@ -56,6 +60,8 @@ export class ResumeSubscriptionPaymentUseCase {
     private readonly paymentLinkProvider: IPaymentLinkProvider,
     @Inject(SUBSCRIPTION_REPOSITORY_TOKEN)
     private readonly subscriptionRepo: ISubscriptionRepository,
+    @Inject(CLINIC_OPERATIONS_TOKEN)
+    private readonly clinicOps: IClinicOperations,
   ) {}
 
   async execute(params: { clinicId: string; paymentId: string }) {
@@ -89,10 +95,15 @@ export class ResumeSubscriptionPaymentUseCase {
       return { id: payment.id, payUrl: payment.invoiceUrl };
     }
 
-    const billingContact = await this.subscriptionRepo.findBillingContact(
-      params.clinicId,
-    );
-    const callbackUrl = `${this.configService.getFrontendAppUrl().replace(/\/$/, '')}/settings?tab=subscription`;
+    const [billingContact, clinic] = await Promise.all([
+      this.subscriptionRepo.findBillingContact(params.clinicId),
+      this.clinicOps.getClinicDetails(params.clinicId),
+    ]);
+    const razorpayContact = resolveSubscriptionBillingContact({
+      billingContact,
+      clinic,
+    });
+    const callbackUrl = `${this.configService.getFrontendAppUrl().replace(/\/$/, '')}/settings?tab=subscription&resolvePayment=1`;
 
     const link = await this.paymentLinkProvider.createPaymentLink({
       amount: Money.fromCents(payment.amountCents, payment.currency),
@@ -100,11 +111,9 @@ export class ResumeSubscriptionPaymentUseCase {
         payment.description ??
         `Subscription payment ${payment.invoiceNumber ?? payment.id}`,
       customer: {
-        name:
-          billingContact.name ??
-          `Clinic ${payment.clinicId.slice(-6).toUpperCase()}`,
-        email: billingContact.email ?? undefined,
-        phone: billingContact.phoneNumber ?? undefined,
+        name: razorpayContact.name,
+        email: razorpayContact.email,
+        phone: razorpayContact.phone,
       },
       callbackUrl,
       metadata: {

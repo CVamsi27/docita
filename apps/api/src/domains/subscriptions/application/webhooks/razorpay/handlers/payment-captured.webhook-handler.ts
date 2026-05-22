@@ -7,6 +7,10 @@ import { ActivateSubscriptionUseCase } from '@/domains/subscriptions/application
 import { type RazorpayWebhookPayload } from '@workspace/types';
 import { AdminAlertsService } from '@/shared/modules/messaging/admin-alerts/admin-alerts.service';
 import { RazorpayWebhookEventHandler } from '@/domains/subscriptions/application/webhooks/razorpay/razorpay-webhook-event-handler.interface';
+import {
+  readRazorpayClinicId,
+  readRazorpayNoteString,
+} from '@/domains/subscriptions/application/webhooks/razorpay/razorpay-webhook.helpers';
 
 @Injectable()
 export class PaymentCapturedWebhookHandler implements RazorpayWebhookEventHandler {
@@ -23,28 +27,67 @@ export class PaymentCapturedWebhookHandler implements RazorpayWebhookEventHandle
     const payment = payload.payload.payment?.entity;
     if (!payment) return;
 
-    const clinicId = payment.notes?.clinic_id;
+    const clinicId = readRazorpayClinicId(payment.notes);
     if (!clinicId) return;
 
     const tier = payment.notes?.tier;
     const cycle = payment.notes?.cycle;
 
     const orderId = payment.order_id;
-    if (tier && cycle && orderId) {
+    const subscriptionPaymentId = readRazorpayNoteString(
+      payment.notes,
+      'subscriptionPaymentId',
+    );
+    const activateCaptured = async (params: {
+      tier: string;
+      cycle: string;
+      razorpayOrderId: string;
+      subscriptionPaymentId?: string;
+    }) => {
       await this.activateSubscription.execute({
         clinicId,
         razorpayPaymentId: payment.id,
-        razorpayOrderId: orderId,
+        razorpayOrderId: params.razorpayOrderId,
         razorpaySignature: '',
-        tier,
-        cycle,
+        tier: params.tier,
+        cycle: params.cycle,
+        subscriptionPaymentId: params.subscriptionPaymentId,
         skipPaymentVerification: true,
         verifiedAmountCents: payment.amount,
       });
-    } else if (orderId) {
-      await this.subscriptionRepo.updatePaymentStatus(orderId, 'paid', {
-        paymentId: payment.id,
+    };
+
+    if (orderId && tier && cycle) {
+      await activateCaptured({
+        tier,
+        cycle,
+        razorpayOrderId: orderId,
       });
+    } else if (orderId) {
+      const subscription =
+        await this.subscriptionRepo.findByClinicId(clinicId);
+      if (subscription) {
+        await activateCaptured({
+          tier: subscription.getPlan().value,
+          cycle: subscription.getBillingCycle().value,
+          razorpayOrderId: orderId,
+        });
+      } else {
+        await this.subscriptionRepo.updatePaymentStatus(orderId, 'paid', {
+          paymentId: payment.id,
+        });
+      }
+    } else if (subscriptionPaymentId) {
+      const subscription =
+        await this.subscriptionRepo.findByClinicId(clinicId);
+      if (subscription) {
+        await activateCaptured({
+          tier: subscription.getPlan().value,
+          cycle: subscription.getBillingCycle().value,
+          razorpayOrderId: '',
+          subscriptionPaymentId,
+        });
+      }
     }
 
     await this.adminAlerts.sendAdminAlert({

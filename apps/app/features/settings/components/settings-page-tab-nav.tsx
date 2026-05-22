@@ -25,8 +25,14 @@ export function SettingsPageTabNav({
   filteredTabs: SettingsCategory[];
 }) {
   return (
-    <aside className="w-full shrink-0 md:sticky md:top-4 md:w-56 lg:w-64">
-      <TabsList className="flex h-auto w-full flex-row flex-wrap gap-0.5 overflow-x-hidden bg-transparent p-0 pb-1 md:flex-col md:flex-nowrap md:items-stretch md:overflow-visible md:pb-0">
+    <aside className="w-full min-w-0 shrink-0 md:sticky md:top-4 md:w-56 lg:w-64">
+      <TabsList
+        className={cn(
+          "flex h-auto w-full min-w-0 gap-0.5 bg-transparent p-0",
+          "max-md:-mx-4 max-md:flex-row max-md:flex-nowrap max-md:overflow-x-auto max-md:overscroll-x-contain max-md:border-b max-md:px-4 max-md:pb-2 max-md:[scrollbar-width:thin]",
+          "md:flex-col md:flex-nowrap md:items-stretch md:overflow-visible md:border-b-0 md:pb-0",
+        )}
+      >
         {filteredTabs.map((category, categoryIndex) => {
           const isDangerCategory = category.category === "Danger Zone";
           return (
@@ -50,7 +56,7 @@ export function SettingsPageTabNav({
                     key={item.value}
                     value={item.value}
                     className={cn(
-                      "group relative shrink-0 md:shrink md:w-full justify-start px-3 py-2.5 gap-2 md:gap-3",
+                      "group relative max-md:shrink-0 md:w-full justify-start px-3 py-2.5 gap-2 md:gap-3",
                       "data-[state=active]:bg-foreground data-[state=active]:text-background data-[state=active]:shadow-sm",
                       "rounded-[var(--radius)] whitespace-normal transition-colors",
                       isDangerItem

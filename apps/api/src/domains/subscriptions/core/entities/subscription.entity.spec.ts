@@ -135,6 +135,34 @@ describe('Subscription entity', () => {
     });
   });
 
+  describe('activatePaidPlan', () => {
+    it('anchors a lapsed same-plan renewal from the day after the previous period ended', () => {
+      const subscription = buildSubscription({
+        status: new SubscriptionStatus(SubscriptionStatusEnum.ACTIVE),
+        currentPeriodStart: new Date('2026-04-17T00:00:00.000Z'),
+        currentPeriodEnd: new Date('2026-05-17T23:59:59.999Z'),
+      });
+      const paidAt = new Date('2026-05-22T10:30:00.000Z');
+
+      subscription.activatePaidPlan(
+        ClinicTier.fromString('ESSENTIAL'),
+        BillingCycle.fromString('MONTHLY'),
+        99900,
+        paidAt,
+      );
+
+      expect(subscription.currentPeriodStart).toEqual(
+        new Date('2026-05-18T00:00:00.000Z'),
+      );
+      expect(subscription.currentPeriodEnd.getUTCMonth()).toBe(5);
+      expect(subscription.currentPeriodEnd.getUTCDate()).toBe(18);
+      expect(subscription.getStatus().value).toBe(
+        SubscriptionStatusEnum.ACTIVE,
+      );
+      expect(subscription.getGraceUntil()).toBeNull();
+    });
+  });
+
   describe('applyRazorpayRenewal', () => {
     it('keeps subscription active and extends the period end', () => {
       const subscription = buildSubscription({

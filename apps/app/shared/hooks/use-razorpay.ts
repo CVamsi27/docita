@@ -1,13 +1,21 @@
 import { useCallback, useRef, useState } from "react";
 import { logger } from "@/lib/monitoring/logger";
 import {
-  PaymentCanceledError,
-  PaymentFailedError,
   type RazorpayCheckoutError,
   isPaymentCanceledError,
+  notifyPaymentCanceled,
 } from "./razorpay-checkout-errors";
 
-export { isPaymentCanceledError, type RazorpayCheckoutError };
+export {
+  isPaymentCanceledError,
+  notifyPaymentCanceled,
+  type RazorpayCheckoutError,
+};
+
+export type RazorpayCheckoutResult =
+  | { status: "completed" }
+  | { status: "canceled" }
+  | { status: "failed" };
 
 interface RazorpayInstance {
   open(): void;
@@ -80,7 +88,24 @@ export function useRazorpay() {
   // Tracks the currently-open Razorpay instance so callers can dismiss it
   // programmatically (e.g. from a "Cancel checkout" button rendered in the app).
   const activeInstanceRef = useRef<RazorpayInstance | null>(null);
+  const checkoutSettlementRef = useRef<
+    ((result: RazorpayCheckoutResult) => void) | null
+  >(null);
   const [isCheckoutOpen, setIsCheckoutOpen] = useState(false);
+
+  const settleCheckoutOnce = useCallback((result: RazorpayCheckoutResult) => {
+    const settle = checkoutSettlementRef.current;
+    if (!settle) {
+      return;
+    }
+    checkoutSettlementRef.current = null;
+    activeInstanceRef.current = null;
+    setIsCheckoutOpen(false);
+    if (result.status === "canceled") {
+      notifyPaymentCanceled();
+    }
+    settle(result);
+  }, []);
 
   const isRazorpayConstructible = useCallback((): boolean => {
     const RazorpayCtor = window.Razorpay;
@@ -154,7 +179,7 @@ export function useRazorpay() {
   }, [isRazorpayConstructible]);
 
   const openCheckout = useCallback(
-    async (options: RazorpayOptions) => {
+    async (options: RazorpayOptions): Promise<RazorpayCheckoutResult> => {
       const loaded = await loadRazorpay();
       if (!loaded) {
         throw new Error(
@@ -162,7 +187,7 @@ export function useRazorpay() {
         );
       }
 
-      await new Promise<void>((resolve, reject) => {
+      return new Promise<RazorpayCheckoutResult>((resolve, reject) => {
         const RazorpayCtor = window.Razorpay;
         if (!RazorpayCtor) {
           reject(
@@ -173,42 +198,39 @@ export function useRazorpay() {
           return;
         }
 
+        checkoutSettlementRef.current = resolve;
+
         const rzp = new RazorpayCtor({
           ...options,
           handler: async (response: RazorpayResponse) => {
             try {
               await options.handler(response);
-              activeInstanceRef.current = null;
-              setIsCheckoutOpen(false);
-              resolve();
+              settleCheckoutOnce({ status: "completed" });
             } catch (error: unknown) {
+              checkoutSettlementRef.current = null;
               activeInstanceRef.current = null;
               setIsCheckoutOpen(false);
               reject(error);
             }
           },
           modal: {
+            ...options.modal,
             // Sensible defaults so the modal is easy to dismiss without
             // hunting for Razorpay's small built-in X.
-            escape: true,
-            backdropclose: true,
-            confirm_close: false,
-            animation: true,
-            ...options.modal,
+            escape: options.modal?.escape ?? true,
+            backdropclose: options.modal?.backdropclose ?? true,
+            confirm_close: options.modal?.confirm_close ?? false,
+            animation: options.modal?.animation ?? true,
             ondismiss: () => {
               options.modal?.ondismiss?.();
-              activeInstanceRef.current = null;
-              setIsCheckoutOpen(false);
-              reject(new PaymentCanceledError());
+              settleCheckoutOnce({ status: "canceled" });
             },
           },
         });
 
         rzp.on?.("payment.failed", (...args: unknown[]) => {
           void args;
-          activeInstanceRef.current = null;
-          setIsCheckoutOpen(false);
-          reject(new PaymentFailedError());
+          settleCheckoutOnce({ status: "failed" });
         });
 
         activeInstanceRef.current = rzp;
@@ -216,21 +238,22 @@ export function useRazorpay() {
         rzp.open();
       });
     },
-    [loadRazorpay],
+    [loadRazorpay, settleCheckoutOnce],
   );
 
   /** Programmatically close the active Razorpay modal, if any. */
   const closeCheckout = useCallback(() => {
     const rzp = activeInstanceRef.current;
-    if (!rzp) return;
+    settleCheckoutOnce({ status: "canceled" });
+    if (!rzp) {
+      return;
+    }
     try {
       rzp.close();
     } catch {
       // Razorpay throws if already closed; ignore.
     }
-    activeInstanceRef.current = null;
-    setIsCheckoutOpen(false);
-  }, []);
+  }, [settleCheckoutOnce]);
 
   return { isLoaded, openCheckout, closeCheckout, isCheckoutOpen };
 }

@@ -9,14 +9,33 @@ import {
 } from "@workspace/ui/components/feedback/alert";
 import { Button } from "@workspace/ui/components/form/button";
 import { useClinic } from "@/lib/contexts/clinic-context";
-import { SUBSCRIPTION_SETTINGS_PATH } from "@/lib/subscription/subscription-settings-path";
+import { useSubscription } from "@workspace/data-access";
+import {
+  SUBSCRIPTION_BILLING_RESOLVE_PATH,
+  SUBSCRIPTION_SETTINGS_PATH,
+} from "@/lib/subscription/subscription-settings-path";
 import { resolveSubscriptionLockNotice } from "./subscription-lock-notice-helpers";
 
 export function SubscriptionLockNotice() {
   const { clinic } = useClinic();
+  const { data: subscription } = useSubscription({
+    enabled: Boolean(clinic?.id),
+  });
   const router = useRouter();
-  const copy = resolveSubscriptionLockNotice(clinic);
+  const copy = resolveSubscriptionLockNotice(clinic, {
+    hasOutstandingPendingPayment:
+      subscription?.hasOutstandingPendingPayment === true,
+    currentPeriodEnd: subscription?.currentPeriodEnd ?? null,
+  });
   if (!copy) return null;
+
+  const settingsHref =
+    copy.kind === "payment-required" ||
+    copy.kind === "expired" ||
+    copy.kind === "grace-or-past-due" ||
+    copy.kind === "paused"
+      ? SUBSCRIPTION_BILLING_RESOLVE_PATH
+      : SUBSCRIPTION_SETTINGS_PATH;
 
   const useLockIcon = copy.kind === "expired" || copy.kind === "trial-grace";
 
@@ -40,7 +59,7 @@ export function SubscriptionLockNotice() {
           <Button
             size="sm"
             variant={useLockIcon ? "secondary" : "outline"}
-            onClick={() => router.push(SUBSCRIPTION_SETTINGS_PATH)}
+            onClick={() => router.push(settingsHref)}
             className="self-start sm:self-auto"
           >
             {copy.ctaLabel}

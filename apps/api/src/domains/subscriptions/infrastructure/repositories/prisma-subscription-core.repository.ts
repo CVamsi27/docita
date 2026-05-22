@@ -203,6 +203,11 @@ export class PrismaSubscriptionCoreRepository {
   async findBillingContact(
     clinicId: string,
   ): Promise<SubscriptionBillingContact> {
+    const clinic = await this.getReadClient().clinic.findUnique({
+      where: { id: clinicId },
+      select: { name: true, email: true, phone: true },
+    });
+
     const primaryAdmin = await this.getReadClient().user.findFirst({
       where: {
         clinicId,
@@ -217,7 +222,11 @@ export class PrismaSubscriptionCoreRepository {
     });
 
     if (primaryAdmin) {
-      return primaryAdmin;
+      return {
+        name: primaryAdmin.name ?? clinic?.name ?? null,
+        email: primaryAdmin.email ?? clinic?.email ?? null,
+        phoneNumber: primaryAdmin.phoneNumber ?? clinic?.phone ?? null,
+      };
     }
 
     const fallbackUser = await this.getReadClient().user.findFirst({
@@ -231,18 +240,17 @@ export class PrismaSubscriptionCoreRepository {
     });
 
     if (fallbackUser) {
-      return fallbackUser;
+      return {
+        name: fallbackUser.name ?? clinic?.name ?? null,
+        email: fallbackUser.email ?? clinic?.email ?? null,
+        phoneNumber: fallbackUser.phoneNumber ?? clinic?.phone ?? null,
+      };
     }
-
-    const clinic = await this.getReadClient().clinic.findUnique({
-      where: { id: clinicId },
-      select: { name: true },
-    });
 
     return {
       name: clinic?.name ?? null,
-      email: null,
-      phoneNumber: null,
+      email: clinic?.email ?? null,
+      phoneNumber: clinic?.phone ?? null,
     };
   }
 

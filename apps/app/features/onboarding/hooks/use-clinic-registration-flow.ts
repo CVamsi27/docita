@@ -4,6 +4,7 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import { toast } from "sonner";
 import {
   isPaymentCanceledError,
+  notifyPaymentCanceled,
   useRazorpay,
   type RazorpayResponse,
 } from "@/hooks/use-razorpay";
@@ -205,7 +206,7 @@ export function useClinicRegistrationFlow() {
               customerName: user.name, customerPhone: formData.clinicDetails.phone }),
           },
         );
-        await openCheckout({
+        const checkoutResult = await openCheckout({
           key: checkout.razorpayKeyId, amount: checkout.amountCents,
           currency: checkout.currency, name: "Docita Onboarding",
           description: `${tier} ${billingCycle} subscription`, order_id: checkout.orderId,
@@ -222,9 +223,28 @@ export function useClinicRegistrationFlow() {
             contact: formData.clinicDetails.phone || undefined },
           theme: { color: BRAND_FOREGROUND_HEX },
         });
+
+        if (checkoutResult.status === "canceled") {
+          return;
+        }
+        if (checkoutResult.status === "failed") {
+          showUserFacingErrorToast(
+            undefined,
+            "We could not complete this payment. Please try again.",
+            "payment",
+          );
+          return;
+        }
       } catch (error) {
-        if (isPaymentCanceledError(error)) toast.info("Payment was canceled. No charge was made.");
-        else showUserFacingErrorToast(error, "We could not start payment right now. Please try again.", "payment");
+        if (isPaymentCanceledError(error)) {
+          notifyPaymentCanceled();
+          return;
+        }
+        showUserFacingErrorToast(
+          error,
+          "We could not start payment right now. Please try again.",
+          "payment",
+        );
       } finally {
         setIsProcessingPayment(false);
       }

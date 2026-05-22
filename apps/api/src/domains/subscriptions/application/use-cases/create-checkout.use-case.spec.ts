@@ -1,4 +1,5 @@
 import { describe, it, expect, beforeEach, jest } from '@jest/globals';
+import { PENDING_CHECKOUT_REUSE_WINDOW_MINUTES } from '@/domains/subscriptions/application/constants/pending-checkout.constants';
 import { CreateCheckoutUseCase } from './create-checkout.use-case';
 import type { ISubscriptionRepository } from '@/domains/subscriptions/application/ports/subscription.repository.port';
 import type { IClinicOperations } from '@/domains/subscriptions/application/ports/clinic-operations.port';
@@ -26,9 +27,9 @@ describe('CreateCheckoutUseCase', () => {
     markClinicPastDue: jest.fn(async () => undefined),
     delete: jest.fn(async () => undefined),
     findBillingContact: jest.fn(async () => ({
-      name: null,
-      email: null,
-      phoneNumber: null,
+      name: 'Admin Doctor',
+      email: 'admin@example.com',
+      phoneNumber: '9876543210',
     })),
     findExpiryReminderCandidates: jest.fn(async () => []),
     findGraceDeadlineReminderCandidates: jest.fn(async () => []),
@@ -36,6 +37,7 @@ describe('CreateCheckoutUseCase', () => {
     createSubscriptionReminders: jest.fn(async () => undefined),
     savePayment: jest.fn(async () => undefined),
     updatePaymentStatus: jest.fn(async () => undefined),
+    updatePaymentStatusById: jest.fn(async () => undefined),
     findPaymentsByClinicId: jest.fn(async () => []),
     findPaymentById: jest.fn(async () => null),
     findPaymentByOrderId: jest.fn(async () => null),
@@ -65,6 +67,7 @@ describe('CreateCheckoutUseCase', () => {
 
   const paymentGateway: IPaymentGateway = {
     createCustomer: jest.fn(async () => 'cust_1'),
+    updateCustomer: jest.fn(async () => undefined),
     createOrder: jest.fn(async () => ({
       razorpayOrderId: 'order_new',
       amountCents: 99900,
@@ -125,6 +128,12 @@ describe('CreateCheckoutUseCase', () => {
     });
 
     expect(result.orderId).toBe('order_existing');
+    expect(findReusablePendingCheckoutMock).toHaveBeenCalledWith(
+      expect.objectContaining({
+        clinicId: 'clinic-1',
+        withinMinutes: PENDING_CHECKOUT_REUSE_WINDOW_MINUTES,
+      }),
+    );
     expect(paymentGateway.createOrder).not.toHaveBeenCalled();
     expect(subscriptionRepo.savePayment).not.toHaveBeenCalled();
     expect(
@@ -160,5 +169,18 @@ describe('CreateCheckoutUseCase', () => {
       clinicId: 'clinic-1',
       keepOrderId: 'order_new',
     });
+    expect(paymentGateway.updateCustomer).toHaveBeenCalledWith(
+      'cust_1',
+      expect.objectContaining({
+        email: 'admin@example.com',
+        phone: '9876543210',
+      }),
+    );
+    expect(result.prefill).toEqual(
+      expect.objectContaining({
+        email: 'admin@example.com',
+        contact: '9876543210',
+      }),
+    );
   });
 });

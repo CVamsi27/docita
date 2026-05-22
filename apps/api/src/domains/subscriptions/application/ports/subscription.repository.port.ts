@@ -90,6 +90,18 @@ export interface ISubscriptionRepository {
       invoiceNumber?: string;
     },
   ): Promise<void>;
+  updatePaymentStatusById(
+    clinicId: string,
+    paymentId: string,
+    status: string,
+    details?: {
+      paymentId?: string;
+      signature?: string;
+      subscriptionId?: string;
+      invoiceUrl?: string;
+      invoiceNumber?: string;
+    },
+  ): Promise<void>;
   findPaymentsByClinicId(clinicId: string, limit: number): Promise<unknown[]>;
   findPaymentById(clinicId: string, paymentId: string): Promise<unknown | null>;
   findPaymentByOrderId(

@@ -17,7 +17,7 @@ export function PlanTabsSection({
 }) {
   return (
     <Tabs defaultValue="compare" className="w-full">
-      <TabsList className="w-full justify-start border-b rounded-none bg-transparent h-auto p-0 gap-1 flex flex-wrap overflow-x-hidden">
+      <TabsList className="flex h-auto w-full min-w-0 flex-nowrap justify-start gap-1 overflow-x-auto overscroll-x-contain rounded-none border-b bg-transparent p-0 [scrollbar-width:thin]">
         <TabsTrigger
           value="compare"
           className="rounded-none border-b-2 border-transparent data-[state=active]:border-primary data-[state=active]:bg-transparent pb-2"

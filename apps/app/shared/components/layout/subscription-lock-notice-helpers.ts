@@ -6,6 +6,7 @@ import type { Clinic } from "@/lib/contexts/clinic-context";
 import {
   getTrialState,
   isPastSubscriptionGraceDeadline,
+  isRenewalUnpaidWithOutstandingPending,
 } from "@/lib/subscription/subscription-lockout";
 import { getTierInfo } from "@/lib/subscription/tier-access";
 import { formatDate } from "@/lib/formatters";
@@ -42,8 +43,29 @@ type ClinicShape = Pick<
  */
 export function resolveSubscriptionLockNotice(
   clinic: ClinicShape | null | undefined,
+  billing?: {
+    hasOutstandingPendingPayment?: boolean;
+    currentPeriodEnd?: string | null;
+  } | null,
 ): SubscriptionLockNoticeCopy | null {
   const status = clinic?.subscriptionStatus;
+  const renewalUnpaidPending = isRenewalUnpaidWithOutstandingPending({
+    hasOutstandingPendingPayment:
+      billing?.hasOutstandingPendingPayment === true,
+    currentPeriodEnd: billing?.currentPeriodEnd ?? null,
+  });
+
+  if (renewalUnpaidPending) {
+    return {
+      kind: "payment-required",
+      title: "Renewal payment pending",
+      description:
+        "Your billing period has ended and the subscription charge is still unpaid. Complete payment under Settings, Subscription to keep staff access active.",
+      ctaLabel: "Pay now",
+      variant: "destructive",
+    };
+  }
+
   if (!status || status === "ACTIVE") return null;
 
   const trialState = clinic ? getTrialState(clinic) : null;

@@ -7,6 +7,7 @@ import {
   type CheckoutSuccessData,
   useSubscriptionCheckout,
 } from "@/hooks/use-subscription-checkout";
+import { useResolveSubscriptionPayment } from "@/features/subscription/hooks/use-resolve-subscription-payment";
 import {
   useCancelScheduledPlanChange,
   useSchedulePlanChange,
@@ -25,7 +26,15 @@ import {
   starterMonthlyAccessTermMismatch,
 } from "@/features/subscription/components/billing-subscription-helpers";
 
-export function useBillingSubscriptionWorkspace() {
+export type BillingSubscriptionPaymentRecovery = {
+  resolvePayment: () => Promise<void>;
+  isResolving: boolean;
+  hasRecoverablePayment: boolean;
+};
+
+export function useBillingSubscriptionWorkspace(
+  paymentRecovery?: BillingSubscriptionPaymentRecovery,
+) {
   const { currentTier } = usePermissionStore();
 
   const [showContactSalesModal, setShowContactSalesModal] = useState(false);
@@ -55,9 +64,28 @@ export function useBillingSubscriptionWorkspace() {
     setShowTierChangeDialog(false);
   });
 
+  const { data: subscription } = useSubscription({ enabled: true });
+  const internalPaymentRecovery = useResolveSubscriptionPayment({
+    subscription,
+    onCheckoutSuccess: (data) => {
+      setSuccessData(data);
+      setShowSuccessModal(true);
+      setShowTierChangeDialog(false);
+    },
+    checkoutTier,
+    isCheckoutProcessing,
+    enabled: paymentRecovery === undefined,
+  });
+  const resolvePayment =
+    paymentRecovery?.resolvePayment ?? internalPaymentRecovery.resolvePayment;
+  const isResolvePaymentProcessing =
+    paymentRecovery?.isResolving ?? internalPaymentRecovery.isResolving;
+  const hasRecoverablePayment =
+    paymentRecovery?.hasRecoverablePayment ??
+    internalPaymentRecovery.hasRecoverablePayment;
+
   const { currency } = useLocaleCurrency();
   const { pricingConfig } = usePricingConfig(currency);
-  const { data: subscription } = useSubscription({ enabled: true });
   const {
     usage,
     isLoading: isUsageLoading,
@@ -91,8 +119,16 @@ export function useBillingSubscriptionWorkspace() {
       ? subscriptionPeriodEnd.getTime() <= Date.now()
       : false;
   const isSubscriptionExpired = subscriptionStatus === "EXPIRED";
+  const hasOutstandingPendingPayment =
+    subscription?.hasOutstandingPendingPayment === true;
+  const renewalPeriodLapsed =
+    planStripPeriodEnd !== null
+      ? planStripPeriodEnd.getTime() <= Date.now()
+      : false;
   const isPaymentPastDue =
-    subscriptionStatus === "PAST_DUE" || subscriptionStatus === "PAYMENT_DUE";
+    subscriptionStatus === "PAST_DUE" ||
+    subscriptionStatus === "PAYMENT_DUE" ||
+    (hasOutstandingPendingPayment && renewalPeriodLapsed);
   const isInGracePeriod = subscriptionStatus === "GRACE";
   const effectiveCurrentTier = isTrialExpired ? Tier.STARTER : currentTier;
   const starterLongMonthlyWindow = starterMonthlyAccessTermMismatch(
@@ -158,7 +194,7 @@ export function useBillingSubscriptionWorkspace() {
           description:
             "Your subscription is in grace period after a missed payment. Complete payment now to prevent the workspace from being locked.",
           actionLabel: "Resolve Payment",
-          onAction: scrollToPlans,
+          onAction: () => void resolvePayment(),
           variant: "warning" as const,
         }
       : isPaymentPastDue
@@ -168,7 +204,7 @@ export function useBillingSubscriptionWorkspace() {
             description:
               "Your payment is overdue. Complete payment to keep Docita access active.",
             actionLabel: "Resolve Payment",
-            onAction: scrollToPlans,
+            onAction: () => void resolvePayment(),
             variant: "warning" as const,
           }
         : isTrialing || isTrialExpired
@@ -184,9 +220,21 @@ export function useBillingSubscriptionWorkspace() {
                 ? ("warning" as const)
                 : ("default" as const),
             }
-          : subscriptionStatus === "ACTIVE"
-            ? undefined
-            : {
+          : subscriptionStatus === "ACTIVE" &&
+              hasOutstandingPendingPayment &&
+              renewalPeriodLapsed
+            ? {
+                title: "Payment Pending",
+                badgeLabel: "Action Required",
+                description:
+                  "Your renewal payment is still outstanding. Complete payment to keep Docita access active.",
+                actionLabel: "Pay now",
+                onAction: () => void resolvePayment(),
+                variant: "warning" as const,
+              }
+            : subscriptionStatus === "ACTIVE"
+              ? undefined
+              : {
                 title: "Starter plan",
                 badgeLabel: "Starter",
                 description:
@@ -196,7 +244,13 @@ export function useBillingSubscriptionWorkspace() {
 
   const planDetails = [
     { label: "Plan", value: currentTierInfo.name },
-    { label: "Status", value: formatStatusLabel(subscriptionStatus) },
+    {
+      label: "Status",
+      value:
+        hasOutstandingPendingPayment && renewalPeriodLapsed
+          ? "Payment pending"
+          : formatStatusLabel(subscriptionStatus),
+    },
     {
       label: "Billing",
       value: formatPlanBillingDetail(subscription, subscriptionStatus),
@@ -237,9 +291,11 @@ export function useBillingSubscriptionWorkspace() {
     legalDialog,
     setLegalDialog,
     plansRef,
-    isCheckoutProcessing,
+    isCheckoutProcessing: isCheckoutProcessing || isResolvePaymentProcessing,
     closeCheckout,
     isCheckoutOpen,
+    resolvePayment,
+    hasRecoverablePayment,
     currency,
     pricingConfig,
     subscription,

@@ -35,6 +35,7 @@ describe('SubscriptionsQueryService', () => {
     createSubscriptionReminders: jest.fn(async () => undefined),
     savePayment: jest.fn(async () => undefined),
     updatePaymentStatus: jest.fn(async () => undefined),
+    updatePaymentStatusById: jest.fn(async () => undefined),
     findPaymentsByClinicId: findPaymentsByClinicIdMock,
     findPaymentById: jest.fn(async () => null),
     findPaymentByOrderId: jest.fn(async () => null),
@@ -208,5 +209,44 @@ describe('SubscriptionsQueryService', () => {
     );
 
     expect(result).toEqual([]);
+  });
+
+  it('sets hasOutstandingPendingPayment when a failed renewal row is still open', async () => {
+    findByClinicIdMock.mockResolvedValue({
+      id: 'sub-1',
+      clinicId: 'clinic-1',
+      getPlan: () => ({ value: 'ESSENTIAL' }),
+      getBillingCycle: () => ({ value: 'MONTHLY' }),
+      getStatus: () => ({ value: 'ACTIVE' }),
+      getBasePrice: () => ({ paise: 99900 }),
+      getDaysRemaining: () => 0,
+      cancelAtPeriodEnd: false,
+      currentPeriodStart: new Date('2026-03-17T00:00:00.000Z'),
+      currentPeriodEnd: new Date('2026-04-17T23:59:59.999Z'),
+      scheduledChange: null,
+      getCredits: () => ({ paise: 0 }),
+      isScheduledChangeDue: () => false,
+    } as never);
+    findPaymentsByClinicIdMock.mockResolvedValue([
+      {
+        id: 'paid-old',
+        amountCents: 99900,
+        currency: 'INR',
+        status: 'paid',
+        createdAt: new Date('2026-03-17T00:00:00.000Z'),
+      },
+      {
+        id: 'failed-renewal',
+        amountCents: 99900,
+        currency: 'INR',
+        status: 'failed',
+        createdAt: new Date('2026-04-18T00:00:00.000Z'),
+      },
+    ]);
+
+    const details = await service.getSubscriptionDetails('clinic-1');
+
+    expect(details?.hasOutstandingPendingPayment).toBe(true);
+    expect(details?.subscriptionStatus).toBe('ACTIVE');
   });
 });

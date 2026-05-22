@@ -17,6 +17,7 @@ import { mockWhatsappService } from './whatsapp.provider';
 
 const mockPaymentGateway = {
   createCustomer: jest.fn().mockResolvedValue('cust_1234567890'),
+  updateCustomer: jest.fn().mockResolvedValue(undefined),
   createOrder: jest.fn().mockResolvedValue({
     razorpayOrderId: 'order_1234567890',
     amountCents: 10000,
@@ -218,6 +219,88 @@ describe('Subscription (e2e)', () => {
         .expect(201);
 
       expect(response.body).toHaveProperty('subscriptionId');
+    });
+  });
+
+  describe('POST /subscription/billing/activate', () => {
+    it('anchors a lapsed same-plan renewal from the day after the previous period ended', async () => {
+      await request(app.getHttpServer())
+        .post('/subscription/activate-legacy')
+        .set('Authorization', `Bearer ${token}`)
+        .send({ tier: 'ESSENTIAL', cycle: 'MONTHLY' })
+        .expect(201);
+
+      const checkout = await request(app.getHttpServer())
+        .post('/subscription/billing/checkout')
+        .set('Authorization', `Bearer ${token}`)
+        .send({
+          tier: 'ESSENTIAL',
+          billingCycle: 'MONTHLY',
+        })
+        .expect(201);
+
+      const orderId = checkout.body.orderId as string;
+      const amountCents = checkout.body.amountCents as number;
+      expect(orderId).toBeTruthy();
+      expect(amountCents).toBeGreaterThan(0);
+
+      const periodEnd = new Date();
+      periodEnd.setUTCDate(periodEnd.getUTCDate() - 5);
+      periodEnd.setUTCHours(23, 59, 59, 999);
+
+      const periodStart = new Date(periodEnd);
+      periodStart.setUTCMonth(periodStart.getUTCMonth() - 1);
+      periodStart.setUTCHours(0, 0, 0, 0);
+
+      const expectedPeriodStart = new Date(periodEnd);
+      expectedPeriodStart.setUTCDate(expectedPeriodStart.getUTCDate() + 1);
+      expectedPeriodStart.setUTCHours(0, 0, 0, 0);
+
+      await prisma.subscription.update({
+        where: { clinicId },
+        data: {
+          currentPeriodStart: periodStart,
+          currentPeriodEnd: periodEnd,
+          plan: 'ESSENTIAL',
+          billingCycle: 'MONTHLY',
+        },
+      });
+
+      mockPaymentGateway.verifyPayment.mockResolvedValueOnce({
+        verified: true,
+        paymentId: 'pay_lapsed_e2e',
+        orderId,
+        amountCents,
+      });
+
+      await request(app.getHttpServer())
+        .post('/subscription/billing/activate')
+        .set('Authorization', `Bearer ${token}`)
+        .send({
+          razorpayPaymentId: 'pay_lapsed_e2e',
+          razorpayOrderId: orderId,
+          razorpaySignature: 'sig_test',
+          tier: 'ESSENTIAL',
+          billingCycle: 'MONTHLY',
+        })
+        .expect(201);
+
+      const current = await request(app.getHttpServer())
+        .get('/subscription/current')
+        .set('Authorization', `Bearer ${token}`)
+        .expect(200);
+
+      expect(current.body).toMatchObject({
+        tier: 'ESSENTIAL',
+        billingCycle: 'MONTHLY',
+        subscriptionStatus: 'ACTIVE',
+      });
+      expect(new Date(current.body.currentPeriodStart).toISOString()).toBe(
+        expectedPeriodStart.toISOString(),
+      );
+      expect(
+        new Date(current.body.currentPeriodEnd).getTime(),
+      ).toBeGreaterThan(expectedPeriodStart.getTime());
     });
   });
 });

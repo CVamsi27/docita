@@ -34,6 +34,7 @@ describe('NotifyExpiringSubscriptionsUseCase', () => {
     createSubscriptionReminders: createSubscriptionRemindersMock,
     savePayment: jest.fn(async () => undefined),
     updatePaymentStatus: jest.fn(async () => undefined),
+    updatePaymentStatusById: jest.fn(async () => undefined),
     findPaymentsByClinicId: jest.fn(async () => []),
     findPaymentById: jest.fn(async () => null),
     findPaymentByOrderId: jest.fn(async () => null),

@@ -50,11 +50,16 @@ export function billingHistorySectionActions(
   }
 
   if (status === "PAST_DUE" || status === "PAYMENT_DUE" || status === "GRACE") {
-    return (
-      <Button variant="outline" size="sm" onClick={scrollToBillingPlans}>
-        {status === "GRACE" ? "Resolve payment" : "Update payment"}
-      </Button>
-    );
+    return null;
+  }
+
+  if (
+    status === "ACTIVE" &&
+    subscription.hasOutstandingPendingPayment === true &&
+    subscription.currentPeriodEnd != null &&
+    new Date(subscription.currentPeriodEnd).getTime() <= Date.now()
+  ) {
+    return null;
   }
 
   if (status === "TRIALING") {

@@ -31,7 +31,10 @@ import {
   Tier,
   FEATURE_TIER_MAP,
 } from '@/shared/modules/auth/auth/tier.decorator';
-import { DEFAULT_CURRENCY } from '@workspace/utils';
+import {
+  DEFAULT_CURRENCY,
+  isOutstandingUnpaidSubscriptionPaymentStatus,
+} from '@workspace/utils';
 import {
   CLINIC_PRICING_QUERY_TOKEN,
   type IClinicPricingQuery,
@@ -139,6 +142,15 @@ export class SubscriptionsQueryService {
       return null;
     }
     const tierName = subscription.getPlan().value;
+    const recentPayments = await this.subscriptionRepo.findPaymentsByClinicId(
+      clinicId,
+      12,
+    );
+    const hasOutstandingPendingPayment = parsePaymentHistoryRecords(
+      recentPayments,
+    ).some((payment) =>
+      isOutstandingUnpaidSubscriptionPaymentStatus(payment.status),
+    );
 
     return {
       id: subscription.id,
@@ -155,6 +167,7 @@ export class SubscriptionsQueryService {
       daysRemaining: subscription.getDaysRemaining(this.clock.now()),
       scheduledChange: subscription.scheduledChange ?? null,
       accountCreditCents: subscription.getCredits().paise,
+      hasOutstandingPendingPayment,
     };
   }
 

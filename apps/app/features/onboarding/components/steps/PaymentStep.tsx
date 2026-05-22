@@ -21,7 +21,11 @@ import {
 import { api } from "@/lib/api/api-client";
 import { getSupportContactText } from "@/lib/constants/support-contact";
 import { showUserFacingErrorToast } from "@/lib/errors/user-facing-errors";
-import { isPaymentCanceledError, useRazorpay } from "@/hooks/use-razorpay";
+import {
+  isPaymentCanceledError,
+  notifyPaymentCanceled,
+  useRazorpay,
+} from "@/hooks/use-razorpay";
 import { BRAND_PRIMARY_HEX } from "@/lib/constants/branding";
 import { tierSchema } from "@workspace/types";
 import { formatAmountLocale, parseStringEnumMember } from "@workspace/utils";
@@ -109,7 +113,7 @@ export function PaymentStep({
         billingCycle,
       });
 
-      await openCheckout({
+      const checkoutResult = await openCheckout({
         key: checkout.razorpayKeyId,
         amount: checkout.amountCents,
         currency: checkout.currency || currencyCode || "INR",
@@ -142,13 +146,27 @@ export function PaymentStep({
           },
         },
       });
+
+      if (checkoutResult.status === "canceled") {
+        return;
+      }
+      if (checkoutResult.status === "failed") {
+        showUserFacingErrorToast(
+          undefined,
+          "We could not complete this payment. Please try again.",
+          "payment",
+        );
+        return;
+      }
     } catch (error: unknown) {
       if (isPaymentCanceledError(error)) {
-        setIsProcessing(false);
+        notifyPaymentCanceled();
         return;
       }
       showUserFacingErrorToast(
+        error,
         `We could not start payment right now. Please ${getSupportContactText()}.`,
+        "payment",
       );
       setIsProcessing(false);
     }

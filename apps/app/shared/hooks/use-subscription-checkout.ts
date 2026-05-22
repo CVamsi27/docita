@@ -1,12 +1,14 @@
 import { useCallback, useRef, useState } from "react";
 import { useQueryClient } from "@tanstack/react-query";
-import { toast } from "sonner";
 import {
   isPaymentCanceledError,
+  notifyPaymentCanceled,
   type RazorpayResponse,
   useRazorpay,
 } from "@/hooks/use-razorpay";
+import { PaymentFailedError } from "@/hooks/razorpay-checkout-errors";
 import { useAuth } from "@/lib/auth/auth-context";
+import { useOptionalClinic } from "@/lib/contexts/clinic-context";
 import { BRAND_FOREGROUND_HEX } from "@/lib/constants/branding";
 import { fetchJsonWithSession } from "@/lib/auth/fetch-with-session";
 import { usePermissionStore } from "@/lib/stores/permission-store";
@@ -33,6 +35,7 @@ export function useSubscriptionCheckout(
   onSuccess: (data: CheckoutSuccessData) => void,
 ) {
   const { token, user } = useAuth();
+  const clinicContext = useOptionalClinic();
   const { setTier } = usePermissionStore();
   const queryClient = useQueryClient();
   const { openCheckout, closeCheckout, isCheckoutOpen } = useRazorpay();
@@ -46,8 +49,10 @@ export function useSubscriptionCheckout(
       queryClient.invalidateQueries({
         queryKey: queryKeys.clinic.subscriptionSettings(),
       }),
+      queryClient.invalidateQueries({ queryKey: queryKeys.billingHistory.all() }),
+      clinicContext?.refreshClinic(),
     ]);
-  }, [queryClient]);
+  }, [clinicContext, queryClient]);
 
   const checkoutTier = useCallback(
     async ({ tier, billingCycle }: TierCheckoutParams) => {
@@ -93,7 +98,7 @@ export function useSubscriptionCheckout(
           throw new Error("We could not start checkout right now. Please try again.");
         }
 
-        await openCheckout({
+        const checkoutResult = await openCheckout({
           key: razorpayKeyId,
           amount: amountCents,
           currency,
@@ -129,21 +134,37 @@ export function useSubscriptionCheckout(
             });
           },
           prefill: {
-            name: user?.name || "Clinic Admin",
-            email: user?.email || "",
+            name:
+              createData.prefill?.name ?? user?.name ?? "Clinic Admin",
+            email: createData.prefill?.email ?? user?.email ?? "",
+            ...(createData.prefill?.contact
+              ? { contact: createData.prefill.contact }
+              : {}),
           },
           theme: { color: BRAND_FOREGROUND_HEX },
         });
+
+        if (checkoutResult.status === "canceled") {
+          return;
+        }
+        if (checkoutResult.status === "failed") {
+          showUserFacingErrorToast(
+            new PaymentFailedError(),
+            "We could not complete this payment. Please try again.",
+            "payment",
+          );
+          return;
+        }
       } catch (error: unknown) {
         if (isPaymentCanceledError(error)) {
-          toast.info("Payment was canceled. No charge was made.");
-        } else {
-          const apiMessage =
-            error instanceof Error && error.message
-              ? error.message
-              : "We could not finish this plan change. Please try again.";
-          showUserFacingErrorToast(error, apiMessage, "payment");
+          notifyPaymentCanceled();
+          return;
         }
+        const apiMessage =
+          error instanceof Error && error.message
+            ? error.message
+            : "We could not finish this plan change. Please try again.";
+        showUserFacingErrorToast(error, apiMessage, "payment");
         throw error;
       } finally {
         checkoutInFlightRef.current = false;

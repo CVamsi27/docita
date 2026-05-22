@@ -1,6 +1,7 @@
 import { describe, it, expect, beforeEach, jest } from '@jest/globals';
 import { ResumeSubscriptionPaymentUseCase } from './resume-subscription-payment.use-case';
 import type { ISubscriptionRepository } from '@/domains/subscriptions/application/ports/subscription.repository.port';
+import type { IClinicOperations } from '@/domains/subscriptions/application/ports/clinic-operations.port';
 import type { IPaymentLinkProvider } from '@/domains/payments/core/ports';
 import { AppConfigService } from '@/shared/modules/config/app-configuration.service';
 
@@ -26,6 +27,7 @@ describe('ResumeSubscriptionPaymentUseCase', () => {
     createSubscriptionReminders: jest.fn(async () => undefined),
     savePayment: jest.fn(async () => undefined),
     updatePaymentStatus: jest.fn(async () => undefined),
+    updatePaymentStatusById: jest.fn(async () => undefined),
     findPaymentsByClinicId: jest.fn(async () => []),
     findPaymentById: findPaymentByIdMock,
     findPaymentByOrderId: jest.fn(async () => null),
@@ -47,19 +49,29 @@ describe('ResumeSubscriptionPaymentUseCase', () => {
     getFrontendAppUrl: () => 'http://localhost:3000',
   } as unknown as AppConfigService;
 
+  const clinicOps: IClinicOperations = {
+    getClinicDetails: jest.fn(async () => ({
+      id: 'clinic-1',
+      name: 'Clinic',
+      email: 'clinic@example.com',
+      phone: '1111111111',
+    })),
+  } as unknown as IClinicOperations;
+
   let useCase: ResumeSubscriptionPaymentUseCase;
 
   beforeEach(() => {
     jest.clearAllMocks();
     findBillingContactMock.mockResolvedValue({
-      name: 'Clinic',
-      email: null,
-      phoneNumber: null,
+      name: 'Admin',
+      email: 'admin@example.com',
+      phoneNumber: '9876543210',
     });
     useCase = new ResumeSubscriptionPaymentUseCase(
       configService,
       paymentLinkProvider,
       subscriptionRepo,
+      clinicOps,
     );
   });
 
@@ -84,5 +96,30 @@ describe('ResumeSubscriptionPaymentUseCase', () => {
     });
     expect(paymentLinkProvider.createPaymentLink).not.toHaveBeenCalled();
     expect(subscriptionRepo.updatePaymentLink).not.toHaveBeenCalled();
+  });
+
+  it('prefills payment link customer with admin phone', async () => {
+    findPaymentByIdMock.mockResolvedValue({
+      id: 'pay_2',
+      clinicId: 'clinic-1',
+      amountCents: 49900,
+      currency: 'INR',
+      status: 'pending',
+      description: 'STARTER MONTHLY subscription',
+    });
+
+    await useCase.execute({
+      clinicId: 'clinic-1',
+      paymentId: 'pay_2',
+    });
+
+    expect(paymentLinkProvider.createPaymentLink).toHaveBeenCalledWith(
+      expect.objectContaining({
+        customer: expect.objectContaining({
+          email: 'admin@example.com',
+          phone: '9876543210',
+        }),
+      }),
+    );
   });
 });

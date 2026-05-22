@@ -26,6 +26,7 @@ type ResolveSubscriptionPaymentInput = {
   razorpayPaymentId: string;
   razorpaySignature: string;
   payableAmountPaise: number;
+  subscriptionPaymentId?: string;
   skipPaymentVerification?: boolean;
   verifiedAmountCents?: number;
 };
@@ -46,17 +47,30 @@ export class ActivateSubscriptionPaymentService {
     verifiedAmountCents: number | undefined;
   }> {
     const payment = parseSubscriptionPaymentLookup(
-      await this.subscriptionRepo.findPaymentByOrderId(
-        input.clinicId,
-        input.razorpayOrderId,
-      ),
+      input.subscriptionPaymentId
+        ? await this.subscriptionRepo.findPaymentById(
+            input.clinicId,
+            input.subscriptionPaymentId,
+          )
+        : await this.subscriptionRepo.findPaymentByOrderId(
+            input.clinicId,
+            input.razorpayOrderId,
+          ),
     );
 
     if (!payment) {
-      throw new BadRequestException('Payment order not found for this clinic');
+      throw new BadRequestException(
+        input.subscriptionPaymentId
+          ? 'Subscription payment not found for this clinic'
+          : 'Payment order not found for this clinic',
+      );
     }
 
-    if (payment.amountCents !== input.payableAmountPaise) {
+    if (input.subscriptionPaymentId) {
+      if (payment.id !== input.subscriptionPaymentId) {
+        throw new BadRequestException('Subscription payment mismatch');
+      }
+    } else if (payment.amountCents !== input.payableAmountPaise) {
       throw new BadRequestException(
         'Payment amount does not match checkout quote',
       );

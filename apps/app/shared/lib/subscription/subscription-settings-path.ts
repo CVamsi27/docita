@@ -19,3 +19,8 @@ export function subscriptionSettingsHref(
 
   return `/settings?${search.toString()}`;
 }
+
+/** Opens subscription settings and auto-starts payment recovery checkout when eligible. */
+export const SUBSCRIPTION_BILLING_RESOLVE_PATH = subscriptionSettingsHref({
+  resolvePayment: "1",
+});

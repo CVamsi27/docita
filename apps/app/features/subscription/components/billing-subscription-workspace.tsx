@@ -9,7 +9,10 @@ import { UsageDashboard } from "@/features/subscription/components/usage-dashboa
 import { InvoiceHistoryDialog } from "@/features/subscription/components/dialogs/invoice-history-dialog";
 import { PaymentSuccessModal } from "@/features/subscription/components/modals/payment-success-modal";
 import { TierChangeDialog } from "@/features/subscription/components/dialogs/tier-change-dialog";
-import { useBillingSubscriptionWorkspace } from "@/features/subscription/hooks/use-billing-subscription-workspace";
+import {
+  type BillingSubscriptionPaymentRecovery,
+  useBillingSubscriptionWorkspace,
+} from "@/features/subscription/hooks/use-billing-subscription-workspace";
 import { tierSchema } from "@workspace/types";
 import { getTierInfo } from "@/lib/subscription/tier-access";
 import { parseSupportedCurrency } from "@workspace/utils";
@@ -21,8 +24,12 @@ import {
   LegalDialog,
 } from "./billing-subscription-sections";
 
-export function BillingSubscriptionWorkspace() {
-  const ws = useBillingSubscriptionWorkspace();
+export function BillingSubscriptionWorkspace({
+  paymentRecovery,
+}: {
+  paymentRecovery?: BillingSubscriptionPaymentRecovery;
+} = {}) {
+  const ws = useBillingSubscriptionWorkspace(paymentRecovery);
 
   return (
     <div className="space-y-6">
@@ -57,22 +64,17 @@ export function BillingSubscriptionWorkspace() {
           ws.subscription.tier !== "ENTERPRISE" &&
           (ws.subscription.basePriceCents ?? 0) > 0 &&
           !ws.isSubscriptionExpired
-            ? () => {
-                const sub = ws.subscription;
-                if (!sub) return;
-                ws.checkoutTier({
-                  tier: sub.tier,
-                  billingCycle: sub.billingCycle ?? "MONTHLY",
-                });
-              }
+            ? () => void ws.resolvePayment()
             : undefined
         }
         renewActionLabel={
-          ws.subscriptionStatus === "TRIALING"
-            ? "Add payment method"
-            : ws.daysLeftInPeriod !== null && ws.daysLeftInPeriod <= 7
-              ? "Renew now"
-              : "Pay for next cycle"
+          ws.hasRecoverablePayment || ws.subscription?.hasOutstandingPendingPayment
+            ? "Pay now"
+            : ws.subscriptionStatus === "TRIALING"
+              ? "Add payment method"
+              : ws.daysLeftInPeriod !== null && ws.daysLeftInPeriod <= 7
+                ? "Renew now"
+                : "Pay for next cycle"
         }
         emphasizeRenew={
           ws.subscriptionStatus === "TRIALING" ||
@@ -165,7 +167,7 @@ export function BillingSubscriptionWorkspace() {
         onOpenChange={ws.setShowInvoiceHistory}
         onResolvePayment={() => {
           ws.setShowInvoiceHistory(false);
-          ws.scrollToPlans();
+          void ws.resolvePayment();
         }}
       />
     </div>

@@ -90,6 +90,22 @@ export class PrismaSubscriptionRepository implements ISubscriptionRepository {
     return this.payments.updatePaymentStatus(orderId, status, details);
   }
 
+  updatePaymentStatusById(
+    clinicId: string,
+    paymentId: string,
+    status: string,
+    details?: Parameters<
+      PrismaSubscriptionPaymentRepository['updatePaymentStatusById']
+    >[3],
+  ) {
+    return this.payments.updatePaymentStatusById(
+      clinicId,
+      paymentId,
+      status,
+      details,
+    );
+  }
+
   findPaymentsByClinicId(clinicId: string, limit: number) {
     return this.payments.findPaymentsByClinicId(clinicId, limit);
   }

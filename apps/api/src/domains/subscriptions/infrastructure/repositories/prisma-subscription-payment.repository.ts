@@ -77,21 +77,58 @@ export class PrismaSubscriptionPaymentRepository {
     try {
       await this.prisma.subscriptionPayment.updateMany({
         where: { razorpayOrderId: orderId },
-        data: {
-          status: status,
-          razorpayPaymentId: details?.paymentId,
-          razorpaySignature: details?.signature,
-          subscriptionId: details?.subscriptionId,
-          paidAt: status === 'paid' ? this.clock.now() : undefined,
-          invoiceUrl: details?.invoiceUrl,
-          invoiceNumber: details?.invoiceNumber,
-        },
+        data: this.buildPaymentStatusUpdate(status, details),
       });
     } catch (error) {
       throw new BadRequestException(
         `Failed to update payment status: ${error instanceof Error ? error.message : 'Unknown error'}`,
       );
     }
+  }
+
+  async updatePaymentStatusById(
+    clinicId: string,
+    paymentId: string,
+    status: string,
+    details?: {
+      paymentId?: string;
+      signature?: string;
+      subscriptionId?: string;
+      invoiceUrl?: string;
+      invoiceNumber?: string;
+    },
+  ): Promise<void> {
+    try {
+      await this.prisma.subscriptionPayment.updateMany({
+        where: { id: paymentId, clinicId },
+        data: this.buildPaymentStatusUpdate(status, details),
+      });
+    } catch (error) {
+      throw new BadRequestException(
+        `Failed to update payment status: ${error instanceof Error ? error.message : 'Unknown error'}`,
+      );
+    }
+  }
+
+  private buildPaymentStatusUpdate(
+    status: string,
+    details?: {
+      paymentId?: string;
+      signature?: string;
+      subscriptionId?: string;
+      invoiceUrl?: string;
+      invoiceNumber?: string;
+    },
+  ) {
+    return {
+      status,
+      razorpayPaymentId: details?.paymentId,
+      razorpaySignature: details?.signature,
+      subscriptionId: details?.subscriptionId,
+      paidAt: status === 'paid' ? this.clock.now() : undefined,
+      invoiceUrl: details?.invoiceUrl,
+      invoiceNumber: details?.invoiceNumber,
+    };
   }
 
   async findPaymentsByClinicId(

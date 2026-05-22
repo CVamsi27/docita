@@ -195,6 +195,22 @@ export class Subscription {
     this.touchUpdatedAt(now);
   }
 
+  /**
+   * After a lapsed renewal, the new paid period starts the calendar day after the
+   * previous period ended (not the payment completion date).
+   */
+  static resolvePaidPeriodStartAfterLapse(
+    previousPeriodEnd: Date,
+    paymentDate: Date,
+  ): Date {
+    const dayAfterLapse = new Date(previousPeriodEnd);
+    dayAfterLapse.setUTCDate(dayAfterLapse.getUTCDate() + 1);
+    dayAfterLapse.setUTCHours(0, 0, 0, 0);
+    return paymentDate.getTime() >= dayAfterLapse.getTime()
+      ? dayAfterLapse
+      : paymentDate;
+  }
+
   /** Billing period end from a cycle anchor (shared by paid activation paths). */
   static calculatePeriodEnd(start: Date, billingCycle: BillingCycle): Date {
     const end = new Date(start);
@@ -306,6 +322,8 @@ export class Subscription {
     options: { preserveCurrentPeriodEnd?: boolean } = {},
   ) {
     const isSameCycle = this.billingCycle.equals(billingCycle);
+    const isSamePlanAndCycle = this.getPlan().equals(plan) && isSameCycle;
+    const periodLapsed = this.currentPeriodEnd.getTime() < start.getTime();
     const keepExistingPeriodEnd =
       options.preserveCurrentPeriodEnd === true &&
       isSameCycle &&
@@ -320,9 +338,16 @@ export class Subscription {
       // billing rhythm doesn't drift with every plan change.
       this.currentPeriodStart = start;
     } else {
-      this.currentPeriodStart = start;
+      const periodStart =
+        periodLapsed && isSamePlanAndCycle
+          ? Subscription.resolvePaidPeriodStartAfterLapse(
+              this.currentPeriodEnd,
+              start,
+            )
+          : start;
+      this.currentPeriodStart = periodStart;
       this.currentPeriodEnd = Subscription.calculatePeriodEnd(
-        start,
+        periodStart,
         billingCycle,
       );
     }

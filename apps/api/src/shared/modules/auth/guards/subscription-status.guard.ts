@@ -13,7 +13,7 @@ import { IS_PUBLIC_KEY } from '@/shared/modules/auth/auth/public.decorator';
 import { ClinicAuthCacheService } from '@/shared/modules/auth/auth/clinic-auth-cache.service';
 import {
   isBillingAdminRole,
-  isSubscriptionPastGraceDeadline,
+  isSubscriptionBillingHardLocked,
 } from '@/shared/modules/auth/utils/subscription-hard-lock.util';
 import { getTrialWindowState } from '@/shared/modules/auth/utils/trial-window.util';
 
@@ -66,10 +66,16 @@ export class SubscriptionStatusGuard implements CanActivate {
         { bypassCache: true },
       );
 
+      const now = this.clock.now().getTime();
       if (
-        isSubscriptionPastGraceDeadline({
+        isSubscriptionBillingHardLocked({
           subscriptionStatus: clinicAuth.subscriptionStatus,
           graceUntil: clinicAuth.subscriptionGraceUntil,
+          hasOutstandingPendingPayment:
+            clinicAuth.hasOutstandingPendingPayment,
+          subscriptionCurrentPeriodEnd:
+            clinicAuth.subscriptionCurrentPeriodEnd,
+          now,
         }) &&
         !isBillingAdminRole(user.role)
       ) {

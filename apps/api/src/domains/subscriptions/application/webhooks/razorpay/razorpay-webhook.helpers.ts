@@ -5,3 +5,12 @@ export function readRazorpayNoteString(
   const value = notes?.[key];
   return typeof value === 'string' ? value : undefined;
 }
+
+export function readRazorpayClinicId(
+  notes: Record<string, unknown> | undefined,
+): string | undefined {
+  return (
+    readRazorpayNoteString(notes, 'clinic_id') ??
+    readRazorpayNoteString(notes, 'clinicId')
+  );
+}

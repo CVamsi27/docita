@@ -57,6 +57,25 @@ export class PaymentGatewayFacade implements IPaymentGateway {
     return customer.id;
   }
 
+  async updateCustomer(
+    customerId: string,
+    request: {
+      email: string;
+      name: string;
+      phone?: string;
+      clinicId: string;
+    },
+  ): Promise<void> {
+    await this.subscriptionProvider.updateCustomer(customerId, {
+      email: request.email,
+      name: request.name,
+      phone: request.phone,
+      metadata: {
+        clinicId: request.clinicId,
+      },
+    });
+  }
+
   async createOrder(request: CreateOrderRequest): Promise<CreateOrderResponse> {
     const amount = Money.fromCents(request.amountCents, request.currency);
 

@@ -1,4 +1,7 @@
-import { SUBSCRIPTION_SETTINGS_PATH } from "@/lib/subscription/subscription-settings-path";
+import {
+  SUBSCRIPTION_BILLING_RESOLVE_PATH,
+  SUBSCRIPTION_SETTINGS_PATH,
+} from "@/lib/subscription/subscription-settings-path";
 import { appSession } from "@/lib/auth/session";
 import { showUserFacingErrorToast } from "@/lib/errors/user-facing-errors";
 
@@ -42,11 +45,12 @@ function shouldSuppressDevToast(message: string): boolean {
   );
 }
 
-function getRedirectPathForForbiddenCode(code?: string): string | null {
+export function getRedirectPathForForbiddenCode(code?: string): string | null {
   switch (code) {
     case "EMAIL_NOT_VERIFIED":
       return "/verify-email-sent";
     case "SUBSCRIPTION_INACTIVE":
+      return SUBSCRIPTION_BILLING_RESOLVE_PATH;
     case "INSUFFICIENT_TIER":
       return SUBSCRIPTION_SETTINGS_PATH;
     case "NO_CLINIC":

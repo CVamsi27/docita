@@ -52,6 +52,7 @@ export function isPastSubscriptionGraceDeadline(
     | Pick<Clinic, "subscriptionStatus" | "subscriptionGraceUntil">
     | null
     | undefined,
+  now: number = Date.now(),
 ): boolean {
   if (!clinic) {
     return false;
@@ -64,7 +65,54 @@ export function isPastSubscriptionGraceDeadline(
   if (status !== "GRACE" && status !== "PAST_DUE") {
     return false;
   }
-  return Date.now() > until.getTime();
+  return now > until.getTime();
+}
+
+export function isSubscriptionPeriodLapsed(
+  currentPeriodEnd: string | Date | null | undefined,
+  now: number = Date.now(),
+): boolean {
+  const end = toDateOrNull(currentPeriodEnd);
+  if (!end) {
+    return false;
+  }
+  return now >= end.getTime();
+}
+
+export function isRenewalUnpaidWithOutstandingPending(params: {
+  hasOutstandingPendingPayment: boolean;
+  currentPeriodEnd: string | Date | null | undefined;
+  now?: number;
+}): boolean {
+  if (!params.hasOutstandingPendingPayment) {
+    return false;
+  }
+  return isSubscriptionPeriodLapsed(
+    params.currentPeriodEnd,
+    params.now ?? Date.now(),
+  );
+}
+
+export function isSubscriptionBillingHardLocked(
+  clinic:
+    | Pick<Clinic, "subscriptionStatus" | "subscriptionGraceUntil">
+    | null
+    | undefined,
+  billing: {
+    hasOutstandingPendingPayment?: boolean;
+    currentPeriodEnd?: string | null;
+  } | null | undefined,
+  now: number = Date.now(),
+): boolean {
+  if (isPastSubscriptionGraceDeadline(clinic, now)) {
+    return true;
+  }
+  return isRenewalUnpaidWithOutstandingPending({
+    hasOutstandingPendingPayment:
+      billing?.hasOutstandingPendingPayment === true,
+    currentPeriodEnd: billing?.currentPeriodEnd ?? null,
+    now,
+  });
 }
 
 export function isBillingAdminRole(role: string | undefined): boolean {

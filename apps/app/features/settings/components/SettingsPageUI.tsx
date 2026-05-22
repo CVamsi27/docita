@@ -43,31 +43,29 @@ export function SettingsPageUI({
       header={
         <div
           className={cn(
-            "grid items-start gap-x-3 gap-y-5 sm:gap-x-4",
-            "grid-cols-[auto_minmax(0,1fr)]",
-            "lg:[grid-template-columns:minmax(0,1fr)_fit-content(24rem)] lg:gap-x-10",
+            "grid min-w-0 items-start gap-y-4",
+            "grid-cols-1 md:grid-cols-[auto_minmax(0,1fr)] md:gap-x-4",
+            "lg:grid-cols-[minmax(0,1fr)_minmax(0,24rem)] lg:gap-x-10",
           )}
         >
-          <div className="col-start-1 row-start-1 min-w-0 shrink-0">
+          <div className="hidden min-w-0 shrink-0 md:col-start-1 md:row-start-1 md:block">
             <BackButton fallback="/today" label="Back to Today" />
           </div>
-          <div className="col-start-2 row-start-1 min-w-0 w-full max-w-md justify-self-end sm:max-w-lg lg:max-w-none">
+          <div className="min-w-0 w-full md:col-start-2 md:row-start-1 lg:max-w-none">
             <SettingsExpandedSearch
               searchQuery={searchQuery}
               setSearchQuery={setSearchQuery}
             />
           </div>
-          <div className="col-span-2 min-w-0 lg:col-span-1 lg:col-start-1 lg:row-start-2">
+          <div className="min-w-0 md:col-span-2 lg:col-span-1 lg:col-start-1 lg:row-start-2">
             <PageHeader
               title="Settings"
               description="Manage your facility preferences and configurations."
               className="min-w-0"
             />
           </div>
-          <div className="col-span-2 flex min-w-0 justify-start lg:col-span-1 lg:col-start-2 lg:row-start-2">
-            <div className="w-fit max-w-full">
-              <SettingsPageHeaderUserMeta />
-            </div>
+          <div className="flex min-w-0 w-full justify-stretch md:col-span-2 lg:col-span-1 lg:col-start-2 lg:row-start-2 lg:justify-end">
+            <SettingsPageHeaderUserMeta />
           </div>
         </div>
       }
@@ -77,7 +75,7 @@ export function SettingsPageUI({
         <Tabs
           value={tabValue}
           onValueChange={onTabChange}
-          className="flex flex-col gap-6 md:flex-row md:items-start md:gap-8 lg:gap-10"
+          className="flex min-w-0 flex-col gap-6 md:flex-row md:items-start md:gap-8 lg:gap-10"
         >
           <SettingsPageTabNav filteredTabs={filteredTabs} />
           <SettingsPageTabPanels visibleTabValues={visibleTabValues} />

@@ -26,6 +26,8 @@ export interface ActivateSubscriptionRequest {
   razorpaySignature: string;
   tier: string;
   cycle: string;
+  /** Razorpay payment-link resume rows may not have an order id. */
+  subscriptionPaymentId?: string;
   skipPaymentVerification?: boolean;
   verifiedAmountCents?: number;
 }
@@ -91,6 +93,7 @@ export class ActivateSubscriptionUseCase {
         razorpayPaymentId: request.razorpayPaymentId,
         razorpaySignature: request.razorpaySignature,
         payableAmountPaise: payableAmount,
+        subscriptionPaymentId: request.subscriptionPaymentId,
         skipPaymentVerification: request.skipPaymentVerification,
         verifiedAmountCents: request.verifiedAmountCents,
       });
@@ -111,27 +114,40 @@ export class ActivateSubscriptionUseCase {
       surplusCreditCents: breakdown.surplusCreditCents,
     });
 
+    const invoiceOrderRef =
+      request.razorpayOrderId || payment.razorpayOrderId || payment.id;
     const razorpayInvoice = await this.billingSnapshot.createHostedInvoice({
       clinicId: request.clinicId,
       amountCents: payment.amountCents,
       currency: payment.currency,
-      orderId: request.razorpayOrderId,
+      orderId: invoiceOrderRef,
       paymentId: request.razorpayPaymentId,
       tier: tier.value,
       cycle: cycle.value,
     });
 
-    await this.subscriptionRepo.updatePaymentStatus(
-      request.razorpayOrderId,
-      'paid',
-      {
-        paymentId: request.razorpayPaymentId,
-        signature: request.razorpaySignature,
-        subscriptionId: saved.id,
-        invoiceUrl: razorpayInvoice?.shortUrl ?? undefined,
-        invoiceNumber: razorpayInvoice?.invoiceNumber ?? undefined,
-      },
-    );
+    const paidDetails = {
+      paymentId: request.razorpayPaymentId,
+      signature: request.razorpaySignature,
+      subscriptionId: saved.id,
+      invoiceUrl: razorpayInvoice?.shortUrl ?? undefined,
+      invoiceNumber: razorpayInvoice?.invoiceNumber ?? undefined,
+    };
+
+    if (request.subscriptionPaymentId) {
+      await this.subscriptionRepo.updatePaymentStatusById(
+        request.clinicId,
+        request.subscriptionPaymentId,
+        'paid',
+        paidDetails,
+      );
+    } else {
+      await this.subscriptionRepo.updatePaymentStatus(
+        request.razorpayOrderId,
+        'paid',
+        paidDetails,
+      );
+    }
 
     await this.clinicSync.syncAfterActivation(request.clinicId, tier);
 
