@@ -5,6 +5,7 @@ import {
   INTELLIGENCE_ADDONS,
   INTELLIGENCE_BUNDLE_DISCOUNT,
   PLANNED_FEATURES,
+  PUBLISHED_PLAN_LADDER,
   Tier,
   TIER_FEATURES,
   TIER_INFO,
@@ -65,6 +66,9 @@ export function getTierName(tier: Tier): TierName {
     }
   }
 }
+
+/** Numeric {@link Tier} values in published plan ladder order (excludes INTELLIGENCE add-on). */
+export const PUBLISHED_TIER_LADDER: Tier[] = PUBLISHED_PLAN_LADDER.map(getTierValue);
 
 function isFeatureKey(key: string): key is Feature {
   return key in FEATURE_TIER_MAP;

@@ -22,6 +22,9 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@workspace/ui/components/form/select";
+import { AppPageScaffold } from "@workspace/ui/components/layout/app-page-scaffold";
+import { PageHeader } from "@workspace/ui/components/layout/page-header";
+import { DataState } from "@workspace/ui/components/data-display/data-state";
 import { DocitaLoadingIndicator } from "@workspace/ui/components/feedback/docita-loading-indicator";
 import { WhatsAppBroadcastJobSummary } from "@workspace/types";
 import { AlertCircle, FileText, Megaphone, Send, Upload } from "lucide-react";
@@ -155,22 +158,29 @@ export function BroadcastsPage() {
   const skippedRows = parseResult?.skipped ?? [];
   const recipientCount = parseResult?.recipients.length ?? 0;
 
-  return (
-    <div className="space-y-6">
-      <div className="space-y-2">
-        <div className="inline-flex items-center gap-2 rounded-full border bg-background px-3 py-1 text-xs font-medium text-muted-foreground">
-          <Megaphone className="h-3.5 w-3.5" />
-          WhatsApp Broadcasts
-        </div>
-        <h1 className="ui-page-title text-[var(--fs-2xl)] sm:text-[var(--fs-3xl)]">
-          Broadcast Messages
-        </h1>
-        <p className="ui-page-subtitle">
-          Upload a CSV of phone numbers and send a WhatsApp campaign through the
-          Docita support number. Replies land in the Support WhatsApp inbox.
-        </p>
-      </div>
+  const listStatus = broadcastsQuery.isLoading
+    ? "loading"
+    : broadcastsQuery.isError
+      ? "error"
+      : "success";
 
+  const listErrorMessage = broadcastsQuery.isError
+    ? getUserFacingErrorMessage(broadcastsQuery.error, {
+        context: "load",
+        fallback: "We could not load broadcast history. Please try again.",
+      })
+    : undefined;
+
+  return (
+    <AppPageScaffold
+      header={
+        <PageHeader
+          title="Broadcast Messages"
+          description="Upload a CSV of phone numbers and send a WhatsApp campaign through the Docita support number. Replies land in the Support WhatsApp inbox."
+          size="compact"
+        />
+      }
+    >
       <div className="grid gap-6 lg:grid-cols-[minmax(0,3fr)_minmax(0,2fr)]">
         <Card>
           <CardHeader>
@@ -384,13 +394,19 @@ export function BroadcastsPage() {
             <CardTitle className="text-lg">Recent broadcasts</CardTitle>
           </CardHeader>
           <CardContent>
-            {broadcastsQuery.isLoading ? (
-              <p className="text-sm text-muted-foreground">Loading…</p>
-            ) : jobs.length === 0 ? (
-              <p className="text-sm text-muted-foreground">
-                No broadcasts yet. Send your first one to see it here.
-              </p>
-            ) : (
+            <DataState
+              status={
+                listStatus === "success" && jobs.length === 0
+                  ? "empty"
+                  : listStatus
+              }
+              loadingMessage="Loading broadcast history…"
+              errorMessage={listErrorMessage}
+              onRetry={() => void broadcastsQuery.refetch()}
+              emptyTitle="No broadcasts yet"
+              emptyDescription="Send your first campaign to see it here."
+              emptyIcon={Megaphone}
+            >
               <ul className="space-y-3">
                 {jobs.map((job) => (
                   <li
@@ -411,7 +427,9 @@ export function BroadcastsPage() {
                       </Badge>
                     </div>
                     <div className="mt-2 flex flex-wrap items-center gap-3 text-xs text-muted-foreground">
-                      <span>Sent {job.sentCount}/{job.totalCount}</span>
+                      <span>
+                        Sent {job.sentCount}/{job.totalCount}
+                      </span>
                       {job.failedCount > 0 && (
                         <span className="text-destructive">
                           {job.failedCount} failed
@@ -422,10 +440,10 @@ export function BroadcastsPage() {
                   </li>
                 ))}
               </ul>
-            )}
+            </DataState>
           </CardContent>
         </Card>
       </div>
-    </div>
+    </AppPageScaffold>
   );
 }

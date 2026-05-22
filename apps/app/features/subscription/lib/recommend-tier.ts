@@ -1,4 +1,6 @@
 import {
+  PUBLISHED_PLAN_LADDER,
+  publishedPlanLadderIndex,
   TIER_LIMITS,
   WHATSAPP_ADDON_PRICING,
   type CurrentUsage,
@@ -22,15 +24,6 @@ function readWhatsappIncludedQuota(tier: TierName): number {
   return WHATSAPP_ADDON_PRICING[tier]?.includedQuota ?? 0;
 }
 
-const RECOMMENDER_LADDER: TierName[] = [
-  "STARTER",
-  "FRONT_DESK",
-  "ESSENTIAL",
-  "PROFESSIONAL",
-  "HOSPITAL",
-  "ENTERPRISE",
-];
-
 export interface TierRecommendation {
   tier: TierName;
   reasons: string[];
@@ -45,15 +38,15 @@ export function recommendTier(
   usage: CurrentUsage | null | undefined,
 ): TierRecommendation | null {
   if (!usage) return null;
-  const currentIdx = RECOMMENDER_LADDER.indexOf(current);
+  const currentIdx = publishedPlanLadderIndex(current);
   if (currentIdx < 0) return null;
 
   const consultations = usage.usage.consultations;
   const users = usage.usage.users;
   const whatsapp = usage.usage.whatsappMessages;
 
-  for (let i = currentIdx + 1; i < RECOMMENDER_LADDER.length; i += 1) {
-    const candidate = RECOMMENDER_LADDER[i];
+  for (let i = currentIdx + 1; i < PUBLISHED_PLAN_LADDER.length; i += 1) {
+    const candidate = PUBLISHED_PLAN_LADDER[i];
     if (!candidate) continue;
     const limits = TIER_LIMITS[candidate];
     const includedAppointments = limits.appointments ?? 0;

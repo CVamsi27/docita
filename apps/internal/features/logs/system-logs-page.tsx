@@ -13,7 +13,9 @@ import {
 import { Badge } from "@workspace/ui/components/indicators/badge";
 import { Button } from "@workspace/ui/components/form/button";
 import { Input } from "@workspace/ui/components/form/input";
+import { AppPageScaffold } from "@workspace/ui/components/layout/app-page-scaffold";
 import { PageHeader } from "@workspace/ui/components/layout/page-header";
+import { DataState } from "@workspace/ui/components/data-display/data-state";
 import {
   Table,
   TableBody,
@@ -239,33 +241,41 @@ export function SystemLogsPage({
     return () => clearTimeout(timeout);
   }, [searchText, updateFilterParams]);
 
+  const pageStatus = loading
+    ? "loading"
+    : errorMessage
+      ? "error"
+      : "success";
+
   return (
-    <div className="space-y-6">
-      <PageHeader
-        title={title}
-        description={description}
-        size="compact"
-        actions={
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={handleRefresh}
-            disabled={refreshing}
-          >
-            <RefreshCw
-              className={`mr-2 h-4 w-4 ${refreshing ? "animate-spin" : ""}`}
-            />
-            Refresh
-          </Button>
-        }
-      />
-
-      {errorMessage && (
-        <div className="surface-danger rounded-md p-3 text-sm">
-          {errorMessage}
-        </div>
-      )}
-
+    <AppPageScaffold
+      header={
+        <PageHeader
+          title={title}
+          description={description}
+          size="compact"
+          actions={
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={handleRefresh}
+              disabled={refreshing}
+            >
+              <RefreshCw
+                className={`mr-2 h-4 w-4 ${refreshing ? "animate-spin" : ""}`}
+              />
+              Refresh
+            </Button>
+          }
+        />
+      }
+    >
+      <DataState
+        status={pageStatus}
+        loadingMessage="Loading logs…"
+        errorMessage={errorMessage ?? undefined}
+        onRetry={() => void logsQuery.refetch()}
+      >
       <div className="grid grid-cols-1 gap-3 md:grid-cols-4">
         <div className="space-y-1">
           <label className="text-xs font-medium text-muted-foreground">
@@ -440,6 +450,7 @@ export function SystemLogsPage({
           </Button>
         </div>
       </div>
-    </div>
+      </DataState>
+    </AppPageScaffold>
   );
 }

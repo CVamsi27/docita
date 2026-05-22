@@ -125,9 +125,7 @@ describe("UsersPageContainer", () => {
     usersDataMocks.state.loading = true;
     usersDataMocks.state.filteredUsers = [];
     const { rerender } = render(<UsersPageContainer />);
-    expect(
-      screen.getByRole("status", { name: "Loading team members" }),
-    ).toBeInTheDocument();
+    expect(screen.getByText("Loading team members…")).toBeInTheDocument();
 
     usersDataMocks.state.loading = false;
     usersDataMocks.state.users = [];
@@ -138,10 +136,8 @@ describe("UsersPageContainer", () => {
     usersDataMocks.state.hasError = true;
     usersDataMocks.state.errorMessage = "Network unavailable";
     rerender(<UsersPageContainer />);
-    expect(
-      screen.getByText("We could not load your team members"),
-    ).toBeInTheDocument();
-    fireEvent.click(screen.getByRole("button", { name: "Retry" }));
+    expect(screen.getByText("Network unavailable")).toBeInTheDocument();
+    fireEvent.click(screen.getByRole("button", { name: "Try again" }));
     expect(usersDataMocks.retry).toHaveBeenCalled();
   });
 });

@@ -19,6 +19,7 @@ import { toast } from "sonner";
 import { Eye, EyeOff, ShieldCheck } from "lucide-react";
 import { client } from "@/lib/api/api-client";
 import { showUserFacingErrorToast } from "@/lib/errors/user-facing-errors";
+import { ThemeToggle } from "@/components/theme-toggle";
 
 function getMainAppLoginUrl() {
   return `${MAIN_APP_URL.replace(/\/$/, "")}/login`;
@@ -106,7 +107,10 @@ export default function InternalLogin() {
   };
 
   return (
-    <div className="flex items-center justify-center min-h-screen bg-muted/30 px-4 py-8">
+    <div className="relative flex min-h-screen items-center justify-center bg-muted/30 px-4 py-8">
+      <div className="absolute right-4 top-4 z-10 sm:right-6 sm:top-6">
+        <ThemeToggle />
+      </div>
       <div className="w-full max-w-md space-y-6">
         <div className="flex flex-col items-center space-y-3 text-center">
           <div className="flex h-12 w-12 items-center justify-center rounded-full border border-border/70 bg-background/70">
@@ -177,22 +181,24 @@ export default function InternalLogin() {
                         : undefined
                     }
                   />
-                  <Button
-                    type="button"
-                    variant="ghost"
-                    size="sm"
-                    className="absolute right-0 top-0 h-full px-3 py-2 hover:bg-transparent"
-                    onClick={() => setShowPassword(!showPassword)}
-                  >
-                    {showPassword ? (
-                      <EyeOff className="h-4 w-4 text-muted-foreground" />
-                    ) : (
-                      <Eye className="h-4 w-4 text-muted-foreground" />
-                    )}
-                    <span className="sr-only">
-                      {showPassword ? "Hide password" : "Show password"}
-                    </span>
-                  </Button>
+                  <div className="absolute inset-y-0 right-0 flex items-center pr-1">
+                    <Button
+                      type="button"
+                      variant="ghost"
+                      size="icon-sm"
+                      className="text-muted-foreground hover:bg-transparent hover:text-foreground"
+                      onClick={() => setShowPassword(!showPassword)}
+                    >
+                      {showPassword ? (
+                        <EyeOff className="h-4 w-4" />
+                      ) : (
+                        <Eye className="h-4 w-4" />
+                      )}
+                      <span className="sr-only">
+                        {showPassword ? "Hide password" : "Show password"}
+                      </span>
+                    </Button>
+                  </div>
                 </div>
                 {fieldErrors.password && (
                   <p

@@ -1,3 +1,3 @@
-import EnterpriseContractsPage from "./enterprise-contracts-page";
+import { EnterpriseContractsPage } from "@/features/enterprise-contracts";
 
 export default EnterpriseContractsPage;

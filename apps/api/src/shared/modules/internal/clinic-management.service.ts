@@ -27,6 +27,19 @@ import {
 import { ClinicFactory } from '@/domains/clinics/core/factories/clinic.factory';
 import { UserFactory } from '@/domains/users/core/factories/user.factory';
 
+const CLINIC_ADMIN_SELECT = {
+  id: true,
+  name: true,
+  email: true,
+  phoneNumber: true,
+  role: true,
+  appLoginDisabled: true,
+  createdAt: true,
+  updatedAt: true,
+} as const;
+
+const CLINIC_ADMIN_ROLES: Role[] = [Role.ADMIN, Role.ADMIN_DOCTOR];
+
 @Injectable()
 export class ClinicManagementService {
   constructor(
@@ -235,16 +248,9 @@ export class ClinicManagementService {
     return this.prisma.user.findMany({
       where: {
         clinicId,
-        role: { in: ['ADMIN', 'ADMIN_DOCTOR'] },
+        role: { in: CLINIC_ADMIN_ROLES },
       },
-      select: {
-        id: true,
-        name: true,
-        email: true,
-        phoneNumber: true,
-        role: true,
-        createdAt: true,
-      },
+      select: CLINIC_ADMIN_SELECT,
       orderBy: { createdAt: 'desc' },
     });
   }
@@ -271,14 +277,9 @@ export class ClinicManagementService {
         phoneNumber: data.phoneNumber,
         role,
         clinicId,
+        appLoginDisabled: false,
       },
-      select: {
-        id: true,
-        name: true,
-        email: true,
-        role: true,
-        createdAt: true,
-      },
+      select: CLINIC_ADMIN_SELECT,
     });
   }
 
@@ -314,29 +315,36 @@ export class ClinicManagementService {
     return this.prisma.user.update({
       where: { id: adminId },
       data: updateData,
-      select: {
-        id: true,
-        name: true,
-        email: true,
-        role: true,
-        updatedAt: true,
-      },
+      select: CLINIC_ADMIN_SELECT,
     });
   }
 
+  private async findClinicAdminOrThrow(adminId: string) {
+    const admin = await this.prisma.user.findUnique({
+      where: { id: adminId },
+      select: { id: true, role: true },
+    });
+    if (!admin || !CLINIC_ADMIN_ROLES.includes(admin.role)) {
+      throw new BadRequestException('Admin not found');
+    }
+    return admin;
+  }
+
   async deactivateAdmin(adminId: string) {
-    return await Promise.resolve({
-      id: adminId,
-      message:
-        'Admin deactivation requires additional setup (active/status field on User model)',
+    await this.findClinicAdminOrThrow(adminId);
+    return this.prisma.user.update({
+      where: { id: adminId },
+      data: { appLoginDisabled: true },
+      select: CLINIC_ADMIN_SELECT,
     });
   }
 
   async activateAdmin(adminId: string) {
-    return await Promise.resolve({
-      id: adminId,
-      message:
-        'Admin activation requires additional setup (active/status field on User model)',
+    await this.findClinicAdminOrThrow(adminId);
+    return this.prisma.user.update({
+      where: { id: adminId },
+      data: { appLoginDisabled: false },
+      select: CLINIC_ADMIN_SELECT,
     });
   }
 }

@@ -18,7 +18,9 @@ export interface InternalClinicTierInfo {
 /** Tier row from `/internal/tier-pricing` (payment-processing defaults). */
 export interface InternalPaymentTierPricingRow {
   tier: string;
+  displayName?: string;
   price: number;
+  priceIsCustom?: boolean;
   billingCycle: string;
   maxDoctors: number;
   maxPatients: number;

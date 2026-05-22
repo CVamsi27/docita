@@ -45,7 +45,7 @@ vi.mock("sonner", () => ({
 const clinic = {
   id: "clinic_1",
   name: "Care Clinic",
-  tier: "CORE",
+  tier: "ESSENTIAL",
   email: "billing@care.example",
   phone: "+919000000000",
   currency: "INR",
@@ -53,7 +53,7 @@ const clinic = {
 
 const tierPricing = [
   {
-    tier: "CORE",
+    tier: "ESSENTIAL",
     price: 999,
     billingCycle: "monthly",
     maxDoctors: 20,
@@ -61,19 +61,30 @@ const tierPricing = [
     features: ["Standard"],
   },
   {
-    tier: "PLUS",
-    price: 2999,
+    tier: "PROFESSIONAL",
+    displayName: "Professional",
+    price: 2499,
     billingCycle: "monthly",
     maxDoctors: 50,
     maxPatients: 2000,
     features: ["Advanced"],
   },
+  {
+    tier: "ENTERPRISE",
+    displayName: "Enterprise",
+    price: 0,
+    priceIsCustom: true,
+    billingCycle: "custom",
+    maxDoctors: -1,
+    maxPatients: -1,
+    features: ["Enterprise"],
+  },
 ];
 
 const pricingConfig = {
   tiers: [
-    { id: "CORE", pricing: { monthly: 999 } },
-    { id: "PLUS", pricing: { monthly: 2999 } },
+    { id: "ESSENTIAL", pricing: { monthly: 999 } },
+    { id: "PROFESSIONAL", pricing: { monthly: 2499 } },
   ],
 };
 
@@ -127,7 +138,7 @@ describe("PaymentProcessingPage", () => {
       }
       if (url === "/internal/clinics/clinic_1/tier-info") {
         return Promise.resolve({
-          currentTier: "CORE",
+          currentTier: "ESSENTIAL",
           maxDoctors: 20,
           maxPatients: 500,
           features: ["Standard"],
@@ -178,7 +189,7 @@ describe("PaymentProcessingPage", () => {
           paymentId: "PAY_1770000000000",
           amount: 999,
           currency: "INR",
-          newTier: "CORE",
+          newTier: "ESSENTIAL",
           paymentMethod: "razorpay",
           notes: "GST invoice captured",
         },
@@ -216,6 +227,16 @@ describe("PaymentProcessingPage", () => {
       );
     });
     expect(toastSuccessMock).toHaveBeenCalledWith("Additional charge recorded");
+  });
+
+  it("renders enterprise tier limits and pricing in operator-friendly copy", async () => {
+    renderWithQueryClient(<PaymentProcessingPage />);
+
+    expect(await screen.findByText("Enterprise")).toBeInTheDocument();
+    expect(screen.getByText("Custom")).toBeInTheDocument();
+    expect(screen.getByText("Custom pricing")).toBeInTheDocument();
+    expect(screen.getAllByText("Unlimited").length).toBeGreaterThanOrEqual(2);
+    expect(screen.queryByText("-1")).not.toBeInTheDocument();
   });
 
   it("shows an empty facilities state", async () => {

@@ -87,12 +87,16 @@ Every route below is covered by the shared UI system pass and the relevant app a
 
 ## `apps/internal` Routes
 
+Internal console pages use shared `AppPageScaffold`, `PageHeader`, and page-level `DataState` (2026-05 remediation). Navigation is centralized in `shared/lib/internal-nav.ts` with `AppShell` chrome.
+
 | Route | Surface | QA status |
 | --- | --- | --- |
 | `/` | internal root | Desktop/mobile smoke verified |
 | `/admins` | internal admin | Desktop/mobile smoke verified |
 | `/analytics` | internal admin | Desktop/mobile smoke verified |
-| `/audits` | internal admin | Desktop/mobile smoke verified |
+| `/audits` | internal admin | Desktop/mobile smoke verified; sidebar entry; `AppPageScaffold` + `PageHeader` + `DataState` |
+| `/broadcasts` | internal admin | Desktop/mobile smoke verified |
+| `/enterprise-contracts` | internal admin | Desktop/mobile smoke verified; middleware + mobile nav aligned |
 | `/billing` | internal admin | Desktop/mobile smoke verified; light theme recheck |
 | `/dashboard` | internal admin | Desktop/mobile smoke verified; light theme recheck |
 | `/doctors` | internal admin | Desktop/mobile smoke verified |
@@ -101,7 +105,7 @@ Every route below is covered by the shared UI system pass and the relevant app a
 | `/payment-processing` | internal admin | Desktop/mobile smoke verified |
 | `/performance` | internal admin | Desktop/mobile smoke verified |
 | `/pricing` | internal admin | Desktop/mobile smoke verified |
-| `/support` | internal admin | Desktop/mobile smoke verified |
+| `/support` | internal admin | Desktop/mobile smoke verified; `AppPageScaffold` hub with WhatsApp + inquiries tabs |
 | `/system-monitoring` | internal admin | Desktop/mobile smoke verified; light theme recheck |
 | `/users` | internal admin | Desktop/mobile smoke verified; light theme recheck |
 | `/clinic` | internal clinic | Desktop/mobile smoke verified; role-gated locally |

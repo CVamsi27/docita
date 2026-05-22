@@ -41,6 +41,14 @@ vi.mock("sonner", () => ({
   },
 }));
 
+vi.mock("@/components/theme-toggle", () => ({
+  ThemeToggle: () => (
+    <button type="button" aria-label="Toggle theme">
+      Toggle theme
+    </button>
+  ),
+}));
+
 import InternalLogin from "./page";
 
 function renderWithQueryClient(ui: ReactElement) {
