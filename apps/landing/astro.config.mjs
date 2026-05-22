@@ -31,6 +31,13 @@ export default defineConfig({
           inspectorPort: false,
           prerenderEnvironment: "node",
         }),
+        // Marketing site does not use Astro sessions; avoid Wrangler auto-provisioning
+        // a duplicate "docita-landing-session" KV namespace on deploy.
+        session: {
+          driver: {
+            entrypoint: "unstorage/drivers/null",
+          },
+        },
         vite: {
           ssr: {
             noExternal: true,

@@ -198,7 +198,7 @@ export class CreateCheckoutUseCase {
 
     return {
       orderId: order.razorpayOrderId,
-      amountCents: order.amountCents,
+      amountCents,
       currency: order.currency,
       razorpayKeyId: this.configService.getRazorpayKeyId() || '',
       prefill: checkoutPrefill,

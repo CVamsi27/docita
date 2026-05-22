@@ -18,17 +18,28 @@ import { mockWhatsappService } from './whatsapp.provider';
 const mockPaymentGateway = {
   createCustomer: jest.fn().mockResolvedValue('cust_1234567890'),
   updateCustomer: jest.fn().mockResolvedValue(undefined),
-  createOrder: jest.fn().mockResolvedValue({
-    razorpayOrderId: 'order_1234567890',
-    amountCents: 10000,
-    currency: 'INR',
-  }),
-  verifyPayment: jest.fn().mockResolvedValue({
-    verified: true,
-    paymentId: 'pay_1234567890',
-    orderId: 'order_1234567890',
-    amountCents: 10000,
-  }),
+  createOrder: jest
+    .fn()
+    .mockImplementation(
+      async (request: { amountCents: number; currency: string }) => ({
+        razorpayOrderId: `order_${Date.now()}_${Math.random().toString(36).slice(2, 9)}`,
+        amountCents: request.amountCents,
+        currency: request.currency,
+      }),
+    ),
+  verifyPayment: jest
+    .fn()
+    .mockImplementation(
+      async (request: {
+        razorpayOrderId: string;
+        razorpayPaymentId: string;
+      }) => ({
+        verified: true,
+        paymentId: request.razorpayPaymentId,
+        orderId: request.razorpayOrderId,
+        amountCents: 10000,
+      }),
+    ),
   createSubscription: jest.fn().mockResolvedValue({
     subscriptionId: 'sub_1234567890',
   }),
