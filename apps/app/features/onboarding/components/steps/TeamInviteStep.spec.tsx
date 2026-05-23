@@ -50,7 +50,7 @@ describe("TeamInviteStep", () => {
 
     // Open role picker and select Admin Doctor to surface its description.
     fireEvent.click(screen.getByRole("combobox", { name: /role/i }));
-    fireEvent.click(await screen.findByText("Admin Doctor"));
+    fireEvent.click(await screen.findByText("Admin doctor"));
 
     expect(
       screen.getAllByText(

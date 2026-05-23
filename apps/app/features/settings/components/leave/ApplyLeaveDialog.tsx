@@ -137,7 +137,7 @@ export function ApplyLeaveDialog({
               name="leaveType"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Leave Type</FormLabel>
+                  <FormLabel>Leave type</FormLabel>
                   <Select value={field.value} onValueChange={field.onChange}>
                     <FormControl>
                       <SelectTrigger>

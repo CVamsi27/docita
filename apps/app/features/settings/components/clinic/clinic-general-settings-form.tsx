@@ -164,7 +164,7 @@ export function ClinicGeneralSettingsForm({
             name="phone"
             render={({ field }) => (
               <FormFieldGroup
-                label="Phone Number"
+                label="Phone number"
                 htmlFor="clinic-phone"
                 required
                 error={form.formState.errors.phone?.message}

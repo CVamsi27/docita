@@ -245,7 +245,7 @@ export const ReminderSettingsUI: FC = () => {
             <div className="flex items-center gap-3">
               <Bell className="h-5 w-5 text-primary" />
               <div>
-                <CardTitle>Reminder Settings</CardTitle>
+                <CardTitle>Reminder settings</CardTitle>
                 <CardDescription>
                   Configure when reminders are sent to patients
                 </CardDescription>
@@ -254,7 +254,7 @@ export const ReminderSettingsUI: FC = () => {
           </CardHeader>
           <CardContent className="space-y-3">
             <ReminderRow
-              label="Appointment Reminder"
+              label="Appointment reminder"
               description="Remind patient before their scheduled appointment"
               enabledName="appointment.enabled"
               beforeName="appointment.before"
@@ -263,7 +263,7 @@ export const ReminderSettingsUI: FC = () => {
             />
 
             <ReminderRow
-              label="Follow-up Visit Reminder"
+              label="Follow-up visit reminder"
               description="Remind patient about their scheduled follow-up visit"
               enabledName="followUp.enabled"
               beforeName="followUp.before"
@@ -272,7 +272,7 @@ export const ReminderSettingsUI: FC = () => {
             />
 
             <ReminderRow
-              label="Invoice / Payment Reminder"
+              label="Invoice / payment reminder"
               description="Remind patient about pending bills or upcoming payment due dates"
               enabledName="invoice.enabled"
               beforeName="invoice.before"
@@ -281,7 +281,7 @@ export const ReminderSettingsUI: FC = () => {
             />
 
             <ReminderRow
-              label="Prescription Reminder"
+              label="Prescription reminder"
               description="Remind patient to take or refill their prescribed medication"
               enabledName="prescription.enabled"
               beforeName="prescription.before"
@@ -290,7 +290,7 @@ export const ReminderSettingsUI: FC = () => {
             />
 
             <ReminderRow
-              label="Appointment Schedule Notification"
+              label="Appointment schedule notification"
               description="Notify patient when their appointment is scheduled or rescheduled"
               enabledName="schedule.enabled"
               beforeName="schedule.before"

@@ -51,7 +51,7 @@ export const MemberManagementLoadingSkeleton: FC<
   <Card role="status" aria-live="polite" aria-label="Loading team members">
     <CardHeader className="flex flex-row items-center justify-between">
       <div>
-        <CardTitle>Team Members</CardTitle>
+        <CardTitle>Team members</CardTitle>
         <CardDescription>
           Manage your {facilityLabel.toLowerCase()} staff
         </CardDescription>
@@ -152,7 +152,7 @@ export const MemberCardHeader: FC<MemberCardHeaderProps> = ({
 }) => (
   <CardHeader className="flex flex-col gap-3 md:flex-row md:items-start md:justify-between">
     <div>
-      <CardTitle>Team Members</CardTitle>
+      <CardTitle>Team members</CardTitle>
       <CardDescription>
         Manage {facilityLabel.toLowerCase()} staff and permissions
       </CardDescription>
