@@ -60,6 +60,7 @@ export function createBrowserSessionManager(config: BrowserSessionConfig) {
   };
 
   let inMemoryToken: string | null = readPersistedToken();
+  let inMemoryCsrfToken: string | null = null;
 
   const normalizeApiUrl = (value: string) =>
     value.endsWith("/") ? value.slice(0, -1) : value;
@@ -74,12 +75,26 @@ export function createBrowserSessionManager(config: BrowserSessionConfig) {
   };
 
   const getCsrfToken = (): string | null => {
+    if (inMemoryCsrfToken) {
+      return inMemoryCsrfToken;
+    }
     if (typeof document === "undefined") return null;
     const match = document.cookie.match(
       new RegExp(`(?:^|;\\s*)${csrfCookieKey}=([^;]*)`),
     );
     const encoded = match?.[1];
     return encoded ? decodeURIComponent(encoded) : null;
+  };
+
+  const captureCsrfFromResponse = (response: Response): void => {
+    const headerToken = response.headers.get("X-CSRF-Token");
+    if (headerToken && headerToken.length > 0) {
+      inMemoryCsrfToken = headerToken;
+    }
+  };
+
+  const setCsrfToken = (token: string | null): void => {
+    inMemoryCsrfToken = token;
   };
 
   const getToken = (): string | null => {
@@ -171,6 +186,8 @@ export function createBrowserSessionManager(config: BrowserSessionConfig) {
           },
         );
 
+        captureCsrfFromResponse(response);
+
         if (!response.ok) {
           return false;
         }
@@ -199,6 +216,8 @@ export function createBrowserSessionManager(config: BrowserSessionConfig) {
     setToken,
     clearSession,
     getCsrfToken,
+    setCsrfToken,
+    captureCsrfFromResponse,
     refreshAccessToken,
     redirectToLogin,
     isPublicPath,

@@ -5,7 +5,7 @@ import {
   isBloodPressureNormal,
   isPulseNormal,
   isTemperatureNormal,
-} from "./vitalsRules";
+} from "./vitals-rules";
 
 describe("Vitals Business Rules", () => {
   describe("calculateBMI", () => {

@@ -12,10 +12,8 @@ import {
   DiagnosesSyncDto,
   DiagnosesSyncResponseDto,
 } from '@/domains/appointments/application/dto/appointments.dto';
-import {
-  AppointmentsApiAccess,
-  getAppointmentAccessContext,
-} from '@/domains/appointments/presentation/controllers/appointments.controller.access';
+import { AppointmentsApiAccess } from '@/domains/appointments/presentation/controllers/appointments.controller.access';
+import { getAppointmentAccessContext } from '@/domains/appointments/application/types/appointment-access-context';
 
 function stripVitalsMetadata(
   body: VitalsDto,

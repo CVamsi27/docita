@@ -7,6 +7,10 @@ vi.mock("@workspace/ui/components/overlay/tooltip", () => ({
   SymbolTooltip: ({ children }: { children: ReactElement }) => children,
 }));
 
+vi.mock("@/components/auth/feature-gate", () => ({
+  FeatureGate: ({ children }: { children: ReactElement }) => children,
+}));
+
 const invoiceEditMocks = vi.hoisted(() => ({
   onSubmit: vi.fn(),
   routerPush: vi.fn(),

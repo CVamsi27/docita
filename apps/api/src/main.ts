@@ -31,6 +31,16 @@ import { PrismaService } from './prisma/prisma.service';
 const config = validateEnv();
 const appConfigService = new AppConfigService();
 
+if (!isDevelopment()) {
+  const originList = getCorsOrigins();
+  const originLabels = originList.map((origin) =>
+    typeof origin === 'string' ? origin : origin.toString(),
+  );
+  process.stdout.write(
+    `API CORS allowlist (${originLabels.length} origins): ${originLabels.join(', ')}\n`,
+  );
+}
+
 process.on('warning', (warning) => {
   if (warning.name === 'TimeoutNegativeWarning') {
     return;
@@ -290,6 +300,7 @@ async function bootstrap() {
       'X-XSRF-TOKEN',
       'x-xsrf-token',
     ],
+    exposedHeaders: ['X-CSRF-Token'],
     credentials: true,
     maxAge: 86400,
   });

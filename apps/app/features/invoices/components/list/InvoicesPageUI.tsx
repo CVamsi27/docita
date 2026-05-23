@@ -6,6 +6,8 @@ import { AppPageScaffold } from "@workspace/ui/components/layout/app-page-scaffo
 import { PageHeader } from "@workspace/ui/components/layout/page-header";
 import { Button } from "@workspace/ui/components/form/button";
 import { Plus, RefreshCw } from "lucide-react";
+import { Feature } from "@workspace/types";
+import { FeatureGate } from "@/components/auth/feature-gate";
 import { useInvoicesLogic } from "@/features/invoices/hooks/use-invoices-logic";
 import { useClinicCurrency } from "@/hooks/use-clinic-currency";
 import { InvoicesPageFiltersCard } from "./invoices-page-filters-card";
@@ -43,6 +45,7 @@ export const InvoicesPageUI: FC = () => {
     filter !== "all" || searchQuery.trim().length > 0;
 
   return (
+    <FeatureGate feature={Feature.INVOICING} showLockedCard>
     <AppPageScaffold
       header={
         <PageHeader
@@ -86,5 +89,6 @@ export const InvoicesPageUI: FC = () => {
         handleDownloadPdf={handleDownloadPdf}
       />
     </AppPageScaffold>
+    </FeatureGate>
   );
 };

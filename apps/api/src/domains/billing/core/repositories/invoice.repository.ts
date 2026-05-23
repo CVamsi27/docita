@@ -4,6 +4,7 @@ import {
   InvoiceStatus,
   Prisma,
 } from '@workspace/db';
+import type { InvoiceLineItemRow } from '@/domains/billing/core/utils/invoice-item-resolution';
 
 export interface ClinicFeatureContext {
   tier: ClinicTier;
@@ -112,6 +113,11 @@ export interface InvoiceDetail {
   } | null;
 }
 
+/** Repository row including optional normalized `InvoiceItem` children. */
+export type InvoiceDetailRecord = InvoiceDetail & {
+  lineItems?: InvoiceLineItemRow[];
+};
+
 export interface PatientInvoiceContext {
   id: string;
   firstName: string;
@@ -152,13 +158,13 @@ export interface IInvoiceRepository {
   findAll(
     params: InvoiceSearchParams,
   ): Promise<PaginatedResult<InvoiceListItem>>;
-  findById(id: string, clinicId: string): Promise<InvoiceDetail | null>;
-  create(data: Prisma.InvoiceCreateInput): Promise<InvoiceDetail>;
+  findById(id: string, clinicId: string): Promise<InvoiceDetailRecord | null>;
+  create(data: Prisma.InvoiceCreateInput): Promise<InvoiceDetailRecord>;
   update(
     id: string,
     data: Prisma.InvoiceUpdateInput,
     clinicId: string,
-  ): Promise<InvoiceDetail>;
+  ): Promise<InvoiceDetailRecord>;
   delete(id: string, clinicId: string): Promise<void>;
   findPatientContext(
     patientId: string,

@@ -1,5 +1,8 @@
 import { Injectable, Inject, NotFoundException } from '@nestjs/common';
-import { IPatientRepository } from '@/domains/patients/core/repositories/patient.repository.interface';
+import {
+  IPatientRepository,
+  PATIENT_REPOSITORY_TOKEN,
+} from '@/domains/patients/core/repositories/patient.repository.interface';
 import { Patient } from '@/domains/patients/core/entities/patient.entity';
 import { randomUUID } from 'crypto';
 import { CLOCK_PORT, type IClock } from '@/shared/common/ports/clock.port';
@@ -13,7 +16,7 @@ import { PatientQueryService } from './patient-query.service';
 @Injectable()
 export class PatientCommandService {
   constructor(
-    @Inject('IPatientRepository')
+    @Inject(PATIENT_REPOSITORY_TOKEN)
     private readonly patientRepository: IPatientRepository,
     @Inject(CLOCK_PORT) private readonly clock: IClock,
     private readonly queryService: PatientQueryService,

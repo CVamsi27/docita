@@ -8,10 +8,14 @@ import {
 } from "@workspace/ui/components/data-display/right-rail-card";
 import { Button } from "@workspace/ui/components/form/button";
 
-interface TodayAdvisorRailProps {
+export type TodayAdvisorCounts = {
   pendingJoinRequests: number;
   pendingReports: number;
   waitingCount: number;
+};
+
+interface TodayAdvisorRailProps {
+  advisorCounts: TodayAdvisorCounts;
 }
 
 type CardKey = "join-requests" | "pending-reports" | "waiting-queue";
@@ -21,11 +25,8 @@ type CardKey = "join-requests" | "pending-reports" | "waiting-queue";
  * Cards are dismissible per session (no persistence yet — the dismiss state is
  * only retained while the page is mounted).
  */
-export function TodayAdvisorRail({
-  pendingJoinRequests,
-  pendingReports,
-  waitingCount,
-}: TodayAdvisorRailProps) {
+export function TodayAdvisorRail({ advisorCounts }: TodayAdvisorRailProps) {
+  const { pendingJoinRequests, pendingReports, waitingCount } = advisorCounts;
   const [dismissed, setDismissed] = useState<Set<CardKey>>(new Set());
 
   function dismiss(key: CardKey) {

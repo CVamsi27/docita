@@ -19,6 +19,10 @@ jest.mock('otplib', () => ({
   verify: jest.fn(),
 }));
 
+/** Satisfies `mfaHashedBackupCodeSchema` min length in tests. */
+const MOCK_BCRYPT_HASH =
+  '$2b$10$abcdefghijklmnopqrstuvwx.yz012345678901234567890';
+
 describe('MfaService', () => {
   let service: MfaService;
   let prisma: {
@@ -160,7 +164,7 @@ describe('MfaService', () => {
         mfaTempSecret: 'secret',
       });
       verifyMock.mockResolvedValue({ valid: true });
-      jest.mocked(bcrypt.hash).mockImplementation(async () => 'hashed-code');
+      jest.mocked(bcrypt.hash).mockImplementation(async () => MOCK_BCRYPT_HASH);
 
       const result = await service.enableMfa('user-1', '123456');
 
@@ -256,7 +260,7 @@ describe('MfaService', () => {
         mfaSecret: 'secret',
       });
       verifyMock.mockResolvedValue({ valid: true });
-      jest.mocked(bcrypt.hash).mockImplementation(async () => 'hashed-code');
+      jest.mocked(bcrypt.hash).mockImplementation(async () => MOCK_BCRYPT_HASH);
 
       const result = await service.regenerateBackupCodes('user-1', '123456');
 

@@ -3,7 +3,7 @@ import { Injectable } from '@nestjs/common';
 import { PrismaService } from '@/prisma/prisma.service';
 import {
   IInvoiceRepository,
-  InvoiceDetail,
+  InvoiceDetailRecord,
   InvoiceListItem,
   PatientInvoiceContext,
   InvoiceSearchParams,
@@ -161,7 +161,10 @@ export class PrismaInvoiceRepository implements IInvoiceRepository {
     };
   }
 
-  async findById(id: string, clinicId: string): Promise<InvoiceDetail | null> {
+  async findById(
+    id: string,
+    clinicId: string,
+  ): Promise<InvoiceDetailRecord | null> {
     const invoice = await this.getReadClient().invoice.findFirst({
       where: { id, ...this.invoiceOwnershipFilter(clinicId) },
       select: INVOICE_DETAIL_SELECT,
@@ -169,7 +172,7 @@ export class PrismaInvoiceRepository implements IInvoiceRepository {
     return invoice;
   }
 
-  async create(data: Prisma.InvoiceCreateInput): Promise<InvoiceDetail> {
+  async create(data: Prisma.InvoiceCreateInput): Promise<InvoiceDetailRecord> {
     const invoice = await this.prisma.invoice.create({
       data,
       select: INVOICE_DETAIL_SELECT,
@@ -181,7 +184,7 @@ export class PrismaInvoiceRepository implements IInvoiceRepository {
     id: string,
     data: Prisma.InvoiceUpdateInput,
     clinicId: string,
-  ): Promise<InvoiceDetail> {
+  ): Promise<InvoiceDetailRecord> {
     const result = await this.prisma.invoice.updateMany({
       where: { id, ...this.invoiceOwnershipFilter(clinicId) },
       data,

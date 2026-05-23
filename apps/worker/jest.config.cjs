@@ -2,12 +2,15 @@
 module.exports = {
   moduleFileExtensions: ['js', 'json', 'ts'],
   rootDir: '.',
-  testRegex: '.*\\.spec\\.ts$',
+  testRegex: '.*\\.spec\\.(t|j)s$',
   moduleNameMapper: {
     '^@/(.*)$': '<rootDir>/../api/src/$1',
   },
   transform: {
-    '^.+\\.(t|j)s$': 'ts-jest',
+    '^.+\\.(t|j)s$': [
+      'ts-jest',
+      { tsconfig: '<rootDir>/tsconfig.spec.json' },
+    ],
   },
   testEnvironment: 'node',
   passWithNoTests: true,

@@ -44,6 +44,10 @@ export const appointmentStatusSchema = z.enum([
 ]);
 export type AppointmentStatus = z.infer<typeof appointmentStatusSchema>;
 
+/** Comma-separated status filter for schedule/list views (excludes cancelled). */
+export const VISIBLE_APPOINTMENT_STATUS_QUERY =
+  "scheduled,confirmed,in_progress,completed,no-show" as const;
+
 export const appointmentTypeSchema = z.enum([
   "consultation",
   "follow-up",

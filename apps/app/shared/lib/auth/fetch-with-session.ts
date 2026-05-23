@@ -49,6 +49,8 @@ export async function fetchWithSession(
     appSession.redirectToLogin();
   }
 
+  appSession.captureCsrfFromResponse(response);
+
   return response;
 }
 

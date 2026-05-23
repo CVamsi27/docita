@@ -58,21 +58,35 @@ function getCsrfTokenFromCookie(): string | null {
   return decodeURIComponent(tokenRow.slice("XSRF-TOKEN=".length));
 }
 
+let cachedCsrfToken: string | null = null;
+
 async function ensureCsrfToken(): Promise<string | null> {
+  if (cachedCsrfToken) {
+    return cachedCsrfToken;
+  }
+
   const existingToken = getCsrfTokenFromCookie();
   if (existingToken) {
+    cachedCsrfToken = existingToken;
     return existingToken;
   }
 
   try {
-    await fetch(`${getLandingApiBaseUrl()}/public/platform-stats`, {
+    const response = await fetch(`${getLandingApiBaseUrl()}/public/platform-stats`, {
       credentials: "include",
     });
+    const headerToken = response.headers.get("X-CSRF-Token");
+    if (headerToken) {
+      cachedCsrfToken = headerToken;
+      return headerToken;
+    }
   } catch {
     return null;
   }
 
-  return getCsrfTokenFromCookie();
+  const cookieToken = getCsrfTokenFromCookie();
+  cachedCsrfToken = cookieToken;
+  return cookieToken;
 }
 
 interface ContactInquiryPayload {

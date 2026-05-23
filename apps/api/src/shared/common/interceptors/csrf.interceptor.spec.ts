@@ -28,6 +28,7 @@ function createContext(
   };
   const response = {
     cookie: jest.fn(),
+    setHeader: jest.fn(),
   };
 
   const context = new ExecutionContextHost([request, response, undefined]);
@@ -75,7 +76,7 @@ describe('CsrfInterceptor', () => {
       expect.objectContaining({
         path: '/',
         sameSite: 'strict',
-        httpOnly: false,
+        httpOnly: true,
       }),
     );
   });
@@ -194,7 +195,7 @@ describe('CsrfInterceptor', () => {
         path: '/',
         sameSite: 'strict',
         secure: true,
-        httpOnly: false,
+        httpOnly: true,
       }),
     );
     expect(response.cookie).toHaveBeenNthCalledWith(
@@ -205,7 +206,7 @@ describe('CsrfInterceptor', () => {
         path: '/',
         sameSite: 'strict',
         secure: true,
-        httpOnly: false,
+        httpOnly: true,
         domain: 'docita.work',
       }),
     );

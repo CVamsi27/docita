@@ -1,6 +1,8 @@
 "use client";
 
-import { FC } from "react";
+import { FC, type ReactNode } from "react";
+import { Feature } from "@workspace/types";
+import { FeatureGate } from "@/components/auth/feature-gate";
 import {
   Card,
   CardContent,
@@ -42,6 +44,14 @@ interface InvoiceEditUIProps {
   invoiceId: string;
 }
 
+function withInvoicingGate(node: ReactNode) {
+  return (
+    <FeatureGate feature={Feature.INVOICING} showLockedCard>
+      {node}
+    </FeatureGate>
+  );
+}
+
 export const InvoiceEditUI: FC<InvoiceEditUIProps> = ({ invoiceId }) => {
   const invoiceFallback = `/invoices/${invoiceId}`;
   const goBack = useBackNavigation(invoiceFallback);
@@ -58,11 +68,11 @@ export const InvoiceEditUI: FC<InvoiceEditUIProps> = ({ invoiceId }) => {
   } = useInvoiceEditLogic(invoiceId);
 
   if (isLoading) {
-    return <LoadingState message="Loading invoice…" />;
+    return withInvoicingGate(<LoadingState message="Loading invoice…" />);
   }
 
   if (!invoice) {
-    return (
+    return withInvoicingGate(
       <EmptyState
         icon={FileText}
         title="Invoice not found"
@@ -71,11 +81,11 @@ export const InvoiceEditUI: FC<InvoiceEditUIProps> = ({ invoiceId }) => {
           label: "Back to Invoices",
           onClick: () => router.push("/invoices"),
         }}
-      />
+      />,
     );
   }
 
-  return (
+  return withInvoicingGate(
     <div className="flex flex-col gap-6 max-w-4xl mx-auto">
       <div className="flex items-center gap-4">
         <BackButton fallback={invoiceFallback} label="Cancel" />
@@ -235,6 +245,6 @@ export const InvoiceEditUI: FC<InvoiceEditUIProps> = ({ invoiceId }) => {
           </div>
         </form>
       </Form>
-    </div>
+    </div>,
   );
 };

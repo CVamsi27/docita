@@ -12,6 +12,7 @@ export const metadata = {
   },
 };
 
+// Static theme bootstrap only — reads localStorage keys defined by the app; no request data.
 const themeBootstrapScript = `
 try {
   var theme = localStorage.getItem("theme");

@@ -1,6 +1,11 @@
 "use client";
 
 import { useMemo } from "react";
+import { Feature, Tier } from "@workspace/types";
+import {
+  FeatureGate,
+  TierGate,
+} from "@/components/auth/feature-gate";
 
 import { useQueue, type QueueItem } from "@workspace/data-access";
 import {
@@ -92,6 +97,8 @@ export function DeskFloorPanelContainer() {
   }, [data]);
 
   return (
+    <TierGate tier={Tier.HOSPITAL} showLockedCard>
+      <FeatureGate feature={Feature.QUEUE_MANAGEMENT} showLockedCard>
     <DeskFloorPanelUI
       current={view.current}
       waiting={view.waiting}
@@ -104,5 +111,7 @@ export function DeskFloorPanelContainer() {
       isError={isError}
       onRetry={() => void refetch()}
     />
+      </FeatureGate>
+    </TierGate>
   );
 }

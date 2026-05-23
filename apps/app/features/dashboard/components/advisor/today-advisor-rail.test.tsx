@@ -14,9 +14,11 @@ describe("TodayAdvisorRail", () => {
   it("renders the join requests advisor card when there are pending requests", () => {
     render(
       <TodayAdvisorRail
-        pendingJoinRequests={3}
-        pendingReports={0}
-        waitingCount={0}
+        advisorCounts={{
+          pendingJoinRequests: 3,
+          pendingReports: 0,
+          waitingCount: 0,
+        }}
       />,
     );
 
@@ -29,9 +31,11 @@ describe("TodayAdvisorRail", () => {
   it("renders the waiting queue card with link to /consultation", () => {
     render(
       <TodayAdvisorRail
-        pendingJoinRequests={0}
-        pendingReports={0}
-        waitingCount={1}
+        advisorCounts={{
+          pendingJoinRequests: 0,
+          pendingReports: 0,
+          waitingCount: 1,
+        }}
       />,
     );
 
@@ -45,9 +49,11 @@ describe("TodayAdvisorRail", () => {
   it("returns nothing when there are no recommendations to render", () => {
     const { container } = render(
       <TodayAdvisorRail
-        pendingJoinRequests={0}
-        pendingReports={0}
-        waitingCount={0}
+        advisorCounts={{
+          pendingJoinRequests: 0,
+          pendingReports: 0,
+          waitingCount: 0,
+        }}
       />,
     );
 

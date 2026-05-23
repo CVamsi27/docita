@@ -19,6 +19,9 @@ import { CancelAppointmentUseCase } from '@/domains/appointments/application/use
 import { RescheduleAppointmentUseCase } from '@/domains/appointments/application/use-cases/reschedule-appointment.use-case';
 import { StartConsultationUseCase } from '@/domains/appointments/application/use-cases/start-consultation.use-case';
 import { UpdateAppointmentDetailsUseCase } from '@/domains/appointments/application/use-cases/update-appointment-details.use-case';
+import { Role } from '@workspace/db';
+
+const accessContext = { userId: 'user-1', role: Role.ADMIN };
 
 describe('AppointmentCommandService', () => {
   let service: AppointmentCommandService;
@@ -146,6 +149,7 @@ describe('AppointmentCommandService', () => {
         'appt-1',
         'reason',
         'clinic-1',
+        accessContext,
       );
 
       expect(cancelUseCase.execute).toHaveBeenCalledWith(
@@ -165,7 +169,12 @@ describe('AppointmentCommandService', () => {
       ).mockRejectedValueOnce(new NotFoundException());
 
       await expect(
-        service.cancelAppointment('missing', 'reason', 'clinic-1'),
+        service.cancelAppointment(
+          'missing',
+          'reason',
+          'clinic-1',
+          accessContext,
+        ),
       ).rejects.toThrow(NotFoundException);
     });
   });
@@ -192,6 +201,7 @@ describe('AppointmentCommandService', () => {
           new Date(),
           new Date(),
           'clinic-1',
+          accessContext,
         ),
       ).rejects.toThrow(BadRequestException);
     });

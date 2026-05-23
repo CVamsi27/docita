@@ -40,6 +40,7 @@ import {
 } from './core/repositories/patient-timeline.repository.interface';
 import { PATIENT_METRICS_REPOSITORY_TOKEN } from './core/repositories/patient-metrics.repository.interface';
 import { PATIENT_TAGS_REPOSITORY_TOKEN } from './core/repositories/patient-tags.repository.interface';
+import { PATIENT_REPOSITORY_TOKEN } from './core/repositories/patient.repository.interface';
 import { PatientTagsController } from './presentation/controllers/patient-tags.controller';
 
 @Module({
@@ -72,7 +73,7 @@ import { PatientTagsController } from './presentation/controllers/patient-tags.c
     PrismaPatientTimelineSnapshotRepository,
     PrismaPatientRepository,
     {
-      provide: 'IPatientRepository',
+      provide: PATIENT_REPOSITORY_TOKEN,
       useClass: PrismaPatientRepository,
     },
     {
@@ -108,7 +109,7 @@ import { PatientTagsController } from './presentation/controllers/patient-tags.c
     MedicationDoseService,
     PatientTimelineQueryService,
     PatientTimelineService,
-    'IPatientRepository',
+    PATIENT_REPOSITORY_TOKEN,
     VitalsFactory,
   ],
 })

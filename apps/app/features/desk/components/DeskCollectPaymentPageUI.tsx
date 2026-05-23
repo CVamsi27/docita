@@ -1,6 +1,8 @@
 "use client";
 
 import { useDeferredValue, useEffect, useMemo, useState } from "react";
+import { Feature } from "@workspace/types";
+import { FeatureGate } from "@/components/auth/feature-gate";
 import type { Invoice } from "@workspace/types";
 import Link from "next/link";
 import { useDebounce } from "@workspace/hooks/use-debounce";
@@ -120,6 +122,7 @@ export function DeskCollectPaymentPageUI() {
   };
 
   return (
+    <FeatureGate feature={Feature.INVOICING} showLockedCard>
     <AppPageScaffold
       header={
         <PageHeader
@@ -174,5 +177,6 @@ export function DeskCollectPaymentPageUI() {
         onSubmit={() => void handleRecordSubmit()}
       />
     </AppPageScaffold>
+    </FeatureGate>
   );
 }

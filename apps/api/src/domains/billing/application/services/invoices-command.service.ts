@@ -1,3 +1,4 @@
+/** Writes maintain `Invoice.items` JSON for backward compatibility and `InvoiceItem` rows as source of truth. */
 import { Injectable, Inject, NotFoundException } from '@nestjs/common';
 import { Prisma, InvoiceStatus } from '@workspace/db';
 import { type InvoiceItem } from '@workspace/types';

@@ -12,6 +12,10 @@ import * as bcrypt from 'bcrypt';
 import { nanoid } from 'nanoid';
 import { PrismaService } from '@/prisma/prisma.service';
 import { AUTH_CONSTANTS } from '@/shared/modules/config/app-constants';
+import {
+  mfaHashedBackupCodesSchema,
+  mfaPlainBackupCodesSchema,
+} from '@workspace/types';
 
 @Injectable()
 export class MfaService {
@@ -90,9 +94,11 @@ export class MfaService {
       throw new UnauthorizedException('Invalid TOTP code');
     }
 
-    const plainBackupCodes = this.generatePlainBackupCodes();
-    const hashedBackupCodes = await Promise.all(
-      plainBackupCodes.map((code) => bcrypt.hash(code, 10)),
+    const plainBackupCodes = mfaPlainBackupCodesSchema.parse(
+      this.generatePlainBackupCodes(),
+    );
+    const hashedBackupCodes = mfaHashedBackupCodesSchema.parse(
+      await Promise.all(plainBackupCodes.map((code) => bcrypt.hash(code, 10))),
     );
 
     await this.prisma.user.update({
@@ -170,9 +176,11 @@ export class MfaService {
       throw new UnauthorizedException('Invalid TOTP code');
     }
 
-    const plainBackupCodes = this.generatePlainBackupCodes();
-    const hashedBackupCodes = await Promise.all(
-      plainBackupCodes.map((code) => bcrypt.hash(code, 10)),
+    const plainBackupCodes = mfaPlainBackupCodesSchema.parse(
+      this.generatePlainBackupCodes(),
+    );
+    const hashedBackupCodes = mfaHashedBackupCodesSchema.parse(
+      await Promise.all(plainBackupCodes.map((code) => bcrypt.hash(code, 10))),
     );
 
     await this.prisma.user.update({

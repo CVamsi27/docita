@@ -16,6 +16,9 @@ import { AppointmentMetricDefinitionService } from './appointment-metric-definit
 import { AppointmentDiagnosisService } from './appointment-diagnosis.service';
 import { UpdateAppointmentDetailsUseCase } from '@/domains/appointments/application/use-cases/update-appointment-details.use-case';
 import { createStubAppointmentWriteUseCases } from './appointment-use-case.stubs';
+import { Role } from '@workspace/db';
+
+const accessContext = { userId: 'user-1', role: Role.ADMIN };
 
 describe('AppointmentService metric persistence', () => {
   const mockAppointmentRepository = {
@@ -175,10 +178,15 @@ describe('AppointmentService metric persistence', () => {
         { id: 'def-weight', key: 'weight' },
       ]);
 
-    await service.createVitals('apt-1', 'clinic-1', {
-      height: 170,
-      weight: 70,
-    });
+    await service.createVitals(
+      'apt-1',
+      'clinic-1',
+      {
+        height: 170,
+        weight: 70,
+      },
+      accessContext,
+    );
 
     expect(mockPrisma.metricCategory.findFirst).toHaveBeenCalledTimes(1);
     expect(mockPrisma.metricDefinition.findMany).toHaveBeenCalledTimes(2);
@@ -229,10 +237,15 @@ describe('AppointmentService metric persistence', () => {
       }),
     );
 
-    await service.updateAppointmentDetails('apt-2', 'clinic-1', {
-      observations: 'Mild fever',
-      consultationNotes: 'Hydration advised',
-    });
+    await service.updateAppointmentDetails(
+      'apt-2',
+      'clinic-1',
+      {
+        observations: 'Mild fever',
+        consultationNotes: 'Hydration advised',
+      },
+      accessContext,
+    );
 
     expect(mockPrisma.metricCategory.findFirst).toHaveBeenCalledTimes(1);
     expect(mockPrisma.metricDefinition.findMany).toHaveBeenCalledTimes(2);

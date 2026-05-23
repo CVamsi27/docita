@@ -10,8 +10,10 @@ import {
   BillingPeriod,
 } from '@/domains/billing/core/value-objects';
 import { DEFAULT_CURRENCY } from '@workspace/utils';
-import { invoiceItemsSchema } from '@workspace/types';
-import { parsePrismaJsonColumn } from '@/shared/common/json/parse-prisma-json-column';
+import {
+  resolveInvoiceItems,
+  type InvoiceLineItemRow,
+} from '@/domains/billing/core/utils/invoice-item-resolution';
 import { toPrismaInputJsonValue } from '@/shared/common/json/to-prisma-input-json-value';
 
 interface InvoiceItemData {
@@ -32,25 +34,25 @@ const PRISMA_TO_DOMAIN_STATUS: Record<PrismaInvoiceStatus, InvoiceStatusEnum> =
     CANCELLED: InvoiceStatusEnum.CANCELLED,
   };
 
-const parseInvoiceItems = (items: unknown): InvoiceItemData[] => {
-  const parsed = parsePrismaJsonColumn(items, invoiceItemsSchema);
-  if (!parsed) {
-    return [];
-  }
-
-  return parsed.map((item) => ({
-    id: item.id ?? '',
-    description: item.description,
-    quantity: item.quantity,
-    unitPrice: item.unitPrice ?? item.price,
-    taxRate: item.taxRate ?? 0,
-    discount: item.discountAmount ?? 0,
-  }));
-};
-
 export class InvoiceMapper {
-  static toDomain(raw: PrismaInvoice & { clinicId?: string }): Invoice {
-    const itemsData = parseInvoiceItems(raw.items);
+  static toDomain(
+    raw: PrismaInvoice & {
+      clinicId?: string;
+      lineItems?: InvoiceLineItemRow[];
+    },
+  ): Invoice {
+    const resolved = resolveInvoiceItems({
+      items: raw.items,
+      lineItems: raw.lineItems,
+    });
+    const itemsData = resolved.map((item) => ({
+      id: item.id ?? '',
+      description: item.description,
+      quantity: item.quantity,
+      unitPrice: item.unitPrice ?? item.price,
+      taxRate: item.taxRate ?? 0,
+      discount: item.discountAmount ?? 0,
+    }));
 
     const items = itemsData.map(
       (item) =>

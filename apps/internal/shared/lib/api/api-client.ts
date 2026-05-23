@@ -22,6 +22,9 @@ export const client = getAPIClient({
   validateRequest: (endpoint, options) => {
     assertInternalPortalApiRequest(endpoint, options);
   },
+  onFetchResponse: (response) => {
+    internalSession.captureCsrfFromResponse(response);
+  },
   onRequest: (config: RequestConfig): RequestConfig => {
     const mutating = ["POST", "PUT", "PATCH", "DELETE"];
     if (mutating.includes((config.method ?? "GET").toUpperCase())) {

@@ -4,7 +4,7 @@ import { Cache } from 'cache-manager';
 import {
   DASHBOARD_REPOSITORY_TOKEN,
   IDashboardRepository,
-} from '@/domains/dashboards/dashboard/core/repositories/dashboard.repository.interface';
+} from '@/domains/dashboard/core/repositories/dashboard.repository.interface';
 
 /**
  * Thin facade — delegates dashboard stats to IDashboardRepository with cache.

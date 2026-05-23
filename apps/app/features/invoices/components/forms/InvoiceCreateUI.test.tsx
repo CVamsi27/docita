@@ -1,7 +1,12 @@
 import { fireEvent, screen, waitFor } from "@testing-library/react";
 import { render } from "@/test-utils/render-with-tooltip";
 import { describe, expect, it, vi, beforeEach } from "vitest";
+import type { ReactElement } from "react";
 import { InvoiceCreateUI } from "./InvoiceCreateUI";
+
+vi.mock("@/components/auth/feature-gate", () => ({
+  FeatureGate: ({ children }: { children: ReactElement }) => children,
+}));
 
 const invoiceCreateMocks = vi.hoisted(() => ({
   onSubmit: vi.fn(),

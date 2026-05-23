@@ -1,9 +1,4 @@
-import {
-  Injectable,
-  Inject,
-  NotFoundException,
-  ForbiddenException,
-} from '@nestjs/common';
+import { Injectable, Inject, NotFoundException } from '@nestjs/common';
 import { EventEmitter2 } from '@nestjs/event-emitter';
 import { ApplicationEvents } from '@/shared/common/events/application-events';
 import {
@@ -12,7 +7,7 @@ import {
   IAppointmentReadRepository,
   IAppointmentWriteRepository,
 } from '@/domains/appointments/core/repositories/appointment.repository.interface';
-import { Role, VitalSign } from '@workspace/db';
+import { VitalSign } from '@workspace/db';
 import {
   type DiagnosisSyncItem,
   type UpdateAppointmentRequest,
@@ -30,11 +25,10 @@ import { Appointment } from '@/domains/appointments/core/entities/appointment.en
 import { AppointmentQueryService } from './appointment-query.service';
 import { AppointmentMetricsService } from './appointment-metrics.service';
 import { AppointmentDiagnosisService } from './appointment-diagnosis.service';
-
-type AppointmentAccessContext = {
-  role?: Role;
-  userId?: string;
-};
+import {
+  assertDoctorOwnsAppointment,
+  type AppointmentAccessContext,
+} from '@/domains/appointments/application/types/appointment-access-context';
 
 /** Handles all write operations for appointments (create, update, cancel, reschedule). */
 @Injectable()
@@ -76,14 +70,8 @@ export class AppointmentCommandService {
   async startConsultation(
     id: string,
     clinicId: string,
-    accessContext?: AppointmentAccessContext,
+    accessContext: AppointmentAccessContext,
   ): Promise<{ appointmentId: string; status: string }> {
-    if (!accessContext?.userId || !accessContext.role) {
-      throw new ForbiddenException(
-        'Only the assigned doctor can start this consultation',
-      );
-    }
-
     return this.startConsultationUseCase.execute({
       appointmentId: id,
       clinicId,
@@ -96,7 +84,7 @@ export class AppointmentCommandService {
     id: string,
     reason: string,
     clinicId: string,
-    accessContext?: AppointmentAccessContext,
+    accessContext: AppointmentAccessContext,
   ): Promise<Appointment> {
     const appointment = await this.queryService.getAppointment(
       id,
@@ -111,7 +99,7 @@ export class AppointmentCommandService {
     startTime: Date,
     endTime: Date,
     clinicId: string,
-    accessContext?: AppointmentAccessContext,
+    accessContext: AppointmentAccessContext,
   ): Promise<void> {
     const appointment = await this.queryService.getAppointment(
       id,
@@ -130,7 +118,7 @@ export class AppointmentCommandService {
     id: string,
     clinicId: string,
     data: Partial<UpdateAppointmentRequest>,
-    accessContext?: AppointmentAccessContext,
+    accessContext: AppointmentAccessContext,
   ): Promise<Appointment> {
     const appointment = await this.readRepository.findForUpdate(id, clinicId);
 
@@ -138,15 +126,7 @@ export class AppointmentCommandService {
       throw new NotFoundException(`Appointment with ID ${id} not found`);
     }
 
-    if (
-      accessContext?.role === Role.DOCTOR &&
-      accessContext.userId &&
-      appointment.doctorId !== accessContext.userId
-    ) {
-      throw new ForbiddenException(
-        'Doctors can only access their appointments',
-      );
-    }
+    assertDoctorOwnsAppointment(accessContext, appointment.doctorId);
 
     await this.updateAppointmentDetailsUseCase.execute({
       appointmentId: id,
@@ -176,7 +156,7 @@ export class AppointmentCommandService {
     appointmentId: string,
     clinicId: string,
     data: Partial<VitalSign>,
-    accessContext?: AppointmentAccessContext,
+    accessContext: AppointmentAccessContext,
   ): Promise<VitalSign> {
     return this.metricsService.createVitals(
       appointmentId,
@@ -190,7 +170,7 @@ export class AppointmentCommandService {
     appointmentId: string,
     clinicId: string,
     data: Partial<VitalSign>,
-    accessContext?: AppointmentAccessContext,
+    accessContext: AppointmentAccessContext,
   ): Promise<VitalSign> {
     return this.metricsService.updateVitals(
       appointmentId,
