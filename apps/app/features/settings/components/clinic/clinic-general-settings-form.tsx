@@ -234,7 +234,7 @@ export function ClinicGeneralSettingsForm({
             disabled={isPending}
             className="w-full sm:w-auto"
           >
-            {isPending ? "Saving…" : "Save Changes"}
+            {isPending ? "Saving…" : "Save changes"}
           </Button>
         </div>
       </form>

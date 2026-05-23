@@ -53,7 +53,7 @@ export function InvoiceItemsTable({
           <TableRow>
             <TableHead className="min-w-[220px]">Description</TableHead>
             <TableHead className="w-24">Qty</TableHead>
-            <TableHead className="w-32">Unit Price</TableHead>
+            <TableHead className="w-32">Unit price</TableHead>
             <TableHead className="min-w-[170px]">Tax</TableHead>
             <TableHead className="w-28">GST %</TableHead>
             <TableHead className="w-32">HSN/SAC</TableHead>

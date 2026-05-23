@@ -36,7 +36,7 @@ export function AppointmentsPageHeaderUI({
         actions={
           <Button onClick={() => onOpenChange(true)}>
             <Plus className="mr-2 h-4 w-4" />
-            New Appointment
+            New appointment
           </Button>
         }
       />

@@ -42,7 +42,7 @@ export function InvoiceItemsTable({
           <TableRow>
             <TableHead className="w-[40%]">Description</TableHead>
             <TableHead className="w-[15%]">Qty</TableHead>
-            <TableHead className="w-[20%]">Unit Price</TableHead>
+            <TableHead className="w-[20%]">Unit price</TableHead>
             <TableHead className="w-[20%]">Total</TableHead>
             <TableHead className="w-[5%]"></TableHead>
           </TableRow>

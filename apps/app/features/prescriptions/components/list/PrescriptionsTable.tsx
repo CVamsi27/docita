@@ -82,7 +82,7 @@ export function PrescriptionsTable({
   return (
     <Card className="border-border shadow-sm">
       <CardHeader>
-        <CardTitle>All Prescriptions</CardTitle>
+        <CardTitle>All prescriptions</CardTitle>
         <CardDescription>
           A list of all prescriptions generated for patients
         </CardDescription>

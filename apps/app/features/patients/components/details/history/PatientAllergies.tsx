@@ -128,7 +128,7 @@ export function PatientAllergies({
       >
         <DialogContent>
           <DialogHeader>
-            <DialogTitle>Edit Allergy</DialogTitle>
+            <DialogTitle>Edit allergy</DialogTitle>
             <DialogDescription>
               Update the allergen, severity, type, and reaction.
             </DialogDescription>
@@ -228,7 +228,7 @@ export function PatientAllergies({
             <Button variant="outline" onClick={onCancelEditAllergy}>
               Cancel
             </Button>
-            <Button onClick={onUpdateAllergy}>Save Changes</Button>
+            <Button onClick={onUpdateAllergy}>Save changes</Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>

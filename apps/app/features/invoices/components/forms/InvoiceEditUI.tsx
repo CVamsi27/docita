@@ -90,7 +90,7 @@ export const InvoiceEditUI: FC<InvoiceEditUIProps> = ({ invoiceId }) => {
       <div className="flex items-center gap-4">
         <BackButton fallback={invoiceFallback} label="Cancel" />
         <div>
-          <h1 className="ui-page-title">Edit Invoice</h1>
+          <h1 className="ui-page-title">Edit invoice</h1>
           <p className="text-muted-foreground">
             Make changes to invoice #{invoice.id}
           </p>
@@ -105,7 +105,7 @@ export const InvoiceEditUI: FC<InvoiceEditUIProps> = ({ invoiceId }) => {
         >
           <Card>
             <CardHeader>
-              <CardTitle>Invoice Details</CardTitle>
+              <CardTitle>Invoice details</CardTitle>
             </CardHeader>
             <CardContent className="grid md:grid-cols-2 gap-6">
               <FormField
@@ -139,7 +139,7 @@ export const InvoiceEditUI: FC<InvoiceEditUIProps> = ({ invoiceId }) => {
 
           <Card>
             <CardHeader className="flex flex-row items-center justify-between">
-              <CardTitle>Line Items</CardTitle>
+              <CardTitle>Line items</CardTitle>
             </CardHeader>
             <CardContent>
               <InvoiceItemsTable
