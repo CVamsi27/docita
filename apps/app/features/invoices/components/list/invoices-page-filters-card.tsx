@@ -64,11 +64,11 @@ export function InvoicesPageFiltersCard({
                 <SelectValue placeholder="Status" />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="all">All Statuses</SelectItem>
+                <SelectItem value="all">All statuses</SelectItem>
                 <SelectItem value="PAID">Paid</SelectItem>
                 <SelectItem value="PENDING">Pending</SelectItem>
                 <SelectItem value="OVERDUE">Overdue</SelectItem>
-                <SelectItem value="PARTIALLY_PAID">Partially Paid</SelectItem>
+                <SelectItem value="PARTIALLY_PAID">Partially paid</SelectItem>
               </SelectContent>
             </Select>
           </div>
@@ -91,10 +91,10 @@ export function InvoicesPageFiltersCard({
                 <SelectValue placeholder="Sort order" />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="date-desc">Newest First</SelectItem>
-                <SelectItem value="date-asc">Oldest First</SelectItem>
-                <SelectItem value="amount-desc">Highest Amount</SelectItem>
-                <SelectItem value="amount-asc">Lowest Amount</SelectItem>
+                <SelectItem value="date-desc">Newest first</SelectItem>
+                <SelectItem value="date-asc">Oldest first</SelectItem>
+                <SelectItem value="amount-desc">Highest amount</SelectItem>
+                <SelectItem value="amount-asc">Lowest amount</SelectItem>
               </SelectContent>
             </Select>
           </div>

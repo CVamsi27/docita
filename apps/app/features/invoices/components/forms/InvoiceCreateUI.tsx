@@ -56,7 +56,7 @@ export const InvoiceCreateUI: FC = () => {
       <div className="flex items-center gap-4">
         <BackButton fallback="/invoices" label="Cancel" />
         <div>
-          <h1 className="ui-page-title">New Invoice</h1>
+          <h1 className="ui-page-title">New invoice</h1>
           <p className="text-muted-foreground">
             Create a new invoice for a patient
           </p>
@@ -71,7 +71,7 @@ export const InvoiceCreateUI: FC = () => {
         >
           <Card>
             <CardHeader>
-              <CardTitle>Invoice Details</CardTitle>
+              <CardTitle>Invoice details</CardTitle>
             </CardHeader>
             <CardContent className="grid md:grid-cols-2 gap-6">
               <div className="col-span-full md:col-span-1">
@@ -127,7 +127,7 @@ export const InvoiceCreateUI: FC = () => {
 
           <Card>
             <CardHeader className="flex flex-row items-center justify-between">
-              <CardTitle>Line Items</CardTitle>
+              <CardTitle>Line items</CardTitle>
             </CardHeader>
             <CardContent>
               <InvoiceItemsTable

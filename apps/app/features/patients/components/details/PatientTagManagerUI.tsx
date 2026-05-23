@@ -165,7 +165,7 @@ export function PatientTagManagerUI({
         <Tabs defaultValue="current" className="w-full">
           <TabsList className="grid w-full grid-cols-3">
             <TabsTrigger value="current">Current ({tags.length})</TabsTrigger>
-            <TabsTrigger value="presets">Quick Add</TabsTrigger>
+            <TabsTrigger value="presets">Quick add</TabsTrigger>
             <TabsTrigger value="custom">Custom</TabsTrigger>
           </TabsList>
 

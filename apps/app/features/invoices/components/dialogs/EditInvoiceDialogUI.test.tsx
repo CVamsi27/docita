@@ -53,7 +53,7 @@ describe("EditInvoiceDialogUI", () => {
       />,
     );
 
-    expect(screen.getByText("Edit Invoice")).toBeInTheDocument();
+    expect(screen.getByText("Edit invoice")).toBeInTheDocument();
     expect(
       screen.getByText("Update invoice details for Asha Rao"),
     ).toBeInTheDocument();
