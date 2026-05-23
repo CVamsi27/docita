@@ -103,6 +103,9 @@
   --font-mono:
     var(--font-jetbrains-mono), ui-monospace, SFMono-Regular, "SF Mono", Menlo,
     Monaco, "Roboto Mono", monospace;
+  --font-wordmark:
+    var(--font-nunito), ui-rounded, "Hiragino Maru Gothic Pro", "Quicksand",
+    sans-serif;
   --fs-2xs: 0.6875rem;
   --fs-xs: 0.75rem;
   --fs-sm: 0.8125rem;
@@ -153,6 +156,17 @@
   --motion-ease: cubic-bezier(0.22, 1, 0.36, 1);
   --motion-ease-in: cubic-bezier(0.4, 0, 1, 1);
   --motion-ease-out: cubic-bezier(0, 0, 0.2, 1);
+
+  /* Elevation (clinical, not flashy — shadow-sm default, shadow-md max in product) */
+  --shadow-xs: 0 1px 1px rgba(15, 23, 42, 0.04);
+  --shadow-sm:
+    0 1px 2px rgba(15, 23, 42, 0.06), 0 1px 3px rgba(15, 23, 42, 0.05);
+  --shadow-md:
+    0 4px 8px -2px rgba(15, 23, 42, 0.08),
+    0 2px 4px -2px rgba(15, 23, 42, 0.05);
+  --shadow-lg:
+    0 12px 24px -8px rgba(15, 23, 42, 0.12),
+    0 4px 8px -4px rgba(15, 23, 42, 0.06);
 }
 
 [data-density="compact"] {
@@ -407,8 +421,10 @@ html.dark[data-accent="slate"] {
   --font-family-sans: var(--font-sans);
   --font-family-mono: var(--font-mono);
   --font-family-heading: var(--font-heading);
+  --font-family-wordmark: var(--font-wordmark);
   --font-sans-family: var(--font-sans);
   --font-mono-family: var(--font-mono);
+  --font-wordmark-family: var(--font-wordmark);
 
   --font-size-2xs: var(--fs-2xs);
   --font-size-xs: var(--fs-xs);
@@ -514,12 +530,34 @@ html.dark[data-accent="slate"] {
   }
 
   .ui-eyebrow {
+    font-family: var(--font-mono);
     font-size: var(--fs-2xs);
     line-height: var(--lh-normal);
-    letter-spacing: 0.08em;
+    letter-spacing: 0.14em;
     font-weight: var(--fw-medium);
     text-transform: uppercase;
     color: var(--muted-foreground);
+  }
+
+  .ui-eyebrow-accent {
+    color: var(--primary);
+  }
+
+  .ui-mono {
+    font-family: var(--font-mono);
+    font-feature-settings: "tnum", "ss01";
+  }
+
+  .ui-money {
+    font-family: var(--font-mono);
+    font-variant-numeric: tabular-nums;
+    font-weight: var(--fw-semibold);
+  }
+
+  .ui-wordmark {
+    font-family: var(--font-wordmark);
+    font-weight: 600;
+    letter-spacing: -0.02em;
   }
 
   .ui-body {
