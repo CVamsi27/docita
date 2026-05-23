@@ -226,7 +226,7 @@ export function ManageTeamMemberDialog({
                         className="mr-2"
                       />
                     ) : null}
-                    Save Changes
+                    Save changes
                   </Button>
                   <Button
                     type="button"

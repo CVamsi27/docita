@@ -93,7 +93,7 @@ describe("InvoiceCreateUI", () => {
   it("edits invoice line items and submits the form", async () => {
     render(<InvoiceCreateUI />);
 
-    expect(screen.getByRole("heading", { name: "New Invoice" })).toBeInTheDocument();
+    expect(screen.getByRole("heading", { name: "New invoice" })).toBeInTheDocument();
     expect(screen.getByDisplayValue("Consultation")).toBeInTheDocument();
 
     fireEvent.change(screen.getByDisplayValue("Consultation"), {

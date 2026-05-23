@@ -99,13 +99,13 @@ describe("ClinicGeneralSettings", () => {
 
     const nameInput = screen.getByDisplayValue("Care Clinic");
     fireEvent.change(nameInput, { target: { value: "" } });
-    fireEvent.click(screen.getByRole("button", { name: "Save Changes" }));
+    fireEvent.click(screen.getByRole("button", { name: "Save changes" }));
 
     expect(await screen.findByText("Enter facility name.")).toBeInTheDocument();
     expect(settingsMocks.updateClinic).not.toHaveBeenCalled();
 
     fireEvent.change(nameInput, { target: { value: "Care Clinic Plus" } });
-    fireEvent.click(screen.getByRole("button", { name: "Save Changes" }));
+    fireEvent.click(screen.getByRole("button", { name: "Save changes" }));
 
     await waitFor(() => {
       expect(settingsMocks.updateClinic).toHaveBeenCalledWith(

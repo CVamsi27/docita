@@ -150,7 +150,7 @@ export function AddAppointmentDialogUI({
     <FormDialog
       open={open}
       onOpenChange={onOpenChange}
-      title={mode === "walk-in" ? "Add walk-in" : "Schedule Appointment"}
+      title={mode === "walk-in" ? "Add walk-in" : "Schedule appointment"}
       description={
         mode === "walk-in"
           ? "Pick patient + doctor. We’ll use the next available slot."

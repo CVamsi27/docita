@@ -70,7 +70,7 @@ test.describe("Appointments", () => {
   test("should create a new appointment", async ({ page }) => {
     await page.goto("/appointments");
 
-    await page.getByRole("button", { name: "New Appointment" }).click();
+    await page.getByRole("button", { name: "New appointment" }).click();
     // Contract: dialog opens and key fields are visible. (Avoid brittle Radix popover interactions.)
     await expect(page.getByRole("dialog")).toBeVisible();
     await expect(page.getByText("Start time", { exact: true })).toBeVisible();
