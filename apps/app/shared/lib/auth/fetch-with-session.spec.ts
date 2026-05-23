@@ -7,6 +7,7 @@ vi.mock("@/lib/auth/session", () => ({
   appSession: {
     getToken: vi.fn(),
     getCsrfToken: vi.fn(),
+    captureCsrfFromResponse: vi.fn(),
     refreshAccessToken: vi.fn(),
     clearSession: vi.fn(),
     redirectToLogin: vi.fn(),

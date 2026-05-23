@@ -34,10 +34,8 @@ import {
   RescheduleAppointmentDto,
   UpdateAppointmentDto,
 } from '@/domains/appointments/application/dto/appointments.dto';
-import {
-  AppointmentsApiAccess,
-  getAppointmentAccessContext,
-} from '@/domains/appointments/presentation/controllers/appointments.controller.access';
+import { AppointmentsApiAccess } from '@/domains/appointments/presentation/controllers/appointments.controller.access';
+import { getAppointmentAccessContext } from '@/domains/appointments/application/types/appointment-access-context';
 import { AuditService } from '@/shared/modules/audit/audit/audit.service';
 import {
   logClinicPhiListRead,

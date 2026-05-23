@@ -15,7 +15,7 @@ import { PaymentsModule } from './domains/payments/payments.module';
 import { ImportsModule } from './shared/modules/imports/imports.module';
 import { ConfigModule } from '@nestjs/config';
 
-import { DashboardModule } from './domains/dashboards/dashboard/dashboard.module';
+import { DashboardModule } from './domains/dashboard/dashboard.module';
 import { DocumentsModule } from './domains/documents/documents.module';
 import { CustomFieldsModule } from './domains/custom-fields/custom-fields.module';
 import { AnalyticsModule } from './domains/analytics/analytics.module';

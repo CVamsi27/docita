@@ -4,7 +4,7 @@ NestJS API for authenticated clinical, billing, patient, and platform workflows.
 
 ## Domain catalogue (25 domains)
 
-`analytics`, `appointments`, `billing`, `clinical`, `clinics`, `custom-fields`, `dashboards`, `doctor-clinics`, `doctors`, `documents`, `enterprise-contracts`, `feedback`, `inventory`, `ipd`, `leave`, `medical-documents`, `patient-portal`, `patients`, `payments`, `prescriptions`, `public-booking`, `reminders`, `subscriptions`, `users`, `webhooks`, `whatsapp`
+`analytics`, `appointments`, `billing`, `clinical`, `clinics`, `custom-fields`, `dashboard`, `doctor-clinics`, `doctors`, `documents`, `enterprise-contracts`, `feedback`, `inventory`, `ipd`, `leave`, `medical-documents`, `patient-portal`, `patients`, `payments`, `prescriptions`, `public-booking`, `reminders`, `subscriptions`, `users`, `webhooks`, `whatsapp`
 
 All domains follow the layered pattern in `apps/api/src/domains/<domain>/{application,core,infrastructure,presentation}`. See `apps/api/src/domains/appointments` as the reference implementation (AGENTS.md §15.1).
 

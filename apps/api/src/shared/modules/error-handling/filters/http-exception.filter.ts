@@ -32,6 +32,7 @@ import {
   NotFoundDomainError,
 } from '@/shared/common/errors/domain.errors';
 import { getMonitoringUserContext } from '@/shared/modules/auth/auth/request-user.util';
+import { redactPhi } from '@/shared/modules/observability/phi-redactor';
 
 const MAX_REQUEST_BODY_KEYS = 20;
 const MAX_VALIDATION_FIELDS = 10;
@@ -195,17 +196,13 @@ export class AllExceptionsFilter implements ExceptionFilter {
       errorType = exception.name || 'Error';
       errorStack = exception.stack;
 
-      const errorDetails: Record<string, unknown> = {
+      const errorDetails = redactPhi({
         name: exception.name,
         message: exception.message,
         stack: exception.stack,
         toString: exception.toString(),
-      };
-
-      const cause = getErrorCause(exception);
-      if (cause !== undefined) {
-        errorDetails.cause = cause;
-      }
+        cause: getErrorCause(exception),
+      });
 
       this.logger.error('Unhandled error details', errorDetails);
     } else {
@@ -253,9 +250,11 @@ export class AllExceptionsFilter implements ExceptionFilter {
     }
 
     if (status >= 500) {
+      const safeStack =
+        typeof errorStack === 'string' ? redactPhi(errorStack) : errorStack;
       this.logger.error(
-        `HTTP ${status} ${request.method} ${request.path}: ${message}`,
-        errorStack,
+        `HTTP ${status} ${request.method} ${request.path}: ${redactPhi(message)}`,
+        safeStack,
       );
     } else if (
       !(exception instanceof ForbiddenException) &&

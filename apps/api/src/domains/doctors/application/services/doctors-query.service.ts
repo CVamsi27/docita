@@ -1,4 +1,6 @@
 import { Injectable, NotFoundException, Inject } from '@nestjs/common';
+import { mapWithConcurrency } from '@workspace/utils';
+import { activeUserWhere } from '@/shared/common/prisma/active-user.filter';
 import {
   DOCTOR_PERSISTENCE_PORT,
   type DoctorPersistencePort,
@@ -9,6 +11,8 @@ import {
   DOCTOR_CARD_SELECT,
 } from '@/shared/common/select-fragments';
 import { StoredFileUrlResolverService } from '@/domains/documents/application/services/stored-file-url-resolver.service';
+
+const DOCTOR_SIGNATURE_RESOLVE_CONCURRENCY = 8;
 
 @Injectable()
 export class DoctorsQueryService {
@@ -65,6 +69,7 @@ export class DoctorsQueryService {
         where: {
           clinicId,
           role: { in: ['DOCTOR', 'ADMIN_DOCTOR'] },
+          ...activeUserWhere,
         },
         select: {
           ...DOCTOR_LIST_SELECT,
@@ -91,8 +96,10 @@ export class DoctorsQueryService {
 
     const directUsers = clinicUsers.filter((u) => !doctorClinicIds.has(u.id));
 
-    const mappedClinics = await Promise.all(
-      validDoctorClinics.map(async (dc) => {
+    const mappedClinics = await mapWithConcurrency(
+      validDoctorClinics,
+      DOCTOR_SIGNATURE_RESOLVE_CONCURRENCY,
+      async (dc) => {
         const doctor = await this.resolveDoctorSignatureUrl(dc.doctor);
         return {
           id: doctor.id,
@@ -115,11 +122,13 @@ export class DoctorsQueryService {
           consultationFee: doctor.consultationFee,
           createdAt: doctor.createdAt,
         };
-      }),
+      },
     );
 
-    const mappedDirectUsers = await Promise.all(
-      directUsers.map(async (user) => {
+    const mappedDirectUsers = await mapWithConcurrency(
+      directUsers,
+      DOCTOR_SIGNATURE_RESOLVE_CONCURRENCY,
+      async (user) => {
         const doctor = await this.resolveDoctorSignatureUrl(user);
         return {
           id: doctor.id,
@@ -142,7 +151,7 @@ export class DoctorsQueryService {
           consultationFee: doctor.consultationFee,
           createdAt: doctor.createdAt,
         };
-      }),
+      },
     );
 
     return [...mappedClinics, ...mappedDirectUsers];

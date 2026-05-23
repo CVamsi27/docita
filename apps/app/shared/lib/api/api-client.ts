@@ -19,6 +19,9 @@ const client = getAPIClient({
   getToken: () => appSession.getToken(),
   timeout: 30000,
   retries: 3,
+  onFetchResponse: (response) => {
+    appSession.captureCsrfFromResponse(response);
+  },
   onRequest: (config: RequestConfig): RequestConfig => {
     const mutating = ["POST", "PUT", "PATCH", "DELETE"];
     if (mutating.includes((config.method ?? "GET").toUpperCase())) {

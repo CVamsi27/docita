@@ -76,12 +76,18 @@ describe('InvoicesQueryService', () => {
         id: 'inv-1',
         clinicId: 'clinic-1',
         status: InvoiceStatus.PENDING,
+        items: [],
       };
       repository.findById.mockResolvedValueOnce(invoice as never);
 
       const result = await service.findOne('inv-1', 'clinic-1');
 
-      expect(result).toEqual(invoice);
+      expect(result).toEqual({
+        id: 'inv-1',
+        clinicId: 'clinic-1',
+        status: InvoiceStatus.PENDING,
+        items: [],
+      });
     });
 
     it('should throw NotFoundException when invoice does not exist', async () => {

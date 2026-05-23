@@ -20,6 +20,7 @@ import { useDebounce } from "@workspace/hooks/use-debounce";
 import {
   isClinicWideAppointmentRole,
   resolveDoctorScopedAppointmentFilter,
+  VISIBLE_APPOINTMENT_STATUS_QUERY,
 } from "@workspace/types";
 import { useAppointmentRowActions } from "@/features/appointments/hooks/use-appointment-row-actions";
 import { useAppointmentActions } from "@/features/appointments/hooks/use-appointment-actions";
@@ -40,8 +41,6 @@ export const generateTimeSlots = () => {
 export const TIME_SLOTS = generateTimeSlots();
 
 export const useAppointmentsLogic = () => {
-  const NON_CANCELLED_APPOINTMENT_STATUSES =
-    "scheduled,confirmed,in_progress,completed,no-show";
   const [date, setDate] = useState<Date | undefined>(new Date());
   const [calendarMonth, setCalendarMonth] = useState<Date>(() =>
     startOfMonth(new Date()),
@@ -121,7 +120,7 @@ export const useAppointmentsLogic = () => {
     ...(doctorScope.scopedDoctorId
       ? { doctorId: doctorScope.scopedDoctorId }
       : {}),
-    status: NON_CANCELLED_APPOINTMENT_STATUSES,
+    status: VISIBLE_APPOINTMENT_STATUS_QUERY,
     limit: 500,
   });
 
@@ -148,7 +147,7 @@ export const useAppointmentsLogic = () => {
       ? { doctorId: doctorScope.scopedDoctorId }
       : {}),
     search: debouncedSearch,
-    status: NON_CANCELLED_APPOINTMENT_STATUSES,
+    status: VISIBLE_APPOINTMENT_STATUS_QUERY,
     limit: 100,
   });
 

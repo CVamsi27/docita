@@ -134,7 +134,7 @@ jobs:
         run: pnpm --filter @docita/api run check-types
 
       - name: Test API
-        run: pnpm --filter @docita/api run test
+        run: pnpm --filter @docita/api run test:ci
 
       - name: Build API on main
         if: github.event_name == 'push' && github.ref == 'refs/heads/main'
@@ -295,6 +295,9 @@ jobs:
 
       - name: Typecheck worker package
         run: pnpm --filter @docita/worker run check-types
+
+      - name: Test worker package
+        run: pnpm --filter @docita/worker run test:ci
 
       - name: Build worker on main
         if: github.event_name == 'push' && github.ref == 'refs/heads/main'

@@ -59,6 +59,7 @@ model User {
   onboardingStep             OnboardingStep?          @default(NOT_STARTED)
   onboardingStartedAt        DateTime?
   onboardingCompletedAt      DateTime?
+  deletedAt                  DateTime?
 
   appointments                 Appointment[]
   auditLogs                    AuditLog[]
@@ -101,6 +102,7 @@ model User {
   @@index([specialization])
   @@index([clinicId, role, createdAt], map: "User_clinicId_role_createdAt_idx")
   @@index([verificationStatus])
+  @@index([deletedAt])
 }
 
 model NotificationPreferences {
@@ -111,7 +113,7 @@ model NotificationPreferences {
   email    Boolean @default(false)
   sms      Boolean @default(false)
 
-  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  user User @relation(fields: [userId], references: [id], onDelete: Restrict)
 }
 
 model SignatureUploadToken {
@@ -147,7 +149,7 @@ model MemberJoinRequest {
   respondedAt     DateTime?
   expiresAt       DateTime?
 
-  user       User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+  user       User   @relation(fields: [userId], references: [id], onDelete: Restrict)
   clinic     Clinic @relation(fields: [clinicId], references: [id], onDelete: Cascade)
   approvedBy User?  @relation("ApprovedRequests", fields: [approvedById], references: [id])
 
@@ -171,7 +173,7 @@ model DoctorEducation {
   order        Int      @default(0)
   createdAt    DateTime @default(now())
   updatedAt    DateTime @updatedAt
-  doctor       User     @relation(fields: [doctorId], references: [id], onDelete: Cascade)
+  doctor       User     @relation(fields: [doctorId], references: [id], onDelete: Restrict)
 
   @@index([doctorId])
   @@index([endYear])
@@ -1142,6 +1144,7 @@ model ClinicSecret {
   kind       String
   ciphertext String
   createdAt  DateTime  @default(now())
+  updatedAt  DateTime  @updatedAt
   rotatedAt  DateTime?
   clinic     Clinic    @relation(fields: [clinicId], references: [id], onDelete: Cascade)
 
@@ -2558,6 +2561,7 @@ model DataSubjectRequest {
   handledBy User?    @relation("HandledDataSubjectRequests", fields: [handledById], references: [id])
 
   @@index([clinicId, status])
+  @@index([clinicId, requestType, status])
   @@index([clinicId, requestType])
   @@index([patientId])
   @@index([dueAt])
@@ -3734,6 +3738,7 @@ model MedicalDocument {
   clinic  Clinic  @relation(fields: [clinicId], references: [id])
 
   @@index([clinicId, patientId])
+  @@index([clinicId, type, status])
   @@index([clinicId])
   @@index([type])
 }
@@ -3758,8 +3763,8 @@ model FollowUp {
   clinic      Clinic      @relation(fields: [clinicId], references: [id])
 
   @@index([clinicId, status])
+  @@index([clinicId, status, scheduledDate])
   @@index([scheduledDate])
-  @@index([clinicId])
   @@index([patientId])
 }
 
@@ -3818,6 +3823,7 @@ model AppointmentRequest {
   reviewedBy      User?   @relation("ReviewedAppointmentRequests", fields: [reviewedById], references: [id], onDelete: SetNull)
 
   @@index([clinicId, status, createdAt])
+  @@index([clinicId, status, preferredDate])
   @@index([patientId, status])
   @@index([preferredDoctorId])
   @@index([reviewedById])

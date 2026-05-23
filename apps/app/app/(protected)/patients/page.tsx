@@ -1,10 +1,6 @@
-"use client";
-
 import { Suspense } from "react";
 import { LoadingState } from "@workspace/ui/components/feedback/empty-state";
-import { FeatureGate } from "@/components/auth/feature-gate";
-import { Feature } from "@workspace/types";
-import { PatientsPageContainer } from "@/features/patients/components";
+import { PatientsPageContainer } from "@/features/patients/components/list/PatientsPageContainer";
 
 function PatientsPageFallback() {
   return <LoadingState message="Loading patients…" className="py-16" />;
@@ -12,10 +8,8 @@ function PatientsPageFallback() {
 
 export default function PatientsPage() {
   return (
-    <FeatureGate feature={Feature.BASIC_PATIENT_MANAGEMENT} showLockedCard>
-      <Suspense fallback={<PatientsPageFallback />}>
-        <PatientsPageContainer />
-      </Suspense>
-    </FeatureGate>
+    <Suspense fallback={<PatientsPageFallback />}>
+      <PatientsPageContainer />
+    </Suspense>
   );
 }

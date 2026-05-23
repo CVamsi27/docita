@@ -1,6 +1,7 @@
 import { type PrismaDelegatePort } from '@/shared/modules/database/prisma-delegate.port';
 
 type SubscriptionPersistenceKey =
+  | '$transaction'
   | 'appointment'
   | 'clinic'
   | 'enterpriseContract'

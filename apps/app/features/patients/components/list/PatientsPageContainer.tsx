@@ -1,5 +1,7 @@
 "use client";
 
+import { Feature } from "@workspace/types";
+import { FeatureGate } from "@/components/auth/feature-gate";
 import { AddPatientDialog, EditPatientDialog } from "@/features/patients/components/forms/PatientDialogs";
 
 import { usePatientsLogic } from "@/features/patients/hooks/use-patients-logic";
@@ -11,7 +13,7 @@ export function PatientsPageContainer() {
   const { canStartConsultation } = usePermissions();
 
   return (
-    <>
+    <FeatureGate feature={Feature.BASIC_PATIENT_MANAGEMENT} showLockedCard>
       <PatientsPageUI
         isLoading={state.isLoading}
         error={state.error}
@@ -52,6 +54,6 @@ export function PatientsPageContainer() {
         }
         onPatientUpdated={handlers.onPatientUpdated}
       />
-    </>
+    </FeatureGate>
   );
 }

@@ -4,7 +4,7 @@ Each domain follows the canonical `{application,core,infrastructure,presentation
 
 | Domain | Missing folders | Reason |
 |---|---|---|
-| `dashboards` | `core`, `infrastructure`, `presentation` | Container for the `dashboard` sub-domain only — see `dashboards/dashboard/`. |
+| `dashboard` | — | Full DDD layout under `domains/dashboard/` (flattened from legacy `dashboards/dashboard/`). |
 | `custom-fields` | `core`, `infrastructure` | DTO-only domain — presentation forwards to a shared service. |
 | `doctor-clinics` | `core`, `infrastructure` | Thin association layer over the doctors and clinics aggregates. |
 | `documents` | `core` | No domain entity yet — repository + service operate on Prisma rows directly until a `Document` aggregate is needed. |

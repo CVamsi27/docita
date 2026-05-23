@@ -145,7 +145,8 @@
         "eslint-config-next",
         "@fontsource/fraunces",
         "@fontsource/inter",
-        "@fontsource/jetbrains-mono"
+        "@fontsource/jetbrains-mono",
+        "@fontsource/nunito"
       ]
     },
     "apps/landing": {

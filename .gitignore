@@ -96,7 +96,9 @@ apps/api/src/seed-admin.ts
 # Misc logs
 *.log
 *.js.map
+logs/
 logs/performance/*.json
+loadtest/
 
 # Security scan outputs (generated)
 .gitleaks-report.json

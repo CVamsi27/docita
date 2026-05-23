@@ -1,15 +1,10 @@
-"use client";
+import { InvoiceEditUI } from "@/features/invoices/components/forms/InvoiceEditUI";
 
-import { useParams } from "next/navigation";
-import { Feature } from "@workspace/types";
-import { FeatureGate } from "@/components/auth/feature-gate";
-import { InvoiceEditUI } from "@/features/invoices/components";
+type InvoiceEditPageProps = {
+  params: Promise<{ id: string }>;
+};
 
-export default function InvoiceEditPage() {
-  const params = useParams<{ id: string }>();
-  return (
-    <FeatureGate feature={Feature.INVOICING} showLockedCard>
-      <InvoiceEditUI invoiceId={params.id} />
-    </FeatureGate>
-  );
+export default async function InvoiceEditPage({ params }: InvoiceEditPageProps) {
+  const { id } = await params;
+  return <InvoiceEditUI invoiceId={id} />;
 }

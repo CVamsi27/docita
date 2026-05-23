@@ -1,6 +1,8 @@
 "use client";
 
-import { FC } from "react";
+import { FC, type ReactNode } from "react";
+import { Feature } from "@workspace/types";
+import { FeatureGate } from "@/components/auth/feature-gate";
 import { Card, CardContent, CardFooter } from "@workspace/ui/components/indicators/card";
 import { Button } from "@workspace/ui/components/form/button";
 import { Download, Edit, FileText, Printer } from "lucide-react";
@@ -22,6 +24,14 @@ import { InvoiceItemsTableReadOnly } from "./InvoiceItemsTableReadOnly";
 import { InvoiceTotalsOnly } from "./InvoiceTotalsOnly";
 import { InvoicePaymentActivitySection } from "./InvoicePaymentActivitySection";
 import { buildInvoicePaidSummaryLine } from "@/features/invoices/lib/invoice-payment-display";
+
+function withInvoicingGate(node: ReactNode) {
+  return (
+    <FeatureGate feature={Feature.INVOICING} showLockedCard>
+      {node}
+    </FeatureGate>
+  );
+}
 
 interface InvoiceDetailsUIProps {
   invoiceId: string;
@@ -67,11 +77,13 @@ export const InvoiceDetailsUI: FC<InvoiceDetailsUIProps> = ({ invoiceId }) => {
   };
 
   if (isLoading) {
-    return <LoadingState message="Loading invoice details…" />;
+    return withInvoicingGate(
+      <LoadingState message="Loading invoice details…" />,
+    );
   }
 
   if (error || !invoice) {
-    return (
+    return withInvoicingGate(
       <EmptyState
         icon={FileText}
         title="Invoice not found"
@@ -80,7 +92,7 @@ export const InvoiceDetailsUI: FC<InvoiceDetailsUIProps> = ({ invoiceId }) => {
           label: "Back to Invoices",
           onClick: () => router.push("/invoices"),
         }}
-      />
+      />,
     );
   }
 
@@ -97,7 +109,7 @@ export const InvoiceDetailsUI: FC<InvoiceDetailsUIProps> = ({ invoiceId }) => {
   const authorizedSignatureName =
     invoiceClinic?.name || clinic?.name || "Clinic Administration";
 
-  return (
+  return withInvoicingGate(
     <div className="flex flex-col gap-6 max-w-5xl mx-auto">
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 print:hidden">
         <div className="min-w-0 flex flex-col gap-1">
@@ -218,6 +230,6 @@ export const InvoiceDetailsUI: FC<InvoiceDetailsUIProps> = ({ invoiceId }) => {
           .print-sheet { position: absolute; left: 0; top: 0; width: 100%; }
         }
       `}</style>
-    </div>
+    </div>,
   );
 };

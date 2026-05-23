@@ -5,7 +5,7 @@ import {
   isPatientMinor,
   validatePatientPhoneNumberForCountry,
   validatePatientData,
-} from "./patientRules";
+} from "./patient-rules";
 import type { Patient, User, UserRole } from "@workspace/types";
 
 const userWithRole = (role: UserRole): User => ({ role }) as User;

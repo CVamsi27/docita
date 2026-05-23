@@ -6,6 +6,7 @@ import type {
   TimelineFetchParams,
 } from '@/domains/patients/core/repositories/timeline/timeline-fetch.types';
 import { timelineDateRange } from './timeline-date-range.helper';
+import { PATIENT_TIMELINE_SOURCE_LIMITS as limits } from './patient-timeline-limits';
 
 abstract class PrismaPatientTimelineSourceBase implements IPatientTimelineSource {
   abstract readonly eventType: TimelineEventType;
@@ -69,7 +70,7 @@ export class AppointmentsTimelineSource extends PrismaPatientTimelineSourceBase 
         },
       },
       orderBy: { startTime: 'desc' },
-      take: 100,
+      take: limits.appointment,
     });
   }
 }
@@ -83,7 +84,7 @@ export class PrescriptionsTimelineSource extends PrismaPatientTimelineSourceBase
       where: { patientId, ...timelineDateRange('date', from, to) },
       include: { medications: { select: { name: true } } },
       orderBy: { date: 'desc' },
-      take: 50,
+      take: limits.prescription,
     });
   }
 }
@@ -102,11 +103,11 @@ export class MetricRecordsTimelineSource extends PrismaPatientTimelineSourceBase
       include: {
         values: {
           include: { option: { select: { label: true } } },
-          take: 3,
+          take: limits.metricRecordValuePreview,
         },
       },
       orderBy: { recordedAt: 'desc' },
-      take: 50,
+      take: limits.metricRecord,
     });
   }
 }
@@ -124,7 +125,7 @@ export class LabTestsTimelineSource extends PrismaPatientTimelineSourceBase {
       },
       include: { labTest: { select: { name: true, category: true } } },
       orderBy: { createdAt: 'desc' },
-      take: 50,
+      take: limits.labTest,
     });
   }
 }
@@ -148,7 +149,7 @@ export class MedicalDocumentsTimelineSource extends PrismaPatientTimelineSourceB
         createdAt: true,
       },
       orderBy: { createdAt: 'desc' },
-      take: 50,
+      take: limits.medicalDocument,
     });
   }
 }
@@ -166,7 +167,7 @@ export class FollowUpsTimelineSource extends PrismaPatientTimelineSourceBase {
       },
       select: { id: true, reason: true, scheduledDate: true, status: true },
       orderBy: { scheduledDate: 'desc' },
-      take: 50,
+      take: limits.followUp,
     });
   }
 }
@@ -189,7 +190,7 @@ export class ImmunizationsTimelineSource extends PrismaPatientTimelineSourceBase
         notes: true,
       },
       orderBy: { administeredDate: 'desc' },
-      take: 50,
+      take: limits.immunization,
     });
   }
 }
@@ -210,7 +211,7 @@ export class AdmissionsTimelineSource extends PrismaPatientTimelineSourceBase {
         status: true,
       },
       orderBy: { admittedAt: 'desc' },
-      take: 20,
+      take: limits.admission,
     });
   }
 }
@@ -229,7 +230,7 @@ export class MedicationDosesTimelineSource extends PrismaPatientTimelineSourceBa
       },
       include: { medication: { select: { name: true } } },
       orderBy: { scheduledAt: 'desc' },
-      take: 100,
+      take: limits.medicationDose,
     });
   }
 }
