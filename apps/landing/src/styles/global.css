@@ -1359,6 +1359,9 @@ canvas {
   --font-inter: "Inter";
   --font-jetbrains-mono: "JetBrains Mono";
   --font-display: "Fraunces";
+  --font-nunito: "Nunito";
+  --font-wordmark:
+    "Nunito", ui-rounded, "Hiragino Maru Gothic Pro", "Quicksand", sans-serif;
 
   /*
    * R2 dual-accent (primary + info): stronger washes in light mode,

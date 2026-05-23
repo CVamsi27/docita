@@ -14,6 +14,29 @@ import { BackButton } from "@/components/navigation/back-button";
 import { useCanGoBack } from "@/hooks/use-can-go-back";
 import { CommandPalette } from "@/components/navigation/command-palette";
 import { DesktopTopBar } from "@/components/layout/desktop-top-bar";
+import { GlobalSearch } from "@/features/search";
+import { useAskAi } from "@/components/ask-ai/ask-ai-context";
+import { Sparkles } from "lucide-react";
+
+function MobileTopActions() {
+  const { openOverlay } = useAskAi();
+  return (
+    <div className="ml-auto flex items-center gap-1">
+      <GlobalSearch />
+      <Button
+        type="button"
+        variant="ghost"
+        size="icon"
+        onClick={() => openOverlay()}
+        aria-label="Open Ask AI"
+        data-testid="mobile-ask-ai"
+      >
+        <Sparkles className="size-4" aria-hidden />
+      </Button>
+      <ThemeToggleWithAppearanceSync />
+    </div>
+  );
+}
 import { DoctorVerificationGuard } from "@/components/guards/doctor-verification-guard";
 import { SubscriptionGuard } from "@/components/guards/subscription-guard";
 import { PageAccessGuard } from "@/components/guards/page-access-guard";
@@ -58,9 +81,7 @@ function MobileHeader({ onMenuClick }: { onMenuClick: () => void }) {
           <DocitaLogo />
         </div>
       )}
-      <div className="ml-auto flex items-center gap-1">
-        <ThemeToggleWithAppearanceSync />
-      </div>
+      <MobileTopActions />
     </header>
   );
 }
@@ -211,7 +232,7 @@ export default function ProtectedLayout({
           <SubscriptionGuard>
             <PageAccessGuard>
              <AskAiProvider>
-              <div className="flex h-screen overflow-hidden bg-background">
+              <div className="app-shell-bg flex h-screen overflow-hidden">
                 <ResizablePanelGroup direction="horizontal">
                   <ResizablePanel
                     ref={sidebarPanelRef}
@@ -280,7 +301,11 @@ export default function ProtectedLayout({
                   <ResizablePanel defaultSize={82}>
                     <div className="flex h-full flex-col overflow-hidden">
                       <MobileHeader onMenuClick={() => setMobileOpen(true)} />
-                      {!isConsultationDetailRoute ? <DesktopTopBar /> : null}
+                      {!isConsultationDetailRoute ? (
+                        <div className="hidden md:block">
+                          <DesktopTopBar />
+                        </div>
+                      ) : null}
                       {!isConsultationDetailRoute ? (
                         <SubscriptionLockNotice />
                       ) : null}
