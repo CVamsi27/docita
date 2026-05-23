@@ -65,7 +65,7 @@ export function DoctorAvailabilitySettings() {
           <div className="flex items-center gap-3">
             <Calendar className="h-5 w-5 text-info" />
             <div>
-              <CardTitle>Doctor Availability</CardTitle>
+              <CardTitle>Doctor availability</CardTitle>
               <CardDescription>
                 Configure working hours and slot duration per doctor
               </CardDescription>
@@ -75,7 +75,7 @@ export function DoctorAvailabilitySettings() {
         <CardContent className="space-y-6">
           {availability.isAdmin && availability.doctors.length > 0 ? (
             <div className="space-y-2">
-              <Label htmlFor="availability-doctor">Select Doctor</Label>
+              <Label htmlFor="availability-doctor">Select doctor</Label>
               <Select
                 value={availability.selectedDoctorId}
                 onValueChange={availability.setSelectedDoctorId}

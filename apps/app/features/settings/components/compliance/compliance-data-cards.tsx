@@ -38,7 +38,7 @@ export function DpdpConsentCard({ compliance }: DpdpConsentCardProps) {
       <CardContent className="space-y-4">
         <div className="flex items-center justify-between py-2">
           <div>
-            <p className="text-sm font-medium">Consent Collection</p>
+            <p className="text-sm font-medium">Consent collection</p>
             <p className="text-xs text-muted-foreground">
               Patients are asked for consent before data is collected.
             </p>
@@ -50,7 +50,7 @@ export function DpdpConsentCard({ compliance }: DpdpConsentCardProps) {
         <Separator />
         <div className="flex items-center justify-between py-2">
           <div>
-            <p className="text-sm font-medium">Consent Template</p>
+            <p className="text-sm font-medium">Consent template</p>
             <p className="text-xs text-muted-foreground">
               {compliance?.consentTemplateUpdatedAt
                 ? `Last updated ${formatDate(compliance.consentTemplateUpdatedAt, "dd MMMM yyyy")}`

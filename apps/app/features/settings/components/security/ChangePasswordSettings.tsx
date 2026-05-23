@@ -54,7 +54,7 @@ export function ChangePasswordSettings() {
   return (
     <Card>
       <CardHeader>
-        <CardTitle>Change Password</CardTitle>
+        <CardTitle>Change password</CardTitle>
         <CardDescription>Update your account password</CardDescription>
       </CardHeader>
       <CardContent>
@@ -69,7 +69,7 @@ export function ChangePasswordSettings() {
               name="currentPassword"
               render={({ field }) => (
                 <FormFieldGroup
-                  label="Current Password"
+                  label="Current password"
                   htmlFor="current-password"
                   required
                   error={form.formState.errors.currentPassword?.message}
@@ -92,7 +92,7 @@ export function ChangePasswordSettings() {
               name="newPassword"
               render={({ field }) => (
                 <FormFieldGroup
-                  label="New Password"
+                  label="New password"
                   htmlFor="new-password"
                   required
                   error={form.formState.errors.newPassword?.message}
@@ -116,7 +116,7 @@ export function ChangePasswordSettings() {
               name="confirmPassword"
               render={({ field }) => (
                 <FormFieldGroup
-                  label="Confirm New Password"
+                  label="Confirm new password"
                   htmlFor="confirm-password"
                   required
                   error={form.formState.errors.confirmPassword?.message}

@@ -109,7 +109,7 @@ export function SecuritySettings() {
   return (
     <Card>
       <CardHeader>
-        <CardTitle>Security Settings</CardTitle>
+        <CardTitle>Security settings</CardTitle>
         <CardDescription>Manage security and access controls</CardDescription>
       </CardHeader>
       <CardContent>

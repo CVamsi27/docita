@@ -187,7 +187,7 @@ export function SubscriptionSettings() {
       {isPaymentDue && !showRecoveryCard && (
         <Alert variant="destructive">
           <AlertTriangle className="h-4 w-4" />
-          <AlertTitle>Payment Due</AlertTitle>
+          <AlertTitle>Payment due</AlertTitle>
           <AlertDescription className="flex flex-wrap items-center justify-between gap-3">
             <span>
               Your payment is overdue. Update your payment method to avoid
@@ -200,7 +200,7 @@ export function SubscriptionSettings() {
               onClick={() => void billing.resolvePayment()}
               className="shrink-0 border-destructive-foreground/30 text-destructive-foreground hover:bg-destructive-foreground/10"
             >
-              {isResolving ? "Opening…" : "Update Payment"}
+              {isResolving ? "Opening…" : "Update payment"}
             </Button>
           </AlertDescription>
         </Alert>
@@ -209,7 +209,7 @@ export function SubscriptionSettings() {
       {isInGracePeriod && !showRecoveryCard && (
         <Alert className="border-warning/40 bg-warning/10">
           <AlertTriangle className="h-4 w-4 text-warning" />
-          <AlertTitle>Payment Grace Period</AlertTitle>
+          <AlertTitle>Payment grace period</AlertTitle>
           <AlertDescription className="flex flex-wrap items-center justify-between gap-3">
             <span>
               Payment is still unresolved. Some access may be restricted until
@@ -222,7 +222,7 @@ export function SubscriptionSettings() {
               onClick={() => void billing.resolvePayment()}
               className="shrink-0"
             >
-              {isResolving ? "Opening…" : "Resolve Payment"}
+              {isResolving ? "Opening…" : "Resolve payment"}
             </Button>
           </AlertDescription>
         </Alert>
@@ -231,7 +231,7 @@ export function SubscriptionSettings() {
       {isExpired && (
         <Alert variant="destructive">
           <XCircle className="h-4 w-4" />
-          <AlertTitle>Subscription Expired</AlertTitle>
+          <AlertTitle>Subscription expired</AlertTitle>
           <AlertDescription className="flex flex-wrap items-center justify-between gap-3">
             <span>
               Your facility workspace is locked. Choose a plan and complete
@@ -242,7 +242,7 @@ export function SubscriptionSettings() {
               onClick={scrollToBillingPlans}
               className="shrink-0 bg-destructive-foreground text-destructive hover:bg-destructive-foreground/90"
             >
-              Choose a Plan
+              Choose a plan
             </Button>
           </AlertDescription>
         </Alert>
@@ -250,7 +250,7 @@ export function SubscriptionSettings() {
 
       <Section
         id="billing-subscription-section"
-        title="Billing & Subscription"
+        title="Billing & subscription"
         description="Change plan, compare features, and view invoices"
         contentClassName="space-y-6"
       >
@@ -276,7 +276,7 @@ export function SubscriptionSettings() {
       <div className="scroll-mt-6">
         <Section
           id="billing-history-section"
-          title="Billing History"
+          title="Billing history"
           description={billingHistorySectionDescription(subscription ?? undefined)}
           actions={billingHistorySectionActions(subscription ?? undefined)}
         >
