@@ -85,7 +85,7 @@ export function LeavePolicyEditor() {
     <>
       <Card>
         <CardHeader className="flex flex-row items-center justify-between">
-          <CardTitle className="text-base">Leave Plans</CardTitle>
+          <CardTitle className="text-base">Leave plans</CardTitle>
           <Button
             size="sm"
             onClick={() => {
@@ -94,7 +94,7 @@ export function LeavePolicyEditor() {
             }}
           >
             <Plus className="h-4 w-4 mr-1" />
-            Configure Plan
+            Configure plan
           </Button>
         </CardHeader>
         <CardContent>
@@ -132,7 +132,7 @@ export function LeavePolicyEditor() {
       <Dialog open={planDialogOpen} onOpenChange={setPlanDialogOpen}>
         <DialogContent>
           <DialogHeader>
-            <DialogTitle>Configure Leave Plan</DialogTitle>
+            <DialogTitle>Configure leave plan</DialogTitle>
           </DialogHeader>
           <Form {...form}>
             <form onSubmit={submitLeavePlan} className="space-y-4 py-2">
@@ -141,7 +141,7 @@ export function LeavePolicyEditor() {
                 name="leaveType"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Leave Type</FormLabel>
+                    <FormLabel>Leave type</FormLabel>
                     <Select value={field.value} onValueChange={field.onChange}>
                       <FormControl>
                         <SelectTrigger>
