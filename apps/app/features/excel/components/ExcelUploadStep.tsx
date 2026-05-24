@@ -89,7 +89,7 @@ export const ExcelUploadStep = ({
         </div>
 
         <div className="rounded-lg bg-muted/50 p-4">
-          <h4 className="font-medium mb-2">Expected Columns</h4>
+          <h4 className="font-medium mb-2">Expected columns</h4>
           <p className="text-sm text-muted-foreground mb-2">
             Your file should contain columns for patient information. We&apos;ll
             automatically detect and map common column names.

@@ -26,7 +26,7 @@ export const MedicalCodingSearch: FC<{
         <div className="flex items-center gap-3">
           <BookOpen className="h-5 w-5 text-primary" />
           <div>
-            <CardTitle>Medical Coding</CardTitle>
+            <CardTitle>Medical coding</CardTitle>
             <CardDescription>
               Search ICD-10, CPT, and other codes
             </CardDescription>
@@ -104,7 +104,7 @@ export const CodingQueue: FC<{
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-3">
             <FileText className="h-5 w-5 text-primary" />
-            <CardTitle>Coding Queue</CardTitle>
+            <CardTitle>Coding queue</CardTitle>
           </div>
           <Badge>{items.length} pending</Badge>
         </div>

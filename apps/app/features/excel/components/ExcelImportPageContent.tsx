@@ -38,7 +38,7 @@ export function ExcelImportPageContent() {
         className="max-w-6xl"
         header={
           <PageHeader
-            title="Excel Import"
+            title="Excel import"
             description="Import patient data from Excel or CSV files with smart column mapping."
             actions={
               step !== "upload" ? (

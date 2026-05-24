@@ -156,7 +156,7 @@ export const EditPatientDialog: FC<EditPatientDialogProps> = ({
     <FormDialog
       open={open}
       onOpenChange={(o) => onOpenChange?.(o)}
-      title="Edit Patient"
+      title="Edit patient"
       description="Update the patient's information"
     >
       <Form {...form}>
@@ -168,7 +168,7 @@ export const EditPatientDialog: FC<EditPatientDialogProps> = ({
               render={({ field }) => (
                 <FormItem>
                   <FormLabel>
-                    First Name{" "}
+                    First name{" "}
                     <span className="text-destructive ml-0.5">*</span>
                   </FormLabel>
                   <FormControl>
@@ -184,7 +184,7 @@ export const EditPatientDialog: FC<EditPatientDialogProps> = ({
               render={({ field }) => (
                 <FormItem>
                   <FormLabel>
-                    Last Name <span className="text-destructive ml-0.5">*</span>
+                    Last name <span className="text-destructive ml-0.5">*</span>
                   </FormLabel>
                   <FormControl>
                     <Input {...field} placeholder="Last name" />

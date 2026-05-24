@@ -149,7 +149,7 @@ export function AuthLoginStepUI({
             Signing in…
           </>
         ) : (
-          "Sign In"
+          "Sign in"
         )}
       </Button>
     </form>

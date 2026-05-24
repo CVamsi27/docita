@@ -23,7 +23,7 @@ export const OCRLabValues = ({
   return (
     <div className="space-y-3">
       <SectionToggle
-        title="Lab Values"
+        title="Lab values"
         icon={FileText}
         isOpen={isOpen}
         onToggle={onToggle}

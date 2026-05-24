@@ -82,7 +82,7 @@ export function CodingQueuePageContent() {
       <AppPageScaffold
         header={
           <PageHeader
-            title="Coding Queue"
+            title="Coding queue"
             description="Review completed visits that still need ICD-10 or procedure coding before reporting and billing."
           />
         }

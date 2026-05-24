@@ -9,7 +9,7 @@ test.describe("Forgot password", () => {
     await expect(
       page.getByRole("heading", { name: /Reset Password/i }),
     ).toBeVisible();
-    await expect(page.getByLabel(/Email Address/i)).toBeVisible();
+    await expect(page.getByLabel(/Email address/i)).toBeVisible();
     await expect(
       page.getByRole("button", { name: /Send Reset Link/i }),
     ).toBeVisible();
@@ -29,7 +29,7 @@ test.describe("Forgot password", () => {
     await page.goto("/forgot-password");
 
     await expect(
-      page.getByRole("button", { name: /Back to Sign In/i }),
+      page.getByRole("button", { name: /Back to sign in/i }),
     ).toBeVisible();
   });
 });

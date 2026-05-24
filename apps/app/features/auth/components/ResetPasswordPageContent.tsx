@@ -98,7 +98,7 @@ function ResetPasswordInner() {
               </p>
             </div>
             <Button asChild className="w-full h-11">
-              <Link href="/login">Sign In</Link>
+              <Link href="/login">Sign in</Link>
             </Button>
           </div>
         ) : (
@@ -176,7 +176,7 @@ function ResetPasswordInner() {
 
             <BackButton
               fallback="/login"
-              label="Back to Sign In"
+              label="Back to sign in"
               variant="ghost"
               size="default"
               className="w-full h-11"

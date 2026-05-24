@@ -107,7 +107,7 @@ export const OCRUploadSection = ({
                 title="Choose a file in the upload area first"
               >
                 <Scan className="h-4 w-4 shrink-0 opacity-80" aria-hidden />
-                <span className="min-w-0 truncate">Scan Document</span>
+                <span className="min-w-0 truncate">Scan document</span>
               </div>
             )}
           </div>
