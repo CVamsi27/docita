@@ -268,7 +268,7 @@ export function AnalyticsDashboard() {
             <CardHeader className="border-b">
               <div className="flex items-center justify-between gap-3">
                 <div className="ui-copy-stack">
-                  <CardTitle>Active Subscriptions</CardTitle>
+                  <CardTitle>Active subscriptions</CardTitle>
                   <CardDescription>
                     Paid customers across all tiers
                   </CardDescription>
@@ -288,7 +288,7 @@ export function AnalyticsDashboard() {
             <CardHeader className="border-b">
               <div className="flex items-center justify-between gap-3">
                 <div className="ui-copy-stack">
-                  <CardTitle>Tier Distribution</CardTitle>
+                  <CardTitle>Tier distribution</CardTitle>
                   <CardDescription>
                     Subscription share by plan tier
                   </CardDescription>
@@ -319,7 +319,7 @@ export function AnalyticsDashboard() {
       )}
 
       <Section
-        title="Reporting Window"
+        title="Reporting window"
         description="Filter the dashboard by time range without breaking the shared page rhythm."
         contentClassName="space-y-4"
       >
@@ -435,7 +435,7 @@ export function AnalyticsDashboard() {
 
         {tierEntries.length > 0 && (
           <Section
-            title="Subscription Breakdown"
+            title="Subscription breakdown"
             description="Customer mix across Docita plans"
             contentClassName="space-y-3"
           >
@@ -468,7 +468,7 @@ export function AnalyticsDashboard() {
 
         {data?.newPatients ? (
           <Section
-            title="Patient Growth"
+            title="Patient growth"
             description="New-patient momentum in the current period"
             contentClassName="flex h-40 items-center justify-center"
           >
@@ -498,7 +498,7 @@ export function AnalyticsDashboard() {
 
         {data?.appointments ? (
           <Section
-            title="Appointment Volume"
+            title="Appointment volume"
             description="Booked appointment activity in the selected range"
             contentClassName="flex h-40 items-center justify-center"
           >
@@ -528,7 +528,7 @@ export function AnalyticsDashboard() {
       </div>
 
       <Section
-        title="Detailed Metrics"
+        title="Detailed metrics"
         description="Expanded operational metrics for the selected time range."
         contentClassName="space-y-4"
       >

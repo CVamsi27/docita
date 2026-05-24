@@ -57,10 +57,10 @@ export function PaymentProcessingClinicsSection({
             <Table>
               <TableHeader>
                 <TableRow>
-                  <TableHead>Facility Name</TableHead>
-                  <TableHead>Current Tier</TableHead>
-                  <TableHead>Max Doctors</TableHead>
-                  <TableHead>Max Patients</TableHead>
+                  <TableHead>Facility name</TableHead>
+                  <TableHead>Current tier</TableHead>
+                  <TableHead>Max doctors</TableHead>
+                  <TableHead>Max patients</TableHead>
                   <TableHead>Email</TableHead>
                   <TableHead>Currency</TableHead>
                   <TableHead>Actions</TableHead>

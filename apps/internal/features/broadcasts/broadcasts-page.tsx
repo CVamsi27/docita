@@ -175,7 +175,7 @@ export function BroadcastsPage() {
     <AppPageScaffold
       header={
         <PageHeader
-          title="Broadcast Messages"
+          title="Broadcast messages"
           description="Upload a CSV of phone numbers and send a WhatsApp campaign through the Docita support number. Replies land in the Support WhatsApp inbox."
           size="compact"
         />

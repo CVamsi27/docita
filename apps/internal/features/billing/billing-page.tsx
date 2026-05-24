@@ -205,7 +205,7 @@ export default function BillingDashboard() {
     <AppPageScaffold
       header={
         <PageHeader
-          title="Billing Dashboard"
+          title="Billing dashboard"
           description="Monitor subscriptions, revenue, and payment activity"
           size="compact"
           actions={
@@ -310,7 +310,7 @@ export default function BillingDashboard() {
 
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Churn Rate</CardTitle>
+            <CardTitle className="text-sm font-medium">Churn rate</CardTitle>
             <TrendingDown className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
@@ -348,7 +348,7 @@ export default function BillingDashboard() {
               <CardHeader className="pb-3">
                 <div className="flex items-center gap-2">
                   <AlertTriangle className="h-5 w-5 text-warning" />
-                  <CardTitle className="text-lg">Expiring Soon</CardTitle>
+                  <CardTitle className="text-lg">Expiring soon</CardTitle>
                 </div>
                 <CardDescription>
                   {metrics?.expiringSubscriptions?.length} subscription(s)
@@ -543,7 +543,7 @@ export default function BillingDashboard() {
                   <SelectValue placeholder="Tier" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="all">All Tiers</SelectItem>
+                  <SelectItem value="all">All tiers</SelectItem>
                   {getInternalTierFilterOptions().map((option) => (
                     <SelectItem key={option.value} value={option.value}>
                       {option.label}
@@ -558,11 +558,11 @@ export default function BillingDashboard() {
                   <SelectValue placeholder="Status" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="all">All Statuses</SelectItem>
+                  <SelectItem value="all">All statuses</SelectItem>
                   <SelectItem value="ACTIVE">Active</SelectItem>
                   <SelectItem value="TRIAL">Trial</SelectItem>
-                  <SelectItem value="PAST_DUE">Past Due</SelectItem>
-                  <SelectItem value="GRACE_PERIOD">Grace Period</SelectItem>
+                  <SelectItem value="PAST_DUE">Past due</SelectItem>
+                  <SelectItem value="GRACE_PERIOD">Grace period</SelectItem>
                   <SelectItem value="CANCELLED">Cancelled</SelectItem>
                   <SelectItem value="EXPIRED">Expired</SelectItem>
                 </SelectContent>
@@ -577,7 +577,7 @@ export default function BillingDashboard() {
                   <SelectValue placeholder="Billing cycle" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="all">All Cycles</SelectItem>
+                  <SelectItem value="all">All cycles</SelectItem>
                   <SelectItem value="MONTHLY">Monthly</SelectItem>
                   <SelectItem value="YEARLY">Yearly</SelectItem>
                 </SelectContent>
@@ -593,9 +593,9 @@ export default function BillingDashboard() {
                     <TableHead>Clinic</TableHead>
                     <TableHead>Tier</TableHead>
                     <TableHead>Status</TableHead>
-                    <TableHead>Billing Cycle</TableHead>
+                    <TableHead>Billing cycle</TableHead>
                     <TableHead>Amount</TableHead>
-                    <TableHead>Period End</TableHead>
+                    <TableHead>Period end</TableHead>
                     <TableHead>Credits</TableHead>
                     <TableHead className="text-right">Actions</TableHead>
                   </TableRow>
@@ -708,7 +708,7 @@ export default function BillingDashboard() {
         <TabsContent value="payments" className="space-y-4">
           <Card>
             <CardHeader>
-              <CardTitle>Recent Payments</CardTitle>
+              <CardTitle>Recent payments</CardTitle>
               <CardDescription>
                 Transaction history across all clinics
               </CardDescription>

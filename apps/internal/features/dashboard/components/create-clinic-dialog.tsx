@@ -177,7 +177,7 @@ export function CreateClinicDialog({
             </h4>
             <div className="grid grid-cols-2 gap-4">
               <div className="space-y-2">
-                <Label htmlFor="name">Facility Name</Label>
+                <Label htmlFor="name">Facility name</Label>
                 <Input
                   id="name"
                   value={formData.name}
@@ -259,7 +259,7 @@ export function CreateClinicDialog({
                 )}
               </div>
               <div className="space-y-2">
-                <Label htmlFor="tier">Subscription Tier</Label>
+                <Label htmlFor="tier">Subscription tier</Label>
                 <Select
                   value={formData.tier}
                   onValueChange={(val) => {
@@ -283,7 +283,7 @@ export function CreateClinicDialog({
               </div>
             </div>
             <div className="space-y-2">
-              <Label htmlFor="type">Clinic Type</Label>
+              <Label htmlFor="type">Clinic type</Label>
               <Select
                 value={formData.type}
                 onValueChange={(val) => {
@@ -346,7 +346,7 @@ export function CreateClinicDialog({
             </h4>
             <div className="grid grid-cols-2 gap-4">
               <div className="space-y-2">
-                <Label htmlFor="adminName">Admin Name</Label>
+                <Label htmlFor="adminName">Admin name</Label>
                 <Input
                   id="adminName"
                   value={formData.adminName}
@@ -376,7 +376,7 @@ export function CreateClinicDialog({
                 )}
               </div>
               <div className="space-y-2">
-                <Label htmlFor="adminEmail">Admin Email</Label>
+                <Label htmlFor="adminEmail">Admin email</Label>
                 <Input
                   id="adminEmail"
                   type="email"

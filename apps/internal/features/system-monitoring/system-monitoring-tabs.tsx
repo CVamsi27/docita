@@ -29,8 +29,8 @@ export function SystemMonitoringTabs({ vm }: SystemMonitoringTabsProps) {
         <TabsTrigger value="security">Security</TabsTrigger>
         <TabsTrigger value="queues">Queues</TabsTrigger>
         <TabsTrigger value="ops">Ops</TabsTrigger>
-        <TabsTrigger value="tenant-scope">Tenant Scope</TabsTrigger>
-        <TabsTrigger value="health">Health Checks</TabsTrigger>
+        <TabsTrigger value="tenant-scope">Tenant scope</TabsTrigger>
+        <TabsTrigger value="health">Health checks</TabsTrigger>
       </TabsList>
 
       <OverviewTab
