@@ -16,7 +16,7 @@ describe("InventoryAddItemDialogUI", () => {
       />,
     );
 
-    fireEvent.click(screen.getByRole("button", { name: "Add Item" }));
+    fireEvent.click(screen.getByRole("button", { name: "Add item" }));
 
     expect(await screen.findByText("Enter item name.")).toBeInTheDocument();
     expect(screen.getByText("Enter category.")).toBeInTheDocument();
@@ -44,7 +44,7 @@ describe("InventoryAddItemDialogUI", () => {
     fireEvent.change(screen.getByPlaceholderText("Quantity"), {
       target: { value: "25" },
     });
-    fireEvent.click(screen.getByRole("button", { name: "Add Item" }));
+    fireEvent.click(screen.getByRole("button", { name: "Add item" }));
 
     await waitFor(() => {
       expect(onSubmit).toHaveBeenCalledWith(
