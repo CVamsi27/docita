@@ -148,7 +148,7 @@ export const HelpCenter: FC = () => {
           <CardHeader>
             <div className="flex items-center gap-3">
               <Mail className="h-5 w-5 text-primary" />
-              <CardTitle className="text-base">Email Support</CardTitle>
+              <CardTitle className="text-base">Email support</CardTitle>
             </div>
           </CardHeader>
           <CardContent>

@@ -155,7 +155,7 @@ export function ContactSalesModalUI({
                   name="clinic"
                   render={({ field }) => (
                     <FormFieldGroup
-                      label="Facility Name"
+                      label="Facility name"
                       error={form.formState.errors.clinic?.message}
                     >
                       <FormControl>

@@ -32,8 +32,8 @@ export function SLAContent() {
               <TableHeader>
                 <TableRow>
                   <TableHead>Priority</TableHead>
-                  <TableHead>Response Time</TableHead>
-                  <TableHead>Resolution Target</TableHead>
+                  <TableHead>Response time</TableHead>
+                  <TableHead>Resolution target</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>

@@ -50,7 +50,7 @@ export default function VerifyDoctorPage() {
       <div className="space-y-1">
         <div className="flex items-center gap-2">
           <ShieldCheck className="h-6 w-6 text-primary" />
-          <h1 className="ui-page-title">Profile Verification</h1>
+          <h1 className="ui-page-title">Profile verification</h1>
         </div>
         <p className="ui-page-subtitle">
           Complete your profile before accessing your workspace. This ensures

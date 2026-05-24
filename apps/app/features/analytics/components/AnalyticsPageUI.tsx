@@ -144,13 +144,13 @@ export const AnalyticsPageUI: FC<AnalyticsPageUIProps> = ({
       >
         <div className="grid gap-4 md:gap-6 grid-cols-1 sm:grid-cols-2 lg:grid-cols-4">
           <OverviewCard
-            title="Total Patients"
+            title="Total patients"
             value={overview?.totalPatients || 0}
             growth={overview?.patientGrowth || 0}
             icon={Users}
           />
           <OverviewCard
-            title="New Patients"
+            title="New patients"
             value={overview?.newPatientsThisMonth || 0}
             icon={Users}
             subtitle="This month"
@@ -175,7 +175,7 @@ export const AnalyticsPageUI: FC<AnalyticsPageUIProps> = ({
           className="space-y-4"
         >
           <TabsList className="w-full sm:w-auto overflow-x-hidden flex flex-wrap">
-            <TabsTrigger value="disease-trends">Disease Trends</TabsTrigger>
+            <TabsTrigger value="disease-trends">Disease trends</TabsTrigger>
             <TabsTrigger value="cpt-revenue">CPT Revenue</TabsTrigger>
             <TabsTrigger value="compliance">Compliance</TabsTrigger>
           </TabsList>

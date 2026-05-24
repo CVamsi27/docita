@@ -20,7 +20,7 @@ export function ContactSalesCard({
           </p>
         </div>
         <div className="flex gap-3">
-          <Button onClick={onContactSales}>Contact Sales</Button>
+          <Button onClick={onContactSales}>Contact sales</Button>
         </div>
       </CardContent>
     </Card>

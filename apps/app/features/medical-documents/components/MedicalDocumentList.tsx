@@ -23,7 +23,7 @@ export function MedicalDocumentList({ patientId }: Props) {
   return (
     <div className="space-y-3">
       <div className="flex items-center justify-between">
-        <h3 className="text-sm font-semibold">Medical Documents</h3>
+        <h3 className="text-sm font-semibold">Medical documents</h3>
         <Button size="sm" variant="outline" onClick={() => list.setShowNew(true)}>
           <Plus className="h-3 w-3 mr-1" />
           New

@@ -39,7 +39,7 @@ export function PatientPortalBillingUI({
       ) : null}
       <Card>
         <CardHeader>
-          <CardTitle>Invoice Summary</CardTitle>
+          <CardTitle>Invoice summary</CardTitle>
         </CardHeader>
         <CardContent>
           {invoices.length === 0 ? (

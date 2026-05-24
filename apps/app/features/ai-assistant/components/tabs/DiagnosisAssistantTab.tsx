@@ -33,7 +33,7 @@ export const DiagnosisAssistantTab = ({
       </CardHeader>
       <CardContent className="space-y-4">
         <div className="space-y-2">
-          <label className="text-sm font-medium">Chief Complaint</label>
+          <label className="text-sm font-medium">Chief complaint</label>
           <Textarea
             placeholder="Enter chief complaint"
             value={state.chiefComplaint}
@@ -42,7 +42,7 @@ export const DiagnosisAssistantTab = ({
           />
         </div>
         <div className="space-y-2">
-          <label className="text-sm font-medium">Vital Signs</label>
+          <label className="text-sm font-medium">Vital signs</label>
           <Textarea
             placeholder="Enter vital signs"
             value={state.vitalSigns}

@@ -24,7 +24,7 @@ export function InvoiceBillTo({ invoice }: InvoiceBillToProps) {
             <p>{invoice.patient.phoneNumber}</p>
           </div>
         ) : (
-          <p className="text-sm text-muted-foreground">Unknown Patient</p>
+          <p className="text-sm text-muted-foreground">Unknown patient</p>
         )}
       </div>
       <div className="md:text-right">

@@ -46,7 +46,7 @@ export const PrescriptionAssistantTab = ({
           />
         </div>
         <div className="space-y-2">
-          <label className="text-sm font-medium">Working Diagnosis</label>
+          <label className="text-sm font-medium">Working diagnosis</label>
           <Input
             placeholder="Working diagnosis"
             value={state.diagnosis}
@@ -65,7 +65,7 @@ export const PrescriptionAssistantTab = ({
           />
         </div>
         <div className="space-y-2">
-          <label className="text-sm font-medium">Known Allergies</label>
+          <label className="text-sm font-medium">Known allergies</label>
           <Input
             placeholder="Known allergies"
             value={state.allergies}
