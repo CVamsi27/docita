@@ -65,7 +65,7 @@ export function AuthSignupStepUI({
       <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
         <FormField
           id="firstName"
-          label="First Name"
+          label="First name"
           type="text"
           placeholder="First name"
           value={firstName}
@@ -76,7 +76,7 @@ export function AuthSignupStepUI({
         />
         <FormField
           id="lastName"
-          label="Last Name"
+          label="Last name"
           type="text"
           placeholder="Last name"
           value={lastName}
