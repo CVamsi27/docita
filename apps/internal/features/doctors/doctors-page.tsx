@@ -376,7 +376,7 @@ export default function DoctorsPage() {
                 <SelectValue placeholder="Facility" />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="all">All Facilities</SelectItem>
+                <SelectItem value="all">All facilities</SelectItem>
                 {Array.isArray(clinics) &&
                   clinics.map((clinic) => (
                     <SelectItem key={clinic.id} value={clinic.id}>
@@ -414,7 +414,7 @@ export default function DoctorsPage() {
                   <TableHead>Doctor</TableHead>
                   <TableHead>Specialization</TableHead>
                   <TableHead>Compliance</TableHead>
-                  <TableHead>Hospital Role</TableHead>
+                  <TableHead>Hospital role</TableHead>
                   <TableHead>Qualification</TableHead>
                   <TableHead>Registration</TableHead>
                   <TableHead>Actions</TableHead>
@@ -547,7 +547,7 @@ export default function DoctorsPage() {
                   </p>
                 </div>
                 <div>
-                  <Label className="text-muted-foreground">Hospital Role</Label>
+                  <Label className="text-muted-foreground">Hospital role</Label>
                   <p className="font-medium">
                     {selectedDoctor.hospitalRole
                       ? HOSPITAL_ROLE_LABELS[selectedDoctor.hospitalRole]
@@ -782,7 +782,7 @@ export default function DoctorsPage() {
               <div>
                 <div className="flex items-center gap-2 mb-3">
                   <GraduationCap className="h-5 w-5 text-primary" />
-                  <h3 className="font-semibold">Education History</h3>
+                  <h3 className="font-semibold">Education history</h3>
                 </div>
                 {Array.isArray(selectedDoctor.educationHistory) &&
                 selectedDoctor.educationHistory.length > 0 ? (

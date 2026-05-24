@@ -15,7 +15,7 @@ export default function SystemMonitoringPage() {
     <AppPageScaffold
       header={
         <PageHeader
-          title="System Monitoring"
+          title="System monitoring"
           description="Live health, performance, and request telemetry"
           size="compact"
           actions={

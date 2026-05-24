@@ -119,7 +119,7 @@ export default function InternalLogin() {
           <SectionHeading
             align="center"
             size="page"
-            title="Docita Internal"
+            title="Docita internal"
             description="Internal Console - Product Owners & System Admins"
           />
         </div>

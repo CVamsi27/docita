@@ -36,9 +36,9 @@ function AnalyticsDetailedMetricsTableComponent({
             <TableHead>Period</TableHead>
             <TableHead className="text-right">Revenue</TableHead>
             <TableHead className="text-right">Invoices</TableHead>
-            <TableHead className="text-right">Avg Amount</TableHead>
+            <TableHead className="text-right">Avg amount</TableHead>
             <TableHead className="text-right">Appointments</TableHead>
-            <TableHead className="text-right">Fill Rate</TableHead>
+            <TableHead className="text-right">Fill rate</TableHead>
           </TableRow>
         </TableHeader>
         <TableBody className="divide-y divide-border">

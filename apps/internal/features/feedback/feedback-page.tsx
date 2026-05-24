@@ -262,7 +262,7 @@ export default function FeedbackPage() {
           </Card>
           <Card>
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">In Progress</CardTitle>
+              <CardTitle className="text-sm font-medium">In progress</CardTitle>
               <Clock className="h-4 w-4 text-primary" />
             </CardHeader>
             <CardContent>
@@ -430,7 +430,7 @@ export default function FeedbackPage() {
                 </Select>
               </div>
               <div>
-                <Label>Min Rating</Label>
+                <Label>Min rating</Label>
                 <Select
                   value={String(filters.minRating || "all")}
                   onValueChange={(v) =>
@@ -495,7 +495,7 @@ export default function FeedbackPage() {
 
       <Card>
         <CardHeader>
-          <CardTitle>All Feedback</CardTitle>
+          <CardTitle>All feedback</CardTitle>
           <CardDescription>{feedbacks.length} feedback entries</CardDescription>
         </CardHeader>
         <CardContent>
@@ -691,7 +691,7 @@ export default function FeedbackPage() {
 
                 {selectedFeedback.featureRequests && (
                   <div className="space-y-2">
-                    <Label>Feature Requests</Label>
+                    <Label>Feature requests</Label>
                     <p className="text-sm bg-muted p-3 rounded-[var(--radius)]">
                       {selectedFeedback.featureRequests}
                     </p>
@@ -700,7 +700,7 @@ export default function FeedbackPage() {
 
                 {selectedFeedback.generalComments && (
                   <div className="space-y-2">
-                    <Label>General Comments</Label>
+                    <Label>General comments</Label>
                     <p className="text-sm bg-muted p-3 rounded-[var(--radius)]">
                       {selectedFeedback.generalComments}
                     </p>
@@ -709,7 +709,7 @@ export default function FeedbackPage() {
 
                 <div className="border-t pt-4 space-y-4">
                   <div className="space-y-2">
-                    <Label>Admin Notes</Label>
+                    <Label>Admin notes</Label>
                     <Textarea
                       value={adminNotes}
                       onChange={(e) => setAdminNotes(e.target.value)}
