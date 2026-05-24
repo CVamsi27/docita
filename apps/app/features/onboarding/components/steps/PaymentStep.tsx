@@ -178,7 +178,7 @@ export function PaymentStep({
   return (
     <Card>
       <CardHeader>
-        <CardTitle>Payment Details</CardTitle>
+        <CardTitle>Payment details</CardTitle>
         <CardDescription>
           {isFree
             ? "Your selected plan has no upfront cost"

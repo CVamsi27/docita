@@ -63,12 +63,12 @@ export function ProfilePageContent() {
     >
       <Card>
         <CardHeader>
-          <CardTitle>Personal Information</CardTitle>
+          <CardTitle>Personal information</CardTitle>
           <CardDescription>Update your personal details here</CardDescription>
         </CardHeader>
         <CardContent className="space-y-4">
           <div className="grid gap-2">
-            <Label htmlFor="name">Full Name</Label>
+            <Label htmlFor="name">Full name</Label>
             <Input
               id="name"
               value={formData.name}

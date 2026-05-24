@@ -79,7 +79,7 @@ export function InventoryAddItemDialogUI({
       description="Add a new item to your inventory"
       isLoading={isLoading}
       onSubmit={form.handleSubmit(handleSubmit)}
-      submitLabel="Add Item"
+      submitLabel="Add item"
     >
       <Form {...form}>
         <div className="space-y-4">
@@ -88,7 +88,7 @@ export function InventoryAddItemDialogUI({
             name="name"
             render={({ field }) => (
               <FormFieldGroup
-                label="Item Name"
+                label="Item name"
                 required
                 error={form.formState.errors.name?.message}
               >

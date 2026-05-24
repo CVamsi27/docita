@@ -47,7 +47,7 @@ export const IpdDashboard: FC<IpdDashboardProps> = ({
               <p className="text-[var(--fs-2xl)] font-semibold tabular-nums leading-[var(--lh-tight)]">
                 {beds.length}
               </p>
-              <p className="text-xs text-muted-foreground">Total Beds</p>
+              <p className="text-xs text-muted-foreground">Total beds</p>
             </div>
           </CardContent>
         </Card>
@@ -73,7 +73,7 @@ export const IpdDashboard: FC<IpdDashboardProps> = ({
               <p className="text-[var(--fs-2xl)] font-semibold tabular-nums leading-[var(--lh-tight)]">
                 {dischargesCount}
               </p>
-              <p className="text-xs text-muted-foreground">Discharges Today</p>
+              <p className="text-xs text-muted-foreground">Discharges today</p>
             </div>
           </CardContent>
         </Card>
@@ -94,7 +94,7 @@ export const IpdDashboard: FC<IpdDashboardProps> = ({
 
       <Card className="border-none shadow-md">
         <CardHeader>
-          <CardTitle>Ward Overview</CardTitle>
+          <CardTitle>Ward overview</CardTitle>
           <CardDescription>Current bed occupancy by ward</CardDescription>
         </CardHeader>
         <CardContent>

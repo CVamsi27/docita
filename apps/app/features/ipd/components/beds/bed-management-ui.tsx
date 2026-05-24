@@ -99,7 +99,7 @@ export function BedManagementUI({
     <AppPageScaffold
       header={
         <PageHeader
-          title="Bed Management"
+          title="Bed management"
           description="Real-time status of wards and beds."
           actions={
             <div className="flex flex-wrap gap-2">
@@ -110,7 +110,7 @@ export function BedManagementUI({
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
               />
-              <Button variant="outline">Manage Wards</Button>
+              <Button variant="outline">Manage wards</Button>
               <Button onClick={() => setShowAdmissionModal(true)}>
                 New Admission
               </Button>

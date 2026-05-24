@@ -63,7 +63,7 @@ export function InventoryFilters({
           <SelectValue placeholder="Category" />
         </SelectTrigger>
         <SelectContent>
-          <SelectItem value="all">All Categories</SelectItem>
+          <SelectItem value="all">All categories</SelectItem>
           {uniqueCategories.map((category) => (
             <SelectItem key={category} value={category}>
               {category}
@@ -76,9 +76,9 @@ export function InventoryFilters({
           <SelectValue placeholder="Stock Status" />
         </SelectTrigger>
         <SelectContent>
-          <SelectItem value="all">All Status</SelectItem>
+          <SelectItem value="all">All status</SelectItem>
           <SelectItem value="low_critical">Low & Critical</SelectItem>
-          <SelectItem value="in_stock">In Stock</SelectItem>
+          <SelectItem value="in_stock">In stock</SelectItem>
         </SelectContent>
       </Select>
     </div>

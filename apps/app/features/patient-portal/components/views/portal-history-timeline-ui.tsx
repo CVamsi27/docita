@@ -160,7 +160,7 @@ export function PortalHistoryTimelineUI({
                 )}
               </div>
               <div>
-                <h4 className="text-sm font-medium mb-2">Family History</h4>
+                <h4 className="text-sm font-medium mb-2">Family history</h4>
                 {medicalHistory.familyHistory.length === 0 ? (
                   <p className="text-sm text-muted-foreground">None</p>
                 ) : (
@@ -174,7 +174,7 @@ export function PortalHistoryTimelineUI({
                 )}
               </div>
               <div>
-                <h4 className="text-sm font-medium mb-2">Surgical History</h4>
+                <h4 className="text-sm font-medium mb-2">Surgical history</h4>
                 {medicalHistory.surgicalHistory.length === 0 ? (
                   <p className="text-sm text-muted-foreground">None</p>
                 ) : (

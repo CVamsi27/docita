@@ -107,7 +107,7 @@ export function AddMetricDefinitionModal({
         </DialogHeader>
         <form onSubmit={handleSubmit} className="space-y-4">
           <div className="space-y-2">
-            <Label htmlFor="metric-label">Metric Name</Label>
+            <Label htmlFor="metric-label">Metric name</Label>
             <Input
               id="metric-label"
               value={label}
@@ -138,7 +138,7 @@ export function AddMetricDefinitionModal({
           </div>
           <div className="grid grid-cols-2 gap-4">
             <div className="space-y-2">
-              <Label htmlFor="metric-type">Value Type</Label>
+              <Label htmlFor="metric-type">Value type</Label>
               <Select
                 value={valueType}
                 onValueChange={setValueType}

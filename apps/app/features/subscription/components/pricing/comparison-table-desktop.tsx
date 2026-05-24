@@ -78,7 +78,7 @@ export function ComparisonTableDesktop({
           </TableRow>
         </TableHeader>
         <TableBody>
-          <SectionHeader label="Plan Limits" colSpan={tiers.length + 1} />
+          <SectionHeader label="Plan limits" colSpan={tiers.length + 1} />
           {limitRows.map((row: FeatureComparisonRow) => (
             <TableRow key={row.name} className="hover:bg-muted/50">
               <TableCell className="sticky left-0 z-10 w-[200px] min-w-[180px] border-r bg-card py-2.5 text-sm font-medium transition-colors hover:bg-muted/50 lg:w-[240px]">

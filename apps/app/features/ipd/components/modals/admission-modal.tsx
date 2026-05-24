@@ -97,7 +97,7 @@ export const AdmissionModal: FC<ModalProps> = ({
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50">
       <Card className="w-full max-w-lg m-4">
         <CardHeader>
-          <CardTitle>Admit Patient</CardTitle>
+          <CardTitle>Admit patient</CardTitle>
         </CardHeader>
         <CardContent className="space-y-4">
           <div>
@@ -133,7 +133,7 @@ export const AdmissionModal: FC<ModalProps> = ({
                   setData({ ...data, wardId: e.target.value, bedId: "" })
                 }
               >
-                <option value="">Select Ward</option>
+                <option value="">Select ward</option>
                 {wards.map((ward) => (
                   <option key={ward.id} value={ward.id}>
                     {ward.name}
@@ -152,7 +152,7 @@ export const AdmissionModal: FC<ModalProps> = ({
                 onChange={(e) => setData({ ...data, bedId: e.target.value })}
                 aria-invalid={!!errors.bedId}
               >
-                <option value="">Select Bed</option>
+                <option value="">Select bed</option>
                 {availableBeds.map((bed) => (
                   <option key={bed.id} value={bed.id}>
                     {bed.label}
@@ -177,7 +177,7 @@ export const AdmissionModal: FC<ModalProps> = ({
               }
               aria-invalid={!!errors.admittingDoctorId}
             >
-              <option value="">Select Doctor</option>
+              <option value="">Select doctor</option>
               {doctors.map((doc) => (
                 <option key={doc.id} value={doc.id}>
                   {doc.name}

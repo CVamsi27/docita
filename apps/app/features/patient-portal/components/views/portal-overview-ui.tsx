@@ -27,7 +27,7 @@ export function PatientPortalOverviewUI({
   return (
     <div className="space-y-6">
       <div>
-        <h1 className="ui-page-title">Patient Portal</h1>
+        <h1 className="ui-page-title">Patient portal</h1>
         <p className="ui-page-subtitle">
           View your care journey, prescriptions, and billing in one place.
         </p>
@@ -86,7 +86,7 @@ export function PatientPortalOverviewUI({
           />
           <div className="flex justify-center pb-6">
             <Button asChild>
-              <Link href={appointmentsHref}>Open Appointments</Link>
+              <Link href={appointmentsHref}>Open appointments</Link>
             </Button>
           </div>
         </CardContent>

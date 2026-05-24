@@ -64,7 +64,7 @@ export function CompliancePoliciesSection({
           <div className="flex items-center justify-between gap-3">
             <div className="flex items-center gap-2">
               <ShieldCheck className="h-4 w-4 text-primary" />
-              <h3 className="font-semibold text-sm">Legal Agreements</h3>
+              <h3 className="font-semibold text-sm">Legal agreements</h3>
             </div>
             <Badge
               variant={
