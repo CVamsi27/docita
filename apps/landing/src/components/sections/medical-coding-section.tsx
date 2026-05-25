@@ -1,7 +1,7 @@
 "use client";
 
 import { Activity, CheckCircle2, Code2 } from "lucide-react";
-import { SectionHeading } from "@workspace/ui/components/section-heading";
+import { SectionHeading } from "@workspace/ui/components/layout/section-heading";
 
 export function MedicalCodingSection() {
   return (
@@ -63,14 +63,14 @@ export function MedicalCodingSection() {
             </p>
           </div>
           <div className="relative">
-            <div className="landing-card border-info/20 bg-linear-to-br from-info/20 to-info/10 p-4 sm:p-8">
-              <div className="rounded-xl bg-background p-4 shadow-lg sm:p-6">
+            <div className="landing-card border-info/20 bg-info/5 p-4 sm:p-8">
+              <div className="rounded-[var(--radius)] bg-background p-4 shadow-lg sm:p-6">
                 <div className="flex items-center gap-3 mb-4 pb-4 border-b">
                   <Activity className="h-5 w-5 text-info" />
                   <span className="font-semibold">Medical Coding</span>
                 </div>
                 <div className="space-y-3">
-                  <div className="flex flex-col gap-2 rounded-lg bg-muted/50 p-3 sm:flex-row sm:items-center sm:justify-between">
+                  <div className="flex flex-col gap-2 rounded-[var(--radius)] bg-muted/50 p-3 sm:flex-row sm:items-center sm:justify-between">
                     <div>
                       <div className="text-xs text-muted-foreground">
                         Diagnosis
@@ -84,7 +84,7 @@ export function MedicalCodingSection() {
                       <div className="text-xs text-muted-foreground">Acute</div>
                     </div>
                   </div>
-                  <div className="flex flex-col gap-2 rounded-lg bg-muted/50 p-3 sm:flex-row sm:items-center sm:justify-between">
+                  <div className="flex flex-col gap-2 rounded-[var(--radius)] bg-muted/50 p-3 sm:flex-row sm:items-center sm:justify-between">
                     <div>
                       <div className="text-xs text-muted-foreground">
                         Diagnosis
@@ -98,7 +98,7 @@ export function MedicalCodingSection() {
                       </div>
                     </div>
                   </div>
-                  <div className="flex flex-col gap-2 rounded-lg border border-info/30 bg-info/10 p-3 text-foreground sm:flex-row sm:items-center sm:justify-between">
+                  <div className="flex flex-col gap-2 rounded-[var(--radius)] border border-info/30 bg-info/10 p-3 text-foreground sm:flex-row sm:items-center sm:justify-between">
                     <div>
                       <div className="text-xs text-foreground/80">
                         Procedure

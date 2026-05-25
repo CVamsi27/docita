@@ -6,6 +6,8 @@ import {
   type PrismaWhatsAppTemplateRecord,
   type PrismaWhatsAppDatabase,
 } from './prisma-whatsapp.repository';
+import { PrismaWhatsAppMessageRepository } from './prisma-whatsapp-message.repository';
+import { PrismaWhatsAppTemplateRepository } from './prisma-whatsapp-template.repository';
 import {
   WhatsAppMessage,
   WhatsAppMessageStatus,
@@ -216,7 +218,10 @@ describe('PrismaWhatsAppRepository', () => {
       },
     };
 
-    repository = new PrismaWhatsAppRepository(mockPrisma);
+    repository = new PrismaWhatsAppRepository(
+      new PrismaWhatsAppMessageRepository(mockPrisma),
+      new PrismaWhatsAppTemplateRepository(mockPrisma),
+    );
   });
 
   describe('saveMessage', () => {

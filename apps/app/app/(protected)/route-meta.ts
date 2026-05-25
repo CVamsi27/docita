@@ -7,8 +7,8 @@ export const ROUTE_META: Record<string, RouteMeta> = {
   "/dashboard": { label: "Dashboard" },
   "/patients": { label: "Patients" },
   "/patients/[id]": { label: "Patient", parentPath: "/patients" },
-  "/patients/[id]/history": { label: "History", parentPath: "/patients/[id]" },
   "/appointments": { label: "Appointments" },
+  "/follow-ups": { label: "Follow-ups" },
   "/consultation": { label: "Consultation" },
   "/consultation/[id]": { label: "Consultation", parentPath: "/appointments" },
   "/prescriptions": { label: "Prescriptions" },
@@ -25,14 +25,13 @@ export const ROUTE_META: Record<string, RouteMeta> = {
   "/import/ocr": { label: "OCR", parentPath: "/import" },
   "/import/excel": { label: "Excel", parentPath: "/import" },
   "/ai-assistant": { label: "AI assistant" },
+  "/whatsapp": { label: "WhatsApp", parentPath: "/inbox" },
   "/hospital/beds": { label: "Hospital beds", parentPath: "/hospital" },
   "/hospital": { label: "Hospital" },
-  "/whatsapp": { label: "WhatsApp" },
   "/specialty/dental-charts": { label: "Dental charts", parentPath: "/specialty" },
   "/specialty": { label: "Specialty" },
   "/settings": { label: "Settings" },
   "/settings/compliance": { label: "Compliance", parentPath: "/settings" },
-  "/upgrade": { label: "Upgrade" },
   "/profile": { label: "Profile" },
 };
 
@@ -83,7 +82,8 @@ export function breadcrumbsFor(pathname: string): Crumb[] {
     currentKey = meta.parentPath;
   }
 
-  if (crumbs.length && crumbs[0]!.label !== "Dashboard") {
+  const firstCrumb = crumbs[0];
+  if (crumbs.length && firstCrumb && firstCrumb.label !== "Dashboard") {
     crumbs.unshift({ label: "Dashboard", href: "/dashboard" });
   }
 

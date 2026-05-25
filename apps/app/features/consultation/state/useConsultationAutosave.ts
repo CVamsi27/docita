@@ -1,19 +1,24 @@
 "use client";
 
 import { useCallback, useEffect, useMemo, useRef } from "react";
-import { useUpdateAppointment } from "@/hooks/api/use-appointments";
-import { useSyncDiagnoses } from "@/hooks/api/use-appointments";
-import { useCreatePrescription } from "@/hooks/api/use-clinical";
-import { logger } from "@/lib/logger";
-import { showUserFacingErrorToast } from "@/lib/user-facing-errors";
+import { useQueryClient } from "@tanstack/react-query";
+import { queryKeys } from "@workspace/data-access";
 import {
+  useConsultationAutosaveUpdateAppointment,
+  useSyncDiagnoses,
+} from "@workspace/data-access";
+import { useCreatePrescription } from "@workspace/data-access";
+import { logger } from "@/lib/monitoring/logger";
+import { showUserFacingErrorToast } from "@/lib/errors/user-facing-errors";
+import {
+  consultationDraftNeedsLeaveGuard,
   hashDiagnosesForSync,
   useConsultationDraft,
   draftSessionStorageKey,
 } from "@/features/consultation/state/useConsultationDraft";
-import type { UpdateAppointmentRequest } from "@workspace/types";
+import { buildConsultationAppointmentPatch } from "@/features/consultation/state/consultation-autosave-patch";
 
-const AUTOSAVE_DEBOUNCE_MS = 800;
+const AUTOSAVE_DEBOUNCE_MS = 2200;
 
 interface UseConsultationAutosaveOptions {
   appointmentId: string;
@@ -25,7 +30,8 @@ interface UseConsultationAutosaveOptions {
 export function useConsultationAutosave(options: UseConsultationAutosaveOptions) {
   const { appointmentId, readOnly, clinicType, patientId } = options;
 
-  const updateAppointment = useUpdateAppointment(appointmentId);
+  const queryClient = useQueryClient();
+  const updateAppointment = useConsultationAutosaveUpdateAppointment(appointmentId);
   const syncDiagnoses = useSyncDiagnoses(appointmentId);
   const createPrescription = useCreatePrescription();
 
@@ -50,6 +56,11 @@ export function useConsultationAutosave(options: UseConsultationAutosaveOptions)
         dentalChart: state.dentalChart,
         eyeExam: state.eyeExam,
         growthData: state.growthData,
+        cardiologyExam: state.cardiologyExam,
+        dermatologyExam: state.dermatologyExam,
+        gynecologyExam: state.gynecologyExam,
+        psychiatryExam: state.psychiatryExam,
+        investigations: state.investigations,
         followUpPlan: state.followUpPlan,
         savedAt: Date.now(),
       });
@@ -64,48 +75,11 @@ export function useConsultationAutosave(options: UseConsultationAutosaveOptions)
     }
   }, [getDraft]);
 
-  const buildAppointmentPatch = useCallback((): UpdateAppointmentRequest => {
-    const state = getDraft();
-    const chiefComplaintText = state.chiefComplaint
-      .map((c) => c.complaint)
-      .filter((c) => c && c.trim())
-      .join(", ");
+  const buildAppointmentPatch = useCallback(
+    () => buildConsultationAppointmentPatch(getDraft(), clinicType),
+    [clinicType, getDraft],
+  );
 
-    const patch = {
-      chiefComplaint: chiefComplaintText,
-      historyOfPresentIllness: state.history,
-      treatmentPlan: state.treatment,
-      finalDiagnosis: JSON.stringify(state.diagnosis),
-      followUpPlan: state.followUpPlan,
-      generalExamination: state.examination.general,
-      systemicExamination: {
-        cvs: { notes: state.examination.systemic.cvs },
-        rs: { notes: state.examination.systemic.rs },
-        pa: { notes: state.examination.systemic.pa },
-        cns: { notes: state.examination.systemic.cns },
-        additionalNotes: state.examination.systemic.notes,
-      },
-    } as unknown as UpdateAppointmentRequest;
-
-    if (clinicType === "DENTAL" && state.dentalChart) {
-      (patch as UpdateAppointmentRequest & { dentalChart?: unknown }).dentalChart =
-        state.dentalChart;
-    }
-    if (clinicType === "OPHTHALMOLOGY") {
-      patch.ophthalmologyExam = state.eyeExam;
-    }
-    if (clinicType === "PEDIATRIC") {
-      (patch as UpdateAppointmentRequest & { growthData?: unknown }).growthData =
-        state.growthData;
-    }
-
-    return patch;
-  }, [clinicType, getDraft]);
-
-  /**
-   * Flush current draft to the server. Returns whether a flush actually ran.
-   * Safe to call multiple times — re-entry while already saving is ignored.
-   */
   const flush = useCallback(
     async (options: { force?: boolean } = {}): Promise<boolean> => {
       if (readOnly) return false;
@@ -120,7 +94,18 @@ export function useConsultationAutosave(options: UseConsultationAutosaveOptions)
 
       try {
         const patch = buildAppointmentPatch();
-        await updateAppointment.mutateAsync(patch);
+        const sentFingerprint = JSON.stringify(patch);
+        const updated = await updateAppointment.mutateAsync(patch);
+        queryClient.setQueryData(
+          queryKeys.appointments.detail(appointmentId),
+          updated,
+        );
+        if (patientId) {
+          void queryClient.invalidateQueries({
+            queryKey: queryKeys.patientTimeline.prefix(patientId),
+            exact: false,
+          });
+        }
 
         const codedDiagnoses = state.diagnosis
           .filter((d) => d.icdCode?.id)
@@ -129,7 +114,7 @@ export function useConsultationAutosave(options: UseConsultationAutosaveOptions)
             notes: d.notes,
             isPrimary: idx === 0,
           }));
-        const nextHash = hashDiagnosesForSync(codedDiagnoses);
+        const nextHash = await hashDiagnosesForSync(codedDiagnoses);
         const prevHash = state.diagnosesContentHash;
 
         if (codedDiagnoses.length > 0 && nextHash !== prevHash) {
@@ -147,8 +132,29 @@ export function useConsultationAutosave(options: UseConsultationAutosaveOptions)
         }
 
         failureStreakRef.current = 0;
-        useConsultationDraft.getState().markClean();
-        persistToSession();
+        const driftedDuringSave =
+          JSON.stringify(buildAppointmentPatch()) !== sentFingerprint;
+        inFlightRef.current = false;
+        if (driftedDuringSave) {
+          useConsultationDraft.setState({
+            dirty: true,
+            saveState: "dirty",
+            lastError: null,
+          });
+        } else {
+          useConsultationDraft.getState().markClean();
+          if (typeof window !== "undefined") {
+            try {
+              window.sessionStorage.removeItem(
+                draftSessionStorageKey(appointmentId),
+              );
+            } catch (error) {
+              logger.warn("Failed to clear consultation draft session key", {
+                error,
+              });
+            }
+          }
+        }
         return true;
       } catch (error) {
         failureStreakRef.current += 1;
@@ -164,24 +170,23 @@ export function useConsultationAutosave(options: UseConsultationAutosaveOptions)
         }
         return false;
       } finally {
-        inFlightRef.current = false;
+        if (inFlightRef.current) {
+          inFlightRef.current = false;
+        }
       }
     },
     [
       appointmentId,
       buildAppointmentPatch,
       getDraft,
-      persistToSession,
+      patientId,
+      queryClient,
       readOnly,
       syncDiagnoses,
       updateAppointment,
     ],
   );
 
-  /**
-   * Submit prescriptions as a separate workflow. Only fires when the draft
-   * actually has medications to send.
-   */
   const submitPrescriptions = useCallback(async (): Promise<boolean> => {
     if (readOnly) return false;
     const state = getDraft();
@@ -216,10 +221,9 @@ export function useConsultationAutosave(options: UseConsultationAutosaveOptions)
 
   useEffect(() => {
     if (readOnly) return;
-    const unsubscribe = useConsultationDraft.subscribe((state, prevState) => {
+    const unsubscribe = useConsultationDraft.subscribe((state) => {
       if (!state.dirty) return;
-      if (state.saveState === "saving") return;
-      if (state === prevState) return;
+      if (inFlightRef.current) return;
       if (debounceTimer.current) clearTimeout(debounceTimer.current);
       persistToSession();
       debounceTimer.current = setTimeout(() => {
@@ -234,9 +238,11 @@ export function useConsultationAutosave(options: UseConsultationAutosaveOptions)
 
   useEffect(() => {
     if (readOnly) return;
-    const handleBeforeUnload = () => {
-      if (useConsultationDraft.getState().dirty) {
+    const handleBeforeUnload = (e: BeforeUnloadEvent) => {
+      if (consultationDraftNeedsLeaveGuard(useConsultationDraft.getState())) {
         persistToSession();
+        e.preventDefault();
+        e.returnValue = "";
       }
     };
     window.addEventListener("beforeunload", handleBeforeUnload);

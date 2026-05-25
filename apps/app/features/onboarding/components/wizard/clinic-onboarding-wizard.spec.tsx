@@ -22,11 +22,11 @@ vi.mock("next/navigation", () => ({
   }),
 }));
 
-vi.mock("@/lib/auth-context", () => ({
+vi.mock("@/lib/auth/auth-context", () => ({
   useAuth: () => mocks.authState,
 }));
 
-vi.mock("@workspace/ui/components/docita-logo", () => ({
+vi.mock("@workspace/ui/components/indicators/docita-logo", () => ({
   DocitaLogo: () => <div>Docita</div>,
   DocitaIcon: () => <div>Docita Icon</div>,
 }));
@@ -65,7 +65,7 @@ describe("ClinicOnboardingWizard", () => {
     ).toBeInTheDocument();
   });
 
-  it("redirects non-admin users to dashboard after completion", () => {
+  it("redirects non-admin users to today after completion", () => {
     mocks.authState = {
       user: {
         id: "user_1",
@@ -81,6 +81,6 @@ describe("ClinicOnboardingWizard", () => {
 
     fireEvent.click(screen.getByRole("button", { name: /complete registration/i }));
 
-    expect(mocks.replace).toHaveBeenCalledWith("/dashboard");
+    expect(mocks.replace).toHaveBeenCalledWith("/today");
   });
 });

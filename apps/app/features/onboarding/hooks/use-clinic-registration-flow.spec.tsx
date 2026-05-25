@@ -26,7 +26,7 @@ const mocks = vi.hoisted(() => ({
   fetch: vi.fn(),
 }));
 
-vi.mock("@/lib/auth-context", () => ({
+vi.mock("@/lib/auth/auth-context", () => ({
   useAuth: () => ({
     user: mocks.user,
     refreshUser: mocks.refreshUser,
@@ -185,9 +185,9 @@ describe("useClinicRegistrationFlow", () => {
     });
 
     await act(async () => {
-      await result.current.setPlanSelection("STARTER", "MONTHLY", {
-        monthly: 0,
-        yearly: 0,
+      await result.current.setPlanSelection("ESSENTIAL", "MONTHLY", {
+        monthly: 999,
+        yearly: 9990,
       });
     });
 
@@ -195,7 +195,7 @@ describe("useClinicRegistrationFlow", () => {
       await result.current.setTeamMembers([]);
     });
 
-    expect(result.current.step).toBe(4);
+    expect(result.current.step).toBe(5);
 
     await act(async () => {
       await result.current.submitRegistration(validCompliance, vi.fn());

@@ -1,96 +1,43 @@
 "use client";
 
-import { useCallback, useEffect, useState } from "react";
+import { useEffect, useState } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { AlertCircle } from "lucide-react";
-import { getUserFacingErrorMessage } from "@workspace/types";
+import { getUserFacingErrorMessage } from "@workspace/utils";
 import { useClinicRegistrationFlow } from "@/features/onboarding/hooks/use-clinic-registration-flow";
-import { useAuth } from "@/lib/auth-context";
+import { useAuth } from "@/lib/auth/auth-context";
 import { useLocaleCurrency } from "@/hooks/use-locale-currency";
-import { WhatsAppButton } from "@/features/_shared/components/whatsapp/whatsapp-button";
-import { getSupportPhoneNumber } from "@/lib/support-contact";
 import {
   ClinicDetailsStep,
+  ClinicWeeklyHoursStep,
   ComplianceStep,
   PlanSelectionStep,
   TeamInviteStep,
 } from "@/features/onboarding/components/steps";
-import { PaymentStep } from "@/features/onboarding/components/steps/PaymentStep";
 import {
   type ClinicDetails,
   clinicDetailsSchema,
   complianceSchema,
   type ComplianceSettings,
-  defaultClinicRegistrationData,
   defaultComplianceValues,
-  type PlanSelection,
 } from "@/features/onboarding/components/types";
-import { Alert, AlertDescription } from "@workspace/ui/components/alert";
-import { Button } from "@workspace/ui/components/button";
 import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
-} from "@workspace/ui/components/dialog";
-import { DEFAULT_COUNTRY_CODE } from "@workspace/utils";
+  Alert,
+  AlertDescription,
+} from "@workspace/ui/components/feedback/alert";
+import { Button } from "@workspace/ui/components/form/button";
+import { DEFAULT_COUNTRY_CODE, getFacilityLabel } from "@workspace/utils";
 
-const STEPS = [
-  { number: 1, label: "Facility Details", estimatedTime: "2 min" },
-  { number: 2, label: "Choose Plan", estimatedTime: "3 min" },
-  { number: 3, label: "Invite Team", estimatedTime: "2 min" },
-  { number: 4, label: "Compliance", estimatedTime: "3 min" },
-];
-
-const TOTAL_STEPS = 4;
-const DRAFT_KEY = "docita_onboarding_draft";
-const SESSION_ONBOARDING_ID_KEY = "docita_onboarding_id";
-interface OnboardingDraft {
-  clinicDetails: Partial<ClinicDetails>;
-  savedAt: string;
-  onboardingId?: string | null;
-}
-
-function hasMeaningfulClinicDraftData(
-  clinicDetails: Partial<ClinicDetails> | undefined,
-): boolean {
-  if (!clinicDetails) return false;
-
-  const meaningfulStringFields: Array<keyof ClinicDetails> = [
-    "name",
-    "email",
-    "phone",
-    "address",
-    "addressLine1",
-    "addressLine2",
-    "city",
-    "state",
-    "pincode",
-    "website",
-    "gstin",
-  ];
-
-  const hasMeaningfulString = meaningfulStringFields.some((field) => {
-    const value = clinicDetails[field];
-    return typeof value === "string" && value.trim().length > 0;
-  });
-
-  return hasMeaningfulString || Boolean(clinicDetails.type);
-}
-
-function getMissingClinicDetailsForProgress(
-  clinicDetails: Partial<ClinicDetails> | undefined,
-): string[] {
-  const missing: string[] = [];
-  if (!clinicDetails?.name?.trim()) missing.push("facility name");
-  if (!clinicDetails?.phone?.trim()) missing.push("facility phone");
-  if (!clinicDetails?.address?.trim()) missing.push("facility address");
-  if (!clinicDetails?.type) missing.push("facility type");
-  return missing;
-}
+import {
+  DRAFT_KEY,
+  getMissingClinicDetailsForProgress,
+} from "./clinic-registration-form-helpers";
+import { useOnboardingDraft } from "./use-onboarding-draft";
+import {
+  DraftRestoreDialog,
+  OnboardingProgressCard,
+} from "./clinic-registration-form-sections";
 
 export function ClinicRegistrationForm({
   onSuccess,
@@ -99,26 +46,17 @@ export function ClinicRegistrationForm({
 }) {
   const { user } = useAuth();
   const { currency } = useLocaleCurrency();
-  const supportPhone = getSupportPhoneNumber();
-  const supportMessage =
-    "Hi Docita team, I need help with facility onboarding and pricing for my hospital";
   const [stepError, setStepError] = useState<string | null>(null);
-  const [showDraftDialog, setShowDraftDialog] = useState(false);
-  const [savedDraft, setSavedDraft] = useState<OnboardingDraft | null>(null);
-  const [pendingPaymentPlan, setPendingPaymentPlan] = useState<{
-    tier: string;
-    billingCycle: "MONTHLY" | "YEARLY";
-    pricing: { monthly: number | "custom"; yearly: number | "custom" };
-  } | null>(null);
-
   const {
     step,
+    setStep,
     formData,
     onboardingId,
     restoreOnboardingId,
     ensureOnboardingId,
     restartOnboarding,
     setClinicDetails,
+    setClinicWeeklyHours,
     setPlanSelection,
     setTeamMembers,
     goBackFromCompliance,
@@ -145,8 +83,10 @@ export function ClinicRegistrationForm({
       countryCode: DEFAULT_COUNTRY_CODE,
       website: "",
       gstin: "",
-      ...(formData.clinicDetails as Partial<ClinicDetails>),
-    } as ClinicDetails,
+      legalName: "",
+      type: "GENERAL",
+      ...formData.clinicDetails,
+    },
   });
 
   const complianceForm = useForm<ComplianceSettings>({
@@ -161,80 +101,20 @@ export function ClinicRegistrationForm({
     },
   });
 
-  // Check for saved draft on mount
-  useEffect(() => {
-    try {
-      const raw = localStorage.getItem(DRAFT_KEY);
-      if (!raw) return;
-      const draft = JSON.parse(raw) as OnboardingDraft;
-      const currentOnboardingId =
-        typeof sessionStorage !== "undefined"
-          ? sessionStorage.getItem(SESSION_ONBOARDING_ID_KEY)
-          : null;
-      const persistedStep =
-        typeof sessionStorage !== "undefined"
-          ? Number(sessionStorage.getItem("docita_onboarding_step") || "1")
-          : 1;
-      const ageMs = Date.now() - new Date(draft.savedAt).getTime();
-      const hasMeaningfulDraft =
-        hasMeaningfulClinicDraftData(draft.clinicDetails) ||
-        Boolean(draft.onboardingId);
-      const isSameOnboardingSession =
-        Boolean(draft.onboardingId) &&
-        draft.onboardingId === currentOnboardingId;
-      const hasActiveSessionProgress =
-        Boolean(currentOnboardingId) && persistedStep > 1;
-
-      if (
-        ageMs < 24 * 60 * 60 * 1000 &&
-        hasMeaningfulDraft &&
-        !isSameOnboardingSession &&
-        !hasActiveSessionProgress
-      ) {
-        setSavedDraft(draft);
-        setShowDraftDialog(true);
-      } else if (
-        ageMs < 24 * 60 * 60 * 1000 &&
-        hasMeaningfulDraft &&
-        (isSameOnboardingSession || hasActiveSessionProgress)
-      ) {
-        // Same onboarding session after refresh: restore silently without showing prompt.
-        clinicForm.reset(draft.clinicDetails as ClinicDetails);
-      } else {
-        localStorage.removeItem(DRAFT_KEY);
-      }
-    } catch {
-      // Ignore parse errors
-    }
-  }, [clinicForm]);
-
-  const handleRestoreDraft = () => {
-    if (savedDraft?.clinicDetails) {
-      clinicForm.reset(savedDraft.clinicDetails as ClinicDetails);
-    }
-    if (savedDraft?.onboardingId) {
-      restoreOnboardingId(savedDraft.onboardingId);
-    }
-    setShowDraftDialog(false);
-    setSavedDraft(null);
-  };
-
-  const handleDiscardDraft = () => {
-    restartOnboarding();
-    clinicForm.reset({
-      ...defaultClinicRegistrationData.clinicDetails,
-      facilityLabel: "CLINIC",
-      countryCode: DEFAULT_COUNTRY_CODE,
-    });
-    complianceForm.reset({
-      ...defaultComplianceValues,
-    });
-    setStepError(null);
-    setPendingPaymentPlan(null);
-    localStorage.removeItem(DRAFT_KEY);
-    setShowDraftDialog(false);
-    setSavedDraft(null);
-  };
+  const {
+    showDraftDialog,
+    setShowDraftDialog,
+    savedDraft,
+    handleRestoreDraft,
+    handleDiscardDraft,
+  } = useOnboardingDraft({
+    clinicForm,
+    complianceForm,
+    onboardingId,
+    restoreOnboardingId,
+    restartOnboarding,
+    onAfterDiscard: () => setStepError(null),
+  });
 
   const handleSetClinicDetails = (data: ClinicDetails) => {
     setStepError(null);
@@ -245,61 +125,43 @@ export function ClinicRegistrationForm({
     tier: string,
     billingCycle: "MONTHLY" | "YEARLY",
     pricing: { monthly: number | "custom"; yearly: number | "custom" },
-    options?: { isCoreTrial?: boolean; currency?: string },
+    options?: {
+      currency?: string;
+    },
   ) => {
     setStepError(null);
 
-    // For paid Essential plans without trial, show PaymentStep before Razorpay
     const price = billingCycle === "YEARLY" ? pricing.yearly : pricing.monthly;
     const clinicGstin = clinicForm.getValues("gstin");
     const isIndianCurrency = currency === "INR";
     const isPaidPlan = typeof price === "number" && price > 0;
 
-    if (isIndianCurrency && isPaidPlan && !options?.isCoreTrial && !clinicGstin?.trim()) {
+    if (isIndianCurrency && isPaidPlan && !clinicGstin?.trim()) {
       setStepError(
         "Add your GSTIN in Facility Details before charging a paid Indian plan. We need it for GST invoices.",
       );
       return;
     }
 
-    if (
-      tier === "ESSENTIAL" &&
-      !options?.isCoreTrial &&
-      isPaidPlan
-    ) {
-      setPendingPaymentPlan({ tier, billingCycle, pricing });
-      return;
-    }
-
     try {
-      await setPlanSelection(
-        tier,
-        billingCycle,
-        pricing as PlanSelection["billingCycle"] extends "MONTHLY" | "YEARLY"
-          ? { monthly: number | "custom"; yearly: number | "custom" }
-          : never,
-        { ...options, currency },
-      );
+      await setPlanSelection(tier, billingCycle, pricing, {
+        ...options,
+        currency,
+      });
     } catch (error) {
       setStepError(
         getUserFacingErrorMessage(error, {
-          fallback: "We could not continue with this plan right now. Please try again.",
+          fallback:
+            "We could not continue with this plan right now. Please try again.",
           context: "save",
         }),
       );
     }
   };
 
-  const handleStartTrial = async () => {
-    if (!pendingPaymentPlan) return;
-    const { tier, billingCycle, pricing } = pendingPaymentPlan;
-    setPendingPaymentPlan(null);
-    await handleSetPlanSelection(tier, billingCycle, pricing, {
-      isCoreTrial: true,
-    });
-  };
-
-  const handleSetTeamMembers = async (members: Parameters<typeof setTeamMembers>[0]) => {
+  const handleSetTeamMembers = async (
+    members: Parameters<typeof setTeamMembers>[0],
+  ) => {
     setStepError(null);
     try {
       await setTeamMembers(members);
@@ -337,49 +199,15 @@ export function ClinicRegistrationForm({
     } catch (error) {
       setStepError(
         getUserFacingErrorMessage(error, {
-          fallback: "We could not complete setup. Please check your details and try again.",
+          fallback:
+            "We could not complete setup. Please check your details and try again.",
           context: "form",
         }),
       );
     }
   };
 
-  // Auto-save clinic details to localStorage as user types
-  const persistDraft = useCallback(
-    (clinicDetails: Partial<ClinicDetails>) => {
-      try {
-        const draft: OnboardingDraft = {
-          clinicDetails,
-          savedAt: new Date().toISOString(),
-          onboardingId,
-        };
-
-        const hasMeaningfulDraft =
-          hasMeaningfulClinicDraftData(clinicDetails) || Boolean(onboardingId);
-        if (!hasMeaningfulDraft) {
-          localStorage.removeItem(DRAFT_KEY);
-          return;
-        }
-
-        localStorage.setItem(DRAFT_KEY, JSON.stringify(draft));
-      } catch {
-        // Storage quota exceeded or unavailable
-      }
-    },
-    [onboardingId],
-  );
-
-  useEffect(() => {
-    const subscription = clinicForm.watch((values) => {
-      persistDraft(values);
-    });
-    return () => subscription.unsubscribe();
-  }, [clinicForm, persistDraft]);
-
-  useEffect(() => {
-    persistDraft(clinicForm.getValues());
-  }, [clinicForm, onboardingId, persistDraft]);
-
+  // Guard: restart if required clinic data is missing while past step 1
   useEffect(() => {
     if (step <= 1) return;
     const missingClinicData = getMissingClinicDetailsForProgress(
@@ -388,40 +216,21 @@ export function ClinicRegistrationForm({
     if (missingClinicData.length === 0) return;
 
     restartOnboarding();
-    setPendingPaymentPlan(null);
     localStorage.removeItem(DRAFT_KEY);
-    setSavedDraft(null);
-    setShowDraftDialog(false);
     setStepError(
       `Onboarding progress was incomplete (${missingClinicData.join(", ")}), so we started over from Step 1`,
     );
   }, [formData.clinicDetails, restartOnboarding, step]);
 
-  const currentStep = STEPS.find((s) => s.number === step) ?? STEPS[0];
-  const progressPercent = Math.round((step / TOTAL_STEPS) * 100);
-
-
-
   return (
     <div className="space-y-6">
-      <Dialog open={showDraftDialog} onOpenChange={setShowDraftDialog}>
-        <DialogContent>
-          <DialogHeader>
-            <DialogTitle>Continue where you left off?</DialogTitle>
-            <DialogDescription>
-              A saved draft was found from{" "}
-              {savedDraft ? new Date(savedDraft.savedAt).toLocaleString() : "earlier"}
-              {" "}and would you like to restore it?
-            </DialogDescription>
-          </DialogHeader>
-          <DialogFooter>
-            <Button variant="outline" onClick={handleDiscardDraft}>
-              Start over
-            </Button>
-            <Button onClick={handleRestoreDraft}>Continue</Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
+      <DraftRestoreDialog
+        open={showDraftDialog}
+        onOpenChange={setShowDraftDialog}
+        savedAt={savedDraft?.savedAt}
+        onDiscard={handleDiscardDraft}
+        onRestore={handleRestoreDraft}
+      />
 
       {stepError && (
         <Alert
@@ -449,37 +258,7 @@ export function ClinicRegistrationForm({
         {stepError ? `Error: ${stepError}` : ""}
       </div>
 
-      <div className="rounded-xl border bg-card p-4 md:p-5">
-        <div className="flex items-center justify-between text-sm mb-3">
-          <p className="font-medium text-foreground">
-            Step {step} of {TOTAL_STEPS}: {currentStep.label}
-          </p>
-          <p className="text-muted-foreground text-xs">
-            ~{currentStep.estimatedTime} remaining
-          </p>
-        </div>
-        <div className="h-2 w-full rounded-full bg-muted">
-          <div
-            className="h-2 rounded-full bg-primary transition-all duration-300"
-            style={{ width: `${progressPercent}%` }}
-            role="progressbar"
-            aria-valuenow={progressPercent}
-            aria-valuemin={0}
-            aria-valuemax={100}
-            aria-label={`Onboarding progress: ${progressPercent}%`}
-          />
-        </div>
-        <div className="hidden sm:flex justify-between mt-2">
-          {STEPS.map((s) => (
-            <span
-              key={s.number}
-              className={`text-xs ${s.number === step ? "font-semibold text-primary" : s.number < step ? "text-muted-foreground" : "text-muted-foreground/50"}`}
-            >
-              {s.label}
-            </span>
-          ))}
-        </div>
-      </div>
+      <OnboardingProgressCard step={step} />
 
       {step === 1 && (
         <ClinicDetailsStep
@@ -488,53 +267,30 @@ export function ClinicRegistrationForm({
         />
       )}
 
-      {step === 2 && !pendingPaymentPlan && (
-        <PlanSelectionStep
-          currency={currency}
-          defaultTier={formData.planSelection.tier}
-          defaultBillingCycle={formData.planSelection.billingCycle}
-          defaultIsCoreTrial={formData.planSelection.isCoreTrial}
-          onSelect={handleSetPlanSelection}
-        />
-      )}
-
-      {step === 2 && pendingPaymentPlan && (
-        <PaymentStep
-          selectedPlanPrice={
-            pendingPaymentPlan.billingCycle === "YEARLY"
-              ? typeof pendingPaymentPlan.pricing.yearly === "number"
-                ? pendingPaymentPlan.pricing.yearly
-                : 0
-              : typeof pendingPaymentPlan.pricing.monthly === "number"
-                ? pendingPaymentPlan.pricing.monthly
-                : 0
-          }
-          billingCycle={pendingPaymentPlan.billingCycle}
-          currencySymbol={
-            currency === "USD" ? "$"
-            : currency === "EUR" ? "€"
-            : currency === "GBP" ? "£"
-            : currency === "AUD" ? "A$"
-            : "₹"
-          }
-          currencyCode={currency}
-          clinicEmail={user?.email}
-          clinicPhone={formData.clinicDetails.phone}
-          tier={pendingPaymentPlan.tier}
-          onStartTrial={handleStartTrial}
-          onBack={() => setPendingPaymentPlan(null)}
-          onComplete={async () => {
-            setPendingPaymentPlan(null);
-            await handleSetPlanSelection(
-              pendingPaymentPlan.tier,
-              pendingPaymentPlan.billingCycle,
-              pendingPaymentPlan.pricing,
-            );
+      {step === 2 && (
+        <ClinicWeeklyHoursStep
+          initialRows={formData.clinicWeeklyHours}
+          facilityWord={getFacilityLabel(
+            formData.clinicDetails.facilityLabel ?? "CLINIC",
+          )}
+          onBack={() => setStep(1)}
+          onContinue={(rows) => {
+            setStepError(null);
+            setClinicWeeklyHours(rows);
           }}
         />
       )}
 
       {step === 3 && (
+        <PlanSelectionStep
+          currency={currency}
+          defaultTier={formData.planSelection.tier}
+          defaultBillingCycle={formData.planSelection.billingCycle}
+          onSelect={handleSetPlanSelection}
+        />
+      )}
+
+      {step === 4 && (
         <TeamInviteStep
           onSkip={handleSkipTeamStep}
           onComplete={handleSetTeamMembers}
@@ -544,7 +300,7 @@ export function ClinicRegistrationForm({
         />
       )}
 
-      {step === 4 && (
+      {step === 5 && (
         <ComplianceStep
           complianceForm={complianceForm}
           onBack={goBackFromCompliance}
@@ -555,22 +311,6 @@ export function ClinicRegistrationForm({
           ensureOnboardingId={ensureOnboardingId}
         />
       )}
-
-      <div className="rounded-xl border bg-muted/30 p-4 md:p-5 flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
-        <div className="space-y-1">
-          <p className="font-semibold">Need help with setup?</p>
-          <p className="text-sm text-muted-foreground">
-            We support onboarding, reminders, and follow-up over WhatsApp and
-            you can reach us directly if you want a guided setup
-          </p>
-        </div>
-        <WhatsAppButton
-          phoneNumber={supportPhone}
-          message={supportMessage}
-          label="Message onboarding team"
-          variant="default"
-        />
-      </div>
     </div>
   );
 }

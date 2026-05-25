@@ -1,5 +1,5 @@
 import { Patient } from "@workspace/types";
-import { Button } from "@workspace/ui/components/button";
+import { Button } from "@workspace/ui/components/form/button";
 import {
   Table,
   TableBody,
@@ -7,13 +7,13 @@ import {
   TableHead,
   TableHeader,
   TableRow,
-} from "@workspace/ui/components/table";
+} from "@workspace/ui/components/data-display/table";
 import {
   Tooltip,
   TooltipContent,
   TooltipTrigger,
-} from "@workspace/ui/components/tooltip";
-import { Avatar, AvatarFallback } from "@workspace/ui/components/avatar";
+} from "@workspace/ui/components/overlay/tooltip";
+import { Avatar, AvatarFallback } from "@workspace/ui/components/indicators/avatar";
 import {
   ArrowDown,
   ArrowUp,
@@ -23,6 +23,7 @@ import {
   Pencil,
 } from "lucide-react";
 import { toast } from "sonner";
+import { formatGenderLabel } from "@/lib/formatters";
 
 interface PatientsTableProps {
   patients: Patient[];
@@ -60,7 +61,7 @@ export function PatientsTable({
   };
 
   return (
-    <div className="rounded-md border border-border overflow-x-auto">
+    <div className="ui-card-surface overflow-x-hidden">
       <Table>
           <TableHeader>
             <TableRow className="hover:bg-muted/50">
@@ -94,7 +95,7 @@ export function PatientsTable({
                   colSpan={5}
                   className="h-24 text-center text-muted-foreground"
                 >
-                  Loading patients...
+                  Loading patients…
                 </TableCell>
               </TableRow>
             ) : patients.length === 0 ? (
@@ -114,8 +115,8 @@ export function PatientsTable({
                   onClick={() => patient.id && onRowClick(patient.id)}
                 >
                   <TableCell>
-                    <Avatar className="h-8 w-8 bg-primary/10 text-primary">
-                      <AvatarFallback className="bg-primary/10 text-primary">
+                    <Avatar className="h-8 w-8 border border-border/70 bg-background/70 text-foreground">
+                      <AvatarFallback className="border border-border/70 bg-background/70 text-foreground">
                         {patient.firstName.charAt(0)}
                         {patient.lastName.charAt(0)}
                       </AvatarFallback>
@@ -132,7 +133,9 @@ export function PatientsTable({
                       </span>
                     </div>
                   </TableCell>
-                  <TableCell className="hidden sm:table-cell capitalize">{patient.gender}</TableCell>
+                  <TableCell className="hidden sm:table-cell">
+                    {formatGenderLabel(patient.gender)}
+                  </TableCell>
                   <TableCell
                     className="text-right"
                     onClick={(e) => e.stopPropagation()}
@@ -154,7 +157,7 @@ export function PatientsTable({
                             <FileText className="h-4 w-4" />
                           </Button>
                         </TooltipTrigger>
-                        <TooltipContent>Quick Note (Stub)</TooltipContent>
+                        <TooltipContent>Quick Note</TooltipContent>
                       </Tooltip>
 
                       <Tooltip>

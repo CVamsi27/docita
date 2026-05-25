@@ -1,9 +1,19 @@
+export interface ResolvedWhatsappSender {
+  phoneNumberId: string;
+  accessToken: string;
+  mode: 'SHARED' | 'BYO' | 'MANAGED';
+  senderPhoneNumberId: string | null;
+  displayName?: string | null;
+  fallbackActive: boolean;
+}
+
 export interface SendMessageRequest {
   to: string;
   templateName?: string;
   languageCode?: string;
   components?: Array<Record<string, unknown>>;
   text?: string;
+  sender?: ResolvedWhatsappSender;
 }
 
 export interface SendInteractiveRequest {
@@ -12,6 +22,7 @@ export interface SendInteractiveRequest {
   buttons: Array<{ id: string; title: string }>;
   headerText?: string;
   footerText?: string;
+  sender?: ResolvedWhatsappSender;
 }
 
 export interface SendMessageResponse {

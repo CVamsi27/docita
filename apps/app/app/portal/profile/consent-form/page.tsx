@@ -1,25 +1,23 @@
 "use client";
 
 import { useMemo } from "react";
-import { useAuth } from "@/lib/auth-context";
-import { Button } from "@workspace/ui/components/button";
-import { Card, CardContent, CardHeader, CardTitle } from "@workspace/ui/components/card";
+import { useAuth } from "@/lib/auth/auth-context";
+import { Button } from "@workspace/ui/components/form/button";
+import {
+  Card,
+  CardContent,
+  CardHeader,
+  CardTitle,
+} from "@workspace/ui/components/indicators/card";
 import { Printer } from "lucide-react";
-import { usePatientConsentSettings } from "@/hooks/api/use-patient-portal";
-import { BackButton } from "@/components/common/navigation/back-button";
+import { usePatientConsentSettings } from "@workspace/data-access";
+import { BackButton } from "@/components/navigation/back-button";
+import { formatDate, formatDateTime } from "@/lib/formatters";
 
-const formatDateTime = (date?: string | null) => {
+const formatConsentDateTime = (date?: string | null) => {
   if (!date) return "Not available";
-  const parsed = new Date(date);
-  if (Number.isNaN(parsed.getTime())) return "Not available";
-
-  return parsed.toLocaleString("en-IN", {
-    day: "2-digit",
-    month: "short",
-    year: "numeric",
-    hour: "2-digit",
-    minute: "2-digit",
-  });
+  const formatted = formatDateTime(date, "dd MMM yyyy, HH:mm");
+  return formatted.length > 0 ? formatted : "Not available";
 };
 
 export default function ConsentFormPage() {
@@ -28,11 +26,7 @@ export default function ConsentFormPage() {
 
   const today = useMemo(
     () =>
-      new Date().toLocaleDateString("en-IN", {
-        day: "2-digit",
-        month: "long",
-        year: "numeric",
-      }),
+      formatDate(new Date(), "dd MMMM yyyy"),
     [],
   );
 
@@ -57,8 +51,8 @@ export default function ConsentFormPage() {
       <Card className="consent-print-root">
         <CardHeader className="space-y-3 border-b">
           <div className="text-center space-y-1">
-            <CardTitle className="text-xl">Patient Consent Form</CardTitle>
-            <p className="text-sm text-muted-foreground">
+            <CardTitle className="ui-section-title">Patient Consent Form</CardTitle>
+            <p className="ui-page-subtitle">
               Health Data Storage and WhatsApp Notification Consent
             </p>
           </div>
@@ -76,8 +70,10 @@ export default function ConsentFormPage() {
               <span className="font-medium">Date:</span> {today}
             </p>
             <p>
-              <span className="font-medium">Consent Record Time:</span>{" "}
-              {formatDateTime(consentSettings?.whatsappConsentAt)}
+              <span className="font-medium">Consent Record Time:</span>
+              <span className="ml-1">
+                {formatConsentDateTime(consentSettings?.whatsappConsentAt)}
+              </span>
             </p>
           </section>
 
@@ -91,7 +87,7 @@ export default function ConsentFormPage() {
             <p>
               I understand this processing follows applicable Indian data protection requirements,
               including the Digital Personal Data Protection Act, 2023 and healthcare record
-              handling practices as applicable to the facility.
+              handling practices where applicable to the facility.
             </p>
             <p>
               <span className="font-medium">Current Choice:</span> {storageStatus}
@@ -125,7 +121,7 @@ export default function ConsentFormPage() {
           <section className="rounded-md border bg-muted/20 p-4 text-sm leading-6">
             <h2 className="text-base font-semibold mb-1">Hospital Display Copy</h2>
             <p>
-              This consent form is maintained as a digital display and record for patient
+              This consent form is maintained for digital display and record for patient
               information and hospital reference. Physical signature is not required for this
               portal copy.
             </p>

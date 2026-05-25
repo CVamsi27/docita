@@ -6,8 +6,8 @@ import {
   CardContent,
   CardHeader,
   CardTitle,
-} from "@workspace/ui/components/card";
-import { SectionHeading } from "@workspace/ui/components/section-heading";
+} from "@workspace/ui/components/indicators/card";
+import { SectionHeading } from "@workspace/ui/components/layout/section-heading";
 
 export function LabInventorySection() {
   return (
@@ -29,7 +29,7 @@ export function LabInventorySection() {
             <div className="space-y-6">
               <div className="flex gap-4">
                 <div className="shrink-0">
-                  <div className="w-10 h-10 rounded-lg bg-info/10 flex items-center justify-center">
+                  <div className="flex h-10 w-10 items-center justify-center rounded-full border border-border/70 bg-muted">
                     <FlaskConical className="h-5 w-5 text-info" />
                   </div>
                 </div>
@@ -44,7 +44,7 @@ export function LabInventorySection() {
 
               <div className="flex gap-4">
                 <div className="shrink-0">
-                  <div className="w-10 h-10 rounded-lg bg-warning/10 flex items-center justify-center">
+                  <div className="flex h-10 w-10 items-center justify-center rounded-full border border-border/70 bg-muted">
                     <Package className="h-5 w-5 text-warning" />
                   </div>
                 </div>
@@ -61,7 +61,7 @@ export function LabInventorySection() {
 
           <div className="relative">
             <div className="grid gap-4">
-              <Card className="bg-background/60 backdrop-blur-sm border-border">
+              <Card className="border-border bg-card">
                 <CardHeader className="pb-2">
                   <CardTitle className="text-sm font-medium text-muted-foreground">
                     Lab Orders
@@ -102,7 +102,7 @@ export function LabInventorySection() {
                 </CardContent>
               </Card>
 
-              <Card className="bg-background/60 backdrop-blur-sm border-border ml-8">
+              <Card className="ml-8 border-border bg-card">
                 <CardHeader className="pb-2">
                   <CardTitle className="text-sm font-medium text-muted-foreground">
                     Low Stock Alerts

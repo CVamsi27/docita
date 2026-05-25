@@ -65,7 +65,7 @@ test.describe("Documents", () => {
       page.locator("div", { hasText: "All Documents" }).first(),
     ).toBeVisible();
 
-    await expect(page.getByText("Loading documents...")).not.toBeVisible({
+    await expect(page.getByText("Loading documents…")).not.toBeVisible({
       timeout: 10000,
     });
 
@@ -115,7 +115,7 @@ test.describe("Documents", () => {
     await page.goto("/documents", { waitUntil: "networkidle" });
 
     const searchInput = page.getByPlaceholder(
-      "Search by patient, file name, or type...",
+      "Enter patient, file name, or type",
     );
     await expect(searchInput).toBeVisible();
 

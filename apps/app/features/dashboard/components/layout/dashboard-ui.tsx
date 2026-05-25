@@ -1,20 +1,25 @@
+import { useMemo } from "react";
+import type { ReactNode } from "react";
+
 import { cn } from "@workspace/ui/lib/utils";
 import { Feature } from "@/lib/stores/permission-store";
-import {
-  DailyProgressUI,
-  DashboardHeaderContainer,
-  DashboardQuickActionsContainer,
-  DashboardSkeletonUI,
-  DashboardStatsGrid,
-  DoctorDashboardCards,
-  RecentPatientsUI,
-  TodayScheduleUI,
-} from "@/features/dashboard/components";
-import { DashboardAppointment, DashboardPatient } from "@workspace/types";
-import { AppPageScaffold } from "@workspace/ui/components/app-page-scaffold";
-import { DataState } from "@workspace/ui/components/data-state";
+import { DashboardStatsGrid } from "@/features/dashboard/components/stats/dashboard-stats-grid";
+import { RecentPatientsUI } from "@/features/dashboard/components/patients/recent-patients-ui";
+import { TodayScheduleUI } from "@/features/dashboard/components/schedule/today-schedule-ui";
+import { DailyProgressUI } from "@/features/dashboard/components/progress/daily-progress-ui";
+import { DashboardActivityFeed } from "@/features/dashboard/components/overview/dashboard-activity-feed";
+import { DashboardUpcomingCard } from "@/features/dashboard/components/overview/dashboard-upcoming-card";
+import type { AppointmentListItem } from "@workspace/data-access";
+import type { DashboardPatient, DashboardStats } from "@workspace/types";
+import { AppPageScaffold } from "@workspace/ui/components/layout/app-page-scaffold";
+import { DataState } from "@workspace/ui/components/data-display/data-state";
 import { LayoutDashboard } from "lucide-react";
-import { DashboardAlertsContainer } from "@/features/dashboard/components/alerts/dashboard-alerts-container";
+import { Section } from "@workspace/ui/components/layout/section";
+import { formatDashboardSummary } from "@/features/dashboard/lib/format-dashboard-summary";
+import { DashboardHeaderContainer } from "./dashboard-header-container";
+import { DashboardSharedWorkspace } from "./dashboard-shared-workspace";
+import { DashboardShortcutsSection } from "./dashboard-shortcuts-section";
+import { DashboardSkeletonUI } from "./dashboard-skeleton-ui";
 
 interface DashboardUIProps {
   stats: {
@@ -24,12 +29,14 @@ interface DashboardUIProps {
     pendingReports: number;
     newPatientsThisMonth: number;
   };
+  recentActivity: DashboardStats["recentActivity"];
+  upcomingAppointments: DashboardStats["upcomingAppointments"];
   recentPatients: DashboardPatient[];
-  todayAppointments: DashboardAppointment[];
+  todayAppointments: AppointmentListItem[];
   completedToday: number;
   inProgressToday: number;
-  currentPatient: DashboardAppointment | null | undefined;
-  nextPatients: DashboardAppointment[];
+  currentPatient: AppointmentListItem | null | undefined;
+  nextPatients: AppointmentListItem[];
   waitingCount: number;
   pendingJoinRequests: number;
   slotDurationMinutes?: number;
@@ -37,10 +44,13 @@ interface DashboardUIProps {
   isError?: boolean;
   onRetry?: () => void;
   canAccess: (feature: Feature) => boolean;
+  headerActions?: ReactNode;
 }
 
 export function DashboardUI({
   stats,
+  recentActivity,
+  upcomingAppointments,
   recentPatients,
   todayAppointments,
   completedToday,
@@ -54,13 +64,24 @@ export function DashboardUI({
   isError,
   onRetry,
   canAccess,
+  headerActions,
 }: DashboardUIProps) {
-  const header = <DashboardHeaderContainer />;
+  const headerSummary = useMemo(
+    () => formatDashboardSummary(todayAppointments.length, waitingCount),
+    [todayAppointments.length, waitingCount],
+  );
+
+  const header = (
+    <DashboardHeaderContainer
+      summary={headerSummary}
+      headerActions={headerActions}
+    />
+  );
 
   if (isLoading) {
     return (
       <AppPageScaffold header={header}>
-        <DashboardSkeletonUI />
+        <DashboardSkeletonUI variant="full" />
       </AppPageScaffold>
     );
   }
@@ -83,28 +104,10 @@ export function DashboardUI({
     stats.todayAppointments === 0 &&
     stats.activePrescriptions === 0;
 
-  const alerts = (
-    <DashboardAlertsContainer
-      todayAppointments={todayAppointments.length}
-      completedAppointments={completedToday}
-      pendingReports={stats.pendingReports}
-      pendingJoinRequests={pendingJoinRequests}
-      patientsWaiting={waitingCount}
-      nextPatientName={
-        currentPatient?.patient
-          ? `${currentPatient.patient.firstName} ${currentPatient.patient.lastName}`
-          : undefined
-      }
-      nextPatientId={currentPatient?.id}
-      className="mb-4"
-    />
-  );
-
   if (isNewClinic) {
     return (
       <AppPageScaffold header={header}>
         <div className="space-y-4">
-          {alerts}
           <DataState
             status="empty"
             className="min-h-[50vh]"
@@ -120,28 +123,27 @@ export function DashboardUI({
 
   return (
     <AppPageScaffold header={header}>
-      <div className="space-y-4 sm:space-y-6">
-        {alerts}
+      <DashboardSharedWorkspace
+        mode="dashboard"
+        todayAppointments={todayAppointments}
+        completedToday={completedToday}
+        inProgressToday={inProgressToday}
+        currentPatient={currentPatient}
+        nextPatients={nextPatients}
+        waitingCount={waitingCount}
+        pendingJoinRequests={pendingJoinRequests}
+        pendingReports={stats.pendingReports}
+        slotDurationMinutes={slotDurationMinutes}
+      >
+        <Section id="dashboard-overview" title="Overview">
+          <DashboardStatsGrid
+            stats={stats}
+            completedToday={completedToday}
+            inProgressToday={inProgressToday}
+          />
+        </Section>
 
-        <DoctorDashboardCards
-          currentPatient={currentPatient}
-          nextPatients={nextPatients}
-          queueStats={{
-            waiting: waitingCount,
-            inProgress: inProgressToday,
-            completed: completedToday,
-            total: todayAppointments.length,
-          }}
-          estimatedWaitTime={waitingCount * slotDurationMinutes}
-        />
-
-        <DashboardQuickActionsContainer pendingReports={stats.pendingReports} />
-
-        <DashboardStatsGrid
-          stats={stats}
-          completedToday={completedToday}
-          inProgressToday={inProgressToday}
-        />
+        <DashboardShortcutsSection pendingReports={stats.pendingReports} />
 
         <div
           className={cn(
@@ -151,9 +153,9 @@ export function DashboardUI({
               : "lg:grid-cols-1",
           )}
         >
-          {canAccess(Feature.CALENDAR_SLOTS) && (
+          {canAccess(Feature.CALENDAR_SLOTS) ? (
             <TodayScheduleUI appointments={todayAppointments} />
-          )}
+          ) : null}
 
           <div className="space-y-4 sm:space-y-6">
             <RecentPatientsUI
@@ -170,7 +172,12 @@ export function DashboardUI({
             />
           </div>
         </div>
-      </div>
+
+        <div className="grid gap-4 sm:gap-6 lg:grid-cols-2">
+          <DashboardActivityFeed items={recentActivity} />
+          <DashboardUpcomingCard upcoming={upcomingAppointments} />
+        </div>
+      </DashboardSharedWorkspace>
     </AppPageScaffold>
   );
 }

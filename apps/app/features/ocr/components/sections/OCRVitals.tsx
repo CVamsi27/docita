@@ -1,5 +1,5 @@
-import { Input } from "@workspace/ui/components/input";
-import { Label } from "@workspace/ui/components/label";
+import { Input } from "@workspace/ui/components/form/input";
+import { Label } from "@workspace/ui/components/form/label";
 import { Activity } from "lucide-react";
 import { ConfidenceIndicator } from "@/features/ocr/components/common/confidence-indicator";
 import { SectionToggle } from "@/features/ocr/components/common/section-toggle";
@@ -51,7 +51,7 @@ export const OCRVitals = ({
                     },
                   })
                 }
-                placeholder="120/80"
+                placeholder="BP"
               />
             </div>
             <div className="space-y-2">
@@ -74,7 +74,7 @@ export const OCRVitals = ({
                     },
                   })
                 }
-                placeholder="98.6"
+                placeholder="Temperature"
               />
             </div>
             <div className="space-y-2">
@@ -97,7 +97,7 @@ export const OCRVitals = ({
                     },
                   })
                 }
-                placeholder="72"
+                placeholder="Pulse"
               />
             </div>
           </div>
@@ -116,7 +116,7 @@ export const OCRVitals = ({
                     },
                   })
                 }
-                placeholder="16"
+                placeholder="Respiratory rate"
               />
             </div>
             <div className="space-y-2">
@@ -132,7 +132,7 @@ export const OCRVitals = ({
                     },
                   })
                 }
-                placeholder="98"
+                placeholder="SpO2"
               />
             </div>
             <div className="space-y-2">
@@ -148,7 +148,7 @@ export const OCRVitals = ({
                     },
                   })
                 }
-                placeholder="100"
+                placeholder="Glucose"
               />
             </div>
           </div>

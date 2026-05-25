@@ -4,21 +4,22 @@ import { useDeferredValue, useMemo, useState } from "react";
 import { FileText } from "lucide-react";
 import type { Appointment } from "@workspace/types";
 import { Feature } from "@workspace/types";
-import { AppPageScaffold } from "@workspace/ui/components/app-page-scaffold";
+import { AppPageScaffold } from "@workspace/ui/components/layout/app-page-scaffold";
 import {
   Card,
   CardContent,
   CardDescription,
   CardHeader,
   CardTitle,
-} from "@workspace/ui/components/card";
-import { EmptyState } from "@workspace/ui/components/empty-state";
-import { Input } from "@workspace/ui/components/input";
-import { PageHeader } from "@workspace/ui/components/page-header";
+} from "@workspace/ui/components/indicators/card";
+import { EmptyState } from "@workspace/ui/components/feedback/empty-state";
+import { Input } from "@workspace/ui/components/form/input";
+import { PageHeader } from "@workspace/ui/components/layout/page-header";
 import { useDebounce } from "@workspace/hooks/use-debounce";
-import { FeatureGate } from "@/features/_shared/components/auth/feature-gate";
+import { FeatureGate } from "@/components/auth/feature-gate";
 import { CodingQueue } from "@/features/medical-coding/components";
-import { useCodingQueue } from "@/hooks/api/use-medical-coding";
+import { useCodingQueue } from "@workspace/data-access";
+import { formatDateTime } from "@/lib/formatters";
 
 function formatQueueDate(value: Appointment["startTime"]): string {
   const date = value instanceof Date ? value : new Date(value);
@@ -27,10 +28,8 @@ function formatQueueDate(value: Appointment["startTime"]): string {
     return "Date unavailable";
   }
 
-  return new Intl.DateTimeFormat("en-IN", {
-    dateStyle: "medium",
-    timeStyle: "short",
-  }).format(date);
+  const formatted = formatDateTime(date);
+  return formatted.length > 0 ? formatted : "Date unavailable";
 }
 
 function formatStatus(status: string): string {
@@ -103,7 +102,7 @@ export default function CodingQueuePage() {
             <CardContent className="grid gap-4 md:grid-cols-[minmax(0,1fr)_auto] md:items-center">
               <Input
                 aria-label="Search coding queue"
-                placeholder="Search patient or visit..."
+                placeholder="Enter patient or visit"
                 value={searchQuery}
                 onChange={(event) => {
                   setSearchQuery(event.target.value);
@@ -112,8 +111,8 @@ export default function CodingQueuePage() {
               <div className="rounded-lg bg-muted px-4 py-3 text-sm text-muted-foreground">
                 <span className="font-semibold text-foreground">
                   {pendingCount}
-                </span>{" "}
-                pending review
+                </span>
+                <span className="ml-1">pending review</span>
               </div>
             </CardContent>
           </Card>
@@ -132,7 +131,7 @@ export default function CodingQueuePage() {
           ) : isLoading ? (
             <Card>
               <CardContent className="py-10 text-center text-sm text-muted-foreground">
-                Loading uncoded visits...
+                Loading uncoded visits…
               </CardContent>
             </Card>
           ) : (

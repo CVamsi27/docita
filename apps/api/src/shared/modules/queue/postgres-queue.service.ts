@@ -1,5 +1,7 @@
-import { Injectable, Logger, OnModuleDestroy } from '@nestjs/common';
-import { Prisma } from '@workspace/db';
+import { Inject, Injectable, Logger, OnModuleDestroy } from '@nestjs/common';
+import { jsonObjectSchema } from '@workspace/types';
+import { parsePrismaJsonColumn } from '@/shared/common/json/parse-prisma-json-column';
+import { CLOCK_PORT, type IClock } from '@/shared/common/ports/clock.port';
 import { PrismaService } from '@/prisma/prisma.service';
 import {
   IQueueProvider,
@@ -9,23 +11,25 @@ import {
   QueueJobOptions,
   QueueStats,
 } from './queue.interface';
+import { bindQueueJobHandler, coerceQueueJob } from './queue-job-boundary';
+import type {
+  QueueJobRepository,
+  QueueJobRow,
+} from './ports/queue-job.repository.port';
+import { WorkerMetricsService } from './worker-metrics.service';
 
 const POLL_INTERVAL_MS = 2000;
+const STALE_ACTIVE_TIMEOUT_MS = 10 * 60 * 1000;
+const RECOVERY_DELAY_MS = 30 * 1000;
+const DEFAULT_MAX_ATTEMPTS = 5;
+const RETRY_BASE_MS = 1_000;
+const RETRY_MAX_MS = 60_000;
+const IDEMPOTENCY_LOOKBACK_MS = 24 * 60 * 60 * 1000;
 
-interface QueueJobRow {
-  id: string;
-  name: string;
-  data: Prisma.JsonValue;
-  status: string;
-  priority: number;
-  attemptsMade: number;
-  maxAttempts: number;
-  failedReason: string | null;
-  processedAt: Date | null;
-  delayedUntil: Date | null;
-  createdAt: Date;
-  updatedAt: Date;
-}
+const computeBackoffMs = (attempt: number): number => {
+  const exponential = RETRY_BASE_MS * Math.pow(2, attempt - 1);
+  return Math.min(exponential, RETRY_MAX_MS);
+};
 
 @Injectable()
 export class PostgresQueueService implements IQueueProvider, OnModuleDestroy {
@@ -33,7 +37,12 @@ export class PostgresQueueService implements IQueueProvider, OnModuleDestroy {
   private readonly handlers = new Map<string, QueueJobHandler>();
   private readonly pollers = new Map<string, ReturnType<typeof setInterval>>();
 
-  constructor(private readonly prisma: PrismaService) {}
+  constructor(
+    private readonly prisma: PrismaService,
+    @Inject(CLOCK_PORT) private readonly clock: IClock,
+    private readonly queueJobs: QueueJobRepository,
+    private readonly metrics?: WorkerMetricsService,
+  ) {}
 
   async enqueue<T extends QueueJobData>(
     name: string,
@@ -44,6 +53,20 @@ export class PostgresQueueService implements IQueueProvider, OnModuleDestroy {
       ? new Date(Date.now() + options.delay)
       : null;
 
+    if (options?.idempotencyKey) {
+      const recent = await this.findRecentCompletedByIdempotency(
+        name,
+        options.idempotencyKey,
+      );
+      if (recent) {
+        this.logger.debug(
+          `Skipping duplicate enqueue for ${name} idempotencyKey=${options.idempotencyKey} (existing job ${recent.id})`,
+        );
+        return coerceQueueJob<T>(this.rowToJob(recent));
+      }
+    }
+
+    // RLS-BYPASS: background queue workers run without per-request clinic session
     const row = await this.prisma.runUnrestricted(async () =>
       this.prisma.queueJob.create({
         data: {
@@ -51,22 +74,35 @@ export class PostgresQueueService implements IQueueProvider, OnModuleDestroy {
           data,
           status: delayedUntil ? 'DELAYED' : 'WAITING',
           priority: options?.priority ?? 0,
-          maxAttempts: options?.attempts ?? 3,
+          maxAttempts: options?.attempts ?? DEFAULT_MAX_ATTEMPTS,
           delayedUntil,
+          idempotencyKey: options?.idempotencyKey ?? null,
         },
       }),
     );
 
-    return this.rowToJob<T>(row);
+    return coerceQueueJob<T>(this.rowToJob(row));
+  }
+
+  private async findRecentCompletedByIdempotency(
+    name: string,
+    idempotencyKey: string,
+  ): Promise<QueueJobRow | null> {
+    const cutoff = new Date(
+      this.clock.now().getTime() - IDEMPOTENCY_LOOKBACK_MS,
+    );
+    return this.queueJobs.findRecentCompletedByIdempotency(
+      name,
+      idempotencyKey,
+      cutoff,
+    );
   }
 
   async process<T extends QueueJobData>(
     name: string,
     handler: QueueJobHandler<T>,
   ): Promise<void> {
-    this.handlers.set(name, async (job) => {
-      await handler(job as QueueJob<T>);
-    });
+    this.handlers.set(name, bindQueueJobHandler(handler));
 
     if (!this.pollers.has(name)) {
       const interval = setInterval(() => {
@@ -76,6 +112,7 @@ export class PostgresQueueService implements IQueueProvider, OnModuleDestroy {
           );
         });
       }, POLL_INTERVAL_MS);
+      interval.unref?.();
 
       this.pollers.set(name, interval);
     }
@@ -85,88 +122,183 @@ export class PostgresQueueService implements IQueueProvider, OnModuleDestroy {
     const handler = this.handlers.get(name);
     if (!handler) return;
 
-    const rows = await this.prisma.runUnrestricted(
-      async () =>
-        this.prisma.$queryRaw<QueueJobRow[]>`
-        UPDATE "QueueJob"
-        SET status = 'ACTIVE', "processedAt" = NOW(), "updatedAt" = NOW()
-        WHERE id = (
-          SELECT id FROM "QueueJob"
-          WHERE name = ${name}
-            AND status IN ('WAITING', 'DELAYED')
-            AND ("delayedUntil" IS NULL OR "delayedUntil" <= NOW())
-          ORDER BY priority DESC, "createdAt" ASC
-          LIMIT 1
-          FOR UPDATE SKIP LOCKED
-        )
-        RETURNING *
-      `,
-    );
+    await this.recoverStaleActiveJobs(name);
+
+    const rows = await this.queueJobs.claimNextWaitingJob(name);
 
     if (!rows.length) return;
 
     const row = rows[0];
     const job = this.rowToJob(row);
 
+    if (row.idempotencyKey) {
+      const recent = await this.findRecentCompletedByIdempotency(
+        name,
+        row.idempotencyKey,
+      );
+      if (recent && recent.id !== row.id) {
+        // RLS-BYPASS: background queue workers run without per-request clinic session
+        await this.prisma.runUnrestricted(async () =>
+          this.prisma.queueJob.update({
+            where: { id: row.id },
+            data: {
+              status: 'COMPLETED',
+              completedAt: this.clock.now(),
+              failedReason: 'Skipped: idempotency-key already completed',
+            },
+          }),
+        );
+        this.metrics?.observeJobCompletion(name, 'idempotent_skip');
+        return;
+      }
+    }
+
+    const startedAt = Date.now();
     try {
       await handler(job);
 
+      // RLS-BYPASS: background queue workers run without per-request clinic session
       await this.prisma.runUnrestricted(async () =>
         this.prisma.queueJob.update({
           where: { id: row.id },
-          data: { status: 'COMPLETED' },
+          data: { status: 'COMPLETED', completedAt: this.clock.now() },
         }),
       );
+      this.metrics?.observeJobCompletion(name, 'completed');
+      this.metrics?.observeJobDuration(name, (Date.now() - startedAt) / 1000);
     } catch (error) {
       const failedReason =
         error instanceof Error ? error.message : String(error);
       const nextAttemptsMade = row.attemptsMade + 1;
 
       if (nextAttemptsMade < row.maxAttempts) {
-        const backoffMs = Math.pow(2, nextAttemptsMade) * 5000;
+        const backoffMs = computeBackoffMs(nextAttemptsMade);
+        // RLS-BYPASS: background queue workers run without per-request clinic session
         await this.prisma.runUnrestricted(async () =>
           this.prisma.queueJob.update({
             where: { id: row.id },
             data: {
               status: 'DELAYED',
               attemptsMade: nextAttemptsMade,
+              failedReason,
               delayedUntil: new Date(Date.now() + backoffMs),
             },
           }),
         );
+        this.metrics?.observeJobCompletion(name, 'retried');
       } else {
+        // RLS-BYPASS: background queue workers run without per-request clinic session
         await this.prisma.runUnrestricted(async () =>
           this.prisma.queueJob.update({
             where: { id: row.id },
             data: {
-              status: 'FAILED',
+              status: 'DEAD_LETTERED',
               attemptsMade: nextAttemptsMade,
               failedReason,
+              deadLetteredAt: this.clock.now(),
             },
           }),
         );
+        this.metrics?.observeJobCompletion(name, 'dead_lettered');
         this.logger.error(
-          `Job ${row.id} (${name}) permanently failed after ${nextAttemptsMade} attempts: ${failedReason}`,
+          `Job ${row.id} (${name}) dead-lettered after ${nextAttemptsMade} attempts: ${failedReason}`,
         );
       }
+      this.metrics?.observeJobDuration(name, (Date.now() - startedAt) / 1000);
+    }
+
+    await this.refreshDlqGauge(name);
+  }
+
+  private async refreshDlqGauge(name: string): Promise<void> {
+    if (!this.metrics) return;
+    try {
+      // RLS-BYPASS: background queue workers run without per-request clinic session
+      const count = await this.prisma.runUnrestricted(async () =>
+        this.prisma.queueJob.count({
+          where: { name, status: 'DEAD_LETTERED' },
+        }),
+      );
+      this.metrics.setDlqSize(name, count);
+    } catch {
+      // never let metrics refresh fail the job loop
+    }
+  }
+
+  /**
+   * Returns dead-lettered jobs for a queue, newest first.
+   */
+  async listDeadLettered(
+    name: string,
+    limit = 50,
+  ): Promise<QueueJob<QueueJobData>[]> {
+    // RLS-BYPASS: background queue workers run without per-request clinic session
+    const rows = await this.prisma.runUnrestricted(async () =>
+      this.prisma.queueJob.findMany({
+        where: { name, status: 'DEAD_LETTERED' },
+        orderBy: { deadLetteredAt: 'desc' },
+        take: limit,
+      }),
+    );
+    return rows.map((row) => this.rowToJob(row));
+  }
+
+  /**
+   * Replays a dead-lettered job by resetting attempt counts and putting
+   * it back into the WAITING queue. Returns the refreshed job.
+   */
+  async replayDeadLettered(jobId: string): Promise<QueueJob<QueueJobData>> {
+    // RLS-BYPASS: background queue workers run without per-request clinic session
+    const row = await this.prisma.runUnrestricted(async () =>
+      this.prisma.queueJob.update({
+        where: { id: jobId },
+        data: {
+          status: 'WAITING',
+          attemptsMade: 0,
+          failedReason: null,
+          deadLetteredAt: null,
+          delayedUntil: null,
+          processedAt: null,
+        },
+      }),
+    );
+    await this.refreshDlqGauge(row.name);
+    return this.rowToJob(row);
+  }
+
+  private async recoverStaleActiveJobs(name: string): Promise<void> {
+    const nowMs = this.clock.now().getTime();
+    const staleBefore = new Date(nowMs - STALE_ACTIVE_TIMEOUT_MS);
+    const delayedUntil = new Date(nowMs + RECOVERY_DELAY_MS);
+
+    const delayedRows = await this.queueJobs.recoverStaleActiveToDelayed(
+      name,
+      staleBefore,
+      delayedUntil,
+    );
+
+    const failedRows = await this.queueJobs.recoverStaleActiveToFailed(
+      name,
+      staleBefore,
+    );
+
+    if (delayedRows.length > 0 || failedRows.length > 0) {
+      this.logger.warn(
+        `Recovered stale ACTIVE jobs for ${name}: delayed=${delayedRows.length}, failed=${failedRows.length}`,
+      );
     }
   }
 
   async getJob<T extends QueueJobData>(
     jobId: string,
   ): Promise<QueueJob<T> | null> {
-    const rows = await this.prisma.runUnrestricted(
-      async () =>
-        this.prisma.$queryRaw<QueueJobRow[]>`
-        SELECT * FROM "QueueJob" WHERE id = ${jobId} LIMIT 1
-      `,
-    );
-
-    if (!rows.length) return null;
-    return this.rowToJob<T>(rows[0]);
+    const row = await this.queueJobs.findById(jobId);
+    if (!row) return null;
+    return coerceQueueJob<T>(this.rowToJob(row));
   }
 
   async removeJob(jobId: string): Promise<void> {
+    // RLS-BYPASS: background queue workers run without per-request clinic session
     await this.prisma.runUnrestricted(async () =>
       this.prisma.queueJob.delete({ where: { id: jobId } }),
     );
@@ -179,15 +311,7 @@ export class PostgresQueueService implements IQueueProvider, OnModuleDestroy {
   }
 
   async getStats(name: string): Promise<QueueStats> {
-    const rows = await this.prisma.runUnrestricted(
-      async () =>
-        this.prisma.$queryRaw<Array<{ status: string; count: bigint }>>`
-        SELECT status, COUNT(*) as count
-        FROM "QueueJob"
-        WHERE name = ${name}
-        GROUP BY status
-      `,
-    );
+    const rows = await this.queueJobs.countByStatus(name);
 
     const byStatus = new Map(rows.map((r) => [r.status, Number(r.count)]));
 
@@ -195,7 +319,8 @@ export class PostgresQueueService implements IQueueProvider, OnModuleDestroy {
       waiting: byStatus.get('WAITING') ?? 0,
       active: byStatus.get('ACTIVE') ?? 0,
       processed: byStatus.get('COMPLETED') ?? 0,
-      failed: byStatus.get('FAILED') ?? 0,
+      failed:
+        (byStatus.get('FAILED') ?? 0) + (byStatus.get('DEAD_LETTERED') ?? 0),
       delayed: byStatus.get('DELAYED') ?? 0,
     };
   }
@@ -207,11 +332,12 @@ export class PostgresQueueService implements IQueueProvider, OnModuleDestroy {
     this.pollers.clear();
   }
 
-  private rowToJob<T extends QueueJobData>(row: QueueJobRow): QueueJob<T> {
+  private rowToJob(row: QueueJobRow): QueueJob<QueueJobData> {
+    const data = parsePrismaJsonColumn(row.data, jsonObjectSchema) ?? {};
     return {
       id: row.id,
       name: row.name,
-      data: row.data as T,
+      data,
       progress: 0,
       failedReason: row.failedReason ?? undefined,
       attemptsMade: row.attemptsMade,

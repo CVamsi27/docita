@@ -7,10 +7,10 @@ import {
   DialogFooter,
   DialogHeader,
   DialogTitle,
-} from "@workspace/ui/components/dialog";
-import { Button } from "@workspace/ui/components/button";
+} from "@workspace/ui/components/overlay/dialog";
+import { Button } from "@workspace/ui/components/form/button";
 import { FileText } from "lucide-react";
-import { useBillingHistory } from "@/hooks/api/use-billing-history";
+import { useBillingHistory } from "@workspace/data-access";
 import { BillingHistoryTable } from "@/features/subscription/components/billing/BillingHistoryTable";
 
 interface InvoiceHistoryDialogProps {
@@ -28,14 +28,16 @@ export function InvoiceHistoryDialog({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-3xl max-h-[80vh] flex flex-col">
+      <DialogContent className="w-[96vw] max-w-5xl sm:max-w-5xl max-h-[80vh] flex flex-col">
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2">
             <FileText className="h-5 w-5 text-primary" />
             Billing History
           </DialogTitle>
           <DialogDescription>
-            View and download your past invoices and receipts.
+            Paid subscription charges list here; after each payment completes,
+            open Receipt to download the PDF invoice. Pending rows are unpaid
+            checkouts until you finish payment.
           </DialogDescription>
         </DialogHeader>
 

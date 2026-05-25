@@ -3,261 +3,65 @@
 import { useState, useEffect, useRef } from "react";
 import { useRouter, usePathname } from "next/navigation";
 import {
+  AskAiOverlay,
+  AskAiProvider,
   FloatingStartConsultation,
   RealtimeProviders,
   Sidebar,
   SidebarMobileTrigger,
-} from "@/features/_shared/components";
-import { BackButton } from "@/components/common/navigation/back-button";
+} from "@/components";
+import { BackButton } from "@/components/navigation/back-button";
 import { useCanGoBack } from "@/hooks/use-can-go-back";
-import { CommandPalette } from "@/features/_shared/components/navigation/command-palette";
-import { DesktopTopBar } from "@/features/_shared/components/layout/desktop-top-bar";
-import { ClinicProvider, useClinic } from "@/lib/clinic-context";
+import { CommandPalette } from "@/components/navigation/command-palette";
+import { DesktopTopBar } from "@/components/layout/desktop-top-bar";
+import { DoctorVerificationGuard } from "@/components/guards/doctor-verification-guard";
+import { SubscriptionGuard } from "@/components/guards/subscription-guard";
+import { PageAccessGuard } from "@/components/guards/page-access-guard";
+import { SubscriptionLockNotice } from "@/components/layout/subscription-lock-notice";
+import { ClinicProvider } from "@/lib/contexts/clinic-context";
 import {
   ResizableHandle,
   ResizablePanel,
   ResizablePanelGroup,
-} from "@workspace/ui/components/resizable";
-import type { ImperativePanelHandle } from "@workspace/ui/components/resizable";
-import { ErrorBoundaryWrapper } from "@/components/common/error-boundary";
-import { useAuth } from "@/lib/auth-context";
-import { useAPIQuery } from "@/lib/api-core";
-import type { User } from "@workspace/types";
-import { APP_ACCESS_TARGETS } from "@workspace/types";
-import { ThemeToggle } from "@workspace/ui/components/theme-toggle";
-import { Skeleton } from "@workspace/ui/components/skeleton";
-import { DocitaLogo } from "@workspace/ui/components/docita-logo";
-import { Button } from "@workspace/ui/components/button";
-import {
-  AlertTriangle,
-  LockKeyhole,
-  PanelLeftClose,
-  PanelLeftOpen,
-} from "lucide-react";
-import {
-  Alert,
-  AlertDescription,
-  AlertTitle,
-} from "@workspace/ui/components/alert";
-import { canAccessTarget } from "@/lib/access-policy";
-import { getAccessTargetForPath } from "@/lib/access-routes";
-import { usePermissionStore } from "@/lib/stores/permission-store";
-import { PageTransitionLoader } from "@/components/common/loaders/page-transition-loader";
-
-const SUBSCRIPTION_ALLOWED_PATHS = ["/upgrade", "/settings", "/login"];
-const VERIFICATION_ALLOWED_PATHS = ["/verify-doctor", "/login"];
-
-function DoctorVerificationGuard({ children }: { children: React.ReactNode }) {
-  const { user } = useAuth();
-  const router = useRouter();
-  const pathname = usePathname();
-  const isDoctor = user?.role === "DOCTOR" || user?.role === "ADMIN_DOCTOR";
-  const isVerificationAllowedPath = VERIFICATION_ALLOWED_PATHS.some((p) =>
-    pathname?.startsWith(p),
-  );
-
-  const {
-    data: doctorProfile,
-    isLoading: profileLoading,
-    isFetching: profileFetching,
-    isError: profileError,
-  } = useAPIQuery<User>(
-    ["doctor-profile", user?.id ?? ""],
-    `/doctors/${user?.id}`,
-    { enabled: !!user?.id && isDoctor, staleTime: 5 * 60 * 1000 },
-  );
-
-  const needsVerification =
-    !!doctorProfile &&
-    (!doctorProfile.signatureUrl || !doctorProfile.registrationNumber);
-
-  const shouldRedirectToVerify =
-    !!user && isDoctor && needsVerification && !isVerificationAllowedPath;
-
-  useEffect(() => {
-    if (!user || !isDoctor || profileLoading) return;
-    if (!doctorProfile) return;
-    if (shouldRedirectToVerify) {
-      router.replace("/verify-doctor");
-    }
-  }, [
-    user,
-    isDoctor,
-    doctorProfile,
-    profileLoading,
-    router,
-    shouldRedirectToVerify,
-  ]);
-
-  const isCheckingVerification =
-    !!user &&
-    isDoctor &&
-    !isVerificationAllowedPath &&
-    !profileError &&
-    (profileLoading || (profileFetching && !doctorProfile));
-
-  if (isCheckingVerification || shouldRedirectToVerify) {
-    return (
-      <PageTransitionLoader
-        title="Checking your profile..."
-        description="Verifying your doctor profile before loading your workspace"
-      />
-    );
-  }
-
-  return <>{children}</>;
-}
-
-function SubscriptionGuard({ children }: { children: React.ReactNode }) {
-  const { clinic } = useClinic();
-  const router = useRouter();
-  const pathname = usePathname();
-
-  useEffect(() => {
-    if (!clinic) return;
-    const status = clinic.subscriptionStatus;
-    const isExpired = status === "EXPIRED";
-    const isBlocked = isExpired;
-    if (
-      isBlocked &&
-      !SUBSCRIPTION_ALLOWED_PATHS.some((p) => pathname?.startsWith(p))
-    ) {
-      router.replace("/upgrade");
-    }
-  }, [clinic, pathname, router]);
-
-  return <>{children}</>;
-}
-
-function PageAccessGuard({ children }: { children: React.ReactNode }) {
-  const { user } = useAuth();
-  const { clinic } = useClinic();
-  const { canAccess } = usePermissionStore();
-  const pathname = usePathname();
-  const router = useRouter();
-
-  useEffect(() => {
-    if (!user?.role || !clinic || !pathname) return;
-
-    const target = getAccessTargetForPath(pathname);
-    if (!target) {
-      router.replace("/dashboard");
-      return;
-    }
-
-    if (
-      target === APP_ACCESS_TARGETS.PAGE_UPGRADE &&
-      clinic.subscriptionStatus === "EXPIRED"
-    ) {
-      return;
-    }
-
-    const hasAccess = canAccessTarget(
-      target,
-      {
-        role: user.role,
-        canAccessFeature: canAccess,
-      },
-      "read",
-    );
-
-    if (!hasAccess) {
-      router.replace("/dashboard");
-    }
-  }, [canAccess, clinic, pathname, router, user?.role]);
-
-  return <>{children}</>;
-}
+} from "@workspace/ui/components/layout/resizable";
+import type { ImperativePanelHandle } from "@workspace/ui/components/layout/resizable";
+import { ErrorBoundaryWrapper } from "@/components/errors/error-boundary";
+import { useAuth } from "@/lib/auth/auth-context";
+import { ThemeToggleWithAppearanceSync } from "@/components/layout/theme-toggle-with-appearance-sync";
+import { Skeleton } from "@workspace/ui/components/feedback/skeleton";
+import { DocitaLogo } from "@workspace/ui/components/indicators/docita-logo";
+import { Button } from "@workspace/ui/components/form/button";
+import { SymbolTooltip } from "@workspace/ui/components/overlay/tooltip";
+import { PanelLeftClose, PanelLeftOpen } from "lucide-react";
+import { FeatureFlagsProvider } from "@/hooks/use-feature-flag";
+import { PageTransitionLoader } from "@/components/loaders/page-transition-loader";
+import { persistReturnPathBeforeLogin } from "@/lib/auth/safe-return-path";
 
 function MobileHeader({ onMenuClick }: { onMenuClick: () => void }) {
+  const pathname = usePathname();
   const canGoBack = useCanGoBack();
+  const isConsultationDetailRoute = Boolean(
+    pathname && /^\/consultation\/[^/]+/.test(pathname),
+  );
   return (
     <header
       className="flex h-14 items-center gap-2 border-b bg-background px-3 md:hidden"
       aria-label="Mobile navigation"
     >
       <SidebarMobileTrigger onClick={onMenuClick} />
-      {canGoBack ? (
-        <BackButton fallback="/dashboard" iconOnly className="px-2" />
+      {isConsultationDetailRoute ? (
+        <div className="min-w-0 flex-1" aria-hidden="true" />
+      ) : canGoBack ? (
+        <BackButton fallback="/today" iconOnly className="px-2" />
       ) : (
         <div className="flex h-10 items-center">
           <DocitaLogo />
         </div>
       )}
       <div className="ml-auto flex items-center gap-1">
-        <ThemeToggle />
+        <ThemeToggleWithAppearanceSync />
       </div>
     </header>
-  );
-}
-
-function SubscriptionLockNotice() {
-  const { clinic } = useClinic();
-  const router = useRouter();
-  const status = clinic?.subscriptionStatus;
-
-  if (!status || status === "ACTIVE") {
-    return null;
-  }
-
-  const isExpired = status === "EXPIRED";
-  const isGrace = status === "GRACE";
-  const isTrialing = status === "TRIALING";
-  const trialEnd = clinic?.trialEndsAt ? new Date(clinic.trialEndsAt) : null;
-  const trialEndText =
-    trialEnd && Number.isFinite(trialEnd.getTime())
-      ? trialEnd.toLocaleDateString("en-IN")
-      : null;
-  const title = isExpired
-    ? "Subscription Expired: Workspace Locked"
-    : isGrace
-      ? "Payment Grace Period: Access Restricted"
-      : isTrialing
-        ? "Trial Active: Payment Not Completed"
-        : "Payment Required";
-  const description = isExpired
-    ? "This facility is locked until payment is completed. You can still open billing and upgrade pages to restore access."
-    : isGrace
-      ? "A missed payment has placed this facility in grace period. Resolve payment now to avoid full lockout."
-      : isTrialing
-        ? `Your Essential trial is active${trialEndText ? ` until ${trialEndText}` : ""}. Add payment to keep paid features after the trial ends.`
-        : "Your subscription needs billing attention. Resolve payment to keep Docita access active.";
-
-  return (
-    <div className="border-b bg-background px-4 py-3 md:px-6">
-      <Alert
-        variant={isExpired ? "destructive" : "default"}
-        className={
-          isExpired
-            ? undefined
-            : isTrialing
-              ? "border-info/40 bg-info/10"
-              : "border-warning/40 bg-warning/10"
-        }
-      >
-        {isExpired ? (
-          <LockKeyhole className="h-4 w-4" />
-        ) : (
-          <AlertTriangle
-            className={
-              isTrialing ? "h-4 w-4 text-info" : "h-4 w-4 text-warning"
-            }
-          />
-        )}
-        <AlertTitle>{title}</AlertTitle>
-        <AlertDescription className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-          <span>{description}</span>
-          <Button
-            size="sm"
-            variant={isExpired ? "secondary" : "outline"}
-            onClick={() => router.push("/upgrade")}
-            className="self-start sm:self-auto"
-          >
-            {isTrialing ? "Add Payment" : "Resolve Payment"}
-          </Button>
-        </AlertDescription>
-      </Alert>
-    </div>
   );
 }
 
@@ -273,6 +77,7 @@ export default function ProtectedLayout({
   const [redirectMessage, setRedirectMessage] = useState<string | null>(null);
   const sidebarPanelRef = useRef<ImperativePanelHandle>(null);
   const wasSettingsAutoCollapseRouteRef = useRef(false);
+  const wasConsultationAutoCollapseRouteRef = useRef(false);
   const { user, isLoading } = useAuth();
   const router = useRouter();
   const isSettingsRoute = pathname?.startsWith("/settings") ?? false;
@@ -283,38 +88,50 @@ export default function ProtectedLayout({
   useEffect(() => {
     if (isLoading) return;
     if (!user) {
-      setRedirectMessage("Your session is missing. Redirecting to login...");
+      setRedirectMessage("Your session is missing. Redirecting to login…");
+      persistReturnPathBeforeLogin();
       router.replace("/login");
       return;
     }
     if (user.emailVerified === false) {
-      setRedirectMessage("Please verify your email before continuing...");
+      setRedirectMessage("Please verify your email before continuing…");
       router.replace("/verify-email-sent");
       return;
     }
     if (!user.clinicId) {
       if (user.onboardingStep === "JOINING_CLINIC") {
-        setRedirectMessage("Taking you to your join request status...");
+        setRedirectMessage("Taking you to your join request status…");
         router.replace("/join-request-status");
       } else if (user.onboardingStep === "CREATING_CLINIC") {
-        setRedirectMessage("Taking you back to onboarding...");
+        setRedirectMessage("Taking you back to onboarding…");
         router.replace("/onboarding");
       } else {
-        setRedirectMessage("Taking you to facility setup...");
+        setRedirectMessage("Taking you to facility setup…");
         router.replace("/choose-path");
       }
     }
   }, [isLoading, user, router]);
 
-  // Consultation detail: collapse after the resizable shell exists (avoids a no-op during auth loading).
+  // Consultation detail: collapse/expand based on route
   useEffect(() => {
-    if (isLoading || !isConsultationDetailRoute) return;
+    if (isLoading) return;
+    const wasConsultationAutoCollapseRoute =
+      wasConsultationAutoCollapseRouteRef.current;
+    wasConsultationAutoCollapseRouteRef.current = isConsultationDetailRoute;
+
     const id = requestAnimationFrame(() => {
-      sidebarPanelRef.current?.collapse();
-      setIsCollapsed(true);
+      if (isConsultationDetailRoute && !wasConsultationAutoCollapseRoute) {
+        // Entering consultation detail: collapse sidebar
+        sidebarPanelRef.current?.collapse();
+        setIsCollapsed(true);
+      } else if (!isConsultationDetailRoute && wasConsultationAutoCollapseRoute) {
+        // Leaving consultation detail: expand sidebar
+        sidebarPanelRef.current?.expand();
+        setIsCollapsed(false);
+      }
     });
     return () => cancelAnimationFrame(id);
-  }, [isLoading, pathname, isConsultationDetailRoute]);
+  }, [isLoading, isConsultationDetailRoute]);
 
   useEffect(() => {
     if (isLoading) return;
@@ -322,23 +139,36 @@ export default function ProtectedLayout({
       wasSettingsAutoCollapseRouteRef.current;
     wasSettingsAutoCollapseRouteRef.current = isSettingsRoute;
 
-    if (isSettingsRoute && !wasSettingsAutoCollapseRoute) {
-      const id = requestAnimationFrame(() => {
+    const id = requestAnimationFrame(() => {
+      if (isSettingsRoute && !wasSettingsAutoCollapseRoute) {
+        // Entering settings: collapse sidebar
         sidebarPanelRef.current?.collapse();
         setIsCollapsed(true);
-      });
-      return () => cancelAnimationFrame(id);
-    }
+      } else if (!isSettingsRoute && wasSettingsAutoCollapseRoute) {
+        // Leaving settings: expand sidebar
+        sidebarPanelRef.current?.expand();
+        setIsCollapsed(false);
+      }
+    });
+    return () => cancelAnimationFrame(id);
   }, [isLoading, isSettingsRoute]);
 
   if (isLoading) {
     return (
-      <div className="flex h-screen overflow-hidden bg-background">
+      <div
+        className="flex h-screen overflow-hidden bg-background"
+        role="status"
+        aria-live="polite"
+        aria-label="Loading workspace"
+      >
         <div className="hidden md:flex w-[18%] min-w-[200px] flex-col border-r p-4 gap-4">
           <Skeleton className="h-8 w-32" />
           <div className="flex flex-col gap-2 mt-4">
             {Array.from({ length: 8 }).map((_, i) => (
-              <Skeleton key={i} className="h-9 w-full rounded-md" />
+              <Skeleton
+                key={i}
+                className="h-9 w-full rounded-md"
+              />
             ))}
           </div>
         </div>
@@ -351,10 +181,13 @@ export default function ProtectedLayout({
             <Skeleton className="h-8 w-48" />
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
               {Array.from({ length: 4 }).map((_, i) => (
-                <Skeleton key={i} className="h-28 rounded-xl" />
+                <Skeleton
+                  key={i}
+                  className="h-28 rounded-lg"
+                />
               ))}
             </div>
-            <Skeleton className="h-64 rounded-xl" />
+            <Skeleton className="h-64 rounded-lg" />
           </div>
         </div>
       </div>
@@ -364,8 +197,8 @@ export default function ProtectedLayout({
   if (redirectMessage || !user || !user.clinicId) {
     return (
       <PageTransitionLoader
-        title="Redirecting..."
-        description={redirectMessage ?? "Preparing your workspace..."}
+        title="Redirecting…"
+        description={redirectMessage ?? "Preparing your workspace…"}
       />
     );
   }
@@ -373,9 +206,11 @@ export default function ProtectedLayout({
   return (
     <RealtimeProviders>
       <ClinicProvider>
+        <FeatureFlagsProvider>
         <DoctorVerificationGuard>
           <SubscriptionGuard>
             <PageAccessGuard>
+             <AskAiProvider>
               <div className="flex h-screen overflow-hidden bg-background">
                 <ResizablePanelGroup direction="horizontal">
                   <ResizablePanel
@@ -389,7 +224,9 @@ export default function ProtectedLayout({
                     onCollapse={() => setIsCollapsed(true)}
                     onExpand={() => setIsCollapsed(false)}
                     style={{
-                      transition: isDragging ? "none" : "flex 180ms ease-out",
+                      transition: isDragging
+                        ? "none"
+                        : "flex 220ms cubic-bezier(0.16, 1, 0.3, 1)",
                     }}
                   >
                     <Sidebar
@@ -408,30 +245,37 @@ export default function ProtectedLayout({
                   </ResizablePanel>
                   <div className="relative hidden md:flex overflow-visible">
                     <ResizableHandle onDragging={setIsDragging} />
-                    <Button
-                      variant="ghost"
-                      size="icon"
-                      className="absolute top-7 left-1/2 z-30 flex h-5 w-5 -translate-x-1/2 -translate-y-1/2 items-center justify-center rounded-full border-0 bg-transparent p-0 text-muted-foreground shadow-none transition-colors hover:cursor-pointer hover:bg-muted/70 hover:text-foreground focus-visible:ring-2 focus-visible:ring-ring/40 focus-visible:ring-offset-0"
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        const next = !isCollapsed;
-                        setIsCollapsed(next);
-                        if (next) {
-                          sidebarPanelRef.current?.collapse();
-                        } else {
-                          sidebarPanelRef.current?.expand();
-                        }
-                      }}
-                      aria-label={
+                    <SymbolTooltip
+                      label={
                         isCollapsed ? "Expand sidebar" : "Collapse sidebar"
                       }
+                      side="right"
                     >
-                      {isCollapsed ? (
-                        <PanelLeftOpen className="h-3 w-3 shrink-0" />
-                      ) : (
-                        <PanelLeftClose className="h-3 w-3 shrink-0" />
-                      )}
-                    </Button>
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        className="absolute top-7 left-1/2 z-30 flex h-5 w-5 -translate-x-1/2 -translate-y-1/2 items-center justify-center rounded-full border-0 bg-transparent p-0 text-muted-foreground shadow-none transition-colors hover:cursor-pointer hover:bg-muted/70 hover:text-foreground focus-visible:ring-2 focus-visible:ring-ring/40 focus-visible:ring-offset-0"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          const next = !isCollapsed;
+                          setIsCollapsed(next);
+                          if (next) {
+                            sidebarPanelRef.current?.collapse();
+                          } else {
+                            sidebarPanelRef.current?.expand();
+                          }
+                        }}
+                        aria-label={
+                          isCollapsed ? "Expand sidebar" : "Collapse sidebar"
+                        }
+                      >
+                        {isCollapsed ? (
+                          <PanelLeftOpen className="h-3 w-3 shrink-0" />
+                        ) : (
+                          <PanelLeftClose className="h-3 w-3 shrink-0" />
+                        )}
+                      </Button>
+                    </SymbolTooltip>
                   </div>
                   <ResizablePanel defaultSize={82}>
                     <div className="flex h-full flex-col overflow-hidden">
@@ -456,9 +300,12 @@ export default function ProtectedLayout({
               </div>
               <FloatingStartConsultation />
               <CommandPalette />
+              <AskAiOverlay />
+             </AskAiProvider>
             </PageAccessGuard>
           </SubscriptionGuard>
         </DoctorVerificationGuard>
+        </FeatureFlagsProvider>
       </ClinicProvider>
     </RealtimeProviders>
   );

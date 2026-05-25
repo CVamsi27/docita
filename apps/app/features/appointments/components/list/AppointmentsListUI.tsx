@@ -1,15 +1,19 @@
 import { useMemo } from "react";
-import { format } from "date-fns";
-import { CalendarDays, Loader2 } from "lucide-react";
+import {
+  DEFAULT_TIMEZONE,
+  formatClinicHalfHourSlotKey,
+  formatDate,
+} from "@workspace/utils";
+import { useClinic } from "@/lib/contexts/clinic-context";
+import { CalendarDays } from "lucide-react";
 import {
   Card,
   CardContent,
   CardHeader,
   CardTitle,
-} from "@workspace/ui/components/card";
-import { EmptyState } from "@workspace/ui/components/empty-state";
-import { ErrorState } from "@workspace/ui/components/error-state";
-import { Appointment, Patient } from "@workspace/types";
+} from "@workspace/ui/components/indicators/card";
+import { DataState } from "@workspace/ui/components/data-display/data-state";
+import type { AppointmentListItem } from "@workspace/data-access";
 import { TimeSlotRow } from "@/features/appointments/components/forms/TimeSlotRow";
 
 interface AppointmentsListUIProps {
@@ -19,7 +23,7 @@ interface AppointmentsListUIProps {
   onRetry?: () => void;
   doctorsList: { id: string; name: string }[];
   selectedDoctorId: string | undefined;
-  filteredAppointments: (Appointment & { patient?: Patient })[];
+  filteredAppointments: AppointmentListItem[];
   hasMoreAppointments?: boolean;
   isToday?: boolean;
   currentTimeSlot?: string;
@@ -30,6 +34,7 @@ interface AppointmentsListUIProps {
   onStartConsultation: (id: string) => void;
   onCancelClick: (id: string) => void;
   onNoShowClick: (id: string) => void;
+  onScheduleFollowUp?: (appointment: AppointmentListItem) => void;
   currentUserId?: string;
 }
 
@@ -51,8 +56,12 @@ export function AppointmentsListUI({
   onStartConsultation,
   onCancelClick,
   onNoShowClick,
+  onScheduleFollowUp,
   currentUserId,
 }: AppointmentsListUIProps) {
+  const { clinic } = useClinic();
+  const clinicTz = clinic?.timezone?.trim() || DEFAULT_TIMEZONE;
+
   const appointmentsByTime = useMemo(
     () =>
       [...filteredAppointments].sort(
@@ -68,37 +77,14 @@ export function AppointmentsListUI({
     ? `Try another date or clear the Dr. ${selectedDoctorName} filter`
     : "Try another date or schedule the first appointment for this day";
 
-  if (loading) {
-    return (
-      <Card className="border-border/60 bg-card/80 shadow-sm">
-        <CardContent className="py-16 text-center text-muted-foreground">
-          <Loader2 className="mx-auto mb-3 h-8 w-8 animate-spin text-primary" />
-          <p>Loading appointments...</p>
-        </CardContent>
-      </Card>
-    );
-  }
-
-  if (isError) {
-    return (
-      <Card className="border-border/60 bg-card/80 shadow-sm">
-        <CardContent className="p-6">
-          <ErrorState
-            message="We could not load these appointments. Please try again."
-            onRetry={onRetry}
-          />
-        </CardContent>
-      </Card>
-    );
-  }
-
   return (
     <Card className="h-fit overflow-hidden border-border/60 bg-card/95 shadow-sm">
       <CardHeader className="border-b border-border/60 px-5 py-4">
         <div className="flex flex-wrap items-baseline justify-between gap-x-3 gap-y-1">
           <div className="min-w-0">
             <CardTitle className="text-lg">
-              Appointments for {format(date ?? new Date(), "MMMM d, yyyy")}
+              Appointments for{" "}
+              {formatDate(date ?? new Date(), "MMMM d, yyyy")}
             </CardTitle>
             <p className="mt-0.5 text-xs text-muted-foreground">
               {selectedDoctorName
@@ -121,14 +107,24 @@ export function AppointmentsListUI({
             </div>
           )}
 
-          {appointmentsByTime.length === 0 ? (
-            <EmptyState
-              icon={CalendarDays}
-              title="No appointments scheduled"
-              description={emptyStateDescription}
-              className="min-h-[220px] rounded-xl border border-dashed border-border bg-muted/20"
-            />
-          ) : (
+          <DataState
+            status={
+              loading
+                ? "loading"
+                : isError
+                  ? "error"
+                  : appointmentsByTime.length === 0
+                    ? "empty"
+                    : "success"
+            }
+            loadingMessage="Loading appointments…"
+            errorMessage="We could not load these appointments. Please try again."
+            onRetry={onRetry}
+            emptyTitle="No appointments scheduled"
+            emptyDescription={emptyStateDescription}
+            emptyIcon={CalendarDays}
+            className="min-h-[220px]"
+          >
             <div className="space-y-2.5">
               {appointmentsByTime.map((apt) => (
                 <div
@@ -137,7 +133,10 @@ export function AppointmentsListUI({
                     isToday &&
                     currentTimeSlotRef &&
                     currentTimeSlot &&
-                    format(new Date(apt.startTime), "HH:mm") === currentTimeSlot
+                    formatClinicHalfHourSlotKey(
+                      new Date(apt.startTime),
+                      clinicTz,
+                    ) === currentTimeSlot
                       ? currentTimeSlotRef
                       : undefined
                   }
@@ -150,12 +149,13 @@ export function AppointmentsListUI({
                     onStartConsultation={onStartConsultation}
                     onCancelClick={onCancelClick}
                     onNoShowClick={onNoShowClick}
+                    onScheduleFollowUp={onScheduleFollowUp}
                     currentUserId={currentUserId}
                   />
                 </div>
               ))}
             </div>
-          )}
+          </DataState>
         </div>
       </CardContent>
     </Card>

@@ -6,8 +6,8 @@ import {
   CardContent,
   CardHeader,
   CardTitle,
-} from "@workspace/ui/components/card";
-import { SectionHeading } from "@workspace/ui/components/section-heading";
+} from "@workspace/ui/components/indicators/card";
+import { SectionHeading } from "@workspace/ui/components/layout/section-heading";
 
 export function AnalyticsSection() {
   return (
@@ -30,12 +30,12 @@ export function AnalyticsSection() {
         </div>
 
         <div className="grid gap-6 md:grid-cols-3">
-          <Card className="bg-linear-to-br from-info/10 to-background border-info/20">
+          <Card className="border-info/20 bg-info/5">
             <CardHeader>
               <CardTitle className="text-sm font-medium text-muted-foreground">
                 Monthly Revenue
               </CardTitle>
-              <div className="text-2xl font-bold flex items-baseline gap-2">
+              <div className="ui-section-title text-[var(--fs-2xl)] leading-[var(--lh-tight)] flex items-baseline gap-2">
                 $45,231
                 <span className="text-xs text-success flex items-center">
                   <TrendingUp className="h-3 w-3 mr-1" /> +12%
@@ -55,12 +55,12 @@ export function AnalyticsSection() {
             </CardContent>
           </Card>
 
-          <Card className="bg-linear-to-br from-primary/10 to-background border-primary/20">
+          <Card className="border-primary/20 bg-primary/5">
             <CardHeader>
               <CardTitle className="text-sm font-medium text-muted-foreground">
                 Patient Growth
               </CardTitle>
-              <div className="text-2xl font-bold flex items-baseline gap-2">
+              <div className="ui-section-title text-[var(--fs-2xl)] leading-[var(--lh-tight)] flex items-baseline gap-2">
                 1,204
                 <span className="text-xs text-success flex items-center">
                   <TrendingUp className="h-3 w-3 mr-1" /> +8%
@@ -80,12 +80,12 @@ export function AnalyticsSection() {
             </CardContent>
           </Card>
 
-          <Card className="bg-linear-to-br from-accent to-background border-border">
+          <Card className="border-border bg-card">
             <CardHeader>
               <CardTitle className="text-sm font-medium text-muted-foreground">
                 Top Diagnoses
               </CardTitle>
-              <div className="text-2xl font-bold">Disease Trends</div>
+              <div className="ui-section-title text-[var(--fs-2xl)] leading-[var(--lh-tight)]">Disease Trends</div>
             </CardHeader>
             <CardContent>
               <div className="space-y-3 pt-2">

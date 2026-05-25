@@ -8,7 +8,7 @@ const AUDIT_PAGES = [
   { path: "/dashboard", name: "Dashboard" },
   { path: "/system-monitoring", name: "System Monitoring" },
   { path: "/users", name: "Users" },
-  { path: "/clinics", name: "Clinics" },
+  { path: "/admins", name: "Admins" },
 ];
 
 test.describe("Accessibility Audit - Admin App", () => {

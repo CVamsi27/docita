@@ -4,13 +4,13 @@ import {
   FileCheck2,
   KeyRound,
   LayoutDashboard,
-  ShieldCheck,
-  Stethoscope,
   UserCheck,
 } from "lucide-react";
-import { DocitaIcon } from "@workspace/ui/components/docita-logo";
+import { AUTH_ASSURANCE_ITEMS } from "@/features/auth/lib/auth-assurance-items";
+import { DocitaIcon } from "@workspace/ui/components/indicators/docita-logo";
 import { cn } from "@workspace/ui/lib/utils";
 import type { AuthBrandingStep } from "@/features/auth/types/auth";
+import { LoginDailyThought } from "@/features/auth/components/LoginDailyThought";
 
 interface SetupStep {
   icon: typeof KeyRound;
@@ -63,21 +63,6 @@ const setupSteps: readonly SetupStep[] = [
   },
 ];
 
-const assuranceItems = [
-  {
-    icon: ShieldCheck,
-    label: "Encrypted sessions",
-  },
-  {
-    icon: FileCheck2,
-    label: "Audit-ready activity",
-  },
-  {
-    icon: Stethoscope,
-    label: "Facility-aware access",
-  },
-];
-
 export interface AuthBrandingPanelProps {
   currentStep: AuthBrandingStep;
 }
@@ -86,16 +71,26 @@ export function AuthBrandingPanel({ currentStep }: AuthBrandingPanelProps) {
   const activeStepIndex = setupSteps.findIndex((step) =>
     step.authSteps.includes(currentStep),
   );
+  const isEmailFirst = currentStep === "email";
   const isLogin = ["login", "forgot-password", "reset-password"].includes(
     currentStep,
   );
-  const heroKicker = isLogin ? "Welcome back" : "Getting started";
-  const heroTitle = isLogin
-    ? "Pick up where you left off"
-    : "Everything in one guided path to your facility";
-  const heroDescription = isLogin
-    ? "Sign in to manage appointments, patients, billing, and clinical workflows"
-    : "Account setup, email verification, onboarding — each step unlocks the next. You only do this once.";
+
+  const heroKicker = isEmailFirst
+    ? "Welcome to Docita"
+    : isLogin
+      ? "Welcome back"
+      : "Getting started";
+  const heroTitle = isEmailFirst
+    ? "Your practice workspace starts here"
+    : isLogin
+      ? "Pick up where you left off"
+      : "Everything in one guided path to your facility";
+  const heroDescription = isEmailFirst
+    ? "Run appointments, clinical notes, prescriptions, and billing in one secure workspace built for healthcare teams."
+    : isLogin
+      ? "Sign in to manage appointments, patients, billing, and clinical workflows"
+      : "Account setup, email verification, onboarding — each step unlocks the next. You only do this once.";
 
   return (
     <aside
@@ -111,17 +106,14 @@ export function AuthBrandingPanel({ currentStep }: AuthBrandingPanelProps) {
         }}
         aria-hidden="true"
       />
-      <div
-        className="absolute inset-x-0 bottom-0 h-1/3 bg-gradient-to-t from-success/10 to-transparent"
-        aria-hidden="true"
-      />
-
       <div className="relative z-10 flex items-center justify-between p-8 xl:p-10">
         <div className="flex items-center gap-3">
           <DocitaIcon className="h-10 w-10" />
-          <span className="text-2xl font-bold text-foreground">docita</span>
+          <span className="ui-section-title text-[var(--fs-2xl)] text-foreground">
+            docita
+          </span>
         </div>
-        <span className="rounded-full border bg-background/80 px-3 py-1 text-xs font-medium text-muted-foreground shadow-sm">
+        <span className="badge-muted rounded-full border px-3 py-1 text-xs font-medium shadow-sm">
           Facility workspace
         </span>
       </div>
@@ -129,16 +121,25 @@ export function AuthBrandingPanel({ currentStep }: AuthBrandingPanelProps) {
       <div className="relative z-10 px-8 xl:px-10">
         <div className="max-w-xl space-y-4">
           <p className="text-sm font-medium text-primary">{heroKicker}</p>
-          <h2 className="text-3xl font-bold leading-[1.1] text-foreground xl:text-4xl">
+          <h2 className="ui-page-title text-[var(--fs-3xl)] xl:text-[var(--fs-4xl)] leading-[var(--lh-tight)]">
             {heroTitle}
           </h2>
-          <p className="max-w-md text-sm leading-6 text-muted-foreground">
-            {heroDescription}
-          </p>
+          <p className="ui-page-subtitle max-w-md">{heroDescription}</p>
         </div>
 
-        <div className="mt-8 max-w-lg rounded-2xl border bg-background/85 p-4 shadow-sm backdrop-blur">
-          {isLogin ? (
+        <div className="mt-8 max-w-lg rounded-[var(--radius)] border border-border/70 bg-background/85 p-4 shadow-sm backdrop-blur">
+          {isEmailFirst ? (
+            <div className="space-y-1">
+              <p className="text-sm font-semibold text-foreground">
+                Sign in or get started
+              </p>
+              <p className="text-xs text-muted-foreground pb-2">
+                Enter your work email on the right. We will take you to sign in
+                or account creation, then guide you through setup.
+              </p>
+              <LoginDailyThought />
+            </div>
+          ) : isLogin ? (
             <div className="space-y-3">
               <div className="flex items-center justify-between border-b pb-3">
                 <div>
@@ -149,7 +150,7 @@ export function AuthBrandingPanel({ currentStep }: AuthBrandingPanelProps) {
                     Use your email and password to continue
                   </p>
                 </div>
-                <span className="rounded-full bg-primary/10 px-2.5 py-1 text-xs font-medium text-primary">
+                <span className="badge-info rounded-full border px-2.5 py-1 text-xs font-medium">
                   Existing account
                 </span>
               </div>
@@ -179,7 +180,7 @@ export function AuthBrandingPanel({ currentStep }: AuthBrandingPanelProps) {
                       : "Ready to begin"}
                   </p>
                 </div>
-                <span className="rounded-full bg-primary/10 px-2.5 py-1 text-xs font-medium text-primary">
+                <span className="badge-info rounded-full border px-2.5 py-1 text-xs font-medium">
                   {activeStepIndex >= 0
                     ? `${Math.round((activeStepIndex / (setupSteps.length - 1)) * 100)}% there`
                     : "Start"}
@@ -200,7 +201,7 @@ export function AuthBrandingPanel({ currentStep }: AuthBrandingPanelProps) {
                       key={step.title}
                       aria-current={isActive ? "step" : undefined}
                       className={cn(
-                        "flex gap-3 rounded-lg border px-3 py-2.5 transition-all duration-300",
+                        "flex gap-3 rounded-lg border px-3 py-2.5 transition-colors duration-300",
                         isActive
                           ? "border-primary/40 bg-primary/5 shadow-sm"
                           : isComplete
@@ -244,7 +245,7 @@ export function AuthBrandingPanel({ currentStep }: AuthBrandingPanelProps) {
                           )}
                         </div>
                         {isActive && (
-                          <span className="rounded-full bg-primary/10 px-2 py-0.5 text-[var(--fs-2xs)] font-semibold text-primary shrink-0">
+                          <span className="badge-info rounded-full border px-2 py-0.5 text-[var(--fs-2xs)] font-semibold shrink-0">
                             Now
                           </span>
                         )}
@@ -264,7 +265,7 @@ export function AuthBrandingPanel({ currentStep }: AuthBrandingPanelProps) {
       </div>
 
       <div className="relative z-10 flex flex-wrap gap-4 p-8 text-xs text-muted-foreground xl:p-10">
-        {assuranceItems.map((item) => {
+        {AUTH_ASSURANCE_ITEMS.map((item) => {
           const Icon = item.icon;
 
           return (

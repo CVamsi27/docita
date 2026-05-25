@@ -2,36 +2,113 @@
   "$schema": "https://unpkg.com/knip@5/schema.json",
   "rules": {
     "files": "off",
-    "exports": "off",
-    "types": "off",
-    "enumMembers": "off",
-    "duplicates": "off"
+    "exports": "error",
+    "duplicates": "error",
+    "enumMembers": "warn",
+    "types": "warn"
   },
-  "ignoreBinaries": ["printf"],
+  "ignoreBinaries": ["printf", "tsx"],
   "ignoreWorkspaces": ["apps/worker"],
   "workspaces": {
     "apps/api": {
       "entry": [
         "src/main.ts",
-        "src/worker.ts",
+        "src/**/*.module.ts",
+        "src/**/*.controller.ts",
+        "src/**/*.guard.ts",
+        "src/**/*.interceptor.ts",
+        "src/**/*.decorator.ts",
+        "src/**/*.middleware.ts",
+        "src/**/*.filter.ts",
+        "src/**/*.pipe.ts",
+        "src/**/*.strategy.ts",
+        "src/**/*.cron.ts",
+        "src/**/*.processor.ts",
+        "src/**/*.gateway.ts",
+        "src/**/*.dto.ts",
+        "src/**/*.entity.ts",
+        "src/**/*.port.ts",
+        "src/**/*.spec.ts",
+        "src/seed/**/*.ts",
         "scripts/*.ts",
-        "test/setup.ts",
-        "test/**/*.e2e-spec.ts"
+        "test/**/*.ts"
       ],
       "paths": {
         "@/*": ["./src/*"]
       },
+      "ignore": [
+        "src/modules/config/config.service.ts",
+        "src/common/extensions/**",
+        "src/common/pagination.helper.ts",
+        "src/common/types/common.types.ts",
+        "src/domains/subscriptions/core/**",
+        "src/domains/subscriptions/application/use-cases/**",
+        "src/shared/modules/idempotency/**",
+        "src/shared/modules/cache/**",
+        "src/shared/modules/error-handling/sentry.utils.ts",
+        "src/shared/modules/ai-core/schemas/**",
+        "src/shared/modules/services/**",
+        "src/shared/modules/queue/queue.interface.ts",
+        "src/shared/modules/search/search.service.ts",
+        "src/shared/modules/document-generation/pdf/**",
+        "src/shared/modules/error-handling/logger.service.ts",
+        "src/shared/modules/feature-flags/feature-flags.service.ts",
+        "src/shared/modules/imports/**",
+        "src/shared/modules/messaging/**",
+        "src/shared/modules/monitoring/**",
+        "src/shared/modules/auth/**",
+        "src/shared/modules/compliance/**",
+        "src/shared/modules/database/**",
+        "src/gateways/**",
+        "src/domains/analytics/factories/**",
+        "src/domains/appointments/core/domain-services/**",
+        "src/domains/billing/application/services/retry.service.ts",
+        "src/domains/billing/core/services/billing-calculator.service.ts",
+        "src/domains/billing/core/services/tax-calculator.service.ts",
+        "src/domains/billing/core/entities/**",
+        "src/domains/billing/core/utils/**",
+        "src/domains/documents/**",
+        "src/domains/payments/core/ports/**",
+        "src/domains/whatsapp/core/**",
+        "src/domains/whatsapp/application/**",
+        "src/domains/webhooks/**",
+        "src/domains/subscriptions/application/ports/**",
+        "src/domains/subscriptions/application/services/subscription-checkout-pricing.service.ts",
+        "src/shared/modules/ai/ask-ai.service.ts",
+        "src/shared/modules/audit/**",
+        "src/domains/payments/infrastructure/**",
+        "src/domains/prescriptions/core/**",
+        "src/domains/public-booking/application/services/public-booking-token.service.ts",
+        "src/domains/public-booking/application/services/public-booking-utils.ts",
+        "src/providers/**",
+        "src/domains/clinical/application/services/clinical-settings.service.ts",
+        "src/domains/clinics/application/services/onboarding/onboarding-step-engine.ts",
+        "src/domains/clinics/application/services/onboarding/type-helpers.ts"
+      ],
       "ignoreDependencies": ["pino-pretty"]
     },
     "packages/utils": {
       "ignoreDependencies": ["clsx", "tailwind-merge"]
     },
+    "packages/data-access": {
+      "ignore": ["src/lib/retry.ts"]
+    },
     "apps/app": {
+      "entry": [
+        "app/**/*.{ts,tsx}",
+        "features/**/*.{ts,tsx}",
+        "shared/**/*.{ts,tsx}",
+        "e2e/**/*.ts"
+      ],
+      "paths": {
+        "@/*": ["./*"],
+        "@/lib/*": ["./shared/lib/*"],
+        "@/hooks/*": ["./shared/hooks/*"],
+        "@/components/*": ["./shared/components/*"]
+      },
       "ignoreDependencies": [
+        "@tailwindcss/postcss",
         "class-variance-authority",
-        "clsx",
-        "react-phone-number-input",
-        "tailwind-merge",
         "@types/react-signature-canvas",
         "baseline-browser-mapping",
         "globals",
@@ -40,20 +117,55 @@
       ]
     },
     "apps/internal": {
-      "ignoreDependencies": ["@axe-core/playwright", "eslint-config-next"]
-    },
-    "apps/landing": {
-      "ignoreDependencies": ["tailwindcss"]
-    },
-    "packages/data-access": {
-      "ignoreDependencies": ["@workspace/types"]
-    },
-    ".": {
+      "entry": [
+        "app/**/*.{ts,tsx}",
+        "features/**/*.{ts,tsx}",
+        "providers/**/*.{ts,tsx}",
+        "shared/**/*.{ts,tsx}",
+        "e2e/**/*.ts"
+      ],
+      "paths": {
+        "@/*": ["./*"],
+        "@/lib/*": ["./shared/lib/*"],
+        "@/hooks/*": ["./shared/hooks/*"],
+        "@/components/*": ["./shared/components/*"]
+      },
+      "ignore": [
+        "shared/components/common/back-button.tsx",
+        "features/broadcasts/**",
+        "shared/lib/api.ts",
+        "shared/lib/api-client.ts",
+        "shared/lib/sentry-phi-redactor.ts",
+        "shared/lib/sentry.client.config.ts",
+        "shared/lib/session.ts",
+        "shared/lib/user-facing-errors.ts"
+      ],
       "ignoreDependencies": [
         "@axe-core/playwright",
-        "@workspace/eslint-config",
+        "eslint-config-next",
+        "@fontsource/fraunces",
+        "@fontsource/inter",
+        "@fontsource/jetbrains-mono"
+      ]
+    },
+    "apps/landing": {
+      "ignoreDependencies": ["sharp", "tailwindcss"],
+      "ignore": [
+        "src/pages/**",
+        "src/layouts/**",
+        "src/lib/public-api.ts",
+        "src/lib/landing-data.ts",
+        "src/lib/motion-prefs.ts"
+      ]
+    },
+    ".": {
+      "entry": ["scripts/lib/*.mjs"],
+      "ignoreDependencies": [
+        "@axe-core/playwright",
         "axe-core",
+        "axe-playwright",
         "baseline-browser-mapping",
+        "playwright",
         "ts-node"
       ]
     },
@@ -73,4 +185,3 @@
     }
   }
 }
-

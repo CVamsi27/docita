@@ -1,31 +1,27 @@
 "use client";
 
 import { FC } from "react";
-import { Card, CardContent, CardFooter } from "@workspace/ui/components/card";
-import { Button } from "@workspace/ui/components/button";
-import {
-  Download,
-  Edit,
-  FileText,
-  Printer,
-  Share2,
-} from "lucide-react";
-import { BackButton } from "@/components/common/navigation/back-button";
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuTrigger,
-} from "@workspace/ui/components/dropdown-menu";
-import { StatusBadge } from "@workspace/ui/components/status-badge";
-import { EmptyState, LoadingState } from "@workspace/ui/components/empty-state";
+import { Card, CardContent, CardFooter } from "@workspace/ui/components/indicators/card";
+import { Button } from "@workspace/ui/components/form/button";
+import { Download, Edit, FileText, Printer } from "lucide-react";
+import { BackButton } from "@/components/navigation/back-button";
+import { StatusBadge } from "@workspace/ui/components/indicators/status-badge";
+import { EmptyState, LoadingState } from "@workspace/ui/components/feedback/empty-state";
 import { useInvoiceDetailsLogic } from "@/features/invoices/hooks/use-invoice-details-logic";
 import Link from "next/link";
 import { useSearchParams } from "next/navigation";
+import { useQueryClient } from "@tanstack/react-query";
+import { toast } from "sonner";
+import { queryKeys, useResendInvoiceWhatsApp } from "@workspace/data-access";
+import { showUserFacingErrorToast } from "@/lib/errors/user-facing-errors";
+import { WhatsAppDeliveryBadge } from "@/components/whatsapp/whatsapp-delivery-badge";
+import { Section } from "@workspace/ui/components/layout/section";
 import { InvoiceHeader } from "./InvoiceHeader";
 import { InvoiceBillTo } from "./InvoiceBillTo";
 import { InvoiceItemsTableReadOnly } from "./InvoiceItemsTableReadOnly";
 import { InvoiceTotalsOnly } from "./InvoiceTotalsOnly";
+import { InvoicePaymentActivitySection } from "./InvoicePaymentActivitySection";
+import { buildInvoicePaidSummaryLine } from "@/features/invoices/lib/invoice-payment-display";
 
 interface InvoiceDetailsUIProps {
   invoiceId: string;
@@ -43,7 +39,6 @@ export const InvoiceDetailsUI: FC<InvoiceDetailsUIProps> = ({ invoiceId }) => {
     handlePrint,
     handleDownload,
     isDownloading,
-    handleShareWhatsApp,
     calculateSubtotal,
     formatCurrency,
     formatDate,
@@ -52,8 +47,27 @@ export const InvoiceDetailsUI: FC<InvoiceDetailsUIProps> = ({ invoiceId }) => {
     clinic,
   } = useInvoiceDetailsLogic(invoiceId, { autoPrint: shouldAutoPrint });
 
+  const queryClient = useQueryClient();
+  const resendInvoice = useResendInvoiceWhatsApp(invoiceId);
+
+  const handleWhatsappRetry = async () => {
+    try {
+      await resendInvoice.mutateAsync();
+      toast.success("Invoice re-sent on WhatsApp");
+      await queryClient.invalidateQueries({
+        queryKey: queryKeys.invoices.legacyDetail(invoiceId),
+      });
+    } catch (err) {
+      showUserFacingErrorToast(
+        err,
+        "We could not resend the invoice. Please try again.",
+        "save",
+      );
+    }
+  };
+
   if (isLoading) {
-    return <LoadingState message="Loading invoice details..." />;
+    return <LoadingState message="Loading invoice details…" />;
   }
 
   if (error || !invoice) {
@@ -70,6 +84,13 @@ export const InvoiceDetailsUI: FC<InvoiceDetailsUIProps> = ({ invoiceId }) => {
     );
   }
 
+  const paidSummaryLine = buildInvoicePaidSummaryLine({
+    status: invoice.status,
+    paidAt: invoice.paidAt,
+    paymentMethod: invoice.paymentMethod,
+    formatDate,
+  });
+
   const invoiceClinic = invoice.patient?.clinic;
   const authorizedSignatureUrl =
     invoiceClinic?.slaSignatureUrl || clinic?.slaSignatureUrl || null;
@@ -79,14 +100,29 @@ export const InvoiceDetailsUI: FC<InvoiceDetailsUIProps> = ({ invoiceId }) => {
   return (
     <div className="flex flex-col gap-6 max-w-5xl mx-auto">
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 print:hidden">
-        <div className="flex flex-wrap items-center gap-2 min-w-0">
-          <BackButton fallback="/invoices" className="shrink-0" />
-          <h1 className="text-xl sm:text-2xl font-bold tracking-tight">
-            Invoice #{(invoice.id ?? "").substring(0, 8).toUpperCase()}
-          </h1>
-          <StatusBadge status={invoice.status} />
+        <div className="min-w-0 flex flex-col gap-1">
+          <div className="flex flex-wrap items-center gap-2 min-w-0">
+            <BackButton fallback="/invoices" className="shrink-0" />
+            <h1 className="ui-page-title text-[var(--fs-xl)] sm:text-[var(--fs-2xl)]">
+              Invoice #{(invoice.id ?? "").substring(0, 8).toUpperCase()}
+            </h1>
+            <StatusBadge status={invoice.status} />
+          </div>
+          {paidSummaryLine ? (
+            <p className="text-[var(--fs-sm)] text-muted-foreground">
+              {paidSummaryLine}
+            </p>
+          ) : null}
         </div>
-        <div className="flex flex-wrap gap-2">
+        <div className="flex flex-wrap items-center gap-2">
+          {invoice.whatsappStatus !== undefined && invoice.whatsappStatus !== null ? (
+            <WhatsAppDeliveryBadge
+              status={invoice.whatsappStatus}
+              sentAt={invoice.whatsappSentAt ?? null}
+              onRetry={handleWhatsappRetry}
+              isRetrying={resendInvoice.isPending}
+            />
+          ) : null}
           <Button variant="outline" size="sm" onClick={() => handlePrint()}>
             <Printer className="h-4 w-4 mr-2" />
             Print
@@ -98,22 +134,8 @@ export const InvoiceDetailsUI: FC<InvoiceDetailsUIProps> = ({ invoiceId }) => {
             disabled={isDownloading}
           >
             <Download className="h-4 w-4 mr-2" />
-            {isDownloading ? "Preparing..." : "Download"}
+            {isDownloading ? "Preparing…" : "Download"}
           </Button>
-          <DropdownMenu>
-            <DropdownMenuTrigger asChild>
-              <Button variant="outline" size="sm">
-                <Share2 className="h-4 w-4 mr-2" />
-                Share
-              </Button>
-            </DropdownMenuTrigger>
-            <DropdownMenuContent align="end">
-              <DropdownMenuItem onClick={handleShareWhatsApp}>
-                Share via WhatsApp
-              </DropdownMenuItem>
-              <DropdownMenuItem>Send via Email</DropdownMenuItem>
-            </DropdownMenuContent>
-          </DropdownMenu>
           <Button size="sm" asChild>
             <Link href={`/invoices/${invoiceId}/edit`}>
               <Edit className="h-4 w-4 mr-2" />
@@ -150,7 +172,7 @@ export const InvoiceDetailsUI: FC<InvoiceDetailsUIProps> = ({ invoiceId }) => {
               <div className="w-56 text-center">
                 <p className="text-sm font-medium mb-2">Authorized Signature</p>
                 {authorizedSignatureUrl ? (
-                  <div className="mb-2 flex justify-center">
+                  <div className="mb-2 flex justify-center rounded-md bg-background px-3 py-2">
                     <img
                       src={authorizedSignatureUrl}
                       alt="Authorized Signature"
@@ -174,6 +196,19 @@ export const InvoiceDetailsUI: FC<InvoiceDetailsUIProps> = ({ invoiceId }) => {
           </CardFooter>
         </Card>
       </div>
+
+      <Section
+        id="invoice-payment-activity"
+        className="print:hidden"
+        title="Payment activity"
+        description="Payment links, online sessions, and desk settlements recorded for this invoice."
+      >
+        <InvoicePaymentActivitySection
+          invoiceId={invoiceId}
+          formatCurrency={formatCurrency}
+          formatDate={formatDate}
+        />
+      </Section>
 
       <style>{`
         @media print {

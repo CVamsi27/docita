@@ -1,6 +1,7 @@
 import { ShieldAlert, ShieldCheck } from "lucide-react";
-import { Badge } from "@workspace/ui/components/badge";
+import { Badge } from "@workspace/ui/components/indicators/badge";
 import { cn } from "@workspace/ui/lib/utils";
+import { formatDate } from "@/lib/formatters";
 
 export type CodeStatus =
   | "FULL_CODE"
@@ -82,7 +83,7 @@ export function CodeStatusAlertUI({
         "flex items-center gap-2 px-3 py-2 rounded-lg",
         colors.container,
         colors.text,
-        isCritical && "animate-pulse",
+        isCritical && "ring-2 ring-destructive/60",
         className,
       )}
     >
@@ -93,9 +94,7 @@ export function CodeStatusAlertUI({
         {!compact && updatedAt && (
           <span className="ml-2 text-xs opacity-75">
             (Updated:{" "}
-            {typeof updatedAt === "string"
-              ? new Date(updatedAt).toLocaleDateString()
-              : updatedAt.toLocaleDateString()}
+            {formatDate(updatedAt)}
             {updatedBy && ` by ${updatedBy}`})
           </span>
         )}

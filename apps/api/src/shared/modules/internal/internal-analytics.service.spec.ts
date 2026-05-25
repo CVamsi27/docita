@@ -6,6 +6,7 @@ import { PrismaService } from '@/prisma/prisma.service';
 import { InvoiceStatus } from '@workspace/db';
 import { MonitoringService } from '@/shared/modules/monitoring/monitoring/monitoring.service';
 import { HealthService } from '@/shared/modules/monitoring/monitoring/health.service';
+import { clockPortTestProvider } from '@/test-utils';
 
 describe('InternalAnalyticsService', () => {
   let service: InternalAnalyticsService;
@@ -67,6 +68,7 @@ describe('InternalAnalyticsService', () => {
         { provide: CACHE_MANAGER, useValue: mockCacheManager },
         { provide: MonitoringService, useValue: mockMonitoringService },
         { provide: HealthService, useValue: mockHealthService },
+        clockPortTestProvider(),
       ],
     }).compile();
 

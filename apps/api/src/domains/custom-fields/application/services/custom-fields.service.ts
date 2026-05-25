@@ -1,38 +1,27 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
-import { PrismaService } from '@/prisma/prisma.service';
+import { Inject, Injectable, NotFoundException } from '@nestjs/common';
+import {
+  CreateCustomFieldData,
+  CUSTOM_FIELDS_REPOSITORY_TOKEN,
+  ICustomFieldsRepository,
+  UpdateCustomFieldData,
+} from '@/domains/custom-fields/application/ports/custom-fields.repository.port';
 
-interface CreateCustomFieldData {
-  name: string;
-  fieldType: string;
-  required?: boolean;
-  options?: string;
-  order?: number;
-  clinicId?: string;
-}
-
-interface UpdateCustomFieldData {
-  name?: string;
-  fieldType?: string;
-  required?: boolean;
-  options?: string;
-  order?: number;
-}
-
+/**
+ * Thin facade — delegates custom-field persistence to ICustomFieldsRepository.
+ */
 @Injectable()
 export class CustomFieldsService {
-  constructor(private prisma: PrismaService) {}
+  constructor(
+    @Inject(CUSTOM_FIELDS_REPOSITORY_TOKEN)
+    private readonly customFieldsRepository: ICustomFieldsRepository,
+  ) {}
 
   async findAll(clinicId?: string) {
-    return this.prisma.customField.findMany({
-      where: clinicId ? { clinicId } : {},
-      orderBy: { order: 'asc' },
-    });
+    return this.customFieldsRepository.findAll(clinicId);
   }
 
   async findOne(id: string, clinicId?: string) {
-    const field = await this.prisma.customField.findUnique({
-      where: { id },
-    });
+    const field = await this.customFieldsRepository.findById(id);
     if (!field || (clinicId && field.clinicId !== clinicId)) {
       throw new NotFoundException(`Custom field with ID ${id} not found`);
     }
@@ -40,23 +29,16 @@ export class CustomFieldsService {
   }
 
   async create(data: CreateCustomFieldData) {
-    return this.prisma.customField.create({
-      data,
-    });
+    return this.customFieldsRepository.create(data);
   }
 
   async update(id: string, data: UpdateCustomFieldData, clinicId?: string) {
     await this.findOne(id, clinicId);
-    return this.prisma.customField.update({
-      where: { id },
-      data,
-    });
+    return this.customFieldsRepository.update(id, data);
   }
 
   async remove(id: string, clinicId?: string) {
     await this.findOne(id, clinicId);
-    return this.prisma.customField.delete({
-      where: { id },
-    });
+    return this.customFieldsRepository.delete(id);
   }
 }

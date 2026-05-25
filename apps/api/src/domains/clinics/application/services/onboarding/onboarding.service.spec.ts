@@ -1,16 +1,19 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import { OnboardingService } from './onboarding.service';
-import { PrismaService } from '@/prisma/prisma.service';
+import { OnboardingPaymentService } from './onboarding-payment.service';
+import { CLOCK_PORT } from '@/shared/common/ports/clock.port';
+import {
+  CLINIC_PERSISTENCE_PORT,
+  type ClinicPersistencePort,
+} from '@/domains/clinics/application/ports/clinic-persistence.port';
 import { AuthService } from '@/shared/modules/auth/auth/auth.service';
 import { OnboardingDataService } from './onboarding-data.service';
 import { OnboardingValidationService } from './onboarding-validation.service';
 import { OnboardingWorkflowService } from './onboarding-workflow.service';
 import { OnboardingComplianceService } from './onboarding-compliance.service';
 import { UploadsService } from '@/domains/documents/application/services/uploads.service';
-import { AppConfigService } from '@/shared/modules/config/app-configuration.service';
 import { PAYMENT_GATEWAY_TOKEN } from '@/domains/subscriptions/application/ports';
 import { BadRequestException, Logger, NotFoundException } from '@nestjs/common';
-import { SubscriptionStatus } from '@workspace/db';
 import {
   beforeEach,
   afterEach,
@@ -28,20 +31,20 @@ import {
 
 describe('OnboardingService', () => {
   let service: OnboardingService;
-  let prismaService: PrismaService;
+  let prismaService: ClinicPersistencePort;
   let authService: AuthService;
   let dataService: OnboardingDataService;
   let validationService: OnboardingValidationService;
   let workflowService: OnboardingWorkflowService;
   let complianceService: OnboardingComplianceService;
 
-  const mockPrismaService = {
+  const mockClinicPersistencePort = {
     runUnrestricted: jest.fn((callback: () => unknown | Promise<unknown>) =>
       callback(),
     ),
     $transaction: jest.fn(
       (callback: (tx: unknown) => unknown | Promise<unknown>) =>
-        callback(mockPrismaService as unknown),
+        callback(mockClinicPersistencePort as unknown),
     ),
     clinic: {
       findFirst: jest.fn(),
@@ -124,6 +127,13 @@ describe('OnboardingService', () => {
         return { valid: true, errors: [] };
       },
     ),
+    getTierLimits: jest.fn(() => ({
+      includedPatients: 50,
+      includedAppointments: 100,
+      includedStorageGB: 1,
+      includedUsers: 1,
+    })),
+    getTierPricing: jest.fn(() => 49900),
   };
   const mockWorkflowService = {
     createClinic: jest
@@ -142,6 +152,60 @@ describe('OnboardingService', () => {
     initializeClinicSettings: jest
       .fn()
       .mockImplementation(async () => undefined),
+    getDefaultClinicWeeklyHoursInput: jest.fn(() => [
+      {
+        dayOfWeek: 'SUNDAY',
+        startTime: '09:00',
+        endTime: '17:00',
+        slotDuration: 30,
+        isActive: false,
+      },
+      {
+        dayOfWeek: 'MONDAY',
+        startTime: '09:00',
+        endTime: '17:00',
+        slotDuration: 30,
+        isActive: true,
+      },
+      {
+        dayOfWeek: 'TUESDAY',
+        startTime: '09:00',
+        endTime: '17:00',
+        slotDuration: 30,
+        isActive: true,
+      },
+      {
+        dayOfWeek: 'WEDNESDAY',
+        startTime: '09:00',
+        endTime: '17:00',
+        slotDuration: 30,
+        isActive: true,
+      },
+      {
+        dayOfWeek: 'THURSDAY',
+        startTime: '09:00',
+        endTime: '17:00',
+        slotDuration: 30,
+        isActive: true,
+      },
+      {
+        dayOfWeek: 'FRIDAY',
+        startTime: '09:00',
+        endTime: '17:00',
+        slotDuration: 30,
+        isActive: true,
+      },
+      {
+        dayOfWeek: 'SATURDAY',
+        startTime: '09:00',
+        endTime: '17:00',
+        slotDuration: 30,
+        isActive: false,
+      },
+    ]),
+    replaceClinicWeeklySchedules: jest
+      .fn()
+      .mockImplementation(async () => undefined),
   };
   const mockComplianceService = {
     recordSLAAgreement: jest.fn().mockImplementation(async () => undefined),
@@ -151,14 +215,20 @@ describe('OnboardingService', () => {
     logOnboardingEvent: jest.fn().mockImplementation(async () => undefined),
   };
   const mockUploadsService = {
-    updateSession: jest.fn(),
+    createSession: jest.fn<(...args: unknown[]) => Promise<unknown>>(),
+    updateSession: jest.fn<(...args: unknown[]) => Promise<unknown>>(),
   };
-  const mockAppConfigService = {
-    getRazorpayKeyId: jest.fn(() => 'rzp_test_key'),
+  const mockPaymentService = {
+    createCheckout: jest.fn(),
   };
   const mockPaymentGateway = {
     createOrder: jest.fn(),
-    verifyPayment: jest.fn(),
+    verifyPayment:
+      jest.fn<
+        (
+          ...args: unknown[]
+        ) => Promise<{ verified: boolean; amountCents: number }>
+      >(),
   };
 
   beforeEach(async () => {
@@ -167,7 +237,10 @@ describe('OnboardingService', () => {
     const module: TestingModule = await Test.createTestingModule({
       providers: [
         OnboardingService,
-        { provide: PrismaService, useValue: mockPrismaService },
+        {
+          provide: CLINIC_PERSISTENCE_PORT,
+          useValue: mockClinicPersistencePort,
+        },
         { provide: AuthService, useValue: mockAuthService },
         { provide: OnboardingDataService, useValue: mockDataService },
         {
@@ -180,13 +253,14 @@ describe('OnboardingService', () => {
           useValue: mockComplianceService,
         },
         { provide: UploadsService, useValue: mockUploadsService },
-        { provide: AppConfigService, useValue: mockAppConfigService },
+        { provide: OnboardingPaymentService, useValue: mockPaymentService },
         { provide: PAYMENT_GATEWAY_TOKEN, useValue: mockPaymentGateway },
+        { provide: CLOCK_PORT, useValue: { now: () => new Date() } },
       ],
     }).compile();
 
     service = module.get<OnboardingService>(OnboardingService);
-    prismaService = module.get<PrismaService>(PrismaService);
+    prismaService = module.get<ClinicPersistencePort>(CLINIC_PERSISTENCE_PORT);
     authService = module.get<AuthService>(AuthService);
     dataService = module.get<OnboardingDataService>(OnboardingDataService);
     validationService = module.get<OnboardingValidationService>(
@@ -296,8 +370,12 @@ describe('OnboardingService', () => {
     it('should successfully complete onboarding', async () => {
       const { onboardingId } = service.initializeOnboarding();
 
-      mockPrismaService.clinic.findFirst.mockImplementation(async () => null);
-      mockPrismaService.user.findUnique.mockImplementation(async () => null);
+      mockClinicPersistencePort.clinic.findFirst.mockImplementation(
+        async () => null,
+      );
+      mockClinicPersistencePort.user.findUnique.mockImplementation(
+        async () => null,
+      );
 
       const createdClinic = { id: 'clinic_123' };
       const createdUser = {
@@ -308,22 +386,26 @@ describe('OnboardingService', () => {
       };
       const createdSubscription = { id: 'sub_123' };
 
-      mockPrismaService.clinic.create.mockImplementation(
+      mockClinicPersistencePort.clinic.create.mockImplementation(
         async () => createdClinic,
       );
-      mockPrismaService.user.create.mockImplementation(async () => createdUser);
-      mockPrismaService.subscription.create.mockImplementation(
+      mockClinicPersistencePort.user.create.mockImplementation(
+        async () => createdUser,
+      );
+      mockClinicPersistencePort.subscription.create.mockImplementation(
         async () => createdSubscription,
       );
-      mockPrismaService.mrnSequence.create.mockImplementation(async () => ({}));
-      mockPrismaService.reminderSettings.create.mockImplementation(
+      mockClinicPersistencePort.mrnSequence.create.mockImplementation(
+        async () => ({}),
+      );
+      mockClinicPersistencePort.reminderSettings.create.mockImplementation(
         async () => ({}),
       );
 
-      mockPrismaService.clinic.findUnique.mockImplementation(
+      mockClinicPersistencePort.clinic.findUnique.mockImplementation(
         async () => createdClinic,
       );
-      mockPrismaService.clinic.update.mockImplementation(
+      mockClinicPersistencePort.clinic.update.mockImplementation(
         async () => createdClinic,
       );
 
@@ -386,18 +468,28 @@ describe('OnboardingService', () => {
 
     it('syncs clinic fields when onboarding completes on STARTER plan', async () => {
       const { onboardingId } = service.initializeOnboarding();
+      mockPaymentGateway.verifyPayment.mockResolvedValue({
+        verified: true,
+        amountCents: 49900,
+      });
       const starterData = {
         ...completeData,
+        clinicDetails: {
+          ...completeData.clinicDetails,
+          gstin: '22AAAAA0000A1Z5',
+        },
         planSelection: {
           ...completeData.planSelection,
           tier: ClinicTier.STARTER,
         },
+        paymentDetails: {
+          razorpayPaymentId: 'pay_starter',
+          razorpayOrderId: 'order_starter',
+          razorpaySignature: 'sig_starter',
+        },
       };
 
-      mockPrismaService.subscription.create.mockImplementation(async () => ({
-        id: 'sub_starter',
-      }));
-      mockPrismaService.clinic.update.mockImplementation(async () => ({
+      mockClinicPersistencePort.clinic.update.mockImplementation(async () => ({
         id: 'clinic_123',
       }));
       mockAuthService.login.mockImplementation(async () => ({
@@ -417,25 +509,15 @@ describe('OnboardingService', () => {
       );
 
       expect(result.success).toBe(true);
-      expect(workflowService.createSubscription).not.toHaveBeenCalled();
-      expect(mockPrismaService.subscription.create).toHaveBeenCalledWith(
+      expect(mockPaymentGateway.verifyPayment).toHaveBeenCalled();
+      expect(workflowService.createSubscription).toHaveBeenCalledWith(
+        expect.anything(),
+        'clinic_123',
         expect.objectContaining({
-          data: expect.objectContaining({
-            clinicId: 'clinic_123',
-            plan: 'STARTER',
-            status: SubscriptionStatus.ACTIVE,
-          }),
+          tier: ClinicTier.STARTER,
+          billingCycle: BillingCycle.MONTHLY,
         }),
-      );
-      expect(mockPrismaService.clinic.update).toHaveBeenCalledWith(
-        expect.objectContaining({
-          where: { id: 'clinic_123' },
-          data: {
-            tier: ClinicTier.STARTER,
-            subscriptionStatus: SubscriptionStatus.ACTIVE,
-            trialEndsAt: null,
-          },
-        }),
+        starterData.paymentDetails,
       );
     });
   });
@@ -447,26 +529,22 @@ describe('OnboardingService', () => {
         id: 'sess_123',
         purpose: 'GENERAL',
         status: 'pending',
+        uploadSecret: 'opaque-upload-secret',
       };
 
-      mockPrismaService.uploadSession.create.mockImplementation(
-        async () => created,
-      );
+      mockUploadsService.createSession.mockResolvedValue(created);
 
       const result = await service.createSlaSignatureSession(onboardingId);
 
       expect(result).toEqual(created);
-      expect(mockPrismaService.uploadSession.create).toHaveBeenCalledWith(
-        expect.objectContaining({
-          data: expect.objectContaining({
-            purpose: 'GENERAL',
-          }),
-        }),
-      );
+      expect(mockUploadsService.createSession).toHaveBeenCalledWith({
+        expiresInMinutes: 20,
+        purpose: 'GENERAL',
+      });
     });
 
     it('getSlaSignatureSessionStatus marks uploaded when fileUrl exists', async () => {
-      mockPrismaService.uploadSession.findUnique.mockImplementation(
+      mockClinicPersistencePort.uploadSession.findUnique.mockImplementation(
         async () => ({
           id: 'sess_1',
           purpose: 'GENERAL',
@@ -488,7 +566,7 @@ describe('OnboardingService', () => {
     });
 
     it('getSlaSignatureSessionStatus throws for non-onboarding upload purposes', async () => {
-      mockPrismaService.uploadSession.findUnique.mockImplementation(
+      mockClinicPersistencePort.uploadSession.findUnique.mockImplementation(
         async () => ({
           id: 'sess_2',
           purpose: 'DOCTOR_SIGNATURE',
@@ -503,7 +581,7 @@ describe('OnboardingService', () => {
     });
 
     it('uploadSlaSignature marks one-time link as expired after successful upload', async () => {
-      mockPrismaService.uploadSession.findUnique.mockImplementation(
+      mockClinicPersistencePort.uploadSession.findUnique.mockImplementation(
         async () => ({
           id: 'sess_3',
           purpose: 'GENERAL',
@@ -518,9 +596,11 @@ describe('OnboardingService', () => {
         status: 'uploaded',
         fileUrl: 'https://cdn.example/signature.png',
       }));
-      mockPrismaService.uploadSession.update.mockImplementation(async () => ({
-        id: 'sess_3',
-      }));
+      mockClinicPersistencePort.uploadSession.update.mockImplementation(
+        async () => ({
+          id: 'sess_3',
+        }),
+      );
 
       const file = {
         originalname: 'signature.png',
@@ -533,6 +613,7 @@ describe('OnboardingService', () => {
         'onb_abc',
         'sess_3',
         file,
+        'upload-secret-value',
       );
 
       expect(result).toEqual(
@@ -546,9 +627,12 @@ describe('OnboardingService', () => {
         file,
         expect.objectContaining({
           onboardingId: 'onb_abc',
+          uploadSecret: 'upload-secret-value',
         }),
       );
-      expect(mockPrismaService.uploadSession.update).toHaveBeenCalledWith(
+      expect(
+        mockClinicPersistencePort.uploadSession.update,
+      ).toHaveBeenCalledWith(
         expect.objectContaining({
           where: { id: 'sess_3' },
           data: expect.objectContaining({

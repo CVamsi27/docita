@@ -1,3 +1,4 @@
+import { formatAmountLocale, formatCountLocale } from "@workspace/utils";
 import { fetchLandingJson } from "@/lib/public-api";
 
 export interface PlatformStats {
@@ -7,13 +8,18 @@ export interface PlatformStats {
   prescriptions: number;
 }
 
-export interface TierPricing {
+interface PlatformStatsCacheEntry {
+  expiresAt: number;
+  stats: PlatformStats | null;
+}
+
+interface TierPricing {
   monthly: number | "custom";
   yearly: number | "custom";
   currency: string;
 }
 
-export interface TierConfig {
+interface TierConfig {
   id: string;
   name: string;
   description: string;
@@ -22,7 +28,7 @@ export interface TierConfig {
   features: string[];
 }
 
-export interface PricingConfig {
+interface PricingConfig {
   currency: {
     code: string;
     symbol: string;
@@ -37,13 +43,27 @@ const FALLBACK_TIERS: TierConfig[] = [
     id: "STARTER",
     name: "Starter",
     description: "Core clinical workflows for solo doctors moving off paper",
-    tagline: "Start clinic digitization",
+    tagline: "Go digital from day one",
     pricing: { monthly: 499, yearly: 4990, currency: "₹" },
     features: [
       "50 patients",
       "Digital prescriptions",
       "Basic appointment queue",
       "Single doctor",
+    ],
+  },
+  {
+    id: "FRONT_DESK",
+    name: "Front desk",
+    description:
+      "Reception-first scheduling and billing without full in-app clinical workflows",
+    tagline: "Reception and operations",
+    pricing: { monthly: 799, yearly: 7990, currency: "₹" },
+    features: [
+      "Scheduling and queue",
+      "Patients and invoicing",
+      "WhatsApp within plan limits",
+      "Schedule-only doctor profiles",
     ],
   },
   {
@@ -70,6 +90,20 @@ const FALLBACK_TIERS: TierConfig[] = [
       "Broadcast campaigns",
       "REST API access",
       "Priority support",
+    ],
+  },
+  {
+    id: "HOSPITAL",
+    name: "Hospital",
+    description:
+      "For multi-doctor multi-branch hospitals: pooled WhatsApp, multi-branch analytics, dedicated CSM",
+    tagline: "Multi-branch and multi-specialty",
+    pricing: { monthly: 7999, yearly: 79990, currency: "₹" },
+    features: [
+      "Up to 25 doctors and 5 branches",
+      "8,000 consultations / month",
+      "Pooled WhatsApp (6,000 msgs)",
+      "Multi-location analytics",
     ],
   },
   {
@@ -107,6 +141,9 @@ export const FALLBACK_PRICING_CONFIG: PricingConfig = {
   tiers: FALLBACK_TIERS,
 };
 
+const PLATFORM_STATS_CACHE_TTL_MS = 24 * 60 * 60 * 1000;
+let platformStatsCache: PlatformStatsCacheEntry | null = null;
+
 function isLiveLandingDataEnabled(): boolean {
   return import.meta.env["PUBLIC_ENABLE_LIVE_LANDING_DATA"] !== "false";
 }
@@ -123,6 +160,11 @@ export async function fetchPlatformStats(
 ): Promise<PlatformStats | null> {
   if (!isLiveLandingDataEnabled()) {
     return null;
+  }
+
+  const now = Date.now();
+  if (platformStatsCache && platformStatsCache.expiresAt > now) {
+    return platformStatsCache.stats;
   }
 
   try {
@@ -145,13 +187,24 @@ export async function fetchPlatformStats(
       return null;
     }
 
-    return {
+    const stats = {
       clinics,
       doctors,
       patients,
       prescriptions,
     };
+    platformStatsCache = {
+      expiresAt: now + PLATFORM_STATS_CACHE_TTL_MS,
+      stats,
+    };
+
+    return stats;
   } catch {
+    platformStatsCache = {
+      expiresAt: now + PLATFORM_STATS_CACHE_TTL_MS,
+      stats: null,
+    };
+
     return null;
   }
 }
@@ -199,7 +252,7 @@ export async function fetchPricingConfig(
 }
 
 export function formatStatValue(value: number): string {
-  return value.toLocaleString("en-IN");
+  return formatCountLocale(value);
 }
 
 export function formatTierPrice(
@@ -210,5 +263,5 @@ export function formatTierPrice(
     return "Custom";
   }
 
-  return `${symbol}${value.toLocaleString("en-IN")}`;
+  return `${symbol}${formatAmountLocale(value)}`;
 }

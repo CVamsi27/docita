@@ -1,4 +1,5 @@
-import { DEFAULT_CURRENCY } from '@workspace/utils';
+import { DEFAULT_CURRENCY, formatCurrency } from '@workspace/utils';
+import { InvariantViolationError } from '@/shared/common/errors/domain.errors';
 
 export class SubscriptionPrice {
   readonly paise: number;
@@ -6,10 +7,10 @@ export class SubscriptionPrice {
 
   constructor(paise: number) {
     if (paise < 0) {
-      throw new Error('Price cannot be negative');
+      throw new InvariantViolationError('Price cannot be negative');
     }
     if (!Number.isInteger(paise)) {
-      throw new Error('Price must be an integer (paise)');
+      throw new InvariantViolationError('Price must be an integer (paise)');
     }
     this.paise = paise;
   }
@@ -28,7 +29,9 @@ export class SubscriptionPrice {
 
   applyDiscount(percentOff: number): SubscriptionPrice {
     if (percentOff < 0 || percentOff > 100) {
-      throw new Error('Discount percentage must be between 0 and 100');
+      throw new InvariantViolationError(
+        'Discount percentage must be between 0 and 100',
+      );
     }
     const discountedPaise = Math.round(this.paise * ((100 - percentOff) / 100));
     return new SubscriptionPrice(discountedPaise);
@@ -40,19 +43,17 @@ export class SubscriptionPrice {
 
   prorate(daysUsed: number, totalCycleDays: number): SubscriptionPrice {
     if (daysUsed < 0 || totalCycleDays <= 0) {
-      throw new Error('Invalid day values for proration');
+      throw new InvariantViolationError('Invalid day values for proration');
     }
     const proratedPaise = Math.round(this.paise * (daysUsed / totalCycleDays));
     return new SubscriptionPrice(proratedPaise);
   }
 
   format(): string {
-    return new Intl.NumberFormat(undefined, {
-      style: 'currency',
+    return formatCurrency(this.getAmount(), {
       currency: this.currency,
-      minimumFractionDigits: 2,
-      maximumFractionDigits: 2,
-    }).format(this.getAmount());
+      fractionDigits: 2,
+    });
   }
 
   equals(other: SubscriptionPrice): boolean {

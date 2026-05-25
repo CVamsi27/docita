@@ -6,19 +6,19 @@ import {
 } from '@nestjs/common';
 import { Reflector } from '@nestjs/core';
 import { PrismaService } from '@/prisma/prisma.service';
-import {
-  TIER_KEY,
-  FEATURE_KEY,
-  Tier,
-  Feature,
-  FEATURE_TIER_MAP,
-  isFeatureGenerallyAvailable,
-} from './tier.decorator';
+import { TIER_KEY, FEATURE_KEY, Tier, Feature } from './tier.decorator';
 import {
   SubscriptionStatus,
   IntelligenceAddon,
   ClinicTier,
 } from '@workspace/db';
+import { bypassesSessionGuards } from './auth-route-metadata.util';
+import {
+  isBillingAdminRole,
+  isSubscriptionBillingHardLocked,
+} from '@/shared/modules/auth/utils/subscription-hard-lock.util';
+import { assertClinicHasFeatureOrThrow } from '@/shared/modules/auth/utils/clinic-feature-access.util';
+import { clinicHasOutstandingPendingPayment } from '@/shared/modules/auth/utils/clinic-outstanding-pending-payment.util';
 
 @Injectable()
 export class TierGuard implements CanActivate {
@@ -28,6 +28,10 @@ export class TierGuard implements CanActivate {
   ) {}
 
   async canActivate(context: ExecutionContext): Promise<boolean> {
+    if (bypassesSessionGuards(this.reflector, context)) {
+      return true;
+    }
+
     const requiredTier = this.reflector.getAllAndOverride<Tier>(TIER_KEY, [
       context.getHandler(),
       context.getClass(),
@@ -59,6 +63,17 @@ export class TierGuard implements CanActivate {
         intelligenceAddon: true,
         features: true,
         subscriptionStatus: true,
+        subscription: {
+          select: {
+            graceUntil: true,
+            currentPeriodEnd: true,
+          },
+        },
+        subscriptionPayments: {
+          select: { status: true },
+          orderBy: { createdAt: 'desc' },
+          take: 12,
+        },
       },
     });
 
@@ -70,9 +85,31 @@ export class TierGuard implements CanActivate {
     }
 
     if (
-      clinic.subscriptionStatus !== SubscriptionStatus.ACTIVE &&
-      clinic.subscriptionStatus !== SubscriptionStatus.TRIALING
+      isSubscriptionBillingHardLocked({
+        subscriptionStatus: clinic.subscriptionStatus,
+        graceUntil: clinic.subscription?.graceUntil,
+        hasOutstandingPendingPayment: clinicHasOutstandingPendingPayment(
+          clinic.subscriptionPayments,
+        ),
+        subscriptionCurrentPeriodEnd:
+          clinic.subscription?.currentPeriodEnd ?? null,
+      }) &&
+      !isBillingAdminRole(user.role)
     ) {
+      throw new ForbiddenException(
+        'Workspace access is limited until billing is resolved.',
+      );
+    }
+
+    const allowedSubscriptionStatuses = new Set<SubscriptionStatus>([
+      SubscriptionStatus.ACTIVE,
+      SubscriptionStatus.TRIALING,
+      SubscriptionStatus.PAST_DUE,
+      SubscriptionStatus.GRACE,
+      SubscriptionStatus.PAUSED,
+    ]);
+
+    if (!allowedSubscriptionStatuses.has(clinic.subscriptionStatus)) {
       throw new ForbiddenException(
         'Subscription is not active. Please renew your subscription.',
       );
@@ -82,41 +119,15 @@ export class TierGuard implements CanActivate {
     const hasIntelligence =
       clinic.intelligenceAddon === IntelligenceAddon.ACTIVE;
 
-    const featureOverrides = (clinic.features as Record<string, boolean>) || {};
-
     if (requiredFeature !== undefined) {
-      if (!isFeatureGenerallyAvailable(requiredFeature)) {
-        throw new ForbiddenException(
-          `The ${requiredFeature} feature is not available yet.`,
-        );
-      }
-
-      const featureTier = FEATURE_TIER_MAP[requiredFeature];
-
-      if (featureOverrides[requiredFeature] !== undefined) {
-        if (!featureOverrides[requiredFeature]) {
-          throw new ForbiddenException(
-            `The ${requiredFeature} feature is not available for your clinic.`,
-          );
-        }
-        return true;
-      }
-
-      if (featureTier === Tier.INTELLIGENCE) {
-        if (!hasIntelligence) {
-          throw new ForbiddenException(
-            `This feature requires the Intelligence add-on.`,
-          );
-        }
-        return true;
-      }
-
-      if (userTier < featureTier) {
-        throw new ForbiddenException(
-          `This feature requires ${this.getTierName(featureTier)} tier or higher.`,
-        );
-      }
-
+      assertClinicHasFeatureOrThrow(
+        {
+          tier: clinic.tier,
+          intelligenceAddon: clinic.intelligenceAddon,
+          features: clinic.features,
+        },
+        requiredFeature,
+      );
       return true;
     }
 
@@ -124,6 +135,16 @@ export class TierGuard implements CanActivate {
       if (requiredTier === Tier.INTELLIGENCE && !hasIntelligence) {
         throw new ForbiddenException(
           'This feature requires the Intelligence add-on.',
+        );
+      }
+
+      if (
+        userTier === Tier.FRONT_DESK &&
+        requiredTier !== Tier.INTELLIGENCE &&
+        requiredTier > Tier.ESSENTIAL
+      ) {
+        throw new ForbiddenException(
+          `This feature requires ${this.getTierName(requiredTier)} tier or higher.`,
         );
       }
 
@@ -142,7 +163,9 @@ export class TierGuard implements CanActivate {
       [ClinicTier.STARTER]: Tier.STARTER,
       [ClinicTier.ESSENTIAL]: Tier.ESSENTIAL,
       [ClinicTier.PROFESSIONAL]: Tier.PROFESSIONAL,
+      [ClinicTier.HOSPITAL]: Tier.HOSPITAL,
       [ClinicTier.ENTERPRISE]: Tier.ENTERPRISE,
+      [ClinicTier.FRONT_DESK]: Tier.FRONT_DESK,
     };
 
     return tierMap[dbTier] ?? Tier.STARTER;
@@ -150,11 +173,13 @@ export class TierGuard implements CanActivate {
 
   private getTierName(tier: Tier): string {
     const names: Record<Tier, string> = {
-      [Tier.STARTER]: 'Free',
+      [Tier.STARTER]: 'Starter',
       [Tier.ESSENTIAL]: 'Essential',
       [Tier.PROFESSIONAL]: 'Professional',
+      [Tier.HOSPITAL]: 'Hospital',
       [Tier.ENTERPRISE]: 'Enterprise',
       [Tier.INTELLIGENCE]: 'Intelligence',
+      [Tier.FRONT_DESK]: 'Front desk',
     };
     return names[tier] || 'Unknown';
   }

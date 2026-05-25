@@ -7,7 +7,9 @@ import {
   Body,
   UseGuards,
   UsePipes,
+  Inject,
 } from '@nestjs/common';
+import { CLOCK_PORT, type IClock } from '@/shared/common/ports/clock.port';
 import { MonitoringService } from './monitoring.service';
 import { JwtAuthGuard as _JwtAuthGuard } from '@/shared/modules/auth/auth/jwt-auth.guard';
 import { TierGuard } from '@/shared/modules/auth/auth/tier.guard';
@@ -18,16 +20,16 @@ import {
   Feature,
 } from '@/shared/modules/auth/auth/tier.decorator';
 import {
-  WebVitalDto,
   RequestStatsResponseDto,
   ErrorStatsResponseDto,
   PerformanceMetricsResponseDto,
   SystemHealthResponseDto,
   AggregatedPerformanceResponseDto,
   MonitoringDashboardResponseDto,
-  WebVitalListResponseDto,
+  WebVitalsAggregateListResponseDto,
   AnyResponseDto,
-  WebVitalSchema,
+  SecurityMonitoringSummaryResponseDto,
+  QueueHealthSummaryResponseDto,
 } from './dto/monitoring.dto';
 import {
   ResolveMultipleErrorsSchema,
@@ -36,7 +38,7 @@ import {
   ArchiveErrorsDto,
 } from './dto/monitoring-admin.dto';
 import { ZodSerializerDto } from 'nestjs-zod';
-import { ZodValidationPipe } from '@/common/pipes/zod-validation.pipe';
+import { ZodValidationPipe } from '@/shared/common/pipes/zod-validation.pipe';
 
 import { ArchivalService } from '@/shared/modules/compliance/archival.service';
 
@@ -48,6 +50,7 @@ export class MonitoringController {
   constructor(
     private readonly monitoringService: MonitoringService,
     private readonly archivalService: ArchivalService,
+    @Inject(CLOCK_PORT) private readonly clock: IClock,
   ) {}
 
   @Post('archive')
@@ -155,7 +158,7 @@ export class MonitoringController {
   @Get('dashboard')
   @ZodSerializerDto(MonitoringDashboardResponseDto)
   async getDashboard(@Query('clinicId') clinicId?: string) {
-    const now = new Date();
+    const now = this.clock.now();
     const oneDayAgo = new Date(now.getTime() - 24 * 60 * 60 * 1000);
     const sevenDaysAgo = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000);
 
@@ -179,15 +182,8 @@ export class MonitoringController {
     };
   }
 
-  @Post('web-vitals')
-  @ZodSerializerDto(AnyResponseDto)
-  @UsePipes(new ZodValidationPipe(WebVitalSchema))
-  async reportWebVital(@Body() vital: WebVitalDto) {
-    return this.monitoringService.recordWebVital(vital);
-  }
-
   @Get('web-vitals')
-  @ZodSerializerDto(WebVitalListResponseDto)
+  @ZodSerializerDto(WebVitalsAggregateListResponseDto)
   async getWebVitals(
     @Query('startDate') startDate?: string,
     @Query('endDate') endDate?: string,
@@ -198,5 +194,24 @@ export class MonitoringController {
       endDate ? new Date(endDate) : undefined,
       page,
     );
+  }
+
+  @Get('security-summary')
+  @ZodSerializerDto(SecurityMonitoringSummaryResponseDto)
+  async getSecuritySummary(
+    @Query('startDate') startDate?: string,
+    @Query('endDate') endDate?: string,
+  ) {
+    const end = endDate ? new Date(endDate) : this.clock.now();
+    const start = startDate
+      ? new Date(startDate)
+      : new Date(end.getTime() - 24 * 60 * 60 * 1000);
+    return this.monitoringService.getSecurityMonitoringSummary(start, end);
+  }
+
+  @Get('queue-health')
+  @ZodSerializerDto(QueueHealthSummaryResponseDto)
+  async getQueueHealth() {
+    return this.monitoringService.getQueueHealthSummary();
   }
 }

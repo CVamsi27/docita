@@ -33,6 +33,3 @@ export const createMockWhatsAppService = () => {
     getVerifyToken: jest.fn().mockReturnValue('mock_verify_token'),
   };
 };
-
-export const mockTwilio = mockWhatsAppService;
-export const createMockTwilio = createMockWhatsAppService;

@@ -18,7 +18,6 @@ describe("getVisibleSettingsTabs", () => {
       userRole: "ADMIN",
       currentTier: store.currentTier,
       canAccessFeature: store.canAccess,
-      canAccessTier: store.canAccessTier,
     });
 
     const visibleTabValues = tabs.flatMap((category) =>
@@ -37,7 +36,6 @@ describe("getVisibleSettingsTabs", () => {
       userRole: "ADMIN",
       currentTier: updatedStore.currentTier,
       canAccessFeature: updatedStore.canAccess,
-      canAccessTier: updatedStore.canAccessTier,
     });
 
     const visibleTabValues = tabs.flatMap((category) =>
@@ -54,7 +52,6 @@ describe("getVisibleSettingsTabs", () => {
       userRole: "DOCTOR",
       currentTier: store.currentTier,
       canAccessFeature: store.canAccess,
-      canAccessTier: store.canAccessTier,
     });
 
     const visibleTabValues = tabs.flatMap((category) =>
@@ -73,7 +70,6 @@ describe("getVisibleSettingsTabs", () => {
       userRole: "DOCTOR",
       currentTier: updatedStore.currentTier,
       canAccessFeature: updatedStore.canAccess,
-      canAccessTier: updatedStore.canAccessTier,
     });
 
     const visibleTabValues = tabs.flatMap((category) =>
@@ -89,5 +85,23 @@ describe("getVisibleSettingsTabs", () => {
     store.setFeatureOverrides({ [Feature.BROADCAST_CAMPAIGNS]: true });
 
     expect(store.canAccess(Feature.BROADCAST_CAMPAIGNS)).toBe(false);
+  });
+
+  it("excludes legacy join-requests and compliance tabs (now dedicated routes)", () => {
+    const store = usePermissionStore.getState();
+    store.setUserRole("ADMIN");
+
+    const tabs = getVisibleSettingsTabs({
+      userRole: "ADMIN",
+      currentTier: store.currentTier,
+      canAccessFeature: store.canAccess,
+    });
+
+    const visibleTabValues = tabs.flatMap((category) =>
+      category.items.map((item) => item.value),
+    );
+
+    expect(visibleTabValues).not.toContain("join-requests");
+    expect(visibleTabValues).not.toContain("compliance");
   });
 });

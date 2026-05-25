@@ -8,7 +8,7 @@ export const VITAL_STATUS_COLORS: Record<VitalStatusType, string> = {
   normal: "text-success",
   elevated: "text-warning",
   low: "text-info",
-  critical: "text-destructive font-bold animate-pulse",
+  critical: "text-destructive font-bold",
 };
 
 export const VITAL_RANGES = {

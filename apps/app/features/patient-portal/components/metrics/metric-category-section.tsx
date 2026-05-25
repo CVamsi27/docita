@@ -6,9 +6,10 @@ import {
   CardContent,
   CardHeader,
   CardTitle,
-} from "@workspace/ui/components/card";
-import { Button } from "@workspace/ui/components/button";
-import { Badge } from "@workspace/ui/components/badge";
+} from "@workspace/ui/components/indicators/card";
+import { Button } from "@workspace/ui/components/form/button";
+import { SymbolTooltip } from "@workspace/ui/components/overlay/tooltip";
+import { Badge } from "@workspace/ui/components/indicators/badge";
 import { Plus } from "lucide-react";
 import { MetricSparkline } from "./metric-sparkline";
 import { RecordMetricModal } from "./record-metric-modal";
@@ -123,14 +124,17 @@ export function MetricCategorySection({
                     <CardTitle className="text-sm font-medium">
                       {def.label}
                     </CardTitle>
-                    <Button
-                      variant="ghost"
-                      size="icon"
-                      className="h-7 w-7 shrink-0"
-                      onClick={() => setSelectedDefinition(def)}
-                    >
-                      <Plus className="h-4 w-4" />
-                    </Button>
+                    <SymbolTooltip label={`Record ${def.label}`}>
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        className="h-7 w-7 shrink-0"
+                        onClick={() => setSelectedDefinition(def)}
+                        aria-label={`Record ${def.label}`}
+                      >
+                        <Plus className="h-4 w-4" />
+                      </Button>
+                    </SymbolTooltip>
                   </div>
                 </CardHeader>
                 <CardContent className="space-y-2">

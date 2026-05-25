@@ -1,7 +1,8 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { Button } from "@workspace/ui/components/button";
+import { Button } from "@workspace/ui/components/form/button";
+import { SymbolTooltip } from "@workspace/ui/components/overlay/tooltip";
 import {
   Card,
   CardContent,
@@ -9,15 +10,15 @@ import {
   CardFooter,
   CardHeader,
   CardTitle,
-} from "@workspace/ui/components/card";
-import { Checkbox } from "@workspace/ui/components/checkbox";
+} from "@workspace/ui/components/indicators/card";
+import { Checkbox } from "@workspace/ui/components/form/checkbox";
 import { Bell, Shield, X } from "lucide-react";
 import {
   usePatientConsentSettings,
   useUpdatePatientConsent,
-} from "@/hooks/api/use-patient-portal";
+} from "@workspace/data-access";
 import { toast } from "sonner";
-import { showUserFacingErrorToast } from "@/lib/user-facing-errors";
+import { showUserFacingErrorToast } from "@/lib/errors/user-facing-errors";
 
 export function ConsentBanner() {
   const [dismissed, setDismissed] = useState(false);
@@ -64,14 +65,17 @@ export function ConsentBanner() {
               <Shield className="h-5 w-5 text-primary" />
               <CardTitle>Privacy & Consent</CardTitle>
             </div>
-            <Button
-              variant="ghost"
-              size="sm"
-              onClick={() => setDismissed(true)}
-              className="h-6 w-6 p-0"
-            >
-              <X className="h-4 w-4" />
-            </Button>
+            <SymbolTooltip label="Dismiss">
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={() => setDismissed(true)}
+                className="h-6 w-6 p-0"
+                aria-label="Dismiss consent banner"
+              >
+                <X className="h-4 w-4" />
+              </Button>
+            </SymbolTooltip>
           </div>
           <CardDescription>
             Welcome to the Patient Portal! Please review and accept our privacy
@@ -137,7 +141,7 @@ export function ConsentBanner() {
             disabled={updateConsent.isPending}
             className="flex-1"
           >
-            {updateConsent.isPending ? "Saving..." : "Save Preferences"}
+            {updateConsent.isPending ? "Saving…" : "Save Preferences"}
           </Button>
         </CardFooter>
       </Card>

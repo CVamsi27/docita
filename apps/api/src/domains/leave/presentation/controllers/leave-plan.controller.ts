@@ -10,21 +10,17 @@ import {
   ForbiddenException,
 } from '@nestjs/common';
 import { ApiTags, ApiOperation } from '@nestjs/swagger';
-import { Role } from '@workspace/db';
 import { Roles } from '@/shared/modules/auth/auth/roles.decorator';
 import { TierGuard } from '@/shared/modules/auth/auth/tier.guard';
 import { RequireFeature } from '@/shared/modules/auth/auth/tier.decorator';
-import { RequestWithUser } from '@/common/types/common.types';
+import { RequestWithUser } from '@/shared/common/types/common.types';
+import { getClinicStaffRequestContext } from '@/shared/modules/auth/auth/clinic-request-context';
 import { LeavePlanService } from '@/domains/leave/application/services/leave-plan.service';
 import { Feature } from '@workspace/types';
 import {
   ALL_STAFF_ROLES,
   CLINIC_ADMIN_ROLES as ADMIN_ROLES,
-} from '@/common/constants/role-groups';
-import {
-  requireClinicId,
-  requireUserRole,
-} from '@/common/utils/request-context.utils';
+} from '@/shared/common/constants/role-groups';
 
 @ApiTags('leave-plans')
 @Controller('leave-plans')
@@ -37,7 +33,8 @@ export class LeavePlanController {
   @Get()
   @ApiOperation({ summary: 'List leave plans for the clinic' })
   async getPlans(@Request() req: RequestWithUser) {
-    return this.leavePlanService.getPlans(requireClinicId(req));
+    const { clinicId } = getClinicStaffRequestContext(req);
+    return this.leavePlanService.getPlans(clinicId);
   }
 
   @Post()
@@ -53,10 +50,11 @@ export class LeavePlanController {
       isActive?: boolean;
     },
   ) {
-    if (!ADMIN_ROLES.includes(requireUserRole(req) as Role)) {
+    const { clinicId, role } = getClinicStaffRequestContext(req);
+    if (!ADMIN_ROLES.includes(role)) {
       throw new ForbiddenException('Only admins can manage leave plans');
     }
-    return this.leavePlanService.createPlan(requireClinicId(req), body);
+    return this.leavePlanService.createPlan(clinicId, body);
   }
 
   @Put(':id')
@@ -72,9 +70,10 @@ export class LeavePlanController {
       isActive?: boolean;
     },
   ) {
-    if (!ADMIN_ROLES.includes(requireUserRole(req) as Role)) {
+    const { clinicId, role } = getClinicStaffRequestContext(req);
+    if (!ADMIN_ROLES.includes(role)) {
       throw new ForbiddenException('Only admins can manage leave plans');
     }
-    return this.leavePlanService.updatePlan(id, requireClinicId(req), body);
+    return this.leavePlanService.updatePlan(id, clinicId, body);
   }
 }

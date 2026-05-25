@@ -1,26 +1,12 @@
-import "@workspace/ui/globals.css";
+import "./globals.css";
 import "leaflet/dist/leaflet.css";
-import { Inter, JetBrains_Mono } from "next/font/google";
-import { AuthProvider } from "@/lib/auth-context";
-import { Providers, ToasterWrapper } from "@/features/_shared/components";
+import { headers } from "next/headers";
+import { AuthProvider } from "@/lib/auth/auth-context";
+import { Providers, ToasterWrapper } from "@/components";
 import { ReactQueryProvider } from "@/providers/react-query-provider";
-import { SentryInitializer } from "@/components/common/monitoring/sentry-initializer";
-import { ClientErrorReporter } from "@/components/common/monitoring/client-error-reporter";
-import { WebVitalsReporter } from "@/features/_shared/components/layout/web-vitals-reporter";
-
-const inter = Inter({
-  subsets: ["latin"],
-  variable: "--font-inter",
-  display: "swap",
-  preload: false,
-});
-
-const jetbrainsMono = JetBrains_Mono({
-  subsets: ["latin"],
-  variable: "--font-jetbrains-mono",
-  display: "swap",
-  preload: false,
-});
+import { SentryInitializer } from "@/components/monitoring/sentry-initializer";
+import { ClientErrorReporter } from "@/components/monitoring/client-error-reporter";
+import { WebVitalsReporter } from "@/components/layout/web-vitals-reporter";
 
 export const metadata = {
   title: "Docita - Healthcare OS",
@@ -39,24 +25,37 @@ export const viewport = {
   maximumScale: 5,
 };
 
-export default function RootLayout({
+const esbuildHelperBootstrapScript = `
+if (typeof globalThis.__name !== "function") {
+  globalThis.__name = function(target) {
+    return target;
+  };
+}
+`;
+
+export default async function RootLayout({
   children,
 }: {
   children: React.ReactNode;
 }) {
+  const nonce = (await headers()).get("x-nonce") ?? undefined;
+
   return (
-    <html
-      lang="en"
-      suppressHydrationWarning
-      className={`overflow-x-hidden ${inter.variable} ${jetbrainsMono.variable}`}
-    >
+    <html lang="en" suppressHydrationWarning className="overflow-x-hidden">
+      <head>
+        <script
+          nonce={nonce}
+          suppressHydrationWarning
+          dangerouslySetInnerHTML={{ __html: esbuildHelperBootstrapScript }}
+        />
+      </head>
       <body className="app-shell-bg font-sans bg-background text-foreground antialiased overflow-x-hidden">
         <SentryInitializer />
         <ClientErrorReporter />
         <WebVitalsReporter />
         <ReactQueryProvider>
           <AuthProvider>
-            <Providers>
+            <Providers nonce={nonce}>
               {children}
               <ToasterWrapper />
             </Providers>

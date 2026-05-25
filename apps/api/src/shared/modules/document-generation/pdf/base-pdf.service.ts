@@ -1,4 +1,6 @@
-import { Injectable, Logger } from '@nestjs/common';
+import { Inject, Injectable, Logger } from '@nestjs/common';
+import { CLOCK_PORT, type IClock } from '@/shared/common/ports/clock.port';
+import { fetchWithTimeout } from '@/shared/common/http/fetch-with-timeout';
 import PDFDocument from 'pdfkit';
 import {
   PDFClinicInfo,
@@ -9,6 +11,7 @@ import {
   TableColumn as _TableColumn,
   resolveCurrencySymbol,
 } from '@workspace/types';
+import { DATE_FORMATS, formatDate } from '@workspace/utils';
 
 export interface PDFContext {
   currentY: number;
@@ -35,6 +38,8 @@ const DIVIDER_COLOR = '#e2e8f0';
 @Injectable()
 export class BasePdfService {
   protected readonly logger = new Logger(BasePdfService.name);
+
+  constructor(@Inject(CLOCK_PORT) private readonly clock: IClock) {}
 
   protected createDocument(config: BasePDFConfig): {
     doc: typeof PDFDocument.prototype;
@@ -164,11 +169,7 @@ export class BasePdfService {
     doc.fillColor('#000000');
     currentY += 37;
 
-    const dateStr = `Date: ${new Date().toLocaleDateString('en-IN', {
-      day: 'numeric',
-      month: 'long',
-      year: 'numeric',
-    })}`;
+    const dateStr = `Date: ${formatDate(this.clock.now(), DATE_FORMATS.DATE_LONG)}`;
 
     doc.fontSize(9).font('Helvetica').fillColor('#6b7280');
 
@@ -373,7 +374,7 @@ export class BasePdfService {
       (src.startsWith('http://') || src.startsWith('https://'))
     ) {
       try {
-        const response = await fetch(src);
+        const response = await fetchWithTimeout(src);
         if (!response.ok) return undefined;
         const buf = await response.arrayBuffer();
         return Buffer.from(buf);

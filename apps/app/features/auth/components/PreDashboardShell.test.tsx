@@ -18,7 +18,7 @@ vi.mock("next/navigation", () => ({
   useRouter: () => mocks.router,
 }));
 
-vi.mock("@/lib/auth-context", () => ({
+vi.mock("@/lib/auth/auth-context", () => ({
   useAuth: () => ({
     logout: mocks.logout,
     user: mocks.user,
@@ -29,11 +29,15 @@ vi.mock("./AuthBrandingPanel", () => ({
   AuthBrandingPanel: () => <div data-testid="branding-panel" />,
 }));
 
+vi.mock("./AuthPreDashboardFooter", () => ({
+  AuthPreDashboardFooter: () => <div data-testid="auth-pre-dashboard-footer" />,
+}));
+
 vi.mock("@workspace/ui/components/theme-toggle", () => ({
   ThemeToggle: () => <button type="button">Theme</button>,
 }));
 
-vi.mock("@workspace/ui/components/docita-logo", () => ({
+vi.mock("@workspace/ui/components/indicators/docita-logo", () => ({
   DocitaLogo: () => <div data-testid="docita-logo" />,
 }));
 
@@ -92,6 +96,16 @@ describe("PreDashboardShell", () => {
     expect(
       container.querySelector('[data-testid="branding-panel"]'),
     ).not.toBeNull();
+  });
+
+  it("renders the auth pre-dashboard footer", () => {
+    render(
+      <PreDashboardShell currentStep="choose-path">
+        <div>Choose path</div>
+      </PreDashboardShell>,
+    );
+
+    expect(screen.getByTestId("auth-pre-dashboard-footer")).toBeInTheDocument();
   });
 
   it("can hide the progress indicator", () => {

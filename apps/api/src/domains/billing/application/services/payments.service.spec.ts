@@ -1,22 +1,66 @@
-import { BadRequestException, NotFoundException } from '@nestjs/common';
 import { beforeEach, describe, expect, it, jest } from '@jest/globals';
-import {
-  PaymentSession,
-  PaymentSessionStatus,
-  Prisma,
-  InvoiceStatus,
-} from '@workspace/db';
-import { AppConfigService } from '@/shared/modules/config/app-configuration.service';
+import { BadRequestException, NotFoundException } from '@nestjs/common';
+import { InvoiceStatus, PaymentSessionStatus, Prisma } from '@workspace/db';
 import { SendMessageUseCase } from '@/domains/whatsapp/application/use-cases/send-message.use-case';
-import { PushNotificationService } from '@/shared/modules/messaging/notifications/push-notification.service';
-import { IPaymentLinkProvider } from '@/domains/payments/core/ports/payment-link-provider.port';
+import { AppConfigService } from '@/shared/modules/config/app-configuration.service';
+import type { IPaymentLinkProvider } from '@/domains/payments/core/ports/payment-link-provider.port';
 import { PaymentProvider } from '@/domains/payments/core/entities/payment-provider.enum';
-import { IPaymentSessionRepository } from '@/domains/billing/core/repositories/payment-session.repository';
-import {
-  IInvoiceRepository,
-  InvoiceDetail,
-} from '@/domains/billing/core/repositories/invoice.repository';
+import type { IPaymentSessionRepository } from '@/domains/billing/core/repositories/payment-session.repository';
+import type { IInvoiceRepository } from '@/domains/billing/core/repositories/invoice.repository';
+import type { InvoiceDetail } from '@/domains/billing/core/repositories/invoice.repository';
+import type { IClock } from '@/shared/common/ports/clock.port';
+import { PaymentsCommandService } from './payments-command.service';
+import { PaymentsQueryService } from './payments-query.service';
 import { PaymentsService } from './payments.service';
+
+function buildInvoice(overrides: Partial<InvoiceDetail> = {}): InvoiceDetail {
+  return {
+    id: 'inv_1',
+    patientId: 'pat_1',
+    clinicId: 'clinic_1',
+    invoiceNumber: 'DC-1',
+    invoiceType: 'BILL_OF_SUPPLY',
+    currency: 'INR',
+    total: 500,
+    subtotal: 500,
+    discountTotal: 0,
+    taxTotal: 0,
+    grandTotal: 500,
+    taxSummary: null,
+    sellerTaxSnapshot: null,
+    buyerTaxSnapshot: null,
+    placeOfSupplyStateCode: null,
+    placeOfSupplyStateName: null,
+    reverseCharge: false,
+    issuedAt: null,
+    dueDate: null,
+    eInvoiceRequired: false,
+    eInvoiceIrn: null,
+    eInvoiceQrCode: null,
+    eInvoiceAcknowledgedAt: null,
+    status: InvoiceStatus.PENDING,
+    items: [] as Prisma.JsonValue,
+    doctorName: null,
+    doctorEmail: null,
+    doctorPhone: null,
+    doctorSpecialization: null,
+    doctorRegistrationNumber: null,
+    createdAt: new Date(),
+    updatedAt: new Date(),
+    pdfUrl: null,
+    pdfGeneratedAt: null,
+    pdfTemplateVersion: 1,
+    patient: {
+      id: 'pat_1',
+      firstName: 'A',
+      lastName: 'B',
+      phoneNumber: '+910000000000',
+      email: null,
+      address: null,
+    },
+    ...overrides,
+  };
+}
 
 describe('PaymentsService', () => {
   const repository: jest.Mocked<IPaymentSessionRepository> = {
@@ -28,6 +72,7 @@ describe('PaymentsService', () => {
     delete: jest.fn<IPaymentSessionRepository['delete']>(),
     findPendingReminders:
       jest.fn<IPaymentSessionRepository['findPendingReminders']>(),
+    findByInvoiceId: jest.fn<IPaymentSessionRepository['findByInvoiceId']>(),
   };
 
   const invoiceRepository: jest.Mocked<IInvoiceRepository> = {
@@ -37,30 +82,30 @@ describe('PaymentsService', () => {
     update: jest.fn<IInvoiceRepository['update']>(),
     delete: jest.fn<IInvoiceRepository['delete']>(),
     findPatientContext: jest.fn<IInvoiceRepository['findPatientContext']>(),
+    findClinicFeatureContext:
+      jest.fn<IInvoiceRepository['findClinicFeatureContext']>(),
     nextInvoiceNumber: jest.fn<IInvoiceRepository['nextInvoiceNumber']>(),
   };
 
   const sendMessage = Object.create(
     SendMessageUseCase.prototype,
   ) as SendMessageUseCase;
-  sendMessage.execute = jest
-    .fn<SendMessageUseCase['execute']>()
-    .mockResolvedValue({ messageId: 'message-1' });
+  sendMessage.execute = jest.fn<SendMessageUseCase['execute']>();
 
-  const pushNotifications = Object.create(
-    PushNotificationService.prototype,
-  ) as PushNotificationService;
+  const configService = Object.create(
+    AppConfigService.prototype,
+  ) as AppConfigService;
+  configService.getCurrencyCode = jest
+    .fn<AppConfigService['getCurrencyCode']>()
+    .mockReturnValue('INR');
+  configService.getPaymentLinkTtlMinutes = jest
+    .fn<AppConfigService['getPaymentLinkTtlMinutes']>()
+    .mockReturnValue(60);
+  configService.getFrontendAppUrl = jest
+    .fn<AppConfigService['getFrontendAppUrl']>()
+    .mockReturnValue('https://app.example.com');
 
-  const configService: Pick<
-    AppConfigService,
-    'getPaymentLinkTtlMinutes' | 'getFrontendAppUrl' | 'getCurrencyCode'
-  > = {
-    getPaymentLinkTtlMinutes: () => 30,
-    getFrontendAppUrl: () => 'https://app.docita.test',
-    getCurrencyCode: () => 'INR',
-  };
-
-  const paymentLinkProvider: jest.Mocked<IPaymentLinkProvider> = {
+  const paymentLinkProvider = {
     provider: PaymentProvider.RAZORPAY,
     capabilities: {
       supportsPaymentLinks: true,
@@ -69,131 +114,152 @@ describe('PaymentsService', () => {
       supportsRefunds: false,
       supportsWebhooks: true,
       supportedCurrencies: ['INR'],
-      supportedPaymentMethods: ['upi', 'card'],
+      supportedPaymentMethods: ['card'],
     },
-    isAvailable: jest.fn<IPaymentLinkProvider['isAvailable']>(),
+    isAvailable: jest
+      .fn<IPaymentLinkProvider['isAvailable']>()
+      .mockResolvedValue(true),
     createPaymentLink: jest.fn<IPaymentLinkProvider['createPaymentLink']>(),
-    getPaymentLink: jest.fn<IPaymentLinkProvider['getPaymentLink']>(),
-    cancelPaymentLink: jest.fn<IPaymentLinkProvider['cancelPaymentLink']>(),
+    getPaymentLink: jest
+      .fn<IPaymentLinkProvider['getPaymentLink']>()
+      .mockResolvedValue(null),
+    cancelPaymentLink: jest
+      .fn<IPaymentLinkProvider['cancelPaymentLink']>()
+      .mockResolvedValue(undefined),
+  } as unknown as IPaymentLinkProvider;
+
+  const clock: IClock = {
+    now: () => new Date('2026-05-19T10:00:00.000Z'),
   };
 
   let service: PaymentsService;
 
-  const buildInvoice = (
-    overrides: Partial<InvoiceDetail> = {},
-  ): InvoiceDetail =>
-    ({
-      id: 'invoice-1',
-      patientId: 'patient-1',
-      clinicId: 'clinic-1',
-      status: InvoiceStatus.PENDING,
-      total: 250,
-      patient: {
-        id: 'patient-1',
-        firstName: 'Asha',
-        lastName: 'Rao',
-        phoneNumber: '9999999999',
-        email: 'asha@example.com',
-        address: null,
-        clinic: {
-          id: 'clinic-1',
-          name: 'Docita Clinic',
-          address: null,
-          phone: null,
-          email: null,
-          logo: null,
-          currency: 'INR',
-          branding: Prisma.DbNull,
-          slaSignatureUrl: null,
-          settings: Prisma.DbNull,
-        },
-      },
-      ...overrides,
-    }) as unknown as InvoiceDetail;
-
-  const buildPaymentSession = (): PaymentSession =>
-    ({
-      id: 'session-1',
-      clinicId: 'clinic-1',
-      invoiceId: 'invoice-1',
-      patientId: 'patient-1',
-      provider: 'razorpay',
-      amount: 25_000,
-      currency: 'INR',
-      status: PaymentSessionStatus.CREATED,
-      expiresAt: new Date('2026-01-01T00:30:00.000Z'),
-      paymentLink: 'https://pay.docita.test/session-1',
-      shortUrl: 'https://pay.docita.test/s/1',
-    }) as unknown as PaymentSession;
-
   beforeEach(() => {
     jest.clearAllMocks();
-    service = new PaymentsService(
+    const command = new PaymentsCommandService(
       repository,
       invoiceRepository,
       sendMessage,
-      pushNotifications,
-      configService as AppConfigService,
+      configService,
       paymentLinkProvider,
+      clock,
     );
+    const query = new PaymentsQueryService(repository);
+    service = new PaymentsService(query, command);
   });
 
-  it('requires payment links to use an invoice owned by the clinic', async () => {
-    invoiceRepository.findById.mockResolvedValue(null);
+  describe('markInvoicePaidManually', () => {
+    it('throws NotFoundException when invoice is missing', async () => {
+      invoiceRepository.findById.mockResolvedValue(null);
 
-    await expect(
-      service.createPaymentLink({
-        invoiceId: 'invoice-1',
-        amount: 250,
-        currency: 'INR',
-        patientId: 'patient-1',
-        clinicId: 'clinic-2',
-      }),
-    ).rejects.toBeInstanceOf(NotFoundException);
+      await expect(
+        service.markInvoicePaidManually({
+          invoiceId: 'missing',
+          clinicId: 'clinic_1',
+          performedByUserId: 'user_1',
+          paymentMethod: 'CASH',
+        }),
+      ).rejects.toBeInstanceOf(NotFoundException);
 
-    expect(invoiceRepository.findById).toHaveBeenCalledWith(
-      'invoice-1',
-      'clinic-2',
-    );
-    expect(repository.create).not.toHaveBeenCalled();
-    expect(paymentLinkProvider.createPaymentLink).not.toHaveBeenCalled();
-  });
-
-  it('rejects payment links when the patient does not match the invoice', async () => {
-    invoiceRepository.findById.mockResolvedValue(buildInvoice());
-
-    await expect(
-      service.createPaymentLink({
-        invoiceId: 'invoice-1',
-        amount: 250,
-        currency: 'INR',
-        patientId: 'patient-2',
-        clinicId: 'clinic-1',
-      }),
-    ).rejects.toBeInstanceOf(BadRequestException);
-
-    expect(repository.create).not.toHaveBeenCalled();
-    expect(paymentLinkProvider.createPaymentLink).not.toHaveBeenCalled();
-  });
-
-  it('marks manual payments using a clinic-scoped invoice update', async () => {
-    invoiceRepository.findById.mockResolvedValue(buildInvoice());
-    invoiceRepository.update.mockResolvedValue(
-      buildInvoice({ status: InvoiceStatus.PAID }),
-    );
-    repository.create.mockResolvedValue(buildPaymentSession());
-
-    await service.markInvoicePaidManually({
-      invoiceId: 'invoice-1',
-      clinicId: 'clinic-1',
-      performedByUserId: 'user-1',
-      paymentMethod: 'cash',
+      expect(invoiceRepository.update).not.toHaveBeenCalled();
+      expect(repository.create).not.toHaveBeenCalled();
     });
 
-    expect(invoiceRepository.update).toHaveBeenCalledWith(
-      'invoice-1',
-      { status: InvoiceStatus.PAID },
-      'clinic-1',
-    );
+    it('throws BadRequestException when invoice is already PAID', async () => {
+      invoiceRepository.findById.mockResolvedValue(
+        buildInvoice({ status: InvoiceStatus.PAID }),
+      );
+
+      await expect(
+        service.markInvoicePaidManually({
+          invoiceId: 'inv_1',
+          clinicId: 'clinic_1',
+          performedByUserId: 'user_1',
+          paymentMethod: 'CASH',
+        }),
+      ).rejects.toBeInstanceOf(BadRequestException);
+
+      expect(invoiceRepository.update).not.toHaveBeenCalled();
+      expect(repository.create).not.toHaveBeenCalled();
+    });
+
+    it('throws BadRequestException when invoice is CANCELLED', async () => {
+      invoiceRepository.findById.mockResolvedValue(
+        buildInvoice({ status: InvoiceStatus.CANCELLED }),
+      );
+
+      await expect(
+        service.markInvoicePaidManually({
+          invoiceId: 'inv_1',
+          clinicId: 'clinic_1',
+          performedByUserId: 'user_1',
+          paymentMethod: 'CASH',
+        }),
+      ).rejects.toBeInstanceOf(BadRequestException);
+
+      expect(invoiceRepository.update).not.toHaveBeenCalled();
+    });
+
+    it('records channel, normalized OTHER, and reference in session meta', async () => {
+      invoiceRepository.findById.mockResolvedValue(buildInvoice());
+      invoiceRepository.update.mockResolvedValue(
+        buildInvoice({ status: InvoiceStatus.PAID }),
+      );
+      repository.create.mockResolvedValue({} as never);
+
+      await service.markInvoicePaidManually({
+        invoiceId: 'inv_1',
+        clinicId: 'clinic_1',
+        performedByUserId: 'user_1',
+        paymentMethod: 'OTHER',
+        reference: 'RRN123',
+        notes: 'Paid at desk',
+      });
+
+      expect(invoiceRepository.update).toHaveBeenCalledWith(
+        'inv_1',
+        { status: InvoiceStatus.PAID },
+        'clinic_1',
+      );
+
+      expect(repository.create).toHaveBeenCalledWith(
+        expect.objectContaining({
+          provider: 'manual',
+          status: PaymentSessionStatus.CAPTURED,
+          meta: expect.objectContaining({
+            channel: 'OTHER_ONLINE',
+            method: 'OTHER_ONLINE',
+            reference: 'RRN123',
+            notes: 'Paid at desk',
+            performedBy: 'user_1',
+            amount: 500,
+          }),
+        }),
+      );
+    });
+
+    it('uses UPI_QR channel without rewriting', async () => {
+      invoiceRepository.findById.mockResolvedValue(buildInvoice());
+      invoiceRepository.update.mockResolvedValue(
+        buildInvoice({ status: InvoiceStatus.PAID }),
+      );
+      repository.create.mockResolvedValue({} as never);
+
+      await service.markInvoicePaidManually({
+        invoiceId: 'inv_1',
+        clinicId: 'clinic_1',
+        performedByUserId: 'user_1',
+        paymentMethod: 'UPI_QR',
+      });
+
+      expect(repository.create).toHaveBeenCalledWith(
+        expect.objectContaining({
+          meta: expect.objectContaining({
+            channel: 'UPI_QR',
+            method: 'UPI_QR',
+          }),
+        }),
+      );
+    });
   });
 });

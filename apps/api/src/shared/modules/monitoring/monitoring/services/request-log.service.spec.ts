@@ -2,6 +2,11 @@ import { Test, TestingModule } from '@nestjs/testing';
 import { RequestLogService } from './request-log.service';
 import { PrismaService } from '@/prisma/prisma.service';
 import { MonitoringFactory } from '@/shared/modules/monitoring/monitoring/factories/monitoring.factory';
+import {
+  API_REQUEST_METRICS_REPOSITORY_TOKEN,
+  type ApiRequestMetricsRepository,
+} from '@/shared/modules/monitoring/monitoring/ports/api-request-metrics.repository.port';
+import { CLOCK_PORT } from '@/shared/common/ports/clock.port';
 import { ApiRequestInput } from '@/shared/modules/monitoring/monitoring/schemas/monitoring.schema';
 import {
   beforeEach,
@@ -15,6 +20,7 @@ import {
 describe('RequestLogService', () => {
   let service: RequestLogService;
   let prismaService: {
+    runUnrestricted: ReturnType<typeof jest.fn>;
     $queryRaw: ReturnType<typeof jest.fn>;
     apiRequest: {
       createMany: ReturnType<typeof jest.fn>;
@@ -27,6 +33,9 @@ describe('RequestLogService', () => {
   };
 
   const mockPrismaService = {
+    runUnrestricted: jest.fn(async <T>(callback: () => Promise<T>) =>
+      callback(),
+    ),
     $queryRaw: jest.fn(async () => []),
     apiRequest: {
       createMany: jest.fn(),
@@ -42,12 +51,39 @@ describe('RequestLogService', () => {
     createApiRequest: jest.fn((data) => data),
   };
 
+  const apiRequestMetricsMock: jest.Mocked<
+    Pick<
+      ApiRequestMetricsRepository,
+      | 'getResponseTimeDistribution'
+      | 'getThroughputByMinute'
+      | 'getRequestsByHour'
+    >
+  > = {
+    getResponseTimeDistribution: jest
+      .fn<ApiRequestMetricsRepository['getResponseTimeDistribution']>()
+      .mockResolvedValue([]),
+    getThroughputByMinute: jest
+      .fn<ApiRequestMetricsRepository['getThroughputByMinute']>()
+      .mockResolvedValue([]),
+    getRequestsByHour: jest
+      .fn<ApiRequestMetricsRepository['getRequestsByHour']>()
+      .mockResolvedValue([]),
+  };
+
   beforeEach(async () => {
     const module: TestingModule = await Test.createTestingModule({
       providers: [
         RequestLogService,
         { provide: PrismaService, useValue: mockPrismaService },
         { provide: MonitoringFactory, useValue: mockMonitoringFactory },
+        {
+          provide: API_REQUEST_METRICS_REPOSITORY_TOKEN,
+          useValue: apiRequestMetricsMock,
+        },
+        {
+          provide: CLOCK_PORT,
+          useValue: { now: () => new Date('2026-05-19T12:00:00.000Z') },
+        },
       ],
     }).compile();
 
@@ -115,6 +151,7 @@ describe('RequestLogService', () => {
 
       await service.flushBuffer();
       expect(prismaService.apiRequest.createMany).toHaveBeenCalled();
+      expect(prismaService.runUnrestricted).toHaveBeenCalled();
       expect(service['requestBuffer']).toHaveLength(0);
     });
 
@@ -159,12 +196,14 @@ describe('RequestLogService', () => {
 
   describe('getRequestStats', () => {
     it('should aggregate stats', async () => {
-      prismaService.$queryRaw.mockResolvedValueOnce([{ hour: 10, count: 3n }]);
+      apiRequestMetricsMock.getRequestsByHour.mockResolvedValueOnce([
+        { hour: 10, count: 3n },
+      ]);
       const stats = await service.getRequestStats();
       expect(stats.totalRequests).toBe(100);
       expect(prismaService.apiRequest.count).toHaveBeenCalledTimes(3);
       expect(prismaService.apiRequest.aggregate).toHaveBeenCalled();
-      expect(prismaService.$queryRaw).toHaveBeenCalled();
+      expect(apiRequestMetricsMock.getRequestsByHour).toHaveBeenCalled();
       expect(stats.requestsByHour).toEqual([{ hour: 10, count: 3 }]);
     });
   });

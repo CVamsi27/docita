@@ -55,6 +55,8 @@ out
 
 # Local upload artifacts
 /uploads
+/artifacts
+!artifacts/a11y-baseline.json
 
 # Turbo cache
 .turbo
@@ -81,6 +83,9 @@ apps/api/src/seed-admin.ts
 .idea
 .vscode
 
+# Cursor / local agent config
+.cursor/mcp.json
+
 # Vercel
 .vercel
 
@@ -103,3 +108,6 @@ eng.traineddata
 
 # Generated audit reports
 lighthouse-audit*.json
+
+# Local planning scratch docs
+docs/UpcomingPlans/

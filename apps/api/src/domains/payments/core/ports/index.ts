@@ -4,3 +4,4 @@ export * from './subscription-provider.port';
 export * from './order-provider.port';
 export * from './webhook-handler.port';
 export * from './refund-provider.port';
+export * from './platform-invoice-provider.port';

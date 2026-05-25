@@ -1,16 +1,13 @@
 import { Injectable, Logger, Inject } from '@nestjs/common';
-import { Prisma } from '@workspace/db';
-import { PrismaService } from '@/prisma/prisma.service';
 import {
   CODE_CATALOG_PROVIDER,
   CodeCatalogProvider,
 } from '@/domains/clinical/core/providers/code-catalog.provider';
-type SyncedCodeRecord = {
-  code: string;
-  description: string;
-  category: string;
-  isCommon: boolean;
-};
+import {
+  IMedicalCodingRepository,
+  MedicalCodeSyncRecord,
+  SyncedMedicalCodeRecord,
+} from '@/domains/clinical/core/repositories/clinical.repository.interface';
 
 @Injectable()
 export class MedicalCodeSyncService {
@@ -18,7 +15,8 @@ export class MedicalCodeSyncService {
   private static readonly UPDATE_BATCH_SIZE = 100;
 
   constructor(
-    private readonly prisma: PrismaService,
+    @Inject('IMedicalCodingRepository')
+    private readonly medicalCodingRepository: IMedicalCodingRepository,
     @Inject(CODE_CATALOG_PROVIDER)
     private readonly codeCatalogProvider: CodeCatalogProvider,
   ) {}
@@ -39,35 +37,11 @@ export class MedicalCodeSyncService {
       await this.syncCodeBatch({
         records: batch,
         findExisting: (codesToFind) =>
-          this.prisma.icdCode.findMany({
-            where: { code: { in: codesToFind } },
-            select: {
-              code: true,
-              description: true,
-              category: true,
-              isCommon: true,
-            },
-          }),
+          this.medicalCodingRepository.findExistingIcdCodes(codesToFind),
         createMany: (data) =>
-          this.prisma.icdCode.createMany({
-            data: data.map((code) => ({
-              code: code.code,
-              description: code.description,
-              category: code.category,
-              version: 'ICD-10',
-              isCommon: true,
-            })),
-            skipDuplicates: true,
-          }),
-        updateOne: (code) =>
-          this.prisma.icdCode.update({
-            where: { code: code.code },
-            data: {
-              description: code.description,
-              category: code.category,
-              isCommon: true,
-            },
-          }),
+          this.medicalCodingRepository.createCommonIcdCodes(data),
+        updateMany: (data) =>
+          this.medicalCodingRepository.updateCommonIcdCodes(data),
       });
       batch.forEach((c) => seen.add(c.code));
     });
@@ -80,35 +54,11 @@ export class MedicalCodeSyncService {
       await this.syncCodeBatch({
         records: batch,
         findExisting: (codesToFind) =>
-          this.prisma.cptCode.findMany({
-            where: { code: { in: codesToFind } },
-            select: {
-              code: true,
-              description: true,
-              category: true,
-              isCommon: true,
-            },
-          }),
+          this.medicalCodingRepository.findExistingCptCodes(codesToFind),
         createMany: (data) =>
-          this.prisma.cptCode.createMany({
-            data: data.map((code) => ({
-              code: code.code,
-              description: code.description,
-              category: code.category,
-              isCommon: true,
-              price: 0,
-            })),
-            skipDuplicates: true,
-          }),
-        updateOne: (code) =>
-          this.prisma.cptCode.update({
-            where: { code: code.code },
-            data: {
-              description: code.description,
-              category: code.category,
-              isCommon: true,
-            },
-          }),
+          this.medicalCodingRepository.createCommonCptCodes(data),
+        updateMany: (data) =>
+          this.medicalCodingRepository.updateCommonCptCodes(data),
       });
       batch.forEach((c) => seen.add(c.code));
     });
@@ -121,12 +71,12 @@ export class MedicalCodeSyncService {
     records,
     findExisting,
     createMany,
-    updateOne,
+    updateMany,
   }: {
     records: TCode[];
-    findExisting: (codes: string[]) => Promise<SyncedCodeRecord[]>;
-    createMany: (records: TCode[]) => Prisma.PrismaPromise<Prisma.BatchPayload>;
-    updateOne: (record: TCode) => Prisma.PrismaPromise<SyncedCodeRecord>;
+    findExisting: (codes: string[]) => Promise<SyncedMedicalCodeRecord[]>;
+    createMany: (records: TCode[]) => Promise<void>;
+    updateMany: (records: MedicalCodeSyncRecord[]) => Promise<void>;
   }): Promise<void> {
     if (records.length === 0) {
       return;
@@ -179,7 +129,7 @@ export class MedicalCodeSyncService {
         index,
         index + MedicalCodeSyncService.UPDATE_BATCH_SIZE,
       );
-      await this.prisma.$transaction(batch.map((record) => updateOne(record)));
+      await updateMany(batch);
     }
   }
 }

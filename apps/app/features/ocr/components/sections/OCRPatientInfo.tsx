@@ -1,5 +1,5 @@
-import { Input } from "@workspace/ui/components/input";
-import { Label } from "@workspace/ui/components/label";
+import { Input } from "@workspace/ui/components/form/input";
+import { Label } from "@workspace/ui/components/form/label";
 import { User } from "lucide-react";
 import { ConfidenceIndicator } from "@/features/ocr/components/common/confidence-indicator";
 import { SectionToggle } from "@/features/ocr/components/common/section-toggle";
@@ -153,7 +153,7 @@ export const OCRPatientInfo = ({
                     bloodType: e.target.value,
                   })
                 }
-                placeholder="O+, A-, etc."
+                placeholder="Blood type"
               />
             </div>
           </div>

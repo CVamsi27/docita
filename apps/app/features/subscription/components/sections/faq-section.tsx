@@ -3,10 +3,22 @@ import {
   AccordionContent,
   AccordionItem,
   AccordionTrigger,
-} from "@workspace/ui/components/accordion";
+} from "@workspace/ui/components/overlay/accordion";
+import { GUIDED_SETUP_LIST_PRICE_BY_CURRENCY } from "@workspace/types";
+import { formatCurrency } from "@workspace/utils";
 
 export function FaqSection() {
+  const guidedSetupInr = formatCurrency(
+    GUIDED_SETUP_LIST_PRICE_BY_CURRENCY.INR,
+    { currency: "INR" },
+  );
+
   const faqs = [
+    {
+      question: "Is guided setup included in my subscription?",
+      answer:
+        `Optional guided setup and similar one-off services are billed separately from your facility subscription. In India, guided setup currently starts at ${guidedSetupInr} (inclusive of GST where shown on your invoice). Other regions use fixed list prices in your clinic currency. When Docita records a charge, it appears in Billing History with a clear label.`,
+    },
     {
       question: "Can I switch plans later?",
       answer:
@@ -36,7 +48,7 @@ export function FaqSection() {
 
   return (
     <div className="max-w-3xl mx-auto w-full">
-      <h2 className="text-2xl font-bold text-center mb-8">
+      <h2 className="ui-section-title mb-8 text-center text-[var(--fs-2xl)]">
         Frequently Asked Questions
       </h2>
       <Accordion type="single" collapsible className="w-full">

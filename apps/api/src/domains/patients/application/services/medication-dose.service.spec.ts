@@ -2,7 +2,10 @@ import { Test, TestingModule } from '@nestjs/testing';
 import { NotFoundException, BadRequestException } from '@nestjs/common';
 import { beforeEach, describe, it, expect, jest } from '@jest/globals';
 import { MedicationDoseService } from './medication-dose.service';
+import { MedicationDoseCommandService } from './medication-dose-command.service';
+import { MedicationDoseQueryService } from './medication-dose-query.service';
 import { MEDICATION_DOSE_REPOSITORY_TOKEN } from '@/domains/patients/core/repositories/medication-dose.repository.interface';
+import { CLOCK_PORT } from '@/shared/common/ports/clock.port';
 
 describe('MedicationDoseService', () => {
   let service: MedicationDoseService;
@@ -30,8 +33,14 @@ describe('MedicationDoseService', () => {
 
     const module: TestingModule = await Test.createTestingModule({
       providers: [
+        MedicationDoseCommandService,
+        MedicationDoseQueryService,
         MedicationDoseService,
         { provide: MEDICATION_DOSE_REPOSITORY_TOKEN, useValue: repository },
+        {
+          provide: CLOCK_PORT,
+          useValue: { now: () => new Date('2026-03-21T10:00:00.000Z') },
+        },
       ],
     }).compile();
 

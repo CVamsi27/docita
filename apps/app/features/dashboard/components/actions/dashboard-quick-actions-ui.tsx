@@ -17,29 +17,39 @@ export interface DashboardQuickActionsUIProps {
 export function DashboardQuickActionsUI({
   quickActions,
 }: DashboardQuickActionsUIProps) {
+  const actions = [
+    ...quickActions,
+    {
+      href: "/patients",
+      icon: Users,
+      label: "All Patients",
+      shortLabel: "Patients",
+    },
+  ];
+
   return (
-    <div className="flex items-center gap-3 overflow-x-auto pb-4 -mx-4 px-4 sm:mx-0 sm:px-0 scrollbar-none snap-x snap-mandatory">
-      {quickActions.map((action, idx) => (
+    <div className="grid grid-cols-2 gap-2.5 sm:grid-cols-3 sm:gap-3 md:grid-cols-4 xl:grid-cols-7">
+      {actions.map((action, idx) => (
         <Link
           key={action.href}
           href={action.href}
           className={cn(
-            "group flex min-w-[72px] snap-start flex-col items-center justify-center gap-2 rounded-2xl border border-transparent p-3 transition-colors duration-150 sm:min-w-24",
-            "bg-card hover:bg-muted/40 hover:border-primary/20",
+            "group flex min-h-24 min-w-0 flex-col items-center justify-center gap-2 rounded-[var(--radius)] border border-transparent p-3 text-center transition-colors duration-150",
+            "bg-card hover:bg-muted/40 hover:border-border/80",
           )}
         >
           <div
             className={cn(
-              "relative h-10 w-10 sm:h-12 sm:w-12 rounded-xl flex items-center justify-center shadow-sm",
+              "relative flex h-10 w-10 items-center justify-center rounded-full border border-border/70 bg-background/70 shadow-sm sm:h-12 sm:w-12",
               idx === 0
-                ? "bg-primary text-primary-foreground"
-                : "bg-background/80 text-primary hover:bg-primary/10",
+                ? "bg-foreground text-background border-border/40"
+                : "text-primary hover:bg-background/85",
             )}
           >
             <action.icon
               className={cn(
                 "h-5 w-5 sm:h-6 sm:w-6",
-                idx === 0 ? "text-primary-foreground" : "text-primary",
+                idx === 0 ? "text-background" : "text-primary",
               )}
             />
             {action.badge && (
@@ -53,20 +63,6 @@ export function DashboardQuickActionsUI({
           </span>
         </Link>
       ))}
-
-      <div className="w-px h-12 bg-border/50 mx-2 hidden sm:block" />
-
-      <Link
-        href="/patients"
-        className="group hidden min-w-20 flex-col items-center justify-center gap-2 rounded-2xl p-3 transition-colors duration-150 hover:bg-muted/40 sm:flex"
-      >
-        <div className="h-10 w-10 rounded-xl bg-muted/50 flex items-center justify-center text-muted-foreground group-hover:text-foreground transition-colors">
-          <Users className="h-5 w-5" />
-        </div>
-        <span className="text-xs font-medium text-muted-foreground group-hover:text-foreground">
-          All Patients
-        </span>
-      </Link>
     </div>
   );
 }

@@ -1,4 +1,18 @@
+import { z } from "zod";
+import { jsonObjectSchema } from "../shared/json-schema";
 import { FieldConfidenceConfig, OcrRawData } from "./ai-types";
+
+/** Prisma `OcrDocument.extractedData`. */
+export const ocrExtractedDataJsonSchema = jsonObjectSchema;
+
+/** Prisma `OcrDocument.fieldConfidenceScores`. */
+export const ocrFieldConfidenceScoresJsonSchema = z.record(z.number());
+
+/** Prisma `OcrDocument.suggestedCorrections`. */
+export const ocrSuggestedCorrectionsJsonSchema = jsonObjectSchema;
+
+/** Prisma `OcrDocument.corrections`. */
+export const ocrCorrectionsJsonSchema = jsonObjectSchema;
 
 export interface ExtractedText {
   text: string;

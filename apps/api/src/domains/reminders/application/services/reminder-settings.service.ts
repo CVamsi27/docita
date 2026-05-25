@@ -1,6 +1,11 @@
-import { Injectable, Logger } from '@nestjs/common';
-import { PrismaService } from '@/prisma/prisma.service';
+import { Injectable, Logger, Inject } from '@nestjs/common';
+import {
+  REMINDER_PERSISTENCE_PORT,
+  type ReminderPersistencePort,
+} from '@/domains/reminders/application/ports/reminder-persistence.port';
 import { ReminderSettings } from '@workspace/db';
+import { CLOCK_PORT, type IClock } from '@/shared/common/ports/clock.port';
+import { isDatabaseAuthError } from '@/shared/modules/auth/auth/auth-database.util';
 
 interface ReminderSettingsData {
   enabled?: boolean;
@@ -20,10 +25,14 @@ export class ReminderSettingsService {
   private readonly logger = new Logger(ReminderSettingsService.name);
   private databaseAccessDisabled = false;
 
-  constructor(private prisma: PrismaService) {}
+  constructor(
+    @Inject(REMINDER_PERSISTENCE_PORT)
+    private persistence: ReminderPersistencePort,
+    @Inject(CLOCK_PORT) private readonly clock: IClock,
+  ) {}
 
   private getFallbackSettings(clinicId?: string): ReminderSettings {
-    const now = new Date();
+    const now = this.clock.now();
     return {
       id: 'local-fallback-reminder-settings',
       clinicId: clinicId ?? '',
@@ -55,29 +64,6 @@ Thank you,
     };
   }
 
-  private isDatabaseAuthError(error: unknown): boolean {
-    if (!error || typeof error !== 'object') {
-      return false;
-    }
-
-    const candidate = error as { code?: unknown; message?: unknown };
-    const code = typeof candidate.code === 'string' ? candidate.code : '';
-    const message =
-      typeof candidate.message === 'string'
-        ? candidate.message.toLowerCase()
-        : '';
-
-    if (code === 'P1000') {
-      return true;
-    }
-
-    return (
-      message.includes('authentication failed against the database server') ||
-      message.includes('database credentials') ||
-      message.includes('password authentication failed')
-    );
-  }
-
   async getSettings(clinicId?: string): Promise<ReminderSettings> {
     if (this.databaseAccessDisabled) {
       return this.getFallbackSettings(clinicId);
@@ -86,15 +72,15 @@ Thank you,
     let settings: ReminderSettings | null = null;
     try {
       if (clinicId) {
-        settings = await this.prisma.reminderSettings.findUnique({
+        settings = await this.persistence.reminderSettings.findUnique({
           where: { clinicId },
         });
       } else {
-        settings = await this.prisma.reminderSettings.findFirst();
+        settings = await this.persistence.reminderSettings.findFirst();
       }
 
       if (!settings && clinicId) {
-        settings = await this.prisma.reminderSettings.create({
+        settings = await this.persistence.reminderSettings.create({
           data: {
             clinicId,
             enabled: true,
@@ -124,7 +110,7 @@ Thank you,
 
       return settings ?? this.getFallbackSettings(clinicId);
     } catch (error) {
-      if (this.isDatabaseAuthError(error)) {
+      if (isDatabaseAuthError(error)) {
         this.databaseAccessDisabled = true;
         this.logger.warn(
           'Disabling reminder settings database access due to database authentication failure. Verify DATABASE_URL credentials.',
@@ -144,18 +130,18 @@ Thank you,
       return {
         ...this.getFallbackSettings(clinicId),
         ...data,
-        updatedAt: new Date(),
-      } as ReminderSettings;
+        updatedAt: this.clock.now(),
+      } satisfies ReminderSettings;
     }
 
     const existing = await this.getSettings(clinicId);
     try {
-      return await this.prisma.reminderSettings.update({
+      return await this.persistence.reminderSettings.update({
         where: { id: existing.id },
         data,
       });
     } catch (error) {
-      if (this.isDatabaseAuthError(error)) {
+      if (isDatabaseAuthError(error)) {
         this.databaseAccessDisabled = true;
         this.logger.warn(
           'Disabling reminder settings database access due to database authentication failure. Verify DATABASE_URL credentials.',
@@ -163,8 +149,8 @@ Thank you,
         return {
           ...this.getFallbackSettings(clinicId),
           ...data,
-          updatedAt: new Date(),
-        } as ReminderSettings;
+          updatedAt: this.clock.now(),
+        } satisfies ReminderSettings;
       }
 
       throw error;

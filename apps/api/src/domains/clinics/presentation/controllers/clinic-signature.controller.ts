@@ -13,12 +13,12 @@ import { FileInterceptor } from '@nestjs/platform-express';
 import { SignatureUploadService } from '@/domains/doctors/application/services/signature-upload.service';
 import { Role, SignaturePurpose } from '@workspace/db';
 import { Roles } from '@/shared/modules/auth/auth/roles.decorator';
-import { RequestWithUser } from '@/common/types/common.types';
+import { RequestWithUser } from '@/shared/common/types/common.types';
 import { Public } from '@/shared/modules/auth/auth/public.decorator';
 import {
   assertAllowedFileSignature,
   createTempDiskStorage,
-} from '@/common/utils/upload.utils';
+} from '@/shared/common/utils/upload.utils';
 import { unlink } from 'fs/promises';
 
 @Controller('clinics/signature')

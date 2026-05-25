@@ -1,11 +1,11 @@
 "use client";
 
 import { AlertCircle, Calendar, LayoutGrid, Plus } from "lucide-react";
-import { AppPageScaffold } from "@workspace/ui/components/app-page-scaffold";
-import { Button } from "@workspace/ui/components/button";
-import { Card, CardContent, CardHeader, CardTitle } from "@workspace/ui/components/card";
-import { DataState } from "@workspace/ui/components/data-state";
-import { PageHeader } from "@workspace/ui/components/page-header";
+import { AppPageScaffold } from "@workspace/ui/components/layout/app-page-scaffold";
+import { Button } from "@workspace/ui/components/form/button";
+import { Card, CardContent, CardHeader, CardTitle } from "@workspace/ui/components/indicators/card";
+import { DataState } from "@workspace/ui/components/data-display/data-state";
+import { PageHeader } from "@workspace/ui/components/layout/page-header";
 
 export default function UiContractVisualTestPage() {
   return (
@@ -54,7 +54,7 @@ export default function UiContractVisualTestPage() {
           <CardContent>
             <DataState
               status="loading"
-              loadingMessage="Loading appointment data..."
+              loadingMessage="Loading appointment data…"
             />
           </CardContent>
         </Card>
@@ -106,7 +106,7 @@ export default function UiContractVisualTestPage() {
       </section>
 
       <section data-testid="error-inline">
-        <div className="rounded-xl border border-destructive/30 bg-destructive/5 p-4">
+        <div className="rounded-lg border border-destructive/30 bg-destructive/5 p-4">
           <p className="flex items-center gap-2 text-sm text-destructive">
             <AlertCircle className="h-4 w-4" />
             Inline alert style reference

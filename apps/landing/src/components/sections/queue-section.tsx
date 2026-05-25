@@ -1,7 +1,7 @@
 "use client";
 
 import { CheckCircle2, Clock, Users } from "lucide-react";
-import { SectionHeading } from "@workspace/ui/components/section-heading";
+import { SectionHeading } from "@workspace/ui/components/layout/section-heading";
 
 export function QueueSection() {
   return (
@@ -9,38 +9,35 @@ export function QueueSection() {
       <div className="ui-page-shell">
         <div className="grid gap-12 lg:grid-cols-2 items-center">
           <div className="order-2 lg:order-1 relative">
-            <div className="rounded-2xl bg-linear-to-br from-warning/20 to-warning/10 p-8 backdrop-blur-sm border border-warning/30">
-              <div className="bg-background rounded-xl p-6 shadow-lg space-y-4">
+            <div className="rounded-[var(--radius)] border border-warning/30 bg-warning/5 p-8">
+              <div className="bg-background rounded-[var(--radius)] p-6 shadow-lg space-y-4">
                 <div className="flex items-center justify-between border-b pb-4">
                   <div className="flex items-center gap-3">
                     <Clock className="h-5 w-5 text-warning" />
                     <span className="font-semibold">Live Queue Status</span>
                   </div>
-                  <span
-                    className="rounded-full border border-success bg-success px-2 py-1 text-xs font-medium animate-pulse"
-                    style={{ color: "#000000" }}
-                  >
+                  <span className="badge-success border px-2 py-1 text-xs font-medium">
                     Live
                   </span>
                 </div>
 
                 <div className="grid grid-cols-2 gap-4">
-                  <div className="rounded-lg border border-warning/30 bg-warning/10 p-4 text-center text-foreground">
+                  <div className="rounded-[var(--radius)] border border-warning/30 bg-warning/10 p-4 text-center text-foreground">
                     <div className="mb-1 text-xs uppercase tracking-wider text-foreground/80">
                       Current Token
                     </div>
-                    <div className="text-3xl font-bold text-foreground">
+                    <div className="ui-section-title text-[var(--fs-2xl)] text-foreground sm:text-[var(--fs-3xl)]">
                       A-012
                     </div>
                     <div className="mt-1 text-xs text-foreground/80">
                       In Consultation
                     </div>
                   </div>
-                  <div className="rounded-lg border border-info/30 bg-info/10 p-4 text-center text-foreground">
+                  <div className="rounded-[var(--radius)] border border-info/30 bg-info/10 p-4 text-center text-foreground">
                     <div className="mb-1 text-xs uppercase tracking-wider text-foreground/80">
                       Next Token
                     </div>
-                    <div className="text-3xl font-bold text-foreground">
+                    <div className="ui-section-title text-[var(--fs-2xl)] text-foreground sm:text-[var(--fs-3xl)]">
                       A-013
                     </div>
                     <div className="mt-1 text-xs text-foreground/80">
@@ -75,7 +72,7 @@ export function QueueSection() {
                   ].map((patient, i) => (
                     <div
                       key={i}
-                      className="flex items-center justify-between p-3 bg-muted/30 rounded-lg hover:bg-muted/50 transition-colors"
+                      className="flex items-center justify-between p-3 bg-muted/30 rounded-[var(--radius)] hover:bg-muted/50 transition-colors"
                     >
                       <div className="flex items-center gap-3">
                         <span className="font-mono font-medium text-sm bg-background px-2 py-1 rounded border">

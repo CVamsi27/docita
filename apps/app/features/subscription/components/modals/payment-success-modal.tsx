@@ -9,12 +9,15 @@ import {
   DialogFooter,
   DialogHeader,
   DialogTitle,
-} from "@workspace/ui/components/dialog";
-import { Button } from "@workspace/ui/components/button";
+} from "@workspace/ui/components/overlay/dialog";
+import { Button } from "@workspace/ui/components/form/button";
+import { SymbolTooltip } from "@workspace/ui/components/overlay/tooltip";
 import { CheckCircle2, ExternalLink, X } from "lucide-react";
 import confetti from "canvas-confetti";
 import { useRouter } from "next/navigation";
-import { DEFAULT_CURRENCY } from "@workspace/utils";
+import { useClinicCurrency } from "@/hooks/use-clinic-currency";
+import { SUBSCRIPTION_SETTINGS_PATH } from "@/lib/subscription/subscription-settings-path";
+import { formatDate } from "@/lib/formatters";
 
 interface PaymentSuccessModalProps {
   open: boolean;
@@ -32,6 +35,7 @@ export function PaymentSuccessModal({
   transactionId,
 }: PaymentSuccessModalProps) {
   const router = useRouter();
+  const { formatCurrency } = useClinicCurrency();
 
   useEffect(() => {
     if (open) {
@@ -73,24 +77,26 @@ export function PaymentSuccessModal({
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent
         showCloseButton={false}
-        className="sm:max-w-md bg-linear-to-br from-background via-background to-success/10 border-success/20"
+        className="sm:max-w-md border-success/20"
       >
-        <DialogClose asChild>
-          <Button
-            type="button"
-            variant="ghost"
-            size="icon"
-            aria-label="Close payment success"
-            className="absolute right-3 top-3 z-20 h-9 w-9 rounded-full bg-background/90 text-foreground shadow-sm ring-1 ring-border hover:bg-accent focus-visible:ring-2 focus-visible:ring-ring"
-          >
-            <X className="h-4 w-4" />
-          </Button>
-        </DialogClose>
+        <SymbolTooltip label="Close">
+          <DialogClose asChild>
+            <Button
+              type="button"
+              variant="ghost"
+              size="icon"
+              aria-label="Close payment success"
+              className="absolute right-3 top-3 z-20 h-9 w-9 bg-background/90 text-foreground shadow-sm ring-1 ring-border hover:bg-accent focus-visible:ring-2 focus-visible:ring-ring"
+            >
+              <X className="h-4 w-4" />
+            </Button>
+          </DialogClose>
+        </SymbolTooltip>
         <DialogHeader>
           <div className="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-full bg-success/15 ring-8 ring-success/10">
             <CheckCircle2 className="h-8 w-8 text-success" />
           </div>
-          <DialogTitle className="text-center text-2xl font-bold bg-linear-to-r from-success to-success/80 bg-clip-text text-transparent">
+          <DialogTitle className="ui-section-title text-center text-[var(--fs-2xl)] text-foreground">
             Payment Successful!
           </DialogTitle>
           <DialogDescription className="text-center text-base">
@@ -104,11 +110,7 @@ export function PaymentSuccessModal({
             <span className="text-muted-foreground">Amount Paid</span>
             <span className="font-semibold text-lg">
               {amount
-                ? new Intl.NumberFormat("en-IN", {
-                    style: "currency",
-                    currency: DEFAULT_CURRENCY,
-                    maximumFractionDigits: 0,
-                  }).format(amount)
+                ? formatCurrency(amount, { fractionDigits: 0 })
                 : "Paid"}
             </span>
           </div>
@@ -123,14 +125,14 @@ export function PaymentSuccessModal({
           <div className="flex justify-between items-center text-sm">
             <span className="text-muted-foreground">Date</span>
             <span>
-              {new Date().toLocaleDateString("en-IN", { dateStyle: "medium" })}
+              {formatDate(new Date())}
             </span>
           </div>
         </div>
 
         <DialogFooter className="flex-col gap-2 sm:flex-col mt-4">
           <Button
-            className="w-full bg-success text-success-foreground hover:bg-success/90 shadow-lg shadow-success/20"
+            className="w-full bg-success text-success-foreground hover:bg-success/90"
             onClick={() => {
               onOpenChange(false);
               router.push("/dashboard");
@@ -143,7 +145,7 @@ export function PaymentSuccessModal({
             <Button
               variant="ghost"
               className="w-full"
-              onClick={() => router.push("/settings?tab=subscription")}
+              onClick={() => router.push(SUBSCRIPTION_SETTINGS_PATH)}
             >
               <ExternalLink className="mr-2 h-4 w-4" />
               Manage Subscription

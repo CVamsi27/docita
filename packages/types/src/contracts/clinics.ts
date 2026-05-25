@@ -1,5 +1,6 @@
 import { z } from "zod";
 import { jsonObjectSchema } from "../shared/json-schema";
+import { sidebarNavOrderSchema } from "../shared/sidebar-nav";
 
 const customFieldSchema = z.object({
   name: z.string(),
@@ -21,11 +22,24 @@ const taxSettingsSchema = z.object({
     .string()
     .trim()
     .toUpperCase()
-    .regex(/^[A-Z]{2}$/),
+    .regex(/^[A-Z]{2}$/)
+    .optional(),
   regime: z.enum(["IN_GST", "VAT", "SALES_TAX", "NONE"]).optional(),
   registrationId: z.string().optional(),
   registrationLabel: z.string().optional(),
+  /** Registered legal name for tax invoices, separate from the trade/facility name. */
+  legalName: z.string().max(160).optional(),
+  /** GST state code (first 2 chars of GSTIN) when set explicitly. */
+  stateCode: z.string().max(8).optional(),
+  stateName: z.string().max(120).optional(),
 });
+
+const mapsLocationSchema = z
+  .object({
+    lat: z.number(),
+    lng: z.number(),
+  })
+  .strict();
 
 export const createClinicRequestSchema = z.object({
   name: z.string().min(1),
@@ -103,6 +117,18 @@ export const updateClinicSettingsRequestSchema = z.object({
   paymentReceivingBankAccount: bankAccountSchema.optional(),
   taxSettings: taxSettingsSchema.optional(),
   facilityLabel: z.enum(["CLINIC", "HOSPITAL"]).optional(),
+  sidebarNavOrder: sidebarNavOrderSchema.optional(),
+  mapsLocation: mapsLocationSchema.optional(),
+  mapsLink: z.union([z.string().url(), z.literal("")]).optional(),
+  brandName: z.string().max(80).optional(),
+  lockedTheme: z
+    .object({
+      primaryColor: z.string().optional(),
+      mode: z.enum(["light", "dark", "system"]).optional(),
+      compactMode: z.boolean().optional(),
+      enforced: z.boolean().optional(),
+    })
+    .optional(),
 });
 
 export const createClinicDoctorRequestSchema = z.object({
@@ -123,11 +149,45 @@ export const createClinicReceptionistRequestSchema = z.object({
   role: z.enum(["RECEPTIONIST", "NURSE"]).optional(),
 });
 
+const clinicMemberInviteRoleSchema = z.enum([
+  "DOCTOR",
+  "NURSE",
+  "RECEPTIONIST",
+  "ADMIN",
+  "ADMIN_DOCTOR",
+]);
+
+export const createClinicMemberRequestSchema = z
+  .object({
+    name: z.string().min(1),
+    email: z.string().email(),
+    password: z.string().min(8),
+    phoneNumber: z.string().optional(),
+    role: clinicMemberInviteRoleSchema,
+    specialization: z.string().optional(),
+    qualification: z.string().optional(),
+    registrationNumber: z.string().optional(),
+  })
+  .superRefine((data, ctx) => {
+    if (
+      (data.role === "DOCTOR" || data.role === "ADMIN_DOCTOR") &&
+      !data.registrationNumber?.trim()
+    ) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        path: ["registrationNumber"],
+        message: "Enter the medical registration number",
+      });
+    }
+  });
+
 export const updateClinicMemberRequestSchema = z.object({
   name: z.string().min(1).optional(),
   email: z.string().email().optional(),
   phoneNumber: z.string().optional(),
-  role: z.enum(["DOCTOR", "NURSE", "RECEPTIONIST", "ADMIN_DOCTOR"]).optional(),
+  role: z
+    .enum(["DOCTOR", "NURSE", "RECEPTIONIST", "ADMIN", "ADMIN_DOCTOR"])
+    .optional(),
   specialization: z.string().optional(),
   qualification: z.string().optional(),
   registrationNumber: z.string().optional(),
@@ -158,6 +218,9 @@ export type CreateClinicDoctorRequest = z.infer<
 export type CreateClinicReceptionistRequest = z.infer<
   typeof createClinicReceptionistRequestSchema
 >;
+export type CreateClinicMemberRequest = z.infer<
+  typeof createClinicMemberRequestSchema
+>;
 export type UpdateClinicMemberRequest = z.infer<
   typeof updateClinicMemberRequestSchema
 >;
@@ -187,3 +250,29 @@ export type CreateJoinRequest = z.infer<typeof createJoinRequestSchema>;
 export type ApproveJoinRequest = z.infer<typeof approveJoinRequestSchema>;
 export type RejectJoinRequest = z.infer<typeof rejectJoinRequestSchema>;
 export type SearchClinicsQuery = z.infer<typeof searchClinicsQuerySchema>;
+
+export const clinicApiQuotaUpsertSchema = z.object({
+  rps: z.number().int().min(1).max(10_000),
+  rpm: z.number().int().min(1).max(1_000_000),
+  monthlyBudget: z.number().int().min(1).max(1_000_000_000),
+  notes: z.string().max(500).optional(),
+});
+
+export const clinicApiQuotaResponseSchema = z.object({
+  clinicId: z.string(),
+  rps: z.number().int(),
+  rpm: z.number().int(),
+  monthlyBudget: z.number().int(),
+  currentMonthUsed: z.number().int(),
+  currentMonthResetsAt: z.string(),
+  notes: z.string().nullable(),
+  createdAt: z.string(),
+  updatedAt: z.string(),
+});
+
+export type ClinicApiQuotaUpsertRequest = z.infer<
+  typeof clinicApiQuotaUpsertSchema
+>;
+export type ClinicApiQuotaResponse = z.infer<
+  typeof clinicApiQuotaResponseSchema
+>;

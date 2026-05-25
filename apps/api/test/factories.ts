@@ -40,6 +40,7 @@ function normalizeClinicTier(tier: unknown): ClinicTier {
       return ClinicTier.PROFESSIONAL;
     case ClinicTier.STARTER:
     case ClinicTier.ESSENTIAL:
+    case ClinicTier.FRONT_DESK:
     case ClinicTier.PROFESSIONAL:
     case ClinicTier.ENTERPRISE:
       return tier;

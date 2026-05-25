@@ -6,15 +6,15 @@ import {
   DialogFooter,
   DialogHeader,
   DialogTitle,
-} from "@workspace/ui/components/dialog";
-import { Button } from "@workspace/ui/components/button";
-import { Label } from "@workspace/ui/components/label";
-import { Textarea } from "@workspace/ui/components/textarea";
+} from "@workspace/ui/components/overlay/dialog";
+import { Button } from "@workspace/ui/components/form/button";
+import { Label } from "@workspace/ui/components/form/label";
+import { Textarea } from "@workspace/ui/components/form/textarea";
 import { toast } from "sonner";
-import { useUpdateAppointment } from "@/hooks/api/use-appointments";
+import { useUpdateAppointment } from "@workspace/data-access";
 import { StickyNote } from "lucide-react";
 import { ModalProps } from "./PrescriptionModal";
-import { showUserFacingErrorToast } from "@/lib/user-facing-errors";
+import { showUserFacingErrorToast } from "@/lib/errors/user-facing-errors";
 
 export interface ConsultationNotesModalProps extends Omit<
   ModalProps,
@@ -70,7 +70,7 @@ export function ConsultationNotesModal({
             id="consultation-notes"
             value={notes}
             onChange={(e) => setNotes(e.target.value)}
-            placeholder="Clinical observations, diagnosis, and plan..."
+            placeholder="Consultation notes"
             className="min-h-[160px] sm:min-h-[220px]"
           />
         </div>
@@ -82,7 +82,7 @@ export function ConsultationNotesModal({
             onClick={handleSave}
             disabled={!notes.trim() || updateAppointment.isPending}
           >
-            {updateAppointment.isPending ? "Saving..." : "Save Notes"}
+            {updateAppointment.isPending ? "Saving…" : "Save Notes"}
           </Button>
         </DialogFooter>
       </DialogContent>

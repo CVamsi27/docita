@@ -1,4 +1,5 @@
-import { render, screen } from "@testing-library/react";
+import { screen } from "@testing-library/react";
+import { render } from "@/test-utils/render-with-tooltip";
 import { describe, expect, it, vi, beforeEach } from "vitest";
 import type { ImgHTMLAttributes } from "react";
 import { InvoiceDetailsUI } from "./InvoiceDetailsUI";
@@ -8,6 +9,20 @@ vi.mock("next/navigation", () => ({
     get: () => null,
   }),
 }));
+
+vi.mock("@workspace/data-access", async (importOriginal) => {
+  const mod = await importOriginal<typeof import("@workspace/data-access")>();
+  return {
+    ...mod,
+    useInvoicePaymentActivity: () => ({
+      data: { items: [] },
+      isLoading: false,
+      isError: false,
+      error: null,
+      refetch: vi.fn(),
+    }),
+  };
+});
 
 vi.mock("next/image", () => ({
   default: ({

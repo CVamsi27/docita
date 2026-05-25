@@ -1,14 +1,17 @@
 import { Module } from '@nestjs/common';
-import { MedicalDocumentsController } from './medical-documents.controller';
-import { MedicalDocumentsService } from './medical-documents.service';
+import { MedicalDocumentsController } from './presentation/controllers/medical-documents.controller';
+import { MedicalDocumentsService } from './application/services/medical-documents.service';
 import { PrismaModule } from '@/prisma/prisma.module';
 import { MEDICAL_DOCUMENTS_REPOSITORY_TOKEN } from './core/repositories/medical-documents.repository.interface';
 import { PrismaMedicalDocumentsRepository } from './infrastructure/repositories/prisma-medical-documents.repository';
+import { FrontDeskClinicalBlockGuard } from '@/shared/modules/clinic-workspace/front-desk-clinical-block.guard';
+import { AuditModule } from '@/shared/modules/audit/audit/audit.module';
 
 @Module({
-  imports: [PrismaModule],
+  imports: [PrismaModule, AuditModule],
   controllers: [MedicalDocumentsController],
   providers: [
+    FrontDeskClinicalBlockGuard,
     MedicalDocumentsService,
     {
       provide: MEDICAL_DOCUMENTS_REPOSITORY_TOKEN,

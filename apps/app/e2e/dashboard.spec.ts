@@ -1,13 +1,18 @@
 import { expect, test } from "@playwright/test";
-import { setupTestUser } from "./utils/patient-helpers";
+import { reuseSharedGeneralClinicUser } from "./utils/patient-helpers";
 import { seedSession } from "./utils/session";
-import { expectPageHeader, expectRoute } from "./utils/ui-contracts";
+import {
+  expectPageHeader,
+  expectProtectedWorkspaceLoaded,
+  expectRoute,
+} from "./utils/ui-contracts";
 
-test.describe("Dashboard", () => {
-  let user: Awaited<ReturnType<typeof setupTestUser>> | null = null;
+test.describe("Dashboard redirect", () => {
+  let user: Awaited<ReturnType<typeof reuseSharedGeneralClinicUser>> | null =
+    null;
 
   test.beforeAll(async ({ request }) => {
-    user = await setupTestUser(request);
+    user = await reuseSharedGeneralClinicUser(request);
   });
 
   test.beforeEach(async ({ page }) => {
@@ -21,25 +26,33 @@ test.describe("Dashboard", () => {
         clinicId: user.clinicId,
       },
     });
-    await page.goto("/dashboard", { waitUntil: "networkidle" });
   });
 
-  test("should load dashboard with all sections", async ({ page }) => {
-    await expectRoute(page, /\/dashboard/);
-    await expectPageHeader(page, { title: /Good (morning|afternoon|evening)/i });
-
-    // Navigation contract: sidebar key items should exist.
-    await expect(page.getByRole("link", { name: "Patients", exact: true })).toBeVisible();
-    await expect(
-      page.getByRole("link", { name: "Appointments", exact: true }),
-    ).toBeVisible();
-    await expect(
-      page.getByRole("link", { name: "Consultation", exact: true }),
-    ).toBeVisible();
+  test("redirects /dashboard to /today (canonical morning landing)", async ({
+    page,
+  }) => {
+    await page.goto("/dashboard", { waitUntil: "domcontentloaded" });
+    await expectProtectedWorkspaceLoaded(page);
+    await expectRoute(page, /\/today/);
+    await expectPageHeader(page, { title: "Today" });
   });
 
-  test("should navigate to patients page from sidebar", async ({ page }) => {
-    await page.getByRole("link", { name: "Patients", exact: true }).click();
-    await expect(page).toHaveURL(/\/patients/);
+  test("renders the Origin sectioned sidebar with TRACK and SERVICES", async ({
+    page,
+  }) => {
+    await page.goto("/today", { waitUntil: "domcontentloaded" });
+    await expectProtectedWorkspaceLoaded(page);
+    const sidebar = page.getByRole("complementary").first();
+    await expect(sidebar.getByText("Track", { exact: true })).toBeVisible();
+    await expect(sidebar.getByText("Services", { exact: true })).toBeVisible();
+    await expect(
+      sidebar.getByRole("link", { name: "Patients", exact: true }),
+    ).toBeVisible();
+    await expect(
+      sidebar.getByRole("link", { name: "Appointments", exact: true }),
+    ).toBeVisible();
+    await expect(
+      sidebar.getByRole("link", { name: "Consultation", exact: true }),
+    ).toBeVisible();
   });
 });

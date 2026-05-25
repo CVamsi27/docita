@@ -3,8 +3,8 @@
 import { useEffect, useState } from "react";
 import { ClinicRegistrationForm } from "@/features/onboarding/components/forms/clinic-registration-form";
 import { useRouter } from "next/navigation";
-import { useAuth } from "@/lib/auth-context";
-import { PageTransitionLoader } from "@/components/common/loaders/page-transition-loader";
+import { useAuth } from "@/lib/auth/auth-context";
+import { PageTransitionLoader } from "@/components/loaders/page-transition-loader";
 
 export function ClinicOnboardingWizard() {
   const router = useRouter();
@@ -22,14 +22,14 @@ export function ClinicOnboardingWizard() {
 
     if (user.clinicId) {
       setIsFinalizingRedirect(true);
-      router.replace("/dashboard");
+      router.replace("/today");
     }
   }, [isLoading, router, user]);
 
   if (isFinalizingRedirect) {
     return (
       <PageTransitionLoader
-        title="Finalizing your registration..."
+        title="Finalizing your registration…"
         description="Taking you to your next step"
         fullscreen={false}
       />
@@ -39,7 +39,7 @@ export function ClinicOnboardingWizard() {
   if (isLoading || !user) {
     return (
       <PageTransitionLoader
-        title="Preparing onboarding..."
+        title="Preparing onboarding…"
         description="Checking your account and saved progress"
         fullscreen={false}
       />
@@ -51,7 +51,7 @@ export function ClinicOnboardingWizard() {
       onSuccess={() => {
         setIsFinalizingRedirect(true);
         const destination =
-          user?.role === "ADMIN_DOCTOR" ? "/verify-doctor" : "/dashboard";
+          user?.role === "ADMIN_DOCTOR" ? "/verify-doctor" : "/today";
         router.replace(destination);
       }}
     />

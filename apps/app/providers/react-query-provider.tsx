@@ -3,7 +3,8 @@
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { ReactNode, useState } from "react";
 import { ApiError } from "@/lib/errors";
-import { QUERY_GC_TIMES } from "@/lib/react-query-config";
+import { QUERY_GC_TIMES } from "@/lib/api/react-query-config";
+import { DataAccessBridge } from "./data-access-bridge";
 
 export function ReactQueryProvider({ children }: { children: ReactNode }) {
   const [queryClient] = useState(
@@ -34,6 +35,8 @@ export function ReactQueryProvider({ children }: { children: ReactNode }) {
   );
 
   return (
-    <QueryClientProvider client={queryClient}>{children}</QueryClientProvider>
+    <QueryClientProvider client={queryClient}>
+      <DataAccessBridge>{children}</DataAccessBridge>
+    </QueryClientProvider>
   );
 }

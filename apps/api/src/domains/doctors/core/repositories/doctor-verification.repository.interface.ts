@@ -6,6 +6,8 @@ export type DoctorForVerification = {
   name: string;
   role: string;
   registrationNumber: string | null;
+  registrationCouncil: string | null;
+  registrationStateCode: string | null;
   licenseNumber: string | null;
 };
 

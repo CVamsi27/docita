@@ -120,12 +120,12 @@ test.describe("Patient Management", () => {
       await addButton.click();
 
       const today = new Date();
-      const dayLabel = today.toLocaleDateString("en-US", {
+      const dayLabel = new Intl.DateTimeFormat("en-US", {
         weekday: "long",
         month: "long",
         day: "numeric",
         year: "numeric",
-      });
+      }).format(today);
 
       await page.fill('input[placeholder*="First"]', "John");
       await page.fill('input[placeholder*="Last"]', "Doe");
@@ -274,16 +274,21 @@ test.describe("Patient Management", () => {
     );
     await page.goto("/patients", { waitUntil: "load" }).catch(() => {});
 
-    const loadingState = page.locator("text=Loading patients...");
+    const loadingState = page.locator("text=Loading patients…");
     await expect(loadingState).not.toBeVisible({ timeout: 5000 });
 
     const patientA = page.locator("text=ClinicA-Patient").first();
     await expect(patientA).not.toBeVisible({ timeout: 5000 });
 
-    const noPatients = page.locator("text=No patients found").first();
+    const noPatientsLegacy = page.locator("text=No patients found").first();
+    const noPatientsOrigin = page
+      .getByText(/no patients yet/i)
+      .first();
     const tableRows = page.locator("table tbody tr").count();
     expect(
-      (await noPatients.isVisible()) || (await tableRows) === 0,
+      (await noPatientsLegacy.isVisible()) ||
+        (await noPatientsOrigin.isVisible().catch(() => false)) ||
+        (await tableRows) === 0,
     ).toBeTruthy();
   });
 });

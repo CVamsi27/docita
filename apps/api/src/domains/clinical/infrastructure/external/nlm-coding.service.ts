@@ -1,8 +1,9 @@
-import { Injectable, Logger } from '@nestjs/common';
+import { Inject, Injectable, Logger } from '@nestjs/common';
+import { CLOCK_PORT, type IClock } from '@/shared/common/ports/clock.port';
 import { IcdCode, CptCode } from '@workspace/db';
-import { getAllCPTCodes } from '@workspace/types';
+import { getAllCPTCodes } from '@workspace/utils';
+import { fetchWithTimeout } from '@/shared/common/http/fetch-with-timeout';
 
-type NlmSearchResponse = [number, string[], null, string[][]];
 type CodeSystem = 'ICD' | 'HCPCS';
 type NlmCodeRow = { code: string; description: string };
 
@@ -67,6 +68,8 @@ export class NlmCodingService {
   private icdSearchDisabledUntil = 0;
   private hcpcsSearchDisabledUntil = 0;
 
+  constructor(@Inject(CLOCK_PORT) private readonly clock: IClock) {}
+
   private getDisabledUntil(system: CodeSystem): number {
     return system === 'ICD'
       ? this.icdSearchDisabledUntil
@@ -84,9 +87,9 @@ export class NlmCodingService {
 
   private isSearchTemporarilyDisabled(
     system: CodeSystem,
-    now = Date.now(),
+    nowMs: number = this.clock.now().getTime(),
   ): boolean {
-    return now < this.getDisabledUntil(system);
+    return nowMs < this.getDisabledUntil(system);
   }
 
   private clearSearchUnavailable(system: CodeSystem): void {
@@ -94,7 +97,7 @@ export class NlmCodingService {
   }
 
   private markSearchUnavailable(system: CodeSystem, reason: string): void {
-    const now = Date.now();
+    const now = this.clock.now().getTime();
     if (this.isSearchTemporarilyDisabled(system, now)) {
       return;
     }
@@ -108,13 +111,22 @@ export class NlmCodingService {
     );
   }
 
-  private toNlmRows(data: NlmSearchResponse): NlmCodeRow[] {
-    const codes = Array.isArray(data[1]) ? data[1] : [];
+  private toNlmRows(data: unknown): NlmCodeRow[] {
+    if (!Array.isArray(data)) {
+      return [];
+    }
+
+    const codes = Array.isArray(data[1])
+      ? data[1].filter((code): code is string => typeof code === 'string')
+      : [];
     const displayRows = Array.isArray(data[3]) ? data[3] : [];
 
     return codes
       .map((code, idx) => {
-        const row = displayRows[idx] ?? [];
+        const rawRow = displayRows[idx];
+        const row = Array.isArray(rawRow)
+          ? rawRow.filter((cell): cell is string => typeof cell === 'string')
+          : [];
         const description =
           row.find((value, rowIndex) => rowIndex > 0 && value)?.trim() ??
           row[1]?.trim() ??
@@ -135,17 +147,15 @@ export class NlmCodingService {
       url.searchParams.set(key, value);
     }
 
-    const res = await fetch(url.toString(), {
-      signal: AbortSignal.timeout(timeoutMs),
-    });
+    const res = await fetchWithTimeout(url.toString(), {}, timeoutMs);
 
     if (!res.ok) {
       throw new Error(`${system} API returned HTTP ${res.status}`);
     }
 
-    const data = (await res.json()) as NlmSearchResponse;
+    const data: unknown = await res.json();
     return {
-      total: typeof data[0] === 'number' ? data[0] : 0,
+      total: Array.isArray(data) && typeof data[0] === 'number' ? data[0] : 0,
       rows: this.toNlmRows(data),
     };
   }

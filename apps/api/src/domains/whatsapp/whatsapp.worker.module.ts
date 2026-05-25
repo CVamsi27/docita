@@ -1,3 +1,5 @@
+import { PrismaService } from '@/prisma/prisma.service';
+import { WHATSAPP_PERSISTENCE_PORT } from './application/ports/whatsapp-persistence.port';
 import { Global, Module } from '@nestjs/common';
 import { ConfigModule } from '@nestjs/config';
 import { SendMessageUseCase } from './application/use-cases/send-message.use-case';
@@ -6,27 +8,32 @@ import { WhatsAppAutomationService } from './application/services/whatsapp-autom
 import { WHATSAPP_REPOSITORY_TOKEN } from './application/ports/whatsapp.repository.port';
 import { WHATSAPP_CLIENT_TOKEN } from './application/ports/whatsapp-client.port';
 import { PrismaWhatsAppRepository } from './infrastructure/repositories/prisma-whatsapp.repository';
-import { WhatsAppApiAdapter } from './infrastructure/adapters/whatsapp-api.adapter';
+import { PrismaWhatsAppMessageRepository } from './infrastructure/repositories/prisma-whatsapp-message.repository';
+import { PrismaWhatsAppTemplateRepository } from './infrastructure/repositories/prisma-whatsapp-template.repository';
+import { WhatsappClientService } from './infrastructure/clients/whatsapp-client.service';
 import { PrismaWorkerModule } from '@/prisma/prisma.worker.module';
-import { DefaultTemplatesService } from './core/services/default-templates.service';
 import { TemplateResolverService } from './core/services/template-resolver.service';
+import { WhatsappTemplatesModule } from '@/shared/whatsapp/whatsapp-templates.module';
 
 @Global()
 @Module({
-  imports: [PrismaWorkerModule, ConfigModule],
+  imports: [PrismaWorkerModule, ConfigModule, WhatsappTemplatesModule],
   providers: [
+    { provide: WHATSAPP_PERSISTENCE_PORT, useExisting: PrismaService },
     SendMessageUseCase,
     WhatsAppQueryService,
     WhatsAppAutomationService,
-    DefaultTemplatesService,
     TemplateResolverService,
+    PrismaWhatsAppMessageRepository,
+    PrismaWhatsAppTemplateRepository,
     {
       provide: WHATSAPP_REPOSITORY_TOKEN,
       useClass: PrismaWhatsAppRepository,
     },
+    WhatsappClientService,
     {
       provide: WHATSAPP_CLIENT_TOKEN,
-      useClass: WhatsAppApiAdapter,
+      useExisting: WhatsappClientService,
     },
   ],
   exports: [
@@ -34,7 +41,7 @@ import { TemplateResolverService } from './core/services/template-resolver.servi
     WhatsAppQueryService,
     WhatsAppAutomationService,
     WHATSAPP_REPOSITORY_TOKEN,
-    DefaultTemplatesService,
+    WhatsappTemplatesModule,
     TemplateResolverService,
   ],
 })

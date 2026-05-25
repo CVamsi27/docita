@@ -1,20 +1,20 @@
 import React from "react";
-import { Label } from "@workspace/ui/components/label";
-import { Switch } from "@workspace/ui/components/switch";
-import { Textarea } from "@workspace/ui/components/textarea";
-import { Badge } from "@workspace/ui/components/badge";
+import { Label } from "@workspace/ui/components/form/label";
+import { Switch } from "@workspace/ui/components/form/switch";
+import { Textarea } from "@workspace/ui/components/form/textarea";
+import { Badge } from "@workspace/ui/components/indicators/badge";
 import {
   Accordion,
   AccordionContent,
   AccordionItem,
   AccordionTrigger,
-} from "@workspace/ui/components/accordion";
+} from "@workspace/ui/components/overlay/accordion";
 import {
   Card,
   CardContent,
   CardHeader,
   CardTitle,
-} from "@workspace/ui/components/card";
+} from "@workspace/ui/components/indicators/card";
 import { cn } from "@workspace/ui/lib/utils";
 import { Activity, FileText, Heart, Stethoscope, Wind } from "lucide-react";
 
@@ -106,13 +106,22 @@ export function ExaminationInput({
     0,
   );
 
-  const systemicSections = [
+  type SystemicField = keyof ExaminationData["systemic"];
+
+  const systemicSections: Array<{
+    id: SystemicField;
+    label: string;
+    short: string;
+    icon: React.ReactNode;
+    placeholder: string;
+    value: string | undefined;
+  }> = [
     {
       id: "cvs",
       label: "Cardiovascular",
       short: "CVS",
       icon: <Heart className="h-4 w-4 text-destructive" />,
-      placeholder: "e.g. S1 S2 heard, no murmurs, regular rhythm",
+      placeholder: "Cardiovascular",
       value: data.systemic.cvs,
     },
     {
@@ -120,7 +129,7 @@ export function ExaminationInput({
       label: "Respiratory",
       short: "RS",
       icon: <Wind className="h-4 w-4 text-info" />,
-      placeholder: "e.g. B/L air entry clear, no added sounds",
+      placeholder: "Respiratory",
       value: data.systemic.rs,
     },
     {
@@ -128,7 +137,7 @@ export function ExaminationInput({
       label: "Per Abdomen",
       short: "P/A",
       icon: <Activity className="h-4 w-4 text-warning" />,
-      placeholder: "e.g. Soft, non-tender, no organomegaly",
+      placeholder: "Per abdomen",
       value: data.systemic.pa,
     },
     {
@@ -136,10 +145,10 @@ export function ExaminationInput({
       label: "CNS & Other",
       short: "CNS",
       icon: <FileText className="h-4 w-4 text-primary" />,
-      placeholder: "CNS findings, cranial nerves, higher mental functions",
+      placeholder: "CNS findings",
       value: data.systemic.cns,
     },
-  ] as const;
+  ];
 
   return (
     <div className="space-y-3">
@@ -150,8 +159,13 @@ export function ExaminationInput({
             General Examination
           </CardTitle>
           <Badge
-            variant={positiveGeneralCount > 0 ? "default" : "secondary"}
-            className="text-[var(--fs-2xs)] font-medium"
+            variant="outline"
+            className={cn(
+              "text-[var(--fs-2xs)] font-medium",
+              positiveGeneralCount > 0
+                ? "border-success/40 bg-success/10 text-success"
+                : "border-border/70 bg-muted/40 text-muted-foreground",
+            )}
           >
             {positiveGeneralCount > 0
               ? `${positiveGeneralCount} positive`
@@ -161,7 +175,8 @@ export function ExaminationInput({
         <CardContent className="space-y-3 p-4">
           <div className="grid grid-cols-2 gap-2 sm:grid-cols-3">
             {generalFindings.map((item) => {
-              const checked = data.general[item.key] as boolean;
+              const value = data.general[item.key];
+              const checked = typeof value === "boolean" ? value : false;
               return (
                 <Label
                   key={item.key}
@@ -198,7 +213,7 @@ export function ExaminationInput({
               id="exam-general-notes"
               value={data.general.notes}
               onChange={(e) => updateGeneral("notes", e.target.value)}
-              placeholder="Additional general examination findings..."
+              placeholder="Examination findings"
               readOnly={readOnly}
               className="min-h-16 resize-y"
             />
@@ -256,10 +271,7 @@ export function ExaminationInput({
                       placeholder={section.placeholder}
                       value={section.value}
                       onChange={(e) =>
-                        updateSystemic(
-                          section.id as keyof typeof data.systemic,
-                          e.target.value,
-                        )
+                        updateSystemic(section.id, e.target.value)
                       }
                       readOnly={readOnly}
                       className="min-h-20 resize-y"

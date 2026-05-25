@@ -1,13 +1,33 @@
 "use client";
 
-import { useCurrentUsage } from "@/hooks/api/use-pricing";
-import { PRICING_CURRENCY_SYMBOLS } from "@workspace/types";
-import { useLocaleCurrency } from "@/hooks/use-locale-currency";
-import { Loader2, AlertTriangle, TrendingUp } from "lucide-react";
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@workspace/ui/components/card";
-import { Progress } from "@workspace/ui/components/progress";
-import { Badge } from "@workspace/ui/components/badge";
+import { DocitaLoadingIndicator } from "@workspace/ui/components/feedback/docita-loading-indicator";
+
+import { useCurrentUsage } from "@/features/subscription/hooks/use-pricing";
+import { useSubscription } from "@workspace/data-access";
+import {
+  PRICING_CURRENCY_CONFIG,
+  PRICING_CURRENCY_SYMBOLS,
+} from "@workspace/types";
+import {
+  formatAmountLocale,
+  formatCountLocale,
+  parseSupportedCurrency,
+} from "@workspace/utils";
+import { useClinicCurrency } from "@/hooks/use-clinic-currency";
+import {
+  formatLocaleDateShortMonth,
+  formatLocaleDateShortMonthYear,
+} from "@/lib/formatters";
+import { AlertTriangle, TrendingUp } from "lucide-react";
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@workspace/ui/components/indicators/card";
+import { Progress } from "@workspace/ui/components/feedback/progress";
+import { Badge } from "@workspace/ui/components/indicators/badge";
 import { cn } from "@workspace/ui/lib/utils";
+import {
+  formatUsageMeterCaption,
+  usageMeterHasNoIncludedQuota,
+  usageProgressPercentForBar,
+} from "@/features/subscription/lib/usage-meter-display";
 
 interface UsageMeterProps {
   label: string;
@@ -17,6 +37,8 @@ interface UsageMeterProps {
   unit: string;
   overageRate?: number;
   currencySymbol?: string;
+  amountLocale: string;
+  amountFractionDigits: number;
 }
 
 function UsageMeter({
@@ -26,11 +48,16 @@ function UsageMeter({
   overage,
   unit,
   overageRate,
-  currencySymbol = "₹",
+  currencySymbol = "",
+  amountLocale,
+  amountFractionDigits,
 }: UsageMeterProps) {
-  const pct = included > 0 ? Math.min(100, (current / included) * 100) : 0;
+  const noIncludedQuota = usageMeterHasNoIncludedQuota(included);
+  const pct = usageProgressPercentForBar(current, included);
   const isOver = overage > 0;
-  const isWarning = pct >= 80 && !isOver;
+  const isWarning =
+    included > 0 && pct >= 80 && !isOver;
+  const caption = formatUsageMeterCaption(current, included, unit);
 
   return (
     <div className="space-y-2">
@@ -39,14 +66,14 @@ function UsageMeter({
         <div className="flex items-center gap-2">
           {isOver && (
             <Badge variant="destructive" className="text-xs h-5">
-              +{overage} over
+              +{formatCountLocale(overage)} over
             </Badge>
           )}
           {isWarning && (
             <AlertTriangle className="h-3.5 w-3.5 text-warning" />
           )}
           <span className={cn("text-muted-foreground", isOver && "text-destructive")}>
-            {current.toLocaleString()} / {included.toLocaleString()} {unit}
+            {caption}
           </span>
         </div>
       </div>
@@ -56,11 +83,25 @@ function UsageMeter({
           "h-2",
           isOver && "[&>div]:bg-destructive",
           isWarning && "[&>div]:bg-warning",
+          noIncludedQuota &&
+            !isOver &&
+            !isWarning &&
+            "[&>div]:bg-primary/35",
         )}
       />
       {isOver && overageRate !== undefined && (
         <p className="text-xs text-destructive">
-          {currencySymbol}{(overage * overageRate).toLocaleString()} overage this period ({overage} × {currencySymbol}{overageRate}/{unit})
+          {currencySymbol}
+          {formatAmountLocale(overage * overageRate, amountLocale, {
+            minimumFractionDigits: amountFractionDigits,
+            maximumFractionDigits: amountFractionDigits,
+          })}{" "}
+          overage this period ({formatCountLocale(overage)} × {currencySymbol}
+          {formatAmountLocale(overageRate, amountLocale, {
+            minimumFractionDigits: amountFractionDigits,
+            maximumFractionDigits: amountFractionDigits,
+          })}
+          /{unit})
         </p>
       )}
     </div>
@@ -69,16 +110,28 @@ function UsageMeter({
 
 export function UsageDashboard() {
   const { usage, isLoading } = useCurrentUsage();
-  const { currency } = useLocaleCurrency();
-  const symbol =
-    PRICING_CURRENCY_SYMBOLS[
-      currency as keyof typeof PRICING_CURRENCY_SYMBOLS
-    ] ?? "₹";
+  const { data: subscription } = useSubscription();
+  const { currency, locale } = useClinicCurrency();
+  const showWhatsAppMeter = subscription?.tier !== "STARTER";
+  const resolvedCurrency = parseSupportedCurrency(currency);
+  const currencyCfg = PRICING_CURRENCY_CONFIG[resolvedCurrency];
+  const amountFractionDigits = currencyCfg?.decimalPlaces ?? 2;
+  const amountLocale = currencyCfg?.locale ?? locale;
+  const symbol = PRICING_CURRENCY_SYMBOLS[resolvedCurrency] ?? resolvedCurrency;
 
   if (isLoading) {
     return (
-      <div className="flex justify-center p-8">
-        <Loader2 className="h-5 w-5 animate-spin text-muted-foreground" />
+      <div
+        className="flex justify-center p-8"
+        role="status"
+        aria-live="polite"
+        aria-label="Loading usage"
+      >
+        <DocitaLoadingIndicator
+          variant="section"
+          withStatusRole={false}
+          iconClassName="h-8 w-8 text-muted-foreground"
+        />
       </div>
     );
   }
@@ -90,15 +143,8 @@ export function UsageDashboard() {
     ([, warning]) => warning.threshold !== null,
   );
 
-  const periodStart = new Date(usage.period.start).toLocaleDateString("en-IN", {
-    day: "numeric",
-    month: "short",
-  });
-  const periodEnd = new Date(usage.period.end).toLocaleDateString("en-IN", {
-    day: "numeric",
-    month: "short",
-    year: "numeric",
-  });
+  const periodStart = formatLocaleDateShortMonth(usage.period.start);
+  const periodEnd = formatLocaleDateShortMonthYear(usage.period.end);
 
   return (
     <Card className="border-none shadow-sm">
@@ -115,7 +161,11 @@ export function UsageDashboard() {
             <div className="text-right">
               <p className="text-xs text-muted-foreground">Estimated overage</p>
               <p className="text-sm font-semibold text-destructive">
-                {symbol}{totalOverageCost.toLocaleString()}
+                {symbol}
+                {formatAmountLocale(totalOverageCost, amountLocale, {
+                  minimumFractionDigits: amountFractionDigits,
+                  maximumFractionDigits: amountFractionDigits,
+                })}
               </p>
             </div>
           )}
@@ -123,7 +173,7 @@ export function UsageDashboard() {
       </CardHeader>
       <CardContent className="space-y-5">
         {warningEntries.length > 0 && (
-          <div className="rounded-md border border-warning/40 bg-warning/10 px-3 py-2 text-xs text-warning-foreground">
+          <div className="surface-warning rounded-md px-3 py-2 text-xs">
             {warningEntries.some(([, warning]) => warning.threshold === 100)
               ? "You have reached 100% of one or more limits. You can continue using the app; overage will be billed at cycle close."
               : "You are above 80% of one or more limits. Consider upgrading to avoid overage charges this cycle."}
@@ -137,6 +187,8 @@ export function UsageDashboard() {
           unit="consults"
           overageRate={usage.rates.consultations}
           currencySymbol={symbol}
+          amountLocale={amountLocale}
+          amountFractionDigits={amountFractionDigits}
         />
         <UsageMeter
           label="Team Members"
@@ -146,16 +198,27 @@ export function UsageDashboard() {
           unit="users"
           overageRate={usage.rates.users}
           currencySymbol={symbol}
+          amountLocale={amountLocale}
+          amountFractionDigits={amountFractionDigits}
         />
-        <UsageMeter
-          label="WhatsApp Messages"
-          current={usage.meters.whatsappMessages.current}
-          included={usage.meters.whatsappMessages.included}
-          overage={usage.meters.whatsappMessages.overage}
-          unit="msgs"
-          overageRate={usage.rates.whatsappMessages}
-          currencySymbol={symbol}
-        />
+        {showWhatsAppMeter ? (
+          <UsageMeter
+            label="WhatsApp Messages"
+            current={usage.meters.whatsappMessages.current}
+            included={usage.meters.whatsappMessages.included}
+            overage={usage.meters.whatsappMessages.overage}
+            unit="msgs"
+            overageRate={usage.rates.whatsappMessages}
+            currencySymbol={symbol}
+            amountLocale={amountLocale}
+            amountFractionDigits={amountFractionDigits}
+          />
+        ) : (
+          <p className="text-[var(--fs-xs)] text-muted-foreground">
+            Patient WhatsApp messaging is not included on Starter. Upgrade to
+            Essential or higher to enable sends and message metering.
+          </p>
+        )}
         {totalOverageCost === 0 && (
           <p className="text-xs text-center text-muted-foreground pt-1">
             All usage within included quota — no overage charges.

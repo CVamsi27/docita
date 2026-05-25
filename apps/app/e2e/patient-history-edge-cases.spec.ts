@@ -53,7 +53,7 @@ test.describe("Patient Medical History - Edge Cases", () => {
       waitUntil: "networkidle",
     });
 
-    await expect(page.getByText("Loading patient details...")).not.toBeVisible({
+    await expect(page.getByText("Loading patient details…")).not.toBeVisible({
       timeout: 15000,
     });
 
@@ -72,7 +72,7 @@ test.describe("Patient Medical History - Edge Cases", () => {
       waitUntil: "networkidle",
     });
 
-    await expect(page.getByText("Loading patient details...")).not.toBeVisible({
+    await expect(page.getByText("Loading patient details…")).not.toBeVisible({
       timeout: 15000,
     });
 
@@ -117,7 +117,7 @@ test.describe("Patient Medical History - Edge Cases", () => {
       waitUntil: "networkidle",
     });
 
-    await expect(page.getByText("Loading patient details...")).not.toBeVisible({
+    await expect(page.getByText("Loading patient details…")).not.toBeVisible({
       timeout: 15000,
     });
 
@@ -130,7 +130,7 @@ test.describe("Patient Medical History - Edge Cases", () => {
       waitUntil: "networkidle",
     });
 
-    await expect(page.getByText("Loading patient details...")).not.toBeVisible({
+    await expect(page.getByText("Loading patient details…")).not.toBeVisible({
       timeout: 15000,
     });
 
@@ -158,7 +158,7 @@ test.describe("Patient Medical History - Edge Cases", () => {
       waitUntil: "networkidle",
     });
 
-    await expect(page.getByText("Loading patient details...")).not.toBeVisible({
+    await expect(page.getByText("Loading patient details…")).not.toBeVisible({
       timeout: 15000,
     });
 

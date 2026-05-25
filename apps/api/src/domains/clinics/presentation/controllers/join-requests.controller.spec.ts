@@ -7,8 +7,9 @@ import {
 } from '@nestjs/common';
 import { JoinRequestsController } from './join-requests.controller';
 import { JoinRequestService } from '@/domains/clinics/application/services/join-request.service';
-import { StaffNotificationService } from '@/shared/modules/messaging/whatsapp/staff-notification.service';
+import { StaffNotificationService } from '@/domains/whatsapp/application/services/staff-notification.service';
 import { JwtAuthGuard } from '@/shared/modules/auth/auth/jwt-auth.guard';
+import type { RequestWithUser } from '@/shared/common/types/common.types';
 
 const mockRequest = {
   id: 'req-1',
@@ -92,7 +93,7 @@ describe('JoinRequestsController', () => {
   });
 
   describe('createJoinRequest', () => {
-    const req = { user: mockUser, clinic: null } as any;
+    const req = { user: mockUser, clinic: undefined } as RequestWithUser;
     const dto = {
       clinicId: 'clinic-1',
       requestedRole: 'DOCTOR' as const,
@@ -130,7 +131,7 @@ describe('JoinRequestsController', () => {
     it('throws BadRequestException when user already has a clinic', async () => {
       const reqWithClinic = {
         user: { ...mockUser, clinicId: 'existing-clinic' },
-      } as any;
+      } as RequestWithUser;
 
       await expect(
         controller.createJoinRequest(reqWithClinic, dto),
@@ -162,7 +163,7 @@ describe('JoinRequestsController', () => {
 
   describe('listJoinRequests', () => {
     it('returns join requests for admin clinic', async () => {
-      const req = { user: mockAdminUser } as any;
+      const req = { user: mockAdminUser } as RequestWithUser;
       mockJoinRequestService.findByClinic.mockResolvedValue([mockRequest]);
 
       const result = await controller.listJoinRequests(req, 'PENDING');
@@ -175,7 +176,7 @@ describe('JoinRequestsController', () => {
     });
 
     it('returns all requests when no status filter provided', async () => {
-      const req = { user: mockAdminUser } as any;
+      const req = { user: mockAdminUser } as RequestWithUser;
       mockJoinRequestService.findByClinic.mockResolvedValue([mockRequest]);
 
       await controller.listJoinRequests(req);
@@ -189,7 +190,7 @@ describe('JoinRequestsController', () => {
 
   describe('getMyJoinRequest', () => {
     it('returns the first pending request for the user', async () => {
-      const req = { user: mockUser } as any;
+      const req = { user: mockUser } as RequestWithUser;
       mockJoinRequestService.findUserPendingRequests.mockResolvedValue([
         mockRequest,
       ]);
@@ -200,7 +201,7 @@ describe('JoinRequestsController', () => {
     });
 
     it('returns null when user has no pending requests', async () => {
-      const req = { user: mockUser } as any;
+      const req = { user: mockUser } as RequestWithUser;
       mockJoinRequestService.findUserPendingRequests.mockResolvedValue([]);
 
       const result = await controller.getMyJoinRequest(req);
@@ -211,7 +212,7 @@ describe('JoinRequestsController', () => {
 
   describe('countPendingRequests', () => {
     it('returns the count of pending requests', async () => {
-      const req = { user: mockAdminUser } as any;
+      const req = { user: mockAdminUser } as RequestWithUser;
       mockJoinRequestService.findByClinic.mockResolvedValue([
         mockRequest,
         mockRequest,
@@ -228,7 +229,10 @@ describe('JoinRequestsController', () => {
   });
 
   describe('approveJoinRequest', () => {
-    const req = { user: mockAdminUser, clinic: { name: 'Test Clinic' } } as any;
+    const req = {
+      user: mockAdminUser,
+      clinic: { id: 'clinic-1', name: 'Test Clinic' },
+    } as RequestWithUser;
     const dto = { assignedRole: 'DOCTOR' as const, welcomeMessage: 'Welcome!' };
 
     it('approves a request and notifies the user', async () => {
@@ -297,7 +301,10 @@ describe('JoinRequestsController', () => {
   });
 
   describe('rejectJoinRequest', () => {
-    const req = { user: mockAdminUser, clinic: { name: 'Test Clinic' } } as any;
+    const req = {
+      user: mockAdminUser,
+      clinic: { id: 'clinic-1', name: 'Test Clinic' },
+    } as RequestWithUser;
     const dto = { reason: 'Does not meet requirements' };
 
     it('rejects a request and notifies the user', async () => {
@@ -339,7 +346,7 @@ describe('JoinRequestsController', () => {
 
   describe('withdrawJoinRequest', () => {
     it('withdraws a join request', async () => {
-      const req = { user: mockUser } as any;
+      const req = { user: mockUser } as RequestWithUser;
       mockJoinRequestService.withdraw.mockResolvedValue({
         ...mockRequest,
         status: 'WITHDRAWN',

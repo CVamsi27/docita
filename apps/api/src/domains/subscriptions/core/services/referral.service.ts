@@ -1,4 +1,5 @@
-import { Injectable, Logger } from '@nestjs/common';
+import { Inject, Injectable, Logger } from '@nestjs/common';
+import { CLOCK_PORT, type IClock } from '@/shared/common/ports/clock.port';
 import { PrismaService } from '@/prisma/prisma.service';
 import {
   MAX_REFERRAL_CREDITS_PER_YEAR,
@@ -9,7 +10,10 @@ import {
 export class ReferralService {
   private readonly logger = new Logger(ReferralService.name);
 
-  constructor(private prisma: PrismaService) {}
+  constructor(
+    private prisma: PrismaService,
+    @Inject(CLOCK_PORT) private readonly clock: IClock,
+  ) {}
 
   async validateReferralCode(
     referralCode: string,
@@ -27,69 +31,78 @@ export class ReferralService {
   }
 
   async applyReferralCreditsOnFirstPayment(clinicId: string): Promise<void> {
-    const paymentCount = await this.prisma.subscriptionPayment.count({
-      where: {
-        clinicId,
-        status: 'paid',
-      },
-    });
+    await this.prisma.$transaction(async (tx) => {
+      const paymentCount = await tx.subscriptionPayment.count({
+        where: {
+          clinicId,
+          status: 'paid',
+        },
+      });
 
-    if (paymentCount > 1) {
-      return;
-    }
+      if (paymentCount > 1) {
+        return;
+      }
 
-    const referral = await this.prisma.referral.findFirst({
-      where: {
-        referredClinicId: clinicId,
-        status: 'SIGNED_UP',
-        creditApplied: false,
-      },
-      include: {
-        referrerClinic: true,
-      },
-    });
+      const referral = await tx.referral.findFirst({
+        where: {
+          referredClinicId: clinicId,
+          status: 'SIGNED_UP',
+          creditApplied: false,
+        },
+        include: {
+          referrerClinic: true,
+        },
+      });
 
-    if (!referral) {
-      return;
-    }
+      if (!referral) {
+        return;
+      }
 
-    const referrerCredits = referral.referrerClinic?.referralCreditsMonths || 0;
-    if (referrerCredits >= MAX_REFERRAL_CREDITS_PER_YEAR) {
-      this.logger.warn(
-        `Referrer ${referral.referrerClinicId} has reached credit cap`,
-      );
-      return;
-    }
+      const referrerCredits =
+        referral.referrerClinic?.referralCreditsMonths || 0;
+      if (referrerCredits >= MAX_REFERRAL_CREDITS_PER_YEAR) {
+        this.logger.warn(
+          `Referrer ${referral.referrerClinicId} has reached credit cap`,
+        );
+        return;
+      }
 
-    await this.prisma.$transaction([
-      this.prisma.clinic.update({
+      const flipped = await tx.referral.updateMany({
+        where: {
+          id: referral.id,
+          status: 'SIGNED_UP',
+          creditApplied: false,
+        },
+        data: {
+          status: 'CONVERTED',
+          creditApplied: true,
+          convertedAt: this.clock.now(),
+        },
+      });
+
+      if (flipped.count === 0) {
+        return;
+      }
+
+      await tx.clinic.update({
         where: { id: referral.referrerClinicId },
         data: {
-          referralCreditsMonths: {
-            increment: 1,
-          },
+          referralCreditsMonths: { increment: 1 },
         },
-      }),
-      this.prisma.referralCredit.create({
+      });
+
+      await tx.referralCredit.create({
         data: {
           clinicId: referral.referrerClinicId,
           referralId: referral.id,
           creditMonths: 1,
         },
-      }),
-      this.prisma.referral.update({
-        where: { id: referral.id },
-        data: {
-          status: 'CONVERTED',
-          creditApplied: true,
-          convertedAt: new Date(),
-        },
-      }),
-    ]);
+      });
 
-    this.logger.log(
-      `Applied referral credit to clinic ${referral.referrerClinicId} from referral ${referral.id}`,
-    );
+      this.logger.log(
+        `Applied referral credit to clinic ${referral.referrerClinicId} from referral ${referral.id}`,
+      );
+    });
   }
 
   async getReferralCredits(clinicId: string) {

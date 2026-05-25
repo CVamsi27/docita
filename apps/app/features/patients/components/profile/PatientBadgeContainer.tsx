@@ -1,6 +1,6 @@
 import { useMemo } from "react";
-import { differenceInYears } from "date-fns";
-import { getInitials } from "@/features/_shared/utils";
+import { calculateAge } from "@workspace/utils";
+import { getInitials } from "@/lib/formatters/text-helpers";
 import { PatientBadgeUI } from "./PatientBadgeUI";
 
 interface PatientData {
@@ -39,11 +39,7 @@ export function PatientBadgeContainer({
 
   const age = useMemo(() => {
     if (!patient.dateOfBirth) return null;
-    const dob =
-      typeof patient.dateOfBirth === "string"
-        ? new Date(patient.dateOfBirth)
-        : patient.dateOfBirth;
-    return differenceInYears(new Date(), dob);
+    return calculateAge(patient.dateOfBirth);
   }, [patient.dateOfBirth]);
 
   const allergiesArray = useMemo(() => {

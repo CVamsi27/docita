@@ -1,8 +1,8 @@
 import { ComponentType, useState } from "react";
 import { Check, ChevronDown, ChevronUp, Lock, LucideProps } from "lucide-react";
-import { Button } from "@workspace/ui/components/button";
+import { Button } from "@workspace/ui/components/form/button";
 import { cn } from "@workspace/ui/lib/utils";
-import { Feature } from "@/lib/tier-config";
+import { Feature } from "@/lib/subscription/tier-access";
 
 export interface FeatureDetail {
   name: string;
@@ -37,13 +37,13 @@ export function PlanFeatures({
   const hasHiddenFeatures = maxDisplay && remainingCount > 0;
 
   return (
-    <div className="space-y-2">
+    <div className={cn(display === "detailed" ? "space-y-3" : "space-y-2")}>
       {displayFeatures.map(({ feature, details, hasAccess }) => (
         <div
           key={feature}
           className={cn(
             display === "detailed"
-              ? "flex items-start gap-3 rounded-lg border border-border/70 bg-background/70 p-3 text-left"
+              ? "grid grid-cols-[2rem_1fr] gap-3 text-left"
               : "flex items-center gap-2 text-sm",
             align === "center" &&
               display === "compact" &&
@@ -53,17 +53,17 @@ export function PlanFeatures({
         >
           {display === "detailed" ? (
             <>
-              <div className="mt-0.5 flex h-8 w-8 shrink-0 items-center justify-center rounded-md bg-muted text-muted-foreground">
+              <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-md border border-border bg-muted/40 text-muted-foreground">
                 <details.icon className="h-4 w-4" />
               </div>
               <div className="min-w-0 space-y-1">
-                <div className="flex items-center gap-2">
+                <div className="flex min-w-0 items-center gap-2">
                   {hasAccess ? (
                     <Check className="h-3.5 w-3.5 shrink-0 text-success" />
                   ) : (
                     <Lock className="h-3.5 w-3.5 shrink-0 text-muted-foreground" />
                   )}
-                  <p className="text-sm font-medium leading-tight text-foreground">
+                  <p className="min-w-0 text-sm font-semibold leading-tight text-foreground">
                     {details.name}
                   </p>
                 </div>

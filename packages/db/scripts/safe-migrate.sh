@@ -53,6 +53,9 @@ normalize_db_url() {
 
 # Function to get database URL
 get_db_url() {
+    if [ -f "../../.env" ]; then
+        source ../../.env
+    fi
     if [ -f ".env" ]; then
         source .env
     fi
@@ -229,7 +232,13 @@ create_backup() {
 # Function to validate migration files
 validate_migration() {
     local migration_dir="./prisma/migrations"
-    local latest_migration=$(find "$migration_dir" -mindepth 1 -maxdepth 1 -type d -exec basename {} \; | grep -E '^[0-9]{14}_' | sort | tail -1)
+    local latest_migration
+    latest_migration=$(
+        find "$migration_dir" -mindepth 1 -maxdepth 1 -type d -exec basename {} \; |
+            grep -E '^[0-9]{8,}' |
+            sort |
+            tail -1
+    )
     if [ -z "$latest_migration" ]; then
         latest_migration=$(find "$migration_dir" -mindepth 1 -maxdepth 1 -type d -exec basename {} \; | sort | tail -1)
     fi

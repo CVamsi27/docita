@@ -27,12 +27,51 @@ function writeRows(rows: unknown[]): void {
   );
 }
 
-async function run(): Promise<void> {
+async function ensurePgStatStatements(): Promise<boolean> {
   try {
-    writeSection("Top Slow Queries (pg_stat_statements)");
     await prisma.$executeRawUnsafe(
       `CREATE EXTENSION IF NOT EXISTS pg_stat_statements`,
     );
+    return true;
+  } catch (error) {
+    const message = error instanceof Error ? error.message : String(error);
+    process.stderr.write(
+      [
+        "pg_stat_statements is not available on this database.",
+        `  Underlying error: ${message}`,
+        "  To enable locally, ensure shared_preload_libraries=pg_stat_statements",
+        "  is set on Postgres and a role with CREATE permission on the database",
+        "  is used. docker-compose.yml already configures the local container.",
+        "",
+      ].join("\n"),
+    );
+    return false;
+  }
+}
+
+async function run(): Promise<void> {
+  try {
+    writeSection("Top Slow Queries (pg_stat_statements)");
+    const hasPgss = await ensurePgStatStatements();
+    if (!hasPgss) {
+      writeRows([]);
+      writeSection("Top Seq Scan Tables");
+      const seqScanTables = await prisma.$queryRaw<
+        Array<{ table: string; seq_scan: bigint; idx_scan: bigint; scan_ratio: number }>
+      >`
+        SELECT
+          relname AS table,
+          seq_scan,
+          idx_scan,
+          ROUND((seq_scan::numeric / NULLIF((seq_scan + idx_scan), 0)), 4) AS scan_ratio
+        FROM pg_stat_user_tables
+        WHERE (seq_scan + idx_scan) > 0
+        ORDER BY scan_ratio DESC, seq_scan DESC
+        LIMIT 20
+      `;
+      writeRows(seqScanTables);
+      return;
+    }
 
     const slowQueries = await prisma.$queryRaw<QueryRow[]>`
       SELECT

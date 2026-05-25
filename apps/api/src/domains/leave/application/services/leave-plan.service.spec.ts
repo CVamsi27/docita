@@ -67,6 +67,37 @@ describe('LeavePlanService', () => {
       expect(leaveRepository.upsertLeavePlan).toHaveBeenCalled();
       expect(result.annualQuota).toBe(12);
     });
+
+    it('upserts a holiday leave plan', async () => {
+      const holidayPlan = { ...mockPlan, leaveType: 'HOLIDAY', annualQuota: 5 };
+      leaveRepository.upsertLeavePlan.mockResolvedValue(holidayPlan);
+
+      const result = await service.createPlan('clinic-1', {
+        leaveType: 'HOLIDAY',
+        annualQuota: 5,
+      });
+
+      expect(leaveRepository.upsertLeavePlan).toHaveBeenCalledWith(
+        {
+          clinicId_leaveType: {
+            clinicId: 'clinic-1',
+            leaveType: 'HOLIDAY',
+          },
+        },
+        expect.objectContaining({
+          leaveType: 'HOLIDAY',
+          annualQuota: 5,
+        }),
+        expect.objectContaining({
+          annualQuota: 5,
+          carryForward: false,
+          maxCarryForward: 0,
+          isActive: true,
+        }),
+      );
+      expect(result.leaveType).toBe('HOLIDAY');
+      expect(result.annualQuota).toBe(5);
+    });
   });
 
   describe('updatePlan', () => {

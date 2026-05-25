@@ -1,23 +1,19 @@
 "use client";
 
 import { useState } from "react";
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@workspace/ui/components/card";
-import { Label } from "@workspace/ui/components/label";
-import { Slider } from "@workspace/ui/components/slider";
-import { Badge } from "@workspace/ui/components/badge";
-import { Separator } from "@workspace/ui/components/separator";
-import { Button } from "@workspace/ui/components/button";
-import {
-  TIER_PRICING_BY_CURRENCY,
-  TIER_OVERAGE_RATES_BY_CURRENCY,
-  PRICING_CURRENCY_SYMBOLS,
-  TIER_LIMITS,
-  getWhatsAppAddonPricingByCurrency,
-} from "@workspace/types";
-import type { SupportedCurrency } from "@workspace/types";
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@workspace/ui/components/indicators/card";
+import { Label } from "@workspace/ui/components/form/label";
+import { Slider } from "@workspace/ui/components/form/slider";
+import { Badge } from "@workspace/ui/components/indicators/badge";
+import { Separator } from "@workspace/ui/components/layout/separator";
+import { Button } from "@workspace/ui/components/form/button";
+import { PRICING_CURRENCY_CONFIG, TIER_PRICING_BY_CURRENCY, TIER_OVERAGE_RATES_BY_CURRENCY, PRICING_CURRENCY_SYMBOLS, TIER_LIMITS, type SupportedCurrency } from "@workspace/types";
+import { getWhatsAppAddonPricingByCurrency } from "@workspace/utils";
+import { formatAmountLocale, formatCountLocale } from "@workspace/utils";
 import { Calculator, ArrowRight } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useLocaleCurrency } from "@/hooks/use-locale-currency";
+import { subscriptionSettingsHref } from "@/lib/subscription/subscription-settings-path";
 
 interface UsagePricingCalculatorProps {
   currency?: SupportedCurrency;
@@ -55,7 +51,8 @@ function calculateBill(
   tierKey: "ESSENTIAL" | "PROFESSIONAL",
   currency: SupportedCurrency,
 ): BillResult {
-  const base = (TIER_PRICING_BY_CURRENCY[currency]?.[tierKey]?.monthly as number) ?? 0;
+  const monthly = TIER_PRICING_BY_CURRENCY[currency]?.[tierKey]?.monthly;
+  const base = typeof monthly === "number" ? monthly : 0;
   const rates = TIER_OVERAGE_RATES_BY_CURRENCY[currency]?.[tierKey] ?? TIER_OVERAGE_RATES_BY_CURRENCY.INR[tierKey];
   const limits = TIER_LIMITS[tierKey];
   const whatsappPricing = getWhatsAppAddonPricingByCurrency(tierKey, currency);
@@ -95,7 +92,13 @@ export function UsagePricingCalculator({ currency }: UsagePricingCalculatorProps
   const router = useRouter();
   const { currency: detectedCurrency } = useLocaleCurrency();
   const resolvedCurrency = currency ?? detectedCurrency;
-  const symbol = PRICING_CURRENCY_SYMBOLS[resolvedCurrency] ?? "₹";
+  const symbol = PRICING_CURRENCY_SYMBOLS[resolvedCurrency] ?? resolvedCurrency;
+  const currencyFmt = PRICING_CURRENCY_CONFIG[resolvedCurrency];
+  const fmtMoney = (value: number) =>
+    formatAmountLocale(value, currencyFmt.locale, {
+      minimumFractionDigits: currencyFmt.decimalPlaces,
+      maximumFractionDigits: currencyFmt.decimalPlaces,
+    });
   const proBill = calculateBill(usage, "ESSENTIAL", resolvedCurrency);
   const clinicBill = calculateBill(usage, "PROFESSIONAL", resolvedCurrency);
   const showClinicSuggestion = exceedsProLimits(usage, resolvedCurrency);
@@ -104,7 +107,7 @@ export function UsagePricingCalculator({ currency }: UsagePricingCalculatorProps
     setUsage((prev) => ({ ...prev, [key]: value }));
 
   const renderBreakdown = (bill: BillResult, tierLabel: string, highlight: boolean) => (
-    <div className={`flex flex-col gap-3 rounded-xl p-4 border ${highlight ? "bg-primary/5 border-primary/30" : "bg-muted/30"}`}>
+    <div className={`flex flex-col gap-3 rounded-lg p-4 border ${highlight ? "bg-primary/5 border-primary/30" : "bg-muted/30"}`}>
       <div className="flex items-center justify-between">
         <span className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">{tierLabel}</span>
         {highlight && <Badge variant="default" className="text-xs">Recommended</Badge>}
@@ -112,7 +115,7 @@ export function UsagePricingCalculator({ currency }: UsagePricingCalculatorProps
 
       <div className="flex items-center justify-between">
         <span className="text-sm text-muted-foreground">Base plan</span>
-        <span className="text-sm font-medium">{symbol}{bill.base.toLocaleString()}/mo</span>
+        <span className="text-sm font-medium">{symbol}{fmtMoney(bill.base)}/mo</span>
       </div>
 
       {bill.overageBreakdown.length > 0 && (
@@ -122,10 +125,10 @@ export function UsagePricingCalculator({ currency }: UsagePricingCalculatorProps
           {bill.overageBreakdown.map((o) => (
             <div key={o.label} className="flex items-center justify-between text-sm">
               <span className="text-muted-foreground">
-                {o.label} ({o.units.toLocaleString()} × {symbol}{o.rate})
+                {o.label} ({formatCountLocale(o.units)} × {symbol}{fmtMoney(o.rate)})
               </span>
               <span className="font-medium text-warning">
-                +{symbol}{Math.round(o.cost).toLocaleString()}
+                +{symbol}{fmtMoney(Math.round(o.cost))}
               </span>
             </div>
           ))}
@@ -137,7 +140,7 @@ export function UsagePricingCalculator({ currency }: UsagePricingCalculatorProps
       <div className="flex items-center justify-between">
         <span className="text-sm font-semibold">Estimated total</span>
         <div className="text-right">
-          <span className="text-xl font-bold">{symbol}{Math.round(bill.total).toLocaleString()}</span>
+          <span className="text-xl font-bold">{symbol}{fmtMoney(Math.round(bill.total))}</span>
           <span className="text-sm text-muted-foreground">/mo</span>
         </div>
       </div>
@@ -169,7 +172,7 @@ export function UsagePricingCalculator({ currency }: UsagePricingCalculatorProps
                 <div className="flex items-center justify-between">
                   <Label className="text-sm">{label}</Label>
                   <span className="text-sm font-medium tabular-nums">
-                    {usage[key].toLocaleString()} {unit}
+                    {formatCountLocale(usage[key])} {unit}
                   </span>
                 </div>
                 <Slider
@@ -192,14 +195,18 @@ export function UsagePricingCalculator({ currency }: UsagePricingCalculatorProps
                 <p className="text-xs text-muted-foreground text-center">
                   Professional has higher quotas and lower per-unit overage rates - saving you{" "}
                   <span className="font-medium text-foreground">
-                    {symbol}{Math.max(0, Math.round(proBill.total - clinicBill.total)).toLocaleString()}/mo
+                    {symbol}{fmtMoney(Math.max(0, Math.round(proBill.total - clinicBill.total)))}/mo
                   </span>{" "}
                   at this usage level.
                 </p>
                 <Button
                   size="sm"
                   className="w-full gap-2"
-                  onClick={() => router.push("/upgrade?tier=PROFESSIONAL")}
+                  onClick={() =>
+                    router.push(
+                      subscriptionSettingsHref({ tier: "PROFESSIONAL" }),
+                    )
+                  }
                 >
                   Upgrade to Professional <ArrowRight className="h-3.5 w-3.5" />
                 </Button>

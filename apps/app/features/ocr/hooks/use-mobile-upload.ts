@@ -1,8 +1,9 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import { toast } from "sonner";
-import { apiFetch } from "@/lib/api-client";
-import { toAbsoluteAppUrl } from "@/lib/url";
-import { showUserFacingErrorToast } from "@/lib/user-facing-errors";
+import { apiFetch } from "@/lib/api/api-client";
+import { browserBlob } from "@/lib/auth/browser-request";
+import { toAbsoluteAppUrl } from "@/lib/utils/url";
+import { showUserFacingErrorToast } from "@/lib/errors/user-facing-errors";
 
 function resolveUploadedFileUrl(fileUrl: string): string {
   if (/^https?:\/\//i.test(fileUrl)) {
@@ -50,15 +51,10 @@ export const useMobileUpload = () => {
             clearPolling();
             setShowQr(false);
             const downloadUrl = resolveUploadedFileUrl(data.fileUrl);
-            const downloadResponse = await fetch(downloadUrl, {
+            const fileBlob = await browserBlob(downloadUrl, {
               credentials: "include",
               cache: "no-store",
             });
-            if (!downloadResponse.ok) {
-              throw new Error("Uploaded file could not be downloaded");
-            }
-
-            const fileBlob = await downloadResponse.blob();
             const parsedUrl = new URL(downloadUrl);
             const filename =
               decodeURIComponent(parsedUrl.pathname.split("/").pop() || "") ||
@@ -76,7 +72,9 @@ export const useMobileUpload = () => {
 
       pollTimeoutRef.current = setTimeout(() => {
         clearPolling();
-        toast.message("Mobile upload timed out. Please generate a new QR code.");
+        toast.message(
+          "Mobile upload timed out. Please generate a new QR code.",
+        );
       }, 120000);
     },
     [clearPolling],
@@ -85,11 +83,18 @@ export const useMobileUpload = () => {
   const startMobileUpload = useCallback(
     async (onUploadComplete: (file: File, url: string) => void) => {
       try {
-        const data = await apiFetch<{ id: string }>(`/uploads/session`, {
-          method: "POST",
-        });
+        const data = await apiFetch<{ id: string; uploadSecret: string }>(
+          `/uploads/session`,
+          {
+            method: "POST",
+          },
+        );
 
-        setQrUrl(toAbsoluteAppUrl(`/mobile-upload/${data.id}`));
+        setQrUrl(
+          toAbsoluteAppUrl(
+            `/mobile-upload/${data.id}?uploadSecret=${encodeURIComponent(data.uploadSecret)}`,
+          ),
+        );
         setShowQr(true);
         pollSession(data.id, onUploadComplete);
       } catch (_error) {

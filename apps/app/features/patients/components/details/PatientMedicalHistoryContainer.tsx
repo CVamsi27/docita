@@ -1,13 +1,11 @@
-import { useCallback, useEffect, useRef, useState } from "react";
-import { usePatientHistory } from "@/hooks/api/use-patient-history";
-import { useClinicSettings } from "@/hooks/api/use-settings";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { usePatientHistory } from "@/features/patients/hooks/use-patient-history";
+import { useClinicSettings } from "@workspace/data-access";
 import {
   PatientAllergy,
-  PatientFamilyHistory,
-  PatientMedicalCondition,
-  PatientSocialHistory,
-  PatientSurgicalHistory,
-  PatientWithMedicalHistory,
+  patientSocialHistorySchema,
+  type PatientSocialHistory,
+  type PatientWithMedicalHistory,
 } from "@workspace/types";
 import { PatientMedicalHistoryUI } from "./PatientMedicalHistoryUI";
 import { PatientMetricsHistoryUI } from "./PatientMetricsHistoryUI";
@@ -19,6 +17,9 @@ interface PatientMedicalHistoryContainerProps {
   variant?: "default" | "consultation";
   allowGrowthEdit?: boolean;
 }
+
+const SOCIAL_HISTORY_DEBOUNCE_MS = 500;
+const CUSTOM_DATA_DEBOUNCE_MS = 500;
 
 export function PatientMedicalHistoryContainer({
   patient: initialPatient,
@@ -43,12 +44,14 @@ export function PatientMedicalHistoryContainer({
   const [newFamilyRelation, setNewFamilyRelation] = useState("");
 
   const { data: clinic } = useClinicSettings();
-  const [draftPatient, setDraftPatient] = useState<PatientWithMedicalHistory>(
-    () => freshPatient || initialPatient,
-  );
 
-  const hasLocalEditsRef = useRef(false);
-  const hasSeededFromFreshRef = useRef(Boolean(freshPatient));
+  const [socialOverrides, setSocialOverrides] = useState<
+    Partial<PatientSocialHistory>
+  >({});
+  const [customDataOverrides, setCustomDataOverrides] = useState<
+    Record<string, unknown>
+  >({});
+
   const pendingTimersRef = useRef<Map<string, ReturnType<typeof setTimeout>>>(
     new Map(),
   );
@@ -58,23 +61,10 @@ export function PatientMedicalHistoryContainer({
     const nextId = initialPatient.id;
     if (nextId && nextId !== syncedPatientIdRef.current) {
       syncedPatientIdRef.current = nextId;
-      hasLocalEditsRef.current = false;
-      hasSeededFromFreshRef.current = false;
-      setDraftPatient(initialPatient);
+      setSocialOverrides({});
+      setCustomDataOverrides({});
     }
   }, [initialPatient]);
-
-  useEffect(() => {
-    if (
-      !hasSeededFromFreshRef.current &&
-      !hasLocalEditsRef.current &&
-      freshPatient &&
-      freshPatient.id === syncedPatientIdRef.current
-    ) {
-      hasSeededFromFreshRef.current = true;
-      setDraftPatient(freshPatient);
-    }
-  }, [freshPatient]);
 
   useEffect(() => {
     const timers = pendingTimersRef.current;
@@ -84,10 +74,8 @@ export function PatientMedicalHistoryContainer({
     };
   }, []);
 
-  const DEBOUNCE_MS = 500;
-
   const scheduleDebounced = useCallback(
-    (key: string, fn: () => void) => {
+    (key: string, fn: () => void, delay: number) => {
       const existing = pendingTimersRef.current.get(key);
       if (existing) {
         clearTimeout(existing);
@@ -95,231 +83,137 @@ export function PatientMedicalHistoryContainer({
       const timer = setTimeout(() => {
         pendingTimersRef.current.delete(key);
         fn();
-      }, DEBOUNCE_MS);
+      }, delay);
       pendingTimersRef.current.set(key, timer);
     },
     [],
   );
 
-  const updateDraftPatient = useCallback(
-    (
-      updater: (
-        current: PatientWithMedicalHistory,
-      ) => PatientWithMedicalHistory,
-    ) => {
-      hasLocalEditsRef.current = true;
-      setDraftPatient((current) => updater(current));
-    },
-    [],
-  );
+  const sourcePatient = freshPatient || initialPatient;
+
+  const displayPatient = useMemo<PatientWithMedicalHistory>(() => {
+    const baseSocial = sourcePatient.socialHistory;
+    const mergedSocial =
+      Object.keys(socialOverrides).length > 0 || baseSocial
+        ? patientSocialHistorySchema.parse({
+            ...(baseSocial ?? {
+              patientId: sourcePatient.id || "",
+            }),
+            ...socialOverrides,
+          })
+        : undefined;
+
+    const baseCustomData =
+      sourcePatient.customData &&
+      typeof sourcePatient.customData === "object" &&
+      !Array.isArray(sourcePatient.customData)
+        ? Object.fromEntries(Object.entries(sourcePatient.customData))
+        : {};
+
+    const mergedCustomData: PatientWithMedicalHistory["customData"] = {
+      ...baseCustomData,
+      ...Object.fromEntries(
+        Object.entries(customDataOverrides).filter(
+          (entry): entry is [string, string | number | boolean | null] => {
+            const value = entry[1];
+            return (
+              typeof value === "string" ||
+              typeof value === "number" ||
+              typeof value === "boolean" ||
+              value === null
+            );
+          },
+        ),
+      ),
+    };
+
+    return {
+      ...sourcePatient,
+      socialHistory: mergedSocial,
+      customData: mergedCustomData,
+    };
+  }, [sourcePatient, socialOverrides, customDataOverrides]);
 
   const updateCustomData = useCallback(
     (
       key: string,
       value: string | number | boolean | Record<string, unknown>,
     ) => {
-      updateDraftPatient((current) => ({
-        ...current,
-        customData: {
-          ...(current.customData && typeof current.customData === "object"
-            ? Object.fromEntries(Object.entries(current.customData))
-            : {}),
-          [key]: value,
-        } as PatientWithMedicalHistory["customData"],
-      }));
-      scheduleDebounced(`customData:${key}`, () =>
-        operations.updateCustomData(key, value),
+      setCustomDataOverrides((prev) => ({ ...prev, [key]: value }));
+      scheduleDebounced(
+        `customData:${key}`,
+        () => operations.updateCustomData(key, value),
+        CUSTOM_DATA_DEBOUNCE_MS,
       );
     },
-    [operations, scheduleDebounced, updateDraftPatient],
+    [operations, scheduleDebounced],
   );
 
   const updateSocialHistory = useCallback(
     (field: keyof PatientSocialHistory, value: string) => {
-      updateDraftPatient((current) => ({
-        ...current,
-        socialHistory: {
-          ...(current.socialHistory ?? {
-            patientId: current.id || "",
-            alcoholFrequency: "",
-            substanceUse: "",
-            occupation: "",
-            occupationalHazards: "",
-            exerciseFrequency: "",
-            dietaryRestrictions: "",
-            notes: "",
-          }),
-          [field]: value,
-        },
-      }));
-      scheduleDebounced(`socialHistory:${String(field)}`, () =>
-        operations.updateSocialHistory(field, value),
+      setSocialOverrides((prev) => ({ ...prev, [field]: value }));
+      scheduleDebounced(
+        `socialHistory:${String(field)}`,
+        () => operations.updateSocialHistory(field, value),
+        SOCIAL_HISTORY_DEBOUNCE_MS,
       );
     },
-    [operations, scheduleDebounced, updateDraftPatient],
+    [operations, scheduleDebounced],
   );
 
   const addCondition = useCallback(() => {
     if (!newCondition.trim()) return;
-    const conditionName = newCondition.trim();
-    updateDraftPatient((current) => {
-      const nextCondition: PatientMedicalCondition = {
-        id: crypto.randomUUID(),
-        patientId: current.id || "",
-        conditionName,
-        conditionType: "CHRONIC",
-        status: "ACTIVE",
-        diagnosedBy: "",
-        notes: "",
-        sourceType: "MANUAL",
-      };
-
-      return {
-        ...current,
-        medicalConditions: [...(current.medicalConditions || []), nextCondition],
-      };
-    });
-    operations.addCondition(conditionName);
+    operations.addCondition(newCondition.trim());
     setNewCondition("");
-  }, [newCondition, operations, updateDraftPatient]);
+  }, [newCondition, operations]);
 
   const addAllergy = useCallback(() => {
     if (!newAllergy.trim()) return;
-    const allergen = newAllergy.trim();
-    updateDraftPatient((current) => {
-      const nextAllergy: PatientAllergy = {
-        id: crypto.randomUUID(),
-        patientId: current.id || "",
-        allergen,
-        severity: "MODERATE",
-        allergyType: "DRUG",
-        reaction: "",
-        verifiedBy: "",
-        isVerified: false,
-      };
-
-      return {
-        ...current,
-        patientAllergies: [...(current.patientAllergies || []), nextAllergy],
-      };
-    });
-    operations.addAllergy(allergen);
+    operations.addAllergy(newAllergy.trim());
     setNewAllergy("");
-  }, [newAllergy, operations, updateDraftPatient]);
+  }, [newAllergy, operations]);
 
   const removeCondition = useCallback(
-    (id: string) => {
-      updateDraftPatient((current) => ({
-        ...current,
-        medicalConditions: (current.medicalConditions || []).filter(
-          (condition) => condition.id !== id,
-        ),
-      }));
-      operations.removeCondition(id);
-    },
-    [operations, updateDraftPatient],
+    (id: string) => operations.removeCondition(id),
+    [operations],
   );
 
   const removeAllergy = useCallback(
-    (id: string) => {
-      updateDraftPatient((current) => ({
-        ...current,
-        patientAllergies: (current.patientAllergies || []).filter(
-          (allergy) => allergy.id !== id,
-        ),
-      }));
-      operations.removeAllergy(id);
-    },
-    [operations, updateDraftPatient],
+    (id: string) => operations.removeAllergy(id),
+    [operations],
   );
 
   const handleUpdateAllergy = useCallback(() => {
     if (!editingAllergy) return;
-    updateDraftPatient((current) => ({
-      ...current,
-      patientAllergies: (current.patientAllergies || []).map((allergy) =>
-        allergy.id === editingAllergy.id ? editingAllergy : allergy,
-      ),
-    }));
     operations.updateAllergy(editingAllergy);
     setEditingAllergy(null);
-  }, [editingAllergy, operations, updateDraftPatient]);
+  }, [editingAllergy, operations]);
 
   const addSurgery = useCallback(() => {
     if (!newSurgery.trim()) return;
-    const procedureName = newSurgery.trim();
-    const procedureDate = newSurgeryDate || undefined;
-    updateDraftPatient((current) => {
-      const nextSurgery: PatientSurgicalHistory = {
-        id: crypto.randomUUID(),
-        patientId: current.id || "",
-        procedureName,
-        procedureDate,
-        complications: "",
-        notes: "",
-      };
-
-      return {
-        ...current,
-        surgicalHistory: [...(current.surgicalHistory || []), nextSurgery],
-      };
-    });
-    operations.addSurgery(procedureName, procedureDate);
+    operations.addSurgery(newSurgery.trim(), newSurgeryDate || undefined);
     setNewSurgery("");
     setNewSurgeryDate("");
-  }, [newSurgery, newSurgeryDate, operations, updateDraftPatient]);
+  }, [newSurgery, newSurgeryDate, operations]);
 
   const removeSurgery = useCallback(
-    (id: string) => {
-      updateDraftPatient((current) => ({
-        ...current,
-        surgicalHistory: (current.surgicalHistory || []).filter(
-          (surgery) => surgery.id !== id,
-        ),
-      }));
-      operations.removeSurgery(id);
-    },
-    [operations, updateDraftPatient],
+    (id: string) => operations.removeSurgery(id),
+    [operations],
   );
 
   const addFamilyHistory = useCallback(() => {
     if (!newFamilyCondition.trim() || !newFamilyRelation.trim()) return;
-    const condition = newFamilyCondition.trim();
-    const relationship = newFamilyRelation.trim();
-    updateDraftPatient((current) => {
-      const nextFamily: PatientFamilyHistory = {
-        id: crypto.randomUUID(),
-        patientId: current.id || "",
-        condition,
-        relationship,
-      };
-
-      return {
-        ...current,
-        familyHistory: [...(current.familyHistory || []), nextFamily],
-      };
-    });
-    operations.addFamilyHistory(condition, relationship);
+    operations.addFamilyHistory(
+      newFamilyCondition.trim(),
+      newFamilyRelation.trim(),
+    );
     setNewFamilyCondition("");
     setNewFamilyRelation("");
-  }, [
-    newFamilyCondition,
-    newFamilyRelation,
-    operations,
-    updateDraftPatient,
-  ]);
+  }, [newFamilyCondition, newFamilyRelation, operations]);
 
   const removeFamilyHistory = useCallback(
-    (id: string) => {
-      updateDraftPatient((current) => ({
-        ...current,
-        familyHistory: (current.familyHistory || []).filter(
-          (familyHistory) => familyHistory.id !== id,
-        ),
-      }));
-      operations.removeFamilyHistory(id);
-    },
-    [operations, updateDraftPatient],
+    (id: string) => operations.removeFamilyHistory(id),
+    [operations],
   );
 
   if (variant !== "consultation") {
@@ -332,11 +226,9 @@ export function PatientMedicalHistoryContainer({
     );
   }
 
-  const patient = draftPatient;
-
   return (
     <PatientMedicalHistoryUI
-      patient={patient}
+      patient={displayPatient}
       readOnly={readOnly}
       className={className}
       clinicType={clinic?.type}

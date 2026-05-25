@@ -2,10 +2,11 @@ import { Injectable, Inject, Logger } from '@nestjs/common';
 import { CACHE_MANAGER } from '@nestjs/cache-manager';
 import { Cache } from 'cache-manager';
 import { PrismaService } from '@/prisma/prisma.service';
-import { Prisma } from '@workspace/db';
 import { FinancialAnalyticsFactory } from './financial-analytics.factory';
 import { OperationalAnalyticsFactory } from './operational-analytics.factory';
 import { ClinicalAnalyticsFactory } from './clinical-analytics.factory';
+import { CLOCK_PORT, type IClock } from '@/shared/common/ports/clock.port';
+import { toPrismaInputJsonValue } from '@/shared/common/json/to-prisma-input-json-value';
 
 export interface SnapshotRecord {
   [key: string]: unknown;
@@ -32,16 +33,13 @@ export interface SnapshotRecord {
 export class SnapshotAnalyticsFactory {
   private readonly logger = new Logger(SnapshotAnalyticsFactory.name);
 
-  private toJsonValue(value: unknown): Prisma.InputJsonValue {
-    return JSON.parse(JSON.stringify(value)) as Prisma.InputJsonValue;
-  }
-
   constructor(
     private prisma: PrismaService,
     @Inject(CACHE_MANAGER) private cacheManager: Cache,
     private financialFactory: FinancialAnalyticsFactory,
     private operationalFactory: OperationalAnalyticsFactory,
     private clinicalFactory: ClinicalAnalyticsFactory,
+    @Inject(CLOCK_PORT) private readonly clock: IClock,
   ) {}
 
   async createAnalyticsSnapshot(clinicId: string): Promise<void> {
@@ -70,7 +68,7 @@ export class SnapshotAnalyticsFactory {
       const snapshot = await this.prisma.analyticsSnapshot.create({
         data: {
           clinicId,
-          snapshotDate: new Date(),
+          snapshotDate: this.clock.now(),
           period: 'daily',
           totalRevenue,
           invoiceCount: revenue.length,
@@ -86,7 +84,7 @@ export class SnapshotAnalyticsFactory {
           newPatients: demographics.newPatients || 0,
           activePatients: demographics.totalPatients || 0,
           appointmentRate: appointments.fillRate || 0,
-          topConditions: this.toJsonValue(topConditions || []),
+          topConditions: toPrismaInputJsonValue(topConditions || []),
         },
       });
 
@@ -95,7 +93,7 @@ export class SnapshotAnalyticsFactory {
       );
 
       await this.cacheManager.set(
-        `snapshot-${clinicId}-${new Date().toISOString().split('T')[0]}`,
+        `snapshot-${clinicId}-${this.clock.now().toISOString().split('T')[0]}`,
         snapshot,
         86400000,
       );
@@ -109,7 +107,7 @@ export class SnapshotAnalyticsFactory {
     days: number = 30,
   ): Promise<SnapshotRecord[]> {
     try {
-      const startDate = new Date();
+      const startDate = this.clock.now();
       startDate.setDate(startDate.getDate() - days);
 
       const snapshots = await this.prisma.analyticsSnapshot.findMany({

@@ -1,15 +1,15 @@
 import Link from "next/link";
 import { ChevronRight, Users } from "lucide-react";
-import { formatDistanceToNow } from "date-fns";
+import { formatDistanceToNow } from "@workspace/utils";
 import {
   Card,
   CardContent,
   CardDescription,
   CardHeader,
   CardTitle,
-} from "@workspace/ui/components/card";
-import { Avatar, AvatarFallback } from "@workspace/ui/components/avatar";
-import { EmptyState } from "@workspace/ui/components/empty-state";
+} from "@workspace/ui/components/indicators/card";
+import { Avatar, AvatarFallback } from "@workspace/ui/components/indicators/avatar";
+import { EmptyState } from "@workspace/ui/components/feedback/empty-state";
 import { ViewAllLinkUI } from "@/features/dashboard/components/layout/view-all-link-ui";
 
 export interface RecentPatient {
@@ -30,7 +30,7 @@ export function RecentPatientsUI({ patients }: RecentPatientsUIProps) {
       <CardHeader className="pb-3">
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-3">
-            <div className="h-9 w-9 rounded-xl bg-linear-to-br from-info/20 to-info/10 flex items-center justify-center text-info">
+            <div className="flex h-9 w-9 items-center justify-center rounded-full border border-border/70 bg-background/70 text-info">
               <Users className="h-4 w-4" />
             </div>
             <div>
@@ -67,7 +67,7 @@ export function RecentPatientsUI({ patients }: RecentPatientsUIProps) {
                 className="group flex items-center gap-4 rounded-lg border border-transparent p-3.5 transition-colors duration-150 hover:border-border/50 hover:bg-muted/60"
               >
                 <Avatar className="h-8 w-8">
-                  <AvatarFallback className="bg-linear-to-br from-primary/20 to-primary/5 text-primary text-xs font-medium">
+                  <AvatarFallback className="border border-border/70 bg-background/70 text-foreground text-xs font-medium">
                     {patient.firstName?.[0]}
                     {patient.lastName?.[0]}
                   </AvatarFallback>
@@ -78,9 +78,7 @@ export function RecentPatientsUI({ patients }: RecentPatientsUIProps) {
                   </p>
                   <p className="text-xs text-muted-foreground">
                     {patient.updatedAt
-                      ? formatDistanceToNow(new Date(patient.updatedAt), {
-                          addSuffix: true,
-                        })
+                      ? formatDistanceToNow(patient.updatedAt)
                       : patient.phoneNumber}
                   </p>
                 </div>

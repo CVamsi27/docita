@@ -3,6 +3,8 @@ import {
   API_URL,
   fetchPatientByApi,
   loginUser,
+  PATIENTS_LIST_PATH,
+  patientDetailPath,
   setupTestUser,
   UserData,
 } from "./utils/patient-helpers";
@@ -44,7 +46,7 @@ test.describe("Patient Medical History - CRUD", () => {
     page,
     request,
   }) => {
-    await page.goto(`/dashboard/patients/${cachedPatient!.id}`, {
+    await page.goto(patientDetailPath(cachedPatient!.id), {
       waitUntil: "networkidle",
     });
 
@@ -81,7 +83,7 @@ test.describe("Patient Medical History - CRUD", () => {
   });
 
   test("should display allergies information", async ({ page, request }) => {
-    await page.goto(`/dashboard/patients/${cachedPatient!.id}`, {
+    await page.goto(patientDetailPath(cachedPatient!.id), {
       waitUntil: "networkidle",
     });
 
@@ -119,7 +121,7 @@ test.describe("Patient Medical History - CRUD", () => {
   });
 
   test("should edit medical history", async ({ page, request }) => {
-    await page.goto(`/dashboard/patients/${cachedPatient!.id}`, {
+    await page.goto(patientDetailPath(cachedPatient!.id), {
       waitUntil: "networkidle",
     });
 
@@ -214,7 +216,7 @@ test.describe("Patient Medical History - CRUD", () => {
 
     expect(removeTestRes.ok()).toBeTruthy();
     const removeTestPatient = await removeTestRes.json();
-    await page.goto(`/dashboard/patients/${removeTestPatient.id}`, {
+    await page.goto(patientDetailPath(removeTestPatient.id), {
       waitUntil: "networkidle",
     });
 
@@ -268,7 +270,7 @@ test.describe("Patient Medical History - CRUD", () => {
 
     expect(emptyRes.ok()).toBeTruthy();
     const emptyPatient = await emptyRes.json();
-    await page.goto(`/dashboard/patients/${emptyPatient.id}`, {
+    await page.goto(patientDetailPath(emptyPatient.id), {
       waitUntil: "networkidle",
     });
 
@@ -290,7 +292,7 @@ test.describe("Patient Medical History - CRUD", () => {
   test("should display medical history in patient list/table", async ({
     page,
   }) => {
-    await page.goto("/dashboard/patients", { waitUntil: "networkidle" });
+    await page.goto(PATIENTS_LIST_PATH, { waitUntil: "networkidle" });
     const tableOrList = page
       .locator('table, [role="grid"], [data-testid*="patient"]')
       .first();

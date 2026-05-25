@@ -4,14 +4,14 @@ import {
   GradientStatCard,
   QuickActionCard,
   ProgressStat,
-} from "@workspace/ui/components/stats-card";
+} from "@workspace/ui/components/data-display/stats-card";
 import { Users, DollarSign, Calendar, Activity } from "lucide-react";
 
 export default function StatsCardVisualTest() {
   return (
     <div className="p-8 space-y-8">
       <section data-testid="gradient-cards">
-        <h2 className="text-2xl font-bold mb-4">Gradient Stat Cards</h2>
+        <h2 className="ui-section-title mb-4 text-[var(--fs-2xl)]">Gradient Stat Cards</h2>
         <div className="grid grid-cols-2 gap-4">
           <GradientStatCard
             variant="primary"
@@ -41,7 +41,7 @@ export default function StatsCardVisualTest() {
       </section>
 
       <section data-testid="gradient-with-subtitle">
-        <h2 className="text-2xl font-bold mb-4">With Subtitle</h2>
+        <h2 className="ui-section-title mb-4 text-[var(--fs-2xl)]">With Subtitle</h2>
         <div className="grid grid-cols-2 gap-4">
           <GradientStatCard
             variant="primary"
@@ -61,7 +61,7 @@ export default function StatsCardVisualTest() {
       </section>
 
       <section data-testid="quick-action-cards">
-        <h2 className="text-2xl font-bold mb-4">Quick Action Cards</h2>
+        <h2 className="ui-section-title mb-4 text-[var(--fs-2xl)]">Quick Action Cards</h2>
         <div className="grid grid-cols-4 gap-4">
           <QuickActionCard variant="primary" icon={Users} label="Primary" />
           <QuickActionCard variant="success" icon={DollarSign} label="Success" />
@@ -71,7 +71,7 @@ export default function StatsCardVisualTest() {
       </section>
 
       <section data-testid="quick-action-with-badge">
-        <h2 className="text-2xl font-bold mb-4">Quick Action With Badge</h2>
+        <h2 className="ui-section-title mb-4 text-[var(--fs-2xl)]">Quick Action With Badge</h2>
         <div className="grid grid-cols-4 gap-4">
           <QuickActionCard
             variant="primary"
@@ -89,7 +89,7 @@ export default function StatsCardVisualTest() {
       </section>
 
       <section data-testid="progress-stats">
-        <h2 className="text-2xl font-bold mb-4">Progress Stats</h2>
+        <h2 className="ui-section-title mb-4 text-[var(--fs-2xl)]">Progress Stats</h2>
         <div className="space-y-4 max-w-md">
           <ProgressStat
             label="Primary Progress"
@@ -119,7 +119,7 @@ export default function StatsCardVisualTest() {
       </section>
 
       <section data-testid="progress-with-description">
-        <h2 className="text-2xl font-bold mb-4">Progress With Description</h2>
+        <h2 className="ui-section-title mb-4 text-[var(--fs-2xl)]">Progress With Description</h2>
         <div className="space-y-4 max-w-md">
           <ProgressStat
             label="Storage Used"

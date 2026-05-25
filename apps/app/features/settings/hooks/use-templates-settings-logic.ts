@@ -4,10 +4,10 @@ import {
   useDeleteTemplate,
   useTemplates,
   useUpdateTemplate,
-} from "@/hooks/api/use-clinical";
-import { ClinicalTemplate } from "@workspace/types";
+} from "@workspace/data-access";
+import { clinicalTemplateSchema, type ClinicalTemplate } from "@workspace/types";
 import { toast } from "sonner";
-import { showUserFacingErrorToast } from "@/lib/user-facing-errors";
+import { showUserFacingErrorToast } from "@/lib/errors/user-facing-errors";
 
 export const useTemplatesSettingsLogic = () => {
   const { data: templates, isLoading } = useTemplates();
@@ -72,10 +72,10 @@ export const useTemplatesSettingsLogic = () => {
   const handleSaveTemplate = (data: Partial<ClinicalTemplate>) => {
     if (currentTemplate?.id) {
       updateTemplate(
-        {
+        clinicalTemplateSchema.parse({
           id: currentTemplate.id,
           ...data,
-        } as ClinicalTemplate,
+        }),
         {
           onSuccess: () => {
             toast.success("Template updated");
@@ -90,7 +90,7 @@ export const useTemplatesSettingsLogic = () => {
         },
       );
     } else {
-      createTemplate(data as Omit<ClinicalTemplate, "id">, {
+      createTemplate(clinicalTemplateSchema.omit({ id: true }).parse(data), {
         onSuccess: () => {
           toast.success("Template created");
           setIsDialogOpen(false);

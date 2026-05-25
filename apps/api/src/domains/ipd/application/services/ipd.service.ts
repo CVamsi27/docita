@@ -10,6 +10,9 @@ import {
 } from '@/domains/ipd/core/repositories/ipd.repository.interface';
 import { AuditService } from '@/shared/modules/audit/audit/audit.service';
 
+/**
+ * Thin facade — delegates IPD ward/admission operations to IpdRepository.
+ */
 @Injectable()
 export class IpdService {
   constructor(

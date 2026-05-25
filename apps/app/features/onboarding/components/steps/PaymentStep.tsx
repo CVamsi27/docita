@@ -1,26 +1,34 @@
 "use client";
 
+import { DocitaLoadingIndicator } from "@workspace/ui/components/feedback/docita-loading-indicator";
+
 import { useState } from "react";
-import { CreditCard, Loader2, Info, ShieldCheck } from "lucide-react";
+import { CreditCard, Info, ShieldCheck } from "lucide-react";
 import {
   Card,
   CardContent,
   CardDescription,
   CardHeader,
   CardTitle,
-} from "@workspace/ui/components/card";
-import { Button } from "@workspace/ui/components/button";
-import { Checkbox } from "@workspace/ui/components/checkbox";
-import { Label } from "@workspace/ui/components/label";
+} from "@workspace/ui/components/indicators/card";
+import { Button } from "@workspace/ui/components/form/button";
+import { Checkbox } from "@workspace/ui/components/form/checkbox";
+import { Label } from "@workspace/ui/components/form/label";
 import {
   Alert,
   AlertDescription,
-} from "@workspace/ui/components/alert";
-import { api } from "@/lib/api-client";
-import { getSupportContactText } from "@/lib/support-contact";
-import { showUserFacingErrorToast } from "@/lib/user-facing-errors";
-import { isPaymentCanceledError, useRazorpay } from "@/hooks/use-razorpay";
-import type { TierName } from "@workspace/types";
+} from "@workspace/ui/components/feedback/alert";
+import { api } from "@/lib/api/api-client";
+import { getSupportContactText } from "@/lib/constants/support-contact";
+import { showUserFacingErrorToast } from "@/lib/errors/user-facing-errors";
+import {
+  isPaymentCanceledError,
+  notifyPaymentCanceled,
+  useRazorpay,
+} from "@/hooks/use-razorpay";
+import { BRAND_PRIMARY_HEX } from "@/lib/constants/branding";
+import { tierSchema } from "@workspace/types";
+import { formatAmountLocale, parseStringEnumMember } from "@workspace/utils";
 
 interface PaymentDetails {
   autoPay: boolean;
@@ -39,9 +47,7 @@ interface PaymentStepProps {
   clinicEmail?: string;
   clinicPhone?: string;
   tier?: string;
-  onStartTrial?: () => void;
 }
-
 
 export function PaymentStep({
   onComplete,
@@ -54,7 +60,6 @@ export function PaymentStep({
   clinicEmail,
   clinicPhone,
   tier,
-  onStartTrial,
 }: PaymentStepProps) {
   const [autoPay, setAutoPay] = useState(true);
   const [isProcessing, setIsProcessing] = useState(false);
@@ -76,7 +81,11 @@ export function PaymentStep({
     setIsProcessing(true);
 
     try {
-      const resolvedTier = (tier ?? planId) as TierName | undefined;
+      const resolvedTier =
+        parseStringEnumMember(
+          tierSchema.options,
+          String(tier ?? planId ?? ""),
+        ) ?? undefined;
       if (!resolvedTier) {
         showUserFacingErrorToast(
           "We could not identify the plan tier. Please go back and reselect the plan.",
@@ -104,7 +113,7 @@ export function PaymentStep({
         billingCycle,
       });
 
-      await openCheckout({
+      const checkoutResult = await openCheckout({
         key: checkout.razorpayKeyId,
         amount: checkout.amountCents,
         currency: checkout.currency || currencyCode || "INR",
@@ -130,20 +139,34 @@ export function PaymentStep({
           email: clinicEmail,
           contact: clinicPhone,
         },
-        theme: { color: "#3b82f6" },
+        theme: { color: BRAND_PRIMARY_HEX },
         modal: {
           ondismiss: () => {
             setIsProcessing(false);
           },
         },
       });
+
+      if (checkoutResult.status === "canceled") {
+        return;
+      }
+      if (checkoutResult.status === "failed") {
+        showUserFacingErrorToast(
+          undefined,
+          "We could not complete this payment. Please try again.",
+          "payment",
+        );
+        return;
+      }
     } catch (error: unknown) {
       if (isPaymentCanceledError(error)) {
-        setIsProcessing(false);
+        notifyPaymentCanceled();
         return;
       }
       showUserFacingErrorToast(
+        error,
         `We could not start payment right now. Please ${getSupportContactText()}.`,
+        "payment",
       );
       setIsProcessing(false);
     }
@@ -159,7 +182,7 @@ export function PaymentStep({
         <CardDescription>
           {isFree
             ? "Your selected plan has no upfront cost"
-            : "Complete payment to activate your subscription. You won't be charged until your trial ends."}
+            : "Complete payment to activate your subscription."}
         </CardDescription>
       </CardHeader>
       <CardContent>
@@ -167,8 +190,8 @@ export function PaymentStep({
           <Alert>
             <Info className="h-4 w-4" />
             <AlertDescription>
-              Payments are processed securely through Razorpay. Your card details
-              are never stored on our servers.
+              Payments are processed securely through Razorpay. Your card
+              details are never stored on our servers.
             </AlertDescription>
           </Alert>
 
@@ -197,8 +220,13 @@ export function PaymentStep({
           {/* Total */}
           <div className="bg-muted/50 p-4 rounded-lg flex items-center justify-between">
             <span className="font-semibold">Total Due Today:</span>
-            <span className="text-xl font-bold">
-              {isFree ? "Free" : `${currencySymbol}${total.toLocaleString()}`}
+            <span className="ui-section-title text-[var(--fs-2xl)] leading-none tabular-nums">
+              {isFree
+                ? "Free"
+                : `${currencySymbol}${formatAmountLocale(total, "en-IN", {
+                    minimumFractionDigits: 0,
+                    maximumFractionDigits: 0,
+                  })}`}
             </span>
           </div>
 
@@ -210,8 +238,12 @@ export function PaymentStep({
             >
               {isProcessing ? (
                 <>
-                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                  Processing...
+                  <DocitaLoadingIndicator
+                    variant="inline"
+                    decorative
+                    className="mr-2"
+                  />
+                  Processing…
                 </>
               ) : isFree ? (
                 <>
@@ -235,23 +267,6 @@ export function PaymentStep({
               Back
             </Button>
           </div>
-
-          {tier === "ESSENTIAL" && onStartTrial && (
-            <div className="text-center">
-              <p className="text-xs text-muted-foreground mb-1">
-                Not ready to pay?
-              </p>
-              <Button
-                type="button"
-                variant="link"
-                size="sm"
-                onClick={onStartTrial}
-                disabled={isProcessing}
-              >
-                Start 14-day free trial instead →
-              </Button>
-            </div>
-          )}
 
           <div className="flex justify-center gap-2 text-xs text-muted-foreground">
             <ShieldCheck className="h-3 w-3" />

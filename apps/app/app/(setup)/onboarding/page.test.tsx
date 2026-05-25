@@ -28,11 +28,11 @@ vi.mock("next/dynamic", () => ({
   },
 }));
 
-vi.mock("@/lib/auth-context", () => ({
+vi.mock("@/lib/auth/auth-context", () => ({
   useAuth: () => mocks.auth,
 }));
 
-vi.mock("@/components/common/loaders/page-transition-loader", () => ({
+vi.mock("@/components/loaders/page-transition-loader", () => ({
   PageTransitionLoader: ({
     title,
     description,
@@ -72,11 +72,11 @@ describe("OnboardingPage", () => {
     });
 
     expect(screen.getByTestId("page-transition-loader")).toHaveTextContent(
-      "Redirecting...",
+      "Redirecting…",
     );
   });
 
-  it("redirects completed onboarding users to the dashboard", async () => {
+  it("redirects completed onboarding users to their workspace", async () => {
     mocks.auth = {
       user: {
         id: "user-1",
@@ -90,11 +90,11 @@ describe("OnboardingPage", () => {
     render(<OnboardingPage />);
 
     await waitFor(() => {
-      expect(mocks.router.replace).toHaveBeenCalledWith("/dashboard");
+      expect(mocks.router.replace).toHaveBeenCalledWith("/today");
     });
 
     expect(screen.getByTestId("page-transition-loader")).toHaveTextContent(
-      "Redirecting...",
+      "Redirecting…",
     );
   });
 
@@ -116,7 +116,7 @@ describe("OnboardingPage", () => {
     });
 
     expect(screen.getByTestId("page-transition-loader")).toHaveTextContent(
-      "Redirecting...",
+      "Redirecting…",
     );
   });
 
@@ -138,7 +138,7 @@ describe("OnboardingPage", () => {
     });
 
     expect(screen.getByTestId("page-transition-loader")).toHaveTextContent(
-      "Redirecting...",
+      "Redirecting…",
     );
   });
 });

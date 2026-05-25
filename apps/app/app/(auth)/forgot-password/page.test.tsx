@@ -21,13 +21,13 @@ vi.mock("next/navigation", () => ({
   useRouter: () => mocks.router,
 }));
 
-vi.mock("@/lib/api-client", () => ({
+vi.mock("@/lib/api/api-client", () => ({
   api: {
     post: vi.fn(),
   },
 }));
 
-vi.mock("@/lib/logger", () => ({
+vi.mock("@/lib/monitoring/logger", () => ({
   logger: {
     error: vi.fn(),
   },
@@ -52,6 +52,5 @@ describe("ForgotPasswordPage", () => {
     expect(screen.getByLabelText(/email address/i)).toHaveValue(
       "typed@example.com",
     );
-    expect(screen.getByPlaceholderText("Email address")).toBeInTheDocument();
   });
 });

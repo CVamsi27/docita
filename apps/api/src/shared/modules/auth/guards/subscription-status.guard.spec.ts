@@ -3,7 +3,13 @@ import { Reflector } from '@nestjs/core';
 import { ClinicTier, SubscriptionStatus } from '@workspace/db';
 import { beforeEach, describe, expect, it, jest } from '@jest/globals';
 import { ClinicAuthCacheService } from '@/shared/modules/auth/auth/clinic-auth-cache.service';
-import { asType } from '@/test-utils/as-type';
+import {
+  asType,
+  createFixedClockMock,
+  createKeyedReflectorMock,
+  mockGetAllAndOverrideKeyBranch,
+  type MockedReflectorGetAllAndOverride,
+} from '@/test-utils';
 import {
   IS_PUBLIC_KEY,
   SKIP_SUBSCRIPTION_CHECK_KEY,
@@ -23,7 +29,7 @@ function createContext(user: unknown): ExecutionContext {
 }
 
 describe('SubscriptionStatusGuard', () => {
-  let reflector: jest.Mocked<Pick<Reflector, 'getAllAndOverride'>>;
+  let reflector: { getAllAndOverride: MockedReflectorGetAllAndOverride };
   let clinicAuthCache: jest.Mocked<
     Pick<ClinicAuthCacheService, 'getClinicAuth'>
   >;
@@ -31,7 +37,10 @@ describe('SubscriptionStatusGuard', () => {
 
   beforeEach(() => {
     reflector = {
-      getAllAndOverride: jest.fn().mockReturnValue(false),
+      getAllAndOverride: createKeyedReflectorMock([
+        [IS_PUBLIC_KEY, false],
+        [SKIP_SUBSCRIPTION_CHECK_KEY, false],
+      ]),
     };
     clinicAuthCache = {
       getClinicAuth: jest.fn(),
@@ -39,14 +48,17 @@ describe('SubscriptionStatusGuard', () => {
     guard = new SubscriptionStatusGuard(
       asType<Reflector>(reflector),
       asType<ClinicAuthCacheService>(clinicAuthCache),
+      createFixedClockMock(),
     );
   });
 
   it('skips check for public routes', async () => {
-    reflector.getAllAndOverride.mockImplementation((key: unknown) => {
-      if (key === IS_PUBLIC_KEY) return true;
-      return false;
-    });
+    mockGetAllAndOverrideKeyBranch(
+      reflector.getAllAndOverride,
+      IS_PUBLIC_KEY,
+      true,
+      false,
+    );
 
     await expect(
       guard.canActivate(createContext({ clinicId: 'clinic-1' })),
@@ -55,10 +67,12 @@ describe('SubscriptionStatusGuard', () => {
   });
 
   it('skips check when metadata disables subscription guard', async () => {
-    reflector.getAllAndOverride.mockImplementation((key: unknown) => {
-      if (key === SKIP_SUBSCRIPTION_CHECK_KEY) return true;
-      return false;
-    });
+    mockGetAllAndOverrideKeyBranch(
+      reflector.getAllAndOverride,
+      SKIP_SUBSCRIPTION_CHECK_KEY,
+      true,
+      false,
+    );
 
     await expect(
       guard.canActivate(createContext({ clinicId: 'clinic-1' })),
@@ -78,21 +92,68 @@ describe('SubscriptionStatusGuard', () => {
     expect(clinicAuthCache.getClinicAuth).not.toHaveBeenCalled();
   });
 
-  it('allows ACTIVE and TRIALING subscription statuses', async () => {
+  it('allows ACTIVE/TRIALING and restricted-but-allowed billing states', async () => {
     clinicAuthCache.getClinicAuth
       .mockResolvedValueOnce({
         tier: ClinicTier.STARTER,
         subscriptionStatus: SubscriptionStatus.ACTIVE,
+        subscriptionGraceUntil: null,
+        subscriptionTrialEnd: null,
+        subscriptionCurrentPeriodEnd: null,
+        hasOutstandingPendingPayment: false,
         hasIntelligence: false,
         features: {},
       })
       .mockResolvedValueOnce({
         tier: ClinicTier.STARTER,
         subscriptionStatus: SubscriptionStatus.TRIALING,
+        subscriptionGraceUntil: null,
+        subscriptionTrialEnd: null,
+        subscriptionCurrentPeriodEnd: null,
+        hasOutstandingPendingPayment: false,
+        hasIntelligence: false,
+        features: {},
+      })
+      .mockResolvedValueOnce({
+        tier: ClinicTier.STARTER,
+        subscriptionStatus: SubscriptionStatus.PAST_DUE,
+        subscriptionGraceUntil: null,
+        subscriptionTrialEnd: null,
+        subscriptionCurrentPeriodEnd: null,
+        hasOutstandingPendingPayment: false,
+        hasIntelligence: false,
+        features: {},
+      })
+      .mockResolvedValueOnce({
+        tier: ClinicTier.STARTER,
+        subscriptionStatus: SubscriptionStatus.GRACE,
+        subscriptionGraceUntil: null,
+        subscriptionTrialEnd: null,
+        subscriptionCurrentPeriodEnd: null,
+        hasOutstandingPendingPayment: false,
+        hasIntelligence: false,
+        features: {},
+      })
+      .mockResolvedValueOnce({
+        tier: ClinicTier.STARTER,
+        subscriptionStatus: SubscriptionStatus.PAUSED,
+        subscriptionGraceUntil: null,
+        subscriptionTrialEnd: null,
+        subscriptionCurrentPeriodEnd: null,
+        hasOutstandingPendingPayment: false,
         hasIntelligence: false,
         features: {},
       });
 
+    await expect(
+      guard.canActivate(createContext({ clinicId: 'clinic-1' })),
+    ).resolves.toBe(true);
+    await expect(
+      guard.canActivate(createContext({ clinicId: 'clinic-1' })),
+    ).resolves.toBe(true);
+    await expect(
+      guard.canActivate(createContext({ clinicId: 'clinic-1' })),
+    ).resolves.toBe(true);
     await expect(
       guard.canActivate(createContext({ clinicId: 'clinic-1' })),
     ).resolves.toBe(true);
@@ -105,6 +166,10 @@ describe('SubscriptionStatusGuard', () => {
     clinicAuthCache.getClinicAuth.mockResolvedValue({
       tier: ClinicTier.STARTER,
       subscriptionStatus: SubscriptionStatus.CANCELLED,
+      subscriptionGraceUntil: null,
+      subscriptionTrialEnd: null,
+      subscriptionCurrentPeriodEnd: null,
+      hasOutstandingPendingPayment: false,
       hasIntelligence: false,
       features: {},
     });
@@ -119,6 +184,94 @@ describe('SubscriptionStatusGuard', () => {
 
     await expect(
       guard.canActivate(createContext({ clinicId: 'clinic-1' })),
+    ).resolves.toBe(true);
+  });
+
+  it('blocks staff when grace deadline has passed', async () => {
+    clinicAuthCache.getClinicAuth.mockResolvedValue({
+      tier: ClinicTier.STARTER,
+      subscriptionStatus: SubscriptionStatus.GRACE,
+      subscriptionGraceUntil: new Date('2020-01-01T00:00:00.000Z'),
+      subscriptionTrialEnd: null,
+      subscriptionCurrentPeriodEnd: new Date('2020-01-01T00:00:00.000Z'),
+      hasOutstandingPendingPayment: false,
+      hasIntelligence: false,
+      features: {},
+    });
+
+    await expect(
+      guard.canActivate(
+        createContext({
+          clinicId: 'clinic-1',
+          role: 'RECEPTIONIST',
+        }),
+      ),
+    ).rejects.toThrow(ForbiddenException);
+  });
+
+  it('allows billing admins when grace deadline has passed', async () => {
+    clinicAuthCache.getClinicAuth.mockResolvedValue({
+      tier: ClinicTier.STARTER,
+      subscriptionStatus: SubscriptionStatus.PAST_DUE,
+      subscriptionGraceUntil: new Date('2020-01-01T00:00:00.000Z'),
+      subscriptionTrialEnd: null,
+      subscriptionCurrentPeriodEnd: new Date('2020-01-01T00:00:00.000Z'),
+      hasOutstandingPendingPayment: false,
+      hasIntelligence: false,
+      features: {},
+    });
+
+    await expect(
+      guard.canActivate(
+        createContext({
+          clinicId: 'clinic-1',
+          role: 'ADMIN',
+        }),
+      ),
+    ).resolves.toBe(true);
+  });
+
+  it('blocks staff when renewal period ended with a pending payment', async () => {
+    clinicAuthCache.getClinicAuth.mockResolvedValue({
+      tier: ClinicTier.STARTER,
+      subscriptionStatus: SubscriptionStatus.ACTIVE,
+      subscriptionGraceUntil: null,
+      subscriptionTrialEnd: null,
+      subscriptionCurrentPeriodEnd: new Date('2020-01-01T00:00:00.000Z'),
+      hasOutstandingPendingPayment: true,
+      hasIntelligence: false,
+      features: {},
+    });
+
+    await expect(
+      guard.canActivate(
+        createContext({
+          clinicId: 'clinic-1',
+          role: 'DOCTOR',
+        }),
+      ),
+    ).rejects.toThrow(ForbiddenException);
+  });
+
+  it('allows billing admins when renewal period ended with a pending payment', async () => {
+    clinicAuthCache.getClinicAuth.mockResolvedValue({
+      tier: ClinicTier.STARTER,
+      subscriptionStatus: SubscriptionStatus.ACTIVE,
+      subscriptionGraceUntil: null,
+      subscriptionTrialEnd: null,
+      subscriptionCurrentPeriodEnd: new Date('2020-01-01T00:00:00.000Z'),
+      hasOutstandingPendingPayment: true,
+      hasIntelligence: false,
+      features: {},
+    });
+
+    await expect(
+      guard.canActivate(
+        createContext({
+          clinicId: 'clinic-1',
+          role: 'ADMIN_DOCTOR',
+        }),
+      ),
     ).resolves.toBe(true);
   });
 });

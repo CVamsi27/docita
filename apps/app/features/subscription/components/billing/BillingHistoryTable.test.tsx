@@ -6,7 +6,7 @@ const resumePaymentMock = vi.hoisted(() => ({
   mutateAsync: vi.fn(),
 }));
 
-vi.mock("@/hooks/api/use-resume-subscription-payment", () => ({
+vi.mock("@workspace/data-access", () => ({
   useResumeSubscriptionPayment: () => ({
     isPending: false,
     mutateAsync: resumePaymentMock.mutateAsync,
@@ -61,7 +61,7 @@ describe("BillingHistoryTable", () => {
             currency: "INR",
             status: "paid",
             description: "ESSENTIAL MONTHLY subscription",
-            receiptUrl: "/subscription/billing/payments/paid-1/invoice.pdf",
+            receiptUrl: "https://rzp.io/i/abc123",
             createdAt: "2026-04-28T00:00:00.000Z",
           },
         ]}
@@ -72,5 +72,25 @@ describe("BillingHistoryTable", () => {
     expect(
       screen.queryByRole("button", { name: /pay now/i }),
     ).not.toBeInTheDocument();
+  });
+
+  it("formats each row using the stored billing currency", () => {
+    render(
+      <BillingHistoryTable
+        invoices={[
+          {
+            id: "usd-1",
+            amountCents: 2500,
+            amount: 25,
+            currency: "USD",
+            status: "paid",
+            description: "ESSENTIAL MONTHLY subscription",
+            createdAt: "2026-04-28T00:00:00.000Z",
+          },
+        ]}
+      />,
+    );
+
+    expect(screen.getAllByText("$25.00").length).toBeGreaterThan(0);
   });
 });

@@ -1,4 +1,5 @@
-import React, { useEffect, useMemo, useState } from "react";
+"use client";
+
 import {
   Dialog,
   DialogContent,
@@ -6,31 +7,19 @@ import {
   DialogFooter,
   DialogHeader,
   DialogTitle,
-} from "@workspace/ui/components/dialog";
-import { Button } from "@workspace/ui/components/button";
-import { Input } from "@workspace/ui/components/input";
-import { Label } from "@workspace/ui/components/label";
-import { DatePicker } from "@workspace/ui/components/date-picker";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@workspace/ui/components/select";
-import { toast } from "sonner";
-import { useCreateInvoice } from "@/hooks/api/use-billing";
+} from "@workspace/ui/components/overlay/dialog";
+import { Button } from "@workspace/ui/components/form/button";
+import { Label } from "@workspace/ui/components/form/label";
+import { DatePicker } from "@workspace/ui/components/form/date-picker";
+import { formatCurrency } from "@workspace/utils";
+import { CreditCard } from "lucide-react";
 import { useLocaleCurrency } from "@/hooks/use-locale-currency";
-import { CreditCard, Plus, X } from "lucide-react";
 import { ModalProps } from "./PrescriptionModal";
-import { showUserFacingErrorToast } from "@/lib/user-facing-errors";
-import { useDefaultValue } from "@/lib/app-config-context";
+import { BillingLineItemsEditor } from "./BillingLineItemsEditor";
+import { BillingModalSummaryPanel } from "./billing-modal-summary-panel";
+import { useBillingModal } from "./use-billing-modal";
 
-export interface LineItem {
-  description: string;
-  quantity: number;
-  price: number;
-}
+export type { LineItem } from "./billing-modal-types";
 
 export function BillingModal({
   open,
@@ -39,161 +28,16 @@ export function BillingModal({
   patientId,
   onSaved,
 }: ModalProps) {
-  const defaultConsultationFee = useDefaultValue("consultationFee");
-  const [hasCustomizedDefaultFee, setHasCustomizedDefaultFee] = useState(false);
-  const [items, setItems] = useState<LineItem[]>(() => [
-    { description: "Consultation Fee", quantity: 1, price: defaultConsultationFee },
-  ]);
-  const [dueDate, setDueDate] = useState<string>(
-    new Date().toISOString().split("T")[0],
-  );
-
-  const [taxRate, setTaxRate] = useState<number>(0);
-  const [discountValue, setDiscountValue] = useState<number>(0);
-  const [discountType, setDiscountType] = useState<"PERCENTAGE" | "AMOUNT">(
-    "AMOUNT",
-  );
-  const [paymentMode, setPaymentMode] = useState<string>("CASH");
-
-  const createInvoice = useCreateInvoice();
   const { currency } = useLocaleCurrency();
-
-  useEffect(() => {
-    if (hasCustomizedDefaultFee) {
-      return;
-    }
-
-    setItems((prev) => {
-      if (prev.length !== 1) return prev;
-      const first = prev[0];
-      if (!first || first.description !== "Consultation Fee") return prev;
-      if (first.quantity !== 1) return prev;
-      if (first.price === defaultConsultationFee) return prev;
-      return [{ ...first, price: defaultConsultationFee }];
-    });
-  }, [defaultConsultationFee, hasCustomizedDefaultFee]);
+  const billing = useBillingModal({
+    appointmentId,
+    patientId,
+    onSaved,
+    onOpenChange,
+  });
 
   const fmt = (n: number) =>
-    new Intl.NumberFormat("en", {
-      style: "currency",
-      currency,
-      minimumFractionDigits: 2,
-      maximumFractionDigits: 2,
-    }).format(n);
-
-  const calculations = useMemo(() => {
-    const subtotal = items.reduce(
-      (sum, item) => sum + item.quantity * item.price,
-      0,
-    );
-
-    const taxAmount = subtotal * (taxRate / 100);
-
-    let discountAmount = 0;
-    if (discountType === "PERCENTAGE") {
-      discountAmount = subtotal * (discountValue / 100);
-    } else {
-      discountAmount = discountValue;
-    }
-
-    const total = Math.max(0, subtotal + taxAmount - discountAmount);
-
-    return { subtotal, taxAmount, discountAmount, total };
-  }, [items, taxRate, discountValue, discountType]);
-
-  const handleSave = async () => {
-    try {
-      if (!appointmentId || !patientId) return;
-
-      const validItems = items.filter((i) => i.description.trim() !== "");
-
-      if (validItems.length === 0) {
-        showUserFacingErrorToast(
-          "Add at least one billing item before saving the invoice",
-        );
-        return;
-      }
-
-      if (calculations.discountAmount > calculations.subtotal) {
-        showUserFacingErrorToast("Discount cannot exceed the subtotal");
-        return;
-      }
-
-      const finalItems = [...validItems];
-
-      if (calculations.taxAmount > 0) {
-        finalItems.push({
-          description: `Tax (${taxRate}%)`,
-          quantity: 1,
-          price: Number(calculations.taxAmount.toFixed(2)),
-        });
-      }
-
-      if (calculations.discountAmount > 0) {
-        finalItems.push({
-          description: `Discount (${discountType === "PERCENTAGE" ? `${discountValue}%` : "Flat"})`,
-          quantity: 1,
-          price: -Number(calculations.discountAmount.toFixed(2)),
-        });
-      }
-
-      await createInvoice.mutateAsync({
-        patientId,
-        appointmentId,
-        items: finalItems,
-        notes: `Generated from consultation. Payment Mode: ${paymentMode}`,
-        status: "PENDING",
-        total: Number(calculations.total.toFixed(2)),
-      });
-
-      toast.success("Invoice created");
-      onSaved?.();
-      onOpenChange?.(false);
-
-      setItems([
-        {
-          description: "Consultation Fee",
-          quantity: 1,
-          price: defaultConsultationFee,
-        },
-      ]);
-      setHasCustomizedDefaultFee(false);
-      setTaxRate(0);
-      setDiscountValue(0);
-    } catch {
-      showUserFacingErrorToast(
-        "We could not create the invoice. Please try again.",
-      );
-
-    }
-  };
-
-  const addItem = () => {
-    setItems([...items, { description: "", quantity: 1, price: 0 }]);
-  };
-
-  const updateItem = (
-    index: number,
-    field: keyof LineItem,
-    value: string | number,
-  ) => {
-    const newItems = [...items];
-    newItems[index] = { ...newItems[index], [field]: value };
-    setItems(newItems);
-    if (
-      index === 0 &&
-      newItems[index]?.description === "Consultation Fee" &&
-      field === "price"
-    ) {
-      setHasCustomizedDefaultFee(true);
-    }
-  };
-
-  const removeItem = (index: number) => {
-    if (items.length > 1) {
-      setItems(items.filter((_, i) => i !== index));
-    }
-  };
+    formatCurrency(n, { currency, fractionDigits: 2 });
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
@@ -216,193 +60,36 @@ export function BillingModal({
             <div className="flex items-center gap-2">
               <Label>Due Date</Label>
               <DatePicker
-                value={dueDate}
+                value={billing.dueDate}
                 onChange={(date) =>
-                  setDueDate(date?.toISOString().slice(0, 10) ?? "")
+                  billing.setDueDate(date?.toISOString().slice(0, 10) ?? "")
                 }
-                placeholder="Select due date"
+                placeholder="Due date"
                 className="w-40 h-8"
               />
             </div>
           </div>
 
-          <div className="space-y-3 bg-muted/20 p-4 rounded-lg">
-            <div className="hidden sm:grid grid-cols-12 gap-2 text-xs font-medium text-muted-foreground uppercase tracking-wider">
-              <div className="col-span-5">Description</div>
-              <div className="col-span-2">Qty</div>
-              <div className="col-span-4">Unit Price</div>
-              <div className="col-span-1"></div>
-            </div>
+          <BillingLineItemsEditor
+            items={billing.items}
+            updateItem={billing.updateItem}
+            removeItem={billing.removeItem}
+            addItem={billing.addItem}
+          />
 
-            {items.map((item, index) => (
-              <div key={index} className="flex flex-col gap-2 sm:grid sm:grid-cols-12 sm:items-center">
-                <div className="sm:col-span-5">
-                  <Input
-                    placeholder="Item description"
-                    value={item.description}
-                    onChange={(e) =>
-                      updateItem(index, "description", e.target.value)
-                    }
-                    className="h-9"
-                  />
-                </div>
-                <div className="flex gap-2 sm:contents">
-                  <div className="flex-1 sm:col-span-2">
-                    <Input
-                      type="number"
-                      min="1"
-                      placeholder="Qty"
-                      value={item.quantity}
-                      onChange={(e) =>
-                        updateItem(
-                          index,
-                          "quantity",
-                          parseInt(e.target.value) || 1,
-                        )
-                      }
-                      className="h-9"
-                    />
-                  </div>
-                  <div className="flex-1 sm:col-span-4">
-                    <Input
-                      type="number"
-                      min="0"
-                      step="0.01"
-                      placeholder="Unit price"
-                      value={item.price}
-                      onChange={(e) =>
-                        updateItem(
-                          index,
-                          "price",
-                          parseFloat(e.target.value) || 0,
-                        )
-                      }
-                      className="h-9"
-                    />
-                  </div>
-                  <div className="sm:col-span-1 flex items-center justify-center">
-                    {items.length > 1 && (
-                      <Button
-                        variant="ghost"
-                        size="icon"
-                        className="h-8 w-8 text-muted-foreground hover:text-destructive"
-                        onClick={() => removeItem(index)}
-                      >
-                        <X className="h-4 w-4" />
-                      </Button>
-                    )}
-                  </div>
-                </div>
-              </div>
-            ))}
-
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={addItem}
-              className="w-full border-dashed mt-2"
-            >
-              <Plus className="mr-2 h-3.5 w-3.5" />
-              Add Item
-            </Button>
-          </div>
-
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-            <div className="space-y-4">
-              <div className="space-y-2">
-                <Label className="text-xs font-semibold uppercase text-muted-foreground">
-                  Tax / VAT
-                </Label>
-                <div className="flex items-center gap-2">
-                  <Input
-                    type="number"
-                    min="0"
-                    max="100"
-                    value={taxRate}
-                    onChange={(e) =>
-                      setTaxRate(parseFloat(e.target.value) || 0)
-                    }
-                    className="w-24"
-                  />
-                  <span className="text-sm font-medium">%</span>
-                </div>
-              </div>
-
-              <div className="space-y-2">
-                <Label className="text-xs font-semibold uppercase text-muted-foreground">
-                  Discount
-                </Label>
-                <div className="flex items-center gap-2">
-                  <Select
-                    value={discountType}
-                    onValueChange={(v) =>
-                      setDiscountType(v as "PERCENTAGE" | "AMOUNT")
-                    }
-                  >
-                    <SelectTrigger className="w-[110px]">
-                      <SelectValue />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="AMOUNT">Flat</SelectItem>
-                      <SelectItem value="PERCENTAGE">%</SelectItem>
-                    </SelectContent>
-                  </Select>
-                  <Input
-                    type="number"
-                    min="0"
-                    value={discountValue}
-                    onChange={(e) =>
-                      setDiscountValue(parseFloat(e.target.value) || 0)
-                    }
-                    className="flex-1"
-                  />
-                </div>
-              </div>
-
-              <div className="space-y-2">
-                <Label className="text-xs font-semibold uppercase text-muted-foreground">
-                  Payment Mode
-                </Label>
-                <Select value={paymentMode} onValueChange={setPaymentMode}>
-                  <SelectTrigger>
-                    <SelectValue placeholder="Select mode" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="CASH">Cash</SelectItem>
-                    <SelectItem value="CARD">Card</SelectItem>
-                    <SelectItem value="UPI">UPI / GPay</SelectItem>
-                    <SelectItem value="INSURANCE">Insurance</SelectItem>
-                    <SelectItem value="ONLINE">Online Link</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
-            </div>
-
-            <div className="bg-muted/50 rounded-lg p-5 space-y-3">
-              <div className="flex justify-between text-sm">
-                <span className="text-muted-foreground">Subtotal</span>
-                <span>{fmt(calculations.subtotal)}</span>
-              </div>
-              {calculations.taxAmount > 0 && (
-                <div className="flex justify-between text-sm text-warning">
-                  <span>Tax ({taxRate}%)</span>
-                  <span>+{fmt(calculations.taxAmount)}</span>
-                </div>
-              )}
-              {calculations.discountAmount > 0 && (
-                <div className="flex justify-between text-sm text-success">
-                  <span>Discount</span>
-                  <span>-{fmt(calculations.discountAmount)}</span>
-                </div>
-              )}
-              <div className="border-t pt-3 mt-2 flex justify-between items-center">
-                <span className="font-semibold">Grand Total</span>
-                <span className="text-2xl font-bold">
-                  {fmt(calculations.total)}
-                </span>
-              </div>
-            </div>
-          </div>
+          <BillingModalSummaryPanel
+            taxRate={billing.taxRate}
+            setTaxRate={billing.setTaxRate}
+            discountValue={billing.discountValue}
+            setDiscountValue={billing.setDiscountValue}
+            discountType={billing.discountType}
+            setDiscountType={billing.setDiscountType}
+            discountTypeValues={billing.discountTypeValues}
+            paymentMode={billing.paymentMode}
+            setPaymentMode={billing.setPaymentMode}
+            calculations={billing.calculations}
+            formatAmount={fmt}
+          />
         </div>
 
         <DialogFooter>
@@ -410,11 +97,11 @@ export function BillingModal({
             Cancel
           </Button>
           <Button
-            onClick={handleSave}
-            disabled={createInvoice.isPending}
+            onClick={billing.handleSave}
+            disabled={billing.createInvoice.isPending}
             className="w-32"
           >
-            {createInvoice.isPending ? "Generating..." : "Generate Invoice"}
+            {billing.createInvoice.isPending ? "Generating…" : "Generate Invoice"}
           </Button>
         </DialogFooter>
       </DialogContent>

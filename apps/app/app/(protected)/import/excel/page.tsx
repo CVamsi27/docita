@@ -1,6 +1,6 @@
 "use client";
 
-import { FeatureGate } from "@/features/_shared/components/auth/feature-gate";
+import { FeatureGate } from "@/components/auth/feature-gate";
 import { Feature } from "@/lib/stores/permission-store";
 import { cn } from "@workspace/ui/lib/utils";
 import { ArrowRight } from "lucide-react";
@@ -9,7 +9,9 @@ import { ExcelUploadStep } from "@/features/excel/components/ExcelUploadStep";
 import { ExcelMappingStep } from "@/features/excel/components/ExcelMappingStep";
 import { ExcelImportingStep } from "@/features/excel/components/ExcelImportingStep";
 import { ExcelResultsStep } from "@/features/excel/components/ExcelResultsStep";
-import { Button } from "@workspace/ui/components/button";
+import { Button } from "@workspace/ui/components/form/button";
+import { AppPageScaffold } from "@workspace/ui/components/layout/app-page-scaffold";
+import { PageHeader } from "@workspace/ui/components/layout/page-header";
 
 export default function ExcelImportPage() {
   const {
@@ -32,24 +34,23 @@ export default function ExcelImportPage() {
 
   return (
     <FeatureGate feature={Feature.EXCEL_IMPORT}>
-      <div className="flex-1 space-y-6 max-w-6xl mx-auto">
-        {}
-        <div className="flex items-center justify-between">
-          <div>
-            <h1 className="text-2xl md:text-3xl font-semibold tracking-tight">Excel Import</h1>
-            <p className="text-muted-foreground">
-              Import patient data from Excel or CSV files with smart column
-              mapping.
-            </p>
-          </div>
-          {step !== "upload" && (
-            <Button variant="outline" onClick={handleReset}>
-              Start Over
-            </Button>
-          )}
-        </div>
+      <AppPageScaffold
+        className="max-w-6xl"
+        header={
+          <PageHeader
+            title="Excel Import"
+            description="Import patient data from Excel or CSV files with smart column mapping."
+            actions={
+              step !== "upload" ? (
+                <Button variant="outline" onClick={handleReset}>
+                  Start Over
+                </Button>
+              ) : null
+            }
+          />
+        }
+      >
 
-        {}
         <div className="flex items-center gap-2">
           {["upload", "mapping", "importing", "results"].map((s, i) => (
             <div key={s} className="flex items-center">
@@ -82,7 +83,6 @@ export default function ExcelImportPage() {
           ))}
         </div>
 
-        {}
         {step === "upload" && (
           <ExcelUploadStep
             file={file}
@@ -93,7 +93,6 @@ export default function ExcelImportPage() {
           />
         )}
 
-        {}
         {step === "mapping" && preview && (
           <ExcelMappingStep
             preview={preview}
@@ -106,7 +105,6 @@ export default function ExcelImportPage() {
           />
         )}
 
-        {}
         {step === "importing" && (
           <ExcelImportingStep
             progress={importProgress}
@@ -114,11 +112,10 @@ export default function ExcelImportPage() {
           />
         )}
 
-        {}
         {step === "results" && importResult && (
           <ExcelResultsStep result={importResult} onReset={handleReset} />
         )}
-      </div>
+      </AppPageScaffold>
     </FeatureGate>
   );
 }

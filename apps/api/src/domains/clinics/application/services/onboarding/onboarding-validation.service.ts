@@ -2,8 +2,12 @@ import { Injectable, BadRequestException } from '@nestjs/common';
 import { Specialization } from '@workspace/db';
 import {
   TIER_PRICING_BY_CURRENCY,
+  tierSchema,
+  type MultiCurrencyTierPricing,
   type SupportedCurrency,
 } from '@workspace/types';
+import { parseStringEnumMember } from '@workspace/utils';
+import { z } from 'zod';
 import {
   CompleteOnboardingDto,
   ClinicTier,
@@ -14,15 +18,41 @@ import {
   validateBillingCycle,
 } from './type-helpers';
 
+function billingCycleEnumToCatalogKey(
+  cycle: string,
+): keyof MultiCurrencyTierPricing | null {
+  switch (cycle.toUpperCase()) {
+    case 'MONTHLY':
+      return 'monthly';
+    case 'YEARLY':
+      return 'yearly';
+    case 'QUARTERLY':
+    case 'SEMI_ANNUAL':
+      return 'monthly';
+    default:
+      return null;
+  }
+}
+
+const SUPPORTED_CURRENCY_MEMBERS = Object.keys(TIER_PRICING_BY_CURRENCY).filter(
+  (key): key is SupportedCurrency => key in TIER_PRICING_BY_CURRENCY,
+);
+
+const slaAcceptanceSchema = z.object({
+  acceptedSLA: z.boolean(),
+  acceptedDataProcessingTerms: z.boolean(),
+  acceptedPrivacyPolicy: z.boolean(),
+});
+
 @Injectable()
 export class OnboardingValidationService {
   private resolveCurrency(currency?: string): SupportedCurrency {
-    const resolved = currency?.toUpperCase() as SupportedCurrency | undefined;
-    if (
-      resolved &&
-      Object.prototype.hasOwnProperty.call(TIER_PRICING_BY_CURRENCY, resolved)
-    ) {
-      return resolved;
+    const upper = currency?.toUpperCase();
+    if (upper) {
+      const parsed = parseStringEnumMember(SUPPORTED_CURRENCY_MEMBERS, upper);
+      if (parsed) {
+        return parsed;
+      }
     }
     return 'INR';
   }
@@ -61,25 +91,31 @@ export class OnboardingValidationService {
       }
     }
 
-    if (data.planSelection && data.planSelection.tier !== ClinicTier.STARTER) {
+    if (data.planSelection) {
       const currency = this.resolveCurrency(data.planSelection.currency);
-      const isEssentialFreeTrial =
-        data.planSelection.tier === ClinicTier.ESSENTIAL &&
-        data.paymentDetails?.skipPayment === true;
-
+      const listPricePaise = this.getTierPricing(
+        data.planSelection.tier,
+        data.planSelection.billingCycle,
+        data.planSelection.currency,
+      );
       const hasProcessedPayment =
         !!data.paymentDetails?.razorpayPaymentId ||
         (!!data.paymentDetails?.cardLast4 &&
           data.paymentDetails?.skipPayment !== true);
 
-      if (!hasProcessedPayment && !isEssentialFreeTrial) {
+      const unpaidEssentialTrial =
+        data.planSelection.tier === ClinicTier.ESSENTIAL &&
+        data.paymentDetails?.skipPayment === true;
+
+      if (!unpaidEssentialTrial && !hasProcessedPayment) {
         errors.push('Payment details are required for paid plans');
       }
 
       if (
         currency === 'INR' &&
-        !isEssentialFreeTrial &&
-        !data.clinicDetails?.gstin
+        !data.clinicDetails?.gstin &&
+        listPricePaise > 0 &&
+        !unpaidEssentialTrial
       ) {
         errors.push(
           'GSTIN is required for paid Indian plans so we can issue GST invoices',
@@ -98,6 +134,27 @@ export class OnboardingValidationService {
     ) {
       errors.push(
         'WhatsApp business number is required when WhatsApp is enabled',
+      );
+    }
+
+    const isFrontDeskPlan = data.planSelection?.tier === ClinicTier.FRONT_DESK;
+    if (isFrontDeskPlan && data.staffSetup?.staffMembers) {
+      for (const member of data.staffSetup.staffMembers) {
+        if (member.role === 'NURSE' || member.role === 'ADMIN_DOCTOR') {
+          errors.push(
+            'The Front Desk plan does not support nurse or admin-doctor staff roles during onboarding.',
+          );
+          break;
+        }
+      }
+    }
+
+    if (
+      data.planSelection?.tier === ClinicTier.FRONT_DESK &&
+      data.adminAccount?.role === 'ADMIN_DOCTOR'
+    ) {
+      errors.push(
+        'The front desk plan does not support the admin-doctor role for the primary admin account.',
       );
     }
 
@@ -158,19 +215,13 @@ export class OnboardingValidationService {
     }
   }
 
-  validateSpecialization(
-    spec: string | undefined,
-  ): Specialization | null | undefined {
-    try {
-      if (!spec) return undefined;
-      return validateSpecializationForOnboarding(spec);
-    } catch {
-      return spec as Specialization;
-    }
+  validateSpecialization(spec: string | undefined): Specialization | null {
+    if (!spec) return null;
+    return validateSpecializationForOnboarding(spec);
   }
 
   validateSLAAcceptance(slaData: Record<string, unknown>): void {
-    const data = slaData as Record<string, boolean>;
+    const data = slaAcceptanceSchema.parse(slaData);
     if (!data.acceptedSLA) {
       throw new BadRequestException('SLA must be accepted to proceed');
     }
@@ -188,9 +239,17 @@ export class OnboardingValidationService {
 
     const resolvedCurrency = this.resolveCurrency(currency);
     const pricing = TIER_PRICING_BY_CURRENCY[resolvedCurrency];
-    const tierPricing = pricing[tier as keyof typeof pricing];
-    const amount = tierPricing?.[cycle as keyof typeof tierPricing];
-    return typeof amount === 'number' ? amount : 0;
+    const parsedTier = tierSchema.safeParse(tier);
+    const tierKey = parsedTier.success ? parsedTier.data : 'ESSENTIAL';
+    const tierPricing = pricing[tierKey];
+    const pricingKey = billingCycleEnumToCatalogKey(cycle);
+    const amount = pricingKey !== null ? tierPricing?.[pricingKey] : undefined;
+    if (typeof amount !== 'number') {
+      return 0;
+    }
+    // Catalog amounts are in major units (e.g. INR rupees); Razorpay and
+    // Subscription.basePriceCents store smallest currency units (paise).
+    return Math.round(amount * 100);
   }
 
   getTierLimits(tier: string): {
@@ -221,6 +280,12 @@ export class OnboardingValidationService {
         includedAppointments: 1000,
         includedStorageGB: 10,
         includedUsers: 3,
+      },
+      FRONT_DESK: {
+        includedPatients: 999999,
+        includedAppointments: 500,
+        includedStorageGB: 10,
+        includedUsers: 5,
       },
       PROFESSIONAL: {
         includedPatients: 10000,

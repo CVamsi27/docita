@@ -1,10 +1,15 @@
+"use client";
+
 import { useCallback, useEffect, useState } from "react";
-import { apiFetch } from "@/lib/api-client";
+import { apiFetch } from "@/lib/api/api-client";
 import { type PatientTag, PatientTagManagerUI } from "./PatientTagManagerUI";
-import { useClinicSettings } from "@/hooks/api/use-settings";
+import { DEFAULT_TAG_COLOR_VAR } from "./tag-colors";
+import { useClinicSettings } from "@workspace/data-access";
+import { useTierFeatureEnabled } from "@/lib/access-control/use-tier-feature-enabled";
 import { ClinicFeatureService } from "@/lib/services/clinic-feature.service";
-import type { ClinicType } from "@workspace/types";
-import { showUserFacingErrorToast } from "@/lib/user-facing-errors";
+import { Feature } from "@workspace/types";
+import { resolveClinicTypeFeatures } from "@/features/consultation/lib/resolve-clinic-type-features";
+import { showUserFacingErrorToast } from "@/lib/errors/user-facing-errors";
 
 interface PatientTagManagerContainerProps {
   patientId: string;
@@ -18,15 +23,17 @@ export function PatientTagManagerContainer({
   const [open, setOpen] = useState(false);
   const [tags, setTags] = useState<PatientTag[]>([]);
   const [newTag, setNewTag] = useState("");
-  const [newColor, setNewColor] = useState("#3b82f6");
+  const [newColor, setNewColor] = useState(DEFAULT_TAG_COLOR_VAR);
   const [loading, setLoading] = useState(false);
+  const tierPatientsOk = useTierFeatureEnabled(Feature.BASIC_PATIENT_MANAGEMENT);
 
   const { data: clinic } = useClinicSettings();
   const presetTags = ClinicFeatureService.getPresetTags(
-    clinic?.type as ClinicType | undefined,
+    resolveClinicTypeFeatures(clinic?.type).key,
   );
 
   const loadTags = useCallback(async () => {
+    if (!tierPatientsOk) return;
     try {
       const data = await apiFetch<PatientTag[]>(`/patients/${patientId}/tags`);
       setTags(data);
@@ -37,14 +44,15 @@ export function PatientTagManagerContainer({
         "generic",
       );
     }
-  }, [patientId]);
+  }, [patientId, tierPatientsOk]);
 
   useEffect(() => {
-    if (!open) return;
+    if (!open || !tierPatientsOk) return;
     void loadTags();
-  }, [open, loadTags]);
+  }, [open, tierPatientsOk, loadTags]);
 
   const addTag = async (tag: string, color: string) => {
+    if (!tierPatientsOk) return;
     setLoading(true);
     try {
       await apiFetch(`/patients/${patientId}/tags`, {
@@ -53,7 +61,7 @@ export function PatientTagManagerContainer({
       });
       await loadTags();
       setNewTag("");
-      setNewColor("#3b82f6");
+      setNewColor(DEFAULT_TAG_COLOR_VAR);
       onTagsUpdated?.();
     } catch (err) {
       showUserFacingErrorToast(
@@ -67,6 +75,7 @@ export function PatientTagManagerContainer({
   };
 
   const removeTag = async (tagId: string) => {
+    if (!tierPatientsOk) return;
     const previousTags = [...tags];
     setTags(tags.filter((t) => t.id !== tagId));
 
@@ -90,6 +99,7 @@ export function PatientTagManagerContainer({
     newName: string,
     newTagColor: string,
   ) => {
+    if (!tierPatientsOk) return;
     const previousTags = [...tags];
     setTags(
       tags.map((t) =>

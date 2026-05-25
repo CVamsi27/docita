@@ -19,6 +19,14 @@ model Clinic {
   branding                Json?
   features                Json?
   whatsappAutomation      Json? // WhatsApp automation settings (enabled, prescriptionSent, invoiceSent, etc.)
+  whatsappSenderMode      WhatsappSenderMode   @default(SHARED)
+  whatsappSenderStatus    WhatsappSenderStatus @default(NOT_CONFIGURED)
+  whatsappPhoneNumberId   String?              @unique
+  whatsappWabaId          String?
+  whatsappDisplayName     String?
+  whatsappVerifiedAt      DateTime?
+  whatsappTokenExpiresAt  DateTime?
+  whatsappLastVerifyError String?
   intelligenceAddon       IntelligenceAddon  @default(NONE)
   trialEndsAt             DateTime?
   avgConsultationMinutes  Int                @default(15)
@@ -44,6 +52,7 @@ model Clinic {
   customFields          CustomField[]
   doctorClinics         DoctorClinic[]
   doctorSchedules       DoctorSchedule[]
+  clinicWeeklySchedules ClinicWeeklySchedule[]
   doctorTimeOffs        DoctorTimeOff[]
   feedbacks             Feedback[]
   featureFlags          FeatureFlag[]
@@ -56,6 +65,7 @@ model Clinic {
   reminderSettings      ReminderSettings?
   users                 User[]
   whatsappLogs          WhatsappLog[]
+  clinicSecrets         ClinicSecret[]
   subscription          Subscription?
   subscriptionPayments  SubscriptionPayment[]
   subscriptionReminders SubscriptionReminder[]
@@ -71,6 +81,37 @@ model Clinic {
   usageEvents           UsageEvent[]
   wards                 Ward[]
   facilityType          FacilityType           @default(CLINIC)
+}
+
+model ClinicSecret {
+  id         String    @id @default(cuid())
+  clinicId   String
+  kind       String
+  ciphertext String
+  createdAt  DateTime  @default(now())
+  rotatedAt  DateTime?
+  clinic     Clinic    @relation(fields: [clinicId], references: [id], onDelete: Cascade)
+
+  @@unique([clinicId, kind])
+  @@index([clinicId])
+}
+
+/// Default visit windows for the location; used when a doctor has no `DoctorSchedule` row for that weekday.
+model ClinicWeeklySchedule {
+  id           String    @id @default(cuid())
+  clinicId     String
+  dayOfWeek    DayOfWeek
+  startTime    String
+  endTime      String
+  slotDuration Int       @default(30)
+  isActive     Boolean   @default(true)
+  createdAt    DateTime  @default(now())
+  updatedAt    DateTime  @updatedAt
+  clinic       Clinic    @relation(fields: [clinicId], references: [id], onDelete: Cascade)
+
+  @@unique([clinicId, dayOfWeek])
+  @@index([clinicId])
+  @@index([clinicId, dayOfWeek, isActive])
 }
 
 // ============================================================================

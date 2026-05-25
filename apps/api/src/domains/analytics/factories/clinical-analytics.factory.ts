@@ -127,16 +127,13 @@ export class ClinicalAnalyticsFactory {
   ) {
     const trends = await this.getDiseaseTrends(clinicId, startDate, endDate);
 
-    const byCategory = trends.reduce(
-      (acc, item) => {
-        if (item.icdCode) {
-          const category = item.icdCode.category;
-          acc[category] = (acc[category] || 0) + item.count;
-        }
-        return acc;
-      },
-      {} as Record<string, number>,
-    );
+    const byCategory = trends.reduce<Record<string, number>>((acc, item) => {
+      if (item.icdCode) {
+        const category = item.icdCode.category;
+        acc[category] = (acc[category] || 0) + item.count;
+      }
+      return acc;
+    }, {});
 
     return Object.entries(byCategory)
       .map(([category, count]: [string, number]) => ({ category, count }))
@@ -189,10 +186,12 @@ export class ClinicalAnalyticsFactory {
 
     const timeSeriesData = new Map<string, Map<string, number>>();
     for (const row of rows) {
-      if (!timeSeriesData.has(row.period)) {
-        timeSeriesData.set(row.period, new Map());
+      let periodMap = timeSeriesData.get(row.period);
+      if (!periodMap) {
+        periodMap = new Map();
+        timeSeriesData.set(row.period, periodMap);
       }
-      timeSeriesData.get(row.period)!.set(row.icd_code, row.count);
+      periodMap.set(row.icd_code, row.count);
     }
 
     return Array.from(timeSeriesData.entries()).map(([period, codes]) => ({

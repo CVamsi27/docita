@@ -1,4 +1,9 @@
-import { Injectable, NotFoundException, Optional } from '@nestjs/common';
+import {
+  BadRequestException,
+  Injectable,
+  NotFoundException,
+  Optional,
+} from '@nestjs/common';
 import {
   IClinicOperations,
   ClinicDetails,
@@ -8,9 +13,10 @@ import { PrismaService } from '@/prisma/prisma.service';
 import {
   PaymentWebSocketGateway,
   ClinicUpdateData as WsClinicUpdateData,
-} from '@/gateways/payment.websocket.gateway';
+} from '@/websockets/payment.websocket.gateway';
 import { ClinicTier, SubscriptionStatus } from '@workspace/db';
 import { ClinicAuthCacheService } from '@/shared/modules/auth/auth/clinic-auth-cache.service';
+import { isRecord } from '@workspace/utils';
 
 function toClinicTier(value?: string): ClinicTier | undefined {
   if (!value) {
@@ -77,14 +83,28 @@ export class ClinicOperationsAdapter implements IClinicOperations {
       select: { features: true },
     });
 
-    const existingFeatures =
-      (existingClinic?.features as Record<string, boolean>) || {};
+    const existingFeatures = isRecord(existingClinic?.features)
+      ? Object.fromEntries(
+          Object.entries(existingClinic.features).filter(
+            (entry): entry is [string, boolean] =>
+              typeof entry[1] === 'boolean',
+          ),
+        )
+      : {};
+
+    const parsedTier = toClinicTier(tier);
+    const parsedStatus = toSubscriptionStatus(subscriptionStatus);
+    if (!parsedTier || !parsedStatus) {
+      throw new BadRequestException(
+        'Invalid clinic tier or subscription status',
+      );
+    }
 
     await this.prisma.clinic.update({
       where: { id: clinicId },
       data: {
-        tier: tier as ClinicTier,
-        subscriptionStatus: subscriptionStatus as SubscriptionStatus,
+        tier: parsedTier,
+        subscriptionStatus: parsedStatus,
         features: {
           ...existingFeatures,
           ...features,
@@ -101,6 +121,10 @@ export class ClinicOperationsAdapter implements IClinicOperations {
         intelligenceAddon: data.intelligenceAddon,
         tier: toClinicTier(data.tier),
         subscriptionStatus: toSubscriptionStatus(data.subscriptionStatus),
+        subscriptionGraceUntil:
+          data.subscriptionGraceUntil === undefined
+            ? undefined
+            : data.subscriptionGraceUntil,
       };
 
       this.paymentGateway.emitClinicUpdate(clinicId, wsData);

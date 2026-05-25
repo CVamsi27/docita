@@ -31,6 +31,7 @@ export const updateLabTestOrderRequestSchema = z.object({
 
 export const listLabTestOrdersQuerySchema = z.object({
   clinicId: z.string().optional(),
+  patientId: z.string().optional(),
   search: z.string().optional(),
   status: z.string().optional(),
   date: z.string().optional(),

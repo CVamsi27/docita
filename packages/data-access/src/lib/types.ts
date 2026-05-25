@@ -6,6 +6,14 @@ export interface APIClientConfig {
   defaultHeaders?: Record<string, string>;
   timeout?: number;
   retries?: number;
+  /**
+   * Optional guard before the request is sent (e.g. restrict an app build to
+   * specific API path prefixes). Runs after auth headers are attached.
+   */
+  validateRequest?: (
+    endpoint: string,
+    options: RequestConfig,
+  ) => void | Promise<void>;
   onRequest?: (config: RequestConfig) => RequestConfig | Promise<RequestConfig>;
   onResponse?: <T>(response: T) => T | Promise<T>;
   onError?: (error: APIError) => void | Promise<void>;
@@ -16,6 +24,7 @@ export interface RequestConfig extends RequestInit {
   timeout?: number;
   retries?: number;
   skipAuth?: boolean;
+  suppressGlobalErrorToast?: boolean;
 }
 
 export interface APIError extends Error {
@@ -23,6 +32,7 @@ export interface APIError extends Error {
   statusText?: string;
   code?: string;
   data?: Record<string, unknown>;
+  validationErrors?: Record<string, string>;
   isNetworkError?: boolean;
   isTimeout?: boolean;
 }

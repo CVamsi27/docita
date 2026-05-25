@@ -137,6 +137,78 @@ export const whatsappTemplateListResponseSchema = z.object({
 
 export const whatsappDefaultTemplatesResponseSchema = z.array(z.string());
 
+export const whatsappSenderModeSchema = z.enum(["SHARED", "BYO", "MANAGED"]);
+export const whatsappSenderStatusSchema = z.enum([
+  "NOT_CONFIGURED",
+  "PENDING_VERIFICATION",
+  "VERIFIED",
+  "FAILED",
+  "REVOKED",
+]);
+
+export const whatsappSenderConfigResponseSchema = z.object({
+  mode: whatsappSenderModeSchema,
+  status: whatsappSenderStatusSchema,
+  phoneNumberId: z.string().nullable(),
+  wabaId: z.string().nullable(),
+  displayName: z.string().nullable(),
+  verifiedAt: z.string().nullable(),
+  tokenExpiresAt: z.string().nullable(),
+  lastVerifyError: z.string().nullable(),
+  allowedModes: z.array(whatsappSenderModeSchema),
+  fallbackActive: z.boolean(),
+});
+
+export const updateWhatsappSenderRequestSchema = z
+  .object({
+    mode: whatsappSenderModeSchema,
+    phoneNumberId: z.string().trim().min(3).max(80).optional(),
+    wabaId: z.string().trim().min(3).max(80).optional(),
+    accessToken: z.string().trim().min(40).max(4096).optional(),
+  })
+  .strict()
+  .superRefine((value, ctx) => {
+    if (value.mode !== "BYO") {
+      return;
+    }
+    if (!value.phoneNumberId) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        path: ["phoneNumberId"],
+        message: "Phone number ID is required for BYO sender mode",
+      });
+    }
+    if (!value.accessToken) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        path: ["accessToken"],
+        message: "Access token is required for BYO sender mode",
+      });
+    }
+  });
+
+export const verifyWhatsappSenderResponseSchema = z.object({
+  status: whatsappSenderStatusSchema,
+  displayName: z.string().nullable(),
+  phoneNumberId: z.string().nullable(),
+  tokenExpiresAt: z.string().nullable(),
+  error: z.string().nullable(),
+});
+
+export const revokeWhatsappSenderResponseSchema = z.object({
+  mode: z.literal("SHARED"),
+  status: z.literal("REVOKED"),
+});
+
+export type WhatsappSenderMode = z.infer<typeof whatsappSenderModeSchema>;
+export type WhatsappSenderStatus = z.infer<typeof whatsappSenderStatusSchema>;
+export type WhatsappSenderConfigResponse = z.infer<
+  typeof whatsappSenderConfigResponseSchema
+>;
+export type UpdateWhatsappSenderRequest = z.infer<
+  typeof updateWhatsappSenderRequestSchema
+>;
+
 export const whatsappLogsQuerySchema = z.object({
   limit: z.coerce.number().int().min(1).max(500).optional(),
   patientId: z.string().optional(),
@@ -151,17 +223,63 @@ export const whatsappUnreadCountResponseSchema = z.object({
   count: z.number().int().min(0),
 });
 
+export const staffNotificationTypeSchema = z.enum([
+  "PATIENT_RESPONSE",
+  "APPOINTMENT_CANCEL",
+  "APPOINTMENT_DELAY",
+  "PRESCRIPTION_PENDING",
+  "INVOICE_PENDING",
+  "SYSTEM_ALERT",
+  "MEMBER_JOIN_REQUEST",
+  "MEMBER_JOIN_APPROVED",
+  "MEMBER_JOIN_REJECTED",
+  "APPOINTMENT_REQUEST_CREATED",
+  "APPOINTMENT_REQUEST_APPROVED",
+  "APPOINTMENT_REQUEST_REJECTED",
+  "APPOINTMENT_RESCHEDULED",
+  "APPOINTMENT_NO_SHOW",
+  "APPOINTMENT_CONFIRMED",
+  "PRESCRIPTION_SENT",
+  "PRESCRIPTION_FAILED",
+  "INVOICE_SENT",
+  "INVOICE_FAILED",
+  "SUBSCRIPTION_PAYMENT_DUE_SOON",
+  "SUBSCRIPTION_PAYMENT_OVERDUE",
+  "SUBSCRIPTION_PAYMENT_SUCCESS",
+  "SUBSCRIPTION_PAYMENT_FAILED",
+  "PAYMENT_PROVIDER_STATUS_UPDATE",
+  "CONSULTATION_STARTED",
+  "CONSULTATION_SIGNED",
+  "CONSULTATION_PENDING_ACTION",
+]);
+
+export const staffNotificationPrioritySchema = z.enum([
+  "LOW",
+  "NORMAL",
+  "HIGH",
+  "URGENT",
+]);
+
 export const staffNotificationSchema = z.object({
   id: z.string(),
-  type: z.string(),
+  clinicId: z.string().optional(),
+  userId: z.string().nullable().optional(),
+  type: staffNotificationTypeSchema.or(z.string()),
   title: z.string(),
   message: z.string(),
-  data: z.unknown().optional(),
-  priority: z.string(),
-  createdAt: z.date().or(z.string()),
+  data: z.record(z.unknown()).nullable().optional(),
+  priority: staffNotificationPrioritySchema.or(z.string()),
+  isRead: z.boolean().optional(),
+  readAt: z.coerce.date().nullable().optional(),
+  deletedAt: z.coerce.date().nullable().optional(),
+  createdAt: z.coerce.date(),
 });
 
 export const whatsappUnreadNotificationsResponseSchema = z.array(
+  staffNotificationSchema,
+);
+
+export const staffNotificationsListResponseSchema = z.array(
   staffNotificationSchema,
 );
 

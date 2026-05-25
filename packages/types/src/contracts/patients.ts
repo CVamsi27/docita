@@ -1,7 +1,8 @@
 import { z } from "zod";
 import { genderSchema } from "../shared/users";
+import { dpdpConsentPayloadSchema } from "./dpdp";
 
-const pastDateOfBirthSchema = z
+export const pastDateOfBirthSchema = z
   .union([z.string(), z.date()])
   .refine(
     (value) => {
@@ -13,7 +14,8 @@ const pastDateOfBirthSchema = z
     },
   );
 
-export const patientResponseSchema = z.object({
+export const patientResponseSchema = z
+  .object({
   id: z.string(),
   clinicId: z.string(),
   mrn: z.string().optional(),
@@ -28,9 +30,11 @@ export const patientResponseSchema = z.object({
   createdAt: z.union([z.string(), z.date()]),
   updatedAt: z.union([z.string(), z.date()]),
   version: z.number(),
-});
+  })
+  .strict();
 
-export const createPatientRequestSchema = z.object({
+export const createPatientRequestSchema = z
+  .object({
   mrn: z.string().max(50).nullable().optional(),
   firstName: z.string().min(1, "Enter the patient's first name").max(100),
   lastName: z.string().min(1, "Enter the patient's last name").max(100),
@@ -45,7 +49,15 @@ export const createPatientRequestSchema = z.object({
   address: z.string().max(500).nullable().optional(),
   metadata: z.record(z.unknown()).nullable().optional(),
   clinicId: z.string().optional(),
-}).passthrough();
+  /**
+   * DPDP Act, 2023 consent payload. Optional at the contract level so internal
+   * tooling (system migrations, test fixtures, admin scripts) can still create
+   * patients, but every user-facing API surface (POST /patients, /book,
+   * bulk import) MUST require it via controller-level enforcement.
+   */
+  dpdpConsent: dpdpConsentPayloadSchema.optional(),
+  })
+  .strict();
 
 export const updatePatientRequestSchema = createPatientRequestSchema.partial();
 
@@ -54,12 +66,14 @@ export const listPatientsQuerySchema = z.object({
   gender: genderSchema.optional(),
   page: z.coerce.number().int().positive().optional(),
   limit: z.coerce.number().int().positive().max(100).optional(),
-});
+}).strict();
 
-export const listPatientsResponseSchema = z.object({
+export const listPatientsResponseSchema = z
+  .object({
   items: z.array(patientResponseSchema),
   total: z.number().int().nonnegative(),
-});
+  })
+  .strict();
 
 const normalizeNullable = <T>(value: T | null | undefined): T | undefined =>
   value ?? undefined;

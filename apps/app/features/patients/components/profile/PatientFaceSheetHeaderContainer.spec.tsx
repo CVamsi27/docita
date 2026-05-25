@@ -1,6 +1,6 @@
 import { render, screen } from "@testing-library/react";
 import { describe, expect, it } from "vitest";
-import { TooltipProvider } from "@workspace/ui/components/tooltip";
+import { TooltipProvider } from "@workspace/ui/components/overlay/tooltip";
 import { PatientFaceSheetHeaderContainer } from "./PatientFaceSheetHeaderContainer";
 
 describe("PatientFaceSheetHeaderContainer", () => {

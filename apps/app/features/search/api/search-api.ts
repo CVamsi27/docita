@@ -1,3 +1,5 @@
+import { browserJson } from "@/lib/auth/browser-request";
+
 export interface SearchResult {
   id: string;
   type: "patient" | "appointment" | "prescription";
@@ -9,11 +11,13 @@ export interface SearchResult {
 export async function searchGlobal(
   searchQuery: string,
 ): Promise<SearchResult[]> {
-  const response = await fetch(`/api/search?q=${encodeURIComponent(searchQuery)}`);
-
-  if (!response.ok) {
-    throw new Error("We could not load these search results. Please try again.");
+  try {
+    return await browserJson<SearchResult[]>(
+      `/api/search?q=${encodeURIComponent(searchQuery)}`,
+    );
+  } catch {
+    throw new Error(
+      "We could not load these search results. Please try again.",
+    );
   }
-
-  return (await response.json()) as SearchResult[];
 }

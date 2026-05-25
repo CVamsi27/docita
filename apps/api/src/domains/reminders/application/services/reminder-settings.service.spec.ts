@@ -1,6 +1,10 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import { ReminderSettingsService } from './reminder-settings.service';
-import { PrismaService } from '@/prisma/prisma.service';
+import {
+  REMINDER_PERSISTENCE_PORT,
+  type ReminderPersistencePort,
+} from '@/domains/reminders/application/ports/reminder-persistence.port';
+import { CLOCK_PORT } from '@/shared/common/ports/clock.port';
 import { beforeEach, describe, it, expect, jest } from '@jest/globals';
 
 type PrismaReminderSettingsMock = {
@@ -30,14 +34,17 @@ describe('ReminderSettingsService', () => {
       providers: [
         ReminderSettingsService,
         {
-          provide: PrismaService,
+          provide: REMINDER_PERSISTENCE_PORT,
           useValue: prismaMock,
         },
+        { provide: CLOCK_PORT, useValue: { now: () => new Date() } },
       ],
     }).compile();
 
     service = module.get<ReminderSettingsService>(ReminderSettingsService);
-    prisma = module.get(PrismaService) as PrismaReminderSettingsMock;
+    prisma = module.get<ReminderPersistencePort>(
+      REMINDER_PERSISTENCE_PORT,
+    ) as unknown as PrismaReminderSettingsMock;
   });
 
   describe('getSettings', () => {

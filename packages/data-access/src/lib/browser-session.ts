@@ -112,17 +112,43 @@ export function createBrowserSessionManager(config: BrowserSessionConfig) {
   const isPublicPath = (pathname: string): boolean =>
     publicPaths.some((path) => pathname.startsWith(path));
 
+  const isPublicRoute = (): boolean => {
+    if (!isBrowser()) return false;
+    return isPublicPath(window.location.pathname);
+  };
+
   const redirectToLogin = (pathname?: string): void => {
     if (!isBrowser()) return;
-    const currentPath = pathname ?? window.location.pathname;
-    if (!isPublicPath(currentPath)) {
-      sessionStorage.setItem(redirectStorageKey, currentPath);
-      window.location.assign(resolveLoginPath?.(currentPath) ?? loginPath);
+
+    let fullReturnPath: string;
+    let pathOnly: string;
+
+    if (pathname !== undefined) {
+      const queryIndex = pathname.indexOf("?");
+      if (queryIndex === -1) {
+        fullReturnPath = pathname;
+        pathOnly = pathname;
+      } else {
+        fullReturnPath = pathname;
+        pathOnly = pathname.slice(0, queryIndex);
+      }
+    } else {
+      fullReturnPath = `${window.location.pathname}${window.location.search}`;
+      pathOnly = window.location.pathname;
+    }
+
+    if (!isPublicPath(pathOnly)) {
+      const priorRedirect = sessionStorage.getItem(redirectStorageKey)?.trim();
+      if (!priorRedirect) {
+        sessionStorage.setItem(redirectStorageKey, fullReturnPath);
+      }
+      window.location.assign(resolveLoginPath?.(pathOnly) ?? loginPath);
     }
   };
 
   const refreshAccessToken = async (): Promise<boolean> => {
     if (!isBrowser()) return false;
+    if (isPublicRoute()) return false;
 
     const inFlight = refreshInFlight.get(refreshKey);
     if (inFlight) {

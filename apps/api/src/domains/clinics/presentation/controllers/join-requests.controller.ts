@@ -18,8 +18,14 @@ import { Roles } from '@/shared/modules/auth/auth/roles.decorator';
 import { Role, JoinRequestStatus } from '@workspace/db';
 import { SkipSubscriptionCheck } from '@/shared/modules/auth/decorators/skip-subscription-check.decorator';
 import { JoinRequestService } from '@/domains/clinics/application/services/join-request.service';
-import { StaffNotificationService } from '@/shared/modules/messaging/whatsapp/staff-notification.service';
-import { RequestWithUser } from '@/common/types/common.types';
+import { StaffNotificationService } from '@/domains/whatsapp/application/services/staff-notification.service';
+import { RequestWithUser } from '@/shared/common/types/common.types';
+import {
+  getClinicStaffRequestContext,
+  requireAuthenticatedUser,
+  requireAuthenticatedUserId,
+} from '@/shared/modules/auth/auth/clinic-request-context';
+import { getAuthenticatedUserId } from '@/shared/modules/auth/auth/request-user.util';
 import {
   CreateJoinRequestDto,
   ApproveJoinRequestDto,
@@ -48,9 +54,10 @@ export class JoinRequestsController {
     @Request() req: RequestWithUser,
     @Body() dto: CreateJoinRequestDto,
   ) {
-    const user = requireUser(req);
+    const user = requireAuthenticatedUser(req);
+    const userId = getAuthenticatedUserId(user) ?? user.id;
     this.logger.log('Creating join request', {
-      userId: user.id,
+      userId,
       clinicId: dto.clinicId,
     });
 
@@ -79,10 +86,10 @@ export class JoinRequestsController {
         clinicId: dto.clinicId,
         type: 'MEMBER_JOIN_REQUEST',
         title: 'New Team Member Request',
-        message: `${user.name} (${user.email}) requested to join as ${dto.requestedRole}`,
+        message: `${user.name} (${user.email}) requested to join with role ${dto.requestedRole}`,
         data: {
           requestId: request.id,
-          userId: user.id,
+          userId,
           userName: user.name,
           userEmail: user.email,
           requestedRole: dto.requestedRole,
@@ -109,14 +116,15 @@ export class JoinRequestsController {
     @Request() req: RequestWithUser,
     @Query('status') status?: JoinRequestStatus,
   ) {
-    return this.joinRequestService.findByClinic(requireClinicId(req), status);
+    const { clinicId } = getClinicStaffRequestContext(req);
+    return this.joinRequestService.findByClinic(clinicId, status);
   }
 
   @Get('mine')
   @UseGuards(JwtAuthGuard)
   async getMyJoinRequest(@Request() req: RequestWithUser) {
     const requests = await this.joinRequestService.findUserPendingRequests(
-      requireUserId(req),
+      requireAuthenticatedUserId(req),
     );
 
     if (requests.length === 0) {
@@ -129,8 +137,9 @@ export class JoinRequestsController {
   @Get('count')
   @Roles(Role.ADMIN, Role.ADMIN_DOCTOR)
   async countPendingRequests(@Request() req: RequestWithUser) {
+    const { clinicId } = getClinicStaffRequestContext(req);
     const requests = await this.joinRequestService.findByClinic(
-      requireClinicId(req),
+      clinicId,
       'PENDING',
     );
 
@@ -145,8 +154,8 @@ export class JoinRequestsController {
     @Param('id') requestId: string,
     @Body() dto: ApproveJoinRequestDto,
   ) {
-    const user = requireUser(req);
-    const clinicId = requireClinicId(req);
+    const { clinicId, userId } = getClinicStaffRequestContext(req);
+    const userName = req.user?.name ?? 'Clinic staff';
     const request = await this.joinRequestService.findById(requestId);
 
     if (!request || request.clinicId !== clinicId) {
@@ -155,8 +164,8 @@ export class JoinRequestsController {
 
     await this.joinRequestService.approve(
       requestId,
-      user.id,
-      user.name,
+      userId,
+      userName,
       dto.assignedRole,
       dto.welcomeMessage,
     );
@@ -190,8 +199,8 @@ export class JoinRequestsController {
     @Param('id') requestId: string,
     @Body() dto: RejectJoinRequestDto,
   ) {
-    const user = requireUser(req);
-    const clinicId = requireClinicId(req);
+    const { clinicId, userId } = getClinicStaffRequestContext(req);
+    const userName = req.user?.name ?? 'Clinic staff';
     const request = await this.joinRequestService.findById(requestId);
 
     if (!request || request.clinicId !== clinicId) {
@@ -200,8 +209,8 @@ export class JoinRequestsController {
 
     await this.joinRequestService.reject(
       requestId,
-      user.id,
-      user.name,
+      userId,
+      userName,
       dto.reason,
     );
 
@@ -233,7 +242,10 @@ export class JoinRequestsController {
     @Request() req: RequestWithUser,
     @Param('id') requestId: string,
   ) {
-    await this.joinRequestService.withdraw(requestId, requireUserId(req));
+    await this.joinRequestService.withdraw(
+      requestId,
+      requireAuthenticatedUserId(req),
+    );
 
     return {
       success: true,

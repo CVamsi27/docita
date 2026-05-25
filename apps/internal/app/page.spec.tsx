@@ -2,7 +2,7 @@ import { fireEvent, render, screen, waitFor } from "@testing-library/react";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import type { ReactElement } from "react";
 import { beforeEach, describe, expect, it, vi } from "vitest";
-import { MAIN_APP_URL } from "@/lib/api-config";
+import { MAIN_APP_URL } from "@/lib/api/api-config";
 
 const clientPostMock = vi.hoisted(() => vi.fn());
 const toastSuccessMock = vi.hoisted(() => vi.fn());
@@ -21,14 +21,14 @@ vi.mock("next/navigation", () => ({
 
 const loginMock = vi.fn();
 
-vi.mock("@/lib/auth", () => ({
+vi.mock("@/lib/auth/auth", () => ({
   useAuth: () => ({
     login: loginMock,
     isAuthenticated: false,
   }),
 }));
 
-vi.mock("@/lib/api-client", () => ({
+vi.mock("@/lib/api/api-client", () => ({
   client: {
     post: clientPostMock,
   },
@@ -39,6 +39,14 @@ vi.mock("sonner", () => ({
     success: toastSuccessMock,
     error: toastErrorMock,
   },
+}));
+
+vi.mock("@/components/theme-toggle", () => ({
+  ThemeToggle: () => (
+    <button type="button" aria-label="Toggle theme">
+      Toggle theme
+    </button>
+  ),
 }));
 
 import InternalLogin from "./page";

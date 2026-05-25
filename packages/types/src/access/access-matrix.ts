@@ -84,6 +84,7 @@ export const APP_PERMISSIONS_BY_ROLE: Record<UserRole, AppPermission[]> = {
     "editPatient",
     "viewAppointments",
     "createAppointment",
+    "viewPrescriptions",
   ],
   RECEPTIONIST: [
     "viewPatients",
@@ -92,6 +93,8 @@ export const APP_PERMISSIONS_BY_ROLE: Record<UserRole, AppPermission[]> = {
     "viewAppointments",
     "createAppointment",
     "viewInvoices",
+    "createInvoice",
+    "viewPrescriptions",
   ],
   PATIENT: ["viewAppointments"],
 };
@@ -150,12 +153,18 @@ export const APP_ACCESS_TARGETS = {
   PAGE_PRESCRIPTIONS: "page.prescriptions",
   PAGE_LAB_TESTS: "page.lab-tests",
   PAGE_INVOICES: "page.invoices",
+  /** Front-desk cash / POS / UPI recording (not payment links or subscription billing). */
+  PAGE_DESK_PAYMENT: "page.desk-payment",
+  /** Live OPD floor panel for the front desk: now-serving token, queue, recently completed.
+      Multi-doctor/multi-branch readout — gated to Hospital/Enterprise. */
+  PAGE_DESK_FLOOR: "page.desk-floor",
   PAGE_INVENTORY: "page.inventory",
   PAGE_DOCUMENTS: "page.documents",
   PAGE_ANALYTICS: "page.analytics",
   PAGE_CODING_QUEUE: "page.coding-queue",
   PAGE_IMPORT: "page.import",
   PAGE_WHATSAPP: "page.whatsapp",
+  PAGE_WHATSAPP_SENDER: "page.whatsapp.sender",
   PAGE_AI_ASSISTANT: "page.ai-assistant",
   PAGE_SPECIALTY: "page.specialty",
   PAGE_HOSPITAL: "page.hospital",
@@ -167,11 +176,14 @@ export const APP_ACCESS_TARGETS = {
   API_SUBSCRIPTION_BILLING: "api.subscription.billing",
   API_ANALYTICS: "api.analytics",
   API_APPOINTMENTS: "api.appointments",
+  /** In-app staff notifications (appointments, requests, etc.); not WhatsApp-only. */
+  API_STAFF_NOTIFICATIONS: "api.staff-notifications",
   API_MEDICAL_CODING: "api.medical-coding",
   API_INVENTORY: "api.inventory",
   API_QUEUE: "api.queue",
   API_MEDICAL_DOCUMENTS: "api.medical-documents",
   API_WHATSAPP: "api.whatsapp",
+  API_WHATSAPP_SENDER: "api.whatsapp.sender",
   API_LAB_TESTS: "api.lab-tests",
   API_PATIENTS: "api.patients",
   API_PATIENTS_READ: "api.patients.read",
@@ -182,6 +194,8 @@ export const APP_ACCESS_TARGETS = {
   API_PRESCRIPTIONS: "api.prescriptions",
   API_INVOICES: "api.invoices",
   API_PAYMENTS: "api.payments",
+  /** Desk invoice settlement (cash / terminal); separate from `API_PAYMENTS` (links / gateway). */
+  API_DESK_INVOICE_SETTLEMENT: "api.desk.invoice-settlement",
 } as const;
 
 export type AppAccessTarget =
@@ -214,8 +228,10 @@ const CLINICAL_SUPPORT_ROLES: UserRole[] = [
   "NURSE",
 ];
 const ADMIN_BILLING_ROLES: UserRole[] = ["ADMIN", "ADMIN_DOCTOR"];
-const PRESCRIPTION_ROLES: UserRole[] = ["ADMIN", "ADMIN_DOCTOR", "DOCTOR"];
-const CLINICAL_CODING_ROLES: UserRole[] = ["ADMIN", "ADMIN_DOCTOR", "DOCTOR"];
+// Prescription authorship is a clinical act — non-clinical ADMIN cannot
+// author Rx. ADMIN_DOCTOR can because they are also a practicing doctor.
+const PRESCRIPTION_ROLES: UserRole[] = ["ADMIN_DOCTOR", "DOCTOR"];
+const CLINICAL_CODING_ROLES: UserRole[] = ["ADMIN_DOCTOR", "DOCTOR"];
 const ANALYTICS_ROLES: UserRole[] = ["ADMIN", "ADMIN_DOCTOR", "DOCTOR"];
 const IMPORT_ROLES: UserRole[] = ["ADMIN", "ADMIN_DOCTOR", "INTERNAL"];
 
@@ -242,16 +258,33 @@ export const APP_ACCESS_MATRIX: Record<AppAccessTarget, AccessPolicy> = {
     feature: Feature.CALENDAR_SLOTS,
   },
   [APP_ACCESS_TARGETS.PAGE_PRESCRIPTIONS]: {
-    read: { roles: PRESCRIPTION_ROLES },
+    read: {
+      roles: ["ADMIN", "ADMIN_DOCTOR", "DOCTOR", "NURSE", "RECEPTIONIST"],
+    },
     feature: Feature.DIGITAL_PRESCRIPTIONS,
   },
   [APP_ACCESS_TARGETS.PAGE_LAB_TESTS]: {
-    read: { roles: CLINICAL_SUPPORT_ROLES },
+    read: {
+      roles: ["ADMIN", "ADMIN_DOCTOR", "DOCTOR", "NURSE", "RECEPTIONIST"],
+    },
     feature: Feature.LAB_TESTS,
   },
   [APP_ACCESS_TARGETS.PAGE_INVOICES]: {
     read: { roles: ["ADMIN", "ADMIN_DOCTOR", "DOCTOR", "RECEPTIONIST"] },
     feature: Feature.INVOICING,
+  },
+  [APP_ACCESS_TARGETS.PAGE_DESK_PAYMENT]: {
+    read: { roles: ["ADMIN", "ADMIN_DOCTOR", "DOCTOR", "RECEPTIONIST"] },
+    feature: Feature.INVOICING,
+  },
+  [APP_ACCESS_TARGETS.PAGE_DESK_FLOOR]: {
+    read: { roles: ["ADMIN", "ADMIN_DOCTOR", "DOCTOR", "RECEPTIONIST"] },
+    feature: Feature.QUEUE_MANAGEMENT,
+    /** Hospital and Enterprise SKUs only. With the current Tier rank
+        (HOSPITAL=3, ENTERPRISE=4) gating at HOSPITAL admits both, plus
+        the INTELLIGENCE addon which sits above. FRONT_DESK is special-
+        cased in canAccessTier to cap at ESSENTIAL, so it is excluded. */
+    tier: Tier.HOSPITAL,
   },
   [APP_ACCESS_TARGETS.PAGE_INVENTORY]: {
     read: { roles: ["ADMIN", "ADMIN_DOCTOR", "DOCTOR", "RECEPTIONIST"] },
@@ -276,6 +309,10 @@ export const APP_ACCESS_MATRIX: Record<AppAccessTarget, AccessPolicy> = {
   [APP_ACCESS_TARGETS.PAGE_WHATSAPP]: {
     read: { roles: ["ADMIN", "ADMIN_DOCTOR", "DOCTOR", "RECEPTIONIST"] },
     feature: Feature.WHATSAPP_MESSAGING,
+  },
+  [APP_ACCESS_TARGETS.PAGE_WHATSAPP_SENDER]: {
+    read: { roles: ["ADMIN", "ADMIN_DOCTOR"] },
+    feature: Feature.WHATSAPP_OWN_NUMBER,
   },
   [APP_ACCESS_TARGETS.PAGE_SPECIALTY]: {
     read: { roles: CLINICAL_SUPPORT_ROLES },
@@ -312,6 +349,11 @@ export const APP_ACCESS_MATRIX: Record<AppAccessTarget, AccessPolicy> = {
     write: { roles: CARE_COORDINATION_ROLES },
     feature: Feature.CALENDAR_SLOTS,
   },
+  [APP_ACCESS_TARGETS.API_STAFF_NOTIFICATIONS]: {
+    read: { roles: CARE_COORDINATION_ROLES },
+    write: { roles: CARE_COORDINATION_ROLES },
+    feature: Feature.CALENDAR_SLOTS,
+  },
   [APP_ACCESS_TARGETS.API_MEDICAL_CODING]: {
     read: { roles: CLINICAL_CODING_ROLES },
     write: { roles: CLINICAL_CODING_ROLES },
@@ -337,9 +379,18 @@ export const APP_ACCESS_MATRIX: Record<AppAccessTarget, AccessPolicy> = {
     write: { roles: ["ADMIN", "ADMIN_DOCTOR", "DOCTOR", "RECEPTIONIST"] },
     feature: Feature.WHATSAPP_MESSAGING,
   },
+  [APP_ACCESS_TARGETS.API_WHATSAPP_SENDER]: {
+    read: { roles: ["ADMIN", "ADMIN_DOCTOR"] },
+    write: { roles: ["ADMIN", "ADMIN_DOCTOR"] },
+    feature: Feature.WHATSAPP_OWN_NUMBER,
+  },
   [APP_ACCESS_TARGETS.API_LAB_TESTS]: {
-    read: { roles: CLINICAL_SUPPORT_ROLES },
-    write: { roles: CLINICAL_SUPPORT_ROLES },
+    read: {
+      roles: ["ADMIN", "ADMIN_DOCTOR", "DOCTOR", "NURSE", "RECEPTIONIST"],
+    },
+    write: {
+      roles: ["ADMIN", "ADMIN_DOCTOR", "DOCTOR", "NURSE", "RECEPTIONIST"],
+    },
     feature: Feature.LAB_TESTS,
   },
   [APP_ACCESS_TARGETS.API_PATIENTS]: {
@@ -374,7 +425,12 @@ export const APP_ACCESS_MATRIX: Record<AppAccessTarget, AccessPolicy> = {
     write: { roles: ADMIN_BILLING_ROLES },
   },
   [APP_ACCESS_TARGETS.API_PRESCRIPTIONS]: {
-    read: { roles: PRESCRIPTION_ROLES },
+    /** Read = list, detail, PDF print. Receptionists hand printed Rx to
+        patients; nurses reference Rx during patient prep. */
+    read: {
+      roles: ["ADMIN", "ADMIN_DOCTOR", "DOCTOR", "NURSE", "RECEPTIONIST"],
+    },
+    /** Authoring (create / edit / sign) is clinical-only. */
     write: { roles: PRESCRIPTION_ROLES },
     feature: Feature.DIGITAL_PRESCRIPTIONS,
   },
@@ -387,6 +443,11 @@ export const APP_ACCESS_MATRIX: Record<AppAccessTarget, AccessPolicy> = {
     read: { roles: ["ADMIN", "ADMIN_DOCTOR", "DOCTOR", "RECEPTIONIST"] },
     write: { roles: ["ADMIN", "ADMIN_DOCTOR", "DOCTOR", "RECEPTIONIST"] },
     feature: Feature.PAYMENT_LINKS,
+  },
+  [APP_ACCESS_TARGETS.API_DESK_INVOICE_SETTLEMENT]: {
+    read: { roles: ["ADMIN", "ADMIN_DOCTOR", "DOCTOR", "RECEPTIONIST"] },
+    write: { roles: ["ADMIN", "RECEPTIONIST", "ADMIN_DOCTOR"] },
+    feature: Feature.INVOICING,
   },
 };
 

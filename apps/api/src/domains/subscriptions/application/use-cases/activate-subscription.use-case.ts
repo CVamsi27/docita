@@ -1,30 +1,23 @@
-import {
-  Injectable,
-  Logger,
-  Inject,
-  BadRequestException,
-} from '@nestjs/common';
+import { Injectable, Logger, Inject } from '@nestjs/common';
 import {
   ISubscriptionRepository,
   SUBSCRIPTION_REPOSITORY_TOKEN,
 } from '@/domains/subscriptions/application/ports/subscription.repository.port';
-import {
-  IClinicOperations,
-  CLINIC_OPERATIONS_TOKEN,
-} from '@/domains/subscriptions/application/ports/clinic-operations.port';
 import { SubscriptionPricingService } from '@/domains/subscriptions/core/services/subscription-pricing.service';
 import {
   ClinicTier,
   BillingCycle,
-  SubscriptionStatus,
-  SubscriptionStatusEnum,
 } from '@/domains/subscriptions/core/value-objects';
-import { Subscription } from '@/domains/subscriptions/core/entities/subscription.entity';
 import { FeatureFlagService } from '@/shared/modules/services/feature-flag.service';
 import {
-  IPaymentGateway,
-  PAYMENT_GATEWAY_TOKEN,
-} from '@/domains/subscriptions/application/ports/payment-gateway.port';
+  finalizePayableAmountPaise,
+  SubscriptionCheckoutPricingService,
+} from '@/domains/subscriptions/application/services/subscription-checkout-pricing.service';
+import { AppConfigService } from '@/shared/modules/config/app-configuration.service';
+import { SubscriptionActivationPolicyService } from '@/domains/subscriptions/application/services/subscription-activation-policy.service';
+import { SubscriptionBillingSnapshotService } from '@/domains/subscriptions/application/services/subscription-billing-snapshot.service';
+import { ActivateSubscriptionPaymentService } from '@/domains/subscriptions/application/services/activate-subscription-payment.service';
+import { ActivateSubscriptionClinicSyncService } from '@/domains/subscriptions/application/services/activate-subscription-clinic-sync.service';
 
 export interface ActivateSubscriptionRequest {
   clinicId: string;
@@ -33,19 +26,11 @@ export interface ActivateSubscriptionRequest {
   razorpaySignature: string;
   tier: string;
   cycle: string;
+  /** Razorpay payment-link resume rows may not have an order id. */
+  subscriptionPaymentId?: string;
   skipPaymentVerification?: boolean;
   verifiedAmountCents?: number;
 }
-
-type SubscriptionPaymentRecord = {
-  id: string;
-  clinicId: string;
-  amountCents: number;
-  currency: string;
-  status: string;
-  razorpayOrderId?: string | null;
-  razorpayPaymentId?: string | null;
-};
 
 @Injectable()
 export class ActivateSubscriptionUseCase {
@@ -54,15 +39,25 @@ export class ActivateSubscriptionUseCase {
   constructor(
     @Inject(SUBSCRIPTION_REPOSITORY_TOKEN)
     private readonly subscriptionRepo: ISubscriptionRepository,
-    @Inject(CLINIC_OPERATIONS_TOKEN)
-    private readonly clinicOps: IClinicOperations,
-    @Inject(PAYMENT_GATEWAY_TOKEN)
-    private readonly paymentGateway: IPaymentGateway,
     private readonly pricingService: SubscriptionPricingService,
     private readonly featureFlagService: FeatureFlagService,
+    private readonly checkoutPricing: SubscriptionCheckoutPricingService,
+    private readonly configService: AppConfigService,
+    private readonly activationPolicy: SubscriptionActivationPolicyService,
+    private readonly billingSnapshot: SubscriptionBillingSnapshotService,
+    private readonly activationPayment: ActivateSubscriptionPaymentService,
+    private readonly clinicSync: ActivateSubscriptionClinicSyncService,
   ) {}
 
+  // AuditLogged: subscription activation (billing; not patient PHI)
   async execute(request: ActivateSubscriptionRequest): Promise<void> {
+    this.logger.log({
+      action: 'subscription.activate',
+      clinicId: request.clinicId,
+      tier: request.tier,
+      cycle: request.cycle,
+    });
+
     const tier = ClinicTier.fromString(request.tier);
     const cycle = BillingCycle.fromString(request.cycle);
     const clinicOffer = await this.featureFlagService.getClinicPricingOffer(
@@ -70,127 +65,94 @@ export class ActivateSubscriptionUseCase {
     );
     const offerPercent = clinicOffer?.percentOff ?? 0;
 
-    let subscription = await this.subscriptionRepo.findByClinicId(
+    const subscription = await this.subscriptionRepo.findByClinicId(
       request.clinicId,
     );
-    const priceCents = this.pricingService.calculatePrice(
+    const currencyCode = this.configService.getCurrencyCode();
+    const breakdown = this.checkoutPricing.compute(
+      subscription,
       tier,
       cycle,
       offerPercent,
     );
-    const payment = (await this.subscriptionRepo.findPaymentByOrderId(
-      request.clinicId,
-      request.razorpayOrderId,
-    )) as SubscriptionPaymentRecord | null;
+    const payableAmount = finalizePayableAmountPaise(
+      breakdown.finalAmountCents,
+      currencyCode,
+    );
 
-    if (!payment) {
-      throw new BadRequestException('Payment order not found for this clinic');
-    }
+    const listPriceCents = this.pricingService.calculatePrice(
+      tier,
+      cycle,
+      offerPercent,
+    );
 
-    if (payment.amountCents !== priceCents) {
-      throw new BadRequestException(
-        'Payment amount does not match selected plan',
-      );
-    }
-
-    let verifiedAmountCents = request.verifiedAmountCents;
-    if (!request.skipPaymentVerification) {
-      const verification = await this.paymentGateway.verifyPayment({
+    const { payment } =
+      await this.activationPayment.resolvePaymentForActivation({
+        clinicId: request.clinicId,
         razorpayOrderId: request.razorpayOrderId,
         razorpayPaymentId: request.razorpayPaymentId,
         razorpaySignature: request.razorpaySignature,
+        payableAmountPaise: payableAmount,
+        subscriptionPaymentId: request.subscriptionPaymentId,
+        skipPaymentVerification: request.skipPaymentVerification,
+        verifiedAmountCents: request.verifiedAmountCents,
       });
 
-      if (!verification.verified) {
-        throw new BadRequestException('Unable to verify payment');
-      }
+    const saved = await this.billingSnapshot.persistActivatedSubscription({
+      clinicId: request.clinicId,
+      tier,
+      cycle,
+      listPriceCents,
+      subscription,
+      creditsConsumed: breakdown.accountCreditsAppliedCents,
+      preserveCurrentPeriodEnd:
+        this.activationPolicy.shouldPreserveCurrentPeriodEnd(
+          subscription,
+          tier,
+          cycle,
+        ),
+      surplusCreditCents: breakdown.surplusCreditCents,
+    });
 
-      if (
-        verification.orderId &&
-        verification.orderId !== request.razorpayOrderId
-      ) {
-        throw new BadRequestException('Payment order verification failed');
-      }
+    const invoiceOrderRef =
+      request.razorpayOrderId || payment.razorpayOrderId || payment.id;
+    const razorpayInvoice = await this.billingSnapshot.createHostedInvoice({
+      clinicId: request.clinicId,
+      amountCents: payment.amountCents,
+      currency: payment.currency,
+      orderId: invoiceOrderRef,
+      paymentId: request.razorpayPaymentId,
+      tier: tier.value,
+      cycle: cycle.value,
+    });
 
-      verifiedAmountCents = verification.amountCents;
-    }
+    const paidDetails = {
+      paymentId: request.razorpayPaymentId,
+      signature: request.razorpaySignature,
+      subscriptionId: saved.id,
+      invoiceUrl: razorpayInvoice?.shortUrl ?? undefined,
+      invoiceNumber: razorpayInvoice?.invoiceNumber ?? undefined,
+    };
 
-    if (
-      verifiedAmountCents !== undefined &&
-      verifiedAmountCents !== payment.amountCents
-    ) {
-      throw new BadRequestException(
-        'Payment amount does not match selected plan',
+    if (request.subscriptionPaymentId) {
+      await this.subscriptionRepo.updatePaymentStatusById(
+        request.clinicId,
+        request.subscriptionPaymentId,
+        'paid',
+        paidDetails,
+      );
+    } else {
+      await this.subscriptionRepo.updatePaymentStatus(
+        request.razorpayOrderId,
+        'paid',
+        paidDetails,
       );
     }
 
-    if (!subscription) {
-      subscription = new Subscription({
-        id: crypto.randomUUID(),
-        clinicId: request.clinicId,
-        plan: tier,
-        billingCycle: cycle,
-        basePriceCents: priceCents,
-        status: new SubscriptionStatus(SubscriptionStatusEnum.ACTIVE),
-        currentPeriodStart: new Date(),
-        currentPeriodEnd: this.calculatePeriodEnd(new Date(), cycle),
-        autoPayEnabled: true,
-        createdAt: new Date(),
-        updatedAt: new Date(),
-        version: 1,
-      });
-    } else {
-      subscription.activatePaidPlan(tier, cycle, priceCents);
-    }
-
-    await this.subscriptionRepo.save(subscription);
-
-    await this.subscriptionRepo.updatePaymentStatus(
-      request.razorpayOrderId,
-      'paid',
-      {
-        paymentId: request.razorpayPaymentId,
-        signature: request.razorpaySignature,
-        subscriptionId: subscription.id,
-      },
-    );
-
-    const featureUpdates: Record<string, boolean> = {};
-    if (!tier.isStarter()) {
-      featureUpdates['WHATSAPP'] = true;
-      featureUpdates['PAYMENT_LINKS'] = true;
-      featureUpdates['WHATSAPP_REMINDERS'] = true;
-    }
-
-    await this.clinicOps.updateTierAndFeatures(
-      request.clinicId,
-      tier.value,
-      SubscriptionStatusEnum.ACTIVE,
-      featureUpdates,
-    );
-
-    await this.clinicOps.emitUpdate(request.clinicId, {
-      clinicId: request.clinicId,
-      tier: tier.value,
-      subscriptionStatus: SubscriptionStatusEnum.ACTIVE,
-    });
+    await this.clinicSync.syncAfterActivation(request.clinicId, tier);
 
     this.logger.log(
       `Subscription activated for clinic ${request.clinicId}: ${tier.value} ${cycle.value}`,
     );
-  }
-
-  private calculatePeriodEnd(start: Date, cycle: BillingCycle): Date {
-    const end = new Date(start);
-    if (cycle.isYearly()) {
-      end.setFullYear(end.getFullYear() + 1);
-    } else if (cycle.isSemiAnnual()) {
-      end.setMonth(end.getMonth() + 6);
-    } else if (cycle.isQuarterly()) {
-      end.setMonth(end.getMonth() + 3);
-    } else {
-      end.setMonth(end.getMonth() + 1);
-    }
-    return end;
   }
 }

@@ -32,18 +32,14 @@ vi.mock("@workspace/ui/components/theme-toggle", () => ({
   ThemeToggle: () => <button type="button">Toggle theme</button>,
 }));
 
-vi.mock("@/components/common/support-contact", () => ({
-  SupportContact: () => <div data-testid="support-contact" />,
-}));
-
-vi.mock("@/lib/auth-context", () => ({
+vi.mock("@/lib/auth/auth-context", () => ({
   useAuth: () => ({
     user: mocks.user,
     refreshUser: mocks.refreshUser,
   }),
 }));
 
-vi.mock("@/lib/logger", () => ({
+vi.mock("@/lib/monitoring/logger", () => ({
   logger: {
     error: vi.fn(),
   },

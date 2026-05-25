@@ -1,15 +1,15 @@
 import { cn } from "@workspace/ui/lib/utils";
-import { Badge } from "@workspace/ui/components/badge";
+import { Badge } from "@workspace/ui/components/indicators/badge";
 import {
   Avatar,
   AvatarFallback,
   AvatarImage,
-} from "@workspace/ui/components/avatar";
+} from "@workspace/ui/components/indicators/avatar";
 import {
   Tooltip,
   TooltipContent,
   TooltipTrigger,
-} from "@workspace/ui/components/tooltip";
+} from "@workspace/ui/components/overlay/tooltip";
 import {
   AlertTriangle,
   Calendar,
@@ -17,6 +17,7 @@ import {
   Phone,
   User,
 } from "lucide-react";
+import { formatGenderLabel } from "@/lib/formatters";
 
 interface PatientBadgeUIProps {
   fullName: string;
@@ -88,7 +89,7 @@ export function PatientBadgeUI({
       >
         <Avatar className={sizes.avatar}>
           {avatarUrl && <AvatarImage src={avatarUrl} alt={fullName} />}
-          <AvatarFallback className="bg-primary/10 text-primary font-medium">
+          <AvatarFallback className="border border-border/70 bg-background/70 text-foreground font-medium">
             {initials}
           </AvatarFallback>
         </Avatar>
@@ -112,12 +113,7 @@ export function PatientBadgeUI({
                 </TooltipTrigger>
                 <TooltipContent>
                   <div className="space-y-1">
-                    <p className="font-medium">Known Allergies:</p>
-                    <ul className="list-disc pl-4">
-                      {allergiesArray.map((allergy, i) => (
-                        <li key={i}>{allergy}</li>
-                      ))}
-                    </ul>
+                    <p>Allergies</p>
                   </div>
                 </TooltipContent>
               </Tooltip>
@@ -141,7 +137,7 @@ export function PatientBadgeUI({
               {gender && (
                 <span className="flex items-center gap-1">
                   <User className="h-3 w-3" />
-                  {gender}
+                  {formatGenderLabel(gender)}
                 </span>
               )}
             </div>

@@ -1,48 +1,62 @@
 "use client";
 
 import { useTheme } from "next-themes";
-import { Monitor, Moon, Sun } from "lucide-react";
-import { Button } from "@workspace/ui/components/button";
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuTrigger,
-} from "@workspace/ui/components/dropdown-menu";
+import { Moon, Sun } from "lucide-react";
+import { Button } from "@workspace/ui/components/form/button";
 import { useMounted } from "@workspace/hooks";
+import { SymbolTooltip } from "@workspace/ui/components/overlay/tooltip";
+import { cn } from "@workspace/ui/lib/utils";
 
-export function ThemeToggle() {
+export interface ThemeToggleProps {
+  /** Called after selecting light/dark so app state (e.g. persisted appearance) can stay in sync. */
+  onSelectTheme?: (mode: "light" | "dark") => void;
+  className?: string;
+}
+
+export function ThemeToggle({ onSelectTheme, className }: ThemeToggleProps) {
   const mounted = useMounted();
-  const { theme, setTheme } = useTheme();
+  const { resolvedTheme, setTheme } = useTheme();
 
   if (!mounted) {
-    return <Button variant="ghost" size="icon" className="h-9 w-9" disabled />;
+    return (
+      <span
+        className={cn(
+          "inline-grid size-9 shrink-0 place-items-center leading-none",
+          className,
+        )}
+      >
+        <Button variant="ghost" size="icon-sm" className="size-9 shrink-0" disabled />
+      </span>
+    );
   }
 
-  const Icon = theme === "dark" ? Moon : theme === "light" ? Sun : Monitor;
+  const isDark = resolvedTheme === "dark";
+  const Icon = isDark ? Moon : Sun;
+  const nextTheme = isDark ? "light" : "dark";
+  const switchLabel = `Switch to ${nextTheme} mode`;
 
   return (
-    <DropdownMenu>
-      <DropdownMenuTrigger asChild>
-        <Button variant="ghost" size="icon" className="h-9 w-9">
+    <span
+      className={cn(
+        "inline-grid size-9 shrink-0 place-items-center leading-none",
+        className,
+      )}
+    >
+      <SymbolTooltip label={switchLabel} side="right">
+        <Button
+          variant="ghost"
+          size="icon-sm"
+          className="size-9 shrink-0 rounded-lg"
+          aria-label={switchLabel}
+          onClick={() => {
+            setTheme(nextTheme);
+            onSelectTheme?.(nextTheme);
+          }}
+          type="button"
+        >
           <Icon className="h-4 w-4" />
-          <span className="sr-only">Toggle theme</span>
         </Button>
-      </DropdownMenuTrigger>
-      <DropdownMenuContent align="end">
-        <DropdownMenuItem onClick={() => setTheme("light")}>
-          <Sun className="mr-2 h-4 w-4" />
-          Light
-        </DropdownMenuItem>
-        <DropdownMenuItem onClick={() => setTheme("dark")}>
-          <Moon className="mr-2 h-4 w-4" />
-          Dark
-        </DropdownMenuItem>
-        <DropdownMenuItem onClick={() => setTheme("system")}>
-          <Monitor className="mr-2 h-4 w-4" />
-          System
-        </DropdownMenuItem>
-      </DropdownMenuContent>
-    </DropdownMenu>
+      </SymbolTooltip>
+    </span>
   );
 }

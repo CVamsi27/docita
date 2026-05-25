@@ -1,6 +1,9 @@
 import { Injectable } from '@nestjs/common';
 import { PrismaService } from '@/prisma/prisma.service';
-import { Prisma } from '@workspace/db';
+import { Prisma, QueueTokenStatus } from '@workspace/db';
+import { parseStringEnumMember } from '@workspace/utils';
+
+const QUEUE_TOKEN_STATUS_VALUES = Object.values(QueueTokenStatus);
 import {
   IQueueRepository,
   QueueTokenWithRelations,
@@ -23,6 +26,7 @@ const TOKEN_WITH_RELATIONS_INCLUDE = {
     select: {
       id: true,
       type: true,
+      chiefComplaint: true,
       doctor: { select: { id: true, name: true } },
     },
   },
@@ -42,26 +46,55 @@ export class PrismaQueueRepository implements IQueueRepository {
     toDate: Date,
     doctorId?: string,
     statusIn?: string[],
+    search?: string,
   ): Promise<QueueTokenWithRelations[]> {
-    const where = {
+    const statusFilter =
+      statusIn && statusIn.length > 0
+        ? statusIn.flatMap((status) => {
+            const parsed = parseStringEnumMember(
+              QUEUE_TOKEN_STATUS_VALUES,
+              status,
+            );
+            return parsed ? [parsed] : [];
+          })
+        : [];
+    const where: Prisma.QueueTokenWhereInput = {
       clinicId,
       createdAt: { gte: fromDate, lt: toDate },
-      ...(statusIn && statusIn.length > 0 && { status: { in: statusIn } }),
-      ...(doctorId && { doctorId }),
-    } as Prisma.QueueTokenWhereInput;
+      ...(statusFilter.length > 0 ? { status: { in: statusFilter } } : {}),
+      ...(doctorId ? { doctorId } : {}),
+      ...(search
+        ? {
+            OR: [
+              {
+                patient: {
+                  firstName: { contains: search, mode: 'insensitive' },
+                },
+              },
+              {
+                patient: {
+                  lastName: { contains: search, mode: 'insensitive' },
+                },
+              },
+              { patient: { phoneNumber: { contains: search } } },
+            ],
+          }
+        : {}),
+    };
 
-    return this.getReadClient().queueToken.findMany({
+    const rows = await this.getReadClient().queueToken.findMany({
       where,
       include: TOKEN_WITH_RELATIONS_INCLUDE,
       orderBy: [{ priority: 'desc' }, { tokenNumber: 'asc' }],
-    }) as Promise<QueueTokenWithRelations[]>;
+    });
+    return rows satisfies QueueTokenWithRelations[];
   }
 
   async findAppointmentForCheckIn(
     appointmentId: string,
     clinicId: string,
   ): Promise<AppointmentForCheckIn | null> {
-    return this.getReadClient().appointment.findFirst({
+    const row = await this.getReadClient().appointment.findFirst({
       where: { id: appointmentId, clinicId },
       select: {
         id: true,
@@ -77,7 +110,11 @@ export class PrismaQueueRepository implements IQueueRepository {
           },
         },
       },
-    }) as Promise<AppointmentForCheckIn | null>;
+    });
+    if (!row) {
+      return null;
+    }
+    return row satisfies AppointmentForCheckIn;
   }
 
   async findExistingToken(appointmentId: string, clinicId: string) {

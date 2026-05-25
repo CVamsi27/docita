@@ -1,6 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import { PrismaService } from '@/prisma/prisma.service';
-import { Prisma } from '@workspace/db';
+import { FollowUpStatus, Prisma } from '@workspace/db';
 import {
   IFollowUpRepository,
   FollowUpWithRelations,
@@ -18,12 +18,51 @@ export class PrismaFollowUpRepository implements IFollowUpRepository {
     return this.prisma.followUp.create({ data });
   }
 
+  async findForClinic(params: {
+    clinicId: string;
+    statuses?: FollowUpStatus[];
+    from?: Date;
+    to?: Date;
+    take: number;
+  }): Promise<FollowUpWithRelations[]> {
+    const where: Prisma.FollowUpWhereInput = {
+      clinicId: params.clinicId,
+    };
+    if (params.statuses?.length) {
+      where.status = { in: params.statuses };
+    }
+    if (params.from || params.to) {
+      where.scheduledDate = {
+        ...(params.from ? { gte: params.from } : {}),
+        ...(params.to ? { lte: params.to } : {}),
+      };
+    }
+
+    const rows = await this.getReadClient().followUp.findMany({
+      where,
+      include: {
+        patient: {
+          select: {
+            id: true,
+            firstName: true,
+            lastName: true,
+            phoneNumber: true,
+          },
+        },
+        doctor: { select: { id: true, name: true } },
+      },
+      orderBy: { scheduledDate: 'asc' },
+      take: params.take,
+    });
+    return rows satisfies FollowUpWithRelations[];
+  }
+
   async findUpcoming(
     clinicId: string,
     from: Date,
     to: Date,
   ): Promise<FollowUpWithRelations[]> {
-    return this.getReadClient().followUp.findMany({
+    const rows = await this.getReadClient().followUp.findMany({
       where: {
         clinicId,
         status: { in: ['PENDING', 'REMINDER_SENT'] },
@@ -42,11 +81,12 @@ export class PrismaFollowUpRepository implements IFollowUpRepository {
       },
       orderBy: { scheduledDate: 'asc' },
       take: 50,
-    }) as Promise<FollowUpWithRelations[]>;
+    });
+    return rows satisfies FollowUpWithRelations[];
   }
 
   async findForAppointment(appointmentId: string, clinicId: string) {
-    return this.getReadClient().followUp.findMany({
+    const rows = await this.getReadClient().followUp.findMany({
       where: { appointmentId, clinicId },
       include: {
         patient: {
@@ -60,7 +100,8 @@ export class PrismaFollowUpRepository implements IFollowUpRepository {
         doctor: { select: { id: true, name: true } },
       },
       orderBy: { createdAt: 'desc' },
-    }) as Promise<FollowUpWithRelations[]>;
+    });
+    return rows satisfies FollowUpWithRelations[];
   }
 
   async findByIdAndClinic(id: string, clinicId: string) {

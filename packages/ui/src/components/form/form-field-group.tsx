@@ -1,0 +1,43 @@
+"use client";
+
+import * as React from "react";
+import { Label } from "./label";
+import { cn } from "@workspace/ui/lib/utils";
+
+export interface FormFieldGroupProps extends React.HTMLAttributes<HTMLDivElement> {
+  label?: string;
+  htmlFor?: string;
+  required?: boolean;
+  error?: string;
+  hint?: string;
+  children: React.ReactNode;
+}
+
+export function FormFieldGroup({
+  label,
+  htmlFor,
+  required,
+  error,
+  hint,
+  className,
+  children,
+  ...props
+}: FormFieldGroupProps) {
+  return (
+    <div className="space-y-2" {...props}>
+      {label && (
+        <Label
+          htmlFor={htmlFor}
+          className={cn(
+            required && "after:content-['_*'] after:text-destructive",
+          )}
+        >
+          {label}
+        </Label>
+      )}
+      <div className={className}>{children}</div>
+      {error && <p className="text-xs text-destructive">{error}</p>}
+      {hint && <p className="text-xs text-muted-foreground">{hint}</p>}
+    </div>
+  );
+}

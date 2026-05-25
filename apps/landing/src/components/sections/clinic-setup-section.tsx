@@ -10,14 +10,14 @@ import {
   Stethoscope,
 } from "lucide-react";
 
-import { Button } from "@workspace/ui/components/button";
+import { Button } from "@workspace/ui/components/form/button";
 import {
   Card,
   CardContent,
   CardHeader,
   CardTitle,
-} from "@workspace/ui/components/card";
-import { SectionHeading } from "@workspace/ui/components/section-heading";
+} from "@workspace/ui/components/indicators/card";
+import { SectionHeading } from "@workspace/ui/components/layout/section-heading";
 
 const setupDeliverables = [
   {
@@ -47,8 +47,8 @@ const setupDeliverables = [
 ];
 
 const setupOptions = [
-  "Starter setup from ₹4,999 for one doctor and one core workflow",
-  "Clinic setup from ₹9,999 for import, templates, billing, and WhatsApp",
+  "Starter setup from INR 4,999 for one doctor and one core workflow",
+  "Clinic setup from INR 9,999 for import, templates, billing, and WhatsApp",
   "Custom rollout for multi-doctor clinics, branches, or legacy data cleanup",
 ];
 
@@ -58,14 +58,14 @@ export function ClinicSetupSection() {
       <div className="ui-page-shell">
         <div className="grid gap-12 lg:grid-cols-[minmax(0,0.95fr)_minmax(320px,1.05fr)] lg:items-center">
           <div>
-            <div className="mb-4 inline-flex items-center gap-2 rounded-full border border-primary/20 bg-primary/10 px-4 py-2 text-sm text-primary">
+            <div className="mb-4 inline-flex items-center gap-2 rounded-full border border-border/70 bg-muted px-4 py-2 text-sm text-primary">
               <Settings2 className="h-4 w-4" />
               <span className="font-medium">Paid clinic setup service</span>
             </div>
             <SectionHeading
               size="section"
               title="Sell a clinic outcome, not another login"
-              description="Docita can be packaged as a hands-on rollout: migrate the clinic list, configure the prescription format, train reception, and make the first workflow useful quickly."
+              description="Docita can be packaged for a hands-on rollout: migrate the clinic list, configure the prescription format, train reception, and make the first workflow useful quickly."
               className="mb-6"
             />
             <ul className="space-y-3 text-sm text-muted-foreground sm:text-base">
@@ -98,7 +98,7 @@ export function ClinicSetupSection() {
             {setupDeliverables.map((item) => (
               <Card key={item.title} className="landing-card bg-muted/30">
                 <CardHeader>
-                  <div className="mb-3 inline-flex h-11 w-11 items-center justify-center rounded-2xl bg-primary/10">
+                  <div className="mb-3 inline-flex h-11 w-11 items-center justify-center rounded-full border border-border/70 bg-muted">
                     <item.icon className="h-5 w-5 text-primary" />
                   </div>
                   <CardTitle className="text-lg">{item.title}</CardTitle>

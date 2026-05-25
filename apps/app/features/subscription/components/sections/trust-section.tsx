@@ -1,5 +1,5 @@
 import { Award, Clock, Lock, Shield } from "lucide-react";
-import { Card, CardContent } from "@workspace/ui/components/card";
+import { Card, CardContent } from "@workspace/ui/components/indicators/card";
 
 export function TrustSection() {
   const trustItems = [
@@ -30,7 +30,7 @@ export function TrustSection() {
       {trustItems.map((item, index) => (
         <Card key={index} className="bg-muted/30 border-none shadow-none">
           <CardContent className="flex flex-col items-center text-center p-6 gap-3">
-            <div className="h-10 w-10 rounded-full bg-primary/10 flex items-center justify-center">
+            <div className="flex h-10 w-10 items-center justify-center rounded-full border border-border/70 bg-background/70">
               <item.icon className="h-5 w-5 text-primary" />
             </div>
             <div>

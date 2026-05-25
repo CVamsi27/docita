@@ -2,14 +2,16 @@ import {
   Injectable,
   NotFoundException,
   BadRequestException,
+  ForbiddenException,
   Inject,
 } from '@nestjs/common';
-import { Prisma } from '@workspace/db';
-import { TimeUtils } from '@/common/utils/time.utils';
+import { Prisma, Role } from '@workspace/db';
+import { TimeUtils } from '@/shared/common/utils/time.utils';
 import {
   IDoctorScheduleRepository,
   DOCTOR_SCHEDULE_REPOSITORY_TOKEN,
 } from '@/domains/doctors/core/repositories/doctor-schedule.repository.interface';
+import { CLOCK_PORT, type IClock } from '@/shared/common/ports/clock.port';
 
 type DayOfWeek =
   | 'SUNDAY'
@@ -25,6 +27,7 @@ export class AvailabilityScheduleService {
   constructor(
     @Inject(DOCTOR_SCHEDULE_REPOSITORY_TOKEN)
     private repository: IDoctorScheduleRepository,
+    @Inject(CLOCK_PORT) private readonly clock: IClock,
   ) {}
 
   async getSchedules(doctorId: string, clinicId?: string) {
@@ -93,7 +96,7 @@ export class AvailabilityScheduleService {
       slotDuration?: number;
       isActive?: boolean;
     },
-    clinicId?: string,
+    options?: { clinicId?: string; actorUserId?: string; actorRole?: Role },
   ) {
     if (data.startTime && !TimeUtils.validateTimeFormat(data.startTime)) {
       throw new BadRequestException(
@@ -108,8 +111,23 @@ export class AvailabilityScheduleService {
 
     const schedule = await this.repository.findScheduleById(id);
 
-    if (!schedule || (clinicId && schedule.clinicId !== clinicId)) {
+    if (
+      !schedule ||
+      (options?.clinicId && schedule.clinicId !== options.clinicId)
+    ) {
       throw new NotFoundException('Schedule not found');
+    }
+
+    const isAdmin =
+      options?.actorRole === Role.ADMIN ||
+      options?.actorRole === Role.ADMIN_DOCTOR;
+    if (!isAdmin) {
+      if (!options?.actorUserId) {
+        throw new ForbiddenException('Authenticated user is required');
+      }
+      if (schedule.doctorId !== options.actorUserId) {
+        throw new ForbiddenException('You can only manage your own schedule');
+      }
     }
 
     const newStartTime = data.startTime || schedule.startTime;
@@ -125,11 +143,29 @@ export class AvailabilityScheduleService {
     return this.repository.updateSchedule(id, data);
   }
 
-  async deleteSchedule(id: string, clinicId?: string) {
+  async deleteSchedule(
+    id: string,
+    options?: { clinicId?: string; actorUserId?: string; actorRole?: Role },
+  ) {
     const schedule = await this.repository.findScheduleById(id);
 
-    if (!schedule || (clinicId && schedule.clinicId !== clinicId)) {
+    if (
+      !schedule ||
+      (options?.clinicId && schedule.clinicId !== options.clinicId)
+    ) {
       throw new NotFoundException('Schedule not found');
+    }
+
+    const isAdmin =
+      options?.actorRole === Role.ADMIN ||
+      options?.actorRole === Role.ADMIN_DOCTOR;
+    if (!isAdmin) {
+      if (!options?.actorUserId) {
+        throw new ForbiddenException('Authenticated user is required');
+      }
+      if (schedule.doctorId !== options.actorUserId) {
+        throw new ForbiddenException('You can only manage your own schedule');
+      }
     }
 
     await this.repository.deleteSchedule(id);
@@ -192,7 +228,7 @@ export class AvailabilityScheduleService {
     }
 
     if (options?.upcoming) {
-      where.endDate = { gte: new Date() };
+      where.endDate = { gte: this.clock.now() };
     }
 
     return this.repository.findTimeOffs(where);
@@ -241,14 +277,48 @@ export class AvailabilityScheduleService {
     });
   }
 
-  async deleteTimeOff(id: string, clinicId?: string) {
+  async deleteTimeOff(
+    id: string,
+    options?: { clinicId?: string; actorUserId?: string; actorRole?: Role },
+  ) {
     const timeOff = await this.repository.findTimeOffById(id);
 
-    if (!timeOff || (clinicId && timeOff.clinicId !== clinicId)) {
+    if (
+      !timeOff ||
+      (options?.clinicId && timeOff.clinicId !== options.clinicId)
+    ) {
       throw new NotFoundException('Time off record not found');
+    }
+
+    const isAdmin =
+      options?.actorRole === Role.ADMIN ||
+      options?.actorRole === Role.ADMIN_DOCTOR;
+    if (!isAdmin) {
+      if (!options?.actorUserId) {
+        throw new ForbiddenException('Authenticated user is required');
+      }
+      if (timeOff.doctorId !== options.actorUserId) {
+        throw new ForbiddenException('You can only manage your own time off');
+      }
     }
 
     await this.repository.deleteTimeOff(id);
     return { success: true };
+  }
+
+  getUnavailableDoctorIdsForCalendarDate(
+    clinicId: string,
+    date: Date | string,
+  ): Promise<string[]> {
+    const target = new Date(date);
+    const rangeStart = new Date(target);
+    rangeStart.setHours(0, 0, 0, 0);
+    const rangeEnd = new Date(target);
+    rangeEnd.setHours(23, 59, 59, 999);
+    return this.repository.findDoctorIdsWithFullDayTimeOffOverlappingRange(
+      clinicId,
+      rangeStart,
+      rangeEnd,
+    );
   }
 }

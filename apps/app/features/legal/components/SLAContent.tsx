@@ -7,12 +7,12 @@ import {
   TableHead,
   TableHeader,
   TableRow,
-} from "@workspace/ui/components/table";
+} from "@workspace/ui/components/data-display/table";
 
 export function SLAContent() {
   return (
-    <div className="rounded-xl border bg-background p-4 md:p-5">
-      <div className="prose prose-sm dark:prose-invert max-w-none [&_h2]:text-2xl [&_h2]:font-bold [&_h2]:tracking-tight [&_h2]:mb-2 [&_h3]:text-lg [&_h3]:font-semibold [&_h3]:leading-7 [&_p]:text-sm [&_p]:leading-6 [&_ol]:my-4 [&_ol]:space-y-6 [&_ol]:pl-6 [&_ul]:my-3 [&_ul]:space-y-2 [&_ul]:pl-5 [&_li]:pl-1 [&_li]:text-sm [&_li]:leading-6 [&_table]:my-3 [&_th]:text-xs [&_td]:text-sm">
+    <div className="rounded-lg border bg-background p-4 md:p-5">
+      <div className="prose prose-sm dark:prose-invert max-w-none [&_h2]:text-[var(--fs-2xl)] [&_h2]:font-semibold [&_h2]:leading-[var(--lh-tight)] [&_h2]:mb-2 [&_h3]:text-lg [&_h3]:font-semibold [&_h3]:leading-7 [&_p]:text-sm [&_p]:leading-6 [&_ol]:my-4 [&_ol]:space-y-6 [&_ol]:pl-6 [&_ul]:my-3 [&_ul]:space-y-2 [&_ul]:pl-5 [&_li]:pl-1 [&_li]:text-sm [&_li]:leading-6 [&_table]:my-3 [&_th]:text-xs [&_td]:text-sm">
         <h2>Service Level Agreement</h2>
         <p className="text-muted-foreground">Effective Date: January 1, 2025</p>
 
@@ -84,7 +84,7 @@ export function SLAContent() {
 
           <li>
             <h3 className="mt-0 mb-2">5. Service Credits</h3>
-            <p>In the event of SLA breach, credits will be applied as follows:</p>
+            <p>In the event of SLA breach, credits will be applied per the table below:</p>
             <ul>
               <li>99.0% - 99.9% uptime: 10% service credit</li>
               <li>95.0% - 99.0% uptime: 25% service credit</li>

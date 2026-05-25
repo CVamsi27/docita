@@ -1,3 +1,4 @@
+import { DocitaLoadingIndicator } from "@workspace/ui/components/feedback/docita-loading-indicator";
 import Image from "next/image";
 import {
   Card,
@@ -5,9 +6,10 @@ import {
   CardDescription,
   CardHeader,
   CardTitle,
-} from "@workspace/ui/components/card";
-import { Button } from "@workspace/ui/components/button";
-import { AlertCircle, Loader2, Scan, Smartphone, Upload } from "lucide-react";
+} from "@workspace/ui/components/indicators/card";
+import { Button } from "@workspace/ui/components/form/button";
+import { AlertCircle, Scan, Smartphone, Upload } from "lucide-react";
+import { cn } from "@workspace/ui/lib/utils";
 
 interface OCRUploadSectionProps {
   previewUrl: string | null;
@@ -36,14 +38,15 @@ export const OCRUploadSection = ({
           <CardDescription>Take a photo or upload an image</CardDescription>
         </CardHeader>
         <CardContent className="space-y-4">
-          <div className="flex flex-col items-center justify-center border-2 border-dashed border-muted-foreground/25 rounded-lg p-10 hover:bg-muted/50 transition-colors relative overflow-hidden">
+          <div className="flex flex-col items-center justify-center rounded-lg border-2 border-dashed border-muted-foreground/25 bg-muted/40 p-10 transition-colors duration-150 hover:bg-muted/50 relative overflow-hidden">
             {previewUrl ? (
-              <div className="relative w-full h-[300px]">
+              <div className="relative h-[300px] w-full overflow-hidden rounded-md bg-muted">
                 <Image
                   src={previewUrl}
                   alt="Preview"
                   fill
                   className="object-contain"
+                  sizes="(min-width: 1024px) 40vw, 100vw"
                 />
               </div>
             ) : (
@@ -62,35 +65,51 @@ export const OCRUploadSection = ({
             />
           </div>
 
-          <div className="flex flex-col sm:flex-row gap-3">
+          <div className="relative z-10 grid min-w-0 grid-cols-1 gap-3 sm:grid-cols-2">
             <Button
               type="button"
               variant="outline"
               onClick={onStartMobileUpload}
-              className="w-full"
+              className="w-full min-w-0"
             >
-              <Smartphone className="h-4 w-4 mr-2" />
-              Upload from Mobile
+              <Smartphone className="h-4 w-4 mr-2 shrink-0" />
+              <span className="min-w-0 truncate">Upload from Mobile</span>
             </Button>
 
-            <Button
-              type="button"
-              onClick={onScan}
-              disabled={!file || isScanning}
-              className="w-full"
-            >
-              {isScanning ? (
-                <>
-                  <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-                  Scanning...
-                </>
-              ) : (
-                <>
-                  <Scan className="h-4 w-4 mr-2" />
-                  {scanned ? "Re-scan" : "Scan Document"}
-                </>
-              )}
-            </Button>
+            {file ? (
+              <Button
+                type="button"
+                onClick={onScan}
+                disabled={isScanning}
+                className="w-full min-w-0"
+              >
+                {isScanning ? (
+                  <>
+                    <DocitaLoadingIndicator variant="inline" decorative className="mr-2" />
+                    Scanning…
+                  </>
+                ) : (
+                  <>
+                    <Scan className="h-4 w-4 mr-2 shrink-0" />
+                    <span className="min-w-0 truncate">
+                      {scanned ? "Re-scan" : "Scan Document"}
+                    </span>
+                  </>
+                )}
+              </Button>
+            ) : (
+              <div
+                className={cn(
+                  "inline-flex h-10 w-full min-w-0 items-center justify-center gap-2 rounded-lg border border-border bg-background px-4 text-sm font-medium text-muted-foreground shadow-xs sm:h-11",
+                  "cursor-not-allowed select-none",
+                )}
+                aria-disabled="true"
+                title="Choose a file in the upload area first"
+              >
+                <Scan className="h-4 w-4 shrink-0 opacity-80" aria-hidden />
+                <span className="min-w-0 truncate">Scan Document</span>
+              </div>
+            )}
           </div>
 
           {file && (

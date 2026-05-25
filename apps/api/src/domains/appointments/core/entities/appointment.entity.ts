@@ -1,4 +1,10 @@
 import { AppointmentStatus } from '@/domains/appointments/core/value-objects/appointment-status.value-object';
+import {
+  findFirstSchedulingConflict,
+  intervalsOverlap,
+  type AppointmentTimeSlot,
+} from '@/domains/appointments/core/domain-services/appointment-interval-overlap';
+import { InvariantViolationError } from '@/shared/common/errors/domain.errors';
 import type { DentalChartData, JsonValue } from '@workspace/types';
 
 export interface AppointmentProps {
@@ -14,11 +20,25 @@ export interface AppointmentProps {
   consultationNotes?: string;
   observations?: string;
   chiefComplaint?: string;
+  historyOfPresentIllness?: string;
+  pastMedicalHistory?: string;
+  reviewOfSystems?: string;
+  provisionalDiagnosis?: string;
   treatmentHistory?: string;
+  treatmentPlan?: string;
   clinicalImpression?: string;
   differentialDiagnosis?: string;
   finalDiagnosis?: string;
   followUpPlan?: string;
+  generalExamination?: unknown;
+  systemicExamination?: unknown;
+  investigations?: unknown;
+  growthData?: unknown;
+  ophthalmologyExam?: unknown;
+  cardiologyExam?: unknown;
+  gynecologyExam?: unknown;
+  dermatologyExam?: unknown;
+  psychiatryExam?: unknown;
   dentalChart?: DentalChartData;
   serviceId?: string;
   type?: string;
@@ -43,11 +63,25 @@ export class Appointment {
   private consultationNotes?: string;
   private observations?: string;
   private chiefComplaint?: string;
+  private historyOfPresentIllness?: string;
+  private pastMedicalHistory?: string;
+  private reviewOfSystems?: string;
+  private provisionalDiagnosis?: string;
   private treatmentHistory?: string;
+  private treatmentPlan?: string;
   private clinicalImpression?: string;
   private differentialDiagnosis?: string;
   private finalDiagnosis?: string;
   private followUpPlan?: string;
+  private generalExamination?: unknown;
+  private systemicExamination?: unknown;
+  private investigations?: unknown;
+  private growthData?: unknown;
+  private ophthalmologyExam?: unknown;
+  private cardiologyExam?: unknown;
+  private gynecologyExam?: unknown;
+  private dermatologyExam?: unknown;
+  private psychiatryExam?: unknown;
   private dentalChart?: DentalChartData;
   private serviceId?: string;
   private type?: string;
@@ -71,11 +105,25 @@ export class Appointment {
     this.consultationNotes = props.consultationNotes;
     this.observations = props.observations;
     this.chiefComplaint = props.chiefComplaint;
+    this.historyOfPresentIllness = props.historyOfPresentIllness;
+    this.pastMedicalHistory = props.pastMedicalHistory;
+    this.reviewOfSystems = props.reviewOfSystems;
+    this.provisionalDiagnosis = props.provisionalDiagnosis;
     this.treatmentHistory = props.treatmentHistory;
+    this.treatmentPlan = props.treatmentPlan;
     this.clinicalImpression = props.clinicalImpression;
     this.differentialDiagnosis = props.differentialDiagnosis;
     this.finalDiagnosis = props.finalDiagnosis;
     this.followUpPlan = props.followUpPlan;
+    this.generalExamination = props.generalExamination;
+    this.systemicExamination = props.systemicExamination;
+    this.investigations = props.investigations;
+    this.growthData = props.growthData;
+    this.ophthalmologyExam = props.ophthalmologyExam;
+    this.cardiologyExam = props.cardiologyExam;
+    this.gynecologyExam = props.gynecologyExam;
+    this.dermatologyExam = props.dermatologyExam;
+    this.psychiatryExam = props.psychiatryExam;
     this.dentalChart = props.dentalChart;
     this.serviceId = props.serviceId;
     this.type = props.type;
@@ -91,11 +139,15 @@ export class Appointment {
 
   private validate(): void {
     if (this.startTime >= this.endTime) {
-      throw new Error('Appointment start time must be before end time');
+      throw new InvariantViolationError(
+        'Appointment start time must be before end time',
+      );
     }
 
     if (!this.clinicId || !this.patientId || !this.doctorId) {
-      throw new Error('Clinic, Patient, and Doctor IDs are required');
+      throw new InvariantViolationError(
+        'Clinic, Patient, and Doctor IDs are required',
+      );
     }
   }
 
@@ -127,23 +179,45 @@ export class Appointment {
     return { ...this.metadata };
   }
 
-  reschedule(startTime: Date, endTime: Date): void {
+  overlapsInterval(startTime: Date, endTime: Date): boolean {
+    return intervalsOverlap(this.startTime, this.endTime, startTime, endTime);
+  }
+
+  static findFirstSchedulingConflict(
+    candidateStart: Date,
+    candidateEnd: Date,
+    existing: readonly AppointmentTimeSlot[],
+    excludeAppointmentId?: string,
+  ): AppointmentTimeSlot | undefined {
+    return findFirstSchedulingConflict(
+      candidateStart,
+      candidateEnd,
+      existing,
+      excludeAppointmentId,
+    );
+  }
+
+  reschedule(startTime: Date, endTime: Date, now: Date): void {
     if (this.status.isCompleted() || this.status.isCancelled()) {
-      throw new Error('Cannot reschedule a completed or cancelled appointment');
+      throw new InvariantViolationError(
+        'Cannot reschedule a completed or cancelled appointment',
+      );
     }
 
     if (startTime >= endTime) {
-      throw new Error('Start time must be before end time');
+      throw new InvariantViolationError('Start time must be before end time');
     }
 
     this.startTime = startTime;
     this.endTime = endTime;
-    this.updatedAt = new Date();
+    this.updatedAt = now;
   }
 
-  cancel(reason: string): void {
+  cancel(reason: string, now: Date): void {
     if (this.status.isCompleted()) {
-      throw new Error('Cannot cancel a completed appointment');
+      throw new InvariantViolationError(
+        'Cannot cancel a completed appointment',
+      );
     }
 
     if (this.status.isCancelled()) {
@@ -152,17 +226,24 @@ export class Appointment {
 
     this.status = AppointmentStatus.cancelled();
     this.cancellationReason = reason;
-    this.cancelledAt = new Date();
-    this.updatedAt = new Date();
+    this.cancelledAt = now;
+    this.updatedAt = now;
   }
 
-  complete(): void {
+  complete(now: Date): void {
     if (this.status.isCancelled()) {
-      throw new Error('Cannot complete a cancelled appointment');
+      throw new InvariantViolationError(
+        'Cannot complete a cancelled appointment',
+      );
     }
 
     this.status = AppointmentStatus.completed();
-    this.updatedAt = new Date();
+    this.updatedAt = now;
+  }
+
+  /** Ensures Nest/Express JSON responses include all clinical fields (not only enumerable ctor props). */
+  toJSON() {
+    return this.toPlain();
   }
 
   toPlain() {
@@ -179,11 +260,25 @@ export class Appointment {
       consultationNotes: this.consultationNotes,
       observations: this.observations,
       chiefComplaint: this.chiefComplaint,
+      historyOfPresentIllness: this.historyOfPresentIllness,
+      pastMedicalHistory: this.pastMedicalHistory,
+      reviewOfSystems: this.reviewOfSystems,
+      provisionalDiagnosis: this.provisionalDiagnosis,
       treatmentHistory: this.treatmentHistory,
+      treatmentPlan: this.treatmentPlan,
       clinicalImpression: this.clinicalImpression,
       differentialDiagnosis: this.differentialDiagnosis,
       finalDiagnosis: this.finalDiagnosis,
       followUpPlan: this.followUpPlan,
+      generalExamination: this.generalExamination,
+      systemicExamination: this.systemicExamination,
+      investigations: this.investigations,
+      growthData: this.growthData,
+      ophthalmologyExam: this.ophthalmologyExam,
+      cardiologyExam: this.cardiologyExam,
+      gynecologyExam: this.gynecologyExam,
+      dermatologyExam: this.dermatologyExam,
+      psychiatryExam: this.psychiatryExam,
       dentalChart: this.dentalChart,
       serviceId: this.serviceId,
       type: this.type,

@@ -1,73 +1,81 @@
-import { Injectable } from '@nestjs/common';
-import { PrismaService } from '@/prisma/prisma.service';
+import { Inject, Injectable } from '@nestjs/common';
+import { DuplicateImportError, type MappedPatientData } from '../import-types';
+import {
+  DUPLICATE_DETECTOR_TOKEN,
+  type IDuplicateDetector,
+} from '../ports/duplicate-detector.port';
+import { ImportPatientPersistenceService } from '../import-patient-persistence.service';
+import { readImportRowString } from '../import-row-normalizer';
 import {
   IImportStrategy,
+  ImportStrategyAuditContext,
   ImportValidationResult,
 } from './import-strategy.interface';
+
+function mapImportRowToPatientData(
+  row: Record<string, unknown>,
+): MappedPatientData {
+  const mapped: MappedPatientData = {};
+  for (const [key, value] of Object.entries(row)) {
+    if (
+      typeof value === 'string' ||
+      typeof value === 'number' ||
+      value instanceof Date ||
+      value === undefined
+    ) {
+      Reflect.set(mapped, key, value);
+    }
+  }
+  return mapped;
+}
 
 @Injectable()
 export class PatientImportStrategy implements IImportStrategy {
   readonly entityType = 'PATIENT';
 
-  constructor(private prisma: PrismaService) {}
-
-  private readString(
-    source: Record<string, unknown>,
-    key: string,
-  ): string | undefined {
-    const value = source[key];
-    return typeof value === 'string' ? value : undefined;
-  }
+  constructor(
+    @Inject(DUPLICATE_DETECTOR_TOKEN)
+    private readonly duplicateDetector: IDuplicateDetector,
+    private readonly patientPersistence: ImportPatientPersistenceService,
+  ) {}
 
   validate(row: Record<string, unknown>): ImportValidationResult {
-    if (!row.firstName || !row.lastName) {
+    const firstName = readImportRowString(row, 'firstName');
+    const lastName = readImportRowString(row, 'lastName');
+    const phoneNumber = readImportRowString(row, 'phoneNumber');
+    if (!firstName || !lastName) {
       return { valid: false, error: 'Missing firstName or lastName' };
     }
-    if (!row.phoneNumber) {
+    if (!phoneNumber) {
       return { valid: false, error: 'Missing phoneNumber' };
     }
     return { valid: true };
   }
 
-  async import(row: Record<string, unknown>, clinicId: string): Promise<void> {
-    const firstName = this.readString(row, 'firstName');
-    const lastName = this.readString(row, 'lastName');
-    const phoneNumber = this.readString(row, 'phoneNumber');
-    if (!firstName || !lastName || !phoneNumber) {
-      throw new Error(
-        'Missing required patient fields: firstName, lastName, or phoneNumber',
-      );
+  async import(
+    row: Record<string, unknown>,
+    clinicId: string,
+    audit: ImportStrategyAuditContext,
+  ): Promise<void> {
+    if (!audit.dpdpNoticeVersion) {
+      throw new Error('Missing DPDP attestation context for patient import');
     }
 
-    const email = this.readString(row, 'email');
-    const dateOfBirthRaw = this.readString(row, 'dateOfBirth');
-    const genderRaw = this.readString(row, 'gender');
-    const gender =
-      genderRaw === 'MALE' || genderRaw === 'FEMALE' || genderRaw === 'OTHER'
-        ? genderRaw
-        : 'OTHER';
-
-    if (email) {
-      const existing = await this.prisma.patient.findFirst({
-        where: { email },
-      });
-      if (existing) {
-        throw new Error('Patient email already exists');
-      }
+    const mapped = mapImportRowToPatientData(row);
+    const duplicate = await this.duplicateDetector.checkForDuplicates(
+      mapped,
+      clinicId,
+    );
+    if (duplicate.isDuplicate) {
+      throw new DuplicateImportError(duplicate.reason);
     }
 
-    await this.prisma.patient.create({
-      data: {
-        firstName,
-        lastName,
-        phoneNumber,
-        email: email || undefined,
-        dateOfBirth: dateOfBirthRaw ? new Date(dateOfBirthRaw) : new Date(),
-        bloodGroup: this.readString(row, 'bloodGroup') || undefined,
-        address: this.readString(row, 'address') || undefined,
-        gender,
-        clinicId,
-      },
+    await this.patientPersistence.importSinglePatient(mapped, clinicId, {
+      ipAddress: audit.ipAddress,
+      userAgent: audit.userAgent,
+      createdBy: audit.createdBy,
+      dpdpNoticeVersion: audit.dpdpNoticeVersion,
+      source: audit.source,
     });
   }
 
@@ -81,6 +89,8 @@ export class PatientImportStrategy implements IImportStrategy {
       bloodGroup: '',
       gender: '',
       address: '',
+      invoiceTotal: '',
+      invoiceLineItems: '',
     };
   }
 }

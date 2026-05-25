@@ -1,10 +1,12 @@
 import { Injectable, Logger } from '@nestjs/common';
 import { OnEvent } from '@nestjs/event-emitter';
+import { ApplicationEvents } from '@/shared/common/events/application-events';
 import { InvoiceGeneratedEvent } from '@/domains/billing/application/services/events/invoice-generated.event';
 import { PrismaService } from '@/prisma/prisma.service';
 import { SendMessageUseCase } from '@/domains/whatsapp/application/use-cases/send-message.use-case';
 import { PaymentsService } from '@/domains/billing/application/services/payments.service';
 import { AppConfigService } from '@/shared/modules/config/app-configuration.service';
+import { DATE_FORMATS, formatCurrency, formatDate } from '@workspace/utils';
 
 @Injectable()
 export class InvoiceEventsListener {
@@ -17,7 +19,7 @@ export class InvoiceEventsListener {
     private readonly configService: AppConfigService,
   ) {}
 
-  @OnEvent('invoice.generated')
+  @OnEvent(ApplicationEvents.INVOICE_GENERATED)
   async handleInvoiceGeneratedEvent(event: InvoiceGeneratedEvent) {
     const { invoiceId, clinicId } = event;
     this.logger.log(`Handling invoice.generated event for ${invoiceId}`);
@@ -62,10 +64,9 @@ export class InvoiceEventsListener {
 
     const currencyCode =
       clinic?.currency || this.configService.getCurrencyCode();
-    const formattedAmount = new Intl.NumberFormat('en-IN', {
-      style: 'currency',
+    const formattedAmount = formatCurrency(invoice.total, {
       currency: currencyCode,
-    }).format(invoice.total);
+    });
 
     const message = this.buildFallbackMessage(
       invoice,
@@ -110,20 +111,15 @@ export class InvoiceEventsListener {
     paymentLink?: string,
   ): string {
     const patientName = invoice.patient.firstName;
-    const date = new Date(invoice.createdAt).toLocaleDateString('en-IN', {
-      year: 'numeric',
-      month: 'short',
-      day: 'numeric',
-    });
+    const date = formatDate(invoice.createdAt, DATE_FORMATS.DATE_MEDIUM);
 
     let message = `Hello ${patientName}\n\n`;
     message += `Your invoice from *${clinicName}* is ready!\n\n`;
     message += `Invoice #: ${invoice.id.slice(0, 8).toUpperCase()}\n`;
     message += `Date: ${date}\n`;
-    const formattedAmount = new Intl.NumberFormat('en-IN', {
-      style: 'currency',
+    const formattedAmount = formatCurrency(invoice.total, {
       currency: currencyCode,
-    }).format(invoice.total);
+    });
     message += `Amount Due: ${formattedAmount}\n\n`;
     if (paymentLink) {
       message += `Pay online: ${paymentLink}\n\n`;

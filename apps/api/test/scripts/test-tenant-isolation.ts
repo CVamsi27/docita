@@ -1,6 +1,6 @@
 import prismaRaw from '@workspace/db';
-import { tenantExtension } from '@/common/extensions/tenant.extension';
-import { tenantStorage } from '@/common/middleware/tenant.middleware';
+import { tenantExtension } from '@/shared/common/extensions/tenant.extension';
+import { tenantStorage } from '@/shared/common/middleware/tenant.middleware';
 
 async function main() {
   const prisma = prismaRaw.$extends(tenantExtension);

@@ -1,14 +1,43 @@
 import { Injectable } from '@nestjs/common';
+import {
+  paymentSessionMetaJsonSchema,
+  paymentSessionWebhookPayloadSchema,
+} from '@workspace/types';
 import { PrismaService } from '@/prisma/prisma.service';
 import {
   IPaymentSessionRepository,
   PaymentSessionDetail,
 } from '@/domains/billing/core/repositories/payment-session.repository';
 import { PaymentSession, Prisma } from '@workspace/db';
+import { parsePrismaJsonColumn } from '@/shared/common/json/parse-prisma-json-column';
+import {
+  PAYMENT_SESSION_DETAIL_INCLUDE,
+  type PaymentSessionDetailRow,
+} from '@/domains/billing/infrastructure/repositories/payment-session-detail.types';
 
 @Injectable()
 export class PrismaPaymentSessionRepository implements IPaymentSessionRepository {
   constructor(private readonly prisma: PrismaService) {}
+
+  private mapSession<T extends PaymentSession>(session: T): T {
+    return {
+      ...session,
+      meta:
+        parsePrismaJsonColumn(session.meta, paymentSessionMetaJsonSchema) ??
+        null,
+      webhookPayload:
+        parsePrismaJsonColumn(
+          session.webhookPayload,
+          paymentSessionWebhookPayloadSchema,
+        ) ?? null,
+    };
+  }
+
+  private mapSessionDetail(
+    session: PaymentSessionDetailRow,
+  ): PaymentSessionDetail {
+    return this.mapSession(session);
+  }
 
   private getReadClient() {
     return this.prisma.getReadClient();
@@ -17,34 +46,19 @@ export class PrismaPaymentSessionRepository implements IPaymentSessionRepository
   async create(
     data: Prisma.PaymentSessionCreateInput,
   ): Promise<PaymentSession> {
-    return this.prisma.paymentSession.create({ data });
+    const created = await this.prisma.paymentSession.create({ data });
+    return this.mapSession(created);
   }
 
-  async findById(id: string): Promise<PaymentSessionDetail | null> {
-    const session = await this.getReadClient().paymentSession.findUnique({
-      where: { id },
-      include: {
-        patient: {
-          select: {
-            firstName: true,
-            lastName: true,
-            phoneNumber: true,
-            email: true,
-          },
-        },
-        invoice: {
-          select: {
-            id: true,
-          },
-        },
-        clinic: {
-          select: {
-            phone: true,
-          },
-        },
-      },
+  async findById(
+    id: string,
+    clinicId: string,
+  ): Promise<PaymentSessionDetail | null> {
+    const session = await this.getReadClient().paymentSession.findFirst({
+      where: { id, clinicId },
+      include: PAYMENT_SESSION_DETAIL_INCLUDE,
     });
-    return session as PaymentSessionDetail | null;
+    return session ? this.mapSessionDetail(session) : null;
   }
 
   async findByProviderSessionId(
@@ -52,42 +66,48 @@ export class PrismaPaymentSessionRepository implements IPaymentSessionRepository
   ): Promise<PaymentSessionDetail | null> {
     const session = await this.getReadClient().paymentSession.findFirst({
       where: { providerSessionId },
-      include: {
-        patient: {
-          select: {
-            firstName: true,
-            lastName: true,
-            phoneNumber: true,
-            email: true,
-          },
-        },
-        invoice: {
-          select: {
-            id: true,
-          },
-        },
-        clinic: {
-          select: {
-            phone: true,
-          },
-        },
-      },
+      include: PAYMENT_SESSION_DETAIL_INCLUDE,
     });
-    return session as PaymentSessionDetail | null;
+    return session ? this.mapSessionDetail(session) : null;
   }
 
   async update(
     id: string,
     data: Prisma.PaymentSessionUpdateInput,
+    clinicId: string,
   ): Promise<PaymentSession> {
-    return this.prisma.paymentSession.update({
-      where: { id },
+    const result = await this.prisma.paymentSession.updateMany({
+      where: { id, clinicId },
       data,
+    });
+    if (result.count === 0) {
+      throw new Error(`Payment session ${id} not found`);
+    }
+
+    const refreshed = await this.prisma.paymentSession.findFirst({
+      where: { id, clinicId },
+    });
+    if (!refreshed) {
+      throw new Error(`Payment session ${id} not found`);
+    }
+    return this.mapSession(refreshed);
+  }
+
+  async delete(id: string, clinicId: string): Promise<void> {
+    await this.prisma.paymentSession.deleteMany({
+      where: { id, clinicId },
     });
   }
 
-  async delete(id: string): Promise<void> {
-    await this.prisma.paymentSession.delete({ where: { id } });
+  async findByInvoiceId(
+    invoiceId: string,
+    clinicId: string,
+  ): Promise<PaymentSession[]> {
+    const sessions = await this.getReadClient().paymentSession.findMany({
+      where: { invoiceId, clinicId },
+      orderBy: { createdAt: 'desc' },
+    });
+    return sessions.map((session) => this.mapSession(session));
   }
 
   async findPendingReminders(): Promise<PaymentSessionDetail[]> {
@@ -98,27 +118,8 @@ export class PrismaPaymentSessionRepository implements IPaymentSessionRepository
           shortUrl: null,
         },
       },
-      include: {
-        patient: {
-          select: {
-            firstName: true,
-            lastName: true,
-            phoneNumber: true,
-            email: true,
-          },
-        },
-        invoice: {
-          select: {
-            id: true,
-          },
-        },
-        clinic: {
-          select: {
-            phone: true,
-          },
-        },
-      },
+      include: PAYMENT_SESSION_DETAIL_INCLUDE,
     });
-    return sessions as PaymentSessionDetail[];
+    return sessions.map((session) => this.mapSessionDetail(session));
   }
 }

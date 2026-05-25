@@ -1,4 +1,5 @@
 import { Money } from '@/domains/billing/core/value-objects/money.value-object';
+import { InvariantViolationError } from '@/shared/common/errors/domain.errors';
 
 export enum PaymentStatus {
   PENDING = 'PENDING',
@@ -62,39 +63,45 @@ export class Payment {
     return this.status;
   }
 
-  capture(): void {
-    if (this.status !== PaymentStatus.PENDING) {
-      throw new Error('Can only capture pending payments');
-    }
-    this.status = PaymentStatus.CAPTURED;
-    this.updatedAt = new Date();
+  private touchUpdatedAt(now: Date): void {
+    this.updatedAt = now;
   }
 
-  refund(amount: Money): void {
+  capture(now: Date): void {
+    if (this.status !== PaymentStatus.PENDING) {
+      throw new InvariantViolationError('Can only capture pending payments');
+    }
+    this.status = PaymentStatus.CAPTURED;
+    this.touchUpdatedAt(now);
+  }
+
+  refund(amount: Money, now: Date): void {
     if (this.status !== PaymentStatus.CAPTURED) {
-      throw new Error('Can only refund captured payments');
+      throw new InvariantViolationError('Can only refund captured payments');
     }
 
     const totalRefunded = this.refundedAmount.add(amount);
     if (totalRefunded.isGreaterThan(this.amount)) {
-      throw new Error('Refund amount cannot exceed payment amount');
+      throw new InvariantViolationError(
+        'Refund amount cannot exceed payment amount',
+      );
     }
 
     this.refundedAmount = totalRefunded;
-    this.updatedAt = new Date();
+    this.touchUpdatedAt(now);
 
     if (this.refundedAmount.amount >= this.amount.amount * 0.9999) {
       this.status = PaymentStatus.REFUNDED;
     }
   }
 
-  fail(reason: string): void {
+  fail(reason: string, now: Date): void {
     if (this.status === PaymentStatus.CAPTURED) {
-      throw new Error('Cannot fail a captured payment');
+      throw new InvariantViolationError('Cannot fail a captured payment');
     }
     this.status = PaymentStatus.FAILED;
     this.failureReason = reason;
-    this.updatedAt = new Date();
+    this.touchUpdatedAt(now);
   }
 
   getRefundedAmount(): Money {

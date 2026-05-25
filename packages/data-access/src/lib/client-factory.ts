@@ -1,8 +1,39 @@
 import { z } from "zod";
-import { APIRequestError, ErrorCodes, getErrorCode } from "@/lib/errors";
-import { buildURL, normalizeHeaders } from "@/lib/request-helpers";
-import { executeWithRetry } from "@/lib/retry";
-import type { APIClient, APIClientConfig, RequestConfig } from "@/lib/types";
+import {
+  getErrorMessage,
+  isAbortError,
+  parseProblemDetailsFromJson,
+} from "./api-error-body";
+import { APIRequestError, ErrorCodes, getErrorCode } from "./errors";
+import { buildURL, normalizeHeaders } from "./request-helpers";
+import { executeWithRetry } from "./retry";
+import type { APIClient, APIClientConfig, RequestConfig } from "./types";
+import { assertTyped } from "./typed-http-boundary";
+
+function toHeaderRecord(headers?: HeadersInit): Record<string, string> {
+  if (!headers) {
+    return {};
+  }
+
+  if (headers instanceof Headers) {
+    return Object.fromEntries(headers.entries());
+  }
+
+  if (Array.isArray(headers)) {
+    return Object.fromEntries(headers);
+  }
+
+  return Object.fromEntries(
+    Object.entries(headers).map(([key, value]) => [key, String(value)]),
+  );
+}
+
+function hasHeader(headers: HeadersInit | undefined, name: string): boolean {
+  const target = name.toLowerCase();
+  return Object.keys(toHeaderRecord(headers)).some(
+    (key) => key.toLowerCase() === target,
+  );
+}
 
 export function createAPIClient(config: APIClientConfig): APIClient {
   const {
@@ -11,6 +42,7 @@ export function createAPIClient(config: APIClientConfig): APIClient {
     defaultHeaders = {},
     timeout = 30000,
     retries = 0,
+    validateRequest,
     onRequest,
     onResponse,
     onError,
@@ -22,12 +54,19 @@ export function createAPIClient(config: APIClientConfig): APIClient {
     endpoint: string,
     options: RequestConfig = {},
   ): Promise<T> {
+    const shouldAttachJsonContentType =
+      !(options.body instanceof FormData) &&
+      !hasHeader(defaultHeaders, "content-type") &&
+      !hasHeader(options.headers, "content-type");
+
     let requestConfig: RequestConfig = {
       ...options,
       headers: {
-        "Content-Type": "application/json",
-        ...defaultHeaders,
-        ...options.headers,
+        ...toHeaderRecord(defaultHeaders),
+        ...toHeaderRecord(options.headers),
+        ...(shouldAttachJsonContentType
+          ? { "Content-Type": "application/json" }
+          : {}),
       },
     };
 
@@ -41,6 +80,10 @@ export function createAPIClient(config: APIClientConfig): APIClient {
       }
     }
 
+    if (validateRequest) {
+      await validateRequest(endpoint, options);
+    }
+
     if (onRequest) {
       requestConfig = await onRequest(requestConfig);
     }
@@ -49,14 +92,18 @@ export function createAPIClient(config: APIClientConfig): APIClient {
     const requestTimeout = options.timeout ?? timeout;
     const requestRetries = options.retries ?? retries;
     const method = (requestConfig.method ?? "GET").toUpperCase();
+    const shouldNotifyGlobalError = options.suppressGlobalErrorToast !== true;
 
     const dedupeKey =
       method === "GET"
         ? `${method}:${url}:${normalizeHeaders(requestConfig.headers)}`
         : null;
 
-    if (dedupeKey && inFlightGetRequests.has(dedupeKey)) {
-      return inFlightGetRequests.get(dedupeKey) as Promise<T>;
+    if (dedupeKey) {
+      const inFlight = inFlightGetRequests.get(dedupeKey);
+      if (inFlight) {
+        return assertTyped<Promise<T>>(inFlight);
+      }
     }
 
     const makeRequest = async (): Promise<T> => {
@@ -80,19 +127,25 @@ export function createAPIClient(config: APIClientConfig): APIClient {
             errorData = null;
           }
 
+          const problem = parseProblemDetailsFromJson(errorData);
+
           const error = new APIRequestError(
-            (errorData as { message?: string })?.message ||
+            problem.detail ||
+              problem.message ||
               response.statusText ||
               "Request failed",
             {
               status: response.status,
               statusText: response.statusText,
               code: getErrorCode(response.status),
-              ...(errorData ? { data: errorData } : {}),
+              ...(problem.raw ? { data: problem.raw } : {}),
+              ...(problem.validationErrors
+                ? { validationErrors: problem.validationErrors }
+                : {}),
             },
           );
 
-          if (onError) {
+          if (onError && shouldNotifyGlobalError) {
             await onError(error);
           }
 
@@ -101,16 +154,16 @@ export function createAPIClient(config: APIClientConfig): APIClient {
 
         const contentType = response.headers.get("content-type");
         if (!contentType || !contentType.includes("application/json")) {
-          return {} as T;
+          return assertTyped<T>({});
         }
 
-        let data = await response.json();
+        let data: unknown = await response.json();
 
         if (onResponse) {
           data = await onResponse(data);
         }
 
-        return data as T;
+        return assertTyped<T>(data);
       } catch (error) {
         clearTimeout(timeoutId);
 
@@ -118,23 +171,20 @@ export function createAPIClient(config: APIClientConfig): APIClient {
           throw error;
         }
 
-        if ((error as Error).name === "AbortError") {
+        if (isAbortError(error)) {
           const timeoutError = new APIRequestError("Request timeout", {
             isTimeout: true,
             code: ErrorCodes.TIMEOUT,
           });
-          if (onError) await onError(timeoutError);
+          if (onError && shouldNotifyGlobalError) await onError(timeoutError);
           throw timeoutError;
         }
 
-        const networkError = new APIRequestError(
-          (error as Error).message || "Network error",
-          {
-            isNetworkError: true,
-            code: ErrorCodes.NETWORK_ERROR,
-          },
-        );
-        if (onError) await onError(networkError);
+        const networkError = new APIRequestError(getErrorMessage(error), {
+          isNetworkError: true,
+          code: ErrorCodes.NETWORK_ERROR,
+        });
+        if (onError && shouldNotifyGlobalError) await onError(networkError);
         throw networkError;
       }
     };
@@ -149,7 +199,7 @@ export function createAPIClient(config: APIClientConfig): APIClient {
       return requestPromise;
     }
 
-    inFlightGetRequests.set(dedupeKey, requestPromise as Promise<unknown>);
+    inFlightGetRequests.set(dedupeKey, requestPromise);
 
     try {
       return await requestPromise;
@@ -289,13 +339,25 @@ export function createAPIClient(config: APIClientConfig): APIClient {
 
       if (!response.ok) {
         const errorData = await response.json().catch(() => null);
-        throw new APIRequestError(errorData?.message || response.statusText, {
-          status: response.status,
-          data: errorData,
-        });
+        const problem = parseProblemDetailsFromJson(errorData);
+        throw new APIRequestError(
+          problem.detail ||
+            problem.message ||
+            response.statusText ||
+            "Request failed",
+          {
+            status: response.status,
+            statusText: response.statusText,
+            code: getErrorCode(response.status),
+            ...(problem.raw ? { data: problem.raw } : {}),
+            ...(problem.validationErrors
+              ? { validationErrors: problem.validationErrors }
+              : {}),
+          },
+        );
       }
 
-      return response.json();
+      return assertTyped<T>(await response.json());
     },
   };
 }

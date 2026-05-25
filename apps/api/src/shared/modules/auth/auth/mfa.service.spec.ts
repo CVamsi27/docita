@@ -7,6 +7,7 @@ import { generateSecret, generateURI, verify } from 'otplib';
 import { PrismaService } from '@/prisma/prisma.service';
 import { MfaService } from './mfa.service';
 import { AUTH_CONSTANTS } from '@/shared/modules/config/app-constants';
+import { clockPortTestProvider } from '@/test-utils';
 
 jest.mock('bcrypt');
 jest.mock('qrcode', () => ({
@@ -70,6 +71,7 @@ describe('MfaService', () => {
               ),
           },
         },
+        clockPortTestProvider(),
       ],
     }).compile();
 

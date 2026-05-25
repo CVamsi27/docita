@@ -7,8 +7,8 @@ import {
   ReceiptText,
   Rows4,
 } from "lucide-react";
-import { Button } from "@workspace/ui/components/button";
-import { SectionHeading } from "@workspace/ui/components/section-heading";
+import { Button } from "@workspace/ui/components/form/button";
+import { SectionHeading } from "@workspace/ui/components/layout/section-heading";
 
 interface ProductTourSectionProps {
   appUrl: string;
@@ -71,14 +71,14 @@ export function ProductTourSection({ appUrl }: ProductTourSectionProps) {
               key={item.title}
               className="landing-card p-5"
             >
-              <div className="mb-3 inline-flex h-10 w-10 items-center justify-center rounded-xl bg-primary/10">
+              <div className="mb-3 inline-flex h-10 w-10 items-center justify-center rounded-full border border-border/70 bg-muted">
                 <item.icon className="h-5 w-5 text-primary" />
               </div>
               <div className="flex flex-wrap items-center gap-3">
                 <h3 className="text-base font-semibold text-foreground">
                   {item.title}
                 </h3>
-                <span className="rounded-full border border-success/20 bg-success/10 px-2.5 py-1 text-xs font-semibold text-success">
+                <span className="badge-success rounded-full px-2.5 py-1 text-xs font-semibold">
                   Live
                 </span>
               </div>

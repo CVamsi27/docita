@@ -24,6 +24,7 @@ function getStoredTimer(appointmentId: string): TimerState | null {
     const stored = localStorage.getItem(`${STORAGE_KEY}_${appointmentId}`);
     return stored ? JSON.parse(stored) : null;
   } catch {
+    // Ignore corrupt or inaccessible timer cache; the live timer can restart.
     return null;
   }
 }
@@ -36,7 +37,7 @@ function storeTimer(timer: TimerState) {
       JSON.stringify(timer),
     );
   } catch {
-
+    // Ignore storage failures; timer state still lives in React state.
   }
 }
 

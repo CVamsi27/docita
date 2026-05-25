@@ -2,7 +2,14 @@ import { z } from 'zod';
 
 export const CreateSubscriptionDtoSchema = z.object({
   clinicId: z.string().cuid('Invalid clinic ID'),
-  plan: z.enum(['STARTER', 'ESSENTIAL', 'PROFESSIONAL', 'ENTERPRISE']),
+  plan: z.enum([
+    'STARTER',
+    'ESSENTIAL',
+    'FRONT_DESK',
+    'PROFESSIONAL',
+    'HOSPITAL',
+    'ENTERPRISE',
+  ]),
   billingCycle: z.enum(['MONTHLY', 'YEARLY']),
   currentPeriodStart: z.date(),
   currentPeriodEnd: z.date(),
@@ -31,7 +38,13 @@ export interface SubscriptionResponseDto {
 
 export const UpgradeSubscriptionDtoSchema = z.object({
   subscriptionId: z.string().cuid(),
-  newPlan: z.enum(['ESSENTIAL', 'PROFESSIONAL', 'ENTERPRISE']),
+  newPlan: z.enum([
+    'ESSENTIAL',
+    'FRONT_DESK',
+    'PROFESSIONAL',
+    'HOSPITAL',
+    'ENTERPRISE',
+  ]),
   immediate: z.boolean().default(true),
 });
 
@@ -53,7 +66,7 @@ export interface UpgradePreviewDto {
 
 export const DowngradeSubscriptionDtoSchema = z.object({
   subscriptionId: z.string().cuid(),
-  newPlan: z.enum(['STARTER', 'ESSENTIAL', 'PROFESSIONAL']),
+  newPlan: z.enum(['STARTER', 'ESSENTIAL', 'FRONT_DESK', 'PROFESSIONAL']),
   effectiveAt: z.enum(['IMMEDIATELY', 'END_OF_PERIOD']),
 });
 

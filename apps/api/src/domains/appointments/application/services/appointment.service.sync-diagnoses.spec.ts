@@ -1,6 +1,10 @@
 import { describe, expect, it, jest } from '@jest/globals';
 import { EventEmitter2 } from '@nestjs/event-emitter';
 import { AppointmentService } from './appointment.service';
+import { AppointmentMetricsService } from './appointment-metrics.service';
+import { AppointmentDiagnosisService } from './appointment-diagnosis.service';
+import { SyncAppointmentDiagnosesUseCase } from '@/domains/appointments/application/use-cases/sync-appointment-diagnoses.use-case';
+import { createStubAppointmentWriteUseCases } from './appointment-use-case.stubs';
 
 describe('AppointmentService.syncDiagnoses', () => {
   const appointmentRepository = {} as never;
@@ -51,11 +55,32 @@ describe('AppointmentService.syncDiagnoses', () => {
     ),
   } as never;
 
+  const metricsService = Object.create(
+    AppointmentMetricsService.prototype,
+  ) as AppointmentMetricsService;
+  Object.defineProperty(metricsService, 'prisma', {
+    value: prisma,
+    writable: true,
+  });
+
+  const diagnosisService = new AppointmentDiagnosisService(
+    new SyncAppointmentDiagnosesUseCase(prisma),
+  );
+
+  const writeUseCaseStubs = createStubAppointmentWriteUseCases();
+
   const service = new AppointmentService(
     appointmentRepository,
+    appointmentRepository,
     createAppointmentUseCase,
+    writeUseCaseStubs.cancelAppointmentUseCase,
+    writeUseCaseStubs.rescheduleAppointmentUseCase,
+    writeUseCaseStubs.startConsultationUseCase,
+    writeUseCaseStubs.updateAppointmentDetailsUseCase,
     prisma,
     eventEmitter,
+    metricsService,
+    diagnosisService,
   );
 
   it('marks the first coded diagnosis as primary after uncoded rows are filtered out', async () => {

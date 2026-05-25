@@ -1,25 +1,19 @@
 import { Specialization, HospitalRole } from '@workspace/db';
+import { parseStringEnumMember } from '@workspace/utils';
+
+const SPECIALIZATION_MEMBERS = Object.values(Specialization);
+const HOSPITAL_ROLE_MEMBERS = Object.values(HospitalRole);
 
 export function validateSpecialization(
   value: string | null | undefined,
 ): Specialization | null {
   if (!value) return null;
-
-  if (Object.values(Specialization).includes(value as Specialization)) {
-    return value as Specialization;
-  }
-
-  return null;
+  return parseStringEnumMember(SPECIALIZATION_MEMBERS, value);
 }
 
 export function validateHospitalRole(
   value: string | null | undefined,
 ): HospitalRole | null {
   if (!value) return null;
-
-  if (Object.values(HospitalRole).includes(value as HospitalRole)) {
-    return value as HospitalRole;
-  }
-
-  return null;
+  return parseStringEnumMember(HOSPITAL_ROLE_MEMBERS, value);
 }

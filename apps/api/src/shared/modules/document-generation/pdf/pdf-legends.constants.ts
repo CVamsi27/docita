@@ -1,0 +1,30 @@
+export const PDF_FREQUENCY_LEGEND: Record<string, string> = {
+  OD: 'Once daily',
+  BD: 'Twice daily',
+  TDS: 'Three times daily',
+  QID: 'Four times daily',
+  HS: 'At bedtime',
+  SOS: 'As needed',
+  STAT: 'Immediately',
+  PRN: 'As needed',
+  AC: 'Before meals',
+  PC: 'After meals',
+  Q4H: 'Every 4 hours',
+  Q6H: 'Every 6 hours',
+  Q8H: 'Every 8 hours',
+  Q12H: 'Every 12 hours',
+};
+
+export const PDF_ROUTE_LEGEND: Record<string, string> = {
+  PO: 'By mouth (Oral)',
+  IV: 'Intravenous',
+  IM: 'Intramuscular',
+  SC: 'Subcutaneous',
+  SL: 'Sublingual',
+  TOP: 'Topical',
+  INH: 'Inhalation',
+  PR: 'Per rectum',
+  OPH: 'Ophthalmic (Eye)',
+  OT: 'Otic (Ear)',
+  NAS: 'Nasal',
+};

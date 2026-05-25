@@ -1,12 +1,10 @@
 import { describe, it, expect, beforeEach, jest } from '@jest/globals';
 import { PrismaService } from '@/prisma/prisma.service';
-import { OverageCalculationService } from '@/domains/billing/core/services/overage-calculation.service';
-import { UsageTrackingService } from '@/domains/billing/core/services/usage-tracking.service';
-import { EmailService } from '@/shared/modules/messaging/email/email.service';
 import { AppConfigService } from '@/shared/modules/config/app-configuration.service';
 import { IPaymentLinkProvider } from '@/domains/payments/core/ports';
 import { PaymentProvider } from '@/domains/payments/core/entities/payment-provider.enum';
-import { OverageBillingScheduler } from './overage-billing.scheduler';
+import { OverageInvoiceComposer } from './overage-invoice.composer';
+import { SubscriptionOveragePaymentService } from '@/domains/subscriptions/application/services/subscription-overage-payment.service';
 
 type OverageBreakdown = Record<
   string,
@@ -34,7 +32,7 @@ type SubscriptionPaymentRecord = {
   description: string | null;
 };
 
-describe('OverageBillingScheduler', () => {
+describe('SubscriptionOveragePaymentService (overage payment upsert)', () => {
   const upsertPaymentMock = jest.fn<
     (_args: {
       where: {
@@ -75,21 +73,6 @@ describe('OverageBillingScheduler', () => {
     writable: true,
   });
 
-  const overageCalculationService = Object.create(
-    OverageCalculationService.prototype,
-  ) as OverageCalculationService;
-  overageCalculationService.calculateOverageCharges =
-    jest.fn<OverageCalculationService['calculateOverageCharges']>();
-
-  const usageTrackingService = Object.create(
-    UsageTrackingService.prototype,
-  ) as UsageTrackingService;
-  usageTrackingService.getCurrentUsage =
-    jest.fn<UsageTrackingService['getCurrentUsage']>();
-
-  const emailService = Object.create(EmailService.prototype) as EmailService;
-  emailService.send = jest.fn<EmailService['send']>();
-
   const configService = Object.create(
     AppConfigService.prototype,
   ) as AppConfigService;
@@ -120,17 +103,16 @@ describe('OverageBillingScheduler', () => {
     cancelPaymentLink: jest.fn<IPaymentLinkProvider['cancelPaymentLink']>(),
   };
 
-  let scheduler: OverageBillingScheduler;
+  let paymentService: SubscriptionOveragePaymentService;
+  const invoiceComposer = new OverageInvoiceComposer();
 
   beforeEach(() => {
     jest.clearAllMocks();
-    scheduler = new OverageBillingScheduler(
+    paymentService = new SubscriptionOveragePaymentService(
       prisma,
-      overageCalculationService,
-      usageTrackingService,
-      emailService,
       configService,
       paymentLinkProvider,
+      invoiceComposer,
     );
   });
 
@@ -158,13 +140,9 @@ describe('OverageBillingScheduler', () => {
     const ensureLinkMock = jest
       .fn<(payment: SubscriptionPaymentRecord) => Promise<void>>()
       .mockResolvedValue();
-    Reflect.set(scheduler, 'ensureOveragePaymentLink', ensureLinkMock);
-    const createOrUpdate = Reflect.get(
-      scheduler,
-      'createOrUpdateOverageInvoicePayment',
-    ) as (params: OverageInvoiceParams) => Promise<void>;
+    Reflect.set(paymentService, 'ensureOveragePaymentLink', ensureLinkMock);
 
-    await createOrUpdate.call(scheduler, {
+    await paymentService.createOrUpdateOverageInvoicePayment({
       clinicId: 'clinic_1',
       subscriptionId: 'sub_1',
       periodStart: new Date('2026-03-01T00:00:00.000Z'),
@@ -214,13 +192,9 @@ describe('OverageBillingScheduler', () => {
     const ensureLinkMock = jest
       .fn<(payment: SubscriptionPaymentRecord) => Promise<void>>()
       .mockResolvedValue();
-    Reflect.set(scheduler, 'ensureOveragePaymentLink', ensureLinkMock);
-    const createOrUpdate = Reflect.get(
-      scheduler,
-      'createOrUpdateOverageInvoicePayment',
-    ) as (params: OverageInvoiceParams) => Promise<void>;
+    Reflect.set(paymentService, 'ensureOveragePaymentLink', ensureLinkMock);
 
-    await createOrUpdate.call(scheduler, {
+    await paymentService.createOrUpdateOverageInvoicePayment({
       clinicId: 'clinic_1',
       subscriptionId: 'sub_1',
       periodStart: new Date('2026-03-01T00:00:00.000Z'),

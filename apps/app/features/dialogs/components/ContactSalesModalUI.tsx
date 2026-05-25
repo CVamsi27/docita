@@ -1,34 +1,24 @@
 import { useEffect } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
-import * as z from "zod";
+import {
+  contactSalesFormSchema,
+  type ContactSalesFormValues,
+} from "@workspace/types";
 import {
   Dialog,
   DialogContent,
   DialogDescription,
   DialogHeader,
   DialogTitle,
-} from "@workspace/ui/components/dialog";
-import { Button } from "@workspace/ui/components/button";
-import { Input } from "@workspace/ui/components/input";
-import { Textarea } from "@workspace/ui/components/textarea";
-import { Alert, AlertDescription } from "@workspace/ui/components/alert";
+} from "@workspace/ui/components/overlay/dialog";
+import { Button } from "@workspace/ui/components/form/button";
+import { Input } from "@workspace/ui/components/form/input";
+import { Textarea } from "@workspace/ui/components/form/textarea";
+import { Alert, AlertDescription } from "@workspace/ui/components/feedback/alert";
 import { AlertCircle, CheckCircle, Mail } from "lucide-react";
-import { Form, FormControl, FormField } from "@workspace/ui/components/form";
+import { Form, FormControl, FormField } from "@workspace/ui/components/form/form";
 import { FormFieldGroup } from "@workspace/ui/components";
-import {
-  emailSchema,
-  requiredStringSchema,
-} from "@/features/_shared/schemas/common.schemas";
-
-const contactSalesSchema = z.object({
-  name: requiredStringSchema("Name"),
-  email: emailSchema,
-  clinic: z.string().optional(),
-  message: requiredStringSchema("Message"),
-});
-
-type ContactSalesFormValues = z.infer<typeof contactSalesSchema>;
 
 export type ContactSalesFormData = ContactSalesFormValues;
 
@@ -52,7 +42,7 @@ export function ContactSalesModalUI({
   onSubmit,
 }: ContactSalesModalUIProps) {
   const form = useForm<ContactSalesFormValues>({
-    resolver: zodResolver(contactSalesSchema),
+    resolver: zodResolver(contactSalesFormSchema),
     defaultValues: {
       name: "",
       email: "",
@@ -130,7 +120,7 @@ export function ContactSalesModalUI({
                     >
                       <FormControl>
                         <Input
-                          placeholder="Your name"
+                          placeholder="Name"
                           {...field}
                           disabled={isSubmitting}
                         />
@@ -151,7 +141,7 @@ export function ContactSalesModalUI({
                       <FormControl>
                         <Input
                           type="email"
-                          placeholder="your@email.com"
+                          placeholder="Email"
                           {...field}
                           disabled={isSubmitting}
                         />
@@ -170,7 +160,7 @@ export function ContactSalesModalUI({
                     >
                       <FormControl>
                         <Input
-                          placeholder="Your facility name"
+                          placeholder="Facility name"
                           {...field}
                           value={field.value || ""}
                           disabled={isSubmitting}
@@ -191,7 +181,7 @@ export function ContactSalesModalUI({
                     >
                       <FormControl>
                         <Textarea
-                          placeholder="Tell us about your needs..."
+                          placeholder="Enter message"
                           rows={4}
                           {...field}
                           disabled={isSubmitting}
@@ -216,7 +206,7 @@ export function ContactSalesModalUI({
                     disabled={isSubmitting}
                     className="w-full sm:w-auto"
                   >
-                    {isSubmitting ? "Sending..." : "Send Inquiry"}
+                    {isSubmitting ? "Sending…" : "Send Inquiry"}
                   </Button>
                 </div>
               </form>

@@ -1,4 +1,4 @@
-import { api } from "@/lib/api-client";
+import { api } from "@/lib/api/api-client";
 import {
   type CreateInvoiceRequest,
   createInvoiceRequestSchema,
@@ -6,8 +6,6 @@ import {
   invoiceResponseSchema,
   type ListInvoicesContractQuery,
   listInvoicesQuerySchema,
-  type MarkInvoicePaidRequest,
-  markInvoicePaidRequestSchema,
   type UpdateInvoiceRequest,
   updateInvoiceRequestSchema,
   enqueuePdfJobResponseSchema,
@@ -66,12 +64,6 @@ export const invoicesApi = {
   update: (id: string, data: UpdateInvoiceRequest) =>
     api.patch(`/invoices/${id}`, updateInvoiceRequestSchema.parse(data)).then((response) =>
       invoiceResponseSchema.parse(response),
-    ),
-
-  markPaid: (id: string, data?: MarkInvoicePaidRequest) =>
-    api.post(
-      `/payments/invoices/${id}/mark-paid`,
-      markInvoicePaidRequestSchema.parse(data ?? {}),
     ),
 
   // There is no dedicated server "print" route; use the invoice view + window.print().

@@ -7,20 +7,19 @@ import {
 import { Reflector } from '@nestjs/core';
 import { Role } from '@workspace/db';
 import { ROLES_KEY } from './roles.decorator';
+import { AppConfigService } from '@/shared/modules/config/app-configuration.service';
 
-import { IS_PUBLIC_KEY } from './public.decorator';
+import { bypassesSessionGuards } from './auth-route-metadata.util';
 
 @Injectable()
 export class RolesGuard implements CanActivate {
-  constructor(private reflector: Reflector) {}
+  constructor(
+    private reflector: Reflector,
+    private configService: AppConfigService,
+  ) {}
 
   canActivate(context: ExecutionContext): boolean {
-    const isPublic = this.reflector.getAllAndOverride<boolean>(IS_PUBLIC_KEY, [
-      context.getHandler(),
-      context.getClass(),
-    ]);
-
-    if (isPublic) {
+    if (bypassesSessionGuards(this.reflector, context)) {
       return true;
     }
 
@@ -47,6 +46,22 @@ export class RolesGuard implements CanActivate {
         'Insufficient permissions. You do not have the required role to access this resource.',
       );
     }
+
+    // Enforce email allowlist for INTERNAL role: even if a user record has
+    // Role.INTERNAL in the DB, only configured operator emails may use it.
+    if (user.role === Role.INTERNAL) {
+      const allowedEmails = this.configService.getInternalAllowedEmails();
+      if (allowedEmails.length > 0) {
+        const userEmail =
+          typeof user.email === 'string' ? user.email.toLowerCase() : '';
+        if (!userEmail || !allowedEmails.includes(userEmail)) {
+          throw new ForbiddenException(
+            'Internal access is restricted to the Docita operator team.',
+          );
+        }
+      }
+    }
+
     return true;
   }
 }

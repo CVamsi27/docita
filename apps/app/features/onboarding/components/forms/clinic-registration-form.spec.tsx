@@ -7,7 +7,7 @@ const mocks = vi.hoisted(() => ({
   restoreOnboardingId: vi.fn(),
 }));
 
-vi.mock("@/lib/auth-context", () => ({
+vi.mock("@/lib/auth/auth-context", () => ({
   useAuth: () => ({
     user: {
       id: "user_1",
@@ -20,14 +20,6 @@ vi.mock("@/lib/auth-context", () => ({
 
 vi.mock("@/hooks/use-locale-currency", () => ({
   useLocaleCurrency: () => ({ currency: "INR" }),
-}));
-
-vi.mock("@/features/_shared/components/whatsapp/whatsapp-button", () => ({
-  WhatsAppButton: () => <div>WhatsApp</div>,
-}));
-
-vi.mock("@/lib/support-contact", () => ({
-  getSupportPhoneNumber: () => "9999999999",
 }));
 
 vi.mock("@/features/onboarding/components/steps", () => ({

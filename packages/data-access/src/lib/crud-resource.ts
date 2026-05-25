@@ -1,4 +1,4 @@
-import type { APIClient, PaginatedResponse } from "@/lib/types";
+import type { APIClient, PaginatedResponse } from "./types";
 
 export function createCRUDResource<T extends { id?: string }>(
   client: APIClient,

@@ -1,10 +1,10 @@
 "use client";
 
 import { useEffect } from "react";
-import { Button } from "@workspace/ui/components/button";
+import { Button } from "@workspace/ui/components/form/button";
 import { AlertCircle, Home, RefreshCw } from "lucide-react";
-import { SupportContact } from "@/components/common/support-contact";
-import { captureException } from "@/lib/sentry.client.config";
+import { SupportContact } from "@/components/support-contact/support-contact";
+import { captureException } from "@/lib/monitoring/sentry.client.config";
 
 export default function Error({
   error,
@@ -27,7 +27,11 @@ export default function Error({
         <p className="mb-6 text-muted-foreground">
           We had trouble loading this page. Please try again.
         </p>
-        <SupportContact className="mb-6" />
+        <SupportContact
+          layout="stack"
+          variant="footer"
+          className="mb-6 w-full text-left sm:text-center"
+        />
         <div className="flex flex-col gap-2 sm:flex-row sm:justify-center">
           <Button onClick={() => reset()}>
             <RefreshCw className="mr-2 h-4 w-4" />

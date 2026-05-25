@@ -1,4 +1,3 @@
-import { z } from "zod";
 import { BLOOD_GROUP_OPTIONS, GENDER_OPTIONS } from "./config/index.js";
 
 export const PATIENT_FIELD_MAPPINGS = {
@@ -38,72 +37,63 @@ export const PATIENT_FIELD_MAPPINGS = {
     "history",
     "conditions",
   ],
+  invoiceTotal: [
+    "invoice total",
+    "invoicetotal",
+    "bill total",
+    "grand total",
+    "total amount",
+  ],
+  invoiceLineItems: [
+    "invoice line items",
+    "invoicelineitems",
+    "bill items",
+    "line items",
+    "services",
+  ],
 } as const;
 
 export type PatientFieldKey = keyof typeof PATIENT_FIELD_MAPPINGS;
 
-export const columnMappingSchema = z.object({
-  excelColumn: z.string(),
-  dbField: z.string().nullable(),
-  sampleValues: z.array(z.string()),
-});
-export type ColumnMapping = z.infer<typeof columnMappingSchema>;
+export interface ColumnMapping {
+  excelColumn: string;
+  dbField: string | null;
+  sampleValues: string[];
+}
 
-export const importPreviewSchema = z.object({
-  columns: z.array(columnMappingSchema),
-  suggestedMappings: z.record(z.string(), z.string()),
-  totalRows: z.number(),
-  sampleData: z.array(z.record(z.string(), z.unknown())),
-});
-export type ImportPreview = z.infer<typeof importPreviewSchema>;
+export interface ImportPreview {
+  columns: ColumnMapping[];
+  suggestedMappings: Record<string, string>;
+  totalRows: number;
+  sampleData: Array<Record<string, unknown>>;
+}
 
-export const duplicateDetailSchema = z.object({
-  row: z.number(),
-  reason: z.string(),
-  existingPatient: z
-    .object({
-      id: z.string(),
-      name: z.string(),
-      phone: z.string(),
-    })
-    .optional(),
-});
-export type DuplicateDetail = z.infer<typeof duplicateDetailSchema>;
+export interface DuplicateDetail {
+  row: number;
+  reason: string;
+  existingPatient?: {
+    id: string;
+    name: string;
+    phone: string;
+  };
+}
 
-export const importResultSchema = z.object({
-  total: z.number(),
-  success: z.number(),
-  failed: z.number(),
-  duplicates: z.number(),
-  errors: z.array(z.string()),
-  duplicateDetails: z.array(duplicateDetailSchema),
-});
-export type ImportResult = z.infer<typeof importResultSchema>;
+export interface ImportResult {
+  total: number;
+  success: number;
+  failed: number;
+  duplicates: number;
+  errors: string[];
+  duplicateDetails: DuplicateDetail[];
+}
 
-export const importFieldDefinitionSchema = z.object({
-  field: z.string(),
-  label: z.string(),
-  required: z.boolean(),
-  type: z.enum(["text", "phone", "email", "date", "select", "textarea"]),
-  options: z
-    .array(
-      z.object({
-        value: z.string(),
-        label: z.string(),
-      }),
-    )
-    .optional(),
-});
-export type ImportFieldDefinition = z.infer<typeof importFieldDefinitionSchema>;
-
-export const importStepSchema = z.enum([
-  "upload",
-  "mapping",
-  "preview",
-  "importing",
-  "complete",
-]);
-export type ImportStep = z.infer<typeof importStepSchema>;
+export interface ImportFieldDefinition {
+  field: string;
+  label: string;
+  required: boolean;
+  type: "text" | "phone" | "email" | "date" | "select" | "textarea";
+  options?: Array<{ value: string; label: string }>;
+}
 
 export const PATIENT_IMPORT_FIELDS: ImportFieldDefinition[] = [
   { field: "firstName", label: "First Name", required: true, type: "text" },

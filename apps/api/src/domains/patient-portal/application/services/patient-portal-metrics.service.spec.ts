@@ -1,9 +1,9 @@
 import { beforeEach, describe, expect, it, jest } from '@jest/globals';
-import { PrismaService } from '@/prisma/prisma.service';
 import { PatientPortalMetricsService } from './patient-portal-metrics.service';
 import { CreatePatientMetricValueDto } from '@/domains/patients/application/dto/patient-metrics.dto';
 import { PatientMetricsService } from '@/domains/patients/application/services/patientMetrics.service';
-import { asType } from '@/test-utils/as-type';
+import { IPatientPortalRepository } from '@/domains/patient-portal/core/repositories/patient-portal.repository.interface';
+import { asType } from '@/test-utils';
 
 describe('PatientPortalMetricsService', () => {
   type MetricCategory = {
@@ -16,7 +16,7 @@ describe('PatientPortalMetricsService', () => {
   type MetricValueResult = { id: string };
 
   let service: PatientPortalMetricsService;
-  let prisma: {
+  let patientPortalRepository: {
     runUnrestricted: jest.Mock;
   };
   let patientMetricsService: {
@@ -34,7 +34,7 @@ describe('PatientPortalMetricsService', () => {
   };
 
   beforeEach(() => {
-    prisma = {
+    patientPortalRepository = {
       runUnrestricted: jest
         .fn()
         .mockImplementation((callback: unknown) =>
@@ -48,7 +48,7 @@ describe('PatientPortalMetricsService', () => {
     };
 
     service = new PatientPortalMetricsService(
-      asType<PrismaService>(prisma),
+      asType<IPatientPortalRepository>(patientPortalRepository),
       asType<PatientMetricsService>(patientMetricsService),
     );
   });
@@ -65,7 +65,7 @@ describe('PatientPortalMetricsService', () => {
 
     const result = await service.listCategories('clinic-1', 'patient-1');
 
-    expect(prisma.runUnrestricted).toHaveBeenCalledTimes(1);
+    expect(patientPortalRepository.runUnrestricted).toHaveBeenCalledTimes(1);
     expect(patientMetricsService.listCategories).toHaveBeenCalledWith(
       'clinic-1',
       'patient-1',
@@ -86,7 +86,7 @@ describe('PatientPortalMetricsService', () => {
 
     await service.recordMetricValue('clinic-1', 'patient-1', 'user-1', dto);
 
-    expect(prisma.runUnrestricted).toHaveBeenCalledTimes(1);
+    expect(patientPortalRepository.runUnrestricted).toHaveBeenCalledTimes(1);
     expect(patientMetricsService.recordMetricValue).toHaveBeenCalledWith(
       'clinic-1',
       'patient-1',

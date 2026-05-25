@@ -2,10 +2,20 @@ import { beforeEach, describe, expect, it, jest } from '@jest/globals';
 import { AppointmentService } from './appointment.service';
 import { IAppointmentRepository } from '@/domains/appointments/core/repositories/appointment.repository.interface';
 import { CreateAppointmentUseCase } from '@/domains/appointments/application/use-cases/create-appointment.use-case';
-import { PrismaService } from '@/prisma/prisma.service';
+import {
+  APPOINTMENT_PERSISTENCE_PORT,
+  type AppointmentPersistencePort,
+} from '@/domains/appointments/application/ports/appointment-persistence.port';
 import { EventEmitter2 } from '@nestjs/event-emitter';
 import { Appointment } from '@/domains/appointments/core/entities/appointment.entity';
 import { AppointmentStatus } from '@/domains/appointments/core/value-objects/appointment-status.value-object';
+import { AppointmentSchedulingRulesService } from '@/domains/appointments/core/domain-services/appointment-scheduling-rules.service';
+import { AppointmentMetricsService } from './appointment-metrics.service';
+import { RecordAppointmentVitalsUseCase } from '@/domains/appointments/application/use-cases/record-appointment-vitals.use-case';
+import { AppointmentMetricDefinitionService } from './appointment-metric-definition.service';
+import { AppointmentDiagnosisService } from './appointment-diagnosis.service';
+import { UpdateAppointmentDetailsUseCase } from '@/domains/appointments/application/use-cases/update-appointment-details.use-case';
+import { createStubAppointmentWriteUseCases } from './appointment-use-case.stubs';
 
 describe('AppointmentService metric persistence', () => {
   const mockAppointmentRepository = {
@@ -19,6 +29,13 @@ describe('AppointmentService metric persistence', () => {
     exists: jest.fn<IAppointmentRepository['exists']>(),
     findAppointmentsForSlots:
       jest.fn<IAppointmentRepository['findAppointmentsForSlots']>(),
+    findClinicTier: jest.fn<IAppointmentRepository['findClinicTier']>(),
+    findForConsultationStart:
+      jest.fn<IAppointmentRepository['findForConsultationStart']>(),
+    startConsultationTx:
+      jest.fn<IAppointmentRepository['startConsultationTx']>(),
+    findForUpdate: jest.fn<IAppointmentRepository['findForUpdate']>(),
+    applyPatch: jest.fn<IAppointmentRepository['applyPatch']>(),
   } satisfies IAppointmentRepository;
 
   const mockCreateAppointmentUseCase = {
@@ -28,6 +45,12 @@ describe('AppointmentService metric persistence', () => {
   const mockEventEmitter = {
     emit: jest.fn<EventEmitter2['emit']>().mockImplementation(() => true),
   };
+
+  const mockSchedulingRules = {
+    validateAppointmentOverlap: jest
+      .fn<AppointmentSchedulingRulesService['validateAppointmentOverlap']>()
+      .mockResolvedValue({ hasConflict: false }),
+  } as unknown as AppointmentSchedulingRulesService;
 
   const mockPrisma = {
     appointment: {
@@ -72,7 +95,9 @@ describe('AppointmentService metric persistence', () => {
     mockPrisma.metricDefinition.createMany.mockResolvedValue({ count: 0 });
     mockPrisma.metricCategory.findFirst.mockResolvedValue({ id: 'cat-1' });
 
-    const prisma = Object.create(PrismaService.prototype) as PrismaService;
+    const prisma = Object.create(
+      Object.prototype,
+    ) as AppointmentPersistencePort;
     Object.defineProperties(prisma, {
       appointment: { value: mockPrisma.appointment, writable: true },
       vitalSign: { value: mockPrisma.vitalSign, writable: true },
@@ -85,11 +110,52 @@ describe('AppointmentService metric persistence', () => {
       $transaction: { value: mockPrisma.$transaction, writable: true },
     });
 
+    const metricDefinitionService = Object.create(
+      AppointmentMetricDefinitionService.prototype,
+    ) as AppointmentMetricDefinitionService;
+    Object.defineProperty(metricDefinitionService, 'persistence', {
+      value: prisma,
+      writable: true,
+    });
+
+    const recordVitalsUseCase = new RecordAppointmentVitalsUseCase(
+      prisma,
+      metricDefinitionService,
+    );
+    const metricsService = new AppointmentMetricsService(
+      prisma,
+      metricDefinitionService,
+      recordVitalsUseCase,
+    );
+
+    const diagnosisService = Object.create(
+      AppointmentDiagnosisService.prototype,
+    ) as AppointmentDiagnosisService;
+    Object.defineProperty(diagnosisService, 'prisma', {
+      value: prisma,
+      writable: true,
+    });
+
+    const writeUseCaseStubs = createStubAppointmentWriteUseCases();
+    const updateAppointmentDetailsUseCase = new UpdateAppointmentDetailsUseCase(
+      appointmentRepository,
+      mockSchedulingRules,
+      metricsService,
+      eventEmitter,
+    );
+
     service = new AppointmentService(
       appointmentRepository,
+      appointmentRepository,
       createAppointmentUseCase,
+      writeUseCaseStubs.cancelAppointmentUseCase,
+      writeUseCaseStubs.rescheduleAppointmentUseCase,
+      writeUseCaseStubs.startConsultationUseCase,
+      updateAppointmentDetailsUseCase,
       prisma,
       eventEmitter,
+      metricsService,
+      diagnosisService,
     );
   });
 
@@ -130,12 +196,17 @@ describe('AppointmentService metric persistence', () => {
   });
 
   it('batches observation metrics for appointment detail updates', async () => {
-    mockPrisma.appointment.findFirst.mockResolvedValue({
+    const existingAppointment = {
       id: 'apt-2',
       clinicId: 'clinic-1',
       patientId: 'patient-1',
       doctorId: 'doctor-1',
-    });
+    };
+    mockPrisma.appointment.findFirst.mockResolvedValue(existingAppointment);
+    mockAppointmentRepository.findForUpdate.mockResolvedValue(
+      existingAppointment as never,
+    );
+    mockAppointmentRepository.applyPatch.mockResolvedValue(1);
     mockPrisma.appointment.updateMany.mockResolvedValue({ count: 1 });
     mockPrisma.metricDefinition.findMany
       .mockResolvedValueOnce([])

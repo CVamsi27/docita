@@ -4,136 +4,42 @@ import {
   TIER_PRICING,
   TIER_LIMITS,
   TIER_FEATURES,
-  TIER_INFO,
   ANNUAL_DISCOUNT_PERCENT,
   SEMI_ANNUAL_DISCOUNT_PERCENT,
-  deriveAnnualPrice,
   TIER_PRICING_BY_CURRENCY,
   TIER_OVERAGE_RATES_BY_CURRENCY,
-  getWhatsAppAddonPricingByCurrency,
   REFERRAL_REWARDS_BY_CURRENCY,
   PRICING_CURRENCY_CONFIG,
   SupportedCurrency,
 } from '@workspace/types';
+import {
+  deriveAnnualPrice,
+  getWhatsAppAddonPricingByCurrency,
+} from '@workspace/utils';
+import {
+  isLegacyDbPricingTier,
+  mapDbTierStringToCanonicalTier,
+  mapPricingTierInputToTierName,
+  readNumber,
+  resolveCurrency,
+  SUPPORTED_PRICING_CURRENCIES,
+  toPricingTierPayload,
+} from './pricing-helpers';
 
 @Injectable()
 export class PricingService {
   constructor(private prisma: PrismaService) {}
 
-  private readonly supportedCurrencies = Object.keys(
-    PRICING_CURRENCY_CONFIG,
-  ) as SupportedCurrency[];
+  private readonly supportedCurrencies = SUPPORTED_PRICING_CURRENCIES;
 
   private resolveCurrency(currency?: string): SupportedCurrency {
-    const selectedCurrency = currency?.toUpperCase() as
-      | SupportedCurrency
-      | undefined;
-    if (
-      selectedCurrency &&
-      this.supportedCurrencies.includes(selectedCurrency)
-    ) {
-      return selectedCurrency;
-    }
-
-    return this.supportedCurrencies[0];
+    return resolveCurrency(this.supportedCurrencies, currency);
   }
 
-  private parseJsonValue(value: unknown): unknown {
-    if (typeof value === 'string') {
-      try {
-        return JSON.parse(value);
-      } catch {
-        return {};
-      }
-    }
-
-    return value;
-  }
-
-  private readNumber(value: unknown, fallback = 0): number {
-    return typeof value === 'number' && Number.isFinite(value)
-      ? value
-      : fallback;
-  }
-
-  private parseStringArray(value: unknown): string[] {
-    const parsed = this.parseJsonValue(value);
-    if (!Array.isArray(parsed)) {
-      return [];
-    }
-
-    return parsed.filter(
-      (item): item is string => typeof item === 'string' && item.length > 0,
-    );
-  }
-
-  private getWhatsappBillableConfig(
-    tier: keyof typeof TIER_LIMITS,
-    currency: SupportedCurrency,
-  ): { includedQuota: number; overageRate: number } {
-    if (
-      tier === 'ESSENTIAL' ||
-      tier === 'PROFESSIONAL' ||
-      tier === 'ENTERPRISE'
-    ) {
-      const pricing = getWhatsAppAddonPricingByCurrency(tier, currency);
-      return {
-        includedQuota: pricing.includedQuota,
-        overageRate: pricing.overageRate,
-      };
-    }
-    return { includedQuota: 0, overageRate: 0 };
-  }
-
-  private toPricingTierPayload(args: {
-    tier: keyof typeof TIER_LIMITS;
-    validCurrency: SupportedCurrency;
-    monthly: number | 'custom';
-    yearly: number | 'custom';
-    includedAppointments: number;
-    includedUsers: number;
-    features: unknown;
-  }) {
-    const {
-      tier,
-      validCurrency,
-      monthly,
-      yearly,
-      includedAppointments,
-      includedUsers,
-      features,
-    } = args;
-    const tierDefaults = TIER_LIMITS[tier];
-    const whatsapp = this.getWhatsappBillableConfig(tier, validCurrency);
-
-    return {
-      id: tier,
-      name: TIER_INFO[tier].name,
-      description: TIER_INFO[tier].description,
-      tagline: TIER_INFO[tier].tagline,
-      color: TIER_INFO[tier].color,
-      pricing: {
-        monthly,
-        yearly,
-        currency: PRICING_CURRENCY_CONFIG[validCurrency].symbol,
-      },
-      limits: {
-        patients: tierDefaults.patients,
-        appointments: includedAppointments,
-        storage: tierDefaults.storageGB,
-        users: includedUsers,
-        doctors: tierDefaults.doctors,
-        branches: tierDefaults.branches,
-        prescriptions: tierDefaults.prescriptions,
-        invoices: tierDefaults.invoices,
-        billable: {
-          consultations: includedAppointments,
-          users: includedUsers,
-          whatsappMessages: whatsapp.includedQuota,
-        },
-      },
-      features: this.parseStringArray(features),
-    };
+  private toPricingTierPayload(
+    args: Parameters<typeof toPricingTierPayload>[0],
+  ) {
+    return toPricingTierPayload(args);
   }
 
   async getPricingConfig(currency?: string) {
@@ -143,15 +49,6 @@ export class PricingService {
     const tierPricing = TIER_PRICING_BY_CURRENCY[validCurrency];
     const referralRewards = REFERRAL_REWARDS_BY_CURRENCY[validCurrency];
 
-    const DB_TIER_TO_CANONICAL: Record<string, string> = {
-      CAPTURE: 'STARTER',
-      CORE: 'ESSENTIAL',
-      PRO: 'PROFESSIONAL',
-      ENTERPRISE: 'ENTERPRISE',
-    };
-
-    const LEGACY_DB_TIERS = new Set(['PLUS', 'CLINIC']);
-
     const dbTiers = await this.prisma.tierPricing.findMany({
       where: { isActive: true },
       orderBy: { displayOrder: 'asc' },
@@ -159,7 +56,7 @@ export class PricingService {
 
     if (dbTiers.length > 0) {
       const canonicalTiers = dbTiers.filter(
-        (t) => !LEGACY_DB_TIERS.has(t.tier as string),
+        (t) => !isLegacyDbPricingTier(t.tier),
       );
 
       return {
@@ -176,8 +73,7 @@ export class PricingService {
           }),
         ),
         tiers: canonicalTiers.map((tier) => {
-          const canonicalTier = (DB_TIER_TO_CANONICAL[tier.tier as string] ??
-            tier.tier) as keyof typeof TIER_LIMITS;
+          const canonicalTier = mapDbTierStringToCanonicalTier(tier.tier);
           const monthlyPrice =
             canonicalTier === 'ENTERPRISE'
               ? 'custom'
@@ -227,6 +123,17 @@ export class PricingService {
             includedAppointments: TIER_LIMITS.STARTER.appointments ?? 0,
             includedUsers: TIER_LIMITS.STARTER.users ?? 1,
             features: TIER_FEATURES.STARTER,
+          }),
+        },
+        {
+          ...this.toPricingTierPayload({
+            tier: 'FRONT_DESK',
+            validCurrency,
+            monthly: tierPricing.FRONT_DESK.monthly,
+            yearly: tierPricing.FRONT_DESK.yearly,
+            includedAppointments: TIER_LIMITS.FRONT_DESK.appointments ?? 0,
+            includedUsers: TIER_LIMITS.FRONT_DESK.users ?? 1,
+            features: TIER_FEATURES.FRONT_DESK,
           }),
         },
         {
@@ -297,19 +204,9 @@ export class PricingService {
     const tierPricing = TIER_PRICING_BY_CURRENCY[validCurrency];
     const tierOverageRates = TIER_OVERAGE_RATES_BY_CURRENCY[validCurrency];
 
-    const LEGACY_TIER_MAP: Record<string, string> = {
-      CAPTURE: 'STARTER',
-      CORE: 'ESSENTIAL',
-      PLUS: 'ESSENTIAL',
-      PRO: 'PROFESSIONAL',
-      CLINIC: 'PROFESSIONAL',
-    };
+    const tierKey = mapPricingTierInputToTierName(tier);
 
-    const rawKey = tier.toUpperCase();
-    const tierKey = (LEGACY_TIER_MAP[rawKey] ??
-      rawKey) as keyof typeof TIER_PRICING;
-
-    if (!TIER_PRICING[tierKey] || tierKey === 'INTELLIGENCE') {
+    if (!tierKey || !TIER_PRICING[tierKey]) {
       return { error: 'Invalid tier' };
     }
 
@@ -331,7 +228,7 @@ export class PricingService {
       };
     }
 
-    const basePrice = this.readNumber(pricing.monthly);
+    const basePrice = readNumber(pricing.monthly);
 
     const consultationOverage =
       Math.max(0, resolvedConsultations - (limits.appointments || 999999)) *
@@ -339,7 +236,9 @@ export class PricingService {
     const userOverage =
       Math.max(0, users - (limits.users || 1)) * overageRates.userRate;
     const whatsappPricing =
-      tierKey === 'ESSENTIAL' || tierKey === 'PROFESSIONAL'
+      tierKey === 'ESSENTIAL' ||
+      tierKey === 'FRONT_DESK' ||
+      tierKey === 'PROFESSIONAL'
         ? getWhatsAppAddonPricingByCurrency(tierKey, validCurrency)
         : null;
     const whatsappOverage =

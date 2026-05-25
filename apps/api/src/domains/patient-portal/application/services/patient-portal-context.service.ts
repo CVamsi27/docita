@@ -4,6 +4,9 @@ import {
   PATIENT_PORTAL_REPOSITORY_TOKEN,
 } from '@/domains/patient-portal/core/repositories/patient-portal.repository.interface';
 
+/**
+ * Thin facade — delegates patient portal context resolution to IPatientPortalRepository.
+ */
 @Injectable()
 export class PatientPortalContextService {
   constructor(

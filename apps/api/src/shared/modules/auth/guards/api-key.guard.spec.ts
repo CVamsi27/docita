@@ -1,7 +1,7 @@
 import { ExecutionContext, UnauthorizedException } from '@nestjs/common';
 import { beforeEach, describe, expect, it, jest } from '@jest/globals';
 import { ApiKeyService } from '@/shared/modules/auth/auth/api-key.service';
-import { asType } from '@/test-utils/as-type';
+import { asType } from '@/test-utils';
 import { ApiKeyGuard } from './api-key.guard';
 
 function createContext(request: Record<string, unknown>): ExecutionContext {

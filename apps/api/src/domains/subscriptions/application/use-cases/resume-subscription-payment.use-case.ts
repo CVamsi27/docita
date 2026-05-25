@@ -1,16 +1,25 @@
-import { Injectable, Inject, BadRequestException } from '@nestjs/common';
-import { PrismaService } from '@/prisma/prisma.service';
+import {
+  Injectable,
+  Inject,
+  BadRequestException,
+  Logger,
+} from '@nestjs/common';
 import { AppConfigService } from '@/shared/modules/config/app-configuration.service';
 import {
   IPaymentLinkProvider,
-  PAYMENT_LINK_PROVIDER_TOKEN,
+  DOCITA_PLATFORM_PAYMENT_LINK_PROVIDER_TOKEN,
 } from '@/domains/payments/core/ports';
 import { Money } from '@/domains/payments/core/value-objects/money.vo';
-import { Role } from '@workspace/db';
+import { isRecord, resolveSubscriptionBillingContact } from '@workspace/utils';
 import {
   ISubscriptionRepository,
   SUBSCRIPTION_REPOSITORY_TOKEN,
 } from '@/domains/subscriptions/application/ports/subscription.repository.port';
+import {
+  CLINIC_OPERATIONS_TOKEN,
+  IClinicOperations,
+} from '@/domains/subscriptions/application/ports/clinic-operations.port';
+import { parseSubscriptionPaymentLookup } from '@/domains/subscriptions/application/services/subscription-payment-history.types';
 
 type SubscriptionPaymentRecord = {
   id: string;
@@ -23,22 +32,45 @@ type SubscriptionPaymentRecord = {
   description?: string | null;
 };
 
+function parseResumeSubscriptionPayment(
+  value: unknown,
+): SubscriptionPaymentRecord | null {
+  const base = parseSubscriptionPaymentLookup(value);
+  if (!base || !isRecord(value)) {
+    return null;
+  }
+
+  return {
+    ...base,
+    invoiceUrl: typeof value.invoiceUrl === 'string' ? value.invoiceUrl : null,
+    invoiceNumber:
+      typeof value.invoiceNumber === 'string' ? value.invoiceNumber : null,
+    description:
+      typeof value.description === 'string' ? value.description : null,
+  };
+}
+
 @Injectable()
 export class ResumeSubscriptionPaymentUseCase {
+  private readonly logger = new Logger(ResumeSubscriptionPaymentUseCase.name);
+
   constructor(
-    private readonly prisma: PrismaService,
     private readonly configService: AppConfigService,
-    @Inject(PAYMENT_LINK_PROVIDER_TOKEN)
+    @Inject(DOCITA_PLATFORM_PAYMENT_LINK_PROVIDER_TOKEN)
     private readonly paymentLinkProvider: IPaymentLinkProvider,
     @Inject(SUBSCRIPTION_REPOSITORY_TOKEN)
     private readonly subscriptionRepo: ISubscriptionRepository,
+    @Inject(CLINIC_OPERATIONS_TOKEN)
+    private readonly clinicOps: IClinicOperations,
   ) {}
 
   async execute(params: { clinicId: string; paymentId: string }) {
-    const payment = (await this.subscriptionRepo.findPaymentById(
-      params.clinicId,
-      params.paymentId,
-    )) as SubscriptionPaymentRecord | null;
+    const payment = parseResumeSubscriptionPayment(
+      await this.subscriptionRepo.findPaymentById(
+        params.clinicId,
+        params.paymentId,
+      ),
+    );
 
     if (!payment) {
       throw new BadRequestException('Payment not found');
@@ -52,12 +84,26 @@ export class ResumeSubscriptionPaymentUseCase {
       throw new BadRequestException('Payment amount is invalid');
     }
 
+    // AuditLogged: subscription payment resumed
+    this.logger.log({
+      action: 'subscription.payment-resumed',
+      clinicId: params.clinicId,
+      paymentId: params.paymentId,
+    });
+
     if (payment.invoiceUrl) {
       return { id: payment.id, payUrl: payment.invoiceUrl };
     }
 
-    const billingContact = await this.getBillingContact(params.clinicId);
-    const callbackUrl = `${this.configService.getFrontendAppUrl().replace(/\/$/, '')}/settings?tab=subscription`;
+    const [billingContact, clinic] = await Promise.all([
+      this.subscriptionRepo.findBillingContact(params.clinicId),
+      this.clinicOps.getClinicDetails(params.clinicId),
+    ]);
+    const razorpayContact = resolveSubscriptionBillingContact({
+      billingContact,
+      clinic,
+    });
+    const callbackUrl = `${this.configService.getFrontendAppUrl().replace(/\/$/, '')}/settings?tab=subscription&resolvePayment=1`;
 
     const link = await this.paymentLinkProvider.createPaymentLink({
       amount: Money.fromCents(payment.amountCents, payment.currency),
@@ -65,11 +111,9 @@ export class ResumeSubscriptionPaymentUseCase {
         payment.description ??
         `Subscription payment ${payment.invoiceNumber ?? payment.id}`,
       customer: {
-        name:
-          billingContact.name ??
-          `Clinic ${payment.clinicId.slice(-6).toUpperCase()}`,
-        email: billingContact.email ?? undefined,
-        phone: billingContact.phoneNumber ?? undefined,
+        name: razorpayContact.name,
+        email: razorpayContact.email,
+        phone: razorpayContact.phone,
       },
       callbackUrl,
       metadata: {
@@ -88,53 +132,5 @@ export class ResumeSubscriptionPaymentUseCase {
     });
 
     return { id: payment.id, payUrl };
-  }
-
-  private async getBillingContact(clinicId: string): Promise<{
-    name: string | null;
-    email: string | null;
-    phoneNumber: string | null;
-  }> {
-    const primaryAdmin = await this.prisma.user.findFirst({
-      where: {
-        clinicId,
-        role: { in: [Role.ADMIN, Role.ADMIN_DOCTOR] },
-      },
-      select: {
-        name: true,
-        email: true,
-        phoneNumber: true,
-      },
-      orderBy: { createdAt: 'asc' },
-    });
-
-    if (primaryAdmin) {
-      return primaryAdmin;
-    }
-
-    const fallbackUser = await this.prisma.user.findFirst({
-      where: { clinicId },
-      select: {
-        name: true,
-        email: true,
-        phoneNumber: true,
-      },
-      orderBy: { createdAt: 'asc' },
-    });
-
-    if (fallbackUser) {
-      return fallbackUser;
-    }
-
-    const clinic = await this.prisma.clinic.findUnique({
-      where: { id: clinicId },
-      select: { name: true },
-    });
-
-    return {
-      name: clinic?.name ?? null,
-      email: null,
-      phoneNumber: null,
-    };
   }
 }

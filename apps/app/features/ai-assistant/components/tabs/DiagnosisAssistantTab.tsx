@@ -1,14 +1,15 @@
+import { DocitaLoadingIndicator } from "@workspace/ui/components/feedback/docita-loading-indicator";
 import {
   Card,
   CardContent,
   CardDescription,
   CardHeader,
   CardTitle,
-} from "@workspace/ui/components/card";
-import { Button } from "@workspace/ui/components/button";
-import { Textarea } from "@workspace/ui/components/textarea";
-import { Badge } from "@workspace/ui/components/badge";
-import { Brain, Loader2, Shield, Sparkles, Stethoscope } from "lucide-react";
+} from "@workspace/ui/components/indicators/card";
+import { Button } from "@workspace/ui/components/form/button";
+import { Textarea } from "@workspace/ui/components/form/textarea";
+import { Badge } from "@workspace/ui/components/indicators/badge";
+import { Brain, Shield, Sparkles, Stethoscope } from "lucide-react";
 import { cn } from "@workspace/ui/lib/utils";
 import type { DiagnosisSuggestion } from "@/features/ai-assistant/hooks/use-ai-assistant-logic";
 import { EmptyState } from "@/features/ai-assistant/components/AIAssistantUI";
@@ -34,7 +35,7 @@ export const DiagnosisAssistantTab = ({
         <div className="space-y-2">
           <label className="text-sm font-medium">Chief Complaint</label>
           <Textarea
-            placeholder="e.g., 45-year-old male presents with chest pain radiating to left arm..."
+            placeholder="Enter chief complaint"
             value={state.chiefComplaint}
             onChange={(e) => handlers.setChiefComplaint(e.target.value)}
             rows={3}
@@ -43,7 +44,7 @@ export const DiagnosisAssistantTab = ({
         <div className="space-y-2">
           <label className="text-sm font-medium">Vital Signs</label>
           <Textarea
-            placeholder="e.g., BP: 150/90, HR: 88, Temp: 98.6°F, SpO2: 97%..."
+            placeholder="Enter vital signs"
             value={state.vitalSigns}
             onChange={(e) => handlers.setVitalSigns(e.target.value)}
             rows={2}
@@ -54,7 +55,7 @@ export const DiagnosisAssistantTab = ({
             Physical Examination Findings
           </label>
           <Textarea
-            placeholder="e.g., Pharynx erythematous, tonsillar exudates present..."
+            placeholder="Enter examination findings"
             value={state.examFindings}
             onChange={(e) => handlers.setExamFindings(e.target.value)}
             rows={3}
@@ -67,8 +68,8 @@ export const DiagnosisAssistantTab = ({
         >
           {state.isLoading ? (
             <>
-              <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-              Analyzing...
+              <DocitaLoadingIndicator variant="inline" decorative className="mr-2" />
+              Analyzing…
             </>
           ) : (
             <>
@@ -144,7 +145,7 @@ export const DiagnosisAssistantTab = ({
                   </p>
                   <div className="mt-3 flex gap-2">
                     <Button size="sm" variant="outline">
-                      Select as Primary
+                      Select primary
                     </Button>
                     <Button size="sm" variant="ghost">
                       View Details

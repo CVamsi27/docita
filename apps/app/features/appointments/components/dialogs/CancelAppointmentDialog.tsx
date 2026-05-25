@@ -1,8 +1,10 @@
 "use client";
 
+import { DocitaLoadingIndicator } from "@workspace/ui/components/feedback/docita-loading-indicator";
+
 import { useMemo, useState } from "react";
 import { z } from "zod";
-import { AlertCircle, Loader2 } from "lucide-react";
+import { AlertCircle } from "lucide-react";
 import {
   Dialog,
   DialogContent,
@@ -10,17 +12,17 @@ import {
   DialogFooter,
   DialogHeader,
   DialogTitle,
-} from "@workspace/ui/components/dialog";
-import { Button } from "@workspace/ui/components/button";
+} from "@workspace/ui/components/overlay/dialog";
+import { Button } from "@workspace/ui/components/form/button";
 import {
   Select,
   SelectContent,
   SelectItem,
   SelectTrigger,
   SelectValue,
-} from "@workspace/ui/components/select";
-import { Label } from "@workspace/ui/components/label";
-import { Textarea } from "@workspace/ui/components/textarea";
+} from "@workspace/ui/components/form/select";
+import { Label } from "@workspace/ui/components/form/label";
+import { Textarea } from "@workspace/ui/components/form/textarea";
 
 const cancelReasonSchema = z
   .string()
@@ -91,7 +93,7 @@ export function CancelAppointmentDialog({
       <DialogContent className="sm:max-w-[480px]">
         <DialogHeader>
           <div className="flex items-start gap-4">
-            <AlertCircle className="h-5 w-5 text-destructive" />
+            <AlertCircle className="h-5 w-5 mt-1 text-destructive" />
             <div className="flex-1">
               <DialogTitle>Cancel Appointment</DialogTitle>
               <DialogDescription className="mt-2">
@@ -124,7 +126,7 @@ export function CancelAppointmentDialog({
               <Textarea
                 value={otherReason}
                 onChange={(e) => setOtherReason(e.target.value)}
-                placeholder="Short reason"
+                placeholder="Cancellation reason"
                 className="min-h-[90px]"
               />
             </div>
@@ -133,7 +135,7 @@ export function CancelAppointmentDialog({
           {error && <p className="text-sm text-destructive">{error}</p>}
         </div>
 
-        <DialogFooter className="gap-2 sm:gap-0">
+        <DialogFooter className="gap-2">
           <Button
             type="button"
             variant="outline"
@@ -149,7 +151,7 @@ export function CancelAppointmentDialog({
             disabled={isLoading}
             className="gap-2"
           >
-            {isLoading && <Loader2 className="h-4 w-4 animate-spin" />}
+            {isLoading && <DocitaLoadingIndicator variant="inline" decorative />}
             Cancel Appointment
           </Button>
         </DialogFooter>

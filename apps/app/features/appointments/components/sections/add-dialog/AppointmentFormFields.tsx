@@ -6,17 +6,17 @@ import {
   FormItem,
   FormLabel,
   FormMessage,
-} from "@workspace/ui/components/form";
-import { Textarea } from "@workspace/ui/components/textarea";
+} from "@workspace/ui/components/form/form";
+import { Textarea } from "@workspace/ui/components/form/textarea";
 import {
   Select,
   SelectContent,
   SelectItem,
   SelectTrigger,
   SelectValue,
-} from "@workspace/ui/components/select";
+} from "@workspace/ui/components/form/select";
 import type { CreateAppointmentInput } from "@workspace/types";
-import type { SelectOption } from "@/lib/app-config-context";
+import type { SelectOption } from "@/lib/contexts/app-config-context";
 
 interface AppointmentFormFieldsProps {
   form: UseFormReturn<CreateAppointmentInput>;
@@ -62,7 +62,7 @@ export function AppointmentFormFields({
             <FormLabel>Notes (optional)</FormLabel>
             <FormControl>
               <Textarea
-                placeholder="Anything the team should know before the visit"
+                placeholder="Visit notes"
                 className="min-h-24 resize-none"
                 {...field}
               />

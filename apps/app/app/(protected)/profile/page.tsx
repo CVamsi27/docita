@@ -1,22 +1,22 @@
 "use client";
 import { useState } from "react";
-import { Button } from "@workspace/ui/components/button";
+import { Button } from "@workspace/ui/components/form/button";
 import {
   Card,
   CardContent,
   CardDescription,
   CardHeader,
   CardTitle,
-} from "@workspace/ui/components/card";
-import { Input } from "@workspace/ui/components/input";
-import { Label } from "@workspace/ui/components/label";
-import { AppPageScaffold } from "@workspace/ui/components/app-page-scaffold";
-import { PageHeader } from "@workspace/ui/components/page-header";
-import { useAuth } from "@/lib/auth-context";
-import { useUpdateProfile } from "@/hooks/api/use-settings";
+} from "@workspace/ui/components/indicators/card";
+import { Input } from "@workspace/ui/components/form/input";
+import { Label } from "@workspace/ui/components/form/label";
+import { AppPageScaffold } from "@workspace/ui/components/layout/app-page-scaffold";
+import { PageHeader } from "@workspace/ui/components/layout/page-header";
+import { useAuth } from "@/lib/auth/auth-context";
+import { useUpdateProfile } from "@workspace/data-access";
 import { toast } from "sonner";
 import { ChangePasswordSettings } from "@/features/settings/components";
-import { showUserFacingErrorToast } from "@/lib/user-facing-errors";
+import { showUserFacingErrorToast } from "@/lib/errors/user-facing-errors";
 
 export default function ProfilePage() {
   const { user } = useAuth();
@@ -61,7 +61,7 @@ export default function ProfilePage() {
         />
       }
     >
-      <Card className="border-border shadow-sm">
+      <Card>
         <CardHeader>
           <CardTitle>Personal Information</CardTitle>
           <CardDescription>Update your personal details here</CardDescription>
@@ -73,7 +73,7 @@ export default function ProfilePage() {
               id="name"
               value={formData.name}
               onChange={handleNameChange}
-              placeholder="Your name"
+              placeholder="Full name"
               disabled={isSaving}
             />
           </div>
@@ -91,7 +91,7 @@ export default function ProfilePage() {
               disabled={isSaving || updateProfileMutation.isPending}
             >
               {isSaving || updateProfileMutation.isPending
-                ? "Saving..."
+                ? "Saving…"
                 : "Save Changes"}
             </Button>
           </div>

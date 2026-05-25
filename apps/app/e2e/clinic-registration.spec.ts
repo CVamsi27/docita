@@ -111,21 +111,26 @@ test.describe("Clinic Registration Flow", () => {
     if (!completeOnboarding) {
       await page.goto("/onboarding");
       await page.waitForURL(/\/onboarding/, { timeout: 30000 });
-      await expect(page.getByText("Step 1: Clinic Details")).toBeVisible({
+      await expect(
+        page.getByText("Step 1 of 5: Facility Details"),
+      ).toBeVisible({
         timeout: 30000,
       });
       await expect(
-        page.getByRole("button", { name: "Next: Choose Plan" }),
+        page.getByRole("button", { name: "Next: Visit hours" }),
       ).toBeVisible({ timeout: 30000 });
       return;
     }
 
-    const choosePathRes = await request.post(`${API_URL}/onboarding/choose-path`, {
-      headers: {
-        Authorization: `Bearer ${authToken}`,
+    const choosePathRes = await request.post(
+      `${API_URL}/onboarding/choose-path`,
+      {
+        headers: {
+          Authorization: `Bearer ${authToken}`,
+        },
+        data: { path: "CREATE_CLINIC" },
       },
-      data: { path: "CREATE_CLINIC" },
-    });
+    );
     expect(choosePathRes.ok()).toBeTruthy();
 
     const initRes = await request.post(`${API_URL}/onboarding/initialize`, {
@@ -148,6 +153,8 @@ test.describe("Clinic Registration Flow", () => {
     expect(signatureSessionRes.ok()).toBeTruthy();
     const signatureSessionData = await signatureSessionRes.json();
     const signatureSessionId = signatureSessionData.id;
+    const signatureUploadSecret = signatureSessionData.uploadSecret;
+    expect(signatureUploadSecret).toBeDefined();
 
     const pngBuffer = Buffer.from(
       "iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mP8/x8AAwMCAO7ZxXQAAAAASUVORK5CYII=",
@@ -158,6 +165,7 @@ test.describe("Clinic Registration Flow", () => {
       {
         headers: {
           Authorization: `Bearer ${authToken}`,
+          "X-Upload-Secret": signatureUploadSecret,
         },
         multipart: {
           file: {
@@ -220,9 +228,11 @@ test.describe("Clinic Registration Flow", () => {
     await page.waitForURL(/\/dashboard/, { timeout: 30000 });
   }
 
-  test("should complete full clinic registration wizard", async ({ page, request }) => {
+  test("should complete full clinic registration wizard", async ({
+    page,
+    request,
+  }) => {
     await registerAndOpenOnboarding(page, request);
     await page.waitForURL(/\/dashboard/, { timeout: 30000 });
   });
-
 });

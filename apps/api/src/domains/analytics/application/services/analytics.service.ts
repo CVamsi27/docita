@@ -8,6 +8,9 @@ import {
 } from '@/domains/analytics/factories/snapshot-analytics.factory';
 import { DEFAULT_TIMEZONE } from '@workspace/utils';
 
+/**
+ * Facade — delegates analytics reads to domain factory services.
+ */
 @Injectable()
 export class AnalyticsService {
   private readonly logger = new Logger(AnalyticsService.name);

@@ -1,6 +1,34 @@
+import type { ReactElement, ReactNode } from "react";
 import { render, screen, waitFor } from "@testing-library/react";
 import { beforeEach, describe, expect, it, vi } from "vitest";
+import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
+import { DataAccessProvider } from "@workspace/data-access";
 import ProtectedLayout from "./layout";
+
+function withDataAccess(ui: ReactNode) {
+  const queryClient = new QueryClient({
+    defaultOptions: {
+      queries: { retry: false, gcTime: 0 },
+      mutations: { retry: false },
+    },
+  });
+  return (
+    <DataAccessProvider
+      config={{
+        fetcher: () => Promise.resolve({ ok: true } as never),
+        getClinicId: () => "clinic-1",
+        getClinicTimezone: () => "UTC",
+        isTierFeatureEnabled: () => true,
+      }}
+    >
+      <QueryClientProvider client={queryClient}>{ui}</QueryClientProvider>
+    </DataAccessProvider>
+  );
+}
+
+vi.mock("@workspace/ui/components/overlay/tooltip", () => ({
+  SymbolTooltip: ({ children }: { children: ReactElement }) => children,
+}));
 
 const mocks = vi.hoisted(() => ({
   router: {
@@ -24,20 +52,24 @@ vi.mock("next/navigation", () => ({
   useRouter: () => mocks.router,
 }));
 
-vi.mock("@/lib/auth-context", () => ({
+vi.mock("@/lib/auth/auth-context", () => ({
   useAuth: () => mocks.auth,
 }));
 
-vi.mock("@/features/_shared/components", () => ({
+vi.mock("@/components", () => ({
   FloatingStartConsultation: () => null,
   RealtimeProviders: ({ children }: { children: React.ReactNode }) => (
     <>{children}</>
   ),
   Sidebar: () => null,
   SidebarMobileTrigger: () => null,
+  AskAiProvider: ({ children }: { children: React.ReactNode }) => (
+    <>{children}</>
+  ),
+  AskAiOverlay: () => null,
 }));
 
-vi.mock("@/components/common/navigation/back-button", () => ({
+vi.mock("@/components/navigation/back-button", () => ({
   BackButton: () => null,
 }));
 
@@ -45,11 +77,11 @@ vi.mock("@/hooks/use-can-go-back", () => ({
   useCanGoBack: () => false,
 }));
 
-vi.mock("@/features/_shared/components/navigation/command-palette", () => ({
+vi.mock("@/components/navigation/command-palette", () => ({
   CommandPalette: () => null,
 }));
 
-vi.mock("@/features/_shared/components/layout/desktop-top-bar", () => ({
+vi.mock("@/components/layout/desktop-top-bar", () => ({
   DesktopTopBar: () => <div data-testid="desktop-top-bar" />,
 }));
 
@@ -61,18 +93,18 @@ vi.mock("@/providers/navigation-history-provider", () => ({
   readInAppNavEntry: () => null,
 }));
 
-vi.mock("@/lib/clinic-context", () => ({
+vi.mock("@/lib/contexts/clinic-context", () => ({
   ClinicProvider: ({ children }: { children: React.ReactNode }) => <>{children}</>,
   useClinic: () => ({ clinic: null }),
 }));
 
-vi.mock("@/components/common/error-boundary", () => ({
+vi.mock("@/components/errors/error-boundary", () => ({
   ErrorBoundaryWrapper: ({ children }: { children: React.ReactNode }) => (
     <>{children}</>
   ),
 }));
 
-vi.mock("@/components/common/loaders/page-transition-loader", () => ({
+vi.mock("@/components/loaders/page-transition-loader", () => ({
   PageTransitionLoader: ({
     title,
     description,
@@ -93,19 +125,19 @@ vi.mock("@/lib/stores/permission-store", () => ({
   }),
 }));
 
-vi.mock("@/lib/api-core", () => ({
+vi.mock("@/lib/api/api-core", () => ({
   useAPIQuery: () => ({ data: null, isLoading: false, isFetching: false, isError: false }),
 }));
 
-vi.mock("@/lib/access-policy", () => ({
+vi.mock("@/lib/access-control/access-policy", () => ({
   canAccessTarget: () => true,
 }));
 
-vi.mock("@/lib/access-routes", () => ({
+vi.mock("@/lib/access-control/access-routes", () => ({
   getAccessTargetForPath: () => null,
 }));
 
-vi.mock("@workspace/ui/components/resizable", () => ({
+vi.mock("@workspace/ui/components/layout/resizable", () => ({
   ResizableHandle: () => null,
   ResizablePanel: ({ children }: { children: React.ReactNode }) => <>{children}</>,
   ResizablePanelGroup: ({ children }: { children: React.ReactNode }) => <>{children}</>,
@@ -115,11 +147,11 @@ vi.mock("@workspace/ui/components/theme-toggle", () => ({
   ThemeToggle: () => null,
 }));
 
-vi.mock("@workspace/ui/components/skeleton", () => ({
+vi.mock("@workspace/ui/components/feedback/skeleton", () => ({
   Skeleton: () => null,
 }));
 
-vi.mock("@workspace/ui/components/docita-logo", () => ({
+vi.mock("@workspace/ui/components/indicators/docita-logo", () => ({
   DocitaLogo: () => null,
 }));
 
@@ -141,9 +173,11 @@ describe("ProtectedLayout", () => {
 
   it("redirects unverified users to verification before loading workspace chrome", async () => {
     render(
-      <ProtectedLayout>
-        <div>child</div>
-      </ProtectedLayout>,
+      withDataAccess(
+        <ProtectedLayout>
+          <div>child</div>
+        </ProtectedLayout>,
+      ),
     );
 
     await waitFor(() => {
@@ -152,7 +186,7 @@ describe("ProtectedLayout", () => {
 
     expect(
       screen.getByTestId("page-transition-loader"),
-    ).toHaveTextContent("Redirecting...");
+    ).toHaveTextContent("Redirecting…");
   });
 
   it("shows the desktop top bar on the consultation dashboard route", async () => {
@@ -160,9 +194,11 @@ describe("ProtectedLayout", () => {
     mocks.auth.user.emailVerified = true;
 
     render(
-      <ProtectedLayout>
-        <div>child</div>
-      </ProtectedLayout>,
+      withDataAccess(
+        <ProtectedLayout>
+          <div>child</div>
+        </ProtectedLayout>,
+      ),
     );
 
     expect(screen.getByTestId("desktop-top-bar")).toBeInTheDocument();

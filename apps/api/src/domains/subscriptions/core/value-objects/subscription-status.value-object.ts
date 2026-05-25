@@ -1,3 +1,6 @@
+import { InvariantViolationError } from '@/shared/common/errors/domain.errors';
+import { parseStringEnumMember } from '@workspace/utils';
+
 export enum SubscriptionStatusEnum {
   ACTIVE = 'ACTIVE',
   TRIALING = 'TRIALING',
@@ -14,6 +17,8 @@ const VALID_TRANSITIONS: Record<
 > = {
   [SubscriptionStatusEnum.TRIALING]: [
     SubscriptionStatusEnum.ACTIVE,
+    SubscriptionStatusEnum.PAST_DUE,
+    SubscriptionStatusEnum.GRACE,
     SubscriptionStatusEnum.CANCELLED,
     SubscriptionStatusEnum.EXPIRED,
   ],
@@ -47,9 +52,14 @@ export class SubscriptionStatus {
   constructor(readonly value: SubscriptionStatusEnum) {}
 
   static fromString(value: string): SubscriptionStatus {
-    const statusValue = value.toUpperCase() as SubscriptionStatusEnum;
-    if (!Object.values(SubscriptionStatusEnum).includes(statusValue)) {
-      throw new Error(`Invalid subscription status: ${value}`);
+    const statusValue = parseStringEnumMember(
+      Object.values(SubscriptionStatusEnum),
+      value.toUpperCase(),
+    );
+    if (!statusValue) {
+      throw new InvariantViolationError(
+        `Invalid subscription status: ${value}`,
+      );
     }
     return new SubscriptionStatus(statusValue);
   }
@@ -92,7 +102,9 @@ export class SubscriptionStatus {
 
   transitionTo(newStatus: SubscriptionStatusEnum): SubscriptionStatus {
     if (!this.canTransitionTo(newStatus)) {
-      throw new Error(`Cannot transition from ${this.value} to ${newStatus}`);
+      throw new InvariantViolationError(
+        `Cannot transition from ${this.value} to ${newStatus}`,
+      );
     }
     return new SubscriptionStatus(newStatus);
   }

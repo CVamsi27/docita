@@ -1,14 +1,14 @@
 import React from "react";
-import { Label } from "@workspace/ui/components/label";
-import { Switch } from "@workspace/ui/components/switch";
+import { Label } from "@workspace/ui/components/form/label";
+import { Switch } from "@workspace/ui/components/form/switch";
 import {
   Select,
   SelectContent,
   SelectItem,
   SelectTrigger,
   SelectValue,
-} from "@workspace/ui/components/select";
-import { Textarea } from "@workspace/ui/components/textarea";
+} from "@workspace/ui/components/form/select";
+import { Textarea } from "@workspace/ui/components/form/textarea";
 import { Bell, Clock, MessageSquare } from "lucide-react";
 
 interface FollowUpType {
@@ -147,7 +147,7 @@ export function FollowUpForm({
       <div className="space-y-2">
         <Label>Notes</Label>
         <Textarea
-          placeholder="Notes for the next visit"
+          placeholder="Follow-up notes"
           value={notes}
           onChange={(e) => onNotesChange(e.target.value)}
           className="h-20 resize-none"

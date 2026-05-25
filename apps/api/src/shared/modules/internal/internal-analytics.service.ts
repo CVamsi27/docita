@@ -11,6 +11,7 @@ import { InvoiceStatus } from '@workspace/db';
 import { getMonthRange, DEFAULT_TIMEZONE } from '@workspace/utils';
 import { MonitoringService } from '@/shared/modules/monitoring/monitoring/monitoring.service';
 import { HealthService } from '@/shared/modules/monitoring/monitoring/health.service';
+import { CLOCK_PORT, type IClock } from '@/shared/common/ports/clock.port';
 
 @Injectable()
 export class InternalAnalyticsService {
@@ -21,6 +22,7 @@ export class InternalAnalyticsService {
     @Inject(CACHE_MANAGER) private cacheManager: Cache,
     private readonly monitoringService: MonitoringService,
     private readonly healthService: HealthService,
+    @Inject(CLOCK_PORT) private readonly clock: IClock,
   ) {}
 
   private getReadClient() {
@@ -34,8 +36,9 @@ export class InternalAnalyticsService {
       if (cached) return cached;
       const readClient = this.getReadClient();
 
-      const thisMonthRange = getMonthRange(new Date(), { timezone });
-      const lastMonthDate = new Date();
+      const now = this.clock.now();
+      const thisMonthRange = getMonthRange(now, { timezone });
+      const lastMonthDate = new Date(now);
       lastMonthDate.setMonth(lastMonthDate.getMonth() - 1);
       const lastMonthRange = getMonthRange(lastMonthDate, { timezone });
 
@@ -144,7 +147,7 @@ export class InternalAnalyticsService {
     endDate?: string,
   ) {
     try {
-      const now = new Date();
+      const now = this.clock.now();
       const start = startDate
         ? new Date(startDate)
         : new Date(now.getFullYear(), now.getMonth(), 1);
@@ -317,7 +320,7 @@ export class InternalAnalyticsService {
       if (cached) return cached;
       const readClient = this.getReadClient();
 
-      const now = new Date();
+      const now = this.clock.now();
       const oneDayAgo = new Date(now.getTime() - 24 * 60 * 60 * 1000);
       const thirtyDaysAgo = new Date(now.getTime() - 30 * 24 * 60 * 60 * 1000);
 

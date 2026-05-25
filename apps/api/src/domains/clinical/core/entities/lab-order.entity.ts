@@ -1,4 +1,5 @@
 import { LabTestOrderStatus } from '@workspace/db';
+import { InvariantViolationError } from '@/shared/common/errors/domain.errors';
 
 export class LabOrder {
   constructor(
@@ -28,15 +29,21 @@ export class LabOrder {
     createdAt?: Date;
     updatedAt?: Date;
   }): LabOrder {
-    if (!props.patientId) throw new Error('Patient ID is required');
-    if (!props.labTestId) throw new Error('Lab Test ID is required');
-    if (!props.clinicId) throw new Error('Clinic ID is required');
+    if (!props.patientId) {
+      throw new InvariantViolationError('Patient ID is required');
+    }
+    if (!props.labTestId) {
+      throw new InvariantViolationError('Lab Test ID is required');
+    }
+    if (!props.clinicId) {
+      throw new InvariantViolationError('Clinic ID is required');
+    }
 
     return new LabOrder(
       props.id || '',
       props.patientId,
       props.labTestId,
-      props.status || ('ORDERED' as LabTestOrderStatus),
+      props.status ?? LabTestOrderStatus.ORDERED,
       props.clinicId,
       props.appointmentId,
       props.result,
@@ -47,12 +54,15 @@ export class LabOrder {
     );
   }
 
-  update(props: {
-    status?: LabTestOrderStatus;
-    result?: Record<string, unknown>;
-    resultUrl?: string;
-    notes?: string;
-  }): LabOrder {
+  update(
+    props: {
+      status?: LabTestOrderStatus;
+      result?: Record<string, unknown>;
+      resultUrl?: string;
+      notes?: string;
+    },
+    now: Date,
+  ): LabOrder {
     return new LabOrder(
       this.id,
       this.patientId,
@@ -64,7 +74,7 @@ export class LabOrder {
       props.resultUrl ?? this.resultUrl,
       props.notes ?? this.notes,
       this.createdAt,
-      new Date(),
+      now,
     );
   }
 }

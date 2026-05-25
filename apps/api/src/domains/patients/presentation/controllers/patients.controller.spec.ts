@@ -11,10 +11,16 @@ import { PatientsController } from './patients.controller';
 import { PatientService as PatientsService } from '@/domains/patients/application/services/patient.service';
 import { RolesGuard } from '@/shared/modules/auth/auth/roles.guard';
 import { TierGuard } from '@/shared/modules/auth/auth/tier.guard';
-import { Role } from '@workspace/db';
-import { RequestWithUser } from '@/common/types/common.types';
+import {
+  IdempotencyInterceptor,
+  IdempotencyService,
+} from '@/shared/modules/idempotency';
+import { Gender, Role } from '@workspace/db';
+import { RequestWithUser } from '@/shared/common/types/common.types';
 import { ListPatientsQueryDto } from '@/domains/patients/application/dto/patients.dto';
 import { Patient } from '@/domains/patients/core/entities/patient.entity';
+import { DPDPComplianceService } from '@/shared/modules/compliance/dpdp-compliance.service';
+import { AuditService } from '@/shared/modules/audit/audit/audit.service';
 
 describe('PatientsController (Authorization)', () => {
   let controller: PatientsController;
@@ -40,6 +46,7 @@ describe('PatientsController (Authorization)', () => {
   const buildRequest = (clinicId = 'clinic-1', role = Role.DOCTOR) => {
     const request = Object.create({}) as AuthRequest;
     const user = Object.create({}) as NonNullable<RequestWithUser['user']>;
+    user.id = 'user-1';
     user.clinicId = clinicId;
     user.role = role;
     request.user = user;
@@ -67,6 +74,26 @@ describe('PatientsController (Authorization)', () => {
         {
           provide: PatientsService,
           useValue: mockPatientsService,
+        },
+        {
+          provide: IdempotencyService,
+          useValue: {},
+        },
+        {
+          provide: IdempotencyInterceptor,
+          useValue: {
+            intercept: jest.fn(
+              (_ctx: unknown, next: { handle: () => unknown }) => next.handle(),
+            ),
+          },
+        },
+        {
+          provide: DPDPComplianceService,
+          useValue: { recordDpdpNoticeConsent: jest.fn() },
+        },
+        {
+          provide: AuditService,
+          useValue: { logAction: jest.fn(), logPatientAccess: jest.fn() },
         },
       ],
     })
@@ -118,7 +145,7 @@ describe('PatientsController (Authorization)', () => {
         }),
       );
 
-      expect(result).toEqual(emptyPatients);
+      expect(result).toEqual({ items: [], total: 0 });
       const firstCallQuery = listPatientsMock.mock.calls[0]![0];
 
       expect(firstCallQuery.clinicId).toBe('clinic-1');
@@ -157,7 +184,7 @@ describe('PatientsController (Authorization)', () => {
             lastName: 'Doe',
             email: 'john@example.com',
             phoneNumber: '9999999999',
-            gender: 'male',
+            gender: Gender.MALE,
             metadata: {},
             createdAt: new Date('2026-01-01T00:00:00.000Z'),
             updatedAt: new Date('2026-01-01T00:00:00.000Z'),
@@ -178,7 +205,22 @@ describe('PatientsController (Authorization)', () => {
         }),
       );
 
-      expect(result).toEqual(mockPatients);
+      expect(result).toEqual({
+        items: [
+          expect.objectContaining({
+            id: 'patient-1',
+            clinicId: 'clinic-1',
+            firstName: 'John',
+            lastName: 'Doe',
+            email: 'john@example.com',
+            phoneNumber: '9999999999',
+            gender: Gender.MALE,
+            metadata: {},
+            version: 1,
+          }),
+        ],
+        total: 1,
+      });
     });
 
     it('should support search parameter', async () => {

@@ -14,7 +14,8 @@ import { TierGuard } from '@/shared/modules/auth/auth/tier.guard';
 import { RequireFeature } from '@/shared/modules/auth/auth/tier.decorator';
 import { SendMessageUseCase } from '@/domains/whatsapp/application/use-cases/send-message.use-case';
 import { WhatsAppQueryService } from '@/domains/whatsapp/application/services/whatsapp-query.service';
-import { RequestWithUser } from '@/common/types/common.types';
+import { RequestWithUser } from '@/shared/common/types/common.types';
+import { requireClinicIdFromRequest } from '@/shared/modules/auth/auth/clinic-request-context';
 import {
   SendWhatsAppMessageDto,
   SendWhatsAppMessageResponseDto,
@@ -39,7 +40,7 @@ export class WhatsAppController {
 
   @Get('templates')
   async listTemplates(@Request() req: RequestWithUser) {
-    return this.queryService.listTemplates(requireClinicId(req));
+    return this.queryService.listTemplates(requireClinicIdFromRequest(req));
   }
 
   @Post('messages/send')
@@ -51,7 +52,7 @@ export class WhatsAppController {
     const clinicId = requireClinicId(req);
 
     return this.sendMessageUseCase.execute({
-      clinicId,
+      clinicId: requireClinicIdFromRequest(req),
       recipientPhone: body.recipientPhone,
       templateName: body.templateName,
       variables: body.variables,

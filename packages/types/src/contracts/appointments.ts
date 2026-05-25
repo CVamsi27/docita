@@ -4,7 +4,9 @@ import {
   createAppointmentBaseSchema,
   updateAppointmentSchema,
 } from "../operations/appointments";
+import { stripHtmlTags } from "../api/sanitization";
 import { appointmentStatusSchema } from "../shared/users";
+import { jsonObjectSchema } from "../shared/json-schema";
 import {
   cardiologyExamDataSchema,
   clinicalInvestigationSchema,
@@ -17,8 +19,100 @@ import {
   psychiatryExamDataSchema,
   systemicExaminationSchema,
 } from "../clinical/clinical";
+import { vitalSignSchema } from "../clinical/vitals";
+import { prescriptionSchema } from "../clinical/medications";
+import { invoiceSchema } from "../billing/invoices";
 
 export const appointmentResponseSchema = appointmentSchema;
+
+/**
+ * Strict, bandwidth-conscious response shape for appointment list endpoints.
+ * Keep this schema in sync with the API's list output.
+ */
+export const appointmentListItemResponseSchema = z
+  .object({
+    id: z.string().min(1),
+    clinicId: z.string().min(1),
+    patientId: z.string().min(1),
+    doctorId: z.string().min(1),
+    startTime: z.string().or(z.date()),
+    endTime: z.string().or(z.date()),
+    status: appointmentStatusSchema,
+    type: z.string().optional(),
+    priority: z.enum(["ROUTINE", "URGENT", "EMERGENCY"]).optional(),
+    reason: z.string().optional(),
+    notes: z.string().optional(),
+    consultationNotes: z.string().optional(),
+    observations: z.string().optional(),
+    chiefComplaint: z.string().optional(),
+    treatmentHistory: z.string().optional(),
+    clinicalImpression: z.string().optional(),
+    differentialDiagnosis: z.string().optional(),
+    finalDiagnosis: z.string().optional(),
+    followUpPlan: z.string().optional(),
+    dentalChart: dentalChartSchema.optional(),
+    serviceId: z.string().optional(),
+    cancellationReason: z.string().optional(),
+    cancelledAt: z.string().or(z.date()).optional(),
+    metadata: jsonObjectSchema.optional(),
+    createdAt: z.string().or(z.date()),
+    updatedAt: z.string().or(z.date()),
+    version: z.number().int().nonnegative(),
+    patient: z
+      .object({
+        id: z.string(),
+        firstName: z.string(),
+        lastName: z.string(),
+        phoneNumber: z.string().nullable().optional(),
+      })
+      .optional(),
+    doctor: z
+      .object({
+        id: z.string(),
+        name: z.string().nullable().optional(),
+      })
+      .optional(),
+    clinicName: z.string().optional(),
+    clinic: z
+      .object({
+        id: z.string().optional(),
+        name: z.string().nullable().optional(),
+      })
+      .nullable()
+      .optional(),
+    prescription: prescriptionSchema.nullable().optional(),
+    invoice: invoiceSchema.nullable().optional(),
+    vitalSign: vitalSignSchema.optional(),
+    reminders: z
+      .array(
+        z.object({
+          id: z.string(),
+          type: z.string(),
+          status: z.string(),
+          sentAt: z.string().or(z.date()).nullable().optional(),
+          error: z.string().nullable().optional(),
+          createdAt: z.string().or(z.date()),
+        }),
+      )
+      .optional(),
+  })
+  .strict();
+
+export const listAppointmentsResponseSchema = z
+  .object({
+    items: z.array(appointmentListItemResponseSchema),
+    nextCursor: z.string().optional(),
+    hasMore: z.boolean(),
+    count: z.number().int().nonnegative().optional(),
+  })
+  .strict();
+
+export type AppointmentListItemContractResponse = z.infer<
+  typeof appointmentListItemResponseSchema
+>;
+export type ListAppointmentsContractResponse = z.infer<
+  typeof listAppointmentsResponseSchema
+>;
 
 export const startConsultationResponseSchema = z.object({
   appointmentId: z.string().min(1),
@@ -63,7 +157,7 @@ export const listAppointmentsQuerySchema = z.object({
   search: z.string().optional(),
   status: z.string().optional(),
   cursor: z.string().optional(),
-  limit: z.coerce.number().int().positive().max(100).optional(),
+  limit: z.coerce.number().int().positive().max(500).optional(),
 });
 
 const normalizeDate = (
@@ -101,6 +195,153 @@ export const appointmentRescheduleRequestSchema = z
     endTime: normalizeDate(input.endTime) as Date,
   }));
 
+export const followUpStatusSchema = z.enum([
+  "PENDING",
+  "REMINDER_SENT",
+  "BOOKED",
+  "COMPLETED",
+  "CANCELLED",
+  "EXPIRED",
+]);
+
+export const followUpResponseSchema = z.object({
+  id: z.string(),
+  appointmentId: z.string(),
+  patientId: z.string(),
+  doctorId: z.string(),
+  clinicId: z.string(),
+  scheduledDate: z.string().or(z.date()),
+  reason: z.string(),
+  status: followUpStatusSchema,
+  reminderSentAt: z.string().or(z.date()).nullable().optional(),
+  bookedAppointmentId: z.string().nullable().optional(),
+  createdAt: z.string().or(z.date()),
+  updatedAt: z.string().or(z.date()),
+  patient: z
+    .object({
+      id: z.string(),
+      firstName: z.string(),
+      lastName: z.string(),
+      phoneNumber: z.string().nullable().optional(),
+    })
+    .optional(),
+  doctor: z
+    .object({
+      id: z.string(),
+      name: z.string().nullable().optional(),
+    })
+    .optional(),
+});
+
+export const createFollowUpRequestSchema = z.object({
+  patientId: z.string().min(1, "Select a patient."),
+  doctorId: z.string().min(1, "Select a doctor."),
+  scheduledDate: z.string().min(1, "Choose a follow-up date."),
+  reason: z.string().trim().min(2).max(500).transform(stripHtmlTags),
+});
+
+export const listFollowUpsQuerySchema = z.object({
+  appointmentId: z.string().optional(),
+  status: z.string().optional(),
+  from: z.string().optional(),
+  to: z.string().optional(),
+  limit: z.coerce.number().int().positive().max(100).optional(),
+});
+
+export const bookFollowUpRequestSchema = z.object({
+  bookedAppointmentId: z.string().min(1, "Select the booked appointment."),
+});
+
+export const appointmentRequestStatusSchema = z.enum([
+  "PENDING",
+  "APPROVED",
+  "REJECTED",
+  "CANCELLED",
+]);
+
+export const patientAppointmentRequestCreateSchema = z.object({
+  preferredDoctorId: z.string().min(1).optional(),
+  preferredDate: z.string().min(1, "Choose a preferred date."),
+  preferredTime: z.string().trim().max(20).optional(),
+  requestedSlotStart: z.string().datetime().optional(),
+  requestedSlotEnd: z.string().datetime().optional(),
+  reason: z.string().trim().min(2).max(500).transform(stripHtmlTags),
+  notes: z.string().trim().max(1000).transform(stripHtmlTags).optional(),
+});
+
+export const listAppointmentRequestsQuerySchema = z.object({
+  status: appointmentRequestStatusSchema.optional(),
+  patientId: z.string().optional(),
+  from: z.string().optional(),
+  to: z.string().optional(),
+  limit: z.coerce.number().int().positive().max(100).optional(),
+  offset: z.coerce.number().int().min(0).optional(),
+});
+
+export const approveAppointmentRequestSchema = z.object({
+  doctorId: z.string().min(1, "Select a doctor."),
+  startTime: z.string().min(1, "Choose a start time."),
+  endTime: z.string().min(1, "Choose an end time."),
+  type: z.string().trim().max(80).transform(stripHtmlTags).optional(),
+  notes: z.string().trim().max(1000).transform(stripHtmlTags).optional(),
+});
+
+export const rejectAppointmentRequestSchema = z.object({
+  responseMessage: z
+    .string()
+    .trim()
+    .min(2, "Enter a response for the patient.")
+    .max(1000)
+    .transform(stripHtmlTags),
+});
+
+export const appointmentRequestResponseSchema = z.object({
+  id: z.string(),
+  patientId: z.string(),
+  clinicId: z.string(),
+  preferredDoctorId: z.string().nullable().optional(),
+  preferredDate: z.string().or(z.date()),
+  preferredTime: z.string().nullable().optional(),
+  requestedSlotStart: z.string().or(z.date()).nullable().optional(),
+  requestedSlotEnd: z.string().or(z.date()).nullable().optional(),
+  reason: z.string(),
+  notes: z.string().nullable().optional(),
+  status: appointmentRequestStatusSchema,
+  reviewedById: z.string().nullable().optional(),
+  reviewedAt: z.string().or(z.date()).nullable().optional(),
+  responseMessage: z.string().nullable().optional(),
+  createdAt: z.string().or(z.date()),
+  updatedAt: z.string().or(z.date()),
+  patient: z
+    .object({
+      id: z.string(),
+      firstName: z.string(),
+      lastName: z.string(),
+      phoneNumber: z.string().nullable().optional(),
+    })
+    .optional(),
+  preferredDoctor: z
+    .object({
+      id: z.string(),
+      name: z.string().nullable().optional(),
+    })
+    .nullable()
+    .optional(),
+  reviewedBy: z
+    .object({
+      id: z.string(),
+      name: z.string().nullable().optional(),
+    })
+    .nullable()
+    .optional(),
+});
+
+export const appointmentRequestListResponseSchema = z.object({
+  items: z.array(appointmentRequestResponseSchema),
+  count: z.number(),
+  hasMore: z.boolean(),
+});
+
 export type AppointmentContractResponse = z.infer<typeof appointmentResponseSchema>;
 export type StartConsultationResponse = z.infer<
   typeof startConsultationResponseSchema
@@ -122,4 +363,30 @@ export type AppointmentCancelRequest = z.infer<
 >;
 export type AppointmentRescheduleRequest = z.output<
   typeof appointmentRescheduleRequestSchema
+>;
+export type FollowUpStatus = z.infer<typeof followUpStatusSchema>;
+export type FollowUpResponse = z.infer<typeof followUpResponseSchema>;
+export type CreateFollowUpRequest = z.infer<typeof createFollowUpRequestSchema>;
+export type ListFollowUpsQuery = z.infer<typeof listFollowUpsQuerySchema>;
+export type BookFollowUpRequest = z.infer<typeof bookFollowUpRequestSchema>;
+export type AppointmentRequestStatus = z.infer<
+  typeof appointmentRequestStatusSchema
+>;
+export type PatientAppointmentRequestCreate = z.infer<
+  typeof patientAppointmentRequestCreateSchema
+>;
+export type ListAppointmentRequestsQuery = z.infer<
+  typeof listAppointmentRequestsQuerySchema
+>;
+export type ApproveAppointmentRequest = z.infer<
+  typeof approveAppointmentRequestSchema
+>;
+export type RejectAppointmentRequest = z.infer<
+  typeof rejectAppointmentRequestSchema
+>;
+export type AppointmentRequestResponse = z.infer<
+  typeof appointmentRequestResponseSchema
+>;
+export type AppointmentRequestListResponse = z.infer<
+  typeof appointmentRequestListResponseSchema
 >;

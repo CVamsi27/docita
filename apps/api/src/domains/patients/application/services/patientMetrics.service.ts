@@ -16,7 +16,14 @@ import {
   MetricRecordRow,
   PATIENT_METRICS_REPOSITORY_TOKEN,
 } from '@/domains/patients/core/repositories/patient-metrics.repository.interface';
+import {
+  findInvalidMetricDefinitionIds,
+  hasStructuredMetricValue,
+} from '@/domains/patients/core/domain-services/patient-metrics.rules';
 
+/**
+ * Thin facade — delegates patient metrics persistence to IPatientMetricsRepository.
+ */
 @Injectable()
 export class PatientMetricsService {
   constructor(
@@ -111,11 +118,9 @@ export class PatientMetricsService {
         definitionIds,
       );
 
-    const validDefinitionIds = new Set(
-      definitions.map((definition) => definition.id),
-    );
-    const invalidIds = definitionIds.filter(
-      (id) => !validDefinitionIds.has(id),
+    const invalidIds = findInvalidMetricDefinitionIds(
+      definitionIds,
+      definitions,
     );
 
     if (invalidIds.length > 0) {
@@ -149,16 +154,7 @@ export class PatientMetricsService {
       throw new NotFoundException('Metric definition not found');
     }
 
-    const hasStructuredValue =
-      dto.valueString !== undefined ||
-      dto.valueNumber !== undefined ||
-      dto.valueBoolean !== undefined ||
-      dto.valueDate !== undefined ||
-      dto.valueJson !== undefined ||
-      dto.optionId !== undefined ||
-      (dto.optionIds !== undefined && dto.optionIds.length > 0);
-
-    if (!hasStructuredValue) {
+    if (!hasStructuredMetricValue(dto)) {
       throw new BadRequestException(
         'At least one metric value must be provided',
       );

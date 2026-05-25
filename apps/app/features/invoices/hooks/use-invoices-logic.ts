@@ -1,9 +1,9 @@
 import { useMemo, useState } from "react";
-import { useInvoices } from "@/hooks/api/use-billing";
+import { useInvoices } from "@workspace/data-access";
 import { useDebounce } from "@workspace/hooks/use-debounce";
 import { toast } from "sonner";
 import { Invoice, ListInvoicesContractQuery } from "@workspace/types";
-import { showUserFacingErrorToast } from "@/lib/user-facing-errors";
+import { showUserFacingErrorToast } from "@/lib/errors/user-facing-errors";
 import { invoicesApi } from "@/features/invoices/api/invoices.api";
 
 const POLL_INTERVAL_MS = 2000;
@@ -21,10 +21,13 @@ export const useInvoicesLogic = () => {
   const {
     data: invoicesResponse,
     isLoading: loading,
+    isError,
+    error,
     refetch,
   } = useInvoices({
     status: filter !== "all" ? filter : undefined,
     search: debouncedSearch || undefined,
+    limit: 50,
   });
 
   const invoices = useMemo(
@@ -58,7 +61,7 @@ export const useInvoicesLogic = () => {
   }, [invoices, sortBy]);
 
   const handleDownloadPdf = async (invoiceId: string) => {
-    const toastId = toast.loading("Preparing PDF...");
+    const toastId = toast.loading("Preparing PDF…");
     try {
       const { jobId } = await invoicesApi.enqueuePdf(invoiceId);
 
@@ -106,6 +109,8 @@ export const useInvoicesLogic = () => {
     invoices,
     filteredInvoices,
     loading,
+    isError,
+    error,
     filter,
     setFilter,
     sortBy,

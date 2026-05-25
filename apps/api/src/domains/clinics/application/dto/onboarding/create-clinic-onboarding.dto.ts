@@ -1,6 +1,12 @@
 import { createZodDto } from 'nestjs-zod';
 import { z } from 'zod';
-import { clinicTypeSchema as importedClinicTypeSchema } from '@workspace/types';
+import { BillingCycle, ClinicTier } from '@workspace/db';
+import {
+  clinicTypeSchema as importedClinicTypeSchema,
+  dayOfWeekSchema,
+} from '@workspace/types';
+export { ClinicTier };
+export const clinicTierSchema = z.nativeEnum(ClinicTier);
 export enum OnboardingStep {
   CLINIC_DETAILS = 'CLINIC_DETAILS',
   ADMIN_ACCOUNT = 'ADMIN_ACCOUNT',
@@ -12,17 +18,7 @@ export enum OnboardingStep {
   COMPLETED = 'COMPLETED',
 }
 export const onboardingStepSchema = z.nativeEnum(OnboardingStep);
-export enum ClinicTier {
-  STARTER = 'STARTER',
-  ESSENTIAL = 'ESSENTIAL',
-  PROFESSIONAL = 'PROFESSIONAL',
-  ENTERPRISE = 'ENTERPRISE',
-}
-export const clinicTierSchema = z.nativeEnum(ClinicTier);
-export enum BillingCycle {
-  MONTHLY = 'MONTHLY',
-  YEARLY = 'YEARLY',
-}
+export { BillingCycle };
 export const billingCycleSchema = z.nativeEnum(BillingCycle);
 export type { ClinicType } from '@workspace/types';
 export const clinicTypeSchema = importedClinicTypeSchema;
@@ -63,6 +59,19 @@ export const clinicDetailsSchema = z.object({
     .regex(/^[0-9]{2}[A-Z0-9]{13}$/, 'Invalid GSTIN')
     .optional()
     .or(z.literal('')),
+  legalName: z.string().trim().max(160).optional().or(z.literal('')),
+  mapsLocation: z
+    .object({
+      lat: z.number(),
+      lng: z.number(),
+    })
+    .optional(),
+  mapsLink: z
+    .string()
+    .trim()
+    .url('Invalid Google Maps link')
+    .or(z.literal(''))
+    .optional(),
 });
 export class ClinicDetailsDto extends createZodDto(clinicDetailsSchema) {}
 export const adminAccountSchema = z.object({
@@ -140,6 +149,51 @@ export const staffSetupSchema = z.object({
   staffMembers: z.array(staffMemberSchema).optional(),
 });
 export class StaffSetupDto extends createZodDto(staffSetupSchema) {}
+
+const clinicWeeklyTimeRe = /^([0-1]?[0-9]|2[0-3]):[0-5][0-9]$/;
+
+export const clinicWeeklyHourInputSchema = z.object({
+  dayOfWeek: dayOfWeekSchema,
+  startTime: z
+    .string()
+    .regex(clinicWeeklyTimeRe, 'Use HH:mm, for example 09:00'),
+  endTime: z.string().regex(clinicWeeklyTimeRe, 'Use HH:mm, for example 17:00'),
+  slotDuration: z.number().int().min(5).max(120),
+  isActive: z.boolean(),
+});
+
+export const clinicWeeklyHoursSchema = z
+  .array(clinicWeeklyHourInputSchema)
+  .length(7)
+  .superRefine((rows, ctx) => {
+    const keys = new Set(rows.map((r) => r.dayOfWeek));
+    if (keys.size !== 7) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        message: 'Include exactly one row for each day of the week',
+      });
+    }
+    if (!rows.some((r) => r.isActive)) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        message: 'Turn on at least one day with visit hours',
+      });
+    }
+    for (const r of rows) {
+      if (r.isActive && r.startTime >= r.endTime) {
+        ctx.addIssue({
+          code: z.ZodIssueCode.custom,
+          path: [rows.indexOf(r), 'endTime'],
+          message: 'End time must be after start time',
+        });
+      }
+    }
+  });
+
+export class ClinicWeeklyHoursDto extends createZodDto(
+  clinicWeeklyHoursSchema,
+) {}
+
 export const completeOnboardingSchema = z.object({
   clinicDetails: clinicDetailsSchema,
   adminAccount: adminAccountSchema,
@@ -148,6 +202,8 @@ export const completeOnboardingSchema = z.object({
   slaAgreement: slaAgreementSchema,
   consentManagement: consentManagementSchema,
   staffSetup: staffSetupSchema.optional(),
+  /** Default location visit windows; doctors inherit these until they set their own. */
+  clinicWeeklyHours: clinicWeeklyHoursSchema.optional(),
 });
 export class CompleteOnboardingDto extends createZodDto(
   completeOnboardingSchema,

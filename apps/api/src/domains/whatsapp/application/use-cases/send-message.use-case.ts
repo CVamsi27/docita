@@ -1,5 +1,16 @@
-import { Injectable, Inject, Logger } from '@nestjs/common';
+import {
+  Injectable,
+  Inject,
+  Logger,
+  NotFoundException,
+  Optional,
+} from '@nestjs/common';
+import { InvariantViolationError } from '@/shared/common/errors/domain.errors';
+import { EventEmitter2 } from '@nestjs/event-emitter';
+import { ApplicationEvents } from '@/shared/common/events/application-events';
 import { AppConfigService } from '@/shared/modules/config/app-configuration.service';
+import { Feature } from '@/shared/modules/auth/auth/tier.decorator';
+import { assertClinicHasFeatureOrThrow } from '@/shared/modules/auth/utils/clinic-feature-access.util';
 import {
   WHATSAPP_REPOSITORY_TOKEN,
   IWhatsAppRepository,
@@ -13,6 +24,9 @@ import {
   TemplateResolverService,
   ResolvedTemplate,
 } from '@/domains/whatsapp/core/services/template-resolver.service';
+import { WhatsappSenderResolver } from '@/domains/whatsapp/application/services/whatsapp-sender-resolver.service';
+import { CLOCK_PORT, type IClock } from '@/shared/common/ports/clock.port';
+import { isRecord } from '@workspace/utils';
 
 export interface SendMessageRequest {
   clinicId: string;
@@ -23,6 +37,13 @@ export interface SendMessageRequest {
   variables?: Record<string, string>;
   metadata?: Record<string, string | number | boolean>;
 }
+
+export type SendMessageResult = {
+  messageId: string;
+  providerMessageId: string;
+  senderMode?: 'SHARED' | 'BYO' | 'MANAGED';
+  senderPhoneNumberId?: string | null;
+};
 
 @Injectable()
 export class SendMessageUseCase {
@@ -36,11 +57,22 @@ export class SendMessageUseCase {
     private readonly client: IWhatsAppClient,
     private readonly templateResolver: TemplateResolverService,
     private readonly configService: AppConfigService,
+    private readonly eventEmitter: EventEmitter2,
+    @Inject(CLOCK_PORT) private readonly clock: IClock,
+    @Optional()
+    private readonly senderResolver?: WhatsappSenderResolver,
   ) {
     this.useProductionMode = this.configService.getMetaConfig().productionMode;
   }
 
-  async execute(request: SendMessageRequest): Promise<{ messageId: string }> {
+  async execute(request: SendMessageRequest): Promise<SendMessageResult> {
+    // AuditLogged: whatsapp message send
+    this.logger.log({
+      action: 'whatsapp.send',
+      clinicId: request.clinicId,
+      templateName: request.templateName,
+    });
+
     const {
       clinicId,
       recipientPhone,
@@ -51,11 +83,37 @@ export class SendMessageUseCase {
       metadata,
     } = request;
 
+    const clinic = await this.repository.findClinicMessageContext(clinicId);
+
+    if (!clinic) {
+      throw new NotFoundException('Clinic not found');
+    }
+
+    assertClinicHasFeatureOrThrow(
+      {
+        tier: clinic.tier,
+        intelligenceAddon: clinic.intelligenceAddon,
+        features: clinic.features,
+      },
+      Feature.WHATSAPP_MESSAGING,
+    );
+
+    const resolvedSender = await this.senderResolver?.resolve(clinicId);
+    const sender = resolvedSender ?? this.resolveSharedSender();
+    const clinicDisplayName = this.resolveClinicDisplayName(
+      clinic.name,
+      clinic.branding,
+    );
+    const messageVariables = {
+      clinicName: clinicDisplayName,
+      ...variables,
+    };
+
     let resolved: ResolvedTemplate | null = null;
     if (templateName) {
       resolved = await this.templateResolver.resolveTemplate(
         templateName,
-        variables,
+        messageVariables,
         clinicId,
       );
     }
@@ -64,54 +122,83 @@ export class SendMessageUseCase {
     let finalContent: string;
 
     if (resolved) {
-      finalContent = resolved.content;
-      if (this.useProductionMode && resolved.metaTemplateId) {
-        const components = this.parseVariablesIntoComponents(variables);
+      finalContent = this.withSharedSenderPrefix(
+        resolved.content,
+        sender.mode,
+        clinicDisplayName,
+      );
+      if (this.useProductionMode && resolved.metaTemplateId && templateName) {
+        const components = this.parseVariablesIntoComponents(messageVariables);
         const result = await this.client.sendMessage({
           to: recipientPhone,
-          templateName: templateName!,
+          templateName,
           languageCode,
           components,
+          ...(resolvedSender ? { sender } : {}),
         });
         externalId = result.externalId;
       } else if (resolved.buttons && resolved.buttons.length > 0) {
         const result = await this.client.sendInteractiveMessage({
           to: recipientPhone,
-          bodyText: resolved.content,
+          bodyText: finalContent,
           buttons: resolved.buttons.map((b) => ({ id: b.id, title: b.text })),
+          ...(resolvedSender ? { sender } : {}),
         });
         externalId = result.externalId;
       } else {
         const result = await this.client.sendMessage({
           to: recipientPhone,
-          text: resolved.content,
+          text: finalContent,
+          ...(resolvedSender ? { sender } : {}),
         });
         externalId = result.externalId;
       }
     } else if (text) {
-      finalContent = text;
+      finalContent = this.withSharedSenderPrefix(
+        text,
+        sender.mode,
+        clinicDisplayName,
+      );
       const result = await this.client.sendMessage({
         to: recipientPhone,
-        text,
+        text: finalContent,
+        ...(resolvedSender ? { sender } : {}),
       });
       externalId = result.externalId;
     } else {
-      throw new Error('Either templateName or text must be provided');
+      throw new InvariantViolationError(
+        'Either templateName or text must be provided',
+      );
     }
 
-    const message = WhatsAppMessage.create({
-      clinicId,
-      recipientPhone,
-      conversationId: 'default',
-      templateName: templateName || undefined,
-      content: finalContent,
-      externalMessageId: externalId,
-      metadata,
-    });
+    const message = WhatsAppMessage.create(
+      {
+        clinicId,
+        recipientPhone,
+        conversationId: 'default',
+        templateName: templateName || undefined,
+        content: finalContent,
+        externalMessageId: externalId,
+        metadata,
+      },
+      this.clock.now(),
+    );
 
     await this.repository.saveMessage(message);
 
-    return { messageId: message.id };
+    this.eventEmitter.emit(ApplicationEvents.WHATSAPP_MESSAGE_SENT, {
+      clinicId,
+      messageId: message.id,
+      messageType: templateName ? 'template' : 'session',
+      senderMode: sender.mode,
+    });
+
+    return {
+      messageId: message.id,
+      providerMessageId: externalId ?? '',
+      senderMode: sender.mode,
+      senderPhoneNumberId: sender.senderPhoneNumberId,
+    };
   }
 
   private parseVariablesIntoComponents(
@@ -123,5 +210,48 @@ export class SendMessageUseCase {
     }));
 
     return parameters.length > 0 ? [{ type: 'body', parameters }] : [];
+  }
+
+  private withSharedSenderPrefix(
+    content: string,
+    senderMode: string,
+    clinicName: string,
+  ): string {
+    if (senderMode !== 'SHARED') {
+      return content;
+    }
+    if (!clinicName) {
+      return content;
+    }
+    const prefix = `From ${clinicName}`;
+    if (content.toLowerCase().startsWith(prefix.toLowerCase())) {
+      return content;
+    }
+    return `${prefix}\n${content}`;
+  }
+
+  private resolveClinicDisplayName(
+    clinicName: string,
+    branding: unknown,
+  ): string {
+    if (isRecord(branding)) {
+      const displayName = branding.displayName;
+      if (typeof displayName === 'string' && displayName.trim()) {
+        return displayName.trim();
+      }
+    }
+    return clinicName;
+  }
+
+  private resolveSharedSender() {
+    const meta = this.configService.getMetaConfig();
+    return {
+      phoneNumberId: meta.phoneNumberId,
+      accessToken: meta.accessToken,
+      mode: 'SHARED' as const,
+      senderPhoneNumberId: null,
+      displayName: null,
+      fallbackActive: false,
+    };
   }
 }

@@ -1,50 +1,54 @@
 "use client";
 
+import { DocitaLoadingIndicator } from "@workspace/ui/components/feedback/docita-loading-indicator";
+
 import { useEffect } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
-import * as z from "zod";
+import {
+  notificationSettingsFormSchema,
+  type NotificationSettingsFormValues,
+} from "@workspace/types";
 import {
   Card,
   CardContent,
   CardDescription,
   CardHeader,
   CardTitle,
-} from "@workspace/ui/components/card";
-import { Label } from "@workspace/ui/components/label";
-import { Switch } from "@workspace/ui/components/switch";
-import { Button } from "@workspace/ui/components/button";
-import { Bell, Loader2, Smartphone } from "lucide-react";
+} from "@workspace/ui/components/indicators/card";
+import { Skeleton } from "@workspace/ui/components/feedback/skeleton";
+import { Label } from "@workspace/ui/components/form/label";
+import { Switch } from "@workspace/ui/components/form/switch";
+import { Button } from "@workspace/ui/components/form/button";
+import { Bell, Smartphone } from "lucide-react";
 import {
-  ClinicAppSettings,
   useClinicSettings,
   useUpdateClinicSettings,
-} from "@/hooks/api/use-settings";
+} from "@workspace/data-access";
+import { parseClinicAppSettings } from "@/lib/clinic/parse-clinic-app-settings";
 import { toast } from "sonner";
-import { showUserFacingErrorToast } from "@/lib/user-facing-errors";
+import { showUserFacingErrorToast } from "@/lib/errors/user-facing-errors";
 import {
   Form,
   FormControl,
   FormField,
   FormItem,
-} from "@workspace/ui/components/form";
-
-const notificationSettingsSchema = z.object({
-  whatsappNotifications: z.boolean(),
-  inAppNotifications: z.boolean(),
-});
-
-type NotificationSettingsFormValues = z.infer<
-  typeof notificationSettingsSchema
->;
+} from "@workspace/ui/components/form/form";
+import Link from "next/link";
+import { usePermissionStore } from "@/lib/stores/permission-store";
+import { Feature } from "@workspace/types";
+import { SUBSCRIPTION_SETTINGS_PATH } from "@/lib/subscription/subscription-settings-path";
 
 export function NotificationSettings() {
   const { data: clinic, isLoading } = useClinicSettings();
   const { mutate: updateSettings, isPending: isSaving } =
     useUpdateClinicSettings();
+  const canWhatsApp = usePermissionStore((s) =>
+    s.canAccess(Feature.WHATSAPP_MESSAGING),
+  );
 
   const form = useForm<NotificationSettingsFormValues>({
-    resolver: zodResolver(notificationSettingsSchema),
+    resolver: zodResolver(notificationSettingsFormSchema),
     defaultValues: {
       whatsappNotifications: true,
       inAppNotifications: true,
@@ -53,7 +57,7 @@ export function NotificationSettings() {
 
   useEffect(() => {
     if (clinic) {
-      const s = (clinic.settings as ClinicAppSettings) || {};
+      const s = parseClinicAppSettings(clinic.settings);
       const whatsappFromSettings =
         s.whatsappNotifications ??
         s.whatsappAppointmentReminders ??
@@ -73,10 +77,9 @@ export function NotificationSettings() {
     updateSettings(
       {
         pushNotifications: data.inAppNotifications,
-        whatsappAppointmentReminders: data.whatsappNotifications,
-        whatsappFollowUpMessages: data.whatsappNotifications,
-        whatsappBirthdayWishes: data.whatsappNotifications,
-        whatsappMedicineReminders: data.whatsappNotifications,
+        ...(canWhatsApp && data.whatsappNotifications !== undefined
+          ? { whatsappAppointmentReminders: data.whatsappNotifications }
+          : {}),
       },
       {
         onSuccess: () => {
@@ -95,15 +98,27 @@ export function NotificationSettings() {
 
   if (isLoading) {
     return (
-      <div className="flex justify-center p-8">
-        <Loader2 className="h-6 w-6 animate-spin text-muted-foreground" />
-      </div>
+      <Card
+        role="status"
+        aria-live="polite"
+        aria-label="Loading notification settings"
+      >
+        <CardHeader>
+          <Skeleton className="h-6 w-56" />
+          <Skeleton className="mt-2 h-4 w-full max-w-md" />
+        </CardHeader>
+        <CardContent className="space-y-4">
+          <Skeleton className="h-12 w-full rounded-lg" />
+          <Skeleton className="h-12 w-full rounded-lg" />
+          <Skeleton className="h-10 w-32" />
+        </CardContent>
+      </Card>
     );
   }
 
   return (
     <div className="space-y-6">
-      <Card >
+      <Card>
         <CardHeader>
           <div className="flex items-center gap-3">
             <Bell className="h-5 w-5 text-warning" />
@@ -122,31 +137,53 @@ export function NotificationSettings() {
               noValidate
               className="space-y-6"
             >
-              <FormField
-                control={form.control}
-                name="whatsappNotifications"
-                render={({ field }) => (
-                  <FormItem className="flex items-center justify-between space-y-0 p-2">
-                    <div className="flex items-center gap-3">
-                      <Smartphone className="h-4 w-4 text-muted-foreground" />
-                      <div className="space-y-1">
-                        <Label className="text-base">
-                          WhatsApp Notifications
-                        </Label>
-                        <CardDescription>
-                          Receive WhatsApp updates and reminders
-                        </CardDescription>
+              {canWhatsApp ? (
+                <FormField
+                  control={form.control}
+                  name="whatsappNotifications"
+                  render={({ field }) => (
+                    <FormItem className="flex items-center justify-between space-y-0 p-2">
+                      <div className="flex items-center gap-3">
+                        <Smartphone className="h-4 w-4 text-muted-foreground" />
+                        <div className="space-y-1">
+                          <Label className="text-base">
+                            WhatsApp Notifications
+                          </Label>
+                          <CardDescription>
+                            Receive WhatsApp updates and reminders
+                          </CardDescription>
+                        </div>
                       </div>
-                    </div>
-                    <FormControl>
-                      <Switch
-                        checked={field.value}
-                        onCheckedChange={field.onChange}
-                      />
-                    </FormControl>
-                  </FormItem>
-                )}
-              />
+                      <FormControl>
+                        <Switch
+                          checked={field.value ?? true}
+                          onCheckedChange={field.onChange}
+                        />
+                      </FormControl>
+                    </FormItem>
+                  )}
+                />
+              ) : (
+                <div className="rounded-lg border border-border/80 bg-muted/30 p-4 space-y-2">
+                  <div className="flex items-center gap-2">
+                    <Smartphone className="h-4 w-4 text-muted-foreground" />
+                    <span className="text-sm font-medium text-foreground">
+                      WhatsApp notifications
+                    </span>
+                  </div>
+                  <p className="text-sm text-muted-foreground">
+                    WhatsApp messaging is available on Essential and higher plans.
+                    Upgrade to enable automated WhatsApp reminders from this
+                    workspace.
+                  </p>
+                  <Link
+                    href={SUBSCRIPTION_SETTINGS_PATH}
+                    className="text-sm font-medium text-primary underline-offset-4 hover:underline"
+                  >
+                    View plans and billing
+                  </Link>
+                </div>
+              )}
 
               <FormField
                 control={form.control}
@@ -175,7 +212,7 @@ export function NotificationSettings() {
               />
 
               <Button className="w-full" type="submit" disabled={isSaving}>
-                {isSaving && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+                {isSaving && <DocitaLoadingIndicator variant="inline" decorative className="mr-2" />}
                 Save Preferences
               </Button>
             </form>

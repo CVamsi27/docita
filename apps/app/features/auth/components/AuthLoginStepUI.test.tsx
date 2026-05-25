@@ -1,4 +1,5 @@
-import { render, screen } from "@testing-library/react";
+import { screen } from "@testing-library/react";
+import { render } from "@/test-utils/render-with-tooltip";
 import { describe, expect, it } from "vitest";
 import { AuthLoginStepUI } from "./AuthLoginStepUI";
 

@@ -7,6 +7,12 @@ import {
 } from '@/domains/payments/core/ports';
 import { PaymentLinkStatus } from '@/domains/payments/core/entities/payment-link-status.enum';
 
+/**
+ * Razorpay Payment Links using **Docita env** credentials (platform keys).
+ * Intended for **Docita SaaS** billing links. Flow B may also use Razorpay,
+ * but only with **clinic** keys from payment settings (Flow A), via a
+ * separate clinic-scoped adapter — see docs/product/PAYMENT_FLOWS.md.
+ */
 @Injectable()
 export class RazorpayPaymentLinkAdapter
   extends BaseRazorpayAdapter
@@ -20,29 +26,31 @@ export class RazorpayPaymentLinkAdapter
     try {
       const razorpay = this.getClient();
 
-      const link = await razorpay.paymentLink.create({
-        amount: Math.round(request.amount.toCents()),
-        currency: request.amount.currency,
-        description: request.description,
-        customer: {
-          name: request.customer.name,
-          email: request.customer.email,
-          contact: request.customer.phone,
-        },
-        notify: {
-          sms: false,
-          email: false,
-        },
-        reminder_enable: false,
-        callback_url: request.callbackUrl,
-        callback_method: 'get',
-        ...(request.expiresAt && {
-          expire_by: Math.floor(request.expiresAt.getTime() / 1000),
+      const link = await this.withRazorpayTimeout(() =>
+        razorpay.paymentLink.create({
+          amount: Math.round(request.amount.toCents()),
+          currency: request.amount.currency,
+          description: request.description,
+          customer: {
+            name: request.customer.name,
+            email: request.customer.email,
+            contact: request.customer.phone,
+          },
+          notify: {
+            sms: false,
+            email: false,
+          },
+          reminder_enable: false,
+          callback_url: request.callbackUrl,
+          callback_method: 'get',
+          ...(request.expiresAt && {
+            expire_by: Math.floor(request.expiresAt.getTime() / 1000),
+          }),
+          ...(request.metadata && {
+            notes: request.metadata,
+          }),
         }),
-        ...(request.metadata && {
-          notes: request.metadata,
-        }),
-      });
+      );
 
       return {
         id: link.id,
@@ -60,7 +68,9 @@ export class RazorpayPaymentLinkAdapter
   async getPaymentLink(linkId: string): Promise<PaymentLinkResponse | null> {
     try {
       const razorpay = this.getClient();
-      const link = await razorpay.paymentLink.fetch(linkId);
+      const link = await this.withRazorpayTimeout(() =>
+        razorpay.paymentLink.fetch(linkId),
+      );
 
       return {
         id: link.id,
@@ -77,7 +87,7 @@ export class RazorpayPaymentLinkAdapter
   async cancelPaymentLink(linkId: string): Promise<void> {
     try {
       const razorpay = this.getClient();
-      await razorpay.paymentLink.cancel(linkId);
+      await this.withRazorpayTimeout(() => razorpay.paymentLink.cancel(linkId));
     } catch (error) {
       this.logger.error(`Failed to cancel payment link ${linkId}`, error);
       throw new BadRequestException('Failed to cancel payment link');

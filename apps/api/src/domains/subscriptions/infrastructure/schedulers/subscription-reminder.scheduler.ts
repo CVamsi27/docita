@@ -1,39 +1,40 @@
-import { Injectable, Logger } from '@nestjs/common';
-import { Cron, CronExpression } from '@nestjs/schedule';
+import { Inject, Injectable, Logger } from '@nestjs/common';
+import { CLOCK_PORT, type IClock } from '@/shared/common/ports/clock.port';
+import { Cron } from '@nestjs/schedule';
 import { NotifyExpiringSubscriptionsUseCase } from '@/domains/subscriptions/application/use-cases/notify-expiring-subscriptions.use-case';
-import { ExpireSubscriptionUseCase } from '@/domains/subscriptions/application/use-cases/expire-subscription.use-case';
+import { NotifySubscriptionGraceDeadlineUseCase } from '@/domains/subscriptions/application/use-cases/notify-subscription-grace-deadline.use-case';
 import { EnterGracePeriodUseCase } from '@/domains/subscriptions/application/use-cases/enter-grace-period.use-case';
+import { ExpireSubscriptionUseCase } from '@/domains/subscriptions/application/use-cases/expire-subscription.use-case';
 import { PrismaService } from '@/prisma/prisma.service';
-import { BillingCycle, ClinicTier, SubscriptionStatus } from '@workspace/db';
-import { TIER_LIMITS } from '@workspace/types';
+import { SubscriptionStatus } from '@workspace/db';
 import { isCronDisabledInThisProcess } from '@/shared/schedule/cron-env';
+import { CRON_SCHEDULES } from '@/shared/schedule/cron-schedules';
 import { AdminAlertsService } from '@/shared/modules/messaging/admin-alerts/admin-alerts.service';
+import { addUtcCalendarDays } from '@/shared/schedule/scheduler-date.util';
+import { isRecord } from '@workspace/utils';
 
 @Injectable()
 export class SubscriptionReminderScheduler {
   private readonly logger = new Logger(SubscriptionReminderScheduler.name);
   private databaseAccessDisabled = false;
-  private readonly starterFallbackPeriodDays = 365;
-
   constructor(
     private readonly notifyUseCase: NotifyExpiringSubscriptionsUseCase,
-    private readonly expireUseCase: ExpireSubscriptionUseCase,
+    private readonly notifyGraceDeadlineUseCase: NotifySubscriptionGraceDeadlineUseCase,
     private readonly graceUseCase: EnterGracePeriodUseCase,
+    private readonly expireSubscriptionUseCase: ExpireSubscriptionUseCase,
     private readonly prisma: PrismaService,
     private readonly adminAlerts: AdminAlertsService,
+    @Inject(CLOCK_PORT) private readonly clock: IClock,
   ) {}
 
   private isDatabaseAuthError(error: unknown): boolean {
-    if (!error || typeof error !== 'object') {
+    if (!isRecord(error)) {
       return false;
     }
 
-    const candidate = error as { code?: unknown; message?: unknown };
-    const code = typeof candidate.code === 'string' ? candidate.code : '';
+    const code = typeof error.code === 'string' ? error.code : '';
     const message =
-      typeof candidate.message === 'string'
-        ? candidate.message.toLowerCase()
-        : '';
+      typeof error.message === 'string' ? error.message.toLowerCase() : '';
 
     if (code === 'P1000') {
       return true;
@@ -55,12 +56,14 @@ export class SubscriptionReminderScheduler {
     let serializedError = String(error);
     try {
       serializedError = JSON.stringify(error);
-    } catch {}
+    } catch {
+      serializedError = '[unserializable error]';
+    }
 
     this.logger.error(`${message}: ${serializedError}`);
   }
 
-  @Cron(CronExpression.EVERY_DAY_AT_9AM, {
+  @Cron(CRON_SCHEDULES.SUBSCRIPTION_REMINDER_DAILY, {
     disabled: isCronDisabledInThisProcess(),
   })
   async handleReminders() {
@@ -69,29 +72,40 @@ export class SubscriptionReminderScheduler {
     }
 
     this.logger.debug('Running subscription reminder cron');
-    const now = new Date();
+    const now = this.clock.now();
 
     const schedules = [
+      { days: 14, type: 'expiry_14d' },
+      { days: 10, type: 'expiry_10d' },
       { days: 7, type: 'expiry_7d' },
       { days: 3, type: 'expiry_3d' },
       { days: 1, type: 'expiry_1d' },
+      { days: 0, type: 'expiry_0d' },
     ];
 
     try {
-      const results: Array<
-        Awaited<ReturnType<NotifyExpiringSubscriptionsUseCase['execute']>>
-      > = [];
-      await this.prisma.runUnrestricted(async () => {
-        for (const schedule of schedules) {
-          const targetDate = new Date(now);
-          targetDate.setDate(targetDate.getDate() + schedule.days);
-          const result = await this.notifyUseCase.execute({
-            targetDate,
-            reminderType: schedule.type,
-          });
-          results.push(result);
-        }
-      });
+      // RLS-BYPASS: subscription scheduler runs system-wide without request tenant
+      const settled = await this.prisma.runUnrestricted(async () =>
+        Promise.allSettled(
+          schedules.map((schedule) =>
+            this.notifyUseCase.execute({
+              targetDate: addUtcCalendarDays(now, schedule.days),
+              reminderType: schedule.type,
+            }),
+          ),
+        ),
+      );
+
+      const scheduleFailures = settled.filter((r) => r.status === 'rejected');
+      if (scheduleFailures.length > 0) {
+        this.logger.warn(
+          `${scheduleFailures.length} subscription expiry reminder batch(es) failed`,
+        );
+      }
+
+      const results = settled
+        .filter((r) => r.status === 'fulfilled')
+        .map((r) => r.value);
 
       const attempted = results.reduce((sum, r) => sum + r.attemptedClinics, 0);
       const sent = results.reduce((sum, r) => sum + r.sent, 0);
@@ -116,6 +130,32 @@ export class SubscriptionReminderScheduler {
           dedupeWindowMs: 12 * 60 * 60 * 1000,
         });
       }
+
+      const graceSchedules = [
+        { offsetDays: 7, type: 'grace_deadline_7d' },
+        { offsetDays: 3, type: 'grace_deadline_3d' },
+        { offsetDays: 1, type: 'grace_deadline_1d' },
+        { offsetDays: 0, type: 'grace_deadline_today' },
+      ];
+      // RLS-BYPASS: subscription scheduler runs system-wide without request tenant
+      await this.prisma.runUnrestricted(async () => {
+        const graceResults = await Promise.allSettled(
+          graceSchedules.map((schedule) =>
+            this.notifyGraceDeadlineUseCase.execute({
+              targetDate: addUtcCalendarDays(now, schedule.offsetDays),
+              reminderType: schedule.type,
+            }),
+          ),
+        );
+        const graceFailures = graceResults.filter(
+          (r) => r.status === 'rejected',
+        );
+        if (graceFailures.length > 0) {
+          this.logger.warn(
+            `${graceFailures.length} grace-deadline reminder batch(es) failed`,
+          );
+        }
+      });
     } catch (error) {
       if (this.isDatabaseAuthError(error)) {
         this.databaseAccessDisabled = true;
@@ -129,7 +169,7 @@ export class SubscriptionReminderScheduler {
     }
   }
 
-  @Cron(CronExpression.EVERY_HOUR, {
+  @Cron(CRON_SCHEDULES.SUBSCRIPTION_REMINDER_HOURLY, {
     disabled: isCronDisabledInThisProcess(),
   })
   async handleLapsedSubscriptions() {
@@ -138,9 +178,10 @@ export class SubscriptionReminderScheduler {
     }
 
     this.logger.debug('Checking for lapsed subscriptions');
-    const now = new Date();
+    const now = this.clock.now();
 
     try {
+      // RLS-BYPASS: subscription scheduler runs system-wide without request tenant
       await this.prisma.runUnrestricted(async () => {
         const expiredTrials = await this.prisma.subscription.findMany({
           where: {
@@ -149,49 +190,24 @@ export class SubscriptionReminderScheduler {
           },
           select: {
             id: true,
-            clinicId: true,
           },
         });
 
-        for (const trial of expiredTrials) {
-          const periodStart = new Date();
-          const periodEnd = new Date(
-            periodStart.getTime() +
-              this.starterFallbackPeriodDays * 24 * 60 * 60 * 1000,
+        const trialResults = await Promise.allSettled(
+          expiredTrials.map((trial) => this.graceUseCase.execute(trial.id)),
+        );
+        const trialFailures = trialResults.filter(
+          (r) => r.status === 'rejected',
+        );
+        if (trialFailures.length > 0) {
+          this.logger.warn(
+            `${trialFailures.length} expired trial grace transition(s) failed`,
           );
-
-          await this.prisma.subscription.update({
-            where: { id: trial.id },
-            data: {
-              plan: ClinicTier.STARTER,
-              billingCycle: BillingCycle.MONTHLY,
-              basePriceCents: 0,
-              status: SubscriptionStatus.ACTIVE,
-              currentPeriodStart: periodStart,
-              currentPeriodEnd: periodEnd,
-              trialEnd: null,
-              includedPatients: TIER_LIMITS.STARTER.patients,
-              includedAppointments: TIER_LIMITS.STARTER.appointments,
-              includedStorageGB: TIER_LIMITS.STARTER.storageGB,
-              includedUsers: TIER_LIMITS.STARTER.users,
-              cancelAtPeriodEnd: false,
-              cancelledAt: null,
-            },
-          });
-
-          await this.prisma.clinic.update({
-            where: { id: trial.clinicId },
-            data: {
-              tier: ClinicTier.STARTER,
-              subscriptionStatus: SubscriptionStatus.ACTIVE,
-              trialEndsAt: null,
-            },
-          });
         }
 
         if (expiredTrials.length > 0) {
           this.logger.log(
-            `Converted ${expiredTrials.length} expired trial subscription(s) to STARTER`,
+            `Moved ${expiredTrials.length} expired trial subscription(s) into grace (payment required)`,
           );
         }
 
@@ -200,23 +216,49 @@ export class SubscriptionReminderScheduler {
             currentPeriodEnd: { lt: now },
             status: { in: ['ACTIVE', 'PAST_DUE'] },
           },
+          select: { id: true },
         });
 
-        for (const sub of lapsed) {
-          await this.graceUseCase.execute(sub.id);
+        const lapsedResults = await Promise.allSettled(
+          lapsed.map((sub) => this.graceUseCase.execute(sub.id)),
+        );
+        const lapsedFailures = lapsedResults.filter(
+          (r) => r.status === 'rejected',
+        );
+        if (lapsedFailures.length > 0) {
+          this.logger.warn(
+            `${lapsedFailures.length} lapsed subscription grace transition(s) failed`,
+          );
         }
 
-        const graceExpired = await this.prisma.subscription.findMany({
+        const pastGraceDeadline = await this.prisma.subscription.findMany({
           where: {
-            currentPeriodEnd: {
-              lt: new Date(now.getTime() - 3 * 24 * 60 * 60 * 1000),
+            status: {
+              in: [SubscriptionStatus.GRACE, SubscriptionStatus.PAST_DUE],
             },
-            status: 'GRACE',
+            graceUntil: { not: null, lt: now },
           },
+          select: { id: true },
         });
 
-        for (const sub of graceExpired) {
-          await this.expireUseCase.execute(sub.id);
+        const expireResults = await Promise.allSettled(
+          pastGraceDeadline.map((sub) =>
+            this.expireSubscriptionUseCase.execute(sub.id),
+          ),
+        );
+        const expireFailures = expireResults.filter(
+          (r) => r.status === 'rejected',
+        );
+        if (expireFailures.length > 0) {
+          this.logger.warn(
+            `${expireFailures.length} post-grace subscription expiry(ies) failed`,
+          );
+        }
+
+        if (pastGraceDeadline.length > 0) {
+          this.logger.log(
+            `Expired ${pastGraceDeadline.length} subscription(s) after grace deadline (workspace billing lockout)`,
+          );
         }
       });
     } catch (error) {

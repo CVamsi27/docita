@@ -1,7 +1,10 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import { NotFoundException } from '@nestjs/common';
 import { QueueService } from './queue.service';
+import { QueueCommandService } from './queue-command.service';
+import { QueueQueryService } from './queue-query.service';
 import { QUEUE_REPOSITORY_TOKEN } from '@/domains/appointments/core/repositories/queue.repository.interface';
+import { CLOCK_PORT } from '@/shared/common/ports/clock.port';
 import { beforeEach, describe, it, expect, jest } from '@jest/globals';
 
 describe('QueueService', () => {
@@ -73,8 +76,14 @@ describe('QueueService', () => {
 
     const module: TestingModule = await Test.createTestingModule({
       providers: [
+        QueueCommandService,
+        QueueQueryService,
         QueueService,
         { provide: QUEUE_REPOSITORY_TOKEN, useValue: queueRepository },
+        {
+          provide: CLOCK_PORT,
+          useValue: { now: () => new Date('2026-04-01T12:00:00.000Z') },
+        },
       ],
     }).compile();
 
@@ -93,12 +102,25 @@ describe('QueueService', () => {
         expect.any(Date),
         undefined,
         ['WAITING', 'IN_PROGRESS'],
+        undefined,
       );
       expect(result).toHaveLength(1);
     });
 
     it('filters results by search term', async () => {
-      queueRepository.findTodayTokens.mockResolvedValue([mockToken]);
+      queueRepository.findTodayTokens.mockImplementation(
+        async (
+          _clinicId: unknown,
+          _from: unknown,
+          _to: unknown,
+          _doctorId: unknown,
+          _statusIn: unknown,
+          search: unknown,
+        ) => {
+          if (search === 'John') return [mockToken];
+          return [];
+        },
+      );
 
       const result = await service.getQueue('clinic-1', undefined, 'John');
       expect(result).toHaveLength(1);

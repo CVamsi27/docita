@@ -5,8 +5,8 @@ import {
   CardDescription,
   CardHeader,
   CardTitle,
-} from "@workspace/ui/components/card";
-import { EmptyState, LoadingState } from "@workspace/ui/components/empty-state";
+} from "@workspace/ui/components/indicators/card";
+import { EmptyState, LoadingState } from "@workspace/ui/components/feedback/empty-state";
 import {
   Table,
   TableBody,
@@ -14,11 +14,11 @@ import {
   TableHead,
   TableHeader,
   TableRow,
-} from "@workspace/ui/components/table";
+} from "@workspace/ui/components/data-display/table";
 import { FlaskConical } from "lucide-react";
 
 import { LabTest } from "@workspace/types";
-import { DEFAULT_CURRENCY } from "@workspace/utils";
+import { useClinicCurrency } from "@/hooks/use-clinic-currency";
 
 interface LabTestsCatalogProps {
   testCatalog: LabTest[];
@@ -29,6 +29,8 @@ export const LabTestsCatalog: FC<LabTestsCatalogProps> = ({
   testCatalog,
   isLoading,
 }) => {
+  const { formatCurrency } = useClinicCurrency();
+
   return (
     <Card>
       <CardHeader>
@@ -37,9 +39,9 @@ export const LabTestsCatalog: FC<LabTestsCatalogProps> = ({
       </CardHeader>
       <CardContent>
         {isLoading ? (
-          <LoadingState message="Loading catalog..." />
+          <LoadingState message="Loading catalog…" />
         ) : (
-          <div className="overflow-x-auto">
+          <div className="overflow-x-hidden">
             <Table>
               <TableHeader>
                 <TableRow>
@@ -68,11 +70,7 @@ export const LabTestsCatalog: FC<LabTestsCatalogProps> = ({
                     </TableCell>
                     <TableCell className="py-3 px-4">
                       {test.price
-                        ? new Intl.NumberFormat("en-IN", {
-                            style: "currency",
-                            currency: DEFAULT_CURRENCY,
-                            maximumFractionDigits: 0,
-                          }).format(test.price)
+                        ? formatCurrency(test.price, { fractionDigits: 0 })
                         : "-"}
                     </TableCell>
                   </TableRow>

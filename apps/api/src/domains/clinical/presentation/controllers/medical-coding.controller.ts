@@ -17,9 +17,15 @@ import {
   medicalCodingSettingsSchema,
   type MedicalCodingSettings,
 } from '@/domains/clinical/application/services/clinical-settings.service';
-import type { IcdCode, CptCode, DoctorFavoriteCode } from '@workspace/types';
+import {
+  doctorFavoriteCodeSchema,
+  type IcdCode,
+  type CptCode,
+  type DoctorFavoriteCode,
+} from '@workspace/types';
 import type { Appointment } from '@workspace/db';
 import { TierGuard } from '@/shared/modules/auth/auth/tier.guard';
+import { FrontDeskClinicalBlockGuard } from '@/shared/modules/clinic-workspace/front-desk-clinical-block.guard';
 import { Roles } from '@/shared/modules/auth/auth/roles.decorator';
 import { RequireFeature } from '@/shared/modules/auth/auth/tier.decorator';
 import { APP_ACCESS_TARGETS } from '@workspace/types';
@@ -27,15 +33,12 @@ import {
   getDbRolesForTarget,
   requireFeatureForTarget,
 } from '@/shared/modules/auth/auth/access-matrix.util';
-import { RequestWithUser } from '@/common/types/common.types';
-import {
-  requireClinicId,
-  requireUserId,
-} from '@/common/utils/request-context.utils';
-import { ZodValidationPipe } from '@/common/pipes/zod-validation.pipe';
+import { RequestWithUser } from '@/shared/common/types/common.types';
+import { getClinicStaffRequestContext } from '@/shared/modules/auth/auth/clinic-request-context';
+import { ZodValidationPipe } from '@/shared/common/pipes/zod-validation.pipe';
 
 @Controller('clinical/medical-coding')
-@UseGuards(TierGuard)
+@UseGuards(TierGuard, FrontDeskClinicalBlockGuard)
 @RequireFeature(requireFeatureForTarget(APP_ACCESS_TARGETS.API_MEDICAL_CODING))
 @Roles(...getDbRolesForTarget(APP_ACCESS_TARGETS.API_MEDICAL_CODING))
 export class MedicalCodingController {
@@ -46,23 +49,21 @@ export class MedicalCodingController {
 
   @Get('icd/search')
   async searchIcd(@Query('q') query: string): Promise<IcdCode[]> {
-    return (await this.clinicalService.searchIcdCodes(query)) as IcdCode[];
+    return this.clinicalService.searchIcdCodes(query);
   }
 
   @Get('icd/favorites')
   async getFavorites(
     @Request() req: RequestWithUser,
   ): Promise<(IcdCode | null)[]> {
-    return (await this.clinicalService.getFavorites(
-      requireUserId(req),
-    )) as (IcdCode | null)[];
+    return this.clinicalService.getFavorites(
+      getClinicStaffRequestContext(req).userId,
+    );
   }
 
   @Get('icd/common')
   async getCommonIcdCodes(@Query('limit') limit?: string): Promise<IcdCode[]> {
-    return (await this.clinicalService.getCommonIcdCodes(
-      limit ? Number(limit) : 50,
-    )) as IcdCode[];
+    return this.clinicalService.getCommonIcdCodes(limit ? Number(limit) : 50);
   }
 
   @Post('icd/favorites')
@@ -72,12 +73,14 @@ export class MedicalCodingController {
     @Body('description') description: string,
     @Body('category') category: string,
   ): Promise<DoctorFavoriteCode> {
-    return (await this.clinicalService.addFavorite(
-      requireUserId(req),
-      code,
-      description,
-      category,
-    )) as DoctorFavoriteCode;
+    return doctorFavoriteCodeSchema.parse(
+      await this.clinicalService.addFavorite(
+        getClinicStaffRequestContext(req).userId,
+        code,
+        description,
+        category,
+      ),
+    );
   }
 
   @Delete('icd/favorites/:icdCodeId')
@@ -86,30 +89,28 @@ export class MedicalCodingController {
     @Param('icdCodeId') icdCodeId: string,
   ): Promise<void> {
     return await this.clinicalService.removeFavorite(
-      requireUserId(req),
+      getClinicStaffRequestContext(req).userId,
       icdCodeId,
     );
   }
 
   @Get('cpt/search')
   async searchCpt(@Query('q') query: string): Promise<CptCode[]> {
-    return (await this.clinicalService.searchCptCodes(query)) as CptCode[];
+    return this.clinicalService.searchCptCodes(query);
   }
 
   @Get('cpt/favorites')
   async getCptFavorites(
     @Request() req: RequestWithUser,
   ): Promise<(CptCode | null)[]> {
-    return (await this.clinicalService.getCptFavorites(
-      requireUserId(req),
-    )) as (CptCode | null)[];
+    return this.clinicalService.getCptFavorites(
+      getClinicStaffRequestContext(req).userId,
+    );
   }
 
   @Get('cpt/common')
   async getCommonCptCodes(@Query('limit') limit?: string): Promise<CptCode[]> {
-    return (await this.clinicalService.getCommonCptCodes(
-      limit ? Number(limit) : 50,
-    )) as CptCode[];
+    return this.clinicalService.getCommonCptCodes(limit ? Number(limit) : 50);
   }
 
   @Post('cpt/favorites')
@@ -119,12 +120,14 @@ export class MedicalCodingController {
     @Body('description') description: string,
     @Body('category') category: string,
   ): Promise<DoctorFavoriteCode> {
-    return (await this.clinicalService.addCptFavorite(
-      requireUserId(req),
-      code,
-      description,
-      category,
-    )) as DoctorFavoriteCode;
+    return doctorFavoriteCodeSchema.parse(
+      await this.clinicalService.addCptFavorite(
+        getClinicStaffRequestContext(req).userId,
+        code,
+        description,
+        category,
+      ),
+    );
   }
 
   @Delete('cpt/favorites/:cptCodeId')
@@ -133,7 +136,7 @@ export class MedicalCodingController {
     @Param('cptCodeId') cptCodeId: string,
   ): Promise<void> {
     return await this.clinicalService.removeCptFavorite(
-      requireUserId(req),
+      getClinicStaffRequestContext(req).userId,
       cptCodeId,
     );
   }
@@ -144,14 +147,16 @@ export class MedicalCodingController {
     @Query('search') search?: string,
   ): Promise<Appointment[]> {
     return await this.clinicalService.getUncodedVisits(
-      requireClinicId(req),
+      getClinicStaffRequestContext(req).clinicId,
       search,
     );
   }
 
   @Get('settings')
   async getCodingSettings(@Request() req: RequestWithUser) {
-    return this.settingsService.getMedicalCodingSettings(requireClinicId(req));
+    return this.settingsService.getMedicalCodingSettings(
+      getClinicStaffRequestContext(req).clinicId,
+    );
   }
 
   @Put('settings')
@@ -161,7 +166,7 @@ export class MedicalCodingController {
     @Body() body: MedicalCodingSettings,
   ) {
     return this.settingsService.updateMedicalCodingSettings(
-      requireClinicId(req),
+      getClinicStaffRequestContext(req).clinicId,
       body,
     );
   }

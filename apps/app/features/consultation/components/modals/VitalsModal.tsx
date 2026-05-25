@@ -6,15 +6,15 @@ import {
   DialogFooter,
   DialogHeader,
   DialogTitle,
-} from "@workspace/ui/components/dialog";
-import { Button } from "@workspace/ui/components/button";
-import { Input } from "@workspace/ui/components/input";
-import { Label } from "@workspace/ui/components/label";
+} from "@workspace/ui/components/overlay/dialog";
+import { Button } from "@workspace/ui/components/form/button";
+import { Input } from "@workspace/ui/components/form/input";
+import { Label } from "@workspace/ui/components/form/label";
 import { toast } from "sonner";
-import { useSaveVitals } from "@/hooks/api/use-clinical";
+import { useSaveVitals } from "@workspace/data-access";
 import { HeartPulse } from "lucide-react";
 import { ModalProps } from "./PrescriptionModal";
-import { showUserFacingErrorToast } from "@/lib/user-facing-errors";
+import { showUserFacingErrorToast } from "@/lib/errors/user-facing-errors";
 
 export interface VitalsFormData {
   height: string;
@@ -114,7 +114,7 @@ export function VitalsModal({
               type="number"
               value={vitals.height}
               onChange={(e) => updateVital("height", e.target.value)}
-              placeholder="e.g. 175"
+              placeholder="Height"
             />
           </div>
           <div className="space-y-2">
@@ -123,7 +123,7 @@ export function VitalsModal({
               type="number"
               value={vitals.weight}
               onChange={(e) => updateVital("weight", e.target.value)}
-              placeholder="e.g. 70"
+              placeholder="Weight"
             />
           </div>
 
@@ -133,7 +133,7 @@ export function VitalsModal({
               type="number"
               value={vitals.systolicBP}
               onChange={(e) => updateVital("systolicBP", e.target.value)}
-              placeholder="e.g. 120"
+              placeholder="Systolic BP"
             />
           </div>
           <div className="space-y-2">
@@ -142,7 +142,7 @@ export function VitalsModal({
               type="number"
               value={vitals.diastolicBP}
               onChange={(e) => updateVital("diastolicBP", e.target.value)}
-              placeholder="e.g. 80"
+              placeholder="Diastolic BP"
             />
           </div>
 
@@ -152,7 +152,7 @@ export function VitalsModal({
               type="number"
               value={vitals.pulse}
               onChange={(e) => updateVital("pulse", e.target.value)}
-              placeholder="e.g. 72"
+              placeholder="Pulse"
             />
           </div>
           <div className="space-y-2">
@@ -161,7 +161,7 @@ export function VitalsModal({
               type="number"
               value={vitals.temperature}
               onChange={(e) => updateVital("temperature", e.target.value)}
-              placeholder="e.g. 37.0"
+              placeholder="Temperature"
               step="0.1"
             />
           </div>
@@ -172,7 +172,7 @@ export function VitalsModal({
               type="number"
               value={vitals.spo2}
               onChange={(e) => updateVital("spo2", e.target.value)}
-              placeholder="e.g. 98"
+              placeholder="SpO2"
             />
           </div>
           <div className="space-y-2">
@@ -181,7 +181,7 @@ export function VitalsModal({
               type="number"
               value={vitals.respiratoryRate}
               onChange={(e) => updateVital("respiratoryRate", e.target.value)}
-              placeholder="e.g. 16"
+              placeholder="Respiratory rate"
             />
           </div>
         </div>
@@ -191,7 +191,7 @@ export function VitalsModal({
             Cancel
           </Button>
           <Button onClick={handleSave} disabled={recordVitals.isPending}>
-            {recordVitals.isPending ? "Saving..." : "Save Vitals"}
+            {recordVitals.isPending ? "Saving…" : "Save Vitals"}
           </Button>
         </DialogFooter>
       </DialogContent>

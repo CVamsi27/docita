@@ -10,15 +10,17 @@ import {
   LucideIcon,
   MessageSquare,
   Package,
+  Paintbrush,
   Receipt,
   ScanLine,
   Shield,
+  Sparkles,
   Ticket,
   Upload,
   Users,
   Zap,
 } from "lucide-react";
-import { Feature, FEATURE_DISPLAY } from "@/lib/tier-config";
+import { Feature, FEATURE_DISPLAY } from "@/lib/subscription/tier-access";
 
 export const FEATURE_ICONS: Record<Feature, LucideIcon> = {
 
@@ -75,6 +77,11 @@ export const FEATURE_ICONS: Record<Feature, LucideIcon> = {
 
   [Feature.LEAVE_MANAGEMENT]: CalendarOff,
   [Feature.WHATSAPP_MESSAGING]: MessageSquare,
+  [Feature.WHATSAPP_OWN_NUMBER]: MessageSquare,
+  [Feature.WHATSAPP_MANAGED_NUMBER]: MessageSquare,
+  [Feature.DEDICATED_DEPLOYMENT]: Building2,
+  [Feature.WHITE_LABEL_BRANDING]: Sparkles,
+  [Feature.LOCKED_CUSTOM_THEME]: Paintbrush,
 };
 
 export function getFeatureDetails(feature: Feature) {

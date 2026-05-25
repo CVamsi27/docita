@@ -1,5 +1,5 @@
-import { createAPIClient } from "@/lib/client-factory";
-import type { APIClient, APIClientConfig } from "@/lib/types";
+import { createAPIClient } from "./client-factory";
+import type { APIClient, APIClientConfig } from "./types";
 
 let defaultClient: APIClient | null = null;
 

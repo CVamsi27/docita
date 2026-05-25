@@ -1,31 +1,34 @@
 import { Injectable, Inject } from '@nestjs/common';
 import { Prisma } from '@workspace/db';
-import { TimeUtils } from '@/common/utils/time.utils';
+import { fromLocalISOString } from '@workspace/utils';
+import {
+  DOCTOR_PERSISTENCE_PORT,
+  type DoctorPersistencePort,
+} from '@/domains/doctors/application/ports/doctor-persistence.port';
 import {
   IDoctorScheduleRepository,
   DOCTOR_SCHEDULE_REPOSITORY_TOKEN,
 } from '@/domains/doctors/core/repositories/doctor-schedule.repository.interface';
 import {
-  IAppointmentRepository,
-  APPOINTMENT_REPOSITORY_TOKEN,
-} from '@/domains/appointments/core/repositories/appointment.repository.interface';
+  SLOT_APPOINTMENT_LOOKUP_TOKEN,
+  type ISlotAppointmentLookup,
+} from '@/domains/doctors/application/ports/slot-appointment-lookup.port';
+import type { PublicBookingSlotListEmptyReason } from '@workspace/types';
+import {
+  type AvailableSlot,
+  normalizeCalendarDateInput,
+  addOneCalendarDay,
+  getDayOfWeekInClinicZone,
+  implicitClinicWeeklyRowsForSlotFallback,
+  generateSlotsForSchedule,
+  sortSlots,
+} from './slot-generation-helpers';
+import { CLOCK_PORT, type IClock } from '@/shared/common/ports/clock.port';
 
-type DayOfWeek =
-  | 'SUNDAY'
-  | 'MONDAY'
-  | 'TUESDAY'
-  | 'WEDNESDAY'
-  | 'THURSDAY'
-  | 'FRIDAY'
-  | 'SATURDAY';
-
-interface AvailableSlot {
-  time: string;
-  endTime: string;
-  doctorId: string;
-  doctorName: string;
-  specialization?: string;
-  isAvailable: boolean;
+interface AvailableSlotsWithMeta {
+  slots: AvailableSlot[];
+  /** When `slots` is empty, why the list is empty (for patient-facing copy). */
+  slotListEmptyReason?: PublicBookingSlotListEmptyReason;
 }
 
 @Injectable()
@@ -33,8 +36,11 @@ export class SlotGenerationService {
   constructor(
     @Inject(DOCTOR_SCHEDULE_REPOSITORY_TOKEN)
     private scheduleRepository: IDoctorScheduleRepository,
-    @Inject(APPOINTMENT_REPOSITORY_TOKEN)
-    private appointmentRepository: IAppointmentRepository,
+    @Inject(SLOT_APPOINTMENT_LOOKUP_TOKEN)
+    private readonly slotAppointmentLookup: ISlotAppointmentLookup,
+    @Inject(DOCTOR_PERSISTENCE_PORT)
+    private readonly persistence: DoctorPersistencePort,
+    @Inject(CLOCK_PORT) private readonly clock: IClock,
   ) {}
 
   async getAvailableSlots(
@@ -42,50 +48,120 @@ export class SlotGenerationService {
     date: Date | string,
     doctorId?: string,
   ): Promise<AvailableSlot[]> {
-    const targetDate = new Date(date);
-    const dayOfWeek = this.getDayOfWeek(targetDate);
+    const { slots } = await this.getAvailableSlotsWithMeta(
+      clinicId,
+      date,
+      doctorId,
+    );
+    return slots;
+  }
+
+  /**
+   * Same slot list as {@link getAvailableSlots}, plus an optional reason when
+   * the list is empty (public booking UX).
+   */
+  async getAvailableSlotsWithMeta(
+    clinicId: string,
+    date: Date | string,
+    doctorId?: string,
+  ): Promise<AvailableSlotsWithMeta> {
+    const timezone = await this.resolveClinicTimezone(clinicId);
+    const dateStr = normalizeCalendarDateInput(date);
+    const dayOfWeek = getDayOfWeekInClinicZone(dateStr, timezone);
 
     const scheduleWhere: Prisma.DoctorScheduleWhereInput = {
       clinicId,
       dayOfWeek,
       isActive: true,
     };
-    if (doctorId) {
-      scheduleWhere.doctorId = doctorId;
-    }
+    if (doctorId) scheduleWhere.doctorId = doctorId;
 
-    const schedules =
+    let schedules =
       await this.scheduleRepository.findSchedulesForSlotGeneration(
         scheduleWhere,
       );
 
-    if (schedules.length === 0) {
-      return [];
+    if (schedules.length === 0 && doctorId) {
+      const [clinicRowsInitial, doctorUser] = await Promise.all([
+        this.scheduleRepository.findClinicWeeklyForSlotGeneration({
+          clinicId,
+          dayOfWeek,
+        }),
+        this.persistence.user.findFirst({
+          where: { id: doctorId, clinicId },
+          select: { name: true, specialization: true },
+        }),
+      ]);
+
+      let clinicRows = clinicRowsInitial;
+      if (
+        clinicRows.length === 0 &&
+        doctorUser &&
+        !(await this.scheduleRepository.hasAnyClinicWeeklySchedule(clinicId))
+      ) {
+        clinicRows = implicitClinicWeeklyRowsForSlotFallback(
+          clinicId,
+          dayOfWeek,
+          this.clock.now(),
+        );
+      }
+
+      if (clinicRows.length > 0 && doctorUser) {
+        const synthetic = clinicRows.map((row) => ({
+          id: row.id,
+          doctorId,
+          clinicId: row.clinicId,
+          dayOfWeek: row.dayOfWeek,
+          startTime: row.startTime,
+          endTime: row.endTime,
+          slotDuration: row.slotDuration,
+          isActive: row.isActive,
+          createdAt: row.createdAt,
+          updatedAt: row.updatedAt,
+          doctor: {
+            id: doctorId,
+            name: doctorUser.name,
+            specialization: doctorUser.specialization
+              ? String(doctorUser.specialization)
+              : null,
+          },
+        }));
+        schedules = synthetic;
+      }
     }
 
-    const doctorIds = [...new Set(schedules.map((s) => s.doctorId))];
+    if (schedules.length === 0)
+      return { slots: [], slotListEmptyReason: 'NO_WEEKLY_HOURS' };
 
-    const { startOfDay, endOfDay } = this.getDayBoundaries(targetDate);
+    const doctorIds = [...new Set(schedules.map((s) => s.doctorId))];
+    const rangeStart = fromLocalISOString(`${dateStr}T00:00`, { timezone });
+    const rangeEndExclusive = fromLocalISOString(
+      `${addOneCalendarDay(dateStr)}T00:00`,
+      { timezone },
+    );
+
+    if (!rangeStart || !rangeEndExclusive)
+      return { slots: [], slotListEmptyReason: 'DATE_PARSE_ERROR' };
 
     const [timeOffs, appointments] = await Promise.all([
       this.scheduleRepository.findTimeOffsForSlots({
         doctorId: { in: doctorIds },
-        startDate: { lte: endOfDay },
-        endDate: { gte: startOfDay },
+        startDate: { lt: rangeEndExclusive },
+        endDate: { gt: rangeStart },
         OR: [{ clinicId }, { clinicId: null }],
       }),
-      this.appointmentRepository.findAppointmentsForSlots(
+      this.slotAppointmentLookup.findAppointmentsForSlots(
         clinicId,
         doctorIds,
-        startOfDay,
-        endOfDay,
+        rangeStart,
+        rangeEndExclusive,
       ),
     ]);
 
     const slots: AvailableSlot[] = [];
+    let fullDayOffScheduleCount = 0;
 
     for (const schedule of schedules) {
-      const doctor = schedule.doctor;
       const doctorTimeOffs = timeOffs.filter(
         (t) => t.doctorId === schedule.doctorId,
       );
@@ -93,161 +169,37 @@ export class SlotGenerationService {
         (a) => a.doctorId === schedule.doctorId,
       );
 
-      const hasFullDayOff = doctorTimeOffs.some((t) => t.isFullDay);
-      if (hasFullDayOff) {
+      if (doctorTimeOffs.some((t) => t.isFullDay)) {
+        fullDayOffScheduleCount += 1;
         continue;
       }
 
-      const scheduleSlots = this.generateSlotsForSchedule(
-        schedule,
-        doctor,
-        targetDate,
-        doctorTimeOffs,
-        doctorAppointments,
+      slots.push(
+        ...generateSlotsForSchedule(
+          schedule,
+          schedule.doctor,
+          dateStr,
+          timezone,
+          doctorTimeOffs,
+          doctorAppointments,
+          this.clock.now(),
+        ),
       );
-
-      slots.push(...scheduleSlots);
     }
 
-    return this.sortSlots(slots);
+    const sorted = sortSlots(slots);
+    if (sorted.length > 0) return { slots: sorted };
+    if (fullDayOffScheduleCount >= schedules.length)
+      return { slots: [], slotListEmptyReason: 'FULL_DAY_BLOCKED' };
+    return { slots: [], slotListEmptyReason: 'NO_SLOTS_IN_RANGE' };
   }
 
-  private generateSlotsForSchedule(
-    schedule: {
-      doctorId: string;
-      startTime: string;
-      endTime: string;
-      slotDuration: number;
-    },
-    doctor: { name: string; specialization: string | null },
-    targetDate: Date,
-    timeOffs: Array<{
-      isFullDay: boolean;
-      startTime: string | null;
-      endTime: string | null;
-    }>,
-    appointments: Array<{ startTime: Date; endTime: Date }>,
-  ): AvailableSlot[] {
-    const slots: AvailableSlot[] = [];
-    let currentMinutes = TimeUtils.timeToMinutes(schedule.startTime);
-    const endMinutes = TimeUtils.timeToMinutes(schedule.endTime);
-
-    while (currentMinutes + schedule.slotDuration <= endMinutes) {
-      const slotStart = TimeUtils.minutesToTime(currentMinutes);
-      const slotEnd = TimeUtils.minutesToTime(
-        currentMinutes + schedule.slotDuration,
-      );
-
-      const isDuringTimeOff = this.isSlotDuringTimeOff(
-        currentMinutes,
-        timeOffs,
-      );
-      const isBooked = this.isSlotBooked(
-        currentMinutes,
-        schedule.slotDuration,
-        targetDate,
-        appointments,
-      );
-      const isPast = this.isSlotInPast(currentMinutes, targetDate);
-
-      slots.push({
-        time: slotStart,
-        endTime: slotEnd,
-        doctorId: schedule.doctorId,
-        doctorName: doctor.name,
-        specialization: doctor.specialization || undefined,
-        isAvailable: !isDuringTimeOff && !isBooked && !isPast,
-      });
-
-      currentMinutes += schedule.slotDuration;
-    }
-
-    return slots;
-  }
-
-  private isSlotDuringTimeOff(
-    currentMinutes: number,
-    timeOffs: Array<{
-      isFullDay: boolean;
-      startTime: string | null;
-      endTime: string | null;
-    }>,
-  ): boolean {
-    return timeOffs.some((t) => {
-      if (t.isFullDay) return true;
-      if (!t.startTime || !t.endTime) return false;
-      const offStart = TimeUtils.timeToMinutes(t.startTime);
-      const offEnd = TimeUtils.timeToMinutes(t.endTime);
-      return currentMinutes >= offStart && currentMinutes < offEnd;
+  private async resolveClinicTimezone(clinicId: string): Promise<string> {
+    const row = await this.persistence.clinic.findUnique({
+      where: { id: clinicId },
+      select: { timezone: true },
     });
-  }
-
-  private isSlotBooked(
-    currentMinutes: number,
-    slotDuration: number,
-    targetDate: Date,
-    appointments: Array<{ startTime: Date; endTime: Date }>,
-  ): boolean {
-    const slotStartDate = new Date(targetDate);
-    slotStartDate.setHours(
-      Math.floor(currentMinutes / 60),
-      currentMinutes % 60,
-      0,
-      0,
-    );
-    const slotEndDate = new Date(targetDate);
-    slotEndDate.setHours(
-      Math.floor((currentMinutes + slotDuration) / 60),
-      (currentMinutes + slotDuration) % 60,
-      0,
-      0,
-    );
-
-    return appointments.some((a) => {
-      const apptStart = new Date(a.startTime);
-      const apptEnd = new Date(a.endTime);
-      return slotStartDate < apptEnd && slotEndDate > apptStart;
-    });
-  }
-
-  private isSlotInPast(currentMinutes: number, targetDate: Date): boolean {
-    const now = new Date();
-    const slotDateTime = new Date(targetDate);
-    slotDateTime.setHours(
-      Math.floor(currentMinutes / 60),
-      currentMinutes % 60,
-      0,
-      0,
-    );
-    return slotDateTime < now;
-  }
-
-  private getDayBoundaries(date: Date): { startOfDay: Date; endOfDay: Date } {
-    const startOfDay = new Date(date);
-    startOfDay.setHours(0, 0, 0, 0);
-    const endOfDay = new Date(date);
-    endOfDay.setHours(23, 59, 59, 999);
-    return { startOfDay, endOfDay };
-  }
-
-  private getDayOfWeek(date: Date): DayOfWeek {
-    const days: DayOfWeek[] = [
-      'SUNDAY',
-      'MONDAY',
-      'TUESDAY',
-      'WEDNESDAY',
-      'THURSDAY',
-      'FRIDAY',
-      'SATURDAY',
-    ];
-    return days[date.getDay()];
-  }
-
-  private sortSlots(slots: AvailableSlot[]): AvailableSlot[] {
-    return slots.sort((a, b) => {
-      const timeCompare = a.time.localeCompare(b.time);
-      if (timeCompare !== 0) return timeCompare;
-      return a.doctorName.localeCompare(b.doctorName);
-    });
+    const tz = row?.timezone?.trim();
+    return tz || 'Asia/Kolkata';
   }
 }

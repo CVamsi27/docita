@@ -2,10 +2,10 @@ import {
   CardDescription,
   CardHeader,
   CardTitle,
-} from "@workspace/ui/components/card";
+} from "@workspace/ui/components/indicators/card";
 import { Clinic, Invoice } from "@workspace/types";
 import Image from "next/image";
-import { useFacilityLabel } from "@/lib/facility-label";
+import { useFacilityLabel } from "@/lib/formatters/facility-label";
 
 interface InvoiceHeaderProps {
   invoice: Invoice;
@@ -24,7 +24,7 @@ export function InvoiceHeader({
       <div className="flex flex-col gap-1">
         <div className="flex items-center gap-3">
           {clinic?.logo ? (
-            <div className="relative h-12 w-12 rounded-xl overflow-hidden border">
+            <div className="relative h-12 w-12 rounded-lg overflow-hidden border">
               <Image
                 src={clinic.logo || ""}
                 alt={clinic.name || `${facilityLabel} Logo`}
@@ -33,7 +33,7 @@ export function InvoiceHeader({
               />
             </div>
           ) : (
-            <div className="h-10 w-10 rounded-xl bg-primary flex items-center justify-center text-primary-foreground font-bold text-lg">
+            <div className="h-10 w-10 rounded-lg bg-primary flex items-center justify-center text-primary-foreground font-bold text-lg">
               {clinic?.name?.charAt(0) || "D"}
             </div>
           )}
@@ -70,7 +70,9 @@ export function InvoiceHeader({
         </CardDescription>
       </div>
       <div className="text-right">
-        <h2 className="text-2xl font-bold text-primary mb-1">INVOICE</h2>
+        <h2 className="ui-section-title mb-1 text-[var(--fs-2xl)] text-primary">
+          INVOICE
+        </h2>
         <p className="text-sm font-medium text-muted-foreground">
           #{invoice.id}
         </p>

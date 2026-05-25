@@ -1,25 +1,14 @@
 ---
 import MainLayout from "@/layouts/main-layout.astro";
-import { PricingSection } from "@/components/pricing-section";
-import { AiAutomationSection } from "@/components/sections/ai-automation-section";
-import { AnalyticsSection } from "@/components/sections/analytics-section";
-import { ClinicSetupSection } from "@/components/sections/clinic-setup-section";
-import { CtaBottomSection } from "@/components/sections/cta-bottom-section";
-import { FaqSection } from "@/components/sections/faq-section";
-import { FeaturesGridSection } from "@/components/sections/features-grid-section";
+import { ClinicRhythmSection } from "@/components/sections/clinic-rhythm-section";
+import { DifferentiatorsSection } from "@/components/sections/differentiators-section";
+import { FaqCtaSection } from "@/components/sections/faq-cta-section";
 import { HeroSection } from "@/components/sections/hero-section";
-import { HowItWorksSection } from "@/components/sections/how-it-works-section";
-import { LabInventorySection } from "@/components/sections/lab-inventory-section";
-import { MigrationSection } from "@/components/sections/migration-section";
-import { MedicalCodingSection } from "@/components/sections/medical-coding-section";
-import { ProductTourSection } from "@/components/sections/product-tour-section";
-import { QueueSection } from "@/components/sections/queue-section";
-import { ResourceLinksSection } from "@/components/sections/resource-links-section";
-import { SpecialtiesSection } from "@/components/sections/specialties-section";
-import { StatsSection } from "@/components/sections/stats-section";
-import { TrustSecuritySection } from "@/components/sections/trust-security-section";
-import { ValuePropsSection } from "@/components/sections/value-props-section";
-import { WhatsappSection } from "@/components/sections/whatsapp-section";
+import { PricingSection } from "@/components/pricing-section";
+import { ProofStripSection } from "@/components/sections/proof-strip-section";
+import { RolloutSection } from "@/components/sections/rollout-section";
+import { SurfaceMapSection } from "@/components/sections/surface-map-section";
+import { WorkflowCompareSection } from "@/components/sections/workflow-compare-section";
 import { getAppBaseUrl } from "@/lib/public-api";
 import { fetchPlatformStats } from "@/lib/landing-data";
 
@@ -27,29 +16,23 @@ const appUrl = getAppBaseUrl();
 const platformStats = await fetchPlatformStats(Astro.url.origin);
 ---
 
+<!--
+  R2 arc: hero (live product) -> proof -> day rhythm (signature) ->
+  surface map (breadth) -> compare -> rollout -> differentiators ->
+  pricing -> FAQ + CTA.
+-->
 <MainLayout
   canonicalPath="/"
-  title="Docita - Clinic Management Software for Indian Clinics | 1-Day Setup"
-  description="Docita helps Indian clinics move from paper files and Excel into appointments, prescriptions, billing, records, and WhatsApp communication with guided clinic setup"
+  title="Docita - One rhythm for your whole OPD floor | Patient portal, EMR, billing, WhatsApp"
+  description="One operating layer for Indian private clinics: queue, EMR, prescriptions, billing, WhatsApp, lab tests, inventory, analytics, and a real patient portal. Two-week rollout."
 >
-  <HeroSection appUrl={appUrl} />
-  <StatsSection stats={platformStats} />
-  <ClinicSetupSection />
-  <MigrationSection />
-  <HowItWorksSection />
-  <ValuePropsSection />
-  <ProductTourSection appUrl={appUrl} />
-  <QueueSection />
-  <MedicalCodingSection />
-  <LabInventorySection />
-  <SpecialtiesSection />
-  <AnalyticsSection />
-  <AiAutomationSection />
-  <WhatsappSection />
-  <FeaturesGridSection />
-  <ResourceLinksSection />
-  <TrustSecuritySection />
-  <PricingSection appUrl={appUrl} />
-  <FaqSection />
-  <CtaBottomSection />
+  <HeroSection appUrl={appUrl} client:idle />
+  <ProofStripSection stats={platformStats} />
+  <ClinicRhythmSection client:visible />
+  <SurfaceMapSection client:visible />
+  <WorkflowCompareSection client:visible />
+  <RolloutSection client:visible />
+  <DifferentiatorsSection client:visible />
+  <PricingSection appUrl={appUrl} client:idle />
+  <FaqCtaSection appUrl={appUrl} client:visible />
 </MainLayout>

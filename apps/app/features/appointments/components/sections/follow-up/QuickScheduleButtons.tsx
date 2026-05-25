@@ -1,7 +1,11 @@
-import { format } from "date-fns";
+import {
+  DEFAULT_TIMEZONE,
+  formatClinicPickerDayIsoFromSelection,
+} from "@workspace/utils";
 import { cn } from "@workspace/ui/lib/utils";
-import { Button } from "@workspace/ui/components/button";
-import { Label } from "@workspace/ui/components/label";
+import { Button } from "@workspace/ui/components/form/button";
+import { Label } from "@workspace/ui/components/form/label";
+import { useClinic } from "@/lib/contexts/clinic-context";
 
 interface QuickScheduleButtonsProps {
   quickSchedules: Array<{ label: string; getValue: () => Date }>;
@@ -14,6 +18,9 @@ export function QuickScheduleButtons({
   onQuickSchedule,
   selectedDate,
 }: QuickScheduleButtonsProps) {
+  const { clinic } = useClinic();
+  const clinicTz = clinic?.timezone?.trim() || DEFAULT_TIMEZONE;
+
   return (
     <div className="space-y-2">
       <Label className="text-xs text-muted-foreground uppercase tracking-wider">
@@ -29,8 +36,11 @@ export function QuickScheduleButtons({
             className={cn(
               "text-xs",
               selectedDate &&
-                format(selectedDate, "yyyy-MM-dd") ===
-                  format(schedule.getValue(), "yyyy-MM-dd") &&
+                formatClinicPickerDayIsoFromSelection(selectedDate, clinicTz) ===
+                  formatClinicPickerDayIsoFromSelection(
+                    schedule.getValue(),
+                    clinicTz,
+                  ) &&
                 "border-primary bg-primary/5",
             )}
           >

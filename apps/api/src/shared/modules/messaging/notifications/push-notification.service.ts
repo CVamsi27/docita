@@ -14,6 +14,7 @@ export type PushNotificationType =
   | 'appointment_reminder'
   | 'appointment_confirmed'
   | 'appointment_cancelled'
+  | 'appointment_delay'
   | 'prescription_ready'
   | 'invoice_ready'
   | 'general';
@@ -119,6 +120,23 @@ export class PushNotificationService {
         },
       },
       'payment_reminder',
+    );
+  }
+
+  async sendAppointmentDelay(
+    patientId: string,
+    delayMinutes: number,
+    clinicName: string,
+    newTime: string,
+  ): Promise<void> {
+    await this.sendToPatient(
+      patientId,
+      {
+        title: 'Appointment Time Updated',
+        body: `Your appointment at ${clinicName} is running ~${delayMinutes} min late. New time: ${newTime}`,
+        data: { delayMinutes: delayMinutes.toString(), clinicName, newTime },
+      },
+      'appointment_delay',
     );
   }
 

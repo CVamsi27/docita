@@ -1,4 +1,15 @@
-import { InvoiceStatus, Prisma } from '@workspace/db';
+import {
+  ClinicTier,
+  IntelligenceAddon,
+  InvoiceStatus,
+  Prisma,
+} from '@workspace/db';
+
+export interface ClinicFeatureContext {
+  tier: ClinicTier;
+  intelligenceAddon: IntelligenceAddon;
+  features: unknown;
+}
 
 export interface InvoiceListItem {
   id: string;
@@ -141,18 +152,21 @@ export interface IInvoiceRepository {
   findAll(
     params: InvoiceSearchParams,
   ): Promise<PaginatedResult<InvoiceListItem>>;
-  findById(id: string, clinicId?: string): Promise<InvoiceDetail | null>;
+  findById(id: string, clinicId: string): Promise<InvoiceDetail | null>;
   create(data: Prisma.InvoiceCreateInput): Promise<InvoiceDetail>;
   update(
     id: string,
     data: Prisma.InvoiceUpdateInput,
-    clinicId?: string,
+    clinicId: string,
   ): Promise<InvoiceDetail>;
-  delete(id: string, clinicId?: string): Promise<void>;
+  delete(id: string, clinicId: string): Promise<void>;
   findPatientContext(
     patientId: string,
     clinicId?: string,
   ): Promise<PatientInvoiceContext | null>;
+  findClinicFeatureContext(
+    clinicId: string,
+  ): Promise<ClinicFeatureContext | null>;
   nextInvoiceNumber(
     clinicId: string,
     issuedAt: Date,

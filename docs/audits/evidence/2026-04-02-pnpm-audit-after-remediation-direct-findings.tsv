@@ -1,7 +1,0 @@
-high	apps__api	xlsx	Prototype Pollution in sheetJS	https://github.com/advisories/GHSA-4r6h-8v6p-xvw6
-high	apps__api	xlsx	SheetJS Regular Expression Denial of Service (ReDoS)	https://github.com/advisories/GHSA-5pgg-2g8v-p4x9
-low	apps__admin	next	Next.js: null origin can bypass dev HMR websocket CSRF checks	https://github.com/advisories/GHSA-jcc7-9wpm-mj36
-moderate	apps__admin	next	Next.js: HTTP request smuggling in rewrites	https://github.com/advisories/GHSA-ggv3-7p47-pfv8
-moderate	apps__admin	next	Next.js: Unbounded next/image disk cache growth can exhaust storage	https://github.com/advisories/GHSA-3x4c-7xq6-9pq8
-moderate	apps__admin	next	Next.js: Unbounded postponed resume buffering can lead to DoS	https://github.com/advisories/GHSA-h27x-g6w4-24gq
-moderate	apps__admin	next	Next.js: null origin can bypass Server Actions CSRF checks	https://github.com/advisories/GHSA-mq59-m269-xvcx

@@ -2,8 +2,14 @@ import { ExecutionContext, ForbiddenException } from '@nestjs/common';
 import { Reflector } from '@nestjs/core';
 import { ConsentType } from '@workspace/db';
 import { beforeEach, describe, expect, it, jest } from '@jest/globals';
-import { asType } from '@/test-utils/as-type';
-import { ConsentGuard } from './consent.guard';
+import {
+  asType,
+  createFixedClockMock,
+  createKeyedReflectorMock,
+  mockGetAllAndOverrideKeyMap,
+  type MockedReflectorGetAllAndOverride,
+} from '@/test-utils';
+import { ConsentGuard, REQUIRE_CONSENT_KEY } from './consent.guard';
 
 function createContext(params: Record<string, string>): ExecutionContext {
   return asType<ExecutionContext>({
@@ -17,8 +23,15 @@ function createContext(params: Record<string, string>): ExecutionContext {
   });
 }
 
+function mockRequiredConsentTypes(
+  mock: MockedReflectorGetAllAndOverride,
+  types: ConsentType[] | undefined,
+): void {
+  mockGetAllAndOverrideKeyMap(mock, [[REQUIRE_CONSENT_KEY, types]]);
+}
+
 describe('ConsentGuard', () => {
-  let reflector: jest.Mocked<Pick<Reflector, 'getAllAndOverride'>>;
+  let reflector: { getAllAndOverride: MockedReflectorGetAllAndOverride };
   let prisma: {
     consent: {
       findFirst: jest.MockedFunction<
@@ -30,7 +43,9 @@ describe('ConsentGuard', () => {
 
   beforeEach(() => {
     reflector = {
-      getAllAndOverride: jest.fn(),
+      getAllAndOverride: createKeyedReflectorMock([
+        [REQUIRE_CONSENT_KEY, undefined],
+      ]),
     };
     prisma = {
       consent: {
@@ -40,11 +55,12 @@ describe('ConsentGuard', () => {
     guard = new ConsentGuard(
       asType<Reflector>(reflector),
       asType<ConstructorParameters<typeof ConsentGuard>[1]>(prisma),
+      createFixedClockMock(),
     );
   });
 
   it('allows request when no consent metadata is defined', async () => {
-    reflector.getAllAndOverride.mockReturnValue(undefined);
+    mockRequiredConsentTypes(reflector.getAllAndOverride, undefined);
 
     await expect(
       guard.canActivate(createContext({ patientId: 'p1' })),
@@ -53,14 +69,16 @@ describe('ConsentGuard', () => {
   });
 
   it('allows request when patientId is missing', async () => {
-    reflector.getAllAndOverride.mockReturnValue([ConsentType.TREATMENT]);
+    mockRequiredConsentTypes(reflector.getAllAndOverride, [
+      ConsentType.TREATMENT,
+    ]);
 
     await expect(guard.canActivate(createContext({}))).resolves.toBe(true);
     expect(prisma.consent.findFirst).not.toHaveBeenCalled();
   });
 
   it('allows request when all required consent types are active', async () => {
-    reflector.getAllAndOverride.mockReturnValue([
+    mockRequiredConsentTypes(reflector.getAllAndOverride, [
       ConsentType.TREATMENT,
       ConsentType.PROCEDURE,
     ]);
@@ -75,7 +93,9 @@ describe('ConsentGuard', () => {
   });
 
   it('blocks request when required consent is missing', async () => {
-    reflector.getAllAndOverride.mockReturnValue([ConsentType.SURGERY]);
+    mockRequiredConsentTypes(reflector.getAllAndOverride, [
+      ConsentType.SURGERY,
+    ]);
     prisma.consent.findFirst.mockResolvedValue(null);
 
     await expect(
@@ -84,7 +104,9 @@ describe('ConsentGuard', () => {
   });
 
   it('queries only ACTIVE non-expired consents', async () => {
-    reflector.getAllAndOverride.mockReturnValue([ConsentType.TELEHEALTH]);
+    mockRequiredConsentTypes(reflector.getAllAndOverride, [
+      ConsentType.TELEHEALTH,
+    ]);
     prisma.consent.findFirst.mockResolvedValue({ id: 'consent-1' });
 
     await guard.canActivate(createContext({ patientId: 'patient-1' }));

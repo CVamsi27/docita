@@ -1,222 +1,172 @@
 "use client";
 
-import { useMemo } from "react";
-import { Download, FileText, Loader2 } from "lucide-react";
-import { Button } from "@workspace/ui/components/button";
-import { Badge } from "@workspace/ui/components/badge";
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from "@workspace/ui/components/table";
-import { humanizeUiLabel } from "@workspace/ui/lib/label-formatters";
-import { cn } from "@workspace/ui/lib/utils";
+import { DocitaLoadingIndicator } from "@workspace/ui/components/feedback/docita-loading-indicator";
+import { useMemo, useState } from "react";
+import { Download, FileText } from "lucide-react";
+import { Button } from "@workspace/ui/components/form/button";
+import { TooltipProvider } from "@workspace/ui/components/overlay/tooltip";
+import { EmptyState } from "@workspace/ui/components/feedback/empty-state";
+import type { BillingHistoryItem } from "@workspace/data-access";
+import { useResumeSubscriptionPayment } from "@workspace/data-access";
 import { DEFAULT_CURRENCY } from "@workspace/utils";
-import type { BillingHistoryItem } from "@/hooks/api/use-billing-history";
-import { useResumeSubscriptionPayment } from "@/hooks/api/use-resume-subscription-payment";
-
-type BillingHistoryItemWithActions = BillingHistoryItem & {
-  payUrl?: string;
-  receiptUrl?: string;
-};
-
-function formatMoney(amountCents: number, currency: string | undefined) {
-  return new Intl.NumberFormat("en-IN", {
-    style: "currency",
-    currency: currency || DEFAULT_CURRENCY,
-  }).format(amountCents / 100);
-}
+import {
+  buildBillingCsvContent,
+  isPaidStatus,
+  matchesStatusFilter,
+  normalizeStatus,
+  parseDayBoundary,
+  triggerCsvDownload,
+  type StatusFilterValue,
+} from "./billing-history-table-helpers";
+import { BillingHistoryTableFilters } from "./billing-history-table-filters";
+import { BillingHistoryInvoiceTable } from "./billing-history-invoice-table";
 
 export function BillingHistoryTable({
   invoices,
   isLoading,
   onPayNow,
+  footerNote,
+  emptyStateDescription,
 }: {
   invoices: BillingHistoryItem[] | undefined;
   isLoading?: boolean;
   onPayNow?: () => void;
+  footerNote?: string;
+  emptyStateDescription?: string;
 }) {
   const resumePayment = useResumeSubscriptionPayment();
+  const [statusFilter, setStatusFilter] = useState<StatusFilterValue>("all");
+  const [dateFrom, setDateFrom] = useState("");
+  const [dateTo, setDateTo] = useState("");
 
   const hasRows = (invoices?.length ?? 0) > 0;
-  const csvRows = useMemo(() => invoices ?? [], [invoices]);
+
+  const filteredInvoices = useMemo(() => {
+    const list = invoices ?? [];
+    const fromTs = parseDayBoundary(dateFrom, false);
+    const toTs = parseDayBoundary(dateTo, true);
+
+    return list.filter((inv) => {
+      const status = normalizeStatus(inv.status);
+      if (!matchesStatusFilter(status, statusFilter)) return false;
+      const created = new Date(inv.createdAt).getTime();
+      if (fromTs !== null && created < fromTs) return false;
+      if (toTs !== null && created > toTs) return false;
+      return true;
+    });
+  }, [invoices, statusFilter, dateFrom, dateTo]);
+
+  const filteredHasRows = filteredInvoices.length > 0;
+  const primaryCurrency =
+    filteredInvoices[0]?.currency ?? invoices?.[0]?.currency ?? DEFAULT_CURRENCY;
+
+  const paidTotalCents = useMemo(() => {
+    return filteredInvoices.reduce((sum, inv) => {
+      if (!isPaidStatus(normalizeStatus(inv.status))) return sum;
+      const c = inv.currency || DEFAULT_CURRENCY;
+      if (c !== primaryCurrency) return sum;
+      return sum + inv.amountCents;
+    }, 0);
+  }, [filteredInvoices, primaryCurrency]);
 
   const handleDownload = (url: string) => window.open(url, "_blank");
 
   const handleExportCsv = () => {
-    if (!hasRows) return;
+    if (!filteredHasRows) return;
+    triggerCsvDownload(buildBillingCsvContent(filteredInvoices));
+  };
 
-    const header = [
-      "Date",
-      "Description",
-      "Amount",
-      "Currency",
-      "Status",
-      "PayUrl",
-      "ReceiptUrl",
-    ];
-
-    const rows = csvRows.map((invoice) => {
-      const withActions = invoice as BillingHistoryItemWithActions;
-      const formattedDate = new Date(invoice.createdAt).toISOString();
-      const description = (
-        invoice.description || "Subscription Payment"
-      ).replaceAll('"', '""');
-      const amount = (invoice.amountCents / 100).toFixed(2);
-      const currency = invoice.currency || DEFAULT_CURRENCY;
-      const status = invoice.status;
-      const payUrl = withActions.payUrl ?? "";
-      const receiptUrl = withActions.receiptUrl ?? "";
-
-      return [
-        formattedDate,
-        `"${description}"`,
-        amount,
-        currency,
-        status,
-        `"${payUrl}"`,
-        `"${receiptUrl}"`,
-      ].join(",");
-    });
-
-    const csvContent = [header.join(","), ...rows].join("\n");
-    const blob = new Blob([csvContent], { type: "text/csv;charset=utf-8;" });
-    const url = URL.createObjectURL(blob);
-    const link = document.createElement("a");
-    link.href = url;
-    link.setAttribute(
-      "download",
-      `billing-history-${new Date().toISOString().slice(0, 10)}.csv`,
-    );
-    document.body.appendChild(link);
-    link.click();
-    document.body.removeChild(link);
-    URL.revokeObjectURL(url);
+  const handleResumePayment = async (
+    invoice: BillingHistoryItem,
+    payUrl?: string,
+  ) => {
+    if (payUrl) {
+      handleDownload(payUrl);
+      return;
+    }
+    const resumed = await resumePayment.mutateAsync(invoice.id);
+    handleDownload(resumed.payUrl);
   };
 
   if (isLoading) {
     return (
-      <div className="flex justify-center p-8">
-        <Loader2 className="h-6 w-6 animate-spin text-muted-foreground" />
+      <div
+        className="flex justify-center p-8"
+        role="status"
+        aria-live="polite"
+        aria-label="Loading billing history"
+      >
+        <DocitaLoadingIndicator
+          variant="section"
+          withStatusRole={false}
+          iconClassName="h-8 w-8 text-muted-foreground"
+        />
       </div>
     );
   }
 
   if (!hasRows) {
     return (
-      <div className="rounded-lg border bg-muted/20 py-10 text-center text-muted-foreground">
-        <FileText className="mx-auto mb-2 h-10 w-10 opacity-20" />
-        <p className="font-medium text-foreground">No billing history yet</p>
-        <p className="mt-1 text-sm">
-          Receipts and invoices will appear after checkout.
-        </p>
-      </div>
+      <EmptyState
+        icon={FileText}
+        title="No billing history yet"
+        description={
+          emptyStateDescription ??
+          "Receipts and invoices will appear after checkout."
+        }
+      />
     );
   }
 
   return (
-    <div className="space-y-3">
-      <div className="flex justify-end">
-        <Button
-          variant="outline"
-          size="sm"
-          className="gap-2"
-          onClick={handleExportCsv}
-          disabled={!hasRows}
-        >
-          <Download className="h-4 w-4" />
-          Export All CSV
-        </Button>
-      </div>
+    <TooltipProvider delayDuration={200}>
+      <div className="space-y-4">
+        <BillingHistoryTableFilters
+          statusFilter={statusFilter}
+          dateFrom={dateFrom}
+          dateTo={dateTo}
+          onStatusFilterChange={setStatusFilter}
+          onDateFromChange={setDateFrom}
+          onDateToChange={setDateTo}
+          onClear={() => {
+            setStatusFilter("all");
+            setDateFrom("");
+            setDateTo("");
+          }}
+        />
 
-      <div className="rounded-lg border">
-        <Table>
-          <TableHeader>
-            <TableRow>
-              <TableHead>Date</TableHead>
-              <TableHead>Description</TableHead>
-              <TableHead>Amount</TableHead>
-              <TableHead>Status</TableHead>
-              <TableHead className="text-right">Receipt</TableHead>
-            </TableRow>
-          </TableHeader>
-          <TableBody>
-            {invoices!.map((invoice) => {
-              const withActions = invoice as BillingHistoryItemWithActions;
-              const status = invoice.status?.toLowerCase?.() ?? "";
-              const isPaid = status === "paid";
-              const receiptUrl = isPaid
-                ? (withActions.receiptUrl ?? invoice.invoiceUrl)
-                : undefined;
-              const payUrl =
-                withActions.payUrl ??
-                (!isPaid ? invoice.invoiceUrl : undefined);
+        <div className="flex justify-end">
+          <Button
+            variant="outline"
+            size="sm"
+            className="gap-2"
+            onClick={handleExportCsv}
+            disabled={!filteredHasRows}
+          >
+            <Download className="h-4 w-4" />
+            Export CSV
+          </Button>
+        </div>
 
-              return (
-                <TableRow key={invoice.id}>
-                  <TableCell>
-                    {new Date(invoice.createdAt).toLocaleDateString("en-IN")}
-                  </TableCell>
-                  <TableCell className="max-w-[220px] truncate text-muted-foreground">
-                    {invoice.description || "Subscription Payment"}
-                  </TableCell>
-                  <TableCell className="font-medium">
-                    {formatMoney(invoice.amountCents, invoice.currency)}
-                  </TableCell>
-                  <TableCell>
-                    <Badge
-                      variant="outline"
-                      className={cn(
-                        "capitalize",
-                        isPaid ? "badge-success" : "badge-warning",
-                      )}
-                    >
-                      {humanizeUiLabel(invoice.status)}
-                    </Badge>
-                  </TableCell>
-                  <TableCell className="text-right">
-                    {receiptUrl ? (
-                      <Button
-                        variant="ghost"
-                        size="sm"
-                        onClick={() => handleDownload(receiptUrl)}
-                        className="h-8"
-                      >
-                        <Download className="mr-2 h-4 w-4" />
-                        PDF
-                      </Button>
-                    ) : !isPaid ? (
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        disabled={resumePayment.isPending}
-                        onClick={async () => {
-                          onPayNow?.();
-                          if (payUrl) {
-                            handleDownload(payUrl);
-                            return;
-                          }
-                          const resumed = await resumePayment.mutateAsync(
-                            invoice.id,
-                          );
-                          handleDownload(resumed.payUrl);
-                        }}
-                      >
-                        Pay now
-                      </Button>
-                    ) : (
-                      <span className="text-xs text-muted-foreground">-</span>
-                    )}
-                  </TableCell>
-                </TableRow>
-              );
-            })}
-          </TableBody>
-        </Table>
+        {!filteredHasRows ? (
+          <EmptyState
+            icon={FileText}
+            title="No matching invoices"
+            description="Try clearing filters or widening the date range."
+          />
+        ) : (
+          <BillingHistoryInvoiceTable
+            invoices={filteredInvoices}
+            primaryCurrency={primaryCurrency}
+            paidTotalCents={paidTotalCents}
+            footerNote={footerNote}
+            onDownload={handleDownload}
+            onPayNow={onPayNow}
+            resumePaymentPending={resumePayment.isPending}
+            onResumePayment={handleResumePayment}
+          />
+        )}
       </div>
-    </div>
+    </TooltipProvider>
   );
 }

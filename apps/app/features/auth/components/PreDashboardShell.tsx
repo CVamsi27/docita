@@ -3,12 +3,17 @@
 import { useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { LogOut } from "lucide-react";
-import { Button } from "@workspace/ui/components/button";
-import { ThemeToggle } from "@workspace/ui/components/theme-toggle";
-import { DocitaLogo } from "@workspace/ui/components/docita-logo";
+import { Button } from "@workspace/ui/components/form/button";
+import { ThemeToggleWithAppearanceSync } from "@/components/layout/theme-toggle-with-appearance-sync";
+import { DocitaLogo } from "@workspace/ui/components/indicators/docita-logo";
 import { cn } from "@workspace/ui/lib/utils";
+import {
+  SUPPORT_WHATSAPP_MESSAGE_DEFAULT,
+  SUPPORT_WHATSAPP_MESSAGE_ONBOARDING,
+} from "@/lib/constants/support-contact";
 import { AuthBrandingPanel } from "./AuthBrandingPanel";
-import { useAuth } from "@/lib/auth-context";
+import { AuthPreDashboardFooter } from "./AuthPreDashboardFooter";
+import { useAuth } from "@/lib/auth/auth-context";
 import type { AuthBrandingStep } from "@/features/auth/types/auth";
 
 // Derives the user's position in the 4-step pre-dashboard journey
@@ -55,6 +60,11 @@ interface PreDashboardShellProps {
    * step and existing-account login step).
    */
   showProgress?: boolean;
+  /**
+   * Overrides the footer WhatsApp prefilled text. When omitted, `currentStep === "onboarding"`
+   * uses the onboarding template; all other steps use the generic default.
+   */
+  supportWhatsappMessage?: string;
 }
 
 export function PreDashboardShell({
@@ -65,11 +75,17 @@ export function PreDashboardShell({
   showSignOut = false,
   showBrandingPanel = true,
   showProgress = true,
+  supportWhatsappMessage,
 }: PreDashboardShellProps) {
   const router = useRouter();
   const { logout, user } = useAuth();
   const meta = STEP_META[currentStep];
   const stepNumber = meta.index + 1;
+  const footerWhatsappMessage =
+    supportWhatsappMessage ??
+    (currentStep === "onboarding"
+      ? SUPPORT_WHATSAPP_MESSAGE_ONBOARDING
+      : SUPPORT_WHATSAPP_MESSAGE_DEFAULT);
 
   useEffect(() => {
     if (
@@ -93,79 +109,74 @@ export function PreDashboardShell({
 
       {/* Right panel keeps its own scroll so the branding rail stays fixed */}
       <div className="relative flex min-h-0 min-w-0 flex-col overflow-y-auto overflow-x-hidden">
-        {/* Radial ambient glow */}
-        <div
-          className="pointer-events-none absolute inset-0 z-0"
-          style={{
-            background:
-              "radial-gradient(ellipse at 65% 35%, oklch(var(--primary) / 0.05) 0%, transparent 65%)",
-          }}
-          aria-hidden="true"
-        />
-
         {/* Sticky top bar — stays visible while scrolling */}
         <div className="sticky top-0 z-20 flex items-center justify-between px-4 pt-4 pb-2 bg-background/80 backdrop-blur-sm">
-          {/* Mobile logo */}
-          <div className="lg:hidden">
+          <div className={cn(showBrandingPanel ? "lg:hidden" : "")}>
             <DocitaLogo />
           </div>
-          <div className="hidden lg:block" />
 
           <div className="flex items-center gap-2">
             {showSignOut && (
               <Button
                 variant="ghost"
                 size="sm"
-                onClick={logout}
+                onClick={() => void logout()}
                 className="text-muted-foreground hover:text-foreground"
               >
                 <LogOut className="h-4 w-4 mr-1.5" />
                 Sign out
               </Button>
             )}
-            <ThemeToggle />
+            <ThemeToggleWithAppearanceSync />
           </div>
         </div>
 
-        {/* Scrollable content area — my-auto centers when short, collapses to top when tall */}
-        <div className="flex-1 relative z-10 flex min-w-0 flex-col items-center px-4 pb-10">
-          <div
-            className={cn(
-              "w-full min-w-0 flex flex-col gap-5 py-4",
-              contentMaxWidth,
-              contentAlignment === "center" ? "my-auto" : "pt-4",
-            )}
-          >
-            {showProgress ? (
-              <div className="space-y-2">
-                <div className="flex items-center justify-between">
-                  <p className="text-xs font-medium text-muted-foreground tracking-wide uppercase">
-                    {meta.label}
-                  </p>
-                  <p className="text-xs text-muted-foreground">
-                    {stepNumber} / {TOTAL_STEPS}
-                  </p>
+        <div className="relative z-10 flex min-h-0 min-w-0 flex-1 flex-col">
+          <div className="flex flex-1 flex-col items-center justify-center px-4 py-4">
+            <div
+              className={cn(
+                "w-full min-w-0 flex flex-col gap-5",
+                contentMaxWidth,
+                contentAlignment === "start" && "self-start pt-2",
+              )}
+            >
+              {showProgress ? (
+                <div className="space-y-2">
+                  <div className="flex items-center justify-between">
+                    <p className="text-xs font-medium text-muted-foreground tracking-wide uppercase">
+                      {meta.label}
+                    </p>
+                    <p className="text-xs text-muted-foreground">
+                      {stepNumber} / {TOTAL_STEPS}
+                    </p>
+                  </div>
+                  <div className="flex gap-1">
+                    {Array.from({ length: TOTAL_STEPS }).map((_, i) => (
+                      <div
+                        key={i}
+                        className={[
+                          "h-1 flex-1 rounded-full transition-colors duration-500",
+                          i < meta.index
+                            ? "bg-success"
+                            : i === meta.index
+                              ? "bg-primary"
+                              : "bg-muted",
+                        ].join(" ")}
+                      />
+                    ))}
+                  </div>
                 </div>
-                <div className="flex gap-1">
-                  {Array.from({ length: TOTAL_STEPS }).map((_, i) => (
-                    <div
-                      key={i}
-                      className={[
-                        "h-1 flex-1 rounded-full transition-all duration-500",
-                        i < meta.index
-                          ? "bg-success"
-                          : i === meta.index
-                            ? "bg-primary"
-                            : "bg-muted",
-                      ].join(" ")}
-                    />
-                  ))}
-                </div>
-              </div>
-            ) : null}
+              ) : null}
 
-            {children}
+              {children}
+            </div>
           </div>
+
+          <AuthPreDashboardFooter
+            className={cn("mx-auto shrink-0 px-4 pb-6", contentMaxWidth)}
+            whatsappMessage={footerWhatsappMessage}
+            trustRowClassName={showBrandingPanel ? "lg:hidden" : undefined}
+          />
         </div>
       </div>
     </div>

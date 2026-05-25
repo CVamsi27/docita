@@ -10,7 +10,7 @@ import { PrismaService } from '@/prisma/prisma.service';
 import { Role } from '@workspace/db';
 import { AuthenticatedRequest } from '@workspace/types';
 
-const DOCTOR_PATIENT_SCOPED_KEY = 'doctorPatientScoped';
+export const DOCTOR_PATIENT_SCOPED_KEY = 'doctorPatientScoped';
 
 export const DoctorPatientScoped = () =>
   SetMetadata(DOCTOR_PATIENT_SCOPED_KEY, true);

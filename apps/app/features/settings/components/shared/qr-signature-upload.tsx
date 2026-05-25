@@ -7,18 +7,19 @@ import {
   DialogDescription,
   DialogHeader,
   DialogTitle,
-} from "@workspace/ui/components/dialog";
-import { Button } from "@workspace/ui/components/button";
-import { Alert, AlertDescription } from "@workspace/ui/components/alert";
+} from "@workspace/ui/components/overlay/dialog";
+import { Button } from "@workspace/ui/components/form/button";
+import { SymbolTooltip } from "@workspace/ui/components/overlay/tooltip";
+import { Alert, AlertDescription } from "@workspace/ui/components/feedback/alert";
 import { Clock, QrCode, Smartphone, X } from "lucide-react";
 import {
   type SignatureUploadToken,
   type ActiveToken,
-} from "@/hooks/api/use-signature-upload";
-import { format } from "date-fns";
-import { QrCodeCard } from "@/features/_shared/components/signature/qr-code-card";
-import { CopyableLinkField } from "@/features/_shared/components/signature/copyable-link-field";
-import { toAbsoluteAppUrl } from "@/lib/url";
+} from "@workspace/data-access";
+import { DATE_FORMATS, formatDate } from "@workspace/utils";
+import { QrCodeCard } from "@/components/signature/qr-code-card";
+import { CopyableLinkField } from "@/components/signature/copyable-link-field";
+import { toAbsoluteAppUrl } from "@/lib/utils/url";
 
 interface QrSignatureUploadProps {
   onGenerate: () => Promise<SignatureUploadToken>;
@@ -105,21 +106,26 @@ export function QrSignatureUpload({
                   <Clock className="h-4 w-4 text-muted-foreground" />
                   <div>
                     <p className="text-sm font-medium">
-                      Expires {format(new Date(token.expiresAt), "PPp")}
+                      Expires{" "}
+                      {formatDate(token.expiresAt, DATE_FORMATS.DATETIME_LONG)}
                     </p>
                     <p className="text-xs text-muted-foreground">
-                      Created {format(new Date(token.createdAt), "PPp")}
+                      Created{" "}
+                      {formatDate(token.createdAt, DATE_FORMATS.DATETIME_LONG)}
                     </p>
                   </div>
                 </div>
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  onClick={() => onRevoke(token.id)}
-                  disabled={isRevoking}
-                >
-                  <X className="h-4 w-4" />
-                </Button>
+                <SymbolTooltip label="Revoke upload link">
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    onClick={() => onRevoke(token.id)}
+                    disabled={isRevoking}
+                    aria-label="Revoke upload link"
+                  >
+                    <X className="h-4 w-4" />
+                  </Button>
+                </SymbolTooltip>
               </div>
             ))}
           </div>

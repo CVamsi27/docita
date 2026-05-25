@@ -1,6 +1,6 @@
 import React from "react";
 import Link from "next/link";
-import { format } from "date-fns";
+import { formatDate } from "@workspace/utils";
 import {
   ArrowDown,
   ArrowUp,
@@ -17,19 +17,18 @@ import {
   TableHead,
   TableHeader,
   TableRow,
-} from "@workspace/ui/components/table";
-import { Button } from "@workspace/ui/components/button";
-import { Badge } from "@workspace/ui/components/badge";
+} from "@workspace/ui/components/data-display/table";
+import { Button } from "@workspace/ui/components/form/button";
+import { SymbolTooltip } from "@workspace/ui/components/overlay/tooltip";
+import { Badge } from "@workspace/ui/components/indicators/badge";
 import {
   Card,
   CardContent,
   CardDescription,
   CardHeader,
   CardTitle,
-} from "@workspace/ui/components/card";
-import { WhatsAppButton } from "@/features/_shared/components";
+} from "@workspace/ui/components/indicators/card";
 import type { Prescription } from "@workspace/types";
-import { useClinic } from "@/lib/clinic-context";
 
 export type SortKey = "date" | "patient" | "diagnosis" | "medications";
 export type SortDirection = "asc" | "desc";
@@ -54,8 +53,6 @@ export function PrescriptionsTable({
   onSort,
   onDownloadPDF,
 }: PrescriptionsTableProps) {
-  const { clinic } = useClinic();
-
   const SortableHeader = ({
     column,
     label,
@@ -91,7 +88,7 @@ export function PrescriptionsTable({
         </CardDescription>
       </CardHeader>
       <CardContent>
-        <div className="overflow-x-auto rounded-md border border-border">
+        <div className="overflow-x-hidden rounded-md border border-border">
         <Table>
           <TableHeader>
             <TableRow className="hover:bg-muted/50">
@@ -118,7 +115,7 @@ export function PrescriptionsTable({
                   colSpan={6}
                   className="h-24 text-center text-muted-foreground"
                 >
-                  Loading prescriptions...
+                  Loading prescriptions…
                 </TableCell>
               </TableRow>
             ) : prescriptions.length === 0 ? (
@@ -157,54 +154,48 @@ export function PrescriptionsTable({
                     </Badge>
                   </TableCell>
                   <TableCell className="hidden sm:table-cell">
-                    {format(new Date(prescription.createdAt), "MMM d, yyyy")}
+                    {formatDate(prescription.createdAt, "MMM d, yyyy")}
                   </TableCell>
                   <TableCell className="text-right">
-                    <Button variant="ghost" size="sm" asChild className="gap-1.5">
-                      <Link href={`/prescriptions/${prescription.id}`}>
-                        <Eye className="h-4 w-4" />
-                        <span className="hidden sm:inline">View</span>
-                      </Link>
-                    </Button>
-                    <Button
-                      variant="ghost"
-                      size="sm"
-                      onClick={() => onDownloadPDF(prescription.id || "")}
-                      className="gap-1.5"
-                      title="Download PDF"
-                    >
-                      <Download className="h-4 w-4" />
-                      <span className="hidden sm:inline">PDF</span>
-                    </Button>
-                    <Button
-                      variant="ghost"
-                      size="sm"
-                      onClick={() => {
-                        if (!prescription.id) return;
-                        window.open(
-                          `/prescriptions/${prescription.id}?print=true`,
-                          "_blank",
-                        );
-                      }}
-                      className="gap-1.5"
-                      title="Print prescription"
-                    >
-                      <Printer className="h-4 w-4" />
-                      <span className="hidden sm:inline">Print</span>
-                    </Button>
-                    {prescription.patient?.phoneNumber && (
-                      <WhatsAppButton
-                        phoneNumber={prescription.patient.phoneNumber}
-                        message={`Hello ${prescription.patient.firstName}, here is your prescription from ${
-                          clinic?.name ||
-                          process.env["NEXT_PUBLIC_CLINIC_NAME"] ||
-                          "Clinic"
-                        }.`}
+                    <SymbolTooltip label="View prescription">
+                      <Button variant="ghost" size="sm" asChild className="gap-1.5">
+                        <Link
+                          href={`/prescriptions/${prescription.id}`}
+                          aria-label="View prescription"
+                        >
+                          <Eye className="h-4 w-4" aria-hidden />
+                          <span className="hidden sm:inline">View</span>
+                        </Link>
+                      </Button>
+                    </SymbolTooltip>
+                    <SymbolTooltip label="Download PDF">
+                      <Button
                         variant="ghost"
-                        label=""
-                        className="h-8 w-8 p-0"
-                      />
-                    )}
+                        size="sm"
+                        onClick={() => onDownloadPDF(prescription.id || "")}
+                        className="gap-1.5"
+                      >
+                        <Download className="h-4 w-4" />
+                        <span className="hidden sm:inline">PDF</span>
+                      </Button>
+                    </SymbolTooltip>
+                    <SymbolTooltip label="Print prescription">
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        onClick={() => {
+                          if (!prescription.id) return;
+                          window.open(
+                            `/prescriptions/${prescription.id}?print=true`,
+                            "_blank",
+                          );
+                        }}
+                        className="gap-1.5"
+                      >
+                        <Printer className="h-4 w-4" />
+                        <span className="hidden sm:inline">Print</span>
+                      </Button>
+                    </SymbolTooltip>
                   </TableCell>
                 </TableRow>
               ))

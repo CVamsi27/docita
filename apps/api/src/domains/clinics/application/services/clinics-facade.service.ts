@@ -2,7 +2,7 @@ import { Injectable } from '@nestjs/common';
 import { ClinicDataService } from './clinic-data.service';
 import { ClinicSettingsService } from './clinic-settings.service';
 import { StaffManagementService } from './staff-management.service';
-import { ClinicTier, ClinicType, Prisma } from '@workspace/db';
+import { ClinicTier, ClinicType, Prisma, Role } from '@workspace/db';
 
 interface CreateClinicData {
   name: string;
@@ -77,6 +77,14 @@ interface ClinicSettingsData {
     branchName?: string;
     upiId?: string;
   };
+
+  brandName?: string;
+  lockedTheme?: {
+    primaryColor?: string;
+    mode?: 'light' | 'dark' | 'system';
+    compactMode?: boolean;
+    enforced?: boolean;
+  };
 }
 
 interface CreateDoctorData {
@@ -97,11 +105,22 @@ interface CreateReceptionistData {
   role?: 'RECEPTIONIST' | 'NURSE';
 }
 
+interface CreateClinicMemberData {
+  name: string;
+  email: string;
+  password: string;
+  phoneNumber?: string;
+  role: 'DOCTOR' | 'NURSE' | 'RECEPTIONIST' | 'ADMIN' | 'ADMIN_DOCTOR';
+  specialization?: string;
+  qualification?: string;
+  registrationNumber?: string;
+}
+
 interface UpdateMemberData {
   name?: string;
   email?: string;
   phoneNumber?: string;
-  role?: 'DOCTOR' | 'NURSE' | 'RECEPTIONIST' | 'ADMIN_DOCTOR';
+  role?: 'DOCTOR' | 'NURSE' | 'RECEPTIONIST' | 'ADMIN' | 'ADMIN_DOCTOR';
   specialization?: string;
   qualification?: string;
   registrationNumber?: string;
@@ -112,6 +131,9 @@ interface JoinClinicData {
   clinicEmail?: string;
 }
 
+/**
+ * Thin facade — delegates clinic CRUD, settings, and staff to focused services.
+ */
 @Injectable()
 export class ClinicsService {
   constructor(
@@ -219,6 +241,10 @@ export class ClinicsService {
     return this.staffManagementService.createReceptionist(clinicId, data);
   }
 
+  async createMember(clinicId: string, data: CreateClinicMemberData) {
+    return this.staffManagementService.createMember(clinicId, data);
+  }
+
   async getReceptionists(clinicId: string) {
     return this.staffManagementService.getReceptionists(clinicId);
   }
@@ -232,12 +258,14 @@ export class ClinicsService {
     memberId: string,
     data: UpdateMemberData,
     actorUserId: string,
+    actorRole: Role,
   ) {
     return this.staffManagementService.updateMember(
       clinicId,
       memberId,
       data,
       actorUserId,
+      actorRole,
     );
   }
 

@@ -1,5 +1,5 @@
-import { Button } from "@workspace/ui/components/button";
-import { Check, ChevronsUpDown, Loader2 } from "lucide-react";
+import { DocitaLoadingIndicator } from "@workspace/ui/components/feedback/docita-loading-indicator";
+import { Button } from "@workspace/ui/components/form/button";
 import {
   Dialog,
   DialogContent,
@@ -7,33 +7,21 @@ import {
   DialogFooter,
   DialogHeader,
   DialogTitle,
-} from "@workspace/ui/components/dialog";
+} from "@workspace/ui/components/overlay/dialog";
 import {
   FormControl,
   FormField,
   FormItem,
   FormLabel,
   FormMessage,
-} from "@workspace/ui/components/form";
-import {
-  Popover,
-  PopoverContent,
-  PopoverTrigger,
-} from "@workspace/ui/components/popover";
-import {
-  Command,
-  CommandEmpty,
-  CommandGroup,
-  CommandInput,
-  CommandList,
-} from "@workspace/ui/components/command";
-import { Textarea } from "@workspace/ui/components/textarea";
-import { cn } from "@workspace/ui/lib/utils";
-import { DEFAULT_CURRENCY } from "@workspace/utils";
+} from "@workspace/ui/components/form/form";
+import { Textarea } from "@workspace/ui/components/form/textarea";
 import { FormProvider, UseFormReturn } from "react-hook-form";
 
 import { LabTest, Patient } from "@workspace/types";
 import { CreateLabTestOrderInput } from "@/features/lab-tests/hooks/use-lab-tests-logic";
+import { useClinicCurrency } from "@/hooks/use-clinic-currency";
+import { OrderLabTestComboboxFields } from "./order-lab-test-combobox-fields";
 
 interface OrderLabTestDialogProps {
   open: boolean;
@@ -78,6 +66,8 @@ export function OrderLabTestDialog({
   selectedPatient,
   selectedTest,
 }: OrderLabTestDialogProps) {
+  const { formatCurrency } = useClinicCurrency();
+
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="sm:max-w-[500px]">
@@ -93,200 +83,23 @@ export function OrderLabTestDialog({
             noValidate
             className="space-y-4"
           >
-            <FormField
-              control={form.control}
-              name="patientId"
-              render={({ field }) => (
-                <FormItem className="flex flex-col">
-                  <FormLabel>Patient</FormLabel>
-                  <Popover
-                    open={patientComboboxOpen}
-                    onOpenChange={setPatientComboboxOpen}
-                    modal={true}
-                  >
-                    <PopoverTrigger asChild>
-                      <FormControl>
-                        <Button
-                          variant="outline"
-                          role="combobox"
-                          type="button"
-                          aria-expanded={patientComboboxOpen}
-                          className={cn(
-                            "w-full justify-between",
-                            !field.value && "text-muted-foreground",
-                          )}
-                        >
-                          {selectedPatient
-                            ? `${selectedPatient.firstName} ${selectedPatient.lastName}`
-                            : "Search patient by name..."}
-                          <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
-                        </Button>
-                      </FormControl>
-                    </PopoverTrigger>
-                    <PopoverContent
-                      className="w-[400px] p-0 z-100"
-                      align="start"
-                    >
-                      <Command shouldFilter={false}>
-                        <CommandInput
-                          placeholder="Search patient by name..."
-                          value={patientSearch}
-                          onValueChange={setPatientSearch}
-                        />
-                        <CommandList>
-                          {patientsLoading ? (
-                            <div className="flex items-center justify-center py-6">
-                              <Loader2 className="h-4 w-4 animate-spin" />
-                              <span className="ml-2 text-sm text-muted-foreground">
-                                Searching...
-                              </span>
-                            </div>
-                          ) : patients.length === 0 ? (
-                            <CommandEmpty>
-                              {patientSearch
-                                ? "No patient found"
-                                : "Type to search patients..."}
-                            </CommandEmpty>
-                          ) : (
-                            <CommandGroup>
-                              {patients.map((patient) => (
-                                <div
-                                  key={patient.id}
-                                  onClick={() => {
-                                    field.onChange(patient.id);
-                                    setPatientComboboxOpen(false);
-                                  }}
-                                  className="relative flex cursor-pointer select-none items-center rounded-sm px-2 py-1.5 text-sm outline-none hover:bg-accent hover:text-accent-foreground"
-                                >
-                                  <Check
-                                    className={cn(
-                                      "mr-2 h-4 w-4",
-                                      field.value === patient.id
-                                        ? "opacity-100"
-                                        : "opacity-0",
-                                    )}
-                                  />
-                                  <div className="flex flex-col">
-                                    <span>
-                                      {patient.firstName} {patient.lastName}
-                                    </span>
-                                    {patient.phoneNumber && (
-                                      <span className="text-xs text-muted-foreground">
-                                        {patient.phoneNumber}
-                                      </span>
-                                    )}
-                                  </div>
-                                </div>
-                              ))}
-                            </CommandGroup>
-                          )}
-                        </CommandList>
-                      </Command>
-                    </PopoverContent>
-                  </Popover>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-
-            <FormField
-              control={form.control}
-              name="labTestId"
-              render={({ field }) => (
-                <FormItem className="flex flex-col">
-                  <FormLabel>Test</FormLabel>
-                  <Popover
-                    open={testComboboxOpen}
-                    onOpenChange={setTestComboboxOpen}
-                    modal={true}
-                  >
-                    <PopoverTrigger asChild>
-                      <FormControl>
-                        <Button
-                          variant="outline"
-                          role="combobox"
-                          type="button"
-                          aria-expanded={testComboboxOpen}
-                          className={cn(
-                            "w-full justify-between",
-                            !field.value && "text-muted-foreground",
-                          )}
-                        >
-                          {selectedTest
-                            ? selectedTest.name
-                            : "Search test by name..."}
-                          <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
-                        </Button>
-                      </FormControl>
-                    </PopoverTrigger>
-                    <PopoverContent
-                      className="w-[400px] p-0 z-100"
-                      align="start"
-                    >
-                      <Command shouldFilter={false}>
-                        <CommandInput
-                          placeholder="Search test by name..."
-                          value={testSearch}
-                          onValueChange={setTestSearch}
-                        />
-                        <CommandList>
-                          {catalogLoading ? (
-                            <div className="flex items-center justify-center py-6">
-                              <Loader2 className="h-4 w-4 animate-spin" />
-                              <span className="ml-2 text-sm text-muted-foreground">
-                                Loading tests...
-                              </span>
-                            </div>
-                          ) : testCatalog.length === 0 ? (
-                            <CommandEmpty>No tests available</CommandEmpty>
-                          ) : (
-                            <CommandGroup>
-                              {testCatalog
-                                .filter((test: LabTest) =>
-                                  test.name
-                                    .toLowerCase()
-                                    .includes(testSearch.toLowerCase()),
-                                )
-                                .map((test: LabTest) => (
-                                  <div
-                                    key={test.id}
-                                    onClick={() => {
-                                      field.onChange(test.id);
-                                      setTestComboboxOpen(false);
-                                    }}
-                                    className="relative flex cursor-pointer select-none items-center rounded-sm px-2 py-1.5 text-sm outline-none hover:bg-accent hover:text-accent-foreground"
-                                  >
-                                    <Check
-                                      className={cn(
-                                        "mr-2 h-4 w-4",
-                                        field.value === test.id
-                                          ? "opacity-100"
-                                          : "opacity-0",
-                                      )}
-                                    />
-                                    <div className="flex flex-col flex-1">
-                                      <span>{test.name}</span>
-                                      <span className="text-xs text-muted-foreground">
-                                        {test.category}
-                                        {test.price &&
-                                          ` • ${new Intl.NumberFormat("en-IN", {
-                                            style: "currency",
-                                            currency: DEFAULT_CURRENCY,
-                                            maximumFractionDigits: 0,
-                                          }).format(test.price)}`}
-                                      </span>
-                                    </div>
-                                  </div>
-                                ))}
-                            </CommandGroup>
-                          )}
-                        </CommandList>
-                      </Command>
-                    </PopoverContent>
-                  </Popover>
-                  <FormMessage />
-                </FormItem>
-              )}
+            <OrderLabTestComboboxFields
+              form={form}
+              patients={patients}
+              patientsLoading={patientsLoading}
+              testCatalog={testCatalog}
+              catalogLoading={catalogLoading}
+              patientSearch={patientSearch}
+              setPatientSearch={setPatientSearch}
+              testSearch={testSearch}
+              setTestSearch={setTestSearch}
+              patientComboboxOpen={patientComboboxOpen}
+              setPatientComboboxOpen={setPatientComboboxOpen}
+              testComboboxOpen={testComboboxOpen}
+              setTestComboboxOpen={setTestComboboxOpen}
+              selectedPatient={selectedPatient}
+              selectedTest={selectedTest}
+              formatCurrency={formatCurrency}
             />
 
             <FormField
@@ -296,10 +109,7 @@ export function OrderLabTestDialog({
                 <FormItem>
                   <FormLabel>Notes</FormLabel>
                   <FormControl>
-                    <Textarea
-                      placeholder="Enter any additional notes..."
-                      {...field}
-                    />
+                    <Textarea placeholder="Enter lab notes" {...field} />
                   </FormControl>
                   <FormMessage />
                 </FormItem>
@@ -315,8 +125,10 @@ export function OrderLabTestDialog({
                 Cancel
               </Button>
               <Button type="submit" disabled={isCreating} className="gap-2">
-                {isCreating && <Loader2 className="h-4 w-4 animate-spin" />}
-                {isCreating ? "Creating..." : "Order Test"}
+                {isCreating && (
+                  <DocitaLoadingIndicator variant="inline" decorative />
+                )}
+                {isCreating ? "Creating…" : "Order Test"}
               </Button>
             </DialogFooter>
           </form>

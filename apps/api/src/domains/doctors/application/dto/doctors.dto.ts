@@ -1,31 +1,31 @@
 import { createZodDto } from 'nestjs-zod';
 import { z } from 'zod';
-import { Specialization, HospitalRole } from '@workspace/db';
+import { Specialization } from '@workspace/db';
 import {
+  activeSpecializationSchema,
   createDoctorRequestSchema,
   updateDoctorRequestSchema,
   doctorResponseSchema,
   doctorListResponseSchema,
+  supportedHospitalRoleSchema,
+  updateDoctorRegistrationRequestSchema,
 } from '@workspace/types';
 
 export const CreateDoctorSchema = createDoctorRequestSchema.extend({
-  specialization: z.nativeEnum(Specialization).optional(),
-  hospitalRole: z.nativeEnum(HospitalRole).optional(),
+  specialization: activeSpecializationSchema.optional(),
+  hospitalRole: supportedHospitalRoleSchema.optional(),
 });
 export class CreateDoctorDto extends createZodDto(CreateDoctorSchema) {}
 
 export const UpdateDoctorSchema = updateDoctorRequestSchema.extend({
-  specialization: z.nativeEnum(Specialization).optional(),
-  hospitalRole: z.nativeEnum(HospitalRole).optional(),
+  specialization: activeSpecializationSchema.optional(),
+  hospitalRole: supportedHospitalRoleSchema.optional(),
   licenseExpiry: z.coerce.date().optional(),
 });
 export class UpdateDoctorDto extends createZodDto(UpdateDoctorSchema) {}
 
-export const UpdateDoctorRegistrationSchema = updateDoctorRequestSchema
-  .pick({ registrationNumber: true })
-  .extend({
-    registrationNumber: z.string().trim().min(1),
-  });
+export const UpdateDoctorRegistrationSchema =
+  updateDoctorRegistrationRequestSchema;
 export class UpdateDoctorRegistrationDto extends createZodDto(
   UpdateDoctorRegistrationSchema,
 ) {}

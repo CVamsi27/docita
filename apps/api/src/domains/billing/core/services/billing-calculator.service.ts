@@ -1,6 +1,7 @@
 import { Money } from '@/domains/billing/core/value-objects/money.value-object';
 import { InvoiceItem } from '@/domains/billing/core/entities/invoice-item.entity';
 import { DEFAULT_CURRENCY } from '@workspace/utils';
+import { InvariantViolationError } from '@/shared/common/errors/domain.errors';
 
 export interface TaxConfiguration {
   rate: number;
@@ -17,7 +18,7 @@ export interface DiscountConfiguration {
 export class BillingCalculatorService {
   calculateTax(amount: Money, taxRate: number): Money {
     if (taxRate < 0 || taxRate > 100) {
-      throw new Error('Tax rate must be between 0 and 100');
+      throw new InvariantViolationError('Tax rate must be between 0 and 100');
     }
     const taxAmount = (amount.amount * taxRate) / 100;
     return new Money(Math.round(taxAmount * 100) / 100, amount.currency);
@@ -28,15 +29,19 @@ export class BillingCalculatorService {
 
     if (discount.type === 'PERCENTAGE') {
       if (discount.value < 0 || discount.value > 100) {
-        throw new Error('Discount percentage must be between 0 and 100');
+        throw new InvariantViolationError(
+          'Discount percentage must be between 0 and 100',
+        );
       }
       discountAmount = (amount.amount * discount.value) / 100;
     } else {
       if (discount.value < 0) {
-        throw new Error('Fixed discount cannot be negative');
+        throw new InvariantViolationError('Fixed discount cannot be negative');
       }
       if (discount.value > amount.amount) {
-        throw new Error('Fixed discount cannot exceed amount');
+        throw new InvariantViolationError(
+          'Fixed discount cannot exceed amount',
+        );
       }
       discountAmount = discount.value;
     }
@@ -46,7 +51,7 @@ export class BillingCalculatorService {
 
   calculateItemsTotal(items: InvoiceItem[]): Money {
     if (items.length === 0) {
-      throw new Error('No items to calculate');
+      throw new InvariantViolationError('No items to calculate');
     }
 
     return items
@@ -56,7 +61,7 @@ export class BillingCalculatorService {
 
   calculateItemsSubtotal(items: InvoiceItem[]): Money {
     if (items.length === 0) {
-      throw new Error('No items to calculate');
+      throw new InvariantViolationError('No items to calculate');
     }
 
     return items

@@ -1,4 +1,5 @@
 import {
+  BadRequestException,
   Controller,
   Get,
   Post,
@@ -11,14 +12,19 @@ import {
   UseGuards,
   HttpCode,
 } from '@nestjs/common';
+import { RequiresIdempotency } from '@/shared/modules/idempotency';
 import { PatientService } from '@/domains/patients/application/services/patient.service';
+import { DPDPComplianceService } from '@/shared/modules/compliance/dpdp-compliance.service';
 import { ApiTags, ApiOperation, ApiQuery } from '@nestjs/swagger';
 import {
   APP_ACCESS_TARGETS,
+  DPDP_NOTICE_VERSION,
   type PatientDomainCreateInput,
   type PatientDomainUpdateInput,
   patientDomainCreateSchema,
   patientDomainUpdateSchema,
+  listPatientsResponseSchema,
+  patientResponseSchema,
 } from '@workspace/types';
 import { Roles } from '@/shared/modules/auth/auth/roles.decorator';
 import { TierGuard } from '@/shared/modules/auth/auth/tier.guard';
@@ -27,8 +33,13 @@ import {
   RequireFeature,
 } from '@/shared/modules/auth/auth/tier.decorator';
 import { getDbRolesForTarget } from '@/shared/modules/auth/auth/access-matrix.util';
-import { RequestWithUser } from '@/common/types/common.types';
-import { requireClinicId } from '@/common/utils/request-context.utils';
+import { RequestWithUser } from '@/shared/common/types/common.types';
+import { getClinicStaffRequestContext } from '@/shared/modules/auth/auth/clinic-request-context';
+import { AuditService } from '@/shared/modules/audit/audit/audit.service';
+import {
+  logClinicPhiListRead,
+  logPatientPhiRead,
+} from '@/shared/modules/audit/audit/patient-access-audit.util';
 import {
   CreatePatientDto,
   ListPatientsQueryDto,
@@ -41,7 +52,22 @@ import {
 @RequireFeature(Feature.BASIC_PATIENT_MANAGEMENT)
 @Roles(...getDbRolesForTarget(APP_ACCESS_TARGETS.API_PATIENTS_READ))
 export class PatientsController {
-  constructor(private readonly patientService: PatientService) {}
+  constructor(
+    private readonly patientService: PatientService,
+    private readonly dpdpService: DPDPComplianceService,
+    private readonly auditService: AuditService,
+  ) {}
+
+  private toPatientResponse(value: unknown) {
+    const candidate =
+      typeof value === 'object' &&
+      value !== null &&
+      'toPlain' in value &&
+      typeof value.toPlain === 'function'
+        ? value.toPlain()
+        : value;
+    return patientResponseSchema.parse(candidate);
+  }
 
   private normalizeCreateBody(
     body: CreatePatientDto,
@@ -61,14 +87,45 @@ export class PatientsController {
 
   @Post()
   @Roles(...getDbRolesForTarget(APP_ACCESS_TARGETS.API_PATIENTS, 'write'))
+  @RequiresIdempotency()
   @ApiOperation({ summary: 'Create new patient' })
   async create(
     @Request() req: RequestWithUser,
     @Body() body: CreatePatientDto,
   ) {
-    return this.patientService.createPatient(
-      this.normalizeCreateBody(body, requireClinicId(req)),
+    const consent = body.dpdpConsent;
+    if (!consent || consent.accepted !== true) {
+      throw new BadRequestException(
+        'DPDP consent is required to add a patient',
+      );
+    }
+    if (consent.noticeVersion !== DPDP_NOTICE_VERSION) {
+      throw new BadRequestException(
+        'The DPDP notice has been updated. Please refresh and re-collect consent before saving.',
+      );
+    }
+
+    const { clinicId } = getClinicStaffRequestContext(req);
+    const created = await this.patientService.createPatient(
+      this.normalizeCreateBody(body, clinicId),
     );
+
+    await this.dpdpService.recordDpdpNoticeConsent({
+      patientId: created.id,
+      clinicId,
+      noticeVersion: consent.noticeVersion,
+      givenByName: consent.givenByName,
+      givenByRelation: consent.relation,
+      createdBy: req.user?.id,
+      ipAddress: req.ip,
+      userAgent:
+        typeof req.headers?.['user-agent'] === 'string'
+          ? req.headers['user-agent']
+          : undefined,
+      notes: 'Collected by staff via Add Patient modal',
+    });
+
+    return this.toPatientResponse(created);
   }
 
   @Get()
@@ -82,19 +139,36 @@ export class PatientsController {
     @Query() query: ListPatientsQueryDto,
   ) {
     const { search, gender, page, limit } = query;
-    return this.patientService.listPatients({
-      clinicId: requireClinicId(req),
+    await logClinicPhiListRead(
+      this.auditService,
+      req,
+      'VIEW_PATIENT_LIST',
+      'Patient',
+      { search, gender, page: page ?? 1, limit: limit ?? 20 },
+    );
+    const result = await this.patientService.listPatients({
+      clinicId: getClinicStaffRequestContext(req).clinicId,
       search,
       gender,
       page: page ?? 1,
       limit: limit ?? 20,
+    });
+
+    return listPatientsResponseSchema.parse({
+      items: result.items.map((patient) => this.toPatientResponse(patient)),
+      total: result.total,
     });
   }
 
   @Get(':id')
   @ApiOperation({ summary: 'Get patient by ID' })
   async findOne(@Request() req: RequestWithUser, @Param('id') id: string) {
-    return this.patientService.getPatient(id, requireClinicId(req));
+    const patient = await this.patientService.getPatient(
+      id,
+      getClinicStaffRequestContext(req).clinicId,
+    );
+    await logPatientPhiRead(this.auditService, req, id, 'VIEW_PROFILE');
+    return this.toPatientResponse(patient);
   }
 
   @Patch(':id')
@@ -105,11 +179,12 @@ export class PatientsController {
     @Param('id') id: string,
     @Body() body: UpdatePatientDto,
   ) {
-    return this.patientService.updatePatient(
+    const updated = await this.patientService.updatePatient(
       id,
       this.normalizeUpdateBody(body),
-      requireClinicId(req),
+      getClinicStaffRequestContext(req).clinicId,
     );
+    return this.toPatientResponse(updated);
   }
 
   @Delete(':id')
@@ -117,6 +192,9 @@ export class PatientsController {
   @HttpCode(204)
   @ApiOperation({ summary: 'Delete patient' })
   async delete(@Request() req: RequestWithUser, @Param('id') id: string) {
-    await this.patientService.deletePatient(id, requireClinicId(req));
+    await this.patientService.deletePatient(
+      id,
+      getClinicStaffRequestContext(req).clinicId,
+    );
   }
 }

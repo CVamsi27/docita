@@ -1,6 +1,5 @@
 import { z } from 'zod';
 import { ClinicType as _ClinicType } from '@workspace/db';
-
 const BankAccountSchema = z.object({
   accountHolderName: z.string().optional(),
   bankName: z.string().optional(),
@@ -20,6 +19,13 @@ const TaxSettingsSchema = z.object({
   registrationId: z.string().trim().optional(),
   registrationLabel: z.string().trim().optional(),
 });
+
+const MapsLocationSchema = z
+  .object({
+    lat: z.number(),
+    lng: z.number(),
+  })
+  .strict();
 
 export const ClinicSettingsSchema = z.object({
   description: z.string().optional(),
@@ -76,6 +82,20 @@ export const ClinicSettingsSchema = z.object({
    * DB migrations, while keeping India GST (`gstin`) as-is for existing flows.
    */
   taxSettings: TaxSettingsSchema.optional(),
+
+  /** Used for patient-facing directions (e.g., WhatsApp confirmations). */
+  mapsLocation: MapsLocationSchema.optional(),
+  /**
+   * User-attached Google Maps link for the facility. Preferred over
+   * `mapsLocation` when present, since clinics may want a custom
+   * Plus-code, share-link, or business listing URL on notifications.
+   */
+  mapsLink: z
+    .string()
+    .trim()
+    .url('mapsLink must be a valid URL')
+    .or(z.literal(''))
+    .optional(),
 });
 
 export type ClinicSettings = z.infer<typeof ClinicSettingsSchema>;

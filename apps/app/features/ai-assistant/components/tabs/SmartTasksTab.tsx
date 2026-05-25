@@ -4,16 +4,16 @@ import {
   CardDescription,
   CardHeader,
   CardTitle,
-} from "@workspace/ui/components/card";
-import { Button } from "@workspace/ui/components/button";
-import { ScrollArea } from "@workspace/ui/components/scroll-area";
+} from "@workspace/ui/components/indicators/card";
+import { Button } from "@workspace/ui/components/form/button";
+import { ScrollArea } from "@workspace/ui/components/layout/scroll-area";
 import {
   Select,
   SelectContent,
   SelectItem,
   SelectTrigger,
   SelectValue,
-} from "@workspace/ui/components/select";
+} from "@workspace/ui/components/form/select";
 import {
   Calendar,
   CheckCircle2,
@@ -47,7 +47,7 @@ export const SmartTasksTab = ({ state, handlers }: SmartTasksTabProps) => (
           <label className="text-sm font-medium">Task Type</label>
           <Select value={state.taskType} onValueChange={handlers.setTaskType}>
             <SelectTrigger>
-              <SelectValue placeholder="Select a task type..." />
+              <SelectValue placeholder="Task type" />
             </SelectTrigger>
             <SelectContent>
               <SelectItem value="follow-up">Schedule Follow-ups</SelectItem>

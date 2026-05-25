@@ -3,7 +3,7 @@
 import { type ReactNode, useCallback } from "react";
 
 import { cn } from "@workspace/ui/lib/utils";
-import { Button } from "./button";
+import { Button } from "./form/button";
 
 interface PrintSheetProps {
   children: ReactNode;

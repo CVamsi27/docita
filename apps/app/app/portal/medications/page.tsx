@@ -3,13 +3,13 @@
 import {
   usePortalActiveMedications,
   usePortalAdherence,
-} from "@/hooks/api/use-patient-portal";
+} from "@workspace/data-access";
 import { ActiveMedicationsCard } from "@/features/patient-portal/components/medications/active-medications-card";
 import { DoseTracker } from "@/features/patient-portal/components/medications/dose-tracker";
 import { AdherenceChart } from "@/features/patient-portal/components/medications/adherence-chart";
-import { AppPageScaffold } from "@workspace/ui/components/app-page-scaffold";
-import { DataState } from "@workspace/ui/components/data-state";
-import { PageHeader } from "@workspace/ui/components/page-header";
+import { AppPageScaffold } from "@workspace/ui/components/layout/app-page-scaffold";
+import { DataState } from "@workspace/ui/components/data-display/data-state";
+import { PageHeader } from "@workspace/ui/components/layout/page-header";
 import { Pill } from "lucide-react";
 import type { ActiveMedication } from "@workspace/types";
 
@@ -33,7 +33,9 @@ function MedicationsContent({
 
       {scheduledMedications.length > 0 && (
         <div className="space-y-4">
-          <h2 className="text-xl font-semibold">Scheduled Medications</h2>
+          <h2 className="ui-section-title text-[var(--fs-xl)]">
+            Scheduled Medications
+          </h2>
           <div className="grid gap-4 sm:grid-cols-2">
             {scheduledMedications.map((med) => (
               <DoseTracker
@@ -49,8 +51,10 @@ function MedicationsContent({
 
       {prnMedications.length > 0 && (
         <div className="space-y-4">
-          <h2 className="text-xl font-semibold">As-Needed Medications</h2>
-          <p className="text-sm text-muted-foreground">
+          <h2 className="ui-section-title text-[var(--fs-xl)]">
+            As-Needed Medications
+          </h2>
+          <p className="ui-page-subtitle">
             Log doses when you take these medications.
           </p>
           <div className="grid gap-4 sm:grid-cols-2">
@@ -89,7 +93,7 @@ export default function PortalMedicationsPage() {
     >
       <DataState
         status={state}
-        loadingMessage="Loading medications..."
+        loadingMessage="Loading medications…"
         emptyIcon={Pill}
         emptyTitle="No Active Medications"
         emptyDescription="You have no active medications at the moment"

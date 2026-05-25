@@ -1,7 +1,10 @@
 import { useEffect } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
-import * as z from "zod";
+import {
+  inventoryAddItemFormSchema,
+  type InventoryAddItemFormValues,
+} from "@workspace/types";
 import { CRUDDialog, FormFieldGroup } from "@workspace/ui/components";
 import {
   Select,
@@ -9,32 +12,11 @@ import {
   SelectItem,
   SelectTrigger,
   SelectValue,
-} from "@workspace/ui/components/select";
-import { Input } from "@workspace/ui/components/input";
-import { DatePicker } from "@workspace/ui/components/date-picker";
-import { Form, FormControl, FormField } from "@workspace/ui/components/form";
-import { requiredStringSchema } from "@/features/_shared/schemas/common.schemas";
-
-const inventoryItemSchema = z.object({
-  name: requiredStringSchema("Item Name"),
-  category: requiredStringSchema("Category"),
-  quantity: z
-    .string()
-    .refine((val) => !isNaN(Number(val)) && Number(val) >= 0, {
-      message: "Quantity must be a valid non-negative number",
-    }),
-  minStock: z
-    .string()
-    .refine((val) => !val || (!isNaN(Number(val)) && Number(val) >= 0), {
-      message: "Minimum stock must be a valid non-negative number",
-    })
-    .optional(),
-  expiryDate: z.string().optional(),
-});
-
-type InventoryItemFormValues = z.infer<typeof inventoryItemSchema>;
-
-export type InventoryItemFormData = InventoryItemFormValues;
+} from "@workspace/ui/components/form/select";
+import { Input } from "@workspace/ui/components/form/input";
+import { DatePicker } from "@workspace/ui/components/form/date-picker";
+import { Form, FormControl, FormField } from "@workspace/ui/components/form/form";
+export type InventoryItemFormData = InventoryAddItemFormValues;
 
 export interface CategoryOption {
   value: string;
@@ -43,10 +25,10 @@ export interface CategoryOption {
 
 export interface InventoryAddItemDialogUIProps {
   isOpen: boolean;
-  defaultValues?: Partial<InventoryItemFormValues>;
+  defaultValues?: Partial<InventoryAddItemFormValues>;
   isLoading: boolean;
   onClose: () => void;
-  onSubmit: (data: InventoryItemFormValues) => void;
+  onSubmit: (data: InventoryAddItemFormValues) => void;
   categories?: CategoryOption[];
 }
 
@@ -58,8 +40,8 @@ export function InventoryAddItemDialogUI({
   onSubmit,
   categories = [],
 }: InventoryAddItemDialogUIProps) {
-  const form = useForm<InventoryItemFormValues>({
-    resolver: zodResolver(inventoryItemSchema),
+  const form = useForm<InventoryAddItemFormValues>({
+    resolver: zodResolver(inventoryAddItemFormSchema),
     defaultValues: {
       name: "",
       category: "",
@@ -83,7 +65,7 @@ export function InventoryAddItemDialogUI({
     }
   }, [isOpen, defaultValues, form]);
 
-  const handleSubmit = (data: InventoryItemFormValues) => {
+  const handleSubmit = (data: InventoryAddItemFormValues) => {
     onSubmit(data);
   };
 
@@ -100,11 +82,7 @@ export function InventoryAddItemDialogUI({
       submitLabel="Add Item"
     >
       <Form {...form}>
-        <form
-          onSubmit={form.handleSubmit(handleSubmit)}
-          noValidate
-          className="space-y-4"
-        >
+        <div className="space-y-4">
           <FormField
             control={form.control}
             name="name"
@@ -115,7 +93,7 @@ export function InventoryAddItemDialogUI({
                 error={form.formState.errors.name?.message}
               >
                 <FormControl>
-                  <Input placeholder="e.g., Paracetamol 500mg" {...field} />
+                  <Input placeholder="Item name" {...field} />
                 </FormControl>
               </FormFieldGroup>
             )}
@@ -136,7 +114,7 @@ export function InventoryAddItemDialogUI({
                 >
                   <FormControl>
                     <SelectTrigger id="category">
-                      <SelectValue placeholder="Select category" />
+                      <SelectValue placeholder="Category" />
                     </SelectTrigger>
                   </FormControl>
                   <SelectContent>
@@ -161,7 +139,7 @@ export function InventoryAddItemDialogUI({
                 error={form.formState.errors.quantity?.message}
               >
                 <FormControl>
-                  <Input type="number" min="0" placeholder="0" {...field} />
+                  <Input type="number" min="0" placeholder="Quantity" {...field} />
                 </FormControl>
               </FormFieldGroup>
             )}
@@ -196,13 +174,13 @@ export function InventoryAddItemDialogUI({
                     onChange={(date) =>
                       field.onChange(date?.toISOString().slice(0, 10) ?? "")
                     }
-                    placeholder="Select expiry date"
+                    placeholder="Expiry date"
                   />
                 </FormControl>
               </FormFieldGroup>
             )}
           />
-        </form>
+        </div>
       </Form>
     </CRUDDialog>
   );

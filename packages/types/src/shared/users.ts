@@ -21,15 +21,6 @@ export const genderSchema = z.enum([
 ]);
 export type Gender = z.infer<typeof genderSchema>;
 
-export const GENDER_LABELS: Record<Gender, string> = {
-  MALE: "Male",
-  FEMALE: "Female",
-  OTHER: "Other",
-  INTERSEX: "Intersex",
-  NON_BINARY: "Non-Binary",
-  PREFER_NOT_TO_SAY: "Prefer Not to Say",
-};
-
 export const bloodGroupSchema = z.enum([
   "A+",
   "A-",
@@ -451,6 +442,22 @@ export const specializationSchema = z.enum([
 ]);
 export type Specialization = z.infer<typeof specializationSchema>;
 
+export const ACTIVE_SPECIALIZATIONS = [
+  "DENTAL",
+  "OTHER",
+  "CARDIOLOGY",
+  "ENT",
+  "OPHTHALMOLOGY",
+  "DERMATOLOGY",
+  "GYNECOLOGY",
+  "PSYCHIATRY",
+  "GENERAL_PRACTICE",
+  "PEDIATRICS",
+] as const satisfies readonly Specialization[];
+
+export const activeSpecializationSchema = z.enum(ACTIVE_SPECIALIZATIONS);
+export type ActiveSpecialization = z.infer<typeof activeSpecializationSchema>;
+
 export const SPECIALIZATION_LABELS: Record<Specialization, string> = {
   GENERAL_PRACTICE: "General Practice",
   DENTAL: "Dental / Dentistry",
@@ -481,6 +488,15 @@ export const SPECIALIZATION_LABELS: Record<Specialization, string> = {
   OTHER: "Other",
 };
 
+/**
+ * All possible hospital role values. None of these are currently in operational
+ * use — see {@link SUPPORTED_HOSPITAL_ROLES} which is intentionally empty.
+ *
+ * @deprecated All HospitalRole members have zero operational use. Do not
+ *   introduce feature gating or business logic that depends on any of these
+ *   values. Use {@link SUPPORTED_HOSPITAL_ROLES} to enumerate roles that are
+ *   actually active.
+ */
 export const hospitalRoleSchema = z.enum([
   "CONSULTANT",
   "SENIOR_CONSULTANT",
@@ -496,6 +512,14 @@ export const hospitalRoleSchema = z.enum([
   "FELLOW",
 ]);
 export type HospitalRole = z.infer<typeof hospitalRoleSchema>;
+
+/**
+ * The subset of {@link HospitalRole} values that are currently active and
+ * permitted in the system. Currently empty — no hospital roles are in
+ * operational use.
+ */
+export const SUPPORTED_HOSPITAL_ROLES = [] as const satisfies readonly HospitalRole[];
+export const supportedHospitalRoleSchema = z.never();
 
 export const HOSPITAL_ROLE_LABELS: Record<HospitalRole, string> = {
   CONSULTANT: "Consultant",
@@ -674,6 +698,8 @@ export const userSchema = z.object({
   hospitalRole: hospitalRoleSchema.optional(),
   qualification: z.string().optional(),
   registrationNumber: z.string().optional(),
+  registrationCouncil: z.string().optional(),
+  registrationStateCode: z.string().optional(),
   licenseNumber: z.string().optional(),
   licenseExpiry: z.string().or(z.date()).optional(),
   signatureUrl: z.string().optional(),
@@ -687,6 +713,10 @@ export const userSchema = z.object({
   verificationReason: z.string().optional(),
   verificationData: z.unknown().optional(),
   verificationCheckedAt: z.string().or(z.date()).optional(),
+  registrationCertificateUrl: z.string().nullable().optional(),
+  registrationCertificateStoredUrl: z.string().nullable().optional(),
+  verifiedByAdminId: z.string().nullable().optional(),
+  verifiedByAdminAt: z.string().or(z.date()).nullable().optional(),
   profilePhotoUrl: z.string().optional(),
   bio: z.string().optional(),
   yearsOfExperience: z.number().optional(),

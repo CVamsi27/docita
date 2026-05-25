@@ -1,6 +1,10 @@
 import { describe, it, expect, jest, beforeEach } from '@jest/globals';
+import { ForbiddenException } from '@nestjs/common';
+import { EventEmitter2 } from '@nestjs/event-emitter';
+import { ClinicTier, IntelligenceAddon } from '@workspace/db';
 import { AppConfigService } from '@/shared/modules/config/app-configuration.service';
 import { SendMessageUseCase } from './send-message.use-case';
+import { createFixedClockMock } from '@/test-utils';
 import { IWhatsAppRepository } from '../ports/whatsapp.repository.port';
 import { IWhatsAppClient } from '../ports/whatsapp-client.port';
 import {
@@ -20,6 +24,8 @@ describe('SendMessageUseCase', () => {
   const findMessageByIdMock = jest.fn<IWhatsAppRepository['findMessageById']>();
   const findMessageByExternalIdMock =
     jest.fn<IWhatsAppRepository['findMessageByExternalId']>();
+  const findClinicMessageContextMock =
+    jest.fn<IWhatsAppRepository['findClinicMessageContext']>();
   const saveTemplateMock = jest.fn<IWhatsAppRepository['saveTemplate']>();
   const findTemplateByIdMock =
     jest.fn<IWhatsAppRepository['findTemplateById']>();
@@ -34,6 +40,7 @@ describe('SendMessageUseCase', () => {
     saveMessage: saveMessageMock,
     findMessageById: findMessageByIdMock,
     findMessageByExternalId: findMessageByExternalIdMock,
+    findClinicMessageContext: findClinicMessageContextMock,
     saveTemplate: saveTemplateMock,
     findTemplateById: findTemplateByIdMock,
     findTemplateByName: findTemplateByNameMock,
@@ -65,12 +72,24 @@ describe('SendMessageUseCase', () => {
   const getMetaConfigMock = jest.fn<AppConfigService['getMetaConfig']>();
   mockConfigService.getMetaConfig = getMetaConfigMock;
 
+  const emitMock = jest.fn();
+  const mockEventEmitter = {
+    emit: emitMock,
+  } as unknown as EventEmitter2;
+
   beforeEach(() => {
     jest.clearAllMocks();
 
     saveMessageMock.mockResolvedValue();
     findMessageByIdMock.mockResolvedValue(null);
     findMessageByExternalIdMock.mockResolvedValue(null);
+    findClinicMessageContextMock.mockResolvedValue({
+      tier: ClinicTier.ESSENTIAL,
+      intelligenceAddon: IntelligenceAddon.NONE,
+      features: {},
+      name: 'Clinic',
+      branding: null,
+    });
     saveTemplateMock.mockResolvedValue();
     findTemplateByIdMock.mockResolvedValue(null);
     findTemplateByNameMock.mockResolvedValue(null);
@@ -99,6 +118,8 @@ describe('SendMessageUseCase', () => {
       mockClient,
       mockTemplateResolver,
       mockConfigService,
+      mockEventEmitter,
+      createFixedClockMock(),
     );
   });
 
@@ -112,10 +133,39 @@ describe('SendMessageUseCase', () => {
 
       expect(sendMessageMock).toHaveBeenCalledWith({
         to: '919876543210',
-        text: 'Your appointment is confirmed.',
+        text: 'From Clinic\nYour appointment is confirmed.',
       });
       expect(saveMessageMock).toHaveBeenCalledTimes(1);
       expect(result.messageId).toBeDefined();
+      expect(result.providerMessageId).toBeDefined();
+      expect(emitMock).toHaveBeenCalledWith(
+        'whatsapp.message.sent',
+        expect.objectContaining({
+          clinicId: 'clinic-123',
+          messageType: 'session',
+        }),
+      );
+    });
+
+    it('throws ForbiddenException when clinic tier does not include WhatsApp', async () => {
+      findClinicMessageContextMock.mockResolvedValueOnce({
+        tier: ClinicTier.STARTER,
+        intelligenceAddon: IntelligenceAddon.NONE,
+        features: {},
+        name: 'Clinic',
+        branding: null,
+      });
+
+      await expect(
+        useCase.execute({
+          clinicId: 'clinic-123',
+          recipientPhone: '919876543210',
+          text: 'Hello',
+        }),
+      ).rejects.toBeInstanceOf(ForbiddenException);
+
+      expect(sendMessageMock).not.toHaveBeenCalled();
+      expect(emitMock).not.toHaveBeenCalled();
     });
 
     it('should throw when neither templateName nor text provided', async () => {
@@ -147,12 +197,12 @@ describe('SendMessageUseCase', () => {
 
       expect(resolveTemplateMock).toHaveBeenCalledWith(
         'appointment_reminder',
-        { patientName: 'John' },
+        { clinicName: 'Clinic', patientName: 'John' },
         'clinic-123',
       );
       expect(sendMessageMock).toHaveBeenCalledWith({
         to: '919876543210',
-        text: 'Hello John',
+        text: 'From Clinic\nHello John',
       });
       expect(result.messageId).toBeDefined();
     });
@@ -176,7 +226,7 @@ describe('SendMessageUseCase', () => {
 
       expect(sendInteractiveMessageMock).toHaveBeenCalledWith({
         to: '919876543210',
-        bodyText: 'Confirm appointment?',
+        bodyText: 'From Clinic\nConfirm appointment?',
         buttons: [
           { id: 'btn_confirm', title: 'Confirm' },
           { id: 'btn_cancel', title: 'Cancel' },
@@ -199,6 +249,8 @@ describe('SendMessageUseCase', () => {
         mockClient,
         mockTemplateResolver,
         mockConfigService,
+        mockEventEmitter,
+        createFixedClockMock(),
       );
 
       resolveTemplateMock.mockResolvedValue({
@@ -236,7 +288,7 @@ describe('SendMessageUseCase', () => {
 
       expect(sendMessageMock).toHaveBeenCalledWith({
         to: '919876543210',
-        text: 'fallback text',
+        text: 'From Clinic\nfallback text',
       });
     });
   });

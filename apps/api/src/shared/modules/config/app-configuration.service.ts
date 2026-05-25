@@ -281,6 +281,41 @@ export class AppConfigService {
     return this.getEnvironment() === 'development';
   }
 
+  isTest(): boolean {
+    return this.getEnvironment() === 'test';
+  }
+
+  isApiE2eEnabled(): boolean {
+    return this.getConfig().DOCITA_API_E2E === 'true';
+  }
+
+  /** Non-production E2E bypass (global flag or per-request header). */
+  shouldBypassGuardForE2e(e2eHeaderValue: string | undefined): boolean {
+    if (this.isProduction()) {
+      return false;
+    }
+    if (this.isApiE2eEnabled()) {
+      return true;
+    }
+    return e2eHeaderValue === 'true';
+  }
+
+  getCptCatalogSource(): 'licensed' | 'nlm_hcpcs' {
+    return this.getConfig().CPT_CATALOG_SOURCE?.toLowerCase() === 'licensed'
+      ? 'licensed'
+      : 'nlm_hcpcs';
+  }
+
+  getCptLicensedApiConfig() {
+    const config = this.getConfig();
+    return {
+      apiBaseUrl: config.CPT_LICENSED_API_URL?.trim() || null,
+      apiKey: config.CPT_LICENSED_API_KEY?.trim() || null,
+      searchPath: config.CPT_LICENSED_SEARCH_PATH?.trim() || '/search',
+      syncPath: config.CPT_LICENSED_SYNC_PATH?.trim() || '/codes',
+    };
+  }
+
   getCpuCount(): number {
     return this.getConfig().CPU_COUNT;
   }
@@ -329,6 +364,14 @@ export class AppConfigService {
       verifyToken: this.getConfig().META_VERIFY_TOKEN || '',
       productionMode: this.getConfig().WHATSAPP_PRODUCTION_MODE,
     };
+  }
+
+  isPerClinicWhatsappSenderEnabled(): boolean {
+    return this.getConfig().WHATSAPP_PER_CLINIC_SENDER_ENABLED;
+  }
+
+  isEnterpriseContractDynamicPricingEnabled(): boolean {
+    return this.getConfig().ENTERPRISE_CONTRACT_DYNAMIC_PRICING_ENABLED;
   }
 
   getSmtpConfig() {
@@ -395,6 +438,19 @@ export class AppConfigService {
     return this.getConfig().SECRETS_PROVIDER;
   }
 
+  /**
+   * Allowlist of emails permitted to authenticate as Role.INTERNAL.
+   * Returns lowercased entries. Empty array means no restriction (legacy).
+   */
+  getInternalAllowedEmails(): string[] {
+    const raw = this.getConfig().INTERNAL_ALLOWED_EMAILS;
+    if (!raw) return [];
+    return raw
+      .split(',')
+      .map((s) => s.trim().toLowerCase())
+      .filter((s) => s.length > 0);
+  }
+
   getJwtSecret(): string {
     const config = this.getConfig();
     if (config.JWT_SECRET) {
@@ -408,6 +464,15 @@ export class AppConfigService {
 
   getJwtExpiration(): string {
     return this.getConfig().JWT_EXPIRATION || '30d';
+  }
+
+  getTurnstileSecretKey(): string | undefined {
+    const key = this.getConfig().TURNSTILE_SECRET_KEY;
+    return key && key.length > 0 ? key : undefined;
+  }
+
+  isTurnstileEnforced(): boolean {
+    return Boolean(this.getTurnstileSecretKey());
   }
 
   getEncryptionKey(): string {
@@ -440,10 +505,33 @@ export class AppConfigService {
     return this.getConfig().API_LOG_MODE;
   }
 
+  getQueueBackend(): 'memory' | 'postgres' {
+    return this.getConfig().QUEUE_BACKEND;
+  }
+
+  getCacheBackend(): 'memory' | 'redis' {
+    return this.getConfig().CACHE_BACKEND;
+  }
+
+  getRedisUrl(): string {
+    const redisUrl = this.getConfig().REDIS_URL;
+    if (!redisUrl) {
+      throw new Error('REDIS_URL is required when CACHE_BACKEND=redis');
+    }
+    return redisUrl;
+  }
+
   getDoctorVerificationConfig() {
     return {
       apiUrl: this.getConfig().DOCTOR_VERIFICATION_API_URL,
       apiKey: this.getConfig().DOCTOR_VERIFICATION_API_KEY,
+    };
+  }
+
+  getHprVerificationConfig() {
+    return {
+      hprApiUrl: this.getConfig().HPR_API_URL,
+      hprApiKey: this.getConfig().HPR_API_KEY,
     };
   }
 
@@ -463,6 +551,23 @@ export class AppConfigService {
 
   getCurrencyCode(acceptLanguage?: string): string {
     return resolveCurrencyFromLocale(acceptLanguage);
+  }
+
+  isRlsEnabled(): boolean {
+    return this.getConfig().RLS_ENABLED;
+  }
+
+  getTenantRateLimitDefaults(): {
+    rps: number;
+    rpm: number;
+    monthlyBudget: number;
+  } {
+    const config = this.getConfig();
+    return {
+      rps: config.TENANT_RATE_LIMIT_DEFAULT_RPS,
+      rpm: config.TENANT_RATE_LIMIT_DEFAULT_RPM,
+      monthlyBudget: config.TENANT_RATE_LIMIT_DEFAULT_MONTHLY_BUDGET,
+    };
   }
 
   getPlatformTaxConfig() {

@@ -23,11 +23,11 @@ vi.mock("next/navigation", () => ({
   useRouter: () => mocks.router,
 }));
 
-vi.mock("@/lib/auth-context", () => ({
+vi.mock("@/lib/auth/auth-context", () => ({
   useAuth: () => mocks.auth,
 }));
 
-vi.mock("@/lib/api-client", () => ({
+vi.mock("@/lib/api/api-client", () => ({
   typedApi: {
     onboarding: {
       choosePath: vi.fn(),
@@ -35,13 +35,13 @@ vi.mock("@/lib/api-client", () => ({
   },
 }));
 
-vi.mock("@/lib/logger", () => ({
+vi.mock("@/lib/monitoring/logger", () => ({
   logger: {
     error: vi.fn(),
   },
 }));
 
-vi.mock("@/components/common/loaders/page-transition-loader", () => ({
+vi.mock("@/components/loaders/page-transition-loader", () => ({
   PageTransitionLoader: ({
     title,
     description,
@@ -54,10 +54,6 @@ vi.mock("@/components/common/loaders/page-transition-loader", () => ({
       <div>{description}</div>
     </div>
   ),
-}));
-
-vi.mock("@/components/common/support-contact", () => ({
-  SupportContact: () => <div data-testid="support-contact" />,
 }));
 
 vi.mock("@/features/auth/components/PreDashboardShell", () => ({
@@ -94,7 +90,7 @@ describe("ChoosePathPage", () => {
       }),
     };
 
-    const { typedApi } = await import("@/lib/api-client");
+    const { typedApi } = await import("@/lib/api/api-client");
     vi.mocked(typedApi.onboarding.choosePath).mockResolvedValue({
       success: true,
     });
@@ -160,7 +156,7 @@ describe("ChoosePathPage", () => {
     });
 
     expect(screen.getByTestId("page-transition-loader")).toHaveTextContent(
-      "Redirecting...",
+      "Redirecting…",
     );
   });
 });

@@ -8,7 +8,6 @@ on:
       - "apps/landing/**"
       - "packages/ui/**"
       - "packages/hooks/**"
-      - "packages/auth/**"
       - "packages/data-access/**"
       - "packages/types/**"
       - "packages/utils/**"

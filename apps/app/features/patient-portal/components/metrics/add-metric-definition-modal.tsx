@@ -1,26 +1,29 @@
 "use client";
 
+import { DocitaLoadingIndicator } from "@workspace/ui/components/feedback/docita-loading-indicator";
+
 import { FormEvent, useState } from "react";
 import {
   Dialog,
   DialogContent,
+  DialogDescription,
   DialogHeader,
   DialogTitle,
   DialogFooter,
-} from "@workspace/ui/components/dialog";
-import { Button } from "@workspace/ui/components/button";
-import { Input } from "@workspace/ui/components/input";
-import { Label } from "@workspace/ui/components/label";
+} from "@workspace/ui/components/overlay/dialog";
+import { Button } from "@workspace/ui/components/form/button";
+import { Input } from "@workspace/ui/components/form/input";
+import { Label } from "@workspace/ui/components/form/label";
 import {
   Select,
   SelectContent,
   SelectItem,
   SelectTrigger,
   SelectValue,
-} from "@workspace/ui/components/select";
-import { getUserFacingErrorMessage } from "@workspace/types";
-import { Loader2 } from "lucide-react";
-import { useCreatePortalMetricDefinition } from "@/hooks/api/use-patient-portal";
+} from "@workspace/ui/components/form/select";
+import { getUserFacingErrorMessage } from "@workspace/utils";
+
+import { useCreatePortalMetricDefinition } from "@workspace/data-access";
 
 interface MetricCategory {
   id: string;
@@ -98,6 +101,9 @@ export function AddMetricDefinitionModal({
       <DialogContent>
         <DialogHeader>
           <DialogTitle>Add Custom Metric</DialogTitle>
+          <DialogDescription>
+            Define a patient portal metric that can be tracked over time.
+          </DialogDescription>
         </DialogHeader>
         <form onSubmit={handleSubmit} className="space-y-4">
           <div className="space-y-2">
@@ -107,7 +113,7 @@ export function AddMetricDefinitionModal({
               value={label}
               onChange={(e) => setLabel(e.target.value)}
               disabled={isPending}
-              placeholder="e.g., Blood Sugar, Sleep Hours"
+              placeholder="Metric name"
               autoFocus
             />
           </div>
@@ -119,7 +125,7 @@ export function AddMetricDefinitionModal({
               disabled={isPending}
             >
               <SelectTrigger id="metric-category">
-                <SelectValue placeholder="Select a category" />
+                <SelectValue placeholder="Category" />
               </SelectTrigger>
               <SelectContent>
                 {categories.map((cat) => (
@@ -157,7 +163,7 @@ export function AddMetricDefinitionModal({
                 value={unit}
                 onChange={(e) => setUnit(e.target.value)}
                 disabled={isPending}
-                placeholder="e.g., kg, mmHg"
+                placeholder="Unit"
               />
             </div>
           </div>
@@ -176,8 +182,8 @@ export function AddMetricDefinitionModal({
             <Button type="submit" disabled={isPending}>
               {isPending ? (
                 <>
-                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                  Creating...
+                  <DocitaLoadingIndicator variant="inline" decorative className="mr-2" />
+                  Creating…
                 </>
               ) : (
                 "Create Metric"

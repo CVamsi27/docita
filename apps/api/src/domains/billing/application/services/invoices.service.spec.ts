@@ -1,6 +1,18 @@
 import { beforeEach, describe, expect, it, jest } from '@jest/globals';
+import { ForbiddenException, NotFoundException } from '@nestjs/common';
 import { EventEmitter2 } from '@nestjs/event-emitter';
-import { InvoiceStatus, Prisma } from '@workspace/db';
+import {
+  ClinicTier,
+  IntelligenceAddon,
+  InvoiceStatus,
+  PaymentSession,
+  PaymentSessionStatus,
+  Prisma,
+} from '@workspace/db';
+import {
+  BILLING_PERSISTENCE_PORT,
+  type BillingPersistencePort,
+} from '@/domains/billing/application/ports/billing-persistence.port';
 import {
   ClaimReadinessResult,
   ClaimValidationService,
@@ -9,16 +21,33 @@ import {
   IInvoiceRepository,
   InvoiceDetail,
 } from '@/domains/billing/core/repositories/invoice.repository';
+import type { IPaymentSessionRepository } from '@/domains/billing/core/repositories/payment-session.repository';
 import { UsageTrackingService } from '@/domains/billing/core/services/usage-tracking.service';
 import { TaxCalculatorService } from '@/domains/billing/core/services/tax-calculator.service';
-import { StorageProvider } from '@/domains/documents/infrastructure/storage.provider';
+import { StorageProvider } from '@/domains/documents/application/ports/storage-provider.port';
 import { StoredFileUrlResolverService } from '@/domains/documents/application/services/stored-file-url-resolver.service';
 import { PDFService, InvoiceData } from './pdf.service';
 import { InvoicesService } from './invoices.service';
 import type { PdfJobServicePort } from '@/shared/modules/queue/pdf-job.service';
+import { InvoicesQueryService } from './invoices-query.service';
+import { InvoicesCommandService } from './invoices-command.service';
+import { createFixedClockMock } from '@/test-utils';
 
 describe('InvoicesService', () => {
   const baseDate = new Date('2026-01-01T00:00:00.000Z');
+
+  const clinicFindUniqueMock = jest.fn<
+    (...args: unknown[]) => Promise<{
+      tier: ClinicTier;
+      intelligenceAddon: IntelligenceAddon;
+      features: Record<string, unknown>;
+    } | null>
+  >();
+  const prisma = {
+    clinic: {
+      findUnique: clinicFindUniqueMock,
+    },
+  } as unknown as BillingPersistencePort;
 
   const repository: jest.Mocked<IInvoiceRepository> = {
     findAll: jest.fn<IInvoiceRepository['findAll']>(),
@@ -27,7 +56,21 @@ describe('InvoicesService', () => {
     update: jest.fn<IInvoiceRepository['update']>(),
     delete: jest.fn<IInvoiceRepository['delete']>(),
     findPatientContext: jest.fn<IInvoiceRepository['findPatientContext']>(),
+    findClinicFeatureContext:
+      jest.fn<IInvoiceRepository['findClinicFeatureContext']>(),
     nextInvoiceNumber: jest.fn<IInvoiceRepository['nextInvoiceNumber']>(),
+  };
+
+  const paymentSessionRepository: jest.Mocked<IPaymentSessionRepository> = {
+    create: jest.fn<IPaymentSessionRepository['create']>(),
+    findById: jest.fn<IPaymentSessionRepository['findById']>(),
+    findByProviderSessionId:
+      jest.fn<IPaymentSessionRepository['findByProviderSessionId']>(),
+    update: jest.fn<IPaymentSessionRepository['update']>(),
+    delete: jest.fn<IPaymentSessionRepository['delete']>(),
+    findPendingReminders:
+      jest.fn<IPaymentSessionRepository['findPendingReminders']>(),
+    findByInvoiceId: jest.fn<IPaymentSessionRepository['findByInvoiceId']>(),
   };
 
   const pdfService = Object.create(PDFService.prototype) as PDFService;
@@ -158,6 +201,19 @@ describe('InvoicesService', () => {
 
   let service: InvoicesService;
 
+  const pdfJobService: PdfJobServicePort = {
+    enqueue: async () => ({
+      jobId: 'job-1',
+      status: 'PENDING' as const,
+      pollUrl: '/api/v1/invoices/inv-1/pdf/status?jobId=job-1',
+    }),
+    getStatus: async () => ({
+      jobId: 'job-1',
+      status: 'PENDING' as const,
+      createdAt: new Date('2026-01-01T00:00:00.000Z'),
+    }),
+  };
+
   beforeEach(() => {
     jest.clearAllMocks();
 
@@ -165,8 +221,38 @@ describe('InvoicesService', () => {
       buildClaimReadinessResult('invoice-default', true),
     );
 
+    const queryService = Object.create(
+      InvoicesQueryService.prototype,
+    ) as InvoicesQueryService;
+    Object.assign(queryService, {
+      repository,
+      paymentSessionRepository,
+      prisma,
+      pdfService,
+      claimValidationService,
+      storageProvider,
+      storedFileUrlResolver,
+      pdfJobService,
+    });
+
+    const commandService = Object.create(
+      InvoicesCommandService.prototype,
+    ) as InvoicesCommandService;
+    Object.assign(commandService, {
+      repository,
+      taxCalculator,
+      eventEmitter,
+      usageTracking,
+      storageProvider,
+      claimValidationService,
+      queryService,
+      clock: createFixedClockMock(),
+    });
+
     service = new InvoicesService(
       repository,
+      paymentSessionRepository,
+      prisma,
       pdfService,
       taxCalculator,
       eventEmitter,
@@ -174,18 +260,9 @@ describe('InvoicesService', () => {
       storageProvider,
       claimValidationService,
       storedFileUrlResolver,
-      {
-        enqueue: async () => ({
-          jobId: 'job-1',
-          status: 'PENDING' as const,
-          pollUrl: '/api/v1/invoices/inv-1/pdf/status?jobId=job-1',
-        }),
-        getStatus: async () => ({
-          jobId: 'job-1',
-          status: 'PENDING' as const,
-          createdAt: new Date('2026-01-01T00:00:00.000Z'),
-        }),
-      } satisfies PdfJobServicePort,
+      pdfJobService,
+      queryService,
+      commandService,
     );
   });
 
@@ -348,7 +425,7 @@ describe('InvoicesService', () => {
 
     generatePdfMock.mockResolvedValue(Buffer.from('pdf'));
 
-    await service.generatePDF('inv-4');
+    await service.generatePDF('inv-4', 'clinic-1');
 
     expect(generatePdfMock).toHaveBeenCalledWith(
       expect.objectContaining({
@@ -375,12 +452,159 @@ describe('InvoicesService', () => {
 
     generatePdfMock.mockResolvedValue(Buffer.from('pdf'));
 
-    await service.generatePDF('inv-5');
+    await service.generatePDF('inv-5', 'clinic-1');
 
     expect(generatePdfMock).toHaveBeenCalledWith(
       expect.objectContaining({
         authorizedSignatureUrl: undefined,
       }),
     );
+  });
+
+  describe('findAll', () => {
+    it('allows listing when scoped to a patient in the clinic without checking invoicing tier', async () => {
+      repository.findPatientContext.mockResolvedValue({
+        id: 'patient-1',
+        firstName: 'Asha',
+        lastName: 'Rao',
+        phoneNumber: '9999999999',
+        email: null,
+        address: null,
+        clinicId: 'clinic-1',
+        clinic: {
+          id: 'clinic-1',
+          name: 'Docita Clinic',
+          address: 'Main Road',
+          phone: '1234567890',
+          email: 'clinic@test.com',
+          currency: 'INR',
+          settings: null,
+        },
+      });
+      repository.findAll.mockResolvedValue({
+        items: [],
+        hasMore: false,
+        count: 0,
+      });
+
+      await service.findAll('clinic-1', { patientId: 'patient-1' });
+
+      expect(clinicFindUniqueMock).not.toHaveBeenCalled();
+      expect(repository.findPatientContext).toHaveBeenCalledWith(
+        'patient-1',
+        'clinic-1',
+      );
+      expect(repository.findAll).toHaveBeenCalledWith(
+        expect.objectContaining({
+          clinicId: 'clinic-1',
+          patientId: 'patient-1',
+        }),
+      );
+    });
+
+    it('returns 404 when patientId does not belong to the clinic', async () => {
+      repository.findPatientContext.mockResolvedValue(null);
+
+      await expect(
+        service.findAll('clinic-1', { patientId: 'missing' }),
+      ).rejects.toThrow(NotFoundException);
+
+      expect(repository.findAll).not.toHaveBeenCalled();
+    });
+
+    it('requires invoicing feature for clinic-wide listing', async () => {
+      repository.findClinicFeatureContext.mockResolvedValue({
+        tier: ClinicTier.STARTER,
+        intelligenceAddon: IntelligenceAddon.NONE,
+        features: {},
+      });
+
+      await expect(service.findAll('clinic-1', {})).rejects.toThrow(
+        ForbiddenException,
+      );
+
+      expect(repository.findAll).not.toHaveBeenCalled();
+    });
+
+    it('allows clinic-wide listing when clinic has invoicing access', async () => {
+      repository.findClinicFeatureContext.mockResolvedValue({
+        tier: ClinicTier.ESSENTIAL,
+        intelligenceAddon: IntelligenceAddon.NONE,
+        features: {},
+      });
+      repository.findAll.mockResolvedValue({
+        items: [],
+        hasMore: false,
+        count: 0,
+      });
+
+      await service.findAll('clinic-1', {});
+
+      expect(repository.findAll).toHaveBeenCalled();
+    });
+  });
+
+  describe('listPaymentActivity', () => {
+    it('throws NotFoundException when invoice is missing', async () => {
+      repository.findById.mockResolvedValue(null);
+
+      await expect(
+        service.listPaymentActivity('inv-x', 'clinic-1'),
+      ).rejects.toThrow(NotFoundException);
+
+      expect(paymentSessionRepository.findByInvoiceId).not.toHaveBeenCalled();
+    });
+
+    it('returns mapped payment sessions', async () => {
+      repository.findById.mockResolvedValue(buildInvoice('inv-1'));
+      const createdAt = new Date('2026-02-01T12:00:00.000Z');
+      const updatedAt = new Date('2026-02-01T12:30:00.000Z');
+      const session: PaymentSession = {
+        id: 'sess-1',
+        clinicId: 'clinic-1',
+        invoiceId: 'inv-1',
+        patientId: 'patient-inv-1',
+        provider: 'manual',
+        providerSessionId: null,
+        paymentLink: null,
+        shortUrl: null,
+        amount: 50000,
+        currency: 'INR',
+        status: PaymentSessionStatus.CAPTURED,
+        createdAt,
+        updatedAt,
+        paidAt: null,
+        failedAt: null,
+        expiresAt: new Date('2026-02-02T00:00:00.000Z'),
+        webhookPayload: null,
+        meta: {
+          channel: 'CASH',
+          reference: 'RRN-9',
+          notes: 'Paid at desk',
+        },
+        whatsappSentAt: null,
+        whatsappMessageId: null,
+        whatsappStatus: null,
+      };
+      paymentSessionRepository.findByInvoiceId.mockResolvedValue([session]);
+
+      const result = await service.listPaymentActivity('inv-1', 'clinic-1');
+
+      expect(paymentSessionRepository.findByInvoiceId).toHaveBeenCalledWith(
+        'inv-1',
+        'clinic-1',
+      );
+      expect(result.items).toHaveLength(1);
+      expect(result.items[0]).toMatchObject({
+        id: 'sess-1',
+        provider: 'manual',
+        status: PaymentSessionStatus.CAPTURED,
+        amountCents: 50000,
+        currency: 'INR',
+        channel: 'CASH',
+        reference: 'RRN-9',
+        notes: 'Paid at desk',
+      });
+    });
   });
 });

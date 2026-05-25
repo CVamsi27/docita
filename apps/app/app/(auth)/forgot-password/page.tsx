@@ -1,32 +1,31 @@
 "use client";
 
+import { DocitaLoadingIndicator } from "@workspace/ui/components/feedback/docita-loading-indicator";
+
 import { Suspense, useEffect, useMemo, useState } from "react";
 import { useSearchParams } from "next/navigation";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
-import { z } from "zod";
-import { Loader2, CheckCircle } from "lucide-react";
-import { Button } from "@workspace/ui/components/button";
-import { Input } from "@workspace/ui/components/input";
-import { Label } from "@workspace/ui/components/label";
-import { api } from "@/lib/api-client";
-import { logger } from "@/lib/logger";
+import {
+  forgotPasswordFormSchema,
+  type ForgotPasswordFormValues,
+} from "@workspace/types";
+import { CheckCircle } from "lucide-react";
+import { Button } from "@workspace/ui/components/form/button";
+import { FloatingInput } from "@workspace/ui/components/form/floating-input";
+import { LoadingState } from "@workspace/ui/components/feedback/empty-state";
+import { api } from "@/lib/api/api-client";
+import { logger } from "@/lib/monitoring/logger";
 import { PreDashboardShell } from "@/features/auth/components/PreDashboardShell";
-import { BackButton } from "@/components/common/navigation/back-button";
-
-const forgotPasswordSchema = z.object({
-  email: z.string().email("Please enter a valid email address"),
-});
-
-type ForgotPasswordFormValues = z.infer<typeof forgotPasswordSchema>;
+import { BackButton } from "@/components/navigation/back-button";
 
 export default function ForgotPasswordPage() {
   return (
     <Suspense
       fallback={
         <PreDashboardShell currentStep="forgot-password" showProgress={false}>
-          <div className="rounded-lg border bg-card/80 backdrop-blur-sm p-6 sm:p-8 shadow-xl">
-            <div className="text-sm text-muted-foreground">Loading...</div>
+          <div className="ui-card-surface p-6 sm:p-8">
+            <LoadingState message="Loading password reset…" />
           </div>
         </PreDashboardShell>
       }
@@ -47,7 +46,7 @@ function ForgotPasswordPageContent() {
   }, [searchParams]);
 
   const form = useForm<ForgotPasswordFormValues>({
-    resolver: zodResolver(forgotPasswordSchema),
+    resolver: zodResolver(forgotPasswordFormSchema),
     defaultValues: { email: prefillEmail },
   });
 
@@ -68,24 +67,24 @@ function ForgotPasswordPageContent() {
 
   return (
     <PreDashboardShell currentStep="forgot-password" showProgress={false}>
-      <div className="animate-in fade-in slide-in-from-bottom-4 duration-700 space-y-1">
-        <h1 className="text-2xl sm:text-3xl font-semibold tracking-tight">Reset Password</h1>
-        <p className="text-muted-foreground text-sm">
+      <div className="ui-copy-stack">
+        <h1 className="ui-page-title">Reset Password</h1>
+        <p className="ui-page-subtitle">
           Enter your email address to receive a password reset link
         </p>
       </div>
 
-      <div className="rounded-lg border bg-card/80 backdrop-blur-sm p-6 sm:p-8 shadow-xl animate-in fade-in slide-in-from-bottom-4 duration-700">
+      <div className="ui-card-surface p-6 sm:p-8">
         {submitted ? (
           <div className="space-y-6 text-center">
             <div className="flex justify-center">
-              <div className="flex h-16 w-16 items-center justify-center rounded-lg bg-success/10">
+              <div className="surface-success flex h-16 w-16 items-center justify-center rounded-full">
                 <CheckCircle className="h-8 w-8 text-success" />
               </div>
             </div>
-            <div className="space-y-2">
-              <h2 className="text-lg font-semibold">Check your email</h2>
-              <p className="text-sm text-muted-foreground">
+            <div className="ui-copy-stack">
+              <h2 className="ui-section-title">Check your email</h2>
+              <p className="ui-helper-text">
                 If an account with that email exists, a password reset link has been sent
               </p>
             </div>
@@ -103,22 +102,16 @@ function ForgotPasswordPageContent() {
             noValidate
             className="space-y-5"
           >
-            <div className="space-y-2">
-              <Label htmlFor="email">Email Address</Label>
-              <Input
-                id="email"
-                type="email"
-                placeholder="Email address"
-                {...form.register("email")}
-                className="h-11"
-                autoFocus
-              />
-              {form.formState.errors.email && (
-                <p className="text-sm text-destructive">
-                  {form.formState.errors.email.message}
-                </p>
-              )}
-            </div>
+            <FloatingInput
+              id="email"
+              type="email"
+              label="Email address"
+              autoComplete="email"
+              autoFocus
+              {...form.register("email")}
+              errorText={form.formState.errors.email?.message}
+              className="h-12"
+            />
 
             {error && (
               <p className="text-sm text-destructive text-center">{error}</p>
@@ -131,8 +124,8 @@ function ForgotPasswordPageContent() {
             >
               {form.formState.isSubmitting ? (
                 <>
-                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                  Sending...
+                  <DocitaLoadingIndicator variant="inline" decorative className="mr-2" />
+                  Sending…
                 </>
               ) : (
                 "Send Reset Link"

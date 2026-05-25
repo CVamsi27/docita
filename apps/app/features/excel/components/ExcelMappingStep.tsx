@@ -5,16 +5,16 @@ import {
   CardFooter,
   CardHeader,
   CardTitle,
-} from "@workspace/ui/components/card";
-import { Button } from "@workspace/ui/components/button";
-import { Label } from "@workspace/ui/components/label";
+} from "@workspace/ui/components/indicators/card";
+import { Button } from "@workspace/ui/components/form/button";
+import { Label } from "@workspace/ui/components/form/label";
 import {
   Select,
   SelectContent,
   SelectItem,
   SelectTrigger,
   SelectValue,
-} from "@workspace/ui/components/select";
+} from "@workspace/ui/components/form/select";
 import {
   Table,
   TableBody,
@@ -22,7 +22,7 @@ import {
   TableHead,
   TableHeader,
   TableRow,
-} from "@workspace/ui/components/table";
+} from "@workspace/ui/components/data-display/table";
 import { AlertTriangle, ArrowRight, Users } from "lucide-react";
 import { ImportPreview } from "@/features/excel/hooks/use-excel-import";
 
@@ -53,7 +53,6 @@ export const ExcelMappingStep = ({
 }: ExcelMappingStepProps) => {
   return (
     <div className="grid gap-6 lg:grid-cols-2">
-      {}
       <Card>
         <CardHeader>
           <CardTitle>Column Mapping</CardTitle>
@@ -64,7 +63,10 @@ export const ExcelMappingStep = ({
         </CardHeader>
         <CardContent className="space-y-4">
           {preview.columns.map((col) => (
-            <div key={col.excelColumn} className="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-4">
+            <div
+              key={col.excelColumn}
+              className="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-4"
+            >
               <div className="flex-1">
                 <Label className="text-sm font-medium">{col.excelColumn}</Label>
                 <p className="text-xs text-muted-foreground truncate">
@@ -79,7 +81,7 @@ export const ExcelMappingStep = ({
                 }
               >
                 <SelectTrigger className="w-full sm:w-[180px]">
-                  <SelectValue placeholder="Select field" />
+                  <SelectValue placeholder="Field" />
                 </SelectTrigger>
                 <SelectContent>
                   <SelectItem value="">Skip this column</SelectItem>
@@ -114,7 +116,6 @@ export const ExcelMappingStep = ({
         </CardFooter>
       </Card>
 
-      {}
       <Card>
         <CardHeader>
           <CardTitle>Data Preview</CardTitle>
@@ -124,7 +125,7 @@ export const ExcelMappingStep = ({
           </CardDescription>
         </CardHeader>
         <CardContent>
-          <div className="rounded-md border overflow-x-auto">
+          <div className="rounded-md border overflow-x-hidden">
             <Table>
               <TableHeader>
                 <TableRow>

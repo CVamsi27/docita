@@ -1,5 +1,6 @@
 import { cn } from "@workspace/ui/lib/utils";
-import { Button } from "@workspace/ui/components/button";
+import { Button } from "@workspace/ui/components/form/button";
+import { SymbolTooltip } from "@workspace/ui/components/overlay/tooltip";
 import { PanelLeft } from "lucide-react";
 
 interface ConsultationLayoutUIProps {
@@ -29,15 +30,20 @@ export function ConsultationLayoutUI({
 
         <div className="flex-1 overflow-y-auto overflow-x-hidden flex flex-col relative">
           {!isSidebarOpen && (
-            <Button
-              variant="ghost"
-              size="sm"
-              onClick={onToggleSidebar}
-              className="absolute left-4 top-4 z-20 h-8 w-8 p-0 rounded-full border shadow-sm bg-background hidden md:flex items-center justify-center hover:bg-accent cursor-pointer"
-              title="Show Patient Sidebar"
-            >
-              <PanelLeft className="h-4 w-4" />
-            </Button>
+            <SymbolTooltip label="Show patient sidebar">
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={onToggleSidebar}
+                className={cn(
+                  "absolute left-4 top-4 z-20 hidden size-8 items-center justify-center rounded-full border bg-background p-0 shadow-sm md:flex",
+                  "cursor-pointer hover:bg-accent",
+                )}
+                aria-label="Show patient sidebar"
+              >
+                <PanelLeft className="h-4 w-4" />
+              </Button>
+            </SymbolTooltip>
           )}
 
           <div className="p-3 md:p-4">

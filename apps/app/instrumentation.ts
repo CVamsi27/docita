@@ -9,5 +9,6 @@ export async function register() {
   try {
     await import("./sentry.server.config");
   } catch {
+    // Sentry is optional in non-production/serverless bootstrap paths.
   }
 }

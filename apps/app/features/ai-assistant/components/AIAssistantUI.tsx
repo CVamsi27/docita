@@ -1,13 +1,13 @@
 import React, { FC } from "react";
-import { Badge } from "@workspace/ui/components/badge";
-import { AppPageScaffold } from "@workspace/ui/components/app-page-scaffold";
-import { PageHeader } from "@workspace/ui/components/page-header";
+import { Badge } from "@workspace/ui/components/indicators/badge";
+import { AppPageScaffold } from "@workspace/ui/components/layout/app-page-scaffold";
+import { PageHeader } from "@workspace/ui/components/layout/page-header";
 import {
   Tabs,
   TabsContent,
   TabsList,
   TabsTrigger,
-} from "@workspace/ui/components/tabs";
+} from "@workspace/ui/components/navigation/tabs";
 import {
   Brain,
   FileText,
@@ -16,7 +16,7 @@ import {
   Sparkles,
   TrendingUp,
 } from "lucide-react";
-import { FeatureGuard } from "@/features/_shared/components/auth/feature-guard";
+import { FeatureGuard } from "@/components/auth/feature-guard";
 import { Feature } from "@/lib/stores/permission-store";
 import { PrescriptionAssistantTab } from "./tabs/PrescriptionAssistantTab";
 import { DiagnosisAssistantTab } from "./tabs/DiagnosisAssistantTab";
@@ -57,7 +57,7 @@ export const AIAssistantUI: FC<AIAssistantUIProps> = ({ state, handlers }) => {
             actions={
               <Badge
                 variant="secondary"
-                className="bg-linear-to-r from-destructive to-primary text-white"
+                className="tier-intelligence border"
               >
                 <Sparkles className="h-3 w-3 mr-1" />
                 Docita Intelligence

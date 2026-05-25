@@ -7,9 +7,20 @@ import type { ExaminationData } from "@/features/consultation/components/structu
 import type { Medication } from "@/features/consultation/components/structured/PrescriptionInput";
 import type { DentalChartValue } from "@/features/consultation/components/specialty/DentalChartUI";
 import type {
+  CardiologyExamData,
+  ClinicalInvestigation,
+  DermatologyExamData,
   GrowthChartData,
+  GynecologyExamData,
   OphthalmologyExamData,
+  PsychiatryExamData,
 } from "@workspace/types";
+import {
+  DEFAULT_CONSULTATION_DRAFT_STATE,
+  draftSessionStorageKey,
+  hashDiagnosesForSync,
+  resolveDraftUpdater,
+} from "./consultationDraftHelpers";
 
 export type SaveState = "idle" | "dirty" | "saving" | "saved" | "error";
 
@@ -24,6 +35,11 @@ export interface ConsultationDraftState {
   dentalChart: DentalChartValue;
   eyeExam: OphthalmologyExamData;
   growthData: GrowthChartData;
+  cardiologyExam: CardiologyExamData;
+  dermatologyExam: DermatologyExamData;
+  gynecologyExam: GynecologyExamData;
+  psychiatryExam: PsychiatryExamData;
+  investigations: ClinicalInvestigation[];
   followUpPlan: string;
   dirty: boolean;
   saveState: SaveState;
@@ -69,73 +85,59 @@ export interface ConsultationDraftActions {
       | ((prev: GrowthChartData) => GrowthChartData),
   ) => void;
   setFollowUpPlan: (updater: string | ((prev: string) => string)) => void;
+  setCardiologyExam: (
+    updater:
+      | CardiologyExamData
+      | ((prev: CardiologyExamData) => CardiologyExamData),
+  ) => void;
+  setDermatologyExam: (
+    updater:
+      | DermatologyExamData
+      | ((prev: DermatologyExamData) => DermatologyExamData),
+  ) => void;
+  setGynecologyExam: (
+    updater:
+      | GynecologyExamData
+      | ((prev: GynecologyExamData) => GynecologyExamData),
+  ) => void;
+  setPsychiatryExam: (
+    updater:
+      | PsychiatryExamData
+      | ((prev: PsychiatryExamData) => PsychiatryExamData),
+  ) => void;
+  setInvestigations: (
+    updater:
+      | ClinicalInvestigation[]
+      | ((
+          prev: ClinicalInvestigation[],
+        ) => ClinicalInvestigation[]),
+  ) => void;
   markClean: (savedAt?: number) => void;
   markSaving: () => void;
   markError: (message: string) => void;
   setDiagnosesContentHash: (hash: string | null) => void;
+  /** Clears dirty/error/saving guard without persisting; use when abandoning edits for leave navigation. */
+  clearConsultationLeaveGuard: () => void;
   reset: () => void;
 }
 
 export type ConsultationDraftStore = ConsultationDraftState &
   ConsultationDraftActions;
 
-const DEFAULT_EXAMINATION: ExaminationData = {
-  general: {
-    pallor: false,
-    icterus: false,
-    cyanosis: false,
-    clubbing: false,
-    lymphadenopathy: false,
-    edema: false,
-    notes: "",
-  },
-  systemic: {
-    cvs: "",
-    rs: "",
-    pa: "",
-    cns: "",
-    musculoskeletal: "",
-    notes: "",
-  },
-};
-
-const DEFAULT_GROWTH: GrowthChartData = {
-  patientGender: "MALE",
-  measurements: [],
-};
-
-const DEFAULT_STATE: ConsultationDraftState = {
-  appointmentId: null,
-  chiefComplaint: [],
-  history: "",
-  examination: DEFAULT_EXAMINATION,
-  diagnosis: [],
-  treatment: "",
-  prescriptions: [],
-  dentalChart: {},
-  eyeExam: {},
-  growthData: DEFAULT_GROWTH,
-  followUpPlan: "",
-  dirty: false,
-  saveState: "idle",
-  lastSavedAt: null,
-  lastError: null,
-  diagnosesContentHash: null,
-};
-
-function resolveUpdater<T>(updater: T | ((prev: T) => T), prev: T): T {
-  return typeof updater === "function"
-    ? (updater as (prev: T) => T)(prev)
-    : updater;
+/** Aligns leave navigation, history traps, and `beforeunload` warnings. */
+export function consultationDraftNeedsLeaveGuard(
+  s: Pick<ConsultationDraftState, "dirty" | "saveState">,
+): boolean {
+  return s.dirty || s.saveState === "error" || s.saveState === "saving";
 }
 
 export const useConsultationDraft = create<ConsultationDraftStore>(
   (set) => ({
-    ...DEFAULT_STATE,
+    ...DEFAULT_CONSULTATION_DRAFT_STATE,
 
     hydrate: (appointmentId, seed) =>
       set(() => ({
-        ...DEFAULT_STATE,
+        ...DEFAULT_CONSULTATION_DRAFT_STATE,
         ...seed,
         appointmentId,
         dirty: false,
@@ -144,70 +146,105 @@ export const useConsultationDraft = create<ConsultationDraftStore>(
 
     setChiefComplaint: (updater) =>
       set((state) => ({
-        chiefComplaint: resolveUpdater(updater, state.chiefComplaint),
+        chiefComplaint: resolveDraftUpdater(updater, state.chiefComplaint),
         dirty: true,
         saveState: "dirty",
       })),
 
     setHistory: (updater) =>
       set((state) => ({
-        history: resolveUpdater(updater, state.history),
+        history: resolveDraftUpdater(updater, state.history),
         dirty: true,
         saveState: "dirty",
       })),
 
     setExamination: (updater) =>
       set((state) => ({
-        examination: resolveUpdater(updater, state.examination),
+        examination: resolveDraftUpdater(updater, state.examination),
         dirty: true,
         saveState: "dirty",
       })),
 
     setDiagnosis: (updater) =>
       set((state) => ({
-        diagnosis: resolveUpdater(updater, state.diagnosis),
+        diagnosis: resolveDraftUpdater(updater, state.diagnosis),
         dirty: true,
         saveState: "dirty",
       })),
 
     setTreatment: (updater) =>
       set((state) => ({
-        treatment: resolveUpdater(updater, state.treatment),
+        treatment: resolveDraftUpdater(updater, state.treatment),
         dirty: true,
         saveState: "dirty",
       })),
 
     setPrescriptions: (updater) =>
       set((state) => ({
-        prescriptions: resolveUpdater(updater, state.prescriptions),
+        prescriptions: resolveDraftUpdater(updater, state.prescriptions),
         dirty: true,
         saveState: "dirty",
       })),
 
     setDentalChart: (updater) =>
       set((state) => ({
-        dentalChart: resolveUpdater(updater, state.dentalChart),
+        dentalChart: resolveDraftUpdater(updater, state.dentalChart),
         dirty: true,
         saveState: "dirty",
       })),
 
     setEyeExam: (updater) =>
       set((state) => ({
-        eyeExam: resolveUpdater(updater, state.eyeExam),
+        eyeExam: resolveDraftUpdater(updater, state.eyeExam),
         dirty: true,
         saveState: "dirty",
       })),
 
     setGrowthData: (updater) =>
       set((state) => ({
-        growthData: resolveUpdater(updater, state.growthData),
+        growthData: resolveDraftUpdater(updater, state.growthData),
         dirty: true,
         saveState: "dirty",
       })),
 
     setFollowUpPlan: (updater) =>
       set((state) => ({
-        followUpPlan: resolveUpdater(updater, state.followUpPlan),
+        followUpPlan: resolveDraftUpdater(updater, state.followUpPlan),
+        dirty: true,
+        saveState: "dirty",
+      })),
+
+    setCardiologyExam: (updater) =>
+      set((state) => ({
+        cardiologyExam: resolveDraftUpdater(updater, state.cardiologyExam),
+        dirty: true,
+        saveState: "dirty",
+      })),
+
+    setDermatologyExam: (updater) =>
+      set((state) => ({
+        dermatologyExam: resolveDraftUpdater(updater, state.dermatologyExam),
+        dirty: true,
+        saveState: "dirty",
+      })),
+
+    setGynecologyExam: (updater) =>
+      set((state) => ({
+        gynecologyExam: resolveDraftUpdater(updater, state.gynecologyExam),
+        dirty: true,
+        saveState: "dirty",
+      })),
+
+    setPsychiatryExam: (updater) =>
+      set((state) => ({
+        psychiatryExam: resolveDraftUpdater(updater, state.psychiatryExam),
+        dirty: true,
+        saveState: "dirty",
+      })),
+
+    setInvestigations: (updater) =>
+      set((state) => ({
+        investigations: resolveDraftUpdater(updater, state.investigations),
         dirty: true,
         saveState: "dirty",
       })),
@@ -236,40 +273,20 @@ export const useConsultationDraft = create<ConsultationDraftStore>(
         diagnosesContentHash: hash,
       })),
 
-    reset: () => set(() => ({ ...DEFAULT_STATE })),
+    clearConsultationLeaveGuard: () =>
+      set(() => ({
+        dirty: false,
+        saveState: "idle",
+        lastError: null,
+      })),
+
+    reset: () => set(() => ({ ...DEFAULT_CONSULTATION_DRAFT_STATE })),
   }),
 );
 
 /**
- * Canonical content-hash for the diagnoses array. Uses FNV-1a on a deterministic
- * projection so the hash matches what the backend computes (ordering by
- * icdCodeId, normalized notes + isPrimary flag).
+ * Canonical content-hash for the diagnoses array. Matches
+ * `AppointmentService.hashDiagnosesContent`: SHA-256 of JSON-encoded rows sorted by
+ * `icdCodeId`, with trimmed notes and boolean `isPrimary`, first 32 hex chars.
  */
-export function hashDiagnosesForSync(
-  items: Array<{
-    icdCodeId?: string;
-    notes?: string;
-    isPrimary?: boolean;
-  }>,
-): string {
-  const normalized = items
-    .filter((d) => d.icdCodeId)
-    .map((d) => ({
-      icdCodeId: d.icdCodeId,
-      notes: (d.notes ?? "").trim(),
-      isPrimary: Boolean(d.isPrimary),
-    }))
-    .sort((a, b) => (a.icdCodeId! > b.icdCodeId! ? 1 : -1));
-
-  const json = JSON.stringify(normalized);
-  let hash = 0x811c9dc5;
-  for (let i = 0; i < json.length; i += 1) {
-    hash ^= json.charCodeAt(i);
-    hash = Math.imul(hash, 0x01000193) >>> 0;
-  }
-  return hash.toString(16).padStart(8, "0");
-}
-
-export function draftSessionStorageKey(appointmentId: string): string {
-  return `docita:consultation-draft:${appointmentId}`;
-}
+export { draftSessionStorageKey, hashDiagnosesForSync };

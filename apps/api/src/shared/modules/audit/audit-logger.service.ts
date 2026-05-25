@@ -1,12 +1,22 @@
-import { Injectable } from '@nestjs/common';
+import { Inject, Injectable, Logger } from '@nestjs/common';
+import { CLOCK_PORT, type IClock } from '@/shared/common/ports/clock.port';
 import { PrismaService } from '@/prisma/prisma.service';
 import { IAuditLogger, AuditLogEntry, AuditAction } from './audit.interface';
 import { randomUUID } from 'crypto';
 import { Prisma } from '@workspace/db';
+import { toPrismaInputJsonValue } from '@/shared/common/json/to-prisma-input-json-value';
+import { parseStringEnumMember } from '@workspace/utils';
+
+const AUDIT_ACTION_MEMBERS = Object.values(AuditAction);
 
 @Injectable()
 export class AuditLoggerService implements IAuditLogger {
-  constructor(private prisma: PrismaService) {}
+  private readonly logger = new Logger(AuditLoggerService.name);
+
+  constructor(
+    private prisma: PrismaService,
+    @Inject(CLOCK_PORT) private readonly clock: IClock,
+  ) {}
 
   private toDbStatus(status: AuditLogEntry['status']): string {
     return status === 'failure' ? 'FAILED' : 'SUCCESS';
@@ -21,31 +31,35 @@ export class AuditLoggerService implements IAuditLogger {
       await this.prisma.auditLog.create({
         data: {
           id: randomUUID(),
-          createdAt: new Date(),
+          createdAt: this.clock.now(),
           userId: entry.userId,
           clinicId: entry.clinicId,
           action: entry.action,
           entityType: entry.resourceType,
           entityId: entry.resourceId ?? 'UNKNOWN',
           oldValue: entry.changes
-            ? (Object.fromEntries(
-                Object.entries(entry.changes).map(([key, value]) => [
-                  key,
-                  value.before,
-                ]),
-              ) as Prisma.InputJsonValue)
+            ? toPrismaInputJsonValue(
+                Object.fromEntries(
+                  Object.entries(entry.changes).map(([key, value]) => [
+                    key,
+                    value.before,
+                  ]),
+                ),
+              )
             : undefined,
           newValue: entry.changes
-            ? (Object.fromEntries(
-                Object.entries(entry.changes).map(([key, value]) => [
-                  key,
-                  value.after,
-                ]),
-              ) as Prisma.InputJsonValue)
+            ? toPrismaInputJsonValue(
+                Object.fromEntries(
+                  Object.entries(entry.changes).map(([key, value]) => [
+                    key,
+                    value.after,
+                  ]),
+                ),
+              )
             : undefined,
           metadata:
             entry.metadata !== undefined
-              ? (entry.metadata as Prisma.InputJsonValue)
+              ? toPrismaInputJsonValue(entry.metadata)
               : undefined,
           ipAddress: entry.ipAddress,
           userAgent: entry.userAgent,
@@ -53,7 +67,16 @@ export class AuditLoggerService implements IAuditLogger {
           errorMessage: entry.failureReason,
         },
       });
-    } catch (_error) {}
+    } catch (error) {
+      const message =
+        error instanceof Error ? error.message : 'Unknown audit log failure';
+      const stack = error instanceof Error ? error.stack : undefined;
+      this.logger.error(
+        `Failed to write audit log for ${entry.action} ${entry.resourceType}: ${message}`,
+        stack,
+      );
+      throw error;
+    }
   }
 
   async getLogsForResource(
@@ -114,7 +137,7 @@ export class AuditLoggerService implements IAuditLogger {
   }
 
   async deleteOldLogs(olderThanDays: number): Promise<number> {
-    const cutoffDate = new Date();
+    const cutoffDate = this.clock.now();
     cutoffDate.setDate(cutoffDate.getDate() - olderThanDays);
 
     const result = await this.prisma.auditLog.deleteMany({
@@ -144,7 +167,9 @@ export class AuditLoggerService implements IAuditLogger {
       timestamp: log.createdAt,
       userId: log.userId,
       clinicId: log.clinicId,
-      action: log.action as AuditAction,
+      action:
+        parseStringEnumMember(AUDIT_ACTION_MEMBERS, log.action) ??
+        AuditAction.PATIENT_UPDATED,
       resourceType: log.entityType,
       resourceId: log.entityId,
       changes:

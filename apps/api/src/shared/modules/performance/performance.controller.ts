@@ -1,4 +1,5 @@
-import { Controller, Get } from '@nestjs/common';
+import { Controller, Get, Inject } from '@nestjs/common';
+import { CLOCK_PORT, type IClock } from '@/shared/common/ports/clock.port';
 import { PerformanceService } from './performance.service';
 import {
   DatabaseStatsResponseDto,
@@ -12,7 +13,10 @@ import { Roles } from '@/shared/modules/auth/auth/roles.decorator';
 @Controller('performance')
 @Roles(Role.ADMIN, Role.INTERNAL)
 export class PerformanceController {
-  constructor(private readonly performanceService: PerformanceService) {}
+  constructor(
+    private readonly performanceService: PerformanceService,
+    @Inject(CLOCK_PORT) private readonly clock: IClock,
+  ) {}
 
   @Get('db-stats')
   @ZodSerializerDto(DatabaseStatsResponseDto)
@@ -31,7 +35,7 @@ export class PerformanceController {
   getHealth() {
     return {
       status: 'ok',
-      timestamp: new Date().toISOString(),
+      timestamp: this.clock.now().toISOString(),
     };
   }
 }

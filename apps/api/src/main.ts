@@ -6,8 +6,8 @@ import { LoggerService, VersioningType } from '@nestjs/common';
 import { ZodValidationPipe, cleanupOpenApiDoc } from 'nestjs-zod';
 import * as Sentry from '@sentry/nestjs';
 import { AllExceptionsFilter } from './shared/modules/error-handling/filters/http-exception.filter';
-import { RequestLoggingInterceptor } from './common/interceptors/request-logging.interceptor';
-import { CacheInterceptor as _CacheInterceptor } from './common/interceptors/cache.interceptor';
+import { RequestLoggingInterceptor } from './shared/common/interceptors/request-logging.interceptor';
+import { CacheInterceptor as _CacheInterceptor } from './shared/common/interceptors/cache.interceptor';
 import { MonitoringService } from './shared/modules/monitoring/monitoring/monitoring.service';
 import { ObservabilityService } from './shared/modules/services/observability.service';
 import {
@@ -198,17 +198,15 @@ async function bootstrap() {
 
   const apiUrl = appConfigService.getApiUrl();
 
-  const swaggerCdnSrc = isDevelopment() ? ['https://cdn.jsdelivr.net'] : [];
-
   app.use(
     helmet({
       contentSecurityPolicy: {
         directives: {
           defaultSrc: ["'self'"],
-          scriptSrc: ["'self'", "'unsafe-inline'", ...swaggerCdnSrc],
-          styleSrc: ["'self'", "'unsafe-inline'", ...swaggerCdnSrc],
+          scriptSrc: ["'self'"],
+          styleSrc: ["'self'"],
           imgSrc: ["'self'", 'data:', 'https:'],
-          fontSrc: ["'self'", 'data:', ...swaggerCdnSrc],
+          fontSrc: ["'self'", 'data:'],
           connectSrc: ["'self'", apiUrl],
           frameSrc: ["'none'"],
           objectSrc: ["'none'"],
@@ -226,6 +224,30 @@ async function bootstrap() {
       crossOriginResourcePolicy: { policy: 'cross-origin' },
     }),
   );
+
+  if (isDevelopment()) {
+    app.use(
+      '/docs',
+      helmet({
+        contentSecurityPolicy: {
+          directives: {
+            defaultSrc: ["'self'"],
+            scriptSrc: [
+              "'self'",
+              "'unsafe-inline'",
+              'https://cdn.jsdelivr.net',
+            ],
+            styleSrc: ["'self'", "'unsafe-inline'", 'https://cdn.jsdelivr.net'],
+            imgSrc: ["'self'", 'data:', 'https:'],
+            fontSrc: ["'self'", 'data:', 'https://cdn.jsdelivr.net'],
+            connectSrc: ["'self'", apiUrl],
+            frameSrc: ["'none'"],
+            objectSrc: ["'none'"],
+          },
+        },
+      }),
+    );
+  }
 
   app.use(cookieParser());
 

@@ -2,17 +2,18 @@
 
 import Link from "next/link";
 import { FileText } from "lucide-react";
-import { Badge } from "@workspace/ui/components/badge";
+import { Badge } from "@workspace/ui/components/indicators/badge";
 import {
   Card,
   CardContent,
   CardHeader,
   CardTitle,
-} from "@workspace/ui/components/card";
-import { Button } from "@workspace/ui/components/button";
-import { EmptyState } from "@workspace/ui/components/empty-state";
+} from "@workspace/ui/components/indicators/card";
+import { Button } from "@workspace/ui/components/form/button";
+import { EmptyState } from "@workspace/ui/components/feedback/empty-state";
 import type { PatientPortalPrescription } from "@/features/patient-portal/types/patient-portal-types";
 import { getPrescriptionStatusLabel } from "@/features/patient-portal/rules/patient-portal-rules";
+import { formatDate } from "@/lib/formatters";
 
 interface PatientPortalPrescriptionsUIProps {
   prescriptions: PatientPortalPrescription[];
@@ -29,8 +30,8 @@ export function PatientPortalPrescriptionsUI({
     <div className="space-y-4">
       {showHeader ? (
         <div>
-          <h1 className="text-2xl font-semibold tracking-tight">Prescriptions</h1>
-          <p className="text-sm text-muted-foreground">
+          <h1 className="ui-page-title">Prescriptions</h1>
+          <p className="ui-page-subtitle">
             Access active and past prescriptions shared by your doctors.
           </p>
         </div>
@@ -61,7 +62,7 @@ export function PatientPortalPrescriptionsUI({
                   </div>
                   <div className="text-muted-foreground">
                     {prescription.prescribedBy} •{" "}
-                    {new Date(prescription.issuedAt).toLocaleDateString()}
+                    {formatDate(prescription.issuedAt)}
                   </div>
                 </div>
               ))}

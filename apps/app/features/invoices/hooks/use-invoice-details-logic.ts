@@ -1,12 +1,17 @@
 import { useEffect, useRef, useState } from "react";
-import { useClinic } from "@/lib/clinic-context";
+import { useClinic } from "@/lib/contexts/clinic-context";
 
-import { useInvoice } from "@/hooks/api/use-billing";
+import { useInvoice } from "@workspace/data-access";
 import { toast } from "sonner";
 import { useRouter } from "next/navigation";
 import { InvoiceItem } from "@workspace/types";
-import { formatCurrency } from "@/lib/formatters";
-import { showUserFacingErrorToast } from "@/lib/user-facing-errors";
+import {
+  DATE_FORMAT_OPTIONS_US_LONG,
+  formatCurrency,
+  formatDateSafe,
+} from "@/lib/formatters";
+import { useClinicCurrency } from "@/hooks/use-clinic-currency";
+import { showUserFacingErrorToast } from "@/lib/errors/user-facing-errors";
 import { invoicesApi } from "@/features/invoices/api/invoices.api";
 
 const POLL_INTERVAL_MS = 2000;
@@ -18,6 +23,7 @@ export const useInvoiceDetailsLogic = (
 ) => {
   const router = useRouter();
   const { clinic } = useClinic();
+  const clinicCurrency = useClinicCurrency();
   const printRef = useRef<HTMLDivElement>(null);
   const hasAutoPrintedRef = useRef(false);
   const [isDownloading, setIsDownloading] = useState(false);
@@ -41,7 +47,7 @@ export const useInvoiceDetailsLogic = (
 
   const handleDownload = async () => {
     setIsDownloading(true);
-    const toastId = toast.loading("Preparing PDF...");
+    const toastId = toast.loading("Preparing PDF…");
 
     try {
       const { jobId } = await invoicesApi.enqueuePdf(invoiceId);
@@ -74,24 +80,6 @@ export const useInvoiceDetailsLogic = (
     }
   };
 
-  const handleShareWhatsApp = () => {
-    if (!invoice?.patient?.phoneNumber) {
-      showUserFacingErrorToast(
-        "Add this patient's phone number before sharing the invoice on WhatsApp",
-      );
-      return;
-    }
-
-    const clinicName = clinic?.name?.trim() || "our facility";
-    const total =
-      invoice.grandTotal || invoice.totalAmount || invoice.total || 0;
-    const message = `Hello ${invoice.patient.firstName}, here is your invoice ${invoice.invoiceNumber ?? invoice.id} for ${formatCurrency(total)}. Thank you for visiting ${clinicName}.`;
-    const encodedMessage = encodeURIComponent(message);
-    const whatsappUrl = `https://wa.me/${invoice.patient.phoneNumber}?text=${encodedMessage}`;
-
-    window.open(whatsappUrl, "_blank");
-  };
-
   const calculateSubtotal = (items: InvoiceItem[]) => {
     return items.reduce(
       (sum, item) => sum + item.quantity * (item.unitPrice ?? item.price),
@@ -99,17 +87,8 @@ export const useInvoiceDetailsLogic = (
     );
   };
 
-  const formatDate = (dateString?: string | Date) => {
-    if (!dateString) return "-";
-    return new Date(dateString).toLocaleDateString("en-US", {
-      year: "numeric",
-      month: "long",
-      day: "numeric",
-    });
-  };
-
   const numberToWords = (amount: number) => {
-    return `${amount} Rupees Only`;
+    return `${amount} ${invoice?.currency ?? clinicCurrency.currency} Only`;
   };
 
   return {
@@ -120,10 +99,16 @@ export const useInvoiceDetailsLogic = (
     handlePrint,
     handleDownload,
     isDownloading,
-    handleShareWhatsApp,
     calculateSubtotal,
-    formatCurrency,
-    formatDate,
+    formatCurrency: (amount: number) =>
+      formatCurrency(amount, invoice?.currency ?? clinicCurrency.currency, {
+        locale: clinicCurrency.locale,
+      }),
+    formatDate: (dateString?: string | Date | null) =>
+      formatDateSafe(
+        dateString ?? null,
+        DATE_FORMAT_OPTIONS_US_LONG,
+      ),
     numberToWords,
     router,
     clinic,

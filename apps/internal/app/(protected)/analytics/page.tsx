@@ -1,20 +1,35 @@
 "use client";
 
 import dynamic from "next/dynamic";
-import { AppPageScaffold } from "@workspace/ui/components/app-page-scaffold";
-import { PageHeader } from "@workspace/ui/components/page-header";
-import { Section } from "@workspace/ui/components/section";
+import { AppPageScaffold } from "@workspace/ui/components/layout/app-page-scaffold";
+import { DocitaLoadingIndicator } from "@workspace/ui/components/feedback/docita-loading-indicator";
+import { PageHeader } from "@workspace/ui/components/layout/page-header";
+import { Section } from "@workspace/ui/components/layout/section";
 
 const AnalyticsDashboardLazy = dynamic(
   () =>
-    import("@/components/analytics/analytics-dashboard").then(
+    import("@/features/analytics/analytics-dashboard").then(
       (module) => module.AnalyticsDashboard,
     ),
   {
     ssr: false,
     loading: () => (
       <Section contentClassName="ui-section-stack">
-        Loading analytics dashboard...
+        <div
+          className="flex flex-col items-center gap-3 py-8 text-center"
+          role="status"
+          aria-live="polite"
+          aria-label="Loading analytics dashboard"
+        >
+          <DocitaLoadingIndicator
+            variant="section"
+            withStatusRole={false}
+            iconClassName="h-8 w-8 text-muted-foreground"
+          />
+          <p className="text-sm text-muted-foreground">
+            Loading analytics dashboard…
+          </p>
+        </div>
       </Section>
     ),
   },

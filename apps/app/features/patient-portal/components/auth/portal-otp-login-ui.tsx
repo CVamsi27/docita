@@ -1,5 +1,7 @@
 "use client";
 
+import { DocitaLoadingIndicator } from "@workspace/ui/components/feedback/docita-loading-indicator";
+
 import { FormEvent } from "react";
 import {
   Card,
@@ -7,12 +9,12 @@ import {
   CardDescription,
   CardHeader,
   CardTitle,
-} from "@workspace/ui/components/card";
-import { Button } from "@workspace/ui/components/button";
-import { Input } from "@workspace/ui/components/input";
-import { Label } from "@workspace/ui/components/label";
-import { Alert, AlertDescription } from "@workspace/ui/components/alert";
-import { Loader2, ArrowLeft, Phone, ShieldCheck } from "lucide-react";
+} from "@workspace/ui/components/indicators/card";
+import { Button } from "@workspace/ui/components/form/button";
+import { Input } from "@workspace/ui/components/form/input";
+import { Label } from "@workspace/ui/components/form/label";
+import { Alert, AlertDescription } from "@workspace/ui/components/feedback/alert";
+import { ArrowLeft, Phone, ShieldCheck } from "lucide-react";
 import { usePortalOtpAuth } from "@/features/patient-portal/hooks/use-portal-otp-auth";
 
 export function PortalOtpLoginUI() {
@@ -42,19 +44,19 @@ export function PortalOtpLoginUI() {
 
   return (
     <div className="flex min-h-screen items-center justify-center bg-muted/30 p-4">
-      <Card className="w-full max-w-md">
+      <Card className="ui-card-surface w-full max-w-md">
         <CardHeader className="text-center">
-          <div className="mx-auto mb-4 flex h-12 w-12 items-center justify-center rounded-full bg-primary/10">
+          <div className="mx-auto mb-4 flex h-12 w-12 items-center justify-center rounded-full border border-border/70 bg-background/70">
             {step === "phone" ? (
               <Phone className="h-6 w-6 text-primary" />
             ) : (
               <ShieldCheck className="h-6 w-6 text-primary" />
             )}
           </div>
-          <CardTitle className="text-2xl">
+          <CardTitle className="ui-page-title text-[var(--fs-3xl)]">
             {step === "phone" ? "Patient Portal" : "Enter Verification Code"}
           </CardTitle>
-          <CardDescription>
+          <CardDescription className="ui-page-subtitle">
             {step === "phone"
               ? "Enter your registered mobile number to receive a verification code"
               : `We sent a 6-digit verification code to ${phoneNumber}`}
@@ -75,7 +77,7 @@ export function PortalOtpLoginUI() {
                 <Input
                   id="phone"
                   type="tel"
-                  placeholder="Enter your 10-digit mobile number"
+                  placeholder="Enter mobile number"
                   value={phoneNumber}
                   onChange={(e) => setPhoneNumber(e.target.value)}
                   disabled={isLoading}
@@ -90,8 +92,8 @@ export function PortalOtpLoginUI() {
               >
                 {isLoading ? (
                   <>
-                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                    Sending code...
+                    <DocitaLoadingIndicator variant="inline" decorative className="mr-2" />
+                    Sending code…
                   </>
                 ) : (
                   "Send Code"
@@ -108,7 +110,7 @@ export function PortalOtpLoginUI() {
                   inputMode="numeric"
                   pattern="[0-9]*"
                   maxLength={6}
-                  placeholder="Enter 6-digit code"
+                  placeholder="Enter verification code"
                   value={otp}
                   onChange={(e) =>
                     setOtp(e.target.value.replace(/\D/g, "").slice(0, 6))
@@ -125,8 +127,8 @@ export function PortalOtpLoginUI() {
               >
                 {isLoading ? (
                   <>
-                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                    Verifying...
+                    <DocitaLoadingIndicator variant="inline" decorative className="mr-2" />
+                    Verifying…
                   </>
                 ) : (
                   "Verify Code"

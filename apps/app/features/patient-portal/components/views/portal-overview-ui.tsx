@@ -7,9 +7,9 @@ import {
   CardContent,
   CardHeader,
   CardTitle,
-} from "@workspace/ui/components/card";
-import { Button } from "@workspace/ui/components/button";
-import { EmptyState } from "@workspace/ui/components/empty-state";
+} from "@workspace/ui/components/indicators/card";
+import { Button } from "@workspace/ui/components/form/button";
+import { EmptyState } from "@workspace/ui/components/feedback/empty-state";
 
 interface PatientPortalOverviewUIProps {
   appointmentCount: number;
@@ -27,10 +27,8 @@ export function PatientPortalOverviewUI({
   return (
     <div className="space-y-6">
       <div>
-        <h1 className="text-2xl font-semibold tracking-tight">
-          Patient Portal
-        </h1>
-        <p className="text-sm text-muted-foreground">
+        <h1 className="ui-page-title">Patient Portal</h1>
+        <p className="ui-page-subtitle">
           View your care journey, prescriptions, and billing in one place.
         </p>
       </div>
@@ -43,7 +41,9 @@ export function PatientPortalOverviewUI({
             </CardTitle>
           </CardHeader>
           <CardContent className="flex items-center justify-between">
-            <span className="text-2xl font-semibold">{appointmentCount}</span>
+            <span className="text-[var(--fs-2xl)] font-semibold tabular-nums leading-[var(--lh-tight)]">
+              {appointmentCount}
+            </span>
             <CalendarDays className="h-5 w-5 text-muted-foreground" />
           </CardContent>
         </Card>
@@ -55,7 +55,9 @@ export function PatientPortalOverviewUI({
             </CardTitle>
           </CardHeader>
           <CardContent className="flex items-center justify-between">
-            <span className="text-2xl font-semibold">{prescriptionCount}</span>
+            <span className="text-[var(--fs-2xl)] font-semibold tabular-nums leading-[var(--lh-tight)]">
+              {prescriptionCount}
+            </span>
             <FileText className="h-5 w-5 text-muted-foreground" />
           </CardContent>
         </Card>
@@ -67,7 +69,7 @@ export function PatientPortalOverviewUI({
             </CardTitle>
           </CardHeader>
           <CardContent className="flex items-center justify-between">
-            <span className="text-2xl font-semibold">
+            <span className="text-[var(--fs-2xl)] font-semibold tabular-nums leading-[var(--lh-tight)]">
               {outstandingInvoiceCount}
             </span>
             <CreditCard className="h-5 w-5 text-muted-foreground" />

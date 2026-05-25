@@ -1,3 +1,4 @@
+-- check-migration-reversibility: one-way
 /*
   Warnings:
 

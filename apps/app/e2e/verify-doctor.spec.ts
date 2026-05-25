@@ -163,7 +163,7 @@ async function createDoctorWithSignature(
   request: import("@playwright/test").APIRequestContext,
   options: { uploadDoctorSignature?: boolean } = {},
 ) {
-  const uploadDoctorSignature = options.uploadDoctorSignature ?? true;
+  const uploadDoctorSignature = options.uploadDoctorSignature ?? false;
   const uniqueId = randomUUID();
   const email = `doctor-verify-${uniqueId}@test.com`;
   const clinicName = `Verify Clinic ${uniqueId}`;
@@ -179,7 +179,10 @@ async function createDoctorWithSignature(
     "base64",
   );
 
-  const authHeaders = (token: string) => ({ Authorization: `Bearer ${token}` });
+  const authHeaders = (token: string) => ({
+    Authorization: `Bearer ${token}`,
+    ...e2eHeaders,
+  });
   const csrfHeaders = {
     Cookie: "XSRF-TOKEN=e2e-csrf-token",
     "X-XSRF-TOKEN": "e2e-csrf-token",
@@ -262,6 +265,11 @@ async function createDoctorWithSignature(
   const signatureSessionData = asRecord(await signatureSessionRes.json());
   const signatureSessionId = readString(signatureSessionData, "id");
   expect(signatureSessionId).toBeTruthy();
+  const signatureUploadSecret = readString(
+    signatureSessionData,
+    "uploadSecret",
+  );
+  expect(signatureUploadSecret).toBeTruthy();
 
   const uploadSlaRes = await request.post(
     `${API_URL}/onboarding/${onboardingId}/sla-signature-session/${signatureSessionId}`,
@@ -269,6 +277,7 @@ async function createDoctorWithSignature(
       headers: {
         ...authHeaders(accessToken),
         ...csrfHeaders,
+        "X-Upload-Secret": signatureUploadSecret,
       },
       multipart: {
         file: {
@@ -301,12 +310,16 @@ async function createDoctorWithSignature(
         adminAccount: {
           name: "Verify Doctor",
           email,
+          password: TEST_PASSWORD,
           role: "ADMIN_DOCTOR",
         },
         planSelection: {
-          tier: "STARTER",
+          tier: "ESSENTIAL",
           billingCycle: "MONTHLY",
           currency: "INR",
+        },
+        paymentDetails: {
+          skipPayment: true,
         },
         slaAgreement: {
           acceptedSLA: true,
@@ -328,7 +341,30 @@ async function createDoctorWithSignature(
   );
   expect(completeRes.ok()).toBeTruthy();
   const completeData = asRecord(await completeRes.json());
+  if (completeData.success !== true) {
+    throw new Error(
+      `Onboarding completion failed: ${JSON.stringify(completeData)}`,
+    );
+  }
   accessToken = readAccessToken(completeData) ?? accessToken;
+
+  const loginRes = await request.post(`${API_URL}/auth/login`, {
+    headers: {
+      ...e2eHeaders,
+      ...csrfHeaders,
+    },
+    data: {
+      email,
+      password: TEST_PASSWORD,
+    },
+  });
+  if (!loginRes.ok()) {
+    throw new Error(
+      `Post-onboarding login failed: ${loginRes.status()} ${await loginRes.text()}`,
+    );
+  }
+  const loginData = asRecord(await loginRes.json());
+  accessToken = readAccessToken(loginData) ?? accessToken;
 
   if (uploadDoctorSignature) {
     const tokenRes = await request.post(
@@ -388,11 +424,19 @@ async function createDoctorWithSignature(
 }
 
 test.describe("Doctor Verification Flow", () => {
+  let sharedDoctor: Awaited<ReturnType<typeof createDoctorWithSignature>>;
+
+  test.beforeAll(async ({ request }) => {
+    sharedDoctor = await createDoctorWithSignature(request, {
+      uploadDoctorSignature: false,
+    });
+  });
+
   test("redirects to verify-doctor and then continues to dashboard after registration save", async ({
     page,
     request,
   }) => {
-    const doctor = await createDoctorWithSignature(request);
+    const doctor = sharedDoctor;
 
     await addAuthCookies(page, doctor);
     await page.context().addInitScript(
@@ -482,13 +526,18 @@ test.describe("Doctor Verification Flow", () => {
       {
         headers: {
           Authorization: `Bearer ${doctor.accessToken}`,
+          "x-docita-e2e": "true",
         },
         data: {
           registrationNumber,
         },
       },
     );
-    expect(updateRes.ok()).toBeTruthy();
+    if (!updateRes.ok()) {
+      throw new Error(
+        `Doctor registration update failed: ${updateRes.status()} ${await updateRes.text()}`,
+      );
+    }
 
     await page.goto("/dashboard");
     await page.waitForURL(/\/dashboard/, { timeout: 30000 });
@@ -497,9 +546,7 @@ test.describe("Doctor Verification Flow", () => {
   test("lets admin doctors reuse the onboarding signature during verification", async ({
     request,
   }) => {
-    const doctor = await createDoctorWithSignature(request, {
-      uploadDoctorSignature: false,
-    });
+    const doctor = sharedDoctor;
 
     const registrationNumber = `REG-${Date.now()}`;
     const updateRes = await request.put(
@@ -507,13 +554,18 @@ test.describe("Doctor Verification Flow", () => {
       {
         headers: {
           Authorization: `Bearer ${doctor.accessToken}`,
+          "x-docita-e2e": "true",
         },
         data: {
           registrationNumber,
         },
       },
     );
-    expect(updateRes.ok()).toBeTruthy();
+    if (!updateRes.ok()) {
+      throw new Error(
+        `Doctor registration update failed: ${updateRes.status()} ${await updateRes.text()}`,
+      );
+    }
 
     const clinicSettingsRes = await request.get(`${API_URL}/clinic/settings`, {
       headers: {

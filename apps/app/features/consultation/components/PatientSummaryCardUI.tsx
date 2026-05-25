@@ -4,22 +4,19 @@ import {
   CardContent,
   CardHeader,
   CardTitle,
-} from "@workspace/ui/components/card";
-import { Badge } from "@workspace/ui/components/badge";
+} from "@workspace/ui/components/indicators/card";
+import { Badge } from "@workspace/ui/components/indicators/badge";
 
 import {
   Tooltip,
   TooltipContent,
   TooltipTrigger,
-} from "@workspace/ui/components/tooltip";
+} from "@workspace/ui/components/overlay/tooltip";
 import { AlertTriangle, Droplet, User } from "lucide-react";
 import { cn } from "@workspace/ui/lib/utils";
-import { format } from "date-fns";
-import {
-
-  CodeStatus,
-  CodeStatusAlertUI,
-} from "./summary/CodeStatusAlertUI";
+import { formatDate } from "@workspace/utils";
+import { formatGenderLabel } from "@/lib/formatters";
+import { CodeStatus, CodeStatusAlertUI } from "./summary/CodeStatusAlertUI";
 import { AllergyAlertUI } from "./summary/AllergyAlertUI";
 import { SummaryVitals } from "./shared/SummaryVitals";
 import { SummaryMedications } from "./shared/SummaryMedications";
@@ -103,7 +100,7 @@ export function PatientSummaryCardUI({
       <CardHeader className="pb-2 space-y-0">
         <div className="flex items-start justify-between">
           <div className="flex items-center gap-3">
-            <div className="h-10 w-10 rounded-full bg-primary/10 flex items-center justify-center">
+            <div className="flex h-10 w-10 items-center justify-center rounded-full border border-border/70 bg-background/70">
               <User className="h-5 w-5 text-primary" />
             </div>
             <div>
@@ -113,7 +110,7 @@ export function PatientSummaryCardUI({
                 {patient.gender && (
                   <>
                     <span>•</span>
-                    <span className="capitalize">{patient.gender}</span>
+                    <span>{formatGenderLabel(patient.gender)}</span>
                   </>
                 )}
                 {patient.bloodGroup && (
@@ -131,13 +128,13 @@ export function PatientSummaryCardUI({
           {hasSevereAllergy && (
             <Tooltip>
               <TooltipTrigger asChild>
-                <div className="flex items-center gap-1 text-destructive animate-pulse">
+                <div className="flex items-center gap-1 text-destructive font-semibold">
                   <AlertTriangle className="h-4 w-4" />
                   <span className="text-xs font-medium">ALERT</span>
                 </div>
               </TooltipTrigger>
               <TooltipContent>
-                <p>Patient has severe allergies!</p>
+                <p>Allergies</p>
               </TooltipContent>
             </Tooltip>
           )}
@@ -145,7 +142,6 @@ export function PatientSummaryCardUI({
       </CardHeader>
 
       <CardContent className="space-y-6">
-        {}
         {hasAllergies && (
           <div className="space-y-2">
             <div className="flex items-center gap-1.5 text-xs font-medium text-muted-foreground uppercase tracking-wider">
@@ -167,13 +163,7 @@ export function PatientSummaryCardUI({
                     </Badge>
                   </TooltipTrigger>
                   <TooltipContent>
-                    <p className="font-medium">{allergy.allergen}</p>
-                    <p className="text-xs capitalize">
-                      Severity: {allergy.severity}
-                    </p>
-                    {allergy.reaction && (
-                      <p className="text-xs">Reaction: {allergy.reaction}</p>
-                    )}
+                    <p>{allergy.allergen}</p>
                   </TooltipContent>
                 </Tooltip>
               ))}
@@ -181,27 +171,21 @@ export function PatientSummaryCardUI({
           </div>
         )}
 
-        {}
         <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-4">
           <div className="space-y-4">
-            {}
             <div className="space-y-2">
               <AllergyAlertUI allergies={allergies} />
             </div>
             {codeStatus && <CodeStatusAlertUI codeStatus={codeStatus} />}
           </div>
 
-          {}
           <SummaryConditions conditions={activeConditions} />
 
-          {}
           <SummaryMedications medications={currentMedications} />
 
-          {}
           <SummaryVitals vitals={latestVitals} />
         </div>
 
-        {}
         {expanded && (
           <div className="mt-6 pt-6 border-t grid gap-4 md:grid-cols-3">
             <div>
@@ -219,7 +203,7 @@ export function PatientSummaryCardUI({
               <h4 className="text-sm font-medium mb-2">Last Visit</h4>
               {lastVisit ? (
                 <div className="text-sm text-muted-foreground">
-                  {format(lastVisit, "PPP")}
+                  {formatDate(lastVisit, "dd MMMM yyyy")}
                 </div>
               ) : (
                 <div className="text-sm text-muted-foreground">

@@ -1,4 +1,5 @@
-import { fireEvent, render, screen } from "@testing-library/react";
+import { fireEvent, screen } from "@testing-library/react";
+import { render } from "@/test-utils/render-with-tooltip";
 import { describe, expect, it, vi } from "vitest";
 import { CommandPalette } from "./CommandPalette";
 
@@ -61,7 +62,7 @@ describe("CommandPalette", () => {
       />,
     );
 
-    const input = screen.getByPlaceholderText(/Jump to section/i);
+    const input = screen.getByPlaceholderText("Enter command");
     fireEvent.change(input, { target: { value: "diagnosis" } });
 
     expect(

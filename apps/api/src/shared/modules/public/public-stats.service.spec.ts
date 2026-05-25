@@ -2,7 +2,7 @@ import { beforeEach, describe, expect, it, jest } from '@jest/globals';
 import { Cache } from 'cache-manager';
 import { PrismaService } from '@/prisma/prisma.service';
 import { PublicStatsService } from './public-stats.service';
-import { asType } from '@/test-utils/as-type';
+import { asType } from '@/test-utils';
 import { AppConfigService } from '@/shared/modules/config/app-configuration.service';
 
 describe('PublicStatsService', () => {

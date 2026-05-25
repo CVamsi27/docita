@@ -6,31 +6,8 @@ import {
   DiagnosisSuggestion,
   MedicationRecommendation,
 } from '@workspace/types';
-
-interface RawDrugInteraction {
-  drug1?: string;
-  drug2?: string;
-  severity?: string;
-  description?: string;
-}
-
-interface RawContraindication {
-  medication?: string;
-  condition?: string;
-  description?: string;
-}
-
-interface RawDosageRecommendation {
-  medication?: string;
-  status?: string;
-  recommendation?: string;
-}
-
-interface RawPrescriptionAnalysis {
-  drugInteractions?: RawDrugInteraction[];
-  contraindications?: RawContraindication[];
-  dosageRecommendations?: RawDosageRecommendation[];
-}
+import { isRecord } from '@workspace/utils';
+import { normalizePrescriptionAnalysis } from '@/shared/modules/ai/clinical-ai-normalizers';
 
 interface RawDiagnosisSuggestion {
   icdCode?: string;
@@ -65,7 +42,9 @@ export class ClinicalAiService {
         cacheKeyPrefix: 'prescription-analysis',
         cacheKeyData: request,
       })
-      .then((parsed) => this.normalizePrescriptionAnalysis(parsed));
+      .then((parsed) =>
+        normalizePrescriptionAnalysis(isRecord(parsed) ? parsed : {}),
+      );
   }
 
   async suggestDiagnoses(
@@ -130,60 +109,12 @@ export class ClinicalAiService {
     return `Condition: ${condition}, Age: ${patientAge || 'Unknown'}, Allergies: ${allergies?.join(', ') || 'None'}. Recommend 3-5 medications with medicationName, strength, frequency, indication, confidence.`;
   }
 
-  private normalizePrescriptionAnalysis(
-    data: RawPrescriptionAnalysis,
-  ): PrescriptionAnalysisResponse {
-    const validSeverities = ['mild', 'moderate', 'severe'] as const;
-    const validStatuses = ['appropriate', 'high', 'low'] as const;
-
-    return {
-      drugInteractions: (data.drugInteractions || [])
-        .slice(0, 10)
-        .map((i: RawDrugInteraction) => {
-          const rawSeverity = i.severity?.toLowerCase();
-          const severity: 'mild' | 'moderate' | 'severe' = (
-            validSeverities as readonly string[]
-          ).includes(rawSeverity || '')
-            ? (rawSeverity as 'mild' | 'moderate' | 'severe')
-            : 'moderate';
-
-          return {
-            drug1: i.drug1 || 'Unknown',
-            drug2: i.drug2 || 'Unknown',
-            severity,
-            description: i.description || 'No description',
-          };
-        }),
-      contraindications: (data.contraindications || [])
-        .slice(0, 10)
-        .map((c: RawContraindication) => ({
-          medication: c.medication || 'Unknown',
-          condition: c.condition || 'Unknown',
-          description: c.description || 'No description',
-        })),
-      dosageRecommendations: (data.dosageRecommendations || [])
-        .slice(0, 10)
-        .map((r: RawDosageRecommendation) => {
-          const rawStatus = r.status?.toLowerCase();
-          const status: 'appropriate' | 'high' | 'low' = (
-            validStatuses as readonly string[]
-          ).includes(rawStatus || '')
-            ? (rawStatus as 'appropriate' | 'high' | 'low')
-            : 'appropriate';
-
-          return {
-            medication: r.medication || 'Unknown',
-            status,
-            recommendation: r.recommendation || 'No recommendation',
-          };
-        }),
-    };
-  }
-
-  private normalizeDiagnosisSuggestions(
-    data: RawDiagnosisSuggestion[] | { suggestions: RawDiagnosisSuggestion[] },
-  ): DiagnosisSuggestion[] {
-    const suggestions = Array.isArray(data) ? data : data.suggestions || [];
+  private normalizeDiagnosisSuggestions(data: unknown): DiagnosisSuggestion[] {
+    const suggestions = Array.isArray(data)
+      ? data
+      : isRecord(data) && Array.isArray(data.suggestions)
+        ? data.suggestions
+        : [];
     return suggestions
       .slice(0, 10)
       .filter(
@@ -199,13 +130,13 @@ export class ClinicalAiService {
   }
 
   private normalizeMedicationRecommendations(
-    data:
-      | RawMedicationRecommendation[]
-      | { recommendations: RawMedicationRecommendation[] },
+    data: unknown,
   ): MedicationRecommendation[] {
     const recommendations = Array.isArray(data)
       ? data
-      : data.recommendations || [];
+      : isRecord(data) && Array.isArray(data.recommendations)
+        ? data.recommendations
+        : [];
     return recommendations
       .slice(0, 10)
       .filter((r: RawMedicationRecommendation) => r.medicationName)

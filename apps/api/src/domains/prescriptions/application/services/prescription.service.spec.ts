@@ -1,8 +1,8 @@
 import { beforeEach, describe, expect, it, jest } from '@jest/globals';
 import { EventEmitter2 } from '@nestjs/event-emitter';
 import { ApprovalStatus } from '@workspace/db';
-import { UsageTrackingService } from '@/domains/billing/core/services/usage-tracking.service';
-import { StorageProvider } from '@/domains/documents/infrastructure/storage.provider';
+import type { IClinicUsagePort } from '@/domains/billing/application/ports';
+import { StorageProvider } from '@/domains/documents/application/ports/storage-provider.port';
 import { StoredFileUrlResolverService } from '@/domains/documents/application/services/stored-file-url-resolver.service';
 import {
   IPrescriptionRepository,
@@ -13,7 +13,10 @@ import {
   PrescriptionPdfService,
 } from './prescription-pdf.service';
 import { PrescriptionsService } from './prescription.service';
+import { PrescriptionsCommandService } from './prescriptions-command.service';
+import { PrescriptionsQueryService } from './prescriptions-query.service';
 import type { PdfJobServicePort } from '@/shared/modules/queue/pdf-job.service';
+import { PrescriptionPdfOrchestratorService } from './prescription-pdf-orchestrator.service';
 
 describe('PrescriptionsService', () => {
   const findAllMock = jest.fn<IPrescriptionRepository['findAll']>();
@@ -45,11 +48,10 @@ describe('PrescriptionsService', () => {
 
   const eventEmitter = new EventEmitter2();
 
-  const usageTracking = Object.create(
-    UsageTrackingService.prototype,
-  ) as UsageTrackingService;
-  usageTracking.trackPrescription =
-    jest.fn<UsageTrackingService['trackPrescription']>();
+  const clinicUsage = {
+    getCurrentUsage: jest.fn<IClinicUsagePort['getCurrentUsage']>(),
+    trackPrescription: jest.fn<IClinicUsagePort['trackPrescription']>(),
+  } satisfies IClinicUsagePort;
 
   class MockStorageProvider extends StorageProvider {
     readonly supportsSignedUrls = false;
@@ -73,30 +75,41 @@ describe('PrescriptionsService', () => {
       })),
   };
 
+  const pdfOrchestrator = new PrescriptionPdfOrchestratorService(
+    repository,
+    pdfService,
+    storageProvider,
+    storedFileUrlResolver,
+    {
+      enqueue: async () => ({
+        jobId: 'job-1',
+        status: 'PENDING' as const,
+        pollUrl: '/api/v1/prescriptions/rx-1/pdf/status?jobId=job-1',
+      }),
+      getStatus: async () => ({
+        jobId: 'job-1',
+        status: 'PENDING' as const,
+        createdAt: new Date('2026-01-01T00:00:00.000Z'),
+      }),
+    } satisfies PdfJobServicePort,
+    { now: () => new Date('2026-01-01T00:00:00.000Z') },
+  );
+
   let service: PrescriptionsService;
 
   beforeEach(() => {
     jest.clearAllMocks();
-    service = new PrescriptionsService(
+    const queryService = new PrescriptionsQueryService(
       repository,
-      pdfService,
-      eventEmitter,
-      usageTracking,
-      storageProvider,
-      storedFileUrlResolver,
-      {
-        enqueue: async () => ({
-          jobId: 'job-1',
-          status: 'PENDING' as const,
-          pollUrl: '/api/v1/prescriptions/rx-1/pdf/status?jobId=job-1',
-        }),
-        getStatus: async () => ({
-          jobId: 'job-1',
-          status: 'PENDING' as const,
-          createdAt: new Date('2026-01-01T00:00:00.000Z'),
-        }),
-      } satisfies PdfJobServicePort,
+      pdfOrchestrator,
     );
+    const commandService = new PrescriptionsCommandService(
+      repository,
+      eventEmitter,
+      clinicUsage,
+      pdfOrchestrator,
+    );
+    service = new PrescriptionsService(queryService, commandService);
   });
 
   it('passes doctor signature URL to PDF payload when available', async () => {
@@ -169,7 +182,7 @@ describe('PrescriptionsService', () => {
     findByIdMock.mockResolvedValue(prescription);
     generatePdfMock.mockResolvedValue(Buffer.from('pdf'));
 
-    await service.generatePDF('rx-1');
+    await service.generatePDF('rx-1', 'clinic-1');
 
     expect(generatePdfMock).toHaveBeenCalledWith(
       expect.objectContaining({

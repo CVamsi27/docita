@@ -549,7 +549,7 @@ export type PsychiatryExamData = z.infer<typeof psychiatryExamDataSchema>;
 
 export const clinicalNoteSchema = z.object({
 
-  chiefComplaint: z.string().max(1000).optional().transform(stripHtmlTags),
+  chiefComplaint: z.string().max(20000).optional().transform(stripHtmlTags),
   treatmentHistory: z.string().max(5000).optional().transform(stripHtmlTags), 
   historyOfPresentIllness: z
     .string()
@@ -606,12 +606,18 @@ export const clinicalNoteSchema = z.object({
 });
 export type ClinicalNote = z.infer<typeof clinicalNoteSchema>;
 
+/** Prisma `ClinicalTemplate.fields` — form field definitions per speciality. */
+export const clinicalTemplateFieldsSchema = z.array(z.record(z.unknown()));
+
+/** Prisma `LabTestOrder.result` — structured lab result key/value map. */
+export const labTestOrderResultJsonSchema = z.record(z.unknown());
+
 export const clinicalTemplateSchema = z.object({
   id: z.string(),
   name: z.string(),
   speciality: z.string(),
   defaultObservations: z.string(),
-  fields: z.array(z.record(z.unknown())).default([]),
+  fields: clinicalTemplateFieldsSchema.default([]),
   userId: z.string().optional(),
   clinicId: z.string().optional(),
   createdAt: z.date().or(z.string()).optional(),

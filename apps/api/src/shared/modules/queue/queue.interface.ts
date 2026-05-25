@@ -10,6 +10,14 @@ export interface QueueJobOptions {
   priority?: number;
   timeout?: number;
   removeOnComplete?: boolean;
+  /**
+   * Optional client-provided key. If a job with the same `name` +
+   * `idempotencyKey` was COMPLETED in the last 24h the new enqueue
+   * short-circuits and returns the original job instead of running again.
+   * Callers should synthesise from a domain id + action when they don't
+   * receive one (e.g. `whatsapp:send:${messageId}`).
+   */
+  idempotencyKey?: string;
 }
 
 export type QueueJobData = Prisma.InputJsonObject;
@@ -54,23 +62,8 @@ export interface QueueStats {
 }
 
 export enum JobNames {
-  SEND_EMAIL = 'send-email',
-  SEND_BULK_EMAIL = 'send-bulk-email',
-  SEND_SMS = 'send-sms',
-  SEND_BULK_SMS = 'send-bulk-sms',
-  SEND_WHATSAPP = 'send-whatsapp',
   GENERATE_INVOICE_PDF = 'generate-invoice-pdf',
   GENERATE_PRESCRIPTION_PDF = 'generate-prescription-pdf',
-  SEND_APPOINTMENT_REMINDER = 'send-appointment-reminder',
-  SEND_PAYMENT_REMINDER = 'send-payment-reminder',
-  EXPORT_PATIENTS = 'export-patients',
-  EXPORT_APPOINTMENTS = 'export-appointments',
-  EXPORT_INVOICES = 'export-invoices',
-  DATABASE_BACKUP = 'database-backup',
-  ARCHIVE_OLD_DATA = 'archive-old-data',
-  PROCESS_SUBSCRIPTION_RENEWALS = 'process-subscription-renewals',
-  GENERATE_MONTHLY_REPORTS = 'generate-monthly-reports',
-  SEND_SCHEDULED_REMINDERS = 'send-scheduled-reminders',
 }
 
 export interface SendEmailJobData extends Prisma.InputJsonObject {

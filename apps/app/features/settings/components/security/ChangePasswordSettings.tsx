@@ -2,39 +2,29 @@
 
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
-import * as z from "zod";
+import {
+  changePasswordFormSchema,
+  type ChangePasswordFormValues,
+} from "@workspace/types";
 import { toast } from "sonner";
+import { showUserFacingErrorToast } from "@/lib/errors/user-facing-errors";
 import {
   Card,
   CardContent,
   CardDescription,
   CardHeader,
   CardTitle,
-} from "@workspace/ui/components/card";
-import { Button } from "@workspace/ui/components/button";
-import { Input } from "@workspace/ui/components/input";
-import { Form, FormControl, FormField } from "@workspace/ui/components/form";
+} from "@workspace/ui/components/indicators/card";
+import { Button } from "@workspace/ui/components/form/button";
+import { Input } from "@workspace/ui/components/form/input";
+import { Form, FormControl, FormField } from "@workspace/ui/components/form/form";
 import { FormFieldGroup } from "@workspace/ui/components";
-import { requiredStringSchema } from "@/features/_shared/schemas/common.schemas";
 import { settingsApi } from "@/features/settings/api/settings.api";
-import { PasswordStrengthIndicator } from "@/features/auth/components/AuthSharedFields";
-
-const changePasswordSchema = z
-  .object({
-    currentPassword: requiredStringSchema("Current Password"),
-    newPassword: z.string().min(8, "Use at least 8 characters"),
-    confirmPassword: requiredStringSchema("Confirm Password"),
-  })
-  .refine((data) => data.newPassword === data.confirmPassword, {
-    message: "Passwords do not match",
-    path: ["confirmPassword"],
-  });
-
-type ChangePasswordFormValues = z.infer<typeof changePasswordSchema>;
+import { PasswordStrengthIndicator } from "@/features/auth";
 
 export function ChangePasswordSettings() {
   const form = useForm<ChangePasswordFormValues>({
-    resolver: zodResolver(changePasswordSchema),
+    resolver: zodResolver(changePasswordFormSchema),
     defaultValues: {
       currentPassword: "",
       newPassword: "",
@@ -52,13 +42,17 @@ export function ChangePasswordSettings() {
       });
       toast.success("Password updated successfully");
       form.reset();
-    } catch {
-
+    } catch (error) {
+      showUserFacingErrorToast(
+        error,
+        "We could not update your password. Please try again.",
+        "save",
+      );
     }
   };
 
   return (
-    <Card >
+    <Card>
       <CardHeader>
         <CardTitle>Change Password</CardTitle>
         <CardDescription>Update your account password</CardDescription>
@@ -76,12 +70,15 @@ export function ChangePasswordSettings() {
               render={({ field }) => (
                 <FormFieldGroup
                   label="Current Password"
+                  htmlFor="current-password"
                   required
                   error={form.formState.errors.currentPassword?.message}
                 >
-                  <FormControl>
+                  <FormControl id="current-password">
                     <Input
+                      id="current-password"
                       type="password"
+                      autoComplete="current-password"
                       placeholder="Enter current password"
                       {...field}
                     />
@@ -96,12 +93,15 @@ export function ChangePasswordSettings() {
               render={({ field }) => (
                 <FormFieldGroup
                   label="New Password"
+                  htmlFor="new-password"
                   required
                   error={form.formState.errors.newPassword?.message}
                 >
-                  <FormControl>
+                  <FormControl id="new-password">
                     <Input
+                      id="new-password"
                       type="password"
+                      autoComplete="new-password"
                       placeholder="Enter new password"
                       {...field}
                     />
@@ -117,13 +117,16 @@ export function ChangePasswordSettings() {
               render={({ field }) => (
                 <FormFieldGroup
                   label="Confirm New Password"
+                  htmlFor="confirm-password"
                   required
                   error={form.formState.errors.confirmPassword?.message}
                 >
-                  <FormControl>
+                  <FormControl id="confirm-password">
                     <Input
+                      id="confirm-password"
                       type="password"
-                      placeholder="Confirm new password"
+                      autoComplete="new-password"
+                      placeholder="Confirm password"
                       {...field}
                     />
                   </FormControl>
@@ -136,7 +139,7 @@ export function ChangePasswordSettings() {
               type="submit"
               disabled={form.formState.isSubmitting}
             >
-              {form.formState.isSubmitting ? "Updating..." : "Update Password"}
+              {form.formState.isSubmitting ? "Updating…" : "Update Password"}
             </Button>
           </form>
         </Form>

@@ -11,13 +11,19 @@ import {
   IPaymentGateway,
   PAYMENT_GATEWAY_TOKEN,
 } from '@/domains/subscriptions/application/ports/payment-gateway.port';
-import { SubscriptionPricingService } from '@/domains/subscriptions/core/services/subscription-pricing.service';
 import {
   ClinicTier,
   BillingCycle,
 } from '@/domains/subscriptions/core/value-objects';
 import { AppConfigService } from '@/shared/modules/config/app-configuration.service';
 import { FeatureFlagService } from '@/shared/modules/services/feature-flag.service';
+import {
+  finalizePayableAmountPaise,
+  SubscriptionCheckoutPricingService,
+} from '@/domains/subscriptions/application/services/subscription-checkout-pricing.service';
+import { ApplyPlanChangeWithoutPaymentUseCase } from '@/domains/subscriptions/application/use-cases/apply-plan-change-without-payment.use-case';
+import { PENDING_CHECKOUT_REUSE_WINDOW_MINUTES } from '@/domains/subscriptions/application/constants/pending-checkout.constants';
+import { resolveSubscriptionBillingContact } from '@workspace/utils';
 
 export interface CreateCheckoutRequest {
   clinicId: string;
@@ -31,6 +37,12 @@ export interface CheckoutResponse {
   amountCents: number;
   currency: string;
   razorpayKeyId: string;
+  completedWithoutPayment?: boolean;
+  prefill?: {
+    name: string;
+    email: string;
+    contact?: string;
+  };
 }
 
 @Injectable()
@@ -44,38 +56,91 @@ export class CreateCheckoutUseCase {
     private readonly clinicOps: IClinicOperations,
     @Inject(PAYMENT_GATEWAY_TOKEN)
     private readonly paymentGateway: IPaymentGateway,
-    private readonly pricingService: SubscriptionPricingService,
+    private readonly checkoutPricing: SubscriptionCheckoutPricingService,
+    private readonly applyPlanChangeWithoutPayment: ApplyPlanChangeWithoutPaymentUseCase,
     private readonly configService: AppConfigService,
     private readonly featureFlagService: FeatureFlagService,
   ) {}
 
   async execute(request: CreateCheckoutRequest): Promise<CheckoutResponse> {
+    // AuditLogged: subscription checkout created
+    this.logger.log({
+      action: 'subscription.checkout-created',
+      clinicId: request.clinicId,
+      tier: request.tier,
+      cycle: request.cycle,
+    });
+
     const tier = ClinicTier.fromString(request.tier);
     const cycle = BillingCycle.fromString(request.cycle);
 
     const clinic = await this.clinicOps.getClinicDetails(request.clinicId);
+    const billingContact = await this.subscriptionRepo.findBillingContact(
+      request.clinicId,
+    );
+    const razorpayContact = resolveSubscriptionBillingContact({
+      billingContact,
+      clinic,
+    });
+    const checkoutPrefill = {
+      name: razorpayContact.name,
+      email: razorpayContact.email,
+      ...(razorpayContact.phone ? { contact: razorpayContact.phone } : {}),
+    };
     let customerId = clinic.razorpayCustomerId;
     const clinicOffer = await this.featureFlagService.getClinicPricingOffer(
       request.clinicId,
     );
     const offerPercent = clinicOffer?.percentOff ?? 0;
 
-    if (!customerId) {
-      customerId = await this.paymentGateway.createCustomer({
-        email: clinic.email,
-        name: clinic.name,
-        phone: clinic.phone,
-        clinicId: clinic.id,
-      });
-      await this.clinicOps.updateRazorpayCustomerId(clinic.id, customerId);
-    }
+    const currencyCode = this.configService.getCurrencyCode();
 
-    const amountCents = this.pricingService.calculatePrice(
+    const subscription = await this.subscriptionRepo.findByClinicId(
+      request.clinicId,
+    );
+    const breakdown = this.checkoutPricing.compute(
+      subscription,
       tier,
       cycle,
       offerPercent,
     );
-    const currencyCode = this.configService.getCurrencyCode();
+    const amountCents = finalizePayableAmountPaise(
+      breakdown.finalAmountCents,
+      currencyCode,
+    );
+
+    if (amountCents === 0) {
+      await this.applyPlanChangeWithoutPayment.execute({
+        clinicId: request.clinicId,
+        tier: tier.value,
+        cycle: cycle.value,
+      });
+      return {
+        orderId: '',
+        amountCents: 0,
+        currency: currencyCode,
+        razorpayKeyId: this.configService.getRazorpayKeyId() || '',
+        completedWithoutPayment: true,
+        prefill: checkoutPrefill,
+      };
+    }
+
+    if (!customerId) {
+      customerId = await this.paymentGateway.createCustomer({
+        email: razorpayContact.email,
+        name: razorpayContact.name,
+        phone: razorpayContact.phone,
+        clinicId: clinic.id,
+      });
+      await this.clinicOps.updateRazorpayCustomerId(clinic.id, customerId);
+    } else {
+      await this.paymentGateway.updateCustomer(customerId, {
+        email: razorpayContact.email,
+        name: razorpayContact.name,
+        phone: razorpayContact.phone,
+        clinicId: clinic.id,
+      });
+    }
 
     const description = `${tier.value} ${cycle.value} subscription`;
     const reusable = await this.subscriptionRepo.findReusablePendingCheckout({
@@ -83,9 +148,13 @@ export class CreateCheckoutUseCase {
       amountCents,
       currency: currencyCode,
       description,
-      withinMinutes: 30,
+      withinMinutes: PENDING_CHECKOUT_REUSE_WINDOW_MINUTES,
     });
     if (reusable?.razorpayOrderId) {
+      await this.subscriptionRepo.expireOtherPendingSubscriptionCheckouts({
+        clinicId: request.clinicId,
+        keepOrderId: reusable.razorpayOrderId,
+      });
       this.logger.log(
         `Reusing pending checkout order ${reusable.razorpayOrderId} for clinic ${request.clinicId}`,
       );
@@ -94,6 +163,7 @@ export class CreateCheckoutUseCase {
         amountCents,
         currency: currencyCode,
         razorpayKeyId: this.configService.getRazorpayKeyId() || '',
+        prefill: checkoutPrefill,
       };
     }
 
@@ -101,8 +171,8 @@ export class CreateCheckoutUseCase {
       amountCents,
       currency: currencyCode,
       customerId,
-      customerEmail: clinic.email,
-      customerPhone: clinic.phone,
+      customerEmail: razorpayContact.email,
+      customerPhone: razorpayContact.phone,
       orderId: crypto.randomUUID(),
       description: `Docita ${tier.value} - ${cycle.value}`,
       notes: {
@@ -121,19 +191,17 @@ export class CreateCheckoutUseCase {
       razorpayOrderId: order.razorpayOrderId,
       description,
     });
-    await this.subscriptionRepo.expireDuplicatePendingCheckouts({
+    await this.subscriptionRepo.expireOtherPendingSubscriptionCheckouts({
       clinicId: request.clinicId,
-      amountCents,
-      currency: currencyCode,
-      description,
       keepOrderId: order.razorpayOrderId,
     });
 
     return {
       orderId: order.razorpayOrderId,
-      amountCents: order.amountCents,
+      amountCents,
       currency: order.currency,
       razorpayKeyId: this.configService.getRazorpayKeyId() || '',
+      prefill: checkoutPrefill,
     };
   }
 }

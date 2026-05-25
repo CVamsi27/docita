@@ -209,11 +209,47 @@ const subscriptionCurrentItemSchema = z
     currentPeriodStart: z.string(),
     currentPeriodEnd: z.string(),
     daysRemaining: z.number().int().min(0),
+    scheduledChange: z
+      .object({
+        plan: z.string(),
+        billingCycle: z.string(),
+        effectiveAt: z.string(),
+      })
+      .strict()
+      .nullable()
+      .optional(),
+    accountCreditCents: z.number().int().min(0).optional(),
+    hasOutstandingPendingPayment: z.boolean().optional(),
   })
   .strict();
 
 export const subscriptionCurrentResponseSchema =
   subscriptionCurrentItemSchema.nullable();
+
+const trialWindowStateSchema = z.enum(['ACTIVE', 'GRACE', 'EXPIRED']);
+
+/** Prisma `Subscription.scheduledChange`. */
+export const scheduledPlanChangeJsonSchema = z
+  .object({
+    plan: z.string(),
+    billingCycle: z.string(),
+    effectiveAt: z.string(),
+  })
+  .strict();
+
+const subscriptionDiscountJsonSchema = z.object({
+  type: z.string(),
+  percentOff: z.number(),
+  expiresAt: z.string().optional(),
+  description: z.string().optional(),
+});
+
+/** Prisma `Subscription.discountsApplied`. */
+export const subscriptionDiscountsAppliedJsonSchema = z.array(
+  subscriptionDiscountJsonSchema,
+);
+
+const scheduledPlanChangeSchema = scheduledPlanChangeJsonSchema;
 
 const subscriptionBillingStatusItemSchema = z
   .object({
@@ -225,6 +261,11 @@ const subscriptionBillingStatusItemSchema = z
     currentPeriodStart: z.string(),
     currentPeriodEnd: z.string(),
     cancelAtPeriodEnd: z.boolean(),
+    trialEnd: z.string().nullable().optional(),
+    trialWindowState: trialWindowStateSchema.nullable().optional(),
+    trialGraceEndsAt: z.string().nullable().optional(),
+    scheduledChange: scheduledPlanChangeSchema.nullable().optional(),
+    accountCreditCents: z.number().int().min(0).optional(),
   })
   .strict();
 
@@ -259,12 +300,22 @@ export const subscriptionBillingPreviewResponseSchema = z
   })
   .strict();
 
+const subscriptionBillingCheckoutPrefillSchema = z
+  .object({
+    name: z.string(),
+    email: z.string(),
+    contact: z.string().optional(),
+  })
+  .strict();
+
 export const subscriptionBillingCheckoutResponseSchema = z
   .object({
     orderId: z.string(),
     amountCents: z.number().int().min(0),
     currency: z.string(),
     razorpayKeyId: z.string(),
+    completedWithoutPayment: z.boolean().optional(),
+    prefill: subscriptionBillingCheckoutPrefillSchema.optional(),
   })
   .strict();
 
@@ -295,6 +346,45 @@ export const internalBillingPaymentsQuerySchema = z.object({
   startDate: z.string().optional(),
   endDate: z.string().optional(),
 }).strict();
+
+/** One-off charges recorded from the internal app (e.g. guided setup). */
+export const internalAdditionalChargeCategorySchema = z.enum([
+  "GUIDED_SETUP",
+  "DATA_MIGRATION",
+  "CUSTOM_TRAINING",
+  "INTEGRATION",
+  "COMMERCIAL_DISCOUNT",
+  "OTHER",
+]);
+
+export const recordInternalAdditionalChargeRequestSchema = z
+  .object({
+    amount: z.number().positive("Amount must be greater than zero"),
+    currency: z.string().length(3).optional(),
+    category: internalAdditionalChargeCategorySchema,
+    paymentMethod: z.enum([
+      "razorpay",
+      "stripe",
+      "bank_transfer",
+      "manual",
+    ]),
+    razorpayPaymentId: z.string().min(1).max(128).optional(),
+    notes: z.string().max(2000).optional(),
+  })
+  .strict();
+
+export const internalBillingPaymentItemSchema = z.object({
+  id: z.string(),
+  clinicName: z.string(),
+  planLabel: z.string(),
+  amount: z.number(),
+  currency: z.string(),
+  status: z.string(),
+  gatewayPaymentId: z.string().optional(),
+  description: z.string().optional(),
+  paidAt: z.string().nullable().optional(),
+  createdAt: z.string(),
+});
 
 export const extendGracePeriodRequestSchema = z.object({
   days: z.number().int().positive("Days must be a positive integer"),
@@ -367,6 +457,15 @@ export type InternalBillingExpiringQuery = z.infer<
 >;
 export type InternalBillingPaymentsQuery = z.infer<
   typeof internalBillingPaymentsQuerySchema
+>;
+export type InternalAdditionalChargeCategory = z.infer<
+  typeof internalAdditionalChargeCategorySchema
+>;
+export type RecordInternalAdditionalChargeRequest = z.infer<
+  typeof recordInternalAdditionalChargeRequestSchema
+>;
+export type InternalBillingPaymentItem = z.infer<
+  typeof internalBillingPaymentItemSchema
 >;
 export type ExtendGracePeriodRequest = z.infer<
   typeof extendGracePeriodRequestSchema

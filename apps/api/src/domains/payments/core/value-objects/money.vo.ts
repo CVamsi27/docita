@@ -1,10 +1,12 @@
+import { InvariantViolationError } from '@/shared/common/errors/domain.errors';
+
 export class Money {
   constructor(
     public readonly amount: number,
     public readonly currency: string = 'INR',
   ) {
     if (amount < 0) {
-      throw new Error('Money amount cannot be negative');
+      throw new InvariantViolationError('Money amount cannot be negative');
     }
   }
 

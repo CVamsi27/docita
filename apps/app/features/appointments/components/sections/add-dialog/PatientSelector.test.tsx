@@ -2,7 +2,12 @@ import { fireEvent, render, screen } from "@testing-library/react";
 import { useState } from "react";
 import { useForm } from "react-hook-form";
 import { describe, expect, it, vi } from "vitest";
-import { Form } from "@workspace/ui/components/form";
+import {
+  Form,
+  FormField,
+  FormItem,
+  FormMessage,
+} from "@workspace/ui/components/form/form";
 import type { CreateAppointmentInput, Patient } from "@workspace/types";
 import { PatientSelector } from "./PatientSelector";
 
@@ -55,14 +60,24 @@ function TestForm({ prefilledPatientId }: { prefilledPatientId?: string }) {
 
   return (
     <Form {...form}>
-      <PatientSelector
-        form={form}
-        patients={patients}
-        patientsLoading={false}
-        patientSearch={patientSearch}
-        setPatientSearch={setPatientSearch}
-        patientComboboxOpen={open}
-        setPatientComboboxOpen={setOpen}
+      <FormField
+        control={form.control}
+        name="patientId"
+        render={({ field }) => (
+          <FormItem>
+            <PatientSelector
+              value={field.value ?? ""}
+              onChange={field.onChange}
+              patients={patients}
+              patientsLoading={false}
+              patientSearch={patientSearch}
+              setPatientSearch={setPatientSearch}
+              patientComboboxOpen={open}
+              setPatientComboboxOpen={setOpen}
+            />
+            <FormMessage />
+          </FormItem>
+        )}
       />
     </Form>
   );
@@ -93,7 +108,7 @@ describe("PatientSelector", () => {
     render(<TestForm />);
 
     fireEvent.click(screen.getByRole("combobox"));
-    const searchInput = screen.getByPlaceholderText("Search patients");
+    const searchInput = screen.getByPlaceholderText("Patient name");
 
     fireEvent.keyDown(searchInput, { key: "ArrowDown" });
     fireEvent.keyDown(searchInput, { key: "ArrowDown" });

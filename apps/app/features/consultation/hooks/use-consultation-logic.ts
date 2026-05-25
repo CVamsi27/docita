@@ -1,18 +1,17 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useQueryClient } from "@tanstack/react-query";
+import { queryKeys } from "@workspace/data-access";
 import {
   useAppointment,
   useStartConsultation,
   useUpdateAppointment,
-} from "@/hooks/api/use-appointments";
-import { useClinicSettings } from "@/hooks/api/use-settings";
+} from "@workspace/data-access";
+import { useClinicSettings } from "@workspace/data-access";
 import { useBackNavigation } from "@/hooks/use-back-navigation";
-import { useAuth } from "@/lib/auth-context";
+import { useAuth } from "@/lib/auth/auth-context";
 import { usePermissions } from "@/hooks/use-permissions";
 import { UpdateAppointmentInput } from "@workspace/types";
-import { normalizeConsultationTab } from "@/features/consultation/rules/consultationTabRouting";
-
 export const useConsultationLogic = (appointmentId: string) => {
   const router = useRouter();
   const searchParams = useSearchParams();
@@ -25,6 +24,7 @@ export const useConsultationLogic = (appointmentId: string) => {
     data: appointmentData,
     isLoading: loading,
     isError,
+    refetch: refetchAppointment,
   } = useAppointment(appointmentId);
 
   const { data: clinic } = useClinicSettings();
@@ -110,20 +110,14 @@ export const useConsultationLogic = (appointmentId: string) => {
     async (data: UpdateAppointmentInput) => {
       await updateAppointment.mutateAsync(data);
 
-      await queryClient.invalidateQueries({
-        queryKey: ["appointments", appointmentId],
-      });
+      const detailKey = queryKeys.appointments.detail(appointmentId);
+      await queryClient.invalidateQueries({ queryKey: detailKey });
       await queryClient.refetchQueries({
-        queryKey: ["appointments", appointmentId],
+        queryKey: detailKey,
         type: "active",
       });
     },
     [queryClient, appointmentId, updateAppointment],
-  );
-
-  const defaultTab = normalizeConsultationTab(
-    searchParams.get("tab"),
-    clinic?.type,
   );
 
   return {
@@ -139,11 +133,14 @@ export const useConsultationLogic = (appointmentId: string) => {
       clinic,
       clinicType: clinic?.type,
       isSidebarOpen,
-      defaultTab,
+      fallbackRoute,
     },
     handlers: {
       handleBack,
       handleSave,
+      retry: () => {
+        void refetchAppointment();
+      },
       toggleSidebar: () => setIsSidebarOpen((prev) => !prev),
       setIsSidebarOpen,
     },

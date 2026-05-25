@@ -12,9 +12,10 @@ import {
 import { ApiTags, ApiOperation, ApiBearerAuth } from '@nestjs/swagger';
 import { Role } from '@workspace/db';
 import { JwtAuthGuard } from '@/shared/modules/auth/auth/jwt-auth.guard';
+import { PatientPortalSession } from '@/shared/modules/auth/auth/patient-portal-session.decorator';
 import { Roles } from '@/shared/modules/auth/auth/roles.decorator';
 import { SkipSubscriptionCheck } from '@/shared/modules/auth/decorators';
-import { RequestWithUser } from '@/common/types/common.types';
+import { RequestWithUser } from '@/shared/common/types/common.types';
 import { PatientPortalContextService } from '@/domains/patient-portal/application/services/patient-portal-context.service';
 import { PatientPortalMetricsService } from '@/domains/patient-portal/application/services/patient-portal-metrics.service';
 import {
@@ -23,9 +24,12 @@ import {
   MetricHistoryQueryDto,
   UpsertMetricSelectionsDto,
 } from '@/domains/patients/application/dto/patient-metrics.dto';
+import { AuditService } from '@/shared/modules/audit/audit/audit.service';
+import { logPatientPortalPhiRead } from '@/shared/modules/audit/audit/patient-access-audit.util';
 
 @ApiTags('patient-portal-metrics')
 @Controller('patient-portal/metrics')
+@PatientPortalSession()
 @UseGuards(JwtAuthGuard)
 @Roles(Role.PATIENT)
 @SkipSubscriptionCheck()
@@ -34,6 +38,7 @@ export class PatientPortalMetricsController {
   constructor(
     private readonly portalMetricsService: PatientPortalMetricsService,
     private readonly contextService: PatientPortalContextService,
+    private readonly auditService: AuditService,
   ) {}
 
   private async resolveContext(req: RequestWithUser) {
@@ -42,6 +47,17 @@ export class PatientPortalMetricsController {
       throw new UnauthorizedException('User context required');
     }
     return this.contextService.getPatientContext(userId);
+  }
+
+  private async resolveContextWithAudit(req: RequestWithUser) {
+    const context = await this.resolveContext(req);
+    await logPatientPortalPhiRead(
+      this.auditService,
+      req,
+      context,
+      'VIEW_HISTORY',
+    );
+    return context;
   }
 
   @Get('categories')
@@ -57,14 +73,14 @@ export class PatientPortalMetricsController {
     @Request() req: RequestWithUser,
     @Query() query: MetricHistoryQueryDto,
   ) {
-    const { patientId, clinicId } = await this.resolveContext(req);
+    const { patientId, clinicId } = await this.resolveContextWithAudit(req);
     return this.portalMetricsService.getHistory(clinicId, patientId, query);
   }
 
   @Get('selected')
   @ApiOperation({ summary: 'Get selected metrics for patient' })
   async getSelected(@Request() req: RequestWithUser) {
-    const { patientId, clinicId } = await this.resolveContext(req);
+    const { patientId, clinicId } = await this.resolveContextWithAudit(req);
     return this.portalMetricsService.getSelections(clinicId, patientId);
   }
 
@@ -110,7 +126,7 @@ export class PatientPortalMetricsController {
     @Request() req: RequestWithUser,
     @Query() query: MetricHistoryQueryDto,
   ) {
-    const { patientId, clinicId } = await this.resolveContext(req);
+    const { patientId, clinicId } = await this.resolveContextWithAudit(req);
     return this.portalMetricsService.getHistory(clinicId, patientId, query);
   }
 }

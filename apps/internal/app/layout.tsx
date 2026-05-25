@@ -1,19 +1,6 @@
 import "./globals.css";
-import { Inter, JetBrains_Mono } from "next/font/google";
 import { OptionalSentryInitializer } from "@/components/optional-sentry-initializer";
 import { Providers } from "./providers";
-
-const inter = Inter({
-  subsets: ["latin"],
-  variable: "--font-inter",
-  display: "swap",
-});
-
-const jetbrainsMono = JetBrains_Mono({
-  subsets: ["latin"],
-  variable: "--font-jetbrains-mono",
-  display: "swap",
-});
 
 export const metadata = {
   title: "Docita Internal - Internal Console",
@@ -25,17 +12,32 @@ export const metadata = {
   },
 };
 
+const themeBootstrapScript = `
+try {
+  var theme = localStorage.getItem("theme");
+  if (theme !== "dark" && theme !== "light") theme = "light";
+  document.documentElement.classList.remove("light", "dark");
+  document.documentElement.classList.add(theme);
+  document.documentElement.style.colorScheme = theme;
+} catch {
+  document.documentElement.classList.add("light");
+  document.documentElement.style.colorScheme = "light";
+}
+`;
+
 export default function RootLayout({
   children,
 }: {
   children: React.ReactNode;
 }) {
   return (
-    <html
-      lang="en"
-      suppressHydrationWarning
-      className={`${inter.variable} ${jetbrainsMono.variable}`}
-    >
+    <html lang="en" suppressHydrationWarning>
+      <head>
+        <script
+          suppressHydrationWarning
+          dangerouslySetInnerHTML={{ __html: themeBootstrapScript }}
+        />
+      </head>
       <body className="app-shell-bg font-sans bg-background text-foreground antialiased">
         <OptionalSentryInitializer
           enabled={process.env.DOCITA_CLOUDFLARE !== "1"}

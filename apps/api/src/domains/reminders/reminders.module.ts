@@ -1,3 +1,5 @@
+import { PrismaService } from '@/prisma/prisma.service';
+import { REMINDER_PERSISTENCE_PORT } from './application/ports/reminder-persistence.port';
 import { Module, forwardRef as _forwardRef } from '@nestjs/common';
 import { RemindersController } from './presentation/controllers/reminders.controller';
 import { RemindersService } from './application/services/reminders.service';
@@ -11,6 +13,7 @@ import { WhatsAppModule } from '@/domains/whatsapp/whatsapp.module';
   imports: [PrismaModule, WhatsAppModule],
   controllers: [RemindersController],
   providers: [
+    { provide: REMINDER_PERSISTENCE_PORT, useExisting: PrismaService },
     ReminderSettingsService,
     ReminderNotificationService,
     ReminderHistoryService,

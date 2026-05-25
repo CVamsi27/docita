@@ -35,6 +35,15 @@ export interface IPaymentGateway {
     phone?: string;
     clinicId: string;
   }): Promise<string>;
+  updateCustomer(
+    customerId: string,
+    request: {
+      email: string;
+      name: string;
+      phone?: string;
+      clinicId: string;
+    },
+  ): Promise<void>;
   createOrder(request: CreateOrderRequest): Promise<CreateOrderResponse>;
   verifyPayment(request: VerifyPaymentRequest): Promise<VerifyPaymentResponse>;
   createSubscription(

@@ -1,5 +1,11 @@
 import { z } from "zod";
 
+/** Prisma `PatientMetricValue.valueJson`. */
+export const patientMetricValueJsonSchema = z.record(z.unknown());
+
+/** Prisma `PatientMergeSuggestion.matchReasons`. */
+export const patientMergeMatchReasonsJsonSchema = z.array(z.string());
+
 export const metricValueTypeSchema = z.enum([
   "NUMBER",
   "TEXT",
@@ -174,7 +180,7 @@ export const metricRecordValueResponseSchema = z.object({
   valueNumber: z.number().nullable().optional(),
   valueBoolean: z.boolean().nullable().optional(),
   valueDate: z.string().or(z.date()).nullable().optional(),
-  valueJson: z.record(z.unknown()).nullable().optional(),
+  valueJson: patientMetricValueJsonSchema.nullable().optional(),
   optionId: z.string().nullable().optional(),
   option: metricOptionResponseSchema.nullable().optional(),
 });

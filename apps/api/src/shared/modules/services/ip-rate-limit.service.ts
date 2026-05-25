@@ -1,22 +1,6 @@
-import {
-  Injectable,
-  BadRequestException as _BadRequestException,
-} from '@nestjs/common';
+import { Injectable } from '@nestjs/common';
 import { Request } from 'express';
-
-function getForwardedForHeader(req: Request): string | undefined {
-  const value = req.headers['x-forwarded-for'];
-  if (typeof value === 'string') {
-    return value;
-  }
-
-  if (Array.isArray(value) && value.length > 0) {
-    const [first] = value;
-    return typeof first === 'string' ? first : undefined;
-  }
-
-  return undefined;
-}
+import { getClientIp } from '@/shared/common/http/client-ip';
 
 @Injectable()
 export class IpRateLimitService {
@@ -34,14 +18,7 @@ export class IpRateLimitService {
   private nextCleanupAt = 0;
 
   getClientIp(req: Request): string {
-    const forwarded = getForwardedForHeader(req);
-    const forwardedIp = forwarded?.split(',')[0]?.trim();
-
-    return (
-      (forwardedIp && forwardedIp.length > 0 ? forwardedIp : undefined) ||
-      req.socket.remoteAddress ||
-      'unknown'
-    );
+    return getClientIp(req);
   }
 
   isIpBanned(ip: string): boolean {

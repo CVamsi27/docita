@@ -1,4 +1,8 @@
-import { Injectable } from '@nestjs/common';
+import {
+  BadRequestException,
+  Injectable,
+  NotFoundException,
+} from '@nestjs/common';
 import { PrismaService } from '@/prisma/prisma.service';
 import {
   IPatientRepository,
@@ -7,6 +11,26 @@ import {
 import { Patient } from '@/domains/patients/core/entities/patient.entity';
 import { PatientMapper } from '@/domains/patients/infrastructure/mappers/patient.mapper';
 import { Prisma, Gender } from '@workspace/db';
+import { parseStringEnumMember } from '@workspace/utils';
+
+const GENDER_VALUES = Object.values(Gender);
+
+const PATIENT_PERSISTENCE_SELECT = {
+  id: true,
+  clinicId: true,
+  mrn: true,
+  firstName: true,
+  lastName: true,
+  email: true,
+  phoneNumber: true,
+  gender: true,
+  dateOfBirth: true,
+  address: true,
+  customData: true,
+  createdAt: true,
+  updatedAt: true,
+  version: true,
+} as const;
 
 @Injectable()
 export class PrismaPatientRepository implements IPatientRepository {
@@ -16,10 +40,11 @@ export class PrismaPatientRepository implements IPatientRepository {
     return this.prisma.getReadClient();
   }
 
-  async findById(id: string): Promise<Patient | null> {
+  async findById(id: string, clinicId: string): Promise<Patient | null> {
     const readClient = this.getReadClient();
     const item = await readClient.patient.findFirst({
-      where: { id },
+      where: { id, clinicId },
+      select: PATIENT_PERSISTENCE_SELECT,
     });
     if (!item) return null;
     return PatientMapper.toDomain(item);
@@ -29,6 +54,20 @@ export class PrismaPatientRepository implements IPatientRepository {
     const readClient = this.getReadClient();
     const item = await readClient.patient.findFirst({
       where: { mrn, clinicId },
+      select: PATIENT_PERSISTENCE_SELECT,
+    });
+    if (!item) return null;
+    return PatientMapper.toDomain(item);
+  }
+
+  async findByClinicIdAndPhoneNumber(
+    clinicId: string,
+    phoneNumber: string,
+  ): Promise<Patient | null> {
+    const readClient = this.getReadClient();
+    const item = await readClient.patient.findFirst({
+      where: { clinicId, phoneNumber },
+      select: PATIENT_PERSISTENCE_SELECT,
     });
     if (!item) return null;
     return PatientMapper.toDomain(item);
@@ -47,7 +86,12 @@ export class PrismaPatientRepository implements IPatientRepository {
       clinicId,
     };
 
-    if (gender) where.gender = gender as Gender;
+    if (gender) {
+      const parsedGender = parseStringEnumMember(GENDER_VALUES, gender);
+      if (parsedGender) {
+        where.gender = parsedGender;
+      }
+    }
 
     if (search) {
       where.OR = [
@@ -65,6 +109,7 @@ export class PrismaPatientRepository implements IPatientRepository {
         take: limit,
         skip: (page - 1) * limit,
         orderBy: [{ createdAt: 'desc' }, { id: 'desc' }],
+        select: PATIENT_PERSISTENCE_SELECT,
       }),
     ]);
 
@@ -77,31 +122,32 @@ export class PrismaPatientRepository implements IPatientRepository {
   }
 
   async save(patient: Patient): Promise<void> {
-    const data = PatientMapper.toPersistence(patient);
     await this.prisma.patient.create({
-      data: data as Prisma.PatientUncheckedCreateInput,
+      data: PatientMapper.toPrismaUncheckedCreateInput(patient),
     });
   }
 
   async update(patient: Patient): Promise<void> {
-    const data = PatientMapper.toPersistence(patient);
-    const { id, ...updateData } = data;
+    const { id, clinicId } = PatientMapper.toPersistence(patient);
     if (!id || typeof id !== 'string') {
-      throw new Error('Patient id is required for update');
+      throw new BadRequestException('Patient id is required for update');
+    }
+    if (!clinicId || typeof clinicId !== 'string') {
+      throw new BadRequestException('Patient clinicId is required for update');
     }
     const result = await this.prisma.patient.updateMany({
-      where: { id },
+      where: { id, clinicId },
       data: {
-        ...(updateData as Prisma.PatientUncheckedUpdateInput),
+        ...PatientMapper.toPrismaUncheckedUpdateInput(patient),
         version: { increment: 1 },
       },
     });
     if (result.count === 0) {
-      throw new Error(`Patient ${id} not found`);
+      throw new NotFoundException(`Patient ${id} not found`);
     }
   }
 
-  async delete(id: string): Promise<void> {
-    await this.prisma.patient.deleteMany({ where: { id } });
+  async delete(id: string, clinicId: string): Promise<void> {
+    await this.prisma.patient.deleteMany({ where: { id, clinicId } });
   }
 }

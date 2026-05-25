@@ -2,18 +2,19 @@
 
 import Link from "next/link";
 import { CreditCard } from "lucide-react";
-import { Badge } from "@workspace/ui/components/badge";
+import { Badge } from "@workspace/ui/components/indicators/badge";
 import {
   Card,
   CardContent,
   CardHeader,
   CardTitle,
-} from "@workspace/ui/components/card";
-import { Button } from "@workspace/ui/components/button";
-import { EmptyState } from "@workspace/ui/components/empty-state";
-import { DEFAULT_CURRENCY } from "@workspace/utils";
+} from "@workspace/ui/components/indicators/card";
+import { Button } from "@workspace/ui/components/form/button";
+import { EmptyState } from "@workspace/ui/components/feedback/empty-state";
+import { formatCurrency } from "@workspace/utils";
 import type { PatientPortalInvoice } from "@/features/patient-portal/types/patient-portal-types";
 import { getInvoiceStatusLabel } from "@/features/patient-portal/rules/patient-portal-rules";
+import { formatDate } from "@/lib/formatters";
 
 interface PatientPortalBillingUIProps {
   invoices: PatientPortalInvoice[];
@@ -30,8 +31,8 @@ export function PatientPortalBillingUI({
     <div className="space-y-4">
       {showHeader ? (
         <div>
-          <h1 className="text-2xl font-semibold tracking-tight">Billing</h1>
-          <p className="text-sm text-muted-foreground">
+          <h1 className="ui-page-title">Billing</h1>
+          <p className="ui-page-subtitle">
             Review invoice status and pending dues.
           </p>
         </div>
@@ -53,10 +54,9 @@ export function PatientPortalBillingUI({
                 <div key={invoice.id} className="rounded-md border p-3 text-sm">
                   <div className="flex items-center justify-between gap-2">
                     <div className="font-medium">
-                      {new Intl.NumberFormat("en-IN", {
-                        style: "currency",
-                        currency: DEFAULT_CURRENCY,
-                      }).format(invoice.amount)}
+                      {formatCurrency(invoice.amount, {
+                        currency: invoice.currency,
+                      })}
                     </div>
                     <Badge variant="secondary">
                       {getInvoiceStatusLabel(invoice.status)}
@@ -64,7 +64,7 @@ export function PatientPortalBillingUI({
                   </div>
                   <div className="text-muted-foreground">
                     Invoice #{invoice.id.slice(0, 8)} •{" "}
-                    {new Date(invoice.dueAt).toLocaleDateString()}
+                    {formatDate(invoice.dueAt)}
                   </div>
                 </div>
               ))}

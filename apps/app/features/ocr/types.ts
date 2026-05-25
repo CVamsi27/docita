@@ -4,11 +4,9 @@ export interface Medication {
   frequency: string;
 }
 
-export interface LabValues {
-  glucose: string;
-  hemoglobin: string;
-  creatinine: string;
-}
+import type { OCRLabValues } from "@workspace/types";
+
+export type LabValues = OCRLabValues;
 
 export interface Vitals {
   bp: string;
@@ -17,6 +15,23 @@ export interface Vitals {
   spO2: string;
   respiratoryRate: string;
   glucose: string;
+}
+
+/** Editable OCR invoice lines before optional commit as PENDING invoice. */
+export interface OCRInvoiceLineForm {
+  description: string;
+  quantity: string;
+  unitPrice: string;
+  total: string;
+}
+
+export interface OCRInvoiceForm {
+  /** User must opt in; creates a PENDING invoice on the server. */
+  saveAsPending: boolean;
+  grandTotal: string;
+  subtotal: string;
+  taxTotal: string;
+  items: OCRInvoiceLineForm[];
 }
 
 export interface OCRFormData {
@@ -36,4 +51,5 @@ export interface OCRFormData {
   medications: Medication[];
   labValues: LabValues;
   vitals: Vitals;
+  invoice: OCRInvoiceForm;
 }

@@ -1,14 +1,27 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import type { Patient } from "@workspace/types";
-import { getUserFacingErrorMessage } from "@workspace/types";
+import { getUserFacingErrorMessage } from "@workspace/utils";
 
-import { usePatients } from "@/hooks/api/use-patients";
+import { usePatients } from "@workspace/data-access";
 
 type PatientsSortConfig = {
   key: keyof Patient | "fullName";
   direction: "asc" | "desc";
 };
+
+function getPatientSortValue(
+  patient: Patient,
+  key: PatientsSortConfig["key"],
+): string {
+  if (key === "fullName") {
+    return `${patient.firstName} ${patient.lastName}`.toLowerCase();
+  }
+  if (key === "gender") {
+    return patient.gender ?? "";
+  }
+  return "";
+}
 
 export function usePatientsLogic() {
   const PAGE_SIZE = 25;
@@ -71,26 +84,8 @@ export function usePatientsLogic() {
 
     if (sortConfig) {
       result.sort((a, b) => {
-        let aValue: string | number | Date | undefined;
-        let bValue: string | number | Date | undefined;
-
-        if (sortConfig.key === "fullName") {
-          aValue = `${a.firstName} ${a.lastName}`.toLowerCase();
-          bValue = `${b.firstName} ${b.lastName}`.toLowerCase();
-        } else {
-          aValue = a[sortConfig.key as keyof Patient] as
-            | string
-            | number
-            | Date
-            | undefined;
-          bValue = b[sortConfig.key as keyof Patient] as
-            | string
-            | number
-            | Date
-            | undefined;
-        }
-
-        if (aValue === undefined || bValue === undefined) return 0;
+        const aValue = getPatientSortValue(a, sortConfig.key);
+        const bValue = getPatientSortValue(b, sortConfig.key);
         if (aValue < bValue) return sortConfig.direction === "asc" ? -1 : 1;
         if (aValue > bValue) return sortConfig.direction === "asc" ? 1 : -1;
         return 0;
@@ -109,7 +104,7 @@ export function usePatientsLogic() {
 
   const totalPatients = useMemo(
     () =>
-      patientsResponse?.count ?? (patientsResponse as { total?: number })?.total ?? 0,
+      patientsResponse?.count ?? 0,
     [patientsResponse],
   );
 
@@ -154,9 +149,13 @@ export function usePatientsLogic() {
       setEditingPatient,
       onPatientAdded: refetch,
       onPatientUpdated: refetch,
+      retry: () => {
+        void refetch();
+      },
       goToPatient: (patientId: string) => router.push(`/patients/${patientId}`),
       schedulePatient: (patientId: string) =>
         router.push(`/appointments?action=new&patientId=${patientId}`),
+      openConsultationQueue: () => router.push("/consultation"),
       openAddDialog: () => setIsAddDialogOpen(true),
       clearSearch: () => setSearchQuery(""),
       goToNextPage,

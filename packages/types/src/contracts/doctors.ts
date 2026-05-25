@@ -10,6 +10,8 @@ export const createDoctorRequestSchema = z.object({
   hospitalRole: z.string().optional(),
   qualification: z.string().optional(),
   registrationNumber: z.string().optional(),
+  registrationCouncil: z.string().optional(),
+  registrationStateCode: z.string().optional(),
   licenseNumber: z.string().optional(),
   phoneNumber: z.string().optional(),
   bio: z.string().optional(),
@@ -29,6 +31,8 @@ export const updateDoctorRequestSchema = createDoctorRequestSchema
 
 export const updateDoctorRegistrationRequestSchema = z.object({
   registrationNumber: z.string().trim().min(1),
+  registrationCouncil: z.string().trim().max(120).optional(),
+  registrationStateCode: z.string().trim().max(32).optional(),
 });
 
 export const doctorResponseSchema = userSchema.partial({
@@ -52,6 +56,10 @@ export const doctorAvailableSlotsQuerySchema = z.object({
   doctorId: z.string().optional(),
 });
 
+export const doctorUnavailableDoctorsQuerySchema = z.object({
+  date: z.string().min(1),
+});
+
 export type CreateDoctorRequest = z.infer<typeof createDoctorRequestSchema>;
 export type UpdateDoctorRequest = z.infer<typeof updateDoctorRequestSchema>;
 export type UpdateDoctorRegistrationRequest = z.infer<
@@ -66,4 +74,7 @@ export type ListDoctorTimeOffContractQuery = z.infer<
 >;
 export type DoctorAvailableSlotsContractQuery = z.infer<
   typeof doctorAvailableSlotsQuerySchema
+>;
+export type DoctorUnavailableDoctorsContractQuery = z.infer<
+  typeof doctorUnavailableDoctorsQuerySchema
 >;

@@ -1,257 +1,179 @@
 "use client";
 
-import { FC } from "react";
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from "@workspace/ui/components/card";
-import { AppPageScaffold } from "@workspace/ui/components/app-page-scaffold";
-import { Button } from "@workspace/ui/components/button";
-import { Badge } from "@workspace/ui/components/badge";
-import { DataState } from "@workspace/ui/components/data-state";
-import { PageHeader } from "@workspace/ui/components/page-header";
-import {
-  Activity,
-  Calendar,
-  Clock,
-  Play,
-  Stethoscope,
-  Users,
-} from "lucide-react";
+import { FC, useCallback, useMemo, useState } from "react";
+import { AppPageScaffold } from "@workspace/ui/components/layout/app-page-scaffold";
+import { Button } from "@workspace/ui/components/form/button";
+import { PageHeader } from "@workspace/ui/components/layout/page-header";
+import { Activity, Calendar, Stethoscope, Users } from "lucide-react";
 import { useConsultationDashboard } from "@/features/consultation/hooks/use-consultation-dashboard";
+import { StatGrid } from "@workspace/ui/components/data-display/stat-grid";
+import Link from "next/link";
+import { useCheckInAppointment } from "@workspace/data-access";
+import { showUserFacingErrorToast } from "@/lib/errors/user-facing-errors";
+import type { Appointment } from "@workspace/types";
 import {
-  Avatar,
-  AvatarFallback,
-} from "@workspace/ui/components/avatar";
-import { humanizeUiLabel } from "@workspace/ui/lib/label-formatters";
+  AddAppointmentDialogContainer,
+  AppointmentRowActionDialogs,
+  useAppointmentRowActions,
+} from "@/features/appointments";
+import { usePermissions } from "@/hooks/use-permissions";
+import { ConsultationDashboardSkeleton } from "./ConsultationDashboardSkeleton";
+import {
+  DoctorNextSection,
+  NursePrepSection,
+} from "./ConsultationDashboardSections";
 
 export const ConsultationDashboardUI: FC = () => {
   const {
-    activeConsultations,
-    waitingList,
+    opdQueueRows,
     stats,
     isLoading,
     handleStartConsultation,
-    canStartConsultation,
+    goToConsultationWorkspace,
     isStartingConsultation,
     router,
+    currentUserRole,
+    doctorNowNext,
+    clinicType,
   } = useConsultationDashboard();
 
-  if (isLoading) {
-    return (
-      <AppPageScaffold
-        header={
-          <PageHeader
-            title="Consultation"
-            description="Manage your daily consultations and patient queue"
-          />
-        }
-      >
-        <DataState
-          status="loading"
-          loadingMessage="Loading consultation dashboard..."
-        />
-      </AppPageScaffold>
-    );
-  }
+  const checkInAppointment = useCheckInAppointment();
+  const { canCreateAppointment } = usePermissions();
+  const [walkInOpen, setWalkInOpen] = useState(false);
+
+  const rowActions = useAppointmentRowActions();
+  const handleScheduleFollowUp = useCallback(
+    (patientId?: string | null) => {
+      const params = new URLSearchParams();
+      params.set("action", "new");
+      if (patientId) {
+        params.set("patientId", patientId);
+      }
+      router.push(`/appointments?${params.toString()}`);
+    },
+    [router],
+  );
+
+  const role = currentUserRole ?? "RECEPTIONIST";
+  const isDoctor = role === "DOCTOR" || role === "ADMIN_DOCTOR";
+  const isReception =
+    role === "RECEPTIONIST" || role === "ADMIN" || role === "ADMIN_DOCTOR";
+  const isNurse = role === "NURSE";
+  const canCreateWalkIn = canCreateAppointment && (isReception || isNurse);
+
+  const statItems = useMemo(
+    () => [
+      {
+        id: "scheduled",
+        label: "Scheduled Today",
+        value: stats.scheduledToday,
+        icon: <Calendar className="h-4 w-4" aria-hidden />,
+      },
+      {
+        id: "waiting",
+        label: "Waiting",
+        value: stats.waiting,
+        icon: <Users className="h-4 w-4" aria-hidden />,
+      },
+      {
+        id: "active",
+        label: "Active",
+        value: stats.inProgress,
+        icon: <Activity className="h-4 w-4" aria-hidden />,
+      },
+      {
+        id: "completed",
+        label: "Completed",
+        value: stats.completed,
+        icon: <Stethoscope className="h-4 w-4" aria-hidden />,
+      },
+    ],
+    [stats],
+  );
+
+  if (isLoading) return <ConsultationDashboardSkeleton />;
 
   return (
     <AppPageScaffold
       header={
         <PageHeader
           title="Consultation"
-          description="Manage your daily consultations and patient queue"
+          description="Continue your current visit, open the next patient, or add a walk-in for today."
           actions={
-            <Button onClick={() => router.push("/appointments")}>
-              <Calendar className="mr-2 h-4 w-4" />
-              View Calendar
-            </Button>
+            <div className="flex flex-wrap gap-2">
+              <Button variant="outline" asChild size="sm">
+                <Link href="/today">Today</Link>
+              </Button>
+              {canCreateWalkIn ? (
+                <Button size="sm" onClick={() => setWalkInOpen(true)}>
+                  Add walk-in
+                </Button>
+              ) : null}
+              <Button size="sm" onClick={() => router.push("/appointments")}>
+                <Calendar className="mr-2 h-4 w-4" />
+                Appointments
+              </Button>
+            </div>
           }
         />
       }
     >
-      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">
-              Scheduled Today
-            </CardTitle>
-            <Calendar className="h-4 w-4 text-muted-foreground" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">{stats.scheduledToday}</div>
-          </CardContent>
-        </Card>
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Waiting</CardTitle>
-            <Users className="h-4 w-4 text-muted-foreground" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">{stats.waiting}</div>
-          </CardContent>
-        </Card>
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Active</CardTitle>
-            <Activity className="h-4 w-4 text-muted-foreground" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">{stats.inProgress}</div>
-          </CardContent>
-        </Card>
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Completed</CardTitle>
-            <Stethoscope className="h-4 w-4 text-muted-foreground" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">{stats.completed}</div>
-          </CardContent>
-        </Card>
-      </div>
+      <StatGrid items={statItems} columns={4} />
 
-      <div className="grid gap-6 md:grid-cols-2">
-        <Card className="col-span-1">
-          <CardHeader>
-            <CardTitle>Active consultations</CardTitle>
-            <CardDescription>
-              Visits in progress for today&apos;s queue (you have already
-              started or called the patient). Continue the clinical record.
-            </CardDescription>
-          </CardHeader>
-          <CardContent>
-            {activeConsultations.length === 0 ? (
-              <div className="flex flex-col items-center justify-center p-8 text-center text-muted-foreground border-2 border-dashed rounded-lg">
-                <Stethoscope className="h-8 w-8 mb-2 opacity-50" />
-                <p>No active consultations</p>
-              </div>
-            ) : (
-              <div className="space-y-4">
-                {activeConsultations.map((item) => (
-                  <div
-                    key={item.id}
-                    className="flex items-center justify-between gap-3 p-3 sm:p-4 border rounded-lg bg-primary/5"
-                  >
-                    <div className="flex items-center gap-3 min-w-0">
-                      <Avatar className="shrink-0">
-                        <AvatarFallback>
-                          {item.patient?.firstName?.[0]}
-                          {item.patient?.lastName?.[0]}
-                        </AvatarFallback>
-                      </Avatar>
-                      <div className="min-w-0">
-                        <p className="font-medium truncate">
-                          {item.patient?.firstName} {item.patient?.lastName}
-                        </p>
-                        <div className="flex items-center text-xs sm:text-sm text-muted-foreground">
-                          <Clock className="mr-1 h-3 w-3 shrink-0" />
-                          Started:{" "}
-                          {item.consultationStart
-                            ? new Date(
-                                item.consultationStart,
-                              ).toLocaleTimeString([], {
-                                hour: "2-digit",
-                                minute: "2-digit",
-                              })
-                            : "Just now"}
-                        </div>
-                      </div>
-                    </div>
-                    {canStartConsultation ? (
-                      <Button
-                        size="sm"
-                        className="shrink-0"
-                        disabled={isStartingConsultation}
-                        onClick={() =>
-                          void handleStartConsultation(
-                            item.appointmentId || item.id,
-                          )
-                        }
-                        >
-                        Continue
-                      </Button>
-                    ) : (
-                      <Badge variant="outline" className="shrink-0">
-                        View only
-                      </Badge>
-                    )}
-                  </div>
-                ))}
-              </div>
-            )}
-          </CardContent>
-        </Card>
+      {isDoctor ? (
+        <DoctorNextSection
+          doctorNowNext={doctorNowNext}
+          isStartingConsultation={isStartingConsultation}
+          rowActions={rowActions}
+          handleScheduleFollowUp={handleScheduleFollowUp}
+          handleStartConsultation={handleStartConsultation}
+          goToConsultationWorkspace={goToConsultationWorkspace}
+        />
+      ) : null}
 
-        <Card className="col-span-1">
-          <CardHeader>
-            <CardTitle>Waiting room</CardTitle>
-            <CardDescription>
-              Checked-in patients on today&apos;s queue who have not been
-              called in yet. Start their visit when you are ready.
-            </CardDescription>
-          </CardHeader>
-          <CardContent>
-            {waitingList.length === 0 ? (
-              <div className="flex flex-col items-center justify-center p-8 text-center text-muted-foreground border-2 border-dashed rounded-lg">
-                <Users className="h-8 w-8 mb-2 opacity-50" />
-                <p>Waiting room is empty</p>
-              </div>
-            ) : (
-              <div className="space-y-4">
-                {waitingList.map((item) => (
-                  <div
-                    key={item.id}
-                    className="flex items-center justify-between gap-3 p-3 sm:p-4 border rounded-lg"
-                  >
-                    <div className="flex items-center gap-3 min-w-0">
-                      <div className="flex h-9 w-9 sm:h-10 sm:w-10 shrink-0 items-center justify-center rounded-full bg-muted font-bold text-sm">
-                        {item.tokenNumber}
-                      </div>
-                      <div className="min-w-0">
-                        <p className="font-medium truncate">
-                          {item.patient?.firstName} {item.patient?.lastName}
-                        </p>
-                        <div className="flex items-center gap-1.5 flex-wrap">
-                          <Badge variant="outline" className="text-xs">
-                            {humanizeUiLabel(item.tokenType)}
-                          </Badge>
-                          <span className="text-xs sm:text-sm text-muted-foreground">
-                            Wait: {item.estimatedWaitTime} min
-                          </span>
-                        </div>
-                      </div>
-                    </div>
-                    {canStartConsultation ? (
-                      <Button
-                        size="sm"
-                        variant="default"
-                        className="shrink-0"
-                        disabled={isStartingConsultation}
-                        onClick={() =>
-                          void handleStartConsultation(
-                            item.appointmentId || item.id,
-                          )
-                        }
-                      >
-                        <Play className="mr-2 h-3 w-3" />
-                        Open
-                      </Button>
-                    ) : (
-                      <Badge variant="outline" className="shrink-0">
-                        View only
-                      </Badge>
-                    )}
-                  </div>
-                ))}
-              </div>
-            )}
-          </CardContent>
-        </Card>
-      </div>
+
+
+      {canCreateWalkIn ? (
+        <AddAppointmentDialogContainer
+          open={walkInOpen}
+          onOpenChange={setWalkInOpen}
+          selectedDate={new Date()}
+          mode="walk-in"
+          onAppointmentAdded={async (appointment: Appointment) => {
+            try {
+              if (!appointment.id) {
+                showUserFacingErrorToast(
+                  "Missing appointment id.",
+                  "Appointment created, but we could not check-in the patient. Please refresh and try again from Appointments.",
+                  "save",
+                );
+                return;
+              }
+              await checkInAppointment.mutateAsync(appointment.id);
+            } catch (err) {
+              showUserFacingErrorToast(
+                err,
+                "Appointment created, but we could not check-in the patient. You can check them in from Appointments.",
+                "save",
+              );
+            }
+          }}
+        />
+      ) : null}
+
+      <AppointmentRowActionDialogs {...rowActions.dialogProps} />
+
+      {isNurse ? (
+        <NursePrepSection
+          opdQueueRows={opdQueueRows}
+          rowActions={rowActions}
+          clinicType={clinicType}
+          router={router}
+          handleScheduleFollowUp={handleScheduleFollowUp}
+        />
+      ) : null}
+
+
     </AppPageScaffold>
   );
 };

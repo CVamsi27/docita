@@ -192,20 +192,19 @@ export class FinancialAnalyticsFactory {
       endDate,
     );
 
-    const byCategory = revenueData.reduce(
-      (acc, item) => {
-        if (item.cptCode) {
-          const category = item.cptCode.category;
-          if (!acc[category]) {
-            acc[category] = { count: 0, revenue: 0 };
-          }
-          acc[category].count += item.procedureCount;
-          acc[category].revenue += item.totalRevenue;
+    const byCategory = revenueData.reduce<
+      Record<string, { count: number; revenue: number }>
+    >((acc, item) => {
+      if (item.cptCode) {
+        const category = item.cptCode.category;
+        if (!acc[category]) {
+          acc[category] = { count: 0, revenue: 0 };
         }
-        return acc;
-      },
-      {} as Record<string, { count: number; revenue: number }>,
-    );
+        acc[category].count += item.procedureCount;
+        acc[category].revenue += item.totalRevenue;
+      }
+      return acc;
+    }, {});
 
     return Object.entries(byCategory)
       .map(

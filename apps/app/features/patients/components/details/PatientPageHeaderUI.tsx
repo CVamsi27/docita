@@ -1,8 +1,12 @@
+"use client";
+
 import Link from "next/link";
-import { ChevronLeft } from "lucide-react";
-import { Badge } from "@workspace/ui/components/badge";
-import { Button } from "@workspace/ui/components/button";
+import { ChevronLeft, Sparkles } from "lucide-react";
+import { Badge } from "@workspace/ui/components/indicators/badge";
+import { Button } from "@workspace/ui/components/form/button";
 import type { Patient } from "@workspace/types";
+import { useAskAi } from "@/components/ask-ai/ask-ai-context";
+import { formatGenderLabel } from "@/lib/formatters";
 
 interface PatientPageHeaderUIProps {
   patient: Patient;
@@ -10,6 +14,17 @@ interface PatientPageHeaderUIProps {
 }
 
 export function PatientPageHeaderUI({ patient, onEdit }: PatientPageHeaderUIProps) {
+  const { openOverlay } = useAskAi();
+  const patientName = `${patient.firstName} ${patient.lastName}`.trim();
+
+  const askAiForPatient = () => {
+    openOverlay({
+      id: `patient:${patient.id}`,
+      label: `on ${patientName || "this patient"}`,
+      payload: { kind: "patient", patientId: patient.id },
+    });
+  };
+
   return (
     <div className="flex flex-col gap-3">
       <div>
@@ -22,21 +37,31 @@ export function PatientPageHeaderUI({ patient, onEdit }: PatientPageHeaderUIProp
       </div>
       <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
         <div>
-          <h1 className="text-2xl font-bold">
-            {patient.firstName} {patient.lastName}
-          </h1>
+          <h1 className="ui-page-title">{patientName}</h1>
           <div className="flex items-center gap-2 mt-1">
-            <Badge variant="outline">{patient.gender}</Badge>
+            <Badge variant="outline">{formatGenderLabel(patient.gender)}</Badge>
             <span className="text-sm text-muted-foreground">
               ID: {patient.id?.slice(0, 8)}
             </span>
           </div>
         </div>
-        {onEdit && (
-          <Button onClick={onEdit}>
-            Edit Patient
+        <div className="flex items-center gap-2">
+          <Button
+            type="button"
+            variant="outline"
+            size="sm"
+            onClick={askAiForPatient}
+            data-testid="patient-ask-ai"
+            className="gap-2"
+            aria-label={`Ask AI about ${patientName || "this patient"}`}
+          >
+            <Sparkles className="size-4 text-primary" aria-hidden />
+            Ask AI
           </Button>
-        )}
+          {onEdit && (
+            <Button onClick={onEdit}>Edit Patient</Button>
+          )}
+        </div>
       </div>
     </div>
   );

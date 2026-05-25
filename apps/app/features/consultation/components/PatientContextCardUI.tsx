@@ -1,3 +1,5 @@
+"use client";
+
 import Link from "next/link";
 import {
   Activity,
@@ -10,15 +12,15 @@ import {
   Pill,
   User,
 } from "lucide-react";
-import { Button } from "@workspace/ui/components/button";
-import { Badge } from "@workspace/ui/components/badge";
+import { Button } from "@workspace/ui/components/form/button";
+import { SymbolTooltip } from "@workspace/ui/components/overlay/tooltip";
+import { Badge } from "@workspace/ui/components/indicators/badge";
 import {
   Collapsible,
   CollapsibleContent,
-} from "@workspace/ui/components/collapsible";
+} from "@workspace/ui/components/overlay/collapsible";
 import { cn } from "@workspace/ui/lib/utils";
-import { formatDistanceToNow } from "date-fns";
-
+import { formatDistanceToNow } from "@workspace/utils";
 import { SummaryMedications } from "./shared/SummaryMedications";
 import { SummaryConditions } from "./shared/SummaryConditions";
 
@@ -72,23 +74,21 @@ export function PatientContextCardUI({
   isExpanded,
   onToggleExpand,
   className,
-
 }: PatientContextCardUIProps) {
   const hasAllergies = patient.allergies && patient.allergies.length > 0;
 
   return (
     <div
       className={cn(
-        "border rounded-lg bg-card shadow-sm overflow-hidden",
+        "border border-border/70 rounded-[var(--radius)] bg-card shadow-sm overflow-hidden",
         hasAllergies && "border-l-4 border-l-red-500",
         className,
       )}
     >
-      {}
       <div className="p-3 border-b bg-muted/30">
         <div className="flex items-start justify-between gap-3">
           <div className="flex items-center gap-3">
-            <div className="h-10 w-10 rounded-full bg-primary/10 flex items-center justify-center">
+            <div className="flex h-10 w-10 items-center justify-center rounded-full border border-border/70 bg-background/70">
               <User className="h-5 w-5 text-primary" />
             </div>
             <div>
@@ -115,7 +115,10 @@ export function PatientContextCardUI({
                   </span>
                 )}
                 {hasAllergies && (
-                  <Badge variant="destructive" className="text-[var(--fs-2xs)] h-5">
+                  <Badge
+                    variant="destructive"
+                    className="text-[var(--fs-2xs)] h-5"
+                  >
                     <AlertTriangle className="h-3 w-3 mr-1" />
                     Allergies
                   </Badge>
@@ -123,39 +126,42 @@ export function PatientContextCardUI({
               </div>
             </div>
           </div>
-          <Button
-            variant="ghost"
-            size="icon"
-            className="h-8 w-8"
-            onClick={onToggleExpand}
+          <SymbolTooltip
+            label={isExpanded ? "Collapse patient summary" : "Expand patient summary"}
           >
-            {isExpanded ? (
-              <ChevronUp className="h-4 w-4" />
-            ) : (
-              <ChevronDown className="h-4 w-4" />
-            )}
-          </Button>
+            <Button
+              variant="ghost"
+              size="icon"
+              className="h-8 w-8"
+              onClick={onToggleExpand}
+              aria-label={
+                isExpanded ? "Collapse patient summary" : "Expand patient summary"
+              }
+            >
+              {isExpanded ? (
+                <ChevronUp className="h-4 w-4" />
+              ) : (
+                <ChevronDown className="h-4 w-4" />
+              )}
+            </Button>
+          </SymbolTooltip>
         </div>
       </div>
 
-      {}
       {hasAllergies && (
         <div className="px-3 py-2 surface-danger border-b">
           <div className="flex items-center gap-2">
             <AlertTriangle className="h-4 w-4 text-destructive shrink-0" />
             <span className="text-sm font-medium">
-              Allergies: {patient.allergies!.join(", ")}
+              Allergies: {(patient.allergies ?? []).join(", ")}
             </span>
           </div>
         </div>
       )}
 
-      {}
       <Collapsible open={isExpanded} onOpenChange={onToggleExpand}>
         <CollapsibleContent>
           <div className="p-3 space-y-4">
-            {}
-            {}
             <div className="px-4 py-2 border-b">
               <SummaryConditions
                 conditions={(patient.conditions || []).map((c) => ({
@@ -166,7 +172,6 @@ export function PatientContextCardUI({
               />
             </div>
 
-            {}
             <div className="px-4 py-2 border-b">
               <SummaryMedications
                 medications={(patient.currentMedications || []).map((m) => ({
@@ -178,16 +183,12 @@ export function PatientContextCardUI({
             </div>
 
             <div className="px-4 py-2 border-b">
-              {}
-
-              {}
               <div className="space-y-3">
                 <div className="flex items-center gap-2 text-sm font-medium">
                   <Activity className="h-4 w-4" />
                   Key Vitals (Last 3 visits)
                 </div>
 
-                {}
                 {patient.recentVitals?.bp &&
                   patient.recentVitals.bp.length > 0 && (
                     <div className="bg-muted/50 p-2 rounded text-xs space-y-1">
@@ -207,7 +208,6 @@ export function PatientContextCardUI({
                     </div>
                   )}
 
-                {}
                 {patient.recentVitals?.weight &&
                   patient.recentVitals.weight.length > 0 && (
                     <div className="bg-muted/50 p-2 rounded text-xs space-y-1">
@@ -234,9 +234,7 @@ export function PatientContextCardUI({
                   <div className="flex items-center gap-2 text-muted-foreground">
                     <History className="h-3 w-3" />
                     Last visit:{" "}
-                    {formatDistanceToNow(patient.lastVisit, {
-                      addSuffix: true,
-                    })}
+                    {formatDistanceToNow(patient.lastVisit)}
                   </div>
                   {patient.lastVisitReason && (
                     <span className="text-xs text-muted-foreground">
@@ -247,7 +245,6 @@ export function PatientContextCardUI({
               </div>
             )}
 
-            {}
             <div className="flex items-center gap-2 pt-2">
               <Button
                 asChild
@@ -255,7 +252,7 @@ export function PatientContextCardUI({
                 size="sm"
                 className="flex-1 h-8 text-xs"
               >
-                <Link href={`/patients/${patient.id}`}>
+                <Link href={`/patients/${patient.id}?tab=visits`}>
                   <FileText className="h-3 w-3 mr-1" />
                   Full History
                 </Link>
@@ -266,7 +263,9 @@ export function PatientContextCardUI({
                 size="sm"
                 className="flex-1 h-8 text-xs"
               >
-                <Link href={`/patients/${patient.id}/prescriptions`}>
+                <Link
+                  href={`/patients/${patient.id}?tab=records&subtab=prescriptions`}
+                >
                   <Pill className="h-3 w-3 mr-1" />
                   Prescriptions
                 </Link>

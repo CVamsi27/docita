@@ -1,101 +1,18 @@
 "use client";
 
 import { useEffect } from "react";
-import { logger } from "@/lib/logger";
+import { logger } from "@/lib/monitoring/logger";
 import {
   draftSessionStorageKey,
   hashDiagnosesForSync,
   useConsultationDraft,
 } from "@/features/consultation/state/useConsultationDraft";
-import type { ChiefComplaintItem } from "@/features/consultation/components/structured/ChiefComplaintInput";
-import type { DiagnosisItem } from "@/features/consultation/components/structured/DiagnosisInput";
-import type { ExaminationData } from "@/features/consultation/components/structured/ExaminationInput";
-import type {
-  GrowthChartData,
-  OphthalmologyExamData,
-} from "@workspace/types";
-import type { DentalChartValue } from "@/features/consultation/components/specialty/DentalChartUI";
-
-function toRecord(value: unknown): Record<string, unknown> {
-  if (!value || typeof value !== "object") return {};
-  return Object.fromEntries(Object.entries(value));
-}
-
-function ensureString(val: unknown): string {
-  if (typeof val === "string") return val;
-  if (typeof val === "object" && val !== null) {
-    const obj = toRecord(val);
-    if ("notes" in obj && typeof obj.notes === "string") return obj.notes;
-    return JSON.stringify(val);
-  }
-  if (val === null || val === undefined) return "";
-  return String(val);
-}
-
-function parseDiagnosis(raw: unknown): DiagnosisItem[] {
-  if (!raw) return [];
-  if (Array.isArray(raw)) return raw as DiagnosisItem[];
-  if (typeof raw !== "string") return [];
-  try {
-    const parsed = JSON.parse(raw);
-    if (Array.isArray(parsed)) return parsed as DiagnosisItem[];
-    if (typeof parsed === "string" && parsed.trim()) {
-      return [
-        {
-          id: "legacy-dx",
-          condition: parsed,
-          type: "provisional",
-          status: "active",
-        },
-      ];
-    }
-  } catch {
-    if (raw.trim()) {
-      return [
-        {
-          id: "legacy-dx",
-          condition: raw,
-          type: "provisional",
-          status: "active",
-        },
-      ];
-    }
-  }
-  return [];
-}
-
-function normalizeComplaintList(
-  items: ChiefComplaintItem[] | undefined,
-): ChiefComplaintItem[] {
-  if (!items || items.length === 0) return [];
-  return items.map((item) => ({
-    ...item,
-    durationValue:
-      item.complaint?.trim() && (!item.durationValue || !item.durationValue.trim())
-        ? "1"
-        : item.durationValue,
-  }));
-}
-
-const DEFAULT_EXAMINATION: ExaminationData = {
-  general: {
-    pallor: false,
-    icterus: false,
-    cyanosis: false,
-    clubbing: false,
-    lymphadenopathy: false,
-    edema: false,
-    notes: "",
-  },
-  systemic: {
-    cvs: "",
-    rs: "",
-    pa: "",
-    cns: "",
-    musculoskeletal: "",
-    notes: "",
-  },
-};
+import {
+  applyConsultationSessionDraft,
+  buildConsultationHydrateSeed,
+  consultationDraftSessionSchema,
+  toRecord,
+} from "./consultationHydrateHelpers";
 
 interface HydrateOptions {
   appointmentId: string;
@@ -109,146 +26,88 @@ export function useConsultationHydrate({
   useEffect(() => {
     if (!appointmentId || !appointmentData) return;
 
-    const data = appointmentData;
-    const structured = data["chiefComplaintStructured"] as
-      | ChiefComplaintItem[]
-      | undefined;
-    const rawComplaint =
-      typeof data["chiefComplaint"] === "string"
-        ? (data["chiefComplaint"] as string)
-        : "";
+    const draft = useConsultationDraft.getState();
+    if (draft.dirty && draft.appointmentId === appointmentId) {
+      return;
+    }
 
-    const chiefComplaint: ChiefComplaintItem[] = structured?.length
-      ? normalizeComplaintList(structured)
-      : rawComplaint
-        ? [
-            {
-              id: "legacy",
-              complaint: rawComplaint,
-              durationValue: "1",
-              durationUnit: "days",
-              severity: "moderate",
-            },
-          ]
-        : [];
+    let cancelled = false;
+    const data = toRecord(appointmentData);
+    const seed = buildConsultationHydrateSeed(data);
 
-    const genExam = data["generalExamination"];
-    const sysExam = data["systemicExamination"];
-    const examination: ExaminationData = {
-      general: genExam
-        ? {
-            ...DEFAULT_EXAMINATION.general,
-            ...(typeof genExam === "object" ? (genExam as object) : {}),
-          }
-        : DEFAULT_EXAMINATION.general,
-      systemic: sysExam
-        ? {
-            cvs: ensureString(toRecord(sysExam).cvs),
-            rs: ensureString(toRecord(sysExam).rs),
-            pa: ensureString(toRecord(sysExam).pa),
-            cns: ensureString(toRecord(sysExam).cns),
-            musculoskeletal: ensureString(toRecord(sysExam).musculoskeletal),
-            notes: ensureString(toRecord(sysExam).additionalNotes),
-          }
-        : DEFAULT_EXAMINATION.systemic,
-    };
-
-    const diagnosis = parseDiagnosis(data["finalDiagnosis"]);
-    const treatment =
-      typeof data["treatmentPlan"] === "string"
-        ? (data["treatmentPlan"] as string)
-        : "";
-    const history =
-      typeof data["historyOfPresentIllness"] === "string"
-        ? (data["historyOfPresentIllness"] as string)
-        : "";
-    const followUpPlan =
-      typeof data["followUpPlan"] === "string"
-        ? (data["followUpPlan"] as string)
-        : "";
-    const dentalChart = (data["dentalChart"] as DentalChartValue) || {};
-    const eyeExam = (data["ophthalmologyExam"] as OphthalmologyExamData) || {};
-    const growthData =
-      (data["growthData"] as GrowthChartData) || {
-        patientGender: "MALE",
-        measurements: [],
-      };
-
-    const codedForHash = diagnosis
+    const codedForHash = seed.diagnosis
       .filter((d) => d.icdCode?.id)
       .map((d, idx) => ({
         icdCodeId: d.icdCode?.id,
         notes: d.notes,
         isPrimary: idx === 0,
       }));
-    const diagnosesContentHash = hashDiagnosesForSync(codedForHash);
 
-    useConsultationDraft.getState().hydrate(appointmentId, {
-      chiefComplaint,
-      history,
-      examination,
-      diagnosis,
-      treatment,
-      prescriptions: [],
-      dentalChart,
-      eyeExam,
-      growthData,
-      followUpPlan,
-      diagnosesContentHash,
-    });
+    void (async () => {
+      const diagnosesContentHash = await hashDiagnosesForSync(codedForHash);
+      if (cancelled) return;
 
-    if (typeof window !== "undefined") {
+      useConsultationDraft.getState().hydrate(appointmentId, {
+        chiefComplaint: seed.chiefComplaint,
+        history: seed.history,
+        examination: seed.examination,
+        diagnosis: seed.diagnosis,
+        treatment: seed.treatment,
+        prescriptions: [],
+        dentalChart: seed.dentalChart,
+        eyeExam: seed.eyeExam,
+        growthData: seed.growthData,
+        cardiologyExam: seed.cardiologyExam,
+        dermatologyExam: seed.dermatologyExam,
+        gynecologyExam: seed.gynecologyExam,
+        psychiatryExam: seed.psychiatryExam,
+        investigations: seed.investigations,
+        followUpPlan: seed.followUpPlan,
+        diagnosesContentHash,
+      });
+
+      if (typeof window === "undefined") return;
       try {
         const stored = window.sessionStorage.getItem(
           draftSessionStorageKey(appointmentId),
         );
         if (!stored) return;
-        const parsed = JSON.parse(stored) as
-          | {
-              savedAt?: number;
-              chiefComplaint?: ChiefComplaintItem[];
-              history?: string;
-              examination?: ExaminationData;
-              diagnosis?: DiagnosisItem[];
-              treatment?: string;
-              followUpPlan?: string;
-              dentalChart?: DentalChartValue;
-              eyeExam?: OphthalmologyExamData;
-              growthData?: GrowthChartData;
-            }
-          | null;
-        if (!parsed) return;
-        const serverUpdatedAt =
-          typeof data["updatedAt"] === "string"
-            ? new Date(data["updatedAt"] as string).getTime()
-            : 0;
+        if (cancelled) return;
+
+        let parsedJson: unknown;
+        try {
+          parsedJson = JSON.parse(stored);
+        } catch {
+          return;
+        }
+
+        const parsed = consultationDraftSessionSchema.safeParse(parsedJson);
+        if (!parsed.success) return;
+
+        const sessionDraft = parsed.data;
         if (
-          !parsed.savedAt ||
-          (serverUpdatedAt && parsed.savedAt <= serverUpdatedAt)
+          !sessionDraft.savedAt ||
+          (seed.serverUpdatedAtMs &&
+            sessionDraft.savedAt <= seed.serverUpdatedAtMs)
         ) {
           window.sessionStorage.removeItem(
             draftSessionStorageKey(appointmentId),
           );
           return;
         }
-        useConsultationDraft.setState((state) => ({
-          chiefComplaint: parsed.chiefComplaint ?? state.chiefComplaint,
-          history: parsed.history ?? state.history,
-          examination: parsed.examination ?? state.examination,
-          diagnosis: parsed.diagnosis ?? state.diagnosis,
-          treatment: parsed.treatment ?? state.treatment,
-          followUpPlan: parsed.followUpPlan ?? state.followUpPlan,
-          dentalChart: parsed.dentalChart ?? state.dentalChart,
-          eyeExam: parsed.eyeExam ?? state.eyeExam,
-          growthData: parsed.growthData ?? state.growthData,
-          dirty: true,
-          saveState: "dirty",
-        }));
+
+        useConsultationDraft.setState((state) =>
+          applyConsultationSessionDraft(state, sessionDraft),
+        );
       } catch (error) {
         logger.warn("Failed to restore consultation draft from sessionStorage", {
           error,
         });
       }
-    }
+    })();
+
+    return () => {
+      cancelled = true;
+    };
   }, [appointmentId, appointmentData]);
 }

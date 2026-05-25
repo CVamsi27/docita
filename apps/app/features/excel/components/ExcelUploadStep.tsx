@@ -1,3 +1,4 @@
+import { DocitaLoadingIndicator } from "@workspace/ui/components/feedback/docita-loading-indicator";
 import {
   Card,
   CardContent,
@@ -5,12 +6,12 @@ import {
   CardFooter,
   CardHeader,
   CardTitle,
-} from "@workspace/ui/components/card";
-import { Button } from "@workspace/ui/components/button";
-import { Input } from "@workspace/ui/components/input";
-import { Label } from "@workspace/ui/components/label";
-import { Badge } from "@workspace/ui/components/badge";
-import { FileSpreadsheet, Loader2, Upload } from "lucide-react";
+} from "@workspace/ui/components/indicators/card";
+import { Button } from "@workspace/ui/components/form/button";
+import { Input } from "@workspace/ui/components/form/input";
+import { Label } from "@workspace/ui/components/form/label";
+import { Badge } from "@workspace/ui/components/indicators/badge";
+import { FileSpreadsheet, Upload } from "lucide-react";
 import { cn } from "@workspace/ui/lib/utils";
 
 interface DBField {
@@ -114,8 +115,8 @@ export const ExcelUploadStep = ({
         >
           {isUploading ? (
             <>
-              <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-              Analyzing File...
+              <DocitaLoadingIndicator variant="inline" decorative className="mr-2" />
+              Analyzing File…
             </>
           ) : (
             <>

@@ -1,5 +1,9 @@
 import { HttpException } from '@nestjs/common';
 import type { NodeOptions } from '@sentry/nestjs';
+import {
+  redactPhi,
+  redactString,
+} from '@/shared/modules/observability/phi-redactor';
 
 export function shouldCaptureInSentry(error: unknown): boolean {
   if (error instanceof HttpException) {
@@ -9,29 +13,93 @@ export function shouldCaptureInSentry(error: unknown): boolean {
   return true;
 }
 
+function isRecord(value: unknown): value is Record<string, unknown> {
+  return typeof value === 'object' && value !== null && !Array.isArray(value);
+}
+
 function isZodValidationEvent(event: unknown): boolean {
-  if (!event || typeof event !== 'object') {
+  if (!isRecord(event)) {
     return false;
   }
 
-  const exception = (event as { exception?: unknown }).exception;
-  if (!exception || typeof exception !== 'object') {
+  const exception = event.exception;
+  if (!isRecord(exception)) {
     return false;
   }
 
-  const values = (exception as { values?: unknown }).values;
+  const values = exception.values;
   if (!Array.isArray(values)) {
     return false;
   }
 
   return values.some((value) => {
-    if (!value || typeof value !== 'object') {
+    if (!isRecord(value)) {
       return false;
     }
 
-    return (value as { type?: unknown }).type === 'ZodValidationException';
+    return value.type === 'ZodValidationException';
   });
 }
+
+function scrubMutableRecord(record: Record<string, unknown>): void {
+  const request = record.request;
+  if (isRecord(request)) {
+    if (request.data !== undefined) {
+      request.data = redactPhi(request.data);
+    }
+    if (typeof request.query_string === 'string') {
+      request.query_string = redactString(request.query_string);
+    } else if (request.query_string !== undefined) {
+      request.query_string = redactPhi(request.query_string);
+    }
+    if (request.headers !== undefined) {
+      request.headers = redactPhi(request.headers);
+    }
+    if (request.cookies !== undefined) {
+      request.cookies = redactPhi(request.cookies);
+    }
+  }
+
+  if (record.extra !== undefined) {
+    record.extra = redactPhi(record.extra);
+  }
+  if (record.contexts !== undefined) {
+    record.contexts = redactPhi(record.contexts);
+  }
+  if (record.tags !== undefined) {
+    record.tags = redactPhi(record.tags);
+  }
+
+  if (Array.isArray(record.breadcrumbs)) {
+    record.breadcrumbs = record.breadcrumbs.map((crumb) => {
+      if (!isRecord(crumb)) {
+        return crumb;
+      }
+      if (typeof crumb.message === 'string') {
+        crumb.message = redactString(crumb.message);
+      }
+      if (crumb.data !== undefined) {
+        crumb.data = redactPhi(crumb.data);
+      }
+      return crumb;
+    });
+  }
+
+  if (typeof record.message === 'string') {
+    record.message = redactString(record.message);
+  }
+}
+
+function scrubSentryEvent<T>(event: T): T {
+  if (!isRecord(event)) {
+    return event;
+  }
+
+  scrubMutableRecord(event);
+  return event;
+}
+
+export { scrubSentryEvent };
 
 export function createSentryBeforeSend(
   extraBeforeSend?: NonNullable<NodeOptions['beforeSend']>,
@@ -44,6 +112,7 @@ export function createSentryBeforeSend(
       return null;
     }
 
-    return extraBeforeSend ? extraBeforeSend(event, hint) : event;
+    const scrubbed = scrubSentryEvent(event);
+    return extraBeforeSend ? extraBeforeSend(scrubbed, hint) : scrubbed;
   };
 }

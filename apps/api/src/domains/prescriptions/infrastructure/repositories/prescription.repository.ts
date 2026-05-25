@@ -7,6 +7,7 @@ import {
   PatientWithAllergies,
   DoctorComplianceProfile,
 } from '@/domains/prescriptions/core/repositories/prescription.repository.interface';
+import { mapPrescriptionDetailRow } from '@/domains/prescriptions/infrastructure/repositories/prescription-detail.mapper';
 import { Prescription, Prisma, Role } from '@workspace/db';
 
 @Injectable()
@@ -18,7 +19,8 @@ export class PrismaPrescriptionRepository implements IPrescriptionRepository {
   }
 
   async findAll(params: PrescriptionSearchParams): Promise<Prescription[]> {
-    const { clinicId, search, date, patientId, limit } = params;
+    const { clinicId, search, date, startDate, endDate, patientId, limit } =
+      params;
 
     if (!clinicId) {
       return [];
@@ -52,15 +54,25 @@ export class PrismaPrescriptionRepository implements IPrescriptionRepository {
       ];
     }
 
-    if (date) {
-      const startDate = new Date(date);
-      startDate.setHours(0, 0, 0, 0);
-      const endDate = new Date(startDate);
-      endDate.setHours(23, 59, 59, 999);
+    if (startDate && endDate) {
+      const start = new Date(startDate);
+      start.setHours(0, 0, 0, 0);
+      const end = new Date(endDate);
+      end.setHours(23, 59, 59, 999);
 
       where.updatedAt = {
-        gte: startDate,
-        lte: endDate,
+        gte: start,
+        lte: end,
+      };
+    } else if (date) {
+      const start = new Date(date);
+      start.setHours(0, 0, 0, 0);
+      const end = new Date(start);
+      end.setHours(23, 59, 59, 999);
+
+      where.updatedAt = {
+        gte: start,
+        lte: end,
       };
     }
 
@@ -93,9 +105,12 @@ export class PrismaPrescriptionRepository implements IPrescriptionRepository {
     });
   }
 
-  async findById(id: string): Promise<PrescriptionDetail | null> {
-    const result = await this.getReadClient().prescription.findUnique({
-      where: { id },
+  async findById(
+    id: string,
+    clinicId: string,
+  ): Promise<PrescriptionDetail | null> {
+    const result = await this.getReadClient().prescription.findFirst({
+      where: { id, patient: { clinicId } },
       include: {
         medications: true,
         patient: {
@@ -146,7 +161,7 @@ export class PrismaPrescriptionRepository implements IPrescriptionRepository {
       },
     });
 
-    return result as PrescriptionDetail | null;
+    return mapPrescriptionDetailRow(result);
   }
 
   async create(data: Prisma.PrescriptionCreateInput): Promise<Prescription> {
@@ -159,23 +174,38 @@ export class PrismaPrescriptionRepository implements IPrescriptionRepository {
   async update(
     id: string,
     data: Prisma.PrescriptionUpdateInput,
+    clinicId: string,
   ): Promise<Prescription> {
-    return await this.prisma.prescription.update({
-      where: { id },
-      data,
+    const result = await this.prisma.prescription.updateMany({
+      where: { id, patient: { clinicId } },
+      data: data satisfies Prisma.PrescriptionUpdateManyMutationInput,
+    });
+    if (result.count === 0) {
+      throw new Error(`Prescription ${id} not found`);
+    }
+
+    const refreshed = await this.prisma.prescription.findFirst({
+      where: { id, patient: { clinicId } },
       include: { medications: true },
     });
+    if (!refreshed) {
+      throw new Error(`Prescription ${id} not found`);
+    }
+    return refreshed;
   }
 
-  async delete(id: string): Promise<void> {
-    await this.prisma.prescription.delete({ where: { id } });
+  async delete(id: string, clinicId: string): Promise<void> {
+    await this.prisma.prescription.deleteMany({
+      where: { id, patient: { clinicId } },
+    });
   }
 
   async findPatientWithAllergies(
     patientId: string,
+    clinicId: string,
   ): Promise<PatientWithAllergies | null> {
-    const patient = await this.getReadClient().patient.findUnique({
-      where: { id: patientId },
+    const patient = await this.getReadClient().patient.findFirst({
+      where: { id: patientId, clinicId },
       select: {
         id: true,
         patientAllergies: {
@@ -193,12 +223,12 @@ export class PrismaPrescriptionRepository implements IPrescriptionRepository {
 
     return {
       id: patient.id,
-      patientAllergies: patient.patientAllergies as Array<{
-        allergen: string;
-        allergyType: string;
-        severity: string;
-        reaction: string | null;
-      }>,
+      patientAllergies: patient.patientAllergies.map((allergy) => ({
+        allergen: allergy.allergen,
+        allergyType: allergy.allergyType,
+        severity: allergy.severity,
+        reaction: allergy.reaction,
+      })),
     };
   }
 

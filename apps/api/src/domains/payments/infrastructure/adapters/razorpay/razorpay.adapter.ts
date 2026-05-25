@@ -8,6 +8,8 @@ import {
 } from '@/domains/payments/core/ports';
 import { PaymentProvider } from '@/domains/payments/core/entities/payment-provider.enum';
 
+const RAZORPAY_REQUEST_TIMEOUT_MS = 5000;
+
 @Injectable()
 export abstract class BaseRazorpayAdapter implements IPaymentGateway {
   readonly provider = PaymentProvider.RAZORPAY;
@@ -35,6 +37,30 @@ export abstract class BaseRazorpayAdapter implements IPaymentGateway {
 
   protected getClient(): Razorpay {
     return this.razorpayClient.getClient();
+  }
+
+  protected async withRazorpayTimeout<T>(
+    operation: () => Promise<T>,
+  ): Promise<T> {
+    let timeoutId: ReturnType<typeof setTimeout> | undefined;
+
+    const timeoutPromise = new Promise<never>((_, reject) => {
+      timeoutId = setTimeout(() => {
+        reject(
+          new Error(
+            `Razorpay request timed out after ${RAZORPAY_REQUEST_TIMEOUT_MS}ms`,
+          ),
+        );
+      }, RAZORPAY_REQUEST_TIMEOUT_MS);
+    });
+
+    try {
+      return await Promise.race([operation(), timeoutPromise]);
+    } finally {
+      if (timeoutId) {
+        clearTimeout(timeoutId);
+      }
+    }
   }
 
   protected toRecord(

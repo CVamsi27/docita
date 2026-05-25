@@ -6,9 +6,9 @@ import {
   CardContent,
   CardHeader,
   CardTitle,
-} from "@workspace/ui/components/card";
-import { Button } from "@workspace/ui/components/button";
-import { useDoctors } from "@/hooks/api/use-settings";
+} from "@workspace/ui/components/indicators/card";
+import { Button } from "@workspace/ui/components/form/button";
+import { useDoctors } from "@workspace/data-access";
 import type { AdmitPatientRequest } from "@workspace/types";
 import type { WardInfo } from "@/features/ipd/components/beds/bed-management-ui";
 
@@ -111,7 +111,7 @@ export const AdmissionModal: FC<ModalProps> = ({
               onChange={(e) =>
                 setData({ ...data, patientId: e.target.value })
               }
-              placeholder="Enter existing patient ID"
+              placeholder="Patient ID"
               aria-invalid={!!errors.patientId}
             />
             {errors.patientId && (
@@ -223,7 +223,7 @@ export const AdmissionModal: FC<ModalProps> = ({
               Cancel
             </Button>
             <Button onClick={handleSubmit} disabled={isSubmitting}>
-              {isSubmitting ? "Admitting..." : "Admit"}
+              {isSubmitting ? "Admitting…" : "Admit"}
             </Button>
           </div>
         </CardContent>

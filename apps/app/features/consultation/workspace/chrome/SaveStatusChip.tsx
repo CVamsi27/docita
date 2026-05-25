@@ -1,19 +1,19 @@
 "use client";
 
+import { DocitaLoadingIndicator } from "@workspace/ui/components/feedback/docita-loading-indicator";
+
 import { useMemo } from "react";
-import { Loader2, Check, AlertTriangle, Circle } from "lucide-react";
+import { Check, AlertTriangle, Circle } from "lucide-react";
 import { cn } from "@workspace/ui/lib/utils";
 import { useConsultationDraft } from "@/features/consultation/state/useConsultationDraft";
+import { formatTime } from "@/lib/formatters";
 
 function humanizeSavedAt(timestamp: number): string {
   const diff = Date.now() - timestamp;
   if (diff < 5_000) return "just now";
   if (diff < 60_000) return `${Math.floor(diff / 1000)}s ago`;
   if (diff < 3_600_000) return `${Math.floor(diff / 60_000)}m ago`;
-  return new Date(timestamp).toLocaleTimeString([], {
-    hour: "2-digit",
-    minute: "2-digit",
-  });
+  return formatTime(new Date(timestamp), "HH:mm");
 }
 
 interface SaveStatusChipProps {
@@ -36,18 +36,18 @@ export function SaveStatusChip({ className }: SaveStatusChipProps) {
         return "Unsaved changes";
       case "idle":
       default:
-        return "All changes saved";
+        return "Synced";
     }
   }, [saveState, lastSavedAt]);
 
   const tone =
     saveState === "error"
-      ? "text-destructive border-destructive/30 bg-destructive/5"
+      ? "badge-danger"
       : saveState === "saving"
-        ? "text-muted-foreground border-border bg-muted/40"
+        ? "badge-muted"
         : saveState === "dirty"
-          ? "text-warning border-warning/30 bg-warning/10"
-          : "text-success border-success/30 bg-success/10";
+          ? "badge-warning"
+          : "badge-success";
 
   return (
     <div
@@ -60,7 +60,7 @@ export function SaveStatusChip({ className }: SaveStatusChipProps) {
       )}
     >
       {saveState === "saving" ? (
-        <Loader2 className="h-3 w-3 animate-spin" aria-hidden="true" />
+        <DocitaLoadingIndicator variant="inline" decorative iconClassName="h-3 w-3" />
       ) : saveState === "error" ? (
         <AlertTriangle className="h-3 w-3" aria-hidden="true" />
       ) : saveState === "dirty" ? (

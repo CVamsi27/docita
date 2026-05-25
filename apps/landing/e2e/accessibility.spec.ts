@@ -9,5 +9,7 @@ test("accessibility smoke", async ({ page }) => {
 
   const h1 = page.getByRole("heading", { level: 1 });
   await expect(h1).toHaveCount(1);
-  await expect(h1).toContainText("Clinic software");
+  await expect(h1).toContainText(
+    "One rhythm for your whole OPD floor. Queue, chart, bill, follow up—without the shuffle.",
+  );
 });

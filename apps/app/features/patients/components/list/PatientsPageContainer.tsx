@@ -3,16 +3,19 @@
 import { AddPatientDialog, EditPatientDialog } from "@/features/patients/components/forms/PatientDialogs";
 
 import { usePatientsLogic } from "@/features/patients/hooks/use-patients-logic";
+import { usePermissions } from "@/hooks/use-permissions";
 import { PatientsPageUI } from "./PatientsPageUI";
 
 export function PatientsPageContainer() {
   const { state, handlers } = usePatientsLogic();
+  const { canStartConsultation } = usePermissions();
 
   return (
     <>
       <PatientsPageUI
         isLoading={state.isLoading}
         error={state.error}
+        onRetry={handlers.retry}
         searchQuery={state.searchQuery}
         sortConfig={state.sortConfig}
         filteredPatients={state.filteredPatients}
@@ -30,6 +33,9 @@ export function PatientsPageContainer() {
         canGoNext={state.canGoNext}
         onPrevPage={handlers.goToPrevPage}
         onNextPage={handlers.goToNextPage}
+        onOpenConsultationQueue={
+          canStartConsultation ? handlers.openConsultationQueue : undefined
+        }
       />
 
       <AddPatientDialog

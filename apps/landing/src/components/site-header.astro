@@ -1,5 +1,5 @@
 ---
-import { DocitaWordmark } from "@workspace/ui/components/docita-logo";
+import { DocitaWordmark } from "@workspace/ui/components/indicators/docita-logo";
 import ThemeToggle from "@/components/theme-toggle.astro";
 
 import { getAppBaseUrl } from "@/lib/public-api";
@@ -7,7 +7,10 @@ import { getAppBaseUrl } from "@/lib/public-api";
 const appUrl = getAppBaseUrl();
 ---
 
-<header class="sticky top-0 z-50 border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/80">
+<header
+  class="landing-site-header fixed inset-x-0 top-0 z-[60] border-b-2 border-b-primary/12 bg-background"
+  style="padding-top: env(safe-area-inset-top, 0px);"
+>
   <div class="px-4 sm:px-6">
     <div class="ui-page-shell flex h-16 items-center">
       <div class="flex flex-1 items-center">
@@ -16,26 +19,27 @@ const appUrl = getAppBaseUrl();
         </a>
       </div>
 
-      <nav class="hidden flex-1 items-center justify-center gap-6 text-sm font-medium md:flex">
-        <a href="/#features" class="text-muted-foreground transition-colors hover:text-foreground">Features</a>
-        <a href="/paper-to-cloud" class="text-muted-foreground transition-colors hover:text-foreground">Migration</a>
-        <a href="/#pricing" class="text-muted-foreground transition-colors hover:text-foreground">Pricing</a>
-        <a href="/trust" class="text-muted-foreground transition-colors hover:text-foreground">Trust</a>
-        <a href="/contact" class="text-muted-foreground transition-colors hover:text-foreground">Contact</a>
+      <nav class="hidden flex-1 items-center justify-center gap-1 rounded-[var(--radius)] border border-border/70 bg-card p-1 text-xs font-semibold uppercase tracking-normal shadow-sm md:flex">
+        <a href="/#surface-map" class="rounded-[var(--radius)] px-3 py-2 text-muted-foreground transition-colors hover:bg-muted hover:text-foreground">Surfaces</a>
+        <a href="/#rhythm" class="rounded-[var(--radius)] px-3 py-2 text-muted-foreground transition-colors hover:bg-muted hover:text-foreground">Rhythm</a>
+        <a href="/#rollout" class="rounded-[var(--radius)] px-3 py-2 text-muted-foreground transition-colors hover:bg-muted hover:text-foreground">Rollout</a>
+        <a href="/#pricing" class="rounded-[var(--radius)] px-3 py-2 text-muted-foreground transition-colors hover:bg-muted hover:text-foreground">Pricing</a>
+        <a href="/trust" class="rounded-[var(--radius)] px-3 py-2 text-muted-foreground transition-colors hover:bg-muted hover:text-foreground">Trust</a>
+        <a href="/contact" class="rounded-[var(--radius)] px-3 py-2 text-muted-foreground transition-colors hover:bg-muted hover:text-foreground">Contact</a>
       </nav>
 
       <div class="flex flex-1 items-center justify-end gap-1.5 sm:gap-2">
         <ThemeToggle />
         <a
           href={`${appUrl}/login`}
-          class="hidden rounded-lg px-3 py-2 text-sm font-medium text-muted-foreground transition-colors hover:text-foreground md:inline-flex"
+          class="hidden rounded-[var(--radius)] px-3 py-2 text-sm font-medium text-muted-foreground transition-colors hover:text-foreground md:inline-flex"
         >
           Log In
         </a>
         <a
           href={`${appUrl}/onboarding`}
           aria-label="Start Trial"
-          class="cta-ring inline-flex h-9 items-center justify-center rounded-lg bg-primary px-3 text-xs font-semibold text-primary-foreground transition-colors hover:bg-primary/90 sm:h-10 sm:rounded-xl sm:px-4 sm:text-sm"
+          class="cta-ring inline-flex h-9 items-center justify-center rounded-[var(--radius)] bg-primary px-3 text-xs font-semibold text-primary-foreground shadow-md transition-colors hover:bg-primary/90 sm:h-10 sm:px-4 sm:text-sm"
         >
           <span class="sm:hidden">Trial</span>
           <span class="hidden sm:inline">Start Trial</span>

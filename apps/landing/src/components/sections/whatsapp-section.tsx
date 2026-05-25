@@ -7,8 +7,8 @@ import {
   MessageSquare,
   Stethoscope,
 } from "lucide-react";
-import { Button } from "@workspace/ui/components/button";
-import { SectionHeading } from "@workspace/ui/components/section-heading";
+import { Button } from "@workspace/ui/components/form/button";
+import { SectionHeading } from "@workspace/ui/components/layout/section-heading";
 
 export function WhatsappSection() {
   return (
@@ -49,7 +49,7 @@ export function WhatsappSection() {
                   <ArrowRight className="h-4 w-4" />
                 </a>
               </Button>
-              <Button asChild variant="outline" className="bg-background/70">
+              <Button asChild variant="outline" className="bg-card">
                 <a href="/contact">Book a WhatsApp demo</a>
               </Button>
             </div>
@@ -59,42 +59,42 @@ export function WhatsappSection() {
             </p>
           </div>
           <div className="order-1 lg:order-2 flex justify-center">
-            <div className="relative w-full max-w-[280px] aspect-[1/2] rounded-[2.5rem] sm:rounded-[3rem] border-8 border-card bg-card shadow-2xl overflow-hidden">
+            <div className="relative w-full max-w-[280px] aspect-[1/2] rounded-[2.5rem] sm:rounded-[3rem] border-8 border-card bg-card shadow-lg overflow-hidden">
               <div className="absolute top-0 left-1/2 -translate-x-1/2 w-32 h-6 bg-card rounded-b-xl z-20" />
-              <div className="w-full h-full bg-muted/40 overflow-hidden flex flex-col">
+              <div className="flex h-full w-full flex-col overflow-hidden bg-muted">
                 <div className="bg-primary p-4 pt-12 text-primary-foreground flex items-center gap-3 shadow-md z-10">
-                  <div className="w-8 h-8 rounded-full bg-white/20 flex items-center justify-center">
+                  <div className="flex h-8 w-8 items-center justify-center rounded-full bg-primary-foreground/20">
                     <Stethoscope className="h-5 w-5 text-white" />
                   </div>
                   <div>
                     <div className="font-semibold text-sm">Docita</div>
-                    <div className="text-[10px] text-primary-foreground/95">
+                    <div className="text-[var(--fs-2xs)] text-primary-foreground/95">
                       Business Account
                     </div>
                   </div>
                 </div>
                 <div className="flex-1 p-4 space-y-4 overflow-hidden">
-                  <div className="bg-white p-3 rounded-lg rounded-tl-none shadow-sm max-w-[85%] text-xs">
+                  <div className="bg-background p-3 rounded-[var(--radius)] rounded-tl-none shadow-sm max-w-[85%] text-xs border border-border/60">
                     <p>
                       Hello Ananya, your appointment is confirmed for tomorrow at
                       10:00 AM.
                     </p>
-                    <div className="text-[10px] text-muted-foreground text-right mt-1">
+                    <div className="text-[var(--fs-2xs)] text-muted-foreground text-right mt-1">
                       09:30 AM
                     </div>
                   </div>
-                  <div className="bg-success/20 p-3 rounded-lg rounded-tr-none shadow-sm max-w-[85%] ml-auto text-xs">
+                  <div className="bg-success/15 p-3 rounded-[var(--radius)] rounded-tr-none shadow-sm max-w-[85%] ml-auto text-xs border border-success/20">
                     <p>Thank you doctor! I&apos;ll be there</p>
-                    <div className="mt-1 text-[10px] text-foreground/80 text-right">
+                    <div className="mt-1 text-[var(--fs-2xs)] text-foreground/80 text-right">
                       09:32 AM
                     </div>
                   </div>
-                  <div className="bg-white p-2 rounded-lg rounded-tl-none shadow-sm max-w-[85%] text-xs">
-                    <div className="flex items-center gap-3 bg-muted p-2 rounded mb-2">
+                  <div className="bg-background p-2 rounded-[var(--radius)] rounded-tl-none shadow-sm max-w-[85%] text-xs border border-border/60">
+                    <div className="flex items-center gap-3 bg-muted p-2 rounded-[var(--radius)] mb-2">
                       <FileText className="h-8 w-8 text-destructive" />
                       <div>
                         <div className="font-medium">Prescription.pdf</div>
-                        <div className="text-[10px] text-foreground/80">
+                        <div className="text-[var(--fs-2xs)] text-foreground/80">
                           1 page • 120 KB
                         </div>
                       </div>
@@ -102,7 +102,7 @@ export function WhatsappSection() {
                     <p>
                       Here is your digital prescription from today&apos;s visit.
                     </p>
-                    <div className="text-[10px] text-muted-foreground text-right mt-1">
+                    <div className="text-[var(--fs-2xs)] text-muted-foreground text-right mt-1">
                       10:45 AM
                     </div>
                   </div>

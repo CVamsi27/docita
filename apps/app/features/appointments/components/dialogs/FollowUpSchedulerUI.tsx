@@ -1,10 +1,10 @@
 "use client";
 
 import * as React from "react";
-import { Button } from "@workspace/ui/components/button";
-import { Label } from "@workspace/ui/components/label";
+import { Button } from "@workspace/ui/components/form/button";
+import { Label } from "@workspace/ui/components/form/label";
 
-import { Calendar } from "@workspace/ui/components/calendar";
+import { Calendar } from "@workspace/ui/components/form/calendar";
 
 import {
   Dialog,
@@ -14,15 +14,17 @@ import {
   DialogHeader,
   DialogTitle,
   DialogTrigger,
-} from "@workspace/ui/components/dialog";
+} from "@workspace/ui/components/overlay/dialog";
 
 import {
   Popover,
   PopoverContent,
   PopoverTrigger,
-} from "@workspace/ui/components/popover";
+} from "@workspace/ui/components/overlay/popover";
+import { DocitaLoadingIndicator } from "@workspace/ui/components/feedback/docita-loading-indicator";
 import { Calendar as CalendarIcon, CalendarPlus, Check } from "lucide-react";
-import { format } from "date-fns";
+import { formatDate } from "@workspace/utils";
+import type { DurationOption } from "@workspace/types";
 import { cn } from "@workspace/ui/lib/utils";
 import { FollowUpForm } from "@/features/appointments/components/sections/follow-up/FollowUpForm";
 import { QuickScheduleButtons } from "@/features/appointments/components/sections/follow-up/QuickScheduleButtons";
@@ -43,10 +45,8 @@ export interface FollowUpType {
   label: string;
 }
 
-export interface ReminderOption {
-  value: number;
-  label: string;
-}
+/** ReminderOption is structurally identical to DurationOption — use the shared type. */
+export type ReminderOption = DurationOption;
 
 interface FollowUpSchedulerUIProps {
   open: boolean;
@@ -122,7 +122,6 @@ export function FollowUpSchedulerUI({
         </DialogHeader>
 
         <div className="grid gap-6 py-4">
-          {}
           <QuickScheduleButtons
             quickSchedules={quickSchedules}
             onQuickSchedule={onQuickSchedule}
@@ -130,7 +129,6 @@ export function FollowUpSchedulerUI({
           />
 
           <div className="grid grid-cols-2 gap-4">
-            {}
             <div className="space-y-2">
               <Label>Date</Label>
               <Popover>
@@ -144,7 +142,7 @@ export function FollowUpSchedulerUI({
                   >
                     <CalendarIcon className="mr-2 h-4 w-4" />
                     {selectedDate ? (
-                      format(selectedDate, "PPP")
+                      formatDate(selectedDate, "dd MMMM yyyy")
                     ) : (
                       <span>Choose a date</span>
                     )}
@@ -161,7 +159,6 @@ export function FollowUpSchedulerUI({
                 </PopoverContent>
               </Popover>
             </div>
-            {}
             <FollowUpForm
               followUpType={followUpType}
               onTypeChange={onTypeChange}
@@ -180,7 +177,6 @@ export function FollowUpSchedulerUI({
             />
           </div>
 
-          {}
           {selectedDate && (
             <FollowUpSummary
               selectedDate={selectedDate}
@@ -205,8 +201,8 @@ export function FollowUpSchedulerUI({
           >
             {loading ? (
               <>
-                <div className="h-4 w-4 animate-spin rounded-full border-2 border-primary-foreground border-t-transparent" />
-                Scheduling...
+                <DocitaLoadingIndicator variant="inline" decorative />
+                Scheduling…
               </>
             ) : (
               <>

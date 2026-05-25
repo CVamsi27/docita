@@ -11,9 +11,7 @@ import {
   getPrismaInstance,
 } from './setup';
 import { setPrismaInstance } from './factories';
-import { RazorpaySubscriptionGateway } from '../src/gateways/razorpay-subscription.gateway';
-import { mockRazorpayGateway } from './razorpay.provider';
-import { WhatsappService } from '../src/shared/modules/messaging/whatsapp/whatsapp.service';
+import { WhatsappService } from '@/domains/whatsapp/application/services/whatsapp-clinic-facade.service';
 import { mockWhatsappService } from './whatsapp.provider';
 
 describe('Clinic Members Lifecycle (e2e)', () => {
@@ -27,8 +25,6 @@ describe('Clinic Members Lifecycle (e2e)', () => {
     })
       .overrideProvider(PrismaService)
       .useValue(getPrismaInstance())
-      .overrideProvider(RazorpaySubscriptionGateway)
-      .useValue(mockRazorpayGateway)
       .overrideProvider(WhatsappService)
       .useValue(mockWhatsappService)
       .compile();
@@ -100,6 +96,7 @@ describe('Clinic Members Lifecycle (e2e)', () => {
           city: 'Hyderabad',
           state: 'TS',
           pincode: '500001',
+          gstin: '22AAAAA0000A1Z5',
         },
         adminAccount: {
           name: 'E2E Admin',
@@ -115,6 +112,7 @@ describe('Clinic Members Lifecycle (e2e)', () => {
         },
         paymentDetails: {
           skipPayment: true,
+          razorpayPaymentId: `pay_e2e_${now}`,
           autoPay: false,
           addons: {
             whatsapp: false,

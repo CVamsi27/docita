@@ -1,4 +1,5 @@
-import { render, screen } from "@testing-library/react";
+import { screen } from "@testing-library/react";
+import { render } from "@/test-utils/render-with-tooltip";
 import { describe, expect, it, vi } from "vitest";
 import type { Appointment, Patient } from "@workspace/types";
 import { TimeSlotRow } from "./TimeSlotRow";
@@ -34,7 +35,7 @@ function createAppointment(
 }
 
 describe("TimeSlotRow", () => {
-  it("shows Continue for in-progress appointments", () => {
+  it("shows Resume for in-progress appointments", () => {
     render(
       <TimeSlotRow
         appointment={createAppointment("in-progress")}
@@ -49,7 +50,7 @@ describe("TimeSlotRow", () => {
     );
 
     expect(
-      screen.getByRole("button", { name: "Continue" }),
+      screen.getByRole("button", { name: "Resume" }),
     ).toBeInTheDocument();
   });
 
@@ -85,5 +86,26 @@ describe("TimeSlotRow", () => {
     );
 
     expect(screen.getByRole("button", { name: "View" })).toBeInTheDocument();
+  });
+
+  it("renders an actions trigger when onScheduleFollowUp is provided", () => {
+    const onScheduleFollowUp = vi.fn();
+    render(
+      <TimeSlotRow
+        appointment={createAppointment("completed")}
+        checkingIn={null}
+        startingConsultationId={null}
+        onCheckIn={vi.fn()}
+        onStartConsultation={vi.fn()}
+        onCancelClick={vi.fn()}
+        onNoShowClick={vi.fn()}
+        onScheduleFollowUp={onScheduleFollowUp}
+        currentUserId="doctor-1"
+      />,
+    );
+
+    expect(
+      screen.getByRole("button", { name: /more appointment actions/i }),
+    ).toBeInTheDocument();
   });
 });

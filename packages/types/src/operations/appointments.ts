@@ -43,13 +43,6 @@ export const APPOINTMENT_PRIORITY_COLORS: Record<AppointmentPriority, string> =
     EMERGENCY: "badge-danger",
   };
 
-const normalizeAppointmentDate = (
-  value: string | Date,
-): Date | undefined => {
-  const date = value instanceof Date ? value : new Date(value);
-  return Number.isNaN(date.getTime()) ? undefined : date;
-};
-
 export const appointmentSchema = z.object({
   id: z.string().optional(),
   patientId: z.string().min(1, "Select a patient."),
@@ -66,7 +59,7 @@ export const appointmentSchema = z.object({
   notes: z.string().max(2000).optional().transform(stripHtmlTags),
   observations: z.string().max(2000).optional().transform(stripHtmlTags),
 
-  chiefComplaint: z.string().max(1000).optional().transform(stripHtmlTags),
+  chiefComplaint: z.string().max(20000).optional().transform(stripHtmlTags),
   historyOfPresentIllness: z
     .string()
     .max(5000)
@@ -122,6 +115,18 @@ export const appointmentSchema = z.object({
       }),
     )
     .optional(),
+  reminders: z
+    .array(
+      z.object({
+        id: z.string(),
+        type: z.string(),
+        status: z.string(),
+        sentAt: z.string().or(z.date()).nullable().optional(),
+        error: z.string().nullable().optional(),
+        createdAt: z.string().or(z.date()),
+      }),
+    )
+    .optional(),
   procedures: z
     .array(
       z.object({
@@ -148,6 +153,7 @@ export const createAppointmentBaseSchema = appointmentSchema.omit({
   invoice: true,
   diagnoses: true,
   procedures: true,
+  reminders: true,
 
   chiefComplaint: true,
   historyOfPresentIllness: true,
@@ -164,40 +170,125 @@ export const createAppointmentBaseSchema = appointmentSchema.omit({
   psychiatryExam: true,
 });
 
+/**
+ * Fallback wall timezone for generated `createAppointmentSchema` only.
+ * Clinician scheduling forms should super-refine with `refineCreateAppointmentDateTimes(clinicTz)`.
+ */
+const APPOINTMENT_FORM_WALL_TIMEZONE = "Asia/Kolkata";
+const APPOINTMENT_LOCAL_DATETIME_PATTERN =
+  /^(\d{4})-(\d{2})-(\d{2})T(\d{2}):(\d{2})$/;
+
+function getTimeZoneOffsetMs(date: Date, timeZone: string): number {
+  const parts = new Intl.DateTimeFormat("en-US", {
+    timeZone,
+    hourCycle: "h23",
+    year: "numeric",
+    month: "2-digit",
+    day: "2-digit",
+    hour: "2-digit",
+    minute: "2-digit",
+    second: "2-digit",
+  }).formatToParts(date);
+  const values = Object.fromEntries(
+    parts
+      .filter((part) => part.type !== "literal")
+      .map((part) => [part.type, Number(part.value)]),
+  );
+  const asUtc = Date.UTC(
+    values.year,
+    values.month - 1,
+    values.day,
+    values.hour,
+    values.minute,
+    values.second,
+  );
+
+  return asUtc - date.getTime();
+}
+
+function parseAppointmentWallDateTime(
+  value: string,
+  wallTimezone: string,
+): Date | undefined {
+  const match = APPOINTMENT_LOCAL_DATETIME_PATTERN.exec(value);
+  if (!match) {
+    return undefined;
+  }
+
+  const [, year, month, day, hour, minute] = match.map(Number);
+  const utcGuess = new Date(Date.UTC(year, month - 1, day, hour, minute));
+  const offsetMs = getTimeZoneOffsetMs(utcGuess, wallTimezone);
+  const zonedInstant = new Date(utcGuess.getTime() - offsetMs);
+  const correctedOffsetMs = getTimeZoneOffsetMs(zonedInstant, wallTimezone);
+
+  return new Date(utcGuess.getTime() - correctedOffsetMs);
+}
+
+function normalizeAppointmentDate(
+  value: string | Date,
+  wallTimezone: string,
+): Date | undefined {
+  if (value === "" || value === undefined) {
+    return undefined;
+  }
+  if (value instanceof Date) {
+    return Number.isNaN(value.getTime()) ? undefined : value;
+  }
+  const s = String(value).trim();
+  if (!s) {
+    return undefined;
+  }
+  if (APPOINTMENT_LOCAL_DATETIME_PATTERN.test(s)) {
+    const parsedWallDate = parseAppointmentWallDateTime(s, wallTimezone);
+    return parsedWallDate && !Number.isNaN(parsedWallDate.getTime())
+      ? parsedWallDate
+      : undefined;
+  }
+  const parsed = new Date(s);
+  return Number.isNaN(parsed.getTime()) ? undefined : parsed;
+}
+
+export function refineCreateAppointmentDateTimes(wallTimezone: string) {
+  return (
+    data: z.infer<typeof createAppointmentBaseSchema>,
+    ctx: z.RefinementCtx,
+  ): void => {
+    const startTime = normalizeAppointmentDate(data.startTime, wallTimezone);
+    const endTime =
+      typeof data.endTime === "string" && data.endTime.trim() === ""
+        ? undefined
+        : normalizeAppointmentDate(data.endTime, wallTimezone);
+    const now = new Date();
+
+    if (!startTime) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        path: ["startTime"],
+        message: "Enter a valid start time.",
+      });
+      return;
+    }
+
+    if (startTime.getTime() < now.getTime()) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        path: ["startTime"],
+        message: "Start time cannot be in the past.",
+      });
+    }
+
+    if (endTime && endTime.getTime() <= startTime.getTime()) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        path: ["endTime"],
+        message: "End time must be after the start time.",
+      });
+    }
+  };
+}
+
 export const createAppointmentSchema = createAppointmentBaseSchema.superRefine(
-  (data, ctx) => {
-  const startTime = normalizeAppointmentDate(data.startTime);
-  const endTime =
-    typeof data.endTime === "string" && data.endTime.trim() === ""
-      ? undefined
-      : normalizeAppointmentDate(data.endTime);
-  const now = new Date();
-
-  if (!startTime) {
-    ctx.addIssue({
-      code: z.ZodIssueCode.custom,
-      path: ["startTime"],
-      message: "Enter a valid start time.",
-    });
-    return;
-  }
-
-  if (startTime.getTime() < now.getTime()) {
-    ctx.addIssue({
-      code: z.ZodIssueCode.custom,
-      path: ["startTime"],
-      message: "Start time cannot be in the past.",
-    });
-  }
-
-  if (endTime && endTime.getTime() <= startTime.getTime()) {
-    ctx.addIssue({
-      code: z.ZodIssueCode.custom,
-      path: ["endTime"],
-      message: "End time must be after the start time.",
-    });
-  }
-  },
+  refineCreateAppointmentDateTimes(APPOINTMENT_FORM_WALL_TIMEZONE),
 );
 export type CreateAppointmentInput = z.infer<typeof createAppointmentSchema>;
 

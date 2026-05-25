@@ -1,82 +1,24 @@
 "use client";
 
-import {
-  Activity,
-  CalendarClock,
-  Crown,
-  CreditCard,
-  Loader2,
-  LockKeyhole,
-  Receipt,
-  Sparkles,
-  TrendingUp,
-} from "lucide-react";
+import { Crown, CreditCard, Receipt, Sparkles, TrendingUp } from "lucide-react";
 import {
   Card,
   CardContent,
   CardDescription,
   CardHeader,
   CardTitle,
-} from "@workspace/ui/components/card";
-import { Badge } from "@workspace/ui/components/badge";
-import { Button } from "@workspace/ui/components/button";
-import { Progress } from "@workspace/ui/components/progress";
+} from "@workspace/ui/components/indicators/card";
+import { Badge } from "@workspace/ui/components/indicators/badge";
+import { Button } from "@workspace/ui/components/form/button";
 import { cn } from "@workspace/ui/lib/utils";
-import type { CurrentUsage, TierInfo } from "@workspace/types";
+import {
+  type CurrentPlanCardProps,
+  TIER_COLOR_MAP,
+} from "./current-plan-card-types";
+import { CurrentPlanCardMeta } from "./current-plan-card-meta";
+import { CurrentPlanCardUsage } from "./current-plan-card-usage";
 
-interface CurrentPlanCardProps {
-  tierInfo: TierInfo;
-  currentTier: number;
-  hasIntelligence: boolean;
-  canChangeTier: boolean;
-  onChangePlan: () => void;
-  onViewBillingHistory: () => void;
-  planDetails?: { label: string; value: string }[];
-  usage?: CurrentUsage | null;
-  isUsageLoading?: boolean;
-  hasUsageError?: boolean;
-  statusNotice?: {
-    title: string;
-    description: string;
-    badgeLabel?: string;
-    actionLabel?: string;
-    onAction?: () => void;
-    variant?: "default" | "warning" | "destructive";
-  };
-}
-
-const TIER_COLOR_MAP: Record<string, { gradient: string; badge: string }> = {
-  gray: {
-    gradient: "tier-capture",
-    badge: "tier-capture",
-  },
-  blue: {
-    gradient: "tier-core",
-    badge: "tier-core",
-  },
-  green: {
-    gradient: "tier-plus",
-    badge: "tier-plus",
-  },
-  purple: {
-    gradient: "tier-pro",
-    badge: "tier-pro",
-  },
-  orange: {
-    gradient: "tier-enterprise",
-    badge: "tier-enterprise",
-  },
-};
-
-const usageItems = [
-  { key: "consultations", label: "Consultations", unit: "consults" },
-  { key: "users", label: "Team members", unit: "users" },
-  { key: "whatsappMessages", label: "WhatsApp", unit: "msgs" },
-] as const;
-
-function formatUsageValue(value: number) {
-  return value >= 999999 ? "Unlimited" : value.toLocaleString();
-}
+export type { CurrentPlanCardProps } from "./current-plan-card-types";
 
 export function CurrentPlanCard({
   tierInfo,
@@ -85,25 +27,25 @@ export function CurrentPlanCard({
   canChangeTier,
   onChangePlan,
   onViewBillingHistory,
+  onRenewNow,
+  renewActionLabel,
+  emphasizeRenew = false,
+  isRenewProcessing = false,
+  scheduledChange,
+  accountCreditCents = 0,
+  accountCreditCurrency,
   planDetails,
+  planDetailsFootnote,
   usage,
   isUsageLoading,
   hasUsageError,
   statusNotice,
+  showWhatsAppUsageMeter = true,
 }: CurrentPlanCardProps) {
-  const colors = TIER_COLOR_MAP[tierInfo.color] ?? TIER_COLOR_MAP["gray"]!;
-  const statusNoticeClassName =
-    statusNotice?.variant === "destructive"
-      ? "border-destructive/50 bg-destructive/10 text-destructive"
-      : statusNotice?.variant === "warning"
-        ? "border-warning/50 bg-warning/10 text-warning"
-        : "border-border bg-background/70";
-  const statusDescriptionClassName =
-    statusNotice?.variant === "destructive"
-      ? "text-destructive/80"
-      : statusNotice?.variant === "warning"
-        ? "text-warning/80"
-        : "text-muted-foreground";
+  const colors =
+    TIER_COLOR_MAP[tierInfo.color] ??
+    TIER_COLOR_MAP.gray ??
+    TIER_COLOR_MAP["gray"];
 
   return (
     <Card className="relative overflow-hidden border-border/70 bg-card">
@@ -112,7 +54,7 @@ export function CurrentPlanCard({
           <div className="flex items-center gap-3">
             <div
               className={cn(
-                "flex h-11 w-11 items-center justify-center rounded-xl",
+                "flex h-11 w-11 items-center justify-center rounded-lg",
                 colors.gradient,
               )}
             >
@@ -134,143 +76,40 @@ export function CurrentPlanCard({
         </div>
       </CardHeader>
       <CardContent className="space-y-5">
-        {planDetails && planDetails.length > 0 && (
-          <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
-            {planDetails.map((detail, index) => {
-              const DetailIcon =
-                index === 0
-                  ? Activity
-                  : index === 1
-                    ? CreditCard
-                    : CalendarClock;
-              return (
-                <div
-                  key={`${detail.label}-${detail.value}`}
-                  className="rounded-lg border border-border/70 bg-background/70 p-3"
-                >
-                  <div className="flex items-center gap-2 text-xs font-medium uppercase text-muted-foreground">
-                    <DetailIcon className="h-3.5 w-3.5" />
-                    {detail.label}
-                  </div>
-                  <p className="mt-2 text-sm font-semibold text-foreground">
-                    {detail.value}
-                  </p>
-                </div>
-              );
-            })}
-          </div>
-        )}
-
-        {statusNotice && (
-          <div className={cn("rounded-lg border p-3", statusNoticeClassName)}>
-            <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-              <div className="space-y-1">
-                <div className="flex items-center gap-2">
-                  {statusNotice.variant === "destructive" && (
-                    <LockKeyhole className="h-4 w-4" />
-                  )}
-                  <p className="text-sm font-semibold">{statusNotice.title}</p>
-                  {statusNotice.badgeLabel && (
-                    <Badge variant="outline" className="text-[var(--fs-2xs)]">
-                      {statusNotice.badgeLabel}
-                    </Badge>
-                  )}
-                </div>
-                <p className={cn("text-sm", statusDescriptionClassName)}>
-                  {statusNotice.description}
-                </p>
-              </div>
-              {statusNotice.actionLabel && statusNotice.onAction && (
-                <Button
-                  size="sm"
-                  variant="outline"
-                  onClick={statusNotice.onAction}
-                  className="self-start sm:self-auto"
-                >
-                  {statusNotice.actionLabel}
-                </Button>
-              )}
-            </div>
-          </div>
-        )}
-
-        <div className="rounded-lg border border-border/70 bg-background/70 p-4">
-          <div className="flex flex-col gap-1 sm:flex-row sm:items-center sm:justify-between">
-            <div>
-              <p className="text-sm font-semibold text-foreground">
-                Current usage
-              </p>
-              <p className="text-xs text-muted-foreground">
-                Compact view of this billing period&apos;s included meters.
-              </p>
-            </div>
-            {usage && usage.total > 0 && (
-              <Badge variant="destructive" className="self-start sm:self-auto">
-                Overage active
-              </Badge>
-            )}
-          </div>
-
-          {isUsageLoading ? (
-            <div className="mt-4 flex items-center gap-2 text-sm text-muted-foreground">
-              <Loader2 className="h-4 w-4 animate-spin" />
-              Loading usage...
-            </div>
-          ) : hasUsageError ? (
-            <p className="mt-4 text-sm text-muted-foreground">
-              Usage meters are temporarily unavailable.
-            </p>
-          ) : usage ? (
-            <div className="mt-4 grid gap-4 lg:grid-cols-3">
-              {usageItems.map(({ key, label, unit }) => {
-                const meter = usage.meters[key];
-                const percent =
-                  meter.included > 0
-                    ? Math.min(100, (meter.current / meter.included) * 100)
-                    : 0;
-                return (
-                  <div key={key} className="space-y-2">
-                    <div className="flex items-center justify-between gap-2">
-                      <span className="text-xs font-medium text-foreground">
-                        {label}
-                      </span>
-                      <span className="text-xs text-muted-foreground">
-                        {formatUsageValue(meter.current)} /{" "}
-                        {formatUsageValue(meter.included)} {unit}
-                      </span>
-                    </div>
-                    <Progress
-                      value={percent}
-                      className={cn(
-                        "h-2",
-                        meter.overage > 0 && "[&>div]:bg-destructive",
-                      )}
-                    />
-                  </div>
-                );
-              })}
-            </div>
-          ) : (
-            <p className="mt-4 text-sm text-muted-foreground">
-              Usage appears here after your clinic starts using plan meters.
-            </p>
-          )}
-        </div>
-
-        {hasIntelligence && (
-          <div className="flex items-center gap-2 text-primary">
-            <Sparkles className="h-4 w-4" />
-            <span className="text-sm font-medium">AI features active</span>
-          </div>
-        )}
-
         {canChangeTier ? (
-          <div className="flex flex-wrap gap-3 pt-2">
-            <Button onClick={onChangePlan} className="gap-2">
+          <div className="flex flex-wrap gap-2 sm:gap-3">
+            {onRenewNow ? (
+              <Button
+                onClick={onRenewNow}
+                disabled={isRenewProcessing}
+                size="lg"
+                className={cn(
+                  "h-11 gap-2",
+                  emphasizeRenew &&
+                    "bg-primary text-primary-foreground shadow-md shadow-primary/20 hover:bg-primary/90",
+                )}
+              >
+                <CreditCard className="h-4 w-4" />
+                {isRenewProcessing
+                  ? "Opening checkout…"
+                  : (renewActionLabel ?? "Pay for next cycle")}
+              </Button>
+            ) : null}
+            <Button
+              variant={onRenewNow ? "outline" : "default"}
+              onClick={onChangePlan}
+              size="lg"
+              className="h-11 gap-2"
+            >
               <TrendingUp className="h-4 w-4" />
-              Change plan
+              {onRenewNow ? "Change plan" : "Choose a plan"}
             </Button>
-            <Button variant="outline" onClick={onViewBillingHistory}>
+            <Button
+              variant="outline"
+              size="lg"
+              className="h-11"
+              onClick={onViewBillingHistory}
+            >
               <Receipt className="mr-2 h-4 w-4" />
               Billing History
             </Button>
@@ -280,6 +119,29 @@ export function CurrentPlanCard({
             Contact your facility administrator to change plans.
           </p>
         )}
+
+        <CurrentPlanCardMeta
+          scheduledChange={scheduledChange}
+          accountCreditCents={accountCreditCents}
+          accountCreditCurrency={accountCreditCurrency}
+          planDetails={planDetails}
+          planDetailsFootnote={planDetailsFootnote}
+          statusNotice={statusNotice}
+        />
+
+        <CurrentPlanCardUsage
+          usage={usage}
+          isUsageLoading={isUsageLoading}
+          hasUsageError={hasUsageError}
+          showWhatsAppUsageMeter={showWhatsAppUsageMeter}
+        />
+
+        {hasIntelligence ? (
+          <div className="flex items-center gap-2 text-primary">
+            <Sparkles className="h-4 w-4" />
+            <span className="text-sm font-medium">AI features active</span>
+          </div>
+        ) : null}
       </CardContent>
     </Card>
   );

@@ -1,14 +1,22 @@
+import { PrismaService } from '@/prisma/prisma.service';
+import { DOCUMENT_PERSISTENCE_PORT } from './application/ports/document-persistence.port';
 import { Logger, Module } from '@nestjs/common';
 import { PrismaModule } from '@/prisma/prisma.module';
 import { AppConfigService } from '@/shared/modules/config/app-configuration.service';
 import { TemplatesController } from './presentation/controllers/templates.controller';
 import { UploadsController } from './presentation/controllers/uploads.controller';
+import { UploadSessionSecretGuard } from './presentation/guards/upload-session-secret.guard';
 import { TemplatesService } from './application/services/templates.service';
 import { UploadsService } from './application/services/uploads.service';
+import { UploadsCommandService } from './application/services/uploads-command.service';
+import { UploadsQueryService } from './application/services/uploads-query.service';
 import { StoredFileUrlResolverService } from './application/services/stored-file-url-resolver.service';
-import { StorageProvider } from './infrastructure/storage.provider';
+import { TEMPLATES_REPOSITORY_TOKEN } from './application/ports/templates.repository.port';
+import { PrismaTemplatesRepository } from './infrastructure/repositories/prisma-templates.repository';
+import { StorageProvider } from './application/ports/storage-provider.port';
 import { LocalStorageProvider } from './infrastructure/local-storage.provider';
 import { R2StorageProvider } from './infrastructure/r2-storage.provider';
+import { CLOCK_PORT, type IClock } from '@/shared/common/ports/clock.port';
 
 const logger = new Logger('DocumentsModule');
 
@@ -16,13 +24,21 @@ const logger = new Logger('DocumentsModule');
   imports: [PrismaModule],
   controllers: [TemplatesController, UploadsController],
   providers: [
+    { provide: DOCUMENT_PERSISTENCE_PORT, useExisting: PrismaService },
     TemplatesService,
+    UploadSessionSecretGuard,
+    UploadsCommandService,
+    UploadsQueryService,
     UploadsService,
     StoredFileUrlResolverService,
     {
+      provide: TEMPLATES_REPOSITORY_TOKEN,
+      useClass: PrismaTemplatesRepository,
+    },
+    {
       provide: StorageProvider,
-      inject: [AppConfigService],
-      useFactory: (configService: AppConfigService) => {
+      inject: [AppConfigService, CLOCK_PORT],
+      useFactory: (configService: AppConfigService, clock: IClock) => {
         const provider = configService.getStorageProvider();
         const isProduction = configService.isProduction();
         const r2Config = configService.getR2Config();
@@ -39,7 +55,7 @@ const logger = new Logger('DocumentsModule');
         }
 
         if (provider === 'r2' && hasR2Credentials) {
-          return new R2StorageProvider();
+          return new R2StorageProvider(r2Config, clock);
         }
 
         logger.warn(
@@ -53,6 +69,8 @@ const logger = new Logger('DocumentsModule');
   ],
   exports: [
     TemplatesService,
+    UploadsCommandService,
+    UploadsQueryService,
     UploadsService,
     StoredFileUrlResolverService,
     StorageProvider,

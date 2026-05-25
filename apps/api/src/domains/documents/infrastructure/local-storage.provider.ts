@@ -3,7 +3,7 @@ import {
   StorageProvider,
   StorageFile,
   StorageUploadOptions,
-} from './storage.provider';
+} from '../application/ports/storage-provider.port';
 import * as fs from 'fs';
 import * as path from 'path';
 import sharp from 'sharp';
@@ -178,8 +178,9 @@ export class LocalStorageProvider extends StorageProvider {
 
   async generateSignedUrl(
     objectKey: string,
-    _expiresInSeconds: number,
+    expiresInSeconds: number,
   ): Promise<string> {
+    this.assertSignedUrlTtl(expiresInSeconds);
     return this.getPublicUploadUrl(objectKey);
   }
 }

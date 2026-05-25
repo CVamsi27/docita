@@ -1,20 +1,23 @@
 "use client";
 
+import { DocitaLoadingIndicator } from "@workspace/ui/components/feedback/docita-loading-indicator";
+
 import { FormEvent, useState } from "react";
 import {
   Dialog,
   DialogContent,
+  DialogDescription,
   DialogHeader,
   DialogTitle,
   DialogFooter,
-} from "@workspace/ui/components/dialog";
-import { Button } from "@workspace/ui/components/button";
-import { Input } from "@workspace/ui/components/input";
-import { Label } from "@workspace/ui/components/label";
-import { Textarea } from "@workspace/ui/components/textarea";
-import { getUserFacingErrorMessage } from "@workspace/types";
-import { Loader2 } from "lucide-react";
-import { useRecordPortalMetricValue } from "@/hooks/api/use-patient-portal";
+} from "@workspace/ui/components/overlay/dialog";
+import { Button } from "@workspace/ui/components/form/button";
+import { Input } from "@workspace/ui/components/form/input";
+import { Label } from "@workspace/ui/components/form/label";
+import { Textarea } from "@workspace/ui/components/form/textarea";
+import { getUserFacingErrorMessage } from "@workspace/utils";
+
+import { useRecordPortalMetricValue } from "@workspace/data-access";
 
 interface MetricDefinition {
   id: string;
@@ -94,6 +97,9 @@ export function RecordMetricModal({
       <DialogContent>
         <DialogHeader>
           <DialogTitle>Record {definition.label}</DialogTitle>
+          <DialogDescription>
+            Save a new reading for this patient-visible health metric.
+          </DialogDescription>
         </DialogHeader>
         <form onSubmit={handleSubmit} className="space-y-4">
           <div className="space-y-2">
@@ -123,7 +129,7 @@ export function RecordMetricModal({
               onChange={(e) => setNotes(e.target.value)}
               disabled={isPending}
               rows={3}
-              placeholder="Any additional context..."
+              placeholder="Notes"
             />
           </div>
           {localError && (
@@ -141,8 +147,8 @@ export function RecordMetricModal({
             <Button type="submit" disabled={isPending}>
               {isPending ? (
                 <>
-                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                  Saving...
+                  <DocitaLoadingIndicator variant="inline" decorative className="mr-2" />
+                  Saving…
                 </>
               ) : (
                 "Save"

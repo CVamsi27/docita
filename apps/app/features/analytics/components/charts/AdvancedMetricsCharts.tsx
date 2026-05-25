@@ -4,7 +4,7 @@ import {
   CardDescription,
   CardHeader,
   CardTitle,
-} from "@workspace/ui/components/card";
+} from "@workspace/ui/components/indicators/card";
 import {
   Table,
   TableBody,
@@ -12,7 +12,7 @@ import {
   TableHead,
   TableHeader,
   TableRow,
-} from "@workspace/ui/components/table";
+} from "@workspace/ui/components/data-display/table";
 import { CalendarDays, TrendingUp, Users } from "lucide-react";
 import {
   Bar,
@@ -27,8 +27,8 @@ import {
   XAxis,
   YAxis,
 } from "recharts";
-import { DEFAULT_CURRENCY } from "@workspace/utils";
 import { COLORS, EmptyState, LoadingSpinner } from "./chart-helpers";
+import { useClinicCurrency } from "@/hooks/use-clinic-currency";
 
 interface RevenueMetricsPoint {
   date: string;
@@ -85,6 +85,7 @@ export function AdvancedMetricsCharts({
   demographicsLoading,
   doctorPerformanceLoading,
 }: AdvancedMetricsChartsProps) {
+  const { formatCurrency } = useClinicCurrency();
   const appointmentChartData = appointmentMetrics
     ? [
         { name: "Booked", value: appointmentMetrics.booked },
@@ -263,18 +264,12 @@ export function AdvancedMetricsCharts({
                         {doctor.completionRate}%
                       </TableCell>
                       <TableCell className="text-right">
-                        {new Intl.NumberFormat("en-IN", {
-                          style: "currency",
-                          currency: DEFAULT_CURRENCY,
-                          maximumFractionDigits: 0,
-                        }).format(doctor.revenue)}
+                        {formatCurrency(doctor.revenue, { fractionDigits: 0 })}
                       </TableCell>
                       <TableCell className="text-right">
-                        {new Intl.NumberFormat("en-IN", {
-                          style: "currency",
-                          currency: DEFAULT_CURRENCY,
-                          maximumFractionDigits: 0,
-                        }).format(doctor.avgRevenuePerAppointment)}
+                        {formatCurrency(doctor.avgRevenuePerAppointment, {
+                          fractionDigits: 0,
+                        })}
                       </TableCell>
                     </TableRow>
                   ))}

@@ -1,16 +1,16 @@
 import * as React from "react";
-import { Button } from "@workspace/ui/components/button";
-import { Badge } from "@workspace/ui/components/badge";
+import { Button } from "@workspace/ui/components/form/button";
+import { Badge } from "@workspace/ui/components/indicators/badge";
 import {
   Tooltip,
   TooltipContent,
   TooltipTrigger,
-} from "@workspace/ui/components/tooltip";
+} from "@workspace/ui/components/overlay/tooltip";
 import {
   Popover,
   PopoverContent,
   PopoverTrigger,
-} from "@workspace/ui/components/popover";
+} from "@workspace/ui/components/overlay/popover";
 import { Clock, Pause, Play, RotateCcw, Timer } from "lucide-react";
 import { cn } from "@workspace/ui/lib/utils";
 
@@ -60,7 +60,6 @@ export function ConsultationTimerUI({
                 size="sm"
                 className={cn(
                   "gap-2 font-mono tabular-nums",
-                  isRunning && "animate-pulse",
                   className,
                 )}
               >
@@ -72,7 +71,7 @@ export function ConsultationTimerUI({
             </PopoverTrigger>
           </TooltipTrigger>
           <TooltipContent>
-            <p>Consultation duration</p>
+            <p>Consultation timer</p>
           </TooltipContent>
         </Tooltip>
 
@@ -84,7 +83,7 @@ export function ConsultationTimerUI({
               </p>
               <p
                 className={cn(
-                  "text-3xl font-bold font-mono tabular-nums",
+                  "text-[var(--fs-3xl)] font-semibold font-mono tabular-nums leading-[var(--lh-tight)]",
                   getTimeColor(),
                 )}
               >
@@ -119,7 +118,7 @@ export function ConsultationTimerUI({
                   </Button>
                 </TooltipTrigger>
                 <TooltipContent>
-                  {isRunning ? "Pause timer" : "Resume timer"}
+                  {isRunning ? "Pause" : "Resume"}
                 </TooltipContent>
               </Tooltip>
 

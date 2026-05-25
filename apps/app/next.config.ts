@@ -2,14 +2,12 @@ import { createRequire } from "module";
 import type { NextConfig } from "next";
 import { withSentryConfig } from "@sentry/nextjs";
 import bundleAnalyzer from "@next/bundle-analyzer";
-import { SECURITY_HEADERS } from "./lib/security-headers";
-
 const require = createRequire(import.meta.url);
 const nextCloudflareEmptyStub = require.resolve(
-  "@workspace/ui/next-cloudflare/empty-module.cjs",
+  "../../scripts/deploy/cloudflare-stubs/empty-module.cjs",
 );
 const nextCloudflareSentryStub = require.resolve(
-  "@workspace/ui/next-cloudflare/sentry-nextjs-cloudflare",
+  "../../scripts/deploy/cloudflare-stubs/sentry-nextjs-cloudflare.ts",
 );
 
 const withBundleAnalyzer = bundleAnalyzer({
@@ -18,7 +16,7 @@ const withBundleAnalyzer = bundleAnalyzer({
 
 const isCloudflareBuild = process.env.DOCITA_CLOUDFLARE === "1";
 const DEFAULT_PUBLIC_API_URL = isCloudflareBuild
-  ? "https://api.docita.work/api/v1"
+  ? "/api/v1"
   : "http://localhost:3001/api/v1";
 const DEFAULT_PUBLIC_APP_URL = isCloudflareBuild
   ? "https://app.docita.work"
@@ -75,7 +73,6 @@ const nextConfig: NextConfig = {
     optimizePackageImports: [
       "lucide-react",
       "recharts",
-      "date-fns",
       "@tanstack/react-query",
       "@workspace/ui",
       "@workspace/hooks",
@@ -141,14 +138,6 @@ const nextConfig: NextConfig = {
     return rewrites;
   },
 
-  async headers() {
-    return [
-      {
-        source: "/:path*",
-        headers: [...SECURITY_HEADERS],
-      },
-    ];
-  },
 };
 
 let config: NextConfig = withBundleAnalyzer(nextConfig);

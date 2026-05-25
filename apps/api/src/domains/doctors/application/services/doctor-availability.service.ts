@@ -1,4 +1,5 @@
 import { Injectable } from '@nestjs/common';
+import { Role } from '@workspace/db';
 import { AvailabilityScheduleService } from './availability-schedule.service';
 import { SlotGenerationService } from './slot-generation.service';
 
@@ -11,6 +12,14 @@ type DayOfWeek =
   | 'FRIDAY'
   | 'SATURDAY';
 
+type ActorContext = {
+  actorUserId?: string;
+  actorRole?: Role;
+};
+
+/**
+ * Facade — delegates availability schedules and slot generation to specialized services.
+ */
 @Injectable()
 export class DoctorAvailabilityService {
   constructor(
@@ -46,13 +55,16 @@ export class DoctorAvailabilityService {
       slotDuration?: number;
       isActive?: boolean;
     },
-    clinicId?: string,
+    options?: { clinicId?: string } & ActorContext,
   ) {
-    return this.scheduleService.updateSchedule(id, data, clinicId);
+    return this.scheduleService.updateSchedule(id, data, options);
   }
 
-  async deleteSchedule(id: string, clinicId?: string) {
-    return this.scheduleService.deleteSchedule(id, clinicId);
+  async deleteSchedule(
+    id: string,
+    options?: { clinicId?: string } & ActorContext,
+  ) {
+    return this.scheduleService.deleteSchedule(id, options);
   }
 
   async bulkUpsertSchedules(
@@ -93,8 +105,11 @@ export class DoctorAvailabilityService {
     return this.scheduleService.createTimeOff(data);
   }
 
-  async deleteTimeOff(id: string, clinicId?: string) {
-    return this.scheduleService.deleteTimeOff(id, clinicId);
+  async deleteTimeOff(
+    id: string,
+    options?: { clinicId?: string } & ActorContext,
+  ) {
+    return this.scheduleService.deleteTimeOff(id, options);
   }
 
   async getAvailableSlots(
@@ -103,5 +118,15 @@ export class DoctorAvailabilityService {
     doctorId?: string,
   ) {
     return this.slotService.getAvailableSlots(clinicId, date, doctorId);
+  }
+
+  getUnavailableDoctorIdsForCalendarDate(
+    clinicId: string,
+    date: Date | string,
+  ) {
+    return this.scheduleService.getUnavailableDoctorIdsForCalendarDate(
+      clinicId,
+      date,
+    );
   }
 }

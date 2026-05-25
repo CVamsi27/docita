@@ -5,8 +5,11 @@ import {
   NotFoundException,
 } from '@nestjs/common';
 import { LeaveService } from './leave.service';
+import { LeaveCommandService } from './leave-command.service';
+import { LeaveQueryService } from './leave-query.service';
 import { LEAVE_REPOSITORY_TOKEN } from '@/domains/leave/core/repositories/leave.repository.interface';
 import { AvailabilityScheduleService } from '@/domains/doctors/application/services/availability-schedule.service';
+import { CLOCK_PORT } from '@/shared/common/ports/clock.port';
 import { beforeEach, describe, it, expect, jest } from '@jest/globals';
 
 describe('LeaveService', () => {
@@ -52,6 +55,8 @@ describe('LeaveService', () => {
 
     const module: TestingModule = await Test.createTestingModule({
       providers: [
+        LeaveCommandService,
+        LeaveQueryService,
         LeaveService,
         { provide: LEAVE_REPOSITORY_TOKEN, useValue: leaveRepository },
         {
@@ -60,6 +65,10 @@ describe('LeaveService', () => {
             createTimeOff: jest.fn<(...args: unknown[]) => Promise<unknown>>(),
             deleteTimeOff: jest.fn<(...args: unknown[]) => Promise<unknown>>(),
           },
+        },
+        {
+          provide: CLOCK_PORT,
+          useValue: { now: () => new Date('2026-04-01T12:00:00.000Z') },
         },
       ],
     }).compile();
@@ -88,6 +97,35 @@ describe('LeaveService', () => {
           leaveType: 'CASUAL',
           startDate: '2026-04-03',
           endDate: '2026-04-01',
+        }),
+      ).rejects.toThrow(BadRequestException);
+    });
+
+    it('creates a holiday leave request', async () => {
+      const holidayLeave = { ...mockLeave, leaveType: 'HOLIDAY' };
+      leaveRepository.createLeave.mockResolvedValue(holidayLeave);
+
+      const result = await service.applyLeave('staff-1', 'clinic-1', {
+        leaveType: 'HOLIDAY',
+        startDate: '2026-12-22',
+        endDate: '2026-12-26',
+        reason: 'Clinic holiday week',
+      });
+
+      expect(leaveRepository.createLeave).toHaveBeenCalledWith(
+        expect.objectContaining({
+          leaveType: 'HOLIDAY',
+        }),
+      );
+      expect(result.leaveType).toBe('HOLIDAY');
+    });
+
+    it('rejects unsupported leave type strings', async () => {
+      await expect(
+        service.applyLeave('staff-1', 'clinic-1', {
+          leaveType: 'INVALID_TYPE',
+          startDate: '2026-04-01',
+          endDate: '2026-04-02',
         }),
       ).rejects.toThrow(BadRequestException);
     });
@@ -221,10 +259,15 @@ describe('LeaveService', () => {
 
       const result = await service.getLeaveBalance('staff-1', 'clinic-1');
 
-      expect(result).toHaveLength(5);
+      expect(result).toHaveLength(6);
       const casual = result.find((r) => r.leaveType === 'CASUAL');
       expect(casual?.annualQuota).toBe(10);
       expect(casual?.used).toBe(0);
+
+      const holiday = result.find((r) => r.leaveType === 'HOLIDAY');
+      expect(holiday).toBeDefined();
+      expect(holiday?.annualQuota).toBe(0);
+      expect(holiday?.used).toBe(0);
     });
   });
 });

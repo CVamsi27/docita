@@ -1,15 +1,11 @@
 import type { Patient, User } from "@workspace/types";
-import { differenceInYears } from "date-fns";
-import {
-  DEFAULT_COUNTRY_CODE,
-  normalizeCountryCode,
-} from "@workspace/utils";
-import { CLINIC_ADMIN_ROLES } from "@/lib/permissions";
+import { calculateAge } from "@workspace/utils";
+import { hasPermission } from "@/lib/auth/permissions";
+import { resolveLibPhoneCountry } from "@/lib/phone/resolve-libphone-country";
 import {
   getCountryCallingCode,
   isPossiblePhoneNumber,
   parsePhoneNumber,
-  type Country,
 } from "react-phone-number-input";
 
 type PatientNameLike = {
@@ -24,8 +20,8 @@ type PatientDateLike = {
 export const isPatientMinor = (patient: Patient): boolean => {
   if (!patient.dateOfBirth) return false;
 
-  const age = differenceInYears(new Date(), new Date(patient.dateOfBirth));
-  return age < 18;
+  const age = calculateAge(patient.dateOfBirth);
+  return age !== null && age < 18;
 };
 
 export const requiresGuardianConsent = (patient: Patient): boolean => {
@@ -33,19 +29,18 @@ export const requiresGuardianConsent = (patient: Patient): boolean => {
 };
 
 export const canDeletePatient = (_patient: Patient, user: User): boolean => {
-
-  if (!CLINIC_ADMIN_ROLES.has(user.role as "ADMIN" | "ADMIN_DOCTOR"))
+  if (user.role !== "ADMIN" && user.role !== "ADMIN_DOCTOR") {
     return false;
+  }
 
   return true;
 };
 
 export const canEditPatient = (user: User): boolean => {
-  return ["admin", "doctor", "receptionist"].includes(user.role);
+  return hasPermission(user.role, "editPatient");
 };
 
 export const canViewPatient = (user: User): boolean => {
-
   return !!user;
 };
 
@@ -55,7 +50,7 @@ export const getPatientDisplayName = (patient: PatientNameLike): string => {
 
 export const getPatientAge = (patient: PatientDateLike): number | null => {
   if (!patient.dateOfBirth) return null;
-  return differenceInYears(new Date(), new Date(patient.dateOfBirth));
+  return calculateAge(patient.dateOfBirth);
 };
 
 export const getPatientAgeDisplay = (patient: PatientDateLike): string => {
@@ -79,12 +74,6 @@ export const getPatientDisplayLabel = (patient: PatientNameLike): string => {
   return `${patient.firstName ?? ""} ${patient.lastName ?? ""}`.trim();
 };
 
-function resolvePhoneValidationCountry(
-  countryCode?: string | null,
-): Country {
-  return (normalizeCountryCode(countryCode) ?? DEFAULT_COUNTRY_CODE) as Country;
-}
-
 export const validatePatientPhoneNumberForCountry = (
   phoneNumber: string | null | undefined,
   clinicCountryCode?: string | null,
@@ -94,7 +83,7 @@ export const validatePatientPhoneNumberForCountry = (
     return null;
   }
 
-  const country = resolvePhoneValidationCountry(clinicCountryCode);
+  const country = resolveLibPhoneCountry(clinicCountryCode);
   const isValidForCountry = isPossiblePhoneNumber(phone, country);
   const parsed = parsePhoneNumber(phone, country);
   const expectedCallingCode = getCountryCallingCode(country);
