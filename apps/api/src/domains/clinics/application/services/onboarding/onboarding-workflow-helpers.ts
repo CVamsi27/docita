@@ -1,6 +1,7 @@
 /** Pure transaction-level helpers for onboarding workflow — no DI, no @Injectable. */
 import { BadRequestException } from '@nestjs/common';
 import { Prisma, Role, Specialization } from '@workspace/db';
+import { isFrontDeskTier } from '@workspace/types';
 import * as bcrypt from 'bcrypt';
 import { randomBytes } from 'crypto';
 import { generateReferralCode, toStaffRole } from './onboarding-step-engine';
@@ -61,7 +62,7 @@ export async function createStaffMembersInTx(
     const hashedPassword = await bcrypt.hash(member.password, 10);
     const prismaRole = toStaffRole(member.role);
     const anchorDoctorOnFrontDeskTier =
-      planTier === ClinicTier.FRONT_DESK && prismaRole === Role.DOCTOR;
+      isFrontDeskTier(planTier) && prismaRole === Role.DOCTOR;
 
     const newUser = await tx.user.create({
       data: {

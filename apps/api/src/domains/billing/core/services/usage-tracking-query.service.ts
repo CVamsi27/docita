@@ -1,10 +1,11 @@
 import { Inject, Injectable } from '@nestjs/common';
 import { CLOCK_PORT, type IClock } from '@/shared/common/ports/clock.port';
 import { PrismaService } from '@/prisma/prisma.service';
-import { UsageType, ClinicTier, Role } from '@workspace/db';
+import { UsageType, Role } from '@workspace/db';
 import {
   TIER_LIMITS,
   TIER_OVERAGE_RATES_BY_CURRENCY,
+  isFrontDeskTier,
   type SupportedCurrency,
 } from '@workspace/types';
 import { getWhatsAppAddonPricingByCurrency } from '@workspace/utils';
@@ -78,7 +79,7 @@ export class UsageTrackingQueryService {
       this.prisma.user.count({
         where: {
           clinicId,
-          ...(clinic?.tier === ClinicTier.FRONT_DESK
+          ...(isFrontDeskTier(clinic?.tier)
             ? {
                 NOT: {
                   AND: [{ role: Role.DOCTOR }, { appLoginDisabled: true }],
@@ -114,12 +115,7 @@ export class UsageTrackingQueryService {
     const includedUsers = subscription?.includedUsers ?? tierLimits.users ?? 1;
     const tierRates = TIER_OVERAGE_RATES_BY_CURRENCY[resolvedCurrency][tierKey];
     const whatsappEligibleTier =
-      tierKey === 'ESSENTIAL' ||
-      tierKey === 'FRONT_DESK' ||
-      tierKey === 'PROFESSIONAL' ||
-      tierKey === 'ENTERPRISE'
-        ? tierKey
-        : null;
+      tierKey !== 'STARTER' && tierKey !== 'INTELLIGENCE' ? tierKey : null;
     const whatsappPlan = whatsappEligibleTier
       ? getWhatsAppAddonPricingByCurrency(
           whatsappEligibleTier,

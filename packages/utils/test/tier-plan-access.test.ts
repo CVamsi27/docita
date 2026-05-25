@@ -16,9 +16,15 @@ import {
 const ALL_MAPPED_FEATURES = Object.keys(FEATURE_TIER_MAP) as Feature[];
 
 describe("tier plan feature access parity", () => {
-  it("denies every FRONT_DESK_BLOCKED_FEATURES flag on FRONT_DESK", () => {
-    for (const feature of FRONT_DESK_BLOCKED_FEATURES) {
-      expect(hasFeatureAccess("FRONT_DESK", feature, false)).toBe(false);
+  it("denies every FRONT_DESK_BLOCKED_FEATURES flag on Front Desk SKUs", () => {
+    for (const sku of [
+      "FRONT_DESK",
+      "FRONT_DESK_CLINIC",
+      "FRONT_DESK_HOSPITAL",
+    ] as const) {
+      for (const feature of FRONT_DESK_BLOCKED_FEATURES) {
+        expect(hasFeatureAccess(sku, feature, false)).toBe(false);
+      }
     }
   });
 
@@ -40,6 +46,12 @@ describe("tier plan feature access parity", () => {
     );
     expect(meetsMinimumTier("HOSPITAL", Tier.ESSENTIAL, false)).toBe(true);
     expect(meetsMinimumTier("FRONT_DESK", Tier.FRONT_DESK, false)).toBe(true);
+    expect(
+      meetsMinimumTier("FRONT_DESK_CLINIC", Tier.FRONT_DESK_CLINIC, false),
+    ).toBe(true);
+    expect(
+      meetsMinimumTier("FRONT_DESK", Tier.FRONT_DESK_CLINIC, false),
+    ).toBe(false);
   });
 
   it("includes Starter-era GA clinical basics on ESSENTIAL (cumulative access)", () => {

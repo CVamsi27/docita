@@ -3,12 +3,6 @@ import { cn } from "@workspace/ui/lib/utils";
 interface SkeletonProps {
   className?: string;
   variant?: "text" | "circular" | "rectangular";
-  /**
-   * @deprecated Skeleton no longer animates. The prop is retained for
-   * backward compatibility but produces no motion. UI/UX 2026 standard
-   * (docs/ui/UI_UX_STANDARD_2026.md §5) bans skeleton animation on chrome.
-   */
-  animation?: "pulse" | "wave";
 }
 
 export function Skeleton({

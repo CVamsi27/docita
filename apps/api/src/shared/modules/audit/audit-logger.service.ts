@@ -79,6 +79,11 @@ export class AuditLoggerService implements IAuditLogger {
     }
   }
 
+  // Hard cap to keep audit reads from loading thousands of rows into memory.
+  // Callers that need older history should switch to AuditService.getAuditLogs
+  // which supports skip/take filters.
+  private static readonly MAX_PAGE_SIZE = 200;
+
   async getLogsForResource(
     resourceType: string,
     resourceId: string,
@@ -89,6 +94,7 @@ export class AuditLoggerService implements IAuditLogger {
         entityId: resourceId,
       },
       orderBy: { createdAt: 'desc' },
+      take: AuditLoggerService.MAX_PAGE_SIZE,
     });
 
     return this.parseAuditLogs(logs);
@@ -104,7 +110,7 @@ export class AuditLoggerService implements IAuditLogger {
         clinicId,
       },
       orderBy: { createdAt: 'desc' },
-      take: 1000,
+      take: AuditLoggerService.MAX_PAGE_SIZE,
     });
 
     return this.parseAuditLogs(logs);
@@ -114,7 +120,7 @@ export class AuditLoggerService implements IAuditLogger {
     const logs = await this.prisma.auditLog.findMany({
       where: { clinicId },
       orderBy: { createdAt: 'desc' },
-      take: 10000,
+      take: AuditLoggerService.MAX_PAGE_SIZE,
     });
 
     return this.parseAuditLogs(logs);
@@ -130,7 +136,7 @@ export class AuditLoggerService implements IAuditLogger {
         clinicId,
       },
       orderBy: { createdAt: 'desc' },
-      take: 1000,
+      take: AuditLoggerService.MAX_PAGE_SIZE,
     });
 
     return this.parseAuditLogs(logs);

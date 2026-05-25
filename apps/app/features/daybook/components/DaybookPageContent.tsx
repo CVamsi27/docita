@@ -13,19 +13,6 @@ import { Feature } from "@workspace/types";
 import { Banknote, BookOpen, CalendarCheck } from "lucide-react";
 import { FeatureGate } from "@/components/auth/feature-gate";
 
-/**
- * Daybook — end-of-day cash reconciliation surface (Reception-focused).
- *
- * Visual prototype: docita-design-system/project/ui_kits/clinic-os/DaybookScreen.jsx
- *
- * Data wiring TODO:
- *   - Aggregate Invoice + Payment rows for the selected day in
- *     apps/api/src/domains/billing/application/services/daybook-query.service.ts
- *   - Expose via DaybookController, paginated by day
- *   - Add useDaybook(date) hook in packages/data-access/src/hooks/use-billing.ts
- *   - Replace the EmptyState below with the ledger + method-breakdown +
- *     cash-reconciliation panels from the prototype
- */
 export function DaybookPageContent() {
   return (
     <FeatureGate feature={Feature.INVOICING} showLockedCard>

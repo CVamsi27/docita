@@ -1,0 +1,44 @@
+import { AsyncLocalStorage } from 'node:async_hooks';
+
+/**
+ * Audit FL8 (2026-05-23): AsyncLocalStorage carrier for the correlation id
+ * (a.k.a. x-correlation-id / x-request-id) attached to the inbound HTTP
+ * request. Anything that runs inside the request lifecycle — including
+ * EventEmitter2 `@OnEvent` handlers triggered synchronously from a request
+ * path — can read the id via `getCorrelationId()` without having to be
+ * passed the Express `Request`.
+ *
+ * Async work that *outlives* the request (scheduled jobs, cron, worker
+ * queue consumers) does not see this store. For those paths, the correlation
+ * id must be carried in the job payload itself; this store is only the
+ * HTTP-scoped half of the bridge.
+ *
+ * Stored value is intentionally minimal — just the id. If more request
+ * context is needed downstream, add fields here rather than threading a
+ * new ALS instance.
+ */
+interface RequestContext {
+  readonly correlationId: string;
+}
+
+const store = new AsyncLocalStorage<RequestContext>();
+
+/**
+ * Run `fn` inside a request-scoped context. Intended for callers that own
+ * the request boundary (interceptors, middleware). Application code should
+ * not call this directly.
+ */
+export function runWithRequestContext<T>(
+  context: RequestContext,
+  fn: () => T,
+): T {
+  return store.run(context, fn);
+}
+
+/**
+ * Returns the correlation id for the current request, or `undefined` if
+ * called outside an HTTP request scope.
+ */
+export function getCorrelationId(): string | undefined {
+  return store.getStore()?.correlationId;
+}

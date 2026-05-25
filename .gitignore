@@ -98,7 +98,10 @@ apps/api/src/seed-admin.ts
 *.js.map
 logs/
 logs/performance/*.json
-loadtest/
+# Note: loadtest/k6/ holds the tracked k6 perf scenarios. Do not blanket-ignore
+# loadtest/ — only ignore runtime outputs the scenarios produce.
+loadtest/**/results/
+loadtest/**/*.log
 
 # Security scan outputs (generated)
 .gitleaks-report.json

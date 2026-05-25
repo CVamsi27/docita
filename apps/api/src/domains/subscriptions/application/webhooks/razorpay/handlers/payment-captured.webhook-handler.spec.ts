@@ -22,11 +22,15 @@ describe('PaymentCapturedWebhookHandler', () => {
 
   const subscriptionRepo: Pick<
     ISubscriptionRepository,
-    'findByClinicId' | 'updatePaymentStatus' | 'updatePaymentStatusById'
+    | 'findByClinicId'
+    | 'updatePaymentStatus'
+    | 'updatePaymentStatusById'
+    | 'findPaymentByRazorpayPaymentId'
   > = {
     findByClinicId: jest.fn(async () => null),
     updatePaymentStatus: jest.fn(async () => undefined),
     updatePaymentStatusById: jest.fn(async () => undefined),
+    findPaymentByRazorpayPaymentId: jest.fn(async () => null),
   };
 
   let handler: PaymentCapturedWebhookHandler;

@@ -18,13 +18,17 @@ interface PricingSectionProps {
   appUrl: string;
 }
 
-const TIER_ORDER = [
-  "STARTER",
-  "FRONT_DESK",
-  "ESSENTIAL",
-  "PROFESSIONAL",
-  "HOSPITAL",
-  "ENTERPRISE",
+const TIER_GROUPS = [
+  {
+    title: "Clinical",
+    description: "Full clinic workflows for doctors and care teams.",
+    tiers: ["STARTER", "ESSENTIAL", "PROFESSIONAL", "HOSPITAL", "ENTERPRISE"],
+  },
+  {
+    title: "Front Desk Operations",
+    description: "Reception, queue, appointment, billing, and handover workflows.",
+    tiers: ["FRONT_DESK", "FRONT_DESK_CLINIC", "FRONT_DESK_HOSPITAL"],
+  },
 ] as const;
 
 const STARTER_FEATURES = [
@@ -55,6 +59,24 @@ const FRONT_DESK_FEATURES = [
   "Invoicing and payment links",
   "Schedule-only doctor profiles (no app login)",
   "No in-app consultation or prescription workspace",
+];
+
+const FRONT_DESK_CLINIC_FEATURES = [
+  "3,000 appointments / month",
+  "Up to 25 staff users",
+  "WhatsApp messaging (2,000 msgs)",
+  "Supervisor and billing-only roles",
+  "1 year audit log retention",
+  "No in-app consultation or prescription workspace",
+];
+
+const FRONT_DESK_HOSPITAL_FEATURES = [
+  "15,000 appointments / month",
+  "Up to 150 staff users",
+  "WhatsApp messaging (6,000 msgs pooled)",
+  "Multi-OPD queue routing",
+  "Shift handover",
+  "Dedicated customer success manager",
 ];
 
 const PROFESSIONAL_FEATURES = [
@@ -92,6 +114,8 @@ function getFeaturesForTier(id: string, fallback: string[]): string[] {
   if (id === "STARTER") return STARTER_FEATURES;
   if (id === "ESSENTIAL") return ESSENTIAL_FEATURES;
   if (id === "FRONT_DESK") return FRONT_DESK_FEATURES;
+  if (id === "FRONT_DESK_CLINIC") return FRONT_DESK_CLINIC_FEATURES;
+  if (id === "FRONT_DESK_HOSPITAL") return FRONT_DESK_HOSPITAL_FEATURES;
   if (id === "PROFESSIONAL") return PROFESSIONAL_FEATURES;
   if (id === "HOSPITAL") return HOSPITAL_FEATURES;
   if (id === "ENTERPRISE") return ENTERPRISE_FEATURES;
@@ -108,9 +132,9 @@ export function PricingSection({ appUrl }: PricingSectionProps) {
   const cardVariant = landingFadeUpVariants(reduce ?? false);
   const gridVariants = landingStaggerContainer(reduce ?? false, 0.06, 0.04);
 
-  const orderedTiers = TIER_ORDER.map((id) =>
-    FALLBACK_PRICING_CONFIG.tiers.find((tier) => tier.id === id),
-  ).filter((tier): tier is NonNullable<typeof tier> => Boolean(tier));
+  const tierById = new Map(
+    FALLBACK_PRICING_CONFIG.tiers.map((tier) => [tier.id, tier]),
+  );
 
   return (
     <section
@@ -160,81 +184,91 @@ export function PricingSection({ appUrl }: PricingSectionProps) {
           .
         </p>
 
-        <motion.div
-          className="mt-10 r2-price-grid"
-          variants={gridVariants}
-          initial="hidden"
-          whileInView="visible"
-          viewport={landingInViewViewport}
-        >
-          {orderedTiers.map((tier) => {
-            const isFeatured = tier.id === "ESSENTIAL";
-            const features = getFeaturesForTier(tier.id, tier.features);
-
-            return (
-              <motion.article
-                key={tier.id}
-                variants={cardVariant}
-                className={cn(
-                  "r2-price-card",
-                  isFeatured && "r2-price-card--featured",
-                )}
+        <div className="mt-10 space-y-10">
+          {TIER_GROUPS.map((group) => (
+            <section key={group.title} className="space-y-4">
+              <div>
+                <h3 className="text-sm font-semibold text-foreground">
+                  {group.title}
+                </h3>
+                <p className="text-sm text-muted-foreground">
+                  {group.description}
+                </p>
+              </div>
+              <motion.div
+                className="r2-price-grid"
+                variants={gridVariants}
+                initial="hidden"
+                whileInView="visible"
+                viewport={landingInViewViewport}
               >
-                <div className="flex items-baseline justify-between">
-                  <h3 className="text-lg font-semibold tracking-tight text-foreground">
-                    {tier.name}
-                  </h3>
-                  {isFeatured ? (
-                    <span className="r2-mono text-[var(--fs-2xs)] font-semibold uppercase tracking-[0.14em] text-primary">
-                      Most chosen
-                    </span>
-                  ) : null}
-                </div>
-                <p className="mt-1 text-xs font-medium text-pretty leading-snug text-muted-foreground">
-                  {tier.tagline}
-                </p>
-                <p className="mt-2 text-sm leading-relaxed text-muted-foreground min-h-[3rem]">
-                  {tier.description}
-                </p>
+                {group.tiers.map((tierId) => {
+                  const tier = tierById.get(tierId);
+                  if (!tier) return null;
+                  const isFeatured = tier.id === "ESSENTIAL";
+                  const features = getFeaturesForTier(tier.id, tier.features);
 
-                <div className="flex items-baseline gap-2">
-                  <span className="r2-price-amount text-foreground">
-                    {formatTierPrice(
-                      tier.pricing.monthly,
-                      FALLBACK_PRICING_CONFIG.currency.symbol,
-                    )}
-                  </span>
-                  <span className="r2-price-unit">/ month</span>
-                </div>
+                  return (
+                    <motion.article
+                      key={tier.id}
+                      variants={cardVariant}
+                      className={cn(
+                        "r2-price-card",
+                        isFeatured && "r2-price-card--featured",
+                      )}
+                    >
+                      <div className="flex items-baseline justify-between">
+                        <h3 className="text-lg font-semibold tracking-tight text-foreground">
+                          {tier.name}
+                        </h3>
+                        {isFeatured ? (
+                          <span className="r2-mono text-[var(--fs-2xs)] font-semibold uppercase tracking-[0.14em] text-primary">
+                            Most chosen
+                          </span>
+                        ) : null}
+                      </div>
+                      <p className="mt-1 text-xs font-medium text-pretty leading-snug text-muted-foreground">
+                        {tier.tagline}
+                      </p>
+                      <p className="mt-2 text-sm leading-relaxed text-muted-foreground min-h-[3rem]">
+                        {tier.description}
+                      </p>
 
-                <ul className="space-y-1.5" role="list">
-                  {features.slice(0, isFeatured ? 8 : 6).map((feature) => (
-                    <li key={feature} className="r2-price-feature">
-                      <span className="text-foreground">{feature}</span>
-                    </li>
-                  ))}
-                </ul>
+                      <div className="flex items-baseline gap-2">
+                        <span className="r2-price-amount text-foreground">
+                          {formatTierPrice(
+                            tier.pricing.monthly,
+                            FALLBACK_PRICING_CONFIG.currency.symbol,
+                          )}
+                        </span>
+                        <span className="r2-price-unit">/ month</span>
+                      </div>
 
-                <Button
-                  asChild
-                  className="mt-auto w-full gap-2"
-                  variant={isFeatured ? "primary" : "outline"}
-                >
-                  <a
-                    href={
-                      tier.id === "FRONT_DESK"
-                        ? `${appUrl}/onboarding?tier=FRONT_DESK`
-                        : `${appUrl}/onboarding`
-                    }
-                  >
-                    Start setup
-                    <ArrowRight className="h-4 w-4" />
-                  </a>
-                </Button>
-              </motion.article>
-            );
-          })}
-        </motion.div>
+                      <ul className="space-y-1.5" role="list">
+                        {features.slice(0, isFeatured ? 8 : 6).map((feature) => (
+                          <li key={feature} className="r2-price-feature">
+                            <span className="text-foreground">{feature}</span>
+                          </li>
+                        ))}
+                      </ul>
+
+                      <Button
+                        asChild
+                        className="mt-auto w-full gap-2"
+                        variant={isFeatured ? "primary" : "outline"}
+                      >
+                        <a href={`${appUrl}/onboarding?tier=${tier.id}`}>
+                          Start setup
+                          <ArrowRight className="h-4 w-4" />
+                        </a>
+                      </Button>
+                    </motion.article>
+                  );
+                })}
+              </motion.div>
+            </section>
+          ))}
+        </div>
 
         <motion.article
           id="front-desk-workspace"

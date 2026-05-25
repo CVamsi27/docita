@@ -159,6 +159,14 @@ export interface IInvoiceRepository {
     params: InvoiceSearchParams,
   ): Promise<PaginatedResult<InvoiceListItem>>;
   findById(id: string, clinicId: string): Promise<InvoiceDetailRecord | null>;
+  /**
+   * Lookup by id without a tenant filter. Intentionally not clinic-scoped
+   * because provider webhooks deliver the invoice id without tenant context
+   * (same precedent as `IPaymentSessionRepository.findByProviderSessionId`).
+   * Callers MUST verify the resolved `clinicId` against the action they are
+   * about to perform before mutating any related state.
+   */
+  findByIdUnscoped(id: string): Promise<InvoiceDetailRecord | null>;
   create(data: Prisma.InvoiceCreateInput): Promise<InvoiceDetailRecord>;
   update(
     id: string,

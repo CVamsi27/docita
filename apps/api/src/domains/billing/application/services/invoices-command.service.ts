@@ -1,5 +1,5 @@
 /** Writes maintain `Invoice.items` JSON for backward compatibility and `InvoiceItem` rows as source of truth. */
-import { Injectable, Inject, NotFoundException } from '@nestjs/common';
+import { Injectable, Inject, Logger, NotFoundException } from '@nestjs/common';
 import { Prisma, InvoiceStatus } from '@workspace/db';
 import { type InvoiceItem } from '@workspace/types';
 import {
@@ -38,6 +38,8 @@ import { CLOCK_PORT, type IClock } from '@/shared/common/ports/clock.port';
 
 @Injectable()
 export class InvoicesCommandService {
+  private readonly logger = new Logger(InvoicesCommandService.name);
+
   constructor(
     @Inject(INVOICE_REPOSITORY_TOKEN)
     private readonly repository: IInvoiceRepository,
@@ -192,9 +194,17 @@ export class InvoicesCommandService {
       invoiceId: invoice.id,
       clinicId: patient.clinic.id,
     });
+    // Usage tracking is non-critical to invoice creation; record failures so
+    // they surface in metrics/logs instead of being silently dropped.
     this.usageTracking
       .trackInvoice(patient.clinic.id, invoice.id)
-      .catch(() => {});
+      .catch((err: unknown) => {
+        this.logger.warn('Invoice usage tracking failed', {
+          invoiceId: invoice.id,
+          clinicId: patient.clinic.id,
+          error: err instanceof Error ? err.message : String(err),
+        });
+      });
 
     return invoice;
   }

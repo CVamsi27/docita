@@ -4,7 +4,7 @@ import {
   ForbiddenException,
   Injectable,
 } from '@nestjs/common';
-import { ClinicTier } from '@workspace/db';
+import { isFrontDeskTier } from '@workspace/types';
 import { PrismaService } from '@/prisma/prisma.service';
 import type { RequestWithUser } from '@/shared/common/types/common.types';
 
@@ -33,7 +33,7 @@ export class FrontDeskClinicalBlockGuard implements CanActivate {
       select: { tier: true },
     });
 
-    if (clinic?.tier !== ClinicTier.FRONT_DESK) {
+    if (!isFrontDeskTier(clinic?.tier)) {
       return true;
     }
 

@@ -4,7 +4,10 @@ import {
   JobNames,
   GeneratePdfJobData,
 } from '@/shared/modules/queue/queue.interface';
-import { StorageProvider } from '@/domains/documents/application/ports/storage-provider.port';
+import {
+  PDF_SIGNED_URL_TTL_SECONDS,
+  StorageProvider,
+} from '@/domains/documents/application/ports/storage-provider.port';
 import { InvoicesService } from './invoices.service';
 import {
   PDF_JOB_PROCESSOR_PRISMA_TOKEN,
@@ -13,8 +16,6 @@ import {
 import { CLOCK_PORT, type IClock } from '@/shared/common/ports/clock.port';
 
 import { shouldRegisterPdfQueueHandlers } from '@/shared/modules/queue/pdf-processor-registration';
-
-const PDF_SIGNED_URL_TTL_SECONDS = 3600;
 
 export type InvoicePdfProcessorPort = Pick<
   InvoicesService,

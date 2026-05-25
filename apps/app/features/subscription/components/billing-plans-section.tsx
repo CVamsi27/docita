@@ -44,12 +44,99 @@ export function PlansSection({
   currency,
   plansRef,
 }: PlansSectionProps) {
-  const isFrontDeskClinic = isFrontDeskTier(getTierName(effectiveCurrentTier));
-
   const planCards = PLAN_ORDER.map((tier) => ({
     tier,
     info: getTierInfo(tier),
   }));
+  const planGroups = [
+    {
+      title: "Clinical",
+      description: "Full clinic workflows for doctors and care teams.",
+      tiers: [
+        Tier.STARTER,
+        Tier.ESSENTIAL,
+        Tier.PROFESSIONAL,
+        Tier.HOSPITAL,
+        Tier.ENTERPRISE,
+      ],
+    },
+    {
+      title: "Front Desk Operations",
+      description: "Reception, queues, appointments, billing, and handover.",
+      tiers: [
+        Tier.FRONT_DESK,
+        Tier.FRONT_DESK_CLINIC,
+        Tier.FRONT_DESK_HOSPITAL,
+      ],
+    },
+  ] as const;
+
+  const renderPlanCard = (tier: Tier) => {
+    const planCard = planCards.find((card) => card.tier === tier);
+    if (!planCard) return null;
+    const { info } = planCard;
+    const tierName = getTierName(tier);
+    const isFrontDeskPlan = isFrontDeskTier(tierName);
+    const tierPricingData = pricingConfig?.tiers.find(
+      (item) => item.id === tierName,
+    );
+    const catalogPricing = getTierPricing(tierName);
+    const resolvedPricing =
+      tierPricingData?.pricing ?? {
+        monthly: catalogPricing.monthly,
+        yearly: catalogPricing.yearly,
+      };
+    const pricingCurrency = parseSupportedCurrency(currency);
+    const currencySymbol =
+      PRICING_CURRENCY_SYMBOLS[pricingCurrency] ??
+      PRICING_CURRENCY_SYMBOLS.INR;
+    const overageRates =
+      TIER_OVERAGE_RATES_BY_CURRENCY[pricingCurrency]?.[tierName] ??
+      TIER_OVERAGE_RATES_BY_CURRENCY.INR[tierName];
+    const whatsappRate =
+      tierName !== "STARTER" && tierName !== "INTELLIGENCE"
+        ? getWhatsAppAddonPricingByCurrency(tierName, pricingCurrency)
+            .overageRate
+        : 0;
+    const overageParts = [
+      overageRates?.appointmentRate > 0
+        ? `${currencySymbol}${overageRates.appointmentRate}${
+            isFrontDeskPlan ? "/appointment" : "/consult"
+          }`
+        : null,
+      overageRates?.userRate > 0
+        ? `${currencySymbol}${overageRates.userRate}/user`
+        : null,
+      whatsappRate > 0 ? `${currencySymbol}${whatsappRate}/WA msg` : null,
+    ].filter((item): item is string => !!item);
+
+    return (
+      <TierCard
+        key={tier}
+        tier={tier}
+        info={info}
+        features={[]}
+        isCurrentTier={tier === effectiveCurrentTier}
+        isRecommended={!!recommendation && recommendation.tier === tierName}
+        isLocked={false}
+        currentTierValue={effectiveCurrentTier}
+        keyHighlights={PLAN_ONBOARDING_KEY_HIGHLIGHTS[tierName] ?? []}
+        pricing={resolvedPricing}
+        billingCycle={selectedCycle}
+        currencySymbol={currencySymbol}
+        overageItems={overageParts.length > 0 ? overageParts : undefined}
+        density="summary"
+        buttonLabel={tier === Tier.ENTERPRISE ? "Contact Sales" : undefined}
+        onSelect={
+          billingAllowed && tier === Tier.ENTERPRISE
+            ? () => setShowContactSalesModal(true)
+            : billingAllowed
+              ? () => handleSelectTier(tierName, selectedCycle)
+              : undefined
+        }
+      />
+    );
+  };
 
   return (
     <div
@@ -119,81 +206,22 @@ export function PlansSection({
         </Alert>
       ) : null}
 
-      <div className="grid auto-rows-fr items-stretch gap-4 sm:grid-cols-2 lg:grid-cols-3">
-        {planCards.map(({ tier, info }) => {
-          const tierName = getTierName(tier);
-          const tierPricingData = pricingConfig?.tiers.find(
-            (t) => t.id === tierName,
-          );
-          const catalogPricing = getTierPricing(tierName);
-          const resolvedPricing =
-            tierPricingData?.pricing ?? {
-              monthly: catalogPricing.monthly,
-              yearly: catalogPricing.yearly,
-            };
-          const pricingCurrency = parseSupportedCurrency(currency);
-          const currencySymbol =
-            PRICING_CURRENCY_SYMBOLS[pricingCurrency] ??
-            PRICING_CURRENCY_SYMBOLS.INR;
-          const overageRates =
-            TIER_OVERAGE_RATES_BY_CURRENCY[pricingCurrency]?.[tierName] ??
-            TIER_OVERAGE_RATES_BY_CURRENCY.INR[tierName];
-          const whatsappRate =
-            tierName === "ESSENTIAL" ||
-            tierName === "FRONT_DESK" ||
-            tierName === "PROFESSIONAL" ||
-            tierName === "HOSPITAL"
-              ? getWhatsAppAddonPricingByCurrency(tierName, pricingCurrency)
-                  .overageRate
-              : 0;
-          const overageParts = [
-            overageRates?.appointmentRate > 0
-              ? `${currencySymbol}${overageRates.appointmentRate}${
-                  isFrontDeskClinic ? "/appointment" : "/consult"
-                }`
-              : null,
-            overageRates?.userRate > 0
-              ? `${currencySymbol}${overageRates.userRate}/user`
-              : null,
-            whatsappRate > 0
-              ? `${currencySymbol}${whatsappRate}/WA msg`
-              : null,
-          ].filter((item): item is string => !!item);
-          return (
-            <TierCard
-              key={tier}
-              tier={tier}
-              info={info}
-              features={[]}
-              isCurrentTier={tier === effectiveCurrentTier}
-              isRecommended={
-                !!recommendation && recommendation.tier === tierName
-              }
-              isLocked={false}
-              currentTierValue={effectiveCurrentTier}
-              keyHighlights={
-                PLAN_ONBOARDING_KEY_HIGHLIGHTS[tierName] ?? []
-              }
-              pricing={resolvedPricing}
-              billingCycle={selectedCycle}
-              currencySymbol={currencySymbol}
-              overageItems={
-                overageParts.length > 0 ? overageParts : undefined
-              }
-              density="summary"
-              buttonLabel={
-                tier === Tier.ENTERPRISE ? "Contact Sales" : undefined
-              }
-              onSelect={
-                billingAllowed && tier === Tier.ENTERPRISE
-                  ? () => setShowContactSalesModal(true)
-                  : billingAllowed
-                    ? () => handleSelectTier(tierName, selectedCycle)
-                    : undefined
-              }
-            />
-          );
-        })}
+      <div className="space-y-6">
+        {planGroups.map((group) => (
+          <section key={group.title} className="space-y-3">
+            <div>
+              <h3 className="text-[var(--fs-sm)] font-semibold text-foreground">
+                {group.title}
+              </h3>
+              <p className="text-[var(--fs-xs)] text-muted-foreground">
+                {group.description}
+              </p>
+            </div>
+            <div className="grid auto-rows-fr items-stretch gap-4 sm:grid-cols-2 lg:grid-cols-3">
+              {group.tiers.map((tier) => renderPlanCard(tier))}
+            </div>
+          </section>
+        ))}
       </div>
     </div>
   );

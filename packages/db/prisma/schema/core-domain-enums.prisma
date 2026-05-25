@@ -210,6 +210,8 @@ enum ClinicTier {
   HOSPITAL
   ENTERPRISE
   FRONT_DESK
+  FRONT_DESK_CLINIC
+  FRONT_DESK_HOSPITAL
 }
 
 enum WhatsappSenderMode {

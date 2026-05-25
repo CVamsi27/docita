@@ -19,6 +19,7 @@ import * as bcrypt from 'bcrypt';
 import { OnboardingStep, Role } from '@workspace/db';
 import { beforeEach, describe, it, expect, jest } from '@jest/globals';
 import { clockPortTestProvider } from '@/test-utils';
+import { EncryptionService } from '@/shared/common/encryption.service';
 
 jest.mock('bcrypt');
 
@@ -265,6 +266,14 @@ describe('AuthService', () => {
             sendPasswordResetEmail: jest
               .fn()
               .mockImplementation(async () => ({ success: true })),
+          },
+        },
+        {
+          provide: EncryptionService,
+          useValue: {
+            encrypt: (value: string) => value,
+            decrypt: (value: string) => value,
+            hash: (value: string) => `hashed:${value}`,
           },
         },
         clockPortTestProvider(),
@@ -967,6 +976,44 @@ describe('AuthService', () => {
         refresh_token: 'new-refresh',
         user: mockUserWithoutPassword,
       });
+    });
+
+    it('looks up incoming refresh token by hash before falling back to plaintext', async () => {
+      const findUniqueSpy = jest
+        .spyOn(prismaService.refreshToken, 'findUnique')
+        .mockResolvedValueOnce(null) // first call (by hash) — miss for legacy row
+        .mockResolvedValueOnce({
+          id: 'rt-legacy',
+          token: 'legacy-raw',
+          userId: 'user-123',
+          tokenFamily: 'family-1',
+          deviceName: null,
+          ipAddress: null,
+          userAgent: null,
+          revokedAt: null,
+          expiresAt: new Date(Date.now() + 60_000),
+          replacedByToken: null,
+          user: mockUser,
+        });
+      jest.spyOn(sessionService, 'login').mockResolvedValue({
+        access_token: 'new-access',
+        refresh_token: 'new-refresh',
+        user: mockUserWithoutPassword,
+      });
+      jest.spyOn(prismaService.refreshToken, 'update').mockResolvedValue({});
+
+      await service.refreshTokens('legacy-raw');
+
+      expect(findUniqueSpy).toHaveBeenNthCalledWith(
+        1,
+        expect.objectContaining({
+          where: expect.objectContaining({ tokenHash: expect.any(String) }),
+        }),
+      );
+      expect(findUniqueSpy).toHaveBeenNthCalledWith(
+        2,
+        expect.objectContaining({ where: { token: 'legacy-raw' } }),
+      );
     });
   });
 

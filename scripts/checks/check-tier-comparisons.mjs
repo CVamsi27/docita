@@ -9,10 +9,10 @@ const repoRoot = process.cwd();
 const sourceExtensions = new Set([".ts", ".tsx"]);
 
 const intelligenceTierPatterns = [
-  />=\s*Tier\.(INTELLIGENCE|FRONT_DESK)\b/,
-  /<=\s*Tier\.(INTELLIGENCE|FRONT_DESK)\b/,
-  /\bTier\.(INTELLIGENCE|FRONT_DESK)\s*>=/,
-  /\bTier\.(INTELLIGENCE|FRONT_DESK)\s*<=/,
+  />=\s*Tier\.(INTELLIGENCE|FRONT_DESK|FRONT_DESK_CLINIC|FRONT_DESK_HOSPITAL)\b/,
+  /<=\s*Tier\.(INTELLIGENCE|FRONT_DESK|FRONT_DESK_CLINIC|FRONT_DESK_HOSPITAL)\b/,
+  /\bTier\.(INTELLIGENCE|FRONT_DESK|FRONT_DESK_CLINIC|FRONT_DESK_HOSPITAL)\s*>=/,
+  /\bTier\.(INTELLIGENCE|FRONT_DESK|FRONT_DESK_CLINIC|FRONT_DESK_HOSPITAL)\s*<=/,
 ];
 
 const appTierOrdinalPatterns = [

@@ -23,6 +23,9 @@ interface AccessContext {
 
 const TIER_SENTINEL_FEATURES: Partial<Record<Tier, Feature>> = {
   [Tier.STARTER]: Feature.BASIC_PATIENT_MANAGEMENT,
+  [Tier.FRONT_DESK]: Feature.CALENDAR_SLOTS,
+  [Tier.FRONT_DESK_CLINIC]: Feature.CALENDAR_SLOTS,
+  [Tier.FRONT_DESK_HOSPITAL]: Feature.CALENDAR_SLOTS,
   [Tier.ESSENTIAL]: Feature.INVOICING,
   [Tier.PROFESSIONAL]: Feature.WHATSAPP_OWN_NUMBER,
   [Tier.HOSPITAL]: Feature.WHATSAPP_MANAGED_NUMBER,

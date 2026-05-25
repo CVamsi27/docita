@@ -51,10 +51,12 @@ describe('FrontDeskClinicalBlockGuard', () => {
     ).resolves.toBe(true);
   });
 
-  it('forbids mutating methods on FRONT_DESK tier', async () => {
-    findUnique.mockImplementation(async () => ({
-      tier: ClinicTier.FRONT_DESK,
-    }));
+  it.each([
+    ClinicTier.FRONT_DESK,
+    ClinicTier.FRONT_DESK_CLINIC,
+    ClinicTier.FRONT_DESK_HOSPITAL,
+  ])('forbids mutating methods on %s tier', async (tier) => {
+    findUnique.mockImplementation(async () => ({ tier }));
     await expect(
       guard.canActivate(
         createContext({ method: 'POST', user: { clinicId: 'c1' } }),

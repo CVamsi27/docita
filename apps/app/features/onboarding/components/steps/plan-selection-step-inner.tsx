@@ -21,11 +21,12 @@ import {
   getTierInfo,
   getTierValue,
 } from "@/lib/subscription/tier-access";
-import { tierSchema } from "@workspace/types";
+import { tierSchema, type TierName } from "@workspace/types";
 import { useLocaleCurrency } from "@/hooks/use-locale-currency";
 import { PLAN_ONBOARDING_KEY_HIGHLIGHTS } from "@/features/subscription";
 import {
   DISPLAY_TIERS,
+  DISPLAY_TIER_GROUPS,
   PLAN_AUDIENCE,
   buildTierCardConfig,
   BillingCycleToggle,
@@ -42,7 +43,8 @@ export function PlanSelectionStepInner({
   const searchParams = useSearchParams();
   const { currency: detectedCurrency } = useLocaleCurrency();
   const [selectedTier, setSelectedTier] = useState<string>(() => {
-    if (searchParams.get("tier") === "FRONT_DESK") return "FRONT_DESK";
+    const parsedTier = tierSchema.safeParse(searchParams.get("tier"));
+    if (parsedTier.success) return parsedTier.data;
     return defaultTier;
   });
   const [billingCycle, setBillingCycle] = useState<"MONTHLY" | "YEARLY">(
@@ -152,6 +154,65 @@ Billing preference: ${billingCycle}
 
 Please contact me with deployment and commercial details.`;
 
+  const renderTierCard = (tierName: TierName) => {
+    const tierConfig = featuresByTier.find((entry) => entry.tierName === tierName);
+    if (!tierConfig) return null;
+    const { tier, info, features } = tierConfig;
+    const { cardPricing, currencySymbol, overageHint, buttonLabel } =
+      buildTierCardConfig(tierName, resolvedCurrency, pricingConfig.tiers);
+
+    return (
+      <div
+        key={tier}
+        className={cn(
+          "relative flex w-full max-w-[22rem] flex-col sm:max-w-[24rem]",
+          tierName === "ESSENTIAL" && "order-first md:order-none",
+        )}
+      >
+        {tierName === "ESSENTIAL" ? (
+          <Badge className="absolute -top-2 left-4 z-10 bg-success text-success-foreground">
+            Popular
+          </Badge>
+        ) : null}
+        <TierCard
+          tier={tier}
+          info={info}
+          features={features}
+          isCurrentTier={false}
+          isLocked={false}
+          className={cn(
+            "h-full",
+            selectedTier === tierName &&
+              "border-primary ring-2 ring-primary/20 shadow-lg",
+          )}
+          keyHighlights={PLAN_ONBOARDING_KEY_HIGHLIGHTS[tierName] ?? []}
+          pricing={cardPricing}
+          billingCycle={billingCycle}
+          currencySymbol={currencySymbol}
+          overageHint={overageHint}
+          buttonLabel={buttonLabel}
+          maxDisplay={8}
+          usageHints={
+            PLAN_LIMITS[tierName]
+              ? {
+                  patients: PLAN_LIMITS[tierName].patients,
+                  users: PLAN_LIMITS[tierName].users,
+                }
+              : undefined
+          }
+          onSelect={
+            isSubmitting
+              ? undefined
+              : () => {
+                  setSelectedTier(tierName);
+                  void handleSelectTier(tierName);
+                }
+          }
+        />
+      </div>
+    );
+  };
+
   return (
     <Card className="border-primary/20 bg-primary/5">
       <CardHeader>
@@ -171,66 +232,22 @@ Please contact me with deployment and commercial details.`;
           onChange={setBillingCycle}
         />
 
-        <div className="flex flex-wrap justify-center gap-4">
-          {featuresByTier.map(({ tierName, tier, info, features }) => {
-            const { cardPricing, currencySymbol, overageHint, buttonLabel } =
-              buildTierCardConfig(
-                tierName,
-                resolvedCurrency,
-                pricingConfig.tiers,
-              );
-
-            return (
-              <div
-                key={tier}
-                className={cn(
-                  "relative flex w-full max-w-[22rem] flex-col sm:max-w-[24rem]",
-                  tierName === "ESSENTIAL" && "order-first md:order-none",
-                )}
-              >
-                {tierName === "ESSENTIAL" ? (
-                  <Badge className="absolute -top-2 left-4 z-10 bg-success text-success-foreground">
-                    Popular
-                  </Badge>
-                ) : null}
-                <TierCard
-                  tier={tier}
-                  info={info}
-                  features={features}
-                  isCurrentTier={false}
-                  isLocked={false}
-                  className={cn(
-                    "h-full",
-                    selectedTier === tierName &&
-                      "border-primary ring-2 ring-primary/20 shadow-lg",
-                  )}
-                  keyHighlights={PLAN_ONBOARDING_KEY_HIGHLIGHTS[tierName] ?? []}
-                  pricing={cardPricing}
-                  billingCycle={billingCycle}
-                  currencySymbol={currencySymbol}
-                  overageHint={overageHint}
-                  buttonLabel={buttonLabel}
-                  maxDisplay={8}
-                  usageHints={
-                    PLAN_LIMITS[tierName]
-                      ? {
-                          patients: PLAN_LIMITS[tierName].patients,
-                          users: PLAN_LIMITS[tierName].users,
-                        }
-                      : undefined
-                  }
-                  onSelect={
-                    isSubmitting
-                      ? undefined
-                      : () => {
-                          setSelectedTier(tierName);
-                          void handleSelectTier(tierName);
-                        }
-                  }
-                />
+        <div className="space-y-6">
+          {DISPLAY_TIER_GROUPS.map((group) => (
+            <section key={group.title} className="space-y-3">
+              <div>
+                <h3 className="text-sm font-semibold text-foreground">
+                  {group.title}
+                </h3>
+                <p className="text-xs text-muted-foreground">
+                  {group.description}
+                </p>
               </div>
-            );
-          })}
+              <div className="flex flex-wrap justify-center gap-4">
+                {group.tiers.map((tierName) => renderTierCard(tierName))}
+              </div>
+            </section>
+          ))}
         </div>
 
         <PlanComparisonCollapsible

@@ -172,6 +172,14 @@ export class PrismaInvoiceRepository implements IInvoiceRepository {
     return invoice;
   }
 
+  async findByIdUnscoped(id: string): Promise<InvoiceDetailRecord | null> {
+    const invoice = await this.getReadClient().invoice.findFirst({
+      where: { id },
+      select: INVOICE_DETAIL_SELECT,
+    });
+    return invoice;
+  }
+
   async create(data: Prisma.InvoiceCreateInput): Promise<InvoiceDetailRecord> {
     const invoice = await this.prisma.invoice.create({
       data,

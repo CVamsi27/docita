@@ -187,6 +187,74 @@ describe('LeaveService', () => {
         service.approveLeave('leave-1', 'admin-1', 'clinic-1'),
       ).rejects.toThrow(BadRequestException);
     });
+
+    it('keeps the leave PENDING when DoctorTimeOff creation fails for a doctor', async () => {
+      const doctorLeave = {
+        ...mockLeave,
+        staff: { ...mockLeave.staff, role: 'DOCTOR' },
+      };
+      leaveRepository.findLeaveWithStaff.mockResolvedValue(doctorLeave);
+
+      const availability = (
+        service as unknown as {
+          commandService: {
+            availabilityScheduleService: {
+              createTimeOff: jest.Mock<
+                (...args: unknown[]) => Promise<unknown>
+              >;
+            };
+          };
+        }
+      ).commandService.availabilityScheduleService;
+      availability.createTimeOff.mockRejectedValue(
+        new Error('time-off write failed') as never,
+      );
+
+      await expect(
+        service.approveLeave('leave-1', 'admin-1', 'clinic-1'),
+      ).rejects.toThrow('time-off write failed');
+
+      expect(leaveRepository.updateLeave).not.toHaveBeenCalled();
+    });
+
+    it('rolls back DoctorTimeOff if the leave update fails after creation', async () => {
+      const doctorLeave = {
+        ...mockLeave,
+        staff: { ...mockLeave.staff, role: 'DOCTOR' },
+      };
+      leaveRepository.findLeaveWithStaff.mockResolvedValue(doctorLeave);
+
+      const availability = (
+        service as unknown as {
+          commandService: {
+            availabilityScheduleService: {
+              createTimeOff: jest.Mock<
+                (...args: unknown[]) => Promise<unknown>
+              >;
+              deleteTimeOff: jest.Mock<
+                (...args: unknown[]) => Promise<unknown>
+              >;
+            };
+          };
+        }
+      ).commandService.availabilityScheduleService;
+      availability.createTimeOff.mockResolvedValue({
+        id: 'timeoff-1',
+      } as never);
+      availability.deleteTimeOff.mockResolvedValue(undefined as never);
+      leaveRepository.updateLeave.mockRejectedValue(
+        new Error('db unavailable'),
+      );
+
+      await expect(
+        service.approveLeave('leave-1', 'admin-1', 'clinic-1'),
+      ).rejects.toThrow('db unavailable');
+
+      expect(availability.deleteTimeOff).toHaveBeenCalledWith(
+        'timeoff-1',
+        expect.objectContaining({ actorRole: expect.any(String) }),
+      );
+    });
   });
 
   describe('rejectLeave', () => {

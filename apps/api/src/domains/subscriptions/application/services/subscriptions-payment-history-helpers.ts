@@ -46,7 +46,7 @@ function isTierUpgradeSubscriptionDescription(
   description: string | null | undefined,
 ): boolean {
   if (!description || typeof description !== 'string') return false;
-  return /\b(STARTER|ESSENTIAL|FRONT_DESK|PROFESSIONAL|HOSPITAL|ENTERPRISE)\s+(MONTHLY|YEARLY)\s+subscription\b/i.test(
+  return /\b(STARTER|ESSENTIAL|FRONT_DESK|FRONT_DESK_CLINIC|FRONT_DESK_HOSPITAL|PROFESSIONAL|HOSPITAL|ENTERPRISE)\s+(MONTHLY|YEARLY)\s+subscription\b/i.test(
     description.trim(),
   );
 }
@@ -58,7 +58,7 @@ function parseTierFromUpgradeDescription(
   const m = description
     .trim()
     .match(
-      /^(STARTER|ESSENTIAL|FRONT_DESK|PROFESSIONAL|HOSPITAL|ENTERPRISE)\s+(MONTHLY|YEARLY)\s+subscription$/i,
+      /^(STARTER|ESSENTIAL|FRONT_DESK|FRONT_DESK_CLINIC|FRONT_DESK_HOSPITAL|PROFESSIONAL|HOSPITAL|ENTERPRISE)\s+(MONTHLY|YEARLY)\s+subscription$/i,
     );
   return m?.[1] ? m[1].toUpperCase() : null;
 }

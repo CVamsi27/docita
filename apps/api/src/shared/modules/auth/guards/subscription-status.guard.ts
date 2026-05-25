@@ -79,7 +79,7 @@ export class SubscriptionStatusGuard implements CanActivate {
       ) {
         throw new ForbiddenException({
           message:
-            'Your workspace is temporarily restricted until billing is resolved. Ask an organization admin to update subscription billing.',
+            'Your workspace is temporarily restricted until billing is resolved. Ask a clinic admin to update subscription billing.',
           code: 'SUBSCRIPTION_HARD_LOCKED',
           action: 'BILLING_REQUIRED',
           billingSettingsUrl: '/settings?tab=subscription',
@@ -95,7 +95,7 @@ export class SubscriptionStatusGuard implements CanActivate {
       if (trialWindowState === 'EXPIRED' && !isBillingAdminRole(user.role)) {
         throw new ForbiddenException({
           message:
-            'Your free trial has ended. An organization admin needs to add a paid plan to keep using Docita.',
+            'Your free trial has ended. A clinic admin needs to add a paid plan to keep using Docita.',
           code: 'TRIAL_EXPIRED',
           action: 'BILLING_REQUIRED',
           billingSettingsUrl: '/settings?tab=subscription',

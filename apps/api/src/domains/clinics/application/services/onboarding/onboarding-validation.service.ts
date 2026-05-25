@@ -2,6 +2,7 @@ import { Injectable, BadRequestException } from '@nestjs/common';
 import { Specialization } from '@workspace/db';
 import {
   TIER_PRICING_BY_CURRENCY,
+  isFrontDeskTier,
   tierSchema,
   type MultiCurrencyTierPricing,
   type SupportedCurrency,
@@ -137,7 +138,7 @@ export class OnboardingValidationService {
       );
     }
 
-    const isFrontDeskPlan = data.planSelection?.tier === ClinicTier.FRONT_DESK;
+    const isFrontDeskPlan = isFrontDeskTier(data.planSelection?.tier);
     if (isFrontDeskPlan && data.staffSetup?.staffMembers) {
       for (const member of data.staffSetup.staffMembers) {
         if (member.role === 'NURSE' || member.role === 'ADMIN_DOCTOR') {
@@ -149,10 +150,7 @@ export class OnboardingValidationService {
       }
     }
 
-    if (
-      data.planSelection?.tier === ClinicTier.FRONT_DESK &&
-      data.adminAccount?.role === 'ADMIN_DOCTOR'
-    ) {
+    if (isFrontDeskPlan && data.adminAccount?.role === 'ADMIN_DOCTOR') {
       errors.push(
         'The front desk plan does not support the admin-doctor role for the primary admin account.',
       );
@@ -286,6 +284,18 @@ export class OnboardingValidationService {
         includedAppointments: 500,
         includedStorageGB: 10,
         includedUsers: 5,
+      },
+      FRONT_DESK_CLINIC: {
+        includedPatients: 999999,
+        includedAppointments: 3000,
+        includedStorageGB: 50,
+        includedUsers: 25,
+      },
+      FRONT_DESK_HOSPITAL: {
+        includedPatients: 999999,
+        includedAppointments: 15000,
+        includedStorageGB: 250,
+        includedUsers: 150,
       },
       PROFESSIONAL: {
         includedPatients: 10000,

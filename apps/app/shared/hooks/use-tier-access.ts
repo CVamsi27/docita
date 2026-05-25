@@ -29,6 +29,8 @@ const TIER_NAMES: Record<number, string> = {
   [Tier.STARTER]: "Starter",
   [Tier.ESSENTIAL]: "Essential",
   [Tier.FRONT_DESK]: "Front desk",
+  [Tier.FRONT_DESK_CLINIC]: "Front desk Clinic",
+  [Tier.FRONT_DESK_HOSPITAL]: "Front desk Hospital",
   [Tier.PROFESSIONAL]: "Professional",
   [Tier.HOSPITAL]: "Hospital",
   [Tier.ENTERPRISE]: "Enterprise",

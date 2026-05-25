@@ -62,7 +62,7 @@ describe('AuditService', () => {
   });
 
   describe('logAction', () => {
-    it('should create audit log in fire-and-forget mode', async () => {
+    it('awaits createAuditLog and resolves on success', async () => {
       const logData = {
         clinicId: 'clinic-1',
         userId: 'user-1',
@@ -78,23 +78,7 @@ describe('AuditService', () => {
       expect(service.createAuditLog).toHaveBeenCalledWith(logData);
     });
 
-    it('should log immediately when immediate flag is true', async () => {
-      const logData = {
-        clinicId: 'clinic-1',
-        userId: 'user-1',
-        actionType: 'CRITICAL_ACTION',
-        resourceType: 'SYSTEM',
-        resourceId: 'system-1',
-      };
-
-      jest.spyOn(service, 'createAuditLog').mockResolvedValue({});
-
-      await service.logAction(logData, true);
-
-      expect(service.createAuditLog).toHaveBeenCalledWith(logData);
-    });
-
-    it('should handle async audit creation errors gracefully', async () => {
+    it('propagates failures so callers can roll back', async () => {
       const logData = {
         clinicId: 'clinic-1',
         userId: 'user-1',
@@ -107,11 +91,9 @@ describe('AuditService', () => {
         .spyOn(service, 'createAuditLog')
         .mockRejectedValue(new Error('Audit create error'));
 
-      await expect(service.logAction(logData)).resolves.toBeUndefined();
-
-      await new Promise((resolve) => setImmediate(resolve));
-
-      expect(service['logger'].error).toHaveBeenCalled();
+      await expect(service.logAction(logData)).rejects.toThrow(
+        'Audit create error',
+      );
     });
   });
 

@@ -18,11 +18,12 @@ import PhoneInput from "react-phone-number-input";
 import { toast } from "sonner";
 import {
   CLINIC_TYPE_OPTIONS,
+  CLINICAL_PLAN_LADDER,
   type ClinicType,
   clinicTypeSchema,
+  FRONT_DESK_PLAN_LADDER,
   type InternalClinicAdminType,
   internalClinicAdminTypeSchema,
-  PUBLISHED_PLAN_LADDER,
   TIER_INFO,
   type TierName,
   tierSchema,
@@ -272,7 +273,19 @@ export function CreateClinicDialog({
                     <SelectValue placeholder="Tier" />
                   </SelectTrigger>
                   <SelectContent>
-                    {PUBLISHED_PLAN_LADDER.map((tier) => (
+                    <div className="px-2 py-1 text-xs font-medium text-muted-foreground">
+                      Clinical
+                    </div>
+                    {CLINICAL_PLAN_LADDER.map((tier) => (
+                      <SelectItem key={tier} value={tier}>
+                        {TIER_INFO[tier].name.replace("Docita ", "")} (
+                        {TIER_INFO[tier].tagline})
+                      </SelectItem>
+                    ))}
+                    <div className="px-2 py-1 text-xs font-medium text-muted-foreground">
+                      Front Desk Operations
+                    </div>
+                    {FRONT_DESK_PLAN_LADDER.map((tier) => (
                       <SelectItem key={tier} value={tier}>
                         {TIER_INFO[tier].name.replace("Docita ", "")} (
                         {TIER_INFO[tier].tagline})

@@ -4,7 +4,7 @@ import {
   ForbiddenException,
   NotFoundException,
 } from '@nestjs/common';
-import { Prisma, Role, VitalSign } from '@workspace/db';
+import { Role, VitalSign } from '@workspace/db';
 import {
   APPOINTMENT_PERSISTENCE_PORT,
   type AppointmentPersistencePort,
@@ -13,7 +13,6 @@ import { AppointmentMetricDefinitionService } from '@/domains/appointments/appli
 import {
   buildVitalsNumericMetricDefinitions,
   cleanVitalsPayload,
-  type AppointmentVitalsPayload,
 } from '@/domains/appointments/core/domain-services/appointment-vitals-payload.rules';
 
 export interface RecordAppointmentVitalsCommand {
@@ -65,23 +64,57 @@ export class RecordAppointmentVitalsUseCase {
 
     const payload = cleanVitalsPayload(data);
 
-    const updated = await this.persistence.vitalSign.updateMany({
-      where: { appointmentId, clinicId },
-      data: payload,
-    });
-
-    const vital =
-      updated.count > 0
-        ? await this.persistence.vitalSign.findFirst({
-            where: { appointmentId },
+    // Resolve metric definitions before opening the transaction — this step
+    // may create definition rows of its own and isn't safe to roll back.
+    const validMetrics = buildVitalsNumericMetricDefinitions(payload);
+    const definitionIdsByKey =
+      validMetrics.length > 0
+        ? await this.metricDefinitionService.ensureMetricDefinitions({
+            clinicId,
+            patientId: appointment.patientId,
+            categoryKey: 'vitals',
+            categoryName: 'Vitals',
+            definitions: validMetrics.map((metric) => ({
+              key: metric.key,
+              label: metric.label,
+              valueType: 'NUMBER',
+              unit: metric.unit,
+            })),
           })
-        : await this.persistence.vitalSign.create({
-            data: {
-              appointmentId,
-              clinicId,
-              ...payload,
+        : new Map<string, string>();
+
+    // Write the vital row and each metric record in one atomic transaction so
+    // a metrics-side failure doesn't leave the timeline with vitals but no
+    // structured metrics (or vice versa). The interactive `$transaction`
+    // form (callback) preserves the strict typing on `tx.vitalSign.upsert`
+    // without a cast on the result tuple.
+    const vital = await this.persistence.$transaction(async (tx) => {
+      const upserted = await tx.vitalSign.upsert({
+        where: { appointmentId },
+        update: payload,
+        create: { appointmentId, clinicId, ...payload },
+      });
+
+      for (const metric of validMetrics) {
+        const definitionId = definitionIdsByKey.get(metric.key);
+        if (!definitionId) continue;
+
+        await tx.patientMetricRecord.create({
+          data: {
+            clinicId,
+            patientId: appointment.patientId,
+            appointmentId,
+            definitionId,
+            source: 'VITALS_FORM',
+            values: {
+              create: [{ valueNumber: metric.value }],
             },
-          });
+          },
+        });
+      }
+
+      return upserted;
+    });
 
     if (!vital) {
       throw new NotFoundException(
@@ -89,67 +122,6 @@ export class RecordAppointmentVitalsUseCase {
       );
     }
 
-    await this.persistVitalsPatientMetrics({
-      clinicId,
-      patientId: appointment.patientId,
-      appointmentId,
-      vitals: payload,
-    });
-
     return vital;
-  }
-
-  private async persistVitalsPatientMetrics(input: {
-    clinicId: string;
-    patientId: string;
-    appointmentId: string;
-    vitals: AppointmentVitalsPayload;
-  }) {
-    const validMetrics = buildVitalsNumericMetricDefinitions(input.vitals);
-    if (validMetrics.length === 0) {
-      return;
-    }
-
-    const definitionIdsByKey =
-      await this.metricDefinitionService.ensureMetricDefinitions({
-        clinicId: input.clinicId,
-        patientId: input.patientId,
-        categoryKey: 'vitals',
-        categoryName: 'Vitals',
-        definitions: validMetrics.map((metric) => ({
-          key: metric.key,
-          label: metric.label,
-          valueType: 'NUMBER',
-          unit: metric.unit,
-        })),
-      });
-
-    const operations: Prisma.PrismaPromise<unknown>[] = [];
-
-    for (const metric of validMetrics) {
-      const definitionId = definitionIdsByKey.get(metric.key);
-      if (!definitionId) {
-        continue;
-      }
-
-      operations.push(
-        this.persistence.patientMetricRecord.create({
-          data: {
-            clinicId: input.clinicId,
-            patientId: input.patientId,
-            appointmentId: input.appointmentId,
-            definitionId,
-            source: 'VITALS_FORM',
-            values: {
-              create: [{ valueNumber: metric.value }],
-            },
-          },
-        }),
-      );
-    }
-
-    if (operations.length > 0) {
-      await this.persistence.$transaction(operations);
-    }
   }
 }

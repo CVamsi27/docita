@@ -49,6 +49,8 @@ import {
 const PLAN_TIER_LADDER: Tier[] = [
   Tier.STARTER,
   Tier.FRONT_DESK,
+  Tier.FRONT_DESK_CLINIC,
+  Tier.FRONT_DESK_HOSPITAL,
   Tier.ESSENTIAL,
   Tier.PROFESSIONAL,
   Tier.HOSPITAL,
@@ -77,6 +79,16 @@ export const PLAN_DESCRIPTIONS: Record<
     tagline: "Reception and operations",
     description:
       "Scheduling, queue, and billing for front desk teams without full in-app clinical workflows",
+  },
+  [Tier.FRONT_DESK_CLINIC]: {
+    tagline: "Multi-desk reception",
+    description:
+      "Higher-volume front desk operations for multi-doctor clinics",
+  },
+  [Tier.FRONT_DESK_HOSPITAL]: {
+    tagline: "Hospital reception operations",
+    description:
+      "Multi-location reception, queue routing, and shift handover operations",
   },
   [Tier.ESSENTIAL]: {
     tagline: "For solo clinics",

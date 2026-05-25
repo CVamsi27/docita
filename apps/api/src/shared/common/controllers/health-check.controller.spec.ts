@@ -1,4 +1,5 @@
 import { Test, TestingModule } from '@nestjs/testing';
+import { ServiceUnavailableException } from '@nestjs/common';
 import { describe, it, expect, beforeEach, jest } from '@jest/globals';
 import { HealthCheckController } from './health-check.controller';
 import { ObservabilityService } from '@/shared/modules/services/observability.service';
@@ -44,7 +45,7 @@ describe('HealthCheckController', () => {
     expect(mockObservabilityService.getSystemHealth).not.toHaveBeenCalled();
   });
 
-  it('returns readiness payload', async () => {
+  it('returns readiness payload when healthy', async () => {
     mockObservabilityService.getSystemHealth.mockResolvedValueOnce({
       status: 'healthy',
       checks: { db: { connected: true } },
@@ -55,6 +56,17 @@ describe('HealthCheckController', () => {
     expect(result.ready).toBe(true);
     expect(result.checks).toEqual({ db: { connected: true } });
     expect(typeof result.timestamp).toBe('string');
+  });
+
+  it('throws 503 when readiness is unhealthy', async () => {
+    mockObservabilityService.getSystemHealth.mockResolvedValueOnce({
+      status: 'unhealthy',
+      checks: { database: { status: 'disconnected' } },
+    });
+
+    await expect(controller.readiness()).rejects.toBeInstanceOf(
+      ServiceUnavailableException,
+    );
   });
 
   it('returns database health from service', async () => {

@@ -263,6 +263,12 @@ export function validateEnv(): EnvConfig {
   if (cached) return cached;
 
   const envToParse = { ...process.env };
+  // DEPRECATED (Audit 2026-05-23 / S2 inventory): the WHATSAPP_BUSINESS_ACCOUNT_ID
+  // fallback exists for legacy deployments that predate the META_ prefix rename.
+  // Remove this shim once the next planned secret-rotation cycle has migrated
+  // every deployment to META_BUSINESS_ACCOUNT_ID. Until then, no .env.example
+  // entry advertises the old name — it survives only to avoid forcing a
+  // rotation on a stable environment.
   envToParse.META_BUSINESS_ACCOUNT_ID ??=
     envToParse.WHATSAPP_BUSINESS_ACCOUNT_ID;
 

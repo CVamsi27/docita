@@ -59,11 +59,15 @@ export class CreateAppointmentUseCase {
       });
     }
 
-    // AuditLogged: appointment creation
+    // AuditLogged: appointment creation.
+    // Audit FL4 (2026-05-23): patientId is PHI — keep it out of general
+    // application logs which flow to log aggregation with longer retention
+    // than the audit trail allows. Domain-level audit persistence is
+    // handled by the appointments audit interceptor; this log is for
+    // operational visibility only and records counts/tenancy only.
     this.logger.log({
       action: 'appointment.create',
       clinicId: command.clinicId,
-      patientId: command.patientId,
       doctorId: command.doctorId,
     });
 

@@ -9,6 +9,8 @@ import { formatLocaleDateShortMonthYear } from "@/lib/formatters";
 export const PLAN_ORDER = [
   Tier.STARTER,
   Tier.FRONT_DESK,
+  Tier.FRONT_DESK_CLINIC,
+  Tier.FRONT_DESK_HOSPITAL,
   Tier.ESSENTIAL,
   Tier.PROFESSIONAL,
   Tier.HOSPITAL,

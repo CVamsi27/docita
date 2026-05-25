@@ -1,15 +1,9 @@
 import { z } from 'zod';
+import { tierSchema } from '@workspace/types';
 
 export const CreateSubscriptionDtoSchema = z.object({
   clinicId: z.string().cuid('Invalid clinic ID'),
-  plan: z.enum([
-    'STARTER',
-    'ESSENTIAL',
-    'FRONT_DESK',
-    'PROFESSIONAL',
-    'HOSPITAL',
-    'ENTERPRISE',
-  ]),
+  plan: tierSchema.exclude(['INTELLIGENCE']),
   billingCycle: z.enum(['MONTHLY', 'YEARLY']),
   currentPeriodStart: z.date(),
   currentPeriodEnd: z.date(),
@@ -38,13 +32,7 @@ export interface SubscriptionResponseDto {
 
 export const UpgradeSubscriptionDtoSchema = z.object({
   subscriptionId: z.string().cuid(),
-  newPlan: z.enum([
-    'ESSENTIAL',
-    'FRONT_DESK',
-    'PROFESSIONAL',
-    'HOSPITAL',
-    'ENTERPRISE',
-  ]),
+  newPlan: tierSchema.exclude(['STARTER', 'INTELLIGENCE']),
   immediate: z.boolean().default(true),
 });
 
@@ -66,7 +54,7 @@ export interface UpgradePreviewDto {
 
 export const DowngradeSubscriptionDtoSchema = z.object({
   subscriptionId: z.string().cuid(),
-  newPlan: z.enum(['STARTER', 'ESSENTIAL', 'FRONT_DESK', 'PROFESSIONAL']),
+  newPlan: tierSchema.exclude(['HOSPITAL', 'ENTERPRISE', 'INTELLIGENCE']),
   effectiveAt: z.enum(['IMMEDIATELY', 'END_OF_PERIOD']),
 });
 

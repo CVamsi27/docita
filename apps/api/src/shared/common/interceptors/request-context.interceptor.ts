@@ -10,6 +10,7 @@ import * as Sentry from '@sentry/nestjs';
 import { randomUUID } from 'crypto';
 import { Request, Response } from 'express';
 import { shouldCaptureInSentry } from '@/shared/modules/error-handling/sentry.utils';
+import { runWithRequestContext } from '@/shared/common/context/request-context.store';
 
 function readHeaderValue(
   headers: Request['headers'],
@@ -54,18 +55,24 @@ export class RequestContextInterceptor implements NestInterceptor {
 
     request.id = correlationId;
 
-    return next.handle().pipe(
-      tap(
-        () => {},
-        (error) => {
-          if (!shouldCaptureInSentry(error)) {
-            return;
-          }
+    // Audit FL8 (2026-05-23): expose the correlation id via AsyncLocalStorage
+    // so EventEmitter2 `@OnEvent` handlers and other request-scoped async
+    // work can log a coherent trace without having to receive the Express
+    // request explicitly.
+    return runWithRequestContext({ correlationId }, () =>
+      next.handle().pipe(
+        tap(
+          () => {},
+          (error) => {
+            if (!shouldCaptureInSentry(error)) {
+              return;
+            }
 
-          Sentry.captureException(error, {
-            tags: { correlationId },
-          });
-        },
+            Sentry.captureException(error, {
+              tags: { correlationId },
+            });
+          },
+        ),
       ),
     );
   }

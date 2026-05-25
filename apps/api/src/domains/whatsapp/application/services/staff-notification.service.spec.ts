@@ -514,7 +514,7 @@ describe('StaffNotificationService', () => {
       expect(mockPrisma.staffNotification.create).toHaveBeenCalled();
     });
 
-    it('treats FRONT_DESK as STARTER-equivalent for ordering', async () => {
+    it('delivers invoice notifications for Front Desk operations tiers', async () => {
       mockPrisma.clinic.findUnique.mockResolvedValue({
         id: 'clinic-123',
         tier: ClinicTier.FRONT_DESK,
@@ -528,7 +528,24 @@ describe('StaffNotificationService', () => {
         message: 'm',
       });
 
-      expect(mockPrisma.staffNotification.create).not.toHaveBeenCalled();
+      expect(mockPrisma.staffNotification.create).toHaveBeenCalled();
+    });
+
+    it('delivers payment provider updates for scaled Front Desk operations tiers', async () => {
+      mockPrisma.clinic.findUnique.mockResolvedValue({
+        id: 'clinic-123',
+        tier: ClinicTier.FRONT_DESK_CLINIC,
+        whatsappAutomation: { enabled: false },
+      });
+
+      await service.notifyStaff({
+        clinicId: 'clinic-123',
+        type: 'PAYMENT_PROVIDER_STATUS_UPDATE',
+        title: 't',
+        message: 'm',
+      });
+
+      expect(mockPrisma.staffNotification.create).toHaveBeenCalled();
     });
   });
 

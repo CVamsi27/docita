@@ -22,6 +22,7 @@ import {
 import { OnboardingValidationService } from './onboarding-validation.service';
 import { toPrismaInputJsonValue } from '@/shared/common/json/to-prisma-input-json-value';
 import { SUBSCRIPTION_TRIAL_DAYS } from '@workspace/types';
+import { isFrontDeskTier } from '@workspace/types';
 
 import {
   getDefaultClinicWeeklyHoursInput,
@@ -141,10 +142,7 @@ export class OnboardingWorkflowService {
       (existingUser?.role === Role.ADMIN_DOCTOR
         ? Role.ADMIN_DOCTOR
         : Role.ADMIN);
-    if (
-      planTier === ClinicTier.FRONT_DESK &&
-      resolvedRole === Role.ADMIN_DOCTOR
-    ) {
+    if (isFrontDeskTier(planTier) && resolvedRole === Role.ADMIN_DOCTOR) {
       resolvedRole = Role.ADMIN;
     }
 
