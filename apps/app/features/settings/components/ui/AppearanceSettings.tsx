@@ -7,14 +7,14 @@ import {
   CardDescription,
   CardHeader,
   CardTitle,
-} from "@workspace/ui/components/card";
-import { Label } from "@workspace/ui/components/label";
-import { Switch } from "@workspace/ui/components/switch";
-import { Button } from "@workspace/ui/components/button";
+} from "@workspace/ui/components/indicators/card";
+import { Label } from "@workspace/ui/components/form/label";
+import { Switch } from "@workspace/ui/components/form/switch";
+import { Button } from "@workspace/ui/components/form/button";
 import {
   ToggleGroup,
   ToggleGroupItem,
-} from "@workspace/ui/components/toggle-group";
+} from "@workspace/ui/components/form/toggle-group";
 import { useAppearanceStore } from "@/lib/stores/appearance-store";
 import { toast } from "sonner";
 import { cn } from "@workspace/ui/lib/utils";

@@ -1,6 +1,8 @@
-import { Injectable, Logger } from '@nestjs/common';
+import { Inject, Injectable, Logger } from '@nestjs/common';
+import { CLOCK_PORT, type IClock } from '@/shared/common/ports/clock.port';
 import { PrismaService } from '@/prisma/prisma.service';
 import { AppConfigService } from '@/shared/modules/config/app-configuration.service';
+import { listenPrismaQueryEvents } from '@/shared/common/prisma-query-event.boundary';
 
 interface SlowQuery {
   query: string;
@@ -16,6 +18,7 @@ export class SlowQueryLoggingService {
   constructor(
     private prisma: PrismaService,
     private configService: AppConfigService,
+    @Inject(CLOCK_PORT) private readonly clock: IClock,
   ) {
     this.setupQueryLogging();
   }
@@ -28,16 +31,7 @@ export class SlowQueryLoggingService {
       return;
     }
 
-    (
-      this.prisma.$on as (
-        event: string,
-        handler: (e: {
-          query: string;
-          duration: number;
-          params: string;
-        }) => void,
-      ) => void
-    )('query', (event: { query: string; duration: number; params: string }) => {
+    listenPrismaQueryEvents(this.prisma, (event) => {
       const duration = event.duration;
       const threshold = this.configService.getSlowQueryThreshold();
 
@@ -45,7 +39,7 @@ export class SlowQueryLoggingService {
         const slowQuery: SlowQuery = {
           query: event.query,
           duration,
-          timestamp: new Date(),
+          timestamp: this.clock.now(),
         };
 
         this.slowQueries.push(slowQuery);

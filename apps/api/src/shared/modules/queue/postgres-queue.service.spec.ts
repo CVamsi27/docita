@@ -9,6 +9,7 @@ import {
 import { Prisma } from '@workspace/db';
 import { PostgresQueueService } from './postgres-queue.service';
 import { QueueJobData, QueueJobHandler } from './queue.interface';
+import type { QueueJobRepository } from './ports/queue-job.repository.port';
 
 interface MockRow {
   id: string;
@@ -55,7 +56,24 @@ describe('PostgresQueueService', () => {
     jest.fn<(args: unknown) => Promise<{ count: number }>>();
   const findManyMock = jest.fn<(args: unknown) => Promise<MockRow[]>>();
   const countMock = jest.fn<(args: unknown) => Promise<number>>();
-  const queryRawMock = jest.fn<(...args: unknown[]) => Promise<unknown[]>>();
+  const queueJobsMock: jest.Mocked<QueueJobRepository> = {
+    findRecentCompletedByIdempotency: jest
+      .fn<QueueJobRepository['findRecentCompletedByIdempotency']>()
+      .mockResolvedValue(null),
+    claimNextWaitingJob: jest
+      .fn<QueueJobRepository['claimNextWaitingJob']>()
+      .mockResolvedValue([]),
+    recoverStaleActiveToDelayed: jest
+      .fn<QueueJobRepository['recoverStaleActiveToDelayed']>()
+      .mockResolvedValue([]),
+    recoverStaleActiveToFailed: jest
+      .fn<QueueJobRepository['recoverStaleActiveToFailed']>()
+      .mockResolvedValue([]),
+    findById: jest.fn<QueueJobRepository['findById']>().mockResolvedValue(null),
+    countByStatus: jest
+      .fn<QueueJobRepository['countByStatus']>()
+      .mockResolvedValue([]),
+  };
 
   const prisma = {
     runUnrestricted: jest.fn(<T>(fn: () => Promise<T>): Promise<T> => fn()),
@@ -67,7 +85,16 @@ describe('PostgresQueueService', () => {
       findMany: findManyMock,
       count: countMock,
     },
-    $queryRaw: queryRawMock,
+  };
+
+  const clock = {
+    now: () => new Date('2026-01-15T12:00:00.000Z'),
+  };
+
+  const primePollClaim = (row: MockRow) => {
+    queueJobsMock.recoverStaleActiveToDelayed.mockResolvedValueOnce([]);
+    queueJobsMock.recoverStaleActiveToFailed.mockResolvedValueOnce([]);
+    queueJobsMock.claimNextWaitingJob.mockResolvedValueOnce([row]);
   };
 
   let service: PostgresQueueService;
@@ -76,7 +103,13 @@ describe('PostgresQueueService', () => {
     jest.clearAllMocks();
     createMock.mockResolvedValue(makeRow());
     countMock.mockResolvedValue(0);
-    service = new PostgresQueueService(prisma as never);
+    queueJobsMock.findRecentCompletedByIdempotency.mockResolvedValue(null);
+    queueJobsMock.claimNextWaitingJob.mockResolvedValue([]);
+    queueJobsMock.recoverStaleActiveToDelayed.mockResolvedValue([]);
+    queueJobsMock.recoverStaleActiveToFailed.mockResolvedValue([]);
+    queueJobsMock.findById.mockResolvedValue(null);
+    queueJobsMock.countByStatus.mockResolvedValue([]);
+    service = new PostgresQueueService(prisma as never, clock, queueJobsMock);
   });
 
   afterEach(() => {
@@ -123,10 +156,7 @@ describe('PostgresQueueService', () => {
   describe('process and poll', () => {
     it('calls the handler when a WAITING job is claimed', async () => {
       const activeRow = makeRow({ status: 'ACTIVE' });
-      queryRawMock
-        .mockResolvedValueOnce([])
-        .mockResolvedValueOnce([])
-        .mockResolvedValueOnce([activeRow]);
+      primePollClaim(activeRow);
       updateMock.mockResolvedValue(makeRow({ status: 'COMPLETED' }));
 
       const handler = jest
@@ -154,10 +184,7 @@ describe('PostgresQueueService', () => {
 
     it('dead-letters the job and stores failedReason when retries are exhausted', async () => {
       const exhaustedRow = makeRow({ attemptsMade: 2, maxAttempts: 3 });
-      queryRawMock
-        .mockResolvedValueOnce([])
-        .mockResolvedValueOnce([])
-        .mockResolvedValueOnce([exhaustedRow]);
+      primePollClaim(exhaustedRow);
       updateMock.mockResolvedValue(makeRow({ status: 'DEAD_LETTERED' }));
 
       const handler = jest
@@ -183,10 +210,7 @@ describe('PostgresQueueService', () => {
 
     it('reschedules job with exponential backoff when retries remain', async () => {
       const retryableRow = makeRow({ attemptsMade: 0, maxAttempts: 3 });
-      queryRawMock
-        .mockResolvedValueOnce([])
-        .mockResolvedValueOnce([])
-        .mockResolvedValueOnce([retryableRow]);
+      primePollClaim(retryableRow);
       updateMock.mockResolvedValue(makeRow({ status: 'DELAYED' }));
 
       const handler = jest
@@ -207,10 +231,7 @@ describe('PostgresQueueService', () => {
     });
 
     it('does nothing when no WAITING jobs are available', async () => {
-      queryRawMock
-        .mockResolvedValueOnce([])
-        .mockResolvedValueOnce([])
-        .mockResolvedValueOnce([]);
+      queueJobsMock.claimNextWaitingJob.mockResolvedValueOnce([]);
 
       const handler = jest
         .fn<QueueJobHandler<QueueJobData>>()
@@ -228,7 +249,7 @@ describe('PostgresQueueService', () => {
 
   describe('getJob', () => {
     it('returns the job when found', async () => {
-      queryRawMock.mockResolvedValueOnce([makeRow()]);
+      queueJobsMock.findById.mockResolvedValueOnce(makeRow());
 
       const job = await service.getJob('qj-1');
 
@@ -237,7 +258,7 @@ describe('PostgresQueueService', () => {
     });
 
     it('returns null when job does not exist', async () => {
-      queryRawMock.mockResolvedValueOnce([]);
+      queueJobsMock.findById.mockResolvedValueOnce(null);
 
       const job = await service.getJob('missing');
 
@@ -259,7 +280,7 @@ describe('PostgresQueueService', () => {
 
   describe('getStats', () => {
     it('returns counts grouped by status', async () => {
-      queryRawMock.mockResolvedValueOnce([
+      queueJobsMock.countByStatus.mockResolvedValueOnce([
         { status: 'WAITING', count: BigInt(2) },
         { status: 'COMPLETED', count: BigInt(5) },
         { status: 'FAILED', count: BigInt(1) },
@@ -292,7 +313,9 @@ describe('PostgresQueueService', () => {
         idempotencyKey: 'send:patient-1:appt-2',
         completedAt: new Date(),
       });
-      queryRawMock.mockResolvedValueOnce([priorRow]);
+      queueJobsMock.findRecentCompletedByIdempotency.mockResolvedValueOnce(
+        priorRow,
+      );
 
       const job = await service.enqueue(
         'test-job',
@@ -305,7 +328,9 @@ describe('PostgresQueueService', () => {
     });
 
     it('persists the idempotency key on new enqueues when no prior completion exists', async () => {
-      queryRawMock.mockResolvedValueOnce([]);
+      queueJobsMock.findRecentCompletedByIdempotency.mockResolvedValueOnce(
+        null,
+      );
       createMock.mockResolvedValueOnce(
         makeRow({ idempotencyKey: 'send:patient-1:appt-2' }),
       );
@@ -327,10 +352,7 @@ describe('PostgresQueueService', () => {
     it('caps the retry delay at 60 seconds', async () => {
       const beforeMs = Date.now();
       const retryableRow = makeRow({ attemptsMade: 9, maxAttempts: 20 });
-      queryRawMock
-        .mockResolvedValueOnce([])
-        .mockResolvedValueOnce([])
-        .mockResolvedValueOnce([retryableRow]);
+      primePollClaim(retryableRow);
 
       const handler = jest
         .fn<QueueJobHandler<QueueJobData>>()

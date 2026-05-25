@@ -1,0 +1,141 @@
+import { Injectable, Inject } from '@nestjs/common';
+import { MetricCardinality, MetricCaptureScope, Prisma } from '@workspace/db';
+import {
+  APPOINTMENT_PERSISTENCE_PORT,
+  type AppointmentPersistencePort,
+} from '@/domains/appointments/application/ports/appointment-persistence.port';
+
+type MetricDefinitionConfig = {
+  key: string;
+  label: string;
+  valueType: 'STRING' | 'NUMBER';
+  unit?: string;
+};
+
+/**
+ * Ensures that metric categories and definitions exist for a given clinic,
+ * creating them on first use. Extracted from AppointmentMetricsService (SRP).
+ */
+@Injectable()
+export class AppointmentMetricDefinitionService {
+  constructor(
+    @Inject(APPOINTMENT_PERSISTENCE_PORT)
+    private readonly persistence: AppointmentPersistencePort,
+  ) {}
+
+  async ensureMetricDefinitions(input: {
+    clinicId: string;
+    patientId: string;
+    categoryKey: string;
+    categoryName: string;
+    definitions: MetricDefinitionConfig[];
+  }): Promise<Map<string, string>> {
+    const definitionConfigByKey = new Map<string, MetricDefinitionConfig>();
+
+    for (const definition of input.definitions) {
+      const normalizedKey = definition.key.trim().toLowerCase();
+      if (!normalizedKey || definitionConfigByKey.has(normalizedKey)) {
+        continue;
+      }
+      definitionConfigByKey.set(normalizedKey, {
+        ...definition,
+        key: normalizedKey,
+      });
+    }
+
+    if (definitionConfigByKey.size === 0) {
+      return new Map();
+    }
+
+    const definitionKeys = Array.from(definitionConfigByKey.keys());
+    const categoryKey = input.categoryKey.trim().toLowerCase();
+
+    let category = await this.persistence.metricCategory.findFirst({
+      where: {
+        clinicId: input.clinicId,
+        key: categoryKey,
+        isActive: true,
+      },
+      select: { id: true },
+    });
+
+    if (!category) {
+      category = await this.persistence.metricCategory.create({
+        data: {
+          clinicId: input.clinicId,
+          key: categoryKey,
+          name: input.categoryName,
+        },
+        select: { id: true },
+      });
+    }
+
+    const where = {
+      clinicId: input.clinicId,
+      key: { in: definitionKeys },
+      isActive: true,
+      OR: [{ isPatientScoped: false }, { patientId: input.patientId }],
+    } satisfies Prisma.MetricDefinitionWhereInput;
+
+    const existingDefinitions =
+      await this.persistence.metricDefinition.findMany({
+        where,
+        select: { id: true, key: true },
+        orderBy: [{ isPatientScoped: 'asc' }, { createdAt: 'asc' }],
+      });
+
+    const definitionIdsByKey = new Map<string, string>();
+    for (const definition of existingDefinitions) {
+      if (!definitionIdsByKey.has(definition.key)) {
+        definitionIdsByKey.set(definition.key, definition.id);
+      }
+    }
+
+    const missingDefinitionKeys = definitionKeys.filter(
+      (definitionKey) => !definitionIdsByKey.has(definitionKey),
+    );
+
+    if (missingDefinitionKeys.length > 0) {
+      await this.persistence.metricDefinition.createMany({
+        data: missingDefinitionKeys
+          .map((definitionKey) => {
+            const config = definitionConfigByKey.get(definitionKey);
+            if (!config) {
+              return null;
+            }
+
+            return {
+              clinicId: input.clinicId,
+              categoryId: category.id,
+              key: definitionKey,
+              label: config.label,
+              valueType: config.valueType,
+              unit: config.unit,
+              scope: MetricCaptureScope.ENCOUNTER,
+              cardinality: MetricCardinality.SINGLE,
+              isTrackedByDefault: true,
+              isPatientScoped: false,
+              isCustom: false,
+            };
+          })
+          .filter((entry) => entry !== null),
+        skipDuplicates: true,
+      });
+
+      const refreshedDefinitions =
+        await this.persistence.metricDefinition.findMany({
+          where,
+          select: { id: true, key: true },
+          orderBy: [{ isPatientScoped: 'asc' }, { createdAt: 'asc' }],
+        });
+
+      for (const definition of refreshedDefinitions) {
+        if (!definitionIdsByKey.has(definition.key)) {
+          definitionIdsByKey.set(definition.key, definition.id);
+        }
+      }
+    }
+
+    return definitionIdsByKey;
+  }
+}

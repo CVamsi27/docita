@@ -1,252 +1,110 @@
-import { Injectable, BadRequestException } from '@nestjs/common';
-import { PrismaService } from '@/prisma/prisma.service';
-import {
-  IAppointmentRepository,
+import { Injectable } from '@nestjs/common';
+import { IAppointmentRepository } from '@/domains/appointments/core/repositories/appointment.repository.interface';
+import type {
   AppointmentListItem,
   AppointmentSearchParams,
   PaginatedResult,
-} from '@/domains/appointments/core/repositories/appointment.repository.interface';
+} from '@/domains/appointments/core/repositories/appointment-repository.types';
 import { Appointment } from '@/domains/appointments/core/entities/appointment.entity';
-import { AppointmentMapper } from '@/domains/appointments/infrastructure/mappers/appointment.mapper';
 import { AppointmentStatusEnum } from '@/domains/appointments/core/value-objects/appointment-status.value-object';
-import {
-  Prisma,
-  AppointmentStatus as PrismaAppointmentStatus,
-} from '@workspace/db';
-
-const APPOINTMENT_STATUS_TO_PRISMA: Record<
-  AppointmentStatusEnum,
-  PrismaAppointmentStatus
-> = {
-  [AppointmentStatusEnum.SCHEDULED]: PrismaAppointmentStatus.SCHEDULED,
-  [AppointmentStatusEnum.CONFIRMED]: PrismaAppointmentStatus.CONFIRMED,
-  [AppointmentStatusEnum.ARRIVED]: PrismaAppointmentStatus.CONFIRMED,
-  [AppointmentStatusEnum.IN_PROGRESS]: PrismaAppointmentStatus.IN_PROGRESS,
-  [AppointmentStatusEnum.COMPLETED]: PrismaAppointmentStatus.COMPLETED,
-  [AppointmentStatusEnum.CANCELLED]: PrismaAppointmentStatus.CANCELLED,
-  [AppointmentStatusEnum.NOSHOW]: PrismaAppointmentStatus.NO_SHOW,
-};
+import type { Prisma } from '@workspace/db';
+import { PrismaAppointmentReadRepository } from './prisma-appointment-read.repository';
+import { PrismaAppointmentWriteRepository } from './prisma-appointment-write.repository';
 
 @Injectable()
 export class PrismaAppointmentRepository implements IAppointmentRepository {
-  constructor(private readonly prisma: PrismaService) {}
+  constructor(
+    private readonly readRepository: PrismaAppointmentReadRepository,
+    private readonly writeRepository: PrismaAppointmentWriteRepository,
+  ) {}
 
-  private getReadClient() {
-    return this.prisma.getReadClient();
-  }
-
-  async findAll(
+  findAll(
     params: AppointmentSearchParams,
   ): Promise<PaginatedResult<AppointmentListItem>> {
-    const {
-      clinicId,
-      startDate,
-      endDate,
-      intersectCalendarRange,
-      patientId,
-      doctorId,
-      status,
-      search,
-      cursor,
-      limit = 20,
-    } = params;
-
-    const where: Prisma.AppointmentWhereInput = {
-      clinicId,
-    };
-
-    if (patientId) where.patientId = patientId;
-    if (doctorId) where.doctorId = doctorId;
-    if (status && status.length > 0) {
-      where.status = {
-        in: status.map((value) => APPOINTMENT_STATUS_TO_PRISMA[value]),
-      };
-    }
-
-    if (
-      intersectCalendarRange &&
-      startDate !== undefined &&
-      endDate !== undefined
-    ) {
-      where.AND = [
-        { startTime: { lt: endDate } },
-        { endTime: { gt: startDate } },
-      ];
-    } else if (startDate || endDate) {
-      where.startTime = {};
-      if (startDate) where.startTime.gte = startDate;
-      if (endDate) where.startTime.lte = endDate;
-    }
-
-    if (search) {
-      where.OR = [
-        { patient: { firstName: { contains: search, mode: 'insensitive' } } },
-        { patient: { lastName: { contains: search, mode: 'insensitive' } } },
-        { patient: { phoneNumber: { contains: search } } },
-      ];
-    }
-
-    try {
-      const readClient = this.getReadClient();
-      const [total, items] = await Promise.all([
-        readClient.appointment.count({ where }),
-        readClient.appointment.findMany({
-          where,
-          take: limit + 1,
-          cursor: cursor ? { id: cursor } : undefined,
-          skip: cursor ? 1 : 0,
-          orderBy: [{ startTime: 'asc' }, { id: 'asc' }],
-          include: {
-            patient: {
-              select: {
-                id: true,
-                firstName: true,
-                lastName: true,
-                phoneNumber: true,
-              },
-            },
-            doctor: {
-              select: { id: true, name: true },
-            },
-          },
-        }),
-      ]);
-
-      const hasMore = items.length > limit;
-      const resultItems = hasMore ? items.slice(0, limit) : items;
-      const nextCursor = hasMore
-        ? resultItems[resultItems.length - 1].id
-        : undefined;
-
-      return {
-        items: resultItems.map((item) => AppointmentMapper.toListItem(item)),
-        nextCursor,
-        hasMore,
-        count: total,
-      };
-    } catch (error) {
-      throw new BadRequestException(
-        `Failed to find appointments: ${error instanceof Error ? error.message : 'Unknown error'}`,
-      );
-    }
+    return this.readRepository.findAll(params);
   }
 
-  async findById(id: string, clinicId: string): Promise<Appointment | null> {
-    const item = await this.getReadClient().appointment.findFirst({
-      where: { id, clinicId },
-    });
-
-    if (!item) return null;
-    return AppointmentMapper.toDomain(item);
+  findById(id: string, clinicId: string): Promise<Appointment | null> {
+    return this.readRepository.findById(id, clinicId);
   }
 
-  async save(appointment: Appointment): Promise<void> {
-    const data = AppointmentMapper.toPersistence(appointment);
-
-    await this.prisma.appointment.create({
-      data: data,
-    });
+  findByPatientId(patientId: string, clinicId: string): Promise<Appointment[]> {
+    return this.readRepository.findByPatientId(patientId, clinicId);
   }
 
-  async update(appointment: Appointment): Promise<void> {
-    const data = AppointmentMapper.toPersistence(appointment);
-    const { id, clinicId, ...updateData } = data;
-
-    if (!clinicId || typeof clinicId !== 'string') {
-      throw new BadRequestException('Appointment clinicId is required');
-    }
-
-    const result = await this.prisma.appointment.updateMany({
-      where: { id, clinicId },
-      data: {
-        ...updateData,
-        version: { increment: 1 },
-      },
-    });
-    if (result.count === 0) {
-      throw new BadRequestException(`Appointment ${id} not found`);
-    }
-  }
-
-  async delete(id: string, clinicId: string): Promise<void> {
-    await this.prisma.appointment.deleteMany({
-      where: { id, clinicId },
-    });
-  }
-
-  async findByPatientId(
-    patientId: string,
-    clinicId: string,
-  ): Promise<Appointment[]> {
-    const items = await this.getReadClient().appointment.findMany({
-      where: { patientId, clinicId },
-      orderBy: { startTime: 'desc' },
-    });
-
-    return items.map((item) => AppointmentMapper.toDomain(item));
-  }
-
-  async findByDoctorId(
+  findByDoctorId(
     doctorId: string,
     date: Date,
     clinicId: string,
   ): Promise<Appointment[]> {
-    const startOfDay = new Date(date);
-    startOfDay.setHours(0, 0, 0, 0);
-
-    const endOfDay = new Date(date);
-    endOfDay.setHours(23, 59, 59, 999);
-
-    const items = await this.getReadClient().appointment.findMany({
-      where: {
-        doctorId,
-        clinicId,
-        startTime: {
-          gte: startOfDay,
-          lte: endOfDay,
-        },
-      },
-      orderBy: { startTime: 'asc' },
-    });
-
-    return items.map((item) => AppointmentMapper.toDomain(item));
+    return this.readRepository.findByDoctorId(doctorId, date, clinicId);
   }
 
-  async exists(id: string, clinicId: string): Promise<boolean> {
-    const count = await this.getReadClient().appointment.count({
-      where: { id, clinicId },
-    });
-    return count > 0;
+  exists(id: string, clinicId: string): Promise<boolean> {
+    return this.readRepository.exists(id, clinicId);
   }
 
-  async findAppointmentsForSlots(
+  findAppointmentsForSlots(
     clinicId: string,
     doctorIds: string[],
     rangeStart: Date,
     rangeEndExclusive: Date,
-  ): Promise<Array<{ doctorId: string; startTime: Date; endTime: Date }>> {
-    const appointments = await this.getReadClient().appointment.findMany({
-      where: {
-        clinicId,
-        doctorId: { in: doctorIds },
-        AND: [
-          { startTime: { lt: rangeEndExclusive } },
-          { endTime: { gt: rangeStart } },
-        ],
-        status: {
-          notIn: [
-            PrismaAppointmentStatus.CANCELLED,
-            PrismaAppointmentStatus.NO_SHOW,
-          ],
-        },
-      },
-      select: {
-        doctorId: true,
-        startTime: true,
-        endTime: true,
-      },
-    });
+  ) {
+    return this.readRepository.findAppointmentsForSlots(
+      clinicId,
+      doctorIds,
+      rangeStart,
+      rangeEndExclusive,
+    );
+  }
 
-    return appointments;
+  findClinicTier(clinicId: string) {
+    return this.readRepository.findClinicTier(clinicId);
+  }
+
+  findForConsultationStart(id: string, clinicId: string) {
+    return this.readRepository.findForConsultationStart(id, clinicId);
+  }
+
+  findForUpdate(id: string, clinicId: string) {
+    return this.readRepository.findForUpdate(id, clinicId);
+  }
+
+  save(appointment: Appointment): Promise<void> {
+    return this.writeRepository.save(appointment);
+  }
+
+  update(appointment: Appointment): Promise<void> {
+    return this.writeRepository.update(appointment);
+  }
+
+  delete(id: string, clinicId: string): Promise<void> {
+    return this.writeRepository.delete(id, clinicId);
+  }
+
+  startConsultationTx(
+    id: string,
+    clinicId: string,
+    queueToken: {
+      id: string;
+      calledAt: Date | null;
+      consultationStart: Date | null;
+    } | null,
+    currentStatus: AppointmentStatusEnum,
+  ): Promise<void> {
+    return this.writeRepository.startConsultationTx(
+      id,
+      clinicId,
+      queueToken,
+      currentStatus,
+    );
+  }
+
+  applyPatch(
+    id: string,
+    clinicId: string,
+    patch: Prisma.AppointmentUpdateInput,
+  ): Promise<number> {
+    return this.writeRepository.applyPatch(id, clinicId, patch);
   }
 }

@@ -3,11 +3,11 @@
 import { ArrowRight, Check } from "lucide-react";
 import { motion, useReducedMotion } from "motion/react";
 
-import { Button } from "@workspace/ui/components/button";
+import { Button } from "@workspace/ui/components/form/button";
 import { cn } from "@workspace/ui/lib/utils";
 
 import { FALLBACK_PRICING_CONFIG, formatTierPrice } from "@/lib/landing-data";
-import { WORKSPACE_PROFILE_MARKETING } from "@workspace/types";
+import { FRONT_DESK_TIER_MARKETING } from "@workspace/types";
 import {
   landingFadeUpVariants,
   landingInViewViewport,
@@ -23,6 +23,7 @@ const TIER_ORDER = [
   "FRONT_DESK",
   "ESSENTIAL",
   "PROFESSIONAL",
+  "HOSPITAL",
   "ENTERPRISE",
 ] as const;
 
@@ -67,9 +68,20 @@ const PROFESSIONAL_FEATURES = [
   "Priority support with SLA",
 ];
 
+const HOSPITAL_FEATURES = [
+  "Everything in Professional",
+  "Up to 25 doctors and 5 branches",
+  "75 staff users included",
+  "8,000 consultations / month",
+  "WhatsApp messaging (6,000 msgs pooled)",
+  "Multi-branch analytics dashboards",
+  "Dedicated customer success manager",
+  "Higher API throughput for integrations",
+];
+
 const ENTERPRISE_FEATURES = [
   "Unlimited patients, users & branches",
-  "Everything in Professional",
+  "Everything in Hospital",
   "Data warehouse export (BI tools)",
   "Custom contract & invoicing",
   "Dedicated account manager",
@@ -81,6 +93,7 @@ function getFeaturesForTier(id: string, fallback: string[]): string[] {
   if (id === "ESSENTIAL") return ESSENTIAL_FEATURES;
   if (id === "FRONT_DESK") return FRONT_DESK_FEATURES;
   if (id === "PROFESSIONAL") return PROFESSIONAL_FEATURES;
+  if (id === "HOSPITAL") return HOSPITAL_FEATURES;
   if (id === "ENTERPRISE") return ENTERPRISE_FEATURES;
   return fallback;
 }
@@ -139,7 +152,7 @@ export function PricingSection({ appUrl }: PricingSectionProps) {
           </a>{" "}
           or open{" "}
           <a
-            href={`${appUrl}/onboarding?tier=FRONT_DESK&workspace=front_desk`}
+            href={`${appUrl}/onboarding?tier=FRONT_DESK`}
             className="font-medium text-primary underline-offset-4 hover:underline"
           >
             onboarding with the front desk tier pre-selected
@@ -210,7 +223,7 @@ export function PricingSection({ appUrl }: PricingSectionProps) {
                   <a
                     href={
                       tier.id === "FRONT_DESK"
-                        ? `${appUrl}/onboarding?tier=FRONT_DESK&workspace=front_desk`
+                        ? `${appUrl}/onboarding?tier=FRONT_DESK`
                         : `${appUrl}/onboarding`
                     }
                   >
@@ -232,15 +245,15 @@ export function PricingSection({ appUrl }: PricingSectionProps) {
           className="r2-price-card mt-10 max-w-2xl scroll-mt-24 border-primary/30 bg-primary/5"
         >
           <h3 className="text-lg font-semibold tracking-tight text-foreground">
-            {WORKSPACE_PROFILE_MARKETING.FRONT_DESK.headline}
+            {FRONT_DESK_TIER_MARKETING.headline}
           </h3>
           <p className="mt-2 text-sm leading-relaxed text-muted-foreground">
-            Same commercial tiers as above, but the product surface is limited to
-            scheduling, queue, patients, and invoicing. Pick this path when you do
-            not need the in-app consultation workspace or prescription tools.
+            A dedicated plan for reception-led facilities: scheduling, queue,
+            patients, and invoicing without the in-app consultation workspace or
+            prescription tools.
           </p>
           <ul className="mt-3 space-y-1.5" role="list">
-            {WORKSPACE_PROFILE_MARKETING.FRONT_DESK.included.map((feature) => (
+            {FRONT_DESK_TIER_MARKETING.included.map((feature) => (
               <li key={feature} className="r2-price-feature">
                 <span className="text-foreground">{feature}</span>
               </li>
@@ -258,7 +271,7 @@ export function PricingSection({ appUrl }: PricingSectionProps) {
           <Check className="h-4 w-4 shrink-0 text-success" aria-hidden />
           <p className="min-w-0 flex-1">
             Features marked &ldquo;planned&rdquo; in higher tiers are part of
-            the rollout roadmap, not promised as live functionality today.
+            the rollout roadmap, not promised to be live functionality today.
             Overage usage is billed at a per-unit rate at the start of the next
             month.
           </p>

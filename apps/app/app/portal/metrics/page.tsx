@@ -1,6 +1,6 @@
 import { PortalMetricsUI } from "@/features/patient-portal/components/views/portal-metrics-ui";
-import { AppPageScaffold } from "@workspace/ui/components/app-page-scaffold";
-import { PageHeader } from "@workspace/ui/components/page-header";
+import { AppPageScaffold } from "@workspace/ui/components/layout/app-page-scaffold";
+import { PageHeader } from "@workspace/ui/components/layout/page-header";
 
 export default function PortalMetricsPage() {
   return (

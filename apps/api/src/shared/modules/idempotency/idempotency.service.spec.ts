@@ -30,6 +30,7 @@ describe('IdempotencyService', () => {
     repository = buildRepositoryMock();
     service = new IdempotencyService(
       repository as unknown as IdempotencyRepository,
+      { isTest: () => true } as never,
     );
   });
 

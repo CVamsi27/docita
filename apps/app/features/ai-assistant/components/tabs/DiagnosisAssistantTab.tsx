@@ -1,14 +1,14 @@
-import { DocitaLoadingIndicator } from "@workspace/ui/components/docita-loading-indicator";
+import { DocitaLoadingIndicator } from "@workspace/ui/components/feedback/docita-loading-indicator";
 import {
   Card,
   CardContent,
   CardDescription,
   CardHeader,
   CardTitle,
-} from "@workspace/ui/components/card";
-import { Button } from "@workspace/ui/components/button";
-import { Textarea } from "@workspace/ui/components/textarea";
-import { Badge } from "@workspace/ui/components/badge";
+} from "@workspace/ui/components/indicators/card";
+import { Button } from "@workspace/ui/components/form/button";
+import { Textarea } from "@workspace/ui/components/form/textarea";
+import { Badge } from "@workspace/ui/components/indicators/badge";
 import { Brain, Shield, Sparkles, Stethoscope } from "lucide-react";
 import { cn } from "@workspace/ui/lib/utils";
 import type { DiagnosisSuggestion } from "@/features/ai-assistant/hooks/use-ai-assistant-logic";
@@ -145,7 +145,7 @@ export const DiagnosisAssistantTab = ({
                   </p>
                   <div className="mt-3 flex gap-2">
                     <Button size="sm" variant="outline">
-                      Select as Primary
+                      Select primary
                     </Button>
                     <Button size="sm" variant="ghost">
                       View Details

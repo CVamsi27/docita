@@ -1,6 +1,7 @@
 import { beforeEach, describe, expect, it, jest } from '@jest/globals';
 import { PrismaDashboardRepository } from './prisma-dashboard.repository';
 import { PrismaService } from '@/prisma/prisma.service';
+import type { IClock } from '@/shared/common/ports/clock.port';
 
 describe('PrismaDashboardRepository', () => {
   const mockPatientCount = jest.fn<(...args: unknown[]) => Promise<unknown>>();
@@ -43,6 +44,8 @@ describe('PrismaDashboardRepository', () => {
   } as Pick<PrismaService, 'getReadClient'>;
 
   let repository: PrismaDashboardRepository;
+  const fixedNow = new Date('2026-05-19T12:00:00.000Z');
+  const clock: IClock = { now: () => fixedNow };
 
   beforeEach(() => {
     jest.clearAllMocks();
@@ -50,12 +53,12 @@ describe('PrismaDashboardRepository', () => {
       PrismaService.prototype,
     ) as PrismaService;
     prismaService.getReadClient = mockPrismaService.getReadClient;
-    repository = new PrismaDashboardRepository(prismaService);
+    repository = new PrismaDashboardRepository(prismaService, clock);
   });
 
   it('builds stats using read client and deterministic sort order', async () => {
     const clinicId = 'clinic-1';
-    const now = new Date();
+    const now = fixedNow;
     const monthStart = new Date(now.getFullYear(), now.getMonth(), 1);
     const monthEnd = new Date(now.getFullYear(), now.getMonth() + 1, 1);
 

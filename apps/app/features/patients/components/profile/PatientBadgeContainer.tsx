@@ -1,6 +1,6 @@
 import { useMemo } from "react";
 import { calculateAge } from "@workspace/utils";
-import { getInitials } from "@/features/_shared/utils";
+import { getInitials } from "@/lib/formatters/text-helpers";
 import { PatientBadgeUI } from "./PatientBadgeUI";
 
 interface PatientData {

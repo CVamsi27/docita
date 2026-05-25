@@ -1,14 +1,14 @@
-import { Button } from "@workspace/ui/components/button";
-import { Badge } from "@workspace/ui/components/badge";
-import { Input } from "@workspace/ui/components/input";
-import { Label } from "@workspace/ui/components/label";
+import { Button } from "@workspace/ui/components/form/button";
+import { Badge } from "@workspace/ui/components/indicators/badge";
+import { Input } from "@workspace/ui/components/form/input";
+import { Label } from "@workspace/ui/components/form/label";
 import {
   Select,
   SelectContent,
   SelectItem,
   SelectTrigger,
   SelectValue,
-} from "@workspace/ui/components/select";
+} from "@workspace/ui/components/form/select";
 import {
   Dialog,
   DialogContent,
@@ -16,7 +16,7 @@ import {
   DialogFooter,
   DialogHeader,
   DialogTitle,
-} from "@workspace/ui/components/dialog";
+} from "@workspace/ui/components/overlay/dialog";
 import { AlertTriangle, Pencil, Plus, X } from "lucide-react";
 import { PatientAllergy, PatientWithMedicalHistory } from "@workspace/types";
 
@@ -73,7 +73,9 @@ export function PatientAllergies({
                   </button>
                   <button
                     type="button"
-                    onClick={() => onRemoveAllergy(allergy.id!)}
+                    onClick={() => {
+                      if (allergy.id) onRemoveAllergy(allergy.id);
+                    }}
                     className="p-0.5 rounded-full hover:bg-destructive/20 transition-colors focus:outline-none"
                   >
                     <X className="h-3 w-3" />
@@ -131,14 +133,15 @@ export function PatientAllergies({
               Update the allergen, severity, type, and reaction.
             </DialogDescription>
           </DialogHeader>
+          {editingAllergy ? (
           <div className="flex flex-col gap-4 min-w-0">
             <div className="space-y-2">
               <Label>Allergen</Label>
               <Input
-                value={editingAllergy?.allergen || ""}
+                value={editingAllergy.allergen || ""}
                 onChange={(e) =>
                   onEditingAllergyChange({
-                    ...editingAllergy!,
+                    ...editingAllergy,
                     allergen: e.target.value,
                   })
                 }
@@ -147,10 +150,10 @@ export function PatientAllergies({
             <div className="space-y-2">
               <Label>Severity</Label>
               <Select
-                value={editingAllergy?.severity || "MODERATE"}
+                value={editingAllergy.severity || "MODERATE"}
                 onValueChange={(v: string) =>
                   onEditingAllergyChange({
-                    ...editingAllergy!,
+                    ...editingAllergy,
                     severity: v as
                       | "MILD"
                       | "MODERATE"
@@ -175,10 +178,10 @@ export function PatientAllergies({
             <div className="space-y-2">
               <Label>Type</Label>
               <Select
-                value={editingAllergy?.allergyType || "DRUG"}
+                value={editingAllergy.allergyType || "DRUG"}
                 onValueChange={(v: string) =>
                   onEditingAllergyChange({
-                    ...editingAllergy!,
+                    ...editingAllergy,
                     allergyType: v as
                       | "DRUG"
                       | "FOOD"
@@ -210,16 +213,17 @@ export function PatientAllergies({
               <Label>Reaction</Label>
               <Input
                 placeholder="Reaction"
-                value={editingAllergy?.reaction || ""}
+                value={editingAllergy.reaction || ""}
                 onChange={(e) =>
                   onEditingAllergyChange({
-                    ...editingAllergy!,
+                    ...editingAllergy,
                     reaction: e.target.value,
                   })
                 }
               />
             </div>
           </div>
+          ) : null}
           <DialogFooter>
             <Button variant="outline" onClick={onCancelEditAllergy}>
               Cancel

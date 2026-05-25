@@ -1,6 +1,8 @@
 import { Injectable } from '@nestjs/common';
+import { featureFlagBoolMapSchema } from '@workspace/types';
 import { Prisma } from '@workspace/db';
 import { PrismaService } from '@/prisma/prisma.service';
+import { parsePrismaJsonColumn } from '@/shared/common/json/parse-prisma-json-column';
 
 export interface FeatureFlagRecord {
   key: string;
@@ -10,13 +12,6 @@ export interface FeatureFlagRecord {
   userOverrides: Record<string, boolean> | null;
   percentageRollout: number | null;
 }
-
-const isBoolMap = (
-  value: Prisma.JsonValue | null | undefined,
-): value is Record<string, boolean> => {
-  if (!value || typeof value !== 'object' || Array.isArray(value)) return false;
-  return Object.values(value).every((v) => typeof v === 'boolean');
-};
 
 const toRecord = (
   row: {
@@ -33,10 +28,12 @@ const toRecord = (
     key: row.key,
     description: row.description,
     defaultEnabled: row.defaultEnabled,
-    clinicOverrides: isBoolMap(row.clinicOverrides)
-      ? row.clinicOverrides
-      : null,
-    userOverrides: isBoolMap(row.userOverrides) ? row.userOverrides : null,
+    clinicOverrides:
+      parsePrismaJsonColumn(row.clinicOverrides, featureFlagBoolMapSchema) ??
+      null,
+    userOverrides:
+      parsePrismaJsonColumn(row.userOverrides, featureFlagBoolMapSchema) ??
+      null,
     percentageRollout: row.percentageRollout,
   };
 };
@@ -46,6 +43,7 @@ export class FeatureFlagsRepository {
   constructor(private readonly prisma: PrismaService) {}
 
   async findAll(): Promise<FeatureFlagRecord[]> {
+    // RLS-BYPASS: feature flags are global configuration, not clinic-scoped
     return this.prisma.runUnrestricted(async () => {
       const rows = await this.prisma.featureFlagDefinition.findMany();
       return rows
@@ -55,6 +53,7 @@ export class FeatureFlagsRepository {
   }
 
   async findByKey(key: string): Promise<FeatureFlagRecord | null> {
+    // RLS-BYPASS: feature flags are global configuration, not clinic-scoped
     return this.prisma.runUnrestricted(async () =>
       toRecord(
         await this.prisma.featureFlagDefinition.findUnique({ where: { key } }),
@@ -63,6 +62,7 @@ export class FeatureFlagsRepository {
   }
 
   async upsert(record: FeatureFlagRecord): Promise<FeatureFlagRecord> {
+    // RLS-BYPASS: feature flags are global configuration, not clinic-scoped
     const stored = await this.prisma.runUnrestricted(async () =>
       this.prisma.featureFlagDefinition.upsert({
         where: { key: record.key },
@@ -91,6 +91,7 @@ export class FeatureFlagsRepository {
   }
 
   async kill(key: string): Promise<FeatureFlagRecord | null> {
+    // RLS-BYPASS: feature flags are global configuration, not clinic-scoped
     return this.prisma.runUnrestricted(async () => {
       const existing = await this.prisma.featureFlagDefinition.findUnique({
         where: { key },

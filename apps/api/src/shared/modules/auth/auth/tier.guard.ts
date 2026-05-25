@@ -15,9 +15,10 @@ import {
 import { bypassesSessionGuards } from './auth-route-metadata.util';
 import {
   isBillingAdminRole,
-  isSubscriptionPastGraceDeadline,
+  isSubscriptionBillingHardLocked,
 } from '@/shared/modules/auth/utils/subscription-hard-lock.util';
 import { assertClinicHasFeatureOrThrow } from '@/shared/modules/auth/utils/clinic-feature-access.util';
+import { clinicHasOutstandingPendingPayment } from '@/shared/modules/auth/utils/clinic-outstanding-pending-payment.util';
 
 @Injectable()
 export class TierGuard implements CanActivate {
@@ -65,7 +66,13 @@ export class TierGuard implements CanActivate {
         subscription: {
           select: {
             graceUntil: true,
+            currentPeriodEnd: true,
           },
+        },
+        subscriptionPayments: {
+          select: { status: true },
+          orderBy: { createdAt: 'desc' },
+          take: 12,
         },
       },
     });
@@ -78,9 +85,14 @@ export class TierGuard implements CanActivate {
     }
 
     if (
-      isSubscriptionPastGraceDeadline({
+      isSubscriptionBillingHardLocked({
         subscriptionStatus: clinic.subscriptionStatus,
         graceUntil: clinic.subscription?.graceUntil,
+        hasOutstandingPendingPayment: clinicHasOutstandingPendingPayment(
+          clinic.subscriptionPayments,
+        ),
+        subscriptionCurrentPeriodEnd:
+          clinic.subscription?.currentPeriodEnd ?? null,
       }) &&
       !isBillingAdminRole(user.role)
     ) {
@@ -151,6 +163,7 @@ export class TierGuard implements CanActivate {
       [ClinicTier.STARTER]: Tier.STARTER,
       [ClinicTier.ESSENTIAL]: Tier.ESSENTIAL,
       [ClinicTier.PROFESSIONAL]: Tier.PROFESSIONAL,
+      [ClinicTier.HOSPITAL]: Tier.HOSPITAL,
       [ClinicTier.ENTERPRISE]: Tier.ENTERPRISE,
       [ClinicTier.FRONT_DESK]: Tier.FRONT_DESK,
     };
@@ -163,6 +176,7 @@ export class TierGuard implements CanActivate {
       [Tier.STARTER]: 'Starter',
       [Tier.ESSENTIAL]: 'Essential',
       [Tier.PROFESSIONAL]: 'Professional',
+      [Tier.HOSPITAL]: 'Hospital',
       [Tier.ENTERPRISE]: 'Enterprise',
       [Tier.INTELLIGENCE]: 'Intelligence',
       [Tier.FRONT_DESK]: 'Front desk',

@@ -7,15 +7,15 @@ import {
   FormItem,
   FormLabel,
   FormMessage,
-} from "@workspace/ui/components/form";
+} from "@workspace/ui/components/form/form";
 import {
   Select,
   SelectContent,
   SelectItem,
   SelectTrigger,
   SelectValue,
-} from "@workspace/ui/components/select";
-import { DateTimePicker } from "@workspace/ui/components/date-time-picker";
+} from "@workspace/ui/components/form/select";
+import { DateTimePicker } from "@workspace/ui/components/form/date-time-picker";
 import { createAppointmentSchema, type AvailableSlot } from "@workspace/types";
 import { formatScheduleTime } from "@workspace/utils";
 import {

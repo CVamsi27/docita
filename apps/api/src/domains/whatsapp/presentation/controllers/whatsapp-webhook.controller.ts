@@ -21,7 +21,7 @@ import {
   WhatsAppWebhookAckResponseDto,
 } from '@/domains/whatsapp/application/dto/whatsapp.dto';
 import { ZodSerializerDto } from 'nestjs-zod';
-import { readWhatsAppWebhookVerificationQuery } from '@/shared/modules/messaging/whatsapp/whatsapp-webhook-query.util';
+import { readWhatsAppWebhookVerificationQuery } from '@/shared/whatsapp/whatsapp-webhook-query.util';
 import { WebhookVerifierService } from '@/shared/modules/webhooks';
 
 @Controller('webhooks/whatsapp')

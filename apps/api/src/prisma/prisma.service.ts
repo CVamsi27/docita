@@ -7,12 +7,12 @@ import {
 import { PrismaClient } from '@workspace/db';
 import { Pool } from 'pg';
 import { PrismaPg } from '@prisma/adapter-pg';
-import { tenantExtension } from '@/common/extensions/tenant.extension';
-import { createEncryptionExtension } from '@/common/extensions/encryption.extension';
-import { auditImmutabilityExtension } from '@/common/extensions/audit-immutability.extension';
-import { tenantStorage } from '@/common/middleware/tenant.middleware';
-import { EncryptionService } from '@/common/encryption.service';
-import { slowQueryExtension } from '@/common/extensions/logging.extension';
+import { tenantExtension } from '@/shared/common/extensions/tenant.extension';
+import { createEncryptionExtension } from '@/shared/common/extensions/encryption.extension';
+import { auditImmutabilityExtension } from '@/shared/common/extensions/audit-immutability.extension';
+import { tenantStorage } from '@/shared/common/middleware/tenant.middleware';
+import { EncryptionService } from '@/shared/common/encryption.service';
+import { slowQueryExtension } from '@/shared/common/extensions/logging.extension';
 import { AppConfigService } from '@/shared/modules/config/app-configuration.service';
 import { DATABASE_CONSTANTS } from '@/shared/modules/config/app-constants';
 
@@ -55,23 +55,22 @@ export class PrismaService
     return this;
   }
 
-  async onModuleInit() {
-    try {
-      await this.$connect();
+  onModuleInit(): void {
+    const extended = this.$extends(
+      createEncryptionExtension(this.encryptionService),
+    )
+      .$extends(auditImmutabilityExtension)
+      .$extends(tenantExtension)
+      .$extends(slowQueryExtension);
+    Object.assign(this, extended);
 
-      const extended = this.$extends(
-        createEncryptionExtension(this.encryptionService),
-      )
-        .$extends(auditImmutabilityExtension)
-        .$extends(tenantExtension)
-        .$extends(slowQueryExtension);
-      Object.assign(this, extended);
-
-      this.logger.log('Primary database connection established');
-    } catch (error: unknown) {
-      this.logger.error('Failed to connect to database', error);
-      throw error;
-    }
+    void this.$connect()
+      .then(() => {
+        this.logger.log('Primary database connection established');
+      })
+      .catch((error: unknown) => {
+        this.logger.error('Failed to connect to database', error);
+      });
   }
 
   async onModuleDestroy() {

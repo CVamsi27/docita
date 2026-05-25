@@ -11,8 +11,9 @@ import {
   TIER_LIMITS,
   TIER_OVERAGE_RATES_BY_CURRENCY,
   TIER_PRICING_BY_CURRENCY,
-  getWhatsAppAddonPricingByCurrency,
 } from '@workspace/types';
+import { getWhatsAppAddonPricingByCurrency } from '@workspace/utils';
+import { mapPricingTierInputToTierName } from '@/domains/billing/core/services/pricing-helpers';
 
 interface SeedBillingAndUsageParams {
   clinicId: string;
@@ -20,8 +21,10 @@ interface SeedBillingAndUsageParams {
 
 const CANONICAL_TIERS: ClinicTier[] = [
   ClinicTier.STARTER,
+  ClinicTier.FRONT_DESK,
   ClinicTier.ESSENTIAL,
   ClinicTier.PROFESSIONAL,
+  ClinicTier.HOSPITAL,
   ClinicTier.ENTERPRISE,
 ];
 
@@ -66,7 +69,10 @@ export async function seedBillingAndUsage(
 
   await Promise.all(
     CANONICAL_TIERS.map((tier, index) => {
-      const tierName = tier as keyof typeof TIER_LIMITS;
+      const tierName = mapPricingTierInputToTierName(tier);
+      if (!tierName) {
+        throw new Error(`Unsupported tier for billing seed: ${tier}`);
+      }
       const tierPricing = pricing[tierName];
       const tierLimits = TIER_LIMITS[tierName];
       const overage = overageRatesByTier[tierName];

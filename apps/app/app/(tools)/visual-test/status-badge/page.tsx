@@ -1,6 +1,6 @@
 "use client";
 
-import { StatusBadge, PriorityBadge } from "@workspace/ui/components/status-badge";
+import { StatusBadge, PriorityBadge } from "@workspace/ui/components/indicators/status-badge";
 
 export default function StatusBadgeVisualTest() {
   const statuses = [

@@ -1,7 +1,7 @@
 /**
  * Abstraction for creating hosted payment links. Two Nest tokens separate
  * Docita SaaS billing links from clinic invoice (Flow B) links — see
- * docs/PAYMENT_FLOWS.md. Flow B Razorpay must use clinic credentials from
+ * docs/product/PAYMENT_FLOWS.md. Flow B Razorpay must use clinic credentials from
  * settings (Flow A), not Docita’s merchant.
  */
 import { IPaymentGateway } from '@/domains/payments/core/ports/payment-gateway.port';

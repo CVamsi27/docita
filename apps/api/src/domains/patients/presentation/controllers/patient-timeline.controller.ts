@@ -7,20 +7,39 @@ import {
   NotFoundException,
 } from '@nestjs/common';
 import { ApiTags, ApiOperation, ApiBearerAuth } from '@nestjs/swagger';
-import { APP_ACCESS_TARGETS } from '@workspace/types';
+import { APP_ACCESS_TARGETS, Feature } from '@workspace/types';
 import { Roles } from '@/shared/modules/auth/auth/roles.decorator';
-import { RequestWithUser } from '@/common/types/common.types';
+import { RequireFeature } from '@/shared/modules/auth/auth/tier.decorator';
+import { RequestWithUser } from '@/shared/common/types/common.types';
 import { PatientTimelineService } from '@/domains/patients/application/services/patient-timeline.service';
-import { parsePaginationInt } from '@/common/utils/string.utils';
+import { parsePaginationInt } from '@/shared/common/utils/string.utils';
 import { getDbRolesForTarget } from '@/shared/modules/auth/auth/access-matrix.util';
+import { AuditService } from '@/shared/modules/audit/audit/audit.service';
+import { logPatientPhiRead } from '@/shared/modules/audit/audit/patient-access-audit.util';
+import type { TimelineEventType } from '@/domains/patients/core/repositories/timeline/timeline-event.types';
+import { parseStringEnumMember } from '@workspace/utils';
+
+const TIMELINE_EVENT_TYPES: readonly TimelineEventType[] = [
+  'APPOINTMENT',
+  'PRESCRIPTION',
+  'METRIC_RECORD',
+  'LAB_TEST',
+  'MEDICAL_DOCUMENT',
+  'FOLLOW_UP',
+  'IMMUNIZATION',
+  'ADMISSION',
+  'MEDICATION_DOSE',
+];
 
 @ApiTags('patient-timeline')
 @Controller('patients/:patientId/timeline')
 @Roles(...getDbRolesForTarget(APP_ACCESS_TARGETS.API_PATIENT_TIMELINE))
+@RequireFeature(Feature.BASIC_PATIENT_MANAGEMENT)
 @ApiBearerAuth('JWT-auth')
 export class PatientTimelineController {
   constructor(
     private readonly patientTimelineService: PatientTimelineService,
+    private readonly auditService: AuditService,
   ) {}
 
   private getClinicId(req: RequestWithUser): string {
@@ -44,10 +63,14 @@ export class PatientTimelineController {
     },
   ) {
     const clinicId = this.getClinicId(req);
+    await logPatientPhiRead(this.auditService, req, patientId, 'VIEW_HISTORY');
     const eventTypes = query.eventTypes
-      ? (query.eventTypes.split(',') as Parameters<
-          typeof this.patientTimelineService.getTimeline
-        >[2]['eventTypes'])
+      ? query.eventTypes
+          .split(',')
+          .map((entry) =>
+            parseStringEnumMember(TIMELINE_EVENT_TYPES, entry.trim()),
+          )
+          .filter((entry): entry is TimelineEventType => entry !== null)
       : undefined;
 
     return this.patientTimelineService.getTimeline(clinicId, patientId, {
@@ -66,6 +89,7 @@ export class PatientTimelineController {
     @Request() req: RequestWithUser,
   ) {
     const clinicId = this.getClinicId(req);
+    await logPatientPhiRead(this.auditService, req, patientId, 'VIEW_HISTORY');
     return this.patientTimelineService.getPatientSnapshot(clinicId, patientId);
   }
 }

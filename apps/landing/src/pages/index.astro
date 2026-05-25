@@ -33,39 +33,6 @@ const platformStats = await fetchPlatformStats(Astro.url.origin);
   <WorkflowCompareSection client:visible />
   <RolloutSection client:visible />
   <DifferentiatorsSection client:visible />
-  <section
-    class="r2-section border-y border-border/50 bg-muted/25"
-    aria-labelledby="front-desk-landing-teaser-heading"
-  >
-    <div class="ui-page-shell py-8 sm:py-10">
-      <h2
-        id="front-desk-landing-teaser-heading"
-        class="text-base font-semibold tracking-tight text-foreground"
-      >
-        Front desk workspace (not a separate paid tier)
-      </h2>
-      <p class="mt-2 max-w-3xl text-sm leading-relaxed text-muted-foreground">
-        Same subscription plans as below. This path keeps scheduling, queue,
-        patients, and invoicing while turning off in-app consultation and
-        prescription authoring for your facility.
-      </p>
-      <p class="mt-4 flex flex-wrap items-center gap-x-3 gap-y-2 text-sm">
-        <a
-          class="font-medium text-primary underline-offset-4 hover:underline"
-          href={`${appUrl}/onboarding?workspace=front_desk`}
-        >
-          Start front desk onboarding
-        </a>
-        <span class="text-muted-foreground" aria-hidden="true">|</span>
-        <a
-          class="font-medium text-primary underline-offset-4 hover:underline"
-          href="#front-desk-workspace"
-        >
-          Details in pricing
-        </a>
-      </p>
-    </div>
-  </section>
   <PricingSection appUrl={appUrl} client:idle />
   <FaqCtaSection appUrl={appUrl} client:visible />
 </MainLayout>

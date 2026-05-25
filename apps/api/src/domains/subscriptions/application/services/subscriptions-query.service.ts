@@ -1,5 +1,19 @@
 import { Injectable, NotFoundException, Inject } from '@nestjs/common';
 import {
+  normalizePaymentHistory,
+  filterPendingPlanCheckoutMismatches,
+  collapseStaleUpgradePendingCheckouts,
+} from './subscriptions-payment-history-helpers';
+import {
+  parsePaymentHistoryRecords,
+  type PaymentHistoryRecord,
+} from './subscription-payment-history.types';
+import {
+  lookupTierObject,
+  lookupTierValue,
+  parsePricingConfigResponse,
+} from './subscription-tier-config.helpers';
+import {
   SUBSCRIPTION_REPOSITORY_TOKEN,
   ISubscriptionRepository,
   CLINIC_OPERATIONS_TOKEN,
@@ -17,18 +31,25 @@ import {
   Tier,
   FEATURE_TIER_MAP,
 } from '@/shared/modules/auth/auth/tier.decorator';
-import { DEFAULT_CURRENCY } from '@workspace/utils';
-import { PricingService as BillingPricingService } from '@/domains/billing/core/services/pricing.service';
+import {
+  DEFAULT_CURRENCY,
+  isOutstandingUnpaidSubscriptionPaymentStatus,
+} from '@workspace/utils';
+import {
+  CLINIC_PRICING_QUERY_TOKEN,
+  type IClinicPricingQuery,
+} from '@/domains/billing/application/ports';
 import { FeatureFlagService } from '@/shared/modules/services/feature-flag.service';
-
-type PaymentHistoryRecord = {
-  amountCents: number;
-  currency: string;
-  status?: string;
-  description?: string | null;
-  createdAt: Date;
-  getStatus?: () => unknown;
-};
+import {
+  getTrialGraceEndsAt,
+  getTrialWindowState,
+} from '@/shared/modules/auth/utils/trial-window.util';
+import {
+  PLATFORM_INVOICE_PROVIDER_TOKEN,
+  type IPlatformInvoiceProvider,
+} from '@/domains/payments/core/ports';
+import { ApplyPlanChangeWithoutPaymentUseCase } from '@/domains/subscriptions/application/use-cases/apply-plan-change-without-payment.use-case';
+import { CLOCK_PORT, type IClock } from '@/shared/common/ports/clock.port';
 
 @Injectable()
 export class SubscriptionsQueryService {
@@ -38,27 +59,38 @@ export class SubscriptionsQueryService {
     @Inject(CLINIC_OPERATIONS_TOKEN)
     private readonly clinicOps: IClinicOperations,
     private readonly pricingService: SubscriptionPricingService,
-    private readonly billingPricingService: BillingPricingService,
+    @Inject(CLINIC_PRICING_QUERY_TOKEN)
+    private readonly clinicPricingQuery: IClinicPricingQuery,
     private readonly featureFlagService: FeatureFlagService,
+    @Inject(PLATFORM_INVOICE_PROVIDER_TOKEN)
+    private readonly platformInvoiceProvider: IPlatformInvoiceProvider,
+    private readonly applyPlanChangeWithoutPayment: ApplyPlanChangeWithoutPaymentUseCase,
+    @Inject(CLOCK_PORT) private readonly clock: IClock,
   ) {}
 
-  private getTierData<T extends Record<string, V>, V>(
-    source: T,
-    key: string,
-  ): T[keyof T] | undefined {
-    return source[key as keyof T];
-  }
-
-  private getTierObject<T extends Record<string, unknown>>(
-    source: T,
-    key: string,
-  ): Record<string, unknown> {
-    const value = this.getTierData(source, key);
-    if (!value || typeof value !== 'object' || Array.isArray(value)) {
-      return {};
+  /**
+   * Applies any scheduled plan change whose effectiveAt is in the past.
+   * Called from read paths so users see the new plan as soon as their period
+   * rolls over, without requiring a dedicated cron.
+   */
+  private async maybeApplyDueScheduledChange(clinicId: string): Promise<void> {
+    const subscription = await this.subscriptionRepo.findByClinicId(clinicId);
+    if (!subscription || !subscription.isScheduledChangeDue(this.clock.now()))
+      return;
+    const scheduled = subscription.scheduledChange;
+    if (!scheduled) {
+      return;
     }
-
-    return Object.fromEntries(Object.entries(value as Record<string, unknown>));
+    try {
+      await this.applyPlanChangeWithoutPayment.execute({
+        clinicId,
+        tier: scheduled.plan,
+        cycle: scheduled.billingCycle,
+      });
+    } catch {
+      // Best-effort. Don't break the read if the scheduled change can't apply
+      // (e.g. tier requires payment); we'll surface the issue via UI next time.
+    }
   }
 
   async getTierConfig() {
@@ -69,31 +101,27 @@ export class SubscriptionsQueryService {
       'PROFESSIONAL',
       'ENTERPRISE',
     ];
-    const pricingConfig =
-      await this.billingPricingService.getPricingConfig(DEFAULT_CURRENCY);
-    const pricingTiers = pricingConfig.tiers as Array<{
-      id: string;
-      pricing?: unknown;
-    }>;
+    const pricingConfig = parsePricingConfigResponse(
+      await this.clinicPricingQuery.getPricingConfig(DEFAULT_CURRENCY),
+    );
     return {
       tiers: tiers.map((tier) => ({
         id: tier,
-        tier: this.getTierData(Tier, tier),
-        ...this.getTierObject(TIER_INFO, tier),
+        tier: lookupTierValue(Tier, tier),
+        ...lookupTierObject(TIER_INFO, tier),
         pricing:
-          pricingTiers.find((item: { id: string }) => item.id === tier)
-            ?.pricing ?? undefined,
-        limits: this.getTierData(TIER_LIMITS, tier),
-        features: this.getTierData(TIER_FEATURES, tier) || [],
+          pricingConfig.tiers.find((item) => item.id === tier)?.pricing ??
+          undefined,
+        limits: lookupTierValue(TIER_LIMITS, tier),
+        features: lookupTierValue(TIER_FEATURES, tier) || [],
       })),
       featureTierMap: FEATURE_TIER_MAP,
       featureDisplay: FEATURE_DISPLAY,
       intelligenceInfo: {
-        ...this.getTierObject(TIER_INFO, 'INTELLIGENCE'),
+        ...lookupTierObject(TIER_INFO, 'INTELLIGENCE'),
         pricing:
-          pricingTiers.find(
-            (item: { id: string }) => item.id === 'INTELLIGENCE',
-          )?.pricing ?? undefined,
+          pricingConfig.tiers.find((item) => item.id === 'INTELLIGENCE')
+            ?.pricing ?? undefined,
         features: [],
       },
     };
@@ -108,11 +136,21 @@ export class SubscriptionsQueryService {
   }
 
   async getSubscriptionDetails(clinicId: string) {
+    await this.maybeApplyDueScheduledChange(clinicId);
     const subscription = await this.subscriptionRepo.findByClinicId(clinicId);
     if (!subscription) {
       return null;
     }
     const tierName = subscription.getPlan().value;
+    const recentPayments = await this.subscriptionRepo.findPaymentsByClinicId(
+      clinicId,
+      12,
+    );
+    const hasOutstandingPendingPayment = parsePaymentHistoryRecords(
+      recentPayments,
+    ).some((payment) =>
+      isOutstandingUnpaidSubscriptionPaymentStatus(payment.status),
+    );
 
     return {
       id: subscription.id,
@@ -126,42 +164,113 @@ export class SubscriptionsQueryService {
       cancelAtPeriodEnd: subscription.cancelAtPeriodEnd ?? false,
       currentPeriodStart: subscription.currentPeriodStart.toISOString(),
       currentPeriodEnd: subscription.currentPeriodEnd.toISOString(),
-      daysRemaining: subscription.getDaysRemaining(),
+      daysRemaining: subscription.getDaysRemaining(this.clock.now()),
+      scheduledChange: subscription.scheduledChange ?? null,
+      accountCreditCents: subscription.getCredits().paise,
+      hasOutstandingPendingPayment,
     };
   }
 
-  async getPaymentHistory(clinicId: string, limit: number = 20) {
+  async getPaymentHistory(
+    clinicId: string,
+    limit: number = 20,
+  ): Promise<PaymentHistoryRecord[]> {
     const subscription = await this.subscriptionRepo.findByClinicId(clinicId);
     const currentPlan = subscription ? subscription.getPlan().value : undefined;
 
-    const records = (await this.subscriptionRepo.findPaymentsByClinicId(
-      clinicId,
-      Math.max(limit * 5, limit),
-    )) as PaymentHistoryRecord[];
-    const normalized = this.normalizePaymentHistory(records);
-    const collapsed = this.collapseStaleUpgradePendingCheckouts(normalized);
-    const withoutStalePending = this.filterPendingPlanCheckoutMismatches(
+    const records = parsePaymentHistoryRecords(
+      await this.subscriptionRepo.findPaymentsByClinicId(
+        clinicId,
+        Math.max(limit * 5, limit),
+      ),
+    );
+    const normalized = normalizePaymentHistory(records);
+    const collapsed = collapseStaleUpgradePendingCheckouts(normalized);
+    const withoutStalePending = filterPendingPlanCheckoutMismatches(
       collapsed,
       currentPlan,
     );
-    return withoutStalePending.slice(0, limit);
+
+    const merged = await this.mergeRazorpayInvoices(
+      clinicId,
+      withoutStalePending,
+    );
+
+    return merged.slice(0, limit);
+  }
+
+  /**
+   * Razorpay is the source of truth for invoices. When our local
+   * `SubscriptionPayment` table is missing rows (e.g. webhook never landed in
+   * dev), we still want to surface anything Razorpay has on file for the
+   * clinic's customer. Anything Razorpay shows that we have not already
+   * persisted gets appended as a synthetic history row pointing at the
+   * Razorpay-hosted invoice URL.
+   */
+  private async mergeRazorpayInvoices(
+    clinicId: string,
+    localRecords: PaymentHistoryRecord[],
+  ): Promise<PaymentHistoryRecord[]> {
+    const clinic = await this.clinicOps.getClinicDetails(clinicId);
+    if (!clinic.razorpayCustomerId) {
+      return localRecords;
+    }
+
+    const invoices = await this.platformInvoiceProvider.listInvoicesByCustomer(
+      clinic.razorpayCustomerId,
+    );
+    if (!invoices.length) {
+      return localRecords;
+    }
+
+    const knownInvoiceIds = new Set(
+      localRecords
+        .map((r) => r.invoiceNumber)
+        .filter((v): v is string => typeof v === 'string'),
+    );
+
+    const synthesized: PaymentHistoryRecord[] = [];
+    for (const inv of invoices) {
+      if (inv.invoiceNumber && knownInvoiceIds.has(inv.invoiceNumber)) continue;
+      if (inv.id && knownInvoiceIds.has(inv.id)) continue;
+      synthesized.push({
+        amountCents: inv.amountCents,
+        currency: inv.currency,
+        status: inv.status === 'paid' ? 'paid' : inv.status,
+        description: 'Razorpay subscription invoice',
+        createdAt: inv.createdAt,
+        id: inv.id,
+        invoiceUrl: inv.shortUrl ?? undefined,
+        invoiceNumber: inv.invoiceNumber ?? undefined,
+        paidAt: inv.paidAt ?? undefined,
+      });
+    }
+
+    return [...localRecords, ...synthesized].sort(
+      (a, b) =>
+        new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime(),
+    );
   }
 
   async getBillingStatus(clinicId: string) {
+    await this.maybeApplyDueScheduledChange(clinicId);
     const subscription = await this.subscriptionRepo.findByClinicId(clinicId);
     const payments = subscription
-      ? ((await this.subscriptionRepo.findPaymentsByClinicId(
-          clinicId,
-          1,
-        )) as Array<{
-          amountCents: number;
-          currency: string;
-          status?: string;
-          createdAt: Date;
-          getStatus?: () => unknown;
-        }>)
+      ? parsePaymentHistoryRecords(
+          await this.subscriptionRepo.findPaymentsByClinicId(clinicId, 1),
+        )
       : [];
     const lastPayment = payments[0];
+
+    const trialEnd = subscription?.trialEnd ?? null;
+    const trialWindowState = subscription
+      ? getTrialWindowState({
+          subscriptionStatus: subscription.getStatus().value,
+          trialEnd,
+          now: this.clock.now(),
+        })
+      : null;
+    const trialGraceEndsAt = getTrialGraceEndsAt(trialEnd);
 
     return {
       subscription: subscription
@@ -174,6 +283,13 @@ export class SubscriptionsQueryService {
             currentPeriodStart: subscription.currentPeriodStart.toISOString(),
             currentPeriodEnd: subscription.currentPeriodEnd.toISOString(),
             cancelAtPeriodEnd: subscription.cancelAtPeriodEnd ?? false,
+            trialEnd: trialEnd ? trialEnd.toISOString() : null,
+            trialWindowState,
+            trialGraceEndsAt: trialGraceEndsAt
+              ? trialGraceEndsAt.toISOString()
+              : null,
+            scheduledChange: subscription.scheduledChange ?? null,
+            accountCreditCents: subscription.getCredits().paise,
           }
         : null,
       referralCredits: 0,
@@ -210,143 +326,5 @@ export class SubscriptionsQueryService {
       currency: DEFAULT_CURRENCY,
       plan: subscription.getPlan().value,
     };
-  }
-
-  private normalizePaymentHistory<T extends PaymentHistoryRecord>(
-    records: T[],
-  ): T[] {
-    const seenPendingKeys = new Set<string>();
-    const normalized: T[] = [];
-
-    for (const record of records) {
-      const status = (
-        record.status ?? String(record.getStatus?.() ?? '')
-      ).toLowerCase();
-
-      if (status === 'expired') {
-        continue;
-      }
-
-      if (status === 'pending') {
-        const key = [
-          record.description ?? '',
-          record.amountCents,
-          record.currency,
-        ].join('|');
-
-        if (seenPendingKeys.has(key)) {
-          continue;
-        }
-
-        seenPendingKeys.add(key);
-      }
-
-      normalized.push(record);
-    }
-
-    return normalized;
-  }
-
-  private isPendingLikeStatus(status: string): boolean {
-    const s = status.toLowerCase().trim();
-    return (
-      s === 'pending' ||
-      s === 'processing' ||
-      s === 'created' ||
-      s === 'requires_action' ||
-      s === 'attempted' ||
-      s === 'due'
-    );
-  }
-
-  private isTierUpgradeSubscriptionDescription(
-    description: string | null | undefined,
-  ): boolean {
-    if (!description || typeof description !== 'string') return false;
-    return /\b(STARTER|ESSENTIAL|FRONT_DESK|PROFESSIONAL|ENTERPRISE)\s+(MONTHLY|YEARLY)\s+subscription\b/i.test(
-      description.trim(),
-    );
-  }
-
-  private parseTierFromUpgradeDescription(
-    description: string | null | undefined,
-  ): string | null {
-    if (!description || typeof description !== 'string') return null;
-    const m = description
-      .trim()
-      .match(
-        /^(STARTER|ESSENTIAL|FRONT_DESK|PROFESSIONAL|ENTERPRISE)\s+(MONTHLY|YEARLY)\s+subscription$/i,
-      );
-    return m?.[1] ? m[1].toUpperCase() : null;
-  }
-
-  /**
-   * Pending tier-upgrade rows describe the target plan on the Razorpay order.
-   * If the clinic never completed checkout and is still on another tier, hide
-   * those rows so billing history matches the active subscription (new
-   * checkouts expire older pendings when a new checkout is created).
-   */
-  private filterPendingPlanCheckoutMismatches<T extends PaymentHistoryRecord>(
-    records: T[],
-    currentPlan: string | undefined,
-  ): T[] {
-    if (!currentPlan) {
-      return records;
-    }
-    return records.filter((record) => {
-      const status = (
-        record.status ?? String(record.getStatus?.() ?? '')
-      ).toLowerCase();
-      if (!this.isPendingLikeStatus(status)) {
-        return true;
-      }
-      if (!this.isTierUpgradeSubscriptionDescription(record.description)) {
-        return true;
-      }
-      const rowTier = this.parseTierFromUpgradeDescription(record.description);
-      if (!rowTier) {
-        return true;
-      }
-      return rowTier === currentPlan;
-    });
-  }
-
-  /**
-   * Each plan change creates a Razorpay order; abandoning checkout leaves
-   * multiple pending rows. Keep only the newest pending tier upgrade so the
-   * table matches a single actionable checkout (paid rows unchanged).
-   */
-  private collapseStaleUpgradePendingCheckouts<T extends PaymentHistoryRecord>(
-    records: T[],
-  ): T[] {
-    const pendingUpgradeIndexes: number[] = [];
-    for (let i = 0; i < records.length; i++) {
-      const record = records[i]!;
-      const status = (
-        record.status ?? String(record.getStatus?.() ?? '')
-      ).toLowerCase();
-      if (!this.isPendingLikeStatus(status)) continue;
-      if (!this.isTierUpgradeSubscriptionDescription(record.description)) {
-        continue;
-      }
-      pendingUpgradeIndexes.push(i);
-    }
-    if (pendingUpgradeIndexes.length <= 1) {
-      return records;
-    }
-
-    let newestIndex = pendingUpgradeIndexes[0]!;
-    let newestTs = new Date(records[newestIndex]!.createdAt).getTime();
-    for (const idx of pendingUpgradeIndexes) {
-      const ts = new Date(records[idx]!.createdAt).getTime();
-      if (ts >= newestTs) {
-        newestTs = ts;
-        newestIndex = idx;
-      }
-    }
-    const drop = new Set(
-      pendingUpgradeIndexes.filter((idx) => idx !== newestIndex),
-    );
-    return records.filter((_, i) => !drop.has(i));
   }
 }

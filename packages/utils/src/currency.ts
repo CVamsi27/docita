@@ -1,7 +1,21 @@
 import {
   PRICING_CURRENCY_CONFIG,
+  PRICING_CURRENCY_SYMBOLS,
   type SupportedCurrency,
 } from "@workspace/types";
+import { isRecord } from "./is-record.js";
+import { parseStringEnumMember } from "./string-enum.js";
+
+const SUPPORTED_PRICING_CURRENCIES = Object.keys(
+  PRICING_CURRENCY_SYMBOLS,
+).filter((key): key is SupportedCurrency => key in PRICING_CURRENCY_SYMBOLS);
+
+export function parseSupportedCurrency(
+  value: string,
+  fallback: SupportedCurrency = "INR",
+): SupportedCurrency {
+  return parseStringEnumMember(SUPPORTED_PRICING_CURRENCIES, value) ?? fallback;
+}
 import {
   CURRENCY_OPTIONS,
   DEFAULT_CURRENCY,
@@ -90,11 +104,10 @@ export function getCurrencyLocale(currency: string | null | undefined): string {
 export function resolveCurrencyContext(source: unknown): CurrencyContext {
   let currency: string | undefined;
 
-  if (source && typeof source === "object" && !Array.isArray(source)) {
-    const record = source as Record<string, unknown>;
+  if (isRecord(source)) {
     currency =
-      typeof record["currency"] === "string"
-        ? normalizeCurrency(record["currency"])
+      typeof source["currency"] === "string"
+        ? normalizeCurrency(source["currency"])
         : undefined;
   }
 

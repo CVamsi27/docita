@@ -5,6 +5,7 @@ import {
   OnModuleInit,
 } from '@nestjs/common';
 import { ExtractedText, ParsedMedicalFields } from '@workspace/types';
+import { getErrorMessage } from '@workspace/utils';
 import { ImagePreprocessorService } from './image-preprocessor.service';
 import { TextExtractorService } from './text-extractor.service';
 import { DocumentClassifierService } from './document-classifier.service';
@@ -75,7 +76,7 @@ export class OCRFacadeService implements OnModuleInit, OnModuleDestroy {
         extractedText.length > 50 ? 0.8 : extractedText.length > 10 ? 0.5 : 0.2;
 
       this.logger.log(
-        `[OCR] Successfully extracted ${extractedText.length} characters, classified as ${documentType}`,
+        `[OCR] Successfully extracted ${extractedText.length} characters; document type: ${documentType}`,
       );
 
       return {
@@ -84,8 +85,9 @@ export class OCRFacadeService implements OnModuleInit, OnModuleDestroy {
         documentType,
       };
     } catch (error: unknown) {
-      const err = error as Error;
-      this.logger.error(`[OCR] Failed to extract text: ${err.message}`);
+      this.logger.error(
+        `[OCR] Failed to extract text: ${getErrorMessage(error)}`,
+      );
       throw error;
     }
   }

@@ -5,8 +5,8 @@ import {
   CardContent,
   CardHeader,
   CardTitle,
-} from "@workspace/ui/components/card";
-import { Badge } from "@workspace/ui/components/badge";
+} from "@workspace/ui/components/indicators/card";
+import { Badge } from "@workspace/ui/components/indicators/badge";
 import { Pill } from "lucide-react";
 import type { ActiveMedication } from "@workspace/types";
 import { formatDate } from "@/lib/formatters";

@@ -4,11 +4,8 @@ import {
   formatInvoicePaymentMethodLabel,
 } from "./invoice-payment-display";
 
-const formatDate = (
-  value: string | Date,
-  locale: string,
-  options: Intl.DateTimeFormatOptions,
-) => new Intl.DateTimeFormat(locale, options).format(new Date(value));
+const formatDate = (value: string | Date | null | undefined): string =>
+  value ? new Date(value).toISOString().slice(0, 10) : "";
 
 describe("formatInvoicePaymentMethodLabel", () => {
   it("maps known methods", () => {

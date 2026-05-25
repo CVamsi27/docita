@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { Button } from "@workspace/ui/components/button";
+import { Button } from "@workspace/ui/components/form/button";
 import { Check, Pencil } from "lucide-react";
 import type { PatientWithMedicalHistory } from "@workspace/types";
 import { PatientMedicalHistoryContainer } from "@/features/patients/components/details/PatientMedicalHistoryContainer";

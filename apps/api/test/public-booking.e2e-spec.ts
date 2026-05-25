@@ -3,9 +3,7 @@ import { Test, TestingModule } from '@nestjs/testing';
 import request from 'supertest';
 import { AppModule } from '@/app.module';
 import { PublicBookingService } from '@/domains/public-booking/application/services/public-booking.service';
-import { RazorpaySubscriptionGateway } from '@/gateways/razorpay-subscription.gateway';
-import { mockRazorpayGateway } from './razorpay.provider';
-import { WhatsappService } from '@/shared/modules/messaging/whatsapp/whatsapp.service';
+import { WhatsappService } from '@/domains/whatsapp/application/services/whatsapp-clinic-facade.service';
 import { mockWhatsappService } from './whatsapp.provider';
 
 describe('PublicBookingController (e2e)', () => {
@@ -29,8 +27,6 @@ describe('PublicBookingController (e2e)', () => {
     })
       .overrideProvider(PublicBookingService)
       .useValue(mockPublicBookingService)
-      .overrideProvider(RazorpaySubscriptionGateway)
-      .useValue(mockRazorpayGateway)
       .overrideProvider(WhatsappService)
       .useValue(mockWhatsappService)
       .compile();
@@ -136,10 +132,17 @@ describe('PublicBookingController (e2e)', () => {
       expect.objectContaining({
         phoneNumber: '+919876543210',
         firstName: 'Ada',
+        lastName: 'Lovelace',
         preferredDoctorId: 'doc-1',
+        slotCalendarDate: '2026-05-10',
+        requestedSlotStart: '2026-05-10T10:00:00.000Z',
+        requestedSlotEnd: '2026-05-10T10:30:00.000Z',
+        turnstileToken: 'turnstile-token',
+        bookingVerificationToken: 'booking.jwt',
       }),
       'Bearer booking.jwt',
       expect.any(String),
+      undefined,
     );
   });
 });

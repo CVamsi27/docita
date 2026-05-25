@@ -3,11 +3,13 @@ import { DoctorVerificationStatus, Role } from '@workspace/db';
 import { JsonValue } from '@workspace/types';
 import { DATE_FORMATS, formatDate } from '@workspace/utils';
 import { AppConfigService } from '@/shared/modules/config/app-configuration.service';
-import { runWithTenant } from '@/common/middleware/tenant.middleware';
+import { runWithTenant } from '@/shared/common/middleware/tenant.middleware';
 import {
   IDoctorVerificationRepository,
   DOCTOR_VERIFICATION_REPOSITORY_TOKEN,
 } from '@/domains/doctors/core/repositories/doctor-verification.repository.interface';
+import { CLOCK_PORT, type IClock } from '@/shared/common/ports/clock.port';
+import { DoctorVerificationHttpClient } from '@/domains/doctors/infrastructure/external/doctor-verification-http.client';
 
 type VerificationResult = {
   status: DoctorVerificationStatus;
@@ -35,6 +37,8 @@ export class DoctorVerificationService {
     @Inject(DOCTOR_VERIFICATION_REPOSITORY_TOKEN)
     private readonly repository: IDoctorVerificationRepository,
     private readonly configService: AppConfigService,
+    @Inject(CLOCK_PORT) private readonly clock: IClock,
+    private readonly verificationHttp: DoctorVerificationHttpClient,
   ) {}
 
   async verifyAndPersistDoctorVerification(doctorId: string) {
@@ -54,7 +58,7 @@ export class DoctorVerificationService {
         verificationSource: 'NMC',
         verificationReason: 'Registration number is required',
         verificationRef: null,
-        verificationCheckedAt: new Date(),
+        verificationCheckedAt: this.clock.now(),
       });
 
       return this.repository.findDoctorVerificationRecord(doctorId);
@@ -64,7 +68,7 @@ export class DoctorVerificationService {
       verificationStatus: DoctorVerificationStatus.PENDING,
       verificationSource: 'NMC',
       verificationReason: null,
-      verificationCheckedAt: new Date(),
+      verificationCheckedAt: this.clock.now(),
     });
 
     const result = await this.verifyWithProvider({
@@ -82,7 +86,7 @@ export class DoctorVerificationService {
       verificationRef: result.reference ?? null,
       verificationReason: result.reason ?? null,
       verificationData: result.data,
-      verificationCheckedAt: new Date(),
+      verificationCheckedAt: this.clock.now(),
     });
 
     return this.repository.findDoctorVerificationRecord(doctorId);
@@ -113,7 +117,7 @@ export class DoctorVerificationService {
       return { valid: true };
     }
 
-    const now = new Date();
+    const now = this.clock.now();
     const expiryDate = new Date(doctor.licenseExpiry);
 
     if (expiryDate < now) {
@@ -156,46 +160,48 @@ export class DoctorVerificationService {
       };
     }
 
+    const hprResult = await this.tryHprVerification(input);
+    if (hprResult) {
+      return hprResult;
+    }
+
     const { apiUrl, apiKey } = this.configService.getDoctorVerificationConfig();
 
     if (!apiUrl) {
-      this.logger.warn(
-        'Doctor verification skipped: DOCTOR_VERIFICATION_API_URL is not configured',
+      this.logger.log(
+        `Doctor verification queued for admin review (no automated provider configured) for ${input.id}`,
       );
       return {
-        status: DoctorVerificationStatus.FAILED,
-        source: 'NMC',
+        status: DoctorVerificationStatus.PENDING,
+        source: 'MANUAL_ADMIN',
         reason:
-          'Registration verification is temporarily unavailable. Please try again later.',
+          'Your registration is being reviewed by our team. This usually takes 1–2 business days.',
       };
     }
 
     try {
-      const controller = new AbortController();
-      const timeoutId = setTimeout(() => controller.abort(), 10000);
-
-      const response = await fetch(apiUrl, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          ...(apiKey ? { Authorization: `Bearer ${apiKey}` } : {}),
-        },
-        body: JSON.stringify({
+      const {
+        ok,
+        status,
+        json: payload,
+      } = await this.verificationHttp.postJson<VerificationProviderResponse>(
+        apiUrl,
+        {
           doctorId: input.id,
           name: input.name,
           registrationNumber: input.registrationNumber,
           registrationCouncil: input.registrationCouncil,
           registrationStateCode: input.registrationStateCode,
           licenseNumber: input.licenseNumber,
-        }),
-        signal: controller.signal,
-      });
+        },
+        {
+          headers: apiKey ? { Authorization: `Bearer ${apiKey}` } : {},
+        },
+      );
 
-      clearTimeout(timeoutId);
-
-      if (!response.ok) {
+      if (!ok) {
         this.logger.warn(
-          `Doctor verification provider returned HTTP ${response.status}`,
+          `Doctor verification provider returned HTTP ${status}`,
         );
         return {
           status: DoctorVerificationStatus.FAILED,
@@ -204,8 +210,6 @@ export class DoctorVerificationService {
             'Registration verification is temporarily unavailable. Please try again later.',
         };
       }
-
-      const payload = (await response.json()) as VerificationProviderResponse;
 
       if (payload.verified) {
         return {
@@ -236,6 +240,65 @@ export class DoctorVerificationService {
         reason:
           'Registration verification is temporarily unavailable. Please try again later.',
       };
+    }
+  }
+
+  // ABDM Healthcare Professionals Registry integration stub.
+  // Wire up the real call once production HPR credentials are issued; until then
+  // we fall through to the admin review queue.
+  private async tryHprVerification(input: {
+    id: string;
+    registrationNumber: string;
+    registrationCouncil?: string;
+    registrationStateCode?: string;
+  }): Promise<VerificationResult | null> {
+    const { hprApiUrl, hprApiKey } =
+      this.configService.getHprVerificationConfig();
+    if (!hprApiUrl || !hprApiKey) {
+      return null;
+    }
+
+    try {
+      const {
+        ok,
+        status,
+        json: payload,
+      } = await this.verificationHttp.postJson<{
+        matched?: boolean;
+        hpid?: string;
+        data?: JsonValue;
+      }>(
+        `${hprApiUrl}/v1/practitioner/search`,
+        {
+          registrationNumber: input.registrationNumber,
+          stateMedicalCouncil:
+            input.registrationCouncil ?? input.registrationStateCode,
+        },
+        {
+          headers: { Authorization: `Bearer ${hprApiKey}` },
+        },
+      );
+
+      if (!ok) {
+        this.logger.warn(`HPR lookup HTTP ${status} for ${input.id}`);
+        return null;
+      }
+
+      if (!payload.matched) {
+        return null;
+      }
+
+      return {
+        status: DoctorVerificationStatus.VERIFIED,
+        source: 'HPR',
+        reference: payload.hpid,
+        data: payload.data,
+      };
+    } catch (error) {
+      this.logger.warn(
+        `HPR lookup failed for ${input.id}: ${error instanceof Error ? error.message : 'unknown error'}`,
+      );
+      return null;
     }
   }
 }

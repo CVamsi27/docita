@@ -1,4 +1,5 @@
-import { Injectable } from '@nestjs/common';
+import { Inject, Injectable } from '@nestjs/common';
+import { CLOCK_PORT, type IClock } from '@/shared/common/ports/clock.port';
 import { PrismaService } from '@/prisma/prisma.service';
 import {
   CreateMetricCategoryDto,
@@ -7,14 +8,7 @@ import {
   MetricHistoryQueryDto,
   UpsertMetricSelectionsDto,
 } from '@/domains/patients/application/dto/patient-metrics.dto';
-import {
-  IPatientMetricsRepository,
-  MetricCategoryRow,
-  MetricDefinitionExistsRow,
-  MetricDefinitionRow,
-  MetricRecordRow,
-  MetricSelectionRow,
-} from '@/domains/patients/core/repositories/patient-metrics.repository.interface';
+import { IPatientMetricsRepository } from '@/domains/patients/core/repositories/patient-metrics.repository.interface';
 import {
   MetricCardinality,
   MetricCaptureScope,
@@ -22,6 +16,13 @@ import {
   MetricValueType,
   Prisma,
 } from '@workspace/db';
+import { toPrismaInputJsonValue } from '@/shared/common/json/to-prisma-input-json-value';
+import {
+  mapMetricCategoryRow,
+  mapMetricDefinitionRow,
+  mapMetricRecordRow,
+  mapMetricSelectionRow,
+} from '@/domains/patients/infrastructure/persistence/patient-metrics-repository.mappers';
 
 function toMetricValueType(valueType: CreateMetricDefinitionDto['valueType']) {
   const mapping: Record<
@@ -80,7 +81,10 @@ function toMetricRecordSource(
 
 @Injectable()
 export class PrismaPatientMetricsRepository implements IPatientMetricsRepository {
-  constructor(private readonly prisma: PrismaService) {}
+  constructor(
+    private readonly prisma: PrismaService,
+    @Inject(CLOCK_PORT) private readonly clock: IClock,
+  ) {}
 
   private getReadClient() {
     return this.prisma.getReadClient();
@@ -107,7 +111,7 @@ export class PrismaPatientMetricsRepository implements IPatientMetricsRepository
       },
     });
 
-    return categories as MetricCategoryRow[];
+    return categories.map((category) => mapMetricCategoryRow(category));
   }
 
   async findSelections(clinicId: string, patientId: string) {
@@ -116,7 +120,7 @@ export class PrismaPatientMetricsRepository implements IPatientMetricsRepository
         where: { clinicId, patientId },
       });
 
-    return selections as MetricSelectionRow[];
+    return selections.map((selection) => mapMetricSelectionRow(selection));
   }
 
   createCategory(clinicId: string, dto: CreateMetricCategoryDto) {
@@ -195,7 +199,7 @@ export class PrismaPatientMetricsRepository implements IPatientMetricsRepository
       select: { id: true },
     });
 
-    return definitions as MetricDefinitionExistsRow[];
+    return definitions;
   }
 
   async upsertSelectionsBatch(
@@ -249,7 +253,7 @@ export class PrismaPatientMetricsRepository implements IPatientMetricsRepository
       orderBy: [{ order: 'asc' }, { label: 'asc' }],
     });
 
-    return definitions as MetricDefinitionRow[];
+    return definitions.map((definition) => mapMetricDefinitionRow(definition));
   }
 
   async findActiveDefinition(
@@ -284,7 +288,10 @@ export class PrismaPatientMetricsRepository implements IPatientMetricsRepository
               valueNumber: dto.valueNumber,
               valueBoolean: dto.valueBoolean,
               valueDate: dto.valueDate ? new Date(dto.valueDate) : undefined,
-              valueJson: dto.valueJson as Prisma.InputJsonValue | undefined,
+              valueJson:
+                dto.valueJson === undefined
+                  ? undefined
+                  : toPrismaInputJsonValue(dto.valueJson),
               optionId: dto.optionId,
             },
           ];
@@ -295,7 +302,9 @@ export class PrismaPatientMetricsRepository implements IPatientMetricsRepository
         patientId,
         definitionId: dto.definitionId,
         appointmentId: dto.appointmentId,
-        recordedAt: dto.recordedAt ? new Date(dto.recordedAt) : new Date(),
+        recordedAt: dto.recordedAt
+          ? new Date(dto.recordedAt)
+          : this.clock.now(),
         recordedById: userId,
         source: toMetricRecordSource(dto.source),
         notes: dto.notes,
@@ -372,6 +381,6 @@ export class PrismaPatientMetricsRepository implements IPatientMetricsRepository
       take: query.limit ?? 200,
     });
 
-    return records as MetricRecordRow[];
+    return records.map((record) => mapMetricRecordRow(record));
   }
 }

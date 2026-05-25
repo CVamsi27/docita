@@ -10,14 +10,14 @@ import {
   Stethoscope,
 } from "lucide-react";
 
-import { Button } from "@workspace/ui/components/button";
+import { Button } from "@workspace/ui/components/form/button";
 import {
   Card,
   CardContent,
   CardHeader,
   CardTitle,
-} from "@workspace/ui/components/card";
-import { SectionHeading } from "@workspace/ui/components/section-heading";
+} from "@workspace/ui/components/indicators/card";
+import { SectionHeading } from "@workspace/ui/components/layout/section-heading";
 
 const setupDeliverables = [
   {
@@ -65,7 +65,7 @@ export function ClinicSetupSection() {
             <SectionHeading
               size="section"
               title="Sell a clinic outcome, not another login"
-              description="Docita can be packaged as a hands-on rollout: migrate the clinic list, configure the prescription format, train reception, and make the first workflow useful quickly."
+              description="Docita can be packaged for a hands-on rollout: migrate the clinic list, configure the prescription format, train reception, and make the first workflow useful quickly."
               className="mb-6"
             />
             <ul className="space-y-3 text-sm text-muted-foreground sm:text-base">

@@ -1,8 +1,9 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import { toast } from "sonner";
-import { apiFetch } from "@/lib/api-client";
-import { toAbsoluteAppUrl } from "@/lib/url";
-import { showUserFacingErrorToast } from "@/lib/user-facing-errors";
+import { apiFetch } from "@/lib/api/api-client";
+import { browserBlob } from "@/lib/auth/browser-request";
+import { toAbsoluteAppUrl } from "@/lib/utils/url";
+import { showUserFacingErrorToast } from "@/lib/errors/user-facing-errors";
 
 function resolveUploadedFileUrl(fileUrl: string): string {
   if (/^https?:\/\//i.test(fileUrl)) {
@@ -50,15 +51,10 @@ export const useMobileUpload = () => {
             clearPolling();
             setShowQr(false);
             const downloadUrl = resolveUploadedFileUrl(data.fileUrl);
-            const downloadResponse = await fetch(downloadUrl, {
+            const fileBlob = await browserBlob(downloadUrl, {
               credentials: "include",
               cache: "no-store",
             });
-            if (!downloadResponse.ok) {
-              throw new Error("Uploaded file could not be downloaded");
-            }
-
-            const fileBlob = await downloadResponse.blob();
             const parsedUrl = new URL(downloadUrl);
             const filename =
               decodeURIComponent(parsedUrl.pathname.split("/").pop() || "") ||

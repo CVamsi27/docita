@@ -15,6 +15,7 @@ import {
   ISubscriptionRepository,
   SUBSCRIPTION_REPOSITORY_TOKEN,
 } from '@/domains/subscriptions/application/ports/subscription.repository.port';
+import { CLOCK_PORT, type IClock } from '@/shared/common/ports/clock.port';
 
 @Injectable()
 export class UpgradeSubscriptionUseCase {
@@ -24,6 +25,7 @@ export class UpgradeSubscriptionUseCase {
     private pricingService: SubscriptionPricingService,
     private validationService: SubscriptionValidationService,
     private proratingService: ProratingService,
+    @Inject(CLOCK_PORT) private readonly clock: IClock,
   ) {}
 
   async execute(
@@ -57,10 +59,11 @@ export class UpgradeSubscriptionUseCase {
       subscription.getBillingCycle(),
     );
 
+    const now = this.clock.now();
     if (dto.immediate) {
-      subscription.upgradePlan(newTier, newPriceCents, true);
+      subscription.upgradePlan(newTier, newPriceCents, true, now);
     } else {
-      subscription.upgradePlan(newTier, newPriceCents, false);
+      subscription.upgradePlan(newTier, newPriceCents, false, now);
     }
 
     await this.subscriptionRepository.update(subscription);

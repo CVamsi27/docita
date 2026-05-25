@@ -1,4 +1,5 @@
-import { Injectable, Logger } from '@nestjs/common';
+import { Inject, Injectable, Logger } from '@nestjs/common';
+import { CLOCK_PORT, type IClock } from '@/shared/common/ports/clock.port';
 import { PrismaService } from '@/prisma/prisma.service';
 
 export interface ExportResult {
@@ -12,7 +13,10 @@ export interface ExportResult {
 export class DataExportFactory {
   private readonly logger = new Logger(DataExportFactory.name);
 
-  constructor(private prisma: PrismaService) {}
+  constructor(
+    private prisma: PrismaService,
+    @Inject(CLOCK_PORT) private readonly clock: IClock,
+  ) {}
 
   async exportPatientData(patientId: string): Promise<ExportResult> {
     this.logger.log('Exporting patient data');
@@ -43,7 +47,7 @@ export class DataExportFactory {
     });
 
     return {
-      exportDate: new Date().toISOString(),
+      exportDate: this.clock.now().toISOString(),
       format: 'JSON',
       version: '1.0',
       patient,

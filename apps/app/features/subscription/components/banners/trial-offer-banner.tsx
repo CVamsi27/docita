@@ -1,7 +1,7 @@
 "use client";
 
 import { Clock, Sparkles } from "lucide-react";
-import { Button } from "@workspace/ui/components/button";
+import { Button } from "@workspace/ui/components/form/button";
 import { cn } from "@workspace/ui/lib/utils";
 
 interface TrialOfferBannerProps {

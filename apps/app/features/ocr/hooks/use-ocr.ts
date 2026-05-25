@@ -1,134 +1,18 @@
 import { useMemo, useState } from "react";
 import { toast } from "sonner";
-import { useProcessOCR, useOcrCommitImport } from "@/hooks/api/use-import";
-import { useAuth } from "@/lib/auth-context";
-import { useClinic } from "@/lib/clinic-context";
+import { useProcessOCR, useOcrCommitImport } from "@workspace/data-access";
+import { useAuth } from "@/lib/auth/auth-context";
+import { useClinic } from "@/lib/contexts/clinic-context";
 import { useRouter } from "next/navigation";
-import { showUserFacingErrorToast } from "@/lib/user-facing-errors";
+import { showUserFacingErrorToast } from "@/lib/errors/user-facing-errors";
+import type { OcrImportCommitRequest } from "@workspace/types";
+import { parseStringEnumMember } from "@workspace/utils";
+import type { OCRFormData } from "@/features/ocr/types";
 import {
-  importInvoiceDraftSchema,
-  type OcrImportCommitRequest,
-} from "@workspace/types";
-import type { OCRFormData, OCRInvoiceForm } from "@/features/ocr/types";
-
-function emptyOcrInvoiceForm(): OCRInvoiceForm {
-  return {
-    saveAsPending: false,
-    grandTotal: "",
-    subtotal: "",
-    taxTotal: "",
-    items: [],
-  };
-}
-
-function parseMoneyInput(raw: string): number {
-  const t = raw.replace(/,/g, "").trim();
-  if (t.length === 0) return Number.NaN;
-  const n = Number.parseFloat(t);
-  return Number.isFinite(n) ? n : Number.NaN;
-}
-
-function mapOcrFieldsToInvoiceForm(fields: unknown): OCRInvoiceForm {
-  const empty = emptyOcrInvoiceForm();
-  if (!fields || typeof fields !== "object") return empty;
-  const invUnknown = (fields as { invoice?: unknown }).invoice;
-  if (!invUnknown || typeof invUnknown !== "object" || invUnknown === null) {
-    return empty;
-  }
-  const inv = invUnknown as Record<string, unknown>;
-  const itemsRaw = inv.items;
-  const items: OCRInvoiceForm["items"] = [];
-  if (Array.isArray(itemsRaw)) {
-    for (const row of itemsRaw) {
-      if (!row || typeof row !== "object") continue;
-      const r = row as Record<string, unknown>;
-      const description =
-        typeof r.description === "string"
-          ? r.description
-          : String(r.description ?? "");
-      const quantity =
-        typeof r.quantity === "number" && Number.isFinite(r.quantity)
-          ? String(r.quantity)
-          : String(r.quantity ?? "");
-      const unitPrice =
-        typeof r.unitPrice === "number" && Number.isFinite(r.unitPrice)
-          ? String(r.unitPrice)
-          : String(r.unitPrice ?? "");
-      const total =
-        typeof r.total === "number" && Number.isFinite(r.total)
-          ? String(r.total)
-          : String(r.total ?? "");
-      items.push({ description, quantity, unitPrice, total });
-    }
-  }
-  const numStr = (v: unknown) =>
-    typeof v === "number" && Number.isFinite(v) ? String(v) : "";
-  let grandTotal = numStr(inv.total);
-  if (!grandTotal && items.length > 0) {
-    let sum = 0;
-    let any = false;
-    for (const it of items) {
-      const t = parseMoneyInput(it.total);
-      if (Number.isFinite(t)) {
-        sum += t;
-        any = true;
-      }
-    }
-    if (any) grandTotal = String(sum);
-  }
-  return {
-    saveAsPending: false,
-    grandTotal,
-    subtotal: numStr(inv.subtotal),
-    taxTotal: numStr(inv.tax),
-    items,
-  };
-}
-
-function buildInvoiceDraftForCommit(
-  invoice: OCRInvoiceForm,
-): OcrImportCommitRequest["invoiceDraft"] | undefined {
-  if (!invoice.saveAsPending) return undefined;
-
-  const parsedItems = invoice.items
-    .map((row) => {
-      const description = row.description.trim();
-      if (description.length === 0) return null;
-      const quantity = parseMoneyInput(row.quantity);
-      const unitPrice = parseMoneyInput(row.unitPrice);
-      let total = parseMoneyInput(row.total);
-      if (!Number.isFinite(total) && Number.isFinite(quantity) && Number.isFinite(unitPrice)) {
-        total = quantity * unitPrice;
-      }
-      if (
-        !Number.isFinite(quantity) ||
-        quantity < 0 ||
-        !Number.isFinite(unitPrice) ||
-        unitPrice < 0 ||
-        !Number.isFinite(total) ||
-        total < 0
-      ) {
-        return null;
-      }
-      return { description, quantity, unitPrice, total };
-    })
-    .filter((x): x is NonNullable<typeof x> => x !== null);
-
-  const grandTotal = parseMoneyInput(invoice.grandTotal);
-  const subtotalRaw = parseMoneyInput(invoice.subtotal);
-  const taxRaw = parseMoneyInput(invoice.taxTotal);
-
-  const draft = {
-    grandTotal,
-    subtotal: Number.isFinite(subtotalRaw) ? subtotalRaw : undefined,
-    taxTotal: Number.isFinite(taxRaw) ? taxRaw : undefined,
-    items: parsedItems,
-  };
-
-  const parsed = importInvoiceDraftSchema.safeParse(draft);
-  if (!parsed.success) return undefined;
-  return parsed.data;
-}
+  emptyOcrInvoiceForm,
+  mapOcrFieldsToInvoiceForm,
+  buildInvoiceDraftForCommit,
+} from "./use-ocr-helpers";
 
 export const useOCR = () => {
   const router = useRouter();
@@ -138,15 +22,8 @@ export const useOCR = () => {
   const [file, setFile] = useState<File | null>(null);
   const [previewUrl, setPreviewUrl] = useState<string | null>(null);
   const [scanned, setScanned] = useState(false);
-  const [expandedSections, setExpandedSections] = useState<
-    Record<string, boolean>
-  >({
-    patient: true,
-    clinical: true,
-    vitals: true,
-    medications: false,
-    labValues: false,
-    invoice: false,
+  const [expandedSections, setExpandedSections] = useState<Record<string, boolean>>({
+    patient: true, clinical: true, vitals: true, medications: false, labValues: false, invoice: false,
   });
 
   const processOCRMutation = useProcessOCR();
@@ -154,42 +31,16 @@ export const useOCR = () => {
   const [reviewAcknowledged, setReviewAcknowledged] = useState(false);
 
   const [formData, setFormData] = useState<OCRFormData>({
-    firstName: "",
-    lastName: "",
-    age: "",
-    gender: "MALE",
-    dateOfBirth: "",
-    phoneNumber: "",
-    email: "",
-    address: "",
-    bloodType: "",
-    diagnosis: "",
-    symptoms: [],
-    allergies: [],
-    medicalHistory: [],
-    medications: [],
-    vitals: {
-      bp: "",
-      temp: "",
-      pulse: "",
-      respiratoryRate: "",
-      spO2: "",
-      glucose: "",
-    },
-    labValues: {
-      glucose: "",
-      hemoglobin: "",
-      creatinine: "",
-    },
+    firstName: "", lastName: "", age: "", gender: "MALE", dateOfBirth: "",
+    phoneNumber: "", email: "", address: "", bloodType: "", diagnosis: "",
+    symptoms: [], allergies: [], medicalHistory: [], medications: [],
+    vitals: { bp: "", temp: "", pulse: "", respiratoryRate: "", spO2: "", glucose: "" },
+    labValues: { glucose: "", hemoglobin: "", creatinine: "" },
     invoice: emptyOcrInvoiceForm(),
   });
 
-  const [confidenceScores, setConfidenceScores] = useState<
-    Record<string, number>
-  >({});
-  const [suggestedCorrections, setSuggestedCorrections] = useState<
-    Record<string, string>
-  >({});
+  const [confidenceScores, setConfidenceScores] = useState<Record<string, number>>({});
+  const [suggestedCorrections, setSuggestedCorrections] = useState<Record<string, string>>({});
   const [documentType, setDocumentType] = useState<string>("GENERAL");
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement> | File) => {
@@ -203,15 +54,11 @@ export const useOCR = () => {
 
   const handleScan = async () => {
     if (!file) return;
-
     try {
       const formDataObj = new FormData();
       formDataObj.append("file", file);
-
       const result = await processOCRMutation.mutateAsync(formDataObj);
-
       const invoiceFromScan = mapOcrFieldsToInvoiceForm(result.fields);
-
       setFormData({
         firstName: result.fields?.firstName || result.firstName || "",
         lastName: result.fields?.lastName || result.lastName || "",
@@ -219,8 +66,7 @@ export const useOCR = () => {
         gender: result.fields?.gender || result.gender || "MALE",
         phoneNumber: result.fields?.phoneNumber || result.phoneNumber || "",
         email: result.fields?.email || "",
-        dateOfBirth: "",
-        address: "",
+        dateOfBirth: "", address: "",
         bloodType: result.fields?.bloodType || "",
         diagnosis: result.fields?.diagnosis || result.diagnosis || "",
         symptoms: result.fields?.symptoms || [],
@@ -232,202 +78,103 @@ export const useOCR = () => {
           temp: result.fields?.vitals?.temp || result.vitals?.temp || "",
           pulse: result.fields?.vitals?.pulse || result.vitals?.pulse || "",
           respiratoryRate: result.fields?.vitals?.respiratoryRate || "",
-          spO2: result.fields?.vitals?.spO2 || "",
-          glucose: result.fields?.vitals?.glucose || "",
+          spO2: result.fields?.vitals?.spO2 || "", glucose: result.fields?.vitals?.glucose || "",
         },
-        labValues: {
-          glucose: "",
-          hemoglobin: "",
-          creatinine: "",
-        },
+        labValues: { glucose: "", hemoglobin: "", creatinine: "" },
         invoice: invoiceFromScan,
       });
-
       setExpandedSections((prev) => ({
         ...prev,
-        invoice:
-          invoiceFromScan.items.length > 0 ||
-          invoiceFromScan.grandTotal.trim().length > 0,
+        invoice: invoiceFromScan.items.length > 0 || invoiceFromScan.grandTotal.trim().length > 0,
       }));
-
-      if (result.fields?.fieldConfidence) {
-        setConfidenceScores(result.fields.fieldConfidence);
-      }
-      if (result.suggestedCorrections) {
-        setSuggestedCorrections(result.suggestedCorrections);
-      }
-      if (result.documentType) {
-        setDocumentType(result.documentType);
-      }
-
+      if (result.fields?.fieldConfidence) setConfidenceScores(result.fields.fieldConfidence);
+      if (result.suggestedCorrections) setSuggestedCorrections(result.suggestedCorrections);
+      if (result.documentType) setDocumentType(result.documentType);
       setScanned(true);
       setReviewAcknowledged(false);
       toast.success("Document scanned successfully");
     } catch {
-      showUserFacingErrorToast(
-        "We could not scan this document. Please try again.",
-      );
+      showUserFacingErrorToast("We could not scan this document. Please try again.");
     }
   };
 
   const needsReviewAcknowledgement = useMemo(
-    () =>
-      scanned &&
-      Object.values(confidenceScores).some(
-        (s) => typeof s === "number" && s < 0.6,
-      ),
+    () => scanned && Object.values(confidenceScores).some((s) => typeof s === "number" && s < 0.6),
     [scanned, confidenceScores],
   );
 
   const handleSave = async () => {
     try {
-      if (!clinicId) {
-        showUserFacingErrorToast(null, "Select a facility to continue", "form");
-        return;
-      }
-      if (!user?.id) {
-        showUserFacingErrorToast(null, "Please sign in again to continue", "auth");
-        return;
-      }
+      if (!clinicId) { showUserFacingErrorToast(null, "Select a facility to continue", "form"); return; }
+      if (!user?.id) { showUserFacingErrorToast(null, "Please sign in again to continue", "auth"); return; }
       if (!formData.firstName.trim() || !formData.lastName.trim()) {
-        showUserFacingErrorToast(
-          null,
-          "Enter the patient's first and last name",
-          "form",
-        );
-        return;
+        showUserFacingErrorToast(null, "Enter the patient's first and last name", "form"); return;
       }
       if (!formData.phoneNumber.trim()) {
-        showUserFacingErrorToast(null, "Enter the patient's phone number", "form");
-        return;
+        showUserFacingErrorToast(null, "Enter the patient's phone number", "form"); return;
       }
       if (needsReviewAcknowledgement && !reviewAcknowledged) {
-        showUserFacingErrorToast(
-          null,
-          "Confirm you have reviewed low-confidence fields before saving",
-          "form",
-        );
-        return;
+        showUserFacingErrorToast(null, "Confirm you have reviewed low-confidence fields before saving", "form"); return;
       }
-
       const invoiceDraft = buildInvoiceDraftForCommit(formData.invoice);
       if (formData.invoice.saveAsPending && !invoiceDraft) {
-        showUserFacingErrorToast(
-          null,
-          "To save a pending invoice, add at least one line with description, quantity, unit price, and total (or leave total blank when quantity and unit price are set), and enter a positive grand total.",
-          "form",
-        );
-        return;
+        showUserFacingErrorToast(null, "To save a pending invoice, add at least one line with description, quantity, unit price, and total (or leave total blank when quantity and unit price are set), and enter a positive grand total.", "form"); return;
       }
-
-      const dobDate =
-        formData.dateOfBirth.trim().length > 0
-          ? new Date(formData.dateOfBirth)
-          : new Date(
-              new Date().getFullYear() - (parseInt(formData.age, 10) || 0),
-              0,
-              1,
-            );
+      const dobDate = formData.dateOfBirth.trim().length > 0
+        ? new Date(formData.dateOfBirth)
+        : new Date(new Date().getFullYear() - (parseInt(formData.age, 10) || 0), 0, 1);
       if (Number.isNaN(dobDate.getTime())) {
-        showUserFacingErrorToast(
-          null,
-          "Enter a valid date of birth or age",
-          "form",
-        );
-        return;
+        showUserFacingErrorToast(null, "Enter a valid date of birth or age", "form"); return;
       }
       const dobIso = dobDate.toISOString();
-
       const bpParts = formData.vitals.bp ? formData.vitals.bp.split("/") : [];
       const vitalsPayload: OcrImportCommitRequest["vitals"] = {};
       if (bpParts[0]) vitalsPayload.systolicBP = parseInt(bpParts[0], 10);
       if (bpParts[1]) vitalsPayload.diastolicBP = parseInt(bpParts[1], 10);
-      if (formData.vitals.temp.trim()) {
-        vitalsPayload.temperature = parseFloat(formData.vitals.temp);
-      }
-      if (formData.vitals.pulse.trim()) {
-        vitalsPayload.pulse = parseInt(formData.vitals.pulse, 10);
-      }
-      const hasVitals =
-        vitalsPayload.systolicBP !== undefined ||
-        vitalsPayload.diastolicBP !== undefined ||
-        vitalsPayload.temperature !== undefined ||
-        vitalsPayload.pulse !== undefined;
-
-      const medications =
-        formData.medications.length > 0
-          ? formData.medications.map((m) => ({
-              name: m.name.trim(),
-              dosage: m.dosage.trim() || "—",
-              frequency: m.frequency.trim() || "—",
-              route: "PO",
-              duration: "",
-            }))
-          : undefined;
-
+      if (formData.vitals.temp.trim()) vitalsPayload.temperature = parseFloat(formData.vitals.temp);
+      if (formData.vitals.pulse.trim()) vitalsPayload.pulse = parseInt(formData.vitals.pulse, 10);
+      const hasVitals = vitalsPayload.systolicBP !== undefined || vitalsPayload.diastolicBP !== undefined ||
+        vitalsPayload.temperature !== undefined || vitalsPayload.pulse !== undefined;
+      const medications = formData.medications.length > 0
+        ? formData.medications.map((m) => ({ name: m.name.trim(), dosage: m.dosage.trim() || "—", frequency: m.frequency.trim() || "—", route: "PO", duration: "" }))
+        : undefined;
       const payload: OcrImportCommitRequest = {
-        clinicId,
-        doctorId: user.id,
-        firstName: formData.firstName.trim(),
-        lastName: formData.lastName.trim(),
+        clinicId, doctorId: user.id,
+        firstName: formData.firstName.trim(), lastName: formData.lastName.trim(),
         phoneNumber: formData.phoneNumber.trim(),
-        gender: formData.gender as "MALE" | "FEMALE" | "OTHER",
-        dateOfBirth: dobIso,
-        address: formData.address.trim() || undefined,
+        gender:
+          parseStringEnumMember(
+            ["MALE", "FEMALE", "OTHER"] as const,
+            formData.gender,
+          ) ?? "OTHER",
+        dateOfBirth: dobIso, address: formData.address.trim() || undefined,
         diagnosis: formData.diagnosis.trim() || undefined,
-        allergies:
-          formData.allergies.length > 0 ? formData.allergies : undefined,
-        medications,
-        vitals: hasVitals ? vitalsPayload : undefined,
+        allergies: formData.allergies.length > 0 ? formData.allergies : undefined,
+        medications, vitals: hasVitals ? vitalsPayload : undefined,
         consultationNotes: formData.diagnosis.trim() || undefined,
-        acknowledgeReview: needsReviewAcknowledgement
-          ? reviewAcknowledged
-          : undefined,
+        acknowledgeReview: needsReviewAcknowledgement ? reviewAcknowledged : undefined,
         invoiceDraft,
       };
-
       const result = await commitOcrMutation.mutateAsync(payload);
-
       toast.success("Patient and visit created successfully");
       router.push(`/patients/${result.patientId}`);
     } catch (error) {
-      showUserFacingErrorToast(
-        error,
-        "We could not save this record. Please try again.",
-        "save",
-      );
+      showUserFacingErrorToast(error, "We could not save this record. Please try again.", "save");
     }
   };
 
   const getScore = (key: string): number | undefined => confidenceScores[key];
   const getSection = (key: string): boolean => expandedSections[key] ?? false;
-  const toggleSection = (key: string) => {
-    setExpandedSections((prev) => ({ ...prev, [key]: !prev[key] }));
-  };
-  const getCorrection = (key: string): string | undefined =>
-    suggestedCorrections[key];
+  const toggleSection = (key: string) => { setExpandedSections((prev) => ({ ...prev, [key]: !prev[key] })); };
+  const getCorrection = (key: string): string | undefined => suggestedCorrections[key];
 
   return {
-    file,
-    previewUrl,
-    scanned,
-    formData,
-    setFormData,
-    confidenceScores,
-    suggestedCorrections,
-    documentType,
-    handleFileChange,
-    handleScan,
-    handleSave,
-    getScore,
-    getSection,
-    toggleSection,
-    getCorrection,
+    file, previewUrl, scanned, formData, setFormData,
+    confidenceScores, suggestedCorrections, documentType,
+    handleFileChange, handleScan, handleSave,
+    getScore, getSection, toggleSection, getCorrection,
     isScanning: processOCRMutation.isPending,
     isSaving: commitOcrMutation.isPending,
-    needsReviewAcknowledgement,
-    reviewAcknowledged,
-    setReviewAcknowledged,
-    expandedSections,
+    needsReviewAcknowledgement, reviewAcknowledged, setReviewAcknowledged, expandedSections,
   };
 };

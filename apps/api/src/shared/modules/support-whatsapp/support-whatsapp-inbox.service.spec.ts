@@ -3,12 +3,16 @@ import { Test } from '@nestjs/testing';
 import { beforeEach, describe, expect, it, jest } from '@jest/globals';
 import { JsonValue } from '@workspace/types';
 import { SupportWhatsAppInboxService } from './support-whatsapp-inbox.service';
+import { SupportWhatsAppThreadQueryService } from './support-whatsapp-thread-query.service';
+import { SupportWhatsAppReplyService } from './support-whatsapp-reply.service';
+import { SupportWhatsAppWebhookIngestService } from './support-whatsapp-webhook-ingest.service';
 import { PrismaService } from '@/prisma/prisma.service';
-import { WhatsappClientService } from '@/shared/modules/messaging/whatsapp/whatsapp-client.service';
+import { WhatsappClientService } from '@/domains/whatsapp/infrastructure/clients/whatsapp-client.service';
 import type {
   SupportWhatsAppMessage,
   SupportWhatsAppMessageStatus,
 } from '@workspace/types';
+import { clockPortTestProvider } from '@/test-utils';
 
 type SupportWhatsAppDirection = 'INBOUND' | 'OUTBOUND';
 type SupportWhatsAppStatus = SupportWhatsAppMessageStatus;
@@ -154,7 +158,7 @@ type SupportWhatsAppMessageFindUniqueArgs = {
 };
 
 interface SupportWhatsAppClientMock {
-  sendMessage: jest.Mock<
+  sendTextMessage: jest.Mock<
     (args: { to: string; message: string }) => Promise<{
       success: boolean;
       messageId: string;
@@ -218,7 +222,7 @@ describe('SupportWhatsAppInboxService', () => {
     }) => Promise<{ count: number }>
   >();
   const mockWhatsappClient: SupportWhatsAppClientMock = {
-    sendMessage: jest.fn<
+    sendTextMessage: jest.fn<
       (args: { to: string; message: string }) => Promise<{
         success: boolean;
         messageId: string;
@@ -294,16 +298,20 @@ describe('SupportWhatsAppInboxService', () => {
         }),
     );
     supportWhatsAppMessageUpdateMany.mockResolvedValue({ count: 0 });
-    mockWhatsappClient.sendMessage.mockResolvedValue({
+    mockWhatsappClient.sendTextMessage.mockResolvedValue({
       success: true,
       messageId: 'wamid.reply-001',
     });
 
     const moduleRef = await Test.createTestingModule({
       providers: [
+        SupportWhatsAppThreadQueryService,
+        SupportWhatsAppReplyService,
+        SupportWhatsAppWebhookIngestService,
         SupportWhatsAppInboxService,
         { provide: PrismaService, useValue: mockPrisma },
         { provide: WhatsappClientService, useValue: mockWhatsappClient },
+        clockPortTestProvider(),
       ],
     }).compile();
 
@@ -414,7 +422,7 @@ describe('SupportWhatsAppInboxService', () => {
 
     await service.recordIncomingMessages(rawPayload);
 
-    expect(mockWhatsappClient.sendMessage).toHaveBeenCalledWith(
+    expect(mockWhatsappClient.sendTextMessage).toHaveBeenCalledWith(
       expect.objectContaining({
         to: '919876543210',
         message: expect.stringContaining('support@docita.work'),
@@ -589,7 +597,7 @@ describe('SupportWhatsAppInboxService', () => {
       'We are looking into this now.',
     );
 
-    expect(mockWhatsappClient.sendMessage).toHaveBeenCalledWith({
+    expect(mockWhatsappClient.sendTextMessage).toHaveBeenCalledWith({
       to: '919876543210',
       message: 'We are looking into this now.',
     });
@@ -646,7 +654,7 @@ describe('SupportWhatsAppInboxService', () => {
       providerMessageId: 'wamid.inbound-001',
       supportPhoneNumber: '918790311010',
     });
-    mockWhatsappClient.sendMessage.mockRejectedValue(
+    mockWhatsappClient.sendTextMessage.mockRejectedValue(
       new Error('WhatsApp unavailable'),
     );
 

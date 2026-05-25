@@ -1,24 +1,31 @@
-import { Injectable, ServiceUnavailableException } from '@nestjs/common';
+import {
+  Inject,
+  Injectable,
+  ServiceUnavailableException,
+} from '@nestjs/common';
+import { CLOCK_PORT, type IClock } from '@/shared/common/ports/clock.port';
 
 import { PrismaService } from '@/prisma/prisma.service';
 import {
   QuotaUpsertInput,
   TenantQuota,
 } from '@/shared/modules/tenant-rate-limit/tenant-rate-limit.types';
-import { isPrismaTableDoesNotExistForModel } from '@/common/utils/prisma-missing-table';
+import { isPrismaTableDoesNotExistForModel } from '@/shared/common/utils/prisma-missing-table';
 
-const monthlyResetDate = (): Date => {
-  const now = new Date();
-  return new Date(
+const monthlyResetDate = (now: Date): Date =>
+  new Date(
     Date.UTC(now.getUTCFullYear(), now.getUTCMonth() + 1, 1, 0, 0, 0, 0),
   );
-};
 
 @Injectable()
 export class TenantRateLimitRepository {
-  constructor(private readonly prisma: PrismaService) {}
+  constructor(
+    private readonly prisma: PrismaService,
+    @Inject(CLOCK_PORT) private readonly clock: IClock,
+  ) {}
 
   async findQuota(clinicId: string): Promise<TenantQuota | null> {
+    // RLS-BYPASS: rate limits apply before clinic tenant context is established
     return this.prisma.runUnrestricted(async () => {
       try {
         const row = await this.prisma.clinicApiQuota.findUnique({
@@ -45,8 +52,9 @@ export class TenantRateLimitRepository {
     clinicId: string,
     input: QuotaUpsertInput,
   ): Promise<TenantQuota> {
+    // RLS-BYPASS: rate limits apply before clinic tenant context is established
     return this.prisma.runUnrestricted(async () => {
-      const resetAt = monthlyResetDate();
+      const resetAt = monthlyResetDate(this.clock.now());
       try {
         const row = await this.prisma.clinicApiQuota.upsert({
           where: { clinicId },
@@ -94,6 +102,7 @@ export class TenantRateLimitRepository {
     delta: number,
   ): Promise<TenantQuota | null> {
     if (delta <= 0) return null;
+    // RLS-BYPASS: rate limits apply before clinic tenant context is established
     return this.prisma.runUnrestricted(async () => {
       try {
         const existing = await this.prisma.clinicApiQuota.findUnique({
@@ -102,7 +111,7 @@ export class TenantRateLimitRepository {
         if (!existing) {
           return null;
         }
-        const now = new Date();
+        const now = this.clock.now();
         const needsReset =
           existing.currentMonthResetsAt.getTime() <= now.getTime();
         const updated = await this.prisma.clinicApiQuota.update({
@@ -110,7 +119,7 @@ export class TenantRateLimitRepository {
           data: needsReset
             ? {
                 currentMonthUsed: delta,
-                currentMonthResetsAt: monthlyResetDate(),
+                currentMonthResetsAt: monthlyResetDate(now),
               }
             : { currentMonthUsed: { increment: delta } },
         });

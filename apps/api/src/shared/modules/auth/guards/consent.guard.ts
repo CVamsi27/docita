@@ -1,10 +1,12 @@
 import {
+  Inject,
   Injectable,
   CanActivate,
   ExecutionContext,
   ForbiddenException,
   SetMetadata,
 } from '@nestjs/common';
+import { CLOCK_PORT, type IClock } from '@/shared/common/ports/clock.port';
 import { Reflector } from '@nestjs/core';
 import { PrismaService } from '@/prisma/prisma.service';
 import { ConsentType } from '@workspace/db';
@@ -23,6 +25,7 @@ export class ConsentGuard implements CanActivate {
   constructor(
     private readonly reflector: Reflector,
     private readonly prisma: PrismaService,
+    @Inject(CLOCK_PORT) private readonly clock: IClock,
   ) {}
 
   async canActivate(context: ExecutionContext): Promise<boolean> {
@@ -44,7 +47,7 @@ export class ConsentGuard implements CanActivate {
       return true;
     }
 
-    const now = new Date();
+    const now = this.clock.now();
 
     for (const consentType of requiredTypes) {
       const consent = await this.prisma.consent.findFirst({

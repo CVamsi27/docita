@@ -1,13 +1,13 @@
 "use client";
 
 import { FC } from "react";
-import { usePatientHistoryReadOnly } from "@/hooks/api/use-patient-history";
+import { usePatientHistoryReadOnly } from "@/features/patients/hooks/use-patient-history";
 import {
   usePatientTimeline,
   usePatientSnapshot,
-} from "@/hooks/api/use-patient-timeline";
+} from "@workspace/data-access";
 import { Appointment } from "@workspace/types";
-import { LoadingState } from "@workspace/ui/components/empty-state";
+import { LoadingState } from "@workspace/ui/components/feedback/empty-state";
 import { ConsultationSidebarUI } from "./ConsultationSidebarUI";
 
 interface ConsultationSidebarContainerProps {

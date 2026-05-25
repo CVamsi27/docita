@@ -1,16 +1,16 @@
 import * as React from "react";
-import { Button } from "@workspace/ui/components/button";
-import { Badge } from "@workspace/ui/components/badge";
+import { Button } from "@workspace/ui/components/form/button";
+import { Badge } from "@workspace/ui/components/indicators/badge";
 import {
   Tooltip,
   TooltipContent,
   TooltipTrigger,
-} from "@workspace/ui/components/tooltip";
+} from "@workspace/ui/components/overlay/tooltip";
 import {
   Popover,
   PopoverContent,
   PopoverTrigger,
-} from "@workspace/ui/components/popover";
+} from "@workspace/ui/components/overlay/popover";
 import { Clock, Pause, Play, RotateCcw, Timer } from "lucide-react";
 import { cn } from "@workspace/ui/lib/utils";
 

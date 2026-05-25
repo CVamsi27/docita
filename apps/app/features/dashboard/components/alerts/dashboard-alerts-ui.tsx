@@ -2,8 +2,8 @@
 
 import Link from "next/link";
 import { AlertCircle, Bell, ChevronRight, X } from "lucide-react";
-import { Button } from "@workspace/ui/components/button";
-import { SymbolTooltip } from "@workspace/ui/components/tooltip";
+import { Button } from "@workspace/ui/components/form/button";
+import { SymbolTooltip } from "@workspace/ui/components/overlay/tooltip";
 import { cn } from "@workspace/ui/lib/utils";
 
 export interface AlertItem {

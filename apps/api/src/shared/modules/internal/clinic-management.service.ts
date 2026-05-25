@@ -4,14 +4,21 @@ import {
   InternalServerErrorException,
 } from '@nestjs/common';
 import { PrismaService } from '@/prisma/prisma.service';
-import { PaymentWebSocketGateway } from '@/gateways/payment.websocket.gateway';
-import { ClinicTier, Prisma, Role, SubscriptionStatus } from '@workspace/db';
+import { PaymentWebSocketGateway } from '@/websockets/payment.websocket.gateway';
+import {
+  ClinicTier,
+  ClinicType,
+  Prisma,
+  Role,
+  SubscriptionStatus,
+} from '@workspace/db';
+import { parseStringEnumMember } from '@workspace/utils';
 import * as bcrypt from 'bcrypt';
 import {
   CLINIC_CARD_SELECT,
   DOCTOR_CARD_SELECT,
-} from '@/common/select-fragments';
-import { paginateWithCursor } from '@/common/pagination.helper';
+} from '@/shared/common/select-fragments';
+import { paginateWithCursor } from '@/shared/common/pagination.helper';
 import type { CreateAdminDto, UpdateAdminDto } from '@workspace/types';
 import {
   InternalCreateClinicDto,
@@ -19,6 +26,19 @@ import {
 } from './dto/clinic-management.dto';
 import { ClinicFactory } from '@/domains/clinics/core/factories/clinic.factory';
 import { UserFactory } from '@/domains/users/core/factories/user.factory';
+
+const CLINIC_ADMIN_SELECT = {
+  id: true,
+  name: true,
+  email: true,
+  phoneNumber: true,
+  role: true,
+  appLoginDisabled: true,
+  createdAt: true,
+  updatedAt: true,
+} as const;
+
+const CLINIC_ADMIN_ROLES: Role[] = [Role.ADMIN, Role.ADMIN_DOCTOR];
 
 @Injectable()
 export class ClinicManagementService {
@@ -32,10 +52,10 @@ export class ClinicManagementService {
   async getAllClinics(options?: { cursor?: string; limit?: number }) {
     try {
       const clinicModel = {
-        findMany: (args?: Record<string, unknown>) =>
-          this.prisma.clinic.findMany(args as Prisma.ClinicFindManyArgs),
-        count: (args?: { where?: Record<string, unknown> }) =>
-          this.prisma.clinic.count(args as Prisma.ClinicCountArgs),
+        findMany: (args?: Prisma.ClinicFindManyArgs) =>
+          this.prisma.clinic.findMany(args),
+        count: (args?: Prisma.ClinicCountArgs) =>
+          this.prisma.clinic.count(args),
       };
 
       return paginateWithCursor({
@@ -195,9 +215,22 @@ export class ClinicManagementService {
   }
 
   async updateClinic(id: string, data: InternalUpdateClinicDto) {
+    const clinicType =
+      data.type !== undefined
+        ? parseStringEnumMember(Object.values(ClinicType), data.type)
+        : undefined;
+    const updateData: Prisma.ClinicUpdateInput = {
+      ...(data.name !== undefined ? { name: data.name } : {}),
+      ...(data.email !== undefined ? { email: data.email } : {}),
+      ...(data.phone !== undefined ? { phone: data.phone } : {}),
+      ...(data.address !== undefined ? { address: data.address } : {}),
+      ...(data.tier !== undefined ? { tier: data.tier } : {}),
+      ...(clinicType != null ? { type: clinicType } : {}),
+      ...(data.active !== undefined ? { active: data.active } : {}),
+    };
     const clinic = await this.prisma.clinic.update({
       where: { id },
-      data: data as Prisma.ClinicUpdateInput,
+      data: updateData,
     });
     if (data.tier !== undefined || data.active !== undefined) {
       this.paymentGateway.emitClinicUpdate(id, {
@@ -215,16 +248,9 @@ export class ClinicManagementService {
     return this.prisma.user.findMany({
       where: {
         clinicId,
-        role: { in: ['ADMIN', 'ADMIN_DOCTOR'] },
+        role: { in: CLINIC_ADMIN_ROLES },
       },
-      select: {
-        id: true,
-        name: true,
-        email: true,
-        phoneNumber: true,
-        role: true,
-        createdAt: true,
-      },
+      select: CLINIC_ADMIN_SELECT,
       orderBy: { createdAt: 'desc' },
     });
   }
@@ -251,14 +277,9 @@ export class ClinicManagementService {
         phoneNumber: data.phoneNumber,
         role,
         clinicId,
+        appLoginDisabled: false,
       },
-      select: {
-        id: true,
-        name: true,
-        email: true,
-        role: true,
-        createdAt: true,
-      },
+      select: CLINIC_ADMIN_SELECT,
     });
   }
 
@@ -294,29 +315,36 @@ export class ClinicManagementService {
     return this.prisma.user.update({
       where: { id: adminId },
       data: updateData,
-      select: {
-        id: true,
-        name: true,
-        email: true,
-        role: true,
-        updatedAt: true,
-      },
+      select: CLINIC_ADMIN_SELECT,
     });
   }
 
+  private async findClinicAdminOrThrow(adminId: string) {
+    const admin = await this.prisma.user.findUnique({
+      where: { id: adminId },
+      select: { id: true, role: true },
+    });
+    if (!admin || !CLINIC_ADMIN_ROLES.includes(admin.role)) {
+      throw new BadRequestException('Admin not found');
+    }
+    return admin;
+  }
+
   async deactivateAdmin(adminId: string) {
-    return await Promise.resolve({
-      id: adminId,
-      message:
-        'Admin deactivation requires additional setup (active/status field on User model)',
+    await this.findClinicAdminOrThrow(adminId);
+    return this.prisma.user.update({
+      where: { id: adminId },
+      data: { appLoginDisabled: true },
+      select: CLINIC_ADMIN_SELECT,
     });
   }
 
   async activateAdmin(adminId: string) {
-    return await Promise.resolve({
-      id: adminId,
-      message:
-        'Admin activation requires additional setup (active/status field on User model)',
+    await this.findClinicAdminOrThrow(adminId);
+    return this.prisma.user.update({
+      where: { id: adminId },
+      data: { appLoginDisabled: false },
+      select: CLINIC_ADMIN_SELECT,
     });
   }
 }

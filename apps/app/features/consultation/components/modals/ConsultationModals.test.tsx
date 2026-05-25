@@ -10,21 +10,18 @@ const clinicalMocks = vi.hoisted(() => ({
   toastSuccess: vi.fn(),
 }));
 
-vi.mock("@/hooks/api/use-clinical", () => ({
+vi.mock("@workspace/data-access", () => ({
   useSaveVitals: () => ({
     mutateAsync: clinicalMocks.saveVitals,
     isPending: false,
   }),
-}));
-
-vi.mock("@/hooks/api/use-appointments", () => ({
   useUpdateAppointment: () => ({
     mutateAsync: clinicalMocks.updateAppointment,
     isPending: false,
   }),
 }));
 
-vi.mock("@/lib/user-facing-errors", () => ({
+vi.mock("@/lib/errors/user-facing-errors", () => ({
   showUserFacingErrorToast: clinicalMocks.showError,
 }));
 

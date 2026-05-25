@@ -11,6 +11,9 @@ export const MedicalDocumentTypeSchema = z.enum([
 
 export const MedicalDocumentStatusSchema = z.enum(['DRAFT', 'SIGNED', 'REVOKED']);
 
+/** Prisma `MedicalDocument.content`. */
+export const medicalDocumentContentJsonSchema = z.record(z.unknown());
+
 export const MedicalDocumentSchema = z.object({
   id: z.string(),
   type: MedicalDocumentTypeSchema,
@@ -19,7 +22,7 @@ export const MedicalDocumentSchema = z.object({
   clinicId: z.string(),
   appointmentId: z.string().nullable().optional(),
   title: z.string(),
-  content: z.record(z.unknown()),
+  content: medicalDocumentContentJsonSchema,
   validFrom: z.string().nullable().optional(),
   validUntil: z.string().nullable().optional(),
   status: MedicalDocumentStatusSchema,

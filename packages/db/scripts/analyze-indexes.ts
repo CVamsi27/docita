@@ -43,7 +43,9 @@ async function analyzeIndexes() {
     `;
     console.table(seqScans);
   } catch (error) {
-
+    process.stderr.write(
+      `Index analysis failed: ${error instanceof Error ? error.message : String(error)}\n`,
+    );
   } finally {
     await prisma.$disconnect();
   }

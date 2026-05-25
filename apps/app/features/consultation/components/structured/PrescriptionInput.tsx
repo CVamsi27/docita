@@ -1,7 +1,7 @@
 import React, { useMemo } from "react";
-import { Button } from "@workspace/ui/components/button";
-import { SymbolTooltip } from "@workspace/ui/components/tooltip";
-import { Input } from "@workspace/ui/components/input";
+import { Button } from "@workspace/ui/components/form/button";
+import { SymbolTooltip } from "@workspace/ui/components/overlay/tooltip";
+import { Input } from "@workspace/ui/components/form/input";
 import {
   Select,
   SelectContent,
@@ -10,14 +10,16 @@ import {
   SelectLabel,
   SelectTrigger,
   SelectValue,
-} from "@workspace/ui/components/select";
+} from "@workspace/ui/components/form/select";
 import { Pill, Plus, Trash2 } from "lucide-react";
-import { useClinicSettings } from "@/hooks/api/use-settings";
-import ClinicFeatureService, {
+import { useClinicSettings } from "@workspace/data-access";
+import {
+  ClinicFeatureService,
   MEDICATION_ROUTES,
 } from "@/lib/services/clinic-feature.service";
 
-import { ClinicType } from "@workspace/types";
+import { clinicTypeSchema, type ClinicType } from "@workspace/types";
+import { parseStringEnumMember } from "@workspace/utils";
 
 export interface Medication {
   name: string;
@@ -42,15 +44,20 @@ export function PrescriptionInput({
   const { data: clinic } = useClinicSettings();
   const medications = value.length > 0 ? value : [];
 
-  const groupedRoutes = useMemo(() => {
-    return ClinicFeatureService.getMedicationRoutesGrouped(
-      clinic?.type as ClinicType,
-    );
+  const clinicType = useMemo((): ClinicType | undefined => {
+    if (!clinic?.type) {
+      return undefined;
+    }
+    return parseStringEnumMember(clinicTypeSchema.options, clinic.type) ?? undefined;
   }, [clinic?.type]);
 
+  const groupedRoutes = useMemo(() => {
+    return ClinicFeatureService.getMedicationRoutesGrouped(clinicType);
+  }, [clinicType]);
+
   const prioritizedRoutes = useMemo(() => {
-    return ClinicFeatureService.getMedicationRoutes(clinic?.type as ClinicType);
-  }, [clinic?.type]);
+    return ClinicFeatureService.getMedicationRoutes(clinicType);
+  }, [clinicType]);
 
   const addMedication = () => {
 

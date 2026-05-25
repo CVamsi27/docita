@@ -75,7 +75,31 @@ export class AiService {
     return `[AI Generated Response to: "${prompt.user}"]\n\nBased on the context provided, here is a summary...`;
   }
 
-  private mockSchemaGeneration<T>(_schema: z.ZodSchema<T>): T {
-    return {} as T;
+  private mockSchemaGeneration<T>(schema: z.ZodSchema<T>): T {
+    return schema.parse(this.buildMockValue(schema));
+  }
+
+  private isZodType(schema: unknown): schema is z.ZodTypeAny {
+    return typeof schema === 'object' && schema !== null && '_def' in schema;
+  }
+
+  private buildMockValue(schema: z.ZodTypeAny): unknown {
+    if (schema instanceof z.ZodObject) {
+      return Object.fromEntries(
+        Object.entries(schema.shape).map(([key, valueSchema]) => [
+          key,
+          this.isZodType(valueSchema) ? this.buildMockValue(valueSchema) : {},
+        ]),
+      );
+    }
+
+    if (schema instanceof z.ZodString) return '';
+    if (schema instanceof z.ZodNumber) return 0;
+    if (schema instanceof z.ZodBoolean) return false;
+    if (schema instanceof z.ZodArray) return [];
+    if (schema instanceof z.ZodNullable) return null;
+    if (schema instanceof z.ZodOptional) return undefined;
+
+    return {};
   }
 }

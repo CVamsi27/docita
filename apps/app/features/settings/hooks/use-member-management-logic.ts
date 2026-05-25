@@ -1,4 +1,4 @@
-import { useClinicMembers } from "@/hooks/api/use-settings";
+import { useClinicMembers } from "@workspace/data-access";
 
 export const useMemberManagementLogic = () => {
   const { data: membersData, isLoading, error } = useClinicMembers();

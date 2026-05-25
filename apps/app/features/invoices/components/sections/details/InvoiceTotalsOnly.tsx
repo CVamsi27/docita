@@ -1,4 +1,4 @@
-import { Separator } from "@workspace/ui/components/separator";
+import { Separator } from "@workspace/ui/components/layout/separator";
 import { Invoice, InvoiceItem } from "@workspace/types";
 
 interface InvoiceTotalsOnlyProps {
@@ -42,7 +42,7 @@ export function InvoiceTotalsOnly({
           <span>
             -
             {formatCurrency(
-              (invoice as Invoice & { discount?: number }).discount || 0,
+              invoice.discountTotal ?? 0,
             )}
           </span>
         </div>

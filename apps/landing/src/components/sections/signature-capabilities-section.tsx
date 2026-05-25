@@ -10,7 +10,7 @@ import {
   Users,
 } from "lucide-react";
 import { motion, useReducedMotion } from "motion/react";
-import { SectionHeading } from "@workspace/ui/components/section-heading";
+import { SectionHeading } from "@workspace/ui/components/layout/section-heading";
 import { cn } from "@workspace/ui/lib/utils";
 
 import {

@@ -2,7 +2,7 @@ import * as crypto from 'crypto';
 import { jest } from '@jest/globals';
 
 export const mockWhatsappClientService = {
-  sendMessage: jest
+  sendTextMessage: jest
     .fn<(...args: unknown[]) => Promise<unknown>>()
     .mockResolvedValue({ success: true, messageId: 'wamid.test123' }),
   sendTemplate: jest

@@ -1,4 +1,15 @@
-import { InvoiceStatus, Prisma } from '@workspace/db';
+import {
+  ClinicTier,
+  IntelligenceAddon,
+  InvoiceStatus,
+  Prisma,
+} from '@workspace/db';
+
+export interface ClinicFeatureContext {
+  tier: ClinicTier;
+  intelligenceAddon: IntelligenceAddon;
+  features: unknown;
+}
 
 export interface InvoiceListItem {
   id: string;
@@ -153,6 +164,9 @@ export interface IInvoiceRepository {
     patientId: string,
     clinicId?: string,
   ): Promise<PatientInvoiceContext | null>;
+  findClinicFeatureContext(
+    clinicId: string,
+  ): Promise<ClinicFeatureContext | null>;
   nextInvoiceNumber(
     clinicId: string,
     issuedAt: Date,

@@ -1,28 +1,21 @@
 "use client";
 
 import { FC } from "react";
-import { Card, CardContent, CardFooter } from "@workspace/ui/components/card";
-import { Button } from "@workspace/ui/components/button";
-import {
-  Download,
-  Edit,
-  FileText,
-  Printer,
-  Share2,
-} from "lucide-react";
-import { BackButton } from "@/components/common/navigation/back-button";
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuTrigger,
-} from "@workspace/ui/components/dropdown-menu";
-import { StatusBadge } from "@workspace/ui/components/status-badge";
-import { EmptyState, LoadingState } from "@workspace/ui/components/empty-state";
+import { Card, CardContent, CardFooter } from "@workspace/ui/components/indicators/card";
+import { Button } from "@workspace/ui/components/form/button";
+import { Download, Edit, FileText, Printer } from "lucide-react";
+import { BackButton } from "@/components/navigation/back-button";
+import { StatusBadge } from "@workspace/ui/components/indicators/status-badge";
+import { EmptyState, LoadingState } from "@workspace/ui/components/feedback/empty-state";
 import { useInvoiceDetailsLogic } from "@/features/invoices/hooks/use-invoice-details-logic";
 import Link from "next/link";
 import { useSearchParams } from "next/navigation";
-import { Section } from "@workspace/ui/components/section";
+import { useQueryClient } from "@tanstack/react-query";
+import { toast } from "sonner";
+import { queryKeys, useResendInvoiceWhatsApp } from "@workspace/data-access";
+import { showUserFacingErrorToast } from "@/lib/errors/user-facing-errors";
+import { WhatsAppDeliveryBadge } from "@/components/whatsapp/whatsapp-delivery-badge";
+import { Section } from "@workspace/ui/components/layout/section";
 import { InvoiceHeader } from "./InvoiceHeader";
 import { InvoiceBillTo } from "./InvoiceBillTo";
 import { InvoiceItemsTableReadOnly } from "./InvoiceItemsTableReadOnly";
@@ -46,7 +39,6 @@ export const InvoiceDetailsUI: FC<InvoiceDetailsUIProps> = ({ invoiceId }) => {
     handlePrint,
     handleDownload,
     isDownloading,
-    handleShareWhatsApp,
     calculateSubtotal,
     formatCurrency,
     formatDate,
@@ -54,6 +46,25 @@ export const InvoiceDetailsUI: FC<InvoiceDetailsUIProps> = ({ invoiceId }) => {
     router,
     clinic,
   } = useInvoiceDetailsLogic(invoiceId, { autoPrint: shouldAutoPrint });
+
+  const queryClient = useQueryClient();
+  const resendInvoice = useResendInvoiceWhatsApp(invoiceId);
+
+  const handleWhatsappRetry = async () => {
+    try {
+      await resendInvoice.mutateAsync();
+      toast.success("Invoice re-sent on WhatsApp");
+      await queryClient.invalidateQueries({
+        queryKey: queryKeys.invoices.legacyDetail(invoiceId),
+      });
+    } catch (err) {
+      showUserFacingErrorToast(
+        err,
+        "We could not resend the invoice. Please try again.",
+        "save",
+      );
+    }
+  };
 
   if (isLoading) {
     return <LoadingState message="Loading invoice details…" />;
@@ -103,7 +114,15 @@ export const InvoiceDetailsUI: FC<InvoiceDetailsUIProps> = ({ invoiceId }) => {
             </p>
           ) : null}
         </div>
-        <div className="flex flex-wrap gap-2">
+        <div className="flex flex-wrap items-center gap-2">
+          {invoice.whatsappStatus !== undefined && invoice.whatsappStatus !== null ? (
+            <WhatsAppDeliveryBadge
+              status={invoice.whatsappStatus}
+              sentAt={invoice.whatsappSentAt ?? null}
+              onRetry={handleWhatsappRetry}
+              isRetrying={resendInvoice.isPending}
+            />
+          ) : null}
           <Button variant="outline" size="sm" onClick={() => handlePrint()}>
             <Printer className="h-4 w-4 mr-2" />
             Print
@@ -117,20 +136,6 @@ export const InvoiceDetailsUI: FC<InvoiceDetailsUIProps> = ({ invoiceId }) => {
             <Download className="h-4 w-4 mr-2" />
             {isDownloading ? "Preparing…" : "Download"}
           </Button>
-          <DropdownMenu>
-            <DropdownMenuTrigger asChild>
-              <Button variant="outline" size="sm">
-                <Share2 className="h-4 w-4 mr-2" />
-                Share
-              </Button>
-            </DropdownMenuTrigger>
-            <DropdownMenuContent align="end">
-              <DropdownMenuItem onClick={handleShareWhatsApp}>
-                Share via WhatsApp
-              </DropdownMenuItem>
-              <DropdownMenuItem>Send via Email</DropdownMenuItem>
-            </DropdownMenuContent>
-          </DropdownMenu>
           <Button size="sm" asChild>
             <Link href={`/invoices/${invoiceId}/edit`}>
               <Edit className="h-4 w-4 mr-2" />

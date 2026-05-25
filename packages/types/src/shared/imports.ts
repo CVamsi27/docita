@@ -1,4 +1,8 @@
 import { z } from "zod";
+import {
+  dpdpBulkAttestationSchema,
+  dpdpConsentPayloadSchema,
+} from "../contracts/dpdp";
 
 /** Bulk CSV import entity types (API + UI). */
 export const bulkImportEntityTypeSchema = z.enum([
@@ -10,11 +14,29 @@ export const bulkImportEntityTypeSchema = z.enum([
 ]);
 
 /** Request body for `POST /imports/bulk` — CSV bytes as standard base64 (not JSON Buffer). */
-export const bulkImportRequestSchema = z.object({
-  entityType: bulkImportEntityTypeSchema,
-  fileName: z.string().min(1),
-  fileBase64: z.string().min(1),
-});
+export const bulkImportRequestSchema = z
+  .object({
+    entityType: bulkImportEntityTypeSchema,
+    fileName: z.string().min(1),
+    fileBase64: z.string().min(1),
+    /**
+     * Per-batch DPDP Act, 2023 attestation. Required when `entityType` is
+     * `PATIENT`; the operator confirms every row has prior signed/verbal
+     * consent on file. Backend records one Consent row per created patient
+     * referencing this attestation and the upload job id.
+     */
+    dpdpAttestation: dpdpBulkAttestationSchema.optional(),
+  })
+  .superRefine((val, ctx) => {
+    if (val.entityType === "PATIENT" && !val.dpdpAttestation) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        path: ["dpdpAttestation"],
+        message:
+          "DPDP consent attestation is required when bulk importing patients",
+      });
+    }
+  });
 
 export const bulkImportStartResponseSchema = z.object({
   jobId: z.string(),
@@ -26,6 +48,16 @@ export const bulkImportJobRowErrorSchema = z.object({
   rowNumber: z.number().int(),
   error: z.string(),
 });
+
+/** Prisma `BulkImportJob.errors` JSON array. */
+export const bulkImportJobErrorsJsonSchema = z.array(bulkImportJobRowErrorSchema);
+
+/** Prisma `ImportJob.columnMapping` — header → field name. */
+export const importJobColumnMappingSchema = z.record(z.string());
+
+/** Prisma `ImportJob.errors` / `ImportJob.results` — legacy unstructured payloads. */
+export const importJobErrorsJsonSchema = z.record(z.unknown());
+export const importJobResultsJsonSchema = z.record(z.unknown());
 
 export const bulkImportJobStatusResponseSchema = z.object({
   jobId: z.string(),
@@ -96,7 +128,27 @@ export const ocrImportCommitRequestSchema = z.object({
   consultationNotes: z.string().optional(),
   invoiceDraft: importInvoiceDraftSchema.optional(),
   acknowledgeReview: z.boolean().optional(),
+  /**
+   * DPDP Act, 2023 consent payload. Required when this commit creates a new
+   * patient (OCR commits always create a patient row), so the staff member
+   * driving the commit must confirm consent was obtained from the patient.
+   */
+  dpdpConsent: dpdpConsentPayloadSchema.optional(),
 });
+
+/**
+ * Per-batch DPDP attestation for the legacy Excel/CSV `/imports/patients`
+ * endpoints. Sent as a JSON string in a multipart form field, or inline on
+ * the session-mapped JSON commit.
+ */
+export const excelImportPatientsRequestSchema = z.object({
+  columnMapping: z.record(z.string()).optional(),
+  dpdpAttestation: dpdpBulkAttestationSchema,
+});
+
+export type ExcelImportPatientsRequest = z.infer<
+  typeof excelImportPatientsRequestSchema
+>;
 
 export const ocrImportCommitResponseSchema = z.object({
   patientId: z.string(),
@@ -129,13 +181,13 @@ export const importJobSchema = z.object({
   status: z.string().or(ImportJobStatus),
   fileName: z.string().nullable().optional(),
   fileUrl: z.string().nullable().optional(),
-  columnMapping: z.record(z.unknown()).optional(), 
+  columnMapping: importJobColumnMappingSchema.optional(),
   totalRecords: z.number().int(),
   processed: z.number().int(),
   successful: z.number().int(),
   failed: z.number().int(),
-  errors: z.record(z.unknown()).optional(), 
-  results: z.record(z.unknown()).optional(), 
+  errors: importJobErrorsJsonSchema.optional(),
+  results: importJobResultsJsonSchema.optional(),
   createdAt: z.date().or(z.string()).optional(),
   updatedAt: z.date().or(z.string()).optional(),
 });

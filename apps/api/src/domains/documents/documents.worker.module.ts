@@ -1,23 +1,31 @@
+import { PrismaService } from '@/prisma/prisma.service';
+import { DOCUMENT_PERSISTENCE_PORT } from './application/ports/document-persistence.port';
 import { Module } from '@nestjs/common';
 import { PrismaWorkerModule } from '@/prisma/prisma.worker.module';
 import { AppConfigService } from '@/shared/modules/config/app-configuration.service';
 import { TemplatesService } from './application/services/templates.service';
 import { UploadsService } from './application/services/uploads.service';
+import { UploadsCommandService } from './application/services/uploads-command.service';
+import { UploadsQueryService } from './application/services/uploads-query.service';
 import { StoredFileUrlResolverService } from './application/services/stored-file-url-resolver.service';
-import { StorageProvider } from './infrastructure/storage.provider';
+import { StorageProvider } from './application/ports/storage-provider.port';
 import { LocalStorageProvider } from './infrastructure/local-storage.provider';
 import { R2StorageProvider } from './infrastructure/r2-storage.provider';
+import { CLOCK_PORT, type IClock } from '@/shared/common/ports/clock.port';
 
 @Module({
   imports: [PrismaWorkerModule],
   providers: [
+    { provide: DOCUMENT_PERSISTENCE_PORT, useExisting: PrismaService },
     TemplatesService,
+    UploadsCommandService,
+    UploadsQueryService,
     UploadsService,
     StoredFileUrlResolverService,
     {
       provide: StorageProvider,
-      inject: [AppConfigService],
-      useFactory: (configService: AppConfigService) => {
+      inject: [AppConfigService, CLOCK_PORT],
+      useFactory: (configService: AppConfigService, clock: IClock) => {
         const provider = configService.getStorageProvider();
         const isProduction = configService.isProduction();
         const r2Config = configService.getR2Config();
@@ -29,7 +37,7 @@ import { R2StorageProvider } from './infrastructure/r2-storage.provider';
 
         if (!isProduction) {
           if (provider === 'r2' && hasR2Credentials) {
-            return new R2StorageProvider();
+            return new R2StorageProvider(r2Config, clock);
           }
           return new LocalStorageProvider({
             apiUrl: configService.getApiUrl(),
@@ -37,7 +45,7 @@ import { R2StorageProvider } from './infrastructure/r2-storage.provider';
         }
 
         if (provider === 'r2' && hasR2Credentials) {
-          return new R2StorageProvider();
+          return new R2StorageProvider(r2Config, clock);
         }
 
         throw new Error(
@@ -48,6 +56,8 @@ import { R2StorageProvider } from './infrastructure/r2-storage.provider';
   ],
   exports: [
     TemplatesService,
+    UploadsCommandService,
+    UploadsQueryService,
     UploadsService,
     StoredFileUrlResolverService,
     StorageProvider,

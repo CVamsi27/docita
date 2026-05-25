@@ -1,7 +1,7 @@
 "use client";
 
 import { usePathname } from "next/navigation";
-import { AuthProvider } from "@/lib/auth-context";
+import { AuthProvider } from "@/lib/auth/auth-context";
 import { ConsentBanner } from "@/features/patient-portal/components/navigation/consent-banner";
 import { PatientAuthGuard } from "@/features/patient-portal/components/auth/patient-auth-guard";
 import { PortalNav } from "@/features/patient-portal/components/navigation/portal-nav";

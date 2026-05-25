@@ -1,8 +1,8 @@
 import { screen } from "@testing-library/react";
 import { describe, expect, it, vi, beforeEach } from "vitest";
-import { render } from "@/test/render-with-tooltip";
+import { render } from "@/test-utils/render-with-tooltip";
 import { ConsultationDashboardUI } from "./ConsultationDashboardUI";
-import type { AppointmentListItem, QueueItem } from "@/hooks/api/use-appointments";
+import type { AppointmentListItem, QueueItem } from "@workspace/data-access";
 
 const mockDashboard = vi.fn();
 
@@ -15,7 +15,7 @@ const mockCheckIn = {
   mutateAsync: vi.fn(),
 };
 
-vi.mock("@/hooks/api/use-appointments", () => ({
+vi.mock("@workspace/data-access", () => ({
   useCheckInAppointment: () => mockCheckIn,
 }));
 
@@ -49,9 +49,9 @@ vi.mock("@/hooks/use-permissions", () => ({
   usePermissions: () => ({ canCreateAppointment: true }),
 }));
 
-vi.mock("@/hooks/api/use-settings", async () => {
-  const actual = await vi.importActual<typeof import("@/hooks/api/use-settings")>(
-    "@/hooks/api/use-settings",
+vi.mock("@workspace/data-access", async () => {
+  const actual = await vi.importActual<typeof import("@workspace/data-access")>(
+    "@workspace/data-access",
   );
   return {
     ...actual,
@@ -66,7 +66,7 @@ vi.mock(
   }),
 );
 
-vi.mock("@/lib/user-facing-errors", () => ({
+vi.mock("@/lib/errors/user-facing-errors", () => ({
   showUserFacingErrorToast: vi.fn(),
 }));
 

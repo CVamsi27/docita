@@ -2,6 +2,7 @@ import { Test, TestingModule } from '@nestjs/testing';
 import { AuditService } from './audit.service';
 import { PrismaService } from '@/prisma/prisma.service';
 import { beforeEach, describe, it, expect, jest } from '@jest/globals';
+import { clockPortTestProvider } from '@/test-utils';
 
 describe('AuditService', () => {
   let service: AuditService;
@@ -46,6 +47,7 @@ describe('AuditService', () => {
             runUnrestricted: jest.fn((callback: () => unknown) => callback()),
           },
         },
+        clockPortTestProvider(),
       ],
     }).compile();
 

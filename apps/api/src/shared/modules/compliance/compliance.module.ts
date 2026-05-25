@@ -1,5 +1,8 @@
 import { Module } from '@nestjs/common';
 import { DPDPComplianceService } from './dpdp-compliance.service';
+import { DpdpAuditEmitter } from './dpdp-audit.emitter';
+import { ConsentComplianceService } from './consent-compliance.service';
+import { DataSubjectRequestService } from './data-subject-request.service';
 import { ConsentController } from './consent.controller';
 import { AuditModule } from '@/shared/modules/audit/audit/audit.module';
 import { PrismaModule } from '@/prisma/prisma.module';
@@ -13,6 +16,9 @@ import { ArchivalService } from './archival.service';
   imports: [PrismaModule, AuditModule, AuthModule],
   controllers: [ConsentController],
   providers: [
+    DpdpAuditEmitter,
+    ConsentComplianceService,
+    DataSubjectRequestService,
     DPDPComplianceService,
     AnonymizationFactory,
     DataExportFactory,

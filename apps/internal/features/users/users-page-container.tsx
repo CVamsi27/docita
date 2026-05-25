@@ -1,18 +1,18 @@
 "use client";
 
-import { DocitaLoadingIndicator } from "@workspace/ui/components/docita-loading-indicator";
-
-import { Button } from "@workspace/ui/components/button";
+import { Button } from "@workspace/ui/components/form/button";
 import {
   Card,
   CardContent,
   CardHeader,
   CardTitle,
-} from "@workspace/ui/components/card";
-import { Input } from "@workspace/ui/components/input";
-import { Badge } from "@workspace/ui/components/badge";
-import { EmptyState } from "@workspace/ui/components/empty-state";
-import { PageHeader } from "@workspace/ui/components/page-header";
+} from "@workspace/ui/components/indicators/card";
+import { Input } from "@workspace/ui/components/form/input";
+import { Badge } from "@workspace/ui/components/indicators/badge";
+import { EmptyState } from "@workspace/ui/components/feedback/empty-state";
+import { AppPageScaffold } from "@workspace/ui/components/layout/app-page-scaffold";
+import { PageHeader } from "@workspace/ui/components/layout/page-header";
+import { DataState } from "@workspace/ui/components/data-display/data-state";
 import {
   Table,
   TableBody,
@@ -20,29 +20,32 @@ import {
   TableHead,
   TableHeader,
   TableRow,
-} from "@workspace/ui/components/table";
+} from "@workspace/ui/components/data-display/table";
 import {
   Dialog,
   DialogContent,
   DialogDescription,
   DialogHeader,
   DialogTitle,
-} from "@workspace/ui/components/dialog";
+} from "@workspace/ui/components/overlay/dialog";
 import {
   Select,
   SelectContent,
   SelectItem,
   SelectTrigger,
   SelectValue,
-} from "@workspace/ui/components/select";
+} from "@workspace/ui/components/form/select";
 import { Eye, Search, Users } from "lucide-react";
-import { SPECIALIZATION_LABELS } from "@workspace/types";
 import {
   formatInternalListDate,
   formatInternalTimestamp,
-} from "@/lib/format-display-date";
+} from "@/lib/formatters/format-display-date";
 import { ROLE_CONFIG } from "./types";
-import { getRoleBadgeColor } from "./utils";
+import {
+  getRoleBadgeColor,
+  getSpecializationLabel,
+  isRoleConfigKey,
+} from "./utils";
 import { useUsersData } from "./use-users-data";
 
 export function UsersPageContainer() {
@@ -67,40 +70,41 @@ export function UsersPageContainer() {
     retry,
   } = useUsersData();
 
+  const pageStatus = loading ? "loading" : hasError ? "error" : "success";
+
   return (
-    <div className="space-y-6">
-      <PageHeader
-        title="Team Members"
-        description="View and manage all users across facilities"
-        size="compact"
-      />
-
-      {hasError && (
-        <Card className="border-destructive/40 bg-destructive/5">
-          <CardContent className="flex flex-col gap-3 pt-6 md:flex-row md:items-center md:justify-between">
-            <div>
-              <p className="font-medium text-destructive">
-                We could not load your team members
-              </p>
-              <p className="text-sm text-muted-foreground">{errorMessage}</p>
-            </div>
-            <Button variant="outline" onClick={() => void retry()}>
-              Retry
-            </Button>
-          </CardContent>
-        </Card>
-      )}
-
-      <div className="grid gap-4 md:grid-cols-5">
+    <AppPageScaffold
+      header={
+        <PageHeader
+          title="Team Members"
+          description="View and manage all users across facilities"
+          size="compact"
+        />
+      }
+    >
+      <DataState
+        status={pageStatus}
+        loadingMessage="Loading team members…"
+        errorMessage={errorMessage}
+        onRetry={() => void retry()}
+        emptyTitle="No team members found"
+        emptyDescription="Team members will appear here once facilities add users."
+        emptyIcon={Users}
+      >
+        <div className="grid gap-4 md:grid-cols-5">
         {Object.entries(ROLE_CONFIG).map(([role, config]) => (
           <Card
             key={role}
-            className={`cursor-pointer transition-all ${
+            className={`cursor-pointer transition-shadow duration-150 ${
               selectedRole === role
                 ? "ring-2 ring-primary shadow-lg"
                 : "hover:shadow-md"
             }`}
-            onClick={() => setSelectedRole(role as keyof typeof ROLE_CONFIG)}
+            onClick={() => {
+              if (isRoleConfigKey(role)) {
+                setSelectedRole(role);
+              }
+            }}
           >
             <CardContent className="pt-6">
               <div className="flex items-center justify-between">
@@ -109,7 +113,7 @@ export function UsersPageContainer() {
                     {config.label}
                   </p>
                   <p className="mt-1 text-[var(--fs-2xl)] font-semibold tabular-nums leading-[var(--lh-tight)]">
-                    {roleStats[role as keyof typeof roleStats]}
+                    {isRoleConfigKey(role) ? roleStats[role] : 0}
                   </p>
                 </div>
                 <config.icon className="h-8 w-8 text-muted-foreground" />
@@ -161,20 +165,7 @@ export function UsersPageContainer() {
           </CardTitle>
         </CardHeader>
         <CardContent>
-          {loading ? (
-            <div
-              className="flex items-center justify-center py-8"
-              role="status"
-              aria-live="polite"
-              aria-label="Loading team members"
-            >
-              <DocitaLoadingIndicator
-                variant="section"
-                withStatusRole={false}
-                iconClassName="h-8 w-8 text-primary"
-              />
-            </div>
-          ) : filteredUsers.length === 0 ? (
+          {filteredUsers.length === 0 ? (
             <EmptyState
               icon={Users}
               title={
@@ -211,11 +202,7 @@ export function UsersPageContainer() {
                         </Badge>
                       </TableCell>
                       <TableCell className="text-muted-foreground">
-                        {user.specialization
-                          ? SPECIALIZATION_LABELS[
-                              user.specialization as keyof typeof SPECIALIZATION_LABELS
-                            ] || user.specialization
-                          : "-"}
+                        {getSpecializationLabel(user.specialization)}
                       </TableCell>
                       <TableCell className="text-muted-foreground">
                         {user.phoneNumber || "-"}
@@ -241,6 +228,7 @@ export function UsersPageContainer() {
           )}
         </CardContent>
       </Card>
+      </DataState>
 
       <Dialog open={isViewOpen} onOpenChange={setIsViewOpen}>
         <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
@@ -303,9 +291,7 @@ export function UsersPageContainer() {
                             Specialization
                           </p>
                           <p className="text-sm font-semibold mt-1">
-                            {SPECIALIZATION_LABELS[
-                              selectedUser.specialization as keyof typeof SPECIALIZATION_LABELS
-                            ] || selectedUser.specialization}
+                            {getSpecializationLabel(selectedUser.specialization)}
                           </p>
                         </div>
                       )}
@@ -364,6 +350,6 @@ export function UsersPageContainer() {
           )}
         </DialogContent>
       </Dialog>
-    </div>
+    </AppPageScaffold>
   );
 }

@@ -1,4 +1,5 @@
 import { Injectable, NotFoundException, Inject } from '@nestjs/common';
+import { CLOCK_PORT, type IClock } from '@/shared/common/ports/clock.port';
 import {
   ILabRepository,
   IMedicalCodingRepository,
@@ -37,6 +38,9 @@ type LabOrderCreateInput = {
   appointmentId?: string;
 };
 
+/**
+ * Facade — delegates lab tests and medical coding to ILabRepository / IMedicalCodingRepository.
+ */
 @Injectable()
 export class ClinicalService {
   constructor(
@@ -46,6 +50,7 @@ export class ClinicalService {
     private readonly codingRepository: IMedicalCodingRepository,
     @Inject(CODE_CATALOG_PROVIDER)
     private readonly codeCatalogProvider: CodeCatalogProvider,
+    @Inject(CLOCK_PORT) private readonly clock: IClock,
   ) {}
 
   private toLabTestInput(
@@ -110,7 +115,7 @@ export class ClinicalService {
     const order = await this.labRepository.findOrderById(id);
     if (!order) throw new NotFoundException('Lab order not found');
 
-    const updated = order.update({ status });
+    const updated = order.update({ status }, this.clock.now());
     return await this.labRepository.saveOrder(updated);
   }
 

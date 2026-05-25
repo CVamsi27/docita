@@ -1,4 +1,5 @@
 import { Injectable, Logger } from '@nestjs/common';
+import type { IClock } from '@/shared/common/ports/clock.port';
 import {
   IMessageChannel,
   MessageContent,
@@ -14,6 +15,7 @@ export class WhatsAppChannel implements IMessageChannel {
     private phoneNumberId: string,
     private accessToken: string,
     private businessAccountId: string,
+    private readonly clock: IClock,
   ) {}
 
   getName(): string {
@@ -42,7 +44,7 @@ export class WhatsAppChannel implements IMessageChannel {
       messageId: `wh_${Date.now()}`,
       status: 'pending',
       channel: 'WhatsApp',
-      sentAt: new Date(),
+      sentAt: this.clock.now(),
     });
   }
 

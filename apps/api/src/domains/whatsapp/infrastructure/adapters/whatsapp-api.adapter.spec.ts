@@ -10,7 +10,7 @@ import {
 } from '@jest/globals';
 import { Logger, ServiceUnavailableException } from '@nestjs/common';
 import { Test } from '@nestjs/testing';
-import { WhatsAppApiAdapter } from './whatsapp-api.adapter';
+import { WhatsappClientService } from '@/domains/whatsapp/infrastructure/clients/whatsapp-client.service';
 import { AppConfigService } from '@/shared/modules/config/app-configuration.service';
 
 function makeSuccessResponse(messageId: string) {
@@ -27,8 +27,8 @@ function makeErrorResponse(errorMessage: string, status = 400) {
   });
 }
 
-describe('WhatsAppApiAdapter', () => {
-  let adapter: WhatsAppApiAdapter;
+describe('WhatsappClientService (IWhatsAppClient)', () => {
+  let adapter: WhatsappClientService;
   let mockConfigService: AppConfigService;
   let getMetaConfigMock: jest.MockedFunction<AppConfigService['getMetaConfig']>;
   let originalFetch: typeof global.fetch;
@@ -64,12 +64,12 @@ describe('WhatsAppApiAdapter', () => {
 
     const module = await Test.createTestingModule({
       providers: [
-        WhatsAppApiAdapter,
+        WhatsappClientService,
         { provide: AppConfigService, useValue: mockConfigService },
       ],
     }).compile();
 
-    adapter = module.get<WhatsAppApiAdapter>(WhatsAppApiAdapter);
+    adapter = module.get<WhatsappClientService>(WhatsappClientService);
   });
 
   afterEach(() => {
@@ -151,12 +151,13 @@ describe('WhatsAppApiAdapter', () => {
 
       const unconfiguredModule = await Test.createTestingModule({
         providers: [
-          WhatsAppApiAdapter,
+          WhatsappClientService,
           { provide: AppConfigService, useValue: mockConfigService },
         ],
       }).compile();
-      const unconfiguredAdapter =
-        unconfiguredModule.get<WhatsAppApiAdapter>(WhatsAppApiAdapter);
+      const unconfiguredAdapter = unconfiguredModule.get<WhatsappClientService>(
+        WhatsappClientService,
+      );
 
       const result = await unconfiguredAdapter.sendMessage({
         to: '919876543210',
@@ -290,12 +291,13 @@ describe('WhatsAppApiAdapter', () => {
 
       const unconfiguredModule = await Test.createTestingModule({
         providers: [
-          WhatsAppApiAdapter,
+          WhatsappClientService,
           { provide: AppConfigService, useValue: mockConfigService },
         ],
       }).compile();
-      const unconfigured =
-        unconfiguredModule.get<WhatsAppApiAdapter>(WhatsAppApiAdapter);
+      const unconfigured = unconfiguredModule.get<WhatsappClientService>(
+        WhatsappClientService,
+      );
 
       const healthy = await unconfigured.checkHealth();
       expect(healthy).toBe(false);

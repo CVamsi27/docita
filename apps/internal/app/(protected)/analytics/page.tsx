@@ -1,14 +1,14 @@
 "use client";
 
 import dynamic from "next/dynamic";
-import { AppPageScaffold } from "@workspace/ui/components/app-page-scaffold";
-import { DocitaLoadingIndicator } from "@workspace/ui/components/docita-loading-indicator";
-import { PageHeader } from "@workspace/ui/components/page-header";
-import { Section } from "@workspace/ui/components/section";
+import { AppPageScaffold } from "@workspace/ui/components/layout/app-page-scaffold";
+import { DocitaLoadingIndicator } from "@workspace/ui/components/feedback/docita-loading-indicator";
+import { PageHeader } from "@workspace/ui/components/layout/page-header";
+import { Section } from "@workspace/ui/components/layout/section";
 
 const AnalyticsDashboardLazy = dynamic(
   () =>
-    import("@/components/analytics/analytics-dashboard").then(
+    import("@/features/analytics/analytics-dashboard").then(
       (module) => module.AnalyticsDashboard,
     ),
   {

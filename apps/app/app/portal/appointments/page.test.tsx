@@ -9,19 +9,27 @@ const portalAppointmentMocks = vi.hoisted(() => ({
   showError: vi.fn(),
 }));
 
-vi.mock("@/hooks/api/use-patient-portal", () => ({
-  usePatientPortalAppointments: portalAppointmentMocks.usePatientPortalAppointments,
-  useRequestAppointment: () => ({
-    mutateAsync: portalAppointmentMocks.mutateAsync,
-    isPending: false,
-  }),
-}));
+vi.mock("@workspace/data-access", async () => {
+  const actual =
+    await vi.importActual<typeof import("@workspace/data-access")>(
+      "@workspace/data-access",
+    );
+  return {
+    ...actual,
+    usePatientPortalAppointments:
+      portalAppointmentMocks.usePatientPortalAppointments,
+    useRequestAppointment: () => ({
+      mutateAsync: portalAppointmentMocks.mutateAsync,
+      isPending: false,
+    }),
+  };
+});
 
-vi.mock("@/lib/user-facing-errors", () => ({
+vi.mock("@/lib/errors/user-facing-errors", () => ({
   showUserFacingErrorToast: portalAppointmentMocks.showError,
 }));
 
-vi.mock("@workspace/ui/components/iso-date-picker-field", () => ({
+vi.mock("@workspace/ui/components/form/iso-date-picker-field", () => ({
   IsoDatePickerField: ({
     id,
     value,

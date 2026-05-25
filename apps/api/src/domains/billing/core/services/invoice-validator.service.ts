@@ -1,3 +1,4 @@
+import { getErrorMessage } from '@workspace/utils';
 import { Invoice } from '@/domains/billing/core/entities/invoice.entity';
 import { InvoiceItem } from '@/domains/billing/core/entities/invoice-item.entity';
 
@@ -27,7 +28,7 @@ export class InvoiceValidatorService {
         errors.push('Invoice total must be greater than 0');
       }
     } catch (error) {
-      errors.push(`Error calculating total: ${(error as Error).message}`);
+      errors.push(`Error calculating total: ${getErrorMessage(error)}`);
     }
 
     return {

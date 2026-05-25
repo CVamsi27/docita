@@ -1,6 +1,9 @@
-import { Injectable, Logger } from '@nestjs/common';
-import { PrismaService } from '@/prisma/prisma.service';
-import { ErrorSeverity } from '@workspace/db';
+import { Inject, Injectable, Logger } from '@nestjs/common';
+import { getErrorMessage } from '@workspace/utils';
+import {
+  IWebhookEventRepository,
+  WEBHOOK_EVENT_REPOSITORY_TOKEN,
+} from '@/domains/webhooks/application/ports/webhook-event.repository.port';
 
 export interface WebhookErrorContext {
   clinicId?: string;
@@ -12,11 +15,17 @@ export interface WebhookErrorContext {
   userAgent?: string;
 }
 
+/**
+ * Thin facade — delegates webhook error logging to IWebhookEventRepository.
+ */
 @Injectable()
 export class WebhookErrorHandlingService {
   private readonly logger = new Logger(WebhookErrorHandlingService.name);
 
-  constructor(private readonly prisma: PrismaService) {}
+  constructor(
+    @Inject(WEBHOOK_EVENT_REPOSITORY_TOKEN)
+    private readonly webhookEventRepository: IWebhookEventRepository,
+  ) {}
 
   async logWebhookError(
     error: Error,
@@ -24,25 +33,19 @@ export class WebhookErrorHandlingService {
     isCritical: boolean = false,
   ): Promise<void> {
     try {
-      const errorLog = await this.prisma.errorLog.create({
-        data: {
-          clinicId: context.clinicId,
-          userId: context.userId,
-          type: 'WebhookError',
-          message: error.message,
-          stack: error.stack,
-          path: `/webhooks/${context.eventType}`,
-          metadata: {
-            eventType: context.eventType,
-            providerId: context.providerId,
-            payloadHash: context.payload
-              ? JSON.stringify(context.payload).substring(0, 100)
-              : null,
-          },
-          severity: isCritical ? ErrorSeverity.CRITICAL : ErrorSeverity.ERROR,
-          ip: context.ipAddress,
-          userAgent: context.userAgent,
-        },
+      const errorLog = await this.webhookEventRepository.createErrorLog({
+        clinicId: context.clinicId,
+        userId: context.userId,
+        eventType: context.eventType,
+        providerId: context.providerId,
+        payloadHash: context.payload
+          ? JSON.stringify(context.payload).substring(0, 100)
+          : null,
+        message: error.message,
+        stack: error.stack,
+        isCritical,
+        ipAddress: context.ipAddress,
+        userAgent: context.userAgent,
       });
 
       this.logger.error(
@@ -63,7 +66,7 @@ export class WebhookErrorHandlingService {
     } catch (logError) {
       this.logger.error('Failed to log webhook error to database', {
         originalError: error.message,
-        logError: (logError as Error).message,
+        logError: getErrorMessage(logError),
         context,
       });
     }
@@ -76,27 +79,18 @@ export class WebhookErrorHandlingService {
     error?: Error,
   ): Promise<void> {
     try {
-      await this.prisma.auditLog.create({
-        data: {
-          clinicId: 'system',
-          userId: 'webhook-processor',
-          action: `WEBHOOK_${eventType.toUpperCase()}`,
-          entityType: 'WEBHOOK_EVENT',
-          entityId: providerId,
-          status,
-          errorMessage: error ? error.message : undefined,
-          metadata: {
-            eventType,
-            timestamp: new Date().toISOString(),
-          },
-        },
+      await this.webhookEventRepository.createAuditEvent({
+        eventType,
+        providerId,
+        status,
+        errorMessage: error ? error.message : undefined,
       });
     } catch (auditError) {
       this.logger.warn('Failed to track webhook event', {
         eventType,
         providerId,
         status,
-        auditError: (auditError as Error).message,
+        auditError: getErrorMessage(auditError),
       });
     }
   }

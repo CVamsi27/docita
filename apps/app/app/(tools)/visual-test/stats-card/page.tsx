@@ -4,7 +4,7 @@ import {
   GradientStatCard,
   QuickActionCard,
   ProgressStat,
-} from "@workspace/ui/components/stats-card";
+} from "@workspace/ui/components/data-display/stats-card";
 import { Users, DollarSign, Calendar, Activity } from "lucide-react";
 
 export default function StatsCardVisualTest() {

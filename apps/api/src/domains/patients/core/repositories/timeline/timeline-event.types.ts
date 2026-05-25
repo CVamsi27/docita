@@ -1,0 +1,10 @@
+export type TimelineEventType =
+  | 'APPOINTMENT'
+  | 'PRESCRIPTION'
+  | 'METRIC_RECORD'
+  | 'LAB_TEST'
+  | 'MEDICAL_DOCUMENT'
+  | 'FOLLOW_UP'
+  | 'IMMUNIZATION'
+  | 'ADMISSION'
+  | 'MEDICATION_DOSE';

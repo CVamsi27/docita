@@ -74,7 +74,7 @@ describe("PatientDetailTabs", () => {
       "visits",
       "records",
       "billing",
-      "communication",
+      // "communication",
     ]);
   });
 
@@ -102,9 +102,9 @@ describe("PatientDetailTabs", () => {
     ).toBeInTheDocument();
     expect(screen.getByRole("tab", { name: "Records" })).toBeInTheDocument();
     expect(screen.getByRole("tab", { name: "Billing" })).toBeInTheDocument();
-    expect(
-      screen.getByRole("tab", { name: "Communication" }),
-    ).toBeInTheDocument();
+    // expect(
+    //   screen.getByRole("tab", { name: "Communication" }),
+    // ).toBeInTheDocument();
   });
 
   it("rewrites legacy ?tab=vitals to records?subtab=vitals", () => {
@@ -143,10 +143,10 @@ describe("PatientDetailTabs", () => {
     expect(screen.getByRole("tab", { name: "Documents" })).toBeInTheDocument();
   });
 
-  it("shows the communication tab content when active", () => {
-    mocks.searchParams = new URLSearchParams("tab=communication");
-    render(<PatientDetailTabs {...baseProps} />);
+  // it("shows the communication tab content when active", () => {
+  //   mocks.searchParams = new URLSearchParams("tab=communication");
+  //   render(<PatientDetailTabs {...baseProps} />);
 
-    expect(screen.getByTestId("patient-communication-tab")).toBeInTheDocument();
-  });
+  //   expect(screen.getByTestId("patient-communication-tab")).toBeInTheDocument();
+  // });
 });

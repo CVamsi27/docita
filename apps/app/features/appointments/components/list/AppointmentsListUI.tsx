@@ -4,16 +4,16 @@ import {
   formatClinicHalfHourSlotKey,
   formatDate,
 } from "@workspace/utils";
-import { useClinic } from "@/lib/clinic-context";
+import { useClinic } from "@/lib/contexts/clinic-context";
 import { CalendarDays } from "lucide-react";
 import {
   Card,
   CardContent,
   CardHeader,
   CardTitle,
-} from "@workspace/ui/components/card";
-import { DataState } from "@workspace/ui/components/data-state";
-import type { AppointmentListItem } from "@/hooks/api/use-appointments";
+} from "@workspace/ui/components/indicators/card";
+import { DataState } from "@workspace/ui/components/data-display/data-state";
+import type { AppointmentListItem } from "@workspace/data-access";
 import { TimeSlotRow } from "@/features/appointments/components/forms/TimeSlotRow";
 
 interface AppointmentsListUIProps {

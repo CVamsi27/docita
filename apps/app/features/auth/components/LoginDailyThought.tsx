@@ -1,13 +1,17 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { Skeleton } from "@workspace/ui/components/skeleton";
-import { logger } from "@/lib/logger";
+import { Skeleton } from "@workspace/ui/components/feedback/skeleton";
+import { browserJson } from "@/lib/auth/browser-request";
+import { logger } from "@/lib/monitoring/logger";
+import { z } from "zod";
 
-type DailyThoughtPayload = {
-  quote: string;
-  author: string;
-};
+const dailyThoughtPayloadSchema = z.object({
+  quote: z.string(),
+  author: z.string(),
+});
+
+type DailyThoughtPayload = z.infer<typeof dailyThoughtPayloadSchema>;
 
 export function LoginDailyThought() {
   const [data, setData] = useState<DailyThoughtPayload | null>(null);
@@ -21,26 +25,15 @@ export function LoginDailyThought() {
         // Key the request by UTC day so the browser doesn't keep
         // serving a prior day's cached response indefinitely.
         const dayKey = new Date().toISOString().slice(0, 10);
-        const response = await fetch(`/api/daily-thought?day=${dayKey}`, {
-          method: "GET",
-        });
-        if (!response.ok) {
-          throw new Error(String(response.status));
-        }
-        const body: unknown = await response.json();
-        if (
-          !cancelled &&
-          body &&
-          typeof body === "object" &&
-          "quote" in body &&
-          "author" in body &&
-          typeof (body as DailyThoughtPayload).quote === "string" &&
-          typeof (body as DailyThoughtPayload).author === "string"
-        ) {
-          setData({
-            quote: (body as DailyThoughtPayload).quote,
-            author: (body as DailyThoughtPayload).author,
-          });
+        const body = await browserJson<unknown>(
+          `/api/daily-thought?day=${dayKey}`,
+          {
+            method: "GET",
+          },
+        );
+        const parsed = dailyThoughtPayloadSchema.safeParse(body);
+        if (!cancelled && parsed.success) {
+          setData(parsed.data);
         }
       } catch (error) {
         logger.error("LoginDailyThought fetch failed", { error });
@@ -83,8 +76,12 @@ export function LoginDailyThought() {
         </div>
       ) : data ? (
         <blockquote className="space-y-2 border-l-2 border-primary/40 pl-3">
-          <p className="text-sm leading-relaxed text-foreground">{data.quote}</p>
-          <footer className="text-xs text-muted-foreground">— {data.author}</footer>
+          <p className="text-sm leading-relaxed text-foreground">
+            {data.quote}
+          </p>
+          <footer className="text-xs text-muted-foreground">
+            — {data.author}
+          </footer>
         </blockquote>
       ) : null}
     </section>

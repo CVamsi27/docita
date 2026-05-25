@@ -13,13 +13,13 @@ interface PlatformStatsCacheEntry {
   stats: PlatformStats | null;
 }
 
-export interface TierPricing {
+interface TierPricing {
   monthly: number | "custom";
   yearly: number | "custom";
   currency: string;
 }
 
-export interface TierConfig {
+interface TierConfig {
   id: string;
   name: string;
   description: string;
@@ -28,7 +28,7 @@ export interface TierConfig {
   features: string[];
 }
 
-export interface PricingConfig {
+interface PricingConfig {
   currency: {
     code: string;
     symbol: string;
@@ -90,6 +90,20 @@ const FALLBACK_TIERS: TierConfig[] = [
       "Broadcast campaigns",
       "REST API access",
       "Priority support",
+    ],
+  },
+  {
+    id: "HOSPITAL",
+    name: "Hospital",
+    description:
+      "For multi-doctor multi-branch hospitals: pooled WhatsApp, multi-branch analytics, dedicated CSM",
+    tagline: "Multi-branch and multi-specialty",
+    pricing: { monthly: 7999, yearly: 79990, currency: "₹" },
+    features: [
+      "Up to 25 doctors and 5 branches",
+      "8,000 consultations / month",
+      "Pooled WhatsApp (6,000 msgs)",
+      "Multi-location analytics",
     ],
   },
   {

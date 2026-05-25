@@ -8,6 +8,7 @@ import {
   IUserRepository,
   USER_REPOSITORY_TOKEN,
 } from '@/domains/users/core/repositories/user.repository.interface';
+import { CLOCK_PORT, type IClock } from '@/shared/common/ports/clock.port';
 
 interface UpdateProfileDto {
   name?: string;
@@ -15,6 +16,9 @@ interface UpdateProfileDto {
   sidebarNavOrderOverride?: unknown | null;
 }
 
+/**
+ * Thin facade — delegates user profile updates to IUserRepository.
+ */
 @Injectable()
 export class UsersService {
   private readonly logger = new Logger(UsersService.name);
@@ -22,6 +26,7 @@ export class UsersService {
   constructor(
     @Inject(USER_REPOSITORY_TOKEN)
     private repository: IUserRepository,
+    @Inject(CLOCK_PORT) private readonly clock: IClock,
   ) {}
 
   async update(userId: string, data: { onboardingStep?: string }) {
@@ -63,9 +68,9 @@ export class UsersService {
 
     return {
       message:
-        'Your account deletion request has been received. Our team will process it within 30 days as per applicable data protection guidelines.',
+        'Your account deletion request has been received. Our team will process it within 30 days per applicable data protection guidelines.',
       userId,
-      requestedAt: new Date().toISOString(),
+      requestedAt: this.clock.now().toISOString(),
     };
   }
 }

@@ -7,6 +7,7 @@ import {
 } from '@nestjs/common';
 import { UserRateLimitService } from '@/shared/modules/services/user-rate-limit.service';
 import { AuthenticatedRequest } from '@workspace/types';
+import type { Request as ExpressRequest } from 'express';
 import { getAuthenticatedUserId } from '@/shared/modules/auth/auth/request-user.util';
 
 /**
@@ -65,20 +66,17 @@ export class UserRateLimitGuard implements CanActivate {
   constructor(private readonly userRateLimitService: UserRateLimitService) {}
 
   canActivate(context: ExecutionContext): boolean {
-    const request = context.switchToHttp().getRequest<AuthenticatedRequest>();
+    const request = context
+      .switchToHttp()
+      .getRequest<AuthenticatedRequest & ExpressRequest>();
     const userId = getAuthenticatedUserId(request.user);
 
     if (!userId) {
       return true;
     }
 
-    const expressReq = request as unknown as {
-      method?: string;
-      originalUrl?: string;
-      url?: string;
-    };
-    const method = (expressReq.method ?? 'GET').toUpperCase();
-    const url = expressReq.originalUrl ?? expressReq.url ?? '';
+    const method = (request.method ?? 'GET').toUpperCase();
+    const url = request.originalUrl ?? request.url ?? '';
 
     const override = resolveOverride(method, url);
     const limit = override?.limit ?? DEFAULT_CLINICIAN_LIMIT;

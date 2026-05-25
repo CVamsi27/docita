@@ -2,8 +2,12 @@ import {
   Injectable,
   Logger,
   NotFoundException as _NotFoundException,
+  Inject,
 } from '@nestjs/common';
-import { PrismaService } from '@/prisma/prisma.service';
+import {
+  REMINDER_PERSISTENCE_PORT,
+  type ReminderPersistencePort,
+} from '@/domains/reminders/application/ports/reminder-persistence.port';
 import { ReminderSettings, WhatsappLogStatus } from '@workspace/db';
 import {
   formatDate,
@@ -12,7 +16,12 @@ import {
   DEFAULT_TIMEZONE,
 } from '@workspace/utils';
 import { SendMessageUseCase } from '@/domains/whatsapp/application/use-cases/send-message.use-case';
-import { isClinicWhatsAppAutomationSendingAllowed } from '@/shared/modules/messaging/whatsapp/whatsapp-patient-send-policy.util';
+import { CLOCK_PORT, type IClock } from '@/shared/common/ports/clock.port';
+import { isClinicWhatsAppAutomationSendingAllowed } from '@/shared/whatsapp/whatsapp-patient-send-policy.util';
+
+function formatCaughtError(error: unknown): string {
+  return error instanceof Error ? error.message : 'Unknown error';
+}
 
 interface AppointmentForReminder {
   id: string;
@@ -40,8 +49,10 @@ export class ReminderNotificationService {
   private readonly logger = new Logger(ReminderNotificationService.name);
 
   constructor(
-    private prisma: PrismaService,
+    @Inject(REMINDER_PERSISTENCE_PORT)
+    private persistence: ReminderPersistencePort,
     private sendMessage: SendMessageUseCase,
+    @Inject(CLOCK_PORT) private readonly clock: IClock,
   ) {}
 
   async sendEmailReminder(
@@ -60,12 +71,12 @@ export class ReminderNotificationService {
       );
       this.logger.debug(`[EMAIL] Subject: ${subject}`);
 
-      await this.prisma.appointmentReminder.create({
+      await this.persistence.appointmentReminder.create({
         data: {
           appointmentId: appointment.id,
           type: 'email',
           status: 'sent',
-          sentAt: new Date(),
+          sentAt: this.clock.now(),
         },
       });
 
@@ -74,12 +85,12 @@ export class ReminderNotificationService {
       this.logger.error(
         `Failed to send email reminder: ${error instanceof Error ? error.message : 'Unknown error'}`,
       );
-      await this.prisma.appointmentReminder.create({
+      await this.persistence.appointmentReminder.create({
         data: {
           appointmentId: appointment.id,
           type: 'email',
           status: 'failed',
-          error: (error as Error).message,
+          error: formatCaughtError(error),
         },
       });
     }
@@ -96,12 +107,12 @@ export class ReminderNotificationService {
         `[SMS] Reminder workflow started for appointment ${appointment.id}`,
       );
 
-      await this.prisma.appointmentReminder.create({
+      await this.persistence.appointmentReminder.create({
         data: {
           appointmentId: appointment.id,
           type: 'sms',
           status: 'sent',
-          sentAt: new Date(),
+          sentAt: this.clock.now(),
         },
       });
 
@@ -110,12 +121,12 @@ export class ReminderNotificationService {
       this.logger.error(
         `Failed to send SMS reminder: ${error instanceof Error ? error.message : 'Unknown error'}`,
       );
-      await this.prisma.appointmentReminder.create({
+      await this.persistence.appointmentReminder.create({
         data: {
           appointmentId: appointment.id,
           type: 'sms',
           status: 'failed',
-          error: (error as Error).message,
+          error: formatCaughtError(error),
         },
       });
     }
@@ -131,7 +142,10 @@ export class ReminderNotificationService {
       const clinicId = appointment.clinic?.id || '';
       if (
         clinicId &&
-        !(await isClinicWhatsAppAutomationSendingAllowed(this.prisma, clinicId))
+        !(await isClinicWhatsAppAutomationSendingAllowed(
+          this.persistence,
+          clinicId,
+        ))
       ) {
         this.logger.log(
           `[WhatsApp] Not allowed for clinic ${clinicId}; skipping ${reminderType} reminder for appointment ${appointment.id}`,
@@ -155,31 +169,35 @@ export class ReminderNotificationService {
         appointmentId: String(appointment.id),
       };
 
-      const { messageId: _messageId } = await this.sendMessage.execute({
+      const sendResult = await this.sendMessage.execute({
         clinicId: clinicId || '',
         recipientPhone: appointment.patient.phoneNumber,
         templateName: templateId,
         variables,
       });
 
-      await this.prisma.whatsappLog.create({
-        data: {
-          clinicId: clinicId || '',
-          patientId: appointment.patient.id,
-          phoneNumber: appointment.patient.phoneNumber,
-          message: `Sent template: ${templateId}`,
-          type: 'reminder',
-          status: WhatsappLogStatus.SENT,
-        },
-      });
+      await this.persistence.$transaction(async (tx) => {
+        await tx.whatsappLog.create({
+          data: {
+            clinicId: clinicId || '',
+            patientId: appointment.patient.id,
+            phoneNumber: appointment.patient.phoneNumber,
+            message: `Sent template: ${templateId}`,
+            type: 'reminder',
+            status: WhatsappLogStatus.SENT,
+            senderMode: sendResult.senderMode ?? 'SHARED',
+            senderPhoneNumberId: sendResult.senderPhoneNumberId ?? null,
+          },
+        });
 
-      await this.prisma.appointmentReminder.create({
-        data: {
-          appointmentId: appointment.id,
-          type: reminderType,
-          status: 'sent',
-          sentAt: new Date(),
-        },
+        await tx.appointmentReminder.create({
+          data: {
+            appointmentId: appointment.id,
+            type: reminderType,
+            status: 'sent',
+            sentAt: this.clock.now(),
+          },
+        });
       });
 
       this.logger.log(
@@ -189,12 +207,12 @@ export class ReminderNotificationService {
       this.logger.error(
         `Failed to send WhatsApp reminder: ${error instanceof Error ? error.message : 'Unknown error'}`,
       );
-      await this.prisma.appointmentReminder.create({
+      await this.persistence.appointmentReminder.create({
         data: {
           appointmentId: appointment.id,
           type: reminderType,
           status: 'failed',
-          error: (error as Error).message,
+          error: formatCaughtError(error),
         },
       });
     }

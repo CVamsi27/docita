@@ -1,6 +1,5 @@
 import { z } from "zod";
 import { jsonObjectSchema } from "../shared/json-schema";
-import { workspaceProfileSchema } from "../shared/workspace-profile";
 import { sidebarNavOrderSchema } from "../shared/sidebar-nav";
 
 const customFieldSchema = z.object({
@@ -23,10 +22,16 @@ const taxSettingsSchema = z.object({
     .string()
     .trim()
     .toUpperCase()
-    .regex(/^[A-Z]{2}$/),
+    .regex(/^[A-Z]{2}$/)
+    .optional(),
   regime: z.enum(["IN_GST", "VAT", "SALES_TAX", "NONE"]).optional(),
   registrationId: z.string().optional(),
   registrationLabel: z.string().optional(),
+  /** Registered legal name for tax invoices, separate from the trade/facility name. */
+  legalName: z.string().max(160).optional(),
+  /** GST state code (first 2 chars of GSTIN) when set explicitly. */
+  stateCode: z.string().max(8).optional(),
+  stateName: z.string().max(120).optional(),
 });
 
 const mapsLocationSchema = z
@@ -112,9 +117,18 @@ export const updateClinicSettingsRequestSchema = z.object({
   paymentReceivingBankAccount: bankAccountSchema.optional(),
   taxSettings: taxSettingsSchema.optional(),
   facilityLabel: z.enum(["CLINIC", "HOSPITAL"]).optional(),
-  workspaceProfile: workspaceProfileSchema.optional(),
   sidebarNavOrder: sidebarNavOrderSchema.optional(),
   mapsLocation: mapsLocationSchema.optional(),
+  mapsLink: z.union([z.string().url(), z.literal("")]).optional(),
+  brandName: z.string().max(80).optional(),
+  lockedTheme: z
+    .object({
+      primaryColor: z.string().optional(),
+      mode: z.enum(["light", "dark", "system"]).optional(),
+      compactMode: z.boolean().optional(),
+      enforced: z.boolean().optional(),
+    })
+    .optional(),
 });
 
 export const createClinicDoctorRequestSchema = z.object({
@@ -188,7 +202,6 @@ export const clinicResponseSchema = createClinicRequestSchema.extend({
   slaSignatureUrl: z.union([z.string(), z.null()]).optional(),
   slaSignatureStoredUrl: z.union([z.string(), z.null()]).optional(),
   slaSignatureAcceptedAt: z.union([z.string(), z.date(), z.null()]).optional(),
-  workspaceProfile: workspaceProfileSchema.optional(),
 });
 
 export const listClinicsResponseSchema = z.array(clinicResponseSchema);

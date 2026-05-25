@@ -5,10 +5,10 @@ import { useRouter } from "next/navigation";
 import {
   RightRailCard,
   RightRailCardStack,
-} from "@workspace/ui/components/right-rail-card";
-import { Button } from "@workspace/ui/components/button";
+} from "@workspace/ui/components/data-display/right-rail-card";
+import { Button } from "@workspace/ui/components/form/button";
 import type { Patient } from "@workspace/types";
-import { useFeatureFlag } from "@/features/_shared/hooks/use-feature-flag";
+import { useFeatureFlag } from "@/hooks/use-feature-flag";
 
 interface PatientAdvisorRailProps {
   patient: Patient;

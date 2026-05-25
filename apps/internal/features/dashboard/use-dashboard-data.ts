@@ -1,33 +1,37 @@
-import { useQuery } from "@tanstack/react-query";
-import { useAuth } from "@/lib/auth";
-import { fetchDashboardClinics, fetchDashboardStats } from "./api";
+import { getUserFacingErrorMessage } from "@workspace/utils";
+import { useAuth } from "@/lib/auth/auth";
 import {
-  type DashboardClinic,
-  defaultDashboardStats,
-  defaultDashboardTrends,
-} from "./types";
+  defaultInternalDashboardStats,
+  defaultInternalDashboardTrends,
+  useInternalDashboardClinics,
+  useInternalDashboardStats,
+} from "@workspace/data-access/internal";
 
 export function useDashboardData() {
   const { token } = useAuth();
 
-  const clinicsQuery = useQuery({
-    queryKey: ["internal", "dashboard", "clinics", token],
-    queryFn: fetchDashboardClinics,
-    enabled: Boolean(token),
-  });
+  const clinicsQuery = useInternalDashboardClinics(token);
+  const statsQuery = useInternalDashboardStats(token);
 
-  const statsQuery = useQuery({
-    queryKey: ["internal", "dashboard", "stats", token],
-    queryFn: fetchDashboardStats,
-    enabled: Boolean(token),
-  });
+  const hasError = Boolean(clinicsQuery.error || statsQuery.error);
+  const errorSource = clinicsQuery.error ?? statsQuery.error ?? null;
+  const errorMessage = errorSource
+    ? getUserFacingErrorMessage(errorSource, {
+        context: "load",
+        fallback:
+          "We could not load this dashboard. Please refresh and try again.",
+      })
+    : "We could not load this dashboard. Please refresh and try again.";
 
   return {
     token,
-    clinics: (clinicsQuery.data ?? []) as DashboardClinic[],
-    stats: statsQuery.data ?? defaultDashboardStats,
-    trends: statsQuery.data?.trends ?? defaultDashboardTrends,
-    loading: Boolean(token) && (clinicsQuery.isLoading || statsQuery.isLoading),
+    clinics: clinicsQuery.data ?? [],
+    stats: statsQuery.data ?? defaultInternalDashboardStats,
+    trends: statsQuery.data?.trends ?? defaultInternalDashboardTrends,
+    loading:
+      Boolean(token) && (clinicsQuery.isLoading || statsQuery.isLoading),
+    hasError,
+    errorMessage,
     refetch: async () => {
       await Promise.all([clinicsQuery.refetch(), statsQuery.refetch()]);
     },

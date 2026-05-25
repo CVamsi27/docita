@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState } from "react";
-import { useClinic } from "@/lib/clinic-context";
+import { useClinic } from "@/lib/contexts/clinic-context";
 
-import { useInvoice } from "@/hooks/api/use-billing";
+import { useInvoice } from "@workspace/data-access";
 import { toast } from "sonner";
 import { useRouter } from "next/navigation";
 import { InvoiceItem } from "@workspace/types";
@@ -11,7 +11,7 @@ import {
   formatDateSafe,
 } from "@/lib/formatters";
 import { useClinicCurrency } from "@/hooks/use-clinic-currency";
-import { showUserFacingErrorToast } from "@/lib/user-facing-errors";
+import { showUserFacingErrorToast } from "@/lib/errors/user-facing-errors";
 import { invoicesApi } from "@/features/invoices/api/invoices.api";
 
 const POLL_INTERVAL_MS = 2000;
@@ -80,24 +80,6 @@ export const useInvoiceDetailsLogic = (
     }
   };
 
-  const handleShareWhatsApp = () => {
-    if (!invoice?.patient?.phoneNumber) {
-      showUserFacingErrorToast(
-        "Add this patient's phone number before sharing the invoice on WhatsApp",
-      );
-      return;
-    }
-
-    const clinicName = clinic?.name?.trim() || "our facility";
-    const total =
-      invoice.grandTotal || invoice.totalAmount || invoice.total || 0;
-    const message = `Hello ${invoice.patient.firstName}, here is your invoice ${invoice.invoiceNumber ?? invoice.id} for ${clinicCurrency.formatCurrency(total, { currency: invoice.currency })}. Thank you for visiting ${clinicName}.`;
-    const encodedMessage = encodeURIComponent(message);
-    const whatsappUrl = `https://wa.me/${invoice.patient.phoneNumber}?text=${encodedMessage}`;
-
-    window.open(whatsappUrl, "_blank");
-  };
-
   const calculateSubtotal = (items: InvoiceItem[]) => {
     return items.reduce(
       (sum, item) => sum + item.quantity * (item.unitPrice ?? item.price),
@@ -117,16 +99,14 @@ export const useInvoiceDetailsLogic = (
     handlePrint,
     handleDownload,
     isDownloading,
-    handleShareWhatsApp,
     calculateSubtotal,
     formatCurrency: (amount: number) =>
       formatCurrency(amount, invoice?.currency ?? clinicCurrency.currency, {
         locale: clinicCurrency.locale,
       }),
-    formatDate: (dateString?: string | Date) =>
+    formatDate: (dateString?: string | Date | null) =>
       formatDateSafe(
         dateString ?? null,
-        "en-US",
         DATE_FORMAT_OPTIONS_US_LONG,
       ),
     numberToWords,

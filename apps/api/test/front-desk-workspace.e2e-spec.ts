@@ -1,5 +1,7 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import { INestApplication } from '@nestjs/common';
+import { JwtService } from '@nestjs/jwt';
+import { Role } from '@workspace/db';
 import { ZodValidationPipe } from 'nestjs-zod';
 import request from 'supertest';
 import { AppModule } from '@/app.module';
@@ -11,13 +13,13 @@ import {
   getPrismaInstance,
 } from './setup';
 import { factories, setPrismaInstance } from './factories';
-import { RazorpaySubscriptionGateway } from '@/gateways/razorpay-subscription.gateway';
-import { mockRazorpayGateway } from './razorpay.provider';
-import { WhatsappService } from '@/shared/modules/messaging/whatsapp/whatsapp.service';
+import { WhatsappService } from '@/domains/whatsapp/application/services/whatsapp-clinic-facade.service';
 import { mockWhatsappService } from './whatsapp.provider';
+import { signE2eAccessToken } from './e2e-auth-token';
 
-describe('Front desk workspace (e2e)', () => {
+describe('Front desk tier (e2e)', () => {
   let app: INestApplication | undefined;
+  let jwtService: JwtService;
   let httpServer: ReturnType<INestApplication['getHttpServer']> | undefined;
   let prisma: PrismaService | undefined;
   let adminToken: string;
@@ -26,7 +28,6 @@ describe('Front desk workspace (e2e)', () => {
   let patientId: string;
   let doctorId: string;
   let doctorPassword: string;
-  let loginDoctorToken: string;
 
   beforeAll(async () => {
     setupTestDatabase();
@@ -36,8 +37,6 @@ describe('Front desk workspace (e2e)', () => {
     })
       .overrideProvider(PrismaService)
       .useValue(getPrismaInstance())
-      .overrideProvider(RazorpaySubscriptionGateway)
-      .useValue(mockRazorpayGateway)
       .overrideProvider(WhatsappService)
       .useValue(mockWhatsappService)
       .compile();
@@ -48,6 +47,7 @@ describe('Front desk workspace (e2e)', () => {
     await nestApp.init();
     app = nestApp;
     httpServer = nestApp.getHttpServer();
+    jwtService = nestApp.get(JwtService);
 
     prisma = moduleFixture.get<PrismaService>(PrismaService);
     setPrismaInstance(prisma);
@@ -57,9 +57,9 @@ describe('Front desk workspace (e2e)', () => {
     if (!prisma || !httpServer) throw new Error('E2E app not initialized');
     await resetDatabase();
 
+    // Clinical mutation guard keys off clinic.tier === FRONT_DESK.
     const clinic = await factories.clinic({
       tier: 'FRONT_DESK',
-      settings: { workspaceProfile: 'FRONT_DESK' },
     });
     clinicId = clinic.id;
 
@@ -81,21 +81,6 @@ describe('Front desk workspace (e2e)', () => {
 
     await factories.doctorClinic(doctorId, clinicId);
 
-    const { user: loginDoctor, plainPassword: loginDoctorPassword } =
-      await factories.user({
-        clinicId,
-        role: 'DOCTOR',
-      });
-    await prisma.user.update({
-      where: { id: loginDoctor.id },
-      data: {
-        verificationStatus: 'VERIFIED',
-        signatureUrl: 'https://example.com/signature-2.png',
-        appLoginDisabled: false,
-      },
-    });
-    await factories.doctorClinic(loginDoctor.id, clinicId);
-
     const { user: admin, plainPassword: adminPassword } = await factories.user({
       clinicId,
       role: 'ADMIN',
@@ -115,12 +100,6 @@ describe('Front desk workspace (e2e)', () => {
       .send({ email: admin.email, password: adminPassword })
       .expect(201);
     adminToken = adminLogin.body.access_token;
-
-    const doctorLoginOk = await request(httpServer)
-      .post('/auth/login')
-      .send({ email: loginDoctor.email, password: loginDoctorPassword })
-      .expect(201);
-    loginDoctorToken = doctorLoginOk.body.access_token;
 
     const receptionistLogin = await request(httpServer)
       .post('/auth/login')
@@ -155,17 +134,32 @@ describe('Front desk workspace (e2e)', () => {
       .expect(200);
   });
 
-  it('returns 403 for POST /prescriptions when workspace is front desk', async () => {
+  it('returns 403 for POST /prescriptions on FRONT_DESK tier', async () => {
     const appointment = await factories.appointment(
       patientId,
       doctorId,
       clinicId,
     );
 
+    await prisma!.user.update({
+      where: { id: doctorId },
+      data: { appLoginDisabled: false },
+    });
+    const doctor = await prisma!.user.findUniqueOrThrow({
+      where: { id: doctorId },
+    });
+    const doctorToken = signE2eAccessToken(jwtService, {
+      sub: doctor.id,
+      email: doctor.email,
+      role: Role.DOCTOR,
+      name: doctor.name,
+      clinicId,
+    });
+
     if (!httpServer) throw new Error('E2E app not initialized');
     const res = await request(httpServer)
       .post('/prescriptions')
-      .set('Authorization', `Bearer ${adminToken}`)
+      .set('Authorization', `Bearer ${doctorToken}`)
       .send({
         appointmentId: appointment.id,
         patientId,
@@ -182,11 +176,11 @@ describe('Front desk workspace (e2e)', () => {
       .expect(403);
 
     expect(String(res.body?.message ?? '').toLowerCase()).toMatch(
-      /workspace profile|feature|front desk|not available/i,
+      /front desk|not available|starter tier or higher/i,
     );
   });
 
-  it('returns 403 for POST start-consultation when workspace is front desk', async () => {
+  it('returns 403 for POST start-consultation on FRONT_DESK tier', async () => {
     const appointment = await factories.appointment(
       patientId,
       doctorId,
@@ -197,13 +191,32 @@ describe('Front desk workspace (e2e)', () => {
       },
     );
 
+    // JWT auth still validates the user row; appLoginDisabled only blocks login.
+    await prisma!.user.update({
+      where: { id: doctorId },
+      data: { appLoginDisabled: false },
+    });
+
+    const doctor = await prisma!.user.findUniqueOrThrow({
+      where: { id: doctorId },
+    });
+    const doctorToken = signE2eAccessToken(jwtService, {
+      sub: doctor.id,
+      email: doctor.email,
+      role: Role.DOCTOR,
+      name: doctor.name,
+      clinicId,
+    });
+
     if (!httpServer) throw new Error('E2E app not initialized');
     const res = await request(httpServer)
       .post(`/appointments/${appointment.id}/start-consultation`)
-      .set('Authorization', `Bearer ${loginDoctorToken}`)
+      .set('Authorization', `Bearer ${doctorToken}`)
       .expect(403);
 
-    expect(res.body?.message).toContain('Consultation start is not available');
+    expect(String(res.body?.message ?? '').toLowerCase()).toMatch(
+      /front desk|consultation start is not available/i,
+    );
   });
 
   it('allows receptionist GET /invoices for billing surfaces', async () => {
@@ -215,5 +228,95 @@ describe('Front desk workspace (e2e)', () => {
 
     expect(res.body).toHaveProperty('items');
     expect(Array.isArray(res.body.items)).toBe(true);
+  });
+
+  // Auth-time gate: clinical-role sign-in is blocked on FRONT_DESK tier.
+  describe('FRONT_DESK SKU sign-in gate', () => {
+    let frontDeskClinicId: string;
+    let skuDoctorEmail: string;
+    let skuDoctorPassword: string;
+    let skuAdminDoctorEmail: string;
+    let skuAdminDoctorPassword: string;
+    let skuReceptionistEmail: string;
+    let skuReceptionistPassword: string;
+    let skuAdminEmail: string;
+    let skuAdminPassword: string;
+
+    beforeEach(async () => {
+      if (!prisma) throw new Error('E2E prisma not initialized');
+      const skuClinic = await factories.clinic({ tier: 'FRONT_DESK' });
+      frontDeskClinicId = skuClinic.id;
+
+      const { user: skuDoctor, plainPassword: skuDoctorPlain } =
+        await factories.user({
+          clinicId: frontDeskClinicId,
+          role: 'DOCTOR',
+        });
+      skuDoctorEmail = skuDoctor.email;
+      skuDoctorPassword = skuDoctorPlain;
+
+      const { user: skuAdminDoctor, plainPassword: skuAdminDoctorPlain } =
+        await factories.user({
+          clinicId: frontDeskClinicId,
+          role: 'ADMIN_DOCTOR',
+        });
+      skuAdminDoctorEmail = skuAdminDoctor.email;
+      skuAdminDoctorPassword = skuAdminDoctorPlain;
+
+      const { user: skuRec, plainPassword: skuRecPlain } = await factories.user(
+        {
+          clinicId: frontDeskClinicId,
+          role: 'RECEPTIONIST',
+        },
+      );
+      skuReceptionistEmail = skuRec.email;
+      skuReceptionistPassword = skuRecPlain;
+
+      const { user: skuAdmin, plainPassword: skuAdminPlain } =
+        await factories.user({
+          clinicId: frontDeskClinicId,
+          role: 'ADMIN',
+        });
+      skuAdminEmail = skuAdmin.email;
+      skuAdminPassword = skuAdminPlain;
+    });
+
+    it('blocks DOCTOR sign-in', async () => {
+      if (!httpServer) throw new Error('E2E app not initialized');
+      await request(httpServer)
+        .post('/auth/login')
+        .send({ email: skuDoctorEmail, password: skuDoctorPassword })
+        .expect(403);
+    });
+
+    it('blocks ADMIN_DOCTOR sign-in', async () => {
+      if (!httpServer) throw new Error('E2E app not initialized');
+      await request(httpServer)
+        .post('/auth/login')
+        .send({
+          email: skuAdminDoctorEmail,
+          password: skuAdminDoctorPassword,
+        })
+        .expect(403);
+    });
+
+    it('allows RECEPTIONIST sign-in', async () => {
+      if (!httpServer) throw new Error('E2E app not initialized');
+      await request(httpServer)
+        .post('/auth/login')
+        .send({
+          email: skuReceptionistEmail,
+          password: skuReceptionistPassword,
+        })
+        .expect(201);
+    });
+
+    it('allows ADMIN sign-in', async () => {
+      if (!httpServer) throw new Error('E2E app not initialized');
+      await request(httpServer)
+        .post('/auth/login')
+        .send({ email: skuAdminEmail, password: skuAdminPassword })
+        .expect(201);
+    });
   });
 });

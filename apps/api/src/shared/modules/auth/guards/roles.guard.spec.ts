@@ -5,6 +5,7 @@ import { RolesGuard } from '@/shared/modules/auth/auth/roles.guard';
 import { IS_PUBLIC_KEY } from '@/shared/modules/auth/auth/public.decorator';
 import { IS_UPLOAD_SESSION_SECRET_ROUTE_KEY } from '@/shared/modules/auth/auth/upload-session-secret-route.decorator';
 import { ROLES_KEY } from '@/shared/modules/auth/auth/roles.decorator';
+import { AppConfigService } from '@/shared/modules/config/app-configuration.service';
 import {
   createKeyedReflectorMock,
   mockGetAllAndOverrideKeyMap,
@@ -75,12 +76,19 @@ describe('RolesGuard', () => {
   };
 
   beforeEach(async () => {
+    const mockConfigService = {
+      getInternalAllowedEmails: () => [] as string[],
+    };
     const module: TestingModule = await Test.createTestingModule({
       providers: [
         RolesGuard,
         {
           provide: Reflector,
           useValue: mockReflector,
+        },
+        {
+          provide: AppConfigService,
+          useValue: mockConfigService,
         },
       ],
     }).compile();

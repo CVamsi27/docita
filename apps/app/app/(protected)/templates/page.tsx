@@ -2,10 +2,12 @@
 
 import { Suspense, useMemo } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
-import { AppPageScaffold } from "@workspace/ui/components/app-page-scaffold";
-import { PageHeader } from "@workspace/ui/components/page-header";
-import { PageTabs, type PageTabItem } from "@workspace/ui/components/page-tabs";
-import { DataState } from "@workspace/ui/components/data-state";
+import { AppPageScaffold } from "@workspace/ui/components/layout/app-page-scaffold";
+import { PageHeader } from "@workspace/ui/components/layout/page-header";
+import { PageTabs, type PageTabItem } from "@workspace/ui/components/navigation/page-tabs";
+import { DataState } from "@workspace/ui/components/data-display/data-state";
+import { Feature } from "@workspace/types";
+import { FeatureGate } from "@/components/auth/feature-gate";
 import {
   ClipboardList,
   FileText,
@@ -103,18 +105,20 @@ function TemplatesContent() {
 
 export default function TemplatesPage() {
   return (
-    <Suspense
-      fallback={
-        <AppPageScaffold>
-          <DataState
-            status="loading"
-            loadingMessage="Loading templates…"
-            className="min-h-[40vh]"
-          />
-        </AppPageScaffold>
-      }
-    >
-      <TemplatesContent />
-    </Suspense>
+    <FeatureGate feature={Feature.PRESCRIPTION_TEMPLATES} showLockedCard>
+      <Suspense
+        fallback={
+          <AppPageScaffold>
+            <DataState
+              status="loading"
+              loadingMessage="Loading templates…"
+              className="min-h-[40vh]"
+            />
+          </AppPageScaffold>
+        }
+      >
+        <TemplatesContent />
+      </Suspense>
+    </FeatureGate>
   );
 }

@@ -1,4 +1,5 @@
 import { PrismaService } from '@/prisma/prisma.service';
+import { mapRepositoryDomainItem } from '@/shared/common/repositories/repository-domain-item.boundary';
 
 export interface PaginationOptions {
   limit?: number;
@@ -28,11 +29,11 @@ type RepositoryModelDelegate = {
 };
 
 function extractId(item: unknown): string | undefined {
-  if (!item || typeof item !== 'object') {
+  if (!item || typeof item !== 'object' || !('id' in item)) {
     return undefined;
   }
 
-  const id = (item as { id?: unknown }).id;
+  const id = item.id;
   return typeof id === 'string' ? id : undefined;
 }
 
@@ -57,15 +58,19 @@ export abstract class BaseRepository<T, TCreate = Record<string, unknown>> {
       return false;
     }
 
-    const candidate = value as Partial<RepositoryModelDelegate>;
-
     return (
-      typeof candidate.findMany === 'function' &&
-      typeof candidate.findFirst === 'function' &&
-      typeof candidate.create === 'function' &&
-      typeof candidate.updateMany === 'function' &&
-      typeof candidate.deleteMany === 'function' &&
-      typeof candidate.count === 'function'
+      'findMany' in value &&
+      typeof value.findMany === 'function' &&
+      'findFirst' in value &&
+      typeof value.findFirst === 'function' &&
+      'create' in value &&
+      typeof value.create === 'function' &&
+      'updateMany' in value &&
+      typeof value.updateMany === 'function' &&
+      'deleteMany' in value &&
+      typeof value.deleteMany === 'function' &&
+      'count' in value &&
+      typeof value.count === 'function'
     );
   }
 
@@ -98,6 +103,11 @@ export abstract class BaseRepository<T, TCreate = Record<string, unknown>> {
 
   protected getDetailSelect(): Record<string, boolean | object> | undefined {
     return this.getDefaultSelect();
+  }
+
+  /** Maps a Prisma delegate row to the repository domain type. */
+  protected mapDomainItem(item: unknown): T {
+    return mapRepositoryDomainItem<T>(item);
   }
 
   async findAll(
@@ -133,7 +143,7 @@ export abstract class BaseRepository<T, TCreate = Record<string, unknown>> {
       : undefined;
 
     return {
-      items: resultItems as T[],
+      items: resultItems.map((item) => this.mapDomainItem(item)),
       hasMore,
       nextCursor,
       count: resultItems.length,
@@ -145,7 +155,7 @@ export abstract class BaseRepository<T, TCreate = Record<string, unknown>> {
       where: { id },
       select: this.getDetailSelect(),
     });
-    return result as T | null;
+    return result ? this.mapDomainItem(result) : null;
   }
 
   async findOneOrFail(id: string, entityName?: string): Promise<T> {
@@ -162,7 +172,7 @@ export abstract class BaseRepository<T, TCreate = Record<string, unknown>> {
       data: toRecord(data),
       select: this.getDetailSelect(),
     });
-    return result as T;
+    return this.mapDomainItem(result);
   }
 
   async update(id: string, data: Partial<T>): Promise<T> {

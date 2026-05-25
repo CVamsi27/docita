@@ -1,5 +1,8 @@
 import { Injectable, Logger, Inject } from '@nestjs/common';
-import { PrismaService } from '@/prisma/prisma.service';
+import {
+  WHATSAPP_PERSISTENCE_PORT,
+  type WhatsappPersistencePort,
+} from '@/domains/whatsapp/application/ports/whatsapp-persistence.port';
 import {
   IWhatsAppRepository,
   WHATSAPP_REPOSITORY_TOKEN,
@@ -12,7 +15,8 @@ export class WhatsAppAutomationService {
   private readonly logger = new Logger(WhatsAppAutomationService.name);
 
   constructor(
-    private readonly prisma: PrismaService,
+    @Inject(WHATSAPP_PERSISTENCE_PORT)
+    private readonly persistence: WhatsappPersistencePort,
     @Inject(WHATSAPP_REPOSITORY_TOKEN)
     private readonly repository: IWhatsAppRepository,
     private readonly sendMessage: SendMessageUseCase,
@@ -24,7 +28,7 @@ export class WhatsAppAutomationService {
   ): Promise<void> {
     if (!(await this.repository.isAutomationEnabled(clinicId))) return;
 
-    const prescription = await this.prisma.prescription.findUnique({
+    const prescription = await this.persistence.prescription.findUnique({
       where: { id: prescriptionId },
       include: {
         patient: {
@@ -53,7 +57,7 @@ export class WhatsAppAutomationService {
   async sendInvoiceSystem(invoiceId: string, clinicId: string): Promise<void> {
     if (!(await this.repository.isAutomationEnabled(clinicId))) return;
 
-    const invoice = await this.prisma.invoice.findUnique({
+    const invoice = await this.persistence.invoice.findUnique({
       where: { id: invoiceId },
       include: {
         patient: {
@@ -84,7 +88,7 @@ export class WhatsAppAutomationService {
   ): Promise<void> {
     if (!(await this.repository.isAutomationEnabled(clinicId))) return;
 
-    const appointment = await this.prisma.appointment.findUnique({
+    const appointment = await this.persistence.appointment.findUnique({
       where: { id: appointmentId },
       include: {
         patient: {
@@ -118,7 +122,7 @@ export class WhatsAppAutomationService {
   ): Promise<void> {
     if (!(await this.repository.isAutomationEnabled(clinicId))) return;
 
-    const appointment = await this.prisma.appointment.findUnique({
+    const appointment = await this.persistence.appointment.findUnique({
       where: { id: appointmentId },
       include: {
         patient: {

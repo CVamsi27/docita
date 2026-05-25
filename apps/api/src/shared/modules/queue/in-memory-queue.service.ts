@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, Logger } from '@nestjs/common';
 import {
   IQueueProvider,
   QueueJob,
@@ -7,6 +7,7 @@ import {
   QueueJobOptions,
   QueueStats,
 } from './queue.interface';
+import { bindQueueJobHandler, coerceQueueJob } from './queue-job-boundary';
 
 interface InMemoryJob<T extends QueueJobData> extends QueueJob<T> {
   status: 'waiting' | 'active' | 'completed' | 'failed';
@@ -15,6 +16,7 @@ interface InMemoryJob<T extends QueueJobData> extends QueueJob<T> {
 
 @Injectable()
 export class InMemoryQueueService implements IQueueProvider {
+  private readonly logger = new Logger(InMemoryQueueService.name);
   private jobs = new Map<string, InMemoryJob<QueueJobData>>();
   private jobsByName = new Map<string, Set<string>>();
   private handlers = new Map<string, QueueJobHandler>();
@@ -52,13 +54,18 @@ export class InMemoryQueueService implements IQueueProvider {
       });
     }
 
-    this.jobsByName.get(name)!.add(jobId);
+    this.jobsByName.get(name)?.add(jobId);
 
     if (!options?.delay || options.delay <= 0) {
       await this.processJob(job);
     } else {
       setTimeout(() => {
-        void this.processJob(job).catch(() => {});
+        void this.processJob(job).catch((error: unknown) => {
+          this.logger.error(
+            `Delayed in-memory queue job ${job.id} failed: ${error instanceof Error ? error.message : String(error)}`,
+            error instanceof Error ? error.stack : undefined,
+          );
+        });
       }, options.delay);
     }
 
@@ -77,9 +84,7 @@ export class InMemoryQueueService implements IQueueProvider {
     name: string,
     handler: QueueJobHandler<T>,
   ): Promise<void> {
-    this.handlers.set(name, async (job) => {
-      await handler(job as QueueJob<T>);
-    });
+    this.handlers.set(name, bindQueueJobHandler(handler));
     await Promise.resolve();
   }
 
@@ -89,19 +94,7 @@ export class InMemoryQueueService implements IQueueProvider {
     const job = this.jobs.get(jobId);
     if (!job) return null;
 
-    const data = job.data as T;
-    const result: QueueJob<T> = {
-      id: job.id,
-      name: job.name,
-      data: data,
-      progress: job.progress,
-      failedReason: job.failedReason,
-      attemptsMade: job.attemptsMade,
-      maxAttempts: job.maxAttempts,
-      timestamp: job.timestamp,
-    };
-    await Promise.resolve();
-    return result;
+    return coerceQueueJob<T>(job);
   }
 
   async removeJob(jobId: string): Promise<void> {

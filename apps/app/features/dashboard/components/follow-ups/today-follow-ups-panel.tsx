@@ -2,8 +2,8 @@
 
 import Link from "next/link";
 import { formatDate } from "@/lib/formatters";
-import { getFollowUpListQuery } from "@/features/follow-ups/lib/follow-up-list-query";
-import { useFollowUps } from "@/hooks/api/use-appointments";
+import { getFollowUpListQuery } from "@/features/follow-ups";
+import { useFollowUps } from "@workspace/data-access";
 import type { FollowUpResponse, FollowUpStatus } from "@workspace/types";
 import {
   Card,
@@ -11,9 +11,9 @@ import {
   CardDescription,
   CardHeader,
   CardTitle,
-} from "@workspace/ui/components/card";
-import { Badge } from "@workspace/ui/components/badge";
-import { EmptyState } from "@workspace/ui/components/empty-state";
+} from "@workspace/ui/components/indicators/card";
+import { Badge } from "@workspace/ui/components/indicators/badge";
+import { EmptyState } from "@workspace/ui/components/feedback/empty-state";
 import { CalendarCheck } from "lucide-react";
 import { ViewAllLinkUI } from "@/features/dashboard/components/layout/view-all-link-ui";
 
@@ -38,7 +38,11 @@ interface TodayFollowUpsPanelProps {
 
 export function TodayFollowUpsPanel({ enabled }: TodayFollowUpsPanelProps) {
   const query = getFollowUpListQuery("today");
-  const { data = [], isLoading, isError } = useFollowUps(enabled ? query : null);
+  const {
+    data = [],
+    isLoading,
+    isError,
+  } = useFollowUps(enabled ? query : null);
 
   if (!enabled) {
     return null;
@@ -49,12 +53,12 @@ export function TodayFollowUpsPanel({ enabled }: TodayFollowUpsPanelProps) {
   return (
     <Card className="border border-border shadow-sm bg-card">
       <CardHeader className="pb-3">
-        <div className="flex items-center justify-between gap-2">
-          <div className="flex items-center gap-3">
-            <div className="flex h-9 w-9 items-center justify-center rounded-full border border-border/70 bg-background/70 text-warning">
+        <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+          <div className="flex min-w-0 items-center gap-3">
+            <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full border border-border/70 bg-background/70 text-warning">
               <CalendarCheck className="h-4 w-4" />
             </div>
-            <div>
+            <div className="min-w-0">
               <CardTitle className="text-[var(--fs-base)]">
                 Follow-ups due today
               </CardTitle>
@@ -63,7 +67,9 @@ export function TodayFollowUpsPanel({ enabled }: TodayFollowUpsPanelProps) {
               </CardDescription>
             </div>
           </div>
-          <ViewAllLinkUI href="/follow-ups" text="Follow-ups" />
+          <div className="shrink-0">
+            <ViewAllLinkUI href="/follow-ups" text="Follow-ups" />
+          </div>
         </div>
       </CardHeader>
       <CardContent className="pt-0">
@@ -90,7 +96,9 @@ export function TodayFollowUpsPanel({ enabled }: TodayFollowUpsPanelProps) {
                   className="group flex flex-col gap-1 rounded-lg border border-transparent p-3 transition-colors duration-150 hover:border-border/50 hover:bg-muted/60"
                 >
                   <div className="flex flex-wrap items-center gap-2">
-                    <span className="text-sm font-medium">{patientName(fu)}</span>
+                    <span className="text-sm font-medium">
+                      {patientName(fu)}
+                    </span>
                     <Badge variant="secondary" className="text-xs">
                       {STATUS_LABELS[fu.status]}
                     </Badge>

@@ -24,7 +24,12 @@ describe('ClinicAuthCacheService', () => {
     intelligenceAddon: IntelligenceAddon.ACTIVE,
     features: { CUSTOM_FEATURE: true },
     subscriptionStatus: SubscriptionStatus.ACTIVE,
-    subscription: { graceUntil: null as Date | null },
+    subscription: {
+      graceUntil: null as Date | null,
+      trialEnd: null as Date | null,
+      currentPeriodEnd: null as Date | null,
+    },
+    subscriptionPayments: [] as Array<{ status: string }>,
   };
 
   beforeEach(async () => {

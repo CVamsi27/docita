@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import type { QueueItem } from "@/hooks/api/use-appointments";
+import type { QueueItem } from "@workspace/data-access";
 import {
   getOpdQueueSummaryLine,
   truncateOpdSummary,

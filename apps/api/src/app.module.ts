@@ -1,11 +1,10 @@
 import { Module } from '@nestjs/common';
 import { APP_GUARD, APP_INTERCEPTOR } from '@nestjs/core';
-import { ThrottlerModule, ThrottlerGuard } from '@nestjs/throttler';
+import { ThrottlerModule } from '@nestjs/throttler';
 import { LoggerModule } from 'nestjs-pino';
 import { SentryModule } from '@sentry/nestjs/setup';
 import { PrometheusModule } from '@willsoto/nestjs-prometheus';
 import { AppController } from './app.controller';
-import { AppService } from './app.service';
 import { PrismaModule } from './prisma/prisma.module';
 import { PatientsModule } from './domains/patients/patients.module';
 import { AppointmentsModule } from './domains/appointments/appointments.module';
@@ -29,12 +28,13 @@ import { join } from 'path';
 import { WhatsAppModule } from './domains/whatsapp/whatsapp.module';
 import { InternalModule } from './shared/modules/internal/internal.module';
 import { SubscriptionsModule } from './domains/subscriptions/subscriptions.module';
+import { EnterpriseContractsModule } from './domains/enterprise-contracts/enterprise-contracts.module';
 import { PrescriptionTemplatesModule } from './domains/prescriptions/prescription-templates/prescription-templates.module';
 import { ClinicalModule } from './domains/clinical/clinical.module';
 import { AppConfigModule } from './shared/modules/config/config.module';
 import { ConfigModule as PublicConfigModule } from './modules/config/config.module';
 import { AppConfigService } from './shared/modules/config/app-configuration.service';
-import { GatewaysModule } from './gateways/gateways.module';
+import { WebsocketsModule } from './websockets/websockets.module';
 import { MonitoringModule } from './shared/modules/monitoring/monitoring/monitoring.module';
 import { CacheConfigModule } from './cache/cache.module';
 import { FhirModule } from './shared/modules/fhir/fhir.module';
@@ -44,24 +44,29 @@ import { AIModule } from './shared/modules/ai/ai.module';
 import { AuditModule } from './shared/modules/audit/audit/audit.module';
 import { PerformanceModule } from './shared/modules/performance/performance.module';
 import { ComplianceModule } from './shared/modules/compliance/compliance.module';
-import { TenantContextInterceptor } from './shared/modules/interceptors/tenant-context.interceptor';
-import { CacheInterceptor } from './common/interceptors/cache.interceptor';
-import { PatientDataAuditInterceptor } from './shared/modules/interceptors/patient-audit.interceptor';
-import { BreakTheGlassInterceptor } from './shared/modules/interceptors/emergency-access.interceptor';
-import { RequestIdInterceptor } from './common/interceptors/request-id.interceptor';
-import { RequestContextInterceptor } from './common/interceptors/request-context.interceptor';
+import { TenantContextInterceptor } from './shared/common/interceptors/tenant-context.interceptor';
+import { CacheInterceptor } from './shared/common/interceptors/cache.interceptor';
+import { PatientDataAuditInterceptor } from './shared/common/interceptors/patient-audit.interceptor';
+import { BreakTheGlassInterceptor } from './shared/common/interceptors/emergency-access.interceptor';
+import { RequestIdInterceptor } from './shared/common/interceptors/request-id.interceptor';
+import { RequestContextInterceptor } from './shared/common/interceptors/request-context.interceptor';
 import { JwtAuthGuard } from './shared/modules/auth/auth/jwt-auth.guard';
+import { StaffJwtAudienceGuard } from './shared/modules/auth/guards/staff-jwt-audience.guard';
 import { RolesGuard } from './shared/modules/auth/auth/roles.guard';
 import { TenantGuard } from './shared/modules/auth/guards/tenant.guard';
 import { SubscriptionStatusGuard } from './shared/modules/auth/guards/subscription-status.guard';
 import { PasswordExpiredGuard } from './shared/modules/auth/guards/password-expired.guard';
 import { EmailVerifiedGuard } from './shared/modules/auth/guards/email-verified.guard';
 import { UserRateLimitGuard } from './shared/modules/auth/guards/user-rate-limit.guard';
-import { CsrfInterceptor } from './shared/modules/interceptors/csrf.interceptor';
-import { RateLimitInterceptor } from './common/interceptors/rate-limit.interceptor';
-import { TimeoutInterceptor } from './shared/modules/interceptors/timeout.interceptor';
+import { E2EThrottlerGuard } from './shared/modules/auth/guards/e2e-throttler.guard';
+import { CsrfInterceptor } from './shared/common/interceptors/csrf.interceptor';
+import { RateLimitInterceptor } from './shared/common/interceptors/rate-limit.interceptor';
+import { TimeoutInterceptor } from './shared/common/interceptors/timeout.interceptor';
 import { buildPinoOptions } from './shared/modules/observability/pino-options.factory';
-import { IdempotencyModule } from './shared/modules/idempotency';
+import {
+  IdempotencyInterceptor,
+  IdempotencyModule,
+} from './shared/modules/idempotency';
 import {
   TenantRateLimitGuard,
   TenantRateLimitModule,
@@ -69,8 +74,9 @@ import {
 import { WebhooksModule } from './shared/modules/webhooks';
 import { RlsModule } from './shared/modules/rls';
 import { FeatureFlagsModule } from './shared/modules/feature-flags';
+import { getClientIp } from '@/shared/common/http/client-ip';
 
-import { EventsModule } from './common/events/events.module';
+import { EventsModule } from './shared/common/events/events.module';
 import { CommonServicesModule } from './shared/modules/services/common-services.module';
 import { FeedbackModule } from './domains/feedback/feedback.module';
 import { PatientPortalModule } from './domains/patient-portal/patient-portal.module';
@@ -124,6 +130,7 @@ import { PublicBookingModule } from './domains/public-booking/public-booking.mod
             limit: config.isProduction() ? 1000 : 10000,
           },
         ],
+        getTracker: (req) => getClientIp(req),
         skipIf: () => config.getEnvironment() === 'test',
       }),
     }),
@@ -163,6 +170,7 @@ import { PublicBookingModule } from './domains/public-booking/public-booking.mod
     InternalModule,
     PaymentsModule,
     SubscriptionsModule,
+    EnterpriseContractsModule,
     BillingModule,
     PrescriptionTemplatesModule,
     ClinicalModule,
@@ -174,7 +182,7 @@ import { PublicBookingModule } from './domains/public-booking/public-booking.mod
     AuditModule,
     PerformanceModule,
     ComplianceModule,
-    GatewaysModule,
+    WebsocketsModule,
     PatientPortalModule,
     PublicModule,
     MedicalDocumentsModule,
@@ -185,15 +193,22 @@ import { PublicBookingModule } from './domains/public-booking/public-booking.mod
   ],
   controllers: [AppController],
   providers: [
-    AppService,
-
+    // Global pipeline order (first registered runs first on inbound request):
+    // Guards: throttle → JWT → tenant → tenant rate limit → roles → subscription →
+    // password expiry → email verified → user rate limit.
+    // Interceptors: CSRF → request id → request context → tenant context → cache →
+    // rate limit → timeout → patient PHI write audit → break-the-glass.
     {
       provide: APP_GUARD,
-      useClass: ThrottlerGuard,
+      useClass: E2EThrottlerGuard,
     },
     {
       provide: APP_GUARD,
       useClass: JwtAuthGuard,
+    },
+    {
+      provide: APP_GUARD,
+      useClass: StaffJwtAudienceGuard,
     },
     {
       provide: APP_GUARD,
@@ -241,6 +256,11 @@ import { PublicBookingModule } from './domains/public-booking/public-booking.mod
 
     {
       provide: APP_INTERCEPTOR,
+      useClass: IdempotencyInterceptor,
+    },
+
+    {
+      provide: APP_INTERCEPTOR,
       useClass: TenantContextInterceptor,
     },
 
@@ -269,6 +289,6 @@ import { PublicBookingModule } from './domains/public-booking/public-booking.mod
       useClass: BreakTheGlassInterceptor,
     },
   ],
-  exports: [GatewaysModule],
+  exports: [WebsocketsModule],
 })
 export class AppModule {}

@@ -1,0 +1,38 @@
+import type { EnterpriseContractsDialogsProps } from "@/features/enterprise-contracts/enterprise-contracts-dialogs";
+import type { EnterpriseContractsPageState } from "@/features/enterprise-contracts/use-enterprise-contracts-page";
+
+export function getEnterpriseContractsDialogProps(
+  state: EnterpriseContractsPageState,
+): EnterpriseContractsDialogsProps {
+  return {
+    editorOpen: state.editorOpen,
+    setEditorOpen: state.setEditorOpen,
+    editorMode: state.editorMode,
+    form: state.form,
+    setForm: state.setForm,
+    editingContractId: state.editingContractId,
+    applyPreset: state.applyPreset,
+    submit: state.submit,
+    busy: state.busy,
+    membersOpen: state.membersOpen,
+    setMembersOpen: state.setMembersOpen,
+    activeContract: state.activeContract,
+    newMemberClinicId: state.newMemberClinicId,
+    setNewMemberClinicId: state.setNewMemberClinicId,
+    addMember: state.addMember,
+    removeMember: state.removeMember,
+    estimateOpen: state.estimateOpen,
+    setEstimateOpen: state.setEstimateOpen,
+    estimate: state.estimate,
+    estimateLoading: state.estimateLoading,
+    invoicesOpen: state.invoicesOpen,
+    setInvoicesOpen: state.setInvoicesOpen,
+    invoices: state.invoices,
+    alertsOpen: state.alertsOpen,
+    setAlertsOpen: state.setAlertsOpen,
+    alerts: state.alerts,
+    revisionsOpen: state.revisionsOpen,
+    setRevisionsOpen: state.setRevisionsOpen,
+    revisions: state.revisions,
+  };
+}

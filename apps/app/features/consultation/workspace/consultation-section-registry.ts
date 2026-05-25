@@ -12,11 +12,8 @@ import {
   TrendingUp,
   Eye,
 } from "lucide-react";
-import {
-  CLINIC_TYPE_FEATURES,
-  type ClinicType,
-  type ClinicTypeFeatures,
-} from "@workspace/types";
+import type { ClinicTypeFeatures } from "@workspace/types";
+import { resolveClinicTypeFeatures } from "@/features/consultation/lib/resolve-clinic-type-features";
 
 export type ConsultationPersistKey =
   | "dentalChart"
@@ -121,9 +118,7 @@ function soapTailSections(features: ClinicTypeFeatures): ConsultationSection[] {
 export function getConsultationSectionsForClinic(
   clinicType?: string | null,
 ): ConsultationSection[] {
-  const key = (clinicType?.toUpperCase() ?? "GENERAL") as ClinicType;
-  const features =
-    CLINIC_TYPE_FEATURES[key] ?? CLINIC_TYPE_FEATURES.GENERAL;
+  const { key, features } = resolveClinicTypeFeatures(clinicType);
 
   const middle: ConsultationSection[] = [];
 

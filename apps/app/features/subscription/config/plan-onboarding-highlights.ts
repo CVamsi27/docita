@@ -28,6 +28,12 @@ export const PLAN_ONBOARDING_KEY_HIGHLIGHTS: Record<string, string[]> = {
     "Multi-branch analytics on the roadmap",
     "Priority support for growing clinics",
   ],
+  HOSPITAL: [
+    "Up to 25 doctors and 5 branches",
+    "Pooled WhatsApp (6,000 msgs/mo) across branches",
+    "Multi-location analytics & dashboards",
+    "Dedicated customer success manager",
+  ],
   ENTERPRISE: [
     "Unlimited scale for users, branches, and patients",
     "Custom contracts, SLAs, and integrations",

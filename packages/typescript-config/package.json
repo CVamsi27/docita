@@ -6,7 +6,10 @@
   "publishConfig": {
     "access": "public"
   },
+  "scripts": {
+    "check-types": "node -e \"process.exit(0)\""
+  },
   "devDependencies": {
-    "next": "16.2.3"
+    "next": "16.2.6"
   }
 }

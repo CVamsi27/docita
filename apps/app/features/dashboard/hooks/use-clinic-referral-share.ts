@@ -1,9 +1,9 @@
 "use client";
 
-import { useAuth } from "@/lib/auth-context";
-import { useClinic } from "@/lib/clinic-context";
-import { useClinicSettings } from "@/hooks/api/use-settings";
-import { getPublicAppOrigin } from "@/lib/public-app-origin";
+import { useAuth } from "@/lib/auth/auth-context";
+import { useClinic } from "@/lib/contexts/clinic-context";
+import { useClinicSettings } from "@workspace/data-access";
+import { getPublicAppOrigin } from "@/lib/constants/public-app-origin";
 
 export function useClinicReferralShare() {
   const { user } = useAuth();

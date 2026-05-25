@@ -1,5 +1,5 @@
 import { screen } from "@testing-library/react";
-import { render } from "@/test/render-with-tooltip";
+import { render } from "@/test-utils/render-with-tooltip";
 import { describe, expect, it, vi } from "vitest";
 import type { Appointment, Patient } from "@workspace/types";
 import { TimeSlotRow } from "./TimeSlotRow";
@@ -35,7 +35,7 @@ function createAppointment(
 }
 
 describe("TimeSlotRow", () => {
-  it("shows Continue for in-progress appointments", () => {
+  it("shows Resume for in-progress appointments", () => {
     render(
       <TimeSlotRow
         appointment={createAppointment("in-progress")}
@@ -50,7 +50,7 @@ describe("TimeSlotRow", () => {
     );
 
     expect(
-      screen.getByRole("button", { name: "Continue" }),
+      screen.getByRole("button", { name: "Resume" }),
     ).toBeInTheDocument();
   });
 

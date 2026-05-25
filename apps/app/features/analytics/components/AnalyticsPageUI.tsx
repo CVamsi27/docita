@@ -7,17 +7,17 @@ import {
   TabsContent,
   TabsList,
   TabsTrigger,
-} from "@workspace/ui/components/tabs";
+} from "@workspace/ui/components/navigation/tabs";
 import { Calendar, DollarSign, Users } from "lucide-react";
-import { AppPageScaffold } from "@workspace/ui/components/app-page-scaffold";
-import { PageHeader } from "@workspace/ui/components/page-header";
-import { LoadingState } from "@workspace/ui/components/empty-state";
-import { DocitaLoadingIndicator } from "@workspace/ui/components/docita-loading-indicator";
-import { Skeleton } from "@workspace/ui/components/skeleton";
+import { AppPageScaffold } from "@workspace/ui/components/layout/app-page-scaffold";
+import { PageHeader } from "@workspace/ui/components/layout/page-header";
+import { LoadingState } from "@workspace/ui/components/feedback/empty-state";
+import { DocitaLoadingIndicator } from "@workspace/ui/components/feedback/docita-loading-indicator";
+import { Skeleton } from "@workspace/ui/components/feedback/skeleton";
 import {
   Feature,
   FeatureGate,
-} from "@/features/_shared/components/auth/feature-gate";
+} from "@/components/auth/feature-gate";
 import type {
   AnalyticsOverview,
   AnalyticsTab,

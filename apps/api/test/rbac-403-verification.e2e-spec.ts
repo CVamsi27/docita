@@ -14,10 +14,9 @@ import {
   getPrismaInstance,
 } from './setup';
 import { factories, setPrismaInstance } from './factories';
-import { RazorpaySubscriptionGateway } from '@/gateways/razorpay-subscription.gateway';
-import { mockRazorpayGateway } from './razorpay.provider';
-import { WhatsappService } from '@/shared/modules/messaging/whatsapp/whatsapp.service';
+import { WhatsappService } from '@/domains/whatsapp/application/services/whatsapp-clinic-facade.service';
 import { mockWhatsappService } from './whatsapp.provider';
+import { signE2eAccessToken } from './e2e-auth-token';
 
 describe('RBAC 403 Verification (e2e)', () => {
   let app: INestApplication;
@@ -32,8 +31,6 @@ describe('RBAC 403 Verification (e2e)', () => {
     })
       .overrideProvider(PrismaService)
       .useValue(getPrismaInstance())
-      .overrideProvider(RazorpaySubscriptionGateway)
-      .useValue(mockRazorpayGateway)
       .overrideProvider(WhatsappService)
       .useValue(mockWhatsappService)
       .compile();
@@ -64,7 +61,7 @@ describe('RBAC 403 Verification (e2e)', () => {
     tokenClinicId: string | null = clinicId,
   ) => {
     const userObj = await factories.user({ clinicId: tokenClinicId, role });
-    return jwtService.sign({
+    return signE2eAccessToken(jwtService, {
       sub: userObj.user.id,
       email: userObj.user.email,
       role: userObj.user.role,

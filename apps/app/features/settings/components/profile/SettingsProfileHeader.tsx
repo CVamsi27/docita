@@ -1,8 +1,8 @@
 "use client";
 
-import { Avatar, AvatarFallback } from "@workspace/ui/components/avatar";
-import { Badge } from "@workspace/ui/components/badge";
-import { useAuth } from "@/lib/auth-context";
+import { Avatar, AvatarFallback } from "@workspace/ui/components/indicators/avatar";
+import { Badge } from "@workspace/ui/components/indicators/badge";
+import { useAuth } from "@/lib/auth/auth-context";
 import { SettingsAiChips } from "@/features/settings/components/settings-ai-chips";
 
 const ROLE_LABELS: Record<string, string> = {
@@ -36,7 +36,7 @@ export function SettingsPageHeaderUserMeta() {
 
   return (
     <div
-      className="ui-panel-muted flex w-fit max-w-full flex-row items-center gap-3.5 rounded-2xl px-4 py-3.5 text-left shadow-sm ring-1 ring-border/50"
+      className="ui-panel-muted flex w-full max-w-full flex-row items-center gap-3.5 rounded-2xl px-4 py-3.5 text-left shadow-sm ring-1 ring-border/50 sm:w-fit lg:max-w-[24rem]"
       aria-label={roleLabel ? `${displayName}, ${roleLabel}` : displayName}
     >
       <Avatar className="size-12 shrink-0 rounded-xl shadow-sm ring-1 ring-border/60">
@@ -45,7 +45,7 @@ export function SettingsPageHeaderUserMeta() {
         </AvatarFallback>
       </Avatar>
       <div className="flex min-w-0 flex-1 flex-col items-start gap-1">
-        <div className="flex w-full min-w-0 flex-row flex-nowrap items-center gap-2">
+        <div className="flex w-full min-w-0 flex-row flex-wrap items-center gap-2 sm:flex-nowrap">
           <span className="min-w-0 flex-1 truncate text-[var(--fs-md)] font-semibold leading-tight tracking-tight text-foreground">
             {displayName}
           </span>

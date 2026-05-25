@@ -36,7 +36,7 @@ const useSubscriptionMock = vi.hoisted(() =>
   vi.fn(() => ({ data: { tier: "STARTER" as const } })),
 );
 
-vi.mock("@/hooks/api/use-pricing", () => ({
+vi.mock("@/features/subscription/hooks/use-pricing", () => ({
   useCurrentUsage: () => useCurrentUsageMock(),
 }));
 
@@ -47,7 +47,7 @@ vi.mock("@/hooks/use-clinic-currency", () => ({
   }),
 }));
 
-vi.mock("@/hooks/api/use-settings", () => ({
+vi.mock("@workspace/data-access", () => ({
   useSubscription: () => useSubscriptionMock(),
 }));
 

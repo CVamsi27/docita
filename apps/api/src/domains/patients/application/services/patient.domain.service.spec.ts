@@ -5,7 +5,8 @@ import {
   type PatientProps,
 } from '@/domains/patients/core/entities/patient.entity';
 import type { IPatientRepository } from '@/domains/patients/core/repositories/patient.repository.interface';
-import { PatientService } from './patient.service';
+import { PatientCommandService } from './patient-command.service';
+import { PatientQueryService } from './patient-query.service';
 import type {
   PatientDomainCreateInput,
   PatientDomainUpdateInput,
@@ -68,11 +69,15 @@ describe('PatientService domain safeguards', () => {
     ...overrides,
   });
 
-  let service: PatientService;
+  let service: PatientCommandService;
+  const clock = {
+    now: () => new Date('2026-05-19T12:00:00.000Z'),
+  };
 
   beforeEach(() => {
     jest.clearAllMocks();
-    service = new PatientService(repository);
+    const queryService = new PatientQueryService(repository);
+    service = new PatientCommandService(repository, clock, queryService);
   });
 
   it('trims MRNs and checks clinic-scoped uniqueness before create', async () => {

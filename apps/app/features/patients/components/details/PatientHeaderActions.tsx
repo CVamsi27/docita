@@ -2,7 +2,7 @@
 
 import { useMemo } from "react";
 import { useRouter } from "next/navigation";
-import { Button } from "@workspace/ui/components/button";
+import { Button } from "@workspace/ui/components/form/button";
 import {
   CalendarPlus,
   Pencil,
@@ -16,8 +16,8 @@ import {
   usePermissionStore,
 } from "@/lib/stores/permission-store";
 import { usePermissions } from "@/hooks/use-permissions";
-import { useStartConsultation } from "@/hooks/api/use-appointments";
-import { showUserFacingErrorToast } from "@/lib/user-facing-errors";
+import { useStartConsultation } from "@workspace/data-access";
+import { showUserFacingErrorToast } from "@/lib/errors/user-facing-errors";
 
 interface PatientHeaderActionsProps {
   patientId: string;

@@ -1,4 +1,5 @@
-import { Injectable } from '@nestjs/common';
+import { Inject, Injectable } from '@nestjs/common';
+import { CLOCK_PORT, type IClock } from '@/shared/common/ports/clock.port';
 import { Subscription } from '@/domains/subscriptions/core/entities/subscription.entity';
 import { SubscriptionPricingService } from '@/domains/subscriptions/core/services/subscription-pricing.service';
 import { ProratingService } from '@/domains/subscriptions/core/services/proration.service';
@@ -19,6 +20,12 @@ export type SubscriptionCheckoutPricingBreakdown = {
   finalAmountCents: number;
   listPriceNewCents: number;
   accountCreditsAppliedCents: number;
+  /**
+   * Credit left over when an unused-period credit exceeds the new tier's
+   * charge (i.e. downgrade). Held on the subscription as accountCredits and
+   * applied to the next invoice.
+   */
+  surplusCreditCents: number;
 };
 
 export function finalizePayableAmountPaise(
@@ -35,11 +42,13 @@ export function finalizePayableAmountPaise(
   return rawFinalPaise;
 }
 
+/** Facade — checkout price preview; delegates to SubscriptionPricingService and ProratingService. */
 @Injectable()
 export class SubscriptionCheckoutPricingService {
   constructor(
     private readonly pricingService: SubscriptionPricingService,
     private readonly proratingService: ProratingService,
+    @Inject(CLOCK_PORT) private readonly clock: IClock,
   ) {}
 
   compute(
@@ -67,6 +76,7 @@ export class SubscriptionCheckoutPricingService {
         finalAmountCents: listPriceNewCents,
         listPriceNewCents,
         accountCreditsAppliedCents: 0,
+        surplusCreditCents: 0,
       };
     }
 
@@ -77,11 +87,37 @@ export class SubscriptionCheckoutPricingService {
       currentCycleObj,
       offerPercent,
     );
-    const daysRemaining = subscription.getDaysRemaining();
+    const daysRemaining = subscription.getDaysRemaining(this.clock.now());
     const currentCycleDays = currentCycleObj.getDays();
     const accountCredits = subscription.getCredits().paise;
 
     if (currentCycleObj.equals(newCycle)) {
+      // Renewal of the same tier on the same billing cycle: charge the full
+      // next-cycle list price (minus any account credits). Proration only
+      // makes sense for upgrades/downgrades mid-cycle; for renewal we are
+      // buying another full period, not swapping tiers.
+      if (currentTierObj.equals(newTier)) {
+        const finalAmount = this.proratingService.calculateNetAmount(
+          listPriceNewCents,
+          accountCredits,
+        );
+        const appliedWallet = Math.min(accountCredits, listPriceNewCents);
+        return {
+          currentTier: currentTierObj.value,
+          currentCycle: currentCycleObj.value,
+          newTier: newTier.value,
+          newCycle: newCycle.value,
+          creditCents: 0,
+          chargeCents: listPriceNewCents,
+          daysRemaining,
+          billingCycleDays: currentCycleDays,
+          finalAmountCents: finalAmount,
+          listPriceNewCents,
+          accountCreditsAppliedCents: appliedWallet,
+          surplusCreditCents: 0,
+        };
+      }
+
       const proration = this.proratingService.createProratedPreview(
         currentPriceCents,
         listPriceNewCents,
@@ -90,6 +126,12 @@ export class SubscriptionCheckoutPricingService {
         accountCredits,
       );
       const appliedWallet = Math.min(accountCredits, proration.charge);
+      // Downgrade where credit > new charge: the surplus is held as account
+      // credit and applied against the next invoice.
+      const surplusCreditCents = Math.max(
+        0,
+        proration.credit - listPriceNewCents,
+      );
 
       return {
         currentTier: currentTierObj.value,
@@ -103,6 +145,7 @@ export class SubscriptionCheckoutPricingService {
         finalAmountCents: proration.netAmount,
         listPriceNewCents,
         accountCreditsAppliedCents: appliedWallet,
+        surplusCreditCents,
       };
     }
 
@@ -118,6 +161,10 @@ export class SubscriptionCheckoutPricingService {
       accountCredits,
     );
     const appliedWallet = Math.min(accountCredits, chargeAfterPeriodCredit);
+    const surplusCreditCents = Math.max(
+      0,
+      creditFromPeriod - listPriceNewCents,
+    );
 
     return {
       currentTier: currentTierObj.value,
@@ -131,6 +178,7 @@ export class SubscriptionCheckoutPricingService {
       finalAmountCents: finalAmount,
       listPriceNewCents,
       accountCreditsAppliedCents: appliedWallet,
+      surplusCreditCents,
     };
   }
 }

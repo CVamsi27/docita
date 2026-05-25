@@ -7,8 +7,8 @@ import {
   MessageSquare,
   Stethoscope,
 } from "lucide-react";
-import { Button } from "@workspace/ui/components/button";
-import { SectionHeading } from "@workspace/ui/components/section-heading";
+import { Button } from "@workspace/ui/components/form/button";
+import { SectionHeading } from "@workspace/ui/components/layout/section-heading";
 
 export function WhatsappSection() {
   return (

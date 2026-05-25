@@ -1,9 +1,11 @@
-import { Injectable, Logger } from '@nestjs/common';
+import { Inject, Injectable, Logger } from '@nestjs/common';
+import { CLOCK_PORT, type IClock } from '@/shared/common/ports/clock.port';
 import { Cron } from '@nestjs/schedule';
 import { PrismaService } from '@/prisma/prisma.service';
 import { AuditService } from '@/shared/modules/audit/audit/audit.service';
 import { ArchivalService } from './archival.service';
 import { isCronDisabledInThisProcess } from '@/shared/schedule/cron-env';
+import { CRON_SCHEDULES } from '@/shared/schedule/cron-schedules';
 
 @Injectable()
 export class DataRetentionScheduler {
@@ -13,6 +15,7 @@ export class DataRetentionScheduler {
     private prisma: PrismaService,
     private auditService: AuditService,
     private archivalService: ArchivalService,
+    @Inject(CLOCK_PORT) private readonly clock: IClock,
   ) {}
 
   private formatError(error: Error | string): string {
@@ -21,7 +24,9 @@ export class DataRetentionScheduler {
       : `${error.name}: ${error.message}`;
   }
 
-  @Cron('0 23 * * *', { disabled: isCronDisabledInThisProcess() })
+  @Cron(CRON_SCHEDULES.DATA_RETENTION, {
+    disabled: isCronDisabledInThisProcess(),
+  })
   async handleDataRetention() {
     this.logger.log('Starting data retention check...');
 
@@ -40,9 +45,10 @@ export class DataRetentionScheduler {
   }
 
   private async processSoftDeletedRecords() {
-    const thirtyDaysAgo = new Date();
+    const thirtyDaysAgo = this.clock.now();
     thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
 
+    // RLS-BYPASS: compliance retention and archival jobs span tenants by design
     const recordsToDelete = await this.prisma.runUnrestricted(async () =>
       this.prisma.patient.findMany({
         where: {
@@ -58,16 +64,32 @@ export class DataRetentionScheduler {
       }),
     );
 
-    for (const patient of recordsToDelete) {
-      try {
-        await this.anonymizePatient(patient.id, patient.clinicId);
-        this.logger.log('Permanently anonymized soft-deleted patient');
-      } catch (error) {
-        this.logger.error(
-          `Failed to anonymize patient: ${this.formatError(
-            error instanceof Error ? error : String(error),
-          )}`,
-        );
+    const results = await Promise.allSettled(
+      recordsToDelete.map((patient) =>
+        this.anonymizePatient(patient.id, patient.clinicId),
+      ),
+    );
+    const successCount = results.filter((r) => r.status === 'fulfilled').length;
+    const failureCount = results.filter((r) => r.status === 'rejected').length;
+    if (successCount > 0) {
+      this.logger.log(
+        `Permanently anonymized ${successCount} soft-deleted patient(s)`,
+      );
+    }
+    if (failureCount > 0) {
+      this.logger.warn(
+        `Failed to anonymize ${failureCount} soft-deleted patient(s)`,
+      );
+      for (const result of results) {
+        if (result.status === 'rejected') {
+          this.logger.error(
+            `Failed to anonymize patient: ${this.formatError(
+              result.reason instanceof Error
+                ? result.reason
+                : String(result.reason),
+            )}`,
+          );
+        }
       }
     }
   }
@@ -76,8 +98,9 @@ export class DataRetentionScheduler {
     patientId: string,
     clinicId: string,
   ): Promise<void> {
-    const randomId = `ANON-${Date.now()}`;
+    const randomId = `ANON-${this.clock.now().getTime()}`;
 
+    // RLS-BYPASS: compliance retention and archival jobs span tenants by design
     await this.prisma.runUnrestricted(async () => {
       await this.prisma.patient.update({
         where: { id: patientId },

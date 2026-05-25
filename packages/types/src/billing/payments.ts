@@ -1,9 +1,11 @@
 import { z } from "zod";
+import { jsonObjectSchema } from "../shared/json-schema";
 
-export enum PaymentMode {
-  ONLINE = "ONLINE",
-  CASH = "CASH",
-}
+export const PaymentMode = {
+  ONLINE: "ONLINE",
+  CASH: "CASH",
+} as const;
+export type PaymentMode = (typeof PaymentMode)[keyof typeof PaymentMode];
 
 export enum PaymentMethod {
   CASH = "cash",
@@ -14,7 +16,7 @@ export enum PaymentMethod {
   WALLET = "wallet",
 }
 
-export const paymentModeSchema = z.nativeEnum(PaymentMode);
+export const paymentModeSchema = z.enum([PaymentMode.ONLINE, PaymentMode.CASH]);
 export const paymentMethodSchema = z.nativeEnum(PaymentMethod);
 
 export interface PaymentRetryInvoice {
@@ -27,7 +29,7 @@ export interface PaymentRetryInvoice {
 
 export const createPaymentLinkSchema = z.object({
   invoiceId: z.string(),
-  amount: z.number().positive(), 
+  amount: z.number().positive(),
   currency: z.string().default("INR"),
   paymentMode: paymentModeSchema.default(PaymentMode.ONLINE),
   patientId: z.string(),
@@ -130,3 +132,10 @@ export const paymentWebhookPayloadSchema = z.object({
   }),
 });
 export type PaymentWebhookPayload = z.infer<typeof paymentWebhookPayloadSchema>;
+
+/** Prisma `PaymentSession.meta` — channel, reference, notes, etc. */
+export const paymentSessionMetaJsonSchema = jsonObjectSchema;
+
+/** Prisma `PaymentSession.webhookPayload` — verified Razorpay webhook body. */
+export const paymentSessionWebhookPayloadSchema =
+  paymentWebhookPayloadSchema.describe("PaymentSession.webhookPayload");

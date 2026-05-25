@@ -2,18 +2,18 @@
 
 import { useEffect } from "react";
 import { useRouter } from "next/navigation";
-import { Lock, LogOut, Shield } from "lucide-react";
-import { Button } from "@workspace/ui/components/button";
-import { ThemeToggleWithAppearanceSync } from "@/features/_shared/components/layout/theme-toggle-with-appearance-sync";
-import { DocitaLogo } from "@workspace/ui/components/docita-logo";
+import { LogOut } from "lucide-react";
+import { Button } from "@workspace/ui/components/form/button";
+import { ThemeToggleWithAppearanceSync } from "@/components/layout/theme-toggle-with-appearance-sync";
+import { DocitaLogo } from "@workspace/ui/components/indicators/docita-logo";
 import { cn } from "@workspace/ui/lib/utils";
-import { SupportContact } from "@/components/common/support-contact";
 import {
   SUPPORT_WHATSAPP_MESSAGE_DEFAULT,
   SUPPORT_WHATSAPP_MESSAGE_ONBOARDING,
-} from "@/lib/support-contact";
+} from "@/lib/constants/support-contact";
 import { AuthBrandingPanel } from "./AuthBrandingPanel";
-import { useAuth } from "@/lib/auth-context";
+import { AuthPreDashboardFooter } from "./AuthPreDashboardFooter";
+import { useAuth } from "@/lib/auth/auth-context";
 import type { AuthBrandingStep } from "@/features/auth/types/auth";
 
 // Derives the user's position in the 4-step pre-dashboard journey
@@ -131,63 +131,52 @@ export function PreDashboardShell({
           </div>
         </div>
 
-        {/* Scrollable content area — my-auto centers when short, collapses to top when tall */}
-        <div className="flex-1 relative z-10 flex min-w-0 flex-col items-center px-4 pb-10">
-          <div
-            className={cn(
-              "w-full min-w-0 flex flex-col gap-5 py-4",
-              contentMaxWidth,
-              contentAlignment === "center" ? "my-auto" : "pt-4",
-            )}
-          >
-            {showProgress ? (
-              <div className="space-y-2">
-                <div className="flex items-center justify-between">
-                  <p className="text-xs font-medium text-muted-foreground tracking-wide uppercase">
-                    {meta.label}
-                  </p>
-                  <p className="text-xs text-muted-foreground">
-                    {stepNumber} / {TOTAL_STEPS}
-                  </p>
+        <div className="relative z-10 flex min-h-0 min-w-0 flex-1 flex-col">
+          <div className="flex flex-1 flex-col items-center justify-center px-4 py-4">
+            <div
+              className={cn(
+                "w-full min-w-0 flex flex-col gap-5",
+                contentMaxWidth,
+                contentAlignment === "start" && "self-start pt-2",
+              )}
+            >
+              {showProgress ? (
+                <div className="space-y-2">
+                  <div className="flex items-center justify-between">
+                    <p className="text-xs font-medium text-muted-foreground tracking-wide uppercase">
+                      {meta.label}
+                    </p>
+                    <p className="text-xs text-muted-foreground">
+                      {stepNumber} / {TOTAL_STEPS}
+                    </p>
+                  </div>
+                  <div className="flex gap-1">
+                    {Array.from({ length: TOTAL_STEPS }).map((_, i) => (
+                      <div
+                        key={i}
+                        className={[
+                          "h-1 flex-1 rounded-full transition-colors duration-500",
+                          i < meta.index
+                            ? "bg-success"
+                            : i === meta.index
+                              ? "bg-primary"
+                              : "bg-muted",
+                        ].join(" ")}
+                      />
+                    ))}
+                  </div>
                 </div>
-                <div className="flex gap-1">
-                  {Array.from({ length: TOTAL_STEPS }).map((_, i) => (
-                    <div
-                      key={i}
-                      className={[
-                        "h-1 flex-1 rounded-full transition-all duration-500",
-                        i < meta.index
-                          ? "bg-success"
-                          : i === meta.index
-                            ? "bg-primary"
-                            : "bg-muted",
-                      ].join(" ")}
-                    />
-                  ))}
-                </div>
-              </div>
-            ) : null}
+              ) : null}
 
-            {children}
+              {children}
+            </div>
           </div>
-          <div className="flex justify-center gap-6 px-4 pb-2 text-xs text-muted-foreground lg:hidden">
-            <span className="flex items-center gap-1">
-              <Shield className="h-3 w-3 shrink-0" aria-hidden />
-              Data Encrypted
-            </span>
-            <span className="flex items-center gap-1">
-              <Lock className="h-3 w-3 shrink-0" aria-hidden />
-              Privacy Controls
-            </span>
-          </div>
-          <div className="w-full max-w-2xl px-4 pb-6">
-            <SupportContact
-              layout="stack"
-              variant="footer"
-              className="w-full"
-              whatsappMessage={footerWhatsappMessage}
-            />
-          </div>
+
+          <AuthPreDashboardFooter
+            className={cn("mx-auto shrink-0 px-4 pb-6", contentMaxWidth)}
+            whatsappMessage={footerWhatsappMessage}
+            trustRowClassName={showBrandingPanel ? "lg:hidden" : undefined}
+          />
         </div>
       </div>
     </div>

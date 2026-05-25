@@ -18,7 +18,6 @@ describe("getVisibleSettingsTabs", () => {
       userRole: "ADMIN",
       currentTier: store.currentTier,
       canAccessFeature: store.canAccess,
-      canAccessTier: store.canAccessTier,
     });
 
     const visibleTabValues = tabs.flatMap((category) =>
@@ -37,7 +36,6 @@ describe("getVisibleSettingsTabs", () => {
       userRole: "ADMIN",
       currentTier: updatedStore.currentTier,
       canAccessFeature: updatedStore.canAccess,
-      canAccessTier: updatedStore.canAccessTier,
     });
 
     const visibleTabValues = tabs.flatMap((category) =>
@@ -54,7 +52,6 @@ describe("getVisibleSettingsTabs", () => {
       userRole: "DOCTOR",
       currentTier: store.currentTier,
       canAccessFeature: store.canAccess,
-      canAccessTier: store.canAccessTier,
     });
 
     const visibleTabValues = tabs.flatMap((category) =>
@@ -73,7 +70,6 @@ describe("getVisibleSettingsTabs", () => {
       userRole: "DOCTOR",
       currentTier: updatedStore.currentTier,
       canAccessFeature: updatedStore.canAccess,
-      canAccessTier: updatedStore.canAccessTier,
     });
 
     const visibleTabValues = tabs.flatMap((category) =>
@@ -99,7 +95,6 @@ describe("getVisibleSettingsTabs", () => {
       userRole: "ADMIN",
       currentTier: store.currentTier,
       canAccessFeature: store.canAccess,
-      canAccessTier: store.canAccessTier,
     });
 
     const visibleTabValues = tabs.flatMap((category) =>

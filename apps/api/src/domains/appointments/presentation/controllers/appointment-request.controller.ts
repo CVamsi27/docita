@@ -10,7 +10,8 @@ import {
 } from '@nestjs/common';
 import { ApiOperation, ApiTags } from '@nestjs/swagger';
 import { APP_ACCESS_TARGETS } from '@workspace/types';
-import { RequestWithUser } from '@/common/types/common.types';
+import { RequestWithUser } from '@/shared/common/types/common.types';
+import { getClinicStaffRequestContext } from '@/shared/modules/auth/auth/clinic-request-context';
 import {
   ApproveAppointmentRequestDto,
   ListAppointmentRequestsQueryDto,
@@ -24,6 +25,11 @@ import {
   getDbRolesForTarget,
   requireFeatureForTarget,
 } from '@/shared/modules/auth/auth/access-matrix.util';
+import { AuditService } from '@/shared/modules/audit/audit/audit.service';
+import {
+  logClinicPhiListRead,
+  logPatientPhiRead,
+} from '@/shared/modules/audit/audit/patient-access-audit.util';
 
 @ApiTags('appointment-requests')
 @Controller('appointment-requests')
@@ -33,6 +39,7 @@ import {
 export class AppointmentRequestController {
   constructor(
     private readonly appointmentRequestService: AppointmentRequestService,
+    private readonly auditService: AuditService,
   ) {}
 
   @Get()
@@ -41,10 +48,25 @@ export class AppointmentRequestController {
     @Request() req: RequestWithUser,
     @Query() query: ListAppointmentRequestsQueryDto,
   ) {
-    return this.appointmentRequestService.listRequests(
-      req.user!.clinicId!,
-      query,
-    );
+    if (query.patientId) {
+      await logPatientPhiRead(
+        this.auditService,
+        req,
+        query.patientId,
+        'VIEW_HISTORY',
+      );
+    } else {
+      await logClinicPhiListRead(
+        this.auditService,
+        req,
+        'VIEW_APPOINTMENT_LIST',
+        'Appointment',
+        { scope: 'appointment-requests', ...query },
+      );
+    }
+
+    const { clinicId } = getClinicStaffRequestContext(req);
+    return this.appointmentRequestService.listRequests(clinicId, query);
   }
 
   @Patch(':id/approve')
@@ -54,10 +76,11 @@ export class AppointmentRequestController {
     @Param('id') id: string,
     @Body() body: ApproveAppointmentRequestDto,
   ) {
+    const { clinicId, userId } = getClinicStaffRequestContext(req);
     return this.appointmentRequestService.approveRequest(
       id,
-      req.user!.clinicId!,
-      req.user!.id,
+      clinicId,
+      userId,
       body,
     );
   }
@@ -69,10 +92,11 @@ export class AppointmentRequestController {
     @Param('id') id: string,
     @Body() body: RejectAppointmentRequestDto,
   ) {
+    const { clinicId, userId } = getClinicStaffRequestContext(req);
     return this.appointmentRequestService.rejectRequest(
       id,
-      req.user!.clinicId!,
-      req.user!.id,
+      clinicId,
+      userId,
       body,
     );
   }

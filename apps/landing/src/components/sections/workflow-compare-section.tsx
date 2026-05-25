@@ -4,7 +4,7 @@ import { AnimatePresence, LayoutGroup, motion, useReducedMotion } from "motion/r
 import { useState } from "react";
 import { Check, X } from "lucide-react";
 
-import { ToggleGroup, ToggleGroupItem } from "@workspace/ui/components/toggle-group";
+import { ToggleGroup, ToggleGroupItem } from "@workspace/ui/components/form/toggle-group";
 import { cn } from "@workspace/ui/lib/utils";
 
 import { landingSpringTransition } from "@/lib/motion-prefs";
@@ -31,6 +31,7 @@ const COMPARE = {
 } as const;
 
 type CompareKey = keyof typeof COMPARE;
+const COMPARE_TAB_KEYS: CompareKey[] = ["today", "docita"];
 
 export function WorkflowCompareSection() {
   const reduce = useReducedMotion();
@@ -86,7 +87,7 @@ export function WorkflowCompareSection() {
                   }}
                   className="relative z-[1] flex w-full gap-0"
                 >
-                  {(Object.keys(COMPARE) as CompareKey[]).map((id) => (
+                  {COMPARE_TAB_KEYS.map((id) => (
                     <ToggleGroupItem
                       key={id}
                       value={id}

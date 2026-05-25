@@ -1,4 +1,5 @@
 import { Injectable, Logger } from '@nestjs/common';
+import { getErrorMessage, isRecord } from '@workspace/utils';
 import { PrismaService } from '@/prisma/prisma.service';
 
 import { UsersService } from '@/domains/users/application/services/users.service';
@@ -90,7 +91,8 @@ export class WhatsAppNotificationService {
       return {
         sent: false,
         reason: 'error',
-        error: error as Error,
+        error:
+          error instanceof Error ? error : new Error(getErrorMessage(error)),
       };
     }
   }
@@ -110,10 +112,12 @@ export class WhatsAppNotificationService {
       return false;
     }
 
-    const config = clinic.whatsappAutomation as Record<string, boolean>;
+    const config = isRecord(clinic.whatsappAutomation)
+      ? clinic.whatsappAutomation
+      : {};
     const flag = AUTOMATION_FLAGS[type] || type;
 
-    return config.enabled === true && config[flag] === true;
+    return config['enabled'] === true && config[flag] === true;
   }
 
   async getClinicInfo(clinicId: string) {

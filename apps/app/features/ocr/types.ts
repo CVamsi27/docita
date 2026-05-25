@@ -4,11 +4,9 @@ export interface Medication {
   frequency: string;
 }
 
-export interface LabValues {
-  glucose: string;
-  hemoglobin: string;
-  creatinine: string;
-}
+import type { OCRLabValues } from "@workspace/types";
+
+export type LabValues = OCRLabValues;
 
 export interface Vitals {
   bp: string;

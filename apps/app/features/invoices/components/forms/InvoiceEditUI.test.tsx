@@ -3,7 +3,7 @@ import { fireEvent, render, screen, waitFor } from "@testing-library/react";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { InvoiceEditUI } from "./InvoiceEditUI";
 
-vi.mock("@workspace/ui/components/tooltip", () => ({
+vi.mock("@workspace/ui/components/overlay/tooltip", () => ({
   SymbolTooltip: ({ children }: { children: ReactElement }) => children,
 }));
 
@@ -15,7 +15,7 @@ const invoiceEditMocks = vi.hoisted(() => ({
   invoice: { id: "inv_1" } as { id: string } | null,
 }));
 
-vi.mock("@/components/common/navigation/back-button", () => ({
+vi.mock("@/components/navigation/back-button", () => ({
   BackButton: ({ label }: { label: string }) => (
     <button type="button">{label}</button>
   ),

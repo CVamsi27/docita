@@ -1,4 +1,5 @@
-import { Injectable, Logger } from '@nestjs/common';
+import { Inject, Injectable, Logger } from '@nestjs/common';
+import { CLOCK_PORT, type IClock } from '@/shared/common/ports/clock.port';
 import { IMessageChannel, SendMessageResult } from './channels';
 import { MessageTemplateService } from './templates';
 
@@ -22,7 +23,10 @@ export class NotificationOrchestrator {
   private readonly logger = new Logger(NotificationOrchestrator.name);
   private channels: Map<string, IMessageChannel> = new Map();
 
-  constructor(private templateService: MessageTemplateService) {}
+  constructor(
+    private templateService: MessageTemplateService,
+    @Inject(CLOCK_PORT) private readonly clock: IClock,
+  ) {}
 
   registerChannel(channel: IMessageChannel): void {
     this.channels.set(channel.getName(), channel);
@@ -73,7 +77,7 @@ export class NotificationOrchestrator {
           messageId: `failed_${Date.now()}`,
           status: 'failed',
           channel: channelName,
-          sentAt: new Date(),
+          sentAt: this.clock.now(),
           error: String(error),
         });
       }

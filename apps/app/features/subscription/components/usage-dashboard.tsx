@@ -1,24 +1,27 @@
 "use client";
 
-import { DocitaLoadingIndicator } from "@workspace/ui/components/docita-loading-indicator";
+import { DocitaLoadingIndicator } from "@workspace/ui/components/feedback/docita-loading-indicator";
 
-import { useCurrentUsage } from "@/hooks/api/use-pricing";
-import { useSubscription } from "@/hooks/api/use-settings";
+import { useCurrentUsage } from "@/features/subscription/hooks/use-pricing";
+import { useSubscription } from "@workspace/data-access";
 import {
   PRICING_CURRENCY_CONFIG,
   PRICING_CURRENCY_SYMBOLS,
-  type SupportedCurrency,
 } from "@workspace/types";
-import { formatAmountLocale, formatCountLocale } from "@workspace/utils";
+import {
+  formatAmountLocale,
+  formatCountLocale,
+  parseSupportedCurrency,
+} from "@workspace/utils";
 import { useClinicCurrency } from "@/hooks/use-clinic-currency";
 import {
   formatLocaleDateShortMonth,
   formatLocaleDateShortMonthYear,
 } from "@/lib/formatters";
 import { AlertTriangle, TrendingUp } from "lucide-react";
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@workspace/ui/components/card";
-import { Progress } from "@workspace/ui/components/progress";
-import { Badge } from "@workspace/ui/components/badge";
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@workspace/ui/components/indicators/card";
+import { Progress } from "@workspace/ui/components/feedback/progress";
+import { Badge } from "@workspace/ui/components/indicators/badge";
 import { cn } from "@workspace/ui/lib/utils";
 import {
   formatUsageMeterCaption,
@@ -110,13 +113,11 @@ export function UsageDashboard() {
   const { data: subscription } = useSubscription();
   const { currency, locale } = useClinicCurrency();
   const showWhatsAppMeter = subscription?.tier !== "STARTER";
-  const currencyCfg = PRICING_CURRENCY_CONFIG[currency as SupportedCurrency];
+  const resolvedCurrency = parseSupportedCurrency(currency);
+  const currencyCfg = PRICING_CURRENCY_CONFIG[resolvedCurrency];
   const amountFractionDigits = currencyCfg?.decimalPlaces ?? 2;
   const amountLocale = currencyCfg?.locale ?? locale;
-  const symbol =
-    PRICING_CURRENCY_SYMBOLS[
-      currency as keyof typeof PRICING_CURRENCY_SYMBOLS
-    ] ?? currency;
+  const symbol = PRICING_CURRENCY_SYMBOLS[resolvedCurrency] ?? resolvedCurrency;
 
   if (isLoading) {
     return (
@@ -172,7 +173,7 @@ export function UsageDashboard() {
       </CardHeader>
       <CardContent className="space-y-5">
         {warningEntries.length > 0 && (
-          <div className="rounded-md border border-warning/40 bg-warning/10 px-3 py-2 text-xs text-warning-foreground">
+          <div className="surface-warning rounded-md px-3 py-2 text-xs">
             {warningEntries.some(([, warning]) => warning.threshold === 100)
               ? "You have reached 100% of one or more limits. You can continue using the app; overage will be billed at cycle close."
               : "You are above 80% of one or more limits. Consider upgrading to avoid overage charges this cycle."}

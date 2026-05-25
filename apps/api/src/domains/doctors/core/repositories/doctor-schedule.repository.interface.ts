@@ -1,101 +1,12 @@
-import {
-  ClinicWeeklySchedule,
-  DoctorSchedule,
-  DoctorTimeOff,
-  Prisma,
-} from '@workspace/db';
+import type { IDoctorScheduleCoreRepository } from './doctor-schedule-core.repository.interface';
+import type { IDoctorTimeOffRepository } from './doctor-time-off.repository.interface';
 
-export interface IDoctorScheduleRepository {
-  findSchedules(
-    doctorId: string,
-    clinicId?: string,
-  ): Promise<
-    Array<
-      DoctorSchedule & {
-        doctor: { id: string; name: string };
-        clinic: { id: string; name: string };
-      }
-    >
-  >;
+export { DOCTOR_SCHEDULE_CORE_REPOSITORY_TOKEN } from './doctor-schedule-core.repository.interface';
+export { DOCTOR_TIME_OFF_REPOSITORY_TOKEN } from './doctor-time-off.repository.interface';
 
-  findSchedulesByClinic(clinicId: string): Promise<
-    Array<
-      DoctorSchedule & {
-        doctor: { id: string; name: string; specialization: string | null };
-      }
-    >
-  >;
-
-  findScheduleByDoctorClinicDay(
-    doctorId: string,
-    clinicId: string,
-    dayOfWeek: string,
-  ): Promise<DoctorSchedule | null>;
-
-  findSchedulesForSlotGeneration(
-    where: Prisma.DoctorScheduleWhereInput,
-  ): Promise<
-    Array<
-      DoctorSchedule & {
-        doctor: { id: string; name: string; specialization: string | null };
-      }
-    >
-  >;
-
-  findClinicWeeklyForSlotGeneration(params: {
-    clinicId: string;
-    dayOfWeek: string;
-  }): Promise<ClinicWeeklySchedule[]>;
-
-  /** True when the clinic has at least one persisted clinic weekly row (any day). */
-  hasAnyClinicWeeklySchedule(clinicId: string): Promise<boolean>;
-
-  createSchedule(
-    data: Prisma.DoctorScheduleCreateInput,
-  ): Promise<DoctorSchedule & { doctor: { id: string; name: string } }>;
-
-  updateSchedule(
-    id: string,
-    data: Prisma.DoctorScheduleUpdateInput,
-  ): Promise<DoctorSchedule & { doctor: { id: string; name: string } }>;
-
-  deleteSchedule(id: string): Promise<void>;
-
-  deleteManySchedules(doctorId: string, clinicId: string): Promise<void>;
-
-  createManySchedules(
-    data: Prisma.DoctorScheduleCreateManyInput[],
-  ): Promise<void>;
-
-  findTimeOffs(where: Prisma.DoctorTimeOffWhereInput): Promise<
-    Array<
-      DoctorTimeOff & {
-        doctor: { id: string; name: string };
-        clinic: { id: string; name: string } | null;
-      }
-    >
-  >;
-
-  findTimeOffsForSlots(
-    where: Prisma.DoctorTimeOffWhereInput,
-  ): Promise<DoctorTimeOff[]>;
-
-  findDoctorIdsWithFullDayTimeOffOverlappingRange(
-    clinicId: string,
-    rangeStart: Date,
-    rangeEnd: Date,
-  ): Promise<string[]>;
-
-  createTimeOff(
-    data: Prisma.DoctorTimeOffCreateInput,
-  ): Promise<DoctorTimeOff & { doctor: { id: string; name: string } }>;
-
-  findTimeOffById(id: string): Promise<DoctorTimeOff | null>;
-
-  deleteTimeOff(id: string): Promise<void>;
-
-  findScheduleById(id: string): Promise<DoctorSchedule | null>;
-}
+/** Composite port for schedule CRUD and time-off management. */
+export interface IDoctorScheduleRepository
+  extends IDoctorScheduleCoreRepository, IDoctorTimeOffRepository {}
 
 export const DOCTOR_SCHEDULE_REPOSITORY_TOKEN = Symbol(
   'IDoctorScheduleRepository',

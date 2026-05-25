@@ -1,7 +1,7 @@
 import { ForbiddenException, NotFoundException } from '@nestjs/common';
 import { beforeEach, describe, expect, it, jest } from '@jest/globals';
 import { PrismaService } from '@/prisma/prisma.service';
-import { asType } from '@/test-utils';
+import { asType, createFixedClockMock } from '@/test-utils';
 import { ApiKeyService } from './api-key.service';
 
 describe('ApiKeyService', () => {
@@ -24,7 +24,10 @@ describe('ApiKeyService', () => {
         update: jest.fn(),
       },
     };
-    service = new ApiKeyService(asType<PrismaService>(prisma));
+    service = new ApiKeyService(
+      asType<PrismaService>(prisma),
+      createFixedClockMock(),
+    );
   });
 
   it('creates API key and returns the secret once', async () => {
@@ -145,7 +148,7 @@ describe('ApiKeyService', () => {
       clinicId: 'clinic-1',
       scopes: ['patients:read'],
       revokedAt: null,
-      expiresAt: new Date(Date.now() - 60_000),
+      expiresAt: new Date('2026-01-01T00:00:00.000Z'),
     });
     await expect(service.validateApiKey('dct_expired')).resolves.toBeNull();
   });
@@ -156,7 +159,7 @@ describe('ApiKeyService', () => {
       clinicId: 'clinic-1',
       scopes: ['patients:read', 'appointments:write'],
       revokedAt: null,
-      expiresAt: new Date(Date.now() + 60_000),
+      expiresAt: new Date('2027-01-01T00:00:00.000Z'),
     });
     jest.spyOn(prisma.apiKey, 'update').mockResolvedValue({ id: 'key-1' });
 

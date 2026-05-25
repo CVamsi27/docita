@@ -4,14 +4,14 @@ import { withSentryConfig } from "@sentry/nextjs";
 
 const require = createRequire(import.meta.url);
 const nextCloudflareEmptyStub = require.resolve(
-  "@workspace/ui/next-cloudflare/empty-module.cjs",
+  "../../scripts/deploy/cloudflare-stubs/empty-module.cjs",
 );
 const nextCloudflareSentryStub = require.resolve(
-  "@workspace/ui/next-cloudflare/sentry-nextjs-cloudflare",
+  "../../scripts/deploy/cloudflare-stubs/sentry-nextjs-cloudflare.ts",
 );
 const isCloudflareBuild = process.env.DOCITA_CLOUDFLARE === "1";
 const DEFAULT_PUBLIC_API_URL = isCloudflareBuild
-  ? "https://api.docita.work/api/v1"
+  ? "/api/v1"
   : "http://127.0.0.1:3001/api/v1";
 
 let nextConfig: NextConfig = {
@@ -19,23 +19,20 @@ let nextConfig: NextConfig = {
 
   compress: !isCloudflareBuild,
   env: {
-    NEXT_PUBLIC_API_URL:
-      process.env.NEXT_PUBLIC_API_URL ?? DEFAULT_PUBLIC_API_URL,
+    NEXT_PUBLIC_API_URL: isCloudflareBuild
+      ? DEFAULT_PUBLIC_API_URL
+      : (process.env.NEXT_PUBLIC_API_URL ?? DEFAULT_PUBLIC_API_URL),
   },
 
   images: {
     formats: ["image/avif", "image/webp"],
     deviceSizes: [640, 750, 828, 1080, 1200, 1920, 2048, 3840],
     imageSizes: [16, 32, 48, 64, 96, 128, 256, 384],
-    minimumCacheTTL: 60 * 60 * 24 * 365, 
+    minimumCacheTTL: 60 * 60 * 24 * 365,
   },
 
   experimental: {
-    optimizePackageImports: [
-      "@workspace/ui",
-      "lucide-react",
-      "recharts",
-    ],
+    optimizePackageImports: ["@workspace/ui", "lucide-react", "recharts"],
   },
 
   productionBrowserSourceMaps: false,

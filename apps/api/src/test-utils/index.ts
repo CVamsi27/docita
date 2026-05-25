@@ -1,5 +1,10 @@
 export { asType } from './as-type';
 export {
+  clockPortTestProvider,
+  createFixedClockMock,
+  createMutableClockMock,
+} from './fixed-clock.mock';
+export {
   createKeyedReflectorMock,
   mockGetAllAndOverrideKeyBranch,
   mockGetAllAndOverrideKeyMap,

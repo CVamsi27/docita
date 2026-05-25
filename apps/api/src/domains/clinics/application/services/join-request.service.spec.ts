@@ -2,7 +2,10 @@ import { Test, TestingModule } from '@nestjs/testing';
 import { BadRequestException, NotFoundException } from '@nestjs/common';
 import { beforeEach, describe, it, expect, jest } from '@jest/globals';
 import { JoinRequestService } from './join-request.service';
+import { JoinRequestCommandService } from './join-request-command.service';
+import { JoinRequestQueryService } from './join-request-query.service';
 import { JOIN_REQUEST_REPOSITORY_TOKEN } from '@/domains/clinics/core/repositories/join-request.repository.interface';
+import { CLOCK_PORT } from '@/shared/common/ports/clock.port';
 
 const mockRequest = {
   id: 'req-1',
@@ -44,8 +47,11 @@ describe('JoinRequestService', () => {
 
     const module: TestingModule = await Test.createTestingModule({
       providers: [
+        JoinRequestQueryService,
+        JoinRequestCommandService,
         JoinRequestService,
         { provide: JOIN_REQUEST_REPOSITORY_TOKEN, useValue: repository },
+        { provide: CLOCK_PORT, useValue: { now: () => new Date() } },
       ],
     }).compile();
 

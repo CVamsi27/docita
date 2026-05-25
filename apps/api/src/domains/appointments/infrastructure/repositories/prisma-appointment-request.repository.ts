@@ -1,8 +1,10 @@
-import { Injectable } from '@nestjs/common';
-import { Prisma } from '@workspace/db';
+import { Inject, Injectable, NotFoundException } from '@nestjs/common';
+import { CLOCK_PORT, type IClock } from '@/shared/common/ports/clock.port';
+import { AppointmentRequestStatus, Prisma } from '@workspace/db';
 import { PrismaService } from '@/prisma/prisma.service';
 import {
   AppointmentRequestListFilters,
+  AppointmentRequestMatchingAppointmentInput,
   AppointmentRequestWithRelations,
   IAppointmentRequestRepository,
 } from '@/domains/appointments/core/repositories/appointment-request.repository.interface';
@@ -20,19 +22,30 @@ const APPOINTMENT_REQUEST_INCLUDE = {
   reviewedBy: { select: { id: true, name: true } },
 } satisfies Prisma.AppointmentRequestInclude;
 
+type AppointmentRequestDbRow = Prisma.AppointmentRequestGetPayload<{
+  include: typeof APPOINTMENT_REQUEST_INCLUDE;
+}>;
+
 @Injectable()
 export class PrismaAppointmentRequestRepository implements IAppointmentRequestRepository {
-  constructor(private readonly prisma: PrismaService) {}
+  constructor(
+    private readonly prisma: PrismaService,
+    @Inject(CLOCK_PORT) private readonly clock: IClock,
+  ) {}
 
   private getReadClient() {
     return this.prisma.getReadClient();
   }
 
-  async create(data: Prisma.AppointmentRequestUncheckedCreateInput) {
-    return this.prisma.appointmentRequest.create({
-      data,
-      include: APPOINTMENT_REQUEST_INCLUDE,
-    }) as Promise<AppointmentRequestWithRelations>;
+  async create(
+    data: Prisma.AppointmentRequestUncheckedCreateInput,
+  ): Promise<AppointmentRequestWithRelations> {
+    const row: AppointmentRequestDbRow =
+      await this.prisma.appointmentRequest.create({
+        data,
+        include: APPOINTMENT_REQUEST_INCLUDE,
+      });
+    return row satisfies AppointmentRequestWithRelations;
   }
 
   async findForClinic({
@@ -67,24 +80,117 @@ export class PrismaAppointmentRequestRepository implements IAppointmentRequestRe
     ]);
 
     return {
-      items: items as AppointmentRequestWithRelations[],
+      items: items satisfies AppointmentRequestWithRelations[],
       total,
     };
   }
 
-  async findByIdAndClinic(id: string, clinicId: string) {
-    return this.getReadClient().appointmentRequest.findFirst({
+  async findByIdAndClinic(
+    id: string,
+    clinicId: string,
+  ): Promise<AppointmentRequestWithRelations | null> {
+    const row = await this.getReadClient().appointmentRequest.findFirst({
       where: { id, clinicId },
       include: APPOINTMENT_REQUEST_INCLUDE,
-    }) as Promise<AppointmentRequestWithRelations | null>;
+    });
+    if (!row) {
+      return null;
+    }
+    return row satisfies AppointmentRequestWithRelations;
   }
 
-  async update(id: string, data: Prisma.AppointmentRequestUpdateInput) {
-    return this.prisma.appointmentRequest.update({
-      where: { id },
+  private async requireByIdAndClinic(
+    id: string,
+    clinicId: string,
+  ): Promise<AppointmentRequestWithRelations> {
+    const updated = await this.findByIdAndClinic(id, clinicId);
+    if (!updated) {
+      throw new NotFoundException(
+        `Appointment request ${id} not found for clinic ${clinicId}`,
+      );
+    }
+    return updated;
+  }
+
+  async update(
+    id: string,
+    clinicId: string,
+    data: Prisma.AppointmentRequestUpdateInput,
+  ) {
+    await this.prisma.appointmentRequest.updateMany({
+      where: { id, clinicId },
       data,
-      include: APPOINTMENT_REQUEST_INCLUDE,
-    }) as Promise<AppointmentRequestWithRelations>;
+    });
+
+    return this.requireByIdAndClinic(id, clinicId);
+  }
+
+  async markReviewed({
+    id,
+    clinicId,
+    status,
+    reviewedById,
+    responseMessage,
+  }: {
+    id: string;
+    clinicId: string;
+    status: AppointmentRequestStatus;
+    reviewedById: string;
+    responseMessage: string;
+  }) {
+    const reviewerExists = await this.prisma.user.count({
+      where: { id: reviewedById, clinicId },
+    });
+
+    await this.prisma.appointmentRequest.updateMany({
+      where: { id, clinicId },
+      data: {
+        status,
+        reviewedAt: this.clock.now(),
+        responseMessage,
+        ...(reviewerExists > 0 ? { reviewedById } : {}),
+      },
+    });
+
+    return this.requireByIdAndClinic(id, clinicId);
+  }
+
+  async findMatchingAppointment({
+    clinicId,
+    patientId,
+    doctorId,
+    startTime,
+    endTime,
+    reason,
+    requestCreatedAt,
+  }: AppointmentRequestMatchingAppointmentInput) {
+    const readClient = this.getReadClient();
+    const exactMatch = await readClient.appointment.findFirst({
+      where: {
+        clinicId,
+        patientId,
+        doctorId,
+        startTime,
+        endTime,
+        status: { in: ['SCHEDULED', 'CONFIRMED', 'IN_PROGRESS'] },
+      },
+      select: { id: true },
+      orderBy: { createdAt: 'desc' },
+    });
+    if (exactMatch) return exactMatch;
+
+    return readClient.appointment.findFirst({
+      where: {
+        clinicId,
+        patientId,
+        doctorId,
+        notes: reason,
+        createdAt: { gte: requestCreatedAt },
+        status: { in: ['SCHEDULED', 'CONFIRMED', 'IN_PROGRESS'] },
+      },
+      select: { id: true },
+      orderBy: { createdAt: 'desc' },
+    });
   }
 
   async doctorBelongsToClinic(doctorId: string, clinicId: string) {

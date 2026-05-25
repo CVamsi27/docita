@@ -1,839 +1,112 @@
-import {
-  Injectable,
-  NotFoundException,
-  BadRequestException,
-  Inject,
-} from '@nestjs/common';
-import { randomUUID } from 'node:crypto';
-import { PrismaService } from '@/prisma/prisma.service';
-import {
-  Prisma,
-  ClinicTier,
-  SubscriptionStatus,
-  BillingCycle,
-} from '@workspace/db';
-import { ClinicPricingOffer } from '@/shared/modules/services/feature-flag.service';
-import {
-  SUBSCRIPTION_REPOSITORY_TOKEN,
-  type ISubscriptionRepository,
-} from '@/domains/subscriptions/application/ports';
-import type { InternalAdditionalChargeCategory } from '@workspace/types';
+import { Injectable } from '@nestjs/common';
+import { ClinicTier } from '@workspace/db';
+import { InternalBillingMetricsService } from './internal-billing-metrics.service';
+import { InternalSubscriptionQueryService } from './internal-subscription-query.service';
+import { InternalSubscriptionAdminService } from './internal-subscription-admin.service';
+import { InternalPricingAdminService } from './internal-pricing-admin.service';
+import { InternalAdditionalChargeService } from './internal-additional-charge.service';
 
-const PRICING_OFFER_FLAG = 'clinic_pricing_offer';
-
-const INTERNAL_ADDITIONAL_CHARGE_PREFIX = '[INTERNAL:';
-
-const INTERNAL_ADDITIONAL_CHARGE_CATEGORY_LABELS: Record<
-  InternalAdditionalChargeCategory,
-  string
-> = {
-  GUIDED_SETUP: 'Guided setup',
-  DATA_MIGRATION: 'Data migration',
-  CUSTOM_TRAINING: 'Custom training',
-  INTEGRATION: 'Integration',
-  COMMERCIAL_DISCOUNT: 'Commercial discount / adjustment',
-  OTHER: 'Other service',
-};
-
-const INTERNAL_PAYMENT_METHOD_LABELS: Record<string, string> = {
-  razorpay: 'Razorpay',
-  stripe: 'Stripe',
-  bank_transfer: 'Bank transfer',
-  manual: 'Manual',
-};
-
-interface BillingTierInfo {
-  name: string;
-  price: number | null;
-  maxDoctors: number;
-  aiEnabled: boolean;
-}
-
+/**
+ * Facade for internal billing operations. Delegates to focused services (SRP).
+ */
 @Injectable()
 export class InternalBillingService {
   constructor(
-    private prisma: PrismaService,
-    @Inject(SUBSCRIPTION_REPOSITORY_TOKEN)
-    private readonly subscriptionRepository: ISubscriptionRepository,
+    private readonly billingMetrics: InternalBillingMetricsService,
+    private readonly subscriptionQuery: InternalSubscriptionQueryService,
+    private readonly subscriptionAdmin: InternalSubscriptionAdminService,
+    private readonly pricingAdmin: InternalPricingAdminService,
+    private readonly additionalCharge: InternalAdditionalChargeService,
   ) {}
 
-  private toInputJsonValue(value: unknown): Prisma.InputJsonValue {
-    return JSON.parse(JSON.stringify(value)) as Prisma.InputJsonValue;
+  getMetrics() {
+    return this.billingMetrics.getMetrics();
   }
 
-  private subDays(date: Date, days: number): Date {
-    const result = new Date(date);
-    result.setDate(result.getDate() - days);
-    return result;
-  }
-
-  private addDays(date: Date, days: number): Date {
-    const result = new Date(date);
-    result.setDate(result.getDate() + days);
-    return result;
-  }
-
-  private addMonths(date: Date, months: number): Date {
-    const result = new Date(date);
-    result.setMonth(result.getMonth() + months);
-    return result;
-  }
-
-  private startOfMonth(date: Date): Date {
-    const result = new Date(date);
-    result.setDate(1);
-    result.setHours(0, 0, 0, 0);
-    return result;
-  }
-
-  private formatDate(date: Date, pattern: string): string {
-    const months = [
-      'Jan',
-      'Feb',
-      'Mar',
-      'Apr',
-      'May',
-      'Jun',
-      'Jul',
-      'Aug',
-      'Sep',
-      'Oct',
-      'Nov',
-      'Dec',
-    ];
-    if (pattern === 'MMM yyyy') {
-      return `${months[date.getMonth()]} ${date.getFullYear()}`;
-    }
-    return date.toISOString();
-  }
-
-  private normalizePaymentGatewayStatus(
-    status: string,
-  ): 'SUCCESS' | 'PENDING' | 'FAILED' {
-    const normalized = status.toLowerCase();
-    if (normalized === 'paid' || normalized === 'success') {
-      return 'SUCCESS';
-    }
-    if (normalized === 'failed' || normalized === 'refunded') {
-      return 'FAILED';
-    }
-    if (normalized === 'pending') {
-      return 'PENDING';
-    }
-    return 'PENDING';
-  }
-
-  private planLabelFromInternalPayment(
-    description: string | null,
-  ): string | null {
-    if (!description?.startsWith(INTERNAL_ADDITIONAL_CHARGE_PREFIX)) {
-      return null;
-    }
-    const end = description.indexOf(
-      ']',
-      INTERNAL_ADDITIONAL_CHARGE_PREFIX.length,
-    );
-    if (end === -1) {
-      return null;
-    }
-    const key = description.slice(
-      INTERNAL_ADDITIONAL_CHARGE_PREFIX.length,
-      end,
-    ) as InternalAdditionalChargeCategory;
-    return INTERNAL_ADDITIONAL_CHARGE_CATEGORY_LABELS[key] ?? key;
-  }
-
-  private mapSubscriptionPaymentRow(
-    p: Prisma.SubscriptionPaymentGetPayload<{
-      include: {
-        subscription: {
-          include: { clinic: { select: { id: true; name: true } } };
-        };
-        clinic: { select: { id: true; name: true } };
-      };
-    }>,
+  getSubscriptions(
+    filters: Parameters<
+      InternalSubscriptionQueryService['getSubscriptions']
+    >[0],
   ) {
-    const clinicName =
-      p.subscription?.clinic?.name ?? p.clinic?.name ?? 'Unknown clinic';
-    const internalLabel = this.planLabelFromInternalPayment(p.description);
-    const planLabel =
-      internalLabel ??
-      (p.subscription ? String(p.subscription.plan) : 'Recorded payment');
-    return {
-      id: p.id,
-      clinicName,
-      planLabel,
-      amount: p.amountCents / 100,
-      currency: p.currency,
-      status: this.normalizePaymentGatewayStatus(p.status),
-      gatewayPaymentId: p.razorpayPaymentId ?? undefined,
-      description: p.description ?? undefined,
-      paidAt: p.paidAt?.toISOString() ?? null,
-      createdAt: p.createdAt.toISOString(),
-    };
+    return this.subscriptionQuery.getSubscriptions(filters);
   }
 
-  async getMetrics() {
-    const subscriptions = await this.prisma.subscription.findMany({
-      include: {
-        clinic: {
-          select: {
-            id: true,
-            name: true,
-            email: true,
-            tier: true,
-            referralCreditsMonths: true,
-          },
-        },
-      },
-    });
-
-    const activeSubscriptions = subscriptions.filter(
-      (s) =>
-        s.status === SubscriptionStatus.ACTIVE ||
-        s.status === SubscriptionStatus.TRIALING,
-    );
-
-    const mrr = activeSubscriptions.reduce((sum, s) => {
-      const monthlyAmount =
-        s.billingCycle === 'YEARLY' ? s.basePriceCents / 12 : s.basePriceCents;
-      return sum + monthlyAmount;
-    }, 0);
-
-    const arr = mrr * 12;
-
-    const thirtyDaysAgo = this.subDays(new Date(), 30);
-    const cancelledRecently = subscriptions.filter(
-      (s) =>
-        s.status === SubscriptionStatus.CANCELLED &&
-        new Date(s.updatedAt) > thirtyDaysAgo,
-    ).length;
-
-    const totalActive = activeSubscriptions.length;
-    const churnRate =
-      totalActive > 0
-        ? cancelledRecently / (totalActive + cancelledRecently)
-        : 0;
-
-    const subscriptionsByTier = subscriptions.reduce(
-      (acc, s) => {
-        acc[s.plan] = (acc[s.plan] || 0) + 1;
-        return acc;
-      },
-      {} as Record<string, number>,
-    );
-
-    const subscriptionsByStatus = subscriptions.reduce(
-      (acc, s) => {
-        acc[s.status] = (acc[s.status] || 0) + 1;
-        return acc;
-      },
-      {} as Record<string, number>,
-    );
-
-    const sevenDaysFromNow = this.addDays(new Date(), 7);
-    const expiringSubscriptions = subscriptions
-      .filter(
-        (s) =>
-          (s.status === SubscriptionStatus.ACTIVE ||
-            s.status === SubscriptionStatus.TRIALING) &&
-          new Date(s.currentPeriodEnd) <= sevenDaysFromNow &&
-          new Date(s.currentPeriodEnd) > new Date(),
-      )
-      .map((s) => ({
-        id: s.id,
-        clinicId: s.clinicId,
-        tier: s.plan,
-        status: s.status,
-        billingCycle: s.billingCycle,
-        currentPeriodStart: s.currentPeriodStart,
-        currentPeriodEnd: s.currentPeriodEnd,
-        amount: s.basePriceCents / 100,
-        currency: s.currency,
-        clinic: s.clinic,
-      }));
-
-    const gracePeriodSubscriptions = subscriptions
-      .filter((s) => s.status === SubscriptionStatus.GRACE)
-      .map((s) => ({
-        id: s.id,
-        clinicId: s.clinicId,
-        tier: s.plan,
-        status: s.status,
-        billingCycle: s.billingCycle,
-        currentPeriodStart: s.currentPeriodStart,
-        currentPeriodEnd: s.currentPeriodEnd,
-        amount: s.basePriceCents / 100,
-        currency: s.currency,
-        clinic: s.clinic,
-      }));
-
-    const currentMonthStart = this.startOfMonth(new Date());
-    const firstMonthStart = this.addMonths(currentMonthStart, -5);
-    const nextMonthStart = this.addMonths(currentMonthStart, 1);
-
-    const groupedRevenue = await this.prisma.$queryRaw<
-      Array<{ monthStart: Date; revenueCents: bigint }>
-    >`
-      SELECT
-        date_trunc('month', "paidAt") AS "monthStart",
-        COALESCE(SUM("amountCents"), 0)::bigint AS "revenueCents"
-      FROM "SubscriptionPayment"
-      WHERE
-        status = 'paid'
-        AND "paidAt" IS NOT NULL
-        AND "paidAt" >= ${firstMonthStart}
-        AND "paidAt" < ${nextMonthStart}
-      GROUP BY date_trunc('month', "paidAt")
-      ORDER BY date_trunc('month', "paidAt") ASC
-    `;
-
-    const revenueByMonthMap = new Map<string, number>();
-    for (const row of groupedRevenue) {
-      const monthKey = row.monthStart.toISOString().slice(0, 7);
-      revenueByMonthMap.set(monthKey, Number(row.revenueCents));
-    }
-
-    const revenueByMonth: { month: string; revenue: number }[] = [];
-    for (let i = 0; i < 6; i++) {
-      const monthStart = this.addMonths(firstMonthStart, i);
-      const monthKey = monthStart.toISOString().slice(0, 7);
-      revenueByMonth.push({
-        month: this.formatDate(monthStart, 'MMM yyyy'),
-        revenue: (revenueByMonthMap.get(monthKey) ?? 0) / 100,
-      });
-    }
-
-    const recentPayments = await this.prisma.subscriptionPayment.findMany({
-      take: 10,
-      orderBy: { createdAt: 'desc' },
-      include: {
-        subscription: {
-          include: {
-            clinic: { select: { id: true, name: true } },
-          },
-        },
-        clinic: { select: { id: true, name: true } },
-      },
-    });
-
-    return {
-      mrr: mrr / 100,
-      arr: arr / 100,
-      activeSubscriptions: activeSubscriptions.length,
-      trialSubscriptions: subscriptions.filter(
-        (s) => s.status === SubscriptionStatus.TRIALING,
-      ).length,
-      churnRate,
-      subscriptionsByTier,
-      subscriptionsByStatus,
-      expiringSubscriptions,
-      gracePeriodSubscriptions,
-      revenueByMonth,
-      recentPayments: recentPayments.map((p) =>
-        this.mapSubscriptionPaymentRow(p),
-      ),
-    };
+  getExpiringSubscriptions(
+    days?: Parameters<
+      InternalSubscriptionQueryService['getExpiringSubscriptions']
+    >[0],
+  ) {
+    return this.subscriptionQuery.getExpiringSubscriptions(days);
   }
 
-  async getSubscriptions(filters: {
-    tier?: string;
-    status?: string;
-    billingCycle?: string;
-  }) {
-    const where: Prisma.SubscriptionWhereInput = {};
-    if (filters.tier) where.plan = filters.tier as ClinicTier;
-    if (filters.status) where.status = filters.status as SubscriptionStatus;
-    if (filters.billingCycle)
-      where.billingCycle = filters.billingCycle as BillingCycle;
-
-    const subscriptions = await this.prisma.subscription.findMany({
-      where,
-      include: {
-        clinic: {
-          select: {
-            id: true,
-            name: true,
-            email: true,
-            tier: true,
-            referralCreditsMonths: true,
-          },
-        },
-      },
-      orderBy: { updatedAt: 'desc' },
-    });
-
-    return subscriptions.map((s) => ({
-      id: s.id,
-      clinicId: s.clinicId,
-      tier: s.plan,
-      status: s.status,
-      billingCycle: s.billingCycle,
-      currentPeriodStart: s.currentPeriodStart,
-      currentPeriodEnd: s.currentPeriodEnd,
-      amount: s.basePriceCents / 100,
-      currency: s.currency,
-      clinic: s.clinic,
-    }));
+  getPayments(
+    filters: Parameters<InternalSubscriptionQueryService['getPayments']>[0],
+  ) {
+    return this.subscriptionQuery.getPayments(filters);
   }
 
-  async getExpiringSubscriptions(days?: number) {
-    const daysToCheck = days || 7;
-    const futureDate = this.addDays(new Date(), daysToCheck);
-
-    const subscriptions = await this.prisma.subscription.findMany({
-      where: {
-        status: {
-          in: [SubscriptionStatus.ACTIVE, SubscriptionStatus.TRIALING],
-        },
-        currentPeriodEnd: { lte: futureDate, gte: new Date() },
-      },
-      include: {
-        clinic: {
-          select: {
-            id: true,
-            name: true,
-            email: true,
-            tier: true,
-            referralCreditsMonths: true,
-          },
-        },
-      },
-      orderBy: { currentPeriodEnd: 'asc' },
-    });
-
-    return subscriptions.map((s) => ({
-      id: s.id,
-      clinicId: s.clinicId,
-      tier: s.plan,
-      status: s.status,
-      billingCycle: s.billingCycle,
-      currentPeriodStart: s.currentPeriodStart,
-      currentPeriodEnd: s.currentPeriodEnd,
-      amount: s.basePriceCents / 100,
-      currency: s.currency,
-      clinic: s.clinic,
-    }));
+  sendReminder(subscriptionId: string) {
+    return this.subscriptionAdmin.sendReminder(subscriptionId);
   }
 
-  async getPayments(filters: {
-    clinicId?: string;
-    startDate?: string;
-    endDate?: string;
-  }) {
-    const where: Prisma.SubscriptionPaymentWhereInput = {};
-    if (filters.clinicId) where.clinicId = filters.clinicId;
-    if (filters.startDate || filters.endDate) {
-      where.createdAt = {};
-      if (filters.startDate) where.createdAt.gte = new Date(filters.startDate);
-      if (filters.endDate) where.createdAt.lte = new Date(filters.endDate);
-    }
-
-    const payments = await this.prisma.subscriptionPayment.findMany({
-      where,
-      include: {
-        subscription: {
-          include: {
-            clinic: { select: { id: true, name: true } },
-          },
-        },
-        clinic: { select: { id: true, name: true } },
-      },
-      orderBy: { createdAt: 'desc' },
-      take: 100,
-    });
-
-    return payments.map((p) => this.mapSubscriptionPaymentRow(p));
+  extendGracePeriod(subscriptionId: string, days: number) {
+    return this.subscriptionAdmin.extendGracePeriod(subscriptionId, days);
   }
 
-  async sendReminder(subscriptionId: string) {
-    const subscription = await this.prisma.subscription.findUnique({
-      where: { id: subscriptionId },
-      include: {
-        clinic: { select: { id: true, name: true, email: true } },
-      },
-    });
-
-    if (!subscription) {
-      throw new NotFoundException('Subscription not found');
-    }
-
-    await this.prisma.subscriptionReminder.create({
-      data: {
-        clinicId: subscription.clinicId,
-        subscriptionId,
-        type: 'expiry_7d',
-        channel: 'email',
-        status: 'sent',
-        sentAt: new Date(),
-      },
-    });
-
-    return { success: true, message: 'Reminder sent successfully' };
-  }
-
-  async extendGracePeriod(subscriptionId: string, days: number) {
-    const subscription = await this.prisma.subscription.findUnique({
-      where: { id: subscriptionId },
-    });
-
-    if (!subscription) {
-      throw new NotFoundException('Subscription not found');
-    }
-
-    if (subscription.status !== SubscriptionStatus.GRACE) {
-      throw new BadRequestException('Subscription is not in grace period');
-    }
-
-    const newEndDate = this.addDays(
-      new Date(subscription.currentPeriodEnd),
-      days,
-    );
-
-    await this.prisma.subscription.update({
-      where: { id: subscriptionId },
-      data: { currentPeriodEnd: newEndDate },
-    });
-
-    return { success: true, message: `Grace period extended by ${days} days` };
-  }
-
-  async processPaymentAndUpdateTier(
+  processPaymentAndUpdateTier(
     clinicId: string,
-    data: {
-      paymentId: string;
-      amount: number;
-      currency: string;
-      newTier: ClinicTier;
-      paymentMethod: string;
-      notes?: string;
-    },
+    data: Parameters<
+      InternalSubscriptionAdminService['processPaymentAndUpdateTier']
+    >[1],
   ) {
-    const clinic = await this.prisma.clinic.findUnique({
-      where: { id: clinicId },
-    });
-
-    if (!clinic) throw new BadRequestException('Clinic not found');
-
-    const updatedClinic = await this.prisma.clinic.update({
-      where: { id: clinicId },
-      data: {
-        tier: data.newTier,
-        subscriptionStatus: SubscriptionStatus.ACTIVE,
-      },
-    });
-
-    return {
-      success: true,
-      payment: {
-        paymentId: data.paymentId,
-        status: 'completed',
-        amount: data.amount,
-        currency: data.currency || clinic.currency,
-        paymentMethod: data.paymentMethod,
-        timestamp: new Date(),
-      },
-      clinic: updatedClinic,
-    };
+    return this.subscriptionAdmin.processPaymentAndUpdateTier(clinicId, data);
   }
 
-  async recordAdditionalCharge(
+  recordAdditionalCharge(
     clinicId: string,
-    data: {
-      amount: number;
-      currency?: string;
-      category: InternalAdditionalChargeCategory;
-      paymentMethod: string;
-      razorpayPaymentId?: string;
-      notes?: string;
-    },
+    data: Parameters<
+      InternalAdditionalChargeService['recordAdditionalCharge']
+    >[1],
   ) {
-    const clinic = await this.prisma.clinic.findUnique({
-      where: { id: clinicId },
-      select: { id: true, currency: true },
-    });
-    if (!clinic) {
-      throw new BadRequestException('Clinic not found');
-    }
-
-    const amountCents = Math.round(data.amount * 100);
-    if (!Number.isFinite(amountCents) || amountCents < 1) {
-      throw new BadRequestException('Invalid amount');
-    }
-
-    const subscription = await this.prisma.subscription.findFirst({
-      where: { clinicId },
-      orderBy: { createdAt: 'desc' },
-      select: { id: true },
-    });
-
-    const orderId = `int_addl_${randomUUID().replace(/-/g, '')}`;
-    const categoryLabel =
-      INTERNAL_ADDITIONAL_CHARGE_CATEGORY_LABELS[data.category];
-    const methodLabel =
-      INTERNAL_PAYMENT_METHOD_LABELS[data.paymentMethod] ?? data.paymentMethod;
-    const descriptionHead = `${INTERNAL_ADDITIONAL_CHARGE_PREFIX}${data.category}] ${categoryLabel} (${methodLabel})`;
-    const description = [descriptionHead, data.notes]
-      .filter((part) => typeof part === 'string' && part.trim().length > 0)
-      .join(' · ')
-      .slice(0, 500);
-
-    const currency = (data.currency ?? clinic.currency ?? 'INR').toUpperCase();
-
-    await this.subscriptionRepository.savePayment({
-      clinicId,
-      subscriptionId: subscription?.id,
-      amountCents,
-      currency,
-      status: 'paid',
-      razorpayOrderId: orderId,
-      description,
-      razorpayPaymentId: data.razorpayPaymentId,
-      paidAt: new Date(),
-    });
-
-    return {
-      success: true,
-      internalOrderId: orderId,
-      amount: data.amount,
-      currency,
-    };
+    return this.additionalCharge.recordAdditionalCharge(clinicId, data);
   }
 
-  async getClinicTierInfo(clinicId: string) {
-    const clinic = await this.prisma.clinic.findUnique({
-      where: { id: clinicId },
-      select: {
-        id: true,
-        name: true,
-        tier: true,
-        currency: true,
-        subscriptionStatus: true,
-        intelligenceAddon: true,
-      },
-    });
-
-    if (!clinic) throw new BadRequestException('Clinic not found');
-
-    return {
-      clinic,
-      tierInfo: this.getTierDetails(clinic.tier),
-    };
+  getClinicTierInfo(clinicId: string) {
+    return this.subscriptionAdmin.getClinicTierInfo(clinicId);
   }
 
-  async upgradeTier(clinicId: string, newTier: ClinicTier) {
-    const clinic = await this.prisma.clinic.findUnique({
-      where: { id: clinicId },
-    });
-    if (!clinic) throw new BadRequestException('Clinic not found');
-
-    const updatedClinic = await this.prisma.clinic.update({
-      where: { id: clinicId },
-      data: { tier: newTier },
-    });
-
-    return {
-      success: true,
-      clinic: updatedClinic,
-      message: `Clinic upgraded to ${newTier}`,
-    };
+  upgradeTier(clinicId: string, newTier: ClinicTier) {
+    return this.subscriptionAdmin.upgradeTier(clinicId, newTier);
   }
 
-  async downgradeTier(clinicId: string, newTier: ClinicTier) {
-    const clinic = await this.prisma.clinic.findUnique({
-      where: { id: clinicId },
-    });
-    if (!clinic) throw new BadRequestException('Clinic not found');
-
-    const updatedClinic = await this.prisma.clinic.update({
-      where: { id: clinicId },
-      data: { tier: newTier },
-    });
-
-    return {
-      success: true,
-      clinic: updatedClinic,
-      message: `Clinic downgraded to ${newTier}`,
-    };
+  downgradeTier(clinicId: string, newTier: ClinicTier) {
+    return this.subscriptionAdmin.downgradeTier(clinicId, newTier);
   }
 
   getTierPricingInfo() {
-    const tiers = ['CAPTURE', 'CORE', 'PLUS', 'PRO', 'CLINIC', 'ENTERPRISE'];
-    return tiers.map((tier) => ({
-      tier,
-      ...this.getTierDetails(tier),
-    }));
+    return this.subscriptionAdmin.getTierPricingInfo();
   }
 
-  async getPricingTiers() {
-    return this.prisma.tierPricing.findMany({
-      orderBy: { displayOrder: 'asc' },
-    });
+  getPricingTiers() {
+    return this.pricingAdmin.getPricingTiers();
   }
 
-  async updatePricingTier(tierId: string, data: Record<string, unknown>) {
-    const allowed = [
-      'monthlyBasePriceCents',
-      'includedPatients',
-      'includedAppointments',
-      'includedStorageGB',
-      'includedUsers',
-      'overagePatientCents',
-      'overageAppointmentCents',
-      'overageStorageCents',
-      'overageUserCents',
-      'overagePrescriptionCents',
-      'overageInvoiceCents',
-      'overageOcrPageCents',
-      'overageApiCallCents',
-      'name',
-      'description',
-      'tagline',
-      'isActive',
-    ];
-    const update: Record<string, unknown> = {};
-    for (const key of allowed) {
-      if (key in data) update[key] = data[key];
-    }
-    return this.prisma.tierPricing.update({
-      where: { id: tierId },
-      data: update,
-    });
+  updatePricingTier(tierId: string, data: Record<string, unknown>) {
+    return this.pricingAdmin.updatePricingTier(tierId, data);
   }
 
-  private parseOfferValue(
-    value: Prisma.JsonValue | null,
-  ): ClinicPricingOffer | null {
-    if (!value || typeof value !== 'object' || Array.isArray(value)) {
-      return null;
-    }
-
-    const raw = value as Record<string, unknown>;
-    const percentOff =
-      typeof raw.percentOff === 'number' && Number.isFinite(raw.percentOff)
-        ? raw.percentOff
-        : 0;
-
-    if (percentOff <= 0) {
-      return null;
-    }
-
-    return {
-      title: typeof raw.title === 'string' ? raw.title : '',
-      description: typeof raw.description === 'string' ? raw.description : '',
-      percentOff,
-      validUntil:
-        typeof raw.validUntil === 'string' ? raw.validUntil : undefined,
-      durationMonths:
-        typeof raw.durationMonths === 'number' ? raw.durationMonths : undefined,
-      notes: typeof raw.notes === 'string' ? raw.notes : undefined,
-    };
+  getPricingOffers() {
+    return this.pricingAdmin.getPricingOffers();
   }
 
-  async getPricingOffers() {
-    const offers = await this.prisma.featureFlag.findMany({
-      where: { key: PRICING_OFFER_FLAG, clinicId: { not: null } },
-      include: {
-        clinic: { select: { id: true, name: true, email: true, tier: true } },
-      },
-      orderBy: { updatedAt: 'desc' },
-    });
-
-    return offers
-      .map((offer) => {
-        const parsed = this.parseOfferValue(offer.value as Prisma.JsonValue);
-        if (!parsed) {
-          return null;
-        }
-
-        return {
-          id: offer.id,
-          clinicId: offer.clinicId!,
-          clinic: offer.clinic,
-          ...parsed,
-          updatedAt: offer.updatedAt,
-        };
-      })
-      .filter((offer): offer is NonNullable<typeof offer> => offer !== null);
-  }
-
-  async upsertPricingOffer(
+  upsertPricingOffer(
     clinicId: string,
-    data: {
-      title: string;
-      description?: string;
-      percentOff: number;
-      validUntil?: string;
-      durationMonths?: number;
-      notes?: string;
-    },
+    data: Parameters<InternalPricingAdminService['upsertPricingOffer']>[1],
   ) {
-    const payload: ClinicPricingOffer = {
-      title: data.title,
-      description: data.description || '',
-      percentOff: data.percentOff,
-      validUntil: data.validUntil,
-      durationMonths: data.durationMonths,
-      notes: data.notes,
-    };
-
-    const existing = await this.prisma.featureFlag.findFirst({
-      where: { key: PRICING_OFFER_FLAG, clinicId },
-    });
-
-    const persist = existing
-      ? this.prisma.featureFlag.update({
-          where: { id: existing.id },
-          data: {
-            value: this.toInputJsonValue(payload),
-            description: 'Clinic pricing offer',
-          },
-        })
-      : this.prisma.featureFlag.create({
-          data: {
-            key: PRICING_OFFER_FLAG,
-            clinicId,
-            value: this.toInputJsonValue(payload),
-            description: 'Clinic pricing offer',
-          },
-        });
-
-    const record = await persist;
-    return {
-      id: record.id,
-      clinicId: record.clinicId!,
-      title: payload.title,
-      description: payload.description,
-      percentOff: payload.percentOff,
-      durationMonths: payload.durationMonths,
-      validUntil: payload.validUntil,
-      notes: payload.notes,
-      updatedAt: record.updatedAt,
-    };
+    return this.pricingAdmin.upsertPricingOffer(clinicId, data);
   }
 
-  async deletePricingOffer(clinicId: string) {
-    await this.prisma.featureFlag.deleteMany({
-      where: { key: PRICING_OFFER_FLAG, clinicId },
-    });
-
-    return { success: true };
-  }
-
-  private getTierDetails(tier: string): BillingTierInfo | null {
-    const tierDetails: Record<string, BillingTierInfo> = {
-      CAPTURE: { name: 'Capture', price: 0, maxDoctors: 1, aiEnabled: false },
-      CORE: { name: 'Core', price: 4999, maxDoctors: 5, aiEnabled: false },
-      PLUS: { name: 'Plus', price: 9999, maxDoctors: 20, aiEnabled: false },
-      PRO: { name: 'Pro', price: 24999, maxDoctors: -1, aiEnabled: true },
-      CLINIC: { name: 'Clinic', price: 49999, maxDoctors: -1, aiEnabled: true },
-      ENTERPRISE: {
-        name: 'Enterprise',
-        price: null,
-        maxDoctors: -1,
-        aiEnabled: true,
-      },
-    };
-    return tierDetails[tier] || null;
+  deletePricingOffer(clinicId: string) {
+    return this.pricingAdmin.deletePricingOffer(clinicId);
   }
 }

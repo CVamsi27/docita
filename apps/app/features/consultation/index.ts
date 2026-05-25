@@ -1,6 +1,10 @@
 export * from "./api/consultation.api";
 
 export * from "./rules/consultationRules";
+export * from "./lib/opd-queue-display";
+export * from "./components/specialty/DentalChartUI";
+export * from "./components/specialty/GrowthChartUI";
+export * from "./components/specialty/VisionExamUI";
 
 export * from "./components";
 
@@ -14,5 +18,5 @@ export {
 export {
   CONSULTATION_LEAVE_GUARD_SKIP_ATTR,
   isSameConsultationAppointmentPathname,
-} from "./workspace/use-consultation-leave-navigation";
+} from "./workspace/consultation-leave-navigation-helpers";
 export { useConsultationDraft } from "./state/useConsultationDraft";

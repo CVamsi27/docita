@@ -6,7 +6,6 @@ export * from "./management/MemberManagementSettings";
 export * from "./management/DoctorAvailabilitySettings";
 
 export * from "./clinic/ClinicGeneralSettings";
-export * from "./clinic/WhatsAppAutomationSettings";
 export * from "./clinic/QueueSettings";
 export * from "./clinical/PrescriptionDefaultsSettings";
 

@@ -1,19 +1,24 @@
 "use client";
 
 import { useState } from "react";
-import { Button } from "@workspace/ui/components/button";
+import { Button } from "@workspace/ui/components/form/button";
 import {
   Card,
   CardContent,
   CardHeader,
   CardTitle,
-} from "@workspace/ui/components/card";
-import { Badge } from "@workspace/ui/components/badge";
+} from "@workspace/ui/components/indicators/card";
+import { Badge } from "@workspace/ui/components/indicators/badge";
 import { Check, Clock, X } from "lucide-react";
 import { toast } from "sonner";
 import { formatDate } from "@workspace/utils";
-import { usePortalDoseHistory, useRecordPortalDose } from "@/hooks/api/use-patient-portal";
-import { showUserFacingErrorToast } from "@/lib/user-facing-errors";
+import { usePortalDoseHistory, useRecordPortalDose } from "@workspace/data-access";
+import { showUserFacingErrorToast } from "@/lib/errors/user-facing-errors";
+import {
+  mapPortalDoseRow,
+  type PortalDoseStatus,
+} from "@/features/patient-portal/lib/map-portal-records";
+import { isRecord } from "@workspace/utils";
 
 interface DoseTrackerProps {
   medicationId: string;
@@ -45,9 +50,9 @@ export function DoseTracker({
       });
       toast.success(
         status === "TAKEN"
-          ? "Dose marked as taken"
+          ? "Dose recorded: taken"
           : status === "MISSED"
-            ? "Dose marked as missed"
+            ? "Dose recorded: missed"
             : "Dose skipped",
       );
       setNotes("");
@@ -58,7 +63,10 @@ export function DoseTracker({
     }
   };
 
-  const statusConfig = {
+  const statusConfig: Record<
+    PortalDoseStatus,
+    { icon: typeof Check; color: string; bg: string }
+  > = {
     TAKEN: { icon: Check, color: "text-success", bg: "bg-success/10" },
     MISSED: { icon: X, color: "text-destructive", bg: "bg-destructive/10" },
     SKIPPED: { icon: Clock, color: "text-warning", bg: "bg-warning/10" },
@@ -68,7 +76,7 @@ export function DoseTracker({
       color: "text-success",
       bg: "bg-success/10",
     },
-  } as const;
+  };
 
   return (
     <Card>
@@ -115,14 +123,13 @@ export function DoseTracker({
           <div>
             <p className="text-sm font-medium mb-2">Recent doses</p>
             <div className="space-y-1.5">
-              {history.doses.slice(0, 5).map((dose) => {
-                const doseRecord = dose as {
-                  id: string;
-                  status: keyof typeof statusConfig;
-                  scheduledAt: string;
-                  medication?: { name: string };
-                };
-                const config = statusConfig[doseRecord.status] ?? statusConfig.PENDING;
+              {history.doses
+                .slice(0, 5)
+                .filter(isRecord)
+                .map((dose) => {
+                const doseRecord = mapPortalDoseRow(dose);
+                const config =
+                  statusConfig[doseRecord.status] ?? statusConfig.PENDING;
                 const Icon = config.icon;
                 return (
                   <div

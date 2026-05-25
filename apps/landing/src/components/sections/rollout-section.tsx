@@ -3,7 +3,7 @@
 import { motion, useReducedMotion } from "motion/react";
 import { ArrowRight } from "lucide-react";
 
-import { Button } from "@workspace/ui/components/button";
+import { Button } from "@workspace/ui/components/form/button";
 
 import {
   landingFadeUpVariants,
@@ -34,7 +34,7 @@ const MILESTONES: Milestone[] = [
     marker: "Day 2 · First workflow live",
     title: "Queue + records + prescriptions",
     detail:
-      "We import the patient list, set up the doctor templates, and the clinic runs its first OPD day on Docita. Old register stays as a safety net for the first week.",
+      "We import the patient list, set up the doctor templates, and the clinic runs its first OPD day on Docita. Old register remains a safety net for the first week.",
     artifacts: [
       "Patient list imported (CSV review)",
       "Prescription template configured",

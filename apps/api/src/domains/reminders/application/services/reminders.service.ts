@@ -3,6 +3,9 @@ import { ReminderSettingsService } from './reminder-settings.service';
 import { ReminderHistoryService } from './reminder-history.service';
 import { ReminderSettingsDto } from '@/domains/reminders/dto/reminder-settings.dto';
 
+/**
+ * Facade — delegates reminder settings and history to ReminderSettingsService / ReminderHistoryService.
+ */
 @Injectable()
 export class RemindersService {
   constructor(

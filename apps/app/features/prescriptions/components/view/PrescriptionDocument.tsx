@@ -1,6 +1,7 @@
-import { Card, CardContent, CardHeader } from "@workspace/ui/components/card";
+import { Card, CardContent, CardHeader } from "@workspace/ui/components/indicators/card";
 import { formatDate } from "@workspace/utils";
 import type { Medication, Patient } from "@workspace/types";
+import { formatGenderLabel } from "@/lib/formatters";
 
 interface DoctorInfo {
   name?: string;
@@ -35,7 +36,7 @@ export function PrescriptionDocument({
   prescription,
   clinicInfo,
 }: PrescriptionDocumentProps) {
-  const doctorInfo = prescription.doctor as DoctorInfo;
+  const doctorInfo = prescription.doctor;
   const doctorName = doctorInfo?.name ?? "";
 
   const patientName = prescription.patient
@@ -117,9 +118,7 @@ export function PrescriptionDocument({
               {patientAge && <span>Age: {patientAge} yrs</span>}
               {prescription.patient?.gender && (
                 <span>
-                  Gender:{" "}
-                  {prescription.patient.gender.charAt(0) +
-                    prescription.patient.gender.slice(1).toLowerCase()}
+                  Gender: {formatGenderLabel(prescription.patient.gender)}
                 </span>
               )}
             </div>

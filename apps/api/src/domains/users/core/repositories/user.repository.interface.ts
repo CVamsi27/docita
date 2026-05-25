@@ -34,6 +34,7 @@ export interface IUserRepository {
     },
   ): Promise<UserProfile>;
   updateOnboardingStep(userId: string, step: string): Promise<void>;
+  findPasswordExpiresAt(userId: string): Promise<Date | null>;
 }
 
 export const USER_REPOSITORY_TOKEN = Symbol('IUserRepository');

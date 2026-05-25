@@ -25,6 +25,16 @@ export interface AppointmentRequestListFilters {
   skip: number;
 }
 
+export interface AppointmentRequestMatchingAppointmentInput {
+  clinicId: string;
+  patientId: string;
+  doctorId: string;
+  startTime: Date;
+  endTime: Date;
+  reason: string;
+  requestCreatedAt: Date;
+}
+
 export interface IAppointmentRequestRepository {
   create(
     data: Prisma.AppointmentRequestUncheckedCreateInput,
@@ -38,8 +48,19 @@ export interface IAppointmentRequestRepository {
   ): Promise<AppointmentRequestWithRelations | null>;
   update(
     id: string,
+    clinicId: string,
     data: Prisma.AppointmentRequestUpdateInput,
   ): Promise<AppointmentRequestWithRelations>;
+  markReviewed(input: {
+    id: string;
+    clinicId: string;
+    status: AppointmentRequestStatus;
+    reviewedById: string;
+    responseMessage: string;
+  }): Promise<AppointmentRequestWithRelations>;
+  findMatchingAppointment(
+    input: AppointmentRequestMatchingAppointmentInput,
+  ): Promise<{ id: string } | null>;
   doctorBelongsToClinic(doctorId: string, clinicId: string): Promise<boolean>;
 }
 

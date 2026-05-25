@@ -1,9 +1,11 @@
 import { Test, TestingModule } from '@nestjs/testing';
-import { EventEmitter2 } from '@nestjs/event-emitter';
 import { ImportsService } from './imports.service';
+import { ImportPreviewService } from './import-preview.service';
+import { PatientTabularImportService } from './patient-tabular-import.service';
+import { ImportOcrWorkflowService } from './import-ocr-workflow.service';
+import { OcrImportCommitService } from './ocr-import-commit.service';
 import { PrismaService } from '@/prisma/prisma.service';
-import { AIService } from '@/shared/modules/ai/ai.service';
-import { OCRService } from './ocr.service';
+import { CLOCK_PORT, type IClock } from '@/shared/common/ports/clock.port';
 import { beforeEach, describe, expect, it, jest } from '@jest/globals';
 import type { OcrImportCommitRequest } from '@workspace/types';
 
@@ -42,6 +44,11 @@ describe('ImportsService.commitOcrImport', () => {
           .fn<(...args: unknown[]) => Promise<unknown>>()
           .mockResolvedValue({}),
       },
+      consent: {
+        create: jest
+          .fn<(...args: unknown[]) => Promise<unknown>>()
+          .mockResolvedValue({ id: 'consent-1' }),
+      },
     };
 
     const prismaServiceMock: unknown = {
@@ -66,20 +73,27 @@ describe('ImportsService.commitOcrImport', () => {
       providers: [
         ImportsService,
         {
+          provide: ImportPreviewService,
+          useValue: {},
+        },
+        {
+          provide: PatientTabularImportService,
+          useValue: {},
+        },
+        {
+          provide: ImportOcrWorkflowService,
+          useValue: {},
+        },
+        OcrImportCommitService,
+        {
           provide: PrismaService,
           useValue: prismaServiceMock as PrismaService,
         },
         {
-          provide: OCRService,
-          useValue: {},
-        },
-        {
-          provide: EventEmitter2,
-          useValue: { emit: jest.fn() },
-        },
-        {
-          provide: AIService,
-          useValue: {},
+          provide: CLOCK_PORT,
+          useValue: {
+            now: () => new Date('2026-01-15T10:00:00Z'),
+          } satisfies IClock,
         },
       ],
     }).compile();
@@ -88,6 +102,7 @@ describe('ImportsService.commitOcrImport', () => {
   });
 
   it('creates patient and appointment', async () => {
+    const noticeVersion = 'dpdp-notice-test-v1';
     const dto: OcrImportCommitRequest = {
       clinicId: 'clinic-1',
       doctorId: 'doc-1',
@@ -96,9 +111,19 @@ describe('ImportsService.commitOcrImport', () => {
       phoneNumber: '5551234567',
       gender: 'FEMALE',
       dateOfBirth: new Date('1990-01-02').toISOString(),
+      dpdpConsent: {
+        accepted: true,
+        noticeVersion,
+        relation: 'SELF',
+      },
     };
 
-    const result = await service.commitOcrImport(dto);
+    const result = await service.commitOcrImport(dto, {
+      ipAddress: '127.0.0.1',
+      userAgent: 'jest',
+      createdBy: 'user-1',
+      dpdpNoticeVersion: noticeVersion,
+    });
     expect(result.patientId).toBe('patient-1');
     expect(result.appointmentId).toBe('appt-1');
   });

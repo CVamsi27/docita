@@ -9,6 +9,7 @@ import { Reflector } from '@nestjs/core';
 import { IS_PUBLIC_KEY } from '../auth/public.decorator';
 import { AuthenticatedRequest } from '@workspace/types';
 import { getAuthenticatedUserId } from '@/shared/modules/auth/auth/request-user.util';
+import { AppConfigService } from '@/shared/modules/config/app-configuration.service';
 
 export const SKIP_EMAIL_VERIFICATION_KEY = 'skipEmailVerification';
 
@@ -17,7 +18,10 @@ export const SkipEmailVerification = () =>
 
 @Injectable()
 export class EmailVerifiedGuard implements CanActivate {
-  constructor(private readonly reflector: Reflector) {}
+  constructor(
+    private readonly reflector: Reflector,
+    private readonly config: AppConfigService,
+  ) {}
 
   canActivate(context: ExecutionContext): boolean {
     const isPublic = this.reflector.getAllAndOverride<boolean>(IS_PUBLIC_KEY, [
@@ -35,9 +39,11 @@ export class EmailVerifiedGuard implements CanActivate {
     const request = context.switchToHttp().getRequest<AuthenticatedRequest>();
     const e2eBypassHeader = request.headers?.['x-docita-e2e'];
     const e2eBypassValue = Array.isArray(e2eBypassHeader)
-      ? e2eBypassHeader[0]
-      : e2eBypassHeader;
-    if (e2eBypassValue === 'true' && process.env.NODE_ENV !== 'production') {
+      ? String(e2eBypassHeader[0])
+      : typeof e2eBypassHeader === 'string'
+        ? e2eBypassHeader
+        : undefined;
+    if (this.config.shouldBypassGuardForE2e(e2eBypassValue)) {
       return true;
     }
     const userId = getAuthenticatedUserId(request.user);

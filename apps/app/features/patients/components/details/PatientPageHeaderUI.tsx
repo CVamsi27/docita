@@ -2,10 +2,11 @@
 
 import Link from "next/link";
 import { ChevronLeft, Sparkles } from "lucide-react";
-import { Badge } from "@workspace/ui/components/badge";
-import { Button } from "@workspace/ui/components/button";
+import { Badge } from "@workspace/ui/components/indicators/badge";
+import { Button } from "@workspace/ui/components/form/button";
 import type { Patient } from "@workspace/types";
-import { useAskAi } from "@/features/_shared/components/ask-ai/ask-ai-context";
+import { useAskAi } from "@/components/ask-ai/ask-ai-context";
+import { formatGenderLabel } from "@/lib/formatters";
 
 interface PatientPageHeaderUIProps {
   patient: Patient;
@@ -38,7 +39,7 @@ export function PatientPageHeaderUI({ patient, onEdit }: PatientPageHeaderUIProp
         <div>
           <h1 className="ui-page-title">{patientName}</h1>
           <div className="flex items-center gap-2 mt-1">
-            <Badge variant="outline">{patient.gender}</Badge>
+            <Badge variant="outline">{formatGenderLabel(patient.gender)}</Badge>
             <span className="text-sm text-muted-foreground">
               ID: {patient.id?.slice(0, 8)}
             </span>

@@ -2,15 +2,15 @@
 
 import Link from "next/link";
 import { FileQuestion, Home } from "lucide-react";
-import { Button } from "@workspace/ui/components/button";
-import { BackButton } from "@/components/common/navigation/back-button";
-import { AppPageScaffold } from "@workspace/ui/components/app-page-scaffold";
-import { Card, CardContent } from "@workspace/ui/components/card";
+import { Button } from "@workspace/ui/components/form/button";
+import { BackButton } from "@/components/navigation/back-button";
+import { AppPageScaffold } from "@workspace/ui/components/layout/app-page-scaffold";
+import { Card, CardContent } from "@workspace/ui/components/indicators/card";
 
 export default function NotFound() {
   return (
     <AppPageScaffold className="max-w-md">
-      <Card className="ui-card-surface animate-in fade-in-0 slide-in-from-bottom-1 duration-300">
+      <Card className="ui-card-surface">
         <CardContent className="p-8 text-center">
           <div className="mx-auto mb-5 flex h-14 w-14 items-center justify-center rounded-full bg-muted">
             <FileQuestion className="h-7 w-7 text-muted-foreground" />

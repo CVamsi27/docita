@@ -13,9 +13,7 @@ import {
   getPrismaInstance,
 } from './setup';
 import { factories, setPrismaInstance } from './factories';
-import { RazorpaySubscriptionGateway } from '@/gateways/razorpay-subscription.gateway';
-import { mockRazorpayGateway } from './razorpay.provider';
-import { WhatsappService } from '@/shared/modules/messaging/whatsapp/whatsapp.service';
+import { WhatsappService } from '@/domains/whatsapp/application/services/whatsapp-clinic-facade.service';
 import { mockWhatsappService } from './whatsapp.provider';
 import {
   listPatientsResponseSchema,
@@ -38,8 +36,6 @@ describe('Patients (e2e)', () => {
     })
       .overrideProvider(PrismaService)
       .useValue(getPrismaInstance())
-      .overrideProvider(RazorpaySubscriptionGateway)
-      .useValue(mockRazorpayGateway)
       .overrideProvider(WhatsappService)
       .useValue(mockWhatsappService)
       .overrideProvider(APP_INTERCEPTOR)
@@ -109,6 +105,11 @@ describe('Patients (e2e)', () => {
           gender: 'FEMALE',
           dateOfBirth: '1990-05-15',
           email: 'jane@test.com',
+          dpdpConsent: {
+            accepted: true,
+            noticeVersion: 'dpdp-notice-v1-2026-05-11',
+            givenByName: 'Jane Doe',
+          },
         })
         .expect(201);
 

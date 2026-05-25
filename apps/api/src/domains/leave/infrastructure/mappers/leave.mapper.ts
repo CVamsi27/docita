@@ -3,7 +3,12 @@ import {
   LeavePlan as PrismaLeavePlan,
   User as PrismaUser,
 } from '@workspace/db';
-import { StaffLeave, LeavePlan } from '@workspace/types';
+import {
+  StaffLeave,
+  LeavePlan,
+  leaveStatusSchema,
+  leaveTypeSchema,
+} from '@workspace/types';
 
 export class LeaveMapper {
   static staffLeaveToDomain(
@@ -16,11 +21,11 @@ export class LeaveMapper {
       id: raw.id,
       staffId: raw.staffId,
       clinicId: raw.clinicId,
-      leaveType: raw.leaveType as StaffLeave['leaveType'],
+      leaveType: leaveTypeSchema.parse(raw.leaveType),
       startDate: raw.startDate.toISOString(),
       endDate: raw.endDate.toISOString(),
       reason: raw.reason ?? undefined,
-      status: raw.status as StaffLeave['status'],
+      status: leaveStatusSchema.parse(raw.status),
       approvedBy: raw.approvedBy ?? undefined,
       approvedAt: raw.approvedAt?.toISOString() ?? undefined,
       rejectionReason: raw.rejectionReason ?? undefined,
@@ -44,7 +49,7 @@ export class LeaveMapper {
     return {
       id: raw.id,
       clinicId: raw.clinicId,
-      leaveType: raw.leaveType as LeavePlan['leaveType'],
+      leaveType: leaveTypeSchema.parse(raw.leaveType),
       annualQuota: raw.annualQuota,
       carryForward: raw.carryForward,
       maxCarryForward: raw.maxCarryForward,

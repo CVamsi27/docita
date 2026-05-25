@@ -1,4 +1,5 @@
 import { Injectable, Logger } from '@nestjs/common';
+import type { IClock } from '@/shared/common/ports/clock.port';
 import {
   IMessageChannel,
   MessageContent,
@@ -16,7 +17,10 @@ interface SMTPConfig {
 export class EmailChannel implements IMessageChannel {
   private readonly logger = new Logger(EmailChannel.name);
 
-  constructor(private smtpConfig: SMTPConfig) {}
+  constructor(
+    private smtpConfig: SMTPConfig,
+    private readonly clock: IClock,
+  ) {}
 
   getName(): string {
     return 'Email';
@@ -37,7 +41,7 @@ export class EmailChannel implements IMessageChannel {
       messageId: `em_${Date.now()}`,
       status: 'sent',
       channel: 'Email',
-      sentAt: new Date(),
+      sentAt: this.clock.now(),
     });
   }
 

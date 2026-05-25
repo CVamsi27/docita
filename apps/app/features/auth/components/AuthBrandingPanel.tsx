@@ -4,11 +4,10 @@ import {
   FileCheck2,
   KeyRound,
   LayoutDashboard,
-  ShieldCheck,
-  Stethoscope,
   UserCheck,
 } from "lucide-react";
-import { DocitaIcon } from "@workspace/ui/components/docita-logo";
+import { AUTH_ASSURANCE_ITEMS } from "@/features/auth/lib/auth-assurance-items";
+import { DocitaIcon } from "@workspace/ui/components/indicators/docita-logo";
 import { cn } from "@workspace/ui/lib/utils";
 import type { AuthBrandingStep } from "@/features/auth/types/auth";
 import { LoginDailyThought } from "@/features/auth/components/LoginDailyThought";
@@ -61,21 +60,6 @@ const setupSteps: readonly SetupStep[] = [
     title: "Start the day",
     description: "Open appointments, patients, prescriptions, and billing",
     authSteps: [],
-  },
-];
-
-const assuranceItems = [
-  {
-    icon: ShieldCheck,
-    label: "Encrypted sessions",
-  },
-  {
-    icon: FileCheck2,
-    label: "Audit-ready activity",
-  },
-  {
-    icon: Stethoscope,
-    label: "Facility-aware access",
   },
 ];
 
@@ -217,7 +201,7 @@ export function AuthBrandingPanel({ currentStep }: AuthBrandingPanelProps) {
                       key={step.title}
                       aria-current={isActive ? "step" : undefined}
                       className={cn(
-                        "flex gap-3 rounded-lg border px-3 py-2.5 transition-all duration-300",
+                        "flex gap-3 rounded-lg border px-3 py-2.5 transition-colors duration-300",
                         isActive
                           ? "border-primary/40 bg-primary/5 shadow-sm"
                           : isComplete
@@ -281,7 +265,7 @@ export function AuthBrandingPanel({ currentStep }: AuthBrandingPanelProps) {
       </div>
 
       <div className="relative z-10 flex flex-wrap gap-4 p-8 text-xs text-muted-foreground xl:p-10">
-        {assuranceItems.map((item) => {
+        {AUTH_ASSURANCE_ITEMS.map((item) => {
           const Icon = item.icon;
 
           return (

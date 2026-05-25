@@ -1,4 +1,5 @@
-import { Injectable, Logger } from '@nestjs/common';
+import { Inject, Injectable, Logger } from '@nestjs/common';
+import { CLOCK_PORT, type IClock } from '@/shared/common/ports/clock.port';
 import { EmailService } from '@/shared/modules/messaging/email/email.service';
 import { AppConfigService } from '@/shared/modules/config/app-configuration.service';
 import { PrismaService } from '@/prisma/prisma.service';
@@ -30,13 +31,14 @@ export class AdminAlertsService {
     private readonly emailService: EmailService,
     private readonly config: AppConfigService,
     private readonly prisma: PrismaService,
+    @Inject(CLOCK_PORT) private readonly clock: IClock,
   ) {}
 
   private async shouldSend(
     alertKey: string,
     dedupeWindowMs: number,
   ): Promise<boolean> {
-    const now = new Date();
+    const now = this.clock.now();
     const environment = this.config.getEnvironment();
 
     const existing = await this.prisma.platformAlert.findUnique({
@@ -141,7 +143,7 @@ export class AdminAlertsService {
       return false;
     }
 
-    const now = new Date();
+    const now = this.clock.now();
     const environment = this.config.getEnvironment();
 
     const existing = await this.prisma.platformAlert.findUnique({

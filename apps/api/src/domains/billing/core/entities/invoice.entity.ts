@@ -5,6 +5,7 @@ import {
 } from '@/domains/billing/core/value-objects/invoice-status.value-object';
 import { BillingPeriod } from '@/domains/billing/core/value-objects/billing-period.value-object';
 import { InvoiceItem } from './invoice-item.entity';
+import { InvariantViolationError } from '@/shared/common/errors/domain.errors';
 
 export interface InvoiceProps {
   id: string;
@@ -70,13 +71,17 @@ export class Invoice {
     this.validate();
   }
 
+  private touchUpdatedAt(now: Date): void {
+    this.updatedAt = now;
+  }
+
   private validate(): void {
     if (this.items.length === 0) {
-      throw new Error('Invoice must have at least one item');
+      throw new InvariantViolationError('Invoice must have at least one item');
     }
 
     if (!this.patientId) {
-      throw new Error('Invoice must have a patient ID');
+      throw new InvariantViolationError('Invoice must have a patient ID');
     }
   }
 
@@ -112,66 +117,92 @@ export class Invoice {
 
   addItem(item: InvoiceItem): void {
     if (!this.status.isDraft()) {
-      throw new Error('Can only add items to draft invoices');
+      throw new InvariantViolationError('Can only add items to draft invoices');
     }
     this.items.push(item);
   }
 
   removeItem(itemId: string): void {
     if (!this.status.isDraft()) {
-      throw new Error('Can only remove items from draft invoices');
+      throw new InvariantViolationError(
+        'Can only remove items from draft invoices',
+      );
     }
     this.items = this.items.filter((item) => item.id !== itemId);
     if (this.items.length === 0) {
-      throw new Error('Invoice must have at least one item');
+      throw new InvariantViolationError('Invoice must have at least one item');
     }
   }
 
-  issue(): void {
+  issue(now: Date): void {
     this.status = this.status.transitionTo(InvoiceStatusEnum.ISSUED);
-    this.updatedAt = new Date();
+    this.touchUpdatedAt(now);
   }
 
-  send(): void {
+  send(now: Date): void {
     this.status = this.status.transitionTo(InvoiceStatusEnum.SENT);
-    this.updatedAt = new Date();
+    this.touchUpdatedAt(now);
   }
 
-  markAsViewed(): void {
+  markAsViewed(now: Date): void {
     this.status = this.status.transitionTo(InvoiceStatusEnum.VIEWED);
-    this.updatedAt = new Date();
+    this.touchUpdatedAt(now);
   }
 
-  markAsPaid(): void {
+  markAsPaid(now: Date): void {
     this.status = this.status.transitionTo(InvoiceStatusEnum.PAID);
-    this.updatedAt = new Date();
+    this.touchUpdatedAt(now);
   }
 
-  markAsPartiallyPaid(): void {
+  markAsPartiallyPaid(now: Date): void {
     this.status = this.status.transitionTo(InvoiceStatusEnum.PARTIALLY_PAID);
-    this.updatedAt = new Date();
+    this.touchUpdatedAt(now);
   }
 
-  markAsOverdue(): void {
+  markAsOverdue(now: Date): void {
     this.status = this.status.transitionTo(InvoiceStatusEnum.OVERDUE);
-    this.updatedAt = new Date();
+    this.touchUpdatedAt(now);
   }
 
-  cancel(reason?: string): void {
+  cancel(now: Date, reason?: string): void {
     this.status = this.status.transitionTo(InvoiceStatusEnum.CANCELLED);
     if (reason) {
       this.notes = `Cancelled: ${reason}`;
     }
-    this.updatedAt = new Date();
+    this.touchUpdatedAt(now);
   }
 
-  convertToCredit(): void {
+  convertToCredit(now: Date): void {
     this.status = this.status.transitionTo(InvoiceStatusEnum.CREDIT_MEMO);
-    this.updatedAt = new Date();
+    this.touchUpdatedAt(now);
   }
 
-  isOverdue(): boolean {
-    return new Date() > this.dueDate && !this.status.isPaid();
+  transitionTo(targetStatus: InvoiceStatusEnum, now: Date): void {
+    if (!this.status.canTransitionTo(targetStatus)) {
+      throw new InvariantViolationError(
+        `Cannot transition from ${this.status.value} to ${targetStatus}`,
+      );
+    }
+
+    const transitions: Record<InvoiceStatusEnum, () => void> = {
+      [InvoiceStatusEnum.DRAFT]: () => {
+        throw new InvariantViolationError('Use issue() from draft');
+      },
+      [InvoiceStatusEnum.ISSUED]: () => this.issue(now),
+      [InvoiceStatusEnum.SENT]: () => this.send(now),
+      [InvoiceStatusEnum.VIEWED]: () => this.markAsViewed(now),
+      [InvoiceStatusEnum.PAID]: () => this.markAsPaid(now),
+      [InvoiceStatusEnum.PARTIALLY_PAID]: () => this.markAsPartiallyPaid(now),
+      [InvoiceStatusEnum.OVERDUE]: () => this.markAsOverdue(now),
+      [InvoiceStatusEnum.CANCELLED]: () => this.cancel(now),
+      [InvoiceStatusEnum.CREDIT_MEMO]: () => this.convertToCredit(now),
+    };
+
+    transitions[targetStatus]();
+  }
+
+  isOverdue(now: Date): boolean {
+    return now > this.dueDate && !this.status.isPaid();
   }
 
   canBeEdited(): boolean {

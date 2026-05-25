@@ -4,9 +4,9 @@ import {
   useGenerateSignatureToken,
   useActiveSignatureTokens,
   useRevokeSignatureToken,
-} from "@/hooks/api/use-signature-upload";
+} from "@workspace/data-access";
 import { QrSignatureUpload } from "@/features/settings/components/shared/qr-signature-upload";
-import { logger } from "@/lib/logger";
+import { logger } from "@/lib/monitoring/logger";
 
 export function SignatureUploadQR() {
   const generateToken = useGenerateSignatureToken();

@@ -1,5 +1,6 @@
 import {
   Injectable,
+  Logger,
   NotFoundException,
   BadRequestException,
   Inject,
@@ -8,21 +9,28 @@ import { randomBytes } from 'crypto';
 import {
   StorageProvider,
   StorageFile,
-} from '@/domains/documents/infrastructure/storage.provider';
+} from '@/domains/documents/application/ports/storage-provider.port';
 import { StoredFileUrlResolverService } from '@/domains/documents/application/services/stored-file-url-resolver.service';
 import { SignaturePurpose } from '@workspace/db';
 import {
   ISignatureUploadRepository,
   SIGNATURE_UPLOAD_REPOSITORY_TOKEN,
 } from '@/domains/doctors/core/repositories/signature-upload.repository.interface';
+import { CLOCK_PORT, type IClock } from '@/shared/common/ports/clock.port';
 
+/**
+ * Facade — delegates signature file storage to ISignatureUploadRepository and StorageProvider.
+ */
 @Injectable()
 export class SignatureUploadService {
+  private readonly logger = new Logger(SignatureUploadService.name);
+
   constructor(
     @Inject(SIGNATURE_UPLOAD_REPOSITORY_TOKEN)
     private readonly repository: ISignatureUploadRepository,
     private readonly storageProvider: StorageProvider,
     private readonly storedFileUrlResolver: StoredFileUrlResolverService,
+    @Inject(CLOCK_PORT) private readonly clock: IClock,
   ) {}
 
   private async resolveDoctorSignatureUrl<
@@ -95,7 +103,7 @@ export class SignatureUploadService {
       }
 
       const token = randomBytes(32).toString('hex');
-      const expiresAt = new Date();
+      const expiresAt = this.clock.now();
       expiresAt.setMinutes(expiresAt.getMinutes() + 15);
 
       const uploadToken = await this.repository.createUploadToken({
@@ -125,7 +133,7 @@ export class SignatureUploadService {
     }
 
     const token = randomBytes(32).toString('hex');
-    const expiresAt = new Date();
+    const expiresAt = this.clock.now();
     expiresAt.setMinutes(expiresAt.getMinutes() + 15);
 
     const uploadToken = await this.repository.createUploadToken({
@@ -154,7 +162,7 @@ export class SignatureUploadService {
       throw new BadRequestException('Token has already been used');
     }
 
-    if (new Date() > uploadToken.expiresAt) {
+    if (this.clock.now() > uploadToken.expiresAt) {
       throw new BadRequestException('Token has expired');
     }
 
@@ -169,6 +177,14 @@ export class SignatureUploadService {
   async uploadSignature(token: string, file: StorageFile) {
     const validation = await this.validateToken(token);
 
+    // AuditLogged: signature upload
+    this.logger.log({
+      action: 'signature.upload',
+      clinicId: validation.clinic?.id,
+      userId: validation.doctor?.id,
+      purpose: validation.purpose,
+    });
+
     if (!file.mimetype.startsWith('image/')) {
       throw new BadRequestException('File must be an image');
     }
@@ -178,7 +194,7 @@ export class SignatureUploadService {
       throw new BadRequestException('File size must not exceed 5MB');
     }
 
-    const modifiedAt = new Date().toISOString();
+    const modifiedAt = this.clock.now().toISOString();
     const fileUrl = await this.storageProvider.upload(file, 'signatures', {
       metadata: {
         asset_type: 'signature',

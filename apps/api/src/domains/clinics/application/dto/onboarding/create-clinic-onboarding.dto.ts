@@ -1,10 +1,9 @@
 import { createZodDto } from 'nestjs-zod';
 import { z } from 'zod';
-import { ClinicTier } from '@workspace/db';
+import { BillingCycle, ClinicTier } from '@workspace/db';
 import {
   clinicTypeSchema as importedClinicTypeSchema,
   dayOfWeekSchema,
-  workspaceProfileSchema,
 } from '@workspace/types';
 export { ClinicTier };
 export const clinicTierSchema = z.nativeEnum(ClinicTier);
@@ -19,10 +18,7 @@ export enum OnboardingStep {
   COMPLETED = 'COMPLETED',
 }
 export const onboardingStepSchema = z.nativeEnum(OnboardingStep);
-export enum BillingCycle {
-  MONTHLY = 'MONTHLY',
-  YEARLY = 'YEARLY',
-}
+export { BillingCycle };
 export const billingCycleSchema = z.nativeEnum(BillingCycle);
 export type { ClinicType } from '@workspace/types';
 export const clinicTypeSchema = importedClinicTypeSchema;
@@ -63,11 +59,18 @@ export const clinicDetailsSchema = z.object({
     .regex(/^[0-9]{2}[A-Z0-9]{13}$/, 'Invalid GSTIN')
     .optional()
     .or(z.literal('')),
+  legalName: z.string().trim().max(160).optional().or(z.literal('')),
   mapsLocation: z
     .object({
       lat: z.number(),
       lng: z.number(),
     })
+    .optional(),
+  mapsLink: z
+    .string()
+    .trim()
+    .url('Invalid Google Maps link')
+    .or(z.literal(''))
     .optional(),
 });
 export class ClinicDetailsDto extends createZodDto(clinicDetailsSchema) {}
@@ -89,7 +92,6 @@ export const planSelectionSchema = z.object({
   whatsappAddon: z.boolean().optional(),
   intelligenceAddon: z.boolean().optional(),
   currency: z.string().optional(),
-  workspaceProfile: workspaceProfileSchema.optional(),
 });
 export class PlanSelectionDto extends createZodDto(planSelectionSchema) {}
 export const paymentDetailsSchema = z.object({

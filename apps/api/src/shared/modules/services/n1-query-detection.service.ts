@@ -1,4 +1,5 @@
-import { Injectable, Logger } from '@nestjs/common';
+import { Inject, Injectable, Logger } from '@nestjs/common';
+import { CLOCK_PORT, type IClock } from '@/shared/common/ports/clock.port';
 
 export interface QueryTrace {
   query: string;
@@ -14,10 +15,12 @@ export class N1QueryDetectionService {
   private queryTraces: QueryTrace[] = [];
   private readonly maxTraces = 200;
 
+  constructor(@Inject(CLOCK_PORT) private readonly clock: IClock) {}
+
   recordQuery(query: string, duration: number, parentQuery?: string): void {
     const trace: QueryTrace = {
       query,
-      timestamp: new Date(),
+      timestamp: this.clock.now(),
       duration,
       parentQuery,
       isRelated: !!parentQuery,
@@ -40,10 +43,12 @@ export class N1QueryDetectionService {
 
     this.queryTraces.forEach((trace) => {
       const normalized = this.normalizeQuery(trace.query);
-      if (!patterns.has(normalized)) {
-        patterns.set(normalized, []);
+      let traces = patterns.get(normalized);
+      if (!traces) {
+        traces = [];
+        patterns.set(normalized, traces);
       }
-      patterns.get(normalized)!.push(trace);
+      traces.push(trace);
     });
 
     const potentialN1 = Array.from(patterns.entries())

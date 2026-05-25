@@ -4,7 +4,7 @@ import { ScheduleModule } from '@nestjs/schedule';
 import { LoggerModule } from 'nestjs-pino';
 import { AppConfigModule } from '@/shared/modules/config/config.module';
 import { AppConfigService } from '@/shared/modules/config/app-configuration.service';
-import { EventsModule } from '@/common/events/events.module';
+import { EventsModule } from '@/shared/common/events/events.module';
 import { CacheConfigModule } from '@/cache/cache.module';
 import { PrismaWorkerModule } from '@/prisma/prisma.worker.module';
 import { DocumentsWorkerModule } from '@/domains/documents/documents.worker.module';
@@ -15,6 +15,7 @@ import { RemindersSchedulerModule } from '@/domains/reminders/reminders.schedule
 import { ComplianceSchedulerModule } from '@/shared/modules/compliance/compliance.scheduler.module';
 import { MonitoringSchedulerModule } from '@/shared/modules/monitoring/monitoring/monitoring.scheduler.module';
 import { SubscriptionsWorkerModule } from '@/domains/subscriptions/subscriptions.worker.module';
+import { EnterpriseContractsWorkerModule } from '@/domains/enterprise-contracts/enterprise-contracts.worker.module';
 import { DoctorsVerificationWorkerModule } from '@/domains/doctors/doctors-verification.worker.module';
 import { AdminAlertsSchedulerModule } from '@/shared/modules/messaging/admin-alerts/admin-alerts.scheduler.module';
 import { EphemeralStoreSchedulerModule } from '@/shared/modules/ephemeral-store/ephemeral-store.scheduler.module';
@@ -55,6 +56,7 @@ const ENABLE_SCHEDULERS = process.env.ENABLE_SCHEDULERS !== 'false';
     MonitoringSchedulerModule,
     AdminAlertsSchedulerModule,
     SubscriptionsWorkerModule,
+    EnterpriseContractsWorkerModule,
     DoctorsVerificationWorkerModule,
   ],
 })

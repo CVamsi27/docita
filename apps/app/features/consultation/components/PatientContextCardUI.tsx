@@ -12,13 +12,13 @@ import {
   Pill,
   User,
 } from "lucide-react";
-import { Button } from "@workspace/ui/components/button";
-import { SymbolTooltip } from "@workspace/ui/components/tooltip";
-import { Badge } from "@workspace/ui/components/badge";
+import { Button } from "@workspace/ui/components/form/button";
+import { SymbolTooltip } from "@workspace/ui/components/overlay/tooltip";
+import { Badge } from "@workspace/ui/components/indicators/badge";
 import {
   Collapsible,
   CollapsibleContent,
-} from "@workspace/ui/components/collapsible";
+} from "@workspace/ui/components/overlay/collapsible";
 import { cn } from "@workspace/ui/lib/utils";
 import { formatDistanceToNow } from "@workspace/utils";
 import { SummaryMedications } from "./shared/SummaryMedications";
@@ -153,7 +153,7 @@ export function PatientContextCardUI({
           <div className="flex items-center gap-2">
             <AlertTriangle className="h-4 w-4 text-destructive shrink-0" />
             <span className="text-sm font-medium">
-              Allergies: {patient.allergies!.join(", ")}
+              Allergies: {(patient.allergies ?? []).join(", ")}
             </span>
           </div>
         </div>

@@ -6,48 +6,39 @@ import {
 } from '@nestjs/common';
 import { ClinicTier } from '@workspace/db';
 import { PrismaService } from '@/prisma/prisma.service';
-import { isFrontDeskWorkspace, parseWorkspaceProfile } from '@workspace/types';
+import type { RequestWithUser } from '@/shared/common/types/common.types';
 
 /**
- * Blocks mutating clinical HTTP operations when the clinic workspace is
- * {@link isFrontDeskWorkspace}. GET/HEAD requests are allowed for read-only
- * surfaces (e.g. listing legacy prescriptions).
+ * Blocks mutating clinical HTTP operations on the Front Desk tier.
+ * GET/HEAD requests are allowed for read-only surfaces (e.g. listing legacy prescriptions).
  */
 @Injectable()
 export class FrontDeskClinicalBlockGuard implements CanActivate {
   constructor(private readonly prisma: PrismaService) {}
 
   async canActivate(context: ExecutionContext): Promise<boolean> {
-    const req = context.switchToHttp().getRequest<{ method?: string }>();
+    const req = context.switchToHttp().getRequest<RequestWithUser>();
     const method = (req.method ?? 'GET').toUpperCase();
     if (method === 'GET' || method === 'HEAD') {
       return true;
     }
 
-    const clinicId = (req as { user?: { clinicId?: string | null } }).user
-      ?.clinicId;
+    const clinicId = req.user?.clinicId;
     if (!clinicId) {
       return true;
     }
 
     const clinic = await this.prisma.clinic.findUnique({
       where: { id: clinicId },
-      select: { tier: true, settings: true },
+      select: { tier: true },
     });
-    const settings =
-      clinic?.settings && typeof clinic.settings === 'object'
-        ? (clinic.settings as Record<string, unknown>)
-        : {};
 
-    if (
-      clinic?.tier !== ClinicTier.FRONT_DESK &&
-      !isFrontDeskWorkspace(parseWorkspaceProfile(settings.workspaceProfile))
-    ) {
+    if (clinic?.tier !== ClinicTier.FRONT_DESK) {
       return true;
     }
 
     throw new ForbiddenException(
-      'Clinical changes are not available for this workspace profile.',
+      'Clinical changes are not available on the Front Desk plan.',
     );
   }
 }

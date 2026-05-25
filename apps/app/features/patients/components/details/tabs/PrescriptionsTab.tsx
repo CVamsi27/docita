@@ -7,13 +7,13 @@ import {
   CardContent,
   CardHeader,
   CardTitle,
-} from "@workspace/ui/components/card";
-import { Button } from "@workspace/ui/components/button";
-import { Badge } from "@workspace/ui/components/badge";
-import { DataState } from "@workspace/ui/components/data-state";
+} from "@workspace/ui/components/indicators/card";
+import { Button } from "@workspace/ui/components/form/button";
+import { Badge } from "@workspace/ui/components/indicators/badge";
+import { DataState } from "@workspace/ui/components/data-display/data-state";
 import { ExternalLink, Pill, RotateCcw } from "lucide-react";
-import { usePatientPrescriptions } from "@/hooks/api/use-clinical";
-import { useRepeatPrescription } from "@/hooks/use-repeat-prescription";
+import { usePatientPrescriptions } from "@workspace/data-access";
+import { useRepeatPrescription } from "@/features/patients/hooks/use-repeat-prescription";
 
 interface PrescriptionsTabProps {
   patientId: string;

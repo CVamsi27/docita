@@ -5,8 +5,8 @@ import type { InvoiceItem } from "@workspace/types";
 import { EditInvoiceDialogUI } from "./EditInvoiceDialogUI";
 
 /** Dialog content portals outside a test wrapper; avoid Radix tooltip context there. */
-vi.mock("@workspace/ui/components/tooltip", async (importOriginal) => {
-  const actual = await importOriginal<typeof import("@workspace/ui/components/tooltip")>();
+vi.mock("@workspace/ui/components/overlay/tooltip", async (importOriginal) => {
+  const actual = await importOriginal<typeof import("@workspace/ui/components/overlay/tooltip")>();
   return {
     ...actual,
     SymbolTooltip: ({ children }: { children: ReactElement }) => children,

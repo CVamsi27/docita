@@ -1,7 +1,5 @@
 import { z } from 'zod';
 import { ClinicType as _ClinicType } from '@workspace/db';
-import { workspaceProfileSchema } from '@workspace/types';
-
 const BankAccountSchema = z.object({
   accountHolderName: z.string().optional(),
   bankName: z.string().optional(),
@@ -85,10 +83,19 @@ export const ClinicSettingsSchema = z.object({
    */
   taxSettings: TaxSettingsSchema.optional(),
 
-  workspaceProfile: workspaceProfileSchema.optional(),
-
   /** Used for patient-facing directions (e.g., WhatsApp confirmations). */
   mapsLocation: MapsLocationSchema.optional(),
+  /**
+   * User-attached Google Maps link for the facility. Preferred over
+   * `mapsLocation` when present, since clinics may want a custom
+   * Plus-code, share-link, or business listing URL on notifications.
+   */
+  mapsLink: z
+    .string()
+    .trim()
+    .url('mapsLink must be a valid URL')
+    .or(z.literal(''))
+    .optional(),
 });
 
 export type ClinicSettings = z.infer<typeof ClinicSettingsSchema>;

@@ -27,7 +27,7 @@ export function mockGetAllAndOverrideKeyMap(
 export function createKeyedReflectorMock(
   entries: ReadonlyArray<readonly [unknown, unknown]>,
 ): MockedReflectorGetAllAndOverride {
-  const mock = jest.fn() as MockedReflectorGetAllAndOverride;
+  const mock: MockedReflectorGetAllAndOverride = jest.fn();
   mockGetAllAndOverrideKeyMap(mock, entries);
-  return mock as unknown as MockedReflectorGetAllAndOverride;
+  return mock;
 }

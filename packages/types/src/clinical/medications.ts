@@ -146,6 +146,10 @@ export const prescriptionSchema = z.object({
   doctorRole: z.string().max(50).optional(),
   doctorRegistrationNumber: z.string().max(100).optional(),
   doctorLicenseNumber: z.string().max(100).optional(),
+
+  whatsappStatus: z.string().nullable().optional(),
+  whatsappSentAt: z.string().or(z.date()).nullable().optional(),
+  whatsappMessageId: z.string().nullable().optional(),
 });
 export type Prescription = z.infer<typeof prescriptionSchema>;
 

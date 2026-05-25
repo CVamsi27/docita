@@ -1,8 +1,12 @@
 import { ForbiddenException } from '@nestjs/common';
-import { PrismaService } from '@/prisma/prisma.service';
+import {
+  CLINIC_PERSISTENCE_PORT,
+  type ClinicPersistencePort,
+} from '@/domains/clinics/application/ports/clinic-persistence.port';
 import { Role } from '@workspace/db';
 import { beforeEach, describe, expect, it, jest } from '@jest/globals';
 import { StaffManagementService } from './staff-management.service';
+import { StaffInviteService } from './staff-invite.service';
 
 describe('StaffManagementService', () => {
   let service: StaffManagementService;
@@ -22,7 +26,7 @@ describe('StaffManagementService', () => {
         findUnique: jest
           .fn<(...args: unknown[]) => Promise<unknown>>()
           .mockResolvedValue({
-            settings: { workspaceProfile: 'FULL_CLINICAL' },
+            settings: {},
           }),
       },
       user: {
@@ -30,7 +34,10 @@ describe('StaffManagementService', () => {
         update: jest.fn<(...args: unknown[]) => Promise<unknown>>(),
       },
     };
-    service = new StaffManagementService(prisma as unknown as PrismaService);
+    service = new StaffManagementService(
+      prisma as unknown as ClinicPersistencePort,
+      Object.create(StaffInviteService.prototype) as StaffInviteService,
+    );
   });
 
   describe('updateMember', () => {

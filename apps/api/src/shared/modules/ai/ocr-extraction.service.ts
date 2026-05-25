@@ -10,8 +10,17 @@ import {
   FieldConfidenceConfig,
   OcrRawData,
 } from '@workspace/types';
+import { coerceOcrRawData } from '@/shared/modules/ai/ocr-raw-data.boundary';
+import { isRecord, parseStringEnumMember } from '@workspace/utils';
 import * as fs from 'fs';
 import sharp from 'sharp';
+
+const OCR_DOCUMENT_TYPES = [
+  'PRESCRIPTION',
+  'CASE_SHEET',
+  'LAB_REPORT',
+  'GENERAL',
+] as const;
 
 @Injectable()
 export class OcrExtractionService {
@@ -34,8 +43,11 @@ export class OcrExtractionService {
       const documentType = hasAiSubscription
         ? await this.detectDocumentType(rawText)
         : 'GENERAL';
-      const suggestedCorrections = hasAiSubscription
+      const suggestedCorrectionsRaw = hasAiSubscription
         ? await this.generateFieldSuggestions(extractedFields)
+        : undefined;
+      const suggestedCorrections = isRecord(suggestedCorrectionsRaw)
+        ? suggestedCorrectionsRaw
         : undefined;
       const confidence = this.calculateOverallConfidence(
         extractedFields.fieldConfidence,
@@ -129,17 +141,24 @@ export class OcrExtractionService {
           'You are a medical document parser. Extract structured data into JSON.',
         userPrompt: `Extract from this OCR text:\n${ocrText}`,
       })
-      .then((parsed) => this.normalizeOcrFields(parsed, config))
+      .then((parsed) =>
+        this.normalizeOcrFields(coerceOcrRawData(parsed), config),
+      )
       .catch(() => this.basicOcrParsing(ocrText, config));
   }
 
-  private async detectDocumentType(ocrText: string) {
-    return this.openaiService.callChatCompletion({
+  private async detectDocumentType(
+    ocrText: string,
+  ): Promise<(typeof OCR_DOCUMENT_TYPES)[number]> {
+    const raw = await this.openaiService.callChatCompletion({
       systemPrompt:
         'Classify document type: PRESCRIPTION, CASE_SHEET, LAB_REPORT, or GENERAL. Return one word.',
       userPrompt: ocrText.substring(0, 500),
       jsonMode: false,
     });
+    const token =
+      typeof raw === 'string' ? raw.trim().toUpperCase() : 'GENERAL';
+    return parseStringEnumMember(OCR_DOCUMENT_TYPES, token) ?? 'GENERAL';
   }
 
   private async generateFieldSuggestions(fields: OcrExtractedFields) {
@@ -199,9 +218,11 @@ export class OcrExtractionService {
       lastName: data?.lastName || '',
       age: toStr(data?.age),
       dateOfBirth: data?.dateOfBirth || '',
-      gender: ['MALE', 'FEMALE', 'OTHER'].includes(data?.gender || '')
-        ? (data?.gender as 'MALE' | 'FEMALE' | 'OTHER')
-        : 'OTHER',
+      gender:
+        parseStringEnumMember(
+          ['MALE', 'FEMALE', 'OTHER'] as const,
+          typeof data?.gender === 'string' ? data.gender : '',
+        ) ?? 'OTHER',
       phoneNumber: data?.phoneNumber || '',
       email: data?.email || '',
       bloodType: data?.bloodType || '',

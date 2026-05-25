@@ -1,5 +1,5 @@
 import { Provider } from '@nestjs/common';
-import { WhatsappService } from '@/shared/modules/messaging/whatsapp/whatsapp.service';
+import { WhatsappService } from '@/domains/whatsapp/application/services/whatsapp-clinic-facade.service';
 
 export const mockWhatsappService = {
   sendMessage: jest.fn().mockResolvedValue({

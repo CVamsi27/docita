@@ -5,8 +5,8 @@ import {
   DialogFooter,
   DialogHeader,
   DialogTitle,
-} from "@workspace/ui/components/dialog";
-import { Button } from "@workspace/ui/components/button";
+} from "@workspace/ui/components/overlay/dialog";
+import { Button } from "@workspace/ui/components/form/button";
 import { cn } from "@workspace/ui/lib/utils";
 import { AlertOptions } from "@/features/dialogs/types";
 import { getVariantStyles } from "@/features/dialogs/utils";

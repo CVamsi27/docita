@@ -1,6 +1,6 @@
 "use client";
 
-import { Button } from "@workspace/ui/components/button";
+import { Button } from "@workspace/ui/components/form/button";
 import { ArrowRight, Sparkles } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
 

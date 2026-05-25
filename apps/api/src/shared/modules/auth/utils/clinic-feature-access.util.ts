@@ -1,11 +1,11 @@
 import { ForbiddenException } from '@nestjs/common';
 import { ClinicTier, IntelligenceAddon } from '@workspace/db';
+import { Feature, mapDbClinicTierStringToTierName } from '@workspace/types';
 import {
-  Feature,
   hasFeatureAccess,
   isFeatureGenerallyAvailable,
-  mapDbClinicTierStringToTierName,
-} from '@workspace/types';
+  isRecord,
+} from '@workspace/utils';
 import {
   FEATURE_TIER_MAP,
   Tier,
@@ -17,11 +17,28 @@ export type ClinicFeatureAuthSnapshot = {
   features: unknown;
 };
 
+export function readClinicFeatureOverrides(
+  value: unknown,
+): Record<string, boolean> {
+  if (!isRecord(value)) {
+    return {};
+  }
+
+  const overrides: Record<string, boolean> = {};
+  for (const [key, entry] of Object.entries(value)) {
+    if (typeof entry === 'boolean') {
+      overrides[key] = entry;
+    }
+  }
+  return overrides;
+}
+
 function getTierDisplayName(tier: Tier): string {
   const names: Record<Tier, string> = {
     [Tier.STARTER]: 'Starter',
     [Tier.ESSENTIAL]: 'Essential',
     [Tier.PROFESSIONAL]: 'Professional',
+    [Tier.HOSPITAL]: 'Hospital',
     [Tier.ENTERPRISE]: 'Enterprise',
     [Tier.INTELLIGENCE]: 'Intelligence',
     [Tier.FRONT_DESK]: 'Front desk',
@@ -44,8 +61,7 @@ export function assertClinicHasFeatureOrThrow(
   }
 
   const featureTier = FEATURE_TIER_MAP[requiredFeature];
-  const featureOverrides =
-    (clinic.features as Record<string, boolean> | null | undefined) || {};
+  const featureOverrides = readClinicFeatureOverrides(clinic.features);
 
   if (featureOverrides[requiredFeature] !== undefined) {
     if (!featureOverrides[requiredFeature]) {

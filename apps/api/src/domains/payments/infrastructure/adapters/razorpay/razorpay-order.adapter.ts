@@ -1,6 +1,8 @@
 import { Injectable, Logger, BadRequestException } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import * as crypto from 'crypto';
+import { isRecord } from '@workspace/utils';
+import { asRazorpayRecord } from './razorpay-record.util';
 import { BaseRazorpayAdapter } from './razorpay.adapter';
 import { RazorpayClientService } from './razorpay-client.service';
 import {
@@ -30,11 +32,13 @@ export class RazorpayOrderAdapter
   async createOrder(request: CreateOrderRequest): Promise<PaymentGatewayOrder> {
     try {
       const razorpay = this.getClient();
-      const order = await razorpay.orders.create({
-        amount: request.amount.toCents(),
-        currency: request.amount.currency,
-        notes: request.metadata || {},
-      });
+      const order = await this.withRazorpayTimeout(() =>
+        razorpay.orders.create({
+          amount: request.amount.toCents(),
+          currency: request.amount.currency,
+          notes: request.metadata || {},
+        }),
+      );
 
       return {
         id: order.id,
@@ -49,15 +53,41 @@ export class RazorpayOrderAdapter
         metadata: order.notes,
       };
     } catch (error) {
-      this.logger.error('Failed to create order', error);
-      throw new BadRequestException('Failed to create order');
+      this.logger.error('Failed to create Razorpay order', error);
+      // Surface the actual Razorpay error message (or the SDK's) instead of
+      // a generic "Failed to create order" — devs need to see auth failures,
+      // invalid amounts, key mismatches, etc.
+      const message = this.extractRazorpayErrorMessage(error);
+      throw new BadRequestException(
+        message
+          ? `Razorpay order creation failed: ${message}`
+          : 'Razorpay order creation failed. Check RAZORPAY_KEY_ID / RAZORPAY_KEY_SECRET and try again.',
+      );
     }
+  }
+
+  private extractRazorpayErrorMessage(error: unknown): string | null {
+    const err = asRazorpayRecord(error);
+    if (!err) return null;
+    const nested = isRecord(err.error) ? err.error : null;
+    if (nested && typeof nested.description === 'string') {
+      return nested.description;
+    }
+    if (nested && typeof nested.reason === 'string') {
+      return nested.reason;
+    }
+    if (typeof err.message === 'string') {
+      return err.message;
+    }
+    return null;
   }
 
   async getOrder(orderId: string): Promise<PaymentGatewayOrder | null> {
     try {
       const razorpay = this.getClient();
-      const order = await razorpay.orders.fetch(orderId);
+      const order = await this.withRazorpayTimeout(() =>
+        razorpay.orders.fetch(orderId),
+      );
 
       return {
         id: order.id,
@@ -80,7 +110,9 @@ export class RazorpayOrderAdapter
   async capturePayment(orderId: string): Promise<PaymentGatewayPayment> {
     try {
       const razorpay = this.getClient();
-      const paymentsResponse = await razorpay.orders.fetchPayments(orderId);
+      const paymentsResponse = await this.withRazorpayTimeout(() =>
+        razorpay.orders.fetchPayments(orderId),
+      );
       const payments = Array.isArray(paymentsResponse.items)
         ? paymentsResponse.items
         : [];
@@ -111,10 +143,12 @@ export class RazorpayOrderAdapter
           ? authorizedPayment.amount
           : parseInt(authorizedPayment.amount, 10);
 
-      const capturedPayment = await razorpay.payments.capture(
-        authorizedPayment.id,
-        amountInCents,
-        authorizedPayment.currency,
+      const capturedPayment = await this.withRazorpayTimeout(() =>
+        razorpay.payments.capture(
+          authorizedPayment.id,
+          amountInCents,
+          authorizedPayment.currency,
+        ),
       );
 
       return this.toPaymentGatewayPayment(capturedPayment);
@@ -156,7 +190,9 @@ export class RazorpayOrderAdapter
       }
 
       const razorpay = this.getClient();
-      const payment = await razorpay.payments.fetch(request.paymentId);
+      const payment = await this.withRazorpayTimeout(() =>
+        razorpay.payments.fetch(request.paymentId),
+      );
 
       return {
         verified: true,

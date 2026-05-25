@@ -8,6 +8,7 @@ import { Reflector } from '@nestjs/core';
 import { Role } from '@workspace/db';
 import { IS_PUBLIC_KEY } from '@/shared/modules/auth/auth/public.decorator';
 import { ALLOW_NO_CLINIC_KEY } from '@/shared/modules/auth/auth/allow-no-clinic.decorator';
+import { isRecord } from '@workspace/utils';
 
 const CLINIC_ID_KEYS = new Set(['clinicId']);
 
@@ -30,12 +31,11 @@ function collectClinicIds(
     return;
   }
 
-  if (typeof value !== 'object') return;
+  if (!isRecord(value)) return;
   if (visited.has(value)) return;
   visited.add(value);
 
-  const record = value as Record<string, unknown>;
-  for (const [key, entry] of Object.entries(record)) {
+  for (const [key, entry] of Object.entries(value)) {
     if (CLINIC_ID_KEYS.has(key)) {
       collectClinicIds(entry, found, visited);
       continue;

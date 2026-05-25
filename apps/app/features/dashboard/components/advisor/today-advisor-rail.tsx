@@ -5,8 +5,8 @@ import Link from "next/link";
 import {
   RightRailCard,
   RightRailCardStack,
-} from "@workspace/ui/components/right-rail-card";
-import { Button } from "@workspace/ui/components/button";
+} from "@workspace/ui/components/data-display/right-rail-card";
+import { Button } from "@workspace/ui/components/form/button";
 
 interface TodayAdvisorRailProps {
   pendingJoinRequests: number;
@@ -113,7 +113,7 @@ export function TodayAdvisorRail({
   return (
     <RightRailCardStack
       ariaLabel="Today recommendations"
-      className="w-full max-w-full shrink-0"
+      className="w-full max-w-full shrink-0 max-md:mx-0 max-md:flex-col max-md:overflow-visible max-md:px-0 max-md:pb-0 max-md:[&>*]:min-w-0"
     >
       {cards.map((card) => (
         <div key={card.key}>{card.node}</div>

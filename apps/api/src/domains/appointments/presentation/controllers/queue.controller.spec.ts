@@ -3,6 +3,7 @@ import { beforeEach, describe, expect, it, jest } from '@jest/globals';
 import { QueueController } from './queue.controller';
 import { QueueService } from '@/domains/appointments/application/services/queue.service';
 import { TierGuard } from '@/shared/modules/auth/auth/tier.guard';
+import { AuditService } from '@/shared/modules/audit/audit/audit.service';
 
 describe('QueueController', () => {
   let controller: QueueController;
@@ -23,6 +24,10 @@ describe('QueueController', () => {
         {
           provide: QueueService,
           useValue: mockQueueService,
+        },
+        {
+          provide: AuditService,
+          useValue: { logAction: jest.fn() },
         },
       ],
     })

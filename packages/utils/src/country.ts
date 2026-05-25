@@ -1,4 +1,6 @@
-export const DEFAULT_COUNTRY_CODE = "IN";
+import { isRecord } from "./is-record.js";
+
+export const DEFAULT_COUNTRY_CODE = "IN" as const;
 
 export function normalizeCountryCode(
   value: string | null | undefined,
@@ -18,15 +20,13 @@ export function resolveCountryCode(source: unknown): string | undefined {
     return normalizeCountryCode(source);
   }
 
-  if (typeof source !== "object" || Array.isArray(source)) {
+  if (!isRecord(source)) {
     return undefined;
   }
 
-  const record = source as Record<string, unknown>;
-
   const operatingCountry = normalizeCountryCode(
-    typeof record["operatingCountryCode"] === "string"
-      ? record["operatingCountryCode"]
+    typeof source["operatingCountryCode"] === "string"
+      ? source["operatingCountryCode"]
       : undefined,
   );
   if (operatingCountry) {
@@ -34,29 +34,25 @@ export function resolveCountryCode(source: unknown): string | undefined {
   }
 
   const directCountry = normalizeCountryCode(
-    typeof record["countryCode"] === "string" ? record["countryCode"] : undefined,
+    typeof source["countryCode"] === "string" ? source["countryCode"] : undefined,
   );
   if (directCountry) {
     return directCountry;
   }
 
-  const taxSettings = record["taxSettings"];
-  const taxCountry =
-    taxSettings &&
-    typeof taxSettings === "object" &&
-    !Array.isArray(taxSettings)
-      ? normalizeCountryCode(
-          typeof (taxSettings as Record<string, unknown>)["countryCode"] ===
-            "string"
-            ? ((taxSettings as Record<string, unknown>)["countryCode"] as string)
-            : undefined,
-        )
-      : undefined;
-  if (taxCountry) {
-    return taxCountry;
+  const taxSettings = source["taxSettings"];
+  if (isRecord(taxSettings)) {
+    const taxCountry = normalizeCountryCode(
+      typeof taxSettings["countryCode"] === "string"
+        ? taxSettings["countryCode"]
+        : undefined,
+    );
+    if (taxCountry) {
+      return taxCountry;
+    }
   }
 
-  return resolveCountryCode(record["settings"]);
+  return resolveCountryCode(source["settings"]);
 }
 
 export function resolveCountryCodeOrDefault(

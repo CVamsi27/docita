@@ -45,7 +45,7 @@ describe('CSRF Protection (e2e)', () => {
   });
 
   it('should set XSRF-TOKEN cookie on GET request', async () => {
-    const response = await request(app.getHttpServer()).get('/');
+    const response = await request(app.getHttpServer()).get('/health');
 
     const cookies = response.get('Set-Cookie');
     expect(cookies).toBeDefined();
@@ -53,7 +53,7 @@ describe('CSRF Protection (e2e)', () => {
   });
 
   it('should allow first-touch auth POST requests without X-XSRF-TOKEN header', async () => {
-    const getRes = await request(app.getHttpServer()).get('/');
+    const getRes = await request(app.getHttpServer()).get('/health');
     const cookies = getRes.get('Set-Cookie');
     const csrfCookie = cookies!.find((c) => c.startsWith('XSRF-TOKEN='));
     const tokenValue = csrfCookie!.split(';')[0].split('=')[1];
@@ -66,7 +66,7 @@ describe('CSRF Protection (e2e)', () => {
   });
 
   it('should allow POST request with valid X-XSRF-TOKEN header', async () => {
-    const getRes = await request(app.getHttpServer()).get('/');
+    const getRes = await request(app.getHttpServer()).get('/health');
     const cookies = getRes.get('Set-Cookie');
     const csrfCookie = cookies!.find((c) => c.startsWith('XSRF-TOKEN='));
     const tokenValue = csrfCookie!.split(';')[0].split('=')[1];

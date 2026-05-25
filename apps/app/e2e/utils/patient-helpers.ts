@@ -3,10 +3,16 @@ import { randomUUID } from "node:crypto";
 import { existsSync, readFileSync } from "node:fs";
 import { resolve } from "node:path";
 import { APIRequestContext, Page } from "@playwright/test";
-import { type ClinicType } from "@workspace/types";
+import {
+  uploadSessionCreateContractResponseSchema,
+  type ClinicType,
+} from "@workspace/types";
+import { z } from "zod";
 
 export const API_URL = process.env["API_URL"] || "http://127.0.0.1:3001/api/v1";
 export const TEST_PASSWORD = "Test@123456";
+/** Valid 15-char GSTIN for paid INR onboarding in E2E (not a real taxpayer ID). */
+const E2E_PAID_PLAN_GSTIN = "29AABCU9603R1ZX";
 
 /** Next.js `(protected)` patient routes — keep Playwright URLs aligned with the app router. */
 export const PATIENTS_LIST_PATH = "/patients";
@@ -28,15 +34,19 @@ export interface BasicAuthUserData extends UserData {
 
 type SetupUserCache = Map<string, Promise<UserData>>;
 
+let setupUserCache: SetupUserCache | undefined;
+
 function getSetupUserCache(): SetupUserCache {
-  const key = "__docitaE2ESetupUserCache";
-  const globalAny = globalThis as unknown as Record<string, unknown>;
-  const existing = globalAny[key] as SetupUserCache | undefined;
-  if (existing) return existing;
-  const created: SetupUserCache = new Map();
-  globalAny[key] = created;
-  return created;
+  if (!setupUserCache) {
+    setupUserCache = new Map();
+  }
+  return setupUserCache;
 }
+
+const e2eVerificationUserSchema = z.object({
+  emailVerified: z.boolean().optional(),
+  emailVerificationToken: z.string().nullable().optional(),
+});
 
 function getRepoRoot(): string {
   // Playwright can run from repo root or package root; walk up to find the monorepo root.
@@ -119,16 +129,16 @@ async function fetchVerificationToken(email: string): Promise<string | null> {
     return null;
   }
 
-  const parsed = JSON.parse(output) as {
-    emailVerified?: boolean;
-    emailVerificationToken?: string | null;
-  };
-
-  if (parsed.emailVerified) {
+  const parsed = e2eVerificationUserSchema.safeParse(JSON.parse(output));
+  if (!parsed.success) {
     return null;
   }
 
-  return parsed.emailVerificationToken ?? null;
+  if (parsed.data.emailVerified) {
+    return null;
+  }
+
+  return parsed.data.emailVerificationToken ?? null;
 }
 
 export async function verifyEmailIfNeeded(
@@ -190,7 +200,10 @@ async function postWithRetry(
     if (res.status() !== 429) return res;
     await sleep(options.baseDelayMs * (attempt + 1));
   }
-  return lastRes!;
+  if (!lastRes) {
+    throw new Error(`POST ${url} did not return a response`);
+  }
+  return lastRes;
 }
 
 /**
@@ -272,11 +285,14 @@ async function setupTestUserImpl(
   requestHeaders: Record<string, string> = {},
   options: {
     clinicType?: ClinicType;
-    workspaceProfile?: "FULL_CLINICAL" | "FRONT_DESK";
+    tier?: "ESSENTIAL" | "FRONT_DESK";
   } = {},
 ): Promise<UserData> {
   const clinicType = options.clinicType ?? "GENERAL";
-  const workspaceProfile = options.workspaceProfile ?? "FULL_CLINICAL";
+  const tier = options.tier ?? "ESSENTIAL";
+  const isUnpaidEssentialTrial = tier === "ESSENTIAL";
+  const onboardingAdminRole =
+    tier === "FRONT_DESK" ? "ADMIN" : "ADMIN_DOCTOR";
   const uniqueId = randomUUID();
   const email = `doctor-${uniqueId}@test.com`;
   const password = TEST_PASSWORD;
@@ -320,7 +336,7 @@ async function setupTestUserImpl(
 
   const registerData = await registerRes.json();
   let accessToken = registerData.access_token || registerData.accessToken;
-  const userId = registerData.user.id;
+  const registeredUserId = registerData.user.id;
 
   await verifyEmailIfNeeded(request, email, registerData.user?.emailVerified);
 
@@ -363,12 +379,16 @@ async function setupTestUserImpl(
     );
   }
 
-  const signatureSession = await signatureSessionRes.json();
-  const signatureSessionId = signatureSession.id;
-  const signatureUploadSecret = signatureSession.uploadSecret as string;
-  if (!signatureUploadSecret) {
-    throw new Error("SLA signature session missing uploadSecret");
+  const signatureSessionParsed =
+    uploadSessionCreateContractResponseSchema.safeParse(
+      await signatureSessionRes.json(),
+    );
+  if (!signatureSessionParsed.success) {
+    throw new Error("SLA signature session response was invalid");
   }
+  const signatureSession = signatureSessionParsed.data;
+  const signatureSessionId = signatureSession.id;
+  const signatureUploadSecret = signatureSession.uploadSecret;
 
   const uploadSignatureRes = await request.post(
     `${API_URL}/onboarding/${onboardingId}/sla-signature-session/${signatureSessionId}`,
@@ -405,19 +425,21 @@ async function setupTestUserImpl(
           address: "123 History Street, Hyderabad",
           type: clinicType,
           website: "",
-          gstin: "",
+          gstin: isUnpaidEssentialTrial ? "" : E2E_PAID_PLAN_GSTIN,
         },
         adminAccount: {
           name: "Dr. History",
           email,
-          role: "ADMIN_DOCTOR",
+          role: onboardingAdminRole,
         },
         planSelection: {
-          tier: "STARTER",
+          tier,
           billingCycle: "MONTHLY",
           currency: "INR",
-          workspaceProfile,
         },
+        paymentDetails: isUnpaidEssentialTrial
+          ? { skipPayment: true }
+          : { cardLast4: "4242" },
         slaAgreement: {
           acceptedSLA: true,
           slaVersion: "1.0",
@@ -444,66 +466,22 @@ async function setupTestUserImpl(
   }
 
   const completeData = await completeRes.json();
-  accessToken =
-    completeData.access_token || completeData.accessToken || accessToken;
+  if (completeData.success === false) {
+    throw new Error(
+      `Onboarding completion rejected: ${JSON.stringify(completeData.errors ?? completeData.message)}`,
+    );
+  }
   const userFromComplete = completeData.user ?? registerData.user;
   const clinicId = userFromComplete.clinicId || completeData.clinicId;
-
-  const tokenRes = await request.post(
-    `${API_URL}/doctors/signature/generate-token`,
-    {
-      headers: authHeaders(accessToken),
-    },
-  );
-  if (!tokenRes.ok()) {
-    throw new Error(
-      `Signature token generation failed: ${await tokenRes.text()}`,
-    );
+  if (!clinicId) {
+    throw new Error("Onboarding completion did not return a clinicId");
   }
 
-  const tokenData = await tokenRes.json();
-  const uploadToken = tokenData.token;
-
-  const uploadRes = await request.post(
-    `${API_URL}/doctors/signature/upload/${uploadToken}`,
-    {
-      headers: {
-        ...authHeaders(accessToken),
-        Cookie: "XSRF-TOKEN=e2e-csrf-token",
-        "X-XSRF-TOKEN": "e2e-csrf-token",
-      },
-      multipart: {
-        file: {
-          name: "signature.png",
-          mimeType: "image/png",
-          buffer: signatureBuffer,
-        },
-      },
-    },
-  );
-  if (!uploadRes.ok()) {
-    throw new Error(
-      `Doctor signature upload failed: ${await uploadRes.text()}`,
-    );
-  }
-
-  const regNumberRes = await request.put(
-    `${API_URL}/doctors/${userId}/registration-number`,
-    {
-      headers: authHeaders(accessToken),
-      data: {
-        registrationNumber: `REG-${uniqueId.slice(0, 8).toUpperCase()}`,
-      },
-    },
-  );
-
-  if (!regNumberRes.ok()) {
-    throw new Error(
-      `Doctor registration number update failed: ${await regNumberRes.text()}`,
-    );
-  }
-
-  const loginRes = await request.post(`${API_URL}/auth/login`, {
+  // Always perform a fresh login after onboarding completion.
+  // The API associates the user to the clinic during onboarding; using a fresh
+  // login avoids relying on onboarding response token shapes and ensures JWT
+  // validation sees the latest persisted clinic association.
+  const postOnboardingLoginRes = await request.post(`${API_URL}/auth/login`, {
     headers: {
       ...requestHeadersWithClientIp,
       Cookie: "XSRF-TOKEN=e2e-csrf-token",
@@ -515,12 +493,77 @@ async function setupTestUserImpl(
     },
   });
 
-  if (!loginRes.ok()) {
-    throw new Error(`Post-onboarding login failed: ${await loginRes.text()}`);
+  if (!postOnboardingLoginRes.ok()) {
+    throw new Error(
+      `Post-onboarding login failed: ${await postOnboardingLoginRes.text()}`,
+    );
   }
 
-  const loginData = await loginRes.json();
-  accessToken = loginData.access_token || loginData.accessToken || accessToken;
+  const postOnboardingLoginData = await postOnboardingLoginRes.json();
+  accessToken =
+    postOnboardingLoginData.access_token ||
+    postOnboardingLoginData.accessToken ||
+    accessToken;
+  const userId =
+    postOnboardingLoginData.user?.id ??
+    postOnboardingLoginData.userId ??
+    registeredUserId;
+
+  if (tier !== "FRONT_DESK") {
+    const tokenRes = await request.post(
+      `${API_URL}/doctors/signature/generate-token`,
+      {
+        headers: authHeaders(accessToken),
+      },
+    );
+    if (!tokenRes.ok()) {
+      throw new Error(
+        `Signature token generation failed: ${await tokenRes.text()}`,
+      );
+    }
+
+    const tokenData = await tokenRes.json();
+    const uploadToken = tokenData.token;
+
+    const uploadRes = await request.post(
+      `${API_URL}/doctors/signature/upload/${uploadToken}`,
+      {
+        headers: {
+          ...authHeaders(accessToken),
+          Cookie: "XSRF-TOKEN=e2e-csrf-token",
+          "X-XSRF-TOKEN": "e2e-csrf-token",
+        },
+        multipart: {
+          file: {
+            name: "signature.png",
+            mimeType: "image/png",
+            buffer: signatureBuffer,
+          },
+        },
+      },
+    );
+    if (!uploadRes.ok()) {
+      throw new Error(
+        `Doctor signature upload failed: ${await uploadRes.text()}`,
+      );
+    }
+
+    const regNumberRes = await request.put(
+      `${API_URL}/doctors/${userId}/registration-number`,
+      {
+        headers: authHeaders(accessToken),
+        data: {
+          registrationNumber: `REG-${uniqueId.slice(0, 8).toUpperCase()}`,
+        },
+      },
+    );
+
+    if (!regNumberRes.ok()) {
+      throw new Error(
+        `Doctor registration number update failed: ${await regNumberRes.text()}`,
+      );
+    }
+  }
 
   return {
     id: userId,
@@ -556,7 +599,7 @@ export function reuseSharedFrontDeskClinicUser(
 ): Promise<UserData> {
   if (!sharedFrontDeskClinicUser) {
     sharedFrontDeskClinicUser = setupTestUser(request, {}, {
-      workspaceProfile: "FRONT_DESK",
+      tier: "FRONT_DESK",
     }).catch((err: unknown) => {
       sharedFrontDeskClinicUser = null;
       throw err;
@@ -570,23 +613,23 @@ export async function setupTestUser(
   requestHeaders: Record<string, string> = {},
   options: {
     clinicType?: ClinicType;
-    workspaceProfile?: "FULL_CLINICAL" | "FRONT_DESK";
+    tier?: "ESSENTIAL" | "FRONT_DESK";
   } = {},
 ): Promise<UserData> {
   const clinicType = options.clinicType ?? "GENERAL";
-  const workspaceProfile = options.workspaceProfile ?? "FULL_CLINICAL";
+  const tier = options.tier ?? "ESSENTIAL";
   const shouldCache =
     Object.keys(requestHeaders).length === 0 && clinicType === "GENERAL";
 
   if (!shouldCache) {
     return await setupTestUserImpl(request, requestHeaders, {
       clinicType,
-      workspaceProfile,
+      tier,
     });
   }
 
   const cache = getSetupUserCache();
-  const cacheKey = `setupTestUser:GENERAL:${workspaceProfile}`;
+  const cacheKey = `setupTestUser:GENERAL:${tier}`;
   const existing = cache.get(cacheKey);
   if (existing) {
     return await existing;
@@ -594,7 +637,7 @@ export async function setupTestUser(
 
   const promise = setupTestUserImpl(request, requestHeaders, {
     clinicType,
-    workspaceProfile,
+    tier,
   });
   cache.set(cacheKey, promise);
   return await promise;

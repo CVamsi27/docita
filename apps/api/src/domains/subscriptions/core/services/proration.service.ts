@@ -1,4 +1,5 @@
 import { SubscriptionPrice } from '@/domains/subscriptions/core/value-objects';
+import { InvariantViolationError } from '@/shared/common/errors/domain.errors';
 
 export interface ProratedResult {
   creditCents: number;
@@ -15,7 +16,9 @@ export class ProratingService {
     totalCycleDays: number,
   ): ProratedResult {
     if (daysRemaining < 0 || totalCycleDays <= 0) {
-      throw new Error('Invalid day values for proration calculation');
+      throw new InvariantViolationError(
+        'Invalid day values for proration calculation',
+      );
     }
 
     const currentPrice = new SubscriptionPrice(currentPriceCents);

@@ -7,7 +7,9 @@ import {
   Body,
   UseGuards,
   UsePipes,
+  Inject,
 } from '@nestjs/common';
+import { CLOCK_PORT, type IClock } from '@/shared/common/ports/clock.port';
 import { MonitoringService } from './monitoring.service';
 import { JwtAuthGuard as _JwtAuthGuard } from '@/shared/modules/auth/auth/jwt-auth.guard';
 import { TierGuard } from '@/shared/modules/auth/auth/tier.guard';
@@ -36,7 +38,7 @@ import {
   ArchiveErrorsDto,
 } from './dto/monitoring-admin.dto';
 import { ZodSerializerDto } from 'nestjs-zod';
-import { ZodValidationPipe } from '@/common/pipes/zod-validation.pipe';
+import { ZodValidationPipe } from '@/shared/common/pipes/zod-validation.pipe';
 
 import { ArchivalService } from '@/shared/modules/compliance/archival.service';
 
@@ -48,6 +50,7 @@ export class MonitoringController {
   constructor(
     private readonly monitoringService: MonitoringService,
     private readonly archivalService: ArchivalService,
+    @Inject(CLOCK_PORT) private readonly clock: IClock,
   ) {}
 
   @Post('archive')
@@ -155,7 +158,7 @@ export class MonitoringController {
   @Get('dashboard')
   @ZodSerializerDto(MonitoringDashboardResponseDto)
   async getDashboard(@Query('clinicId') clinicId?: string) {
-    const now = new Date();
+    const now = this.clock.now();
     const oneDayAgo = new Date(now.getTime() - 24 * 60 * 60 * 1000);
     const sevenDaysAgo = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000);
 
@@ -199,7 +202,7 @@ export class MonitoringController {
     @Query('startDate') startDate?: string,
     @Query('endDate') endDate?: string,
   ) {
-    const end = endDate ? new Date(endDate) : new Date();
+    const end = endDate ? new Date(endDate) : this.clock.now();
     const start = startDate
       ? new Date(startDate)
       : new Date(end.getTime() - 24 * 60 * 60 * 1000);

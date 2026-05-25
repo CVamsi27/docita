@@ -1,4 +1,10 @@
-import { Injectable, BadRequestException } from '@nestjs/common';
+import {
+  Inject,
+  Injectable,
+  BadRequestException,
+  Logger,
+} from '@nestjs/common';
+import { CLOCK_PORT, type IClock } from '@/shared/common/ports/clock.port';
 import { Invoice, InvoiceItem } from '@/domains/billing/core/entities';
 import {
   Money,
@@ -20,13 +26,23 @@ export class CreateInvoiceCommand {
 
 @Injectable()
 export class CreateInvoiceUseCase {
+  private readonly logger = new Logger(CreateInvoiceUseCase.name);
+
   constructor(
     private invoiceRepository: IInvoiceRepository,
     private billingCalculator: BillingCalculatorService,
     private invoiceValidator: InvoiceValidatorService,
+    @Inject(CLOCK_PORT) private readonly clock: IClock,
   ) {}
 
   async execute(dto: CreateInvoiceDto): Promise<{ invoiceId: string }> {
+    // AuditLogged: invoice creation
+    this.logger.log({
+      action: 'invoice.create',
+      clinicId: dto.clinicId,
+      patientId: dto.patientId,
+    });
+
     const invoiceId = `invoice_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
 
     const items = dto.items.map(
@@ -65,8 +81,8 @@ export class CreateInvoiceUseCase {
       status,
       billingPeriod,
       items,
-      createdAt: new Date(),
-      updatedAt: new Date(),
+      createdAt: this.clock.now(),
+      updatedAt: this.clock.now(),
       notes: dto.notes,
     });
 

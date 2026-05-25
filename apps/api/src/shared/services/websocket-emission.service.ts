@@ -2,7 +2,7 @@ import { Injectable, Logger } from '@nestjs/common';
 import {
   PaymentWebSocketGateway,
   ClinicUpdateData,
-} from '@/gateways/payment.websocket.gateway';
+} from '@/websockets/payment.websocket.gateway';
 
 @Injectable()
 export class WebSocketEmissionService {

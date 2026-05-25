@@ -1,7 +1,7 @@
-import { Button } from "@workspace/ui/components/button";
-import { DatePicker } from "@workspace/ui/components/date-picker";
-import { SymbolTooltip } from "@workspace/ui/components/tooltip";
-import { Input } from "@workspace/ui/components/input";
+import { Button } from "@workspace/ui/components/form/button";
+import { DatePicker } from "@workspace/ui/components/form/date-picker";
+import { SymbolTooltip } from "@workspace/ui/components/overlay/tooltip";
+import { Input } from "@workspace/ui/components/form/input";
 import { Scissors, X } from "lucide-react";
 import { PatientWithMedicalHistory } from "@workspace/types";
 import { formatDate } from "@/lib/formatters";
@@ -54,7 +54,9 @@ export function PatientSurgeries({
               <SymbolTooltip label="Remove surgery">
                 <button
                   type="button"
-                  onClick={() => onRemoveSurgery(surgery.id!)}
+                  onClick={() => {
+                    if (surgery.id) onRemoveSurgery(surgery.id);
+                  }}
                   className="opacity-0 group-hover:opacity-100 p-1.5 rounded-full hover:bg-destructive/10 text-muted-foreground hover:text-destructive transition-colors duration-150"
                   aria-label="Remove surgery"
                 >

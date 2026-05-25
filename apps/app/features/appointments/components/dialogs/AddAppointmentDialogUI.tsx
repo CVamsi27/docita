@@ -1,4 +1,4 @@
-import { DocitaLoadingIndicator } from "@workspace/ui/components/docita-loading-indicator";
+import { DocitaLoadingIndicator } from "@workspace/ui/components/feedback/docita-loading-indicator";
 
 import { z } from "zod";
 import type { UseFormReturn } from "react-hook-form";
@@ -10,16 +10,22 @@ import {
 } from "@workspace/types";
 
 type CreateAppointmentInput = z.infer<typeof createAppointmentSchema>;
-import type { SelectOption } from "@/lib/app-config-context";
+import type { SelectOption } from "@/lib/contexts/app-config-context";
 
-import { Button } from "@workspace/ui/components/button";
-import { Badge } from "@workspace/ui/components/badge";
-import { Form, FormLabel } from "@workspace/ui/components/form";
-import { FormDialog } from "@workspace/ui/components/form-dialog";
+import { Button } from "@workspace/ui/components/form/button";
+import { Badge } from "@workspace/ui/components/indicators/badge";
+import {
+  Form,
+  FormField,
+  FormItem,
+  FormLabel,
+  FormMessage,
+} from "@workspace/ui/components/form/form";
+import { FormDialog } from "@workspace/ui/components/form/form-dialog";
 import {
   IsoDatePickerField,
   parseIsoDateToLocalDate,
-} from "@workspace/ui/components/iso-date-picker-field";
+} from "@workspace/ui/components/form/iso-date-picker-field";
 import {
   clinicWallDatetimeLocalToUtcIso,
   formatClinicPickerDayIsoFromSelection,
@@ -29,7 +35,7 @@ import { PatientSelector } from "@/features/appointments/components/sections/add
 import { DoctorSelector } from "@/features/appointments/components/sections/add-dialog/DoctorSelector";
 import { TimeSlotPicker } from "@/features/appointments/components/sections/add-dialog/TimeSlotPicker";
 import type { SlotBlockingAppointment } from "@/features/appointments/lib/calendar-slot-local-iso";
-import { showUserFacingErrorToast } from "@/lib/user-facing-errors";
+import { showUserFacingErrorToast } from "@/lib/errors/user-facing-errors";
 import { formatClockTime, formatLocaleDateShortMonth } from "@/lib/formatters";
 
 interface AddAppointmentDialogUIProps {
@@ -160,14 +166,24 @@ export function AddAppointmentDialogUI({
               description="Who the appointment is for and who will see them."
             />
             <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
-              <PatientSelector
-                form={form}
-                patients={patients}
-                patientsLoading={patientsLoading}
-                patientSearch={patientSearch}
-                setPatientSearch={setPatientSearch}
-                patientComboboxOpen={patientComboboxOpen}
-                setPatientComboboxOpen={setPatientComboboxOpen}
+              <FormField
+                control={form.control}
+                name="patientId"
+                render={({ field }) => (
+                  <FormItem>
+                    <PatientSelector
+                      value={field.value ?? ""}
+                      onChange={field.onChange}
+                      patients={patients}
+                      patientsLoading={patientsLoading}
+                      patientSearch={patientSearch}
+                      setPatientSearch={setPatientSearch}
+                      patientComboboxOpen={patientComboboxOpen}
+                      setPatientComboboxOpen={setPatientComboboxOpen}
+                    />
+                    <FormMessage />
+                  </FormItem>
+                )}
               />
               <DoctorSelector
                 form={form}

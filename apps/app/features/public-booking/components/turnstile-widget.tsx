@@ -37,9 +37,9 @@ export function TurnstileWidget({
       });
     };
 
-    const existing = document.querySelector(
-      `script[src="${TURNSTILE_SCRIPT}"]`,
-    ) as HTMLScriptElement | null;
+    const existing = document.querySelector(`script[src="${TURNSTILE_SCRIPT}"]`);
+    const existingScript =
+      existing instanceof HTMLScriptElement ? existing : null;
 
     if (window.turnstile) {
       renderWidget();
@@ -51,8 +51,8 @@ export function TurnstileWidget({
       };
     }
 
-    const script = existing ?? document.createElement("script");
-    if (!existing) {
+    const script = existingScript ?? document.createElement("script");
+    if (!existingScript) {
       script.src = TURNSTILE_SCRIPT;
       script.async = true;
       document.body.appendChild(script);

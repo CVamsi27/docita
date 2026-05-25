@@ -7,9 +7,9 @@ import {
   CardContent,
   CardHeader,
   CardTitle,
-} from "@workspace/ui/components/card";
-import { Button } from "@workspace/ui/components/button";
-import { Badge } from "@workspace/ui/components/badge";
+} from "@workspace/ui/components/indicators/card";
+import { Button } from "@workspace/ui/components/form/button";
+import { Badge } from "@workspace/ui/components/indicators/badge";
 import {
   Calendar,
   ChevronRight,
@@ -78,11 +78,7 @@ export function OverviewTab({
     if (!todaysAppointment) return null;
     const start = toDate(todaysAppointment.startTime);
     if (!start) return null;
-    return formatTime(start, "en-IN", {
-      hour: "numeric",
-      minute: "2-digit",
-      hour12: true,
-    });
+    return formatTime(start, "h:mm a");
   })();
 
   const statusBadgeVariant: "default" | "secondary" | "destructive" | "outline" =

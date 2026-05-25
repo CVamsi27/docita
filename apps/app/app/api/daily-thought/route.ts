@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 import { unstable_cache } from "next/cache";
 import { z } from "zod";
-import { logger } from "@/lib/logger";
+import { logger } from "@/lib/monitoring/logger";
 
 const ZENQUOTES_TODAY = "https://zenquotes.io/api/today";
 
@@ -56,7 +56,7 @@ export async function GET() {
       try {
         return await fetchZenQuotesToday();
       } catch (error) {
-        logger.error("daily-thought upstream failed", {
+        logger.warn("daily-thought upstream failed; using fallback quote", {
           dayKey,
           error,
         });

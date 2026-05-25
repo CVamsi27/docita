@@ -1,8 +1,8 @@
-import { DocitaLoadingIndicator } from "@workspace/ui/components/docita-loading-indicator";
+import { DocitaLoadingIndicator } from "@workspace/ui/components/feedback/docita-loading-indicator";
 
-import { ErrorBanner } from "@/components/common/error-banner";
-import { FormField } from "@/components/common/form-field";
-import { Button } from "@workspace/ui/components/button";
+import { ErrorBanner } from "@/components/errors/error-banner";
+import { FormField } from "@/components/form-field";
+import { Button } from "@workspace/ui/components/form/button";
 import type { FieldErrors } from "@/features/auth/types/auth";
 
 interface EmailStepProps {

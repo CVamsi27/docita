@@ -1,5 +1,7 @@
-import { Injectable, Logger, OnModuleDestroy } from '@nestjs/common';
-import { Prisma } from '@workspace/db';
+import { Inject, Injectable, Logger, OnModuleDestroy } from '@nestjs/common';
+import { jsonObjectSchema } from '@workspace/types';
+import { parsePrismaJsonColumn } from '@/shared/common/json/parse-prisma-json-column';
+import { CLOCK_PORT, type IClock } from '@/shared/common/ports/clock.port';
 import { PrismaService } from '@/prisma/prisma.service';
 import {
   IQueueProvider,
@@ -9,6 +11,11 @@ import {
   QueueJobOptions,
   QueueStats,
 } from './queue.interface';
+import { bindQueueJobHandler, coerceQueueJob } from './queue-job-boundary';
+import type {
+  QueueJobRepository,
+  QueueJobRow,
+} from './ports/queue-job.repository.port';
 import { WorkerMetricsService } from './worker-metrics.service';
 
 const POLL_INTERVAL_MS = 2000;
@@ -24,23 +31,6 @@ const computeBackoffMs = (attempt: number): number => {
   return Math.min(exponential, RETRY_MAX_MS);
 };
 
-interface QueueJobRow {
-  id: string;
-  name: string;
-  data: Prisma.JsonValue;
-  status: string;
-  priority: number;
-  attemptsMade: number;
-  maxAttempts: number;
-  failedReason: string | null;
-  processedAt: Date | null;
-  delayedUntil: Date | null;
-  createdAt: Date;
-  updatedAt: Date;
-  idempotencyKey?: string | null;
-  completedAt?: Date | null;
-}
-
 @Injectable()
 export class PostgresQueueService implements IQueueProvider, OnModuleDestroy {
   private readonly logger = new Logger(PostgresQueueService.name);
@@ -49,6 +39,8 @@ export class PostgresQueueService implements IQueueProvider, OnModuleDestroy {
 
   constructor(
     private readonly prisma: PrismaService,
+    @Inject(CLOCK_PORT) private readonly clock: IClock,
+    private readonly queueJobs: QueueJobRepository,
     private readonly metrics?: WorkerMetricsService,
   ) {}
 
@@ -70,10 +62,11 @@ export class PostgresQueueService implements IQueueProvider, OnModuleDestroy {
         this.logger.debug(
           `Skipping duplicate enqueue for ${name} idempotencyKey=${options.idempotencyKey} (existing job ${recent.id})`,
         );
-        return this.rowToJob<T>(recent);
+        return coerceQueueJob<T>(this.rowToJob(recent));
       }
     }
 
+    // RLS-BYPASS: background queue workers run without per-request clinic session
     const row = await this.prisma.runUnrestricted(async () =>
       this.prisma.queueJob.create({
         data: {
@@ -88,36 +81,28 @@ export class PostgresQueueService implements IQueueProvider, OnModuleDestroy {
       }),
     );
 
-    return this.rowToJob<T>(row);
+    return coerceQueueJob<T>(this.rowToJob(row));
   }
 
   private async findRecentCompletedByIdempotency(
     name: string,
     idempotencyKey: string,
   ): Promise<QueueJobRow | null> {
-    const cutoff = new Date(Date.now() - IDEMPOTENCY_LOOKBACK_MS);
-    const rows = await this.prisma.runUnrestricted(
-      async () =>
-        this.prisma.$queryRaw<QueueJobRow[]>`
-          SELECT * FROM "QueueJob"
-          WHERE name = ${name}
-            AND "idempotencyKey" = ${idempotencyKey}
-            AND status = 'COMPLETED'
-            AND "completedAt" >= ${cutoff}
-          ORDER BY "completedAt" DESC
-          LIMIT 1
-        `,
+    const cutoff = new Date(
+      this.clock.now().getTime() - IDEMPOTENCY_LOOKBACK_MS,
     );
-    return rows && rows[0] ? rows[0] : null;
+    return this.queueJobs.findRecentCompletedByIdempotency(
+      name,
+      idempotencyKey,
+      cutoff,
+    );
   }
 
   async process<T extends QueueJobData>(
     name: string,
     handler: QueueJobHandler<T>,
   ): Promise<void> {
-    this.handlers.set(name, async (job) => {
-      await handler(job as QueueJob<T>);
-    });
+    this.handlers.set(name, bindQueueJobHandler(handler));
 
     if (!this.pollers.has(name)) {
       const interval = setInterval(() => {
@@ -127,6 +112,7 @@ export class PostgresQueueService implements IQueueProvider, OnModuleDestroy {
           );
         });
       }, POLL_INTERVAL_MS);
+      interval.unref?.();
 
       this.pollers.set(name, interval);
     }
@@ -138,24 +124,7 @@ export class PostgresQueueService implements IQueueProvider, OnModuleDestroy {
 
     await this.recoverStaleActiveJobs(name);
 
-    const rows =
-      (await this.prisma.runUnrestricted(
-        async () =>
-          this.prisma.$queryRaw<QueueJobRow[]>`
-        UPDATE "QueueJob"
-        SET status = 'ACTIVE', "processedAt" = NOW(), "updatedAt" = NOW()
-        WHERE id = (
-          SELECT id FROM "QueueJob"
-          WHERE name = ${name}
-            AND status IN ('WAITING', 'DELAYED')
-            AND ("delayedUntil" IS NULL OR "delayedUntil" <= NOW())
-          ORDER BY priority DESC, "createdAt" ASC
-          LIMIT 1
-          FOR UPDATE SKIP LOCKED
-        )
-        RETURNING *
-      `,
-      )) ?? [];
+    const rows = await this.queueJobs.claimNextWaitingJob(name);
 
     if (!rows.length) return;
 
@@ -168,12 +137,13 @@ export class PostgresQueueService implements IQueueProvider, OnModuleDestroy {
         row.idempotencyKey,
       );
       if (recent && recent.id !== row.id) {
+        // RLS-BYPASS: background queue workers run without per-request clinic session
         await this.prisma.runUnrestricted(async () =>
           this.prisma.queueJob.update({
             where: { id: row.id },
             data: {
               status: 'COMPLETED',
-              completedAt: new Date(),
+              completedAt: this.clock.now(),
               failedReason: 'Skipped: idempotency-key already completed',
             },
           }),
@@ -187,10 +157,11 @@ export class PostgresQueueService implements IQueueProvider, OnModuleDestroy {
     try {
       await handler(job);
 
+      // RLS-BYPASS: background queue workers run without per-request clinic session
       await this.prisma.runUnrestricted(async () =>
         this.prisma.queueJob.update({
           where: { id: row.id },
-          data: { status: 'COMPLETED', completedAt: new Date() },
+          data: { status: 'COMPLETED', completedAt: this.clock.now() },
         }),
       );
       this.metrics?.observeJobCompletion(name, 'completed');
@@ -202,6 +173,7 @@ export class PostgresQueueService implements IQueueProvider, OnModuleDestroy {
 
       if (nextAttemptsMade < row.maxAttempts) {
         const backoffMs = computeBackoffMs(nextAttemptsMade);
+        // RLS-BYPASS: background queue workers run without per-request clinic session
         await this.prisma.runUnrestricted(async () =>
           this.prisma.queueJob.update({
             where: { id: row.id },
@@ -215,6 +187,7 @@ export class PostgresQueueService implements IQueueProvider, OnModuleDestroy {
         );
         this.metrics?.observeJobCompletion(name, 'retried');
       } else {
+        // RLS-BYPASS: background queue workers run without per-request clinic session
         await this.prisma.runUnrestricted(async () =>
           this.prisma.queueJob.update({
             where: { id: row.id },
@@ -222,7 +195,7 @@ export class PostgresQueueService implements IQueueProvider, OnModuleDestroy {
               status: 'DEAD_LETTERED',
               attemptsMade: nextAttemptsMade,
               failedReason,
-              deadLetteredAt: new Date(),
+              deadLetteredAt: this.clock.now(),
             },
           }),
         );
@@ -240,6 +213,7 @@ export class PostgresQueueService implements IQueueProvider, OnModuleDestroy {
   private async refreshDlqGauge(name: string): Promise<void> {
     if (!this.metrics) return;
     try {
+      // RLS-BYPASS: background queue workers run without per-request clinic session
       const count = await this.prisma.runUnrestricted(async () =>
         this.prisma.queueJob.count({
           where: { name, status: 'DEAD_LETTERED' },
@@ -258,6 +232,7 @@ export class PostgresQueueService implements IQueueProvider, OnModuleDestroy {
     name: string,
     limit = 50,
   ): Promise<QueueJob<QueueJobData>[]> {
+    // RLS-BYPASS: background queue workers run without per-request clinic session
     const rows = await this.prisma.runUnrestricted(async () =>
       this.prisma.queueJob.findMany({
         where: { name, status: 'DEAD_LETTERED' },
@@ -273,6 +248,7 @@ export class PostgresQueueService implements IQueueProvider, OnModuleDestroy {
    * it back into the WAITING queue. Returns the refreshed job.
    */
   async replayDeadLettered(jobId: string): Promise<QueueJob<QueueJobData>> {
+    // RLS-BYPASS: background queue workers run without per-request clinic session
     const row = await this.prisma.runUnrestricted(async () =>
       this.prisma.queueJob.update({
         where: { id: jobId },
@@ -291,42 +267,20 @@ export class PostgresQueueService implements IQueueProvider, OnModuleDestroy {
   }
 
   private async recoverStaleActiveJobs(name: string): Promise<void> {
-    const staleBefore = new Date(Date.now() - STALE_ACTIVE_TIMEOUT_MS);
-    const delayedUntil = new Date(Date.now() + RECOVERY_DELAY_MS);
+    const nowMs = this.clock.now().getTime();
+    const staleBefore = new Date(nowMs - STALE_ACTIVE_TIMEOUT_MS);
+    const delayedUntil = new Date(nowMs + RECOVERY_DELAY_MS);
 
-    const delayedRows =
-      (await this.prisma.runUnrestricted(
-        async () =>
-          this.prisma.$queryRaw<Array<{ id: string }>>`
-          UPDATE "QueueJob"
-          SET status = 'DELAYED',
-              "attemptsMade" = "attemptsMade" + 1,
-              "failedReason" = NULL,
-              "delayedUntil" = ${delayedUntil},
-              "updatedAt" = NOW()
-          WHERE name = ${name}
-            AND status = 'ACTIVE'
-            AND "processedAt" < ${staleBefore}
-            AND "attemptsMade" < "maxAttempts"
-          RETURNING id
-        `,
-      )) ?? [];
+    const delayedRows = await this.queueJobs.recoverStaleActiveToDelayed(
+      name,
+      staleBefore,
+      delayedUntil,
+    );
 
-    const failedRows =
-      (await this.prisma.runUnrestricted(
-        async () =>
-          this.prisma.$queryRaw<Array<{ id: string }>>`
-          UPDATE "QueueJob"
-          SET status = 'FAILED',
-              "failedReason" = 'Recovered stale ACTIVE job after timeout',
-              "updatedAt" = NOW()
-          WHERE name = ${name}
-            AND status = 'ACTIVE'
-            AND "processedAt" < ${staleBefore}
-            AND "attemptsMade" >= "maxAttempts"
-          RETURNING id
-        `,
-      )) ?? [];
+    const failedRows = await this.queueJobs.recoverStaleActiveToFailed(
+      name,
+      staleBefore,
+    );
 
     if (delayedRows.length > 0 || failedRows.length > 0) {
       this.logger.warn(
@@ -338,18 +292,13 @@ export class PostgresQueueService implements IQueueProvider, OnModuleDestroy {
   async getJob<T extends QueueJobData>(
     jobId: string,
   ): Promise<QueueJob<T> | null> {
-    const rows = await this.prisma.runUnrestricted(
-      async () =>
-        this.prisma.$queryRaw<QueueJobRow[]>`
-        SELECT * FROM "QueueJob" WHERE id = ${jobId} LIMIT 1
-      `,
-    );
-
-    if (!rows.length) return null;
-    return this.rowToJob<T>(rows[0]);
+    const row = await this.queueJobs.findById(jobId);
+    if (!row) return null;
+    return coerceQueueJob<T>(this.rowToJob(row));
   }
 
   async removeJob(jobId: string): Promise<void> {
+    // RLS-BYPASS: background queue workers run without per-request clinic session
     await this.prisma.runUnrestricted(async () =>
       this.prisma.queueJob.delete({ where: { id: jobId } }),
     );
@@ -362,15 +311,7 @@ export class PostgresQueueService implements IQueueProvider, OnModuleDestroy {
   }
 
   async getStats(name: string): Promise<QueueStats> {
-    const rows = await this.prisma.runUnrestricted(
-      async () =>
-        this.prisma.$queryRaw<Array<{ status: string; count: bigint }>>`
-        SELECT status, COUNT(*) as count
-        FROM "QueueJob"
-        WHERE name = ${name}
-        GROUP BY status
-      `,
-    );
+    const rows = await this.queueJobs.countByStatus(name);
 
     const byStatus = new Map(rows.map((r) => [r.status, Number(r.count)]));
 
@@ -391,11 +332,12 @@ export class PostgresQueueService implements IQueueProvider, OnModuleDestroy {
     this.pollers.clear();
   }
 
-  private rowToJob<T extends QueueJobData>(row: QueueJobRow): QueueJob<T> {
+  private rowToJob(row: QueueJobRow): QueueJob<QueueJobData> {
+    const data = parsePrismaJsonColumn(row.data, jsonObjectSchema) ?? {};
     return {
       id: row.id,
       name: row.name,
-      data: row.data as T,
+      data,
       progress: 0,
       failedReason: row.failedReason ?? undefined,
       attemptsMade: row.attemptsMade,

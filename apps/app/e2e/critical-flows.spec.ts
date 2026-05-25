@@ -1,10 +1,17 @@
 import { APIRequestContext, expect, test } from "@playwright/test";
+import { DPDP_NOTICE_VERSION } from "@workspace/types";
 import {
   createUniqueClientIp,
   setupTestUser,
 } from "./utils/patient-helpers";
 
 const API_URL = "http://127.0.0.1:3001/api/v1";
+
+const DPDP_CONSENT_PAYLOAD = {
+  accepted: true,
+  noticeVersion: DPDP_NOTICE_VERSION,
+  givenByName: "E2E Test",
+} as const;
 
 function toRecord(value: unknown): Record<string, unknown> {
   if (!value || typeof value !== "object" || Array.isArray(value)) {
@@ -90,6 +97,7 @@ test.describe("Critical Business Flows", () => {
         phoneNumber: "9000000000",
         dateOfBirth: "1990-01-01",
         clinicId: doctor.clinicId,
+        dpdpConsent: DPDP_CONSENT_PAYLOAD,
       },
     });
 
@@ -122,6 +130,7 @@ test.describe("Critical Business Flows", () => {
         phoneNumber: "9000000001",
         dateOfBirth: "1990-01-01",
         clinicId: doctor.clinicId,
+        dpdpConsent: DPDP_CONSENT_PAYLOAD,
       },
     });
 
@@ -297,11 +306,17 @@ test.describe("Critical Business Flows", () => {
     const updateRes = await request.patch(`${API_URL}/patients/${patient.id}`, {
       headers: { Authorization: `Bearer ${doctor.accessToken}` },
       data: {
-        notes: `Updated notes at ${new Date().toISOString()} - Critical flow test`,
+        metadata: {
+          e2eNote: `Updated at ${new Date().toISOString()} - Critical flow test`,
+        },
       },
     });
 
-    expect(updateRes.ok()).toBeTruthy();
+    if (!updateRes.ok()) {
+      throw new Error(
+        `Patient notes update failed: ${updateRes.status()} ${await updateRes.text()}`,
+      );
+    }
 
     const verifyRes = await request.get(`${API_URL}/patients/${patient.id}`, {
       headers: { Authorization: `Bearer ${doctor.accessToken}` },
@@ -368,6 +383,7 @@ test.describe("Critical Business Flows", () => {
           phoneNumber: "9000000002",
           dateOfBirth: "1991-01-01",
           clinicId: otherDoctor.clinicId,
+          dpdpConsent: DPDP_CONSENT_PAYLOAD,
         },
       });
 

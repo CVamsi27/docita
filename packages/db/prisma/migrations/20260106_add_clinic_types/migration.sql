@@ -1,3 +1,4 @@
+-- check-migration-reversibility: one-way
 -- Migration for Adding Clinic Type Configuration
 -- =============================================
 -- 

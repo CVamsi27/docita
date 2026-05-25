@@ -4,8 +4,8 @@ import { FC } from "react";
 import {
   Card,
   CardContent,
-} from "@workspace/ui/components/card";
-import { Badge } from "@workspace/ui/components/badge";
+} from "@workspace/ui/components/indicators/card";
+import { Badge } from "@workspace/ui/components/indicators/badge";
 import { TestTube } from "lucide-react";
 
 export const LabOrderCard: FC<{

@@ -8,11 +8,11 @@ import {
   CardDescription,
   CardHeader,
   CardTitle,
-} from "@workspace/ui/components/card";
-import { Button } from "@workspace/ui/components/button";
-import { Badge } from "@workspace/ui/components/badge";
-import { Input } from "@workspace/ui/components/input";
-import { SymbolTooltip } from "@workspace/ui/components/tooltip";
+} from "@workspace/ui/components/indicators/card";
+import { Button } from "@workspace/ui/components/form/button";
+import { Badge } from "@workspace/ui/components/indicators/badge";
+import { Input } from "@workspace/ui/components/form/input";
+import { SymbolTooltip } from "@workspace/ui/components/overlay/tooltip";
 import { BookOpen, CheckCircle2, FileText, Search, X } from "lucide-react";
 
 export const MedicalCodingSearch: FC<{

@@ -3,7 +3,7 @@
 import { useMemo, useState } from "react";
 import { Calendar } from "lucide-react";
 import { DAY_OF_WEEK_LABELS, type DayOfWeek } from "@workspace/types";
-import { Button } from "@workspace/ui/components/button";
+import { Button } from "@workspace/ui/components/form/button";
 import {
   Card,
   CardContent,
@@ -11,20 +11,20 @@ import {
   CardFooter,
   CardHeader,
   CardTitle,
-} from "@workspace/ui/components/card";
-import { CategoryAvatar } from "@workspace/ui/components/category-avatar";
-import { Input } from "@workspace/ui/components/input";
-import { Label } from "@workspace/ui/components/label";
-import { MicroLabel } from "@workspace/ui/components/micro-label";
+} from "@workspace/ui/components/indicators/card";
+import { CategoryAvatar } from "@workspace/ui/components/indicators/category-avatar";
+import { Input } from "@workspace/ui/components/form/input";
+import { Label } from "@workspace/ui/components/form/label";
+import { MicroLabel } from "@workspace/ui/components/indicators/micro-label";
 import {
   Select,
   SelectContent,
   SelectItem,
   SelectTrigger,
   SelectValue,
-} from "@workspace/ui/components/select";
-import { Switch } from "@workspace/ui/components/switch";
-import { showUserFacingErrorToast } from "@/lib/user-facing-errors";
+} from "@workspace/ui/components/form/select";
+import { Switch } from "@workspace/ui/components/form/switch";
+import { showUserFacingErrorToast } from "@/lib/errors/user-facing-errors";
 import type { ClinicWeeklyHourRow } from "@/features/onboarding/components/types";
 
 const DISPLAY_ORDER: DayOfWeek[] = [
@@ -38,6 +38,33 @@ const DISPLAY_ORDER: DayOfWeek[] = [
 ];
 
 const SLOT_OPTIONS = [15, 30, 45, 60] as const;
+
+function buildWeeklyHourRows(
+  byDay: Map<DayOfWeek, ClinicWeeklyHourRow>,
+): Record<DayOfWeek, ClinicWeeklyHourRow> {
+  const rowFor = (day: DayOfWeek): ClinicWeeklyHourRow => {
+    const existing = byDay.get(day);
+    return existing
+      ? { ...existing }
+      : {
+          dayOfWeek: day,
+          startTime: "09:00",
+          endTime: "17:00",
+          slotDuration: 30,
+          isActive: false,
+        };
+  };
+
+  return {
+    MONDAY: rowFor("MONDAY"),
+    TUESDAY: rowFor("TUESDAY"),
+    WEDNESDAY: rowFor("WEDNESDAY"),
+    THURSDAY: rowFor("THURSDAY"),
+    FRIDAY: rowFor("FRIDAY"),
+    SATURDAY: rowFor("SATURDAY"),
+    SUNDAY: rowFor("SUNDAY"),
+  };
+}
 
 function sortRowsForApi(rows: ClinicWeeklyHourRow[]): ClinicWeeklyHourRow[] {
   const order: DayOfWeek[] = [
@@ -78,23 +105,8 @@ export function ClinicWeeklyHoursStep({
     return m;
   }, [initialRows]);
 
-  const [rows, setRows] = useState<Record<DayOfWeek, ClinicWeeklyHourRow>>(
-    () => {
-      const next = {} as Record<DayOfWeek, ClinicWeeklyHourRow>;
-      for (const d of DISPLAY_ORDER) {
-        const r = byDay.get(d);
-        next[d] = r
-          ? { ...r }
-          : {
-              dayOfWeek: d,
-              startTime: "09:00",
-              endTime: "17:00",
-              slotDuration: 30,
-              isActive: false,
-            };
-      }
-      return next;
-    },
+  const [rows, setRows] = useState<Record<DayOfWeek, ClinicWeeklyHourRow>>(() =>
+    buildWeeklyHourRows(byDay),
   );
 
   const updateDay = (day: DayOfWeek, patch: Partial<ClinicWeeklyHourRow>) => {

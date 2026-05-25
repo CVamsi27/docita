@@ -1,26 +1,26 @@
-import { Input } from "@workspace/ui/components/input";
-import { Label } from "@workspace/ui/components/label";
+import { Input } from "@workspace/ui/components/form/input";
+import { Label } from "@workspace/ui/components/form/label";
 import {
   Card,
   CardContent,
   CardHeader,
   CardTitle,
-} from "@workspace/ui/components/card";
+} from "@workspace/ui/components/indicators/card";
 import {
   Select,
   SelectContent,
   SelectItem,
   SelectTrigger,
   SelectValue,
-} from "@workspace/ui/components/select";
+} from "@workspace/ui/components/form/select";
 import { Coffee } from "lucide-react";
 import {
   ALCOHOL_USE_STATUS_LABELS,
-  AlcoholUseStatus,
+  alcoholUseStatusSchema,
   PatientSocialHistory,
   PatientWithMedicalHistory,
   SMOKING_STATUS_LABELS,
-  SmokingStatus,
+  smokingStatusSchema,
 } from "@workspace/types";
 
 interface PatientSocialHistoryProps {
@@ -60,7 +60,7 @@ export function PatientSocialHistoryComp({
                 <SelectValue placeholder="Smoking status" />
               </SelectTrigger>
               <SelectContent>
-                {(Object.keys(SMOKING_STATUS_LABELS) as SmokingStatus[]).map(
+                {smokingStatusSchema.options.map(
                   (status) => (
                     <SelectItem key={status} value={status}>
                       {SMOKING_STATUS_LABELS[status]}
@@ -84,9 +84,7 @@ export function PatientSocialHistoryComp({
                 <SelectValue placeholder="Alcohol use" />
               </SelectTrigger>
               <SelectContent>
-                {(
-                  Object.keys(ALCOHOL_USE_STATUS_LABELS) as AlcoholUseStatus[]
-                ).map((status) => (
+                {alcoholUseStatusSchema.options.map((status) => (
                   <SelectItem key={status} value={status}>
                     {ALCOHOL_USE_STATUS_LABELS[status]}
                   </SelectItem>

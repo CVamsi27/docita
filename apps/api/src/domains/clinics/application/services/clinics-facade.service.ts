@@ -3,7 +3,6 @@ import { ClinicDataService } from './clinic-data.service';
 import { ClinicSettingsService } from './clinic-settings.service';
 import { StaffManagementService } from './staff-management.service';
 import { ClinicTier, ClinicType, Prisma, Role } from '@workspace/db';
-import type { WorkspaceProfile } from '@workspace/types';
 
 interface CreateClinicData {
   name: string;
@@ -79,7 +78,13 @@ interface ClinicSettingsData {
     upiId?: string;
   };
 
-  workspaceProfile?: WorkspaceProfile;
+  brandName?: string;
+  lockedTheme?: {
+    primaryColor?: string;
+    mode?: 'light' | 'dark' | 'system';
+    compactMode?: boolean;
+    enforced?: boolean;
+  };
 }
 
 interface CreateDoctorData {
@@ -126,6 +131,9 @@ interface JoinClinicData {
   clinicEmail?: string;
 }
 
+/**
+ * Thin facade — delegates clinic CRUD, settings, and staff to focused services.
+ */
 @Injectable()
 export class ClinicsService {
   constructor(

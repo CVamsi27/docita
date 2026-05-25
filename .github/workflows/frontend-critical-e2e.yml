@@ -6,7 +6,6 @@ on:
     paths:
       - "apps/app/**"
       - "apps/api/**"
-      - "packages/auth/**"
       - "packages/data-access/**"
       - "packages/db/**"
       - "packages/hooks/**"

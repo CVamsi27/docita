@@ -1,178 +1,79 @@
 "use client";
 
-import Link from "next/link";
-import { useRef } from "react";
-import type { ReactNode } from "react";
-import type { SubscriptionCurrentResponse } from "@workspace/types";
-import { useAuth } from "@/lib/auth-context";
-import { useBillingHistory } from "@/hooks/api/use-billing-history";
-import { getTierInfo } from "@/lib/tier-config";
-import { useSubscription } from "@/hooks/api/use-settings";
-import { WhatsAppButton } from "@/features/_shared/components/whatsapp/whatsapp-button";
-import { getSupportPhoneNumber } from "@/lib/support-contact";
-import { BillingSubscriptionWorkspace } from "@/features/subscription/components/billing-subscription-workspace";
-import { TrialOfferBanner } from "@/features/subscription/components";
-import { DocitaLoadingIndicator } from "@workspace/ui/components/docita-loading-indicator";
-import { Skeleton } from "@workspace/ui/components/skeleton";
+import { useAuth } from "@/lib/auth/auth-context";
+import { getTierInfo } from "@/lib/subscription/tier-access";
+import { WhatsAppButton } from "@/components/whatsapp/whatsapp-button";
+import { getSupportPhoneNumber } from "@/lib/constants/support-contact";
+import { PaymentRecoveryCard } from "@/features/subscription";
+import {
+  BillingSubscriptionWorkspaceView,
+  useBillingSubscriptionWorkspace,
+} from "@/features/subscription/subscription-billing-workspace";
+import { useAutoResolveSubscriptionPayment } from "@/features/subscription/hooks/use-auto-resolve-subscription-payment";
+import { getTrialState } from "@/lib/subscription/subscription-lockout";
+import { DocitaLoadingIndicator } from "@workspace/ui/components/feedback/docita-loading-indicator";
+import { Skeleton } from "@workspace/ui/components/feedback/skeleton";
 import {
   Card,
   CardContent,
   CardDescription,
   CardHeader,
   CardTitle,
-} from "@workspace/ui/components/card";
-import { Section } from "@workspace/ui/components/section";
-import { Button } from "@workspace/ui/components/button";
-import { Badge } from "@workspace/ui/components/badge";
+} from "@workspace/ui/components/indicators/card";
+import { Section } from "@workspace/ui/components/layout/section";
+import { Button } from "@workspace/ui/components/form/button";
+import { Badge } from "@workspace/ui/components/indicators/badge";
 import {
   Alert,
   AlertDescription,
   AlertTitle,
-} from "@workspace/ui/components/alert";
+} from "@workspace/ui/components/feedback/alert";
 import { AlertTriangle, Clock, Info, XCircle } from "lucide-react";
-import { BillingHistoryTable } from "@/features/subscription/components/billing/BillingHistoryTable";
-import { getDisplayBillingPeriodEndAndDaysLeft } from "@/features/subscription/lib/billing-period-display";
-import { useClinic } from "@/lib/clinic-context";
+import { useClinic } from "@/lib/contexts/clinic-context";
 import {
-  parseWorkspaceProfile,
-  WORKSPACE_PROFILE_LABEL,
-} from "@workspace/types";
-
-function scrollToBillingPlans() {
-  document.getElementById("billing-plans-section")?.scrollIntoView({
-    behavior: "smooth",
-    block: "start",
-  });
-}
-
-function isFreeStarterActive(
-  subscription: SubscriptionCurrentResponse | null | undefined,
-): boolean {
-  if (!subscription) return false;
-  return (
-    subscription.subscriptionStatus === "ACTIVE" &&
-    subscription.tier === "STARTER" &&
-    (subscription.basePriceCents ?? 0) === 0
-  );
-}
-
-function billingHistorySectionActions(
-  subscription: SubscriptionCurrentResponse | null | undefined,
-): ReactNode {
-  if (!subscription) {
-    return (
-      <Button variant="outline" size="sm" onClick={scrollToBillingPlans}>
-        View plans
-      </Button>
-    );
-  }
-
-  const { subscriptionStatus: status } = subscription;
-
-  if (status === "ACTIVE" && isFreeStarterActive(subscription)) {
-    return (
-      <Button variant="outline" size="sm" onClick={scrollToBillingPlans}>
-        View paid plans
-      </Button>
-    );
-  }
-
-  if (status === "EXPIRED") {
-    return (
-      <Button variant="outline" size="sm" onClick={scrollToBillingPlans}>
-        Choose plan and pay
-      </Button>
-    );
-  }
-
-  if (status === "PAST_DUE" || status === "PAYMENT_DUE" || status === "GRACE") {
-    return (
-      <Button variant="outline" size="sm" onClick={scrollToBillingPlans}>
-        {status === "GRACE" ? "Resolve payment" : "Update payment"}
-      </Button>
-    );
-  }
-
-  if (status === "TRIALING") {
-    return (
-      <Button variant="outline" size="sm" onClick={scrollToBillingPlans}>
-        Add payment
-      </Button>
-    );
-  }
-
-  if (status === "ACTIVE") {
-    return null;
-  }
-
-  return (
-    <Button variant="outline" size="sm" onClick={scrollToBillingPlans}>
-      View plans
-    </Button>
-  );
-}
-
-function billingHistorySectionDescription(
-  subscription: SubscriptionCurrentResponse | null | undefined,
-): string {
-  const base = "View and download past invoices";
-  if (!subscription) {
-    return base;
-  }
-
-  if (isFreeStarterActive(subscription)) {
-    return `${base}. Starter at no charge does not create subscription checkout rows, so this list stays empty until you upgrade and pay.`;
-  }
-
-  if (subscription.subscriptionStatus === "TRIALING") {
-    return `${base}. Add a payment method before the trial ends so renewals can generate invoices here.`;
-  }
-
-  return base;
-}
-
-function billingHistoryEmptyDescription(
-  subscription: SubscriptionCurrentResponse | null | undefined,
-): string | undefined {
-  if (!subscription) {
-    return undefined;
-  }
-
-  if (isFreeStarterActive(subscription)) {
-    return "There is no subscription invoice for Starter at no charge. After you upgrade and complete Razorpay checkout, paid receipts will appear here.";
-  }
-
-  if (subscription.subscriptionStatus === "TRIALING") {
-    return "Invoices appear after you add a payment method and your first paid charge completes.";
-  }
-
-  return undefined;
-}
-
-function BillingHistory({
-  emptyStateDescription,
-}: {
-  emptyStateDescription?: string;
-}) {
-  const { data: invoices, isLoading } = useBillingHistory();
-  return (
-    <BillingHistoryTable
-      invoices={invoices}
-      isLoading={isLoading}
-      emptyStateDescription={emptyStateDescription}
-    />
-  );
-}
+  billingHistoryEmptyDescription,
+  billingHistorySectionActions,
+  billingHistorySectionDescription,
+  isFreeStarterActive,
+  scrollToBillingPlans,
+} from "./subscription-settings-helpers";
+import { BillingHistory } from "./subscription-billing-history";
 
 export function SubscriptionSettings() {
   const { isAdmin } = useAuth();
   const { clinic } = useClinic();
-  const { data: subscription, isLoading } = useSubscription();
-  const billingHistoryRef = useRef<HTMLDivElement>(null);
+  const billing = useBillingSubscriptionWorkspace();
+
+  useAutoResolveSubscriptionPayment({
+    enabled: isAdmin,
+    subscription: billing.subscription,
+    isLoading: billing.isSubscriptionLoading,
+    isBillingHistoryLoading: billing.isBillingHistoryLoading,
+    resolvePayment: billing.resolvePayment,
+    clinic,
+  });
 
   const supportPhone = getSupportPhoneNumber();
+  const subscription = billing.subscription;
+  const subscriptionStatus = subscription?.subscriptionStatus;
+  const hasOutstandingPendingPayment =
+    subscription?.hasOutstandingPendingPayment === true;
+  const renewalPeriodLapsed =
+    subscription?.currentPeriodEnd != null
+      ? new Date(subscription.currentPeriodEnd).getTime() <= Date.now()
+      : false;
+  const isPaymentDue =
+    subscriptionStatus === "PAYMENT_DUE" || subscriptionStatus === "PAST_DUE";
+  const isExpired = subscriptionStatus === "EXPIRED";
+  const isInGracePeriod = subscriptionStatus === "GRACE";
+  const trialState = getTrialState(clinic);
+  const showRecoveryCard =
+    isPaymentDue ||
+    isInGracePeriod ||
+    trialState === "GRACE" ||
+    (hasOutstandingPendingPayment && renewalPeriodLapsed);
 
-  if (isLoading) {
+  if (billing.isSubscriptionLoading) {
     return (
       <Card>
         <CardContent className="space-y-4 pt-6">
@@ -200,11 +101,7 @@ export function SubscriptionSettings() {
   const tierName = subscription?.tier
     ? getTierInfo(subscription.tier).name
     : "Starter";
-  const subscriptionStatus = subscription?.subscriptionStatus || "Inactive";
-  const workspaceProfileLabel = WORKSPACE_PROFILE_LABEL[
-    parseWorkspaceProfile(clinic?.workspaceProfile)
-  ];
-
+  const subscriptionStatusLabel = subscriptionStatus || "Inactive";
   if (!isAdmin) {
     return (
       <Card>
@@ -216,16 +113,9 @@ export function SubscriptionSettings() {
           <div className="flex items-center justify-between">
             <p className="ui-section-title text-[var(--fs-lg)]">{tierName}</p>
             <Badge variant="secondary" className="capitalize">
-              {subscriptionStatus}
+              {subscriptionStatusLabel}
             </Badge>
           </div>
-          <p className="mt-2 text-sm text-muted-foreground">
-            Workspace mode: {workspaceProfileLabel}
-          </p>
-          <p className="mt-1 text-xs text-muted-foreground">
-            Workspace is not a separate paid tier; it controls which product areas
-            are enabled for your facility.
-          </p>
           <p className="mt-3 text-sm text-muted-foreground">
             Contact your facility administrator to manage subscription.
           </p>
@@ -235,7 +125,7 @@ export function SubscriptionSettings() {
   }
 
   const trialDaysLeft =
-    subscriptionStatus === "TRIALING" && subscription?.currentPeriodEnd
+    subscriptionStatusLabel === "TRIALING" && subscription?.currentPeriodEnd
       ? Math.max(
           0,
           Math.ceil(
@@ -245,41 +135,17 @@ export function SubscriptionSettings() {
         )
       : null;
 
-  const paidPeriodDaysLeft =
-    subscriptionStatus === "ACTIVE" && subscription
-      ? (getDisplayBillingPeriodEndAndDaysLeft(subscription)?.daysLeft ?? null)
-      : null;
-
-  const isPaymentDue =
-    subscriptionStatus === "PAYMENT_DUE" || subscriptionStatus === "PAST_DUE";
-  const isExpired = subscriptionStatus === "EXPIRED";
-  const isInGracePeriod = subscriptionStatus === "GRACE";
   const freeStarterActive = isFreeStarterActive(subscription ?? undefined);
+  const isResolving = billing.isCheckoutProcessing;
 
   return (
     <div className="space-y-6">
-      <Card>
-        <CardHeader className="pb-2">
-          <CardTitle className="text-[var(--fs-md)]">Plan and workspace</CardTitle>
-          <CardDescription>
-            Your paid plan name (Starter, Essential, and so on) is the
-            subscription tier. Front desk is a workspace mode, not another tier:
-            it limits clinical apps while keeping appointments and billing. Tier
-            and workspace are both shown here.
-          </CardDescription>
-        </CardHeader>
-        <CardContent className="flex flex-col gap-3 text-sm sm:flex-row sm:items-start sm:justify-between">
-          <div>
-            <p className="text-muted-foreground">Subscription tier</p>
-            <p className="font-medium text-foreground">{tierName}</p>
-          </div>
-          <div>
-            <p className="text-muted-foreground">Workspace</p>
-            <p className="font-medium text-foreground">{workspaceProfileLabel}</p>
-          </div>
-        </CardContent>
-      </Card>
-
+      <PaymentRecoveryCard
+        show={showRecoveryCard}
+        recoverablePayment={billing.recoverablePayment}
+        resolvePayment={billing.resolvePayment}
+        isResolving={isResolving}
+      />
       {trialDaysLeft !== null ? (
         <Alert className="border-info/40 bg-info/10">
           <Clock className="h-4 w-4 text-info" />
@@ -306,13 +172,7 @@ export function SubscriptionSettings() {
           <Info className="h-4 w-4 text-muted-foreground" aria-hidden />
           <AlertTitle>Starter without a paid subscription</AlertTitle>
           <AlertDescription className="flex flex-wrap items-center justify-between gap-3">
-            <span>
-              Your clinic is active on Starter at no charge, so there is no
-              Razorpay subscription receipt yet. Billing history only lists
-              completed subscription checkouts (and any one-off charges we record
-              for your clinic). Upgrade when you are ready for paid limits and
-              invoices here.
-            </span>
+            <span>Your clinic is active on Starter at no charge.</span>
             <Button
               size="sm"
               onClick={scrollToBillingPlans}
@@ -322,37 +182,9 @@ export function SubscriptionSettings() {
             </Button>
           </AlertDescription>
         </Alert>
-      ) : (
-        <TrialOfferBanner
-          actionLabel="View plans"
-          onAction={scrollToBillingPlans}
-        />
-      )}
+      ) : null}
 
-      {paidPeriodDaysLeft !== null && paidPeriodDaysLeft <= 7 && (
-        <Alert className="border-warning/40 bg-warning/10">
-          <Clock className="h-4 w-4 text-warning" />
-          <AlertTitle>Subscription renewal coming up</AlertTitle>
-          <AlertDescription className="flex flex-wrap items-center justify-between gap-3">
-            <span>
-              {paidPeriodDaysLeft > 0
-                ? `${paidPeriodDaysLeft} day${paidPeriodDaysLeft !== 1 ? "s" : ""} left in the current billing period.`
-                : "Your billing period ends today."}{" "}
-              Ensure payment is completed to avoid interruption.
-            </span>
-            <Button
-              size="sm"
-              variant="outline"
-              onClick={scrollToBillingPlans}
-              className="shrink-0"
-            >
-              Manage billing
-            </Button>
-          </AlertDescription>
-        </Alert>
-      )}
-
-      {isPaymentDue && (
+      {isPaymentDue && !showRecoveryCard && (
         <Alert variant="destructive">
           <AlertTriangle className="h-4 w-4" />
           <AlertTitle>Payment Due</AlertTitle>
@@ -364,16 +196,17 @@ export function SubscriptionSettings() {
             <Button
               size="sm"
               variant="outline"
-              onClick={scrollToBillingPlans}
+              disabled={isResolving}
+              onClick={() => void billing.resolvePayment()}
               className="shrink-0 border-destructive-foreground/30 text-destructive-foreground hover:bg-destructive-foreground/10"
             >
-              Update Payment
+              {isResolving ? "Opening…" : "Update Payment"}
             </Button>
           </AlertDescription>
         </Alert>
       )}
 
-      {isInGracePeriod && (
+      {isInGracePeriod && !showRecoveryCard && (
         <Alert className="border-warning/40 bg-warning/10">
           <AlertTriangle className="h-4 w-4 text-warning" />
           <AlertTitle>Payment Grace Period</AlertTitle>
@@ -385,10 +218,11 @@ export function SubscriptionSettings() {
             <Button
               size="sm"
               variant="outline"
-              onClick={scrollToBillingPlans}
+              disabled={isResolving}
+              onClick={() => void billing.resolvePayment()}
               className="shrink-0"
             >
-              Resolve Payment
+              {isResolving ? "Opening…" : "Resolve Payment"}
             </Button>
           </AlertDescription>
         </Alert>
@@ -420,19 +254,9 @@ export function SubscriptionSettings() {
         description="Change plan, compare features, and view invoices"
         contentClassName="space-y-6"
       >
-        <BillingSubscriptionWorkspace />
+        <BillingSubscriptionWorkspaceView workspace={billing} />
 
         <div className="flex flex-col gap-3 border-t border-border/60 pt-4">
-          <p className="text-[var(--fs-2xs)] text-muted-foreground">
-            General product help (email and WhatsApp) is under{" "}
-            <Link
-              href="/settings?tab=help-support"
-              className="font-medium text-foreground underline underline-offset-4 hover:text-primary"
-            >
-              Help & support
-            </Link>
-            .
-          </p>
           <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
             <p className="text-[var(--fs-sm)] text-muted-foreground">
               Need help with billing or onboarding?
@@ -449,7 +273,7 @@ export function SubscriptionSettings() {
         </div>
       </Section>
 
-      <div ref={billingHistoryRef} className="scroll-mt-6">
+      <div className="scroll-mt-6">
         <Section
           id="billing-history-section"
           title="Billing History"

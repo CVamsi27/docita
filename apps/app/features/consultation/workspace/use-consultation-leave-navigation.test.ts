@@ -6,8 +6,8 @@ import type { ConsultationSaveHandles } from "./use-consultation-leave-navigatio
 import {
   CONSULTATION_LEAVE_GUARD_SKIP_ATTR,
   isSameConsultationAppointmentPathname,
-  useConsultationLeaveNavigation,
-} from "./use-consultation-leave-navigation";
+} from "./consultation-leave-navigation-helpers";
+import { useConsultationLeaveNavigation } from "./use-consultation-leave-navigation";
 
 function makeSaveHandlesRef() {
   return createRef<ConsultationSaveHandles | null>();

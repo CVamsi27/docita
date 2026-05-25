@@ -8,18 +8,18 @@ import {
   DialogFooter,
   DialogHeader,
   DialogTitle,
-} from "@workspace/ui/components/dialog";
-import { Button } from "@workspace/ui/components/button";
-import { Checkbox } from "@workspace/ui/components/checkbox";
-import { Label } from "@workspace/ui/components/label";
+} from "@workspace/ui/components/overlay/dialog";
+import { Button } from "@workspace/ui/components/form/button";
+import { Checkbox } from "@workspace/ui/components/form/checkbox";
+import { Label } from "@workspace/ui/components/form/label";
 import {
   Select,
   SelectContent,
   SelectItem,
   SelectTrigger,
   SelectValue,
-} from "@workspace/ui/components/select";
-import { ScrollArea } from "@workspace/ui/components/scroll-area";
+} from "@workspace/ui/components/form/select";
+import { ScrollArea } from "@workspace/ui/components/layout/scroll-area";
 import { Globe, Mail, Shield } from "lucide-react";
 
 const SUPPORTED_LANGUAGES = [
@@ -222,7 +222,7 @@ export function ConsentNoticeModal({
                     id={purpose.key}
                     checked={consents[purpose.key]}
                     onCheckedChange={(checked) =>
-                      handleConsentChange(purpose.key, checked as boolean)
+                      handleConsentChange(purpose.key, checked === true)
                     }
                   />
                   <div className="space-y-1">
@@ -281,4 +281,3 @@ export function ConsentNoticeModal({
   );
 }
 
-export default ConsentNoticeModal;

@@ -1,5 +1,5 @@
-import { Textarea } from "@workspace/ui/components/textarea";
-import { Label } from "@workspace/ui/components/label";
+import { Textarea } from "@workspace/ui/components/form/textarea";
+import { Label } from "@workspace/ui/components/form/label";
 import { FileText } from "lucide-react";
 import { ConfidenceIndicator } from "@/features/ocr/components/common/confidence-indicator";
 import { SectionToggle } from "@/features/ocr/components/common/section-toggle";

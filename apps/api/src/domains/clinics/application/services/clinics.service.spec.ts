@@ -1,11 +1,20 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import { ClinicsService } from './clinics.service';
-import { PrismaService } from '@/prisma/prisma.service';
+import {
+  CLINIC_PERSISTENCE_PORT,
+  type ClinicPersistencePort,
+} from '@/domains/clinics/application/ports/clinic-persistence.port';
 import { ClinicFactory } from '@/domains/clinics/core/factories/clinic.factory';
 import { SettingsFactory } from '@/domains/clinics/core/factories/settings.factory';
 import { ClinicDataService } from './clinic-data.service';
+import { ClinicDataCommandService } from './clinic-data-command.service';
+import { ClinicDataQueryService } from './clinic-data-query.service';
 import { ClinicSettingsService } from './clinic-settings.service';
+import { ClinicSettingsQueryService } from './clinic-settings-query.service';
+import { ClinicSettingsCommandService } from './clinic-settings-command.service';
+import { ClinicDataSubjectRequestService } from './clinic-data-subject-request.service';
 import { StaffManagementService } from './staff-management.service';
+import { StaffInviteService } from './staff-invite.service';
 import { AppConfigService } from '@/shared/modules/config/app-configuration.service';
 import { StoredFileUrlResolverService } from '@/domains/documents/application/services/stored-file-url-resolver.service';
 import { CLINIC_DATA_REPOSITORY_TOKEN } from '@/domains/clinics/core/repositories/clinic-data.repository.interface';
@@ -143,15 +152,21 @@ describe('ClinicsService', () => {
     const module: TestingModule = await Test.createTestingModule({
       providers: [
         ClinicsService,
+        ClinicDataCommandService,
+        ClinicDataQueryService,
         ClinicDataService,
         ClinicSettingsService,
+        ClinicSettingsCommandService,
+        { provide: ClinicDataSubjectRequestService, useValue: {} },
         StaffManagementService,
+        StaffInviteService,
+        { provide: ClinicSettingsQueryService, useValue: {} },
         {
           provide: CLINIC_DATA_REPOSITORY_TOKEN,
           useValue: clinicDataRepository,
         },
         {
-          provide: PrismaService,
+          provide: CLINIC_PERSISTENCE_PORT,
           useValue: {
             clinic: {
               create: jest.fn(),
@@ -232,7 +247,9 @@ describe('ClinicsService', () => {
     }).compile();
 
     service = module.get<ClinicsService>(ClinicsService);
-    prismaService = module.get(PrismaService);
+    prismaService = module.get<ClinicPersistencePort>(
+      CLINIC_PERSISTENCE_PORT,
+    ) as unknown as typeof prismaService;
     clinicFactory = module.get<ClinicFactory>(ClinicFactory);
     _settingsFactory = module.get<SettingsFactory>(SettingsFactory);
 

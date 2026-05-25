@@ -1,9 +1,11 @@
 import {
+  Inject,
   Injectable,
   Logger,
   BadRequestException,
   OnModuleDestroy,
 } from '@nestjs/common';
+import { CLOCK_PORT, type IClock } from '@/shared/common/ports/clock.port';
 import { randomBytes } from 'crypto';
 import {
   OnboardingStep,
@@ -27,7 +29,7 @@ export class OnboardingDataService implements OnModuleDestroy {
   private onboardingSessions = new Map<string, OnboardingSession>();
   private cleanupTimer: NodeJS.Timeout;
 
-  constructor() {
+  constructor(@Inject(CLOCK_PORT) private readonly clock: IClock) {
     this.cleanupTimer = setInterval(() => this.cleanExpiredSessions(), 3600000);
     this.cleanupTimer.unref?.();
   }
@@ -39,9 +41,9 @@ export class OnboardingDataService implements OnModuleDestroy {
       currentStep: OnboardingStep.CLINIC_DETAILS,
       completedSteps: [],
       data: {},
-      createdAt: new Date(),
-      updatedAt: new Date(),
-      expiresAt: new Date(Date.now() + 24 * 60 * 60 * 1000),
+      createdAt: this.clock.now(),
+      updatedAt: this.clock.now(),
+      expiresAt: new Date(this.clock.now().getTime() + 24 * 60 * 60 * 1000),
     };
 
     this.onboardingSessions.set(onboardingId, session);
@@ -67,7 +69,7 @@ export class OnboardingDataService implements OnModuleDestroy {
       [key]: data,
     };
     session.currentStep = step;
-    session.updatedAt = new Date();
+    session.updatedAt = this.clock.now();
 
     if (!session.completedSteps.includes(step)) {
       session.completedSteps.push(step);
@@ -119,7 +121,7 @@ export class OnboardingDataService implements OnModuleDestroy {
   }
 
   private getStepDataKey(step: OnboardingStep): string {
-    const keyMap = {
+    const keyMap: Record<OnboardingStep, string> = {
       [OnboardingStep.CLINIC_DETAILS]: 'clinicDetails',
       [OnboardingStep.ADMIN_ACCOUNT]: 'adminAccount',
       [OnboardingStep.PLAN_SELECTION]: 'planSelection',
@@ -127,12 +129,13 @@ export class OnboardingDataService implements OnModuleDestroy {
       [OnboardingStep.SLA_AGREEMENT]: 'slaAgreement',
       [OnboardingStep.CONSENT_MANAGEMENT]: 'consentManagement',
       [OnboardingStep.STAFF_SETUP]: 'staffSetup',
+      [OnboardingStep.COMPLETED]: 'completed',
     };
-    return keyMap[step as keyof typeof keyMap] || step.toLowerCase();
+    return keyMap[step] ?? step.toLowerCase();
   }
 
   private cleanExpiredSessions() {
-    const now = new Date();
+    const now = this.clock.now();
     for (const [id, session] of this.onboardingSessions.entries()) {
       if (session.expiresAt < now) {
         this.onboardingSessions.delete(id);

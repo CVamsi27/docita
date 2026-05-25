@@ -4,10 +4,10 @@ import { useQuery } from "@tanstack/react-query";
 import { invoicesApi } from "@/features/invoices/api/invoices.api";
 import { Feature, type ListInvoicesContractQuery } from "@workspace/types";
 import { queryKeys } from "@workspace/data-access";
-import { useTierFeatureEnabled } from "@/hooks/api/tier-feature-guards";
-import { useAppMutation } from "@/lib/query-hooks";
+import { useTierFeatureEnabled } from "@/lib/access-control/use-tier-feature-enabled";
+import { useAppMutation } from "@/lib/api/query-hooks";
 
-/** Mirrors {@link useInvoices} in `@/hooks/api/use-billing` (API detail routes require invoicing). */
+/** Mirrors {@link useInvoices} in `@workspace/data-access` (API detail routes require invoicing). */
 export function useInvoices(
   params?: Pick<ListInvoicesContractQuery, "patientId" | "status" | "limit">,
   options?: { enabled?: boolean },

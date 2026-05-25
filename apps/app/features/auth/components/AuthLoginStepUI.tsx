@@ -1,12 +1,12 @@
 "use client";
 
-import { DocitaLoadingIndicator } from "@workspace/ui/components/docita-loading-indicator";
+import { DocitaLoadingIndicator } from "@workspace/ui/components/feedback/docita-loading-indicator";
 import { Eye, EyeOff, ShieldCheck } from "lucide-react";
-import { ErrorBanner } from "@/components/common/error-banner";
-import { Button } from "@workspace/ui/components/button";
-import { SymbolTooltip } from "@workspace/ui/components/tooltip";
-import { Input } from "@workspace/ui/components/input";
-import { Label } from "@workspace/ui/components/label";
+import { ErrorBanner } from "@/components/errors/error-banner";
+import { Button } from "@workspace/ui/components/form/button";
+import { SymbolTooltip } from "@workspace/ui/components/overlay/tooltip";
+import { Input } from "@workspace/ui/components/form/input";
+import { Label } from "@workspace/ui/components/form/label";
 import {
   BackEmailField,
   fieldClass,
@@ -91,25 +91,27 @@ export function AuthLoginStepUI({
                 : undefined
             }
           />
-          <SymbolTooltip
-            label={showPassword ? "Hide password" : "Show password"}
-            side="left"
-          >
-            <Button
-              type="button"
-              variant="ghost"
-              size="icon"
-              className="absolute right-0 top-0 h-full w-10 text-muted-foreground hover:text-foreground"
-              onClick={onTogglePassword}
-              aria-label={showPassword ? "Hide password" : "Show password"}
+          <div className="absolute inset-y-0 right-0 flex items-center pr-1">
+            <SymbolTooltip
+              label={showPassword ? "Hide password" : "Show password"}
+              side="left"
             >
-              {showPassword ? (
-                <EyeOff className="h-4 w-4" />
-              ) : (
-                <Eye className="h-4 w-4" />
-              )}
-            </Button>
-          </SymbolTooltip>
+              <Button
+                type="button"
+                variant="ghost"
+                size="icon-sm"
+                className="text-muted-foreground hover:text-foreground"
+                onClick={onTogglePassword}
+                aria-label={showPassword ? "Hide password" : "Show password"}
+              >
+                {showPassword ? (
+                  <EyeOff className="h-4 w-4" />
+                ) : (
+                  <Eye className="h-4 w-4" />
+                )}
+              </Button>
+            </SymbolTooltip>
+          </div>
         </div>
         {hasFieldError(fieldErrors, "password") && (
           <InlineFieldError

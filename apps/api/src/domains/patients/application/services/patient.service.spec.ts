@@ -1,5 +1,8 @@
 import { Test, TestingModule } from '@nestjs/testing';
-import { PrismaService } from '@/prisma/prisma.service';
+import {
+  PATIENT_PERSISTENCE_PORT,
+  type PatientPersistencePort,
+} from '@/domains/patients/application/ports/patient-persistence.port';
 import { NotFoundException, ForbiddenException } from '@nestjs/common';
 import { beforeEach, describe, it, expect, jest } from '@jest/globals';
 
@@ -36,9 +39,9 @@ describe('PatientService', () => {
       (clinicId: string) => Promise<PatientRecord[]>
     >;
   };
-  let prisma: PrismaService;
+  let prisma: PatientPersistencePort;
 
-  const mockPrismaService = {
+  const mockPatientPersistencePort = {
     patient: {
       findUnique: jest.fn<(...args: unknown[]) => Promise<unknown>>(),
       findMany: jest.fn<(...args: unknown[]) => Promise<unknown>>(),
@@ -65,14 +68,14 @@ describe('PatientService', () => {
           },
         },
         {
-          provide: PrismaService,
-          useValue: mockPrismaService,
+          provide: PATIENT_PERSISTENCE_PORT,
+          useValue: mockPatientPersistencePort,
         },
       ],
     }).compile();
 
     service = module.get<typeof service>('PatientService');
-    prisma = module.get<PrismaService>(PrismaService);
+    prisma = module.get<PatientPersistencePort>(PATIENT_PERSISTENCE_PORT);
   });
 
   describe('createPatient', () => {

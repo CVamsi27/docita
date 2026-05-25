@@ -6,6 +6,7 @@ import { ExpireSubscriptionUseCase } from '@/domains/subscriptions/application/u
 import { PrismaService } from '@/prisma/prisma.service';
 import { SubscriptionReminderScheduler } from './subscription-reminder.scheduler';
 import { AdminAlertsService } from '@/shared/modules/messaging/admin-alerts/admin-alerts.service';
+import type { IClock } from '@/shared/common/ports/clock.port';
 
 describe('SubscriptionReminderScheduler', () => {
   let scheduler: SubscriptionReminderScheduler;
@@ -94,6 +95,10 @@ describe('SubscriptionReminderScheduler', () => {
       .fn<AdminAlertsService['markRecovered']>()
       .mockResolvedValue(false);
 
+    const clock: IClock = {
+      now: () => new Date('2026-05-19T12:00:00.000Z'),
+    };
+
     scheduler = new SubscriptionReminderScheduler(
       notifyUseCase,
       notifyGraceDeadlineUseCase,
@@ -101,6 +106,7 @@ describe('SubscriptionReminderScheduler', () => {
       expireUseCase,
       prisma,
       adminAlerts,
+      clock,
     );
   });
 

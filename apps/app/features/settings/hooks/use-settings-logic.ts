@@ -1,19 +1,18 @@
 import { useCallback, useMemo, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { settingsTabs } from "@/features/settings/constants";
-import { useAuth } from "@/lib/auth-context";
-import { canAccessTarget } from "@/lib/access-policy";
-import { hasPermission, type Permission } from "@/lib/permissions";
+import { useAuth } from "@/lib/auth/auth-context";
+import { canAccessTarget } from "@/lib/access-control/access-policy";
+import { hasPermission, type Permission } from "@/lib/auth/permissions";
 import { usePermissionStore } from "@/lib/stores/permission-store";
 import {
   APP_ACCESS_TARGETS,
-  DEFAULT_WORKSPACE_PROFILE,
   Feature,
   Tier,
   type AppAccessTarget,
   type UserRole,
-  type WorkspaceProfile,
 } from "@workspace/types";
+import { getTierName, hasFeatureAccess } from "@workspace/utils";
 
 const SETTINGS_TAB_ACCESS_TARGETS: Partial<Record<string, AppAccessTarget>> = {
   subscription: APP_ACCESS_TARGETS.PAGE_SETTINGS_SUBSCRIPTION,
@@ -42,19 +41,17 @@ const SETTINGS_TAB_MIN_TIERS: Partial<Record<string, Tier>> = {
 interface VisibleSettingsTabsParams {
   userRole?: UserRole | null;
   currentTier: Tier;
+  hasIntelligence?: boolean;
   canAccessFeature: (feature: Feature) => boolean;
-  canAccessTier: (tier: Tier) => boolean;
   searchQuery?: string;
-  workspaceProfile?: WorkspaceProfile;
 }
 
 export function getVisibleSettingsTabs({
   userRole,
   currentTier,
+  hasIntelligence = false,
   canAccessFeature,
-  canAccessTier,
   searchQuery = "",
-  workspaceProfile = DEFAULT_WORKSPACE_PROFILE,
 }: VisibleSettingsTabsParams) {
   const tabs = settingsTabs
     .map((category) => ({
@@ -68,7 +65,14 @@ export function getVisibleSettingsTabs({
         }
 
         const minTier = SETTINGS_TAB_MIN_TIERS[item.value];
-        if (minTier !== undefined && currentTier < minTier) {
+        if (
+          minTier !== undefined &&
+          !hasFeatureAccess(
+            getTierName(currentTier),
+            Feature.QUEUE_MANAGEMENT,
+            hasIntelligence,
+          )
+        ) {
           return false;
         }
 
@@ -85,15 +89,18 @@ export function getVisibleSettingsTabs({
             {
               role: userRole,
               canAccessFeature,
-              canAccessTier,
-              workspaceProfile,
+              currentTier,
+              hasIntelligence,
             },
             "read",
           );
         }
 
         if (!("roles" in item) || !item.roles) return true;
-        return !!userRole && (item.roles as readonly string[]).includes(userRole);
+        return (
+          !!userRole &&
+          item.roles.some((allowedRole) => allowedRole === userRole)
+        );
       }),
     }))
     .filter((category) => category.items.length > 0);
@@ -118,9 +125,8 @@ export const useSettingsLogic = () => {
   const searchParams = useSearchParams();
   const { user } = useAuth();
   const canAccessFeature = usePermissionStore((state) => state.canAccess);
-  const canAccessTier = usePermissionStore((state) => state.canAccessTier);
   const currentTier = usePermissionStore((state) => state.currentTier);
-  const workspaceProfile = usePermissionStore((state) => state.workspaceProfile);
+  const hasIntelligence = usePermissionStore((state) => state.hasIntelligence);
   const requestedTab = searchParams.get("tab") || "general";
   const [searchQuery, setSearchQuery] = useState("");
 
@@ -128,18 +134,16 @@ export const useSettingsLogic = () => {
     return getVisibleSettingsTabs({
       userRole: user?.role,
       currentTier,
+      hasIntelligence,
       canAccessFeature,
-      canAccessTier,
       searchQuery,
-      workspaceProfile,
     });
   }, [
     canAccessFeature,
-    canAccessTier,
     currentTier,
+    hasIntelligence,
     searchQuery,
     user?.role,
-    workspaceProfile,
   ]);
 
   const firstMatchingTab = filteredTabs[0]?.items[0]?.value;

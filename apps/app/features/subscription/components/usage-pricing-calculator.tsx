@@ -1,26 +1,19 @@
 "use client";
 
 import { useState } from "react";
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@workspace/ui/components/card";
-import { Label } from "@workspace/ui/components/label";
-import { Slider } from "@workspace/ui/components/slider";
-import { Badge } from "@workspace/ui/components/badge";
-import { Separator } from "@workspace/ui/components/separator";
-import { Button } from "@workspace/ui/components/button";
-import {
-  PRICING_CURRENCY_CONFIG,
-  TIER_PRICING_BY_CURRENCY,
-  TIER_OVERAGE_RATES_BY_CURRENCY,
-  PRICING_CURRENCY_SYMBOLS,
-  TIER_LIMITS,
-  getWhatsAppAddonPricingByCurrency,
-  type SupportedCurrency,
-} from "@workspace/types";
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@workspace/ui/components/indicators/card";
+import { Label } from "@workspace/ui/components/form/label";
+import { Slider } from "@workspace/ui/components/form/slider";
+import { Badge } from "@workspace/ui/components/indicators/badge";
+import { Separator } from "@workspace/ui/components/layout/separator";
+import { Button } from "@workspace/ui/components/form/button";
+import { PRICING_CURRENCY_CONFIG, TIER_PRICING_BY_CURRENCY, TIER_OVERAGE_RATES_BY_CURRENCY, PRICING_CURRENCY_SYMBOLS, TIER_LIMITS, type SupportedCurrency } from "@workspace/types";
+import { getWhatsAppAddonPricingByCurrency } from "@workspace/utils";
 import { formatAmountLocale, formatCountLocale } from "@workspace/utils";
 import { Calculator, ArrowRight } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useLocaleCurrency } from "@/hooks/use-locale-currency";
-import { subscriptionSettingsHref } from "@/lib/subscription-settings-path";
+import { subscriptionSettingsHref } from "@/lib/subscription/subscription-settings-path";
 
 interface UsagePricingCalculatorProps {
   currency?: SupportedCurrency;
@@ -58,7 +51,8 @@ function calculateBill(
   tierKey: "ESSENTIAL" | "PROFESSIONAL",
   currency: SupportedCurrency,
 ): BillResult {
-  const base = (TIER_PRICING_BY_CURRENCY[currency]?.[tierKey]?.monthly as number) ?? 0;
+  const monthly = TIER_PRICING_BY_CURRENCY[currency]?.[tierKey]?.monthly;
+  const base = typeof monthly === "number" ? monthly : 0;
   const rates = TIER_OVERAGE_RATES_BY_CURRENCY[currency]?.[tierKey] ?? TIER_OVERAGE_RATES_BY_CURRENCY.INR[tierKey];
   const limits = TIER_LIMITS[tierKey];
   const whatsappPricing = getWhatsAppAddonPricingByCurrency(tierKey, currency);

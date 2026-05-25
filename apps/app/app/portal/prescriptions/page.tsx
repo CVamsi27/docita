@@ -2,11 +2,12 @@
 
 import { PatientPortalPrescriptionsUI } from "@/features/patient-portal/components";
 import type { PatientPrescriptionStatus } from "@/features/patient-portal/types/patient-portal-types";
-import { usePatientPortalPrescriptions } from "@/hooks/api/use-patient-portal";
-import { AppPageScaffold } from "@workspace/ui/components/app-page-scaffold";
-import { DataState } from "@workspace/ui/components/data-state";
-import { PageHeader } from "@workspace/ui/components/page-header";
+import { usePatientPortalPrescriptions } from "@workspace/data-access";
+import { AppPageScaffold } from "@workspace/ui/components/layout/app-page-scaffold";
+import { DataState } from "@workspace/ui/components/data-display/data-state";
+import { PageHeader } from "@workspace/ui/components/layout/page-header";
 import { FileText } from "lucide-react";
+import { isRecord } from "@workspace/utils";
 
 function mapPrescriptionStatus(status: unknown): PatientPrescriptionStatus {
   if (typeof status !== "string") {
@@ -25,8 +26,8 @@ export default function PortalPrescriptionsPage() {
   } = usePatientPortalPrescriptions();
 
   const prescriptions = (data?.prescriptions ?? []).map((item, index) => {
-    const row = item as Record<string, unknown>;
-    const doctor = row.doctor as Record<string, unknown> | undefined;
+    const row = isRecord(item) ? item : {};
+    const doctor = isRecord(row.doctor) ? row.doctor : undefined;
 
     const title =
       typeof row.title === "string"

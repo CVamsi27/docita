@@ -1,4 +1,5 @@
 import type { APIContext, MiddlewareNext } from "astro";
+import { applyLandingSecurityHeaders } from "@/lib/security-headers";
 
 const YEAR_IN_SECONDS = 31536000;
 const HOUR_IN_SECONDS = 3600;
@@ -24,6 +25,8 @@ export async function onRequest(
   next: MiddlewareNext,
 ): Promise<Response> {
   const response = await next();
+  applyLandingSecurityHeaders(response);
+
   const pathname = new URL(context.request.url).pathname;
 
   if (response.headers.has("Cache-Control")) {

@@ -1,11 +1,12 @@
 import { beforeEach, describe, expect, it } from '@jest/globals';
 import { N1QueryDetectionService } from './n1-query-detection.service';
+import { createFixedClockMock } from '@/test-utils';
 
 describe('N1QueryDetectionService', () => {
   let service: N1QueryDetectionService;
 
   beforeEach(() => {
-    service = new N1QueryDetectionService();
+    service = new N1QueryDetectionService(createFixedClockMock());
   });
 
   it('detects repeated query patterns as potential N+1', () => {

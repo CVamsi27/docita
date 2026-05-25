@@ -1,14 +1,15 @@
 "use client";
 
-import { AuthProvider } from "@/lib/auth";
+import { AuthProvider } from "@/lib/auth/auth";
 import { Toaster } from "sonner";
-import { ThemeProvider } from "next-themes";
 import { type ReactNode, useState } from "react";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { APIRequestError } from "@workspace/data-access";
 import { NavigationHistoryProvider } from "@/providers/navigation-history-provider";
 import { InternalWebVitalsReporter } from "@/components/internal-web-vitals-reporter";
-import { TooltipProvider } from "@workspace/ui/components/tooltip";
+import { TooltipProvider } from "@workspace/ui/components/overlay/tooltip";
+import { ThemeProvider } from "next-themes";
+import { InternalDataAccessBridge } from "@/app/data-access-bridge";
 
 const TOAST_DURATION_MS = 5000;
 const TOAST_VISIBLE_COUNT = Number.POSITIVE_INFINITY;
@@ -40,23 +41,32 @@ export function Providers({ children }: { children: ReactNode }) {
   );
 
   return (
-    <ThemeProvider attribute="class" defaultTheme="light" enableSystem={false}>
+    <ThemeProvider
+      attribute="class"
+      defaultTheme="light"
+      enableSystem={false}
+      disableTransitionOnChange
+      enableColorScheme
+      storageKey="theme"
+    >
       <QueryClientProvider client={queryClient}>
         <AuthProvider>
-          <TooltipProvider delayDuration={300}>
-            <NavigationHistoryProvider>
-              <InternalWebVitalsReporter />
-              {children}
-            </NavigationHistoryProvider>
-          </TooltipProvider>
-          <Toaster
-            closeButton
-            duration={TOAST_DURATION_MS}
-            expand
-            richColors
-            position="top-right"
-            visibleToasts={TOAST_VISIBLE_COUNT}
-          />
+          <InternalDataAccessBridge>
+            <TooltipProvider delayDuration={300}>
+              <NavigationHistoryProvider>
+                <InternalWebVitalsReporter />
+                {children}
+              </NavigationHistoryProvider>
+            </TooltipProvider>
+            <Toaster
+              closeButton
+              duration={TOAST_DURATION_MS}
+              expand
+              richColors
+              position="top-right"
+              visibleToasts={TOAST_VISIBLE_COUNT}
+            />
+          </InternalDataAccessBridge>
         </AuthProvider>
       </QueryClientProvider>
     </ThemeProvider>

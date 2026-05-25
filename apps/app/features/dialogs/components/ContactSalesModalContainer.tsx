@@ -6,8 +6,8 @@ import {
   ContactSalesFormData,
   ContactSalesModalUI,
 } from "./ContactSalesModalUI";
-import { useCreateContactInquiry } from "@/hooks/api/use-contact";
-import { showUserFacingErrorToast } from "@/lib/user-facing-errors";
+import { useCreateContactInquiry } from "@workspace/data-access";
+import { showUserFacingErrorToast } from "@/lib/errors/user-facing-errors";
 interface ContactSalesModalContainerProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;

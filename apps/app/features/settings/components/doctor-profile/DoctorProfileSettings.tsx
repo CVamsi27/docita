@@ -6,13 +6,15 @@ import {
   CardDescription,
   CardHeader,
   CardTitle,
-} from "@workspace/ui/components/card";
-import { Badge } from "@workspace/ui/components/badge";
-import { Button } from "@workspace/ui/components/button";
-import { useAuth } from "@/lib/auth-context";
-import { useAPIQuery } from "@/lib/api-core";
+} from "@workspace/ui/components/indicators/card";
+import { Badge } from "@workspace/ui/components/indicators/badge";
+import { Button } from "@workspace/ui/components/form/button";
+import { useAuth } from "@/lib/auth/auth-context";
+import { appQueryKeys } from "@workspace/data-access";
+import { useAPIQuery } from "@/lib/api/api-core";
 import type { User } from "@workspace/types";
 import { SignatureUploadQR } from "@/features/settings/components/signature-upload-qr";
+import { RegistrationCertificateUpload } from "@/features/settings/components/doctor-profile/RegistrationCertificateUpload";
 import Link from "next/link";
 import {
   AlertTriangle,
@@ -20,14 +22,14 @@ import {
   Clock,
   PenLine,
 } from "lucide-react";
-import { toAbsoluteApiUrl } from "@/lib/url";
-import { getDoctorVerificationPublicNote } from "@/lib/doctor-verification-display";
+import { toAbsoluteApiUrl } from "@/lib/utils/url";
+import { getDoctorVerificationPublicNote } from "@/lib/formatters/doctor-verification-display";
 
 export function DoctorProfileSettings() {
   const { user } = useAuth();
 
   const { data: doctorProfile } = useAPIQuery<User>(
-    ["doctor-profile", user?.id ?? ""],
+    appQueryKeys.doctorProfile.detail(user?.id ?? ""),
     `/doctors/${user?.id}`,
     { enabled: !!user?.id },
   );
@@ -104,7 +106,7 @@ export function DoctorProfileSettings() {
         </CardHeader>
         <CardContent className="space-y-4">
           {hasSignature && resolvedSignatureUrl && (
-            <div className="flex min-h-[100px] items-center justify-center rounded-lg border bg-background p-4">
+            <div className="flex min-h-[100px] items-center justify-center rounded-lg border bg-white p-4">
               <img
                 src={resolvedSignatureUrl}
                 alt="Your current signature"
@@ -196,8 +198,25 @@ export function DoctorProfileSettings() {
               </Button>
             </div>
           )}
+          {hasRegistration &&
+            (verificationStatus === "REJECTED" ||
+              verificationStatus === "FAILED") && (
+              <div className="mt-3 flex items-center justify-end">
+                <Button variant="outline" size="sm" asChild>
+                  <Link href="/verify-doctor">Update Registration Details</Link>
+                </Button>
+              </div>
+            )}
         </CardContent>
       </Card>
+
+      {hasRegistration && profile?.id && (
+        <RegistrationCertificateUpload
+          doctorId={profile.id}
+          certificateUrl={profile.registrationCertificateUrl}
+          verificationStatus={verificationStatus}
+        />
+      )}
     </div>
   );
 }

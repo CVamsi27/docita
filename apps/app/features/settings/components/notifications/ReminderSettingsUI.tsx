@@ -1,39 +1,42 @@
 "use client";
 
-import { DocitaLoadingIndicator } from "@workspace/ui/components/docita-loading-indicator";
+import { DocitaLoadingIndicator } from "@workspace/ui/components/feedback/docita-loading-indicator";
 
 import { FC, useEffect } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
-import * as z from "zod";
+import {
+  reminderSettingsFormSchema,
+  reminderFormValuesFromClinicSettings,
+  type ReminderSettingsFormValues,
+} from "@workspace/types";
 import {
   Card,
   CardContent,
   CardDescription,
   CardHeader,
   CardTitle,
-} from "@workspace/ui/components/card";
-import { Skeleton } from "@workspace/ui/components/skeleton";
-import { Button } from "@workspace/ui/components/button";
-import { Input } from "@workspace/ui/components/input";
-import { Label } from "@workspace/ui/components/label";
-import { Switch } from "@workspace/ui/components/switch";
+} from "@workspace/ui/components/indicators/card";
+import { Skeleton } from "@workspace/ui/components/feedback/skeleton";
+import { Button } from "@workspace/ui/components/form/button";
+import { Input } from "@workspace/ui/components/form/input";
+import { Label } from "@workspace/ui/components/form/label";
+import { Switch } from "@workspace/ui/components/form/switch";
 import { Bell } from "lucide-react";
 import {
-  ClinicAppSettings,
   useClinicSettings,
   useUpdateClinicSettings,
-} from "@/hooks/api/use-settings";
+} from "@workspace/data-access";
 import { toast } from "sonner";
-import { showUserFacingErrorToast } from "@/lib/user-facing-errors";
+import { showUserFacingErrorToast } from "@/lib/errors/user-facing-errors";
 import {
   Select,
   SelectContent,
   SelectItem,
   SelectTrigger,
   SelectValue,
-} from "@workspace/ui/components/select";
-import { Form, FormControl, FormField, FormItem, FormMessage } from "@workspace/ui/components/form";
+} from "@workspace/ui/components/form/select";
+import { Form, FormControl, FormField, FormItem, FormMessage } from "@workspace/ui/components/form/form";
 
 const TIME_UNITS = [
   { value: "minute", label: "Minutes" },
@@ -41,59 +44,6 @@ const TIME_UNITS = [
   { value: "day", label: "Days" },
   { value: "week", label: "Weeks" },
 ];
-
-const unitSchema = z.enum(["minute", "hour", "day", "week"]);
-
-const reminderBlockSchema = z.object({
-  enabled: z.boolean(),
-  before: z
-    .string()
-    .trim()
-    .optional()
-    .refine((value) => value === undefined || value === "" || /^[0-9]+$/.test(value), "Enter a valid number"),
-  unit: unitSchema.optional(),
-});
-
-const reminderSettingsSchema = z
-  .object({
-    appointment: reminderBlockSchema,
-    followUp: reminderBlockSchema,
-    invoice: reminderBlockSchema,
-    prescription: reminderBlockSchema,
-    schedule: reminderBlockSchema,
-  })
-  .superRefine((data, ctx) => {
-    const blocks: Array<[keyof typeof data, string]> = [
-      ["appointment", "Appointment reminder"],
-      ["followUp", "Follow-up reminder"],
-      ["invoice", "Invoice reminder"],
-      ["prescription", "Prescription reminder"],
-      ["schedule", "Schedule notification"],
-    ];
-
-    for (const [key] of blocks) {
-      const block = data[key];
-      if (!block.enabled) continue;
-
-      const before = Number(block.before);
-      if (!block.before || Number.isNaN(before) || before < 1) {
-        ctx.addIssue({
-          code: z.ZodIssueCode.custom,
-          path: [key, "before"],
-          message: "Enter a value of 1 or more",
-        });
-      }
-      if (!block.unit) {
-        ctx.addIssue({
-          code: z.ZodIssueCode.custom,
-          path: [key, "unit"],
-          message: "Select a time unit",
-        });
-      }
-    }
-  });
-
-type ReminderSettingsFormValues = z.infer<typeof reminderSettingsSchema>;
 
 interface ReminderRowProps {
   label: string;
@@ -212,7 +162,7 @@ export const ReminderSettingsUI: FC = () => {
   const { mutate: updateSettings, isPending: isSaving } = useUpdateClinicSettings();
 
   const form = useForm<ReminderSettingsFormValues>({
-    resolver: zodResolver(reminderSettingsSchema),
+    resolver: zodResolver(reminderSettingsFormSchema),
     defaultValues: {
       appointment: { enabled: true, before: "1", unit: "day" },
       followUp: { enabled: false, before: "1", unit: "day" },
@@ -224,34 +174,7 @@ export const ReminderSettingsUI: FC = () => {
 
   useEffect(() => {
     if (!clinic) return;
-    const s = (clinic.settings as ClinicAppSettings) || {};
-    form.reset({
-      appointment: {
-        enabled: s.reminderBefore !== undefined,
-        before: String(s.reminderBefore ?? "1"),
-        unit: (s.reminderUnit as z.infer<typeof unitSchema>) ?? "day",
-      },
-      followUp: {
-        enabled: s.followUpReminderEnabled ?? false,
-        before: String(s.followUpReminderBefore ?? "1"),
-        unit: (s.followUpReminderUnit as z.infer<typeof unitSchema>) ?? "day",
-      },
-      invoice: {
-        enabled: s.invoiceReminderEnabled ?? false,
-        before: String(s.invoiceReminderBefore ?? "3"),
-        unit: (s.invoiceReminderUnit as z.infer<typeof unitSchema>) ?? "day",
-      },
-      prescription: {
-        enabled: s.prescriptionReminderEnabled ?? false,
-        before: String(s.prescriptionReminderBefore ?? "1"),
-        unit: (s.prescriptionReminderUnit as z.infer<typeof unitSchema>) ?? "day",
-      },
-      schedule: {
-        enabled: s.scheduleNotificationEnabled ?? false,
-        before: String(s.scheduleNotificationBefore ?? "1"),
-        unit: (s.scheduleNotificationUnit as z.infer<typeof unitSchema>) ?? "hour",
-      },
-    });
+    form.reset(reminderFormValuesFromClinicSettings(clinic.settings));
   }, [clinic, form]);
 
   const handleSave = (values: ReminderSettingsFormValues) => {

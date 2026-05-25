@@ -4,7 +4,7 @@ import {
   CardDescription,
   CardHeader,
   CardTitle,
-} from "@workspace/ui/components/card";
+} from "@workspace/ui/components/indicators/card";
 import { Activity, AlertCircle, CheckCircle2 } from "lucide-react";
 import {
   Bar,
@@ -63,7 +63,7 @@ export const ComplianceDashboard = ({
             <Activity className="h-12 w-12 mb-4 opacity-50" />
             <p>No compliance data available</p>
             <p className="text-sm">
-              Compliance metrics will appear as you code visits
+              Compliance metrics will appear once you code visits
             </p>
           </CardContent>
         </Card>

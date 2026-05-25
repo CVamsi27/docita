@@ -8,6 +8,9 @@ import { Reflector } from '@nestjs/core';
 import { PrismaService } from '@/prisma/prisma.service';
 import { ClinicType } from '@workspace/db';
 import { FacilityType } from '@workspace/types';
+import { parseStringEnumMember } from '@workspace/utils';
+
+const FACILITY_TYPE_VALUES = [FacilityType.CLINIC, FacilityType.HOSPITAL];
 import { CLINIC_TYPES_KEY, FACILITY_TYPES_KEY } from './clinic-type.decorator';
 
 @Injectable()
@@ -47,7 +50,7 @@ export class ClinicTypeGuard implements CanActivate {
       const requiredTypeNames = requiredTypes.join(', ');
       throw new ForbiddenException(
         `This feature is only available for ${requiredTypeNames} clinics. ` +
-          `Your clinic (${clinic.name}) is configured as ${clinic.type}.`,
+          `Your clinic (${clinic.name}) has type ${clinic.type}.`,
       );
     }
 
@@ -88,11 +91,15 @@ export class FacilityTypeGuard implements CanActivate {
       throw new ForbiddenException('Clinic not found');
     }
 
-    if (!requiredTypes.includes(clinic.facilityType as FacilityType)) {
+    const facilityType = parseStringEnumMember(
+      FACILITY_TYPE_VALUES,
+      clinic.facilityType,
+    );
+    if (!facilityType || !requiredTypes.includes(facilityType)) {
       const requiredTypeNames = requiredTypes.join(', ');
       throw new ForbiddenException(
         `This feature is only available for ${requiredTypeNames} facilities. ` +
-          `Your facility (${clinic.name}) is configured as ${clinic.facilityType}.`,
+          `Your facility (${clinic.name}) has facility type ${clinic.facilityType}.`,
       );
     }
 

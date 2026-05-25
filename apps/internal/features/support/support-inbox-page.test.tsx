@@ -2,6 +2,7 @@ import { fireEvent, render, screen, waitFor } from "@testing-library/react";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import type { ReactElement } from "react";
 import { beforeEach, describe, expect, it, vi } from "vitest";
+import { DataAccessProvider, type RequestConfig } from "@workspace/data-access";
 import type {
   SupportWhatsAppMessage,
   SupportWhatsAppThreadSummary,
@@ -14,13 +15,13 @@ const supportApiMocks = vi.hoisted(() => ({
   replyToWhatsAppThread: vi.fn(),
 }));
 
-vi.mock("@/lib/auth", () => ({
+vi.mock("@/lib/auth/auth", () => ({
   useAuth: () => ({
     token: "test-token",
   }),
 }));
 
-vi.mock("@/lib/api", () => ({
+vi.mock("@/lib/api/api", () => ({
   supportAPI: supportApiMocks,
 }));
 
@@ -40,8 +41,39 @@ function renderWithQueryClient(ui: ReactElement) {
     },
   });
 
+  const fetcher = <T,>(
+    endpoint: string,
+    _options?: RequestConfig,
+  ): Promise<T> => {
+    if (endpoint.startsWith("/internal/support/whatsapp?")) {
+      return supportApiMocks.getWhatsAppThreads() as Promise<T>;
+    }
+
+    const threadMessagesMatch = endpoint.match(
+      /^\/internal\/support\/whatsapp\/([^/]+)\/messages\?/,
+    );
+    if (threadMessagesMatch) {
+      return supportApiMocks.getWhatsAppThreadMessages(
+        decodeURIComponent(threadMessagesMatch[1]),
+      ) as Promise<T>;
+    }
+
+    return Promise.reject(new Error(`Unexpected data-access GET ${endpoint}`));
+  };
+
   return render(
-    <QueryClientProvider client={queryClient}>{ui}</QueryClientProvider>,
+    <QueryClientProvider client={queryClient}>
+      <DataAccessProvider
+        config={{
+          fetcher,
+          getClinicId: () => undefined,
+          getClinicTimezone: () => undefined,
+          isTierFeatureEnabled: () => true,
+        }}
+      >
+        {ui}
+      </DataAccessProvider>
+    </QueryClientProvider>,
   );
 }
 

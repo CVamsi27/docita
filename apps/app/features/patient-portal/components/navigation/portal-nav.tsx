@@ -14,9 +14,9 @@ import {
   TrendingUp,
   User,
 } from "lucide-react";
-import { Button } from "@workspace/ui/components/button";
-import { useAuth } from "@/lib/auth-context";
-import { usePatientConsentSettings } from "@/hooks/api/use-patient-portal";
+import { Button } from "@workspace/ui/components/form/button";
+import { useAuth } from "@/lib/auth/auth-context";
+import { usePatientConsentSettings } from "@workspace/data-access";
 import { formatDate } from "@/lib/formatters";
 
 const navigation = [
@@ -42,11 +42,7 @@ export function PortalNav() {
       : pathname === href || pathname.startsWith(`${href}/`);
 
   const consentUpdatedOn = consentSettings?.whatsappConsentAt
-    ? formatDate(consentSettings.whatsappConsentAt, "en-IN", {
-        day: "2-digit",
-        month: "short",
-        year: "numeric",
-      })
+    ? formatDate(consentSettings.whatsappConsentAt, "dd MMM yyyy")
     : null;
 
   return (

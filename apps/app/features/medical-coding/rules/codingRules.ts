@@ -71,7 +71,7 @@ export function requiresMoreSpecificity(code: string): boolean {
 
   const parts = code.split(".");
   if (parts.length === 1) return true; 
-  return parts[1]!.length < 2;
+  return (parts[1]?.length ?? 0) < 2;
 }
 
 export function searchCodes<T extends { code: string; description: string }>(

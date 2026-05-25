@@ -57,18 +57,20 @@ describe('PrismaInventoryRepository tenant guards', () => {
   });
 
   it('addMovementAndUpdateQuantity throws when item is in another tenant', async () => {
-    writeClient.$transaction.mockResolvedValueOnce([
-      { id: 'mov-1' },
-      { count: 0 },
-    ]);
+    writeClient.inventoryItem.updateMany.mockResolvedValueOnce({ count: 0 });
+    writeClient.$transaction.mockImplementationOnce(async (callback) =>
+      (callback as (tx: typeof writeClient) => Promise<unknown>)(writeClient),
+    );
 
     await expect(
       repository.addMovementAndUpdateQuantity(
         'item-1',
         'other-clinic',
-        { quantity: 5 } as never,
+        { type: 'IN', quantity: 5, createdBy: 'user-1' },
         5,
       ),
     ).rejects.toThrow('Inventory item item-1 not found');
+
+    expect(writeClient.inventoryMovement.create).not.toHaveBeenCalled();
   });
 });

@@ -1,15 +1,19 @@
-import { DocitaLoadingIndicator } from "@workspace/ui/components/docita-loading-indicator";
+import { DocitaLoadingIndicator } from "@workspace/ui/components/feedback/docita-loading-indicator";
 import { memo, useCallback } from "react";
-import { formatDate } from "@workspace/utils";
+import { useQueryClient } from "@tanstack/react-query";
+import { toast } from "sonner";
 import { formatClockTime } from "@/lib/formatters";
-import { Check, Clock, Stethoscope, User, UserCheck } from "lucide-react";
-import type { AppointmentListItem } from "@/hooks/api/use-appointments";
-import { Button } from "@workspace/ui/components/button";
-import { Badge } from "@workspace/ui/components/badge";
-import { SymbolTooltip } from "@workspace/ui/components/tooltip";
+import { Check, Play, UserCheck } from "lucide-react";
+import { queryKeys, type AppointmentListItem } from "@workspace/data-access";
+import { Button } from "@workspace/ui/components/form/button";
+import { Badge } from "@workspace/ui/components/indicators/badge";
+import { SymbolTooltip } from "@workspace/ui/components/overlay/tooltip";
 import { usePermissions } from "@/hooks/use-permissions";
 import { humanizeUiLabel } from "@workspace/ui/lib/label-formatters";
 import { AppointmentRowActionsMenu } from "./AppointmentRowActionsMenu";
+import { WhatsAppDeliveryBadge } from "@/components/whatsapp/whatsapp-delivery-badge";
+import { useResendAppointmentReminder } from "@workspace/data-access";
+import { showUserFacingErrorToast } from "@/lib/errors/user-facing-errors";
 
 interface TimeSlotRowProps {
   appointment: AppointmentListItem;
@@ -38,36 +42,60 @@ export const TimeSlotRow = memo<TimeSlotRowProps>(
     const { canStartConsultation } = usePermissions();
     const aptStart = new Date(apt.startTime);
     const aptEnd = new Date(apt.endTime);
-    const appointmentTypeLabel = apt.type
-      ? humanizeUiLabel(apt.type)
-      : "General";
+    const appointmentTypeLabel = apt.type ? humanizeUiLabel(apt.type) : "General";
     const canAccessConsultation =
-      canStartConsultation &&
-      !!currentUserId &&
-      apt.doctorId === currentUserId;
+      canStartConsultation && !!currentUserId && apt.doctorId === currentUserId;
 
-    const isTerminalVisit =
-      apt.status === "completed" || apt.status === "no-show";
+    const isTerminalVisit = apt.status === "completed" || apt.status === "no-show";
     const isConsultationActive = apt.status === "in-progress";
-    const consultationPrimaryLabel = isTerminalVisit
-      ? "View"
-      : isConsultationActive
-        ? "Continue"
-        : "Start";
+    const consultationPrimaryLabel = isTerminalVisit ? "View" : isConsultationActive ? "Resume" : "Start";
     const consultationTitle = isTerminalVisit
       ? "View consultation record"
       : isConsultationActive
-        ? "Continue consultation"
+        ? "Resume consultation"
         : "Start consultation";
+
+    const patientName = apt.patient
+      ? `${apt.patient.firstName} ${apt.patient.lastName}`.trim()
+      : null;
+    const phone = apt.patient?.phoneNumber?.trim() || null;
+
+    const statusBadgeClass =
+      apt.status === "confirmed"
+        ? "badge-info"
+        : apt.status === "checked-in" || apt.status === "in-progress"
+          ? "badge-success"
+          : apt.status === "completed"
+            ? "badge-muted"
+            : "badge-muted";
 
     const handleScheduleFollowUp = useCallback(() => {
       onScheduleFollowUp?.(apt);
     }, [apt, onScheduleFollowUp]);
 
+    const queryClient = useQueryClient();
+    const resendReminder = useResendAppointmentReminder();
+    const lastReminder = apt.reminders?.[0] ?? null;
+
+    const handleReminderRetry = useCallback(async () => {
+      if (!apt.id) return;
+      try {
+        await resendReminder.mutateAsync({ appointmentId: apt.id });
+        toast.success("Reminder re-sent on WhatsApp");
+        await queryClient.invalidateQueries({ queryKey: queryKeys.appointments.all() });
+      } catch (err) {
+        showUserFacingErrorToast(
+          err,
+          "We could not resend the reminder. Please try again.",
+          "save",
+        );
+      }
+    }, [apt.id, resendReminder, queryClient]);
+
     return (
-      <div className="group relative @container/apt overflow-hidden rounded-lg border border-border/60 bg-card/95 pl-3 pr-3 py-3 transition-colors duration-150 hover:border-border hover:bg-card">
+      <div className="group relative @container/apt overflow-hidden rounded-lg border border-border/60 bg-card/95 pl-3 pr-3 py-2.5 transition-colors duration-150 hover:border-border hover:bg-card">
         <div
-          className={`absolute inset-y-0 left-0 w-1 ${
+          className={`absolute inset-y-0 left-0 w-1 rounded-l-lg ${
             apt.status === "checked-in"
               ? "bg-success"
               : apt.status === "confirmed"
@@ -75,62 +103,67 @@ export const TimeSlotRow = memo<TimeSlotRowProps>(
                 : apt.status === "in-progress"
                   ? "bg-primary"
                   : apt.status === "completed" || apt.status === "no-show"
-                    ? "bg-muted-foreground/40"
-                    : "bg-primary/60"
+                    ? "bg-muted-foreground/30"
+                    : "bg-border"
           }`}
           aria-hidden="true"
         />
 
-        <div className="flex flex-col gap-3 pl-2 @md/apt:flex-row @md/apt:items-center @md/apt:justify-between @md/apt:gap-4">
-          <div className="flex min-w-0 flex-1 items-start gap-3">
-            <div className="flex shrink-0 flex-col items-start">
-              <div className="flex items-center gap-1.5 text-sm font-semibold text-foreground tabular-nums">
-                <Clock className="h-3.5 w-3.5 text-muted-foreground" />
+        <div className="flex flex-col gap-2 pl-2 @md/apt:flex-row @md/apt:items-center @md/apt:justify-between @md/apt:gap-3">
+          <div className="flex min-w-0 flex-1 items-center gap-3">
+            {/* Time range */}
+            <div className="shrink-0 text-right">
+              <p className="text-[length:var(--fs-sm)] font-semibold tabular-nums text-foreground">
                 {formatClockTime(aptStart)}
-              </div>
-              <span className="mt-0.5 pl-5 text-xs text-muted-foreground tabular-nums">
+              </p>
+              <p className="text-[length:var(--fs-xs)] tabular-nums text-muted-foreground">
                 {formatClockTime(aptEnd)}
-              </span>
+              </p>
             </div>
 
-            <div className="min-w-0 flex-1 space-y-1">
-              <div className="flex flex-wrap items-center gap-x-2 gap-y-1">
-                <h3 className="truncate text-sm font-semibold text-foreground">
-                  {apt.patient
-                    ? `${apt.patient.firstName} ${apt.patient.lastName}`
-                    : `Patient ID: ${apt.patientId}`}
-                </h3>
+            {/* Patient + meta */}
+            <div className="min-w-0 flex-1">
+              <div className="flex flex-wrap items-center gap-x-2 gap-y-0.5">
+                <span className="truncate text-[length:var(--fs-sm)] font-semibold text-foreground">
+                  {patientName ?? apt.patientId}
+                </span>
+                {phone ? (
+                  <span className="text-[length:var(--fs-xs)] tabular-nums text-muted-foreground">
+                    {phone}
+                  </span>
+                ) : null}
                 <Badge
                   variant="secondary"
-                  className={`text-[var(--fs-2xs)] capitalize ${
-                    apt.status === "confirmed"
-                      ? "badge-info"
-                      : apt.status === "checked-in"
-                        ? "badge-success"
-                        : apt.status === "in-progress"
-                          ? "badge-info"
-                          : "badge-muted"
-                  }`}
+                  className={`text-[length:var(--fs-2xs)] capitalize ${statusBadgeClass}`}
                 >
                   {humanizeUiLabel(apt.status)}
                 </Badge>
               </div>
-              <div className="flex flex-wrap items-center gap-x-2 gap-y-0.5 text-xs text-muted-foreground">
-                <span className="inline-flex items-center gap-1">
-                  <User className="h-3 w-3" />
-                  {apt.patient ? "Linked patient" : "Unlinked patient"}
-                </span>
-                <span aria-hidden="true">&middot;</span>
-                <span>{formatDate(aptStart, "EEE, MMM d")}</span>
-                <span aria-hidden="true">&middot;</span>
-                <span>{appointmentTypeLabel}</span>
-                {apt.doctor?.name && (
+              <div className="flex flex-wrap items-center gap-x-1.5 gap-y-0 text-[length:var(--fs-xs)] text-muted-foreground">
+                {apt.reason?.trim() ? (
                   <>
-                    <span aria-hidden="true">&middot;</span>
+                    <span className="line-clamp-1 min-w-0">{apt.reason}</span>
+                    <span aria-hidden="true">·</span>
+                  </>
+                ) : null}
+                <span>{appointmentTypeLabel}</span>
+                {apt.doctor?.name ? (
+                  <>
+                    <span aria-hidden="true">·</span>
                     <span className="truncate">Dr. {apt.doctor.name}</span>
                   </>
-                )}
+                ) : null}
               </div>
+              {lastReminder ? (
+                <div className="mt-1">
+                  <WhatsAppDeliveryBadge
+                    status={lastReminder.status}
+                    sentAt={lastReminder.sentAt ?? null}
+                    onRetry={handleReminderRetry}
+                    isRetrying={resendReminder.isPending}
+                  />
+                </div>
+              ) : null}
             </div>
           </div>
 
@@ -140,26 +173,25 @@ export const TimeSlotRow = memo<TimeSlotRowProps>(
                 <Button
                   size="sm"
                   variant="outline"
-                  onClick={() => onCheckIn(apt.id!)}
+                  onClick={() => {
+                    if (apt.id) onCheckIn(apt.id);
+                  }}
                   disabled={checkingIn === apt.id}
-                  className="h-8 gap-1.5 rounded-full px-3 text-xs"
+                  className="h-7 gap-1.5 rounded-full px-3 text-[length:var(--fs-xs)]"
                 >
                   {checkingIn === apt.id ? (
-                    <DocitaLoadingIndicator variant="inline" decorative iconClassName="h-3.5 w-3.5" />
+                    <DocitaLoadingIndicator variant="inline" decorative iconClassName="h-3 w-3" />
                   ) : (
-                    <UserCheck className="h-3.5 w-3.5" />
+                    <UserCheck className="h-3 w-3" />
                   )}
-                  <span>Check-in</span>
+                  Check-in
                 </Button>
               </SymbolTooltip>
             )}
             {apt.status === "checked-in" && (
-              <Badge
-                variant="secondary"
-                className="badge-success h-8 gap-1 rounded-full px-3"
-              >
+              <Badge variant="secondary" className="badge-success h-7 gap-1 rounded-full px-3 text-[length:var(--fs-xs)]">
                 <Check className="h-3 w-3" />
-                <span>In Queue</span>
+                In Queue
               </Badge>
             )}
             {canAccessConsultation && (
@@ -167,12 +199,18 @@ export const TimeSlotRow = memo<TimeSlotRowProps>(
                 <Button
                   size="sm"
                   variant={isTerminalVisit ? "outline" : "default"}
-                  onClick={() => onStartConsultation(apt.id!)}
+                  onClick={() => {
+                    if (apt.id) onStartConsultation(apt.id);
+                  }}
                   disabled={startingConsultationId === apt.id}
-                  className="h-8 gap-1.5 rounded-full px-3 text-xs"
+                  className="h-7 gap-1.5 rounded-full px-3 text-[length:var(--fs-xs)]"
                 >
-                  <Stethoscope className="h-3.5 w-3.5" />
-                  <span>{consultationPrimaryLabel}</span>
+                  {startingConsultationId === apt.id ? (
+                    <DocitaLoadingIndicator variant="inline" decorative iconClassName="h-3 w-3" />
+                  ) : (
+                    <Play className="h-3 w-3" />
+                  )}
+                  {consultationPrimaryLabel}
                 </Button>
               </SymbolTooltip>
             )}
