@@ -134,7 +134,22 @@
     "perf:baseline": "node scripts/perf/perf-baseline.mjs",
     "perf:landing:headers": "node scripts/deploy/verify-landing-headers.mjs",
     "perf:budget:warn": "PERF_BUDGET_MODE=warn node scripts/perf/check-perf-budget.mjs",
-    "perf:budget:enforce": "PERF_BUDGET_MODE=fail node scripts/perf/check-perf-budget.mjs"
+    "perf:budget:enforce": "PERF_BUDGET_MODE=fail node scripts/perf/check-perf-budget.mjs",
+    "perf:route-budgets": "node scripts/perf/check-route-budgets.mjs",
+    "check:pdf-bearer-cap": "node scripts/checks/check-pdf-bearer-cap.mjs",
+    "check:client-storage-usage": "node scripts/checks/check-client-storage-usage.mjs",
+    "check:query-key-factory": "node scripts/checks/check-query-key-factory.mjs",
+    "check:form-schema-extends": "node scripts/checks/check-form-schema-extends.mjs",
+    "check:event-emit-via-outbox": "node scripts/checks/check-event-emit-via-outbox.mjs",
+    "check:use-case-loc": "node scripts/checks/check-use-case-loc.mjs",
+    "check:repository-di-tokens": "node scripts/checks/check-repository-di-tokens.mjs",
+    "check:cron-heartbeat-coverage": "node scripts/checks/check-cron-heartbeat-coverage.mjs",
+    "check:sentry-scrubber-parity": "node scripts/checks/check-sentry-scrubber-parity.mjs",
+    "check:route-meta-coverage": "node scripts/checks/check-route-meta-coverage.mjs",
+    "check:tools-route-gate": "node scripts/checks/check-tools-route-gate.mjs",
+    "check:env-vs-globalenv": "node scripts/checks/check-env-vs-globalenv.mjs",
+    "check:globals-css-imports": "node scripts/checks/check-globals-css-imports.mjs",
+    "openapi:generate": "pnpm --filter @docita/api run openapi:generate"
   },
   "devDependencies": {
     "@axe-core/playwright": "^4.11.1",
