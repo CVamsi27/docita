@@ -22,22 +22,14 @@ import {
   type ClinicType,
   clinicTypeSchema,
   mapDbClinicTierStringToTierName,
+  PUBLISHED_PLAN_LADDER,
   TIER_INFO,
   type TierName,
   tierSchema,
 } from "@workspace/types";
 import { showUserFacingErrorToast } from "@/lib/errors/user-facing-errors";
 import { resolveLibPhoneCountry } from "@/lib/phone/resolve-libphone-country";
-
-type EditClinicFormData = {
-  name: string;
-  email: string;
-  phone: string;
-  address: string;
-  tier: TierName;
-  type: ClinicType;
-  active: boolean;
-};
+import { CLINIC_TYPE_DESCRIPTIONS } from "@/lib/clinic-display";
 
 type EditClinicFormData = {
   name: string;
@@ -175,7 +167,7 @@ export function EditClinicDialog({
       <CRUDDialog
         open={open}
         onOpenChange={handleOpenChange}
-        title="Edit facility"
+        title="Edit Facility"
         description="Update facility details and status"
         isLoading={loading}
         onSubmit={handleSubmit}
@@ -185,7 +177,7 @@ export function EditClinicDialog({
           <div className="space-y-4">
             <div className="grid grid-cols-2 gap-4">
               <div className="space-y-2">
-                <Label htmlFor="edit-name">Facility name</Label>
+                <Label htmlFor="edit-name">Facility Name</Label>
                 <Input
                   id="edit-name"
                   value={formData.name}
@@ -267,7 +259,7 @@ export function EditClinicDialog({
                 )}
               </div>
               <div className="space-y-2">
-                <Label htmlFor="edit-tier">Subscription tier</Label>
+                <Label htmlFor="edit-tier">Subscription Tier</Label>
                 <Select
                   value={formData.tier}
                   onValueChange={(val) => {
@@ -291,7 +283,7 @@ export function EditClinicDialog({
               </div>
             </div>
             <div className="space-y-2">
-              <Label htmlFor="edit-type">Clinic type</Label>
+              <Label htmlFor="edit-type">Clinic Type</Label>
               <Select
                 value={formData.type}
                 onValueChange={(val) => {

@@ -1380,6 +1380,20 @@ export const TIER_INFO: Record<TierName, TierInfo> = {
     tagline: "Solo reception",
     color: "teal",
   },
+  FRONT_DESK_CLINIC: {
+    name: "Front desk · Clinic",
+    description:
+      "Reception-first scheduling, queue, and billing for a multi-desk clinic — no clinical workflows in-app.",
+    tagline: "Clinic reception",
+    color: "teal",
+  },
+  FRONT_DESK_HOSPITAL: {
+    name: "Front desk · Hospital",
+    description:
+      "Reception-first scheduling, queue, and billing for multi-branch hospitals — no clinical workflows in-app.",
+    tagline: "Hospital reception",
+    color: "teal",
+  },
 };
 
 export const intelligenceAddonSchema = z.object({

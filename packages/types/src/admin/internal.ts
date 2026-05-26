@@ -149,3 +149,22 @@ export const internalClinicListResponseSchema = z.object({
   data: z.array(clinicSchema),
   nextCursor: z.string().optional(),
 });
+
+export const internalClinicAdminSchema = z.object({
+  id: z.string(),
+  name: z.string(),
+  email: z.string(),
+  phoneNumber: z.string().nullable().optional(),
+  role: z.enum(["ADMIN", "ADMIN_DOCTOR"]),
+  appLoginDisabled: z.boolean().optional(),
+  createdAt: z.string(),
+  updatedAt: z.string(),
+});
+export type InternalClinicAdmin = z.infer<typeof internalClinicAdminSchema>;
+
+export const internalClinicAdminListResponseSchema = z.object({
+  data: z.array(internalClinicAdminSchema),
+});
+export type InternalClinicAdminListResponse = z.infer<
+  typeof internalClinicAdminListResponseSchema
+>;

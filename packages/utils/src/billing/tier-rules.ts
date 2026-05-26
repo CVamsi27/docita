@@ -59,6 +59,10 @@ export function getTierName(tier: Tier): TierName {
       return 'INTELLIGENCE';
     case Tier.FRONT_DESK:
       return 'FRONT_DESK';
+    case Tier.FRONT_DESK_CLINIC:
+      return 'FRONT_DESK_CLINIC';
+    case Tier.FRONT_DESK_HOSPITAL:
+      return 'FRONT_DESK_HOSPITAL';
     default: {
       const _exhaustive: never = tier;
       return _exhaustive;

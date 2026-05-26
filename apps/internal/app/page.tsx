@@ -19,6 +19,7 @@ import { toast } from "sonner";
 import { Eye, EyeOff, ShieldCheck } from "lucide-react";
 import { client } from "@/lib/api/api-client";
 import { showUserFacingErrorToast } from "@/lib/errors/user-facing-errors";
+import { ThemeToggle } from "@/components/theme-toggle";
 
 function getMainAppLoginUrl() {
   return `${MAIN_APP_URL.replace(/\/$/, "")}/login`;
@@ -118,7 +119,7 @@ export default function InternalLogin() {
           <SectionHeading
             align="center"
             size="page"
-            title="Docita internal"
+            title="Docita Internal"
             description="Internal Console - Product Owners & System Admins"
           />
         </div>

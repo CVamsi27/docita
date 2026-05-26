@@ -3,7 +3,7 @@
 import { DocitaLoadingIndicator } from "@workspace/ui/components/feedback/docita-loading-indicator";
 
 import dynamic from "next/dynamic";
-import React, { useCallback, useEffect, useMemo, useState } from "react";
+import React, { useCallback, useMemo, useState } from "react";
 import {
   Activity,
   BarChart3,
@@ -15,13 +15,13 @@ import {
 } from "lucide-react";
 import { API_URL } from "@/lib/api/api-config";
 import { useAuth } from "@/lib/auth/auth";
+import { getInternalTierChartColorClass } from "@/lib/tier-display";
 import { toast } from "sonner";
 import {
   downloadInternalAnalyticsExport,
   useInternalAnalytics,
   useInternalBillingMetrics,
 } from "@workspace/data-access/internal";
-import { AppPageScaffold } from "@workspace/ui/components/layout/app-page-scaffold";
 import { Button } from "@workspace/ui/components/form/button";
 import {
   Card,
@@ -31,11 +31,11 @@ import {
   CardTitle,
 } from "@workspace/ui/components/indicators/card";
 import { DatePicker } from "@workspace/ui/components/form/date-picker";
-import { PageHeader } from "@workspace/ui/components/layout/page-header";
 import { Section } from "@workspace/ui/components/layout/section";
 import { cn } from "@workspace/ui/lib/utils";
-import { formatAmountLocale } from "@workspace/utils";
-import type { DetailedMetricsRow } from "@/components/analytics/analytics-detailed-metrics-table";
+import { DataState } from "@workspace/ui/components/data-display/data-state";
+import { formatAmountLocale, getUserFacingErrorMessage } from "@workspace/utils";
+import type { DetailedMetricsRow } from "@/features/analytics/analytics-detailed-metrics-table";
 import { showUserFacingErrorToast } from "@/lib/errors/user-facing-errors";
 
 const AnalyticsDetailedMetricsTable = dynamic(
@@ -70,15 +70,6 @@ interface MetricCard {
   icon: React.ReactNode;
   trend?: "up" | "down" | "neutral";
 }
-
-const tierColors: Record<string, string> = {
-  CAPTURE: "bg-muted",
-  CORE: "bg-info",
-  PLUS: "bg-success",
-  PRO: "bg-primary",
-  CLINIC: "bg-processing",
-  ENTERPRISE: "bg-warning",
-};
 
 const trendToneClassNames: Record<NonNullable<MetricCard["trend"]>, string> = {
   up: "text-success",
@@ -277,7 +268,7 @@ export function AnalyticsDashboard() {
             <CardHeader className="border-b">
               <div className="flex items-center justify-between gap-3">
                 <div className="ui-copy-stack">
-                  <CardTitle>Active subscriptions</CardTitle>
+                  <CardTitle>Active Subscriptions</CardTitle>
                   <CardDescription>
                     Paid customers across all tiers
                   </CardDescription>
@@ -297,7 +288,7 @@ export function AnalyticsDashboard() {
             <CardHeader className="border-b">
               <div className="flex items-center justify-between gap-3">
                 <div className="ui-copy-stack">
-                  <CardTitle>Tier distribution</CardTitle>
+                  <CardTitle>Tier Distribution</CardTitle>
                   <CardDescription>
                     Subscription share by plan tier
                   </CardDescription>
@@ -328,7 +319,7 @@ export function AnalyticsDashboard() {
       )}
 
       <Section
-        title="Reporting window"
+        title="Reporting Window"
         description="Filter the dashboard by time range without breaking the shared page rhythm."
         contentClassName="space-y-4"
       >
@@ -444,7 +435,7 @@ export function AnalyticsDashboard() {
 
         {tierEntries.length > 0 && (
           <Section
-            title="Subscription breakdown"
+            title="Subscription Breakdown"
             description="Customer mix across Docita plans"
             contentClassName="space-y-3"
           >
@@ -477,7 +468,7 @@ export function AnalyticsDashboard() {
 
         {data?.newPatients ? (
           <Section
-            title="Patient growth"
+            title="Patient Growth"
             description="New-patient momentum in the current period"
             contentClassName="flex h-40 items-center justify-center"
           >
@@ -507,7 +498,7 @@ export function AnalyticsDashboard() {
 
         {data?.appointments ? (
           <Section
-            title="Appointment volume"
+            title="Appointment Volume"
             description="Booked appointment activity in the selected range"
             contentClassName="flex h-40 items-center justify-center"
           >
@@ -537,7 +528,7 @@ export function AnalyticsDashboard() {
       </div>
 
       <Section
-        title="Detailed metrics"
+        title="Detailed Metrics"
         description="Expanded operational metrics for the selected time range."
         contentClassName="space-y-4"
       >

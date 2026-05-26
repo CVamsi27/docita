@@ -4,7 +4,7 @@ const DEFAULT_CONNECT_SOURCES = [
   "https://*.sentry.io",
 ] as const;
 
-function buildContentSecurityPolicy(): string {
+export function buildInternalContentSecurityPolicy(): string {
   const isProduction = process.env["NODE_ENV"] === "production";
   const scriptSources = [
     "'self'",
@@ -35,7 +35,7 @@ function buildContentSecurityPolicy(): string {
 export const INTERNAL_SECURITY_HEADERS = [
   {
     key: "Content-Security-Policy",
-    value: buildContentSecurityPolicy(),
+    value: buildInternalContentSecurityPolicy(),
   },
   {
     key: "Referrer-Policy",

@@ -22,6 +22,7 @@ import {
   clinicTypeSchema,
   type InternalClinicAdminType,
   internalClinicAdminTypeSchema,
+  PUBLISHED_PLAN_LADDER,
   TIER_INFO,
   type TierName,
   tierSchema,
@@ -29,19 +30,6 @@ import {
 import { showUserFacingErrorToast } from "@/lib/errors/user-facing-errors";
 import { DEFAULT_COUNTRY_CODE } from "@workspace/utils";
 import { CLINIC_TYPE_DESCRIPTIONS } from "@/lib/clinic-display";
-
-type CreateClinicFormData = {
-  name: string;
-  email: string;
-  phone: string;
-  address: string;
-  tier: TierName;
-  type: ClinicType;
-  adminName: string;
-  adminEmail: string;
-  adminPassword: string;
-  adminType: InternalClinicAdminType;
-};
 
 type CreateClinicFormData = {
   name: string;
@@ -67,20 +55,6 @@ const INITIAL_FORM_DATA: CreateClinicFormData = {
   adminEmail: "",
   adminPassword: "",
   adminType: "admin",
-};
-
-const CLINIC_TYPE_DESCRIPTIONS: Partial<Record<ClinicType, string>> = {
-  GENERAL: "Multi-specialty facility",
-  DENTAL: "Dentistry & Orthodontics",
-  PEDIATRIC: "Child Health",
-  ORTHOPEDIC: "Bone & Joint Specialist",
-  CARDIOLOGY: "Heart Specialist",
-  DERMATOLOGY: "Skin Care",
-  ENT: "Ear, Nose & Throat",
-  GYNECOLOGY: "Women's Health",
-  OPHTHALMOLOGY: "Eye Care",
-  PSYCHIATRY: "Mental Health",
-  SPECIALTY: "Custom specialty facility",
 };
 
 export function CreateClinicDialog({
@@ -203,7 +177,7 @@ export function CreateClinicDialog({
             </h4>
             <div className="grid grid-cols-2 gap-4">
               <div className="space-y-2">
-                <Label htmlFor="name">Facility name</Label>
+                <Label htmlFor="name">Facility Name</Label>
                 <Input
                   id="name"
                   value={formData.name}
@@ -285,7 +259,7 @@ export function CreateClinicDialog({
                 )}
               </div>
               <div className="space-y-2">
-                <Label htmlFor="tier">Subscription tier</Label>
+                <Label htmlFor="tier">Subscription Tier</Label>
                 <Select
                   value={formData.tier}
                   onValueChange={(val) => {
@@ -309,7 +283,7 @@ export function CreateClinicDialog({
               </div>
             </div>
             <div className="space-y-2">
-              <Label htmlFor="type">Clinic type</Label>
+              <Label htmlFor="type">Clinic Type</Label>
               <Select
                 value={formData.type}
                 onValueChange={(val) => {
@@ -372,7 +346,7 @@ export function CreateClinicDialog({
             </h4>
             <div className="grid grid-cols-2 gap-4">
               <div className="space-y-2">
-                <Label htmlFor="adminName">Admin name</Label>
+                <Label htmlFor="adminName">Admin Name</Label>
                 <Input
                   id="adminName"
                   value={formData.adminName}
@@ -402,7 +376,7 @@ export function CreateClinicDialog({
                 )}
               </div>
               <div className="space-y-2">
-                <Label htmlFor="adminEmail">Admin email</Label>
+                <Label htmlFor="adminEmail">Admin Email</Label>
                 <Input
                   id="adminEmail"
                   type="email"

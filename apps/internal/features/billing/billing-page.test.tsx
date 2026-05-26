@@ -9,7 +9,7 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import type { ReactElement } from "react";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { DataAccessProvider, type RequestConfig } from "@workspace/data-access";
-import BillingDashboard from "./page";
+import BillingDashboard from "./billing-page";
 
 const billingApiMocks = vi.hoisted(() => ({
   getMetrics: vi.fn(),

@@ -4,6 +4,7 @@ export interface InternalAdminUser {
   email: string;
   phoneNumber?: string;
   role: "ADMIN" | "ADMIN_DOCTOR";
+  appLoginDisabled?: boolean;
   createdAt: string;
   updatedAt: string;
 }

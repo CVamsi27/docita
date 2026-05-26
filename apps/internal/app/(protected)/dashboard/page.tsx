@@ -18,7 +18,7 @@ import {
   useInternalClinics,
   useInternalDashboardStats,
 } from "@workspace/data-access/internal";
-import { ClinicList } from "./clinic-list";
+import { ClinicList } from "@/features/dashboard/components/clinic-list";
 import {
   BarChart3,
   Building2,

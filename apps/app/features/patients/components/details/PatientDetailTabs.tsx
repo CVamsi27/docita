@@ -322,7 +322,7 @@ export function PatientDetailTabs({
             onScheduleVisit={onScheduleVisit}
           />
         </div>
-      )}
+      ) : null}
       {activeTab === "billing" && canViewInvoices ? (
         <BillingTab patientId={patientId} />
       ) : null}

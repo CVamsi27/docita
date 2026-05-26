@@ -1,7 +1,5 @@
 "use client";
 
-import { DocitaLoadingIndicator } from "@workspace/ui/components/feedback/docita-loading-indicator";
-
 import { Button } from "@workspace/ui/components/form/button";
 import {
   Card,
@@ -12,7 +10,9 @@ import {
 import { Input } from "@workspace/ui/components/form/input";
 import { Badge } from "@workspace/ui/components/indicators/badge";
 import { EmptyState } from "@workspace/ui/components/feedback/empty-state";
+import { AppPageScaffold } from "@workspace/ui/components/layout/app-page-scaffold";
 import { PageHeader } from "@workspace/ui/components/layout/page-header";
+import { DataState } from "@workspace/ui/components/data-display/data-state";
 import {
   Table,
   TableBody,
@@ -145,7 +145,7 @@ export function UsersPageContainer() {
                 <SelectValue placeholder="Facility" />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="all">All facilities</SelectItem>
+                <SelectItem value="all">All Facilities</SelectItem>
                 {clinics.map((clinic) => (
                   <SelectItem key={clinic.id} value={clinic.id}>
                     {clinic.name}
@@ -233,7 +233,7 @@ export function UsersPageContainer() {
       <Dialog open={isViewOpen} onOpenChange={setIsViewOpen}>
         <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
           <DialogHeader>
-            <DialogTitle>User details</DialogTitle>
+            <DialogTitle>User Details</DialogTitle>
             <DialogDescription>
               Review team member contact details and professional credentials.
             </DialogDescription>
