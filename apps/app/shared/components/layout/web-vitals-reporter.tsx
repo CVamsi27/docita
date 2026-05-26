@@ -55,11 +55,11 @@ export function WebVitalsReporter() {
 
       if (navigator.sendBeacon) {
         navigator.sendBeacon(
-          WEB_VITALS_REPORTING_PATH,
+          `${API_URL}/monitoring/web-vitals`,
           createWebVitalsBeaconBody(payload),
         );
       } else {
-        void browserRequest(WEB_VITALS_REPORTING_PATH, {
+        void fetch(`${API_URL}/monitoring/web-vitals`, {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body,

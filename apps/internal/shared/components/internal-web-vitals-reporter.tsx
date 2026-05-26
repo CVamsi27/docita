@@ -16,6 +16,12 @@ export function shouldReportInternalWebVitals(pathname: string | null): boolean 
   return !PUBLIC_INTERNAL_PATHS.has(pathname);
 }
 
+function createWebVitalsBeaconBody(payload: Record<string, unknown>) {
+  return new Blob([JSON.stringify(payload)], {
+    type: "application/json",
+  });
+}
+
 export function InternalWebVitalsReporter() {
   const pathname = usePathname();
 
@@ -31,14 +37,29 @@ export function InternalWebVitalsReporter() {
     const sessionId = `internal-session-${Date.now()}-${Math.random()}`;
 
     function sendToAnalytics(metric: Metric) {
-      postInternalWebVitals(API_URL, {
+      const payload = {
         name: metric.name,
         value: metric.value,
         rating: metric.rating,
         page: pathname,
         feature: "internal-admin",
         sessionId,
-      });
+      };
+      const body = JSON.stringify(payload);
+
+      if (navigator.sendBeacon) {
+        navigator.sendBeacon(
+          `${API_URL}/monitoring/web-vitals`,
+          createWebVitalsBeaconBody(payload),
+        );
+      } else {
+        void fetch(`${API_URL}/monitoring/web-vitals`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body,
+          keepalive: true,
+        }).catch(() => {});
+      }
     }
 
     void import("web-vitals").then(({ onCLS, onINP, onFCP, onLCP, onTTFB }) => {
