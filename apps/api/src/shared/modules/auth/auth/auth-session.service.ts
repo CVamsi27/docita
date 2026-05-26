@@ -17,6 +17,7 @@ import type {
   UserWithoutPassword,
 } from './auth.types';
 import { jwtAudienceForRole } from './jwt-audience';
+import { EncryptionService } from '@/shared/common/encryption.service';
 
 @Injectable()
 export class AuthSessionService {
@@ -26,7 +27,18 @@ export class AuthSessionService {
     private readonly prisma: PrismaService,
     private readonly jwtService: JwtService,
     @Inject(CLOCK_PORT) private readonly clock: IClock,
+    private readonly encryption: EncryptionService,
   ) {}
+
+  /**
+   * Resolve a refresh token by its hashed form (new rows) or its raw value
+   * (legacy rows issued before the P0.3 hashing migration). New writes only
+   * set `tokenHash`; reads must check both columns until all legacy rows have
+   * cycled out (expired or been revoked).
+   */
+  private hashToken(raw: string): string {
+    return this.encryption.hash(raw);
+  }
 
   async login(
     user: UserWithoutPassword,
@@ -66,7 +78,8 @@ export class AuthSessionService {
 
     await this.prisma.refreshToken.create({
       data: {
-        token: refreshToken,
+        token: null,
+        tokenHash: this.hashToken(refreshToken),
         userId: user.id,
         expiresAt: new Date(
           Date.now() + AUTH_CONSTANTS.REFRESH_TOKEN_MAX_AGE_MS,
@@ -95,12 +108,21 @@ export class AuthSessionService {
   }
 
   async refreshTokens(incomingRefreshToken: string): Promise<AuthLoginResult> {
+    const incomingHash = this.hashToken(incomingRefreshToken);
     // RLS-BYPASS: auth resolves users before clinic tenant context is established
     const storedToken = await this.prisma.runUnrestricted(async () => {
-      return await this.prisma.refreshToken.findUnique({
-        where: { token: incomingRefreshToken },
-        include: { user: true },
-      });
+      // New rows are keyed by hash. Legacy rows (issued before P0.3) are
+      // keyed by raw token. Try hash first, then fall back.
+      return (
+        (await this.prisma.refreshToken.findUnique({
+          where: { tokenHash: incomingHash },
+          include: { user: true },
+        })) ??
+        (await this.prisma.refreshToken.findUnique({
+          where: { token: incomingRefreshToken },
+          include: { user: true },
+        }))
+      );
     });
 
     if (
@@ -186,22 +208,34 @@ export class AuthSessionService {
   }
 
   async revokeAllSessions(userId: string, exceptToken?: string): Promise<void> {
+    const exceptHash = exceptToken ? this.hashToken(exceptToken) : undefined;
     await this.prisma.refreshToken.updateMany({
       where: {
         userId,
         revokedAt: null,
-        ...(exceptToken ? { NOT: { token: exceptToken } } : {}),
+        ...(exceptToken && exceptHash
+          ? { NOT: { OR: [{ token: exceptToken }, { tokenHash: exceptHash }] } }
+          : {}),
       },
       data: { revokedAt: this.clock.now() },
     });
   }
 
   async logout(refreshToken: string): Promise<void> {
+    const hash = this.hashToken(refreshToken);
     try {
-      await this.prisma.refreshToken.update({
-        where: { token: refreshToken },
+      const updated = await this.prisma.refreshToken.updateMany({
+        where: {
+          OR: [{ tokenHash: hash }, { token: refreshToken }],
+          revokedAt: null,
+        },
         data: { revokedAt: this.clock.now() },
       });
+      if (updated.count === 0) {
+        this.logger.warn(
+          'Logout refresh-token revoke: no matching active session',
+        );
+      }
     } catch (error) {
       const message =
         error instanceof Error

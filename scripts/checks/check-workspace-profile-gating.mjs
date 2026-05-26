@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 /**
- * Front Desk gating is tier-only: clinic.tier === FRONT_DESK (see isFrontDeskTier).
+ * Front Desk gating is tier-only: clinic.tier is a Front Desk SKU (see isFrontDeskTier).
  * settings.workspaceProfile and related helpers were removed.
  *
  * Script name is historical (check:workspace-profile-gating). It scans apps/,
@@ -66,7 +66,7 @@ for (const file of files) {
 if (violations.length > 0) {
   console.error("check:workspace-profile-gating failed.\n");
   console.error(
-    "Front Desk is tier-only (isFrontDeskTier / Tier.FRONT_DESK). Remove legacy workspaceProfile symbols and workspace pickers.",
+    "Front Desk is tier-only (isFrontDeskTier / Front Desk SKUs). Remove legacy workspaceProfile symbols and workspace pickers.",
   );
   for (const violation of violations) {
     console.error(

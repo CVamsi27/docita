@@ -3,6 +3,7 @@ import { OnEvent } from '@nestjs/event-emitter';
 import { ApplicationEvents } from '@/shared/common/events/application-events';
 import { PrismaService } from '@/prisma/prisma.service';
 import { UsageType, Prisma } from '@workspace/db';
+import { getCorrelationId } from '@/shared/common/context/request-context.store';
 
 @Injectable()
 export class UsageTrackingCommandService {
@@ -164,7 +165,15 @@ export class UsageTrackingCommandService {
   }) {
     await this.trackOcrPage(payload.clinicId, payload.pageCount).catch(
       (err) => {
-        this.logger.error('Failed to track OCR page usage', err);
+        // Audit FL7: structured tag so log aggregation can alert on
+        // metering failures (revenue-leak signal).
+        this.logger.error({
+          event: 'usage_tracking_failed',
+          usage: 'ocr_page',
+          clinicId: payload.clinicId,
+          correlationId: getCorrelationId(),
+          error: err instanceof Error ? err.message : String(err),
+        });
       },
     );
   }
@@ -180,7 +189,13 @@ export class UsageTrackingCommandService {
       payload.messageId,
       payload.messageType ?? 'template',
     ).catch((err) => {
-      this.logger.error('Failed to track WhatsApp message usage', err);
+      this.logger.error({
+        event: 'usage_tracking_failed',
+        usage: 'whatsapp_message',
+        clinicId: payload.clinicId,
+        correlationId: getCorrelationId(),
+        error: err instanceof Error ? err.message : String(err),
+      });
     });
   }
 
@@ -193,7 +208,13 @@ export class UsageTrackingCommandService {
       payload.clinicId,
       payload.prescriptionId,
     ).catch((err) => {
-      this.logger.error('Failed to track prescription usage', err);
+      this.logger.error({
+        event: 'usage_tracking_failed',
+        usage: 'prescription',
+        clinicId: payload.clinicId,
+        correlationId: getCorrelationId(),
+        error: err instanceof Error ? err.message : String(err),
+      });
     });
   }
 
@@ -204,7 +225,13 @@ export class UsageTrackingCommandService {
   }) {
     await this.trackInvoice(payload.clinicId, payload.invoiceId).catch(
       (err) => {
-        this.logger.error('Failed to track invoice usage', err);
+        this.logger.error({
+          event: 'usage_tracking_failed',
+          usage: 'invoice',
+          clinicId: payload.clinicId,
+          correlationId: getCorrelationId(),
+          error: err instanceof Error ? err.message : String(err),
+        });
       },
     );
   }
@@ -216,7 +243,13 @@ export class UsageTrackingCommandService {
   }) {
     await this.trackConsultation(payload.clinicId, payload.appointmentId).catch(
       (err) => {
-        this.logger.error('Failed to track consultation usage', err);
+        this.logger.error({
+          event: 'usage_tracking_failed',
+          usage: 'consultation',
+          clinicId: payload.clinicId,
+          correlationId: getCorrelationId(),
+          error: err instanceof Error ? err.message : String(err),
+        });
       },
     );
   }

@@ -18,57 +18,40 @@ export class ReminderHistoryService {
     private notificationService: ReminderNotificationService,
   ) {}
 
+  private static readonly MAX_PAGE_SIZE = 200;
+
   async getReminderHistory(clinicId: string, limit: number = 50) {
-    const appointments = await this.persistence.appointment.findMany({
-      where: { clinicId },
-      select: { id: true },
-    });
-
-    const appointmentIds = appointments.map((appointment) => appointment.id);
-
-    if (appointmentIds.length === 0) {
-      return [];
-    }
+    // Previously this loaded every appointment for the clinic just to collect
+    // their ids, then queried reminders by `id IN (...)`. Replaced with a
+    // single tenant-scoped reminder query that joins to the appointment for
+    // patient context. Hard cap at MAX_PAGE_SIZE to bound memory pressure.
+    const take = Math.min(
+      Math.max(limit, 1),
+      ReminderHistoryService.MAX_PAGE_SIZE,
+    );
 
     const reminders = await this.persistence.appointmentReminder.findMany({
       where: {
-        appointmentId: { in: appointmentIds },
+        OR: [{ clinicId }, { appointment: { clinicId } }],
       },
-      take: limit,
+      take,
       orderBy: { createdAt: 'desc' },
-    });
-
-    const reminderAppointmentIds = reminders.map(
-      (reminder) => reminder.appointmentId,
-    );
-
-    const appointmentsForReminders =
-      await this.persistence.appointment.findMany({
-        where: {
-          id: { in: reminderAppointmentIds },
-        },
-        select: {
-          id: true,
-          patient: {
-            select: {
-              firstName: true,
-              lastName: true,
+      include: {
+        appointment: {
+          select: {
+            id: true,
+            patient: {
+              select: {
+                firstName: true,
+                lastName: true,
+              },
             },
           },
         },
-      });
+      },
+    });
 
-    const appointmentById = new Map(
-      appointmentsForReminders.map((appointment) => [
-        appointment.id,
-        appointment,
-      ]),
-    );
-
-    return reminders.map((reminder) => ({
-      ...reminder,
-      appointment: appointmentById.get(reminder.appointmentId) ?? null,
-    }));
+    return reminders;
   }
 
   async sendManualReminder(

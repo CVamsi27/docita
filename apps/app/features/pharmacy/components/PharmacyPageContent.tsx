@@ -13,24 +13,6 @@ import { Feature } from "@workspace/types";
 import { ClipboardList, Pill } from "lucide-react";
 import { FeatureGate } from "@/components/auth/feature-gate";
 
-/**
- * Pharmacy — dispense queue + stock + reorder list (Reception-focused).
- *
- * Visual prototype: docita-design-system/project/ui_kits/clinic-os/PharmacyScreen.jsx
- *
- * Distinct from inventory: inventory is the catalogue, pharmacy is the
- * day-of-dispense workflow (active prescriptions waiting to be filled,
- * hand-off to patient via WhatsApp).
- *
- * Data wiring TODO:
- *   - Decide whether to extend inventory domain or carve a new pharmacy domain
- *   - Dispense queue derives from Prescription rows with status=PENDING that
- *     reference an in-house pharmacy
- *   - Stock + reorder views reuse InventoryItem rows with par-level joins
- *   - Add useDispenseQueue + useMarkDispensed + useStockBelowPar hooks
- *   - Replace EmptyState with the 3-tab UI from the prototype: Dispense /
- *     Stock (par-level highlighting) / Reorder
- */
 export function PharmacyPageContent() {
   return (
     <FeatureGate feature={Feature.INVENTORY} showLockedCard>

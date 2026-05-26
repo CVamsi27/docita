@@ -105,8 +105,6 @@ function generateClientTypes(document: unknown): string {
     '// Auto-generated API client types',
     '// Generated from OpenAPI specification',
     '',
-    '/* eslint-disable @typescript-eslint/no-explicit-any */',
-    '',
   ];
 
   if (openApiDoc.components?.schemas) {
@@ -152,7 +150,7 @@ function getTypeScriptType(schema: OpenApiPropertySchema): string {
     const refName = schema.$ref.split('/').pop();
     return refName ?? 'unknown';
   }
-  return 'any';
+  return 'unknown';
 }
 
 generateOpenAPI();

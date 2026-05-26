@@ -124,12 +124,7 @@ function getWhatsappBillableConfig(
   tier: keyof typeof TIER_LIMITS,
   currency: SupportedCurrency,
 ): { includedQuota: number; overageRate: number } {
-  if (
-    tier === 'ESSENTIAL' ||
-    tier === 'FRONT_DESK' ||
-    tier === 'PROFESSIONAL' ||
-    tier === 'ENTERPRISE'
-  ) {
+  if (tier !== 'STARTER' && tier !== 'INTELLIGENCE') {
     const pricing = getWhatsAppAddonPricingByCurrency(tier, currency);
     return {
       includedQuota: pricing.includedQuota,

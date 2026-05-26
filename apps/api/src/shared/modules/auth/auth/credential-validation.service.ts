@@ -9,6 +9,7 @@ import { CLOCK_PORT, type IClock } from '@/shared/common/ports/clock.port';
 import { PrismaService } from '@/prisma/prisma.service';
 import * as bcrypt from 'bcrypt';
 import { Role } from '@workspace/db';
+import { isFrontDeskTier } from '@workspace/types';
 import { ObservabilityService } from '@/shared/modules/services/observability.service';
 import { AUTH_CONSTANTS } from '@/shared/modules/config/app-constants';
 import type { UserWithoutPassword } from './auth.types';
@@ -71,7 +72,7 @@ export class CredentialValidationService {
       }),
     );
 
-    if (clinic?.tier === 'FRONT_DESK') {
+    if (isFrontDeskTier(clinic?.tier)) {
       throw new ForbiddenException(
         'Doctor and admin-doctor sign-in is not available on the Front Desk plan. ' +
           'Ask an admin to upgrade the clinic to enable clinical sign-in.',

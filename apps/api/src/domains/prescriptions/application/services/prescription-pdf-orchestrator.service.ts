@@ -10,7 +10,10 @@ import {
   IPrescriptionRepository,
   PrescriptionDetail,
 } from '@/domains/prescriptions/core/repositories/prescription.repository.interface';
-import { StorageProvider } from '@/domains/documents/application/ports/storage-provider.port';
+import {
+  PDF_SIGNED_URL_TTL_SECONDS,
+  StorageProvider,
+} from '@/domains/documents/application/ports/storage-provider.port';
 import { calculateAge, DEFAULT_LOCALE } from '@workspace/utils';
 import { type EnqueuePdfJobResponse, extractPdfTheme } from '@workspace/types';
 import { StoredFileUrlResolverService } from '@/domains/documents/application/services/stored-file-url-resolver.service';
@@ -19,7 +22,6 @@ import type { PdfJobServicePort } from '@/shared/modules/queue/pdf-job.service';
 import { CLOCK_PORT, type IClock } from '@/shared/common/ports/clock.port';
 
 const CURRENT_PDF_TEMPLATE_VERSION = 1;
-const PDF_SIGNED_URL_TTL_SECONDS = 3600;
 
 @Injectable()
 export class PrescriptionPdfOrchestratorService {

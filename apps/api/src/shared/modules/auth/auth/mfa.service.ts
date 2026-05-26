@@ -16,6 +16,7 @@ import {
   mfaHashedBackupCodesSchema,
   mfaPlainBackupCodesSchema,
 } from '@workspace/types';
+import { EncryptionService } from '@/shared/common/encryption.service';
 
 @Injectable()
 export class MfaService {
@@ -24,6 +25,7 @@ export class MfaService {
   constructor(
     private prisma: PrismaService,
     @Inject(CLOCK_PORT) private readonly clock: IClock,
+    private readonly encryption: EncryptionService,
   ) {}
 
   async generateSetupSecret(
@@ -48,7 +50,7 @@ export class MfaService {
 
     await this.prisma.user.update({
       where: { id: userId },
-      data: { mfaTempSecret: secret },
+      data: { mfaTempSecret: this.encryption.encrypt(secret) },
     });
 
     const otpauthUrl = generateURI({
@@ -84,9 +86,11 @@ export class MfaService {
       );
     }
 
+    const tempSecretPlain = this.encryption.decrypt(user.mfaTempSecret);
+
     const result = await verify({
       token: totpCode,
-      secret: user.mfaTempSecret,
+      secret: tempSecretPlain,
       epochTolerance: 1,
     });
 
@@ -105,7 +109,7 @@ export class MfaService {
       where: { id: userId },
       data: {
         mfaEnabled: true,
-        mfaSecret: user.mfaTempSecret,
+        mfaSecret: this.encryption.encrypt(tempSecretPlain),
         mfaTempSecret: null,
         mfaBackupCodes: hashedBackupCodes,
       },
@@ -132,7 +136,7 @@ export class MfaService {
 
     const result = await verify({
       token: totpCode,
-      secret: user.mfaSecret,
+      secret: this.encryption.decrypt(user.mfaSecret),
       epochTolerance: 1,
     });
 
@@ -168,7 +172,7 @@ export class MfaService {
 
     const result = await verify({
       token: totpCode,
-      secret: user.mfaSecret,
+      secret: this.encryption.decrypt(user.mfaSecret),
       epochTolerance: 1,
     });
 
@@ -248,7 +252,7 @@ export class MfaService {
 
     const verifyResult = await verify({
       token: totpCode,
-      secret: user.mfaSecret,
+      secret: this.encryption.decrypt(user.mfaSecret),
       epochTolerance: 1,
     });
     const isTotpValid = verifyResult.valid;

@@ -24,7 +24,6 @@ describe('PatientDataAuditInterceptor helpers', () => {
         actionType: 'BILLING_POST',
         resourceType: 'BILLING',
         resourceId: 'clinic-1',
-        immediate: false,
       });
     });
 
@@ -39,7 +38,6 @@ describe('PatientDataAuditInterceptor helpers', () => {
         actionType: 'API_KEY_DELETE',
         resourceType: 'API_KEY',
         resourceId: 'key-123',
-        immediate: true,
       });
     });
 
@@ -54,7 +52,6 @@ describe('PatientDataAuditInterceptor helpers', () => {
         actionType: 'CLINICAL_PATCH',
         resourceType: 'CLINICAL_DATA',
         resourceId: 'pat-123',
-        immediate: false,
       });
     });
 
@@ -69,7 +66,6 @@ describe('PatientDataAuditInterceptor helpers', () => {
         actionType: 'CLINICAL_PATCH',
         resourceType: 'CLINICAL_DATA',
         resourceId: 'pat-123',
-        immediate: false,
       });
     });
   });

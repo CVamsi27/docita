@@ -1,4 +1,5 @@
-import { Inject, Injectable } from '@nestjs/common';
+import { Inject, Injectable, Logger } from '@nestjs/common';
+import { Prisma } from '@workspace/db';
 import {
   SUBSCRIPTION_REPOSITORY_TOKEN,
   ISubscriptionRepository,
@@ -15,6 +16,7 @@ import {
 @Injectable()
 export class PaymentCapturedWebhookHandler implements RazorpayWebhookEventHandler {
   readonly event = 'payment.captured';
+  private readonly logger = new Logger(PaymentCapturedWebhookHandler.name);
 
   constructor(
     @Inject(SUBSCRIPTION_REPOSITORY_TOKEN)
@@ -30,6 +32,26 @@ export class PaymentCapturedWebhookHandler implements RazorpayWebhookEventHandle
     const clinicId = readRazorpayClinicId(payment.notes);
     if (!clinicId) return;
 
+    // Audit FL11 (2026-05-23): application-layer idempotency check.
+    // A unique index on SubscriptionPayment.razorpayPaymentId enforces the
+    // invariant at the database level; this short-circuit avoids running
+    // the full activation path on retried webhooks (Razorpay retries up to
+    // 24h) and keeps log/audit noise low. Lookup goes through the repository
+    // port to keep the application layer free of direct PrismaService usage
+    // (check:prisma-boundary).
+    const existing = await this.subscriptionRepo.findPaymentByRazorpayPaymentId(
+      payment.id,
+    );
+    if (existing) {
+      this.logger.log({
+        event: 'razorpay_webhook_duplicate',
+        kind: 'payment.captured',
+        razorpayPaymentId: payment.id,
+        clinicId,
+      });
+      return;
+    }
+
     const tier = payment.notes?.tier;
     const cycle = payment.notes?.cycle;
 
@@ -44,17 +66,37 @@ export class PaymentCapturedWebhookHandler implements RazorpayWebhookEventHandle
       razorpayOrderId: string;
       subscriptionPaymentId?: string;
     }) => {
-      await this.activateSubscription.execute({
-        clinicId,
-        razorpayPaymentId: payment.id,
-        razorpayOrderId: params.razorpayOrderId,
-        razorpaySignature: '',
-        tier: params.tier,
-        cycle: params.cycle,
-        subscriptionPaymentId: params.subscriptionPaymentId,
-        skipPaymentVerification: true,
-        verifiedAmountCents: payment.amount,
-      });
+      try {
+        await this.activateSubscription.execute({
+          clinicId,
+          razorpayPaymentId: payment.id,
+          razorpayOrderId: params.razorpayOrderId,
+          razorpaySignature: '',
+          tier: params.tier,
+          cycle: params.cycle,
+          subscriptionPaymentId: params.subscriptionPaymentId,
+          skipPaymentVerification: true,
+          verifiedAmountCents: payment.amount,
+        });
+      } catch (err) {
+        // Idempotency net: a concurrent retry that slipped past the
+        // findPaymentByRazorpayPaymentId pre-check will trip the unique
+        // index on SubscriptionPayment.razorpayPaymentId. Treat as
+        // already-processed so Razorpay stops retrying.
+        if (
+          err instanceof Prisma.PrismaClientKnownRequestError &&
+          err.code === 'P2002'
+        ) {
+          this.logger.log({
+            event: 'razorpay_webhook_duplicate_p2002',
+            kind: 'payment.captured',
+            razorpayPaymentId: payment.id,
+            clinicId,
+          });
+          return;
+        }
+        throw err;
+      }
     };
 
     if (orderId && tier && cycle) {

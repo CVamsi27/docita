@@ -58,6 +58,16 @@ export const DEFAULT_PRICING: Record<Tier, PlanPricing> = {
     yearly: TIER_PRICING.FRONT_DESK.yearly,
     currency: DEFAULT_CURRENCY_SYMBOL,
   },
+  [Tier.FRONT_DESK_CLINIC]: {
+    monthly: TIER_PRICING.FRONT_DESK_CLINIC.monthly,
+    yearly: TIER_PRICING.FRONT_DESK_CLINIC.yearly,
+    currency: DEFAULT_CURRENCY_SYMBOL,
+  },
+  [Tier.FRONT_DESK_HOSPITAL]: {
+    monthly: TIER_PRICING.FRONT_DESK_HOSPITAL.monthly,
+    yearly: TIER_PRICING.FRONT_DESK_HOSPITAL.yearly,
+    currency: DEFAULT_CURRENCY_SYMBOL,
+  },
   [Tier.ESSENTIAL]: {
     monthly: TIER_PRICING.ESSENTIAL.monthly,
     yearly: TIER_PRICING.ESSENTIAL.yearly,
@@ -93,6 +103,8 @@ export const DEFAULT_LIMITS: Record<Tier, PlanLimits> = {
     storageGB: TIER_LIMITS.FRONT_DESK.storageGB,
     branches: TIER_LIMITS.FRONT_DESK.branches,
   },
+  [Tier.FRONT_DESK_CLINIC]: TIER_LIMITS.FRONT_DESK_CLINIC,
+  [Tier.FRONT_DESK_HOSPITAL]: TIER_LIMITS.FRONT_DESK_HOSPITAL,
   [Tier.ESSENTIAL]: TIER_LIMITS.ESSENTIAL,
   [Tier.PROFESSIONAL]: TIER_LIMITS.PROFESSIONAL,
   [Tier.HOSPITAL]: TIER_LIMITS.HOSPITAL,
@@ -111,6 +123,14 @@ export const DEFAULT_DESCRIPTIONS: Record<
   [Tier.FRONT_DESK]: {
     tagline: TIER_INFO.FRONT_DESK.tagline,
     description: TIER_INFO.FRONT_DESK.description,
+  },
+  [Tier.FRONT_DESK_CLINIC]: {
+    tagline: TIER_INFO.FRONT_DESK_CLINIC.tagline,
+    description: TIER_INFO.FRONT_DESK_CLINIC.description,
+  },
+  [Tier.FRONT_DESK_HOSPITAL]: {
+    tagline: TIER_INFO.FRONT_DESK_HOSPITAL.tagline,
+    description: TIER_INFO.FRONT_DESK_HOSPITAL.description,
   },
   [Tier.ESSENTIAL]: {
     tagline: TIER_INFO.ESSENTIAL.tagline,

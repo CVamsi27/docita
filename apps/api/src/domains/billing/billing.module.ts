@@ -22,6 +22,7 @@ import {
   PaymentsService,
   PaymentsQueryService,
   PaymentsCommandService,
+  RazorpayInvoiceWebhookService,
   SchedulerService,
   PDFService,
 } from './application/services';
@@ -90,6 +91,7 @@ import {
     InvoicesService,
     PaymentsQueryService,
     PaymentsCommandService,
+    RazorpayInvoiceWebhookService,
     PaymentsService,
     SchedulerService,
     PDFService,

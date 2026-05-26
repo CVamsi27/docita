@@ -19,7 +19,7 @@ import {
 // ── Constants ──────────────────────────────────────────────────────────────────
 
 export const CURRENT_PDF_TEMPLATE_VERSION = 1;
-export const PDF_SIGNED_URL_TTL_SECONDS = 3600;
+export { PDF_SIGNED_URL_TTL_SECONDS } from '@/domains/documents/application/ports/storage-provider.port';
 export const DEFAULT_INVOICE_DUE_DAYS = 30;
 
 // ── JSON helpers ───────────────────────────────────────────────────────────────

@@ -25,6 +25,11 @@ import {
   INVOICE_REPOSITORY_TOKEN,
 } from '@/domains/billing/core/repositories/invoice.repository';
 import { CLOCK_PORT, type IClock } from '@/shared/common/ports/clock.port';
+import {
+  BILLING_PERSISTENCE_PORT,
+  type BillingPersistencePort,
+} from '@/domains/billing/application/ports/billing-persistence.port';
+import { RazorpayInvoiceWebhookService } from '@/domains/billing/application/services/razorpay-invoice-webhook.service';
 
 /**
  * Clinic invoice payment mutations (sessions, links, manual settlement).
@@ -44,6 +49,9 @@ export class PaymentsCommandService {
     @Inject(CLINIC_INVOICE_PAYMENT_LINK_PROVIDER_TOKEN)
     private readonly paymentLinkProvider: IPaymentLinkProvider,
     @Inject(CLOCK_PORT) private readonly clock: IClock,
+    @Inject(BILLING_PERSISTENCE_PORT)
+    private readonly persistence: BillingPersistencePort,
+    private readonly razorpayInvoiceWebhook: RazorpayInvoiceWebhookService,
   ) {}
 
   async createPaymentSession(dto: {
@@ -111,6 +119,12 @@ export class PaymentsCommandService {
           phone: customerPhone,
         },
         callbackUrl: `${this.configService.getFrontendAppUrl()}/payment/callback`,
+        // Forward invoice + clinic ids as Razorpay notes so the payment.captured
+        // webhook can resolve the docita Invoice without an extra getOrder hop.
+        metadata: {
+          invoiceId: dto.invoiceId,
+          clinicId: dto.clinicId,
+        },
       });
     } catch (error) {
       this.logger.error('Failed to create payment link', error);
@@ -242,34 +256,45 @@ export class PaymentsCommandService {
     const normalizedChannel =
       data.paymentMethod === 'OTHER' ? 'OTHER_ONLINE' : data.paymentMethod;
 
-    await this.invoiceRepository.update(
-      invoice.id,
-      { status: InvoiceStatus.PAID },
-      data.clinicId,
-    );
-
     const resolvedAmount =
       typeof data.amount === 'number' && data.amount > 0
         ? data.amount
         : invoice.total;
 
-    await this.repository.create({
-      clinic: { connect: { id: data.clinicId } },
-      invoice: { connect: { id: data.invoiceId } },
-      patient: { connect: { id: invoice.patientId } },
-      provider: 'manual',
-      amount: Math.round(resolvedAmount * 100),
-      currency: this.configService.getCurrencyCode(),
-      status: PaymentSessionStatus.CAPTURED,
-      expiresAt: this.clock.now(),
-      meta: {
-        channel: normalizedChannel,
-        method: normalizedChannel,
-        performedBy: data.performedByUserId,
-        amount: resolvedAmount,
-        notes: data.notes,
-        reference: data.reference,
-      },
+    // Audit P-FL2 (2026-05-23): payment session create + invoice flip run in
+    // a single Prisma $transaction so either both writes commit or neither
+    // does. BILLING_PERSISTENCE_PORT was extended to expose `invoice`,
+    // `paymentSession`, and `$transaction` for this transactional path; the
+    // repos remain the canonical surface for non-transactional reads/writes.
+    await this.persistence.$transaction(async (tx) => {
+      await tx.paymentSession.create({
+        data: {
+          clinic: { connect: { id: data.clinicId } },
+          invoice: { connect: { id: data.invoiceId } },
+          patient: { connect: { id: invoice.patientId! } },
+          provider: 'manual',
+          amount: Math.round(resolvedAmount * 100),
+          currency: this.configService.getCurrencyCode(),
+          status: PaymentSessionStatus.CAPTURED,
+          expiresAt: this.clock.now(),
+          meta: {
+            channel: normalizedChannel,
+            method: normalizedChannel,
+            performedBy: data.performedByUserId,
+            amount: resolvedAmount,
+            notes: data.notes,
+            reference: data.reference,
+          },
+        },
+      });
+
+      const result = await tx.invoice.updateMany({
+        where: { id: invoice.id, clinicId: data.clinicId },
+        data: { status: InvoiceStatus.PAID },
+      });
+      if (result.count === 0) {
+        throw new NotFoundException(`Invoice ${invoice.id} not found`);
+      }
     });
 
     this.logger.log(
@@ -279,12 +304,13 @@ export class PaymentsCommandService {
     return { success: true };
   }
 
+  /**
+   * Audit P-FL1: signature is verified upstream in WebhooksController.
+   * Delegates downstream state mutation to RazorpayInvoiceWebhookService —
+   * kept in a sibling service to keep this file within the api-domain
+   * file-size budget (400 lines).
+   */
   handleRazorpayWebhook(payload: PaymentWebhookPayload, signature: string) {
-    this.logger.log('Received Razorpay webhook', {
-      event: payload?.event,
-      signaturePresent: typeof signature === 'string' && signature.length > 0,
-    });
-
-    return { status: 'ok' };
+    return this.razorpayInvoiceWebhook.handle(payload, signature);
   }
 }

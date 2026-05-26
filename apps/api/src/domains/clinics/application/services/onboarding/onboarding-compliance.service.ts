@@ -312,17 +312,14 @@ export class OnboardingComplianceService {
     metadata: Record<string, unknown>,
   ): Promise<void> {
     try {
-      await this.auditService.logAction(
-        {
-          userId,
-          clinicId,
-          actionType: eventType,
-          resourceType: 'Clinic',
-          resourceId: clinicId,
-          metadata,
-        },
-        true,
-      );
+      await this.auditService.logAction({
+        userId,
+        clinicId,
+        actionType: eventType,
+        resourceType: 'Clinic',
+        resourceId: clinicId,
+        metadata,
+      });
     } catch (error) {
       this.logger.error(
         `Failed to log audit action: ${error instanceof Error ? error.message : 'Unknown error'}`,

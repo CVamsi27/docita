@@ -13,6 +13,8 @@ import {
 import { ComparisonTable } from "@/features/subscription";
 import {
   PRICING_CURRENCY_SYMBOLS,
+  CLINICAL_PLAN_LADDER,
+  FRONT_DESK_PLAN_LADDER,
   PUBLISHED_PLAN_LADDER,
   SUBSCRIPTION_TRIAL_DAYS,
   TIER_OVERAGE_RATES_BY_CURRENCY,
@@ -29,6 +31,19 @@ import { type TierPricing } from "@/features/subscription/hooks/use-pricing";
 /** Published billable plan ladder for onboarding plan selection. */
 export const DISPLAY_TIERS: TierName[] = [...PUBLISHED_PLAN_LADDER];
 
+export const DISPLAY_TIER_GROUPS = [
+  {
+    title: "Clinical",
+    description: "Full clinic workflows for doctors and care teams.",
+    tiers: [...CLINICAL_PLAN_LADDER],
+  },
+  {
+    title: "Front Desk Operations",
+    description: "Reception, queues, appointments, billing, and handover workflows.",
+    tiers: [...FRONT_DESK_PLAN_LADDER],
+  },
+] as const;
+
 /** Onboarding audience copy; taglines fall back to {@link TIER_INFO} when missing. */
 export const PLAN_AUDIENCE: Partial<Record<TierName, string>> = {
   STARTER: "Best for solo doctors starting with full clinic workflows",
@@ -36,6 +51,10 @@ export const PLAN_AUDIENCE: Partial<Record<TierName, string>> = {
     "Best for small facilities needing clear limits and simple billing",
   FRONT_DESK:
     "Best for reception-led facilities that need scheduling and billing without full clinical workflows in-app",
+  FRONT_DESK_CLINIC:
+    "Best for growing clinics with multiple reception desks and supervisors",
+  FRONT_DESK_HOSPITAL:
+    "Best for hospitals coordinating reception queues across departments and shifts",
   PROFESSIONAL: "Best for multi-doctor facilities and growing practices",
   HOSPITAL:
     "Best for multi-doctor multi-branch hospitals needing pooled WhatsApp and branch analytics",
@@ -87,7 +106,11 @@ export function buildTierCardConfig(
     ]
       .filter(Boolean)
       .join(" ");
-  } else if (tierName === "FRONT_DESK") {
+  } else if (
+    tierName === "FRONT_DESK" ||
+    tierName === "FRONT_DESK_CLINIC" ||
+    tierName === "FRONT_DESK_HOSPITAL"
+  ) {
     overageHint = [
       "Payment required at signup. Clinical workflows stay disabled in-app.",
       overageFromRates,

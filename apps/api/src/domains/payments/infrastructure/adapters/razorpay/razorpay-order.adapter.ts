@@ -101,8 +101,14 @@ export class RazorpayOrderAdapter
         status: order.status,
         metadata: order.notes,
       };
-    } catch {
-      this.logger.warn(`Order ${orderId} not found`);
+    } catch (error) {
+      // Audit FL6 (2026-05-23): preserve the underlying error so we can
+      // distinguish "Razorpay 404" from network failure / rate limit /
+      // signature mismatch. Without this context the call site cannot
+      // tell a genuine miss from an upstream degradation.
+      this.logger.warn(`Razorpay getOrder failed for ${orderId}`, {
+        error: error instanceof Error ? error.message : String(error),
+      });
       return null;
     }
   }

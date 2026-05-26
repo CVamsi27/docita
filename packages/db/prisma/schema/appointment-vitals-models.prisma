@@ -1,3 +1,11 @@
+/// Race-safe double-booking guard:
+/// migration 20260525130000_appointment_overlap_exclusion adds a Postgres
+/// EXCLUDE constraint `Appointment_no_active_overlap` on
+/// (clinicId, doctorId, tstzrange(startTime, endTime, '[)')) restricted to
+/// status IN (SCHEDULED, CONFIRMED, IN_PROGRESS). Prisma cannot represent
+/// EXCLUDE constraints in this schema, so it is managed via raw SQL and
+/// surfaced to the application as BadRequestException in
+/// PrismaAppointmentWriteRepository (see isPrismaExclusionViolation).
 model Appointment {
   id                      String                @id @default(cuid())
   patientId               String

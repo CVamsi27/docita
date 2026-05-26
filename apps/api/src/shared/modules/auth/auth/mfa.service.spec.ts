@@ -8,6 +8,7 @@ import { PrismaService } from '@/prisma/prisma.service';
 import { MfaService } from './mfa.service';
 import { AUTH_CONSTANTS } from '@/shared/modules/config/app-constants';
 import { clockPortTestProvider } from '@/test-utils';
+import { EncryptionService } from '@/shared/common/encryption.service';
 
 jest.mock('bcrypt');
 jest.mock('qrcode', () => ({
@@ -76,6 +77,17 @@ describe('MfaService', () => {
           },
         },
         clockPortTestProvider(),
+        {
+          // Identity stub: encrypt/decrypt are pass-through so existing
+          // assertions on raw secret values keep working. The real service is
+          // exercised by encryption.service.spec.ts.
+          provide: EncryptionService,
+          useValue: {
+            encrypt: (value: string) => value,
+            decrypt: (value: string) => value,
+            hash: (value: string) => `hashed:${value}`,
+          },
+        },
       ],
     }).compile();
 

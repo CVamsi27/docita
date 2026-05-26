@@ -17,6 +17,20 @@ const E2E_PAID_PLAN_GSTIN = "29AABCU9603R1ZX";
 /** Next.js `(protected)` patient routes — keep Playwright URLs aligned with the app router. */
 export const PATIENTS_LIST_PATH = "/patients";
 
+type E2EClinicTier =
+  | "ESSENTIAL"
+  | "FRONT_DESK"
+  | "FRONT_DESK_CLINIC"
+  | "FRONT_DESK_HOSPITAL";
+
+function isFrontDeskTestTier(tier: E2EClinicTier): boolean {
+  return (
+    tier === "FRONT_DESK" ||
+    tier === "FRONT_DESK_CLINIC" ||
+    tier === "FRONT_DESK_HOSPITAL"
+  );
+}
+
 export function patientDetailPath(patientId: string): string {
   return `${PATIENTS_LIST_PATH}/${patientId}`;
 }
@@ -285,14 +299,15 @@ async function setupTestUserImpl(
   requestHeaders: Record<string, string> = {},
   options: {
     clinicType?: ClinicType;
-    tier?: "ESSENTIAL" | "FRONT_DESK";
+    tier?: E2EClinicTier;
   } = {},
 ): Promise<UserData> {
   const clinicType = options.clinicType ?? "GENERAL";
   const tier = options.tier ?? "ESSENTIAL";
   const isUnpaidEssentialTrial = tier === "ESSENTIAL";
-  const onboardingAdminRole =
-    tier === "FRONT_DESK" ? "ADMIN" : "ADMIN_DOCTOR";
+  const onboardingAdminRole = isFrontDeskTestTier(tier)
+    ? "ADMIN"
+    : "ADMIN_DOCTOR";
   const uniqueId = randomUUID();
   const email = `doctor-${uniqueId}@test.com`;
   const password = TEST_PASSWORD;
@@ -509,7 +524,7 @@ async function setupTestUserImpl(
     postOnboardingLoginData.userId ??
     registeredUserId;
 
-  if (tier !== "FRONT_DESK") {
+  if (!isFrontDeskTestTier(tier)) {
     const tokenRes = await request.post(
       `${API_URL}/doctors/signature/generate-token`,
       {
@@ -613,7 +628,7 @@ export async function setupTestUser(
   requestHeaders: Record<string, string> = {},
   options: {
     clinicType?: ClinicType;
-    tier?: "ESSENTIAL" | "FRONT_DESK";
+    tier?: E2EClinicTier;
   } = {},
 ): Promise<UserData> {
   const clinicType = options.clinicType ?? "GENERAL";

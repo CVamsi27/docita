@@ -1,6 +1,11 @@
 import { type PrismaDelegatePort } from '@/shared/modules/database/prisma-delegate.port';
 
-type BillingPersistenceKey = 'clinic' | 'runUnrestricted';
+type BillingPersistenceKey =
+  | 'clinic'
+  | 'runUnrestricted'
+  | 'invoice'
+  | 'paymentSession'
+  | '$transaction';
 
 export type BillingPersistencePort = Pick<
   PrismaDelegatePort,

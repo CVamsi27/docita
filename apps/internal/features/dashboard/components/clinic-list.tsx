@@ -10,6 +10,7 @@ import {
 } from "@workspace/ui/components/data-display/table";
 import { Badge } from "@workspace/ui/components/indicators/badge";
 import { EditClinicDialog } from "./edit-clinic-dialog";
+import { WhatsappSenderDialog } from "./whatsapp-sender-dialog";
 import { Building2 } from "lucide-react";
 import { mapDbClinicTierStringToTierName, TIER_INFO } from "@workspace/types";
 import { getInternalClinicTypeDisplay } from "@/lib/clinic-display";
@@ -135,18 +136,24 @@ export function ClinicList({
                   </Badge>
                 </TableCell>
                 <TableCell className="text-right">
-                  <EditClinicDialog
-                    clinic={{
-                      ...clinic,
-                      email: clinic.email ?? "",
-                      phone: clinic.phone ?? "",
-                      address: clinic.address ?? "",
-                      tier: clinic.tier ?? "GENERAL",
-                      active: clinic.active ?? true,
-                      settings: clinic.settings,
-                    }}
-                    onClinicUpdated={onUpdate}
-                  />
+                  <div className="inline-flex items-center gap-1">
+                    <WhatsappSenderDialog
+                      clinicId={clinic.id}
+                      clinicName={clinic.name}
+                    />
+                    <EditClinicDialog
+                      clinic={{
+                        ...clinic,
+                        email: clinic.email ?? "",
+                        phone: clinic.phone ?? "",
+                        address: clinic.address ?? "",
+                        tier: clinic.tier ?? "GENERAL",
+                        active: clinic.active ?? true,
+                        settings: clinic.settings,
+                      }}
+                      onClinicUpdated={onUpdate}
+                    />
+                  </div>
                 </TableCell>
               </TableRow>
             ))}

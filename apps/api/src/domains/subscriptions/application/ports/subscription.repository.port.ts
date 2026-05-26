@@ -138,6 +138,17 @@ export interface ISubscriptionRepository {
     description: string;
     withinMinutes: number;
   }): Promise<{ razorpayOrderId: string } | null>;
+
+  /**
+   * Audit FL11: idempotency lookup for Razorpay payment webhooks.
+   * Returns the row id if a `SubscriptionPayment` already exists for the given
+   * Razorpay payment id, otherwise null. Backed by the unique index on
+   * `SubscriptionPayment.razorpayPaymentId` (see migration
+   * `20260523190000_audit_subscription_payment_idempotency`).
+   */
+  findPaymentByRazorpayPaymentId(
+    razorpayPaymentId: string,
+  ): Promise<{ id: string } | null>;
 }
 
 export const SUBSCRIPTION_REPOSITORY_TOKEN = 'ISubscriptionRepository';

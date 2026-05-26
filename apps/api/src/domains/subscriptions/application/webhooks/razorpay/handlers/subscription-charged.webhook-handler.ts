@@ -1,4 +1,5 @@
-import { Inject, Injectable } from '@nestjs/common';
+import { Inject, Injectable, Logger } from '@nestjs/common';
+import { Prisma } from '@workspace/db';
 import {
   SUBSCRIPTION_REPOSITORY_TOKEN,
   ISubscriptionRepository,
@@ -17,6 +18,7 @@ import { CLOCK_PORT, type IClock } from '@/shared/common/ports/clock.port';
 @Injectable()
 export class SubscriptionChargedWebhookHandler implements RazorpayWebhookEventHandler {
   readonly event = 'subscription.charged';
+  private readonly logger = new Logger(SubscriptionChargedWebhookHandler.name);
 
   constructor(
     @Inject(SUBSCRIPTION_REPOSITORY_TOKEN)
@@ -60,14 +62,34 @@ export class SubscriptionChargedWebhookHandler implements RazorpayWebhookEventHa
       });
     }
 
-    await this.subscriptionRepo.savePayment({
-      clinicId,
-      amountCents: payment.amount,
-      currency: payment.currency,
-      status: 'paid',
-      razorpayOrderId: payment.order_id || '',
-      description: 'Subscription renewal',
-    });
+    // Idempotency: pass razorpayPaymentId so the unique index on
+    // SubscriptionPayment.razorpayPaymentId catches Razorpay retries; catch
+    // P2002 and treat as already-processed.
+    try {
+      await this.subscriptionRepo.savePayment({
+        clinicId,
+        amountCents: payment.amount,
+        currency: payment.currency,
+        status: 'paid',
+        razorpayOrderId: payment.order_id || '',
+        razorpayPaymentId: payment.id,
+        description: 'Subscription renewal',
+      });
+    } catch (err) {
+      if (
+        err instanceof Prisma.PrismaClientKnownRequestError &&
+        err.code === 'P2002'
+      ) {
+        this.logger.log({
+          event: 'razorpay_webhook_duplicate_p2002',
+          kind: 'subscription.charged',
+          razorpayPaymentId: payment.id,
+          clinicId,
+        });
+        return;
+      }
+      throw err;
+    }
 
     await this.adminAlerts.sendAdminAlert({
       alertKey: `subscription_renewed:${clinicId}:${payment.order_id ?? 'unknown'}`,

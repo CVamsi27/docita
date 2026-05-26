@@ -63,7 +63,7 @@ export class WebhooksController {
     const paymentLinkId = 'razorpay_webhook';
 
     try {
-      this.paymentsService.handleRazorpayWebhook(payload, signature);
+      await this.paymentsService.handleRazorpayWebhook(payload, signature);
 
       await this.webhookErrorHandler.trackWebhookEvent(
         payload.event,

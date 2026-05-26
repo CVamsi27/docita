@@ -8,6 +8,8 @@ export const tierSchema = z.enum([
   "ENTERPRISE",
   "INTELLIGENCE",
   "FRONT_DESK",
+  "FRONT_DESK_CLINIC",
+  "FRONT_DESK_HOSPITAL",
 ]);
 export type TierName = z.infer<typeof tierSchema>;
 
@@ -20,8 +22,31 @@ export enum Tier {
   ENTERPRISE = 4,
   /** Add-on, not a billed tier. Checked separately via the intelligence flag, never via raw `>=` comparison. */
   INTELLIGENCE = 5,
-  /** Billed SKU; feature gating uses {@link hasFeatureAccess} / {@link FRONT_DESK_BLOCKED_FEATURES}, not raw `>=`. */
+  /** Front Desk solo (1 reception desk). Billed SKU; feature gating uses {@link hasFeatureAccess} / {@link FRONT_DESK_BLOCKED_FEATURES}, not raw `>=`. */
   FRONT_DESK = 6,
+  /** Front Desk clinic (multi-doctor reception, 3–10 desks). Same clinical wall as FRONT_DESK. */
+  FRONT_DESK_CLINIC = 7,
+  /** Front Desk hospital (multi-location reception, OPD routing, shift handover). Same clinical wall as FRONT_DESK. */
+  FRONT_DESK_HOSPITAL = 8,
+}
+
+/** Track discriminator for plan-selection UI ("Clinical" vs "Front Desk Operations" columns). */
+export type PlanTrack = "CLINICAL" | "FRONT_DESK";
+
+export const FRONT_DESK_TIER_NAMES = [
+  "FRONT_DESK",
+  "FRONT_DESK_CLINIC",
+  "FRONT_DESK_HOSPITAL",
+] as const satisfies readonly TierName[];
+
+export type FrontDeskTierName = (typeof FRONT_DESK_TIER_NAMES)[number];
+
+const FRONT_DESK_TIER_NAME_SET: ReadonlySet<TierName> = new Set(
+  FRONT_DESK_TIER_NAMES,
+);
+
+export function getPlanTrack(tier: TierName): PlanTrack {
+  return FRONT_DESK_TIER_NAME_SET.has(tier) ? "FRONT_DESK" : "CLINICAL";
 }
 
 export const BILLED_TIERS = [
@@ -31,16 +56,36 @@ export const BILLED_TIERS = [
   Tier.HOSPITAL,
   Tier.ENTERPRISE,
   Tier.FRONT_DESK,
+  Tier.FRONT_DESK_CLINIC,
+  Tier.FRONT_DESK_HOSPITAL,
 ] as const;
 
-/** Billable clinic SKUs in published upgrade/downgrade order (excludes INTELLIGENCE add-on). */
+/** Billable clinic SKUs in published upgrade/downgrade order (excludes INTELLIGENCE add-on). Front-desk SKUs are rendered as a separate track in the UI; this ladder is for ordinal sort only. */
 export const PUBLISHED_PLAN_LADDER = [
   "STARTER",
   "FRONT_DESK",
+  "FRONT_DESK_CLINIC",
+  "FRONT_DESK_HOSPITAL",
   "ESSENTIAL",
   "PROFESSIONAL",
   "HOSPITAL",
   "ENTERPRISE",
+] as const satisfies readonly TierName[];
+
+/** Clinical-track SKUs in upgrade order — use for the "Clinical" column in pricing UI. */
+export const CLINICAL_PLAN_LADDER = [
+  "STARTER",
+  "ESSENTIAL",
+  "PROFESSIONAL",
+  "HOSPITAL",
+  "ENTERPRISE",
+] as const satisfies readonly TierName[];
+
+/** Front-desk-track SKUs in upgrade order — use for the "Front Desk Operations" column in pricing UI. */
+export const FRONT_DESK_PLAN_LADDER = [
+  "FRONT_DESK",
+  "FRONT_DESK_CLINIC",
+  "FRONT_DESK_HOSPITAL",
 ] as const satisfies readonly TierName[];
 
 export type PublishedPlanSku = (typeof PUBLISHED_PLAN_LADDER)[number];
@@ -388,6 +433,8 @@ export const TIER_PRICING_BY_CURRENCY: Record<
     STARTER: buildTierPricing(499),
     ESSENTIAL: buildTierPricing(999),
     FRONT_DESK: buildTierPricing(799),
+    FRONT_DESK_CLINIC: buildTierPricing(1249),
+    FRONT_DESK_HOSPITAL: buildTierPricing(3999),
     PROFESSIONAL: buildTierPricing(2499),
     HOSPITAL: buildTierPricing(7999),
     ENTERPRISE: buildTierPricing("custom"),
@@ -397,6 +444,8 @@ export const TIER_PRICING_BY_CURRENCY: Record<
     STARTER: buildTierPricing(9),
     ESSENTIAL: buildTierPricing(19),
     FRONT_DESK: buildTierPricing(15),
+    FRONT_DESK_CLINIC: buildTierPricing(24),
+    FRONT_DESK_HOSPITAL: buildTierPricing(74),
     PROFESSIONAL: buildTierPricing(49),
     HOSPITAL: buildTierPricing(149),
     ENTERPRISE: buildTierPricing("custom"),
@@ -406,6 +455,8 @@ export const TIER_PRICING_BY_CURRENCY: Record<
     STARTER: buildTierPricing(8),
     ESSENTIAL: buildTierPricing(17),
     FRONT_DESK: buildTierPricing(14),
+    FRONT_DESK_CLINIC: buildTierPricing(22),
+    FRONT_DESK_HOSPITAL: buildTierPricing(69),
     PROFESSIONAL: buildTierPricing(45),
     HOSPITAL: buildTierPricing(139),
     ENTERPRISE: buildTierPricing("custom"),
@@ -415,6 +466,8 @@ export const TIER_PRICING_BY_CURRENCY: Record<
     STARTER: buildTierPricing(7),
     ESSENTIAL: buildTierPricing(15),
     FRONT_DESK: buildTierPricing(12),
+    FRONT_DESK_CLINIC: buildTierPricing(19),
+    FRONT_DESK_HOSPITAL: buildTierPricing(59),
     PROFESSIONAL: buildTierPricing(39),
     HOSPITAL: buildTierPricing(119),
     ENTERPRISE: buildTierPricing("custom"),
@@ -424,6 +477,8 @@ export const TIER_PRICING_BY_CURRENCY: Record<
     STARTER: buildTierPricing(14),
     ESSENTIAL: buildTierPricing(29),
     FRONT_DESK: buildTierPricing(24),
+    FRONT_DESK_CLINIC: buildTierPricing(37),
+    FRONT_DESK_HOSPITAL: buildTierPricing(112),
     PROFESSIONAL: buildTierPricing(75),
     HOSPITAL: buildTierPricing(225),
     ENTERPRISE: buildTierPricing("custom"),
@@ -433,6 +488,8 @@ export const TIER_PRICING_BY_CURRENCY: Record<
     STARTER: buildTierPricing(12),
     ESSENTIAL: buildTierPricing(25),
     FRONT_DESK: buildTierPricing(20),
+    FRONT_DESK_CLINIC: buildTierPricing(32),
+    FRONT_DESK_HOSPITAL: buildTierPricing(99),
     PROFESSIONAL: buildTierPricing(65),
     HOSPITAL: buildTierPricing(199),
     ENTERPRISE: buildTierPricing("custom"),
@@ -442,6 +499,8 @@ export const TIER_PRICING_BY_CURRENCY: Record<
     STARTER: buildTierPricing(12),
     ESSENTIAL: buildTierPricing(25),
     FRONT_DESK: buildTierPricing(20),
+    FRONT_DESK_CLINIC: buildTierPricing(32),
+    FRONT_DESK_HOSPITAL: buildTierPricing(99),
     PROFESSIONAL: buildTierPricing(65),
     HOSPITAL: buildTierPricing(199),
     ENTERPRISE: buildTierPricing("custom"),
@@ -451,6 +510,8 @@ export const TIER_PRICING_BY_CURRENCY: Record<
     STARTER: buildTierPricing(35),
     ESSENTIAL: buildTierPricing(69),
     FRONT_DESK: buildTierPricing(55),
+    FRONT_DESK_CLINIC: buildTierPricing(89),
+    FRONT_DESK_HOSPITAL: buildTierPricing(274),
     PROFESSIONAL: buildTierPricing(179),
     HOSPITAL: buildTierPricing(549),
     ENTERPRISE: buildTierPricing("custom"),
@@ -460,6 +521,8 @@ export const TIER_PRICING_BY_CURRENCY: Record<
     STARTER: buildTierPricing(179),
     ESSENTIAL: buildTierPricing(349),
     FRONT_DESK: buildTierPricing(279),
+    FRONT_DESK_CLINIC: buildTierPricing(449),
+    FRONT_DESK_HOSPITAL: buildTierPricing(1399),
     PROFESSIONAL: buildTierPricing(899),
     HOSPITAL: buildTierPricing(2799),
     ENTERPRISE: buildTierPricing("custom"),
@@ -471,6 +534,16 @@ export const TIER_PRICING: Record<TierName, TierPricing> = {
   STARTER: { monthly: 499, yearly: deriveAnnualPrice(499), currency: "₹" },
   ESSENTIAL: { monthly: 999, yearly: deriveAnnualPrice(999), currency: "₹" },
   FRONT_DESK: { monthly: 799, yearly: deriveAnnualPrice(799), currency: "₹" },
+  FRONT_DESK_CLINIC: {
+    monthly: 1249,
+    yearly: deriveAnnualPrice(1249),
+    currency: "₹",
+  },
+  FRONT_DESK_HOSPITAL: {
+    monthly: 3999,
+    yearly: deriveAnnualPrice(3999),
+    currency: "₹",
+  },
   PROFESSIONAL: {
     monthly: 2499,
     yearly: deriveAnnualPrice(2499),
@@ -541,6 +614,30 @@ export const TIER_LIMITS: Record<TierName, TierLimits> = {
     invoices: 999999,
     ocrPages: 500,
     apiCallsPerDay: 0,
+  },
+  FRONT_DESK_CLINIC: {
+    patients: 999999,
+    doctors: 999999,
+    storageGB: 50,
+    branches: 1,
+    appointments: 3000,
+    users: 25,
+    prescriptions: 0,
+    invoices: 999999,
+    ocrPages: 2000,
+    apiCallsPerDay: 0,
+  },
+  FRONT_DESK_HOSPITAL: {
+    patients: 999999,
+    doctors: 999999,
+    storageGB: 250,
+    branches: 10,
+    appointments: 15000,
+    users: 150,
+    prescriptions: 0,
+    invoices: 999999,
+    ocrPages: 8000,
+    apiCallsPerDay: 50000,
   },
   PROFESSIONAL: {
     patients: 999999,
@@ -829,6 +926,8 @@ export const TIER_OVERAGE_RATES: Record<
   STARTER: ZERO_OVERAGE,
   ESSENTIAL: PRO_OVERAGE_RATES_BY_CURRENCY.INR,
   FRONT_DESK: PRO_OVERAGE_RATES_BY_CURRENCY.INR,
+  FRONT_DESK_CLINIC: PRO_OVERAGE_RATES_BY_CURRENCY.INR,
+  FRONT_DESK_HOSPITAL: CLINIC_OVERAGE_RATES_BY_CURRENCY.INR,
   PROFESSIONAL: CLINIC_OVERAGE_RATES_BY_CURRENCY.INR,
   HOSPITAL: CLINIC_OVERAGE_RATES_BY_CURRENCY.INR,
   ENTERPRISE: { ...ZERO_OVERAGE, apiCallRate: 0.01 },
@@ -856,6 +955,8 @@ export const TIER_OVERAGE_RATES_BY_CURRENCY: Record<
     STARTER: ZERO_OVERAGE,
     ESSENTIAL: PRO_OVERAGE_RATES_BY_CURRENCY.USD,
     FRONT_DESK: PRO_OVERAGE_RATES_BY_CURRENCY.USD,
+    FRONT_DESK_CLINIC: PRO_OVERAGE_RATES_BY_CURRENCY.USD,
+    FRONT_DESK_HOSPITAL: CLINIC_OVERAGE_RATES_BY_CURRENCY.USD,
     PROFESSIONAL: CLINIC_OVERAGE_RATES_BY_CURRENCY.USD,
     HOSPITAL: CLINIC_OVERAGE_RATES_BY_CURRENCY.USD,
     ENTERPRISE: { ...ZERO_OVERAGE, apiCallRate: 0.0003 },
@@ -865,6 +966,8 @@ export const TIER_OVERAGE_RATES_BY_CURRENCY: Record<
     STARTER: ZERO_OVERAGE,
     ESSENTIAL: PRO_OVERAGE_RATES_BY_CURRENCY.EUR,
     FRONT_DESK: PRO_OVERAGE_RATES_BY_CURRENCY.EUR,
+    FRONT_DESK_CLINIC: PRO_OVERAGE_RATES_BY_CURRENCY.EUR,
+    FRONT_DESK_HOSPITAL: CLINIC_OVERAGE_RATES_BY_CURRENCY.EUR,
     PROFESSIONAL: CLINIC_OVERAGE_RATES_BY_CURRENCY.EUR,
     HOSPITAL: CLINIC_OVERAGE_RATES_BY_CURRENCY.EUR,
     ENTERPRISE: { ...ZERO_OVERAGE, apiCallRate: 0.00025 },
@@ -874,6 +977,8 @@ export const TIER_OVERAGE_RATES_BY_CURRENCY: Record<
     STARTER: ZERO_OVERAGE,
     ESSENTIAL: PRO_OVERAGE_RATES_BY_CURRENCY.GBP,
     FRONT_DESK: PRO_OVERAGE_RATES_BY_CURRENCY.GBP,
+    FRONT_DESK_CLINIC: PRO_OVERAGE_RATES_BY_CURRENCY.GBP,
+    FRONT_DESK_HOSPITAL: CLINIC_OVERAGE_RATES_BY_CURRENCY.GBP,
     PROFESSIONAL: CLINIC_OVERAGE_RATES_BY_CURRENCY.GBP,
     HOSPITAL: CLINIC_OVERAGE_RATES_BY_CURRENCY.GBP,
     ENTERPRISE: { ...ZERO_OVERAGE, apiCallRate: 0.0002 },
@@ -883,6 +988,8 @@ export const TIER_OVERAGE_RATES_BY_CURRENCY: Record<
     STARTER: ZERO_OVERAGE,
     ESSENTIAL: PRO_OVERAGE_RATES_BY_CURRENCY.AUD,
     FRONT_DESK: PRO_OVERAGE_RATES_BY_CURRENCY.AUD,
+    FRONT_DESK_CLINIC: PRO_OVERAGE_RATES_BY_CURRENCY.AUD,
+    FRONT_DESK_HOSPITAL: CLINIC_OVERAGE_RATES_BY_CURRENCY.AUD,
     PROFESSIONAL: CLINIC_OVERAGE_RATES_BY_CURRENCY.AUD,
     HOSPITAL: CLINIC_OVERAGE_RATES_BY_CURRENCY.AUD,
     ENTERPRISE: { ...ZERO_OVERAGE, apiCallRate: 0.0004 },
@@ -892,6 +999,8 @@ export const TIER_OVERAGE_RATES_BY_CURRENCY: Record<
     STARTER: ZERO_OVERAGE,
     ESSENTIAL: PRO_OVERAGE_RATES_BY_CURRENCY.CAD,
     FRONT_DESK: PRO_OVERAGE_RATES_BY_CURRENCY.CAD,
+    FRONT_DESK_CLINIC: PRO_OVERAGE_RATES_BY_CURRENCY.CAD,
+    FRONT_DESK_HOSPITAL: CLINIC_OVERAGE_RATES_BY_CURRENCY.CAD,
     PROFESSIONAL: CLINIC_OVERAGE_RATES_BY_CURRENCY.CAD,
     HOSPITAL: CLINIC_OVERAGE_RATES_BY_CURRENCY.CAD,
     ENTERPRISE: { ...ZERO_OVERAGE, apiCallRate: 0.00035 },
@@ -901,6 +1010,8 @@ export const TIER_OVERAGE_RATES_BY_CURRENCY: Record<
     STARTER: ZERO_OVERAGE,
     ESSENTIAL: PRO_OVERAGE_RATES_BY_CURRENCY.SGD,
     FRONT_DESK: PRO_OVERAGE_RATES_BY_CURRENCY.SGD,
+    FRONT_DESK_CLINIC: PRO_OVERAGE_RATES_BY_CURRENCY.SGD,
+    FRONT_DESK_HOSPITAL: CLINIC_OVERAGE_RATES_BY_CURRENCY.SGD,
     PROFESSIONAL: CLINIC_OVERAGE_RATES_BY_CURRENCY.SGD,
     HOSPITAL: CLINIC_OVERAGE_RATES_BY_CURRENCY.SGD,
     ENTERPRISE: { ...ZERO_OVERAGE, apiCallRate: 0.00035 },
@@ -910,6 +1021,8 @@ export const TIER_OVERAGE_RATES_BY_CURRENCY: Record<
     STARTER: ZERO_OVERAGE,
     ESSENTIAL: PRO_OVERAGE_RATES_BY_CURRENCY.AED,
     FRONT_DESK: PRO_OVERAGE_RATES_BY_CURRENCY.AED,
+    FRONT_DESK_CLINIC: PRO_OVERAGE_RATES_BY_CURRENCY.AED,
+    FRONT_DESK_HOSPITAL: CLINIC_OVERAGE_RATES_BY_CURRENCY.AED,
     PROFESSIONAL: CLINIC_OVERAGE_RATES_BY_CURRENCY.AED,
     HOSPITAL: CLINIC_OVERAGE_RATES_BY_CURRENCY.AED,
     ENTERPRISE: { ...ZERO_OVERAGE, apiCallRate: 0.0004 },
@@ -919,6 +1032,8 @@ export const TIER_OVERAGE_RATES_BY_CURRENCY: Record<
     STARTER: ZERO_OVERAGE,
     ESSENTIAL: PRO_OVERAGE_RATES_BY_CURRENCY.ZAR,
     FRONT_DESK: PRO_OVERAGE_RATES_BY_CURRENCY.ZAR,
+    FRONT_DESK_CLINIC: PRO_OVERAGE_RATES_BY_CURRENCY.ZAR,
+    FRONT_DESK_HOSPITAL: CLINIC_OVERAGE_RATES_BY_CURRENCY.ZAR,
     PROFESSIONAL: CLINIC_OVERAGE_RATES_BY_CURRENCY.ZAR,
     HOSPITAL: CLINIC_OVERAGE_RATES_BY_CURRENCY.ZAR,
     ENTERPRISE: { ...ZERO_OVERAGE, apiCallRate: 0.0004 },
@@ -938,6 +1053,8 @@ export const WHATSAPP_ADDON_PRICING: Record<
 > = {
   ESSENTIAL: { basePrice: 0, includedQuota: 500, overageRate: 0.75 },
   FRONT_DESK: { basePrice: 0, includedQuota: 500, overageRate: 0.75 },
+  FRONT_DESK_CLINIC: { basePrice: 0, includedQuota: 2000, overageRate: 0.5 },
+  FRONT_DESK_HOSPITAL: { basePrice: 0, includedQuota: 6000, overageRate: 0.35 },
   PROFESSIONAL: { basePrice: 0, includedQuota: 2000, overageRate: 0.5 },
   HOSPITAL: { basePrice: 0, includedQuota: 6000, overageRate: 0.35 },
   ENTERPRISE: { basePrice: 0, includedQuota: 15000, overageRate: 0.2 },
@@ -949,6 +1066,8 @@ export const INTELLIGENCE_ADDON_PRICING: Record<
 > = {
   ESSENTIAL: { basePrice: 0, includedQuota: 0, overageRate: 0 },
   FRONT_DESK: { basePrice: 0, includedQuota: 0, overageRate: 0 },
+  FRONT_DESK_CLINIC: { basePrice: 0, includedQuota: 0, overageRate: 0 },
+  FRONT_DESK_HOSPITAL: { basePrice: 0, includedQuota: 0, overageRate: 0 },
   PROFESSIONAL: { basePrice: 0, includedQuota: 0, overageRate: 0 },
   HOSPITAL: { basePrice: 0, includedQuota: 0, overageRate: 0 },
   ENTERPRISE: { basePrice: 0, includedQuota: 0, overageRate: 0 },
@@ -962,6 +1081,8 @@ export const WHATSAPP_ADDON_PRICING_BY_CURRENCY: Record<
   USD: {
     ESSENTIAL: { basePrice: 0, includedQuota: 500, overageRate: 0.02 },
     FRONT_DESK: { basePrice: 0, includedQuota: 500, overageRate: 0.02 },
+    FRONT_DESK_CLINIC: { basePrice: 0, includedQuota: 2000, overageRate: 0.01 },
+    FRONT_DESK_HOSPITAL: { basePrice: 0, includedQuota: 6000, overageRate: 0.008 },
     PROFESSIONAL: { basePrice: 0, includedQuota: 2000, overageRate: 0.01 },
     HOSPITAL: { basePrice: 0, includedQuota: 6000, overageRate: 0.008 },
     ENTERPRISE: { basePrice: 0, includedQuota: 15000, overageRate: 0.005 },
@@ -969,6 +1090,8 @@ export const WHATSAPP_ADDON_PRICING_BY_CURRENCY: Record<
   EUR: {
     ESSENTIAL: { basePrice: 0, includedQuota: 500, overageRate: 0.02 },
     FRONT_DESK: { basePrice: 0, includedQuota: 500, overageRate: 0.02 },
+    FRONT_DESK_CLINIC: { basePrice: 0, includedQuota: 2000, overageRate: 0.01 },
+    FRONT_DESK_HOSPITAL: { basePrice: 0, includedQuota: 6000, overageRate: 0.007 },
     PROFESSIONAL: { basePrice: 0, includedQuota: 2000, overageRate: 0.01 },
     HOSPITAL: { basePrice: 0, includedQuota: 6000, overageRate: 0.007 },
     ENTERPRISE: { basePrice: 0, includedQuota: 15000, overageRate: 0.004 },
@@ -976,6 +1099,8 @@ export const WHATSAPP_ADDON_PRICING_BY_CURRENCY: Record<
   GBP: {
     ESSENTIAL: { basePrice: 0, includedQuota: 500, overageRate: 0.015 },
     FRONT_DESK: { basePrice: 0, includedQuota: 500, overageRate: 0.015 },
+    FRONT_DESK_CLINIC: { basePrice: 0, includedQuota: 2000, overageRate: 0.008 },
+    FRONT_DESK_HOSPITAL: { basePrice: 0, includedQuota: 6000, overageRate: 0.006 },
     PROFESSIONAL: { basePrice: 0, includedQuota: 2000, overageRate: 0.008 },
     HOSPITAL: { basePrice: 0, includedQuota: 6000, overageRate: 0.006 },
     ENTERPRISE: { basePrice: 0, includedQuota: 15000, overageRate: 0.004 },
@@ -983,6 +1108,8 @@ export const WHATSAPP_ADDON_PRICING_BY_CURRENCY: Record<
   AUD: {
     ESSENTIAL: { basePrice: 0, includedQuota: 500, overageRate: 0.03 },
     FRONT_DESK: { basePrice: 0, includedQuota: 500, overageRate: 0.03 },
+    FRONT_DESK_CLINIC: { basePrice: 0, includedQuota: 2000, overageRate: 0.02 },
+    FRONT_DESK_HOSPITAL: { basePrice: 0, includedQuota: 6000, overageRate: 0.014 },
     PROFESSIONAL: { basePrice: 0, includedQuota: 2000, overageRate: 0.02 },
     HOSPITAL: { basePrice: 0, includedQuota: 6000, overageRate: 0.014 },
     ENTERPRISE: { basePrice: 0, includedQuota: 15000, overageRate: 0.008 },
@@ -990,6 +1117,8 @@ export const WHATSAPP_ADDON_PRICING_BY_CURRENCY: Record<
   CAD: {
     ESSENTIAL: { basePrice: 0, includedQuota: 500, overageRate: 0.03 },
     FRONT_DESK: { basePrice: 0, includedQuota: 500, overageRate: 0.03 },
+    FRONT_DESK_CLINIC: { basePrice: 0, includedQuota: 2000, overageRate: 0.02 },
+    FRONT_DESK_HOSPITAL: { basePrice: 0, includedQuota: 6000, overageRate: 0.014 },
     PROFESSIONAL: { basePrice: 0, includedQuota: 2000, overageRate: 0.02 },
     HOSPITAL: { basePrice: 0, includedQuota: 6000, overageRate: 0.014 },
     ENTERPRISE: { basePrice: 0, includedQuota: 15000, overageRate: 0.008 },
@@ -997,6 +1126,8 @@ export const WHATSAPP_ADDON_PRICING_BY_CURRENCY: Record<
   SGD: {
     ESSENTIAL: { basePrice: 0, includedQuota: 500, overageRate: 0.03 },
     FRONT_DESK: { basePrice: 0, includedQuota: 500, overageRate: 0.03 },
+    FRONT_DESK_CLINIC: { basePrice: 0, includedQuota: 2000, overageRate: 0.02 },
+    FRONT_DESK_HOSPITAL: { basePrice: 0, includedQuota: 6000, overageRate: 0.014 },
     PROFESSIONAL: { basePrice: 0, includedQuota: 2000, overageRate: 0.02 },
     HOSPITAL: { basePrice: 0, includedQuota: 6000, overageRate: 0.014 },
     ENTERPRISE: { basePrice: 0, includedQuota: 15000, overageRate: 0.008 },
@@ -1004,6 +1135,8 @@ export const WHATSAPP_ADDON_PRICING_BY_CURRENCY: Record<
   AED: {
     ESSENTIAL: { basePrice: 0, includedQuota: 500, overageRate: 0.07 },
     FRONT_DESK: { basePrice: 0, includedQuota: 500, overageRate: 0.07 },
+    FRONT_DESK_CLINIC: { basePrice: 0, includedQuota: 2000, overageRate: 0.04 },
+    FRONT_DESK_HOSPITAL: { basePrice: 0, includedQuota: 6000, overageRate: 0.03 },
     PROFESSIONAL: { basePrice: 0, includedQuota: 2000, overageRate: 0.04 },
     HOSPITAL: { basePrice: 0, includedQuota: 6000, overageRate: 0.03 },
     ENTERPRISE: { basePrice: 0, includedQuota: 15000, overageRate: 0.02 },
@@ -1011,6 +1144,8 @@ export const WHATSAPP_ADDON_PRICING_BY_CURRENCY: Record<
   ZAR: {
     ESSENTIAL: { basePrice: 0, includedQuota: 500, overageRate: 0.35 },
     FRONT_DESK: { basePrice: 0, includedQuota: 500, overageRate: 0.35 },
+    FRONT_DESK_CLINIC: { basePrice: 0, includedQuota: 2000, overageRate: 0.2 },
+    FRONT_DESK_HOSPITAL: { basePrice: 0, includedQuota: 6000, overageRate: 0.15 },
     PROFESSIONAL: { basePrice: 0, includedQuota: 2000, overageRate: 0.2 },
     HOSPITAL: { basePrice: 0, includedQuota: 6000, overageRate: 0.15 },
     ENTERPRISE: { basePrice: 0, includedQuota: 15000, overageRate: 0.1 },
@@ -1023,6 +1158,8 @@ const INTELLIGENCE_ZERO_PRICING: Record<
 > = {
   ESSENTIAL: { basePrice: 0, includedQuota: 0, overageRate: 0 },
   FRONT_DESK: { basePrice: 0, includedQuota: 0, overageRate: 0 },
+  FRONT_DESK_CLINIC: { basePrice: 0, includedQuota: 0, overageRate: 0 },
+  FRONT_DESK_HOSPITAL: { basePrice: 0, includedQuota: 0, overageRate: 0 },
   PROFESSIONAL: { basePrice: 0, includedQuota: 0, overageRate: 0 },
   HOSPITAL: { basePrice: 0, includedQuota: 0, overageRate: 0 },
   ENTERPRISE: { basePrice: 0, includedQuota: 0, overageRate: 0 },
@@ -1100,6 +1237,8 @@ export const REFERRAL_REWARDS: Record<TierName, number> = {
   STARTER: 0,
   ESSENTIAL: 500,
   FRONT_DESK: 400,
+  FRONT_DESK_CLINIC: 1250,
+  FRONT_DESK_HOSPITAL: 2000,
   PROFESSIONAL: 2500,
   HOSPITAL: 4000,
   ENTERPRISE: 5000,
@@ -1115,6 +1254,8 @@ export const REFERRAL_REWARDS_BY_CURRENCY: Record<
     STARTER: 0,
     ESSENTIAL: 15,
     FRONT_DESK: 12,
+    FRONT_DESK_CLINIC: 30,
+    FRONT_DESK_HOSPITAL: 40,
     PROFESSIONAL: 60,
     HOSPITAL: 80,
     ENTERPRISE: 100,
@@ -1124,6 +1265,8 @@ export const REFERRAL_REWARDS_BY_CURRENCY: Record<
     STARTER: 0,
     ESSENTIAL: 12,
     FRONT_DESK: 10,
+    FRONT_DESK_CLINIC: 25,
+    FRONT_DESK_HOSPITAL: 35,
     PROFESSIONAL: 50,
     HOSPITAL: 70,
     ENTERPRISE: 85,
@@ -1133,6 +1276,8 @@ export const REFERRAL_REWARDS_BY_CURRENCY: Record<
     STARTER: 0,
     ESSENTIAL: 10,
     FRONT_DESK: 8,
+    FRONT_DESK_CLINIC: 22,
+    FRONT_DESK_HOSPITAL: 30,
     PROFESSIONAL: 45,
     HOSPITAL: 60,
     ENTERPRISE: 75,
@@ -1142,6 +1287,8 @@ export const REFERRAL_REWARDS_BY_CURRENCY: Record<
     STARTER: 0,
     ESSENTIAL: 22,
     FRONT_DESK: 18,
+    FRONT_DESK_CLINIC: 45,
+    FRONT_DESK_HOSPITAL: 60,
     PROFESSIONAL: 90,
     HOSPITAL: 120,
     ENTERPRISE: 150,
@@ -1151,6 +1298,8 @@ export const REFERRAL_REWARDS_BY_CURRENCY: Record<
     STARTER: 0,
     ESSENTIAL: 20,
     FRONT_DESK: 16,
+    FRONT_DESK_CLINIC: 35,
+    FRONT_DESK_HOSPITAL: 48,
     PROFESSIONAL: 70,
     HOSPITAL: 95,
     ENTERPRISE: 120,
@@ -1160,6 +1309,8 @@ export const REFERRAL_REWARDS_BY_CURRENCY: Record<
     STARTER: 0,
     ESSENTIAL: 20,
     FRONT_DESK: 16,
+    FRONT_DESK_CLINIC: 35,
+    FRONT_DESK_HOSPITAL: 48,
     PROFESSIONAL: 70,
     HOSPITAL: 95,
     ENTERPRISE: 120,
@@ -1169,6 +1320,8 @@ export const REFERRAL_REWARDS_BY_CURRENCY: Record<
     STARTER: 0,
     ESSENTIAL: 60,
     FRONT_DESK: 48,
+    FRONT_DESK_CLINIC: 90,
+    FRONT_DESK_HOSPITAL: 120,
     PROFESSIONAL: 180,
     HOSPITAL: 240,
     ENTERPRISE: 300,
@@ -1178,6 +1331,8 @@ export const REFERRAL_REWARDS_BY_CURRENCY: Record<
     STARTER: 0,
     ESSENTIAL: 280,
     FRONT_DESK: 220,
+    FRONT_DESK_CLINIC: 450,
+    FRONT_DESK_HOSPITAL: 600,
     PROFESSIONAL: 900,
     HOSPITAL: 1200,
     ENTERPRISE: 1500,
@@ -1237,10 +1392,24 @@ export const TIER_INFO: Record<TierName, TierInfo> = {
     color: "pink",
   },
   FRONT_DESK: {
-    name: "Front desk",
+    name: "Front desk · Solo",
     description:
-      "Reception-first scheduling, queue, and billing without full clinical workflows in-app",
-    tagline: "Reception and operations",
+      "Reception-first scheduling, queue, and billing for a single desk — no clinical workflows in-app.",
+    tagline: "Solo reception",
+    color: "teal",
+  },
+  FRONT_DESK_CLINIC: {
+    name: "Front desk · Clinic",
+    description:
+      "Multi-desk reception for growing clinics: multi-doctor scheduling, supervisor roles, longer audit retention.",
+    tagline: "Multi-desk reception",
+    color: "teal",
+  },
+  FRONT_DESK_HOSPITAL: {
+    name: "Front desk · Hospital",
+    description:
+      "Hospital-scale reception ops: multi-location queues, OPD routing, shift handover, SLA support.",
+    tagline: "Hospital reception",
     color: "teal",
   },
 };
@@ -1336,12 +1505,33 @@ export const TIER_FEATURES: Record<TierName, string[]> = {
     "Data warehouse export (planned)",
   ],
   FRONT_DESK: [
+    "Solo reception desk (1 user, 1 location)",
     "Appointment scheduling and queue",
     "Patient check-in and basic profiles",
     "Invoicing and payment links",
-    "WhatsApp messaging within plan limits",
+    "WhatsApp messaging (500 msgs/mo)",
     "Admin and receptionist roles",
     "Schedule-only doctor profiles (no app login)",
+  ],
+  FRONT_DESK_CLINIC: [
+    "Everything in Front Desk Solo",
+    "Up to 25 staff users included",
+    "3,000 appointments/mo included",
+    "WhatsApp messaging (2,000 msgs/mo)",
+    "Supervisor and billing-only roles",
+    "1 year audit log retention",
+    "Email support with SLA",
+  ],
+  FRONT_DESK_HOSPITAL: [
+    "Everything in Front Desk Clinic",
+    "Up to 10 locations included",
+    "150 staff users included",
+    "15,000 appointments/mo included",
+    "WhatsApp messaging (6,000 msgs/mo pooled)",
+    "Per-location admin and shift-lead roles",
+    "Multi-OPD queue routing and shift handover",
+    "7 year audit log retention",
+    "Dedicated customer success manager",
   ],
   INTELLIGENCE: [],
 };

@@ -78,6 +78,7 @@ describe('PaymentsService', () => {
   const invoiceRepository: jest.Mocked<IInvoiceRepository> = {
     findAll: jest.fn<IInvoiceRepository['findAll']>(),
     findById: jest.fn<IInvoiceRepository['findById']>(),
+    findByIdUnscoped: jest.fn<IInvoiceRepository['findByIdUnscoped']>(),
     create: jest.fn<IInvoiceRepository['create']>(),
     update: jest.fn<IInvoiceRepository['update']>(),
     delete: jest.fn<IInvoiceRepository['delete']>(),
@@ -133,9 +134,34 @@ describe('PaymentsService', () => {
   };
 
   let service: PaymentsService;
+  let txInvoiceUpdateMany: jest.Mock;
+  let txPaymentSessionCreate: jest.Mock;
 
   beforeEach(() => {
     jest.clearAllMocks();
+    txInvoiceUpdateMany = jest
+      .fn<() => Promise<{ count: number }>>()
+      .mockResolvedValue({ count: 1 }) as unknown as jest.Mock;
+    txPaymentSessionCreate = jest
+      .fn<() => Promise<unknown>>()
+      .mockResolvedValue({}) as unknown as jest.Mock;
+    const persistence = {
+      clinic: {} as never,
+      runUnrestricted: (async (fn: (tx: unknown) => unknown) =>
+        fn({})) as never,
+      invoice: {} as never,
+      paymentSession: {} as never,
+      $transaction: (async (fn: (tx: unknown) => unknown) =>
+        fn({
+          invoice: { updateMany: txInvoiceUpdateMany },
+          paymentSession: { create: txPaymentSessionCreate },
+        })) as never,
+    };
+    const razorpayInvoiceWebhook = {
+      handle: jest
+        .fn<() => Promise<{ status: string }>>()
+        .mockResolvedValue({ status: 'ignored' }),
+    } as never;
     const command = new PaymentsCommandService(
       repository,
       invoiceRepository,
@@ -143,6 +169,8 @@ describe('PaymentsService', () => {
       configService,
       paymentLinkProvider,
       clock,
+      persistence as never,
+      razorpayInvoiceWebhook,
     );
     const query = new PaymentsQueryService(repository);
     service = new PaymentsService(query, command);
@@ -216,14 +244,13 @@ describe('PaymentsService', () => {
         notes: 'Paid at desk',
       });
 
-      expect(invoiceRepository.update).toHaveBeenCalledWith(
-        'inv_1',
-        { status: InvoiceStatus.PAID },
-        'clinic_1',
-      );
+      expect(txInvoiceUpdateMany).toHaveBeenCalledWith({
+        where: { id: 'inv_1', clinicId: 'clinic_1' },
+        data: { status: InvoiceStatus.PAID },
+      });
 
-      expect(repository.create).toHaveBeenCalledWith(
-        expect.objectContaining({
+      expect(txPaymentSessionCreate).toHaveBeenCalledWith({
+        data: expect.objectContaining({
           provider: 'manual',
           status: PaymentSessionStatus.CAPTURED,
           meta: expect.objectContaining({
@@ -235,7 +262,7 @@ describe('PaymentsService', () => {
             amount: 500,
           }),
         }),
-      );
+      });
     });
 
     it('uses UPI_QR channel without rewriting', async () => {
@@ -252,14 +279,14 @@ describe('PaymentsService', () => {
         paymentMethod: 'UPI_QR',
       });
 
-      expect(repository.create).toHaveBeenCalledWith(
-        expect.objectContaining({
+      expect(txPaymentSessionCreate).toHaveBeenCalledWith({
+        data: expect.objectContaining({
           meta: expect.objectContaining({
             channel: 'UPI_QR',
             method: 'UPI_QR',
           }),
         }),
-      );
+      });
     });
   });
 });

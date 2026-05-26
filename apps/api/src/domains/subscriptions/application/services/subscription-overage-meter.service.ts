@@ -7,7 +7,7 @@ import {
   OVERAGE_CALCULATION_TOKEN,
   type IOverageCalculation,
 } from '@/domains/billing/application/ports';
-import { TIER_LIMITS, type TierName } from '@workspace/types';
+import { TIER_LIMITS, isFrontDeskTier, type TierName } from '@workspace/types';
 import { getWhatsAppAddonPricingByCurrency } from '@workspace/utils';
 import {
   ClinicTier,
@@ -33,6 +33,10 @@ function clinicTierToTierName(tier: ClinicTier): TierName {
       return 'ENTERPRISE';
     case ClinicTier.FRONT_DESK:
       return 'FRONT_DESK';
+    case ClinicTier.FRONT_DESK_CLINIC:
+      return 'FRONT_DESK_CLINIC';
+    case ClinicTier.FRONT_DESK_HOSPITAL:
+      return 'FRONT_DESK_HOSPITAL';
     default: {
       const _exhaustive: never = tier;
       return _exhaustive;
@@ -111,7 +115,8 @@ export class SubscriptionOverageMeterService {
     const currency = this.invoiceComposer.resolveCurrency(
       activeContract?.currency ?? sub.currency,
     );
-    const tierLimits = TIER_LIMITS[clinicTierToTierName(tier)];
+    const tierName = clinicTierToTierName(tier);
+    const tierLimits = TIER_LIMITS[tierName];
 
     const includedConsultations =
       activeContract?.includedConsultations ??
@@ -135,7 +140,7 @@ export class SubscriptionOverageMeterService {
       this.persistence.user.count({
         where: {
           clinicId: sub.clinicId,
-          ...(tier === ClinicTier.FRONT_DESK
+          ...(isFrontDeskTier(tier)
             ? {
                 NOT: {
                   AND: [{ role: Role.DOCTOR }, { appLoginDisabled: true }],
@@ -156,13 +161,7 @@ export class SubscriptionOverageMeterService {
 
     const whatsappUsed = whatsappCount._sum.quantity ?? 0;
     const whatsappEligibleTier =
-      tier === ClinicTier.ESSENTIAL ||
-      tier === ClinicTier.FRONT_DESK ||
-      tier === ClinicTier.PROFESSIONAL ||
-      tier === ClinicTier.HOSPITAL ||
-      tier === ClinicTier.ENTERPRISE
-        ? tier
-        : null;
+      tierName !== 'STARTER' && tierName !== 'INTELLIGENCE' ? tierName : null;
     const whatsappIncluded =
       activeContract?.includedWhatsappMessages ??
       (whatsappEligibleTier

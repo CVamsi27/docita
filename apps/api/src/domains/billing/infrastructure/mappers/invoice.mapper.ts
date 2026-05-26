@@ -16,15 +16,6 @@ import {
 } from '@/domains/billing/core/utils/invoice-item-resolution';
 import { toPrismaInputJsonValue } from '@/shared/common/json/to-prisma-input-json-value';
 
-interface InvoiceItemData {
-  id: string;
-  description: string;
-  quantity: number;
-  unitPrice: number;
-  taxRate: number;
-  discount: number;
-}
-
 const PRISMA_TO_DOMAIN_STATUS: Record<PrismaInvoiceStatus, InvoiceStatusEnum> =
   {
     PENDING: InvoiceStatusEnum.ISSUED,

@@ -42,26 +42,14 @@ export class AuditService {
     @Inject(CLOCK_PORT) private readonly clock: IClock,
   ) {}
 
-  async logAction(
-    data: AuditLogData,
-    immediate: boolean = false,
-  ): Promise<void> {
-    if (immediate) {
-      await this.createAuditLog(data).catch((error) => {
-        this.logger.error(
-          `Failed to create audit log: ${error instanceof Error ? error.message : 'Unknown error'}`,
-          error instanceof Error ? error.stack : undefined,
-        );
-      });
-    } else {
-      // Fire-and-forget: do not block the caller
-      this.createAuditLog(data).catch((error) => {
-        this.logger.error(
-          `Failed to create audit log: ${error instanceof Error ? error.message : 'Unknown error'}`,
-          error instanceof Error ? error.stack : undefined,
-        );
-      });
-    }
+  /**
+   * Persist an audit log entry. Always awaited; failures propagate to the caller.
+   * Compliance writes are not optional — if you cannot audit the action, the action
+   * must not be considered complete. Wrap the audited write + this call in the same
+   * transaction when atomicity matters.
+   */
+  async logAction(data: AuditLogData): Promise<void> {
+    await this.createAuditLog(data);
   }
 
   async createAuditLog(data: AuditLogData): Promise<unknown> {

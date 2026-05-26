@@ -213,6 +213,19 @@ export class PrismaSubscriptionPaymentRepository {
     return result.count;
   }
 
+  /**
+   * Audit FL11: keyed on the unique index added in
+   * `20260523190000_audit_subscription_payment_idempotency`.
+   */
+  async findPaymentByRazorpayPaymentId(
+    razorpayPaymentId: string,
+  ): Promise<{ id: string } | null> {
+    return this.getReadClient().subscriptionPayment.findUnique({
+      where: { razorpayPaymentId },
+      select: { id: true },
+    });
+  }
+
   async findReusablePendingCheckout(params: {
     clinicId: string;
     amountCents: number;

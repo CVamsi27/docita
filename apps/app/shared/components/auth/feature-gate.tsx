@@ -134,6 +134,8 @@ export function FeatureTierBadge({
     [Tier.STARTER]: "tier-capture",
     [Tier.ESSENTIAL]: "tier-core",
     [Tier.FRONT_DESK]: "tier-core",
+    [Tier.FRONT_DESK_CLINIC]: "tier-core",
+    [Tier.FRONT_DESK_HOSPITAL]: "tier-core",
     [Tier.PROFESSIONAL]: "tier-pro",
     [Tier.HOSPITAL]: "tier-hospital",
     [Tier.ENTERPRISE]: "tier-enterprise",
@@ -157,6 +159,8 @@ export function TierBadge({ tier, className }: TierBadgeProps) {
     [Tier.STARTER]: "tier-capture",
     [Tier.ESSENTIAL]: "tier-core",
     [Tier.FRONT_DESK]: "tier-core",
+    [Tier.FRONT_DESK_CLINIC]: "tier-core",
+    [Tier.FRONT_DESK_HOSPITAL]: "tier-core",
     [Tier.PROFESSIONAL]: "tier-pro",
     [Tier.HOSPITAL]: "tier-hospital",
     [Tier.ENTERPRISE]: "tier-enterprise",
@@ -188,6 +192,8 @@ export function TierGate({
     [Tier.ENTERPRISE]: Feature.DATA_WAREHOUSE_EXPORT,
     [Tier.INTELLIGENCE]: Feature.AI_PRESCRIPTION_ASSISTANT,
     [Tier.FRONT_DESK]: Feature.CALENDAR_SLOTS,
+    [Tier.FRONT_DESK_CLINIC]: Feature.CALENDAR_SLOTS,
+    [Tier.FRONT_DESK_HOSPITAL]: Feature.CALENDAR_SLOTS,
   }[tier];
   const hasAccess = hasFeatureAccess(
     getTierName(currentTier),

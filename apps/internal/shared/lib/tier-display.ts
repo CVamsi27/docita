@@ -1,6 +1,10 @@
 import type { InternalPaymentTierPricingRow } from "@workspace/data-access/internal";
 import {
+  CLINICAL_PLAN_LADDER,
+  FRONT_DESK_PLAN_LADDER,
+  getPlanTrack,
   mapDbClinicTierStringToTierName,
+  type PlanTrack,
   PUBLISHED_PLAN_LADDER,
   TIER_INFO,
   TIER_LIMITS,
@@ -19,9 +23,14 @@ const TIER_COLOR_TO_BADGE_CLASS: Record<string, string> = {
   pink: "tier-intelligence",
 };
 
+// Front-desk track stays in the info family but uses opacity grades so admins
+// can tell SOLO / CLINIC / HOSPITAL apart in charts at a glance while keeping
+// the visual "this is the same track" cue.
 const TIER_CHART_COLOR_BY_NAME: Partial<Record<TierName, string>> = {
   STARTER: "bg-muted",
-  FRONT_DESK: "bg-info",
+  FRONT_DESK: "bg-info/40",
+  FRONT_DESK_CLINIC: "bg-info/70",
+  FRONT_DESK_HOSPITAL: "bg-info",
   ESSENTIAL: "bg-success",
   PROFESSIONAL: "bg-primary",
   HOSPITAL: "bg-processing",
@@ -39,11 +48,44 @@ export function getInternalTierChartColorClass(tier: string): string {
   return TIER_CHART_COLOR_BY_NAME[normalized] ?? "bg-primary";
 }
 
-export function getInternalTierFilterOptions(): { value: TierName; label: string }[] {
+export interface InternalTierFilterOption {
+  value: TierName;
+  label: string;
+  track: PlanTrack;
+}
+
+export function getInternalTierFilterOptions(): InternalTierFilterOption[] {
   return PUBLISHED_PLAN_LADDER.map((tier) => ({
     value: tier,
     label: TIER_INFO[tier].name,
+    track: getPlanTrack(tier),
   }));
+}
+
+/** Filter options grouped by plan track, for two-section pickers in admin UI. */
+export function getInternalTierFilterOptionGroups(): {
+  track: PlanTrack;
+  label: string;
+  options: InternalTierFilterOption[];
+}[] {
+  const toOptions = (tiers: readonly TierName[]): InternalTierFilterOption[] =>
+    tiers.map((tier) => ({
+      value: tier,
+      label: TIER_INFO[tier].name,
+      track: getPlanTrack(tier),
+    }));
+  return [
+    {
+      track: "CLINICAL",
+      label: "Clinical",
+      options: toOptions(CLINICAL_PLAN_LADDER),
+    },
+    {
+      track: "FRONT_DESK",
+      label: "Front Desk Operations",
+      options: toOptions(FRONT_DESK_PLAN_LADDER),
+    },
+  ];
 }
 
 export function buildDefaultInternalTierPricingRows(): InternalPaymentTierPricingRow[] {

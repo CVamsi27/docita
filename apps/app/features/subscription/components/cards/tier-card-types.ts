@@ -54,6 +54,8 @@ export const TIER_ICONS: Record<string, React.ElementType> = {
   STARTER: Zap,
   ESSENTIAL: Rocket,
   FRONT_DESK: ClipboardList,
+  FRONT_DESK_CLINIC: ClipboardList,
+  FRONT_DESK_HOSPITAL: ClipboardList,
   PROFESSIONAL: Crown,
   HOSPITAL: Hospital,
   ENTERPRISE: Building2,
@@ -77,6 +79,18 @@ export const TIER_GRADIENTS: Record<
     accent: "bg-info",
   },
   FRONT_DESK: {
+    card: "from-card via-card to-info/10",
+    icon: "tier-core",
+    badge: "tier-core",
+    accent: "bg-info",
+  },
+  FRONT_DESK_CLINIC: {
+    card: "from-card via-card to-info/10",
+    icon: "tier-core",
+    badge: "tier-core",
+    accent: "bg-info",
+  },
+  FRONT_DESK_HOSPITAL: {
     card: "from-card via-card to-info/10",
     icon: "tier-core",
     badge: "tier-core",

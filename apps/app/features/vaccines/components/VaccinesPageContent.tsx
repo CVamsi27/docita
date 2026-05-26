@@ -13,25 +13,6 @@ import { Feature } from "@workspace/types";
 import { Activity, Syringe } from "lucide-react";
 import { FeatureGate } from "@/components/auth/feature-gate";
 
-/**
- * Vaccines — IAP-style immunization timeline across a clinic's pediatric panel
- * (Doctor-focused).
- *
- * Visual prototype: docita-design-system/project/ui_kits/clinic-os/VaccinationScreen.jsx
- *
- * Data layer state:
- *   - Immunization model already exists in packages/db/prisma/schema.prisma:2436
- *   - Already feeds the patient timeline via prisma-patient-timeline-sources.ts
- *
- * Data wiring TODO:
- *   - Add apps/api/src/domains/immunizations/ domain (application + core +
- *     infrastructure + presentation layers per AGENTS §15.1)
- *   - Expose ImmunizationController with list + create + administer endpoints
- *   - Add useImmunizationsForPatient(patientId) + useDueImmunizations() hooks
- *     to packages/data-access
- *   - Replace the EmptyState with the IAP-timeline rail + due-visit batch
- *     fields + parent-counselling panel from the prototype
- */
 export function VaccinesPageContent() {
   return (
     <FeatureGate feature={Feature.CALENDAR_SLOTS} showLockedCard>

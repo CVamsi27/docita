@@ -1,4 +1,10 @@
-import { Controller, Get, VERSION_NEUTRAL } from '@nestjs/common';
+import {
+  Controller,
+  Get,
+  HttpCode,
+  ServiceUnavailableException,
+  VERSION_NEUTRAL,
+} from '@nestjs/common';
 import { Public } from '@/shared/modules/auth/auth/public.decorator';
 import { ObservabilityService } from '@/shared/modules/services/observability.service';
 
@@ -31,8 +37,14 @@ export class HealthCheckController {
     };
   }
 
+  /**
+   * Load-balancer readiness probe. Returns 503 when a critical dependency
+   * (currently: Postgres) is unreachable so the pod is rotated out instead
+   * of receiving traffic and 500-ing on every request.
+   */
   @Public()
   @Get('/ready')
+  @HttpCode(200)
   async readiness(): Promise<{
     ready: boolean;
     checks: Record<string, unknown>;
@@ -40,12 +52,17 @@ export class HealthCheckController {
   }> {
     const health = await this.observability.getSystemHealth();
     const ready = health.status === 'healthy';
-
-    return {
+    const body = {
       ready,
       checks: health.checks,
       timestamp: new Date().toISOString(),
     };
+
+    if (!ready) {
+      throw new ServiceUnavailableException(body);
+    }
+
+    return body;
   }
 
   @Public()
