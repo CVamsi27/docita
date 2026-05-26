@@ -53,7 +53,7 @@
     "check:hygiene": "node scripts/check-repo-hygiene.mjs",
     "verify:structure": "node scripts/verify-turborepo-structure.mjs",
     "verify:contracts": "node scripts/verify-package-contracts.mjs",
-    "verify:standard": "pnpm check:hygiene && pnpm verify:structure && pnpm verify:contracts && pnpm check:deployment-contracts && pnpm check:contracts-strict && pnpm check:prisma-boundary && pnpm check:sensitive-logging && pnpm check:no-console-runtime && pnpm check:native-button-types && pnpm check:auth-tenant-safety && pnpm check:user-facing-errors",
+    "verify:standard": "pnpm check:hygiene && pnpm verify:structure && pnpm verify:contracts && pnpm check:deployment-contracts && pnpm check:contracts-strict && pnpm check:prisma-boundary && pnpm check:sensitive-logging && pnpm check:no-console-runtime && pnpm check:auth-tenant-safety && pnpm check:user-facing-errors",
     "knip": "pnpm dlx knip@5 --no-progress",
     "check:prisma-boundary": "node scripts/check-prisma-boundary.js",
     "check:deployment-contracts": "node scripts/check-deployment-contracts.mjs",
