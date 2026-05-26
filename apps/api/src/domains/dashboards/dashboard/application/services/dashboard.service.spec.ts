@@ -2,7 +2,7 @@ import { Test, TestingModule } from '@nestjs/testing';
 import { DashboardService } from './dashboard.service';
 import { CACHE_MANAGER } from '@nestjs/cache-manager';
 import { beforeEach, describe, it, expect, jest } from '@jest/globals';
-import { DASHBOARD_REPOSITORY_TOKEN } from '@/domains/dashboard/core/repositories/dashboard.repository.interface';
+import { DASHBOARD_REPOSITORY_TOKEN } from '@/domains/dashboards/dashboard/core/repositories/dashboard.repository.interface';
 
 describe('DashboardService', () => {
   let service: DashboardService;

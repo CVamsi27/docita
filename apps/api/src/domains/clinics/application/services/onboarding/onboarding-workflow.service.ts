@@ -141,7 +141,10 @@ export class OnboardingWorkflowService {
       (existingUser?.role === Role.ADMIN_DOCTOR
         ? Role.ADMIN_DOCTOR
         : Role.ADMIN);
-    if (isFrontDeskTier(planTier) && resolvedRole === Role.ADMIN_DOCTOR) {
+    if (
+      planTier === ClinicTier.FRONT_DESK &&
+      resolvedRole === Role.ADMIN_DOCTOR
+    ) {
       resolvedRole = Role.ADMIN;
     }
 

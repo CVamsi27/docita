@@ -14,6 +14,8 @@ export const DOMAIN_TO_PRISMA_CLINIC_TIER: Record<
   [ClinicTierEnum.STARTER]: PrismaClinicTier.STARTER,
   [ClinicTierEnum.ESSENTIAL]: PrismaClinicTier.ESSENTIAL,
   [ClinicTierEnum.FRONT_DESK]: PrismaClinicTier.FRONT_DESK,
+  [ClinicTierEnum.FRONT_DESK_CLINIC]: PrismaClinicTier.FRONT_DESK_CLINIC,
+  [ClinicTierEnum.FRONT_DESK_HOSPITAL]: PrismaClinicTier.FRONT_DESK_HOSPITAL,
   [ClinicTierEnum.PROFESSIONAL]: PrismaClinicTier.PROFESSIONAL,
   [ClinicTierEnum.HOSPITAL]: PrismaClinicTier.HOSPITAL,
   [ClinicTierEnum.ENTERPRISE]: PrismaClinicTier.ENTERPRISE,

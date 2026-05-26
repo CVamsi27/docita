@@ -49,24 +49,8 @@ const parseInvoiceItems = (items: unknown): InvoiceItemData[] => {
 };
 
 export class InvoiceMapper {
-  static toDomain(
-    raw: PrismaInvoice & {
-      clinicId?: string;
-      lineItems?: InvoiceLineItemRow[];
-    },
-  ): Invoice {
-    const resolved = resolveInvoiceItems({
-      items: raw.items,
-      lineItems: raw.lineItems,
-    });
-    const itemsData = resolved.map((item) => ({
-      id: item.id ?? '',
-      description: item.description,
-      quantity: item.quantity,
-      unitPrice: item.unitPrice ?? item.price,
-      taxRate: item.taxRate ?? 0,
-      discount: item.discountAmount ?? 0,
-    }));
+  static toDomain(raw: PrismaInvoice & { clinicId?: string }): Invoice {
+    const itemsData = parseInvoiceItems(raw.items);
 
     const items = itemsData.map(
       (item) =>

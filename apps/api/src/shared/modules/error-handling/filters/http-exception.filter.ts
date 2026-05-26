@@ -100,7 +100,6 @@ export class AllExceptionsFilter implements ExceptionFilter {
     const ctx = host.switchToHttp();
     const response = ctx.getResponse<Response>();
     const request = ctx.getRequest<Request>();
-    const requestId = getRequestId(request);
 
     let status = HttpStatus.INTERNAL_SERVER_ERROR;
     let message = 'An unexpected error occurred';
@@ -119,7 +118,7 @@ export class AllExceptionsFilter implements ExceptionFilter {
 
       const summary = summarizeValidationIssues(issues);
       this.logger.warn('[AllExceptionsFilter] Validation error', {
-        requestId,
+        requestId: getRequestId(request),
         path: request.path,
         method: request.method,
         issueCount: summary.issueCount,
@@ -133,10 +132,7 @@ export class AllExceptionsFilter implements ExceptionFilter {
       message = exception.message;
       errorType = exception.name;
 
-      this.logger.warn(`Auth Error: ${message} (${request.path})`, {
-        requestId,
-        status,
-      });
+      this.logger.warn(`Auth Error: ${message} (${request.path})`);
     } else if (exception instanceof HttpException) {
       status = exception.getStatus();
       errorType = exception.name || 'HttpException';
@@ -199,21 +195,21 @@ export class AllExceptionsFilter implements ExceptionFilter {
       errorType = exception.name || 'Error';
       errorStack = exception.stack;
 
-      const errorDetails = redactPhi({
+      const errorDetails: Record<string, unknown> = {
         name: exception.name,
         message: exception.message,
         stack: exception.stack,
         toString: exception.toString(),
-        cause: getErrorCause(exception),
-      });
+      };
 
-      this.logger.error('Unhandled error details', {
-        requestId,
-        details: errorDetails,
-      });
+      const cause = getErrorCause(exception);
+      if (cause !== undefined) {
+        errorDetails.cause = cause;
+      }
+
+      this.logger.error('Unhandled error details', errorDetails);
     } else {
       this.logger.error('Unhandled or Known exception type', {
-        requestId,
         exception,
         type: typeof exception,
         message: String(exception),
@@ -257,11 +253,9 @@ export class AllExceptionsFilter implements ExceptionFilter {
     }
 
     if (status >= 500) {
-      const safeStack =
-        typeof errorStack === 'string' ? redactPhi(errorStack) : errorStack;
       this.logger.error(
-        `HTTP ${status} ${request.method} ${request.path}: ${redactPhi(message)} [requestId=${requestId ?? '-'}]`,
-        safeStack,
+        `HTTP ${status} ${request.method} ${request.path}: ${message}`,
+        errorStack,
       );
     } else if (
       !(exception instanceof ForbiddenException) &&
@@ -269,7 +263,7 @@ export class AllExceptionsFilter implements ExceptionFilter {
     ) {
       this.logger.warn(
         `HTTP ${status} ${request.method} ${request.path}: ${message}`,
-        { status, errorType, requestId },
+        { status, errorType },
       );
     }
 
@@ -284,7 +278,6 @@ export class AllExceptionsFilter implements ExceptionFilter {
       detail: message,
       instance: request.path,
       timestamp: new Date().toISOString(),
-      ...(requestId ? { requestId } : {}),
 
       ...(details && typeof details === 'object'
         ? { validationErrors: details }

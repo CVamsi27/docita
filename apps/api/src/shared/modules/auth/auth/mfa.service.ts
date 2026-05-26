@@ -12,11 +12,6 @@ import * as bcrypt from 'bcrypt';
 import { nanoid } from 'nanoid';
 import { PrismaService } from '@/prisma/prisma.service';
 import { AUTH_CONSTANTS } from '@/shared/modules/config/app-constants';
-import {
-  mfaHashedBackupCodesSchema,
-  mfaPlainBackupCodesSchema,
-} from '@workspace/types';
-import { EncryptionService } from '@/shared/common/encryption.service';
 
 @Injectable()
 export class MfaService {
@@ -49,7 +44,7 @@ export class MfaService {
 
     await this.prisma.user.update({
       where: { id: userId },
-      data: { mfaTempSecret: this.encryption.encrypt(secret) },
+      data: { mfaTempSecret: secret },
     });
 
     const otpauthUrl = generateURI({
@@ -85,11 +80,9 @@ export class MfaService {
       );
     }
 
-    const tempSecretPlain = this.encryption.decrypt(user.mfaTempSecret);
-
     const result = await verify({
       token: totpCode,
-      secret: tempSecretPlain,
+      secret: user.mfaTempSecret,
       epochTolerance: 1,
     });
 
@@ -97,18 +90,16 @@ export class MfaService {
       throw new UnauthorizedException('Invalid TOTP code');
     }
 
-    const plainBackupCodes = mfaPlainBackupCodesSchema.parse(
-      this.generatePlainBackupCodes(),
-    );
-    const hashedBackupCodes = mfaHashedBackupCodesSchema.parse(
-      await Promise.all(plainBackupCodes.map((code) => bcrypt.hash(code, 10))),
+    const plainBackupCodes = this.generatePlainBackupCodes();
+    const hashedBackupCodes = await Promise.all(
+      plainBackupCodes.map((code) => bcrypt.hash(code, 10)),
     );
 
     await this.prisma.user.update({
       where: { id: userId },
       data: {
         mfaEnabled: true,
-        mfaSecret: this.encryption.encrypt(tempSecretPlain),
+        mfaSecret: user.mfaTempSecret,
         mfaTempSecret: null,
         mfaBackupCodes: hashedBackupCodes,
       },
@@ -135,7 +126,7 @@ export class MfaService {
 
     const result = await verify({
       token: totpCode,
-      secret: this.encryption.decrypt(user.mfaSecret),
+      secret: user.mfaSecret,
       epochTolerance: 1,
     });
 
@@ -171,7 +162,7 @@ export class MfaService {
 
     const result = await verify({
       token: totpCode,
-      secret: this.encryption.decrypt(user.mfaSecret),
+      secret: user.mfaSecret,
       epochTolerance: 1,
     });
 
@@ -179,11 +170,9 @@ export class MfaService {
       throw new UnauthorizedException('Invalid TOTP code');
     }
 
-    const plainBackupCodes = mfaPlainBackupCodesSchema.parse(
-      this.generatePlainBackupCodes(),
-    );
-    const hashedBackupCodes = mfaHashedBackupCodesSchema.parse(
-      await Promise.all(plainBackupCodes.map((code) => bcrypt.hash(code, 10))),
+    const plainBackupCodes = this.generatePlainBackupCodes();
+    const hashedBackupCodes = await Promise.all(
+      plainBackupCodes.map((code) => bcrypt.hash(code, 10)),
     );
 
     await this.prisma.user.update({
@@ -251,7 +240,7 @@ export class MfaService {
 
     const verifyResult = await verify({
       token: totpCode,
-      secret: this.encryption.decrypt(user.mfaSecret),
+      secret: user.mfaSecret,
       epochTolerance: 1,
     });
     const isTotpValid = verifyResult.valid;

@@ -10,16 +10,6 @@ import {
   UserProfile,
 } from '@/domains/users/core/repositories/user.repository.interface';
 import { OnboardingStep, Prisma } from '@workspace/db';
-import { activeUserWhere } from '@/shared/common/prisma/active-user.filter';
-
-const onboardingStepSchema = z.nativeEnum(OnboardingStep);
-
-function verificationDataRecord(
-  value: Prisma.JsonValue | null | undefined,
-): Record<string, unknown> {
-  const parsed = parsePrismaJsonColumn(value, jsonObjectSchema);
-  return parsed ?? {};
-}
 
 const onboardingStepSchema = z.nativeEnum(OnboardingStep);
 
@@ -46,8 +36,8 @@ export class PrismaUserRepository implements IUserRepository {
   ): Promise<JwtValidationUserSnapshot | null> {
     // RLS-BYPASS: user lookup by identifier precedes clinic tenant binding
     return this.prisma.runUnrestricted(async () =>
-      this.prisma.user.findFirst({
-        where: { id, ...activeUserWhere },
+      this.prisma.user.findUnique({
+        where: { id },
         select: {
           id: true,
           name: true,

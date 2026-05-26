@@ -260,15 +260,8 @@ export class PatientDataAuditInterceptor implements NestInterceptor {
                     },
                     source: 'sensitive-write-audit-v1',
                   },
-                  request: {
-                    method,
-                    endpoint: url,
-                    params: sanitizeAuditPayload(params),
-                    query: sanitizeAuditPayload(query),
-                  },
-                  source: 'sensitive-write-audit-v1',
                 },
-              });
+              );
             } catch (error) {
               this.logger.error('Failed to log patient audit event', error);
             }

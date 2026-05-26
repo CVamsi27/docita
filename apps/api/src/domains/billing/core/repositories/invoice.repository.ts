@@ -112,11 +112,6 @@ export interface InvoiceDetail {
   } | null;
 }
 
-/** Repository row including optional normalized `InvoiceItem` children. */
-export type InvoiceDetailRecord = InvoiceDetail & {
-  lineItems?: InvoiceLineItemRow[];
-};
-
 export interface PatientInvoiceContext {
   id: string;
   firstName: string;
@@ -157,21 +152,13 @@ export interface IInvoiceRepository {
   findAll(
     params: InvoiceSearchParams,
   ): Promise<PaginatedResult<InvoiceListItem>>;
-  findById(id: string, clinicId: string): Promise<InvoiceDetailRecord | null>;
-  /**
-   * Lookup by id without a tenant filter. Intentionally not clinic-scoped
-   * because provider webhooks deliver the invoice id without tenant context
-   * (same precedent as `IPaymentSessionRepository.findByProviderSessionId`).
-   * Callers MUST verify the resolved `clinicId` against the action they are
-   * about to perform before mutating any related state.
-   */
-  findByIdUnscoped(id: string): Promise<InvoiceDetailRecord | null>;
-  create(data: Prisma.InvoiceCreateInput): Promise<InvoiceDetailRecord>;
+  findById(id: string, clinicId: string): Promise<InvoiceDetail | null>;
+  create(data: Prisma.InvoiceCreateInput): Promise<InvoiceDetail>;
   update(
     id: string,
     data: Prisma.InvoiceUpdateInput,
     clinicId: string,
-  ): Promise<InvoiceDetailRecord>;
+  ): Promise<InvoiceDetail>;
   delete(id: string, clinicId: string): Promise<void>;
   findPatientContext(
     patientId: string,

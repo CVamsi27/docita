@@ -10,7 +10,7 @@ import {
 import {
   DashboardStatsSnapshot,
   IDashboardRepository,
-} from '@/domains/dashboard/core/repositories/dashboard.repository.interface';
+} from '@/domains/dashboards/dashboard/core/repositories/dashboard.repository.interface';
 
 const RECENT_ACTIVITY_SELECT = {
   id: true,

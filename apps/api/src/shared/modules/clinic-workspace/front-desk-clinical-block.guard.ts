@@ -4,7 +4,7 @@ import {
   ForbiddenException,
   Injectable,
 } from '@nestjs/common';
-import { isFrontDeskTier } from '@workspace/types';
+import { ClinicTier } from '@workspace/db';
 import { PrismaService } from '@/prisma/prisma.service';
 import type { RequestWithUser } from '@/shared/common/types/common.types';
 

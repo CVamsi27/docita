@@ -52,7 +52,6 @@ describe('InvoicesService', () => {
   const repository: jest.Mocked<IInvoiceRepository> = {
     findAll: jest.fn<IInvoiceRepository['findAll']>(),
     findById: jest.fn<IInvoiceRepository['findById']>(),
-    findByIdUnscoped: jest.fn<IInvoiceRepository['findByIdUnscoped']>(),
     create: jest.fn<IInvoiceRepository['create']>(),
     update: jest.fn<IInvoiceRepository['update']>(),
     delete: jest.fn<IInvoiceRepository['delete']>(),

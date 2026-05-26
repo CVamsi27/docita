@@ -191,7 +191,6 @@ export class SubscriptionReminderScheduler {
           select: {
             id: true,
           },
-          take: SUBSCRIPTION_SCHEDULER_BATCH_SIZE,
         });
 
         const trialResults = await Promise.allSettled(
@@ -240,7 +239,6 @@ export class SubscriptionReminderScheduler {
             graceUntil: { not: null, lt: now },
           },
           select: { id: true },
-          take: SUBSCRIPTION_SCHEDULER_BATCH_SIZE,
         });
 
         const expireResults = await Promise.allSettled(

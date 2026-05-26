@@ -26,8 +26,6 @@ interface UploadSessionContext {
 // AuditLogged: upload session lifecycle (UploadsCommandService)
 @Injectable()
 export class UploadsService {
-  private readonly logger = new Logger(UploadsService.name);
-
   constructor(
     private readonly queryService: UploadsQueryService,
     private readonly commandService: UploadsCommandService,

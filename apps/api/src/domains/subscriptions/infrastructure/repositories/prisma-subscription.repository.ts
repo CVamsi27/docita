@@ -1,6 +1,7 @@
 import { Injectable } from '@nestjs/common';
 import { Subscription } from '@/domains/subscriptions/core/entities';
 import { ISubscriptionRepository } from '@/domains/subscriptions/application/ports/subscription.repository.port';
+import { PrismaService } from '@/prisma/prisma.service';
 import { PrismaSubscriptionCoreRepository } from './prisma-subscription-core.repository';
 import { PrismaSubscriptionPaymentRepository } from './prisma-subscription-payment.repository';
 
@@ -9,7 +10,19 @@ export class PrismaSubscriptionRepository implements ISubscriptionRepository {
   constructor(
     private readonly core: PrismaSubscriptionCoreRepository,
     private readonly payments: PrismaSubscriptionPaymentRepository,
+    private readonly prisma: PrismaService,
   ) {}
+
+  async findPaymentByRazorpayPaymentId(
+    razorpayPaymentId: string,
+  ): Promise<{ id: string } | null> {
+    return this.prisma
+      .getReadClient()
+      .subscriptionPayment.findFirst({
+        where: { razorpayPaymentId },
+        select: { id: true },
+      });
+  }
 
   save(subscription: Subscription): Promise<void> {
     return this.core.save(subscription);

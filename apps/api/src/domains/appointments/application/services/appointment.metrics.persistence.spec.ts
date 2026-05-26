@@ -61,7 +61,6 @@ describe('AppointmentService metric persistence', () => {
       updateMany: jest.fn<(...args: unknown[]) => Promise<unknown>>(),
       findFirst: jest.fn<(...args: unknown[]) => Promise<unknown>>(),
       create: jest.fn<(...args: unknown[]) => Promise<unknown>>(),
-      upsert: jest.fn<(...args: unknown[]) => Promise<unknown>>(),
     },
     metricCategory: {
       findFirst: jest.fn<(...args: unknown[]) => Promise<unknown>>(),
@@ -89,17 +88,9 @@ describe('AppointmentService metric persistence', () => {
   beforeEach(() => {
     jest.clearAllMocks();
 
-    mockPrisma.$transaction.mockImplementation(async (arg: unknown) => {
-      // Support both the legacy array form and the interactive
-      // callback form (post-FL10 refactor of RecordAppointmentVitalsUseCase).
-      if (typeof arg === 'function') {
-        return (arg as (tx: unknown) => Promise<unknown>)(mockPrisma);
-      }
-      return Promise.all(arg as Promise<unknown>[]);
-    });
-    mockPrisma.vitalSign.upsert = jest
-      .fn<() => Promise<unknown>>()
-      .mockResolvedValue({ id: 'vital-1' });
+    mockPrisma.$transaction.mockImplementation(async (operations: unknown) =>
+      Promise.all(operations as Promise<unknown>[]),
+    );
     mockPrisma.patientMetricRecord.create.mockResolvedValue({});
     mockPrisma.metricDefinition.createMany.mockResolvedValue({ count: 0 });
     mockPrisma.metricCategory.findFirst.mockResolvedValue({ id: 'cat-1' });
@@ -191,7 +182,7 @@ describe('AppointmentService metric persistence', () => {
         height: 170,
         weight: 70,
       },
-      accessContext,
+      { userId: 'user-1' } as never,
     );
 
     expect(mockPrisma.metricCategory.findFirst).toHaveBeenCalledTimes(1);
@@ -250,7 +241,7 @@ describe('AppointmentService metric persistence', () => {
         observations: 'Mild fever',
         consultationNotes: 'Hydration advised',
       },
-      accessContext,
+      { userId: 'user-1' } as never,
     );
 
     expect(mockPrisma.metricCategory.findFirst).toHaveBeenCalledTimes(1);

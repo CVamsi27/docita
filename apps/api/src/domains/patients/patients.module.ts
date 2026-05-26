@@ -72,7 +72,7 @@ import { PatientTagsController } from './presentation/controllers/patient-tags.c
     PrismaPatientTimelineSnapshotRepository,
     PrismaPatientRepository,
     {
-      provide: PATIENT_REPOSITORY_TOKEN,
+      provide: 'IPatientRepository',
       useClass: PrismaPatientRepository,
     },
     {
@@ -108,7 +108,7 @@ import { PatientTagsController } from './presentation/controllers/patient-tags.c
     MedicationDoseService,
     PatientTimelineQueryService,
     PatientTimelineService,
-    PATIENT_REPOSITORY_TOKEN,
+    'IPatientRepository',
     VitalsFactory,
   ],
 })

@@ -67,7 +67,7 @@ export class BreakTheGlassInterceptor implements NestInterceptor {
           timestamp: this.clock.now().toISOString(),
         },
       },
-    });
+    );
 
     this.logger.error(
       `!!! EMERGENCY ACCESS (BTG) GRANTED !!! User: ${user?.id} | Reason: ${reason} | Endpoint: ${method} ${url}`,

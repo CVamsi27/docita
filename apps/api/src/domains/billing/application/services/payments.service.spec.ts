@@ -78,7 +78,6 @@ describe('PaymentsService', () => {
   const invoiceRepository: jest.Mocked<IInvoiceRepository> = {
     findAll: jest.fn<IInvoiceRepository['findAll']>(),
     findById: jest.fn<IInvoiceRepository['findById']>(),
-    findByIdUnscoped: jest.fn<IInvoiceRepository['findByIdUnscoped']>(),
     create: jest.fn<IInvoiceRepository['create']>(),
     update: jest.fn<IInvoiceRepository['update']>(),
     delete: jest.fn<IInvoiceRepository['delete']>(),
@@ -134,8 +133,6 @@ describe('PaymentsService', () => {
   };
 
   let service: PaymentsService;
-  let txInvoiceUpdateMany: jest.Mock;
-  let txPaymentSessionCreate: jest.Mock;
 
   beforeEach(() => {
     jest.clearAllMocks();
@@ -219,13 +216,14 @@ describe('PaymentsService', () => {
         notes: 'Paid at desk',
       });
 
-      expect(txInvoiceUpdateMany).toHaveBeenCalledWith({
-        where: { id: 'inv_1', clinicId: 'clinic_1' },
-        data: { status: InvoiceStatus.PAID },
-      });
+      expect(invoiceRepository.update).toHaveBeenCalledWith(
+        'inv_1',
+        { status: InvoiceStatus.PAID },
+        'clinic_1',
+      );
 
-      expect(txPaymentSessionCreate).toHaveBeenCalledWith({
-        data: expect.objectContaining({
+      expect(repository.create).toHaveBeenCalledWith(
+        expect.objectContaining({
           provider: 'manual',
           status: PaymentSessionStatus.CAPTURED,
           meta: expect.objectContaining({
@@ -237,7 +235,7 @@ describe('PaymentsService', () => {
             amount: 500,
           }),
         }),
-      });
+      );
     });
 
     it('uses UPI_QR channel without rewriting', async () => {
@@ -254,14 +252,14 @@ describe('PaymentsService', () => {
         paymentMethod: 'UPI_QR',
       });
 
-      expect(txPaymentSessionCreate).toHaveBeenCalledWith({
-        data: expect.objectContaining({
+      expect(repository.create).toHaveBeenCalledWith(
+        expect.objectContaining({
           meta: expect.objectContaining({
             channel: 'UPI_QR',
             method: 'UPI_QR',
           }),
         }),
-      });
+      );
     });
   });
 });

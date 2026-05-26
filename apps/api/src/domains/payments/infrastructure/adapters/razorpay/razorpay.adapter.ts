@@ -1,4 +1,4 @@
-import { Injectable, Logger } from '@nestjs/common';
+import { Injectable } from '@nestjs/common';
 import Razorpay from 'razorpay';
 import { Prisma } from '@workspace/db';
 import { RazorpayClientService } from './razorpay-client.service';
@@ -7,9 +7,6 @@ import {
   PaymentGatewayCapabilities,
 } from '@/domains/payments/core/ports';
 import { PaymentProvider } from '@/domains/payments/core/entities/payment-provider.enum';
-import { getCorrelationId } from '@/shared/common/context/request-context.store';
-
-const RAZORPAY_REQUEST_TIMEOUT_MS = 5000;
 
 const RAZORPAY_REQUEST_TIMEOUT_MS = 5000;
 

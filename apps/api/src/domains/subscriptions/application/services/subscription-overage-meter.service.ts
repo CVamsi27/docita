@@ -33,6 +33,10 @@ function clinicTierToTierName(tier: ClinicTier): TierName {
       return 'ENTERPRISE';
     case ClinicTier.FRONT_DESK:
       return 'FRONT_DESK';
+    case ClinicTier.FRONT_DESK_CLINIC:
+      return 'FRONT_DESK_CLINIC';
+    case ClinicTier.FRONT_DESK_HOSPITAL:
+      return 'FRONT_DESK_HOSPITAL';
     default: {
       const _exhaustive: never = tier;
       return _exhaustive;
