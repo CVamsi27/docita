@@ -355,6 +355,7 @@ The Origin-inspired standard in [`docs/ui/UI_UX_STANDARD_2026.md`](docs/ui/UI_UX
 - Avoid temporary/untracked project junk unless explicitly required.
 - Run `pnpm check:hygiene` and `pnpm verify:standard` when needed.
 - Periodically remove unused modules, duplicate implementations, and orphaned assets; prefer consolidation into shared packages when the behavior is cross-cutting.
+- **Branch hygiene is non-negotiable**: keep the remote at `main` + `staging` + at most **two** open feature/hotfix branches. See §11.3 "Concurrent branch / PR cap" and the consolidation playbook at [`docs/operations/BRANCH_CONSOLIDATION_PLAYBOOK.md`](docs/operations/BRANCH_CONSOLIDATION_PLAYBOOK.md).
 
 ## 11.1) Deployment workflow scope
 
@@ -406,6 +407,23 @@ Open a **pull request into `main`**. Consolidation or umbrella branches must sti
 ### Hotfixes
 
 Use a branch from **up-to-date `main`**, merge via PR **into `main`**, and let the `main` → `staging` sync automation update staging.
+
+### Concurrent branch / PR cap (mandatory)
+
+Keep the repository lean. At any moment, the remote must contain **at most**:
+
+- `main` (canonical)
+- `staging` (automated mirror of `main`)
+- **two** in-flight feature/hotfix branches with open pull requests
+
+Rules:
+
+- **Do not open a third feature PR.** If two PRs are already open, land or close one (delete its remote branch) before opening another. Stacked work belongs on a single branch with multiple commits, not on a third parallel branch.
+- **Delete branches immediately after merge or close.** Use `git push origin --delete <branch>` (or GitHub's "Delete branch" button) and `git branch -D <branch>` locally. The branch should never linger as a tombstone.
+- **No "tomorrow I'll get to it" backlog of stale branches.** A branch that has not had a commit in 14 days must be either merged, closed, or rebased and pushed forward — not left to rot.
+- **Consolidation rule.** If more than two open PRs ever accumulate (for example via automation, codex runs, or split work), merge them into a single consolidation branch (`consolidation/<scope>-<YYYY-MM-DD>`) following the procedure in [`docs/operations/BRANCH_CONSOLIDATION_PLAYBOOK.md`](docs/operations/BRANCH_CONSOLIDATION_PLAYBOOK.md), then close the originals with a comment pointing at the consolidation PR. Do not let the count drift back above two.
+- **Exceptions.** The temporary cap may be exceeded only for: (a) an active consolidation operation that itself reduces the count back to ≤ 2, or (b) an in-progress release cut where a release branch is briefly open alongside the next feature branch. Both exceptions are time-bounded — do not normalise them.
+- **Agents must check the count before pushing a new branch.** Run `gh pr list --state open --json number,headRefName --jq 'length'` (excluding `main`/`staging` infra PRs); if the count is already 2, do not open another PR until one closes.
 
 ## 12) Design Principles, Patterns, and Performance
 
@@ -497,6 +515,7 @@ pnpm perf:budget:enforce
 Before finalizing changes:
 
 - Work is on a **branch created from `main`** (after pull), not on `main` or `staging` directly; PRs target **`main`**.
+- **Branch cap respected**: no more than two open feature/hotfix PRs exist after this work is pushed. If opening this PR would push the count to three, land or close an existing one first (or fold the work into an existing open PR). After merge, the remote branch is deleted.
 - Architecture/layer boundaries are respected.
 - HTTP handlers and clients share Zod-defined shapes; payloads omit unused fields.
 - No security or tenant/auth guard regressions.
