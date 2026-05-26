@@ -14,7 +14,7 @@ export function PaymentProcessingPage() {
     <AppPageScaffold
       header={
         <PageHeader
-          title="Payment processing"
+          title="Payment Processing"
           description="Record subscription payments and tier changes, or bill add-on services including guided setup"
           size="compact"
         />

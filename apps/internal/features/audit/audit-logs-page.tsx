@@ -43,7 +43,7 @@ export function AuditLogsPage() {
     <AppPageScaffold
       header={
         <PageHeader
-          title="Audit logs"
+          title="Audit Logs"
           description="Tenant-scoped activity records from the platform audit trail."
           actions={
             <Button

@@ -129,7 +129,7 @@ export function OverviewTab({
       <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Heap usage</CardTitle>
+            <CardTitle className="text-sm font-medium">Heap Usage</CardTitle>
             <Server className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent className="space-y-2">
@@ -163,7 +163,7 @@ export function OverviewTab({
         </Card>
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Database query</CardTitle>
+            <CardTitle className="text-sm font-medium">Database Query</CardTitle>
             <Database className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent className="space-y-2">
@@ -177,7 +177,7 @@ export function OverviewTab({
         </Card>
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Tenant coverage</CardTitle>
+            <CardTitle className="text-sm font-medium">Tenant Coverage</CardTitle>
             <ShieldCheck className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent className="flex flex-col gap-2">

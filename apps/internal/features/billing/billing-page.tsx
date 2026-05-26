@@ -205,7 +205,7 @@ export default function BillingDashboard() {
     <AppPageScaffold
       header={
         <PageHeader
-          title="Billing dashboard"
+          title="Billing Dashboard"
           description="Monitor subscriptions, revenue, and payment activity"
           size="compact"
           actions={
@@ -543,7 +543,7 @@ export default function BillingDashboard() {
                   <SelectValue placeholder="Tier" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="all">All tiers</SelectItem>
+                  <SelectItem value="all">All Tiers</SelectItem>
                   {getInternalTierFilterOptions().map((option) => (
                     <SelectItem key={option.value} value={option.value}>
                       {option.label}

@@ -1,7 +1,6 @@
 import {
-  CLINICAL_PLAN_LADDER,
-  FRONT_DESK_PLAN_LADDER,
-  getPlanTrack,
+  PUBLISHED_PLAN_LADDER,
+  publishedPlanLadderIndex,
   TIER_LIMITS,
   WHATSAPP_ADDON_PRICING,
   type CurrentUsage,
@@ -39,19 +38,15 @@ export function recommendTier(
   usage: CurrentUsage | null | undefined,
 ): TierRecommendation | null {
   if (!usage) return null;
-  const ladder: readonly TierName[] =
-    getPlanTrack(current) === "FRONT_DESK"
-      ? FRONT_DESK_PLAN_LADDER
-      : CLINICAL_PLAN_LADDER;
-  const currentIdx = ladder.indexOf(current);
+  const currentIdx = publishedPlanLadderIndex(current);
   if (currentIdx < 0) return null;
 
   const consultations = usage.usage.consultations;
   const users = usage.usage.users;
   const whatsapp = usage.usage.whatsappMessages;
 
-  for (let i = currentIdx + 1; i < ladder.length; i += 1) {
-    const candidate = ladder[i];
+  for (let i = currentIdx + 1; i < PUBLISHED_PLAN_LADDER.length; i += 1) {
+    const candidate = PUBLISHED_PLAN_LADDER[i];
     if (!candidate) continue;
     const limits = TIER_LIMITS[candidate];
     const includedAppointments = limits.appointments ?? 0;

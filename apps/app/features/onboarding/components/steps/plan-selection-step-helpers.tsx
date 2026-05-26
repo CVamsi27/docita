@@ -14,6 +14,7 @@ import {
 import { ComparisonTable } from "@/features/subscription";
 import {
   PRICING_CURRENCY_SYMBOLS,
+  PUBLISHED_PLAN_LADDER,
   SUBSCRIPTION_TRIAL_DAYS,
   TIER_OVERAGE_RATES_BY_CURRENCY,
   type TierName,
@@ -28,21 +29,19 @@ import { type TierPricing } from "@/hooks/api/use-pricing";
 // Constants
 // ---------------------------------------------------------------------------
 
-export const DISPLAY_TIERS = [
-  "STARTER",
-  "FRONT_DESK",
-  "ESSENTIAL",
-  "PROFESSIONAL",
-  "ENTERPRISE",
-];
+/** Published billable plan ladder for onboarding plan selection. */
+export const DISPLAY_TIERS: TierName[] = [...PUBLISHED_PLAN_LADDER];
 
-export const PLAN_AUDIENCE: Record<string, string> = {
+/** Onboarding audience copy; taglines fall back to {@link TIER_INFO} when missing. */
+export const PLAN_AUDIENCE: Partial<Record<TierName, string>> = {
   STARTER: "Best for solo doctors starting with full clinic workflows",
   ESSENTIAL:
     "Best for small facilities needing clear limits and simple billing",
   FRONT_DESK:
     "Best for reception-led facilities that need scheduling and billing without full clinical workflows in-app",
   PROFESSIONAL: "Best for multi-doctor facilities and growing practices",
+  HOSPITAL:
+    "Best for multi-doctor multi-branch hospitals needing pooled WhatsApp and branch analytics",
   ENTERPRISE: "Best for hospitals and chains with custom requirements",
 };
 

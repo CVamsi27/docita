@@ -286,7 +286,7 @@ export default function PricingPage() {
     <AppPageScaffold
       header={
         <PageHeader
-          title="Pricing management"
+          title="Pricing Management"
           description="Manage tier pricing centrally and create facility-specific offers for requested hospitals."
         />
       }

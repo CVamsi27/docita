@@ -11,8 +11,6 @@ const sourceExtensions = new Set([".ts", ".tsx"]);
 const PLAN_SKUS = [
   "STARTER",
   "FRONT_DESK",
-  "FRONT_DESK_CLINIC",
-  "FRONT_DESK_HOSPITAL",
   "ESSENTIAL",
   "PROFESSIONAL",
   "HOSPITAL",
@@ -126,7 +124,7 @@ for (const file of files) {
 if (violations.length > 0) {
   console.error("Tier ladder drift check failed.\n");
   console.error(
-    "Use PUBLISHED_PLAN_LADDER / CLINICAL_PLAN_LADDER / FRONT_DESK_PLAN_LADDER from @workspace/types instead of local TierName[] plan ladders.",
+    "Use PUBLISHED_PLAN_LADDER from @workspace/types (and PUBLISHED_TIER_LADDER from @workspace/utils) instead of local TierName[] plan ladders.",
   );
   for (const violation of violations) {
     const label =

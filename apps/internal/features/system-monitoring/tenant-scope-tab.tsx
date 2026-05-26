@@ -161,7 +161,7 @@ export function TenantScopeTab({
           <div className="flex flex-col gap-4">
             <Card>
               <CardHeader>
-                <CardTitle>Coverage status</CardTitle>
+                <CardTitle>Coverage Status</CardTitle>
                 <CardDescription>
                   Open tenant-scope findings from the generated datamodel
                 </CardDescription>

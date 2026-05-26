@@ -17,7 +17,7 @@ export function EnterpriseContractsPage() {
     <AppPageScaffold
       header={
         <PageHeader
-          title="Enterprise contracts"
+          title="Enterprise Contracts"
           description="Per-clinic and multi-clinic group contracts for the ENTERPRISE tier"
           actions={
             <div className="flex gap-2">

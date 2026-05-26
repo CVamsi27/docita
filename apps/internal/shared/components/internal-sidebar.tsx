@@ -20,7 +20,7 @@ export function InternalSidebar() {
           className="flex h-10 items-center gap-2 text-lg font-semibold tracking-tight"
         >
           <DocitaIcon />
-          <span>Docita internal</span>
+          <span>Docita Internal</span>
         </Link>
       </div>
       <div className="min-h-0 flex-1 overflow-y-auto py-3">

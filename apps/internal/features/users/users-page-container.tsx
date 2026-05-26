@@ -76,7 +76,7 @@ export function UsersPageContainer() {
     <AppPageScaffold
       header={
         <PageHeader
-          title="Team members"
+          title="Team Members"
           description="View and manage all users across facilities"
           size="compact"
         />

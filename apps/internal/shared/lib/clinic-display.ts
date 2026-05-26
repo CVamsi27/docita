@@ -1,7 +1,7 @@
 import {
   CLINIC_TYPE_LABELS,
-  type ClinicType,
   clinicTypeSchema,
+  type ClinicType,
 } from "@workspace/types";
 
 /** Marketing descriptions for internal clinic create/edit selects. */

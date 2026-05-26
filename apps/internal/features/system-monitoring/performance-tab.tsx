@@ -61,7 +61,7 @@ export function PerformanceTab({
         </Card>
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Node runtime</CardTitle>
+            <CardTitle className="text-sm font-medium">Node Runtime</CardTitle>
             <Server className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
@@ -116,7 +116,7 @@ export function PerformanceTab({
       <div className="grid gap-4 md:grid-cols-3">
         <Card>
           <CardHeader>
-            <CardTitle>Memory breakdown</CardTitle>
+            <CardTitle>Memory Breakdown</CardTitle>
             <CardDescription>Live Node process memory</CardDescription>
           </CardHeader>
           <CardContent className="space-y-3">
@@ -159,7 +159,7 @@ export function PerformanceTab({
         </Card>
         <Card>
           <CardHeader>
-            <CardTitle>Slowest endpoints</CardTitle>
+            <CardTitle>Slowest Endpoints</CardTitle>
             <CardDescription>
               Highest average duration over the last 7 days
             </CardDescription>

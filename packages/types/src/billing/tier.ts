@@ -60,32 +60,14 @@ export const BILLED_TIERS = [
   Tier.FRONT_DESK_HOSPITAL,
 ] as const;
 
-/** Billable clinic SKUs in published upgrade/downgrade order (excludes INTELLIGENCE add-on). Front-desk SKUs are rendered as a separate track in the UI; this ladder is for ordinal sort only. */
+/** Billable clinic SKUs in published upgrade/downgrade order (excludes INTELLIGENCE add-on). */
 export const PUBLISHED_PLAN_LADDER = [
   "STARTER",
   "FRONT_DESK",
-  "FRONT_DESK_CLINIC",
-  "FRONT_DESK_HOSPITAL",
   "ESSENTIAL",
   "PROFESSIONAL",
   "HOSPITAL",
   "ENTERPRISE",
-] as const satisfies readonly TierName[];
-
-/** Clinical-track SKUs in upgrade order — use for the "Clinical" column in pricing UI. */
-export const CLINICAL_PLAN_LADDER = [
-  "STARTER",
-  "ESSENTIAL",
-  "PROFESSIONAL",
-  "HOSPITAL",
-  "ENTERPRISE",
-] as const satisfies readonly TierName[];
-
-/** Front-desk-track SKUs in upgrade order — use for the "Front Desk Operations" column in pricing UI. */
-export const FRONT_DESK_PLAN_LADDER = [
-  "FRONT_DESK",
-  "FRONT_DESK_CLINIC",
-  "FRONT_DESK_HOSPITAL",
 ] as const satisfies readonly TierName[];
 
 export type PublishedPlanSku = (typeof PUBLISHED_PLAN_LADDER)[number];
