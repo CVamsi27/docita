@@ -1,63 +1,48 @@
 "use client";
 
-import type { FC } from "react";
+import { FC } from "react";
 import { ChevronDown } from "lucide-react";
-import { Button } from "@workspace/ui/components/form/button";
-import { Badge } from "@workspace/ui/components/indicators/badge";
+import { Button } from "@workspace/ui/components/button";
+import { Badge } from "@workspace/ui/components/badge";
+import { MicroLabel } from "@workspace/ui/components/micro-label";
 import { cn } from "@workspace/ui/lib/utils";
 import {
   Collapsible,
   CollapsibleContent,
   CollapsibleTrigger,
-} from "@workspace/ui/components/overlay/collapsible";
+} from "@workspace/ui/components/collapsible";
 import { ComparisonTable } from "@/features/subscription";
 import {
   PRICING_CURRENCY_SYMBOLS,
-  CLINICAL_PLAN_LADDER,
-  FRONT_DESK_PLAN_LADDER,
-  PUBLISHED_PLAN_LADDER,
   SUBSCRIPTION_TRIAL_DAYS,
   TIER_OVERAGE_RATES_BY_CURRENCY,
   type TierName,
+  type WorkspaceProfile,
+  WORKSPACE_PROFILE_LABEL,
+  WORKSPACE_PROFILE_MARKETING,
 } from "@workspace/types";
-import { parseSupportedCurrency } from "@workspace/utils";
-import { getTierPricing } from "@/lib/subscription/tier-access";
-import { type TierPricing } from "@/features/subscription/hooks/use-pricing";
+import { getTierPricing } from "@/lib/tier-config";
+import { type TierPricing } from "@/hooks/api/use-pricing";
 
 // ---------------------------------------------------------------------------
 // Constants
 // ---------------------------------------------------------------------------
 
-/** Published billable plan ladder for onboarding plan selection. */
-export const DISPLAY_TIERS: TierName[] = [...PUBLISHED_PLAN_LADDER];
+export const DISPLAY_TIERS = [
+  "STARTER",
+  "FRONT_DESK",
+  "ESSENTIAL",
+  "PROFESSIONAL",
+  "ENTERPRISE",
+];
 
-export const DISPLAY_TIER_GROUPS = [
-  {
-    title: "Clinical",
-    description: "Full clinic workflows for doctors and care teams.",
-    tiers: [...CLINICAL_PLAN_LADDER],
-  },
-  {
-    title: "Front Desk Operations",
-    description: "Reception, queues, appointments, billing, and handover workflows.",
-    tiers: [...FRONT_DESK_PLAN_LADDER],
-  },
-] as const;
-
-/** Onboarding audience copy; taglines fall back to {@link TIER_INFO} when missing. */
-export const PLAN_AUDIENCE: Partial<Record<TierName, string>> = {
+export const PLAN_AUDIENCE: Record<string, string> = {
   STARTER: "Best for solo doctors starting with full clinic workflows",
   ESSENTIAL:
     "Best for small facilities needing clear limits and simple billing",
   FRONT_DESK:
     "Best for reception-led facilities that need scheduling and billing without full clinical workflows in-app",
-  FRONT_DESK_CLINIC:
-    "Best for growing clinics with multiple reception desks and supervisors",
-  FRONT_DESK_HOSPITAL:
-    "Best for hospitals coordinating reception queues across departments and shifts",
   PROFESSIONAL: "Best for multi-doctor facilities and growing practices",
-  HOSPITAL:
-    "Best for multi-doctor multi-branch hospitals needing pooled WhatsApp and branch analytics",
   ENTERPRISE: "Best for hospitals and chains with custom requirements",
 };
 
@@ -84,9 +69,12 @@ export function buildTierCardConfig(
     yearly: catalogPricing.yearly,
   };
 
-  const currencyKey = parseSupportedCurrency(resolvedCurrency);
+  const currencyKey =
+    resolvedCurrency as keyof typeof TIER_OVERAGE_RATES_BY_CURRENCY;
   const currencySymbol =
-    PRICING_CURRENCY_SYMBOLS[currencyKey] ?? resolvedCurrency;
+    PRICING_CURRENCY_SYMBOLS[
+      resolvedCurrency as keyof typeof PRICING_CURRENCY_SYMBOLS
+    ] ?? resolvedCurrency;
   const overageRates = (
     TIER_OVERAGE_RATES_BY_CURRENCY[currencyKey] ??
     TIER_OVERAGE_RATES_BY_CURRENCY.INR
@@ -106,11 +94,7 @@ export function buildTierCardConfig(
     ]
       .filter(Boolean)
       .join(" ");
-  } else if (
-    tierName === "FRONT_DESK" ||
-    tierName === "FRONT_DESK_CLINIC" ||
-    tierName === "FRONT_DESK_HOSPITAL"
-  ) {
+  } else if (tierName === "FRONT_DESK") {
     overageHint = [
       "Payment required at signup. Clinical workflows stay disabled in-app.",
       overageFromRates,
@@ -139,6 +123,65 @@ export function buildTierCardConfig(
 
   return { cardPricing, currencySymbol, overageHint, buttonLabel };
 }
+
+// ---------------------------------------------------------------------------
+// WorkspaceSelector
+// ---------------------------------------------------------------------------
+
+interface WorkspaceSelectorProps {
+  workspaceProfile: WorkspaceProfile;
+  onSelect: (profile: WorkspaceProfile) => void;
+}
+
+export const WorkspaceSelector: FC<WorkspaceSelectorProps> = ({
+  workspaceProfile,
+  onSelect,
+}) => (
+  <div className="rounded-lg border border-border/60 bg-card p-4 space-y-3">
+    <MicroLabel>Workspace</MicroLabel>
+    <p className="text-sm text-muted-foreground">
+      Choose how Docita is used at this facility. This is separate from the
+      commercial tier below (quotas and pricing).
+    </p>
+    <div className="flex flex-col gap-2 sm:flex-row">
+      <Button
+        type="button"
+        variant={workspaceProfile === "FULL_CLINICAL" ? "default" : "outline"}
+        className="flex-1 justify-center"
+        onClick={() => onSelect("FULL_CLINICAL")}
+      >
+        {WORKSPACE_PROFILE_LABEL.FULL_CLINICAL}
+      </Button>
+      <Button
+        type="button"
+        variant={workspaceProfile === "FRONT_DESK" ? "default" : "outline"}
+        className="flex-1 justify-center"
+        onClick={() => onSelect("FRONT_DESK")}
+      >
+        {WORKSPACE_PROFILE_LABEL.FRONT_DESK}
+      </Button>
+    </div>
+    <ul className="list-disc space-y-1 pl-5 text-sm text-muted-foreground">
+      {WORKSPACE_PROFILE_MARKETING[workspaceProfile].included.map((line) => (
+        <li key={line}>{line}</li>
+      ))}
+    </ul>
+    {WORKSPACE_PROFILE_MARKETING[workspaceProfile].notIncluded.length > 0 ? (
+      <div>
+        <p className="text-sm font-medium text-foreground">
+          Not included in this workspace
+        </p>
+        <ul className="mt-1 list-disc space-y-1 pl-5 text-sm text-muted-foreground">
+          {WORKSPACE_PROFILE_MARKETING[workspaceProfile].notIncluded.map(
+            (line) => (
+              <li key={line}>{line}</li>
+            ),
+          )}
+        </ul>
+      </div>
+    ) : null}
+  </div>
+);
 
 // ---------------------------------------------------------------------------
 // BillingCycleToggle

@@ -15,7 +15,6 @@ import { AppointmentStatus } from '@/domains/appointments/core/value-objects/app
 import { AppointmentSchedulingRulesService } from '@/domains/appointments/core/domain-services/appointment-scheduling-rules.service';
 import { AppointmentMetricsService } from './appointment-metrics.service';
 import { AppointmentDiagnosisService } from './appointment-diagnosis.service';
-import { createStubAppointmentWriteUseCases } from './appointment-use-case.stubs';
 
 describe('AppointmentService overlap enforcement', () => {
   const mockRepository = {
@@ -88,6 +87,7 @@ describe('AppointmentService overlap enforcement', () => {
       writeUseCaseStubs.updateAppointmentDetailsUseCase,
       mockPrisma,
       mockEventEmitter,
+      schedulingRules,
       Object.create(
         AppointmentMetricsService.prototype,
       ) as AppointmentMetricsService,

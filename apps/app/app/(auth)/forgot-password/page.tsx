@@ -11,9 +11,9 @@ import {
   type ForgotPasswordFormValues,
 } from "@workspace/types";
 import { CheckCircle } from "lucide-react";
-import { Button } from "@workspace/ui/components/form/button";
-import { FloatingInput } from "@workspace/ui/components/form/floating-input";
-import { LoadingState } from "@workspace/ui/components/feedback/empty-state";
+import { Button } from "@workspace/ui/components/button";
+import { FloatingInput } from "@workspace/ui/components/floating-input";
+import { LoadingState } from "@workspace/ui/components/empty-state";
 import { api } from "@/lib/api/api-client";
 import { logger } from "@/lib/monitoring/logger";
 import { PreDashboardShell } from "@/features/auth/components/PreDashboardShell";

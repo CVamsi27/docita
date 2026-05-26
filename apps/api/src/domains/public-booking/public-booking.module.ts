@@ -36,7 +36,6 @@ import { TurnstileSiteverifyClient } from '@/domains/public-booking/infrastructu
     PublicBookingSlotsService,
     PublicBookingCreationService,
     PublicBookingSubmitService,
-    TurnstileSiteverifyClient,
     TurnstileVerifyService,
     PublicBookingTokenService,
   ],

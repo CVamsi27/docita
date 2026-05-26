@@ -1,9 +1,9 @@
 "use client";
 
 import { Lock } from "lucide-react";
-import { Button } from "@workspace/ui/components/form/button";
-import { DocitaWordmark } from "@workspace/ui/components/indicators/docita-logo";
-import { ThemeToggleWithAppearanceSync } from "@/components/layout/theme-toggle-with-appearance-sync";
+import { Button } from "@workspace/ui/components/button";
+import { DocitaWordmark } from "@workspace/ui/components/docita-logo";
+import { ThemeToggleWithAppearanceSync } from "@/features/_shared/components/layout/theme-toggle-with-appearance-sync";
 import { PUBLIC_BOOKING_MAIN_CONTENT_ID } from "@/features/public-booking/public-booking-constants";
 import { cn } from "@workspace/ui/lib/utils";
 

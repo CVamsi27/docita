@@ -5,7 +5,7 @@ import {
   CardContent,
   CardHeader,
   CardTitle,
-} from "@workspace/ui/components/indicators/card";
+} from "@workspace/ui/components/card";
 import type { LeaveType } from "@workspace/types";
 
 const LEAVE_TYPE_LABELS: Record<LeaveType, string> = {

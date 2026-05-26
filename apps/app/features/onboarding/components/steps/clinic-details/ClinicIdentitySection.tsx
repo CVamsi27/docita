@@ -1,19 +1,18 @@
 import { UseFormReturn } from "react-hook-form";
-import { Input } from "@workspace/ui/components/form/input";
-import { Label } from "@workspace/ui/components/form/label";
+import { Input } from "@workspace/ui/components/input";
+import { Label } from "@workspace/ui/components/label";
 import {
   RadioGroup,
   RadioGroupItem,
-} from "@workspace/ui/components/form/radio-group";
+} from "@workspace/ui/components/radio-group";
 import {
   Select,
   SelectContent,
   SelectItem,
   SelectTrigger,
   SelectValue,
-} from "@workspace/ui/components/form/select";
-import { CLINIC_TYPE_OPTIONS } from "@workspace/types";
-import { parseStringEnumMember } from "@workspace/utils";
+} from "@workspace/ui/components/select";
+import { CLINIC_TYPE_OPTIONS, type ClinicType } from "@workspace/types";
 import { cn } from "@workspace/ui/lib/utils";
 import type { ClinicDetails } from "@/features/onboarding/components/types";
 import { resolveFacilityTypeLabel } from "./clinic-details-utils";
@@ -22,8 +21,6 @@ const FACILITY_LABEL_OPTIONS = [
   { value: "CLINIC", label: "Clinic" },
   { value: "HOSPITAL", label: "Hospital" },
 ] as const;
-
-const CLINIC_TYPE_VALUES = CLINIC_TYPE_OPTIONS.map((option) => option.value);
 
 interface ClinicIdentitySectionProps {
   clinicForm: UseFormReturn<ClinicDetails>;
@@ -65,18 +62,13 @@ export function ClinicIdentitySection({
         <RadioGroup
           id="facilityLabel"
           value={clinicForm.watch("facilityLabel") ?? "CLINIC"}
-          onValueChange={(val) => {
-            const nextLabel = parseStringEnumMember(
-              FACILITY_LABEL_OPTIONS.map((option) => option.value),
-              val,
-            );
-            if (!nextLabel) return;
-            clinicForm.setValue("facilityLabel", nextLabel, {
+          onValueChange={(val) =>
+            clinicForm.setValue("facilityLabel", val as "CLINIC" | "HOSPITAL", {
               shouldDirty: true,
               shouldTouch: true,
               shouldValidate: true,
-            });
-          }}
+            })
+          }
           className="grid grid-cols-2 gap-3"
         >
           {FACILITY_LABEL_OPTIONS.map((option) => (
@@ -112,15 +104,13 @@ export function ClinicIdentitySection({
           <RadioGroup
             id="type"
             value={clinicForm.watch("type") ?? ""}
-            onValueChange={(val) => {
-              const parsed = parseStringEnumMember(CLINIC_TYPE_VALUES, val);
-              if (!parsed) return;
-              clinicForm.setValue("type", parsed, {
+            onValueChange={(val) =>
+              clinicForm.setValue("type", val as ClinicType, {
                 shouldDirty: true,
                 shouldTouch: true,
                 shouldValidate: true,
-              });
-            }}
+              })
+            }
             className="grid grid-cols-1 gap-2 sm:grid-cols-2"
             aria-invalid={!!clinicForm.formState.errors.type}
             aria-describedby={
@@ -151,15 +141,13 @@ export function ClinicIdentitySection({
           </RadioGroup>
         ) : (
           <Select
-            onValueChange={(val) => {
-              const parsed = parseStringEnumMember(CLINIC_TYPE_VALUES, val);
-              if (!parsed) return;
-              clinicForm.setValue("type", parsed, {
+            onValueChange={(val) =>
+              clinicForm.setValue("type", val as ClinicType, {
                 shouldDirty: true,
                 shouldTouch: true,
                 shouldValidate: true,
-              });
-            }}
+              })
+            }
             value={clinicForm.watch("type") ?? ""}
           >
             <SelectTrigger

@@ -1,7 +1,6 @@
 /** Pure transaction-level helpers for onboarding workflow — no DI, no @Injectable. */
 import { BadRequestException } from '@nestjs/common';
-import { Prisma, Role, Specialization } from '@workspace/db';
-import { isFrontDeskTier } from '@workspace/types';
+import { Prisma, Role } from '@workspace/db';
 import * as bcrypt from 'bcrypt';
 import { randomBytes } from 'crypto';
 import { generateReferralCode, toStaffRole } from './onboarding-step-engine';
@@ -12,7 +11,7 @@ import {
 
 interface ValidationDeps {
   validatePasswordStrength(p: string): { valid: boolean; error?: string };
-  validateSpecialization(s: string | null | undefined): Specialization | null;
+  validateSpecialization(s: unknown): unknown;
 }
 
 /** Retries referral code generation until it finds a unique one. */
@@ -62,7 +61,7 @@ export async function createStaffMembersInTx(
     const hashedPassword = await bcrypt.hash(member.password, 10);
     const prismaRole = toStaffRole(member.role);
     const anchorDoctorOnFrontDeskTier =
-      isFrontDeskTier(planTier) && prismaRole === Role.DOCTOR;
+      planTier === ClinicTier.FRONT_DESK && prismaRole === Role.DOCTOR;
 
     const newUser = await tx.user.create({
       data: {
@@ -76,7 +75,7 @@ export async function createStaffMembersInTx(
         registrationNumber: member.registrationNumber,
         specialization: validation.validateSpecialization(
           member.specialization,
-        ),
+        ) as never,
         ...(anchorDoctorOnFrontDeskTier ? { appLoginDisabled: true } : {}),
       },
     });

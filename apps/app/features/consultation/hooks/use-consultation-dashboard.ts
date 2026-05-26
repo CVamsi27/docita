@@ -23,8 +23,7 @@ import {
   formatClinicTodayPickerIso,
 } from "@workspace/utils";
 import {
-  buildDoctorNowNext,
-  getClinicSlotMinutes,
+  type DoctorNextUpRow,
   isDateLocalToday,
   isQueueItemForTodayFn,
 } from "./consultation-dashboard-helpers";

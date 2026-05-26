@@ -1,7 +1,11 @@
 "use client";
 
 import { toast } from "sonner";
-import { getUserFacingErrorMessage, sanitizeUserFacingMessage, type UserFacingErrorContext } from "@workspace/utils";
+import {
+  getUserFacingErrorMessage,
+  sanitizeUserFacingMessage,
+  type UserFacingErrorContext,
+} from "@workspace/types";
 
 const ERROR_TOAST_DURATION_MS = 8000;
 

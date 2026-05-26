@@ -1,27 +1,33 @@
-import { Button } from "@workspace/ui/components/form/button";
-import { Checkbox } from "@workspace/ui/components/form/checkbox";
+import { Button } from "@workspace/ui/components/button";
+import { Checkbox } from "@workspace/ui/components/checkbox";
 import {
   Card,
   CardContent,
   CardHeader,
   CardTitle,
-} from "@workspace/ui/components/indicators/card";
-import { Input } from "@workspace/ui/components/form/input";
-import { Label } from "@workspace/ui/components/form/label";
+} from "@workspace/ui/components/card";
+import { Input } from "@workspace/ui/components/input";
+import { Label } from "@workspace/ui/components/label";
 import {
   Select,
   SelectContent,
   SelectItem,
   SelectTrigger,
   SelectValue,
-} from "@workspace/ui/components/form/select";
-import type { MetricCategoryResponse } from "@workspace/types";
+} from "@workspace/ui/components/select";
 import { Plus } from "lucide-react";
-import { metricValueTypeSchema, type MetricValueType } from "@workspace/types";
-import { parseStringEnumMember } from "@workspace/utils";
+
+type MetricValueType =
+  | "TEXT"
+  | "NUMBER"
+  | "BOOLEAN"
+  | "DATE"
+  | "JSON"
+  | "OPTION"
+  | "MULTI_OPTION";
 
 interface MetricsConfigurationCardProps {
-  categories: MetricCategoryResponse[];
+  categories: Array<Record<string, unknown>>;
   newCategoryKey: string;
   newCategoryName: string;
   definitionCategoryId: string;
@@ -77,7 +83,7 @@ export function MetricsConfigurationCard({
       </CardHeader>
       <CardContent className="grid gap-6 md:grid-cols-2">
         <div className="space-y-3">
-          <Label className="text-sm">New category</Label>
+          <Label className="text-sm">New Category</Label>
           <Input
             placeholder="Category key"
             value={newCategoryKey}
@@ -109,10 +115,10 @@ export function MetricsConfigurationCard({
             <SelectContent>
               {categories.map((category) => (
                 <SelectItem
-                  key={category.id}
-                  value={category.id}
+                  key={String(category.id || "")}
+                  value={String(category.id || "")}
                 >
-                  {category.name || "Unnamed Category"}
+                  {String(category.name || "Unnamed Category")}
                 </SelectItem>
               ))}
             </SelectContent>
@@ -129,13 +135,9 @@ export function MetricsConfigurationCard({
           />
           <Select
             value={newDefinitionType}
-            onValueChange={(value) => {
-              const nextType = parseStringEnumMember(
-                metricValueTypeSchema.options,
-                value,
-              );
-              if (nextType) onNewDefinitionTypeChange(nextType);
-            }}
+            onValueChange={(value) =>
+              onNewDefinitionTypeChange(value as MetricValueType)
+            }
           >
             <SelectTrigger>
               <SelectValue placeholder="Value type" />

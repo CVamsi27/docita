@@ -19,9 +19,7 @@ const files = execSync("git ls-files apps/api/src", {
 const findings = [];
 
 for (const file of files) {
-  const absolutePath = path.join(repoRoot, file);
-  if (!fs.existsSync(absolutePath)) continue;
-  const source = fs.readFileSync(absolutePath, "utf8");
+  const source = fs.readFileSync(path.join(repoRoot, file), "utf8");
   const hasPublicPost = /@Public\(\)[\s\S]{0,400}@Post\(/.test(source);
   if (!hasPublicPost) continue;
 

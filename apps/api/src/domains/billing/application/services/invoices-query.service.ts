@@ -4,6 +4,7 @@ import {
   NotFoundException,
   BadRequestException,
 } from '@nestjs/common';
+import { PrismaService } from '@/prisma/prisma.service';
 import { Feature } from '@/shared/modules/auth/auth/tier.decorator';
 import { assertClinicHasFeatureOrThrow } from '@/shared/modules/auth/utils/clinic-feature-access.util';
 import { Prisma, InvoiceStatus, PaymentSession } from '@workspace/db';
@@ -12,16 +13,12 @@ import {
   type InvoicePaymentActivityResponse,
   type EnqueuePdfJobResponse,
   extractPdfTheme,
-  paymentSessionMetaJsonSchema,
 } from '@workspace/types';
-import { parsePrismaJsonColumn } from '@/shared/common/json/parse-prisma-json-column';
 import {
   IInvoiceRepository,
   INVOICE_REPOSITORY_TOKEN,
   InvoiceDetail,
-  type InvoiceDetailRecord,
 } from '@/domains/billing/core/repositories/invoice.repository';
-import { toPrismaJsonValue } from '@/shared/common/json/to-prisma-input-json-value';
 import {
   IPaymentSessionRepository,
   PAYMENT_SESSION_REPOSITORY_TOKEN,
@@ -30,12 +27,11 @@ import {
   ClaimReadinessResult,
   ClaimValidationService,
 } from '@/domains/billing/core/services/claim-validation.service';
-import { StorageProvider } from '@/domains/documents/application/ports/storage-provider.port';
+import { StorageProvider } from '@/domains/documents/infrastructure/storage.provider';
 import { StoredFileUrlResolverService } from '@/domains/documents/application/services/stored-file-url-resolver.service';
 import { PdfJobService } from '@/shared/modules/queue/pdf-job.service';
 import type { PdfJobServicePort } from '@/shared/modules/queue/pdf-job.service';
 import { PDFService } from './pdf.service';
-import { resolveInvoiceItems } from '@/domains/billing/core/utils/invoice-item-resolution';
 import {
   parseInvoiceItems,
   parseInvoiceTaxSummary,
@@ -51,6 +47,7 @@ export class InvoicesQueryService {
     private readonly repository: IInvoiceRepository,
     @Inject(PAYMENT_SESSION_REPOSITORY_TOKEN)
     private readonly paymentSessionRepository: IPaymentSessionRepository,
+    private readonly prisma: PrismaService,
     private readonly pdfService: PDFService,
     private readonly claimValidationService: ClaimValidationService,
     private readonly storageProvider: StorageProvider,
@@ -85,11 +82,25 @@ export class InvoicesQueryService {
         throw new NotFoundException(`Patient ${patientId} not found`);
       }
     } else {
-      const clinic = await this.repository.findClinicFeatureContext(clinicId);
+      const clinic = await this.prisma.clinic.findUnique({
+        where: { id: clinicId },
+        select: {
+          tier: true,
+          intelligenceAddon: true,
+          features: true,
+        },
+      });
       if (!clinic) {
         throw new NotFoundException(`Clinic ${clinicId} not found`);
       }
-      assertClinicHasFeatureOrThrow(clinic, Feature.INVOICING);
+      assertClinicHasFeatureOrThrow(
+        {
+          tier: clinic.tier,
+          intelligenceAddon: clinic.intelligenceAddon,
+          features: clinic.features,
+        },
+        Feature.INVOICING,
+      );
     }
 
     return this.repository.findAll({
@@ -104,24 +115,16 @@ export class InvoicesQueryService {
     if (!invoice) {
       throw new NotFoundException(`Invoice ${id} not found`);
     }
-    return this.normalizeInvoiceDetail(invoice);
-  }
-
-  private normalizeInvoiceDetail(invoice: InvoiceDetailRecord): InvoiceDetail {
-    const { lineItems, items, ...rest } = invoice;
-    return {
-      ...rest,
-      items: toPrismaJsonValue(resolveInvoiceItems({ items, lineItems })),
-    };
+    return invoice;
   }
 
   private extractPaymentActivityMeta(
     meta: Prisma.JsonValue | null | undefined,
   ): { channel?: string; reference?: string; notes?: string } {
-    const m = parsePrismaJsonColumn(meta, paymentSessionMetaJsonSchema);
-    if (!m) {
+    if (!meta || typeof meta !== 'object' || Array.isArray(meta)) {
       return {};
     }
+    const m = meta as Record<string, unknown>;
     const channelRaw =
       typeof m.channel === 'string'
         ? m.channel

@@ -1,14 +1,11 @@
-import { BadRequestException, Injectable, Inject } from '@nestjs/common';
+import { BadRequestException, Injectable } from '@nestjs/common';
 import type {
   PublicBookingClinicResponse,
   PublicBookingDoctorsResponse,
   PublicBookingSlotsResponse,
 } from '@workspace/types';
 import { publicBookingSlotsQuerySchema } from '@workspace/types';
-import {
-  PUBLIC_BOOKING_PERSISTENCE_PORT,
-  type PublicBookingPersistencePort,
-} from '@/domains/public-booking/application/ports/public-booking-persistence.port';
+import { PrismaService } from '@/prisma/prisma.service';
 import { DoctorsService } from '@/domains/doctors/application/services/doctors.service';
 import { SlotGenerationService } from '@/domains/doctors/application/services/slot-generation.service';
 import {
@@ -19,8 +16,7 @@ import {
 @Injectable()
 export class PublicBookingSlotsService {
   constructor(
-    @Inject(PUBLIC_BOOKING_PERSISTENCE_PORT)
-    private readonly persistence: PublicBookingPersistencePort,
+    private readonly prisma: PrismaService,
     private readonly doctorsService: DoctorsService,
     private readonly slotGeneration: SlotGenerationService,
   ) {}
@@ -28,13 +24,13 @@ export class PublicBookingSlotsService {
   async getClinicSummary(
     referralCode: string,
   ): Promise<PublicBookingClinicResponse> {
-    return resolveClinicByReferralCode(this.persistence, referralCode);
+    return resolveClinicByReferralCode(this.prisma, referralCode);
   }
 
   async listDoctors(
     referralCode: string,
   ): Promise<PublicBookingDoctorsResponse> {
-    return withBookingTenant(this.persistence, referralCode, async (clinic) => {
+    return withBookingTenant(this.prisma, referralCode, async (clinic) => {
       const doctors = await this.doctorsService.findAll(clinic.id);
       return {
         doctors: doctors.map((d) => ({
@@ -61,14 +57,14 @@ export class PublicBookingSlotsService {
     clinicId: string,
   ): Promise<boolean> {
     const [directUser, linkedClinic] = await Promise.all([
-      this.persistence.user.count({
+      this.prisma.user.count({
         where: {
           id: doctorId,
           clinicId,
           role: { in: ['DOCTOR', 'ADMIN_DOCTOR'] },
         },
       }),
-      this.persistence.doctorClinic.count({
+      this.prisma.doctorClinic.count({
         where: {
           doctorId,
           clinicId,
@@ -83,7 +79,7 @@ export class PublicBookingSlotsService {
     referralCode: string,
     rawQuery: unknown,
   ): Promise<PublicBookingSlotsResponse> {
-    return withBookingTenant(this.persistence, referralCode, async (clinic) => {
+    return withBookingTenant(this.prisma, referralCode, async (clinic) => {
       const parsed = publicBookingSlotsQuerySchema.safeParse(rawQuery);
       if (!parsed.success) {
         throw new BadRequestException('Invalid slot query');

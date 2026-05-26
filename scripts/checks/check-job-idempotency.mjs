@@ -21,9 +21,7 @@ const files = roots.flatMap((root) =>
 const findings = [];
 
 for (const file of files) {
-  const absolutePath = path.join(repoRoot, file);
-  if (!fs.existsSync(absolutePath)) continue;
-  const source = fs.readFileSync(absolutePath, "utf8");
+  const source = fs.readFileSync(path.join(repoRoot, file), "utf8");
   const queueLike = /\b(Processor|WorkerHost|BullModule|Queue)\b/.test(source);
   if (!queueLike) continue;
 

@@ -1,17 +1,19 @@
-type LogContext = Record<string, unknown> | unknown;
-
-function recordClientLog(_level: "info" | "warn" | "error", _message: string, _context?: LogContext) {
-  // Centralized no-op until a non-console browser log sink is wired in.
-}
+const isDevelopment = process.env.NODE_ENV === 'development';
 
 export const logger = {
   info: (message: string, context?: Record<string, unknown>) => {
-    recordClientLog("info", message, context);
+    if (isDevelopment) {
+      console.info(`[INFO] ${message}`, context ?? '');
+    }
   },
   warn: (message: string, context?: Record<string, unknown>) => {
-    recordClientLog("warn", message, context);
+    if (isDevelopment) {
+      console.warn(`[WARN] ${message}`, context ?? '');
+    }
   },
-  error: (message: string, context?: LogContext) => {
-    recordClientLog("error", message, context);
+  error: (message: string, context?: Record<string, unknown> | unknown) => {
+    if (isDevelopment) {
+      console.error(`[ERROR] ${message}`, context ?? '');
+    }
   },
 };

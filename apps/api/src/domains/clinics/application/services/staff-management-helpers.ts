@@ -1,6 +1,6 @@
 import { Role } from '@workspace/db';
-import { isFrontDeskTier } from '@workspace/types';
-import { type ClinicPersistencePort } from '@/domains/clinics/application/ports/clinic-persistence.port';
+import { isFrontDeskWorkspace, parseWorkspaceProfile } from '@workspace/types';
+import { PrismaService } from '@/prisma/prisma.service';
 
 export type ClinicMemberRole =
   | 'DOCTOR'
@@ -24,14 +24,24 @@ export function mapClinicMemberRoleToPrisma(role: ClinicMemberRole): Role {
 }
 
 export async function isClinicFrontDesk(
-  persistence: ClinicPersistencePort,
+  prisma: PrismaService,
   clinicId: string,
 ): Promise<boolean> {
-  const clinic = await persistence.clinic.findUnique({
+  const clinic = await prisma.clinic.findUnique({
     where: { id: clinicId },
-    select: { tier: true },
+    select: { tier: true, settings: true },
   });
-  return isFrontDeskTier(clinic?.tier);
+  if (!clinic) {
+    return false;
+  }
+  if (clinic.tier === 'FRONT_DESK') {
+    return true;
+  }
+  const raw =
+    clinic.settings && typeof clinic.settings === 'object'
+      ? (clinic.settings as Record<string, unknown>)
+      : {};
+  return isFrontDeskWorkspace(parseWorkspaceProfile(raw.workspaceProfile));
 }
 
 export interface CreateDoctorData {

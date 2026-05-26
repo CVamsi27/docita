@@ -6,10 +6,8 @@ import { TaxCalculatorService } from '@/domains/billing/core/services/tax-calcul
 import { UsageTrackingService } from '@/domains/billing/core/services/usage-tracking.service';
 import { ClaimValidationService } from '@/domains/billing/core/services/claim-validation.service';
 import { EventEmitter2 } from '@nestjs/event-emitter';
-import { ApplicationEvents } from '@/shared/common/events/application-events';
-import { StorageProvider } from '@/domains/documents/application/ports/storage-provider.port';
+import { StorageProvider } from '@/domains/documents/infrastructure/storage.provider';
 import { InvoiceStatus } from '@workspace/db';
-import type { IClock } from '@/shared/common/ports/clock.port';
 
 describe('InvoicesCommandService', () => {
   let service: InvoicesCommandService;
@@ -26,7 +24,6 @@ describe('InvoicesCommandService', () => {
   let storageProvider: jest.Mocked<StorageProvider>;
   let claimValidationService: jest.Mocked<ClaimValidationService>;
   let queryService: jest.Mocked<InvoicesQueryService>;
-  let clock: IClock;
 
   const mockPatient = {
     id: 'patient-1',
@@ -93,8 +90,6 @@ describe('InvoicesCommandService', () => {
     ) as jest.Mocked<InvoicesQueryService>;
     queryService.findOne = jest.fn();
 
-    clock = { now: () => new Date('2026-05-19T12:00:00.000Z') };
-
     service = new InvoicesCommandService(
       repository as never,
       taxCalculator,
@@ -103,7 +98,6 @@ describe('InvoicesCommandService', () => {
       storageProvider,
       claimValidationService,
       queryService,
-      clock,
     );
   });
 
@@ -134,7 +128,7 @@ describe('InvoicesCommandService', () => {
 
       expect(result).toEqual(created);
       expect(eventEmitter.emit).toHaveBeenCalledWith(
-        ApplicationEvents.INVOICE_GENERATED,
+        'invoice.generated',
         expect.objectContaining({ invoiceId: 'inv-1' }),
       );
     });

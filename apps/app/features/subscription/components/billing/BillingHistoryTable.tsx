@@ -10,16 +10,52 @@ import type { BillingHistoryItem } from "@workspace/data-access";
 import { useResumeSubscriptionPayment } from "@workspace/data-access";
 import { DEFAULT_CURRENCY } from "@workspace/utils";
 import {
-  buildBillingCsvContent,
-  isPaidStatus,
-  matchesStatusFilter,
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@workspace/ui/components/select";
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableFooter,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@workspace/ui/components/table";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from "@workspace/ui/components/tooltip";
+import { EmptyState } from "@workspace/ui/components/empty-state";
+import { humanizeUiLabel } from "@workspace/ui/lib/label-formatters";
+import { cn } from "@workspace/ui/lib/utils";
+import type { BillingHistoryItem } from "@/hooks/api/use-billing-history";
+import { formatDate, formatDateTime } from "@/lib/formatters";
+import { useResumeSubscriptionPayment } from "@/hooks/api/use-resume-subscription-payment";
+import {
+  formatInvoiceDescriptionForDisplay,
+  BILLING_HISTORY_TABLE_CAPTION,
+} from "@/features/subscription/lib/billing-display-messages";
+import { DEFAULT_CURRENCY } from "@workspace/utils";
+import {
+  formatMoney,
   normalizeStatus,
+  isPaidStatus,
+  isTerminalClosed,
+  isFailedLike,
+  badgeClassForStatus,
+  matchesStatusFilter,
   parseDayBoundary,
+  buildBillingCsvContent,
   triggerCsvDownload,
   type StatusFilterValue,
+  type BillingHistoryItemWithActions,
 } from "./billing-history-table-helpers";
-import { BillingHistoryTableFilters } from "./billing-history-table-filters";
-import { BillingHistoryInvoiceTable } from "./billing-history-invoice-table";
 
 export function BillingHistoryTable({
   invoices,
@@ -74,18 +110,6 @@ export function BillingHistoryTable({
   const handleExportCsv = () => {
     if (!filteredHasRows) return;
     triggerCsvDownload(buildBillingCsvContent(filteredInvoices));
-  };
-
-  const handleResumePayment = async (
-    invoice: BillingHistoryItem,
-    payUrl?: string,
-  ) => {
-    if (payUrl) {
-      handleDownload(payUrl);
-      return;
-    }
-    const resumed = await resumePayment.mutateAsync(invoice.id);
-    handleDownload(resumed.payUrl);
   };
 
   if (isLoading) {

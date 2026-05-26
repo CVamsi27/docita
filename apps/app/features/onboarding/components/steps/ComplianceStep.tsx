@@ -1,14 +1,14 @@
 "use client";
 
 import type { UseFormReturn } from "react-hook-form";
-import { Button } from "@workspace/ui/components/form/button";
+import { Button } from "@workspace/ui/components/button";
 import {
   Card,
   CardContent,
   CardFooter,
   CardHeader,
   CardTitle,
-} from "@workspace/ui/components/indicators/card";
+} from "@workspace/ui/components/card";
 import type { ComplianceSettings } from "@/features/onboarding/components/types";
 import { DPDPSection } from "./compliance/DPDPSection";
 import { SignaturesSection } from "./compliance/SignaturesSection";

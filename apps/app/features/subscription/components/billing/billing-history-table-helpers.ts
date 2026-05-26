@@ -1,5 +1,5 @@
 import { DEFAULT_CURRENCY, formatCurrency } from "@workspace/utils";
-import type { BillingHistoryItem } from "@workspace/data-access";
+import type { BillingHistoryItem } from "@/hooks/api/use-billing-history";
 
 export function formatMoney(amountCents: number, currency: string | undefined) {
   return formatCurrency(amountCents / 100, {
@@ -49,33 +49,6 @@ export type StatusFilterValue =
   | "failed"
   | "refunded_void";
 
-export function parseStatusFilterValue(value: string): StatusFilterValue {
-  switch (value) {
-    case "all":
-    case "paid":
-    case "pending":
-    case "failed":
-    case "refunded_void":
-      return value;
-    default:
-      return "all";
-  }
-}
-
-export function readBillingHistoryActions(
-  invoice: BillingHistoryItem,
-): BillingHistoryItemWithActions {
-  const payUrl =
-    "payUrl" in invoice && typeof invoice.payUrl === "string"
-      ? invoice.payUrl
-      : undefined;
-  const receiptUrl =
-    "receiptUrl" in invoice && typeof invoice.receiptUrl === "string"
-      ? invoice.receiptUrl
-      : undefined;
-  return { ...invoice, payUrl, receiptUrl };
-}
-
 export function matchesStatusFilter(
   status: string,
   filter: StatusFilterValue,
@@ -122,7 +95,7 @@ export function buildBillingCsvContent(
   ];
 
   const rows = invoices.map((invoice) => {
-    const withActions = readBillingHistoryActions(invoice);
+    const withActions = invoice as BillingHistoryItemWithActions;
     const formattedDate = new Date(invoice.createdAt).toISOString();
     const paidAt = invoice.paidAt
       ? new Date(invoice.paidAt).toISOString()

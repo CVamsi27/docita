@@ -3,7 +3,7 @@ import type { NavItem, NavSection, NavSectionId } from "@/components/navigation/
 import { FIXED_NAV_HREFS, navSections } from "@/components/navigation/nav-config";
 import { sidebarNavOrderSchema } from "@workspace/types";
 import { useOptionalAppConfig } from "@/lib/contexts/app-config-context";
-import { useUpdateClinicSettings, useUpdateProfile, useUserProfile } from "@workspace/data-access";
+import { useUpdateClinicSettings, useUpdateProfile, useUserProfile } from "@/hooks/api/use-settings";
 
 type SidebarNavOrder = Record<NavSectionId, string[]>;
 

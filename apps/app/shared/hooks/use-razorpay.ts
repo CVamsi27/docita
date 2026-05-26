@@ -1,21 +1,5 @@
 import { useCallback, useRef, useState } from "react";
 import { logger } from "@/lib/monitoring/logger";
-import {
-  type RazorpayCheckoutError,
-  isPaymentCanceledError,
-  notifyPaymentCanceled,
-} from "./razorpay-checkout-errors";
-
-export {
-  isPaymentCanceledError,
-  notifyPaymentCanceled,
-  type RazorpayCheckoutError,
-};
-
-export type RazorpayCheckoutResult =
-  | { status: "completed" }
-  | { status: "canceled" }
-  | { status: "failed" };
 
 interface RazorpayInstance {
   open(): void;

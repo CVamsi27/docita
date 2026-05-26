@@ -1,15 +1,12 @@
 import { NotFoundException, ForbiddenException } from '@nestjs/common';
 import { beforeEach, describe, it, expect, jest } from '@jest/globals';
 import { AppointmentQueryService } from './appointment-query.service';
-import {
-  APPOINTMENT_PERSISTENCE_PORT,
-  type AppointmentPersistencePort,
-} from '@/domains/appointments/application/ports/appointment-persistence.port';
+import { PrismaService } from '@/prisma/prisma.service';
 import { Role } from '@workspace/db';
 
 describe('AppointmentQueryService', () => {
   let service: AppointmentQueryService;
-  let prisma: jest.Mocked<AppointmentPersistencePort>;
+  let prisma: jest.Mocked<PrismaService>;
   let appointmentRepository: { findById: jest.Mock; findAll: jest.Mock };
 
   beforeEach(() => {
@@ -20,7 +17,7 @@ describe('AppointmentQueryService', () => {
 
     prisma = {
       clinic: { findUnique: jest.fn() },
-    } as unknown as jest.Mocked<AppointmentPersistencePort>;
+    } as unknown as jest.Mocked<PrismaService>;
 
     service = new AppointmentQueryService(
       appointmentRepository as never,

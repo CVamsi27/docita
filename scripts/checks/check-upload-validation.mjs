@@ -16,74 +16,24 @@ const files = execSync("git ls-files apps/api/src", {
   .filter(Boolean)
   .filter((file) => /\.controller\.ts$/.test(file));
 
-function resolveImportToPath(importSpecifier, fromFile) {
-  let resolved;
-  if (
-    importSpecifier.startsWith("./") ||
-    importSpecifier.startsWith("../")
-  ) {
-    resolved = path.normalize(
-      path.join(path.dirname(path.join(repoRoot, fromFile)), importSpecifier),
-    );
-  } else if (importSpecifier.startsWith("@/")) {
-    resolved = path.join(
-      repoRoot,
-      "apps/api/src",
-      importSpecifier.slice(2),
-    );
-  } else {
-    return null;
-  }
-
-  if (!resolved.endsWith(".ts")) {
-    resolved = `${resolved}.ts`;
-  }
-  return fs.existsSync(resolved) ? resolved : null;
-}
-
-/** Controller + companion *.upload.ts modules (split upload Multer options). */
-function collectUploadSources(file) {
-  const absolutePath = path.join(repoRoot, file);
-  const source = fs.readFileSync(absolutePath, "utf8");
-  const parts = [source];
-
-  for (const match of source.matchAll(/from\s+['"]([^'"]+)['"]/g)) {
-    const spec = match[1];
-    if (!/\.upload$/.test(spec)) {
-      continue;
-    }
-    const companion = resolveImportToPath(spec, file);
-    if (companion) {
-      parts.push(fs.readFileSync(companion, "utf8"));
-    }
-  }
-
-  return parts.join("\n");
-}
-
 const findings = [];
 
 for (const file of files) {
-  const absolutePath = path.join(repoRoot, file);
-  if (!fs.existsSync(absolutePath)) continue;
-  const source = fs.readFileSync(absolutePath, "utf8");
+  const source = fs.readFileSync(path.join(repoRoot, file), "utf8");
   const isUploadBoundary = /\bFileInterceptor\s*\(/.test(source);
   if (!isUploadBoundary) continue;
 
-  const combined = collectUploadSources(file);
-
   const validatesMime =
     /\b(fileFilter|allowedMimes|mimetype|contentType|allowedTypes|allowedMime|fileType)\b/i.test(
-      combined,
+      source,
     );
   const validatesSize = /\b(fileSize|MAX_FILE_SIZE|maxSize|maxBytes)\b/i.test(
-    combined,
+    source,
   );
-  const validatesSignature =
-    /\bassertAllowed(File|ImportFile)Signature\b/.test(combined);
+  const validatesSignature = /\bassertAllowedFileSignature\b/.test(source);
   const sanitizesName =
     /\b(createTempDiskStorage|sanitize|safeFileName|basename|normalizeUploadFileName|null byte|\.\.)\b/i.test(
-      combined,
+      source,
     );
 
   if (

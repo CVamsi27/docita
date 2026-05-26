@@ -3,16 +3,16 @@
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { toast } from "sonner";
-import { Button } from "@workspace/ui/components/form/button";
-import { DatePicker } from "@workspace/ui/components/form/date-picker";
+import { Button } from "@workspace/ui/components/button";
+import { DatePicker } from "@workspace/ui/components/date-picker";
 import {
   Dialog,
   DialogContent,
   DialogFooter,
   DialogHeader,
   DialogTitle,
-} from "@workspace/ui/components/overlay/dialog";
-import { DocitaLoadingIndicator } from "@workspace/ui/components/feedback/docita-loading-indicator";
+} from "@workspace/ui/components/dialog";
+import { DocitaLoadingIndicator } from "@workspace/ui/components/docita-loading-indicator";
 import {
   Form,
   FormControl,
@@ -20,22 +20,24 @@ import {
   FormItem,
   FormLabel,
   FormMessage,
-} from "@workspace/ui/components/form/form";
+} from "@workspace/ui/components/form";
 import {
   Select,
   SelectContent,
   SelectItem,
   SelectTrigger,
   SelectValue,
-} from "@workspace/ui/components/form/select";
-import { Textarea } from "@workspace/ui/components/form/textarea";
-import { useApplyLeave } from "@workspace/data-access";
-import { createLeaveRequestSchema } from "@workspace/types";
+} from "@workspace/ui/components/select";
+import { Textarea } from "@workspace/ui/components/textarea";
+import { useApplyLeave } from "@/hooks/api/use-leaves";
+import {
+  LeaveType,
+  createLeaveRequestSchema,
+} from "@workspace/types";
 import type { User } from "@workspace/types";
 import type { z } from "zod";
 import { showUserFacingErrorToast } from "@/lib/errors/user-facing-errors";
 import { LEAVE_TYPE_LABELS } from "./LeaveBalanceCard";
-import { labelMapKeys } from "@workspace/utils";
 
 type ApplyLeaveFormValues = z.infer<typeof createLeaveRequestSchema>;
 
@@ -74,7 +76,9 @@ export function ApplyLeaveDialog({
         endDate: data.endDate,
         reason: data.reason?.trim() || undefined,
         staffId:
-          userIsAdmin && data.staffId?.trim() ? data.staffId.trim() : undefined,
+          userIsAdmin && data.staffId?.trim()
+            ? data.staffId.trim()
+            : undefined,
       });
       toast.success("Leave request submitted");
       onOpenChange(false);
@@ -137,7 +141,7 @@ export function ApplyLeaveDialog({
               name="leaveType"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Leave type</FormLabel>
+                  <FormLabel>Leave Type</FormLabel>
                   <Select value={field.value} onValueChange={field.onChange}>
                     <FormControl>
                       <SelectTrigger>
@@ -145,11 +149,13 @@ export function ApplyLeaveDialog({
                       </SelectTrigger>
                     </FormControl>
                     <SelectContent>
-                      {labelMapKeys(LEAVE_TYPE_LABELS).map((lt) => (
-                        <SelectItem key={lt} value={lt}>
-                          {LEAVE_TYPE_LABELS[lt]}
-                        </SelectItem>
-                      ))}
+                      {(Object.keys(LEAVE_TYPE_LABELS) as LeaveType[]).map(
+                        (lt) => (
+                          <SelectItem key={lt} value={lt}>
+                            {LEAVE_TYPE_LABELS[lt]}
+                          </SelectItem>
+                        ),
+                      )}
                     </SelectContent>
                   </Select>
                   <FormMessage />
@@ -167,7 +173,8 @@ export function ApplyLeaveDialog({
                       <DatePicker
                         value={field.value || undefined}
                         onChange={(date) => {
-                          const next = date?.toISOString().slice(0, 10) ?? "";
+                          const next =
+                            date?.toISOString().slice(0, 10) ?? "";
                           field.onChange(next);
                           const end = form.getValues("endDate");
                           if (end && date && new Date(end) < new Date(next)) {

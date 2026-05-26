@@ -1,10 +1,10 @@
 "use client";
 
 import type { UseFormReturn } from "react-hook-form";
-import { Button } from "@workspace/ui/components/form/button";
+import { Button } from "@workspace/ui/components/button";
 import Image from "next/image";
-import { PhoneSignatureQrPanel } from "@/components/signature/phone-signature-qr-panel";
-import type { usePhoneSignatureQrFlow } from "@/hooks/use-phone-signature-qr-flow";
+import { PhoneSignatureQrPanel } from "@/features/_shared/components/signature/phone-signature-qr-panel";
+import type { usePhoneSignatureQrFlow } from "@/features/_shared/hooks/use-phone-signature-qr-flow";
 import type { ComplianceSettings } from "@/features/onboarding/components/types";
 
 interface SignaturesSectionProps {

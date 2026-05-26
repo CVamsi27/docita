@@ -17,8 +17,6 @@ import {
   InvoicesService,
   InvoicesQueryService,
   InvoicesCommandService,
-  PaymentsQueryService,
-  PaymentsCommandService,
   PaymentsService,
   RazorpayInvoiceWebhookService,
   SchedulerService,

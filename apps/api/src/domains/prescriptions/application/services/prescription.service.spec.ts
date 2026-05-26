@@ -92,7 +92,6 @@ describe('PrescriptionsService', () => {
         createdAt: new Date('2026-01-01T00:00:00.000Z'),
       }),
     } satisfies PdfJobServicePort,
-    { now: () => new Date('2026-01-01T00:00:00.000Z') },
   );
 
   let service: PrescriptionsService;
@@ -101,6 +100,8 @@ describe('PrescriptionsService', () => {
     jest.clearAllMocks();
     const queryService = new PrescriptionsQueryService(
       repository,
+      eventEmitter,
+      usageTracking,
       pdfOrchestrator,
     );
     const commandService = new PrescriptionsCommandService(

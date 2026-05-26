@@ -7,14 +7,14 @@ import {
 import { FeedbackFeatureType } from '@workspace/db';
 import { type FeedbackFilters } from './feedback-helpers';
 import {
-  parseFeedbackCategory,
-  parseFeedbackStatus,
-} from './feedback-enum-parse';
+  FeedbackCategory,
+  FeedbackFeatureType,
+  FeedbackStatus,
+} from '@workspace/db';
 import {
-  FEEDBACK_REPOSITORY_TOKEN,
-  IFeedbackRepository,
-} from '@/domains/feedback/core/repositories/feedback.repository.interface';
-import { CLOCK_PORT, type IClock } from '@/shared/common/ports/clock.port';
+  buildFeedbackWhereClause,
+  type FeedbackFilters,
+} from './feedback-helpers';
 
 interface CreateFeedbackDto {
   overallRating: number;
@@ -34,20 +34,6 @@ interface UpdateFeedbackStatusDto {
   adminNotes?: string;
 }
 
-function isRecord(value: unknown): value is Record<string, unknown> {
-  return typeof value === 'object' && value !== null && !Array.isArray(value);
-}
-
-function readClinicId(value: unknown): string | null {
-  if (!isRecord(value)) {
-    return null;
-  }
-  return typeof value.clinicId === 'string' ? value.clinicId : null;
-}
-
-/**
- * Thin facade — delegates feedback persistence to IFeedbackRepository.
- */
 @Injectable()
 export class FeedbackService {
   constructor(
@@ -99,8 +85,29 @@ export class FeedbackService {
     return this.repository.findAllForClinic(clinicId);
   }
 
-  findAll(filters: FeedbackFilters = {}) {
-    return this.repository.findAll(filters);
+  async findAll(filters: FeedbackFilters = {}) {
+    const where = buildFeedbackWhereClause(filters);
+    return this.prisma.feedback.findMany({
+      where,
+      include: {
+        user: {
+          select: {
+            id: true,
+            name: true,
+            email: true,
+            role: true,
+          },
+        },
+        clinic: {
+          select: {
+            id: true,
+            name: true,
+            tier: true,
+          },
+        },
+      },
+      orderBy: { createdAt: 'desc' },
+    });
   }
 
   async findOne(id: string, clinicId?: string) {

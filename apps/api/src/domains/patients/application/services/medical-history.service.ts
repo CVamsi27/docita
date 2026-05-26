@@ -17,6 +17,7 @@ import {
 } from '@workspace/types';
 import { AiService } from '@/shared/modules/ai-core/ai.service';
 import { AiFactory } from '@/shared/modules/ai-core/factories/ai.factory';
+import { SmokingStatus, AlcoholUseStatus } from '@workspace/db';
 import { MedicalHistoryConditionsService } from './medical-history-conditions.service';
 
 /**
@@ -26,8 +27,7 @@ import { MedicalHistoryConditionsService } from './medical-history-conditions.se
 @Injectable()
 export class MedicalHistoryService {
   constructor(
-    @Inject(PATIENT_PERSISTENCE_PORT)
-    private readonly persistence: PatientPersistencePort,
+    private readonly prisma: PrismaService,
     private readonly medicalHistoryFactory: MedicalHistoryFactory,
     private readonly aiService: AiService,
     private readonly aiFactory: AiFactory,
@@ -69,11 +69,9 @@ export class MedicalHistoryService {
 
   async summarizeMedicalHistory(patientId: string): Promise<string> {
     const [conditions, allergies, meds] = await Promise.all([
-      this.persistence.patientMedicalCondition.findMany({
-        where: { patientId },
-      }),
-      this.persistence.patientAllergy.findMany({ where: { patientId } }),
-      this.persistence.prescription.findMany({
+      this.prisma.patientMedicalCondition.findMany({ where: { patientId } }),
+      this.prisma.patientAllergy.findMany({ where: { patientId } }),
+      this.prisma.prescription.findMany({
         where: { patientId, approvalStatus: 'APPROVED' },
         include: { medications: true },
       }),
@@ -117,7 +115,7 @@ export class MedicalHistoryService {
     dto: CreatePatientFamilyHistoryInput,
   ) {
     const validated = this.medicalHistoryFactory.createFamilyHistory(dto);
-    return this.persistence.patientFamilyHistory.create({
+    return this.prisma.patientFamilyHistory.create({
       data: {
         patientId,
         relationship: validated.relationship,
@@ -138,7 +136,7 @@ export class MedicalHistoryService {
     });
     if (!existing)
       throw new NotFoundException(`Family history with ID ${id} not found`);
-    return this.persistence.patientFamilyHistory.update({
+    return this.prisma.patientFamilyHistory.update({
       where: { id },
       data: {
         relationship: dto.relationship,
@@ -155,15 +153,13 @@ export class MedicalHistoryService {
     });
     if (!existing)
       throw new NotFoundException(`Family history with ID ${id} not found`);
-    return this.persistence.patientFamilyHistory.delete({ where: { id } });
+    return this.prisma.patientFamilyHistory.delete({ where: { id } });
   }
 
   // ── Social history ────────────────────────────────────────────────────────
 
   async getSocialHistory(patientId: string) {
-    return this.persistence.patientSocialHistory.findFirst({
-      where: { patientId },
-    });
+    return this.prisma.patientSocialHistory.findFirst({ where: { patientId } });
   }
 
   async createOrUpdateSocialHistory(
@@ -172,9 +168,9 @@ export class MedicalHistoryService {
   ) {
     const validated = this.medicalHistoryFactory.createSocialHistory(dto);
     const socialData = {
-      smokingStatus: validated.smokingStatus,
+      smokingStatus: validated.smokingStatus as SmokingStatus,
       smokingPackYears: validated.smokingPackYears,
-      alcoholUse: validated.alcoholUse,
+      alcoholUse: validated.alcoholUse as AlcoholUseStatus,
       alcoholFrequency: validated.alcoholFrequency,
       substanceUse: validated.substanceUse,
       occupation: validated.occupation,
@@ -183,33 +179,32 @@ export class MedicalHistoryService {
       dietaryRestrictions: validated.dietaryRestrictions,
       notes: validated.notes,
     };
-    const smokingQuitDate = validated.smokingQuitDate
-      ? new Date(validated.smokingQuitDate)
-      : null;
 
-    return this.persistence.$transaction(async (tx) => {
-      const existing = await tx.patientSocialHistory.findFirst({
+    const existing = await this.prisma.patientSocialHistory.findFirst({
+      where: { patientId },
+    });
+    if (existing) {
+      await this.prisma.patientSocialHistory.updateMany({
         where: { patientId },
-      });
-      if (existing) {
-        await tx.patientSocialHistory.updateMany({
-          where: { patientId },
-          data: {
-            ...socialData,
-            smokingQuitDate: smokingQuitDate ?? undefined,
-          },
-        });
-        return tx.patientSocialHistory.findFirst({
-          where: { patientId },
-        });
-      }
-      return tx.patientSocialHistory.create({
         data: {
-          patientId,
           ...socialData,
-          smokingQuitDate,
+          smokingQuitDate: validated.smokingQuitDate
+            ? new Date(validated.smokingQuitDate)
+            : undefined,
         },
       });
+      return this.prisma.patientSocialHistory.findFirst({
+        where: { patientId },
+      });
+    }
+    return this.prisma.patientSocialHistory.create({
+      data: {
+        patientId,
+        ...socialData,
+        smokingQuitDate: validated.smokingQuitDate
+          ? new Date(validated.smokingQuitDate)
+          : null,
+      },
     });
   }
 
@@ -226,6 +221,12 @@ export class MedicalHistoryService {
       await tx.patientSocialHistory.deleteMany({ where: { patientId } });
       return existing;
     });
+    if (!existing)
+      throw new NotFoundException(
+        `Social history for patient ${patientId} not found`,
+      );
+    await this.prisma.patientSocialHistory.deleteMany({ where: { patientId } });
+    return existing;
   }
 
   // ── Surgical history ──────────────────────────────────────────────────────
@@ -242,7 +243,7 @@ export class MedicalHistoryService {
     dto: CreatePatientSurgicalHistoryInput,
   ) {
     const validated = this.medicalHistoryFactory.createSurgicalHistory(dto);
-    return this.persistence.patientSurgicalHistory.create({
+    return this.prisma.patientSurgicalHistory.create({
       data: {
         patientId,
         procedureName: validated.procedureName,
@@ -267,7 +268,7 @@ export class MedicalHistoryService {
     });
     if (!existing)
       throw new NotFoundException(`Surgical history with ID ${id} not found`);
-    return this.persistence.patientSurgicalHistory.update({
+    return this.prisma.patientSurgicalHistory.update({
       where: { id },
       data: {
         procedureName: dto.procedureName,
@@ -288,7 +289,7 @@ export class MedicalHistoryService {
     });
     if (!existing)
       throw new NotFoundException(`Surgical history with ID ${id} not found`);
-    return this.persistence.patientSurgicalHistory.delete({ where: { id } });
+    return this.prisma.patientSurgicalHistory.delete({ where: { id } });
   }
 
   // ── Composite ─────────────────────────────────────────────────────────────

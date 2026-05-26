@@ -1,23 +1,20 @@
 "use client";
 
 import { Check, Info, Minus } from "lucide-react";
-import {
-  getTierName,
-  hasFeatureAccess,
-} from "@/lib/subscription/tier-access";
+import { FEATURE_TIER_MAP } from "@/lib/tier-config";
 import { getFeatureDetails } from "@/features/subscription/config/feature-config";
 import {
   TableCell,
   TableRow,
-} from "@workspace/ui/components/data-display/table";
-import { Badge } from "@workspace/ui/components/indicators/badge";
+} from "@workspace/ui/components/table";
+import { Badge } from "@workspace/ui/components/badge";
 import { cn } from "@workspace/ui/lib/utils";
 import {
   SymbolTooltip,
   Tooltip,
   TooltipContent,
   TooltipTrigger,
-} from "@workspace/ui/components/overlay/tooltip";
+} from "@workspace/ui/components/tooltip";
 import { Feature } from "@workspace/types";
 
 export const FEATURE_CATEGORIES: { label: string; features: Feature[] }[] = [
@@ -173,6 +170,7 @@ export function FeatureCategoryRows({
     <>
       <SectionHeader label={label} colSpan={tiers.length + 1} />
       {features.map((feature) => {
+        const requiredTier = FEATURE_TIER_MAP[feature];
         const details = getFeatureDetails(feature);
         return (
           <TableRow key={feature} className="hover:bg-muted/50">
@@ -207,8 +205,7 @@ export function FeatureCategoryRows({
             </TableCell>
             {tiers.map((tier) => {
               const hasAccess =
-                details.isGenerallyAvailable &&
-                hasFeatureAccess(getTierName(tier), feature, false);
+                details.isGenerallyAvailable && tier >= requiredTier;
               return (
                 <TableCell
                   key={tier}

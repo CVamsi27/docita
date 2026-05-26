@@ -28,7 +28,6 @@
         "src/**/*.dto.ts",
         "src/**/*.entity.ts",
         "src/**/*.port.ts",
-        "src/**/*.spec.ts",
         "src/seed/**/*.ts",
         "scripts/*.ts",
         "test/**/*.ts"
@@ -45,6 +44,7 @@
         "src/domains/subscriptions/application/use-cases/**",
         "src/shared/modules/idempotency/**",
         "src/shared/modules/cache/**",
+        "src/shared/modules/document-generation/builders/**",
         "src/shared/modules/error-handling/sentry.utils.ts",
         "src/shared/modules/ai-core/schemas/**",
         "src/shared/modules/services/**",
@@ -91,20 +91,23 @@
       "ignoreDependencies": ["clsx", "tailwind-merge"]
     },
     "packages/data-access": {
+      "ignoreDependencies": ["@workspace/types"],
       "ignore": ["src/lib/retry.ts"]
     },
     "apps/app": {
       "entry": [
         "app/**/*.{ts,tsx}",
         "features/**/*.{ts,tsx}",
-        "shared/**/*.{ts,tsx}",
+        "hooks/**/*.{ts,tsx}",
+        "lib/**/*.{ts,tsx}",
+        "components/**/*.{ts,tsx}",
         "e2e/**/*.ts"
       ],
       "paths": {
         "@/*": ["./*"],
-        "@/lib/*": ["./shared/lib/*"],
-        "@/hooks/*": ["./shared/hooks/*"],
-        "@/components/*": ["./shared/components/*"]
+        "@/lib/*": ["./lib/*"],
+        "@/hooks/*": ["./hooks/*"],
+        "@/components/*": ["./components/*"]
       },
       "ignoreDependencies": [
         "@tailwindcss/postcss",
@@ -117,28 +120,15 @@
       ]
     },
     "apps/internal": {
-      "entry": [
-        "app/**/*.{ts,tsx}",
-        "features/**/*.{ts,tsx}",
-        "providers/**/*.{ts,tsx}",
-        "shared/**/*.{ts,tsx}",
-        "e2e/**/*.ts"
-      ],
-      "paths": {
-        "@/*": ["./*"],
-        "@/lib/*": ["./shared/lib/*"],
-        "@/hooks/*": ["./shared/hooks/*"],
-        "@/components/*": ["./shared/components/*"]
-      },
       "ignore": [
-        "shared/components/common/back-button.tsx",
+        "components/common/back-button.tsx",
         "features/broadcasts/**",
-        "shared/lib/api.ts",
-        "shared/lib/api-client.ts",
-        "shared/lib/sentry-phi-redactor.ts",
-        "shared/lib/sentry.client.config.ts",
-        "shared/lib/session.ts",
-        "shared/lib/user-facing-errors.ts"
+        "lib/api.ts",
+        "lib/api-client.ts",
+        "lib/sentry-phi-redactor.ts",
+        "lib/sentry.client.config.ts",
+        "lib/session.ts",
+        "lib/user-facing-errors.ts"
       ],
       "ignoreDependencies": [
         "@axe-core/playwright",
@@ -150,7 +140,7 @@
       ]
     },
     "apps/landing": {
-      "ignoreDependencies": ["sharp", "tailwindcss"],
+      "ignoreDependencies": ["tailwindcss"],
       "ignore": [
         "src/pages/**",
         "src/layouts/**",
@@ -160,7 +150,10 @@
       ]
     },
     ".": {
-      "entry": ["scripts/lib/*.mjs"],
+      "entry": [
+        "scripts/*.mjs",
+        "scripts/lib/*.mjs"
+      ],
       "ignoreDependencies": [
         "@axe-core/playwright",
         "axe-core",

@@ -1,15 +1,15 @@
 "use client";
 
-import { Button } from "@workspace/ui/components/form/button";
-import { Label } from "@workspace/ui/components/form/label";
+import { Button } from "@workspace/ui/components/button";
+import { Label } from "@workspace/ui/components/label";
 import {
   Select,
   SelectContent,
   SelectItem,
   SelectTrigger,
   SelectValue,
-} from "@workspace/ui/components/form/select";
-import { Skeleton } from "@workspace/ui/components/feedback/skeleton";
+} from "@workspace/ui/components/select";
+import { Skeleton } from "@workspace/ui/components/skeleton";
 import { ANY_DOCTOR_ID } from "@/features/public-booking/public-booking-constants";
 import type { PublicBookingPageController } from "@/features/public-booking/use-public-booking-page-state";
 import { cn } from "@workspace/ui/lib/utils";

@@ -5,10 +5,7 @@ import { toast } from "sonner";
 import { useCreateInvoice } from "@workspace/data-access";
 import { usePatients } from "@workspace/data-access";
 import { useRouter } from "next/navigation";
-import {
-  createInvoiceFormSchema,
-  type CreateInvoiceFormValues,
-} from "@workspace/types";
+import { invoiceItemSchema } from "./use-invoice-edit-logic";
 import { showUserFacingErrorToast } from "@/lib/errors/user-facing-errors";
 import {
   applyInvoiceDiscountToFirstLine,

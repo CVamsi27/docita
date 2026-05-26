@@ -1,16 +1,14 @@
-import { Tier } from "@/lib/subscription/tier-access";
+import { Tier } from "@/lib/tier-config";
 import {
   PRICING_CURRENCY_SYMBOLS,
   TIER_PRICING_BY_CURRENCY,
+  type SupportedCurrency,
 } from "@workspace/types";
-import { parseSupportedCurrency } from "@workspace/utils";
 import { formatLocaleDateShortMonthYear } from "@/lib/formatters";
 
 export const PLAN_ORDER = [
   Tier.STARTER,
   Tier.FRONT_DESK,
-  Tier.FRONT_DESK_CLINIC,
-  Tier.FRONT_DESK_HOSPITAL,
   Tier.ESSENTIAL,
   Tier.PROFESSIONAL,
   Tier.HOSPITAL,
@@ -46,8 +44,14 @@ export function starterCatalogListMajorUnits(
   currency: string | undefined,
   billingCycle?: "MONTHLY" | "YEARLY" | string,
 ): number | null {
-  const code = parseSupportedCurrency(currency ?? "INR");
-  const row = TIER_PRICING_BY_CURRENCY[code].STARTER;
+  const code = (currency ?? "INR").toUpperCase();
+  if (
+    !Object.prototype.hasOwnProperty.call(TIER_PRICING_BY_CURRENCY, code)
+  ) {
+    return null;
+  }
+  const row =
+    TIER_PRICING_BY_CURRENCY[code as SupportedCurrency].STARTER;
   const amount =
     billingCycle === "YEARLY" ? row.yearly : row.monthly;
   return typeof amount === "number" && Number.isFinite(amount) ? amount : null;
@@ -59,8 +63,12 @@ export function billingCadenceLabel(cycle?: "MONTHLY" | "YEARLY" | string) {
 }
 
 export function currencySymbolFor(code: string | undefined) {
-  const currency = parseSupportedCurrency(code ?? "INR");
-  return PRICING_CURRENCY_SYMBOLS[currency] ?? currency;
+  const upper = (code ?? "INR").toUpperCase();
+  return (
+    PRICING_CURRENCY_SYMBOLS[
+      upper as keyof typeof PRICING_CURRENCY_SYMBOLS
+    ] ?? upper
+  );
 }
 
 /**

@@ -1,8 +1,5 @@
-import { Injectable, Inject } from '@nestjs/common';
-import {
-  ENTERPRISE_CONTRACT_PERSISTENCE_PORT,
-  type EnterpriseContractPersistencePort,
-} from '@/domains/enterprise-contracts/application/ports/enterprise-contract-persistence.port';
+import { Injectable } from '@nestjs/common';
+import { PrismaService } from '@/prisma/prisma.service';
 import {
   EnterpriseContract,
   EnterpriseContractStatus,
@@ -12,13 +9,8 @@ import {
 } from '@workspace/db';
 import {
   type EnterpriseContractEstimate,
-  enterpriseContractCustomLineItemsJsonSchema,
+  enterpriseCustomLineItemSchema,
 } from '@workspace/types';
-import { CLOCK_PORT, type IClock } from '@/shared/common/ports/clock.port';
-import {
-  buildEnterpriseUsageMeter,
-  currentCalendarMonthPeriod,
-} from '@/domains/enterprise-contracts/application/services/enterprise-contracts-estimate.helpers';
 
 export interface ContractWithMembers extends EnterpriseContract {
   members: {
@@ -29,28 +21,18 @@ export interface ContractWithMembers extends EnterpriseContract {
   }[];
 }
 
-function isContractWithMembers(
-  contract: ContractWithMembers | EnterpriseContract,
-): contract is ContractWithMembers {
-  return 'members' in contract && Array.isArray(contract.members);
-}
-
 @Injectable()
 export class EnterpriseContractsQueryService {
-  constructor(
-    @Inject(ENTERPRISE_CONTRACT_PERSISTENCE_PORT)
-    private readonly persistence: EnterpriseContractPersistencePort,
-    @Inject(CLOCK_PORT) private readonly clock: IClock,
-  ) {}
+  constructor(private readonly prisma: PrismaService) {}
 
   /** All non-removed member clinic IDs for a contract. */
   activeMemberClinicIds(c: ContractWithMembers): string[] {
     return c.members.filter((m) => m.removedAt === null).map((m) => m.clinicId);
   }
+
   async list(): Promise<ContractWithMembers[]> {
-    // RLS-BYPASS: enterprise contract administration spans member clinics by design
-    return this.persistence.runUnrestricted(async () =>
-      this.persistence.enterpriseContract.findMany({
+    return this.prisma.runUnrestricted(async () =>
+      this.prisma.enterpriseContract.findMany({
         orderBy: { updatedAt: 'desc' },
         include: { members: true },
       }),
@@ -59,29 +41,26 @@ export class EnterpriseContractsQueryService {
 
   /** Resolve the contract that covers a given clinic (member or primary). */
   async getForClinicId(clinicId: string): Promise<ContractWithMembers | null> {
-    // RLS-BYPASS: enterprise contract administration spans member clinics by design
-    return this.persistence.runUnrestricted(async () => {
-      const member = await this.persistence.enterpriseContractMember.findUnique(
-        {
-          where: { clinicId },
-        },
-      );
+    return this.prisma.runUnrestricted(async () => {
+      const member = await this.prisma.enterpriseContractMember.findUnique({
+        where: { clinicId },
+      });
       if (member) {
-        return this.persistence.enterpriseContract.findUnique({
+        return this.prisma.enterpriseContract.findUnique({
           where: { id: member.contractId },
           include: { members: true },
         });
       }
-      return this.persistence.enterpriseContract.findFirst({
+      return this.prisma.enterpriseContract.findFirst({
         where: { primaryClinicId: clinicId },
         include: { members: true },
       });
     });
   }
+
   async getByContractId(id: string): Promise<ContractWithMembers | null> {
-    // RLS-BYPASS: enterprise contract administration spans member clinics by design
-    return this.persistence.runUnrestricted(async () =>
-      this.persistence.enterpriseContract.findUnique({
+    return this.prisma.runUnrestricted(async () =>
+      this.prisma.enterpriseContract.findUnique({
         where: { id },
         include: { members: true },
       }),
@@ -96,10 +75,10 @@ export class EnterpriseContractsQueryService {
     if (contract.status !== EnterpriseContractStatus.ACTIVE) return null;
     return contract;
   }
+
   async listRevisions(contractId: string) {
-    // RLS-BYPASS: enterprise contract administration spans member clinics by design
-    return this.persistence.runUnrestricted(async () =>
-      this.persistence.enterpriseContractRevision.findMany({
+    return this.prisma.runUnrestricted(async () =>
+      this.prisma.enterpriseContractRevision.findMany({
         where: { contractId },
         orderBy: { effectiveDate: 'desc' },
       }),
@@ -107,9 +86,8 @@ export class EnterpriseContractsQueryService {
   }
 
   async listInvoices(contractId: string) {
-    // RLS-BYPASS: enterprise contract administration spans member clinics by design
-    return this.persistence.runUnrestricted(async () =>
-      this.persistence.enterpriseContractInvoice.findMany({
+    return this.prisma.runUnrestricted(async () =>
+      this.prisma.enterpriseContractInvoice.findMany({
         where: { contractId },
         orderBy: { createdAt: 'desc' },
         include: { subscriptionPayment: true },
@@ -118,9 +96,8 @@ export class EnterpriseContractsQueryService {
   }
 
   async listTrueUpAlerts(contractId: string) {
-    // RLS-BYPASS: enterprise contract administration spans member clinics by design
-    return this.persistence.runUnrestricted(async () =>
-      this.persistence.enterpriseTrueUpAlert.findMany({
+    return this.prisma.runUnrestricted(async () =>
+      this.prisma.enterpriseTrueUpAlert.findMany({
         where: { contractId },
         orderBy: { alertedAt: 'desc' },
       }),
@@ -142,11 +119,18 @@ export class EnterpriseContractsQueryService {
     const memberIds = this.activeMemberClinicIds(contract);
     if (memberIds.length === 0) return null;
 
-    const now = this.clock.now();
-    const { periodStart, periodEnd } = currentCalendarMonthPeriod(now);
+    const now = new Date();
+    const periodStart = new Date(now.getFullYear(), now.getMonth(), 1);
+    const periodEnd = new Date(
+      now.getFullYear(),
+      now.getMonth() + 1,
+      0,
+      23,
+      59,
+      59,
+    );
 
-    // RLS-BYPASS: enterprise contract administration spans member clinics by design
-    return this.persistence.runUnrestricted(async () => {
+    return this.prisma.runUnrestricted(async () => {
       const [
         consultationCount,
         userCount,
@@ -156,14 +140,14 @@ export class EnterpriseContractsQueryService {
         prescriptionAgg,
         invoiceAgg,
       ] = await Promise.all([
-        this.persistence.appointment.count({
+        this.prisma.appointment.count({
           where: {
             clinicId: { in: memberIds },
             status: 'COMPLETED',
             updatedAt: { gte: periodStart, lte: periodEnd },
           },
         }),
-        this.persistence.user.count({
+        this.prisma.user.count({
           where: {
             clinicId: { in: memberIds },
             NOT: {
@@ -171,10 +155,10 @@ export class EnterpriseContractsQueryService {
             },
           },
         }),
-        this.persistence.doctorClinic.count({
+        this.prisma.doctorClinic.count({
           where: { clinicId: { in: memberIds }, active: true },
         }),
-        this.persistence.usageEvent.aggregate({
+        this.prisma.usageEvent.aggregate({
           where: {
             clinicId: { in: memberIds },
             type: UsageType.WHATSAPP_MESSAGES,
@@ -182,7 +166,7 @@ export class EnterpriseContractsQueryService {
           },
           _sum: { quantity: true },
         }),
-        this.persistence.usageEvent.aggregate({
+        this.prisma.usageEvent.aggregate({
           where: {
             clinicId: { in: memberIds },
             type: UsageType.STORAGE_GB,
@@ -190,7 +174,7 @@ export class EnterpriseContractsQueryService {
           },
           _sum: { quantity: true },
         }),
-        this.persistence.usageEvent.aggregate({
+        this.prisma.usageEvent.aggregate({
           where: {
             clinicId: { in: memberIds },
             type: UsageType.PRESCRIPTIONS,
@@ -198,7 +182,7 @@ export class EnterpriseContractsQueryService {
           },
           _sum: { quantity: true },
         }),
-        this.persistence.usageEvent.aggregate({
+        this.prisma.usageEvent.aggregate({
           where: {
             clinicId: { in: memberIds },
             type: UsageType.INVOICES,
@@ -213,38 +197,47 @@ export class EnterpriseContractsQueryService {
       const prescriptionsUsed = prescriptionAgg._sum.quantity ?? 0;
       const invoicesUsed = invoiceAgg._sum.quantity ?? 0;
 
+      const buildMeter = (
+        current: number,
+        included: number,
+        rateCents: number,
+      ) => {
+        const overage = Math.max(0, current - included);
+        return { current, included, overage, chargeCents: overage * rateCents };
+      };
+
       const meters = {
-        users: buildEnterpriseUsageMeter(
+        users: buildMeter(
           userCount,
           contract.includedUsers,
           contract.overageUserCents,
         ),
-        consultations: buildEnterpriseUsageMeter(
+        consultations: buildMeter(
           consultationCount,
           contract.includedConsultations,
           contract.overageConsultationCents,
         ),
-        whatsappMessages: buildEnterpriseUsageMeter(
+        whatsappMessages: buildMeter(
           whatsappUsed,
           contract.includedWhatsappMessages,
           contract.overageWhatsappCents,
         ),
-        storageGB: buildEnterpriseUsageMeter(
+        storageGB: buildMeter(
           storageUsed,
           contract.includedStorageGB,
           contract.overageStorageCents,
         ),
-        doctors: buildEnterpriseUsageMeter(
+        doctors: buildMeter(
           doctorCount,
           contract.includedDoctors,
           contract.overageDoctorCents,
         ),
-        prescriptions: buildEnterpriseUsageMeter(
+        prescriptions: buildMeter(
           prescriptionsUsed,
           contract.includedPrescriptions,
           contract.overagePrescriptionCents,
         ),
-        invoices: buildEnterpriseUsageMeter(
+        invoices: buildMeter(
           invoicesUsed,
           contract.includedInvoices,
           contract.overageInvoiceCents,
@@ -331,11 +324,12 @@ export class EnterpriseContractsQueryService {
   }
 
   toJsonContract(contract: ContractWithMembers | EnterpriseContract) {
-    const memberClinicIds = isContractWithMembers(contract)
-      ? contract.members
-          .filter((m) => m.removedAt === null)
-          .map((m) => m.clinicId)
-      : [];
+    const memberClinicIds =
+      'members' in contract
+        ? (contract as ContractWithMembers).members
+            .filter((m) => m.removedAt === null)
+            .map((m) => m.clinicId)
+        : [];
     return {
       id: contract.id,
       primaryClinicId: contract.primaryClinicId,
@@ -378,7 +372,7 @@ export class EnterpriseContractsQueryService {
   }
 
   parseCustomLineItems(value: Prisma.JsonValue) {
-    const parsed = enterpriseContractCustomLineItemsJsonSchema.safeParse(value);
+    const parsed = enterpriseCustomLineItemSchema.array().safeParse(value);
     return parsed.success ? parsed.data : [];
   }
 }

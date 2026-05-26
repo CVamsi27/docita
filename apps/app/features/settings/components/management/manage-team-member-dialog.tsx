@@ -29,6 +29,7 @@ import {
 import { Button } from "@workspace/ui/components/form/button";
 import { Badge } from "@workspace/ui/components/indicators/badge";
 import { User } from "@workspace/types";
+import { getDoctorVerificationPublicNote } from "@/lib/doctor-verification-display";
 import { showUserFacingErrorToast } from "@/lib/errors/user-facing-errors";
 import {
   MEMBER_ROLE_LABELS,

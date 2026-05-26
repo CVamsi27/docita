@@ -17,18 +17,14 @@ import { Label } from "@workspace/ui/components/form/label";
 import {
   Alert,
   AlertDescription,
-} from "@workspace/ui/components/feedback/alert";
+} from "@workspace/ui/components/alert";
 import { api } from "@/lib/api/api-client";
-import { getSupportContactText } from "@/lib/constants/support-contact";
+import { getSupportContactText } from "@/lib/support-contact";
 import { showUserFacingErrorToast } from "@/lib/errors/user-facing-errors";
-import {
-  isPaymentCanceledError,
-  notifyPaymentCanceled,
-  useRazorpay,
-} from "@/hooks/use-razorpay";
-import { BRAND_PRIMARY_HEX } from "@/lib/constants/branding";
-import { tierSchema } from "@workspace/types";
-import { formatAmountLocale, parseStringEnumMember } from "@workspace/utils";
+import { isPaymentCanceledError, useRazorpay } from "@/hooks/use-razorpay";
+import { BRAND_PRIMARY_HEX } from "@/lib/branding";
+import type { TierName } from "@workspace/types";
+import { formatAmountLocale } from "@workspace/utils";
 
 interface PaymentDetails {
   autoPay: boolean;

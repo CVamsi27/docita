@@ -114,3 +114,4 @@ export const typedApi = {
     stats: () => client.get(API_ROUTES.dashboard.stats),
   },
 };
+

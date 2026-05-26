@@ -1,7 +1,6 @@
 "use client";
 
 import { useAPIQuery } from "@/lib/api/api-core";
-import { queryKeys } from "@/lib/api/query-keys";
 import {
   Card,
   CardContent,

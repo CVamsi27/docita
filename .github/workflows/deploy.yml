@@ -10,7 +10,6 @@ on:
       - "packages/db/**"
       - "packages/types/**"
       - "packages/utils/**"
-      - "packages/auth/**"
       - "scripts/workflow/detect-workflow-scope.mjs"
       - "scripts/deploy/test-api-startup.sh"
       - "package.json"

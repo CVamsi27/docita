@@ -1,5 +1,4 @@
-/** Writes maintain `Invoice.items` JSON for backward compatibility and `InvoiceItem` rows as source of truth. */
-import { Injectable, Inject, Logger, NotFoundException } from '@nestjs/common';
+import { Injectable, Inject, NotFoundException } from '@nestjs/common';
 import { Prisma, InvoiceStatus } from '@workspace/db';
 import { type InvoiceItem } from '@workspace/types';
 import {
@@ -11,9 +10,8 @@ import {
 import { ClaimValidationService } from '@/domains/billing/core/services/claim-validation.service';
 import { TaxCalculatorService } from '@/domains/billing/core/services/tax-calculator.service';
 import { UsageTrackingService } from '@/domains/billing/core/services/usage-tracking.service';
-import { StorageProvider } from '@/domains/documents/application/ports/storage-provider.port';
+import { StorageProvider } from '@/domains/documents/infrastructure/storage.provider';
 import { EventEmitter2 } from '@nestjs/event-emitter';
-import { ApplicationEvents } from '@/shared/common/events/application-events';
 import {
   toInvoiceCentCreateFields,
   toInvoiceCentUpdateFields,
@@ -34,12 +32,9 @@ import {
   DEFAULT_INVOICE_DUE_DAYS,
   CURRENT_PDF_TEMPLATE_VERSION,
 } from './invoices-helpers';
-import { CLOCK_PORT, type IClock } from '@/shared/common/ports/clock.port';
 
 @Injectable()
 export class InvoicesCommandService {
-  private readonly logger = new Logger(InvoicesCommandService.name);
-
   constructor(
     @Inject(INVOICE_REPOSITORY_TOKEN)
     private readonly repository: IInvoiceRepository,
@@ -49,7 +44,6 @@ export class InvoicesCommandService {
     private readonly storageProvider: StorageProvider,
     private readonly claimValidationService: ClaimValidationService,
     private readonly queryService: InvoicesQueryService,
-    @Inject(CLOCK_PORT) private readonly clock: IClock,
   ) {}
 
   private requiresClaimReadinessValidation(
@@ -132,7 +126,7 @@ export class InvoicesCommandService {
     doctorLicenseNumber?: string;
     clinicId?: string;
   }): Promise<InvoiceDetail> {
-    const issuedAt = this.clock.now();
+    const issuedAt = new Date();
     const { patient, taxSettings, seller, buyer, calculation } =
       await this.calculateTaxForPatientInvoice(
         data.patientId,
@@ -190,21 +184,13 @@ export class InvoicesCommandService {
       doctorLicenseNumber: data.doctorLicenseNumber,
     });
 
-    this.eventEmitter.emit(ApplicationEvents.INVOICE_GENERATED, {
+    this.eventEmitter.emit('invoice.generated', {
       invoiceId: invoice.id,
       clinicId: patient.clinic.id,
     });
-    // Usage tracking is non-critical to invoice creation; record failures so
-    // they surface in metrics/logs instead of being silently dropped.
     this.usageTracking
       .trackInvoice(patient.clinic.id, invoice.id)
-      .catch((err: unknown) => {
-        this.logger.warn('Invoice usage tracking failed', {
-          invoiceId: invoice.id,
-          clinicId: patient.clinic.id,
-          error: err instanceof Error ? err.message : String(err),
-        });
-      });
+      .catch(() => {});
 
     return invoice;
   }
@@ -307,7 +293,7 @@ export class InvoicesCommandService {
     return {
       invoiceId: invoice.id,
       claimReady: true,
-      submittedAt: this.clock.now().toISOString(),
+      submittedAt: new Date().toISOString(),
       status: invoice.status,
     };
   }
@@ -319,7 +305,7 @@ export class InvoicesCommandService {
     invoice: InvoiceDetail,
   ): Promise<{ storedKey: string; generatedAt: Date }> {
     const objectKey = `pdfs/invoices/${id}.pdf`;
-    const generatedAt = this.clock.now();
+    const generatedAt = new Date();
     const storedKey = await this.storageProvider.uploadBuffer(
       buffer,
       objectKey,

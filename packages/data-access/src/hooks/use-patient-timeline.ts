@@ -5,10 +5,8 @@ import {
   type PatientSnapshot,
   type PatientTimelineResponse,
 } from "@workspace/types";
-import { queryKeys } from "../lib/query-keys";
-import { useAPIMutation } from "../core/use-api-mutation";
-import { useAPIQuery } from "../core/use-api-query";
-import { useDataAccessContext } from "../provider/hooks";
+import { useTierFeatureEnabled } from "@/hooks/api/tier-feature-guards";
+import { useAPIMutation, useAPIQuery } from "@/lib/api/api-core";
 
 export const usePatientTimeline = (
   patientId: string,

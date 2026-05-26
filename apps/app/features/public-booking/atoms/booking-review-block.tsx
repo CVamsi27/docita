@@ -1,7 +1,7 @@
 "use client";
 
-import { Button } from "@workspace/ui/components/form/button";
-import { MicroLabel } from "@workspace/ui/components/indicators/micro-label";
+import { Button } from "@workspace/ui/components/button";
+import { MicroLabel } from "@workspace/ui/components/micro-label";
 import { formatDate } from "@workspace/utils";
 import { formatTime } from "@/lib/formatters";
 import {

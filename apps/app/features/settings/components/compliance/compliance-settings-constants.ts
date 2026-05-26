@@ -1,8 +1,7 @@
-import {
-  dataSubjectRequestTypeSchema,
-  type CreateDataSubjectRequest,
-  type DataSubjectRequestStatus,
-  type DataSubjectRequestType,
+import type {
+  CreateDataSubjectRequest,
+  DataSubjectRequestStatus,
+  DataSubjectRequestType,
 } from "@workspace/types";
 
 export const DATA_RETENTION_POLICIES = [
@@ -27,13 +26,6 @@ export const DATA_RETENTION_POLICIES = [
     description: "Prescription records per clinical documentation standards",
   },
 ];
-
-export function parseDataSubjectRequestType(
-  value: string,
-): DataSubjectRequestType {
-  const parsed = dataSubjectRequestTypeSchema.safeParse(value);
-  return parsed.success ? parsed.data : "EXPORT";
-}
 
 export const REQUEST_TYPE_OPTIONS: Array<{
   value: DataSubjectRequestType;

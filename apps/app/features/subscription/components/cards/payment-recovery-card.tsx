@@ -6,6 +6,28 @@ import { Card, CardContent } from "@workspace/ui/components/indicators/card";
 import { DEFAULT_CURRENCY, formatCurrency } from "@workspace/utils";
 import type { BillingHistoryItem } from "@workspace/data-access";
 import { formatDate } from "@/lib/formatters";
+import { showUserFacingErrorToast } from "@/lib/errors/user-facing-errors";
+
+type RecoverableStatus =
+  | "failed"
+  | "declined"
+  | "pending"
+  | "processing"
+  | "created"
+  | "requires_action"
+  | "attempted"
+  | "due";
+
+const RECOVERABLE_STATUSES = new Set<RecoverableStatus>([
+  "failed",
+  "declined",
+  "pending",
+  "processing",
+  "created",
+  "requires_action",
+  "attempted",
+  "due",
+]);
 
 interface PaymentRecoveryCardProps {
   /** Set when the parent already knows billing is in trouble (PAST_DUE/GRACE/pending renewal). */

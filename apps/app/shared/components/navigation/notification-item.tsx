@@ -1,14 +1,14 @@
 "use client";
 
 import { useRouter } from "next/navigation";
-import { Button } from "@workspace/ui/components/form/button";
-import { SymbolTooltip } from "@workspace/ui/components/overlay/tooltip";
+import { Button } from "@workspace/ui/components/button";
+import { SymbolTooltip } from "@workspace/ui/components/tooltip";
 import { CheckIcon, XIcon } from "lucide-react";
 import { cn } from "@workspace/ui/lib/utils";
-import { PriorityBadge } from "@workspace/ui/components/indicators/status-badge";
+import { PriorityBadge } from "@workspace/ui/components/status-badge";
 import { formatTime, isToday, isYesterday } from "@workspace/utils";
-import type { StaffNotification } from "@workspace/data-access";
-import { mapStaffNotificationPriority, notificationHref } from "./notification-href";
+import type { StaffNotification } from "@/hooks/api/use-notifications";
+import { notificationHref } from "./notification-href";
 
 export interface NotificationItemProps {
   notification: StaffNotification;
@@ -21,7 +21,11 @@ export function NotificationItem({ notification, onMarkRead, onDelete, onCloseSh
   const router = useRouter();
   const navigateHref = notificationHref(notification);
 
-  const mappedPriority = mapStaffNotificationPriority(notification.priority);
+  const priorityMap = { URGENT: "urgent", HIGH: "high", NORMAL: "medium", LOW: "low" } as const;
+  const mappedPriority =
+    notification.priority in priorityMap
+      ? priorityMap[notification.priority as keyof typeof priorityMap]
+      : "medium";
 
   const handleOpenDestination = () => {
     if (!navigateHref) return;
@@ -58,8 +62,8 @@ export function NotificationItem({ notification, onMarkRead, onDelete, onCloseSh
         </div>
         <div className="flex items-center gap-0.5">
           {!notification.isRead && (
-            <SymbolTooltip label="Mark read">
-              <Button variant="ghost" size="icon-sm" type="button" onClick={(event) => { event.stopPropagation(); void onMarkRead(notification.id); }} aria-label="Mark notification read">
+            <SymbolTooltip label="Mark as read">
+              <Button variant="ghost" size="icon-sm" type="button" onClick={(event) => { event.stopPropagation(); void onMarkRead(notification.id); }} aria-label="Mark as read">
                 <CheckIcon className="h-4 w-4" />
               </Button>
             </SymbolTooltip>

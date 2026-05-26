@@ -7,10 +7,10 @@ import {
   CardDescription,
   CardHeader,
   CardTitle,
-} from "@workspace/ui/components/indicators/card";
-import { Badge } from "@workspace/ui/components/indicators/badge";
-import { Button } from "@workspace/ui/components/form/button";
-import { Separator } from "@workspace/ui/components/layout/separator";
+} from "@workspace/ui/components/card";
+import { Badge } from "@workspace/ui/components/badge";
+import { Button } from "@workspace/ui/components/button";
+import { Separator } from "@workspace/ui/components/separator";
 import { Shield, Database, ClipboardList, ExternalLink } from "lucide-react";
 import { formatDate } from "@workspace/utils";
 import type { AppAuditLogSummary, AppComplianceSummary } from "@workspace/types";
@@ -38,7 +38,7 @@ export function DpdpConsentCard({ compliance }: DpdpConsentCardProps) {
       <CardContent className="space-y-4">
         <div className="flex items-center justify-between py-2">
           <div>
-            <p className="text-sm font-medium">Consent collection</p>
+            <p className="text-sm font-medium">Consent Collection</p>
             <p className="text-xs text-muted-foreground">
               Patients are asked for consent before data is collected.
             </p>
@@ -50,7 +50,7 @@ export function DpdpConsentCard({ compliance }: DpdpConsentCardProps) {
         <Separator />
         <div className="flex items-center justify-between py-2">
           <div>
-            <p className="text-sm font-medium">Consent template</p>
+            <p className="text-sm font-medium">Consent Template</p>
             <p className="text-xs text-muted-foreground">
               {compliance?.consentTemplateUpdatedAt
                 ? `Last updated ${formatDate(compliance.consentTemplateUpdatedAt, "dd MMMM yyyy")}`

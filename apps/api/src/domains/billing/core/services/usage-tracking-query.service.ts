@@ -1,34 +1,33 @@
-import { Inject, Injectable } from '@nestjs/common';
-import { CLOCK_PORT, type IClock } from '@/shared/common/ports/clock.port';
+import { Injectable } from '@nestjs/common';
 import { PrismaService } from '@/prisma/prisma.service';
-import { UsageType, Role } from '@workspace/db';
+import { UsageType, ClinicTier, Role } from '@workspace/db';
+import { DEFAULT_CURRENCY } from '@workspace/utils';
 import {
+  PRICING_CURRENCY_CONFIG,
   TIER_LIMITS,
   TIER_OVERAGE_RATES_BY_CURRENCY,
-  isFrontDeskTier,
+  getWhatsAppAddonPricingByCurrency,
+  type TierName,
   type SupportedCurrency,
 } from '@workspace/types';
-import { getWhatsAppAddonPricingByCurrency } from '@workspace/utils';
-import {
-  buildUsageWarning,
-  resolveClinicTierPlan,
-  resolveSupportedCurrency,
-  resolveTierName,
-} from '@/domains/billing/core/services/usage-tracking-tier.util';
 
 @Injectable()
 export class UsageTrackingQueryService {
-  constructor(
-    private readonly prisma: PrismaService,
-    @Inject(CLOCK_PORT) private readonly clock: IClock,
-  ) {}
+  constructor(private prisma: PrismaService) {}
 
   resolveCurrency(currency?: string): SupportedCurrency {
-    return resolveSupportedCurrency(currency);
+    const selected = currency?.toUpperCase() as SupportedCurrency | undefined;
+    if (
+      selected &&
+      Object.prototype.hasOwnProperty.call(PRICING_CURRENCY_CONFIG, selected)
+    ) {
+      return selected;
+    }
+    return DEFAULT_CURRENCY as SupportedCurrency;
   }
 
   async getCurrentUsage(clinicId: string) {
-    const now = this.clock.now();
+    const now = new Date();
     const periodStart = new Date(now.getFullYear(), now.getMonth(), 1);
     const periodEnd = new Date(
       now.getFullYear(),
@@ -79,7 +78,7 @@ export class UsageTrackingQueryService {
       this.prisma.user.count({
         where: {
           clinicId,
-          ...(isFrontDeskTier(clinic?.tier)
+          ...(clinic?.tier === ClinicTier.FRONT_DESK
             ? {
                 NOT: {
                   AND: [{ role: Role.DOCTOR }, { appLoginDisabled: true }],
@@ -107,15 +106,22 @@ export class UsageTrackingQueryService {
       }),
     ]);
 
-    const tierKey = resolveTierName(subscription?.plan);
+    const tierKey =
+      (subscription?.plan as keyof typeof TIER_LIMITS) ?? 'STARTER';
     const resolvedCurrency = this.resolveCurrency(subscription?.currency);
     const tierLimits = TIER_LIMITS[tierKey];
     const includedConsultations =
       subscription?.includedAppointments ?? tierLimits.appointments ?? 0;
     const includedUsers = subscription?.includedUsers ?? tierLimits.users ?? 1;
-    const tierRates = TIER_OVERAGE_RATES_BY_CURRENCY[resolvedCurrency][tierKey];
+    const tierRates =
+      TIER_OVERAGE_RATES_BY_CURRENCY[resolvedCurrency][tierKey as TierName];
     const whatsappEligibleTier =
-      tierKey !== 'STARTER' && tierKey !== 'INTELLIGENCE' ? tierKey : null;
+      tierKey === 'ESSENTIAL' ||
+      tierKey === 'FRONT_DESK' ||
+      tierKey === 'PROFESSIONAL' ||
+      tierKey === 'ENTERPRISE'
+        ? tierKey
+        : null;
     const whatsappPlan = whatsappEligibleTier
       ? getWhatsAppAddonPricingByCurrency(
           whatsappEligibleTier,
@@ -161,6 +167,14 @@ export class UsageTrackingQueryService {
       (sum, item) => sum + item.charge,
       0,
     );
+    const buildWarning = (current: number, included: number) => {
+      if (included <= 0)
+        return { percentUsed: 0, threshold: null as 80 | 100 | null };
+      const percentUsed = (current / included) * 100;
+      if (percentUsed >= 100) return { percentUsed, threshold: 100 as const };
+      if (percentUsed >= 80) return { percentUsed, threshold: 80 as const };
+      return { percentUsed, threshold: null as 80 | 100 | null };
+    };
     const meters = {
       consultations: {
         current: consultations,
@@ -204,11 +218,11 @@ export class UsageTrackingQueryService {
       total,
       meters,
       warnings: {
-        consultations: buildUsageWarning(consultations, includedConsultations),
-        users: buildUsageWarning(peakUsersInCycle, includedUsers),
-        whatsappMessages: buildUsageWarning(whatsappCurrent, includedWhatsapp),
+        consultations: buildWarning(consultations, includedConsultations),
+        users: buildWarning(peakUsersInCycle, includedUsers),
+        whatsappMessages: buildWarning(whatsappCurrent, includedWhatsapp),
       },
-      tier: resolveClinicTierPlan(subscription?.plan),
+      tier: (subscription?.plan as ClinicTier) || ClinicTier.STARTER,
     };
   }
 

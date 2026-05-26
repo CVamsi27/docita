@@ -9,9 +9,7 @@ const repoRoot = process.cwd();
 const routeDecorator = /^\s*@(Get|Post|Put|Patch|Delete|All)\b/;
 const authDecorator =
   /^\s*@(Public|Roles|RequireFeature|RequireFeatureFlag|UseGuards|SkipSubscriptionCheck)\b/;
-/** Composite *Access() decorators apply Roles/Guards via applyDecorators. */
-const classPosturePattern =
-  /@(Roles|Public|UseGuards)\b|@\w+Access\(\)/;
+const classPosturePattern = /@(Roles|Public|UseGuards)\b/;
 const classLine = /^\s*export\s+class\s+\w+Controller\b/;
 
 const files = execSync("git ls-files apps/api/src", {
@@ -24,9 +22,7 @@ const files = execSync("git ls-files apps/api/src", {
 const violations = [];
 
 for (const file of files) {
-  const absolutePath = path.join(repoRoot, file);
-  if (!fs.existsSync(absolutePath)) continue;
-  const lines = fs.readFileSync(absolutePath, "utf8").split(/\r?\n/);
+  const lines = fs.readFileSync(path.join(repoRoot, file), "utf8").split(/\r?\n/);
   let classHasAuth = false;
   const decoratorBuffer = [];
   const classHeaderBuffer = [];

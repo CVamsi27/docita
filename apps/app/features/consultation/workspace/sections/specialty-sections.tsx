@@ -1,8 +1,8 @@
 "use client";
 
 import dynamic from "next/dynamic";
-import { DocitaLoadingIndicator } from "@workspace/ui/components/feedback/docita-loading-indicator";
-import { Skeleton } from "@workspace/ui/components/feedback/skeleton";
+import { DocitaLoadingIndicator } from "@workspace/ui/components/docita-loading-indicator";
+import { Skeleton } from "@workspace/ui/components/skeleton";
 import { useConsultationDraft } from "@/features/consultation/state/useConsultationDraft";
 import {
   useConsultationSectionSubtitle,

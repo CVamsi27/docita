@@ -1,30 +1,14 @@
-import { z } from "zod";
 import { browserRequest } from "@/lib/auth/browser-request";
-import { isRecord } from "@workspace/utils";
 import {
   type ClinicAddressSelection,
   type LatLng,
+  type OSMAddress,
   type PlaceSuggestion,
   NOMINATIM_BASE,
   formatAddressDetails,
   parseGoogleAddressDetails,
   parseOSMAddressDetails,
 } from "./address-utils";
-
-const osmAddressSchema = z.record(z.string(), z.unknown());
-
-const osmReverseResponseSchema = z.object({
-  display_name: z.string().optional(),
-  address: osmAddressSchema.optional(),
-});
-
-const osmSearchResultSchema = z.object({
-  place_id: z.number(),
-  display_name: z.string().optional(),
-  lat: z.string().optional(),
-  lon: z.string().optional(),
-  address: osmAddressSchema.optional(),
-});
 
 export async function reverseGeocodeOSM(
   position: LatLng,
@@ -42,12 +26,11 @@ export async function reverseGeocodeOSM(
 
   if (!res.ok) return null;
 
-  const parsed = osmReverseResponseSchema.safeParse(await res.json());
-  if (!parsed.success) return null;
-  const data = parsed.data;
-  const details = parseOSMAddressDetails(
-    isRecord(data.address) ? data.address : undefined,
-  );
+  const data = (await res.json()) as {
+    display_name?: string;
+    address?: OSMAddress;
+  };
+  const details = parseOSMAddressDetails(data.address);
   const address = details
     ? formatAddressDetails(details)
     : data.display_name?.trim() || "";
@@ -73,27 +56,27 @@ export async function searchOSM(query: string): Promise<PlaceSuggestion[]> {
 
   if (!res.ok) return [];
 
-  const raw = await res.json();
-  if (!Array.isArray(raw)) return [];
+  const data = (await res.json()) as Array<{
+    place_id: number;
+    display_name?: string;
+    lat?: string;
+    lon?: string;
+    address?: OSMAddress;
+  }>;
 
-  return raw
+  return data
     .map((item) => {
-      const parsed = osmSearchResultSchema.safeParse(item);
-      if (!parsed.success) return null;
-      const row = parsed.data;
-      const lat = Number(row.lat);
-      const lng = Number(row.lon);
+      const lat = Number(item.lat);
+      const lng = Number(item.lon);
       if (!Number.isFinite(lat) || !Number.isFinite(lng)) return null;
-      const label = row.display_name?.trim();
+      const label = item.display_name?.trim();
       if (!label) return null;
+
       const suggestion: PlaceSuggestion = {
-        id: String(row.place_id),
+        id: String(item.place_id),
         label,
         position: { lat, lng },
-        details:
-          parseOSMAddressDetails(
-            isRecord(row.address) ? row.address : undefined,
-          ) ?? undefined,
+        details: parseOSMAddressDetails(item.address) ?? undefined,
       };
       return suggestion;
     })

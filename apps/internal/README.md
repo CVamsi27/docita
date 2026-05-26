@@ -4,13 +4,12 @@ Internal Next.js console for Docita operational staff. Not customer-facing.
 
 ## Access pattern
 
-Role check happens in [`shared/lib/auth/auth.tsx`](shared/lib/auth/auth.tsx) (`AuthProvider`): on mount it reads the stored user, verifies `role === "INTERNAL"`, and redirects to the main-app login if the check fails.
+Role check happens in `apps/internal/lib/auth.tsx` (`AuthProvider`): on mount it reads the stored user, verifies `role === "INTERNAL"`, and redirects to the main-app login if the check fails. There is no separate middleware role gate — the `AuthProvider` at the root of `app/(protected)/layout.tsx` is the enforcement boundary.
 
 Route protection is layered:
 
 1. **`middleware.ts`** — redirects unknown paths to `/dashboard`; does not validate the JWT (stateless Next.js edge middleware).
-2. **`AuthProvider` (client)** — in [`app/providers.tsx`](app/providers.tsx); validates the token via `GET /auth/validate`, enforces `role === "INTERNAL"`, refreshes the access token if needed, and clears storage on failure.
-3. **`InternalProtectedGate`** — in [`app/(protected)/layout.tsx`](app/(protected)/layout.tsx); redirects unauthenticated or non-internal sessions to `/` before rendering the app shell.
+2. **`AuthProvider` (client)** — validates the token via `GET /auth/validate`, enforces `role === "INTERNAL"`, refreshes the access token if needed, and clears storage + redirects on failure.
 
 ## Protected routes
 

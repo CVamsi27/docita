@@ -2,10 +2,7 @@ import {
   staffNotificationsListResponseSchema,
   whatsappUnreadCountResponseSchema,
 } from "@workspace/types";
-import { queryKeys } from "../lib/query-keys";
-import { useAPIMutation } from "../core/use-api-mutation";
-import { useAPIQuery } from "../core/use-api-query";
-import { useAPIQueryValidated } from "../core/use-api-query-validated";
+import { useAPIMutation, useAPIQuery, useAPIQueryValidated } from "@/lib/api/api-core";
 
 export type StaffNotification = typeof staffNotificationsListResponseSchema._type[number];
 

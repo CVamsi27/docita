@@ -1,9 +1,12 @@
 "use client";
 
-import { Badge } from "@workspace/ui/components/indicators/badge";
-import { Button } from "@workspace/ui/components/form/button";
+import { Badge } from "@workspace/ui/components/badge";
+import { Button } from "@workspace/ui/components/button";
 import { User } from "@workspace/types";
-import { memberRoleDisplayLabel } from "@/features/settings/components/management/member-management-schemas";
+import {
+  MEMBER_ROLE_LABELS,
+  type MemberRole,
+} from "@/features/settings/components/management/member-management-schemas";
 
 interface MemberListItemProps {
   member: User;
@@ -35,7 +38,9 @@ export function MemberListItem({
           <div className="mt-1 flex flex-wrap items-center gap-2 text-xs text-muted-foreground">
             <span>{member.email}</span>
             <Badge variant="outline">
-              {memberRoleDisplayLabel(member.role)}
+              {MEMBER_ROLE_LABELS[member.role as MemberRole] ||
+                member.role ||
+                "Staff"}
             </Badge>
             {(member.role === "DOCTOR" || member.role === "ADMIN_DOCTOR") && (
               <>

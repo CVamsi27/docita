@@ -16,7 +16,7 @@ import {
   usePermissionStore,
 } from "@/lib/stores/permission-store";
 import { usePermissions } from "@/hooks/use-permissions";
-import { useStartConsultation } from "@workspace/data-access";
+import { useStartConsultation } from "@/hooks/api/use-appointments";
 import { showUserFacingErrorToast } from "@/lib/errors/user-facing-errors";
 
 interface PatientHeaderActionsProps {

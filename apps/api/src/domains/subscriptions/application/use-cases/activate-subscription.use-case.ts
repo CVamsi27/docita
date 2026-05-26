@@ -51,6 +51,7 @@ export class ActivateSubscriptionUseCase {
 
   // AuditLogged: subscription activation (billing; not patient PHI)
   async execute(request: ActivateSubscriptionRequest): Promise<void> {
+    // AuditLogged: subscription activation
     this.logger.log({
       action: 'subscription.activate',
       clinicId: request.clinicId,

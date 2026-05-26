@@ -2,8 +2,8 @@
 
 import React from "react";
 import { AlertCircle, X } from "lucide-react";
-import { Button } from "@workspace/ui/components/form/button";
-import { SymbolTooltip } from "@workspace/ui/components/overlay/tooltip";
+import { Button } from "@workspace/ui/components/button";
+import { SymbolTooltip } from "@workspace/ui/components/tooltip";
 import { getSafeUserMessage } from "@/lib/errors/user-facing-errors";
 
 interface ErrorBannerProps {

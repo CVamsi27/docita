@@ -1,8 +1,7 @@
 import { NotFoundException } from '@nestjs/common';
 import type { PublicBookingClinicResponse } from '@workspace/types';
-import { type PublicBookingPersistencePort } from '@/domains/public-booking/application/ports/public-booking-persistence.port';
-import { runWithTenant } from '@/shared/common/middleware/tenant.middleware';
-import { isRecord } from '@workspace/utils';
+import { PrismaService } from '@/prisma/prisma.service';
+import { runWithTenant } from '@/common/middleware/tenant.middleware';
 
 export type ResolvedPublicBookingClinic = PublicBookingClinicResponse;
 
@@ -20,19 +19,19 @@ export function normalizePhone(phone: string): string {
 function readFacilityLabelFromSettings(
   settings: unknown,
 ): 'CLINIC' | 'HOSPITAL' | undefined {
-  if (!isRecord(settings)) {
+  if (!settings || typeof settings !== 'object' || Array.isArray(settings)) {
     return undefined;
   }
-  const raw = settings.facilityLabel;
+  const raw = (settings as Record<string, unknown>).facilityLabel;
   return raw === 'HOSPITAL' || raw === 'CLINIC' ? raw : undefined;
 }
 
 export async function resolveClinicByReferralCode(
-  persistence: PublicBookingPersistencePort,
+  prisma: PrismaService,
   referralCode: string,
 ): Promise<PublicBookingClinicResponse> {
   const normalized = referralCode.trim().toUpperCase();
-  const clinic = await persistence.clinic.findFirst({
+  const clinic = await prisma.clinic.findFirst({
     where: {
       referralCode: normalized,
       active: true,
@@ -72,10 +71,10 @@ export function extractBearerToken(header: string | undefined): string | null {
 }
 
 export async function withBookingTenant<T>(
-  persistence: PublicBookingPersistencePort,
+  prisma: PrismaService,
   referralCode: string,
   fn: (clinic: ResolvedPublicBookingClinic) => Promise<T>,
 ): Promise<T> {
-  const clinic = await resolveClinicByReferralCode(persistence, referralCode);
+  const clinic = await resolveClinicByReferralCode(prisma, referralCode);
   return await runWithTenant({ clinicId: clinic.id }, async () => fn(clinic));
 }

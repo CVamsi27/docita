@@ -1,10 +1,7 @@
 
 
 import { Feature, FEATURE_TIER_MAP, Tier } from "@workspace/types";
-import { hasFeatureAccess, getTierName } from "@workspace/utils";
 import type { IAccessContext, IAccessRule } from "@/lib/access-control/interfaces";
-import { AddOnType, isActiveAddOn } from "@/lib/access-control/interfaces";
-import { parseFeature } from "@/lib/access-control/parse-feature";
 
 export class TierBasedAccessRule implements IAccessRule {
   private readonly featureTierMap: Record<Feature, Tier>;
@@ -14,22 +11,20 @@ export class TierBasedAccessRule implements IAccessRule {
   }
 
   canAccess(context: IAccessContext): boolean {
-    const featureKey =
-      typeof context.feature === "string"
-        ? parseFeature(context.feature)
-        : context.feature;
 
-    if (!featureKey) {
-      return false;
+    if (typeof context.feature === "string") {
+
+      const featureKey = context.feature as Feature;
+      if (!(featureKey in this.featureTierMap)) {
+        return false;
+      }
+
+      const requiredTier = this.featureTierMap[featureKey];
+      return context.subscription.tier >= requiredTier;
     }
 
-    const hasIntelligence = context.addOns.some(
-      (addOn) =>
-        addOn.type === AddOnType.INTELLIGENCE && isActiveAddOn(addOn),
-    );
-    const tierName = getTierName(context.subscription.tier);
-
-    return hasFeatureAccess(tierName, featureKey, hasIntelligence);
+    const requiredTier = this.featureTierMap[context.feature];
+    return context.subscription.tier >= requiredTier;
   }
 
   getRuleName(): string {
@@ -37,9 +32,10 @@ export class TierBasedAccessRule implements IAccessRule {
   }
 
   getPriority(): number {
-    return 10;
+    return 10; 
   }
 
+  
   getRequiredTier(feature: Feature): Tier {
     return this.featureTierMap[feature];
   }

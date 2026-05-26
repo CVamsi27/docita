@@ -1,21 +1,300 @@
 "use client";
 
+import { useMemo, useState } from "react";
 import { Inbox } from "lucide-react";
-import { Badge } from "@workspace/ui/components/indicators/badge";
-import { Button } from "@workspace/ui/components/form/button";
+import { Badge } from "@workspace/ui/components/badge";
+import { Button } from "@workspace/ui/components/button";
 import {
   Card,
   CardContent,
   CardHeader,
   CardTitle,
-} from "@workspace/ui/components/indicators/card";
-import { DataState } from "@workspace/ui/components/data-display/data-state";
+} from "@workspace/ui/components/card";
+import { DataState } from "@workspace/ui/components/data-state";
+import type { AppointmentRequestResponse } from "@workspace/types";
+import {
+  addMinutesToClinicWallDatetimeLocal,
+  clinicWallDatetimeLocalToUtcIso,
+  DEFAULT_TIMEZONE,
+  formatDistanceToNow,
+} from "@workspace/utils";
+import {
+  useAppointmentRequests,
+  useApproveAppointmentRequest,
+  useRejectAppointmentRequest,
+} from "@/hooks/api/use-appointments";
+import { useDoctors } from "@/hooks/api/use-settings";
+import { showUserFacingErrorToast } from "@/lib/errors/user-facing-errors";
+import { fetchNextAvailableSlotWindow } from "@/lib/doctor-availability-first-slot";
+import {
+  extractApproveAppointmentRequestFieldErrors,
+  type ApproveScheduleFieldKey,
+} from "@/lib/utils/appointment-request-approve-errors";
+import { extractProblemDetail } from "@/lib/utils/api-validation-errors";
+import { getSafeUserMessage } from "@/lib/errors/user-facing-errors";
+import { useClinic } from "@/lib/contexts/clinic-context";
 import { AppointmentRequestRow } from "./requests/AppointmentRequestRow";
-import { AppointmentRequestPastRow } from "./appointment-request-past-row";
-import { useAppointmentRequestsPanel } from "./use-appointment-requests-panel";
+import {
+  patientName,
+  preferredDateTimeWallLocal,
+  utcRequestedSlotToWallLocal,
+} from "./requests/request-row-helpers";
+
+function PastRequestRow({
+  request,
+}: {
+  request: AppointmentRequestResponse;
+}) {
+  return (
+    <div className="rounded-md border bg-muted/20 p-3">
+      <div className="flex flex-wrap items-start justify-between gap-2">
+        <div className="min-w-0">
+          <div className="flex items-center gap-2">
+            <span className="truncate text-[length:var(--fs-sm)] font-medium">
+              {patientName(request)}
+            </span>
+            <Badge
+              variant={request.status === "APPROVED" ? "default" : "secondary"}
+              className="h-5 px-2 text-[length:var(--fs-2xs)]"
+            >
+              {request.status === "APPROVED" ? "Approved" : "Rejected"}
+            </Badge>
+          </div>
+          <div className="mt-1 text-[length:var(--fs-xs)] text-muted-foreground">
+            {request.responseMessage ?? request.reason ?? "Action recorded"}
+          </div>
+        </div>
+        <div className="text-right text-[length:var(--fs-xs)] text-muted-foreground">
+          {formatDistanceToNow(request.reviewedAt ?? request.updatedAt)}
+        </div>
+      </div>
+    </div>
+  );
+}
 
 export function AppointmentRequestsPanel() {
-  const panel = useAppointmentRequestsPanel();
+  const { clinic } = useClinic();
+  const clinicTz = clinic?.timezone?.trim() || DEFAULT_TIMEZONE;
+  const [showPastRequests, setShowPastRequests] = useState(false);
+
+  const { data, isLoading, isError, refetch } = useAppointmentRequests({
+    status: "PENDING",
+    limit: 50,
+  });
+  const {
+    data: approvedRequestsData,
+    isLoading: isApprovedRequestsLoading,
+    isError: isApprovedRequestsError,
+    refetch: refetchApprovedRequests,
+  } = useAppointmentRequests(
+    showPastRequests ? { status: "APPROVED", limit: 25 } : null,
+  );
+  const {
+    data: rejectedRequestsData,
+    isLoading: isRejectedRequestsLoading,
+    isError: isRejectedRequestsError,
+    refetch: refetchRejectedRequests,
+  } = useAppointmentRequests(
+    showPastRequests ? { status: "REJECTED", limit: 25 } : null,
+  );
+
+  const { data: doctors = [] } = useDoctors();
+  const approveRequest = useApproveAppointmentRequest();
+  const rejectRequest = useRejectAppointmentRequest();
+
+  const [doctorByRequest, setDoctorByRequest] = useState<Record<string, string>>({});
+  const [startByRequest, setStartByRequest] = useState<Record<string, string>>({});
+  const [rejectReasonByRequest, setRejectReasonByRequest] = useState<Record<string, string>>({});
+  const [rejectCustomByRequest, setRejectCustomByRequest] = useState<Record<string, string>>({});
+  const [approveFieldErrorsByRequest, setApproveFieldErrorsByRequest] = useState<
+    Record<string, Partial<Record<ApproveScheduleFieldKey, string>>>
+  >({});
+  const [slotSuggestionGeneration, setSlotSuggestionGeneration] = useState(0);
+  const [hiddenRequestIds, setHiddenRequestIds] = useState<Set<string>>(() => new Set());
+
+  const doctorOptions = useMemo(
+    () =>
+      doctors.filter((doctor) =>
+        ["DOCTOR", "ADMIN_DOCTOR"].includes(String(doctor.role)),
+      ),
+    [doctors],
+  );
+
+  const sortedRequests = useMemo(() => {
+    const items = data?.items ?? [];
+    return [...items]
+      .filter((r) => !hiddenRequestIds.has(r.id))
+      .sort(
+        (a, b) =>
+          new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime(),
+      );
+  }, [data?.items, hiddenRequestIds]);
+
+  const pastRequests = useMemo(() => {
+    const items = [
+      ...(approvedRequestsData?.items ?? []),
+      ...(rejectedRequestsData?.items ?? []),
+    ];
+    const uniqueItems = Array.from(
+      new Map(items.map((item) => [item.id, item])).values(),
+    );
+    return uniqueItems.sort((a, b) => {
+      const aTime = new Date(a.reviewedAt ?? a.updatedAt).getTime();
+      const bTime = new Date(b.reviewedAt ?? b.updatedAt).getTime();
+      return bTime - aTime;
+    });
+  }, [approvedRequestsData?.items, rejectedRequestsData?.items]);
+
+  const state = isLoading
+    ? "loading"
+    : isError
+      ? "error"
+      : sortedRequests.length === 0
+        ? "empty"
+        : "success";
+
+  const pastState =
+    isApprovedRequestsLoading || isRejectedRequestsLoading
+      ? "loading"
+      : isApprovedRequestsError || isRejectedRequestsError
+        ? "error"
+        : pastRequests.length === 0
+          ? "empty"
+          : "success";
+
+  const isMutating = approveRequest.isPending || rejectRequest.isPending;
+
+  const handleApprove = async (request: AppointmentRequestResponse) => {
+    setApproveFieldErrorsByRequest((prev) => {
+      const next = { ...prev };
+      delete next[request.id];
+      return next;
+    });
+
+    const doctorId =
+      doctorByRequest[request.id] ??
+      request.preferredDoctorId ??
+      doctorOptions[0]?.id;
+    if (!doctorId) {
+      setApproveFieldErrorsByRequest((prev) => ({
+        ...prev,
+        [request.id]: { doctorId: "Select a doctor before approving this request." },
+      }));
+      return;
+    }
+
+    const structuredStart = utcRequestedSlotToWallLocal(request.requestedSlotStart, clinicTz);
+    const structuredEnd = utcRequestedSlotToWallLocal(request.requestedSlotEnd, clinicTz);
+
+    let startLocal = startByRequest[request.id] ?? structuredStart ?? null;
+    let endLocal = structuredEnd ?? null;
+
+    if (!startLocal || !endLocal) {
+      const fromSchedule = await fetchNextAvailableSlotWindow(
+        request.preferredDate,
+        doctorId,
+        clinicTz,
+      );
+      if (fromSchedule) {
+        startLocal = startLocal ?? fromSchedule.startLocal;
+        endLocal = endLocal ?? fromSchedule.endLocal;
+      }
+    }
+
+    startLocal =
+      startLocal ??
+      preferredDateTimeWallLocal(request.preferredDate, request.preferredTime, clinicTz);
+    endLocal =
+      endLocal ??
+      addMinutesToClinicWallDatetimeLocal(startLocal, 30, clinicTz) ??
+      startLocal;
+
+    const startUtc = clinicWallDatetimeLocalToUtcIso(startLocal, clinicTz);
+    const endUtc = clinicWallDatetimeLocalToUtcIso(endLocal, clinicTz);
+
+    if (!startUtc || !endUtc) {
+      showUserFacingErrorToast(
+        null,
+        "Enter valid start and end times before approving.",
+        "generic",
+      );
+      return;
+    }
+
+    try {
+      await approveRequest.mutateAsync({
+        id: request.id,
+        doctorId,
+        startTime: startUtc,
+        endTime: endUtc,
+        type: "Consultation",
+        notes: request.notes ?? request.reason,
+      });
+      setHiddenRequestIds((prev) => new Set([...prev, request.id]));
+      setSlotSuggestionGeneration((g) => g + 1);
+      setStartByRequest({});
+      setRejectReasonByRequest({});
+      setRejectCustomByRequest({});
+      void refetch();
+      if (showPastRequests) void refetchApprovedRequests();
+    } catch (error) {
+      const fieldErrors = extractApproveAppointmentRequestFieldErrors(error);
+      if (Object.keys(fieldErrors).length > 0) {
+        setApproveFieldErrorsByRequest((prev) => ({
+          ...prev,
+          [request.id]: fieldErrors,
+        }));
+        return;
+      }
+      const detail = extractProblemDetail(error);
+      showUserFacingErrorToast(
+        null,
+        getSafeUserMessage(
+          detail,
+          "We could not approve this appointment request. Please try again.",
+        ),
+        "generic",
+      );
+    }
+  };
+
+  const handleReject = async (request: AppointmentRequestResponse) => {
+    const reason = rejectReasonByRequest[request.id]?.trim();
+    const REJECT_REASON_CUSTOM = "CUSTOM";
+    const responseMessage =
+      reason === REJECT_REASON_CUSTOM
+        ? (rejectCustomByRequest[request.id] ?? "").trim()
+        : reason;
+    if (!responseMessage) {
+      showUserFacingErrorToast(
+        null,
+        "Enter a response before rejecting this request.",
+        "generic",
+      );
+      return;
+    }
+
+    try {
+      await rejectRequest.mutateAsync({ id: request.id, responseMessage });
+      setHiddenRequestIds((prev) => new Set([...prev, request.id]));
+      setSlotSuggestionGeneration((g) => g + 1);
+      setStartByRequest({});
+      setRejectReasonByRequest({});
+      setRejectCustomByRequest({});
+      void refetch();
+      if (showPastRequests) void refetchRejectedRequests();
+    } catch (error) {
+      const detail = extractProblemDetail(error);
+      showUserFacingErrorToast(
+        null,
+        getSafeUserMessage(
+          detail,
+          "We could not reject this appointment request. Please try again.",
+        ),
+        "generic",
+      );
+    }
+  };
 
   return (
     <Card>
@@ -45,7 +324,7 @@ export function AppointmentRequestsPanel() {
           emptyDescription="Patient portal appointment requests will appear here"
         >
           <div className="space-y-2">
-            {panel.sortedRequests.map((request) => (
+            {sortedRequests.map((request) => (
               <AppointmentRequestRow
                 key={request.id}
                 request={request}
@@ -81,7 +360,7 @@ export function AppointmentRequestsPanel() {
             type="button"
             variant="outline"
             size="sm"
-            onClick={() => panel.setShowPastRequests((v) => !v)}
+            onClick={() => setShowPastRequests((v) => !v)}
           >
             {panel.showPastRequests ? "Hide past requests" : "View past requests"}
           </Button>
@@ -100,8 +379,8 @@ export function AppointmentRequestsPanel() {
                 emptyDescription="Approved and rejected requests will appear here"
               >
                 <div className="space-y-2">
-                  {panel.pastRequests.map((request) => (
-                    <AppointmentRequestPastRow key={request.id} request={request} />
+                  {pastRequests.map((request) => (
+                    <PastRequestRow key={request.id} request={request} />
                   ))}
                 </div>
               </DataState>

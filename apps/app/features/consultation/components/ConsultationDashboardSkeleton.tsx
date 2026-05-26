@@ -4,11 +4,11 @@ import {
   Card,
   CardContent,
   CardHeader,
-} from "@workspace/ui/components/indicators/card";
-import { AppPageScaffold } from "@workspace/ui/components/layout/app-page-scaffold";
-import { PageHeader } from "@workspace/ui/components/layout/page-header";
-import { Skeleton } from "@workspace/ui/components/feedback/skeleton";
-import { StatGrid } from "@workspace/ui/components/data-display/stat-grid";
+} from "@workspace/ui/components/card";
+import { AppPageScaffold } from "@workspace/ui/components/app-page-scaffold";
+import { PageHeader } from "@workspace/ui/components/page-header";
+import { Skeleton } from "@workspace/ui/components/skeleton";
+import { StatGrid } from "@workspace/ui/components/stat-grid";
 
 export function ConsultationDashboardSkeleton() {
   return (

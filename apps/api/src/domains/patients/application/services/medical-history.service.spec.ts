@@ -1,10 +1,7 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import { MedicalHistoryService } from './medical-history.service';
 import { MedicalHistoryConditionsService } from './medical-history-conditions.service';
-import {
-  PATIENT_PERSISTENCE_PORT,
-  type PatientPersistencePort,
-} from '@/domains/patients/application/ports/patient-persistence.port';
+import { PrismaService } from '@/prisma/prisma.service';
 import { MedicalHistoryFactory } from '@/domains/patients/core/factories/medical-history.factory';
 import { AiService } from '@/shared/modules/ai-core/ai.service';
 import { AiFactory } from '@/shared/modules/ai-core/factories/ai.factory';
@@ -88,10 +85,7 @@ describe('MedicalHistoryService', () => {
       providers: [
         MedicalHistoryService,
         MedicalHistoryConditionsService,
-        {
-          provide: PATIENT_PERSISTENCE_PORT,
-          useValue: mockPatientPersistencePort,
-        },
+        { provide: PrismaService, useValue: mockPrismaService },
         { provide: MedicalHistoryFactory, useValue: mockFactory },
         { provide: AiService, useValue: mockAiService },
         { provide: AiFactory, useValue: mockAiFactory },

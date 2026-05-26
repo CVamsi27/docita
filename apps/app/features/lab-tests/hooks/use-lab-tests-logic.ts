@@ -11,16 +11,11 @@ import {
   useLabTestCatalog,
   useLabTestOrders,
   useLabTestStats,
-} from "@workspace/data-access";
-import { usePatients } from "@workspace/data-access";
+} from "@/hooks/api/use-clinical";
+import { usePatients } from "@/hooks/api/use-patients";
 import { Patient, type PaginatedResponse } from "@workspace/types";
 import { useDebounce } from "@workspace/hooks/use-debounce";
 import { showUserFacingErrorToast } from "@/lib/errors/user-facing-errors";
-
-export {
-  createLabTestOrderFormSchema,
-  type CreateLabTestOrderFormValues,
-} from "@workspace/types";
 
 export type CreateLabTestOrderInput = CreateLabTestOrderFormValues;
 

@@ -13,9 +13,8 @@ import {
 import { Button } from "@workspace/ui/components/form/button";
 import { Badge } from "@workspace/ui/components/indicators/badge";
 import { FileText, Upload, CheckCircle2 } from "lucide-react";
-import { appQueryKeys } from "@workspace/data-access";
 import { fetchAPI } from "@/lib/api/api-core";
-import { toAbsoluteApiUrl } from "@/lib/utils/url";
+import { toAbsoluteApiUrl } from "@/lib/url";
 import { showUserFacingErrorToast } from "@/lib/errors/user-facing-errors";
 
 const ALLOWED_MIMES = [

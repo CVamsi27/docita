@@ -1,24 +1,16 @@
-import { Injectable, NotFoundException, Inject } from '@nestjs/common';
-import { mapWithConcurrency } from '@workspace/utils';
-import { activeUserWhere } from '@/shared/common/prisma/active-user.filter';
-import {
-  DOCTOR_PERSISTENCE_PORT,
-  type DoctorPersistencePort,
-} from '@/domains/doctors/application/ports/doctor-persistence.port';
+import { Injectable, NotFoundException } from '@nestjs/common';
+import { PrismaService } from '@/prisma/prisma.service';
 import { Specialization, HospitalRole } from '@workspace/db';
 import {
   DOCTOR_LIST_SELECT,
   DOCTOR_CARD_SELECT,
-} from '@/shared/common/select-fragments';
+} from '@/common/select-fragments';
 import { StoredFileUrlResolverService } from '@/domains/documents/application/services/stored-file-url-resolver.service';
-
-const DOCTOR_SIGNATURE_RESOLVE_CONCURRENCY = 8;
 
 @Injectable()
 export class DoctorsQueryService {
   constructor(
-    @Inject(DOCTOR_PERSISTENCE_PORT)
-    private readonly persistence: DoctorPersistencePort,
+    private readonly prisma: PrismaService,
     private readonly storedFileUrlResolver: StoredFileUrlResolverService,
   ) {}
 
@@ -57,7 +49,7 @@ export class DoctorsQueryService {
 
   async findAll(clinicId: string) {
     const [doctorClinics, clinicUsers] = await Promise.all([
-      this.persistence.doctorClinic.findMany({
+      this.prisma.doctorClinic.findMany({
         where: { clinicId },
         include: {
           doctor: {
@@ -65,11 +57,10 @@ export class DoctorsQueryService {
           },
         },
       }),
-      this.persistence.user.findMany({
+      this.prisma.user.findMany({
         where: {
           clinicId,
           role: { in: ['DOCTOR', 'ADMIN_DOCTOR'] },
-          ...activeUserWhere,
         },
         select: {
           ...DOCTOR_LIST_SELECT,
@@ -96,10 +87,8 @@ export class DoctorsQueryService {
 
     const directUsers = clinicUsers.filter((u) => !doctorClinicIds.has(u.id));
 
-    const mappedClinics = await mapWithConcurrency(
-      validDoctorClinics,
-      DOCTOR_SIGNATURE_RESOLVE_CONCURRENCY,
-      async (dc) => {
+    const mappedClinics = await Promise.all(
+      validDoctorClinics.map(async (dc) => {
         const doctor = await this.resolveDoctorSignatureUrl(dc.doctor);
         return {
           id: doctor.id,
@@ -122,13 +111,11 @@ export class DoctorsQueryService {
           consultationFee: doctor.consultationFee,
           createdAt: doctor.createdAt,
         };
-      },
+      }),
     );
 
-    const mappedDirectUsers = await mapWithConcurrency(
-      directUsers,
-      DOCTOR_SIGNATURE_RESOLVE_CONCURRENCY,
-      async (user) => {
+    const mappedDirectUsers = await Promise.all(
+      directUsers.map(async (user) => {
         const doctor = await this.resolveDoctorSignatureUrl(user);
         return {
           id: doctor.id,
@@ -151,14 +138,14 @@ export class DoctorsQueryService {
           consultationFee: doctor.consultationFee,
           createdAt: doctor.createdAt,
         };
-      },
+      }),
     );
 
     return [...mappedClinics, ...mappedDirectUsers];
   }
 
   async findOne(id: string, clinicId?: string) {
-    const user = await this.persistence.user.findFirst({
+    const user = await this.prisma.user.findFirst({
       where: { id },
       select: {
         id: true,
@@ -207,7 +194,7 @@ export class DoctorsQueryService {
     }
 
     if (clinicId && user.clinicId !== clinicId) {
-      const assignment = await this.persistence.doctorClinic.findFirst({
+      const assignment = await this.prisma.doctorClinic.findFirst({
         where: { doctorId: id, clinicId, active: true },
       });
       if (!assignment) {
@@ -219,28 +206,28 @@ export class DoctorsQueryService {
   }
 
   async getEducationHistory(doctorId: string) {
-    return this.persistence.doctorEducation.findMany({
+    return this.prisma.doctorEducation.findMany({
       where: { doctorId },
       orderBy: { order: 'asc' },
     });
   }
 
   async getCertifications(doctorId: string) {
-    return this.persistence.doctorCertification.findMany({
+    return this.prisma.doctorCertification.findMany({
       where: { doctorId },
       orderBy: { issueDate: 'desc' },
     });
   }
 
   async getSpecializations(doctorId: string) {
-    return this.persistence.doctorSpecialization.findMany({
+    return this.prisma.doctorSpecialization.findMany({
       where: { doctorId },
     });
   }
 
   async listDoctorsForAdminReview() {
     const { Role, DoctorVerificationStatus } = await import('@workspace/db');
-    const doctors = await this.persistence.user.findMany({
+    const doctors = await this.prisma.user.findMany({
       where: {
         role: { in: [Role.DOCTOR, Role.ADMIN_DOCTOR] },
         verificationStatus: {

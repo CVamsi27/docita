@@ -4,10 +4,7 @@ import {
   BadRequestException,
   Logger,
 } from '@nestjs/common';
-import {
-  APPOINTMENT_WRITE_REPOSITORY_TOKEN,
-  IAppointmentWriteRepository,
-} from '@/domains/appointments/core/repositories/appointment.repository.interface';
+import { IAppointmentRepository } from '@/domains/appointments/core/repositories/appointment.repository.interface';
 import { Appointment } from '@/domains/appointments/core/entities/appointment.entity';
 import { AppointmentStatus } from '@/domains/appointments/core/value-objects/appointment-status.value-object';
 import { AppointmentSchedulingRulesService } from '@/domains/appointments/core/domain-services/appointment-scheduling-rules.service';
@@ -42,32 +39,11 @@ export class CreateAppointmentUseCase {
       throw new BadRequestException('Start time must be before end time');
     }
 
-    const overlap = await this.schedulingRules.validateAppointmentOverlap(
-      command.doctorId,
-      command.clinicId,
-      command.startTime,
-      command.endTime,
-    );
-    if (overlap.hasConflict) {
-      throw new BadRequestException({
-        detail: 'Doctor has conflicting appointment',
-        validationErrors: overlap.conflict
-          ? {
-              startTime: `Overlaps with appointment ${overlap.conflict.id} (${overlap.conflict.startTime.toISOString()}–${overlap.conflict.endTime.toISOString()})`,
-            }
-          : undefined,
-      });
-    }
-
-    // AuditLogged: appointment creation.
-    // Audit FL4 (2026-05-23): patientId is PHI — keep it out of general
-    // application logs which flow to log aggregation with longer retention
-    // than the audit trail allows. Domain-level audit persistence is
-    // handled by the appointments audit interceptor; this log is for
-    // operational visibility only and records counts/tenancy only.
+    // AuditLogged: appointment creation
     this.logger.log({
       action: 'appointment.create',
       clinicId: command.clinicId,
+      patientId: command.patientId,
       doctorId: command.doctorId,
     });
 

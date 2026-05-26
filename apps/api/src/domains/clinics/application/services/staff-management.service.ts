@@ -5,12 +5,8 @@ import {
   NotFoundException,
   Inject,
 } from '@nestjs/common';
-import {
-  CLINIC_PERSISTENCE_PORT,
-  type ClinicPersistencePort,
-} from '@/domains/clinics/application/ports/clinic-persistence.port';
+import { PrismaService } from '@/prisma/prisma.service';
 import { Role, Specialization } from '@workspace/db';
-import { parseStringEnumMember } from '@workspace/utils';
 import {
   actorMayAssignMemberRoles,
   isClinicFrontDesk,
@@ -24,8 +20,7 @@ import { StaffInviteService } from './staff-invite.service';
 @Injectable()
 export class StaffManagementService {
   constructor(
-    @Inject(CLINIC_PERSISTENCE_PORT)
-    private readonly persistence: ClinicPersistencePort,
+    private prisma: PrismaService,
     private staffInviteService: StaffInviteService,
   ) {}
 
@@ -160,7 +155,7 @@ export class StaffManagementService {
       }
     }
 
-    const isFrontDesk = await isClinicFrontDesk(this.persistence, clinicId);
+    const isFrontDesk = await isClinicFrontDesk(this.prisma, clinicId);
     if (data.role) {
       if (isFrontDesk) {
         if (data.role === 'NURSE' || data.role === 'ADMIN_DOCTOR') {

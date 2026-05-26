@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect } from "react";
+import { parseChiefComplaintsFromAppointmentData } from "@workspace/utils";
 import { logger } from "@/lib/monitoring/logger";
 import {
   draftSessionStorageKey,

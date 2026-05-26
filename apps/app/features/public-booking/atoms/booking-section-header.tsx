@@ -2,9 +2,9 @@
 
 import type { LucideIcon } from "lucide-react";
 import type { ReactNode } from "react";
-import { CardDescription, CardTitle } from "@workspace/ui/components/indicators/card";
-import { CategoryAvatar } from "@workspace/ui/components/indicators/category-avatar";
-import { MicroLabel } from "@workspace/ui/components/indicators/micro-label";
+import { CardDescription, CardTitle } from "@workspace/ui/components/card";
+import { CategoryAvatar } from "@workspace/ui/components/category-avatar";
+import { MicroLabel } from "@workspace/ui/components/micro-label";
 import { cn } from "@workspace/ui/lib/utils";
 
 export function BookingSectionHeader({

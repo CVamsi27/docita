@@ -1,6 +1,4 @@
-import { queryKeys } from "../lib/query-keys";
-import { useAPIMutation } from "../core/use-api-mutation";
-import { useAPIQuery } from "../core/use-api-query";
+import { useAPIMutation, useAPIQuery, fetchAPI } from "@/lib/api/api-core";
 
 export interface SignatureUploadToken {
   token: string;

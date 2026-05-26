@@ -3,12 +3,15 @@ import {
   Inject,
   Injectable,
   Logger,
+  BadRequestException,
+  Inject,
 } from '@nestjs/common';
 import {
   CLINIC_PERSISTENCE_PORT,
   type ClinicPersistencePort,
 } from '@/domains/clinics/application/ports/clinic-persistence.port';
 import { AuthService } from '@/shared/modules/auth/auth/auth.service';
+import { AppConfigService } from '@/shared/modules/config/app-configuration.service';
 import {
   PAYMENT_GATEWAY_TOKEN,
   type IPaymentGateway,
@@ -26,15 +29,30 @@ import { OnboardingValidationService } from './onboarding-validation.service';
 import { OnboardingWorkflowService } from './onboarding-workflow.service';
 import { OnboardingComplianceService } from './onboarding-compliance.service';
 import { UploadsService } from '@/domains/documents/application/services/uploads.service';
+import { isFrontDeskWorkspace, parseWorkspaceProfile } from '@workspace/types';
 import {
   hasPriorPaidSubscriptionForEmail,
   createSlaSignatureSession,
   uploadSlaSignature,
   getSlaSignatureSessionStatus,
 } from './onboarding-helpers';
-import { CLOCK_PORT, type IClock } from '@/shared/common/ports/clock.port';
-import { OnboardingPaymentService } from './onboarding-payment.service';
-import type { OnboardingResult } from './onboarding-result.types';
+
+interface OnboardingResult {
+  success: boolean;
+  clinicId: string;
+  userId: string;
+  subscriptionId?: string;
+  message: string;
+  errors?: string[];
+  access_token?: string;
+  user?: {
+    id: string;
+    email: string;
+    name: string;
+    role: string;
+    clinicId: string | null;
+  };
+}
 
 /**
  * Facade — delegates checkout, progress, and compliance to onboarding specialists;
@@ -83,23 +101,18 @@ export class OnboardingService {
     },
   ) {
     return uploadSlaSignature(
-      this.persistence,
+      this.prisma,
       this.uploadsService,
       onboardingId,
       sessionId,
       file,
       uploadSecret,
-      this.clock.now(),
       context,
     );
   }
 
   async getSlaSignatureSessionStatus(onboardingId: string, sessionId: string) {
-    return getSlaSignatureSessionStatus(
-      this.persistence,
-      onboardingId,
-      sessionId,
-    );
+    return getSlaSignatureSessionStatus(this.prisma, onboardingId, sessionId);
   }
 
   initializeOnboarding(): { onboardingId: string } {
@@ -164,7 +177,7 @@ export class OnboardingService {
       // checkout instead of another trial.
       if (isUnpaidEssentialTrial) {
         const hasPriorPaid = await hasPriorPaidSubscriptionForEmail(
-          this.persistence,
+          this.prisma,
           completeData.adminAccount.email,
         );
         if (hasPriorPaid) {

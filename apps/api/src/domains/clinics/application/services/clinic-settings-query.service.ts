@@ -1,8 +1,5 @@
-import { Injectable, Inject } from '@nestjs/common';
-import {
-  CLINIC_PERSISTENCE_PORT,
-  type ClinicPersistencePort,
-} from '@/domains/clinics/application/ports/clinic-persistence.port';
+import { Injectable } from '@nestjs/common';
+import { PrismaService } from '@/prisma/prisma.service';
 import {
   DataSubjectRequestStatus,
   DataSubjectRequestType,
@@ -11,10 +8,7 @@ import type { AppComplianceSummary } from '@workspace/types';
 
 @Injectable()
 export class ClinicSettingsQueryService {
-  constructor(
-    @Inject(CLINIC_PERSISTENCE_PORT)
-    private persistence: ClinicPersistencePort,
-  ) {}
+  constructor(private prisma: PrismaService) {}
 
   private toRecord(value: unknown): Record<string, unknown> {
     if (!value || typeof value !== 'object') {
@@ -47,14 +41,14 @@ export class ClinicSettingsQueryService {
       DataSubjectRequestStatus.IN_REVIEW,
     ];
     const [clinic, activeTemplate, requestCounts] = await Promise.all([
-      this.persistence.clinic.findUnique({
+      this.prisma.clinic.findUnique({
         where: { id: clinicId },
         select: {
           slaSignatureUrl: true,
           slaSignatureAcceptedAt: true,
         },
       }),
-      this.persistence.consentTemplate.findFirst({
+      this.prisma.consentTemplate.findFirst({
         where: {
           OR: [{ clinicId }, { clinicId: null }],
           isActive: true,
@@ -62,7 +56,7 @@ export class ClinicSettingsQueryService {
         orderBy: { updatedAt: 'desc' },
         select: { updatedAt: true },
       }),
-      this.persistence.dataSubjectRequest.groupBy({
+      this.prisma.dataSubjectRequest.groupBy({
         by: ['requestType'],
         where: {
           clinicId,
@@ -92,7 +86,7 @@ export class ClinicSettingsQueryService {
   }
 
   listDataSubjectRequests(clinicId: string, status?: DataSubjectRequestStatus) {
-    return this.persistence.dataSubjectRequest.findMany({
+    return this.prisma.dataSubjectRequest.findMany({
       where: {
         clinicId,
         ...(status ? { status } : {}),
@@ -103,7 +97,7 @@ export class ClinicSettingsQueryService {
   }
 
   async getPrescriptionDefaults(clinicId: string) {
-    const clinic = await this.persistence.clinic.findUnique({
+    const clinic = await this.prisma.clinic.findUnique({
       where: { id: clinicId },
       select: { settings: true },
     });

@@ -12,30 +12,61 @@ import {
 import { Button } from "@workspace/ui/components/form/button";
 import { Alert, AlertDescription } from "@workspace/ui/components/feedback/alert";
 import { cn } from "@workspace/ui/lib/utils";
+import { AlertTriangle, ArrowDown, ArrowRight, Building2, CheckCircle } from "lucide-react";
 import {
-  AlertTriangle,
-  ArrowDown,
-  ArrowRight,
-  Building2,
-  CheckCircle,
-} from "lucide-react";
-import { SUBSCRIPTION_GST_INCLUSIVE_NOTICE } from "@/features/subscription/lib/billing-display-messages";
+  PRICING_CURRENCY_CONFIG,
+  TIER_INFO,
+  getTierName,
+  getUserFacingErrorMessage,
+} from "@workspace/types";
 import {
   type TierChangeDialogProps,
+  TIER_ICONS,
+  PLAN_TIER_RANK,
 } from "./tier-change-dialog-types";
+
+export type { TierChangeDialogProps } from "./tier-change-dialog-types";
+import { type TierPricing, usePricingConfig } from "@/hooks/api/use-pricing";
+import { useProrationPreview } from "@/hooks/api/use-billing";
+import { formatPriceWithCurrency } from "@workspace/utils";
+import { SUBSCRIPTION_GST_INCLUSIVE_NOTICE } from "@/features/subscription/lib/billing-display-messages";
+import { YearlyVsListAnnualPrice } from "@/features/subscription/lib/yearly-vs-list-annual-price";
+import { getTierFeatureDelta } from "@/features/subscription/lib/feature-delta";
 import {
   FeatureDeltaGrid,
   DowngradeTimingChooser,
   ProrationPreview,
 } from "./tier-change-dialog-sections";
-import { TierChangeDialogPlanCompare } from "./tier-change-dialog-plan-compare";
-import { useTierChangeDialog } from "./use-tier-change-dialog";
 
-export type { TierChangeDialogProps } from "./tier-change-dialog-types";
 
-export function TierChangeDialog(props: TierChangeDialogProps) {
-  const { selectedTier, billingCycle, onSchedule } = props;
-  const dialog = useTierChangeDialog(props);
+export function TierChangeDialog({
+  open,
+  onOpenChange,
+  currentTier,
+  selectedTier,
+  billingCycle,
+  currency,
+  onConfirm,
+  onSchedule,
+  currentPeriodEnd,
+  checkoutInFlight = false,
+}: TierChangeDialogProps) {
+  const [isLoading, setIsLoading] = useState(false);
+  const [success, setSuccess] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  // For downgrades, default to "apply at next renewal" — keeps current-tier
+  // features for the rest of the paid period.
+  const [timing, setTiming] = useState<"now" | "at-renewal">("at-renewal");
+
+  const currencyConfig = PRICING_CURRENCY_CONFIG[currency];
+
+  const { pricingConfig, isLoading: pricingLoading } =
+    usePricingConfig(currency);
+
+  const { data: prorationPreview, isFetching: prorationLoading } =
+    useProrationPreview(selectedTier ?? "STARTER", billingCycle, {
+      enabled: open && !!selectedTier && selectedTier !== "ENTERPRISE",
+    });
 
   if (!selectedTier) return null;
 
@@ -129,30 +160,29 @@ export function TierChangeDialog(props: TierChangeDialogProps) {
                   </span>
                 </p>
               </div>
-            ) : null}
+            )}
 
-            <FeatureDeltaGrid
-              gained={dialog.featureDelta.gained}
-              lost={dialog.featureDelta.lost}
-            />
+            {/* Feature delta — concrete view of what changes. */}
+            <FeatureDeltaGrid gained={featureDelta.gained} lost={featureDelta.lost} />
 
-            {dialog.isDowngrade && onSchedule ? (
+            {/* Timing chooser — only for downgrades when scheduling is wired. */}
+            {isDowngrade && onSchedule ? (
               <DowngradeTimingChooser
-                timing={dialog.timing}
-                onTimingChange={dialog.setTiming}
-                currentPlanName={dialog.currentInfo.name}
-                formattedRenewalDate={dialog.formattedRenewalDate}
+                timing={timing}
+                onTimingChange={setTiming}
+                currentPlanName={currentInfo.name}
+                formattedRenewalDate={formattedRenewalDate}
               />
             ) : null}
 
-            {selectedTier !== "ENTERPRISE" ? (
+            {selectedTier !== "ENTERPRISE" && (
               <ProrationPreview
-                prorationLoading={dialog.prorationLoading}
-                prorationPreview={dialog.prorationPreview}
-                currency={props.currency}
-                currencyConfig={dialog.currencyConfig}
+                prorationLoading={prorationLoading}
+                prorationPreview={prorationPreview}
+                currency={currency}
+                currencyConfig={currencyConfig}
               />
-            ) : null}
+            )}
 
             <p className="text-[var(--fs-2xs)] leading-snug text-muted-foreground">
               {SUBSCRIPTION_GST_INCLUSIVE_NOTICE}

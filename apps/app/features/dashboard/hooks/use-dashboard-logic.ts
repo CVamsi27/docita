@@ -5,13 +5,13 @@ import {
   type DashboardStats,
   type DashboardPatient,
 } from "@workspace/types";
-import { queryKeys, useDashboardStats } from "@workspace/data-access";
-import { useTodayAppointments } from "@workspace/data-access";
-import { useRecentPatients } from "@workspace/data-access";
-import { usePendingJoinRequestCount } from "@workspace/data-access";
+import { useDashboardStats } from "@/hooks/api/use-dashboard";
+import { useTodayAppointments } from "@/hooks/api/use-appointments";
+import { useRecentPatients } from "@/hooks/api/use-patients";
+import { usePendingJoinRequestCount } from "@/hooks/api/use-notifications";
 import { useAuth } from "@/lib/auth/auth-context";
 import { usePermissionStore } from "@/lib/stores/permission-store";
-import { type AppointmentListItem } from "@workspace/data-access";
+import { type AppointmentListItem } from "@/hooks/api/use-appointments";
 import { logger } from "@/lib/monitoring/logger";
 
 function defaultDashboardStats(): DashboardStats {

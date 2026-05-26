@@ -13,11 +13,15 @@ import {
   PatientWithMedicalHistory,
   UpdatePatientRequest,
 } from "@workspace/types";
-import { useAPIMutation } from "../core/use-api-mutation";
-import { useAPIQuery } from "../core/use-api-query";
-import { withQueryString } from "../lib/query-string";
-import { useDataAccessContext } from "../provider/hooks";
-import type { MedicalHistoryTimelineItem } from "../types/app-types";
+import {
+  fetchAPI,
+  MedicalHistoryTimelineItem,
+  useAPIMutation,
+  useAPIQuery,
+} from "@/lib/api/api-core";
+import { withQueryString } from "@/lib/http/query-string";
+import { useTierFeatureEnabled } from "@/hooks/api/tier-feature-guards";
+
 type UsePatientsOptions = {
   limit?: number;
   page?: number;

@@ -1,13 +1,29 @@
 "use client";
 
 import { useCallback, useEffect, useMemo, useState } from "react";
-import { usePublicBookingContext } from "@workspace/data-access";
+import { formatPickerIsoDate } from "@workspace/utils";
 import {
+  usePublicBookingClinic,
+  usePublicBookingContext,
+  usePublicBookingDoctors,
+  usePublicBookingSlots,
+} from "@/hooks/api/use-public-booking";
+import {
+  ANY_DOCTOR_ID,
   type PublicBookingMobileStep,
   PUBLIC_BOOKING_SUBMIT_FIELD_KEYS,
 } from "@/features/public-booking/public-booking-constants";
 import { usePublicBookingSubmitActions } from "@/features/public-booking/hooks/use-public-booking-submit-actions";
-import { usePublicBookingSlotState } from "@/features/public-booking/use-public-booking-slot-state";
+
+function parseIsoDateToLocalDate(iso: string): Date | undefined {
+  const m = /^(\d{4})-(\d{2})-(\d{2})$/.exec(iso.trim());
+  if (!m) return undefined;
+  const y = Number(m[1]);
+  const mo = Number(m[2]);
+  const d = Number(m[3]);
+  if (!Number.isFinite(y) || !Number.isFinite(mo) || !Number.isFinite(d)) return undefined;
+  return new Date(y, mo - 1, d);
+}
 
 export function usePublicBookingPageState(referralCode: string) {
   const siteKey = process.env.NEXT_PUBLIC_TURNSTILE_SITE_KEY;
@@ -23,27 +39,24 @@ export function usePublicBookingPageState(referralCode: string) {
   const [reason, setReason] = useState("");
   const [notes, setNotes] = useState("");
 
+  const [selectedStart, setSelectedStart] = useState<string | null>(null);
+  const [selectedEnd, setSelectedEnd] = useState<string | null>(null);
+  const [selectedSlotDoctorId, setSelectedSlotDoctorId] = useState<string | null>(null);
+  const [timeRangeStart, setTimeRangeStart] = useState<string>("");
+  const [timeRangeEnd, setTimeRangeEnd] = useState<string>("");
+
   const [requiresOtp, setRequiresOtp] = useState<boolean | null>(null);
   const [otp, setOtp] = useState("");
-  const [verificationToken, setVerificationToken] = useState<string | null>(
-    null,
-  );
+  const [verificationToken, setVerificationToken] = useState<string | null>(null);
   const [dpdpConsentAccepted, setDpdpConsentAccepted] = useState(false);
 
-  const [submitFieldErrors, setSubmitFieldErrors] = useState<
-    Record<string, string>
-  >({});
-  const [submitGeneralMessage, setSubmitGeneralMessage] = useState<string | null>(
-    null,
-  );
+  const [submitFieldErrors, setSubmitFieldErrors] = useState<Record<string, string>>({});
+  const [submitGeneralMessage, setSubmitGeneralMessage] = useState<string | null>(null);
   const [done, setDone] = useState(false);
   const [mobileStep, setMobileStep] = useState<PublicBookingMobileStep>("visit");
 
   const unknownSubmitErrors = useMemo(
-    () =>
-      Object.entries(submitFieldErrors).filter(
-        ([key]) => !PUBLIC_BOOKING_SUBMIT_FIELD_KEYS.has(key),
-      ),
+    () => Object.entries(submitFieldErrors).filter(([key]) => !PUBLIC_BOOKING_SUBMIT_FIELD_KEYS.has(key)),
     [submitFieldErrors],
   );
 
@@ -84,11 +97,11 @@ export function usePublicBookingPageState(referralCode: string) {
     dpdpConsentAccepted,
     reason,
     notes,
-    slotDate: slots.slotDate,
-    doctorId: slots.doctorId,
-    selectedStart: slots.selectedStart,
-    selectedEnd: slots.selectedEnd,
-    selectedSlotDoctorId: slots.selectedSlotDoctorId,
+    slotDate,
+    doctorId,
+    selectedStart,
+    selectedEnd,
+    selectedSlotDoctorId,
     setSubmitFieldErrors,
     setSubmitGeneralMessage,
     setDone,
@@ -109,15 +122,7 @@ export function usePublicBookingPageState(referralCode: string) {
           Boolean(lastName.trim()) &&
           Boolean(dateOfBirth.trim()) &&
           dpdpConsentAccepted)),
-    [
-      dateOfBirth,
-      dpdpConsentAccepted,
-      firstName,
-      lastName,
-      phone,
-      requiresOtp,
-      verificationToken,
-    ],
+    [dateOfBirth, dpdpConsentAccepted, firstName, lastName, phone, requiresOtp, verificationToken],
   );
 
   const submitRequestReady = useMemo(() => {
@@ -134,17 +139,7 @@ export function usePublicBookingPageState(referralCode: string) {
       if (!dpdpConsentAccepted) return false;
     }
     return true;
-  }, [
-    slots.slotDate,
-    visitCanContinue,
-    phone,
-    requiresOtp,
-    verificationToken,
-    firstName,
-    lastName,
-    dateOfBirth,
-    dpdpConsentAccepted,
-  ]);
+  }, [slotDate, visitCanContinue, phone, requiresOtp, verificationToken, firstName, lastName, dateOfBirth, dpdpConsentAccepted]);
 
   const goToStep = useCallback(
     (step: PublicBookingMobileStep, focusFieldId?: string) => {
@@ -161,6 +156,18 @@ export function usePublicBookingPageState(referralCode: string) {
     },
     [],
   );
+
+  const selectedCalendarDay = useMemo(() => parseIsoDateToLocalDate(slotDate), [slotDate]);
+
+  useEffect(() => {
+    const parsed = parseIsoDateToLocalDate(slotDate);
+    if (parsed) setCalendarMonth(parsed);
+  }, [slotDate]);
+
+  useEffect(() => {
+    setTimeRangeStart("");
+    setTimeRangeEnd("");
+  }, [slotDate, doctorId]);
 
   useEffect(() => {
     if (requiresOtp === true) {
@@ -187,18 +194,45 @@ export function usePublicBookingPageState(referralCode: string) {
     [slots],
   );
 
-  const handleSelectSlotWithDoctor = useCallback(
-    (startIso: string, endIso: string, slotDoctorId: string) => {
-      slots.handleSelectSlotWithDoctor(startIso, endIso, slotDoctorId);
-      setSubmitFieldErrors((prev) => {
-        const next = { ...prev };
-        delete next.requestedSlotStart;
-        delete next.requestedSlotEnd;
-        return next;
-      });
-    },
-    [slots],
+  const clearSlotSelection = useCallback(() => {
+    setSelectedStart(null);
+    setSelectedEnd(null);
+    setSelectedSlotDoctorId(null);
+  }, []);
+
+  const selectedDoctor = useMemo(
+    () => (doctorsQuery.data?.doctors ?? []).find((d) => d.id === doctorId),
+    [doctorId, doctorsQuery.data?.doctors],
   );
+  const selectedDoctorName =
+    doctorId === ANY_DOCTOR_ID ? "Any available doctor" : selectedDoctor?.name ?? null;
+
+  const clinic = clinicQuery.data;
+  const allSlots = useMemo(() => slotsQuery.data?.slots ?? [], [slotsQuery.data?.slots]);
+  const availableSlots = useMemo(() => allSlots.filter((s) => s.isAvailable), [allSlots]);
+
+  const timeRangeOptions = useMemo(() => {
+    const uniq = (values: string[]) => Array.from(new Set(values)).filter(Boolean);
+    const sortIso = (a: string, b: string) => new Date(a).getTime() - new Date(b).getTime();
+    return {
+      starts: uniq(allSlots.map((s) => s.startTime)).sort(sortIso),
+      ends: uniq(allSlots.map((s) => s.endTime)).sort(sortIso),
+    };
+  }, [allSlots]);
+
+  const filteredAvailableSlots = useMemo(() => {
+    if (!timeRangeStart && !timeRangeEnd) return availableSlots;
+    const startMs = timeRangeStart ? new Date(timeRangeStart).getTime() : null;
+    const endMs = timeRangeEnd ? new Date(timeRangeEnd).getTime() : null;
+    return availableSlots.filter((s) => {
+      const sStart = new Date(s.startTime).getTime();
+      const sEnd = new Date(s.endTime).getTime();
+      if (Number.isNaN(sStart) || Number.isNaN(sEnd)) return false;
+      if (startMs !== null && sStart < startMs) return false;
+      if (endMs !== null && sEnd > endMs) return false;
+      return true;
+    });
+  }, [availableSlots, timeRangeEnd, timeRangeStart]);
 
   return {
     referralCode,

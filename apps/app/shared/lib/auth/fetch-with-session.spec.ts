@@ -1,5 +1,4 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
-import { isRecord } from "@workspace/utils";
 import { fetchJsonWithSession, fetchWithSession } from "@/lib/auth/fetch-with-session";
 import { appSession } from "@/lib/auth/session";
 

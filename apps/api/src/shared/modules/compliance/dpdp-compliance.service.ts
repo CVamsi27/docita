@@ -8,12 +8,40 @@ import type {
   DpdpNoticeConsentInput,
 } from './dpdp-compliance.types';
 
-export {
-  DataSubjectRight,
-  type ConsentRecord,
-  type DataSubjectRequest,
-  type DpdpNoticeConsentInput,
-} from './dpdp-compliance.types';
+export enum DataSubjectRight {
+  ERASURE = 'ERASURE',
+}
+
+interface ConsentRecord {
+  patientId: string;
+  clinicId: string;
+  consentType: ConsentType;
+  status: ConsentStatus;
+  purpose: string;
+  givenBy?: string;
+  givenAt?: Date;
+  expiresAt?: Date;
+  metadata?: Record<string, unknown>;
+}
+
+interface DataSubjectRequest {
+  patientId: string;
+  clinicId: string;
+  requestType: DataSubjectRight;
+  reason?: string;
+  requestedBy: string;
+  metadata?: Record<string, unknown>;
+}
+
+function getRequireConsentBeforeSending(value: unknown): boolean | undefined {
+  if (!value || typeof value !== 'object') {
+    return undefined;
+  }
+
+  const consentFlag = (value as { requireConsentBeforeSending?: unknown })
+    .requireConsentBeforeSending;
+  return typeof consentFlag === 'boolean' ? consentFlag : undefined;
+}
 
 /**
  * Facade for DPDP compliance operations. Delegates to consent and data-subject services.

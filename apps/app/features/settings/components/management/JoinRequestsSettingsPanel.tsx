@@ -1,11 +1,54 @@
 "use client";
 
-import { UserPlus } from "lucide-react";
-import { Card } from "@workspace/ui/components/indicators/card";
-import { LoadingState } from "@workspace/ui/components/feedback/empty-state";
-import { JoinRequestCard } from "./join-request-card";
-import { JoinRequestReviewDialogs } from "./join-request-review-dialogs";
-import { useJoinRequestsSettings } from "./use-join-requests-settings";
+import { useState } from "react";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import {
+  UserPlus,
+  Mail,
+  Phone,
+  Clock,
+  CheckCircle2,
+  XCircle,
+} from "lucide-react";
+import { Card } from "@workspace/ui/components/card";
+import { Button } from "@workspace/ui/components/button";
+import { Badge } from "@workspace/ui/components/badge";
+import { LoadingState } from "@workspace/ui/components/empty-state";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@workspace/ui/components/select";
+import { Textarea } from "@workspace/ui/components/textarea";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogDescription,
+  DialogFooter,
+} from "@workspace/ui/components/dialog";
+import { toast } from "sonner";
+import { typedApi } from "@/lib/api/api-client";
+import { formatDistanceToNow } from "@workspace/utils";
+import { showUserFacingErrorToast } from "@/lib/errors/user-facing-errors";
+
+interface JoinRequest {
+  id: string;
+  status: string;
+  requestedRole: string;
+  message?: string;
+  requestedAt: string;
+  expiresAt?: string;
+  user: {
+    id: string;
+    name: string;
+    email: string;
+    phoneNumber?: string;
+  };
+}
 
 export function JoinRequestsSettingsPanel() {
   const panel = useJoinRequestsSettings();

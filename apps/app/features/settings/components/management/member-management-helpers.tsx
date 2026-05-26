@@ -7,14 +7,15 @@ import {
   CardDescription,
   CardHeader,
   CardTitle,
-} from "@workspace/ui/components/indicators/card";
-import { Button } from "@workspace/ui/components/form/button";
-import { Badge } from "@workspace/ui/components/indicators/badge";
-import { Skeleton } from "@workspace/ui/components/feedback/skeleton";
+} from "@workspace/ui/components/card";
+import { Button } from "@workspace/ui/components/button";
+import { Badge } from "@workspace/ui/components/badge";
+import { Skeleton } from "@workspace/ui/components/skeleton";
 import { Copy, UserPlus } from "lucide-react";
 import { User } from "@workspace/types";
 import {
-  memberRoleDisplayLabel,
+  MEMBER_ROLE_LABELS,
+  type MemberRole,
 } from "@/features/settings/components/management/member-management-schemas";
 
 // ---------------------------------------------------------------------------
@@ -51,7 +52,7 @@ export const MemberManagementLoadingSkeleton: FC<
   <Card role="status" aria-live="polite" aria-label="Loading team members">
     <CardHeader className="flex flex-row items-center justify-between">
       <div>
-        <CardTitle>Team members</CardTitle>
+        <CardTitle>Team Members</CardTitle>
         <CardDescription>
           Manage your {facilityLabel.toLowerCase()} staff
         </CardDescription>
@@ -101,7 +102,9 @@ export const MemberListRow: FC<MemberListRowProps> = ({ member, onManage }) => {
           <div className="mt-1 flex flex-wrap items-center gap-2 text-xs text-muted-foreground">
             <span>{member.email}</span>
             <Badge variant="outline">
-              {memberRoleDisplayLabel(member.role)}
+              {MEMBER_ROLE_LABELS[member.role as MemberRole] ||
+                member.role ||
+                "Staff"}
             </Badge>
             {isDoctor && (
               <>
@@ -152,7 +155,7 @@ export const MemberCardHeader: FC<MemberCardHeaderProps> = ({
 }) => (
   <CardHeader className="flex flex-col gap-3 md:flex-row md:items-start md:justify-between">
     <div>
-      <CardTitle>Team members</CardTitle>
+      <CardTitle>Team Members</CardTitle>
       <CardDescription>
         Manage {facilityLabel.toLowerCase()} staff and permissions
       </CardDescription>

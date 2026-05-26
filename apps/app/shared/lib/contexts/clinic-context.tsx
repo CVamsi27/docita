@@ -13,15 +13,7 @@ import React, {
 import { usePermissionStore } from "@/lib/stores/permission-store";
 import { useClinicSocket } from "@/hooks/use-clinic-socket";
 import { fetchWithSession } from "@/lib/auth/fetch-with-session";
-import { logger } from "@/lib/monitoring/logger";
-import { appClinicSchema, tierSchema } from "@workspace/types";
-import {
-  type Clinic,
-  getFacilityLabelFromSettings,
-  getStoredClinicId,
-  subscribeToWindowFocus,
-  toBooleanFeatureOverrides,
-} from "@/lib/contexts/clinic-context-helpers";
+import { appClinicSchema, type AppClinic } from "@workspace/types";
 
 export type { Clinic } from "@/lib/contexts/clinic-context-helpers";
 

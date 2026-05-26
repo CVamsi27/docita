@@ -27,6 +27,7 @@ It adapts and consolidates guidance from `CONTRIBUTING.md` and `.github/copilot-
   - `packages/data-access` (API clients + React Query)
   - `packages/ui` (shared UI)
   - `packages/db` (Prisma)
+  - `packages/auth` (cross-app access semantics)
   - `packages/hooks` (framework-agnostic React hooks)
   - `packages/utils` (framework-agnostic helpers)
   - `packages/eslint-config`, `packages/typescript-config` (shared configs)
@@ -39,36 +40,22 @@ docita/
 │   ├── api/                  NestJS backend
 │   │   └── src/
 │   │       ├── domains/<domain>/{application,core,infrastructure,presentation}
-│   │       └── shared/
-│   │           ├── modules/  NestJS feature modules (auth, audit, cache, database, ...)
-│   │           ├── common/   legacy generic utilities migrated from src/common/ (interceptors, pipes, builders, ...)
-│   │           ├── schedule/, services/
+│   │       ├── shared/       cross-cutting modules (auth, guards, interceptors, ...)
+│   │       └── common/       legacy generic utilities (being phased into shared/)
 │   ├── worker/               NestJS background worker (shares infra with api)
 │   ├── app/                  Next.js - main clinician app
 │   │   ├── app/              App Router routes
 │   │   ├── features/<feature>/{components,hooks,rules,lib,api,index.ts}
-│   │   ├── providers/        app-level React providers (query, navigation)
-│   │   ├── types/            ambient declarations + barrel re-export of @workspace/types
-│   │   ├── test/             test-helper render() wrapper
+│   │   ├── providers/
 │   │   └── shared/           non-feature code reused across features
-│   │       ├── components/   common/{auth,buttons,dialogs,inputs,i18n,loaders,monitoring,navigation,pwa}/ + a few loose primitives
-│   │       ├── hooks/        generic hooks + api/ subfolder of data-access hook aggregators
-│   │       └── lib/          grouped by concern (see below)
-│   │           ├── auth/            auth-context, session, fetch-with-session, browser-session/request, csrf, safe-return-path, permissions
-│   │           ├── contexts/        app-config, clinic, socket, tier-config providers
-│   │           ├── api/             api-client + error handler + config + core + query-keys/hooks + react-query-config + optimistic-updates + network-error
-│   │           ├── monitoring/      logger, client-error-reporting, sentry.client.config, sentry-phi-redactor
-│   │           ├── security/        security-headers
-│   │           ├── access-control/  policy engine + routes (extends existing decorators/rules)
-│   │           ├── subscription/    lockout + settings-path
-│   │           ├── errors/          error-parser + user-facing-errors
-│   │           ├── formatters/, validation/, rules/, services/, stores/, types/, i18n/, http/, constants/, utils/
-│   │           └── (root)           branding, config, tier-config, support-contact, url, utils, plus a few feature-helper files
+│   │       ├── components/   was: apps/app/components/
+│   │       ├── hooks/        was: apps/app/hooks/
+│   │       └── lib/          was: apps/app/lib/
 │   ├── internal/             Next.js - admin/internal dashboard (same shape as app)
 │   │   ├── app/
 │   │   ├── features/
 │   │   ├── providers/
-│   │   └── shared/{components,hooks,lib{auth,api,monitoring,errors,formatters,stores}}
+│   │   └── shared/{components,hooks,lib}
 │   └── landing/              Astro marketing site
 ├── packages/
 │   ├── auth/                 access + token semantics (tests in __tests__/)
@@ -451,17 +438,6 @@ These principles are mandatory for every change. Apply them pragmatically; do no
 
 ### 12.6 Principle-first review (SOLID, patterns, KISS)
 
-Line count is a **backstop**, not the definition of quality. Before splitting or merging modules, ask:
-
-1. **Single responsibility** — Does this file have one reason to change? Flag mixes of routing, server I/O, business rules, and large JSX trees in one module.
-2. **KISS** — Is this the simplest structure that works? Reject splits that only shuffle lines (thin pass-through wrappers, duplicate props drilling) or abstractions with a single caller and no duplicate removed.
-3. **Required patterns** — Does the change follow §15.1–15.3 and §15.6–15.7 (repository, CQS, facade, feature layout, hooks vs sections, `DataState`, Zod/data-access boundaries)?
-4. **Dependency direction** — Do apps depend on `packages/*` and feature hooks, not on Prisma, raw `fetch`, or cross-feature deep imports?
-
-Use `pnpm verify:standard`, targeted tests, and the automation map in §15.11. Run `pnpm audit:structure` when relocating or splitting large surfaces (advisory report, not a substitute for review).
-
-### 12.7 Future work convention
-
 - Every PR opened from this point on MUST comply with §4.3 (UI consistency), §7 (logging/comments/hygiene), §8 (typography), §12 (SOLID/KISS/DRY/patterns), and the Origin-inspired standard in [`docs/ui/UI_UX_STANDARD_2026.md`](docs/ui/UI_UX_STANDARD_2026.md).
 - Deviations are allowed only when documented inline in the PR description with a one-line rationale and, when relevant, a follow-up issue link. "We will fix it later" is not a rationale.
 - Reviewers should block merges that introduce app-local duplicates of `@workspace/ui` primitives, parallel hand-written types alongside Zod schemas, or new pages that skip `AppPageScaffold` / `PageHeader` / `DataState` without justification.
@@ -537,7 +513,6 @@ When this file says to follow existing patterns, use these concrete references b
 
 - **Feature layout**: `apps/app/features/<feature>/{components,hooks,rules,lib,types,index.ts}` with public imports through `index.ts`.
 - **Non-feature code** (shared across features) lives in `apps/<app>/shared/{components,hooks,lib}` and is reached via `@/components/...`, `@/hooks/...`, `@/lib/...` (the aliases now resolve into `shared/`). Promote into `packages/ui`, `packages/hooks`, or `packages/utils` once a second app needs it.
-- **Per-domain data hooks** live in `packages/data-access/src/hooks/` (e.g. `useAppointments`, `usePatients`, `useBillingHistory`). The package owns the React Query wrappers; the app injects the session-aware fetcher via `<DataAccessProvider>` (mounted by `apps/app/providers/data-access-bridge.tsx`). Add new data hooks here, not in app-local API hook folders. App-only composition (auth, locale, toasts) belongs in `apps/app/features/<feature>/hooks/` (e.g. `features/subscription/hooks/use-pricing.ts`, `features/patients/hooks/use-patient-history.ts`). The legacy `apps/app/shared/hooks/api/` directory must stay deleted (`check:legacy-app-api-hooks`).
 - **Pages**: route files compose feature shells; business logic belongs in feature components/hooks.
 - **Data fetching**: feature code consumes `packages/data-access` hooks or approved app API wrappers. Inline `fetch` in client features is blocked by `scripts/checks/check-frontend-fetch.mjs`.
 - **State**: React Query for server state, established stores for cross-cutting client state, and local state only for view-local behavior.
@@ -554,47 +529,18 @@ When this file says to follow existing patterns, use these concrete references b
 
 ### 15.4 SOLID Principles Applied (2026-05 audit)
 
-- **Single Responsibility**: one reason to change per module. Backend: Command/Query/calculator split when a service owns unrelated reads and writes. Frontend: route/page composes; `use-*` hook owns state and I/O; `*-sections.tsx` / row components own JSX fragments.
+- **Single Responsibility**: each service/component has one reason to change. Large services split into Command/Query/pure-calculator trios. Large components split into orchestrator + sub-sections + custom hooks.
 - **Open/Closed**: `Feature` enum + `FEATURE_TIER_MAP` are the extension point — add features without modifying guards. New tier capabilities extend the matrix, not existing code.
 - **Liskov Substitution**: repository interfaces (`IAppointmentRepository`, etc.) allow DI swapping. The `StorageProvider` abstraction lets R2/S3 swap without touching service logic.
 - **Interface Segregation**: controllers depend on split services (Command vs Query), not fat facades. React components receive only the props they render.
-- **Dependency Inversion**: NestJS `@Inject('IAppointmentRepository')` tokens bind interfaces, not concretions. React hooks (`usePatientMetricsUI`, `useOnboardingDraft`) abstract data from render; UI must not call `fetch` or Prisma directly.
+- **Dependency Inversion**: NestJS `@Inject('IAppointmentRepository')` tokens bind interfaces, not concretions. React hooks (`usePatientMetricsUI`, `useOnboardingDraft`) abstract data from render.
 
-### 15.5 Module shape and decomposition (principle-first)
+### 15.5 Decomposition Rules (enforced patterns)
 
-Split or extract when **responsibility**, **pattern fit**, or **duplication** demand it — not to chase a line target.
-
-**Split when (review criteria):**
-
-| Signal | Backend | Frontend |
-| --- | --- | --- |
-| Mixed read/write orchestration | Introduce `XQueryService` + `XCommandService`; optional `XCalculator` for pure math | — |
-| Fat persistence in a “facade” | Delegate to command/query; keep `XService` as thin facade if needed for tests | — |
-| UI + data + navigation in one component | — | `use-<feature>.ts` + `*-sections.tsx` / row components + thin page shell |
-| Repeated JSX or rules | Shared helper or `@workspace/ui` primitive | `*-helpers.ts` (no React) or shared section component |
-| Cross-feature coupling | — | Move to `packages/*` or `shared/` only when ≥2 features need it |
-
-**KISS guardrails:**
-
-- Do not add a new file unless it **removes duplication** or **isolates a distinct responsibility**.
-- Prefer one clear hook over several single-use 10-line wrappers.
-- Barrel re-exports (`index.ts`) expose the feature API; avoid deep imports around the public surface.
-
-**Canonical frontend split (when the table above applies):**
-
-- `use-<surface>.ts` — `useState`, `useMemo`, `useEffect`, React Query, mutations, derived values.
-- `<surface>-sections.tsx` or `<surface>-<part>.tsx` — presentational blocks; props in, events out; no `fetch`.
-- `<surface>-helpers.ts` — pure functions/constants; no React imports.
-- Route/page file — composes feature shell only (`AppPageScaffold`, `PageHeader`, `DataState`).
-
-**Canonical backend split (when the table above applies):**
-
-- `XCommandService` / `XQueryService` (+ optional calculator) registered in the domain module.
-- Facade `XService` may remain for stable constructor/DI compatibility; must delegate (`check:facade-delegation`).
-
-**Line-count backstop (automation only):** `pnpm check:file-size-budget` fails API `*.service.ts` and `apps/app/features/**` files above **400** lines (tests excluded). `pnpm audit:structure` may **advise** splits (e.g. feature components >400 lines, controllers >260, route pages >180). Passing the backstop does **not** prove SOLID; failing it means split or document an exception in the PR.
-
-**Imports:** cross-directory imports use `@/` or `@workspace/...`. Sibling `./` imports are allowed; parent `../` is ESLint-banned.
+- **Backend services >400 lines**: split into `XCommandService` (mutations) + `XQueryService` (reads) + optional `XCalculator` (pure math). Register all three in the module. A facade `XService` may keep the original constructor signature for test compatibility.
+- **Frontend components >400 lines**: extract to `orchestrator.tsx` (state wiring only) + `component-sections.tsx` (JSX blocks, accepts props) + `component-helpers.ts` (pure functions and constants, no React) + `use-component.ts` (data + mutations).
+- **Custom hooks own data**: `useState`, `useMemo`, `useEffect`, mutations, and derived values live in hooks. Components only render JSX.
+- **No parent-relative imports**: cross-directory imports use `@/` alias. Sibling imports (`./`) are allowed; parent traversal (`../`) is banned by ESLint.
 
 ### 15.6 Design Patterns in Use
 
@@ -618,9 +564,7 @@ Split or extract when **responsibility**, **pattern fit**, or **duplication** de
 
 - `Tier.INTELLIGENCE` and `Tier.FRONT_DESK` are **never** compared with `>=`. Use the `hasIntelligence` flag or `hasFeatureAccess(Feature.X)`.
 - All 56 `Feature` enum values map to tiers via `FEATURE_TIER_MAP`. Both backend (`assertClinicHasFeatureOrThrow`) and frontend (`<FeatureGate>`) derive from this single source of truth.
-- **Front Desk is tier-only.** A clinic on the Front Desk billed SKU has `clinic.tier === Tier.FRONT_DESK`. There is no `settings.workspaceProfile`, workspace-mode picker, or plan→profile resolver — onboarding and billing set the tier directly.
-- **Canonical Front Desk helpers** (all in `@workspace/types`): `isFrontDeskTier(tier)`; `FRONT_DESK_BLOCKED_FEATURES` for `@RequireFeature` / `hasFeatureAccess` denials; `FRONT_DESK_BLOCKED_ACCESS_TARGETS` and `shouldDenyAccessForFrontDeskTier` for route/API access policy. Prefer these helpers over ad-hoc `tier === "FRONT_DESK"` checks at call sites.
-- **Removed symbols** (do not reintroduce): `workspaceProfile`, `isFrontDeskClinicMode`, `isFrontDeskWorkspace`, `resolveWorkspaceProfileForPlan`, `WorkspaceModeCard`, `WorkspaceSelector`. `pnpm check:workspace-profile-gating` fails the build if they appear outside migration SQL and [`scripts/checks/check-workspace-profile-gating.mjs`](scripts/checks/check-workspace-profile-gating.mjs) (historical script name).
+- `FRONT_DESK_BLOCKED_FEATURES` is the exhaustive blocklist for workspace-profile gating. Do not gate by ad-hoc `workspaceProfile === "FRONT_DESK"` conditionals anywhere else.
 
 ### 15.9 Import Discipline
 
@@ -640,26 +584,3 @@ Relative parent imports (`../`) are ESLint-banned across all apps. Use `@/` abso
 - Spec files live next to the service file. Integration specs for controllers go in `apps/api/test/`.
 - Pure helpers (`XCalculator`, `*-helpers.ts`) must have standalone unit tests — no DI container required.
 - When a service is split into Command/Query/Calculator, each file gets its own spec. The facade spec covers only delegation and module wiring.
-
-### 15.11 Automation map (what CI enforces vs what agents must review)
-
-Mechanical checks catch **boundary violations**; they do not fully enforce SOLID or KISS. Agents and reviewers must still apply §12.6 and §15.5.
-
-| Principle / pattern | Command(s) | What it actually checks |
-| --- | --- | --- |
-| **Layering / DDD** | `pnpm check:prisma-boundary`, `pnpm check:api-domain-layout`, `pnpm check:cross-domain-*-imports` | Prisma and domain folder boundaries |
-| **Repository + thin controller** | `pnpm check:controller-cqs`, `pnpm check:route-thinness` | Controllers orchestrate; routes stay thin |
-| **Facade / CQS** | `pnpm check:facade-delegation --enforce` | Large application services delegate instead of embedding persistence |
-| **Zod-first / contracts** | `pnpm check:contracts-strict`, `pnpm verify:contracts`, `pnpm check:type-duplicates` | Shared schemas; no duplicate DTO shapes |
-| **Data access (frontend)** | `pnpm check:frontend-fetch`, `pnpm check:legacy-app-api-hooks` | No inline client `fetch`; legacy app API hook dir stays gone |
-| **Feature / package boundaries** | `pnpm check:feature-boundaries`, `pnpm check:package-boundaries` | Imports stay inside feature and package rules |
-| **Tier / feature gating** | `pnpm check:tier-comparisons`, `pnpm check:workspace-profile-gating` | No numeric tier compares; blocks legacy `workspaceProfile` symbols; tier-only Front Desk via `isFrontDeskTier` |
-| **RBAC** | `pnpm check:controller-rbac` | Controller auth posture declared |
-| **Tenant / RLS** | `pnpm check:auth-tenant-safety`, `pnpm check:rls-rollout-readiness` | Tenant-safe auth; RLS rollout config |
-| **DRY / hygiene** | `pnpm knip`, `pnpm check:hygiene` | Unused exports/deps; repo junk |
-| **Typing discipline** | `pnpm check:as-cast-density`, `pnpm lint`, `pnpm turbo check-types` | Limit type escapes; ESLint rules |
-| **UI contract** | `pnpm check:colors`, `pnpm check:a11y-budget`, Origin standard in §4.3 | Tokens, a11y baseline, page primitives |
-| **Size backstop** | `pnpm check:file-size-budget`, `pnpm audit:structure` | Oversized files (advisory unless `--enforce` on structure) |
-| **Rules unit tests** | `pnpm check:domain-rules-tests` | Feature `rules/*.test.ts` present where required |
-
-**Bundle:** `pnpm verify:standard` runs the production guardrail set above (plus hygiene, deployment contracts, PHI/audit checks). Run it before push when touching architecture, auth, data access, or large feature surfaces.

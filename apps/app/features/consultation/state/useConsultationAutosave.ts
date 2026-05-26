@@ -6,8 +6,8 @@ import { queryKeys } from "@workspace/data-access";
 import {
   useConsultationAutosaveUpdateAppointment,
   useSyncDiagnoses,
-} from "@workspace/data-access";
-import { useCreatePrescription } from "@workspace/data-access";
+} from "@/hooks/api/use-appointments";
+import { useCreatePrescription } from "@/hooks/api/use-clinical";
 import { logger } from "@/lib/monitoring/logger";
 import { showUserFacingErrorToast } from "@/lib/errors/user-facing-errors";
 import {

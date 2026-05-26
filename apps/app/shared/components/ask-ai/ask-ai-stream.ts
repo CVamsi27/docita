@@ -1,5 +1,4 @@
 import { fetchWithSession } from "@/lib/auth/fetch-with-session";
-import { isRecord } from "@workspace/utils";
 import type { AskAiScope } from "./ask-ai-context";
 
 export interface AskAiHistoryItem {

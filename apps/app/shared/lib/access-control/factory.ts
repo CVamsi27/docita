@@ -7,12 +7,12 @@ import type {
 } from "./interfaces";
 import { AccessControlService } from "./service";
 import { SubscriptionRepository } from "./repository";
-import { TierBasedAccessRule } from "./rules/tier-based-rule";
-import { AddOnBasedAccessRule } from "./rules/addon-based-rule";
-import { OverrideAccessRule } from "./rules/override-rule";
-import { SubscriptionStatusRule } from "./rules/subscription-status-rule";
-import { RoleBasedAccessRule } from "./rules/role-based-rule";
-import { ClinicTypeBasedAccessRule } from "./rules/clinic-type-rule";
+import { TierBasedAccessRule } from "../rules/tier-based-rule";
+import { AddOnBasedAccessRule } from "../rules/addon-based-rule";
+import { OverrideAccessRule } from "../rules/override-rule";
+import { SubscriptionStatusRule } from "../rules/subscription-status-rule";
+import { RoleBasedAccessRule } from "../rules/role-based-rule";
+import { ClinicTypeBasedAccessRule } from "../rules/clinic-type-rule";
 import { LoggingAccessControlDecorator } from "./decorators/logging-decorator";
 import { AnalyticsAccessControlDecorator } from "./decorators/analytics-decorator";
 

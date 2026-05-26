@@ -3,7 +3,7 @@ import {
   Tooltip,
   TooltipContent,
   TooltipTrigger,
-} from "@workspace/ui/components/overlay/tooltip";
+} from "@workspace/ui/components/tooltip";
 import { COLOR_PALETTE } from "./patient-tag-manager-logic";
 
 export interface ColorPickerGridProps {

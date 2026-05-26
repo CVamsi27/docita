@@ -3,7 +3,6 @@ import { useDocuments } from "@workspace/data-access";
 import type { Document } from "@workspace/types";
 import { useDebounce } from "@workspace/hooks/use-debounce";
 import { browserRequest } from "@/lib/auth/browser-request";
-import { logger } from "@/lib/monitoring/logger";
 
 export type SortKey = "date" | "patient" | "type" | "filename";
 export type SortDirection = "asc" | "desc";

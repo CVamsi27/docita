@@ -1,8 +1,11 @@
 "use client";
 
 import { useEffect } from "react";
-import { DocitaLoadingIndicator } from "@workspace/ui/components/feedback/docita-loading-indicator";
-import { GoogleMap, Marker } from "@react-google-maps/api";
+import { DocitaLoadingIndicator } from "@workspace/ui/components/docita-loading-indicator";
+import {
+  GoogleMap,
+  Marker,
+} from "@react-google-maps/api";
 import {
   MapContainer,
   Marker as LeafletMarker,
@@ -11,6 +14,7 @@ import {
   useMapEvents,
 } from "react-leaflet";
 import type { LatLngExpression, LeafletMouseEvent } from "leaflet";
+import type { LatLng as LeafletLatLng } from "leaflet";
 import type { Map as LeafletMapInstance } from "leaflet";
 import { type LatLng, LEAFLET_MARKER_ICON } from "./address-utils";
 
@@ -64,9 +68,7 @@ function LeafletMapHandle({
   onReady: (map: LeafletMapInstance) => void;
 }) {
   const map = useMap();
-  useEffect(() => {
-    onReady(map);
-  }, [map, onReady]);
+  useEffect(() => { onReady(map); }, [map, onReady]);
   return null;
 }
 
@@ -199,16 +201,10 @@ export function AddressMapPreview({
           draggable
           eventHandlers={{
             dragend: (event) => {
-              const target = event.target;
-              if (
-                !target ||
-                typeof target !== "object" ||
-                !("getLatLng" in target) ||
-                typeof target.getLatLng !== "function"
-              ) {
-                return;
-              }
-              const ll = target.getLatLng();
+              const marker = event.target as {
+                getLatLng: () => LeafletLatLng;
+              };
+              const ll = marker.getLatLng();
               void onPickOSM({ lat: ll.lat, lng: ll.lng });
             },
           }}

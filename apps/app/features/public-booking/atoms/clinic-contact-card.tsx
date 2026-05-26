@@ -1,8 +1,8 @@
 "use client";
 
 import { Building2, Clock, Globe, Mail, MapPin, Phone } from "lucide-react";
-import { Card, CardContent, CardHeader, CardTitle } from "@workspace/ui/components/indicators/card";
-import { MicroLabel } from "@workspace/ui/components/indicators/micro-label";
+import { Card, CardContent, CardHeader, CardTitle } from "@workspace/ui/components/card";
+import { MicroLabel } from "@workspace/ui/components/micro-label";
 import { bookingCardClass, bookingSectionHeaderBar, bookingSectionShell } from "./booking-constants";
 import { cn } from "@workspace/ui/lib/utils";
 import type { PublicBookingClinicResponse } from "@workspace/types";

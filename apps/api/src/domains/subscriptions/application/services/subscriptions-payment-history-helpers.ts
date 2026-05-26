@@ -1,6 +1,13 @@
 /** Pure helpers for payment-history normalization — no DI, no @Injectable. */
 
-import type { PaymentHistoryRecord } from './subscription-payment-history.types';
+type PaymentHistoryRecord = {
+  amountCents: number;
+  currency: string;
+  status?: string;
+  description?: string | null;
+  createdAt: Date;
+  getStatus?: () => unknown;
+};
 
 export function normalizePaymentHistory<T extends PaymentHistoryRecord>(
   records: T[],
@@ -46,7 +53,7 @@ function isTierUpgradeSubscriptionDescription(
   description: string | null | undefined,
 ): boolean {
   if (!description || typeof description !== 'string') return false;
-  return /\b(STARTER|ESSENTIAL|FRONT_DESK|FRONT_DESK_CLINIC|FRONT_DESK_HOSPITAL|PROFESSIONAL|HOSPITAL|ENTERPRISE)\s+(MONTHLY|YEARLY)\s+subscription\b/i.test(
+  return /\b(STARTER|ESSENTIAL|FRONT_DESK|PROFESSIONAL|HOSPITAL|ENTERPRISE)\s+(MONTHLY|YEARLY)\s+subscription\b/i.test(
     description.trim(),
   );
 }
@@ -58,7 +65,7 @@ function parseTierFromUpgradeDescription(
   const m = description
     .trim()
     .match(
-      /^(STARTER|ESSENTIAL|FRONT_DESK|FRONT_DESK_CLINIC|FRONT_DESK_HOSPITAL|PROFESSIONAL|HOSPITAL|ENTERPRISE)\s+(MONTHLY|YEARLY)\s+subscription$/i,
+      /^(STARTER|ESSENTIAL|FRONT_DESK|PROFESSIONAL|HOSPITAL|ENTERPRISE)\s+(MONTHLY|YEARLY)\s+subscription$/i,
     );
   return m?.[1] ? m[1].toUpperCase() : null;
 }
@@ -84,10 +91,7 @@ export function collapseStaleUpgradePendingCheckouts<
 >(records: T[]): T[] {
   const pendingUpgradeIndexes: number[] = [];
   for (let i = 0; i < records.length; i++) {
-    const record = records[i];
-    if (!record) {
-      continue;
-    }
+    const record = records[i]!;
     const status = (
       record.status ?? String(record.getStatus?.() ?? '')
     ).toLowerCase();
@@ -97,14 +101,10 @@ export function collapseStaleUpgradePendingCheckouts<
   }
   if (pendingUpgradeIndexes.length <= 1) return records;
 
-  const firstPendingIndex = pendingUpgradeIndexes[0];
-  if (firstPendingIndex === undefined) {
-    return records;
-  }
-  let newestIndex = firstPendingIndex;
-  let newestTs = new Date(records[newestIndex].createdAt).getTime();
+  let newestIndex = pendingUpgradeIndexes[0]!;
+  let newestTs = new Date(records[newestIndex]!.createdAt).getTime();
   for (const idx of pendingUpgradeIndexes) {
-    const ts = new Date(records[idx].createdAt).getTime();
+    const ts = new Date(records[idx]!.createdAt).getTime();
     if (ts >= newestTs) {
       newestTs = ts;
       newestIndex = idx;

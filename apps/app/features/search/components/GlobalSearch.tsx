@@ -1,9 +1,17 @@
 "use client";
 
-import { Search, X } from "lucide-react";
-import { Button } from "@workspace/ui/components/form/button";
-import { SymbolTooltip } from "@workspace/ui/components/overlay/tooltip";
-import { Input } from "@workspace/ui/components/form/input";
+import { DocitaLoadingIndicator } from "@workspace/ui/components/docita-loading-indicator";
+
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { useQuery } from "@tanstack/react-query";
+import { useRouter } from "next/navigation";
+import { AlertTriangle, Calendar, FileText, Search, User, X } from "lucide-react";
+import { useDebounce } from "@workspace/hooks/use-debounce";
+import { sanitizeUserFacingMessage } from "@workspace/types";
+import { appQueryKeys } from "@/lib/api/query-keys";
+import { Button } from "@workspace/ui/components/button";
+import { SymbolTooltip } from "@workspace/ui/components/tooltip";
+import { Input } from "@workspace/ui/components/input";
 import {
   Popover,
   PopoverContent,
@@ -127,3 +135,4 @@ export function GlobalSearch({ onResultClick }: GlobalSearchProps) {
     </Popover>
   );
 }
+

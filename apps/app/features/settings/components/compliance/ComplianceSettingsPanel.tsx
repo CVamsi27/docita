@@ -3,22 +3,18 @@
 import { FormEvent, useState } from "react";
 import { toast } from "sonner";
 import { useAuth } from "@/lib/auth/auth-context";
-import {
-  Alert,
-  AlertDescription,
-} from "@workspace/ui/components/feedback/alert";
+import { Alert, AlertDescription } from "@workspace/ui/components/alert";
 import {
   Card,
   CardContent,
   CardDescription,
   CardHeader,
   CardTitle,
-} from "@workspace/ui/components/indicators/card";
+} from "@workspace/ui/components/card";
 import { FileText, CheckCircle2 } from "lucide-react";
 import { formatDate } from "@workspace/utils";
 import { ClinicSlaSignatureQR } from "@/features/settings/components/clinic-sla-signature-qr";
 import { useAPIMutation, useAPIQuery } from "@/lib/api/api-core";
-import { queryKeys } from "@/lib/api/query-keys";
 import { showUserFacingErrorToast } from "@/lib/errors/user-facing-errors";
 import {
   createDataSubjectRequestSchema,

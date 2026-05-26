@@ -1,9 +1,6 @@
-import { Injectable, Inject } from '@nestjs/common';
+import { Injectable } from '@nestjs/common';
 import { MetricCardinality, MetricCaptureScope, Prisma } from '@workspace/db';
-import {
-  APPOINTMENT_PERSISTENCE_PORT,
-  type AppointmentPersistencePort,
-} from '@/domains/appointments/application/ports/appointment-persistence.port';
+import { PrismaService } from '@/prisma/prisma.service';
 
 type MetricDefinitionConfig = {
   key: string;
@@ -18,10 +15,7 @@ type MetricDefinitionConfig = {
  */
 @Injectable()
 export class AppointmentMetricDefinitionService {
-  constructor(
-    @Inject(APPOINTMENT_PERSISTENCE_PORT)
-    private readonly persistence: AppointmentPersistencePort,
-  ) {}
+  constructor(private readonly prisma: PrismaService) {}
 
   async ensureMetricDefinitions(input: {
     clinicId: string;
@@ -50,7 +44,7 @@ export class AppointmentMetricDefinitionService {
     const definitionKeys = Array.from(definitionConfigByKey.keys());
     const categoryKey = input.categoryKey.trim().toLowerCase();
 
-    let category = await this.persistence.metricCategory.findFirst({
+    let category = await this.prisma.metricCategory.findFirst({
       where: {
         clinicId: input.clinicId,
         key: categoryKey,
@@ -60,7 +54,7 @@ export class AppointmentMetricDefinitionService {
     });
 
     if (!category) {
-      category = await this.persistence.metricCategory.create({
+      category = await this.prisma.metricCategory.create({
         data: {
           clinicId: input.clinicId,
           key: categoryKey,
@@ -77,12 +71,11 @@ export class AppointmentMetricDefinitionService {
       OR: [{ isPatientScoped: false }, { patientId: input.patientId }],
     } satisfies Prisma.MetricDefinitionWhereInput;
 
-    const existingDefinitions =
-      await this.persistence.metricDefinition.findMany({
-        where,
-        select: { id: true, key: true },
-        orderBy: [{ isPatientScoped: 'asc' }, { createdAt: 'asc' }],
-      });
+    const existingDefinitions = await this.prisma.metricDefinition.findMany({
+      where,
+      select: { id: true, key: true },
+      orderBy: [{ isPatientScoped: 'asc' }, { createdAt: 'asc' }],
+    });
 
     const definitionIdsByKey = new Map<string, string>();
     for (const definition of existingDefinitions) {
@@ -96,7 +89,7 @@ export class AppointmentMetricDefinitionService {
     );
 
     if (missingDefinitionKeys.length > 0) {
-      await this.persistence.metricDefinition.createMany({
+      await this.prisma.metricDefinition.createMany({
         data: missingDefinitionKeys
           .map((definitionKey) => {
             const config = definitionConfigByKey.get(definitionKey);
@@ -122,12 +115,11 @@ export class AppointmentMetricDefinitionService {
         skipDuplicates: true,
       });
 
-      const refreshedDefinitions =
-        await this.persistence.metricDefinition.findMany({
-          where,
-          select: { id: true, key: true },
-          orderBy: [{ isPatientScoped: 'asc' }, { createdAt: 'asc' }],
-        });
+      const refreshedDefinitions = await this.prisma.metricDefinition.findMany({
+        where,
+        select: { id: true, key: true },
+        orderBy: [{ isPatientScoped: 'asc' }, { createdAt: 'asc' }],
+      });
 
       for (const definition of refreshedDefinitions) {
         if (!definitionIdsByKey.has(definition.key)) {

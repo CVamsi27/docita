@@ -6,14 +6,11 @@ import {
   type RazorpayResponse,
   useRazorpay,
 } from "@/hooks/use-razorpay";
-import { PaymentFailedError } from "@/hooks/razorpay-checkout-errors";
 import { useAuth } from "@/lib/auth/auth-context";
-import { useOptionalClinic } from "@/lib/contexts/clinic-context";
-import { BRAND_FOREGROUND_HEX } from "@/lib/constants/branding";
+import { BRAND_FOREGROUND_HEX } from "@/lib/branding";
 import { fetchJsonWithSession } from "@/lib/auth/fetch-with-session";
 import { usePermissionStore } from "@/lib/stores/permission-store";
 import { showUserFacingErrorToast } from "@/lib/errors/user-facing-errors";
-import { queryKeys } from "@workspace/data-access";
 import {
   subscriptionBillingActivateResponseSchema,
   subscriptionBillingCheckoutResponseSchema,

@@ -5,7 +5,7 @@ import { queryKeys } from "@workspace/data-access";
 import {
   useCancelAppointment,
   useUpdateAppointment,
-} from "@workspace/data-access";
+} from "@/hooks/api/use-appointments";
 import { showUserFacingErrorToast } from "@/lib/errors/user-facing-errors";
 
 export interface UseAppointmentRowActionsOptions {

@@ -1,4 +1,4 @@
-import { Injectable, Inject } from '@nestjs/common';
+import { Injectable } from '@nestjs/common';
 import type {
   PublicBookingClinicResponse,
   PublicBookingContextResponse,
@@ -8,26 +8,19 @@ import type {
   PublicBookingSlotsResponse,
   PublicBookingSubmitResponse,
 } from '@workspace/types';
-import {
-  PUBLIC_BOOKING_PERSISTENCE_PORT,
-  type PublicBookingPersistencePort,
-} from '@/domains/public-booking/application/ports/public-booking-persistence.port';
+import { PrismaService } from '@/prisma/prisma.service';
 import { DoctorsService } from '@/domains/doctors/application/services/doctors.service';
 import { SlotGenerationService } from '@/domains/doctors/application/services/slot-generation.service';
 import { PatientService } from '@/domains/patients/application/services/patient.service';
 import { DPDPComplianceService } from '@/shared/modules/compliance/dpdp-compliance.service';
 import { AppointmentRequestService } from '@/domains/appointments/application/services/appointment-request.service';
-import {
-  WHATSAPP_CLIENT_TOKEN,
-  type IWhatsAppClient,
-} from '@/domains/whatsapp/application/ports/whatsapp-client.port';
+import { WhatsappClientService } from '@/shared/modules/messaging/whatsapp/whatsapp-client.service';
 import { PublicBookingTokenService } from '@/domains/public-booking/application/services/public-booking-token.service';
 import { TurnstileVerifyService } from '@/domains/public-booking/application/services/turnstile-verify.service';
 import { AppConfigService } from '@/shared/modules/config/app-configuration.service';
 import { PublicBookingSlotsService } from './public-booking-slots.service';
 import { PublicBookingCreationService } from './public-booking-creation.service';
 import { PublicBookingSubmitService } from './public-booking-submit.service';
-import { CLOCK_PORT, type IClock } from '@/shared/common/ports/clock.port';
 
 /**
  * Thin facade — preserves the original constructor signature.
@@ -52,24 +45,22 @@ export class PublicBookingService {
     private readonly turnstile: TurnstileVerifyService,
     private readonly appConfig: AppConfigService,
     private readonly dpdpService: DPDPComplianceService,
-    @Inject(CLOCK_PORT) clock: IClock,
   ) {
     this.slots = new PublicBookingSlotsService(
-      this.persistence,
+      prisma,
       doctorsService,
       slotGeneration,
     );
     this.creation = new PublicBookingCreationService(
-      this.persistence,
+      prisma,
       patientService,
       whatsappClient,
       bookingTokenService,
       turnstile,
       appConfig,
-      clock,
     );
     this.submit = new PublicBookingSubmitService(
-      this.persistence,
+      prisma,
       patientService,
       appointmentRequestService,
       bookingTokenService,

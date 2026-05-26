@@ -2,11 +2,11 @@
 
 import { Calendar as CalendarIcon } from "lucide-react";
 import { useState } from "react";
-import { Alert, AlertDescription } from "@workspace/ui/components/feedback/alert";
-import { Card, CardContent, CardHeader } from "@workspace/ui/components/indicators/card";
-import { MicroLabel } from "@workspace/ui/components/indicators/micro-label";
-import { Separator } from "@workspace/ui/components/layout/separator";
-import { Calendar } from "@workspace/ui/components/form/calendar";
+import { Alert, AlertDescription } from "@workspace/ui/components/alert";
+import { Card, CardContent, CardHeader } from "@workspace/ui/components/card";
+import { MicroLabel } from "@workspace/ui/components/micro-label";
+import { Separator } from "@workspace/ui/components/separator";
+import { Calendar } from "@workspace/ui/components/calendar";
 import { formatDate, formatPickerIsoDate } from "@workspace/utils";
 import { PUBLIC_BOOKING_STEP_FIELD_FOCUS_IDS } from "@/features/public-booking/public-booking-constants";
 import {

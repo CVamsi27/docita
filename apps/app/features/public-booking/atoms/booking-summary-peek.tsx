@@ -1,7 +1,7 @@
 "use client";
 
 import { ChevronDown } from "lucide-react";
-import { MicroLabel } from "@workspace/ui/components/indicators/micro-label";
+import { MicroLabel } from "@workspace/ui/components/micro-label";
 import {
   Sheet,
   SheetContent,
@@ -9,7 +9,7 @@ import {
   SheetHeader,
   SheetTitle,
   SheetTrigger,
-} from "@workspace/ui/components/overlay/sheet";
+} from "@workspace/ui/components/sheet";
 import { formatDate } from "@workspace/utils";
 import { formatTime } from "@/lib/formatters";
 import { RequestSummaryCard } from "./request-summary-card";
@@ -29,18 +29,14 @@ export function PublicBookingSummaryPeek({
   const hasSlot = Boolean(selectedCalendarDay && selectedStart && selectedEnd);
   const hasAll = Boolean(selectedDoctorName) && hasSlot;
   const hasAny = Boolean(selectedDoctorName) || hasSlot;
-  const calendarDay = selectedCalendarDay;
-  const slotStart = selectedStart;
-  const slotEnd = selectedEnd;
 
-  const line =
-    hasAll && calendarDay && slotStart && slotEnd
-      ? `${selectedDoctorName} · ${formatDate(calendarDay, "EEE d MMM")} · ${formatTime(slotStart)}–${formatTime(slotEnd)}`
-      : hasSlot && calendarDay && slotStart && slotEnd
-        ? `${formatDate(calendarDay, "EEE d MMM")} · ${formatTime(slotStart)}–${formatTime(slotEnd)}`
-        : selectedDoctorName
-          ? selectedDoctorName
-          : null;
+  const line = hasAll
+    ? `${selectedDoctorName} · ${formatDate(selectedCalendarDay!, "EEE d MMM")} · ${formatTime(selectedStart!)}–${formatTime(selectedEnd!)}`
+    : hasSlot
+      ? `${formatDate(selectedCalendarDay!, "EEE d MMM")} · ${formatTime(selectedStart!)}–${formatTime(selectedEnd!)}`
+      : selectedDoctorName
+        ? selectedDoctorName
+        : null;
 
   return (
     <Sheet>

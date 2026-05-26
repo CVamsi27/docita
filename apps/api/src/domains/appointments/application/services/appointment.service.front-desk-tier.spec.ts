@@ -12,8 +12,6 @@ import { Role } from '@workspace/db';
 import { AppointmentSchedulingRulesService } from '@/domains/appointments/core/domain-services/appointment-scheduling-rules.service';
 import { AppointmentMetricsService } from './appointment-metrics.service';
 import { AppointmentDiagnosisService } from './appointment-diagnosis.service';
-import { StartConsultationUseCase } from '@/domains/appointments/application/use-cases/start-consultation.use-case';
-import { createStubAppointmentWriteUseCases } from './appointment-use-case.stubs';
 
 describe('AppointmentService front desk tier', () => {
   const mockRepository = {
@@ -86,6 +84,7 @@ describe('AppointmentService front desk tier', () => {
       writeUseCaseStubs.updateAppointmentDetailsUseCase,
       mockPrisma,
       mockEventEmitter,
+      mockSchedulingRules,
       Object.create(
         AppointmentMetricsService.prototype,
       ) as AppointmentMetricsService,

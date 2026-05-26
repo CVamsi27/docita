@@ -2,19 +2,14 @@ import {
   BadRequestException,
   Injectable,
   NotFoundException,
-  Inject,
 } from '@nestjs/common';
-import {
-  CLINIC_PERSISTENCE_PORT,
-  type ClinicPersistencePort,
-} from '@/domains/clinics/application/ports/clinic-persistence.port';
+import { PrismaService } from '@/prisma/prisma.service';
 import { DataSubjectRequestStatus } from '@workspace/db';
 import { AuditService } from '@/shared/modules/audit/audit/audit.service';
 import type {
   CreateDataSubjectRequest,
   UpdateDataSubjectRequest,
 } from '@workspace/types';
-import { CLOCK_PORT, type IClock } from '@/shared/common/ports/clock.port';
 
 /**
  * Handles GDPR / data-subject request lifecycle: creation and status updates.
@@ -23,10 +18,8 @@ import { CLOCK_PORT, type IClock } from '@/shared/common/ports/clock.port';
 @Injectable()
 export class ClinicDataSubjectRequestService {
   constructor(
-    @Inject(CLINIC_PERSISTENCE_PORT)
-    private persistence: ClinicPersistencePort,
+    private prisma: PrismaService,
     private auditService: AuditService,
-    @Inject(CLOCK_PORT) private readonly clock: IClock,
   ) {}
 
   async createDataSubjectRequest(
@@ -36,7 +29,7 @@ export class ClinicDataSubjectRequestService {
     ipAddress?: string,
   ) {
     if (input.patientId) {
-      const patient = await this.persistence.patient.findFirst({
+      const patient = await this.prisma.patient.findFirst({
         where: { id: input.patientId, clinicId, deletedAt: null },
         select: { id: true },
       });
@@ -46,16 +39,15 @@ export class ClinicDataSubjectRequestService {
       }
     }
 
-    const now = this.clock.now();
     const dueAt = input.dueAt
       ? new Date(input.dueAt)
-      : new Date(now.getTime() + 30 * 24 * 60 * 60 * 1000);
+      : new Date(Date.now() + 30 * 24 * 60 * 60 * 1000);
 
     if (Number.isNaN(dueAt.getTime())) {
       throw new BadRequestException('Invalid due date');
     }
 
-    const request = await this.persistence.dataSubjectRequest.create({
+    const request = await this.prisma.dataSubjectRequest.create({
       data: {
         clinicId,
         patientId: input.patientId || undefined,
@@ -92,7 +84,7 @@ export class ClinicDataSubjectRequestService {
     actorUserId: string,
     ipAddress?: string,
   ) {
-    const existing = await this.persistence.dataSubjectRequest.findFirst({
+    const existing = await this.prisma.dataSubjectRequest.findFirst({
       where: { id: requestId, clinicId },
       select: { id: true, status: true },
     });
@@ -119,18 +111,16 @@ export class ClinicDataSubjectRequestService {
     ]);
     const nextStatus = input.status;
     const completedAt =
-      nextStatus && closedStatuses.has(nextStatus)
-        ? this.clock.now()
-        : undefined;
+      nextStatus && closedStatuses.has(nextStatus) ? new Date() : undefined;
 
-    const request = await this.persistence.dataSubjectRequest.update({
+    const request = await this.prisma.dataSubjectRequest.update({
       where: { id: requestId },
       data: {
         status: nextStatus,
         dueAt,
         resolutionNotes: input.resolutionNotes,
         completedAt,
-        handledAt: nextStatus ? this.clock.now() : undefined,
+        handledAt: nextStatus ? new Date() : undefined,
         handledById: nextStatus ? actorUserId : undefined,
       },
     });

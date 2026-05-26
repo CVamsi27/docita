@@ -1,8 +1,8 @@
 "use client";
 
 import type { UseFormReturn } from "react-hook-form";
-import { Checkbox } from "@workspace/ui/components/form/checkbox";
-import { Label } from "@workspace/ui/components/form/label";
+import { Checkbox } from "@workspace/ui/components/checkbox";
+import { Label } from "@workspace/ui/components/label";
 import type { ComplianceSettings } from "@/features/onboarding/components/types";
 
 interface DPDPSectionProps {
@@ -18,7 +18,7 @@ export function DPDPSection({ complianceForm }: DPDPSectionProps) {
           id="requireConsent"
           checked={complianceForm.watch("requireConsent")}
           onCheckedChange={(checked) =>
-            complianceForm.setValue("requireConsent", checked === true, {
+            complianceForm.setValue("requireConsent", checked as boolean, {
               shouldDirty: true,
               shouldTouch: true,
               shouldValidate: true,

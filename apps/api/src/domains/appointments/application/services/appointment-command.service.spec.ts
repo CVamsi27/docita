@@ -7,35 +7,21 @@ import { beforeEach, describe, it, expect, jest } from '@jest/globals';
 import { AppointmentCommandService } from './appointment-command.service';
 import { AppointmentQueryService } from './appointment-query.service';
 import { CreateAppointmentUseCase } from '@/domains/appointments/application/use-cases/create-appointment.use-case';
-import {
-  APPOINTMENT_PERSISTENCE_PORT,
-  type AppointmentPersistencePort,
-} from '@/domains/appointments/application/ports/appointment-persistence.port';
+import { PrismaService } from '@/prisma/prisma.service';
 import { EventEmitter2 } from '@nestjs/event-emitter';
-import { ApplicationEvents } from '@/shared/common/events/application-events';
+import { AppointmentSchedulingRulesService } from '@/domains/appointments/core/domain-services/appointment-scheduling-rules.service';
 import { AppointmentMetricsService } from './appointment-metrics.service';
 import { AppointmentDiagnosisService } from './appointment-diagnosis.service';
-import { CancelAppointmentUseCase } from '@/domains/appointments/application/use-cases/cancel-appointment.use-case';
-import { RescheduleAppointmentUseCase } from '@/domains/appointments/application/use-cases/reschedule-appointment.use-case';
-import { StartConsultationUseCase } from '@/domains/appointments/application/use-cases/start-consultation.use-case';
-import { UpdateAppointmentDetailsUseCase } from '@/domains/appointments/application/use-cases/update-appointment-details.use-case';
-import { Role } from '@workspace/db';
-
-const accessContext = { userId: 'user-1', role: Role.ADMIN };
 
 describe('AppointmentCommandService', () => {
   let service: AppointmentCommandService;
   let queryService: jest.Mocked<AppointmentQueryService>;
   let createUseCase: jest.Mocked<CreateAppointmentUseCase>;
-  let prisma: jest.Mocked<AppointmentPersistencePort>;
+  let prisma: jest.Mocked<PrismaService>;
   let eventEmitter: jest.Mocked<EventEmitter2>;
+  let schedulingRules: jest.Mocked<AppointmentSchedulingRulesService>;
   let metricsService: jest.Mocked<AppointmentMetricsService>;
   let diagnosisService: jest.Mocked<AppointmentDiagnosisService>;
-  let writeRepository: { update: jest.Mock };
-  let cancelUseCase: jest.Mocked<CancelAppointmentUseCase>;
-  let rescheduleUseCase: jest.Mocked<RescheduleAppointmentUseCase>;
-  let startConsultationUseCase: jest.Mocked<StartConsultationUseCase>;
-  let updateAppointmentDetailsUseCase: jest.Mocked<UpdateAppointmentDetailsUseCase>;
 
   beforeEach(() => {
     queryService = Object.create(
@@ -52,9 +38,14 @@ describe('AppointmentCommandService', () => {
       clinic: { findUnique: jest.fn() },
       appointment: { findFirst: jest.fn(), updateMany: jest.fn() },
       $transaction: jest.fn(),
-    } as unknown as jest.Mocked<AppointmentPersistencePort>;
+    } as unknown as jest.Mocked<PrismaService>;
 
     eventEmitter = { emit: jest.fn() } as unknown as jest.Mocked<EventEmitter2>;
+
+    schedulingRules = Object.create(
+      AppointmentSchedulingRulesService.prototype,
+    ) as jest.Mocked<AppointmentSchedulingRulesService>;
+    schedulingRules.validateAppointmentOverlap = jest.fn();
 
     metricsService = Object.create(
       AppointmentMetricsService.prototype,
@@ -66,45 +57,20 @@ describe('AppointmentCommandService', () => {
     ) as jest.Mocked<AppointmentDiagnosisService>;
     diagnosisService.syncDiagnoses = jest.fn();
 
-    writeRepository = { update: jest.fn() };
-
-    cancelUseCase = Object.create(
-      CancelAppointmentUseCase.prototype,
-    ) as jest.Mocked<CancelAppointmentUseCase>;
-    cancelUseCase.execute = jest.fn();
-
-    rescheduleUseCase = Object.create(
-      RescheduleAppointmentUseCase.prototype,
-    ) as jest.Mocked<RescheduleAppointmentUseCase>;
-    rescheduleUseCase.execute = jest.fn();
-
-    startConsultationUseCase = Object.create(
-      StartConsultationUseCase.prototype,
-    ) as jest.Mocked<StartConsultationUseCase>;
-    startConsultationUseCase.execute = jest.fn();
-
-    updateAppointmentDetailsUseCase = Object.create(
-      UpdateAppointmentDetailsUseCase.prototype,
-    ) as jest.Mocked<UpdateAppointmentDetailsUseCase>;
-    updateAppointmentDetailsUseCase.execute = jest.fn();
-
     service = new AppointmentCommandService(
       queryService,
-      {} as never,
-      writeRepository as never,
+      { findById: jest.fn(), update: jest.fn() } as never,
       createUseCase,
-      cancelUseCase,
-      rescheduleUseCase,
-      startConsultationUseCase,
-      updateAppointmentDetailsUseCase,
+      prisma,
       eventEmitter,
+      schedulingRules,
       metricsService,
       diagnosisService,
     );
   });
 
   describe('createAppointment', () => {
-    it('should create an appointment and emit appointment.created', async () => {
+    it('should create an appointment when no overlap exists', async () => {
       const command = {
         doctorId: 'doc-1',
         clinicId: 'clinic-1',
@@ -115,6 +81,11 @@ describe('AppointmentCommandService', () => {
       const created = { id: 'appt-1', ...command };
 
       (
+        schedulingRules.validateAppointmentOverlap as jest.MockedFunction<
+          typeof schedulingRules.validateAppointmentOverlap
+        >
+      ).mockResolvedValueOnce({ hasConflict: false } as never);
+      (
         createUseCase.execute as jest.MockedFunction<
           typeof createUseCase.execute
         >
@@ -124,8 +95,35 @@ describe('AppointmentCommandService', () => {
 
       expect(result).toEqual(created);
       expect(eventEmitter.emit).toHaveBeenCalledWith(
-        ApplicationEvents.APPOINTMENT_CREATED,
+        'appointment.created',
         expect.anything(),
+      );
+    });
+
+    it('should throw BadRequestException when scheduling conflict exists', async () => {
+      const command = {
+        doctorId: 'doc-1',
+        clinicId: 'clinic-1',
+        patientId: 'patient-1',
+        startTime: new Date('2026-05-16T09:00:00Z'),
+        endTime: new Date('2026-05-16T09:30:00Z'),
+      };
+
+      (
+        schedulingRules.validateAppointmentOverlap as jest.MockedFunction<
+          typeof schedulingRules.validateAppointmentOverlap
+        >
+      ).mockResolvedValueOnce({
+        hasConflict: true,
+        conflict: {
+          id: 'appt-existing',
+          startTime: new Date(),
+          endTime: new Date(),
+        },
+      } as never);
+
+      await expect(service.createAppointment(command as never)).rejects.toThrow(
+        BadRequestException,
       );
     });
   });
@@ -143,21 +141,18 @@ describe('AppointmentCommandService', () => {
         >
       ).mockResolvedValueOnce(appointment as never);
 
-      cancelUseCase.execute.mockResolvedValueOnce(appointment as never);
+      const repo = (
+        service as unknown as { appointmentRepository: { update: jest.Mock } }
+      ).appointmentRepository;
+      repo.update = jest.fn().mockResolvedValueOnce(appointment as never);
 
       const result = await service.cancelAppointment(
         'appt-1',
         'reason',
         'clinic-1',
-        accessContext,
       );
 
-      expect(cancelUseCase.execute).toHaveBeenCalledWith(
-        expect.objectContaining({
-          appointment,
-          reason: 'reason',
-        }),
-      );
+      expect(appointment.cancel).toHaveBeenCalledWith('reason');
       expect(result).toEqual(appointment);
     });
 
@@ -169,12 +164,7 @@ describe('AppointmentCommandService', () => {
       ).mockRejectedValueOnce(new NotFoundException());
 
       await expect(
-        service.cancelAppointment(
-          'missing',
-          'reason',
-          'clinic-1',
-          accessContext,
-        ),
+        service.cancelAppointment('missing', 'reason', 'clinic-1'),
       ).rejects.toThrow(NotFoundException);
     });
   });
@@ -191,9 +181,14 @@ describe('AppointmentCommandService', () => {
           typeof queryService.getAppointment
         >
       ).mockResolvedValueOnce(appointment as never);
-      rescheduleUseCase.execute.mockRejectedValueOnce(
-        new BadRequestException('Doctor has conflicting appointment'),
-      );
+      (
+        schedulingRules.validateAppointmentOverlap as jest.MockedFunction<
+          typeof schedulingRules.validateAppointmentOverlap
+        >
+      ).mockResolvedValueOnce({
+        hasConflict: true,
+        conflict: { id: 'other' },
+      } as never);
 
       await expect(
         service.rescheduleAppointment(
@@ -201,7 +196,6 @@ describe('AppointmentCommandService', () => {
           new Date(),
           new Date(),
           'clinic-1',
-          accessContext,
         ),
       ).rejects.toThrow(BadRequestException);
     });

@@ -1,22 +1,18 @@
 import { beforeEach, describe, it, expect, jest } from '@jest/globals';
 import { DoctorsCommandService } from './doctors-command.service';
-import {
-  DOCTOR_PERSISTENCE_PORT,
-  type DoctorPersistencePort,
-} from '@/domains/doctors/application/ports/doctor-persistence.port';
+import { PrismaService } from '@/prisma/prisma.service';
 import { DoctorVerificationService } from './doctor-verification.service';
 import { SignatureUploadService } from './signature-upload.service';
 import { StoredFileUrlResolverService } from '@/domains/documents/application/services/stored-file-url-resolver.service';
-import { StorageProvider } from '@/domains/documents/application/ports/storage-provider.port';
+import { StorageProvider } from '@/domains/documents/infrastructure/storage.provider';
 import { DoctorsQueryService } from './doctors-query.service';
 import { DoctorProfileService } from './doctor-profile.service';
 import { DoctorAdminVerificationCommandService } from './doctor-admin-verification-command.service';
-import { DoctorVerificationStatus, Role, Specialization } from '@workspace/db';
-import { IDoctorRepository } from '@/domains/doctors/core/repositories/doctor.repository.interface';
+import { DoctorVerificationStatus, Role } from '@workspace/db';
 
 describe('DoctorsCommandService', () => {
   let service: DoctorsCommandService;
-  let prisma: jest.Mocked<DoctorPersistencePort>;
+  let prisma: jest.Mocked<PrismaService>;
   let doctorVerificationService: jest.Mocked<DoctorVerificationService>;
   let signatureUploadService: jest.Mocked<SignatureUploadService>;
   let storedFileUrlResolver: jest.Mocked<StoredFileUrlResolverService>;
@@ -24,7 +20,6 @@ describe('DoctorsCommandService', () => {
   let queryService: jest.Mocked<DoctorsQueryService>;
   let profileService: jest.Mocked<DoctorProfileService>;
   let adminVerificationService: jest.Mocked<DoctorAdminVerificationCommandService>;
-  let doctorRepositoryMock: jest.Mocked<IDoctorRepository>;
 
   beforeEach(() => {
     prisma = {
@@ -44,7 +39,7 @@ describe('DoctorsCommandService', () => {
       doctorSpecialization: { create: jest.fn(), deleteMany: jest.fn() },
       doctorEducation: { deleteMany: jest.fn() },
       doctorCertification: { deleteMany: jest.fn() },
-    } as unknown as jest.Mocked<DoctorPersistencePort>;
+    } as unknown as jest.Mocked<PrismaService>;
 
     doctorVerificationService = Object.create(
       DoctorVerificationService.prototype,
@@ -78,16 +73,8 @@ describe('DoctorsCommandService', () => {
     adminVerificationService.adminVerifyDoctor = jest.fn();
     adminVerificationService.adminRejectDoctor = jest.fn();
 
-    doctorRepositoryMock = {
-      createDoctorWithClinic: jest.fn(),
-      updateDoctorProfile: jest.fn(),
-      findDoctorForResponse: jest.fn(),
-      updateDoctorClinicRole: jest.fn(),
-      deleteDoctorCascading: jest.fn(),
-    } as unknown as jest.Mocked<IDoctorRepository>;
-
     service = new DoctorsCommandService(
-      doctorRepositoryMock as never,
+      prisma,
       doctorVerificationService,
       signatureUploadService,
       storedFileUrlResolver,
@@ -95,7 +82,6 @@ describe('DoctorsCommandService', () => {
       queryService,
       profileService,
       adminVerificationService,
-      { now: () => new Date('2026-01-15T12:00:00.000Z') },
     );
   });
 
@@ -110,7 +96,6 @@ describe('DoctorsCommandService', () => {
         hospitalRole: null,
         qualification: null,
       };
-      doctorRepositoryMock.createDoctorWithClinic.mockResolvedValueOnce(user);
       (prisma.user.create as jest.Mock).mockResolvedValueOnce(user as never);
       (prisma.doctorClinic.create as jest.Mock).mockResolvedValueOnce(
         {} as never,
@@ -137,11 +122,10 @@ describe('DoctorsCommandService', () => {
         email: 'doc@example.com',
         name: 'Dr. Jones',
         role: Role.DOCTOR,
-        specialization: Specialization.CARDIOLOGY,
+        specialization: 'CARDIOLOGY',
         hospitalRole: null,
         qualification: null,
       };
-      doctorRepositoryMock.createDoctorWithClinic.mockResolvedValueOnce(user);
       (prisma.user.create as jest.Mock).mockResolvedValueOnce(user as never);
       (prisma.doctorClinic.create as jest.Mock).mockResolvedValueOnce(
         {} as never,
@@ -160,12 +144,8 @@ describe('DoctorsCommandService', () => {
         specialization: 'CARDIOLOGY' as never,
       });
 
-      expect(result.specialization).toBe(Specialization.CARDIOLOGY);
-      expect(doctorRepositoryMock.createDoctorWithClinic).toHaveBeenCalledWith(
-        expect.objectContaining({ specialization: Specialization.CARDIOLOGY }),
-        expect.objectContaining({ clinicId: 'clinic-1' }),
-        Specialization.CARDIOLOGY,
-      );
+      expect(result.specialization).toBe('CARDIOLOGY');
+      expect(prisma.doctorSpecialization.create).toHaveBeenCalled();
     });
   });
 
@@ -196,7 +176,21 @@ describe('DoctorsCommandService', () => {
 
   describe('remove', () => {
     it('should remove doctor and all related records', async () => {
-      doctorRepositoryMock.deleteDoctorCascading.mockResolvedValueOnce(1);
+      (prisma.doctorEducation.deleteMany as jest.Mock).mockResolvedValueOnce(
+        {} as never,
+      );
+      (
+        prisma.doctorCertification.deleteMany as jest.Mock
+      ).mockResolvedValueOnce({} as never);
+      (
+        prisma.doctorSpecialization.deleteMany as jest.Mock
+      ).mockResolvedValueOnce({} as never);
+      (prisma.doctorClinic.deleteMany as jest.Mock).mockResolvedValueOnce(
+        {} as never,
+      );
+      (prisma.user.deleteMany as jest.Mock).mockResolvedValueOnce({
+        count: 1,
+      } as never);
 
       const result = await service.remove('doc-1');
 

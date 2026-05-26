@@ -2,7 +2,6 @@ import {
   BadRequestException,
   Injectable,
   UnauthorizedException,
-  Inject,
 } from '@nestjs/common';
 import {
   DPDP_NOTICE_VERSION,
@@ -11,10 +10,7 @@ import {
   publicBookingSubmitRequestSchema,
   type PublicBookingSubmitResponse,
 } from '@workspace/types';
-import {
-  PUBLIC_BOOKING_PERSISTENCE_PORT,
-  type PublicBookingPersistencePort,
-} from '@/domains/public-booking/application/ports/public-booking-persistence.port';
+import { PrismaService } from '@/prisma/prisma.service';
 import { PatientService } from '@/domains/patients/application/services/patient.service';
 import { DPDPComplianceService } from '@/shared/modules/compliance/dpdp-compliance.service';
 import { AppointmentRequestService } from '@/domains/appointments/application/services/appointment-request.service';
@@ -33,8 +29,7 @@ type SubmitData = ReturnType<typeof publicBookingSubmitRequestSchema.parse>;
 @Injectable()
 export class PublicBookingSubmitService {
   constructor(
-    @Inject(PUBLIC_BOOKING_PERSISTENCE_PORT)
-    private readonly persistence: PublicBookingPersistencePort,
+    private readonly prisma: PrismaService,
     private readonly patientService: PatientService,
     private readonly appointmentRequestService: AppointmentRequestService,
     private readonly bookingTokenService: PublicBookingTokenService,
@@ -130,7 +125,7 @@ export class PublicBookingSubmitService {
     }
 
     const phone = normalizePhone(data.phoneNumber);
-    return withBookingTenant(this.persistence, referralCode, async (clinic) => {
+    return withBookingTenant(this.prisma, referralCode, async (clinic) => {
       const existing = await this.patientService.findByClinicIdAndPhoneNumber(
         clinic.id,
         phone,

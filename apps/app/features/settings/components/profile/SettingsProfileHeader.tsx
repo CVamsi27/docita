@@ -1,7 +1,7 @@
 "use client";
 
-import { Avatar, AvatarFallback } from "@workspace/ui/components/indicators/avatar";
-import { Badge } from "@workspace/ui/components/indicators/badge";
+import { Avatar, AvatarFallback } from "@workspace/ui/components/avatar";
+import { Badge } from "@workspace/ui/components/badge";
 import { useAuth } from "@/lib/auth/auth-context";
 import { SettingsAiChips } from "@/features/settings/components/settings-ai-chips";
 

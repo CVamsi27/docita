@@ -1,4 +1,4 @@
-import type { TimelineItem } from "@workspace/ui/components/data-display/timeline";
+import type { TimelineItem } from "@workspace/ui/components/timeline";
 import type { PublicBookingSlotListEmptyReason } from "@workspace/types";
 
 export const bookingCardClass = "gap-0 overflow-hidden py-0 sm:gap-0 sm:py-0";

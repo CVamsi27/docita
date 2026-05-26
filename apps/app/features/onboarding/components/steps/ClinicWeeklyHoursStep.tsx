@@ -22,8 +22,8 @@ import {
   SelectItem,
   SelectTrigger,
   SelectValue,
-} from "@workspace/ui/components/form/select";
-import { Switch } from "@workspace/ui/components/form/switch";
+} from "@workspace/ui/components/select";
+import { Switch } from "@workspace/ui/components/switch";
 import { showUserFacingErrorToast } from "@/lib/errors/user-facing-errors";
 import type { ClinicWeeklyHourRow } from "@/features/onboarding/components/types";
 

@@ -1,9 +1,9 @@
 "use client";
 
-import { Button } from "@workspace/ui/components/form/button";
-import { DocitaLogo } from "@workspace/ui/components/indicators/docita-logo";
-import { SupportContact } from "@/components/support-contact/support-contact";
-import { SUPPORT_WHATSAPP_MESSAGE_PUBLIC_BOOKING } from "@/lib/constants/support-contact";
+import { Button } from "@workspace/ui/components/button";
+import { DocitaLogo } from "@workspace/ui/components/docita-logo";
+import { SupportContact } from "@/components/common/support-contact";
+import { SUPPORT_WHATSAPP_MESSAGE_PUBLIC_BOOKING } from "@/lib/support-contact";
 import { cn } from "@workspace/ui/lib/utils";
 import { PublicBookingTrustRow } from "./public-booking-trust-row";
 

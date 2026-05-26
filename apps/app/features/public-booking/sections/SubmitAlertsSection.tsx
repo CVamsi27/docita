@@ -1,6 +1,6 @@
 "use client";
 
-import { Alert, AlertDescription, AlertTitle } from "@workspace/ui/components/feedback/alert";
+import { Alert, AlertDescription, AlertTitle } from "@workspace/ui/components/alert";
 import type { PublicBookingPageController } from "@/features/public-booking/use-public-booking-page-state";
 
 export function PublicBookingSubmitAlerts({

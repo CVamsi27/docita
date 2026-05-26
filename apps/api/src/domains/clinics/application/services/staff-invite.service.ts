@@ -1,11 +1,7 @@
-import { BadRequestException, Injectable, Inject } from '@nestjs/common';
-import {
-  CLINIC_PERSISTENCE_PORT,
-  type ClinicPersistencePort,
-} from '@/domains/clinics/application/ports/clinic-persistence.port';
+import { BadRequestException, Injectable } from '@nestjs/common';
+import { PrismaService } from '@/prisma/prisma.service';
 import * as bcrypt from 'bcrypt';
 import { Role, Specialization } from '@workspace/db';
-import { parseStringEnumMember } from '@workspace/utils';
 import {
   isClinicFrontDesk,
   mapClinicMemberRoleToPrisma,
@@ -14,38 +10,13 @@ import {
   type CreateReceptionistData,
 } from './staff-management-helpers';
 
-const SPECIALIZATION_ALIASES: Readonly<Record<string, Specialization>> = {
-  GENERAL: Specialization.GENERAL_PRACTICE,
-  GENERAL_PRACTICE: Specialization.GENERAL_PRACTICE,
-};
-
 // AuditLogged: all staff creation methods (doctor, receptionist, member) are sensitive writes
 @Injectable()
 export class StaffInviteService {
-  constructor(
-    @Inject(CLINIC_PERSISTENCE_PORT)
-    private persistence: ClinicPersistencePort,
-  ) {}
-
-  private parseSpecialization(value: string): Specialization {
-    const normalizedValue = value.trim().toUpperCase().replaceAll(/\s+/g, '_');
-    const aliasedSpecialization = SPECIALIZATION_ALIASES[normalizedValue];
-    if (aliasedSpecialization) {
-      return aliasedSpecialization;
-    }
-
-    const specialization = parseStringEnumMember(
-      Object.values(Specialization),
-      value,
-    );
-    if (!specialization) {
-      throw new BadRequestException(`Unsupported specialization: ${value}`);
-    }
-    return specialization;
-  }
+  constructor(private prisma: PrismaService) {}
 
   async createDoctor(clinicId: string, data: CreateDoctorData) {
-    const isFrontDesk = await isClinicFrontDesk(this.persistence, clinicId);
+    const isFrontDesk = await isClinicFrontDesk(this.prisma, clinicId);
 
     const hashedPassword = await bcrypt.hash(data.password, 10);
 
@@ -58,13 +29,11 @@ export class StaffInviteService {
       phoneNumber: data.phoneNumber,
       qualification: data.qualification,
       registrationNumber: data.registrationNumber,
-      specialization: data.specialization
-        ? this.parseSpecialization(data.specialization)
-        : undefined,
+      specialization: data.specialization as Specialization,
       ...(isFrontDesk ? { appLoginDisabled: true } : {}),
     };
 
-    const user = await this.persistence.user.create({
+    const user = await this.prisma.user.create({
       data: userData,
       select: {
         id: true,
@@ -79,7 +48,7 @@ export class StaffInviteService {
       },
     });
 
-    await this.persistence.doctorClinic.create({
+    await this.prisma.doctorClinic.create({
       data: {
         doctorId: user.id,
         clinicId,
@@ -90,14 +59,14 @@ export class StaffInviteService {
   }
 
   async createReceptionist(clinicId: string, data: CreateReceptionistData) {
-    const isFrontDesk = await isClinicFrontDesk(this.persistence, clinicId);
+    const isFrontDesk = await isClinicFrontDesk(this.prisma, clinicId);
     if (isFrontDesk && data.role === 'NURSE') {
       throw new BadRequestException(
         'This role is not available for the front desk workspace.',
       );
     }
     const hashedPassword = await bcrypt.hash(data.password, 10);
-    const user = await this.persistence.user.create({
+    const user = await this.prisma.user.create({
       data: {
         name: data.name,
         email: data.email,
@@ -120,7 +89,7 @@ export class StaffInviteService {
   }
 
   async createMember(clinicId: string, data: CreateClinicMemberData) {
-    const isFrontDesk = await isClinicFrontDesk(this.persistence, clinicId);
+    const isFrontDesk = await isClinicFrontDesk(this.prisma, clinicId);
     if (isFrontDesk) {
       if (data.role === 'NURSE' || data.role === 'ADMIN_DOCTOR') {
         throw new BadRequestException(
@@ -134,7 +103,7 @@ export class StaffInviteService {
     const needsDoctorClinic =
       data.role === 'DOCTOR' || data.role === 'ADMIN_DOCTOR';
 
-    const user = await this.persistence.user.create({
+    const user = await this.prisma.user.create({
       data: {
         name: data.name,
         email: data.email,
@@ -146,9 +115,7 @@ export class StaffInviteService {
           ? {
               qualification: data.qualification,
               registrationNumber: data.registrationNumber,
-              specialization: data.specialization
-                ? this.parseSpecialization(data.specialization)
-                : undefined,
+              specialization: data.specialization as Specialization,
             }
           : {}),
         ...(isFrontDesk && prismaRole === Role.DOCTOR
@@ -169,7 +136,7 @@ export class StaffInviteService {
     });
 
     if (needsDoctorClinic) {
-      await this.persistence.doctorClinic.create({
+      await this.prisma.doctorClinic.create({
         data: {
           doctorId: user.id,
           clinicId,

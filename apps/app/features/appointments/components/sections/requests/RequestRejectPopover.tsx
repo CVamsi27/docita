@@ -1,20 +1,20 @@
 "use client";
 
 import { X } from "lucide-react";
-import { Button } from "@workspace/ui/components/form/button";
+import { Button } from "@workspace/ui/components/button";
 import {
   Popover,
   PopoverContent,
   PopoverTrigger,
-} from "@workspace/ui/components/overlay/popover";
+} from "@workspace/ui/components/popover";
 import {
   Select,
   SelectContent,
   SelectItem,
   SelectTrigger,
   SelectValue,
-} from "@workspace/ui/components/form/select";
-import { Textarea } from "@workspace/ui/components/form/textarea";
+} from "@workspace/ui/components/select";
+import { Textarea } from "@workspace/ui/components/textarea";
 import type { AppointmentRequestResponse } from "@workspace/types";
 import { REJECT_REASON_CUSTOM, REJECT_REASON_OPTIONS } from "./request-row-helpers";
 

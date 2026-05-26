@@ -39,6 +39,15 @@ import { usePermissionStore } from "@/lib/stores/permission-store";
 import { Feature } from "@workspace/types";
 import { SUBSCRIPTION_SETTINGS_PATH } from "@/lib/subscription/subscription-settings-path";
 
+const notificationSettingsSchema = z.object({
+  whatsappNotifications: z.boolean().optional(),
+  inAppNotifications: z.boolean(),
+});
+
+type NotificationSettingsFormValues = z.infer<
+  typeof notificationSettingsSchema
+>;
+
 export function NotificationSettings() {
   const { data: clinic, isLoading } = useClinicSettings();
   const { mutate: updateSettings, isPending: isSaving } =

@@ -13,8 +13,6 @@ import {
   DRAFT_KEY,
   SESSION_ONBOARDING_ID_KEY,
   hasMeaningfulClinicDraftData,
-  parseClinicDetailsDraft,
-  parseOnboardingDraft,
   type OnboardingDraft,
 } from "./clinic-registration-form-helpers";
 
@@ -43,8 +41,7 @@ export function useOnboardingDraft({
     try {
       const raw = localStorage.getItem(DRAFT_KEY);
       if (!raw) return;
-      const draft = parseOnboardingDraft(JSON.parse(raw));
-      if (!draft) return;
+      const draft = JSON.parse(raw) as OnboardingDraft;
       const currentOnboardingId =
         typeof sessionStorage !== "undefined"
           ? sessionStorage.getItem(SESSION_ONBOARDING_ID_KEY)
@@ -76,8 +73,7 @@ export function useOnboardingDraft({
         hasMeaningfulDraft &&
         (isSameOnboardingSession || hasActiveSessionProgress)
       ) {
-        const clinicDetails = parseClinicDetailsDraft(draft.clinicDetails);
-        if (clinicDetails) clinicForm.reset(clinicDetails);
+        clinicForm.reset(draft.clinicDetails as ClinicDetails);
       } else {
         localStorage.removeItem(DRAFT_KEY);
       }
@@ -88,8 +84,7 @@ export function useOnboardingDraft({
 
   const handleRestoreDraft = () => {
     if (savedDraft?.clinicDetails) {
-      const clinicDetails = parseClinicDetailsDraft(savedDraft.clinicDetails);
-      if (clinicDetails) clinicForm.reset(clinicDetails);
+      clinicForm.reset(savedDraft.clinicDetails as ClinicDetails);
     }
     if (savedDraft?.onboardingId) {
       restoreOnboardingId(savedDraft.onboardingId);

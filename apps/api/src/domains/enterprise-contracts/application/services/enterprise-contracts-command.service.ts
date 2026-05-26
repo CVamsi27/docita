@@ -3,12 +3,8 @@ import {
   NotFoundException,
   BadRequestException,
   Logger,
-  Inject,
 } from '@nestjs/common';
-import {
-  ENTERPRISE_CONTRACT_PERSISTENCE_PORT,
-  type EnterpriseContractPersistencePort,
-} from '@/domains/enterprise-contracts/application/ports/enterprise-contract-persistence.port';
+import { PrismaService } from '@/prisma/prisma.service';
 import { EnterpriseContractStatus, Prisma, ClinicTier } from '@workspace/db';
 import { type UpsertEnterpriseContractRequest } from '@workspace/types';
 import {
@@ -16,8 +12,6 @@ import {
   type ContractWithMembers,
 } from './enterprise-contracts-query.service';
 import { EnterpriseContractInvoiceCommandService } from './enterprise-contract-invoice-command.service';
-import { CLOCK_PORT, type IClock } from '@/shared/common/ports/clock.port';
-import { toPrismaInputJsonValue } from '@/shared/common/json/to-prisma-input-json-value';
 
 /**
  * Handles enterprise-contract lifecycle mutations: upsert, status transitions,
@@ -29,10 +23,8 @@ export class EnterpriseContractsCommandService {
 
   constructor(
     private readonly query: EnterpriseContractsQueryService,
-    @Inject(ENTERPRISE_CONTRACT_PERSISTENCE_PORT)
-    private readonly persistence: EnterpriseContractPersistencePort,
+    private readonly prisma: PrismaService,
     private readonly invoiceService: EnterpriseContractInvoiceCommandService,
-    @Inject(CLOCK_PORT) private readonly clock: IClock,
   ) {}
 
   async upsert(
@@ -47,15 +39,14 @@ export class EnterpriseContractsCommandService {
     if (endDate.getTime() <= startDate.getTime())
       throw new BadRequestException('endDate must be after startDate');
 
-    // RLS-BYPASS: enterprise contract administration spans member clinics by design
-    const clinic = await this.persistence.runUnrestricted(async () =>
-      this.persistence.clinic.findUnique({ where: { id: primaryClinicId } }),
+    const clinic = await this.prisma.runUnrestricted(async () =>
+      this.prisma.clinic.findUnique({ where: { id: primaryClinicId } }),
     );
     if (!clinic)
       throw new NotFoundException(`Clinic ${primaryClinicId} not found`);
 
-    return this.persistence.runUnrestricted(async () => {
-      const existing = await this.persistence.enterpriseContract.findUnique({
+    return this.prisma.runUnrestricted(async () => {
+      const existing = await this.prisma.enterpriseContract.findUnique({
         where: { contractNumber: payload.contractNumber },
         include: { members: true },
       });
@@ -87,66 +78,63 @@ export class EnterpriseContractsCommandService {
         overageInvoiceCents: payload.overageInvoiceCents ?? 0,
         setupFeeCents: payload.setupFeeCents ?? 0,
         dedicatedSupportCents: payload.dedicatedSupportCents ?? 0,
-        customLineItems: toPrismaInputJsonValue(payload.customLineItems ?? []),
+        customLineItems: (payload.customLineItems ??
+          []) as Prisma.InputJsonValue,
         annualPrepayDiscountPercent: payload.annualPrepayDiscountPercent ?? 0,
         trueUpThresholdPercent: payload.trueUpThresholdPercent ?? 130,
         notes: payload.notes ?? null,
         signedDocumentUrl: payload.signedDocumentUrl ?? null,
       };
 
-      const result = await this.persistence.$transaction(async (tx) => {
-        const contract = await tx.enterpriseContract.upsert({
-          where: { contractNumber: payload.contractNumber },
-          update: { ...data },
-          create: { ...data },
-        });
+      const contract = await this.prisma.enterpriseContract.upsert({
+        where: { contractNumber: payload.contractNumber },
+        update: { ...data },
+        create: { ...data },
+      });
 
-        await tx.enterpriseContractMember.upsert({
-          where: { clinicId: primaryClinicId },
-          update: { contractId: contract.id, removedAt: null },
-          create: { contractId: contract.id, clinicId: primaryClinicId },
-        });
+      await this.prisma.enterpriseContractMember.upsert({
+        where: { clinicId: primaryClinicId },
+        update: { contractId: contract.id, removedAt: null },
+        create: { contractId: contract.id, clinicId: primaryClinicId },
+      });
 
-        const memberClinicIds = (
-          await tx.enterpriseContractMember.findMany({
-            where: { contractId: contract.id, removedAt: null },
-          })
-        ).map((m) => m.clinicId);
+      const memberClinicIds = (
+        await this.prisma.enterpriseContractMember.findMany({
+          where: { contractId: contract.id, removedAt: null },
+        })
+      ).map((m) => m.clinicId);
 
-        await tx.subscription.updateMany({
-          where: { clinicId: { in: memberClinicIds } },
-          data: {
-            plan: ClinicTier.ENTERPRISE,
-            basePriceCents: contract.platformFeeCents,
-            currency: contract.currency,
-            billingCycle: contract.billingCycle,
-            includedAppointments: contract.includedConsultations,
-            includedUsers: contract.includedUsers,
-            includedStorageGB: contract.includedStorageGB,
-          },
-        });
+      await this.prisma.subscription.updateMany({
+        where: { clinicId: { in: memberClinicIds } },
+        data: {
+          plan: ClinicTier.ENTERPRISE,
+          basePriceCents: contract.platformFeeCents,
+          currency: contract.currency,
+          billingCycle: contract.billingCycle,
+          includedAppointments: contract.includedConsultations,
+          includedUsers: contract.includedUsers,
+          includedStorageGB: contract.includedStorageGB,
+        },
+      });
 
-        await tx.enterpriseContractRevision.create({
-          data: {
-            contractId: contract.id,
-            effectiveDate: this.clock.now(),
-            changeSummary:
-              payload.changeSummary ?? (existing ? 'Updated' : 'Created'),
-            snapshot: JSON.parse(JSON.stringify(existing ?? {})),
-            createdById: actorUserId ?? null,
-          },
-        });
-
-        return tx.enterpriseContract.findUniqueOrThrow({
-          where: { id: contract.id },
-          include: { members: true },
-        });
+      await this.prisma.enterpriseContractRevision.create({
+        data: {
+          contractId: contract.id,
+          effectiveDate: new Date(),
+          changeSummary:
+            payload.changeSummary ?? (existing ? 'Updated' : 'Created'),
+          snapshot: JSON.parse(JSON.stringify(existing ?? {})),
+          createdById: actorUserId ?? null,
+        },
       });
 
       this.logger.log(
-        `Enterprise contract ${existing ? 'updated' : 'created'} for ${result.contractNumber} (primary clinic ${primaryClinicId}, ${result.members.length} members)`,
+        `Enterprise contract ${existing ? 'updated' : 'created'} for ${contract.contractNumber} (primary clinic ${primaryClinicId}, ${memberClinicIds.length} members)`,
       );
-      return result;
+      return this.prisma.enterpriseContract.findUniqueOrThrow({
+        where: { id: contract.id },
+        include: { members: true },
+      });
     });
   }
 
@@ -155,23 +143,22 @@ export class EnterpriseContractsCommandService {
     status: EnterpriseContractStatus,
     actorUserId?: string,
   ): Promise<ContractWithMembers> {
-    // RLS-BYPASS: enterprise contract administration spans member clinics by design
-    return this.persistence.runUnrestricted(async () => {
-      const existing = await this.persistence.enterpriseContract.findUnique({
+    return this.prisma.runUnrestricted(async () => {
+      const existing = await this.prisma.enterpriseContract.findUnique({
         where: { id: contractId },
         include: { members: true },
       });
       if (!existing)
         throw new NotFoundException(`Contract ${contractId} not found`);
-      const updated = await this.persistence.enterpriseContract.update({
+      const updated = await this.prisma.enterpriseContract.update({
         where: { id: contractId },
         data: { status },
         include: { members: true },
       });
-      await this.persistence.enterpriseContractRevision.create({
+      await this.prisma.enterpriseContractRevision.create({
         data: {
           contractId: updated.id,
-          effectiveDate: this.clock.now(),
+          effectiveDate: new Date(),
           changeSummary: `Status changed: ${existing.status} → ${status}`,
           snapshot: JSON.parse(JSON.stringify(existing)),
           createdById: actorUserId ?? null,
@@ -186,19 +173,18 @@ export class EnterpriseContractsCommandService {
     clinicId: string,
     actorUserId?: string,
   ): Promise<ContractWithMembers> {
-    // RLS-BYPASS: enterprise contract administration spans member clinics by design
-    return this.persistence.runUnrestricted(async () => {
-      const contract = await this.persistence.enterpriseContract.findUnique({
+    return this.prisma.runUnrestricted(async () => {
+      const contract = await this.prisma.enterpriseContract.findUnique({
         where: { id: contractId },
       });
       if (!contract)
         throw new NotFoundException(`Contract ${contractId} not found`);
-      const clinic = await this.persistence.clinic.findUnique({
+      const clinic = await this.prisma.clinic.findUnique({
         where: { id: clinicId },
       });
       if (!clinic) throw new NotFoundException(`Clinic ${clinicId} not found`);
       const existingMember =
-        await this.persistence.enterpriseContractMember.findUnique({
+        await this.prisma.enterpriseContractMember.findUnique({
           where: { clinicId },
         });
       if (existingMember && existingMember.contractId !== contractId) {
@@ -206,37 +192,35 @@ export class EnterpriseContractsCommandService {
           `Clinic ${clinicId} is already a member of contract ${existingMember.contractId}`,
         );
       }
-      return this.persistence.$transaction(async (tx) => {
-        await tx.enterpriseContractMember.upsert({
-          where: { clinicId },
-          update: { contractId, removedAt: null },
-          create: { contractId, clinicId },
-        });
-        await tx.subscription.updateMany({
-          where: { clinicId },
-          data: {
-            plan: ClinicTier.ENTERPRISE,
-            basePriceCents: contract.platformFeeCents,
-            currency: contract.currency,
-            billingCycle: contract.billingCycle,
-            includedAppointments: contract.includedConsultations,
-            includedUsers: contract.includedUsers,
-            includedStorageGB: contract.includedStorageGB,
-          },
-        });
-        await tx.enterpriseContractRevision.create({
-          data: {
-            contractId,
-            effectiveDate: this.clock.now(),
-            changeSummary: `Added member clinic ${clinicId}`,
-            snapshot: {},
-            createdById: actorUserId ?? null,
-          },
-        });
-        return tx.enterpriseContract.findUniqueOrThrow({
-          where: { id: contractId },
-          include: { members: true },
-        });
+      await this.prisma.enterpriseContractMember.upsert({
+        where: { clinicId },
+        update: { contractId, removedAt: null },
+        create: { contractId, clinicId },
+      });
+      await this.prisma.subscription.updateMany({
+        where: { clinicId },
+        data: {
+          plan: ClinicTier.ENTERPRISE,
+          basePriceCents: contract.platformFeeCents,
+          currency: contract.currency,
+          billingCycle: contract.billingCycle,
+          includedAppointments: contract.includedConsultations,
+          includedUsers: contract.includedUsers,
+          includedStorageGB: contract.includedStorageGB,
+        },
+      });
+      await this.prisma.enterpriseContractRevision.create({
+        data: {
+          contractId,
+          effectiveDate: new Date(),
+          changeSummary: `Added member clinic ${clinicId}`,
+          snapshot: {},
+          createdById: actorUserId ?? null,
+        },
+      });
+      return this.prisma.enterpriseContract.findUniqueOrThrow({
+        where: { id: contractId },
+        include: { members: true },
       });
     });
   }
@@ -246,9 +230,8 @@ export class EnterpriseContractsCommandService {
     clinicId: string,
     actorUserId?: string,
   ): Promise<ContractWithMembers> {
-    // RLS-BYPASS: enterprise contract administration spans member clinics by design
-    return this.persistence.runUnrestricted(async () => {
-      const contract = await this.persistence.enterpriseContract.findUnique({
+    return this.prisma.runUnrestricted(async () => {
+      const contract = await this.prisma.enterpriseContract.findUnique({
         where: { id: contractId },
       });
       if (!contract)
@@ -257,20 +240,20 @@ export class EnterpriseContractsCommandService {
         throw new BadRequestException(
           'Cannot remove the primary clinic from a contract; transfer the contract first.',
         );
-      await this.persistence.enterpriseContractMember.update({
+      await this.prisma.enterpriseContractMember.update({
         where: { clinicId },
-        data: { removedAt: this.clock.now() },
+        data: { removedAt: new Date() },
       });
-      await this.persistence.enterpriseContractRevision.create({
+      await this.prisma.enterpriseContractRevision.create({
         data: {
           contractId,
-          effectiveDate: this.clock.now(),
+          effectiveDate: new Date(),
           changeSummary: `Removed member clinic ${clinicId}`,
           snapshot: {},
           createdById: actorUserId ?? null,
         },
       });
-      return this.persistence.enterpriseContract.findUniqueOrThrow({
+      return this.prisma.enterpriseContract.findUniqueOrThrow({
         where: { id: contractId },
         include: { members: true },
       });

@@ -4,15 +4,28 @@ import {
 } from "@workspace/ui/components/indicators/card";
 import { Badge } from "@workspace/ui/components/indicators/badge";
 import { cn } from "@workspace/ui/lib/utils";
-import { Tier } from "@/lib/subscription/tier-access";
+import { Tier } from "@/lib/tier-config";
 import { PlanFeatures } from "@/features/subscription/components/sections/plan-features";
-import { Sparkles } from "lucide-react";
+import {
+  ArrowRight,
+  CalendarDays,
+  Check,
+  Sparkles,
+  Stethoscope,
+  Users,
+  Zap,
+} from "lucide-react";
+import { Button } from "@workspace/ui/components/button";
+import { formatAmountLocale, formatCountLocale } from "@workspace/utils";
+import { SUBSCRIPTION_GST_INCLUSIVE_NOTICE } from "@/features/subscription/lib/billing-display-messages";
+import { YearlyVsListAnnualPrice } from "@/features/subscription/lib/yearly-vs-list-annual-price";
 import {
   type TierCardProps,
+  TIER_ICONS,
   TIER_GRADIENTS,
+  LIMIT_ICONS,
+  formatTierPrice,
 } from "./tier-card-types";
-import { TierCardHeader } from "./tier-card-header";
-import { TierCardSelectButton } from "./tier-card-cta";
 
 export type { TierCardProps } from "./tier-card-types";
 

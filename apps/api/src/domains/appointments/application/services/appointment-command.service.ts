@@ -1,50 +1,57 @@
-import { Injectable, Inject, NotFoundException } from '@nestjs/common';
-import { EventEmitter2 } from '@nestjs/event-emitter';
-import { ApplicationEvents } from '@/shared/common/events/application-events';
 import {
-  APPOINTMENT_READ_REPOSITORY_TOKEN,
-  APPOINTMENT_WRITE_REPOSITORY_TOKEN,
-  IAppointmentReadRepository,
-  IAppointmentWriteRepository,
-} from '@/domains/appointments/core/repositories/appointment.repository.interface';
-import { VitalSign } from '@workspace/db';
+  Injectable,
+  Inject,
+  BadRequestException,
+  NotFoundException,
+  ForbiddenException,
+} from '@nestjs/common';
+import { EventEmitter2 } from '@nestjs/event-emitter';
+import { IAppointmentRepository } from '@/domains/appointments/core/repositories/appointment.repository.interface';
+import { Role, VitalSign } from '@workspace/db';
 import {
   type DiagnosisSyncItem,
+  isFrontDeskWorkspace,
+  parseWorkspaceProfile,
   type UpdateAppointmentRequest,
 } from '@workspace/types';
 import {
   CreateAppointmentUseCase,
   CreateAppointmentCommand,
 } from '@/domains/appointments/application/use-cases/create-appointment.use-case';
-import { CancelAppointmentUseCase } from '@/domains/appointments/application/use-cases/cancel-appointment.use-case';
-import { RescheduleAppointmentUseCase } from '@/domains/appointments/application/use-cases/reschedule-appointment.use-case';
-import { StartConsultationUseCase } from '@/domains/appointments/application/use-cases/start-consultation.use-case';
-import { UpdateAppointmentDetailsUseCase } from '@/domains/appointments/application/use-cases/update-appointment-details.use-case';
 import { AppointmentCreatedEvent } from '@/domains/appointments/application/events/appointment-created.event';
 import { Appointment } from '@/domains/appointments/core/entities/appointment.entity';
+import { PrismaService } from '@/prisma/prisma.service';
+import { AppointmentSchedulingRulesService } from '@/domains/appointments/core/domain-services/appointment-scheduling-rules.service';
 import { AppointmentQueryService } from './appointment-query.service';
 import { AppointmentMetricsService } from './appointment-metrics.service';
 import { AppointmentDiagnosisService } from './appointment-diagnosis.service';
 import {
-  assertDoctorOwnsAppointment,
-  type AppointmentAccessContext,
-} from '@/domains/appointments/application/types/appointment-access-context';
+  coerceAppointmentDate,
+  toPrismaAppointmentUpdate,
+} from './appointment-command-helpers';
+
+type AppointmentAccessContext = {
+  role?: Role;
+  userId?: string;
+};
+
+const CONSULTATION_START_ALLOWED_STATUSES = new Set([
+  'SCHEDULED',
+  'CONFIRMED',
+  'IN_PROGRESS',
+]);
 
 /** Handles all write operations for appointments (create, update, cancel, reschedule). */
 @Injectable()
 export class AppointmentCommandService {
   constructor(
     private readonly queryService: AppointmentQueryService,
-    @Inject(APPOINTMENT_READ_REPOSITORY_TOKEN)
-    private readonly readRepository: IAppointmentReadRepository,
-    @Inject(APPOINTMENT_WRITE_REPOSITORY_TOKEN)
-    private readonly writeRepository: IAppointmentWriteRepository,
+    @Inject('IAppointmentRepository')
+    private readonly appointmentRepository: IAppointmentRepository,
     private readonly createAppointmentUseCase: CreateAppointmentUseCase,
-    private readonly cancelAppointmentUseCase: CancelAppointmentUseCase,
-    private readonly rescheduleAppointmentUseCase: RescheduleAppointmentUseCase,
-    private readonly startConsultationUseCase: StartConsultationUseCase,
-    private readonly updateAppointmentDetailsUseCase: UpdateAppointmentDetailsUseCase,
+    private readonly prisma: PrismaService,
     private readonly eventEmitter: EventEmitter2,
+    private readonly schedulingRules: AppointmentSchedulingRulesService,
     private readonly metricsService: AppointmentMetricsService,
     private readonly diagnosisService: AppointmentDiagnosisService,
   ) {}
@@ -52,10 +59,27 @@ export class AppointmentCommandService {
   async createAppointment(
     command: CreateAppointmentCommand,
   ): Promise<Appointment> {
+    const overlap = await this.schedulingRules.validateAppointmentOverlap(
+      command.doctorId,
+      command.clinicId,
+      command.startTime,
+      command.endTime,
+    );
+    if (overlap.hasConflict) {
+      throw new BadRequestException({
+        detail: 'Doctor has conflicting appointment',
+        validationErrors: overlap.conflict
+          ? {
+              startTime: `Overlaps with appointment ${overlap.conflict.id} (${overlap.conflict.startTime.toISOString()}–${overlap.conflict.endTime.toISOString()})`,
+            }
+          : undefined,
+      });
+    }
+
     const appointment = await this.createAppointmentUseCase.execute(command);
 
     this.eventEmitter.emit(
-      ApplicationEvents.APPOINTMENT_CREATED,
+      'appointment.created',
       new AppointmentCreatedEvent(
         appointment.id,
         appointment.clinicId,
@@ -70,28 +94,117 @@ export class AppointmentCommandService {
   async startConsultation(
     id: string,
     clinicId: string,
-    accessContext: AppointmentAccessContext,
+    accessContext?: AppointmentAccessContext,
   ): Promise<{ appointmentId: string; status: string }> {
-    return this.startConsultationUseCase.execute({
-      appointmentId: id,
-      clinicId,
-      userId: accessContext.userId,
-      role: accessContext.role,
+    const clinicRow = await this.prisma.clinic.findUnique({
+      where: { id: clinicId },
+      select: { settings: true },
     });
+    const clinicSettings =
+      clinicRow?.settings && typeof clinicRow.settings === 'object'
+        ? (clinicRow.settings as Record<string, unknown>)
+        : {};
+    if (
+      isFrontDeskWorkspace(
+        parseWorkspaceProfile(clinicSettings.workspaceProfile),
+      )
+    ) {
+      throw new ForbiddenException(
+        'Consultation start is not available for this workspace profile.',
+      );
+    }
+
+    const appointment = await this.prisma.appointment.findFirst({
+      where: { id, clinicId },
+      select: {
+        id: true,
+        clinicId: true,
+        doctorId: true,
+        status: true,
+        queueToken: {
+          select: {
+            id: true,
+            status: true,
+            calledAt: true,
+            consultationStart: true,
+          },
+        },
+      },
+    });
+
+    if (!appointment) {
+      throw new NotFoundException(`Appointment with ID ${id} not found`);
+    }
+
+    if (
+      !accessContext?.userId ||
+      (accessContext.role !== Role.DOCTOR &&
+        accessContext.role !== Role.ADMIN_DOCTOR)
+    ) {
+      throw new ForbiddenException(
+        'Only the assigned doctor can start this consultation',
+      );
+    }
+
+    if (appointment.doctorId !== accessContext.userId) {
+      throw new ForbiddenException(
+        'Only the assigned doctor can start this consultation',
+      );
+    }
+
+    if (!CONSULTATION_START_ALLOWED_STATUSES.has(appointment.status)) {
+      throw new BadRequestException(
+        'This consultation cannot be started from its current appointment status',
+      );
+    }
+
+    await this.prisma.$transaction(async (tx) => {
+      if (appointment.status !== 'IN_PROGRESS') {
+        const result = await tx.appointment.updateMany({
+          where: { id, clinicId },
+          data: {
+            status: 'IN_PROGRESS',
+            version: { increment: 1 },
+          },
+        });
+        if (result.count === 0) {
+          throw new NotFoundException(`Appointment with ID ${id} not found`);
+        }
+      }
+
+      if (appointment.queueToken) {
+        const startTime =
+          appointment.queueToken.consultationStart ?? new Date();
+        const calledAt = appointment.queueToken.calledAt ?? new Date();
+
+        await tx.queueToken.update({
+          where: { id: appointment.queueToken.id },
+          data: {
+            status: 'IN_PROGRESS',
+            calledAt,
+            consultationStart: startTime,
+          },
+        });
+      }
+    });
+
+    return { appointmentId: appointment.id, status: 'in-progress' };
   }
 
   async cancelAppointment(
     id: string,
     reason: string,
     clinicId: string,
-    accessContext: AppointmentAccessContext,
+    accessContext?: AppointmentAccessContext,
   ): Promise<Appointment> {
     const appointment = await this.queryService.getAppointment(
       id,
       clinicId,
       accessContext,
     );
-    return this.cancelAppointmentUseCase.execute({ appointment, reason });
+    appointment.cancel(reason);
+    await this.appointmentRepository.update(appointment);
+    return appointment;
   }
 
   async rescheduleAppointment(
@@ -99,41 +212,137 @@ export class AppointmentCommandService {
     startTime: Date,
     endTime: Date,
     clinicId: string,
-    accessContext: AppointmentAccessContext,
+    accessContext?: AppointmentAccessContext,
   ): Promise<void> {
     const appointment = await this.queryService.getAppointment(
       id,
       clinicId,
       accessContext,
     );
-    await this.rescheduleAppointmentUseCase.execute({
-      appointment,
+    const overlap = await this.schedulingRules.validateAppointmentOverlap(
+      appointment.doctorId,
       clinicId,
       startTime,
       endTime,
-    });
+      id,
+    );
+    if (overlap.hasConflict) {
+      throw new BadRequestException('Doctor has conflicting appointment');
+    }
+    appointment.reschedule(startTime, endTime);
+    await this.appointmentRepository.update(appointment);
   }
 
   async updateAppointmentDetails(
     id: string,
     clinicId: string,
     data: Partial<UpdateAppointmentRequest>,
-    accessContext: AppointmentAccessContext,
+    accessContext?: AppointmentAccessContext,
   ): Promise<Appointment> {
-    const appointment = await this.readRepository.findForUpdate(id, clinicId);
+    const appointment = await this.prisma.appointment.findFirst({
+      where: { id, clinicId },
+      select: {
+        id: true,
+        clinicId: true,
+        patientId: true,
+        doctorId: true,
+        startTime: true,
+        endTime: true,
+      },
+    });
 
     if (!appointment) {
       throw new NotFoundException(`Appointment with ID ${id} not found`);
     }
 
-    assertDoctorOwnsAppointment(accessContext, appointment.doctorId);
+    if (
+      accessContext?.role === Role.DOCTOR &&
+      accessContext.userId &&
+      appointment.doctorId !== accessContext.userId
+    ) {
+      throw new ForbiddenException(
+        'Doctors can only access their appointments',
+      );
+    }
 
-    await this.updateAppointmentDetailsUseCase.execute({
-      appointmentId: id,
-      clinicId,
-      data,
-      appointment,
+    const touchesSchedule =
+      data.startTime !== undefined || data.endTime !== undefined;
+    if (touchesSchedule) {
+      const nextStart = coerceAppointmentDate(
+        data.startTime,
+        appointment.startTime,
+      );
+      const nextEnd = coerceAppointmentDate(data.endTime, appointment.endTime);
+      const nextDoctorId =
+        typeof data.doctorId === 'string' && data.doctorId.trim() !== ''
+          ? data.doctorId
+          : appointment.doctorId;
+      const overlap = await this.schedulingRules.validateAppointmentOverlap(
+        nextDoctorId,
+        clinicId,
+        nextStart,
+        nextEnd,
+        id,
+      );
+      if (overlap.hasConflict) {
+        throw new BadRequestException('Doctor has conflicting appointment');
+      }
+    }
+
+    const prismaPatch = toPrismaAppointmentUpdate(data);
+
+    const result = await this.prisma.appointment.updateMany({
+      where: { id, clinicId },
+      data: { ...prismaPatch, version: { increment: 1 } },
     });
+    if (result.count === 0) {
+      throw new NotFoundException(`Appointment with ID ${id} not found`);
+    }
+
+    if (data.status === 'completed') {
+      this.eventEmitter.emit('appointment.completed', {
+        appointmentId: id,
+        clinicId,
+      });
+    }
+
+    const observations =
+      typeof data.observations === 'string' ? data.observations.trim() : '';
+    const consultationNotes =
+      typeof data.consultationNotes === 'string'
+        ? data.consultationNotes.trim()
+        : '';
+
+    const observationMetrics: Array<{
+      definitionKey: string;
+      definitionLabel: string;
+      value: string;
+    }> = [];
+
+    if (observations) {
+      observationMetrics.push({
+        definitionKey: 'observations',
+        definitionLabel: 'Observations',
+        value: observations,
+      });
+    }
+
+    if (consultationNotes) {
+      observationMetrics.push({
+        definitionKey: 'consultation_notes',
+        definitionLabel: 'Consultation Notes',
+        value: consultationNotes,
+      });
+    }
+
+    if (observationMetrics.length > 0) {
+      await this.metricsService.recordObservationMetrics({
+        clinicId,
+        patientId: appointment.patientId,
+        appointmentId: id,
+        metrics: observationMetrics,
+      });
+    }
 
     return this.queryService.getAppointment(id, clinicId, accessContext);
   }
@@ -156,7 +365,7 @@ export class AppointmentCommandService {
     appointmentId: string,
     clinicId: string,
     data: Partial<VitalSign>,
-    accessContext: AppointmentAccessContext,
+    accessContext?: AppointmentAccessContext,
   ): Promise<VitalSign> {
     return this.metricsService.createVitals(
       appointmentId,
@@ -170,7 +379,7 @@ export class AppointmentCommandService {
     appointmentId: string,
     clinicId: string,
     data: Partial<VitalSign>,
-    accessContext: AppointmentAccessContext,
+    accessContext?: AppointmentAccessContext,
   ): Promise<VitalSign> {
     return this.metricsService.updateVitals(
       appointmentId,

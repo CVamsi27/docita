@@ -1,6 +1,6 @@
 "use client";
 
-import { Button } from "@workspace/ui/components/form/button";
+import { Button } from "@workspace/ui/components/button";
 import {
   Dialog,
   DialogContent,
@@ -8,8 +8,8 @@ import {
   DialogFooter,
   DialogHeader,
   DialogTitle,
-} from "@workspace/ui/components/overlay/dialog";
-import { MicroLabel } from "@workspace/ui/components/indicators/micro-label";
+} from "@workspace/ui/components/dialog";
+import { MicroLabel } from "@workspace/ui/components/micro-label";
 import { cn } from "@workspace/ui/lib/utils";
 import { formatDateTime } from "@/lib/formatters";
 import { STEPS, TOTAL_STEPS } from "./clinic-registration-form-helpers";

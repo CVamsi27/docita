@@ -157,23 +157,26 @@ pnpm verify:standard     # architecture and hygiene guardrails
 
 ## Documentation
 
-- [AGENTS.md](AGENTS.md) — Mandatory rules for contributors and coding agents
-- [CONTRIBUTING.md](CONTRIBUTING.md) — Contribution workflow and review expectations
-- [Deployment Strategy](docs/operations/DEPLOYMENT.md) — Production topology and runbooks
-- [API Documentation](docs/architecture/API_DOCUMENTATION.md) — API reference
-- [Testing Guide](docs/testing/TESTING.md) — Testing strategies and best practices
-- [Zod Architecture](docs/architecture/zod-first-architecture.md) — Type system guide
-- [Turborepo Structure](docs/architecture/TURBOREPO_STANDARD_STRUCTURE.md) — Monorepo standards
-- [UI/UX Standard 2026](docs/ui/UI_UX_STANDARD_2026.md) — Authoritative UI contract for web apps
+- [Deployment Strategy](docs/operations/DEPLOYMENT.md) - Current production path, Render runbook, and future AWS migration target
+- [API Documentation](docs/architecture/API_DOCUMENTATION.md) - API reference
+- [Testing Guide](docs/testing/TESTING.md) - Testing strategies and best practices
+- [Zod Architecture](docs/architecture/zod-first-architecture.md) - Type system guide
+- [Turborepo Structure](docs/architecture/TURBOREPO_STANDARD_STRUCTURE.md) - Monorepo standards
+- [UI/UX Contract](docs/ui/UI_UX_CONTRACT.md) - Shared page/state/motion standards for doctor app and portal
+- [AGENTS.md](AGENTS.md) - Mandatory rules for agents and contributors (typing, security, CI parity)
 
 ## Deployment
 
-Production deploys are path-scoped: API and worker on Fly.io, frontends on Cloudflare, migrations before API/worker releases. See [Deployment Strategy](docs/operations/DEPLOYMENT.md) and [Staging Setup](docs/operations/STAGING.md).
+1. **Database**: Create Render PostgreSQL in Singapore
+2. **Backend**: Deploy `apps/api` as a Render Web Service
+3. **Frontend**: Deploy `apps/app`, `apps/landing`, and `apps/internal` to Cloudflare Workers
+
+See [Deployment Strategy](docs/operations/DEPLOYMENT.md) for current and future deployment direction.
 
 ## Staging
 
 - **`staging` mirrors `main`**: it should match production-bound code; feature work merges via PR into `main`, then automation fast-forwards `staging`.
-- Use staging deploy targets to validate the same tree as `main`.
+- Use staging deploy targets to validate the same tree as `main` (see [Staging Setup](docs/operations/STAGING.md) for API, Cloudflare, and database configuration).
 
 ## License
 

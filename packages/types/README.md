@@ -29,6 +29,6 @@ Change this package **before** changing API DTOs or frontend forms for the same 
 
 ```ts
 // src/billing/tier.ts
-export const tierSchema = z.enum(["STARTER", "ESSENTIAL", "PROFESSIONAL", "HOSPITAL", "ENTERPRISE", "INTELLIGENCE", "FRONT_DESK", "FRONT_DESK_CLINIC", "FRONT_DESK_HOSPITAL"]);
+export const tierSchema = z.enum(["STARTER", "ESSENTIAL", "PROFESSIONAL", "HOSPITAL", "ENTERPRISE", "INTELLIGENCE", "FRONT_DESK"]);
 export type TierName = z.infer<typeof tierSchema>;
 ```

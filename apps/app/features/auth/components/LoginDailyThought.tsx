@@ -1,10 +1,9 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { Skeleton } from "@workspace/ui/components/feedback/skeleton";
+import { Skeleton } from "@workspace/ui/components/skeleton";
 import { browserJson } from "@/lib/auth/browser-request";
 import { logger } from "@/lib/monitoring/logger";
-import { z } from "zod";
 
 const dailyThoughtPayloadSchema = z.object({
   quote: z.string(),

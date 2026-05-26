@@ -1,4 +1,4 @@
-import { Injectable, Inject } from '@nestjs/common';
+import { Injectable } from '@nestjs/common';
 import { DataSubjectRequestStatus } from '@workspace/db';
 import type {
   AppComplianceSummary,
@@ -7,10 +7,7 @@ import type {
 } from '@workspace/types';
 import { SettingsFactory } from '@/domains/clinics/core/factories/settings.factory';
 import { AuditService } from '@/shared/modules/audit/audit/audit.service';
-import {
-  CLINIC_PERSISTENCE_PORT,
-  type ClinicPersistencePort,
-} from '@/domains/clinics/application/ports/clinic-persistence.port';
+import { PrismaService } from '@/prisma/prisma.service';
 import { ClinicDataService } from './clinic-data.service';
 import { ClinicSettingsQueryService } from './clinic-settings-query.service';
 import { ClinicSettingsCommandService } from './clinic-settings-command.service';

@@ -1,10 +1,10 @@
 "use client";
 
 import { Lock } from "lucide-react";
-import { Alert, AlertDescription } from "@workspace/ui/components/feedback/alert";
-import { Card, CardContent, CardHeader } from "@workspace/ui/components/indicators/card";
-import { CategoryAvatar } from "@workspace/ui/components/indicators/category-avatar";
-import { MicroLabel } from "@workspace/ui/components/indicators/micro-label";
+import { Alert, AlertDescription } from "@workspace/ui/components/alert";
+import { Card, CardContent, CardHeader } from "@workspace/ui/components/card";
+import { CategoryAvatar } from "@workspace/ui/components/category-avatar";
+import { MicroLabel } from "@workspace/ui/components/micro-label";
 import { TurnstileWidget } from "@/features/public-booking/components/turnstile-widget";
 import {
   BookingSectionHeader,

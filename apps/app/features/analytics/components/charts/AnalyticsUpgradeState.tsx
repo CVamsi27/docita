@@ -1,7 +1,7 @@
 import { Button } from "@workspace/ui/components/form/button";
 import { BarChart3 } from "lucide-react";
 import Link from "next/link";
-import { BackButton } from "@/components/navigation/back-button";
+import { BackButton } from "@/components/common/navigation/back-button";
 import { SUBSCRIPTION_SETTINGS_PATH } from "@/lib/subscription/subscription-settings-path";
 
 export const AnalyticsUpgradeState = () => (

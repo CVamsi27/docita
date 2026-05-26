@@ -20,13 +20,13 @@ export {
   hasQuotaRemaining,
 } from "./interfaces";
 
-export { TierBasedAccessRule } from "./rules/tier-based-rule";
+export { TierBasedAccessRule } from "../rules/tier-based-rule";
 export {
   AddOnBasedAccessRule,
   FEATURE_ADDON_MAP,
-} from "./rules/addon-based-rule";
-export { OverrideAccessRule } from "./rules/override-rule";
-export { SubscriptionStatusRule } from "./rules/subscription-status-rule";
+} from "../rules/addon-based-rule";
+export { OverrideAccessRule } from "../rules/override-rule";
+export { SubscriptionStatusRule } from "../rules/subscription-status-rule";
 
 export { AccessControlService } from "./service";
 export { SubscriptionRepository } from "./repository";

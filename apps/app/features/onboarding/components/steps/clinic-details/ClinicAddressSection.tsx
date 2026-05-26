@@ -1,7 +1,7 @@
 import { UseFormReturn } from "react-hook-form";
-import { Button } from "@workspace/ui/components/form/button";
-import { Input } from "@workspace/ui/components/form/input";
-import { Label } from "@workspace/ui/components/form/label";
+import { Button } from "@workspace/ui/components/button";
+import { Input } from "@workspace/ui/components/input";
+import { Label } from "@workspace/ui/components/label";
 import type { ClinicDetails } from "@/features/onboarding/components/types";
 
 interface ClinicAddressSectionProps {

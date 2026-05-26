@@ -2,8 +2,8 @@
 import { Prisma, FeedbackCategory, FeedbackStatus } from '@workspace/db';
 
 export interface FeedbackFilters {
-  status?: FeedbackStatus;
-  category?: FeedbackCategory;
+  status?: string;
+  category?: string;
   clinicId?: string;
   startDate?: string;
   endDate?: string;
@@ -17,22 +17,28 @@ export function buildFeedbackWhereClause(
 ): Prisma.FeedbackWhereInput {
   const where: Prisma.FeedbackWhereInput = {};
 
-  if (filters.status) where.status = filters.status;
-  if (filters.category) where.category = filters.category;
+  if (filters.status) where.status = filters.status as FeedbackStatus;
+  if (filters.category) where.category = filters.category as FeedbackCategory;
   if (filters.clinicId) where.clinicId = filters.clinicId;
 
-  if (filters.minRating !== undefined || filters.maxRating !== undefined) {
-    where.overallRating = {
-      ...(filters.minRating !== undefined ? { gte: filters.minRating } : {}),
-      ...(filters.maxRating !== undefined ? { lte: filters.maxRating } : {}),
-    };
+  if (filters.minRating || filters.maxRating) {
+    where.overallRating = {};
+    if (filters.minRating)
+      (where.overallRating as Prisma.IntFilter).gte = filters.minRating;
+    if (filters.maxRating)
+      (where.overallRating as Prisma.IntFilter).lte = filters.maxRating;
   }
 
   if (filters.startDate || filters.endDate) {
-    where.createdAt = {
-      ...(filters.startDate ? { gte: new Date(filters.startDate) } : {}),
-      ...(filters.endDate ? { lte: new Date(filters.endDate) } : {}),
-    };
+    where.createdAt = {};
+    if (filters.startDate)
+      (where.createdAt as Prisma.DateTimeFilter).gte = new Date(
+        filters.startDate,
+      );
+    if (filters.endDate)
+      (where.createdAt as Prisma.DateTimeFilter).lte = new Date(
+        filters.endDate,
+      );
   }
 
   if (filters.search) {

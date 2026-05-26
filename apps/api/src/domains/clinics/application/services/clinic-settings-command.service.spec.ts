@@ -1,17 +1,14 @@
 import { NotFoundException } from '@nestjs/common';
 import { beforeEach, describe, it, expect, jest } from '@jest/globals';
 import { ClinicSettingsCommandService } from './clinic-settings-command.service';
-import {
-  CLINIC_PERSISTENCE_PORT,
-  type ClinicPersistencePort,
-} from '@/domains/clinics/application/ports/clinic-persistence.port';
+import { PrismaService } from '@/prisma/prisma.service';
 import { SettingsFactory } from '@/domains/clinics/core/factories/settings.factory';
 import { ClinicDataService } from './clinic-data.service';
 import { ClinicDataSubjectRequestService } from './clinic-data-subject-request.service';
 
 describe('ClinicSettingsCommandService', () => {
   let service: ClinicSettingsCommandService;
-  let prisma: jest.Mocked<ClinicPersistencePort>;
+  let prisma: jest.Mocked<PrismaService>;
   let settingsFactory: jest.Mocked<SettingsFactory>;
   let clinicDataService: jest.Mocked<ClinicDataService>;
   let dataSubjectRequestService: jest.Mocked<ClinicDataSubjectRequestService>;
@@ -19,7 +16,7 @@ describe('ClinicSettingsCommandService', () => {
   beforeEach(() => {
     prisma = {
       clinic: { findUnique: jest.fn(), update: jest.fn() },
-    } as unknown as jest.Mocked<ClinicPersistencePort>;
+    } as unknown as jest.Mocked<PrismaService>;
 
     settingsFactory = Object.create(
       SettingsFactory.prototype,

@@ -2,7 +2,7 @@
 
 import { useMemo } from "react";
 import { useAuth } from "@/lib/auth/auth-context";
-import { Button } from "@workspace/ui/components/form/button";
+import { Button } from "@workspace/ui/components/button";
 import {
   Card,
   CardContent,

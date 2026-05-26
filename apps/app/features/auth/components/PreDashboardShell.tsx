@@ -12,7 +12,6 @@ import {
   SUPPORT_WHATSAPP_MESSAGE_ONBOARDING,
 } from "@/lib/constants/support-contact";
 import { AuthBrandingPanel } from "./AuthBrandingPanel";
-import { AuthPreDashboardFooter } from "./AuthPreDashboardFooter";
 import { useAuth } from "@/lib/auth/auth-context";
 import type { AuthBrandingStep } from "@/features/auth/types/auth";
 
@@ -166,7 +165,23 @@ export function PreDashboardShell({
                     ))}
                   </div>
                 </div>
-              ) : null}
+                <div className="flex gap-1">
+                  {Array.from({ length: TOTAL_STEPS }).map((_, i) => (
+                    <div
+                      key={i}
+                      className={[
+                        "h-1 flex-1 rounded-full transition-colors duration-500",
+                        i < meta.index
+                          ? "bg-success"
+                          : i === meta.index
+                            ? "bg-primary"
+                            : "bg-muted",
+                      ].join(" ")}
+                    />
+                  ))}
+                </div>
+              </div>
+            ) : null}
 
               {children}
             </div>

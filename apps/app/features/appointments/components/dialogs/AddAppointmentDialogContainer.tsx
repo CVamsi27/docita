@@ -1,6 +1,6 @@
 import { useCallback, useMemo, useState } from "react";
 import type { Appointment } from "@workspace/types";
-import { useAppointmentForm } from "@/features/appointments/hooks/use-appointment-form";
+import { useAppointmentForm } from "@/hooks/use-appointment-form";
 import { useFormOptions } from "@/lib/contexts/app-config-context";
 import { useClinic } from "@/lib/contexts/clinic-context";
 import { AddAppointmentDialogUI } from "./AddAppointmentDialogUI";

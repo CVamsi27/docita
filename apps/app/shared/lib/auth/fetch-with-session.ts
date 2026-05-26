@@ -1,6 +1,5 @@
 import { API_URL } from "@/lib/api/api-config";
 import { appSession } from "@/lib/auth/session";
-import { isRecord } from "@workspace/utils";
 
 function isMutatingMethod(method: string | undefined): boolean {
   return ["POST", "PUT", "PATCH", "DELETE"].includes((method ?? "GET").toUpperCase());

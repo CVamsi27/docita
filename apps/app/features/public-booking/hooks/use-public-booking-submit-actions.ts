@@ -7,7 +7,7 @@ import {
   usePublicBookingOtpVerify,
   usePublicBookingPhoneCheck,
   usePublicBookingSubmit,
-} from "@workspace/data-access";
+} from "@/hooks/api/use-public-booking";
 import { ApiError } from "@/lib/errors";
 import { buildPublicBookingSubmitErrors } from "@/lib/utils/api-validation-errors";
 import { showUserFacingErrorToast } from "@/lib/errors/user-facing-errors";

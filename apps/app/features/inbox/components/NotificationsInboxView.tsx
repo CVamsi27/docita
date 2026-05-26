@@ -2,23 +2,17 @@
 
 import { useEffect, useMemo, useState } from "react";
 import { useQueryClient } from "@tanstack/react-query";
-import { Button } from "@workspace/ui/components/form/button";
-import { Badge } from "@workspace/ui/components/indicators/badge";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@workspace/ui/components/navigation/tabs";
-import { DataState } from "@workspace/ui/components/data-display/data-state";
+import { Button } from "@workspace/ui/components/button";
+import { Badge } from "@workspace/ui/components/badge";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@workspace/ui/components/tabs";
+import { DataState } from "@workspace/ui/components/data-state";
 import { BellIcon, TrashIcon } from "lucide-react";
 import {
-  queryKeys,
   useAllNotifications, useMarkNotificationRead, useDeleteNotification,
   useDeleteAllNotifications, type StaffNotification,
-} from "@workspace/data-access";
+} from "@/hooks/api/use-notifications";
 import { useSocket } from "@/lib/contexts/socket-context";
-import { buildNotificationCategoryRecord } from "@/components/navigation/notification-category-record";
-import {
-  isNotificationCategoryId,
-  NOTIFICATION_CATEGORIES,
-  type NotificationCategoryId,
-} from "@/components/navigation/notification-href";
+import { NOTIFICATION_CATEGORIES, type NotificationCategoryId } from "@/features/_shared/components/navigation/notification-href";
 import { NotificationRow, categorize, filterByCategory } from "./notification-inbox-row";
 
 export function NotificationsInboxView() {
@@ -34,19 +28,19 @@ export function NotificationsInboxView() {
   useEffect(() => {
     if (!socket) return;
     const onNew = (n: StaffNotification) => {
-      queryClient.setQueryData<StaffNotification[]>(queryKeys.notifications.listAll(), (old = []) => [n, ...old]);
-      queryClient.invalidateQueries({ queryKey: queryKeys.notifications.unreadCount() });
+      queryClient.setQueryData<StaffNotification[]>(["notifications", "all"], (old = []) => [n, ...old]);
+      queryClient.invalidateQueries({ queryKey: ["notifications", "unread-count"] });
     };
     const onRead = (data: { id: string; readAt: Date }) => {
-      queryClient.setQueryData<StaffNotification[]>(queryKeys.notifications.listAll(), (old = []) =>
+      queryClient.setQueryData<StaffNotification[]>(["notifications", "all"], (old = []) =>
         old.map((n) => n.id === data.id ? { ...n, isRead: true, readAt: data.readAt } : n));
-      queryClient.invalidateQueries({ queryKey: queryKeys.notifications.unreadCount() });
+      queryClient.invalidateQueries({ queryKey: ["notifications", "unread-count"] });
     };
     const onDeleted = (data: { id: string }) => {
-      queryClient.setQueryData<StaffNotification[]>(queryKeys.notifications.listAll(), (old = []) => old.filter((n) => n.id !== data.id));
-      queryClient.invalidateQueries({ queryKey: queryKeys.notifications.unreadCount() });
+      queryClient.setQueryData<StaffNotification[]>(["notifications", "all"], (old = []) => old.filter((n) => n.id !== data.id));
+      queryClient.invalidateQueries({ queryKey: ["notifications", "unread-count"] });
     };
-    const onBulk = () => { refetch(); queryClient.invalidateQueries({ queryKey: queryKeys.notifications.unreadCount() }); };
+    const onBulk = () => { refetch(); queryClient.invalidateQueries({ queryKey: ["notifications", "unread-count"] }); };
     socket.on("notification:new", onNew);
     socket.on("notification:read", onRead);
     socket.on("notification:deleted", onDeleted);
@@ -71,19 +65,13 @@ export function NotificationsInboxView() {
   );
 
   const byTab = useMemo(
-    () =>
-      buildNotificationCategoryRecord((cat) =>
-        filterByCategory(active, cat.types),
-      ),
-    [active],
+    () => Object.fromEntries(visibleCategories.map((cat) => [cat.id, filterByCategory(active, cat.types)])) as Record<NotificationCategoryId, StaffNotification[]>,
+    [active, visibleCategories],
   );
 
   const unreadByTab = useMemo(
-    () =>
-      buildNotificationCategoryRecord(
-        (cat) => (byTab[cat.id] ?? []).filter((n) => !n.isRead).length,
-      ),
-    [byTab],
+    () => Object.fromEntries(visibleCategories.map((cat) => [cat.id, (byTab[cat.id] ?? []).filter((n) => !n.isRead).length])) as Record<NotificationCategoryId, number>,
+    [byTab, visibleCategories],
   );
 
   useEffect(() => {
@@ -111,12 +99,7 @@ export function NotificationsInboxView() {
           <TrashIcon className="mr-2 h-4 w-4" />Clear all
         </Button>
       </div>
-      <Tabs
-        value={activeTab}
-        onValueChange={(v) => {
-          if (isNotificationCategoryId(v)) setActiveTab(v);
-        }}
-      >
+      <Tabs value={activeTab} onValueChange={(v) => setActiveTab(v as NotificationCategoryId)}>
         <TabsList className="w-full justify-start overflow-x-auto">
           {visibleCategories.map((cat) => {
             const count = unreadByTab[cat.id] ?? 0;

@@ -35,7 +35,7 @@ describe('StaffManagementService', () => {
       },
     };
     service = new StaffManagementService(
-      prisma as unknown as ClinicPersistencePort,
+      prisma as unknown as PrismaService,
       Object.create(StaffInviteService.prototype) as StaffInviteService,
     );
   });

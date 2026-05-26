@@ -9,7 +9,7 @@ import {
   type RazorpayResponse,
 } from "@/hooks/use-razorpay";
 import { apiFetch } from "@/lib/api/api-client";
-import { BRAND_FOREGROUND_HEX } from "@/lib/constants/branding";
+import { BRAND_FOREGROUND_HEX } from "@/lib/branding";
 import { useAuth } from "@/lib/auth/auth-context";
 import { buildCsrfHeaders, buildJsonHeaders } from "@/lib/auth/csrf";
 import { ApiError } from "@/lib/errors";
@@ -24,7 +24,6 @@ import {
 import { getUserFacingErrorMessage } from "@workspace/utils";
 import { DEFAULT_CURRENCY } from "@workspace/utils";
 import { showUserFacingErrorToast } from "@/lib/errors/user-facing-errors";
-import { parseClinicDetailsDraft } from "@/features/onboarding/components/forms/clinic-registration-form-helpers";
 import {
   clearOnboardingSession,
   getPersistedFormData,
@@ -177,6 +176,7 @@ export function useClinicRegistrationFlow() {
         planSelection: {
           tier, billingCycle, price: typeof price === "number" ? price : 0,
           currency: resolvedCurrency, isCoreTrial: false,
+          workspaceProfile: options?.workspaceProfile ?? "FULL_CLINICAL",
         },
       }));
 
@@ -206,7 +206,7 @@ export function useClinicRegistrationFlow() {
               customerName: user.name, customerPhone: formData.clinicDetails.phone }),
           },
         );
-        const checkoutResult = await openCheckout({
+        await openCheckout({
           key: checkout.razorpayKeyId, amount: checkout.amountCents,
           currency: checkout.currency, name: "Docita Onboarding",
           description: `${tier} ${billingCycle} subscription`, order_id: checkout.orderId,
@@ -223,28 +223,9 @@ export function useClinicRegistrationFlow() {
             contact: formData.clinicDetails.phone || undefined },
           theme: { color: BRAND_FOREGROUND_HEX },
         });
-
-        if (checkoutResult.status === "canceled") {
-          return;
-        }
-        if (checkoutResult.status === "failed") {
-          showUserFacingErrorToast(
-            undefined,
-            "We could not complete this payment. Please try again.",
-            "payment",
-          );
-          return;
-        }
       } catch (error) {
-        if (isPaymentCanceledError(error)) {
-          notifyPaymentCanceled();
-          return;
-        }
-        showUserFacingErrorToast(
-          error,
-          "We could not start payment right now. Please try again.",
-          "payment",
-        );
+        if (isPaymentCanceledError(error)) toast.info("Payment was canceled. No charge was made.");
+        else showUserFacingErrorToast(error, "We could not start payment right now. Please try again.", "payment");
       } finally {
         setIsProcessingPayment(false);
       }
@@ -262,21 +243,17 @@ export function useClinicRegistrationFlow() {
 
   const submitRegistration = useCallback(
     async (complianceData: ComplianceSettings, onSuccess: () => void) => {
+      const details = formData.clinicDetails as ClinicDetails;
       const ownerRole = user?.role === "ADMIN_DOCTOR" ? "ADMIN_DOCTOR" : "ADMIN";
       const ownerName = user?.name ?? "";
       const ownerEmail = user?.email ?? "";
 
       const { stepOneMissing, all: missing } = validateRegistrationRequirements(
-        formData.clinicDetails, user?.name, user?.email, complianceData,
+        details, user?.name, user?.email, complianceData,
       );
       if (missing.length > 0) {
         setStep(stepOneMissing.length > 0 ? 1 : 5);
         throw new Error(`Complete the pending onboarding items before continuing: ${missing.join(", ")}`);
-      }
-      const details = parseClinicDetailsDraft(formData.clinicDetails);
-      if (!details) {
-        setStep(1);
-        throw new Error("Complete the pending onboarding items before continuing: valid facility details");
       }
 
       try {

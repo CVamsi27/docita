@@ -18,8 +18,8 @@ import { cn } from "@workspace/ui/lib/utils";
 import { humanizeUiLabel } from "@workspace/ui/lib/label-formatters";
 import { Clock, Play, Stethoscope, Users } from "lucide-react";
 
-import type { AppointmentListItem } from "@workspace/data-access";
-import { useStartConsultation } from "@workspace/data-access";
+import type { AppointmentListItem } from "@/hooks/api/use-appointments";
+import { useStartConsultation } from "@/hooks/api/use-appointments";
 import { showUserFacingErrorToast } from "@/lib/errors/user-facing-errors";
 
 interface QueueStats {

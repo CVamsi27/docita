@@ -1,8 +1,8 @@
 "use client";
 
 import { Calendar as CalendarIcon, CheckCircle2 } from "lucide-react";
-import { Card, CardContent, CardHeader, CardTitle } from "@workspace/ui/components/indicators/card";
-import { MicroLabel } from "@workspace/ui/components/indicators/micro-label";
+import { Card, CardContent, CardHeader, CardTitle } from "@workspace/ui/components/card";
+import { MicroLabel } from "@workspace/ui/components/micro-label";
 import { formatDate } from "@workspace/utils";
 import { formatTime } from "@/lib/formatters";
 import {
@@ -122,10 +122,7 @@ export function RequestSummaryCard({
             {selectedDoctorName ?? "Select a doctor"}
           </p>
         </div>
-        {scheduleComplete &&
-        selectedCalendarDay &&
-        selectedStart &&
-        selectedEnd ? (
+        {scheduleComplete ? (
           <div
             className={cn(
               "rounded-[var(--radius-md)] border border-primary/50 bg-primary/[0.06] shadow-md transition-colors duration-150",
@@ -141,8 +138,8 @@ export function RequestSummaryCard({
                 compact ? "text-[length:var(--fs-xs)]" : "text-[length:var(--fs-sm)]",
               )}
             >
-              {formatDate(selectedCalendarDay, "EEE d MMM")} &middot;{" "}
-              {formatTime(selectedStart)}–{formatTime(selectedEnd)}
+              {formatDate(selectedCalendarDay!, "EEE d MMM")} &middot;{" "}
+              {formatTime(selectedStart!)}–{formatTime(selectedEnd!)}
             </p>
           </div>
         ) : (
