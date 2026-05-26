@@ -41,6 +41,7 @@ export class DPDPComplianceService {
     withdrawnBy: string,
     ipAddress?: string,
     clinicId?: string,
+    actorUserId?: string,
   ): Promise<unknown> {
     return this.consentCompliance.withdrawConsent(
       consentId,
@@ -48,6 +49,7 @@ export class DPDPComplianceService {
       withdrawnBy,
       ipAddress,
       clinicId,
+      actorUserId,
     );
   }
 

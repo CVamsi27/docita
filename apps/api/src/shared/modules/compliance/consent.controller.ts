@@ -69,6 +69,7 @@ export class ConsentController {
       {
         ...data,
         clinicId: requireClinicId(data.clinicId ?? req.user?.clinicId),
+        actorUserId: req.user?.id,
       },
       ipAddress,
     );
@@ -101,6 +102,7 @@ export class ConsentController {
       data.withdrawnBy,
       ipAddress,
       req.user?.clinicId ?? undefined,
+      req.user?.id,
     );
   }
 

@@ -1,10 +1,8 @@
 "use client";
 
 import { Suspense } from "react";
-import {
-  EditPatientDialog,
-  PatientFaceSheetHeaderContainer as PatientFaceSheetHeader,
-} from "@/features/patients/components";
+import { EditPatientDialog } from "@/features/patients/components/forms/dialogs/EditPatientDialog";
+import { PatientFaceSheetHeaderContainer as PatientFaceSheetHeader } from "@/features/patients/components/profile/PatientFaceSheetHeaderContainer";
 import { PatientDetailTabs } from "@/features/patients/components/details/PatientDetailTabs";
 import { PatientHeaderActions } from "@/features/patients/components/details/PatientHeaderActions";
 import { PatientAdvisorRail } from "@/features/patients/components/details/patient-advisor-rail";
@@ -20,7 +18,9 @@ type PatientDetailPageContentProps = {
   patientId: string;
 };
 
-export function PatientDetailPageRoute({ patientId }: PatientDetailPageContentProps) {
+export function PatientDetailPageRoute({
+  patientId,
+}: PatientDetailPageContentProps) {
   return (
     <FeatureGate feature={Feature.BASIC_PATIENT_MANAGEMENT} showLockedCard>
       <PatientDetailPageContent patientId={patientId} />
@@ -28,8 +28,9 @@ export function PatientDetailPageRoute({ patientId }: PatientDetailPageContentPr
   );
 }
 
-export function PatientDetailPageContent({ patientId }: PatientDetailPageContentProps) {
-
+export function PatientDetailPageContent({
+  patientId,
+}: PatientDetailPageContentProps) {
   const { state, handlers } = usePatientDetailLogic(patientId);
 
   const {
