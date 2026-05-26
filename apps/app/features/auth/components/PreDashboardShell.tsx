@@ -2,12 +2,11 @@
 
 import { useEffect } from "react";
 import { useRouter } from "next/navigation";
-import { Lock, LogOut, Shield } from "lucide-react";
+import { LogOut } from "lucide-react";
 import { Button } from "@workspace/ui/components/form/button";
 import { ThemeToggleWithAppearanceSync } from "@/components/layout/theme-toggle-with-appearance-sync";
 import { DocitaLogo } from "@workspace/ui/components/indicators/docita-logo";
 import { cn } from "@workspace/ui/lib/utils";
-import { SupportContact } from "@/components/support-contact/support-contact";
 import {
   SUPPORT_WHATSAPP_MESSAGE_DEFAULT,
   SUPPORT_WHATSAPP_MESSAGE_ONBOARDING,
@@ -174,6 +173,7 @@ export function PreDashboardShell({
           </div>
 
           <AuthPreDashboardFooter
+            data-testid="auth-pre-dashboard-footer"
             className={cn("mx-auto shrink-0 px-4 pb-6", contentMaxWidth)}
             whatsappMessage={footerWhatsappMessage}
             trustRowClassName={showBrandingPanel ? "lg:hidden" : undefined}

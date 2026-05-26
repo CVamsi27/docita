@@ -68,7 +68,6 @@ describe('PatientDataAuditInterceptor helpers', () => {
         resourceId: 'pat-123',
       });
     });
-
   });
 
   describe('sanitizeAuditPayload', () => {

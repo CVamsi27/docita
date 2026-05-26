@@ -6,11 +6,17 @@ import { TeamInviteStep } from "./TeamInviteStep";
 describe("TeamInviteStep", () => {
   it("enables delete when email is typed and clears the row email", () => {
     render(
-      <TeamInviteStep onComplete={vi.fn()} onSkip={vi.fn()} ownerEmail="owner@example.com" />,
+      <TeamInviteStep
+        onComplete={vi.fn()}
+        onSkip={vi.fn()}
+        ownerEmail="owner@example.com"
+      />,
     );
 
     const emailInput = screen.getByPlaceholderText("Email");
-    const firstRemoveButton = screen.getByRole("button", { name: "Remove member 1" });
+    const firstRemoveButton = screen.getByRole("button", {
+      name: "Remove member 1",
+    });
 
     expect(firstRemoveButton).toBeDisabled();
 
@@ -25,20 +31,34 @@ describe("TeamInviteStep", () => {
 
   it("removes an empty additional member row", () => {
     render(
-      <TeamInviteStep onComplete={vi.fn()} onSkip={vi.fn()} ownerEmail="owner@example.com" />,
+      <TeamInviteStep
+        onComplete={vi.fn()}
+        onSkip={vi.fn()}
+        ownerEmail="owner@example.com"
+      />,
     );
 
-    fireEvent.click(screen.getByRole("button", { name: /add another member/i }));
-    const secondRemoveButton = screen.getByRole("button", { name: "Remove member 2" });
+    fireEvent.click(
+      screen.getByRole("button", { name: /add another member/i }),
+    );
+    const secondRemoveButton = screen.getByRole("button", {
+      name: "Remove member 2",
+    });
     expect(secondRemoveButton).toBeEnabled();
 
     fireEvent.click(secondRemoveButton);
-    expect(screen.queryByRole("button", { name: "Remove member 2" })).not.toBeInTheDocument();
+    expect(
+      screen.queryByRole("button", { name: "Remove member 2" }),
+    ).not.toBeInTheDocument();
   });
 
   it("shows role significance details from the info icon", async () => {
     render(
-      <TeamInviteStep onComplete={vi.fn()} onSkip={vi.fn()} ownerEmail="owner@example.com" />,
+      <TeamInviteStep
+        onComplete={vi.fn()}
+        onSkip={vi.fn()}
+        ownerEmail="owner@example.com"
+      />,
     );
 
     const roleGuideButton = screen.getByRole("button", {
@@ -50,7 +70,7 @@ describe("TeamInviteStep", () => {
 
     // Open role picker and select Admin Doctor to surface its description.
     fireEvent.click(screen.getByRole("combobox", { name: /role/i }));
-    fireEvent.click(await screen.findByText("Admin doctor"));
+    fireEvent.click(await screen.findByText("Admin Doctor"));
 
     expect(
       screen.getAllByText(

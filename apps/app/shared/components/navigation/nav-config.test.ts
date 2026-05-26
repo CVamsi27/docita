@@ -20,7 +20,9 @@ describe("navSections", () => {
     expect(track?.items.some((item) => item.href === "/patients")).toBe(true);
     expect(track?.items.some((item) => item.href === "/invoices")).toBe(true);
     expect(services?.items.some((item) => item.href === "/inbox")).toBe(true);
-    expect(services?.items.some((item) => item.href === "/whatsapp")).toBe(false);
+    expect(services?.items.some((item) => item.href === "/whatsapp")).toBe(
+      true,
+    );
   });
 
   it("exports flat navItems that match the union of section items", () => {

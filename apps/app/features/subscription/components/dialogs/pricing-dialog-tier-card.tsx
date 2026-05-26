@@ -6,9 +6,11 @@ import { cn } from "@workspace/ui/lib/utils";
 import { Check } from "lucide-react";
 import {
   type SupportedCurrency,
+  PUBLISHED_PLAN_LADDER,
   Tier,
   TIER_INFO,
   TIER_LIMITS,
+  publishedPlanLadderIndex,
   type TierName,
 } from "@workspace/types";
 import {
@@ -33,6 +35,15 @@ const TIER_ICON_CLASSES: Record<TierName, string> = {
   ENTERPRISE: "tier-enterprise",
   INTELLIGENCE: "tier-intelligence",
 };
+
+function resolvePublishedTierName(currentTier: Tier): TierName | null {
+  for (const tierName of PUBLISHED_PLAN_LADDER) {
+    if (Tier[tierName] === currentTier) {
+      return tierName;
+    }
+  }
+  return null;
+}
 
 export function PricingDialogTierCard({
   tierName,
@@ -63,9 +74,14 @@ export function PricingDialogTierCard({
   const limits = TIER_LIMITS[tierName];
   const Icon = PRICING_DIALOG_TIER_ICONS[tierName];
   const tierNumeric = Tier[tierName];
+  const currentTierName = resolvePublishedTierName(currentTier);
+  const tierRank = publishedPlanLadderIndex(tierName);
+  const currentTierRank = currentTierName
+    ? publishedPlanLadderIndex(currentTierName)
+    : -1;
   const isCurrentTier = tierNumeric === currentTier;
-  const isUpgrade = tierNumeric > currentTier;
-  const isDowngrade = tierNumeric < currentTier;
+  const isUpgrade = tierRank > currentTierRank;
+  const isDowngrade = tierRank < currentTierRank;
 
   const price = isYearly ? tierPricing.yearly : tierPricing.monthly;
   const isCustomTier = tierName === "ENTERPRISE" || price === "custom";
@@ -213,11 +229,7 @@ export function PricingDialogTierCard({
         disabled={isCurrentTier}
         onClick={() => onSelectTier(tierName, isYearly ? "YEARLY" : "MONTHLY")}
       >
-        {isCurrentTier
-          ? "Current Plan"
-          : isUpgrade
-            ? "Upgrade"
-            : "Downgrade"}
+        {isCurrentTier ? "Current Plan" : isUpgrade ? "Upgrade" : "Downgrade"}
       </Button>
     </div>
   );
@@ -226,10 +238,13 @@ export function PricingDialogTierCard({
 export function resolvePricingDialogEstimate(
   tierName: TierName,
   isYearly: boolean,
-  estimate: {
-    totalMonthly: number;
-    totalYearly: number;
-  } | null | undefined,
+  estimate:
+    | {
+        totalMonthly: number;
+        totalYearly: number;
+      }
+    | null
+    | undefined,
 ): number | null {
   if (tierName === "ENTERPRISE" || !estimate) {
     return null;

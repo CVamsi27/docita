@@ -50,7 +50,7 @@ describe("EditClinicDialog", () => {
     renderDialog(<EditClinicDialog clinic={clinic} onClinicUpdated={vi.fn()} />);
 
     fireEvent.click(screen.getByRole("button", { name: "Edit facility" }));
-    fireEvent.change(screen.getByLabelText("Facility name"), {
+    fireEvent.change(screen.getByLabelText("Facility Name"), {
       target: { value: "" },
     });
     fireEvent.change(screen.getByLabelText("Email"), {
@@ -81,7 +81,7 @@ describe("EditClinicDialog", () => {
     );
 
     fireEvent.click(screen.getByRole("button", { name: "Edit facility" }));
-    fireEvent.change(screen.getByLabelText("Facility name"), {
+    fireEvent.change(screen.getByLabelText("Facility Name"), {
       target: { value: "Care Clinic Plus" },
     });
     fireEvent.change(screen.getByLabelText("Email"), {

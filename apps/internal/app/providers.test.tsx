@@ -11,12 +11,20 @@ vi.mock("sonner", () => ({
   Toaster: toasterMock,
 }));
 
+vi.mock("next-themes", () => ({
+  ThemeProvider: ({ children }: { children: ReactNode }) => children,
+}));
+
 vi.mock("@/lib/auth/auth", () => ({
   AuthProvider: ({ children }: { children: ReactNode }) => children,
 }));
 
 vi.mock("@/components/internal-theme-provider", () => ({
   InternalThemeProvider: ({ children }: { children: ReactNode }) => children,
+}));
+
+vi.mock("next-themes", () => ({
+  ThemeProvider: ({ children }: { children: ReactNode }) => children,
 }));
 
 describe("internal Providers", () => {

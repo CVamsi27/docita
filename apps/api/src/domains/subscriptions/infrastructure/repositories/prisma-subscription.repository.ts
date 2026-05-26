@@ -16,12 +16,10 @@ export class PrismaSubscriptionRepository implements ISubscriptionRepository {
   async findPaymentByRazorpayPaymentId(
     razorpayPaymentId: string,
   ): Promise<{ id: string } | null> {
-    return this.prisma
-      .getReadClient()
-      .subscriptionPayment.findFirst({
-        where: { razorpayPaymentId },
-        select: { id: true },
-      });
+    return this.prisma.getReadClient().subscriptionPayment.findFirst({
+      where: { razorpayPaymentId },
+      select: { id: true },
+    });
   }
 
   save(subscription: Subscription): Promise<void> {

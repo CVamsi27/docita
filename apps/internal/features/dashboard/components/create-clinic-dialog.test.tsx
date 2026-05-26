@@ -47,7 +47,7 @@ describe("CreateClinicDialog", () => {
     render(<CreateClinicDialog onClinicCreated={onClinicCreated} />);
 
     fireEvent.click(screen.getByRole("button", { name: "Add Facility" }));
-    fireEvent.change(screen.getByLabelText("Facility name"), {
+    fireEvent.change(screen.getByLabelText("Facility Name"), {
       target: { value: "North Care Facility" },
     });
     fireEvent.change(screen.getByLabelText("Email"), {
@@ -59,10 +59,10 @@ describe("CreateClinicDialog", () => {
     fireEvent.change(screen.getByLabelText("Address"), {
       target: { value: "45 North Street" },
     });
-    fireEvent.change(screen.getByLabelText("Admin name"), {
+    fireEvent.change(screen.getByLabelText("Admin Name"), {
       target: { value: "Admin User" },
     });
-    fireEvent.change(screen.getByLabelText("Admin email"), {
+    fireEvent.change(screen.getByLabelText("Admin Email"), {
       target: { value: "admin@example.com" },
     });
     fireEvent.change(screen.getByLabelText("Password"), {

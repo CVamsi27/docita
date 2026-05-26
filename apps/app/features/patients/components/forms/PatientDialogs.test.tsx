@@ -30,8 +30,8 @@ describe("AddPatientDialog", () => {
     render(<AddPatientDialog open />);
 
     expect(screen.getByText("Add New Patient")).toBeInTheDocument();
-    expect(screen.getByLabelText("First name *")).toBeInTheDocument();
-    expect(screen.getByLabelText("Last name *")).toBeInTheDocument();
+    expect(screen.getByLabelText("First Name *")).toBeInTheDocument();
+    expect(screen.getByLabelText("Last Name *")).toBeInTheDocument();
     expect(screen.getByLabelText("Phone")).toBeInTheDocument();
     expect(screen.getByLabelText("Email")).toBeInTheDocument();
     expect(screen.getByLabelText("Gender *")).toBeInTheDocument();
@@ -45,7 +45,7 @@ describe("AddPatientDialog", () => {
   it("updates first name input value", () => {
     render(<AddPatientDialog open />);
 
-    const firstNameInput = screen.getByLabelText("First name *");
+    const firstNameInput = screen.getByLabelText("First Name *");
     fireEvent.change(firstNameInput, { target: { value: "Asha" } });
 
     expect(firstNameInput).toHaveValue("Asha");

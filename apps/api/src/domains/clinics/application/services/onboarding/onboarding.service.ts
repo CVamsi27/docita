@@ -20,7 +20,6 @@ import type {
   OnboardingStep,
 } from '@/domains/clinics/application/dto/onboarding/create-clinic-onboarding.dto';
 import { ClinicTier } from '@/domains/clinics/application/dto/onboarding/create-clinic-onboarding.dto';
-import { isFrontDeskTier } from '@workspace/types';
 import { OnboardingDataService } from './onboarding-data.service';
 import { OnboardingValidationService } from './onboarding-validation.service';
 import { OnboardingWorkflowService } from './onboarding-workflow.service';

@@ -4,12 +4,23 @@ const DEFAULT_CONNECT_SOURCES = [
   "https://*.sentry.io",
 ] as const;
 
+const CLOUDFLARE_INSIGHTS_SCRIPT_SOURCE = "https://static.cloudflareinsights.com";
+const CLOUDFLARE_INSIGHTS_CONNECT_SOURCE = "https://cloudflareinsights.com";
+
 export function buildInternalContentSecurityPolicy(): string {
   const isProduction = process.env["NODE_ENV"] === "production";
+  const isCloudflareBuild = process.env["DOCITA_CLOUDFLARE"] === "1";
+
   const scriptSources = [
     "'self'",
     "'unsafe-inline'",
+    isCloudflareBuild ? CLOUDFLARE_INSIGHTS_SCRIPT_SOURCE : undefined,
     !isProduction ? "'unsafe-eval'" : undefined,
+  ].filter((source): source is string => Boolean(source));
+
+  const connectSources = [
+    ...DEFAULT_CONNECT_SOURCES,
+    isCloudflareBuild ? CLOUDFLARE_INSIGHTS_CONNECT_SOURCE : undefined,
   ].filter((source): source is string => Boolean(source));
 
   return [
@@ -22,7 +33,7 @@ export function buildInternalContentSecurityPolicy(): string {
     "font-src 'self' data:",
     "style-src 'self' 'unsafe-inline'",
     `script-src ${scriptSources.join(" ")}`,
-    `connect-src ${DEFAULT_CONNECT_SOURCES.join(" ")}`,
+    `connect-src ${connectSources.join(" ")}`,
     "frame-src 'none'",
     "worker-src 'self' blob:",
     "manifest-src 'self'",

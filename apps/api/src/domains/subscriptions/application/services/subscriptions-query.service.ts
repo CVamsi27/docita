@@ -95,13 +95,6 @@ export class SubscriptionsQueryService {
   }
 
   async getTierConfig() {
-    const tiers = [
-      'STARTER',
-      'FRONT_DESK',
-      'ESSENTIAL',
-      'PROFESSIONAL',
-      'ENTERPRISE',
-    ];
     const pricingConfig = parsePricingConfigResponse(
       await this.clinicPricingQuery.getPricingConfig(DEFAULT_CURRENCY),
     );

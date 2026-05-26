@@ -1,7 +1,7 @@
 import type { ReactNode } from "react";
 
 import { cn } from "@workspace/ui/lib/utils";
-import { Section } from "@workspace/ui/components/section";
+import { Section } from "@workspace/ui/components/layout/section";
 // import { NowServingBoard } from "@workspace/ui/components/now-serving-board";
 
 import {

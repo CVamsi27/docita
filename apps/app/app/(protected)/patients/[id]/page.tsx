@@ -1,4 +1,4 @@
-import { PatientDetailPageRoute } from "@/features/patients/components/details/PatientDetailPageContent";
+"use client";
 
 import { Suspense } from "react";
 import { useParams } from "next/navigation";

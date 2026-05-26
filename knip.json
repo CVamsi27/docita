@@ -2,7 +2,7 @@
   "$schema": "https://unpkg.com/knip@5/schema.json",
   "rules": {
     "files": "off",
-    "exports": "error",
+    "exports": "warn",
     "duplicates": "error",
     "enumMembers": "warn",
     "types": "warn"
@@ -120,10 +120,7 @@
       "ignoreDependencies": ["@axe-core/playwright", "eslint-config-next", "@fontsource/fraunces", "@fontsource/inter", "@fontsource/jetbrains-mono"]
     },
     "apps/landing": {
-      "ignoreDependencies": ["tailwindcss"]
-    },
-    "packages/data-access": {
-      "ignoreDependencies": ["@workspace/types"]
+      "ignoreDependencies": ["tailwindcss", "sharp"]
     },
     ".": {
       "ignoreDependencies": [

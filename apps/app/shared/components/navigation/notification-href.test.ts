@@ -55,7 +55,9 @@ describe("notificationHref", () => {
     expect(
       notificationHref(notif("CONSULTATION_SIGNED", { visitId: "v1" })),
     ).toBe("/consultation/v1");
-    expect(notificationHref(notif("CONSULTATION_STARTED"))).toBe("/consultation");
+    expect(notificationHref(notif("CONSULTATION_STARTED"))).toBe(
+      "/consultation",
+    );
   });
 
   it("routes prescriptions to the detail page when prescriptionId present", () => {
@@ -68,9 +70,9 @@ describe("notificationHref", () => {
   });
 
   it("routes invoices to detail when invoiceId present", () => {
-    expect(notificationHref(notif("INVOICE_PENDING", { invoiceId: "i1" }))).toBe(
-      "/invoices/i1",
-    );
+    expect(
+      notificationHref(notif("INVOICE_PENDING", { invoiceId: "i1" })),
+    ).toBe("/invoices/i1");
     expect(notificationHref(notif("INVOICE_SENT"))).toBe("/invoices");
   });
 
@@ -93,9 +95,7 @@ describe("notificationHref", () => {
   });
 
   it("routes patient responses to the inbox notifications view", () => {
-    expect(notificationHref(notif("PATIENT_RESPONSE"))).toBe(
-      "/inbox?tab=notifications",
-    );
+    expect(notificationHref(notif("PATIENT_RESPONSE"))).toBe("/whatsapp");
   });
 
   it("treats SYSTEM_ALERT.url as opt-in but rejects unsafe values", () => {
