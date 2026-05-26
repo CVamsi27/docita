@@ -72,10 +72,3 @@ export const client = getAPIClient({
   },
 });
 
-export const fetchWithAuth = async (
-  endpoint: string,
-  options: RequestInit & { skipAuth?: boolean } = {},
-) => {
-  const { ...rest } = options;
-  return client.request(endpoint, { ...rest, skipAuth: options.skipAuth });
-};

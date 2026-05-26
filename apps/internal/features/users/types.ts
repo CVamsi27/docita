@@ -1,13 +1,10 @@
 import { Shield, Stethoscope, UserCog, Users } from "lucide-react";
 import type {
-  InternalClinicSummary,
   InternalPortalUser,
   InternalUserRole,
 } from "@workspace/data-access/internal";
 
 export type UserRole = InternalUserRole;
-
-export type Clinic = InternalClinicSummary;
 
 export type User = InternalPortalUser;
 

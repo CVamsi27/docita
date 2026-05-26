@@ -50,19 +50,3 @@ export function landingStaggerContainer(
   };
 }
 
-export function landingBrutalFrameVariants(prefersReducedMotion: boolean | null) {
-  if (prefersReducedMotion) {
-    return {
-      hidden: { opacity: 1, scale: 1 },
-      visible: { opacity: 1, scale: 1, transition: { duration: 0 } },
-    };
-  }
-  return {
-    hidden: { opacity: 0.88, scale: 0.96 },
-    visible: {
-      opacity: 1,
-      scale: 1,
-      transition: { type: "spring" as const, stiffness: 260, damping: 28 },
-    },
-  };
-}

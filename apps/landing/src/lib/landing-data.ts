@@ -237,48 +237,6 @@ export async function fetchPlatformStats(
   }
 }
 
-function buildFallbackPricingConfig(currencyCode: string): PricingConfig {
-  const symbol =
-    FALLBACK_PRICING_CONFIG.supportedCurrencies.find(
-      (currency) => currency.code === currencyCode,
-    )?.symbol ?? FALLBACK_PRICING_CONFIG.currency.symbol;
-
-  return {
-    ...FALLBACK_PRICING_CONFIG,
-    currency: {
-      code: currencyCode,
-      symbol,
-      name:
-        FALLBACK_PRICING_CONFIG.supportedCurrencies.find(
-          (currency) => currency.code === currencyCode,
-        )?.name ?? "Indian Rupee",
-    },
-    tiers: FALLBACK_TIERS.map((tier) => ({
-      ...tier,
-      pricing: {
-        ...tier.pricing,
-        currency: symbol,
-      },
-    })),
-  };
-}
-
-export async function fetchPricingConfig(
-  currencyCode: string,
-): Promise<PricingConfig> {
-  if (!isLiveLandingDataEnabled()) {
-    return buildFallbackPricingConfig(currencyCode);
-  }
-
-  try {
-    return await fetchLandingJson<PricingConfig>(
-      `/pricing/config?currency=${encodeURIComponent(currencyCode)}`,
-    );
-  } catch {
-    return buildFallbackPricingConfig(currencyCode);
-  }
-}
-
 export function formatStatValue(value: number): string {
   return formatCountLocale(value);
 }

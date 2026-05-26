@@ -4,7 +4,7 @@ function isRecord(value: unknown): value is Record<string, unknown> {
   return typeof value === "object" && value !== null && !Array.isArray(value);
 }
 
-export function scrubMutableSentryRecord(record: Record<string, unknown>): void {
+function scrubMutableSentryRecord(record: Record<string, unknown>): void {
   const request = record.request;
   if (isRecord(request)) {
     if (request.data !== undefined) {

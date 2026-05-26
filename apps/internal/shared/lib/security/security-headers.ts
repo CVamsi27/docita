@@ -70,7 +70,7 @@ export function buildInternalContentSecurityPolicy(
  */
 const STATIC_INTERNAL_CSP = buildInternalContentSecurityPolicy();
 
-export const INTERNAL_SECURITY_HEADERS = [
+const INTERNAL_SECURITY_HEADERS = [
   {
     key: "Content-Security-Policy",
     value: STATIC_INTERNAL_CSP,
