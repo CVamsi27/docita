@@ -13,6 +13,7 @@
  *    it now sources its rule set from here.
  */
 
+// check-as-cast-density: allow-file — `redactPhiDeep<T>` uses `as T` to propagate the generic identity through the recursive `walk` function which must return `unknown`; this is the canonical pattern for structure-preserving utilities.
 export const REDACTED = "[REDACTED]";
 
 const PHI_FIELDS: ReadonlySet<string> = new Set([

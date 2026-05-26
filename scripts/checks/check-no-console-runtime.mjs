@@ -11,6 +11,7 @@ const command =
   "--glob '!**/test/**' " +
   "--glob '!**/e2e/**' " +
   "--glob '!apps/app/lib/logger.ts' " +
+  "--glob '!apps/api/scripts/**' " +
   "--glob '!**/.wrangler/**' " +
   "--glob '!**/node_modules/**'";
 
@@ -30,6 +31,7 @@ const EXCLUDED_PATH_SEGMENTS = [
   '/coverage/',
   '/test-results/',
   '/playwright-report/',
+  '/apps/api/scripts/',
 ];
 const EXCLUDED_FILES = new Set(['apps/app/lib/logger.ts']);
 const SOURCE_EXTENSIONS = new Set([

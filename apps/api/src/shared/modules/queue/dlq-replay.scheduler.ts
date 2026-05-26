@@ -52,9 +52,9 @@ export class DlqReplayScheduler {
     jobs: readonly TJob[],
     maxAttempts: number = DLQ_REPLAY_DEFAULT_ATTEMPTS,
   ): TJob[] {
+    const kinds: ReadonlySet<string> = TRANSIENT_ERROR_KINDS;
     return jobs.filter((job) => {
-      const kind = (job.lastErrorKind ?? '') as TransientErrorKind;
-      if (!TRANSIENT_ERROR_KINDS.has(kind)) return false;
+      if (!kinds.has(job.lastErrorKind ?? '')) return false;
       const attempts = job.attempts ?? 0;
       return attempts < maxAttempts;
     });

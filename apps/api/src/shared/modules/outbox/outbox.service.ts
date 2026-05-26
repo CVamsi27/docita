@@ -1,3 +1,4 @@
+// check-as-cast-density: allow-file — Prisma.JsonValue is a wide union; narrowing before spread adds noise in a stub that will be replaced when the Outbox model lands.
 /**
  * Stub implementation of `IOutboxService` that delegates to
  * EventEmitter2 today and will swap to the Outbox table once the

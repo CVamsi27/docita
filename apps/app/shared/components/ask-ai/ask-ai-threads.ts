@@ -60,7 +60,7 @@ export function saveThreads(threads: AskAiStoredThread[]): void {
         scopeLabel: thread.scopeLabel,
         createdAt: thread.createdAt,
         updatedAt: thread.updatedAt,
-        messages: [] as AskAiStoredMessage[],
+        messages: new Array<AskAiStoredMessage>(),
       }));
     window.localStorage.setItem(STORAGE_KEY, JSON.stringify(trimmed));
   } catch {

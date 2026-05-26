@@ -55,7 +55,7 @@ export class NoopCronHeartbeatService implements ICronHeartbeatService {
  * reads the metadata (added when the Prisma model is provisioned).
  *
  * Example:
- *   @Cron(CronExpression.EVERY_HOUR)
+ *   @Cron(CRON_SCHEDULES.REMINDER_HOURLY)
  *   @TrackHeartbeat("billing.reconcile")
  *   async run() { ... }
  */

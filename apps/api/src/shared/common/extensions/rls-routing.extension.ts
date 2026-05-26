@@ -1,3 +1,4 @@
+// check-as-cast-density: allow-file — Prisma.TransactionClient has no dynamic-key accessor; `as unknown as Record<...>` is the canonical escape hatch to index model delegates at runtime.
 import { Prisma } from '@workspace/db';
 import { activeTxStorage } from '@/shared/modules/rls/active-tx.storage';
 
