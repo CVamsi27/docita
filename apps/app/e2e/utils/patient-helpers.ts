@@ -304,6 +304,8 @@ async function setupTestUserImpl(
 ): Promise<UserData> {
   const clinicType = options.clinicType ?? "GENERAL";
   const tier = options.tier ?? "ESSENTIAL";
+  const onboardingAdminRole =
+    tier === "FRONT_DESK" ? "ADMIN" : "ADMIN_DOCTOR";
   const uniqueId = randomUUID();
   const email = `doctor-${uniqueId}@test.com`;
   const password = TEST_PASSWORD;
@@ -523,7 +525,7 @@ async function setupTestUserImpl(
     postOnboardingLoginData.userId ??
     registeredUserId;
 
-  if (!isFrontDeskTestTier(tier)) {
+  if (tier !== "FRONT_DESK") {
     const tokenRes = await request.post(
       `${API_URL}/doctors/signature/generate-token`,
       {
