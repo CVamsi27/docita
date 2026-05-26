@@ -76,7 +76,7 @@ export function UsersPageContainer() {
     <AppPageScaffold
       header={
         <PageHeader
-          title="Team Members"
+          title="Team members"
           description="View and manage all users across facilities"
           size="compact"
         />
@@ -145,7 +145,7 @@ export function UsersPageContainer() {
                 <SelectValue placeholder="Facility" />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="all">All Facilities</SelectItem>
+                <SelectItem value="all">All facilities</SelectItem>
                 {clinics.map((clinic) => (
                   <SelectItem key={clinic.id} value={clinic.id}>
                     {clinic.name}
@@ -233,7 +233,7 @@ export function UsersPageContainer() {
       <Dialog open={isViewOpen} onOpenChange={setIsViewOpen}>
         <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
           <DialogHeader>
-            <DialogTitle>User Details</DialogTitle>
+            <DialogTitle>User details</DialogTitle>
             <DialogDescription>
               Review team member contact details and professional credentials.
             </DialogDescription>

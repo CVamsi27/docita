@@ -105,7 +105,7 @@ export function AdvancedMetricsCharts({
     <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
       <Card>
         <CardHeader>
-          <CardTitle>Revenue Trends</CardTitle>
+          <CardTitle>Revenue trends</CardTitle>
           <CardDescription>
             Daily/weekly trend in billed collections
           </CardDescription>
@@ -140,7 +140,7 @@ export function AdvancedMetricsCharts({
 
       <Card>
         <CardHeader>
-          <CardTitle>Appointment Performance</CardTitle>
+          <CardTitle>Appointment performance</CardTitle>
           <CardDescription>
             Operational appointment outcomes snapshot
           </CardDescription>
@@ -185,7 +185,7 @@ export function AdvancedMetricsCharts({
 
       <Card>
         <CardHeader>
-          <CardTitle>Patient Demographics</CardTitle>
+          <CardTitle>Patient demographics</CardTitle>
           <CardDescription>Population mix by gender and growth</CardDescription>
         </CardHeader>
         <CardContent className="h-80 space-y-4">
@@ -231,7 +231,7 @@ export function AdvancedMetricsCharts({
 
       <Card className="md:col-span-2 xl:col-span-3">
         <CardHeader>
-          <CardTitle>Doctor Performance</CardTitle>
+          <CardTitle>Doctor performance</CardTitle>
           <CardDescription>
             Provider-level completion and revenue metrics.
           </CardDescription>

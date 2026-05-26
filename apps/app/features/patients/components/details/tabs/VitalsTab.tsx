@@ -24,7 +24,7 @@ import {
   calculateBMI,
   getBMIStatus,
   getLatestVitals,
-} from "@/features/patients/rules/vitalsRules";
+} from "@/features/patients/rules/vitals-rules";
 import { PatientMetricsHistoryUI } from "@/features/patients/components/details/PatientMetricsHistoryUI";
 
 interface VitalsTabProps {

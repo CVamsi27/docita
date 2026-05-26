@@ -176,7 +176,7 @@ export function TeamInviteStep({
             selected
             <span className="font-medium">
               {" "}
-              {ownerRole === "ADMIN_DOCTOR" ? "Admin Doctor" : "Admin"}
+              {ownerRole === "ADMIN_DOCTOR" ? "Admin doctor" : "Admin"}
             </span>
             , and you can add more members now and update permissions later in
             Settings
@@ -196,7 +196,7 @@ export function TeamInviteStep({
                   </p>
                 </div>
                 <Badge variant="outline">
-                  {ownerRole === "ADMIN_DOCTOR" ? "Admin Doctor" : "Admin"}
+                  {ownerRole === "ADMIN_DOCTOR" ? "Admin doctor" : "Admin"}
                 </Badge>
               </div>
             </div>
@@ -245,7 +245,7 @@ export function TeamInviteStep({
                   <span className="text-sm text-foreground">{ownerEmail}</span>
                   <div className="flex items-center gap-2">
                     <Badge variant="outline">
-                      {ownerRole === "ADMIN_DOCTOR" ? "Admin Doctor" : "Admin"}
+                      {ownerRole === "ADMIN_DOCTOR" ? "Admin doctor" : "Admin"}
                     </Badge>
                     <Badge variant="secondary">Owner</Badge>
                   </div>

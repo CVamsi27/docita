@@ -167,7 +167,7 @@ export function EditClinicDialog({
       <CRUDDialog
         open={open}
         onOpenChange={handleOpenChange}
-        title="Edit Facility"
+        title="Edit facility"
         description="Update facility details and status"
         isLoading={loading}
         onSubmit={handleSubmit}
@@ -177,7 +177,7 @@ export function EditClinicDialog({
           <div className="space-y-4">
             <div className="grid grid-cols-2 gap-4">
               <div className="space-y-2">
-                <Label htmlFor="edit-name">Facility Name</Label>
+                <Label htmlFor="edit-name">Facility name</Label>
                 <Input
                   id="edit-name"
                   value={formData.name}
@@ -259,7 +259,7 @@ export function EditClinicDialog({
                 )}
               </div>
               <div className="space-y-2">
-                <Label htmlFor="edit-tier">Subscription Tier</Label>
+                <Label htmlFor="edit-tier">Subscription tier</Label>
                 <Select
                   value={formData.tier}
                   onValueChange={(val) => {
@@ -283,7 +283,7 @@ export function EditClinicDialog({
               </div>
             </div>
             <div className="space-y-2">
-              <Label htmlFor="edit-type">Clinic Type</Label>
+              <Label htmlFor="edit-type">Clinic type</Label>
               <Select
                 value={formData.type}
                 onValueChange={(val) => {

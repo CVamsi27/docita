@@ -33,7 +33,7 @@ describe("AddMetricDefinitionModal", () => {
     expect(await screen.findByText("Enter a metric name")).toBeInTheDocument();
     expect(portalMetricMocks.mutateAsync).not.toHaveBeenCalled();
 
-    fireEvent.change(screen.getByLabelText("Metric Name"), {
+    fireEvent.change(screen.getByLabelText("Metric name"), {
       target: { value: "Sleep Hours" },
     });
     fireEvent.click(screen.getByRole("button", { name: "Create Metric" }));
@@ -55,7 +55,7 @@ describe("AddMetricDefinitionModal", () => {
       />,
     );
 
-    fireEvent.change(screen.getByLabelText("Metric Name"), {
+    fireEvent.change(screen.getByLabelText("Metric name"), {
       target: { value: "Sleep Hours" },
     });
     fireEvent.click(screen.getByRole("combobox", { name: "Category" }));

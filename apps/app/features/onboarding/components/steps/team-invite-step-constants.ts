@@ -45,7 +45,7 @@ export const ROLE_OPTIONS = [
   },
   {
     value: "ADMIN_DOCTOR",
-    label: "Admin Doctor",
+    label: "Admin doctor",
     description:
       "Doctor with admin access who can help manage members and permissions",
   },

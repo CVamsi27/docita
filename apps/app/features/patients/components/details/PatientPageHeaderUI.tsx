@@ -59,7 +59,7 @@ export function PatientPageHeaderUI({ patient, onEdit }: PatientPageHeaderUIProp
             Ask AI
           </Button>
           {onEdit && (
-            <Button onClick={onEdit}>Edit Patient</Button>
+            <Button onClick={onEdit}>Edit patient</Button>
           )}
         </div>
       </div>

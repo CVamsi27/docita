@@ -33,6 +33,7 @@ describe('AuthService', () => {
   let prismaService: {
     user: {
       findUnique: jest.MockedFunction<(...args: unknown[]) => Promise<unknown>>;
+      findFirst: jest.MockedFunction<(...args: unknown[]) => Promise<unknown>>;
       create: jest.MockedFunction<(...args: unknown[]) => Promise<unknown>>;
       update: jest.MockedFunction<(...args: unknown[]) => Promise<unknown>>;
     };
@@ -291,20 +292,20 @@ describe('AuthService', () => {
 
   describe('validateUser', () => {
     it('should return user without password when credentials are valid', async () => {
-      jest.spyOn(prismaService.user, 'findUnique').mockResolvedValue(mockUser);
+      jest.spyOn(prismaService.user, 'findFirst').mockResolvedValue(mockUser);
       jest.mocked(bcrypt.compare).mockImplementation(async () => true);
 
       const result = await service.validateUser('test@example.com', 'password');
 
       expect(result).toMatchObject(mockUserWithoutPassword);
       expect(result).not.toHaveProperty('password');
-      expect(prismaService.user.findUnique).toHaveBeenCalledWith({
-        where: { email: 'test@example.com' },
+      expect(prismaService.user.findFirst).toHaveBeenCalledWith({
+        where: { email: 'test@example.com', deletedAt: null },
       });
     });
 
     it('should reject login when appLoginDisabled is true', async () => {
-      jest.spyOn(prismaService.user, 'findUnique').mockResolvedValue({
+      jest.spyOn(prismaService.user, 'findFirst').mockResolvedValue({
         ...mockUser,
         appLoginDisabled: true,
       });
@@ -315,7 +316,7 @@ describe('AuthService', () => {
     });
 
     it('should reject DOCTOR sign-in for FRONT_DESK clinics', async () => {
-      jest.spyOn(prismaService.user, 'findUnique').mockResolvedValue({
+      jest.spyOn(prismaService.user, 'findFirst').mockResolvedValue({
         ...mockUser,
         role: Role.DOCTOR,
       });
@@ -330,7 +331,7 @@ describe('AuthService', () => {
     });
 
     it('should reject ADMIN_DOCTOR sign-in for FRONT_DESK clinics', async () => {
-      jest.spyOn(prismaService.user, 'findUnique').mockResolvedValue({
+      jest.spyOn(prismaService.user, 'findFirst').mockResolvedValue({
         ...mockUser,
         role: Role.ADMIN_DOCTOR,
       });
@@ -345,7 +346,7 @@ describe('AuthService', () => {
     });
 
     it('should allow RECEPTIONIST sign-in for FRONT_DESK clinics', async () => {
-      jest.spyOn(prismaService.user, 'findUnique').mockResolvedValue({
+      jest.spyOn(prismaService.user, 'findFirst').mockResolvedValue({
         ...mockUser,
         role: Role.RECEPTIONIST,
       });
@@ -360,7 +361,7 @@ describe('AuthService', () => {
     });
 
     it('should allow ADMIN sign-in for FRONT_DESK clinics', async () => {
-      jest.spyOn(prismaService.user, 'findUnique').mockResolvedValue({
+      jest.spyOn(prismaService.user, 'findFirst').mockResolvedValue({
         ...mockUser,
         role: Role.ADMIN,
       });
@@ -375,7 +376,7 @@ describe('AuthService', () => {
     });
 
     it('should allow DOCTOR sign-in for non-FRONT_DESK clinics', async () => {
-      jest.spyOn(prismaService.user, 'findUnique').mockResolvedValue({
+      jest.spyOn(prismaService.user, 'findFirst').mockResolvedValue({
         ...mockUser,
         role: Role.DOCTOR,
       });
@@ -390,7 +391,7 @@ describe('AuthService', () => {
     });
 
     it('should return null when password is incorrect', async () => {
-      jest.spyOn(prismaService.user, 'findUnique').mockResolvedValue(mockUser);
+      jest.spyOn(prismaService.user, 'findFirst').mockResolvedValue(mockUser);
       jest.mocked(bcrypt.compare).mockImplementation(async () => false);
 
       const result = await service.validateUser(
@@ -415,7 +416,7 @@ describe('AuthService', () => {
     });
 
     it('should return null when user does not exist', async () => {
-      jest.spyOn(prismaService.user, 'findUnique').mockResolvedValue(null);
+      jest.spyOn(prismaService.user, 'findFirst').mockResolvedValue(null);
 
       const result = await service.validateUser(
         'nonexistent@example.com',
@@ -426,7 +427,7 @@ describe('AuthService', () => {
     });
 
     it('should still emit a Sentry warning when failed logins lock the account', async () => {
-      jest.spyOn(prismaService.user, 'findUnique').mockResolvedValue({
+      jest.spyOn(prismaService.user, 'findFirst').mockResolvedValue({
         ...mockUser,
         failedLoginAttempts: AUTH_CONSTANTS.MAX_FAILED_LOGIN_ATTEMPTS - 1,
       });

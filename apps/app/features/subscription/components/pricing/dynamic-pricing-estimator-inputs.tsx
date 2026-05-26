@@ -151,7 +151,7 @@ export function DynamicPricingEstimatorInputs({
           />
         </div>
         <div className="space-y-2">
-          <Label>Team Members</Label>
+          <Label>Team members</Label>
           <Input
             type="number"
             min={1}

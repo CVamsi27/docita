@@ -13,5 +13,7 @@
   "mobile-upload",
   "ocr",
   "prescriptions",
-  "public-booking"
+  "profile",
+  "public-booking",
+  "templates"
 ]

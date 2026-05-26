@@ -118,10 +118,10 @@ export function resolveSubscriptionLockNotice(
   if (isExpired) {
     return {
       kind: "expired",
-      title: "Subscription Expired: Workspace Locked",
+      title: "Subscription expired: workspace locked",
       description:
         "This facility is locked until payment is completed. You can still open billing under Settings, Subscription to restore access.",
-      ctaLabel: "Resolve Payment",
+      ctaLabel: "Resolve payment",
       variant: "destructive",
     };
   }
@@ -145,10 +145,10 @@ export function resolveSubscriptionLockNotice(
   if (isPaused) {
     return {
       kind: "paused",
-      title: "Subscription Paused",
+      title: "Subscription paused",
       description:
         "This subscription is paused. Resolve billing to restore full access.",
-      ctaLabel: "Resolve Payment",
+      ctaLabel: "Resolve payment",
       variant: "default",
       toneClass: "border-warning/40 bg-warning/10",
     };
@@ -164,9 +164,9 @@ export function resolveSubscriptionLockNotice(
         : " Resolve payment now to keep Docita access active.";
     return {
       kind: "grace-or-past-due",
-      title: "Payment Grace Period: Access Restricted",
+      title: "Payment grace period: access restricted",
       description: `${opener}${tail}`,
-      ctaLabel: "Resolve Payment",
+      ctaLabel: "Resolve payment",
       variant: "default",
       toneClass: "border-warning/40 bg-warning/10",
     };
@@ -195,7 +195,7 @@ export function resolveSubscriptionLockNotice(
     title: "Payment required",
     description:
       "Your subscription needs billing attention. Resolve payment to keep Docita access active.",
-    ctaLabel: "Resolve Payment",
+    ctaLabel: "Resolve payment",
     variant: "default",
     toneClass: "border-warning/40 bg-warning/10",
   };

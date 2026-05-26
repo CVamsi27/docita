@@ -66,7 +66,7 @@ export function AppearanceSettings() {
           ) : null}
         </div>
         <div className="space-y-3">
-          <Label>Accent Color</Label>
+          <Label>Accent color</Label>
           <ToggleGroup
             aria-label="Accent color"
             type="single"
@@ -115,7 +115,7 @@ export function AppearanceSettings() {
         </div>
         <div className="flex items-center justify-between gap-4">
           <div>
-            <Label htmlFor="compact-mode">Compact Mode</Label>
+            <Label htmlFor="compact-mode">Compact mode</Label>
             <p className="text-sm text-muted-foreground">
               Reduce spacing for more content
             </p>

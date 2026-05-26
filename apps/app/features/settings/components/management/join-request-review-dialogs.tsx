@@ -66,7 +66,7 @@ export function JoinRequestReviewDialogs({
 
           <div className="space-y-4 py-4">
             <div className="space-y-2">
-              <label className="text-sm font-medium">Assigned Role</label>
+              <label className="text-sm font-medium">Assigned role</label>
               <Select value={assignedRole} onValueChange={setAssignedRole}>
                 <SelectTrigger>
                   <SelectValue />
@@ -75,7 +75,7 @@ export function JoinRequestReviewDialogs({
                   <SelectItem value="DOCTOR">Doctor</SelectItem>
                   <SelectItem value="NURSE">Nurse</SelectItem>
                   <SelectItem value="RECEPTIONIST">Receptionist</SelectItem>
-                  <SelectItem value="ADMIN_DOCTOR">Admin Doctor</SelectItem>
+                  <SelectItem value="ADMIN_DOCTOR">Admin doctor</SelectItem>
                 </SelectContent>
               </Select>
               <p className="ui-helper-text">

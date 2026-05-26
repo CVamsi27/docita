@@ -38,7 +38,7 @@ export function PatientPortalPrescriptionsUI({
       ) : null}
       <Card>
         <CardHeader>
-          <CardTitle>Prescription History</CardTitle>
+          <CardTitle>Prescription history</CardTitle>
         </CardHeader>
         <CardContent>
           {prescriptions.length === 0 ? (

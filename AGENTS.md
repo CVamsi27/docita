@@ -238,6 +238,9 @@ The `shared/` folder is the home for **non-feature** code reused across features
 - Remove dead code and commented-out blocks.
 - No emojis in code, comments, or commit messages.
 - Prefer small cohesive functions and descriptive naming.
+- **File naming:** kebab-case for hooks (`use-patients.ts`), rules (`patient-rules.ts`), and feature modules; PascalCase for React components.
+- **Handlers:** prefix user-triggered callbacks with `handle` (`handleSubmit`, `handleClose`).
+- **Session semantics:** import CSRF cookie/header names and token TTL constants from `@workspace/auth`, not ad-hoc strings.
 
 ### 7.4 Unused dependencies and exports (Knip)
 

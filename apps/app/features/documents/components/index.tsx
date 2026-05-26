@@ -129,7 +129,7 @@ export const DocumentUpload: FC<{
   return (
     <Card className="border-none shadow-lg">
       <CardHeader>
-        <CardTitle>Upload Documents</CardTitle>
+        <CardTitle>Upload documents</CardTitle>
         <CardDescription>Drag & drop or click to upload</CardDescription>
       </CardHeader>
       <CardContent>

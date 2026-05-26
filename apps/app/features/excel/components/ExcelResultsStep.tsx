@@ -41,7 +41,7 @@ export const ExcelResultsStep = ({
                 <p className="text-[var(--fs-2xl)] font-semibold tabular-nums leading-[var(--lh-tight)]">
                   {result.total}
                 </p>
-                <p className="text-sm text-muted-foreground">Total Rows</p>
+                <p className="text-sm text-muted-foreground">Total rows</p>
               </div>
             </div>
           </CardContent>
@@ -99,14 +99,14 @@ export const ExcelResultsStep = ({
       {(result.errors.length > 0 || result.duplicateDetails.length > 0) && (
         <Card>
           <CardHeader>
-            <CardTitle>Import Details</CardTitle>
+            <CardTitle>Import details</CardTitle>
           </CardHeader>
           <CardContent className="space-y-4">
             {result.duplicateDetails.length > 0 && (
               <div>
                 <h4 className="font-medium mb-2 flex items-center gap-2">
                   <AlertCircle className="h-4 w-4 text-warning" />
-                  Duplicates Skipped
+                  Duplicates skipped
                 </h4>
                 <div className="rounded-md border max-h-48 overflow-auto">
                   <Table>
@@ -114,7 +114,7 @@ export const ExcelResultsStep = ({
                       <TableRow>
                         <TableHead>Row</TableHead>
                         <TableHead>Reason</TableHead>
-                        <TableHead>Existing Patient</TableHead>
+                        <TableHead>Existing patient</TableHead>
                       </TableRow>
                     </TableHeader>
                     <TableBody>

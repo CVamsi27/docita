@@ -52,7 +52,7 @@ export const TrendsBarChart = ({ data, loading }: TrendsChartProps) => (
             <Bar
               dataKey="count"
               fill="var(--color-chart-1)"
-              name="Patient Count"
+              name="Patient count"
             />
           </BarChart>
         </ResponsiveContainer>
@@ -70,7 +70,7 @@ export const TrendsBarChart = ({ data, loading }: TrendsChartProps) => (
 export const TrendsPieChart = ({ data, loading }: TrendsChartProps) => (
   <Card>
     <CardHeader>
-      <CardTitle>Disease Distribution</CardTitle>
+      <CardTitle>Disease distribution</CardTitle>
       <CardDescription>Percentage breakdown of diagnoses</CardDescription>
     </CardHeader>
     <CardContent className="h-[400px]">

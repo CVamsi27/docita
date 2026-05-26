@@ -16,6 +16,7 @@ import {
   isDatabaseAuthError,
   isDatabaseConnectivityError,
 } from './auth-database.util';
+import { activeUserWhere } from '@/shared/common/prisma/active-user.filter';
 
 @Injectable()
 export class CredentialValidationService {
@@ -84,7 +85,9 @@ export class CredentialValidationService {
   ): Promise<UserWithoutPassword | null> {
     // RLS-BYPASS: auth resolves users before clinic tenant context is established
     return this.prisma.runUnrestricted(async () => {
-      const user = await this.prisma.user.findUnique({ where: { email } });
+      const user = await this.prisma.user.findFirst({
+        where: { email, ...activeUserWhere },
+      });
 
       if (!user) {
         return null;

@@ -51,7 +51,7 @@ export function TimeSlotPickerUI({
   return (
     <div className="space-y-4">
       <div className="flex items-center justify-between">
-        <h3 className="font-medium">Select Time</h3>
+        <h3 className="font-medium">Select time</h3>
         <Badge variant="outline">{formatDate(date, "EEEE, MMM d")}</Badge>
       </div>
 

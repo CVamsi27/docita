@@ -125,11 +125,11 @@ export function EditInvoiceDialog({
     <CRUDDialog
       open={open}
       onOpenChange={onOpenChange}
-      title="Edit Invoice"
+      title="Edit invoice"
       description={`Update invoice details for ${patientName}`}
       isLoading={loading}
       onSubmit={handleSubmit}
-      submitLabel={loading ? "Saving…" : "Save Changes"}
+      submitLabel={loading ? "Saving…" : "Save changes"}
       contentClassName="max-w-6xl max-h-[90vh] overflow-y-auto"
     >
       <div className="space-y-4">
@@ -151,7 +151,7 @@ export function EditInvoiceDialog({
 
         <div className="space-y-2">
           <div className="flex items-center justify-between">
-            <Label>Invoice Items</Label>
+            <Label>Invoice items</Label>
             <Button
               type="button"
               variant="outline"

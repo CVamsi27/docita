@@ -33,7 +33,7 @@ export const LabTestsOverview: FC<LabTestsOverviewProps> = ({ stats }) => {
       </Card>
       <Card>
         <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-          <CardTitle className="text-sm font-medium">In Progress</CardTitle>
+          <CardTitle className="text-sm font-medium">In progress</CardTitle>
           <FlaskConical className="h-4 w-4 text-info" />
         </CardHeader>
         <CardContent>

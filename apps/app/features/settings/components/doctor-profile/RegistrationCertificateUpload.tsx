@@ -101,7 +101,7 @@ export function RegistrationCertificateUpload({
       <CardHeader>
         <div className="flex items-center justify-between">
           <div>
-            <CardTitle className="text-lg">Registration Certificate</CardTitle>
+            <CardTitle className="text-lg">Registration certificate</CardTitle>
             <CardDescription>
               Upload your council-issued registration certificate so our team
               can verify your details.

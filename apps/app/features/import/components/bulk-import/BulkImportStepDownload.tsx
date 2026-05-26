@@ -20,7 +20,7 @@ export function BulkImportStepDownload({
         <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-full border border-border/70 bg-background/70 text-primary">
           <Download className="h-6 w-6" />
         </div>
-        <h3 className="font-semibold">Download Template</h3>
+        <h3 className="font-semibold">Download template</h3>
         <p className="text-sm text-muted-foreground">
           Get the CSV template for {selectedEntity.toLowerCase()} import.
         </p>

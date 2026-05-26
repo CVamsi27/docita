@@ -183,7 +183,7 @@ export default function PerformancePage() {
         </Card>
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Memory Usage</CardTitle>
+            <CardTitle className="text-sm font-medium">Memory usage</CardTitle>
             <Server className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent className="space-y-2">
@@ -216,7 +216,7 @@ export default function PerformancePage() {
 
       <Card>
         <CardHeader>
-          <CardTitle>Service Health</CardTitle>
+          <CardTitle>Service health</CardTitle>
           <CardDescription>
             Status of the live API runtime and database connection
           </CardDescription>

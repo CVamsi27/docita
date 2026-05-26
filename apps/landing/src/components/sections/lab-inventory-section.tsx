@@ -34,7 +34,7 @@ export function LabInventorySection() {
                   </div>
                 </div>
                 <div>
-                  <h3 className="font-semibold mb-1">Lab Management</h3>
+                  <h3 className="font-semibold mb-1">Lab management</h3>
                   <p className="text-sm text-muted-foreground">
                     Order tests, track sample status, and deliver digital
                     reports directly to patients.
@@ -49,7 +49,7 @@ export function LabInventorySection() {
                   </div>
                 </div>
                 <div>
-                  <h3 className="font-semibold mb-1">Smart Inventory</h3>
+                  <h3 className="font-semibold mb-1">Smart inventory</h3>
                   <p className="text-sm text-muted-foreground">
                     Track medicine stock, get low-inventory alerts, and manage
                     supplier orders.

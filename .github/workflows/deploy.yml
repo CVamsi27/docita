@@ -10,6 +10,7 @@ on:
       - "packages/db/**"
       - "packages/types/**"
       - "packages/utils/**"
+      - "packages/auth/**"
       - "scripts/workflow/detect-workflow-scope.mjs"
       - "scripts/deploy/test-api-startup.sh"
       - "package.json"
@@ -18,6 +19,7 @@ on:
       - "turbo.json"
       - "fly.toml"
       - ".github/workflows/deploy.yml"
+      - ".github/workflows/**"
 
 concurrency:
   group: deploy-production-${{ github.ref }}
@@ -54,6 +56,7 @@ jobs:
     needs: changes
     if: needs.changes.outputs.db == 'true'
     runs-on: ubuntu-latest
+    environment: production
     env:
       NODE_ENV: production
     steps:
@@ -73,6 +76,9 @@ jobs:
       - name: Install dependencies
         run: pnpm install --frozen-lockfile
 
+      - name: Mask database URL in logs
+        run: echo "::add-mask::${{ secrets.DATABASE_URL }}"
+
       - name: Generate Prisma client
         env:
           DATABASE_URL: ${{ secrets.DATABASE_URL }}
@@ -82,6 +88,19 @@ jobs:
             exit 1
           fi
           pnpm --filter @workspace/db run db:generate
+
+      - name: Prisma migrate dry-run (schema drift check)
+        env:
+          DATABASE_URL: ${{ secrets.DATABASE_URL }}
+        run: |
+          if [ -z "$DATABASE_URL" ]; then
+            echo "DATABASE_URL secret is required."
+            exit 1
+          fi
+          pnpm --filter @workspace/db exec prisma migrate diff \
+            --from-url "$DATABASE_URL" \
+            --to-schema-datamodel packages/db/prisma/schema.prisma \
+            --exit-code
 
       - name: Run Prisma Migrations
         env:
@@ -141,8 +160,9 @@ jobs:
       always() &&
       needs.changes.outputs.api == 'true' &&
       (needs.migrate-db.result == 'success' || needs.migrate-db.result == 'skipped') &&
-      (needs.api-startup-smoke.result == 'success' || needs.api-startup-smoke.result == 'skipped')
+      needs.api-startup-smoke.result == 'success'
     runs-on: ubuntu-latest
+    environment: production
     env:
       FLY_API_TOKEN: ${{ secrets.FLY_API_TOKEN }}
     steps:
@@ -170,6 +190,7 @@ jobs:
       needs.changes.outputs.worker == 'true' &&
       (needs.migrate-db.result == 'success' || needs.migrate-db.result == 'skipped')
     runs-on: ubuntu-latest
+    environment: production
     env:
       FLY_API_TOKEN: ${{ secrets.FLY_API_TOKEN_WORKER }}
     steps:

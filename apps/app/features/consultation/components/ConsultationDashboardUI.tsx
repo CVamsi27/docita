@@ -18,6 +18,8 @@ import {
 } from "@/features/appointments";
 import { usePermissions } from "@/hooks/use-permissions";
 import { ConsultationDashboardSkeleton } from "./ConsultationDashboardSkeleton";
+import { Feature } from "@workspace/types";
+import { FeatureGate } from "@/components/auth/feature-gate";
 import {
   DoctorNextSection,
   NursePrepSection,
@@ -94,6 +96,7 @@ export const ConsultationDashboardUI: FC = () => {
   if (isLoading) return <ConsultationDashboardSkeleton />;
 
   return (
+    <FeatureGate feature={Feature.CALENDAR_SLOTS} showLockedCard>
     <AppPageScaffold
       header={
         <PageHeader
@@ -175,5 +178,6 @@ export const ConsultationDashboardUI: FC = () => {
 
 
     </AppPageScaffold>
+    </FeatureGate>
   );
 };

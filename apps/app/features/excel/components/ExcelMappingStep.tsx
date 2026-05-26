@@ -55,7 +55,7 @@ export const ExcelMappingStep = ({
     <div className="grid gap-6 lg:grid-cols-2">
       <Card>
         <CardHeader>
-          <CardTitle>Column Mapping</CardTitle>
+          <CardTitle>Column mapping</CardTitle>
           <CardDescription>
             Map your Excel columns to database fields. Required fields are
             marked with *.
@@ -101,7 +101,7 @@ export const ExcelMappingStep = ({
             <div className="flex items-center gap-2 text-warning text-sm w-full">
               <AlertTriangle className="h-4 w-4" />
               <span>
-                Please map both First Name and Phone Number (required)
+                Please map both First name and Phone number (required)
               </span>
             </div>
           )}
@@ -111,14 +111,14 @@ export const ExcelMappingStep = ({
             className="w-full"
           >
             <Users className="mr-2 h-4 w-4" />
-            Import {preview.totalRows} Patients
+            Import {preview.totalRows} patients
           </Button>
         </CardFooter>
       </Card>
 
       <Card>
         <CardHeader>
-          <CardTitle>Data Preview</CardTitle>
+          <CardTitle>Data preview</CardTitle>
           <CardDescription>
             Showing first {preview.sampleData.length} rows of{" "}
             {preview.totalRows} total.

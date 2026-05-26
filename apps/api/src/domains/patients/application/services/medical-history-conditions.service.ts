@@ -25,6 +25,9 @@ import {
 import { MedicalHistoryFactory } from '@/domains/patients/core/factories/medical-history.factory';
 import { findDuplicateAllergy } from '@/domains/patients/core/domain-services/patient-medical-history.rules';
 
+/** Caps unbounded PHI list reads for conditions/allergies sub-resources. */
+const MEDICAL_HISTORY_LIST_LIMIT = 100;
+
 @Injectable()
 export class MedicalHistoryConditionsService {
   constructor(
@@ -37,6 +40,7 @@ export class MedicalHistoryConditionsService {
     return this.persistence.patientMedicalCondition.findMany({
       where: { patientId },
       orderBy: { createdAt: 'desc' },
+      take: MEDICAL_HISTORY_LIST_LIMIT,
     });
   }
 
@@ -115,6 +119,7 @@ export class MedicalHistoryConditionsService {
     return this.persistence.patientAllergy.findMany({
       where: { patientId },
       orderBy: { createdAt: 'desc' },
+      take: MEDICAL_HISTORY_LIST_LIMIT,
     });
   }
 

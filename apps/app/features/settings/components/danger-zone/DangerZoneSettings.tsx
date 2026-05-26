@@ -80,7 +80,7 @@ export function DangerZoneSettings() {
     <div className="space-y-4">
       <Card className="border-destructive/30">
         <CardHeader>
-          <CardTitle className="text-lg text-destructive">Sign Out</CardTitle>
+          <CardTitle className="text-lg text-destructive">Sign out</CardTitle>
           <CardDescription>
             Sign out of your Docita account on this device.
           </CardDescription>

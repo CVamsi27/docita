@@ -24,7 +24,7 @@ export function BillingLineItemsEditor({
       <div className="hidden sm:grid grid-cols-12 gap-2 text-xs font-medium text-muted-foreground uppercase tracking-wider">
         <div className="col-span-5">Description</div>
         <div className="col-span-2">Qty</div>
-        <div className="col-span-4">Unit Price</div>
+        <div className="col-span-4">Unit price</div>
         <div className="col-span-1"></div>
       </div>
 

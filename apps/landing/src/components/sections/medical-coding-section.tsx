@@ -67,7 +67,7 @@ export function MedicalCodingSection() {
               <div className="rounded-[var(--radius)] bg-background p-4 shadow-lg sm:p-6">
                 <div className="flex items-center gap-3 mb-4 pb-4 border-b">
                   <Activity className="h-5 w-5 text-info" />
-                  <span className="font-semibold">Medical Coding</span>
+                  <span className="font-semibold">Medical coding</span>
                 </div>
                 <div className="space-y-3">
                   <div className="flex flex-col gap-2 rounded-[var(--radius)] bg-muted/50 p-3 sm:flex-row sm:items-center sm:justify-between">

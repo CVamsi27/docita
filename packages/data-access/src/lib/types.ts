@@ -15,6 +15,8 @@ export interface APIClientConfig {
     options: RequestConfig,
   ) => void | Promise<void>;
   onRequest?: (config: RequestConfig) => RequestConfig | Promise<RequestConfig>;
+  /** Called after a successful HTTP response, before the body is parsed. */
+  onFetchResponse?: (response: Response) => void;
   onResponse?: <T>(response: T) => T | Promise<T>;
   onError?: (error: APIError) => void | Promise<void>;
 }

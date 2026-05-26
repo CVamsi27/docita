@@ -44,6 +44,7 @@ export function createAPIClient(config: APIClientConfig): APIClient {
     retries = 0,
     validateRequest,
     onRequest,
+    onFetchResponse,
     onResponse,
     onError,
   } = config;
@@ -118,6 +119,10 @@ export function createAPIClient(config: APIClientConfig): APIClient {
         });
 
         clearTimeout(timeoutId);
+
+        if (response.ok && onFetchResponse) {
+          onFetchResponse(response);
+        }
 
         if (!response.ok) {
           let errorData: Record<string, unknown> | null = null;

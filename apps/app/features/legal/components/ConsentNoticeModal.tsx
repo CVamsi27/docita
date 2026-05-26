@@ -244,7 +244,7 @@ export function ConsentNoticeModal({
             </div>
 
             <div className="space-y-3">
-              <h4 className="font-semibold">Your Rights</h4>
+              <h4 className="font-semibold">Your rights</h4>
               <ul className="space-y-2 text-sm text-muted-foreground">
                 {content.rights.map((right, index) => (
                   <li key={index} className="flex items-start gap-2">

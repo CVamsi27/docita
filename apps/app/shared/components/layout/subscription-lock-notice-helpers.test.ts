@@ -40,6 +40,6 @@ describe("resolveSubscriptionLockNotice", () => {
     });
 
     expect(copy?.kind).toBe("expired");
-    expect(copy?.ctaLabel).toBe("Resolve Payment");
+    expect(copy?.ctaLabel).toBe("Resolve payment");
   });
 });

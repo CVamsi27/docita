@@ -89,7 +89,7 @@ export default function PatientProfilePage() {
     <AppPageScaffold
       header={
         <PageHeader
-          title="Profile Settings"
+          title="Profile settings"
           description="Manage your personal information and privacy preferences"
         />
       }

@@ -88,7 +88,7 @@ export function DoctorProfileSettings() {
         <CardHeader>
           <div className="flex items-center justify-between">
             <div>
-              <CardTitle className="text-lg">Digital Signature</CardTitle>
+              <CardTitle className="text-lg">Digital signature</CardTitle>
               <CardDescription>
                 Your signature appears on prescriptions and medical documents.
               </CardDescription>

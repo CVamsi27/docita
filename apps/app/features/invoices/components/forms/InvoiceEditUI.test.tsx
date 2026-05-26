@@ -7,6 +7,10 @@ vi.mock("@workspace/ui/components/overlay/tooltip", () => ({
   SymbolTooltip: ({ children }: { children: ReactElement }) => children,
 }));
 
+vi.mock("@/components/auth/feature-gate", () => ({
+  FeatureGate: ({ children }: { children: ReactElement }) => children,
+}));
+
 const invoiceEditMocks = vi.hoisted(() => ({
   onSubmit: vi.fn(),
   routerPush: vi.fn(),
@@ -104,7 +108,7 @@ describe("InvoiceEditUI", () => {
   it("edits invoice details, submits, and supports cancel", async () => {
     render(<InvoiceEditUI invoiceId="inv_1" />);
 
-    expect(screen.getByRole("heading", { name: "Edit Invoice" })).toBeInTheDocument();
+    expect(screen.getByRole("heading", { name: "Edit invoice" })).toBeInTheDocument();
     fireEvent.change(screen.getByDisplayValue("Procedure"), {
       target: { value: "Dental procedure" },
     });

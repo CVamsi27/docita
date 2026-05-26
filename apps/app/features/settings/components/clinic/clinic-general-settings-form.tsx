@@ -164,7 +164,7 @@ export function ClinicGeneralSettingsForm({
             name="phone"
             render={({ field }) => (
               <FormFieldGroup
-                label="Phone Number"
+                label="Phone number"
                 htmlFor="clinic-phone"
                 required
                 error={form.formState.errors.phone?.message}
@@ -234,7 +234,7 @@ export function ClinicGeneralSettingsForm({
             disabled={isPending}
             className="w-full sm:w-auto"
           >
-            {isPending ? "Saving…" : "Save Changes"}
+            {isPending ? "Saving…" : "Save changes"}
           </Button>
         </div>
       </form>

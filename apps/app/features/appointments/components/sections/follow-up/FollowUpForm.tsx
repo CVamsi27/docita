@@ -95,7 +95,7 @@ export function FollowUpForm({
         <div className="flex items-center justify-between">
           <div className="flex items-center space-x-2">
             <Bell className="h-4 w-4 text-muted-foreground" />
-            <Label htmlFor="reminder-mode">Send Reminder</Label>
+            <Label htmlFor="reminder-mode">Send reminder</Label>
           </div>
           <Switch
             id="reminder-mode"

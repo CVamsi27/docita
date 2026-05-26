@@ -13,5 +13,6 @@ export * from "./pdf";
 export * from "./medical-documents";
 export * from "./leave";
 export * from "./access";
+export * from "./auth/mfa";
 export * from "./whatsapp";
 export * from "./forms";

@@ -5,6 +5,7 @@ import React, {
   useCallback,
   useContext,
   useEffect,
+  useMemo,
   useRef,
   useState,
   useSyncExternalStore,
@@ -13,9 +14,16 @@ import { usePermissionStore } from "@/lib/stores/permission-store";
 import { useClinicSocket } from "@/hooks/use-clinic-socket";
 import { fetchWithSession } from "@/lib/auth/fetch-with-session";
 import { logger } from "@/lib/monitoring/logger";
-import { appClinicSchema, tierSchema, type AppClinic } from "@workspace/types";
+import { appClinicSchema, tierSchema } from "@workspace/types";
+import {
+  type Clinic,
+  getFacilityLabelFromSettings,
+  getStoredClinicId,
+  subscribeToWindowFocus,
+  toBooleanFeatureOverrides,
+} from "@/lib/contexts/clinic-context-helpers";
 
-export type Clinic = AppClinic;
+export type { Clinic } from "@/lib/contexts/clinic-context-helpers";
 
 interface ClinicContextType {
   clinicId: string | null;
@@ -27,64 +35,6 @@ interface ClinicContextType {
 }
 
 const ClinicContext = createContext<ClinicContextType | undefined>(undefined);
-
-function getStoredClinicId(): string | null {
-  if (typeof window === "undefined") {
-    return null;
-  }
-  try {
-    const savedClinicId = localStorage.getItem("selectedClinicId");
-    localStorage.removeItem("selectedClinic");
-    return savedClinicId && savedClinicId.length > 0 ? savedClinicId : null;
-  } catch (error) {
-    logger.warn("Failed to read selected clinic from localStorage", { error });
-  }
-  return null;
-}
-
-function subscribeToWindowFocus(callback: () => void) {
-  const handleFocus = () => callback();
-  const handleVisibilityChange = () => {
-    if (document.visibilityState === "visible") {
-      callback();
-    }
-  };
-
-  window.addEventListener("focus", handleFocus);
-  document.addEventListener("visibilitychange", handleVisibilityChange);
-
-  return () => {
-    window.removeEventListener("focus", handleFocus);
-    document.removeEventListener("visibilitychange", handleVisibilityChange);
-  };
-}
-
-function toBooleanFeatureOverrides(
-  value: Clinic["features"],
-): Record<string, boolean> | null {
-  if (!value || typeof value !== "object" || Array.isArray(value)) {
-    return null;
-  }
-
-  return Object.fromEntries(
-    Object.entries(value).filter(
-      (entry): entry is [string, boolean] => typeof entry[1] === "boolean",
-    ),
-  );
-}
-
-function getFacilityLabelFromSettings(
-  value: Clinic["settings"],
-): "CLINIC" | "HOSPITAL" | undefined {
-  if (!value || typeof value !== "object" || Array.isArray(value)) {
-    return undefined;
-  }
-
-  const facilityLabel = Object.fromEntries(Object.entries(value)).facilityLabel;
-  return facilityLabel === "CLINIC" || facilityLabel === "HOSPITAL"
-    ? facilityLabel
-    : undefined;
-}
 
 export function ClinicProvider({ children }: { children: React.ReactNode }) {
   const [clinicId, setClinicId] = useState<string | null>(null);
@@ -236,7 +186,7 @@ export function ClinicProvider({ children }: { children: React.ReactNode }) {
     }
   });
 
-  const setClinic = (newClinic: Clinic) => {
+  const setClinic = useCallback((newClinic: Clinic) => {
     const parsedClinic = appClinicSchema.parse(newClinic);
     setClinicId(parsedClinic.id);
     setClinicState(parsedClinic);
@@ -253,19 +203,22 @@ export function ClinicProvider({ children }: { children: React.ReactNode }) {
     }
 
     localStorage.setItem("selectedClinicId", parsedClinic.id);
-  };
+  }, [setTier, setIntelligence, setFeatureOverrides]);
+
+  const contextValue = useMemo(
+    () => ({
+      clinicId,
+      clinic,
+      setClinic,
+      userClinics,
+      setUserClinics,
+      refreshClinic: fetchClinicFromAPI,
+    }),
+    [clinicId, clinic, setClinic, userClinics, fetchClinicFromAPI],
+  );
 
   return (
-    <ClinicContext.Provider
-      value={{
-        clinicId,
-        clinic,
-        setClinic,
-        userClinics,
-        setUserClinics,
-        refreshClinic: fetchClinicFromAPI,
-      }}
-    >
+    <ClinicContext.Provider value={contextValue}>
       {children}
     </ClinicContext.Provider>
   );

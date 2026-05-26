@@ -104,7 +104,7 @@ export const OCRVitals = ({
 
           <div className="grid grid-cols-3 gap-3">
             <div className="space-y-2">
-              <Label className="text-xs">Respiratory Rate</Label>
+              <Label className="text-xs">Respiratory rate</Label>
               <Input
                 value={formData.vitals.respiratoryRate}
                 onChange={(e) =>

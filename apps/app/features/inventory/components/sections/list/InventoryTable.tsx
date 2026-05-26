@@ -44,7 +44,7 @@ export function InventoryTable({
   return (
     <Card>
       <CardHeader>
-        <CardTitle>Inventory Items</CardTitle>
+        <CardTitle>Inventory items</CardTitle>
         <CardDescription>
           A list of all items in your inventory. Click &quot;View&quot; for
           details.
@@ -58,7 +58,7 @@ export function InventoryTable({
             <Table>
               <TableHeader>
                 <TableRow>
-                  <TableHead>Item Name</TableHead>
+                  <TableHead>Item name</TableHead>
                   <TableHead className="hidden sm:table-cell">Category</TableHead>
                   <TableHead>Quantity</TableHead>
                   <TableHead>Status</TableHead>

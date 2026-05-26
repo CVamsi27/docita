@@ -191,7 +191,7 @@ export function UsageDashboard() {
           amountFractionDigits={amountFractionDigits}
         />
         <UsageMeter
-          label="Team Members"
+          label="Team members"
           current={usage.meters.users.current}
           included={usage.meters.users.included}
           overage={usage.meters.users.overage}

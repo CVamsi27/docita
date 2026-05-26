@@ -172,7 +172,7 @@ export function PaymentProcessingPaymentDialog(props: PaymentProcessingPaymentDi
                   name="paymentMethod"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>Payment Method</FormLabel>
+                      <FormLabel>Payment method</FormLabel>
                       <Select
                         value={field.value ?? "razorpay"}
                         onValueChange={field.onChange}

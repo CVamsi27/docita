@@ -13,6 +13,9 @@ import { AdminAlertsService } from '@/shared/modules/messaging/admin-alerts/admi
 import { addUtcCalendarDays } from '@/shared/schedule/scheduler-date.util';
 import { isRecord } from '@workspace/utils';
 
+/** Max subscriptions processed per scheduler tick (remaining rows run on the next tick). */
+const SUBSCRIPTION_SCHEDULER_BATCH_SIZE = 100;
+
 @Injectable()
 export class SubscriptionReminderScheduler {
   private readonly logger = new Logger(SubscriptionReminderScheduler.name);
@@ -191,6 +194,7 @@ export class SubscriptionReminderScheduler {
           select: {
             id: true,
           },
+          take: SUBSCRIPTION_SCHEDULER_BATCH_SIZE,
         });
 
         const trialResults = await Promise.allSettled(
@@ -217,6 +221,7 @@ export class SubscriptionReminderScheduler {
             status: { in: ['ACTIVE', 'PAST_DUE'] },
           },
           select: { id: true },
+          take: SUBSCRIPTION_SCHEDULER_BATCH_SIZE,
         });
 
         const lapsedResults = await Promise.allSettled(
@@ -239,6 +244,7 @@ export class SubscriptionReminderScheduler {
             graceUntil: { not: null, lt: now },
           },
           select: { id: true },
+          take: SUBSCRIPTION_SCHEDULER_BATCH_SIZE,
         });
 
         const expireResults = await Promise.allSettled(

@@ -113,7 +113,7 @@ describe("UsersPageContainer", () => {
 
     render(<UsersPageContainer />);
 
-    expect(screen.getByText("User Details")).toBeInTheDocument();
+    expect(screen.getByText("User details")).toBeInTheDocument();
     expect(screen.getAllByText("Dr. Asha Rao")).toHaveLength(2);
     expect(screen.getByText("Professional Information")).toBeInTheDocument();
     expect(screen.getAllByText("Cardiology")).toHaveLength(2);

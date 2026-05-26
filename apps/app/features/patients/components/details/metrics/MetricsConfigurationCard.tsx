@@ -77,7 +77,7 @@ export function MetricsConfigurationCard({
       </CardHeader>
       <CardContent className="grid gap-6 md:grid-cols-2">
         <div className="space-y-3">
-          <Label className="text-sm">New Category</Label>
+          <Label className="text-sm">New category</Label>
           <Input
             placeholder="Category key"
             value={newCategoryKey}

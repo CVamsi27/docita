@@ -114,10 +114,10 @@ export const toPrismaInvoiceItems = (
   return toPrismaJson(parsedItems);
 };
 
-export const parseInvoiceItems = (items: JsonValue): InvoiceItem[] => {
-  const parsed = invoiceItemSchema.array().safeParse(items);
-  return parsed.success ? parsed.data : [];
-};
+import { parseInvoiceItemsFromJson } from '@/domains/billing/core/utils/invoice-item-resolution';
+
+export const parseInvoiceItems = (items: JsonValue): InvoiceItem[] =>
+  parseInvoiceItemsFromJson(items);
 
 // ── Enum normalizers ───────────────────────────────────────────────────────────
 

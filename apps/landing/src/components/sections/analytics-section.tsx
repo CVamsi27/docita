@@ -85,7 +85,7 @@ export function AnalyticsSection() {
               <CardTitle className="text-sm font-medium text-muted-foreground">
                 Top Diagnoses
               </CardTitle>
-              <div className="ui-section-title text-[var(--fs-2xl)] leading-[var(--lh-tight)]">Disease Trends</div>
+              <div className="ui-section-title text-[var(--fs-2xl)] leading-[var(--lh-tight)]">Disease trends</div>
             </CardHeader>
             <CardContent>
               <div className="space-y-3 pt-2">

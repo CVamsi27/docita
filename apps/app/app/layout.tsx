@@ -25,6 +25,7 @@ export const viewport = {
   maximumScale: 5,
 };
 
+// Static Cloudflare/OpenNext helper only — never interpolate request or env data here.
 const esbuildHelperBootstrapScript = `
 if (typeof globalThis.__name !== "function") {
   globalThis.__name = function(target) {

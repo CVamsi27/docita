@@ -44,22 +44,22 @@ export const SmartTasksTab = ({ state, handlers }: SmartTasksTabProps) => (
       </CardHeader>
       <CardContent className="space-y-4">
         <div className="space-y-2">
-          <label className="text-sm font-medium">Task Type</label>
+          <label className="text-sm font-medium">Task type</label>
           <Select value={state.taskType} onValueChange={handlers.setTaskType}>
             <SelectTrigger>
               <SelectValue placeholder="Task type" />
             </SelectTrigger>
             <SelectContent>
               <SelectItem value="follow-up">Schedule Follow-ups</SelectItem>
-              <SelectItem value="recalls">Patient Recalls</SelectItem>
-              <SelectItem value="reminders">Custom Reminders</SelectItem>
-              <SelectItem value="reports">Generate Reports</SelectItem>
+              <SelectItem value="recalls">Patient recalls</SelectItem>
+              <SelectItem value="reminders">Custom reminders</SelectItem>
+              <SelectItem value="reports">Generate reports</SelectItem>
             </SelectContent>
           </Select>
         </div>
 
         <div className="p-4 rounded-lg border bg-muted/30">
-          <h4 className="font-medium mb-2">Quick Actions</h4>
+          <h4 className="font-medium mb-2">Quick actions</h4>
           <div className="space-y-2">
             <QuickActionButton
               icon={Calendar}

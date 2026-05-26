@@ -28,6 +28,6 @@ describe("AuthLoginStepUI", () => {
         "Account is locked due to too many failed login attempts. Try again in 15 minute(s).",
       ),
     ).toBeInTheDocument();
-    expect(screen.getByRole("button", { name: "Sign In" })).toBeDisabled();
+    expect(screen.getByRole("button", { name: "Sign in" })).toBeDisabled();
   });
 });

@@ -216,11 +216,11 @@ export class SubscriptionOverageMeterService {
       },
     );
 
-    const upsertResults = await Promise.allSettled(
-      overageEntries.map(async ({ key, breakdown, usageType }) => {
+    await this.persistence.$transaction(
+      overageEntries.map(({ key, breakdown, usageType }) => {
         const usageEntry = meteredUsageEntry(usageData.usage, key);
 
-        await this.persistence.usageRecord.upsert({
+        return this.persistence.usageRecord.upsert({
           where: {
             clinicId_type_periodStart: {
               clinicId: sub.clinicId,
@@ -249,12 +249,6 @@ export class SubscriptionOverageMeterService {
         });
       }),
     );
-    const upsertFailures = upsertResults.filter((r) => r.status === 'rejected');
-    if (upsertFailures.length > 0) {
-      this.logger.warn(
-        `${upsertFailures.length} overage usage-record upsert(s) failed for clinic ${sub.clinicId}`,
-      );
-    }
 
     if (result.totalOverageCharges > 0) {
       await this.overagePaymentService.createOrUpdateOverageInvoicePayment({

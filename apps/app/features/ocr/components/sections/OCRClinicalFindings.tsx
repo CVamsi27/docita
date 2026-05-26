@@ -25,7 +25,7 @@ export const OCRClinicalFindings = ({
   return (
     <div className="space-y-3">
       <SectionToggle
-        title="Clinical Findings"
+        title="Clinical findings"
         icon={FileText}
         isOpen={isOpen}
         onToggle={onToggle}
@@ -71,7 +71,7 @@ export const OCRClinicalFindings = ({
           </div>
 
           <div className="space-y-2">
-            <Label className="text-xs">Medical History</Label>
+            <Label className="text-xs">Medical history</Label>
             <Textarea
               value={formData.medicalHistory.join(", ")}
               onChange={(e) =>

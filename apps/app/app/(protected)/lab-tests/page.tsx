@@ -1,13 +1,5 @@
-"use client";
-
-import { Feature } from "@workspace/types";
-import { FeatureGate } from "@/components/auth/feature-gate";
-import { LabTestsPageUI } from "@/features/lab-tests/components";
+import { LabTestsPageUI } from "@/features/lab-tests/components/layout/lab-tests-page-ui";
 
 export default function LabTestsPage() {
-  return (
-    <FeatureGate feature={Feature.LAB_TESTS} showLockedCard>
-      <LabTestsPageUI />
-    </FeatureGate>
-  );
+  return <LabTestsPageUI />;
 }

@@ -19,7 +19,9 @@ import {
   IInvoiceRepository,
   INVOICE_REPOSITORY_TOKEN,
   InvoiceDetail,
+  type InvoiceDetailRecord,
 } from '@/domains/billing/core/repositories/invoice.repository';
+import { toPrismaJsonValue } from '@/shared/common/json/to-prisma-input-json-value';
 import {
   IPaymentSessionRepository,
   PAYMENT_SESSION_REPOSITORY_TOKEN,
@@ -33,6 +35,7 @@ import { StoredFileUrlResolverService } from '@/domains/documents/application/se
 import { PdfJobService } from '@/shared/modules/queue/pdf-job.service';
 import type { PdfJobServicePort } from '@/shared/modules/queue/pdf-job.service';
 import { PDFService } from './pdf.service';
+import { resolveInvoiceItems } from '@/domains/billing/core/utils/invoice-item-resolution';
 import {
   parseInvoiceItems,
   parseInvoiceTaxSummary,
@@ -101,7 +104,15 @@ export class InvoicesQueryService {
     if (!invoice) {
       throw new NotFoundException(`Invoice ${id} not found`);
     }
-    return invoice;
+    return this.normalizeInvoiceDetail(invoice);
+  }
+
+  private normalizeInvoiceDetail(invoice: InvoiceDetailRecord): InvoiceDetail {
+    const { lineItems, items, ...rest } = invoice;
+    return {
+      ...rest,
+      items: toPrismaJsonValue(resolveInvoiceItems({ items, lineItems })),
+    };
   }
 
   private extractPaymentActivityMeta(

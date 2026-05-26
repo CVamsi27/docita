@@ -193,7 +193,7 @@ export function PatientContextCardUI({
                   patient.recentVitals.bp.length > 0 && (
                     <div className="bg-muted/50 p-2 rounded text-xs space-y-1">
                       <div className="flex justify-between font-medium">
-                        <span>Blood Pressure</span>
+                        <span>Blood pressure</span>
                         <span>{patient.recentVitals.bp[0].value}</span>
                       </div>
                       <div className="text-muted-foreground flex justify-between text-[var(--fs-2xs)]">

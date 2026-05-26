@@ -48,7 +48,7 @@ export const FeedbackForm: FC<{
         <div className="flex items-center gap-3">
           <MessageSquare className="h-5 w-5 text-primary" />
           <div>
-            <CardTitle>Send Feedback</CardTitle>
+            <CardTitle>Send feedback</CardTitle>
             <CardDescription>We&apos;d love to hear from you</CardDescription>
           </div>
         </div>
@@ -83,12 +83,12 @@ export const FeedbackForm: FC<{
         </p>
 
         <div className="space-y-2">
-          <Label>Feedback Type</Label>
+          <Label>Feedback type</Label>
           <div className="flex gap-2">
             {(
               [
-                { id: "bug", label: "Bug Report", icon: Frown },
-                { id: "feature", label: "Feature Request", icon: Smile },
+                { id: "bug", label: "Bug report", icon: Frown },
+                { id: "feature", label: "Feature request", icon: Smile },
                 { id: "general", label: "General", icon: Meh },
               ] as const satisfies ReadonlyArray<{
                 id: FeedbackType;
@@ -111,7 +111,7 @@ export const FeedbackForm: FC<{
         </div>
 
         <div className="space-y-2">
-          <Label>Your Message</Label>
+          <Label>Your message</Label>
           <Textarea
             placeholder="Enter feedback"
             value={message}
@@ -122,7 +122,7 @@ export const FeedbackForm: FC<{
 
         <Button onClick={handleSubmit} className="w-full gap-2">
           <Send className="h-4 w-4" />
-          Submit Feedback
+          Submit feedback
         </Button>
       </CardContent>
     </Card>

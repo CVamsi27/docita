@@ -27,7 +27,7 @@ export function AuthEmailStepUI({
       <FormField
         id="email"
         type="email"
-        label="Email Address"
+        label="Email address"
         placeholder="Email"
         value={email}
         onChange={onChangeEmail}

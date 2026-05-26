@@ -89,7 +89,7 @@ export const AIAssistantUI: FC<AIAssistantUIProps> = ({ state, handlers }) => {
             </TabsTrigger>
             <TabsTrigger value="tasks" className="flex items-center gap-2">
               <FileText className="h-4 w-4" />
-              <span className="hidden sm:inline">Smart Tasks</span>
+              <span className="hidden sm:inline">Smart tasks</span>
             </TabsTrigger>
           </TabsList>
 
