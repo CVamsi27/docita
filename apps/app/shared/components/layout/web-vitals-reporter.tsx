@@ -5,25 +5,17 @@ import { usePathname } from "next/navigation";
 import type { Metric } from "web-vitals";
 import { browserRequest } from "@/lib/auth/browser-request";
 
-export const WEB_VITALS_REPORTING_PATH = "/api/v1/monitoring/web-vitals";
+const PUBLIC_INTERNAL_PATHS = new Set(["/"]);
 
-const PUBLIC_AUTH_PATHS = new Set([
-  "/login",
-  "/register",
-  "/forgot-password",
-  "/reset-password",
-  "/portal/login",
-]);
-
-export function shouldReportWebVitals(pathname: string | null): boolean {
+export function shouldReportInternalWebVitals(pathname: string | null): boolean {
   if (!pathname) {
     return false;
   }
 
-  return !PUBLIC_AUTH_PATHS.has(pathname);
+  return !PUBLIC_INTERNAL_PATHS.has(pathname);
 }
 
-export function createWebVitalsBeaconBody(payload: Record<string, unknown>) {
+function createWebVitalsBeaconBody(payload: Record<string, unknown>) {
   return new Blob([JSON.stringify(payload)], {
     type: "application/json",
   });
@@ -37,11 +29,11 @@ export function WebVitalsReporter() {
       return;
     }
 
-    if (!shouldReportWebVitals(pathname)) {
+    if (!shouldReportInternalWebVitals(pathname)) {
       return;
     }
 
-    const sessionId = `session-${Date.now()}-${Math.random()}`;
+    const sessionId = `internal-session-${Date.now()}-${Math.random()}`;
 
     function sendToAnalytics(metric: Metric) {
       const payload = {

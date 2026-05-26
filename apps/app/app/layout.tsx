@@ -25,6 +25,14 @@ export const viewport = {
   maximumScale: 5,
 };
 
+const esbuildHelperBootstrapScript = `
+if (typeof globalThis.__name !== "function") {
+  globalThis.__name = function(target) {
+    return target;
+  };
+}
+`;
+
 export default async function RootLayout({
   children,
 }: {
@@ -34,6 +42,13 @@ export default async function RootLayout({
 
   return (
     <html lang="en" suppressHydrationWarning className="overflow-x-hidden">
+      <head>
+        <script
+          nonce={nonce}
+          suppressHydrationWarning
+          dangerouslySetInnerHTML={{ __html: esbuildHelperBootstrapScript }}
+        />
+      </head>
       <body className="app-shell-bg font-sans bg-background text-foreground antialiased overflow-x-hidden">
         <SentryInitializer />
         <ClientErrorReporter />

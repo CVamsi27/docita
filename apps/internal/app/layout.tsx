@@ -12,7 +12,6 @@ export const metadata = {
   },
 };
 
-// Static theme bootstrap only — reads localStorage keys defined by the app; no request data.
 const themeBootstrapScript = `
 try {
   var theme = localStorage.getItem("theme");
@@ -33,6 +32,12 @@ export default function RootLayout({
 }) {
   return (
     <html lang="en" suppressHydrationWarning>
+      <head>
+        <script
+          suppressHydrationWarning
+          dangerouslySetInnerHTML={{ __html: themeBootstrapScript }}
+        />
+      </head>
       <body className="app-shell-bg font-sans bg-background text-foreground antialiased">
         <OptionalSentryInitializer
           enabled={process.env.DOCITA_CLOUDFLARE !== "1"}
