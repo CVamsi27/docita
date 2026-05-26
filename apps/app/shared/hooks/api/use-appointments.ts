@@ -309,7 +309,7 @@ export const useCompleteFollowUp = () =>
     "PATCH",
     {
       body: () => undefined,
-      invalidateKeys: [queryKeys.followUps.all()],
+      invalidateKeys: [["follow-ups"]],
     },
   );
 
@@ -319,7 +319,7 @@ export const useCancelFollowUp = () =>
     "PATCH",
     {
       body: () => undefined,
-      invalidateKeys: [queryKeys.followUps.all()],
+      invalidateKeys: [["follow-ups"]],
     },
   );
 
@@ -329,7 +329,7 @@ export const useBookFollowUp = () =>
     "PATCH",
     {
       body: ({ id: _id, ...body }) => body,
-      invalidateKeys: [queryKeys.followUps.all(), queryKeys.appointments.all()],
+      invalidateKeys: [["follow-ups"], queryKeys.appointments.all()],
     },
   );
 
@@ -369,7 +369,7 @@ export const useRejectAppointmentRequest = () =>
     RejectAppointmentRequest & { id: string }
   >(({ id }) => `/appointment-requests/${id}/reject`, "PATCH", {
     body: ({ id: _id, ...body }) => body,
-    invalidateKeys: [queryKeys.appointmentRequests.all()],
+    invalidateKeys: [["appointment-requests"]],
     suppressGlobalErrorToast: true,
   });
 

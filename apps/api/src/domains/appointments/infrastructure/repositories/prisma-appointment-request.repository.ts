@@ -1,5 +1,4 @@
-import { Inject, Injectable, NotFoundException } from '@nestjs/common';
-import { CLOCK_PORT, type IClock } from '@/shared/common/ports/clock.port';
+import { Injectable } from '@nestjs/common';
 import { AppointmentRequestStatus, Prisma } from '@workspace/db';
 import { PrismaService } from '@/prisma/prisma.service';
 import {
@@ -105,7 +104,7 @@ export class PrismaAppointmentRequestRepository implements IAppointmentRequestRe
   ): Promise<AppointmentRequestWithRelations> {
     const updated = await this.findByIdAndClinic(id, clinicId);
     if (!updated) {
-      throw new NotFoundException(
+      throw new Error(
         `Appointment request ${id} not found for clinic ${clinicId}`,
       );
     }
@@ -146,7 +145,7 @@ export class PrismaAppointmentRequestRepository implements IAppointmentRequestRe
       where: { id, clinicId },
       data: {
         status,
-        reviewedAt: this.clock.now(),
+        reviewedAt: new Date(),
         responseMessage,
         ...(reviewerExists > 0 ? { reviewedById } : {}),
       },

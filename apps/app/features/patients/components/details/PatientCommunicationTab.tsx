@@ -2,8 +2,8 @@
 
 import Link from "next/link";
 import { MessageCircle } from "lucide-react";
-import { Button } from "@workspace/ui/components/form/button";
-import { DataState } from "@workspace/ui/components/data-display/data-state";
+import { Button } from "@workspace/ui/components/button";
+import { DataState } from "@workspace/ui/components/data-state";
 
 interface PatientCommunicationTabProps {
   patientId: string;
@@ -12,7 +12,7 @@ interface PatientCommunicationTabProps {
 export function PatientCommunicationTab({
   patientId,
 }: PatientCommunicationTabProps) {
-  const whatsappHref = `/inbox?tab=notifications&patientId=${encodeURIComponent(patientId)}`;
+  const whatsappHref = `/whatsapp?patientId=${encodeURIComponent(patientId)}`;
 
   return (
     <div data-testid="patient-communication-tab">

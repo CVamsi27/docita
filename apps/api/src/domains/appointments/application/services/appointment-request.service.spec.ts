@@ -7,7 +7,7 @@ import { AppointmentRequestCommandService } from './appointment-request-command.
 import { AppointmentRequestQueryService } from './appointment-request-query.service';
 import { AppointmentService } from './appointment.service';
 import { APPOINTMENT_REQUEST_REPOSITORY_TOKEN } from '@/domains/appointments/core/repositories/appointment-request.repository.interface';
-import { StaffNotificationService } from '@/domains/whatsapp/application/services/staff-notification.service';
+import { StaffNotificationService } from '@/shared/modules/messaging/whatsapp/staff-notification.service';
 
 describe('AppointmentRequestService', () => {
   let service: AppointmentRequestService;

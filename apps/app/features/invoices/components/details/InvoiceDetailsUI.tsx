@@ -12,10 +12,10 @@ import Link from "next/link";
 import { useSearchParams } from "next/navigation";
 import { useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
-import { queryKeys, useResendInvoiceWhatsApp } from "@workspace/data-access";
-import { showUserFacingErrorToast } from "@/lib/errors/user-facing-errors";
-import { WhatsAppDeliveryBadge } from "@/components/whatsapp/whatsapp-delivery-badge";
-import { Section } from "@workspace/ui/components/layout/section";
+import { useResendInvoiceWhatsApp } from "@/hooks/api/use-whatsapp";
+import { showUserFacingErrorToast } from "@/lib/user-facing-errors";
+import { WhatsAppDeliveryBadge } from "@/features/_shared/components/whatsapp/whatsapp-delivery-badge";
+import { Section } from "@workspace/ui/components/section";
 import { InvoiceHeader } from "./InvoiceHeader";
 import { InvoiceBillTo } from "./InvoiceBillTo";
 import { InvoiceItemsTableReadOnly } from "./InvoiceItemsTableReadOnly";
@@ -62,9 +62,7 @@ export const InvoiceDetailsUI: FC<InvoiceDetailsUIProps> = ({ invoiceId }) => {
     try {
       await resendInvoice.mutateAsync();
       toast.success("Invoice re-sent on WhatsApp");
-      await queryClient.invalidateQueries({
-        queryKey: queryKeys.invoices.legacyDetail(invoiceId),
-      });
+      await queryClient.invalidateQueries({ queryKey: ["invoices", invoiceId] });
     } catch (err) {
       showUserFacingErrorToast(
         err,

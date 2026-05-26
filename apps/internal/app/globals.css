@@ -9,14 +9,10 @@
 @import "@fontsource/jetbrains-mono/500.css";
 @import "@fontsource/jetbrains-mono/600.css";
 @import "@fontsource/jetbrains-mono/700.css";
-@import "@fontsource/nunito/500.css";
-@import "@fontsource/nunito/600.css";
-@import "@fontsource/nunito/700.css";
 @import "@workspace/ui/globals.css";
 
 :root {
   --font-inter: "Inter";
   --font-display: "Fraunces";
   --font-jetbrains-mono: "JetBrains Mono";
-  --font-nunito: "Nunito";
 }

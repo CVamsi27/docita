@@ -117,50 +117,15 @@
       ]
     },
     "apps/internal": {
-      "entry": [
-        "app/**/*.{ts,tsx}",
-        "features/**/*.{ts,tsx}",
-        "providers/**/*.{ts,tsx}",
-        "shared/**/*.{ts,tsx}",
-        "e2e/**/*.ts"
-      ],
-      "paths": {
-        "@/*": ["./*"],
-        "@/lib/*": ["./shared/lib/*"],
-        "@/hooks/*": ["./shared/hooks/*"],
-        "@/components/*": ["./shared/components/*"]
-      },
-      "ignore": [
-        "shared/components/common/back-button.tsx",
-        "features/broadcasts/**",
-        "shared/lib/api.ts",
-        "shared/lib/api-client.ts",
-        "shared/lib/sentry-phi-redactor.ts",
-        "shared/lib/sentry.client.config.ts",
-        "shared/lib/session.ts",
-        "shared/lib/user-facing-errors.ts"
-      ],
-      "ignoreDependencies": [
-        "@axe-core/playwright",
-        "eslint-config-next",
-        "@fontsource/fraunces",
-        "@fontsource/inter",
-        "@fontsource/jetbrains-mono",
-        "@fontsource/nunito"
-      ]
+      "ignoreDependencies": ["@axe-core/playwright", "eslint-config-next", "@fontsource/fraunces", "@fontsource/inter", "@fontsource/jetbrains-mono"]
     },
     "apps/landing": {
-      "ignoreDependencies": ["sharp", "tailwindcss"],
-      "ignore": [
-        "src/pages/**",
-        "src/layouts/**",
-        "src/lib/public-api.ts",
-        "src/lib/landing-data.ts",
-        "src/lib/motion-prefs.ts"
-      ]
+      "ignoreDependencies": ["tailwindcss"]
+    },
+    "packages/data-access": {
+      "ignoreDependencies": ["@workspace/types"]
     },
     ".": {
-      "entry": ["scripts/lib/*.mjs"],
       "ignoreDependencies": [
         "@axe-core/playwright",
         "axe-core",

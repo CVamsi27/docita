@@ -33,12 +33,6 @@ export default function RootLayout({
 }) {
   return (
     <html lang="en" suppressHydrationWarning>
-      <head>
-        <script
-          suppressHydrationWarning
-          dangerouslySetInnerHTML={{ __html: themeBootstrapScript }}
-        />
-      </head>
       <body className="app-shell-bg font-sans bg-background text-foreground antialiased">
         <OptionalSentryInitializer
           enabled={process.env.DOCITA_CLOUDFLARE !== "1"}

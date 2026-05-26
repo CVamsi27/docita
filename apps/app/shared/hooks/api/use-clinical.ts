@@ -344,7 +344,7 @@ export const useUpdateTemplate = () =>
     "PATCH",
     {
       body: ({ id: _id, ...body }) => body,
-      invalidateKeys: [queryKeys.clinical.templates.all()],
+      invalidateKeys: [["templates"]],
     },
   );
 
@@ -354,6 +354,6 @@ export const useDeleteTemplate = () =>
     "DELETE",
     {
       body: () => undefined,
-      invalidateKeys: [queryKeys.clinical.templates.all()],
+      invalidateKeys: [["templates"]],
     },
   );

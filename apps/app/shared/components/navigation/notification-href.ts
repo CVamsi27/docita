@@ -204,7 +204,7 @@ export function notificationHref(n: StaffNotification): string | null {
       return "/settings/team/join-requests";
 
     case "PATIENT_RESPONSE": {
-      return "/inbox?tab=notifications";
+      return "/whatsapp";
     }
 
     case "SYSTEM_ALERT": {

@@ -1,7 +1,8 @@
 import type { ReactNode } from "react";
 
 import { cn } from "@workspace/ui/lib/utils";
-import { Section } from "@workspace/ui/components/layout/section";
+import { Section } from "@workspace/ui/components/section";
+// import { NowServingBoard } from "@workspace/ui/components/now-serving-board";
 
 import {
   type DashboardAlertDensity,
@@ -54,6 +55,13 @@ export function DashboardSharedWorkspace({
       ? `${totalToday} appointment${totalToday !== 1 ? "s" : ""} on the calendar`
       : "No appointments scheduled for today";
 
+  // const tokenNumber = completedToday + inProgressToday;
+  // const tokenLabel =
+  //   tokenNumber > 0 ? String(tokenNumber).padStart(2, "0") : null;
+  // const currentPatientName = currentPatient?.patient
+  //   ? `${currentPatient.patient.firstName} ${currentPatient.patient.lastName}`.trim()
+  //   : null;
+
   return (
     <div className={cn("space-y-4 sm:space-y-6", className)}>
       <DashboardAlertsContainer
@@ -77,6 +85,15 @@ export function DashboardSharedWorkspace({
         description={queueSummary}
       >
         <div className="grid gap-4 sm:gap-6">
+          {/* <NowServingBoard
+            token={tokenLabel}
+            patientName={currentPatientName}
+            waiting={waitingCount}
+            avgWaitMinutes={
+              waitingCount > 0 ? waitingCount * slotDurationMinutes : null
+            }
+            status={inProgressToday > 0 && currentPatient ? "live" : "idle"}
+          /> */}
           <DoctorDashboardCards
             currentPatient={currentPatient}
             nextPatients={nextPatients}

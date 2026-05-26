@@ -1,7 +1,5 @@
 "use client";
 
-import { DATE_FORMATS, formatDate, formatDistanceToNow, getUserFacingErrorMessage } from "@workspace/utils";
-
 import { type ChangeEvent, type FormEvent, useMemo, useState } from "react";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import {
@@ -9,25 +7,29 @@ import {
   CardContent,
   CardHeader,
   CardTitle,
-} from "@workspace/ui/components/indicators/card";
-import { Button } from "@workspace/ui/components/form/button";
-import { Input } from "@workspace/ui/components/form/input";
-import { Label } from "@workspace/ui/components/form/label";
-import { Textarea } from "@workspace/ui/components/form/textarea";
-import { Badge } from "@workspace/ui/components/indicators/badge";
+} from "@workspace/ui/components/card";
+import { Button } from "@workspace/ui/components/button";
+import { Input } from "@workspace/ui/components/input";
+import { Label } from "@workspace/ui/components/label";
+import { Textarea } from "@workspace/ui/components/textarea";
+import { Badge } from "@workspace/ui/components/badge";
 import {
   Select,
   SelectContent,
   SelectItem,
   SelectTrigger,
   SelectValue,
-} from "@workspace/ui/components/form/select";
-import { DocitaLoadingIndicator } from "@workspace/ui/components/feedback/docita-loading-indicator";
-import { WhatsAppBroadcastJobSummary } from "@workspace/types";
+} from "@workspace/ui/components/select";
+import { DocitaLoadingIndicator } from "@workspace/ui/components/docita-loading-indicator";
+import {
+  getUserFacingErrorMessage,
+  WhatsAppBroadcastJobSummary,
+} from "@workspace/types";
+import { DATE_FORMATS, formatDate, formatDistanceToNow } from "@workspace/utils";
 import { AlertCircle, FileText, Megaphone, Send, Upload } from "lucide-react";
-import { broadcastsAPI } from "@/lib/api/api";
-import { internalQueryKeys } from "@/lib/api/query-keys";
-import { useInternalBroadcastsList } from "@workspace/data-access/internal";
+import { broadcastsAPI } from "@/lib/api";
+import { internalQueryKeys } from "@/lib/query-keys";
+import { useInternalQuery } from "@/lib/use-internal-query";
 import {
   BROADCAST_PRESETS,
   type BroadcastPresetId,
@@ -50,7 +52,7 @@ const STATUS_VARIANTS: Record<
 export function BroadcastsPage() {
   const queryClient = useQueryClient();
   const [presetId, setPresetId] = useState<BroadcastPresetId>(
-    BROADCAST_PRESETS[0]?.id ?? "",
+    BROADCAST_PRESETS[0]!.id,
   );
   const [title, setTitle] = useState("");
   const [messageOverride, setMessageOverride] = useState("");
@@ -68,7 +70,10 @@ export function BroadcastsPage() {
   );
 
   const listKey = internalQueryKeys.internal.broadcasts(BROADCAST_LIST_LIMIT);
-  const broadcastsQuery = useInternalBroadcastsList(BROADCAST_LIST_LIMIT);
+  const broadcastsQuery = useInternalQuery({
+    queryKey: listKey,
+    queryFn: () => broadcastsAPI.list(BROADCAST_LIST_LIMIT),
+  });
 
   const createMutation = useMutation({
     mutationFn: broadcastsAPI.create,
@@ -155,29 +160,22 @@ export function BroadcastsPage() {
   const skippedRows = parseResult?.skipped ?? [];
   const recipientCount = parseResult?.recipients.length ?? 0;
 
-  const listStatus = broadcastsQuery.isLoading
-    ? "loading"
-    : broadcastsQuery.isError
-      ? "error"
-      : "success";
-
-  const listErrorMessage = broadcastsQuery.isError
-    ? getUserFacingErrorMessage(broadcastsQuery.error, {
-        context: "load",
-        fallback: "We could not load broadcast history. Please try again.",
-      })
-    : undefined;
-
   return (
-    <AppPageScaffold
-      header={
-        <PageHeader
-          title="Broadcast Messages"
-          description="Upload a CSV of phone numbers and send a WhatsApp campaign through the Docita support number. Replies land in the Support WhatsApp inbox."
-          size="compact"
-        />
-      }
-    >
+    <div className="space-y-6">
+      <div className="space-y-2">
+        <div className="inline-flex items-center gap-2 rounded-full border bg-background px-3 py-1 text-xs font-medium text-muted-foreground">
+          <Megaphone className="h-3.5 w-3.5" />
+          WhatsApp Broadcasts
+        </div>
+        <h1 className="ui-page-title text-[var(--fs-2xl)] sm:text-[var(--fs-3xl)]">
+          Broadcast Messages
+        </h1>
+        <p className="ui-page-subtitle">
+          Upload a CSV of phone numbers and send a WhatsApp campaign through the
+          Docita support number. Replies land in the Support WhatsApp inbox.
+        </p>
+      </div>
+
       <div className="grid gap-6 lg:grid-cols-[minmax(0,3fr)_minmax(0,2fr)]">
         <Card>
           <CardHeader>
@@ -189,14 +187,9 @@ export function BroadcastsPage() {
                 <Label htmlFor="broadcast-audience">Audience preset</Label>
                 <Select
                   value={presetId}
-                  onValueChange={(value) => {
-                    const preset = BROADCAST_PRESETS.find(
-                      (entry) => entry.id === value,
-                    );
-                    if (preset) {
-                      setPresetId(preset.id);
-                    }
-                  }}
+                  onValueChange={(value) =>
+                    setPresetId(value as BroadcastPresetId)
+                  }
                 >
                   <SelectTrigger id="broadcast-audience">
                     <SelectValue placeholder="Select audience" />
@@ -261,7 +254,7 @@ export function BroadcastsPage() {
                     <code className="rounded bg-muted px-1.5 py-0.5">
                       {selectedPreset?.metaTemplateName}
                     </code>{" "}
-                    using the recipient name template variable.
+                    with the recipient name as a variable.
                   </p>
                 ) : (
                   <Textarea
@@ -391,19 +384,13 @@ export function BroadcastsPage() {
             <CardTitle className="text-lg">Recent broadcasts</CardTitle>
           </CardHeader>
           <CardContent>
-            <DataState
-              status={
-                listStatus === "success" && jobs.length === 0
-                  ? "empty"
-                  : listStatus
-              }
-              loadingMessage="Loading broadcast history…"
-              errorMessage={listErrorMessage}
-              onRetry={() => void broadcastsQuery.refetch()}
-              emptyTitle="No broadcasts yet"
-              emptyDescription="Send your first campaign to see it here."
-              emptyIcon={Megaphone}
-            >
+            {broadcastsQuery.isLoading ? (
+              <p className="text-sm text-muted-foreground">Loading…</p>
+            ) : jobs.length === 0 ? (
+              <p className="text-sm text-muted-foreground">
+                No broadcasts yet. Send your first one to see it here.
+              </p>
+            ) : (
               <ul className="space-y-3">
                 {jobs.map((job) => (
                   <li
@@ -424,9 +411,7 @@ export function BroadcastsPage() {
                       </Badge>
                     </div>
                     <div className="mt-2 flex flex-wrap items-center gap-3 text-xs text-muted-foreground">
-                      <span>
-                        Sent {job.sentCount}/{job.totalCount}
-                      </span>
+                      <span>Sent {job.sentCount}/{job.totalCount}</span>
                       {job.failedCount > 0 && (
                         <span className="text-destructive">
                           {job.failedCount} failed
@@ -437,10 +422,10 @@ export function BroadcastsPage() {
                   </li>
                 ))}
               </ul>
-            </DataState>
+            )}
           </CardContent>
         </Card>
       </div>
-    </AppPageScaffold>
+    </div>
   );
 }

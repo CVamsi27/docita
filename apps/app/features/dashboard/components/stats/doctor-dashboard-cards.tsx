@@ -167,8 +167,8 @@ export function DoctorDashboardCardsUI({
           </div>
         </CardHeader>
         <CardContent className="pt-0">
-          <div className="grid grid-cols-3 gap-2 text-center sm:gap-3">
-            <div className="flex min-w-0 flex-col items-center justify-center rounded-[var(--radius)] bg-warning/10 p-2 sm:p-3">
+          <div className="grid grid-cols-3 gap-3 text-center">
+            <div className="p-3 rounded-[var(--radius)] bg-warning/10 flex flex-col justify-center items-center">
               <p className="text-[var(--fs-2xl)] font-semibold tabular-nums text-warning">
                 {queueStats.waiting}
               </p>
@@ -176,7 +176,7 @@ export function DoctorDashboardCardsUI({
                 Waiting
               </p>
             </div>
-            <div className="flex min-w-0 flex-col items-center justify-center rounded-[var(--radius)] bg-info/10 p-2 sm:p-3">
+            <div className="p-3 rounded-[var(--radius)] bg-info/10 flex flex-col justify-center items-center">
               <p className="text-[var(--fs-2xl)] font-semibold tabular-nums text-info">
                 {queueStats.inProgress}
               </p>
@@ -187,7 +187,7 @@ export function DoctorDashboardCardsUI({
                 <span>Active</span>
               </p>
             </div>
-            <div className="flex min-w-0 flex-col items-center justify-center rounded-[var(--radius)] bg-success/10 p-2 sm:p-3">
+            <div className="p-3 rounded-[var(--radius)] bg-success/10 flex flex-col justify-center items-center">
               <p className="text-[var(--fs-2xl)] font-semibold tabular-nums text-success">
                 {queueStats.completed}
               </p>
