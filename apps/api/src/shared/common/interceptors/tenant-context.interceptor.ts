@@ -10,6 +10,7 @@ import { tenantStorage } from '@/shared/common/middleware/tenant.middleware';
 import { PrismaService } from '@/prisma/prisma.service';
 import { AppConfigService } from '@/shared/modules/config/app-configuration.service';
 import { applyRlsScope } from '@/shared/modules/rls/apply-rls-scope';
+import { runWithActiveTx } from '@/shared/modules/rls/active-tx.storage';
 
 @Injectable()
 export class TenantContextInterceptor implements NestInterceptor {
@@ -40,10 +41,17 @@ export class TenantContextInterceptor implements NestInterceptor {
 
         const clinicId = tenantContext.clinicId;
         if (this.config.isRlsEnabled() && clinicId && !tenantContext.bypassed) {
+          // Open a single interactive transaction for the whole request,
+          // set the tenant-scope GUC on it, and publish that `tx` into
+          // `activeTxStorage`. The `rls-routing` Prisma extension then
+          // forwards every Prisma model operation through `tx` so the
+          // GUC actually governs the queries — without this, `SET LOCAL`
+          // would only apply to `tx`'s pinned connection while the rest
+          // of the request used a different pool connection.
           return from(
             this.prisma.$transaction(async (tx) => {
               await applyRlsScope(tx, clinicId);
-              return runHandler();
+              return runWithActiveTx(tx, runHandler);
             }),
           );
         }

@@ -10,6 +10,7 @@ import { PrismaPg } from '@prisma/adapter-pg';
 import { tenantExtension } from '@/shared/common/extensions/tenant.extension';
 import { createEncryptionExtension } from '@/shared/common/extensions/encryption.extension';
 import { auditImmutabilityExtension } from '@/shared/common/extensions/audit-immutability.extension';
+import { rlsRoutingExtension } from '@/shared/common/extensions/rls-routing.extension';
 import { tenantStorage } from '@/shared/common/middleware/tenant.middleware';
 import { EncryptionService } from '@/shared/common/encryption.service';
 import { slowQueryExtension } from '@/shared/common/extensions/logging.extension';
@@ -56,9 +57,18 @@ export class PrismaService
   }
 
   onModuleInit(): void {
-    const extended = this.$extends(
-      createEncryptionExtension(this.encryptionService),
-    )
+    // Extension order matters:
+    //   1. rls-routing  — first, so the eventual query lands on the
+    //      RLS-scoped tx connection (when one is published in
+    //      activeTxStorage); subsequent extensions then run against that
+    //      tx client.
+    //   2. tenant       — fails closed when no clinic context is set.
+    //   3. encryption   — transparent column-level encryption.
+    //   4. audit        — immutability guard for audit-log writes.
+    //   5. slow-query   — observability, always last so it sees the
+    //      true wall-clock cost of the full extension chain.
+    const extended = this.$extends(rlsRoutingExtension)
+      .$extends(createEncryptionExtension(this.encryptionService))
       .$extends(auditImmutabilityExtension)
       .$extends(tenantExtension)
       .$extends(slowQueryExtension);

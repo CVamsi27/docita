@@ -116,3 +116,4 @@ lighthouse-audit*.json
 
 # Local planning scratch docs
 docs/UpcomingPlans/
+docs/architecture/SYSTEM_DESIGN_AND_PATTERNS.md
