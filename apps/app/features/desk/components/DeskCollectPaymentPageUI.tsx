@@ -120,7 +120,6 @@ export function DeskCollectPaymentPageUI() {
   };
 
   return (
-    <FeatureGate feature={Feature.INVOICING} showLockedCard>
     <AppPageScaffold
       header={
         <PageHeader
@@ -175,6 +174,5 @@ export function DeskCollectPaymentPageUI() {
         onSubmit={() => void handleRecordSubmit()}
       />
     </AppPageScaffold>
-    </FeatureGate>
   );
 }

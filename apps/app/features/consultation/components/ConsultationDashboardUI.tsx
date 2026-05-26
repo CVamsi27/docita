@@ -94,7 +94,6 @@ export const ConsultationDashboardUI: FC = () => {
   if (isLoading) return <ConsultationDashboardSkeleton />;
 
   return (
-    <FeatureGate feature={Feature.CALENDAR_SLOTS} showLockedCard>
     <AppPageScaffold
       header={
         <PageHeader
@@ -176,6 +175,5 @@ export const ConsultationDashboardUI: FC = () => {
 
 
     </AppPageScaffold>
-    </FeatureGate>
   );
 };

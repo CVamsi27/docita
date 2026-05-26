@@ -14,11 +14,7 @@ import {
   type ISubscriptionRepository,
   type IUpgradeOption,
 } from "./interfaces";
-import { FEATURE_ADDON_MAP } from "../rules/addon-based-rule";
-
-function readMonthlyPrice(value: unknown): number {
-  return typeof value === "number" && Number.isFinite(value) ? value : 0;
-}
+import { FEATURE_ADDON_MAP } from "./rules/addon-based-rule";
 
 function readMonthlyPrice(value: unknown): number {
   return typeof value === "number" && Number.isFinite(value) ? value : 0;

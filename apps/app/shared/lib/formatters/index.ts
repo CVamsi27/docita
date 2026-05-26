@@ -7,7 +7,8 @@ import {
   DEFAULT_TIMEZONE,
   DATE_FORMATS,
 } from "@workspace/utils";
-import { GENDER_LABELS, type Gender } from "@workspace/types";
+import type { Gender } from "@workspace/types";
+import { GENDER_LABELS } from "@workspace/utils";
 export { humanizeUiLabel } from "@workspace/ui/lib/label-formatters";
 export { DATE_FORMATS } from "@workspace/utils";
 

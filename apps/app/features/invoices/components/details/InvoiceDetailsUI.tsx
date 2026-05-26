@@ -12,24 +12,16 @@ import Link from "next/link";
 import { useSearchParams } from "next/navigation";
 import { useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
-import { useResendInvoiceWhatsApp } from "@/hooks/api/use-whatsapp";
-import { showUserFacingErrorToast } from "@/lib/user-facing-errors";
-import { WhatsAppDeliveryBadge } from "@/features/_shared/components/whatsapp/whatsapp-delivery-badge";
-import { Section } from "@workspace/ui/components/section";
+import { queryKeys, useResendInvoiceWhatsApp } from "@workspace/data-access";
+import { showUserFacingErrorToast } from "@/lib/errors/user-facing-errors";
+import { WhatsAppDeliveryBadge } from "@/components/whatsapp/whatsapp-delivery-badge";
+import { Section } from "@workspace/ui/components/layout/section";
 import { InvoiceHeader } from "./InvoiceHeader";
 import { InvoiceBillTo } from "./InvoiceBillTo";
 import { InvoiceItemsTableReadOnly } from "./InvoiceItemsTableReadOnly";
 import { InvoiceTotalsOnly } from "./InvoiceTotalsOnly";
 import { InvoicePaymentActivitySection } from "./InvoicePaymentActivitySection";
 import { buildInvoicePaidSummaryLine } from "@/features/invoices/lib/invoice-payment-display";
-
-function withInvoicingGate(node: ReactNode) {
-  return (
-    <FeatureGate feature={Feature.INVOICING} showLockedCard>
-      {node}
-    </FeatureGate>
-  );
-}
 
 interface InvoiceDetailsUIProps {
   invoiceId: string;
@@ -62,7 +54,9 @@ export const InvoiceDetailsUI: FC<InvoiceDetailsUIProps> = ({ invoiceId }) => {
     try {
       await resendInvoice.mutateAsync();
       toast.success("Invoice re-sent on WhatsApp");
-      await queryClient.invalidateQueries({ queryKey: ["invoices", invoiceId] });
+      await queryClient.invalidateQueries({
+        queryKey: queryKeys.invoices.legacyDetail(invoiceId),
+      });
     } catch (err) {
       showUserFacingErrorToast(
         err,
@@ -73,13 +67,11 @@ export const InvoiceDetailsUI: FC<InvoiceDetailsUIProps> = ({ invoiceId }) => {
   };
 
   if (isLoading) {
-    return withInvoicingGate(
-      <LoadingState message="Loading invoice details…" />,
-    );
+    return <LoadingState message="Loading invoice details…" />;
   }
 
   if (error || !invoice) {
-    return withInvoicingGate(
+    return (
       <EmptyState
         icon={FileText}
         title="Invoice not found"
@@ -88,7 +80,7 @@ export const InvoiceDetailsUI: FC<InvoiceDetailsUIProps> = ({ invoiceId }) => {
           label: "Back to Invoices",
           onClick: () => router.push("/invoices"),
         }}
-      />,
+      />
     );
   }
 
@@ -105,7 +97,7 @@ export const InvoiceDetailsUI: FC<InvoiceDetailsUIProps> = ({ invoiceId }) => {
   const authorizedSignatureName =
     invoiceClinic?.name || clinic?.name || "Clinic Administration";
 
-  return withInvoicingGate(
+  return (
     <div className="flex flex-col gap-6 max-w-5xl mx-auto">
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 print:hidden">
         <div className="min-w-0 flex flex-col gap-1">
@@ -226,6 +218,6 @@ export const InvoiceDetailsUI: FC<InvoiceDetailsUIProps> = ({ invoiceId }) => {
           .print-sheet { position: absolute; left: 0; top: 0; width: 100%; }
         }
       `}</style>
-    </div>,
+    </div>
   );
 };

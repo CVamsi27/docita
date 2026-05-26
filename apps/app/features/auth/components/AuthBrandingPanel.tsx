@@ -6,6 +6,7 @@ import {
   LayoutDashboard,
   UserCheck,
 } from "lucide-react";
+import { AUTH_ASSURANCE_ITEMS } from "@/features/auth/lib/auth-assurance-items";
 import { DocitaIcon } from "@workspace/ui/components/indicators/docita-logo";
 import { cn } from "@workspace/ui/lib/utils";
 import type { AuthBrandingStep } from "@/features/auth/types/auth";

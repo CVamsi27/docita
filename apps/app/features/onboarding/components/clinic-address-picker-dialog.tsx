@@ -38,50 +38,6 @@ export function ClinicAddressPickerDialog({
 }) {
   const picker = useClinicAddressPicker({ open, initialAddress });
 
-  const applyReverseResult = useCallback(
-    (result: { address: string; details?: ClinicAddressDetails } | null) => {
-      if (result) {
-        setResolvedAddress(result.address);
-        setAddressDraft(result.address);
-        setAddressDetails(result.details ?? null);
-      } else {
-        setResolvedAddress("");
-        setAddressDetails(null);
-      }
-    },
-    [],
-  );
-
-  const handlePick = useCallback(async (pos: LatLng) => {
-    setPicked(pos);
-    setIsResolving(true);
-    try { applyReverseResult(await reverseGeocodeOSM(pos)); }
-    finally { setIsResolving(false); }
-  }, [applyReverseResult]);
-
-  const handlePickWithGoogle = useCallback(async (pos: LatLng) => {
-    setPicked(pos);
-    setIsResolving(true);
-    try { applyReverseResult(await reverseGeocodeGoogle(pos)); }
-    finally { setIsResolving(false); }
-  }, [applyReverseResult]);
-
-  const handleUseMyLocation = useCallback(async () => {
-    if (!navigator.geolocation) return;
-    setIsResolving(true);
-    try {
-      const coords = await new Promise<GeolocationCoordinates>((resolve, reject) => {
-        navigator.geolocation.getCurrentPosition(
-          (pos) => resolve(pos.coords),
-          (err) => reject(err),
-          { enableHighAccuracy: true, timeout: 8000 },
-        );
-      });
-      const pos = { lat: coords.latitude, lng: coords.longitude };
-      await (shouldUseGoogle ? handlePickWithGoogle(pos) : handlePick(pos));
-    } catch { /* Silent fail */ } finally { setIsResolving(false); }
-  }, [handlePick, handlePickWithGoogle, shouldUseGoogle]);
-
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent
@@ -212,7 +168,11 @@ export function ClinicAddressPickerDialog({
               </div>
 
               <div className="flex flex-col-reverse gap-2 sm:flex-row lg:justify-end">
-                <Button type="button" variant="outline" onClick={() => onOpenChange(false)}>
+                <Button
+                  type="button"
+                  variant="outline"
+                  onClick={() => onOpenChange(false)}
+                >
                   Cancel
                 </Button>
                 <Button

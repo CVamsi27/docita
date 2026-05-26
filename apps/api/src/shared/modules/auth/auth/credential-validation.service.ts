@@ -84,7 +84,9 @@ export class CredentialValidationService {
   ): Promise<UserWithoutPassword | null> {
     // RLS-BYPASS: auth resolves users before clinic tenant context is established
     return this.prisma.runUnrestricted(async () => {
-      const user = await this.prisma.user.findUnique({ where: { email } });
+      const user = await this.prisma.user.findFirst({
+        where: { email, deletedAt: null },
+      });
 
       if (!user) {
         return null;

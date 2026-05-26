@@ -30,5 +30,22 @@ const AnalyticsPageUI = dynamic(
 );
 
 export default function AnalyticsPage() {
-  return <AnalyticsPageRoute />;
+  const { state, handlers } = useAnalyticsLogic();
+
+  return (
+    <FeatureGate feature={Feature.BASIC_ANALYTICS} showLockedCard>
+      <AnalyticsPageUI
+        overview={state.overview}
+        diseaseTrends={state.diseaseTrends}
+        revenueByCPT={state.revenueByCPT}
+        complianceMetrics={state.complianceMetrics}
+        isLoading={state.isLoading}
+        trendsLoading={state.trendsLoading}
+        revenueLoading={state.revenueLoading}
+        complianceLoading={state.complianceLoading}
+        activeTab={state.activeTab}
+        onTabChange={handlers.setActiveTab}
+      />
+    </FeatureGate>
+  );
 }

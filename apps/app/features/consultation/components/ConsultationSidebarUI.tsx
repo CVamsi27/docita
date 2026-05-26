@@ -20,8 +20,8 @@ import {
   PatientSurgicalHistory,
   PatientTimelineResponse,
 } from "@workspace/types";
-import { PatientSnapshotStrip } from "@/features/_shared/components/patient-history/PatientSnapshotStrip";
-import { PatientTimeline } from "@/features/_shared/components/patient-history/PatientTimeline";
+import { PatientSnapshotStrip } from "@/components/patient-history/PatientSnapshotStrip";
+import { PatientTimeline } from "@/components/patient-history/PatientTimeline";
 import { formatGenderLabel } from "@/lib/formatters";
 import { FollowUpWidget } from "./FollowUpWidget";
 import { usePermissions } from "@/hooks/use-permissions";

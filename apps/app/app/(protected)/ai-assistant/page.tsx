@@ -6,5 +6,11 @@ import { useAIAssistantLogic } from "@/features/ai-assistant/hooks/use-ai-assist
 import { AIAssistantUI } from "@/features/ai-assistant/components/AIAssistantUI";
 
 export default function AIAssistantPage() {
-  return <AIAssistantPageContainer />;
+  const { state, handlers } = useAIAssistantLogic();
+
+  return (
+    <FeatureGate feature={Feature.AI_PRESCRIPTION_ASSISTANT} showLockedCard>
+      <AIAssistantUI state={state} handlers={handlers} />
+    </FeatureGate>
+  );
 }

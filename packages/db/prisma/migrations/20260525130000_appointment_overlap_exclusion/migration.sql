@@ -17,8 +17,17 @@
 -- conflicting appointment id for nicer error messages. This constraint is the
 -- backstop that closes the race window.
 --
--- Note: btree_gist is required so the `=` operators on text columns can sit in
--- the same GiST index as the `&&` operator on tstzrange.
+-- Notes:
+-- * btree_gist is required so the `=` operators on text columns can sit in
+--   the same GiST index as the `&&` operator on the timestamp range.
+-- * Appointment."startTime" / "endTime" are Prisma `DateTime` columns, which
+--   map to `timestamp(3) without time zone`. We therefore use the 2-argument
+--   `tsrange(timestamp, timestamp)` constructor (which defaults to half-open
+--   `[)` semantics) instead of `tstzrange`. The 2-arg constructor is IMMUTABLE
+--   so it may be used directly in the index expression. The 3-argument
+--   variants `tsrange(timestamp, timestamp, text)` / `tstzrange(...)` are
+--   STABLE (the text bound depends on session locale) and would be rejected
+--   with `ERROR: functions in index expression must be marked IMMUTABLE`.
 
 CREATE EXTENSION IF NOT EXISTS btree_gist;
 
@@ -27,6 +36,6 @@ ADD CONSTRAINT "Appointment_no_active_overlap"
 EXCLUDE USING gist (
   "clinicId" WITH =,
   "doctorId" WITH =,
-  tstzrange("startTime", "endTime", '[)') WITH &&
+  tsrange("startTime", "endTime") WITH &&
 )
 WHERE (status IN ('SCHEDULED', 'CONFIRMED', 'IN_PROGRESS'));

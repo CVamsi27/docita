@@ -36,6 +36,12 @@ const MODE_LABELS: Record<WhatsappSenderMode, string> = {
   MANAGED: "Docita-managed dedicated",
 };
 
+const MODE_OPTIONS: readonly WhatsappSenderMode[] = ["SHARED", "BYO", "MANAGED"];
+
+function isWhatsappSenderMode(value: string): value is WhatsappSenderMode {
+  return value === "SHARED" || value === "BYO" || value === "MANAGED";
+}
+
 type WhatsappSenderDialogProps = {
   clinicId: string;
   clinicName: string;
@@ -196,19 +202,19 @@ export function WhatsappSenderDialog({
               <Label htmlFor="ws-mode">Mode</Label>
               <Select
                 value={mode}
-                onValueChange={(val) => setMode(val as WhatsappSenderMode)}
+                onValueChange={(val) => {
+                  if (isWhatsappSenderMode(val)) setMode(val);
+                }}
               >
                 <SelectTrigger id="ws-mode">
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
-                  {(Object.keys(MODE_LABELS) as WhatsappSenderMode[]).map(
-                    (m) => (
-                      <SelectItem key={m} value={m}>
-                        {MODE_LABELS[m]}
-                      </SelectItem>
-                    ),
-                  )}
+                  {MODE_OPTIONS.map((m) => (
+                    <SelectItem key={m} value={m}>
+                      {MODE_LABELS[m]}
+                    </SelectItem>
+                  ))}
                 </SelectContent>
               </Select>
             </div>

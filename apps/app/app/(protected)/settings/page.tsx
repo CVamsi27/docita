@@ -55,5 +55,19 @@ function SettingsContent() {
 }
 
 export default function SettingsPage() {
-  return <SettingsPageContent />;
+  return (
+    <Suspense
+      fallback={
+        <AppPageScaffold>
+          <DataState
+            status="loading"
+            loadingMessage="Loading settings…"
+            className="min-h-[40vh]"
+          />
+        </AppPageScaffold>
+      }
+    >
+      <SettingsContent />
+    </Suspense>
+  );
 }

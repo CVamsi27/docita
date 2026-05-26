@@ -1,4 +1,4 @@
-import { getPatientAgeDisplay } from "@/features/patients/rules/patientRules";
+import { getPatientAgeDisplay } from "@/features/patients/rules/patient-rules";
 import { getInitials } from "@/lib/formatters/text-helpers";
 import { PatientFaceSheetHeaderUI } from "./PatientFaceSheetHeaderUI";
 import {

@@ -43,7 +43,6 @@ export const InvoicesPageUI: FC = () => {
     filter !== "all" || searchQuery.trim().length > 0;
 
   return (
-    <FeatureGate feature={Feature.INVOICING} showLockedCard>
     <AppPageScaffold
       header={
         <PageHeader
@@ -87,6 +86,5 @@ export const InvoicesPageUI: FC = () => {
         handleDownloadPdf={handleDownloadPdf}
       />
     </AppPageScaffold>
-    </FeatureGate>
   );
 };

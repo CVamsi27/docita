@@ -1,4 +1,4 @@
-import { InvoiceDetailsUI } from "@/features/invoices/components/details/InvoiceDetailsUI";
+"use client";
 
 import { useParams } from "next/navigation";
 import { Feature } from "@workspace/types";

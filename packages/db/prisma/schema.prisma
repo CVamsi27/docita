@@ -1552,6 +1552,7 @@ model WhatsAppBroadcastRecipient {
   broadcastJobId    String
   phoneNumber       String
   name              String?
+  /// @json:whatsappBroadcastVariablesSchema
   variables         Json?
   status            WhatsAppBroadcastRecipientStatus  @default(PENDING)
   providerMessageId String?

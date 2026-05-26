@@ -5,7 +5,6 @@ import React, {
   useCallback,
   useContext,
   useEffect,
-  useMemo,
   useRef,
   useState,
   useSyncExternalStore,
@@ -16,7 +15,7 @@ import { fetchWithSession } from "@/lib/auth/fetch-with-session";
 import { logger } from "@/lib/monitoring/logger";
 import { appClinicSchema, tierSchema, type AppClinic } from "@workspace/types";
 
-export type { Clinic } from "@/lib/contexts/clinic-context-helpers";
+export type Clinic = AppClinic;
 
 interface ClinicContextType {
   clinicId: string | null;
@@ -237,7 +236,7 @@ export function ClinicProvider({ children }: { children: React.ReactNode }) {
     }
   });
 
-  const setClinic = useCallback((newClinic: Clinic) => {
+  const setClinic = (newClinic: Clinic) => {
     const parsedClinic = appClinicSchema.parse(newClinic);
     setClinicId(parsedClinic.id);
     setClinicState(parsedClinic);
@@ -254,22 +253,19 @@ export function ClinicProvider({ children }: { children: React.ReactNode }) {
     }
 
     localStorage.setItem("selectedClinicId", parsedClinic.id);
-  }, [setTier, setIntelligence, setFeatureOverrides]);
-
-  const contextValue = useMemo(
-    () => ({
-      clinicId,
-      clinic,
-      setClinic,
-      userClinics,
-      setUserClinics,
-      refreshClinic: fetchClinicFromAPI,
-    }),
-    [clinicId, clinic, setClinic, userClinics, fetchClinicFromAPI],
-  );
+  };
 
   return (
-    <ClinicContext.Provider value={contextValue}>
+    <ClinicContext.Provider
+      value={{
+        clinicId,
+        clinic,
+        setClinic,
+        userClinics,
+        setUserClinics,
+        refreshClinic: fetchClinicFromAPI,
+      }}
+    >
       {children}
     </ClinicContext.Provider>
   );

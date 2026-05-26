@@ -1,7 +1,7 @@
 export * from "./hooks/usePatients";
 
-export * from "./rules/patientRules";
-export * from "./rules/vitalsRules";
+export * from "./rules/patient-rules";
+export * from "./rules/vitals-rules";
 
 export * from "./types";
 

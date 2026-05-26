@@ -58,7 +58,9 @@ function MobileHeader({ onMenuClick }: { onMenuClick: () => void }) {
           <DocitaLogo />
         </div>
       )}
-      <MobileTopActions />
+      <div className="ml-auto flex items-center gap-1">
+        <ThemeToggleWithAppearanceSync />
+      </div>
     </header>
   );
 }
@@ -209,7 +211,7 @@ export default function ProtectedLayout({
           <SubscriptionGuard>
             <PageAccessGuard>
              <AskAiProvider>
-              <div className="app-shell-bg flex h-screen overflow-hidden">
+              <div className="flex h-screen overflow-hidden bg-background">
                 <ResizablePanelGroup direction="horizontal">
                   <ResizablePanel
                     ref={sidebarPanelRef}
@@ -278,11 +280,7 @@ export default function ProtectedLayout({
                   <ResizablePanel defaultSize={82}>
                     <div className="flex h-full flex-col overflow-hidden">
                       <MobileHeader onMenuClick={() => setMobileOpen(true)} />
-                      {!isConsultationDetailRoute ? (
-                        <div className="hidden md:block">
-                          <DesktopTopBar />
-                        </div>
-                      ) : null}
+                      {!isConsultationDetailRoute ? <DesktopTopBar /> : null}
                       {!isConsultationDetailRoute ? (
                         <SubscriptionLockNotice />
                       ) : null}

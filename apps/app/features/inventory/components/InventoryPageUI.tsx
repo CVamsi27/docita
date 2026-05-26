@@ -1,5 +1,3 @@
-"use client";
-
 import { FC } from "react";
 import { AppPageScaffold } from "@workspace/ui/components/layout/app-page-scaffold";
 import { PageHeader } from "@workspace/ui/components/layout/page-header";
@@ -75,7 +73,6 @@ export const InventoryPageUI: FC = () => {
   ];
 
   return (
-    <FeatureGate feature={Feature.INVENTORY} showLockedCard>
     <AppPageScaffold
       header={
         <PageHeader
@@ -135,6 +132,5 @@ export const InventoryPageUI: FC = () => {
         onOpenChange={(open: boolean) => !open && setSelectedItemId(null)}
       />
     </AppPageScaffold>
-    </FeatureGate>
   );
 };

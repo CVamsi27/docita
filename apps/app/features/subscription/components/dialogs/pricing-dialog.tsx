@@ -14,8 +14,6 @@ import { Label } from "@workspace/ui/components/form/label";
 import { cn } from "@workspace/ui/lib/utils";
 import {
   PRICING_CURRENCY_CONFIG,
-  CLINICAL_PLAN_LADDER,
-  FRONT_DESK_PLAN_LADDER,
   type SupportedCurrency,
   Tier,
   type TierName,
@@ -57,18 +55,6 @@ export function PricingDialog({
   const { pricingConfig } = usePricingConfig(currency);
 
   const tiers: TierName[] = PRICING_DIALOG_TIERS;
-  const tierGroups = [
-    {
-      title: "Clinical",
-      description: "Full clinic workflows for doctors and care teams.",
-      tiers: CLINICAL_PLAN_LADDER,
-    },
-    {
-      title: "Front Desk Operations",
-      description: "Reception, queues, appointments, billing, and shift handover.",
-      tiers: FRONT_DESK_PLAN_LADDER,
-    },
-  ] as const;
   const currencyConfig = PRICING_CURRENCY_CONFIG[currency];
   const { estimateByTier, isLoadingAny } = useTierEstimates({
     tiers,

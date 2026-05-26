@@ -13,6 +13,7 @@ import {
   SUPPORT_WHATSAPP_MESSAGE_ONBOARDING,
 } from "@/lib/constants/support-contact";
 import { AuthBrandingPanel } from "./AuthBrandingPanel";
+import { AuthPreDashboardFooter } from "./AuthPreDashboardFooter";
 import { useAuth } from "@/lib/auth/auth-context";
 import type { AuthBrandingStep } from "@/features/auth/types/auth";
 

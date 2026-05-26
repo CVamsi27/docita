@@ -19,6 +19,16 @@ const NOTIFICATION_TYPE_MIN_TIER: Partial<
   PAYMENT_PROVIDER_STATUS_UPDATE: 'PROFESSIONAL',
 };
 
+const FRONT_DESK_OPERATION_NOTIFICATION_TYPES = new Set<StaffNotificationType>([
+  'INVOICE_PENDING',
+  'INVOICE_SENT',
+  'INVOICE_FAILED',
+]);
+
+const SCALED_FRONT_DESK_NOTIFICATION_TYPES = new Set<StaffNotificationType>([
+  'PAYMENT_PROVIDER_STATUS_UPDATE',
+]);
+
 const TIER_RANK: Record<ClinicTier, number> = {
   STARTER: 0,
   FRONT_DESK: 0,
@@ -49,6 +59,21 @@ export class StaffNotificationPolicyService {
       select: { tier: true },
     });
     if (!clinic) return false;
+
+    if (
+      FRONT_DESK_OPERATION_NOTIFICATION_TYPES.has(type) &&
+      clinic.tier === 'FRONT_DESK'
+    ) {
+      return true;
+    }
+
+    if (
+      SCALED_FRONT_DESK_NOTIFICATION_TYPES.has(type) &&
+      (clinic.tier === 'FRONT_DESK_CLINIC' ||
+        clinic.tier === 'FRONT_DESK_HOSPITAL')
+    ) {
+      return true;
+    }
 
     return TIER_RANK[clinic.tier] >= TIER_RANK[required];
   }

@@ -78,6 +78,16 @@ export const PLAN_DESCRIPTIONS: Record<
     description:
       "Scheduling, queue, and billing for front desk teams without full in-app clinical workflows",
   },
+  [Tier.FRONT_DESK_CLINIC]: {
+    tagline: "Reception for multi-doctor clinics",
+    description:
+      "Front desk operations with 3-10 reception desks for multi-doctor clinics",
+  },
+  [Tier.FRONT_DESK_HOSPITAL]: {
+    tagline: "Reception for multi-location hospitals",
+    description:
+      "Front desk operations across locations with OPD routing and shift handover",
+  },
   [Tier.ESSENTIAL]: {
     tagline: "For solo clinics",
     description: "Clear limits, WhatsApp messaging, and simple billing",

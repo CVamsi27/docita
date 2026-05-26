@@ -104,5 +104,21 @@ function TemplatesContent() {
 }
 
 export default function TemplatesPage() {
-  return <TemplatesPageContent />;
+  return (
+    <FeatureGate feature={Feature.PRESCRIPTION_TEMPLATES} showLockedCard>
+      <Suspense
+        fallback={
+          <AppPageScaffold>
+            <DataState
+              status="loading"
+              loadingMessage="Loading templates…"
+              className="min-h-[40vh]"
+            />
+          </AppPageScaffold>
+        }
+      >
+        <TemplatesContent />
+      </Suspense>
+    </FeatureGate>
+  );
 }

@@ -125,6 +125,7 @@ jobs:
         run: |
           pnpm --filter @workspace/types run build
           pnpm --filter @workspace/utils run build
+          pnpm --filter @workspace/auth run build
           pnpm --filter @workspace/db run build
 
       - name: Lint API

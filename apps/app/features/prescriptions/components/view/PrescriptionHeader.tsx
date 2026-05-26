@@ -4,7 +4,7 @@ import { Button } from "@workspace/ui/components/form/button";
 import { SymbolTooltip } from "@workspace/ui/components/overlay/tooltip";
 import { ArrowLeft, Edit, Printer } from "lucide-react";
 import { formatDate } from "@workspace/utils";
-import { WhatsAppDeliveryBadge } from "@/features/_shared/components/whatsapp/whatsapp-delivery-badge";
+import { WhatsAppDeliveryBadge } from "@/components/whatsapp/whatsapp-delivery-badge";
 
 interface PrescriptionHeaderProps {
   createdAt: string;

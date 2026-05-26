@@ -14,6 +14,20 @@ import {
   Prisma,
   AppointmentStatus as PrismaAppointmentStatus,
 } from '@workspace/db';
+import { isPrismaExclusionViolation } from '@/shared/common/utils/prisma-exclusion-violation';
+
+const APPOINTMENT_OVERLAP_CONSTRAINT = 'Appointment_no_active_overlap';
+
+function translateAppointmentWriteError(error: unknown): never {
+  if (isPrismaExclusionViolation(error, APPOINTMENT_OVERLAP_CONSTRAINT)) {
+    throw new BadRequestException({
+      code: 'APPOINTMENT_OVERLAP',
+      detail: 'Doctor has conflicting appointment',
+    });
+  }
+
+  throw error;
+}
 
 @Injectable()
 export class PrismaAppointmentWriteRepository implements IAppointmentWriteRepository {
@@ -25,9 +39,13 @@ export class PrismaAppointmentWriteRepository implements IAppointmentWriteReposi
   async save(appointment: Appointment): Promise<void> {
     const data = AppointmentMapper.toPersistence(appointment);
 
-    await this.prisma.appointment.create({
-      data,
-    });
+    try {
+      await this.prisma.appointment.create({
+        data,
+      });
+    } catch (error) {
+      translateAppointmentWriteError(error);
+    }
   }
 
   async update(appointment: Appointment): Promise<void> {
@@ -38,13 +56,15 @@ export class PrismaAppointmentWriteRepository implements IAppointmentWriteReposi
       throw new BadRequestException('Appointment clinicId is required');
     }
 
-    const result = await this.prisma.appointment.updateMany({
-      where: { id, clinicId },
-      data: {
-        ...updateData,
-        version: { increment: 1 },
-      },
-    });
+    const result = await this.prisma.appointment
+      .updateMany({
+        where: { id, clinicId },
+        data: {
+          ...updateData,
+          version: { increment: 1 },
+        },
+      })
+      .catch(translateAppointmentWriteError);
     if (result.count === 0) {
       throw new NotFoundException(`Appointment ${id} not found`);
     }
@@ -101,10 +121,12 @@ export class PrismaAppointmentWriteRepository implements IAppointmentWriteReposi
     clinicId: string,
     patch: Prisma.AppointmentUpdateInput,
   ): Promise<number> {
-    const result = await this.prisma.appointment.updateMany({
-      where: { id, clinicId },
-      data: { ...patch, version: { increment: 1 } },
-    });
+    const result = await this.prisma.appointment
+      .updateMany({
+        where: { id, clinicId },
+        data: { ...patch, version: { increment: 1 } },
+      })
+      .catch(translateAppointmentWriteError);
     return result.count;
   }
 }

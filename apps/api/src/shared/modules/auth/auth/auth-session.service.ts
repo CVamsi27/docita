@@ -5,6 +5,7 @@ import {
   BadRequestException,
   Logger,
 } from '@nestjs/common';
+import { createHash } from 'crypto';
 import { CLOCK_PORT, type IClock } from '@/shared/common/ports/clock.port';
 import { PrismaService } from '@/prisma/prisma.service';
 import { JwtService } from '@nestjs/jwt';
@@ -17,6 +18,10 @@ import type {
   UserWithoutPassword,
 } from './auth.types';
 import { jwtAudienceForRole } from './jwt-audience';
+
+function hashRefreshToken(token: string): string {
+  return createHash('sha256').update(token, 'utf8').digest('hex');
+}
 
 @Injectable()
 export class AuthSessionService {
@@ -67,6 +72,7 @@ export class AuthSessionService {
     await this.prisma.refreshToken.create({
       data: {
         token: refreshToken,
+        tokenHash: hashRefreshToken(refreshToken),
         userId: user.id,
         expiresAt: new Date(
           Date.now() + AUTH_CONSTANTS.REFRESH_TOKEN_MAX_AGE_MS,
@@ -97,10 +103,17 @@ export class AuthSessionService {
   async refreshTokens(incomingRefreshToken: string): Promise<AuthLoginResult> {
     // RLS-BYPASS: auth resolves users before clinic tenant context is established
     const storedToken = await this.prisma.runUnrestricted(async () => {
-      return await this.prisma.refreshToken.findUnique({
-        where: { token: incomingRefreshToken },
-        include: { user: true },
-      });
+      const tokenHash = hashRefreshToken(incomingRefreshToken);
+      return (
+        (await this.prisma.refreshToken.findUnique({
+          where: { tokenHash },
+          include: { user: true },
+        })) ??
+        (await this.prisma.refreshToken.findUnique({
+          where: { token: incomingRefreshToken },
+          include: { user: true },
+        }))
+      );
     });
 
     if (

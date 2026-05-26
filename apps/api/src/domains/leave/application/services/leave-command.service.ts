@@ -69,31 +69,58 @@ export class LeaveCommandService {
       );
     }
 
-    const updated = await this.leaveRepository.updateLeave(leaveId, {
-      status: 'APPROVED',
-      approver: { connect: { id: approverId } },
-      approvedAt: this.clock.now(),
-    });
-
     const staffRole = leave.staff?.role;
     const isDoctor =
       staffRole === Role.DOCTOR || staffRole === Role.ADMIN_DOCTOR;
+    let createdTimeOffId: string | undefined;
+
     if (isDoctor) {
-      try {
-        await this.availabilityScheduleService.createTimeOff({
-          doctorId: leave.staffId,
-          clinicId: leave.clinicId,
-          startDate: leave.startDate,
-          endDate: leave.endDate,
-          reason: `Leave: ${leave.reason ?? leave.leaveType}`,
-          isFullDay: true,
-        });
-      } catch (err) {
-        this.logger.warn('Could not create DoctorTimeOff for approved leave', {
-          leaveId,
-          error: err instanceof Error ? err.message : String(err),
-        });
+      const timeOff = await this.availabilityScheduleService.createTimeOff({
+        doctorId: leave.staffId,
+        clinicId: leave.clinicId,
+        startDate: leave.startDate,
+        endDate: leave.endDate,
+        reason: `Leave: ${leave.reason ?? leave.leaveType}`,
+        isFullDay: true,
+      });
+      createdTimeOffId = timeOff.id;
+    }
+
+    let updated: Awaited<ReturnType<ILeaveRepository['updateLeave']>>;
+    try {
+      updated = await this.leaveRepository.updateLeave(leaveId, {
+        status: 'APPROVED',
+        approver: { connect: { id: approverId } },
+        approvedAt: this.clock.now(),
+      });
+    } catch (err) {
+      if (createdTimeOffId) {
+        try {
+          await this.availabilityScheduleService.deleteTimeOff(
+            createdTimeOffId,
+            {
+              clinicId: leave.clinicId,
+              actorUserId: approverId,
+              actorRole: Role.ADMIN,
+            },
+          );
+        } catch (rollbackError) {
+          this.logger.error('Could not roll back DoctorTimeOff for leave', {
+            leaveId,
+            timeOffId: createdTimeOffId,
+            error:
+              rollbackError instanceof Error
+                ? rollbackError.message
+                : String(rollbackError),
+          });
+        }
       }
+
+      this.logger.warn('Could not approve leave after DoctorTimeOff write', {
+        leaveId,
+        error: err instanceof Error ? err.message : String(err),
+      });
+      throw err;
     }
 
     this.logger.log('Leave approved', { leaveId, approverId });

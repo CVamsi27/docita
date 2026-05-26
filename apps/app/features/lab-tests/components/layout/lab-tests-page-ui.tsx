@@ -1,5 +1,3 @@
-"use client";
-
 import { FC, useState } from "react";
 import { Button } from "@workspace/ui/components/form/button";
 import { AppPageScaffold } from "@workspace/ui/components/layout/app-page-scaffold";
@@ -50,7 +48,6 @@ export const LabTestsPageUI: FC = () => {
   const [activeTab, setActiveTab] = useState<"orders" | "catalog">("orders");
 
   return (
-    <FeatureGate feature={Feature.LAB_TESTS} showLockedCard>
     <AppPageScaffold
       header={
         <PageHeader
@@ -131,6 +128,5 @@ export const LabTestsPageUI: FC = () => {
         selectedTest={selectedTest}
       />
     </AppPageScaffold>
-    </FeatureGate>
   );
 };
