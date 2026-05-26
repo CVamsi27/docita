@@ -171,6 +171,22 @@ async function logExternalDependencyStatus(
 }
 
 async function bootstrap() {
+  // Phase timings — cheap, no deps. Emitted on stdout so they survive
+  // the bufferLogs:true window and show up in Fly logs immediately.
+  // ADR 0011 (Fly cold-start policy) uses these to chase the slow
+  // module that pushes a full restart past Fly's grace_period.
+  const bootStart = Date.now();
+  const phaseStart: Record<string, number> = {};
+  function markPhase(name: string): void {
+    const now = Date.now();
+    const last = phaseStart[name] ?? bootStart;
+    const delta = now - last;
+    const total = now - bootStart;
+    process.stdout.write(`[bootstrap] ${name} +${delta}ms (t=${total}ms)\n`);
+    phaseStart[name] = now;
+  }
+  markPhase('start');
+
   const rawBodySaver = (
     req: ExpressRequest & { rawBody?: Buffer },
     _res: unknown,
@@ -184,6 +200,7 @@ async function bootstrap() {
   Sentry.setTag('version', appConfigService.getAppVersion());
 
   const app = await NestFactory.create(AppModule, { bufferLogs: true });
+  markPhase('NestFactory.create');
   const logger = app.get(Logger);
   app.useLogger(createFilteredBootstrapLogger(logger));
 
@@ -345,11 +362,15 @@ async function bootstrap() {
     });
   }
 
+  markPhase('middleware-and-pipes');
+
   const port = config.PORT;
   const server = await app.listen(port, '0.0.0.0');
+  markPhase('app.listen');
 
   // Verify external dependencies after binding the port to avoid orchestrator timeouts
   await logExternalDependencyStatus(logger, appConfigService, prismaService);
+  markPhase('dependency-checks');
 
   const observabilityService = app.get(ObservabilityService);
 

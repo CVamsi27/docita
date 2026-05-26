@@ -20,7 +20,11 @@ primary_region = 'bom'
 [http_service]
   internal_port = 3001
   force_https = true
-  auto_stop_machines = 'stop'
+  # 'suspend' (vs 'stop') snapshots RAM and wakes in ~1s on traffic.
+  # Matches the "auto-off when idle, fast wake on traffic" intent without
+  # paying for an always-on instance. See SYSTEM_DESIGN_AND_PATTERNS.md
+  # §28.5 and ADR 0011 (apps/api Fly cold-start policy).
+  auto_stop_machines = 'suspend'
   auto_start_machines = true
   min_machines_running = 0
 
@@ -35,7 +39,9 @@ primary_region = 'bom'
     type = 'http'
     interval = '15s'
     timeout = '5s'
-    grace_period = '60s'
+    # grace_period is the safety net for the rare full cold start (deploy,
+    # host migration, OOM). Steady-state wakes are ~1s thanks to 'suspend'.
+    grace_period = '240s'
     method = 'GET'
     path = '/api/health/live'
 
