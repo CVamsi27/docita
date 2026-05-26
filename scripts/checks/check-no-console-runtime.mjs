@@ -31,8 +31,8 @@ const EXCLUDED_PATH_SEGMENTS = [
   '/coverage/',
   '/test-results/',
   '/playwright-report/',
-  '/apps/api/scripts/',
 ];
+const EXCLUDED_PATH_PREFIXES = ['apps/api/scripts/'];
 const EXCLUDED_FILES = new Set(['apps/app/lib/logger.ts']);
 const SOURCE_EXTENSIONS = new Set([
   '.ts',
@@ -135,6 +135,9 @@ function listSourceFiles(directory) {
 
     const normalizedPath = normalizePath(fullPath);
     if (EXCLUDED_FILES.has(normalizedPath)) {
+      continue;
+    }
+    if (EXCLUDED_PATH_PREFIXES.some((prefix) => normalizedPath.startsWith(prefix))) {
       continue;
     }
     if (EXCLUDED_PATH_SEGMENTS.some((segment) => normalizedPath.includes(segment))) {
