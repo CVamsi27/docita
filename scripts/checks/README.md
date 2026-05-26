@@ -109,7 +109,7 @@ Map your concern to a script, then `Read` it to see the pattern:
 | **Backend / events / queue (2026-05 sweep)** | |
 | Command paths emit via Outbox, not `EventEmitter` | [`check-event-emit-via-outbox.mjs`](check-event-emit-via-outbox.mjs) |
 | Repositories bound to DI tokens | [`check-repository-di-tokens.mjs`](check-repository-di-tokens.mjs) |
-| `@Cron` jobs carry `@TrackHeartbeat` | [`check-cron-heartbeat-coverage.mjs`](check-cron-heartbeat-coverage.mjs) |
+| `@Cron` jobs carry `@TrackHeartbeat` with a unique name (enforcing) | [`check-cron-heartbeat-coverage.mjs`](check-cron-heartbeat-coverage.mjs) |
 | Use cases stay under LoC soft cap | [`check-use-case-loc.mjs`](check-use-case-loc.mjs) |
 
 ## Authoring a new check

@@ -6,6 +6,7 @@ import { AuditService } from '@/shared/modules/audit/audit/audit.service';
 import { ArchivalService } from './archival.service';
 import { isCronDisabledInThisProcess } from '@/shared/schedule/cron-env';
 import { CRON_SCHEDULES } from '@/shared/schedule/cron-schedules';
+import { TrackHeartbeat } from '@/shared/modules/schedule/cron-heartbeat';
 
 @Injectable()
 export class DataRetentionScheduler {
@@ -27,6 +28,7 @@ export class DataRetentionScheduler {
   @Cron(CRON_SCHEDULES.DATA_RETENTION, {
     disabled: isCronDisabledInThisProcess(),
   })
+  @TrackHeartbeat('compliance.data-retention')
   async handleDataRetention() {
     this.logger.log('Starting data retention check...');
 

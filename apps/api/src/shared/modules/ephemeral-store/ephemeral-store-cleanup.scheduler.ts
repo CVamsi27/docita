@@ -4,6 +4,7 @@ import { Cron } from '@nestjs/schedule';
 import { PrismaService } from '@/prisma/prisma.service';
 import { isCronDisabledInThisProcess } from '@/shared/schedule/cron-env';
 import { CRON_SCHEDULES } from '@/shared/schedule/cron-schedules';
+import { TrackHeartbeat } from '@/shared/modules/schedule/cron-heartbeat';
 
 const BATCH = 5000;
 
@@ -19,6 +20,7 @@ export class EphemeralStoreCleanupScheduler {
   @Cron(CRON_SCHEDULES.EPHEMERAL_STORE_CLEANUP, {
     disabled: isCronDisabledInThisProcess(),
   })
+  @TrackHeartbeat('ephemeral-store.cleanup')
   async purgeExpiredRows(): Promise<void> {
     const now = this.clock.now();
     try {

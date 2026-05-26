@@ -3,6 +3,7 @@ import { CLOCK_PORT, type IClock } from '@/shared/common/ports/clock.port';
 import { Cron } from '@nestjs/schedule';
 import { isCronDisabledInThisProcess } from '@/shared/schedule/cron-env';
 import { CRON_SCHEDULES } from '@/shared/schedule/cron-schedules';
+import { TrackHeartbeat } from '@/shared/modules/schedule/cron-heartbeat';
 import { isDatabaseAuthError } from '@/shared/modules/auth/auth/auth-database.util';
 import { BillMonthlyOveragesUseCase } from '@/domains/subscriptions/application/use-cases/bill-monthly-overages.use-case';
 import { NotifyUsageThresholdsUseCase } from '@/domains/subscriptions/application/use-cases/notify-usage-thresholds.use-case';
@@ -22,6 +23,7 @@ export class OverageBillingScheduler {
   @Cron(CRON_SCHEDULES.OVERAGE_BILLING_MONTHLY, {
     disabled: isCronDisabledInThisProcess(),
   })
+  @TrackHeartbeat('subscriptions.overage-billing-monthly')
   async billMonthlyOverages(): Promise<void> {
     if (this.databaseAccessDisabled) return;
 
@@ -50,6 +52,7 @@ export class OverageBillingScheduler {
   @Cron(CRON_SCHEDULES.OVERAGE_USAGE_THRESHOLDS, {
     disabled: isCronDisabledInThisProcess(),
   })
+  @TrackHeartbeat('subscriptions.usage-thresholds')
   async notifyUsageThresholds(): Promise<void> {
     if (this.databaseAccessDisabled) return;
 

@@ -9,6 +9,7 @@ import { PrismaService } from '@/prisma/prisma.service';
 import { SubscriptionStatus } from '@workspace/db';
 import { isCronDisabledInThisProcess } from '@/shared/schedule/cron-env';
 import { CRON_SCHEDULES } from '@/shared/schedule/cron-schedules';
+import { TrackHeartbeat } from '@/shared/modules/schedule/cron-heartbeat';
 import { AdminAlertsService } from '@/shared/modules/messaging/admin-alerts/admin-alerts.service';
 import { addUtcCalendarDays } from '@/shared/schedule/scheduler-date.util';
 import { isRecord } from '@workspace/utils';
@@ -66,6 +67,7 @@ export class SubscriptionReminderScheduler {
   @Cron(CRON_SCHEDULES.SUBSCRIPTION_REMINDER_DAILY, {
     disabled: isCronDisabledInThisProcess(),
   })
+  @TrackHeartbeat('subscriptions.reminder-daily')
   async handleReminders() {
     if (this.databaseAccessDisabled) {
       return;
@@ -172,6 +174,7 @@ export class SubscriptionReminderScheduler {
   @Cron(CRON_SCHEDULES.SUBSCRIPTION_REMINDER_HOURLY, {
     disabled: isCronDisabledInThisProcess(),
   })
+  @TrackHeartbeat('subscriptions.lapsed-hourly')
   async handleLapsedSubscriptions() {
     if (this.databaseAccessDisabled) {
       return;

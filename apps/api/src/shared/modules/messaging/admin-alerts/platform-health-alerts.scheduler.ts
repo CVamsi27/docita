@@ -6,6 +6,7 @@ import { AppConfigService } from '@/shared/modules/config/app-configuration.serv
 import { AdminAlertsService } from './admin-alerts.service';
 import { isCronDisabledInThisProcess } from '@/shared/schedule/cron-env';
 import { CRON_SCHEDULES } from '@/shared/schedule/cron-schedules';
+import { TrackHeartbeat } from '@/shared/modules/schedule/cron-heartbeat';
 
 @Injectable()
 export class PlatformHealthAlertsScheduler {
@@ -21,6 +22,7 @@ export class PlatformHealthAlertsScheduler {
   @Cron(CRON_SCHEDULES.PLATFORM_HEALTH_ALERTS, {
     disabled: isCronDisabledInThisProcess(),
   })
+  @TrackHeartbeat('monitoring.platform-health-alerts')
   async run(): Promise<void> {
     if (!this.config.isProduction()) {
       return;
