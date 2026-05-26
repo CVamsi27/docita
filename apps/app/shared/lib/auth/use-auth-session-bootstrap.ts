@@ -49,11 +49,6 @@ export function useAuthSessionBootstrap(options: {
       setLoginLockoutUntil(persistedLockoutUntil);
     }
 
-    if (!appSession.getToken()) {
-      setIsLoading(false);
-      return;
-    }
-
     const validateSession = async () => {
       try {
         const userData = parseValidatedUser(await validateAuth(undefined));
@@ -101,6 +96,25 @@ export function useAuthSessionBootstrap(options: {
       }
     };
 
+    /**
+     * Cold-reload path: no in-memory access token (we no longer persist it
+     * to localStorage). The httpOnly refresh-token cookie still rides
+     * automatically. On a public path we stay quiet; elsewhere we attempt
+     * a refresh and then validate. If refresh fails the validateSession
+     * catch branch will clear and redirect.
+     */
+    if (!appSession.getToken()) {
+      if (isPublicAuthPath(pathname)) {
+        setIsLoading(false);
+        return;
+      }
+      void (async () => {
+        await refreshAccessToken();
+        await validateSession();
+      })();
+      return;
+    }
+
     void validateSession();
   }, [
     clearSession,
@@ -114,21 +128,9 @@ export function useAuthSessionBootstrap(options: {
     hasSetRoleRef,
   ]);
 
-  useEffect(() => {
-    if (typeof window === "undefined") return;
-
-    const handler = (e: StorageEvent) => {
-      try {
-        if (e.key === "docita_token" && !e.newValue) {
-          setUser(null);
-          setUserRole("");
-        }
-      } catch {
-        // ignore malformed storage entries
-      }
-    };
-
-    window.addEventListener("storage", handler);
-    return () => window.removeEventListener("storage", handler);
-  }, [setUser, setUserRole]);
+  // Cross-tab logout previously rode the `storage` event watching
+  // `docita_token`. Since we no longer persist the token, that channel
+  // is gone. Tabs converge on the next API call: a logged-out tab will
+  // receive a 401 → refresh fails → clearSession → redirect. If we want
+  // instant cross-tab signaling later, switch to BroadcastChannel.
 }

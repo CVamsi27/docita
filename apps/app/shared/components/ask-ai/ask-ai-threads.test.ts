@@ -28,9 +28,16 @@ describe("ask-ai-threads", () => {
     window.localStorage.clear();
   });
 
-  it("round-trips threads through localStorage", () => {
+  it("persists only thread metadata, never message bodies (PHI hardening)", () => {
     saveThreads([baseThread]);
-    expect(loadThreads()).toEqual([baseThread]);
+    const loaded = loadThreads();
+    expect(loaded).toHaveLength(1);
+    expect(loaded[0]?.id).toBe(baseThread.id);
+    expect(loaded[0]?.title).toBe(baseThread.title);
+    // Message contents may contain PHI ("patient X, 45yo, …") and
+    // must never round-trip through localStorage. The cache is
+    // sidebar-only; bodies re-hydrate from the server.
+    expect(loaded[0]?.messages).toEqual([]);
   });
 
   it("ignores malformed entries on load", () => {
@@ -38,7 +45,9 @@ describe("ask-ai-threads", () => {
       "docita.ask-ai.threads.v1",
       JSON.stringify([baseThread, { id: 1 }, null]),
     );
-    expect(loadThreads()).toEqual([baseThread]);
+    const loaded = loadThreads();
+    expect(loaded).toHaveLength(1);
+    expect(loaded[0]?.id).toBe(baseThread.id);
   });
 
   it("upserts by id without duplicating", () => {

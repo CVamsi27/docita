@@ -97,6 +97,55 @@ export function clearLegacyUserStorage() {
   window.localStorage.removeItem("docita_user");
 }
 
+/**
+ * Sweep client-side stores that may contain PHI or session-scoped data
+ * when the user logs out (or auth is cleared after a 401). Anything
+ * that could survive the next user signing in on the same device must
+ * be evicted here.
+ *
+ * Add new entries when you introduce a new client-side store that
+ * holds anything more sensitive than UI preferences.
+ */
+const PHI_BEARING_LOCAL_STORAGE_KEYS = [
+  "docita.ask-ai.threads.v1",
+  "docita_onboarding_draft",
+] as const;
+
+const SESSION_STORAGE_PREFIXES_TO_CLEAR = [
+  "docita:consultation-draft:",
+  "docita.consultation",
+] as const;
+
+export function clearSensitiveClientStorageOnLogout(): void {
+  if (typeof window === "undefined") return;
+
+  try {
+    for (const key of PHI_BEARING_LOCAL_STORAGE_KEYS) {
+      window.localStorage.removeItem(key);
+    }
+  } catch {
+    // ignore quota / disabled storage
+  }
+
+  try {
+    const toRemove: string[] = [];
+    for (let i = 0; i < window.sessionStorage.length; i++) {
+      const key = window.sessionStorage.key(i);
+      if (!key) continue;
+      if (
+        SESSION_STORAGE_PREFIXES_TO_CLEAR.some((p) => key.startsWith(p))
+      ) {
+        toRemove.push(key);
+      }
+    }
+    for (const key of toRemove) {
+      window.sessionStorage.removeItem(key);
+    }
+  } catch {
+    // ignore
+  }
+}
+
 export function isAuthFailure(error: unknown): boolean {
   if (!error || typeof error !== "object") return false;
   const status =

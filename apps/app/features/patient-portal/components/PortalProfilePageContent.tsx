@@ -102,7 +102,11 @@ export default function PatientProfilePage() {
               <CardTitle>Privacy & Consent</CardTitle>
             </div>
             <Button variant="outline" size="sm" asChild>
-              <Link href="/portal/profile/consent-form" target="_blank">
+              <Link
+                href="/portal/profile/consent-form"
+                target="_blank"
+                rel="noopener noreferrer"
+              >
                 <Printer className="mr-2 h-4 w-4" />
                 Print Consent Form
               </Link>

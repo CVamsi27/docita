@@ -7,6 +7,7 @@ import { logger } from "@/lib/monitoring/logger";
 import { usePermissionStore } from "@/lib/stores/permission-store";
 import {
   clearLegacyUserStorage,
+  clearSensitiveClientStorageOnLogout,
   persistVerificationEmailStatus,
   type User,
 } from "./auth-context-helpers";
@@ -79,6 +80,10 @@ export function useAuthProviderValue(): AuthContextType {
     appSession.clearSession();
     queryClient.removeQueries();
     clearLegacyUserStorage();
+    // Evict PHI-bearing and session-scoped client stores so the next
+    // person on this device can't read the previous user's drafts or
+    // AI threads. See PHI_BEARING_LOCAL_STORAGE_KEYS for the list.
+    clearSensitiveClientStorageOnLogout();
     setUserRole("");
     persistVerificationEmailStatus(null);
     setLoginLockoutUntil(null);

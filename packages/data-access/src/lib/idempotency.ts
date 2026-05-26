@@ -3,43 +3,24 @@ import type { RequestConfig } from "./types";
 export const IDEMPOTENCY_HEADER = "Idempotency-Key";
 
 /**
- * Generate a UUID v4 idempotency key. Uses the platform crypto API when
- * available (browser, Node 19+, edge runtimes), with a small Math.random
- * fallback for legacy environments.
+ * Generate a UUID v4 idempotency key using the platform crypto API.
+ *
+ * The previous Math.random fallback has been removed: every runtime we
+ * support (browsers since 2021, Node 19+, Cloudflare/edge) exposes
+ * `crypto.randomUUID`. Falling back to Math.random produced
+ * predictable keys that could collide across tabs and weakened the
+ * idempotency guarantee. If the platform truly lacks crypto we'd
+ * rather throw than silently weaken security.
  */
-function readRandomUuidFromCrypto(): string | undefined {
-  if (typeof globalThis === "undefined") {
-    return undefined;
-  }
-  const cryptoApi = globalThis.crypto;
+export function generateIdempotencyKey(): string {
+  const cryptoApi =
+    typeof globalThis !== "undefined" ? globalThis.crypto : undefined;
   if (typeof cryptoApi?.randomUUID === "function") {
     return cryptoApi.randomUUID();
   }
-  return undefined;
-}
-
-export function generateIdempotencyKey(): string {
-  const randomUuid = readRandomUuidFromCrypto();
-  if (randomUuid) {
-    return randomUuid;
-  }
-
-  const bytes = new Uint8Array(16);
-  for (let i = 0; i < 16; i += 1) {
-    bytes[i] = Math.floor(Math.random() * 256);
-  }
-  bytes[6] = (bytes[6]! & 0x0f) | 0x40;
-  bytes[8] = (bytes[8]! & 0x3f) | 0x80;
-  const hex = Array.from(bytes)
-    .map((b) => b.toString(16).padStart(2, "0"))
-    .join("");
-  return [
-    hex.slice(0, 8),
-    hex.slice(8, 12),
-    hex.slice(12, 16),
-    hex.slice(16, 20),
-    hex.slice(20, 32),
-  ].join("-");
+  throw new Error(
+    "crypto.randomUUID is unavailable in this runtime; idempotency keys cannot be generated safely.",
+  );
 }
 
 /**

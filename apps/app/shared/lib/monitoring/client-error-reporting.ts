@@ -85,8 +85,10 @@ export const reportClientError = async (
     return;
   }
 
-  const token = appSession.getToken();
-  if (!token) {
+  // Gate on the in-memory session signal so we don't spam the endpoint
+  // before bootstrap-refresh finishes (or when logged out). The actual
+  // credential is the httpOnly access_token cookie via credentials: "include".
+  if (!appSession.getToken()) {
     return;
   }
 
@@ -104,7 +106,6 @@ export const reportClientError = async (
         method: "POST",
         headers: {
           "Content-Type": "application/json",
-          Authorization: `Bearer ${token}`,
         },
         credentials: "include",
         keepalive: true,

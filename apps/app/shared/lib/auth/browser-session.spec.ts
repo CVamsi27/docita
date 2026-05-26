@@ -65,17 +65,32 @@ describe("createBrowserSessionManager", () => {
     expect(session.getCsrfToken()).toBe("from-header");
   });
 
-  it("resyncs the in-memory token from localStorage on read", () => {
+  it("does NOT persist access tokens to localStorage (XSS hardening)", () => {
     const session = createBrowserSessionManager({
       apiUrl: "http://localhost:3001/api/v1",
       tokenStorageKey: "docita_token",
       userStorageKey: "docita_user",
     });
 
-    session.setToken("stale-token");
-    localStorage.setItem("docita_token", "fresh-token");
+    session.setToken("in-memory-token");
 
-    expect(session.getToken()).toBe("fresh-token");
+    expect(localStorage.getItem("docita_token")).toBeNull();
+    expect(session.getToken()).toBe("in-memory-token");
+  });
+
+  it("evicts legacy stored tokens on construction", () => {
+    localStorage.setItem("docita_token", "legacy-from-old-client");
+
+    const session = createBrowserSessionManager({
+      apiUrl: "http://localhost:3001/api/v1",
+      tokenStorageKey: "docita_token",
+      userStorageKey: "docita_user",
+    });
+
+    expect(localStorage.getItem("docita_token")).toBeNull();
+    // The legacy persisted token must NOT seed the in-memory token —
+    // the only way to obtain one is a real refresh-cookie round trip.
+    expect(session.getToken()).toBeNull();
   });
 
   it("refreshes token once for concurrent calls", async () => {

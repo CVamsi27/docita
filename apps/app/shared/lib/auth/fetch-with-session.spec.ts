@@ -20,7 +20,7 @@ describe("fetchWithSession", () => {
     vi.unstubAllGlobals();
   });
 
-  it("attaches bearer token and credentials", async () => {
+  it("rides cookies, not Authorization headers (XSS hardening)", async () => {
     vi.mocked(appSession.getToken).mockReturnValue("token-1");
     vi.mocked(appSession.getCsrfToken).mockReturnValue("csrf-1");
     vi.mocked(appSession.refreshAccessToken).mockResolvedValue(false);
@@ -31,10 +31,10 @@ describe("fetchWithSession", () => {
     expect(fetch).toHaveBeenCalledTimes(1);
     const [url, init] = vi.mocked(fetch).mock.calls[0];
     expect(url).toContain("/invoices");
+    // credentials: include is what brings the httpOnly access_token cookie.
     expect(init?.credentials).toBe("include");
-    expect((init?.headers as Headers).get("Authorization")).toBe(
-      "Bearer token-1",
-    );
+    // Authorization must NOT be set — the cookie is the credential.
+    expect((init?.headers as Headers).get("Authorization")).toBeNull();
   });
 
   it("attaches CSRF header for mutating requests", async () => {
@@ -73,9 +73,7 @@ describe("fetchWithSession", () => {
   });
 
   it("retries once when refresh succeeds after 401", async () => {
-    vi.mocked(appSession.getToken)
-      .mockReturnValueOnce("expired-token")
-      .mockReturnValueOnce("fresh-token");
+    vi.mocked(appSession.getToken).mockReturnValue(null);
     vi.mocked(appSession.getCsrfToken).mockReturnValue("csrf-1");
     vi.mocked(appSession.refreshAccessToken).mockResolvedValue(true);
     vi.stubGlobal(
@@ -90,9 +88,10 @@ describe("fetchWithSession", () => {
 
     expect(fetch).toHaveBeenCalledTimes(2);
     const [, secondInit] = vi.mocked(fetch).mock.calls[1];
-    expect((secondInit?.headers as Headers).get("Authorization")).toBe(
-      "Bearer fresh-token",
-    );
+    // The retry rides the refreshed access_token cookie set by the
+    // refresh endpoint — no Authorization header should be attached.
+    expect((secondInit?.headers as Headers).get("Authorization")).toBeNull();
+    expect(secondInit?.credentials).toBe("include");
     expect(appSession.clearSession).not.toHaveBeenCalled();
     expect(appSession.redirectToLogin).not.toHaveBeenCalled();
   });

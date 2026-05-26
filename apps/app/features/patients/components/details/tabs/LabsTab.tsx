@@ -123,7 +123,7 @@ function LabsTabContent({ patientId }: LabsTabProps) {
                   size="sm"
                   className="h-8 text-xs"
                 >
-                  <a href={order.resultUrl} target="_blank" rel="noreferrer">
+                  <a href={order.resultUrl} target="_blank" rel="noopener noreferrer">
                     <ExternalLink className="h-3 w-3 mr-1.5" />
                     View result
                   </a>

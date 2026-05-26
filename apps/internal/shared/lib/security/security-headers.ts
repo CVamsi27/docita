@@ -7,13 +7,33 @@ const DEFAULT_CONNECT_SOURCES = [
 const CLOUDFLARE_INSIGHTS_SCRIPT_SOURCE = "https://static.cloudflareinsights.com";
 const CLOUDFLARE_INSIGHTS_CONNECT_SOURCE = "https://cloudflareinsights.com";
 
-export function buildInternalContentSecurityPolicy(): string {
-  const isProduction = process.env["NODE_ENV"] === "production";
+interface InternalCspOptions {
+  /** Per-request nonce. When supplied production policy drops 'unsafe-inline'. */
+  nonce?: string;
+  /** Forces production semantics regardless of NODE_ENV. */
+  isProduction?: boolean;
+}
+
+/**
+ * Build the Internal Console CSP.
+ *
+ * Production policy uses nonce + 'strict-dynamic' so we never need
+ * 'unsafe-inline' in script-src. Dev keeps 'unsafe-inline' so HMR
+ * (which injects unsignable inline scripts) keeps working.
+ */
+export function buildInternalContentSecurityPolicy(
+  options: InternalCspOptions = {},
+): string {
+  const isProduction =
+    options.isProduction ?? process.env["NODE_ENV"] === "production";
   const isCloudflareBuild = process.env["DOCITA_CLOUDFLARE"] === "1";
+  const nonce = options.nonce;
 
   const scriptSources = [
     "'self'",
-    "'unsafe-inline'",
+    nonce ? `'nonce-${nonce}'` : undefined,
+    nonce ? "'strict-dynamic'" : undefined,
+    !nonce ? "'unsafe-inline'" : undefined,
     isCloudflareBuild ? CLOUDFLARE_INSIGHTS_SCRIPT_SOURCE : undefined,
     !isProduction ? "'unsafe-eval'" : undefined,
   ].filter((source): source is string => Boolean(source));
@@ -43,10 +63,17 @@ export function buildInternalContentSecurityPolicy(): string {
     .join("; ");
 }
 
+/**
+ * Static fallback used when middleware can't supply a per-request nonce
+ * (e.g., dev). In production the middleware overrides this with the
+ * nonce-bound policy on every request.
+ */
+const STATIC_INTERNAL_CSP = buildInternalContentSecurityPolicy();
+
 export const INTERNAL_SECURITY_HEADERS = [
   {
     key: "Content-Security-Policy",
-    value: buildInternalContentSecurityPolicy(),
+    value: STATIC_INTERNAL_CSP,
   },
   {
     key: "Referrer-Policy",

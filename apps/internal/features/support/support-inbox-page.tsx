@@ -382,7 +382,7 @@ export function SupportInboxPage() {
                         <a
                           href={getWhatsAppLink(selectedThread.threadPhoneNumber)}
                           target="_blank"
-                          rel="noreferrer"
+                          rel="noopener noreferrer"
                           className="inline-flex items-center gap-2 hover:text-foreground"
                         >
                           <MessageSquare className="h-4 w-4" />
@@ -408,7 +408,7 @@ export function SupportInboxPage() {
                       <a
                         href={getWhatsAppLink(selectedThread.threadPhoneNumber)}
                         target="_blank"
-                        rel="noreferrer"
+                        rel="noopener noreferrer"
                       >
                         Open chat
                       </a>

@@ -4,6 +4,12 @@
  * apps/api/src/shared/modules/observability/phi-redactor.ts; kept in-app
  * because Sentry init runs outside the normal Next.js module graph and we
  * want zero workspace-package imports here so the config can load early.
+ *
+ * NOTE (2026-05): the field/regex rule set is also exported from
+ * `@workspace/utils` (`redactPhiDeep`, `PHI_FIELD_NAMES`, `SAFE_FIELD_NAMES`)
+ * as the future canonical location. When the Sentry early-load concern is
+ * verified safe, migrate this file to a thin re-export from that module.
+ * SYSTEM_DESIGN_AND_PATTERNS.md §56 item 45.
  */
 
 import { scrubSentryEventRecord } from "./sentry-event-scrub";

@@ -71,15 +71,13 @@ export function createAPIClient(config: APIClientConfig): APIClient {
       },
     };
 
-    if (!options.skipAuth && getToken) {
-      const token = getToken();
-      if (token) {
-        requestConfig.headers = {
-          ...requestConfig.headers,
-          Authorization: `Bearer ${token}`,
-        };
-      }
-    }
+    // Authorization: Bearer is intentionally NOT attached here.
+    // Same-origin callers ride the httpOnly access_token cookie via
+    // `credentials: "include"` below; CSRF protection on mutating
+    // methods is provided by the X-XSRF-TOKEN header (see onRequest).
+    // Non-cookie channels (e.g. wss:// socket auth) attach the token
+    // themselves outside this client.
+    void getToken;
 
     if (validateRequest) {
       await validateRequest(endpoint, options);
@@ -321,14 +319,8 @@ export function createAPIClient(config: APIClientConfig): APIClient {
       }
 
       const { headers, ...restOptions } = options || {};
-      const authHeaders: Record<string, string> = {};
-
-      if (!options?.skipAuth && getToken) {
-        const token = getToken();
-        if (token) {
-          authHeaders["Authorization"] = `Bearer ${token}`;
-        }
-      }
+      // Authorization: Bearer intentionally omitted — see request() above.
+      // The httpOnly access_token cookie rides via credentials: "include".
 
       const response = await fetch(buildURL(baseURL, endpoint), {
         ...restOptions,
@@ -336,7 +328,6 @@ export function createAPIClient(config: APIClientConfig): APIClient {
         credentials: "include",
         headers: {
           ...defaultHeaders,
-          ...authHeaders,
           ...headers,
         },
         body: formData,

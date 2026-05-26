@@ -58,7 +58,7 @@ export function MedicalDocumentCard({
       {doc.pdfUrl ? (
         <CardContent className="py-0 px-4 pb-3">
           <Button asChild size="sm" variant="outline" className="h-7 text-xs">
-            <a href={doc.pdfUrl} target="_blank" rel="noreferrer">
+            <a href={doc.pdfUrl} target="_blank" rel="noopener noreferrer">
               View uploaded file
             </a>
           </Button>
