@@ -37,6 +37,7 @@ import {
 import {
   PatientRightsCard,
   LogRequestDialog,
+  ConsentTemplateCard,
   DpdpConsentCard,
   DataRetentionCard,
   AuditLogCard,
@@ -208,6 +209,8 @@ export function ComplianceSettingsPanel() {
       />
 
       <DpdpConsentCard compliance={compliance} />
+
+      <ConsentTemplateCard />
 
       <DataRetentionCard />
 

@@ -41,6 +41,10 @@ export const ROUTE_META: Record<string, RouteMeta> = {
   "/specialty": { label: "Specialty" },
   "/settings": { label: "Settings" },
   "/settings/compliance": { label: "Compliance", parentPath: "/settings" },
+  "/settings/compliance/consent-template": {
+    label: "Consent template",
+    parentPath: "/settings/compliance",
+  },
   "/profile": { label: "Profile" },
 };
 

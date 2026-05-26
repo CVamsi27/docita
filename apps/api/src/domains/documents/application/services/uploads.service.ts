@@ -1,14 +1,10 @@
 import { Injectable } from '@nestjs/common';
-import { UploadSessionPurpose } from '@workspace/db';
 import { StorageFile } from '@/domains/documents/application/ports/storage-provider.port';
 import { UploadsCommandService } from './uploads-command.service';
 import { UploadsQueryService } from './uploads-query.service';
+import type { CreateUploadSessionOptions } from './uploads.types';
 
-export interface CreateUploadSessionOptions {
-  expiresInMinutes?: number;
-  purpose?: UploadSessionPurpose;
-  doctorId?: string | null;
-}
+export type { CreateUploadSessionOptions };
 
 interface UploadSessionContext {
   onboardingId?: string;

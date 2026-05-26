@@ -1,6 +1,8 @@
 import { create } from "zustand";
 import {
   CLINIC_TYPE_FEATURES,
+  clinicFeatureOverridesSchema,
+  type ClinicFeatureOverrides,
   type ClinicType,
   clinicTypeSchema,
   Feature,
@@ -27,14 +29,14 @@ interface PermissionState {
   userRole: string | null;
   facilityType: FacilityType;
   clinicType: ClinicType | null;
-  featureOverrides: Record<string, boolean>;
+  featureOverrides: ClinicFeatureOverrides;
 
   setTier: (tier: Tier | string) => void;
   setIntelligence: (active: boolean) => void;
   setUserRole: (role: string) => void;
   setFacilityType: (type: FacilityType) => void;
   setClinicType: (type: ClinicType | string | null) => void;
-  setFeatureOverrides: (overrides: Record<string, boolean>) => void;
+  setFeatureOverrides: (overrides: ClinicFeatureOverrides | Record<string, boolean>) => void;
   syncFromClinic: (
     clinic: {
       tier: string;
@@ -91,7 +93,10 @@ export const usePermissionStore = create<PermissionState>((set, get) => ({
     }
   },
 
-  setFeatureOverrides: (overrides) => set({ featureOverrides: overrides }),
+  setFeatureOverrides: (overrides) => {
+    const parsed = clinicFeatureOverridesSchema.safeParse(overrides ?? {});
+    set({ featureOverrides: parsed.success ? parsed.data : {} });
+  },
 
   syncFromClinic: (clinic, userRole) => {
     const { setTier, setIntelligence, setUserRole, setClinicType, setFeatureOverrides } =
@@ -124,12 +129,13 @@ export const usePermissionStore = create<PermissionState>((set, get) => ({
       }
     }
 
-    if (featureOverrides[feature] !== undefined) {
-      return featureOverrides[feature];
-    }
-
     const tierName = getTierName(currentTier);
-    return hasFeatureAccess(tierName, feature, hasIntelligence);
+    return hasFeatureAccess(
+      tierName,
+      feature,
+      hasIntelligence,
+      featureOverrides,
+    );
   },
 
   canAccessClinicFeature: (feature) => {

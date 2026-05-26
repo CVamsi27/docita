@@ -5,6 +5,7 @@ import {
   SubscriptionStatus,
   IntelligenceAddon,
 } from '@workspace/db';
+import type { ClinicFeatureOverrides } from '@workspace/types';
 import { CACHE_CONSTANTS } from '@/shared/modules/config/app-constants';
 import { readClinicFeatureOverrides } from '@/shared/modules/auth/utils/clinic-feature-access.util';
 import { clinicHasOutstandingPendingPayment } from '@/shared/modules/auth/utils/clinic-outstanding-pending-payment.util';
@@ -18,7 +19,7 @@ interface ClinicAuthCache {
   subscriptionCurrentPeriodEnd: Date | null;
   hasOutstandingPendingPayment: boolean;
   hasIntelligence: boolean;
-  features: Record<string, boolean>;
+  features: ClinicFeatureOverrides;
   cachedAt: number;
 }
 
@@ -40,7 +41,7 @@ export class ClinicAuthCacheService {
     subscriptionCurrentPeriodEnd: Date | null;
     hasOutstandingPendingPayment: boolean;
     hasIntelligence: boolean;
-    features: Record<string, boolean>;
+    features: ClinicFeatureOverrides;
   }> {
     const cached = this.cache.get(clinicId);
     if (!options.bypassCache && cached && this.isCacheFresh(cached)) {
@@ -141,7 +142,7 @@ export class ClinicAuthCacheService {
       subscriptionCurrentPeriodEnd: Date | null;
       hasOutstandingPendingPayment: boolean;
       hasIntelligence: boolean;
-      features: Record<string, boolean>;
+      features: ClinicFeatureOverrides;
     },
   ): void {
     if (this.cache.size >= CACHE_CONSTANTS.MAX_CLINIC_AUTH_CACHE_SIZE) {

@@ -31,7 +31,7 @@ import {
   BillingCycleToggle,
   PlanComparisonCollapsible,
 } from "./plan-selection-step-helpers";
-import type { PlanSelectionProps } from "./PlanSelectionStep";
+import type { PlanSelectionProps } from "./plan-selection-step.types";
 
 export function PlanSelectionStepInner({
   onSelect,

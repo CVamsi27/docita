@@ -1,4 +1,4 @@
-import type { EnvConfig } from './app-config';
+import type { EnvConfig } from './env-schema';
 
 /**
  * Holds validated env after bootstrap. Used by validateEnv/getEnv before Nest DI

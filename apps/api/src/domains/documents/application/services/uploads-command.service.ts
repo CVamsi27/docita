@@ -14,7 +14,7 @@ import {
   hashUploadSecret,
   validateSessionReadyForUpload,
 } from './uploads-session.helpers';
-import type { CreateUploadSessionOptions } from './uploads.service';
+import type { CreateUploadSessionOptions } from './uploads.types';
 
 interface UploadSessionContext {
   onboardingId?: string;

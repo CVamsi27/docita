@@ -11,30 +11,20 @@ import {
 import {
   Brain,
   FileText,
-  LucideIcon,
   Pill,
   Sparkles,
   TrendingUp,
 } from "lucide-react";
 import { FeatureGuard } from "@/components/auth/feature-guard";
 import { Feature } from "@/lib/stores/permission-store";
+import { EmptyState } from "./empty-state";
 import { PrescriptionAssistantTab } from "./tabs/PrescriptionAssistantTab";
 import { DiagnosisAssistantTab } from "./tabs/DiagnosisAssistantTab";
 import { InsightsTab } from "./tabs/InsightsTab";
 import { SmartTasksTab } from "./tabs/SmartTasksTab";
 import type { AIAssistantHandlers, AIAssistantState } from "@workspace/types";
 
-interface EmptyStateProps {
-  icon: LucideIcon;
-  label: string;
-}
-
-export const EmptyState = ({ icon: Icon, label }: EmptyStateProps) => (
-  <div className="flex flex-col items-center justify-center py-12">
-    <Icon className="h-12 w-12 text-muted-foreground/50 mb-4" />
-    <p className="text-muted-foreground text-center">{label}</p>
-  </div>
-);
+export { EmptyState };
 
 interface AIAssistantUIProps {
   state: AIAssistantState;

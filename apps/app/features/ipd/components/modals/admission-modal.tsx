@@ -10,7 +10,7 @@ import {
 import { Button } from "@workspace/ui/components/form/button";
 import { useDoctors } from "@workspace/data-access";
 import type { AdmitPatientRequest } from "@workspace/types";
-import type { WardInfo } from "@/features/ipd/components/beds/bed-management-ui";
+import type { WardWithRooms as WardInfo } from "@/features/ipd/hooks/use-ipd-logic";
 
 interface ModalProps {
   open?: boolean;

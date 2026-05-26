@@ -21,13 +21,9 @@ import { AllergyAlertUI } from "./summary/AllergyAlertUI";
 import { SummaryVitals } from "./shared/SummaryVitals";
 import { SummaryMedications } from "./shared/SummaryMedications";
 import { SummaryConditions } from "./shared/SummaryConditions";
+import type { Allergy } from "./patient-summary.types";
 
-export interface Allergy {
-  id: string;
-  allergen: string;
-  severity: "mild" | "moderate" | "severe";
-  reaction?: string;
-}
+export type { Allergy };
 
 export interface ChronicCondition {
   id: string;

@@ -6,7 +6,7 @@ import { Button } from "@workspace/ui/components/form/button";
 import { Input } from "@workspace/ui/components/form/input";
 import { ScrollArea } from "@workspace/ui/components/layout/scroll-area";
 import { Check, Pencil, Trash2, X } from "lucide-react";
-import type { PatientTag } from "./PatientTagManagerUI";
+import type { PatientTag } from "./patient-tag.types";
 import { ColorSwatchButton, ColorPickerGrid } from "./patient-tag-color-pickers";
 
 export interface CurrentTagsTabProps {

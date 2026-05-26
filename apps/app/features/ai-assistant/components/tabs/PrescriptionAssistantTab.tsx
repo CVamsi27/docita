@@ -15,7 +15,7 @@ import type {
   DrugInteraction,
   PrescriptionSuggestion,
 } from "@/features/ai-assistant/hooks/use-ai-assistant-logic";
-import { EmptyState } from "@/features/ai-assistant/components/AIAssistantUI";
+import { EmptyState } from "@/features/ai-assistant/components/empty-state";
 import type { PrescriptionAssistantTabProps } from "@workspace/types";
 
 export const PrescriptionAssistantTab = ({

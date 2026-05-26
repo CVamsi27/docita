@@ -14,6 +14,7 @@ import {
   SubscriptionStatus,
   IntelligenceAddon,
 } from '@workspace/db';
+import { Feature } from '@workspace/types';
 
 describe('ClinicAuthCacheService', () => {
   let service: ClinicAuthCacheService;
@@ -22,7 +23,7 @@ describe('ClinicAuthCacheService', () => {
   const mockClinicData = {
     tier: ClinicTier.PROFESSIONAL,
     intelligenceAddon: IntelligenceAddon.ACTIVE,
-    features: { CUSTOM_FEATURE: true },
+    features: { [Feature.WHATSAPP_MESSAGING]: true },
     subscriptionStatus: SubscriptionStatus.ACTIVE,
     subscription: {
       graceUntil: null as Date | null,
@@ -84,7 +85,7 @@ describe('ClinicAuthCacheService', () => {
 
     it('should return feature overrides', async () => {
       const result = await service.getClinicAuth('clinic-1');
-      expect(result.features).toEqual({ CUSTOM_FEATURE: true });
+      expect(result.features).toEqual({ [Feature.WHATSAPP_MESSAGING]: true });
     });
   });
 

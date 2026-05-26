@@ -14,7 +14,7 @@ import {
 import { Textarea } from "@workspace/ui/components/form/textarea";
 import { MicButton } from "@workspace/ui/components/form/mic-button";
 import { Activity, Trash2 } from "lucide-react";
-import type { ChiefComplaintItem } from "./ChiefComplaintInput";
+import type { ChiefComplaintItem } from "./chief-complaint.types";
 
 export function ChiefComplaintItemRow({
   item,

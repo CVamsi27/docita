@@ -1058,7 +1058,10 @@ model Clinic {
   subscriptionStatus       SubscriptionStatus       @default(ACTIVE)
   /// @json:jsonObjectSchema
   branding                 Json?
-  /// @json:jsonObjectSchema
+  /// Per-clinic feature overrides keyed by Feature enum (see `clinicFeatureOverridesSchema` in @workspace/types).
+  /// Only features in OVERRIDABLE_FEATURES (WhatsApp/AI/comms) are honored; everything else is stripped at read time.
+  /// Drives custom packages like PROFESSIONAL_NO_COMMS — never edit by hand; go through PACKAGE_PRESETS.
+  /// @json:clinicFeatureOverridesSchema
   features                 Json?
   /// @json:whatsAppAutomationSchema
   whatsappAutomation       Json?

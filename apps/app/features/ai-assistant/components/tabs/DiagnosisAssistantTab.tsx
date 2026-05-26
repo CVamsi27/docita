@@ -12,7 +12,7 @@ import { Badge } from "@workspace/ui/components/indicators/badge";
 import { Brain, Shield, Sparkles, Stethoscope } from "lucide-react";
 import { cn } from "@workspace/ui/lib/utils";
 import type { DiagnosisSuggestion } from "@/features/ai-assistant/hooks/use-ai-assistant-logic";
-import { EmptyState } from "@/features/ai-assistant/components/AIAssistantUI";
+import { EmptyState } from "@/features/ai-assistant/components/empty-state";
 import type { DiagnosisAssistantTabProps } from "@workspace/types";
 
 export const DiagnosisAssistantTab = ({

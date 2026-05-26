@@ -6,7 +6,7 @@ import { isRecord } from '@workspace/utils';
 import { toPrismaInputJsonValue } from '@/shared/common/json/to-prisma-input-json-value';
 import { PrismaService } from '@/prisma/prisma.service';
 import { parsePrismaJsonColumn } from '@/shared/common/json/parse-prisma-json-column';
-import type { CachedIdempotencyEntry } from './idempotency.service';
+import type { CachedIdempotencyEntry } from './idempotency.types';
 import {
   IDEMPOTENCY_PROCESSING_TTL_SECONDS,
   IDEMPOTENCY_TTL_SECONDS_DEFAULT,

@@ -342,7 +342,8 @@ The Origin-inspired standard in [`docs/ui/UI_UX_STANDARD_2026.md`](docs/ui/UI_UX
 - For design-system or theme-token changes, run `pnpm check:colors`.
 - For `packages/db` changes that affect indexes, query plans, or migration safety, run the relevant DB guardrails from `@workspace/db` (`db:check-integrity`, `db:analyze-indexes`, `db:profile-queries`, `db:check-query-plans`, or `db:guardrail`).
 - When a pull request is already failing a GitHub Actions workflow, run the matching local command for that workflow before committing or pushing.
-- For dependency or lockfile changes, run `pnpm audit --audit-level=high` locally before pushing.
+- For dependency or lockfile changes, run `pnpm audit --audit-level=high` locally before pushing. CI also runs the OSV scanner reusable workflow (`google/osv-scanner-action`) on PRs that touch dependency manifests; it fails only on **new** vulnerabilities introduced by the PR. Pre-existing advisories are reported but do not block.
+- For refactors that move services, modules, or barrel files (NestJS DI risk, frontend barrel cycles), run `pnpm check:circular`. The baseline is **0 cycles** as of 2026-05; the two intentional NestJS `forwardRef` module cycles (auth↔clinics, whatsapp↔support-whatsapp) are allowlisted with justification in `scripts/checks/check-circular-deps.mjs`. New cycles must be fixed before merge — use `pnpm check:circular:enforce` to gate locally.
 - Before creating a commit or pushing a branch, run the relevant local checks for the touched area and do not push until they pass.
 - For Render/OpenNext or Cloudflare-related app changes, verify the matching local `build:cloudflare` task before pushing.
 
@@ -375,7 +376,7 @@ The Origin-inspired standard in [`docs/ui/UI_UX_STANDARD_2026.md`](docs/ui/UI_UX
 - Path-filter expensive workflows so unrelated app or docs changes do not consume full CI minutes.
 - Frontend CI jobs should be scoped by app so `app`, `internal`, and `landing` run independently based on the files that changed.
 - Prefer running full-repo build, coverage, critical E2E, bundle analysis, and other heavyweight jobs on pushes to `main`.
-- Keep dependency audits scoped to dependency-manifest changes unless there is a specific reason to run them more broadly.
+- Keep dependency audits scoped to dependency-manifest changes unless there is a specific reason to run them more broadly. The `security-audit` job (`pnpm audit --audit-level=high`) and the `osv-scan` reusable workflow (`google/osv-scanner-action`) are both gated by `needs.changes.outputs.dependencies` from [`scripts/workflow/detect-workflow-scope.mjs`](scripts/workflow/detect-workflow-scope.mjs). The OSV job runs PR-only and uploads SARIF to the Security tab; it requires `permissions: { actions: read, contents: read, security-events: write }`.
 
 ## 11.3) Branch model: `main`, `staging`, and feature branches
 
@@ -497,6 +498,8 @@ pnpm audit:landing
 pnpm check:hygiene
 pnpm verify:standard
 pnpm knip
+pnpm check:circular           # reports import cycles per app/package (warn mode)
+pnpm check:circular:enforce   # fails on any cycle; baseline is 0 (2026-05)
 pnpm check:prisma-boundary
 pnpm check:colors
 pnpm db:generate
@@ -652,6 +655,7 @@ Each shape below has a canonical example to copy from. The frontmatter cites the
 - **Front Desk is tier-only.** A clinic on the Front Desk billed SKU has `clinic.tier === Tier.FRONT_DESK`. There is no `settings.workspaceProfile`, workspace-mode picker, or plan→profile resolver — onboarding and billing set the tier directly.
 - **Canonical Front Desk helpers** (all in `@workspace/types`): `isFrontDeskTier(tier)`; `FRONT_DESK_BLOCKED_FEATURES` for `@RequireFeature` / `hasFeatureAccess` denials; `FRONT_DESK_BLOCKED_ACCESS_TARGETS` and `shouldDenyAccessForFrontDeskTier` for route/API access policy. Prefer these helpers over ad-hoc `tier === "FRONT_DESK"` checks at call sites.
 - **Removed symbols** (do not reintroduce): `workspaceProfile`, `isFrontDeskClinicMode`, `isFrontDeskWorkspace`, `resolveWorkspaceProfileForPlan`, `WorkspaceModeCard`, `WorkspaceSelector`. `pnpm check:workspace-profile-gating` fails the build if they appear outside migration SQL and [`scripts/checks/check-workspace-profile-gating.mjs`](scripts/checks/check-workspace-profile-gating.mjs) (historical script name).
+- **Per-clinic overrides → custom packages, not new tiers.** Variations like "Professional without WhatsApp" or "Hospital without AI" are expressed as boolean overrides in the `Clinic.features` JSON column, **not** as new `Tier` enum values. The allowlist of features that may be toggled lives in `OVERRIDABLE_FEATURES` (`packages/types/src/billing/tier.ts`); overrides that touch any other feature are stripped at the boundary by `clinicFeatureOverridesSchema`. Pre-baked override bundles (`PROFESSIONAL_NO_COMMS`, `HOSPITAL_CORE`, …) live in `PACKAGE_PRESETS` and are the only sanctioned way for sales/admin tooling to attach overrides. `hasFeatureAccess(tier, feature, hasIntelligence, overrides)` and `assertClinicHasFeatureOrThrow` both honor overrides from the same source — never check `Clinic.features` directly. See [docs/product/CUSTOM_PACKAGES.md](docs/product/CUSTOM_PACKAGES.md).
 
 ### 15.9 Import Discipline
 
@@ -679,6 +683,7 @@ Mechanical checks catch **boundary violations**; they do not fully enforce SOLID
 | Principle / pattern | Command(s) | What it actually checks |
 | --- | --- | --- |
 | **Layering / DDD** | `pnpm check:prisma-boundary`, `pnpm check:api-domain-layout`, `pnpm check:cross-domain-*-imports` | Prisma and domain folder boundaries |
+| **Circular imports** | `pnpm check:circular` (warn) / `pnpm check:circular:enforce` (fail; bundled into `verify:standard`) | Detects import cycles per app and package via `madge` with each project's `tsconfig.json`. Baseline is **0 cycles** (2026-05). Two intentional NestJS `forwardRef` module cycles are allowlisted in `KNOWN_CYCLES` inside `scripts/checks/check-circular-deps.mjs` with justification. Cycles are canonicalized (rotated to start with the lexicographically smallest entry) before lookup, so a single allowlist entry covers both rotations madge may emit. Add new allowlist entries only with an explicit rationale. |
 | **Repository + thin controller** | `pnpm check:controller-cqs`, `pnpm check:route-thinness` | Controllers orchestrate; routes stay thin |
 | **Facade / CQS** | `pnpm check:facade-delegation --enforce` | Large application services delegate instead of embedding persistence |
 | **Zod-first / contracts** | `pnpm check:contracts-strict`, `pnpm verify:contracts`, `pnpm check:type-duplicates` | Shared schemas; no duplicate DTO shapes |
@@ -687,6 +692,7 @@ Mechanical checks catch **boundary violations**; they do not fully enforce SOLID
 | **Tier / feature gating** | `pnpm check:tier-comparisons`, `pnpm check:workspace-profile-gating` | No numeric tier compares; blocks legacy `workspaceProfile` symbols; tier-only Front Desk via `isFrontDeskTier` |
 | **RBAC** | `pnpm check:controller-rbac` | Controller auth posture declared |
 | **Tenant / RLS** | `pnpm check:auth-tenant-safety`, `pnpm check:rls-rollout-readiness` | Tenant-safe auth; RLS rollout config |
+| **Dependency CVEs** | `pnpm audit --audit-level=high` (CI: `security-audit`) + `google/osv-scanner-action` reusable workflow (CI: `osv-scan`) | npm registry advisories + OSV cross-ecosystem database. Both gated on `dependencies` scope. OSV runs PR-only and fails on **new** vulnerabilities only. |
 | **DRY / hygiene** | `pnpm knip`, `pnpm check:hygiene` | Unused exports/deps; repo junk |
 | **Typing discipline** | `pnpm check:as-cast-density`, `pnpm lint`, `pnpm turbo check-types` | Limit type escapes; ESLint rules |
 | **UI contract** | `pnpm check:colors`, `pnpm check:a11y-budget`, Origin standard in §4.3 | Tokens, a11y baseline, page primitives |

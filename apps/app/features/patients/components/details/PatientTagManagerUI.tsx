@@ -21,6 +21,7 @@ import {
 import { SymbolTooltip } from "@workspace/ui/components/overlay/tooltip";
 import { Search, Tag, X } from "lucide-react";
 import { getTagColorName } from "./tag-colors";
+import type { PatientTag, PresetTag } from "./patient-tag.types";
 import {
   CurrentTagsTab,
   CustomTagTab,
@@ -28,17 +29,7 @@ import {
   groupPresetTags,
 } from "./patient-tag-manager-helpers";
 
-export interface PatientTag {
-  id: string;
-  tag: string;
-  color: string;
-}
-
-export interface PresetTag {
-  tag: string;
-  color: string;
-  category?: string;
-}
+export type { PatientTag, PresetTag };
 
 interface PatientTagManagerUIProps {
   open: boolean;

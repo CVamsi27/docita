@@ -11,7 +11,14 @@ import {
 import { Badge } from "@workspace/ui/components/indicators/badge";
 import { Button } from "@workspace/ui/components/form/button";
 import { Separator } from "@workspace/ui/components/layout/separator";
-import { Shield, Database, ClipboardList, ExternalLink } from "lucide-react";
+import {
+  Shield,
+  Database,
+  ClipboardList,
+  ExternalLink,
+  FileSignature,
+  Printer,
+} from "lucide-react";
 import { formatDate } from "@workspace/utils";
 import type { AppAuditLogSummary, AppComplianceSummary } from "@workspace/types";
 import { DATA_RETENTION_POLICIES } from "./compliance-settings-constants";
@@ -81,6 +88,41 @@ export function DpdpConsentCard({ compliance }: DpdpConsentCardProps) {
             Enabled
           </Badge>
         </div>
+      </CardContent>
+    </Card>
+  );
+}
+
+// ── Printable Consent Template Card ───────────────────────────────────────────
+
+export function ConsentTemplateCard() {
+  return (
+    <Card>
+      <CardHeader className="flex flex-row items-start justify-between gap-4">
+        <div>
+          <CardTitle className="flex items-center gap-2">
+            <FileSignature className="h-5 w-5" />
+            Printable Patient Consent Form
+          </CardTitle>
+          <CardDescription>
+            Generate a print-ready consent document listing every category of patient
+            data this facility collects, how it is used, retention timelines, and the
+            patient&apos;s rights under the DPDP Act, 2023.
+          </CardDescription>
+        </div>
+        <Button size="sm" asChild>
+          <Link href="/settings/compliance/consent-template">
+            <Printer className="mr-2 h-4 w-4" aria-hidden />
+            Open template
+          </Link>
+        </Button>
+      </CardHeader>
+      <CardContent>
+        <p className="text-sm text-muted-foreground">
+          Hand the printed form to a new patient at intake, capture their signature,
+          and retain the signed copy alongside the digital consent recorded in their
+          medical record.
+        </p>
       </CardContent>
     </Card>
   );

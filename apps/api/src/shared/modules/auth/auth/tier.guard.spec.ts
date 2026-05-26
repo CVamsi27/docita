@@ -169,11 +169,11 @@ describe('TierGuard', () => {
   });
 
   it('blocks feature when explicit clinic override disables it', async () => {
-    setMetadata(undefined, Feature.QUEUE_MANAGEMENT);
+    setMetadata(undefined, Feature.WHATSAPP_MESSAGING);
     prisma.clinic.findUnique.mockResolvedValue({
       ...activeStarterClinic,
       features: {
-        [Feature.QUEUE_MANAGEMENT]: false,
+        [Feature.WHATSAPP_MESSAGING]: false,
       },
     });
 
@@ -183,11 +183,11 @@ describe('TierGuard', () => {
   });
 
   it('allows feature when explicit clinic override enables it', async () => {
-    setMetadata(undefined, Feature.QUEUE_MANAGEMENT);
+    setMetadata(undefined, Feature.WHATSAPP_MESSAGING);
     prisma.clinic.findUnique.mockResolvedValue({
       ...activeStarterClinic,
       features: {
-        [Feature.QUEUE_MANAGEMENT]: true,
+        [Feature.WHATSAPP_MESSAGING]: true,
       },
     });
 
