@@ -10,6 +10,11 @@ import {
   TIER_INFO,
   userRoleSchema,
 } from "@workspace/types";
+import {
+  getTierName,
+  hasFeatureAccess,
+  isFeatureGenerallyAvailable,
+} from "@workspace/utils";
 import { hasPermission, type Permission } from "@/lib/auth/permissions";
 
 export { Tier, Feature, FEATURE_TIER_MAP, TIER_INFO };

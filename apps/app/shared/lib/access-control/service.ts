@@ -20,6 +20,10 @@ function readMonthlyPrice(value: unknown): number {
   return typeof value === "number" && Number.isFinite(value) ? value : 0;
 }
 
+function readMonthlyPrice(value: unknown): number {
+  return typeof value === "number" && Number.isFinite(value) ? value : 0;
+}
+
 export class AccessControlService implements IAccessControlService {
   private rules: IAccessRule[] = [];
   private repository: ISubscriptionRepository;

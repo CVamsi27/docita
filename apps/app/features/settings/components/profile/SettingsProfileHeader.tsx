@@ -1,7 +1,7 @@
 "use client";
 
-import { Avatar, AvatarFallback } from "@workspace/ui/components/avatar";
-import { Badge } from "@workspace/ui/components/badge";
+import { Avatar, AvatarFallback } from "@workspace/ui/components/indicators/avatar";
+import { Badge } from "@workspace/ui/components/indicators/badge";
 import { useAuth } from "@/lib/auth/auth-context";
 import { SettingsAiChips } from "@/features/settings/components/settings-ai-chips";
 
@@ -36,7 +36,7 @@ export function SettingsPageHeaderUserMeta() {
 
   return (
     <div
-      className="ui-panel-muted flex w-full max-w-full flex-row items-center gap-3.5 px-4 py-3.5 text-left shadow-sm ring-1 ring-border/50 sm:w-fit lg:max-w-[24rem]"
+      className="ui-panel-muted flex w-full max-w-full flex-row items-center gap-3.5 rounded-2xl px-4 py-3.5 text-left shadow-sm ring-1 ring-border/50 sm:w-fit lg:max-w-[24rem]"
       aria-label={roleLabel ? `${displayName}, ${roleLabel}` : displayName}
     >
       <Avatar className="size-12 shrink-0 rounded-xl shadow-sm ring-1 ring-border/60">

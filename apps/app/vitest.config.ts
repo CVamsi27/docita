@@ -25,8 +25,8 @@ export default defineConfig({
         "shared/lib/rules/**/*.ts",
         "shared/lib/access-control/rules/**/*.ts",
         "shared/lib/errors/**/*.ts",
-        "features/_shared/components/whatsapp/whatsapp-button.tsx",
-        "features/_shared/components/feedback/delete-confirm-dialog.tsx",
+        "shared/components/whatsapp/whatsapp-button.tsx",
+        "shared/components/feedback/delete-confirm-dialog.tsx",
         "features/appointments/components/sections/add-dialog/AppointmentFormFields.tsx",
         "features/onboarding/components/steps/PaymentStep.tsx",
         "features/patients/components/forms/PatientDialogs.tsx",
@@ -49,19 +49,43 @@ export default defineConfig({
     },
   },
   resolve: {
-    alias: {
-      "@": path.resolve(__dirname, "./"),
-      "@/components": path.resolve(__dirname, "./shared/components"),
-      "@/hooks": path.resolve(__dirname, "./shared/hooks"),
-      "@/lib": path.resolve(__dirname, "./shared/lib"),
-      "@workspace/ui": path.resolve(__dirname, "../../packages/ui/src"),
-      "@workspace/types": path.resolve(__dirname, "../../packages/types/src"),
-      "@workspace/utils": path.resolve(__dirname, "../../packages/utils/src"),
-      "@workspace/hooks": path.resolve(__dirname, "../../packages/hooks/src"),
-      "@workspace/data-access": path.resolve(
-        __dirname,
-        "../../packages/data-access/src",
-      ),
-    },
+    alias: [
+      {
+        find: /^@\/components\/(.*)$/,
+        replacement: path.resolve(__dirname, "./shared/components/$1"),
+      },
+      {
+        find: /^@\/hooks\/(.*)$/,
+        replacement: path.resolve(__dirname, "./shared/hooks/$1"),
+      },
+      {
+        find: /^@\/lib\/(.*)$/,
+        replacement: path.resolve(__dirname, "./shared/lib/$1"),
+      },
+      {
+        find: /^@\/(.*)$/,
+        replacement: path.resolve(__dirname, "./$1"),
+      },
+      {
+        find: "@workspace/ui",
+        replacement: path.resolve(__dirname, "../../packages/ui/src"),
+      },
+      {
+        find: "@workspace/types",
+        replacement: path.resolve(__dirname, "../../packages/types/src"),
+      },
+      {
+        find: "@workspace/utils",
+        replacement: path.resolve(__dirname, "../../packages/utils/src"),
+      },
+      {
+        find: "@workspace/hooks",
+        replacement: path.resolve(__dirname, "../../packages/hooks/src"),
+      },
+      {
+        find: "@workspace/data-access",
+        replacement: path.resolve(__dirname, "../../packages/data-access/src"),
+      },
+    ],
   },
 });

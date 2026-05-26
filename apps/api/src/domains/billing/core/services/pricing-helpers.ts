@@ -2,22 +2,93 @@ import {
   TIER_LIMITS,
   TIER_INFO,
   PRICING_CURRENCY_CONFIG,
-  getWhatsAppAddonPricingByCurrency,
+  tierPricingFeaturesJsonSchema,
+  tierSchema,
   type SupportedCurrency,
+  type TierName,
 } from '@workspace/types';
+import { getWhatsAppAddonPricingByCurrency } from '@workspace/utils';
+import { parsePrismaJsonColumn } from '@/shared/common/json/parse-prisma-json-column';
+
+export const SUPPORTED_PRICING_CURRENCIES: SupportedCurrency[] = [
+  'INR',
+  'USD',
+  'EUR',
+  'GBP',
+  'AUD',
+  'CAD',
+  'SGD',
+  'AED',
+  'ZAR',
+];
+
+const LEGACY_DB_TIER_TO_CANONICAL: Record<string, keyof typeof TIER_LIMITS> = {
+  CAPTURE: 'STARTER',
+  CORE: 'ESSENTIAL',
+  PLUS: 'ESSENTIAL',
+  PRO: 'PROFESSIONAL',
+  CLINIC: 'PROFESSIONAL',
+};
+
+const LEGACY_DB_TIERS = new Set(['PLUS', 'CLINIC']);
+
+function isTierLimitsKey(value: string): value is keyof typeof TIER_LIMITS {
+  return Object.prototype.hasOwnProperty.call(TIER_LIMITS, value);
+}
+
+export function isLegacyDbPricingTier(tier: string): boolean {
+  return LEGACY_DB_TIERS.has(tier);
+}
+
+/** Maps DB / legacy tier strings to canonical pricing tier keys. */
+export function mapDbTierStringToCanonicalTier(
+  dbTier: string,
+): keyof typeof TIER_LIMITS {
+  const parsed = tierSchema.safeParse(dbTier);
+  if (parsed.success && isTierLimitsKey(parsed.data)) {
+    return parsed.data;
+  }
+  const legacy = LEGACY_DB_TIER_TO_CANONICAL[dbTier];
+  if (legacy) {
+    return legacy;
+  }
+  const upper = dbTier.toUpperCase();
+  if (isTierLimitsKey(upper)) {
+    return upper;
+  }
+  return 'STARTER';
+}
+
+/** Maps user-facing tier input to a {@link TierName} pricing key. */
+export function mapPricingTierInputToTierName(tier: string): TierName | null {
+  const canonical = mapDbTierStringToCanonicalTier(tier.toUpperCase());
+  if (canonical === 'INTELLIGENCE') {
+    return null;
+  }
+  const parsed = tierSchema.safeParse(canonical);
+  return parsed.success ? parsed.data : null;
+}
+
+function isSupportedCurrency(
+  value: string,
+  supportedCurrencies: readonly SupportedCurrency[],
+): value is SupportedCurrency {
+  return supportedCurrencies.some((currency) => currency === value);
+}
 
 export function resolveCurrency(
-  supportedCurrencies: SupportedCurrency[],
+  supportedCurrencies: readonly SupportedCurrency[],
   currency?: string,
 ): SupportedCurrency {
-  const selectedCurrency = currency?.toUpperCase() as
-    | SupportedCurrency
-    | undefined;
-  if (selectedCurrency && supportedCurrencies.includes(selectedCurrency)) {
+  const selectedCurrency = currency?.toUpperCase();
+  if (
+    selectedCurrency &&
+    isSupportedCurrency(selectedCurrency, supportedCurrencies)
+  ) {
     return selectedCurrency;
   }
 
-  return supportedCurrencies[0];
+  return supportedCurrencies[0] ?? 'INR';
 }
 
 function parseJsonValue(value: unknown): unknown {
@@ -37,14 +108,16 @@ export function readNumber(value: unknown, fallback = 0): number {
 }
 
 function parseStringArray(value: unknown): string[] {
-  const parsed = parseJsonValue(value);
-  if (!Array.isArray(parsed)) {
+  const normalized = parseJsonValue(value);
+  const parsed = parsePrismaJsonColumn(
+    normalized,
+    tierPricingFeaturesJsonSchema,
+  );
+  if (!parsed) {
     return [];
   }
 
-  return parsed.filter(
-    (item): item is string => typeof item === 'string' && item.length > 0,
-  );
+  return parsed.filter((item) => item.length > 0);
 }
 
 function getWhatsappBillableConfig(

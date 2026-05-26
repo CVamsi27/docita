@@ -15,8 +15,8 @@ import {
   Popover,
   PopoverContent,
   PopoverTrigger,
-} from "@workspace/ui/components/popover";
-import { Kbd } from "@workspace/ui/components/kbd";
+} from "@workspace/ui/components/overlay/popover";
+import { Kbd } from "@workspace/ui/components/indicators/kbd";
 import { canAccessTarget } from "@/lib/access-control/access-policy";
 import { usePermissionStore } from "@/lib/stores/permission-store";
 import { useAuth } from "@/lib/auth/auth-context";

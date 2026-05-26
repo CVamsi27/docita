@@ -244,31 +244,26 @@ export function PricingSection({ appUrl }: PricingSectionProps) {
                         <span className="r2-price-unit">/ month</span>
                       </div>
 
-                      <ul className="space-y-1.5" role="list">
-                        {features.slice(0, isFeatured ? 8 : 6).map((feature) => (
-                          <li key={feature} className="r2-price-feature">
-                            <span className="text-foreground">{feature}</span>
-                          </li>
-                        ))}
-                      </ul>
-
-                      <Button
-                        asChild
-                        className="mt-auto w-full gap-2"
-                        variant={isFeatured ? "primary" : "outline"}
-                      >
-                        <a href={`${appUrl}/onboarding?tier=${tier.id}`}>
-                          Start setup
-                          <ArrowRight className="h-4 w-4" />
-                        </a>
-                      </Button>
-                    </motion.article>
-                  );
-                })}
-              </motion.div>
-            </section>
-          ))}
-        </div>
+                <Button
+                  asChild
+                  className="mt-auto w-full gap-2"
+                  variant={isFeatured ? "primary" : "outline"}
+                >
+                  <a
+                    href={
+                      tier.id === "FRONT_DESK"
+                        ? `${appUrl}/onboarding?tier=FRONT_DESK`
+                        : `${appUrl}/onboarding`
+                    }
+                  >
+                    Start setup
+                    <ArrowRight className="h-4 w-4" />
+                  </a>
+                </Button>
+              </motion.article>
+            );
+          })}
+        </motion.div>
 
         <motion.article
           id="front-desk-workspace"

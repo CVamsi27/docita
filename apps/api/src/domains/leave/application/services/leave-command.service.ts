@@ -69,56 +69,31 @@ export class LeaveCommandService {
       );
     }
 
+    const updated = await this.leaveRepository.updateLeave(leaveId, {
+      status: 'APPROVED',
+      approver: { connect: { id: approverId } },
+      approvedAt: this.clock.now(),
+    });
+
     const staffRole = leave.staff?.role;
     const isDoctor =
       staffRole === Role.DOCTOR || staffRole === Role.ADMIN_DOCTOR;
-
-    // Create the DoctorTimeOff BEFORE flipping the leave to APPROVED. If the
-    // time-off write fails, the leave stays PENDING — preserving the conservative
-    // visible state. The previous order silently de-synced availability when
-    // createTimeOff threw, leaving the doctor bookable on an approved leave.
-    let createdTimeOffId: string | undefined;
     if (isDoctor) {
-      const timeOff = await this.availabilityScheduleService.createTimeOff({
-        doctorId: leave.staffId,
-        clinicId: leave.clinicId,
-        startDate: leave.startDate,
-        endDate: leave.endDate,
-        reason: `Leave: ${leave.reason ?? leave.leaveType}`,
-        isFullDay: true,
-      });
-      createdTimeOffId = readId(timeOff);
-    }
-
-    let updated;
-    try {
-      updated = await this.leaveRepository.updateLeave(leaveId, {
-        status: 'APPROVED',
-        approver: { connect: { id: approverId } },
-        approvedAt: this.clock.now(),
-      });
-    } catch (err) {
-      if (createdTimeOffId) {
-        try {
-          await this.availabilityScheduleService.deleteTimeOff(
-            createdTimeOffId,
-            { actorRole: Role.ADMIN },
-          );
-        } catch (cleanupErr) {
-          this.logger.error(
-            'Failed to compensate orphan DoctorTimeOff after leave-approve failure',
-            {
-              leaveId,
-              timeOffId: createdTimeOffId,
-              error:
-                cleanupErr instanceof Error
-                  ? cleanupErr.message
-                  : String(cleanupErr),
-            },
-          );
-        }
+      try {
+        await this.availabilityScheduleService.createTimeOff({
+          doctorId: leave.staffId,
+          clinicId: leave.clinicId,
+          startDate: leave.startDate,
+          endDate: leave.endDate,
+          reason: `Leave: ${leave.reason ?? leave.leaveType}`,
+          isFullDay: true,
+        });
+      } catch (err) {
+        this.logger.warn('Could not create DoctorTimeOff for approved leave', {
+          leaveId,
+          error: err instanceof Error ? err.message : String(err),
+        });
       }
-      throw err;
     }
 
     this.logger.log('Leave approved', { leaveId, approverId });
@@ -194,10 +169,4 @@ export class LeaveCommandService {
     this.logger.log('Leave cancelled', { leaveId, staffId });
     return LeaveMapper.staffLeaveToDomain(updated);
   }
-}
-
-function readId(value: unknown): string | undefined {
-  if (!value || typeof value !== 'object' || !('id' in value)) return undefined;
-  const id: unknown = value.id;
-  return id !== null && id !== undefined ? String(id) : undefined;
 }

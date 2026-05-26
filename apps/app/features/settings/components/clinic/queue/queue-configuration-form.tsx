@@ -86,7 +86,7 @@ export const QueueConfigurationForm = () => {
   return (
     <Card>
       <CardHeader>
-        <CardTitle>Queue configuration</CardTitle>
+        <CardTitle>Queue Configuration</CardTitle>
         <CardDescription>
           Configure how the patient queue is managed
         </CardDescription>

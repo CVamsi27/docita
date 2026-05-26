@@ -1,33 +1,14 @@
-/** Cloudflare Web Analytics beacon (injected on Cloudflare-hosted deploys). */
-const CLOUDFLARE_WEB_ANALYTICS_SCRIPT_ORIGIN =
-  "https://static.cloudflareinsights.com";
-const CLOUDFLARE_WEB_ANALYTICS_CONNECT_ORIGIN =
-  "https://cloudflareinsights.com";
+const DEFAULT_CONNECT_SOURCES = [
+  "'self'",
+  "https://api.docita.work",
+  "https://*.sentry.io",
+] as const;
 
-const isCloudflareDeploy = process.env["DOCITA_CLOUDFLARE"] === "1";
-
-function resolveConnectSources(): string[] {
-  const sources = new Set<string>(["'self'", "https://*.sentry.io"]);
-  const proxyTarget = process.env["API_PROXY_TARGET"]?.trim();
-  if (proxyTarget) {
-    try {
-      sources.add(new URL(proxyTarget).origin);
-    } catch {
-      // Ignore invalid proxy target; browser traffic should use same-origin /api/v1.
-    }
-  }
-  if (isCloudflareDeploy) {
-    sources.add(CLOUDFLARE_WEB_ANALYTICS_CONNECT_ORIGIN);
-  }
-  return [...sources];
-}
-
-export function buildInternalContentSecurityPolicy(): string {
+function buildContentSecurityPolicy(): string {
   const isProduction = process.env["NODE_ENV"] === "production";
   const scriptSources = [
     "'self'",
     "'unsafe-inline'",
-    isCloudflareDeploy ? CLOUDFLARE_WEB_ANALYTICS_SCRIPT_ORIGIN : undefined,
     !isProduction ? "'unsafe-eval'" : undefined,
   ].filter((source): source is string => Boolean(source));
 
@@ -40,8 +21,8 @@ export function buildInternalContentSecurityPolicy(): string {
     "img-src 'self' data: blob: https:",
     "font-src 'self' data:",
     "style-src 'self' 'unsafe-inline'",
-    `script-src ${Array.from(new Set(scriptSources)).join(" ")}`,
-    `connect-src ${Array.from(new Set(resolveConnectSources())).join(" ")}`,
+    `script-src ${scriptSources.join(" ")}`,
+    `connect-src ${DEFAULT_CONNECT_SOURCES.join(" ")}`,
     "frame-src 'none'",
     "worker-src 'self' blob:",
     "manifest-src 'self'",
@@ -54,7 +35,7 @@ export function buildInternalContentSecurityPolicy(): string {
 export const INTERNAL_SECURITY_HEADERS = [
   {
     key: "Content-Security-Policy",
-    value: buildInternalContentSecurityPolicy(),
+    value: buildContentSecurityPolicy(),
   },
   {
     key: "Referrer-Policy",

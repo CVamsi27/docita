@@ -87,8 +87,8 @@ export const FeedbackForm: FC<{
           <div className="flex gap-2">
             {(
               [
-                { id: "bug", label: "Bug report", icon: Frown },
-                { id: "feature", label: "Feature request", icon: Smile },
+                { id: "bug", label: "Bug Report", icon: Frown },
+                { id: "feature", label: "Feature Request", icon: Smile },
                 { id: "general", label: "General", icon: Meh },
               ] as const satisfies ReadonlyArray<{
                 id: FeedbackType;

@@ -299,15 +299,11 @@ async function setupTestUserImpl(
   requestHeaders: Record<string, string> = {},
   options: {
     clinicType?: ClinicType;
-    tier?: E2EClinicTier;
+    tier?: "ESSENTIAL" | "FRONT_DESK";
   } = {},
 ): Promise<UserData> {
   const clinicType = options.clinicType ?? "GENERAL";
   const tier = options.tier ?? "ESSENTIAL";
-  const isUnpaidEssentialTrial = tier === "ESSENTIAL";
-  const onboardingAdminRole = isFrontDeskTestTier(tier)
-    ? "ADMIN"
-    : "ADMIN_DOCTOR";
   const uniqueId = randomUUID();
   const email = `doctor-${uniqueId}@test.com`;
   const password = TEST_PASSWORD;
@@ -451,6 +447,9 @@ async function setupTestUserImpl(
           tier,
           billingCycle: "MONTHLY",
           currency: "INR",
+        },
+        paymentDetails: {
+          skipPayment: true,
         },
         paymentDetails: isUnpaidEssentialTrial
           ? { skipPayment: true }
@@ -628,7 +627,7 @@ export async function setupTestUser(
   requestHeaders: Record<string, string> = {},
   options: {
     clinicType?: ClinicType;
-    tier?: E2EClinicTier;
+    tier?: "ESSENTIAL" | "FRONT_DESK";
   } = {},
 ): Promise<UserData> {
   const clinicType = options.clinicType ?? "GENERAL";

@@ -53,7 +53,7 @@ export function AddPatientDialogForm({
             render={({ field }) => (
               <FormItem>
                 <FormLabel>
-                  First name <span className="text-destructive ml-0.5">*</span>
+                  First Name <span className="text-destructive ml-0.5">*</span>
                 </FormLabel>
                 <FormControl>
                   <Input {...field} placeholder="First name" />
@@ -69,7 +69,7 @@ export function AddPatientDialogForm({
             render={({ field }) => (
               <FormItem>
                 <FormLabel>
-                  Last name <span className="text-destructive ml-0.5">*</span>
+                  Last Name <span className="text-destructive ml-0.5">*</span>
                 </FormLabel>
                 <FormControl>
                   <Input {...field} placeholder="Last name" />

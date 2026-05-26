@@ -5,7 +5,6 @@ import {
   INTELLIGENCE_ADDONS,
   INTELLIGENCE_BUNDLE_DISCOUNT,
   PLANNED_FEATURES,
-  PUBLISHED_PLAN_LADDER,
   Tier,
   TIER_FEATURES,
   TIER_INFO,
@@ -25,32 +24,10 @@ export function getMinimumTierForFeature(feature: Feature): Tier {
   return FEATURE_TIER_MAP[feature];
 }
 
-const FRONT_DESK_TIER_NAMES_SET: ReadonlySet<TierName> = new Set([
-  'FRONT_DESK',
-  'FRONT_DESK_CLINIC',
-  'FRONT_DESK_HOSPITAL',
-]);
-
-function isFrontDeskTierName(tier: TierName): boolean {
-  return FRONT_DESK_TIER_NAMES_SET.has(tier);
-}
-
-/** Numeric ceiling a Front Desk SKU may reach in the clinical ladder for feature gating. Solo/Clinic ≈ Essential, Hospital ≈ Hospital (clinical features still hard-blocked by FRONT_DESK_BLOCKED_FEATURES). */
-function frontDeskFeatureCeiling(tier: TierName): Tier {
-  if (tier === 'FRONT_DESK_HOSPITAL') return Tier.HOSPITAL;
-  if (tier === 'FRONT_DESK_CLINIC') return Tier.PROFESSIONAL;
-  return Tier.ESSENTIAL;
-}
-
 export function assertNotIntelligenceComparison(tier: Tier): void {
-  if (
-    tier === Tier.INTELLIGENCE ||
-    tier === Tier.FRONT_DESK ||
-    tier === Tier.FRONT_DESK_CLINIC ||
-    tier === Tier.FRONT_DESK_HOSPITAL
-  ) {
+  if (tier === Tier.INTELLIGENCE || tier === Tier.FRONT_DESK) {
     throw new Error(
-      'Tier.INTELLIGENCE and Tier.FRONT_DESK* must use feature access checks, not numeric tier comparisons.',
+      'Tier.INTELLIGENCE and Tier.FRONT_DESK must use feature access checks, not numeric tier comparisons.',
     );
   }
 }
@@ -60,6 +37,9 @@ export function deriveAnnualPrice(monthly: number): number {
 }
 
 export function getTierValue(tierName: TierName): Tier {
+  if (tierName === 'FRONT_DESK') {
+    return Tier.FRONT_DESK;
+  }
   return Tier[tierName];
 }
 
@@ -79,19 +59,12 @@ export function getTierName(tier: Tier): TierName {
       return 'INTELLIGENCE';
     case Tier.FRONT_DESK:
       return 'FRONT_DESK';
-    case Tier.FRONT_DESK_CLINIC:
-      return 'FRONT_DESK_CLINIC';
-    case Tier.FRONT_DESK_HOSPITAL:
-      return 'FRONT_DESK_HOSPITAL';
     default: {
       const _exhaustive: never = tier;
       return _exhaustive;
     }
   }
 }
-
-/** Numeric {@link Tier} values in published plan ladder order (excludes INTELLIGENCE add-on). */
-export const PUBLISHED_TIER_LADDER: Tier[] = PUBLISHED_PLAN_LADDER.map(getTierValue);
 
 function isFeatureKey(key: string): key is Feature {
   return key in FEATURE_TIER_MAP;
@@ -112,11 +85,11 @@ export function hasFeatureAccess(
     return hasIntelligence;
   }
 
-  if (isFrontDeskTierName(tier)) {
+  if (tier === 'FRONT_DESK') {
     if (FRONT_DESK_BLOCKED_FEATURES.has(feature)) {
       return false;
     }
-    return frontDeskFeatureCeiling(tier) >= requiredTier;
+    return Tier.ESSENTIAL >= requiredTier;
   }
 
   return getTierValue(tier) >= requiredTier;
@@ -132,16 +105,12 @@ export function meetsMinimumTier(
     return hasIntelligence;
   }
 
-  if (
-    minimumTier === Tier.FRONT_DESK ||
-    minimumTier === Tier.FRONT_DESK_CLINIC ||
-    minimumTier === Tier.FRONT_DESK_HOSPITAL
-  ) {
-    return isFrontDeskTierName(tier) && getTierValue(tier) >= minimumTier;
+  if (minimumTier === Tier.FRONT_DESK) {
+    return tier === 'FRONT_DESK';
   }
 
-  if (isFrontDeskTierName(tier)) {
-    return frontDeskFeatureCeiling(tier) >= minimumTier;
+  if (tier === 'FRONT_DESK') {
+    return Tier.ESSENTIAL >= minimumTier;
   }
 
   return getTierValue(tier) >= minimumTier;

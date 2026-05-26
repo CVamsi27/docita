@@ -170,7 +170,7 @@ function OnboardingSlaUploadInner() {
           <CardHeader>
             <div className="flex items-center justify-center gap-2">
               <CheckCircle2 className="h-6 w-6 text-success" />
-              <CardTitle>Signature uploaded</CardTitle>
+              <CardTitle>Signature Uploaded</CardTitle>
             </div>
             <CardDescription>
               {alreadyUploaded
@@ -264,12 +264,12 @@ function OnboardingSlaUploadInner() {
             onFileUpload={handleUpload}
             autoUploadOnDraw
             drawTabLabel="Draw"
-            uploadTabLabel="Upload image"
+            uploadTabLabel="Upload Image"
             drawAlertText="Draw your SLA signature using your finger or stylus"
             uploadAlertText="Upload the SLA signature image (PNG, JPG, or WebP). Maximum file size: 5MB."
-            selectImageButtonLabel="Select image"
-            changeImageButtonLabel="Change image"
-            uploadButtonLabel="Upload signature"
+            selectImageButtonLabel="Select Image"
+            changeImageButtonLabel="Change Image"
+            uploadButtonLabel="Upload Signature"
             uploadingButtonLabel="Uploading…"
           />
         </CardContent>

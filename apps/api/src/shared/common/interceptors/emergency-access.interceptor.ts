@@ -52,18 +52,20 @@ export class BreakTheGlassInterceptor implements NestInterceptor {
 
     const { user, ip, method, url } = request;
 
-    await this.auditService.logAction({
-      userId: user?.id,
-      clinicId: user?.clinicId,
-      actionType: 'EMERGENCY_ACCESS_GRANTED',
-      resourceType: 'SYSTEM',
-      resourceId: 'BREAK_THE_GLASS',
-      ipAddress: ip || request.socket?.remoteAddress,
-      metadata: {
-        method,
-        url,
-        reason,
-        timestamp: this.clock.now().toISOString(),
+    await this.auditService.logAction(
+      {
+        userId: user?.id,
+        clinicId: user?.clinicId,
+        actionType: 'EMERGENCY_ACCESS_GRANTED',
+        resourceType: 'SYSTEM',
+        resourceId: 'BREAK_THE_GLASS',
+        ipAddress: ip || request.socket?.remoteAddress,
+        metadata: {
+          method,
+          url,
+          reason,
+          timestamp: this.clock.now().toISOString(),
+        },
       },
     });
 

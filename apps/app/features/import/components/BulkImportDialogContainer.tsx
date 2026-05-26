@@ -6,7 +6,7 @@ import {
   useBulkImport,
   useBulkImportJobStatus,
   useBulkImportTemplate,
-} from "@/hooks/api/use-import";
+} from "@workspace/data-access";
 import { showUserFacingErrorToast } from "@/lib/errors/user-facing-errors";
 import {
   BulkImportDialogUI,

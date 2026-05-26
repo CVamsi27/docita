@@ -10,34 +10,10 @@ import { IAppointmentWriteRepository } from '@/domains/appointments/core/reposit
 import { Appointment } from '@/domains/appointments/core/entities/appointment.entity';
 import { AppointmentMapper } from '@/domains/appointments/infrastructure/mappers/appointment.mapper';
 import { AppointmentStatusEnum } from '@/domains/appointments/core/value-objects/appointment-status.value-object';
-import { isPrismaExclusionViolation } from '@/shared/common/utils/prisma-exclusion-violation';
 import {
   Prisma,
   AppointmentStatus as PrismaAppointmentStatus,
 } from '@workspace/db';
-
-/**
- * Name of the Postgres exclusion constraint added in migration
- * 20260525130000_appointment_overlap_exclusion. The DB enforces "no two active
- * appointments may overlap for the same (clinicId, doctorId)" regardless of
- * concurrent transactions; this helper translates the resulting 23P01 into
- * the same BadRequestException shape the application-level pre-flight check
- * already throws.
- */
-const APPOINTMENT_OVERLAP_CONSTRAINT = 'Appointment_no_active_overlap';
-
-async function withOverlapTranslation<T>(promise: Promise<T>): Promise<T> {
-  try {
-    return await promise;
-  } catch (error) {
-    if (isPrismaExclusionViolation(error, APPOINTMENT_OVERLAP_CONSTRAINT)) {
-      throw new BadRequestException({
-        detail: 'Doctor has conflicting appointment',
-      });
-    }
-    throw error;
-  }
-}
 
 @Injectable()
 export class PrismaAppointmentWriteRepository implements IAppointmentWriteRepository {
@@ -49,11 +25,9 @@ export class PrismaAppointmentWriteRepository implements IAppointmentWriteReposi
   async save(appointment: Appointment): Promise<void> {
     const data = AppointmentMapper.toPersistence(appointment);
 
-    await withOverlapTranslation(
-      this.prisma.appointment.create({
-        data,
-      }),
-    );
+    await this.prisma.appointment.create({
+      data,
+    });
   }
 
   async update(appointment: Appointment): Promise<void> {
@@ -64,15 +38,13 @@ export class PrismaAppointmentWriteRepository implements IAppointmentWriteReposi
       throw new BadRequestException('Appointment clinicId is required');
     }
 
-    const result = await withOverlapTranslation(
-      this.prisma.appointment.updateMany({
-        where: { id, clinicId },
-        data: {
-          ...updateData,
-          version: { increment: 1 },
-        },
-      }),
-    );
+    const result = await this.prisma.appointment.updateMany({
+      where: { id, clinicId },
+      data: {
+        ...updateData,
+        version: { increment: 1 },
+      },
+    });
     if (result.count === 0) {
       throw new NotFoundException(`Appointment ${id} not found`);
     }
@@ -129,12 +101,10 @@ export class PrismaAppointmentWriteRepository implements IAppointmentWriteReposi
     clinicId: string,
     patch: Prisma.AppointmentUpdateInput,
   ): Promise<number> {
-    const result = await withOverlapTranslation(
-      this.prisma.appointment.updateMany({
-        where: { id, clinicId },
-        data: { ...patch, version: { increment: 1 } },
-      }),
-    );
+    const result = await this.prisma.appointment.updateMany({
+      where: { id, clinicId },
+      data: { ...patch, version: { increment: 1 } },
+    });
     return result.count;
   }
 }

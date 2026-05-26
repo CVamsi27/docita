@@ -169,11 +169,6 @@ export class PrescriptionsController {
       'VIEW_HISTORY',
     );
 
-    // PHI: applies to every branch below (async job id, signed URL JSON, raw PDF
-    // bytes). Stops intermediary caches and browser disk cache from retaining
-    // either the signed URL or the document itself.
-    res.setHeader('Cache-Control', 'no-store');
-
     if (isAsync === 'true') {
       const result = await this.prescriptionsService.generatePdfAsync(
         id,

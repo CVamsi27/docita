@@ -1,6 +1,6 @@
 import { UseFormReturn } from "react-hook-form";
-import { Input } from "@workspace/ui/components/input";
-import { Label } from "@workspace/ui/components/label";
+import { Input } from "@workspace/ui/components/form/input";
+import { Label } from "@workspace/ui/components/form/label";
 import { cn } from "@workspace/ui/lib/utils";
 import type { ClinicDetails } from "@/features/onboarding/components/types";
 
@@ -76,7 +76,7 @@ export function ClinicBusinessSection({
           id="clinic-legal-name-help"
           className="text-xs text-muted-foreground"
         >
-          Used as the bill-to name on Docita tax invoices. Leave blank to use
+          Used for the bill-to name on Docita tax invoices. Leave blank to use
           your facility name.
         </p>
       </div>

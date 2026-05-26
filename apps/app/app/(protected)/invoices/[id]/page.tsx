@@ -1,12 +1,16 @@
 import { InvoiceDetailsUI } from "@/features/invoices/components/details/InvoiceDetailsUI";
 
-type InvoiceDetailsPageProps = {
-  params: Promise<{ id: string }>;
-};
+import { useParams } from "next/navigation";
+import { Feature } from "@workspace/types";
+import { FeatureGate } from "@/components/auth/feature-gate";
+import { InvoiceDetailsUI } from "@/features/invoices/components";
 
-export default async function InvoiceDetailsPage({
-  params,
-}: InvoiceDetailsPageProps) {
-  const { id } = await params;
-  return <InvoiceDetailsUI invoiceId={id} />;
+export default function InvoiceDetailsPage() {
+  const params = useParams<{ id: string }>();
+  const id = params.id ?? "";
+  return (
+    <FeatureGate feature={Feature.INVOICING} showLockedCard>
+      <InvoiceDetailsUI invoiceId={id} />
+    </FeatureGate>
+  );
 }

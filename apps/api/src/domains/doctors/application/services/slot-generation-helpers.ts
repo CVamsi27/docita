@@ -1,9 +1,9 @@
 /** Pure helper functions for slot generation — no DI, no @Injectable. */
 import { fromLocalISOString } from '@workspace/utils';
-import { TimeUtils } from '@/common/utils/time.utils';
+import { TimeUtils } from '@/shared/common/utils/time.utils';
 import type { ClinicWeeklySchedule } from '@workspace/db';
 
-export type DayOfWeek =
+type DayOfWeek =
   | 'SUNDAY'
   | 'MONDAY'
   | 'TUESDAY'
@@ -73,14 +73,14 @@ export function getDayOfWeekInClinicZone(
 export function implicitClinicWeeklyRowsForSlotFallback(
   clinicId: string,
   dayOfWeek: DayOfWeek,
+  now: Date,
 ): ClinicWeeklySchedule[] {
   if (dayOfWeek === 'SATURDAY' || dayOfWeek === 'SUNDAY') return [];
-  const now = new Date();
   return [
     {
       id: `implicit-clinic-weekly-${clinicId}-${dayOfWeek}`,
       clinicId,
-      dayOfWeek: dayOfWeek as ClinicWeeklySchedule['dayOfWeek'],
+      dayOfWeek: dayOfWeek satisfies ClinicWeeklySchedule['dayOfWeek'],
       startTime: '09:00',
       endTime: '17:00',
       slotDuration: 30,
@@ -107,6 +107,7 @@ export function generateSlotsForSchedule(
     endTime: string | null;
   }>,
   appointments: Array<{ startTime: Date; endTime: Date }>,
+  referenceNow: Date,
 ): AvailableSlot[] {
   const slots: AvailableSlot[] = [];
   let currentMinutes = TimeUtils.timeToMinutes(schedule.startTime);
@@ -133,7 +134,7 @@ export function generateSlotsForSchedule(
           timezone,
           appointments,
         ) &&
-        !isSlotInPast(currentMinutes, dateStr, timezone),
+        !isSlotInPast(currentMinutes, dateStr, timezone, referenceNow),
     });
 
     currentMinutes += schedule.slotDuration;
@@ -184,13 +185,14 @@ function isSlotInPast(
   currentMinutes: number,
   dateStr: string,
   timezone: string,
+  referenceNow: Date,
 ): boolean {
   const slotStartLabel = TimeUtils.minutesToTime(currentMinutes);
   const slotInstant = fromLocalISOString(`${dateStr}T${slotStartLabel}`, {
     timezone,
   });
   if (!slotInstant) return false;
-  return slotInstant.getTime() < Date.now();
+  return slotInstant.getTime() < referenceNow.getTime();
 }
 
 export function sortSlots(slots: AvailableSlot[]): AvailableSlot[] {

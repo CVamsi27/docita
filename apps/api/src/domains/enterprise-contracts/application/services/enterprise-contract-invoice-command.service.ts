@@ -3,11 +3,16 @@ import {
   NotFoundException,
   BadRequestException,
   Logger,
+  Inject,
 } from '@nestjs/common';
-import { PrismaService } from '@/prisma/prisma.service';
+import {
+  ENTERPRISE_CONTRACT_PERSISTENCE_PORT,
+  type EnterpriseContractPersistencePort,
+} from '@/domains/enterprise-contracts/application/ports/enterprise-contract-persistence.port';
 import { EnterpriseContractStatus, EnterpriseInvoiceKind } from '@workspace/db';
 import { EmailService } from '@/shared/modules/messaging/email/email.service';
 import { AppConfigService } from '@/shared/modules/config/app-configuration.service';
+import { CLOCK_PORT, type IClock } from '@/shared/common/ports/clock.port';
 
 /**
  * Handles enterprise-contract financial operations: annual prepay invoice generation
@@ -20,14 +25,17 @@ export class EnterpriseContractInvoiceCommandService {
   );
 
   constructor(
-    private readonly prisma: PrismaService,
+    @Inject(ENTERPRISE_CONTRACT_PERSISTENCE_PORT)
+    private readonly persistence: EnterpriseContractPersistencePort,
     private readonly emailService: EmailService,
     private readonly configService: AppConfigService,
+    @Inject(CLOCK_PORT) private readonly clock: IClock,
   ) {}
 
   async generateAnnualPrepayInvoice(contractId: string) {
-    return this.prisma.runUnrestricted(async () => {
-      const contract = await this.prisma.enterpriseContract.findUnique({
+    // RLS-BYPASS: enterprise contract administration spans member clinics by design
+    return this.persistence.runUnrestricted(async () => {
+      const contract = await this.persistence.enterpriseContract.findUnique({
         where: { id: contractId },
       });
       if (!contract)
@@ -37,14 +45,15 @@ export class EnterpriseContractInvoiceCommandService {
           'Annual prepay only available for ACTIVE contracts',
         );
 
-      const existing = await this.prisma.enterpriseContractInvoice.findFirst({
-        where: {
-          contractId,
-          kind: EnterpriseInvoiceKind.ANNUAL_PREPAY,
-          periodStart: contract.startDate,
-        },
-        include: { subscriptionPayment: true },
-      });
+      const existing =
+        await this.persistence.enterpriseContractInvoice.findFirst({
+          where: {
+            contractId,
+            kind: EnterpriseInvoiceKind.ANNUAL_PREPAY,
+            periodStart: contract.startDate,
+          },
+          include: { subscriptionPayment: true },
+        });
       if (existing) return existing;
 
       const grossCents = contract.platformFeeCents * 12;
@@ -56,53 +65,56 @@ export class EnterpriseContractInvoiceCommandService {
       const invoiceNumber = `ENT-PREPAY-${contract.contractNumber}-${periodStart.getFullYear()}`;
       const description = `Annual platform fee prepay for contract ${contract.contractNumber} (${periodStart.toISOString().slice(0, 10)} → ${periodEnd.toISOString().slice(0, 10)})${contract.annualPrepayDiscountPercent ? `, discount ${contract.annualPrepayDiscountPercent}%` : ''}`;
 
-      const payment = await this.prisma.subscriptionPayment.upsert({
-        where: {
-          clinicId_invoiceNumber: {
-            clinicId: contract.primaryClinicId,
-            invoiceNumber,
+      const invoice = await this.persistence.$transaction(async (tx) => {
+        const payment = await tx.subscriptionPayment.upsert({
+          where: {
+            clinicId_invoiceNumber: {
+              clinicId: contract.primaryClinicId,
+              invoiceNumber,
+            },
           },
-        },
-        update: {
-          amountCents: netCents,
-          currency: contract.currency,
-          description,
-        },
-        create: {
-          clinicId: contract.primaryClinicId,
-          amountCents: netCents,
-          currency: contract.currency,
-          status: 'pending',
-          invoiceNumber,
-          description,
-        },
-      });
+          update: {
+            amountCents: netCents,
+            currency: contract.currency,
+            description,
+          },
+          create: {
+            clinicId: contract.primaryClinicId,
+            amountCents: netCents,
+            currency: contract.currency,
+            status: 'pending',
+            invoiceNumber,
+            description,
+          },
+        });
 
-      const invoice = await this.prisma.enterpriseContractInvoice.upsert({
-        where: { subscriptionPaymentId: payment.id },
-        update: {
-          amountCents: netCents,
-          currency: contract.currency,
-          discountPercent: contract.annualPrepayDiscountPercent,
-          metadata: { grossCents, discountCents, netCents },
-        },
-        create: {
-          contractId,
-          kind: EnterpriseInvoiceKind.ANNUAL_PREPAY,
-          subscriptionPaymentId: payment.id,
-          amountCents: netCents,
-          currency: contract.currency,
-          periodStart,
-          periodEnd,
-          discountPercent: contract.annualPrepayDiscountPercent,
-          metadata: { grossCents, discountCents, netCents },
-        },
-        include: { subscriptionPayment: true },
-      });
+        const createdInvoice = await tx.enterpriseContractInvoice.upsert({
+          where: { subscriptionPaymentId: payment.id },
+          update: {
+            amountCents: netCents,
+            currency: contract.currency,
+            discountPercent: contract.annualPrepayDiscountPercent,
+            metadata: { grossCents, discountCents, netCents },
+          },
+          create: {
+            contractId,
+            kind: EnterpriseInvoiceKind.ANNUAL_PREPAY,
+            subscriptionPaymentId: payment.id,
+            amountCents: netCents,
+            currency: contract.currency,
+            periodStart,
+            periodEnd,
+            discountPercent: contract.annualPrepayDiscountPercent,
+            metadata: { grossCents, discountCents, netCents },
+          },
+          include: { subscriptionPayment: true },
+        });
 
-      await this.prisma.enterpriseContract.update({
-        where: { id: contractId },
-        data: { annualPrepayInvoiceId: invoice.id },
+        await tx.enterpriseContract.update({
+          where: { id: contractId },
+          data: { annualPrepayInvoiceId: createdInvoice.id },
+        });
+        return createdInvoice;
       });
       this.logger.log(
         `Annual prepay invoice generated for contract ${contract.contractNumber}: net ${netCents / 100} ${contract.currency}`,
@@ -114,14 +126,15 @@ export class EnterpriseContractInvoiceCommandService {
   async evaluateAndAlertTrueUp(
     contractId: string,
   ): Promise<{ alerted: boolean; observedPercent: number }> {
-    return this.prisma.runUnrestricted(async () => {
-      const contract = await this.prisma.enterpriseContract.findUnique({
+    // RLS-BYPASS: enterprise contract administration spans member clinics by design
+    return this.persistence.runUnrestricted(async () => {
+      const contract = await this.persistence.enterpriseContract.findUnique({
         where: { id: contractId },
       });
       if (!contract || contract.status !== EnterpriseContractStatus.ACTIVE)
         return { alerted: false, observedPercent: 0 };
 
-      const now = new Date();
+      const now = this.clock.now();
       const yearStart =
         contract.startDate > new Date(now.getFullYear(), 0, 1)
           ? contract.startDate
@@ -133,10 +146,10 @@ export class EnterpriseContractInvoiceCommandService {
           1,
       );
 
-      const members = await this.prisma.enterpriseContractMember.findMany({
+      const members = await this.persistence.enterpriseContractMember.findMany({
         where: { contractId, removedAt: null },
       });
-      const ytdOverageAgg = await this.prisma.usageRecord.aggregate({
+      const ytdOverageAgg = await this.persistence.usageRecord.aggregate({
         where: {
           clinicId: { in: members.map((m) => m.clinicId) },
           periodStart: { gte: yearStart, lte: now },
@@ -157,13 +170,14 @@ export class EnterpriseContractInvoiceCommandService {
         return { alerted: false, observedPercent };
 
       const monthStart = new Date(now.getFullYear(), now.getMonth(), 1);
-      const alreadyAlerted = await this.prisma.enterpriseTrueUpAlert.findFirst({
-        where: { contractId, alertedAt: { gte: monthStart } },
-      });
+      const alreadyAlerted =
+        await this.persistence.enterpriseTrueUpAlert.findFirst({
+          where: { contractId, alertedAt: { gte: monthStart } },
+        });
       if (alreadyAlerted) return { alerted: false, observedPercent };
 
       const recipients = this.configService.getInternalAllowedEmails();
-      await this.prisma.enterpriseTrueUpAlert.create({
+      await this.persistence.enterpriseTrueUpAlert.create({
         data: {
           contractId,
           thresholdPercent: contract.trueUpThresholdPercent,
@@ -173,7 +187,7 @@ export class EnterpriseContractInvoiceCommandService {
           recipients,
         },
       });
-      await this.prisma.enterpriseContract.update({
+      await this.persistence.enterpriseContract.update({
         where: { id: contractId },
         data: { lastTrueUpAlertAt: now },
       });
@@ -190,7 +204,7 @@ export class EnterpriseContractInvoiceCommandService {
         } catch (err) {
           this.logger.warn(
             `True-up alert email send failed for ${contract.contractNumber}`,
-            err as Error,
+            err instanceof Error ? err : new Error(String(err)),
           );
         }
       }

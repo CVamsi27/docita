@@ -108,7 +108,7 @@ export function BillingModalSummaryPanel({
               <SelectItem value="CARD">Card</SelectItem>
               <SelectItem value="UPI">UPI / GPay</SelectItem>
               <SelectItem value="INSURANCE">Insurance</SelectItem>
-              <SelectItem value="ONLINE">Online link</SelectItem>
+              <SelectItem value="ONLINE">Online Link</SelectItem>
             </SelectContent>
           </Select>
         </div>
@@ -132,7 +132,7 @@ export function BillingModalSummaryPanel({
           </div>
         ) : null}
         <div className="border-t pt-3 mt-2 flex justify-between items-center">
-          <span className="font-semibold">Grand total</span>
+          <span className="font-semibold">Grand Total</span>
           <span className="text-[var(--fs-2xl)] font-semibold tabular-nums leading-[var(--lh-tight)]">
             {formatAmount(calculations.total)}
           </span>

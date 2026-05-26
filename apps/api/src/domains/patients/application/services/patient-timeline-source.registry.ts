@@ -1,5 +1,4 @@
 import { Injectable } from '@nestjs/common';
-import { mapWithConcurrency } from '@workspace/utils';
 import type { TimelineEventType } from '@/domains/patients/core/repositories/timeline/timeline-event.types';
 import type {
   IPatientTimelineSource,
@@ -16,8 +15,6 @@ import {
   MetricRecordsTimelineSource,
   PrescriptionsTimelineSource,
 } from '@/domains/patients/infrastructure/persistence/timeline/prisma-patient-timeline-sources';
-
-const TIMELINE_SOURCE_FETCH_CONCURRENCY = 4;
 
 @Injectable()
 export class PatientTimelineSourceRegistry {
@@ -66,29 +63,11 @@ export class PatientTimelineSourceRegistry {
     PromiseSettledResult<{ type: TimelineEventType; items: unknown[] }>[]
   > {
     const sources = this.resolve(types);
-    return mapWithConcurrency(
-      sources,
-      TIMELINE_SOURCE_FETCH_CONCURRENCY,
-      async (
-        source,
-      ): Promise<
-        PromiseSettledResult<{
-          type: TimelineEventType;
-          items: unknown[];
-        }>
-      > => {
-        try {
-          return {
-            status: 'fulfilled',
-            value: {
-              type: source.eventType,
-              items: await source.fetch(params),
-            },
-          };
-        } catch (reason) {
-          return { status: 'rejected', reason };
-        }
-      },
+    return Promise.allSettled(
+      sources.map(async (source) => ({
+        type: source.eventType,
+        items: await source.fetch(params),
+      })),
     );
   }
 }

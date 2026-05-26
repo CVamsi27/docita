@@ -30,7 +30,7 @@ export default tseslint.config(
         },
       ],
       'no-console': ['error', { allow: ['warn', 'error', 'info'] }],
-      'no-restricted-syntax': ['warn', noProcessEnvSyntaxRule],
+      'no-restricted-syntax': ['warn', [noProcessEnvSyntaxRule]],
     },
   },
   {

@@ -52,7 +52,9 @@ function collectDeclarations(source) {
 }
 
 for (const file of packageTypeFiles) {
-  const source = fs.readFileSync(path.join(repoRoot, file), "utf8");
+  const absolutePath = path.join(repoRoot, file);
+  if (!fs.existsSync(absolutePath)) continue;
+  const source = fs.readFileSync(absolutePath, "utf8");
   for (const declaration of collectDeclarations(source)) {
     if (!sharedShapes.has(declaration.shape)) {
       sharedShapes.set(declaration.shape, []);
@@ -71,7 +73,9 @@ const appFiles = appRoots.flatMap((root) =>
 const findings = [];
 
 for (const file of appFiles) {
-  const source = fs.readFileSync(path.join(repoRoot, file), "utf8");
+  const absolutePath = path.join(repoRoot, file);
+  if (!fs.existsSync(absolutePath)) continue;
+  const source = fs.readFileSync(absolutePath, "utf8");
   for (const declaration of collectDeclarations(source)) {
     const matches = sharedShapes.get(declaration.shape);
     if (!matches) continue;

@@ -13,7 +13,8 @@ import React, {
 import { usePermissionStore } from "@/lib/stores/permission-store";
 import { useClinicSocket } from "@/hooks/use-clinic-socket";
 import { fetchWithSession } from "@/lib/auth/fetch-with-session";
-import { appClinicSchema, type AppClinic } from "@workspace/types";
+import { logger } from "@/lib/monitoring/logger";
+import { appClinicSchema, tierSchema, type AppClinic } from "@workspace/types";
 
 export type { Clinic } from "@/lib/contexts/clinic-context-helpers";
 
@@ -27,6 +28,64 @@ interface ClinicContextType {
 }
 
 const ClinicContext = createContext<ClinicContextType | undefined>(undefined);
+
+function getStoredClinicId(): string | null {
+  if (typeof window === "undefined") {
+    return null;
+  }
+  try {
+    const savedClinicId = localStorage.getItem("selectedClinicId");
+    localStorage.removeItem("selectedClinic");
+    return savedClinicId && savedClinicId.length > 0 ? savedClinicId : null;
+  } catch (error) {
+    logger.warn("Failed to read selected clinic from localStorage", { error });
+  }
+  return null;
+}
+
+function subscribeToWindowFocus(callback: () => void) {
+  const handleFocus = () => callback();
+  const handleVisibilityChange = () => {
+    if (document.visibilityState === "visible") {
+      callback();
+    }
+  };
+
+  window.addEventListener("focus", handleFocus);
+  document.addEventListener("visibilitychange", handleVisibilityChange);
+
+  return () => {
+    window.removeEventListener("focus", handleFocus);
+    document.removeEventListener("visibilitychange", handleVisibilityChange);
+  };
+}
+
+function toBooleanFeatureOverrides(
+  value: Clinic["features"],
+): Record<string, boolean> | null {
+  if (!value || typeof value !== "object" || Array.isArray(value)) {
+    return null;
+  }
+
+  return Object.fromEntries(
+    Object.entries(value).filter(
+      (entry): entry is [string, boolean] => typeof entry[1] === "boolean",
+    ),
+  );
+}
+
+function getFacilityLabelFromSettings(
+  value: Clinic["settings"],
+): "CLINIC" | "HOSPITAL" | undefined {
+  if (!value || typeof value !== "object" || Array.isArray(value)) {
+    return undefined;
+  }
+
+  const facilityLabel = Object.fromEntries(Object.entries(value)).facilityLabel;
+  return facilityLabel === "CLINIC" || facilityLabel === "HOSPITAL"
+    ? facilityLabel
+    : undefined;
+}
 
 export function ClinicProvider({ children }: { children: React.ReactNode }) {
   const [clinicId, setClinicId] = useState<string | null>(null);

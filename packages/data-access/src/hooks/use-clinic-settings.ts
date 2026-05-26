@@ -8,7 +8,6 @@ import {
   User,
   type AppClinicSettings,
 } from "@workspace/types";
-import { QUERY_STALE_TIMES } from "../lib/query-stale-times";
 import { queryKeys } from "../lib/query-keys";
 import { useAPIMutation } from "../core/use-api-mutation";
 import { useAPIQuery } from "../core/use-api-query";
@@ -18,8 +17,8 @@ export type ClinicAppSettings = AppClinicSettings;
 export const useClinicSettings = (queryOptions?: { enabled?: boolean }) =>
   useAPIQuery<Clinic>(queryKeys.clinic.settings(), "/clinic/settings", {
     enabled: queryOptions?.enabled,
-    staleTime: QUERY_STALE_TIMES.clinicSettings,
-    gcTime: QUERY_STALE_TIMES.clinicSettings * 3,
+    staleTime: 10 * 60 * 1000,
+    gcTime: 30 * 60 * 1000,
   });
 
 export const useClinicMembers = () =>

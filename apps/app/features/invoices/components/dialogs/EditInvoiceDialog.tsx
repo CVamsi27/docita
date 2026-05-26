@@ -2,13 +2,13 @@
 
 import { useRef, useState } from "react";
 import { toast } from "sonner";
-import { useUpdateInvoice } from "@/hooks/api/use-billing";
+import { useUpdateInvoice } from "@workspace/data-access";
 import { useFormOptions } from "@/lib/contexts/app-config-context";
-import { CRUDDialog } from "@workspace/ui/components/crud-dialog";
-import { Button } from "@workspace/ui/components/button";
-import { SymbolTooltip } from "@workspace/ui/components/tooltip";
-import { Label } from "@workspace/ui/components/label";
-import { Input } from "@workspace/ui/components/input";
+import { CRUDDialog } from "@workspace/ui/components/overlay/crud-dialog";
+import { Button } from "@workspace/ui/components/form/button";
+import { SymbolTooltip } from "@workspace/ui/components/overlay/tooltip";
+import { Label } from "@workspace/ui/components/form/label";
+import { Input } from "@workspace/ui/components/form/input";
 import {
   Select,
   SelectContent,
@@ -17,7 +17,16 @@ import {
   SelectValue,
 } from "@workspace/ui/components/form/select";
 import { Plus, X } from "lucide-react";
-import type { Invoice, InvoiceItem, Patient } from "@workspace/types";
+import { type Invoice, type InvoiceItem, type Patient } from "@workspace/types";
+import { z } from "zod";
+
+const editInvoiceStatusSchema = z.enum([
+  "PAID",
+  "PENDING",
+  "OVERDUE",
+  "CANCELLED",
+  "PARTIALLY_PAID",
+]);
 import { showUserFacingErrorToast } from "@/lib/errors/user-facing-errors";
 import { useClinicCurrency } from "@/hooks/use-clinic-currency";
 

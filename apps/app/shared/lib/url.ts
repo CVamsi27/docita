@@ -1,7 +1,7 @@
 "use client";
 
 import { API_URL } from "@/lib/api/api-config";
-import { getAppUrl } from "@/lib/config";
+import { getAppUrl } from "@/lib/constants/env-config";
 
 function normalizePath(pathOrUrl: string): string {
   return pathOrUrl.startsWith("/") ? pathOrUrl : `/${pathOrUrl}`;

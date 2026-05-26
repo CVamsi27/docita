@@ -1,5 +1,4 @@
 import { type NextRequest, NextResponse } from "next/server";
-import { isPortalPath } from "@/lib/internal-portal-routes";
 import { applyInternalSecurityHeaders } from "./shared/lib/security/security-headers";
 
 const STATIC_EXT =

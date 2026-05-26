@@ -121,7 +121,7 @@ export default function ChoosePathPage() {
           title="Create New Facility"
           description="Set up your own facility and choose a plan"
           bullets={CREATE_BULLETS}
-          buttonLabel="Get started"
+          buttonLabel="Get Started"
           buttonVariant="default"
           loading={loadingPath === "CREATE_CLINIC"}
           disabled={loadingPath !== null}
@@ -135,7 +135,7 @@ export default function ChoosePathPage() {
           title="Join Existing Facility"
           description="Request access to a facility in your organization"
           bullets={JOIN_BULLETS}
-          buttonLabel="Search facilities"
+          buttonLabel="Search Facilities"
           buttonVariant="outline"
           loading={loadingPath === "JOIN_CLINIC"}
           disabled={loadingPath !== null}

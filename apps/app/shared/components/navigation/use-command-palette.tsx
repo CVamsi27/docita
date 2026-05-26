@@ -8,8 +8,10 @@ import { useAuth } from "@/lib/auth/auth-context";
 import { canAccessTarget } from "@/lib/access-control/access-policy";
 import { usePermissionStore } from "@/lib/stores/permission-store";
 import { APP_ACCESS_TARGETS } from "@workspace/types";
+import type { CommandPaletteAction } from "@workspace/ui/components/overlay/command-palette-shell";
+import { Sparkles } from "lucide-react";
 import { showUserFacingErrorToast } from "@/lib/errors/user-facing-errors";
-import { useAskAi } from "@/features/_shared/components/ask-ai/ask-ai-context";
+import { useAskAi } from "@/components/ask-ai/ask-ai-context";
 import { useSidebarNavOrder } from "@/hooks/use-sidebar-nav-order";
 import { useClinic } from "@/lib/contexts/clinic-context";
 import {

@@ -115,7 +115,7 @@ export class PublicBookingController {
       referralCode,
       body,
       authorization,
-      req.ip,
+      getClientIp(req),
       req.headers['user-agent'],
     );
   }

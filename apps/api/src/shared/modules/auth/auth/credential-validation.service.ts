@@ -9,7 +9,6 @@ import { CLOCK_PORT, type IClock } from '@/shared/common/ports/clock.port';
 import { PrismaService } from '@/prisma/prisma.service';
 import * as bcrypt from 'bcrypt';
 import { Role } from '@workspace/db';
-import { isFrontDeskTier } from '@workspace/types';
 import { ObservabilityService } from '@/shared/modules/services/observability.service';
 import { AUTH_CONSTANTS } from '@/shared/modules/config/app-constants';
 import type { UserWithoutPassword } from './auth.types';
@@ -17,7 +16,6 @@ import {
   isDatabaseAuthError,
   isDatabaseConnectivityError,
 } from './auth-database.util';
-import { activeUserWhere } from '@/shared/common/prisma/active-user.filter';
 
 @Injectable()
 export class CredentialValidationService {
@@ -72,7 +70,7 @@ export class CredentialValidationService {
       }),
     );
 
-    if (isFrontDeskTier(clinic?.tier)) {
+    if (clinic?.tier === 'FRONT_DESK') {
       throw new ForbiddenException(
         'Doctor and admin-doctor sign-in is not available on the Front Desk plan. ' +
           'Ask an admin to upgrade the clinic to enable clinical sign-in.',
@@ -86,9 +84,7 @@ export class CredentialValidationService {
   ): Promise<UserWithoutPassword | null> {
     // RLS-BYPASS: auth resolves users before clinic tenant context is established
     return this.prisma.runUnrestricted(async () => {
-      const user = await this.prisma.user.findFirst({
-        where: { email, ...activeUserWhere },
-      });
+      const user = await this.prisma.user.findUnique({ where: { email } });
 
       if (!user) {
         return null;

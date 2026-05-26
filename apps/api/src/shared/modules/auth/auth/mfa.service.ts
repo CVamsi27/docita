@@ -25,7 +25,6 @@ export class MfaService {
   constructor(
     private prisma: PrismaService,
     @Inject(CLOCK_PORT) private readonly clock: IClock,
-    private readonly encryption: EncryptionService,
   ) {}
 
   async generateSetupSecret(

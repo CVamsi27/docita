@@ -2,19 +2,19 @@
 
 import { useCallback, useMemo, useState } from "react";
 import { cn } from "@workspace/ui/lib/utils";
-import { Switch } from "@workspace/ui/components/switch";
+import { Switch } from "@workspace/ui/components/form/switch";
 import {
   Sheet,
   SheetContent,
   SheetHeader,
   SheetTitle,
-} from "@workspace/ui/components/sheet";
-import { MicroLabel } from "@workspace/ui/components/micro-label";
+} from "@workspace/ui/components/overlay/sheet";
+import { MicroLabel } from "@workspace/ui/components/indicators/micro-label";
 import {
   FIXED_NAV_HREFS,
   type NavSection,
   type NavSectionId,
-} from "@/features/_shared/components/navigation/nav-config";
+} from "@/components/navigation/nav-config";
 import { useSidebarNavOrder } from "@/hooks/use-sidebar-nav-order";
 
 function getIconClasses(isActive: boolean) {
@@ -168,7 +168,7 @@ function CustomizeSidebarOrderUI({
                 navOrder.setOrder(navOrder.effectiveOrder, "clinic");
               }}
             >
-              Save this order as clinic default
+              Save this order for the clinic default
             </button>
           ) : null}
         </div>

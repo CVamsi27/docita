@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { getUserFacingErrorMessage } from "@workspace/types";
+import { getUserFacingErrorMessage } from "@workspace/utils";
 import { fetchAPI } from "@/lib/api/api-core";
 import { appSession } from "@/lib/auth/session";
 

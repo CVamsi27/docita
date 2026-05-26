@@ -19,19 +19,25 @@ import PhoneInput from "react-phone-number-input";
 import { toast } from "sonner";
 import {
   CLINIC_TYPE_OPTIONS,
-  CLINICAL_PLAN_LADDER,
   type ClinicType,
   clinicTypeSchema,
-  FRONT_DESK_PLAN_LADDER,
   mapDbClinicTierStringToTierName,
-  PUBLISHED_PLAN_LADDER,
   TIER_INFO,
   type TierName,
   tierSchema,
 } from "@workspace/types";
 import { showUserFacingErrorToast } from "@/lib/errors/user-facing-errors";
 import { resolveLibPhoneCountry } from "@/lib/phone/resolve-libphone-country";
-import { CLINIC_TYPE_DESCRIPTIONS } from "@/lib/clinic-display";
+
+type EditClinicFormData = {
+  name: string;
+  email: string;
+  phone: string;
+  address: string;
+  tier: TierName;
+  type: ClinicType;
+  active: boolean;
+};
 
 type EditClinicFormData = {
   name: string;

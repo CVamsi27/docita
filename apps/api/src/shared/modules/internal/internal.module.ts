@@ -1,6 +1,5 @@
 import { Module } from '@nestjs/common';
 import { InternalClinicsController } from './internal-clinics.controller';
-import { InternalWhatsappSenderController } from './internal-whatsapp-sender.controller';
 import { InternalAnalyticsController } from './internal-analytics.controller';
 import { InternalLogsController } from './internal-logs.controller';
 import { InternalSupportController } from './internal-support.controller';
@@ -53,7 +52,6 @@ import { PrismaInternalSubscriptionPaymentRepository } from './infrastructure/pr
     InternalClinicTierController,
     InternalSupportController,
     InternalClinicsController,
-    InternalWhatsappSenderController,
     InternalBillingController,
   ],
   providers: [

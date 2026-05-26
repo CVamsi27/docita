@@ -215,11 +215,6 @@ export class InvoicesController {
       'VIEW_PROFILE',
     );
 
-    // PHI: applies to every branch below (async job id, signed URL JSON, raw PDF
-    // bytes). Stops intermediary caches and browser disk cache from retaining
-    // either the signed URL or the document itself.
-    res.setHeader('Cache-Control', 'no-store');
-
     if (isAsync === 'true') {
       const result = await this.invoicesService.generatePdfAsync(id, clinicId);
       return res.status(HttpStatus.ACCEPTED).json(result);

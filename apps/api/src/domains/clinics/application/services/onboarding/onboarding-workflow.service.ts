@@ -1,6 +1,7 @@
-import { Injectable, Logger } from '@nestjs/common';
-import { PrismaService } from '@/prisma/prisma.service';
+import { Injectable, Inject, Logger } from '@nestjs/common';
+
 import {
+  ClinicType,
   SubscriptionStatus,
   User,
   Clinic,
@@ -21,14 +22,7 @@ import {
 import { OnboardingValidationService } from './onboarding-validation.service';
 import { toPrismaInputJsonValue } from '@/shared/common/json/to-prisma-input-json-value';
 import { SUBSCRIPTION_TRIAL_DAYS } from '@workspace/types';
-import { isFrontDeskTier } from '@workspace/types';
 
-import {
-  SUBSCRIPTION_TRIAL_DAYS,
-  parseWorkspaceProfile,
-  type WorkspaceProfile,
-} from '@workspace/types';
-import { isPrismaTableDoesNotExistForModel } from '@/common/utils/prisma-missing-table';
 import {
   getDefaultClinicWeeklyHoursInput,
   computePeriodEnd,
@@ -38,6 +32,11 @@ import {
   createStaffMembersInTx,
   ensureFrontDeskScheduleDoctorInTx,
 } from './onboarding-workflow-helpers';
+import {
+  IOnboardingTxRepository,
+  ONBOARDING_TX_REPOSITORY_TOKEN,
+} from '@/domains/clinics/core/repositories/onboarding-tx.repository.interface';
+import { CLOCK_PORT, type IClock } from '@/shared/common/ports/clock.port';
 
 interface OnboardingPaymentInput {
   razorpayPaymentId?: string;
@@ -72,7 +71,7 @@ export class OnboardingWorkflowService {
     const normalizedEmail = clinicData.email?.trim() ?? '';
 
     const existingClinic = normalizedEmail
-      ? await tx.clinic.findFirst({ where: { email: normalizedEmail } })
+      ? await this.repository.findClinicByEmail(tx, normalizedEmail)
       : null;
 
     if (existingClinic) {
@@ -85,34 +84,30 @@ export class OnboardingWorkflowService {
       clinicData.name,
     );
 
-    const clinic = await tx.clinic.create({
-      data: {
-        name: clinicData.name,
-        email: normalizedEmail,
-        phone: clinicData.phone,
-        address: clinicData.address,
-        type: clinicData.type || 'GENERAL',
-        website: clinicData.website,
-        mrnPrefix: clinicData.mrnPrefix || 'CLI',
-        timezone: clinicData.timezone || 'Asia/Kolkata',
-        active: true,
-        referralCode,
-        settings: {
-          dataResidency: clinicData.dataResidency || 'IN',
-          operatingCountryCode: clinicData.countryCode || 'IN',
-          facilityLabel: clinicData.facilityLabel || 'CLINIC',
-          gstin: clinicData.gstin || undefined,
-          privacyComplianceVersion: '1.0',
-          onboardedAt: new Date().toISOString(),
-          onboardedFromIP: ipAddress,
-          workspaceProfile,
-          mapsLocation: clinicData.mapsLocation ?? undefined,
-          mapsLink: clinicData.mapsLink?.trim() || undefined,
-          ...(clinicData.legalName && clinicData.legalName.trim().length > 0
-            ? { taxSettings: { legalName: clinicData.legalName.trim() } }
-            : {}),
-        },
-      },
+    const clinic = await this.repository.createClinic(tx, {
+      name: clinicData.name,
+      email: normalizedEmail,
+      phone: clinicData.phone,
+      address: clinicData.address,
+      type: clinicData.type ?? ClinicType.GENERAL,
+      website: clinicData.website,
+      mrnPrefix: clinicData.mrnPrefix || 'CLI',
+      timezone: clinicData.timezone || 'Asia/Kolkata',
+      referralCode,
+      settings: toPrismaInputJsonValue({
+        dataResidency: clinicData.dataResidency || 'IN',
+        operatingCountryCode: clinicData.countryCode || 'IN',
+        facilityLabel: clinicData.facilityLabel || 'CLINIC',
+        gstin: clinicData.gstin || undefined,
+        privacyComplianceVersion: '1.0',
+        onboardedAt: this.clock.now().toISOString(),
+        onboardedFromIP: ipAddress,
+        mapsLocation: clinicData.mapsLocation ?? undefined,
+        mapsLink: clinicData.mapsLink?.trim() || undefined,
+        ...(clinicData.legalName && clinicData.legalName.trim().length > 0
+          ? { taxSettings: { legalName: clinicData.legalName.trim() } }
+          : {}),
+      }),
     });
 
     await this.repository.createMrnSequence(
@@ -136,9 +131,10 @@ export class OnboardingWorkflowService {
       await import('@nestjs/common');
     const { Role } = await import('@workspace/db');
 
-    const existingUser = await tx.user.findUnique({
-      where: { email: adminData.email },
-    });
+    const existingUser = await this.repository.findUserByEmail(
+      tx,
+      adminData.email,
+    );
 
     let resolvedRole =
       adminData.role ||
@@ -213,7 +209,7 @@ export class OnboardingWorkflowService {
     planData: PlanSelectionDto,
     paymentData?: OnboardingPaymentInput,
   ): Promise<Subscription> {
-    const now = new Date();
+    const now = this.clock.now();
     const periodEnd = computePeriodEnd({
       tier: planData.tier,
       billingCycle: planData.billingCycle,
@@ -250,39 +246,19 @@ export class OnboardingWorkflowService {
       includedUsers: tierLimits.includedUsers,
     });
 
-    if (hasPayment) {
-      await tx.subscriptionPayment.create({
-        data: {
-          clinicId,
-          subscriptionId: subscription.id,
-          amountCents: priceCents,
-          status: 'paid',
-          razorpayPaymentId: paymentData!.razorpayPaymentId,
-          razorpayOrderId: paymentData!.razorpayOrderId,
-          razorpaySignature: paymentData!.razorpaySignature,
-          invoiceType: 'LEGACY',
-          subtotalCents: priceCents,
-          taxCents: 0,
-          grandTotalCents: priceCents,
-          taxSummary: {
-            countryCode: 'IN',
-            regime: 'IN_GST',
-            currency: planData.currency || 'INR',
-            subtotal: priceCents / 100,
-            discountTotal: 0,
-            taxableAmount: 0,
-            exemptAmount: priceCents / 100,
-            taxTotal: 0,
-            grandTotal: priceCents / 100,
-            components: [],
-            reverseCharge: false,
-            documentTitle: 'Legacy Subscription Invoice',
-          },
-          description: paymentData!.cardLast4
-            ? `${planData.tier} ${planData.billingCycle} subscription (card ending ${paymentData!.cardLast4})`
-            : `${planData.tier} ${planData.billingCycle} subscription`,
-          paidAt: now,
-        },
+    if (hasPayment && paymentData) {
+      await this.repository.createSubscriptionPayment(tx, {
+        clinicId,
+        subscriptionId: subscription.id,
+        amountCents: priceCents,
+        razorpayPaymentId: paymentData.razorpayPaymentId,
+        razorpayOrderId: paymentData.razorpayOrderId,
+        razorpaySignature: paymentData.razorpaySignature,
+        cardLast4: paymentData.cardLast4,
+        planTier: planData.tier,
+        billingCycle: planData.billingCycle,
+        currency: planData.currency || 'INR',
+        paidAt: now,
       });
     }
 
@@ -331,9 +307,7 @@ export class OnboardingWorkflowService {
     tx: Prisma.TransactionClient,
     clinicId: string,
   ): Promise<void> {
-    await tx.reminderSettings.create({
-      data: { clinic: { connect: { id: clinicId } }, enabled: false },
-    });
+    await this.repository.createReminderSettings(tx, clinicId);
     this.logger.log(`Initialized clinic settings for: ${clinicId}`);
   }
 
@@ -361,27 +335,6 @@ export class OnboardingWorkflowService {
       isActive: boolean;
     }>,
   ): Promise<void> {
-    try {
-      await tx.clinicWeeklySchedule.deleteMany({ where: { clinicId } });
-      if (rows.length === 0) return;
-      await tx.clinicWeeklySchedule.createMany({
-        data: rows.map((r) => ({
-          clinicId,
-          dayOfWeek: r.dayOfWeek,
-          startTime: r.startTime,
-          endTime: r.endTime,
-          slotDuration: r.slotDuration,
-          isActive: r.isActive,
-        })),
-      });
-    } catch (error) {
-      if (isPrismaTableDoesNotExistForModel(error, 'ClinicWeeklySchedule')) {
-        this.logger.warn(
-          'ClinicWeeklySchedule table is missing; skipping clinic weekly hours persistence. Apply @workspace/db migrations.',
-        );
-        return;
-      }
-      throw error;
-    }
+    await this.repository.replaceClinicWeeklySchedules(tx, clinicId, rows);
   }
 }

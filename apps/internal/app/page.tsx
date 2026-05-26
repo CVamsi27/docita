@@ -19,7 +19,6 @@ import { toast } from "sonner";
 import { Eye, EyeOff, ShieldCheck } from "lucide-react";
 import { client } from "@/lib/api/api-client";
 import { showUserFacingErrorToast } from "@/lib/errors/user-facing-errors";
-import { ThemeToggle } from "@/components/theme-toggle";
 
 function getMainAppLoginUrl() {
   return `${MAIN_APP_URL.replace(/\/$/, "")}/login`;

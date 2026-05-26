@@ -96,7 +96,7 @@ export default function DentalChartsPage() {
         className="max-w-2xl"
         header={
           <PageHeader
-            title="Dental charts"
+            title="Dental Charts"
             description={
               <>
                 Dental charting is only available for dental facilities. Your
@@ -122,7 +122,7 @@ export default function DentalChartsPage() {
         className="max-w-5xl"
         header={
           <PageHeader
-            title="Dental charts"
+            title="Dental Charts"
             description="Interactive tooth charting and documentation."
             actions={
               selectedAppointmentId ? (
@@ -136,7 +136,7 @@ export default function DentalChartsPage() {
                   ) : (
                     <Save className="mr-2 h-4 w-4" />
                   )}
-                  Save chart
+                  Save Chart
                 </Button>
               ) : null
             }
@@ -148,7 +148,7 @@ export default function DentalChartsPage() {
           <div className="space-y-4">
             <Card className="ui-card-surface">
               <CardHeader className="pb-3">
-                <CardTitle className="text-sm">Select patient</CardTitle>
+                <CardTitle className="text-sm">Select Patient</CardTitle>
               </CardHeader>
               <CardContent className="space-y-3">
                 <div className="relative">

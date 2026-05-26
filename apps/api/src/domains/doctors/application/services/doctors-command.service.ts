@@ -1,17 +1,24 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
-import { PrismaService } from '@/prisma/prisma.service';
+import { Injectable, Inject, NotFoundException } from '@nestjs/common';
 import * as bcrypt from 'bcrypt';
 import { Role, Specialization } from '@workspace/db';
+import {
+  DOCTOR_REPOSITORY_TOKEN,
+  IDoctorRepository,
+} from '@/domains/doctors/core/repositories/doctor.repository.interface';
 import { DoctorVerificationService } from './doctor-verification.service';
 import { SignatureUploadService } from './signature-upload.service';
 import { StoredFileUrlResolverService } from '@/domains/documents/application/services/stored-file-url-resolver.service';
 import {
   StorageProvider,
   StorageFile,
-} from '@/domains/documents/infrastructure/storage.provider';
+} from '@/domains/documents/application/ports/storage-provider.port';
 import { DoctorsQueryService } from './doctors-query.service';
 import { DoctorProfileService } from './doctor-profile.service';
 import { DoctorAdminVerificationCommandService } from './doctor-admin-verification-command.service';
+import { CLOCK_PORT, type IClock } from '@/shared/common/ports/clock.port';
+import { parseStringEnumMember } from '@workspace/utils';
+
+const PRISMA_ROLE_MEMBERS = Object.values(Role);
 
 interface CreateDoctorData {
   email: string;
@@ -73,9 +80,7 @@ interface CreateCertificationData {
 
 function normalizeRole(role: string | undefined): Role {
   if (!role) return Role.DOCTOR;
-  return Object.values(Role).includes(role as Role)
-    ? (role as Role)
-    : Role.DOCTOR;
+  return parseStringEnumMember(PRISMA_ROLE_MEMBERS, role) ?? Role.DOCTOR;
 }
 
 /**
@@ -85,7 +90,8 @@ function normalizeRole(role: string | undefined): Role {
 @Injectable()
 export class DoctorsCommandService {
   constructor(
-    private readonly prisma: PrismaService,
+    @Inject(DOCTOR_REPOSITORY_TOKEN)
+    private readonly doctorRepository: IDoctorRepository,
     private readonly doctorVerificationService: DoctorVerificationService,
     private readonly signatureUploadService: SignatureUploadService,
     private readonly storedFileUrlResolver: StoredFileUrlResolverService,
@@ -93,6 +99,7 @@ export class DoctorsCommandService {
     private readonly queryService: DoctorsQueryService,
     private readonly profileService: DoctorProfileService,
     private readonly adminVerificationService: DoctorAdminVerificationCommandService,
+    @Inject(CLOCK_PORT) private readonly clock: IClock,
   ) {}
 
   async create(clinicId: string, data: CreateDoctorData) {
@@ -113,10 +120,10 @@ export class DoctorsCommandService {
     } = data;
 
     const hashedPassword = await bcrypt.hash(password, 10);
-    const user = await this.prisma.user.create({
-      data: {
+    const created = await this.doctorRepository.createDoctorWithClinic(
+      {
         email,
-        password: hashedPassword,
+        hashedPassword,
         name,
         clinicId,
         role: normalizeRole(role),
@@ -130,39 +137,15 @@ export class DoctorsCommandService {
         yearsOfExperience,
         consultationFee,
       },
-    });
-
-    await this.prisma.doctorClinic.create({
-      data: {
-        doctorId: user.id,
-        clinicId,
-        role,
-      },
-    });
-
-    if (specialization) {
-      await this.prisma.doctorSpecialization.create({
-        data: {
-          doctorId: user.id,
-          specialization,
-          isPrimary: true,
-        },
-      });
-    }
-
-    await this.doctorVerificationService.verifyAndPersistDoctorVerification(
-      user.id,
+      { doctorId: '', clinicId, role },
+      specialization,
     );
 
-    return {
-      id: user.id,
-      email: user.email,
-      name: user.name,
-      role: user.role,
-      specialization: user.specialization,
-      hospitalRole: user.hospitalRole,
-      qualification: user.qualification,
-    };
+    await this.doctorVerificationService.verifyAndPersistDoctorVerification(
+      created.id,
+    );
+
+    return created;
   }
 
   async update(id: string, data: UpdateDoctorData, clinicId?: string) {
@@ -204,7 +187,7 @@ export class DoctorsCommandService {
     if (licenseExpiry !== undefined) updateData.licenseExpiry = licenseExpiry;
     if (signatureUrl !== undefined) {
       updateData.signatureUrl = signatureUrl;
-      updateData.signatureUploadedAt = signatureUrl ? new Date() : null;
+      updateData.signatureUploadedAt = signatureUrl ? this.clock.now() : null;
     }
     if (profilePhotoUrl !== undefined)
       updateData.profilePhotoUrl = profilePhotoUrl;
@@ -215,44 +198,15 @@ export class DoctorsCommandService {
     if (consultationFee !== undefined)
       updateData.consultationFee = consultationFee;
 
-    const result = await this.prisma.user.updateMany({
-      where: { id },
-      data: updateData,
-    });
-
-    if (result.count === 0) {
+    const updatedCount = await this.doctorRepository.updateDoctorProfile(
+      id,
+      updateData,
+    );
+    if (updatedCount === 0) {
       throw new NotFoundException(`Doctor with ID ${id} not found`);
     }
 
-    const user = await this.prisma.user.findFirst({
-      where: { id },
-      select: {
-        id: true,
-        email: true,
-        name: true,
-        role: true,
-        specialization: true,
-        hospitalRole: true,
-        qualification: true,
-        registrationNumber: true,
-        registrationCouncil: true,
-        registrationStateCode: true,
-        licenseNumber: true,
-        signatureUrl: true,
-        signatureUploadedAt: true,
-        verificationStatus: true,
-        verificationSource: true,
-        verificationRef: true,
-        verificationReason: true,
-        verificationData: true,
-        verificationCheckedAt: true,
-        profilePhotoUrl: true,
-        bio: true,
-        yearsOfExperience: true,
-        consultationFee: true,
-      },
-    });
-
+    const user = await this.doctorRepository.findDoctorForResponse(id);
     if (!user) {
       throw new NotFoundException(`Doctor with ID ${id} not found`);
     }
@@ -271,10 +225,7 @@ export class DoctorsCommandService {
     }
 
     if (role) {
-      await this.prisma.doctorClinic.updateMany({
-        where: { doctorId: id },
-        data: { role },
-      });
+      await this.doctorRepository.updateDoctorClinicRole(id, role);
     }
 
     return this.queryService.resolveDoctorSignatureUrl(user);
@@ -315,18 +266,8 @@ export class DoctorsCommandService {
   async remove(id: string, clinicId?: string) {
     if (clinicId) await this.queryService.findOne(id, clinicId);
 
-    await this.prisma.doctorEducation.deleteMany({ where: { doctorId: id } });
-    await this.prisma.doctorCertification.deleteMany({
-      where: { doctorId: id },
-    });
-    await this.prisma.doctorSpecialization.deleteMany({
-      where: { doctorId: id },
-    });
-    await this.prisma.doctorClinic.deleteMany({ where: { doctorId: id } });
-
-    const result = await this.prisma.user.deleteMany({ where: { id } });
-
-    if (result.count === 0) {
+    const deletedCount = await this.doctorRepository.deleteDoctorCascading(id);
+    if (deletedCount === 0) {
       throw new NotFoundException(`Doctor with ID ${id} not found`);
     }
 

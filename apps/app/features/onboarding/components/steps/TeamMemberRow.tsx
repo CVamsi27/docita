@@ -1,24 +1,28 @@
 import { Info, Trash2 } from "lucide-react";
-import { Button } from "@workspace/ui/components/button";
-import { Input } from "@workspace/ui/components/input";
-import { Label } from "@workspace/ui/components/label";
+import { Button } from "@workspace/ui/components/form/button";
+import { Input } from "@workspace/ui/components/form/input";
+import { Label } from "@workspace/ui/components/form/label";
 import {
   Select,
   SelectContent,
   SelectItem,
   SelectTrigger,
   SelectValue,
-} from "@workspace/ui/components/select";
+} from "@workspace/ui/components/form/select";
 import {
   SymbolTooltip,
   Tooltip,
   TooltipContent,
   TooltipProvider,
   TooltipTrigger,
-} from "@workspace/ui/components/tooltip";
+} from "@workspace/ui/components/overlay/tooltip";
 import { cn } from "@workspace/ui/lib/utils";
 import type { TeamMember } from "@/features/onboarding/components/types";
-import { ROLE_OPTIONS, isDoctorRole } from "./team-invite-step-constants";
+import {
+  ROLE_OPTIONS,
+  isDoctorRole,
+  parseTeamMemberRole,
+} from "./team-invite-step-constants";
 
 interface TeamMemberRowProps {
   member: TeamMember;
@@ -170,7 +174,7 @@ export function TeamMemberRow({
           <Select
             value={member.role}
             onValueChange={(v) =>
-              updateMember(index, "role", v as TeamMember["role"])
+              updateMember(index, "role", parseTeamMemberRole(v))
             }
           >
             <SelectTrigger

@@ -1,8 +1,7 @@
 "use client";
 
-import { useCallback, useEffect, useMemo, useRef, useState } from "react";
-import { Button } from "@workspace/ui/components/button";
-import { SymbolTooltip } from "@workspace/ui/components/tooltip";
+import { Button } from "@workspace/ui/components/form/button";
+import { SymbolTooltip } from "@workspace/ui/components/overlay/tooltip";
 import {
   Dialog,
   DialogClose,
@@ -10,35 +9,21 @@ import {
   DialogDescription,
   DialogHeader,
   DialogTitle,
-} from "@workspace/ui/components/dialog";
-import { DocitaLoadingIndicator } from "@workspace/ui/components/docita-loading-indicator";
-import { Input } from "@workspace/ui/components/input";
-import { Label } from "@workspace/ui/components/label";
+} from "@workspace/ui/components/overlay/dialog";
+import { DocitaLoadingIndicator } from "@workspace/ui/components/feedback/docita-loading-indicator";
+import { Input } from "@workspace/ui/components/form/input";
+import { Label } from "@workspace/ui/components/form/label";
 import { MapPin, X } from "lucide-react";
-import { useJsApiLoader } from "@react-google-maps/api";
-import type { LatLngExpression } from "leaflet";
-import type { Map as LeafletMapInstance } from "leaflet";
-import {
-  type ClinicAddressDetails,
-  type ClinicAddressSelection,
-  type LatLng,
-  type PlaceSuggestion,
-  DEFAULT_CENTER,
-  GOOGLE_LIBRARIES,
-  SEARCH_DEBOUNCE_MS,
-  isValidGoogleMapsApiKey,
-} from "./address/address-utils";
-import {
-  reverseGeocodeOSM,
-  reverseGeocodeGoogle,
-  searchOSM,
-} from "./address/geocoding";
+import type { ClinicAddressSelection } from "./address/address-utils";
 import { AddressMapPreview } from "./address/AddressMapPreview";
 import { AddressSearchInput } from "./address/AddressSearchInput";
-import { useMapLifecycle } from "./address/use-map-lifecycle";
+import { useClinicAddressPicker } from "./address/use-clinic-address-picker";
 import styles from "./clinic-address-picker-dialog.module.css";
 
-export type { ClinicAddressDetails, ClinicAddressSelection };
+export type {
+  ClinicAddressDetails,
+  ClinicAddressSelection,
+} from "./address/address-utils";
 
 export function ClinicAddressPickerDialog({
   open,
@@ -51,137 +36,7 @@ export function ClinicAddressPickerDialog({
   initialAddress: string;
   onConfirm: (value: ClinicAddressSelection) => void;
 }) {
-  const [picked, setPicked] = useState<LatLng | null>(null);
-  const [resolvedAddress, setResolvedAddress] = useState("");
-  const [addressDraft, setAddressDraft] = useState(initialAddress);
-  const [addressDetails, setAddressDetails] = useState<ClinicAddressDetails | null>(null);
-  const [isResolving, setIsResolving] = useState(false);
-  const [autocomplete, setAutocomplete] = useState<google.maps.places.Autocomplete | null>(null);
-  const [searchQuery, setSearchQuery] = useState("");
-  const [suggestions, setSuggestions] = useState<PlaceSuggestion[]>([]);
-  const [isSearching, setIsSearching] = useState(false);
-  const lastSearchIdRef = useRef(0);
-  const [showSuggestions, setShowSuggestions] = useState(false);
-  const [googleMap, setGoogleMap] = useState<google.maps.Map | null>(null);
-  const [leafletMap, setLeafletMap] = useState<LeafletMapInstance | null>(null);
-  const [mapLayoutVersion, setMapLayoutVersion] = useState(0);
-  const [mapInstanceKey, setMapInstanceKey] = useState(0);
-  const [isMapViewportReady, setIsMapViewportReady] = useState(false);
-  const [isLeafletPainted, setIsLeafletPainted] = useState(false);
-  const [leafletRetryCount, setLeafletRetryCount] = useState(0);
-  const mapViewportRef = useRef<HTMLDivElement | null>(null);
-  const didAutoLocateRef = useRef(false);
-
-  const rawGoogleKey = process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY ?? "";
-  const hasGoogleKey = isValidGoogleMapsApiKey(rawGoogleKey);
-  const { isLoaded: isGoogleLoaded, loadError: googleLoadError } = useJsApiLoader({
-    id: "google-maps-script",
-    googleMapsApiKey: hasGoogleKey ? rawGoogleKey.trim() : "",
-    libraries: GOOGLE_LIBRARIES,
-  });
-  const shouldUseGoogle = hasGoogleKey && isGoogleLoaded && !googleLoadError;
-
-  const addressValue = addressDraft || resolvedAddress || initialAddress;
-  const center = useMemo(() => picked ?? DEFAULT_CENTER, [picked]);
-  const mapZoom = picked ? 16 : 5;
-  const centerExpression = useMemo<LatLngExpression>(
-    () => [center.lat, center.lng],
-    [center],
-  );
-  const triggerGoogleResize = useCallback(() => {
-    if (!shouldUseGoogle || !googleMap) return;
-    window.google.maps.event.trigger(googleMap, "resize");
-    googleMap.setCenter(center);
-  }, [center, googleMap, shouldUseGoogle]);
-
-  useMapLifecycle({
-    open,
-    shouldUseGoogle,
-    googleMap,
-    leafletMap,
-    isMapViewportReady,
-    isLeafletPainted,
-    leafletRetryCount,
-    centerExpression,
-    mapZoom,
-    mapViewportRef,
-    triggerGoogleResize,
-    setMapLayoutVersion,
-    setMapInstanceKey,
-    setLeafletRetryCount,
-    setIsLeafletPainted,
-  });
-
-  // Reset state on open
-  useEffect(() => {
-    if (!open) return;
-    setMapInstanceKey((v) => v + 1);
-    setIsMapViewportReady(false);
-    setIsLeafletPainted(false);
-    setLeafletRetryCount(0);
-    const frame = window.requestAnimationFrame(() => {
-      window.requestAnimationFrame(() => setIsMapViewportReady(true));
-    });
-    setAddressDraft(initialAddress);
-    setAddressDetails(null);
-    setResolvedAddress("");
-    setPicked(null);
-    setSearchQuery("");
-    setSuggestions([]);
-    setShowSuggestions(false);
-    didAutoLocateRef.current = false;
-    return () => window.cancelAnimationFrame(frame);
-  }, [initialAddress, open]);
-
-  // Auto-geolocate on open
-  useEffect(() => {
-    if (!open || picked || didAutoLocateRef.current) return;
-    if (!navigator.geolocation) return;
-    didAutoLocateRef.current = true;
-    navigator.geolocation.getCurrentPosition(
-      (position) => {
-        const next = { lat: position.coords.latitude, lng: position.coords.longitude };
-        setPicked(next);
-        void (async () => {
-          setIsResolving(true);
-          try {
-            const result = shouldUseGoogle
-              ? await reverseGeocodeGoogle(next)
-              : await reverseGeocodeOSM(next);
-            if (!result) return;
-            setResolvedAddress(result.address);
-            setAddressDraft(result.address);
-            setAddressDetails(result.details ?? null);
-          } finally {
-            setIsResolving(false);
-          }
-        })();
-      },
-      () => { /* Ignore geolocation denial */ },
-      { enableHighAccuracy: true, timeout: 8000, maximumAge: 60_000 },
-    );
-  }, [open, picked, shouldUseGoogle]);
-
-  // OSM search debounce
-  useEffect(() => {
-    if (!open || shouldUseGoogle) return;
-    const q = searchQuery.trim();
-    if (q.length < 3) { setSuggestions([]); return; }
-    const searchId = ++lastSearchIdRef.current;
-    setIsSearching(true);
-    const timer = window.setTimeout(() => {
-      void (async () => {
-        try {
-          const results = await searchOSM(q);
-          if (lastSearchIdRef.current !== searchId) return;
-          setSuggestions(results);
-        } finally {
-          if (lastSearchIdRef.current === searchId) setIsSearching(false);
-        }
-      })();
-    }, SEARCH_DEBOUNCE_MS);
-    return () => window.clearTimeout(timer);
-  }, [open, searchQuery, shouldUseGoogle]);
+  const picker = useClinicAddressPicker({ open, initialAddress });
 
   const applyReverseResult = useCallback(
     (result: { address: string; details?: ClinicAddressDetails } | null) => {
@@ -256,67 +111,71 @@ export function ClinicAddressPickerDialog({
               id="clinic-location-dialog-description"
               className="text-sm text-muted-foreground"
             >
-              Search an address, then click the map or drag the pin to refine the location.
+              Search an address, then click the map or drag the pin to refine the
+              location.
             </DialogDescription>
           </DialogHeader>
 
           <div className="flex min-h-0 flex-1 flex-col bg-background">
             <div className="border-b px-4 py-4 sm:px-6">
               <AddressSearchInput
-                shouldUseGoogle={shouldUseGoogle}
-                autocomplete={autocomplete}
-                onAutocompleteLoad={setAutocomplete}
+                shouldUseGoogle={picker.shouldUseGoogle}
+                autocomplete={picker.autocomplete}
+                onAutocompleteLoad={picker.setAutocomplete}
                 onPlaceChanged={(pos, address, details) => {
-                  setPicked(pos);
-                  setResolvedAddress(address);
-                  setAddressDraft(address);
-                  setAddressDetails(details);
+                  picker.setPicked(pos);
+                  picker.setResolvedAddress(address);
+                  picker.setAddressDraft(address);
+                  picker.setAddressDetails(details);
                 }}
-                searchQuery={searchQuery}
+                searchQuery={picker.searchQuery}
                 setSearchQuery={(q) => {
-                  setSearchQuery(q);
-                  if (!q) setSuggestions([]);
+                  picker.setSearchQuery(q);
+                  if (!q) picker.setSuggestions([]);
                 }}
-                suggestions={suggestions}
-                showSuggestions={showSuggestions}
-                setShowSuggestions={setShowSuggestions}
-                isSearching={isSearching}
-                isResolving={isResolving}
-                onSuggestionPick={(suggestion: PlaceSuggestion) => {
-                  setPicked(suggestion.position);
-                  setResolvedAddress(suggestion.label);
-                  setAddressDraft(suggestion.label);
-                  setAddressDetails(suggestion.details ?? null);
-                  setSearchQuery(suggestion.label);
-                  setSuggestions([]);
+                suggestions={picker.suggestions}
+                showSuggestions={picker.showSuggestions}
+                setShowSuggestions={picker.setShowSuggestions}
+                isSearching={picker.isSearching}
+                isResolving={picker.isResolving}
+                onSuggestionPick={(suggestion) => {
+                  picker.setPicked(suggestion.position);
+                  picker.setResolvedAddress(suggestion.label);
+                  picker.setAddressDraft(suggestion.label);
+                  picker.setAddressDetails(suggestion.details ?? null);
+                  picker.setSearchQuery(suggestion.label);
+                  picker.setSuggestions([]);
                 }}
-                onUseMyLocation={handleUseMyLocation}
+                onUseMyLocation={picker.handleUseMyLocation}
               />
             </div>
 
-            <div ref={mapViewportRef} className="relative flex-1 overflow-hidden p-3 sm:p-4">
+            <div
+              ref={picker.mapViewportRef}
+              className="relative flex-1 overflow-hidden p-3 sm:p-4"
+            >
               <div className={styles.mapRoot}>
                 <AddressMapPreview
-                  picked={picked}
-                  center={center}
-                  centerExpression={centerExpression}
-                  mapZoom={mapZoom}
-                  mapInstanceKey={mapInstanceKey}
-                  isMapViewportReady={isMapViewportReady}
-                  hasGoogleKey={hasGoogleKey}
-                  isGoogleLoaded={isGoogleLoaded}
-                  googleLoadError={googleLoadError}
-                  shouldUseGoogle={shouldUseGoogle}
+                  picked={picker.picked}
+                  center={picker.center}
+                  centerExpression={picker.centerExpression}
+                  mapZoom={picker.mapZoom}
+                  mapInstanceKey={picker.mapInstanceKey}
+                  isMapViewportReady={picker.isMapViewportReady}
+                  hasGoogleKey={picker.hasGoogleKey}
+                  isGoogleLoaded={picker.isGoogleLoaded}
+                  googleLoadError={picker.googleLoadError}
+                  shouldUseGoogle={picker.shouldUseGoogle}
                   open={open}
-                  mapLayoutVersion={mapLayoutVersion}
-                  onPickGoogle={handlePickWithGoogle}
-                  onPickOSM={handlePick}
+                  mapLayoutVersion={picker.mapLayoutVersion}
+                  onPickGoogle={picker.handlePickWithGoogle}
+                  onPickOSM={picker.handlePick}
                   onGoogleLoad={(map) => {
-                    setGoogleMap(map);
-                    setMapLayoutVersion((v) => v + 1);
+                    picker.setGoogleMap(map);
+                    picker.setMapLayoutVersion((v) => v + 1);
                   }}
-                  onLeafletLoad={setLeafletMap}
-                  onLeafletPaint={() => setIsLeafletPainted(true)}
+                  onLeafletLoad={picker.setLeafletMap}
+                  onLeafletPaint={() => picker.setIsLeafletPainted(true)}
                 />
               </div>
             </div>
@@ -359,8 +218,12 @@ export function ClinicAddressPickerDialog({
                 <Button
                   type="button"
                   onClick={() => {
-                    if (!picked) return;
-                    onConfirm({ address: addressValue, location: picked, details: addressDetails ?? undefined });
+                    if (!picker.picked) return;
+                    onConfirm({
+                      address: picker.addressValue,
+                      location: picker.picked,
+                      details: picker.addressDetails ?? undefined,
+                    });
                     onOpenChange(false);
                   }}
                   disabled={!picker.picked || picker.isResolving}

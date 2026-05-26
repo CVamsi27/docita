@@ -1,6 +1,6 @@
 "use client";
 
-import { MicroLabel } from "@workspace/ui/components/micro-label";
+import { MicroLabel } from "@workspace/ui/components/indicators/micro-label";
 import { cn } from "@workspace/ui/lib/utils";
 import type { AskAiStoredMessage, AskAiStoredThread } from "./ask-ai-threads";
 

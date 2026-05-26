@@ -18,13 +18,10 @@ import PhoneInput from "react-phone-number-input";
 import { toast } from "sonner";
 import {
   CLINIC_TYPE_OPTIONS,
-  CLINICAL_PLAN_LADDER,
   type ClinicType,
   clinicTypeSchema,
-  FRONT_DESK_PLAN_LADDER,
   type InternalClinicAdminType,
   internalClinicAdminTypeSchema,
-  PUBLISHED_PLAN_LADDER,
   TIER_INFO,
   type TierName,
   tierSchema,
@@ -32,6 +29,19 @@ import {
 import { showUserFacingErrorToast } from "@/lib/errors/user-facing-errors";
 import { DEFAULT_COUNTRY_CODE } from "@workspace/utils";
 import { CLINIC_TYPE_DESCRIPTIONS } from "@/lib/clinic-display";
+
+type CreateClinicFormData = {
+  name: string;
+  email: string;
+  phone: string;
+  address: string;
+  tier: TierName;
+  type: ClinicType;
+  adminName: string;
+  adminEmail: string;
+  adminPassword: string;
+  adminType: InternalClinicAdminType;
+};
 
 type CreateClinicFormData = {
   name: string;
@@ -57,6 +67,20 @@ const INITIAL_FORM_DATA: CreateClinicFormData = {
   adminEmail: "",
   adminPassword: "",
   adminType: "admin",
+};
+
+const CLINIC_TYPE_DESCRIPTIONS: Partial<Record<ClinicType, string>> = {
+  GENERAL: "Multi-specialty facility",
+  DENTAL: "Dentistry & Orthodontics",
+  PEDIATRIC: "Child Health",
+  ORTHOPEDIC: "Bone & Joint Specialist",
+  CARDIOLOGY: "Heart Specialist",
+  DERMATOLOGY: "Skin Care",
+  ENT: "Ear, Nose & Throat",
+  GYNECOLOGY: "Women's Health",
+  OPHTHALMOLOGY: "Eye Care",
+  PSYCHIATRY: "Mental Health",
+  SPECIALTY: "Custom specialty facility",
 };
 
 export function CreateClinicDialog({

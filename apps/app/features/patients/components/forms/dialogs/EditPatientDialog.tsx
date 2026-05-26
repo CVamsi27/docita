@@ -1,6 +1,6 @@
 "use client";
 
-import { DocitaLoadingIndicator } from "@workspace/ui/components/docita-loading-indicator";
+import { DocitaLoadingIndicator } from "@workspace/ui/components/feedback/docita-loading-indicator";
 
 import React, { FC } from "react";
 import { toast } from "sonner";
@@ -10,12 +10,12 @@ import { zodResolver } from "@hookform/resolvers/zod";
 
 import { Patient } from "@workspace/types";
 import { useClinic } from "@/lib/contexts/clinic-context";
-import { useUpdatePatient } from "@/hooks/api/use-patients";
-import { Button } from "@workspace/ui/components/button";
-import { DatePicker } from "@workspace/ui/components/date-picker";
-import { FormDialog } from "@workspace/ui/components/form-dialog";
+import { useUpdatePatient } from "@workspace/data-access";
+import { Button } from "@workspace/ui/components/form/button";
+import { DatePicker } from "@workspace/ui/components/form/date-picker";
+import { FormDialog } from "@workspace/ui/components/form/form-dialog";
 import { showUserFacingErrorToast } from "@/lib/errors/user-facing-errors";
-import { Input } from "@workspace/ui/components/input";
+import { Input } from "@workspace/ui/components/form/input";
 import {
   Form,
   FormControl,
@@ -23,15 +23,16 @@ import {
   FormItem,
   FormLabel,
   FormMessage,
-} from "@workspace/ui/components/form";
+} from "@workspace/ui/components/form/form";
 import {
   Select,
   SelectContent,
   SelectItem,
   SelectTrigger,
   SelectValue,
-} from "@workspace/ui/components/select";
+} from "@workspace/ui/components/form/select";
 import { updatePatientRequestSchema } from "@workspace/types";
+import { parseStringEnumMember } from "@workspace/utils";
 import { validatePatientPhoneNumberForCountry } from "@/features/patients/rules/patientRules";
 
 interface EditPatientDialogProps {
@@ -48,6 +49,15 @@ type GenderValue =
   | "INTERSEX"
   | "NON_BINARY"
   | "PREFER_NOT_TO_SAY";
+
+const GENDER_VALUES = [
+  "MALE",
+  "FEMALE",
+  "OTHER",
+  "INTERSEX",
+  "NON_BINARY",
+  "PREFER_NOT_TO_SAY",
+] as const satisfies readonly GenderValue[];
 
 const GENDER_OPTIONS: { value: GenderValue; label: string }[] = [
   { value: "MALE", label: "Male" },
@@ -76,11 +86,14 @@ export const EditPatientDialog: FC<EditPatientDialogProps> = ({
           lastName: patient.lastName ?? "",
           phoneNumber: patient.phoneNumber ?? null,
           email: patient.email ?? null,
-          gender: (patient.gender ?? "MALE") as GenderValue,
+          gender:
+            parseStringEnumMember(GENDER_VALUES, patient.gender ?? "MALE") ??
+            "MALE",
           dateOfBirth: patient.dateOfBirth
             ? String(patient.dateOfBirth).split("T")[0]
             : null,
-          address: (patient.address as string | undefined) ?? null,
+          address:
+            typeof patient.address === "string" ? patient.address : null,
           mrn: patient.mrn ?? null,
           metadata: null,
           clinicId: undefined,
@@ -226,9 +239,12 @@ export const EditPatientDialog: FC<EditPatientDialogProps> = ({
                   </FormLabel>
                   <Select
                     value={field.value ?? ""}
-                    onValueChange={(value) =>
-                      field.onChange(value as GenderValue)
-                    }
+                    onValueChange={(value) => {
+                      const parsed = parseStringEnumMember(GENDER_VALUES, value);
+                      if (parsed) {
+                        field.onChange(parsed);
+                      }
+                    }}
                   >
                     <FormControl>
                       <SelectTrigger>

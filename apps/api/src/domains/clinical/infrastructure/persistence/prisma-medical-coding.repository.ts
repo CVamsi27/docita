@@ -41,15 +41,10 @@ export class PrismaMedicalCodingRepository
   }
 
   onModuleInit(): void {
-    // Audit FL5 (2026-05-23): prewarm failure is a degraded-but-not-fatal
-    // condition — the cache lazy-fills on first hit, so we keep module
-    // init non-blocking. Log at `error` (not `warn`) with a structured
-    // tag so observability can alert; cold-start latency is the symptom.
     void this.prewarmFromFavorites().catch((error: unknown) => {
-      this.logger.error({
-        event: 'medical_coding_prewarm_failed',
-        error: error instanceof Error ? error.message : String(error),
-      });
+      this.logger.warn(
+        `Failed to prewarm medical-coding cache: ${error instanceof Error ? error.message : String(error)}`,
+      );
     });
   }
 

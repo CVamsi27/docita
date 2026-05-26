@@ -1,15 +1,19 @@
 import { formatChiefComplaintSummary } from '@workspace/utils';
 
-export type TimelineEventType =
-  | 'APPOINTMENT'
-  | 'PRESCRIPTION'
-  | 'METRIC_RECORD'
-  | 'LAB_TEST'
-  | 'MEDICAL_DOCUMENT'
-  | 'FOLLOW_UP'
-  | 'IMMUNIZATION'
-  | 'ADMISSION'
-  | 'MEDICATION_DOSE';
+export type { TimelineEventType } from '@/domains/patients/core/repositories/timeline/timeline-event.types';
+import type { TimelineEventType } from '@/domains/patients/core/repositories/timeline/timeline-event.types';
+import type {
+  AdmissionTimelineRow,
+  AppointmentTimelineRow,
+  FollowUpTimelineRow,
+  ImmunizationTimelineRow,
+  LabTestTimelineRow,
+  MedicalDocumentTimelineRow,
+  MedicationDoseTimelineRow,
+  MetricRecordTimelineRow,
+  PrescriptionTimelineRow,
+} from '@/domains/patients/core/repositories/timeline/patient-timeline-row.types';
+import { timelineRows } from './patient-timeline-row.helpers';
 
 export interface TimelineEvent {
   type: TimelineEventType;
@@ -21,41 +25,8 @@ export interface TimelineEvent {
 }
 
 export function mapAppointments(items: unknown[]): TimelineEvent[] {
-  return (
-    items as Array<{
-      id: string;
-      startTime: Date;
-      chiefComplaint: string | null;
-      finalDiagnosis: string | null;
-      status: string;
-      type: string;
-      treatmentPlan: string | null;
-      observations: string | null;
-      doctor?: { name: string } | null;
-      vitalSign?: {
-        systolicBP: number | null;
-        diastolicBP: number | null;
-        pulse: number | null;
-        temperature: number | null;
-        spo2: number | null;
-        weight: number | null;
-        height: number | null;
-      } | null;
-      prescription?: {
-        medications?: Array<{
-          name: string;
-          dosage: string;
-          frequency: string;
-        }>;
-      } | null;
-      diagnoses?: Array<{
-        icdCode?: { code: string; description: string } | null;
-        notes: string | null;
-        isPrimary: boolean;
-      }>;
-    }>
-  ).map((a) => ({
-    type: 'APPOINTMENT' as TimelineEventType,
+  return timelineRows<AppointmentTimelineRow>(items).map((a) => ({
+    type: 'APPOINTMENT',
     id: a.id,
     date: a.startTime.toISOString(),
     title:
@@ -97,14 +68,8 @@ export function mapAppointments(items: unknown[]): TimelineEvent[] {
 }
 
 export function mapPrescriptions(items: unknown[]): TimelineEvent[] {
-  return (
-    items as Array<{
-      id: string;
-      date: Date;
-      medications: Array<{ name: string }>;
-    }>
-  ).map((p) => ({
-    type: 'PRESCRIPTION' as TimelineEventType,
+  return timelineRows<PrescriptionTimelineRow>(items).map((p) => ({
+    type: 'PRESCRIPTION',
     id: p.id,
     date: p.date.toISOString(),
     title: `Prescription (${p.medications.length} medication${p.medications.length !== 1 ? 's' : ''})`,
@@ -117,33 +82,19 @@ export function mapPrescriptions(items: unknown[]): TimelineEvent[] {
 }
 
 export function mapMetricRecords(items: unknown[]): TimelineEvent[] {
-  return (
-    items as Array<{
-      id: string;
-      recordedAt: Date;
-      values: Array<{ definition: { label: string } }>;
-    }>
-  ).map((r) => ({
-    type: 'METRIC_RECORD' as TimelineEventType,
+  return timelineRows<MetricRecordTimelineRow>(items).map((r) => ({
+    type: 'METRIC_RECORD',
     id: r.id,
     date: r.recordedAt.toISOString(),
     title: 'Health Metrics Recorded',
-    description: r.values.map((v) => v.definition.label).join(', ') || null,
+    description: r.values.map((v) => v.option.label).join(', ') || null,
     metadata: { metricsCount: r.values.length },
   }));
 }
 
 export function mapLabTests(items: unknown[]): TimelineEvent[] {
-  return (
-    items as Array<{
-      id: string;
-      createdAt: Date;
-      status: string;
-      completedAt: Date | null;
-      labTest: { name: string; category: string | null };
-    }>
-  ).map((l) => ({
-    type: 'LAB_TEST' as TimelineEventType,
+  return timelineRows<LabTestTimelineRow>(items).map((l) => ({
+    type: 'LAB_TEST',
     id: l.id,
     date: l.createdAt.toISOString(),
     title: l.labTest.name,
@@ -153,16 +104,8 @@ export function mapLabTests(items: unknown[]): TimelineEvent[] {
 }
 
 export function mapMedicalDocuments(items: unknown[]): TimelineEvent[] {
-  return (
-    items as Array<{
-      id: string;
-      title: string;
-      type: string;
-      status: string;
-      createdAt: Date;
-    }>
-  ).map((d) => ({
-    type: 'MEDICAL_DOCUMENT' as TimelineEventType,
+  return timelineRows<MedicalDocumentTimelineRow>(items).map((d) => ({
+    type: 'MEDICAL_DOCUMENT',
     id: d.id,
     date: d.createdAt.toISOString(),
     title: d.title,
@@ -172,15 +115,8 @@ export function mapMedicalDocuments(items: unknown[]): TimelineEvent[] {
 }
 
 export function mapFollowUps(items: unknown[]): TimelineEvent[] {
-  return (
-    items as Array<{
-      id: string;
-      reason: string;
-      scheduledDate: Date;
-      status: string;
-    }>
-  ).map((f) => ({
-    type: 'FOLLOW_UP' as TimelineEventType,
+  return timelineRows<FollowUpTimelineRow>(items).map((f) => ({
+    type: 'FOLLOW_UP',
     id: f.id,
     date: f.scheduledDate.toISOString(),
     title: `Follow-up: ${f.reason}`,
@@ -190,16 +126,8 @@ export function mapFollowUps(items: unknown[]): TimelineEvent[] {
 }
 
 export function mapImmunizations(items: unknown[]): TimelineEvent[] {
-  return (
-    items as Array<{
-      id: string;
-      vaccineName: string;
-      administeredDate: Date;
-      lotNumber: string | null;
-      notes: string | null;
-    }>
-  ).map((i) => ({
-    type: 'IMMUNIZATION' as TimelineEventType,
+  return timelineRows<ImmunizationTimelineRow>(items).map((i) => ({
+    type: 'IMMUNIZATION',
     id: i.id,
     date: i.administeredDate.toISOString(),
     title: `Immunization: ${i.vaccineName}`,
@@ -209,17 +137,8 @@ export function mapImmunizations(items: unknown[]): TimelineEvent[] {
 }
 
 export function mapAdmissions(items: unknown[]): TimelineEvent[] {
-  return (
-    items as Array<{
-      id: string;
-      admittedAt: Date;
-      dischargedAt: Date | null;
-      reason: string | null;
-      diagnosis: string | null;
-      status: string;
-    }>
-  ).map((a) => ({
-    type: 'ADMISSION' as TimelineEventType,
+  return timelineRows<AdmissionTimelineRow>(items).map((a) => ({
+    type: 'ADMISSION',
     id: a.id,
     date: a.admittedAt.toISOString(),
     title: `Admission: ${a.reason ?? 'Hospital Admission'}`,
@@ -229,19 +148,8 @@ export function mapAdmissions(items: unknown[]): TimelineEvent[] {
 }
 
 export function mapMedicationDoses(items: unknown[]): TimelineEvent[] {
-  return (
-    items as Array<{
-      id: string;
-      takenAt: Date | null;
-      scheduledAt: Date;
-      status: string;
-      notes: string | null;
-      doseAmount: string | null;
-      source: string;
-      medication: { name: string };
-    }>
-  ).map((d) => ({
-    type: 'MEDICATION_DOSE' as TimelineEventType,
+  return timelineRows<MedicationDoseTimelineRow>(items).map((d) => ({
+    type: 'MEDICATION_DOSE',
     id: d.id,
     date: (d.takenAt ?? d.scheduledAt).toISOString(),
     title: `${d.medication.name} - ${d.status.toLowerCase()}`,

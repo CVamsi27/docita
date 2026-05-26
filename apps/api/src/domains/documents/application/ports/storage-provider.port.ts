@@ -4,13 +4,6 @@ import { BadRequestException } from '@nestjs/common';
 export const MAX_SIGNED_URL_TTL_SECONDS = 24 * 60 * 60;
 /** Floor: anything shorter has no operational use. */
 export const MIN_SIGNED_URL_TTL_SECONDS = 30;
-/**
- * TTL for signed URLs that surface PHI-bearing PDFs (invoices, prescriptions).
- * Short by design: a leaked URL (chat forward, browser history sync, intermediary
- * cache) is usable for at most this window. 15 minutes is the standard upper
- * bound for healthcare PHI links; do not raise without a documented rationale.
- */
-export const PDF_SIGNED_URL_TTL_SECONDS = 15 * 60;
 
 export interface StorageFile {
   fieldname: string;

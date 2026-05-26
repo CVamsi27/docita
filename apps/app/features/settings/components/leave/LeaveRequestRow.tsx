@@ -2,14 +2,14 @@
 
 import { Check, X, Ban } from "lucide-react";
 import { toast } from "sonner";
-import { Badge } from "@workspace/ui/components/badge";
-import { Button } from "@workspace/ui/components/button";
-import { DocitaLoadingIndicator } from "@workspace/ui/components/docita-loading-indicator";
+import { Badge } from "@workspace/ui/components/indicators/badge";
+import { Button } from "@workspace/ui/components/form/button";
+import { DocitaLoadingIndicator } from "@workspace/ui/components/feedback/docita-loading-indicator";
 import { formatDate } from "@workspace/utils";
 import {
   useApproveLeave,
   useCancelLeave,
-} from "@/hooks/api/use-leaves";
+} from "@workspace/data-access";
 import type { StaffLeave } from "@workspace/types";
 import { showUserFacingErrorToast } from "@/lib/errors/user-facing-errors";
 import { humanizeUiLabel } from "@workspace/ui/lib/label-formatters";
@@ -38,8 +38,9 @@ export function LeaveRequestRow({
   onActionDone: () => void;
   onReject: (id: string) => void;
 }) {
-  const approveMutation = useApproveLeave(leave.id!);
-  const cancelMutation = useCancelLeave(leave.id!);
+  const leaveId = leave.id ?? "";
+  const approveMutation = useApproveLeave(leaveId);
+  const cancelMutation = useCancelLeave(leaveId);
   const isOwn = leave.staffId === currentUserId;
 
   const handleApprove = async () => {
@@ -83,8 +84,8 @@ export function LeaveRequestRow({
           </Badge>
         </div>
         <p className="text-xs text-muted-foreground mt-0.5">
-          {formatDate(leave.startDate as string, "MMM d, yyyy")} -{" "}
-          {formatDate(leave.endDate as string, "MMM d, yyyy")}
+          {formatDate(leave.startDate, "MMM d, yyyy")} -{" "}
+          {formatDate(leave.endDate, "MMM d, yyyy")}
         </p>
         {leave.reason && (
           <p className="text-xs text-muted-foreground mt-0.5 truncate">
@@ -122,7 +123,9 @@ export function LeaveRequestRow({
               size="sm"
               variant="outline"
               className="h-7 text-xs gap-1 text-destructive hover:text-destructive"
-              onClick={() => onReject(leave.id!)}
+              onClick={() => {
+                if (leave.id) onReject(leave.id);
+              }}
             >
               <X className="h-3 w-3" />
               Reject

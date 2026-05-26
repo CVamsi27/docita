@@ -1,80 +1,15 @@
 "use client";
 
-import { useEffect, useState } from "react";
-import { useRouter } from "next/navigation";
-import { useAuth, type User } from "@/lib/auth/auth-context";
-import { formatLoginLockoutMessage } from "@/lib/auth/auth-lockout";
-import { ApiValidationError } from "@/lib/api/api-error";
-import {
-  checkEmailSchema,
-  getUserFacingErrorMessage,
-  passwordSchema,
-  type UserRole,
-} from "@workspace/types";
-
-const ROLES_LAND_ON_CONSULTATION = new Set<UserRole>(["DOCTOR", "ADMIN_DOCTOR"]);
-import { PageTransitionLoader } from "@/components/common/loaders/page-transition-loader";
+import { PageTransitionLoader } from "@/components/loaders/page-transition-loader";
 import { AuthEmailStepUI } from "./AuthEmailStepUI";
 import { AuthLoginStepUI } from "./AuthLoginStepUI";
 import { AuthSignupStepUI } from "./AuthSignupStepUI";
 import { PreDashboardShell } from "./PreDashboardShell";
-import type { AuthStep, FieldErrors } from "@/features/auth/types/auth";
-import { sanitizeAppReturnPath } from "@/lib/auth/safe-return-path";
-import { APP_REDIRECT_AFTER_LOGIN_KEY } from "@/lib/auth/session";
-
-const STEP_TITLES: Record<AuthStep, string> = {
-  email: "Welcome to Docita",
-  login: "Welcome back",
-  signup: "Create your account",
-};
-
-const STEP_DESCRIPTIONS: Record<AuthStep, string> = {
-  email: "Use your work email to sign in or create an account",
-  login: "Sign in to your workspace",
-  signup: "Get started with Docita",
-};
-
-function getPostAuthPath(user: User): string {
-  if (user.emailVerified === false) {
-    return "/verify-email-sent";
-  }
-
-  if (!user.clinicId) {
-    switch (user.onboardingStep) {
-      case "JOINING_CLINIC":
-        return "/join-request-status";
-      case "CREATING_CLINIC":
-        return "/onboarding";
-      case "CHOOSE_PATH":
-      case "NOT_STARTED":
-      default:
-        return "/choose-path";
-    }
-  }
-
-  if (ROLES_LAND_ON_CONSULTATION.has(user.role as UserRole)) {
-    return "/consultation";
-  }
-
-  return "/today";
-}
-
-function getAuthenticatedLandingPath(user: User): string {
-  const fallback = getPostAuthPath(user);
-
-  if (user.emailVerified === false || !user.clinicId) {
-    return fallback;
-  }
-
-  if (typeof window === "undefined") {
-    return fallback;
-  }
-
-  const stored = sessionStorage.getItem(APP_REDIRECT_AFTER_LOGIN_KEY);
-  sessionStorage.removeItem(APP_REDIRECT_AFTER_LOGIN_KEY);
-  const safe = sanitizeAppReturnPath(stored);
-  return safe ?? fallback;
-}
+import {
+  AUTH_STEP_DESCRIPTIONS,
+  AUTH_STEP_TITLES,
+} from "@/features/auth/lib/auth-page-copy";
+import { useAuthPageContainer } from "@/features/auth/hooks/use-auth-page-container";
 
 export function AuthPageContainer() {
   const auth = useAuthPageContainer();

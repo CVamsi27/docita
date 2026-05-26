@@ -1,6 +1,6 @@
 "use client";
 
-import { DocitaLoadingIndicator } from "@workspace/ui/components/docita-loading-indicator";
+import { DocitaLoadingIndicator } from "@workspace/ui/components/feedback/docita-loading-indicator";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { toast } from "sonner";
@@ -9,27 +9,27 @@ import {
   CardContent,
   CardHeader,
   CardTitle,
-} from "@workspace/ui/components/card";
-import { Button } from "@workspace/ui/components/button";
-import { Badge } from "@workspace/ui/components/badge";
+} from "@workspace/ui/components/indicators/card";
+import { Button } from "@workspace/ui/components/form/button";
+import { Badge } from "@workspace/ui/components/indicators/badge";
 import {
   Dialog,
   DialogContent,
   DialogHeader,
   DialogTitle,
   DialogFooter,
-} from "@workspace/ui/components/dialog";
-import { Input } from "@workspace/ui/components/input";
+} from "@workspace/ui/components/overlay/dialog";
+import { Input } from "@workspace/ui/components/form/input";
 import {
   Select,
   SelectContent,
   SelectItem,
   SelectTrigger,
   SelectValue,
-} from "@workspace/ui/components/select";
+} from "@workspace/ui/components/form/select";
 import { Plus } from "lucide-react";
-import { useCreateLeavePlan, useLeavePlans } from "@/hooks/api/use-leaves";
-import { LeaveType, LeavePlan } from "@workspace/types";
+import { useCreateLeavePlan, useLeavePlans } from "@workspace/data-access";
+import { LeavePlan } from "@workspace/types";
 import { showUserFacingErrorToast } from "@/lib/errors/user-facing-errors";
 import {
   Form,
@@ -38,11 +38,14 @@ import {
   FormItem,
   FormLabel,
   FormMessage,
-} from "@workspace/ui/components/form";
-import { leavePlanDialogSchema } from "@/features/settings/schemas/leave-plan-dialog.schema";
-import type { LeavePlanDialogFormValues } from "@/features/settings/schemas/leave-plan-dialog.schema";
+} from "@workspace/ui/components/form/form";
+import {
+  leavePlanDialogFormSchema,
+  type LeavePlanDialogFormValues,
+} from "@workspace/types";
 import { LEAVE_TYPE_LABELS } from "./LeaveBalanceCard";
 import { useState } from "react";
+import { labelMapKeys } from "@workspace/utils";
 
 const DEFAULT_VALUES: LeavePlanDialogFormValues = {
   leaveType: "CASUAL",
@@ -55,7 +58,7 @@ export function LeavePolicyEditor() {
   const [planDialogOpen, setPlanDialogOpen] = useState(false);
 
   const form = useForm<LeavePlanDialogFormValues>({
-    resolver: zodResolver(leavePlanDialogSchema),
+    resolver: zodResolver(leavePlanDialogFormSchema),
     defaultValues: DEFAULT_VALUES,
   });
 
@@ -139,23 +142,18 @@ export function LeavePolicyEditor() {
                 render={({ field }) => (
                   <FormItem>
                     <FormLabel>Leave Type</FormLabel>
-                    <Select
-                      value={field.value}
-                      onValueChange={field.onChange}
-                    >
+                    <Select value={field.value} onValueChange={field.onChange}>
                       <FormControl>
                         <SelectTrigger>
                           <SelectValue placeholder="Leave type" />
                         </SelectTrigger>
                       </FormControl>
                       <SelectContent>
-                        {(Object.keys(LEAVE_TYPE_LABELS) as LeaveType[]).map(
-                          (lt) => (
-                            <SelectItem key={lt} value={lt}>
-                              {LEAVE_TYPE_LABELS[lt]}
-                            </SelectItem>
-                          ),
-                        )}
+                        {labelMapKeys(LEAVE_TYPE_LABELS).map((lt) => (
+                          <SelectItem key={lt} value={lt}>
+                            {LEAVE_TYPE_LABELS[lt]}
+                          </SelectItem>
+                        ))}
                       </SelectContent>
                     </Select>
                     <FormMessage />
@@ -196,12 +194,13 @@ export function LeavePolicyEditor() {
                 >
                   Cancel
                 </Button>
-                <Button
-                  type="submit"
-                  disabled={createPlanMutation.isPending}
-                >
+                <Button type="submit" disabled={createPlanMutation.isPending}>
                   {createPlanMutation.isPending && (
-                    <DocitaLoadingIndicator variant="inline" decorative className="mr-2" />
+                    <DocitaLoadingIndicator
+                      variant="inline"
+                      decorative
+                      className="mr-2"
+                    />
                   )}
                   Save Plan
                 </Button>

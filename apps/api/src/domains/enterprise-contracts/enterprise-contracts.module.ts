@@ -17,6 +17,10 @@ import { ClinicEnterpriseContractController } from './presentation/controllers/c
     ClinicEnterpriseContractController,
   ],
   providers: [
+    {
+      provide: ENTERPRISE_CONTRACT_PERSISTENCE_PORT,
+      useExisting: PrismaService,
+    },
     EnterpriseContractsService,
     EnterpriseContractsQueryService,
     EnterpriseContractsCommandService,

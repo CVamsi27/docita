@@ -8,32 +8,10 @@ import {
   useBillingHistory,
   useResumeSubscriptionPayment,
 } from "@workspace/data-access";
-import {
-  tierSchema,
-  type SubscriptionCurrentResponse,
-  type TierName,
-} from "@workspace/types";
+import type { SubscriptionCurrentResponse, TierName } from "@workspace/types";
 import type { TierCheckoutParams } from "@/hooks/use-subscription-checkout";
 import { showUserFacingErrorToast } from "@/lib/errors/user-facing-errors";
 import { findRecoverableSubscriptionPayment } from "@/features/subscription/lib/recoverable-subscription-payment";
-
-function parseCheckoutTierParams(
-  subscription: SubscriptionCurrentResponse | null | undefined,
-): { tier: TierName; billingCycle: "MONTHLY" | "YEARLY" } | null {
-  const tier = subscription?.tier;
-  if (!tier || tier === "ENTERPRISE" || (subscription?.basePriceCents ?? 0) <= 0) {
-    return null;
-  }
-  const parsed = tierSchema.safeParse(tier);
-  if (!parsed.success) {
-    return null;
-  }
-  const billingCycle = subscription?.billingCycle ?? "MONTHLY";
-  if (billingCycle !== "MONTHLY" && billingCycle !== "YEARLY") {
-    return null;
-  }
-  return { tier: parsed.data, billingCycle };
-}
 
 type UseResolveSubscriptionPaymentParams = {
   /** When false, skips billing-history fetch and recovery actions (caller owns the UI). */
@@ -64,11 +42,19 @@ export function useResolveSubscriptionPayment({
     if (!enabled) {
       return;
     }
-    const checkoutParams = parseCheckoutTierParams(subscription);
+    const tier = subscription?.tier;
+    const billingCycle = subscription?.billingCycle ?? "MONTHLY";
+    const canOpenSubscriptionCheckout =
+      tier &&
+      tier !== "ENTERPRISE" &&
+      (subscription?.basePriceCents ?? 0) > 0;
 
-    if (recoverablePayment && checkoutParams) {
+    if (recoverablePayment && canOpenSubscriptionCheckout) {
       try {
-        await checkoutTier(checkoutParams);
+        await checkoutTier({
+          tier: tier as TierName,
+          billingCycle,
+        });
         return;
       } catch (error) {
         showUserFacingErrorToast(
@@ -109,8 +95,11 @@ export function useResolveSubscriptionPayment({
       }
     }
 
-    if (checkoutParams) {
-      await checkoutTier(checkoutParams);
+    if (canOpenSubscriptionCheckout) {
+      await checkoutTier({
+        tier: tier as TierName,
+        billingCycle,
+      });
       return;
     }
 
@@ -122,7 +111,9 @@ export function useResolveSubscriptionPayment({
     enabled,
     recoverablePayment,
     resume,
-    subscription,
+    subscription?.basePriceCents,
+    subscription?.billingCycle,
+    subscription?.tier,
     checkoutTier,
     queryClient,
   ]);

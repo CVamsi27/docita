@@ -2,7 +2,6 @@ import { Injectable, BadRequestException } from '@nestjs/common';
 import { Specialization } from '@workspace/db';
 import {
   TIER_PRICING_BY_CURRENCY,
-  isFrontDeskTier,
   tierSchema,
   type MultiCurrencyTierPricing,
   type SupportedCurrency,
@@ -138,7 +137,7 @@ export class OnboardingValidationService {
       );
     }
 
-    const isFrontDeskPlan = isFrontDeskTier(data.planSelection?.tier);
+    const isFrontDeskPlan = data.planSelection?.tier === ClinicTier.FRONT_DESK;
     if (isFrontDeskPlan && data.staffSetup?.staffMembers) {
       for (const member of data.staffSetup.staffMembers) {
         if (member.role === 'NURSE' || member.role === 'ADMIN_DOCTOR') {

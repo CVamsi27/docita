@@ -1,20 +1,20 @@
 "use client";
 
 import { AlertCircle, SlidersHorizontal } from "lucide-react";
-import { Button } from "@workspace/ui/components/button";
-import { Calendar } from "@workspace/ui/components/calendar";
+import { Button } from "@workspace/ui/components/form/button";
+import { Calendar } from "@workspace/ui/components/form/calendar";
 import {
   Popover,
   PopoverContent,
   PopoverTrigger,
-} from "@workspace/ui/components/popover";
+} from "@workspace/ui/components/overlay/popover";
 import {
   Select,
   SelectContent,
   SelectItem,
   SelectTrigger,
   SelectValue,
-} from "@workspace/ui/components/select";
+} from "@workspace/ui/components/form/select";
 import { formatClinicPickerDayIsoFromSelection, formatScheduleTime } from "@workspace/utils";
 import type { ApproveScheduleFieldKey } from "@/lib/utils/appointment-request-approve-errors";
 import { cn } from "@workspace/ui/lib/utils";

@@ -2,6 +2,8 @@
 
 import { DATE_FORMATS, formatDate, formatDistanceToNow, getUserFacingErrorMessage } from "@workspace/utils";
 
+import { DocitaLoadingIndicator } from "@workspace/ui/components/feedback/docita-loading-indicator";
+
 import { type FormEvent, useDeferredValue, useEffect, useMemo, useState } from "react";
 import { DataState } from "@workspace/ui/components/data-display/data-state";
 import { DocitaLoadingIndicator } from "@workspace/ui/components/feedback/docita-loading-indicator";

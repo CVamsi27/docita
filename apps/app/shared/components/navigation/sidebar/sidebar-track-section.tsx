@@ -4,9 +4,9 @@ import { Fragment } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { cn } from "@workspace/ui/lib/utils";
-import { MicroLabel } from "@workspace/ui/components/micro-label";
-import { SymbolTooltip } from "@workspace/ui/components/tooltip";
-import { type NavItem, type NavSection } from "@/features/_shared/components/navigation/nav-config";
+import { MicroLabel } from "@workspace/ui/components/indicators/micro-label";
+import { SymbolTooltip } from "@workspace/ui/components/overlay/tooltip";
+import { type NavItem, type NavSection } from "@/components/navigation/nav-config";
 
 function getIconClasses(isActive: boolean) {
   return cn(

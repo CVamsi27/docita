@@ -8,7 +8,10 @@ import type { Permission } from "@/lib/auth/permissions";
 import { Feature, Tier } from "@workspace/types";
 import { Button } from "@workspace/ui/components/form/button";
 import { humanizeUiLabel } from "@workspace/ui/lib/label-formatters";
-import { SUBSCRIPTION_SETTINGS_PATH } from "@/lib/subscription/subscription-settings-path";
+import {
+  SUBSCRIPTION_BILLING_RESOLVE_PATH,
+  SUBSCRIPTION_SETTINGS_PATH,
+} from "@/lib/subscription/subscription-settings-path";
 
 interface PermissionGateProps {
   requires: Permission | Permission[];

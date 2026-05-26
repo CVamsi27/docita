@@ -1,4 +1,7 @@
+import { z } from "zod";
+import { DEFAULT_COUNTRY_CODE, isRecord } from "@workspace/utils";
 import type { ClinicDetails } from "@/features/onboarding/components/types";
+import { clinicDetailsSchema } from "@/features/onboarding/schemas/clinic-details-refinement";
 
 export const STEPS = [
   { number: 1, label: "Facility Details", estimatedTime: "2 min" },
@@ -16,6 +19,40 @@ export interface OnboardingDraft {
   clinicDetails: Partial<ClinicDetails>;
   savedAt: string;
   onboardingId?: string | null;
+}
+
+const onboardingDraftEnvelopeSchema = z.object({
+  clinicDetails: z.unknown().optional(),
+  savedAt: z.string(),
+  onboardingId: z.string().nullable().optional(),
+});
+
+function toPartialClinicDetails(value: unknown): Partial<ClinicDetails> {
+  const validated = parseClinicDetailsDraft(value);
+  if (validated) return validated;
+  return isRecord(value) ? value : {};
+}
+
+export function parseOnboardingDraft(raw: unknown): OnboardingDraft | null {
+  const parsed = onboardingDraftEnvelopeSchema.safeParse(raw);
+  if (!parsed.success) return null;
+  return {
+    clinicDetails: toPartialClinicDetails(parsed.data.clinicDetails),
+    savedAt: parsed.data.savedAt,
+    onboardingId: parsed.data.onboardingId,
+  };
+}
+
+export function parseClinicDetailsDraft(value: unknown): ClinicDetails | null {
+  const candidate = isRecord(value)
+    ? {
+        facilityLabel: "CLINIC",
+        countryCode: DEFAULT_COUNTRY_CODE,
+        ...value,
+      }
+    : value;
+  const parsed = clinicDetailsSchema.safeParse(candidate ?? {});
+  return parsed.success ? parsed.data : null;
 }
 
 export function hasMeaningfulClinicDraftData(

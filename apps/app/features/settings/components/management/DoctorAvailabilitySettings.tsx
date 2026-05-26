@@ -1,15 +1,6 @@
 "use client";
 
-import { DocitaLoadingIndicator } from "@workspace/ui/components/docita-loading-indicator";
-
-import { useEffect, useMemo, useState } from "react";
-import {
-  useBulkDoctorSchedules,
-  useClinicMembers,
-  useDoctorSchedules,
-} from "@/hooks/api/use-settings";
-import { useAuth } from "@/lib/auth/auth-context";
-import { toast } from "sonner";
+import { DocitaLoadingIndicator } from "@workspace/ui/components/feedback/docita-loading-indicator";
 import {
   Card,
   CardContent,
@@ -27,39 +18,9 @@ import {
   SelectValue,
 } from "@workspace/ui/components/form/select";
 import { Calendar } from "lucide-react";
-import { Skeleton } from "@workspace/ui/components/skeleton";
-import { showUserFacingErrorToast } from "@/lib/errors/user-facing-errors";
-
-const DAYS_OF_WEEK = [
-  "Monday",
-  "Tuesday",
-  "Wednesday",
-  "Thursday",
-  "Friday",
-  "Saturday",
-  "Sunday",
-] as const;
-
-type DayOfWeek = (typeof DAYS_OF_WEEK)[number];
-
-interface DaySchedule {
-  dayOfWeek: DayOfWeek;
-  startTime: string;
-  endTime: string;
-  slotDuration: number;
-  isActive: boolean;
-}
-
-const DEFAULT_DAY_SCHEDULE: Omit<DaySchedule, "dayOfWeek"> = {
-  startTime: "09:00",
-  endTime: "17:00",
-  slotDuration: 15,
-  isActive: false,
-};
-
-const WEEKEND_DEFAULT: Partial<Omit<DaySchedule, "dayOfWeek">> = {
-  isActive: false,
-};
+import { Skeleton } from "@workspace/ui/components/feedback/skeleton";
+import { DoctorAvailabilityDayRow } from "./doctor-availability-day-row";
+import { useDoctorAvailabilitySettings } from "./use-doctor-availability-settings";
 
 export function DoctorAvailabilitySettings() {
   const availability = useDoctorAvailabilitySettings();
@@ -114,7 +75,7 @@ export function DoctorAvailabilitySettings() {
         <CardContent className="space-y-6">
           {availability.isAdmin && availability.doctors.length > 0 ? (
             <div className="space-y-2">
-              <Label htmlFor="availability-doctor">Select doctor</Label>
+              <Label htmlFor="availability-doctor">Select Doctor</Label>
               <Select
                 value={availability.selectedDoctorId}
                 onValueChange={availability.setSelectedDoctorId}

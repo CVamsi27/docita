@@ -1,102 +1,19 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
-import { PrismaService } from '@/prisma/prisma.service';
-import { Prisma } from '@workspace/db';
+import { Injectable, NotFoundException, Inject } from '@nestjs/common';
+import {
+  CLINIC_PERSISTENCE_PORT,
+  type ClinicPersistencePort,
+} from '@/domains/clinics/application/ports/clinic-persistence.port';
 import { Feature } from '@workspace/types';
 import { assertClinicHasFeatureOrThrow } from '@/shared/modules/auth/utils/clinic-feature-access.util';
 import { SettingsFactory } from '@/domains/clinics/core/factories/settings.factory';
 import type {
   CreateDataSubjectRequest,
   UpdateDataSubjectRequest,
-  WorkspaceProfile,
 } from '@workspace/types';
 import { ClinicDataService } from './clinic-data.service';
 import { ClinicDataSubjectRequestService } from './clinic-data-subject-request.service';
-
-interface ClinicSettingsData {
-  name?: string;
-  address?: string;
-  phone?: string;
-  phoneNumber?: string;
-  gstin?: string;
-  email?: string;
-  website?: string;
-  description?: string;
-  openingTime?: string;
-  closingTime?: string;
-  workingDays?: string[];
-  consultationDuration?: number;
-  reminderBefore?: string | number;
-  reminderUnit?: string;
-  whatsappAppointmentReminders?: boolean;
-  whatsappFollowUpMessages?: boolean;
-  whatsappBirthdayWishes?: boolean;
-  whatsappMedicineReminders?: boolean;
-  customFields?: { name: string; type: string; required: boolean }[];
-  emailNotifications?: boolean;
-  smsNotifications?: boolean;
-  pushNotifications?: boolean;
-  appointmentAlerts?: boolean;
-  reportAlerts?: boolean;
-  twoFactorAuth?: boolean;
-  sessionTimeout?: string | number;
-  auditLogs?: boolean;
-  theme?: string;
-  primaryColor?: string;
-  compactMode?: boolean;
-  avgConsultationMinutes?: number;
-  lateArrivalGraceMinutes?: number;
-  queueBufferMinutes?: number;
-  useDoctorQueues?: boolean;
-  followUpReminderEnabled?: boolean;
-  followUpReminderBefore?: string;
-  followUpReminderUnit?: string;
-  invoiceReminderEnabled?: boolean;
-  invoiceReminderBefore?: string;
-  invoiceReminderUnit?: string;
-  prescriptionReminderEnabled?: boolean;
-  prescriptionReminderBefore?: string;
-  prescriptionReminderUnit?: string;
-  scheduleNotificationEnabled?: boolean;
-  scheduleNotificationBefore?: string;
-  scheduleNotificationUnit?: string;
-  whatsappPreAppointmentEnabled?: boolean;
-  whatsappPreAppointmentMinutes?: number;
-  paymentReminderEnabled?: boolean;
-  paymentReminderDays?: number[];
-  paymentReminderAutoSendWhatsApp?: boolean;
-  useSameBankAccountForSubscriptionAndReceipts?: boolean;
-  subscriptionPaymentBankAccount?: {
-    accountHolderName?: string;
-    bankName?: string;
-    accountNumber?: string;
-    ifscCode?: string;
-    branchName?: string;
-    upiId?: string;
-  };
-  paymentReceivingBankAccount?: {
-    accountHolderName?: string;
-    bankName?: string;
-    accountNumber?: string;
-    ifscCode?: string;
-    branchName?: string;
-    upiId?: string;
-  };
-
-  facilityLabel?: 'CLINIC' | 'HOSPITAL';
-
-  taxSettings?: {
-    countryCode: string;
-    regime?: 'IN_GST' | 'VAT' | 'SALES_TAX' | 'NONE';
-    registrationId?: string;
-    registrationLabel?: string;
-  };
-
-  workspaceProfile?: WorkspaceProfile;
-
-  sidebarNavOrder?: unknown;
-
-  mapsLink?: string;
-}
+import type { ClinicSettingsData } from './clinic-settings.types';
+import { toPrismaInputJsonValue } from '@/shared/common/json/to-prisma-input-json-value';
 
 /**
  * Manages clinic settings mutations: updating clinic configuration and prescription defaults.
@@ -105,7 +22,8 @@ interface ClinicSettingsData {
 @Injectable()
 export class ClinicSettingsCommandService {
   constructor(
-    private prisma: PrismaService,
+    @Inject(CLINIC_PERSISTENCE_PORT)
+    private persistence: ClinicPersistencePort,
     private settingsFactory: SettingsFactory,
     private clinicDataService: ClinicDataService,
     private dataSubjectRequestService: ClinicDataSubjectRequestService,
@@ -151,19 +69,23 @@ export class ClinicSettingsCommandService {
       'prescriptionReminderBefore',
       'prescriptionReminderUnit',
     ];
+    const whiteLabelKeys: (keyof ClinicSettingsData)[] = ['brandName'];
+    const lockedThemeKeys: (keyof ClinicSettingsData)[] = ['lockedTheme'];
 
     const needsCheck =
       this.payloadTouchesKeys(data, whatsappKeys) ||
       this.payloadTouchesKeys(data, queueKeys) ||
       this.payloadTouchesKeys(data, invoicingKeys) ||
       this.payloadTouchesKeys(data, auditKeys) ||
-      this.payloadTouchesKeys(data, autoReminderKeys);
+      this.payloadTouchesKeys(data, autoReminderKeys) ||
+      this.payloadTouchesKeys(data, whiteLabelKeys) ||
+      this.payloadTouchesKeys(data, lockedThemeKeys);
 
     if (!needsCheck) {
       return;
     }
 
-    const clinic = await this.prisma.clinic.findUnique({
+    const clinic = await this.persistence.clinic.findUnique({
       where: { id: clinicId },
       select: {
         tier: true,
@@ -197,6 +119,12 @@ export class ClinicSettingsCommandService {
     if (this.payloadTouchesKeys(data, autoReminderKeys)) {
       assertClinicHasFeatureOrThrow(snapshot, Feature.AUTO_REMINDERS);
     }
+    if (this.payloadTouchesKeys(data, whiteLabelKeys)) {
+      assertClinicHasFeatureOrThrow(snapshot, Feature.WHITE_LABEL_BRANDING);
+    }
+    if (this.payloadTouchesKeys(data, lockedThemeKeys)) {
+      assertClinicHasFeatureOrThrow(snapshot, Feature.LOCKED_CUSTOM_THEME);
+    }
   }
 
   private toRecord(value: unknown): Record<string, unknown> {
@@ -204,10 +132,6 @@ export class ClinicSettingsCommandService {
       return {};
     }
     return Object.fromEntries(Object.entries(value));
-  }
-
-  private toInputJsonValue(value: unknown): Prisma.InputJsonValue {
-    return JSON.parse(JSON.stringify(value)) as Prisma.InputJsonValue;
   }
 
   async updateSettings(id: string, data: ClinicSettingsData) {
@@ -260,7 +184,6 @@ export class ClinicSettingsCommandService {
       paymentReceivingBankAccount: data.paymentReceivingBankAccount,
       facilityLabel: data.facilityLabel,
       taxSettings: data.taxSettings,
-      workspaceProfile: data.workspaceProfile,
       mapsLink: data.mapsLink,
     };
 
@@ -271,11 +194,12 @@ export class ClinicSettingsCommandService {
     const validatedSettings =
       this.settingsFactory.partialValidate(cleanSettings);
 
-    const existingClinic = await this.prisma.clinic.findUnique({
+    const existingClinic = await this.persistence.clinic.findUnique({
       where: { id },
-      select: { settings: true },
+      select: { settings: true, branding: true },
     });
     const existingSettings = this.toRecord(existingClinic?.settings);
+    const existingBranding = this.toRecord(existingClinic?.branding);
 
     const resolvedSettings = {
       ...existingSettings,
@@ -297,17 +221,32 @@ export class ClinicSettingsCommandService {
         data.subscriptionPaymentBankAccount;
     }
 
-    await this.prisma.clinic.update({
+    const hasBrandingUpdate =
+      data.brandName !== undefined || data.lockedTheme !== undefined;
+    const resolvedBranding = hasBrandingUpdate
+      ? {
+          ...existingBranding,
+          ...(data.brandName !== undefined && { brandName: data.brandName }),
+          ...(data.lockedTheme !== undefined && {
+            lockedTheme: data.lockedTheme,
+          }),
+        }
+      : undefined;
+
+    await this.persistence.clinic.update({
       where: { id },
       data: {
         name: data.name,
         address: data.address,
         phone: data.phoneNumber || data.phone,
-        settings: this.toInputJsonValue({
+        settings: toPrismaInputJsonValue({
           ...resolvedSettings,
           ...(data.gstin !== undefined && {
             gstin: data.gstin || undefined,
           }),
+        }),
+        ...(resolvedBranding !== undefined && {
+          branding: toPrismaInputJsonValue(resolvedBranding),
         }),
         email: data.email,
         website: data.website,
@@ -367,7 +306,7 @@ export class ClinicSettingsCommandService {
     clinicId: string,
     data: Record<string, unknown>,
   ) {
-    const clinic = await this.prisma.clinic.findUnique({
+    const clinic = await this.persistence.clinic.findUnique({
       where: { id: clinicId },
       select: { settings: true },
     });
@@ -378,10 +317,10 @@ export class ClinicSettingsCommandService {
       ...data,
     };
 
-    return this.prisma.clinic.update({
+    return this.persistence.clinic.update({
       where: { id: clinicId },
       data: {
-        settings: this.toInputJsonValue(mergedSettings),
+        settings: toPrismaInputJsonValue(mergedSettings),
       },
     });
   }

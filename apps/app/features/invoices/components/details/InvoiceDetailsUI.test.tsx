@@ -2,7 +2,6 @@ import { screen } from "@testing-library/react";
 import { render } from "@/test-utils/render-with-tooltip";
 import { describe, expect, it, vi, beforeEach } from "vitest";
 import type { ImgHTMLAttributes } from "react";
-import type { ReactElement } from "react";
 import { InvoiceDetailsUI } from "./InvoiceDetailsUI";
 
 vi.mock("@/components/auth/feature-gate", () => ({

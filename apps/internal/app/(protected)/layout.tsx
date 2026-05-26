@@ -1,9 +1,25 @@
 "use client";
 
-import { AppShell } from "@workspace/ui/components/layout/app-shell";
-import { InternalProtectedGate } from "@/lib/auth/internal-protected-gate";
+import Link from "next/link";
+import { usePathname } from "next/navigation";
+import { cn } from "@workspace/ui/lib/utils";
+import { Button } from "@workspace/ui/components/form/button";
+import { DocitaIcon } from "@workspace/ui/components/indicators/docita-logo";
+import {
+  Activity,
+  BarChart3,
+  CreditCard,
+  FileText,
+  Inbox,
+  LayoutDashboard,
+  LogOut,
+  Megaphone,
+  MessageSquare,
+  Shield,
+  Users,
+} from "lucide-react";
 import { MobileNav } from "./dashboard/mobile-nav";
-import { InternalSidebar } from "@/components/internal-sidebar";
+import { useAuth } from "@/lib/auth/auth";
 import { ThemeToggle } from "@/components/theme-toggle";
 
 export default function ProtectedLayout({

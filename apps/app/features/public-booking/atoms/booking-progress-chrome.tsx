@@ -1,6 +1,6 @@
 "use client";
 
-import { Progress } from "@workspace/ui/components/progress";
+import { Progress } from "@workspace/ui/components/feedback/progress";
 import { PUBLIC_BOOKING_MOBILE_WIZARD_HEADER_STICKY_CLASS } from "@/features/public-booking/public-booking-constants";
 import { cn } from "@workspace/ui/lib/utils";
 

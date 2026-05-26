@@ -7,15 +7,14 @@ import {
   CardDescription,
   CardHeader,
   CardTitle,
-} from "@workspace/ui/components/card";
-import { Button } from "@workspace/ui/components/button";
-import { Badge } from "@workspace/ui/components/badge";
-import { Skeleton } from "@workspace/ui/components/skeleton";
+} from "@workspace/ui/components/indicators/card";
+import { Button } from "@workspace/ui/components/form/button";
+import { Badge } from "@workspace/ui/components/indicators/badge";
+import { Skeleton } from "@workspace/ui/components/feedback/skeleton";
 import { Copy, UserPlus } from "lucide-react";
 import { User } from "@workspace/types";
 import {
-  MEMBER_ROLE_LABELS,
-  type MemberRole,
+  memberRoleDisplayLabel,
 } from "@/features/settings/components/management/member-management-schemas";
 
 // ---------------------------------------------------------------------------
@@ -102,9 +101,7 @@ export const MemberListRow: FC<MemberListRowProps> = ({ member, onManage }) => {
           <div className="mt-1 flex flex-wrap items-center gap-2 text-xs text-muted-foreground">
             <span>{member.email}</span>
             <Badge variant="outline">
-              {MEMBER_ROLE_LABELS[member.role as MemberRole] ||
-                member.role ||
-                "Staff"}
+              {memberRoleDisplayLabel(member.role)}
             </Badge>
             {isDoctor && (
               <>

@@ -38,6 +38,11 @@ import { AppointmentsApiAccess } from '@/domains/appointments/presentation/contr
 import { getAppointmentAccessContext } from '@/domains/appointments/application/types/appointment-access-context';
 import { AuditService } from '@/shared/modules/audit/audit/audit.service';
 import {
+  AppointmentsApiAccess,
+  getAppointmentAccessContext,
+} from '@/domains/appointments/presentation/controllers/appointments.controller.access';
+import { AuditService } from '@/shared/modules/audit/audit/audit.service';
+import {
   logClinicPhiListRead,
   logPatientPhiRead,
 } from '@/shared/modules/audit/audit/patient-access-audit.util';

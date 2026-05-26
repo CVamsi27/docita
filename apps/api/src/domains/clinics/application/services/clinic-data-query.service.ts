@@ -1,5 +1,4 @@
 import { Injectable, Inject } from '@nestjs/common';
-import { mapWithConcurrency } from '@workspace/utils';
 import { StoredFileUrlResolverService } from '@/domains/documents/application/services/stored-file-url-resolver.service';
 import {
   IClinicDataRepository,
@@ -16,8 +15,6 @@ import {
   toRecord,
 } from './clinic-data.helpers';
 
-const CLINIC_SIGNATURE_URL_CONCURRENCY = 8;
-
 @Injectable()
 export class ClinicDataQueryService {
   constructor(
@@ -28,10 +25,8 @@ export class ClinicDataQueryService {
 
   async findAll() {
     const clinics = await this.repository.findAll();
-    return mapWithConcurrency(
-      clinics,
-      CLINIC_SIGNATURE_URL_CONCURRENCY,
-      async (clinic) => {
+    return Promise.all(
+      clinics.map(async (clinic) => {
         const settings = toRecord(clinic.settings);
         return attachResolvedClinicSignatureUrl(
           {
@@ -46,7 +41,7 @@ export class ClinicDataQueryService {
           },
           this.storedFileUrlResolver,
         );
-      },
+      }),
     );
   }
 
@@ -76,10 +71,8 @@ export class ClinicDataQueryService {
   async getUserClinics(userId: string) {
     const doctorClinics = await this.repository.findDoctorClinics(userId);
 
-    return mapWithConcurrency(
-      doctorClinics,
-      CLINIC_SIGNATURE_URL_CONCURRENCY,
-      async (dc) => {
+    return Promise.all(
+      doctorClinics.map(async (dc) => {
         const clinic = dc.clinic;
         const settings = toRecord(clinic.settings);
         return attachResolvedClinicSignatureUrl(
@@ -95,7 +88,7 @@ export class ClinicDataQueryService {
           },
           this.storedFileUrlResolver,
         );
-      },
+      }),
     );
   }
 

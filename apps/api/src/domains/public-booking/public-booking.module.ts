@@ -7,7 +7,7 @@ import { AuthModule } from '@/shared/modules/auth/auth/auth.module';
 import { DoctorsModule } from '@/domains/doctors/doctors.module';
 import { PatientsModule } from '@/domains/patients/patients.module';
 import { AppointmentsModule } from '@/domains/appointments/appointments.module';
-import { WhatsappModule } from '@/shared/modules/messaging/whatsapp/whatsapp.module';
+import { WhatsappModule } from '@/domains/whatsapp/whatsapp-clinic.module';
 import { ComplianceModule } from '@/shared/modules/compliance/compliance.module';
 import { PublicBookingController } from '@/domains/public-booking/presentation/controllers/public-booking.controller';
 import { PublicBookingService } from '@/domains/public-booking/application/services/public-booking.service';
@@ -36,6 +36,7 @@ import { TurnstileSiteverifyClient } from '@/domains/public-booking/infrastructu
     PublicBookingSlotsService,
     PublicBookingCreationService,
     PublicBookingSubmitService,
+    TurnstileSiteverifyClient,
     TurnstileVerifyService,
     PublicBookingTokenService,
   ],

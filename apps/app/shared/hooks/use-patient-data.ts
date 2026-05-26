@@ -2,14 +2,9 @@
 
 import { useCallback, useEffect, useState } from "react";
 import { apiFetch } from "@/lib/api/api-client";
-import { useTierFeatureEnabled } from "@/hooks/api/tier-feature-guards";
-import {
-  Appointment,
-  Document,
-  Feature,
-  getUserFacingErrorMessage,
-  PatientWithMedicalHistory,
-} from "@workspace/types";
+import { useTierFeatureEnabled } from "@/lib/access-control/use-tier-feature-enabled";
+import { Appointment, Document, Feature, PatientWithMedicalHistory } from "@workspace/types";
+import { getUserFacingErrorMessage } from "@workspace/utils";
 
 export interface PatientStatistics {
   totalVisits: number;

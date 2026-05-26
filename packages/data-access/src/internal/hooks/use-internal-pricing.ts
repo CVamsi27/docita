@@ -6,7 +6,6 @@ import type {
   InternalPricingOfferRow,
   InternalPaymentTierPricingRow,
 } from "../pricing.types";
-import { normalizeInternalTierPricingResponse } from "../lib/map-tier-pricing";
 
 export function useInternalTierPricing(
   token: string | null | undefined,
@@ -22,8 +21,10 @@ export function useInternalTierPricing(
     queryKey: internalQueryKeys.internal.pricingTiers(),
     queryFn: async () => {
       try {
-        const data = await fetcher<unknown>("/internal/tier-pricing");
-        return normalizeInternalTierPricingResponse(data, fallbackTiers);
+        const data = await fetcher<{ tiers?: InternalPaymentTierPricingRow[] }>(
+          "/internal/tier-pricing",
+        );
+        return Array.isArray(data.tiers) ? data.tiers : fallbackTiers;
       } catch {
         return fallbackTiers;
       }

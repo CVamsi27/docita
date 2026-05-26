@@ -99,7 +99,7 @@ export function DocumentsPageTableCard({
   return (
     <Card className="border-border shadow-sm">
       <CardHeader>
-        <CardTitle>All documents</CardTitle>
+        <CardTitle>All Documents</CardTitle>
         <CardDescription>
           A list of all documents uploaded for patients
         </CardDescription>
@@ -110,7 +110,7 @@ export function DocumentsPageTableCard({
             <TableHeader>
               <TableRow className="hover:bg-muted/50">
                 <TableHead className="hidden md:table-cell">Document ID</TableHead>
-                <TableHead>File name</TableHead>
+                <TableHead>File Name</TableHead>
                 <TableHead>Patient</TableHead>
                 <TableHead className="hidden sm:table-cell">Type</TableHead>
                 <TableHead className="hidden sm:table-cell">Date</TableHead>
@@ -162,7 +162,7 @@ export function DocumentsPageTableCard({
                 <TableHead>
                   <DocumentsSortableHeader
                     column="filename"
-                    label="File name"
+                    label="File Name"
                     sortConfig={sortConfig}
                     onSort={onSort}
                   />

@@ -1,19 +1,22 @@
 import { NotFoundException } from '@nestjs/common';
 import { beforeEach, describe, it, expect, jest } from '@jest/globals';
 import { DoctorsQueryService } from './doctors-query.service';
-import { PrismaService } from '@/prisma/prisma.service';
+import {
+  DOCTOR_PERSISTENCE_PORT,
+  type DoctorPersistencePort,
+} from '@/domains/doctors/application/ports/doctor-persistence.port';
 import { StoredFileUrlResolverService } from '@/domains/documents/application/services/stored-file-url-resolver.service';
 
 describe('DoctorsQueryService', () => {
   let service: DoctorsQueryService;
-  let prisma: jest.Mocked<PrismaService>;
+  let prisma: jest.Mocked<DoctorPersistencePort>;
   let storedFileUrlResolver: jest.Mocked<StoredFileUrlResolverService>;
 
   beforeEach(() => {
     prisma = {
       doctorClinic: { findMany: jest.fn(), findFirst: jest.fn() },
       user: { findMany: jest.fn(), findFirst: jest.fn() },
-    } as unknown as jest.Mocked<PrismaService>;
+    } as unknown as jest.Mocked<DoctorPersistencePort>;
 
     storedFileUrlResolver = Object.create(
       StoredFileUrlResolverService.prototype,

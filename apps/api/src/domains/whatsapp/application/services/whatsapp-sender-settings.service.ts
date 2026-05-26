@@ -142,9 +142,7 @@ export class WhatsappSenderSettingsService {
     }
 
     if (payload.mode === 'MANAGED') {
-      if (!options.bypassFeatureGate) {
-        assertClinicHasFeatureOrThrow(clinic, Feature.WHATSAPP_MANAGED_NUMBER);
-      }
+      assertClinicHasFeatureOrThrow(clinic, Feature.WHATSAPP_MANAGED_NUMBER);
       await this.persistence.clinic.update({
         where: { id: clinicId },
         data: {

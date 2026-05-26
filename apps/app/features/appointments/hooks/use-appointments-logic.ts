@@ -14,11 +14,8 @@ import { useDoctors, useUnavailableDoctorIdsForDate } from "@workspace/data-acce
 import {
   type AppointmentListItem,
   useAppointments,
-  useCheckInAppointment,
-  useStartConsultation,
-} from "@/hooks/api/use-appointments";
+} from "@workspace/data-access";
 import { useAuth } from "@/lib/auth/auth-context";
-import { showUserFacingErrorToast } from "@/lib/errors/user-facing-errors";
 import { useDebounce } from "@workspace/hooks/use-debounce";
 import {
   isClinicWideAppointmentRole,
@@ -26,6 +23,8 @@ import {
   VISIBLE_APPOINTMENT_STATUS_QUERY,
 } from "@workspace/types";
 import { useAppointmentRowActions } from "@/features/appointments/hooks/use-appointment-row-actions";
+import { useAppointmentActions } from "@/features/appointments/hooks/use-appointment-actions";
+import { useAppointmentsDialogUrlSync } from "@/features/appointments/hooks/use-appointments-dialog-url-sync";
 import { useClinic } from "@/lib/contexts/clinic-context";
 
 export const generateTimeSlots = () => {

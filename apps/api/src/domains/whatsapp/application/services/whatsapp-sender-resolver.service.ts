@@ -36,7 +36,7 @@ export class WhatsappSenderResolver {
     // AuditLogged: whatsapp sender resolution
     this.logger.log({ action: 'whatsapp.resolve-sender', clinicId });
 
-    const clinic = await this.prisma.clinic.findUnique({
+    const clinic = await this.persistence.clinic.findUnique({
       where: { id: clinicId },
       select: {
         whatsappSenderMode: true,

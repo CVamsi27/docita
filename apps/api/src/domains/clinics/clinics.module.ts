@@ -79,6 +79,7 @@ import { DocumentsModule } from '@/domains/documents/documents.module';
     ClinicSettingsQueryService,
     ClinicSettingsCommandService,
     ClinicDataSubjectRequestService,
+    StaffInviteService,
     StaffManagementService,
     ClinicsService,
     JoinRequestQueryService,

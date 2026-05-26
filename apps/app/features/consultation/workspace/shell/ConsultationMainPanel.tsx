@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo, type RefObject } from "react";
+import { useMemo, type ReactNode, type RefObject } from "react";
 import { SectionTabs } from "@/features/consultation/workspace/chrome/SectionRail";
 import {
   AssessmentSection,
@@ -17,7 +17,10 @@ import {
   VisionSpecialtySection,
 } from "@/features/consultation/workspace/sections";
 import { ConsultationAfterVisitStrip } from "@/features/consultation/components/ConsultationWorkspaceExtras";
-import type { ConsultationSection } from "@/features/consultation/workspace/consultation-section-registry";
+import type {
+  ConsultationSection,
+  ConsultationWorkspaceSectionId,
+} from "@/features/consultation/workspace/consultation-section-registry";
 import type { Appointment, PatientWithMedicalHistory } from "@workspace/types";
 
 interface ConsultationMainPanelProps {
@@ -44,7 +47,7 @@ export function ConsultationMainPanel({
   appointmentData,
 }: ConsultationMainPanelProps) {
   const sectionComponents = useMemo(
-    () => ({
+    (): Partial<Record<ConsultationWorkspaceSectionId, ReactNode>> => ({
       subjective: (
         <SubjectiveSection
           key="subjective"
@@ -150,8 +153,7 @@ export function ConsultationMainPanel({
       >
         <div className="mx-auto flex max-w-3xl flex-col gap-4">
           {sections.map((section) => {
-            const Node =
-              sectionComponents[section.id as keyof typeof sectionComponents];
+            const Node = sectionComponents[section.id];
             return Node ?? null;
           })}
           <ConsultationAfterVisitStrip

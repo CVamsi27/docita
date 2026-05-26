@@ -1,8 +1,6 @@
 "use client";
 
-import { FC, type ReactNode } from "react";
-import { Feature } from "@workspace/types";
-import { FeatureGate } from "@/components/auth/feature-gate";
+import { FC } from "react";
 import { Card, CardContent, CardFooter } from "@workspace/ui/components/indicators/card";
 import { Button } from "@workspace/ui/components/form/button";
 import { Download, Edit, FileText, Printer } from "lucide-react";
@@ -14,10 +12,10 @@ import Link from "next/link";
 import { useSearchParams } from "next/navigation";
 import { useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
-import { useResendInvoiceWhatsApp } from "@/hooks/api/use-whatsapp";
+import { queryKeys, useResendInvoiceWhatsApp } from "@workspace/data-access";
 import { showUserFacingErrorToast } from "@/lib/errors/user-facing-errors";
-import { WhatsAppDeliveryBadge } from "@/features/_shared/components/whatsapp/whatsapp-delivery-badge";
-import { Section } from "@workspace/ui/components/section";
+import { WhatsAppDeliveryBadge } from "@/components/whatsapp/whatsapp-delivery-badge";
+import { Section } from "@workspace/ui/components/layout/section";
 import { InvoiceHeader } from "./InvoiceHeader";
 import { InvoiceBillTo } from "./InvoiceBillTo";
 import { InvoiceItemsTableReadOnly } from "./InvoiceItemsTableReadOnly";

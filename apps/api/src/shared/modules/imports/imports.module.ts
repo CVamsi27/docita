@@ -39,7 +39,11 @@ import { ComplianceModule } from '@/shared/modules/compliance/compliance.module'
 
 @Module({
   imports: [PrismaModule, AIModule, ComplianceModule],
-  controllers: [ImportsController, BulkImportController],
+  controllers: [
+    ImportsPatientsController,
+    ImportsOcrController,
+    BulkImportController,
+  ],
   providers: [
     ImportsService,
     ImportPreviewService,

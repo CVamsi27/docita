@@ -8,8 +8,8 @@ import type {
   PublicBookingSlotsResponse,
   PublicBookingSubmitResponse,
 } from "@workspace/types";
-import { queryKeys } from "@workspace/data-access";
-import { fetchAPI } from "@/lib/api/api-core";
+import { queryKeys } from "../lib/query-keys";
+import { useDataAccessContext } from "../provider/hooks";
 
 function clinicsBase(referralCode: string) {
   return `/public/booking/clinics/${encodeURIComponent(referralCode)}`;

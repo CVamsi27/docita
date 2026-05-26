@@ -9,26 +9,26 @@ import {
   SlidersHorizontal,
 } from "lucide-react";
 import { cn } from "@workspace/ui/lib/utils";
-import { Button } from "@workspace/ui/components/button";
-import { Badge } from "@workspace/ui/components/badge";
+import { Button } from "@workspace/ui/components/form/button";
+import { Badge } from "@workspace/ui/components/indicators/badge";
 import {
   Tooltip,
   TooltipContent,
   TooltipProvider,
   TooltipTrigger,
-} from "@workspace/ui/components/tooltip";
-import { MicroLabel } from "@workspace/ui/components/micro-label";
-import { NotificationPanel } from "@/features/_shared/components/navigation/notification-panel";
-import { NotificationBellWithBadges } from "@/features/_shared/components/navigation/notification-bell-with-badges";
-import { ThemeToggleWithAppearanceSync } from "@/features/_shared/components/layout/theme-toggle-with-appearance-sync";
-import { AskAiButton } from "@/features/_shared/components/ask-ai/ask-ai-button";
+} from "@workspace/ui/components/overlay/tooltip";
+import { MicroLabel } from "@workspace/ui/components/indicators/micro-label";
+import { NotificationPanel } from "@/components/navigation/notification-panel";
+import { NotificationBellWithBadges } from "@/components/navigation/notification-bell-with-badges";
+import { ThemeToggleWithAppearanceSync } from "@/components/layout/theme-toggle-with-appearance-sync";
+import { AskAiButton } from "@/components/ask-ai/ask-ai-button";
 import { SUBSCRIPTION_SETTINGS_PATH } from "@/lib/subscription/subscription-settings-path";
 import {
   HELP_NAV_ITEM,
   type NavSection,
-} from "@/features/_shared/components/navigation/nav-config";
+} from "@/components/navigation/nav-config";
 import { useSidebarNavOrder } from "@/hooks/use-sidebar-nav-order";
-import { SidebarCustomizeSheet } from "@/features/_shared/components/navigation/sidebar/sidebar-customize-sheet";
+import { SidebarCustomizeSheet } from "@/components/navigation/sidebar/sidebar-customize-sheet";
 
 // ─── Tier dot ─────────────────────────────────────────────────────────────────
 

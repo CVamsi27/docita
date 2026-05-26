@@ -2,7 +2,7 @@ import {
   getUserFacingErrorMessage,
   isRecord,
   sanitizeUserFacingMessage,
-} from "@workspace/types";
+} from "@workspace/utils";
 import { browserRequest } from "@/lib/auth/browser-request";
 
 export interface ValidationResult {

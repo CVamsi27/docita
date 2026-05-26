@@ -56,11 +56,11 @@ export function MedicalDocumentCreateDialog({
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="max-w-sm">
         <DialogHeader>
-          <DialogTitle>New medical document</DialogTitle>
+          <DialogTitle>New Medical Document</DialogTitle>
         </DialogHeader>
         <div className="space-y-4 py-2">
           <div className="space-y-2">
-            <Label>Document type</Label>
+            <Label>Document Type</Label>
             <Select value={newType} onValueChange={setNewType}>
               <SelectTrigger>
                 <SelectValue />

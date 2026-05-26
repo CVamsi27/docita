@@ -20,7 +20,7 @@ import { Button } from "@workspace/ui/components/form/button";
 import { Label } from "@workspace/ui/components/form/label";
 import { Textarea } from "@workspace/ui/components/form/textarea";
 import { FileText, Save } from "lucide-react";
-import { Checkbox } from "@workspace/ui/components/checkbox";
+import { Checkbox } from "@workspace/ui/components/form/checkbox";
 import { showUserFacingErrorToast } from "@/lib/errors/user-facing-errors";
 import {
   Form,

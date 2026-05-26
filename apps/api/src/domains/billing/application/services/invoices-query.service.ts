@@ -4,7 +4,6 @@ import {
   NotFoundException,
   BadRequestException,
 } from '@nestjs/common';
-import { PrismaService } from '@/prisma/prisma.service';
 import { Feature } from '@/shared/modules/auth/auth/tier.decorator';
 import { assertClinicHasFeatureOrThrow } from '@/shared/modules/auth/utils/clinic-feature-access.util';
 import { Prisma, InvoiceStatus, PaymentSession } from '@workspace/db';
@@ -13,7 +12,9 @@ import {
   type InvoicePaymentActivityResponse,
   type EnqueuePdfJobResponse,
   extractPdfTheme,
+  paymentSessionMetaJsonSchema,
 } from '@workspace/types';
+import { parsePrismaJsonColumn } from '@/shared/common/json/parse-prisma-json-column';
 import {
   IInvoiceRepository,
   INVOICE_REPOSITORY_TOKEN,
@@ -27,7 +28,7 @@ import {
   ClaimReadinessResult,
   ClaimValidationService,
 } from '@/domains/billing/core/services/claim-validation.service';
-import { StorageProvider } from '@/domains/documents/infrastructure/storage.provider';
+import { StorageProvider } from '@/domains/documents/application/ports/storage-provider.port';
 import { StoredFileUrlResolverService } from '@/domains/documents/application/services/stored-file-url-resolver.service';
 import { PdfJobService } from '@/shared/modules/queue/pdf-job.service';
 import type { PdfJobServicePort } from '@/shared/modules/queue/pdf-job.service';
@@ -47,7 +48,6 @@ export class InvoicesQueryService {
     private readonly repository: IInvoiceRepository,
     @Inject(PAYMENT_SESSION_REPOSITORY_TOKEN)
     private readonly paymentSessionRepository: IPaymentSessionRepository,
-    private readonly prisma: PrismaService,
     private readonly pdfService: PDFService,
     private readonly claimValidationService: ClaimValidationService,
     private readonly storageProvider: StorageProvider,
@@ -82,25 +82,11 @@ export class InvoicesQueryService {
         throw new NotFoundException(`Patient ${patientId} not found`);
       }
     } else {
-      const clinic = await this.prisma.clinic.findUnique({
-        where: { id: clinicId },
-        select: {
-          tier: true,
-          intelligenceAddon: true,
-          features: true,
-        },
-      });
+      const clinic = await this.repository.findClinicFeatureContext(clinicId);
       if (!clinic) {
         throw new NotFoundException(`Clinic ${clinicId} not found`);
       }
-      assertClinicHasFeatureOrThrow(
-        {
-          tier: clinic.tier,
-          intelligenceAddon: clinic.intelligenceAddon,
-          features: clinic.features,
-        },
-        Feature.INVOICING,
-      );
+      assertClinicHasFeatureOrThrow(clinic, Feature.INVOICING);
     }
 
     return this.repository.findAll({
@@ -121,10 +107,10 @@ export class InvoicesQueryService {
   private extractPaymentActivityMeta(
     meta: Prisma.JsonValue | null | undefined,
   ): { channel?: string; reference?: string; notes?: string } {
-    if (!meta || typeof meta !== 'object' || Array.isArray(meta)) {
+    const m = parsePrismaJsonColumn(meta, paymentSessionMetaJsonSchema);
+    if (!m) {
       return {};
     }
-    const m = meta as Record<string, unknown>;
     const channelRaw =
       typeof m.channel === 'string'
         ? m.channel

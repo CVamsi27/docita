@@ -1,9 +1,10 @@
 import { describe, expect, it, jest } from '@jest/globals';
 import { EventEmitter2 } from '@nestjs/event-emitter';
 import { AppointmentService } from './appointment.service';
-import { AppointmentSchedulingRulesService } from '@/domains/appointments/core/domain-services/appointment-scheduling-rules.service';
 import { AppointmentMetricsService } from './appointment-metrics.service';
 import { AppointmentDiagnosisService } from './appointment-diagnosis.service';
+import { SyncAppointmentDiagnosesUseCase } from '@/domains/appointments/application/use-cases/sync-appointment-diagnoses.use-case';
+import { createStubAppointmentWriteUseCases } from './appointment-use-case.stubs';
 
 describe('AppointmentService.syncDiagnoses', () => {
   const appointmentRepository = {} as never;
@@ -68,22 +69,6 @@ describe('AppointmentService.syncDiagnoses', () => {
 
   const writeUseCaseStubs = createStubAppointmentWriteUseCases();
 
-  const metricsService = Object.create(
-    AppointmentMetricsService.prototype,
-  ) as AppointmentMetricsService;
-  Object.defineProperty(metricsService, 'prisma', {
-    value: prisma,
-    writable: true,
-  });
-
-  const diagnosisService = Object.create(
-    AppointmentDiagnosisService.prototype,
-  ) as AppointmentDiagnosisService;
-  Object.defineProperty(diagnosisService, 'prisma', {
-    value: prisma,
-    writable: true,
-  });
-
   const service = new AppointmentService(
     appointmentRepository,
     appointmentRepository,
@@ -94,7 +79,6 @@ describe('AppointmentService.syncDiagnoses', () => {
     writeUseCaseStubs.updateAppointmentDetailsUseCase,
     prisma,
     eventEmitter,
-    mockSchedulingRules,
     metricsService,
     diagnosisService,
   );

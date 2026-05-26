@@ -25,7 +25,10 @@ import { TaxCalculatorService } from '@/domains/billing/core/services/tax-calcul
 import { PdfJobService } from '@/shared/modules/queue/pdf-job.service';
 import type { PdfJobServicePort } from '@/shared/modules/queue/pdf-job.service';
 import { EventEmitter2 } from '@nestjs/event-emitter';
-import { PrismaService } from '@/prisma/prisma.service';
+import {
+  BILLING_PERSISTENCE_PORT,
+  type BillingPersistencePort,
+} from '@/domains/billing/application/ports/billing-persistence.port';
 import { PDFService } from './pdf.service';
 import { InvoicesQueryService } from './invoices-query.service';
 import { InvoicesCommandService } from './invoices-command.service';

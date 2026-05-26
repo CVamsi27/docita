@@ -7,6 +7,7 @@ const auditArchivalStorage = new AsyncLocalStorage<{
 }>();
 
 const IMMUTABLE_MODELS = ['AuditLog', 'AuditLogArchive'] as const;
+const IMMUTABLE_MODEL_SET = new Set<string>(IMMUTABLE_MODELS);
 
 export const auditImmutabilityExtension = Prisma.defineExtension({
   name: 'audit-immutability',

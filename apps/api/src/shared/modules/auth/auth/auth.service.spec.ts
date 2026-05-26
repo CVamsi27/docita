@@ -19,7 +19,6 @@ import * as bcrypt from 'bcrypt';
 import { OnboardingStep, Role } from '@workspace/db';
 import { beforeEach, describe, it, expect, jest } from '@jest/globals';
 import { clockPortTestProvider } from '@/test-utils';
-import { EncryptionService } from '@/shared/common/encryption.service';
 
 jest.mock('bcrypt');
 
@@ -266,14 +265,6 @@ describe('AuthService', () => {
             sendPasswordResetEmail: jest
               .fn()
               .mockImplementation(async () => ({ success: true })),
-          },
-        },
-        {
-          provide: EncryptionService,
-          useValue: {
-            encrypt: (value: string) => value,
-            decrypt: (value: string) => value,
-            hash: (value: string) => `hashed:${value}`,
           },
         },
         clockPortTestProvider(),

@@ -1,5 +1,8 @@
-import { Injectable } from '@nestjs/common';
-import { PrismaService } from '@/prisma/prisma.service';
+import { Injectable, Inject } from '@nestjs/common';
+import {
+  ENTERPRISE_CONTRACT_PERSISTENCE_PORT,
+  type EnterpriseContractPersistencePort,
+} from '@/domains/enterprise-contracts/application/ports/enterprise-contract-persistence.port';
 import { EnterpriseContractStatus } from '@workspace/db';
 import { type UpsertEnterpriseContractRequest } from '@workspace/types';
 import { EmailService } from '@/shared/modules/messaging/email/email.service';
@@ -7,6 +10,7 @@ import { AppConfigService } from '@/shared/modules/config/app-configuration.serv
 import { EnterpriseContractsQueryService } from './enterprise-contracts-query.service';
 import { EnterpriseContractsCommandService } from './enterprise-contracts-command.service';
 import { EnterpriseContractInvoiceCommandService } from './enterprise-contract-invoice-command.service';
+import { CLOCK_PORT, type IClock } from '@/shared/common/ports/clock.port';
 
 /**
  * Facade that preserves the original public API while delegating to focused
@@ -22,17 +26,23 @@ export class EnterpriseContractsService {
     private readonly persistence: EnterpriseContractPersistencePort,
     private readonly emailService: EmailService,
     private readonly configService: AppConfigService,
+    @Inject(CLOCK_PORT) clock: IClock,
   ) {
-    this.queryService = new EnterpriseContractsQueryService(prisma);
+    this.queryService = new EnterpriseContractsQueryService(
+      this.persistence,
+      clock,
+    );
     const invoiceService = new EnterpriseContractInvoiceCommandService(
-      prisma,
+      this.persistence,
       emailService,
       configService,
+      clock,
     );
     this.commandService = new EnterpriseContractsCommandService(
       this.queryService,
-      prisma,
+      this.persistence,
       invoiceService,
+      clock,
     );
   }
 

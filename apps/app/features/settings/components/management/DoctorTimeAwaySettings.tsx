@@ -8,7 +8,7 @@ import {
   useCreateDoctorTimeOff,
   useDeleteDoctorTimeOffMutation,
   useDoctorTimeOffs,
-} from "@/hooks/api/use-settings";
+} from "@workspace/data-access";
 import { useAuth } from "@/lib/auth/auth-context";
 import { toast } from "sonner";
 import { formatDate } from "@workspace/utils";
@@ -32,9 +32,9 @@ import {
   SelectValue,
 } from "@workspace/ui/components/form/select";
 import { Trash2 } from "lucide-react";
-import { Skeleton } from "@workspace/ui/components/skeleton";
+import { Skeleton } from "@workspace/ui/components/feedback/skeleton";
 import { showUserFacingErrorToast } from "@/lib/errors/user-facing-errors";
-import { IsoDatePickerField } from "@workspace/ui/components/iso-date-picker-field";
+import { IsoDatePickerField } from "@workspace/ui/components/form/iso-date-picker-field";
 
 export function DoctorTimeAwaySettings() {
   const { user, isAdmin } = useAuth();

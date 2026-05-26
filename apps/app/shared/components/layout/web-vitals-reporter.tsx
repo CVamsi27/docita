@@ -3,8 +3,9 @@
 import { useEffect } from "react";
 import { usePathname } from "next/navigation";
 import type { Metric } from "web-vitals";
-import { API_URL } from "@/lib/api/api-config";
 import { browserRequest } from "@/lib/auth/browser-request";
+
+export const WEB_VITALS_REPORTING_PATH = "/api/v1/monitoring/web-vitals";
 
 const PUBLIC_AUTH_PATHS = new Set([
   "/login",

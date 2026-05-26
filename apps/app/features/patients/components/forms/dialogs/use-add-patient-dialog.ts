@@ -11,7 +11,7 @@ import {
   patientCreateFormSchema,
   type PatientCreateFormValues,
 } from "@workspace/types";
-import { validatePatientPhoneNumberForCountry } from "@/features/patients/rules/patient-rules";
+import { validatePatientPhoneNumberForCountry } from "@/features/patients/rules/patientRules";
 
 export function useAddPatientDialog({
   onPatientAdded,

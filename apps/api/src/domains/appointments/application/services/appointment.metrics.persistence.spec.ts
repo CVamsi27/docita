@@ -11,8 +11,11 @@ import { Appointment } from '@/domains/appointments/core/entities/appointment.en
 import { AppointmentStatus } from '@/domains/appointments/core/value-objects/appointment-status.value-object';
 import { AppointmentSchedulingRulesService } from '@/domains/appointments/core/domain-services/appointment-scheduling-rules.service';
 import { AppointmentMetricsService } from './appointment-metrics.service';
+import { RecordAppointmentVitalsUseCase } from '@/domains/appointments/application/use-cases/record-appointment-vitals.use-case';
 import { AppointmentMetricDefinitionService } from './appointment-metric-definition.service';
 import { AppointmentDiagnosisService } from './appointment-diagnosis.service';
+import { UpdateAppointmentDetailsUseCase } from '@/domains/appointments/application/use-cases/update-appointment-details.use-case';
+import { createStubAppointmentWriteUseCases } from './appointment-use-case.stubs';
 
 describe('AppointmentService metric persistence', () => {
   const mockAppointmentRepository = {
@@ -119,22 +122,20 @@ describe('AppointmentService metric persistence', () => {
     const metricDefinitionService = Object.create(
       AppointmentMetricDefinitionService.prototype,
     ) as AppointmentMetricDefinitionService;
-    Object.defineProperty(metricDefinitionService, 'prisma', {
+    Object.defineProperty(metricDefinitionService, 'persistence', {
       value: prisma,
       writable: true,
     });
 
-    const metricsService = Object.create(
-      AppointmentMetricsService.prototype,
-    ) as AppointmentMetricsService;
-    Object.defineProperty(metricsService, 'prisma', {
-      value: prisma,
-      writable: true,
-    });
-    Object.defineProperty(metricsService, 'metricDefinitionService', {
-      value: metricDefinitionService,
-      writable: true,
-    });
+    const recordVitalsUseCase = new RecordAppointmentVitalsUseCase(
+      prisma,
+      metricDefinitionService,
+    );
+    const metricsService = new AppointmentMetricsService(
+      prisma,
+      metricDefinitionService,
+      recordVitalsUseCase,
+    );
 
     const diagnosisService = Object.create(
       AppointmentDiagnosisService.prototype,
@@ -143,6 +144,14 @@ describe('AppointmentService metric persistence', () => {
       value: prisma,
       writable: true,
     });
+
+    const writeUseCaseStubs = createStubAppointmentWriteUseCases();
+    const updateAppointmentDetailsUseCase = new UpdateAppointmentDetailsUseCase(
+      appointmentRepository,
+      mockSchedulingRules,
+      metricsService,
+      eventEmitter,
+    );
 
     service = new AppointmentService(
       appointmentRepository,
@@ -154,7 +163,6 @@ describe('AppointmentService metric persistence', () => {
       updateAppointmentDetailsUseCase,
       prisma,
       eventEmitter,
-      mockSchedulingRules,
       metricsService,
       diagnosisService,
     );

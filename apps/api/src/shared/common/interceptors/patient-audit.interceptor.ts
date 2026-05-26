@@ -236,20 +236,29 @@ export class PatientDataAuditInterceptor implements NestInterceptor {
                       after: sanitizeAuditPayload(body ?? {}),
                     };
 
-              await this.auditService.logAction({
-                userId: actor.userId,
-                clinicId: actor.clinicId,
-                actionType: classification.actionType,
-                resourceType: classification.resourceType,
-                resourceId: classification.resourceId,
-                changes,
-                ipAddress: request.ip || request.socket?.remoteAddress,
-                userAgent: request.headers['user-agent'],
-                metadata: {
-                  actor: {
-                    id: actor.userId,
-                    role: actor.role ?? null,
-                    clinicId: actor.clinicId,
+              await this.auditService.logAction(
+                {
+                  userId: actor.userId,
+                  clinicId: actor.clinicId,
+                  actionType: classification.actionType,
+                  resourceType: classification.resourceType,
+                  resourceId: classification.resourceId,
+                  changes,
+                  ipAddress: request.ip || request.socket?.remoteAddress,
+                  userAgent: request.headers['user-agent'],
+                  metadata: {
+                    actor: {
+                      id: actor.userId,
+                      role: actor.role ?? null,
+                      clinicId: actor.clinicId,
+                    },
+                    request: {
+                      method,
+                      endpoint: url,
+                      params: sanitizeAuditPayload(params),
+                      query: sanitizeAuditPayload(query),
+                    },
+                    source: 'sensitive-write-audit-v1',
                   },
                   request: {
                     method,

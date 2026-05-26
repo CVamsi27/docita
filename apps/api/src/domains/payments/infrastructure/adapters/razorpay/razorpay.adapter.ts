@@ -11,6 +11,8 @@ import { getCorrelationId } from '@/shared/common/context/request-context.store'
 
 const RAZORPAY_REQUEST_TIMEOUT_MS = 5000;
 
+const RAZORPAY_REQUEST_TIMEOUT_MS = 5000;
+
 @Injectable()
 export abstract class BaseRazorpayAdapter implements IPaymentGateway {
   readonly provider = PaymentProvider.RAZORPAY;
@@ -40,24 +42,6 @@ export abstract class BaseRazorpayAdapter implements IPaymentGateway {
     return this.razorpayClient.getClient();
   }
 
-  private readonly timeoutLogger = new Logger('RazorpayTimeout');
-
-  /**
-   * Audit FL10 (2026-05-23): the Razorpay Node SDK (v2.9.x) exposes no
-   * `AbortSignal` / `AbortController` hook on its operations, so when the
-   * timeoutPromise wins the `Promise.race` the underlying SDK request is
-   * still in flight and will resolve into the void. The leak is bounded
-   * by node's GC once the SDK call eventually completes; the operational
-   * harm is the held HTTP socket until that happens.
-   *
-   * Two things we *can* do without forking the SDK:
-   *   1. Emit a structured log on every timeout so observability can
-   *      alert when timeouts spike (the canary for upstream degradation).
-   *   2. Keep the timeout tight (5s) so the leak window is short.
-   *
-   * Replacing the SDK with raw `fetch` + AbortController would close the
-   * leak fully but is a separate piece of work — tracked in the audit doc.
-   */
   protected async withRazorpayTimeout<T>(
     operation: () => Promise<T>,
   ): Promise<T> {
@@ -75,20 +59,8 @@ export abstract class BaseRazorpayAdapter implements IPaymentGateway {
 
     try {
       return await Promise.race([operation(), timeoutPromise]);
-    } catch (error) {
-      if (
-        error instanceof Error &&
-        error.message.startsWith('Razorpay request timed out')
-      ) {
-        this.timeoutLogger.error({
-          event: 'razorpay_request_timeout',
-          timeoutMs: RAZORPAY_REQUEST_TIMEOUT_MS,
-          correlationId: getCorrelationId(),
-        });
-      }
-      throw error;
     } finally {
-      if (timeoutId !== undefined) {
+      if (timeoutId) {
         clearTimeout(timeoutId);
       }
     }

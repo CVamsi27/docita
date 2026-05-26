@@ -1,29 +1,13 @@
-import {
-  Injectable,
-  NotFoundException,
-  Logger,
-  BadRequestException,
-  Inject,
-} from '@nestjs/common';
-import {
-  IPrescriptionRepository,
-  PrescriptionDetail,
-} from '@/domains/prescriptions/core/repositories/prescription.repository.interface';
-import { EventEmitter2 } from '@nestjs/event-emitter';
-import { PrescriptionCreatedEvent } from '@/domains/prescriptions/core/events/prescription-created.event';
-import { UsageTrackingService } from '@/domains/billing/core/services/usage-tracking.service';
-import {
-  DEFAULT_LOCALE,
-  checkPrescriptionAllergies,
-  validateDosage,
-} from '@workspace/utils';
+import { Injectable } from '@nestjs/common';
+import { PrescriptionDetail } from '@/domains/prescriptions/core/repositories/prescription.repository.interface';
 import {
   Specialization,
   HospitalRole,
   type EnqueuePdfJobResponse,
 } from '@workspace/types';
-import { DosageForm, SigCode } from '@workspace/db';
-import { PrescriptionPdfOrchestratorService } from './prescription-pdf-orchestrator.service';
+import { DEFAULT_LOCALE } from '@workspace/utils';
+import { PrescriptionsCommandService } from './prescriptions-command.service';
+import { PrescriptionsQueryService } from './prescriptions-query.service';
 
 /**
  * Facade — delegates prescription reads and mutations to query/command services.
@@ -31,11 +15,8 @@ import { PrescriptionPdfOrchestratorService } from './prescription-pdf-orchestra
 @Injectable()
 export class PrescriptionsService {
   constructor(
-    @Inject('IPrescriptionRepository')
-    private readonly repository: IPrescriptionRepository,
-    private eventEmitter: EventEmitter2,
-    private usageTracking: UsageTrackingService,
-    private readonly pdfOrchestrator: PrescriptionPdfOrchestratorService,
+    private readonly queryService: PrescriptionsQueryService,
+    private readonly commandService: PrescriptionsCommandService,
   ) {}
 
   findAll(
@@ -101,7 +82,7 @@ export class PrescriptionsService {
     clinicIdOrTimezone: string,
     locale: string = DEFAULT_LOCALE,
   ): Promise<Buffer> {
-    return this.pdfOrchestrator.generatePDF(id, clinicIdOrTimezone, locale);
+    return this.commandService.generatePDF(id, clinicIdOrTimezone, locale);
   }
 
   getPdf(
@@ -110,14 +91,14 @@ export class PrescriptionsService {
   ): Promise<
     { type: 'url'; url: string } | { type: 'buffer'; buffer: Buffer }
   > {
-    return this.pdfOrchestrator.getPdf(id, clinicId);
+    return this.queryService.getPdf(id, clinicId);
   }
 
   generatePdfAsync(
     id: string,
     clinicId: string,
   ): Promise<EnqueuePdfJobResponse> {
-    return this.pdfOrchestrator.generatePdfAsync(id, clinicId);
+    return this.commandService.generatePdfAsync(id, clinicId);
   }
 
   uploadAndPersist(
@@ -126,7 +107,7 @@ export class PrescriptionsService {
     buffer: Buffer,
     prescription: PrescriptionDetail,
   ): Promise<{ storedKey: string; generatedAt: Date }> {
-    return this.pdfOrchestrator.uploadAndPersist(
+    return this.commandService.uploadAndPersist(
       id,
       clinicId,
       buffer,

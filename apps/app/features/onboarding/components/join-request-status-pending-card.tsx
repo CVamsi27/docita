@@ -81,7 +81,7 @@ export function JoinRequestStatusPendingCard({
 
         {request.message ? (
           <div>
-            <p className="text-xs text-muted-foreground mb-2">Your message</p>
+            <p className="text-xs text-muted-foreground mb-2">Your Message</p>
             <Card className="p-3 bg-muted/50">
               <p className="text-sm">{request.message}</p>
             </Card>

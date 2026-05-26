@@ -32,7 +32,6 @@ import {
   NotFoundDomainError,
 } from '@/shared/common/errors/domain.errors';
 import { getMonitoringUserContext } from '@/shared/modules/auth/auth/request-user.util';
-import { redactPhi } from '@/shared/modules/observability/phi-redactor';
 
 const MAX_REQUEST_BODY_KEYS = 20;
 const MAX_VALIDATION_FIELDS = 10;

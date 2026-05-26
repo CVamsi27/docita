@@ -68,6 +68,21 @@ describe('PatientDataAuditInterceptor helpers', () => {
         resourceId: 'pat-123',
       });
     });
+
+    it('should classify patient-portal writes as clinical', () => {
+      const classification = classifySensitiveWrite({
+        method: 'PATCH',
+        url: '/patient-portal/profile',
+        body: { patientId: 'pat-123' },
+      });
+
+      expect(classification).toEqual({
+        actionType: 'CLINICAL_PATCH',
+        resourceType: 'CLINICAL_DATA',
+        resourceId: 'pat-123',
+        immediate: false,
+      });
+    });
   });
 
   describe('sanitizeAuditPayload', () => {

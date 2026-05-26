@@ -1,9 +1,8 @@
 import { NotFoundException } from '@nestjs/common';
 import { beforeEach, describe, it, expect, jest } from '@jest/globals';
 import { InvoicesQueryService } from './invoices-query.service';
-import { PrismaService } from '@/prisma/prisma.service';
 import { ClaimValidationService } from '@/domains/billing/core/services/claim-validation.service';
-import { StorageProvider } from '@/domains/documents/infrastructure/storage.provider';
+import { StorageProvider } from '@/domains/documents/application/ports/storage-provider.port';
 import { StoredFileUrlResolverService } from '@/domains/documents/application/services/stored-file-url-resolver.service';
 import { PDFService } from './pdf.service';
 import { PdfJobService } from '@/shared/modules/queue/pdf-job.service';
@@ -15,9 +14,9 @@ describe('InvoicesQueryService', () => {
     findById: jest.Mock;
     findAll: jest.Mock;
     findPatientContext: jest.Mock;
+    findClinicFeatureContext: jest.Mock;
   };
   let paymentSessionRepository: { findByInvoiceId: jest.Mock };
-  let prisma: jest.Mocked<PrismaService>;
   let claimValidationService: jest.Mocked<ClaimValidationService>;
   let storageProvider: jest.Mocked<StorageProvider>;
   let storedFileUrlResolver: jest.Mocked<
@@ -31,13 +30,10 @@ describe('InvoicesQueryService', () => {
       findById: jest.fn(),
       findAll: jest.fn(),
       findPatientContext: jest.fn(),
+      findClinicFeatureContext: jest.fn(),
     };
 
     paymentSessionRepository = { findByInvoiceId: jest.fn() };
-
-    prisma = {
-      clinic: { findUnique: jest.fn() },
-    } as unknown as jest.Mocked<PrismaService>;
 
     claimValidationService = Object.create(
       ClaimValidationService.prototype,
@@ -66,7 +62,6 @@ describe('InvoicesQueryService', () => {
     service = new InvoicesQueryService(
       repository as never,
       paymentSessionRepository as never,
-      prisma,
       pdfService,
       claimValidationService,
       storageProvider,
@@ -100,7 +95,7 @@ describe('InvoicesQueryService', () => {
 
   describe('findAll', () => {
     it('should list invoices for a clinic with invoicing feature', async () => {
-      (prisma.clinic.findUnique as jest.Mock).mockResolvedValueOnce({
+      (repository.findClinicFeatureContext as jest.Mock).mockResolvedValueOnce({
         tier: 'PRO',
         intelligenceAddon: false,
         features: ['INVOICING'],
@@ -114,7 +109,7 @@ describe('InvoicesQueryService', () => {
     });
 
     it('should throw NotFoundException when clinic does not exist', async () => {
-      (prisma.clinic.findUnique as jest.Mock).mockResolvedValueOnce(
+      (repository.findClinicFeatureContext as jest.Mock).mockResolvedValueOnce(
         null as never,
       );
 

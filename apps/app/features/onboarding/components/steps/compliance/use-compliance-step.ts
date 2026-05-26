@@ -5,8 +5,8 @@ import { APIRequestError } from "@workspace/data-access";
 import { apiFetch } from "@/lib/api/api-client";
 import { API_URL } from "@/lib/api/api-config";
 import { buildJsonHeaders } from "@/lib/auth/csrf";
-import { toAbsoluteAppUrl } from "@/lib/url";
-import { usePhoneSignatureQrFlow } from "@/features/_shared/hooks/use-phone-signature-qr-flow";
+import { toAbsoluteAppUrl } from "@/lib/utils/url";
+import { usePhoneSignatureQrFlow } from "@/hooks/use-phone-signature-qr-flow";
 import { showUserFacingErrorToast } from "@/lib/errors/user-facing-errors";
 import type { ComplianceSettings } from "@/features/onboarding/components/types";
 
@@ -258,25 +258,32 @@ export function useComplianceStep({
     }
   }, [qrFlow]);
 
-  const legalDocs = [
+  const legalDocs: Array<{
+    key: LegalDocumentType;
+    title: string;
+    summary: string;
+    accepted: boolean;
+    fieldKey: "acceptedSLA" | "acceptedPrivacyPolicy" | "acceptedDataProcessing";
+  }> = [
     {
-      key: "sla" as LegalDocumentType,
+      key: "sla",
       title: "Service Level Agreement",
       summary: "Platform uptime, support timelines, incident response, and governance commitments",
       accepted: !!complianceForm.watch("acceptedSLA"),
       fieldKey: "acceptedSLA" as const,
     },
     {
-      key: "privacy" as LegalDocumentType,
+      key: "privacy",
       title: "Privacy Policy & Data Consent",
       summary: "How patient data is collected, stored, and processed under DPDP regulations",
       accepted: !!complianceForm.watch("acceptedPrivacyPolicy"),
       fieldKey: "acceptedPrivacyPolicy" as const,
     },
     {
-      key: "dpa" as LegalDocumentType,
+      key: "dpa",
       title: "Data Processing Agreement",
-      summary: "Your obligations as a data fiduciary and our role as a data processor",
+      summary:
+        "Your obligations in the data fiduciary role and our role in the data processor role",
       accepted: !!complianceForm.watch("acceptedDataProcessing"),
       fieldKey: "acceptedDataProcessing" as const,
     },

@@ -21,6 +21,15 @@ function verificationDataRecord(
   return parsed ?? {};
 }
 
+const onboardingStepSchema = z.nativeEnum(OnboardingStep);
+
+function verificationDataRecord(
+  value: Prisma.JsonValue | null | undefined,
+): Record<string, unknown> {
+  const parsed = parsePrismaJsonColumn(value, jsonObjectSchema);
+  return parsed ?? {};
+}
+
 @Injectable()
 export class PrismaUserRepository implements IUserRepository {
   constructor(private prisma: PrismaService) {}

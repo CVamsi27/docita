@@ -39,8 +39,3 @@ export function toPrismaInputJsonValue(value: unknown): Prisma.InputJsonValue {
 
   return normalize(value) as Prisma.InputJsonValue;
 }
-
-/** Read-model alias for persisted JSON columns (`JsonValue` vs `InputJsonValue`). */
-export function toPrismaJsonValue(value: unknown): Prisma.JsonValue {
-  return toPrismaInputJsonValue(value) as Prisma.JsonValue;
-}

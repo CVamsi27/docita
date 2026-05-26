@@ -8,7 +8,7 @@ import { APIRequestError } from "@workspace/data-access";
 import { NavigationHistoryProvider } from "@/providers/navigation-history-provider";
 import { InternalWebVitalsReporter } from "@/components/internal-web-vitals-reporter";
 import { TooltipProvider } from "@workspace/ui/components/overlay/tooltip";
-import { ThemeProvider } from "next-themes";
+import { InternalThemeProvider } from "@/components/internal-theme-provider";
 import { InternalDataAccessBridge } from "@/app/data-access-bridge";
 
 const TOAST_DURATION_MS = 5000;

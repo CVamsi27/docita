@@ -1,4 +1,3 @@
-import { QUERY_STALE_TIMES } from "../lib/query-stale-times";
 import { queryKeys } from "../lib/query-keys";
 import { useAPIQuery } from "../core/use-api-query";
 
@@ -11,7 +10,7 @@ export const useResolvedFeatureFlags = () =>
     queryKeys.featureFlags.me(),
     "/feature-flags/me",
     {
-      staleTime: QUERY_STALE_TIMES.featureFlags,
-      gcTime: QUERY_STALE_TIMES.featureFlags * 3,
+      staleTime: 10 * 60 * 1000,
+      gcTime: 30 * 60 * 1000,
     },
   );

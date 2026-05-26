@@ -7,7 +7,7 @@ import { SymbolTooltip } from "@workspace/ui/components/overlay/tooltip";
 import { ChevronUp, Stethoscope } from "lucide-react";
 import { cn } from "@workspace/ui/lib/utils";
 import { usePermissions } from "@/hooks/use-permissions";
-import { useQueueByDoctor, useStartConsultation } from "@/hooks/api/use-appointments";
+import { useQueueByDoctor, useStartConsultation } from "@workspace/data-access";
 import { useAuth } from "@/lib/auth/auth-context";
 import { usePermissionStore } from "@/lib/stores/permission-store";
 import { canAccessTarget } from "@/lib/access-control/access-policy";

@@ -229,16 +229,6 @@ describe("PaymentProcessingPage", () => {
     expect(toastSuccessMock).toHaveBeenCalledWith("Additional charge recorded");
   });
 
-  it("renders enterprise tier limits and pricing in operator-friendly copy", async () => {
-    renderWithQueryClient(<PaymentProcessingPage />);
-
-    expect(await screen.findByText("Enterprise")).toBeInTheDocument();
-    expect(screen.getByText("Custom")).toBeInTheDocument();
-    expect(screen.getByText("Custom pricing")).toBeInTheDocument();
-    expect(screen.getAllByText("Unlimited").length).toBeGreaterThanOrEqual(2);
-    expect(screen.queryByText("-1")).not.toBeInTheDocument();
-  });
-
   it("shows an empty facilities state", async () => {
     clientMocks.get.mockImplementation((url: string) => {
       if (url === "/internal/clinics") {

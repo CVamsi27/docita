@@ -219,11 +219,9 @@ export default function TodayPage() {
               />
             ) : null}
             <TodayAdvisorRail
-              advisorCounts={{
-                pendingJoinRequests,
-                pendingReports: stats.pendingReports,
-                waitingCount,
-              }}
+              pendingJoinRequests={pendingJoinRequests}
+              pendingReports={stats.pendingReports}
+              waitingCount={waitingCount}
             />
           </section>
         ) : null}

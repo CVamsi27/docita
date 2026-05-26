@@ -1,22 +1,18 @@
 "use client";
 
-import { useRef } from "react";
-import type { ReactNode } from "react";
-import type { SubscriptionCurrentResponse } from "@workspace/types";
 import { useAuth } from "@/lib/auth/auth-context";
-import { useBillingHistory } from "@/hooks/api/use-billing-history";
-import { getTierInfo } from "@/lib/tier-config";
-import { useSubscription } from "@/hooks/api/use-settings";
-import { WhatsAppButton } from "@/features/_shared/components/whatsapp/whatsapp-button";
-import { getSupportPhoneNumber } from "@/lib/support-contact";
+import { getTierInfo } from "@/lib/subscription/tier-access";
+import { WhatsAppButton } from "@/components/whatsapp/whatsapp-button";
+import { getSupportPhoneNumber } from "@/lib/constants/support-contact";
+import { PaymentRecoveryCard } from "@/features/subscription";
 import {
-  BillingHistoryTable,
-  BillingSubscriptionWorkspace,
-  PaymentRecoveryCard,
-} from "@/features/subscription";
+  BillingSubscriptionWorkspaceView,
+  useBillingSubscriptionWorkspace,
+} from "@/features/subscription/subscription-billing-workspace";
+import { useAutoResolveSubscriptionPayment } from "@/features/subscription/hooks/use-auto-resolve-subscription-payment";
 import { getTrialState } from "@/lib/subscription/subscription-lockout";
-import { DocitaLoadingIndicator } from "@workspace/ui/components/docita-loading-indicator";
-import { Skeleton } from "@workspace/ui/components/skeleton";
+import { DocitaLoadingIndicator } from "@workspace/ui/components/feedback/docita-loading-indicator";
+import { Skeleton } from "@workspace/ui/components/feedback/skeleton";
 import {
   Card,
   CardContent,
@@ -34,132 +30,14 @@ import {
 } from "@workspace/ui/components/feedback/alert";
 import { AlertTriangle, Clock, Info, XCircle } from "lucide-react";
 import { useClinic } from "@/lib/contexts/clinic-context";
-
-function scrollToBillingPlans() {
-  document.getElementById("billing-plans-section")?.scrollIntoView({
-    behavior: "smooth",
-    block: "start",
-  });
-}
-
-function isFreeStarterActive(
-  subscription: SubscriptionCurrentResponse | null | undefined,
-): boolean {
-  if (!subscription) return false;
-  return (
-    subscription.subscriptionStatus === "ACTIVE" &&
-    subscription.tier === "STARTER" &&
-    (subscription.basePriceCents ?? 0) === 0
-  );
-}
-
-function billingHistorySectionActions(
-  subscription: SubscriptionCurrentResponse | null | undefined,
-): ReactNode {
-  if (!subscription) {
-    return (
-      <Button variant="outline" size="sm" onClick={scrollToBillingPlans}>
-        View plans
-      </Button>
-    );
-  }
-
-  const { subscriptionStatus: status } = subscription;
-
-  if (status === "ACTIVE" && isFreeStarterActive(subscription)) {
-    return (
-      <Button variant="outline" size="sm" onClick={scrollToBillingPlans}>
-        View paid plans
-      </Button>
-    );
-  }
-
-  if (status === "EXPIRED") {
-    return (
-      <Button variant="outline" size="sm" onClick={scrollToBillingPlans}>
-        Choose plan and pay
-      </Button>
-    );
-  }
-
-  if (status === "PAST_DUE" || status === "PAYMENT_DUE" || status === "GRACE") {
-    return (
-      <Button variant="outline" size="sm" onClick={scrollToBillingPlans}>
-        {status === "GRACE" ? "Resolve payment" : "Update payment"}
-      </Button>
-    );
-  }
-
-  if (status === "TRIALING") {
-    return (
-      <Button variant="outline" size="sm" onClick={scrollToBillingPlans}>
-        Add payment
-      </Button>
-    );
-  }
-
-  if (status === "ACTIVE") {
-    return null;
-  }
-
-  return (
-    <Button variant="outline" size="sm" onClick={scrollToBillingPlans}>
-      View plans
-    </Button>
-  );
-}
-
-function billingHistorySectionDescription(
-  subscription: SubscriptionCurrentResponse | null | undefined,
-): string {
-  const base = "View and download past invoices";
-  if (!subscription) {
-    return base;
-  }
-
-  if (isFreeStarterActive(subscription)) {
-    return base;
-  }
-
-  if (subscription.subscriptionStatus === "TRIALING") {
-    return base;
-  }
-
-  return base;
-}
-
-function billingHistoryEmptyDescription(
-  subscription: SubscriptionCurrentResponse | null | undefined,
-): string | undefined {
-  if (!subscription) {
-    return "Invoices appear after your first completed payment.";
-  }
-
-  if (isFreeStarterActive(subscription)) {
-    return "Invoices appear after you upgrade and complete payment.";
-  }
-
-  if (subscription.subscriptionStatus === "TRIALING") {
-    return "Invoices appear after the first paid cycle.";
-  }
-
-  return "Invoices appear after completed payments.";
-}
-
-function BillingHistory({
-  emptyStateDescription,
-}: {
-  emptyStateDescription?: string;
-}) {
-  const { data: invoices, isLoading } = useBillingHistory();
-  return (
-    <BillingHistoryTable
-      invoices={invoices}
-      isLoading={isLoading}
-      emptyStateDescription={emptyStateDescription}
-    />
-  );
-}
+import {
+  billingHistoryEmptyDescription,
+  billingHistorySectionActions,
+  billingHistorySectionDescription,
+  isFreeStarterActive,
+  scrollToBillingPlans,
+} from "./subscription-settings-helpers";
+import { BillingHistory } from "./subscription-billing-history";
 
 export function SubscriptionSettings() {
   const { isAdmin } = useAuth();
@@ -322,7 +200,7 @@ export function SubscriptionSettings() {
               onClick={() => void billing.resolvePayment()}
               className="shrink-0 border-destructive-foreground/30 text-destructive-foreground hover:bg-destructive-foreground/10"
             >
-              {isResolving ? "Opening…" : "Update payment"}
+              {isResolving ? "Opening…" : "Update Payment"}
             </Button>
           </AlertDescription>
         </Alert>
@@ -344,7 +222,7 @@ export function SubscriptionSettings() {
               onClick={() => void billing.resolvePayment()}
               className="shrink-0"
             >
-              {isResolving ? "Opening…" : "Resolve payment"}
+              {isResolving ? "Opening…" : "Resolve Payment"}
             </Button>
           </AlertDescription>
         </Alert>

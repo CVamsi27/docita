@@ -29,8 +29,8 @@ vi.mock("./AuthBrandingPanel", () => ({
   AuthBrandingPanel: () => <div data-testid="branding-panel" />,
 }));
 
-vi.mock("./AuthPreDashboardFooter", () => ({
-  AuthPreDashboardFooter: () => <div data-testid="auth-pre-dashboard-footer" />,
+vi.mock("@/components/support-contact/support-contact", () => ({
+  SupportContact: () => <div data-testid="support-contact-footer" />,
 }));
 
 vi.mock("@workspace/ui/components/theme-toggle", () => ({

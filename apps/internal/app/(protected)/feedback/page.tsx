@@ -1,1 +1,3 @@
-export { default } from "@/features/feedback";
+import InternalFeedbackPage from "./feedback-page";
+
+export default InternalFeedbackPage;

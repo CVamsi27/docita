@@ -1,18 +1,21 @@
 import { beforeEach, describe, it, expect, jest } from '@jest/globals';
 import { ClinicSettingsQueryService } from './clinic-settings-query.service';
-import { PrismaService } from '@/prisma/prisma.service';
+import {
+  CLINIC_PERSISTENCE_PORT,
+  type ClinicPersistencePort,
+} from '@/domains/clinics/application/ports/clinic-persistence.port';
 import { DataSubjectRequestStatus } from '@workspace/db';
 
 describe('ClinicSettingsQueryService', () => {
   let service: ClinicSettingsQueryService;
-  let prisma: jest.Mocked<PrismaService>;
+  let prisma: jest.Mocked<ClinicPersistencePort>;
 
   beforeEach(() => {
     prisma = {
       clinic: { findUnique: jest.fn() },
       consentTemplate: { findFirst: jest.fn() },
       dataSubjectRequest: { groupBy: jest.fn(), findMany: jest.fn() },
-    } as unknown as jest.Mocked<PrismaService>;
+    } as unknown as jest.Mocked<ClinicPersistencePort>;
 
     service = new ClinicSettingsQueryService(prisma);
   });

@@ -41,8 +41,10 @@ for (const budget of budgets) {
     .filter((file) => !budget.exclude.test(file));
 
   for (const file of files) {
+    const absolutePath = path.join(repoRoot, file);
+    if (!fs.existsSync(absolutePath)) continue;
     const lineCount = fs
-      .readFileSync(path.join(repoRoot, file), "utf8")
+      .readFileSync(absolutePath, "utf8")
       .split(/\r?\n/).length;
     if (lineCount <= budget.max) continue;
     findings.push({ ...budget, file, lineCount });

@@ -13,8 +13,6 @@ import { EditClinicDialog } from "./edit-clinic-dialog";
 import { WhatsappSenderDialog } from "./whatsapp-sender-dialog";
 import { Building2 } from "lucide-react";
 import { mapDbClinicTierStringToTierName, TIER_INFO } from "@workspace/types";
-import { getInternalClinicTypeDisplay } from "@/lib/clinic-display";
-import { getInternalTierBadgeClass } from "@/lib/tier-display";
 
 function getTierDisplay(tier: string): { name: string; className: string } {
   const normalizedTier = mapDbClinicTierStringToTierName(tier);

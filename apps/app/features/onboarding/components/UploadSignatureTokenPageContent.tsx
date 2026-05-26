@@ -199,13 +199,13 @@ export default function UploadSignaturePage() {
             onErrorChange={setError}
             onDrawUpload={handleUpload}
             onFileUpload={handleUpload}
-            drawTabLabel="Draw signature"
-            uploadTabLabel="Upload image"
+            drawTabLabel="Draw Signature"
+            uploadTabLabel="Upload Image"
             drawAlertText="Draw your signature using your mouse or touch screen"
             uploadAlertText="Upload a clear image of your signature (PNG, JPG, or WebP). Maximum file size: 5MB."
-            selectImageButtonLabel="Select image"
-            changeImageButtonLabel="Change image"
-            uploadButtonLabel="Upload signature"
+            selectImageButtonLabel="Select Image"
+            changeImageButtonLabel="Change Image"
+            uploadButtonLabel="Upload Signature"
             uploadingButtonLabel="Uploading…"
           />
         </CardContent>

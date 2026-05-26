@@ -14,11 +14,9 @@ import {
   DiseaseTrend,
   Feature,
 } from "@workspace/types";
-import { useAPIQuery } from "@/lib/api/api-core";
-import { useTierFeatureEnabled } from "@/hooks/api/tier-feature-guards";
-import { ApiError } from "@/lib/errors";
-
-type APIQueryOptions<T> = Omit<UseQueryOptions<T, ApiError>, "queryKey" | "queryFn">;
+import { useAPIQuery } from "../core/use-api-query";
+import { useDataAccessContext } from "../provider/hooks";
+type APIQueryOptions<T> = Omit<UseQueryOptions<T, Error>, "queryKey" | "queryFn">;
 
 const buildQueryString = (
   query: Record<string, string | number | undefined>,

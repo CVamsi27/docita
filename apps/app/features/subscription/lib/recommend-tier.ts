@@ -24,6 +24,15 @@ function readWhatsappIncludedQuota(tier: TierName): number {
   return WHATSAPP_ADDON_PRICING[tier]?.includedQuota ?? 0;
 }
 
+const RECOMMENDER_LADDER: TierName[] = [
+  "STARTER",
+  "FRONT_DESK",
+  "ESSENTIAL",
+  "PROFESSIONAL",
+  "HOSPITAL",
+  "ENTERPRISE",
+];
+
 export interface TierRecommendation {
   tier: TierName;
   reasons: string[];

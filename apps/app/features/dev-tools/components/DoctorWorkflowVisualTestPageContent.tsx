@@ -20,7 +20,7 @@ export default function DoctorWorkflowVisualTestPage() {
         <AppPageScaffold
           header={
             <PageHeader
-              title="Doctor dashboard"
+              title="Doctor Dashboard"
               description="Current queue context and top actions"
               actions={
                 <Button size="sm" className="gap-2">
@@ -34,12 +34,12 @@ export default function DoctorWorkflowVisualTestPage() {
           <div className="grid gap-4 md:grid-cols-3">
             <Card className="md:col-span-2">
               <CardHeader>
-                <CardTitle className="text-base">Current patient</CardTitle>
+                <CardTitle className="text-base">Current Patient</CardTitle>
               </CardHeader>
               <CardContent className="space-y-3">
                 <div className="flex items-center justify-between">
                   <p className="font-medium">Asha Kumar</p>
-                  <Badge>In progress</Badge>
+                  <Badge>In Progress</Badge>
                 </div>
                 <p className="text-sm text-muted-foreground">
                   Follow-up consultation · 10:30 AM
@@ -53,7 +53,7 @@ export default function DoctorWorkflowVisualTestPage() {
 
             <Card>
               <CardHeader>
-                <CardTitle className="text-base">Queue status</CardTitle>
+                <CardTitle className="text-base">Queue Status</CardTitle>
               </CardHeader>
               <CardContent className="space-y-2 text-sm">
                 <div className="flex items-center justify-between">
@@ -91,7 +91,7 @@ export default function DoctorWorkflowVisualTestPage() {
                   <p className="text-sm text-muted-foreground">Ravi Menon</p>
                 </div>
                 <div className="flex gap-2">
-                  <Button size="sm" variant="outline">Check in</Button>
+                  <Button size="sm" variant="outline">Check In</Button>
                   <Button size="sm">Start</Button>
                 </div>
               </div>
@@ -101,7 +101,7 @@ export default function DoctorWorkflowVisualTestPage() {
                   <p className="text-sm text-muted-foreground">Neha Singh</p>
                 </div>
                 <div className="flex gap-2">
-                  <Button size="sm" variant="outline">No show</Button>
+                  <Button size="sm" variant="outline">No Show</Button>
                   <Button size="sm" variant="outline">Cancel</Button>
                 </div>
               </div>

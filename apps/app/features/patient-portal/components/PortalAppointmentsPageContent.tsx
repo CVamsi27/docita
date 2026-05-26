@@ -82,7 +82,7 @@ export default function PortalAppointmentsPage() {
     <AppPageScaffold
       header={
         <PageHeader
-          title="My appointments"
+          title="My Appointments"
           description="Track upcoming and past visits"
         />
       }

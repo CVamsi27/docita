@@ -27,12 +27,14 @@ import {
   subscriptionBillingPreviewResponseSchema,
   subscriptionBillingStatusResponseSchema,
 } from "@workspace/types";
-import { queryKeys } from "@workspace/data-access";
-import { fetchAPI, useAPIMutation, useAPIQuery, useAPIQueryValidated } from "@/lib/api/api-core";
-import { useTierFeatureEnabled } from "@/hooks/api/tier-feature-guards";
-import { ApiError } from "@/lib/errors";
-import { fetchWithSession } from "@/lib/auth/fetch-with-session";
-import { withQueryString } from "@/lib/http/query-string";
+import { useAPIQuery } from "../core/use-api-query";
+import { useAPIQueryValidated } from "../core/use-api-query-validated";
+import { useAPIMutation } from "../core/use-api-mutation";
+import { APIRequestError } from "../lib/errors";
+import { queryKeys } from "../lib/query-keys";
+import { withQueryString } from "../lib/query-string";
+import { useDataAccessContext, useDataAccessFetcher } from "../provider/hooks";
+import { isRecord } from "@workspace/utils";
 
 export const invoiceListRowSchema = invoiceSchema.extend({
   patient: patientSchema,

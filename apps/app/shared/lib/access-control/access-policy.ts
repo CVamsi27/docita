@@ -8,16 +8,48 @@ import {
   getAccessFeature,
   getAccessTier,
   type UserRole,
-  type WorkspaceProfile,
-  shouldDenyAccessForWorkspaceProfile,
+  shouldDenyAccessForFrontDeskTier,
 } from "@workspace/types";
-import { hasPermission, type Permission } from "@/lib/auth/permissions";
+import { getTierName, hasFeatureAccess } from "@workspace/utils";
+import { hasPermission } from "@/lib/auth/permissions";
+import { parseAppPermission } from "@/lib/access-control/parse-app-permission";
 
 interface AccessContext {
   role?: UserRole | null;
   canAccessFeature?: (feature: Feature) => boolean;
-  canAccessTier?: (tier: Tier) => boolean;
-  workspaceProfile?: WorkspaceProfile | null;
+  currentTier?: Tier;
+  hasIntelligence?: boolean;
+}
+
+const TIER_SENTINEL_FEATURES: Partial<Record<Tier, Feature>> = {
+  [Tier.STARTER]: Feature.BASIC_PATIENT_MANAGEMENT,
+  [Tier.ESSENTIAL]: Feature.INVOICING,
+  [Tier.PROFESSIONAL]: Feature.WHATSAPP_OWN_NUMBER,
+  [Tier.HOSPITAL]: Feature.WHATSAPP_MANAGED_NUMBER,
+};
+
+function hasRequiredTier(
+  requiredTier: Tier,
+  context: AccessContext,
+): boolean {
+  if (requiredTier === Tier.INTELLIGENCE) {
+    return context.hasIntelligence === true;
+  }
+
+  if (context.currentTier === undefined) {
+    return false;
+  }
+
+  const sentinelFeature = TIER_SENTINEL_FEATURES[requiredTier];
+  if (sentinelFeature) {
+    return hasFeatureAccess(
+      getTierName(context.currentTier),
+      sentinelFeature,
+      context.hasIntelligence === true,
+    );
+  }
+
+  return false;
 }
 
 export function canAccessTarget(
@@ -32,10 +64,12 @@ export function canAccessTarget(
   const role = context.role ?? undefined;
 
   if (
-    shouldDenyAccessForWorkspaceProfile(
+    shouldDenyAccessForFrontDeskTier(
       target,
       role ?? null,
-      context.workspaceProfile,
+      context.currentTier !== undefined
+        ? getTierName(context.currentTier)
+        : null,
     )
   ) {
     return false;
@@ -52,7 +86,10 @@ export function canAccessTarget(
   if (requirement.permissions && requirement.permissions.length > 0) {
     if (!role) return false;
     const hasAllPermissions = requirement.permissions.every((permission) =>
-      hasPermission(role, permission as Permission),
+      (() => {
+        const parsed = parseAppPermission(permission);
+        return parsed ? hasPermission(role, parsed) : false;
+      })(),
     );
     if (!hasAllPermissions) {
       return false;
@@ -68,7 +105,7 @@ export function canAccessTarget(
 
   const requiredTier = getAccessTier(target);
   if (requiredTier !== undefined) {
-    if (!context.canAccessTier || !context.canAccessTier(requiredTier)) {
+    if (!hasRequiredTier(requiredTier, context)) {
       return false;
     }
   }

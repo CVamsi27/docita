@@ -1,33 +1,27 @@
-import { Button } from "@workspace/ui/components/button";
-import { Checkbox } from "@workspace/ui/components/checkbox";
+import { Button } from "@workspace/ui/components/form/button";
+import { Checkbox } from "@workspace/ui/components/form/checkbox";
 import {
   Card,
   CardContent,
   CardHeader,
   CardTitle,
-} from "@workspace/ui/components/card";
-import { Input } from "@workspace/ui/components/input";
-import { Label } from "@workspace/ui/components/label";
+} from "@workspace/ui/components/indicators/card";
+import { Input } from "@workspace/ui/components/form/input";
+import { Label } from "@workspace/ui/components/form/label";
 import {
   Select,
   SelectContent,
   SelectItem,
   SelectTrigger,
   SelectValue,
-} from "@workspace/ui/components/select";
+} from "@workspace/ui/components/form/select";
+import type { MetricCategoryResponse } from "@workspace/types";
 import { Plus } from "lucide-react";
-
-type MetricValueType =
-  | "TEXT"
-  | "NUMBER"
-  | "BOOLEAN"
-  | "DATE"
-  | "JSON"
-  | "OPTION"
-  | "MULTI_OPTION";
+import { metricValueTypeSchema, type MetricValueType } from "@workspace/types";
+import { parseStringEnumMember } from "@workspace/utils";
 
 interface MetricsConfigurationCardProps {
-  categories: Array<Record<string, unknown>>;
+  categories: MetricCategoryResponse[];
   newCategoryKey: string;
   newCategoryName: string;
   definitionCategoryId: string;
@@ -115,10 +109,10 @@ export function MetricsConfigurationCard({
             <SelectContent>
               {categories.map((category) => (
                 <SelectItem
-                  key={String(category.id || "")}
-                  value={String(category.id || "")}
+                  key={category.id}
+                  value={category.id}
                 >
-                  {String(category.name || "Unnamed Category")}
+                  {category.name || "Unnamed Category"}
                 </SelectItem>
               ))}
             </SelectContent>
@@ -135,9 +129,13 @@ export function MetricsConfigurationCard({
           />
           <Select
             value={newDefinitionType}
-            onValueChange={(value) =>
-              onNewDefinitionTypeChange(value as MetricValueType)
-            }
+            onValueChange={(value) => {
+              const nextType = parseStringEnumMember(
+                metricValueTypeSchema.options,
+                value,
+              );
+              if (nextType) onNewDefinitionTypeChange(nextType);
+            }}
           >
             <SelectTrigger>
               <SelectValue placeholder="Value type" />

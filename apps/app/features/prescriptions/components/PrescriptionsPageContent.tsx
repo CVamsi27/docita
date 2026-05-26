@@ -8,8 +8,8 @@ import { AppPageScaffold } from "@workspace/ui/components/layout/app-page-scaffo
 import { EmptyState } from "@workspace/ui/components/feedback/empty-state";
 import { PageHeader } from "@workspace/ui/components/layout/page-header";
 import { DEFAULT_TIMEZONE, formatClinicTodayPickerIso } from "@workspace/utils";
-import { FeatureGate } from "@/features/_shared/components/auth/feature-gate";
-import { useDownloadPrescriptionPDF, usePrescriptions } from "@/hooks/api/use-clinical";
+import { FeatureGate } from "@/components/auth/feature-gate";
+import { useDownloadPrescriptionPDF, usePrescriptions } from "@workspace/data-access";
 import { useAuth } from "@/lib/auth/auth-context";
 import { useClinic } from "@/lib/contexts/clinic-context";
 import { Feature } from "@/lib/stores/permission-store";

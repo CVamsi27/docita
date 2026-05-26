@@ -2,10 +2,15 @@ import {
   Injectable,
   NotFoundException,
   BadRequestException,
+  Inject,
 } from '@nestjs/common';
-import { PrismaService } from '@/prisma/prisma.service';
+import {
+  DOCTOR_PERSISTENCE_PORT,
+  type DoctorPersistencePort,
+} from '@/domains/doctors/application/ports/doctor-persistence.port';
 import { DoctorVerificationStatus, Role } from '@workspace/db';
 import { DoctorsQueryService } from './doctors-query.service';
+import { CLOCK_PORT, type IClock } from '@/shared/common/ports/clock.port';
 
 /**
  * Handles platform-admin manual verification decisions for doctor accounts:
@@ -14,12 +19,14 @@ import { DoctorsQueryService } from './doctors-query.service';
 @Injectable()
 export class DoctorAdminVerificationCommandService {
   constructor(
-    private readonly prisma: PrismaService,
+    @Inject(DOCTOR_PERSISTENCE_PORT)
+    private readonly persistence: DoctorPersistencePort,
     private readonly queryService: DoctorsQueryService,
+    @Inject(CLOCK_PORT) private readonly clock: IClock,
   ) {}
 
   async adminVerifyDoctor(doctorId: string, adminId: string, note?: string) {
-    const doctor = await this.prisma.user.findUnique({
+    const doctor = await this.persistence.user.findUnique({
       where: { id: doctorId },
       select: { id: true, role: true, registrationNumber: true },
     });
@@ -33,15 +40,15 @@ export class DoctorAdminVerificationCommandService {
       );
     }
 
-    await this.prisma.user.update({
+    await this.persistence.user.update({
       where: { id: doctorId },
       data: {
         verificationStatus: DoctorVerificationStatus.VERIFIED,
         verificationSource: 'MANUAL_ADMIN',
         verificationReason: note?.trim() || null,
-        verificationCheckedAt: new Date(),
+        verificationCheckedAt: this.clock.now(),
         verifiedByAdminId: adminId,
-        verifiedByAdminAt: new Date(),
+        verifiedByAdminAt: this.clock.now(),
       },
     });
 
@@ -56,7 +63,7 @@ export class DoctorAdminVerificationCommandService {
       );
     }
 
-    const doctor = await this.prisma.user.findUnique({
+    const doctor = await this.persistence.user.findUnique({
       where: { id: doctorId },
       select: { id: true, role: true },
     });
@@ -65,15 +72,15 @@ export class DoctorAdminVerificationCommandService {
       throw new BadRequestException('Only doctor accounts can be rejected');
     }
 
-    await this.prisma.user.update({
+    await this.persistence.user.update({
       where: { id: doctorId },
       data: {
         verificationStatus: DoctorVerificationStatus.REJECTED,
         verificationSource: 'MANUAL_ADMIN',
         verificationReason: trimmed,
-        verificationCheckedAt: new Date(),
+        verificationCheckedAt: this.clock.now(),
         verifiedByAdminId: adminId,
-        verifiedByAdminAt: new Date(),
+        verifiedByAdminAt: this.clock.now(),
       },
     });
 

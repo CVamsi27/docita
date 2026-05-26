@@ -5,8 +5,10 @@ import { Roles } from '@/shared/modules/auth/auth/roles.decorator';
 import { RequestWithUser } from '@/shared/common/types/common.types';
 import { requireClinicIdFromRequest } from '@/shared/modules/auth/auth/clinic-request-context';
 import { AppointmentService } from '@/domains/appointments/application/services/appointment.service';
-import { AppointmentsApiAccess } from '@/domains/appointments/presentation/controllers/appointments.controller.access';
-import { getAppointmentAccessContext } from '@/domains/appointments/application/types/appointment-access-context';
+import {
+  AppointmentsApiAccess,
+  getAppointmentAccessContext,
+} from '@/domains/appointments/presentation/controllers/appointments.controller.access';
 
 @ApiTags('appointments')
 @Controller('appointments')

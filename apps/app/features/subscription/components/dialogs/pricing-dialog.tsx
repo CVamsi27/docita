@@ -142,48 +142,32 @@ export function PricingDialog({
           </div>
         </div>
 
-        <div className="space-y-6 py-4">
-          {tierGroups.map((group) => (
-            <section key={group.title} className="space-y-3">
-              <div>
-                <h3 className="text-sm font-semibold text-foreground">
-                  {group.title}
-                </h3>
-                <p className="text-xs text-muted-foreground">
-                  {group.description}
-                </p>
-              </div>
-              <div className="flex flex-wrap justify-center gap-4">
-                {group.tiers.map((tierName) => {
-                  const estimate = estimateByTier[tierName];
-                  const estimateValue = resolvePricingDialogEstimate(
-                    tierName,
-                    isYearly,
-                    estimateByTier[tierName],
-                  );
+        <div className="flex flex-wrap justify-center gap-4 py-4">
+          {tiers.map((tierName) => {
+            const estimate = estimateByTier[tierName];
+            const estimateValue = resolvePricingDialogEstimate(
+              tierName,
+              isYearly,
+              estimateByTier[tierName],
+            );
 
-                  return (
-                    <PricingDialogTierCard
-                      key={tierName}
-                      tierName={tierName}
-                      currentTier={currentTier}
-                      isYearly={isYearly}
-                      currency={currency}
-                      tierPricing={getTierPricing(tierName)}
-                      tierFeatures={getTierFeatures(tierName)}
-                      estimateValue={estimateValue}
-                      estimateSymbol={
-                        estimate?.currency.symbol ?? currencyConfig.symbol
-                      }
-                      locale={currencyConfig.locale}
-                      decimalPlaces={currencyConfig.decimalPlaces}
-                      onSelectTier={onSelectTier}
-                    />
-                  );
-                })}
-              </div>
-            </section>
-          ))}
+            return (
+              <PricingDialogTierCard
+                key={tierName}
+                tierName={tierName}
+                currentTier={currentTier}
+                isYearly={isYearly}
+                currency={currency}
+                tierPricing={getTierPricing(tierName)}
+                tierFeatures={getTierFeatures(tierName)}
+                estimateValue={estimateValue}
+                estimateSymbol={estimate?.currency.symbol ?? currencyConfig.symbol}
+                locale={currencyConfig.locale}
+                decimalPlaces={currencyConfig.decimalPlaces}
+                onSelectTier={onSelectTier}
+              />
+            );
+          })}
         </div>
 
         <div className="text-center text-sm text-muted-foreground pt-4 border-t border-border/50">

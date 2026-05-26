@@ -7,7 +7,7 @@ import {
   OVERAGE_CALCULATION_TOKEN,
   type IOverageCalculation,
 } from '@/domains/billing/application/ports';
-import { TIER_LIMITS, isFrontDeskTier, type TierName } from '@workspace/types';
+import { TIER_LIMITS, type TierName } from '@workspace/types';
 import { getWhatsAppAddonPricingByCurrency } from '@workspace/utils';
 import {
   ClinicTier,
@@ -33,10 +33,6 @@ function clinicTierToTierName(tier: ClinicTier): TierName {
       return 'ENTERPRISE';
     case ClinicTier.FRONT_DESK:
       return 'FRONT_DESK';
-    case ClinicTier.FRONT_DESK_CLINIC:
-      return 'FRONT_DESK_CLINIC';
-    case ClinicTier.FRONT_DESK_HOSPITAL:
-      return 'FRONT_DESK_HOSPITAL';
     default: {
       const _exhaustive: never = tier;
       return _exhaustive;
@@ -115,8 +111,7 @@ export class SubscriptionOverageMeterService {
     const currency = this.invoiceComposer.resolveCurrency(
       activeContract?.currency ?? sub.currency,
     );
-    const tierName = clinicTierToTierName(tier);
-    const tierLimits = TIER_LIMITS[tierName];
+    const tierLimits = TIER_LIMITS[clinicTierToTierName(tier)];
 
     const includedConsultations =
       activeContract?.includedConsultations ??
@@ -140,7 +135,7 @@ export class SubscriptionOverageMeterService {
       this.persistence.user.count({
         where: {
           clinicId: sub.clinicId,
-          ...(isFrontDeskTier(tier)
+          ...(tier === ClinicTier.FRONT_DESK
             ? {
                 NOT: {
                   AND: [{ role: Role.DOCTOR }, { appLoginDisabled: true }],
@@ -161,7 +156,13 @@ export class SubscriptionOverageMeterService {
 
     const whatsappUsed = whatsappCount._sum.quantity ?? 0;
     const whatsappEligibleTier =
-      tierName !== 'STARTER' && tierName !== 'INTELLIGENCE' ? tierName : null;
+      tier === ClinicTier.ESSENTIAL ||
+      tier === ClinicTier.FRONT_DESK ||
+      tier === ClinicTier.PROFESSIONAL ||
+      tier === ClinicTier.HOSPITAL ||
+      tier === ClinicTier.ENTERPRISE
+        ? tier
+        : null;
     const whatsappIncluded =
       activeContract?.includedWhatsappMessages ??
       (whatsappEligibleTier
@@ -215,11 +216,11 @@ export class SubscriptionOverageMeterService {
       },
     );
 
-    await this.persistence.$transaction(
-      overageEntries.map(({ key, breakdown, usageType }) => {
+    const upsertResults = await Promise.allSettled(
+      overageEntries.map(async ({ key, breakdown, usageType }) => {
         const usageEntry = meteredUsageEntry(usageData.usage, key);
 
-        return this.persistence.usageRecord.upsert({
+        await this.persistence.usageRecord.upsert({
           where: {
             clinicId_type_periodStart: {
               clinicId: sub.clinicId,
@@ -248,6 +249,12 @@ export class SubscriptionOverageMeterService {
         });
       }),
     );
+    const upsertFailures = upsertResults.filter((r) => r.status === 'rejected');
+    if (upsertFailures.length > 0) {
+      this.logger.warn(
+        `${upsertFailures.length} overage usage-record upsert(s) failed for clinic ${sub.clinicId}`,
+      );
+    }
 
     if (result.totalOverageCharges > 0) {
       await this.overagePaymentService.createOrUpdateOverageInvoicePayment({

@@ -5,13 +5,17 @@ import {
   ForbiddenException,
 } from '@nestjs/common';
 import {
-  IAppointmentRepository,
-  AppointmentSearchParams,
+  APPOINTMENT_READ_REPOSITORY_TOKEN,
+  IAppointmentReadRepository,
 } from '@/domains/appointments/core/repositories/appointment.repository.interface';
+import type { AppointmentSearchParams } from '@/domains/appointments/core/repositories/appointment-repository.types';
 import { Role } from '@workspace/db';
 import { Appointment } from '@/domains/appointments/core/entities/appointment.entity';
-import { PrismaService } from '@/prisma/prisma.service';
-import { getClinicLocalDayUtcBounds } from '@/common/utils/clinic-calendar-bounds';
+import {
+  APPOINTMENT_PERSISTENCE_PORT,
+  type AppointmentPersistencePort,
+} from '@/domains/appointments/application/ports/appointment-persistence.port';
+import { getClinicLocalDayUtcBounds } from '@/shared/common/utils/clinic-calendar-bounds';
 
 type AppointmentAccessContext = {
   role?: Role;
@@ -21,9 +25,10 @@ type AppointmentAccessContext = {
 @Injectable()
 export class AppointmentQueryService {
   constructor(
-    @Inject('IAppointmentRepository')
-    private readonly appointmentRepository: IAppointmentRepository,
-    private readonly prisma: PrismaService,
+    @Inject(APPOINTMENT_READ_REPOSITORY_TOKEN)
+    private readonly appointmentRepository: IAppointmentReadRepository,
+    @Inject(APPOINTMENT_PERSISTENCE_PORT)
+    private readonly persistence: AppointmentPersistencePort,
   ) {}
 
   async getAppointment(
@@ -77,7 +82,7 @@ export class AppointmentQueryService {
     clinicId: string,
     pickerDateStr: string,
   ): Promise<{ rangeStart: Date; rangeEndExclusive: Date } | null> {
-    const row = await this.prisma.clinic.findUnique({
+    const row = await this.persistence.clinic.findUnique({
       where: { id: clinicId },
       select: { timezone: true },
     });

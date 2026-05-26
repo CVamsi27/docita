@@ -23,20 +23,15 @@ import {
   StartConsultationResponse,
   UpdateAppointmentRequest,
 } from "@workspace/types";
-import {
-  fetchAPI,
-  useAPIMutation,
-  useAPIQuery,
-  useAPIQueryValidated,
-} from "@/lib/api/api-core";
-import { useTierFeatureEnabled } from "@/hooks/api/tier-feature-guards";
-import { withQueryString, type QueryParams } from "@/lib/http/query-string";
+import { useAPIMutation } from "../core/use-api-mutation";
+import { useAPIQuery } from "../core/use-api-query";
+import { useAPIQueryValidated } from "../core/use-api-query-validated";
+import { omitEmptyQueryParams, withQueryString } from "../lib/query-string";
 import {
   DEFAULT_TIMEZONE,
   formatClinicTodayPickerIso,
 } from "@workspace/utils";
-import { useClinic } from "@/lib/contexts/clinic-context";
-
+import { useDataAccessContext } from "../provider/hooks";
 export type AppointmentListItem = AppointmentListItemContractResponse;
 
 export type AppointmentWithRelations = Appointment & {

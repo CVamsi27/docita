@@ -34,4 +34,4 @@ All exports are re-exported from `src/index.ts`.
 - React hooks (use `@workspace/hooks`)
 - UI components (use `@workspace/ui`)
 - API-call logic (use `@workspace/data-access`)
-- Permission/tier checks (use `@workspace/auth` or `@workspace/types/access`)
+- Permission/tier checks (use `@workspace/types/access`)

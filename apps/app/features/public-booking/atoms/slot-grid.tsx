@@ -2,25 +2,13 @@
 
 import {
   Calendar as CalendarIcon,
-  CheckCircle2,
   ChevronDown,
   Clock,
   UserCircle,
 } from "lucide-react";
-import { Alert, AlertDescription, AlertTitle } from "@workspace/ui/components/alert";
-import { Button } from "@workspace/ui/components/button";
-import { EmptyState } from "@workspace/ui/components/empty-state";
-import { Label } from "@workspace/ui/components/label";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@workspace/ui/components/select";
-import {
-  ANY_DOCTOR_ID,
-} from "@/features/public-booking/public-booking-constants";
+import { Alert, AlertDescription, AlertTitle } from "@workspace/ui/components/feedback/alert";
+import { Button } from "@workspace/ui/components/form/button";
+import { EmptyState } from "@workspace/ui/components/feedback/empty-state";
 import {
   publicBookingSlotEmptyMessage,
   SlotTimesScrollArea,
@@ -28,153 +16,8 @@ import {
 } from "@/features/public-booking/public-booking-components";
 import type { PublicBookingPageController } from "@/features/public-booking/use-public-booking-page-state";
 import { formatTime } from "@/lib/formatters";
-import { cn } from "@workspace/ui/lib/utils";
-
-function TimeRangeFilters({
-  c,
-  useNoneValue,
-}: {
-  c: PublicBookingPageController;
-  useNoneValue: boolean;
-}) {
-  const noneVal = useNoneValue ? "__none__" : "";
-
-  return (
-    <>
-      <div className="grid gap-2">
-        <Label className="text-[length:var(--fs-xs)] font-normal text-muted-foreground">
-          Time range (from)
-        </Label>
-        <Select
-          value={useNoneValue ? (c.timeRangeStart || noneVal) : c.timeRangeStart}
-          onValueChange={(v) => {
-            const val = useNoneValue && v === "__none__" ? "" : v;
-            c.setTimeRangeStart(val);
-            if (c.timeRangeEnd) {
-              const s = new Date(val).getTime();
-              const e = new Date(c.timeRangeEnd).getTime();
-              if (Number.isFinite(s) && Number.isFinite(e) && e <= s) {
-                c.setTimeRangeEnd("");
-              }
-            }
-          }}
-        >
-          <SelectTrigger className="h-11 rounded-[var(--radius-md)] border-border/70 bg-background shadow-sm">
-            <SelectValue placeholder="Any time" />
-          </SelectTrigger>
-          <SelectContent>
-            <SelectItem value={noneVal}>Any time</SelectItem>
-            {c.timeRangeOptions.starts.map((t) => (
-              <SelectItem key={t} value={t}>
-                {formatTime(t)}
-              </SelectItem>
-            ))}
-          </SelectContent>
-        </Select>
-      </div>
-      <div className="grid gap-2">
-        <Label className="text-[length:var(--fs-xs)] font-normal text-muted-foreground">
-          Time range (to)
-        </Label>
-        <Select
-          value={useNoneValue ? (c.timeRangeEnd || noneVal) : c.timeRangeEnd}
-          onValueChange={(v) =>
-            c.setTimeRangeEnd(useNoneValue && v === "__none__" ? "" : v)
-          }
-        >
-          <SelectTrigger className="h-11 rounded-[var(--radius-md)] border-border/70 bg-background shadow-sm">
-            <SelectValue placeholder="Any time" />
-          </SelectTrigger>
-          <SelectContent>
-            <SelectItem value={noneVal}>Any time</SelectItem>
-            {c.timeRangeOptions.ends.map((t) => (
-              <SelectItem key={t} value={t}>
-                {formatTime(t)}
-              </SelectItem>
-            ))}
-          </SelectContent>
-        </Select>
-      </div>
-    </>
-  );
-}
-
-function AvailableSlotList({ c }: { c: PublicBookingPageController }) {
-  return (
-    <ul className="grid min-w-0 grid-cols-1 gap-2.5 sm:grid-cols-2 sm:gap-3">
-      {c.filteredAvailableSlots.map((s) => {
-        const selected =
-          c.selectedStart === s.startTime &&
-          (c.doctorId !== ANY_DOCTOR_ID ||
-            c.selectedSlotDoctorId === s.doctorId);
-        return (
-          <li
-            key={`${s.startTime}-${s.endTime}-${s.doctorId}`}
-            className="min-w-0"
-          >
-            <Button
-              type="button"
-              variant={selected ? "default" : "outline"}
-              className={cn(
-                "h-auto min-h-[3.25rem] max-md:min-h-[3.5rem] w-full min-w-0 justify-start rounded-[var(--radius-md)] px-4 py-3 text-left outline-none ring-offset-background transition-colors duration-150 focus-visible:ring-2 focus-visible:ring-primary/35 focus-visible:ring-offset-2",
-                selected
-                  ? "shadow-md ring-2 ring-primary/45 ring-offset-2 ring-offset-background border border-primary/40"
-                  : "touch-manipulation border-border/70 shadow-sm hover:border-primary/35 hover:bg-muted/25 hover:shadow-md",
-              )}
-              onClick={() =>
-                c.doctorId === ANY_DOCTOR_ID
-                  ? c.handleSelectSlotWithDoctor(s.startTime, s.endTime, s.doctorId)
-                  : c.handleSelectSlot(s.startTime, s.endTime)
-              }
-            >
-              <span className="flex min-w-0 flex-1 flex-col gap-1 overflow-hidden">
-                <span
-                  className={cn(
-                    "text-[length:var(--fs-sm)] font-medium tracking-tight",
-                    selected && "text-primary-foreground",
-                  )}
-                >
-                  {formatTime(s.startTime)}{" "}
-                  <span
-                    aria-hidden
-                    className={cn(
-                      "font-normal",
-                      selected
-                        ? "text-primary-foreground/85"
-                        : "text-muted-foreground/90",
-                    )}
-                  >
-                    -
-                  </span>{" "}
-                  {formatTime(s.endTime)}
-                </span>
-                {s.doctorName ? (
-                  <span
-                    className={cn(
-                      "truncate text-[length:var(--fs-xs)]",
-                      selected
-                        ? "text-primary-foreground/90"
-                        : "text-muted-foreground",
-                    )}
-                  >
-                    {s.doctorName}
-                    {s.specialization ? ` - ${s.specialization}` : ""}
-                  </span>
-                ) : null}
-              </span>
-              {selected ? (
-                <CheckCircle2
-                  className="ml-3 h-[1.125rem] w-[1.125rem] shrink-0 text-primary-foreground"
-                  aria-hidden
-                />
-              ) : null}
-            </Button>
-          </li>
-        );
-      })}
-    </ul>
-  );
-}
+import { SlotGridAvailableSlotList } from "./slot-grid-available-slot-list";
+import { SlotGridTimeRangeFilters } from "./slot-grid-time-range-filters";
 
 export function SlotGrid({
   c,
@@ -305,13 +148,13 @@ export function SlotGrid({
           </summary>
           <div className="border-t border-border/40 px-3 pb-3 pt-2">
             <div className="grid gap-3 sm:grid-cols-2 sm:items-end">
-              <TimeRangeFilters c={c} useNoneValue />
+              <SlotGridTimeRangeFilters c={c} useNoneValue />
             </div>
           </div>
         </details>
       ) : (
         <div className="mb-3 grid gap-3 rounded-[var(--radius-md)] border border-border/50 bg-surface-2 p-3 shadow-sm sm:grid-cols-2 sm:items-end sm:p-4">
-          <TimeRangeFilters c={c} useNoneValue={false} />
+          <SlotGridTimeRangeFilters c={c} useNoneValue={false} />
         </div>
       )}
       {c.filteredAvailableSlots.length === 0 ? (
@@ -322,7 +165,7 @@ export function SlotGrid({
           className="flex flex-1 flex-col justify-center rounded-[var(--radius-md)] border border-dashed border-border/60 bg-muted/10 px-3 py-6 shadow-sm sm:py-8 xl:min-h-0 [&_.ui-section-title]:text-[length:var(--fs-base)]"
         />
       ) : (
-        <AvailableSlotList c={c} />
+        <SlotGridAvailableSlotList c={c} />
       )}
     </SlotTimesScrollArea>
   );

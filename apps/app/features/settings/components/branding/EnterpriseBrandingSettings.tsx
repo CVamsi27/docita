@@ -104,7 +104,7 @@ export function EnterpriseBrandingSettings() {
       <Card>
         <CardHeader>
           <div className="flex items-center gap-2">
-            <CardTitle>Brand name</CardTitle>
+            <CardTitle>Brand Name</CardTitle>
             {!hasWhiteLabel && (
               <Badge variant="outline" className="text-xs">
                 Enterprise
@@ -146,7 +146,7 @@ export function EnterpriseBrandingSettings() {
       <Card>
         <CardHeader>
           <div className="flex items-center gap-2">
-            <CardTitle>Locked theme</CardTitle>
+            <CardTitle>Locked Theme</CardTitle>
             {!hasLockedTheme && (
               <Badge variant="outline" className="text-xs">
                 Enterprise

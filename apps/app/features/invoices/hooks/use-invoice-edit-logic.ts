@@ -4,7 +4,11 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { toast } from "sonner";
 import { useInvoice, useUpdateInvoice } from "@workspace/data-access";
 import { useRouter } from "next/navigation";
-import { Invoice } from "@workspace/types";
+import {
+  invoiceEditFormSchema,
+  type InvoiceEditFormValues,
+  type Invoice,
+} from "@workspace/types";
 import { showUserFacingErrorToast } from "@/lib/errors/user-facing-errors";
 import {
   applyInvoiceDiscountToFirstLine,

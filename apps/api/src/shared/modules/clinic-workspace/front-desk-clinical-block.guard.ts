@@ -33,7 +33,7 @@ export class FrontDeskClinicalBlockGuard implements CanActivate {
       select: { tier: true },
     });
 
-    if (!isFrontDeskTier(clinic?.tier)) {
+    if (clinic?.tier !== ClinicTier.FRONT_DESK) {
       return true;
     }
 

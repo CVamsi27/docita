@@ -1,24 +1,15 @@
 "use client";
 
 import { FC, useCallback, useMemo, useState } from "react";
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from "@workspace/ui/components/card";
-import { AppPageScaffold } from "@workspace/ui/components/app-page-scaffold";
-import { Button } from "@workspace/ui/components/button";
-import { PageHeader } from "@workspace/ui/components/page-header";
-import { Section } from "@workspace/ui/components/section";
-import { Activity, Calendar, Play, Stethoscope, Users } from "lucide-react";
+import { AppPageScaffold } from "@workspace/ui/components/layout/app-page-scaffold";
+import { Button } from "@workspace/ui/components/form/button";
+import { PageHeader } from "@workspace/ui/components/layout/page-header";
+import { Activity, Calendar, Stethoscope, Users } from "lucide-react";
 import { useConsultationDashboard } from "@/features/consultation/hooks/use-consultation-dashboard";
 import { StatGrid } from "@workspace/ui/components/data-display/stat-grid";
 import Link from "next/link";
-import { useCheckInAppointment } from "@/hooks/api/use-appointments";
+import { useCheckInAppointment } from "@workspace/data-access";
 import { showUserFacingErrorToast } from "@/lib/errors/user-facing-errors";
-import { buildConsultationRoute } from "@/features/consultation/rules/consultationTabRouting";
 import type { Appointment } from "@workspace/types";
 import {
   AddAppointmentDialogContainer,
@@ -27,6 +18,10 @@ import {
 } from "@/features/appointments";
 import { usePermissions } from "@/hooks/use-permissions";
 import { ConsultationDashboardSkeleton } from "./ConsultationDashboardSkeleton";
+import {
+  DoctorNextSection,
+  NursePrepSection,
+} from "./ConsultationDashboardSections";
 
 export const ConsultationDashboardUI: FC = () => {
   const {

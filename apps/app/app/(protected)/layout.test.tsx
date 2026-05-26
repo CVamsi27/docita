@@ -56,10 +56,6 @@ vi.mock("@/lib/auth/auth-context", () => ({
   useAuth: () => mocks.auth,
 }));
 
-vi.mock("@/components/ask-ai/ask-ai-context", () => ({
-  useAskAi: () => ({ openOverlay: vi.fn(), closeOverlay: vi.fn() }),
-}));
-
 vi.mock("@/components", () => ({
   FloatingStartConsultation: () => null,
   RealtimeProviders: ({ children }: { children: React.ReactNode }) => (

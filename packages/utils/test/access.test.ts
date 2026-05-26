@@ -73,13 +73,11 @@ describe("@workspace/utils access helpers", () => {
   });
 
   it("blocks clinical features for FRONT_DESK tier name", () => {
-    for (const sku of [
-      "FRONT_DESK",
-      "FRONT_DESK_CLINIC",
-      "FRONT_DESK_HOSPITAL",
-    ] as const) {
-      expect(hasFeatureAccess(sku, Feature.DIGITAL_PRESCRIPTIONS)).toBe(false);
-      expect(hasFeatureAccess(sku, Feature.QUEUE_MANAGEMENT)).toBe(true);
-    }
+    expect(hasFeatureAccess("FRONT_DESK", Feature.DIGITAL_PRESCRIPTIONS)).toBe(
+      false,
+    );
+    expect(hasFeatureAccess("FRONT_DESK", Feature.QUEUE_MANAGEMENT)).toBe(
+      true,
+    );
   });
 });

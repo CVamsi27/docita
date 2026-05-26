@@ -12,201 +12,30 @@ import {
 } from "@/components";
 import { BackButton } from "@/components/navigation/back-button";
 import { useCanGoBack } from "@/hooks/use-can-go-back";
-import { CommandPalette } from "@/features/_shared/components/navigation/command-palette";
-import { DesktopTopBar } from "@/features/_shared/components/layout/desktop-top-bar";
-import { ClinicProvider, useClinic } from "@/lib/contexts/clinic-context";
+import { CommandPalette } from "@/components/navigation/command-palette";
+import { DesktopTopBar } from "@/components/layout/desktop-top-bar";
+import { DoctorVerificationGuard } from "@/components/guards/doctor-verification-guard";
+import { SubscriptionGuard } from "@/components/guards/subscription-guard";
+import { PageAccessGuard } from "@/components/guards/page-access-guard";
+import { SubscriptionLockNotice } from "@/components/layout/subscription-lock-notice";
+import { ClinicProvider } from "@/lib/contexts/clinic-context";
 import {
   ResizableHandle,
   ResizablePanel,
   ResizablePanelGroup,
-} from "@workspace/ui/components/resizable";
-import type { ImperativePanelHandle } from "@workspace/ui/components/resizable";
-import { ErrorBoundaryWrapper } from "@/components/common/error-boundary";
+} from "@workspace/ui/components/layout/resizable";
+import type { ImperativePanelHandle } from "@workspace/ui/components/layout/resizable";
+import { ErrorBoundaryWrapper } from "@/components/errors/error-boundary";
 import { useAuth } from "@/lib/auth/auth-context";
-import { useAPIQuery } from "@/lib/api/api-core";
-import type { TierName, User } from "@workspace/types";
-import { APP_ACCESS_TARGETS, SUBSCRIPTION_TRIAL_DAYS } from "@workspace/types";
-import { ThemeToggleWithAppearanceSync } from "@/features/_shared/components/layout/theme-toggle-with-appearance-sync";
-import { Skeleton } from "@workspace/ui/components/skeleton";
-import { DocitaLogo } from "@workspace/ui/components/docita-logo";
-import { Button } from "@workspace/ui/components/button";
-import { SymbolTooltip } from "@workspace/ui/components/tooltip";
-import {
-  AlertTriangle,
-  LockKeyhole,
-  PanelLeftClose,
-  PanelLeftOpen,
-} from "lucide-react";
-import {
-  Alert,
-  AlertDescription,
-  AlertTitle,
-} from "@workspace/ui/components/alert";
-import { canAccessTarget } from "@/lib/access-control/access-policy";
-import { getTierInfo } from "@/lib/tier-config";
-import { formatDate } from "@/lib/formatters";
-import { getAccessTargetForPath } from "@/lib/access-control/access-routes";
-import { usePermissionStore } from "@/lib/stores/permission-store";
-import { PageTransitionLoader } from "@/components/common/loaders/page-transition-loader";
-import {
-  getTrialState,
-  isBillingAdminRole,
-  isPastSubscriptionGraceDeadline,
-} from "@/lib/subscription/subscription-lockout";
-import { SUBSCRIPTION_SETTINGS_PATH } from "@/lib/subscription/subscription-settings-path";
-import { FeatureFlagsProvider } from "@/features/_shared/hooks/use-feature-flag";
+import { ThemeToggleWithAppearanceSync } from "@/components/layout/theme-toggle-with-appearance-sync";
+import { Skeleton } from "@workspace/ui/components/feedback/skeleton";
+import { DocitaLogo } from "@workspace/ui/components/indicators/docita-logo";
+import { Button } from "@workspace/ui/components/form/button";
+import { SymbolTooltip } from "@workspace/ui/components/overlay/tooltip";
+import { PanelLeftClose, PanelLeftOpen } from "lucide-react";
+import { FeatureFlagsProvider } from "@/hooks/use-feature-flag";
+import { PageTransitionLoader } from "@/components/loaders/page-transition-loader";
 import { persistReturnPathBeforeLogin } from "@/lib/auth/safe-return-path";
-
-const SUBSCRIPTION_ALLOWED_PATHS = ["/settings", "/login", "/billing-locked"];
-const VERIFICATION_ALLOWED_PATHS = ["/verify-doctor", "/login"];
-
-function DoctorVerificationGuard({ children }: { children: React.ReactNode }) {
-  const { user } = useAuth();
-  const router = useRouter();
-  const pathname = usePathname();
-  const isDoctor = user?.role === "DOCTOR" || user?.role === "ADMIN_DOCTOR";
-  const isVerificationAllowedPath = VERIFICATION_ALLOWED_PATHS.some((p) =>
-    pathname?.startsWith(p),
-  );
-
-  const {
-    data: doctorProfile,
-    isLoading: profileLoading,
-    isFetching: profileFetching,
-    isError: profileError,
-  } = useAPIQuery<User>(
-    ["doctor-profile", user?.id ?? ""],
-    `/doctors/${user?.id}`,
-    { enabled: !!user?.id && isDoctor, staleTime: 5 * 60 * 1000 },
-  );
-
-  const needsVerification =
-    !!doctorProfile &&
-    (!doctorProfile.signatureUrl || !doctorProfile.registrationNumber);
-
-  const shouldRedirectToVerify =
-    !!user && isDoctor && needsVerification && !isVerificationAllowedPath;
-
-  useEffect(() => {
-    if (!user || !isDoctor || profileLoading) return;
-    if (!doctorProfile) return;
-    if (shouldRedirectToVerify) {
-      router.replace("/verify-doctor");
-    }
-  }, [
-    user,
-    isDoctor,
-    doctorProfile,
-    profileLoading,
-    router,
-    shouldRedirectToVerify,
-  ]);
-
-  const isCheckingVerification =
-    !!user &&
-    isDoctor &&
-    !isVerificationAllowedPath &&
-    !profileError &&
-    (profileLoading || (profileFetching && !doctorProfile));
-
-  if (isCheckingVerification || shouldRedirectToVerify) {
-    return (
-      <PageTransitionLoader
-        title="Checking your profile…"
-        description="Verifying your doctor profile before loading your workspace"
-      />
-    );
-  }
-
-  return <>{children}</>;
-}
-
-function SubscriptionGuard({ children }: { children: React.ReactNode }) {
-  const { clinic } = useClinic();
-  const { user } = useAuth();
-  const router = useRouter();
-  const pathname = usePathname();
-
-  useEffect(() => {
-    if (!clinic) return;
-    const pastGrace = isPastSubscriptionGraceDeadline(clinic);
-    const billingAdmin = isBillingAdminRole(user?.role);
-    const trialState = getTrialState(clinic);
-    const trialFullyExpired = trialState === "EXPIRED";
-
-    if (
-      (pastGrace || trialFullyExpired) &&
-      !billingAdmin &&
-      !pathname?.startsWith("/billing-locked") &&
-      !pathname?.startsWith("/login")
-    ) {
-      router.replace("/billing-locked");
-      return;
-    }
-
-    const status = clinic.subscriptionStatus;
-    const isExpired = status === "EXPIRED";
-    const isBlocked = isExpired || trialFullyExpired;
-    if (
-      isBlocked &&
-      !SUBSCRIPTION_ALLOWED_PATHS.some((p) => pathname?.startsWith(p))
-    ) {
-      router.replace(SUBSCRIPTION_SETTINGS_PATH);
-    }
-  }, [clinic, pathname, router, user?.role]);
-
-  return <>{children}</>;
-}
-
-function PageAccessGuard({ children }: { children: React.ReactNode }) {
-  const { user } = useAuth();
-  const { clinic } = useClinic();
-  const { canAccess, canAccessTier, workspaceProfile } = usePermissionStore();
-  const pathname = usePathname();
-  const router = useRouter();
-
-  useEffect(() => {
-    if (!user?.role || !clinic || !pathname) return;
-
-    const target = getAccessTargetForPath(pathname);
-    if (!target) {
-      router.replace("/today");
-      return;
-    }
-
-    if (
-      target === APP_ACCESS_TARGETS.PAGE_UPGRADE &&
-      clinic.subscriptionStatus === "EXPIRED"
-    ) {
-      return;
-    }
-
-    const hasAccess = canAccessTarget(
-      target,
-      {
-        role: user.role,
-        canAccessFeature: canAccess,
-        canAccessTier,
-        workspaceProfile,
-      },
-      "read",
-    );
-
-    if (!hasAccess) {
-      router.replace("/today");
-    }
-  }, [
-    canAccess,
-    canAccessTier,
-    clinic,
-    pathname,
-    router,
-    user?.role,
-    workspaceProfile,
-  ]);
-
-  return <>{children}</>;
-}
 
 function MobileHeader({ onMenuClick }: { onMenuClick: () => void }) {
   const pathname = usePathname();

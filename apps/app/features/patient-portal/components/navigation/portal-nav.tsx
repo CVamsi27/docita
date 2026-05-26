@@ -14,9 +14,9 @@ import {
   TrendingUp,
   User,
 } from "lucide-react";
-import { Button } from "@workspace/ui/components/button";
+import { Button } from "@workspace/ui/components/form/button";
 import { useAuth } from "@/lib/auth/auth-context";
-import { usePatientConsentSettings } from "@/hooks/api/use-patient-portal";
+import { usePatientConsentSettings } from "@workspace/data-access";
 import { formatDate } from "@/lib/formatters";
 
 const navigation = [

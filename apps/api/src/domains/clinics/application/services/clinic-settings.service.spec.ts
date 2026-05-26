@@ -75,7 +75,7 @@ describe('ClinicSettingsService', () => {
       providers: [
         ClinicSettingsService,
         ClinicSettingsCommandService,
-        { provide: PrismaService, useValue: prisma },
+        { provide: CLINIC_PERSISTENCE_PORT, useValue: prisma },
         { provide: SettingsFactory, useValue: settingsFactory },
         { provide: AuditService, useValue: auditService },
         { provide: ClinicDataService, useValue: clinicDataService },

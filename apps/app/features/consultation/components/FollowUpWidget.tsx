@@ -14,7 +14,7 @@ import { Calendar, Check, X } from "lucide-react";
 import { APIRequestError } from "@workspace/data-access";
 import { Feature } from "@workspace/types";
 import { api } from "@/lib/api/api-client";
-import { useTierFeatureEnabled } from "@/hooks/api/tier-feature-guards";
+import { useTierFeatureEnabled } from "@/lib/access-control/use-tier-feature-enabled";
 import { logger } from "@/lib/monitoring/logger";
 import { toast } from "sonner";
 import { showUserFacingErrorToast } from "@/lib/errors/user-facing-errors";

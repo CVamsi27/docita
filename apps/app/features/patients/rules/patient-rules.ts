@@ -1,10 +1,7 @@
 import type { Patient, User } from "@workspace/types";
-import {
-  calculateAge,
-  DEFAULT_COUNTRY_CODE,
-  normalizeCountryCode,
-} from "@workspace/utils";
-import { CLINIC_ADMIN_ROLES, hasPermission } from "@/lib/auth/permissions";
+import { calculateAge } from "@workspace/utils";
+import { hasPermission } from "@/lib/auth/permissions";
+import { resolveLibPhoneCountry } from "@/lib/phone/resolve-libphone-country";
 import {
   getCountryCallingCode,
   isPossiblePhoneNumber,

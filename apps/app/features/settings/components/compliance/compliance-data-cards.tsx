@@ -7,10 +7,10 @@ import {
   CardDescription,
   CardHeader,
   CardTitle,
-} from "@workspace/ui/components/card";
-import { Badge } from "@workspace/ui/components/badge";
-import { Button } from "@workspace/ui/components/button";
-import { Separator } from "@workspace/ui/components/separator";
+} from "@workspace/ui/components/indicators/card";
+import { Badge } from "@workspace/ui/components/indicators/badge";
+import { Button } from "@workspace/ui/components/form/button";
+import { Separator } from "@workspace/ui/components/layout/separator";
 import { Shield, Database, ClipboardList, ExternalLink } from "lucide-react";
 import { formatDate } from "@workspace/utils";
 import type { AppAuditLogSummary, AppComplianceSummary } from "@workspace/types";

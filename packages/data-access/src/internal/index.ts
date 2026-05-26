@@ -23,7 +23,6 @@ export * from "./hooks/use-internal-pricing";
 export * from "./hooks/use-internal-feedback";
 export * from "./hooks/use-internal-monitoring";
 export * from "./hooks/use-internal-support";
-export * from "./hooks/use-internal-support-inquiries";
 export * from "./hooks/use-internal-users";
 export { normalizeClinicsList } from "./lib/normalize-clinics-list";
 export {

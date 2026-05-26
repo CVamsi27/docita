@@ -149,8 +149,4 @@ export class PrismaSubscriptionRepository implements ISubscriptionRepository {
   ) {
     return this.payments.findReusablePendingCheckout(params);
   }
-
-  findPaymentByRazorpayPaymentId(razorpayPaymentId: string) {
-    return this.payments.findPaymentByRazorpayPaymentId(razorpayPaymentId);
-  }
 }

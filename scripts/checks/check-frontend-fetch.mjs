@@ -9,7 +9,6 @@ const repoRoot = process.cwd();
 const enforce = process.argv.includes("--enforce");
 const allowedPatterns = [
   /^apps\/app\/app\/api\//,
-  /^apps\/app\/shared\/lib\/api\/upstream-api-proxy\.ts$/,
   /^apps\/app\/shared\/lib\/api\/api-client\.ts$/,
   /^apps\/app\/shared\/lib\/auth\/fetch-with-session\.ts$/,
   /^apps\/app\/shared\/lib\/auth\/browser-session\.ts$/,
@@ -30,8 +29,10 @@ const files = execSync("git ls-files apps/app", {
 const violations = [];
 
 for (const file of files) {
+  const absolutePath = path.join(repoRoot, file);
+  if (!fs.existsSync(absolutePath)) continue;
   const lines = fs
-    .readFileSync(path.join(repoRoot, file), "utf8")
+    .readFileSync(absolutePath, "utf8")
     .split(/\r?\n/);
   lines.forEach((line, index) => {
     if (!/\bfetch\s*\(/.test(line)) return;

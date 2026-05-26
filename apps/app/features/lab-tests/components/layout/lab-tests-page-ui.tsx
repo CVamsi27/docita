@@ -1,8 +1,6 @@
 "use client";
 
 import { FC, useState } from "react";
-import { Feature } from "@workspace/types";
-import { FeatureGate } from "@/components/auth/feature-gate";
 import { Button } from "@workspace/ui/components/form/button";
 import { AppPageScaffold } from "@workspace/ui/components/layout/app-page-scaffold";
 import { PageHeader } from "@workspace/ui/components/layout/page-header";

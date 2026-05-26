@@ -1,7 +1,6 @@
 "use client";
 
-import { DocitaLoadingIndicator } from "@workspace/ui/components/docita-loading-indicator";
-import { Activity, CalendarClock, Crown, CreditCard, LockKeyhole, Receipt, Sparkles, TrendingUp } from "lucide-react";
+import { Crown, CreditCard, Receipt, Sparkles, TrendingUp } from "lucide-react";
 import {
   Card,
   CardContent,
@@ -12,18 +11,12 @@ import {
 import { Badge } from "@workspace/ui/components/indicators/badge";
 import { Button } from "@workspace/ui/components/form/button";
 import { cn } from "@workspace/ui/lib/utils";
-import { SUBSCRIPTION_GST_INCLUSIVE_NOTICE } from "@/features/subscription/lib/billing-display-messages";
-import {
-  formatUsageMeterCaption,
-  usageMeterHasNoIncludedQuota,
-  usageProgressPercentForBar,
-} from "@/features/subscription/lib/usage-meter-display";
 import {
   type CurrentPlanCardProps,
   TIER_COLOR_MAP,
-  USAGE_ITEMS,
-  formatUsageValue,
 } from "./current-plan-card-types";
+import { CurrentPlanCardMeta } from "./current-plan-card-meta";
+import { CurrentPlanCardUsage } from "./current-plan-card-usage";
 
 export type { CurrentPlanCardProps } from "./current-plan-card-types";
 
@@ -143,152 +136,7 @@ export function CurrentPlanCard({
           showWhatsAppUsageMeter={showWhatsAppUsageMeter}
         />
 
-        {planDetails && planDetails.length > 0 && (
-          <dl className="divide-y divide-border/60 rounded-lg border border-border/70 bg-background/70">
-            {planDetails.map((detail, index) => {
-              const DetailIcon =
-                index === 0
-                  ? Activity
-                  : index === 1
-                    ? CreditCard
-                    : index === 2
-                      ? Receipt
-                      : CalendarClock;
-              return (
-                <div
-                  key={`${detail.label}-${detail.value}`}
-                  className="flex items-center justify-between gap-4 px-4 py-3"
-                >
-                  <dt className="flex min-w-0 shrink-0 items-center gap-1.5 text-[var(--fs-2xs)] font-medium uppercase tracking-wide text-muted-foreground">
-                    <DetailIcon className="h-3 w-3 shrink-0" aria-hidden />
-                    {detail.label}
-                  </dt>
-                  <dd className="min-w-0 text-right text-[var(--fs-sm)] font-semibold text-foreground">
-                    {detail.value}
-                  </dd>
-                </div>
-              );
-            })}
-          </dl>
-        )}
-        {planDetailsFootnote ? (
-          <p className="text-[var(--fs-2xs)] leading-snug text-muted-foreground">
-            {planDetailsFootnote}
-          </p>
-        ) : null}
-
-        <p className="text-[var(--fs-2xs)] leading-snug text-muted-foreground">
-          {SUBSCRIPTION_GST_INCLUSIVE_NOTICE}
-        </p>
-
-        {statusNotice && (
-          <div className={cn("rounded-lg border p-3", statusNoticeClassName)}>
-            <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-              <div className="space-y-1">
-                <div className="flex items-center gap-2">
-                  {statusNotice.variant === "destructive" && (
-                    <LockKeyhole className="h-4 w-4" />
-                  )}
-                  <p className="text-sm font-semibold">{statusNotice.title}</p>
-                  {statusNotice.badgeLabel && (
-                    <Badge variant="outline" className="text-[var(--fs-2xs)]">
-                      {statusNotice.badgeLabel}
-                    </Badge>
-                  )}
-                </div>
-                <p className={cn("text-sm", statusDescriptionClassName)}>
-                  {statusNotice.description}
-                </p>
-              </div>
-              {statusNotice.actionLabel && statusNotice.onAction && (
-                <Button
-                  size="sm"
-                  variant="outline"
-                  onClick={statusNotice.onAction}
-                  className="self-start sm:self-auto"
-                >
-                  {statusNotice.actionLabel}
-                </Button>
-              )}
-            </div>
-          </div>
-        )}
-
-        <div className="rounded-lg border border-border/70 bg-background/70 p-4">
-          <div className="flex flex-col gap-1 sm:flex-row sm:items-center sm:justify-between">
-            <div>
-              <p className="text-sm font-semibold text-foreground">
-                Current usage
-              </p>
-            </div>
-            {usage && usage.total > 0 && (
-              <Badge variant="destructive" className="self-start sm:self-auto">
-                Overage active
-              </Badge>
-            )}
-          </div>
-
-          {isUsageLoading ? (
-            <div className="mt-4 flex items-center gap-2 text-sm text-muted-foreground">
-              <DocitaLoadingIndicator variant="inline" decorative />
-              Loading usage…
-            </div>
-          ) : hasUsageError ? (
-            <p className="mt-4 text-sm text-muted-foreground">
-              Usage meters are temporarily unavailable.
-            </p>
-          ) : usage ? (
-            <div className="mt-4 grid gap-4 lg:grid-cols-3">
-              {(showWhatsAppUsageMeter
-                ? USAGE_ITEMS
-                : USAGE_ITEMS.filter((row) => row.key !== "whatsappMessages")
-              ).map(({ key, label, unit }) => {
-                const meter = usage.meters[key];
-                const noIncludedQuota = usageMeterHasNoIncludedQuota(
-                  meter.included,
-                );
-                const percent = usageProgressPercentForBar(
-                  meter.current,
-                  meter.included,
-                );
-                const caption = formatUsageMeterCaption(
-                  meter.current,
-                  meter.included,
-                  unit,
-                  formatUsageValue,
-                );
-                return (
-                  <div key={key} className="space-y-2">
-                    <div className="flex items-center justify-between gap-2">
-                      <span className="text-xs font-medium text-foreground">
-                        {label}
-                      </span>
-                      <span className="text-xs text-muted-foreground">
-                        {caption}
-                      </span>
-                    </div>
-                    <Progress
-                      value={percent}
-                      className={cn(
-                        "h-2",
-                        meter.overage > 0 && "[&>div]:bg-destructive",
-                        noIncludedQuota &&
-                          meter.overage === 0 &&
-                          "[&>div]:bg-primary/35",
-                      )}
-                    />
-                  </div>
-                );
-              })}
-            </div>
-          ) : (
-            <p className="mt-4 text-sm text-muted-foreground">
-              Usage appears here after your clinic starts using plan meters.
-            </p>
-          )}
-        </div>
-
-        {hasIntelligence && (
+        {hasIntelligence ? (
           <div className="flex items-center gap-2 text-primary">
             <Sparkles className="h-4 w-4" />
             <span className="text-sm font-medium">AI features active</span>

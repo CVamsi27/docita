@@ -1,6 +1,6 @@
 "use client";
 
-import { Badge } from "@workspace/ui/components/badge";
+import { Badge } from "@workspace/ui/components/indicators/badge";
 import { PublicBookingTrustRow } from "./public-booking-trust-row";
 import { PublicBookingHowItWorksSheet } from "./booking-how-it-works";
 

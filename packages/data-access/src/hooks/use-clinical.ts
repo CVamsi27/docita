@@ -21,11 +21,12 @@ import {
   UpdateTemplateRequest,
   VitalSign,
 } from "@workspace/types";
-import { useAPIMutation, useAPIQuery } from "@/lib/api/api-core";
-import { useTierFeatureEnabled } from "@/hooks/api/tier-feature-guards";
-import type { ApiError } from "@/lib/errors";
-import { withQueryString } from "@/lib/http/query-string";
-import { api } from "@/lib/api/api-client";
+import { useAPIQuery } from "../core/use-api-query";
+import { useAPIMutation } from "../core/use-api-mutation";
+import { APIRequestError } from "../lib/errors";
+import { queryKeys } from "../lib/query-keys";
+import { withQueryString } from "../lib/query-string";
+import { useDataAccessContext, useDataAccessFetcher } from "../provider/hooks";
 
 const POLL_INTERVAL_MS = 2000;
 const POLL_TIMEOUT_MS = 60000;

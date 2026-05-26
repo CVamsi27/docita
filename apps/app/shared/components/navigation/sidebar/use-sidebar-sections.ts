@@ -7,7 +7,8 @@ import { useAppConfig } from "@/lib/contexts/app-config-context";
 import { canAccessTarget } from "@/lib/access-control/access-policy";
 import { canManageBilling } from "@/lib/auth/permissions";
 import { ClinicFeatureService } from "@/lib/services/clinic-feature.service";
-import { APP_ACCESS_TARGETS, type ClinicType } from "@workspace/types";
+import { APP_ACCESS_TARGETS, clinicTypeSchema } from "@workspace/types";
+import { parseStringEnumMember } from "@workspace/utils";
 import { CLINIC_ADMIN_ROLES } from "@/lib/auth/permissions";
 import { useClinic } from "@/lib/contexts/clinic-context";
 import { useSidebarPreferences } from "@/hooks/use-sidebar-preferences";
@@ -15,7 +16,7 @@ import { useSidebarNavOrder } from "@/hooks/use-sidebar-nav-order";
 import {
   useUnreadNotificationCount,
   usePendingJoinRequestCount,
-} from "@/hooks/api/use-notifications";
+} from "@workspace/data-access";
 import {
   AI_ASSISTANT_NAV_ITEM,
   FIXED_NAV_HREFS,
@@ -25,17 +26,17 @@ import {
   SPECIALTY_URLS,
   type NavItem,
   type NavSection,
-} from "@/features/_shared/components/navigation/nav-config";
+} from "@/components/navigation/nav-config";
 
 export function useSidebarSections() {
   const { user } = useAuth();
   const { clinicId } = useClinic();
   const {
     canAccess,
-    canAccessTier,
+    currentTier,
+    hasIntelligence,
     getTierInfo,
     clinicType: storeClinicType,
-    workspaceProfile,
   } = usePermissionStore();
   const { getClinicSetting } = useAppConfig();
   const { isHidden, toggleItem } = useSidebarPreferences(clinicId);
@@ -47,8 +48,8 @@ export function useSidebarSections() {
     {
       role: user?.role,
       canAccessFeature: canAccess,
-      canAccessTier,
-      workspaceProfile,
+      currentTier,
+      hasIntelligence,
     },
     "read",
   );
@@ -58,8 +59,8 @@ export function useSidebarSections() {
     {
       role: user?.role,
       canAccessFeature: canAccess,
-      canAccessTier,
-      workspaceProfile,
+      currentTier,
+      hasIntelligence,
     },
     "read",
   );
@@ -73,15 +74,22 @@ export function useSidebarSections() {
   const notificationCount = unreadNotificationCount?.count ?? 0;
   const pendingJoinRequestCount = pendingJoinRequestData?.count ?? 0;
 
-  const clinicType = (storeClinicType ||
-    getClinicSetting("clinicType")) as ClinicType | undefined;
+  const clinicTypeRaw = storeClinicType || getClinicSetting("clinicType");
+  const clinicType = clinicTypeRaw
+    ? parseStringEnumMember(
+        clinicTypeSchema.options,
+        String(clinicTypeRaw).toUpperCase(),
+      ) ?? undefined
+    : undefined;
 
   const specialtySections =
     ClinicFeatureService.getSpecialtySections(clinicType);
 
   const specialtyNavItems: NavItem[] = specialtySections.map((section) => ({
     href: SPECIALTY_URLS[section.id] || `/specialty/${section.id}`,
-    icon: SPECIALTY_ICONS[section.icon] || SPECIALTY_ICONS["Brain"]!,
+    icon:
+      SPECIALTY_ICONS[section.icon] ??
+      SPECIALTY_ICONS.Smile,
     label: section.label,
     accessTarget: APP_ACCESS_TARGETS.PAGE_SPECIALTY,
   }));
@@ -96,8 +104,8 @@ export function useSidebarSections() {
         {
           role: user?.role,
           canAccessFeature: canAccess,
-          canAccessTier,
-          workspaceProfile,
+          currentTier,
+          hasIntelligence,
         },
         "read",
       );

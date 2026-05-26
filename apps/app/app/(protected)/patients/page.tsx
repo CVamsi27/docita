@@ -1,6 +1,8 @@
 import { Suspense } from "react";
 import { LoadingState } from "@workspace/ui/components/feedback/empty-state";
-import { PatientsPageContainer } from "@/features/patients/components/list/PatientsPageContainer";
+import { FeatureGate } from "@/components/auth/feature-gate";
+import { Feature } from "@workspace/types";
+import { PatientsPageContainer } from "@/features/patients/components";
 
 function PatientsPageFallback() {
   return <LoadingState message="Loading patients…" className="py-16" />;

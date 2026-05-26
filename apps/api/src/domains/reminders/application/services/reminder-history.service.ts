@@ -21,35 +21,44 @@ export class ReminderHistoryService {
   private static readonly MAX_PAGE_SIZE = 200;
 
   async getReminderHistory(clinicId: string, limit: number = 50) {
-    // Previously this loaded every appointment for the clinic just to collect
-    // their ids, then queried reminders by `id IN (...)`. Replaced with a
-    // single tenant-scoped reminder query that joins to the appointment for
-    // patient context. Hard cap at MAX_PAGE_SIZE to bound memory pressure.
-    const take = Math.min(
-      Math.max(limit, 1),
-      ReminderHistoryService.MAX_PAGE_SIZE,
-    );
+    const appointments = await this.persistence.appointment.findMany({
+      where: { clinicId },
+      select: { id: true },
+    });
+
+    const appointmentIds = appointments.map((appointment) => appointment.id);
+
+    if (appointmentIds.length === 0) {
+      return [];
+    }
 
     const reminders = await this.persistence.appointmentReminder.findMany({
       where: {
-        OR: [{ clinicId }, { appointment: { clinicId } }],
+        appointmentId: { in: appointmentIds },
       },
-      take,
+      take: limit,
       orderBy: { createdAt: 'desc' },
-      include: {
-        appointment: {
-          select: {
-            id: true,
-            patient: {
-              select: {
-                firstName: true,
-                lastName: true,
-              },
+    });
+
+    const reminderAppointmentIds = reminders.map(
+      (reminder) => reminder.appointmentId,
+    );
+
+    const appointmentsForReminders =
+      await this.persistence.appointment.findMany({
+        where: {
+          id: { in: reminderAppointmentIds },
+        },
+        select: {
+          id: true,
+          patient: {
+            select: {
+              firstName: true,
+              lastName: true,
             },
           },
         },
-      },
-    });
+      });
 
     return reminders;
   }

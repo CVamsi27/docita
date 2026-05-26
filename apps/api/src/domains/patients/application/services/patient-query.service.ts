@@ -1,7 +1,6 @@
 import { Injectable, Inject, NotFoundException } from '@nestjs/common';
 import {
   IPatientRepository,
-  PATIENT_REPOSITORY_TOKEN,
   PatientSearchParams,
 } from '@/domains/patients/core/repositories/patient.repository.interface';
 import { Patient } from '@/domains/patients/core/entities/patient.entity';
@@ -9,7 +8,7 @@ import { Patient } from '@/domains/patients/core/entities/patient.entity';
 @Injectable()
 export class PatientQueryService {
   constructor(
-    @Inject(PATIENT_REPOSITORY_TOKEN)
+    @Inject('IPatientRepository')
     private readonly patientRepository: IPatientRepository,
   ) {}
 

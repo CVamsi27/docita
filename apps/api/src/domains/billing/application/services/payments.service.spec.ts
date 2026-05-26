@@ -139,29 +139,6 @@ describe('PaymentsService', () => {
 
   beforeEach(() => {
     jest.clearAllMocks();
-    txInvoiceUpdateMany = jest
-      .fn<() => Promise<{ count: number }>>()
-      .mockResolvedValue({ count: 1 }) as unknown as jest.Mock;
-    txPaymentSessionCreate = jest
-      .fn<() => Promise<unknown>>()
-      .mockResolvedValue({}) as unknown as jest.Mock;
-    const persistence = {
-      clinic: {} as never,
-      runUnrestricted: (async (fn: (tx: unknown) => unknown) =>
-        fn({})) as never,
-      invoice: {} as never,
-      paymentSession: {} as never,
-      $transaction: (async (fn: (tx: unknown) => unknown) =>
-        fn({
-          invoice: { updateMany: txInvoiceUpdateMany },
-          paymentSession: { create: txPaymentSessionCreate },
-        })) as never,
-    };
-    const razorpayInvoiceWebhook = {
-      handle: jest
-        .fn<() => Promise<{ status: string }>>()
-        .mockResolvedValue({ status: 'ignored' }),
-    } as never;
     const command = new PaymentsCommandService(
       repository,
       invoiceRepository,
@@ -169,8 +146,6 @@ describe('PaymentsService', () => {
       configService,
       paymentLinkProvider,
       clock,
-      persistence as never,
-      razorpayInvoiceWebhook,
     );
     const query = new PaymentsQueryService(repository);
     service = new PaymentsService(query, command);

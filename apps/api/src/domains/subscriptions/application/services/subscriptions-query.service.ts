@@ -5,6 +5,15 @@ import {
   collapseStaleUpgradePendingCheckouts,
 } from './subscriptions-payment-history-helpers';
 import {
+  parsePaymentHistoryRecords,
+  type PaymentHistoryRecord,
+} from './subscription-payment-history.types';
+import {
+  lookupTierObject,
+  lookupTierValue,
+  parsePricingConfigResponse,
+} from './subscription-tier-config.helpers';
+import {
   SUBSCRIPTION_REPOSITORY_TOKEN,
   ISubscriptionRepository,
   CLINIC_OPERATIONS_TOKEN,
@@ -86,6 +95,13 @@ export class SubscriptionsQueryService {
   }
 
   async getTierConfig() {
+    const tiers = [
+      'STARTER',
+      'FRONT_DESK',
+      'ESSENTIAL',
+      'PROFESSIONAL',
+      'ENTERPRISE',
+    ];
     const pricingConfig = parsePricingConfigResponse(
       await this.clinicPricingQuery.getPricingConfig(DEFAULT_CURRENCY),
     );
@@ -163,10 +179,12 @@ export class SubscriptionsQueryService {
     const subscription = await this.subscriptionRepo.findByClinicId(clinicId);
     const currentPlan = subscription ? subscription.getPlan().value : undefined;
 
-    const records = (await this.subscriptionRepo.findPaymentsByClinicId(
-      clinicId,
-      Math.max(limit * 5, limit),
-    )) as PaymentHistoryRecord[];
+    const records = parsePaymentHistoryRecords(
+      await this.subscriptionRepo.findPaymentsByClinicId(
+        clinicId,
+        Math.max(limit * 5, limit),
+      ),
+    );
     const normalized = normalizePaymentHistory(records);
     const collapsed = collapseStaleUpgradePendingCheckouts(normalized);
     const withoutStalePending = filterPendingPlanCheckoutMismatches(

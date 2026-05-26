@@ -1,11 +1,12 @@
 import { useMemo, useState } from "react";
 import { toast } from "sonner";
-import { useProcessOCR, useOcrCommitImport } from "@/hooks/api/use-import";
+import { useProcessOCR, useOcrCommitImport } from "@workspace/data-access";
 import { useAuth } from "@/lib/auth/auth-context";
 import { useClinic } from "@/lib/contexts/clinic-context";
 import { useRouter } from "next/navigation";
 import { showUserFacingErrorToast } from "@/lib/errors/user-facing-errors";
 import type { OcrImportCommitRequest } from "@workspace/types";
+import { parseStringEnumMember } from "@workspace/utils";
 import type { OCRFormData } from "@/features/ocr/types";
 import {
   emptyOcrInvoiceForm,
@@ -141,7 +142,11 @@ export const useOCR = () => {
         clinicId, doctorId: user.id,
         firstName: formData.firstName.trim(), lastName: formData.lastName.trim(),
         phoneNumber: formData.phoneNumber.trim(),
-        gender: formData.gender as "MALE" | "FEMALE" | "OTHER",
+        gender:
+          parseStringEnumMember(
+            ["MALE", "FEMALE", "OTHER"] as const,
+            formData.gender,
+          ) ?? "OTHER",
         dateOfBirth: dobIso, address: formData.address.trim() || undefined,
         diagnosis: formData.diagnosis.trim() || undefined,
         allergies: formData.allergies.length > 0 ? formData.allergies : undefined,

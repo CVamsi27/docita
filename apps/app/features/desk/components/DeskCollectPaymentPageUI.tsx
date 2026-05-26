@@ -7,43 +7,12 @@ import { useDebounce } from "@workspace/hooks/use-debounce";
 import {
   isOpenDeskInvoice,
   type DeskPaymentMethod,
-  PAYMENT_CHANNEL_OPTIONS,
   ROLES_CAN_RECORD_PAYMENT,
 } from "./desk-collect-payment-helpers";
-import { AppPageScaffold } from "@workspace/ui/components/app-page-scaffold";
-import { PageHeader } from "@workspace/ui/components/page-header";
-import { DataState } from "@workspace/ui/components/data-state";
-import { Section } from "@workspace/ui/components/section";
-import { Button } from "@workspace/ui/components/button";
-import { Input } from "@workspace/ui/components/input";
-import { Label } from "@workspace/ui/components/label";
-import { Textarea } from "@workspace/ui/components/textarea";
-import {
-  Card,
-  CardContent,
-  CardHeader,
-  CardTitle,
-} from "@workspace/ui/components/card";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@workspace/ui/components/select";
-import {
-  Dialog,
-  DialogBody,
-  DialogContent,
-  DialogDescription,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
-} from "@workspace/ui/components/dialog";
-import { MicroLabel } from "@workspace/ui/components/micro-label";
-import { StatusBadge } from "@workspace/ui/components/status-badge";
-import { FloatingInput } from "@workspace/ui/components/floating-input";
-import { usePatients } from "@/hooks/api/use-patients";
+import { AppPageScaffold } from "@workspace/ui/components/layout/app-page-scaffold";
+import { PageHeader } from "@workspace/ui/components/layout/page-header";
+import { Button } from "@workspace/ui/components/form/button";
+import { usePatients } from "@workspace/data-access";
 import { useInvoices } from "@/features/invoices";
 import { useDeskRecordInvoiceSettlement } from "@/features/desk/hooks/use-desk-record-invoice-settlement";
 import { useClinicCurrency } from "@/hooks/use-clinic-currency";

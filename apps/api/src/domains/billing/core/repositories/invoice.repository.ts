@@ -4,7 +4,6 @@ import {
   InvoiceStatus,
   Prisma,
 } from '@workspace/db';
-import type { InvoiceLineItemRow } from '@/domains/billing/core/utils/invoice-item-resolution';
 
 export interface ClinicFeatureContext {
   tier: ClinicTier;

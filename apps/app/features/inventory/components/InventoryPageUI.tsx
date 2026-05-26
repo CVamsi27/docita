@@ -1,8 +1,6 @@
 "use client";
 
 import { FC } from "react";
-import { Feature } from "@workspace/types";
-import { FeatureGate } from "@/components/auth/feature-gate";
 import { AppPageScaffold } from "@workspace/ui/components/layout/app-page-scaffold";
 import { PageHeader } from "@workspace/ui/components/layout/page-header";
 import { StatGrid, type StatItem } from "@workspace/ui/components/data-display/stat-grid";

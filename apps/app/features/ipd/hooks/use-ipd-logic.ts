@@ -2,7 +2,8 @@
 
 import { useMemo, useState } from "react";
 import { useAPIMutation, useAPIQuery } from "@/lib/api/api-core";
-import { useTierFeatureEnabled } from "@/hooks/api/tier-feature-guards";
+import { queryKeys } from "@/lib/api/query-keys";
+import { useTierFeatureEnabled } from "@/lib/access-control/use-tier-feature-enabled";
 import { useDebounce } from "@workspace/hooks/use-debounce";
 import {
   type Admission,

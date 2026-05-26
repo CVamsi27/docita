@@ -1,4 +1,9 @@
-import { Injectable, Logger, UnauthorizedException } from '@nestjs/common';
+import {
+  Injectable,
+  Logger,
+  UnauthorizedException,
+  Inject,
+} from '@nestjs/common';
 import * as bcrypt from 'bcrypt';
 import * as crypto from 'crypto';
 import {
@@ -8,9 +13,15 @@ import {
   type PublicBookingOtpVerifyResponse,
   type PublicBookingPhoneCheckResponse,
 } from '@workspace/types';
-import { PrismaService } from '@/prisma/prisma.service';
+import {
+  PUBLIC_BOOKING_PERSISTENCE_PORT,
+  type PublicBookingPersistencePort,
+} from '@/domains/public-booking/application/ports/public-booking-persistence.port';
 import { PatientService } from '@/domains/patients/application/services/patient.service';
-import { WhatsappClientService } from '@/shared/modules/messaging/whatsapp/whatsapp-client.service';
+import {
+  WHATSAPP_CLIENT_TOKEN,
+  type IWhatsAppClient,
+} from '@/domains/whatsapp/application/ports/whatsapp-client.port';
 import {
   PublicBookingTokenService,
   PUBLIC_BOOKING_JWT_PURPOSE,
@@ -22,18 +33,22 @@ import {
   normalizePhone,
   withBookingTenant,
 } from './public-booking-utils';
+import { CLOCK_PORT, type IClock } from '@/shared/common/ports/clock.port';
 
 @Injectable()
 export class PublicBookingCreationService {
   private readonly logger = new Logger(PublicBookingCreationService.name);
 
   constructor(
-    private readonly prisma: PrismaService,
+    @Inject(PUBLIC_BOOKING_PERSISTENCE_PORT)
+    private readonly persistence: PublicBookingPersistencePort,
     private readonly patientService: PatientService,
-    private readonly whatsappClient: WhatsappClientService,
+    @Inject(WHATSAPP_CLIENT_TOKEN)
+    private readonly whatsappClient: IWhatsAppClient,
     private readonly bookingTokenService: PublicBookingTokenService,
     private readonly turnstile: TurnstileVerifyService,
     private readonly appConfig: AppConfigService,
+    @Inject(CLOCK_PORT) private readonly clock: IClock,
   ) {}
 
   private async issueAndSendOtp(
@@ -43,17 +58,17 @@ export class PublicBookingCreationService {
   ): Promise<void> {
     const otp = crypto.randomInt(100000, 999999).toString();
     const otpHash = await bcrypt.hash(otp, 10);
-    const expiresAt = new Date(Date.now() + 10 * 60 * 1000);
-    await this.prisma.publicBookingOtp.deleteMany({
+    const expiresAt = new Date(this.clock.now().getTime() + 10 * 60 * 1000);
+    await this.persistence.publicBookingOtp.deleteMany({
       where: { clinicId, phoneNumber: phone, usedAt: null },
     });
-    await this.prisma.publicBookingOtp.create({
+    await this.persistence.publicBookingOtp.create({
       data: { clinicId, phoneNumber: phone, otpHash, expiresAt },
     });
     try {
       await this.whatsappClient.sendMessage({
         to: phone,
-        message: `Your verification code for booking at ${clinicName} is: ${otp}. Valid for 10 minutes.`,
+        text: `Your verification code for booking at ${clinicName} is: ${otp}. Valid for 10 minutes.`,
       });
     } catch (error) {
       this.logger.warn(
@@ -74,7 +89,7 @@ export class PublicBookingCreationService {
       throw new UnauthorizedException('Verification failed');
     }
     const phone = normalizePhone(body.phoneNumber);
-    return withBookingTenant(this.prisma, referralCode, async (clinic) => {
+    return withBookingTenant(this.persistence, referralCode, async (clinic) => {
       const existing = await this.patientService.findByClinicIdAndPhoneNumber(
         clinic.id,
         phone,
@@ -94,7 +109,7 @@ export class PublicBookingCreationService {
       throw new UnauthorizedException('Verification failed');
     }
     const phone = normalizePhone(body.phoneNumber);
-    await withBookingTenant(this.prisma, referralCode, async (clinic) => {
+    await withBookingTenant(this.persistence, referralCode, async (clinic) => {
       const patient = await this.patientService.findByClinicIdAndPhoneNumber(
         clinic.id,
         phone,
@@ -116,10 +131,10 @@ export class PublicBookingCreationService {
   ): Promise<PublicBookingOtpVerifyResponse> {
     const body = publicBookingOtpVerifySchema.parse(rawBody);
     const phone = normalizePhone(body.phoneNumber);
-    return withBookingTenant(this.prisma, referralCode, async (clinic) => {
-      const now = new Date();
+    return withBookingTenant(this.persistence, referralCode, async (clinic) => {
+      const now = this.clock.now();
 
-      const otpRecord = await this.prisma.publicBookingOtp.findFirst({
+      const otpRecord = await this.persistence.publicBookingOtp.findFirst({
         where: {
           clinicId: clinic.id,
           phoneNumber: phone,
@@ -133,12 +148,12 @@ export class PublicBookingCreationService {
         throw new UnauthorizedException('Invalid or expired code');
       }
 
-      await this.prisma.publicBookingOtp.update({
+      await this.persistence.publicBookingOtp.update({
         where: { id: otpRecord.id },
         data: { attempts: { increment: 1 } },
       });
 
-      const refreshed = await this.prisma.publicBookingOtp.findUnique({
+      const refreshed = await this.persistence.publicBookingOtp.findUnique({
         where: { id: otpRecord.id },
       });
       if (!refreshed || refreshed.attempts > 3) {
@@ -152,9 +167,9 @@ export class PublicBookingCreationService {
         throw new UnauthorizedException('Invalid code');
       }
 
-      await this.prisma.publicBookingOtp.update({
+      await this.persistence.publicBookingOtp.update({
         where: { id: otpRecord.id },
-        data: { usedAt: new Date() },
+        data: { usedAt: this.clock.now() },
       });
 
       const patient = await this.patientService.findByClinicIdAndPhoneNumber(
@@ -194,12 +209,12 @@ export class PublicBookingCreationService {
       throw new UnauthorizedException('Verification required');
     }
     const payload = this.bookingTokenService.verify(token);
-    return withBookingTenant(this.prisma, referralCode, async (clinic) => {
+    return withBookingTenant(this.persistence, referralCode, async (clinic) => {
       if (payload.clinicId !== clinic.id) {
         throw new UnauthorizedException('Invalid verification context');
       }
 
-      const appointments = await this.prisma.appointment.findMany({
+      const appointments = await this.persistence.appointment.findMany({
         where: { clinicId: clinic.id, patientId: payload.patientId },
         orderBy: { startTime: 'desc' },
         take: 5,
@@ -212,7 +227,7 @@ export class PublicBookingCreationService {
         },
       });
 
-      const patient = await this.prisma.patient.findFirst({
+      const patient = await this.persistence.patient.findFirst({
         where: { id: payload.patientId, clinicId: clinic.id },
         select: { createdAt: true },
       });

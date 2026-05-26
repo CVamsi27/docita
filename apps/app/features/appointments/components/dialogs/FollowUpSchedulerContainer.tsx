@@ -2,7 +2,7 @@ import { useState } from "react";
 import { toast } from "sonner";
 import { addMonths, addWeeks, formatDate } from "@workspace/utils";
 import { FollowUpDetails, FollowUpSchedulerUI } from "./FollowUpSchedulerUI";
-import { useConstants } from "@/features/_shared/hooks/use-constants";
+import { useConstants } from "@/hooks/use-constants";
 import { showUserFacingErrorToast } from "@/lib/errors/user-facing-errors";
 
 interface FollowUpSchedulerContainerProps {

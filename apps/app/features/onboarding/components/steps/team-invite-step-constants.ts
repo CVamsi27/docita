@@ -1,4 +1,17 @@
+import { parseStringEnumMember } from "@workspace/utils";
 import type { TeamMember } from "@/features/onboarding/components/types";
+
+const TEAM_MEMBER_ROLE_VALUES = [
+  "DOCTOR",
+  "NURSE",
+  "RECEPTIONIST",
+  "ADMIN",
+  "ADMIN_DOCTOR",
+] as const;
+
+export function parseTeamMemberRole(value: string): TeamMember["role"] {
+  return parseStringEnumMember(TEAM_MEMBER_ROLE_VALUES, value) ?? "DOCTOR";
+}
 
 export interface TeamInviteStepProps {
   onComplete: (members: TeamMember[]) => void;

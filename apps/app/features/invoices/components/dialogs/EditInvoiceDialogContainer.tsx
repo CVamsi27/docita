@@ -2,7 +2,7 @@
 
 import { useRef, useState } from "react";
 import { toast } from "sonner";
-import { useUpdateInvoice } from "@/hooks/api/use-billing";
+import { useUpdateInvoice } from "@workspace/data-access";
 import { useFormOptions } from "@/lib/contexts/app-config-context";
 import { EditInvoiceDialogUI } from "./EditInvoiceDialogUI";
 import type { Invoice, InvoiceItem, Patient } from "@workspace/types";

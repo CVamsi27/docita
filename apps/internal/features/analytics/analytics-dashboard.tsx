@@ -3,7 +3,7 @@
 import { DocitaLoadingIndicator } from "@workspace/ui/components/feedback/docita-loading-indicator";
 
 import dynamic from "next/dynamic";
-import React, { useCallback, useMemo, useState } from "react";
+import React, { useCallback, useEffect, useMemo, useState } from "react";
 import {
   Activity,
   BarChart3,
@@ -15,13 +15,13 @@ import {
 } from "lucide-react";
 import { API_URL } from "@/lib/api/api-config";
 import { useAuth } from "@/lib/auth/auth";
-import { getInternalTierChartColorClass } from "@/lib/tier-display";
 import { toast } from "sonner";
 import {
   downloadInternalAnalyticsExport,
   useInternalAnalytics,
   useInternalBillingMetrics,
 } from "@workspace/data-access/internal";
+import { AppPageScaffold } from "@workspace/ui/components/layout/app-page-scaffold";
 import { Button } from "@workspace/ui/components/form/button";
 import {
   Card,
@@ -31,11 +31,11 @@ import {
   CardTitle,
 } from "@workspace/ui/components/indicators/card";
 import { DatePicker } from "@workspace/ui/components/form/date-picker";
+import { PageHeader } from "@workspace/ui/components/layout/page-header";
 import { Section } from "@workspace/ui/components/layout/section";
 import { cn } from "@workspace/ui/lib/utils";
-import { DataState } from "@workspace/ui/components/data-display/data-state";
-import { formatAmountLocale, getUserFacingErrorMessage } from "@workspace/utils";
-import type { DetailedMetricsRow } from "@/features/analytics/analytics-detailed-metrics-table";
+import { formatAmountLocale } from "@workspace/utils";
+import type { DetailedMetricsRow } from "@/components/analytics/analytics-detailed-metrics-table";
 import { showUserFacingErrorToast } from "@/lib/errors/user-facing-errors";
 
 const AnalyticsDetailedMetricsTable = dynamic(
@@ -70,6 +70,15 @@ interface MetricCard {
   icon: React.ReactNode;
   trend?: "up" | "down" | "neutral";
 }
+
+const tierColors: Record<string, string> = {
+  CAPTURE: "bg-muted",
+  CORE: "bg-info",
+  PLUS: "bg-success",
+  PRO: "bg-primary",
+  CLINIC: "bg-processing",
+  ENTERPRISE: "bg-warning",
+};
 
 const trendToneClassNames: Record<NonNullable<MetricCard["trend"]>, string> = {
   up: "text-success",
@@ -546,4 +555,3 @@ export function AnalyticsDashboard() {
     </DataState>
   );
 }
-

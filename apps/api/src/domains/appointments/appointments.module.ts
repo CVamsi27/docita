@@ -7,7 +7,9 @@ import { AppointmentCommandService } from './application/services/appointment-co
 import { AppointmentMetricsService } from './application/services/appointment-metrics.service';
 import { AppointmentMetricDefinitionService } from './application/services/appointment-metric-definition.service';
 import { AppointmentDiagnosisService } from './application/services/appointment-diagnosis.service';
-import { AppointmentsController } from './presentation/controllers/appointments.controller';
+import { AppointmentsScheduleController } from './presentation/controllers/appointments-schedule.controller';
+import { AppointmentsConsultationController } from './presentation/controllers/appointments-consultation.controller';
+import { AppointmentsClinicalController } from './presentation/controllers/appointments-clinical.controller';
 import { AppointmentRequestController } from './presentation/controllers/appointment-request.controller';
 import {
   APPOINTMENT_READ_REPOSITORY_TOKEN,
@@ -69,6 +71,8 @@ import { AuditModule } from '@/shared/modules/audit/audit/audit.module';
     AppointmentMetricsService,
     AppointmentMetricDefinitionService,
     AppointmentDiagnosisService,
+    AppointmentRequestCommandService,
+    AppointmentRequestQueryService,
     AppointmentRequestService,
     DoctorDelayService,
     {

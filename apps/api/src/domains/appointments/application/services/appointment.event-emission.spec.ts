@@ -14,6 +14,7 @@ import { CreateAppointmentCommand } from '@/domains/appointments/application/use
 import { AppointmentSchedulingRulesService } from '@/domains/appointments/core/domain-services/appointment-scheduling-rules.service';
 import { AppointmentMetricsService } from './appointment-metrics.service';
 import { AppointmentDiagnosisService } from './appointment-diagnosis.service';
+import { createStubAppointmentWriteUseCases } from './appointment-use-case.stubs';
 
 describe('AppointmentService - appointment.created event', () => {
   const mockRepository = {
@@ -84,7 +85,6 @@ describe('AppointmentService - appointment.created event', () => {
       writeUseCaseStubs.updateAppointmentDetailsUseCase,
       mockPrisma,
       mockEventEmitter,
-      mockSchedulingRules,
       Object.create(
         AppointmentMetricsService.prototype,
       ) as AppointmentMetricsService,

@@ -1,7 +1,10 @@
 import { Injectable, Inject } from '@nestjs/common';
 import { Prisma } from '@workspace/db';
 import { fromLocalISOString } from '@workspace/utils';
-import { PrismaService } from '@/prisma/prisma.service';
+import {
+  DOCTOR_PERSISTENCE_PORT,
+  type DoctorPersistencePort,
+} from '@/domains/doctors/application/ports/doctor-persistence.port';
 import {
   IDoctorScheduleRepository,
   DOCTOR_SCHEDULE_REPOSITORY_TOKEN,
@@ -13,7 +16,6 @@ import {
 import type { PublicBookingSlotListEmptyReason } from '@workspace/types';
 import {
   type AvailableSlot,
-  type DayOfWeek,
   normalizeCalendarDateInput,
   addOneCalendarDay,
   getDayOfWeekInClinicZone,
@@ -21,6 +23,7 @@ import {
   generateSlotsForSchedule,
   sortSlots,
 } from './slot-generation-helpers';
+import { CLOCK_PORT, type IClock } from '@/shared/common/ports/clock.port';
 
 interface AvailableSlotsWithMeta {
   slots: AvailableSlot[];
@@ -98,7 +101,8 @@ export class SlotGenerationService {
       ) {
         clinicRows = implicitClinicWeeklyRowsForSlotFallback(
           clinicId,
-          dayOfWeek as DayOfWeek,
+          dayOfWeek,
+          this.clock.now(),
         );
       }
 
@@ -178,6 +182,7 @@ export class SlotGenerationService {
           timezone,
           doctorTimeOffs,
           doctorAppointments,
+          this.clock.now(),
         ),
       );
     }
