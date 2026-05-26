@@ -3,14 +3,14 @@
 
 import { Moon, Sun } from "lucide-react";
 import { useEffect, useState } from "react";
+import { useTheme } from "next-themes";
 import { Button } from "@workspace/ui/components/form/button";
 import { SymbolTooltip } from "@workspace/ui/components/overlay/tooltip";
 import { cn } from "@workspace/ui/lib/utils";
-import { useInternalTheme } from "@/components/internal-theme-provider";
 
 export function ThemeToggle({ className }: { className?: string }) {
   const [mounted, setMounted] = useState(false);
-  const { resolvedTheme, setTheme } = useInternalTheme();
+  const { resolvedTheme, setTheme } = useTheme();
 
   useEffect(() => {
     setMounted(true);
