@@ -1,3 +1,17 @@
+// ---------------------------------------------------------------------------
+// CANONICAL Prisma schema for the Docita workspace.
+//
+// This file is the SOURCE OF TRUTH consumed by Prisma CLI commands
+// (`prisma generate`, `prisma migrate dev|deploy`, `prisma format`).
+// Edits MUST happen here, not in the historical decomposition under
+// `prisma/schema/<topic>.prisma` — that folder is preserved for
+// documentation/organizational reference only and is NOT in sync with
+// this file. See ADR docs/architecture/decisions/0010-* and
+// SYSTEM_DESIGN_AND_PATTERNS.md §56 item 43.
+//
+// To verify consistency after edits: `pnpm --filter @workspace/db run db:diff`.
+// ---------------------------------------------------------------------------
+
 generator client {
   provider      = "prisma-client-js"
   binaryTargets = ["native", "linux-musl-openssl-3.0.x", "linux-musl-arm64-openssl-3.0.x"]

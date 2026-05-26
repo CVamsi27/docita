@@ -1,5 +1,9 @@
 # Standard Turborepo Folder Structure
 
+> **Descriptive.** Documents the layout chosen for this monorepo. The
+> binding layout reference (apps/, packages/, scripts/, docs/) lives in
+> [`AGENTS.md`](../../AGENTS.md) §2.1. This file is the longer rationale.
+
 This is a recommended, production-grade structure for a Turborepo using:
 
 - Next.js + Astro (frontend apps)

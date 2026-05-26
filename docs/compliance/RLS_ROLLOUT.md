@@ -5,8 +5,10 @@
 - Migration: `20260502143500_add_rls_policies` (additive, gated)
 - Application flag: `RLS_ENABLED` (defaults to `false`)
 - Application surface: `RlsService.runScopedTransaction(clinicId, fn)`
-- CI guard: `pnpm check:rls-rollout-readiness` (migration + service +
-  routing extension + interceptor wiring + env docs)
+- CI guard: `pnpm check:rls-rollout-readiness` is part of `pnpm verify:standard`
+  and is therefore **already blocking** on every PR. The remaining work
+  in `SYSTEM_DESIGN_AND_PATTERNS.md` §28.1 item 2 is operational, not
+  code: provision the `docita_app` user, run staging soak, flip the flag.
 - When `RLS_ENABLED=true`, `TenantContextInterceptor` wraps each authenticated
   clinic request in a Prisma interactive transaction (`tx`), sets
   `app.rls_enabled` / `app.current_clinic_id` on `tx`, and publishes `tx`

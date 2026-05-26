@@ -616,21 +616,34 @@ Split or extract when **responsibility**, **pattern fit**, or **duplication** de
 
 ### 15.6 Design Patterns in Use
 
-- **Facade**: `AppointmentService`, `InvoicesService`, `UsageTrackingService` keep a stable public API while delegating to split internals.
-- **Command/Query Separation (CQS)**: backend services split on the read vs. mutate axis. Query services must not be imported into command chains.
-- **Repository Pattern**: every domain has an `IXRepository` interface + `PrismaXRepository` implementation. Controllers never touch Prisma directly.
-- **Strategy Pattern**: `StorageProvider` abstraction; `OnboardingStepEngine` (pure state machine callable with any persistence strategy).
-- **Observer Pattern**: `EventEmitter2` for `appointment.created`, `invoice.paid`, etc. — producers and consumers are decoupled.
-- **Decorator Pattern**: `@AuditLogged`, `@RequireFeature`, `@Roles` — cross-cutting concerns added without modifying method logic.
-- **Template Method**: `BasePdfService` defines the PDF render pipeline; `InvoicePdfRenderer`/`PrescriptionPdfRenderer` fill in the steps.
+Each pattern below points at a canonical example to copy from when introducing a new instance.
+
+| Pattern | Canonical example |
+| --- | --- |
+| Facade | [`apps/api/src/domains/appointments/application/services/appointment.service.ts`](apps/api/src/domains/appointments/application/services/appointment.service.ts) |
+| Command/Query Separation (CQS) | [`apps/api/src/domains/appointments/application/services/appointment-command.service.ts`](apps/api/src/domains/appointments/application/services/appointment-command.service.ts) + [`appointment-query.service.ts`](apps/api/src/domains/appointments/application/services/appointment-query.service.ts) |
+| Repository pattern | [`apps/api/src/domains/appointments/core/repositories/appointment.repository.interface.ts`](apps/api/src/domains/appointments/core/repositories/appointment.repository.interface.ts) + [`apps/api/src/domains/appointments/infrastructure/persistence/prisma-appointment-write.repository.ts`](apps/api/src/domains/appointments/infrastructure/persistence/prisma-appointment-write.repository.ts) |
+| Strategy pattern | [`apps/api/src/shared/modules/imports/bulk-import-strategy.registry.ts`](apps/api/src/shared/modules/imports/bulk-import-strategy.registry.ts); [`apps/api/src/shared/modules/storage/`](apps/api/src/shared/modules/storage/) (`StorageProvider`) |
+| Observer / event emitter | [`apps/api/src/shared/modules/events/`](apps/api/src/shared/modules/events/) (`EventEmitter2` wiring) |
+| Decorator (cross-cutting) | [`apps/api/src/shared/modules/audit/audit-logger.service.ts`](apps/api/src/shared/modules/audit/audit-logger.service.ts); decorators under [`apps/api/src/shared/modules/auth/decorators/`](apps/api/src/shared/modules/auth/decorators/) (`@ClinicScoped`, `@EmergencyAccess`, `@SkipSubscriptionCheck`) |
+| Template method | [`apps/api/src/shared/modules/document-generation/pdf/pdf-generator.service.ts`](apps/api/src/shared/modules/document-generation/pdf/pdf-generator.service.ts) |
+| Anti-corruption layer | [`apps/api/src/shared/common/repositories/base.repository.ts`](apps/api/src/shared/common/repositories/base.repository.ts) (Prisma error translation) |
+| Outbox (proposed) | See ADR [`docs/architecture/decisions/0010-transactional-outbox.md`](docs/architecture/decisions/0010-transactional-outbox.md) |
 
 ### 15.7 Frontend Component Architecture
 
-- **Page shell**: `AppPageScaffold → PageHeader → DataState → Content` is the mandatory pattern for every new page.
-- **Colocation rule**: types used only within one feature stay in `features/<feature>/types.ts`. Shared types go to `packages/types`. Never duplicate.
-- **Draft pattern**: `useOnboardingDraft` is the canonical pattern for localStorage persistence — hook encapsulates read/write/expiry; component only calls handlers.
-- **Sections file** (`*-sections.tsx`): sub-components that accept props from the orchestrator. Pure render, no data fetching.
-- **Helpers file** (`*-helpers.ts`): pure functions and constants. No React imports. Fully unit-testable without DI.
+Each shape below has a canonical example to copy from. The frontmatter cites the file when applicable.
+
+| Shape | Canonical example |
+| --- | --- |
+| Page shell (`AppPageScaffold → PageHeader → DataState → Content`) | Any page under [`apps/app/app/(protected)/`](apps/app/app/(protected)/) |
+| Feature folder layout | [`apps/app/features/patients/`](apps/app/features/patients/) (`components/`, `hooks/`, `rules/`, `lib/`, `index.ts`) |
+| Colocation rule for types | [`apps/app/features/patients/types.ts`](apps/app/features/patients/) (feature-local types) vs `packages/types` (shared) |
+| Draft pattern (localStorage with expiry) | [`apps/app/features/onboarding/components/forms/use-onboarding-draft.ts`](apps/app/features/onboarding/components/forms/use-onboarding-draft.ts) |
+| Sections file (`*-sections.tsx`) | Any feature using the split, e.g. `apps/app/features/<feature>/components/<feature>-sections.tsx` |
+| Helpers file (`*-helpers.ts`) | Any feature using the split, e.g. `apps/app/features/<feature>/lib/<feature>-helpers.ts` |
+| Per-domain data hook | [`packages/data-access/src/hooks/use-patients.ts`](packages/data-access/src/hooks/use-patients.ts) |
+| Page-level loading/error/empty | `DataState` from [`packages/ui/src/components/data-display/data-state.tsx`](packages/ui/src/components/data-display/data-state.tsx) |
 
 ### 15.8 Tier/Feature Gating Contract (critical)
 

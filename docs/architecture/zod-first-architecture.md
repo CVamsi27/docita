@@ -1,5 +1,10 @@
 # Docita — Zod-First Type Architecture
 
+> **Descriptive companion to AGENTS.md §3.1.** Explains *why* Zod-first
+> exists and how it flows through the stack. For the binding rule
+> ("schemas live in `packages/types`; types are inferred"), see
+> [`AGENTS.md`](../../AGENTS.md) §3.1.
+
 > **Holy grail of monorepo sanity**: one source of truth → validated → inferred → reused everywhere.
 > Not "types copied around" — **types generated from runtime truth**.
 
