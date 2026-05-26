@@ -1616,3 +1616,204 @@ export const PRO_OVERAGE_RATES_INR = {
   user: 249,
   whatsappMessage: 0.75,
 } as const;
+
+// ---------------------------------------------------------------------------
+// Per-clinic feature overrides + custom packages
+// ---------------------------------------------------------------------------
+
+/**
+ * Features that may be toggled per-clinic via `Clinic.features` overrides.
+ *
+ * Overrides outside this set are ignored at the boundary so a typo or hostile
+ * payload cannot disable core clinical features. To allow a new feature to be
+ * sold "with" or "without," add it here.
+ */
+export const OVERRIDABLE_FEATURES: ReadonlySet<Feature> = new Set([
+  Feature.WHATSAPP_MESSAGING,
+  Feature.WHATSAPP_OWN_NUMBER,
+  Feature.WHATSAPP_MANAGED_NUMBER,
+  Feature.AI_PRESCRIPTION_ASSISTANT,
+  Feature.AI_DIAGNOSIS_HINTS,
+  Feature.SMART_TASK_ENGINE,
+  Feature.PREDICTIVE_NO_SHOW,
+  Feature.PATIENT_SEGMENTATION,
+  Feature.ANOMALY_DETECTION,
+  Feature.AUTO_REMINDERS,
+  Feature.BROADCAST_CAMPAIGNS,
+]);
+
+/**
+ * Zod schema for the `Clinic.features` JSON column. Boolean overrides keyed by
+ * `Feature` enum value. Unknown keys and non-boolean values are stripped.
+ */
+export const clinicFeatureOverridesSchema = z
+  .record(z.string(), z.boolean())
+  .transform((raw): Partial<Record<Feature, boolean>> => {
+    const out: Partial<Record<Feature, boolean>> = {};
+    for (const [key, value] of Object.entries(raw)) {
+      if (
+        key in FEATURE_TIER_MAP &&
+        OVERRIDABLE_FEATURES.has(key as Feature)
+      ) {
+        out[key as Feature] = value;
+      }
+    }
+    return out;
+  });
+
+export type ClinicFeatureOverrides = z.infer<typeof clinicFeatureOverridesSchema>;
+
+/** Currency-aware monthly discount applied when a preset is active. */
+export type PackagePresetDiscount = Record<SupportedCurrency, number>;
+
+export interface PackagePreset {
+  /** Stable id persisted alongside the override JSON. */
+  id: PackagePresetId;
+  /** Display name for sales/admin surfaces. */
+  name: string;
+  /** Short marketing line. */
+  tagline: string;
+  /** The base tier this preset attaches to. */
+  basePlan: TierName;
+  /** Overrides applied on top of the base plan (subset of `OVERRIDABLE_FEATURES`). */
+  overrides: Partial<Record<Feature, boolean>>;
+  /** Monthly discount per currency, in whole currency units (not cents). */
+  monthlyDiscount: PackagePresetDiscount;
+}
+
+export type PackagePresetId =
+  | "PROFESSIONAL_NO_COMMS"
+  | "PROFESSIONAL_NO_AI"
+  | "PROFESSIONAL_CORE"
+  | "HOSPITAL_NO_COMMS"
+  | "HOSPITAL_NO_AI"
+  | "HOSPITAL_CORE";
+
+const NO_COMMS_OVERRIDES: Partial<Record<Feature, boolean>> = {
+  [Feature.WHATSAPP_MESSAGING]: false,
+  [Feature.WHATSAPP_OWN_NUMBER]: false,
+  [Feature.WHATSAPP_MANAGED_NUMBER]: false,
+  [Feature.AUTO_REMINDERS]: false,
+  [Feature.BROADCAST_CAMPAIGNS]: false,
+};
+
+const NO_AI_OVERRIDES: Partial<Record<Feature, boolean>> = {
+  [Feature.AI_PRESCRIPTION_ASSISTANT]: false,
+  [Feature.AI_DIAGNOSIS_HINTS]: false,
+  [Feature.SMART_TASK_ENGINE]: false,
+  [Feature.PREDICTIVE_NO_SHOW]: false,
+  [Feature.PATIENT_SEGMENTATION]: false,
+  [Feature.ANOMALY_DETECTION]: false,
+};
+
+const NO_COMMS_DISCOUNT: PackagePresetDiscount = {
+  INR: 500,
+  USD: 8,
+  EUR: 7,
+  GBP: 6,
+  AUD: 12,
+  CAD: 10,
+  SGD: 10,
+  AED: 30,
+  ZAR: 140,
+};
+
+const NO_AI_DISCOUNT: PackagePresetDiscount = {
+  INR: 500,
+  USD: 8,
+  EUR: 7,
+  GBP: 6,
+  AUD: 12,
+  CAD: 10,
+  SGD: 10,
+  AED: 30,
+  ZAR: 140,
+};
+
+function sumDiscount(
+  a: PackagePresetDiscount,
+  b: PackagePresetDiscount,
+): PackagePresetDiscount {
+  const result = {} as PackagePresetDiscount;
+  for (const currency of Object.keys(a) as SupportedCurrency[]) {
+    result[currency] = a[currency] + b[currency];
+  }
+  return result;
+}
+
+/**
+ * Named bundles of feature overrides + monthly discount, sold as "Professional
+ * without comms," "Hospital without AI," etc. Adding a new package is a single
+ * entry here — no new tier enum value, no DB migration.
+ */
+export const PACKAGE_PRESETS: Record<PackagePresetId, PackagePreset> = {
+  PROFESSIONAL_NO_COMMS: {
+    id: "PROFESSIONAL_NO_COMMS",
+    name: "Professional · No comms",
+    tagline: "Full clinical access without WhatsApp messaging.",
+    basePlan: "PROFESSIONAL",
+    overrides: NO_COMMS_OVERRIDES,
+    monthlyDiscount: NO_COMMS_DISCOUNT,
+  },
+  PROFESSIONAL_NO_AI: {
+    id: "PROFESSIONAL_NO_AI",
+    name: "Professional · No AI",
+    tagline: "Full clinical access without AI assistance.",
+    basePlan: "PROFESSIONAL",
+    overrides: NO_AI_OVERRIDES,
+    monthlyDiscount: NO_AI_DISCOUNT,
+  },
+  PROFESSIONAL_CORE: {
+    id: "PROFESSIONAL_CORE",
+    name: "Professional · Core",
+    tagline: "Full doctor access without WhatsApp and AI.",
+    basePlan: "PROFESSIONAL",
+    overrides: { ...NO_COMMS_OVERRIDES, ...NO_AI_OVERRIDES },
+    monthlyDiscount: sumDiscount(NO_COMMS_DISCOUNT, NO_AI_DISCOUNT),
+  },
+  HOSPITAL_NO_COMMS: {
+    id: "HOSPITAL_NO_COMMS",
+    name: "Hospital · No comms",
+    tagline: "Hospital plan without WhatsApp messaging.",
+    basePlan: "HOSPITAL",
+    overrides: NO_COMMS_OVERRIDES,
+    monthlyDiscount: NO_COMMS_DISCOUNT,
+  },
+  HOSPITAL_NO_AI: {
+    id: "HOSPITAL_NO_AI",
+    name: "Hospital · No AI",
+    tagline: "Hospital plan without AI assistance.",
+    basePlan: "HOSPITAL",
+    overrides: NO_AI_OVERRIDES,
+    monthlyDiscount: NO_AI_DISCOUNT,
+  },
+  HOSPITAL_CORE: {
+    id: "HOSPITAL_CORE",
+    name: "Hospital · Core",
+    tagline: "Hospital plan without WhatsApp and AI.",
+    basePlan: "HOSPITAL",
+    overrides: { ...NO_COMMS_OVERRIDES, ...NO_AI_OVERRIDES },
+    monthlyDiscount: sumDiscount(NO_COMMS_DISCOUNT, NO_AI_DISCOUNT),
+  },
+};
+
+export const PACKAGE_PRESET_IDS = Object.keys(
+  PACKAGE_PRESETS,
+) as PackagePresetId[];
+
+export function getPackagePresetsForTier(tier: TierName): PackagePreset[] {
+  return PACKAGE_PRESET_IDS.map((id) => PACKAGE_PRESETS[id]).filter(
+    (preset) => preset.basePlan === tier,
+  );
+}
+
+/**
+ * Persisted shape of a clinic's package selection. Stored alongside the tier;
+ * `presetId` is the source of truth, `overrides` is a denormalised cache for
+ * read-time gating without rejoining the preset table.
+ */
+export const clinicPackageSelectionSchema = z.object({
+  presetId: z.string().nullable(),
+  overrides: clinicFeatureOverridesSchema,
+});
+export type ClinicPackageSelection = z.infer<typeof clinicPackageSelectionSchema>;
