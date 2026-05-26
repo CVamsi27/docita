@@ -35,11 +35,14 @@ export class DoctorImportStrategy implements IImportStrategy {
   async import(
     row: Record<string, unknown>,
     clinicId: string,
-    _audit: ImportStrategyAuditContext,
+    _audit: import('./import-strategy.interface').ImportStrategyAuditContext,
   ): Promise<void> {
     void _audit;
-    const email = readImportRowRequiredString(row, 'email');
-    const name = readImportRowRequiredString(row, 'name');
+    const email = this.readString(row, 'email');
+    const name = this.readString(row, 'name');
+    if (!email || !name) {
+      throw new Error('Missing required doctor fields: name or email');
+    }
 
     const existing = await this.prisma.user.findUnique({
       where: { email },

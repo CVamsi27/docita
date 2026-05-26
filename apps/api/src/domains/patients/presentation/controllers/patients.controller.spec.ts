@@ -20,7 +20,6 @@ import { RequestWithUser } from '@/shared/common/types/common.types';
 import { ListPatientsQueryDto } from '@/domains/patients/application/dto/patients.dto';
 import { Patient } from '@/domains/patients/core/entities/patient.entity';
 import { DPDPComplianceService } from '@/shared/modules/compliance/dpdp-compliance.service';
-import { AuditService } from '@/shared/modules/audit/audit/audit.service';
 
 describe('PatientsController (Authorization)', () => {
   let controller: PatientsController;
@@ -90,10 +89,6 @@ describe('PatientsController (Authorization)', () => {
         {
           provide: DPDPComplianceService,
           useValue: { recordDpdpNoticeConsent: jest.fn() },
-        },
-        {
-          provide: AuditService,
-          useValue: { logAction: jest.fn(), logPatientAccess: jest.fn() },
         },
       ],
     })

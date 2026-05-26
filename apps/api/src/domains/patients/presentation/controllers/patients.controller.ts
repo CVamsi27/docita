@@ -55,7 +55,6 @@ export class PatientsController {
   constructor(
     private readonly patientService: PatientService,
     private readonly dpdpService: DPDPComplianceService,
-    private readonly auditService: AuditService,
   ) {}
 
   private toPatientResponse(value: unknown) {
@@ -105,7 +104,7 @@ export class PatientsController {
       );
     }
 
-    const { clinicId } = getClinicStaffRequestContext(req);
+    const clinicId = req.user!.clinicId!;
     const created = await this.patientService.createPatient(
       this.normalizeCreateBody(body, clinicId),
     );
@@ -118,10 +117,7 @@ export class PatientsController {
       givenByRelation: consent.relation,
       createdBy: req.user?.id,
       ipAddress: req.ip,
-      userAgent:
-        typeof req.headers?.['user-agent'] === 'string'
-          ? req.headers['user-agent']
-          : undefined,
+      userAgent: req.headers?.['user-agent'] as string | undefined,
       notes: 'Collected by staff via Add Patient modal',
     });
 

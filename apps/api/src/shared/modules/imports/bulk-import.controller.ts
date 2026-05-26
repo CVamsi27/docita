@@ -18,7 +18,7 @@ import type { AuthenticatedRequest, BulkImportRequest } from '@workspace/types';
 import { bulkImportRequestSchema, DPDP_NOTICE_VERSION } from '@workspace/types';
 
 type AuthedExpressRequest = AuthenticatedRequest & ExpressRequest;
-import { ZodValidationPipe } from '@/shared/common/pipes/zod-validation.pipe';
+import { ZodValidationPipe } from '@/common/pipes/zod-validation.pipe';
 import { BulkImportJobStatusResponseDto } from './dto/bulk-import.dto';
 import { ZodSerializerDto } from 'nestjs-zod';
 import { readRequestHeaderString } from '@/shared/common/http/client-ip';
@@ -109,7 +109,7 @@ export class BulkImportController {
       fileBuffer,
       {
         ipAddress: req.ip,
-        userAgent: readRequestHeaderString(req.headers, 'user-agent'),
+        userAgent: req.headers?.['user-agent'] as string | undefined,
         dpdpNoticeVersion: data.dpdpAttestation?.noticeVersion,
       },
     );
