@@ -1,5 +1,11 @@
 "use client";
 
+// check-as-cast-density: allow-file
+// This is a static legal/consent template containing user-facing prose (e.g.
+// "such as WhatsApp", "as long as necessary"). The density scanner uses a
+// simple regex that flags the English word "as" in JSX text as a type cast.
+// There are no TypeScript type assertions in this file.
+
 import { Card, CardContent, CardHeader } from "@workspace/ui/components/indicators/card";
 import { Separator } from "@workspace/ui/components/layout/separator";
 import { formatDate } from "@workspace/utils";

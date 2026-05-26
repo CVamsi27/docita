@@ -2,13 +2,10 @@ import { Injectable, Logger } from '@nestjs/common';
 import { Role, SubscriptionStatus } from '@workspace/db';
 import {
   APP_PERMISSIONS_BY_ROLE,
-  type AppAccessTarget,
-  type AppPermission,
   Feature,
   getAccessRoles,
   getAccessFeature,
   mapDbClinicTierStringToTierName,
-  type UserRole,
 } from '@workspace/types';
 import {
   hasFeatureAccess,
@@ -16,6 +13,7 @@ import {
 } from '@workspace/utils';
 import { ClinicAuthCacheService } from '@/shared/modules/auth/auth/clinic-auth-cache.service';
 import { ResourcePolicyRegistry } from './policies/registry';
+import { dbRoleToUserRole } from './role-bridge';
 import type {
   AuthorizationAction,
   AuthorizationContext,
@@ -99,15 +97,13 @@ export class AuthorizationService {
         context.target,
         context.mode ?? 'read',
       );
-      const userRoleName = user.role as unknown as UserRole;
+      const userRoleName = dbRoleToUserRole(user.role);
       if (allowedRoles.length > 0 && !allowedRoles.includes(userRoleName)) {
         return deny('role_denied', { target: context.target });
       }
     } else if (context.permission) {
-      const userRoleName = user.role as unknown as UserRole;
-      const perms = (
-        APP_PERMISSIONS_BY_ROLE as Record<UserRole, AppPermission[]>
-      )[userRoleName];
+      const userRoleName = dbRoleToUserRole(user.role);
+      const perms = APP_PERMISSIONS_BY_ROLE[userRoleName];
       if (!perms?.includes(context.permission)) {
         return deny('permission_denied', { permission: context.permission });
       }
@@ -141,7 +137,7 @@ function inferFeatureFromTarget(
   target: AuthorizationContext['target'],
 ): Feature | undefined {
   if (!target) return undefined;
-  return getAccessFeature(target as AppAccessTarget) ?? undefined;
+  return getAccessFeature(target) ?? undefined;
 }
 
 function allow(): AuthorizationDecision {
