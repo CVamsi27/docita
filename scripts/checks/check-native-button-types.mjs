@@ -72,6 +72,11 @@ function listSourceFiles(directory) {
 
   for (const entry of entries) {
     const fullPath = join(directory, entry.name);
+    const normalizedPath = normalizePath(fullPath);
+    if (EXCLUDED_PATH_SEGMENTS.some((segment) => normalizedPath.includes(segment))) {
+      continue;
+    }
+
     if (entry.isDirectory()) {
       files.push(...listSourceFiles(fullPath));
       continue;
@@ -80,10 +85,6 @@ function listSourceFiles(directory) {
       continue;
     }
 
-    const normalizedPath = normalizePath(fullPath);
-    if (EXCLUDED_PATH_SEGMENTS.some((segment) => normalizedPath.includes(segment))) {
-      continue;
-    }
     if (EXCLUDED_FILE_SUFFIXES.some((suffix) => normalizedPath.endsWith(suffix))) {
       continue;
     }

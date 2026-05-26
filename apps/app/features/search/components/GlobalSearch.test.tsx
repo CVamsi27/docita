@@ -9,6 +9,10 @@ vi.mock("next/navigation", () => ({
   useRouter: () => ({ push: vi.fn() }),
 }));
 
+vi.mock("@workspace/hooks/use-debounce", () => ({
+  useDebounce: <T,>(value: T) => value,
+}));
+
 const searchGlobalMock = vi.fn();
 
 vi.mock("@/features/search/api/search-api", () => ({

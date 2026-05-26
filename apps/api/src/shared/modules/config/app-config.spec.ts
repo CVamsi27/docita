@@ -20,6 +20,9 @@ describe('app-config validateEnv', () => {
       NEXT_PUBLIC_APP_URL: 'https://app.docita.work',
       NEXT_PUBLIC_API_URL: 'https://api.docita.work/api/v1',
       CORS_ORIGINS: 'https://app.docita.work,https://internal.docita.work',
+      RAZORPAY_KEY_ID: 'rzp_test_release_validation',
+      RAZORPAY_KEY_SECRET: 'test-razorpay-secret',
+      RAZORPAY_WEBHOOK_SECRET: 'test-razorpay-webhook-secret',
       ...overrides,
     };
   }

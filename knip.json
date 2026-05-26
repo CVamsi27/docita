@@ -147,6 +147,7 @@
         "axe-core",
         "axe-playwright",
         "baseline-browser-mapping",
+        "madge",
         "playwright",
         "ts-node"
       ]

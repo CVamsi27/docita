@@ -1,9 +1,11 @@
 import {
+  type ClinicFeatureOverrides,
   Feature,
   FEATURE_TIER_MAP,
   FRONT_DESK_BLOCKED_FEATURES,
   INTELLIGENCE_ADDONS,
   INTELLIGENCE_BUNDLE_DISCOUNT,
+  OVERRIDABLE_FEATURES,
   PLANNED_FEATURES,
   Tier,
   TIER_FEATURES,
@@ -78,9 +80,19 @@ export function hasFeatureAccess(
   tier: TierName,
   feature: Feature,
   hasIntelligence = false,
+  overrides: ClinicFeatureOverrides = {},
 ): boolean {
   if (!isFeatureGenerallyAvailable(feature)) {
     return false;
+  }
+
+  // Per-clinic overrides win over tier defaults, but only for features in the
+  // OVERRIDABLE_FEATURES allowlist (enforced when overrides are parsed).
+  if (
+    OVERRIDABLE_FEATURES.has(feature) &&
+    overrides[feature] !== undefined
+  ) {
+    return overrides[feature] === true;
   }
 
   const requiredTier = FEATURE_TIER_MAP[feature];

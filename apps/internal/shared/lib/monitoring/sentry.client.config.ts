@@ -82,4 +82,3 @@ function getAdminContextFromStorage(): {
     return null;
   }
 }
-
