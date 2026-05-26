@@ -83,9 +83,16 @@
         "src/providers/**",
         "src/domains/clinical/application/services/clinical-settings.service.ts",
         "src/domains/clinics/application/services/onboarding/onboarding-step-engine.ts",
-        "src/domains/clinics/application/services/onboarding/type-helpers.ts"
+        "src/domains/clinics/application/services/onboarding/type-helpers.ts",
+        "src/shared/modules/schedule/cron-heartbeat.ts",
+        "src/shared/common/context/request-context.store.ts",
+        "src/shared/modules/rls/active-tx.storage.ts",
+        "src/domains/appointments/application/types/appointment-access-context.ts"
       ],
       "ignoreDependencies": ["pino-pretty"]
+    },
+    "packages/types": {
+      "ignore": ["src/auth/mfa.ts"]
     },
     "packages/utils": {
       "ignoreDependencies": ["clsx", "tailwind-merge"]
@@ -117,6 +124,18 @@
       ]
     },
     "apps/internal": {
+      "entry": [
+        "app/**/*.{ts,tsx}",
+        "features/**/*.{ts,tsx}",
+        "shared/**/*.{ts,tsx}",
+        "e2e/**/*.ts"
+      ],
+      "paths": {
+        "@/*": ["./*"],
+        "@/components/*": ["./shared/components/*"],
+        "@/hooks/*": ["./shared/hooks/*"],
+        "@/lib/*": ["./shared/lib/*"]
+      },
       "ignoreDependencies": ["@axe-core/playwright", "eslint-config-next", "@fontsource/fraunces", "@fontsource/inter", "@fontsource/jetbrains-mono"]
     },
     "apps/landing": {

@@ -1,7 +1,5 @@
 import { Patient } from '@/domains/patients/core/entities/patient.entity';
 
-export const PATIENT_REPOSITORY_TOKEN = Symbol('IPatientRepository');
-
 export interface PatientSearchParams {
   clinicId: string;
   search?: string;
