@@ -1,3 +1,4 @@
+import { randomUUID } from 'crypto';
 import {
   TemplateButton,
   TemplateVariable,
@@ -82,7 +83,7 @@ export class WhatsAppTemplate {
   ): WhatsAppTemplate {
     return new WhatsAppTemplate({
       ...props,
-      id: Math.random().toString(36).substring(7),
+      id: randomUUID(),
       status: WhatsAppTemplateStatus.PENDING,
       createdAt: now,
       updatedAt: now,

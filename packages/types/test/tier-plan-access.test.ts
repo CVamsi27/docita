@@ -12,7 +12,7 @@ const BILLABLE_PLAN_SKUS = [
 
 describe("tier plan feature access parity", () => {
   it("parses billed SKUs through tierSchema", () => {
-    for (const sku of PUBLISHED_PLAN_LADDER) {
+    for (const sku of BILLABLE_PLAN_SKUS) {
       expect(() => tierSchema.parse(sku)).not.toThrow();
     }
   });

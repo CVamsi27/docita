@@ -30,7 +30,8 @@
     "test:e2e:cov": "jest --config ./test/jest-e2e.json --coverage",
     "test:all": "pnpm test && pnpm test:e2e",
     "test:ci": "jest --ci --coverage",
-    "generate-openapi": "ts-node scripts/generate-openapi.ts"
+    "generate-openapi": "ts-node -r tsconfig-paths/register scripts/generate-openapi.ts",
+    "openapi:generate": "pnpm run generate-openapi"
   },
   "dependencies": {
     "@aws-sdk/client-s3": "^3.1053.0",

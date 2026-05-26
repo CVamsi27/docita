@@ -1,3 +1,4 @@
+import { randomBytes } from 'crypto';
 import { Prisma } from '@workspace/db';
 import { enterpriseBrandingSchema } from '@workspace/types';
 import { isRecord } from '@workspace/utils';
@@ -107,6 +108,20 @@ export function generateReferralCode(clinicName: string): string {
     .toUpperCase()
     .slice(0, 3)
     .padEnd(3, 'X');
-  const suffix = Math.random().toString(36).toUpperCase().slice(2, 6);
+  // Math.random is unsuitable for referral codes — the suffix is what
+  // makes a code unguessable. Use crypto.randomBytes and base32-style
+  // alphabet (no 0/O/1/I) so the code is readable when shared.
+  const suffix = randomReferralSuffix(4);
   return `${prefix}-${suffix}`;
+}
+
+const REFERRAL_ALPHABET = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
+
+function randomReferralSuffix(length: number): string {
+  const bytes = randomBytes(length);
+  let out = '';
+  for (let i = 0; i < length; i++) {
+    out += REFERRAL_ALPHABET[bytes[i] % REFERRAL_ALPHABET.length];
+  }
+  return out;
 }

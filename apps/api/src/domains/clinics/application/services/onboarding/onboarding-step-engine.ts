@@ -2,11 +2,14 @@
  * Pure deterministic state-machine helpers for clinic onboarding.
  * No @Injectable, no side-effects — only plain functions.
  */
+import { randomBytes } from 'crypto';
 import { DayOfWeek, Role } from '@workspace/db';
 import {
   BillingCycle,
   ClinicTier,
 } from '@/domains/clinics/application/dto/onboarding/create-clinic-onboarding.dto';
+
+const REFERRAL_ALPHABET = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
 
 export function generateReferralCode(clinicName: string): string {
   const prefix = clinicName
@@ -14,7 +17,13 @@ export function generateReferralCode(clinicName: string): string {
     .toUpperCase()
     .slice(0, 3)
     .padEnd(3, 'X');
-  const suffix = Math.random().toString(36).toUpperCase().slice(2, 6);
+  // Use cryptographic randomness — Math.random produces predictable
+  // suffixes that allow referral-code enumeration / fraud.
+  const bytes = randomBytes(4);
+  let suffix = '';
+  for (let i = 0; i < 4; i++) {
+    suffix += REFERRAL_ALPHABET[bytes[i] % REFERRAL_ALPHABET.length];
+  }
   return `${prefix}-${suffix}`;
 }
 

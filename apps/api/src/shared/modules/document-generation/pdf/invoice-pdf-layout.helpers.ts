@@ -1,5 +1,6 @@
 import { PDFContext } from '@/shared/modules/document-generation/pdf/base-pdf.service';
 import { fetchWithTimeout } from '@/shared/common/http/fetch-with-timeout';
+import { assertSafeExternalUrl } from '@/shared/common/http/safe-external-url';
 import { PDFInvoiceItem, type InvoiceTaxSummary } from '@workspace/types';
 import PDFDocument from 'pdfkit';
 import { InvoicePdfRenderData } from './invoice-pdf-data.types';
@@ -413,7 +414,9 @@ export async function renderAuthorizedSignature(
 }
 
 export async function fetchSignatureImage(url: string): Promise<Buffer> {
-  const response = await fetchWithTimeout(url);
+  // SSRF gate — see safe-external-url.ts.
+  const safeUrl = assertSafeExternalUrl(url);
+  const response = await fetchWithTimeout(safeUrl);
   if (!response.ok) {
     throw new Error(`Failed to fetch signature: ${response.statusText}`);
   }

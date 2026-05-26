@@ -1,6 +1,10 @@
 import { Inject, Injectable, Logger } from '@nestjs/common';
 import { CLOCK_PORT, type IClock } from '@/shared/common/ports/clock.port';
 import { fetchWithTimeout } from '@/shared/common/http/fetch-with-timeout';
+import {
+  assertSafeExternalUrl,
+  UnsafeExternalUrlError,
+} from '@/shared/common/http/safe-external-url';
 import PDFDocument from 'pdfkit';
 import {
   PDFClinicInfo,
@@ -369,16 +373,23 @@ export class BasePdfService {
     src: Buffer | string,
   ): Promise<Buffer | string | undefined> {
     if (Buffer.isBuffer(src)) return src;
-    if (
-      typeof src === 'string' &&
-      (src.startsWith('http://') || src.startsWith('https://'))
-    ) {
+    if (typeof src !== 'string') return src;
+    // SSRF gate: only https URLs to non-internal hosts may be fetched.
+    // Anything that fails the gate (file://, http://, private IPs,
+    // localhost variants, cloud metadata services) is silently dropped
+    // — the PDF will render without the image rather than make the
+    // request and risk exfiltration of internal-network responses.
+    if (src.startsWith('http://') || src.startsWith('https://')) {
       try {
-        const response = await fetchWithTimeout(src);
+        const safeUrl = assertSafeExternalUrl(src);
+        const response = await fetchWithTimeout(safeUrl);
         if (!response.ok) return undefined;
         const buf = await response.arrayBuffer();
         return Buffer.from(buf);
-      } catch {
+      } catch (error) {
+        if (error instanceof UnsafeExternalUrlError) {
+          return undefined;
+        }
         return undefined;
       }
     }

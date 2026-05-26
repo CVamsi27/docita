@@ -1,3 +1,4 @@
+import { randomBytes } from 'crypto';
 import {
   Inject,
   Injectable,
@@ -43,7 +44,7 @@ export class CreateInvoiceUseCase {
       patientId: dto.patientId,
     });
 
-    const invoiceId = `invoice_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+    const invoiceId = `invoice_${Date.now()}_${randomBytes(6).toString('hex')}`;
 
     const items = dto.items.map(
       (item, index) =>
