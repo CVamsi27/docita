@@ -1,7 +1,5 @@
 import { Suspense } from "react";
 import { LoadingState } from "@workspace/ui/components/feedback/empty-state";
-import { FeatureGate } from "@/components/auth/feature-gate";
-import { Feature } from "@workspace/types";
 import { PatientsPageContainer } from "@/features/patients/components";
 
 function PatientsPageFallback() {

@@ -17,20 +17,6 @@ const E2E_PAID_PLAN_GSTIN = "29AABCU9603R1ZX";
 /** Next.js `(protected)` patient routes — keep Playwright URLs aligned with the app router. */
 export const PATIENTS_LIST_PATH = "/patients";
 
-type E2EClinicTier =
-  | "ESSENTIAL"
-  | "FRONT_DESK"
-  | "FRONT_DESK_CLINIC"
-  | "FRONT_DESK_HOSPITAL";
-
-function isFrontDeskTestTier(tier: E2EClinicTier): boolean {
-  return (
-    tier === "FRONT_DESK" ||
-    tier === "FRONT_DESK_CLINIC" ||
-    tier === "FRONT_DESK_HOSPITAL"
-  );
-}
-
 export function patientDetailPath(patientId: string): string {
   return `${PATIENTS_LIST_PATH}/${patientId}`;
 }
@@ -304,8 +290,7 @@ async function setupTestUserImpl(
 ): Promise<UserData> {
   const clinicType = options.clinicType ?? "GENERAL";
   const tier = options.tier ?? "ESSENTIAL";
-  const onboardingAdminRole =
-    tier === "FRONT_DESK" ? "ADMIN" : "ADMIN_DOCTOR";
+  const onboardingAdminRole = tier === "FRONT_DESK" ? "ADMIN" : "ADMIN_DOCTOR";
   const uniqueId = randomUUID();
   const email = `doctor-${uniqueId}@test.com`;
   const password = TEST_PASSWORD;
@@ -614,9 +599,13 @@ export function reuseSharedFrontDeskClinicUser(
   request: APIRequestContext,
 ): Promise<UserData> {
   if (!sharedFrontDeskClinicUser) {
-    sharedFrontDeskClinicUser = setupTestUser(request, {}, {
-      tier: "FRONT_DESK",
-    }).catch((err: unknown) => {
+    sharedFrontDeskClinicUser = setupTestUser(
+      request,
+      {},
+      {
+        tier: "FRONT_DESK",
+      },
+    ).catch((err: unknown) => {
       sharedFrontDeskClinicUser = null;
       throw err;
     });

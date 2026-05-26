@@ -1,3 +1,5 @@
+"use client";
+
 import { useMemo, useState } from "react";
 import { Button } from "@workspace/ui/components/form/button";
 import {
