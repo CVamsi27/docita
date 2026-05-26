@@ -12,15 +12,15 @@ vi.mock("next-themes", () => ({
     themeProviderMock({ children, nonce }),
 }));
 
-vi.mock("@/lib/contexts/socket-context", () => ({
+vi.mock("@/lib/socket-context", () => ({
   SocketProvider: ({ children }: { children: ReactNode }) => <>{children}</>,
 }));
 
-vi.mock("@/lib/contexts/tier-config-context", () => ({
+vi.mock("@/lib/tier-config-context", () => ({
   TierConfigProvider: ({ children }: { children: ReactNode }) => <>{children}</>,
 }));
 
-vi.mock("@/lib/contexts/app-config-context", () => ({
+vi.mock("@/lib/app-config-context", () => ({
   AppConfigProvider: ({ children }: { children: ReactNode }) => <>{children}</>,
 }));
 
@@ -28,11 +28,11 @@ vi.mock("@/hooks/use-confirm", () => ({
   ConfirmProvider: ({ children }: { children: ReactNode }) => <>{children}</>,
 }));
 
-vi.mock("@workspace/ui/components/overlay/tooltip", () => ({
+vi.mock("@workspace/ui/components/tooltip", () => ({
   TooltipProvider: ({ children }: { children: ReactNode }) => <>{children}</>,
 }));
 
-vi.mock("@workspace/ui/components/overlay/dialog-stack", () => ({
+vi.mock("@workspace/ui/components/dialog-stack", () => ({
   DialogStackProvider: ({ children }: { children: ReactNode }) => <>{children}</>,
 }));
 
@@ -40,7 +40,7 @@ vi.mock("@/providers/navigation-history-provider", () => ({
   NavigationHistoryProvider: ({ children }: { children: ReactNode }) => <>{children}</>,
 }));
 
-vi.mock("@/components/layout/appearance-controller", () => ({
+vi.mock("@/features/_shared/components/layout/appearance-controller", () => ({
   AppearanceController: () => null,
 }));
 

@@ -1,5 +1,6 @@
 import "./globals.css";
 import "leaflet/dist/leaflet.css";
+import { headers } from "next/headers";
 import { AuthProvider } from "@/lib/auth-context";
 import { Providers, ToasterWrapper } from "@/features/_shared/components";
 import { ReactQueryProvider } from "@/providers/react-query-provider";
@@ -23,15 +24,6 @@ export const viewport = {
   initialScale: 1,
   maximumScale: 5,
 };
-
-// Static Cloudflare/OpenNext helper only — never interpolate request or env data here.
-const esbuildHelperBootstrapScript = `
-if (typeof globalThis.__name !== "function") {
-  globalThis.__name = function(target) {
-    return target;
-  };
-}
-`;
 
 export default async function RootLayout({
   children,
