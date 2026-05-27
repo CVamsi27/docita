@@ -19,6 +19,43 @@ interface SeedPdfsParams {
   clinicId: string;
 }
 
+interface SeedInvoiceItem {
+  description: string;
+  quantity: number;
+  price: number;
+}
+
+function isRecord(value: unknown): value is Record<string, unknown> {
+  return value !== null && typeof value === 'object';
+}
+
+function isSeedInvoiceItem(value: unknown): value is SeedInvoiceItem {
+  return (
+    isRecord(value) &&
+    typeof value.description === 'string' &&
+    typeof value.quantity === 'number' &&
+    typeof value.price === 'number'
+  );
+}
+
+function parseSeedInvoiceItems(value: unknown): SeedInvoiceItem[] {
+  if (!Array.isArray(value)) {
+    return [];
+  }
+
+  const items: SeedInvoiceItem[] = [];
+  for (const item of value) {
+    if (isSeedInvoiceItem(item)) {
+      items.push({
+        description: item.description,
+        quantity: item.quantity,
+        price: item.price,
+      });
+    }
+  }
+  return items;
+}
+
 function ageInYears(dob: Date): number {
   const diffMs = Date.now() - dob.getTime();
   return Math.floor(diffMs / (365.25 * 24 * 60 * 60 * 1000));
@@ -112,13 +149,7 @@ export async function seedPdfs(
   });
 
   // ─── Invoice PDF ─────────────────────────────────────────────────────
-  const invoiceItems = Array.isArray(invoice.items)
-    ? (invoice.items as Array<{
-        description: string;
-        quantity: number;
-        price: number;
-      }>)
-    : [];
+  const invoiceItems = parseSeedInvoiceItems(invoice.items);
 
   const invBuffer = await invoicePdf.generate({
     invoiceId: invoice.invoiceNumber ?? invoice.id,
