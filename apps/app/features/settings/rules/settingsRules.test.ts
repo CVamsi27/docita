@@ -15,9 +15,14 @@ describe("Settings Rules", () => {
       expect(validateClinicHours(18, 9)).toBe(false);
     });
 
+    it("should reject equal opening and closing hours", () => {
+      expect(validateClinicHours(9, 9)).toBe(false);
+    });
+
     it("should reject invalid hours", () => {
       expect(validateClinicHours(-1, 10)).toBe(false);
       expect(validateClinicHours(9, 25)).toBe(false);
+      expect(validateClinicHours(Number.NaN, 10)).toBe(false);
     });
   });
 

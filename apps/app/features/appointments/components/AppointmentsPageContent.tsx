@@ -26,6 +26,7 @@ import { DoctorDelayBanner } from "@/features/appointments/components/DoctorDela
 import { MarkDoctorDelayDialog } from "@/features/appointments/components/dialogs/MarkDoctorDelayDialog";
 import { useMarkDoctorDelay } from "@workspace/data-access";
 import type { AppointmentListItem } from "@workspace/data-access";
+import { useScrollBehavior } from "@workspace/hooks";
 import { SUBSCRIPTION_SETTINGS_PATH } from "@/lib/subscription/subscription-settings-path";
 
 const REQUESTS_PANEL_FOCUS_PARAM = "requestsPanel";
@@ -51,12 +52,13 @@ function AppointmentsContent() {
   const { mutate: markDelay, isPending: isMarkingDelay } = useMarkDoctorDelay();
   const appointmentRequestsRef = useRef<HTMLDivElement>(null);
   const focusRequestsPanel = searchParams.get(REQUESTS_PANEL_FOCUS_PARAM);
+  const scrollBehavior = useScrollBehavior();
 
   useEffect(() => {
     if (focusRequestsPanel !== "1") return;
     const timer = window.setTimeout(() => {
       appointmentRequestsRef.current?.scrollIntoView({
-        behavior: "smooth",
+        behavior: scrollBehavior,
         block: "start",
       });
       const next = new URLSearchParams(searchParams.toString());
@@ -67,7 +69,7 @@ function AppointmentsContent() {
       });
     }, 150);
     return () => window.clearTimeout(timer);
-  }, [focusRequestsPanel, router, searchParams]);
+  }, [focusRequestsPanel, router, searchParams, scrollBehavior]);
 
   const handleScheduleFollowUp = useCallback(
     (appointment: AppointmentListItem) => {
