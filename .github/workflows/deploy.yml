@@ -78,6 +78,33 @@ jobs:
       - name: Mask database URL in logs
         run: echo "::add-mask::${{ secrets.DATABASE_URL }}"
 
+      - name: Pre-migration RDS snapshot
+        env:
+          AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          AWS_DEFAULT_REGION: ${{ secrets.AWS_REGION }}
+          RDS_INSTANCE_ID: ${{ secrets.RDS_INSTANCE_ID }}
+          SKIP_RDS_SNAPSHOT: ${{ vars.SKIP_RDS_SNAPSHOT }}
+        run: |
+          set -euo pipefail
+          if [ "${SKIP_RDS_SNAPSHOT:-}" = "true" ]; then
+            echo "::warning title=RDS snapshot skipped::SKIP_RDS_SNAPSHOT=true; proceeding without a labeled pre-deploy snapshot"
+            exit 0
+          fi
+          if [ -z "${RDS_INSTANCE_ID:-}" ] || [ -z "${AWS_ACCESS_KEY_ID:-}" ]; then
+            echo "::warning title=RDS snapshot skipped::RDS_INSTANCE_ID or AWS credentials not configured; relying on automated RDS backups"
+            exit 0
+          fi
+          SNAPSHOT_ID="pre-deploy-${GITHUB_SHA::8}-$(date +%s)"
+          echo "Creating RDS snapshot $SNAPSHOT_ID for $RDS_INSTANCE_ID"
+          aws rds create-db-snapshot \
+            --db-instance-identifier "$RDS_INSTANCE_ID" \
+            --db-snapshot-identifier "$SNAPSHOT_ID" >/dev/null
+          aws rds wait db-snapshot-completed \
+            --db-snapshot-identifier "$SNAPSHOT_ID"
+          echo "SNAPSHOT_ID=$SNAPSHOT_ID" >> "$GITHUB_ENV"
+          echo "::notice title=RDS snapshot::Created $SNAPSHOT_ID (use this as the restore target if rollback is needed)"
+
       - name: Generate Prisma client
         env:
           DATABASE_URL: ${{ secrets.DATABASE_URL }}
