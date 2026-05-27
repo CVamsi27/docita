@@ -31,6 +31,7 @@ export const medicationDoseSchema = z.object({
   source: medicationDoseSourceSchema,
   createdAt: z.string().datetime(),
   updatedAt: z.string().datetime(),
+  version: z.number().int().nonnegative().default(1),
 });
 
 export const createMedicationDoseSchema = z.object({
@@ -52,6 +53,7 @@ export const updateMedicationDoseSchema = z.object({
   takenAt: z.string().datetime().optional(),
   status: medicationDoseStatusSchema.optional(),
   notes: z.string().optional(),
+  version: z.number().int().nonnegative().optional(),
 });
 
 export const medicationDoseHistoryQuerySchema = z.object({

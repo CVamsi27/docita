@@ -11,20 +11,31 @@ import {
   taxTreatmentSchema,
 } from "./tax";
 
+const moneyAmountSchema = z
+  .number()
+  .finite()
+  .min(0)
+  .refine((value) => Number.isInteger(Math.round(value * 100)), {
+    message: "Amount must be a valid monetary value",
+  })
+  .refine((value) => Math.round(value * 100) === value * 100, {
+    message: "Amount must have at most two decimal places",
+  });
+
 export const invoiceItemSchema = z.object({
   id: z.string().optional(),
   description: z.string().max(255).transform(stripHtmlTags),
-  quantity: z.number().min(1),
-  price: z.number().min(0),
-  unitPrice: z.number().min(0).optional(),
+  quantity: z.number().finite().min(1),
+  price: moneyAmountSchema,
+  unitPrice: moneyAmountSchema.optional(),
   discountRate: z.number().min(0).max(100).optional(),
-  discountAmount: z.number().min(0).optional(),
+  discountAmount: moneyAmountSchema.optional(),
   taxTreatment: taxTreatmentSchema.optional(),
   taxRate: z.number().min(0).max(100).optional(),
-  taxableAmount: z.number().min(0).optional(),
-  taxAmount: z.number().min(0).optional(),
+  taxableAmount: moneyAmountSchema.optional(),
+  taxAmount: moneyAmountSchema.optional(),
   taxComponents: z.array(taxComponentSchema).optional(),
-  lineTotal: z.number().min(0).optional(),
+  lineTotal: moneyAmountSchema.optional(),
   cptCode: z.string().max(20).optional(),
   hsnCode: z.string().max(20).optional(),
   sacCode: z.string().max(20).optional(),
@@ -54,12 +65,12 @@ export const invoiceSchema = z.object({
   currency: z.string().length(3).optional(),
   items: z.array(invoiceItemSchema),
   notes: z.string().max(2000).optional().transform(stripHtmlTags),
-  total: z.number().min(0),
-  totalAmount: z.number().min(0).optional(),
-  subtotal: z.number().min(0).optional(),
-  discountTotal: z.number().min(0).optional(),
-  taxTotal: z.number().min(0).optional(),
-  grandTotal: z.number().min(0).optional(),
+  total: moneyAmountSchema,
+  totalAmount: moneyAmountSchema.optional(),
+  subtotal: moneyAmountSchema.optional(),
+  discountTotal: moneyAmountSchema.optional(),
+  taxTotal: moneyAmountSchema.optional(),
+  grandTotal: moneyAmountSchema.optional(),
   taxSummary: invoiceTaxSummarySchema.optional(),
   sellerTaxSnapshot: taxRegistrationSnapshotSchema.optional(),
   buyerTaxSnapshot: taxRegistrationSnapshotSchema.optional(),

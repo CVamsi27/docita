@@ -535,7 +535,8 @@ export type HospitalRole = z.infer<typeof hospitalRoleSchema>;
  * permitted in the system. Currently empty — no hospital roles are in
  * operational use.
  */
-export const SUPPORTED_HOSPITAL_ROLES = [] as const satisfies readonly HospitalRole[];
+export const SUPPORTED_HOSPITAL_ROLES =
+  [] as const satisfies readonly HospitalRole[];
 export const supportedHospitalRoleSchema = z.never();
 
 export const HOSPITAL_ROLE_LABELS: Record<HospitalRole, string> = {
@@ -681,6 +682,7 @@ export const doctorTimeOffSchema = z.object({
   endTime: z.string().optional().nullable(),
   createdAt: z.string().or(z.date()).optional(),
   updatedAt: z.string().or(z.date()).optional(),
+  version: z.number().int().nonnegative().default(1),
   doctor: z.object({ id: z.string(), name: z.string() }).optional(),
 });
 export type DoctorTimeOff = z.infer<typeof doctorTimeOffSchema>;
@@ -689,6 +691,7 @@ export const createDoctorTimeOffSchema = doctorTimeOffSchema.omit({
   id: true,
   createdAt: true,
   updatedAt: true,
+  version: true,
   doctor: true,
 });
 export type CreateDoctorTimeOffInput = z.infer<
