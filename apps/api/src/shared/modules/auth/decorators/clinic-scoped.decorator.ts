@@ -1,4 +1,10 @@
-import { SetMetadata, UseGuards, applyDecorators } from '@nestjs/common';
+import {
+  BadRequestException,
+  ForbiddenException,
+  SetMetadata,
+  UseGuards,
+  applyDecorators,
+} from '@nestjs/common';
 import { CanActivate, ExecutionContext, Injectable } from '@nestjs/common';
 import { Reflector } from '@nestjs/core';
 
@@ -30,20 +36,36 @@ export class ClinicScopedGuard implements CanActivate {
     const request = context.switchToHttp().getRequest();
     const paramName = options?.paramName ?? 'clinicId';
 
-    const clinicId =
-      request.user?.clinicId ??
-      request.query?.[paramName] ??
-      request.body?.[paramName] ??
-      request.params?.[paramName];
+    const userClinicId = this.readString(request.user?.clinicId);
+    const requestedClinicId =
+      this.readString(request.query?.[paramName]) ??
+      this.readString(request.body?.[paramName]) ??
+      this.readString(request.params?.[paramName]);
+    const clinicId = userClinicId ?? requestedClinicId;
 
     if (!clinicId) {
       if (options?.returnEmptyOnMissing) {
         request._clinicScopedEmpty = true;
         return true;
       }
+      throw new BadRequestException('Clinic scope is required');
+    }
+
+    if (
+      userClinicId &&
+      requestedClinicId &&
+      userClinicId !== requestedClinicId
+    ) {
+      throw new ForbiddenException('Clinic scope mismatch');
     }
 
     return true;
+  }
+
+  private readString(value: unknown): string | undefined {
+    if (typeof value !== 'string') return undefined;
+    const trimmed = value.trim();
+    return trimmed ? trimmed : undefined;
   }
 }
 

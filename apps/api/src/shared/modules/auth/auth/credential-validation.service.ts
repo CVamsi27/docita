@@ -103,7 +103,8 @@ export class CredentialValidationService {
         user.accountLockedUntil > this.clock.now()
       ) {
         const minutesRemaining = Math.ceil(
-          (user.accountLockedUntil.getTime() - Date.now()) / 60000,
+          (user.accountLockedUntil.getTime() - this.clock.now().getTime()) /
+            60000,
         );
         throw new UnauthorizedException(
           `Account is locked due to too many failed login attempts. Try again in ${minutesRemaining} minute(s).`,

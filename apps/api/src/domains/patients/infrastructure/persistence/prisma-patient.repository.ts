@@ -43,7 +43,9 @@ export class PrismaPatientRepository implements IPatientRepository {
   async findById(id: string, clinicId: string): Promise<Patient | null> {
     const readClient = this.getReadClient();
     const item = await readClient.patient.findFirst({
-      where: { id, clinicId },
+      // Exclude soft-deleted patients from default reads. Callers needing
+      // deleted rows (admin restore flow) should query directly.
+      where: { id, clinicId, deletedAt: null },
       select: PATIENT_PERSISTENCE_SELECT,
     });
     if (!item) return null;
@@ -53,7 +55,7 @@ export class PrismaPatientRepository implements IPatientRepository {
   async findByMrn(mrn: string, clinicId: string): Promise<Patient | null> {
     const readClient = this.getReadClient();
     const item = await readClient.patient.findFirst({
-      where: { mrn, clinicId },
+      where: { mrn, clinicId, deletedAt: null },
       select: PATIENT_PERSISTENCE_SELECT,
     });
     if (!item) return null;
@@ -66,7 +68,7 @@ export class PrismaPatientRepository implements IPatientRepository {
   ): Promise<Patient | null> {
     const readClient = this.getReadClient();
     const item = await readClient.patient.findFirst({
-      where: { clinicId, phoneNumber },
+      where: { clinicId, phoneNumber, deletedAt: null },
       select: PATIENT_PERSISTENCE_SELECT,
     });
     if (!item) return null;
@@ -84,6 +86,7 @@ export class PrismaPatientRepository implements IPatientRepository {
 
     const where: Prisma.PatientWhereInput = {
       clinicId,
+      deletedAt: null,
     };
 
     if (gender) {

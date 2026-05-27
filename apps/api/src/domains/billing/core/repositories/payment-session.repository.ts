@@ -16,7 +16,10 @@ export interface PaymentSessionDetail extends PaymentSession {
 }
 
 export interface IPaymentSessionRepository {
-  create(data: Prisma.PaymentSessionCreateInput): Promise<PaymentSession>;
+  create(
+    data: Prisma.PaymentSessionCreateInput,
+    tx?: Prisma.TransactionClient,
+  ): Promise<PaymentSession>;
   findById(id: string, clinicId: string): Promise<PaymentSessionDetail | null>;
   /**
    * Lookup by provider-session-id is intentionally not clinic-scoped because
@@ -27,10 +30,15 @@ export interface IPaymentSessionRepository {
   findByProviderSessionId(
     providerSessionId: string,
   ): Promise<PaymentSessionDetail | null>;
+  findByProviderPaymentId(
+    provider: string,
+    providerPaymentId: string,
+  ): Promise<PaymentSessionDetail | null>;
   update(
     id: string,
     data: Prisma.PaymentSessionUpdateInput,
     clinicId: string,
+    tx?: Prisma.TransactionClient,
   ): Promise<PaymentSession>;
   delete(id: string, clinicId: string): Promise<void>;
   findPendingReminders(): Promise<PaymentSessionDetail[]>;

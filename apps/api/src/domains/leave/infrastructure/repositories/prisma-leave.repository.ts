@@ -41,10 +41,12 @@ export class PrismaLeaveRepository implements ILeaveRepository {
   async updateLeave(
     id: string,
     data: Prisma.StaffLeaveUpdateInput,
+    tx?: Prisma.TransactionClient,
   ): Promise<StaffLeaveWithRelations> {
-    return this.prisma.staffLeave.update({
+    const client = tx ?? this.prisma;
+    return client.staffLeave.update({
       where: { id },
-      data,
+      data: { ...data, version: { increment: 1 } },
       include: staffInclude,
     });
   }
@@ -66,8 +68,14 @@ export class PrismaLeaveRepository implements ILeaveRepository {
     startDate: Date,
     endDate: Date,
   ): Promise<Array<{ id: string }>> {
+    // Range-overlap (not exact-date) so partial overlaps from prior edits or
+    // adjusted leaves are still found and cleaned up on cancel.
     return this.getReadClient().doctorTimeOff.findMany({
-      where: { doctorId: staffId, clinicId, startDate, endDate },
+      where: {
+        doctorId: staffId,
+        clinicId,
+        AND: [{ startDate: { lte: endDate } }, { endDate: { gte: startDate } }],
+      },
       select: { id: true },
     });
   }

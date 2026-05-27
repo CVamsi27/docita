@@ -91,6 +91,7 @@ export class UpdateAppointmentDetailsUseCase {
 
     if (data.status === 'completed') {
       this.eventEmitter.emit(ApplicationEvents.APPOINTMENT_COMPLETED, {
+        // allow-direct-emit: post-commit fan-out to billing/metrics. Listeners are idempotent. Outbox migration deferred (ADR 0010 §Follow-up).
         appointmentId,
         clinicId,
       });

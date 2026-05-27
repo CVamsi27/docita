@@ -7,6 +7,21 @@ dotenv.config({
   path: path.join(__dirname, '../.env.test'),
 });
 
+// Abort if tests are about to run against a production-looking database.
+// Reason: tests truncate/seed shared tables; a misconfigured env that points
+// at prod RDS would corrupt real PHI.
+const dbUrl = process.env.DATABASE_URL ?? '';
+const isProdLikeHost =
+  /\brds\.amazonaws\.com\b/i.test(dbUrl) ||
+  /\bdocita-prod\b/i.test(dbUrl) ||
+  /[?&]application_name=prod/i.test(dbUrl);
+if (process.env.NODE_ENV === 'production' || isProdLikeHost) {
+  throw new Error(
+    'Refusing to run tests with NODE_ENV=production or against a prod-looking DATABASE_URL. ' +
+      'Tests must use apps/api/.env.test.',
+  );
+}
+
 validateEnv();
 
 Logger.overrideLogger(false);

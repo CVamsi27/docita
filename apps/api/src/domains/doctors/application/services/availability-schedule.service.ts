@@ -234,16 +234,19 @@ export class AvailabilityScheduleService {
     return this.repository.findTimeOffs(where);
   }
 
-  async createTimeOff(data: {
-    doctorId: string;
-    clinicId?: string;
-    startDate: Date | string;
-    endDate: Date | string;
-    reason?: string;
-    isFullDay?: boolean;
-    startTime?: string;
-    endTime?: string;
-  }) {
+  async createTimeOff(
+    data: {
+      doctorId: string;
+      clinicId?: string;
+      startDate: Date | string;
+      endDate: Date | string;
+      reason?: string;
+      isFullDay?: boolean;
+      startTime?: string;
+      endTime?: string;
+    },
+    tx?: Prisma.TransactionClient,
+  ) {
     const startDate = new Date(data.startDate);
     const endDate = new Date(data.endDate);
 
@@ -263,18 +266,29 @@ export class AvailabilityScheduleService {
       if (!TimeUtils.validateTimeFormat(data.endTime)) {
         throw new BadRequestException('Invalid end time format');
       }
+      if (
+        TimeUtils.timeToMinutes(data.endTime) <=
+        TimeUtils.timeToMinutes(data.startTime)
+      ) {
+        throw new BadRequestException(
+          'Partial-day time-off endTime must be after startTime',
+        );
+      }
     }
 
-    return this.repository.createTimeOff({
-      doctor: { connect: { id: data.doctorId } },
-      clinic: data.clinicId ? { connect: { id: data.clinicId } } : undefined,
-      startDate,
-      endDate,
-      reason: data.reason,
-      isFullDay: data.isFullDay ?? true,
-      startTime: data.startTime || null,
-      endTime: data.endTime || null,
-    });
+    return this.repository.createTimeOff(
+      {
+        doctor: { connect: { id: data.doctorId } },
+        clinic: data.clinicId ? { connect: { id: data.clinicId } } : undefined,
+        startDate,
+        endDate,
+        reason: data.reason,
+        isFullDay: data.isFullDay ?? true,
+        startTime: data.startTime || null,
+        endTime: data.endTime || null,
+      },
+      tx,
+    );
   }
 
   async deleteTimeOff(

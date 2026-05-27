@@ -26,10 +26,20 @@ export class AuthPasswordService {
   ) {}
 
   async requestPasswordReset(email: string) {
+    // Cheap shape check before the DB hit. Throttling lives at the controller
+    // (@Throttle + IpRateLimitGuard); this just keeps malformed bodies from
+    // generating noise in the user table query plan.
+    const trimmed = (email ?? '').trim();
+    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(trimmed)) {
+      return {
+        message:
+          'If an account with that email exists, a reset link has been sent.',
+      };
+    }
     // RLS-BYPASS: auth resolves users before clinic tenant context is established
     return this.prisma.runUnrestricted(async () => {
       const user = await this.prisma.user.findUnique({
-        where: { email },
+        where: { email: trimmed },
         select: { id: true },
       });
 

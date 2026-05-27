@@ -25,6 +25,11 @@ import {
   INVOICE_REPOSITORY_TOKEN,
 } from '@/domains/billing/core/repositories/invoice.repository';
 import { CLOCK_PORT, type IClock } from '@/shared/common/ports/clock.port';
+import {
+  TRANSACTION_RUNNER_PORT,
+  type ITransactionRunner,
+} from '@/shared/common/ports/transaction-runner.port';
+import { RazorpayInvoiceWebhookService } from './razorpay-invoice-webhook.service';
 
 /**
  * Clinic invoice payment mutations (sessions, links, manual settlement).
@@ -44,6 +49,9 @@ export class PaymentsCommandService {
     @Inject(CLINIC_INVOICE_PAYMENT_LINK_PROVIDER_TOKEN)
     private readonly paymentLinkProvider: IPaymentLinkProvider,
     @Inject(CLOCK_PORT) private readonly clock: IClock,
+    @Inject(TRANSACTION_RUNNER_PORT)
+    private readonly transactionRunner: ITransactionRunner,
+    private readonly razorpayInvoiceWebhook: RazorpayInvoiceWebhookService,
   ) {}
 
   async createPaymentSession(dto: {
@@ -67,7 +75,7 @@ export class PaymentsCommandService {
       expiresAt.getMinutes() + this.configService.getPaymentLinkTtlMinutes(),
     );
 
-    const amountInPaise = Math.round(dto.amount * 100);
+    const amountInPaise = this.toPaise(dto.amount);
 
     if (dto.paymentMode === 'CASH') {
       const session = await this.repository.create({
@@ -242,34 +250,41 @@ export class PaymentsCommandService {
     const normalizedChannel =
       data.paymentMethod === 'OTHER' ? 'OTHER_ONLINE' : data.paymentMethod;
 
-    await this.invoiceRepository.update(
-      invoice.id,
-      { status: InvoiceStatus.PAID },
-      data.clinicId,
-    );
-
+    const invoiceTotal = invoice.totalCents / 100;
     const resolvedAmount =
       typeof data.amount === 'number' && data.amount > 0
         ? data.amount
-        : invoice.total;
+        : invoiceTotal;
 
-    await this.repository.create({
-      clinic: { connect: { id: data.clinicId } },
-      invoice: { connect: { id: data.invoiceId } },
-      patient: { connect: { id: invoice.patientId } },
-      provider: 'manual',
-      amount: Math.round(resolvedAmount * 100),
-      currency: this.configService.getCurrencyCode(),
-      status: PaymentSessionStatus.CAPTURED,
-      expiresAt: this.clock.now(),
-      meta: {
-        channel: normalizedChannel,
-        method: normalizedChannel,
-        performedBy: data.performedByUserId,
-        amount: resolvedAmount,
-        notes: data.notes,
-        reference: data.reference,
-      },
+    await this.transactionRunner.runInTransaction(async (tx) => {
+      await this.repository.create(
+        {
+          clinic: { connect: { id: data.clinicId } },
+          invoice: { connect: { id: data.invoiceId } },
+          patient: { connect: { id: invoice.patientId } },
+          provider: 'manual',
+          amount: this.toPaise(resolvedAmount),
+          currency: this.configService.getCurrencyCode(),
+          status: PaymentSessionStatus.CAPTURED,
+          expiresAt: this.clock.now(),
+          meta: {
+            channel: normalizedChannel,
+            method: normalizedChannel,
+            performedBy: data.performedByUserId,
+            amount: resolvedAmount,
+            notes: data.notes,
+            reference: data.reference,
+          },
+        },
+        tx,
+      );
+
+      await this.invoiceRepository.update(
+        invoice.id,
+        { status: InvoiceStatus.PAID },
+        data.clinicId,
+        tx,
+      );
     });
 
     this.logger.log(
@@ -279,12 +294,23 @@ export class PaymentsCommandService {
     return { success: true };
   }
 
-  handleRazorpayWebhook(payload: PaymentWebhookPayload, signature: string) {
-    this.logger.log('Received Razorpay webhook', {
-      event: payload?.event,
-      signaturePresent: typeof signature === 'string' && signature.length > 0,
-    });
+  async handleRazorpayWebhook(
+    payload: PaymentWebhookPayload,
+    signature: string,
+  ) {
+    return this.razorpayInvoiceWebhook.handle(payload, signature);
+  }
 
-    return { status: 'ok' };
+  private toPaise(amount: number): number {
+    if (!Number.isFinite(amount) || amount < 0) {
+      throw new BadRequestException('Payment amount must be non-negative');
+    }
+    const paise = Math.round(amount * 100);
+    if (Math.abs(paise / 100 - amount) > Number.EPSILON) {
+      throw new BadRequestException(
+        'Payment amount must have at most two decimal places',
+      );
+    }
+    return paise;
   }
 }

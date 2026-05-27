@@ -61,6 +61,7 @@ export class AppointmentCommandService {
     const appointment = await this.createAppointmentUseCase.execute(command);
 
     this.eventEmitter.emit(
+      // allow-direct-emit: post-commit in-process fan-out to reminders/whatsapp listeners. Migration to outbox requires CreateAppointmentUseCase to participate in the surrounding tx (deferred — see ADR 0010 §Follow-up).
       ApplicationEvents.APPOINTMENT_CREATED,
       new AppointmentCreatedEvent(
         appointment.id,

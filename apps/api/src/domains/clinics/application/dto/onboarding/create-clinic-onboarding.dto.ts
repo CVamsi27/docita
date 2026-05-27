@@ -208,11 +208,26 @@ export const completeOnboardingSchema = z.object({
 export class CompleteOnboardingDto extends createZodDto(
   completeOnboardingSchema,
 ) {}
+export const onboardingSessionDataSchema = z
+  .object({
+    clinicDetails: clinicDetailsSchema.partial(),
+    adminAccount: adminAccountSchema.partial(),
+    planSelection: planSelectionSchema.partial(),
+    paymentDetails: paymentDetailsSchema.partial(),
+    slaAgreement: slaAgreementSchema.partial(),
+    consentManagement: consentManagementSchema.partial(),
+    staffSetup: staffSetupSchema.partial(),
+    clinicWeeklyHours: clinicWeeklyHoursSchema,
+  })
+  .partial();
+export type OnboardingSessionDataDto = z.infer<
+  typeof onboardingSessionDataSchema
+>;
 export const onboardingProgressSchema = z.object({
   onboardingId: z.string(),
   currentStep: onboardingStepSchema,
   completedSteps: z.array(onboardingStepSchema).optional(),
-  data: completeOnboardingSchema.partial().optional(),
+  data: onboardingSessionDataSchema.optional(),
 });
 export class OnboardingProgressDto extends createZodDto(
   onboardingProgressSchema,

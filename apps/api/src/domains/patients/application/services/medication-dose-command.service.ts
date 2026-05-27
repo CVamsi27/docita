@@ -42,6 +42,7 @@ interface UpdateDoseStatusDto {
   takenAt?: Date;
   status?: MedicationDoseStatus;
   notes?: string;
+  version?: number;
 }
 
 @Injectable()
@@ -144,6 +145,12 @@ export class MedicationDoseCommandService {
 
     if (!dose) {
       throw new NotFoundException('Medication dose not found');
+    }
+
+    if (dto.version !== undefined && dose.version !== dto.version) {
+      throw new BadRequestException(
+        'Medication dose has changed. Refresh and try again.',
+      );
     }
 
     const data: Prisma.MedicationDoseUpdateInput = {};

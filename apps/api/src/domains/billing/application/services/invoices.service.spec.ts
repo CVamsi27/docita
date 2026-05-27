@@ -66,6 +66,8 @@ describe('InvoicesService', () => {
     findById: jest.fn<IPaymentSessionRepository['findById']>(),
     findByProviderSessionId:
       jest.fn<IPaymentSessionRepository['findByProviderSessionId']>(),
+    findByProviderPaymentId:
+      jest.fn<IPaymentSessionRepository['findByProviderPaymentId']>(),
     update: jest.fn<IPaymentSessionRepository['update']>(),
     delete: jest.fn<IPaymentSessionRepository['delete']>(),
     findPendingReminders:
@@ -151,6 +153,11 @@ describe('InvoicesService', () => {
     discountTotal: 0,
     taxTotal: 0,
     grandTotal: 100,
+    totalCents: 10000,
+    subtotalCents: 10000,
+    discountTotalCents: 0,
+    taxTotalCents: 0,
+    grandTotalCents: 10000,
     taxSummary: null,
     sellerTaxSnapshot: null,
     buyerTaxSnapshot: null,
@@ -334,6 +341,7 @@ describe('InvoicesService', () => {
       clinicId: 'clinic-1',
       total: 1,
       status: InvoiceStatus.PENDING,
+      placeOfSupplyStateCode: '29',
       items: [
         {
           description: 'Taxable device',
@@ -566,6 +574,7 @@ describe('InvoicesService', () => {
         patientId: 'patient-inv-1',
         provider: 'manual',
         providerSessionId: null,
+        providerPaymentId: null,
         paymentLink: null,
         shortUrl: null,
         amount: 50000,

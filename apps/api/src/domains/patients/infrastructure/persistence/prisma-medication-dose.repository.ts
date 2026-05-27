@@ -49,8 +49,33 @@ export class PrismaMedicationDoseRepository implements IMedicationDoseRepository
     });
   }
 
-  async updateDose(id: string, data: Prisma.MedicationDoseUpdateInput) {
-    return this.prisma.medicationDose.update({ where: { id }, data });
+  async updateDose(
+    id: string,
+    data: Prisma.MedicationDoseUpdateInput,
+    expectedVersion?: number,
+  ) {
+    // When the caller passes the version it read, gate the write on it so a
+    // concurrent edit cannot silently win. Without a version, the existing
+    // single-row update is preserved for backward compatibility.
+    if (expectedVersion !== undefined) {
+      const result = await this.prisma.medicationDose.updateMany({
+        where: { id, version: expectedVersion },
+        data: { ...data, version: { increment: 1 } },
+      });
+      if (result.count === 0) {
+        throw new Error(
+          `MedicationDose ${id} version conflict (expected ${expectedVersion})`,
+        );
+      }
+      const fresh = await this.prisma.medicationDose.findUniqueOrThrow({
+        where: { id },
+      });
+      return fresh;
+    }
+    return this.prisma.medicationDose.update({
+      where: { id },
+      data: { ...data, version: { increment: 1 } },
+    });
   }
 
   async findDoses(

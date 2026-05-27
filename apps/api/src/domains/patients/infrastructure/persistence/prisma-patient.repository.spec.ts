@@ -88,7 +88,7 @@ describe('PrismaPatientRepository', () => {
     expect(result).toBeNull();
     expect(findFirstSpy).toHaveBeenCalledWith(
       expect.objectContaining({
-        where: { id: 'patient-1', clinicId: 'other-clinic' },
+        where: { id: 'patient-1', clinicId: 'other-clinic', deletedAt: null },
       }),
     );
   });

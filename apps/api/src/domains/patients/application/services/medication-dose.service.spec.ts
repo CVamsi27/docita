@@ -164,6 +164,7 @@ describe('MedicationDoseService', () => {
         patientId: 'patient-1',
         clinicId: 'clinic-1',
         takenAt: null,
+        version: 3,
       };
       repository.findDoseById.mockResolvedValue(existingDose);
       repository.updateDose.mockResolvedValue({
@@ -190,6 +191,25 @@ describe('MedicationDoseService', () => {
           status: 'TAKEN',
         }),
       ).rejects.toThrow(NotFoundException);
+    });
+
+    it('should reject stale version updates', async () => {
+      repository.findDoseById.mockResolvedValue({
+        id: 'dose-1',
+        patientId: 'patient-1',
+        clinicId: 'clinic-1',
+        takenAt: null,
+        version: 4,
+      });
+
+      await expect(
+        service.updateDoseStatus('clinic-1', 'patient-1', 'dose-1', {
+          status: 'TAKEN',
+          version: 3,
+        }),
+      ).rejects.toThrow(BadRequestException);
+
+      expect(repository.updateDose).not.toHaveBeenCalled();
     });
   });
 

@@ -61,6 +61,7 @@ export class DoctorDelayService {
     );
 
     this.eventEmitter.emit(
+      // allow-direct-emit: post-commit fan-out for patient delay notifications; repository above is already a single atomic write. Outbox migration is the next workstream (ADR 0010 §Follow-up).
       ApplicationEvents.DOCTOR_DELAY_MARKED,
       new DoctorDelayMarkedEvent(
         delay.id,

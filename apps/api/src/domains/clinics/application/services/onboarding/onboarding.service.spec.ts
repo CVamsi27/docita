@@ -284,16 +284,16 @@ describe('OnboardingService', () => {
   });
 
   describe('initializeOnboarding', () => {
-    it('should create a new onboarding session', () => {
-      const result = service.initializeOnboarding();
+    it('should create a new onboarding session', async () => {
+      const result = await service.initializeOnboarding();
       expect(result).toHaveProperty('onboardingId');
       expect(typeof result.onboardingId).toBe('string');
     });
   });
 
   describe('updateOnboardingStep', () => {
-    it('should update step data and progress', () => {
-      const { onboardingId } = service.initializeOnboarding();
+    it('should update step data and progress', async () => {
+      const { onboardingId } = await service.initializeOnboarding();
       const clinicData = {
         clinicDetails: {
           name: 'Test Clinic',
@@ -304,7 +304,7 @@ describe('OnboardingService', () => {
         },
       };
 
-      const result = service.updateOnboardingStep(
+      const result = await service.updateOnboardingStep(
         onboardingId,
         OnboardingStep.CLINIC_DETAILS,
         clinicData,
@@ -315,14 +315,14 @@ describe('OnboardingService', () => {
       expect(result.data?.clinicDetails).toEqual(clinicData.clinicDetails);
     });
 
-    it('should throw BadRequestException if session invalid', () => {
-      expect(() =>
+    it('should throw BadRequestException if session invalid', async () => {
+      await expect(
         service.updateOnboardingStep(
           'invalid_id',
           OnboardingStep.CLINIC_DETAILS,
           {},
         ),
-      ).toThrow(BadRequestException);
+      ).rejects.toThrow(BadRequestException);
     });
   });
 
@@ -368,7 +368,7 @@ describe('OnboardingService', () => {
       };
 
     it('should successfully complete onboarding', async () => {
-      const { onboardingId } = service.initializeOnboarding();
+      const { onboardingId } = await service.initializeOnboarding();
 
       mockClinicPersistencePort.clinic.findFirst.mockImplementation(
         async () => null,
@@ -433,7 +433,7 @@ describe('OnboardingService', () => {
     });
 
     it('should fail if clinic email exists', async () => {
-      const { onboardingId } = service.initializeOnboarding();
+      const { onboardingId } = await service.initializeOnboarding();
       mockWorkflowService.createClinic.mockImplementationOnce(async () =>
         Promise.reject(new Error('Clinic with this email already exists')),
       );
@@ -451,7 +451,7 @@ describe('OnboardingService', () => {
     });
 
     it('should fail if validation missing', async () => {
-      const { onboardingId } = service.initializeOnboarding();
+      const { onboardingId } = await service.initializeOnboarding();
       const completeOnboardingUnsafe = service.completeOnboarding.bind(
         service,
       ) as (
@@ -467,7 +467,7 @@ describe('OnboardingService', () => {
     });
 
     it('syncs clinic fields when onboarding completes on STARTER plan', async () => {
-      const { onboardingId } = service.initializeOnboarding();
+      const { onboardingId } = await service.initializeOnboarding();
       mockPaymentGateway.verifyPayment.mockResolvedValue({
         verified: true,
         amountCents: 49900,
@@ -524,7 +524,7 @@ describe('OnboardingService', () => {
 
   describe('SLA signature sessions', () => {
     it('createSlaSignatureSession creates a GENERAL upload session', async () => {
-      const { onboardingId } = service.initializeOnboarding();
+      const { onboardingId } = await service.initializeOnboarding();
       const created = {
         id: 'sess_123',
         purpose: 'GENERAL',

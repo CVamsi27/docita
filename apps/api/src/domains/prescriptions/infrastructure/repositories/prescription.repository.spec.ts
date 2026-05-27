@@ -61,6 +61,7 @@ describe('PrismaPrescriptionRepository tenant guards', () => {
     expect(writeClient.prescription.updateMany).toHaveBeenCalledWith(
       expect.objectContaining({
         where: { id: 'rx-1', patient: { clinicId: 'other-clinic' } },
+        data: expect.objectContaining({ version: { increment: 1 } }),
       }),
     );
   });

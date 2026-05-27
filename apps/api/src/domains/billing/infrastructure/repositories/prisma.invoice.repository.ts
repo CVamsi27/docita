@@ -180,8 +180,25 @@ export class PrismaInvoiceRepository implements IInvoiceRepository {
     return invoice;
   }
 
-  async create(data: Prisma.InvoiceCreateInput): Promise<InvoiceDetailRecord> {
-    const invoice = await this.prisma.invoice.create({
+  async findByIdempotencyKey(
+    key: string,
+    clinicId?: string,
+  ): Promise<InvoiceDetailRecord | null> {
+    return this.getReadClient().invoice.findFirst({
+      where: {
+        idempotencyKey: key,
+        ...(clinicId ? this.invoiceOwnershipFilter(clinicId) : {}),
+      },
+      select: INVOICE_DETAIL_SELECT,
+    });
+  }
+
+  async create(
+    data: Prisma.InvoiceCreateInput,
+    tx?: Prisma.TransactionClient,
+  ): Promise<InvoiceDetailRecord> {
+    const client = tx ?? this.prisma;
+    const invoice = await client.invoice.create({
       data,
       select: INVOICE_DETAIL_SELECT,
     });
@@ -192,8 +209,10 @@ export class PrismaInvoiceRepository implements IInvoiceRepository {
     id: string,
     data: Prisma.InvoiceUpdateInput,
     clinicId: string,
+    tx?: Prisma.TransactionClient,
   ): Promise<InvoiceDetailRecord> {
-    const result = await this.prisma.invoice.updateMany({
+    const client = tx ?? this.prisma;
+    const result = await client.invoice.updateMany({
       where: { id, ...this.invoiceOwnershipFilter(clinicId) },
       data,
     });
@@ -201,7 +220,7 @@ export class PrismaInvoiceRepository implements IInvoiceRepository {
       throw new Error(`Invoice ${id} not found`);
     }
 
-    const invoice = await this.prisma.invoice.findFirst({
+    const invoice = await client.invoice.findFirst({
       where: { id, ...this.invoiceOwnershipFilter(clinicId) },
       select: INVOICE_DETAIL_SELECT,
     });

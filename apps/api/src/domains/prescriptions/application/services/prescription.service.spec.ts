@@ -124,6 +124,7 @@ describe('PrescriptionsService', () => {
       date: now,
       createdAt: now,
       updatedAt: now,
+      version: 1,
       approvalStatus: ApprovalStatus.PENDING,
       approvedById: null,
       approvedAt: null,

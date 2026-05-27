@@ -17,6 +17,7 @@ export interface ILeaveRepository {
   updateLeave(
     id: string,
     data: Prisma.StaffLeaveUpdateInput,
+    tx?: Prisma.TransactionClient,
   ): Promise<StaffLeaveWithRelations>;
 
   findLeaves(

@@ -88,14 +88,25 @@ describe('AppointmentSchedulingRulesService', () => {
       expect(result.error).toContain('cannot be in the past');
     });
 
-    it('should warn about appointment outside business hours', () => {
+    it('should reject appointment outside business hours', () => {
       const startTime = new Date(Date.now() + 86400000);
       startTime.setHours(7, 0, 0);
       const endTime = new Date(startTime.getTime() + 1800000);
 
       const result = service.validateAppointmentTime(startTime, endTime);
 
-      expect(result.valid).toBe(true);
+      expect(result.valid).toBe(false);
+      expect(result.error).toContain('outside standard business hours');
+    });
+
+    it('should reject appointment that ends after closing minutes', () => {
+      const startTime = new Date(Date.now() + 86400000);
+      startTime.setHours(17, 45, 0, 0);
+      const endTime = new Date(startTime.getTime() + 45 * 60 * 1000);
+
+      const result = service.validateAppointmentTime(startTime, endTime);
+
+      expect(result.valid).toBe(false);
       expect(result.error).toContain('outside standard business hours');
     });
   });

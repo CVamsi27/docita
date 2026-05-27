@@ -37,9 +37,17 @@ export class AuthRegistrationService {
     return this.prisma.runUnrestricted(async () => {
       this.passwordPolicy.validate(data.password);
       const isNonProduction = !this.appConfig.isProduction();
+      // Auto-verify only in test runs OR when ALLOW_TEST_EMAIL_AUTOVERIFY is
+      // explicitly enabled in a non-production env. The bare @test.com
+      // shortcut used to fire in non-prod by default, which leaks if an env
+      // misconfig flips isProduction() to false in prod.
+      const allowTestEmailAutoVerify =
+        process.env.ALLOW_TEST_EMAIL_AUTOVERIFY === 'true';
       const shouldAutoVerifyEmail =
         this.appConfig.isTest() ||
-        (isNonProduction && data.email.endsWith('@test.com'));
+        (isNonProduction &&
+          allowTestEmailAutoVerify &&
+          data.email.endsWith('@test.com'));
 
       if (await this.credentialValidation.checkEmailExists(data.email)) {
         throw new ConflictException('User with this email already exists');

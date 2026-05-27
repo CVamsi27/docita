@@ -14,6 +14,10 @@ import { LeaveMapper } from '@/domains/leave/infrastructure/mappers/leave.mapper
 import { AvailabilityScheduleService } from '@/domains/doctors/application/services/availability-schedule.service';
 import { Role } from '@workspace/db';
 import { CLOCK_PORT, type IClock } from '@/shared/common/ports/clock.port';
+import {
+  TRANSACTION_RUNNER_PORT,
+  type ITransactionRunner,
+} from '@/shared/common/ports/transaction-runner.port';
 import { parseLeaveType } from './leave-type.helpers';
 
 @Injectable()
@@ -24,6 +28,8 @@ export class LeaveCommandService {
     @Inject(LEAVE_REPOSITORY_TOKEN)
     private readonly leaveRepository: ILeaveRepository,
     private readonly availabilityScheduleService: AvailabilityScheduleService,
+    @Inject(TRANSACTION_RUNNER_PORT)
+    private readonly transactionRunner: ITransactionRunner,
     @Inject(CLOCK_PORT) private readonly clock: IClock,
   ) {}
 
@@ -63,6 +69,11 @@ export class LeaveCommandService {
     if (!leave) throw new NotFoundException('Leave request not found');
     if (leave.clinicId !== clinicId)
       throw new ForbiddenException('Access denied');
+    // Block self-approval: an admin who is also the leave's owner cannot
+    // approve their own request.
+    if (leave.staffId === approverId) {
+      throw new ForbiddenException('You cannot approve your own leave');
+    }
     if (leave.status !== 'PENDING') {
       throw new BadRequestException(
         `Cannot approve a leave in ${leave.status} status`,
@@ -72,58 +83,57 @@ export class LeaveCommandService {
     const staffRole = leave.staff?.role;
     const isDoctor =
       staffRole === Role.DOCTOR || staffRole === Role.ADMIN_DOCTOR;
-    let createdTimeOffId: string | undefined;
 
-    if (isDoctor) {
-      const timeOff = await this.availabilityScheduleService.createTimeOff({
-        doctorId: leave.staffId,
-        clinicId: leave.clinicId,
-        startDate: leave.startDate,
-        endDate: leave.endDate,
-        reason: `Leave: ${leave.reason ?? leave.leaveType}`,
-        isFullDay: true,
-      });
-      createdTimeOffId = timeOff.id;
-    }
-
-    let updated: Awaited<ReturnType<ILeaveRepository['updateLeave']>>;
-    try {
-      updated = await this.leaveRepository.updateLeave(leaveId, {
-        status: 'APPROVED',
-        approver: { connect: { id: approverId } },
-        approvedAt: this.clock.now(),
-      });
-    } catch (err) {
-      if (createdTimeOffId) {
-        try {
-          await this.availabilityScheduleService.deleteTimeOff(
-            createdTimeOffId,
-            {
-              clinicId: leave.clinicId,
-              actorUserId: approverId,
-              actorRole: Role.ADMIN,
-            },
+    // Both writes participate in a single Prisma transaction; a failure in
+    // either rolls back the other atomically. Status is re-checked inside
+    // the transaction to close the TOCTOU window between the initial
+    // PENDING check above and the write below.
+    const updated = await this.transactionRunner.runInTransaction(
+      async (tx) => {
+        const current = await this.leaveRepository.findLeaveById(leaveId);
+        if (!current || current.status !== 'PENDING') {
+          throw new BadRequestException(
+            `Cannot approve a leave in ${current?.status ?? 'UNKNOWN'} status`,
           );
-        } catch (rollbackError) {
-          this.logger.error('Could not roll back DoctorTimeOff for leave', {
-            leaveId,
-            timeOffId: createdTimeOffId,
-            error:
-              rollbackError instanceof Error
-                ? rollbackError.message
-                : String(rollbackError),
-          });
         }
-      }
 
-      this.logger.warn('Could not approve leave after DoctorTimeOff write', {
-        leaveId,
-        error: err instanceof Error ? err.message : String(err),
-      });
-      throw err;
-    }
+        if (isDoctor) {
+          await this.availabilityScheduleService.createTimeOff(
+            {
+              doctorId: leave.staffId,
+              clinicId: leave.clinicId,
+              startDate: leave.startDate,
+              endDate: leave.endDate,
+              reason: `Leave: ${leave.reason ?? leave.leaveType}`,
+              isFullDay: true,
+            },
+            tx,
+          );
+        }
 
-    this.logger.log('Leave approved', { leaveId, approverId });
+        return this.leaveRepository.updateLeave(
+          leaveId,
+          {
+            status: 'APPROVED',
+            approver: { connect: { id: approverId } },
+            approvedAt: this.clock.now(),
+          },
+          tx,
+        );
+      },
+    );
+
+    this.logger.log('Leave approved', {
+      leaveId,
+      approverId,
+      staffId: leave.staffId,
+      clinicId: leave.clinicId,
+      previousStatus: 'PENDING',
+      newStatus: 'APPROVED',
+      leaveType: leave.leaveType,
+      startDate: leave.startDate.toISOString(),
+      endDate: leave.endDate.toISOString(),
+    });
     return LeaveMapper.staffLeaveToDomain(updated);
   }
 
@@ -138,20 +148,45 @@ export class LeaveCommandService {
     if (!leave) throw new NotFoundException('Leave request not found');
     if (leave.clinicId !== clinicId)
       throw new ForbiddenException('Access denied');
+    if (leave.staffId === approverId) {
+      throw new ForbiddenException('You cannot reject your own leave');
+    }
     if (leave.status !== 'PENDING') {
       throw new BadRequestException(
         `Cannot reject a leave in ${leave.status} status`,
       );
     }
 
-    const updated = await this.leaveRepository.updateLeave(leaveId, {
-      status: 'REJECTED',
-      approver: { connect: { id: approverId } },
-      approvedAt: this.clock.now(),
+    const updated = await this.transactionRunner.runInTransaction(
+      async (tx) => {
+        const current = await this.leaveRepository.findLeaveById(leaveId);
+        if (!current || current.status !== 'PENDING') {
+          throw new BadRequestException(
+            `Cannot reject a leave in ${current?.status ?? 'UNKNOWN'} status`,
+          );
+        }
+        return this.leaveRepository.updateLeave(
+          leaveId,
+          {
+            status: 'REJECTED',
+            approver: { connect: { id: approverId } },
+            approvedAt: this.clock.now(),
+            rejectionReason,
+          },
+          tx,
+        );
+      },
+    );
+
+    this.logger.log('Leave rejected', {
+      leaveId,
+      approverId,
+      staffId: leave.staffId,
+      clinicId: leave.clinicId,
+      previousStatus: 'PENDING',
+      newStatus: 'REJECTED',
       rejectionReason,
     });
-
-    this.logger.log('Leave rejected', { leaveId, approverId });
     return LeaveMapper.staffLeaveToDomain(updated);
   }
 

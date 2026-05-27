@@ -9,6 +9,7 @@ import { LeaveCommandService } from './leave-command.service';
 import { LeaveQueryService } from './leave-query.service';
 import { LEAVE_REPOSITORY_TOKEN } from '@/domains/leave/core/repositories/leave.repository.interface';
 import { AvailabilityScheduleService } from '@/domains/doctors/application/services/availability-schedule.service';
+import { TRANSACTION_RUNNER_PORT } from '@/shared/common/ports/transaction-runner.port';
 import { CLOCK_PORT } from '@/shared/common/ports/clock.port';
 import { beforeEach, describe, it, expect, jest } from '@jest/globals';
 
@@ -64,6 +65,18 @@ describe('LeaveService', () => {
           useValue: {
             createTimeOff: jest.fn<(...args: unknown[]) => Promise<unknown>>(),
             deleteTimeOff: jest.fn<(...args: unknown[]) => Promise<unknown>>(),
+          },
+        },
+        {
+          provide: TRANSACTION_RUNNER_PORT,
+          useValue: {
+            // No real DB in tests: the fake runs the callback with a stub
+            // transaction client. Repository mocks ignore the `tx` argument,
+            // and a thrown error propagates the way Prisma would after a
+            // rolled-back transaction.
+            runInTransaction: <T>(
+              fn: (tx: unknown) => Promise<T>,
+            ): Promise<T> => fn({}),
           },
         },
         {
@@ -138,6 +151,7 @@ describe('LeaveService', () => {
         staff: { ...mockLeave.staff, role: 'RECEPTIONIST' },
       };
       leaveRepository.findLeaveWithStaff.mockResolvedValue(leaveWithStaff);
+      leaveRepository.findLeaveById.mockResolvedValue(mockLeave);
       leaveRepository.updateLeave.mockResolvedValue({
         ...mockLeave,
         status: 'APPROVED',
@@ -152,6 +166,7 @@ describe('LeaveService', () => {
       expect(leaveRepository.updateLeave).toHaveBeenCalledWith(
         'leave-1',
         expect.objectContaining({ status: 'APPROVED' }),
+        expect.anything(),
       );
       expect(result.status).toBe('APPROVED');
     });
@@ -188,12 +203,23 @@ describe('LeaveService', () => {
       ).rejects.toThrow(BadRequestException);
     });
 
+    it('blocks self-approval', async () => {
+      leaveRepository.findLeaveWithStaff.mockResolvedValue({
+        ...mockLeave,
+        staff: { ...mockLeave.staff, role: 'DOCTOR' },
+      });
+      await expect(
+        service.approveLeave('leave-1', 'staff-1', 'clinic-1'),
+      ).rejects.toThrow(ForbiddenException);
+    });
+
     it('keeps the leave PENDING when DoctorTimeOff creation fails for a doctor', async () => {
       const doctorLeave = {
         ...mockLeave,
         staff: { ...mockLeave.staff, role: 'DOCTOR' },
       };
       leaveRepository.findLeaveWithStaff.mockResolvedValue(doctorLeave);
+      leaveRepository.findLeaveById.mockResolvedValue(mockLeave);
 
       const availability = (
         service as unknown as {
@@ -217,12 +243,13 @@ describe('LeaveService', () => {
       expect(leaveRepository.updateLeave).not.toHaveBeenCalled();
     });
 
-    it('rolls back DoctorTimeOff if the leave update fails after creation', async () => {
+    it('propagates the leave-update failure without manual rollback (Prisma transaction handles atomicity)', async () => {
       const doctorLeave = {
         ...mockLeave,
         staff: { ...mockLeave.staff, role: 'DOCTOR' },
       };
       leaveRepository.findLeaveWithStaff.mockResolvedValue(doctorLeave);
+      leaveRepository.findLeaveById.mockResolvedValue(mockLeave);
 
       const availability = (
         service as unknown as {
@@ -250,10 +277,10 @@ describe('LeaveService', () => {
         service.approveLeave('leave-1', 'admin-1', 'clinic-1'),
       ).rejects.toThrow('db unavailable');
 
-      expect(availability.deleteTimeOff).toHaveBeenCalledWith(
-        'timeoff-1',
-        expect.objectContaining({ actorRole: expect.any(String) }),
-      );
+      // No app-side rollback — both writes share a Prisma transaction so
+      // the DoctorTimeOff insert is rolled back by the DB when updateLeave
+      // throws inside the same `$transaction(fn)` block.
+      expect(availability.deleteTimeOff).not.toHaveBeenCalled();
     });
   });
 
@@ -273,6 +300,13 @@ describe('LeaveService', () => {
         'No reason',
       );
       expect(result.status).toBe('REJECTED');
+    });
+
+    it('blocks self-rejection', async () => {
+      leaveRepository.findLeaveById.mockResolvedValue(mockLeave);
+      await expect(
+        service.rejectLeave('leave-1', 'staff-1', 'clinic-1', 'reason'),
+      ).rejects.toThrow(ForbiddenException);
     });
 
     it('throws NotFoundException when leave not found', async () => {

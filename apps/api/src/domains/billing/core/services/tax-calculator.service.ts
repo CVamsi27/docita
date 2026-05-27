@@ -1,4 +1,5 @@
 import { Injectable } from '@nestjs/common';
+import { InvariantViolationError } from '@/shared/common/errors/domain.errors';
 import {
   invoiceTaxSummarySchema,
   taxRegistrationSnapshotSchema,
@@ -67,11 +68,21 @@ export class TaxCalculatorService {
       regime: seller.regime,
       ...input.buyer,
     });
+    const hasPotentialTaxableSupply = input.items.some(
+      (item) =>
+        (item.taxTreatment ?? 'EXEMPT_HEALTHCARE') === 'TAXABLE' &&
+        (item.taxRate ?? 0) > 0,
+    );
     const placeOfSupply = this.resolvePlaceOfSupply(
       seller,
       buyer,
       input.placeOfSupply,
     );
+    if (hasPotentialTaxableSupply && !placeOfSupply.stateCode) {
+      throw new InvariantViolationError(
+        'Place of supply state is required for taxable invoices',
+      );
+    }
     const currency = input.currency ?? DEFAULT_CURRENCY;
 
     const lineResults = input.items.map((item) =>
@@ -273,10 +284,8 @@ export class TaxCalculatorService {
     return {
       countryCode:
         placeOfSupply?.countryCode ?? buyer.countryCode ?? seller.countryCode,
-      stateCode:
-        placeOfSupply?.stateCode ?? buyer.stateCode ?? seller.stateCode,
-      stateName:
-        placeOfSupply?.stateName ?? buyer.stateName ?? seller.stateName,
+      stateCode: placeOfSupply?.stateCode ?? buyer.stateCode,
+      stateName: placeOfSupply?.stateName ?? buyer.stateName,
     };
   }
 }

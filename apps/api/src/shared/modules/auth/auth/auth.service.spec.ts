@@ -274,6 +274,12 @@ describe('AuthService', () => {
     service = module.get<AuthService>(AuthService);
     sessionService = module.get<AuthSessionService>(AuthSessionService);
     prismaService = module.get<typeof prismaService>(PrismaService);
+    prismaService.$transaction.mockImplementation(async (ops: unknown) => {
+      if (typeof ops === 'function') {
+        return (ops as (tx: unknown) => Promise<unknown>)(prismaService);
+      }
+      return Promise.all(ops as Promise<unknown>[]);
+    });
     jwtService = module.get<JwtService>(JwtService);
     userFactory = module.get<UserFactory>(UserFactory);
     observabilityService = module.get<ObservabilityService>(
@@ -482,20 +488,18 @@ describe('AuthService', () => {
     });
 
     it('persists refresh tokens for 30 days', async () => {
-      const now = 1_700_000_000_000;
-      const nowSpy = jest.spyOn(Date, 'now').mockReturnValue(now);
-
       await service.login(mockUserWithoutPassword);
 
       expect(prismaService.refreshToken.create).toHaveBeenCalledWith(
         expect.objectContaining({
           data: expect.objectContaining({
-            expiresAt: new Date(now + AUTH_CONSTANTS.REFRESH_TOKEN_MAX_AGE_MS),
+            expiresAt: new Date(
+              new Date('2026-01-15T12:00:00.000Z').getTime() +
+                AUTH_CONSTANTS.REFRESH_TOKEN_MAX_AGE_MS,
+            ),
           }),
         }),
       );
-
-      nowSpy.mockRestore();
     });
 
     it('adds patientId to token payload for patient users', async () => {
@@ -897,7 +901,7 @@ describe('AuthService', () => {
         ipAddress: '127.0.0.1',
         userAgent: 'UA',
         revokedAt: null,
-        expiresAt: new Date(Date.now() + 60_000),
+        expiresAt: new Date('2026-01-15T12:01:00.000Z'),
         replacedByToken: 'rotated-token',
         user: mockUser,
       });
@@ -930,43 +934,48 @@ describe('AuthService', () => {
         ipAddress: '127.0.0.1',
         userAgent: 'UA',
         revokedAt: null,
-        expiresAt: new Date(Date.now() + 60_000),
+        expiresAt: new Date('2026-01-15T12:01:00.000Z'),
         replacedByToken: null,
         user: mockUser,
       });
-      jest.spyOn(sessionService, 'login').mockResolvedValue({
-        access_token: 'new-access',
-        refresh_token: 'new-refresh',
-        user: mockUserWithoutPassword,
-      });
-      jest.spyOn(prismaService.refreshToken, 'update').mockResolvedValue({});
+      jest.spyOn(prismaService.refreshToken, 'create').mockResolvedValue({});
+      jest
+        .spyOn(prismaService.refreshToken, 'updateMany')
+        .mockResolvedValue({ count: 1 });
 
       const tokens = await service.refreshTokens('incoming');
 
-      expect(sessionService.login).toHaveBeenCalledWith(
-        expect.objectContaining({
-          id: 'user-123',
-          email: 'test@example.com',
-        }),
-        'family-1',
-        {
+      expect(prismaService.refreshToken.create).toHaveBeenCalledWith({
+        data: expect.objectContaining({
+          userId: 'user-123',
+          tokenFamily: 'family-1',
           deviceName: 'Chrome',
           ipAddress: '127.0.0.1',
           userAgent: 'UA',
+          tokenHash: expect.any(String),
+        }),
+      });
+      expect(prismaService.refreshToken.updateMany).toHaveBeenCalledWith({
+        where: {
+          id: 'rt-1',
+          revokedAt: null,
+          replacedByToken: null,
         },
-      );
-      expect(prismaService.refreshToken.update).toHaveBeenCalledWith({
-        where: { id: 'rt-1' },
         data: {
           revokedAt: expect.any(Date),
-          replacedByToken: 'new-refresh',
+          replacedByToken: expect.any(String),
         },
       });
-      expect(tokens).toEqual({
-        access_token: 'new-access',
-        refresh_token: 'new-refresh',
-        user: mockUserWithoutPassword,
-      });
+      expect(tokens.access_token).toBe('mock-jwt-token');
+      expect(tokens.refresh_token).toEqual(expect.any(String));
+      expect(tokens.user).toEqual(
+        expect.objectContaining({
+          id: mockUserWithoutPassword.id,
+          email: mockUserWithoutPassword.email,
+          role: mockUserWithoutPassword.role,
+          clinicId: mockUserWithoutPassword.clinicId,
+        }),
+      );
     });
 
     it('looks up incoming refresh token by hash before falling back to plaintext', async () => {
@@ -982,16 +991,14 @@ describe('AuthService', () => {
           ipAddress: null,
           userAgent: null,
           revokedAt: null,
-          expiresAt: new Date(Date.now() + 60_000),
+          expiresAt: new Date('2026-01-15T12:01:00.000Z'),
           replacedByToken: null,
           user: mockUser,
         });
-      jest.spyOn(sessionService, 'login').mockResolvedValue({
-        access_token: 'new-access',
-        refresh_token: 'new-refresh',
-        user: mockUserWithoutPassword,
-      });
-      jest.spyOn(prismaService.refreshToken, 'update').mockResolvedValue({});
+      jest.spyOn(prismaService.refreshToken, 'create').mockResolvedValue({});
+      jest
+        .spyOn(prismaService.refreshToken, 'updateMany')
+        .mockResolvedValue({ count: 1 });
 
       await service.refreshTokens('legacy-raw');
 

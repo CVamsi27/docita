@@ -121,6 +121,7 @@ export class WhatsappResendService {
           : prescription.approvalStatus,
         approvedById: isAuthorized ? userId : prescription.approvedById,
         approvedAt: isAuthorized ? this.clock.now() : prescription.approvedAt,
+        version: { increment: 1 },
       },
     });
 
