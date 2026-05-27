@@ -55,6 +55,7 @@ out
 
 # Local upload artifacts
 /uploads
+apps/api/uploads
 /artifacts
 !artifacts/a11y-baseline.json
 
