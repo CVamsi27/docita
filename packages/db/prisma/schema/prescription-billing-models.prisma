@@ -7,6 +7,7 @@ model Prescription {
   date                     DateTime        @default(now())
   createdAt                DateTime        @default(now())
   updatedAt                DateTime        @updatedAt
+  version                  Int             @default(1)
   // WhatsApp sharing approval workflow
   approvalStatus           ApprovalStatus  @default(PENDING)
   approvedById             String?
@@ -78,6 +79,38 @@ model Medication {
   @@index([name])
 }
 
+model MedicationDose {
+  id             String               @id @default(cuid())
+  medicationId   String
+  patientId      String
+  clinicId       String
+  prescriptionId String?
+  scheduledAt    DateTime
+  takenAt        DateTime?
+  status         MedicationDoseStatus @default(PENDING)
+  doseAmount     String?
+  route          String?
+  administeredBy String?
+  notes          String?
+  source         MedicationDoseSource @default(SYSTEM_GENERATED)
+  createdAt      DateTime             @default(now())
+  updatedAt      DateTime             @updatedAt
+  version        Int                  @default(1)
+
+  medication   Medication    @relation(fields: [medicationId], references: [id])
+  patient      Patient       @relation(fields: [patientId], references: [id])
+  clinic       Clinic        @relation(fields: [clinicId], references: [id])
+  prescription Prescription? @relation(fields: [prescriptionId], references: [id])
+
+  @@index([medicationId])
+  @@index([patientId])
+  @@index([clinicId])
+  @@index([scheduledAt])
+  @@index([status])
+  @@index([patientId, scheduledAt])
+  @@index([prescriptionId])
+}
+
 model Invoice {
   id                       String           @id @default(cuid())
   appointmentId            String?          @unique
@@ -91,6 +124,11 @@ model Invoice {
   discountTotal            Float            @default(0)
   taxTotal                 Float            @default(0)
   grandTotal               Float            @default(0)
+  totalCents               Int              @default(0)
+  subtotalCents            Int              @default(0)
+  discountTotalCents       Int              @default(0)
+  taxTotalCents            Int              @default(0)
+  grandTotalCents          Int              @default(0)
   taxSummary               Json?
   sellerTaxSnapshot        Json?
   buyerTaxSnapshot         Json?

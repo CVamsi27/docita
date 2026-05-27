@@ -275,12 +275,14 @@ model DoctorTimeOff {
   endTime   String?
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
+  version   Int      @default(1)
   clinic    Clinic?  @relation(fields: [clinicId], references: [id], onDelete: Cascade)
   doctor    User     @relation(fields: [doctorId], references: [id], onDelete: Cascade)
 
   @@index([doctorId])
   @@index([clinicId])
   @@index([startDate, endDate])
+  @@index([doctorId, clinicId, startDate, endDate, isFullDay])
 }
 
 model Patient {
@@ -724,6 +726,7 @@ model Prescription {
   pdfUrl                   String?
   pdfGeneratedAt           DateTime?
   pdfTemplateVersion       Int              @default(1)
+  version                  Int              @default(1)
   medications              Medication[]
   medicationDoses          MedicationDose[]
   appointment              Appointment      @relation(fields: [appointmentId], references: [id])
@@ -788,6 +791,7 @@ model MedicationDose {
   source         MedicationDoseSource @default(SYSTEM_GENERATED)
   createdAt      DateTime             @default(now())
   updatedAt      DateTime             @updatedAt
+  version        Int                  @default(1)
 
   medication   Medication    @relation(fields: [medicationId], references: [id])
   patient      Patient       @relation(fields: [patientId], references: [id])
@@ -829,11 +833,11 @@ model Invoice {
   discountTotal            Float            @default(0)
   taxTotal                 Float            @default(0)
   grandTotal               Float            @default(0)
-  totalCents               Int?
-  subtotalCents            Int?
-  discountTotalCents       Int?
-  taxTotalCents            Int?
-  grandTotalCents          Int?
+  totalCents               Int              @default(0)
+  subtotalCents            Int              @default(0)
+  discountTotalCents       Int              @default(0)
+  taxTotalCents            Int              @default(0)
+  grandTotalCents          Int              @default(0)
   /// @json:invoiceTaxSummarySchema
   taxSummary               Json?
   /// @json:taxRegistrationSnapshotSchema
@@ -871,6 +875,10 @@ model Invoice {
   pdfUrl                   String?
   pdfGeneratedAt           DateTime?
   pdfTemplateVersion       Int              @default(1)
+  // Optional idempotency key for create paths. Unique-when-present so
+  // duplicate POSTs from a retrying client surface as a P2002 the service
+  // layer can convert into a 200 with the existing invoice.
+  idempotencyKey           String?          @unique
   appointment              Appointment?     @relation(fields: [appointmentId], references: [id])
   clinic                   Clinic?          @relation(fields: [clinicId], references: [id])
   patient                  Patient          @relation(fields: [patientId], references: [id])
@@ -1401,6 +1409,7 @@ model PaymentSession {
   patientId         String?
   provider          String               @default("razorpay")
   providerSessionId String?
+  providerPaymentId String?
   paymentLink       String?
   shortUrl          String?
   amount            Int
@@ -1426,8 +1435,24 @@ model PaymentSession {
   @@index([clinicId, providerSessionId])
   @@index([clinicId, status])
   @@index([invoiceId])
+  @@index([providerPaymentId])
   @@index([providerSessionId])
   @@index([status])
+  @@unique([provider, providerPaymentId], map: "PaymentSession_provider_providerPaymentId_key")
+}
+
+model OnboardingSession {
+  id             String   @id
+  currentStep    String
+  /// @json:jsonArraySchema
+  completedSteps Json
+  /// @json:jsonObjectSchema
+  data           Json
+  expiresAt      DateTime
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+
+  @@index([expiresAt])
 }
 
 model WhatsappLog {
@@ -3301,6 +3326,7 @@ model AuditLog {
   @@index([entityType, entityId])
   @@index([createdAt])
   @@index([clinicId, createdAt])
+  @@index([clinicId, action, createdAt])
 }
 
 model AnalyticsSnapshot {
@@ -3895,6 +3921,7 @@ model StaffLeave {
   cancelledAt     DateTime?
   createdAt       DateTime    @default(now())
   updatedAt       DateTime    @updatedAt
+  version         Int         @default(1)
   staff           User        @relation("StaffLeaves", fields: [staffId], references: [id])
   approver        User?       @relation("ApprovedLeaves", fields: [approvedBy], references: [id])
   clinic          Clinic      @relation(fields: [clinicId], references: [id])
@@ -4077,4 +4104,51 @@ model WebhookReplayDedupe {
   createdAt     DateTime @default(now())
 
   @@index([expiresAt])
+}
+
+/// Transactional outbox for domain events. Producers append rows in the
+/// same `prisma.$transaction` as the business write; the relay worker
+/// (`apps/worker/src/processors/outbox.processor.ts`) drains unprocessed
+/// rows via `EventEmitter2` and marks `processedAt`. See ADR
+/// docs/architecture/decisions/0010-transactional-outbox.md.
+enum CronHeartbeatStatus {
+  SUCCESS
+  FAILURE
+}
+
+model CronHeartbeat {
+  id         String             @id @default(cuid())
+  name       String             @unique
+  lastRunAt  DateTime
+  lastStatus CronHeartbeatStatus
+  lastError  String?
+  createdAt  DateTime           @default(now())
+  updatedAt  DateTime           @updatedAt
+
+  @@index([lastRunAt])
+}
+
+model OutboxEvent {
+  id             String    @id @default(cuid())
+  eventName      String
+  aggregateType  String?
+  aggregateId    String?
+  clinicId       String?
+  /// @json:jsonObjectSchema
+  payload        Json
+  idempotencyKey String?   @unique
+  createdAt      DateTime  @default(now())
+  processedAt    DateTime?
+  attempts       Int       @default(0)
+  lastError      String?
+  // Exponential-backoff bookkeeping for the relay: nextAttemptAt gates when
+  // the row becomes eligible again after a failure, lastAttemptAt tracks the
+  // most recent dispatch try (set by the atomic claim step).
+  nextAttemptAt  DateTime?
+  lastAttemptAt  DateTime?
+
+  @@index([processedAt, createdAt])
+  @@index([clinicId])
+  @@index([eventName])
+  @@index([processedAt, nextAttemptAt])
 }

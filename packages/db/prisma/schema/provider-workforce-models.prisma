@@ -145,10 +145,54 @@ model DoctorTimeOff {
   endTime   String?
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
+  version   Int      @default(1)
   clinic    Clinic?  @relation(fields: [clinicId], references: [id], onDelete: Cascade)
   doctor    User     @relation(fields: [doctorId], references: [id], onDelete: Cascade)
 
   @@index([doctorId])
   @@index([clinicId])
+  @@index([startDate, endDate])
+}
+
+enum LeaveType {
+  CASUAL
+  SICK
+  EARNED
+  COMP_OFF
+  UNPAID
+  HOLIDAY
+}
+
+enum LeaveStatus {
+  PENDING
+  APPROVED
+  REJECTED
+  CANCELLED
+}
+
+model StaffLeave {
+  id              String      @id @default(cuid())
+  staffId         String
+  clinicId        String
+  leaveType       LeaveType
+  startDate       DateTime
+  endDate         DateTime
+  reason          String?
+  status          LeaveStatus @default(PENDING)
+  approvedBy      String?
+  approvedAt      DateTime?
+  rejectionReason String?
+  cancelledAt     DateTime?
+  createdAt       DateTime    @default(now())
+  updatedAt       DateTime    @updatedAt
+  version         Int         @default(1)
+  staff           User        @relation("StaffLeaves", fields: [staffId], references: [id])
+  approver        User?       @relation("ApprovedLeaves", fields: [approvedBy], references: [id])
+  clinic          Clinic      @relation(fields: [clinicId], references: [id])
+
+  @@index([staffId])
+  @@index([clinicId])
+  @@index([status])
+  @@index([leaveType])
   @@index([startDate, endDate])
 }
