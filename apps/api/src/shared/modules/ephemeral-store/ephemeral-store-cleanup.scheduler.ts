@@ -26,6 +26,7 @@ export class EphemeralStoreCleanupScheduler {
     try {
       let idempotencyTotal = 0;
       let webhookTotal = 0;
+      let onboardingTotal = 0;
       for (let i = 0; i < 20; i += 1) {
         // check-n-plus-1: allow — batched purge; each round depends on prior deleteMany
         const stale = await this.prisma.apiHttpIdempotencyRecord.findMany({
@@ -59,9 +60,23 @@ export class EphemeralStoreCleanupScheduler {
         webhookTotal += whRes.count;
         if (staleWh.length < BATCH) break;
       }
-      if (idempotencyTotal > 0 || webhookTotal > 0) {
+      for (let i = 0; i < 20; i += 1) {
+        // check-n-plus-1: allow — batched purge; each round depends on prior deleteMany
+        const staleOnboarding = await this.prisma.onboardingSession.findMany({
+          where: { expiresAt: { lt: now } },
+          select: { id: true },
+          take: BATCH,
+        });
+        if (staleOnboarding.length === 0) break;
+        const onboardingRes = await this.prisma.onboardingSession.deleteMany({
+          where: { id: { in: staleOnboarding.map((r) => r.id) } },
+        });
+        onboardingTotal += onboardingRes.count;
+        if (staleOnboarding.length < BATCH) break;
+      }
+      if (idempotencyTotal > 0 || webhookTotal > 0 || onboardingTotal > 0) {
         this.logger.log(
-          `Ephemeral store cleanup removed idempotency=${idempotencyTotal} webhookDedupe=${webhookTotal} rows`,
+          `Ephemeral store cleanup removed idempotency=${idempotencyTotal} webhookDedupe=${webhookTotal} onboarding=${onboardingTotal} rows`,
         );
       }
     } catch (error) {

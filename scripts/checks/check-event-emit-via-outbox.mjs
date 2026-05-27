@@ -31,11 +31,26 @@ for (const file of files) {
     continue;
   }
   const lines = source.split("\n");
+  // Marker may appear on the .emit( line itself, on the immediately preceding
+  // line (common after prettier reformats a multi-line call), or as an inline
+  // comment on the next line of args within the same call expression.
+  // We scan a small window (±3 lines from the .emit( line) — far enough to
+  // tolerate the comment placement Prettier produces, narrow enough to keep
+  // false positives away.
+  const ALLOW_WINDOW = 3;
   lines.forEach((line, idx) => {
-    if (line.includes(ALLOW_LINE)) return;
-    if (EMIT_RE.test(line)) {
-      advisories.push(`${file}:${idx + 1}: ${line.trim()}`);
+    if (!EMIT_RE.test(line)) return;
+    const start = Math.max(0, idx - ALLOW_WINDOW);
+    const end = Math.min(lines.length, idx + ALLOW_WINDOW + 1);
+    let allowed = false;
+    for (let i = start; i < end; i += 1) {
+      if (lines[i].includes(ALLOW_LINE)) {
+        allowed = true;
+        break;
+      }
     }
+    if (allowed) return;
+    advisories.push(`${file}:${idx + 1}: ${line.trim()}`);
   });
 }
 

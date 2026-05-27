@@ -7,14 +7,7 @@
  * Producers in command paths call `outbox.append(...)` inside the
  * same `prisma.$transaction(...)` as the business write. A relay
  * worker (`apps/worker/src/processors/outbox.processor.ts`) polls
- * unpublished rows and republishes via the in-process EventEmitter2
- * (initial implementation) or LISTEN/NOTIFY (later, for cross-pod
- * fan-out).
- *
- * The Prisma model `Outbox` is provisioned in a follow-up migration;
- * the interface here ships first so command-path code can be wired in
- * preparation. Until the model exists, `NoopOutboxService` is bound,
- * which behaves like the existing direct emit.
+ * unpublished rows and republishes via the in-process EventEmitter2.
  */
 import type { Prisma } from '@workspace/db';
 
@@ -23,6 +16,8 @@ export interface OutboxAppend {
   eventName: string;
   /** Tenant identifier so the relay can re-establish ALS context. */
   clinicId: string | null;
+  /** Optional aggregate-type label (e.g., "Appointment"). */
+  aggregateType?: string;
   /** Optional identifier for the aggregate this event refers to. */
   aggregateId?: string;
   /** Serializable JSON payload. Must NOT contain PHI in plaintext. */

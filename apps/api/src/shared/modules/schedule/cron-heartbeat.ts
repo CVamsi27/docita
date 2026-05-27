@@ -29,8 +29,9 @@
  * the annotation now; the underlying service is a no-op until the
  * Prisma model lands.
  */
-import { Injectable } from '@nestjs/common';
+import { Injectable, Logger } from '@nestjs/common';
 import 'reflect-metadata';
+import { PrismaService } from '@/prisma/prisma.service';
 
 export const CRON_HEARTBEAT_KEY = Symbol('CRON_HEARTBEAT_NAME');
 
@@ -42,10 +43,70 @@ export interface ICronHeartbeatService {
 @Injectable()
 export class NoopCronHeartbeatService implements ICronHeartbeatService {
   async recordSuccess(_name: string): Promise<void> {
-    /* no-op until Prisma model lands */
+    /* no-op for tests */
   }
   async recordFailure(_name: string, _error: unknown): Promise<void> {
-    /* no-op until Prisma model lands */
+    /* no-op for tests */
+  }
+}
+
+/**
+ * Persistent heartbeat backed by the `CronHeartbeat` Prisma model. Each
+ * successful or failed scheduler run upserts a row keyed by `name` so
+ * dashboards / `scripts/checks/check-cron-heartbeat-coverage.mjs` can
+ * answer "did the X scheduler run in the last Y minutes".
+ */
+@Injectable()
+export class PrismaCronHeartbeatService implements ICronHeartbeatService {
+  private readonly logger = new Logger(PrismaCronHeartbeatService.name);
+
+  constructor(private readonly prisma: PrismaService) {}
+
+  async recordSuccess(name: string): Promise<void> {
+    try {
+      await this.prisma.cronHeartbeat.upsert({
+        where: { name },
+        create: { name, lastRunAt: new Date(), lastStatus: 'SUCCESS' },
+        update: {
+          lastRunAt: new Date(),
+          lastStatus: 'SUCCESS',
+          lastError: null,
+        },
+      });
+    } catch (error) {
+      this.logger.warn(
+        `Failed to record cron heartbeat success for ${name}: ${
+          error instanceof Error ? error.message : String(error)
+        }`,
+      );
+    }
+  }
+
+  async recordFailure(name: string, error: unknown): Promise<void> {
+    const message =
+      error instanceof Error ? error.message : String(error ?? 'unknown');
+    try {
+      await this.prisma.cronHeartbeat.upsert({
+        where: { name },
+        create: {
+          name,
+          lastRunAt: new Date(),
+          lastStatus: 'FAILURE',
+          lastError: message.slice(0, 1000),
+        },
+        update: {
+          lastRunAt: new Date(),
+          lastStatus: 'FAILURE',
+          lastError: message.slice(0, 1000),
+        },
+      });
+    } catch (writeError) {
+      this.logger.warn(
+        `Failed to record cron heartbeat failure for ${name}: ${
+          writeError instanceof Error ? writeError.message : String(writeError)
+        }`,
+      );
+    }
   }
 }
 

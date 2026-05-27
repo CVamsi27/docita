@@ -19,6 +19,7 @@ import { EnterpriseContractsWorkerModule } from '@/domains/enterprise-contracts/
 import { DoctorsVerificationWorkerModule } from '@/domains/doctors/doctors-verification.worker.module';
 import { AdminAlertsSchedulerModule } from '@/shared/modules/messaging/admin-alerts/admin-alerts.scheduler.module';
 import { EphemeralStoreSchedulerModule } from '@/shared/modules/ephemeral-store/ephemeral-store.scheduler.module';
+import { OutboxModule } from '@/shared/modules/outbox/outbox.module';
 
 const ENABLE_SCHEDULERS = process.env.ENABLE_SCHEDULERS !== 'false';
 
@@ -58,6 +59,7 @@ const ENABLE_SCHEDULERS = process.env.ENABLE_SCHEDULERS !== 'false';
     SubscriptionsWorkerModule,
     EnterpriseContractsWorkerModule,
     DoctorsVerificationWorkerModule,
+    OutboxModule,
   ],
 })
 export class WorkerModule {}

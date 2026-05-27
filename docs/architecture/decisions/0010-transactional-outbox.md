@@ -1,9 +1,9 @@
 # 0010: Add a transactional Outbox for cross-pod events
 
-- **Status**: proposed
-- **Date**: 2026-05-26
-- **Deciders**: platform
-- **Tags**: backend, architecture
+- **Status**: accepted
+- **Date**: 2026-05-27 (originally proposed 2026-05-26)
+- **Deciders**: platform, backend
+- **Tags**: backend, architecture, reliability
 
 ## Context
 
@@ -46,6 +46,52 @@ may stay direct.
   is bounded by relay poll interval (target: <1s).
 - Follow-up: `scripts/checks/check-event-emit-via-outbox.mjs` (Stream O)
   enforces no direct `emit` in command paths.
+
+## Implementation shape
+
+The model lands as:
+
+```prisma
+model OutboxEvent {
+  id              String    @id @default(cuid())
+  eventName       String
+  aggregateType   String?
+  aggregateId     String?
+  clinicId        String?
+  payload         Json
+  idempotencyKey  String?   @unique
+  createdAt       DateTime  @default(now())
+  processedAt     DateTime?
+  attempts        Int       @default(0)
+  lastError       String?
+
+  @@index([processedAt, createdAt])
+  @@index([clinicId])
+}
+```
+
+`idempotencyKey @unique` collapses duplicate `append` calls (retried
+webhooks, retried commands) into a single row, giving producer-side
+exactly-once. The relay marks `processedAt` on successful dispatch; on
+failure it increments `attempts` and writes `lastError`. After a
+configurable attempt ceiling, the row is dead-lettered via the existing
+Postgres-queue DLQ pattern.
+
+## Follow-up: migrate existing direct emits to outbox
+
+Ten command-path sites currently carry `allow-direct-emit:` markers (recorded
+2026-05-27). Each note documents why the emit is acceptable today and what
+would change if it moved to the outbox. These sites can adopt the outbox
+incrementally as the surrounding use-cases are refactored to participate in a
+single `runInTransaction(...)` block:
+
+- `apps/api/src/domains/appointments/application/services/appointment-command.service.ts` (`APPOINTMENT_CREATED`)
+- `apps/api/src/domains/appointments/application/services/doctor-delay.service.ts` (`DOCTOR_DELAY_MARKED`)
+- `apps/api/src/domains/appointments/application/use-cases/update-appointment-details.use-case.ts` (`APPOINTMENT_COMPLETED`)
+- `apps/api/src/domains/billing/application/services/invoices-command.service.ts` (`INVOICE_GENERATED`)
+- `apps/api/src/domains/prescriptions/application/services/prescriptions-command.service.ts` (`PRESCRIPTION_CREATED`)
+- `apps/api/src/domains/whatsapp/application/use-cases/send-message.use-case.ts` (`WHATSAPP_MESSAGE_SENT`)
+- `apps/api/src/domains/whatsapp/application/services/staff-notification-inbox.service.ts` × 4 (`NOTIFICATION_READ` / `_DELETED` / `_BULK_DELETED` / `_CREATED`) — these are real-time websocket fan-outs that intentionally stay direct; the staff-inbox list query is the source of truth, so a lost emit is recovered on the next refresh.
 
 ## References
 
