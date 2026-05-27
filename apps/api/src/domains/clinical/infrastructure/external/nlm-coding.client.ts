@@ -63,8 +63,8 @@ function cptCategory(code: string): string {
 }
 
 @Injectable()
-export class NlmCodingService {
-  private readonly logger = new Logger(NlmCodingService.name);
+export class NlmCodingClient {
+  private readonly logger = new Logger(NlmCodingClient.name);
   private icdSearchDisabledUntil = 0;
   private hcpcsSearchDisabledUntil = 0;
 

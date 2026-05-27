@@ -2,7 +2,7 @@ import { BadRequestException } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { beforeEach, describe, expect, it, jest } from '@jest/globals';
 import { RazorpayOrderAdapter } from './razorpay-order.adapter';
-import { RazorpayClientService } from './razorpay-client.service';
+import { RazorpayClientAdapter } from './razorpay-client.adapter';
 
 describe('RazorpayOrderAdapter.capturePayment', () => {
   let adapter: RazorpayOrderAdapter;
@@ -31,7 +31,7 @@ describe('RazorpayOrderAdapter.capturePayment', () => {
       return undefined;
     }) as ConfigService['get'];
 
-    const razorpayClient = new RazorpayClientService(configService);
+    const razorpayClient = new RazorpayClientAdapter(configService);
     Reflect.set(razorpayClient, 'razorpay', mockRazorpay);
 
     adapter = new RazorpayOrderAdapter(razorpayClient, configService);

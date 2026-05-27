@@ -4,15 +4,9 @@
  * `DlqController` (`POST /internal/dlq/retry`) remains the canonical
  * path for permanent failures and one-shot retries.
  *
- * Wiring (TODO — see SYSTEM_DESIGN_AND_PATTERNS.md §28.5 item 35):
- *   - Register this provider in `queue.worker.module.ts`.
- *   - Add `@Cron` schedule (every 5 minutes).
- *   - Wire `PostgresQueueService.listDeadJobs(...)` filter on transient
- *     error kinds and call `requeue(job.id)` with capped attempts.
- *
- * This scaffold ships as inert (the scheduler is not auto-instantiated
- * until added to a module). That avoids surprise replays in production
- * before the transient-error classifier is reviewed.
+ * This policy helper stays inert unless a worker module explicitly wires
+ * automatic replay. That avoids surprise production replays before transient
+ * error classification is reviewed for each queue.
  */
 import { Inject, Injectable } from '@nestjs/common';
 import { Logger } from 'nestjs-pino';
@@ -61,9 +55,8 @@ export class DlqReplayScheduler {
   }
 
   /**
-   * Intentional no-op until wired. See file-header TODO.
-   * Logs a warning if invoked accidentally so we notice during early
-   * runtime testing rather than silently failing.
+   * Manual DLQ replay remains canonical. If this method is invoked without
+   * explicit worker wiring, warn so runtime tests catch the inert path.
    */
   async tick(): Promise<void> {
     if (!(this.queue instanceof PostgresQueueService)) {

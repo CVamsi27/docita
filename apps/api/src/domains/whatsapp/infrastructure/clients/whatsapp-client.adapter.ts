@@ -21,8 +21,8 @@ type LegacySendResult = {
 
 /** Single Meta Graph API client for legacy clinic sends and v2 use-cases. */
 @Injectable()
-export class WhatsappClientService implements IWhatsAppClient {
-  private readonly logger = new Logger(WhatsappClientService.name);
+export class WhatsappClientAdapter implements IWhatsAppClient {
+  private readonly logger = new Logger(WhatsappClientAdapter.name);
   private readonly apiVersion = 'v21.0';
   private readonly baseUrl = 'https://graph.facebook.com';
   private readonly phoneNumberId: string;

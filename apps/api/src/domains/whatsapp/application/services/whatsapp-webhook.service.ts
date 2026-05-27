@@ -1,6 +1,6 @@
 import { Injectable, Logger } from '@nestjs/common';
 import { WhatsAppWebhookIngressService } from '@/domains/whatsapp/application/services/whatsapp-webhook-ingress.service';
-import { WhatsappClientService } from '@/domains/whatsapp/infrastructure/clients/whatsapp-client.service';
+import { WhatsappClientAdapter } from '@/domains/whatsapp/infrastructure/clients/whatsapp-client.adapter';
 import { verifyMetaWebhookSignature } from '@/shared/whatsapp/meta-webhook-signature.util';
 import { WhatsAppWebhookPayload } from '@workspace/types';
 
@@ -10,7 +10,7 @@ export class WhatsappWebhookService {
   private readonly logger = new Logger(WhatsappWebhookService.name);
 
   constructor(
-    private readonly whatsappClient: WhatsappClientService,
+    private readonly whatsappClient: WhatsappClientAdapter,
     private readonly ingress: WhatsAppWebhookIngressService,
   ) {}
 

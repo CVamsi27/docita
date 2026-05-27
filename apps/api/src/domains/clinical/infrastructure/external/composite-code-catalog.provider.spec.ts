@@ -1,7 +1,7 @@
 import { beforeEach, describe, expect, it, jest } from '@jest/globals';
 import { CptCode, IcdCode } from '@workspace/db';
 import { LicensedCptCodeCatalogProvider } from '@/domains/clinical/infrastructure/external/licensed-cpt-code-catalog.provider';
-import { NlmCodingService } from '@/domains/clinical/infrastructure/external/nlm-coding.service';
+import { NlmCodingClient } from '@/domains/clinical/infrastructure/external/nlm-coding.client';
 import { NlmCodeCatalogProvider } from '@/domains/clinical/infrastructure/external/nlm-code-catalog.provider';
 import { CompositeCodeCatalogProvider } from './composite-code-catalog.provider';
 import type { AppConfigService } from '@/shared/modules/config/app-configuration.service';
@@ -45,10 +45,10 @@ describe('CompositeCodeCatalogProvider', () => {
     updatedAt: now,
   });
 
-  const nlmCodingService = new NlmCodingService({
+  const nlmCodingClient = new NlmCodingClient({
     now: () => new Date('2026-01-15T12:00:00.000Z'),
   });
-  const nlmProvider = new NlmCodeCatalogProvider(nlmCodingService);
+  const nlmProvider = new NlmCodeCatalogProvider(nlmCodingClient);
   const licensedProvider = new LicensedCptCodeCatalogProvider(
     mockAppConfig(),
     nlmProvider,

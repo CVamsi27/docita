@@ -58,7 +58,7 @@ function redactValue(value: unknown, depth = 0): unknown {
   if (Array.isArray(value)) return value.map((v) => redactValue(v, depth + 1));
   if (typeof value === 'object') {
     const out: Record<string, unknown> = {};
-    for (const [k, v] of Object.entries(value as Record<string, unknown>)) {
+    for (const [k, v] of Object.entries(value)) {
       out[k] = REDACT_FIELDS.has(k) ? '[REDACTED]' : redactValue(v, depth + 1);
     }
     return out;
@@ -107,7 +107,7 @@ export class AuditLoggerService implements IAuditLogger {
                       value.before,
                     ]),
                   ),
-                ) as Record<string, unknown>,
+                ),
               )
             : undefined,
           newValue: entry.changes
@@ -119,14 +119,12 @@ export class AuditLoggerService implements IAuditLogger {
                       value.after,
                     ]),
                   ),
-                ) as Record<string, unknown>,
+                ),
               )
             : undefined,
           metadata:
             entry.metadata !== undefined
-              ? toPrismaInputJsonValue(
-                  redactValue(entry.metadata) as Record<string, unknown>,
-                )
+              ? toPrismaInputJsonValue(redactValue(entry.metadata))
               : undefined,
           ipAddress: entry.ipAddress,
           userAgent: entry.userAgent,

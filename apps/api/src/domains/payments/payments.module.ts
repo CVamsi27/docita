@@ -1,6 +1,6 @@
 import { Module } from '@nestjs/common';
 import { ConfigModule } from '@nestjs/config';
-import { RazorpayClientService } from './infrastructure/adapters/razorpay/razorpay-client.service';
+import { RazorpayClientAdapter } from './infrastructure/adapters/razorpay/razorpay-client.adapter';
 import { RazorpayPaymentLinkAdapter } from './infrastructure/adapters/razorpay/razorpay-payment-link.adapter';
 import { RazorpaySubscriptionAdapter } from './infrastructure/adapters/razorpay/razorpay-subscription.adapter';
 import { RazorpayOrderAdapter } from './infrastructure/adapters/razorpay/razorpay-order.adapter';
@@ -22,7 +22,7 @@ import {
 @Module({
   imports: [ConfigModule],
   providers: [
-    RazorpayClientService,
+    RazorpayClientAdapter,
     RazorpayPaymentLinkAdapter,
     RazorpaySubscriptionAdapter,
     RazorpayOrderAdapter,

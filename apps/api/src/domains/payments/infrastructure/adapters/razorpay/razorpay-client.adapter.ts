@@ -3,8 +3,8 @@ import Razorpay from 'razorpay';
 import { ConfigService } from '@nestjs/config';
 
 @Injectable()
-export class RazorpayClientService {
-  private readonly logger = new Logger(RazorpayClientService.name);
+export class RazorpayClientAdapter {
+  private readonly logger = new Logger(RazorpayClientAdapter.name);
   private razorpay: Razorpay | null = null;
 
   constructor(private configService: ConfigService) {

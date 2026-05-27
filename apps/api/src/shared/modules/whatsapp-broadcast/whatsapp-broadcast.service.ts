@@ -7,7 +7,7 @@ import {
 } from '@nestjs/common';
 import { CLOCK_PORT, type IClock } from '@/shared/common/ports/clock.port';
 import { PrismaService } from '@/prisma/prisma.service';
-import { WhatsappClientService } from '@/domains/whatsapp/infrastructure/clients/whatsapp-client.service';
+import { WhatsappClientAdapter } from '@/domains/whatsapp/infrastructure/clients/whatsapp-client.adapter';
 import {
   whatsappBroadcastJobStatusSchema,
   type CreateWhatsAppBroadcastJobRequest,
@@ -42,7 +42,7 @@ export class WhatsAppBroadcastService {
 
   constructor(
     private readonly prisma: PrismaService,
-    private readonly whatsappClient: WhatsappClientService,
+    private readonly whatsappClient: WhatsappClientAdapter,
     @Inject(CLOCK_PORT) private readonly clock: IClock,
   ) {}
 

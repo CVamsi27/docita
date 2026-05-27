@@ -1,5 +1,5 @@
 import { Test, TestingModule } from '@nestjs/testing';
-import { WhatsappClientService } from './whatsapp-client.service';
+import { WhatsappClientAdapter } from './whatsapp-client.adapter';
 import { AppConfigService } from '@/shared/modules/config/app-configuration.service';
 import { ServiceUnavailableException, Logger } from '@nestjs/common';
 import {
@@ -11,8 +11,8 @@ import {
   jest,
 } from '@jest/globals';
 
-describe('WhatsappClientService', () => {
-  let service: WhatsappClientService;
+describe('WhatsappClientAdapter', () => {
+  let service: WhatsappClientAdapter;
   let originalFetch: typeof global.fetch;
 
   const mockMetaConfig = {
@@ -28,7 +28,7 @@ describe('WhatsappClientService', () => {
 
     const module: TestingModule = await Test.createTestingModule({
       providers: [
-        WhatsappClientService,
+        WhatsappClientAdapter,
         {
           provide: AppConfigService,
           useValue: {
@@ -44,7 +44,7 @@ describe('WhatsappClientService', () => {
       ],
     }).compile();
 
-    service = module.get<WhatsappClientService>(WhatsappClientService);
+    service = module.get<WhatsappClientAdapter>(WhatsappClientAdapter);
 
     jest.spyOn(Logger.prototype, 'error').mockImplementation(() => {});
     jest.spyOn(Logger.prototype, 'log').mockImplementation(() => {});

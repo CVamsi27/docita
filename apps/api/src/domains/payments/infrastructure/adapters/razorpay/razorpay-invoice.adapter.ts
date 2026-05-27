@@ -5,7 +5,7 @@ import {
   type PlatformInvoiceSummary,
 } from '@/domains/payments/core/ports/platform-invoice-provider.port';
 import { BaseRazorpayAdapter } from './razorpay.adapter';
-import { RazorpayClientService } from './razorpay-client.service';
+import { RazorpayClientAdapter } from './razorpay-client.adapter';
 import { getRazorpayInvoicesApi } from './razorpay-invoices-api';
 import {
   asRazorpayInvoiceRecord,
@@ -20,7 +20,7 @@ export class RazorpayInvoiceAdapter
 {
   private readonly logger = new Logger(RazorpayInvoiceAdapter.name);
 
-  constructor(razorpayClient: RazorpayClientService) {
+  constructor(razorpayClient: RazorpayClientAdapter) {
     super(razorpayClient);
   }
 

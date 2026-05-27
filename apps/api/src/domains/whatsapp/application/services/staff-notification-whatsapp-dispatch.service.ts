@@ -1,5 +1,5 @@
 import { Injectable, Logger } from '@nestjs/common';
-import { WhatsappClientService } from '@/domains/whatsapp/infrastructure/clients/whatsapp-client.service';
+import { WhatsappClientAdapter } from '@/domains/whatsapp/infrastructure/clients/whatsapp-client.adapter';
 import { TemplateResolutionService } from '@/shared/whatsapp/template-resolution.service';
 import { TemplateModeService } from '@/shared/whatsapp/template-mode.service';
 
@@ -10,7 +10,7 @@ export class StaffNotificationWhatsAppDispatchService {
   );
 
   constructor(
-    private readonly whatsappClient: WhatsappClientService,
+    private readonly whatsappClient: WhatsappClientAdapter,
     private readonly templateResolution: TemplateResolutionService,
     private readonly templateMode: TemplateModeService,
   ) {}

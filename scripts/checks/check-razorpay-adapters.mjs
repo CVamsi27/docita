@@ -23,7 +23,7 @@ const FORBIDDEN_FRAGMENTS = [
 ];
 
 const REQUIRED_CANONICAL =
-  "apps/api/src/domains/payments/infrastructure/adapters/razorpay/razorpay-client.service.ts";
+  "apps/api/src/domains/payments/infrastructure/adapters/razorpay/razorpay-client.adapter.ts";
 
 const files = execSync("git ls-files apps/api", { encoding: "utf8" })
   .split("\n")

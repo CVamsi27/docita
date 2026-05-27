@@ -1,13 +1,14 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import { WhatsappWebhookService } from './whatsapp-webhook.service';
 import { WHATSAPP_PERSISTENCE_PORT } from '@/domains/whatsapp/application/ports/whatsapp-persistence.port';
-import { WhatsappClientService } from '@/domains/whatsapp/infrastructure/clients/whatsapp-client.service';
+import { WhatsappClientAdapter } from '@/domains/whatsapp/infrastructure/clients/whatsapp-client.adapter';
 import { ResponseHandlerService } from '@/domains/whatsapp/application/services/response-handler.service';
 import { WhatsAppWebhookIngressService } from '@/domains/whatsapp/application/services/whatsapp-webhook-ingress.service';
 import { WHATSAPP_REPOSITORY_TOKEN } from '@/domains/whatsapp/application/ports/whatsapp.repository.port';
 import { SupportWhatsAppInboxService } from '@/shared/modules/support-whatsapp';
 import { Logger } from '@nestjs/common';
 import { clockPortTestProvider } from '@/test-utils';
+import * as crypto from 'crypto';
 import {
   beforeEach,
   afterEach,
@@ -16,11 +17,232 @@ import {
   expect,
   jest,
 } from '@jest/globals';
-import {
-  createWebhookPayload,
-  createStatusPayload,
-  createValidSignature,
-} from '@/../test/mocks/whatsapp.mock';
+
+type WebhookMessageType =
+  | 'text'
+  | 'interactive_button_reply'
+  | 'interactive_list_reply'
+  | 'button'
+  | 'image'
+  | 'audio'
+  | 'video'
+  | 'document'
+  | 'location'
+  | 'contacts';
+
+function createWebhookPayload(
+  type: WebhookMessageType,
+  options: {
+    from?: string;
+    messageId?: string;
+    body?: string;
+    buttonId?: string;
+    buttonTitle?: string;
+  } = {},
+) {
+  const from = options.from ?? '919876543210';
+  const messageId = options.messageId ?? `wamid.msg_${Date.now()}`;
+  let message: Record<string, unknown>;
+
+  switch (type) {
+    case 'text':
+      message = {
+        id: messageId,
+        from,
+        timestamp: String(Math.floor(Date.now() / 1000)),
+        type: 'text',
+        text: { body: options.body ?? 'yes' },
+      };
+      break;
+    case 'interactive_button_reply':
+      message = {
+        id: messageId,
+        from,
+        timestamp: String(Math.floor(Date.now() / 1000)),
+        type: 'interactive',
+        interactive: {
+          type: 'button_reply',
+          button_reply: {
+            id: options.buttonId ?? 'btn_confirm',
+            title: options.buttonTitle ?? 'Confirm',
+          },
+        },
+      };
+      break;
+    case 'interactive_list_reply':
+      message = {
+        id: messageId,
+        from,
+        timestamp: String(Math.floor(Date.now() / 1000)),
+        type: 'interactive',
+        interactive: {
+          type: 'list_reply',
+          list_reply: {
+            id: options.buttonId ?? 'option_1',
+            title: options.buttonTitle ?? 'Option 1',
+          },
+        },
+      };
+      break;
+    case 'button':
+      message = {
+        id: messageId,
+        from,
+        timestamp: String(Math.floor(Date.now() / 1000)),
+        type: 'button',
+        button: {
+          payload: options.buttonId ?? 'btn_confirm',
+          text: options.buttonTitle ?? 'Confirm',
+        },
+      };
+      break;
+    case 'image':
+      message = {
+        id: messageId,
+        from,
+        timestamp: String(Math.floor(Date.now() / 1000)),
+        type: 'image',
+        image: { id: 'img-123', mime_type: 'image/jpeg' },
+      };
+      break;
+    case 'audio':
+      message = {
+        id: messageId,
+        from,
+        timestamp: String(Math.floor(Date.now() / 1000)),
+        type: 'audio',
+        audio: { id: 'audio-123', mime_type: 'audio/ogg' },
+      };
+      break;
+    case 'video':
+      message = {
+        id: messageId,
+        from,
+        timestamp: String(Math.floor(Date.now() / 1000)),
+        type: 'video',
+        video: { id: 'video-123', mime_type: 'video/mp4' },
+      };
+      break;
+    case 'document':
+      message = {
+        id: messageId,
+        from,
+        timestamp: String(Math.floor(Date.now() / 1000)),
+        type: 'document',
+        document: {
+          id: 'doc-123',
+          mime_type: 'application/pdf',
+          filename: 'test.pdf',
+        },
+      };
+      break;
+    case 'location':
+      message = {
+        id: messageId,
+        from,
+        timestamp: String(Math.floor(Date.now() / 1000)),
+        type: 'location',
+        location: { latitude: 12.9716, longitude: 77.5946 },
+      };
+      break;
+    case 'contacts':
+      message = {
+        id: messageId,
+        from,
+        timestamp: String(Math.floor(Date.now() / 1000)),
+        type: 'contacts',
+        contacts: [{ name: { formatted_name: 'Test Contact' } }],
+      };
+      break;
+    default:
+      throw new Error(`Unknown message type: ${type}`);
+  }
+
+  return {
+    object: 'whatsapp_business_account',
+    entry: [
+      {
+        id: 'entry-123',
+        changes: [
+          {
+            value: {
+              messaging_product: 'whatsapp',
+              metadata: {
+                display_phone_number: '15551234567',
+                phone_number_id: 'test-phone-id',
+              },
+              contacts: [
+                {
+                  profile: { name: 'Test Patient' },
+                  wa_id: from,
+                },
+              ],
+              messages: [message],
+            },
+            field: 'messages',
+          },
+        ],
+      },
+    ],
+  };
+}
+
+type StatusType = 'sent' | 'delivered' | 'read' | 'failed';
+
+function createStatusPayload(
+  status: StatusType,
+  options: {
+    messageId?: string;
+    errorCode?: number;
+    errorTitle?: string;
+  } = {},
+) {
+  const messageId = options.messageId ?? `wamid.msg_${Date.now()}`;
+  const statusObj: Record<string, unknown> = {
+    id: messageId,
+    status,
+    timestamp: String(Math.floor(Date.now() / 1000)),
+    recipient_id: '919876543210',
+  };
+
+  if (status === 'failed') {
+    statusObj.errors = [
+      {
+        code: options.errorCode ?? 131030,
+        title:
+          options.errorTitle ?? 'Recipient phone number not in allowed list',
+      },
+    ];
+  }
+
+  return {
+    object: 'whatsapp_business_account',
+    entry: [
+      {
+        id: 'entry-123',
+        changes: [
+          {
+            value: {
+              messaging_product: 'whatsapp',
+              metadata: {
+                display_phone_number: '15551234567',
+                phone_number_id: 'test-phone-id',
+              },
+              statuses: [statusObj],
+            },
+            field: 'messages',
+          },
+        ],
+      },
+    ],
+  };
+}
+
+function createValidSignature(body: string, secret: string): string {
+  const hmac = crypto.createHmac('sha256', secret);
+  hmac.update(body);
+  return `sha256=${hmac.digest('hex')}`;
+}
 
 describe('WhatsappWebhookService', () => {
   let service: WhatsappWebhookService;
@@ -82,7 +304,7 @@ describe('WhatsappWebhookService', () => {
         WhatsappWebhookService,
         WhatsAppWebhookIngressService,
         { provide: WHATSAPP_PERSISTENCE_PORT, useValue: mockPrisma },
-        { provide: WhatsappClientService, useValue: mockWhatsappClient },
+        { provide: WhatsappClientAdapter, useValue: mockWhatsappClient },
         {
           provide: SupportWhatsAppInboxService,
           useValue: mockSupportInboxService,
@@ -145,7 +367,7 @@ describe('WhatsappWebhookService', () => {
   });
 
   describe('getVerifyToken', () => {
-    it('should return the verify token from WhatsappClientService', () => {
+    it('should return the verify token from WhatsappClientAdapter', () => {
       expect(service.getVerifyToken()).toBe('test-verify-token');
     });
   });

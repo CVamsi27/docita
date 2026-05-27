@@ -6,28 +6,10 @@
  * X actually run yesterday?" — a question that today requires
  * grepping logs and is therefore answered with "probably."
  *
- * SYSTEM_DESIGN_AND_PATTERNS.md §28.5 item 36.
- *
- * Wiring TODO:
- *   - Add a `CronHeartbeat` model to Prisma:
- *       model CronHeartbeat {
- *         id          String   @id @default(cuid())
- *         name        String   @unique
- *         lastRunAt   DateTime
- *         lastStatus  CronHeartbeatStatus
- *         lastError   String?
- *         createdAt   DateTime @default(now())
- *         updatedAt   DateTime @updatedAt
- *       }
- *       enum CronHeartbeatStatus { SUCCESS FAILURE }
- *   - Implement `PrismaCronHeartbeatService` that upserts on call.
- *   - Apply `@TrackHeartbeat("<name>")` to every scheduler method.
- *   - `scripts/checks/check-cron-heartbeat-coverage.mjs` (added below)
- *     enforces coverage.
- *
- * This file ships the decorator + interface so call sites can adopt
- * the annotation now; the underlying service is a no-op until the
- * Prisma model lands.
+ * SYSTEM_DESIGN_AND_PATTERNS.md §28.5 item 36. The `CronHeartbeat`
+ * Prisma model and `PrismaCronHeartbeatService` persist status, while
+ * `scripts/checks/check-cron-heartbeat-coverage.mjs` enforces that every
+ * `@Cron` handler carries a unique `@TrackHeartbeat("<name>")`.
  */
 import { Injectable, Logger } from '@nestjs/common';
 import 'reflect-metadata';
@@ -122,12 +104,7 @@ export class PrismaCronHeartbeatService implements ICronHeartbeatService {
  */
 export function TrackHeartbeat(name: string): MethodDecorator {
   return (target, propertyKey) => {
-    Reflect.defineMetadata(
-      CRON_HEARTBEAT_KEY,
-      name,
-      target,
-      propertyKey as string | symbol,
-    );
+    Reflect.defineMetadata(CRON_HEARTBEAT_KEY, name, target, propertyKey);
   };
 }
 

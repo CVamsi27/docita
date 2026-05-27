@@ -3,7 +3,7 @@ import { CLOCK_PORT, type IClock } from '@/shared/common/ports/clock.port';
 import { ConfigService } from '@nestjs/config';
 import * as crypto from 'crypto';
 import { BaseRazorpayAdapter } from './razorpay.adapter';
-import { RazorpayClientService } from './razorpay-client.service';
+import { RazorpayClientAdapter } from './razorpay-client.adapter';
 import { IWebhookHandler, WebhookEvent } from '@/domains/payments/core/ports';
 import { PaymentProvider } from '@/domains/payments/core/entities/payment-provider.enum';
 
@@ -21,7 +21,7 @@ export class RazorpayWebhookAdapter
   private readonly logger = new Logger(RazorpayWebhookAdapter.name);
 
   constructor(
-    razorpayClient: RazorpayClientService,
+    razorpayClient: RazorpayClientAdapter,
     private configService: ConfigService,
     @Inject(CLOCK_PORT) private readonly clock: IClock,
   ) {

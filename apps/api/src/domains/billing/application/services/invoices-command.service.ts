@@ -1,9 +1,4 @@
-import {
-  BadRequestException,
-  Inject,
-  Injectable,
-  NotFoundException,
-} from '@nestjs/common';
+import { Inject, Injectable, NotFoundException } from '@nestjs/common';
 import { Prisma, InvoiceStatus } from '@workspace/db';
 import {
   taxRegistrationSnapshotSchema,
@@ -42,6 +37,10 @@ import {
   CURRENT_PDF_TEMPLATE_VERSION,
 } from './invoices-helpers';
 import { CLOCK_PORT, type IClock } from '@/shared/common/ports/clock.port';
+import {
+  assertInvoiceStatusTransition,
+  requiresClaimReadinessValidation,
+} from './invoice-status-transition';
 @Injectable()
 export class InvoicesCommandService {
   constructor(
@@ -55,57 +54,7 @@ export class InvoicesCommandService {
     private readonly queryService: InvoicesQueryService,
     @Inject(CLOCK_PORT) private readonly clock: IClock,
   ) {}
-  private requiresClaimReadinessValidation(
-    currentStatus: InvoiceStatus,
-    targetStatus: InvoiceStatus,
-  ): boolean {
-    if (currentStatus === targetStatus) return false;
-    return (
-      targetStatus === InvoiceStatus.PAID ||
-      targetStatus === InvoiceStatus.PARTIALLY_PAID ||
-      targetStatus === InvoiceStatus.OVERDUE
-    );
-  }
 
-  private assertStatusTransition(
-    currentStatus: InvoiceStatus,
-    targetStatus: InvoiceStatus,
-  ): void {
-    if (currentStatus === targetStatus) return;
-    if (
-      currentStatus === InvoiceStatus.PAID ||
-      currentStatus === InvoiceStatus.CANCELLED
-    ) {
-      throw new BadRequestException(
-        `Cannot transition invoice from ${currentStatus} to ${targetStatus}`,
-      );
-    }
-    const allowed: Record<InvoiceStatus, InvoiceStatus[]> = {
-      [InvoiceStatus.PENDING]: [
-        InvoiceStatus.PAID,
-        InvoiceStatus.PARTIALLY_PAID,
-        InvoiceStatus.OVERDUE,
-        InvoiceStatus.CANCELLED,
-      ],
-      [InvoiceStatus.PARTIALLY_PAID]: [
-        InvoiceStatus.PAID,
-        InvoiceStatus.OVERDUE,
-        InvoiceStatus.CANCELLED,
-      ],
-      [InvoiceStatus.OVERDUE]: [
-        InvoiceStatus.PAID,
-        InvoiceStatus.PARTIALLY_PAID,
-        InvoiceStatus.CANCELLED,
-      ],
-      [InvoiceStatus.PAID]: [],
-      [InvoiceStatus.CANCELLED]: [],
-    };
-    if (!allowed[currentStatus].includes(targetStatus)) {
-      throw new BadRequestException(
-        `Cannot transition invoice from ${currentStatus} to ${targetStatus}`,
-      );
-    }
-  }
   private buildTaxSnapshots(patient: PatientInvoiceContext) {
     const taxSettings = parseTaxSettings(patient.clinic.settings);
     const gstin =
@@ -270,12 +219,12 @@ export class InvoicesCommandService {
     const existing = await this.queryService.findOne(id, clinicId);
 
     if (data.status) {
-      this.assertStatusTransition(existing.status, data.status);
+      assertInvoiceStatusTransition(existing.status, data.status);
     }
 
     if (
       data.status &&
-      this.requiresClaimReadinessValidation(existing.status, data.status)
+      requiresClaimReadinessValidation(existing.status, data.status)
     ) {
       await this.claimValidationService.assertClaimReady(id, clinicId);
     }

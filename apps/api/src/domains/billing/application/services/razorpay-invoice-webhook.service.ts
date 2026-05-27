@@ -21,6 +21,8 @@ import {
 } from '@/shared/common/ports/transaction-runner.port';
 import { CLOCK_PORT, type IClock } from '@/shared/common/ports/clock.port';
 
+// AuditLogged: Razorpay invoice webhooks persist provider payloads on the
+// payment session and transition the linked invoice inside one transaction.
 @Injectable()
 export class RazorpayInvoiceWebhookService {
   private readonly logger = new Logger(RazorpayInvoiceWebhookService.name);

@@ -1,6 +1,6 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import { WhatsappService } from './whatsapp-clinic-facade.service';
-import { WhatsappClientService } from '@/domains/whatsapp/infrastructure/clients/whatsapp-client.service';
+import { WhatsappClientAdapter } from '@/domains/whatsapp/infrastructure/clients/whatsapp-client.adapter';
 import { TemplatesService } from './templates.service';
 import { WhatsappResendService } from './resend.service';
 import { SystemEventsService } from './system-events.service';
@@ -108,7 +108,7 @@ describe('WhatsappService', () => {
     module = await Test.createTestingModule({
       providers: [
         WhatsappService,
-        { provide: WhatsappClientService, useValue: mockWhatsappClient },
+        { provide: WhatsappClientAdapter, useValue: mockWhatsappClient },
         { provide: TemplatesService, useValue: mockTemplatesService },
         { provide: WhatsappResendService, useValue: mockResendService },
         { provide: SystemEventsService, useValue: mockSystemEventsService },
@@ -189,7 +189,7 @@ describe('WhatsappService', () => {
       expect(result.success).toBe(true);
       expect(result.templateId).toBe('appointment_reminder_24hr');
 
-      const client = module.get(WhatsappClientService);
+      const client = module.get(WhatsappClientAdapter);
       expect(client.sendMessage).toHaveBeenCalledWith({
         to: '9876543210',
         text: expect.any(String),
@@ -323,7 +323,7 @@ describe('WhatsappService', () => {
 
       expect(result.success).toBe(true);
       expect(result.templateId).toBe('invoice_payment');
-      const client = module.get(WhatsappClientService);
+      const client = module.get(WhatsappClientAdapter);
       expect(client.sendMessage).toHaveBeenCalledWith({
         to: '9876543213',
         text: expect.any(String),
@@ -360,7 +360,7 @@ describe('WhatsappService', () => {
       );
 
       expect(result.success).toBe(true);
-      const client = module.get(WhatsappClientService);
+      const client = module.get(WhatsappClientAdapter);
       expect(client.sendMessage).toHaveBeenCalledWith(
         expect.objectContaining({ to: '+919876543210' }),
       );

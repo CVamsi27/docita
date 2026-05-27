@@ -4,7 +4,7 @@ import * as crypto from 'crypto';
 import { isRecord } from '@workspace/utils';
 import { asRazorpayRecord } from './razorpay-record.util';
 import { BaseRazorpayAdapter } from './razorpay.adapter';
-import { RazorpayClientService } from './razorpay-client.service';
+import { RazorpayClientAdapter } from './razorpay-client.adapter';
 import {
   IOrderProvider,
   CreateOrderRequest,
@@ -23,7 +23,7 @@ export class RazorpayOrderAdapter
   private readonly logger = new Logger(RazorpayOrderAdapter.name);
 
   constructor(
-    razorpayClient: RazorpayClientService,
+    razorpayClient: RazorpayClientAdapter,
     private configService: ConfigService,
   ) {
     super(razorpayClient);

@@ -32,7 +32,7 @@ const readJsonString = (
 };
 
 @Injectable()
-export class SubscriptionPaymentTaxService {
+export class SubscriptionPaymentTaxCalculator {
   constructor(
     private readonly prisma: PrismaService,
     @Inject(INVOICE_TAX_CALCULATOR_TOKEN)
@@ -97,6 +97,11 @@ export class SubscriptionPaymentTaxService {
       currency: payment.currency || clinic?.currency || 'INR',
       seller,
       buyer,
+      placeOfSupply: {
+        countryCode: buyer.countryCode ?? seller.countryCode,
+        stateCode: buyer.stateCode ?? seller.stateCode,
+        stateName: buyer.stateName ?? seller.stateName,
+      },
       items: [
         {
           description: payment.description,

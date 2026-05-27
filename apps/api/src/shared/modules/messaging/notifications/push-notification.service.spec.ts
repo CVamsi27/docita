@@ -1,34 +1,18 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import { PushNotificationService } from './push-notification.service';
-import { PrismaService } from '@/prisma/prisma.service';
 import { beforeEach, describe, it, expect, jest } from '@jest/globals';
 
 describe('PushNotificationService', () => {
   let service: PushNotificationService;
-  let prismaService: jest.Mocked<PrismaService>;
 
   beforeEach(async () => {
     jest.clearAllMocks();
 
-    const mockPrismaService = {
-      deviceToken: {
-        findFirst: jest.fn<(...args: unknown[]) => Promise<unknown>>(),
-        findMany: jest.fn<(...args: unknown[]) => Promise<unknown>>(),
-        create: jest.fn<(...args: unknown[]) => Promise<unknown>>(),
-        update: jest.fn<(...args: unknown[]) => Promise<unknown>>(),
-        updateMany: jest.fn<(...args: unknown[]) => Promise<unknown>>(),
-      },
-    };
-
     const module: TestingModule = await Test.createTestingModule({
-      providers: [
-        PushNotificationService,
-        { provide: PrismaService, useValue: mockPrismaService },
-      ],
+      providers: [PushNotificationService],
     }).compile();
 
     service = module.get<PushNotificationService>(PushNotificationService);
-    prismaService = module.get(PrismaService);
   });
 
   it('should be defined', () => {
