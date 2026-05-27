@@ -1,4 +1,8 @@
-# Onboarding
+# Onboarding Quick Start
+
+For the full 30-minute local setup guide, use
+[`product/ONBOARDING.md`](product/ONBOARDING.md). This page keeps the shortest
+supported command path for experienced contributors.
 
 This is the shortest supported path from a clean clone to local development.
 
@@ -44,4 +48,4 @@ pnpm test
 pnpm build
 ```
 
-Architecture and pattern references live in `AGENTS.md` section 15.
+Architecture and pattern references live in [`AGENTS.md`](../AGENTS.md).

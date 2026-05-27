@@ -5,7 +5,7 @@ import {
   type GrowthChartData,
   type OphthalmologyExamData,
 } from "@workspace/types";
-import type { DentalChartValue } from "@/features/consultation/components/specialty/DentalChartUI";
+import type { DentalChartValue } from "@/features/consultation";
 
 export function parseDentalChartValue(value: unknown): DentalChartValue {
   const parsed = dentalChartSchema.safeParse(value);

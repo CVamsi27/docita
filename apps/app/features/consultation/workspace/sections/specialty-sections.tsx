@@ -24,15 +24,24 @@ function SectionLoading() {
 }
 
 const DentalChartUILazy = dynamic(
-  () => import("@/features/consultation/components/specialty/DentalChartUI").then((m) => m.DentalChartUI),
+  () =>
+    import("@/features/consultation/components/specialty/DentalChartUI").then(
+      (m) => m.DentalChartUI,
+    ),
   { ssr: false, loading: SectionLoading },
 );
 const GrowthChartUILazy = dynamic(
-  () => import("@/features/consultation/components/specialty/GrowthChartUI").then((m) => m.GrowthChartUI),
+  () =>
+    import("@/features/consultation/components/specialty/GrowthChartUI").then(
+      (m) => m.GrowthChartUI,
+    ),
   { ssr: false, loading: SectionLoading },
 );
 const VisionExamUILazy = dynamic(
-  () => import("@/features/consultation/components/specialty/VisionExamUI").then((m) => m.VisionExamUI),
+  () =>
+    import("@/features/consultation/components/specialty/VisionExamUI").then(
+      (m) => m.VisionExamUI,
+    ),
   { ssr: false, loading: SectionLoading },
 );
 const CardiologyExamSectionLazy = dynamic(

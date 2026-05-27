@@ -4,7 +4,7 @@ import { Suspense, useEffect, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { AppPageScaffold } from "@workspace/ui/components/layout/app-page-scaffold";
 import { DataState } from "@workspace/ui/components/data-display/data-state";
-import { PaymentSuccessModal } from "@/features/subscription/components";
+import { PaymentSuccessModal } from "@/features/subscription";
 import { useSettingsLogic } from "@/features/settings/hooks/use-settings-logic";
 import { SettingsPageUI } from "@/features/settings/components/SettingsPageUI";
 

@@ -8,8 +8,8 @@ import { PaymentRecoveryCard } from "@/features/subscription";
 import {
   BillingSubscriptionWorkspaceView,
   useBillingSubscriptionWorkspace,
-} from "@/features/subscription/subscription-billing-workspace";
-import { useAutoResolveSubscriptionPayment } from "@/features/subscription/hooks/use-auto-resolve-subscription-payment";
+} from "@/features/subscription";
+import { useAutoResolveSubscriptionPayment } from "@/features/subscription";
 import { getTrialState } from "@/lib/subscription/subscription-lockout";
 import { DocitaLoadingIndicator } from "@workspace/ui/components/feedback/docita-loading-indicator";
 import { Skeleton } from "@workspace/ui/components/feedback/skeleton";

@@ -15,7 +15,7 @@ import {
   useConsultationLeaveNavigation,
   type ConsultationSaveHandles,
 } from "@/features/consultation/workspace/use-consultation-leave-navigation";
-import { isConsultationReadOnlyStatus } from "@/features/appointments/rules/appointmentRules";
+import { isConsultationReadOnlyStatus } from "@/features/appointments";
 import { formatChiefComplaintSummary } from "@workspace/utils";
 import { Stethoscope } from "lucide-react";
 import { useConfirm } from "@/hooks/use-confirm";

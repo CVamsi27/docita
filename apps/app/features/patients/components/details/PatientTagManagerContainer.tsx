@@ -8,7 +8,7 @@ import { useClinicSettings } from "@workspace/data-access";
 import { useTierFeatureEnabled } from "@/lib/access-control/use-tier-feature-enabled";
 import { ClinicFeatureService } from "@/lib/services/clinic-feature.service";
 import { Feature } from "@workspace/types";
-import { resolveClinicTypeFeatures } from "@/features/consultation/lib/resolve-clinic-type-features";
+import { resolveClinicTypeFeatures } from "@/features/consultation";
 import { showUserFacingErrorToast } from "@/lib/errors/user-facing-errors";
 
 interface PatientTagManagerContainerProps {

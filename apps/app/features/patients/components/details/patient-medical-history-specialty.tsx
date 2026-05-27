@@ -16,9 +16,9 @@ import {
 import {
   DentalChartUI,
   type DentalChartValue,
-} from "@/features/consultation/components/specialty/DentalChartUI";
-import { GrowthChartUI } from "@/features/consultation/components/specialty/GrowthChartUI";
-import { VisionExamUI } from "@/features/consultation/components/specialty/VisionExamUI";
+} from "@/features/consultation";
+import { GrowthChartUI } from "@/features/consultation";
+import { VisionExamUI } from "@/features/consultation";
 import {
   parseDentalChartValue,
   parseGrowthChartValue,

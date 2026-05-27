@@ -19,7 +19,7 @@ import {
 } from "@workspace/types";
 import { parseSupportedCurrency } from "@workspace/utils";
 import { getTierPricing } from "@/lib/subscription/tier-access";
-import { type TierPricing } from "@/features/subscription/hooks/use-pricing";
+import { type TierPricing } from "@/features/subscription";
 
 // ---------------------------------------------------------------------------
 // Constants

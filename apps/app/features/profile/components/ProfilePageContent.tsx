@@ -15,7 +15,7 @@ import { PageHeader } from "@workspace/ui/components/layout/page-header";
 import { useAuth } from "@/lib/auth/auth-context";
 import { useUpdateProfile } from "@workspace/data-access";
 import { toast } from "sonner";
-import { ChangePasswordSettings } from "@/features/settings/components";
+import { ChangePasswordSettings } from "@/features/settings";
 import { showUserFacingErrorToast } from "@/lib/errors/user-facing-errors";
 
 export function ProfilePageContent() {
