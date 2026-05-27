@@ -80,7 +80,10 @@ describe('Subscription (e2e)', () => {
   beforeEach(async () => {
     await resetDatabase();
 
-    const clinic = await factories.clinic({ tier: 'ESSENTIAL' });
+    const clinic = await factories.clinic({
+      tier: 'ESSENTIAL',
+      settings: { gstin: '29AABCU9603R1ZX' },
+    });
     clinicId = clinic.id;
 
     const { user, plainPassword } = await factories.user({

@@ -11,12 +11,18 @@ vi.mock("@/features/subscription/hooks/use-pricing", () => ({
   usePricingConfig: pricingMocks.usePricingConfig,
 }));
 
-vi.mock("@workspace/data-access", () => ({
-  useProrationPreview: () => ({
-    data: undefined,
-    isFetching: false,
-  }),
-}));
+vi.mock("@workspace/data-access", async (importOriginal) => {
+  const actual =
+    await importOriginal<typeof import("@workspace/data-access")>();
+
+  return {
+    ...actual,
+    useProrationPreview: () => ({
+      data: undefined,
+      isFetching: false,
+    }),
+  };
+});
 
 const pricingConfig = {
   currency: "INR",

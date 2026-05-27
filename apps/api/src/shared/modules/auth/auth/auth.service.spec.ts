@@ -238,6 +238,7 @@ describe('AuthService', () => {
           useValue: {
             isProduction: jest.fn().mockReturnValue(false),
             isTest: jest.fn().mockReturnValue(false),
+            shouldAllowTestEmailAutoVerify: jest.fn().mockReturnValue(false),
           },
         },
         {

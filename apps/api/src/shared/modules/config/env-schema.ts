@@ -144,6 +144,7 @@ export const EnvSchema = z.object({
    * Docita owner/team.
    */
   INTERNAL_ALLOWED_EMAILS: z.string().default(''),
+  ALLOW_TEST_EMAIL_AUTOVERIFY: envBoolean(false),
   DOCITA_API_E2E: z.string().optional(),
   CPT_CATALOG_SOURCE: z.string().optional(),
   CPT_LICENSED_API_URL: z.string().optional(),

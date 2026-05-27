@@ -42,7 +42,7 @@ export class AuthRegistrationService {
       // shortcut used to fire in non-prod by default, which leaks if an env
       // misconfig flips isProduction() to false in prod.
       const allowTestEmailAutoVerify =
-        process.env.ALLOW_TEST_EMAIL_AUTOVERIFY === 'true';
+        this.appConfig.shouldAllowTestEmailAutoVerify();
       const shouldAutoVerifyEmail =
         this.appConfig.isTest() ||
         (isNonProduction &&
