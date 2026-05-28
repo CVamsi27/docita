@@ -1,7 +1,7 @@
 import fs from "node:fs/promises";
 import path from "node:path";
 
-export const TARGET_ROUTES = [
+const TARGET_ROUTES = [
   {
     label: "dashboard",
     candidates: ["/dashboard", "/(protected)/dashboard"],

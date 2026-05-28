@@ -36,13 +36,32 @@ export function loadThreads(): AskAiStoredThread[] {
   }
 }
 
+/**
+ * Persist only thread *metadata* to localStorage. Message bodies
+ * routinely contain PHI ("Patient X, 45yo, suspected Y…") and must not
+ * be readable by an XSS payload or by anyone with disk access. The
+ * full conversation re-hydrates from the server when a thread is
+ * opened; this cache is a sidebar/recents convenience only.
+ *
+ * If a future product change makes localStorage the source of truth
+ * for messages, switch to a server-side store with envelope encryption
+ * instead of persisting bodies here.
+ */
 export function saveThreads(threads: AskAiStoredThread[]): void {
   if (!isBrowser()) return;
   try {
     const trimmed = threads
       .slice()
       .sort((a, b) => b.updatedAt - a.updatedAt)
-      .slice(0, MAX_THREADS);
+      .slice(0, MAX_THREADS)
+      .map((thread) => ({
+        id: thread.id,
+        title: thread.title,
+        scopeLabel: thread.scopeLabel,
+        createdAt: thread.createdAt,
+        updatedAt: thread.updatedAt,
+        messages: new Array<AskAiStoredMessage>(),
+      }));
     window.localStorage.setItem(STORAGE_KEY, JSON.stringify(trimmed));
   } catch {
     // ignore quota errors

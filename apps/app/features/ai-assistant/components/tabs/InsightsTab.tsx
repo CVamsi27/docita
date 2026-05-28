@@ -36,14 +36,14 @@ export const InsightsTab = () => (
     </InsightCard>
 
     <InsightCard
-      title="Patient Segmentation"
+      title="Patient segmentation"
       description="AI-powered patient grouping"
       color="purple"
     >
       <div className="space-y-2">
-        <SegmentItem label="Chronic Care" count="156 patients" />
+        <SegmentItem label="Chronic care" count="156 patients" />
         <SegmentItem
-          label="High Risk"
+          label="High risk"
           count="42 patients"
           variant="destructive"
         />
@@ -61,18 +61,18 @@ export const InsightsTab = () => (
     </InsightCard>
 
     <InsightCard
-      title="Anomaly Detection"
+      title="Anomaly detection"
       description="Unusual patterns detected"
       color="green"
     >
       <div className="space-y-3">
         <AnomalyItem
-          title="Revenue Drop"
+          title="Revenue drop"
           description="15% decrease in invoice collections this week"
           type="warning"
         />
         <AnomalyItem
-          title="Appointment Surge"
+          title="Appointment surge"
           description="30% increase in respiratory complaints"
           type="info"
         />

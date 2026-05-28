@@ -36,7 +36,7 @@ export function ImportPageContent() {
       className="max-w-5xl"
       header={
         <PageHeader
-          title="Import Data"
+          title="Import data"
           description="Digitize your facility records by importing from Excel or scanning documents."
         />
       }
@@ -50,7 +50,7 @@ export function ImportPageContent() {
               </div>
               <TierBadge tier={Tier.STARTER} />
             </div>
-            <CardTitle className="mt-4">Excel Import</CardTitle>
+            <CardTitle className="mt-4">Excel import</CardTitle>
             <CardDescription>
               Import patient data from Excel or CSV files with smart column
               mapping and duplicate detection.
@@ -155,7 +155,7 @@ export function ImportPageContent() {
 
       <Card>
         <CardHeader>
-          <CardTitle className="text-lg">Import Tips</CardTitle>
+          <CardTitle className="text-lg">Import tips</CardTitle>
         </CardHeader>
         <CardContent className="space-y-3 text-sm text-muted-foreground">
           <p>

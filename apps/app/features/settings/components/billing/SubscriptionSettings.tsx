@@ -8,8 +8,8 @@ import { PaymentRecoveryCard } from "@/features/subscription";
 import {
   BillingSubscriptionWorkspaceView,
   useBillingSubscriptionWorkspace,
-} from "@/features/subscription/subscription-billing-workspace";
-import { useAutoResolveSubscriptionPayment } from "@/features/subscription/hooks/use-auto-resolve-subscription-payment";
+} from "@/features/subscription";
+import { useAutoResolveSubscriptionPayment } from "@/features/subscription";
 import { getTrialState } from "@/lib/subscription/subscription-lockout";
 import { DocitaLoadingIndicator } from "@workspace/ui/components/feedback/docita-loading-indicator";
 import { Skeleton } from "@workspace/ui/components/feedback/skeleton";
@@ -187,7 +187,7 @@ export function SubscriptionSettings() {
       {isPaymentDue && !showRecoveryCard && (
         <Alert variant="destructive">
           <AlertTriangle className="h-4 w-4" />
-          <AlertTitle>Payment Due</AlertTitle>
+          <AlertTitle>Payment due</AlertTitle>
           <AlertDescription className="flex flex-wrap items-center justify-between gap-3">
             <span>
               Your payment is overdue. Update your payment method to avoid
@@ -209,7 +209,7 @@ export function SubscriptionSettings() {
       {isInGracePeriod && !showRecoveryCard && (
         <Alert className="border-warning/40 bg-warning/10">
           <AlertTriangle className="h-4 w-4 text-warning" />
-          <AlertTitle>Payment Grace Period</AlertTitle>
+          <AlertTitle>Payment grace period</AlertTitle>
           <AlertDescription className="flex flex-wrap items-center justify-between gap-3">
             <span>
               Payment is still unresolved. Some access may be restricted until
@@ -231,7 +231,7 @@ export function SubscriptionSettings() {
       {isExpired && (
         <Alert variant="destructive">
           <XCircle className="h-4 w-4" />
-          <AlertTitle>Subscription Expired</AlertTitle>
+          <AlertTitle>Subscription expired</AlertTitle>
           <AlertDescription className="flex flex-wrap items-center justify-between gap-3">
             <span>
               Your facility workspace is locked. Choose a plan and complete
@@ -242,7 +242,7 @@ export function SubscriptionSettings() {
               onClick={scrollToBillingPlans}
               className="shrink-0 bg-destructive-foreground text-destructive hover:bg-destructive-foreground/90"
             >
-              Choose a Plan
+              Choose a plan
             </Button>
           </AlertDescription>
         </Alert>
@@ -250,7 +250,7 @@ export function SubscriptionSettings() {
 
       <Section
         id="billing-subscription-section"
-        title="Billing & Subscription"
+        title="Billing & subscription"
         description="Change plan, compare features, and view invoices"
         contentClassName="space-y-6"
       >
@@ -276,7 +276,7 @@ export function SubscriptionSettings() {
       <div className="scroll-mt-6">
         <Section
           id="billing-history-section"
-          title="Billing History"
+          title="Billing history"
           description={billingHistorySectionDescription(subscription ?? undefined)}
           actions={billingHistorySectionActions(subscription ?? undefined)}
         >

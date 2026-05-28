@@ -94,6 +94,15 @@ export class PrismaDoctorScheduleRepository implements IDoctorScheduleRepository
     return this.timeOffs.createTimeOff(data);
   }
 
+  updateTimeOff(
+    id: string,
+    data: Prisma.DoctorTimeOffUpdateInput,
+    expectedVersion?: number,
+    tx?: Prisma.TransactionClient,
+  ) {
+    return this.timeOffs.updateTimeOff(id, data, expectedVersion, tx);
+  }
+
   findTimeOffById(id: string) {
     return this.timeOffs.findTimeOffById(id);
   }

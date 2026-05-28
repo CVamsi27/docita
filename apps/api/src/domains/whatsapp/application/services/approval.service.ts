@@ -28,6 +28,7 @@ export class ApprovalService {
         approvalStatus: ApprovalStatus.APPROVED,
         approvedById: userId,
         approvedAt: this.clock.now(),
+        version: { increment: 1 },
       },
     });
 

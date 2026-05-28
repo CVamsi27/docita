@@ -35,9 +35,6 @@ export function mapDbClinicTierStringToTierName(dbTier: string): TierName {
  * the numeric access `Tier` used by `FEATURE_TIER_MAP` and the app permission store.
  */
 export function mapClinicTierDbStringToAccessTier(dbTier: string): Tier {
-  if (dbTier === "FRONT_DESK") {
-    return Tier.FRONT_DESK;
-  }
   const canonical = tierSchema.safeParse(dbTier);
   if (canonical.success) {
     return Tier[canonical.data];

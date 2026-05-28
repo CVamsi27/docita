@@ -1,4 +1,5 @@
 import "./globals.css";
+import { headers } from "next/headers";
 import { OptionalSentryInitializer } from "@/components/optional-sentry-initializer";
 import { Providers } from "./providers";
 
@@ -25,16 +26,18 @@ try {
 }
 `;
 
-export default function RootLayout({
+export default async function RootLayout({
   children,
 }: {
   children: React.ReactNode;
 }) {
+  const nonce = (await headers()).get("x-nonce") ?? undefined;
   return (
     <html lang="en" suppressHydrationWarning>
       <head>
         <script
           suppressHydrationWarning
+          nonce={nonce}
           dangerouslySetInnerHTML={{ __html: themeBootstrapScript }}
         />
       </head>

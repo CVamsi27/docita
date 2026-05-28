@@ -36,7 +36,7 @@ import {
   PrismaSubscriptionRepository,
   PrismaSubscriptionCoreRepository,
   PrismaSubscriptionPaymentRepository,
-  SubscriptionPaymentTaxService,
+  SubscriptionPaymentTaxCalculator,
 } from './infrastructure/repositories';
 import { PaymentGatewayFacade } from './infrastructure/adapters/payment-gateway-facade.adapter';
 import { ClinicOperationsAdapter } from './infrastructure/adapters/clinic-operations.adapter';
@@ -89,7 +89,7 @@ import { AdminAlertsModule } from '@/shared/modules/messaging/admin-alerts/admin
     NotifySubscriptionGraceDeadlineUseCase,
     SchedulePlanChangeUseCase,
     SubscriptionsQueryService,
-    SubscriptionPaymentTaxService,
+    SubscriptionPaymentTaxCalculator,
     PrismaSubscriptionCoreRepository,
     PrismaSubscriptionPaymentRepository,
     PrismaSubscriptionRepository,

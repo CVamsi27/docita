@@ -8,7 +8,10 @@ export interface SeedClinicUsersResult {
   clinicAdmin: SeedEntityRef;
   adminDoctor: SeedEntityRef;
   nurse: SeedEntityRef;
+  nurse2: SeedEntityRef;
   receptionist: SeedEntityRef;
+  receptionist2: SeedEntityRef;
+  patientPortalUser: SeedEntityRef;
   pendingNoClinicUser: SeedEntityRef;
   doctor1: SeedEntityRef;
   doctor2: SeedEntityRef;
@@ -31,15 +34,22 @@ export async function seedClinicUsers(
 
   const defaultClinic = await prisma.clinic.upsert({
     where: { id: 'default-clinic-id' },
-    update: {},
-    create: {
-      id: 'default-clinic-id',
-      name: 'Docita Health Clinic',
-      address: '123 Health Street, Bangalore, Karnataka 560001',
-      phone: '+91 80 1234 5678',
+    update: {
+      name: 'Docita General Hospital',
+      address: '1 Hospital Avenue, Whitefield, Bangalore, Karnataka 560066',
+      phone: '+91 80 4000 5000',
       email: 'contact@docita.work',
       active: true,
-      tier: 'PROFESSIONAL',
+      tier: 'ENTERPRISE',
+    },
+    create: {
+      id: 'default-clinic-id',
+      name: 'Docita General Hospital',
+      address: '1 Hospital Avenue, Whitefield, Bangalore, Karnataka 560066',
+      phone: '+91 80 4000 5000',
+      email: 'contact@docita.work',
+      active: true,
+      tier: 'ENTERPRISE',
     },
   });
 
@@ -435,6 +445,56 @@ export async function seedClinicUsers(
     },
   });
 
+  const nurse2 = await prisma.user.upsert({
+    where: { email: 'nurse.priya@docita.work' },
+    update: {
+      clinicId: defaultClinic.id,
+      emailVerified: true,
+    },
+    create: {
+      email: 'nurse.priya@docita.work',
+      password: hashedPassword,
+      name: 'Nurse Priya',
+      role: 'NURSE',
+      clinicId: defaultClinic.id,
+      phoneNumber: '+91 9876543011',
+      emailVerified: true,
+    },
+  });
+
+  const receptionist2 = await prisma.user.upsert({
+    where: { email: 'reception.front@docita.work' },
+    update: {
+      clinicId: defaultClinic.id,
+      emailVerified: true,
+    },
+    create: {
+      email: 'reception.front@docita.work',
+      password: hashedPassword,
+      name: 'Front Desk Meera',
+      role: 'RECEPTIONIST',
+      clinicId: defaultClinic.id,
+      phoneNumber: '+91 9876543012',
+      emailVerified: true,
+    },
+  });
+
+  const patientPortalUser = await prisma.user.upsert({
+    where: { email: 'patient.portal@docita.work' },
+    update: {
+      emailVerified: true,
+    },
+    create: {
+      email: 'patient.portal@docita.work',
+      password: hashedPassword,
+      name: 'Rajesh Kumar',
+      role: 'PATIENT',
+      clinicId: null,
+      phoneNumber: '+91 9876543410',
+      emailVerified: true,
+    },
+  });
+
   const pendingNoClinicUser = await prisma.user.upsert({
     where: { email: 'pending.user@docita.work' },
     update: {
@@ -460,7 +520,10 @@ export async function seedClinicUsers(
     clinicAdmin: { id: clinicAdmin.id },
     adminDoctor: { id: adminDoctor.id },
     nurse: { id: nurse.id },
+    nurse2: { id: nurse2.id },
     receptionist: { id: receptionist.id },
+    receptionist2: { id: receptionist2.id },
+    patientPortalUser: { id: patientPortalUser.id },
     pendingNoClinicUser: { id: pendingNoClinicUser.id },
     doctor1: { id: doctor1.id },
     doctor2: { id: doctor2.id },

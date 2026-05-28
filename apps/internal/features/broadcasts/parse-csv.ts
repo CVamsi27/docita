@@ -1,9 +1,9 @@
-export interface ParsedRecipient {
+interface ParsedRecipient {
   phoneNumber: string;
   name?: string;
 }
 
-export interface ParseCsvResult {
+interface ParseCsvResult {
   recipients: ParsedRecipient[];
   skipped: { row: number; reason: string }[];
   totalRows: number;

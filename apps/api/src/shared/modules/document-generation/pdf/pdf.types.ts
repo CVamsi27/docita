@@ -1,10 +1,8 @@
-import type PDFDocument from 'pdfkit';
 import type {
   InvoiceTaxSummary,
   PDFHospitalConfig,
   TaxRegistrationSnapshot,
 } from '@workspace/types';
-import type { PdfLayoutService } from './pdf-layout.service';
 
 export interface PDFClinicInfo {
   name: string;
@@ -80,27 +78,6 @@ export interface PDFContext {
   pageWidth: number;
   contentWidth: number;
   margin: number;
-}
-
-export interface PDFConfig {
-  type: PDFDocumentType;
-  title: string;
-  documentId?: string;
-  clinic: PDFClinicInfo;
-  patient?: PDFPatientInfo;
-  doctor?: PDFDoctorInfo;
-  date?: Date;
-  margin?: number;
-  sections: Array<
-    (
-      doc: typeof PDFDocument.prototype,
-      context: PDFContext,
-      layout: PdfLayoutService,
-    ) => void
-  >;
-  footerText?: string;
-  showRxSymbol?: boolean;
-  validityDays?: number;
 }
 
 export interface PrescriptionPdfInput {

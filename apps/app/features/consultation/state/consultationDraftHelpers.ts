@@ -2,7 +2,7 @@ import type { ExaminationData } from "@/features/consultation/components/structu
 import type {
   ConsultationDraftState,
   SaveState,
-} from "@/features/consultation/state/useConsultationDraft";
+} from "@/features/consultation/state/consultation-draft.types";
 import type {
   CardiologyExamData,
   DermatologyExamData,

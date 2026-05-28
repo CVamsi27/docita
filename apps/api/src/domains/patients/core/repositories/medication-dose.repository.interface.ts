@@ -64,6 +64,7 @@ export interface IMedicationDoseRepository {
   updateDose(
     id: string,
     data: Prisma.MedicationDoseUpdateInput,
+    expectedVersion?: number,
   ): Promise<MedicationDose>;
 
   findDoses(

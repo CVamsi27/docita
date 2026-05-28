@@ -85,8 +85,17 @@ export function useConsultationHydrate({
         if (!parsed.success) return;
 
         const sessionDraft = parsed.data;
+        // Absolute TTL: drafts older than 24h are purged regardless of
+        // server state. The sessionStorage value contains PHI (chief
+        // complaint, history, examination, diagnoses, prescriptions);
+        // capping dwell time limits exposure if the device is reused.
+        const SESSION_DRAFT_TTL_MS = 24 * 60 * 60 * 1000;
+        const isStaleByTtl =
+          typeof sessionDraft.savedAt === "number" &&
+          Date.now() - sessionDraft.savedAt > SESSION_DRAFT_TTL_MS;
         if (
           !sessionDraft.savedAt ||
+          isStaleByTtl ||
           (seed.serverUpdatedAtMs &&
             sessionDraft.savedAt <= seed.serverUpdatedAtMs)
         ) {

@@ -135,6 +135,8 @@ export class InvoicesService {
     doctorRole?: string | null;
     doctorRegistrationNumber?: string;
     doctorLicenseNumber?: string;
+    placeOfSupplyStateCode?: string;
+    placeOfSupplyStateName?: string;
     clinicId?: string;
   }): Promise<InvoiceDetail> {
     return this.commandService.create(data);

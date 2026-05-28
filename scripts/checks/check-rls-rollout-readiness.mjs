@@ -14,6 +14,8 @@ const requiredPaths = [
   "packages/db/prisma/migrations/20260502143500_add_rls_policies/migration.sql",
   "apps/api/src/shared/modules/rls/rls.service.ts",
   "apps/api/src/shared/modules/rls/rls.module.ts",
+  "apps/api/src/shared/modules/rls/active-tx.storage.ts",
+  "apps/api/src/shared/common/extensions/rls-routing.extension.ts",
   "docs/compliance/RLS_ROLLOUT.md",
 ];
 
@@ -71,8 +73,39 @@ if (!/RLS_ENABLED/i.test(apiEnvExample)) {
   process.exit(1);
 }
 
+// The routing extension must be wired into PrismaService.onModuleInit
+// alongside the existing extensions. Without it, `SET LOCAL` on the
+// interceptor's tx never reaches the request handler's queries.
+const prismaServiceSource = fs.readFileSync(
+  path.join(repoRoot, "apps/api/src/prisma/prisma.service.ts"),
+  "utf8",
+);
+if (!/\brlsRoutingExtension\b/.test(prismaServiceSource)) {
+  console.error(
+    "RLS rollout readiness check failed: PrismaService must extend with rlsRoutingExtension so queries are routed through the active RLS-scoped tx.",
+  );
+  process.exit(1);
+}
+
+// The interceptor that opens the per-request RLS tx must publish that
+// tx into activeTxStorage; otherwise the routing extension has nothing
+// to route through and policies remain inert.
+const interceptorSource = fs.readFileSync(
+  path.join(
+    repoRoot,
+    "apps/api/src/shared/common/interceptors/tenant-context.interceptor.ts",
+  ),
+  "utf8",
+);
+if (!/runWithActiveTx\s*\(/.test(interceptorSource)) {
+  console.error(
+    "RLS rollout readiness check failed: TenantContextInterceptor must call runWithActiveTx(tx, handler) when RLS is enabled.",
+  );
+  process.exit(1);
+}
+
 console.log(
-  "RLS rollout readiness check passed (migration + RlsService + env docs).",
+  "RLS rollout readiness check passed (migration + RlsService + routing extension + interceptor wiring + env docs).",
 );
 console.log(
   "Ops: provision DATABASE_URL as docita_app, then set RLS_ENABLED=true per docs/compliance/RLS_ROLLOUT.md.",

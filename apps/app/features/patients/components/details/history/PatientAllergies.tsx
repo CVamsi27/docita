@@ -128,7 +128,7 @@ export function PatientAllergies({
       >
         <DialogContent>
           <DialogHeader>
-            <DialogTitle>Edit Allergy</DialogTitle>
+            <DialogTitle>Edit allergy</DialogTitle>
             <DialogDescription>
               Update the allergen, severity, type, and reaction.
             </DialogDescription>
@@ -197,14 +197,14 @@ export function PatientAllergies({
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="DRUG">Drug/Medication</SelectItem>
+                  <SelectItem value="DRUG">Drug/medication</SelectItem>
                   <SelectItem value="FOOD">Food</SelectItem>
                   <SelectItem value="ENVIRONMENTAL">
-                    Environmental (Pollen, Dust)
+                    Environmental (pollen, dust)
                   </SelectItem>
                   <SelectItem value="LATEX">Latex</SelectItem>
-                  <SelectItem value="INSECT">Insect Stings/Bites</SelectItem>
-                  <SelectItem value="CONTRAST">Contrast Dye</SelectItem>
+                  <SelectItem value="INSECT">Insect stings/bites</SelectItem>
+                  <SelectItem value="CONTRAST">Contrast dye</SelectItem>
                   <SelectItem value="OTHER">Other</SelectItem>
                 </SelectContent>
               </Select>
@@ -228,7 +228,7 @@ export function PatientAllergies({
             <Button variant="outline" onClick={onCancelEditAllergy}>
               Cancel
             </Button>
-            <Button onClick={onUpdateAllergy}>Save Changes</Button>
+            <Button onClick={onUpdateAllergy}>Save changes</Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>

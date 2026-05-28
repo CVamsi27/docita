@@ -10,6 +10,7 @@ import {
   TIER_OVERAGE_RATES_BY_CURRENCY,
   REFERRAL_REWARDS_BY_CURRENCY,
   PRICING_CURRENCY_CONFIG,
+  PUBLISHED_PLAN_LADDER,
   SupportedCurrency,
 } from '@workspace/types';
 import {
@@ -113,63 +114,17 @@ export class PricingService {
           name: cfg.name,
         }),
       ),
-      tiers: [
-        {
-          ...this.toPricingTierPayload({
-            tier: 'STARTER',
-            validCurrency,
-            monthly: tierPricing.STARTER.monthly,
-            yearly: tierPricing.STARTER.yearly,
-            includedAppointments: TIER_LIMITS.STARTER.appointments ?? 0,
-            includedUsers: TIER_LIMITS.STARTER.users ?? 1,
-            features: TIER_FEATURES.STARTER,
-          }),
-        },
-        {
-          ...this.toPricingTierPayload({
-            tier: 'FRONT_DESK',
-            validCurrency,
-            monthly: tierPricing.FRONT_DESK.monthly,
-            yearly: tierPricing.FRONT_DESK.yearly,
-            includedAppointments: TIER_LIMITS.FRONT_DESK.appointments ?? 0,
-            includedUsers: TIER_LIMITS.FRONT_DESK.users ?? 1,
-            features: TIER_FEATURES.FRONT_DESK,
-          }),
-        },
-        {
-          ...this.toPricingTierPayload({
-            tier: 'ESSENTIAL',
-            validCurrency,
-            monthly: tierPricing.ESSENTIAL.monthly,
-            yearly: tierPricing.ESSENTIAL.yearly,
-            includedAppointments: TIER_LIMITS.ESSENTIAL.appointments ?? 0,
-            includedUsers: TIER_LIMITS.ESSENTIAL.users ?? 1,
-            features: TIER_FEATURES.ESSENTIAL,
-          }),
-        },
-        {
-          ...this.toPricingTierPayload({
-            tier: 'PROFESSIONAL',
-            validCurrency,
-            monthly: tierPricing.PROFESSIONAL.monthly,
-            yearly: tierPricing.PROFESSIONAL.yearly,
-            includedAppointments: TIER_LIMITS.PROFESSIONAL.appointments ?? 0,
-            includedUsers: TIER_LIMITS.PROFESSIONAL.users ?? 1,
-            features: TIER_FEATURES.PROFESSIONAL,
-          }),
-        },
-        {
-          ...this.toPricingTierPayload({
-            tier: 'ENTERPRISE',
-            validCurrency,
-            monthly: tierPricing.ENTERPRISE.monthly,
-            yearly: tierPricing.ENTERPRISE.yearly,
-            includedAppointments: TIER_LIMITS.ENTERPRISE.appointments ?? 0,
-            includedUsers: TIER_LIMITS.ENTERPRISE.users ?? 1,
-            features: TIER_FEATURES.ENTERPRISE,
-          }),
-        },
-      ],
+      tiers: PUBLISHED_PLAN_LADDER.map((tier) =>
+        this.toPricingTierPayload({
+          tier,
+          validCurrency,
+          monthly: tierPricing[tier].monthly,
+          yearly: tierPricing[tier].yearly,
+          includedAppointments: TIER_LIMITS[tier].appointments ?? 0,
+          includedUsers: TIER_LIMITS[tier].users ?? 1,
+          features: TIER_FEATURES[tier],
+        }),
+      ),
       discounts: {
         annualPercent: ANNUAL_DISCOUNT_PERCENT,
         semiAnnualPercent: SEMI_ANNUAL_DISCOUNT_PERCENT,
@@ -236,9 +191,7 @@ export class PricingService {
     const userOverage =
       Math.max(0, users - (limits.users || 1)) * overageRates.userRate;
     const whatsappPricing =
-      tierKey === 'ESSENTIAL' ||
-      tierKey === 'FRONT_DESK' ||
-      tierKey === 'PROFESSIONAL'
+      tierKey !== 'STARTER' && tierKey !== 'INTELLIGENCE'
         ? getWhatsAppAddonPricingByCurrency(tierKey, validCurrency)
         : null;
     const whatsappOverage =

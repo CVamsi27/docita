@@ -14,6 +14,10 @@ export interface ConsentRecord {
   givenAt?: Date;
   expiresAt?: Date;
   metadata?: Record<string, unknown>;
+  // ID of the staff member performing the consent record action; used as the
+  // audit-log actor. Distinct from `givenBy` (a human-readable label) and from
+  // `patientId` (the subject of the consent, not a User row).
+  actorUserId?: string;
 }
 
 export interface DataSubjectRequest {

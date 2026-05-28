@@ -12,7 +12,7 @@ import {
 } from "@workspace/ui/components/indicators/card";
 import { Badge } from "@workspace/ui/components/indicators/badge";
 import { cn } from "@workspace/ui/lib/utils";
-import { type TierPricing, usePricingConfig } from "@/features/subscription/hooks/use-pricing";
+import { type TierPricing, usePricingConfig } from "@/features/subscription";
 import { ContactSalesModal } from "@/features/dialogs";
 import { TierCard, getFeatureDetails } from "@/features/subscription";
 import {
@@ -31,7 +31,7 @@ import {
   BillingCycleToggle,
   PlanComparisonCollapsible,
 } from "./plan-selection-step-helpers";
-import type { PlanSelectionProps } from "./PlanSelectionStep";
+import type { PlanSelectionProps } from "./plan-selection-step.types";
 
 export function PlanSelectionStepInner({
   onSelect,

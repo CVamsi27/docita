@@ -6,6 +6,7 @@ type ClinicPersistenceKey =
   | 'consentTemplate'
   | 'dataSubjectRequest'
   | 'doctorClinic'
+  | 'onboardingSession'
   | 'patient'
   | 'runUnrestricted'
   | 'subscriptionPayment'

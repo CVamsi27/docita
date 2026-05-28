@@ -1,5 +1,5 @@
 import { AllergyBanner } from "@workspace/ui/components/feedback/allergy-banner";
-import { Allergy } from "@/features/consultation/components/PatientSummaryCardUI";
+import type { Allergy } from "@/features/consultation/components/patient-summary.types";
 
 export function AllergyAlertUI({
   allergies,

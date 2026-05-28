@@ -38,7 +38,7 @@ export function PatientPortalAppointmentsUI({
       ) : null}
       <Card>
         <CardHeader>
-          <CardTitle>Upcoming Appointments</CardTitle>
+          <CardTitle>Upcoming appointments</CardTitle>
         </CardHeader>
         <CardContent>
           {appointments.length === 0 ? (

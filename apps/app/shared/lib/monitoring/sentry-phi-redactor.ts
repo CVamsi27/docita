@@ -4,9 +4,18 @@
  * apps/api/src/shared/modules/observability/phi-redactor.ts; kept in-app
  * because Sentry init runs outside the normal Next.js module graph and we
  * want zero workspace-package imports here so the config can load early.
+ *
+ * Event-level scrubbing lives in ./sentry-event-scrub which depends on the
+ * primitives in this file (redactPhi, redactString). To avoid a circular
+ * import, this module exposes only the field-level primitives; Sentry configs
+ * should import scrubSentryEventRecord directly from sentry-event-scrub.
+ *
+ * NOTE (2026-05): the field/regex rule set is also exported from
+ * `@workspace/utils` (`redactPhiDeep`, `PHI_FIELD_NAMES`, `SAFE_FIELD_NAMES`)
+ * as the future canonical location. When the Sentry early-load concern is
+ * verified safe, migrate this file to a thin re-export from that module.
+ * SYSTEM_DESIGN_AND_PATTERNS.md §56 item 45.
  */
-
-import { scrubSentryEventRecord } from "./sentry-event-scrub";
 
 export const REDACTED = "[REDACTED]";
 
@@ -148,8 +157,4 @@ function walk(value: unknown, depth: number, seen: WeakSet<object>): unknown {
     return out;
   }
   return value;
-}
-
-export function scrubSentryEvent<T>(event: T): T {
-  return scrubSentryEventRecord(event);
 }

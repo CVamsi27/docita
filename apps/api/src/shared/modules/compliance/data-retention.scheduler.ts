@@ -6,6 +6,7 @@ import { AuditService } from '@/shared/modules/audit/audit/audit.service';
 import { ArchivalService } from './archival.service';
 import { isCronDisabledInThisProcess } from '@/shared/schedule/cron-env';
 import { CRON_SCHEDULES } from '@/shared/schedule/cron-schedules';
+import { TrackHeartbeat } from '@/shared/modules/schedule/cron-heartbeat';
 
 @Injectable()
 export class DataRetentionScheduler {
@@ -27,6 +28,7 @@ export class DataRetentionScheduler {
   @Cron(CRON_SCHEDULES.DATA_RETENTION, {
     disabled: isCronDisabledInThisProcess(),
   })
+  @TrackHeartbeat('compliance.data-retention')
   async handleDataRetention() {
     this.logger.log('Starting data retention check...');
 
@@ -124,19 +126,16 @@ export class DataRetentionScheduler {
       });
 
       if (adminUser) {
-        await this.auditService.logAction(
-          {
-            userId: adminUser.id,
-            clinicId,
-            actionType: 'DATA_RETENTION_ANONYMIZATION',
-            resourceType: 'Patient',
-            resourceId: patientId,
-            metadata: {
-              reason: 'Retention Policy (3 Years/Soft Delete Expiry)',
-            },
+        await this.auditService.logAction({
+          userId: adminUser.id,
+          clinicId,
+          actionType: 'DATA_RETENTION_ANONYMIZATION',
+          resourceType: 'Patient',
+          resourceId: patientId,
+          metadata: {
+            reason: 'Retention Policy (3 Years/Soft Delete Expiry)',
           },
-          true,
-        );
+        });
       } else {
         this.logger.warn(
           'Skipping retention audit log: no users found in clinic',

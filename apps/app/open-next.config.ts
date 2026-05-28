@@ -7,4 +7,8 @@ const config = defineCloudflareConfig(
     : {}
 );
 
+if (config.middleware?.external) {
+  config.middleware.runtime = "edge";
+}
+
 export default config;

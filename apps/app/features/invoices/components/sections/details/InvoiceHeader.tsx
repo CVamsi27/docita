@@ -45,7 +45,7 @@ export function InvoiceHeader({
               <a
                 href={clinic.website}
                 target="_blank"
-                rel="noreferrer"
+                rel="noopener noreferrer"
                 className="text-xs text-muted-foreground hover:underline"
               >
                 {clinic.website.replace(/^https?:\/\//, "")}

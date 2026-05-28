@@ -10,14 +10,18 @@ import {
   FlaskConical,
   HelpCircle,
   Inbox,
+  MessageCircle,
   type LucideIcon,
   Pill,
   Receipt,
   Banknote,
+  BookOpen,
+  Network,
   Settings2,
   SmilePlus,
   Sparkles,
   Stethoscope,
+  Syringe,
   TrendingUp,
   Users,
 } from "lucide-react";
@@ -82,6 +86,13 @@ const TRACK_ITEMS: NavItem[] = [
     accessTarget: APP_ACCESS_TARGETS.PAGE_INVOICES,
   },
   {
+    href: "/daybook",
+    icon: BookOpen,
+    label: "Daybook",
+    feature: Feature.INVOICING,
+    accessTarget: APP_ACCESS_TARGETS.PAGE_INVOICES,
+  },
+  {
     href: "/prescriptions",
     icon: Pill,
     label: "Prescriptions",
@@ -106,6 +117,13 @@ const TRACK_ITEMS: NavItem[] = [
 
 const SERVICES_ITEMS: NavItem[] = [
   {
+    href: "/whatsapp",
+    icon: MessageCircle,
+    label: "WhatsApp",
+    feature: Feature.WHATSAPP_MESSAGING,
+    accessTarget: APP_ACCESS_TARGETS.PAGE_WHATSAPP,
+  },
+  {
     href: "/inbox",
     icon: Inbox,
     label: "Inbox",
@@ -117,6 +135,27 @@ const SERVICES_ITEMS: NavItem[] = [
     label: "Inventory",
     feature: Feature.INVENTORY,
     accessTarget: APP_ACCESS_TARGETS.PAGE_INVENTORY,
+  },
+  {
+    href: "/pharmacy",
+    icon: Pill,
+    label: "Pharmacy",
+    feature: Feature.INVENTORY,
+    accessTarget: APP_ACCESS_TARGETS.PAGE_INVENTORY,
+  },
+  {
+    href: "/vaccines",
+    icon: Syringe,
+    label: "Vaccines",
+    feature: Feature.CALENDAR_SLOTS,
+    accessTarget: APP_ACCESS_TARGETS.PAGE_PATIENTS,
+  },
+  {
+    href: "/referrals",
+    icon: Network,
+    label: "Referrals",
+    feature: Feature.DIGITAL_PRESCRIPTIONS,
+    accessTarget: APP_ACCESS_TARGETS.PAGE_PATIENTS,
   },
   {
     href: "/follow-ups",

@@ -3,6 +3,7 @@ import { Cron } from '@nestjs/schedule';
 import { MonitoringService } from './monitoring.service';
 import { isCronDisabledInThisProcess } from '@/shared/schedule/cron-env';
 import { CRON_SCHEDULES } from '@/shared/schedule/cron-schedules';
+import { TrackHeartbeat } from '@/shared/modules/schedule/cron-heartbeat';
 
 @Injectable()
 export class MetricsScheduler {
@@ -14,6 +15,7 @@ export class MetricsScheduler {
   @Cron(CRON_SCHEDULES.METRICS_FLUSH, {
     disabled: isCronDisabledInThisProcess(),
   })
+  @TrackHeartbeat('monitoring.metrics.system')
   async recordSystemMetrics() {
     if (this.isRecordingMetrics) {
       this.logger.debug(
@@ -36,6 +38,7 @@ export class MetricsScheduler {
   @Cron(CRON_SCHEDULES.METRICS_AGGREGATE, {
     disabled: isCronDisabledInThisProcess(),
   })
+  @TrackHeartbeat('monitoring.metrics.aggregate-hourly')
   async aggregateHourlyMetrics() {
     try {
       await this.monitoringService.aggregateHourlyMetrics();
@@ -48,6 +51,7 @@ export class MetricsScheduler {
   @Cron(CRON_SCHEDULES.METRICS_DAILY_ROLLUP, {
     disabled: isCronDisabledInThisProcess(),
   })
+  @TrackHeartbeat('monitoring.metrics.daily-rollup')
   async cleanupOldData() {
     try {
       const result = await this.monitoringService.cleanupOldData(30);

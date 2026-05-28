@@ -9,7 +9,7 @@ import { SystemEventsService } from '@/domains/whatsapp/application/services/sys
 import { ApprovalService } from '@/domains/whatsapp/application/services/approval.service';
 import { MessagingService } from '@/domains/whatsapp/application/services/messaging.service';
 import { TemplateMessageService } from '@/domains/whatsapp/application/services/template-message.service';
-import { WhatsappClientService } from '@/domains/whatsapp/infrastructure/clients/whatsapp-client.service';
+import { WhatsappClientAdapter } from '@/domains/whatsapp/infrastructure/clients/whatsapp-client.adapter';
 import { WHATSAPP_CLIENT_TOKEN } from '@/domains/whatsapp/application/ports/whatsapp-client.port';
 import { WhatsappWebhookService } from '@/domains/whatsapp/application/services/whatsapp-webhook.service';
 import { LegacyWhatsappTemplatesController } from '@/domains/whatsapp/presentation/controllers/legacy-whatsapp-templates.controller';
@@ -69,10 +69,10 @@ import { SupportWhatsAppModule } from '@/shared/modules/support-whatsapp';
 
     WhatsappService,
 
-    WhatsappClientService,
+    WhatsappClientAdapter,
     {
       provide: WHATSAPP_CLIENT_TOKEN,
-      useExisting: WhatsappClientService,
+      useExisting: WhatsappClientAdapter,
     },
     WhatsappWebhookService,
     HandleWebhookUseCase,
@@ -95,10 +95,10 @@ import { SupportWhatsAppModule } from '@/shared/modules/support-whatsapp';
   exports: [
     WhatsappService,
     TemplatesFacadeService,
-    WhatsappClientService,
+    WhatsappClientAdapter,
     {
       provide: WHATSAPP_CLIENT_TOKEN,
-      useExisting: WhatsappClientService,
+      useExisting: WhatsappClientAdapter,
     },
     WhatsappWebhookService,
     WhatsAppWebhookIngressService,

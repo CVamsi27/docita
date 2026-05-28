@@ -4,7 +4,7 @@ import { WhatsAppMessage } from '@/domains/whatsapp/core/entities';
 import type {
   PrismaWhatsAppDatabase,
   PrismaWhatsAppReadClient,
-} from './prisma-whatsapp.repository';
+} from './prisma-whatsapp.types';
 import {
   toDomainMessageStatus,
   toPrismaMessageStatus,

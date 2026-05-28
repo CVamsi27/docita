@@ -1,5 +1,11 @@
 # Data-Access Migration Plan
 
+> **Descriptive (historical migration record).** Documents the completed
+> migration of API hooks into `packages/data-access`. New work follows
+> [`AGENTS.md`](../../AGENTS.md) §15.2 (Frontend Patterns / per-domain
+> data hooks). This file is preserved for context on *why* the structure
+> looks the way it does.
+
 Status: **Complete (2026-05-21).** `apps/app/shared/hooks/api/` removed; consumers use `@workspace/data-access` or feature-local hooks.
 
 ## What was done

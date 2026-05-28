@@ -62,7 +62,7 @@ export class OnboardingService {
   }
 
   async createSlaSignatureSession(onboardingId: string) {
-    const sessionData = this.dataService.getSessionData(onboardingId);
+    const sessionData = await this.dataService.getSessionData(onboardingId);
     if (!sessionData) {
       throw new BadRequestException('Onboarding session not found or expired');
     }
@@ -101,20 +101,20 @@ export class OnboardingService {
     );
   }
 
-  initializeOnboarding(): { onboardingId: string } {
+  initializeOnboarding(): Promise<{ onboardingId: string }> {
     return this.dataService.initializeOnboarding();
   }
 
-  updateOnboardingStep(
+  async updateOnboardingStep(
     onboardingId: string,
     step: OnboardingStep,
     data: Partial<CompleteOnboardingDto>,
-  ): OnboardingProgressDto {
-    this.dataService.updateOnboardingData(onboardingId, step, data);
+  ): Promise<OnboardingProgressDto> {
+    await this.dataService.updateOnboardingData(onboardingId, step, data);
     return this.dataService.getOnboardingProgress(onboardingId);
   }
 
-  getOnboardingProgress(onboardingId: string): OnboardingProgressDto {
+  getOnboardingProgress(onboardingId: string): Promise<OnboardingProgressDto> {
     return this.dataService.getOnboardingProgress(onboardingId);
   }
 
@@ -123,7 +123,7 @@ export class OnboardingService {
     completeData: CompleteOnboardingDto,
     ipAddress?: string,
   ): Promise<OnboardingResult> {
-    const sessionData = this.dataService.getSessionData(onboardingId);
+    const sessionData = await this.dataService.getSessionData(onboardingId);
     if (!sessionData) {
       throw new BadRequestException('Onboarding session not found or expired');
     }
@@ -274,7 +274,7 @@ export class OnboardingService {
         });
       });
 
-      this.dataService.clearSession(onboardingId);
+      await this.dataService.clearSession(onboardingId);
 
       await this.complianceService.logOnboardingEvent(
         result.adminUser.id,

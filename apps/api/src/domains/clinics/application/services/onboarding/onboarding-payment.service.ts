@@ -21,7 +21,7 @@ export class OnboardingPaymentService {
   ) {}
 
   async createCheckout(onboardingId: string, data: OnboardingCheckoutDto) {
-    const sessionData = this.dataService.getSessionData(onboardingId);
+    const sessionData = await this.dataService.getSessionData(onboardingId);
     if (!sessionData) {
       throw new BadRequestException('Onboarding session not found or expired');
     }

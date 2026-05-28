@@ -1,5 +1,10 @@
 # Data Foundations
 
+> **Descriptive.** Captures the canonical data entities and their
+> relationships as they exist in `packages/db/prisma/schema/`. Schema
+> changes update this doc, not the other way around. For prescriptive
+> rules (Zod-first, Prisma boundary), see [`AGENTS.md`](../../AGENTS.md).
+
 ## First-Class Operational Entities
 - `clinic`
 - `facility_branch`

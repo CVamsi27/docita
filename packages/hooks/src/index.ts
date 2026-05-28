@@ -10,3 +10,4 @@ export * from "./use-medical-calculations.js";
 export * from "./use-accessibility.js";
 export * from "./use-network-status.js";
 export * from "./use-loading.js";
+export * from "./use-prefers-reduced-motion.js";

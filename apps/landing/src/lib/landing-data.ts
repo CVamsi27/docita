@@ -54,7 +54,7 @@ const FALLBACK_TIERS: TierConfig[] = [
   },
   {
     id: "FRONT_DESK",
-    name: "Front desk",
+    name: "Front desk · Solo",
     description:
       "Reception-first scheduling and billing without full in-app clinical workflows",
     tagline: "Reception and operations",
@@ -64,6 +64,34 @@ const FALLBACK_TIERS: TierConfig[] = [
       "Patients and invoicing",
       "WhatsApp within plan limits",
       "Schedule-only doctor profiles",
+    ],
+  },
+  {
+    id: "FRONT_DESK_CLINIC",
+    name: "Front desk · Clinic",
+    description:
+      "Multi-desk reception for growing clinics without clinical workspaces",
+    tagline: "Multi-desk reception",
+    pricing: { monthly: 1249, yearly: 12490, currency: "₹" },
+    features: [
+      "Up to 25 staff users",
+      "3,000 appointments / month",
+      "Supervisor and billing-only roles",
+      "WhatsApp messaging (2,000 msgs)",
+    ],
+  },
+  {
+    id: "FRONT_DESK_HOSPITAL",
+    name: "Front desk · Hospital",
+    description:
+      "Hospital-scale reception ops with multi-location queues and handover",
+    tagline: "Hospital reception",
+    pricing: { monthly: 3999, yearly: 39990, currency: "₹" },
+    features: [
+      "Up to 150 staff users",
+      "15,000 appointments / month",
+      "Multi-OPD queue routing",
+      "Shift handover and dedicated CSM",
     ],
   },
   {
@@ -206,48 +234,6 @@ export async function fetchPlatformStats(
     };
 
     return null;
-  }
-}
-
-function buildFallbackPricingConfig(currencyCode: string): PricingConfig {
-  const symbol =
-    FALLBACK_PRICING_CONFIG.supportedCurrencies.find(
-      (currency) => currency.code === currencyCode,
-    )?.symbol ?? FALLBACK_PRICING_CONFIG.currency.symbol;
-
-  return {
-    ...FALLBACK_PRICING_CONFIG,
-    currency: {
-      code: currencyCode,
-      symbol,
-      name:
-        FALLBACK_PRICING_CONFIG.supportedCurrencies.find(
-          (currency) => currency.code === currencyCode,
-        )?.name ?? "Indian Rupee",
-    },
-    tiers: FALLBACK_TIERS.map((tier) => ({
-      ...tier,
-      pricing: {
-        ...tier.pricing,
-        currency: symbol,
-      },
-    })),
-  };
-}
-
-export async function fetchPricingConfig(
-  currencyCode: string,
-): Promise<PricingConfig> {
-  if (!isLiveLandingDataEnabled()) {
-    return buildFallbackPricingConfig(currencyCode);
-  }
-
-  try {
-    return await fetchLandingJson<PricingConfig>(
-      `/pricing/config?currency=${encodeURIComponent(currencyCode)}`,
-    );
-  } catch {
-    return buildFallbackPricingConfig(currencyCode);
   }
 }
 

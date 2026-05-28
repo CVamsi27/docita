@@ -5,9 +5,18 @@
  * kept in-app because Sentry init runs outside the normal Next.js module
  * graph and we want zero workspace-package imports here so the config can
  * load early.
+ *
+ * Event-level scrubbing lives in ./sentry-event-scrub which depends on the
+ * primitives in this file (redactPhi, redactString). To avoid a circular
+ * import, this module exposes only the field-level primitives; Sentry configs
+ * should import scrubSentryEventRecord directly from sentry-event-scrub.
+ *
+ * NOTE (2026-05): the field/regex rule set is also exported from
+ * `@workspace/utils` (`redactPhiDeep`, `PHI_FIELD_NAMES`, `SAFE_FIELD_NAMES`)
+ * as the future canonical location. Keep this file's rule set in sync with
+ * the apps/app twin and the shared module until consolidation lands.
+ * SYSTEM_DESIGN_AND_PATTERNS.md §56 item 45.
  */
-
-import { scrubSentryEventRecord } from "./sentry-event-scrub";
 
 export const REDACTED = "[REDACTED]";
 
@@ -36,6 +45,9 @@ const PHI_FIELDS: ReadonlySet<string> = new Set([
   "currentpassword",
   "newpassword",
   "confirmpassword",
+  "passwordresettoken",
+  "mfasecret",
+  "mfabackupcodes",
   "token",
   "accesstoken",
   "refreshtoken",
@@ -45,6 +57,7 @@ const PHI_FIELDS: ReadonlySet<string> = new Set([
   "set-cookie",
   "apikey",
   "x-api-key",
+  "encryptionkey",
   "secret",
   "clientsecret",
   "signatureurl",
@@ -79,7 +92,6 @@ const SAFE_FIELDS: ReadonlySet<string> = new Set([
   "level",
   "type",
   "kind",
-  "role",
 ]);
 
 const EMAIL_RE = /[\w.+-]+@[\w-]+\.[\w.-]+/g;
@@ -135,8 +147,4 @@ function walk(value: unknown, depth: number, seen: WeakSet<object>): unknown {
     return out;
   }
   return value;
-}
-
-export function scrubSentryEvent<T>(event: T): T {
-  return scrubSentryEventRecord(event);
 }

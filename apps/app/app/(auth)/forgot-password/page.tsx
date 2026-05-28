@@ -90,7 +90,7 @@ function ForgotPasswordPageContent() {
             </div>
             <BackButton
               fallback="/login"
-              label="Back to Sign In"
+              label="Back to sign in"
               variant="outline"
               size="default"
               className="w-full h-11"
@@ -128,13 +128,13 @@ function ForgotPasswordPageContent() {
                   Sending…
                 </>
               ) : (
-                "Send Reset Link"
+                "Send reset link"
               )}
             </Button>
 
             <BackButton
               fallback="/login"
-              label="Back to Sign In"
+              label="Back to sign in"
               variant="ghost"
               size="default"
               className="w-full h-11"

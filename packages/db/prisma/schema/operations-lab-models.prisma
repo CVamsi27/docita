@@ -128,3 +128,22 @@ model LabTestOrder {
   @@index([status])
   @@index([patientId, clinicId, status])
 }
+
+model OutboxEvent {
+  id             String    @id @default(cuid())
+  eventName      String
+  aggregateType  String?
+  aggregateId    String?
+  clinicId       String?
+  /// @json:jsonObjectSchema
+  payload        Json
+  idempotencyKey String?   @unique
+  createdAt      DateTime  @default(now())
+  processedAt    DateTime?
+  attempts       Int       @default(0)
+  lastError      String?
+
+  @@index([processedAt, createdAt])
+  @@index([clinicId])
+  @@index([eventName])
+}

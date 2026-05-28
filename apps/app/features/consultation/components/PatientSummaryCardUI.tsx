@@ -21,13 +21,9 @@ import { AllergyAlertUI } from "./summary/AllergyAlertUI";
 import { SummaryVitals } from "./shared/SummaryVitals";
 import { SummaryMedications } from "./shared/SummaryMedications";
 import { SummaryConditions } from "./shared/SummaryConditions";
+import type { Allergy } from "./patient-summary.types";
 
-export interface Allergy {
-  id: string;
-  allergen: string;
-  severity: "mild" | "moderate" | "severe";
-  reaction?: string;
-}
+export type { Allergy };
 
 export interface ChronicCondition {
   id: string;
@@ -189,7 +185,7 @@ export function PatientSummaryCardUI({
         {expanded && (
           <div className="mt-6 pt-6 border-t grid gap-4 md:grid-cols-3">
             <div>
-              <h4 className="text-sm font-medium mb-2">Contact Information</h4>
+              <h4 className="text-sm font-medium mb-2">Contact information</h4>
               <div className="space-y-1 text-sm text-muted-foreground">
                 {patient.phone && <div>Phone: {patient.phone}</div>}
                 {patient.email && <div>Email: {patient.email}</div>}
@@ -200,7 +196,7 @@ export function PatientSummaryCardUI({
             </div>
 
             <div>
-              <h4 className="text-sm font-medium mb-2">Last Visit</h4>
+              <h4 className="text-sm font-medium mb-2">Last visit</h4>
               {lastVisit ? (
                 <div className="text-sm text-muted-foreground">
                   {formatDate(lastVisit, "dd MMMM yyyy")}

@@ -18,10 +18,9 @@ const settingsMocks = vi.hoisted(() => ({
 }));
 
 vi.mock("@workspace/data-access", async () => {
-  const actual =
-    await vi.importActual<typeof import("@workspace/data-access")>(
-      "@workspace/data-access",
-    );
+  const actual = await vi.importActual<typeof import("@workspace/data-access")>(
+    "@workspace/data-access",
+  );
   return {
     ...actual,
     useClinicSettings: () => ({
@@ -87,7 +86,9 @@ describe("ClinicGeneralSettings", () => {
     expect(screen.getByDisplayValue("Care Clinic")).toBeInTheDocument();
     expect(screen.getByText("DOCITA123")).toBeInTheDocument();
 
-    fireEvent.click(screen.getByRole("button", { name: "Copy staff join code" }));
+    fireEvent.click(
+      screen.getByRole("button", { name: "Copy staff join code" }),
+    );
 
     await waitFor(() => {
       expect(settingsMocks.writeText).toHaveBeenCalledWith("DOCITA123");

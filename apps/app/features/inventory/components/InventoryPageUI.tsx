@@ -4,7 +4,7 @@ import { PageHeader } from "@workspace/ui/components/layout/page-header";
 import { StatGrid, type StatItem } from "@workspace/ui/components/data-display/stat-grid";
 import { Button } from "@workspace/ui/components/form/button";
 import { InventoryAddItemDialog } from "@/features/dialogs";
-import { InventoryItemDetailsContainer as InventoryItemDetails } from "@/features/inventory/components";
+import { InventoryItemDetailsContainer as InventoryItemDetails } from "@/features/inventory/components/details/InventoryItemDetailsContainer";
 import {
   AlertTriangle,
   BarChart3,

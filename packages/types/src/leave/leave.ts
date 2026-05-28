@@ -33,6 +33,7 @@ export const staffLeaveSchema = z.object({
   cancelledAt: z.string().or(z.date()).optional(),
   createdAt: z.string().or(z.date()).optional(),
   updatedAt: z.string().or(z.date()).optional(),
+  version: z.number().int().nonnegative().default(1),
   staff: z
     .object({ id: z.string(), name: z.string(), email: z.string() })
     .optional(),
@@ -51,13 +52,10 @@ export const createLeaveRequestSchema = z
     reason: z.string().max(500).optional(),
     staffId: z.string().optional(),
   })
-  .refine(
-    (data) => new Date(data.endDate) >= new Date(data.startDate),
-    {
-      path: ["endDate"],
-      message: "End date must be on or after the start date.",
-    },
-  );
+  .refine((data) => new Date(data.endDate) >= new Date(data.startDate), {
+    path: ["endDate"],
+    message: "End date must be on or after the start date.",
+  });
 export type CreateLeaveRequest = z.infer<typeof createLeaveRequestSchema>;
 
 export const leaveBalanceSchema = z.object({

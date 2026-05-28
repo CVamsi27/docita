@@ -1,1 +1,3 @@
-export { default } from "@/features/system-monitoring";
+import SystemMonitoringPage from "./system-monitoring-page";
+
+export default SystemMonitoringPage;

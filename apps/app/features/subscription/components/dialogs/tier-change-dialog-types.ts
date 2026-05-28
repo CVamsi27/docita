@@ -29,6 +29,8 @@ export const TIER_ICONS: Record<TierName, React.ElementType> = {
   STARTER: Zap,
   ESSENTIAL: Rocket,
   FRONT_DESK: ClipboardList,
+  FRONT_DESK_CLINIC: ClipboardList,
+  FRONT_DESK_HOSPITAL: ClipboardList,
   PROFESSIONAL: Crown,
   HOSPITAL: Hospital,
   ENTERPRISE: Building2,
@@ -38,6 +40,8 @@ export const TIER_ICONS: Record<TierName, React.ElementType> = {
 export const PLAN_TIER_RANK: Record<TierName, number> = {
   STARTER: 10,
   FRONT_DESK: 18,
+  FRONT_DESK_CLINIC: 19,
+  FRONT_DESK_HOSPITAL: 25,
   ESSENTIAL: 20,
   PROFESSIONAL: 30,
   HOSPITAL: 35,

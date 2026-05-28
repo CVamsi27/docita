@@ -19,7 +19,6 @@ interface ClassifiedAuditEvent {
   actionType: string;
   resourceType: string;
   resourceId: string;
-  immediate: boolean;
 }
 
 const REDACTED_KEYS = new Set([
@@ -127,7 +126,6 @@ export function classifySensitiveWrite(args: {
       actionType: `API_KEY_${method}`,
       resourceType: 'API_KEY',
       resourceId,
-      immediate: true,
     };
   }
   if (path.startsWith('/auth/sessions')) {
@@ -135,7 +133,6 @@ export function classifySensitiveWrite(args: {
       actionType: `SESSION_${method}`,
       resourceType: 'SESSION',
       resourceId,
-      immediate: true,
     };
   }
   if (
@@ -146,7 +143,6 @@ export function classifySensitiveWrite(args: {
       actionType: `AUTH_${method}`,
       resourceType: 'AUTH_ACCOUNT',
       resourceId,
-      immediate: true,
     };
   }
   if (path.startsWith('/users') || path.startsWith('/clinics')) {
@@ -154,7 +150,6 @@ export function classifySensitiveWrite(args: {
       actionType: `ACCESS_CONTROL_${method}`,
       resourceType: path.startsWith('/users') ? 'USER' : 'CLINIC',
       resourceId,
-      immediate: true,
     };
   }
 
@@ -169,7 +164,6 @@ export function classifySensitiveWrite(args: {
       actionType: `BILLING_${method}`,
       resourceType: 'BILLING',
       resourceId,
-      immediate: false,
     };
   }
 
@@ -191,7 +185,6 @@ export function classifySensitiveWrite(args: {
       actionType: `CLINICAL_${method}`,
       resourceType: 'CLINICAL_DATA',
       resourceId,
-      immediate: false,
     };
   }
 
@@ -243,33 +236,30 @@ export class PatientDataAuditInterceptor implements NestInterceptor {
                       after: sanitizeAuditPayload(body ?? {}),
                     };
 
-              await this.auditService.logAction(
-                {
-                  userId: actor.userId,
-                  clinicId: actor.clinicId,
-                  actionType: classification.actionType,
-                  resourceType: classification.resourceType,
-                  resourceId: classification.resourceId,
-                  changes,
-                  ipAddress: request.ip || request.socket?.remoteAddress,
-                  userAgent: request.headers['user-agent'],
-                  metadata: {
-                    actor: {
-                      id: actor.userId,
-                      role: actor.role ?? null,
-                      clinicId: actor.clinicId,
-                    },
-                    request: {
-                      method,
-                      endpoint: url,
-                      params: sanitizeAuditPayload(params),
-                      query: sanitizeAuditPayload(query),
-                    },
-                    source: 'sensitive-write-audit-v1',
+              await this.auditService.logAction({
+                userId: actor.userId,
+                clinicId: actor.clinicId,
+                actionType: classification.actionType,
+                resourceType: classification.resourceType,
+                resourceId: classification.resourceId,
+                changes,
+                ipAddress: request.ip || request.socket?.remoteAddress,
+                userAgent: request.headers['user-agent'],
+                metadata: {
+                  actor: {
+                    id: actor.userId,
+                    role: actor.role ?? null,
+                    clinicId: actor.clinicId,
                   },
+                  request: {
+                    method,
+                    endpoint: url,
+                    params: sanitizeAuditPayload(params),
+                    query: sanitizeAuditPayload(query),
+                  },
+                  source: 'sensitive-write-audit-v1',
                 },
-                classification.immediate,
-              );
+              });
             } catch (error) {
               this.logger.error('Failed to log patient audit event', error);
             }

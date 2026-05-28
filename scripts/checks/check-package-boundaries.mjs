@@ -9,4 +9,3 @@ const enforce = process.argv.includes("--enforce");
 const issues = collectPackageBoundaryFindings();
 
 printReport("Package boundary audit", issues, { enforce });
-

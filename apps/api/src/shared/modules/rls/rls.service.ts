@@ -3,6 +3,7 @@ import { Prisma } from '@workspace/db';
 import { PrismaService } from '@/prisma/prisma.service';
 import { AppConfigService } from '@/shared/modules/config/app-configuration.service';
 import { applyRlsScope } from '@/shared/modules/rls/apply-rls-scope';
+import { runWithActiveTx } from '@/shared/modules/rls/active-tx.storage';
 
 type Tx = Prisma.TransactionClient;
 
@@ -46,6 +47,14 @@ export class RlsService implements OnModuleInit {
    * via SET LOCAL. When `RLS_ENABLED` is false we still run inside a
    * transaction (to preserve identical behavior in tests and pg connection
    * locality), but we skip the SET LOCAL handshake.
+   *
+   * The active tx is also published into `activeTxStorage` so any Prisma
+   * model operation issued during `fn` (whether or not it accepts the
+   * `tx` argument directly) is routed through the same connection by the
+   * `rls-routing` extension. Without this, `SET LOCAL` would apply only
+   * to `tx`'s connection while incidental `this.prisma.*` calls would
+   * use a different pool connection and silently bypass tenant
+   * isolation.
    */
   async runScopedTransaction<T>(
     clinicId: string,
@@ -55,7 +64,7 @@ export class RlsService implements OnModuleInit {
       if (this.isEnabled()) {
         await applyRlsScope(tx, clinicId);
       }
-      return fn(tx);
+      return runWithActiveTx(tx, () => fn(tx));
     });
   }
 }

@@ -7,7 +7,7 @@ import {
 } from '@nestjs/common';
 import { Observable } from 'rxjs';
 import { Response, Request } from 'express';
-import { randomBytes } from 'crypto';
+import { randomBytes, timingSafeEqual } from 'crypto';
 import { AppConfigService } from '@/shared/modules/config/app-configuration.service';
 import { readRequestHeaderString } from '@/shared/common/http/client-ip';
 
@@ -24,22 +24,36 @@ export class CsrfInterceptor implements NestInterceptor {
     return ['GET', 'HEAD', 'OPTIONS'].includes(method.toUpperCase());
   }
 
+  /**
+   * Header-exposed double-submit variant.
+   *
+   * The XSRF-TOKEN cookie is httpOnly so XSS cannot read it via
+   * document.cookie. The same token is mirrored on the X-CSRF-Token
+   * response header so the client can pick it up and echo it back as
+   * X-XSRF-TOKEN on mutating requests. See design doc §7.5 / §7.5.1.
+   *
+   * NOTE: any layer between this interceptor and the browser (CDN,
+   * Next proxy at apps/app/app/api/v1/[...path]/route.ts, future caching
+   * layer) MUST pass the X-CSRF-Token response header through — stripping
+   * it silently breaks login.
+   */
   private setCsrfCookie(response: Response, csrfToken: string): void {
     const domain = this.configService.getSharedCookieDomain();
     const baseOptions = {
       path: '/',
       sameSite: 'strict',
       secure: this.configService.isProduction(),
-      httpOnly: false,
+      httpOnly: true,
     } as const;
 
     // Always set a host-only cookie (api host) so existing sessions continue
     // to work and any legacy host-only cookie is overwritten.
     response.cookie('XSRF-TOKEN', csrfToken, baseOptions);
 
-    // When we can compute a shared cookie domain (e.g. docita.work), also set
-    // the domain cookie so the frontend app can read it and echo it back in
-    // the X-XSRF-TOKEN header.
+    // Expose the token in a response header (CORS-exposed) so clients can echo
+    // X-XSRF-TOKEN without reading the httpOnly cookie via document.cookie.
+    response.setHeader('X-CSRF-Token', csrfToken);
+
     if (domain) {
       response.cookie('XSRF-TOKEN', csrfToken, { ...baseOptions, domain });
     }
@@ -91,6 +105,19 @@ export class CsrfInterceptor implements NestInterceptor {
     return Boolean(cookies['access_token'] || cookies['refresh_token']);
   }
 
+  /**
+   * Auth endpoints (login, register, password reset, refresh) need a special
+   * exemption: the first POST to /auth/login arrives with no session cookie
+   * and therefore no XSRF-TOKEN cookie to echo. A pre-session attacker has
+   * nothing to forge anyway — there is no authenticated state to abuse — so
+   * we mint a fresh CSRF token on the response and let the request through.
+   *
+   * The exemption is narrow:
+   *   - path must be /auth/* (the only routes that bootstrap a session)
+   *   - request must have no access_token and no refresh_token cookie
+   * Once a session cookie exists, this returns false and the full
+   * double-submit check applies, including to /auth/logout and /auth/refresh.
+   */
   private canBootstrapCsrfForAuthMutation(request: Request): boolean {
     return (
       this.isAuthPath(this.getRequestPath(request)) &&
@@ -144,11 +171,32 @@ export class CsrfInterceptor implements NestInterceptor {
         return next.handle();
       }
 
-      if (!csrfToken || !headerToken || csrfToken !== headerToken) {
+      if (
+        !csrfToken ||
+        !headerToken ||
+        !safeTokenEqual(csrfToken, headerToken)
+      ) {
         throw new ForbiddenException('Invalid or missing CSRF token');
       }
     }
 
     return next.handle();
   }
+}
+
+/**
+ * Constant-time string equality for CSRF tokens. `===` short-circuits on
+ * the first mismatching character, leaking information through response
+ * timing that lets an attacker walk the token character by character.
+ *
+ * crypto.timingSafeEqual requires equal-length buffers, so we compare
+ * lengths first (also constant-time enough for this purpose — the
+ * length itself is not the secret).
+ */
+function safeTokenEqual(a: string, b: string): boolean {
+  if (a.length !== b.length) return false;
+  const aBuf = Buffer.from(a);
+  const bBuf = Buffer.from(b);
+  if (aBuf.length !== bBuf.length) return false;
+  return timingSafeEqual(aBuf, bBuf);
 }

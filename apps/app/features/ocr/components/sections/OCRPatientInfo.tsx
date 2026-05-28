@@ -27,7 +27,7 @@ export const OCRPatientInfo = ({
   return (
     <div className="space-y-3">
       <SectionToggle
-        title="Patient Information"
+        title="Patient information"
         icon={User}
         isOpen={isOpen}
         onToggle={onToggle}
@@ -38,7 +38,7 @@ export const OCRPatientInfo = ({
           <div className="grid grid-cols-2 gap-4">
             <div className="space-y-2">
               <div className="flex items-center justify-between">
-                <Label className="text-xs">First Name</Label>
+                <Label className="text-xs">First name</Label>
                 <ConfidenceIndicator
                   {...((s) => (s != null ? { score: s } : {}))(
                     getScore("firstName"),
@@ -67,7 +67,7 @@ export const OCRPatientInfo = ({
             </div>
             <div className="space-y-2">
               <div className="flex items-center justify-between">
-                <Label className="text-xs">Last Name</Label>
+                <Label className="text-xs">Last name</Label>
                 <ConfidenceIndicator
                   {...((s) => (s != null ? { score: s } : {}))(
                     getScore("lastName"),
@@ -144,7 +144,7 @@ export const OCRPatientInfo = ({
               />
             </div>
             <div className="space-y-2">
-              <Label className="text-xs">Blood Type</Label>
+              <Label className="text-xs">Blood type</Label>
               <Input
                 value={formData.bloodType}
                 onChange={(e) =>

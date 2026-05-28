@@ -10,7 +10,7 @@ import { WHATSAPP_CLIENT_TOKEN } from './application/ports/whatsapp-client.port'
 import { PrismaWhatsAppRepository } from './infrastructure/repositories/prisma-whatsapp.repository';
 import { PrismaWhatsAppMessageRepository } from './infrastructure/repositories/prisma-whatsapp-message.repository';
 import { PrismaWhatsAppTemplateRepository } from './infrastructure/repositories/prisma-whatsapp-template.repository';
-import { WhatsappClientService } from './infrastructure/clients/whatsapp-client.service';
+import { WhatsappClientAdapter } from './infrastructure/clients/whatsapp-client.adapter';
 import { PrismaWorkerModule } from '@/prisma/prisma.worker.module';
 import { TemplateResolverService } from './core/services/template-resolver.service';
 import { WhatsappTemplatesModule } from '@/shared/whatsapp/whatsapp-templates.module';
@@ -30,10 +30,10 @@ import { WhatsappTemplatesModule } from '@/shared/whatsapp/whatsapp-templates.mo
       provide: WHATSAPP_REPOSITORY_TOKEN,
       useClass: PrismaWhatsAppRepository,
     },
-    WhatsappClientService,
+    WhatsappClientAdapter,
     {
       provide: WHATSAPP_CLIENT_TOKEN,
-      useExisting: WhatsappClientService,
+      useExisting: WhatsappClientAdapter,
     },
   ],
   exports: [

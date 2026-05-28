@@ -6,7 +6,7 @@ import type {
   PrismaWhatsAppDatabase,
   PrismaWhatsAppReadClient,
   PrismaWhatsAppTemplateRecord,
-} from './prisma-whatsapp.repository';
+} from './prisma-whatsapp.types';
 import { isWhatsAppJsonRecord } from './prisma-whatsapp.mappers';
 import {
   toDomainTemplateCategory,

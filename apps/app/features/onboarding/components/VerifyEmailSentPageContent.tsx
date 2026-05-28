@@ -17,7 +17,7 @@ import { apiFetch } from "@/lib/api/api-client";
 import { logger } from "@/lib/monitoring/logger";
 import { showUserFacingErrorToast } from "@/lib/errors/user-facing-errors";
 import { PageTransitionLoader } from "@/components/loaders/page-transition-loader";
-import { PreDashboardShell } from "@/features/auth/components/PreDashboardShell";
+import { PreDashboardShell } from "@/features/auth";
 import { BackButton } from "@/components/navigation/back-button";
 
 const VERIFICATION_EMAIL_COOLDOWN_MS = 120 * 1000;

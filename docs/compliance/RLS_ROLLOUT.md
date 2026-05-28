@@ -5,11 +5,19 @@
 - Migration: `20260502143500_add_rls_policies` (additive, gated)
 - Application flag: `RLS_ENABLED` (defaults to `false`)
 - Application surface: `RlsService.runScopedTransaction(clinicId, fn)`
-- CI guard: `pnpm check:rls-rollout-readiness` (migration + service + env docs)
+- CI guard: `pnpm check:rls-rollout-readiness` is part of `pnpm verify:standard`
+  and is therefore **already blocking** on every PR. The remaining work
+  in `SYSTEM_DESIGN_AND_PATTERNS.md` §28.1 item 2 is operational, not
+  code: provision the `docita_app` user, run staging soak, flip the flag.
 - When `RLS_ENABLED=true`, `TenantContextInterceptor` wraps each authenticated
-  clinic request in a Prisma interactive transaction and sets `app.rls_enabled`
-  / `app.current_clinic_id` before handlers run (defense in depth with the
-  application tenant extension).
+  clinic request in a Prisma interactive transaction (`tx`), sets
+  `app.rls_enabled` / `app.current_clinic_id` on `tx`, and publishes `tx`
+  into `activeTxStorage`. The `rls-routing` Prisma extension then forwards
+  every model operation issued from the request through `tx`, so the
+  `SET LOCAL` GUCs actually govern the queries. (Without the routing
+  extension, the handler would borrow a *different* pool connection and
+  the policy would short-circuit on a missing `app.current_clinic_id` —
+  effectively a silent bypass.)
 
 The migration is safe to deploy at any time because the `tenant_isolation`
 policy is short-circuited until the `app.rls_enabled` Postgres setting is
@@ -63,6 +71,19 @@ security` (writes). That is the intended failure surface.
 
 When fixing fallout, prefer routing the query through
 `RlsService.runScopedTransaction` rather than disabling enforcement.
+
+### Notes on developer-initiated `$transaction` calls
+
+`runWithActiveTx` publishes the request-scoped tx into `activeTxStorage`
+so that incidental `prisma.<model>.<op>(...)` calls in services and
+repositories are routed through it by the `rls-routing` extension. If a
+service explicitly opens its own `prisma.$transaction(async (innerTx) => ...)`
+inside a tenant request, that `innerTx` will be a *new* connection
+without the GUCs set, and any tenant-scoped query that runs through
+`innerTx` will be blocked by the `tenant_isolation` policy. Convert such
+sites to `RlsService.runScopedTransaction` (or pull the work outside the
+inner tx) — the service applies the GUC handshake and republishes the
+new tx into `activeTxStorage`.
 
 ## Step 4: flip the flag in production
 

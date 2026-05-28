@@ -45,8 +45,10 @@ export class PrismaPaymentSessionRepository implements IPaymentSessionRepository
 
   async create(
     data: Prisma.PaymentSessionCreateInput,
+    tx?: Prisma.TransactionClient,
   ): Promise<PaymentSession> {
-    const created = await this.prisma.paymentSession.create({ data });
+    const client = tx ?? this.prisma;
+    const created = await client.paymentSession.create({ data });
     return this.mapSession(created);
   }
 
@@ -71,12 +73,25 @@ export class PrismaPaymentSessionRepository implements IPaymentSessionRepository
     return session ? this.mapSessionDetail(session) : null;
   }
 
+  async findByProviderPaymentId(
+    provider: string,
+    providerPaymentId: string,
+  ): Promise<PaymentSessionDetail | null> {
+    const session = await this.getReadClient().paymentSession.findFirst({
+      where: { provider, providerPaymentId },
+      include: PAYMENT_SESSION_DETAIL_INCLUDE,
+    });
+    return session ? this.mapSessionDetail(session) : null;
+  }
+
   async update(
     id: string,
     data: Prisma.PaymentSessionUpdateInput,
     clinicId: string,
+    tx?: Prisma.TransactionClient,
   ): Promise<PaymentSession> {
-    const result = await this.prisma.paymentSession.updateMany({
+    const client = tx ?? this.prisma;
+    const result = await client.paymentSession.updateMany({
       where: { id, clinicId },
       data,
     });
@@ -84,7 +99,7 @@ export class PrismaPaymentSessionRepository implements IPaymentSessionRepository
       throw new Error(`Payment session ${id} not found`);
     }
 
-    const refreshed = await this.prisma.paymentSession.findFirst({
+    const refreshed = await client.paymentSession.findFirst({
       where: { id, clinicId },
     });
     if (!refreshed) {

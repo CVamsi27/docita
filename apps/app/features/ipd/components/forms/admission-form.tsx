@@ -84,7 +84,7 @@ export const AdmissionForm: FC<AdmissionFormProps> = ({
   return (
     <Card className="border-none shadow-lg">
       <CardHeader>
-        <CardTitle>New Admission</CardTitle>
+        <CardTitle>New admission</CardTitle>
         <CardDescription>Admit a patient to the hospital</CardDescription>
       </CardHeader>
       <CardContent>
@@ -176,7 +176,7 @@ export const AdmissionForm: FC<AdmissionFormProps> = ({
               name="attendingDoctorId"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Attending Doctor</FormLabel>
+                  <FormLabel>Attending doctor</FormLabel>
                   <Select onValueChange={field.onChange} value={field.value}>
                     <FormControl>
                       <SelectTrigger
@@ -204,7 +204,7 @@ export const AdmissionForm: FC<AdmissionFormProps> = ({
               name="diagnosis"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Admission Diagnosis</FormLabel>
+                  <FormLabel>Admission diagnosis</FormLabel>
                   <FormControl>
                     <Textarea
                       placeholder="Admission diagnosis"

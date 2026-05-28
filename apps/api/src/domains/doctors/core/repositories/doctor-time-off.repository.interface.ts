@@ -22,11 +22,19 @@ export interface IDoctorTimeOffRepository {
 
   createTimeOff(
     data: Prisma.DoctorTimeOffCreateInput,
+    tx?: Prisma.TransactionClient,
   ): Promise<DoctorTimeOff & { doctor: { id: string; name: string } }>;
 
   findTimeOffById(id: string): Promise<DoctorTimeOff | null>;
 
-  deleteTimeOff(id: string): Promise<void>;
+  updateTimeOff(
+    id: string,
+    data: Prisma.DoctorTimeOffUpdateInput,
+    expectedVersion?: number,
+    tx?: Prisma.TransactionClient,
+  ): Promise<DoctorTimeOff>;
+
+  deleteTimeOff(id: string, tx?: Prisma.TransactionClient): Promise<void>;
 }
 
 export const DOCTOR_TIME_OFF_REPOSITORY_TOKEN = Symbol(

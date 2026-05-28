@@ -1,5 +1,4 @@
 import { Injectable, Logger } from '@nestjs/common';
-import { PrismaService } from '@/prisma/prisma.service';
 
 interface NotificationPayload {
   title: string;
@@ -23,17 +22,15 @@ export type PushNotificationType =
 export class PushNotificationService {
   private readonly logger = new Logger(PushNotificationService.name);
 
-  constructor(private readonly prisma: PrismaService) {}
-
   async sendToPatient(
     patientId: string,
     notification: NotificationPayload,
     type: PushNotificationType = 'general',
   ): Promise<{ success: boolean }> {
     try {
-      this.logger.log(
-        `Notification [${type}] for patient ${patientId}: ${notification.title}`,
-      );
+      void patientId;
+      void notification;
+      this.logger.log(`Patient notification accepted for type ${type}`);
 
       return Promise.resolve({ success: true });
     } catch (error) {
@@ -48,9 +45,9 @@ export class PushNotificationService {
     type: PushNotificationType = 'general',
   ): Promise<{ success: boolean }> {
     try {
-      this.logger.log(
-        `Notification [${type}] for user ${userId}: ${notification.title}`,
-      );
+      void userId;
+      void notification;
+      this.logger.log(`User notification accepted for type ${type}`);
       return Promise.resolve({ success: true });
     } catch (error) {
       this.logger.error('Failed to process notification', error);

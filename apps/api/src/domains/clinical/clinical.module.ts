@@ -6,7 +6,7 @@ import { ClinicalSettingsService } from './application/services/clinical-setting
 import { PrismaLabRepository } from './infrastructure/persistence/prisma-lab.repository';
 import { PrismaClinicalSettingsRepository } from './infrastructure/persistence/prisma-clinical-settings.repository';
 import { PrismaMedicalCodingRepository } from './infrastructure/persistence/prisma-medical-coding.repository';
-import { NlmCodingService } from './infrastructure/external/nlm-coding.service';
+import { NlmCodingClient } from './infrastructure/external/nlm-coding.client';
 import { NlmCodeCatalogProvider } from './infrastructure/external/nlm-code-catalog.provider';
 import { LicensedCptCodeCatalogProvider } from './infrastructure/external/licensed-cpt-code-catalog.provider';
 import { CompositeCodeCatalogProvider } from './infrastructure/external/composite-code-catalog.provider';
@@ -25,7 +25,7 @@ import { AuditModule } from '@/shared/modules/audit/audit/audit.module';
     ClinicalService,
     ClinicalSettingsService,
     ClinicalFactory,
-    NlmCodingService,
+    NlmCodingClient,
     NlmCodeCatalogProvider,
     LicensedCptCodeCatalogProvider,
     CompositeCodeCatalogProvider,

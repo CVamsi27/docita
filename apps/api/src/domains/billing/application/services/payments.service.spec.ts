@@ -9,9 +9,11 @@ import type { IPaymentSessionRepository } from '@/domains/billing/core/repositor
 import type { IInvoiceRepository } from '@/domains/billing/core/repositories/invoice.repository';
 import type { InvoiceDetail } from '@/domains/billing/core/repositories/invoice.repository';
 import type { IClock } from '@/shared/common/ports/clock.port';
+import type { ITransactionRunner } from '@/shared/common/ports/transaction-runner.port';
 import { PaymentsCommandService } from './payments-command.service';
 import { PaymentsQueryService } from './payments-query.service';
 import { PaymentsService } from './payments.service';
+import { RazorpayInvoiceWebhookService } from './razorpay-invoice-webhook.service';
 
 function buildInvoice(overrides: Partial<InvoiceDetail> = {}): InvoiceDetail {
   return {
@@ -26,6 +28,11 @@ function buildInvoice(overrides: Partial<InvoiceDetail> = {}): InvoiceDetail {
     discountTotal: 0,
     taxTotal: 0,
     grandTotal: 500,
+    totalCents: 50000,
+    subtotalCents: 50000,
+    discountTotalCents: 0,
+    taxTotalCents: 0,
+    grandTotalCents: 50000,
     taxSummary: null,
     sellerTaxSnapshot: null,
     buyerTaxSnapshot: null,
@@ -68,6 +75,8 @@ describe('PaymentsService', () => {
     findById: jest.fn<IPaymentSessionRepository['findById']>(),
     findByProviderSessionId:
       jest.fn<IPaymentSessionRepository['findByProviderSessionId']>(),
+    findByProviderPaymentId:
+      jest.fn<IPaymentSessionRepository['findByProviderPaymentId']>(),
     update: jest.fn<IPaymentSessionRepository['update']>(),
     delete: jest.fn<IPaymentSessionRepository['delete']>(),
     findPendingReminders:
@@ -131,6 +140,12 @@ describe('PaymentsService', () => {
   const clock: IClock = {
     now: () => new Date('2026-05-19T10:00:00.000Z'),
   };
+  const transactionRunner: ITransactionRunner = {
+    runInTransaction: (callback) => callback({} as Prisma.TransactionClient),
+  };
+  const razorpayInvoiceWebhook = {
+    handle: jest.fn<RazorpayInvoiceWebhookService['handle']>(),
+  } as unknown as RazorpayInvoiceWebhookService;
 
   let service: PaymentsService;
 
@@ -143,6 +158,8 @@ describe('PaymentsService', () => {
       configService,
       paymentLinkProvider,
       clock,
+      transactionRunner,
+      razorpayInvoiceWebhook,
     );
     const query = new PaymentsQueryService(repository);
     service = new PaymentsService(query, command);
@@ -220,6 +237,7 @@ describe('PaymentsService', () => {
         'inv_1',
         { status: InvoiceStatus.PAID },
         'clinic_1',
+        expect.anything(),
       );
 
       expect(repository.create).toHaveBeenCalledWith(
@@ -235,6 +253,7 @@ describe('PaymentsService', () => {
             amount: 500,
           }),
         }),
+        expect.anything(),
       );
     });
 
@@ -259,6 +278,32 @@ describe('PaymentsService', () => {
             method: 'UPI_QR',
           }),
         }),
+        expect.anything(),
+      );
+    });
+
+    it('defaults manual payment amount from canonical invoice cents', async () => {
+      invoiceRepository.findById.mockResolvedValue(
+        buildInvoice({ total: 999, totalCents: 12345 }),
+      );
+      invoiceRepository.update.mockResolvedValue(
+        buildInvoice({ status: InvoiceStatus.PAID }),
+      );
+      repository.create.mockResolvedValue({} as never);
+
+      await service.markInvoicePaidManually({
+        invoiceId: 'inv_1',
+        clinicId: 'clinic_1',
+        performedByUserId: 'user_1',
+        paymentMethod: 'CASH',
+      });
+
+      expect(repository.create).toHaveBeenCalledWith(
+        expect.objectContaining({
+          amount: 12345,
+          meta: expect.objectContaining({ amount: 123.45 }),
+        }),
+        expect.anything(),
       );
     });
   });

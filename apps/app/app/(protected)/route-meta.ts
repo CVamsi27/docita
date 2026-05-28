@@ -1,3 +1,8 @@
+// Hand-maintained route metadata for breadcrumbs in desktop-top-bar.tsx
+// and similar nav surfaces. When you add a new page under app/(protected)/,
+// add a matching entry below. `scripts/checks/check-route-meta-coverage.mjs`
+// is an advisory check that flags missing entries.
+// SYSTEM_DESIGN_AND_PATTERNS.md §56 item 44 tracks a future codegen.
 export interface RouteMeta {
   label: string;
   parentPath?: string;
@@ -18,7 +23,11 @@ export const ROUTE_META: Record<string, RouteMeta> = {
   "/invoices/new": { label: "New invoice", parentPath: "/invoices" },
   "/invoices/[id]": { label: "Invoice", parentPath: "/invoices" },
   "/invoices/[id]/edit": { label: "Edit", parentPath: "/invoices/[id]" },
+  "/daybook": { label: "Daybook" },
   "/inventory": { label: "Inventory" },
+  "/pharmacy": { label: "Pharmacy" },
+  "/vaccines": { label: "Vaccines" },
+  "/referrals": { label: "Referrals" },
   "/documents": { label: "Documents" },
   "/analytics": { label: "Analytics" },
   "/import": { label: "Import" },
@@ -32,6 +41,10 @@ export const ROUTE_META: Record<string, RouteMeta> = {
   "/specialty": { label: "Specialty" },
   "/settings": { label: "Settings" },
   "/settings/compliance": { label: "Compliance", parentPath: "/settings" },
+  "/settings/compliance/consent-template": {
+    label: "Consent template",
+    parentPath: "/settings/compliance",
+  },
   "/profile": { label: "Profile" },
 };
 

@@ -1,3 +1,8 @@
+// Powers the rotating thought-of-the-day on the login screen.
+// Consumer: apps/app/app/(auth)/login/page.tsx (and similar auth pages).
+// Same-origin route so the browser never calls an external API directly.
+// Falls back to a static quote when ZenQuotes is unreachable.
+// Removing this route will break the auth-page header strip.
 import { NextResponse } from "next/server";
 import { unstable_cache } from "next/cache";
 import { z } from "zod";

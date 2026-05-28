@@ -95,7 +95,7 @@ export function CancelAppointmentDialog({
           <div className="flex items-start gap-4">
             <AlertCircle className="h-5 w-5 mt-1 text-destructive" />
             <div className="flex-1">
-              <DialogTitle>Cancel Appointment</DialogTitle>
+              <DialogTitle>Cancel appointment</DialogTitle>
               <DialogDescription className="mt-2">
                 Choose a reason so the schedule stays auditable
               </DialogDescription>

@@ -21,7 +21,11 @@ function parseCheckoutTierParams(
   subscription: SubscriptionCurrentResponse | null | undefined,
 ): { tier: TierName; billingCycle: "MONTHLY" | "YEARLY" } | null {
   const tier = subscription?.tier;
-  if (!tier || tier === "ENTERPRISE" || (subscription?.basePriceCents ?? 0) <= 0) {
+  if (
+    !tier ||
+    tier === "ENTERPRISE" ||
+    (subscription?.basePriceCents ?? 0) <= 0
+  ) {
     return null;
   }
   const parsed = tierSchema.safeParse(tier);

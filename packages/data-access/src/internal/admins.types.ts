@@ -2,9 +2,9 @@ export interface InternalAdminUser {
   id: string;
   name: string;
   email: string;
-  phoneNumber?: string | null;
+  phoneNumber?: string;
   role: "ADMIN" | "ADMIN_DOCTOR";
-  appLoginDisabled: boolean;
+  appLoginDisabled?: boolean;
   createdAt: string;
   updatedAt: string;
 }

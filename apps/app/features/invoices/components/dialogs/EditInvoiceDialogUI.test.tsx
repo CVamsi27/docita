@@ -4,6 +4,10 @@ import { describe, expect, it, vi } from "vitest";
 import type { InvoiceItem } from "@workspace/types";
 import { EditInvoiceDialogUI } from "./EditInvoiceDialogUI";
 
+vi.mock("@/components/auth/feature-gate", () => ({
+  FeatureGate: ({ children }: { children: ReactElement }) => children,
+}));
+
 /** Dialog content portals outside a test wrapper; avoid Radix tooltip context there. */
 vi.mock("@workspace/ui/components/overlay/tooltip", async (importOriginal) => {
   const actual = await importOriginal<typeof import("@workspace/ui/components/overlay/tooltip")>();
@@ -53,7 +57,7 @@ describe("EditInvoiceDialogUI", () => {
       />,
     );
 
-    expect(screen.getByText("Edit Invoice")).toBeInTheDocument();
+    expect(screen.getByText("Edit invoice")).toBeInTheDocument();
     expect(
       screen.getByText("Update invoice details for Asha Rao"),
     ).toBeInTheDocument();
@@ -105,7 +109,7 @@ describe("EditInvoiceDialogUI", () => {
       screen.getByText('No items. Click "Add Item" to add one.'),
     ).toBeInTheDocument();
 
-    fireEvent.click(screen.getByRole("button", { name: "Save Changes" }));
+    fireEvent.click(screen.getByRole("button", { name: "Save changes" }));
 
     await waitFor(() => {
       expect(onSubmit).toHaveBeenCalled();

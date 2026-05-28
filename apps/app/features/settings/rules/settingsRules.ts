@@ -1,10 +1,14 @@
-
-
 export const validateClinicHours = (
   opening: number,
   closing: number,
 ): boolean => {
-  return opening < closing && opening >= 0 && closing <= 24;
+  return (
+    Number.isFinite(opening) &&
+    Number.isFinite(closing) &&
+    opening >= 0 &&
+    closing <= 24 &&
+    opening < closing
+  );
 };
 
 export const isValidPhoneNumber = (phone: string): boolean => {

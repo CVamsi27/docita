@@ -59,12 +59,12 @@ test.describe("Smart Authentication Flow", () => {
       page.getByText("Welcome to Docita", { exact: false }),
     ).toBeVisible();
     await expect(page.getByText("Enter your email to continue")).toBeVisible();
-    await expect(page.getByLabel("Email Address")).toBeVisible();
+    await expect(page.getByLabel("Email address")).toBeVisible();
     await expect(page.getByRole("button", { name: "Continue" })).toBeVisible();
   });
 
   test("should show login form for existing user", async ({ page }) => {
-    await page.getByLabel("Email Address").fill(uniqueEmail);
+    await page.getByLabel("Email address").fill(uniqueEmail);
 
     await page.waitForTimeout(500);
     await page.getByRole("button", { name: "Continue" }).click();
@@ -72,35 +72,35 @@ test.describe("Smart Authentication Flow", () => {
     await expect(page.getByText("Welcome back")).toBeVisible();
     await expect(page.getByText("Sign in to your workspace")).toBeVisible();
     await expect(page.getByLabel("Password")).toBeVisible();
-    await expect(page.getByRole("button", { name: "Sign In" })).toBeVisible();
+    await expect(page.getByRole("button", { name: "Sign in" })).toBeVisible();
 
-    const emailInput = page.getByLabel("Email Address");
+    const emailInput = page.getByLabel("Email address");
     await expect(emailInput).toHaveValue(uniqueEmail);
     await expect(emailInput).toBeDisabled();
   });
 
   test("should show signup form for new user", async ({ page }) => {
-    await page.getByLabel("Email Address").fill(newUserEmail);
+    await page.getByLabel("Email address").fill(newUserEmail);
     await page.waitForTimeout(500);
     await page.getByRole("button", { name: "Continue" }).click();
 
     await expect(page.getByText("Create your account")).toBeVisible();
     await expect(page.getByText("Get started with Docita")).toBeVisible();
-    await expect(page.getByLabel("First Name")).toBeVisible();
-    await expect(page.getByLabel("Last Name")).toBeVisible();
+    await expect(page.getByLabel("First name")).toBeVisible();
+    await expect(page.getByLabel("Last name")).toBeVisible();
     await expect(page.getByLabel("Clinic Name")).toBeVisible();
     await expect(page.getByLabel("Password")).toBeVisible();
     await expect(
       page.getByRole("button", { name: "Create Account" }),
     ).toBeVisible();
 
-    const emailInput = page.getByLabel("Email Address");
+    const emailInput = page.getByLabel("Email address");
     await expect(emailInput).toHaveValue(newUserEmail);
     await expect(emailInput).toBeDisabled();
   });
 
   test("should allow going back to change email", async ({ page }) => {
-    await page.getByLabel("Email Address").fill(uniqueEmail);
+    await page.getByLabel("Email address").fill(uniqueEmail);
     await page.waitForTimeout(500);
     await page.getByRole("button", { name: "Continue" }).click();
     await expect(page.getByText("Welcome back")).toBeVisible();
@@ -110,13 +110,13 @@ test.describe("Smart Authentication Flow", () => {
     await expect(
       page.getByText("Welcome to Docita", { exact: false }),
     ).toBeVisible();
-    const emailInput = page.getByLabel("Email Address");
+    const emailInput = page.getByLabel("Email address");
     await expect(emailInput).toHaveValue(uniqueEmail);
     await expect(emailInput).not.toBeDisabled();
   });
 
   test("should login existing user successfully", async ({ page }) => {
-    await page.getByLabel("Email Address").fill(uniqueEmail);
+    await page.getByLabel("Email address").fill(uniqueEmail);
     await page.waitForTimeout(500);
     await page.getByRole("button", { name: "Continue" }).click();
 
@@ -124,7 +124,7 @@ test.describe("Smart Authentication Flow", () => {
 
     await page.getByLabel("Password").fill(password);
 
-    const signInBtn = page.getByRole("button", { name: "Sign In" });
+    const signInBtn = page.getByRole("button", { name: "Sign in" });
     await signInBtn.waitFor({ state: "visible" });
 
     await page.waitForTimeout(500);
@@ -134,14 +134,14 @@ test.describe("Smart Authentication Flow", () => {
   });
 
   test("should show error for invalid credentials", async ({ page }) => {
-    await page.getByLabel("Email Address").fill(uniqueEmail);
+    await page.getByLabel("Email address").fill(uniqueEmail);
     await page.waitForTimeout(500);
     await page.getByRole("button", { name: "Continue" }).click();
 
     await expect(page.getByText("Welcome back")).toBeVisible();
 
     await page.getByLabel("Password").fill("WrongPassword123!");
-    await page.getByRole("button", { name: "Sign In" }).click();
+    await page.getByRole("button", { name: "Sign in" }).click();
 
     await expect(
       page.getByText(/Invalid credentials|Login failed|error/i),
@@ -149,7 +149,7 @@ test.describe("Smart Authentication Flow", () => {
   });
 
   test("should toggle password visibility", async ({ page }) => {
-    await page.getByLabel("Email Address").fill(uniqueEmail);
+    await page.getByLabel("Email address").fill(uniqueEmail);
     await page.waitForTimeout(500);
     await page.getByRole("button", { name: "Continue" }).click();
     await expect(page.getByText("Welcome back")).toBeVisible();
@@ -169,7 +169,7 @@ test.describe("Smart Authentication Flow", () => {
   });
 
   test("should validate email format", async ({ page }) => {
-    const emailInput = page.getByLabel("Email Address");
+    const emailInput = page.getByLabel("Email address");
 
     await emailInput.fill("invalid-email");
     await page.getByRole("button", { name: "Continue" }).click();

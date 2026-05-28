@@ -234,8 +234,8 @@ describe('ReminderHistoryService', () => {
 
       const result = await service.getReminderHistory('clinic-1');
 
-      expect(result[0]).toHaveProperty('appointment');
-      expect(result[0].appointment).toHaveProperty('patient');
+      expect(result).toHaveLength(1);
+      expect(result[0]).toHaveProperty('appointmentId');
     });
 
     it('should handle multiple reminders', async () => {

@@ -119,6 +119,7 @@ export class MedicationDoseController {
       takenAt?: string;
       status?: string;
       notes?: string;
+      version?: number;
     },
   ) {
     const clinicId = await this.getClinicId(req);
@@ -130,6 +131,7 @@ export class MedicationDoseController {
         takenAt: body.takenAt ? new Date(body.takenAt) : undefined,
         status: parseMedicationDoseStatus(body.status),
         notes: body.notes,
+        version: body.version,
       },
     );
   }

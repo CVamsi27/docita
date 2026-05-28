@@ -61,7 +61,7 @@ export const RevenueBarChart = ({ data, loading }: RevenueChartProps) => (
 export const RevenuePieChart = ({ data, loading }: RevenueChartProps) => (
   <Card>
     <CardHeader>
-      <CardTitle>Procedure Volume</CardTitle>
+      <CardTitle>Procedure volume</CardTitle>
       <CardDescription>Most frequently performed procedures</CardDescription>
     </CardHeader>
     <CardContent className="h-[400px]">

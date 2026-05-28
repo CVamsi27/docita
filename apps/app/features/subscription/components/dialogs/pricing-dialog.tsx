@@ -14,6 +14,7 @@ import { Label } from "@workspace/ui/components/form/label";
 import { cn } from "@workspace/ui/lib/utils";
 import {
   PRICING_CURRENCY_CONFIG,
+  getPlanTrack,
   type SupportedCurrency,
   Tier,
   type TierName,
@@ -55,6 +56,18 @@ export function PricingDialog({
   const { pricingConfig } = usePricingConfig(currency);
 
   const tiers: TierName[] = PRICING_DIALOG_TIERS;
+  const planSections = [
+    {
+      id: "clinical",
+      label: "Clinical",
+      tiers: tiers.filter((tier) => getPlanTrack(tier) === "CLINICAL"),
+    },
+    {
+      id: "front-desk",
+      label: "Front Desk Operations",
+      tiers: tiers.filter((tier) => getPlanTrack(tier) === "FRONT_DESK"),
+    },
+  ].filter((section) => section.tiers.length > 0);
   const currencyConfig = PRICING_CURRENCY_CONFIG[currency];
   const { estimateByTier, isLoadingAny } = useTierEstimates({
     tiers,
@@ -128,32 +141,46 @@ export function PricingDialog({
           </div>
         </div>
 
-        <div className="flex flex-wrap justify-center gap-4 py-4">
-          {tiers.map((tierName) => {
-            const estimate = estimateByTier[tierName];
-            const estimateValue = resolvePricingDialogEstimate(
-              tierName,
-              isYearly,
-              estimateByTier[tierName],
-            );
+        <div className="space-y-6 py-4">
+          {planSections.map((section) => (
+            <section key={section.id} aria-labelledby={`${section.id}-plans`}>
+              <h3
+                id={`${section.id}-plans`}
+                className="mb-3 text-sm font-semibold uppercase tracking-wide text-muted-foreground"
+              >
+                {section.label}
+              </h3>
+              <div className="flex flex-wrap justify-center gap-4">
+                {section.tiers.map((tierName) => {
+                  const estimate = estimateByTier[tierName];
+                  const estimateValue = resolvePricingDialogEstimate(
+                    tierName,
+                    isYearly,
+                    estimateByTier[tierName],
+                  );
 
-            return (
-              <PricingDialogTierCard
-                key={tierName}
-                tierName={tierName}
-                currentTier={currentTier}
-                isYearly={isYearly}
-                currency={currency}
-                tierPricing={getTierPricing(tierName)}
-                tierFeatures={getTierFeatures(tierName)}
-                estimateValue={estimateValue}
-                estimateSymbol={estimate?.currency.symbol ?? currencyConfig.symbol}
-                locale={currencyConfig.locale}
-                decimalPlaces={currencyConfig.decimalPlaces}
-                onSelectTier={onSelectTier}
-              />
-            );
-          })}
+                  return (
+                    <PricingDialogTierCard
+                      key={tierName}
+                      tierName={tierName}
+                      currentTier={currentTier}
+                      isYearly={isYearly}
+                      currency={currency}
+                      tierPricing={getTierPricing(tierName)}
+                      tierFeatures={getTierFeatures(tierName)}
+                      estimateValue={estimateValue}
+                      estimateSymbol={
+                        estimate?.currency.symbol ?? currencyConfig.symbol
+                      }
+                      locale={currencyConfig.locale}
+                      decimalPlaces={currencyConfig.decimalPlaces}
+                      onSelectTier={onSelectTier}
+                    />
+                  );
+                })}
+              </div>
+            </section>
+          ))}
         </div>
 
         <div className="text-center text-sm text-muted-foreground pt-4 border-t border-border/50">

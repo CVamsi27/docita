@@ -4,7 +4,7 @@ import { ShieldCheck } from "lucide-react";
 import { Button } from "@workspace/ui/components/form/button";
 import { DocitaLoadingIndicator } from "@workspace/ui/components/feedback/docita-loading-indicator";
 import { PageTransitionLoader } from "@/components/loaders/page-transition-loader";
-import { PreDashboardShell } from "@/features/auth/components/PreDashboardShell";
+import { PreDashboardShell } from "@/features/auth";
 import { useVerifyDoctor } from "@/features/onboarding/hooks/use-verify-doctor";
 import { buildVerificationSteps } from "./verify-doctor/helpers";
 import { ProgressCard } from "./verify-doctor/progress-card";

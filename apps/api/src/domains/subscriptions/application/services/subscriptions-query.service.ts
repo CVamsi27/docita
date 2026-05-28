@@ -26,6 +26,7 @@ import {
   TIER_INFO,
   TIER_FEATURES,
   FEATURE_DISPLAY,
+  PUBLISHED_PLAN_LADDER,
 } from '@workspace/types';
 import {
   Tier,
@@ -94,18 +95,11 @@ export class SubscriptionsQueryService {
   }
 
   async getTierConfig() {
-    const tiers = [
-      'STARTER',
-      'FRONT_DESK',
-      'ESSENTIAL',
-      'PROFESSIONAL',
-      'ENTERPRISE',
-    ];
     const pricingConfig = parsePricingConfigResponse(
       await this.clinicPricingQuery.getPricingConfig(DEFAULT_CURRENCY),
     );
     return {
-      tiers: tiers.map((tier) => ({
+      tiers: PUBLISHED_PLAN_LADDER.map((tier) => ({
         id: tier,
         tier: lookupTierValue(Tier, tier),
         ...lookupTierObject(TIER_INFO, tier),

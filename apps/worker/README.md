@@ -50,3 +50,13 @@ Processors must check `job.attemptsMade + 1 >= job.maxAttempts` to detect the fi
 - Shared helpers must be worker-safe and must not rely on Next.js or request-only API state.
 
 `scripts/checks/check-job-idempotency.mjs` enforces idempotency key declarations on processors.
+
+## Knip coverage
+
+`apps/worker` is listed under `knip.json#ignoreWorkspaces` because the
+worker shares its codebase with `apps/api` via the `@/*` path mapping
+(`apps/worker/src/main.ts` imports `@/worker.module` which lives in
+`apps/api/src/`). Knip cannot follow cross-workspace path aliases, so
+enabling it on the worker reports every dependency as unused. Worker
+dead-code is therefore captured indirectly by Knip running on
+`apps/api`. See `SYSTEM_DESIGN_AND_PATTERNS.md` §56 item 49.

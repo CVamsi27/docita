@@ -1,1 +1,3 @@
-export { default } from "@/features/billing";
+import InternalBillingPage from "./billing-page";
+
+export default InternalBillingPage;

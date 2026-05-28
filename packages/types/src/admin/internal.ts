@@ -6,25 +6,6 @@ export type InternalClinicAdminType = z.infer<
   typeof internalClinicAdminTypeSchema
 >;
 
-const internalClinicAdminRoleSchema = z.enum(["ADMIN", "ADMIN_DOCTOR"]);
-
-export const internalClinicAdminSchema = z.object({
-  id: z.string(),
-  name: z.string(),
-  email: z.string().email(),
-  phoneNumber: z.string().nullable().optional(),
-  role: internalClinicAdminRoleSchema,
-  appLoginDisabled: z.boolean(),
-  createdAt: z.string().or(z.date()),
-  updatedAt: z.string().or(z.date()),
-});
-
-export const internalClinicAdminListResponseSchema = z.array(
-  internalClinicAdminSchema,
-);
-
-export type InternalClinicAdmin = z.infer<typeof internalClinicAdminSchema>;
-
 export type ClinicTierType =
   | "CAPTURE"
   | "CORE"
@@ -168,3 +149,22 @@ export const internalClinicListResponseSchema = z.object({
   data: z.array(clinicSchema),
   nextCursor: z.string().optional(),
 });
+
+export const internalClinicAdminSchema = z.object({
+  id: z.string(),
+  name: z.string(),
+  email: z.string(),
+  phoneNumber: z.string().nullable().optional(),
+  role: z.enum(["ADMIN", "ADMIN_DOCTOR"]),
+  appLoginDisabled: z.boolean().optional(),
+  createdAt: z.string(),
+  updatedAt: z.string(),
+});
+export type InternalClinicAdmin = z.infer<typeof internalClinicAdminSchema>;
+
+export const internalClinicAdminListResponseSchema = z.object({
+  data: z.array(internalClinicAdminSchema),
+});
+export type InternalClinicAdminListResponse = z.infer<
+  typeof internalClinicAdminListResponseSchema
+>;

@@ -7,7 +7,7 @@ import { SymbolTooltip } from "@workspace/ui/components/overlay/tooltip";
 import { cn } from "@workspace/ui/lib/utils";
 import { Card } from "@workspace/ui/components/indicators/card";
 import { PageTransitionLoader } from "@/components/loaders/page-transition-loader";
-import { PreDashboardShell } from "@/features/auth/components/PreDashboardShell";
+import { PreDashboardShell } from "@/features/auth";
 import { BackButton } from "@/components/navigation/back-button";
 import { JoinClinicRequestDialog } from "@/features/onboarding/components/join-clinic-request-dialog";
 import { JoinClinicSearchResults } from "@/features/onboarding/components/join-clinic-search-results";

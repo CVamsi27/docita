@@ -42,13 +42,13 @@ export function PatientSocialHistoryComp({
       <CardHeader className="py-4">
         <CardTitle className="text-lg flex items-center gap-2">
           <Coffee className="h-5 w-5 text-warning" />
-          Social History
+          Social history
         </CardTitle>
       </CardHeader>
       <CardContent>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           <div className="space-y-2">
-            <Label htmlFor="smokingStatus">Smoking Status</Label>
+            <Label htmlFor="smokingStatus">Smoking status</Label>
             <Select
               value={patient.socialHistory?.smokingStatus || "UNKNOWN"}
               onValueChange={(value) =>
@@ -72,7 +72,7 @@ export function PatientSocialHistoryComp({
           </div>
 
           <div className="space-y-2">
-            <Label htmlFor="alcoholUse">Alcohol Use</Label>
+            <Label htmlFor="alcoholUse">Alcohol use</Label>
             <Select
               value={patient.socialHistory?.alcoholUse || "UNKNOWN"}
               onValueChange={(value) =>
@@ -106,7 +106,7 @@ export function PatientSocialHistoryComp({
             />
           </div>
           <div className="space-y-2">
-            <Label htmlFor="dietaryRestrictions">Dietary Restrictions</Label>
+            <Label htmlFor="dietaryRestrictions">Dietary restrictions</Label>
             <Input
               id="dietaryRestrictions"
               placeholder="Dietary restrictions"

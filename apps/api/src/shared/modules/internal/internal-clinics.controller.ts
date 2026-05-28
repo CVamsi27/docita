@@ -21,8 +21,6 @@ import { UpdateAIFeaturesDto } from './dto/ai-management.dto';
 import {
   InternalClinicListQueryDto,
   InternalClinicListResponseDto,
-  InternalClinicAdminListResponseDto,
-  InternalClinicAdminResponseDto,
   InternalUserListResponseDto,
   InternalUserResponseDto,
   SuccessResponseDto,
@@ -96,13 +94,13 @@ export class InternalClinicsController {
   }
 
   @Get('clinics/:id/admins')
-  @ZodSerializerDto(InternalClinicAdminListResponseDto)
+  @ZodSerializerDto(InternalUserListResponseDto)
   async getClinicAdmins(@Param('id') id: string) {
     return this.clinicService.getClinicAdmins(id);
   }
 
   @Post('clinics/:id/admins')
-  @ZodSerializerDto(InternalClinicAdminResponseDto)
+  @ZodSerializerDto(InternalUserResponseDto)
   async createAdmin(
     @Param('id') clinicId: string,
     @Body() data: CreateAdminDto,
@@ -117,19 +115,19 @@ export class InternalClinicsController {
   }
 
   @Patch('admins/:id')
-  @ZodSerializerDto(InternalClinicAdminResponseDto)
+  @ZodSerializerDto(InternalUserResponseDto)
   async updateAdmin(@Param('id') id: string, @Body() data: UpdateAdminDto) {
     return this.clinicService.updateAdmin(id, data);
   }
 
   @Patch('admins/:id/deactivate')
-  @ZodSerializerDto(InternalClinicAdminResponseDto)
+  @ZodSerializerDto(InternalUserResponseDto)
   async deactivateAdmin(@Param('id') id: string) {
     return this.clinicService.deactivateAdmin(id);
   }
 
   @Patch('admins/:id/activate')
-  @ZodSerializerDto(InternalClinicAdminResponseDto)
+  @ZodSerializerDto(InternalUserResponseDto)
   async activateAdmin(@Param('id') id: string) {
     return this.clinicService.activateAdmin(id);
   }

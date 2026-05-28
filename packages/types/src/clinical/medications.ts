@@ -10,22 +10,22 @@ export const embeddedMedicationSchema = z.object({
   duration: z.string().max(100),
   route: z.string().max(50).default("PO"),
 
-  ndcCode: z.string().max(50).optional(), 
-  rxNormCui: z.string().max(50).optional(), 
+  ndcCode: z.string().max(50).optional(),
+  rxNormCui: z.string().max(50).optional(),
   dosageForm: dosageFormSchema.optional(),
   strengthValue: z.number().optional(),
-  strengthUnit: z.string().max(20).optional(), 
+  strengthUnit: z.string().max(20).optional(),
 
   quantity: z.number().optional(),
-  refillsAllowed: z.number().min(0).max(11).optional(), 
-  dispenseAsWritten: z.boolean().optional(), 
-  sigCode: sigCodeSchema.optional(), 
+  refillsAllowed: z.number().min(0).max(11).optional(),
+  dispenseAsWritten: z.boolean().optional(),
+  sigCode: sigCodeSchema.optional(),
 
   startDate: z.string().or(z.date()).optional(),
   endDate: z.string().or(z.date()).optional(),
 
   isPRN: z.boolean().optional(),
-  prnInstructions: z.string().max(500).optional().transform(stripHtmlTags), 
+  prnInstructions: z.string().max(500).optional().transform(stripHtmlTags),
 });
 export type EmbeddedMedication = z.infer<typeof embeddedMedicationSchema>;
 
@@ -73,7 +73,7 @@ export const checkContraindicationsSchema = z.object({
     .array(
       z.object({
         name: z.string(),
-        severity: z.string(), 
+        severity: z.string(),
       }),
     )
     .optional(),
@@ -128,6 +128,7 @@ export const prescriptionSchema = z.object({
   diagnosis: z.string().max(1000).optional().transform(stripHtmlTags),
   createdAt: z.string().or(z.date()),
   updatedAt: z.string().or(z.date()).optional(),
+  version: z.number().int().nonnegative().default(1),
   patient: patientSchema.optional(),
   doctor: z
     .object({

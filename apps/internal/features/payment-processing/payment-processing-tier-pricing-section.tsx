@@ -41,7 +41,7 @@ export function PaymentProcessingTierPricingSection({
                   {formatInternalTierCardPrice(
                     tier.tier,
                     tier.priceIsCustom ? null : tier.price,
-                    (amount) =>
+                    (amount: number) =>
                       formatCurrency(amount, {
                         currency: DEFAULT_CURRENCY,
                         fractionDigits: 0,

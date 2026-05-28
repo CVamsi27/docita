@@ -1,7 +1,7 @@
 import { Injectable } from '@nestjs/common';
 import Razorpay from 'razorpay';
 import { Prisma } from '@workspace/db';
-import { RazorpayClientService } from './razorpay-client.service';
+import { RazorpayClientAdapter } from './razorpay-client.adapter';
 import {
   IPaymentGateway,
   PaymentGatewayCapabilities,
@@ -29,7 +29,7 @@ export abstract class BaseRazorpayAdapter implements IPaymentGateway {
     ],
   };
 
-  constructor(protected razorpayClient: RazorpayClientService) {}
+  constructor(protected razorpayClient: RazorpayClientAdapter) {}
 
   async isAvailable(): Promise<boolean> {
     return this.razorpayClient.isAvailable();

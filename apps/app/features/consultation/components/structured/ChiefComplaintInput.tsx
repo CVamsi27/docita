@@ -5,15 +5,9 @@ import { Button } from "@workspace/ui/components/form/button";
 import { useSpeechToText } from "@workspace/hooks";
 import { Activity, Plus } from "lucide-react";
 import { ChiefComplaintItemRow } from "./chief-complaint-item-row";
+import type { ChiefComplaintItem } from "./chief-complaint.types";
 
-export interface ChiefComplaintItem {
-  id: string;
-  complaint: string;
-  durationValue: string;
-  durationUnit: string;
-  severity: string;
-  notes?: string;
-}
+export type { ChiefComplaintItem };
 
 interface ChiefComplaintInputProps {
   value: ChiefComplaintItem[];

@@ -4,7 +4,7 @@ import * as crypto from 'crypto';
 import { isRecord } from '@workspace/utils';
 import { asRazorpayRecord } from './razorpay-record.util';
 import { BaseRazorpayAdapter } from './razorpay.adapter';
-import { RazorpayClientService } from './razorpay-client.service';
+import { RazorpayClientAdapter } from './razorpay-client.adapter';
 import {
   IOrderProvider,
   CreateOrderRequest,
@@ -23,7 +23,7 @@ export class RazorpayOrderAdapter
   private readonly logger = new Logger(RazorpayOrderAdapter.name);
 
   constructor(
-    razorpayClient: RazorpayClientService,
+    razorpayClient: RazorpayClientAdapter,
     private configService: ConfigService,
   ) {
     super(razorpayClient);
@@ -101,8 +101,14 @@ export class RazorpayOrderAdapter
         status: order.status,
         metadata: order.notes,
       };
-    } catch {
-      this.logger.warn(`Order ${orderId} not found`);
+    } catch (error) {
+      // Audit FL6 (2026-05-23): preserve the underlying error so we can
+      // distinguish "Razorpay 404" from network failure / rate limit /
+      // signature mismatch. Without this context the call site cannot
+      // tell a genuine miss from an upstream degradation.
+      this.logger.warn(`Razorpay getOrder failed for ${orderId}`, {
+        error: error instanceof Error ? error.message : String(error),
+      });
       return null;
     }
   }

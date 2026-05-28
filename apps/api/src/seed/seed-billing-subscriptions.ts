@@ -22,6 +22,8 @@ interface SeedBillingAndUsageParams {
 const CANONICAL_TIERS: ClinicTier[] = [
   ClinicTier.STARTER,
   ClinicTier.FRONT_DESK,
+  ClinicTier.FRONT_DESK_CLINIC,
+  ClinicTier.FRONT_DESK_HOSPITAL,
   ClinicTier.ESSENTIAL,
   ClinicTier.PROFESSIONAL,
   ClinicTier.HOSPITAL,
@@ -51,6 +53,10 @@ function getMonthRange(date = new Date()): { start: Date; end: Date } {
   return { start, end };
 }
 
+// Enterprise list pricing is "custom" — pick a deterministic annual amount
+// for the seed so the billing dashboard renders meaningful numbers.
+const ENTERPRISE_SEED_ANNUAL_INR = 240_000;
+
 export async function seedBillingAndUsage(
   prisma: PrismaClient,
   params: SeedBillingAndUsageParams,
@@ -60,6 +66,11 @@ export async function seedBillingAndUsage(
   const cycleKey = `${cycleStart.getFullYear()}-${String(
     cycleStart.getMonth() + 1,
   ).padStart(2, '0')}`;
+  // Annual subscription period: today → today + 1 year.
+  const subscriptionStart = new Date();
+  subscriptionStart.setHours(0, 0, 0, 0);
+  const subscriptionEnd = new Date(subscriptionStart);
+  subscriptionEnd.setFullYear(subscriptionEnd.getFullYear() + 1);
   const legacyUtcCycleKey = `${cycleStart.getUTCFullYear()}-${String(
     cycleStart.getUTCMonth() + 1,
   ).padStart(2, '0')}`;
@@ -135,7 +146,6 @@ export async function seedBillingAndUsage(
   const activeTier = ClinicTier.ENTERPRISE;
   const activeTierName: keyof typeof TIER_LIMITS = 'ENTERPRISE';
   const activeTierLimits = TIER_LIMITS[activeTierName];
-  const activeTierPricing = pricing[activeTierName];
 
   await prisma.clinic.update({
     where: { id: clinicId },
@@ -146,36 +156,71 @@ export async function seedBillingAndUsage(
     },
   });
 
-  await prisma.subscription.upsert({
+  const annualBasePriceCents = toPaise(ENTERPRISE_SEED_ANNUAL_INR);
+
+  const subscription = await prisma.subscription.upsert({
     where: { clinicId },
     update: {
       plan: activeTier,
-      billingCycle: BillingCycle.MONTHLY,
-      basePriceCents: toPaise(activeTierPricing.monthly),
+      billingCycle: BillingCycle.YEARLY,
+      basePriceCents: annualBasePriceCents,
       currency: INR_CURRENCY,
       status: SubscriptionStatus.ACTIVE,
-      currentPeriodStart: cycleStart,
-      currentPeriodEnd: cycleEnd,
+      currentPeriodStart: subscriptionStart,
+      currentPeriodEnd: subscriptionEnd,
       includedPatients: activeTierLimits.patients,
       includedAppointments: activeTierLimits.appointments ?? 0,
       includedStorageGB: activeTierLimits.storageGB,
       includedUsers: activeTierLimits.users ?? 1,
       cancelAtPeriodEnd: false,
-      autoPayEnabled: false,
+      autoPayEnabled: true,
     },
     create: {
       clinicId,
       plan: activeTier,
-      billingCycle: BillingCycle.MONTHLY,
-      basePriceCents: toPaise(activeTierPricing.monthly),
+      billingCycle: BillingCycle.YEARLY,
+      basePriceCents: annualBasePriceCents,
       currency: INR_CURRENCY,
       status: SubscriptionStatus.ACTIVE,
-      currentPeriodStart: cycleStart,
-      currentPeriodEnd: cycleEnd,
+      currentPeriodStart: subscriptionStart,
+      currentPeriodEnd: subscriptionEnd,
       includedPatients: activeTierLimits.patients,
       includedAppointments: activeTierLimits.appointments ?? 0,
       includedStorageGB: activeTierLimits.storageGB,
       includedUsers: activeTierLimits.users ?? 1,
+      autoPayEnabled: true,
+    },
+  });
+
+  // Single PAID annual subscription payment so the billing dashboard isn't empty.
+  await prisma.subscriptionPayment.upsert({
+    where: { razorpayPaymentId: `seed_pay_${clinicId}` },
+    update: {
+      clinicId,
+      subscriptionId: subscription.id,
+      amountCents: annualBasePriceCents,
+      grandTotalCents: annualBasePriceCents,
+      subtotalCents: annualBasePriceCents,
+      currency: INR_CURRENCY,
+      status: 'SUCCEEDED',
+      invoiceNumber: 'DC/ENT/SEED/0001',
+      invoiceType: 'TAX_INVOICE',
+      description: 'Annual enterprise subscription (seed)',
+      paidAt: subscriptionStart,
+    },
+    create: {
+      clinicId,
+      subscriptionId: subscription.id,
+      amountCents: annualBasePriceCents,
+      grandTotalCents: annualBasePriceCents,
+      subtotalCents: annualBasePriceCents,
+      currency: INR_CURRENCY,
+      status: 'SUCCEEDED',
+      razorpayPaymentId: `seed_pay_${clinicId}`,
+      invoiceNumber: 'DC/ENT/SEED/0001',
+      invoiceType: 'TAX_INVOICE',
+      description: 'Annual enterprise subscription (seed)',
+      paidAt: subscriptionStart,
     },
   });
 

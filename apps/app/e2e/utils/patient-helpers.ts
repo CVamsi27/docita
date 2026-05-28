@@ -290,9 +290,7 @@ async function setupTestUserImpl(
 ): Promise<UserData> {
   const clinicType = options.clinicType ?? "GENERAL";
   const tier = options.tier ?? "ESSENTIAL";
-  const isUnpaidEssentialTrial = tier === "ESSENTIAL";
-  const onboardingAdminRole =
-    tier === "FRONT_DESK" ? "ADMIN" : "ADMIN_DOCTOR";
+  const onboardingAdminRole = tier === "FRONT_DESK" ? "ADMIN" : "ADMIN_DOCTOR";
   const uniqueId = randomUUID();
   const email = `doctor-${uniqueId}@test.com`;
   const password = TEST_PASSWORD;
@@ -436,6 +434,9 @@ async function setupTestUserImpl(
           tier,
           billingCycle: "MONTHLY",
           currency: "INR",
+        },
+        paymentDetails: {
+          skipPayment: true,
         },
         paymentDetails: isUnpaidEssentialTrial
           ? { skipPayment: true }
@@ -598,9 +599,13 @@ export function reuseSharedFrontDeskClinicUser(
   request: APIRequestContext,
 ): Promise<UserData> {
   if (!sharedFrontDeskClinicUser) {
-    sharedFrontDeskClinicUser = setupTestUser(request, {}, {
-      tier: "FRONT_DESK",
-    }).catch((err: unknown) => {
+    sharedFrontDeskClinicUser = setupTestUser(
+      request,
+      {},
+      {
+        tier: "FRONT_DESK",
+      },
+    ).catch((err: unknown) => {
       sharedFrontDeskClinicUser = null;
       throw err;
     });

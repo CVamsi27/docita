@@ -22,6 +22,11 @@ export interface InvoiceListItem {
   discountTotal: number;
   taxTotal: number;
   grandTotal: number;
+  totalCents: number;
+  subtotalCents: number;
+  discountTotalCents: number;
+  taxTotalCents: number;
+  grandTotalCents: number;
   status: InvoiceStatus;
   items: Prisma.JsonValue;
   issuedAt: Date | null;
@@ -47,6 +52,11 @@ export interface InvoiceDetail {
   discountTotal: number;
   taxTotal: number;
   grandTotal: number;
+  totalCents: number;
+  subtotalCents: number;
+  discountTotalCents: number;
+  taxTotalCents: number;
+  grandTotalCents: number;
   taxSummary: Prisma.JsonValue | null;
   sellerTaxSnapshot: Prisma.JsonValue | null;
   buyerTaxSnapshot: Prisma.JsonValue | null;
@@ -153,11 +163,19 @@ export interface IInvoiceRepository {
     params: InvoiceSearchParams,
   ): Promise<PaginatedResult<InvoiceListItem>>;
   findById(id: string, clinicId: string): Promise<InvoiceDetail | null>;
-  create(data: Prisma.InvoiceCreateInput): Promise<InvoiceDetail>;
+  findByIdempotencyKey?(
+    key: string,
+    clinicId?: string,
+  ): Promise<InvoiceDetail | null>;
+  create(
+    data: Prisma.InvoiceCreateInput,
+    tx?: Prisma.TransactionClient,
+  ): Promise<InvoiceDetail>;
   update(
     id: string,
     data: Prisma.InvoiceUpdateInput,
     clinicId: string,
+    tx?: Prisma.TransactionClient,
   ): Promise<InvoiceDetail>;
   delete(id: string, clinicId: string): Promise<void>;
   findPatientContext(

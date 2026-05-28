@@ -144,6 +144,7 @@ export class StaffNotificationInboxService {
       data: { isRead: true, readAt: this.clock.now() },
     });
 
+    // allow-direct-emit: websocket fan-out only; persisted inbox state is authoritative.
     this.eventEmitter.emit(ApplicationEvents.NOTIFICATION_READ, {
       clinicId: existing.clinicId,
       userId,
@@ -169,6 +170,7 @@ export class StaffNotificationInboxService {
       data: { deletedAt: this.clock.now() },
     });
 
+    // allow-direct-emit: websocket fan-out only; deletedAt filter is authoritative.
     this.eventEmitter.emit(ApplicationEvents.NOTIFICATION_DELETED, {
       clinicId: existing.clinicId,
       userId,
@@ -185,6 +187,7 @@ export class StaffNotificationInboxService {
       data: { deletedAt: this.clock.now() },
     });
 
+    // allow-direct-emit: websocket fan-out only; inbox reload recovers missed emits.
     this.eventEmitter.emit(ApplicationEvents.NOTIFICATION_BULK_DELETED, {
       clinicId,
       userId,
@@ -224,6 +227,7 @@ export class StaffNotificationInboxService {
         },
       });
 
+      // allow-direct-emit: websocket fan-out only; persisted notification row is authoritative.
       this.eventEmitter.emit(ApplicationEvents.NOTIFICATION_CREATED, {
         clinicId,
         userId,

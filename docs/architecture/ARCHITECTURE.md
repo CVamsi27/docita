@@ -1,5 +1,9 @@
 # Architecture
 
+> **Descriptive.** Snapshots what the codebase does today. For prescriptive
+> rules new code must follow, see [`AGENTS.md`](../../AGENTS.md). When this
+> doc disagrees with the code, the code wins — update the doc.
+
 Docita is a Turborepo monorepo for a healthcare SaaS product handling PHI
 (Protected Health Information). Deployed on Fly.io (API + worker) and
 Cloudflare Workers (Next.js apps via OpenNext).

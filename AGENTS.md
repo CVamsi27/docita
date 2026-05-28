@@ -164,7 +164,6 @@ The `shared/` folder is the home for **non-feature** code reused across features
 - Never import `@prisma/client` or `@workspace/db` in frontend code.
 - For `apps/app` Cloudflare builds, keep the route guard file as `middleware.ts`; Next 16 may warn about the newer `proxy` convention, but this deployment path does not use it.
 - For browser-side web-vitals or client-error telemetry in `apps/app` and `apps/internal`, do not post directly from the browser to `https://api.docita.work` or any other cross-origin API URL. Use a same-origin app/internal route proxy, or first update and verify the API CORS allowlist for the exact production origin. Telemetry failures must be non-blocking and must not create console noise for clinicians.
-- For `apps/internal` production browser API traffic, keep `NEXT_PUBLIC_API_URL` same-origin (`/api/v1`) and route it through the internal Next proxy. Do not point internal browser builds directly at `https://api.docita.work/api/v1` unless API CORS is deliberately updated and verified for `https://internal.docita.work`.
 - Do not remove Cloudflare/OpenNext runtime shims such as the `globalThis.__name` bootstrap in `apps/app/app/layout.tsx` unless the matching production Cloudflare artifact and local preview prove the helper is no longer needed. The check must include `build:cloudflare:production`, an artifact search for `__name`/telemetry URLs, and a browser or Playwright smoke of the affected production route.
 
 ### 4.1 Import path standards
@@ -238,6 +237,9 @@ The `shared/` folder is the home for **non-feature** code reused across features
 - Remove dead code and commented-out blocks.
 - No emojis in code, comments, or commit messages.
 - Prefer small cohesive functions and descriptive naming.
+- **File naming:** kebab-case for hooks (`use-patients.ts`), rules (`patient-rules.ts`), and feature modules; PascalCase for React components.
+- **Handlers:** prefix user-triggered callbacks with `handle` (`handleSubmit`, `handleClose`).
+- **Session semantics:** import CSRF cookie/header names and token TTL constants from `@workspace/auth`, not ad-hoc strings.
 
 ### 7.4 Unused dependencies and exports (Knip)
 
@@ -340,7 +342,8 @@ The Origin-inspired standard in [`docs/ui/UI_UX_STANDARD_2026.md`](docs/ui/UI_UX
 - For design-system or theme-token changes, run `pnpm check:colors`.
 - For `packages/db` changes that affect indexes, query plans, or migration safety, run the relevant DB guardrails from `@workspace/db` (`db:check-integrity`, `db:analyze-indexes`, `db:profile-queries`, `db:check-query-plans`, or `db:guardrail`).
 - When a pull request is already failing a GitHub Actions workflow, run the matching local command for that workflow before committing or pushing.
-- For dependency or lockfile changes, run `pnpm audit --audit-level=high` locally before pushing.
+- For dependency or lockfile changes, run `pnpm audit --audit-level=high` locally before pushing. CI also runs the OSV scanner reusable workflow (`google/osv-scanner-action`) on PRs that touch dependency manifests; it fails only on **new** vulnerabilities introduced by the PR. Pre-existing advisories are reported but do not block.
+- For refactors that move services, modules, or barrel files (NestJS DI risk, frontend barrel cycles), run `pnpm check:circular`. The baseline is **0 cycles** as of 2026-05; the two intentional NestJS `forwardRef` module cycles (auth↔clinics, whatsapp↔support-whatsapp) are allowlisted with justification in `scripts/checks/check-circular-deps.mjs`. New cycles must be fixed before merge — use `pnpm check:circular:enforce` to gate locally.
 - Before creating a commit or pushing a branch, run the relevant local checks for the touched area and do not push until they pass.
 - For Render/OpenNext or Cloudflare-related app changes, verify the matching local `build:cloudflare` task before pushing.
 
@@ -353,6 +356,7 @@ The Origin-inspired standard in [`docs/ui/UI_UX_STANDARD_2026.md`](docs/ui/UI_UX
 - Avoid temporary/untracked project junk unless explicitly required.
 - Run `pnpm check:hygiene` and `pnpm verify:standard` when needed.
 - Periodically remove unused modules, duplicate implementations, and orphaned assets; prefer consolidation into shared packages when the behavior is cross-cutting.
+- **Branch hygiene is non-negotiable**: keep the remote at `main` + `staging` + at most **two** open feature/hotfix branches. See §11.3 "Concurrent branch / PR cap" and the consolidation playbook at [`docs/operations/BRANCH_CONSOLIDATION_PLAYBOOK.md`](docs/operations/BRANCH_CONSOLIDATION_PLAYBOOK.md).
 
 ## 11.1) Deployment workflow scope
 
@@ -372,7 +376,7 @@ The Origin-inspired standard in [`docs/ui/UI_UX_STANDARD_2026.md`](docs/ui/UI_UX
 - Path-filter expensive workflows so unrelated app or docs changes do not consume full CI minutes.
 - Frontend CI jobs should be scoped by app so `app`, `internal`, and `landing` run independently based on the files that changed.
 - Prefer running full-repo build, coverage, critical E2E, bundle analysis, and other heavyweight jobs on pushes to `main`.
-- Keep dependency audits scoped to dependency-manifest changes unless there is a specific reason to run them more broadly.
+- Keep dependency audits scoped to dependency-manifest changes unless there is a specific reason to run them more broadly. The `security-audit` job (`pnpm audit --audit-level=high`) and the `osv-scan` reusable workflow (`google/osv-scanner-action`) are both gated by `needs.changes.outputs.dependencies` from [`scripts/workflow/detect-workflow-scope.mjs`](scripts/workflow/detect-workflow-scope.mjs). The OSV job runs PR-only and uploads SARIF to the Security tab; it requires `permissions: { actions: read, contents: read, security-events: write }`.
 
 ## 11.3) Branch model: `main`, `staging`, and feature branches
 
@@ -404,6 +408,23 @@ Open a **pull request into `main`**. Consolidation or umbrella branches must sti
 ### Hotfixes
 
 Use a branch from **up-to-date `main`**, merge via PR **into `main`**, and let the `main` → `staging` sync automation update staging.
+
+### Concurrent branch / PR cap (mandatory)
+
+Keep the repository lean. At any moment, the remote must contain **at most**:
+
+- `main` (canonical)
+- `staging` (automated mirror of `main`)
+- **two** in-flight feature/hotfix branches with open pull requests
+
+Rules:
+
+- **Do not open a third feature PR.** If two PRs are already open, land or close one (delete its remote branch) before opening another. Stacked work belongs on a single branch with multiple commits, not on a third parallel branch.
+- **Delete branches immediately after merge or close.** Use `git push origin --delete <branch>` (or GitHub's "Delete branch" button) and `git branch -D <branch>` locally. The branch should never linger as a tombstone.
+- **No "tomorrow I'll get to it" backlog of stale branches.** A branch that has not had a commit in 14 days must be either merged, closed, or rebased and pushed forward — not left to rot.
+- **Consolidation rule.** If more than two open PRs ever accumulate (for example via automation, codex runs, or split work), merge them into a single consolidation branch (`consolidation/<scope>-<YYYY-MM-DD>`) following the procedure in [`docs/operations/BRANCH_CONSOLIDATION_PLAYBOOK.md`](docs/operations/BRANCH_CONSOLIDATION_PLAYBOOK.md), then close the originals with a comment pointing at the consolidation PR. Do not let the count drift back above two.
+- **Exceptions.** The temporary cap may be exceeded only for: (a) an active consolidation operation that itself reduces the count back to ≤ 2, or (b) an in-progress release cut where a release branch is briefly open alongside the next feature branch. Both exceptions are time-bounded — do not normalise them.
+- **Agents must check the count before pushing a new branch.** Run `gh pr list --state open --json number,headRefName --jq 'length'` (excluding `main`/`staging` infra PRs); if the count is already 2, do not open another PR until one closes.
 
 ## 12) Design Principles, Patterns, and Performance
 
@@ -477,6 +498,8 @@ pnpm audit:landing
 pnpm check:hygiene
 pnpm verify:standard
 pnpm knip
+pnpm check:circular           # reports import cycles per app/package (warn mode)
+pnpm check:circular:enforce   # fails on any cycle; baseline is 0 (2026-05)
 pnpm check:prisma-boundary
 pnpm check:colors
 pnpm db:generate
@@ -495,6 +518,7 @@ pnpm perf:budget:enforce
 Before finalizing changes:
 
 - Work is on a **branch created from `main`** (after pull), not on `main` or `staging` directly; PRs target **`main`**.
+- **Branch cap respected**: no more than two open feature/hotfix PRs exist after this work is pushed. If opening this PR would push the count to three, land or close an existing one first (or fold the work into an existing open PR). After merge, the remote branch is deleted.
 - Architecture/layer boundaries are respected.
 - HTTP handlers and clients share Zod-defined shapes; payloads omit unused fields.
 - No security or tenant/auth guard regressions.
@@ -595,21 +619,34 @@ Split or extract when **responsibility**, **pattern fit**, or **duplication** de
 
 ### 15.6 Design Patterns in Use
 
-- **Facade**: `AppointmentService`, `InvoicesService`, `UsageTrackingService` keep a stable public API while delegating to split internals.
-- **Command/Query Separation (CQS)**: backend services split on the read vs. mutate axis. Query services must not be imported into command chains.
-- **Repository Pattern**: every domain has an `IXRepository` interface + `PrismaXRepository` implementation. Controllers never touch Prisma directly.
-- **Strategy Pattern**: `StorageProvider` abstraction; `OnboardingStepEngine` (pure state machine callable with any persistence strategy).
-- **Observer Pattern**: `EventEmitter2` for `appointment.created`, `invoice.paid`, etc. — producers and consumers are decoupled.
-- **Decorator Pattern**: `@AuditLogged`, `@RequireFeature`, `@Roles` — cross-cutting concerns added without modifying method logic.
-- **Template Method**: `BasePdfService` defines the PDF render pipeline; `InvoicePdfRenderer`/`PrescriptionPdfRenderer` fill in the steps.
+Each pattern below points at a canonical example to copy from when introducing a new instance.
+
+| Pattern | Canonical example |
+| --- | --- |
+| Facade | [`apps/api/src/domains/appointments/application/services/appointment.service.ts`](apps/api/src/domains/appointments/application/services/appointment.service.ts) |
+| Command/Query Separation (CQS) | [`apps/api/src/domains/appointments/application/services/appointment-command.service.ts`](apps/api/src/domains/appointments/application/services/appointment-command.service.ts) + [`appointment-query.service.ts`](apps/api/src/domains/appointments/application/services/appointment-query.service.ts) |
+| Repository pattern | [`apps/api/src/domains/appointments/core/repositories/appointment.repository.interface.ts`](apps/api/src/domains/appointments/core/repositories/appointment.repository.interface.ts) + [`apps/api/src/domains/appointments/infrastructure/persistence/prisma-appointment-write.repository.ts`](apps/api/src/domains/appointments/infrastructure/persistence/prisma-appointment-write.repository.ts) |
+| Strategy pattern | [`apps/api/src/shared/modules/imports/bulk-import-strategy.registry.ts`](apps/api/src/shared/modules/imports/bulk-import-strategy.registry.ts); [`apps/api/src/shared/modules/storage/`](apps/api/src/shared/modules/storage/) (`StorageProvider`) |
+| Observer / event emitter | [`apps/api/src/shared/modules/events/`](apps/api/src/shared/modules/events/) (`EventEmitter2` wiring) |
+| Decorator (cross-cutting) | [`apps/api/src/shared/modules/audit/audit-logger.service.ts`](apps/api/src/shared/modules/audit/audit-logger.service.ts); decorators under [`apps/api/src/shared/modules/auth/decorators/`](apps/api/src/shared/modules/auth/decorators/) (`@ClinicScoped`, `@EmergencyAccess`, `@SkipSubscriptionCheck`) |
+| Template method | [`apps/api/src/shared/modules/document-generation/pdf/pdf-generator.service.ts`](apps/api/src/shared/modules/document-generation/pdf/pdf-generator.service.ts) |
+| Anti-corruption layer | [`apps/api/src/shared/common/repositories/base.repository.ts`](apps/api/src/shared/common/repositories/base.repository.ts) (Prisma error translation) |
+| Outbox (proposed) | See ADR [`docs/architecture/decisions/0010-transactional-outbox.md`](docs/architecture/decisions/0010-transactional-outbox.md) |
 
 ### 15.7 Frontend Component Architecture
 
-- **Page shell**: `AppPageScaffold → PageHeader → DataState → Content` is the mandatory pattern for every new page.
-- **Colocation rule**: types used only within one feature stay in `features/<feature>/types.ts`. Shared types go to `packages/types`. Never duplicate.
-- **Draft pattern**: `useOnboardingDraft` is the canonical pattern for localStorage persistence — hook encapsulates read/write/expiry; component only calls handlers.
-- **Sections file** (`*-sections.tsx`): sub-components that accept props from the orchestrator. Pure render, no data fetching.
-- **Helpers file** (`*-helpers.ts`): pure functions and constants. No React imports. Fully unit-testable without DI.
+Each shape below has a canonical example to copy from. The frontmatter cites the file when applicable.
+
+| Shape | Canonical example |
+| --- | --- |
+| Page shell (`AppPageScaffold → PageHeader → DataState → Content`) | Any page under [`apps/app/app/(protected)/`](apps/app/app/(protected)/) |
+| Feature folder layout | [`apps/app/features/patients/`](apps/app/features/patients/) (`components/`, `hooks/`, `rules/`, `lib/`, `index.ts`) |
+| Colocation rule for types | [`apps/app/features/patients/types.ts`](apps/app/features/patients/) (feature-local types) vs `packages/types` (shared) |
+| Draft pattern (localStorage with expiry) | [`apps/app/features/onboarding/components/forms/use-onboarding-draft.ts`](apps/app/features/onboarding/components/forms/use-onboarding-draft.ts) |
+| Sections file (`*-sections.tsx`) | Any feature using the split, e.g. `apps/app/features/<feature>/components/<feature>-sections.tsx` |
+| Helpers file (`*-helpers.ts`) | Any feature using the split, e.g. `apps/app/features/<feature>/lib/<feature>-helpers.ts` |
+| Per-domain data hook | [`packages/data-access/src/hooks/use-patients.ts`](packages/data-access/src/hooks/use-patients.ts) |
+| Page-level loading/error/empty | `DataState` from [`packages/ui/src/components/data-display/data-state.tsx`](packages/ui/src/components/data-display/data-state.tsx) |
 
 ### 15.8 Tier/Feature Gating Contract (critical)
 
@@ -618,6 +655,7 @@ Split or extract when **responsibility**, **pattern fit**, or **duplication** de
 - **Front Desk is tier-only.** A clinic on the Front Desk billed SKU has `clinic.tier === Tier.FRONT_DESK`. There is no `settings.workspaceProfile`, workspace-mode picker, or plan→profile resolver — onboarding and billing set the tier directly.
 - **Canonical Front Desk helpers** (all in `@workspace/types`): `isFrontDeskTier(tier)`; `FRONT_DESK_BLOCKED_FEATURES` for `@RequireFeature` / `hasFeatureAccess` denials; `FRONT_DESK_BLOCKED_ACCESS_TARGETS` and `shouldDenyAccessForFrontDeskTier` for route/API access policy. Prefer these helpers over ad-hoc `tier === "FRONT_DESK"` checks at call sites.
 - **Removed symbols** (do not reintroduce): `workspaceProfile`, `isFrontDeskClinicMode`, `isFrontDeskWorkspace`, `resolveWorkspaceProfileForPlan`, `WorkspaceModeCard`, `WorkspaceSelector`. `pnpm check:workspace-profile-gating` fails the build if they appear outside migration SQL and [`scripts/checks/check-workspace-profile-gating.mjs`](scripts/checks/check-workspace-profile-gating.mjs) (historical script name).
+- **Per-clinic overrides → custom packages, not new tiers.** Variations like "Professional without WhatsApp" or "Hospital without AI" are expressed as boolean overrides in the `Clinic.features` JSON column, **not** as new `Tier` enum values. The allowlist of features that may be toggled lives in `OVERRIDABLE_FEATURES` (`packages/types/src/billing/tier.ts`); overrides that touch any other feature are stripped at the boundary by `clinicFeatureOverridesSchema`. Pre-baked override bundles (`PROFESSIONAL_NO_COMMS`, `HOSPITAL_CORE`, …) live in `PACKAGE_PRESETS` and are the only sanctioned way for sales/admin tooling to attach overrides. `hasFeatureAccess(tier, feature, hasIntelligence, overrides)` and `assertClinicHasFeatureOrThrow` both honor overrides from the same source — never check `Clinic.features` directly. See [docs/product/CUSTOM_PACKAGES.md](docs/product/CUSTOM_PACKAGES.md).
 
 ### 15.9 Import Discipline
 
@@ -645,6 +683,7 @@ Mechanical checks catch **boundary violations**; they do not fully enforce SOLID
 | Principle / pattern | Command(s) | What it actually checks |
 | --- | --- | --- |
 | **Layering / DDD** | `pnpm check:prisma-boundary`, `pnpm check:api-domain-layout`, `pnpm check:cross-domain-*-imports` | Prisma and domain folder boundaries |
+| **Circular imports** | `pnpm check:circular` (warn) / `pnpm check:circular:enforce` (fail; bundled into `verify:standard`) | Detects import cycles per app and package via `madge` with each project's `tsconfig.json`. Baseline is **0 cycles** (2026-05). Two intentional NestJS `forwardRef` module cycles are allowlisted in `KNOWN_CYCLES` inside `scripts/checks/check-circular-deps.mjs` with justification. Cycles are canonicalized (rotated to start with the lexicographically smallest entry) before lookup, so a single allowlist entry covers both rotations madge may emit. Add new allowlist entries only with an explicit rationale. |
 | **Repository + thin controller** | `pnpm check:controller-cqs`, `pnpm check:route-thinness` | Controllers orchestrate; routes stay thin |
 | **Facade / CQS** | `pnpm check:facade-delegation --enforce` | Large application services delegate instead of embedding persistence |
 | **Zod-first / contracts** | `pnpm check:contracts-strict`, `pnpm verify:contracts`, `pnpm check:type-duplicates` | Shared schemas; no duplicate DTO shapes |
@@ -653,6 +692,7 @@ Mechanical checks catch **boundary violations**; they do not fully enforce SOLID
 | **Tier / feature gating** | `pnpm check:tier-comparisons`, `pnpm check:workspace-profile-gating` | No numeric tier compares; blocks legacy `workspaceProfile` symbols; tier-only Front Desk via `isFrontDeskTier` |
 | **RBAC** | `pnpm check:controller-rbac` | Controller auth posture declared |
 | **Tenant / RLS** | `pnpm check:auth-tenant-safety`, `pnpm check:rls-rollout-readiness` | Tenant-safe auth; RLS rollout config |
+| **Dependency CVEs** | `pnpm audit --audit-level=high` (CI: `security-audit`) + `google/osv-scanner-action` reusable workflow (CI: `osv-scan`) | npm registry advisories + OSV cross-ecosystem database. Both gated on `dependencies` scope. OSV runs PR-only and fails on **new** vulnerabilities only. |
 | **DRY / hygiene** | `pnpm knip`, `pnpm check:hygiene` | Unused exports/deps; repo junk |
 | **Typing discipline** | `pnpm check:as-cast-density`, `pnpm lint`, `pnpm turbo check-types` | Limit type escapes; ESLint rules |
 | **UI contract** | `pnpm check:colors`, `pnpm check:a11y-budget`, Origin standard in §4.3 | Tokens, a11y baseline, page primitives |

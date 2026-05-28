@@ -1,8 +1,5 @@
-import type {
-  InvoicePdfInput,
-  PDFConfig,
-  PrescriptionPdfInput,
-} from './pdf.types';
+import type { InvoicePdfInput, PrescriptionPdfInput } from './pdf.types';
+import type { PDFConfig } from './pdf-config.types';
 
 export type {
   PDFClinicInfo,

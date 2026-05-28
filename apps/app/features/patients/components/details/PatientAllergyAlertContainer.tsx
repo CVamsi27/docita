@@ -1,5 +1,5 @@
-import { usePatient } from "@/features/patients/hooks/usePatients";
-import { getPatientDisplayName } from "@/features/patients/rules/patientRules";
+import { usePatient } from "@/features/patients/hooks/use-patients";
+import { getPatientDisplayName } from "@/features/patients/rules/patient-rules";
 import { PatientAllergyAlertUI } from "./PatientAllergyAlertUI";
 
 interface PatientAllergyAlertContainerProps {

@@ -1,10 +1,14 @@
 import { ForbiddenException } from '@nestjs/common';
 import { ClinicTier, IntelligenceAddon } from '@workspace/db';
-import { Feature, mapDbClinicTierStringToTierName } from '@workspace/types';
+import {
+  clinicFeatureOverridesSchema,
+  Feature,
+  mapDbClinicTierStringToTierName,
+  type ClinicFeatureOverrides,
+} from '@workspace/types';
 import {
   hasFeatureAccess,
   isFeatureGenerallyAvailable,
-  isRecord,
 } from '@workspace/utils';
 import {
   FEATURE_TIER_MAP,
@@ -17,20 +21,16 @@ export type ClinicFeatureAuthSnapshot = {
   features: unknown;
 };
 
+/**
+ * Parse the JSON `Clinic.features` column through {@link clinicFeatureOverridesSchema}.
+ * The schema strips keys that are not in `OVERRIDABLE_FEATURES`, so a typo or
+ * legacy override can never re-enable or disable a core clinical feature.
+ */
 export function readClinicFeatureOverrides(
   value: unknown,
-): Record<string, boolean> {
-  if (!isRecord(value)) {
-    return {};
-  }
-
-  const overrides: Record<string, boolean> = {};
-  for (const [key, entry] of Object.entries(value)) {
-    if (typeof entry === 'boolean') {
-      overrides[key] = entry;
-    }
-  }
-  return overrides;
+): ClinicFeatureOverrides {
+  const parsed = clinicFeatureOverridesSchema.safeParse(value ?? {});
+  return parsed.success ? parsed.data : {};
 }
 
 function getTierDisplayName(tier: Tier): string {
@@ -42,6 +42,8 @@ function getTierDisplayName(tier: Tier): string {
     [Tier.ENTERPRISE]: 'Enterprise',
     [Tier.INTELLIGENCE]: 'Intelligence',
     [Tier.FRONT_DESK]: 'Front desk',
+    [Tier.FRONT_DESK_CLINIC]: 'Front desk Clinic',
+    [Tier.FRONT_DESK_HOSPITAL]: 'Front desk Hospital',
   };
   return names[tier] || 'Unknown';
 }

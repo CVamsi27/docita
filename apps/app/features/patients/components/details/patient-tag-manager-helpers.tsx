@@ -5,7 +5,7 @@ import { Label } from "@workspace/ui/components/form/label";
 import { Badge } from "@workspace/ui/components/indicators/badge";
 import { ScrollArea } from "@workspace/ui/components/layout/scroll-area";
 import { Check, Palette, Plus } from "lucide-react";
-import type { PresetTag } from "./PatientTagManagerUI";
+import type { PresetTag } from "./patient-tag.types";
 import {
   COLOR_PALETTE,
   type PresetTagLike,

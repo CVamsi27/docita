@@ -22,4 +22,8 @@ export const CRON_SCHEDULES = {
   BILLING_PAYMENT_REMINDERS: CronExpression.EVERY_DAY_AT_1AM,
   METRICS_FLUSH: CronExpression.EVERY_10_MINUTES,
   METRICS_AGGREGATE: CronExpression.EVERY_HOUR,
+  // 6-field cron — first field is seconds. Outbox relay polls frequently
+  // because consumers expect near-real-time event delivery; the
+  // `processedAt, createdAt` index keeps the scan cheap.
+  OUTBOX_RELAY: '*/5 * * * * *',
 } as const;

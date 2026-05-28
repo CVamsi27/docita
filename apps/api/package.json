@@ -7,13 +7,13 @@
   "license": "UNLICENSED",
   "scripts": {
     "build": "nest build",
-    "predev": "pnpm --filter @workspace/types run build && pnpm --filter @workspace/utils run build && pnpm --filter @workspace/db run build",
+    "predev": "pnpm --filter @workspace/types run build && pnpm --filter @workspace/auth run build && pnpm --filter @workspace/utils run build && pnpm --filter @workspace/db run build",
     "format": "prettier --write \"src/**/*.ts\" \"test/**/*.ts\"",
     "seed": "DOTENV_CONFIG_PATH=../../.env ts-node -r tsconfig-paths/register src/seed/index.ts",
     "seed:local": "pnpm run seed",
     "seed:prod": "ts-node -r tsconfig-paths/register scripts/seed-prod-users.local.ts",
     "start": "nest start",
-    "prestart": "pnpm --filter @workspace/types run build && pnpm --filter @workspace/utils run build && pnpm --filter @workspace/db run build",
+    "prestart": "pnpm --filter @workspace/types run build && pnpm --filter @workspace/auth run build && pnpm --filter @workspace/utils run build && pnpm --filter @workspace/db run build",
     "dev": "nest start --watch",
     "start:debug": "nest start --debug --watch",
     "start:prod": "node dist/main",
@@ -30,11 +30,12 @@
     "test:e2e:cov": "jest --config ./test/jest-e2e.json --coverage",
     "test:all": "pnpm test && pnpm test:e2e",
     "test:ci": "jest --ci --coverage",
-    "generate-openapi": "ts-node scripts/generate-openapi.ts"
+    "generate-openapi": "ts-node -r tsconfig-paths/register scripts/generate-openapi.ts",
+    "openapi:generate": "pnpm run generate-openapi"
   },
   "dependencies": {
-    "@aws-sdk/client-s3": "^3.1019.0",
-    "@aws-sdk/s3-request-presigner": "^3.1019.0",
+    "@aws-sdk/client-s3": "^3.1053.0",
+    "@aws-sdk/s3-request-presigner": "^3.1053.0",
     "@nestjs/cache-manager": "^3.0.1",
     "@nestjs/common": "^11.1.18",
     "@nestjs/config": "^4.0.2",
@@ -54,6 +55,7 @@
     "@sentry/nestjs": "^10.47.0",
     "@sentry/profiling-node": "^10.47.0",
     "@willsoto/nestjs-prometheus": "^6.0.2",
+    "@workspace/auth": "workspace:*",
     "@workspace/db": "workspace:*",
     "@workspace/types": "workspace:*",
     "@workspace/utils": "workspace:^",
@@ -122,7 +124,7 @@
     "ts-jest": "^29.2.5",
     "ts-node": "^10.9.2",
     "tsconfig-paths": "^4.2.0",
-    "typescript": "^5.7.3",
+    "typescript": "5.7.3",
     "typescript-eslint": "^8.20.0"
   }
 }

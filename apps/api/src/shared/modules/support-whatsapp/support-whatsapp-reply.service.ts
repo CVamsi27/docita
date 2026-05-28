@@ -10,7 +10,7 @@ import { CLOCK_PORT, type IClock } from '@/shared/common/ports/clock.port';
 import { PrismaService } from '@/prisma/prisma.service';
 import { SupportWhatsAppMessage } from '@workspace/types';
 import { randomUUID } from 'crypto';
-import { WhatsappClientService } from '@/domains/whatsapp/infrastructure/clients/whatsapp-client.service';
+import { WhatsappClientAdapter } from '@/domains/whatsapp/infrastructure/clients/whatsapp-client.adapter';
 import {
   normalizePhoneNumber,
   threadMessageSelect,
@@ -23,7 +23,7 @@ export class SupportWhatsAppReplyService {
 
   constructor(
     private readonly prisma: PrismaService,
-    private readonly whatsappClient: WhatsappClientService,
+    private readonly whatsappClient: WhatsappClientAdapter,
     @Inject(CLOCK_PORT) private readonly clock: IClock,
   ) {}
 

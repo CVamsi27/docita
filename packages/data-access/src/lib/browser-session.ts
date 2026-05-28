@@ -52,28 +52,40 @@ export function createBrowserSessionManager(config: BrowserSessionConfig) {
   } = config;
 
   const refreshKey = `${apiUrl}::${tokenStorageKey}`;
-  const readPersistedToken = (): string | null => {
-    if (!isBrowser()) return null;
 
-    const persistedToken = localStorage.getItem(tokenStorageKey);
-    return persistedToken && persistedToken.length > 0 ? persistedToken : null;
-  };
+  /**
+   * Access tokens are NO LONGER persisted to localStorage.
+   *
+   * The httpOnly `access_token` cookie is the durable session credential;
+   * the in-memory token below only exists so non-cookie-bearing channels
+   * (wss:// socket auth to api.docita.work, monitoring beacons that ride
+   * cross-origin) can still attach Authorization headers within a session.
+   *
+   * On hard reload the in-memory token is empty until the bootstrap
+   * refresh fetch (which rides the refresh-token cookie) returns a new
+   * one. This eliminates the XSS-readable token surface.
+   *
+   * Any stored token from a previous version of the client is removed
+   * on first load so it cannot be exfiltrated post-upgrade.
+   */
+  if (isBrowser()) {
+    try {
+      localStorage.removeItem(tokenStorageKey);
+    } catch {
+      // ignore — quota / disabled storage
+    }
+  }
 
-  let inMemoryToken: string | null = readPersistedToken();
+  let inMemoryToken: string | null = null;
+  let inMemoryCsrfToken: string | null = null;
 
   const normalizeApiUrl = (value: string) =>
     value.endsWith("/") ? value.slice(0, -1) : value;
 
-  const syncTokenStorage = (token: string | null): void => {
-    if (!isBrowser()) return;
-    if (token) {
-      localStorage.setItem(tokenStorageKey, token);
-    } else {
-      localStorage.removeItem(tokenStorageKey);
-    }
-  };
-
   const getCsrfToken = (): string | null => {
+    if (inMemoryCsrfToken) {
+      return inMemoryCsrfToken;
+    }
     if (typeof document === "undefined") return null;
     const match = document.cookie.match(
       new RegExp(`(?:^|;\\s*)${csrfCookieKey}=([^;]*)`),
@@ -82,30 +94,38 @@ export function createBrowserSessionManager(config: BrowserSessionConfig) {
     return encoded ? decodeURIComponent(encoded) : null;
   };
 
-  const getToken = (): string | null => {
-    if (!isBrowser()) {
-      return inMemoryToken;
+  const captureCsrfFromResponse = (response: Response): void => {
+    const headerToken = response.headers.get("X-CSRF-Token");
+    if (headerToken && headerToken.length > 0) {
+      inMemoryCsrfToken = headerToken;
     }
-
-    const persistedToken = readPersistedToken();
-    if (persistedToken !== inMemoryToken) {
-      inMemoryToken = persistedToken;
-    }
-
-    return inMemoryToken;
   };
+
+  const setCsrfToken = (token: string | null): void => {
+    inMemoryCsrfToken = token;
+  };
+
+  const getToken = (): string | null => inMemoryToken;
 
   const setToken = (token: string | null): void => {
     inMemoryToken = token ?? null;
-    syncTokenStorage(inMemoryToken);
   };
 
   const clearSession = (): void => {
     inMemoryToken = null;
-    syncTokenStorage(null);
     if (!isBrowser()) return;
+    // Defensive: nuke any legacy stored token from prior client versions.
+    try {
+      localStorage.removeItem(tokenStorageKey);
+    } catch {
+      // ignore
+    }
     if (userStorageKey) {
-      localStorage.removeItem(userStorageKey);
+      try {
+        localStorage.removeItem(userStorageKey);
+      } catch {
+        // ignore
+      }
     }
   };
 
@@ -171,6 +191,8 @@ export function createBrowserSessionManager(config: BrowserSessionConfig) {
           },
         );
 
+        captureCsrfFromResponse(response);
+
         if (!response.ok) {
           return false;
         }
@@ -199,6 +221,8 @@ export function createBrowserSessionManager(config: BrowserSessionConfig) {
     setToken,
     clearSession,
     getCsrfToken,
+    setCsrfToken,
+    captureCsrfFromResponse,
     refreshAccessToken,
     redirectToLogin,
     isPublicPath,

@@ -32,6 +32,7 @@ export class LeaveMapper {
       cancelledAt: raw.cancelledAt?.toISOString() ?? undefined,
       createdAt: raw.createdAt.toISOString(),
       updatedAt: raw.updatedAt.toISOString(),
+      version: raw.version,
       staff: raw.staff
         ? {
             id: raw.staff.id,

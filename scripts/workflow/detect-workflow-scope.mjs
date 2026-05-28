@@ -105,11 +105,9 @@ function isKnipChange(file) {
 
 function isApiChange(file) {
   return (
-    isSharedApiRootChange(file) ||
+    isSharedApiChange(file) ||
     file.startsWith("apps/api/") ||
-    file.startsWith("packages/db/") ||
-    file.startsWith("packages/types/") ||
-    file.startsWith("packages/utils/")
+    file.startsWith("packages/auth/")
   );
 }
 
@@ -171,14 +169,9 @@ function isLandingChange(file) {
 
 function isDbChange(file) {
   return (
-    file === "package.json" ||
-    file === "pnpm-lock.yaml" ||
-    file === "pnpm-workspace.yaml" ||
-    file === "turbo.json" ||
+    isSharedApiChange(file) ||
     file.startsWith("apps/api/") ||
-    file.startsWith("packages/db/") ||
-    file.startsWith("packages/types/") ||
-    file.startsWith("packages/utils/")
+    file.startsWith("packages/auth/")
   );
 }
 
@@ -201,7 +194,20 @@ function isSharedApiRootChange(file) {
 }
 
 function isWorkerChange(file) {
-  return isApiChange(file) || isWorkerSpecificChange(file);
+  return (
+    isSharedApiChange(file) ||
+    file.startsWith("apps/api/") ||
+    isWorkerSpecificChange(file)
+  );
+}
+
+function isSharedApiChange(file) {
+  return (
+    isSharedApiRootChange(file) ||
+    file.startsWith("packages/db/") ||
+    file.startsWith("packages/types/") ||
+    file.startsWith("packages/utils/")
+  );
 }
 
 function isWorkerSpecificChange(file) {

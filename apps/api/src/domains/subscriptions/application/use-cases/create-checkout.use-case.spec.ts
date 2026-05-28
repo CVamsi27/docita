@@ -45,6 +45,7 @@ describe('CreateCheckoutUseCase', () => {
     expireDuplicatePendingCheckouts: jest.fn(async () => 0),
     expireOtherPendingSubscriptionCheckouts: jest.fn(async () => 0),
     findReusablePendingCheckout: findReusablePendingCheckoutMock,
+    findPaymentByRazorpayPaymentId: jest.fn(async () => null),
   };
 
   const clinicOps: IClinicOperations = {

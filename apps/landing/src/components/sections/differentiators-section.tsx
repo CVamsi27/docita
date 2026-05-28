@@ -71,7 +71,7 @@ export function DifferentiatorsSection() {
               >
                 <Smile className="h-4 w-4" />
               </span>
-              <p className="r2-eyebrow r2-eyebrow-accent">Patient Portal</p>
+              <p className="r2-eyebrow r2-eyebrow-accent">Patient portal</p>
             </div>
             <h3 className="text-lg font-semibold tracking-tight text-foreground">
               Your patients log in too.

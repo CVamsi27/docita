@@ -12,7 +12,7 @@ import { Badge } from "@workspace/ui/components/indicators/badge";
 import { Brain, Shield, Sparkles, Stethoscope } from "lucide-react";
 import { cn } from "@workspace/ui/lib/utils";
 import type { DiagnosisSuggestion } from "@/features/ai-assistant/hooks/use-ai-assistant-logic";
-import { EmptyState } from "@/features/ai-assistant/components/AIAssistantUI";
+import { EmptyState } from "@/features/ai-assistant/components/empty-state";
 import type { DiagnosisAssistantTabProps } from "@workspace/types";
 
 export const DiagnosisAssistantTab = ({
@@ -33,7 +33,7 @@ export const DiagnosisAssistantTab = ({
       </CardHeader>
       <CardContent className="space-y-4">
         <div className="space-y-2">
-          <label className="text-sm font-medium">Chief Complaint</label>
+          <label className="text-sm font-medium">Chief complaint</label>
           <Textarea
             placeholder="Enter chief complaint"
             value={state.chiefComplaint}
@@ -42,7 +42,7 @@ export const DiagnosisAssistantTab = ({
           />
         </div>
         <div className="space-y-2">
-          <label className="text-sm font-medium">Vital Signs</label>
+          <label className="text-sm font-medium">Vital signs</label>
           <Textarea
             placeholder="Enter vital signs"
             value={state.vitalSigns}

@@ -1,205 +1,18 @@
 import { client } from "./api-client";
-import { API_URL } from "./api-config";
 import {
-  AppPerformanceMetrics,
   CreateWhatsAppBroadcastJobRequest,
-  DatabaseStats,
   InternalBillingPaymentItem,
   InternalBillingPaymentsQuery,
   InternalBillingSubscriptionsQuery,
-  queueHealthSummarySchema,
-  securityMonitoringSummarySchema,
   SupportInquiry,
   SupportWhatsAppMessage,
   SupportWhatsAppReplyRequest,
   SupportWhatsAppThreadSummary,
-  type TenantScopeDiagnostics,
-  tenantScopeDiagnosticsSchema,
-  WebVitalsAggregateListSchema,
   WhatsAppBroadcastJobDetail,
   WhatsAppBroadcastJobSummary,
 } from "@workspace/types";
-type PerformanceHealthCheck = import("@workspace/types").HealthCheck;
 
-export { API_URL };
-
-export interface HealthCheckResult {
-  status: "healthy" | "unhealthy" | "degraded";
-  timestamp: string;
-  uptime: number;
-  version: string;
-  checks: {
-    database: { status: string; latency?: number; error?: string };
-    memory: {
-      status: string;
-      heapUsed: number;
-      heapTotal: number;
-      rss: number;
-      heapUsagePercent: number;
-    };
-    cpu: { status: string; user: number; system: number };
-  };
-}
-
-export interface SystemHealth {
-  uptime: number;
-  memoryUsage: {
-    rss: number;
-    heapTotal: number;
-    heapUsed: number;
-    external: number;
-  };
-  cpuUsage: { user: number; system: number };
-  databaseConnected: boolean;
-  lastErrors: number;
-  avgResponseTime: number;
-  requestsLastHour: number;
-  errorsLastHour: number;
-}
-
-export interface RequestStats {
-  totalRequests: number;
-  successfulRequests: number;
-  failedRequests: number;
-  avgResponseTime: number;
-  requestsByPath: { path: string; count: number; avgDuration: number }[];
-  requestsByStatus: { statusCode: number; count: number }[];
-  requestsByHour: { hour: number; count: number }[];
-}
-
-interface ErrorStats {
-  totalErrors: number;
-  unresolvedErrors: number;
-  errorsBySeverity: { severity: string; count: number }[];
-  errorsByType: { type: string; count: number }[];
-  recentErrors: {
-    id: string;
-    type: string;
-    message: string;
-    path?: string;
-    severity: string;
-    createdAt: string;
-  }[];
-  errorTrend: { date: string; count: number }[];
-}
-
-interface PerformanceMetrics {
-  slowestEndpoints: {
-    path: string;
-    method: string;
-    avgDuration: number;
-    maxDuration: number;
-    count: number;
-  }[];
-  responseTimeDistribution: { range: string; count: number }[];
-  throughputByMinute: { minute: string; count: number }[];
-}
-
-interface MonitoringDashboard {
-  health: SystemHealth;
-  last24Hours: {
-    requests: RequestStats;
-    errors: ErrorStats;
-  };
-  last7Days: {
-    performance: PerformanceMetrics;
-  };
-}
-
-export const healthAPI = {
-  getHealth: (): Promise<HealthCheckResult> => client.get("/health"),
-  getLiveness: (): Promise<{ status: string }> => client.get("/health/live"),
-  getReadiness: (): Promise<{ status: string; database: boolean }> =>
-    client.get("/health/ready"),
-};
-
-export const monitoringAPI = {
-  getDashboard: (clinicId?: string): Promise<MonitoringDashboard> =>
-    client.get(`/monitoring/dashboard`, { params: { clinicId } }),
-  getHealth: (): Promise<SystemHealth> => client.get("/monitoring/health"),
-  getRequestStats: (
-    startDate?: string,
-    endDate?: string,
-    clinicId?: string,
-  ): Promise<RequestStats> => {
-    return client.get("/monitoring/requests", {
-      params: { startDate, endDate, clinicId },
-    });
-  },
-  getErrorStats: (
-    startDate?: string,
-    endDate?: string,
-    clinicId?: string,
-  ): Promise<ErrorStats> => {
-    return client.get("/monitoring/errors", {
-      params: { startDate, endDate, clinicId },
-    });
-  },
-  getPerformance: (
-    startDate?: string,
-    endDate?: string,
-  ): Promise<PerformanceMetrics> => {
-    return client.get("/monitoring/performance", {
-      params: { startDate, endDate },
-    });
-  },
-  resolveError: (
-    errorId: string,
-    resolvedBy: string,
-  ): Promise<{ success: boolean }> =>
-    client.post(`/monitoring/errors/${errorId}/resolve`, { resolvedBy }),
-  resolveMultipleErrors: (
-    errorIds: string[],
-    resolvedBy: string,
-  ): Promise<{ success: boolean; count: number }> =>
-    client.post("/monitoring/errors/resolve-multiple", {
-      errorIds,
-      resolvedBy,
-    }),
-  cleanup: (
-    daysToKeep?: number,
-  ): Promise<{
-    requestsDeleted: number;
-    errorsDeleted: number;
-    metricsDeleted: number;
-  }> => client.post("/monitoring/cleanup", { daysToKeep }),
-  getWebVitalsAggregates: async (
-    startDate?: string,
-    endDate?: string,
-    page?: string,
-  ) =>
-    WebVitalsAggregateListSchema.parse(
-      await client.get("/monitoring/web-vitals", {
-        params: { startDate, endDate, page },
-      }),
-    ),
-  getSecuritySummary: async (startDate?: string, endDate?: string) =>
-    securityMonitoringSummarySchema.parse(
-      await client.get("/monitoring/security-summary", {
-        params: { startDate, endDate },
-      }),
-    ),
-  getQueueHealth: async () =>
-    queueHealthSummarySchema.parse(await client.get("/monitoring/queue-health")),
-};
-
-export const performanceAPI = {
-  getMetrics: (): Promise<AppPerformanceMetrics> =>
-    client.get("/performance/metrics"),
-  getDatabaseStats: (): Promise<DatabaseStats> =>
-    client.get("/performance/db-stats"),
-  getHealth: (): Promise<PerformanceHealthCheck> =>
-    client.get("/performance/health"),
-};
-
-export const operationsAPI = {
-  getTenantScopeDiagnostics: async (): Promise<TenantScopeDiagnostics> =>
-    tenantScopeDiagnosticsSchema.parse(
-      await client.get("/operations/database/tenant-scope"),
-    ),
-};
-
-export interface Feedback {
+interface Feedback {
   id: string;
   clinicId: string;
   userId: string;
@@ -219,16 +32,6 @@ export interface Feedback {
   updatedAt: string;
   user: { id: string; name: string; email: string; role: string };
   clinic: { id: string; name: string; tier: string };
-}
-
-export interface FeedbackFilters {
-  status?: string;
-  category?: string;
-  clinicId?: string;
-  startDate?: string;
-  endDate?: string;
-  minRating?: number;
-  maxRating?: number;
 }
 
 interface FeedbackStats {
@@ -301,7 +104,7 @@ export const broadcastsAPI = {
     client.post("/internal/broadcasts", data),
 };
 
-export interface SubscriptionOverview {
+interface SubscriptionOverview {
   id: string;
   clinic: {
     name: string;
@@ -316,9 +119,9 @@ export interface SubscriptionOverview {
   currentPeriodEnd: string;
 }
 
-export type PaymentRecord = InternalBillingPaymentItem;
+type PaymentRecord = InternalBillingPaymentItem;
 
-export interface BillingMetrics {
+interface BillingMetrics {
   mrr: number;
   arr: number;
   activeSubscriptions: number;
@@ -331,7 +134,7 @@ export interface BillingMetrics {
   revenueByMonth: { month: string; revenue: number }[];
 }
 
-export interface TierPricingRow {
+interface TierPricingRow {
   id: string;
   tier: string;
   name: string;
@@ -411,7 +214,7 @@ export const billingAPI = {
     client.delete(`/internal/billing/pricing/offers/${clinicId}`),
 };
 
-export interface EnterpriseContractRow {
+interface EnterpriseContractRow {
   id: string;
   primaryClinicId: string;
   groupName: string | null;
@@ -451,7 +254,7 @@ export interface EnterpriseContractRow {
   updatedAt: string;
 }
 
-export interface EnterpriseCustomLineItem {
+interface EnterpriseCustomLineItem {
   key: string;
   label: string;
   includedQty: number;
@@ -466,7 +269,7 @@ export interface EnterpriseCustomLineItem {
   enabled: boolean;
 }
 
-export interface EnterpriseContractInvoiceRow {
+interface EnterpriseContractInvoiceRow {
   id: string;
   contractId: string;
   kind: "ANNUAL_PREPAY" | "TRUE_UP" | "ADJUSTMENT";
@@ -482,7 +285,7 @@ export interface EnterpriseContractInvoiceRow {
   subscriptionPayment?: { invoiceUrl: string | null; status: string } | null;
 }
 
-export interface EnterpriseTrueUpAlertRow {
+interface EnterpriseTrueUpAlertRow {
   id: string;
   contractId: string;
   alertedAt: string;
@@ -493,7 +296,7 @@ export interface EnterpriseTrueUpAlertRow {
   recipients: string[];
 }
 
-export interface EnterpriseContractEstimate {
+interface EnterpriseContractEstimate {
   contract: EnterpriseContractRow & { memberClinicIds: string[] };
   period: { start: string; end: string };
   meters: {
@@ -531,7 +334,7 @@ interface EnterpriseContractInvoicePreview {
   totalCents: number;
 }
 
-export interface EnterpriseContractRevisionRow {
+interface EnterpriseContractRevisionRow {
   id: string;
   contractId: string;
   effectiveDate: string;

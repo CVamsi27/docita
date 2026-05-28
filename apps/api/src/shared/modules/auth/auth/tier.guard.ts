@@ -12,6 +12,7 @@ import {
   IntelligenceAddon,
   ClinicTier,
 } from '@workspace/db';
+import { isFrontDeskTier } from '@workspace/types';
 import { bypassesSessionGuards } from './auth-route-metadata.util';
 import {
   isBillingAdminRole,
@@ -138,8 +139,20 @@ export class TierGuard implements CanActivate {
         );
       }
 
+      const userIsFrontDeskTier = isFrontDeskTier(userTier);
+      const requiredIsFrontDeskTier = isFrontDeskTier(requiredTier);
+
+      if (userIsFrontDeskTier && requiredIsFrontDeskTier) {
+        if (userTier < requiredTier) {
+          throw new ForbiddenException(
+            `This feature requires ${this.getTierName(requiredTier)} tier or higher.`,
+          );
+        }
+        return true;
+      }
+
       if (
-        userTier === Tier.FRONT_DESK &&
+        userIsFrontDeskTier &&
         requiredTier !== Tier.INTELLIGENCE &&
         requiredTier > Tier.ESSENTIAL
       ) {
@@ -166,6 +179,8 @@ export class TierGuard implements CanActivate {
       [ClinicTier.HOSPITAL]: Tier.HOSPITAL,
       [ClinicTier.ENTERPRISE]: Tier.ENTERPRISE,
       [ClinicTier.FRONT_DESK]: Tier.FRONT_DESK,
+      [ClinicTier.FRONT_DESK_CLINIC]: Tier.FRONT_DESK_CLINIC,
+      [ClinicTier.FRONT_DESK_HOSPITAL]: Tier.FRONT_DESK_HOSPITAL,
     };
 
     return tierMap[dbTier] ?? Tier.STARTER;
@@ -180,6 +195,8 @@ export class TierGuard implements CanActivate {
       [Tier.ENTERPRISE]: 'Enterprise',
       [Tier.INTELLIGENCE]: 'Intelligence',
       [Tier.FRONT_DESK]: 'Front desk',
+      [Tier.FRONT_DESK_CLINIC]: 'Front desk Clinic',
+      [Tier.FRONT_DESK_HOSPITAL]: 'Front desk Hospital',
     };
     return names[tier] || 'Unknown';
   }

@@ -66,8 +66,12 @@ export class WhatsappSenderSettingsService {
     clinicId: string,
     actorUserId: string,
     payload: UpdateWhatsappSenderRequest,
+    options: { bypassFeatureGate?: boolean } = {},
   ): Promise<WhatsappSenderConfigResponse> {
-    if (!this.configService.isPerClinicWhatsappSenderEnabled()) {
+    if (
+      !options.bypassFeatureGate &&
+      !this.configService.isPerClinicWhatsappSenderEnabled()
+    ) {
       throw new ServiceUnavailableException(
         'Per-clinic WhatsApp sender settings are not enabled.',
       );
@@ -81,7 +85,9 @@ export class WhatsappSenderSettingsService {
           'Phone number ID and access token are required for BYO sender mode.',
         );
       }
-      assertClinicHasFeatureOrThrow(clinic, Feature.WHATSAPP_OWN_NUMBER);
+      if (!options.bypassFeatureGate) {
+        assertClinicHasFeatureOrThrow(clinic, Feature.WHATSAPP_OWN_NUMBER);
+      }
       const encryptedToken = this.encryptionService.encrypt(
         payload.accessToken,
       );

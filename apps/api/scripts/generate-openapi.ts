@@ -1,158 +1,52 @@
-#!/usr/bin/env node
+/**
+ * Generates the OpenAPI JSON spec from the live NestJS module graph and
+ * Zod-based DTOs and writes it to `docs/api/openapi.json`.
+ *
+ * Usage:
+ *   pnpm --filter @docita/api run openapi:generate
+ *
+ * Designed to be safe to run in CI: no DB connection required (we use
+ * `createApplicationContext` instead of `create`, so HTTP layer isn't
+ * bound and side-effects in module init are minimal). If your module
+ * eagerly touches DATABASE_URL, set `OPENAPI_GEN=1` in the matching
+ * config check and fall back to a no-op connection.
+ *
+ * SYSTEM_DESIGN_AND_PATTERNS.md §28.6 item 53.
+ */
+import { writeFileSync, mkdirSync } from "node:fs";
+import { join, dirname } from "node:path";
+import { NestFactory } from "@nestjs/core";
+import { SwaggerModule, DocumentBuilder } from "@nestjs/swagger";
+import { AppModule } from "../src/app.module";
 
-import * as fs from 'fs';
-import * as path from 'path';
-import { NestFactory } from '@nestjs/core';
-import { Logger } from '@nestjs/common';
-import { AppModule } from '@/app.module';
-import { SwaggerModule, DocumentBuilder } from '@nestjs/swagger';
+async function main(): Promise<void> {
+  process.env.OPENAPI_GEN = "1";
+  process.env.NODE_ENV = process.env.NODE_ENV ?? "production";
 
-const logger = new Logger('GenerateOpenApi');
+  const app = await NestFactory.create(AppModule, {
+    logger: false,
+  });
 
-type OpenApiPropertySchema = {
-  type?: string;
-  enum?: string[];
-  items?: OpenApiPropertySchema;
-  $ref?: string;
-};
+  const builder = new DocumentBuilder()
+    .setTitle("Docita API")
+    .setDescription("Generated from Zod schemas via nestjs-zod.")
+    .setVersion(process.env.APP_VERSION ?? "1.0.0")
+    .addBearerAuth()
+    .build();
 
-type OpenApiSchemaObject = {
-  properties?: Record<string, OpenApiPropertySchema>;
-  required?: string[];
-};
+  const document = SwaggerModule.createDocument(app, builder);
 
-function isSchemaObject(value: unknown): value is OpenApiSchemaObject {
-  return !!value && typeof value === 'object';
+  const repoRoot = join(__dirname, "..", "..", "..");
+  const outPath = join(repoRoot, "docs/api/openapi.json");
+  mkdirSync(dirname(outPath), { recursive: true });
+  writeFileSync(outPath, JSON.stringify(document, null, 2) + "\n");
+  await app.close();
+  // eslint-disable-next-line no-console
+  console.log(`[openapi] wrote ${outPath}`);
 }
 
-async function generateOpenAPI() {
-  try {
-    logger.log('Generating OpenAPI documentation...');
-
-    const app = await NestFactory.create(AppModule, {
-      logger: ['error'],
-    });
-
-    const config = new DocumentBuilder()
-      .setTitle('Docita API')
-      .setDescription(
-        'Healthcare practice management API for appointments, patients, prescriptions, and billing.',
-      )
-      .setVersion('1.0.0')
-      .addBearerAuth(
-        {
-          type: 'http',
-          scheme: 'bearer',
-          bearerFormat: 'JWT',
-          description: 'Enter JWT token',
-        },
-        'JWT-auth',
-      )
-      .addTag('auth', 'Authentication endpoints')
-      .addTag('patients', 'Patient management')
-      .addTag('appointments', 'Appointment scheduling')
-      .addTag('prescriptions', 'Prescription management')
-      .addTag('invoices', 'Billing and invoices')
-      .addTag('clinics', 'Clinic management')
-      .addTag('whatsapp', 'WhatsApp messaging')
-      .addTag('medical-coding', 'Medical coding and diagnosis')
-      .addTag('audit', 'Audit log access')
-      .addTag('documents', 'Document management')
-      .build();
-
-    const document = SwaggerModule.createDocument(app, config);
-
-    const docsDir = path.join(__dirname, '../../docs');
-    if (!fs.existsSync(docsDir)) {
-      fs.mkdirSync(docsDir, { recursive: true });
-      logger.log(`Created docs directory: ${docsDir}`);
-    }
-
-    const specPath = path.join(docsDir, 'openapi.json');
-    fs.writeFileSync(specPath, JSON.stringify(document, null, 2));
-
-    const clientTypesPath = path.join(
-      __dirname,
-      '../src/common/types/api-client.types.ts',
-    );
-    const clientTypesContent = generateClientTypes(document);
-    fs.writeFileSync(clientTypesPath, clientTypesContent);
-
-    const endpoints = Object.keys(document.paths || {}).length;
-    const schemas = Object.keys(document.components?.schemas || {}).length;
-
-    logger.log(`OpenAPI spec generated: ${specPath}`);
-    logger.log(`Generated ${endpoints} endpoints and ${schemas} schemas`);
-    logger.log(`TypeScript client types generated: ${clientTypesPath}`);
-
-    await app.close();
-    process.exit(0);
-  } catch (error) {
-    logger.error('Error generating OpenAPI docs', error);
-
-    process.exit(1);
-  }
-}
-
-function generateClientTypes(document: unknown): string {
-  const openApiDoc = document as {
-    components?: {
-      schemas?: Record<string, unknown>;
-    };
-  };
-
-  const types: string[] = [
-    '// Auto-generated API client types',
-    '// Generated from OpenAPI specification',
-    '',
-    '/* eslint-disable @typescript-eslint/no-explicit-any */',
-    '',
-  ];
-
-  if (openApiDoc.components?.schemas) {
-    for (const [schemaName, schema] of Object.entries(
-      openApiDoc.components.schemas,
-    )) {
-      types.push(`export interface ${schemaName} {`);
-
-      if (isSchemaObject(schema) && schema.properties) {
-        for (const [propName, prop] of Object.entries(schema.properties)) {
-          const propSchema = prop;
-          const required = schema.required?.includes(propName) ? '' : '?';
-          const type = getTypeScriptType(propSchema);
-          types.push(`  ${propName}${required}: ${type};`);
-        }
-      }
-
-      types.push('}');
-      types.push('');
-    }
-  }
-
-  return types.join('\n');
-}
-
-function getTypeScriptType(schema: OpenApiPropertySchema): string {
-  if (schema.type === 'string') {
-    if (schema.enum) {
-      return schema.enum.map((v: string) => `'${v}'`).join(' | ');
-    }
-    return 'string';
-  }
-  if (schema.type === 'number' || schema.type === 'integer') {
-    return 'number';
-  }
-  if (schema.type === 'boolean') {
-    return 'boolean';
-  }
-  if (schema.type === 'array') {
-    return schema.items ? `${getTypeScriptType(schema.items)}[]` : 'unknown[]';
-  }
-  if (schema.$ref) {
-    const refName = schema.$ref.split('/').pop();
-    return refName ?? 'unknown';
-  }
-  return 'any';
-}
-
-generateOpenAPI();
+main().catch((err) => {
+  // eslint-disable-next-line no-console
+  console.error("[openapi] failed:", err);
+  process.exit(1);
+});

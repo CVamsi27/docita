@@ -18,6 +18,8 @@ export class ReminderHistoryService {
     private notificationService: ReminderNotificationService,
   ) {}
 
+  private static readonly MAX_PAGE_SIZE = 200;
+
   async getReminderHistory(clinicId: string, limit: number = 50) {
     const appointments = await this.persistence.appointment.findMany({
       where: { clinicId },
@@ -38,37 +40,7 @@ export class ReminderHistoryService {
       orderBy: { createdAt: 'desc' },
     });
 
-    const reminderAppointmentIds = reminders.map(
-      (reminder) => reminder.appointmentId,
-    );
-
-    const appointmentsForReminders =
-      await this.persistence.appointment.findMany({
-        where: {
-          id: { in: reminderAppointmentIds },
-        },
-        select: {
-          id: true,
-          patient: {
-            select: {
-              firstName: true,
-              lastName: true,
-            },
-          },
-        },
-      });
-
-    const appointmentById = new Map(
-      appointmentsForReminders.map((appointment) => [
-        appointment.id,
-        appointment,
-      ]),
-    );
-
-    return reminders.map((reminder) => ({
-      ...reminder,
-      appointment: appointmentById.get(reminder.appointmentId) ?? null,
-    }));
+    return reminders;
   }
 
   async sendManualReminder(

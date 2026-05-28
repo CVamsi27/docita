@@ -51,8 +51,12 @@ export class PrismaDoctorTimeOffRepository implements IDoctorTimeOffRepository {
     return [...new Set(rows.map((r) => r.doctorId))];
   }
 
-  async createTimeOff(data: Prisma.DoctorTimeOffCreateInput) {
-    return this.prisma.doctorTimeOff.create({
+  async createTimeOff(
+    data: Prisma.DoctorTimeOffCreateInput,
+    tx?: Prisma.TransactionClient,
+  ) {
+    const client = tx ?? this.prisma;
+    return client.doctorTimeOff.create({
       data,
       include: {
         doctor: {
@@ -68,7 +72,33 @@ export class PrismaDoctorTimeOffRepository implements IDoctorTimeOffRepository {
     });
   }
 
-  async deleteTimeOff(id: string) {
-    await this.prisma.doctorTimeOff.delete({ where: { id } });
+  async updateTimeOff(
+    id: string,
+    data: Prisma.DoctorTimeOffUpdateInput,
+    expectedVersion?: number,
+    tx?: Prisma.TransactionClient,
+  ) {
+    const client = tx ?? this.prisma;
+    if (expectedVersion !== undefined) {
+      const result = await client.doctorTimeOff.updateMany({
+        where: { id, version: expectedVersion },
+        data: { ...data, version: { increment: 1 } },
+      });
+      if (result.count === 0) {
+        throw new Error(
+          `DoctorTimeOff ${id} version conflict (expected ${expectedVersion})`,
+        );
+      }
+      return client.doctorTimeOff.findUniqueOrThrow({ where: { id } });
+    }
+    return client.doctorTimeOff.update({
+      where: { id },
+      data: { ...data, version: { increment: 1 } },
+    });
+  }
+
+  async deleteTimeOff(id: string, tx?: Prisma.TransactionClient) {
+    const client = tx ?? this.prisma;
+    await client.doctorTimeOff.delete({ where: { id } });
   }
 }

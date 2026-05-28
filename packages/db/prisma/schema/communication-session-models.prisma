@@ -5,6 +5,7 @@ model PaymentSession {
   patientId         String?
   provider          String               @default("razorpay")
   providerSessionId String?
+  providerPaymentId String?
   paymentLink       String?
   shortUrl          String?
   amount            Int
@@ -26,8 +27,10 @@ model PaymentSession {
 
   @@index([clinicId])
   @@index([invoiceId])
+  @@index([providerPaymentId])
   @@index([providerSessionId])
   @@index([status])
+  @@unique([provider, providerPaymentId], map: "PaymentSession_provider_providerPaymentId_key")
 }
 
 model WhatsappLog {

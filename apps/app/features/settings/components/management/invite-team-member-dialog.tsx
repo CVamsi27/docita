@@ -165,7 +165,7 @@ export function InviteTeamMemberDialog({
               name="password"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Temporary Password</FormLabel>
+                  <FormLabel>Temporary password</FormLabel>
                   <FormControl>
                     <Input
                       type="password"

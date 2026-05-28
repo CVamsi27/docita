@@ -1,3 +1,5 @@
+import { randomBytes } from 'crypto';
+
 /**
  * Safely parse a query-string pagination integer, returning undefined when the
  * value is absent or non-numeric (avoids passing NaN to Prisma take/skip).
@@ -37,11 +39,15 @@ export class StringUtils {
   }
 
   static randomString(length: number = 10): string {
+    // Cryptographically random — callers may treat output as a token.
+    // Even if a particular call only wants a short suffix, the safer
+    // default is to never expose Math.random for this purpose.
     const chars =
       'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
+    const bytes = randomBytes(length);
     let result = '';
     for (let i = 0; i < length; i++) {
-      result += chars.charAt(Math.floor(Math.random() * chars.length));
+      result += chars.charAt(bytes[i] % chars.length);
     }
     return result;
   }

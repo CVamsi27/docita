@@ -22,6 +22,7 @@ import { useState } from "react";
 import { Feature } from "@workspace/types";
 import { useClinic } from "@/lib/contexts/clinic-context";
 import { useTierFeatureEnabled } from "@/lib/access-control/use-tier-feature-enabled";
+import { useScrollBehavior } from "@workspace/hooks";
 
 // ─── Scroll-shadow hook ───────────────────────────────────────────────────────
 
@@ -71,6 +72,7 @@ function SidebarContent({
 }: SidebarContentProps) {
   const scrollRef = useRef<HTMLElement | null>(null);
   const { showTopShadow, showBottomShadow } = useScrollShadow(scrollRef);
+  const scrollBehavior = useScrollBehavior();
 
   const {
     orderedVisibleSections,
@@ -162,7 +164,7 @@ function SidebarContent({
                   "linear-gradient(to bottom, hsl(var(--background)) 20%, transparent)",
               }}
               onClick={() =>
-                scrollRef.current?.scrollBy({ top: -120, behavior: "smooth" })
+                scrollRef.current?.scrollBy({ top: -120, behavior: scrollBehavior })
               }
             >
               <ChevronUp className="h-4 w-4 text-muted-foreground transition-transform group-hover:-translate-y-0.5" />
@@ -204,7 +206,7 @@ function SidebarContent({
                   "linear-gradient(to top, hsl(var(--background)) 40%, transparent)",
               }}
               onClick={() =>
-                scrollRef.current?.scrollBy({ top: 120, behavior: "smooth" })
+                scrollRef.current?.scrollBy({ top: 120, behavior: scrollBehavior })
               }
             >
               <ChevronDown className="h-4 w-4 text-muted-foreground transition-transform group-hover:translate-y-0.5" />

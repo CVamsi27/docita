@@ -4,4 +4,9 @@
 // Callers that import from this file continue to work without path changes.
 
 export { PatientRightsCard, LogRequestDialog } from "./compliance-patient-rights";
-export { DpdpConsentCard, DataRetentionCard, AuditLogCard } from "./compliance-data-cards";
+export {
+  ConsentTemplateCard,
+  DpdpConsentCard,
+  DataRetentionCard,
+  AuditLogCard,
+} from "./compliance-data-cards";

@@ -68,8 +68,39 @@ export interface AuditLogEntry {
   failureReason?: string;
 }
 
+/**
+ * Subset of Prisma.TransactionClient the audit logger needs. Typed
+ * structurally so the interface file stays free of the Prisma import
+ * (it is consumed by domains that should not depend on Prisma directly).
+ */
+export interface AuditTransactionClient {
+  auditLog: {
+    create: (args: { data: Record<string, unknown> }) => Promise<unknown>;
+  };
+}
+
 export interface IAuditLogger {
-  log(entry: Omit<AuditLogEntry, 'id' | 'timestamp'>): Promise<void>;
+  /**
+   * Append an audit log row.
+   *
+   * If `tx` is supplied, the write joins the caller's Prisma transaction:
+   * a rollback of the mutation rolls back the audit row, and a failed
+   * audit insert rolls back the mutation. Callers that need the audit
+   * row to survive independently of their write (auth events, read
+   * audits) should omit `tx` — the logger then uses the singleton
+   * Prisma client and rethrows on failure.
+   */
+  log(
+    entry: Omit<AuditLogEntry, 'id' | 'timestamp'>,
+    tx?: AuditTransactionClient,
+  ): Promise<void>;
+  /**
+   * Fire-and-forget write. Useful for read-audits, login attempts, and
+   * other entries where blocking the caller on the audit insert is worse
+   * than losing the audit row on failure. The promise resolves once the
+   * write is scheduled; errors are caught and logged, never rethrown.
+   */
+  logAsync?(entry: Omit<AuditLogEntry, 'id' | 'timestamp'>): void;
   getLogsForResource(
     resourceType: string,
     resourceId: string,

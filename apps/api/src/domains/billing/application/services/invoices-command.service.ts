@@ -1,6 +1,10 @@
-import { Injectable, Inject, NotFoundException } from '@nestjs/common';
+import { Inject, Injectable, NotFoundException } from '@nestjs/common';
 import { Prisma, InvoiceStatus } from '@workspace/db';
-import { type InvoiceItem } from '@workspace/types';
+import {
+  taxRegistrationSnapshotSchema,
+  type InvoiceItem,
+  type PlaceOfSupply,
+} from '@workspace/types';
 import {
   IInvoiceRepository,
   INVOICE_REPOSITORY_TOKEN,
@@ -19,7 +23,6 @@ import {
   toInvoiceLineItemCreates,
   toPrismaJson,
 } from '@/domains/billing/core/utils/invoice-normalization';
-import { taxRegistrationSnapshotSchema } from '@workspace/types';
 import { InvoicesQueryService } from './invoices-query.service';
 import {
   parseTaxSettings,
@@ -34,7 +37,10 @@ import {
   CURRENT_PDF_TEMPLATE_VERSION,
 } from './invoices-helpers';
 import { CLOCK_PORT, type IClock } from '@/shared/common/ports/clock.port';
-
+import {
+  assertInvoiceStatusTransition,
+  requiresClaimReadinessValidation,
+} from './invoice-status-transition';
 @Injectable()
 export class InvoicesCommandService {
   constructor(
@@ -48,18 +54,6 @@ export class InvoicesCommandService {
     private readonly queryService: InvoicesQueryService,
     @Inject(CLOCK_PORT) private readonly clock: IClock,
   ) {}
-
-  private requiresClaimReadinessValidation(
-    currentStatus: InvoiceStatus,
-    targetStatus: InvoiceStatus,
-  ): boolean {
-    if (currentStatus === targetStatus) return false;
-    return (
-      targetStatus === InvoiceStatus.PAID ||
-      targetStatus === InvoiceStatus.PARTIALLY_PAID ||
-      targetStatus === InvoiceStatus.OVERDUE
-    );
-  }
 
   private buildTaxSnapshots(patient: PatientInvoiceContext) {
     const taxSettings = parseTaxSettings(patient.clinic.settings);
@@ -82,17 +76,14 @@ export class InvoicesCommandService {
       regime: seller.regime,
       legalName: `${patient.firstName} ${patient.lastName}`.trim(),
       address: patient.address || undefined,
-      stateCode: seller.stateCode,
-      stateName: seller.stateName,
     });
-
     return { taxSettings, seller, buyer };
   }
-
   private async calculateTaxForPatientInvoice(
     patientId: string,
     clinicId: string | undefined,
     items: InvoiceItem[],
+    placeOfSupply?: PlaceOfSupply,
   ) {
     const patient = await this.repository.findPatientContext(
       patientId,
@@ -108,6 +99,7 @@ export class InvoicesCommandService {
       currency: patient.clinic.currency || undefined,
       seller,
       buyer,
+      placeOfSupply,
       reverseCharge: false,
     });
 
@@ -127,14 +119,33 @@ export class InvoicesCommandService {
     doctorRole?: string | null;
     doctorRegistrationNumber?: string;
     doctorLicenseNumber?: string;
+    placeOfSupplyStateCode?: string;
+    placeOfSupplyStateName?: string;
     clinicId?: string;
+    idempotencyKey?: string;
   }): Promise<InvoiceDetail> {
+    // Idempotency short-circuit: if the caller passes a key they've used
+    // before, return the prior invoice instead of creating a duplicate.
+    if (data.idempotencyKey) {
+      const existing = await this.repository.findByIdempotencyKey?.(
+        data.idempotencyKey,
+        data.clinicId,
+      );
+      if (existing) return existing;
+    }
     const issuedAt = this.clock.now();
     const { patient, taxSettings, seller, buyer, calculation } =
       await this.calculateTaxForPatientInvoice(
         data.patientId,
         data.clinicId,
         data.items,
+        data.placeOfSupplyStateCode
+          ? {
+              countryCode: 'IN',
+              stateCode: data.placeOfSupplyStateCode,
+              stateName: data.placeOfSupplyStateName,
+            }
+          : undefined,
       );
     const invoiceNumber = await this.repository.nextInvoiceNumber(
       patient.clinic.id,
@@ -185,9 +196,11 @@ export class InvoicesCommandService {
       doctorRole: normalizeDoctorRole(data.doctorRole),
       doctorRegistrationNumber: data.doctorRegistrationNumber,
       doctorLicenseNumber: data.doctorLicenseNumber,
+      idempotencyKey: data.idempotencyKey,
     });
 
     this.eventEmitter.emit(ApplicationEvents.INVOICE_GENERATED, {
+      // allow-direct-emit: post-commit fan-out to payment-link generation + usage tracking. The invoice itself is a single atomic write above. Outbox migration deferred (ADR 0010 §Follow-up).
       invoiceId: invoice.id,
       clinicId: patient.clinic.id,
     });
@@ -205,9 +218,13 @@ export class InvoicesCommandService {
   ): Promise<InvoiceDetail> {
     const existing = await this.queryService.findOne(id, clinicId);
 
+    if (data.status) {
+      assertInvoiceStatusTransition(existing.status, data.status);
+    }
+
     if (
       data.status &&
-      this.requiresClaimReadinessValidation(existing.status, data.status)
+      requiresClaimReadinessValidation(existing.status, data.status)
     ) {
       await this.claimValidationService.assertClaimReady(id, clinicId);
     }

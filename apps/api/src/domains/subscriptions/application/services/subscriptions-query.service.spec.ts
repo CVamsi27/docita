@@ -43,6 +43,7 @@ describe('SubscriptionsQueryService', () => {
     expireDuplicatePendingCheckouts: jest.fn(async () => 0),
     expireOtherPendingSubscriptionCheckouts: jest.fn(async () => 0),
     findReusablePendingCheckout: jest.fn(async () => null),
+    findPaymentByRazorpayPaymentId: jest.fn(async () => null),
   };
 
   const clinicOps = {

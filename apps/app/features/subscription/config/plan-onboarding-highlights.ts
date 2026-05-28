@@ -22,6 +22,18 @@ export const PLAN_ONBOARDING_KEY_HIGHLIGHTS: Record<string, string[]> = {
     "Schedule-only doctor profiles (no app login)",
     "Admin and receptionist roles for daily operations",
   ],
+  FRONT_DESK_CLINIC: [
+    "Up to 25 staff users for multiple desks",
+    "3,000 appointments/mo included",
+    "Supervisor and billing-only roles",
+    "Clinical workflows remain disabled in-app",
+  ],
+  FRONT_DESK_HOSPITAL: [
+    "Up to 150 staff users and 10 locations",
+    "15,000 appointments/mo included",
+    "Multi-OPD queue routing and shift handover",
+    "Dedicated success support for operations teams",
+  ],
   PROFESSIONAL: [
     "Up to 5 doctors with role-aware access",
     "Higher consultation and WhatsApp bundles",

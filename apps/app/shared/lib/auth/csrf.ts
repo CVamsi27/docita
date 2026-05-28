@@ -1,14 +1,9 @@
 "use client";
 
+import { appSession } from "@/lib/auth/session";
+
 export function getCsrfToken(): string | null {
-  if (typeof document === "undefined") return null;
-
-  const token = document.cookie
-    .split("; ")
-    .find((row) => row.startsWith("XSRF-TOKEN="))
-    ?.split("=")[1];
-
-  return token ? decodeURIComponent(token) : null;
+  return appSession.getCsrfToken();
 }
 
 export function buildCsrfHeaders(

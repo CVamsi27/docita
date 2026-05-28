@@ -7,7 +7,7 @@ import { SupportWhatsAppThreadQueryService } from './support-whatsapp-thread-que
 import { SupportWhatsAppReplyService } from './support-whatsapp-reply.service';
 import { SupportWhatsAppWebhookIngestService } from './support-whatsapp-webhook-ingest.service';
 import { PrismaService } from '@/prisma/prisma.service';
-import { WhatsappClientService } from '@/domains/whatsapp/infrastructure/clients/whatsapp-client.service';
+import { WhatsappClientAdapter } from '@/domains/whatsapp/infrastructure/clients/whatsapp-client.adapter';
 import type {
   SupportWhatsAppMessage,
   SupportWhatsAppMessageStatus,
@@ -310,7 +310,7 @@ describe('SupportWhatsAppInboxService', () => {
         SupportWhatsAppWebhookIngestService,
         SupportWhatsAppInboxService,
         { provide: PrismaService, useValue: mockPrisma },
-        { provide: WhatsappClientService, useValue: mockWhatsappClient },
+        { provide: WhatsappClientAdapter, useValue: mockWhatsappClient },
         clockPortTestProvider(),
       ],
     }).compile();

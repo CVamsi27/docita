@@ -150,14 +150,14 @@ export function PatientsTable({
                             onClick={(e) => {
                               e.stopPropagation();
                               toast.info(
-                                "Quick Note implementation coming soon",
+                                "Quick note coming soon",
                               );
                             }}
                           >
                             <FileText className="h-4 w-4" />
                           </Button>
                         </TooltipTrigger>
-                        <TooltipContent>Quick Note</TooltipContent>
+                        <TooltipContent>Quick note</TooltipContent>
                       </Tooltip>
 
                       <Tooltip>
@@ -174,7 +174,7 @@ export function PatientsTable({
                             <Pencil className="h-4 w-4" />
                           </Button>
                         </TooltipTrigger>
-                        <TooltipContent>Edit Patient</TooltipContent>
+                        <TooltipContent>Edit patient</TooltipContent>
                       </Tooltip>
 
                       <Tooltip>
@@ -191,7 +191,7 @@ export function PatientsTable({
                             <Calendar className="h-3.5 w-3.5" />
                           </Button>
                         </TooltipTrigger>
-                        <TooltipContent>Schedule Visit</TooltipContent>
+                        <TooltipContent>Schedule visit</TooltipContent>
                       </Tooltip>
                     </div>
                   </TableCell>

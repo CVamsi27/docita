@@ -6,9 +6,11 @@ import { SentryModule } from '@sentry/nestjs/setup';
 import { PrometheusModule } from '@willsoto/nestjs-prometheus';
 import { AppController } from './app.controller';
 import { PrismaModule } from './prisma/prisma.module';
+import { OutboxModule } from './shared/modules/outbox/outbox.module';
 import { PatientsModule } from './domains/patients/patients.module';
 import { AppointmentsModule } from './domains/appointments/appointments.module';
 import { AuthModule } from './shared/modules/auth/auth/auth.module';
+import { AuthorizationModule } from './shared/modules/auth/authorization/authorization.module';
 import { PrescriptionsModule } from './domains/prescriptions/prescriptions.module';
 import { BillingModule } from './domains/billing/billing.module';
 import { PaymentsModule } from './domains/payments/payments.module';
@@ -152,8 +154,10 @@ import { PublicBookingModule } from './domains/public-booking/public-booking.mod
           }),
         ]),
     PrismaModule,
+    OutboxModule,
     MonitoringModule,
     AuthModule,
+    AuthorizationModule,
     PatientsModule,
     AppointmentsModule,
     PrescriptionsModule,

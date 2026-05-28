@@ -13,6 +13,7 @@ import {
 import { ReminderNotificationService } from './reminder-notification.service';
 import { isCronDisabledInThisProcess } from '@/shared/schedule/cron-env';
 import { CRON_SCHEDULES } from '@/shared/schedule/cron-schedules';
+import { TrackHeartbeat } from '@/shared/modules/schedule/cron-heartbeat';
 import { isClinicWhatsAppAutomationSendingAllowed } from '@/shared/whatsapp/whatsapp-patient-send-policy.util';
 import { isDatabaseAuthError } from '@/shared/modules/auth/auth/auth-database.util';
 
@@ -54,6 +55,7 @@ export class ReminderSchedulerService {
   @Cron(CRON_SCHEDULES.REMINDER_HOURLY, {
     disabled: isCronDisabledInThisProcess(),
   })
+  @TrackHeartbeat('reminders.hourly')
   async checkAndSendReminders(): Promise<void> {
     if (this.databaseAccessDisabled) {
       return;
@@ -113,6 +115,7 @@ export class ReminderSchedulerService {
   @Cron(CRON_SCHEDULES.REMINDER_DISPATCH, {
     disabled: isCronDisabledInThisProcess(),
   })
+  @TrackHeartbeat('reminders.30min-dispatch')
   async checkAndSend30MinReminders(): Promise<void> {
     if (this.databaseAccessDisabled) {
       return;

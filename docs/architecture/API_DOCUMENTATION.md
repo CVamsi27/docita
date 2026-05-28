@@ -1,5 +1,10 @@
 # Docita - API Documentation
 
+> **Descriptive.** Reference for the public API surface. The Zod schemas
+> in `packages/types/` are the source of truth; this document follows them.
+> For prescriptive contract rules (Zod-first, HTTP parity), see
+> [`AGENTS.md`](../../AGENTS.md) §3.1–3.2.
+
 **Healthcare Management System API**  
 Version 1.0  
 Base URL: `http://localhost:3001/api` (Development)

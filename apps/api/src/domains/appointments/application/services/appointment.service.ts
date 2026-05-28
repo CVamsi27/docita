@@ -101,7 +101,7 @@ export class AppointmentService {
   async startConsultation(
     id: string,
     clinicId: string,
-    accessContext?: AppointmentAccessContext,
+    accessContext: AppointmentAccessContext,
   ): Promise<{ appointmentId: string; status: string }> {
     return this.commandService.startConsultation(id, clinicId, accessContext);
   }
@@ -110,7 +110,7 @@ export class AppointmentService {
     id: string,
     reason: string,
     clinicId: string,
-    accessContext?: AppointmentAccessContext,
+    accessContext: AppointmentAccessContext,
   ): Promise<Appointment> {
     return this.commandService.cancelAppointment(
       id,
@@ -125,7 +125,7 @@ export class AppointmentService {
     startTime: Date,
     endTime: Date,
     clinicId: string,
-    accessContext?: AppointmentAccessContext,
+    accessContext: AppointmentAccessContext,
   ): Promise<void> {
     return this.commandService.rescheduleAppointment(
       id,
@@ -140,7 +140,7 @@ export class AppointmentService {
     id: string,
     clinicId: string,
     data: Partial<UpdateAppointmentRequest>,
-    accessContext?: AppointmentAccessContext,
+    accessContext: AppointmentAccessContext,
   ): Promise<Appointment> {
     return this.commandService.updateAppointmentDetails(
       id,
@@ -168,7 +168,7 @@ export class AppointmentService {
     appointmentId: string,
     clinicId: string,
     data: Partial<VitalSign>,
-    accessContext?: AppointmentAccessContext,
+    accessContext: AppointmentAccessContext,
   ): Promise<VitalSign> {
     return this.commandService.createVitals(
       appointmentId,
@@ -182,7 +182,7 @@ export class AppointmentService {
     appointmentId: string,
     clinicId: string,
     data: Partial<VitalSign>,
-    accessContext?: AppointmentAccessContext,
+    accessContext: AppointmentAccessContext,
   ): Promise<VitalSign> {
     return this.commandService.updateVitals(
       appointmentId,

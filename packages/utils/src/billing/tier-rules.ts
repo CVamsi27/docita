@@ -1,11 +1,12 @@
 import {
+  type ClinicFeatureOverrides,
   Feature,
   FEATURE_TIER_MAP,
   FRONT_DESK_BLOCKED_FEATURES,
   INTELLIGENCE_ADDONS,
   INTELLIGENCE_BUNDLE_DISCOUNT,
+  OVERRIDABLE_FEATURES,
   PLANNED_FEATURES,
-  PUBLISHED_PLAN_LADDER,
   Tier,
   TIER_FEATURES,
   TIER_INFO,
@@ -60,15 +61,16 @@ export function getTierName(tier: Tier): TierName {
       return 'INTELLIGENCE';
     case Tier.FRONT_DESK:
       return 'FRONT_DESK';
+    case Tier.FRONT_DESK_CLINIC:
+      return 'FRONT_DESK_CLINIC';
+    case Tier.FRONT_DESK_HOSPITAL:
+      return 'FRONT_DESK_HOSPITAL';
     default: {
       const _exhaustive: never = tier;
       return _exhaustive;
     }
   }
 }
-
-/** Numeric {@link Tier} values in published plan ladder order (excludes INTELLIGENCE add-on). */
-export const PUBLISHED_TIER_LADDER: Tier[] = PUBLISHED_PLAN_LADDER.map(getTierValue);
 
 function isFeatureKey(key: string): key is Feature {
   return key in FEATURE_TIER_MAP;
@@ -78,9 +80,19 @@ export function hasFeatureAccess(
   tier: TierName,
   feature: Feature,
   hasIntelligence = false,
+  overrides: ClinicFeatureOverrides = {},
 ): boolean {
   if (!isFeatureGenerallyAvailable(feature)) {
     return false;
+  }
+
+  // Per-clinic overrides win over tier defaults, but only for features in the
+  // OVERRIDABLE_FEATURES allowlist (enforced when overrides are parsed).
+  if (
+    OVERRIDABLE_FEATURES.has(feature) &&
+    overrides[feature] !== undefined
+  ) {
+    return overrides[feature] === true;
   }
 
   const requiredTier = FEATURE_TIER_MAP[feature];

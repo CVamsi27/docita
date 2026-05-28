@@ -62,7 +62,15 @@ describe("@workspace/types access contracts", () => {
   it("maps clinic DB tier strings consistently including legacy values", () => {
     expect(mapClinicTierDbStringToAccessTier("STARTER")).toBe(Tier.STARTER);
     expect(mapClinicTierDbStringToAccessTier("ESSENTIAL")).toBe(Tier.ESSENTIAL);
-    expect(mapClinicTierDbStringToAccessTier("FRONT_DESK")).toBe(Tier.FRONT_DESK);
+    expect(mapClinicTierDbStringToAccessTier("FRONT_DESK")).toBe(
+      Tier.FRONT_DESK,
+    );
+    expect(mapClinicTierDbStringToAccessTier("FRONT_DESK_CLINIC")).toBe(
+      Tier.FRONT_DESK_CLINIC,
+    );
+    expect(mapClinicTierDbStringToAccessTier("FRONT_DESK_HOSPITAL")).toBe(
+      Tier.FRONT_DESK_HOSPITAL,
+    );
     expect(mapClinicTierDbStringToAccessTier("CORE")).toBe(Tier.ESSENTIAL);
     expect(mapClinicTierDbStringToAccessTier("PLUS")).toBe(Tier.ESSENTIAL);
     expect(mapClinicTierDbStringToAccessTier("CAPTURE")).toBe(Tier.STARTER);
@@ -74,6 +82,12 @@ describe("@workspace/types access contracts", () => {
 
   it("maps DB tier strings to billing TierName including FRONT_DESK", () => {
     expect(mapDbClinicTierStringToTierName("FRONT_DESK")).toBe("FRONT_DESK");
+    expect(mapDbClinicTierStringToTierName("FRONT_DESK_CLINIC")).toBe(
+      "FRONT_DESK_CLINIC",
+    );
+    expect(mapDbClinicTierStringToTierName("FRONT_DESK_HOSPITAL")).toBe(
+      "FRONT_DESK_HOSPITAL",
+    );
     expect(mapDbClinicTierStringToTierName("ESSENTIAL")).toBe("ESSENTIAL");
     expect(mapDbClinicTierStringToTierName("CORE")).toBe("ESSENTIAL");
   });

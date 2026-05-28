@@ -1,10 +1,11 @@
 import { describe, expect, it, beforeEach, jest } from '@jest/globals';
 import { RlsService } from './rls.service';
+import { activeTxStorage } from './active-tx.storage';
 import type { PrismaService } from '@/prisma/prisma.service';
 import type { AppConfigService } from '@/shared/modules/config/app-configuration.service';
 
 interface FakeTx {
-  $executeRawUnsafe: jest.Mock;
+  $executeRaw: jest.Mock;
 }
 
 const buildPrisma = (): {
@@ -13,7 +14,7 @@ const buildPrisma = (): {
   $transaction: jest.Mock;
 } => {
   const tx: FakeTx = {
-    $executeRawUnsafe: jest.fn(async () => 0),
+    $executeRaw: jest.fn(async () => 0),
   };
   const $transaction = jest.fn(async (...args: unknown[]) => {
     const fn = args[0] as (tx: FakeTx) => Promise<unknown>;
@@ -45,20 +46,24 @@ describe('RlsService', () => {
       async () => 'ok',
     );
     expect(result).toBe('ok');
-    expect(prismaSetup.tx.$executeRawUnsafe).not.toHaveBeenCalled();
+    expect(prismaSetup.tx.$executeRaw).not.toHaveBeenCalled();
     expect(prismaSetup.$transaction).toHaveBeenCalledTimes(1);
   });
 
-  it('issues both GUC SET LOCALs when RLS is enabled', async () => {
+  it('issues parameterized set_config calls when RLS is enabled', async () => {
     const service = new RlsService(prismaSetup.prisma, buildConfig(true));
     await service.runScopedTransaction('clinic-1', async () => null);
-    const calls = prismaSetup.tx.$executeRawUnsafe.mock.calls.map(
-      (c) => c[0] as string,
-    );
-    expect(calls).toEqual([
-      "SET LOCAL app.rls_enabled = 'on'",
-      "SET LOCAL app.current_clinic_id = 'clinic-1'",
-    ]);
+    expect(prismaSetup.tx.$executeRaw).toHaveBeenCalledTimes(2);
+    // $executeRaw template literal arrives as (template, ...values).
+    // First call: enable RLS (no user input).
+    // Second call: bind the clinicId as a parameter — it must NOT
+    // appear in the template strings themselves.
+    const [secondTemplate, ...secondValues] = prismaSetup.tx.$executeRaw.mock
+      .calls[1] as unknown as [TemplateStringsArray, ...unknown[]];
+    expect(secondTemplate.join('?')).toContain('set_config');
+    expect(secondTemplate.join('?')).toContain('app.current_clinic_id');
+    expect(secondTemplate.join('?')).not.toContain('clinic-1');
+    expect(secondValues).toEqual(['clinic-1']);
   });
 
   it('refuses clinicId values that contain SQL-meaningful characters', async () => {
@@ -75,5 +80,16 @@ describe('RlsService', () => {
       return 42;
     });
     expect(value).toBe(42);
+  });
+
+  it('publishes the active tx into AsyncLocalStorage during the callback', async () => {
+    const service = new RlsService(prismaSetup.prisma, buildConfig(true));
+    let observedInside: unknown = null;
+    await service.runScopedTransaction('clinic-1', async () => {
+      observedInside = activeTxStorage.getStore()?.tx ?? null;
+    });
+    expect(observedInside).toBe(prismaSetup.tx);
+    // The store is request-scoped; outside the callback it must not leak.
+    expect(activeTxStorage.getStore()).toBeUndefined();
   });
 });

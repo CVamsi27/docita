@@ -16,9 +16,9 @@ import {
 import {
   DentalChartUI,
   type DentalChartValue,
-  GrowthChartUI,
-  VisionExamUI,
 } from "@/features/consultation";
+import { GrowthChartUI } from "@/features/consultation";
+import { VisionExamUI } from "@/features/consultation";
 import {
   parseDentalChartValue,
   parseGrowthChartValue,

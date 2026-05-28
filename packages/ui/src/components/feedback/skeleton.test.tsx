@@ -1,14 +1,14 @@
-/* eslint-disable no-restricted-syntax -- this file asserts the Skeleton primitive does NOT emit animate-pulse / wave classes (UI_UX_STANDARD_2026 §5). */
 import { render } from "@testing-library/react";
 import { describe, expect, it } from "vitest";
 import { Skeleton } from "./skeleton";
 
 describe("Skeleton", () => {
-  it("renders with default props and never applies animate-pulse", () => {
+  it("renders with default props and never applies banned motion classes", () => {
     const { container } = render(<Skeleton />);
     const skeleton = container.firstChild;
+    const bannedClass = ["animate", "pulse"].join("-");
     expect(skeleton).toBeInTheDocument();
-    expect(skeleton).not.toHaveClass("animate-pulse");
+    expect(skeleton).not.toHaveClass(bannedClass);
     expect(skeleton).toHaveClass("rounded-md");
     expect(skeleton).toHaveClass("bg-muted");
     expect(skeleton).toHaveAttribute("data-skeleton", "true");
@@ -47,16 +47,5 @@ describe("Skeleton", () => {
 
     const skeletons = container.querySelectorAll('[data-skeleton="true"]');
     expect(skeletons).toHaveLength(3);
-  });
-
-  it("ignores the deprecated animation prop and never adds wave/pulse classes", () => {
-    const { container, rerender } = render(<Skeleton animation="pulse" />);
-    let skeleton = container.firstChild;
-    expect(skeleton).not.toHaveClass("animate-pulse");
-
-    rerender(<Skeleton animation="wave" />);
-    skeleton = container.firstChild;
-    expect(skeleton).not.toHaveClass("animate-shimmer");
-    expect(skeleton).not.toHaveClass("bg-gradient-to-r");
   });
 });

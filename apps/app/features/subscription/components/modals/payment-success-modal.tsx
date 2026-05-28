@@ -107,7 +107,7 @@ export function PaymentSuccessModal({
 
         <div className="bg-muted/30 rounded-lg p-4 space-y-3 border border-border/50">
           <div className="flex justify-between items-center text-sm">
-            <span className="text-muted-foreground">Amount Paid</span>
+            <span className="text-muted-foreground">Amount paid</span>
             <span className="font-semibold text-lg">
               {amount
                 ? formatCurrency(amount, { fractionDigits: 0 })

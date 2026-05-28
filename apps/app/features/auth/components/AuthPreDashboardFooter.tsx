@@ -16,6 +16,7 @@ import { AUTH_ASSURANCE_ITEMS } from "@/features/auth/lib/auth-assurance-items";
 
 export interface AuthPreDashboardFooterProps {
   className?: string;
+  "data-testid"?: string;
   whatsappMessage?: string;
   /** e.g. `lg:hidden` when the left branding rail already shows assurance items. */
   trustRowClassName?: string;
@@ -23,6 +24,7 @@ export interface AuthPreDashboardFooterProps {
 
 export function AuthPreDashboardFooter({
   className,
+  "data-testid": dataTestId,
   whatsappMessage = SUPPORT_WHATSAPP_MESSAGE_DEFAULT,
   trustRowClassName,
 }: AuthPreDashboardFooterProps) {
@@ -33,6 +35,7 @@ export function AuthPreDashboardFooter({
 
   return (
     <footer
+      data-testid={dataTestId}
       className={cn("w-full", className)}
       aria-label="Security and support"
     >
@@ -44,23 +47,23 @@ export function AuthPreDashboardFooter({
           )}
           aria-label="Security and privacy"
         >
-            {AUTH_ASSURANCE_ITEMS.map((item) => {
-              const Icon = item.icon;
-              return (
-                <span
-                  key={item.label}
-                  className="inline-flex items-center gap-1.5"
-                >
-                  <Icon
-                    className="h-3.5 w-3.5 shrink-0 text-success"
-                    aria-hidden
-                  />
-                  <span className="font-medium text-foreground/90">
-                    {item.label}
-                  </span>
+          {AUTH_ASSURANCE_ITEMS.map((item) => {
+            const Icon = item.icon;
+            return (
+              <span
+                key={item.label}
+                className="inline-flex items-center gap-1.5"
+              >
+                <Icon
+                  className="h-3.5 w-3.5 shrink-0 text-success"
+                  aria-hidden
+                />
+                <span className="font-medium text-foreground/90">
+                  {item.label}
                 </span>
-              );
-            })}
+              </span>
+            );
+          })}
         </div>
 
         <div
@@ -112,12 +115,7 @@ export function AuthPreDashboardFooter({
           </div>
           <p className="max-w-sm text-[length:var(--fs-2xs)] leading-relaxed text-muted-foreground">
             <span className="text-foreground/80">{SUPPORT_EMAIL}</span>
-            {hasPhoneSupport ? (
-              <>
-                {" "}
-                · {supportPhoneDisplay}
-              </>
-            ) : null}
+            {hasPhoneSupport ? <> · {supportPhoneDisplay}</> : null}
           </p>
         </div>
       </div>

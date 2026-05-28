@@ -3,7 +3,7 @@ export type BroadcastPresetId =
   | "docita_hospital_referral_partner_v1"
   | "docita_pharmacy_referral_partner_v1";
 
-export interface BroadcastPreset {
+interface BroadcastPreset {
   id: BroadcastPresetId;
   label: string;
   audienceLabel: string;
@@ -61,11 +61,3 @@ export const BROADCAST_PRESETS: BroadcastPreset[] = [
       CONTACT_BLOCK,
   },
 ];
-
-export function getBroadcastPreset(id: BroadcastPresetId): BroadcastPreset {
-  const preset = BROADCAST_PRESETS.find((entry) => entry.id === id);
-  if (!preset) {
-    throw new Error(`Unknown broadcast preset: ${id}`);
-  }
-  return preset;
-}

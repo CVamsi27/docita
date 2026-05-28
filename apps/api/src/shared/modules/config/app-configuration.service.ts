@@ -289,6 +289,10 @@ export class AppConfigService {
     return this.getConfig().DOCITA_API_E2E === 'true';
   }
 
+  shouldAllowTestEmailAutoVerify(): boolean {
+    return this.getConfig().ALLOW_TEST_EMAIL_AUTOVERIFY;
+  }
+
   /** Non-production E2E bypass (global flag or per-request header). */
   shouldBypassGuardForE2e(e2eHeaderValue: string | undefined): boolean {
     if (this.isProduction()) {

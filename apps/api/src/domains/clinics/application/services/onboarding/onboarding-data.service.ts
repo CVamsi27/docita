@@ -3,77 +3,87 @@ import {
   Injectable,
   Logger,
   BadRequestException,
-  OnModuleDestroy,
 } from '@nestjs/common';
 import { CLOCK_PORT, type IClock } from '@/shared/common/ports/clock.port';
 import { randomBytes } from 'crypto';
 import {
   OnboardingStep,
   OnboardingProgressDto,
+  onboardingSessionDataSchema,
 } from '@/domains/clinics/application/dto/onboarding/create-clinic-onboarding.dto';
-import type { CompleteOnboardingDto } from '@/domains/clinics/application/dto/onboarding/create-clinic-onboarding.dto';
+import type { OnboardingSessionDataDto } from '@/domains/clinics/application/dto/onboarding/create-clinic-onboarding.dto';
+import {
+  CLINIC_PERSISTENCE_PORT,
+  type ClinicPersistencePort,
+} from '@/domains/clinics/application/ports/clinic-persistence.port';
+import { toPrismaInputJsonValue } from '@/shared/common/json/to-prisma-input-json-value';
 
 interface OnboardingSession {
   id: string;
   currentStep: OnboardingStep;
   completedSteps: OnboardingStep[];
-  data: Partial<CompleteOnboardingDto>;
-  createdAt: Date;
-  updatedAt: Date;
+  data: OnboardingSessionDataDto;
   expiresAt: Date;
 }
 
 @Injectable()
-export class OnboardingDataService implements OnModuleDestroy {
+export class OnboardingDataService {
   private readonly logger = new Logger(OnboardingDataService.name);
-  private onboardingSessions = new Map<string, OnboardingSession>();
-  private cleanupTimer: NodeJS.Timeout;
 
-  constructor(@Inject(CLOCK_PORT) private readonly clock: IClock) {
-    this.cleanupTimer = setInterval(() => this.cleanExpiredSessions(), 3600000);
-    this.cleanupTimer.unref?.();
-  }
+  constructor(
+    @Inject(CLOCK_PORT) private readonly clock: IClock,
+    @Inject(CLINIC_PERSISTENCE_PORT)
+    private readonly persistence: ClinicPersistencePort,
+  ) {}
 
-  initializeOnboarding(): { onboardingId: string } {
+  async initializeOnboarding(): Promise<{ onboardingId: string }> {
     const onboardingId = this.generateOnboardingId();
     const session: OnboardingSession = {
       id: onboardingId,
       currentStep: OnboardingStep.CLINIC_DETAILS,
       completedSteps: [],
       data: {},
-      createdAt: this.clock.now(),
-      updatedAt: this.clock.now(),
       expiresAt: new Date(this.clock.now().getTime() + 24 * 60 * 60 * 1000),
     };
 
-    this.onboardingSessions.set(onboardingId, session);
+    await this.persistence.onboardingSession.create({
+      data: {
+        id: session.id,
+        currentStep: session.currentStep,
+        completedSteps: toPrismaInputJsonValue(session.completedSteps),
+        data: toPrismaInputJsonValue(session.data),
+        expiresAt: session.expiresAt,
+      },
+    });
     this.logger.log(`Initialized onboarding session: ${onboardingId}`);
 
     return { onboardingId };
   }
 
-  updateOnboardingData(
+  async updateOnboardingData(
     onboardingId: string,
     step: OnboardingStep,
     data: Record<string, unknown>,
-  ): { success: boolean; message: string } {
-    const session = this.onboardingSessions.get(onboardingId);
-
-    if (!session) {
-      throw new BadRequestException('Onboarding session not found or expired');
-    }
+  ): Promise<{ success: boolean; message: string }> {
+    const session = await this.getActiveSession(onboardingId);
 
     const key = this.getStepDataKey(step);
-    session.data = {
+    const nextData = {
       ...session.data,
       [key]: data,
     };
-    session.currentStep = step;
-    session.updatedAt = this.clock.now();
+    const completedSteps = session.completedSteps.includes(step)
+      ? session.completedSteps
+      : [...session.completedSteps, step];
 
-    if (!session.completedSteps.includes(step)) {
-      session.completedSteps.push(step);
-    }
+    await this.persistence.onboardingSession.update({
+      where: { id: onboardingId },
+      data: {
+        currentStep: step,
+        completedSteps: toPrismaInputJsonValue(completedSteps),
+        data: toPrismaInputJsonValue(nextData),
+      },
+    });
 
     this.logger.log(`Updated onboarding data for step: ${step}`);
 
@@ -83,11 +93,10 @@ export class OnboardingDataService implements OnModuleDestroy {
     };
   }
 
-  getOnboardingProgress(onboardingId: string): OnboardingProgressDto {
-    const session = this.onboardingSessions.get(onboardingId);
-    if (!session) {
-      throw new BadRequestException('Onboarding session not found or expired');
-    }
+  async getOnboardingProgress(
+    onboardingId: string,
+  ): Promise<OnboardingProgressDto> {
+    const session = await this.getActiveSession(onboardingId);
 
     return {
       onboardingId,
@@ -97,23 +106,28 @@ export class OnboardingDataService implements OnModuleDestroy {
     };
   }
 
-  getSessionData(onboardingId: string): Partial<CompleteOnboardingDto> {
-    const session = this.onboardingSessions.get(onboardingId);
-    if (!session) {
-      throw new BadRequestException('Onboarding session not found or expired');
-    }
+  async getSessionData(
+    onboardingId: string,
+  ): Promise<OnboardingSessionDataDto> {
+    const session = await this.getActiveSession(onboardingId);
     return session.data;
   }
 
-  clearSession(onboardingId: string): void {
-    this.onboardingSessions.delete(onboardingId);
+  async clearSession(onboardingId: string): Promise<void> {
+    await this.persistence.onboardingSession.deleteMany({
+      where: { id: onboardingId },
+    });
     this.logger.log(`Cleared onboarding session: ${onboardingId}`);
   }
 
-  onModuleDestroy(): void {
-    if (this.cleanupTimer) {
-      clearInterval(this.cleanupTimer);
+  async cleanExpiredSessions(): Promise<number> {
+    const result = await this.persistence.onboardingSession.deleteMany({
+      where: { expiresAt: { lt: this.clock.now() } },
+    });
+    if (result.count > 0) {
+      this.logger.log(`Cleaned ${result.count} expired onboarding sessions`);
     }
+    return result.count;
   }
 
   private generateOnboardingId(): string {
@@ -134,13 +148,49 @@ export class OnboardingDataService implements OnModuleDestroy {
     return keyMap[step] ?? step.toLowerCase();
   }
 
-  private cleanExpiredSessions() {
-    const now = this.clock.now();
-    for (const [id, session] of this.onboardingSessions.entries()) {
-      if (session.expiresAt < now) {
-        this.onboardingSessions.delete(id);
-        this.logger.log(`Cleaned expired onboarding session: ${id}`);
-      }
+  private async getActiveSession(
+    onboardingId: string,
+  ): Promise<OnboardingSession> {
+    const row = await this.persistence.onboardingSession.findFirst({
+      where: {
+        id: onboardingId,
+        expiresAt: { gt: this.clock.now() },
+      },
+    });
+    if (!row) {
+      throw new BadRequestException('Onboarding session not found or expired');
     }
+
+    return {
+      id: row.id,
+      currentStep: this.parseStep(row.currentStep),
+      completedSteps: this.parseCompletedSteps(row.completedSteps),
+      data: this.parseSessionData(row.data),
+      expiresAt: row.expiresAt,
+    };
+  }
+
+  private parseStep(value: string): OnboardingStep {
+    const parsed = Object.values(OnboardingStep).find((step) => step === value);
+    if (!parsed) {
+      throw new BadRequestException('Onboarding session is corrupted');
+    }
+    return parsed;
+  }
+
+  private parseCompletedSteps(value: unknown): OnboardingStep[] {
+    if (!Array.isArray(value)) return [];
+    return value
+      .map((step) =>
+        typeof step === 'string'
+          ? Object.values(OnboardingStep).find((known) => known === step)
+          : undefined,
+      )
+      .filter((step): step is OnboardingStep => Boolean(step));
+  }
+
+  private parseSessionData(value: unknown): OnboardingSessionDataDto {
+    const parsed = onboardingSessionDataSchema.safeParse(value);
+    return parsed.success ? parsed.data : {};
   }
 }

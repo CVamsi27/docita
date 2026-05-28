@@ -5,7 +5,7 @@ import { Building2, XCircle } from "lucide-react";
 import { Card } from "@workspace/ui/components/indicators/card";
 import { Button } from "@workspace/ui/components/form/button";
 import { Alert, AlertDescription, AlertTitle } from "@workspace/ui/components/feedback/alert";
-import { PreDashboardShell } from "@/features/auth/components/PreDashboardShell";
+import { PreDashboardShell } from "@/features/auth";
 
 export type JoinRequestTerminalState =
   | { kind: "rejected"; clinicName: string; reason?: string }

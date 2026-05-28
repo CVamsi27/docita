@@ -53,13 +53,15 @@ normalize_db_url() {
 
 # Function to get database URL
 get_db_url() {
-    if [ -f "../../.env" ]; then
+    local explicit_db_url="${DATABASE_URL:-}"
+
+    if [ -z "$explicit_db_url" ] && [ -f "../../.env" ]; then
         source ../../.env
     fi
-    if [ -f ".env" ]; then
+    if [ -z "$explicit_db_url" ] && [ -f ".env" ]; then
         source .env
     fi
-    normalize_db_url "${DATABASE_URL:-}"
+    normalize_db_url "${explicit_db_url:-${DATABASE_URL:-}}"
 }
 
 # Function to remove unsupported URI query params before invoking libpq tools.

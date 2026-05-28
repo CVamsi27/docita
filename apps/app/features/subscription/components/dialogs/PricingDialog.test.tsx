@@ -32,6 +32,16 @@ const pricingConfig = {
       features: ["Queue", "Reception-first"],
     },
     {
+      id: "FRONT_DESK_CLINIC",
+      pricing: { monthly: 1249, yearly: 12490 },
+      features: ["Supervisor roles", "Multi-desk"],
+    },
+    {
+      id: "FRONT_DESK_HOSPITAL",
+      pricing: { monthly: 3999, yearly: 39990 },
+      features: ["Shift handover", "Multi-OPD routing"],
+    },
+    {
       id: "ESSENTIAL",
       pricing: { monthly: 999, yearly: 9990 },
       features: ["Invoices", "WhatsApp reminders"],
@@ -65,6 +75,16 @@ describe("PricingDialog", () => {
           totalYearly: 7990,
           currency: { symbol: "₹" },
         },
+        FRONT_DESK_CLINIC: {
+          totalMonthly: 1249,
+          totalYearly: 12490,
+          currency: { symbol: "₹" },
+        },
+        FRONT_DESK_HOSPITAL: {
+          totalMonthly: 3999,
+          totalYearly: 39990,
+          currency: { symbol: "₹" },
+        },
         ESSENTIAL: {
           totalMonthly: 999,
           totalYearly: 9990,
@@ -94,12 +114,14 @@ describe("PricingDialog", () => {
     );
 
     expect(screen.getByText("Choose Your Plan")).toBeInTheDocument();
+    expect(screen.getByText("Clinical")).toBeInTheDocument();
+    expect(screen.getByText("Front Desk Operations")).toBeInTheDocument();
     expect(screen.getByText("Current")).toBeInTheDocument();
     expect(screen.getByText("₹999/mo")).toBeInTheDocument();
 
     fireEvent.click(screen.getAllByRole("button", { name: "Upgrade" })[0]!);
 
-    expect(onSelectTier).toHaveBeenCalledWith("FRONT_DESK", "MONTHLY");
+    expect(onSelectTier).toHaveBeenCalledWith("ESSENTIAL", "MONTHLY");
   });
 
   it("switches to yearly billing and closes from contact sales", () => {
@@ -120,7 +142,7 @@ describe("PricingDialog", () => {
     expect(screen.getByText("2 months free")).toBeInTheDocument();
 
     fireEvent.click(screen.getAllByRole("button", { name: "Upgrade" })[0]!);
-    expect(onSelectTier).toHaveBeenCalledWith("FRONT_DESK", "YEARLY");
+    expect(onSelectTier).toHaveBeenCalledWith("PROFESSIONAL", "YEARLY");
 
     fireEvent.click(screen.getByRole("button", { name: "Contact sales" }));
     expect(onOpenChange).toHaveBeenCalledWith(false);

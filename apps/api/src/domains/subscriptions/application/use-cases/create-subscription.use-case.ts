@@ -1,3 +1,4 @@
+import { randomBytes } from 'crypto';
 import {
   Injectable,
   BadRequestException,
@@ -60,7 +61,7 @@ export class CreateSubscriptionUseCase {
     const basePriceCents = this.pricingService.getPricePaise(plan, cycle);
 
     const subscription = new Subscription({
-      id: `sub_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
+      id: `sub_${Date.now()}_${randomBytes(6).toString('hex')}`,
       clinicId: dto.clinicId,
       plan,
       billingCycle: cycle,

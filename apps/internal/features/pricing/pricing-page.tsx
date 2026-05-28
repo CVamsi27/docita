@@ -309,14 +309,14 @@ export default function PricingPage() {
 
       <Tabs defaultValue="tiers" className="space-y-4">
         <TabsList>
-          <TabsTrigger value="tiers">Tier Pricing</TabsTrigger>
-          <TabsTrigger value="offers">Facility Offers</TabsTrigger>
+          <TabsTrigger value="tiers">Tier pricing</TabsTrigger>
+          <TabsTrigger value="offers">Facility offers</TabsTrigger>
         </TabsList>
 
         <TabsContent value="tiers">
           <Card>
             <CardHeader>
-              <CardTitle>Tier Pricing</CardTitle>
+              <CardTitle>Tier pricing</CardTitle>
               <CardDescription>
                 All prices are stored in cents/paise. The public pricing API
                 converts them for display.
@@ -340,10 +340,10 @@ export default function PricingPage() {
                         <TableHead>Appointments</TableHead>
                         <TableHead>Storage GB</TableHead>
                         <TableHead>Users</TableHead>
-                        <TableHead>Patient Overage</TableHead>
-                        <TableHead>Appt Overage</TableHead>
-                        <TableHead>Rx Overage</TableHead>
-                        <TableHead>Invoice Overage</TableHead>
+                        <TableHead>Patient overage</TableHead>
+                        <TableHead>Appt overage</TableHead>
+                        <TableHead>Rx overage</TableHead>
+                        <TableHead>Invoice overage</TableHead>
                         <TableHead>OCR Overage</TableHead>
                         <TableHead>API Overage</TableHead>
                         <TableHead />
@@ -636,7 +636,7 @@ export default function PricingPage() {
 
           <Card>
             <CardHeader>
-              <CardTitle>Active Offers</CardTitle>
+              <CardTitle>Active offers</CardTitle>
               <CardDescription>
                 These offers are automatically applied to the next checkout
                 preview for each clinic.

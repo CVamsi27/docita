@@ -83,6 +83,18 @@ model Clinic {
   facilityType          FacilityType           @default(CLINIC)
 }
 
+model OnboardingSession {
+  id             String   @id
+  currentStep    String
+  completedSteps Json
+  data           Json
+  expiresAt      DateTime
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+
+  @@index([expiresAt])
+}
+
 model ClinicSecret {
   id         String    @id @default(cuid())
   clinicId   String

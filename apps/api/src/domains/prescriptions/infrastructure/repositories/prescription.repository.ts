@@ -175,12 +175,29 @@ export class PrismaPrescriptionRepository implements IPrescriptionRepository {
     id: string,
     data: Prisma.PrescriptionUpdateInput,
     clinicId: string,
+    expectedVersion?: number,
   ): Promise<Prescription> {
+    // Optimistic-locking: if the caller passes an expected version, gate the
+    // write on it so concurrent edits do not silently overwrite each other.
+    // Callers that have not been migrated to pass a version still get a
+    // monotonically-increasing version field, just without conflict detection.
     const result = await this.prisma.prescription.updateMany({
-      where: { id, patient: { clinicId } },
-      data: data satisfies Prisma.PrescriptionUpdateManyMutationInput,
+      where: {
+        id,
+        patient: { clinicId },
+        ...(expectedVersion !== undefined ? { version: expectedVersion } : {}),
+      },
+      data: {
+        ...data,
+        version: { increment: 1 },
+      } satisfies Prisma.PrescriptionUpdateManyMutationInput,
     });
     if (result.count === 0) {
+      if (expectedVersion !== undefined) {
+        throw new Error(
+          `Prescription ${id} version conflict (expected ${expectedVersion})`,
+        );
+      }
       throw new Error(`Prescription ${id} not found`);
     }
 

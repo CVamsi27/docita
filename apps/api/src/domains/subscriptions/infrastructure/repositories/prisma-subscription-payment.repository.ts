@@ -2,14 +2,14 @@ import { Inject, Injectable, BadRequestException } from '@nestjs/common';
 import { CLOCK_PORT, type IClock } from '@/shared/common/ports/clock.port';
 import { PrismaService } from '@/prisma/prisma.service';
 import { Prisma } from '@workspace/db';
-import { SubscriptionPaymentTaxService } from './subscription-payment-tax.service';
+import { SubscriptionPaymentTaxCalculator } from './subscription-payment-tax.calculator';
 import { toPrismaJson } from './prisma-subscription.repository.helpers';
 
 @Injectable()
 export class PrismaSubscriptionPaymentRepository {
   constructor(
     private readonly prisma: PrismaService,
-    private readonly paymentTaxService: SubscriptionPaymentTaxService,
+    private readonly paymentTaxCalculator: SubscriptionPaymentTaxCalculator,
     @Inject(CLOCK_PORT) private readonly clock: IClock,
   ) {}
 
@@ -29,7 +29,7 @@ export class PrismaSubscriptionPaymentRepository {
     paidAt?: Date | null;
   }): Promise<void> {
     try {
-      const taxFields = await this.paymentTaxService.calculate(payment);
+      const taxFields = await this.paymentTaxCalculator.calculate(payment);
       const resolvedPaidAt =
         payment.status === 'paid' || payment.status === 'PAID'
           ? (payment.paidAt ?? this.clock.now())

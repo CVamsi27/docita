@@ -175,10 +175,15 @@ describe('AppointmentService metric persistence', () => {
         { id: 'def-weight', key: 'weight' },
       ]);
 
-    await service.createVitals('apt-1', 'clinic-1', {
-      height: 170,
-      weight: 70,
-    });
+    await service.createVitals(
+      'apt-1',
+      'clinic-1',
+      {
+        height: 170,
+        weight: 70,
+      },
+      { userId: 'user-1' } as never,
+    );
 
     expect(mockPrisma.metricCategory.findFirst).toHaveBeenCalledTimes(1);
     expect(mockPrisma.metricDefinition.findMany).toHaveBeenCalledTimes(2);
@@ -229,10 +234,15 @@ describe('AppointmentService metric persistence', () => {
       }),
     );
 
-    await service.updateAppointmentDetails('apt-2', 'clinic-1', {
-      observations: 'Mild fever',
-      consultationNotes: 'Hydration advised',
-    });
+    await service.updateAppointmentDetails(
+      'apt-2',
+      'clinic-1',
+      {
+        observations: 'Mild fever',
+        consultationNotes: 'Hydration advised',
+      },
+      { userId: 'user-1' } as never,
+    );
 
     expect(mockPrisma.metricCategory.findFirst).toHaveBeenCalledTimes(1);
     expect(mockPrisma.metricDefinition.findMany).toHaveBeenCalledTimes(2);

@@ -2,7 +2,7 @@ import { Test, TestingModule } from '@nestjs/testing';
 import { StaffNotificationService } from './staff-notification.service';
 import { WHATSAPP_PERSISTENCE_PORT } from '@/domains/whatsapp/application/ports/whatsapp-persistence.port';
 import { CLOCK_PORT } from '@/shared/common/ports/clock.port';
-import { WhatsappClientService } from '@/domains/whatsapp/infrastructure/clients/whatsapp-client.service';
+import { WhatsappClientAdapter } from '@/domains/whatsapp/infrastructure/clients/whatsapp-client.adapter';
 import { TemplateResolutionService } from '@/shared/whatsapp/template-resolution.service';
 import { TemplateModeService } from '@/shared/whatsapp/template-mode.service';
 import { StaffNotificationRecipientResolver } from './staff-notification-recipient.resolver';
@@ -119,7 +119,7 @@ describe('StaffNotificationService', () => {
         StaffNotificationWhatsAppDispatchService,
         StaffNotificationInboxService,
         { provide: WHATSAPP_PERSISTENCE_PORT, useValue: mockPrisma },
-        { provide: WhatsappClientService, useValue: mockWhatsappClient },
+        { provide: WhatsappClientAdapter, useValue: mockWhatsappClient },
         {
           provide: TemplateResolutionService,
           useValue: mockTemplateResolution,
@@ -514,7 +514,7 @@ describe('StaffNotificationService', () => {
       expect(mockPrisma.staffNotification.create).toHaveBeenCalled();
     });
 
-    it('treats FRONT_DESK as STARTER-equivalent for ordering', async () => {
+    it('delivers invoice notifications for Front Desk operations tiers', async () => {
       mockPrisma.clinic.findUnique.mockResolvedValue({
         id: 'clinic-123',
         tier: ClinicTier.FRONT_DESK,
@@ -528,7 +528,24 @@ describe('StaffNotificationService', () => {
         message: 'm',
       });
 
-      expect(mockPrisma.staffNotification.create).not.toHaveBeenCalled();
+      expect(mockPrisma.staffNotification.create).toHaveBeenCalled();
+    });
+
+    it('delivers payment provider updates for scaled Front Desk operations tiers', async () => {
+      mockPrisma.clinic.findUnique.mockResolvedValue({
+        id: 'clinic-123',
+        tier: ClinicTier.FRONT_DESK_CLINIC,
+        whatsappAutomation: { enabled: false },
+      });
+
+      await service.notifyStaff({
+        clinicId: 'clinic-123',
+        type: 'PAYMENT_PROVIDER_STATUS_UPDATE',
+        title: 't',
+        message: 'm',
+      });
+
+      expect(mockPrisma.staffNotification.create).toHaveBeenCalled();
     });
   });
 

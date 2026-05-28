@@ -217,6 +217,7 @@ export class PrescriptionsCommandService {
 
     if (data.clinicId) {
       this.eventEmitter.emit(
+        // allow-direct-emit: post-commit fan-out to PDF generation + clinic usage tracking. Outbox migration deferred (ADR 0010 §Follow-up).
         ApplicationEvents.PRESCRIPTION_CREATED,
         new PrescriptionCreatedEvent(prescription.id, data.clinicId),
       );

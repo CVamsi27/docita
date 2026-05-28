@@ -173,6 +173,7 @@ export function PreDashboardShell({
           </div>
 
           <AuthPreDashboardFooter
+            data-testid="auth-pre-dashboard-footer"
             className={cn("mx-auto shrink-0 px-4 pb-6", contentMaxWidth)}
             whatsappMessage={footerWhatsappMessage}
             trustRowClassName={showBrandingPanel ? "lg:hidden" : undefined}

@@ -44,6 +44,10 @@ export const appointmentStatusSchema = z.enum([
 ]);
 export type AppointmentStatus = z.infer<typeof appointmentStatusSchema>;
 
+/** Comma-separated status filter for schedule/list views (excludes cancelled). */
+export const VISIBLE_APPOINTMENT_STATUS_QUERY =
+  "scheduled,confirmed,in_progress,completed,no-show" as const;
+
 export const appointmentTypeSchema = z.enum([
   "consultation",
   "follow-up",
@@ -498,19 +502,32 @@ export const SPECIALIZATION_LABELS: Record<Specialization, string> = {
  *   actually active.
  */
 export const hospitalRoleSchema = z.enum([
+  /** @deprecated No operational use. */
   "CONSULTANT",
+  /** @deprecated No operational use. */
   "SENIOR_CONSULTANT",
+  /** @deprecated No operational use. */
   "JUNIOR_DOCTOR",
+  /** @deprecated No operational use. */
   "RESIDENT",
+  /** @deprecated No operational use. */
   "INTERN",
+  /** @deprecated No operational use. */
   "VISITING_DOCTOR",
+  /** @deprecated No operational use. */
   "HEAD_OF_DEPARTMENT",
+  /** @deprecated No operational use. */
   "MEDICAL_DIRECTOR",
+  /** @deprecated No operational use. */
   "SURGEON",
+  /** @deprecated No operational use. */
   "CHIEF_SURGEON",
+  /** @deprecated No operational use. */
   "ATTENDING_PHYSICIAN",
+  /** @deprecated No operational use. */
   "FELLOW",
 ]);
+/** @deprecated All HospitalRole members have zero operational use. See {@link SUPPORTED_HOSPITAL_ROLES}. */
 export type HospitalRole = z.infer<typeof hospitalRoleSchema>;
 
 /**
@@ -518,7 +535,8 @@ export type HospitalRole = z.infer<typeof hospitalRoleSchema>;
  * permitted in the system. Currently empty — no hospital roles are in
  * operational use.
  */
-export const SUPPORTED_HOSPITAL_ROLES = [] as const satisfies readonly HospitalRole[];
+export const SUPPORTED_HOSPITAL_ROLES =
+  [] as const satisfies readonly HospitalRole[];
 export const supportedHospitalRoleSchema = z.never();
 
 export const HOSPITAL_ROLE_LABELS: Record<HospitalRole, string> = {
@@ -664,6 +682,7 @@ export const doctorTimeOffSchema = z.object({
   endTime: z.string().optional().nullable(),
   createdAt: z.string().or(z.date()).optional(),
   updatedAt: z.string().or(z.date()).optional(),
+  version: z.number().int().nonnegative().default(1),
   doctor: z.object({ id: z.string(), name: z.string() }).optional(),
 });
 export type DoctorTimeOff = z.infer<typeof doctorTimeOffSchema>;
@@ -672,6 +691,7 @@ export const createDoctorTimeOffSchema = doctorTimeOffSchema.omit({
   id: true,
   createdAt: true,
   updatedAt: true,
+  version: true,
   doctor: true,
 });
 export type CreateDoctorTimeOffInput = z.infer<

@@ -33,6 +33,7 @@ export interface AppointmentSchedulingRulesInterface {
     doctorId: string,
     startTime: Date,
     endTime: Date,
+    clinicId?: string,
   ): Promise<{ allowed: boolean; reason?: string }>;
 
   calculateAppointmentDuration(startTime: Date, endTime: Date): number;
@@ -102,14 +103,16 @@ export class AppointmentSchedulingRulesService implements AppointmentSchedulingR
       };
     }
 
-    const startHour = startTime.getHours();
-    const endHour = endTime.getHours();
+    const startMinuteOfDay = startTime.getHours() * 60 + startTime.getMinutes();
+    const endMinuteOfDay = endTime.getHours() * 60 + endTime.getMinutes();
+    const businessStartMinute = this.BUSINESS_HOURS_START * 60;
+    const businessEndMinute = this.BUSINESS_HOURS_END * 60;
     if (
-      startHour < this.BUSINESS_HOURS_START ||
-      endHour > this.BUSINESS_HOURS_END
+      startMinuteOfDay < businessStartMinute ||
+      endMinuteOfDay > businessEndMinute
     ) {
       return {
-        valid: true,
+        valid: false,
         error: 'Appointment is outside standard business hours (9 AM - 6 PM)',
       };
     }
@@ -133,6 +136,7 @@ export class AppointmentSchedulingRulesService implements AppointmentSchedulingR
             AppointmentStatus.SCHEDULED,
             AppointmentStatus.CONFIRMED,
             AppointmentStatus.IN_PROGRESS,
+            AppointmentStatus.RESCHEDULING,
           ],
         },
         ...(excludeAppointmentId ? { NOT: { id: excludeAppointmentId } } : {}),
@@ -164,10 +168,17 @@ export class AppointmentSchedulingRulesService implements AppointmentSchedulingR
     doctorId: string,
     startTime: Date,
     endTime: Date,
+    clinicId?: string,
   ): Promise<{ allowed: boolean; reason?: string }> {
+    // When a clinic context is supplied, scope to that clinic and clinic-agnostic
+    // (global) time-offs, so a doctor's leave at another clinic doesn't block this one.
+    const clinicScope = clinicId
+      ? { OR: [{ clinicId }, { clinicId: null }] }
+      : {};
     const timeOff = await this.prisma.doctorTimeOff.findFirst({
       where: {
         doctorId,
+        ...clinicScope,
         AND: [{ startDate: { lt: endTime } }, { endDate: { gt: startTime } }],
       },
       select: {
@@ -250,6 +261,7 @@ export class AppointmentSchedulingRulesService implements AppointmentSchedulingR
       [AppointmentStatus.RESCHEDULING]: [
         AppointmentStatus.CONFIRMED,
         AppointmentStatus.SCHEDULED,
+        AppointmentStatus.IN_PROGRESS,
         AppointmentStatus.CANCELLED,
       ],
       [AppointmentStatus.IN_PROGRESS]: [

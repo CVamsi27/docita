@@ -1,7 +1,8 @@
 import { Injectable } from '@nestjs/common';
 import { DATE_FORMATS, formatDate } from '@workspace/utils';
 import { PdfLayoutService } from './pdf-layout.service';
-import type { PDFConfig, PrescriptionPdfInput } from './pdf.types';
+import type { PrescriptionPdfInput } from './pdf.types';
+import type { PDFConfig } from './pdf-config.types';
 
 @Injectable()
 export class PrescriptionPdfRenderer {

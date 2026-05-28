@@ -33,7 +33,7 @@ import {
 } from "@workspace/ui/components/form/select";
 import { updatePatientRequestSchema } from "@workspace/types";
 import { parseStringEnumMember } from "@workspace/utils";
-import { validatePatientPhoneNumberForCountry } from "@/features/patients/rules/patientRules";
+import { validatePatientPhoneNumberForCountry } from "@/features/patients/rules/patient-rules";
 
 interface EditPatientDialogProps {
   open?: boolean;

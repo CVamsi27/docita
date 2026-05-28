@@ -1,1 +1,3 @@
-export { PaymentProcessingPage as default } from "@/features/payment-processing";
+import PaymentProcessingPage from "./payment-processing-page";
+
+export default PaymentProcessingPage;

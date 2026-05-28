@@ -2,8 +2,7 @@ import { execSync } from "node:child_process";
 import fs from "node:fs";
 import path from "node:path";
 
-export const repoRoot = path.resolve(new URL("../..", import.meta.url).pathname);
-const evidenceDir = path.join(repoRoot, "docs", "audits", "evidence");
+const repoRoot = path.resolve(new URL("../..", import.meta.url).pathname);
 
 const runtimeDirPattern =
   /(^|\/)(node_modules|\.next|\.turbo|\.wrangler|\.astro|dist|coverage|playwright-report|test-results|accessibility-reports|uploads)(\/|$)|^logs\//;
@@ -11,13 +10,13 @@ const runtimeDirPattern =
 const textFilePattern =
   /\.(ts|tsx|js|jsx|mjs|cjs|json|jsonc|md|mdx|css|scss|yml|yaml|prisma|sql|toml|env|example)$/;
 
-export function listTrackedFiles() {
+function listTrackedFiles() {
   return execSync("git ls-files", { cwd: repoRoot, encoding: "utf8" })
     .split("\n")
     .filter(Boolean);
 }
 
-export function readText(file) {
+function readText(file) {
   try {
     return fs.readFileSync(path.join(repoRoot, file), "utf8");
   } catch {
@@ -25,7 +24,7 @@ export function readText(file) {
   }
 }
 
-export function countLines(text) {
+function countLines(text) {
   if (!text) return 0;
   return text.split("\n").length;
 }
@@ -79,7 +78,7 @@ function writeFile(relativePath, content) {
   fs.writeFileSync(fullPath, `${content.trim()}\n`, "utf8");
 }
 
-export function formatFinding(issue) {
+function formatFinding(issue) {
   return `${issue.file}: ${issue.message}`;
 }
 

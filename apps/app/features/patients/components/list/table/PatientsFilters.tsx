@@ -29,7 +29,7 @@ export function PatientsFilters({
       <CardHeader>
         <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
           <div>
-            <CardTitle>All Patients</CardTitle>
+            <CardTitle>All patients</CardTitle>
             <CardDescription>
               A list of all patients in your practice including their name,
               contact, and medical history
@@ -44,8 +44,8 @@ export function PatientsFilters({
           >
             <TabsList className="grid w-full grid-cols-3">
               <TabsTrigger value="all">All</TabsTrigger>
-              <TabsTrigger value="recent">Recently Active</TabsTrigger>
-              <TabsTrigger value="new">New Patients</TabsTrigger>
+              <TabsTrigger value="recent">Recently active</TabsTrigger>
+              <TabsTrigger value="new">New patients</TabsTrigger>
             </TabsList>
           </Tabs>
         </div>

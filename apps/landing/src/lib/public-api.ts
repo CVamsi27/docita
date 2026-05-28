@@ -14,6 +14,11 @@ function getBaseOrigin(): string {
   return import.meta.env["PUBLIC_SITE_URL"] || "http://127.0.0.1:3003";
 }
 
+function getLandingApiBaseUrl(): string {
+  const baseUrl = import.meta.env["PUBLIC_API_URL"] || "/api/v1";
+  return normalizeBaseUrl(baseUrl);
+}
+
 function resolveApiUrl(path: string, baseOrigin = getBaseOrigin()): string {
   const baseUrl = getLandingApiBaseUrl();
   if (baseUrl.startsWith("/")) {
@@ -21,11 +26,6 @@ function resolveApiUrl(path: string, baseOrigin = getBaseOrigin()): string {
   }
 
   return `${baseUrl}${path}`;
-}
-
-export function getLandingApiBaseUrl(): string {
-  const baseUrl = import.meta.env["PUBLIC_API_URL"] || "/api/v1";
-  return normalizeBaseUrl(baseUrl);
 }
 
 export function getAppBaseUrl(): string {
@@ -41,47 +41,6 @@ export function getAppBaseUrl(): string {
   return "http://localhost:3000";
 }
 
-function getCsrfTokenFromCookie(): string | null {
-  if (typeof document === "undefined") {
-    return null;
-  }
-
-  const tokenRow = document.cookie
-    .split(";")
-    .map((row) => row.trim())
-    .find((row) => row.startsWith("XSRF-TOKEN="));
-
-  if (!tokenRow) {
-    return null;
-  }
-
-  return decodeURIComponent(tokenRow.slice("XSRF-TOKEN=".length));
-}
-
-async function ensureCsrfToken(): Promise<string | null> {
-  const existingToken = getCsrfTokenFromCookie();
-  if (existingToken) {
-    return existingToken;
-  }
-
-  try {
-    await fetch(`${getLandingApiBaseUrl()}/public/platform-stats`, {
-      credentials: "include",
-    });
-  } catch {
-    return null;
-  }
-
-  return getCsrfTokenFromCookie();
-}
-
-interface ContactInquiryPayload {
-  name: string;
-  email: string;
-  clinic: string;
-  message: string;
-}
-
 export async function fetchLandingJson<T>(
   path: string,
   baseOrigin?: string,
@@ -93,23 +52,4 @@ export async function fetchLandingJson<T>(
   }
 
   return (await response.json()) as T;
-}
-
-export async function submitContactInquiry(
-  payload: ContactInquiryPayload,
-): Promise<void> {
-  const csrfToken = await ensureCsrfToken();
-  const response = await fetch(`${getLandingApiBaseUrl()}/contact/inquiry`, {
-    method: "POST",
-    credentials: "include",
-    headers: {
-      "Content-Type": "application/json",
-      ...(csrfToken ? { "X-XSRF-TOKEN": csrfToken } : {}),
-    },
-    body: JSON.stringify(payload),
-  });
-
-  if (!response.ok) {
-    throw new Error("We could not send your message. Please try again.");
-  }
 }

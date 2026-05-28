@@ -82,7 +82,7 @@ export function ManageTeamMemberDialog({
     <Dialog open={!!member} onOpenChange={onOpenChange}>
       <DialogContent className="sm:max-w-[640px]">
         <DialogHeader>
-          <DialogTitle>Member Details</DialogTitle>
+          <DialogTitle>Member details</DialogTitle>
           <DialogDescription>{memberDialogDescription}</DialogDescription>
         </DialogHeader>
         {member ? (

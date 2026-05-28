@@ -47,7 +47,7 @@ export class ConsentComplianceService {
 
     await this.dpdpAudit.logConsentRecorded(
       {
-        userId: data.patientId,
+        userId: data.actorUserId ?? data.patientId,
         clinicId: data.clinicId,
         resourceType: 'Consent',
         resourceId: consent.id,
@@ -112,6 +112,7 @@ export class ConsentComplianceService {
     withdrawnBy: string,
     ipAddress?: string,
     clinicId?: string,
+    actorUserId?: string,
   ): Promise<unknown> {
     if (clinicId) {
       const existing = await this.prisma.consent.findFirst({
@@ -134,7 +135,7 @@ export class ConsentComplianceService {
 
     await this.dpdpAudit.logConsentWithdrawn(
       {
-        userId: withdrawnBy,
+        userId: actorUserId ?? withdrawnBy,
         clinicId: consent.clinicId,
         resourceType: 'Consent',
         resourceId: consent.id,

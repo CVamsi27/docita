@@ -151,7 +151,7 @@ describe("VerifyEmailSentPage", () => {
       "Verification email resent. Check your inbox.",
     );
     expect(
-      screen.getByRole("button", { name: /verification email sent/i }),
+      await screen.findByRole("button", { name: /verification email sent/i }),
     ).toBeDisabled();
   });
 

@@ -65,7 +65,7 @@ export function DoctorAvailabilitySettings() {
           <div className="flex items-center gap-3">
             <Calendar className="h-5 w-5 text-info" />
             <div>
-              <CardTitle>Doctor Availability</CardTitle>
+              <CardTitle>Doctor availability</CardTitle>
               <CardDescription>
                 Configure working hours and slot duration per doctor
               </CardDescription>

@@ -1,5 +1,5 @@
 import { z } from "zod";
-import { whatsappMessageTypeSchema } from "./index";
+import { whatsappMessageTypeSchema } from "./users";
 
 export const whatsappTemplateParameterSchema = z.object({
   type: z.enum(["text", "currency", "date_time", "image", "document", "video"]),

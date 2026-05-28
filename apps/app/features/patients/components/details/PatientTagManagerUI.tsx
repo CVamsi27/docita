@@ -1,3 +1,5 @@
+"use client";
+
 import { useMemo, useState } from "react";
 import { Button } from "@workspace/ui/components/form/button";
 import {
@@ -19,6 +21,7 @@ import {
 import { SymbolTooltip } from "@workspace/ui/components/overlay/tooltip";
 import { Search, Tag, X } from "lucide-react";
 import { getTagColorName } from "./tag-colors";
+import type { PatientTag, PresetTag } from "./patient-tag.types";
 import {
   CurrentTagsTab,
   CustomTagTab,
@@ -26,17 +29,7 @@ import {
   groupPresetTags,
 } from "./patient-tag-manager-helpers";
 
-export interface PatientTag {
-  id: string;
-  tag: string;
-  color: string;
-}
-
-export interface PresetTag {
-  tag: string;
-  color: string;
-  category?: string;
-}
+export type { PatientTag, PresetTag };
 
 interface PatientTagManagerUIProps {
   open: boolean;
@@ -165,7 +158,7 @@ export function PatientTagManagerUI({
         <Tabs defaultValue="current" className="w-full">
           <TabsList className="grid w-full grid-cols-3">
             <TabsTrigger value="current">Current ({tags.length})</TabsTrigger>
-            <TabsTrigger value="presets">Quick Add</TabsTrigger>
+            <TabsTrigger value="presets">Quick add</TabsTrigger>
             <TabsTrigger value="custom">Custom</TabsTrigger>
           </TabsList>
 

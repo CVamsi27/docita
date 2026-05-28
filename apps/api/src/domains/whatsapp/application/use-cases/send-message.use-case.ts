@@ -187,6 +187,7 @@ export class SendMessageUseCase {
     await this.repository.saveMessage(message);
 
     this.eventEmitter.emit(ApplicationEvents.WHATSAPP_MESSAGE_SENT, {
+      // allow-direct-emit: post-commit telemetry/analytics fan-out; the message persistence above is a single atomic write. Outbox migration deferred (ADR 0010 §Follow-up).
       clinicId,
       messageId: message.id,
       messageType: templateName ? 'template' : 'session',

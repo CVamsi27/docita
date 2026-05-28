@@ -6,6 +6,7 @@ import { EnterpriseContractStatus } from '@workspace/db';
 import { EnterpriseContractsService } from '@/domains/enterprise-contracts/application/services/enterprise-contracts.service';
 import { isCronDisabledInThisProcess } from '@/shared/schedule/cron-env';
 import { CRON_SCHEDULES } from '@/shared/schedule/cron-schedules';
+import { TrackHeartbeat } from '@/shared/modules/schedule/cron-heartbeat';
 
 @Injectable()
 export class EnterpriseContractTrueUpScheduler {
@@ -26,6 +27,7 @@ export class EnterpriseContractTrueUpScheduler {
   @Cron(CRON_SCHEDULES.ENTERPRISE_CONTRACT_TRUEUP, {
     disabled: isCronDisabledInThisProcess(),
   })
+  @TrackHeartbeat('enterprise-contracts.trueup')
   async evaluateAll(): Promise<void> {
     if (this.databaseAccessDisabled) return;
 

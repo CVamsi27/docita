@@ -2,22 +2,11 @@ import { Injectable, Logger, OnModuleInit } from '@nestjs/common';
 import { createHash } from 'crypto';
 import { IDEMPOTENCY_TTL_SECONDS_DEFAULT } from './idempotency.constants';
 import { IdempotencyRepository } from './idempotency.repository';
+import type { CachedIdempotencyEntry } from './idempotency.types';
 import { AppConfigService } from '@/shared/modules/config/app-configuration.service';
 import { isRecord } from '@workspace/utils';
 
-export interface CachedIdempotencyEntry {
-  /**
-   * sha-256 hex digest of the canonical-JSON-stringified request body. Used
-   * to detect a buggy client that replays the same key with a different body.
-   */
-  bodyHash: string;
-  response: unknown;
-  /**
-   * Epoch milliseconds at which the entry was first persisted. Returned for
-   * diagnostic logging only.
-   */
-  createdAt: number;
-}
+export type { CachedIdempotencyEntry };
 
 /**
  * Storage layer for the idempotency interceptor. Persists state in Postgres so

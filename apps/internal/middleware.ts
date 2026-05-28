@@ -1,9 +1,90 @@
 import { type NextRequest, NextResponse } from "next/server";
-import { isPortalPath } from "@/lib/internal-portal-routes";
-import { applyInternalSecurityHeaders } from "./shared/lib/security/security-headers";
+import {
+  applyInternalSecurityHeaders,
+  buildInternalContentSecurityPolicy,
+} from "./shared/lib/security/security-headers";
+
+/**
+ * Per-request CSP nonce. Next.js will pick up the `x-nonce` request
+ * header and apply it to its own inline boot scripts, which is what
+ * lets us drop `'unsafe-inline'` from `script-src` in production
+ * without breaking the framework.
+ *
+ * This middleware deliberately does NOTHING extra in development to
+ * keep hot-reload functional (HMR uses inline scripts we cannot sign).
+ */
+const isProduction = process.env.NODE_ENV === "production";
+
+function generateNonce(): string {
+  const bytes = new Uint8Array(16);
+  crypto.getRandomValues(bytes);
+  let binary = "";
+  for (const byte of bytes) binary += String.fromCharCode(byte);
+  return btoa(binary);
+}
+
+/**
+ * Apply security headers + (in production) a nonce-bound CSP to a
+ * response. Returns a new response when a render-bound nonce must be
+ * propagated via the request headers; otherwise returns the original.
+ */
+function applyHeadersWithNonce(
+  request: NextRequest,
+  response: NextResponse,
+  options: { render?: boolean } = {},
+): NextResponse {
+  if (!isProduction) {
+    return applyInternalSecurityHeaders(response);
+  }
+
+  const nonce = generateNonce();
+  const csp = buildInternalContentSecurityPolicy({
+    nonce,
+    isProduction: true,
+  });
+
+  // For renders, fork the request headers so Next picks up `x-nonce`
+  // and signs its boot scripts with it. For redirects/static responses
+  // the nonce only needs to ride on the CSP header.
+  let outgoing = response;
+  if (options.render) {
+    const requestHeaders = new Headers(request.headers);
+    requestHeaders.set("x-nonce", nonce);
+    outgoing = NextResponse.next({ request: { headers: requestHeaders } });
+  }
+
+  applyInternalSecurityHeaders(outgoing);
+  outgoing.headers.set("Content-Security-Policy", csp);
+  return outgoing;
+}
 
 const STATIC_EXT =
   /\.(?:svg|png|jpg|jpeg|gif|webp|ico|avif|woff2?|ttf|txt|xml|json|webmanifest)$/i;
+
+/** Routes served by the Internal Console (see `app/(protected)`). */
+const PORTAL_ROUTE_PREFIXES = [
+  "/dashboard",
+  "/users",
+  "/admins",
+  "/payment-processing",
+  "/billing",
+  "/pricing",
+  "/analytics",
+  "/system-monitoring",
+  "/feedback",
+  "/support",
+  "/broadcasts",
+  "/logs",
+  "/audits",
+  "/performance",
+  "/doctors",
+] as const;
+
+function isPortalPath(pathname: string): boolean {
+  return PORTAL_ROUTE_PREFIXES.some(
+    (prefix) => pathname === prefix || pathname.startsWith(`${prefix}/`),
+  );
+}
 
 export function middleware(request: NextRequest): NextResponse {
   const { pathname } = request.nextUrl;
@@ -16,34 +97,41 @@ export function middleware(request: NextRequest): NextResponse {
     pathname.startsWith("/fonts/") ||
     STATIC_EXT.test(pathname)
   ) {
-    return applyInternalSecurityHeaders(NextResponse.next());
+    return applyHeadersWithNonce(request, NextResponse.next());
   }
 
   if (pathname === "/robots.txt") {
-    return applyInternalSecurityHeaders(NextResponse.next());
+    return applyHeadersWithNonce(request, NextResponse.next());
   }
 
   if (pathname === "/") {
-    return applyInternalSecurityHeaders(NextResponse.next());
+    return applyHeadersWithNonce(request, NextResponse.next(), {
+      render: true,
+    });
   }
 
   if (pathname.startsWith("/clinic")) {
-    return applyInternalSecurityHeaders(
+    return applyHeadersWithNonce(
+      request,
       NextResponse.redirect(new URL("/dashboard", request.url)),
     );
   }
 
   if (pathname === "/dashboard/doctors") {
-    return applyInternalSecurityHeaders(
+    return applyHeadersWithNonce(
+      request,
       NextResponse.redirect(new URL("/doctors", request.url)),
     );
   }
 
   if (isPortalPath(pathname)) {
-    return applyInternalSecurityHeaders(NextResponse.next());
+    return applyHeadersWithNonce(request, NextResponse.next(), {
+      render: true,
+    });
   }
 
-  return applyInternalSecurityHeaders(
+  return applyHeadersWithNonce(
+    request,
     NextResponse.redirect(new URL("/dashboard", request.url)),
   );
 }

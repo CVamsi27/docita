@@ -107,7 +107,7 @@ function PrescriptionDefaultsSettings() {
       <CardHeader>
         <div className="flex items-center gap-2">
           <FileText className="h-5 w-5 text-primary" />
-          <CardTitle>Prescription Defaults</CardTitle>
+          <CardTitle>Prescription defaults</CardTitle>
         </div>
         <CardDescription>
           Set default values for all prescriptions
@@ -125,7 +125,7 @@ function PrescriptionDefaultsSettings() {
               name="defaultInstructions"
               render={({ field }) => (
                 <FormItem>
-                  <Label htmlFor="defaultInstructions">Default Instructions</Label>
+                  <Label htmlFor="defaultInstructions">Default instructions</Label>
                   <FormControl>
                     <Textarea
                       id="defaultInstructions"
@@ -147,7 +147,7 @@ function PrescriptionDefaultsSettings() {
               name="defaultFooterText"
               render={({ field }) => (
                 <FormItem>
-                  <Label htmlFor="defaultFooterText">Footer Text</Label>
+                  <Label htmlFor="defaultFooterText">Footer text</Label>
                   <FormControl>
                     <Textarea
                       id="defaultFooterText"
@@ -165,7 +165,7 @@ function PrescriptionDefaultsSettings() {
             />
 
             <div className="space-y-4">
-              <Label>Prescription Options</Label>
+              <Label>Prescription options</Label>
 
               <FormField
                 control={form.control}

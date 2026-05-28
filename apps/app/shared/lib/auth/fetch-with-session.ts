@@ -6,16 +6,22 @@ function isMutatingMethod(method: string | undefined): boolean {
   return ["POST", "PUT", "PATCH", "DELETE"].includes((method ?? "GET").toUpperCase());
 }
 
+/**
+ * Same-origin requests rely on the httpOnly `access_token` cookie
+ * (credentials: "include" below). We deliberately do NOT attach an
+ * Authorization: Bearer header — the cookie is the credential, and
+ * not exposing the token to JS keeps the XSS surface small.
+ *
+ * The CSRF header still rides on mutating methods because the cookie
+ * auth path is the one that needs double-submit protection (see
+ * apps/api/src/shared/common/interceptors/csrf.interceptor.ts).
+ */
 function mergeHeaders(
   headers: HeadersInit | undefined,
-  token: string | null,
   csrfToken: string | null,
   method: string | undefined,
 ): Headers {
   const merged = new Headers(headers ?? {});
-  if (token) {
-    merged.set("Authorization", `Bearer ${token}`);
-  }
 
   if (isMutatingMethod(method) && csrfToken && !merged.has("x-xsrf-token")) {
     merged.set("x-xsrf-token", csrfToken);
@@ -29,18 +35,18 @@ export async function fetchWithSession(
   init?: RequestInit,
 ): Promise<Response> {
   const csrfToken = appSession.getCsrfToken();
-  const request = (token: string | null) =>
+  const request = () =>
     fetch(`${API_URL}${endpoint}`, {
       ...init,
       credentials: "include",
-      headers: mergeHeaders(init?.headers, token, csrfToken, init?.method),
+      headers: mergeHeaders(init?.headers, csrfToken, init?.method),
     });
 
-  let response = await request(appSession.getToken());
+  let response = await request();
   if (response.status === 401) {
     const refreshed = await appSession.refreshAccessToken();
     if (refreshed) {
-      response = await request(appSession.getToken());
+      response = await request();
     }
   }
 
@@ -48,6 +54,8 @@ export async function fetchWithSession(
     appSession.clearSession();
     appSession.redirectToLogin();
   }
+
+  appSession.captureCsrfFromResponse(response);
 
   return response;
 }

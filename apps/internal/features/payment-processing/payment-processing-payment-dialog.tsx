@@ -123,7 +123,7 @@ export function PaymentProcessingPaymentDialog(props: PaymentProcessingPaymentDi
                                 displayName: tier.displayName,
                                 price: tier.priceIsCustom ? null : tier.price,
                                 billingCycle: tier.billingCycle,
-                                formatMoney: (amount) =>
+                                formatMoney: (amount: number) =>
                                   formatCurrency(amount, {
                                     currency:
                                       selectedClinic?.currency ||

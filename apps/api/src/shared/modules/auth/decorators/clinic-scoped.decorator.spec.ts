@@ -1,4 +1,8 @@
-import { ExecutionContext } from '@nestjs/common';
+import {
+  BadRequestException,
+  ExecutionContext,
+  ForbiddenException,
+} from '@nestjs/common';
 import { Reflector } from '@nestjs/core';
 import { beforeEach, describe, expect, it, jest } from '@jest/globals';
 import {
@@ -65,6 +69,55 @@ describe('ClinicScopedGuard', () => {
     const allowed = guard.canActivate(createContext(request));
 
     expect(allowed).toBe(true);
+  });
+
+  it('rejects when clinic scope is missing', () => {
+    mockGetAllAndOverrideKeyBranch(
+      reflector.getAllAndOverride,
+      CLINIC_SCOPED_KEY,
+      {},
+      undefined,
+    );
+
+    expect(() => guard.canActivate(createContext({}))).toThrow(
+      BadRequestException,
+    );
+  });
+
+  it('rejects when user clinic and requested clinic differ', () => {
+    mockGetAllAndOverrideKeyBranch(
+      reflector.getAllAndOverride,
+      CLINIC_SCOPED_KEY,
+      { paramName: 'clinicId' },
+      undefined,
+    );
+
+    expect(() =>
+      guard.canActivate(
+        createContext({
+          user: { clinicId: 'clinic-1' },
+          params: { clinicId: 'clinic-2' },
+        }),
+      ),
+    ).toThrow(ForbiddenException);
+  });
+
+  it('allows when user clinic and requested clinic match', () => {
+    mockGetAllAndOverrideKeyBranch(
+      reflector.getAllAndOverride,
+      CLINIC_SCOPED_KEY,
+      { paramName: 'clinicId' },
+      undefined,
+    );
+
+    expect(
+      guard.canActivate(
+        createContext({
+          user: { clinicId: 'clinic-1' },
+          params: { clinicId: 'clinic-1' },
+        }),
+      ),
+    ).toBe(true);
   });
 });
 

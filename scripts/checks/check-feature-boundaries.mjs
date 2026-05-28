@@ -9,4 +9,3 @@ const enforce = process.argv.includes("--enforce");
 const issues = collectFeatureBoundaryFindings();
 
 printReport("Frontend feature boundary audit", issues, { enforce });
-

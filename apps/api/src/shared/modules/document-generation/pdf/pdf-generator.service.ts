@@ -9,11 +9,8 @@ import {
   mapInvoicePdfInputToClinical,
 } from './clinical-invoice-pdf.mapper';
 import type { IPdfDocumentRenderer } from './pdf-document-renderer.interface';
-import type {
-  InvoicePdfInput,
-  PDFConfig,
-  PrescriptionPdfInput,
-} from './pdf.types';
+import type { InvoicePdfInput, PrescriptionPdfInput } from './pdf.types';
+import type { PDFConfig } from './pdf-config.types';
 
 export type {
   PDFClinicInfo,
@@ -24,8 +21,8 @@ export type {
   TableColumn,
   PDFDocumentType,
   PDFContext,
-  PDFConfig,
 } from './pdf.types';
+export type { PDFConfig } from './pdf-config.types';
 
 @Injectable()
 export class PDFGeneratorService implements IPdfDocumentRenderer {
