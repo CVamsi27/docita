@@ -5,6 +5,7 @@ import {
   HELP_NAV_ITEM,
   navItems,
   navSections,
+  sidebarNavLinkTestId,
 } from "./nav-config";
 
 describe("navSections", () => {
@@ -34,5 +35,16 @@ describe("navSections", () => {
   it("exports stable nav items for the assistant and help routes", () => {
     expect(AI_ASSISTANT_NAV_ITEM.href).toBe("/ai-assistant");
     expect(HELP_NAV_ITEM.href).toBe("/help");
+  });
+});
+
+describe("sidebarNavLinkTestId", () => {
+  it("maps hrefs to stable sidebar link test ids", () => {
+    expect(sidebarNavLinkTestId("/appointments")).toBe(
+      "sidebar-link-appointments",
+    );
+    expect(sidebarNavLinkTestId("/desk/collect-payment")).toBe(
+      "sidebar-link-desk-collect-payment",
+    );
   });
 });

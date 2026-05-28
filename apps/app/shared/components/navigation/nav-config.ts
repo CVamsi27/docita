@@ -210,9 +210,14 @@ export const AI_ASSISTANT_NAV_ITEM: NavItem = {
   feature: Feature.AI_PRESCRIPTION_ASSISTANT,
 };
 
-/** Always shown in the sidebar even when a clinic has customized other items away. */
+export function sidebarNavLinkTestId(href: string): string {
+  const slug = href.replace(/^\//, "").replace(/\//g, "-");
+  return `sidebar-link-${slug}`;
+}
+
 export const FIXED_NAV_HREFS = new Set([
   "/today",
+  "/appointments",
   "/settings",
   "/invoices",
   "/desk/collect-payment",

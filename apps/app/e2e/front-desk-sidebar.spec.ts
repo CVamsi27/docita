@@ -27,9 +27,9 @@ test.describe("Front desk workspace sidebar", () => {
   test("hides Consultation for front desk clinic", async ({ page }) => {
     await page.goto("/today", { waitUntil: "domcontentloaded" });
     await expectProtectedWorkspaceLoaded(page);
-    const sidebar = page.getByRole("complementary").first();
+    const primaryNav = page.getByRole("navigation", { name: "Primary" });
     await expect(
-      sidebar.getByRole("link", { name: "Consultation", exact: true }),
+      primaryNav.getByRole("link", { name: "Consultation", exact: true }),
     ).toHaveCount(0);
   });
 
@@ -37,15 +37,8 @@ test.describe("Front desk workspace sidebar", () => {
     await page.goto("/today", { waitUntil: "domcontentloaded" });
     await expectProtectedWorkspaceLoaded(page);
 
-    const expandSidebar = page.getByRole("button", {
-      name: "Expand sidebar",
-    });
-    if (await expandSidebar.isVisible()) {
-      await expandSidebar.click();
-    }
-
-    const sidebar = page.getByRole("complementary").first();
-    const appointmentsLink = sidebar.getByTestId("sidebar-link--appointments");
+    const primaryNav = page.getByRole("navigation", { name: "Primary" });
+    const appointmentsLink = primaryNav.getByTestId("sidebar-link-appointments");
     await expect(appointmentsLink).toBeVisible();
     await expect(appointmentsLink).toHaveAccessibleName("Appointments");
   });
