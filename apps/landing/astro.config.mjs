@@ -10,6 +10,12 @@ const isCloudflareBuild =
 
 export default defineConfig({
   site: "https://docita.work",
+  // No server sessions: skip default SESSION KV (deploy fails if namespace already exists).
+  session: {
+    driver: {
+      entrypoint: "unstorage/drivers/null",
+    },
+  },
   output: "server",
   build: {
     inlineStylesheets: "always",

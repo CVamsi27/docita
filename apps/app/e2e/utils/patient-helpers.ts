@@ -290,6 +290,7 @@ async function setupTestUserImpl(
 ): Promise<UserData> {
   const clinicType = options.clinicType ?? "GENERAL";
   const tier = options.tier ?? "ESSENTIAL";
+  const isUnpaidEssentialTrial = tier === "ESSENTIAL";
   const onboardingAdminRole = tier === "FRONT_DESK" ? "ADMIN" : "ADMIN_DOCTOR";
   const uniqueId = randomUUID();
   const email = `doctor-${uniqueId}@test.com`;
@@ -434,9 +435,6 @@ async function setupTestUserImpl(
           tier,
           billingCycle: "MONTHLY",
           currency: "INR",
-        },
-        paymentDetails: {
-          skipPayment: true,
         },
         paymentDetails: isUnpaidEssentialTrial
           ? { skipPayment: true }
