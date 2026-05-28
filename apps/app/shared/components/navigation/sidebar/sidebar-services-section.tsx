@@ -10,6 +10,7 @@ import {
   AI_ASSISTANT_NAV_ITEM,
   type NavItem,
   type NavSection,
+  sidebarNavLinkTestId,
 } from "@/components/navigation/nav-config";
 
 function getIconClasses(isActive: boolean) {
@@ -35,7 +36,7 @@ function ServiceNavLink({ item, collapsedRail, showLabels }: ServiceNavLinkProps
   const link = (
     <Link
       href={item.href}
-      data-testid={`sidebar-link-${item.href.replace(/\//g, "-")}`}
+      data-testid={sidebarNavLinkTestId(item.href)}
       aria-label={collapsedRail ? item.label : undefined}
       className={cn(
         "group relative flex items-center gap-3 rounded-xl px-2.5 py-2 text-sm font-medium transition-colors duration-200",

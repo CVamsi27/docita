@@ -6,7 +6,11 @@ import { usePathname } from "next/navigation";
 import { cn } from "@workspace/ui/lib/utils";
 import { MicroLabel } from "@workspace/ui/components/indicators/micro-label";
 import { SymbolTooltip } from "@workspace/ui/components/overlay/tooltip";
-import { type NavItem, type NavSection } from "@/components/navigation/nav-config";
+import {
+  sidebarNavLinkTestId,
+  type NavItem,
+  type NavSection,
+} from "@/components/navigation/nav-config";
 
 function getIconClasses(isActive: boolean) {
   return cn(
@@ -31,7 +35,7 @@ function SidebarNavLink({ item, collapsedRail, showLabels }: SidebarNavLinkProps
   const link = (
     <Link
       href={item.href}
-      data-testid={`sidebar-link-${item.href.replace(/\//g, "-")}`}
+      data-testid={sidebarNavLinkTestId(item.href)}
       aria-label={collapsedRail ? item.label : undefined}
       className={cn(
         "group relative flex items-center gap-3 rounded-xl px-2.5 py-2 text-sm font-medium transition-colors duration-200",

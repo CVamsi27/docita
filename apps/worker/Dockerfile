@@ -4,6 +4,7 @@ WORKDIR /app
 RUN npm install -g pnpm@10.30.3
 
 COPY pnpm-lock.yaml pnpm-workspace.yaml package.json ./
+COPY packages/auth/package.json ./packages/auth/
 COPY packages/db/package.json ./packages/db/
 COPY packages/eslint-config/package.json ./packages/eslint-config/
 COPY packages/types/package.json ./packages/types/
@@ -19,6 +20,7 @@ RUN --mount=type=cache,target=/root/.local/share/pnpm/store \
 RUN DATABASE_URL="postgresql://docita:docita@127.0.0.1:5432/docita?schema=public&sslmode=disable" \
     pnpm --filter @workspace/db run db:generate
 
+COPY packages/auth ./packages/auth
 COPY packages/db ./packages/db
 COPY packages/types ./packages/types
 COPY packages/utils ./packages/utils
@@ -27,6 +29,7 @@ COPY apps/api ./apps/api
 COPY apps/worker ./apps/worker
 
 RUN pnpm --filter @workspace/types run build && \
+    pnpm --filter @workspace/auth run build && \
     pnpm --filter @workspace/utils run build && \
     pnpm --filter @workspace/db run build && \
     pnpm --filter @docita/worker run build
