@@ -122,6 +122,14 @@ describe("canAccessTarget", () => {
     ).toBe(true);
 
     expect(
+      canAccessTarget(APP_ACCESS_TARGETS.PAGE_APPOINTMENTS, {
+        role: "ADMIN",
+        canAccessFeature: () => true,
+        currentTier: Tier.FRONT_DESK,
+      }),
+    ).toBe(true);
+
+    expect(
       canAccessTarget(APP_ACCESS_TARGETS.PAGE_CONSULTATION, {
         role: "ADMIN",
         canAccessFeature: () => true,

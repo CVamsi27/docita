@@ -26,6 +26,9 @@
 #   CACHE_BACKEND (defaults to memory)
 #   REDIS_URL (only when CACHE_BACKEND=redis)
 #   ENABLE_SCHEDULERS
+#   RAZORPAY_KEY_ID
+#   RAZORPAY_KEY_SECRET
+#   RAZORPAY_WEBHOOK_SECRET
 #   NODE_ENV (defaults to production)
 
 set -euo pipefail
@@ -70,6 +73,9 @@ export R2_BUCKET_NAME="${R2_BUCKET_NAME:-docita-startup-smoke}"
 export QUEUE_BACKEND="${QUEUE_BACKEND:-postgres}"
 export CACHE_BACKEND="${CACHE_BACKEND:-memory}"
 export ENABLE_SCHEDULERS="${ENABLE_SCHEDULERS:-false}"
+export RAZORPAY_KEY_ID="${RAZORPAY_KEY_ID:-rzp_test_ci_startup_smoke}"
+export RAZORPAY_KEY_SECRET="${RAZORPAY_KEY_SECRET:-ci-startup-smoke-razorpay-secret}"
+export RAZORPAY_WEBHOOK_SECRET="${RAZORPAY_WEBHOOK_SECRET:-ci-startup-smoke-razorpay-webhook-secret}"
 export PORT
 
 cd "$REPO_ROOT"
