@@ -36,9 +36,17 @@ test.describe("Front desk workspace sidebar", () => {
   test("keeps Appointments visible for front desk clinic", async ({ page }) => {
     await page.goto("/today", { waitUntil: "domcontentloaded" });
     await expectProtectedWorkspaceLoaded(page);
+
+    const expandSidebar = page.getByRole("button", {
+      name: "Expand sidebar",
+    });
+    if (await expandSidebar.isVisible()) {
+      await expandSidebar.click();
+    }
+
     const sidebar = page.getByRole("complementary").first();
-    await expect(
-      sidebar.getByRole("link", { name: "Appointments", exact: true }),
-    ).toBeVisible();
+    const appointmentsLink = sidebar.getByTestId("sidebar-link--appointments");
+    await expect(appointmentsLink).toBeVisible();
+    await expect(appointmentsLink).toHaveAccessibleName("Appointments");
   });
 });
