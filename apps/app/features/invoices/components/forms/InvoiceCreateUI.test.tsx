@@ -1,4 +1,4 @@
-import { fireEvent, screen, waitFor } from "@testing-library/react";
+import { fireEvent, screen, waitFor, within } from "@testing-library/react";
 import { render } from "@/test-utils/render-with-tooltip";
 import { describe, expect, it, vi, beforeEach } from "vitest";
 import type { ReactElement } from "react";
@@ -85,6 +85,8 @@ vi.mock("@/features/invoices/hooks/use-invoice-create-logic", async () => {
 });
 
 describe("InvoiceCreateUI", () => {
+  const desktopTable = () => screen.getByRole("table");
+
   beforeEach(() => {
     invoiceCreateMocks.onSubmit.mockReset();
     invoiceCreateMocks.routerPush.mockReset();
@@ -94,12 +96,12 @@ describe("InvoiceCreateUI", () => {
     render(<InvoiceCreateUI />);
 
     expect(screen.getByRole("heading", { name: "New invoice" })).toBeInTheDocument();
-    expect(screen.getByDisplayValue("Consultation")).toBeInTheDocument();
+    expect(within(desktopTable()).getByDisplayValue("Consultation")).toBeInTheDocument();
 
-    fireEvent.change(screen.getByDisplayValue("Consultation"), {
+    fireEvent.change(within(desktopTable()).getByDisplayValue("Consultation"), {
       target: { value: "Follow-up consultation" },
     });
-    fireEvent.change(screen.getByDisplayValue("500"), {
+    fireEvent.change(within(desktopTable()).getByDisplayValue("500"), {
       target: { value: "750" },
     });
     fireEvent.change(screen.getByPlaceholderText("Notes"), {
@@ -129,7 +131,7 @@ describe("InvoiceCreateUI", () => {
     render(<InvoiceCreateUI />);
 
     fireEvent.click(screen.getByRole("button", { name: "Add Item" }));
-    expect(screen.getAllByPlaceholderText("Item description")).toHaveLength(2);
+    expect(within(desktopTable()).getAllByPlaceholderText("Item description")).toHaveLength(2);
 
     fireEvent.click(screen.getAllByRole("button", { name: "Cancel" }).at(-1)!);
     expect(invoiceCreateMocks.routerPush).toHaveBeenCalledWith("/invoices");

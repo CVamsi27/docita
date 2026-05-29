@@ -40,7 +40,7 @@ export function PageTabs({
   const activeTabRef = useRef<HTMLButtonElement | null>(null);
 
   useEffect(() => {
-    activeTabRef.current?.scrollIntoView({
+    activeTabRef.current?.scrollIntoView?.({
       block: "nearest",
       inline: "nearest",
     });

@@ -100,6 +100,7 @@ describe("clinicDetailsSchema", () => {
       countryCode: "GB",
       website: "",
       gstin: "",
+      mapsLocation: { lat: 51.5074, lng: -0.1278 },
     });
 
     expect(result.success).toBe(true);

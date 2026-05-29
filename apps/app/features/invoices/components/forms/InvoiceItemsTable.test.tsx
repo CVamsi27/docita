@@ -16,6 +16,8 @@ const baseItem = {
 };
 
 describe("InvoiceItemsTable", () => {
+  const desktopTable = () => screen.getByRole("table");
+
   it("renders tax controls and disables GST rate for exempt healthcare lines", () => {
     render(
       <InvoiceItemsTable
@@ -26,11 +28,11 @@ describe("InvoiceItemsTable", () => {
       />,
     );
 
-    expect(screen.getByDisplayValue("Consultation")).toBeInTheDocument();
-    expect(screen.getByText("Healthcare exempt")).toBeInTheDocument();
-    expect(screen.getByDisplayValue("0")).toBeDisabled();
-    expect(screen.getByPlaceholderText("HSN code")).toBeInTheDocument();
-    expect(screen.getByText("Rs 500")).toBeInTheDocument();
+    expect(within(desktopTable()).getByDisplayValue("Consultation")).toBeInTheDocument();
+    expect(within(desktopTable()).getByText("Healthcare exempt")).toBeInTheDocument();
+    expect(within(desktopTable()).getByDisplayValue("0")).toBeDisabled();
+    expect(within(desktopTable()).getByPlaceholderText("HSN code")).toBeInTheDocument();
+    expect(within(desktopTable()).getByText("Rs 500")).toBeInTheDocument();
   });
 
   it("emits updates for quantity, GST rate, HSN/SAC, and remove actions", () => {
@@ -46,13 +48,13 @@ describe("InvoiceItemsTable", () => {
       />,
     );
 
-    fireEvent.change(screen.getByDisplayValue("1"), {
+    fireEvent.change(within(desktopTable()).getByDisplayValue("1"), {
       target: { value: "2" },
     });
-    fireEvent.change(screen.getByDisplayValue("18"), {
+    fireEvent.change(within(desktopTable()).getByDisplayValue("18"), {
       target: { value: "12" },
     });
-    fireEvent.change(screen.getByPlaceholderText("HSN code"), {
+    fireEvent.change(within(desktopTable()).getByPlaceholderText("HSN code"), {
       target: { value: "9983" },
     });
 
