@@ -1,0 +1,32 @@
+---
+import MainLayout from "@/layouts/main-layout.astro";
+import { resolvePaymentRedirectLocation } from "@/lib/public-api";
+
+const token = Astro.params.token?.trim();
+if (!token) {
+  return Astro.redirect("/404");
+}
+
+const redirectLocation = await resolvePaymentRedirectLocation(token, Astro.url.origin);
+
+if (redirectLocation) {
+  return Astro.redirect(redirectLocation);
+}
+---
+
+<MainLayout
+  title="Pay your invoice | Docita"
+  description="Complete your clinic invoice payment securely."
+  canonicalPath={`/pay/${token}`}
+  noIndex
+>
+  <main class="mx-auto flex min-h-[60vh] max-w-lg flex-col justify-center px-6 py-16">
+    <h1 class="text-2xl font-semibold tracking-tight text-foreground">
+      Payment link unavailable
+    </h1>
+    <p class="mt-3 text-sm leading-relaxed text-muted-foreground">
+      This payment link may have expired or already been used. Please contact
+      your clinic if you still need to pay.
+    </p>
+  </main>
+</MainLayout>

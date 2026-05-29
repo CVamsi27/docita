@@ -1,0 +1,26 @@
+---
+import MainLayout from "@/layouts/main-layout.astro";
+import PatientDocumentDownload from "@/components/patient-document-download.astro";
+import { resolveApiUrl } from "@/lib/public-api";
+
+const token = Astro.params.token?.trim();
+if (!token) {
+  return Astro.redirect("/404");
+}
+
+const downloadHref = resolveApiUrl(`/public/patient/rx/${encodeURIComponent(token)}/pdf`);
+---
+
+<MainLayout
+  title="Your prescription | Docita"
+  description="Download your prescription PDF from Docita."
+  canonicalPath={`/rx/${token}`}
+  noIndex
+>
+  <PatientDocumentDownload
+    title="Your prescription"
+    description="Tap below to download your prescription as a PDF. You do not need a Docita account or password."
+    downloadHref={downloadHref}
+    downloadLabel="Download prescription PDF"
+  />
+</MainLayout>

@@ -1,0 +1,26 @@
+---
+import MainLayout from "@/layouts/main-layout.astro";
+import PatientDocumentDownload from "@/components/patient-document-download.astro";
+import { resolveApiUrl } from "@/lib/public-api";
+
+const token = Astro.params.token?.trim();
+if (!token) {
+  return Astro.redirect("/404");
+}
+
+const downloadHref = resolveApiUrl(`/public/patient/inv/${encodeURIComponent(token)}/pdf`);
+---
+
+<MainLayout
+  title="Your invoice | Docita"
+  description="Download your clinic invoice PDF from Docita."
+  canonicalPath={`/inv/${token}`}
+  noIndex
+>
+  <PatientDocumentDownload
+    title="Your invoice"
+    description="Tap below to download your invoice as a PDF. You do not need a Docita account or password."
+    downloadHref={downloadHref}
+    downloadLabel="Download invoice PDF"
+  />
+</MainLayout>

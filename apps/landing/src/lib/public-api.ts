@@ -19,7 +19,7 @@ function getLandingApiBaseUrl(): string {
   return normalizeBaseUrl(baseUrl);
 }
 
-function resolveApiUrl(path: string, baseOrigin = getBaseOrigin()): string {
+export function resolveApiUrl(path: string, baseOrigin = getBaseOrigin()): string {
   const baseUrl = getLandingApiBaseUrl();
   if (baseUrl.startsWith("/")) {
     return new URL(`${baseUrl}${path}`, baseOrigin).toString();
@@ -52,4 +52,21 @@ export async function fetchLandingJson<T>(
   }
 
   return (await response.json()) as T;
+}
+
+export async function resolvePaymentRedirectLocation(
+  token: string,
+  baseOrigin?: string,
+): Promise<string | null> {
+  const response = await fetch(
+    resolveApiUrl(`/public/patient/pay/${encodeURIComponent(token)}`, baseOrigin),
+    { redirect: "manual" },
+  );
+  const redirectLocation = response.headers.get("location");
+
+  if (redirectLocation && response.status >= 300 && response.status < 400) {
+    return redirectLocation;
+  }
+
+  return null;
 }
