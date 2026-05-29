@@ -1,5 +1,6 @@
 import { PlanMode, PrismaClient } from '@workspace/db';
 import * as bcrypt from 'bcrypt';
+import { SEED_PATIENT_PHONE_NUMBER_E164 } from './seed-constants';
 
 type SeedEntityRef = { id: string };
 
@@ -485,6 +486,7 @@ export async function seedClinicUsers(
     where: { email: 'patient.portal@docita.work' },
     update: {
       emailVerified: true,
+      phoneNumber: SEED_PATIENT_PHONE_NUMBER_E164,
     },
     create: {
       email: 'patient.portal@docita.work',
@@ -492,7 +494,7 @@ export async function seedClinicUsers(
       name: 'Rajesh Kumar',
       role: 'PATIENT',
       clinicId: null,
-      phoneNumber: '+91 9876543410',
+      phoneNumber: SEED_PATIENT_PHONE_NUMBER_E164,
       emailVerified: true,
     },
   });
