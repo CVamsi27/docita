@@ -164,19 +164,20 @@ Wishing you a quick recovery. Reach out for any clarifications.`,
       category: 'PRESCRIPTION',
       content: `Hi {{patientName}}, Dr. {{doctorName}} from *{{clinicName}}* has added your prescription.
 
-View full prescription here: {{link}}
+Tap the button below to view your full prescription.
 
 Wishing you a quick recovery.`,
       variables: [
-        { name: 'patientName', required: true },
         { name: 'clinicName', required: true },
+        { name: 'patientName', required: true },
         { name: 'doctorName', required: true },
-        { name: 'link', required: false, defaultValue: 'Link' },
       ],
       buttonType: 'CALL_TO_ACTION',
+      buttons: [{ id: 'view_prescription', text: 'View Prescription' }],
+      buttonUrlVariable: 'rxToken',
       textFallback: `Hi {{patientName}}, Dr. {{doctorName}} from *{{clinicName}}* has added your prescription.
 
-View full prescription here: {{link}}
+View full prescription here: {{rxLink}}
 
 Wishing you a quick recovery.`,
     },
@@ -190,25 +191,26 @@ Invoice #: {{invoiceNumber}}
 Date: {{date}}
 Amount: {{amount}}
 
-Pay online here: {{paymentLink}}
+Tap the button below to pay online.
 
 Thank you for visiting us.`,
       variables: [
-        { name: 'patientName', required: true },
         { name: 'clinicName', required: true },
-        { name: 'amount', required: true },
+        { name: 'patientName', required: true },
         { name: 'invoiceNumber', required: true },
         { name: 'date', required: true },
-        { name: 'paymentLink', required: false, defaultValue: '' },
+        { name: 'amount', required: true },
       ],
       buttonType: 'CALL_TO_ACTION',
+      buttons: [{ id: 'pay_now', text: 'Pay Now' }],
+      buttonUrlVariable: 'payToken',
       textFallback: `Hi {{patientName}}, your invoice from *{{clinicName}}* is ready.
 
 Invoice #: {{invoiceNumber}}
 Date: {{date}}
 Amount: {{amount}}
 
-Pay online here: {{paymentLink}}
+Pay online here: {{payLink}}
 
 Thank you for visiting us.`,
     },
@@ -219,20 +221,22 @@ Thank you for visiting us.`,
       content: `Hi {{patientName}}, your invoice from *{{clinicName}}* is ready.
 
 Amount: {{amount}}
-View invoice here: {{link}}
+
+Tap the button below to view your invoice.
 
 Thank you for visiting us.`,
       variables: [
-        { name: 'patientName', required: true },
         { name: 'clinicName', required: true },
+        { name: 'patientName', required: true },
         { name: 'amount', required: true },
-        { name: 'link', required: false, defaultValue: 'Link' },
       ],
       buttonType: 'CALL_TO_ACTION',
+      buttons: [{ id: 'view_invoice', text: 'View Invoice' }],
+      buttonUrlVariable: 'invToken',
       textFallback: `Hi {{patientName}}, your invoice from *{{clinicName}}* is ready.
 
 Amount: {{amount}}
-View invoice here: {{link}}
+View invoice here: {{invLink}}
 
 Thank you for visiting us.`,
     },
@@ -245,23 +249,24 @@ Thank you for visiting us.`,
 Amount: {{amount}}
 Due by: {{dueDate}}
 
-View invoice and pay online here: {{invoiceLink}}
+Tap the button below to view your invoice and pay online.
 
 Reach out if you have any questions.`,
       variables: [
-        { name: 'patientName', required: true },
         { name: 'clinicName', required: true },
+        { name: 'patientName', required: true },
         { name: 'amount', required: true },
         { name: 'dueDate', required: true },
-        { name: 'invoiceLink', required: false, defaultValue: 'Link' },
       ],
       buttonType: 'CALL_TO_ACTION',
+      buttons: [{ id: 'pay_now', text: 'Pay Now' }],
+      buttonUrlVariable: 'invToken',
       textFallback: `Hi {{patientName}}, a quick reminder from *{{clinicName}}* that your invoice is still due.
 
 Amount: {{amount}}
 Due by: {{dueDate}}
 
-View invoice and pay online here: {{invoiceLink}}
+View invoice and pay online here: {{invLink}}
 
 Reach out if you have any questions.`,
     },
