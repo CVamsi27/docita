@@ -3,7 +3,7 @@
 This document covers **every WhatsApp template Docita sends through Meta**, split into two categories:
 
 1. **Marketing templates** (broadcasts §1–§10) — outbound campaigns from the internal broadcast feature.
-2. **Utility templates** (transactional, §11–§26) — system messages triggered by user actions in the clinic app: appointment confirmations, reminders, doctor delays, prescriptions, invoices, payments, plus patient-reply acknowledgements (§25–§26).
+2. **Utility templates** (transactional, §11–§26) — system messages triggered by user actions in the clinic app: appointment confirmations, reminders, doctor delays, prescriptions, invoices, payments, plus patient-reply acknowledgements (§24–§25).
 3. **Authentication template** (§27) — patient portal / public-booking OTP. Meta's **AUTHENTICATION** category; mandatory copy-code button.
 
 Marketing templates open a 24-hour customer service window. Utility templates can be sent at any time but must match the user-initiated action and contain no promotional content — otherwise Meta will reject or down-categorise them.
@@ -44,10 +44,42 @@ Meta rejects templates where the **domain** is dynamic (e.g. `https://{{4}}` or 
 |---|---|---|---|
 | `prescription_created` | View Prescription | `https://docita.work/rx/{{1}}` | `rxToken` (e.g. prescription id) |
 | `invoice_created` | View Invoice | `https://docita.work/inv/{{1}}` | `invToken` (invoice id) |
-| `payment_reminder` | Pay Now | `https://docita.work/inv/{{1}}` | `invToken` |
+| `payment_reminder` | Pay Now | `https://docita.work/pay/{{1}}` | `payToken` (payment session id) |
+| `payment_link` | Pay Now | `https://docita.work/pay/{{1}}` | `payToken` (payment session id) |
 | `invoice_ready` | Pay Now | `https://docita.work/pay/{{1}}` | `payToken` (payment session id) |
 
 The button’s `{{1}}` is **independent** from body placeholders (body may use `{{1}}`–`{{3}}` for clinic/patient/doctor; the button still uses its own `{{1}}` for the path token). When sending from the API, pass only the token (e.g. `abc123`), not `https://docita.work/rx/abc123`.
+
+### Public patient pages (no login)
+
+CTA links open `docita.work` landing routes. Those pages call unauthenticated API endpoints that stream the PDF or redirect to Razorpay:
+
+| Landing path | API (versioned) | Purpose |
+|---|---|---|
+| `/rx/{prescriptionId}` | `GET /api/v1/public/patient/rx/{token}/pdf` | Download prescription PDF |
+| `/inv/{invoiceId}` | `GET /api/v1/public/patient/inv/{token}/pdf` | Download invoice PDF |
+| `/pay/{paymentSessionId}` | `GET /api/v1/public/patient/pay/{token}` | 302 redirect to Razorpay payment link |
+
+**Pay CTAs (`/pay/…`) are Docita-only today.** `payment_reminder`, `payment_link`, and `invoice_ready` send only when the clinic has an active **Docita Razorpay payment session** (`provider: razorpay`). The button always uses `https://docita.work/pay/{payToken}` — never a hospital’s external payment URL or a raw Razorpay link in the template. Cash invoices and third-party hospital billing links are skipped.
+
+Tokens are the same ids passed as `rxToken`, `invToken`, and `payToken` when sending WhatsApp templates. Access is unguessable-id based (no patient login). Deploy **both** the API and the landing site when changing these paths.
+
+**App resend vs automation:** Manual “Send on WhatsApp” from the prescription view and automatic sends on `PRESCRIPTION_CREATED` both use `prescription_created` (link + CTA).
+
+### When each utility template fires (code map)
+
+| Template | Trigger | API entry |
+|---|---|---|
+| `prescription_created` | Prescription saved (`PRESCRIPTION_CREATED`) or manual resend from prescription UI | [`system-events.service.ts`](../../apps/api/src/domains/whatsapp/application/services/system-events.service.ts), [`resend.service.ts`](../../apps/api/src/domains/whatsapp/application/services/resend.service.ts) |
+| `invoice_created` | Invoice generated (`INVOICE_GENERATED`) | [`system-events.service.ts`](../../apps/api/src/domains/whatsapp/application/services/system-events.service.ts) via [`whatsapp-event.listener.ts`](../../apps/api/src/domains/whatsapp/application/listeners/whatsapp-event.listener.ts) |
+| `invoice_ready` | Manual “Send on WhatsApp” from invoice UI (requires active payment session) | [`resend.service.ts`](../../apps/api/src/domains/whatsapp/application/services/resend.service.ts) |
+| `payment_link` | Staff creates/sends Razorpay payment link | [`payments-command.service.ts`](../../apps/api/src/domains/billing/application/services/payments-command.service.ts) |
+| `payment_reminder` | Scheduler / overdue reminder for payment session | [`payments-command.service.ts`](../../apps/api/src/domains/billing/application/services/payments-command.service.ts) |
+| `appointment_delay` | Doctor delay marked (`DOCTOR_DELAY_MARKED`; appointments shifted first) | [`system-events.service.ts`](../../apps/api/src/domains/whatsapp/application/services/system-events.service.ts) via [`whatsapp-event.listener.ts`](../../apps/api/src/domains/whatsapp/application/listeners/whatsapp-event.listener.ts) |
+
+`INVOICE_GENERATED` also runs [`invoice-events.listener.ts`](../../apps/api/src/domains/billing/infrastructure/listeners/invoice-events.listener.ts), which **only** creates a Razorpay payment session (no WhatsApp). Marking a consultation done does **not** send extra WhatsApp messages; automation handles patient notifications.
+
+Shared variable builders: [`patient-whatsapp-template-variables.ts`](../../apps/api/src/shared/whatsapp/patient-whatsapp-template-variables.ts).
 
 ---
 
@@ -615,7 +647,7 @@ Thank you for visiting us.
 
 ## 19. `payment_reminder` (UTILITY)
 
-Sent when an invoice is unpaid past the due date threshold.
+Fired by the daily 1 AM cron ([`scheduler.service.ts`](../../apps/api/src/domains/billing/application/services/scheduler.service.ts)) when a pending invoice's `dueDate` is exactly **1, 3, or 7 days** in the past (per clinic settings `paymentReminderDays`). Dedupes against `WhatsappLog` so each invoice receives each reminder day **at most once** even if the cron retries. Skipped if `paymentReminderEnabled = false` for the clinic, if there's no active Razorpay session, or if WhatsApp automation is paused.
 
 - **Category:** Utility
 - **Language:** English
@@ -628,18 +660,14 @@ Hi {{2}}, a quick reminder from *{{1}}* that your invoice is still due.
 Amount: {{3}}
 Due by: {{4}}
 
-Tap the button below to view your invoice and pay online.
+View invoice and pay online here: {{5}}
 
 Reach out if you have any questions.
 ```
 
-- **Variable order (body):** `clinicName`, `patientName`, `amount`, `dueDate`
-- **Buttons (Call to Action — Visit website, Dynamic):**
-  - **Button text:** `Pay Now`
-  - **Website URL:** `https://docita.work/inv/{{1}}`
-  - **Sample for button {{1}}:** `abc123`
-- **Sample body variables:** `Apollo Clinic`, `Priya Sharma`, `₹850`, `31 May 2026`
-- **API send:** body → `clinicName`, `patientName`, `amount`, `dueDate`; button → `invToken`
+- **Variable order:** `clinicName`, `patientName`, `amount`, `dueDate`, `invoiceLink`
+- **Buttons:** None — the Razorpay short URL is inlined in the body since `SendMessageUseCase` does not yet support dynamic CTA-button URLs.
+- **Sample variables:** `Apollo Clinic`, `Priya Sharma`, `₹850`, `31 May 2026`, `https://rzp.io/i/abc123`
 
 ---
 
@@ -671,7 +699,7 @@ Thank you for your payment. Wishing you good health.
 
 ## 21. `appointment_delay` (UTILITY)
 
-Sent automatically when reception marks a doctor as running late (via the doctor-delay flow). Fires for every patient whose appointment is still ahead of them on the day.
+Sent automatically when reception marks a doctor as running late ([`doctor-delay.service.ts`](../../apps/api/src/domains/appointments/application/services/doctor-delay.service.ts) → [`whatsapp-event.listener.ts`](../../apps/api/src/domains/whatsapp/application/listeners/whatsapp-event.listener.ts)). Affected same-day appointments are **shifted in the database first**; `newDate` / `newTime` are the **updated slot** (not the original booking time).
 
 - **Category:** Utility
 - **Language:** English
@@ -681,23 +709,25 @@ Sent automatically when reception marks a doctor as running late (via the doctor
 ```
 *Doctor Running Late* - {{1}}
 
-Hi {{2}}, the doctor is running approximately {{3}} minutes late for your appointment.
+Hi {{2}}, the doctor is running approximately {{3}} minutes late.
 
-Date: {{4}}
-Time: {{5}}
+Your updated appointment time:
+New date: {{4}}
+New time: {{5}}
 
 We apologise for the inconvenience and appreciate your patience.
 ```
 
-- **Variable order:** `clinicName`, `patientName`, `delayMinutes`, `date`, `time`
+- **Variable order:** `clinicName`, `patientName`, `delayMinutes`, `newDate`, `newTime`
 - **Buttons:** None
-- **Sample variables:** `Apollo Clinic`, `Priya Sharma`, `30`, `28 May 2026`, `4:30 PM`
+- **Sample variables:** `Apollo Clinic`, `Priya Sharma`, `30`, `28 May 2026`, `5:00 PM` (if the original slot was 4:30 PM and delay is 30 minutes)
+- **API send:** `newDate` / `newTime` from `appointment.startTime` after the delay shift, formatted in the clinic timezone ([`buildAppointmentDelayVariables`](../../apps/api/src/shared/whatsapp/patient-whatsapp-template-variables.ts))
 
 ---
 
-## 22. `prescription_shared` (UTILITY)
+## 22. `payment_link` (UTILITY)
 
-Triggered when staff hits the manual **Send to WhatsApp** button on a prescription detail page ([`useResendPrescriptionWhatsApp`](../../packages/data-access/src/hooks/use-whatsapp.ts) → [`resend.service.ts`](../../apps/api/src/domains/whatsapp/application/services/resend.service.ts)). Includes the full medication list inline (unlike the link-only `prescription_created` which fires automatically).
+Sent when staff creates or shares a Razorpay payment link for an invoice ([`payments-command.service.ts`](../../apps/api/src/domains/billing/application/services/payments-command.service.ts) → `sendPaymentLinkWhatsApp`). The Razorpay short URL is inlined in the body — the current `SendMessageUseCase` does not yet support dynamic CTA-button URLs, so the link lives in the body text rather than a Pay Now button.
 
 - **Category:** Utility
 - **Language:** English
@@ -705,22 +735,17 @@ Triggered when staff hits the manual **Send to WhatsApp** button on a prescripti
 - **Body:**
 
 ```
-Hi {{2}}, Dr. {{3}} from *{{1}}* has shared your prescription.
+Hi {{1}}, here is the secure payment link for your invoice at *{{2}}*.
 
-Medications:
-{{4}}
+Amount: {{3}}
+Pay online here: {{4}}
 
-Notes from the doctor:
-{{5}}
-
-Wishing you a quick recovery. Reach out for any clarifications.
+Reach out if you have any questions.
 ```
 
-- **Variable order:** `clinicName`, `patientName`, `doctorName`, `medications`, `instructions`
+- **Variable order:** `patientName`, `clinicName`, `amount`, `paymentLink`
 - **Buttons:** None
-- **Sample variables:** `Apollo Clinic`, `Priya Sharma`, `Ravi Kumar`, `• Paracetamol 500mg - 1 tab - twice a day (3 days)\n• Azithromycin 500mg - 1 tab - once a day (5 days)`, `Take after meals. Plenty of fluids.`
-
-> The full medication list is inlined into the body — this means the template variable carries PHI. Meta allows this for utility templates, but every send should also be logged to the `WhatsappLog` table (already handled by `resend.service.ts`).
+- **Sample variables:** `Priya Sharma`, `Apollo Clinic`, `₹850`, `https://rzp.io/i/abc123`
 
 ---
 
@@ -755,7 +780,7 @@ Thank you for visiting us.
 
 ---
 
-## 25. `patient_response_confirm` (UTILITY)
+## 24. `patient_response_confirm` (UTILITY)
 
 Acknowledgement sent **back to the patient** when they tap `Confirm` or `I am on my way` / `On time` on any appointment template. Fired by [`patient-response-confirmation.service.ts`](../../apps/api/src/domains/whatsapp/application/services/patient-response-confirmation.service.ts) after the response handler flips the appointment to `CONFIRMED`.
 
@@ -778,7 +803,7 @@ See you then. Please arrive 10 minutes early.
 
 ---
 
-## 26. `patient_response_delay` (UTILITY)
+## 25. `patient_response_delay` (UTILITY)
 
 Acknowledgement sent **back to the patient** when they tell us they're delayed and provide the minutes (e.g. tap `Delayed` then reply `15`). Fired by [`patient-response-confirmation.service.ts`](../../apps/api/src/domains/whatsapp/application/services/patient-response-confirmation.service.ts) once the response handler has noted the delay and checked for schedule conflicts.
 
@@ -814,22 +839,35 @@ Meta's third category. Strict rules:
 
 Used for both `/portal` patient login OTP ([`patient-portal-auth-command.service.ts`](../../apps/api/src/domains/patient-portal/application/services/patient-portal-auth-command.service.ts)) and public booking phone verification ([`public-booking-creation.service.ts`](../../apps/api/src/domains/public-booking/application/services/public-booking-creation.service.ts)). One template, two call sites — both pass `{ code }`.
 
-- **Category:** Authentication
-- **Language:** English
-- **Header:** None
-- **Body:**
+**Important — Meta auto-generates the body for AUTHENTICATION templates.** You do not write custom prose in WhatsApp Manager. The body is built from toggles. Don't try to add "Docita" or any other brand wording — Meta will reject it.
+
+### What to select in WhatsApp Manager
+
+| Field | Value |
+|---|---|
+| **Name** | `patient_login_otp` |
+| **Category** | Authentication |
+| **Language** | English |
+| **Code delivery setup** | **Copy code** (Recommended for now — no app signature hash required) |
+| **Add security recommendation** | ✅ ON — appends *"For your security, do not share this code."* |
+| **Add expiry time for the code** | ✅ ON, **10 minutes** — matches our `AUTH_CONSTANTS.MFA_CHALLENGE_TTL_MS` and patient-portal OTP TTL |
+| **Message validity period** | 10 minutes (default; controls delivery deadline, not code expiry) |
+
+> **About Zero-tap / One-tap auto-fill:** require the Android **package name** and **app signature hash** of a Docita Android app. We don't ship a Docita patient mobile app today, so leave these turned off and use **Copy code** until/unless we publish one. Zero-tap on web is not possible.
+
+### Body Meta will actually send (preview)
+
+With both toggles ON and Copy code selected:
 
 ```
-{{1}} is your Docita verification code.
-
-For your security, do not share this code with anyone. It is valid for 10 minutes.
+{{1}} is your verification code. For your security, do not share this code. This code expires in 10 minutes.
 ```
 
 - **Variable order:** `code`
-- **Button (Copy Code):** `Copy code` — Meta auto-copies `{{1}}` when tapped.
-- **Sample variables:** `429381`
+- **Button (Copy code):** `Copy code` — Meta auto-copies `{{1}}` when tapped.
+- **Sample variable:** `429381`
 
-> When submitting in Meta, pick category **Authentication** and the **One-time password** template type. Meta provides a fixed body skeleton; you can only customise the safety statement and the code-expiry duration. The 10-minute validity here matches `AUTH_CONSTANTS.MFA_CHALLENGE_TTL_MS` / patient-portal OTP TTL.
+The string above is what's hard-coded in [`packages/types/src/whatsapp/default-templates.data.ts`](../../packages/types/src/whatsapp/default-templates.data.ts) as both `content` and `textFallback`. Keep these in sync if you ever change the Meta toggles (e.g. expiry → 5 minutes) — otherwise the dev-mode/free-text fallback drifts from production.
 
 > Staff/admin MFA does **not** use WhatsApp — it uses TOTP via Google Authenticator ([`mfa.service.ts`](../../apps/api/src/shared/modules/auth/auth/mfa.service.ts)). No template needed.
 
@@ -924,14 +962,13 @@ Follow these steps for **each** template above. Allow ~15 minutes per template t
    - reschedule an appointment → `appointment_rescheduled` fires
    - mark doctor as delayed → `appointment_delay` fires for affected patients
    - cron job at T-24h / T-1h / T-30min → `appointment_reminder_*` fires
-   - share a prescription → `prescription_created` fires (link only, automatic)
-   - hit "Send to WhatsApp" on a prescription → `prescription_shared` fires (inline meds, manual)
+   - share a prescription (automatic or manual **Send to WhatsApp**) → `prescription_created` fires (link + CTA; opens `/rx/{id}`)
    - generate an invoice → `invoice_created` fires (automatic)
    - hit "Send to WhatsApp" on an invoice → `invoice_ready` fires (manual)
    - mark a Razorpay payment success → `payment_confirmation` fires (via `PAYMENT_CAPTURED` event from [`razorpay-invoice-webhook.service.ts`](../../apps/api/src/domains/billing/application/services/razorpay-invoice-webhook.service.ts))
 3. Verify the rendered message matches Meta's approved version. If the API still uses `textFallback` (the free-text version), the template lookup is failing — most often a name mismatch or pending approval.
 
-**For the Authentication template (§24):**
+**For the Authentication template (§27):**
 
 1. Submit `patient_login_otp` under Meta's **Authentication** category and pick the **One-time password** template type. Add the Copy-code button.
 2. Once approved, trigger from staging:
@@ -966,8 +1003,8 @@ Submit utility templates first — they unblock real patient-facing flows. Marke
 10. `invoice_ready` — manual "Send to WhatsApp" button on invoices.
 11. `payment_confirmation`
 12. `payment_reminder`
-13. `prescription_created`
-14. `prescription_shared` — manual "Send to WhatsApp" button on prescriptions; inlines medications.
+13. `prescription_created` — automatic and manual prescription WhatsApp (link + CTA).
+14. `payment_link` — staff-initiated Razorpay payment link share.
 15. `patient_response_confirm` — patient-side acknowledgement when patient confirms or is on the way.
 16. `patient_response_delay` — patient-side acknowledgement when patient reports a delay.
 
