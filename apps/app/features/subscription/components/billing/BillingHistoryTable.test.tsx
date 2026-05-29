@@ -41,7 +41,7 @@ describe("BillingHistoryTable", () => {
       screen.queryByRole("button", { name: /pdf/i }),
     ).not.toBeInTheDocument();
 
-    fireEvent.click(screen.getByRole("button", { name: /pay now/i }));
+    fireEvent.click(screen.getAllByRole("button", { name: /pay now/i })[0]!);
 
     expect(window.open).toHaveBeenCalledWith(
       "https://rzp.io/i/pending",
@@ -68,7 +68,9 @@ describe("BillingHistoryTable", () => {
       />,
     );
 
-    expect(screen.getByRole("button", { name: /pdf/i })).toBeInTheDocument();
+    expect(screen.getAllByRole("button", { name: /pdf/i }).length).toBeGreaterThan(
+      0,
+    );
     expect(
       screen.queryByRole("button", { name: /pay now/i }),
     ).not.toBeInTheDocument();
@@ -92,7 +94,9 @@ describe("BillingHistoryTable", () => {
       />,
     );
 
-    expect(screen.getByRole("button", { name: /pdf/i })).toBeInTheDocument();
+    expect(screen.getAllByRole("button", { name: /pdf/i }).length).toBeGreaterThan(
+      0,
+    );
     expect(
       screen.queryByRole("button", { name: /pay now/i }),
     ).not.toBeInTheDocument();

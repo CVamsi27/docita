@@ -16,14 +16,14 @@ type PatientResponseType =
   | "CANCEL"
   | "UNKNOWN";
 
-const RESPONSE_LABELS: Record<PatientResponseType, string> = {
+const RESPONSE_LABELS = {
   CONFIRM: "Confirmed via WhatsApp",
   ON_THE_WAY: "On the way (WhatsApp)",
   DELAY: "Running late (WhatsApp)",
   RESCHEDULE: "Asked to reschedule (WhatsApp)",
   CANCEL: "Cancelled via WhatsApp",
   UNKNOWN: "Replied on WhatsApp",
-};
+} satisfies Record<PatientResponseType, string>;
 
 const RESPONSE_VARIANT: Record<
   PatientResponseType,
@@ -44,15 +44,17 @@ export interface PatientWhatsAppResponseBadgeProps {
   className?: string;
 }
 
+function isPatientResponseType(value: string): value is PatientResponseType {
+  return Object.hasOwn(RESPONSE_LABELS, value);
+}
+
 export function PatientWhatsAppResponseBadge({
   responseType,
   responseTime,
   delayMinutes,
   className,
 }: PatientWhatsAppResponseBadgeProps) {
-  const type = (responseType as PatientResponseType) in RESPONSE_LABELS
-    ? (responseType as PatientResponseType)
-    : "UNKNOWN";
+  const type = isPatientResponseType(responseType) ? responseType : "UNKNOWN";
   const label =
     type === "DELAY" && delayMinutes != null
       ? `Running ${delayMinutes} min late (WhatsApp)`

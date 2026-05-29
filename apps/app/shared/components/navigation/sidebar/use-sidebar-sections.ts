@@ -29,7 +29,7 @@ import {
 } from "@/components/navigation/nav-config";
 
 export function useSidebarSections() {
-  const { user } = useAuth();
+  const { user, isLoading: authLoading, token } = useAuth();
   const { clinicId } = useClinic();
   const {
     canAccess,
@@ -72,7 +72,9 @@ export function useSidebarSections() {
 
   const { data: unreadNotificationCount } =
     useUnreadNotificationCount(canAccessNotifications);
-  const { data: pendingJoinRequestData } = usePendingJoinRequestCount(isAdmin);
+  const { data: pendingJoinRequestData } = usePendingJoinRequestCount(
+    isAdmin && !authLoading && Boolean(token),
+  );
 
   const notificationCount = unreadNotificationCount?.count ?? 0;
   const pendingJoinRequestCount = pendingJoinRequestData?.count ?? 0;

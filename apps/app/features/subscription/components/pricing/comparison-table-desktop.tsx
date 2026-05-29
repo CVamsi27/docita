@@ -41,11 +41,11 @@ export function ComparisonTableDesktop({
   categories: FeatureCategory[];
 }) {
   return (
-    <div className="hidden overflow-x-auto md:block">
-      <Table className="text-sm">
+    <div className="hidden md:block">
+      <Table className="text-sm table-auto min-w-[56rem]">
         <TableHeader>
           <TableRow className="hover:bg-transparent">
-            <TableHead className="sticky left-0 z-10 w-[200px] min-w-[180px] border-r bg-card lg:w-[240px]">
+            <TableHead className="sticky left-0 z-10 w-[11rem] min-w-[11rem] max-w-[15rem] border-r bg-card lg:w-[15rem] lg:min-w-[15rem]">
               <span className="sr-only">Features</span>
             </TableHead>
             {tiers.map((tier) => {
@@ -55,7 +55,7 @@ export function ComparisonTableDesktop({
                 <TableHead
                   key={tier}
                   className={cn(
-                    "min-w-[120px] px-3 py-4 align-top text-center",
+                    "w-[7.5rem] min-w-[7.5rem] px-2 py-4 align-top text-center",
                     isCurrent && "bg-primary/5",
                   )}
                 >
@@ -81,7 +81,7 @@ export function ComparisonTableDesktop({
           <SectionHeader label="Plan Limits" colSpan={tiers.length + 1} />
           {limitRows.map((row: FeatureComparisonRow) => (
             <TableRow key={row.name} className="hover:bg-muted/50">
-              <TableCell className="sticky left-0 z-10 w-[200px] min-w-[180px] border-r bg-card py-2.5 text-sm font-medium transition-colors hover:bg-muted/50 lg:w-[240px]">
+              <TableCell className="sticky left-0 z-10 w-[11rem] min-w-[11rem] max-w-[15rem] border-r bg-card py-2.5 text-sm font-medium transition-colors hover:bg-muted/50 lg:w-[15rem] lg:min-w-[15rem]">
                 <div className="flex items-center gap-2">
                   <SymbolTooltip
                     label={row.name}
@@ -111,11 +111,11 @@ export function ComparisonTableDesktop({
                 <TableCell
                   key={tier}
                   className={cn(
-                    "text-center align-middle border-l py-2.5",
+                    "w-[7.5rem] min-w-[7.5rem] px-2 text-center align-middle border-l py-2.5",
                     currentTier === tier && "bg-primary/5",
                   )}
                 >
-                  <span className="text-sm font-medium">
+                  <span className="block text-sm font-medium tabular-nums whitespace-nowrap">
                     {String(row.values[tier])}
                   </span>
                 </TableCell>

@@ -1,7 +1,7 @@
 import type { ReactNode } from "react";
 
 import { cn } from "@workspace/ui/lib/utils";
-// import { NowServingBoard } from "@workspace/ui/components/now-serving-board";
+import { NowServingBoard } from "@workspace/ui/components/data-display/now-serving-board";
 
 import {
   type DashboardAlertDensity,
@@ -50,12 +50,12 @@ export function DashboardSharedWorkspace({
   const density = alertDensity ?? defaultAlertDensity(mode);
   const totalToday = todayAppointments.length;
 
-  // const tokenNumber = completedToday + inProgressToday;
-  // const tokenLabel =
-  //   tokenNumber > 0 ? String(tokenNumber).padStart(2, "0") : null;
-  // const currentPatientName = currentPatient?.patient
-  //   ? `${currentPatient.patient.firstName} ${currentPatient.patient.lastName}`.trim()
-  //   : null;
+  const tokenNumber = completedToday + inProgressToday;
+  const tokenLabel =
+    tokenNumber > 0 ? String(tokenNumber).padStart(2, "0") : null;
+  const currentPatientName = currentPatient?.patient
+    ? `${currentPatient.patient.firstName} ${currentPatient.patient.lastName}`.trim()
+    : null;
 
   return (
     <div className={cn("space-y-4 sm:space-y-6", className)}>
@@ -74,8 +74,9 @@ export function DashboardSharedWorkspace({
         nextPatientId={density === "full" ? currentPatient?.id : undefined}
       />
 
-      <div id="dashboard-queue" className="grid gap-4 sm:gap-6">
-        {/* <NowServingBoard
+      <div id="dashboard-queue" className="grid gap-4 sm:gap-6 lg:grid-cols-[minmax(0,220px)_1fr] xl:grid-cols-[minmax(0,220px)_1fr_1fr_1fr]">
+        <NowServingBoard
+          className="lg:col-span-1 xl:col-span-1"
           token={tokenLabel}
           patientName={currentPatientName}
           waiting={waitingCount}
@@ -83,7 +84,15 @@ export function DashboardSharedWorkspace({
             waitingCount > 0 ? waitingCount * slotDurationMinutes : null
           }
           status={inProgressToday > 0 && currentPatient ? "live" : "idle"}
-        /> */}
+          footer={
+            mode === "today" ? (
+              <span className="text-[var(--fs-xs)] text-white/70">
+                Today · <strong className="text-white">{totalToday}</strong>
+              </span>
+            ) : undefined
+          }
+        />
+        <div className="min-w-0 lg:col-span-1 xl:col-span-3">
         <DoctorDashboardCards
           currentPatient={currentPatient}
           nextPatients={nextPatients}
@@ -95,6 +104,7 @@ export function DashboardSharedWorkspace({
           }}
           estimatedWaitTime={waitingCount * slotDurationMinutes}
         />
+        </div>
       </div>
 
       {children}

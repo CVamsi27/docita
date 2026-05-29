@@ -40,7 +40,7 @@ export function PatientsFilters({
             onValueChange={(v) => {
               if (v === "all" || v === "recent" || v === "new") onFilterChange(v);
             }}
-            className="w-full md:w-[400px]"
+            className="w-full min-w-0 sm:w-auto md:max-w-[400px]"
           >
             <TabsList className="flex w-full overflow-x-auto overscroll-x-contain [scrollbar-width:thin] max-md:flex-nowrap md:grid md:grid-cols-3">
               <TabsTrigger value="all">All</TabsTrigger>
@@ -51,8 +51,8 @@ export function PatientsFilters({
         </div>
       </CardHeader>
       <CardContent>
-        <div className="flex items-center gap-4 mb-6">
-          <div className="relative flex-1 max-w-sm">
+        <div className="flex w-full min-w-0 flex-wrap items-center gap-4 mb-6">
+          <div className="relative min-w-0 flex-1 w-full sm:max-w-sm">
             <Search className="pointer-events-none absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" aria-hidden />
             <Input
               placeholder="Enter name or phone"

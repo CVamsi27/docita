@@ -31,7 +31,8 @@ function defaultDashboardStats(): DashboardStats {
 
 export const useDashboardLogic = () => {
   const queryClient = useQueryClient();
-  const { isAdmin } = useAuth();
+  const { isAdmin, isLoading: authLoading, token } = useAuth();
+  const joinRequestsEnabled = isAdmin && !authLoading && Boolean(token);
   const { canAccess } = usePermissionStore();
 
   const {
@@ -62,7 +63,7 @@ export const useDashboardLogic = () => {
     isFetching: fetchingJoinRequests,
     dataUpdatedAt: joinDataUpdatedAt,
     refetch: refetchJoinRequests,
-  } = usePendingJoinRequestCount(isAdmin);
+  } = usePendingJoinRequestCount(joinRequestsEnabled);
 
   const dashboardStats = useMemo((): DashboardStats => {
     if (rawStatsData == null) {
@@ -144,13 +145,13 @@ export const useDashboardLogic = () => {
       refetchAppointments(),
       refetchPatients(),
     ];
-    if (isAdmin) {
+    if (joinRequestsEnabled) {
       tasks.push(refetchJoinRequests());
     }
     await Promise.all(tasks);
     await queryClient.invalidateQueries({ queryKey: queryKeys.followUps.all() });
   }, [
-    isAdmin,
+    joinRequestsEnabled,
     queryClient,
     refetchStats,
     refetchAppointments,
@@ -169,7 +170,7 @@ export const useDashboardLogic = () => {
       statsDataUpdatedAt,
       appointmentsDataUpdatedAt,
       patientsDataUpdatedAt,
-      isAdmin ? joinDataUpdatedAt : 0,
+      joinRequestsEnabled ? joinDataUpdatedAt : 0,
     ].filter((v) => typeof v === "number" && v > 0);
     return candidates.length ? Math.max(...candidates) : null;
   }, [
@@ -177,7 +178,7 @@ export const useDashboardLogic = () => {
     appointmentsDataUpdatedAt,
     patientsDataUpdatedAt,
     joinDataUpdatedAt,
-    isAdmin,
+    joinRequestsEnabled,
   ]);
 
   return {

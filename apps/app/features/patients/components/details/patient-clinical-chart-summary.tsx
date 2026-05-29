@@ -109,9 +109,9 @@ export function PatientClinicalChartSummary({
         dateLabel: a.startTime ? formatLocaleDateShortMonthYear(a.startTime) : "",
         status: (a.status ?? "").toLowerCase(),
         type: a.type ?? null,
-        doctorName: null as string | null,
+        doctorName: null,
         chiefComplaint: a.chiefComplaint ?? a.notes ?? null,
-        primaryDiagnosis: null as string | null,
+        primaryDiagnosis: null,
         rxCount: 0,
       }));
   }, [timeline, appointments, appointmentMeta]);

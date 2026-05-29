@@ -49,7 +49,7 @@ function MobileHeader({ onMenuClick }: { onMenuClick: () => void }) {
   );
   return (
     <header
-      className="flex h-[var(--app-mobile-header-height)] items-center gap-1 border-b bg-background px-2 md:hidden"
+      className="flex h-[var(--app-mobile-header-height)] items-center gap-1 border-b bg-background px-2 pt-[env(safe-area-inset-top,0px)] md:hidden"
       aria-label="Mobile navigation"
       data-testid="mobile-header"
     >

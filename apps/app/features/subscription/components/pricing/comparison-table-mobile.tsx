@@ -52,12 +52,12 @@ export function ComparisonTableMobile({
         </div>
       </div>
 
-      <div className="grid grid-cols-[minmax(0,1fr)_auto_auto] items-baseline gap-3 rounded-lg border bg-muted/30 px-3 py-2 text-[var(--fs-2xs)] font-semibold uppercase tracking-wide">
+      <div className="grid grid-cols-[minmax(0,1fr)_minmax(4.5rem,auto)_minmax(4.5rem,auto)] items-baseline gap-x-3 gap-y-1 rounded-lg border bg-muted/30 px-3 py-2 text-[var(--fs-2xs)] font-semibold uppercase tracking-wide">
         <span className="text-muted-foreground">Feature</span>
-        <span className="text-right text-foreground">
+        <span className="shrink-0 text-right text-foreground">
           {getTierInfo(validCurrentTier).name}
         </span>
-        <span className="text-right text-primary">
+        <span className="shrink-0 text-right text-primary">
           {getTierInfo(compareWithTier).name}
         </span>
       </div>
@@ -72,15 +72,15 @@ export function ComparisonTableMobile({
           {limitRows.map((row) => (
             <div
               key={row.name}
-              className="grid grid-cols-[minmax(0,1fr)_auto_auto] items-baseline gap-3 px-3 py-2.5"
+              className="grid grid-cols-[minmax(0,1fr)_minmax(4.5rem,auto)_minmax(4.5rem,auto)] items-baseline gap-x-3 gap-y-1 px-3 py-2.5"
             >
               <p className="min-w-0 break-words text-[var(--fs-xs)] text-muted-foreground">
                 {row.name}
               </p>
-              <p className="text-right text-[var(--fs-sm)] font-medium tabular-nums text-foreground">
+              <p className="shrink-0 text-right text-[var(--fs-sm)] font-medium tabular-nums whitespace-nowrap text-foreground">
                 {String(row.values[validCurrentTier])}
               </p>
-              <p className="text-right text-[var(--fs-sm)] font-semibold tabular-nums text-primary">
+              <p className="shrink-0 text-right text-[var(--fs-sm)] font-semibold tabular-nums whitespace-nowrap text-primary">
                 {String(row.values[compareWithTier])}
               </p>
             </div>
@@ -112,7 +112,7 @@ export function ComparisonTableMobile({
             return (
               <div
                 key={item.feature}
-                className="grid grid-cols-[minmax(0,1fr)_auto_auto] items-baseline gap-3 px-3 py-2"
+                className="grid grid-cols-[minmax(0,1fr)_minmax(2.5rem,auto)_minmax(2.5rem,auto)] items-center gap-x-3 gap-y-1 px-3 py-2"
               >
                 <p className="min-w-0 break-words text-[var(--fs-xs)] text-foreground">
                   {item.label}

@@ -14,6 +14,10 @@ import { Button } from "@workspace/ui/components/form/button";
 import { Avatar, AvatarFallback } from "@workspace/ui/components/indicators/avatar";
 import { Badge } from "@workspace/ui/components/indicators/badge";
 import { LiveDot } from "@workspace/ui/components/indicators/live-dot";
+import {
+  ListRow,
+  ListRowGroup,
+} from "@workspace/ui/components/data-display/list-row";
 import { cn } from "@workspace/ui/lib/utils";
 import { humanizeUiLabel } from "@workspace/ui/lib/label-formatters";
 import { Clock, Play, Stethoscope, Users } from "lucide-react";
@@ -145,6 +149,28 @@ export function DoctorDashboardCardsUI({
               )}
             </div>
           )}
+
+          {nextPatients.length > 0 ? (
+            <ListRowGroup className="mt-4 md:hidden">
+              {nextPatients.slice(0, 5).map((appt, index) => {
+                const name = appt.patient
+                  ? `${appt.patient.firstName} ${appt.patient.lastName}`.trim()
+                  : "Patient";
+                return (
+                  <ListRow
+                    key={appt.id}
+                    token={String(index + 1).padStart(2, "0")}
+                    title={name}
+                    meta={humanizeUiLabel(appt.type)}
+                    time={formatTime(appt.startTime, "h:mm a")}
+                    status="waiting"
+                    statusLabel="Waiting"
+                    onClick={() => void handleStartAppointment(appt.id)}
+                  />
+                );
+              })}
+            </ListRowGroup>
+          ) : null}
         </CardContent>
       </Card>
 

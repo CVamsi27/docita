@@ -2,7 +2,6 @@
 
 import Link from "next/link";
 import { FileText } from "lucide-react";
-import { Badge } from "@workspace/ui/components/indicators/badge";
 import {
   Card,
   CardContent,
@@ -11,6 +10,10 @@ import {
 } from "@workspace/ui/components/indicators/card";
 import { Button } from "@workspace/ui/components/form/button";
 import { EmptyState } from "@workspace/ui/components/feedback/empty-state";
+import {
+  ListRow,
+  ListRowGroup,
+} from "@workspace/ui/components/data-display/list-row";
 import type { PatientPortalPrescription } from "@/features/patient-portal/types/patient-portal-types";
 import { getPrescriptionStatusLabel } from "@/features/patient-portal/rules/patient-portal-rules";
 import { formatDate } from "@/lib/formatters";
@@ -48,28 +51,24 @@ export function PatientPortalPrescriptionsUI({
               description="Prescriptions will appear here after your consultation is completed"
             />
           ) : (
-            <div className="space-y-3 pb-4">
-              {prescriptions.map((prescription) => (
-                <div
-                  key={prescription.id}
-                  className="rounded-md border p-3 text-sm"
-                >
-                  <div className="flex items-center justify-between gap-2">
-                    <div className="font-medium">{prescription.title}</div>
-                    <Badge variant="secondary">
-                      {getPrescriptionStatusLabel(prescription.status)}
-                    </Badge>
-                  </div>
-                  <div className="text-muted-foreground">
-                    {prescription.prescribedBy} •{" "}
-                    {formatDate(prescription.issuedAt)}
-                  </div>
-                </div>
-              ))}
+            <div className="ui-card-surface overflow-hidden rounded-[var(--radius-md)] border border-border/70 pb-4">
+              <ListRowGroup>
+                {prescriptions.map((prescription) => (
+                  <ListRow
+                    key={prescription.id}
+                    title={prescription.title}
+                    meta={prescription.prescribedBy}
+                    time={formatDate(prescription.issuedAt)}
+                    status={prescription.status}
+                    statusLabel={getPrescriptionStatusLabel(prescription.status)}
+                    showChevron={false}
+                  />
+                ))}
+              </ListRowGroup>
             </div>
           )}
-          <div className="flex justify-center pb-4">
-            <Button asChild variant="outline">
+          <div className="flex justify-center pb-4 pt-4">
+            <Button asChild variant="outline" className="touch-manipulation">
               <Link href={portalHomeHref}>Back to Portal Home</Link>
             </Button>
           </div>

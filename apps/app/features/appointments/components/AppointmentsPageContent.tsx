@@ -236,6 +236,7 @@ function AppointmentsContent() {
         ) : null}
 
         <div className="grid gap-4 md:gap-6 lg:grid-cols-[minmax(320px,360px)_minmax(0,1fr)]">
+          <div className="order-2 lg:order-1">
           <AppointmentsCalendarUI
             selectedPickerIso={selectedPickerIso}
             date={date}
@@ -248,7 +249,9 @@ function AppointmentsContent() {
             selectedDoctorId={selectedDoctorId}
             onDoctorSelect={setSelectedDoctorId}
           />
+          </div>
 
+          <div className="order-1 min-w-0 lg:order-2">
           <AppointmentsListUI
             selectedPickerIso={selectedPickerIso}
             clinicTz={clinicTz}
@@ -272,6 +275,7 @@ function AppointmentsContent() {
             onScheduleFollowUp={handleScheduleFollowUp}
             currentUserId={user?.id}
           />
+          </div>
         </div>
 
         <div

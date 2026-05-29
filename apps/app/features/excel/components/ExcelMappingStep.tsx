@@ -52,7 +52,7 @@ export const ExcelMappingStep = ({
   hasRequiredMappings,
 }: ExcelMappingStepProps) => {
   return (
-    <div className="grid gap-6 lg:grid-cols-2">
+    <div className="grid gap-6 max-lg:grid-cols-1 lg:grid-cols-2">
       <Card>
         <CardHeader>
           <CardTitle>Column mapping</CardTitle>

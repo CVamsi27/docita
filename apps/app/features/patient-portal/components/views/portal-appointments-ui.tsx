@@ -2,7 +2,6 @@
 
 import Link from "next/link";
 import { CalendarDays } from "lucide-react";
-import { Badge } from "@workspace/ui/components/indicators/badge";
 import {
   Card,
   CardContent,
@@ -11,6 +10,10 @@ import {
 } from "@workspace/ui/components/indicators/card";
 import { Button } from "@workspace/ui/components/form/button";
 import { EmptyState } from "@workspace/ui/components/feedback/empty-state";
+import {
+  ListRow,
+  ListRowGroup,
+} from "@workspace/ui/components/data-display/list-row";
 import type { PatientPortalAppointment } from "@/features/patient-portal/types/patient-portal-types";
 import { getAppointmentStatusLabel } from "@/features/patient-portal/rules/patient-portal-rules";
 import { formatDateTime } from "@/lib/formatters";
@@ -48,28 +51,24 @@ export function PatientPortalAppointmentsUI({
               description="Your next appointment will appear here with date, doctor, and facility details"
             />
           ) : (
-            <div className="space-y-3 pb-4">
-              {appointments.map((appointment) => (
-                <div
-                  key={appointment.id}
-                  className="rounded-md border p-3 text-sm"
-                >
-                  <div className="flex items-center justify-between gap-2">
-                    <div className="font-medium">{appointment.doctorName}</div>
-                    <Badge variant="secondary">
-                      {getAppointmentStatusLabel(appointment.status)}
-                    </Badge>
-                  </div>
-                  <div className="text-muted-foreground">
-                    {formatDateTime(appointment.scheduledAt)} •{" "}
-                    {appointment.clinicName}
-                  </div>
-                </div>
-              ))}
+            <div className="ui-card-surface overflow-hidden rounded-[var(--radius-md)] border border-border/70 pb-4">
+              <ListRowGroup>
+                {appointments.map((appointment) => (
+                  <ListRow
+                    key={appointment.id}
+                    title={appointment.doctorName}
+                    meta={appointment.clinicName}
+                    time={formatDateTime(appointment.scheduledAt)}
+                    status={appointment.status}
+                    statusLabel={getAppointmentStatusLabel(appointment.status)}
+                    showChevron={false}
+                  />
+                ))}
+              </ListRowGroup>
             </div>
           )}
-          <div className="flex justify-center pb-4">
-            <Button asChild variant="outline">
+          <div className="flex justify-center pb-4 pt-4">
+            <Button asChild variant="outline" className="touch-manipulation">
               <Link href={portalHomeHref}>Back to Portal Home</Link>
             </Button>
           </div>

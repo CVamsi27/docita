@@ -12,6 +12,7 @@ import {
   CardHeader,
   CardTitle,
 } from "@workspace/ui/components/indicators/card";
+import { SegmentedControl } from "@workspace/ui/components/navigation/segmented-control";
 import { DataState } from "@workspace/ui/components/data-display/data-state";
 import { PageHeader } from "@workspace/ui/components/layout/page-header";
 import {
@@ -38,6 +39,10 @@ const VIEW_OPTIONS: Array<{ value: FollowUpListView; label: string }> = [
   { value: "upcoming", label: "Upcoming" },
   { value: "all", label: "All open" },
 ];
+
+function isFollowUpListView(id: string): id is FollowUpListView {
+  return VIEW_OPTIONS.some((option) => option.value === id);
+}
 
 const STATUS_LABELS: Record<FollowUpStatus, string> = {
   PENDING: "Pending",
@@ -166,17 +171,22 @@ export function FollowUpsPageContent() {
           <CardHeader>
             <CardTitle className="text-base">Worklist</CardTitle>
           </CardHeader>
-          <CardContent className="flex flex-wrap gap-2">
-            {VIEW_OPTIONS.map((option) => (
-              <Button
-                key={option.value}
-                size="sm"
-                variant={view === option.value ? "default" : "outline"}
-                onClick={() => setView(option.value)}
-              >
-                {option.label}
-              </Button>
-            ))}
+          <CardContent className="min-w-0">
+            <SegmentedControl
+              ariaLabel="Follow-up worklist view"
+              size="sm"
+              className="min-w-[min(100%,28rem)]"
+              items={VIEW_OPTIONS.map((option) => ({
+                id: option.value,
+                label: option.label,
+              }))}
+              activeId={view}
+              onSelect={(id) => {
+                if (isFollowUpListView(id)) {
+                  setView(id);
+                }
+              }}
+            />
           </CardContent>
         </Card>
 

@@ -53,11 +53,22 @@ export const useAppointmentsLogic = () => {
   const [selectedDoctorId, setSelectedDoctorId] = useState<string | undefined>(
     undefined,
   );
+  const appliedDefaultDoctorRef = useRef(false);
   const [searchQuery, setSearchQuery] = useState("");
   const debouncedSearch = useDebounce(searchQuery, 300);
 
   const { user } = useAuth();
   const { clinic, clinicId: contextClinicId } = useClinic();
+
+  useEffect(() => {
+    if (appliedDefaultDoctorRef.current || !user?.id) {
+      return;
+    }
+    if (user.role === "ADMIN_DOCTOR") {
+      setSelectedDoctorId(user.id);
+    }
+    appliedDefaultDoctorRef.current = true;
+  }, [user?.id, user?.role]);
   const resolvedClinicId =
     clinic?.id ?? contextClinicId ?? user?.clinicId ?? undefined;
   const clinicReady = Boolean(resolvedClinicId);

@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
+import { useState } from "react";
 import { cn } from "@workspace/ui/lib/utils";
 import {
   Activity,
@@ -46,15 +47,18 @@ function NavLink({
   item,
   isActive,
   compact = false,
+  onNavigate,
 }: {
   item: (typeof navigation)[number];
   isActive: boolean;
   compact?: boolean;
+  onNavigate?: () => void;
 }) {
   const Icon = item.icon;
   return (
     <Link
       href={item.href}
+      onClick={onNavigate}
       className={cn(
         "inline-flex shrink-0 items-center gap-1.5 rounded-[var(--radius)] font-medium transition-colors",
         compact
@@ -75,6 +79,7 @@ export function PortalNav() {
   const pathname = usePathname();
   const { user, logout } = useAuth();
   const { data: consentSettings } = usePatientConsentSettings();
+  const [moreOpen, setMoreOpen] = useState(false);
 
   const isItemActive = (href: string) =>
     href === "/portal"
@@ -136,6 +141,19 @@ export function PortalNav() {
           </div>
         </div>
 
+        {consentUpdatedOn ? (
+          <p className="pb-2 text-xs text-muted-foreground md:hidden">
+            Consent updated {consentUpdatedOn}
+            {" · "}
+            <Link
+              href="/portal/profile/consent-form"
+              className="text-primary underline-offset-2 hover:underline"
+            >
+              View
+            </Link>
+          </p>
+        ) : null}
+
         <div className="flex items-center gap-2 pb-3 md:hidden">
           <div className="flex min-w-0 flex-1 items-center gap-2 overflow-x-auto overscroll-x-contain [scrollbar-width:thin]">
             {primaryMobileNav.map((item) => (
@@ -147,7 +165,7 @@ export function PortalNav() {
               />
             ))}
           </div>
-          <Sheet>
+          <Sheet open={moreOpen} onOpenChange={setMoreOpen}>
             <SheetTrigger asChild>
               <Button
                 type="button"
@@ -170,6 +188,7 @@ export function PortalNav() {
                     key={`mobile-secondary-${item.name}`}
                     item={item}
                     isActive={isItemActive(item.href)}
+                    onNavigate={() => setMoreOpen(false)}
                   />
                 ))}
               </div>
