@@ -4,15 +4,24 @@ import {
   type PatientResponseType,
 } from '@/domains/whatsapp/application/policies/patient-response.policy';
 
+function normalizeResponseToken(text: string): string {
+  return text
+    .toLowerCase()
+    .trim()
+    .replace(/\s+/g, '_')
+    .replace(/[^a-z0-9_]/g, '');
+}
+
 export function parsePatientResponse(text: string): PatientResponseType {
-  const normalized = text.toLowerCase().trim();
+  const normalized = normalizeResponseToken(text);
 
   if (EXACT_RESPONSE_MAPPING[normalized]) {
     return EXACT_RESPONSE_MAPPING[normalized];
   }
 
+  const rawLower = text.toLowerCase().trim();
   for (const pattern of INCLUDES_RESPONSE_PATTERNS) {
-    if (normalized.includes(pattern.needle)) {
+    if (rawLower.includes(pattern.needle)) {
       return pattern.type;
     }
   }

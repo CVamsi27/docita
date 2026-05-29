@@ -53,8 +53,14 @@ export class StaffNotificationRecipientResolver implements INotificationRecipien
   private getTargetRoles(type: StaffNotificationType): Role[] {
     const routingMap: Partial<Record<StaffNotificationType, Role[]>> = {
       PATIENT_RESPONSE: ['RECEPTIONIST', 'ADMIN', 'ADMIN_DOCTOR'],
-      APPOINTMENT_CANCEL: ['RECEPTIONIST', 'ADMIN', 'ADMIN_DOCTOR', 'DOCTOR'],
-      APPOINTMENT_DELAY: ['RECEPTIONIST', 'ADMIN_DOCTOR', 'DOCTOR'],
+      APPOINTMENT_CANCEL: [
+        'RECEPTIONIST',
+        'ADMIN',
+        'ADMIN_DOCTOR',
+        'DOCTOR',
+        'NURSE',
+      ],
+      APPOINTMENT_DELAY: ['RECEPTIONIST', 'ADMIN_DOCTOR', 'DOCTOR', 'NURSE'],
       PRESCRIPTION_PENDING: ['DOCTOR', 'ADMIN_DOCTOR'],
       INVOICE_PENDING: ['ADMIN', 'ADMIN_DOCTOR'],
       SYSTEM_ALERT: ['ADMIN', 'ADMIN_DOCTOR'],

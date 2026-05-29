@@ -227,7 +227,9 @@ describe('WhatsappEventListener', () => {
         10000,
       );
 
-      await expect(listener.handlePaymentCaptured(event)).resolves.not.toThrow();
+      await expect(
+        listener.handlePaymentCaptured(event),
+      ).resolves.not.toThrow();
       expect(notifyStaffMock).toHaveBeenCalled();
     });
   });

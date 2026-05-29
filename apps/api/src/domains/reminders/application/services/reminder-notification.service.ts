@@ -18,6 +18,7 @@ import {
 import { SendMessageUseCase } from '@/domains/whatsapp/application/use-cases/send-message.use-case';
 import { CLOCK_PORT, type IClock } from '@/shared/common/ports/clock.port';
 import { isClinicWhatsAppAutomationSendingAllowed } from '@/shared/whatsapp/whatsapp-patient-send-policy.util';
+import { toPrismaInputJsonValue } from '@/shared/common/json/to-prisma-input-json-value';
 
 function formatCaughtError(error: unknown): string {
   return error instanceof Error ? error.message : 'Unknown error';
@@ -185,8 +186,14 @@ export class ReminderNotificationService {
             message: `Sent template: ${templateId}`,
             type: 'reminder',
             status: WhatsappLogStatus.SENT,
+            providerMessageId: sendResult.providerMessageId || null,
             senderMode: sendResult.senderMode ?? 'SHARED',
             senderPhoneNumberId: sendResult.senderPhoneNumberId ?? null,
+            requestBody: toPrismaInputJsonValue({
+              appointmentId: appointment.id,
+              templateId,
+              variables,
+            }),
           },
         });
 

@@ -111,6 +111,12 @@ export const whatsappWebhookPayloadSchema = z.object({
                   button: z
                     .object({ text: z.string(), payload: z.string() })
                     .optional(),
+                  context: z
+                    .object({
+                      from: z.string().optional(),
+                      id: z.string(),
+                    })
+                    .optional(),
                 }),
               )
               .optional(),
